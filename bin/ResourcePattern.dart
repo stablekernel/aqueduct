@@ -1,4 +1,4 @@
-import 'dart:core';
+part of monadart;
 
 class ResourcePattern {
 

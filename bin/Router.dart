@@ -1,7 +1,4 @@
-import 'ResourcePattern.dart';
-import 'dart:async';
-import 'dart:io';
-
+part of monadart;
 
 class Router {
   List<_ResourceRoute> routes;
@@ -16,8 +13,15 @@ class Router {
     unhandledRequestHandler = _handleUnhandledRequest;
   }
 
+  Stream<RoutedHttpRequest> route(String pattern) {
+
+    var controller = new StreamController<RoutedHttpRequest>();
+    routes.add(new _ResourceRoute(new ResourcePattern(pattern), controller));
+
+    return controller.stream;
+  }
+
   listener(HttpRequest req) {
-    var matchResults = null;
     for (var route in routes) {
       var routeMatch = route.pattern.matchesInUri(req.uri);
 
@@ -36,20 +40,6 @@ class Router {
     req.response.close();
   }
 
-  Stream<RoutedHttpRequest> route(String pattern) {
-
-    var controller = new StreamController<RoutedHttpRequest>();
-    routes.add(new _ResourceRoute(new ResourcePattern(pattern), controller));
-
-    return controller.stream;
-  }
-}
-
-class RoutedHttpRequest {
-  final HttpRequest request;
-  final Map<String, String> pathValues;
-
-  RoutedHttpRequest(this.request, this.pathValues);
 }
 
 class _ResourceRoute {

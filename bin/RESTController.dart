@@ -1,19 +1,45 @@
-import 'dart:mirrors';
-import 'dart:io';
+part of monadart;
 
 class RESTController {
-  call(HttpRequest req) {
-    Symbol method = new Symbol("${req.method.toLowerCase()}");
 
-    InstanceMirror m = reflect(this);
-    try {
-      reflect(this).invoke(method, [req]);
-    } catch (e, stacktrace) {
-      print("${req.uri} ${e}, ${stacktrace}");
+  static String pattern() {
+    return null;
+  }
 
-      req.response.statusCode = 500;
-    } finally {
-      req.response.close();
+  call(request) {
+    if(request is RoutedHttpRequest) {
+      var req = (request as RoutedHttpRequest).request;
+      var params = (request as RoutedHttpRequest).pathValues;
+
+      Symbol method = new Symbol("${req.method.toLowerCase()}");
+
+      var symbolicatedParams = new Map<Symbol, dynamic>();
+      params.forEach((key, value) {
+        symbolicatedParams[new Symbol(key)] = value;
+      });
+
+      try {
+        reflect(this).invoke(method, [req], symbolicatedParams);
+      } catch (e, stacktrace) {
+        print("${req.uri} ${e}, ${stacktrace}");
+
+        req.response.statusCode = 500;
+      } finally {
+        req.response.close();
+      }
+    } else if(request is HttpRequest) {
+      var req = request as HttpRequest;
+      Symbol method = new Symbol("${req.method.toLowerCase()}");
+
+      try {
+        reflect(this).invoke(method, [req]);
+      } catch (e, stacktrace) {
+        print("${req.uri} ${e}, ${stacktrace}");
+
+        req.response.statusCode = 500;
+      } finally {
+        req.response.close();
+      }
     }
   }
 

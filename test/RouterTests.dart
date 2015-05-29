@@ -2,9 +2,9 @@
 
 import "package:test/test.dart";
 import "dart:core";
-import '../bin/Router.dart';
 import "dart:io";
 import 'package:http/http.dart' as http;
+import '../bin/monadart.dart';
 
 //const int workers = 4;
 //
@@ -31,12 +31,16 @@ void main() {
 
   setUp(() {
     return HttpServer.bind("0.0.0.0", 4040).then((incomingServer) {
+      server = incomingServer;
+
       Router router = new Router();
+
       router.route("/player").listen(basicHandler);
       router.route("/text").listen(textHandler);
       router.route("/a/:id").listen(echoHandler);
+      router.route("/raw").map((r) => r.request).listen(rawHandler);
+
       incomingServer.listen(router.listener);
-      server = incomingServer;
     });
   });
 
@@ -63,6 +67,12 @@ void main() {
       expect(response.body, equals("foobar"));
     }));
   });
+
+  test("Downgrade", () {
+    http.get("http://localhost:4040/raw").then(expectAsync((response) {
+      expect(response.statusCode, equals(200));
+    }));
+  });
 }
 
 void echoHandler(RoutedHttpRequest req) {
@@ -80,4 +90,9 @@ void textHandler(RoutedHttpRequest req) {
   req.request.response.statusCode = 200;
   req.request.response.write("text");
   req.request.response.close();
+}
+
+void rawHandler(HttpRequest req) {
+  req.response.statusCode = 200;
+  req.response.close();
 }

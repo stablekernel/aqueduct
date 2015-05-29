@@ -2,7 +2,7 @@
 
 import "package:test/test.dart";
 import "dart:core";
-import '../bin/ResourcePattern.dart';
+import '../bin/monadart.dart';
 
 void main() {
 
