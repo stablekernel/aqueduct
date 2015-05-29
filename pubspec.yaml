@@ -1,0 +1,8 @@
+name: testdart
+version: 0.0.1
+description: A sample command-line application
+dependencies:
+    http: any
+
+dev_dependencies:
+  test: any
