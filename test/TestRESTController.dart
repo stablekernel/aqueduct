@@ -10,6 +10,10 @@ class TestRESTController extends RESTController {
     }
   }
 
+  put(HttpRequest req) {
+    throw new ArgumentError("missing args");
+  }
+
   getPlayer(HttpRequest req, String id) {
     req.response.statusCode = 200;
     req.response.write("id=${id}");

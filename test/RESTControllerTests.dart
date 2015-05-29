@@ -35,7 +35,18 @@ void main() {
       expect(response.statusCode, equals(200));
       expect(response.body, equals("id=foobar"));
     }));
+  });
 
+  test("Router hands back 500 for bad handler", () {
+    http.put("http://localhost:4040/a").then(expectAsync((response) {
+      expect(response.statusCode, equals(500));
+    }));
+  });
+
+  test("Router hands back 501 for missing method", () {
+    http.post("http://localhost:4040/a").then(expectAsync((response) {
+      expect(response.statusCode, equals(501));
+    }));
   });
 
 }
