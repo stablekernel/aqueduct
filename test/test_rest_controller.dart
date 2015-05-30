@@ -2,7 +2,9 @@ import '../bin/monadart.dart';
 import 'dart:io';
 
 class TestRESTController extends RESTController {
+
   get(HttpRequest req, {String id}) {
+    
     if(id != null) {
       getPlayer(req, id);
     } else {

@@ -2,10 +2,6 @@ part of monadart;
 
 class RESTController {
 
-  static String pattern() {
-    return null;
-  }
-
   call(request) {
     if(request is RoutedHttpRequest) {
       var req = (request as RoutedHttpRequest).request;

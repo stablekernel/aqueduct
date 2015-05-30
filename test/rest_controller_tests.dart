@@ -53,7 +53,6 @@ void main() {
     http.get("http://localhost:4040/b").then(expectAsync((response) {
       expect(response.statusCode, equals(404));
     }));
-
   });
 
 }
