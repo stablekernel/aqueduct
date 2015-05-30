@@ -2,7 +2,7 @@
 
 import "package:test/test.dart";
 import "dart:core";
-import 'TestRESTController.dart';
+import 'test_rest_controller.dart';
 import "dart:io";
 import 'package:http/http.dart' as http;
 import '../bin/monadart.dart';
