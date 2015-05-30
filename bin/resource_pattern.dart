@@ -2,7 +2,7 @@ part of monadart;
 
 class ResourcePattern {
 
-  static String REMAINING = "remaining";
+  static String remainingPath = "remainingPath";
 
   ResourcePatternSet matchHead;
 
@@ -79,7 +79,7 @@ class ResourcePattern {
         var resourceSegment = resourceIterator.current;
         if (resourceSegment.matchesRemaining) {
           var remainingString = incomingPathSegments.sublist(incomingPathIndex, incomingPathSegments.length).join("/");
-          namedParams[REMAINING] = remainingString;
+          namedParams[remainingPath] = remainingString;
 
           return namedParams;
         } else {

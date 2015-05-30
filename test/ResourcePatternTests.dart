@@ -38,15 +38,15 @@ void main() {
 
   test("Star", () {
     ResourcePattern p = new ResourcePattern("/*");
-    expect(p.matchesInUri(new Uri.http("test.com", "/player/2mnasd")), containsPair(ResourcePattern.REMAINING, "player/2mnasd"));
-    expect(p.matchesInUri(new Uri.http("test.com", "/player/one/foobar/hello")), containsPair(ResourcePattern.REMAINING, "player/one/foobar/hello"));
-    expect(p.matchesInUri(new Uri.http("test.com", "/")), containsPair(ResourcePattern.REMAINING, ""));
+    expect(p.matchesInUri(new Uri.http("test.com", "/player/2mnasd")), containsPair(ResourcePattern.remainingPath, "player/2mnasd"));
+    expect(p.matchesInUri(new Uri.http("test.com", "/player/one/foobar/hello")), containsPair(ResourcePattern.remainingPath, "player/one/foobar/hello"));
+    expect(p.matchesInUri(new Uri.http("test.com", "/")), containsPair(ResourcePattern.remainingPath, ""));
   });
 
   test("Literal Star", () {
     ResourcePattern p = new ResourcePattern("/player/*");
-    expect(p.matchesInUri(new Uri.http("test.com", "/player/2mnasd")), containsPair(ResourcePattern.REMAINING, "2mnasd"));
-    expect(p.matchesInUri(new Uri.http("test.com", "/player/one/foobar/hello")), containsPair(ResourcePattern.REMAINING, "one/foobar/hello"));
+    expect(p.matchesInUri(new Uri.http("test.com", "/player/2mnasd")), containsPair(ResourcePattern.remainingPath, "2mnasd"));
+    expect(p.matchesInUri(new Uri.http("test.com", "/player/one/foobar/hello")), containsPair(ResourcePattern.remainingPath, "one/foobar/hello"));
     expect(p.matchesInUri(new Uri.http("test.com", "/")), null);
   });
 
@@ -119,9 +119,9 @@ void main() {
   test("All", () {
     ResourcePattern p = new ResourcePattern(r"/literal/[:b(\d+)/*]");
     expect(p.matchesInUri(new Uri.http("test.com", "/literal")), {});
-    expect(p.matchesInUri(new Uri.http("test.com", "/literal/23")), allOf([containsPair("b", "23"), containsPair(ResourcePattern.REMAINING, "")]));
+    expect(p.matchesInUri(new Uri.http("test.com", "/literal/23")), allOf([containsPair("b", "23"), containsPair(ResourcePattern.remainingPath, "")]));
     expect(p.matchesInUri(new Uri.http("test.com", "/nonliteral/23/abc")), null);
-    expect(p.matchesInUri(new Uri.http("test.com", "/literal/123/foobar/x")), allOf([containsPair("b", "123"), containsPair(ResourcePattern.REMAINING, "foobar/x")]));
+    expect(p.matchesInUri(new Uri.http("test.com", "/literal/123/foobar/x")), allOf([containsPair("b", "123"), containsPair(ResourcePattern.remainingPath, "foobar/x")]));
   });
 
 

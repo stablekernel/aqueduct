@@ -4,7 +4,7 @@ import 'dart:io';
 import 'dart:async';
 import 'dart:mirrors';
 
-part 'ResourcePattern.dart';
-part 'RoutedHttpRequest.dart';
-part 'Router.dart';
-part 'RESTController.dart';
+part 'resource_pattern.dart';
+part 'routed_http_request.dart';
+part 'router.dart';
+part 'rest_controller.dart';

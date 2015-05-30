@@ -49,4 +49,11 @@ void main() {
     }));
   });
 
+  test("Bad route is 404", () {
+    http.get("http://localhost:4040/b").then(expectAsync((response) {
+      expect(response.statusCode, equals(404));
+    }));
+
+  });
+
 }
