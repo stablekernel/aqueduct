@@ -16,9 +16,10 @@ void main() {
       server = incomingServer;
 
       Router router = new Router();
-      router.route("/a/[:id]").listen(new TestRESTController());
+      router.addRoute("/a/[:id]").listen(new TestRESTController());
 
-      incomingServer.listen(router.listener);
+      // router.route("/a").listen(new Split(new Middleware(), (r) => r.request)).listen(new TestRESTController());
+      incomingServer.map((req) => new Request(req)).listen(router.listener);
     });
   });
 

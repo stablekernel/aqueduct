@@ -3,26 +3,24 @@ import 'dart:io';
 
 class TestRESTController extends RESTController {
 
-  get(HttpRequest req, {String id}) {
+  Response get(Request req, {String id}) {
     
     if(id != null) {
-      getPlayer(req, id);
+      return getPlayer(req, id);
     } else {
-      getAllPlayers(req);
+      return getAllPlayers(req);
     }
   }
 
-  put(HttpRequest req) {
+  Response put(Request req) {
     throw new ArgumentError("missing args");
   }
 
-  getPlayer(HttpRequest req, String id) {
-    req.response.statusCode = 200;
-    req.response.write("id=${id}");
+  Response getPlayer(Request req, String id) {
+    return new Response.ok("id=${id}");
   }
 
-  getAllPlayers(HttpRequest req) {
-    req.response.statusCode = 200;
-    req.response.write("all");
+  Response getAllPlayers(Request req) {
+    return new Response.ok("all");
   }
 }

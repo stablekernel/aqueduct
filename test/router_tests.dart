@@ -35,12 +35,12 @@ void main() {
 
       Router router = new Router();
 
-      router.route("/player").listen(basicHandler);
-      router.route("/text").listen(textHandler);
-      router.route("/a/:id").listen(echoHandler);
-      router.route("/raw").map((r) => r.request).listen(rawHandler);
+      router.addRoute("/player").listen(basicHandler);
+      router.addRoute("/text").listen(textHandler);
+      router.addRoute("/a/:id").listen(echoHandler);
+      router.addRoute("/raw").map((r) => r.request).listen(rawHandler);
 
-      incomingServer.listen(router.listener);
+      incomingServer.map((req) => new Request((req))).listen(router.listener);
     });
   });
 
@@ -75,18 +75,18 @@ void main() {
   });
 }
 
-void echoHandler(RoutedHttpRequest req) {
+void echoHandler(Request req) {
   req.request.response.statusCode = 200;
-  req.request.response.write(req.pathValues["id"]);
+  req.request.response.write(req.values["route"]["id"]);
   req.request.response.close();
 }
 
-void basicHandler(RoutedHttpRequest req) {
+void basicHandler(Request req) {
   req.request.response.statusCode = 200;
   req.request.response.close();
 }
 
-void textHandler(RoutedHttpRequest req) {
+void textHandler(Request req) {
   req.request.response.statusCode = 200;
   req.request.response.write("text");
   req.request.response.close();

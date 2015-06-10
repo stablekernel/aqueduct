@@ -1,46 +1,46 @@
 part of monadart;
 
 class RESTController {
-
   call(request) {
-    if(request is RoutedHttpRequest) {
-      var req = (request as RoutedHttpRequest).request;
-      var params = (request as RoutedHttpRequest).pathValues;
+    var req = (request as Request).request;
+    var pathParams = (request as Request).values["route"];
 
-      Symbol method = new Symbol("${req.method.toLowerCase()}");
+    Symbol method = new Symbol("${req.method.toLowerCase()}");
 
-      var symbolicatedParams = new Map<Symbol, dynamic>();
-      params.forEach((key, value) {
-        symbolicatedParams[new Symbol(key)] = value;
+    var symbolicatedParams = new Map<Symbol, dynamic>();
+    pathParams.forEach((key, value) {
+      symbolicatedParams[new Symbol(key)] = value;
+    });
+
+    try {
+      var response = reflect(this).invoke(method, [request], symbolicatedParams).reflectee;
+
+      respondWith(request, response);
+    } catch (e, stacktrace) {
+      print("${req.uri} ${e}, ${stacktrace}");
+
+      req.response.statusCode = 500;
+    } finally {
+      req.response.close();
+    }
+  }
+
+  respondWith(Request req, Response response) {
+
+    req.request.response.statusCode = response.statusCode;
+
+    if(response.headers != null) {
+      response.headers.forEach((k, v) {
+        req.request.response.headers.add(k, v);
       });
+    }
 
-      try {
-        reflect(this).invoke(method, [req], symbolicatedParams);
-      } catch (e, stacktrace) {
-        print("${req.uri} ${e}, ${stacktrace}");
-
-        req.response.statusCode = 500;
-      } finally {
-        req.response.close();
-      }
-    } else if(request is HttpRequest) {
-      var req = request as HttpRequest;
-      Symbol method = new Symbol("${req.method.toLowerCase()}");
-
-      try {
-        reflect(this).invoke(method, [req]);
-      } catch (e, stacktrace) {
-        print("${req.uri} ${e}, ${stacktrace}");
-
-        req.response.statusCode = 500;
-      } finally {
-        req.response.close();
-      }
+    if(response.body != null) {
+      req.request.response.write(response.body);
     }
   }
 
   noSuchMethod(Invocation invocation) {
-    var request = invocation.positionalArguments[0] as HttpRequest;
-    request.response.statusCode = 501;
+    return new Response(501, null, null);
   }
 }

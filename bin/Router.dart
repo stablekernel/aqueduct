@@ -4,7 +4,7 @@ class Router {
   List<_ResourceRoute> routes;
 
   var _unhandledRequestHandler;
-  void set unhandledRequestHandler(Function handler(HttpRequest req)) {
+  void set unhandledRequestHandler(Function handler(Request req)) {
     _unhandledRequestHandler = handler;
   }
 
@@ -13,21 +13,21 @@ class Router {
     unhandledRequestHandler = _handleUnhandledRequest;
   }
 
-  Stream<RoutedHttpRequest> route(String pattern) {
+  Stream<Request> addRoute(String pattern) {
 
-    var controller = new StreamController<RoutedHttpRequest>();
+    var controller = new StreamController<Request>();
     routes.add(new _ResourceRoute(new ResourcePattern(pattern), controller));
 
     return controller.stream;
   }
 
-  listener(HttpRequest req) {
+  listener(Request req) {
     for (var route in routes) {
-      var routeMatch = route.pattern.matchesInUri(req.uri);
+      var routeMatch = route.pattern.matchesInUri(req.request.uri);
 
       if(routeMatch != null) {
-        var routedRequest = new RoutedHttpRequest(req, routeMatch);
-        route.streamController.add(routedRequest);
+        req.addValue("route", routeMatch);
+        route.streamController.add(req);
         return;
       }
     }
@@ -35,16 +35,15 @@ class Router {
     _unhandledRequestHandler(req);
   }
 
-  _handleUnhandledRequest(HttpRequest req) {
-    req.response.statusCode = 404;
-    req.response.close();
+  _handleUnhandledRequest(Request req) {
+    req.request.response.statusCode = 404;
+    req.request.response.close();
   }
-
 }
 
 class _ResourceRoute {
   final ResourcePattern pattern;
-  final StreamController<RoutedHttpRequest> streamController;
+  final StreamController<Request> streamController;
 
   _ResourceRoute(this.pattern, this.streamController);
 
