@@ -1,6 +1,6 @@
-name: testdart
+name: monadart
 version: 0.0.1
-description: A sample command-line application
+description: A pipeline for building web services
 dependencies:
     http: any
 

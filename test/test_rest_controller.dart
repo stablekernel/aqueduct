@@ -4,7 +4,6 @@ import 'dart:io';
 class TestRESTController extends RESTController {
 
   Response get(Request req, {String id}) {
-    
     if(id != null) {
       return getPlayer(req, id);
     } else {
