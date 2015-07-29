@@ -4,7 +4,7 @@ import "package:test/test.dart";
 import "dart:core";
 import "dart:io";
 import 'package:http/http.dart' as http;
-import '../bin/monadart.dart';
+import '../lib/monadart.dart';
 
 //const int workers = 4;
 //

@@ -2,7 +2,7 @@
 
 import "package:test/test.dart";
 import "dart:core";
-import '../bin/monadart.dart';
+import '../lib/monadart.dart';
 
 void main() {
 

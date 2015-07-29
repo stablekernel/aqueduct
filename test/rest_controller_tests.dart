@@ -5,7 +5,7 @@ import "dart:core";
 import 'test_rest_controller.dart';
 import "dart:io";
 import 'package:http/http.dart' as http;
-import '../bin/monadart.dart';
+import '../lib/monadart.dart';
 
 void main() {
 
@@ -16,7 +16,7 @@ void main() {
       server = incomingServer;
 
       Router router = new Router();
-      router.addRoute("/a/[:id]").listen(authSplitter).listen(new TestRESTController());
+      router.addRoute("/a/[:id]").listen(new TestRESTController());
 
       // router.route("/a").listen(new Split(new Middleware(), (r) => r.request)).listen(new TestRESTController());
       incomingServer.map((req) => new Request(req)).listen(router.listener);

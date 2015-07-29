@@ -1,4 +1,4 @@
-import '../bin/monadart.dart';
+import '../lib/monadart.dart';
 import 'dart:io';
 
 class TestRESTController extends RESTController {
