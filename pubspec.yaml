@@ -3,6 +3,7 @@ version: 0.0.1
 description: A pipeline for building web services
 dependencies:
     http: any
+    http_server: any
 
 dev_dependencies:
   test: any

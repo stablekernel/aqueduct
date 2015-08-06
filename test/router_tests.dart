@@ -30,7 +30,7 @@ void main() {
   var server;
 
   setUp(() {
-    return HttpServer.bind("0.0.0.0", 4040).then((incomingServer) {
+    return HttpServer.bind(InternetAddress.ANY_IP_V4, 4040).then((incomingServer) {
       server = incomingServer;
 
       Router router = new Router();
@@ -40,7 +40,7 @@ void main() {
       router.addRoute("/a/:id").listen(echoHandler);
       router.addRoute("/raw").map((r) => r.request).listen(rawHandler);
 
-      incomingServer.map((req) => new Request((req))).listen(router.listener);
+      incomingServer.map((req) => new ResourceRequest((req))).listen(router.listener);
     });
   });
 
@@ -48,45 +48,42 @@ void main() {
     server.close();
   });
 
-  test("Router Actually Handles Requests", () {
-    http.get("http://localhost:4040/player").then(expectAsync((response) {
-      expect(response.statusCode, equals(200));
-    }));
-    http.get("http://localhost:4040/notplayer").then(expectAsync((response) {
-      expect(response.statusCode, equals(404));
-    }));
-    http.get("http://localhost:4040/text").then(expectAsync((response) {
-      expect(response.statusCode, equals(200));
-      expect(response.body, equals("text"));
-    }));
+  test("Router Actually Handles Requests", () async {
+    var response = await http.get("http://localhost:4040/player");
+    expect(response.statusCode, equals(200));
+
+    response = await http.get("http://localhost:4040/notplayer");
+    expect(response.statusCode, equals(404));
+
+    response = await http.get("http://localhost:4040/text");
+    expect(response.statusCode, equals(200));
+    expect(response.body, equals("text"));
   });
 
-  test("Router delivers values", () {
-    http.get("http://localhost:4040/a/foobar").then(expectAsync((response) {
-      expect(response.statusCode, equals(200));
-      expect(response.body, equals("foobar"));
-    }));
+  test("Router delivers values", () async {
+    var response = await http.get("http://localhost:4040/a/foobar");
+    expect(response.statusCode, equals(200));
+    expect(response.body, equals("foobar"));
   });
 
-  test("Downgrade", () {
-    http.get("http://localhost:4040/raw").then(expectAsync((response) {
-      expect(response.statusCode, equals(200));
-    }));
+  test("Downgrade", () async {
+    var response = await http.get("http://localhost:4040/raw");
+    expect(response.statusCode, equals(200));
   });
 }
 
-void echoHandler(Request req) {
+void echoHandler(ResourceRequest req) {
   req.request.response.statusCode = 200;
-  req.request.response.write(req.values["route"]["id"]);
+  req.request.response.write(req.pathParameters["id"]);
   req.request.response.close();
 }
 
-void basicHandler(Request req) {
+void basicHandler(ResourceRequest req) {
   req.request.response.statusCode = 200;
   req.request.response.close();
 }
 
-void textHandler(Request req) {
+void textHandler(ResourceRequest req) {
   req.request.response.statusCode = 200;
   req.request.response.write("text");
   req.request.response.close();

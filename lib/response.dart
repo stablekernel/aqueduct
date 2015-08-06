@@ -1,33 +1,33 @@
 part of monadart;
 
 class Response {
-  String body;
-  Map<String, String> headers;
+  dynamic body;
+  HttpHeaders headers;
   int statusCode;
 
-  Response(int statusCode, Map<String, String> headers, String body) {
+  Response(int statusCode, HttpHeaders headers, dynamic body) {
     this.body = body;
     this.headers = headers;
     this.statusCode = statusCode;
   }
 
-  Response.ok(String body, {Map<String, String> headers}) : this(200, headers, body);
-  Response.created(String location, {String body, Map<String, String> headers}) {
+  Response.ok(dynamic body, {HttpHeaders headers}) : this(HttpStatus.OK, headers, body);
+  Response.created(String location, {dynamic body, HttpHeaders headers}) {
     this.headers = headers;
     this.body = body;
-    this.statusCode = 201;
+    this.statusCode = HttpStatus.CREATED;
 
     this.headers[HttpHeaders.LOCATION] = location;
   }
-  Response.accepted({Map<String, String> headers}) : this(202, headers, null);
+  Response.accepted({HttpHeaders headers}) : this(HttpStatus.ACCEPTED, headers, null);
 
-  Response.badRequest({Map<String, String> headers, String body}) : this(400, headers, body);
-  Response.unauthorized({Map<String, String> headers, String body}) : this(401, headers, body);
-  Response.forbidden({Map<String, String> headers, String body}) : this(403, headers, body);
-  Response.notFound({Map<String, String> headers, String body}) : this(404, headers, body);
-  Response.conflict({Map<String, String> headers, String body}) : this(409, headers, body);
-  Response.gone({Map<String, String> headers, String body}) : this(410, headers, body);
+  Response.badRequest({HttpHeaders headers, dynamic body}) : this(HttpStatus.BAD_REQUEST, headers, body);
+  Response.unauthorized({HttpHeaders headers, dynamic body}) : this(HttpStatus.UNAUTHORIZED, headers, body);
+  Response.forbidden({HttpHeaders headers, dynamic body}) : this(HttpStatus.FORBIDDEN, headers, body);
+  Response.notFound({HttpHeaders headers, dynamic body}) : this(HttpStatus.NOT_FOUND, headers, body);
+  Response.conflict({HttpHeaders headers, dynamic body}) : this(HttpStatus.CONFLICT, headers, body);
+  Response.gone({HttpHeaders headers, dynamic body}) : this(HttpStatus.GONE, headers, body);
 
-  Response.serverError({Map<String, String> headers, String body}) : this(500, headers, body);
+  Response.serverError({HttpHeaders headers, dynamic body}) : this(HttpStatus.INTERNAL_SERVER_ERROR, headers, body);
 
 }
