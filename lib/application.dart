@@ -1,26 +1,26 @@
 part of monadart;
 
 class Application {
-  List<_RouteSpec> routeSpecs = [];
   List<_ServerRecord> servers = [];
+  int serverIdentifierCounter = 0;
 
+  /* Application Data */
+  List<_RouteSpec> routeSpecs = [];
   dynamic address;
   int port = 8080;
   int instanceCount = 1;
-  bool ipv6Only = false;
-  bool useClientCertificate = false;
+  bool isIpv6Only = false;
+  bool isUsingClientCertificate = false;
   String serverCertificateName = null;
 
-  void addControllerForPath(String path, Type controllerType) {
+  void addControllerForPath(Type controllerType, String path) {
     // Validate this controller here
     routeSpecs.add(new _RouteSpec(path, controllerType));
   }
 
-
-
-  start() async {
+  Future start() async {
     if (address == null) {
-      if (ipv6Only) {
+      if (isIpv6Only) {
         address = InternetAddress.ANY_IP_V6;
       } else {
         address = InternetAddress.ANY_IP_V4;
@@ -38,25 +38,38 @@ class Application {
   }
 
   Future<_ServerRecord> spawn() async {
-    var isolate = await Isolate.spawn(_Server.entry, this, paused: true);
+    serverIdentifierCounter++;
+
+    var appData = new _ApplicationData(routeSpecs, address, port,
+      isIpv6Only, isUsingClientCertificate, serverCertificateName,
+      (instanceCount > 1 ? true : false), serverIdentifierCounter);
+
     var receivePort = new ReceivePort();
-    isolate.setErrorsFatal(true);
+    var msg = new _InitialServerMessage(appData, receivePort.sendPort);
+    var isolate = await Isolate.spawn(_Server.entry, msg, paused: true);
     isolate.addErrorListener(receivePort.sendPort);
 
-    var record = new _ServerRecord(isolate, receivePort);
-    record.receivePort.listen((msg) {
-      print("Restarting server, error: ${msg}");
-      unlink(record);
-      spawn();
-    });
-    return record;
-  }
 
-  void unlink(_ServerRecord rec) {
-    rec.receivePort.close();
-    servers.remove(rec);
+    return new _ServerRecord(isolate, receivePort, serverIdentifierCounter);
   }
 }
+
+class _ApplicationData
+{
+  List<_RouteSpec> routeSpecs;
+  dynamic address;
+  int port;
+  bool ipv6Only;
+  bool useClientCertificate;
+  String serverCertificateName;
+  bool isShared;
+  int serverIdentifier;
+
+  _ApplicationData(this.routeSpecs, this.address, this.port, this.ipv6Only,
+    this.useClientCertificate, this.serverCertificateName,
+    this.isShared, this.serverIdentifier);
+}
+
 
 class _RouteSpec {
   final Type controller;
@@ -64,14 +77,14 @@ class _RouteSpec {
   _RouteSpec(this.path, this.controller);
 }
 
+
 class _Server {
   HttpServer server;
   Router router = new Router();
-  Application application;
+  _ApplicationData applicationData;
+  SendPort parentMessagePort;
 
-  _Server(Application app) {
-    application = app;
-  }
+  _Server(this.applicationData, this.parentMessagePort);
 
   void routeRequest(ResourceRequest req, Type controllerType) {
     ResourceController controller = reflectClass(controllerType).newInstance(new Symbol(""), []).reflectee;
@@ -82,8 +95,8 @@ class _Server {
   Future start() async {
     var onBind = (serv) {
       server = serv;
-
-      application.routeSpecs.forEach((routeSpec) {
+      server.serverHeader = "monadart/${applicationData.serverIdentifier}";
+      applicationData.routeSpecs.forEach((routeSpec) {
         router.addRoute(routeSpec.path).listen((req) {
           routeRequest(req, routeSpec.controller);
         });
@@ -93,31 +106,31 @@ class _Server {
         .listen(router.listener);
     };
 
-    if (application.serverCertificateName != null) {
+    if (applicationData.serverCertificateName != null) {
       HttpServer
-          .bindSecure(application.address, application.port,
-              certificateName: application.serverCertificateName,
-              v6Only: application.ipv6Only,
-              shared: application.instanceCount > 1)
+          .bindSecure(applicationData.address, applicationData.port,
+              certificateName: applicationData.serverCertificateName,
+              v6Only: applicationData.ipv6Only,
+              shared: applicationData.isShared)
           .then(onBind);
-    } else if (application.useClientCertificate) {
+    } else if (applicationData.useClientCertificate) {
       HttpServer
-          .bindSecure(application.address, application.port,
+          .bindSecure(applicationData.address, applicationData.port,
               requestClientCertificate: true,
-              v6Only: application.ipv6Only,
-              shared: application.instanceCount > 1)
+              v6Only: applicationData.ipv6Only,
+              shared: applicationData.isShared)
           .then(onBind);
     } else {
       HttpServer
-          .bind(application.address, application.port,
-              v6Only: application.ipv6Only,
-              shared: application.instanceCount > 1)
+          .bind(applicationData.address, applicationData.port,
+              v6Only: applicationData.ipv6Only,
+              shared: applicationData.isShared)
           .then(onBind);
     }
   }
 
-  static void entry(Application params) {
-    var server = new _Server(params);
+  static void entry(_InitialServerMessage params) {
+    var server = new _Server(params.application, params.parentMessagePort);
 
     server.start();
   }
@@ -126,10 +139,18 @@ class _Server {
 class _ServerRecord {
   final Isolate isolate;
   final ReceivePort receivePort;
+  final int identifier;
 
-  _ServerRecord(this.isolate, this.receivePort);
+  _ServerRecord(this.isolate, this.receivePort, this.identifier);
 
   void resume() {
     isolate.resume(isolate.pauseCapability);
   }
+}
+
+
+class _InitialServerMessage {
+  _ApplicationData application;
+  SendPort parentMessagePort;
+  _InitialServerMessage(this.application, this.parentMessagePort);
 }

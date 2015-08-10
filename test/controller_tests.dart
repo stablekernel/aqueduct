@@ -118,7 +118,6 @@ class TController extends ResourceController {
   @httpPost
   Future<Response> post() async {
     var body = this.requestBody;
-    print("Body? ${body}");
 
     return new Response.ok(body);
   }

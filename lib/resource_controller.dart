@@ -28,8 +28,6 @@ class Route {
       return false;
     }
 
-    print("${req.pathParameters} ${this.parameters}");
-
     if (req.pathParameters.length != this.parameters.length) {
       return false;
     }

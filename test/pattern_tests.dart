@@ -102,6 +102,15 @@ void main() {
     expect(p.matchesInUri(new Uri.http("test.com", "/")), null);
   });
 
+  test("Optiona imbricated w/ variables", () {
+    ResourcePattern p = new ResourcePattern("/a/[:b/[:c]]");
+    expect(p.matchesInUri(new Uri.http("test.com", "/a")), {});
+    expect(p.matchesInUri(new Uri.http("test.com", "/a/b")), {"b" : "b"});
+    expect(p.matchesInUri(new Uri.http("test.com", "/a/b/c")), {"b" : "b", "c" : "c"});
+    expect(p.matchesInUri(new Uri.http("test.com", "/a/b/c/d")), null);
+    expect(p.matchesInUri(new Uri.http("test.com", "/b/b/c/d")), null);
+  });
+
   test("Sub Pattern", () {
     ResourcePattern p = new ResourcePattern(r"/:b(\D+)");
     expect(p.matchesInUri(new Uri.http("test.com", "/raw")), containsPair("b", "raw"));
