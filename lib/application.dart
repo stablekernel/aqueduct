@@ -75,12 +75,6 @@ class Application {
   }
 }
 
-class _RouteSpec {
-  final Type controller;
-  final String path;
-  _RouteSpec(this.path, this.controller);
-}
-
 class _Server {
   ApplicationInstanceConfiguration configuration;
   SendPort parentMessagePort;

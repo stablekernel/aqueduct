@@ -9,8 +9,7 @@ class Route {
   final String method;
   final List<String> parameters;
 
-  const Route(this.method, {List<String> parameters: const []})
-      : this.parameters = parameters;
+  const Route(this.method) : this.parameters = null;
 
   Route.fromRoute(Route annotatedRoute, List<String> parameters)
       : this.method = annotatedRoute.method,
@@ -167,7 +166,7 @@ class ResourceController {
 
   static _defaultExceptionHandler(ResourceRequest resourceRequest, dynamic exceptionOrError, StackTrace stacktrace) {
     print(
-      "Path: ${resourceRequest.request.uri}\nError: $e\n $stacktrace");
+      "Path: ${resourceRequest.request.uri}\nError: $exceptionOrError\n $stacktrace");
 
     resourceRequest.response.statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
     resourceRequest.response.close();
