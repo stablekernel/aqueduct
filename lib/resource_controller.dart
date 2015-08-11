@@ -43,6 +43,11 @@ class Route {
 }
 
 class ResourceController {
+  Function _exceptionHandler = _defaultExceptionHandler();
+  void set exceptionHandler(void handler(ResourceRequest resourceRequest, dynamic exceptionOrError, StackTrace stacktrace)) {
+    _exceptionHandler = handler;
+  }
+
   ResourceRequest resourceRequest;
   Map<String, String> get pathParameters => resourceRequest.pathParameters;
 
@@ -77,7 +82,7 @@ class ResourceController {
 
     if (symbol == null) {
       throw new _InternalControllerException(
-          "No handler for request method and parameters available.", 404);
+          "No handler for request method and parameters available.", HttpStatus.NOT_FOUND);
     }
 
     return symbol;
@@ -95,7 +100,7 @@ class ResourceController {
         return (await HttpBodyHandler
             .processRequest(resourceRequest.request)).body;
       } else {
-        throw new _InternalControllerException("Unsupported Content-Type", 415);
+        throw new _InternalControllerException("Unsupported Content-Type", HttpStatus.UNSUPPORTED_MEDIA_TYPE);
       }
     }
 
@@ -160,12 +165,16 @@ class ResourceController {
 
       resourceRequest.response.close();
     } catch (e, stacktrace) {
-      print(
-          "Path: ${this.resourceRequest.request.uri}\nError: $e\n $stacktrace");
-
-      resourceRequest.response.statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
-      resourceRequest.response.close();
+      _exceptionHandler(this.resourceRequest, e, stacktrace);
     }
+  }
+
+  static _defaultExceptionHandler(ResourceRequest resourceRequest, dynamic exceptionOrError, StackTrace stacktrace) {
+    print(
+      "Path: ${resourceRequest.request.uri}\nError: $e\n $stacktrace");
+
+    resourceRequest.response.statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
+    resourceRequest.response.close();
   }
 }
 
