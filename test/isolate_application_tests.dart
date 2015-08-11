@@ -2,17 +2,15 @@ import 'package:test/test.dart';
 import '../lib/monadart.dart';
 import 'dart:async';
 import 'package:http/http.dart' as http;
-import 'dart:io';
 
 main() {
   var app = new Application();
-  app.instanceCount = 3;
-  app.port = 8080;
-  app.addControllerForPath(TController, "t");
-  app.addControllerForPath(RController, "r");
+  app.configuration.port = 8080;
+  app.pipelineType = TPipeline;
 
   test("Application starts", () async {
-    await app.start();
+
+    await app.start(numberOfInstances: 3);
     expect(app.servers.length, 3);
   });
 
@@ -55,6 +53,16 @@ main() {
   });
 }
 
+class TPipeline implements ApplicationPipeline {
+  Router router = new Router();
+
+  void attachTo(Stream<ResourceRequest> reqStream) {
+    addRouteController(router, "t", TController);
+    addRouteController(router, "r", RController);
+
+    reqStream.listen(router.listener);
+  }
+}
 class TController extends ResourceController {
   @httpGet
   Future<Response> getAll() async {

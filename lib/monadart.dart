@@ -15,3 +15,4 @@ part 'router.dart';
 part 'resource_controller.dart';
 part 'response.dart';
 part 'application.dart';
+part 'convenience.dart';

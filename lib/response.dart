@@ -17,7 +17,7 @@ class Response {
     this.body = body;
     this.statusCode = HttpStatus.CREATED;
 
-    this.headers[HttpHeaders.LOCATION] = location;
+    this.headers.set(HttpHeaders.LOCATION, location);
   }
   Response.accepted({HttpHeaders headers}) : this(HttpStatus.ACCEPTED, headers, null);
 

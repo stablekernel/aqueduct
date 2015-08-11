@@ -4,11 +4,9 @@ import 'dart:async';
 import 'package:http/http.dart' as http;
 
 main() {
-
   var app = new Application();
-  app.port = 8080;
-  app.addControllerForPath(TController, "t");
-  app.addControllerForPath(RController, "r");
+  app.configuration.port = 8080;
+  app.pipelineType = TPipeline;
 
   test("Application starts", () async {
     await app.start();
@@ -29,6 +27,17 @@ main() {
     expect(tResponse.body, '"t_ok"');
     expect(rResponse.body, '"r_ok"');
   });
+}
+
+class TPipeline implements ApplicationPipeline {
+  Router router = new Router();
+
+  void attachTo(Stream<ResourceRequest> reqStream) {
+    addRouteController(router, "t", TController);
+    addRouteController(router, "r", RController);
+
+    reqStream.listen(router.listener);
+  }
 }
 
 class TController extends ResourceController {

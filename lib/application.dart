@@ -1,34 +1,55 @@
 part of monadart;
 
-class Application {
-  List<_ServerRecord> servers = [];
-  int serverIdentifierCounter = 0;
+class ApplicationInstanceConfiguration {
+  int identifier;
 
-  /* Application Data */
-  List<_RouteSpec> routeSpecs = [];
   dynamic address;
   int port = 8080;
-  int instanceCount = 1;
   bool isIpv6Only = false;
   bool isUsingClientCertificate = false;
   String serverCertificateName = null;
+  bool shared = false;
 
-  void addControllerForPath(Type controllerType, String path) {
-    // Validate this controller here
-    routeSpecs.add(new _RouteSpec(path, controllerType));
-  }
+  ApplicationInstanceConfiguration();
+  ApplicationInstanceConfiguration.fromConfiguration(
+      ApplicationInstanceConfiguration config)
+      : this.identifier = config.identifier,
+        this.address = config.address,
+        this.port = config.port,
+        this.isIpv6Only = config.isIpv6Only,
+        this.isUsingClientCertificate = config.isUsingClientCertificate,
+        this.serverCertificateName = config.serverCertificateName,
+        this.shared = config.shared;
+}
 
-  Future start() async {
-    if (address == null) {
-      if (isIpv6Only) {
-        address = InternetAddress.ANY_IP_V6;
+abstract class ApplicationPipeline {
+  void attachTo(Stream<ResourceRequest> requestStream);
+}
+
+class Application {
+  List<_ServerRecord> servers = [];
+
+  ApplicationInstanceConfiguration configuration =
+      new ApplicationInstanceConfiguration();
+  Type pipelineType;
+
+  Future start({int numberOfInstances: 1}) async {
+    if (configuration.address == null) {
+      if (configuration.isIpv6Only) {
+        configuration.address = InternetAddress.ANY_IP_V6;
       } else {
-        address = InternetAddress.ANY_IP_V4;
+        configuration.address = InternetAddress.ANY_IP_V4;
       }
     }
 
-    for (int i = 0; i < instanceCount; i++) {
-      var serverRecord = await spawn();
+    configuration.shared = numberOfInstances > 1;
+
+    for (int i = 0; i < numberOfInstances; i++) {
+      var config =
+          new ApplicationInstanceConfiguration.fromConfiguration(configuration);
+      config.identifier = i + 1;
+
+      var serverRecord = await spawn(config);
       servers.add(serverRecord);
     }
 
@@ -37,39 +58,22 @@ class Application {
     });
   }
 
-  Future<_ServerRecord> spawn() async {
-    serverIdentifierCounter++;
-
-    var appData = new _ApplicationData(routeSpecs, address, port,
-      isIpv6Only, isUsingClientCertificate, serverCertificateName,
-      (instanceCount > 1 ? true : false), serverIdentifierCounter);
-
+  Future<_ServerRecord> spawn(ApplicationInstanceConfiguration config) async {
     var receivePort = new ReceivePort();
-    var msg = new _InitialServerMessage(appData, receivePort.sendPort);
-    var isolate = await Isolate.spawn(_Server.entry, msg, paused: true);
+
+    var pipelineTypeMirror = reflectType(pipelineType);
+    var pipelineLibraryURI = (pipelineTypeMirror.owner as LibraryMirror).uri;
+    var pipelineTypeName = MirrorSystem.getName(pipelineTypeMirror.simpleName);
+
+    var initialMessage = new _InitialServerMessage(
+        pipelineTypeName, pipelineLibraryURI, config, receivePort.sendPort);
+    var isolate =
+        await Isolate.spawn(_Server.entry, initialMessage, paused: true);
     isolate.addErrorListener(receivePort.sendPort);
 
-
-    return new _ServerRecord(isolate, receivePort, serverIdentifierCounter);
+    return new _ServerRecord(isolate, receivePort, config.identifier);
   }
 }
-
-class _ApplicationData
-{
-  List<_RouteSpec> routeSpecs;
-  dynamic address;
-  int port;
-  bool ipv6Only;
-  bool useClientCertificate;
-  String serverCertificateName;
-  bool isShared;
-  int serverIdentifier;
-
-  _ApplicationData(this.routeSpecs, this.address, this.port, this.ipv6Only,
-    this.useClientCertificate, this.serverCertificateName,
-    this.isShared, this.serverIdentifier);
-}
-
 
 class _RouteSpec {
   final Type controller;
@@ -77,60 +81,55 @@ class _RouteSpec {
   _RouteSpec(this.path, this.controller);
 }
 
-
 class _Server {
-  HttpServer server;
-  Router router = new Router();
-  _ApplicationData applicationData;
+  ApplicationInstanceConfiguration configuration;
   SendPort parentMessagePort;
+  HttpServer server;
+  ApplicationPipeline pipeline;
 
-  _Server(this.applicationData, this.parentMessagePort);
-
-  void routeRequest(ResourceRequest req, Type controllerType) {
-    ResourceController controller = reflectClass(controllerType).newInstance(new Symbol(""), []).reflectee;
-    controller.resourceRequest = req;
-    controller.process();
-  }
+  _Server(this.pipeline, this.configuration, this.parentMessagePort);
 
   Future start() async {
     var onBind = (serv) {
       server = serv;
-      server.serverHeader = "monadart/${applicationData.serverIdentifier}";
-      applicationData.routeSpecs.forEach((routeSpec) {
-        router.addRoute(routeSpec.path).listen((req) {
-          routeRequest(req, routeSpec.controller);
-        });
-      });
 
-      server.map((req) => new ResourceRequest(req))
-        .listen(router.listener);
+      server.serverHeader = "monadart/${configuration.identifier}";
+
+      var stream = server.map((req) => new ResourceRequest(req));
+      pipeline.attachTo(stream);
     };
 
-    if (applicationData.serverCertificateName != null) {
+    if (configuration.serverCertificateName != null) {
       HttpServer
-          .bindSecure(applicationData.address, applicationData.port,
-              certificateName: applicationData.serverCertificateName,
-              v6Only: applicationData.ipv6Only,
-              shared: applicationData.isShared)
+          .bindSecure(configuration.address, configuration.port,
+              certificateName: configuration.serverCertificateName,
+              v6Only: configuration.isIpv6Only,
+              shared: configuration.shared)
           .then(onBind);
-    } else if (applicationData.useClientCertificate) {
+    } else if (configuration.isUsingClientCertificate) {
       HttpServer
-          .bindSecure(applicationData.address, applicationData.port,
+          .bindSecure(configuration.address, configuration.port,
               requestClientCertificate: true,
-              v6Only: applicationData.ipv6Only,
-              shared: applicationData.isShared)
+              v6Only: configuration.isIpv6Only,
+              shared: configuration.shared)
           .then(onBind);
     } else {
       HttpServer
-          .bind(applicationData.address, applicationData.port,
-              v6Only: applicationData.ipv6Only,
-              shared: applicationData.isShared)
+          .bind(configuration.address, configuration.port,
+              v6Only: configuration.isIpv6Only, shared: configuration.shared)
           .then(onBind);
     }
   }
 
   static void entry(_InitialServerMessage params) {
-    var server = new _Server(params.application, params.parentMessagePort);
+    var pipelineSourceLibraryMirror =
+        currentMirrorSystem().libraries[params.pipelineLibraryURI];
+    var pipelineTypeMirror = pipelineSourceLibraryMirror.declarations[
+        new Symbol(params.pipelineTypeName)] as ClassMirror;
+
+    var app = pipelineTypeMirror.newInstance(new Symbol(""), []).reflectee;
+    var server =
+        new _Server(app, params.configuration, params.parentMessagePort);
 
     server.start();
   }
@@ -148,9 +147,12 @@ class _ServerRecord {
   }
 }
 
-
 class _InitialServerMessage {
-  _ApplicationData application;
+  String pipelineTypeName;
+  Uri pipelineLibraryURI;
+  ApplicationInstanceConfiguration configuration;
   SendPort parentMessagePort;
-  _InitialServerMessage(this.application, this.parentMessagePort);
+
+  _InitialServerMessage(this.pipelineTypeName, this.pipelineLibraryURI,
+      this.configuration, this.parentMessagePort);
 }
