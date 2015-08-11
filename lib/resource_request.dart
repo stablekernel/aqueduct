@@ -6,9 +6,9 @@ class ResourceRequest {
   HttpResponse get response => request.response;
 
   Map<String, String> pathParameters = null;
-  Map<dynamic, dynamic> context = null;
+  Map<dynamic, dynamic> context = new Map();
 
-  ResourceRequest(HttpRequest req) : request = req {
+  ResourceRequest(this.request) {
 
   }
 
