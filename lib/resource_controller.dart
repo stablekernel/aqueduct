@@ -45,6 +45,7 @@ class Route {
 class ResourceController {
   Function _exceptionHandler = _defaultExceptionHandler;
   void set exceptionHandler(void handler(ResourceRequest resourceRequest, dynamic exceptionOrError, StackTrace stacktrace)) {
+    print("Overriding exceptionHandler");
     _exceptionHandler = handler;
   }
 
