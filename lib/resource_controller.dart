@@ -45,7 +45,6 @@ class Route {
 class ResourceController {
   Function _exceptionHandler = _defaultExceptionHandler;
   void set exceptionHandler(void handler(ResourceRequest resourceRequest, dynamic exceptionOrError, StackTrace stacktrace)) {
-    print("Overriding exceptionHandler");
     _exceptionHandler = handler;
   }
 
@@ -141,16 +140,12 @@ class ResourceController {
       var handlerParameters = parametersForRequest(this.resourceRequest, methodSymbol);
       requestBody = await readRequestBodyForRequest(this.resourceRequest);
 
-      Future<Response> response =
+      Future<Response> responseEventually =
           reflect(this).invoke(methodSymbol, handlerParameters).reflectee;
 
-      response.then((responseObject) {
-        processResponse(responseObject);
-      }).catchError((error, stacktrace) {
-        print("Error in processing response: $error $stacktrace");
-        resourceRequest.response.statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
-        resourceRequest.response.close();
-      });
+      var response = await responseEventually;
+
+      processResponse(response);
     } on _InternalControllerException catch (e) {
       resourceRequest.response.statusCode = e.statusCode;
 
