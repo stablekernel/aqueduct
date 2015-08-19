@@ -180,37 +180,20 @@ abstract class ResourceController {
     }).toList();
   }
 
-  void _processResponse(Response responseObject) {
-    resourceRequest.response.statusCode = responseObject.statusCode;
-
-    if (responseObject.headers != null) {
-      responseObject.headers.forEach((k, v) {
-        resourceRequest.response.headers.add(k, v);
-      });
-    }
-
-
-    if (responseObject.body != null) {
-      resourceRequest.response.headers.contentType = responseContentType;
-      resourceRequest.response.write(responseBodyEncoder(responseObject.body));
-    }
-
-    resourceRequest.response.close();
-  }
-
-  Future process() async
-  {
+  Future process() async {
     try {
-      var methodSymbol = _routeMethodSymbolForRequest(this.resourceRequest);
-      var handlerParameters = _parametersForRequest(this.resourceRequest, methodSymbol);
-      requestBody = await _readRequestBodyForRequest(this.resourceRequest);
+      var methodSymbol = _routeMethodSymbolForRequest(resourceRequest);
+      var handlerParameters = _parametersForRequest(resourceRequest, methodSymbol);
+      requestBody = await _readRequestBodyForRequest(resourceRequest);
 
       Future<Response> eventualResponse =
       reflect(this).invoke(methodSymbol, handlerParameters).reflectee;
 
       var response = await eventualResponse;
 
-      _processResponse(response);
+      response.body = responseBodyEncoder(response.body);
+      response.headers[HttpHeaders.CONTENT_TYPE] = responseContentType.toString();
+      response.respondToRequest(resourceRequest);
     } on _InternalControllerException catch (e) {
       resourceRequest.response.statusCode = e.statusCode;
 

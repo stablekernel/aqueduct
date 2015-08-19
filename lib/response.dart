@@ -25,6 +25,10 @@ class Response {
     this.body = body;
     this.headers = headers;
     this.statusCode = statusCode;
+
+    if(this.headers == null) {
+      this.headers = {};
+    }
   }
 
   Response.ok(dynamic body, {Map<String, String>  headers}) : this(HttpStatus.OK, headers, body);
@@ -34,7 +38,7 @@ class Response {
     this.statusCode = HttpStatus.CREATED;
 
     if(this.headers == null) {
-      this.headers = {HttpHeaders : location};
+      this.headers = {HttpHeaders.LOCATION : location};
     } else {
       this.headers[HttpHeaders.LOCATION] = location;
     }
@@ -50,4 +54,19 @@ class Response {
 
   Response.serverError({Map<String, String> headers, dynamic body}) : this(HttpStatus.INTERNAL_SERVER_ERROR, headers, body);
 
+  void respondToRequest(ResourceRequest req) {
+    req.response.statusCode = statusCode;
+
+    if (headers != null) {
+      headers.forEach((k, v) {
+        req.response.headers.add(k, v);
+      });
+    }
+
+    if (body != null) {
+      req.response.write(body);
+    }
+
+    req.response.close();
+  }
 }
