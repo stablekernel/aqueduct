@@ -2,32 +2,32 @@ part of monadart;
 
 /// A 'GET' Route annotation.
 ///
-/// Handler methods on [ResourceController]s that handle GET requests must be annotated with this.
+/// Handler methods on [HttpController]s that handle GET requests must be annotated with this.
 const Route httpGet = const Route("get");
 
 /// A 'PUT' Route annotation.
 ///
-/// Handler methods on [ResourceController]s that handle PUT requests must be annotated with this.
+/// Handler methods on [HttpController]s that handle PUT requests must be annotated with this.
 const Route httpPut = const Route("put");
 
 /// A 'POST' Route annotation.
 ///
-/// Handler methods on [ResourceController]s that handle POST requests must be annotated with this.
+/// Handler methods on [HttpController]s that handle POST requests must be annotated with this.
 const Route httpPost = const Route("post");
 
 /// A 'DELETE' Route annotation.
 ///
-/// Handler methods on [ResourceController]s that handle DELETE requests must be annotated with this.
+/// Handler methods on [HttpController]s that handle DELETE requests must be annotated with this.
 const Route httpDelete = const Route("delete");
 
 /// A 'PATCH' Route annotation.
 ///
-/// Handler methods on [ResourceController]s that handle PATCH requests must be annotated with this.
+/// Handler methods on [HttpController]s that handle PATCH requests must be annotated with this.
 const Route httpPatch = const Route("patch");
 
 /// Resource controller handler method metadata for indicating the HTTP method the controller method corresponds to.
 ///
-/// Each [ResourceController] method that is the entry point for an HTTP request must be decorated with an instance
+/// Each [HttpController] method that is the entry point for an HTTP request must be decorated with an instance
 /// of [Route]. See [httpGet], [httpPut], [httpPost] and [httpDelete] for concrete examples.
 class Route {
   /// The method that the annotated request handler method corresponds to.
@@ -73,7 +73,7 @@ class Route {
 /// Base class for web service handlers.
 ///
 /// Subclasses of this class can process and respond to an HTTP request.
-abstract class ResourceController {
+abstract class HttpController {
 
   /// The exception handler for a request handler method that generates an HTTP error response.
   ///
@@ -87,23 +87,23 @@ abstract class ResourceController {
   }
   Function _exceptionHandler = _defaultExceptionHandler;
 
-  /// The request being processed by this [ResourceController].
+  /// The request being processed by this [HttpController].
   ///
-  /// It is this [ResourceController]'s responsibility to return a [Response] object for this request.
+  /// It is this [HttpController]'s responsibility to return a [Response] object for this request.
   ResourceRequest resourceRequest;
 
   /// Parameters parsed from the URI of the request, if any exist.
   Map<String, String> get pathParameters => resourceRequest.pathParameters;
 
-  /// Types of content this [ResourceController] will accept.
+  /// Types of content this [HttpController] will accept.
   ///
   /// By default, a resource controller will accept 'application/json' requests.
-  /// If a request is sent to an instance of [ResourceController] and has an HTTP request body,
-  /// but the Content-Type of the request isn't within this list, the [ResourceController]
+  /// If a request is sent to an instance of [HttpController] and has an HTTP request body,
+  /// but the Content-Type of the request isn't within this list, the [HttpController]
   /// will automatically respond with an Unsupported Media Type response.
   List<ContentType> acceptedContentTypes = [ContentType.JSON];
 
-  /// The content type of responses from this [ResourceController].
+  /// The content type of responses from this [HttpController].
   ///
   /// Defaults to "application/json". This type will automatically be written to this response's
   /// HTTP header.

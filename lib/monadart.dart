@@ -12,7 +12,7 @@ export 'package:http_server/http_server.dart';
 part 'resource_pattern.dart';
 part 'resource_request.dart';
 part 'router.dart';
-part 'resource_controller.dart';
+part 'http_controller.dart';
 part 'response.dart';
 part 'application.dart';
 part 'convenience.dart';

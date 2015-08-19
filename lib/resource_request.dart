@@ -30,7 +30,7 @@ class ResourceRequest {
   /// Optional data for members of a pipeline to attach to a request for later members to utilize.
   ///
   /// This is purely contextual to the application. An example is pipeline that adds a database adapter
-  /// to the request so that the handling [ResourceController] has access to it.
+  /// to the request so that the handling [HttpController] has access to it.
   Map<dynamic, dynamic> context = new Map();
 
   ResourceRequest(this.request) {

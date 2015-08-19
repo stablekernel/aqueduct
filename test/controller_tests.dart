@@ -12,7 +12,7 @@ void main() {
 
   HttpServer server;
 
-  void serve(ResourceController controller, Map<String, dynamic> pathParams) {
+  void serve(HttpController controller, Map<String, dynamic> pathParams) {
     server.map((req) => new ResourceRequest(req)).listen((ResourceRequest resReq) {
       controller.resourceRequest = resReq;
       resReq.pathParameters = pathParams;
@@ -94,7 +94,7 @@ void main() {
 }
 
 
-class TController extends ResourceController {
+class TController extends HttpController {
 
   @httpGet
   Future<Response> getAll() async {

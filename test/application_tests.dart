@@ -40,14 +40,14 @@ class TPipeline implements ApplicationPipeline {
   }
 }
 
-class TController extends ResourceController {
+class TController extends HttpController {
   @httpGet
   Future<Response> getAll() async {
     return new Response.ok("t_ok");
   }
 }
 
-class RController extends ResourceController {
+class RController extends HttpController {
   @httpGet
   Future<Response> getAll() async {
     return new Response.ok("r_ok");
