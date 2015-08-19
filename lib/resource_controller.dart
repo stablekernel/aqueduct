@@ -20,6 +20,11 @@ const Route httpPost = const Route("post");
 /// Handler methods on [ResourceController]s that handle DELETE requests must be annotated with this.
 const Route httpDelete = const Route("delete");
 
+/// A 'PATCH' Route annotation.
+///
+/// Handler methods on [ResourceController]s that handle PATCH requests must be annotated with this.
+const Route httpPatch = const Route("patch");
+
 /// Resource controller handler method metadata for indicating the HTTP method the controller method corresponds to.
 ///
 /// Each [ResourceController] method that is the entry point for an HTTP request must be decorated with an instance
