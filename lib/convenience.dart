@@ -9,3 +9,4 @@ void addRouteController(Router router, String routePath, Type resourceController
     controller.process();
   });
 }
+

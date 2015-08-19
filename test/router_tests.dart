@@ -6,24 +6,6 @@ import "dart:io";
 import 'package:http/http.dart' as http;
 import '../lib/monadart.dart';
 
-//const int workers = 4;
-//
-//worker(int id) async {
-//  var server = await HttpServer.bind("0.0.0.0", 8080, shared: true);
-//
-//  await for (var request in server) {
-//    request.response
-//      ..writeln("Worker ${id} says hello!")
-//      ..close();
-//  }
-//}
-//
-//main() async {
-//  for (var i = 1; i <= workers; i++) {
-//    var isolate = await Isolate.spawn(worker, i);
-//    print("Worker #${i} spawned.");
-//  }
-//}
 
 void main() {
 

@@ -4,27 +4,27 @@ class ResourcePattern {
 
   static String remainingPath = "remainingPath";
 
-  ResourcePatternSet matchHead;
+  _ResourcePatternSet matchHead;
 
   ResourcePattern(String patternString) {
     List<String> pathElements = splitPattern(patternString);
 
-    List<ResourcePatternElement> elems = resourceElementsFromPathElements(patternString);
+    List<_ResourcePatternElement> elems = resourceElementsFromPathElements(patternString);
 
     matchHead = matchSpecFromElements(pathElements, elems);
   }
 
-  static ResourcePatternSet matchSpecFromElements(List<String> pathElements, List<ResourcePatternElement> resourceElements) {
+  static _ResourcePatternSet matchSpecFromElements(List<String> pathElements, List<_ResourcePatternElement> resourceElements) {
     // These two arrays should be identical in size by the time they get here
 
-    ResourcePatternSet setHead = new ResourcePatternSet();
-    ResourcePatternSet setPtr = setHead;
+    _ResourcePatternSet setHead = new _ResourcePatternSet();
+    _ResourcePatternSet setPtr = setHead;
 
     for(int i = 0; i < pathElements.length; i++) {
       String seg = pathElements[i];
 
       if(seg.startsWith("[")) {
-        ResourcePatternSet set = new ResourcePatternSet();
+        _ResourcePatternSet set = new _ResourcePatternSet();
         setPtr.nextOptionalSet = set;
 
         setPtr = set;
@@ -59,9 +59,9 @@ class ResourcePattern {
   }
 
 
-  static List<ResourcePatternElement> resourceElementsFromPathElements(String patternString) {
+  static List<_ResourcePatternElement> resourceElementsFromPathElements(String patternString) {
     var expr = new RegExp(r"[\[\]]");
-    return splitPattern(patternString).map((segment) => new ResourcePatternElement(segment.replaceAll(expr, ""))).toList();
+    return splitPattern(patternString).map((segment) => new _ResourcePatternElement(segment.replaceAll(expr, ""))).toList();
   }
 
   Map<String, String> matchesInUri(Uri uri) {
@@ -119,30 +119,28 @@ class ResourcePattern {
   }
 }
 
-class ResourcePatternSet {
-  List<ResourcePatternElement> elements = [];
+class _ResourcePatternSet {
+  List<_ResourcePatternElement> elements = [];
 
-  ResourcePatternSet parentSet;
-  ResourcePatternSet _nextOptionalSet;
-  ResourcePatternSet get nextOptionalSet => _nextOptionalSet;
-  void set nextOptionalSet(ResourcePatternSet s) {
+  _ResourcePatternSet parentSet;
+  _ResourcePatternSet _nextOptionalSet;
+  _ResourcePatternSet get nextOptionalSet => _nextOptionalSet;
+  void set nextOptionalSet(_ResourcePatternSet s) {
     _nextOptionalSet = s;
     s.parentSet = this;
   }
 
-  void addElement(ResourcePatternElement e) {
+  void addElement(_ResourcePatternElement e) {
     elements.add(e);
   }
-
-  //Map<String, String> matchesIn
 }
 
-class ResourcePatternElement {
+class _ResourcePatternElement {
   bool matchesRemaining = false;
   String name;
   RegExp matchRegex;
 
-  ResourcePatternElement(String segment) {
+  _ResourcePatternElement(String segment) {
     if(segment.startsWith(":")) {
       var contents = segment.substring(1, segment.length);
       constructFromString(contents);

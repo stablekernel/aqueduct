@@ -1,10 +1,26 @@
 part of monadart;
 
+/// Represents the information in an HTTP response.
+///
+/// This object can be used to write an HTTP response and contains conveniences
+/// for creating these objects.
 class Response {
+
+  /// An object representing the body of the [Response], which will be encoded later.
+  ///
+  /// This is typically a map that will be encoded to JSON.
   dynamic body;
+
+  ///
   HttpHeaders headers;
+
+  /// The HTTP status code of this response.
   int statusCode;
 
+  /// The default constructor.
+  ///
+  /// There exist convenience constructors for common response status codes
+  /// and you should prefer to use those.
   Response(int statusCode, HttpHeaders headers, dynamic body) {
     this.body = body;
     this.headers = headers;
