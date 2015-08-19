@@ -12,7 +12,7 @@ class Response {
   dynamic body;
 
   ///
-  HttpHeaders headers;
+  Map<String, String> headers;
 
   /// The HTTP status code of this response.
   int statusCode;
@@ -21,29 +21,33 @@ class Response {
   ///
   /// There exist convenience constructors for common response status codes
   /// and you should prefer to use those.
-  Response(int statusCode, HttpHeaders headers, dynamic body) {
+  Response(int statusCode, Map<String, String> headers, dynamic body) {
     this.body = body;
     this.headers = headers;
     this.statusCode = statusCode;
   }
 
-  Response.ok(dynamic body, {HttpHeaders headers}) : this(HttpStatus.OK, headers, body);
-  Response.created(String location, {dynamic body, HttpHeaders headers}) {
+  Response.ok(dynamic body, {Map<String, String>  headers}) : this(HttpStatus.OK, headers, body);
+  Response.created(String location, {dynamic body, Map<String, String> headers}) {
     this.headers = headers;
     this.body = body;
     this.statusCode = HttpStatus.CREATED;
 
-    this.headers.set(HttpHeaders.LOCATION, location);
+    if(this.headers == null) {
+      this.headers = {HttpHeaders : location};
+    } else {
+      this.headers[HttpHeaders.LOCATION] = location;
+    }
   }
-  Response.accepted({HttpHeaders headers}) : this(HttpStatus.ACCEPTED, headers, null);
+  Response.accepted({Map<String, String> headers}) : this(HttpStatus.ACCEPTED, headers, null);
 
-  Response.badRequest({HttpHeaders headers, dynamic body}) : this(HttpStatus.BAD_REQUEST, headers, body);
-  Response.unauthorized({HttpHeaders headers, dynamic body}) : this(HttpStatus.UNAUTHORIZED, headers, body);
-  Response.forbidden({HttpHeaders headers, dynamic body}) : this(HttpStatus.FORBIDDEN, headers, body);
-  Response.notFound({HttpHeaders headers, dynamic body}) : this(HttpStatus.NOT_FOUND, headers, body);
-  Response.conflict({HttpHeaders headers, dynamic body}) : this(HttpStatus.CONFLICT, headers, body);
-  Response.gone({HttpHeaders headers, dynamic body}) : this(HttpStatus.GONE, headers, body);
+  Response.badRequest({Map<String, String> headers, dynamic body}) : this(HttpStatus.BAD_REQUEST, headers, body);
+  Response.unauthorized({Map<String, String> headers, dynamic body}) : this(HttpStatus.UNAUTHORIZED, headers, body);
+  Response.forbidden({Map<String, String> headers, dynamic body}) : this(HttpStatus.FORBIDDEN, headers, body);
+  Response.notFound({Map<String, String> headers, dynamic body}) : this(HttpStatus.NOT_FOUND, headers, body);
+  Response.conflict({Map<String, String> headers, dynamic body}) : this(HttpStatus.CONFLICT, headers, body);
+  Response.gone({Map<String, String> headers, dynamic body}) : this(HttpStatus.GONE, headers, body);
 
-  Response.serverError({HttpHeaders headers, dynamic body}) : this(HttpStatus.INTERNAL_SERVER_ERROR, headers, body);
+  Response.serverError({Map<String, String> headers, dynamic body}) : this(HttpStatus.INTERNAL_SERVER_ERROR, headers, body);
 
 }
