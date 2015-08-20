@@ -12,7 +12,6 @@ class ResourceRequest {
   /// all of the request information provided by the client.
   final HttpRequest request;
 
-
   /// The response object of this [ResourceRequest].
   ///
   /// To respond to a request, this object must be written to. It is the same

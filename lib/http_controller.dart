@@ -132,6 +132,7 @@ abstract class HttpController {
                 (attr) => attr.reflectee is Route, orElse: () => null);
         if (routeAttrs != null) {
           var params = (decl as MethodMirror).parameters
+          .where((pm) => !pm.isOptional)
           .map((pm) => MirrorSystem.getName(pm.simpleName))
           .toList();
           Route r = new Route.fromRoute(routeAttrs.reflectee, params);
@@ -177,6 +178,7 @@ abstract class HttpController {
     reflect(this).type.declarations[handlerMethodSymbol] as MethodMirror;
 
     return handlerMirror.parameters
+    .where((methodParmeter) => !methodParmeter.isOptional)
     .map((methodParameter) {
       var value = this.resourceRequest.pathParameters[MirrorSystem.getName(methodParameter.simpleName)];
       var parameterType = methodParameter.type;
@@ -185,14 +187,37 @@ abstract class HttpController {
     }).toList();
   }
 
+  Map<String, dynamic> _queryParametersForRequest(ResourceRequest req, Symbol handlerMethodSymbol) {
+    var queryParams = req.request.uri.queryParameters;
+    if(queryParams.length == 0) {
+      return null;
+    }
+
+    var optionalParams = (reflect(this).type.declarations[handlerMethodSymbol] as MethodMirror)
+      .parameters.where((methodParameter) => methodParameter.isOptional).toList();
+
+    var retMap = {};
+    queryParams.forEach((k, v) {
+      var keySymbol = new Symbol(k);
+      var matchingParameter = optionalParams.firstWhere((p) => p.simpleName == keySymbol, orElse: () => null);
+      if(matchingParameter != null) {
+        retMap[keySymbol] = v;
+      }
+    });
+
+    return retMap;
+  }
+
   Future process() async {
     try {
       var methodSymbol = _routeMethodSymbolForRequest(resourceRequest);
       var handlerParameters = _parametersForRequest(resourceRequest, methodSymbol);
+      var handlerQueryParameters = _queryParametersForRequest(resourceRequest, methodSymbol);
+
       requestBody = await _readRequestBodyForRequest(resourceRequest);
 
       Future<Response> eventualResponse =
-      reflect(this).invoke(methodSymbol, handlerParameters).reflectee;
+      reflect(this).invoke(methodSymbol, handlerParameters, handlerQueryParameters).reflectee;
 
       var response = await eventualResponse;
 

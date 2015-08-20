@@ -89,6 +89,16 @@ void main() {
     expect(res.statusCode, 415);
   });
 
+  test("Query parameters get delivered if exposed as optional params", () async {
+    serve(new QController(), null);
+
+    var res = await http.get("http://localhost:4040/a?opt=x");
+
+    expect(res.body, "\"OK\"");
+
+    res = await http.get("http://localhost:4040/a");
+    expect(res.body, "\"NOT\"");
+  });
 
 
 }
@@ -123,5 +133,15 @@ class TController extends HttpController {
     var body = this.requestBody;
 
     return new Response.ok(body);
+  }
+}
+
+class QController extends HttpController {
+  @httpGet
+  Future<Response> getOne({String opt: null}) async {
+    if(opt == null) {
+      return new Response.ok("NOT");
+    }
+    return new Response.ok("OK");
   }
 }
