@@ -31,6 +31,13 @@ class ApplicationInstanceConfiguration {
   /// run over HTTP instead of HTTPs.
   String serverCertificateName = null;
 
+  /// Options for instances of ApplicationPipeline to use when in this application.
+  ///
+  /// Allows delivery of custom configuration parameters to ApplicationPipeline instances
+  /// that are attached to this application.
+  Map<dynamic, dynamic> pipelineOptions;
+
+
   /// Whether or not the server configuration defined by this instance can be shared across isolates.
   ///
   /// Defaults to false. When false, only one isolate may listen for requests on the [address] and [port]
@@ -57,6 +64,13 @@ class ApplicationInstanceConfiguration {
 /// [Application]s set up HTTP(s) listeners, but do not do anything with them. The behavior of how an application
 /// responds to requests is defined by its [ApplicationPipeline].
 abstract class ApplicationPipeline {
+
+  /// Passed in options for this pipeline from its owning [Application].
+  ///
+  /// These values give an opportunity for a pipeline to have a customization point within attachTo., like running
+  /// the owning [Application] in 'Development' or 'Production' mode. This property will always be set prior to invoking attachTo, but may be null
+  /// if the user did not set any configuration values.
+  Map<String, dynamic> options;
 
   /// Allows an [ApplicationPipeline] to handle HTTP(s) requests from its [Application].
   ///
@@ -148,6 +162,8 @@ class _Server {
       server.serverHeader = "monadart/${this.identifier}";
 
       var stream = server.map((req) => new ResourceRequest(req));
+
+      pipeline.options = configuration.pipelineOptions;
       pipeline.attachTo(stream);
     };
 

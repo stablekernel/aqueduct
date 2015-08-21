@@ -173,6 +173,34 @@ abstract class HttpController {
     return null;
   }
 
+  dynamic _convertParameterWithMirror(String parameterValue, ParameterMirror parameterMirror) {
+    var typeMirror = parameterMirror.type;
+    if(typeMirror.isSubtypeOf(reflectType(String))) {
+      return parameterValue;
+    }
+
+    if(typeMirror is ClassMirror) {
+      var cm = (typeMirror as ClassMirror);
+      var parseDecl = cm.declarations[new Symbol("parse")];
+      if(parseDecl != null) {
+        try {
+          var reflValue = cm.invoke(parseDecl.simpleName, [parameterValue]);
+          return reflValue.reflectee;
+        } catch (e) {
+          throw new _InternalControllerException("Invalid value for parameter type",
+            HttpStatus.BAD_REQUEST,
+            responseMessage: "URI parameter is wrong type");
+        }
+      }
+    }
+
+    // If we get here, then it wasn't a string and couldn't be parsed, and we should throw?
+    throw new _InternalControllerException("Invalid path parameter type, types must be String or implement parse",
+      HttpStatus.INTERNAL_SERVER_ERROR,
+      responseMessage: "URI parameter is wrong type");
+    return null;
+  }
+
   List<dynamic> _parametersForRequest(ResourceRequest req, Symbol handlerMethodSymbol) {
     var handlerMirror =
     reflect(this).type.declarations[handlerMethodSymbol] as MethodMirror;
@@ -183,11 +211,11 @@ abstract class HttpController {
       var value = this.resourceRequest.pathParameters[MirrorSystem.getName(methodParameter.simpleName)];
       var parameterType = methodParameter.type;
 
-      return value;
+      return _convertParameterWithMirror(value, methodParameter);
     }).toList();
   }
 
-  Map<String, dynamic> _queryParametersForRequest(ResourceRequest req, Symbol handlerMethodSymbol) {
+  Map<Symbol, dynamic> _queryParametersForRequest(ResourceRequest req, Symbol handlerMethodSymbol) {
     var queryParams = req.request.uri.queryParameters;
     if(queryParams.length == 0) {
       return null;
@@ -201,7 +229,7 @@ abstract class HttpController {
       var keySymbol = new Symbol(k);
       var matchingParameter = optionalParams.firstWhere((p) => p.simpleName == keySymbol, orElse: () => null);
       if(matchingParameter != null) {
-        retMap[keySymbol] = v;
+        retMap[keySymbol] = _convertParameterWithMirror(v, matchingParameter);
       }
     });
 
