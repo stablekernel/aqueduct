@@ -53,20 +53,4 @@ class Response {
   Response.gone({Map<String, String> headers, dynamic body}) : this(HttpStatus.GONE, headers, body);
 
   Response.serverError({Map<String, String> headers, dynamic body}) : this(HttpStatus.INTERNAL_SERVER_ERROR, headers, body);
-
-  void respondToRequest(ResourceRequest req) {
-    req.response.statusCode = statusCode;
-
-    if (headers != null) {
-      headers.forEach((k, v) {
-        req.response.headers.add(k, v);
-      });
-    }
-
-    if (body != null) {
-      req.response.write(body);
-    }
-
-    req.response.close();
-  }
 }

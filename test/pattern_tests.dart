@@ -133,5 +133,4 @@ void main() {
     expect(p.matchesInUri(new Uri.http("test.com", "/literal/123/foobar/x")), allOf([containsPair("b", "123"), containsPair(ResourcePattern.remainingPath, "foobar/x")]));
   });
 
-
 }

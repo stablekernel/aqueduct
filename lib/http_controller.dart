@@ -251,7 +251,8 @@ abstract class HttpController {
 
       response.body = responseBodyEncoder(response.body);
       response.headers[HttpHeaders.CONTENT_TYPE] = responseContentType.toString();
-      response.respondToRequest(resourceRequest);
+
+      resourceRequest.respond(response);
     } on _InternalControllerException catch (e) {
       resourceRequest.response.statusCode = e.statusCode;
 

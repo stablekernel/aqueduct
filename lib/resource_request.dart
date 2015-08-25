@@ -36,4 +36,19 @@ class ResourceRequest {
 
   }
 
+  void respond(Response respObj) {
+    response.statusCode = respObj.statusCode;
+
+    if (respObj.headers != null) {
+      respObj.headers.forEach((k, v) {
+        response.headers.add(k, v);
+      });
+    }
+
+    if (respObj.body != null) {
+      response.write(respObj.body);
+    }
+
+    response.close();
+  }
 }

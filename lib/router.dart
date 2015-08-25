@@ -20,7 +20,7 @@ class Router {
     return streamController.stream;
   }
 
-  void listener(ResourceRequest req) {
+  void routeRequest(ResourceRequest req) {
     for (var route in routes) {
       var routeMatch = route.pattern.matchesInUri(req.request.uri);
 
@@ -35,6 +35,7 @@ class Router {
 
     _unhandledRequestHandler(req);
   }
+
 
   void _handleUnhandledRequest(ResourceRequest req) {
     req.response.statusCode = HttpStatus.NOT_FOUND;
