@@ -70,6 +70,8 @@
     
     
       <li class="section-title"><a href="monadart/Router-class.html#instance-properties">Properties</a></li>
+      <li><a href="monadart/Router/basePath.html">basePath</a>
+</li>
       <li><a href="monadart/Router/unhandledRequestHandler.html">unhandledRequestHandler</a>
 </li>
     
@@ -136,8 +138,15 @@ bracket must follow the preceding path delimeter (/).</p>
 /// Routes may have multiple optional segments, but they must be nested.
 ///       /constantString/[:optionalVariable/[optionalConstantString]]
 Stream&lt;ResourceRequest&gt; addRoute(String pattern) {
+
+  if(basePath != null) {
+    pattern = basePath + pattern;
+  }
+
+  var finalPattern = pattern.split(&quot;/&quot;).where((c) =&gt; c != &quot;&quot;).join(&quot;/&quot;);
+
   var streamController = new StreamController&lt;ResourceRequest&gt;();
-  _routes.add(new _ResourceRoute(new ResourcePattern(pattern), streamController));
+  _routes.add(new _ResourceRoute(new ResourcePattern(finalPattern), streamController));
 
   return streamController.stream;
 }</code></pre>
