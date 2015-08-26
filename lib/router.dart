@@ -14,6 +14,23 @@ part of monadart;
 class Router {
   List<_ResourceRoute> _routes;
 
+  /// A string to be prepended to the beginning of every route this [Router] manages.
+  ///
+  /// For example, if this [Router]'s base route is "/api" and the routes "/users/"
+  /// and "/posts" are added, the actual routes will be "/api/users" and "/api/posts".
+  /// This property MUST be set prior to adding routes, an exception will be thrown
+  /// otherwise.
+  ///
+
+  String get basePath => _basePath;
+  void set basePath(String bp) {
+    if(_routes.length > 0) {
+      throw new _RouterException("Cannot alter basePath after adding routes.");
+    }
+    _basePath = bp;
+  }
+  String _basePath;
+
   /// How this router handles [ResourceRequest]s that don't match its routes.
   ///
   /// If a [ResourceRequest] delivered via [routeRequest] has no matching route in this [Router],
@@ -47,8 +64,15 @@ class Router {
   /// Routes may have multiple optional segments, but they must be nested.
   ///       /constantString/[:optionalVariable/[optionalConstantString]]
   Stream<ResourceRequest> addRoute(String pattern) {
+
+    if(basePath != null) {
+      pattern = basePath + pattern;
+    }
+
+    var finalPattern = pattern.split("/").where((c) => c != "").join("/");
+
     var streamController = new StreamController<ResourceRequest>();
-    _routes.add(new _ResourceRoute(new ResourcePattern(pattern), streamController));
+    _routes.add(new _ResourceRoute(new ResourcePattern(finalPattern), streamController));
 
     return streamController.stream;
   }
@@ -87,4 +111,9 @@ class _ResourceRoute {
   final StreamController<ResourceRequest> streamController;
 
   _ResourceRoute(this.pattern, this.streamController);
+}
+
+class _RouterException implements Exception {
+  final String message;
+  _RouterException(this.message);
 }
