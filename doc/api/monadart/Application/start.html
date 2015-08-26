@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>start method - Application class - monadart library - Dart API</title>
+    <!-- required because all the links are pseudo-absolute -->
+    <base href="../..">
+
+    <link href='https://fonts.googleapis.com/css?family=Source+Code+Pro|Roboto:500,400italic,300,400' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="static-assets/prettify.css">
+    <link rel="stylesheet" href="static-assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="static-assets/styles.css">
+
+    <meta name="description" content="API docs for the start method from the Application class, for the Dart programming language.">
+    <link rel="icon" href="static-assets/favicon.png">
+
+    <!-- Do not remove placeholder -->
+    <!-- Header Placeholder -->
+</head>
+
+<body>
+
+<div id="overlay-under-drawer"></div>
+
+<header class="container-fluid" id="title">
+    <nav class="navbar navbar-fixed-top">
+        <div class="container">
+            <button id="sidenav-left-toggle" type="button">&nbsp;</button>
+            <ol class="breadcrumbs gt-separated hidden-xs">
+                <li><a href="index.html">monadart</a></li>
+                <li><a href="monadart/monadart-library.html">monadart</a></li>
+                <li><a href="monadart/Application-class.html">Application</a></li>
+                <li class="self-crumb">start</li>
+            </ol>
+            <div class="self-name">start</div>
+        </div>
+    </nav>
+    <div class="container masthead">
+        <ol class="breadcrumbs gt-separated visible-xs">
+            <li><a href="index.html">monadart</a></li>
+            <li><a href="monadart/monadart-library.html">monadart</a></li>
+            <li><a href="monadart/Application-class.html">Application</a></li>
+            <li class="self-crumb">start</li>
+        </ol>
+        <div class="title-description">
+            <h1 class="title">
+                <div class="kind">method</div> start
+            </h1>
+            <!-- p class="subtitle">
+                Starts the application by spawning Isolates that listen for HTTP(s) requests.
+            </p -->
+        </div>
+        <ul class="subnav">
+            <li><a href="monadart/Application/start.html#source">Source</a></li>
+        </ul>
+    </div>
+</header>
+
+<div class="container body">
+
+  <div class="col-xs-6 col-sm-3 sidebar sidebar-offcanvas-left">
+    <h5><a href="index.html">monadart</a></h5>
+    <h5><a href="monadart/monadart-library.html">monadart</a></h5>
+    <h5><a href="monadart/Application-class.html">Application</a></h5>
+
+    <ol>
+    
+    
+    
+      <li class="section-title"><a href="monadart/Application-class.html#instance-properties">Properties</a></li>
+      <li><a href="monadart/Application/configuration.html">configuration</a>
+</li>
+      <li><a href="monadart/Application/pipelineType.html">pipelineType</a>
+</li>
+      <li><a href="monadart/Application/servers.html">servers</a>
+</li>
+    
+      <li class="section-title"><a href="monadart/Application-class.html#constructors">Constructors</a></li>
+      <li><a href="monadart/Application/Application.html">Application</a></li>
+    
+    
+      <li class="section-title"><a href="monadart/Application-class.html#methods">Methods</a></li>
+      <li><a href="monadart/Application/start.html">start</a>
+</li>
+    </ol>
+
+  </div><!--/.sidebar-offcanvas-->
+
+  <div class="col-xs-12 col-sm-9 col-md-6 main-content">
+
+    <section class="multi-line-signature">
+            <span class="returntype">Future</span>
+            <span class="name ">start</span>(
+            <br>
+            <div class="parameters">
+                {<span class="parameter" id="start-param-numberOfInstances"><span class="type-annotation">int</span> <span class="parameter-name">numberOfInstances</span>: <span class="default-value">1</span></span>}
+            </div>
+            )    </section>
+
+    <section class="desc markdown">
+    
+          <p>Starts the application by spawning Isolates that listen for HTTP(s) requests.</p>
+<p>Returns a <code class="prettyprint lang-dart">Future</code> that completes when all Isolates have started listening for requests.
+The <code class="prettyprint lang-dart">numberOfInstances</code> defines how many Isolates are spawned running this application's <a href="monadart/Application/configuration.html">configuration</a>
+and <a href="monadart/Application/pipelineType.html">pipelineType</a>.</p>
+    
+    </section>
+
+    <section class="summary source-code" id="source">
+      <h2>Source</h2>
+      <pre><code class="prettyprint lang-dart">/// Starts the application by spawning Isolates that listen for HTTP(s) requests.
+///
+/// Returns a [Future] that completes when all Isolates have started listening for requests.
+/// The [numberOfInstances] defines how many Isolates are spawned running this application&apos;s [configuration]
+/// and [pipelineType].
+Future start({int numberOfInstances: 1}) async {
+  if (configuration.address == null) {
+    if (configuration.isIpv6Only) {
+      configuration.address = InternetAddress.ANY_IP_V6;
+    } else {
+      configuration.address = InternetAddress.ANY_IP_V4;
+    }
+  }
+
+  configuration.shared = numberOfInstances &gt; 1;
+
+  for (int i = 0; i &lt; numberOfInstances; i++) {
+    var config =
+        new ApplicationInstanceConfiguration.fromConfiguration(configuration);
+
+    var serverRecord = await _spawn(config, i + 1);
+    servers.add(serverRecord);
+  }
+
+  servers.forEach((i) {
+    i.resume();
+  });
+}</code></pre>
+    </section>
+
+  </div> <!-- /.main-content -->
+
+</div> <!-- container -->
+
+<footer>
+    <div class="container-fluid">
+        <div class="container">
+            <p class="text-center">
+                <span class="no-break">
+                  monadart 0.0.1 api docs
+                </span>
+                &bull;
+                <span class="copyright no-break">
+                  <a href="https://www.dartlang.org">
+                    <img src="static-assets/favicon.png" alt="Dart" title="Dart"width="16" height="16">
+                  </a>
+                </span>
+                &bull;
+                <span class="copyright no-break">
+                  <a href="http://creativecommons.org/licenses/by-sa/4.0/">cc license</a>
+                </span>
+            </p>
+        </div>
+    </div>
+</footer>
+
+<script src="static-assets/prettify.js"></script>
+<script src="static-assets/script.js"></script>
+<!-- Do not remove placeholder -->
+<!-- Footer Placeholder -->
+</body>
+
+</html>

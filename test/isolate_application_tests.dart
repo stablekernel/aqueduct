@@ -53,14 +53,14 @@ main() {
   });
 }
 
-class TPipeline implements ApplicationPipeline {
+class TPipeline extends ApplicationPipeline {
   Router router = new Router();
 
   void attachTo(Stream<ResourceRequest> reqStream) {
     addRouteController(router, "t", TController);
     addRouteController(router, "r", RController);
 
-    reqStream.listen(router.listener);
+    reqStream.listen(router.routeRequest);
   }
 }
 class TController extends HttpController {

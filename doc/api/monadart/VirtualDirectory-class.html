@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>VirtualDirectory class - monadart library - Dart API</title>
+    <!-- required because all the links are pseudo-absolute -->
+    <base href="..">
+
+    <link href='https://fonts.googleapis.com/css?family=Source+Code+Pro|Roboto:500,400italic,300,400' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="static-assets/prettify.css">
+    <link rel="stylesheet" href="static-assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="static-assets/styles.css">
+
+    <meta name="description" content="API docs for the VirtualDirectory class from the monadart library, for the Dart programming language.">
+    <link rel="icon" href="static-assets/favicon.png">
+
+    <!-- Do not remove placeholder -->
+    <!-- Header Placeholder -->
+</head>
+
+<body>
+
+<div id="overlay-under-drawer"></div>
+
+<header class="container-fluid" id="title">
+    <nav class="navbar navbar-fixed-top">
+        <div class="container">
+            <button id="sidenav-left-toggle" type="button">&nbsp;</button>
+            <ol class="breadcrumbs gt-separated hidden-xs">
+                <li><a href="index.html">monadart</a></li>
+                <li><a href="monadart/monadart-library.html">monadart</a></li>
+                <li class="self-crumb">VirtualDirectory</li>
+            </ol>
+            <div class="self-name">VirtualDirectory</div>
+        </div>
+    </nav>
+    <div class="container masthead">
+        <ol class="breadcrumbs gt-separated visible-xs">
+            <li><a href="index.html">monadart</a></li>
+            <li><a href="monadart/monadart-library.html">monadart</a></li>
+            <li class="self-crumb">VirtualDirectory</li>
+        </ol>
+        <div class="title-description">
+            <h1 class="title">
+                <div class="kind">class</div> VirtualDirectory
+            </h1>
+            <!-- p class="subtitle">
+                A <a href="monadart/VirtualDirectory-class.html">VirtualDirectory</a> can serve files and directory-listing from a root path,
+to <code class="prettyprint lang-dart">HttpRequest</code>s.
+            </p -->
+        </div>
+        <ul class="subnav">
+            <li><a href="monadart/VirtualDirectory-class.html#instance-properties">Properties</a></li>
+            <li><a href="monadart/VirtualDirectory-class.html#constructors">Constructors</a></li>
+            <li><a href="monadart/VirtualDirectory-class.html#instance-methods">Methods</a></li>
+        </ul>
+    </div>
+</header>
+
+<div class="container body">
+
+  <div class="col-xs-6 col-sm-3 col-md-3 sidebar sidebar-offcanvas-left">
+    <h5><a href="index.html">monadart</a></h5>
+    <h5><a href="monadart/monadart-library.html">monadart</a></h5>
+
+    <ol>
+      <li class="section-title"><a href="monadart/monadart-library.html#constants">Constants</a></li>
+      <li><a href="monadart/httpDelete.html">httpDelete</a></li>
+      <li><a href="monadart/httpGet.html">httpGet</a></li>
+      <li><a href="monadart/httpPatch.html">httpPatch</a></li>
+      <li><a href="monadart/httpPost.html">httpPost</a></li>
+      <li><a href="monadart/httpPut.html">httpPut</a></li>
+    
+    
+    
+      <li class="section-title"><a href="monadart/monadart-library.html#functions">Functions</a></li>
+      <li><a href="monadart/addRouteController.html">addRouteController</a></li>
+    
+    
+      <li class="section-title"><a href="monadart/monadart-library.html#classes">Classes</a></li>
+      <li><a href="monadart/Application-class.html">Application</a></li>
+      <li><a href="monadart/ApplicationInstanceConfiguration-class.html">ApplicationInstanceConfiguration</a></li>
+      <li><a href="monadart/ApplicationPipeline-class.html">ApplicationPipeline</a></li>
+      <li><a href="monadart/HttpBody-class.html">HttpBody</a></li>
+      <li><a href="monadart/HttpBodyFileUpload-class.html">HttpBodyFileUpload</a></li>
+      <li><a href="monadart/HttpBodyHandler-class.html">HttpBodyHandler</a></li>
+      <li><a href="monadart/HttpClientResponseBody-class.html">HttpClientResponseBody</a></li>
+      <li><a href="monadart/HttpController-class.html">HttpController</a></li>
+      <li><a href="monadart/HttpMethod-class.html">HttpMethod</a></li>
+      <li><a href="monadart/HttpMultipartFormData-class.html">HttpMultipartFormData</a></li>
+      <li><a href="monadart/HttpRequestBody-class.html">HttpRequestBody</a></li>
+      <li><a href="monadart/ResourcePattern-class.html">ResourcePattern</a></li>
+      <li><a href="monadart/ResourceRequest-class.html">ResourceRequest</a></li>
+      <li><a href="monadart/Response-class.html">Response</a></li>
+      <li><a href="monadart/Router-class.html">Router</a></li>
+      <li><a href="monadart/VirtualDirectory-class.html">VirtualDirectory</a></li>
+      <li><a href="monadart/VirtualHost-class.html">VirtualHost</a></li>
+    
+    </ol>
+  </div>
+
+  <div class="col-xs-12 col-sm-9 col-md-6 main-content">
+
+    <section class="desc markdown">
+    
+          <p>A <a href="monadart/VirtualDirectory-class.html">VirtualDirectory</a> can serve files and directory-listing from a root path,
+to <code class="prettyprint lang-dart">HttpRequest</code>s.</p>
+<p>The <a href="monadart/VirtualDirectory-class.html">VirtualDirectory</a> providing secure handling of request uris and
+file-system links, correct mime-types and custom error pages.</p>
+    
+    </section>
+
+
+
+
+
+    <section class="summary" id="instance-properties">
+        <h2>Properties</h2>
+
+        <dl class="properties">
+            <dt id="allowDirectoryListing" class="property">
+                <span class="top-level-variable-type">bool</span>
+                <a href="monadart/VirtualDirectory/allowDirectoryListing.html">allowDirectoryListing</a>
+            </dt>
+            <dd>
+                <div class="readable-writable">
+        read / write
+    </div>
+    Set or get if the <a href="monadart/VirtualDirectory-class.html">VirtualDirectory</a> should list the content of
+directories.
+/
+            </dd>
+            <dt id="directoryHandler" class="property">
+                <span class="top-level-variable-type"></span>
+                <a href="monadart/VirtualDirectory/directoryHandler.html">directoryHandler</a>
+            </dt>
+            <dd>
+                <div class="readable-writable">
+        write-only
+    </div>
+    Set the <code class="prettyprint lang-dart">callback</code> to override the default directory listing. The
+<code class="prettyprint lang-dart">callback</code> will be called with the <code class="prettyprint lang-dart">Directory</code> to be listed and the
+<code class="prettyprint lang-dart">HttpRequest</code>.
+            </dd>
+            <dt id="errorPageHandler" class="property">
+                <span class="top-level-variable-type"></span>
+                <a href="monadart/VirtualDirectory/errorPageHandler.html">errorPageHandler</a>
+            </dt>
+            <dd>
+                <div class="readable-writable">
+        write-only
+    </div>
+    Set the <code class="prettyprint lang-dart">callback</code> to override the error page handler. When <code class="prettyprint lang-dart">callback</code> is
+invoked, the <code class="prettyprint lang-dart">statusCode</code> property of the response is set.
+            </dd>
+            <dt id="followLinks" class="property">
+                <span class="top-level-variable-type">bool</span>
+                <a href="monadart/VirtualDirectory/followLinks.html">followLinks</a>
+            </dt>
+            <dd>
+                <div class="readable-writable">
+        read / write
+    </div>
+    Set or get if the <a href="monadart/VirtualDirectory-class.html">VirtualDirectory</a> should follow links, that point
+to other resources within the <a href="monadart/VirtualDirectory/root.html">root</a> directory.
+/
+            </dd>
+            <dt id="jailRoot" class="property">
+                <span class="top-level-variable-type">bool</span>
+                <a href="monadart/VirtualDirectory/jailRoot.html">jailRoot</a>
+            </dt>
+            <dd>
+                <div class="readable-writable">
+        read / write
+    </div>
+    Set or get if the <a href="monadart/VirtualDirectory-class.html">VirtualDirectory</a> should jail the root. When the root is
+not jailed, links can be followed to outside the <a href="monadart/VirtualDirectory/root.html">root</a> directory.
+/
+            </dd>
+            <dt id="root" class="property">
+                <span class="top-level-variable-type">String</span>
+                <a href="monadart/VirtualDirectory/root.html">root</a>
+            </dt>
+            <dd>
+                <div class="readable-writable">
+        read-only
+    </div>
+    
+            </dd>
+        </dl>
+    </section>
+
+    <section class="summary" id="constructors">
+        <h2>Constructors</h2>
+
+        <dl class="constructor-summary-list">
+            <dt id="VirtualDirectory" class="callable">
+                <span class="name"><a href="monadart/VirtualDirectory/VirtualDirectory.html">VirtualDirectory</a></span><span class="signature">(<span class="parameter" id="-param-root"><span class="type-annotation">String</span> <span class="parameter-name">root</span></span>, {<span class="parameter" id="-param-pathPrefix"><span class="type-annotation">String</span> <span class="parameter-name">pathPrefix</span></span>})</span>
+            </dt>
+            <dd>
+                
+            </dd>
+        </dl>
+      </section>
+
+
+      <section class="summary" id="instance-methods">
+          <h2>Methods</h2>
+          <dl class="callables">
+              <dt id="serve" class="callable">
+                  <a href="monadart/VirtualDirectory/serve.html"><span class="name ">serve</span></a><span class="signature">(<wbr><span class="parameter" id="serve-param-requests"><span class="type-annotation">Stream&lt;HttpRequest&gt;</span> <span class="parameter-name">requests</span></span>)
+                      &#8594;
+                      <span class="returntype">StreamSubscription&lt;HttpRequest&gt;</span>
+                  </span>
+              </dt>
+              <dd>
+                  Serve a <code class="prettyprint lang-dart">Stream</code> of <code class="prettyprint lang-dart">HttpRequest</code>s, in this <a href="monadart/VirtualDirectory-class.html">VirtualDirectory</a>.
+              </dd>
+              <dt id="serveFile" class="callable">
+                  <a href="monadart/VirtualDirectory/serveFile.html"><span class="name ">serveFile</span></a><span class="signature">(<wbr><span class="parameter" id="serveFile-param-file"><span class="type-annotation">File</span> <span class="parameter-name">file</span></span>, <span class="parameter" id="serveFile-param-request"><span class="type-annotation">HttpRequest</span> <span class="parameter-name">request</span></span>)
+                      &#8594;
+                      <span class="returntype">void</span>
+                  </span>
+              </dt>
+              <dd>
+                  Serve the content of <code class="prettyprint lang-dart">file</code> to <code class="prettyprint lang-dart">request</code>.
+              </dd>
+              <dt id="serveRequest" class="callable">
+                  <a href="monadart/VirtualDirectory/serveRequest.html"><span class="name ">serveRequest</span></a><span class="signature">(<wbr><span class="parameter" id="serveRequest-param-request"><span class="type-annotation">HttpRequest</span> <span class="parameter-name">request</span></span>)
+                      &#8594;
+                      <span class="returntype">Future</span>
+                  </span>
+              </dt>
+              <dd>
+                  Serve a single <code class="prettyprint lang-dart">HttpRequest</code>, in this <a href="monadart/VirtualDirectory-class.html">VirtualDirectory</a>.
+              </dd>
+          </dl>
+      </section>
+
+    </div> <!-- /.main-content -->
+
+  <div class="col-xs-6 col-sm-6 col-md-3 sidebar sidebar-offcanvas-right">
+    <h5>VirtualDirectory</h5>
+    <ol>
+    
+    
+    
+      <li class="section-title"><a href="monadart/VirtualDirectory-class.html#instance-properties">Properties</a></li>
+      <li><a href="monadart/VirtualDirectory/allowDirectoryListing.html">allowDirectoryListing</a>
+</li>
+      <li><a href="monadart/VirtualDirectory/directoryHandler.html">directoryHandler</a>
+</li>
+      <li><a href="monadart/VirtualDirectory/errorPageHandler.html">errorPageHandler</a>
+</li>
+      <li><a href="monadart/VirtualDirectory/followLinks.html">followLinks</a>
+</li>
+      <li><a href="monadart/VirtualDirectory/jailRoot.html">jailRoot</a>
+</li>
+      <li><a href="monadart/VirtualDirectory/root.html">root</a>
+</li>
+    
+      <li class="section-title"><a href="monadart/VirtualDirectory-class.html#constructors">Constructors</a></li>
+      <li><a href="monadart/VirtualDirectory/VirtualDirectory.html">VirtualDirectory</a></li>
+    
+    
+      <li class="section-title"><a href="monadart/VirtualDirectory-class.html#methods">Methods</a></li>
+      <li><a href="monadart/VirtualDirectory/serve.html">serve</a>
+</li>
+      <li><a href="monadart/VirtualDirectory/serveFile.html">serveFile</a>
+</li>
+      <li><a href="monadart/VirtualDirectory/serveRequest.html">serveRequest</a>
+</li>
+    </ol>
+  </div><!--/.sidebar-offcanvas-->
+
+</div> <!-- container -->
+
+<footer>
+    <div class="container-fluid">
+        <div class="container">
+            <p class="text-center">
+                <span class="no-break">
+                  monadart 0.0.1 api docs
+                </span>
+                &bull;
+                <span class="copyright no-break">
+                  <a href="https://www.dartlang.org">
+                    <img src="static-assets/favicon.png" alt="Dart" title="Dart"width="16" height="16">
+                  </a>
+                </span>
+                &bull;
+                <span class="copyright no-break">
+                  <a href="http://creativecommons.org/licenses/by-sa/4.0/">cc license</a>
+                </span>
+            </p>
+        </div>
+    </div>
+</footer>
+
+<script src="static-assets/prettify.js"></script>
+<script src="static-assets/script.js"></script>
+<!-- Do not remove placeholder -->
+<!-- Footer Placeholder -->
+</body>
+
+</html>

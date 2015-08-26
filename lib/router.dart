@@ -1,27 +1,66 @@
 part of monadart;
 
+/// A [ResourceRequest] router to split requests onto separate streams based on their URI.
+///
+/// Instances of this class maintain a collection of streams for each route that has been registered with it.
+/// A route is defined by a [String] format, for example:
+///     router.addRoute("/users");
+///     router.addRoute("/posts/:id");
+///     router.addRoute("/things/[:id]");
+///     router.addRoute("/numbers/:id(\d+)");
+///     router.addRoute("/files/*");
+///
+/// Each route added to a [Router] creates a [Stream] of [ResourceRequest]s that a handler can listen to.
 class Router {
-  List<_ResourceRoute> routes;
+  List<_ResourceRoute> _routes;
 
-  var _unhandledRequestHandler;
+  /// How this router handles [ResourceRequest]s that don't match its routes.
+  ///
+  /// If a [ResourceRequest] delivered via [routeRequest] has no matching route in this [Router],
+  /// this function will be called.
+  /// By default, this handler will respond to the incoming [ResourceRequest] with a 404 response,
+  /// and does not forward or allow consumption of the [ResourceRequest] for later handlers.
+  Function get unhandledRequestHandler => _unhandledRequestHandler;
   void set unhandledRequestHandler(void handler(ResourceRequest req)) {
     _unhandledRequestHandler = handler;
   }
+  var _unhandledRequestHandler;
 
+  /// Creates a new [Router].
   Router() {
-    routes = [];
+    _routes = [];
     unhandledRequestHandler = _handleUnhandledRequest;
   }
 
+  /// Adds a route to this router and provides a [Stream] for all [ResourceRequest]s that match that route to be delivered on.
+  ///
+  /// A router manages route to [Stream] mappings that are added through this method.
+  /// The [pattern] must follow the rules of route patterns (see the guide for more explanation).
+  /// A pattern consists of one or more path segments. A path segment can be a constant string,
+  /// a path variable (a word prefixed with the : character) or the wildcard character (the asterisk character *)
+  ///       /constantString/:pathVariable/*
+  /// Path variables may optionally contain regular expression syntax within parentheses to constrain their matches.
+  ///       /:pathVariable(\d+)
+  /// Path segments may be marked as optional by using square brackets around the segment. The opening square
+  /// bracket must follow the preceding path delimeter (/).
+  ///       /constantString/[:optionalVariable]
+  /// Routes may have multiple optional segments, but they must be nested.
+  ///       /constantString/[:optionalVariable/[optionalConstantString]]
   Stream<ResourceRequest> addRoute(String pattern) {
     var streamController = new StreamController<ResourceRequest>();
-    routes.add(new _ResourceRoute(new ResourcePattern(pattern), streamController));
+    _routes.add(new _ResourceRoute(new ResourcePattern(pattern), streamController));
 
     return streamController.stream;
   }
 
+  /// Routes a [ResourceRequest] through the routes of this [Router].
+  ///
+  /// This is the entry point for [ResourceRequest]s into this router. A request will
+  /// either be inserted into a stream for a matching route or will be handled
+  /// by the [unhandledRequestHandler]. This method is typically used
+  /// as a listener to a [Stream] of [ResourceRequest]s.
   void routeRequest(ResourceRequest req) {
-    for (var route in routes) {
+    for (var route in _routes) {
       var routeMatch = route.pattern.matchesInUri(req.request.uri);
 
       if(routeMatch != null) {
@@ -48,10 +87,4 @@ class _ResourceRoute {
   final StreamController<ResourceRequest> streamController;
 
   _ResourceRoute(this.pattern, this.streamController);
-}
-
-class RouterException implements Exception {
-  final String message;
-
-  RouterException(this.message);
 }

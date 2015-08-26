@@ -22,7 +22,7 @@ void main() {
       router.addRoute("/a/:id").listen(echoHandler);
       router.addRoute("/raw").map((r) => r.request).listen(rawHandler);
 
-      incomingServer.map((req) => new ResourceRequest((req))).listen(router.listener);
+      incomingServer.map((req) => new ResourceRequest((req))).listen(router.routeRequest);
     });
   });
 

@@ -1,35 +1,35 @@
 part of monadart;
 
-/// A 'GET' Route annotation.
+/// A 'GET' HttpMethod annotation.
 ///
 /// Handler methods on [HttpController]s that handle GET requests must be annotated with this.
-const Route httpGet = const Route("get");
+const HttpMethod httpGet = const HttpMethod("get");
 
-/// A 'PUT' Route annotation.
+/// A 'PUT' HttpMethod annotation.
 ///
 /// Handler methods on [HttpController]s that handle PUT requests must be annotated with this.
-const Route httpPut = const Route("put");
+const HttpMethod httpPut = const HttpMethod("put");
 
-/// A 'POST' Route annotation.
+/// A 'POST' HttpMethod annotation.
 ///
 /// Handler methods on [HttpController]s that handle POST requests must be annotated with this.
-const Route httpPost = const Route("post");
+const HttpMethod httpPost = const HttpMethod("post");
 
-/// A 'DELETE' Route annotation.
+/// A 'DELETE' HttpMethod annotation.
 ///
 /// Handler methods on [HttpController]s that handle DELETE requests must be annotated with this.
-const Route httpDelete = const Route("delete");
+const HttpMethod httpDelete = const HttpMethod("delete");
 
-/// A 'PATCH' Route annotation.
+/// A 'PATCH' HttpMethod annotation.
 ///
 /// Handler methods on [HttpController]s that handle PATCH requests must be annotated with this.
-const Route httpPatch = const Route("patch");
+const HttpMethod httpPatch = const HttpMethod("patch");
 
 /// Resource controller handler method metadata for indicating the HTTP method the controller method corresponds to.
 ///
 /// Each [HttpController] method that is the entry point for an HTTP request must be decorated with an instance
-/// of [Route]. See [httpGet], [httpPut], [httpPost] and [httpDelete] for concrete examples.
-class Route {
+/// of [HttpMethod]. See [httpGet], [httpPut], [httpPost] and [httpDelete] for concrete examples.
+class HttpMethod {
   /// The method that the annotated request handler method corresponds to.
   ///
   /// Case-insensitive.
@@ -37,13 +37,13 @@ class Route {
 
   final List<String> _parameters;
 
-  const Route(this.method) : this._parameters = null;
+  const HttpMethod(this.method) : this._parameters = null;
 
-  Route.fromRoute(Route annotatedRoute, List<String> parameters)
-  : this.method = annotatedRoute.method,
+  HttpMethod._fromMethod(HttpMethod m, List<String> parameters)
+  : this.method = m.method,
     this._parameters = parameters;
 
-  /// Returns whether or not this [Route] matches a [ResourceRequest].
+  /// Returns whether or not this [HttpMethod] matches a [ResourceRequest].
   bool matchesRequest(ResourceRequest req) {
     if (req.request.method.toLowerCase() != this.method.toLowerCase()) {
       return false;
@@ -79,10 +79,10 @@ abstract class HttpController {
   ///
   /// The default handler will always respond to the HTTP request with a 500 status code.
   /// There are other exception handlers involved in the process of handling a request,
-  /// but once execution enters a handler method (one decorated with [Route]), this exception handler
+  /// but once execution enters a handler method (one decorated with [HttpMethod]), this exception handler
   /// is in place.
   Function get exceptionHandler => _exceptionHandler;
-  void set exceptionHandler(void handler(ResourceRequest resourceRequest, dynamic exceptionOrError, StackTrace stacktrace)) {
+  void set exceptionHandler(Response handler(ResourceRequest resourceRequest, dynamic exceptionOrError, StackTrace stacktrace)) {
     _exceptionHandler = handler;
   }
   Function _exceptionHandler = _defaultExceptionHandler;
@@ -128,14 +128,16 @@ abstract class HttpController {
     for (var key in decls.keys) {
       var decl = decls[key];
       if (decl is MethodMirror) {
-        var routeAttrs = decl.metadata.firstWhere(
-                (attr) => attr.reflectee is Route, orElse: () => null);
-        if (routeAttrs != null) {
+        var methodAttrs = decl.metadata.firstWhere(
+                (attr) => attr.reflectee is HttpMethod, orElse: () => null);
+
+        if (methodAttrs != null) {
           var params = (decl as MethodMirror).parameters
           .where((pm) => !pm.isOptional)
           .map((pm) => MirrorSystem.getName(pm.simpleName))
           .toList();
-          Route r = new Route.fromRoute(routeAttrs.reflectee, params);
+
+          HttpMethod r = new HttpMethod._fromMethod(methodAttrs.reflectee, params);
 
           if (r.matchesRequest(req)) {
             symbol = key;
@@ -209,7 +211,6 @@ abstract class HttpController {
     .where((methodParmeter) => !methodParmeter.isOptional)
     .map((methodParameter) {
       var value = this.resourceRequest.pathParameters[MirrorSystem.getName(methodParameter.simpleName)];
-      var parameterType = methodParameter.type;
 
       return _convertParameterWithMirror(value, methodParameter);
     }).toList();
@@ -235,6 +236,15 @@ abstract class HttpController {
 
     return retMap;
   }
+
+  /// Executes the appropriate handler method for this controller's request.
+  ///
+  /// Will find an appropriate handler method to execute and send its [Response]
+  /// to this controller's [resourceRequest] via [respond]. If no appropriate handler
+  /// method is found, responds to [resourceRequest] with a 404. All handler methods
+  /// are wrapped in an exception handler that is monitored by an internal mechanism
+  /// and by this controller's [exceptionHandler].
+  ///
 
   Future process() async {
     try {
@@ -268,16 +278,16 @@ abstract class HttpController {
 
       resourceRequest.response.close();
     } catch (e, stacktrace) {
-      _exceptionHandler(this.resourceRequest, e, stacktrace);
+      var response = _exceptionHandler(this.resourceRequest, e, stacktrace);
+      resourceRequest.respond(response);
     }
   }
 
-  static _defaultExceptionHandler(ResourceRequest resourceRequest, dynamic exceptionOrError, StackTrace stacktrace) {
+  static Response _defaultExceptionHandler(ResourceRequest resourceRequest, dynamic exceptionOrError, StackTrace stacktrace) {
     print(
         "Path: ${resourceRequest.request.uri}\nError: $exceptionOrError\n $stacktrace");
 
-    resourceRequest.response.statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
-    resourceRequest.response.close();
+    return new Response.serverError();
   }
 }
 
