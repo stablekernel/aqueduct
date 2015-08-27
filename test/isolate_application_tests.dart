@@ -60,7 +60,7 @@ class TPipeline extends ApplicationPipeline {
     addRouteController(router, "t", TController);
     addRouteController(router, "r", RController);
 
-    reqStream.listen(router.routeRequest);
+    reqStream.listen(router.handleRequest);
   }
 }
 class TController extends HttpController {

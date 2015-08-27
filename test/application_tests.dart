@@ -35,8 +35,7 @@ class TPipeline extends ApplicationPipeline {
   void attachTo(Stream<ResourceRequest> reqStream) {
     addRouteController(router, "t", TController);
     addRouteController(router, "r", RController);
-
-    reqStream.listen(router.routeRequest);
+    reqStream.listen(router.handleRequest);
   }
 }
 

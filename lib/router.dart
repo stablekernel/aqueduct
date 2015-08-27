@@ -11,7 +11,7 @@ part of monadart;
 ///     router.addRoute("/files/*");
 ///
 /// Each route added to a [Router] creates a [Stream] of [ResourceRequest]s that a handler can listen to.
-class Router {
+class Router implements RequestHandler {
   List<_ResourceRoute> _routes;
 
   /// A string to be prepended to the beginning of every route this [Router] manages.
@@ -64,7 +64,18 @@ class Router {
   /// Routes may have multiple optional segments, but they must be nested.
   ///       /constantString/[:optionalVariable/[optionalConstantString]]
   Stream<ResourceRequest> addRoute(String pattern) {
+    var route = _createRoute(pattern);
 
+    return route.streamController.stream;
+  }
+
+  void addRouteHandler(String routePattern, RequestHandler handler) {
+    var route = _createRoute(routePattern, handler: handler);
+
+    route.streamController.stream.listen(handler.handleRequest);
+  }
+
+  _ResourceRoute _createRoute(String pattern, {RequestHandler handler: null}) {
     if(basePath != null) {
       pattern = basePath + pattern;
     }
@@ -72,9 +83,10 @@ class Router {
     var finalPattern = pattern.split("/").where((c) => c != "").join("/");
 
     var streamController = new StreamController<ResourceRequest>();
-    _routes.add(new _ResourceRoute(new ResourcePattern(finalPattern), streamController));
+    var route = new _ResourceRoute(new ResourcePattern(finalPattern), streamController, handler);
+    _routes.add(route);
 
-    return streamController.stream;
+    return route;
   }
 
   /// Routes a [ResourceRequest] through the routes of this [Router].
@@ -83,7 +95,7 @@ class Router {
   /// either be inserted into a stream for a matching route or will be handled
   /// by the [unhandledRequestHandler]. This method is typically used
   /// as a listener to a [Stream] of [ResourceRequest]s.
-  void routeRequest(ResourceRequest req) {
+  void handleRequest(ResourceRequest req) {
     for (var route in _routes) {
       var routeMatch = route.pattern.matchesInUri(req.request.uri);
 
@@ -109,8 +121,9 @@ class Router {
 class _ResourceRoute {
   final ResourcePattern pattern;
   final StreamController<ResourceRequest> streamController;
+  final RequestHandler handler;
 
-  _ResourceRoute(this.pattern, this.streamController);
+  _ResourceRoute(this.pattern, this.streamController, this.handler);
 }
 
 class _RouterException implements Exception {

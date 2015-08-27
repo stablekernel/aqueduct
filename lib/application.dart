@@ -75,8 +75,9 @@ abstract class ApplicationPipeline {
   /// Allows an [ApplicationPipeline] to handle HTTP(s) requests from its [Application].
   ///
   /// Implementors of [ApplicationPipeline] must override this method to respond to an [Application]'s requests.
-  /// Setting up listeners for tasks such as routing to resource controllers, logging utilities and authentication occur here.
-  void attachTo(Stream<ResourceRequest> requestStream);
+  /// The return value is the first [RequestHandler] that will be the initial [ResourceRequest] handler.
+  /// The [initialHandler] will likely have handlers attached to it.
+  RequestHandler initialHandler();
 }
 
 /// A container for web server applications.
@@ -152,19 +153,20 @@ class _Server {
   HttpServer server;
   ApplicationPipeline pipeline;
   int identifier;
+  RequestHandler initialHandler;
 
   _Server(this.pipeline, this.configuration, this.identifier, this.parentMessagePort);
 
   Future start() async {
-    var onBind = (serv) {
-      server = serv;
+    var onBind = (s) {
+      server = s;
 
       server.serverHeader = "monadart/${this.identifier}";
 
-      var stream = server.map((req) => new ResourceRequest(req));
-
       pipeline.options = configuration.pipelineOptions;
-      pipeline.attachTo(stream);
+      initialHandler = pipeline.initialHandler();
+      server.map((httpReq) => new ResourceRequest(httpReq))
+        .listen(initialHandler.handleRequest);
     };
 
     if (configuration.serverCertificateName != null) {

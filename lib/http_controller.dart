@@ -73,7 +73,7 @@ class HttpMethod {
 /// Base class for web service handlers.
 ///
 /// Subclasses of this class can process and respond to an HTTP request.
-abstract class HttpController {
+abstract class HttpController implements RequestHandler {
 
   /// The exception handler for a request handler method that generates an HTTP error response.
   ///
@@ -288,6 +288,12 @@ abstract class HttpController {
         "Path: ${resourceRequest.request.uri}\nError: $exceptionOrError\n $stacktrace");
 
     return new Response.serverError();
+  }
+
+
+  void handleRequest(ResourceRequest req) {
+    resourceRequest = req;
+    process();
   }
 }
 
