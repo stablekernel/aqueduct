@@ -30,12 +30,14 @@ main() {
 }
 
 class TPipeline extends ApplicationPipeline {
-  Router router = new Router();
 
-  void attachTo(Stream<ResourceRequest> reqStream) {
-    addRouteController(router, "t", TController);
-    addRouteController(router, "r", RController);
-    reqStream.listen(router.handleRequest);
+  RequestHandler initialHandler() {
+    var router = new Router();
+
+    router.addRouteHandler("/t", new RequestHandlerGenerator<TController>());
+    router.addRouteHandler("/r", new RequestHandlerGenerator<RController>());
+
+    return router;
   }
 }
 

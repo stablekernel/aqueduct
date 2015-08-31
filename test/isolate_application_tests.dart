@@ -52,17 +52,18 @@ main() {
 
   });
 }
-
 class TPipeline extends ApplicationPipeline {
-  Router router = new Router();
 
-  void attachTo(Stream<ResourceRequest> reqStream) {
-    addRouteController(router, "t", TController);
-    addRouteController(router, "r", RController);
+  RequestHandler initialHandler() {
+    var router = new Router();
 
-    reqStream.listen(router.handleRequest);
+    router.addRouteHandler("/t", new RequestHandlerGenerator<TController>());
+    router.addRouteHandler("/r", new RequestHandlerGenerator<RController>());
+
+    return router;
   }
 }
+
 class TController extends HttpController {
   @httpGet
   Future<Response> getAll() async {
