@@ -231,6 +231,7 @@ class IntController extends HttpController {
   Future<Response> getOne(int id) async {
     return new Response.ok("${id * 2}");
   }
+
   @httpGet
   Future<Response> getAll({int opt: null}) async {
     return new Response.ok("${opt}");
@@ -242,6 +243,7 @@ class DateTimeController extends HttpController {
   Future<Response> getOne(DateTime time) async {
     return new Response.ok("${time.add(new Duration(seconds: 5))}");
   }
+
   @httpGet
   Future<Response> getAll({DateTime opt: null}) async {
     return new Response.ok("${opt}");

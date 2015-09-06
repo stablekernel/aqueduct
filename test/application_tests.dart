@@ -30,14 +30,17 @@ main() {
 }
 
 class TPipeline extends ApplicationPipeline {
+  Router router;
 
-  RequestHandler initialHandler() {
-    var router = new Router();
+  TPipeline() {
+    router = new Router();
 
     router.addRouteHandler("/t", new RequestHandlerGenerator<TController>());
     router.addRouteHandler("/r", new RequestHandlerGenerator<RController>());
+  }
 
-    return router;
+  void handleRequest(ResourceRequest req) {
+    router.handleRequest(req);
   }
 }
 

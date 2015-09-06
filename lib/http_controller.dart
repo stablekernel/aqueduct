@@ -41,7 +41,7 @@ class HttpMethod {
 
   HttpMethod._fromMethod(HttpMethod m, List<String> parameters)
   : this.method = m.method,
-    this._parameters = parameters;
+  this._parameters = parameters;
 
   /// Returns whether or not this [HttpMethod] matches a [ResourceRequest].
   bool matchesRequest(ResourceRequest req) {
@@ -82,9 +82,11 @@ abstract class HttpController implements RequestHandler {
   /// but once execution enters a handler method (one decorated with [HttpMethod]), this exception handler
   /// is in place.
   Function get exceptionHandler => _exceptionHandler;
+
   void set exceptionHandler(Response handler(ResourceRequest resourceRequest, dynamic exceptionOrError, StackTrace stacktrace)) {
     _exceptionHandler = handler;
   }
+
   Function _exceptionHandler = _defaultExceptionHandler;
 
   /// The request being processed by this [HttpController].
@@ -177,29 +179,29 @@ abstract class HttpController implements RequestHandler {
 
   dynamic _convertParameterWithMirror(String parameterValue, ParameterMirror parameterMirror) {
     var typeMirror = parameterMirror.type;
-    if(typeMirror.isSubtypeOf(reflectType(String))) {
+    if (typeMirror.isSubtypeOf(reflectType(String))) {
       return parameterValue;
     }
 
-    if(typeMirror is ClassMirror) {
+    if (typeMirror is ClassMirror) {
       var cm = (typeMirror as ClassMirror);
       var parseDecl = cm.declarations[new Symbol("parse")];
-      if(parseDecl != null) {
+      if (parseDecl != null) {
         try {
           var reflValue = cm.invoke(parseDecl.simpleName, [parameterValue]);
           return reflValue.reflectee;
         } catch (e) {
           throw new _InternalControllerException("Invalid value for parameter type",
-            HttpStatus.BAD_REQUEST,
-            responseMessage: "URI parameter is wrong type");
+          HttpStatus.BAD_REQUEST,
+          responseMessage: "URI parameter is wrong type");
         }
       }
     }
 
     // If we get here, then it wasn't a string and couldn't be parsed, and we should throw?
     throw new _InternalControllerException("Invalid path parameter type, types must be String or implement parse",
-      HttpStatus.INTERNAL_SERVER_ERROR,
-      responseMessage: "URI parameter is wrong type");
+    HttpStatus.INTERNAL_SERVER_ERROR,
+    responseMessage: "URI parameter is wrong type");
     return null;
   }
 
@@ -218,18 +220,18 @@ abstract class HttpController implements RequestHandler {
 
   Map<Symbol, dynamic> _queryParametersForRequest(ResourceRequest req, Symbol handlerMethodSymbol) {
     var queryParams = req.request.uri.queryParameters;
-    if(queryParams.length == 0) {
+    if (queryParams.length == 0) {
       return null;
     }
 
     var optionalParams = (reflect(this).type.declarations[handlerMethodSymbol] as MethodMirror)
-      .parameters.where((methodParameter) => methodParameter.isOptional).toList();
+    .parameters.where((methodParameter) => methodParameter.isOptional).toList();
 
     var retMap = {};
     queryParams.forEach((k, v) {
       var keySymbol = new Symbol(k);
       var matchingParameter = optionalParams.firstWhere((p) => p.simpleName == keySymbol, orElse: () => null);
-      if(matchingParameter != null) {
+      if (matchingParameter != null) {
         retMap[keySymbol] = _convertParameterWithMirror(v, matchingParameter);
       }
     });
