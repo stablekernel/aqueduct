@@ -49,19 +49,19 @@ class HttpMethod {
       return false;
     }
 
-    if (req.pathParameters == null) {
+    if (req.path.variables == null) {
       if (this._parameters.length == 0) {
         return true;
       }
       return false;
     }
 
-    if (req.pathParameters.length != this._parameters.length) {
+    if (req.path.variables.length != this._parameters.length) {
       return false;
     }
 
     for (var id in this._parameters) {
-      if (req.pathParameters[id] == null) {
+      if (req.path.variables[id] == null) {
         return false;
       }
     }
@@ -95,7 +95,7 @@ abstract class HttpController implements RequestHandler {
   ResourceRequest resourceRequest;
 
   /// Parameters parsed from the URI of the request, if any exist.
-  Map<String, String> get pathParameters => resourceRequest.pathParameters;
+  Map<String, String> get pathVariables => resourceRequest.path.variables;
 
   /// Types of content this [HttpController] will accept.
   ///
@@ -212,7 +212,7 @@ abstract class HttpController implements RequestHandler {
     return handlerMirror.parameters
     .where((methodParmeter) => !methodParmeter.isOptional)
     .map((methodParameter) {
-      var value = this.resourceRequest.pathParameters[MirrorSystem.getName(methodParameter.simpleName)];
+      var value = this.resourceRequest.path.variables[MirrorSystem.getName(methodParameter.simpleName)];
 
       return _convertParameterWithMirror(value, methodParameter);
     }).toList();

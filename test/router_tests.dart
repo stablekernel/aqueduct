@@ -48,7 +48,7 @@ void main() {
   test("Router delivers path values", () async {
     Router router = new Router();
     router.addRoute("/player/:id").listen((req) {
-      req.respond(new Response.ok("${req.pathParameters["id"]}"));
+      req.respond(new Response.ok("${req.path.variables["id"]}"));
     });
 
     var server = await enableRouter(router);

@@ -1,5 +1,41 @@
 part of monadart;
 
+
+/// A representation of a Route match, containing the elements of the matched path.
+///
+/// Instances of this class can be used by handlers after the router to inspect
+/// specifics of the incoming path without having to dissect the path on their own.
+class ResourcePatternMatch {
+
+  /// A map of variable to values in this match.
+  ///
+  /// If a path has variables (indicated by the :name syntax) in the path,
+  /// the matching segments for the path will be stored in the map. The key
+  /// will be the variable name (without the colon) and the value will be the
+  /// path segment as a string.
+  ///
+  /// Example:
+  /// Consider a match specification /users/:id. If the evaluated path is
+  ///     /users/2
+  /// This property will be {'id' : '2'}.
+  ///
+  Map<String, String> variables = {};
+
+  /// A list of the segments in a matched path.
+  ///
+  /// This property will contain every segment of the matched path, including
+  /// constant segments. It will not contain any part of the path caught by
+  /// the asterisk 'match all' token, however. Those are in [remainingPath].
+  List<String> segments = [];
+
+  /// If a match specification uses the asterisk 'match all' token,
+  /// the part of the path matched by that token will be stored in this property.
+  ///
+  /// The remaining path will will be a single string, including any path delimeters (/),
+  /// but will not have a leading path delimeter.
+  String remainingPath;
+}
+
 class ResourcePattern {
 
   static String remainingPath = "remainingPath";
@@ -64,8 +100,8 @@ class ResourcePattern {
     return splitPattern(patternString).map((segment) => new _ResourcePatternElement(segment.replaceAll(expr, ""))).toList();
   }
 
-  Map<String, String> matchesInUri(Uri uri) {
-    Map<String, String> namedParams = {};
+  ResourcePatternMatch matchUri(Uri uri) {
+    ResourcePatternMatch match = new ResourcePatternMatch();
 
     var incomingPathSegments = uri.pathSegments;
     var incomingPathIndex = 0;
@@ -79,9 +115,9 @@ class ResourcePattern {
         var resourceSegment = resourceIterator.current;
         if (resourceSegment.matchesRemaining) {
           var remainingString = incomingPathSegments.sublist(incomingPathIndex, incomingPathSegments.length).join("/");
-          namedParams[remainingPath] = remainingString;
+          match.remainingPath = remainingString;
 
-          return namedParams;
+          return match;
         } else {
           // If we're out of path segments, then we don't match
           if(incomingPathIndex >= incomingPathSegments.length) {
@@ -91,16 +127,18 @@ class ResourcePattern {
           var pathSegment = incomingPathSegments[incomingPathIndex];
           incomingPathIndex ++;
 
-          bool match = resourceSegment.fullMatchForString(pathSegment);
-          if(!match) {
+          bool matches = resourceSegment.fullMatchForString(pathSegment);
+          if(!matches) {
             // There was a path segment available, but it did not match
             return null;
           }
 
           // We match!
           if(resourceSegment.name != null) {
-            namedParams[resourceSegment.name] = pathSegment;
+            match.variables[resourceSegment.name] = pathSegment;
           }
+
+          match.segments.add(pathSegment);
         }
       }
       resourceSet = resourceSet.nextOptionalSet;
@@ -115,7 +153,7 @@ class ResourcePattern {
       }
     }
 
-    return namedParams;
+    return match;
   }
 }
 

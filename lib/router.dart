@@ -80,6 +80,8 @@ class Router implements RequestHandler {
       pattern = basePath + pattern;
     }
 
+
+    // Strip out any extraneous /s
     var finalPattern = pattern.split("/").where((c) => c != "").join("/");
 
     var streamController = new StreamController<ResourceRequest>();
@@ -97,10 +99,10 @@ class Router implements RequestHandler {
   /// as a listener to a [Stream] of [ResourceRequest]s.
   void handleRequest(ResourceRequest req) {
     for (var route in _routes) {
-      var routeMatch = route.pattern.matchesInUri(req.request.uri);
+      var routeMatch = route.pattern.matchUri(req.request.uri);
 
       if(routeMatch != null) {
-        req.pathParameters = routeMatch;
+        req.path = routeMatch;
 
         route.streamController.add(req);
 

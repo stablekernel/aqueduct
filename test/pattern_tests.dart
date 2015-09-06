@@ -15,121 +15,212 @@ void main() {
 
   test("Root", () {
     ResourcePattern p = new ResourcePattern("");
-    expect(p.matchesInUri(new Uri.http("test.com", "/")), {});
+    var m = p.matchUri(new Uri.http("test.com", "/"));
+    expect(m, isNotNull);
+    expect(m.segments.length, 0);
   });
 
   test("Literal", () {
     ResourcePattern p = new ResourcePattern("/player");
-    expect(p.matchesInUri(new Uri.http("test.com", "/player")), {});
-    expect(p.matchesInUri(new Uri.http("test.com", "/notplayer")), null);
-    expect(p.matchesInUri(new Uri.http("test.com", "/")), null);
-    expect(p.matchesInUri(new Uri.http("test.com", "/playernot")), null);
+
+    var m = p.matchUri(new Uri.http("test.com", "/player"));
+    expect(m, isNotNull);
+    expect(m.segments[0], "player");
+
+    expect(p.matchUri(new Uri.http("test.com", "/notplayer")), null);
+    expect(p.matchUri(new Uri.http("test.com", "/")), null);
+    expect(p.matchUri(new Uri.http("test.com", "/playernot")), null);
   });
 
   test("Literal Many", () {
     ResourcePattern p = new ResourcePattern("/player/one");
-    expect(p.matchesInUri(new Uri.http("test.com", "/player/one")), {});
-    expect(p.matchesInUri(new Uri.http("test.com", "/player/two")), null);
-    expect(p.matchesInUri(new Uri.http("test.com", "/notplayer/one")), null);
-    expect(p.matchesInUri(new Uri.http("test.com", "/notplayer/two")), null);
-    expect(p.matchesInUri(new Uri.http("test.com", "/")), null);
+
+    var m = p.matchUri(new Uri.http("test.com", "/player/one"));
+    expect(m, isNotNull);
+    expect(m.segments[0], "player");
+    expect(m.segments[1], "one");
+    expect(m.variables.length, 0);
+
+    expect(p.matchUri(new Uri.http("test.com", "/player/two")), null);
+    expect(p.matchUri(new Uri.http("test.com", "/notplayer/one")), null);
+    expect(p.matchUri(new Uri.http("test.com", "/notplayer/two")), null);
+    expect(p.matchUri(new Uri.http("test.com", "/")), null);
   });
 
   test("Star", () {
     ResourcePattern p = new ResourcePattern("/*");
-    expect(p.matchesInUri(new Uri.http("test.com", "/player/2mnasd")), containsPair(ResourcePattern.remainingPath, "player/2mnasd"));
-    expect(p.matchesInUri(new Uri.http("test.com", "/player/one/foobar/hello")), containsPair(ResourcePattern.remainingPath, "player/one/foobar/hello"));
-    expect(p.matchesInUri(new Uri.http("test.com", "/")), containsPair(ResourcePattern.remainingPath, ""));
+
+    var m = p.matchUri(new Uri.http("test.com", "/player/2mnasd"));
+    expect(m.remainingPath, "player/2mnasd");
+    expect(m.segments.length, 0);
+    expect(m.variables.length, 0);
+
+    m = p.matchUri(new Uri.http("test.com", "/player/one/foobar/hello"));
+    expect(m.remainingPath, "player/one/foobar/hello");
+    expect(m.segments.length, 0);
+    expect(m.variables.length, 0);
+
+    m = p.matchUri(new Uri.http("test.com", "/"));
+    expect(m.remainingPath, "");
   });
 
   test("Literal Star", () {
     ResourcePattern p = new ResourcePattern("/player/*");
-    expect(p.matchesInUri(new Uri.http("test.com", "/player/2mnasd")), containsPair(ResourcePattern.remainingPath, "2mnasd"));
-    expect(p.matchesInUri(new Uri.http("test.com", "/player/one/foobar/hello")), containsPair(ResourcePattern.remainingPath, "one/foobar/hello"));
-    expect(p.matchesInUri(new Uri.http("test.com", "/")), null);
+
+    var m = p.matchUri(new Uri.http("test.com", "/player/2mnasd"));
+    expect(m.remainingPath, "2mnasd");
+    expect(m.segments[0], "player");
+
+    m = p.matchUri(new Uri.http("test.com", "/player/one/foobar/hello"));
+    expect(m.remainingPath, "one/foobar/hello");
+    expect(m.segments[0], "player");
+
+    expect(p.matchUri(new Uri.http("test.com", "/")), null);
   });
 
   test("Variable Plain", () {
     ResourcePattern p = new ResourcePattern("/:id");
-    expect(p.matchesInUri(new Uri.http("test.com", "/player")), containsPair("id", "player"));
-    expect(p.matchesInUri(new Uri.http("test.com", "/player/foobar")), null);
-    expect(p.matchesInUri(new Uri.http("test.com", "/")), null);
+
+    var m = p.matchUri(new Uri.http("test.com", "/player"));
+    expect(m.variables, containsPair("id", "player"));
+    expect(m.segments[0], "player");
+
+    expect(p.matchUri(new Uri.http("test.com", "/player/foobar")), null);
+    expect(p.matchUri(new Uri.http("test.com", "/")), null);
   });
 
   test("Literal Variable", () {
     ResourcePattern p = new ResourcePattern("/player/:id");
-    expect(p.matchesInUri(new Uri.http("test.com", "/player")), null);
-    expect(p.matchesInUri(new Uri.http("test.com", "/player/foobar")), containsPair("id", "foobar"));
-    expect(p.matchesInUri(new Uri.http("test.com", "/player/foobar/etc")), null);
-    expect(p.matchesInUri(new Uri.http("test.com", "/")), null);
+
+    var m = p.matchUri(new Uri.http("test.com", "/player/foobar"));
+    expect(m.variables, containsPair("id", "foobar"));
+    expect(m.segments[0], "player");
+    expect(m.segments[1], "foobar");
+
+    expect(p.matchUri(new Uri.http("test.com", "/player")), null);
+    expect(p.matchUri(new Uri.http("test.com", "/player/foobar/etc")), null);
+    expect(p.matchUri(new Uri.http("test.com", "/")), null);
   });
 
   test("Optional Basic", () {
     ResourcePattern p = new ResourcePattern("/a/[b]");
-    expect(p.matchesInUri(new Uri.http("test.com", "/a")), {});
-    expect(p.matchesInUri(new Uri.http("test.com", "/a/b")), {});
-    expect(p.matchesInUri(new Uri.http("test.com", "/a/b/c")), null);
-    expect(p.matchesInUri(new Uri.http("test.com", "/a/a")), null);
-    expect(p.matchesInUri(new Uri.http("test.com", "/")), null);
+
+    var m = p.matchUri(new Uri.http("test.com", "/a"));
+    expect(m.segments[0], "a");
+
+    m = p.matchUri(new Uri.http("test.com", "/a/b"));
+    expect(m.segments[0], "a");
+    expect(m.segments[1], "b");
+
+    expect(p.matchUri(new Uri.http("test.com", "/a/b/c")), null);
+    expect(p.matchUri(new Uri.http("test.com", "/a/a")), null);
+    expect(p.matchUri(new Uri.http("test.com", "/")), null);
   });
 
   test("Optional Multiple", () {
     ResourcePattern p = new ResourcePattern("/a/[b/c]");
-    expect(p.matchesInUri(new Uri.http("test.com", "/a")), {});
-    expect(p.matchesInUri(new Uri.http("test.com", "/a/b")), null);
-    expect(p.matchesInUri(new Uri.http("test.com", "/a/b/c")), {});
-    expect(p.matchesInUri(new Uri.http("test.com", "/a/a")), null);
-    expect(p.matchesInUri(new Uri.http("test.com", "/")), null);
+
+    var m = p.matchUri(new Uri.http("test.com", "/a"));
+    expect(m.segments[0], "a");
+
+    m = p.matchUri(new Uri.http("test.com", "/a/b/c"));
+    expect(m.segments.join(""), "abc");
+
+    expect(p.matchUri(new Uri.http("test.com", "/a/b")), null);
+    expect(p.matchUri(new Uri.http("test.com", "/a/a")), null);
+    expect(p.matchUri(new Uri.http("test.com", "/")), null);
   });
 
   test("Optional Imbricated", () {
     ResourcePattern p = new ResourcePattern("/a/[b/[c]]");
-    expect(p.matchesInUri(new Uri.http("test.com", "/a")), {});
-    expect(p.matchesInUri(new Uri.http("test.com", "/a/b")), {});
-    expect(p.matchesInUri(new Uri.http("test.com", "/a/b/c")), {});
-    expect(p.matchesInUri(new Uri.http("test.com", "/a/X/c")), null);
-    expect(p.matchesInUri(new Uri.http("test.com", "/a/a")), null);
-    expect(p.matchesInUri(new Uri.http("test.com", "/a/b/c/d")), null);
-    expect(p.matchesInUri(new Uri.http("test.com", "/")), null);
+
+    var m = p.matchUri(new Uri.http("test.com", "/a"));
+    expect(m.segments[0], "a");
+
+    m = p.matchUri(new Uri.http("test.com", "/a/b"));
+    expect(m.segments.join(""), "ab");
+
+    m = p.matchUri(new Uri.http("test.com", "/a/b/c"));
+    expect(m.segments.join(""), "abc");
+
+    expect(p.matchUri(new Uri.http("test.com", "/a/X/c")), null);
+    expect(p.matchUri(new Uri.http("test.com", "/a/a")), null);
+    expect(p.matchUri(new Uri.http("test.com", "/a/b/c/d")), null);
+    expect(p.matchUri(new Uri.http("test.com", "/")), null);
   });
 
   test("Optional w/ variable", () {
     ResourcePattern p = new ResourcePattern("/a/[:b]");
-    expect(p.matchesInUri(new Uri.http("test.com", "/a")), {});
-    expect(p.matchesInUri(new Uri.http("test.com", "/a/player")), containsPair("b", "player"));
-    expect(p.matchesInUri(new Uri.http("test.com", "/a/b/c")), null);
-    expect(p.matchesInUri(new Uri.http("test.com", "/")), null);
+
+    var m = p.matchUri(new Uri.http("test.com", "/a"));
+    expect(m.segments[0], "a");
+
+    m = p.matchUri(new Uri.http("test.com", "/a/player"));
+    expect(m.segments.join(""), "aplayer");
+    expect(m.variables, containsPair("b", "player"));
+
+    expect(p.matchUri(new Uri.http("test.com", "/a/b/c")), null);
+    expect(p.matchUri(new Uri.http("test.com", "/")), null);
   });
 
-  test("Optiona imbricated w/ variables", () {
+  test("Optional imbricated w/ variables", () {
     ResourcePattern p = new ResourcePattern("/a/[:b/[:c]]");
-    expect(p.matchesInUri(new Uri.http("test.com", "/a")), {});
-    expect(p.matchesInUri(new Uri.http("test.com", "/a/b")), {"b" : "b"});
-    expect(p.matchesInUri(new Uri.http("test.com", "/a/b/c")), {"b" : "b", "c" : "c"});
-    expect(p.matchesInUri(new Uri.http("test.com", "/a/b/c/d")), null);
-    expect(p.matchesInUri(new Uri.http("test.com", "/b/b/c/d")), null);
+
+    var m = p.matchUri(new Uri.http("test.com", "/a"));
+    expect(m.segments[0], "a");
+
+    m = p.matchUri(new Uri.http("test.com", "/a/b"));
+    expect(m.segments.join(""), "ab");
+    expect(m.variables, containsPair("b", "b"));
+
+    m = p.matchUri(new Uri.http("test.com", "/a/b/c"));
+    expect(m.segments.join(""), "abc");
+    expect(m.variables, containsPair("b", "b"));
+    expect(m.variables, containsPair("c", "c"));
+
+    expect(p.matchUri(new Uri.http("test.com", "/a/b/c/d")), null);
+    expect(p.matchUri(new Uri.http("test.com", "/b/b/c/d")), null);
   });
 
   test("Sub Pattern", () {
     ResourcePattern p = new ResourcePattern(r"/:b(\D+)");
-    expect(p.matchesInUri(new Uri.http("test.com", "/raw")), containsPair("b", "raw"));
-    expect(p.matchesInUri(new Uri.http("test.com", "/1")), null);
+
+    var m = p.matchUri(new Uri.http("test.com", "/raw"));
+    expect(m.variables, containsPair("b", "raw"));
+    expect(m.segments[0], "raw");
+
+    expect(p.matchUri(new Uri.http("test.com", "/1")), null);
   });
 
   test("Sub Pattern", () {
     ResourcePattern p = new ResourcePattern(r"/:b(7\w*)");
-    expect(p.matchesInUri(new Uri.http("test.com", "/raw")), null);
-    expect(p.matchesInUri(new Uri.http("test.com", "/1")), null);
-    expect(p.matchesInUri(new Uri.http("test.com", "/7")), containsPair("b", "7"));
-    expect(p.matchesInUri(new Uri.http("test.com", "/7abc")), containsPair("b", "7abc"));
+
+    var m = p.matchUri(new Uri.http("test.com", "/7"));
+    expect(m.variables, containsPair("b", "7"));
+
+    m = p.matchUri(new Uri.http("test.com", "/7abc"));
+    expect(m.variables, containsPair("b", "7abc"));
+
+    expect(p.matchUri(new Uri.http("test.com", "/raw")), null);
+    expect(p.matchUri(new Uri.http("test.com", "/1")), null);
+
   });
 
   test("All", () {
     ResourcePattern p = new ResourcePattern(r"/literal/[:b(\d+)/*]");
-    expect(p.matchesInUri(new Uri.http("test.com", "/literal")), {});
-    expect(p.matchesInUri(new Uri.http("test.com", "/literal/23")), allOf([containsPair("b", "23"), containsPair(ResourcePattern.remainingPath, "")]));
-    expect(p.matchesInUri(new Uri.http("test.com", "/nonliteral/23/abc")), null);
-    expect(p.matchesInUri(new Uri.http("test.com", "/literal/123/foobar/x")), allOf([containsPair("b", "123"), containsPair(ResourcePattern.remainingPath, "foobar/x")]));
+
+    var m = p.matchUri(new Uri.http("test.com", "/literal"));
+    expect(m.segments[0], "literal");
+
+    m = p.matchUri(new Uri.http("test.com", "/literal/23"));
+    expect(m.variables, containsPair("b", "23"));
+    expect(m.remainingPath, "");
+
+    m = p.matchUri(new Uri.http("test.com", "/literal/123/foobar/x"));
+    expect(m.variables, containsPair("b", "123"));
+    expect(m.remainingPath, "foobar/x");
+
+    expect(p.matchUri(new Uri.http("test.com", "/nonliteral/23/abc")), null);
   });
 
 }
