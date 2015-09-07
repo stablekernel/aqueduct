@@ -27,40 +27,51 @@
 <header class="container-fluid" id="title">
     <nav class="navbar navbar-fixed-top">
         <div class="container">
-            <button id="sidenav-left-toggle" type="button">&nbsp;</button>
-            <ol class="breadcrumbs gt-separated hidden-xs">
-                <li><a href="index.html">monadart</a></li>
-                <li><a href="monadart/monadart-library.html">monadart</a></li>
-                <li class="self-crumb">Application</li>
-            </ol>
-            <div class="self-name">Application</div>
-        </div>
+          <div class="row">
+            <div class="col-sm-12 contents">
+              <button id="sidenav-left-toggle" type="button">&nbsp;</button>
+              <ol class="breadcrumbs gt-separated hidden-xs">
+                  <li><a href="index.html">monadart</a></li>
+                  <li><a href="monadart/monadart-library.html">monadart</a></li>
+                  <li class="self-crumb">Application</li>
+              </ol>
+              <div class="self-name">Application</div>
+              <form class="search navbar-right" role="search">
+                <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+              </form>
+            </div> <!-- /col -->
+          </div> <!-- /row -->
+        </div> <!-- /container -->
     </nav>
+
     <div class="container masthead">
-        <ol class="breadcrumbs gt-separated visible-xs">
-            <li><a href="index.html">monadart</a></li>
-            <li><a href="monadart/monadart-library.html">monadart</a></li>
-            <li class="self-crumb">Application</li>
-        </ol>
-        <div class="title-description">
-            <h1 class="title">
-                <div class="kind">class</div> Application
-            </h1>
-            <!-- p class="subtitle">
-                A container for web server applications.
-            </p -->
-        </div>
-        <ul class="subnav">
-            <li><a href="monadart/Application-class.html#instance-properties">Properties</a></li>
-            <li><a href="monadart/Application-class.html#constructors">Constructors</a></li>
-            <li><a href="monadart/Application-class.html#instance-methods">Methods</a></li>
-        </ul>
-    </div>
+      <div class="row">
+        <div class="col-sm-12 contents">
+          <ol class="breadcrumbs gt-separated visible-xs">
+              <li><a href="index.html">monadart</a></li>
+              <li><a href="monadart/monadart-library.html">monadart</a></li>
+              <li class="self-crumb">Application</li>
+          </ol>
+          <div class="title-description">
+              <h1 class="title">
+                  <div class="kind">class</div> Application
+              </h1>
+          </div>
+          <ul class="subnav">
+              <li><a href="monadart/Application-class.html#instance-properties">Properties</a></li>
+              <li><a href="monadart/Application-class.html#constructors">Constructors</a></li>
+              <li><a href="monadart/Application-class.html#instance-methods">Methods</a></li>
+          </ul>
+        </div> <!-- /col -->
+      </div> <!-- /row -->
+    </div> <!-- /container -->
+
 </header>
 
 <div class="container body">
+  <div class="row">
 
-  <div class="col-xs-6 col-sm-3 col-md-3 sidebar sidebar-offcanvas-left">
+  <div class="col-xs-6 col-sm-3 col-md-2 sidebar sidebar-offcanvas-left">
     <h5><a href="index.html">monadart</a></h5>
     <h5><a href="monadart/monadart-library.html">monadart</a></h5>
 
@@ -74,8 +85,6 @@
     
     
     
-      <li class="section-title"><a href="monadart/monadart-library.html#functions">Functions</a></li>
-      <li><a href="monadart/addRouteController.html">addRouteController</a></li>
     
     
       <li class="section-title"><a href="monadart/monadart-library.html#classes">Classes</a></li>
@@ -90,7 +99,10 @@
       <li><a href="monadart/HttpMethod-class.html">HttpMethod</a></li>
       <li><a href="monadart/HttpMultipartFormData-class.html">HttpMultipartFormData</a></li>
       <li><a href="monadart/HttpRequestBody-class.html">HttpRequestBody</a></li>
+      <li><a href="monadart/RequestHandler-class.html">RequestHandler</a></li>
+      <li><a href="monadart/RequestHandlerGenerator-class.html">RequestHandlerGenerator</a></li>
       <li><a href="monadart/ResourcePattern-class.html">ResourcePattern</a></li>
+      <li><a href="monadart/ResourcePatternMatch-class.html">ResourcePatternMatch</a></li>
       <li><a href="monadart/ResourceRequest-class.html">ResourceRequest</a></li>
       <li><a href="monadart/Response-class.html">Response</a></li>
       <li><a href="monadart/Router-class.html">Router</a></li>
@@ -100,7 +112,7 @@
     </ol>
   </div>
 
-  <div class="col-xs-12 col-sm-9 col-md-6 main-content">
+  <div class="col-xs-12 col-sm-9 col-md-8 main-content">
 
     <section class="desc markdown">
     
@@ -115,44 +127,46 @@ a <a href="monadart/Application/pipelineType.html">pipelineType</a> as a <a href
 
 
 
-    <section class="summary" id="instance-properties">
+    <section class="summary offset-anchor" id="instance-properties">
         <h2>Properties</h2>
 
         <dl class="properties">
             <dt id="configuration" class="property">
-                <span class="top-level-variable-type"><a href="monadart/ApplicationInstanceConfiguration-class.html">ApplicationInstanceConfiguration</a></span>
-                <a href="monadart/Application/configuration.html">configuration</a>
+                <span class="name"><a href="monadart/Application/configuration.html">configuration</a></span>
+                <span class="signature">&#8594; <a href="monadart/ApplicationInstanceConfiguration-class.html">ApplicationInstanceConfiguration</a></span>
             </dt>
             <dd>
-                <div class="readable-writable">
+                <div class="features">
         read / write
     </div>
-    The configuration for the HTTP(s) server this application is running.
+    <p>The configuration for the HTTP(s) server this application is running.<a href="monadart/Application/configuration.html">&hellip;</a>
+</p>
             </dd>
             <dt id="pipelineType" class="property">
-                <span class="top-level-variable-type">Type</span>
-                <a href="monadart/Application/pipelineType.html">pipelineType</a>
+                <span class="name"><a href="monadart/Application/pipelineType.html">pipelineType</a></span>
+                <span class="signature">&#8594; Type</span>
             </dt>
             <dd>
-                <div class="readable-writable">
+                <div class="features">
         read / write
     </div>
-    The type of <a href="monadart/ApplicationPipeline-class.html">ApplicationPipeline</a> that configures how requests are handled.
+    <p>The type of <a href="monadart/ApplicationPipeline-class.html">ApplicationPipeline</a> that configures how requests are handled.<a href="monadart/Application/pipelineType.html">&hellip;</a>
+</p>
             </dd>
             <dt id="servers" class="property">
-                <span class="top-level-variable-type">List&lt;_ServerRecord&gt;</span>
-                <a href="monadart/Application/servers.html">servers</a>
+                <span class="name"><a href="monadart/Application/servers.html">servers</a></span>
+                <span class="signature">&#8594; List&lt;_ServerRecord&gt;</span>
             </dt>
             <dd>
-                <div class="readable-writable">
+                <div class="features">
         read / write
     </div>
-    A list of items identifying the Isolates running a HTTP(s) listener and response handlers.
+    <p>A list of items identifying the Isolates running a HTTP(s) listener and response handlers.</p>
             </dd>
         </dl>
     </section>
 
-    <section class="summary" id="constructors">
+    <section class="summary offset-anchor" id="constructors">
         <h2>Constructors</h2>
 
         <dl class="constructor-summary-list">
@@ -160,13 +174,13 @@ a <a href="monadart/Application/pipelineType.html">pipelineType</a> as a <a href
                 <span class="name"><a href="monadart/Application/Application.html">Application</a></span><span class="signature">()</span>
             </dt>
             <dd>
-                
+                <p></p>
             </dd>
         </dl>
       </section>
 
 
-      <section class="summary" id="instance-methods">
+      <section class="summary offset-anchor" id="instance-methods">
           <h2>Methods</h2>
           <dl class="callables">
               <dt id="start" class="callable">
@@ -176,14 +190,15 @@ a <a href="monadart/Application/pipelineType.html">pipelineType</a> as a <a href
                   </span>
               </dt>
               <dd>
-                  Starts the application by spawning Isolates that listen for HTTP(s) requests.
+                  <p>Starts the application by spawning Isolates that listen for HTTP(s) requests.<a href="monadart/Application/start.html">&hellip;</a>
+</p>
               </dd>
           </dl>
       </section>
 
     </div> <!-- /.main-content -->
 
-  <div class="col-xs-6 col-sm-6 col-md-3 sidebar sidebar-offcanvas-right">
+  <div class="col-xs-6 col-sm-6 col-md-2 sidebar sidebar-offcanvas-right">
     <h5>Application</h5>
     <ol>
     
@@ -201,12 +216,13 @@ a <a href="monadart/Application/pipelineType.html">pipelineType</a> as a <a href
       <li><a href="monadart/Application/Application.html">Application</a></li>
     
     
-      <li class="section-title"><a href="monadart/Application-class.html#methods">Methods</a></li>
+      <li class="section-title"><a href="monadart/Application-class.html#instance-methods">Methods</a></li>
       <li><a href="monadart/Application/start.html">start</a>
 </li>
     </ol>
   </div><!--/.sidebar-offcanvas-->
 
+  </div> <!-- row -->
 </div> <!-- container -->
 
 <footer>
@@ -231,10 +247,14 @@ a <a href="monadart/Application/pipelineType.html">pipelineType</a> as a <a href
     </div>
 </footer>
 
+<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+<script src="static-assets/typeahead.bundle.min.js"></script>
 <script src="static-assets/prettify.js"></script>
 <script src="static-assets/script.js"></script>
 <!-- Do not remove placeholder -->
 <!-- Footer Placeholder -->
+
+<!-- Made with <3 by dartdoc version 0.6.0+1 -->
 </body>
 
 </html>

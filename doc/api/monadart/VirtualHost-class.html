@@ -27,41 +27,51 @@
 <header class="container-fluid" id="title">
     <nav class="navbar navbar-fixed-top">
         <div class="container">
-            <button id="sidenav-left-toggle" type="button">&nbsp;</button>
-            <ol class="breadcrumbs gt-separated hidden-xs">
-                <li><a href="index.html">monadart</a></li>
-                <li><a href="monadart/monadart-library.html">monadart</a></li>
-                <li class="self-crumb">VirtualHost</li>
-            </ol>
-            <div class="self-name">VirtualHost</div>
-        </div>
+          <div class="row">
+            <div class="col-sm-12 contents">
+              <button id="sidenav-left-toggle" type="button">&nbsp;</button>
+              <ol class="breadcrumbs gt-separated hidden-xs">
+                  <li><a href="index.html">monadart</a></li>
+                  <li><a href="monadart/monadart-library.html">monadart</a></li>
+                  <li class="self-crumb">VirtualHost</li>
+              </ol>
+              <div class="self-name">VirtualHost</div>
+              <form class="search navbar-right" role="search">
+                <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+              </form>
+            </div> <!-- /col -->
+          </div> <!-- /row -->
+        </div> <!-- /container -->
     </nav>
+
     <div class="container masthead">
-        <ol class="breadcrumbs gt-separated visible-xs">
-            <li><a href="index.html">monadart</a></li>
-            <li><a href="monadart/monadart-library.html">monadart</a></li>
-            <li class="self-crumb">VirtualHost</li>
-        </ol>
-        <div class="title-description">
-            <h1 class="title">
-                <div class="kind">class</div> VirtualHost
-            </h1>
-            <!-- p class="subtitle">
-                The <a href="monadart/VirtualHost-class.html">VirtualHost</a> class is a utility class for handling multiple hosts on
-multiple sources, by using a named-based approach.
-            </p -->
-        </div>
-        <ul class="subnav">
-            <li><a href="monadart/VirtualHost-class.html#instance-properties">Properties</a></li>
-            <li><a href="monadart/VirtualHost-class.html#constructors">Constructors</a></li>
-            <li><a href="monadart/VirtualHost-class.html#instance-methods">Methods</a></li>
-        </ul>
-    </div>
+      <div class="row">
+        <div class="col-sm-12 contents">
+          <ol class="breadcrumbs gt-separated visible-xs">
+              <li><a href="index.html">monadart</a></li>
+              <li><a href="monadart/monadart-library.html">monadart</a></li>
+              <li class="self-crumb">VirtualHost</li>
+          </ol>
+          <div class="title-description">
+              <h1 class="title">
+                  <div class="kind">class</div> VirtualHost
+              </h1>
+          </div>
+          <ul class="subnav">
+              <li><a href="monadart/VirtualHost-class.html#instance-properties">Properties</a></li>
+              <li><a href="monadart/VirtualHost-class.html#constructors">Constructors</a></li>
+              <li><a href="monadart/VirtualHost-class.html#instance-methods">Methods</a></li>
+          </ul>
+        </div> <!-- /col -->
+      </div> <!-- /row -->
+    </div> <!-- /container -->
+
 </header>
 
 <div class="container body">
+  <div class="row">
 
-  <div class="col-xs-6 col-sm-3 col-md-3 sidebar sidebar-offcanvas-left">
+  <div class="col-xs-6 col-sm-3 col-md-2 sidebar sidebar-offcanvas-left">
     <h5><a href="index.html">monadart</a></h5>
     <h5><a href="monadart/monadart-library.html">monadart</a></h5>
 
@@ -75,8 +85,6 @@ multiple sources, by using a named-based approach.
     
     
     
-      <li class="section-title"><a href="monadart/monadart-library.html#functions">Functions</a></li>
-      <li><a href="monadart/addRouteController.html">addRouteController</a></li>
     
     
       <li class="section-title"><a href="monadart/monadart-library.html#classes">Classes</a></li>
@@ -91,7 +99,10 @@ multiple sources, by using a named-based approach.
       <li><a href="monadart/HttpMethod-class.html">HttpMethod</a></li>
       <li><a href="monadart/HttpMultipartFormData-class.html">HttpMultipartFormData</a></li>
       <li><a href="monadart/HttpRequestBody-class.html">HttpRequestBody</a></li>
+      <li><a href="monadart/RequestHandler-class.html">RequestHandler</a></li>
+      <li><a href="monadart/RequestHandlerGenerator-class.html">RequestHandlerGenerator</a></li>
       <li><a href="monadart/ResourcePattern-class.html">ResourcePattern</a></li>
+      <li><a href="monadart/ResourcePatternMatch-class.html">ResourcePatternMatch</a></li>
       <li><a href="monadart/ResourceRequest-class.html">ResourceRequest</a></li>
       <li><a href="monadart/Response-class.html">Response</a></li>
       <li><a href="monadart/Router-class.html">Router</a></li>
@@ -101,7 +112,7 @@ multiple sources, by using a named-based approach.
     </ol>
   </div>
 
-  <div class="col-xs-12 col-sm-9 col-md-6 main-content">
+  <div class="col-xs-12 col-sm-9 col-md-8 main-content">
 
     <section class="desc markdown">
     
@@ -114,25 +125,25 @@ multiple sources, by using a named-based approach.</p>
 
 
 
-    <section class="summary" id="instance-properties">
+    <section class="summary offset-anchor" id="instance-properties">
         <h2>Properties</h2>
 
         <dl class="properties">
             <dt id="unhandled" class="property">
-                <span class="top-level-variable-type">Stream&lt;HttpRequest&gt;</span>
-                <a href="monadart/VirtualHost/unhandled.html">unhandled</a>
+                <span class="name"><a href="monadart/VirtualHost/unhandled.html">unhandled</a></span>
+                <span class="signature">&#8594; Stream&lt;HttpRequest&gt;</span>
             </dt>
             <dd>
-                <div class="readable-writable">
+                <div class="features">
         read-only
     </div>
-    Get the <code class="prettyprint lang-dart">Stream</code> of <code class="prettyprint lang-dart">HttpRequest</code>s, not matching any hosts. If unused, the
-default implementation will result in a <code class="prettyprint lang-dart">HttpHeaders.FORBIDDEN</code> response.
+    <p>Get the <code>Stream</code> of <code>HttpRequest</code>s, not matching any hosts. If unused, the
+default implementation will result in a <code>HttpHeaders.FORBIDDEN</code> response.</p>
             </dd>
         </dl>
     </section>
 
-    <section class="summary" id="constructors">
+    <section class="summary offset-anchor" id="constructors">
         <h2>Constructors</h2>
 
         <dl class="constructor-summary-list">
@@ -140,13 +151,14 @@ default implementation will result in a <code class="prettyprint lang-dart">Http
                 <span class="name"><a href="monadart/VirtualHost/VirtualHost.html">VirtualHost</a></span><span class="signature">([<span class="parameter" id="-param-source"><span class="type-annotation">Stream&lt;HttpRequest&gt;</span> <span class="parameter-name">source</span></span>])</span>
             </dt>
             <dd>
-                Construct a new <a href="monadart/VirtualHost-class.html">VirtualHost</a>.
+                <p>Construct a new <a href="monadart/VirtualHost-class.html">VirtualHost</a>.<a href="monadart/VirtualHost/VirtualHost.html">&hellip;</a>
+</p>
             </dd>
         </dl>
       </section>
 
 
-      <section class="summary" id="instance-methods">
+      <section class="summary offset-anchor" id="instance-methods">
           <h2>Methods</h2>
           <dl class="callables">
               <dt id="addHost" class="callable">
@@ -156,10 +168,11 @@ default implementation will result in a <code class="prettyprint lang-dart">Http
                   </span>
               </dt>
               <dd>
-                  Add a host to the <a href="monadart/VirtualHost-class.html">VirtualHost</a> instance. The host can be either a specific
-domain (<code class="prettyprint lang-dart">my.domain.name</code>) or a wildcard-based domain name
-(<code class="prettyprint lang-dart">*.domain.name</code>). The former will only match the specific domain name
-while the latter will match any series of sub-domains.
+                  <p>Add a host to the <a href="monadart/VirtualHost-class.html">VirtualHost</a> instance. The host can be either a specific
+domain (<code>my.domain.name</code>) or a wildcard-based domain name
+(<code>*.domain.name</code>). The former will only match the specific domain name
+while the latter will match any series of sub-domains.<a href="monadart/VirtualHost/addHost.html">&hellip;</a>
+</p>
               </dd>
               <dt id="addSource" class="callable">
                   <a href="monadart/VirtualHost/addSource.html"><span class="name ">addSource</span></a><span class="signature">(<wbr><span class="parameter" id="addSource-param-source"><span class="type-annotation">Stream&lt;HttpRequest&gt;</span> <span class="parameter-name">source</span></span>)
@@ -168,14 +181,14 @@ while the latter will match any series of sub-domains.
                   </span>
               </dt>
               <dd>
-                  Provide another source of <code class="prettyprint lang-dart">HttpRequest</code>s in the form of a <code class="prettyprint lang-dart">Stream</code>.
+                  <p>Provide another source of <code>HttpRequest</code>s in the form of a <code>Stream</code>.</p>
               </dd>
           </dl>
       </section>
 
     </div> <!-- /.main-content -->
 
-  <div class="col-xs-6 col-sm-6 col-md-3 sidebar sidebar-offcanvas-right">
+  <div class="col-xs-6 col-sm-6 col-md-2 sidebar sidebar-offcanvas-right">
     <h5>VirtualHost</h5>
     <ol>
     
@@ -189,7 +202,7 @@ while the latter will match any series of sub-domains.
       <li><a href="monadart/VirtualHost/VirtualHost.html">VirtualHost</a></li>
     
     
-      <li class="section-title"><a href="monadart/VirtualHost-class.html#methods">Methods</a></li>
+      <li class="section-title"><a href="monadart/VirtualHost-class.html#instance-methods">Methods</a></li>
       <li><a href="monadart/VirtualHost/addHost.html">addHost</a>
 </li>
       <li><a href="monadart/VirtualHost/addSource.html">addSource</a>
@@ -197,6 +210,7 @@ while the latter will match any series of sub-domains.
     </ol>
   </div><!--/.sidebar-offcanvas-->
 
+  </div> <!-- row -->
 </div> <!-- container -->
 
 <footer>
@@ -221,10 +235,14 @@ while the latter will match any series of sub-domains.
     </div>
 </footer>
 
+<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+<script src="static-assets/typeahead.bundle.min.js"></script>
 <script src="static-assets/prettify.js"></script>
 <script src="static-assets/script.js"></script>
 <!-- Do not remove placeholder -->
 <!-- Footer Placeholder -->
+
+<!-- Made with <3 by dartdoc version 0.6.0+1 -->
 </body>
 
 </html>

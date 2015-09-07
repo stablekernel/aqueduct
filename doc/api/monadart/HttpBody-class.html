@@ -27,40 +27,50 @@
 <header class="container-fluid" id="title">
     <nav class="navbar navbar-fixed-top">
         <div class="container">
-            <button id="sidenav-left-toggle" type="button">&nbsp;</button>
-            <ol class="breadcrumbs gt-separated hidden-xs">
-                <li><a href="index.html">monadart</a></li>
-                <li><a href="monadart/monadart-library.html">monadart</a></li>
-                <li class="self-crumb">HttpBody</li>
-            </ol>
-            <div class="self-name">HttpBody</div>
-        </div>
+          <div class="row">
+            <div class="col-sm-12 contents">
+              <button id="sidenav-left-toggle" type="button">&nbsp;</button>
+              <ol class="breadcrumbs gt-separated hidden-xs">
+                  <li><a href="index.html">monadart</a></li>
+                  <li><a href="monadart/monadart-library.html">monadart</a></li>
+                  <li class="self-crumb">HttpBody</li>
+              </ol>
+              <div class="self-name">HttpBody</div>
+              <form class="search navbar-right" role="search">
+                <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+              </form>
+            </div> <!-- /col -->
+          </div> <!-- /row -->
+        </div> <!-- /container -->
     </nav>
+
     <div class="container masthead">
-        <ol class="breadcrumbs gt-separated visible-xs">
-            <li><a href="index.html">monadart</a></li>
-            <li><a href="monadart/monadart-library.html">monadart</a></li>
-            <li class="self-crumb">HttpBody</li>
-        </ol>
-        <div class="title-description">
-            <h1 class="title">
-                <div class="kind">class</div> HttpBody
-            </h1>
-            <!-- p class="subtitle">
-                A HTTP content body produced by <a href="monadart/HttpBodyHandler-class.html">HttpBodyHandler</a> for either <code class="prettyprint lang-dart">HttpRequest</code>
-or <code class="prettyprint lang-dart">HttpClientResponse</code>.
-            </p -->
-        </div>
-        <ul class="subnav">
-            <li><a href="monadart/HttpBody-class.html#instance-properties">Properties</a></li>
-            <li><a href="monadart/HttpBody-class.html#constructors">Constructors</a></li>
-        </ul>
-    </div>
+      <div class="row">
+        <div class="col-sm-12 contents">
+          <ol class="breadcrumbs gt-separated visible-xs">
+              <li><a href="index.html">monadart</a></li>
+              <li><a href="monadart/monadart-library.html">monadart</a></li>
+              <li class="self-crumb">HttpBody</li>
+          </ol>
+          <div class="title-description">
+              <h1 class="title">
+                  <div class="kind">class</div> HttpBody
+              </h1>
+          </div>
+          <ul class="subnav">
+              <li><a href="monadart/HttpBody-class.html#instance-properties">Properties</a></li>
+              <li><a href="monadart/HttpBody-class.html#constructors">Constructors</a></li>
+          </ul>
+        </div> <!-- /col -->
+      </div> <!-- /row -->
+    </div> <!-- /container -->
+
 </header>
 
 <div class="container body">
+  <div class="row">
 
-  <div class="col-xs-6 col-sm-3 col-md-3 sidebar sidebar-offcanvas-left">
+  <div class="col-xs-6 col-sm-3 col-md-2 sidebar sidebar-offcanvas-left">
     <h5><a href="index.html">monadart</a></h5>
     <h5><a href="monadart/monadart-library.html">monadart</a></h5>
 
@@ -74,8 +84,6 @@ or <code class="prettyprint lang-dart">HttpClientResponse</code>.
     
     
     
-      <li class="section-title"><a href="monadart/monadart-library.html#functions">Functions</a></li>
-      <li><a href="monadart/addRouteController.html">addRouteController</a></li>
     
     
       <li class="section-title"><a href="monadart/monadart-library.html#classes">Classes</a></li>
@@ -90,7 +98,10 @@ or <code class="prettyprint lang-dart">HttpClientResponse</code>.
       <li><a href="monadart/HttpMethod-class.html">HttpMethod</a></li>
       <li><a href="monadart/HttpMultipartFormData-class.html">HttpMultipartFormData</a></li>
       <li><a href="monadart/HttpRequestBody-class.html">HttpRequestBody</a></li>
+      <li><a href="monadart/RequestHandler-class.html">RequestHandler</a></li>
+      <li><a href="monadart/RequestHandlerGenerator-class.html">RequestHandlerGenerator</a></li>
       <li><a href="monadart/ResourcePattern-class.html">ResourcePattern</a></li>
+      <li><a href="monadart/ResourcePatternMatch-class.html">ResourcePatternMatch</a></li>
       <li><a href="monadart/ResourceRequest-class.html">ResourceRequest</a></li>
       <li><a href="monadart/Response-class.html">Response</a></li>
       <li><a href="monadart/Router-class.html">Router</a></li>
@@ -100,12 +111,12 @@ or <code class="prettyprint lang-dart">HttpClientResponse</code>.
     </ol>
   </div>
 
-  <div class="col-xs-12 col-sm-9 col-md-6 main-content">
+  <div class="col-xs-12 col-sm-9 col-md-8 main-content">
 
     <section class="desc markdown">
     
-          <p>A HTTP content body produced by <a href="monadart/HttpBodyHandler-class.html">HttpBodyHandler</a> for either <code class="prettyprint lang-dart">HttpRequest</code>
-or <code class="prettyprint lang-dart">HttpClientResponse</code>.</p>
+          <p>A HTTP content body produced by <a href="monadart/HttpBodyHandler-class.html">HttpBodyHandler</a> for either <code>HttpRequest</code>
+or <code>HttpClientResponse</code>.</p>
     
     </section>
 
@@ -114,47 +125,47 @@ or <code class="prettyprint lang-dart">HttpClientResponse</code>.</p>
 
 
 
+          <dt>Implemented by</dt>
+          <dd><ul class="comma-separated clazz-relationships">
+              <li><a href="monadart/HttpClientResponseBody-class.html">HttpClientResponseBody</a></li>
+              <li><a href="monadart/HttpRequestBody-class.html">HttpRequestBody</a></li>
+          </ul></dd>
 
-        <dt>Implemented by</dt>
-        <dd><ul class="comma-separated class-relationships">
-            <li><a href="monadart/HttpClientResponseBody-class.html">HttpClientResponseBody</a></li>
-            <li><a href="monadart/HttpRequestBody-class.html">HttpRequestBody</a></li>
-        </ul></dd>
         </dl>
     </section>
 
 
 
 
-    <section class="summary" id="instance-properties">
+    <section class="summary offset-anchor" id="instance-properties">
         <h2>Properties</h2>
 
         <dl class="properties">
             <dt id="body" class="property">
-                <span class="top-level-variable-type">dynamic</span>
-                <a href="monadart/HttpBody/body.html">body</a>
+                <span class="name"><a href="monadart/HttpBody/body.html">body</a></span>
+                <span class="signature">&#8594; dynamic</span>
             </dt>
             <dd>
-                <div class="readable-writable">
+                <div class="features">
         read-only
     </div>
-    The actual body. The type depends on <code class="prettyprint lang-dart">type</code>.
+    <p>The actual body. The type depends on <code>type</code>.</p>
             </dd>
             <dt id="type" class="property">
-                <span class="top-level-variable-type">String</span>
-                <a href="monadart/HttpBody/type.html">type</a>
+                <span class="name"><a href="monadart/HttpBody/type.html">type</a></span>
+                <span class="signature">&#8594; String</span>
             </dt>
             <dd>
-                <div class="readable-writable">
+                <div class="features">
         read-only
     </div>
-    A high-level type value, that reflects how the body was parsed, e.g.
-"text", "binary" and "json".
+    <p>A high-level type value, that reflects how the body was parsed, e.g.
+"text", "binary" and "json".</p>
             </dd>
         </dl>
     </section>
 
-    <section class="summary" id="constructors">
+    <section class="summary offset-anchor" id="constructors">
         <h2>Constructors</h2>
 
         <dl class="constructor-summary-list">
@@ -162,7 +173,7 @@ or <code class="prettyprint lang-dart">HttpClientResponse</code>.</p>
                 <span class="name"><a href="monadart/HttpBody/HttpBody.html">HttpBody</a></span><span class="signature">()</span>
             </dt>
             <dd>
-                
+                <p></p>
             </dd>
         </dl>
       </section>
@@ -171,7 +182,7 @@ or <code class="prettyprint lang-dart">HttpClientResponse</code>.</p>
 
     </div> <!-- /.main-content -->
 
-  <div class="col-xs-6 col-sm-6 col-md-3 sidebar sidebar-offcanvas-right">
+  <div class="col-xs-6 col-sm-6 col-md-2 sidebar sidebar-offcanvas-right">
     <h5>HttpBody</h5>
     <ol>
     
@@ -190,6 +201,7 @@ or <code class="prettyprint lang-dart">HttpClientResponse</code>.</p>
     </ol>
   </div><!--/.sidebar-offcanvas-->
 
+  </div> <!-- row -->
 </div> <!-- container -->
 
 <footer>
@@ -214,10 +226,14 @@ or <code class="prettyprint lang-dart">HttpClientResponse</code>.</p>
     </div>
 </footer>
 
+<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+<script src="static-assets/typeahead.bundle.min.js"></script>
 <script src="static-assets/prettify.js"></script>
 <script src="static-assets/script.js"></script>
 <!-- Do not remove placeholder -->
 <!-- Footer Placeholder -->
+
+<!-- Made with <3 by dartdoc version 0.6.0+1 -->
 </body>
 
 </html>

@@ -27,40 +27,51 @@
 <header class="container-fluid" id="title">
     <nav class="navbar navbar-fixed-top">
         <div class="container">
-            <button id="sidenav-left-toggle" type="button">&nbsp;</button>
-            <ol class="breadcrumbs gt-separated hidden-xs">
-                <li><a href="index.html">monadart</a></li>
-                <li><a href="monadart/monadart-library.html">monadart</a></li>
-                <li><a href="monadart/ResourcePattern-class.html">ResourcePattern</a></li>
-                <li class="self-crumb">matchSpecFromElements</li>
-            </ol>
-            <div class="self-name">matchSpecFromElements</div>
-        </div>
+          <div class="row">
+            <div class="col-sm-12 contents">
+              <button id="sidenav-left-toggle" type="button">&nbsp;</button>
+              <ol class="breadcrumbs gt-separated hidden-xs">
+                  <li><a href="index.html">monadart</a></li>
+                  <li><a href="monadart/monadart-library.html">monadart</a></li>
+                  <li><a href="monadart/ResourcePattern-class.html">ResourcePattern</a></li>
+                  <li class="self-crumb">matchSpecFromElements</li>
+              </ol>
+              <div class="self-name">matchSpecFromElements</div>
+              <form class="search navbar-right" role="search">
+                <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+              </form>
+            </div> <!-- /col -->
+          </div> <!-- /row -->
+        </div> <!-- /container -->
     </nav>
+
     <div class="container masthead">
-        <ol class="breadcrumbs gt-separated visible-xs">
-            <li><a href="index.html">monadart</a></li>
-            <li><a href="monadart/monadart-library.html">monadart</a></li>
-            <li><a href="monadart/ResourcePattern-class.html">ResourcePattern</a></li>
-            <li class="self-crumb">matchSpecFromElements</li>
-        </ol>
-        <div class="title-description">
-            <h1 class="title">
-                <div class="kind">method</div> matchSpecFromElements
-            </h1>
-            <!-- p class="subtitle">
-                
-            </p -->
-        </div>
-        <ul class="subnav">
-            <li><a href="monadart/ResourcePattern/matchSpecFromElements.html#source">Source</a></li>
-        </ul>
-    </div>
+      <div class="row">
+        <div class="col-sm-12 contents">
+          <ol class="breadcrumbs gt-separated visible-xs">
+              <li><a href="index.html">monadart</a></li>
+              <li><a href="monadart/monadart-library.html">monadart</a></li>
+              <li><a href="monadart/ResourcePattern-class.html">ResourcePattern</a></li>
+              <li class="self-crumb">matchSpecFromElements</li>
+          </ol>
+          <div class="title-description">
+              <h1 class="title">
+                  <div class="kind">method</div> matchSpecFromElements
+              </h1>
+          </div>
+          <ul class="subnav">
+              <li><a href="monadart/ResourcePattern/matchSpecFromElements.html#source">Source</a></li>
+          </ul>
+        </div> <!-- /col -->
+      </div> <!-- /row -->
+    </div> <!-- /container -->
+
 </header>
 
 <div class="container body">
+  <div class="row">
 
-  <div class="col-xs-6 col-sm-3 sidebar sidebar-offcanvas-left">
+  <div class="col-xs-6 col-sm-3 col-md-2 sidebar sidebar-offcanvas-left">
     <h5><a href="index.html">monadart</a></h5>
     <h5><a href="monadart/monadart-library.html">monadart</a></h5>
     <h5><a href="monadart/ResourcePattern-class.html">ResourcePattern</a></h5>
@@ -83,14 +94,14 @@
       <li><a href="monadart/ResourcePattern/ResourcePattern.html">ResourcePattern</a></li>
     
     
-      <li class="section-title"><a href="monadart/ResourcePattern-class.html#methods">Methods</a></li>
-      <li><a href="monadart/ResourcePattern/matchesInUri.html">matchesInUri</a>
+      <li class="section-title"><a href="monadart/ResourcePattern-class.html#instance-methods">Methods</a></li>
+      <li><a href="monadart/ResourcePattern/matchUri.html">matchUri</a>
 </li>
     </ol>
 
   </div><!--/.sidebar-offcanvas-->
 
-  <div class="col-xs-12 col-sm-9 col-md-6 main-content">
+  <div class="col-xs-12 col-sm-9 col-md-8 main-content">
 
     <section class="multi-line-signature">
             <span class="returntype">_ResourcePatternSet</span>
@@ -146,6 +157,7 @@
 
   </div> <!-- /.main-content -->
 
+  </div> <!-- row -->
 </div> <!-- container -->
 
 <footer>
@@ -170,10 +182,14 @@
     </div>
 </footer>
 
+<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+<script src="static-assets/typeahead.bundle.min.js"></script>
 <script src="static-assets/prettify.js"></script>
 <script src="static-assets/script.js"></script>
 <!-- Do not remove placeholder -->
 <!-- Footer Placeholder -->
+
+<!-- Made with <3 by dartdoc version 0.6.0+1 -->
 </body>
 
 </html>

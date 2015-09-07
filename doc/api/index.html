@@ -27,32 +27,53 @@
 <header class="container-fluid" id="title">
     <nav class="navbar navbar-fixed-top">
         <div class="container">
-            <ol class="breadcrumbs gt-separated hidden-xs">
-                <li class="self-crumb">monadart</li>
-            </ol>
-            <div class="self-name">monadart</div>
-        </div>
+          <div class="row">
+            <div class="col-sm-12 contents">
+              <ol class="breadcrumbs gt-separated hidden-xs">
+                  <li class="self-crumb">monadart</li>
+              </ol>
+              <div class="self-name">monadart</div>
+              <form class="search navbar-right" role="search">
+                <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+              </form>
+            </div> <!-- /col -->
+          </div> <!-- /row -->
+        </div> <!-- /container -->
     </nav>
+
     <div class="container masthead">
-        <ol class="breadcrumbs gt-separated visible-xs">
-        </ol>
-        <div class="title-description">
-            <h1 class="title">
-                <div class="kind">package</div> monadart
-            </h1>
-            <!-- p class="subtitle">
-                
-            </p -->
-        </div>
-        <ul class="subnav">
-            <li><a href="index.html#libraries">Libraries</a></li>
-        </ul>
-    </div>
+      <div class="row">
+        <div class="col-sm-12 contents">
+          <ol class="breadcrumbs gt-separated visible-xs">
+          </ol>
+          <div class="title-description">
+              <h1 class="title">
+                  <div class="kind">package</div> monadart
+              </h1>
+          </div>
+          <ul class="subnav">
+              <li><a href="index.html#libraries">Libraries</a></li>
+          </ul>
+        </div> <!-- /col -->
+      </div> <!-- /row -->
+    </div> <!-- /container -->
+
 </header>
 
 <div class="container body">
+  <div class="row">
 
-  <div class="col-xs-12 col-sm-9 col-md-9 main-content">
+  <div class="col-xs-6 col-sm-3 col-md-2 sidebar sidebar-offcanvas-left">
+    <h5>monadart</h5>
+
+    <ol>
+      <li class="section-title"><a href="index.html#libraries">Libraries</a></li>
+      <li><a href="documentable/documentable-library.html">documentable</a></li>
+      <li><a href="monadart/monadart-library.html">monadart</a></li>
+    </ol>
+  </div>
+
+  <div class="col-xs-12 col-sm-9 col-md-8 main-content">
 
       <section class="desc markdown">
       
@@ -64,29 +85,34 @@
     <section class="summary" id="libraries">
       <h2>Libraries</h2>
       <dl>
+          <dt id="documentable">
+            <span class="name "><a href="documentable/documentable-library.html">documentable</a></span>
+          </dt>
+          <dd>
+            <span class="undocumented">Library not documented.</span>
+            <p>
+              
+                          </p>
+          </dd>
           <dt id="monadart">
             <span class="name "><a href="monadart/monadart-library.html">monadart</a></span>
           </dt>
           <dd>
             <span class="undocumented">Library not documented.</span>
-            
+            <p>
+              
+                          </p>
           </dd>
       </dl>
     </section>
 
   </div> <!-- /.main-content -->
 
-  <div class="col-xs-6 col-sm-6 col-md-3 sidebar sidebar-offcanvas-right">
-
-    <h5>monadart</h5>
-
-    <ol>
-      <li class="section-title"><a href="index.html#libraries">Libraries</a></li>
-      <li><a href="monadart/monadart-library.html">monadart</a></li>
-    </ol>
+  <div class="col-xs-6 col-sm-6 col-md-2 sidebar sidebar-offcanvas-right">
 
   </div><!--/.sidebar-offcanvas-right-->
 
+  </div> <!-- row -->
 </div> <!-- container -->
 
 <footer>
@@ -111,10 +137,14 @@
     </div>
 </footer>
 
+<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+<script src="static-assets/typeahead.bundle.min.js"></script>
 <script src="static-assets/prettify.js"></script>
 <script src="static-assets/script.js"></script>
 <!-- Do not remove placeholder -->
 <!-- Footer Placeholder -->
+
+<!-- Made with <3 by dartdoc version 0.6.0+1 -->
 </body>
 
 </html>
