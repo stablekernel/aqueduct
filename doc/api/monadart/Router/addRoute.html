@@ -27,40 +27,51 @@
 <header class="container-fluid" id="title">
     <nav class="navbar navbar-fixed-top">
         <div class="container">
-            <button id="sidenav-left-toggle" type="button">&nbsp;</button>
-            <ol class="breadcrumbs gt-separated hidden-xs">
-                <li><a href="index.html">monadart</a></li>
-                <li><a href="monadart/monadart-library.html">monadart</a></li>
-                <li><a href="monadart/Router-class.html">Router</a></li>
-                <li class="self-crumb">addRoute</li>
-            </ol>
-            <div class="self-name">addRoute</div>
-        </div>
+          <div class="row">
+            <div class="col-sm-12 contents">
+              <button id="sidenav-left-toggle" type="button">&nbsp;</button>
+              <ol class="breadcrumbs gt-separated hidden-xs">
+                  <li><a href="index.html">monadart</a></li>
+                  <li><a href="monadart/monadart-library.html">monadart</a></li>
+                  <li><a href="monadart/Router-class.html">Router</a></li>
+                  <li class="self-crumb">addRoute</li>
+              </ol>
+              <div class="self-name">addRoute</div>
+              <form class="search navbar-right" role="search">
+                <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+              </form>
+            </div> <!-- /col -->
+          </div> <!-- /row -->
+        </div> <!-- /container -->
     </nav>
+
     <div class="container masthead">
-        <ol class="breadcrumbs gt-separated visible-xs">
-            <li><a href="index.html">monadart</a></li>
-            <li><a href="monadart/monadart-library.html">monadart</a></li>
-            <li><a href="monadart/Router-class.html">Router</a></li>
-            <li class="self-crumb">addRoute</li>
-        </ol>
-        <div class="title-description">
-            <h1 class="title">
-                <div class="kind">method</div> addRoute
-            </h1>
-            <!-- p class="subtitle">
-                Adds a route to this router and provides a <code class="prettyprint lang-dart">Stream</code> for all <a href="monadart/ResourceRequest-class.html">ResourceRequest</a>s that match that route to be delivered on.
-            </p -->
-        </div>
-        <ul class="subnav">
-            <li><a href="monadart/Router/addRoute.html#source">Source</a></li>
-        </ul>
-    </div>
+      <div class="row">
+        <div class="col-sm-12 contents">
+          <ol class="breadcrumbs gt-separated visible-xs">
+              <li><a href="index.html">monadart</a></li>
+              <li><a href="monadart/monadart-library.html">monadart</a></li>
+              <li><a href="monadart/Router-class.html">Router</a></li>
+              <li class="self-crumb">addRoute</li>
+          </ol>
+          <div class="title-description">
+              <h1 class="title">
+                  <div class="kind">method</div> addRoute
+              </h1>
+          </div>
+          <ul class="subnav">
+              <li><a href="monadart/Router/addRoute.html#source">Source</a></li>
+          </ul>
+        </div> <!-- /col -->
+      </div> <!-- /row -->
+    </div> <!-- /container -->
+
 </header>
 
 <div class="container body">
+  <div class="row">
 
-  <div class="col-xs-6 col-sm-3 sidebar sidebar-offcanvas-left">
+  <div class="col-xs-6 col-sm-3 col-md-2 sidebar sidebar-offcanvas-left">
     <h5><a href="index.html">monadart</a></h5>
     <h5><a href="monadart/monadart-library.html">monadart</a></h5>
     <h5><a href="monadart/Router-class.html">Router</a></h5>
@@ -79,16 +90,18 @@
       <li><a href="monadart/Router/Router.html">Router</a></li>
     
     
-      <li class="section-title"><a href="monadart/Router-class.html#methods">Methods</a></li>
+      <li class="section-title"><a href="monadart/Router-class.html#instance-methods">Methods</a></li>
       <li><a href="monadart/Router/addRoute.html">addRoute</a>
 </li>
-      <li><a href="monadart/Router/routeRequest.html">routeRequest</a>
+      <li><a href="monadart/Router/addRouteHandler.html">addRouteHandler</a>
+</li>
+      <li><a href="monadart/Router/handleRequest.html">handleRequest</a>
 </li>
     </ol>
 
   </div><!--/.sidebar-offcanvas-->
 
-  <div class="col-xs-12 col-sm-9 col-md-6 main-content">
+  <div class="col-xs-12 col-sm-9 col-md-8 main-content">
 
     <section class="multi-line-signature">
             <span class="returntype">Stream&lt;<a href="monadart/ResourceRequest-class.html">ResourceRequest</a>&gt;</span>
@@ -101,22 +114,22 @@
 
     <section class="desc markdown">
     
-          <p>Adds a route to this router and provides a <code class="prettyprint lang-dart">Stream</code> for all <a href="monadart/ResourceRequest-class.html">ResourceRequest</a>s that match that route to be delivered on.</p>
-<p>A router manages route to <code class="prettyprint lang-dart">Stream</code> mappings that are added through this method.
-The <code class="prettyprint lang-dart">pattern</code> must follow the rules of route patterns (see the guide for more explanation).
+          <p>Adds a route to this router and provides a <code>Stream</code> for all <a href="monadart/ResourceRequest-class.html">ResourceRequest</a>s that match that route to be delivered on.</p>
+<p>A router manages route to <code>Stream</code> mappings that are added through this method.
+The <code>pattern</code> must follow the rules of route patterns (see the guide for more explanation).
 A pattern consists of one or more path segments. A path segment can be a constant string,
 a path variable (a word prefixed with the : character) or the wildcard character (the asterisk character *)</p>
-<pre><code class="prettyprint lang-dart">  /constantString/:pathVariable/*
+<pre class="prettyprint lang-dart"><code>  /constantString/:pathVariable/*
 </code></pre>
 <p>Path variables may optionally contain regular expression syntax within parentheses to constrain their matches.</p>
-<pre><code class="prettyprint lang-dart">  /:pathVariable(\d+)
+<pre class="prettyprint lang-dart"><code>  /:pathVariable(\d+)
 </code></pre>
 <p>Path segments may be marked as optional by using square brackets around the segment. The opening square
 bracket must follow the preceding path delimeter (/).</p>
-<pre><code class="prettyprint lang-dart">  /constantString/[:optionalVariable]
+<pre class="prettyprint lang-dart"><code>  /constantString/[:optionalVariable]
 </code></pre>
 <p>Routes may have multiple optional segments, but they must be nested.</p>
-<pre><code class="prettyprint lang-dart">  /constantString/[:optionalVariable/[optionalConstantString]]
+<pre class="prettyprint lang-dart"><code>  /constantString/[:optionalVariable/[optionalConstantString]]
 </code></pre>
     
     </section>
@@ -138,22 +151,15 @@ bracket must follow the preceding path delimeter (/).</p>
 /// Routes may have multiple optional segments, but they must be nested.
 ///       /constantString/[:optionalVariable/[optionalConstantString]]
 Stream&lt;ResourceRequest&gt; addRoute(String pattern) {
+  var route = _createRoute(pattern);
 
-  if(basePath != null) {
-    pattern = basePath + pattern;
-  }
-
-  var finalPattern = pattern.split(&quot;/&quot;).where((c) =&gt; c != &quot;&quot;).join(&quot;/&quot;);
-
-  var streamController = new StreamController&lt;ResourceRequest&gt;();
-  _routes.add(new _ResourceRoute(new ResourcePattern(finalPattern), streamController));
-
-  return streamController.stream;
+  return route.streamController.stream;
 }</code></pre>
     </section>
 
   </div> <!-- /.main-content -->
 
+  </div> <!-- row -->
 </div> <!-- container -->
 
 <footer>
@@ -178,10 +184,14 @@ Stream&lt;ResourceRequest&gt; addRoute(String pattern) {
     </div>
 </footer>
 
+<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+<script src="static-assets/typeahead.bundle.min.js"></script>
 <script src="static-assets/prettify.js"></script>
 <script src="static-assets/script.js"></script>
 <!-- Do not remove placeholder -->
 <!-- Footer Placeholder -->
+
+<!-- Made with <3 by dartdoc version 0.6.0+1 -->
 </body>
 
 </html>

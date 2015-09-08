@@ -27,45 +27,51 @@
 <header class="container-fluid" id="title">
     <nav class="navbar navbar-fixed-top">
         <div class="container">
-            <button id="sidenav-left-toggle" type="button">&nbsp;</button>
-            <ol class="breadcrumbs gt-separated hidden-xs">
-                <li><a href="index.html">monadart</a></li>
-                <li><a href="monadart/monadart-library.html">monadart</a></li>
-                <li class="self-crumb">HttpBodyHandler</li>
-            </ol>
-            <div class="self-name">HttpBodyHandler</div>
-        </div>
+          <div class="row">
+            <div class="col-sm-12 contents">
+              <button id="sidenav-left-toggle" type="button">&nbsp;</button>
+              <ol class="breadcrumbs gt-separated hidden-xs">
+                  <li><a href="index.html">monadart</a></li>
+                  <li><a href="monadart/monadart-library.html">monadart</a></li>
+                  <li class="self-crumb">HttpBodyHandler</li>
+              </ol>
+              <div class="self-name">HttpBodyHandler</div>
+              <form class="search navbar-right" role="search">
+                <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+              </form>
+            </div> <!-- /col -->
+          </div> <!-- /row -->
+        </div> <!-- /container -->
     </nav>
+
     <div class="container masthead">
-        <ol class="breadcrumbs gt-separated visible-xs">
-            <li><a href="index.html">monadart</a></li>
-            <li><a href="monadart/monadart-library.html">monadart</a></li>
-            <li class="self-crumb">HttpBodyHandler</li>
-        </ol>
-        <div class="title-description">
-            <h1 class="title">
-                <div class="kind">class</div> HttpBodyHandler
-            </h1>
-            <!-- p class="subtitle">
-                <a href="monadart/HttpBodyHandler-class.html">HttpBodyHandler</a> is a helper class for processing and collecting
-HTTP message data in an easy-to-use <a href="monadart/HttpBody-class.html">HttpBody</a> object. The content
-body is parsed, depending on the <code class="prettyprint lang-dart">Content-Type</code> header field. When
-the full body is read and parsed the body content is made
-available. The class can be used to process both server requests
-and client responses.
-            </p -->
-        </div>
-        <ul class="subnav">
-            <li><a href="monadart/HttpBodyHandler-class.html#static-methods">Static Methods</a></li>
-            <li><a href="monadart/HttpBodyHandler-class.html#constructors">Constructors</a></li>
-            <li><a href="monadart/HttpBodyHandler-class.html#instance-methods">Methods</a></li>
-        </ul>
-    </div>
+      <div class="row">
+        <div class="col-sm-12 contents">
+          <ol class="breadcrumbs gt-separated visible-xs">
+              <li><a href="index.html">monadart</a></li>
+              <li><a href="monadart/monadart-library.html">monadart</a></li>
+              <li class="self-crumb">HttpBodyHandler</li>
+          </ol>
+          <div class="title-description">
+              <h1 class="title">
+                  <div class="kind">class</div> HttpBodyHandler
+              </h1>
+          </div>
+          <ul class="subnav">
+              <li><a href="monadart/HttpBodyHandler-class.html#static-methods">Static Methods</a></li>
+              <li><a href="monadart/HttpBodyHandler-class.html#constructors">Constructors</a></li>
+              <li><a href="monadart/HttpBodyHandler-class.html#instance-methods">Methods</a></li>
+          </ul>
+        </div> <!-- /col -->
+      </div> <!-- /row -->
+    </div> <!-- /container -->
+
 </header>
 
 <div class="container body">
+  <div class="row">
 
-  <div class="col-xs-6 col-sm-3 col-md-3 sidebar sidebar-offcanvas-left">
+  <div class="col-xs-6 col-sm-3 col-md-2 sidebar sidebar-offcanvas-left">
     <h5><a href="index.html">monadart</a></h5>
     <h5><a href="monadart/monadart-library.html">monadart</a></h5>
 
@@ -79,8 +85,6 @@ and client responses.
     
     
     
-      <li class="section-title"><a href="monadart/monadart-library.html#functions">Functions</a></li>
-      <li><a href="monadart/addRouteController.html">addRouteController</a></li>
     
     
       <li class="section-title"><a href="monadart/monadart-library.html#classes">Classes</a></li>
@@ -95,7 +99,10 @@ and client responses.
       <li><a href="monadart/HttpMethod-class.html">HttpMethod</a></li>
       <li><a href="monadart/HttpMultipartFormData-class.html">HttpMultipartFormData</a></li>
       <li><a href="monadart/HttpRequestBody-class.html">HttpRequestBody</a></li>
+      <li><a href="monadart/RequestHandler-class.html">RequestHandler</a></li>
+      <li><a href="monadart/RequestHandlerGenerator-class.html">RequestHandlerGenerator</a></li>
       <li><a href="monadart/ResourcePattern-class.html">ResourcePattern</a></li>
+      <li><a href="monadart/ResourcePatternMatch-class.html">ResourcePatternMatch</a></li>
       <li><a href="monadart/ResourceRequest-class.html">ResourceRequest</a></li>
       <li><a href="monadart/Response-class.html">Response</a></li>
       <li><a href="monadart/Router-class.html">Router</a></li>
@@ -105,76 +112,76 @@ and client responses.
     </ol>
   </div>
 
-  <div class="col-xs-12 col-sm-9 col-md-6 main-content">
+  <div class="col-xs-12 col-sm-9 col-md-8 main-content">
 
     <section class="desc markdown">
     
           <p><a href="monadart/HttpBodyHandler-class.html">HttpBodyHandler</a> is a helper class for processing and collecting
 HTTP message data in an easy-to-use <a href="monadart/HttpBody-class.html">HttpBody</a> object. The content
-body is parsed, depending on the <code class="prettyprint lang-dart">Content-Type</code> header field. When
+body is parsed, depending on the <code>Content-Type</code> header field. When
 the full body is read and parsed the body content is made
 available. The class can be used to process both server requests
 and client responses.</p>
 <p>The following content types are recognized:</p>
-<pre><code class="prettyprint lang-dart">text/ *
+<pre class="prettyprint lang-dart"><code>text/ *
 application/json
 application/x-www-form-urlencoded
 multipart/form-data
 </code></pre>
-<p> For content type <code class="prettyprint lang-dart">text/\*</code> the body is decoded into a string. The
+<p> For content type <code>text/\*</code> the body is decoded into a string. The
  'charset' parameter of the content type specifies the encoding
  used for decoding. If no 'charset' is present the default encoding
  of ISO-8859-1 is used.</p>
-<p> For content type <code class="prettyprint lang-dart">application/json</code> the body is decoded into a
+<p> For content type <code>application/json</code> the body is decoded into a
  string which is then parsed as JSON. The resulting body is a
- <code class="prettyprint lang-dart">Map</code>.  The 'charset' parameter of the content type specifies the
+ <code>Map</code>.  The 'charset' parameter of the content type specifies the
  encoding used for decoding. If no 'charset' is present the default
  encoding of UTF-8 is used.</p>
-<p> For content type <code class="prettyprint lang-dart">application/x-www-form-urlencoded</code> the body is a
+<p> For content type <code>application/x-www-form-urlencoded</code> the body is a
  query string which is then split according to the rules for
- splitting a query string. The resulting body is a <code class="prettyprint lang-dart">Map&lt;String,
+ splitting a query string. The resulting body is a <code>Map&lt;String,
  String&gt;</code>.  If the same name is present several times in the query
  string, then the last value seen for this name will be in the
  resulting map. The encoding US-ASCII is always used for decoding
  the body.</p>
-<p> For content type <code class="prettyprint lang-dart">multipart/form-data</code> the body is parsed into
- it's different fields. The resulting body is a <code class="prettyprint lang-dart">Map&lt;String,
- dynamic&gt;</code>, where the value is a <code class="prettyprint lang-dart">String</code> for normal fields and a
+<p> For content type <code>multipart/form-data</code> the body is parsed into
+ it's different fields. The resulting body is a <code>Map&lt;String,
+ dynamic&gt;</code>, where the value is a <code>String</code> for normal fields and a
  <a href="monadart/HttpBodyFileUpload-class.html">HttpBodyFileUpload</a> instance for file upload fields. If the same
  name is present several times, then the last value seen for this
  name will be in the resulting map.</p>
-<p> When using content type <code class="prettyprint lang-dart">multipart/form-data</code> the encoding of
- fields with <code class="prettyprint lang-dart">String</code> values is determined by the browser sending
+<p> When using content type <code>multipart/form-data</code> the encoding of
+ fields with <code>String</code> values is determined by the browser sending
  the HTTP request with the form data. The encoding is specified
- either by the attribute <code class="prettyprint lang-dart">accept-charset</code> on the HTML form, or by
+ either by the attribute <code>accept-charset</code> on the HTML form, or by
  the content type of the web page containing the form. If the HTML
- form has an <code class="prettyprint lang-dart">accept-charset</code> attribute the browser will use the
- encoding specified there. If the HTML form has no <code class="prettyprint lang-dart">accept-charset</code>
+ form has an <code>accept-charset</code> attribute the browser will use the
+ encoding specified there. If the HTML form has no <code>accept-charset</code>
  attribute the browser determines the encoding from the content
  type of the web page containing the form. Using a content type of
- <code class="prettyprint lang-dart">text/html; charset=utf-8</code> for the page and setting
- <code class="prettyprint lang-dart">accept-charset</code> on the HTML form to <code class="prettyprint lang-dart">utf-8</code> is recommended as the
+ <code>text/html; charset=utf-8</code> for the page and setting
+ <code>accept-charset</code> on the HTML form to <code>utf-8</code> is recommended as the
  default for <a href="monadart/HttpBodyHandler-class.html">HttpBodyHandler</a> is UTF-8. It is important to get
- these encoding values right, as the actual <code class="prettyprint lang-dart">multipart/form-data</code>
+ these encoding values right, as the actual <code>multipart/form-data</code>
  HTTP request sent by the browser does <em>not</em> contain any
  information on the encoding. If something else than UTF-8 is used
- <code class="prettyprint lang-dart">defaultEncoding</code> needs to be set in the <a href="monadart/HttpBodyHandler-class.html">HttpBodyHandler</a>
+ <code>defaultEncoding</code> needs to be set in the <a href="monadart/HttpBodyHandler-class.html">HttpBodyHandler</a>
  constructor and calls to <a href="monadart/HttpBodyHandler/processRequest.html">processRequest</a> and <a href="monadart/HttpBodyHandler/processResponse.html">processResponse</a>.</p>
 <p> For all other content types the body will be treated as
  uninterpreted binary data. The resulting body will be of type
- <code class="prettyprint lang-dart">List&lt;int&gt;</code>.</p>
-<p>To use with the <code class="prettyprint lang-dart">HttpServer</code> for request messages, <a href="monadart/HttpBodyHandler-class.html">HttpBodyHandler</a> can be
-used as either a <code class="prettyprint lang-dart">StreamTransformer</code> or as a per-request handler (see
+ <code>List&lt;int&gt;</code>.</p>
+<p>To use with the <code>HttpServer</code> for request messages, <a href="monadart/HttpBodyHandler-class.html">HttpBodyHandler</a> can be
+used as either a <code>StreamTransformer</code> or as a per-request handler (see
 <a href="monadart/HttpBodyHandler/processRequest.html">processRequest</a>).</p>
-<pre><code class="prettyprint lang-dart">HttpServer server = ...
+<pre class="prettyprint lang-dart"><code>HttpServer server = ...
 server.transform(new HttpBodyHandler())
     .listen((HttpRequestBody body) {
       ...
     });
 </code></pre>
-<p>To use with the <code class="prettyprint lang-dart">HttpClient</code> for response messages, <a href="monadart/HttpBodyHandler-class.html">HttpBodyHandler</a> can be
+<p>To use with the <code>HttpClient</code> for response messages, <a href="monadart/HttpBodyHandler-class.html">HttpBodyHandler</a> can be
 used as a per-request handler (see <a href="monadart/HttpBodyHandler/processResponse.html">processResponse</a>).</p>
-<pre><code class="prettyprint lang-dart">HttpClient client = ...
+<pre class="prettyprint lang-dart"><code>HttpClient client = ...
 client.get(...)
     .then((HttpClientRequest response) =&gt; response.close())
     .then(HttpBodyHandler.processResponse)
@@ -188,13 +195,13 @@ client.get(...)
     <section>
         <dl class="dl-horizontal">
 
+          <dt>Implements</dt>
+              <dd>
+                  <ul class="comma-separated clazz-relationships">
+                      <li>StreamTransformer&lt;HttpRequest,<a href="http_server.http_body/HttpRequestBody-class.html">HttpRequestBody</a>&gt;</li>
+                  </ul>
+              </dd>
 
-        <dt>Implements</dt>
-            <dd>
-                <ul class="comma-separated class-relationships">
-                    <li>StreamTransformer&lt;HttpRequest,<a href="http_server.http_body/HttpRequestBody-class.html">HttpRequestBody</a>&gt;</li>
-                </ul>
-            </dd>
 
 
         </dl>
@@ -202,7 +209,7 @@ client.get(...)
 
 
 
-    <section class="summary" id="static-methods">
+    <section class="summary offset-anchor" id="static-methods">
         <h2>Static Methods</h2>
         <dl class="callables">
             <dt id="processRequest" class="callable">
@@ -212,8 +219,9 @@ client.get(...)
                 </span>
             </dt>
             <dd>
-                Process and parse an incoming <code class="prettyprint lang-dart">HttpRequest</code>. The returned <a href="monadart/HttpRequestBody-class.html">HttpRequestBody</a>
-contains a <code class="prettyprint lang-dart">response</code> field for accessing the <code class="prettyprint lang-dart">HttpResponse</code>.
+                <p>Process and parse an incoming <code>HttpRequest</code>. The returned <a href="monadart/HttpRequestBody-class.html">HttpRequestBody</a>
+contains a <code>response</code> field for accessing the <code>HttpResponse</code>.<a href="monadart/HttpBodyHandler/processRequest.html">&hellip;</a>
+</p>
             </dd>
             <dt id="processResponse" class="callable">
                 <a href="monadart/HttpBodyHandler/processResponse.html"><span class="name ">processResponse</span></a><span class="signature">(<wbr><span class="parameter" id="processResponse-param-response"><span class="type-annotation">HttpClientResponse</span> <span class="parameter-name">response</span></span>, {<span class="parameter" id="processResponse-param-defaultEncoding"><span class="type-annotation">Encoding</span> <span class="parameter-name">defaultEncoding</span>: <span class="default-value">UTF8</span></span>})
@@ -222,13 +230,14 @@ contains a <code class="prettyprint lang-dart">response</code> field for accessi
                 </span>
             </dt>
             <dd>
-                Process and parse an incoming <code class="prettyprint lang-dart">HttpClientResponse</code>.
+                <p>Process and parse an incoming <code>HttpClientResponse</code>.<a href="monadart/HttpBodyHandler/processResponse.html">&hellip;</a>
+</p>
             </dd>
         </dl>
     </section>
 
 
-    <section class="summary" id="constructors">
+    <section class="summary offset-anchor" id="constructors">
         <h2>Constructors</h2>
 
         <dl class="constructor-summary-list">
@@ -236,14 +245,15 @@ contains a <code class="prettyprint lang-dart">response</code> field for accessi
                 <span class="name"><a href="monadart/HttpBodyHandler/HttpBodyHandler.html">HttpBodyHandler</a></span><span class="signature">({<span class="parameter" id="-param-defaultEncoding"><span class="type-annotation">Encoding</span> <span class="parameter-name">defaultEncoding</span>: <span class="default-value">UTF8</span></span>})</span>
             </dt>
             <dd>
-                Create a new <a href="monadart/HttpBodyHandler-class.html">HttpBodyHandler</a> to be used with a <code class="prettyprint lang-dart">Stream</code>&lt;<code class="prettyprint lang-dart">HttpRequest</code>&gt;,
-e.g. a <code class="prettyprint lang-dart">HttpServer</code>.
+                <p>Create a new <a href="monadart/HttpBodyHandler-class.html">HttpBodyHandler</a> to be used with a <code>Stream</code>&lt;<code>HttpRequest</code>&gt;,
+e.g. a <code>HttpServer</code>.<a href="monadart/HttpBodyHandler/HttpBodyHandler.html">&hellip;</a>
+</p>
             </dd>
         </dl>
       </section>
 
 
-      <section class="summary" id="instance-methods">
+      <section class="summary offset-anchor" id="instance-methods">
           <h2>Methods</h2>
           <dl class="callables">
               <dt id="bind" class="callable">
@@ -253,14 +263,15 @@ e.g. a <code class="prettyprint lang-dart">HttpServer</code>.
                   </span>
               </dt>
               <dd>
-                  Transform the incoming <code class="prettyprint lang-dart">stream</code>'s events.
+                  <p>Transform the incoming <code>stream</code>'s events.<a href="monadart/HttpBodyHandler/bind.html">&hellip;</a>
+</p>
               </dd>
           </dl>
       </section>
 
     </div> <!-- /.main-content -->
 
-  <div class="col-xs-6 col-sm-6 col-md-3 sidebar sidebar-offcanvas-right">
+  <div class="col-xs-6 col-sm-6 col-md-2 sidebar sidebar-offcanvas-right">
     <h5>HttpBodyHandler</h5>
     <ol>
     
@@ -274,12 +285,13 @@ e.g. a <code class="prettyprint lang-dart">HttpServer</code>.
       <li><a href="monadart/HttpBodyHandler/HttpBodyHandler.html">HttpBodyHandler</a></li>
     
     
-      <li class="section-title"><a href="monadart/HttpBodyHandler-class.html#methods">Methods</a></li>
+      <li class="section-title"><a href="monadart/HttpBodyHandler-class.html#instance-methods">Methods</a></li>
       <li><a href="monadart/HttpBodyHandler/bind.html">bind</a>
 </li>
     </ol>
   </div><!--/.sidebar-offcanvas-->
 
+  </div> <!-- row -->
 </div> <!-- container -->
 
 <footer>
@@ -304,10 +316,14 @@ e.g. a <code class="prettyprint lang-dart">HttpServer</code>.
     </div>
 </footer>
 
+<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+<script src="static-assets/typeahead.bundle.min.js"></script>
 <script src="static-assets/prettify.js"></script>
 <script src="static-assets/script.js"></script>
 <!-- Do not remove placeholder -->
 <!-- Footer Placeholder -->
+
+<!-- Made with <3 by dartdoc version 0.6.0+1 -->
 </body>
 
 </html>

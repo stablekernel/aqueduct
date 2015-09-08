@@ -27,47 +27,58 @@
 <header class="container-fluid" id="title">
     <nav class="navbar navbar-fixed-top">
         <div class="container">
-            <button id="sidenav-left-toggle" type="button">&nbsp;</button>
-            <ol class="breadcrumbs gt-separated hidden-xs">
-                <li><a href="index.html">monadart</a></li>
-                <li class="self-crumb">monadart</li>
-            </ol>
-            <div class="self-name">monadart</div>
-        </div>
+          <div class="row">
+            <div class="col-sm-12 contents">
+              <button id="sidenav-left-toggle" type="button">&nbsp;</button>
+              <ol class="breadcrumbs gt-separated hidden-xs">
+                  <li><a href="index.html">monadart</a></li>
+                  <li class="self-crumb">monadart</li>
+              </ol>
+              <div class="self-name">monadart</div>
+              <form class="search navbar-right" role="search">
+                <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+              </form>
+            </div> <!-- /col -->
+          </div> <!-- /row -->
+        </div> <!-- /container -->
     </nav>
+
     <div class="container masthead">
-        <ol class="breadcrumbs gt-separated visible-xs">
-            <li><a href="index.html">monadart</a></li>
-            <li class="self-crumb">monadart</li>
-        </ol>
-        <div class="title-description">
-            <h1 class="title">
-                <div class="kind">library</div> monadart
-            </h1>
-            <!-- p class="subtitle">
-                
-            </p -->
-        </div>
-        <ul class="subnav">
-            <li><a href="monadart/monadart-library.html#constants">Constants</a></li>
-            <li><a href="monadart/monadart-library.html#functions">Functions</a></li>
-            <li><a href="monadart/monadart-library.html#classes">Classes</a></li>
-        </ul>
-    </div>
+      <div class="row">
+        <div class="col-sm-12 contents">
+          <ol class="breadcrumbs gt-separated visible-xs">
+              <li><a href="index.html">monadart</a></li>
+              <li class="self-crumb">monadart</li>
+          </ol>
+          <div class="title-description">
+              <h1 class="title">
+                  <div class="kind">library</div> monadart
+              </h1>
+          </div>
+          <ul class="subnav">
+              <li><a href="monadart/monadart-library.html#constants">Constants</a></li>
+              <li><a href="monadart/monadart-library.html#classes">Classes</a></li>
+          </ul>
+        </div> <!-- /col -->
+      </div> <!-- /row -->
+    </div> <!-- /container -->
+
 </header>
 
 <div class="container body">
+  <div class="row">
 
-  <div class="col-xs-6 col-sm-3 col-md-3 sidebar sidebar-offcanvas-left">
+  <div class="col-xs-6 col-sm-3 col-md-2 sidebar sidebar-offcanvas-left">
     <h5><a href="index.html">monadart</a></h5>
 
     <ol>
       <li class="section-title"><a href="index.html">Libraries</a></li>
+      <li><a href="documentable/documentable-library.html">documentable</a></li>
       <li><a href="monadart/monadart-library.html">monadart</a></li>
     </ol>
   </div>
 
-  <div class="col-xs-12 col-sm-9 col-md-6 main-content">
+  <div class="col-xs-12 col-sm-9 col-md-8 main-content">
 
     <section class="desc markdown">
     
@@ -82,83 +93,58 @@
             <dt id="httpDelete" class="constant">
                 <span class="top-level-variable-type"><a href="monadart/HttpMethod-class.html">HttpMethod</a></span>
                 <span class="name "><a href="monadart/httpDelete.html">httpDelete</a></span>
-                =
-                <span class="constant-value">const <a href="monadart/HttpMethod-class.html">HttpMethod</a>("delete")</span>
+                <span class="signature">= const <a href="monadart/HttpMethod-class.html">HttpMethod</a>("delete")</span>
             </dt>
             <dd>
-                <div class="is-const">
-                    const
-                </div>
-                A 'DELETE' HttpMethod annotation.
+                <div class="features">const</div>
+                <p>A 'DELETE' HttpMethod annotation.<a href="monadart/httpDelete.html">&hellip;</a>
+</p>
             </dd>
             <dt id="httpGet" class="constant">
                 <span class="top-level-variable-type"><a href="monadart/HttpMethod-class.html">HttpMethod</a></span>
                 <span class="name "><a href="monadart/httpGet.html">httpGet</a></span>
-                =
-                <span class="constant-value">const <a href="monadart/HttpMethod-class.html">HttpMethod</a>("get")</span>
+                <span class="signature">= const <a href="monadart/HttpMethod-class.html">HttpMethod</a>("get")</span>
             </dt>
             <dd>
-                <div class="is-const">
-                    const
-                </div>
-                A 'GET' HttpMethod annotation.
+                <div class="features">const</div>
+                <p>A 'GET' HttpMethod annotation.<a href="monadart/httpGet.html">&hellip;</a>
+</p>
             </dd>
             <dt id="httpPatch" class="constant">
                 <span class="top-level-variable-type"><a href="monadart/HttpMethod-class.html">HttpMethod</a></span>
                 <span class="name "><a href="monadart/httpPatch.html">httpPatch</a></span>
-                =
-                <span class="constant-value">const <a href="monadart/HttpMethod-class.html">HttpMethod</a>("patch")</span>
+                <span class="signature">= const <a href="monadart/HttpMethod-class.html">HttpMethod</a>("patch")</span>
             </dt>
             <dd>
-                <div class="is-const">
-                    const
-                </div>
-                A 'PATCH' HttpMethod annotation.
+                <div class="features">const</div>
+                <p>A 'PATCH' HttpMethod annotation.<a href="monadart/httpPatch.html">&hellip;</a>
+</p>
             </dd>
             <dt id="httpPost" class="constant">
                 <span class="top-level-variable-type"><a href="monadart/HttpMethod-class.html">HttpMethod</a></span>
                 <span class="name "><a href="monadart/httpPost.html">httpPost</a></span>
-                =
-                <span class="constant-value">const <a href="monadart/HttpMethod-class.html">HttpMethod</a>("post")</span>
+                <span class="signature">= const <a href="monadart/HttpMethod-class.html">HttpMethod</a>("post")</span>
             </dt>
             <dd>
-                <div class="is-const">
-                    const
-                </div>
-                A 'POST' HttpMethod annotation.
+                <div class="features">const</div>
+                <p>A 'POST' HttpMethod annotation.<a href="monadart/httpPost.html">&hellip;</a>
+</p>
             </dd>
             <dt id="httpPut" class="constant">
                 <span class="top-level-variable-type"><a href="monadart/HttpMethod-class.html">HttpMethod</a></span>
                 <span class="name "><a href="monadart/httpPut.html">httpPut</a></span>
-                =
-                <span class="constant-value">const <a href="monadart/HttpMethod-class.html">HttpMethod</a>("put")</span>
+                <span class="signature">= const <a href="monadart/HttpMethod-class.html">HttpMethod</a>("put")</span>
             </dt>
             <dd>
-                <div class="is-const">
-                    const
-                </div>
-                A 'PUT' HttpMethod annotation.
+                <div class="features">const</div>
+                <p>A 'PUT' HttpMethod annotation.<a href="monadart/httpPut.html">&hellip;</a>
+</p>
             </dd>
         </dl>
     </section>
 
 
 
-    <section class="summary offset-anchor" id="functions">
-        <h2>Functions</h2>
-
-        <dl class="callables">
-            <dt id="addRouteController" class="callable">
-                <a href="monadart/addRouteController.html"><span class="name ">addRouteController</span></a><span class="signature">(<wbr><span class="parameter" id="addRouteController-param-router"><span class="type-annotation"><a href="monadart/Router-class.html">Router</a></span> <span class="parameter-name">router</span></span>, <span class="parameter" id="addRouteController-param-routePath"><span class="type-annotation">String</span> <span class="parameter-name">routePath</span></span>, <span class="parameter" id="addRouteController-param-resourceControllerSubclass"><span class="type-annotation">Type</span> <span class="parameter-name">resourceControllerSubclass</span></span>)
-                    &#8594;
-                    <span class="returntype">void</span>
-                </span>
-            </dt>
-            <dd>
-                
-            </dd>
-        </dl>
-    </section>
 
 
     <section class="summary offset-anchor" id="classes">
@@ -169,118 +155,147 @@
                 <span class="name "><a href="monadart/Application-class.html">Application</a></span>
             </dt>
             <dd>
-                A container for web server applications.
+                <p>A container for web server applications.<a href="monadart/Application-class.html">&hellip;</a>
+</p>
             </dd>
             <dt id="ApplicationInstanceConfiguration">
                 <span class="name "><a href="monadart/ApplicationInstanceConfiguration-class.html">ApplicationInstanceConfiguration</a></span>
             </dt>
             <dd>
-                A set of values to configure an instance of a web server application.
+                <p>A set of values to configure an instance of a web server application.</p>
             </dd>
             <dt id="ApplicationPipeline">
                 <span class="name "><a href="monadart/ApplicationPipeline-class.html">ApplicationPipeline</a></span>
             </dt>
             <dd>
-                A abstract class that concrete subclasses will implement to provide request handling behavior.
+                <p>A abstract class that concrete subclasses will implement to provide request handling behavior.<a href="monadart/ApplicationPipeline-class.html">&hellip;</a>
+</p>
             </dd>
             <dt id="HttpBody">
                 <span class="name "><a href="monadart/HttpBody-class.html">HttpBody</a></span>
             </dt>
             <dd>
-                A HTTP content body produced by <a href="monadart/HttpBodyHandler-class.html">HttpBodyHandler</a> for either <code class="prettyprint lang-dart">HttpRequest</code>
-or <code class="prettyprint lang-dart">HttpClientResponse</code>.
+                <p>A HTTP content body produced by <a href="monadart/HttpBodyHandler-class.html">HttpBodyHandler</a> for either <code>HttpRequest</code>
+or <code>HttpClientResponse</code>.</p>
             </dd>
             <dt id="HttpBodyFileUpload">
                 <span class="name "><a href="monadart/HttpBodyFileUpload-class.html">HttpBodyFileUpload</a></span>
             </dt>
             <dd>
-                A <a href="monadart/HttpBodyFileUpload-class.html">HttpBodyFileUpload</a> object wraps a file upload, presenting a way for
-extracting filename, contentType and the data of the uploaded file.
+                <p>A <a href="monadart/HttpBodyFileUpload-class.html">HttpBodyFileUpload</a> object wraps a file upload, presenting a way for
+extracting filename, contentType and the data of the uploaded file.</p>
             </dd>
             <dt id="HttpBodyHandler">
                 <span class="name "><a href="monadart/HttpBodyHandler-class.html">HttpBodyHandler</a></span>
             </dt>
             <dd>
-                <a href="monadart/HttpBodyHandler-class.html">HttpBodyHandler</a> is a helper class for processing and collecting
+                <p><a href="monadart/HttpBodyHandler-class.html">HttpBodyHandler</a> is a helper class for processing and collecting
 HTTP message data in an easy-to-use <a href="monadart/HttpBody-class.html">HttpBody</a> object. The content
-body is parsed, depending on the <code class="prettyprint lang-dart">Content-Type</code> header field. When
+body is parsed, depending on the <code>Content-Type</code> header field. When
 the full body is read and parsed the body content is made
 available. The class can be used to process both server requests
-and client responses.
+and client responses.<a href="monadart/HttpBodyHandler-class.html">&hellip;</a>
+</p>
             </dd>
             <dt id="HttpClientResponseBody">
                 <span class="name "><a href="monadart/HttpClientResponseBody-class.html">HttpClientResponseBody</a></span>
             </dt>
             <dd>
-                The <a href="monadart/HttpBody-class.html">HttpBody</a> of a <code class="prettyprint lang-dart">HttpClientResponse</code> will be of type
-<a href="monadart/HttpClientResponseBody-class.html">HttpClientResponseBody</a>. It contains the <code class="prettyprint lang-dart">HttpClientResponse</code> object
-for access to the headers.
+                <p>The <a href="monadart/HttpBody-class.html">HttpBody</a> of a <code>HttpClientResponse</code> will be of type
+<a href="monadart/HttpClientResponseBody-class.html">HttpClientResponseBody</a>. It contains the <code>HttpClientResponse</code> object
+for access to the headers.</p>
             </dd>
             <dt id="HttpController">
                 <span class="name "><a href="monadart/HttpController-class.html">HttpController</a></span>
             </dt>
             <dd>
-                Base class for web service handlers.
+                <p>Base class for web service handlers.<a href="monadart/HttpController-class.html">&hellip;</a>
+</p>
             </dd>
             <dt id="HttpMethod">
                 <span class="name "><a href="monadart/HttpMethod-class.html">HttpMethod</a></span>
             </dt>
             <dd>
-                Resource controller handler method metadata for indicating the HTTP method the controller method corresponds to.
+                <p>Resource controller handler method metadata for indicating the HTTP method the controller method corresponds to.<a href="monadart/HttpMethod-class.html">&hellip;</a>
+</p>
             </dd>
             <dt id="HttpMultipartFormData">
                 <span class="name "><a href="monadart/HttpMultipartFormData-class.html">HttpMultipartFormData</a></span>
             </dt>
             <dd>
-                <code class="prettyprint lang-dart">HttpMultipartFormData</code> class used for 'upgrading' a <code class="prettyprint lang-dart">MimeMultipart</code> by
+                <p><code>HttpMultipartFormData</code> class used for 'upgrading' a <code>MimeMultipart</code> by
 parsing it as a 'multipart/form-data' part. The following code shows how
-it can be used.
+it can be used.<a href="monadart/HttpMultipartFormData-class.html">&hellip;</a>
+</p>
             </dd>
             <dt id="HttpRequestBody">
                 <span class="name "><a href="monadart/HttpRequestBody-class.html">HttpRequestBody</a></span>
             </dt>
             <dd>
-                The <a href="monadart/HttpBody-class.html">HttpBody</a> of a <code class="prettyprint lang-dart">HttpRequest</code> will be of type <a href="monadart/HttpRequestBody-class.html">HttpRequestBody</a>. It
+                <p>The <a href="monadart/HttpBody-class.html">HttpBody</a> of a <code>HttpRequest</code> will be of type <a href="monadart/HttpRequestBody-class.html">HttpRequestBody</a>. It
 provides access to the request, for reading all request header information
-and responding to the client.
+and responding to the client.</p>
+            </dd>
+            <dt id="RequestHandler">
+                <span class="name "><a href="monadart/RequestHandler-class.html">RequestHandler</a></span>
+            </dt>
+            <dd>
+                <p></p>
+            </dd>
+            <dt id="RequestHandlerGenerator">
+                <span class="name "><a href="monadart/RequestHandlerGenerator-class.html">RequestHandlerGenerator</a></span>
+            </dt>
+            <dd>
+                <p></p>
             </dd>
             <dt id="ResourcePattern">
                 <span class="name "><a href="monadart/ResourcePattern-class.html">ResourcePattern</a></span>
             </dt>
             <dd>
-                
+                <p></p>
+            </dd>
+            <dt id="ResourcePatternMatch">
+                <span class="name "><a href="monadart/ResourcePatternMatch-class.html">ResourcePatternMatch</a></span>
+            </dt>
+            <dd>
+                <p>A representation of a Route match, containing the elements of the matched path.<a href="monadart/ResourcePatternMatch-class.html">&hellip;</a>
+</p>
             </dd>
             <dt id="ResourceRequest">
                 <span class="name "><a href="monadart/ResourceRequest-class.html">ResourceRequest</a></span>
             </dt>
             <dd>
-                Represents a single HTTP request.
+                <p>Represents a single HTTP request.<a href="monadart/ResourceRequest-class.html">&hellip;</a>
+</p>
             </dd>
             <dt id="Response">
                 <span class="name "><a href="monadart/Response-class.html">Response</a></span>
             </dt>
             <dd>
-                Represents the information in an HTTP response.
+                <p>Represents the information in an HTTP response.<a href="monadart/Response-class.html">&hellip;</a>
+</p>
             </dd>
             <dt id="Router">
                 <span class="name "><a href="monadart/Router-class.html">Router</a></span>
             </dt>
             <dd>
-                A <a href="monadart/ResourceRequest-class.html">ResourceRequest</a> router to split requests onto separate streams based on their URI.
+                <p>A <a href="monadart/ResourceRequest-class.html">ResourceRequest</a> router to split requests onto separate streams based on their URI.<a href="monadart/Router-class.html">&hellip;</a>
+</p>
             </dd>
             <dt id="VirtualDirectory">
                 <span class="name "><a href="monadart/VirtualDirectory-class.html">VirtualDirectory</a></span>
             </dt>
             <dd>
-                A <a href="monadart/VirtualDirectory-class.html">VirtualDirectory</a> can serve files and directory-listing from a root path,
-to <code class="prettyprint lang-dart">HttpRequest</code>s.
+                <p>A <a href="monadart/VirtualDirectory-class.html">VirtualDirectory</a> can serve files and directory-listing from a root path,
+to <code>HttpRequest</code>s.<a href="monadart/VirtualDirectory-class.html">&hellip;</a>
+</p>
             </dd>
             <dt id="VirtualHost">
                 <span class="name "><a href="monadart/VirtualHost-class.html">VirtualHost</a></span>
             </dt>
             <dd>
-                The <a href="monadart/VirtualHost-class.html">VirtualHost</a> class is a utility class for handling multiple hosts on
-multiple sources, by using a named-based approach.
+                <p>The <a href="monadart/VirtualHost-class.html">VirtualHost</a> class is a utility class for handling multiple hosts on
+multiple sources, by using a named-based approach.</p>
             </dd>
         </dl>
     </section>
@@ -288,7 +303,7 @@ multiple sources, by using a named-based approach.
 
   </div> <!-- /.main-content -->
 
-  <div class="col-xs-6 col-sm-6 col-md-3 sidebar sidebar-offcanvas-right">
+  <div class="col-xs-6 col-sm-6 col-md-2 sidebar sidebar-offcanvas-right">
     <h5>monadart</h5>
     <ol>
       <li class="section-title"><a href="monadart/monadart-library.html#constants">Constants</a></li>
@@ -300,8 +315,6 @@ multiple sources, by using a named-based approach.
     
     
     
-      <li class="section-title"><a href="monadart/monadart-library.html#functions">Functions</a></li>
-      <li><a href="monadart/addRouteController.html">addRouteController</a></li>
     
     
       <li class="section-title"><a href="monadart/monadart-library.html#classes">Classes</a></li>
@@ -316,7 +329,10 @@ multiple sources, by using a named-based approach.
       <li><a href="monadart/HttpMethod-class.html">HttpMethod</a></li>
       <li><a href="monadart/HttpMultipartFormData-class.html">HttpMultipartFormData</a></li>
       <li><a href="monadart/HttpRequestBody-class.html">HttpRequestBody</a></li>
+      <li><a href="monadart/RequestHandler-class.html">RequestHandler</a></li>
+      <li><a href="monadart/RequestHandlerGenerator-class.html">RequestHandlerGenerator</a></li>
       <li><a href="monadart/ResourcePattern-class.html">ResourcePattern</a></li>
+      <li><a href="monadart/ResourcePatternMatch-class.html">ResourcePatternMatch</a></li>
       <li><a href="monadart/ResourceRequest-class.html">ResourceRequest</a></li>
       <li><a href="monadart/Response-class.html">Response</a></li>
       <li><a href="monadart/Router-class.html">Router</a></li>
@@ -327,6 +343,7 @@ multiple sources, by using a named-based approach.
   </div><!--/sidebar-offcanvas-right-->
 
 
+  </div> <!-- row -->
 </div> <!-- container -->
 
 <footer>
@@ -351,10 +368,14 @@ multiple sources, by using a named-based approach.
     </div>
 </footer>
 
+<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+<script src="static-assets/typeahead.bundle.min.js"></script>
 <script src="static-assets/prettify.js"></script>
 <script src="static-assets/script.js"></script>
 <!-- Do not remove placeholder -->
 <!-- Footer Placeholder -->
+
+<!-- Made with <3 by dartdoc version 0.6.0+1 -->
 </body>
 
 </html>

@@ -27,40 +27,50 @@
 <header class="container-fluid" id="title">
     <nav class="navbar navbar-fixed-top">
         <div class="container">
-            <button id="sidenav-left-toggle" type="button">&nbsp;</button>
-            <ol class="breadcrumbs gt-separated hidden-xs">
-                <li><a href="index.html">monadart</a></li>
-                <li><a href="monadart/monadart-library.html">monadart</a></li>
-                <li class="self-crumb">ApplicationPipeline</li>
-            </ol>
-            <div class="self-name">ApplicationPipeline</div>
-        </div>
+          <div class="row">
+            <div class="col-sm-12 contents">
+              <button id="sidenav-left-toggle" type="button">&nbsp;</button>
+              <ol class="breadcrumbs gt-separated hidden-xs">
+                  <li><a href="index.html">monadart</a></li>
+                  <li><a href="monadart/monadart-library.html">monadart</a></li>
+                  <li class="self-crumb">ApplicationPipeline</li>
+              </ol>
+              <div class="self-name">ApplicationPipeline</div>
+              <form class="search navbar-right" role="search">
+                <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+              </form>
+            </div> <!-- /col -->
+          </div> <!-- /row -->
+        </div> <!-- /container -->
     </nav>
+
     <div class="container masthead">
-        <ol class="breadcrumbs gt-separated visible-xs">
-            <li><a href="index.html">monadart</a></li>
-            <li><a href="monadart/monadart-library.html">monadart</a></li>
-            <li class="self-crumb">ApplicationPipeline</li>
-        </ol>
-        <div class="title-description">
-            <h1 class="title">
-                <div class="kind">class</div> ApplicationPipeline
-            </h1>
-            <!-- p class="subtitle">
-                A abstract class that concrete subclasses will implement to provide request handling behavior.
-            </p -->
-        </div>
-        <ul class="subnav">
-            <li><a href="monadart/ApplicationPipeline-class.html#instance-properties">Properties</a></li>
-            <li><a href="monadart/ApplicationPipeline-class.html#constructors">Constructors</a></li>
-            <li><a href="monadart/ApplicationPipeline-class.html#instance-methods">Methods</a></li>
-        </ul>
-    </div>
+      <div class="row">
+        <div class="col-sm-12 contents">
+          <ol class="breadcrumbs gt-separated visible-xs">
+              <li><a href="index.html">monadart</a></li>
+              <li><a href="monadart/monadart-library.html">monadart</a></li>
+              <li class="self-crumb">ApplicationPipeline</li>
+          </ol>
+          <div class="title-description">
+              <h1 class="title">
+                  <div class="kind">class</div> ApplicationPipeline
+              </h1>
+          </div>
+          <ul class="subnav">
+              <li><a href="monadart/ApplicationPipeline-class.html#instance-properties">Properties</a></li>
+              <li><a href="monadart/ApplicationPipeline-class.html#constructors">Constructors</a></li>
+          </ul>
+        </div> <!-- /col -->
+      </div> <!-- /row -->
+    </div> <!-- /container -->
+
 </header>
 
 <div class="container body">
+  <div class="row">
 
-  <div class="col-xs-6 col-sm-3 col-md-3 sidebar sidebar-offcanvas-left">
+  <div class="col-xs-6 col-sm-3 col-md-2 sidebar sidebar-offcanvas-left">
     <h5><a href="index.html">monadart</a></h5>
     <h5><a href="monadart/monadart-library.html">monadart</a></h5>
 
@@ -74,8 +84,6 @@
     
     
     
-      <li class="section-title"><a href="monadart/monadart-library.html#functions">Functions</a></li>
-      <li><a href="monadart/addRouteController.html">addRouteController</a></li>
     
     
       <li class="section-title"><a href="monadart/monadart-library.html#classes">Classes</a></li>
@@ -90,7 +98,10 @@
       <li><a href="monadart/HttpMethod-class.html">HttpMethod</a></li>
       <li><a href="monadart/HttpMultipartFormData-class.html">HttpMultipartFormData</a></li>
       <li><a href="monadart/HttpRequestBody-class.html">HttpRequestBody</a></li>
+      <li><a href="monadart/RequestHandler-class.html">RequestHandler</a></li>
+      <li><a href="monadart/RequestHandlerGenerator-class.html">RequestHandlerGenerator</a></li>
       <li><a href="monadart/ResourcePattern-class.html">ResourcePattern</a></li>
+      <li><a href="monadart/ResourcePatternMatch-class.html">ResourcePatternMatch</a></li>
       <li><a href="monadart/ResourceRequest-class.html">ResourceRequest</a></li>
       <li><a href="monadart/Response-class.html">Response</a></li>
       <li><a href="monadart/Router-class.html">Router</a></li>
@@ -100,38 +111,54 @@
     </ol>
   </div>
 
-  <div class="col-xs-12 col-sm-9 col-md-6 main-content">
+  <div class="col-xs-12 col-sm-9 col-md-8 main-content">
 
     <section class="desc markdown">
     
           <p>A abstract class that concrete subclasses will implement to provide request handling behavior.</p>
 <p><a href="monadart/Application-class.html">Application</a>s set up HTTP(s) listeners, but do not do anything with them. The behavior of how an application
-responds to requests is defined by its <a href="monadart/ApplicationPipeline-class.html">ApplicationPipeline</a>.</p>
+responds to requests is defined by its <a href="monadart/ApplicationPipeline-class.html">ApplicationPipeline</a>. Instances of this class must implement the
+<a href="monadart/RequestHandler/handleRequest.html">handleRequest</a> method from <a href="monadart/RequestHandler-class.html">RequestHandler</a> - this is the entry point of all requests into this pipeline.</p>
     
+    </section>
+
+    <section>
+        <dl class="dl-horizontal">
+
+          <dt>Implements</dt>
+              <dd>
+                  <ul class="comma-separated clazz-relationships">
+                      <li><a href="monadart/RequestHandler-class.html">RequestHandler</a></li>
+                  </ul>
+              </dd>
+
+
+
+        </dl>
     </section>
 
 
 
 
-
-    <section class="summary" id="instance-properties">
+    <section class="summary offset-anchor" id="instance-properties">
         <h2>Properties</h2>
 
         <dl class="properties">
             <dt id="options" class="property">
-                <span class="top-level-variable-type">Map&lt;String&gt;</span>
-                <a href="monadart/ApplicationPipeline/options.html">options</a>
+                <span class="name"><a href="monadart/ApplicationPipeline/options.html">options</a></span>
+                <span class="signature">&#8594; Map&lt;String&gt;</span>
             </dt>
             <dd>
-                <div class="readable-writable">
+                <div class="features">
         read / write
     </div>
-    Passed in options for this pipeline from its owning <a href="monadart/Application-class.html">Application</a>.
+    <p>Passed in options for this pipeline from its owning <a href="monadart/Application-class.html">Application</a>.<a href="monadart/ApplicationPipeline/options.html">&hellip;</a>
+</p>
             </dd>
         </dl>
     </section>
 
-    <section class="summary" id="constructors">
+    <section class="summary offset-anchor" id="constructors">
         <h2>Constructors</h2>
 
         <dl class="constructor-summary-list">
@@ -139,30 +166,31 @@ responds to requests is defined by its <a href="monadart/ApplicationPipeline-cla
                 <span class="name"><a href="monadart/ApplicationPipeline/ApplicationPipeline.html">ApplicationPipeline</a></span><span class="signature">()</span>
             </dt>
             <dd>
-                
+                <p></p>
             </dd>
         </dl>
       </section>
 
 
-      <section class="summary" id="instance-methods">
+      <section class="summary offset-anchor" id="instance-methods">
           <h2>Methods</h2>
           <dl class="callables">
-              <dt id="attachTo" class="callable">
-                  <a href="monadart/ApplicationPipeline/attachTo.html"><span class="name ">attachTo</span></a><span class="signature">(<wbr><span class="parameter" id="attachTo-param-requestStream"><span class="type-annotation">Stream&lt;<a href="monadart/ResourceRequest-class.html">ResourceRequest</a>&gt;</span> <span class="parameter-name">requestStream</span></span>)
+              <dt id="handleRequest" class="callable">
+                  <span class="name ">handleRequest</span><span class="signature">(<wbr><span class="parameter" id="handleRequest-param-req"><span class="type-annotation"><a href="monadart/ResourceRequest-class.html">ResourceRequest</a></span> <span class="parameter-name">req</span></span>)
                       &#8594;
                       <span class="returntype">void</span>
                   </span>
               </dt>
               <dd>
-                  Allows an <a href="monadart/ApplicationPipeline-class.html">ApplicationPipeline</a> to handle HTTP(s) requests from its <a href="monadart/Application-class.html">Application</a>.
+                  <div class="features">inherited</div>
+                  <p></p>
               </dd>
           </dl>
       </section>
 
     </div> <!-- /.main-content -->
 
-  <div class="col-xs-6 col-sm-6 col-md-3 sidebar sidebar-offcanvas-right">
+  <div class="col-xs-6 col-sm-6 col-md-2 sidebar sidebar-offcanvas-right">
     <h5>ApplicationPipeline</h5>
     <ol>
     
@@ -176,12 +204,13 @@ responds to requests is defined by its <a href="monadart/ApplicationPipeline-cla
       <li><a href="monadart/ApplicationPipeline/ApplicationPipeline.html">ApplicationPipeline</a></li>
     
     
-      <li class="section-title"><a href="monadart/ApplicationPipeline-class.html#methods">Methods</a></li>
-      <li><a href="monadart/ApplicationPipeline/attachTo.html">attachTo</a>
+      <li class="section-title"><a href="monadart/ApplicationPipeline-class.html#instance-methods">Methods</a></li>
+      <li>handleRequest
 </li>
     </ol>
   </div><!--/.sidebar-offcanvas-->
 
+  </div> <!-- row -->
 </div> <!-- container -->
 
 <footer>
@@ -206,10 +235,14 @@ responds to requests is defined by its <a href="monadart/ApplicationPipeline-cla
     </div>
 </footer>
 
+<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+<script src="static-assets/typeahead.bundle.min.js"></script>
 <script src="static-assets/prettify.js"></script>
 <script src="static-assets/script.js"></script>
 <!-- Do not remove placeholder -->
 <!-- Footer Placeholder -->
+
+<!-- Made with <3 by dartdoc version 0.6.0+1 -->
 </body>
 
 </html>

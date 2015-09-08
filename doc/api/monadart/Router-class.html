@@ -27,40 +27,51 @@
 <header class="container-fluid" id="title">
     <nav class="navbar navbar-fixed-top">
         <div class="container">
-            <button id="sidenav-left-toggle" type="button">&nbsp;</button>
-            <ol class="breadcrumbs gt-separated hidden-xs">
-                <li><a href="index.html">monadart</a></li>
-                <li><a href="monadart/monadart-library.html">monadart</a></li>
-                <li class="self-crumb">Router</li>
-            </ol>
-            <div class="self-name">Router</div>
-        </div>
+          <div class="row">
+            <div class="col-sm-12 contents">
+              <button id="sidenav-left-toggle" type="button">&nbsp;</button>
+              <ol class="breadcrumbs gt-separated hidden-xs">
+                  <li><a href="index.html">monadart</a></li>
+                  <li><a href="monadart/monadart-library.html">monadart</a></li>
+                  <li class="self-crumb">Router</li>
+              </ol>
+              <div class="self-name">Router</div>
+              <form class="search navbar-right" role="search">
+                <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+              </form>
+            </div> <!-- /col -->
+          </div> <!-- /row -->
+        </div> <!-- /container -->
     </nav>
+
     <div class="container masthead">
-        <ol class="breadcrumbs gt-separated visible-xs">
-            <li><a href="index.html">monadart</a></li>
-            <li><a href="monadart/monadart-library.html">monadart</a></li>
-            <li class="self-crumb">Router</li>
-        </ol>
-        <div class="title-description">
-            <h1 class="title">
-                <div class="kind">class</div> Router
-            </h1>
-            <!-- p class="subtitle">
-                A <a href="monadart/ResourceRequest-class.html">ResourceRequest</a> router to split requests onto separate streams based on their URI.
-            </p -->
-        </div>
-        <ul class="subnav">
-            <li><a href="monadart/Router-class.html#instance-properties">Properties</a></li>
-            <li><a href="monadart/Router-class.html#constructors">Constructors</a></li>
-            <li><a href="monadart/Router-class.html#instance-methods">Methods</a></li>
-        </ul>
-    </div>
+      <div class="row">
+        <div class="col-sm-12 contents">
+          <ol class="breadcrumbs gt-separated visible-xs">
+              <li><a href="index.html">monadart</a></li>
+              <li><a href="monadart/monadart-library.html">monadart</a></li>
+              <li class="self-crumb">Router</li>
+          </ol>
+          <div class="title-description">
+              <h1 class="title">
+                  <div class="kind">class</div> Router
+              </h1>
+          </div>
+          <ul class="subnav">
+              <li><a href="monadart/Router-class.html#instance-properties">Properties</a></li>
+              <li><a href="monadart/Router-class.html#constructors">Constructors</a></li>
+              <li><a href="monadart/Router-class.html#instance-methods">Methods</a></li>
+          </ul>
+        </div> <!-- /col -->
+      </div> <!-- /row -->
+    </div> <!-- /container -->
+
 </header>
 
 <div class="container body">
+  <div class="row">
 
-  <div class="col-xs-6 col-sm-3 col-md-3 sidebar sidebar-offcanvas-left">
+  <div class="col-xs-6 col-sm-3 col-md-2 sidebar sidebar-offcanvas-left">
     <h5><a href="index.html">monadart</a></h5>
     <h5><a href="monadart/monadart-library.html">monadart</a></h5>
 
@@ -74,8 +85,6 @@
     
     
     
-      <li class="section-title"><a href="monadart/monadart-library.html#functions">Functions</a></li>
-      <li><a href="monadart/addRouteController.html">addRouteController</a></li>
     
     
       <li class="section-title"><a href="monadart/monadart-library.html#classes">Classes</a></li>
@@ -90,7 +99,10 @@
       <li><a href="monadart/HttpMethod-class.html">HttpMethod</a></li>
       <li><a href="monadart/HttpMultipartFormData-class.html">HttpMultipartFormData</a></li>
       <li><a href="monadart/HttpRequestBody-class.html">HttpRequestBody</a></li>
+      <li><a href="monadart/RequestHandler-class.html">RequestHandler</a></li>
+      <li><a href="monadart/RequestHandlerGenerator-class.html">RequestHandlerGenerator</a></li>
       <li><a href="monadart/ResourcePattern-class.html">ResourcePattern</a></li>
+      <li><a href="monadart/ResourcePatternMatch-class.html">ResourcePatternMatch</a></li>
       <li><a href="monadart/ResourceRequest-class.html">ResourceRequest</a></li>
       <li><a href="monadart/Response-class.html">Response</a></li>
       <li><a href="monadart/Router-class.html">Router</a></li>
@@ -100,55 +112,71 @@
     </ol>
   </div>
 
-  <div class="col-xs-12 col-sm-9 col-md-6 main-content">
+  <div class="col-xs-12 col-sm-9 col-md-8 main-content">
 
     <section class="desc markdown">
     
           <p>A <a href="monadart/ResourceRequest-class.html">ResourceRequest</a> router to split requests onto separate streams based on their URI.</p>
 <p>Instances of this class maintain a collection of streams for each route that has been registered with it.
-A route is defined by a <code class="prettyprint lang-dart">String</code> format, for example:</p>
-<pre><code class="prettyprint lang-dart">router.addRoute("/users");
+A route is defined by a <code>String</code> format, for example:</p>
+<pre class="prettyprint lang-dart"><code>router.addRoute("/users");
 router.addRoute("/posts/:id");
 router.addRoute("/things/[:id]");
 router.addRoute("/numbers/:id(\d+)");
 router.addRoute("/files/*");
 </code></pre>
-<p>Each route added to a <a href="monadart/Router-class.html">Router</a> creates a <code class="prettyprint lang-dart">Stream</code> of <a href="monadart/ResourceRequest-class.html">ResourceRequest</a>s that a handler can listen to.</p>
+<p>Each route added to a <a href="monadart/Router-class.html">Router</a> creates a <code>Stream</code> of <a href="monadart/ResourceRequest-class.html">ResourceRequest</a>s that a handler can listen to.</p>
     
+    </section>
+
+    <section>
+        <dl class="dl-horizontal">
+
+          <dt>Implements</dt>
+              <dd>
+                  <ul class="comma-separated clazz-relationships">
+                      <li><a href="monadart/RequestHandler-class.html">RequestHandler</a></li>
+                  </ul>
+              </dd>
+
+
+
+        </dl>
     </section>
 
 
 
 
-
-    <section class="summary" id="instance-properties">
+    <section class="summary offset-anchor" id="instance-properties">
         <h2>Properties</h2>
 
         <dl class="properties">
             <dt id="basePath" class="property">
-                <span class="top-level-variable-type">String</span>
-                <a href="monadart/Router/basePath.html">basePath</a>
+                <span class="name"><a href="monadart/Router/basePath.html">basePath</a></span>
+                <span class="signature">&#8594; String</span>
             </dt>
             <dd>
-                <div class="readable-writable">
+                <div class="features">
         read / write
     </div>
-    A string to be prepended to the beginning of every route this <code class="prettyprint lang-dart">Router</code> manages.
+    <p>A string to be prepended to the beginning of every route this <code>Router</code> manages.<a href="monadart/Router/basePath.html">&hellip;</a>
+</p>
             </dd>
             <dt id="unhandledRequestHandler" class="property">
-                <span class="top-level-variable-type">Function</span>
-                <a href="monadart/Router/unhandledRequestHandler.html">unhandledRequestHandler</a>
+                <span class="name"><a href="monadart/Router/unhandledRequestHandler.html">unhandledRequestHandler</a></span>
+                <span class="signature">&#8594; Function</span>
             </dt>
             <dd>
-                <div class="readable-writable">
+                <div class="features">
         read / write
     </div>
-    How this router handles <code class="prettyprint lang-dart">ResourceRequest</code>s that don't match its routes.
+    <p>How this router handles <code>ResourceRequest</code>s that don't match its routes.<a href="monadart/Router/unhandledRequestHandler.html">&hellip;</a>
+</p>
             </dd>
         </dl>
     </section>
 
-    <section class="summary" id="constructors">
+    <section class="summary offset-anchor" id="constructors">
         <h2>Constructors</h2>
 
         <dl class="constructor-summary-list">
@@ -156,13 +184,13 @@ router.addRoute("/files/*");
                 <span class="name"><a href="monadart/Router/Router.html">Router</a></span><span class="signature">()</span>
             </dt>
             <dd>
-                Creates a new <a href="monadart/Router-class.html">Router</a>.
+                <p>Creates a new <a href="monadart/Router-class.html">Router</a>.</p>
             </dd>
         </dl>
       </section>
 
 
-      <section class="summary" id="instance-methods">
+      <section class="summary offset-anchor" id="instance-methods">
           <h2>Methods</h2>
           <dl class="callables">
               <dt id="addRoute" class="callable">
@@ -172,23 +200,34 @@ router.addRoute("/files/*");
                   </span>
               </dt>
               <dd>
-                  Adds a route to this router and provides a <code class="prettyprint lang-dart">Stream</code> for all <a href="monadart/ResourceRequest-class.html">ResourceRequest</a>s that match that route to be delivered on.
+                  <p>Adds a route to this router and provides a <code>Stream</code> for all <a href="monadart/ResourceRequest-class.html">ResourceRequest</a>s that match that route to be delivered on.<a href="monadart/Router/addRoute.html">&hellip;</a>
+</p>
               </dd>
-              <dt id="routeRequest" class="callable">
-                  <a href="monadart/Router/routeRequest.html"><span class="name ">routeRequest</span></a><span class="signature">(<wbr><span class="parameter" id="routeRequest-param-req"><span class="type-annotation"><a href="monadart/ResourceRequest-class.html">ResourceRequest</a></span> <span class="parameter-name">req</span></span>)
+              <dt id="addRouteHandler" class="callable">
+                  <a href="monadart/Router/addRouteHandler.html"><span class="name ">addRouteHandler</span></a><span class="signature">(<wbr><span class="parameter" id="addRouteHandler-param-routePattern"><span class="type-annotation">String</span> <span class="parameter-name">routePattern</span></span>, <span class="parameter" id="addRouteHandler-param-handler"><span class="type-annotation"><a href="monadart/RequestHandler-class.html">RequestHandler</a></span> <span class="parameter-name">handler</span></span>)
                       &#8594;
                       <span class="returntype">void</span>
                   </span>
               </dt>
               <dd>
-                  Routes a <a href="monadart/ResourceRequest-class.html">ResourceRequest</a> through the routes of this <a href="monadart/Router-class.html">Router</a>.
+                  <p></p>
+              </dd>
+              <dt id="handleRequest" class="callable">
+                  <a href="monadart/Router/handleRequest.html"><span class="name ">handleRequest</span></a><span class="signature">(<wbr><span class="parameter" id="handleRequest-param-req"><span class="type-annotation"><a href="monadart/ResourceRequest-class.html">ResourceRequest</a></span> <span class="parameter-name">req</span></span>)
+                      &#8594;
+                      <span class="returntype">void</span>
+                  </span>
+              </dt>
+              <dd>
+                  <p>Routes a <a href="monadart/ResourceRequest-class.html">ResourceRequest</a> through the routes of this <a href="monadart/Router-class.html">Router</a>.<a href="monadart/Router/handleRequest.html">&hellip;</a>
+</p>
               </dd>
           </dl>
       </section>
 
     </div> <!-- /.main-content -->
 
-  <div class="col-xs-6 col-sm-6 col-md-3 sidebar sidebar-offcanvas-right">
+  <div class="col-xs-6 col-sm-6 col-md-2 sidebar sidebar-offcanvas-right">
     <h5>Router</h5>
     <ol>
     
@@ -204,14 +243,17 @@ router.addRoute("/files/*");
       <li><a href="monadart/Router/Router.html">Router</a></li>
     
     
-      <li class="section-title"><a href="monadart/Router-class.html#methods">Methods</a></li>
+      <li class="section-title"><a href="monadart/Router-class.html#instance-methods">Methods</a></li>
       <li><a href="monadart/Router/addRoute.html">addRoute</a>
 </li>
-      <li><a href="monadart/Router/routeRequest.html">routeRequest</a>
+      <li><a href="monadart/Router/addRouteHandler.html">addRouteHandler</a>
+</li>
+      <li><a href="monadart/Router/handleRequest.html">handleRequest</a>
 </li>
     </ol>
   </div><!--/.sidebar-offcanvas-->
 
+  </div> <!-- row -->
 </div> <!-- container -->
 
 <footer>
@@ -236,10 +278,14 @@ router.addRoute("/files/*");
     </div>
 </footer>
 
+<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+<script src="static-assets/typeahead.bundle.min.js"></script>
 <script src="static-assets/prettify.js"></script>
 <script src="static-assets/script.js"></script>
 <!-- Do not remove placeholder -->
 <!-- Footer Placeholder -->
+
+<!-- Made with <3 by dartdoc version 0.6.0+1 -->
 </body>
 
 </html>

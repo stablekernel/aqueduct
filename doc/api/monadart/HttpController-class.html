@@ -27,40 +27,51 @@
 <header class="container-fluid" id="title">
     <nav class="navbar navbar-fixed-top">
         <div class="container">
-            <button id="sidenav-left-toggle" type="button">&nbsp;</button>
-            <ol class="breadcrumbs gt-separated hidden-xs">
-                <li><a href="index.html">monadart</a></li>
-                <li><a href="monadart/monadart-library.html">monadart</a></li>
-                <li class="self-crumb">HttpController</li>
-            </ol>
-            <div class="self-name">HttpController</div>
-        </div>
+          <div class="row">
+            <div class="col-sm-12 contents">
+              <button id="sidenav-left-toggle" type="button">&nbsp;</button>
+              <ol class="breadcrumbs gt-separated hidden-xs">
+                  <li><a href="index.html">monadart</a></li>
+                  <li><a href="monadart/monadart-library.html">monadart</a></li>
+                  <li class="self-crumb">HttpController</li>
+              </ol>
+              <div class="self-name">HttpController</div>
+              <form class="search navbar-right" role="search">
+                <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+              </form>
+            </div> <!-- /col -->
+          </div> <!-- /row -->
+        </div> <!-- /container -->
     </nav>
+
     <div class="container masthead">
-        <ol class="breadcrumbs gt-separated visible-xs">
-            <li><a href="index.html">monadart</a></li>
-            <li><a href="monadart/monadart-library.html">monadart</a></li>
-            <li class="self-crumb">HttpController</li>
-        </ol>
-        <div class="title-description">
-            <h1 class="title">
-                <div class="kind">class</div> HttpController
-            </h1>
-            <!-- p class="subtitle">
-                Base class for web service handlers.
-            </p -->
-        </div>
-        <ul class="subnav">
-            <li><a href="monadart/HttpController-class.html#instance-properties">Properties</a></li>
-            <li><a href="monadart/HttpController-class.html#constructors">Constructors</a></li>
-            <li><a href="monadart/HttpController-class.html#instance-methods">Methods</a></li>
-        </ul>
-    </div>
+      <div class="row">
+        <div class="col-sm-12 contents">
+          <ol class="breadcrumbs gt-separated visible-xs">
+              <li><a href="index.html">monadart</a></li>
+              <li><a href="monadart/monadart-library.html">monadart</a></li>
+              <li class="self-crumb">HttpController</li>
+          </ol>
+          <div class="title-description">
+              <h1 class="title">
+                  <div class="kind">class</div> HttpController
+              </h1>
+          </div>
+          <ul class="subnav">
+              <li><a href="monadart/HttpController-class.html#instance-properties">Properties</a></li>
+              <li><a href="monadart/HttpController-class.html#constructors">Constructors</a></li>
+              <li><a href="monadart/HttpController-class.html#instance-methods">Methods</a></li>
+          </ul>
+        </div> <!-- /col -->
+      </div> <!-- /row -->
+    </div> <!-- /container -->
+
 </header>
 
 <div class="container body">
+  <div class="row">
 
-  <div class="col-xs-6 col-sm-3 col-md-3 sidebar sidebar-offcanvas-left">
+  <div class="col-xs-6 col-sm-3 col-md-2 sidebar sidebar-offcanvas-left">
     <h5><a href="index.html">monadart</a></h5>
     <h5><a href="monadart/monadart-library.html">monadart</a></h5>
 
@@ -74,8 +85,6 @@
     
     
     
-      <li class="section-title"><a href="monadart/monadart-library.html#functions">Functions</a></li>
-      <li><a href="monadart/addRouteController.html">addRouteController</a></li>
     
     
       <li class="section-title"><a href="monadart/monadart-library.html#classes">Classes</a></li>
@@ -90,7 +99,10 @@
       <li><a href="monadart/HttpMethod-class.html">HttpMethod</a></li>
       <li><a href="monadart/HttpMultipartFormData-class.html">HttpMultipartFormData</a></li>
       <li><a href="monadart/HttpRequestBody-class.html">HttpRequestBody</a></li>
+      <li><a href="monadart/RequestHandler-class.html">RequestHandler</a></li>
+      <li><a href="monadart/RequestHandlerGenerator-class.html">RequestHandlerGenerator</a></li>
       <li><a href="monadart/ResourcePattern-class.html">ResourcePattern</a></li>
+      <li><a href="monadart/ResourcePatternMatch-class.html">ResourcePatternMatch</a></li>
       <li><a href="monadart/ResourceRequest-class.html">ResourceRequest</a></li>
       <li><a href="monadart/Response-class.html">Response</a></li>
       <li><a href="monadart/Router-class.html">Router</a></li>
@@ -100,7 +112,7 @@
     </ol>
   </div>
 
-  <div class="col-xs-12 col-sm-9 col-md-6 main-content">
+  <div class="col-xs-12 col-sm-9 col-md-8 main-content">
 
     <section class="desc markdown">
     
@@ -109,88 +121,108 @@
     
     </section>
 
+    <section>
+        <dl class="dl-horizontal">
+
+          <dt>Implements</dt>
+              <dd>
+                  <ul class="comma-separated clazz-relationships">
+                      <li><a href="monadart/RequestHandler-class.html">RequestHandler</a></li>
+                  </ul>
+              </dd>
+
+
+
+        </dl>
+    </section>
 
 
 
 
-    <section class="summary" id="instance-properties">
+    <section class="summary offset-anchor" id="instance-properties">
         <h2>Properties</h2>
 
         <dl class="properties">
             <dt id="acceptedContentTypes" class="property">
-                <span class="top-level-variable-type">List&lt;ContentType&gt;</span>
-                <a href="monadart/HttpController/acceptedContentTypes.html">acceptedContentTypes</a>
+                <span class="name"><a href="monadart/HttpController/acceptedContentTypes.html">acceptedContentTypes</a></span>
+                <span class="signature">&#8594; List&lt;ContentType&gt;</span>
             </dt>
             <dd>
-                <div class="readable-writable">
+                <div class="features">
         read / write
     </div>
-    Types of content this <a href="monadart/HttpController-class.html">HttpController</a> will accept.
+    <p>Types of content this <a href="monadart/HttpController-class.html">HttpController</a> will accept.<a href="monadart/HttpController/acceptedContentTypes.html">&hellip;</a>
+</p>
             </dd>
             <dt id="exceptionHandler" class="property">
-                <span class="top-level-variable-type">Function</span>
-                <a href="monadart/HttpController/exceptionHandler.html">exceptionHandler</a>
+                <span class="name"><a href="monadart/HttpController/exceptionHandler.html">exceptionHandler</a></span>
+                <span class="signature">&#8594; Function</span>
             </dt>
             <dd>
-                <div class="readable-writable">
+                <div class="features">
         read / write
     </div>
-    The exception handler for a request handler method that generates an HTTP error response.
+    <p>The exception handler for a request handler method that generates an HTTP error response.<a href="monadart/HttpController/exceptionHandler.html">&hellip;</a>
+</p>
             </dd>
-            <dt id="pathParameters" class="property">
-                <span class="top-level-variable-type">Map&lt;String,String&gt;</span>
-                <a href="monadart/HttpController/pathParameters.html">pathParameters</a>
+            <dt id="pathVariables" class="property">
+                <span class="name"><a href="monadart/HttpController/pathVariables.html">pathVariables</a></span>
+                <span class="signature">&#8594; Map&lt;String,String&gt;</span>
             </dt>
             <dd>
-                <div class="readable-writable">
+                <div class="features">
         read-only
     </div>
-    Parameters parsed from the URI of the request, if any exist.
+    <p>Parameters parsed from the URI of the request, if any exist.</p>
             </dd>
             <dt id="requestBody" class="property">
-                <span class="top-level-variable-type">dynamic</span>
-                <a href="monadart/HttpController/requestBody.html">requestBody</a>
+                <span class="name"><a href="monadart/HttpController/requestBody.html">requestBody</a></span>
+                <span class="signature">&#8594; dynamic</span>
             </dt>
             <dd>
-                <div class="readable-writable">
+                <div class="features">
         read / write
     </div>
-    The HTTP request body object, after being decoded.
+    <p>The HTTP request body object, after being decoded.<a href="monadart/HttpController/requestBody.html">&hellip;</a>
+</p>
             </dd>
             <dt id="resourceRequest" class="property">
-                <span class="top-level-variable-type"><a href="monadart/ResourceRequest-class.html">ResourceRequest</a></span>
-                <a href="monadart/HttpController/resourceRequest.html">resourceRequest</a>
+                <span class="name"><a href="monadart/HttpController/resourceRequest.html">resourceRequest</a></span>
+                <span class="signature">&#8594; <a href="monadart/ResourceRequest-class.html">ResourceRequest</a></span>
             </dt>
             <dd>
-                <div class="readable-writable">
+                <div class="features">
         read / write
     </div>
-    The request being processed by this <a href="monadart/HttpController-class.html">HttpController</a>.
+    <p>The request being processed by this <a href="monadart/HttpController-class.html">HttpController</a>.<a href="monadart/HttpController/resourceRequest.html">&hellip;</a>
+</p>
             </dd>
             <dt id="responseBodyEncoder" class="property">
-                <span class="top-level-variable-type">dynamic</span>
-                <a href="monadart/HttpController/responseBodyEncoder.html">responseBodyEncoder</a>
+                <span class="name"><a href="monadart/HttpController/responseBodyEncoder.html">responseBodyEncoder</a></span>
+                <span class="signature">&#8594; dynamic</span>
             </dt>
             <dd>
-                <div class="readable-writable">
+                <div class="features">
         read / write
     </div>
-    Encodes the HTTP response body object that is part of the <a href="monadart/Response-class.html">Response</a> returned from this request handler methods.
+    <p>Encodes the HTTP response body object that is part of the <a href="monadart/Response-class.html">Response</a> returned from this request handler methods.<a href="monadart/HttpController/responseBodyEncoder.html">&hellip;</a>
+</p>
             </dd>
             <dt id="responseContentType" class="property">
-                <span class="top-level-variable-type">ContentType</span>
-                <a href="monadart/HttpController/responseContentType.html">responseContentType</a>
+                <span class="name"><a href="monadart/HttpController/responseContentType.html">responseContentType</a></span>
+                <span class="signature">&#8594; ContentType</span>
             </dt>
             <dd>
-                <div class="readable-writable">
+                <div class="features">
         read / write
     </div>
-    The content type of responses from this <a href="monadart/HttpController-class.html">HttpController</a>.
+    <p>The content type of responses from this <a href="monadart/HttpController-class.html">HttpController</a>.<a href="monadart/HttpController/responseContentType.html">&hellip;</a>
+</p>
             </dd>
         </dl>
     </section>
 
-    <section class="summary" id="constructors">
+    <section class="summary offset-anchor" id="constructors">
         <h2>Constructors</h2>
 
         <dl class="constructor-summary-list">
@@ -198,30 +230,30 @@
                 <span class="name"><a href="monadart/HttpController/HttpController.html">HttpController</a></span><span class="signature">()</span>
             </dt>
             <dd>
-                
+                <p></p>
             </dd>
         </dl>
       </section>
 
 
-      <section class="summary" id="instance-methods">
+      <section class="summary offset-anchor" id="instance-methods">
           <h2>Methods</h2>
           <dl class="callables">
-              <dt id="process" class="callable">
-                  <a href="monadart/HttpController/process.html"><span class="name ">process</span></a><span class="signature">(<wbr>)
+              <dt id="handleRequest" class="callable">
+                  <a href="monadart/HttpController/handleRequest.html"><span class="name ">handleRequest</span></a><span class="signature">(<wbr><span class="parameter" id="handleRequest-param-req"><span class="type-annotation"><a href="monadart/ResourceRequest-class.html">ResourceRequest</a></span> <span class="parameter-name">req</span></span>)
                       &#8594;
-                      <span class="returntype">Future</span>
+                      <span class="returntype">void</span>
                   </span>
               </dt>
               <dd>
-                  Executes the appropriate handler method for this controller's request.
+                  <p></p>
               </dd>
           </dl>
       </section>
 
     </div> <!-- /.main-content -->
 
-  <div class="col-xs-6 col-sm-6 col-md-3 sidebar sidebar-offcanvas-right">
+  <div class="col-xs-6 col-sm-6 col-md-2 sidebar sidebar-offcanvas-right">
     <h5>HttpController</h5>
     <ol>
     
@@ -232,7 +264,7 @@
 </li>
       <li><a href="monadart/HttpController/exceptionHandler.html">exceptionHandler</a>
 </li>
-      <li><a href="monadart/HttpController/pathParameters.html">pathParameters</a>
+      <li><a href="monadart/HttpController/pathVariables.html">pathVariables</a>
 </li>
       <li><a href="monadart/HttpController/requestBody.html">requestBody</a>
 </li>
@@ -247,12 +279,13 @@
       <li><a href="monadart/HttpController/HttpController.html">HttpController</a></li>
     
     
-      <li class="section-title"><a href="monadart/HttpController-class.html#methods">Methods</a></li>
-      <li><a href="monadart/HttpController/process.html">process</a>
+      <li class="section-title"><a href="monadart/HttpController-class.html#instance-methods">Methods</a></li>
+      <li><a href="monadart/HttpController/handleRequest.html">handleRequest</a>
 </li>
     </ol>
   </div><!--/.sidebar-offcanvas-->
 
+  </div> <!-- row -->
 </div> <!-- container -->
 
 <footer>
@@ -277,10 +310,14 @@
     </div>
 </footer>
 
+<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+<script src="static-assets/typeahead.bundle.min.js"></script>
 <script src="static-assets/prettify.js"></script>
 <script src="static-assets/script.js"></script>
 <!-- Do not remove placeholder -->
 <!-- Footer Placeholder -->
+
+<!-- Made with <3 by dartdoc version 0.6.0+1 -->
 </body>
 
 </html>

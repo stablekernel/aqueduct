@@ -27,40 +27,50 @@
 <header class="container-fluid" id="title">
     <nav class="navbar navbar-fixed-top">
         <div class="container">
-            <button id="sidenav-left-toggle" type="button">&nbsp;</button>
-            <ol class="breadcrumbs gt-separated hidden-xs">
-                <li><a href="index.html">monadart</a></li>
-                <li><a href="monadart/monadart-library.html">monadart</a></li>
-                <li class="self-crumb">HttpBodyFileUpload</li>
-            </ol>
-            <div class="self-name">HttpBodyFileUpload</div>
-        </div>
+          <div class="row">
+            <div class="col-sm-12 contents">
+              <button id="sidenav-left-toggle" type="button">&nbsp;</button>
+              <ol class="breadcrumbs gt-separated hidden-xs">
+                  <li><a href="index.html">monadart</a></li>
+                  <li><a href="monadart/monadart-library.html">monadart</a></li>
+                  <li class="self-crumb">HttpBodyFileUpload</li>
+              </ol>
+              <div class="self-name">HttpBodyFileUpload</div>
+              <form class="search navbar-right" role="search">
+                <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+              </form>
+            </div> <!-- /col -->
+          </div> <!-- /row -->
+        </div> <!-- /container -->
     </nav>
+
     <div class="container masthead">
-        <ol class="breadcrumbs gt-separated visible-xs">
-            <li><a href="index.html">monadart</a></li>
-            <li><a href="monadart/monadart-library.html">monadart</a></li>
-            <li class="self-crumb">HttpBodyFileUpload</li>
-        </ol>
-        <div class="title-description">
-            <h1 class="title">
-                <div class="kind">class</div> HttpBodyFileUpload
-            </h1>
-            <!-- p class="subtitle">
-                A <a href="monadart/HttpBodyFileUpload-class.html">HttpBodyFileUpload</a> object wraps a file upload, presenting a way for
-extracting filename, contentType and the data of the uploaded file.
-            </p -->
-        </div>
-        <ul class="subnav">
-            <li><a href="monadart/HttpBodyFileUpload-class.html#instance-properties">Properties</a></li>
-            <li><a href="monadart/HttpBodyFileUpload-class.html#constructors">Constructors</a></li>
-        </ul>
-    </div>
+      <div class="row">
+        <div class="col-sm-12 contents">
+          <ol class="breadcrumbs gt-separated visible-xs">
+              <li><a href="index.html">monadart</a></li>
+              <li><a href="monadart/monadart-library.html">monadart</a></li>
+              <li class="self-crumb">HttpBodyFileUpload</li>
+          </ol>
+          <div class="title-description">
+              <h1 class="title">
+                  <div class="kind">class</div> HttpBodyFileUpload
+              </h1>
+          </div>
+          <ul class="subnav">
+              <li><a href="monadart/HttpBodyFileUpload-class.html#instance-properties">Properties</a></li>
+              <li><a href="monadart/HttpBodyFileUpload-class.html#constructors">Constructors</a></li>
+          </ul>
+        </div> <!-- /col -->
+      </div> <!-- /row -->
+    </div> <!-- /container -->
+
 </header>
 
 <div class="container body">
+  <div class="row">
 
-  <div class="col-xs-6 col-sm-3 col-md-3 sidebar sidebar-offcanvas-left">
+  <div class="col-xs-6 col-sm-3 col-md-2 sidebar sidebar-offcanvas-left">
     <h5><a href="index.html">monadart</a></h5>
     <h5><a href="monadart/monadart-library.html">monadart</a></h5>
 
@@ -74,8 +84,6 @@ extracting filename, contentType and the data of the uploaded file.
     
     
     
-      <li class="section-title"><a href="monadart/monadart-library.html#functions">Functions</a></li>
-      <li><a href="monadart/addRouteController.html">addRouteController</a></li>
     
     
       <li class="section-title"><a href="monadart/monadart-library.html#classes">Classes</a></li>
@@ -90,7 +98,10 @@ extracting filename, contentType and the data of the uploaded file.
       <li><a href="monadart/HttpMethod-class.html">HttpMethod</a></li>
       <li><a href="monadart/HttpMultipartFormData-class.html">HttpMultipartFormData</a></li>
       <li><a href="monadart/HttpRequestBody-class.html">HttpRequestBody</a></li>
+      <li><a href="monadart/RequestHandler-class.html">RequestHandler</a></li>
+      <li><a href="monadart/RequestHandlerGenerator-class.html">RequestHandlerGenerator</a></li>
       <li><a href="monadart/ResourcePattern-class.html">ResourcePattern</a></li>
+      <li><a href="monadart/ResourcePatternMatch-class.html">ResourcePatternMatch</a></li>
       <li><a href="monadart/ResourceRequest-class.html">ResourceRequest</a></li>
       <li><a href="monadart/Response-class.html">Response</a></li>
       <li><a href="monadart/Router-class.html">Router</a></li>
@@ -100,7 +111,7 @@ extracting filename, contentType and the data of the uploaded file.
     </ol>
   </div>
 
-  <div class="col-xs-12 col-sm-9 col-md-6 main-content">
+  <div class="col-xs-12 col-sm-9 col-md-8 main-content">
 
     <section class="desc markdown">
     
@@ -113,45 +124,45 @@ extracting filename, contentType and the data of the uploaded file.</p>
 
 
 
-    <section class="summary" id="instance-properties">
+    <section class="summary offset-anchor" id="instance-properties">
         <h2>Properties</h2>
 
         <dl class="properties">
             <dt id="content" class="property">
-                <span class="top-level-variable-type">dynamic</span>
-                <a href="monadart/HttpBodyFileUpload/content.html">content</a>
+                <span class="name"><a href="monadart/HttpBodyFileUpload/content.html">content</a></span>
+                <span class="signature">&#8594; dynamic</span>
             </dt>
             <dd>
-                <div class="readable-writable">
+                <div class="features">
         read-only
     </div>
-    The content of the file. Either a <code class="prettyprint lang-dart">String</code> or a <code class="prettyprint lang-dart">List<int></int></code>.
+    <p>The content of the file. Either a <code>String</code> or a <code>List<int></int></code>.</p>
             </dd>
             <dt id="contentType" class="property">
-                <span class="top-level-variable-type">ContentType</span>
-                <a href="monadart/HttpBodyFileUpload/contentType.html">contentType</a>
+                <span class="name"><a href="monadart/HttpBodyFileUpload/contentType.html">contentType</a></span>
+                <span class="signature">&#8594; ContentType</span>
             </dt>
             <dd>
-                <div class="readable-writable">
+                <div class="features">
         read-only
     </div>
-    The <code class="prettyprint lang-dart">ContentType</code> of the uploaded file. For 'text/\*' and
-'application/json' the <code class="prettyprint lang-dart">data</code> field will a String.
+    <p>The <code>ContentType</code> of the uploaded file. For 'text/\*' and
+'application/json' the <code>data</code> field will a String.</p>
             </dd>
             <dt id="filename" class="property">
-                <span class="top-level-variable-type">String</span>
-                <a href="monadart/HttpBodyFileUpload/filename.html">filename</a>
+                <span class="name"><a href="monadart/HttpBodyFileUpload/filename.html">filename</a></span>
+                <span class="signature">&#8594; String</span>
             </dt>
             <dd>
-                <div class="readable-writable">
+                <div class="features">
         read-only
     </div>
-    The filename of the uploaded file.
+    <p>The filename of the uploaded file.</p>
             </dd>
         </dl>
     </section>
 
-    <section class="summary" id="constructors">
+    <section class="summary offset-anchor" id="constructors">
         <h2>Constructors</h2>
 
         <dl class="constructor-summary-list">
@@ -159,7 +170,7 @@ extracting filename, contentType and the data of the uploaded file.</p>
                 <span class="name"><a href="monadart/HttpBodyFileUpload/HttpBodyFileUpload.html">HttpBodyFileUpload</a></span><span class="signature">()</span>
             </dt>
             <dd>
-                
+                <p></p>
             </dd>
         </dl>
       </section>
@@ -168,7 +179,7 @@ extracting filename, contentType and the data of the uploaded file.</p>
 
     </div> <!-- /.main-content -->
 
-  <div class="col-xs-6 col-sm-6 col-md-3 sidebar sidebar-offcanvas-right">
+  <div class="col-xs-6 col-sm-6 col-md-2 sidebar sidebar-offcanvas-right">
     <h5>HttpBodyFileUpload</h5>
     <ol>
     
@@ -189,6 +200,7 @@ extracting filename, contentType and the data of the uploaded file.</p>
     </ol>
   </div><!--/.sidebar-offcanvas-->
 
+  </div> <!-- row -->
 </div> <!-- container -->
 
 <footer>
@@ -213,10 +225,14 @@ extracting filename, contentType and the data of the uploaded file.</p>
     </div>
 </footer>
 
+<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+<script src="static-assets/typeahead.bundle.min.js"></script>
 <script src="static-assets/prettify.js"></script>
 <script src="static-assets/script.js"></script>
 <!-- Do not remove placeholder -->
 <!-- Footer Placeholder -->
+
+<!-- Made with <3 by dartdoc version 0.6.0+1 -->
 </body>
 
 </html>

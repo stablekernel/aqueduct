@@ -1,79 +1,10 @@
 part of monadart;
 
-/// A 'GET' HttpMethod annotation.
-///
-/// Handler methods on [HttpController]s that handle GET requests must be annotated with this.
-const HttpMethod httpGet = const HttpMethod("get");
-
-/// A 'PUT' HttpMethod annotation.
-///
-/// Handler methods on [HttpController]s that handle PUT requests must be annotated with this.
-const HttpMethod httpPut = const HttpMethod("put");
-
-/// A 'POST' HttpMethod annotation.
-///
-/// Handler methods on [HttpController]s that handle POST requests must be annotated with this.
-const HttpMethod httpPost = const HttpMethod("post");
-
-/// A 'DELETE' HttpMethod annotation.
-///
-/// Handler methods on [HttpController]s that handle DELETE requests must be annotated with this.
-const HttpMethod httpDelete = const HttpMethod("delete");
-
-/// A 'PATCH' HttpMethod annotation.
-///
-/// Handler methods on [HttpController]s that handle PATCH requests must be annotated with this.
-const HttpMethod httpPatch = const HttpMethod("patch");
-
-/// Resource controller handler method metadata for indicating the HTTP method the controller method corresponds to.
-///
-/// Each [HttpController] method that is the entry point for an HTTP request must be decorated with an instance
-/// of [HttpMethod]. See [httpGet], [httpPut], [httpPost] and [httpDelete] for concrete examples.
-class HttpMethod {
-  /// The method that the annotated request handler method corresponds to.
-  ///
-  /// Case-insensitive.
-  final String method;
-
-  final List<String> _parameters;
-
-  const HttpMethod(this.method) : this._parameters = null;
-
-  HttpMethod._fromMethod(HttpMethod m, List<String> parameters)
-  : this.method = m.method,
-    this._parameters = parameters;
-
-  /// Returns whether or not this [HttpMethod] matches a [ResourceRequest].
-  bool matchesRequest(ResourceRequest req) {
-    if (req.request.method.toLowerCase() != this.method.toLowerCase()) {
-      return false;
-    }
-
-    if (req.pathParameters == null) {
-      if (this._parameters.length == 0) {
-        return true;
-      }
-      return false;
-    }
-
-    if (req.pathParameters.length != this._parameters.length) {
-      return false;
-    }
-
-    for (var id in this._parameters) {
-      if (req.pathParameters[id] == null) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-}
 
 /// Base class for web service handlers.
 ///
 /// Subclasses of this class can process and respond to an HTTP request.
-abstract class HttpController {
+abstract class HttpController implements RequestHandler {
 
   /// The exception handler for a request handler method that generates an HTTP error response.
   ///
@@ -82,9 +13,11 @@ abstract class HttpController {
   /// but once execution enters a handler method (one decorated with [HttpMethod]), this exception handler
   /// is in place.
   Function get exceptionHandler => _exceptionHandler;
+
   void set exceptionHandler(Response handler(ResourceRequest resourceRequest, dynamic exceptionOrError, StackTrace stacktrace)) {
     _exceptionHandler = handler;
   }
+
   Function _exceptionHandler = _defaultExceptionHandler;
 
   /// The request being processed by this [HttpController].
@@ -93,7 +26,7 @@ abstract class HttpController {
   ResourceRequest resourceRequest;
 
   /// Parameters parsed from the URI of the request, if any exist.
-  Map<String, String> get pathParameters => resourceRequest.pathParameters;
+  Map<String, String> get pathVariables => resourceRequest.path.variables;
 
   /// Types of content this [HttpController] will accept.
   ///
@@ -116,7 +49,7 @@ abstract class HttpController {
 
   /// The HTTP request body object, after being decoded.
   ///
-  /// This object will be decoded according to the request's content type. If there was no body, this value will be null.
+  /// This object will be decoded according to the this request's content type. If there was no body, this value will be null.
   /// If this resource controller does not support the content type of the body, the controller will automatically
   /// respond with a Unsupported Media Type HTTP response.
   dynamic requestBody;
@@ -177,29 +110,29 @@ abstract class HttpController {
 
   dynamic _convertParameterWithMirror(String parameterValue, ParameterMirror parameterMirror) {
     var typeMirror = parameterMirror.type;
-    if(typeMirror.isSubtypeOf(reflectType(String))) {
+    if (typeMirror.isSubtypeOf(reflectType(String))) {
       return parameterValue;
     }
 
-    if(typeMirror is ClassMirror) {
+    if (typeMirror is ClassMirror) {
       var cm = (typeMirror as ClassMirror);
       var parseDecl = cm.declarations[new Symbol("parse")];
-      if(parseDecl != null) {
+      if (parseDecl != null) {
         try {
           var reflValue = cm.invoke(parseDecl.simpleName, [parameterValue]);
           return reflValue.reflectee;
         } catch (e) {
           throw new _InternalControllerException("Invalid value for parameter type",
-            HttpStatus.BAD_REQUEST,
-            responseMessage: "URI parameter is wrong type");
+          HttpStatus.BAD_REQUEST,
+          responseMessage: "URI parameter is wrong type");
         }
       }
     }
 
     // If we get here, then it wasn't a string and couldn't be parsed, and we should throw?
     throw new _InternalControllerException("Invalid path parameter type, types must be String or implement parse",
-      HttpStatus.INTERNAL_SERVER_ERROR,
-      responseMessage: "URI parameter is wrong type");
+    HttpStatus.INTERNAL_SERVER_ERROR,
+    responseMessage: "URI parameter is wrong type");
     return null;
   }
 
@@ -210,7 +143,7 @@ abstract class HttpController {
     return handlerMirror.parameters
     .where((methodParmeter) => !methodParmeter.isOptional)
     .map((methodParameter) {
-      var value = this.resourceRequest.pathParameters[MirrorSystem.getName(methodParameter.simpleName)];
+      var value = this.resourceRequest.path.variables[MirrorSystem.getName(methodParameter.simpleName)];
 
       return _convertParameterWithMirror(value, methodParameter);
     }).toList();
@@ -218,18 +151,18 @@ abstract class HttpController {
 
   Map<Symbol, dynamic> _queryParametersForRequest(ResourceRequest req, Symbol handlerMethodSymbol) {
     var queryParams = req.request.uri.queryParameters;
-    if(queryParams.length == 0) {
+    if (queryParams.length == 0) {
       return null;
     }
 
     var optionalParams = (reflect(this).type.declarations[handlerMethodSymbol] as MethodMirror)
-      .parameters.where((methodParameter) => methodParameter.isOptional).toList();
+    .parameters.where((methodParameter) => methodParameter.isOptional).toList();
 
     var retMap = {};
     queryParams.forEach((k, v) {
       var keySymbol = new Symbol(k);
       var matchingParameter = optionalParams.firstWhere((p) => p.simpleName == keySymbol, orElse: () => null);
-      if(matchingParameter != null) {
+      if (matchingParameter != null) {
         retMap[keySymbol] = _convertParameterWithMirror(v, matchingParameter);
       }
     });
@@ -237,16 +170,7 @@ abstract class HttpController {
     return retMap;
   }
 
-  /// Executes the appropriate handler method for this controller's request.
-  ///
-  /// Will find an appropriate handler method to execute and send its [Response]
-  /// to this controller's [resourceRequest] via [respond]. If no appropriate handler
-  /// method is found, responds to [resourceRequest] with a 404. All handler methods
-  /// are wrapped in an exception handler that is monitored by an internal mechanism
-  /// and by this controller's [exceptionHandler].
-  ///
-
-  Future process() async {
+  Future _process() async {
     try {
       var methodSymbol = _routeMethodSymbolForRequest(resourceRequest);
       var handlerParameters = _parametersForRequest(resourceRequest, methodSymbol);
@@ -288,6 +212,12 @@ abstract class HttpController {
         "Path: ${resourceRequest.request.uri}\nError: $exceptionOrError\n $stacktrace");
 
     return new Response.serverError();
+  }
+
+
+  void handleRequest(ResourceRequest req) {
+    resourceRequest = req;
+    _process();
   }
 }
 

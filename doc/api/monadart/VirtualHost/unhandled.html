@@ -27,40 +27,50 @@
 <header class="container-fluid" id="title">
     <nav class="navbar navbar-fixed-top">
         <div class="container">
-            <button id="sidenav-left-toggle" type="button">&nbsp;</button>
-            <ol class="breadcrumbs gt-separated hidden-xs">
-                <li><a href="index.html">monadart</a></li>
-                <li><a href="monadart/monadart-library.html">monadart</a></li>
-                <li><a href="monadart/VirtualHost-class.html">VirtualHost</a></li>
-                <li class="self-crumb">unhandled</li>
-            </ol>
-            <div class="self-name">unhandled</div>
-        </div>
+          <div class="row">
+            <div class="col-sm-12 contents">
+              <button id="sidenav-left-toggle" type="button">&nbsp;</button>
+              <ol class="breadcrumbs gt-separated hidden-xs">
+                  <li><a href="index.html">monadart</a></li>
+                  <li><a href="monadart/monadart-library.html">monadart</a></li>
+                  <li><a href="monadart/VirtualHost-class.html">VirtualHost</a></li>
+                  <li class="self-crumb">unhandled</li>
+              </ol>
+              <div class="self-name">unhandled</div>
+              <form class="search navbar-right" role="search">
+                <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+              </form>
+            </div> <!-- /col -->
+          </div> <!-- /row -->
+        </div> <!-- /container -->
     </nav>
+
     <div class="container masthead">
-        <ol class="breadcrumbs gt-separated visible-xs">
-            <li><a href="index.html">monadart</a></li>
-            <li><a href="monadart/monadart-library.html">monadart</a></li>
-            <li><a href="monadart/VirtualHost-class.html">VirtualHost</a></li>
-            <li class="self-crumb">unhandled</li>
-        </ol>
-        <div class="title-description">
-            <h1 class="title">
-                <div class="kind">property</div> unhandled
-            </h1>
-            <!-- p class="subtitle">
-                Get the <code class="prettyprint lang-dart">Stream</code> of <code class="prettyprint lang-dart">HttpRequest</code>s, not matching any hosts. If unused, the
-default implementation will result in a <code class="prettyprint lang-dart">HttpHeaders.FORBIDDEN</code> response.
-            </p -->
-        </div>
-        <ul class="subnav">
-        </ul>
-    </div>
+      <div class="row">
+        <div class="col-sm-12 contents">
+          <ol class="breadcrumbs gt-separated visible-xs">
+              <li><a href="index.html">monadart</a></li>
+              <li><a href="monadart/monadart-library.html">monadart</a></li>
+              <li><a href="monadart/VirtualHost-class.html">VirtualHost</a></li>
+              <li class="self-crumb">unhandled</li>
+          </ol>
+          <div class="title-description">
+              <h1 class="title">
+                  <div class="kind">property</div> unhandled
+              </h1>
+          </div>
+          <ul class="subnav">
+          </ul>
+        </div> <!-- /col -->
+      </div> <!-- /row -->
+    </div> <!-- /container -->
+
 </header>
 
 <div class="container body">
+  <div class="row">
 
-  <div class="col-xs-6 col-sm-3 sidebar sidebar-offcanvas-left">
+  <div class="col-xs-6 col-sm-3 col-md-2 sidebar sidebar-offcanvas-left">
     <h5><a href="index.html">monadart</a></h5>
     <h5><a href="monadart/monadart-library.html">monadart</a></h5>
     <h5><a href="monadart/VirtualHost-class.html">VirtualHost</a></h5>
@@ -77,7 +87,7 @@ default implementation will result in a <code class="prettyprint lang-dart">Http
       <li><a href="monadart/VirtualHost/VirtualHost.html">VirtualHost</a></li>
     
     
-      <li class="section-title"><a href="monadart/VirtualHost-class.html#methods">Methods</a></li>
+      <li class="section-title"><a href="monadart/VirtualHost-class.html#instance-methods">Methods</a></li>
       <li><a href="monadart/VirtualHost/addHost.html">addHost</a>
 </li>
       <li><a href="monadart/VirtualHost/addSource.html">addSource</a>
@@ -86,25 +96,26 @@ default implementation will result in a <code class="prettyprint lang-dart">Http
 
   </div><!--/.sidebar-offcanvas-->
 
-  <div class="col-xs-12 col-sm-9 col-md-6 main-content">
+  <div class="col-xs-12 col-sm-9 col-md-8 main-content">
 
     <section class="multi-line-signature">
         <span class="returntype">Stream&lt;HttpRequest&gt;</span>
         <span class="name ">unhandled</span>
-        <div class="readable-writable">
+        <div class="features">
             read-only
         </div>
     </section>
 
       <section class="desc markdown">
       
-            <p>Get the <code class="prettyprint lang-dart">Stream</code> of <code class="prettyprint lang-dart">HttpRequest</code>s, not matching any hosts. If unused, the
-default implementation will result in a <code class="prettyprint lang-dart">HttpHeaders.FORBIDDEN</code> response.</p>
+            <p>Get the <code>Stream</code> of <code>HttpRequest</code>s, not matching any hosts. If unused, the
+default implementation will result in a <code>HttpHeaders.FORBIDDEN</code> response.</p>
       
       </section>
 
   </div> <!-- /.main-content -->
 
+  </div> <!-- row -->
 </div> <!-- container -->
 
 <footer>
@@ -129,10 +140,14 @@ default implementation will result in a <code class="prettyprint lang-dart">Http
     </div>
 </footer>
 
+<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+<script src="static-assets/typeahead.bundle.min.js"></script>
 <script src="static-assets/prettify.js"></script>
 <script src="static-assets/script.js"></script>
 <!-- Do not remove placeholder -->
 <!-- Footer Placeholder -->
+
+<!-- Made with <3 by dartdoc version 0.6.0+1 -->
 </body>
 
 </html>

@@ -54,15 +54,20 @@ main() {
 }
 
 class TPipeline extends ApplicationPipeline {
-  Router router = new Router();
+  Router router;
 
-  void attachTo(Stream<ResourceRequest> reqStream) {
-    addRouteController(router, "t", TController);
-    addRouteController(router, "r", RController);
+  TPipeline() {
+    router = new Router();
 
-    reqStream.listen(router.routeRequest);
+    router.addRouteHandler("/t", new RequestHandlerGenerator<TController>());
+    router.addRouteHandler("/r", new RequestHandlerGenerator<RController>());
+  }
+
+  void handleRequest(ResourceRequest req) {
+    router.handleRequest(req);
   }
 }
+
 class TController extends HttpController {
   @httpGet
   Future<Response> getAll() async {
