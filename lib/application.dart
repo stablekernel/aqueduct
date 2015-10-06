@@ -56,7 +56,8 @@ class ApplicationInstanceConfiguration {
   this.isIpv6Only = config.isIpv6Only,
   this.isUsingClientCertificate = config.isUsingClientCertificate,
   this.serverCertificateName = config.serverCertificateName,
-  this.shared = config.shared;
+  this.shared = config.shared,
+  this.pipelineOptions = config.pipelineOptions;
 }
 
 /// A abstract class that concrete subclasses will implement to provide request handling behavior.
