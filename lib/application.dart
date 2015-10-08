@@ -73,7 +73,11 @@ abstract class ApplicationPipeline implements RequestHandler {
   /// the owning [Application] in 'Development' or 'Production' mode. This property will always be set prior to invoking attachTo, but may be null
   /// if the user did not set any configuration values.
   Map<String, dynamic> options;
+
+  void onPipelineOpen();
 }
+
+
 
 /// A container for web server applications.
 ///
@@ -160,6 +164,8 @@ class _Server {
       pipeline.options = configuration.pipelineOptions;
       server.map((httpReq) => new ResourceRequest(httpReq))
       .listen(pipeline.handleRequest);
+
+      pipeline.onPipelineOpen();
     };
 
     if (configuration.serverCertificateName != null) {
