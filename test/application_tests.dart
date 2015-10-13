@@ -13,8 +13,6 @@ main() {
     expect(app.servers.length, 1);
   });
 
-  ////////////////////////////////////////////
-
   test("Application responds to request", () async {
     var response = await http.get("http://localhost:8080/t");
     expect(response.statusCode, 200);

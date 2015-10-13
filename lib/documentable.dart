@@ -1,3 +1,1 @@
-abstract class Documentable {
-
-}
+abstract class Documentable {}

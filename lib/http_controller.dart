@@ -1,11 +1,9 @@
 part of monadart;
 
-
 /// Base class for web service handlers.
 ///
 /// Subclasses of this class can process and respond to an HTTP request.
 abstract class HttpController implements RequestHandler {
-
   /// The exception handler for a request handler method that generates an HTTP error response.
   ///
   /// The default handler will always respond to the HTTP request with a 500 status code.
@@ -14,7 +12,8 @@ abstract class HttpController implements RequestHandler {
   /// is in place.
   Function get exceptionHandler => _exceptionHandler;
 
-  void set exceptionHandler(Response handler(ResourceRequest resourceRequest, dynamic exceptionOrError, StackTrace stacktrace)) {
+  void set exceptionHandler(Response handler(ResourceRequest resourceRequest,
+      dynamic exceptionOrError, StackTrace stacktrace)) {
     _exceptionHandler = handler;
   }
 
@@ -62,15 +61,18 @@ abstract class HttpController implements RequestHandler {
       var decl = decls[key];
       if (decl is MethodMirror) {
         var methodAttrs = decl.metadata.firstWhere(
-                (attr) => attr.reflectee is HttpMethod, orElse: () => null);
+            (attr) => attr.reflectee is HttpMethod,
+            orElse: () => null);
 
         if (methodAttrs != null) {
-          var params = (decl as MethodMirror).parameters
-          .where((pm) => !pm.isOptional)
-          .map((pm) => MirrorSystem.getName(pm.simpleName))
-          .toList();
+          var params = (decl as MethodMirror)
+              .parameters
+              .where((pm) => !pm.isOptional)
+              .map((pm) => MirrorSystem.getName(pm.simpleName))
+              .toList();
 
-          HttpMethod r = new HttpMethod._fromMethod(methodAttrs.reflectee, params);
+          HttpMethod r =
+              new HttpMethod._fromMethod(methodAttrs.reflectee, params);
 
           if (r.matchesRequest(req)) {
             symbol = key;
@@ -82,33 +84,35 @@ abstract class HttpController implements RequestHandler {
 
     if (symbol == null) {
       throw new _InternalControllerException(
-          "No handler for request method and parameters available.", HttpStatus.NOT_FOUND);
+          "No handler for request method and parameters available.",
+          HttpStatus.NOT_FOUND);
     }
 
     return symbol;
   }
 
-  dynamic _readRequestBodyForRequest(ResourceRequest req) async
-  {
+  dynamic _readRequestBodyForRequest(ResourceRequest req) async {
     if (resourceRequest.request.contentLength > 0) {
       var incomingContentType = resourceRequest.request.headers.contentType;
       var matchingContentType = acceptedContentTypes.firstWhere((ct) {
         return ct.primaryType == incomingContentType.primaryType &&
-        ct.subType == incomingContentType.subType;
+            ct.subType == incomingContentType.subType;
       }, orElse: () => null);
 
       if (matchingContentType != null) {
-        return (await HttpBodyHandler
-        .processRequest(resourceRequest.request)).body;
+        return (await HttpBodyHandler.processRequest(resourceRequest.request))
+            .body;
       } else {
-        throw new _InternalControllerException("Unsupported Content-Type", HttpStatus.UNSUPPORTED_MEDIA_TYPE);
+        throw new _InternalControllerException(
+            "Unsupported Content-Type", HttpStatus.UNSUPPORTED_MEDIA_TYPE);
       }
     }
 
     return null;
   }
 
-  dynamic _convertParameterWithMirror(String parameterValue, ParameterMirror parameterMirror) {
+  dynamic _convertParameterWithMirror(
+      String parameterValue, ParameterMirror parameterMirror) {
     var typeMirror = parameterMirror.type;
     if (typeMirror.isSubtypeOf(reflectType(String))) {
       return parameterValue;
@@ -122,46 +126,54 @@ abstract class HttpController implements RequestHandler {
           var reflValue = cm.invoke(parseDecl.simpleName, [parameterValue]);
           return reflValue.reflectee;
         } catch (e) {
-          throw new _InternalControllerException("Invalid value for parameter type",
-          HttpStatus.BAD_REQUEST,
-          responseMessage: "URI parameter is wrong type");
+          throw new _InternalControllerException(
+              "Invalid value for parameter type", HttpStatus.BAD_REQUEST,
+              responseMessage: "URI parameter is wrong type");
         }
       }
     }
 
     // If we get here, then it wasn't a string and couldn't be parsed, and we should throw?
-    throw new _InternalControllerException("Invalid path parameter type, types must be String or implement parse",
-    HttpStatus.INTERNAL_SERVER_ERROR,
-    responseMessage: "URI parameter is wrong type");
+    throw new _InternalControllerException(
+        "Invalid path parameter type, types must be String or implement parse",
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        responseMessage: "URI parameter is wrong type");
     return null;
   }
 
-  List<dynamic> _parametersForRequest(ResourceRequest req, Symbol handlerMethodSymbol) {
+  List<dynamic> _parametersForRequest(
+      ResourceRequest req, Symbol handlerMethodSymbol) {
     var handlerMirror =
-    reflect(this).type.declarations[handlerMethodSymbol] as MethodMirror;
+        reflect(this).type.declarations[handlerMethodSymbol] as MethodMirror;
 
     return handlerMirror.parameters
-    .where((methodParmeter) => !methodParmeter.isOptional)
-    .map((methodParameter) {
-      var value = this.resourceRequest.path.variables[MirrorSystem.getName(methodParameter.simpleName)];
+        .where((methodParmeter) => !methodParmeter.isOptional)
+        .map((methodParameter) {
+      var value = this.resourceRequest.path.variables[
+          MirrorSystem.getName(methodParameter.simpleName)];
 
       return _convertParameterWithMirror(value, methodParameter);
     }).toList();
   }
 
-  Map<Symbol, dynamic> _queryParametersForRequest(ResourceRequest req, Symbol handlerMethodSymbol) {
+  Map<Symbol, dynamic> _queryParametersForRequest(
+      ResourceRequest req, Symbol handlerMethodSymbol) {
     var queryParams = req.request.uri.queryParameters;
     if (queryParams.length == 0) {
       return null;
     }
 
-    var optionalParams = (reflect(this).type.declarations[handlerMethodSymbol] as MethodMirror)
-    .parameters.where((methodParameter) => methodParameter.isOptional).toList();
+    var optionalParams = (reflect(this).type.declarations[handlerMethodSymbol]
+            as MethodMirror)
+        .parameters
+        .where((methodParameter) => methodParameter.isOptional)
+        .toList();
 
     var retMap = {};
     queryParams.forEach((k, v) {
       var keySymbol = new Symbol(k);
-      var matchingParameter = optionalParams.firstWhere((p) => p.simpleName == keySymbol, orElse: () => null);
+      var matchingParameter = optionalParams
+          .firstWhere((p) => p.simpleName == keySymbol, orElse: () => null);
       if (matchingParameter != null) {
         retMap[keySymbol] = _convertParameterWithMirror(v, matchingParameter);
       }
@@ -173,18 +185,22 @@ abstract class HttpController implements RequestHandler {
   Future _process() async {
     try {
       var methodSymbol = _routeMethodSymbolForRequest(resourceRequest);
-      var handlerParameters = _parametersForRequest(resourceRequest, methodSymbol);
-      var handlerQueryParameters = _queryParametersForRequest(resourceRequest, methodSymbol);
+      var handlerParameters =
+          _parametersForRequest(resourceRequest, methodSymbol);
+      var handlerQueryParameters =
+          _queryParametersForRequest(resourceRequest, methodSymbol);
 
       requestBody = await _readRequestBodyForRequest(resourceRequest);
 
-      Future<Response> eventualResponse =
-      reflect(this).invoke(methodSymbol, handlerParameters, handlerQueryParameters).reflectee;
+      Future<Response> eventualResponse = reflect(this)
+          .invoke(methodSymbol, handlerParameters, handlerQueryParameters)
+          .reflectee;
 
       var response = await eventualResponse;
 
       response.body = responseBodyEncoder(response.body);
-      response.headers[HttpHeaders.CONTENT_TYPE] = responseContentType.toString();
+      response.headers[HttpHeaders.CONTENT_TYPE] =
+          responseContentType.toString();
 
       resourceRequest.respond(response);
     } on _InternalControllerException catch (e) {
@@ -207,13 +223,13 @@ abstract class HttpController implements RequestHandler {
     }
   }
 
-  static Response _defaultExceptionHandler(ResourceRequest resourceRequest, dynamic exceptionOrError, StackTrace stacktrace) {
+  static Response _defaultExceptionHandler(ResourceRequest resourceRequest,
+      dynamic exceptionOrError, StackTrace stacktrace) {
     print(
         "Path: ${resourceRequest.request.uri}\nError: $exceptionOrError\n $stacktrace");
 
     return new Response.serverError();
   }
-
 
   void handleRequest(ResourceRequest req) {
     resourceRequest = req;
@@ -228,7 +244,7 @@ class _InternalControllerException {
   final String responseMessage;
 
   _InternalControllerException(this.message, this.statusCode,
-                               {HttpHeaders additionalHeaders: null,
-                               String responseMessage: null}) : this.additionalHeaders = additionalHeaders,
-  this.responseMessage = responseMessage;
+      {HttpHeaders additionalHeaders: null, String responseMessage: null})
+      : this.additionalHeaders = additionalHeaders,
+        this.responseMessage = responseMessage;
 }

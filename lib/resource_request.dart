@@ -5,7 +5,6 @@ part of monadart;
 /// Contains a standard library [HttpRequest], along with other values
 /// to associate data with a request.
 class ResourceRequest {
-
   /// The internal [HttpRequest] of this [ResourceRequest].
   ///
   /// The standard library generated HTTP request object. This contains
@@ -32,9 +31,7 @@ class ResourceRequest {
   /// to the request so that the handling [HttpController] has access to it.
   Map<dynamic, dynamic> context = new Map();
 
-  ResourceRequest(this.request) {
-
-  }
+  ResourceRequest(this.request) {}
 
   void respond(Response respObj) {
     response.statusCode = respObj.statusCode;

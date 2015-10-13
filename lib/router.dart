@@ -24,11 +24,12 @@ class Router implements RequestHandler {
 
   String get basePath => _basePath;
   void set basePath(String bp) {
-    if(_routes.length > 0) {
+    if (_routes.length > 0) {
       throw new _RouterException("Cannot alter basePath after adding routes.");
     }
     _basePath = bp;
   }
+
   String _basePath;
 
   /// How this router handles [ResourceRequest]s that don't match its routes.
@@ -41,6 +42,7 @@ class Router implements RequestHandler {
   void set unhandledRequestHandler(void handler(ResourceRequest req)) {
     _unhandledRequestHandler = handler;
   }
+
   var _unhandledRequestHandler;
 
   /// Creates a new [Router].
@@ -76,16 +78,16 @@ class Router implements RequestHandler {
   }
 
   _ResourceRoute _createRoute(String pattern, {RequestHandler handler: null}) {
-    if(basePath != null) {
+    if (basePath != null) {
       pattern = basePath + pattern;
     }
-
 
     // Strip out any extraneous /s
     var finalPattern = pattern.split("/").where((c) => c != "").join("/");
 
     var streamController = new StreamController<ResourceRequest>();
-    var route = new _ResourceRoute(new ResourcePattern(finalPattern), streamController, handler);
+    var route = new _ResourceRoute(
+        new ResourcePattern(finalPattern), streamController, handler);
     _routes.add(route);
 
     return route;
@@ -101,7 +103,7 @@ class Router implements RequestHandler {
     for (var route in _routes) {
       var routeMatch = route.pattern.matchUri(req.request.uri);
 
-      if(routeMatch != null) {
+      if (routeMatch != null) {
         req.path = routeMatch;
 
         route.streamController.add(req);
@@ -112,7 +114,6 @@ class Router implements RequestHandler {
 
     _unhandledRequestHandler(req);
   }
-
 
   void _handleUnhandledRequest(ResourceRequest req) {
     req.response.statusCode = HttpStatus.NOT_FOUND;

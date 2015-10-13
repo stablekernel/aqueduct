@@ -2,7 +2,6 @@ part of monadart;
 
 /// A set of values to configure an instance of a web server application.
 class ApplicationInstanceConfiguration {
-
   /// The address to listen for HTTP requests on.
   ///
   /// By default, this address will default to 'any' address. If [isIpv6Only] is true,
@@ -37,7 +36,6 @@ class ApplicationInstanceConfiguration {
   /// that are attached to this application.
   Map<dynamic, dynamic> pipelineOptions;
 
-
   /// Whether or not the server configuration defined by this instance can be shared across isolates.
   ///
   /// Defaults to false. When false, only one isolate may listen for requests on the [address] and [port]
@@ -51,13 +49,13 @@ class ApplicationInstanceConfiguration {
   /// A copy constructor
   ApplicationInstanceConfiguration.fromConfiguration(
       ApplicationInstanceConfiguration config)
-  : this.address = config.address,
-  this.port = config.port,
-  this.isIpv6Only = config.isIpv6Only,
-  this.isUsingClientCertificate = config.isUsingClientCertificate,
-  this.serverCertificateName = config.serverCertificateName,
-  this.shared = config.shared,
-  this.pipelineOptions = config.pipelineOptions;
+      : this.address = config.address,
+        this.port = config.port,
+        this.isIpv6Only = config.isIpv6Only,
+        this.isUsingClientCertificate = config.isUsingClientCertificate,
+        this.serverCertificateName = config.serverCertificateName,
+        this.shared = config.shared,
+        this.pipelineOptions = config.pipelineOptions;
 }
 
 /// A abstract class that concrete subclasses will implement to provide request handling behavior.
@@ -66,7 +64,6 @@ class ApplicationInstanceConfiguration {
 /// responds to requests is defined by its [ApplicationPipeline]. Instances of this class must implement the
 /// [handleRequest] method from [RequestHandler] - this is the entry point of all requests into this pipeline.
 abstract class ApplicationPipeline implements RequestHandler {
-
   /// Passed in options for this pipeline from its owning [Application].
   ///
   /// These values give an opportunity for a pipeline to have a customization point within attachTo., like running
@@ -74,10 +71,9 @@ abstract class ApplicationPipeline implements RequestHandler {
   /// if the user did not set any configuration values.
   Map<String, dynamic> options;
 
-  void onPipelineOpen();
+  void pipelineWillOpen();
+  void pipelineDidOpen();
 }
-
-
 
 /// A container for web server applications.
 ///
@@ -85,7 +81,6 @@ abstract class ApplicationPipeline implements RequestHandler {
 /// Behavior specific to an application is implemented by setting the [Application]'s [configuration] and providing
 /// a [pipelineType] as a [ApplicationPipeline] subclass.
 class Application {
-
   /// A list of items identifying the Isolates running a HTTP(s) listener and response handlers.
   List<_ServerRecord> servers = [];
 
@@ -93,7 +88,7 @@ class Application {
   ///
   /// This must be configured prior to [start]ing the [Application].
   ApplicationInstanceConfiguration configuration =
-  new ApplicationInstanceConfiguration();
+      new ApplicationInstanceConfiguration();
 
   /// The type of [ApplicationPipeline] that configures how requests are handled.
   ///
@@ -118,7 +113,7 @@ class Application {
 
     for (int i = 0; i < numberOfInstances; i++) {
       var config =
-      new ApplicationInstanceConfiguration.fromConfiguration(configuration);
+          new ApplicationInstanceConfiguration.fromConfiguration(configuration);
 
       var serverRecord = await _spawn(config, i + 1);
       servers.add(serverRecord);
@@ -129,17 +124,18 @@ class Application {
     });
   }
 
-  Future<_ServerRecord> _spawn(ApplicationInstanceConfiguration config, int identifier) async {
+  Future<_ServerRecord> _spawn(
+      ApplicationInstanceConfiguration config, int identifier) async {
     var receivePort = new ReceivePort();
 
     var pipelineTypeMirror = reflectType(pipelineType);
     var pipelineLibraryURI = (pipelineTypeMirror.owner as LibraryMirror).uri;
     var pipelineTypeName = MirrorSystem.getName(pipelineTypeMirror.simpleName);
 
-    var initialMessage = new _InitialServerMessage(
-        pipelineTypeName, pipelineLibraryURI, config, identifier, receivePort.sendPort);
+    var initialMessage = new _InitialServerMessage(pipelineTypeName,
+        pipelineLibraryURI, config, identifier, receivePort.sendPort);
     var isolate =
-    await Isolate.spawn(_Server.entry, initialMessage, paused: true);
+        await Isolate.spawn(_Server.entry, initialMessage, paused: true);
     isolate.addErrorListener(receivePort.sendPort);
 
     return new _ServerRecord(isolate, receivePort, identifier);
@@ -153,52 +149,56 @@ class _Server {
   ApplicationPipeline pipeline;
   int identifier;
 
-  _Server(this.pipeline, this.configuration, this.identifier, this.parentMessagePort);
+  _Server(this.pipeline, this.configuration, this.identifier,
+      this.parentMessagePort);
 
   Future start() async {
+    pipeline.options = configuration.pipelineOptions;
+    pipeline.pipelineWillOpen();
+
     var onBind = (s) {
       server = s;
 
       server.serverHeader = "monadart/${this.identifier}";
 
-      pipeline.options = configuration.pipelineOptions;
-      server.map((httpReq) => new ResourceRequest(httpReq))
-      .listen(pipeline.handleRequest);
+      server
+          .map((httpReq) => new ResourceRequest(httpReq))
+          .listen(pipeline.handleRequest);
 
-      pipeline.onPipelineOpen();
+      pipeline.pipelineDidOpen();
     };
 
     if (configuration.serverCertificateName != null) {
       HttpServer
-      .bindSecure(configuration.address, configuration.port,
-      certificateName: configuration.serverCertificateName,
-      v6Only: configuration.isIpv6Only,
-      shared: configuration.shared)
-      .then(onBind);
+          .bindSecure(configuration.address, configuration.port,
+              certificateName: configuration.serverCertificateName,
+              v6Only: configuration.isIpv6Only,
+              shared: configuration.shared)
+          .then(onBind);
     } else if (configuration.isUsingClientCertificate) {
       HttpServer
-      .bindSecure(configuration.address, configuration.port,
-      requestClientCertificate: true,
-      v6Only: configuration.isIpv6Only,
-      shared: configuration.shared)
-      .then(onBind);
+          .bindSecure(configuration.address, configuration.port,
+              requestClientCertificate: true,
+              v6Only: configuration.isIpv6Only,
+              shared: configuration.shared)
+          .then(onBind);
     } else {
       HttpServer
-      .bind(configuration.address, configuration.port,
-      v6Only: configuration.isIpv6Only, shared: configuration.shared)
-      .then(onBind);
+          .bind(configuration.address, configuration.port,
+              v6Only: configuration.isIpv6Only, shared: configuration.shared)
+          .then(onBind);
     }
   }
 
   static void entry(_InitialServerMessage params) {
     var pipelineSourceLibraryMirror =
-    currentMirrorSystem().libraries[params.pipelineLibraryURI];
+        currentMirrorSystem().libraries[params.pipelineLibraryURI];
     var pipelineTypeMirror = pipelineSourceLibraryMirror.declarations[
-    new Symbol(params.pipelineTypeName)] as ClassMirror;
+        new Symbol(params.pipelineTypeName)] as ClassMirror;
 
     var app = pipelineTypeMirror.newInstance(new Symbol(""), []).reflectee;
-    var server =
-    new _Server(app, params.configuration, params.identifier, params.parentMessagePort);
+    var server = new _Server(
+        app, params.configuration, params.identifier, params.parentMessagePort);
 
     server.start();
   }
@@ -224,5 +224,5 @@ class _InitialServerMessage {
   int identifier;
 
   _InitialServerMessage(this.pipelineTypeName, this.pipelineLibraryURI,
-                        this.configuration, this.identifier, this.parentMessagePort);
+      this.configuration, this.identifier, this.parentMessagePort);
 }

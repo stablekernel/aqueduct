@@ -1,7 +1,5 @@
 part of monadart;
 
-
-
 /// A 'GET' HttpMethod annotation.
 ///
 /// Handler methods on [HttpController]s that handle GET requests must be annotated with this.
@@ -42,8 +40,8 @@ class HttpMethod {
   const HttpMethod(this.method) : this._parameters = null;
 
   HttpMethod._fromMethod(HttpMethod m, List<String> parameters)
-  : this.method = m.method,
-  this._parameters = parameters;
+      : this.method = m.method,
+        this._parameters = parameters;
 
   /// Returns whether or not this [HttpMethod] matches a [ResourceRequest].
   bool matchesRequest(ResourceRequest req) {
