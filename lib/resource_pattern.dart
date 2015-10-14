@@ -1,12 +1,10 @@
 part of monadart;
 
-
 /// A representation of a Route match, containing the elements of the matched path.
 ///
 /// Instances of this class can be used by handlers after the router to inspect
 /// specifics of the incoming path without having to dissect the path on their own.
 class ResourcePatternMatch {
-
   /// A map of variable to values in this match.
   ///
   /// If a path has variables (indicated by the :name syntax) in the path,
@@ -37,7 +35,6 @@ class ResourcePatternMatch {
 }
 
 class ResourcePattern {
-
   static String remainingPath = "remainingPath";
 
   _ResourcePatternSet matchHead;
@@ -45,21 +42,23 @@ class ResourcePattern {
   ResourcePattern(String patternString) {
     List<String> pathElements = splitPattern(patternString);
 
-    List<_ResourcePatternElement> elems = resourceElementsFromPathElements(patternString);
+    List<_ResourcePatternElement> elems =
+        resourceElementsFromPathElements(patternString);
 
     matchHead = matchSpecFromElements(pathElements, elems);
   }
 
-  static _ResourcePatternSet matchSpecFromElements(List<String> pathElements, List<_ResourcePatternElement> resourceElements) {
+  static _ResourcePatternSet matchSpecFromElements(List<String> pathElements,
+      List<_ResourcePatternElement> resourceElements) {
     // These two arrays should be identical in size by the time they get here
 
     _ResourcePatternSet setHead = new _ResourcePatternSet();
     _ResourcePatternSet setPtr = setHead;
 
-    for(int i = 0; i < pathElements.length; i++) {
+    for (int i = 0; i < pathElements.length; i++) {
       String seg = pathElements[i];
 
-      if(seg.startsWith("[")) {
+      if (seg.startsWith("[")) {
         _ResourcePatternSet set = new _ResourcePatternSet();
         setPtr.nextOptionalSet = set;
 
@@ -68,8 +67,8 @@ class ResourcePattern {
 
       setPtr.addElement(resourceElements[i]);
 
-      for(int i = seg.length - 1; i >= 0; i--) {
-        if(seg[i] == "]") {
+      for (int i = seg.length - 1; i >= 0; i--) {
+        if (seg[i] == "]") {
           setPtr = setPtr.parentSet;
         } else {
           break;
@@ -77,7 +76,7 @@ class ResourcePattern {
       }
     }
 
-    if(setPtr != setHead) {
+    if (setPtr != setHead) {
       throw new ArgumentError("unmatched brackets in optional paths");
     }
 
@@ -85,19 +84,23 @@ class ResourcePattern {
   }
 
   static List<String> splitPattern(String patternString) {
-    return patternString.split("/").fold(new List<String>(), (List<String> accum, String e) {
+    return patternString.split("/").fold(new List<String>(),
+        (List<String> accum, String e) {
       var trimmed = e.trim();
-      if(trimmed.length > 0) {
+      if (trimmed.length > 0) {
         accum.add(trimmed);
       }
       return accum;
     });
   }
 
-
-  static List<_ResourcePatternElement> resourceElementsFromPathElements(String patternString) {
+  static List<_ResourcePatternElement> resourceElementsFromPathElements(
+      String patternString) {
     var expr = new RegExp(r"[\[\]]");
-    return splitPattern(patternString).map((segment) => new _ResourcePatternElement(segment.replaceAll(expr, ""))).toList();
+    return splitPattern(patternString)
+        .map((segment) =>
+            new _ResourcePatternElement(segment.replaceAll(expr, "")))
+        .toList();
   }
 
   ResourcePatternMatch matchUri(Uri uri) {
@@ -108,33 +111,35 @@ class ResourcePattern {
     var resourceSet = matchHead;
     var resourceIterator = resourceSet.elements.iterator;
 
-    while(resourceSet != null) {
+    while (resourceSet != null) {
       while (resourceIterator.moveNext()) {
         // If we run into a *, then we're definitely a match so just grab the end of the path and return it.
 
         var resourceSegment = resourceIterator.current;
         if (resourceSegment.matchesRemaining) {
-          var remainingString = incomingPathSegments.sublist(incomingPathIndex, incomingPathSegments.length).join("/");
+          var remainingString = incomingPathSegments
+              .sublist(incomingPathIndex, incomingPathSegments.length)
+              .join("/");
           match.remainingPath = remainingString;
 
           return match;
         } else {
           // If we're out of path segments, then we don't match
-          if(incomingPathIndex >= incomingPathSegments.length) {
+          if (incomingPathIndex >= incomingPathSegments.length) {
             return null;
           }
 
           var pathSegment = incomingPathSegments[incomingPathIndex];
-          incomingPathIndex ++;
+          incomingPathIndex++;
 
           bool matches = resourceSegment.fullMatchForString(pathSegment);
-          if(!matches) {
+          if (!matches) {
             // There was a path segment available, but it did not match
             return null;
           }
 
           // We match!
-          if(resourceSegment.name != null) {
+          if (resourceSegment.name != null) {
             match.variables[resourceSegment.name] = pathSegment;
           }
 
@@ -144,8 +149,8 @@ class ResourcePattern {
       resourceSet = resourceSet.nextOptionalSet;
 
       // If we have path remaining, then we either have optional left or we don't have a match
-      if(incomingPathIndex < incomingPathSegments.length) {
-        if(resourceSet == null) {
+      if (incomingPathIndex < incomingPathSegments.length) {
+        if (resourceSet == null) {
           return null;
         } else {
           resourceIterator = resourceSet.elements.iterator;
@@ -179,10 +184,10 @@ class _ResourcePatternElement {
   RegExp matchRegex;
 
   _ResourcePatternElement(String segment) {
-    if(segment.startsWith(":")) {
+    if (segment.startsWith(":")) {
       var contents = segment.substring(1, segment.length);
       constructFromString(contents);
-    } else if(segment == "*") {
+    } else if (segment == "*") {
       matchesRemaining = true;
     } else {
       matchRegex = new RegExp(segment);
@@ -191,31 +196,36 @@ class _ResourcePatternElement {
 
   // I'd prefer that this used a outer non-capturing group on the parantheses after the name;
   // but apparently this regex parser won't pick up the capture group inside the noncapturing group for some reason
-  static RegExp patternFinder = new RegExp(r"^(\w+)(\(([^\)]+)\))?$", caseSensitive: false);
+  static RegExp patternFinder =
+      new RegExp(r"^(\w+)(\(([^\)]+)\))?$", caseSensitive: false);
 
   void constructFromString(String str) {
     Match m = patternFinder.firstMatch(str);
-    if(m == null) {
-      throw new ArgumentError("invalid resource pattern segment ${str}, available formats are the following: literal, *, {name}, {name(pattern)}");
+    if (m == null) {
+      throw new ArgumentError(
+          "invalid resource pattern segment ${str}, available formats are the following: literal, *, {name}, {name(pattern)}");
     }
 
     name = m.group(1);
 
     var matchString = ".+";
-    if(m.groupCount == 3) {
-      if(m.group(2) != null) {
+    if (m.groupCount == 3) {
+      if (m.group(2) != null) {
         matchString = m.group(2);
       }
     }
 
-    matchRegex = new RegExp(r"^" + "${matchString}" + r"$", caseSensitive:false);
+    matchRegex =
+        new RegExp(r"^" + "${matchString}" + r"$", caseSensitive: false);
   }
 
   bool fullMatchForString(String pathSegment) {
     var iter = matchRegex.allMatches(pathSegment).iterator;
     if (iter.moveNext()) {
       var match = iter.current;
-      if(match.start == 0 && match.end == pathSegment.length && !iter.moveNext()) {
+      if (match.start == 0 &&
+          match.end == pathSegment.length &&
+          !iter.moveNext()) {
         return true;
       } else {
         return false;
@@ -227,10 +237,9 @@ class _ResourcePatternElement {
 
   String toString() {
     String str = "${matchesRemaining} ${name} ";
-    if(matchRegex != null) {
+    if (matchRegex != null) {
       str = str + matchRegex.pattern;
     }
     return str;
   }
-
 }
