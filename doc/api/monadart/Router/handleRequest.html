@@ -134,7 +134,7 @@ void handleRequest(ResourceRequest req) {
   for (var route in _routes) {
     var routeMatch = route.pattern.matchUri(req.request.uri);
 
-    if(routeMatch != null) {
+    if (routeMatch != null) {
       req.path = routeMatch;
 
       route.streamController.add(req);

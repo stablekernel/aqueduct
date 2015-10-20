@@ -53,6 +53,30 @@ abstract class HttpController implements RequestHandler {
   /// respond with a Unsupported Media Type HTTP response.
   dynamic requestBody;
 
+
+  /// Executed prior to handling a request, but after the [resourceRequest] has been set.
+  ///
+  /// This method is used to do pre-process setup. The [resourceRequest] will be set, but its body will not be decoded
+  /// nor will the appropriate handler method be selected yet. By default, does nothing.
+  void willProcessRequest(ResourceRequest req) {
+
+  }
+
+  /// Executed prior to [response] being sent, but after the handler method has been executed.
+  ///
+  /// This method is used to post-process a response before it is finally sent. By default, does nothing.
+  void willSendResponse(Response response) {
+
+  }
+
+  /// Executed after a [response] has been sent.
+  ///
+  /// This method is executed after a response has been sent to the client. No changes can be made to the response. By default, it does nothing.
+  void didSendResponse(Response response) {
+
+  }
+
+
   Symbol _routeMethodSymbolForRequest(ResourceRequest req) {
     var symbol = null;
 
@@ -198,11 +222,15 @@ abstract class HttpController implements RequestHandler {
 
       var response = await eventualResponse;
 
+      willSendResponse(response);
+
       response.body = responseBodyEncoder(response.body);
       response.headers[HttpHeaders.CONTENT_TYPE] =
           responseContentType.toString();
 
       resourceRequest.respond(response);
+
+      didSendResponse(response);
     } on _InternalControllerException catch (e) {
       resourceRequest.response.statusCode = e.statusCode;
 
@@ -217,9 +245,19 @@ abstract class HttpController implements RequestHandler {
       }
 
       resourceRequest.response.close();
+
+      var headers = {};
+      resourceRequest.response.headers.forEach((name, values) {
+        headers[name] = values;
+      });
+
+      var neatResponse = new Response(e.statusCode, headers, e.responseMessage);
+      didSendResponse(neatResponse);
+
     } catch (e, stacktrace) {
       var response = _exceptionHandler(this.resourceRequest, e, stacktrace);
       resourceRequest.respond(response);
+      didSendResponse(response);
     }
   }
 
@@ -233,6 +271,7 @@ abstract class HttpController implements RequestHandler {
 
   void handleRequest(ResourceRequest req) {
     resourceRequest = req;
+    willProcessRequest(req);
     _process();
   }
 }

@@ -239,6 +239,16 @@
       <section class="summary offset-anchor" id="instance-methods">
           <h2>Methods</h2>
           <dl class="callables">
+              <dt id="didSendResponse" class="callable">
+                  <a href="monadart/HttpController/didSendResponse.html"><span class="name ">didSendResponse</span></a><span class="signature">(<wbr><span class="parameter" id="didSendResponse-param-response"><span class="type-annotation"><a href="monadart/Response-class.html">Response</a></span> <span class="parameter-name">response</span></span>)
+                      &#8594;
+                      <span class="returntype">void</span>
+                  </span>
+              </dt>
+              <dd>
+                  <p>Executed after a <code>response</code> has been sent.<a href="monadart/HttpController/didSendResponse.html">&hellip;</a>
+</p>
+              </dd>
               <dt id="handleRequest" class="callable">
                   <a href="monadart/HttpController/handleRequest.html"><span class="name ">handleRequest</span></a><span class="signature">(<wbr><span class="parameter" id="handleRequest-param-req"><span class="type-annotation"><a href="monadart/ResourceRequest-class.html">ResourceRequest</a></span> <span class="parameter-name">req</span></span>)
                       &#8594;
@@ -247,6 +257,26 @@
               </dt>
               <dd>
                   <p></p>
+              </dd>
+              <dt id="willProcessRequest" class="callable">
+                  <a href="monadart/HttpController/willProcessRequest.html"><span class="name ">willProcessRequest</span></a><span class="signature">(<wbr><span class="parameter" id="willProcessRequest-param-req"><span class="type-annotation"><a href="monadart/ResourceRequest-class.html">ResourceRequest</a></span> <span class="parameter-name">req</span></span>)
+                      &#8594;
+                      <span class="returntype">void</span>
+                  </span>
+              </dt>
+              <dd>
+                  <p>Executed prior to handling a request, but after the <a href="monadart/HttpController/resourceRequest.html">resourceRequest</a> has been set.<a href="monadart/HttpController/willProcessRequest.html">&hellip;</a>
+</p>
+              </dd>
+              <dt id="willSendResponse" class="callable">
+                  <a href="monadart/HttpController/willSendResponse.html"><span class="name ">willSendResponse</span></a><span class="signature">(<wbr><span class="parameter" id="willSendResponse-param-response"><span class="type-annotation"><a href="monadart/Response-class.html">Response</a></span> <span class="parameter-name">response</span></span>)
+                      &#8594;
+                      <span class="returntype">void</span>
+                  </span>
+              </dt>
+              <dd>
+                  <p>Executed prior to <code>response</code> being sent, but after the handler method has been executed.<a href="monadart/HttpController/willSendResponse.html">&hellip;</a>
+</p>
               </dd>
           </dl>
       </section>
@@ -280,7 +310,13 @@
     
     
       <li class="section-title"><a href="monadart/HttpController-class.html#instance-methods">Methods</a></li>
+      <li><a href="monadart/HttpController/didSendResponse.html">didSendResponse</a>
+</li>
       <li><a href="monadart/HttpController/handleRequest.html">handleRequest</a>
+</li>
+      <li><a href="monadart/HttpController/willProcessRequest.html">willProcessRequest</a>
+</li>
+      <li><a href="monadart/HttpController/willSendResponse.html">willSendResponse</a>
 </li>
     </ol>
   </div><!--/.sidebar-offcanvas-->

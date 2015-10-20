@@ -1,7 +1,6 @@
 @TestOn("vm")
 import "package:test/test.dart";
 import "dart:core";
-import 'dart:mirrors';
 import "dart:io";
 import 'package:http/http.dart' as http;
 import '../lib/monadart.dart';

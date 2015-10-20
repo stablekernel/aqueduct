@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>ApplicationPipeline constructor - ApplicationPipeline class - monadart library - Dart API</title>
+    <title>didSendResponse method - HttpController class - monadart library - Dart API</title>
     <!-- required because all the links are pseudo-absolute -->
     <base href="../..">
 
@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="static-assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="static-assets/styles.css">
 
-    <meta name="description" content="API docs for the ApplicationPipeline constructor from the Class ApplicationPipeline class from the monadart library, for the Dart programming language.">
+    <meta name="description" content="API docs for the didSendResponse method from the HttpController class, for the Dart programming language.">
     <link rel="icon" href="static-assets/favicon.png">
 
     <!-- Do not remove placeholder -->
@@ -33,10 +33,10 @@
               <ol class="breadcrumbs gt-separated hidden-xs">
                   <li><a href="index.html">monadart</a></li>
                   <li><a href="monadart/monadart-library.html">monadart</a></li>
-                  <li><a href="monadart/ApplicationPipeline-class.html">ApplicationPipeline</a></li>
-                  <li class="self-crumb">ApplicationPipeline</li>
+                  <li><a href="monadart/HttpController-class.html">HttpController</a></li>
+                  <li class="self-crumb">didSendResponse</li>
               </ol>
-              <div class="self-name">ApplicationPipeline</div>
+              <div class="self-name">didSendResponse</div>
               <form class="search navbar-right" role="search">
                 <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
               </form>
@@ -51,15 +51,16 @@
           <ol class="breadcrumbs gt-separated visible-xs">
               <li><a href="index.html">monadart</a></li>
               <li><a href="monadart/monadart-library.html">monadart</a></li>
-              <li><a href="monadart/ApplicationPipeline-class.html">ApplicationPipeline</a></li>
-              <li class="self-crumb">ApplicationPipeline</li>
+              <li><a href="monadart/HttpController-class.html">HttpController</a></li>
+              <li class="self-crumb">didSendResponse</li>
           </ol>
           <div class="title-description">
               <h1 class="title">
-                  <div class="kind">constructor</div> ApplicationPipeline
+                  <div class="kind">method</div> didSendResponse
               </h1>
           </div>
           <ul class="subnav">
+              <li><a href="monadart/HttpController/didSendResponse.html#source">Source</a></li>
           </ul>
         </div> <!-- /col -->
       </div> <!-- /row -->
@@ -71,47 +72,74 @@
   <div class="row">
 
   <div class="col-xs-6 col-sm-3 col-md-2 sidebar sidebar-offcanvas-left">
-
     <h5><a href="index.html">monadart</a></h5>
     <h5><a href="monadart/monadart-library.html">monadart</a></h5>
-    <h5><a href="monadart/ApplicationPipeline-class.html">ApplicationPipeline</a></h5>
+    <h5><a href="monadart/HttpController-class.html">HttpController</a></h5>
 
     <ol>
     
     
     
-      <li class="section-title"><a href="monadart/ApplicationPipeline-class.html#instance-properties">Properties</a></li>
-      <li><a href="monadart/ApplicationPipeline/options.html">options</a>
+      <li class="section-title"><a href="monadart/HttpController-class.html#instance-properties">Properties</a></li>
+      <li><a href="monadart/HttpController/acceptedContentTypes.html">acceptedContentTypes</a>
+</li>
+      <li><a href="monadart/HttpController/exceptionHandler.html">exceptionHandler</a>
+</li>
+      <li><a href="monadart/HttpController/pathVariables.html">pathVariables</a>
+</li>
+      <li><a href="monadart/HttpController/requestBody.html">requestBody</a>
+</li>
+      <li><a href="monadart/HttpController/resourceRequest.html">resourceRequest</a>
+</li>
+      <li><a href="monadart/HttpController/responseBodyEncoder.html">responseBodyEncoder</a>
+</li>
+      <li><a href="monadart/HttpController/responseContentType.html">responseContentType</a>
 </li>
     
-      <li class="section-title"><a href="monadart/ApplicationPipeline-class.html#constructors">Constructors</a></li>
-      <li><a href="monadart/ApplicationPipeline/ApplicationPipeline.html">ApplicationPipeline</a></li>
+      <li class="section-title"><a href="monadart/HttpController-class.html#constructors">Constructors</a></li>
+      <li><a href="monadart/HttpController/HttpController.html">HttpController</a></li>
     
     
-      <li class="section-title"><a href="monadart/ApplicationPipeline-class.html#instance-methods">Methods</a></li>
-      <li>handleRequest
+      <li class="section-title"><a href="monadart/HttpController-class.html#instance-methods">Methods</a></li>
+      <li><a href="monadart/HttpController/didSendResponse.html">didSendResponse</a>
 </li>
-      <li><a href="monadart/ApplicationPipeline/pipelineDidOpen.html">pipelineDidOpen</a>
+      <li><a href="monadart/HttpController/handleRequest.html">handleRequest</a>
 </li>
-      <li><a href="monadart/ApplicationPipeline/pipelineWillOpen.html">pipelineWillOpen</a>
+      <li><a href="monadart/HttpController/willProcessRequest.html">willProcessRequest</a>
+</li>
+      <li><a href="monadart/HttpController/willSendResponse.html">willSendResponse</a>
 </li>
     </ol>
 
-  </div><!--/.sidebar-offcanvas-left-->
+  </div><!--/.sidebar-offcanvas-->
 
   <div class="col-xs-12 col-sm-9 col-md-8 main-content">
 
     <section class="multi-line-signature">
-        
-                <span class="name ">ApplicationPipeline</span>()
-    </section>
+            <span class="returntype">void</span>
+            <span class="name ">didSendResponse</span>(
+            <br>
+            <div class="parameters">
+                <span class="parameter" id="didSendResponse-param-response"><span class="type-annotation"><a href="monadart/Response-class.html">Response</a></span> <span class="parameter-name">response</span></span>
+            </div>
+            )    </section>
 
     <section class="desc markdown">
     
-          <p class="no-docs">Not documented.</p>
+          <p>Executed after a <code>response</code> has been sent.</p>
+<p>This method is executed after a response has been sent to the client. No changes can be made to the response. By default, it does nothing.</p>
     
     </section>
 
+    <section class="summary source-code" id="source">
+      <h2>Source</h2>
+      <pre><code class="prettyprint lang-dart">/// Executed after a [response] has been sent.
+///
+/// This method is executed after a response has been sent to the client. No changes can be made to the response. By default, it does nothing.
+void didSendResponse(Response response) {
+
+}</code></pre>
+    </section>
 
   </div> <!-- /.main-content -->
 

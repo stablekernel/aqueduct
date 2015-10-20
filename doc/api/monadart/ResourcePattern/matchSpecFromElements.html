@@ -120,16 +120,17 @@
 
     <section class="summary source-code" id="source">
       <h2>Source</h2>
-      <pre><code class="prettyprint lang-dart">static _ResourcePatternSet matchSpecFromElements(List&lt;String&gt; pathElements, List&lt;_ResourcePatternElement&gt; resourceElements) {
+      <pre><code class="prettyprint lang-dart">static _ResourcePatternSet matchSpecFromElements(List&lt;String&gt; pathElements,
+    List&lt;_ResourcePatternElement&gt; resourceElements) {
   // These two arrays should be identical in size by the time they get here
 
   _ResourcePatternSet setHead = new _ResourcePatternSet();
   _ResourcePatternSet setPtr = setHead;
 
-  for(int i = 0; i &lt; pathElements.length; i++) {
+  for (int i = 0; i &lt; pathElements.length; i++) {
     String seg = pathElements[i];
 
-    if(seg.startsWith(&quot;[&quot;)) {
+    if (seg.startsWith(&quot;[&quot;)) {
       _ResourcePatternSet set = new _ResourcePatternSet();
       setPtr.nextOptionalSet = set;
 
@@ -138,8 +139,8 @@
 
     setPtr.addElement(resourceElements[i]);
 
-    for(int i = seg.length - 1; i &gt;= 0; i--) {
-      if(seg[i] == &quot;]&quot;) {
+    for (int i = seg.length - 1; i &gt;= 0; i--) {
+      if (seg[i] == &quot;]&quot;) {
         setPtr = setPtr.parentSet;
       } else {
         break;
@@ -147,7 +148,7 @@
     }
   }
 
-  if(setPtr != setHead) {
+  if (setPtr != setHead) {
     throw new ArgumentError(&quot;unmatched brackets in optional paths&quot;);
   }
 

@@ -120,9 +120,13 @@
 
     <section class="summary source-code" id="source">
       <h2>Source</h2>
-      <pre><code class="prettyprint lang-dart">static List&lt;_ResourcePatternElement&gt; resourceElementsFromPathElements(String patternString) {
+      <pre><code class="prettyprint lang-dart">static List&lt;_ResourcePatternElement&gt; resourceElementsFromPathElements(
+    String patternString) {
   var expr = new RegExp(r&quot;[\[\]]&quot;);
-  return splitPattern(patternString).map((segment) =&gt; new _ResourcePatternElement(segment.replaceAll(expr, &quot;&quot;))).toList();
+  return splitPattern(patternString)
+      .map((segment) =&gt;
+          new _ResourcePatternElement(segment.replaceAll(expr, &quot;&quot;)))
+      .toList();
 }</code></pre>
     </section>
 

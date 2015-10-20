@@ -128,33 +128,35 @@
   var resourceSet = matchHead;
   var resourceIterator = resourceSet.elements.iterator;
 
-  while(resourceSet != null) {
+  while (resourceSet != null) {
     while (resourceIterator.moveNext()) {
       // If we run into a *, then we&apos;re definitely a match so just grab the end of the path and return it.
 
       var resourceSegment = resourceIterator.current;
       if (resourceSegment.matchesRemaining) {
-        var remainingString = incomingPathSegments.sublist(incomingPathIndex, incomingPathSegments.length).join(&quot;/&quot;);
+        var remainingString = incomingPathSegments
+            .sublist(incomingPathIndex, incomingPathSegments.length)
+            .join(&quot;/&quot;);
         match.remainingPath = remainingString;
 
         return match;
       } else {
         // If we&apos;re out of path segments, then we don&apos;t match
-        if(incomingPathIndex &gt;= incomingPathSegments.length) {
+        if (incomingPathIndex &gt;= incomingPathSegments.length) {
           return null;
         }
 
         var pathSegment = incomingPathSegments[incomingPathIndex];
-        incomingPathIndex ++;
+        incomingPathIndex++;
 
         bool matches = resourceSegment.fullMatchForString(pathSegment);
-        if(!matches) {
+        if (!matches) {
           // There was a path segment available, but it did not match
           return null;
         }
 
         // We match!
-        if(resourceSegment.name != null) {
+        if (resourceSegment.name != null) {
           match.variables[resourceSegment.name] = pathSegment;
         }
 
@@ -164,8 +166,8 @@
     resourceSet = resourceSet.nextOptionalSet;
 
     // If we have path remaining, then we either have optional left or we don&apos;t have a match
-    if(incomingPathIndex &lt; incomingPathSegments.length) {
-      if(resourceSet == null) {
+    if (incomingPathIndex &lt; incomingPathSegments.length) {
+      if (resourceSet == null) {
         return null;
       } else {
         resourceIterator = resourceSet.elements.iterator;

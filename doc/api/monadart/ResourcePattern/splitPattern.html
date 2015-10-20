@@ -121,9 +121,10 @@
     <section class="summary source-code" id="source">
       <h2>Source</h2>
       <pre><code class="prettyprint lang-dart">static List&lt;String&gt; splitPattern(String patternString) {
-  return patternString.split(&quot;/&quot;).fold(new List&lt;String&gt;(), (List&lt;String&gt; accum, String e) {
+  return patternString.split(&quot;/&quot;).fold(new List&lt;String&gt;(),
+      (List&lt;String&gt; accum, String e) {
     var trimmed = e.trim();
-    if(trimmed.length &gt; 0) {
+    if (trimmed.length &gt; 0) {
       accum.add(trimmed);
     }
     return accum;

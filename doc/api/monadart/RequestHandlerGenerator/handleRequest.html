@@ -112,7 +112,8 @@
     <section class="summary source-code" id="source">
       <h2>Source</h2>
       <pre><code class="prettyprint lang-dart">void handleRequest(ResourceRequest req) {
-  var handler = reflectClass(T).newInstance(new Symbol(&quot;&quot;), []).reflectee as RequestHandler;
+  var handler = reflectClass(T).newInstance(new Symbol(&quot;&quot;), []).reflectee
+      as RequestHandler;
   handler.handleRequest(req);
 }</code></pre>
     </section>
