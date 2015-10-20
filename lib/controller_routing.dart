@@ -49,7 +49,7 @@ class HttpMethod {
       return false;
     }
 
-    if (req.path.variables == null) {
+    if (req.path == null || req.path.variables == null) {
       if (this._parameters.length == 0) {
         return true;
       }
