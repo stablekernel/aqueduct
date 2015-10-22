@@ -198,7 +198,7 @@ abstract class HttpController extends RequestHandler {
     return retMap;
   }
 
-  Future _process() async {
+  Future<Response> _process() async {
     try {
       var methodSymbol = _routeMethodSymbolForRequest(resourceRequest);
       var handlerParameters =
@@ -220,29 +220,27 @@ abstract class HttpController extends RequestHandler {
       response.headers[HttpHeaders.CONTENT_TYPE] =
           responseContentType.toString();
 
-      resourceRequest.respond(response);
+      return response;
     } on _InternalControllerException catch (e) {
+      var response = new Response(e.statusCode, {}, null);
+
       resourceRequest.response.statusCode = e.statusCode;
 
       if (e.additionalHeaders != null) {
         e.additionalHeaders.forEach((name, values) {
-          resourceRequest.response.headers.add(name, values);
+          response.headers[name] = values;
         });
       }
 
       if (e.responseMessage != null) {
-        resourceRequest.response.writeln(e.responseMessage);
+        response.body = {"error" : e.responseMessage};
+
       }
 
-      resourceRequest.response.close();
-
-      var headers = {};
-      resourceRequest.response.headers.forEach((name, values) {
-        headers[name] = values;
-      });
+      return response;
     } catch (e, stacktrace) {
       var response = _exceptionHandler(this.resourceRequest, e, stacktrace);
-      resourceRequest.respond(response);
+      return response;
     }
   }
 
@@ -258,9 +256,9 @@ abstract class HttpController extends RequestHandler {
   Future<RequestHandlerResult> processRequest(ResourceRequest req) async {
     resourceRequest = req;
     willProcessRequest(req);
-    await _process();
+    var response = await _process();
 
-    return RequestHandlerResult.didRespond;
+    return response;
   }
 }
 

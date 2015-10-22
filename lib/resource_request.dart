@@ -4,7 +4,7 @@ part of monadart;
 ///
 /// Contains a standard library [HttpRequest], along with other values
 /// to associate data with a request.
-class ResourceRequest {
+class ResourceRequest implements RequestHandlerResult {
   /// The internal [HttpRequest] of this [ResourceRequest].
   ///
   /// The standard library generated HTTP request object. This contains

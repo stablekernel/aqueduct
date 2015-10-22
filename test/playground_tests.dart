@@ -40,7 +40,7 @@ class Adapter extends RequestHandler {
   @override
   Future<RequestHandlerResult> processRequest(ResourceRequest req) async {
     req.context[key] = "true";
-    return RequestHandlerResult.shouldContinue;
+    return req;
   }
 }
 

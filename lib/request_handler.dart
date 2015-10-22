@@ -1,9 +1,9 @@
 part of monadart;
 
-enum RequestHandlerResult {
-  shouldContinue,
-  didRespond
-}
+/// The unifying protocol for [ResourceRequest] and [Response] classes.
+///
+///
+abstract class RequestHandlerResult {}
 
 /// RequestHandlers respond to, modify or forward requests.
 ///
@@ -25,14 +25,14 @@ class RequestHandler {
   /// The next [RequestHandler] to run if this one responds with [shouldContinue].
   ///
   /// Handlers may be chained together if they have the option not to respond to requests.
-  /// If this handler return [shouldContinue] from [processRequest], this [next]
+  /// If this handler returns a [ResourceRequest] from [processRequest], this [next]
   /// handler will run. Prefer using [then] to chain together handlers in a single statement.
   RequestHandler next;
 
-  /// The next [RequestHandler] to run if this one responds with [shouldContinue].
+  /// The next [RequestHandler] to run if this instance returns a [ResourceRequest].
   ///
   /// Handlers may be chained together if they have the option not to respond to requests.
-  /// If this handler return [shouldContinue] from [processRequest], this [next]
+  /// If this handler returns a [ResourceRequest] from [processRequest], this [next]
   /// handler will run. This method sets the [next] property] and returns [this]
   /// to allow chaining.
   RequestHandler then(RequestHandler next) {
@@ -57,8 +57,10 @@ class RequestHandler {
   /// and not [processRequest].
   void deliver(ResourceRequest req) {
     this.processRequest(req).then((result) {
-      if (result == RequestHandlerResult.shouldContinue && next != null) {
+      if (result is ResourceRequest && next != null) {
         next.deliver(req);
+      } else if (result is Response) {
+        req.respond(result as Response);
       }
     });
   }
@@ -68,13 +70,13 @@ class RequestHandler {
   /// Subclasses override this method to provide their specific handling of a request. A [RequestHandler]
   /// should either modify or respond to the request.
   ///
-  /// [RequestHandler]s should return [RequestHandlerResult.didRespond] from this method if they responded to the request.
-  /// If a [RequestHandler] does not respond to the request, but instead modifies it, this method must return [RequestHandlerResult.shouldContinue].
+  /// [RequestHandler]s should return a [Response] from this method if they responded to the request.
+  /// If a [RequestHandler] does not respond to the request, but instead modifies it, this method must return the same [ResourceRequest].
   Future<RequestHandlerResult> processRequest(ResourceRequest req) async {
     if(_handler != null) {
       return _handler(req);
     }
-    return RequestHandlerResult.shouldContinue;
+    return req;
   }
 }
 

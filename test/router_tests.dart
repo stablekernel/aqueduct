@@ -18,8 +18,7 @@ void main() {
     Router router = new Router();
 
     router.route("/player").then(new RequestHandler(requestHandler: (req) {
-      req.respond(new Response.ok(""));
-      return RequestHandlerResult.didRespond;
+      return new Response.ok("");
     }));
 
     var server = await enableRouter(router);
@@ -34,8 +33,7 @@ void main() {
     Router router = new Router();
 
     router.route("/player").then(new RequestHandler(requestHandler: (req) {
-      req.respond(new Response.ok(""));
-      return RequestHandlerResult.didRespond;
+      return new Response.ok("");
     }));
 
     var server = await enableRouter(router);
@@ -50,8 +48,7 @@ void main() {
     Router router = new Router();
 
     router.route("/player/:id").then(new RequestHandler(requestHandler: (req) {
-      req.respond(new Response.ok("${req.path.variables["id"]}"));
-      return RequestHandlerResult.didRespond;
+      return new Response.ok("${req.path.variables["id"]}");
     }));
 
     var server = await enableRouter(router);
@@ -148,7 +145,6 @@ class Handler extends RequestHandler {
 
   @override
   Future<RequestHandlerResult> processRequest(ResourceRequest req) async {
-    req.respond(new Response(202, null, "$counter"));
-    return RequestHandlerResult.didRespond;
+    return new Response(202, null, "$counter");
   }
 }

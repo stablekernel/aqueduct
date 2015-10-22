@@ -4,7 +4,7 @@ part of monadart;
 ///
 /// This object can be used to write an HTTP response and contains conveniences
 /// for creating these objects.
-class Response {
+class Response implements RequestHandlerResult {
   /// An object representing the body of the [Response], which will be encoded later.
   ///
   /// This is typically a map that will be encoded to JSON.
