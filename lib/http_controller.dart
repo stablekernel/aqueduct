@@ -255,10 +255,10 @@ abstract class HttpController extends RequestHandler {
   }
 
   @override
-  RequestHandlerResult processRequest(ResourceRequest req) {
+  Future<RequestHandlerResult> processRequest(ResourceRequest req) async {
     resourceRequest = req;
     willProcessRequest(req);
-    _process();
+    await _process();
 
     return RequestHandlerResult.didRespond;
   }

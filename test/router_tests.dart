@@ -147,7 +147,7 @@ class Handler extends RequestHandler {
   }
 
   @override
-  RequestHandlerResult processRequest(ResourceRequest req) {
+  Future<RequestHandlerResult> processRequest(ResourceRequest req) async {
     req.respond(new Response(202, null, "$counter"));
     return RequestHandlerResult.didRespond;
   }

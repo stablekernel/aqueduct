@@ -56,10 +56,11 @@ class RequestHandler {
   /// method, it is important that you always invoke subsequent handler's with [deliver]
   /// and not [processRequest].
   void deliver(ResourceRequest req) {
-    var state = this.processRequest(req);
-    if (state == RequestHandlerResult.shouldContinue && next != null) {
-      next.deliver(req);
-    }
+    this.processRequest(req).then((result) {
+      if (result == RequestHandlerResult.shouldContinue && next != null) {
+        next.deliver(req);
+      }
+    });
   }
 
   /// Overridden by subclasses to modify or respond to an incoming request.
@@ -69,7 +70,7 @@ class RequestHandler {
   ///
   /// [RequestHandler]s should return [RequestHandlerResult.didRespond] from this method if they responded to the request.
   /// If a [RequestHandler] does not respond to the request, but instead modifies it, this method must return [RequestHandlerResult.shouldContinue].
-  RequestHandlerResult processRequest(ResourceRequest req) {
+  Future<RequestHandlerResult> processRequest(ResourceRequest req) async {
     if(_handler != null) {
       return _handler(req);
     }
