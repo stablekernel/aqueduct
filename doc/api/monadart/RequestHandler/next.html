@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>RequestHandler constructor - RequestHandler class - monadart library - Dart API</title>
+    <title>next property - RequestHandler class - monadart library - Dart API</title>
     <!-- required because all the links are pseudo-absolute -->
     <base href="../..">
 
@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="static-assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="static-assets/styles.css">
 
-    <meta name="description" content="API docs for the RequestHandler constructor from the Class RequestHandler class from the monadart library, for the Dart programming language.">
+    <meta name="description" content="API docs for the next property from the RequestHandler class, for the Dart programming language.">
     <link rel="icon" href="static-assets/favicon.png">
 
     <!-- Do not remove placeholder -->
@@ -34,9 +34,9 @@
                   <li><a href="index.html">monadart</a></li>
                   <li><a href="monadart/monadart-library.html">monadart</a></li>
                   <li><a href="monadart/RequestHandler-class.html">RequestHandler</a></li>
-                  <li class="self-crumb">RequestHandler</li>
+                  <li class="self-crumb">next</li>
               </ol>
-              <div class="self-name">RequestHandler</div>
+              <div class="self-name">next</div>
               <form class="search navbar-right" role="search">
                 <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
               </form>
@@ -52,11 +52,11 @@
               <li><a href="index.html">monadart</a></li>
               <li><a href="monadart/monadart-library.html">monadart</a></li>
               <li><a href="monadart/RequestHandler-class.html">RequestHandler</a></li>
-              <li class="self-crumb">RequestHandler</li>
+              <li class="self-crumb">next</li>
           </ol>
           <div class="title-description">
               <h1 class="title">
-                  <div class="kind">constructor</div> RequestHandler
+                  <div class="kind">property</div> next
               </h1>
           </div>
           <ul class="subnav">
@@ -71,7 +71,6 @@
   <div class="row">
 
   <div class="col-xs-6 col-sm-3 col-md-2 sidebar sidebar-offcanvas-left">
-
     <h5><a href="index.html">monadart</a></h5>
     <h5><a href="monadart/monadart-library.html">monadart</a></h5>
     <h5><a href="monadart/RequestHandler-class.html">RequestHandler</a></h5>
@@ -97,29 +96,26 @@
 </li>
     </ol>
 
-  </div><!--/.sidebar-offcanvas-left-->
+  </div><!--/.sidebar-offcanvas-->
 
   <div class="col-xs-12 col-sm-9 col-md-8 main-content">
 
     <section class="multi-line-signature">
-        
-                <span class="name ">RequestHandler</span>(
-        <br>
-        <div class="parameters">
-            {<span class="parameter" id="-param-requestHandler"><span class="type-annotation">RequestHandlerResult</span> <span class="parameter-name">requestHandler</span>(<span class="parameter" id="requestHandler-param-ResourceRequest"><span class="parameter-name">ResourceRequest</span></span>): <span class="default-value">null</span></span>}
+        <span class="returntype"><a href="monadart/RequestHandler-class.html">RequestHandler</a></span>
+        <span class="name ">next</span>
+        <div class="features">
+            read / write
         </div>
-        )
     </section>
 
-    <section class="desc markdown">
-    
-          <p>The initializer for RequestHandlers.</p>
-<p>To use a closure-based RequestHandler, you may specify <code>requestHandler</code> for
-this instance. Otherwise, you may subclass <a href="monadart/RequestHandler-class.html">RequestHandler</a> and implement
-<a href="monadart/RequestHandler/processRequest.html">processRequest</a> (or in rare cases, <a href="monadart/RequestHandler/deliver.html">deliver</a>) to handle request.</p>
-    
-    </section>
-
+      <section class="desc markdown">
+      
+            <p>The next <a href="monadart/RequestHandler-class.html">RequestHandler</a> to run if this one responds with <code>shouldContinue</code>.</p>
+<p>Handlers may be chained together if they have the option not to respond to requests.
+If this handler return <code>shouldContinue</code> from <a href="monadart/RequestHandler/processRequest.html">processRequest</a>, this <a href="monadart/RequestHandler/next.html">next</a>
+handler will run. Prefer using <a href="monadart/RequestHandler/then.html">then</a> to chain together handlers in a single statement.</p>
+      
+      </section>
 
   </div> <!-- /.main-content -->
 

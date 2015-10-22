@@ -3,7 +3,7 @@ part of monadart;
 /// Base class for web service handlers.
 ///
 /// Subclasses of this class can process and respond to an HTTP request.
-abstract class HttpController implements RequestHandler {
+abstract class HttpController extends RequestHandler {
   /// The exception handler for a request handler method that generates an HTTP error response.
   ///
   /// The default handler will always respond to the HTTP request with a 500 status code.
@@ -68,14 +68,6 @@ abstract class HttpController implements RequestHandler {
   void willSendResponse(Response response) {
 
   }
-
-  /// Executed after a [response] has been sent.
-  ///
-  /// This method is executed after a response has been sent to the client. No changes can be made to the response. By default, it does nothing.
-  void didSendResponse(Response response) {
-
-  }
-
 
   Symbol _routeMethodSymbolForRequest(ResourceRequest req) {
     var symbol = null;
@@ -229,8 +221,6 @@ abstract class HttpController implements RequestHandler {
           responseContentType.toString();
 
       resourceRequest.respond(response);
-
-      didSendResponse(response);
     } on _InternalControllerException catch (e) {
       resourceRequest.response.statusCode = e.statusCode;
 
@@ -250,14 +240,9 @@ abstract class HttpController implements RequestHandler {
       resourceRequest.response.headers.forEach((name, values) {
         headers[name] = values;
       });
-
-      var neatResponse = new Response(e.statusCode, headers, e.responseMessage);
-      didSendResponse(neatResponse);
-
     } catch (e, stacktrace) {
       var response = _exceptionHandler(this.resourceRequest, e, stacktrace);
       resourceRequest.respond(response);
-      didSendResponse(response);
     }
   }
 
@@ -269,10 +254,13 @@ abstract class HttpController implements RequestHandler {
     return new Response.serverError();
   }
 
-  void handleRequest(ResourceRequest req) {
+  @override
+  RequestHandlerResult processRequest(ResourceRequest req) {
     resourceRequest = req;
     willProcessRequest(req);
     _process();
+
+    return RequestHandlerResult.didRespond;
   }
 }
 

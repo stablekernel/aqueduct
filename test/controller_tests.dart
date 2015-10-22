@@ -251,8 +251,12 @@ class DateTimeController extends HttpController {
 
 Future<HttpServer> enableController(String pattern, RequestHandler controller) async {
   var router = new Router();
-  router.addRouteHandler(pattern, controller);
+  router.route(pattern).then(controller);
+
   var server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 4040);
-  server.map((httpReq) => new ResourceRequest(httpReq)).listen(router.handleRequest);
+  server.map((httpReq) => new ResourceRequest(httpReq)).listen((req) {
+    router.deliver(req);
+  });
+
   return server;
 }

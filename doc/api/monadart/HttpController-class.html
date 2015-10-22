@@ -86,6 +86,8 @@
     
     
     
+      <li class="section-title"><a href="monadart/monadart-library.html#enums">Enums</a></li>
+      <li><a href="monadart/RequestHandlerResult-class.html">RequestHandlerResult</a></li>
     
       <li class="section-title"><a href="monadart/monadart-library.html#classes">Classes</a></li>
       <li><a href="monadart/Application-class.html">Application</a></li>
@@ -123,13 +125,13 @@
 
     <section>
         <dl class="dl-horizontal">
+          <dt>Inheritance</dt>
+          <dd><ul class="gt-separated dark clazz-relationships">
+              <li>Object</li>
+              <li><a href="monadart/RequestHandler-class.html">RequestHandler</a></li>
+              <li>HttpController</li>
+          </ul></dd>
 
-          <dt>Implements</dt>
-              <dd>
-                  <ul class="comma-separated clazz-relationships">
-                      <li><a href="monadart/RequestHandler-class.html">RequestHandler</a></li>
-                  </ul>
-              </dd>
 
 
 
@@ -164,6 +166,16 @@
     </div>
     <p>The exception handler for a request handler method that generates an HTTP error response.<a href="monadart/HttpController/exceptionHandler.html">&hellip;</a>
 </p>
+            </dd>
+            <dt id="next" class="property">
+            <span class="name ">next</span>    
+                <span class="signature">&#8594; <a href="monadart/RequestHandler-class.html">RequestHandler</a></span>
+            </dt>
+            <dd>
+                <div class="features">
+        read / write, inherited
+    </div>
+    <p>The next <a href="monadart/RequestHandler-class.html">RequestHandler</a> to run if this one responds with <code>shouldContinue</code>.</p>
             </dd>
             <dt id="pathVariables" class="property">
                 <span class="name"><a href="monadart/HttpController/pathVariables.html">pathVariables</a></span>
@@ -239,24 +251,35 @@
       <section class="summary offset-anchor" id="instance-methods">
           <h2>Methods</h2>
           <dl class="callables">
-              <dt id="didSendResponse" class="callable">
-                  <a href="monadart/HttpController/didSendResponse.html"><span class="name ">didSendResponse</span></a><span class="signature">(<wbr><span class="parameter" id="didSendResponse-param-response"><span class="type-annotation"><a href="monadart/Response-class.html">Response</a></span> <span class="parameter-name">response</span></span>)
+              <dt id="deliver" class="callable">
+                  <span class="name ">deliver</span><span class="signature">(<wbr><span class="parameter" id="deliver-param-req"><span class="type-annotation"><a href="monadart/ResourceRequest-class.html">ResourceRequest</a></span> <span class="parameter-name">req</span></span>)
                       &#8594;
                       <span class="returntype">void</span>
                   </span>
               </dt>
               <dd>
-                  <p>Executed after a <code>response</code> has been sent.<a href="monadart/HttpController/didSendResponse.html">&hellip;</a>
+                  <div class="features">inherited</div>
+                  <p>The mechanism for delivering a <a href="monadart/ResourceRequest-class.html">ResourceRequest</a> to this handler for processing.</p>
+              </dd>
+              <dt id="processRequest" class="callable">
+                  <a href="monadart/HttpController/processRequest.html"><span class="name ">processRequest</span></a><span class="signature">(<wbr><span class="parameter" id="processRequest-param-req"><span class="type-annotation"><a href="monadart/ResourceRequest-class.html">ResourceRequest</a></span> <span class="parameter-name">req</span></span>)
+                      &#8594;
+                      <span class="returntype"><a href="monadart/RequestHandlerResult-class.html">RequestHandlerResult</a></span>
+                  </span>
+              </dt>
+              <dd>
+                  <p>Overridden by subclasses to modify or respond to an incoming request.<a href="monadart/HttpController/processRequest.html">&hellip;</a>
 </p>
               </dd>
-              <dt id="handleRequest" class="callable">
-                  <a href="monadart/HttpController/handleRequest.html"><span class="name ">handleRequest</span></a><span class="signature">(<wbr><span class="parameter" id="handleRequest-param-req"><span class="type-annotation"><a href="monadart/ResourceRequest-class.html">ResourceRequest</a></span> <span class="parameter-name">req</span></span>)
+              <dt id="then" class="callable">
+                  <span class="name ">then</span><span class="signature">(<wbr><span class="parameter" id="then-param-next"><span class="type-annotation"><a href="monadart/RequestHandler-class.html">RequestHandler</a></span> <span class="parameter-name">next</span></span>)
                       &#8594;
-                      <span class="returntype">void</span>
+                      <span class="returntype"><a href="monadart/RequestHandler-class.html">RequestHandler</a></span>
                   </span>
               </dt>
               <dd>
-                  <p></p>
+                  <div class="features">inherited</div>
+                  <p>The next <a href="monadart/RequestHandler-class.html">RequestHandler</a> to run if this one responds with <code>shouldContinue</code>.</p>
               </dd>
               <dt id="willProcessRequest" class="callable">
                   <a href="monadart/HttpController/willProcessRequest.html"><span class="name ">willProcessRequest</span></a><span class="signature">(<wbr><span class="parameter" id="willProcessRequest-param-req"><span class="type-annotation"><a href="monadart/ResourceRequest-class.html">ResourceRequest</a></span> <span class="parameter-name">req</span></span>)
@@ -294,6 +317,8 @@
 </li>
       <li><a href="monadart/HttpController/exceptionHandler.html">exceptionHandler</a>
 </li>
+      <li>next
+</li>
       <li><a href="monadart/HttpController/pathVariables.html">pathVariables</a>
 </li>
       <li><a href="monadart/HttpController/requestBody.html">requestBody</a>
@@ -310,9 +335,11 @@
     
     
       <li class="section-title"><a href="monadart/HttpController-class.html#instance-methods">Methods</a></li>
-      <li><a href="monadart/HttpController/didSendResponse.html">didSendResponse</a>
+      <li>deliver
 </li>
-      <li><a href="monadart/HttpController/handleRequest.html">handleRequest</a>
+      <li><a href="monadart/HttpController/processRequest.html">processRequest</a>
+</li>
+      <li>then
 </li>
       <li><a href="monadart/HttpController/willProcessRequest.html">willProcessRequest</a>
 </li>

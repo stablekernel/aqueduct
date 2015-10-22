@@ -11,7 +11,7 @@ part of monadart;
 ///     router.addRoute("/files/*");
 ///
 /// Each route added to a [Router] creates a [Stream] of [ResourceRequest]s that a handler can listen to.
-class Router implements RequestHandler {
+class Router extends RequestHandler {
   List<_ResourceRoute> _routes;
 
   /// A string to be prepended to the beginning of every route this [Router] manages.
@@ -51,7 +51,7 @@ class Router implements RequestHandler {
     unhandledRequestHandler = _handleUnhandledRequest;
   }
 
-  /// Adds a route to this router and provides a [Stream] for all [ResourceRequest]s that match that route to be delivered on.
+  /// Adds a route to this router and provides a forwarding [RequestHandler] for all [ResourceRequest]s that match that route to be delivered on.
   ///
   /// A router manages route to [Stream] mappings that are added through this method.
   /// The [pattern] must follow the rules of route patterns (see the guide for more explanation).
@@ -65,19 +65,11 @@ class Router implements RequestHandler {
   ///       /constantString/[:optionalVariable]
   /// Routes may have multiple optional segments, but they must be nested.
   ///       /constantString/[:optionalVariable/[optionalConstantString]]
-  Stream<ResourceRequest> addRoute(String pattern) {
-    var route = _createRoute(pattern);
-
-    return route.streamController.stream;
+  RequestHandler route(String pattern) {
+    return _createRoute(pattern).handler;
   }
 
-  void addRouteHandler(String routePattern, RequestHandler handler) {
-    var route = _createRoute(routePattern, handler: handler);
-
-    route.streamController.stream.listen(handler.handleRequest);
-  }
-
-  _ResourceRoute _createRoute(String pattern, {RequestHandler handler: null}) {
+  _ResourceRoute _createRoute(String pattern) {
     if (basePath != null) {
       pattern = basePath + pattern;
     }
@@ -85,29 +77,21 @@ class Router implements RequestHandler {
     // Strip out any extraneous /s
     var finalPattern = pattern.split("/").where((c) => c != "").join("/");
 
-    var streamController = new StreamController<ResourceRequest>();
     var route = new _ResourceRoute(
-        new ResourcePattern(finalPattern), streamController, handler);
+        new ResourcePattern(finalPattern), new RequestHandler());
     _routes.add(route);
 
     return route;
   }
 
-  /// Routes a [ResourceRequest] through the routes of this [Router].
-  ///
-  /// This is the entry point for [ResourceRequest]s into this router. A request will
-  /// either be inserted into a stream for a matching route or will be handled
-  /// by the [unhandledRequestHandler]. This method is typically used
-  /// as a listener to a [Stream] of [ResourceRequest]s.
-  void handleRequest(ResourceRequest req) {
+  @override
+  void deliver(ResourceRequest req) {
     for (var route in _routes) {
       var routeMatch = route.pattern.matchUri(req.request.uri);
 
       if (routeMatch != null) {
         req.path = routeMatch;
-
-        route.streamController.add(req);
-
+        route.handler.deliver(req);
         return;
       }
     }
@@ -123,10 +107,9 @@ class Router implements RequestHandler {
 
 class _ResourceRoute {
   final ResourcePattern pattern;
-  final StreamController<ResourceRequest> streamController;
   final RequestHandler handler;
 
-  _ResourceRoute(this.pattern, this.streamController, this.handler);
+  _ResourceRoute(this.pattern, this.handler);
 }
 
 class _RouterException implements Exception {

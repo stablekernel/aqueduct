@@ -86,6 +86,8 @@
     
     
     
+      <li class="section-title"><a href="monadart/monadart-library.html#enums">Enums</a></li>
+      <li><a href="monadart/RequestHandlerResult-class.html">RequestHandlerResult</a></li>
     
       <li class="section-title"><a href="monadart/monadart-library.html#classes">Classes</a></li>
       <li><a href="monadart/Application-class.html">Application</a></li>
@@ -131,13 +133,13 @@ router.addRoute("/files/*");
 
     <section>
         <dl class="dl-horizontal">
+          <dt>Inheritance</dt>
+          <dd><ul class="gt-separated dark clazz-relationships">
+              <li>Object</li>
+              <li><a href="monadart/RequestHandler-class.html">RequestHandler</a></li>
+              <li>Router</li>
+          </ul></dd>
 
-          <dt>Implements</dt>
-              <dd>
-                  <ul class="comma-separated clazz-relationships">
-                      <li><a href="monadart/RequestHandler-class.html">RequestHandler</a></li>
-                  </ul>
-              </dd>
 
 
 
@@ -161,6 +163,16 @@ router.addRoute("/files/*");
     </div>
     <p>A string to be prepended to the beginning of every route this <code>Router</code> manages.<a href="monadart/Router/basePath.html">&hellip;</a>
 </p>
+            </dd>
+            <dt id="next" class="property">
+            <span class="name ">next</span>    
+                <span class="signature">&#8594; <a href="monadart/RequestHandler-class.html">RequestHandler</a></span>
+            </dt>
+            <dd>
+                <div class="features">
+        read / write, inherited
+    </div>
+    <p>The next <a href="monadart/RequestHandler-class.html">RequestHandler</a> to run if this one responds with <code>shouldContinue</code>.</p>
             </dd>
             <dt id="unhandledRequestHandler" class="property">
                 <span class="name"><a href="monadart/Router/unhandledRequestHandler.html">unhandledRequestHandler</a></span>
@@ -193,34 +205,45 @@ router.addRoute("/files/*");
       <section class="summary offset-anchor" id="instance-methods">
           <h2>Methods</h2>
           <dl class="callables">
-              <dt id="addRoute" class="callable">
-                  <a href="monadart/Router/addRoute.html"><span class="name ">addRoute</span></a><span class="signature">(<wbr><span class="parameter" id="addRoute-param-pattern"><span class="type-annotation">String</span> <span class="parameter-name">pattern</span></span>)
-                      &#8594;
-                      <span class="returntype">Stream&lt;<a href="monadart/ResourceRequest-class.html">ResourceRequest</a>&gt;</span>
-                  </span>
-              </dt>
-              <dd>
-                  <p>Adds a route to this router and provides a <code>Stream</code> for all <a href="monadart/ResourceRequest-class.html">ResourceRequest</a>s that match that route to be delivered on.<a href="monadart/Router/addRoute.html">&hellip;</a>
-</p>
-              </dd>
-              <dt id="addRouteHandler" class="callable">
-                  <a href="monadart/Router/addRouteHandler.html"><span class="name ">addRouteHandler</span></a><span class="signature">(<wbr><span class="parameter" id="addRouteHandler-param-routePattern"><span class="type-annotation">String</span> <span class="parameter-name">routePattern</span></span>, <span class="parameter" id="addRouteHandler-param-handler"><span class="type-annotation"><a href="monadart/RequestHandler-class.html">RequestHandler</a></span> <span class="parameter-name">handler</span></span>)
+              <dt id="deliver" class="callable">
+                  <a href="monadart/Router/deliver.html"><span class="name ">deliver</span></a><span class="signature">(<wbr><span class="parameter" id="deliver-param-req"><span class="type-annotation"><a href="monadart/ResourceRequest-class.html">ResourceRequest</a></span> <span class="parameter-name">req</span></span>)
                       &#8594;
                       <span class="returntype">void</span>
                   </span>
               </dt>
               <dd>
-                  <p></p>
+                  <p>The mechanism for delivering a <code>ResourceRequest</code> to this handler for processing.<a href="monadart/Router/deliver.html">&hellip;</a>
+</p>
               </dd>
-              <dt id="handleRequest" class="callable">
-                  <a href="monadart/Router/handleRequest.html"><span class="name ">handleRequest</span></a><span class="signature">(<wbr><span class="parameter" id="handleRequest-param-req"><span class="type-annotation"><a href="monadart/ResourceRequest-class.html">ResourceRequest</a></span> <span class="parameter-name">req</span></span>)
+              <dt id="processRequest" class="callable">
+                  <span class="name ">processRequest</span><span class="signature">(<wbr><span class="parameter" id="processRequest-param-req"><span class="type-annotation"><a href="monadart/ResourceRequest-class.html">ResourceRequest</a></span> <span class="parameter-name">req</span></span>)
                       &#8594;
-                      <span class="returntype">void</span>
+                      <span class="returntype"><a href="monadart/RequestHandlerResult-class.html">RequestHandlerResult</a></span>
                   </span>
               </dt>
               <dd>
-                  <p>Routes a <a href="monadart/ResourceRequest-class.html">ResourceRequest</a> through the routes of this <a href="monadart/Router-class.html">Router</a>.<a href="monadart/Router/handleRequest.html">&hellip;</a>
+                  <div class="features">inherited</div>
+                  <p>Overridden by subclasses to modify or respond to an incoming request.</p>
+              </dd>
+              <dt id="route" class="callable">
+                  <a href="monadart/Router/route.html"><span class="name ">route</span></a><span class="signature">(<wbr><span class="parameter" id="route-param-pattern"><span class="type-annotation">String</span> <span class="parameter-name">pattern</span></span>)
+                      &#8594;
+                      <span class="returntype"><a href="monadart/RequestHandler-class.html">RequestHandler</a></span>
+                  </span>
+              </dt>
+              <dd>
+                  <p>Adds a route to this router and provides a forwarding <a href="monadart/RequestHandler-class.html">RequestHandler</a> for all <a href="monadart/ResourceRequest-class.html">ResourceRequest</a>s that match that route to be delivered on.<a href="monadart/Router/route.html">&hellip;</a>
 </p>
+              </dd>
+              <dt id="then" class="callable">
+                  <span class="name ">then</span><span class="signature">(<wbr><span class="parameter" id="then-param-next"><span class="type-annotation"><a href="monadart/RequestHandler-class.html">RequestHandler</a></span> <span class="parameter-name">next</span></span>)
+                      &#8594;
+                      <span class="returntype"><a href="monadart/RequestHandler-class.html">RequestHandler</a></span>
+                  </span>
+              </dt>
+              <dd>
+                  <div class="features">inherited</div>
+                  <p>The next <a href="monadart/RequestHandler-class.html">RequestHandler</a> to run if this one responds with <code>shouldContinue</code>.</p>
               </dd>
           </dl>
       </section>
@@ -236,6 +259,8 @@ router.addRoute("/files/*");
       <li class="section-title"><a href="monadart/Router-class.html#instance-properties">Properties</a></li>
       <li><a href="monadart/Router/basePath.html">basePath</a>
 </li>
+      <li>next
+</li>
       <li><a href="monadart/Router/unhandledRequestHandler.html">unhandledRequestHandler</a>
 </li>
     
@@ -244,11 +269,13 @@ router.addRoute("/files/*");
     
     
       <li class="section-title"><a href="monadart/Router-class.html#instance-methods">Methods</a></li>
-      <li><a href="monadart/Router/addRoute.html">addRoute</a>
+      <li><a href="monadart/Router/deliver.html">deliver</a>
 </li>
-      <li><a href="monadart/Router/addRouteHandler.html">addRouteHandler</a>
+      <li>processRequest
 </li>
-      <li><a href="monadart/Router/handleRequest.html">handleRequest</a>
+      <li><a href="monadart/Router/route.html">route</a>
+</li>
+      <li>then
 </li>
     </ol>
   </div><!--/.sidebar-offcanvas-->

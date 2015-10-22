@@ -57,20 +57,16 @@ class TPipeline extends ApplicationPipeline {
   Router router;
 
   @override
-  void pipelineDidOpen() {
-
+  RequestHandler initialHandler() {
+    return router;
   }
 
   @override
-  void pipelineWillOpen() {
+  void willOpen() {
     router = new Router();
 
-    router.addRouteHandler("/t", new RequestHandlerGenerator<TController>());
-    router.addRouteHandler("/r", new RequestHandlerGenerator<RController>());
-  }
-
-  void handleRequest(ResourceRequest req) {
-    router.handleRequest(req);
+    router.route("/t").then(new RequestHandlerGenerator<TController>());
+    router.route("/r").then(new RequestHandlerGenerator<RController>());
   }
 }
 

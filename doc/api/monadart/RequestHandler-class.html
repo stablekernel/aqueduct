@@ -58,6 +58,7 @@
               </h1>
           </div>
           <ul class="subnav">
+              <li><a href="monadart/RequestHandler-class.html#instance-properties">Properties</a></li>
               <li><a href="monadart/RequestHandler-class.html#constructors">Constructors</a></li>
               <li><a href="monadart/RequestHandler-class.html#instance-methods">Methods</a></li>
           </ul>
@@ -85,6 +86,8 @@
     
     
     
+      <li class="section-title"><a href="monadart/monadart-library.html#enums">Enums</a></li>
+      <li><a href="monadart/RequestHandlerResult-class.html">RequestHandlerResult</a></li>
     
       <li class="section-title"><a href="monadart/monadart-library.html#classes">Classes</a></li>
       <li><a href="monadart/Application-class.html">Application</a></li>
@@ -115,7 +118,11 @@
 
     <section class="desc markdown">
     
-          <p class="no-docs">Not documented.</p>
+          <p>RequestHandlers respond to, modify or forward requests.</p>
+<p>This class is intended to be extended. RequestHandlers are sent <a href="monadart/ResourceRequest-class.html">ResourceRequest</a>s through
+their <a href="monadart/RequestHandler/deliver.html">deliver</a> method, which in turn invokes <a href="monadart/RequestHandler/processRequest.html">processRequest</a>. Subclasses
+should implement <a href="monadart/RequestHandler/processRequest.html">processRequest</a> to respond to, modify or forward requests.
+In some cases, subclasses may also override <a href="monadart/RequestHandler/deliver.html">deliver</a>.</p>
     
     </section>
 
@@ -138,16 +145,34 @@
 
 
 
+    <section class="summary offset-anchor" id="instance-properties">
+        <h2>Properties</h2>
+
+        <dl class="properties">
+            <dt id="next" class="property">
+                <span class="name"><a href="monadart/RequestHandler/next.html">next</a></span>
+                <span class="signature">&#8594; <a href="monadart/RequestHandler-class.html">RequestHandler</a></span>
+            </dt>
+            <dd>
+                <div class="features">
+        read / write
+    </div>
+    <p>The next <a href="monadart/RequestHandler-class.html">RequestHandler</a> to run if this one responds with <code>shouldContinue</code>.<a href="monadart/RequestHandler/next.html">&hellip;</a>
+</p>
+            </dd>
+        </dl>
+    </section>
 
     <section class="summary offset-anchor" id="constructors">
         <h2>Constructors</h2>
 
         <dl class="constructor-summary-list">
             <dt id="RequestHandler" class="callable">
-                <span class="name"><a href="monadart/RequestHandler/RequestHandler.html">RequestHandler</a></span><span class="signature">()</span>
+                <span class="name"><a href="monadart/RequestHandler/RequestHandler.html">RequestHandler</a></span><span class="signature">({<span class="parameter" id="-param-requestHandler"><span class="type-annotation">RequestHandlerResult</span> <span class="parameter-name">requestHandler</span>(<span class="parameter" id="requestHandler-param-ResourceRequest"><span class="parameter-name">ResourceRequest</span></span>): <span class="default-value">null</span></span>})</span>
             </dt>
             <dd>
-                <p></p>
+                <p>The initializer for RequestHandlers.<a href="monadart/RequestHandler/RequestHandler.html">&hellip;</a>
+</p>
             </dd>
         </dl>
       </section>
@@ -156,14 +181,35 @@
       <section class="summary offset-anchor" id="instance-methods">
           <h2>Methods</h2>
           <dl class="callables">
-              <dt id="handleRequest" class="callable">
-                  <a href="monadart/RequestHandler/handleRequest.html"><span class="name ">handleRequest</span></a><span class="signature">(<wbr><span class="parameter" id="handleRequest-param-req"><span class="type-annotation"><a href="monadart/ResourceRequest-class.html">ResourceRequest</a></span> <span class="parameter-name">req</span></span>)
+              <dt id="deliver" class="callable">
+                  <a href="monadart/RequestHandler/deliver.html"><span class="name ">deliver</span></a><span class="signature">(<wbr><span class="parameter" id="deliver-param-req"><span class="type-annotation"><a href="monadart/ResourceRequest-class.html">ResourceRequest</a></span> <span class="parameter-name">req</span></span>)
                       &#8594;
                       <span class="returntype">void</span>
                   </span>
               </dt>
               <dd>
-                  <p></p>
+                  <p>The mechanism for delivering a <a href="monadart/ResourceRequest-class.html">ResourceRequest</a> to this handler for processing.<a href="monadart/RequestHandler/deliver.html">&hellip;</a>
+</p>
+              </dd>
+              <dt id="processRequest" class="callable">
+                  <a href="monadart/RequestHandler/processRequest.html"><span class="name ">processRequest</span></a><span class="signature">(<wbr><span class="parameter" id="processRequest-param-req"><span class="type-annotation"><a href="monadart/ResourceRequest-class.html">ResourceRequest</a></span> <span class="parameter-name">req</span></span>)
+                      &#8594;
+                      <span class="returntype"><a href="monadart/RequestHandlerResult-class.html">RequestHandlerResult</a></span>
+                  </span>
+              </dt>
+              <dd>
+                  <p>Overridden by subclasses to modify or respond to an incoming request.<a href="monadart/RequestHandler/processRequest.html">&hellip;</a>
+</p>
+              </dd>
+              <dt id="then" class="callable">
+                  <a href="monadart/RequestHandler/then.html"><span class="name ">then</span></a><span class="signature">(<wbr><span class="parameter" id="then-param-next"><span class="type-annotation"><a href="monadart/RequestHandler-class.html">RequestHandler</a></span> <span class="parameter-name">next</span></span>)
+                      &#8594;
+                      <span class="returntype"><a href="monadart/RequestHandler-class.html">RequestHandler</a></span>
+                  </span>
+              </dt>
+              <dd>
+                  <p>The next <a href="monadart/RequestHandler-class.html">RequestHandler</a> to run if this one responds with <code>shouldContinue</code>.<a href="monadart/RequestHandler/then.html">&hellip;</a>
+</p>
               </dd>
           </dl>
       </section>
@@ -176,13 +222,20 @@
     
     
     
+      <li class="section-title"><a href="monadart/RequestHandler-class.html#instance-properties">Properties</a></li>
+      <li><a href="monadart/RequestHandler/next.html">next</a>
+</li>
     
       <li class="section-title"><a href="monadart/RequestHandler-class.html#constructors">Constructors</a></li>
       <li><a href="monadart/RequestHandler/RequestHandler.html">RequestHandler</a></li>
     
     
       <li class="section-title"><a href="monadart/RequestHandler-class.html#instance-methods">Methods</a></li>
-      <li><a href="monadart/RequestHandler/handleRequest.html">handleRequest</a>
+      <li><a href="monadart/RequestHandler/deliver.html">deliver</a>
+</li>
+      <li><a href="monadart/RequestHandler/processRequest.html">processRequest</a>
+</li>
+      <li><a href="monadart/RequestHandler/then.html">then</a>
 </li>
     </ol>
   </div><!--/.sidebar-offcanvas-->

@@ -1,5 +1,4 @@
 @TestOn("vm")
-
 import "package:test/test.dart";
 import "dart:core";
 import "dart:io";
@@ -9,19 +8,19 @@ import '../lib/monadart.dart';
 
 
 void main() {
-
   setUp(() {
 
   });
 
-  tearDown(() {
-  });
+  tearDown(() {});
 
   test("Router Handles Requests", () async {
     Router router = new Router();
-    router.addRoute("/player").listen((req) {
+
+    router.route("/player").then(new RequestHandler(requestHandler: (req) {
       req.respond(new Response.ok(""));
-    });
+      return RequestHandlerResult.didRespond;
+    }));
 
     var server = await enableRouter(router);
 
@@ -33,9 +32,11 @@ void main() {
 
   test("Router 404s on no match", () async {
     Router router = new Router();
-    router.addRoute("/player").listen((req) {
+
+    router.route("/player").then(new RequestHandler(requestHandler: (req) {
       req.respond(new Response.ok(""));
-    });
+      return RequestHandlerResult.didRespond;
+    }));
 
     var server = await enableRouter(router);
 
@@ -47,9 +48,11 @@ void main() {
 
   test("Router delivers path values", () async {
     Router router = new Router();
-    router.addRoute("/player/:id").listen((req) {
+
+    router.route("/player/:id").then(new RequestHandler(requestHandler: (req) {
       req.respond(new Response.ok("${req.path.variables["id"]}"));
-    });
+      return RequestHandlerResult.didRespond;
+    }));
 
     var server = await enableRouter(router);
 
@@ -60,9 +63,10 @@ void main() {
     server.close(force: true);
   });
 
-  test("Base API Path Throws exception when adding routes prior to setting it", () async {
+  test(
+      "Base API Path Throws exception when adding routes prior to setting it", () async {
     var router = new Router();
-    router.addRoute("/a");
+    router.route("/a");
 
     try {
       router.basePath = "/api";
@@ -75,14 +79,12 @@ void main() {
   test("Base API adds to path", () async {
     var router = new Router();
     router.basePath = "/api";
-    router.addRoute("/player/").listen((req) {
-      req.respond(new Response.ok(""));
-    });
+    router.route("/player/").then(new Handler());
 
     var server = await enableRouter(router);
 
     var response = await http.get("http://localhost:4040/api/player");
-    expect(response.statusCode, equals(200));
+    expect(response.statusCode, equals(202));
 
     response = await http.get("http://localhost:4040/player");
     expect(response.statusCode, equals(404));
@@ -91,8 +93,11 @@ void main() {
   });
 
   test("Router uses request handlers", () async {
+
+    Handler.counter = 0;
+
     var router = new Router();
-    router.addRouteHandler("/a", new Handler());
+    router.route("/a").then(new Handler());
 
     var server = await enableRouter(router);
 
@@ -109,13 +114,14 @@ void main() {
   });
 
   test("Router uses request handler generators", () async {
-    var router = new Router();
-    router.addRouteHandler("/a", new RequestHandlerGenerator<Handler>());
-    var server = await enableRouter(router);
-
     Handler.counter = 0;
 
-    for(int i = 0; i < 10; i++) {
+    var router = new Router();
+    router.route("/a").then(new RequestHandlerGenerator<Handler>());
+    var server = await enableRouter(router);
+
+
+    for (int i = 0; i < 10; i++) {
       var response = await http.get("http://localhost:4040/a");
       expect(response.statusCode, equals(202));
       expect(response.body, "${i + 1}");
@@ -128,7 +134,8 @@ void main() {
 
 Future<HttpServer> enableRouter(Router router) async {
   var server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 4040);
-  server.map((httpReq) => new ResourceRequest(httpReq)).listen(router.handleRequest);
+  server.map((httpReq) => new ResourceRequest(httpReq)).listen(
+      router.deliver);
   return server;
 }
 
@@ -139,7 +146,9 @@ class Handler extends RequestHandler {
     counter ++;
   }
 
-  void handleRequest(ResourceRequest req) {
+  @override
+  RequestHandlerResult processRequest(ResourceRequest req) {
     req.respond(new Response(202, null, "$counter"));
+    return RequestHandlerResult.didRespond;
   }
 }

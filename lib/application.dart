@@ -63,7 +63,7 @@ class ApplicationInstanceConfiguration {
 /// [Application]s set up HTTP(s) listeners, but do not do anything with them. The behavior of how an application
 /// responds to requests is defined by its [ApplicationPipeline]. Instances of this class must implement the
 /// [handleRequest] method from [RequestHandler] - this is the entry point of all requests into this pipeline.
-abstract class ApplicationPipeline implements RequestHandler {
+abstract class ApplicationPipeline extends RequestHandler {
   /// Passed in options for this pipeline from its owning [Application].
   ///
   /// These values give an opportunity for a pipeline to have a customization point within attachTo., like running
@@ -71,8 +71,19 @@ abstract class ApplicationPipeline implements RequestHandler {
   /// if the user did not set any configuration values.
   Map<String, dynamic> options;
 
-  void pipelineWillOpen();
-  void pipelineDidOpen();
+  RequestHandler initialHandler();
+
+  void willOpen() {
+
+  }
+
+  void didOpen() {
+
+  }
+
+  void willReceiveRequest(ResourceRequest request) {
+
+  }
 }
 
 /// A container for web server applications.
@@ -154,7 +165,9 @@ class _Server {
 
   Future start() async {
     pipeline.options = configuration.pipelineOptions;
-    pipeline.pipelineWillOpen();
+    pipeline.willOpen();
+
+    pipeline.next = pipeline.initialHandler();
 
     var onBind = (s) {
       server = s;
@@ -163,9 +176,12 @@ class _Server {
 
       server
           .map((httpReq) => new ResourceRequest(httpReq))
-          .listen(pipeline.handleRequest);
+          .listen((req) {
+        pipeline.willReceiveRequest(req);
+        pipeline.deliver(req);
+      });
 
-      pipeline.pipelineDidOpen();
+      pipeline.didOpen();
     };
 
     if (configuration.serverCertificateName != null) {

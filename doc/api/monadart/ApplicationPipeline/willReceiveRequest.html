@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>RequestHandler constructor - RequestHandler class - monadart library - Dart API</title>
+    <title>willReceiveRequest method - ApplicationPipeline class - monadart library - Dart API</title>
     <!-- required because all the links are pseudo-absolute -->
     <base href="../..">
 
@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="static-assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="static-assets/styles.css">
 
-    <meta name="description" content="API docs for the RequestHandler constructor from the Class RequestHandler class from the monadart library, for the Dart programming language.">
+    <meta name="description" content="API docs for the willReceiveRequest method from the ApplicationPipeline class, for the Dart programming language.">
     <link rel="icon" href="static-assets/favicon.png">
 
     <!-- Do not remove placeholder -->
@@ -33,10 +33,10 @@
               <ol class="breadcrumbs gt-separated hidden-xs">
                   <li><a href="index.html">monadart</a></li>
                   <li><a href="monadart/monadart-library.html">monadart</a></li>
-                  <li><a href="monadart/RequestHandler-class.html">RequestHandler</a></li>
-                  <li class="self-crumb">RequestHandler</li>
+                  <li><a href="monadart/ApplicationPipeline-class.html">ApplicationPipeline</a></li>
+                  <li class="self-crumb">willReceiveRequest</li>
               </ol>
-              <div class="self-name">RequestHandler</div>
+              <div class="self-name">willReceiveRequest</div>
               <form class="search navbar-right" role="search">
                 <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
               </form>
@@ -51,15 +51,16 @@
           <ol class="breadcrumbs gt-separated visible-xs">
               <li><a href="index.html">monadart</a></li>
               <li><a href="monadart/monadart-library.html">monadart</a></li>
-              <li><a href="monadart/RequestHandler-class.html">RequestHandler</a></li>
-              <li class="self-crumb">RequestHandler</li>
+              <li><a href="monadart/ApplicationPipeline-class.html">ApplicationPipeline</a></li>
+              <li class="self-crumb">willReceiveRequest</li>
           </ol>
           <div class="title-description">
               <h1 class="title">
-                  <div class="kind">constructor</div> RequestHandler
+                  <div class="kind">method</div> willReceiveRequest
               </h1>
           </div>
           <ul class="subnav">
+              <li><a href="monadart/ApplicationPipeline/willReceiveRequest.html#source">Source</a></li>
           </ul>
         </div> <!-- /col -->
       </div> <!-- /row -->
@@ -71,55 +72,66 @@
   <div class="row">
 
   <div class="col-xs-6 col-sm-3 col-md-2 sidebar sidebar-offcanvas-left">
-
     <h5><a href="index.html">monadart</a></h5>
     <h5><a href="monadart/monadart-library.html">monadart</a></h5>
-    <h5><a href="monadart/RequestHandler-class.html">RequestHandler</a></h5>
+    <h5><a href="monadart/ApplicationPipeline-class.html">ApplicationPipeline</a></h5>
 
     <ol>
     
     
     
-      <li class="section-title"><a href="monadart/RequestHandler-class.html#instance-properties">Properties</a></li>
-      <li><a href="monadart/RequestHandler/next.html">next</a>
+      <li class="section-title"><a href="monadart/ApplicationPipeline-class.html#instance-properties">Properties</a></li>
+      <li>next
+</li>
+      <li><a href="monadart/ApplicationPipeline/options.html">options</a>
 </li>
     
-      <li class="section-title"><a href="monadart/RequestHandler-class.html#constructors">Constructors</a></li>
-      <li><a href="monadart/RequestHandler/RequestHandler.html">RequestHandler</a></li>
+      <li class="section-title"><a href="monadart/ApplicationPipeline-class.html#constructors">Constructors</a></li>
+      <li><a href="monadart/ApplicationPipeline/ApplicationPipeline.html">ApplicationPipeline</a></li>
     
     
-      <li class="section-title"><a href="monadart/RequestHandler-class.html#instance-methods">Methods</a></li>
-      <li><a href="monadart/RequestHandler/deliver.html">deliver</a>
+      <li class="section-title"><a href="monadart/ApplicationPipeline-class.html#instance-methods">Methods</a></li>
+      <li>deliver
 </li>
-      <li><a href="monadart/RequestHandler/processRequest.html">processRequest</a>
+      <li><a href="monadart/ApplicationPipeline/didOpen.html">didOpen</a>
 </li>
-      <li><a href="monadart/RequestHandler/then.html">then</a>
+      <li><a href="monadart/ApplicationPipeline/initialHandler.html">initialHandler</a>
+</li>
+      <li>processRequest
+</li>
+      <li>then
+</li>
+      <li><a href="monadart/ApplicationPipeline/willOpen.html">willOpen</a>
+</li>
+      <li><a href="monadart/ApplicationPipeline/willReceiveRequest.html">willReceiveRequest</a>
 </li>
     </ol>
 
-  </div><!--/.sidebar-offcanvas-left-->
+  </div><!--/.sidebar-offcanvas-->
 
   <div class="col-xs-12 col-sm-9 col-md-8 main-content">
 
     <section class="multi-line-signature">
-        
-                <span class="name ">RequestHandler</span>(
-        <br>
-        <div class="parameters">
-            {<span class="parameter" id="-param-requestHandler"><span class="type-annotation">RequestHandlerResult</span> <span class="parameter-name">requestHandler</span>(<span class="parameter" id="requestHandler-param-ResourceRequest"><span class="parameter-name">ResourceRequest</span></span>): <span class="default-value">null</span></span>}
-        </div>
-        )
-    </section>
+            <span class="returntype">void</span>
+            <span class="name ">willReceiveRequest</span>(
+            <br>
+            <div class="parameters">
+                <span class="parameter" id="willReceiveRequest-param-request"><span class="type-annotation"><a href="monadart/ResourceRequest-class.html">ResourceRequest</a></span> <span class="parameter-name">request</span></span>
+            </div>
+            )    </section>
 
     <section class="desc markdown">
     
-          <p>The initializer for RequestHandlers.</p>
-<p>To use a closure-based RequestHandler, you may specify <code>requestHandler</code> for
-this instance. Otherwise, you may subclass <a href="monadart/RequestHandler-class.html">RequestHandler</a> and implement
-<a href="monadart/RequestHandler/processRequest.html">processRequest</a> (or in rare cases, <a href="monadart/RequestHandler/deliver.html">deliver</a>) to handle request.</p>
+          <p class="no-docs">Not documented.</p>
     
     </section>
 
+    <section class="summary source-code" id="source">
+      <h2>Source</h2>
+      <pre><code class="prettyprint lang-dart">void willReceiveRequest(ResourceRequest request) {
+
+}</code></pre>
+    </section>
 
   </div> <!-- /.main-content -->
 
