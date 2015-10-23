@@ -63,7 +63,7 @@ abstract class HttpController extends RequestHandler {
   ///
   /// This method is called after the body has been processed by the decoder, but prior to the request being
   /// handled by the appropriate handler method.
-  void didDecodeRequestBody(ResourceRequest req) {}
+  void didDecodeRequestBody(dynamic decodedObject) {}
 
   /// Executed prior to [response] being sent, but after the handler method has been executed.
   ///
@@ -209,6 +209,10 @@ abstract class HttpController extends RequestHandler {
 
       requestBody = await _readRequestBodyForRequest(resourceRequest);
 
+      if (requestBody != null) {
+        didDecodeRequestBody(requestBody);
+      }
+
       Future<Response> eventualResponse = reflect(this)
           .invoke(methodSymbol, handlerParameters, handlerQueryParameters)
           .reflectee;
@@ -255,6 +259,7 @@ abstract class HttpController extends RequestHandler {
   @override
   Future<RequestHandlerResult> processRequest(ResourceRequest req) async {
     resourceRequest = req;
+
     willProcessRequest(req);
     var response = await _process();
 
