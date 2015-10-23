@@ -53,21 +53,22 @@ abstract class HttpController extends RequestHandler {
   /// respond with a Unsupported Media Type HTTP response.
   dynamic requestBody;
 
-
   /// Executed prior to handling a request, but after the [resourceRequest] has been set.
   ///
   /// This method is used to do pre-process setup. The [resourceRequest] will be set, but its body will not be decoded
   /// nor will the appropriate handler method be selected yet. By default, does nothing.
-  void willProcessRequest(ResourceRequest req) {
+  void willProcessRequest(ResourceRequest req) {}
 
-  }
+  /// Executed prior to request being handled, but after the body has been processed.
+  ///
+  /// This method is called after the body has been processed by the decoder, but prior to the request being
+  /// handled by the appropriate handler method.
+  void didDecodeRequestBody(ResourceRequest req) {}
 
   /// Executed prior to [response] being sent, but after the handler method has been executed.
   ///
   /// This method is used to post-process a response before it is finally sent. By default, does nothing.
-  void willSendResponse(Response response) {
-
-  }
+  void willSendResponse(Response response) {}
 
   Symbol _routeMethodSymbolForRequest(ResourceRequest req) {
     var symbol = null;
@@ -233,8 +234,7 @@ abstract class HttpController extends RequestHandler {
       }
 
       if (e.responseMessage != null) {
-        response.body = {"error" : e.responseMessage};
-
+        response.body = {"error": e.responseMessage};
       }
 
       return response;

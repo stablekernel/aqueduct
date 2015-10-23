@@ -22,6 +22,7 @@ class RequestHandler {
   RequestHandler({RequestHandlerResult requestHandler(ResourceRequest): null}) {
     _handler = requestHandler;
   }
+
   /// The next [RequestHandler] to run if this one responds with [shouldContinue].
   ///
   /// Handlers may be chained together if they have the option not to respond to requests.
@@ -73,7 +74,7 @@ class RequestHandler {
   /// [RequestHandler]s should return a [Response] from this method if they responded to the request.
   /// If a [RequestHandler] does not respond to the request, but instead modifies it, this method must return the same [ResourceRequest].
   Future<RequestHandlerResult> processRequest(ResourceRequest req) async {
-    if(_handler != null) {
+    if (_handler != null) {
       return _handler(req);
     }
     return req;
@@ -83,7 +84,8 @@ class RequestHandler {
 class RequestHandlerGenerator<T> extends RequestHandler {
   @override
   void deliver(ResourceRequest req) {
-    var handler = reflectClass(T).newInstance(new Symbol(""), []).reflectee as RequestHandler;
+    var handler = reflectClass(T).newInstance(new Symbol(""), []).reflectee
+        as RequestHandler;
     handler.next = this.next;
     handler.deliver(req);
   }
