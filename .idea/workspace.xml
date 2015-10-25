@@ -2,7 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="dd762622-8cd1-44be-bf31-6275e1efbac7" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lib/http_controller.dart" afterPath="$PROJECT_DIR$/lib/http_controller.dart" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lib/application.dart" afterPath="$PROJECT_DIR$/lib/application.dart" />
     </list>
     <ignored path="monadart.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -101,11 +102,21 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="http_controller.dart" pinned="false" current-in-tab="true">
+      <file leaf-file-name="http_controller.dart" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/lib/http_controller.dart">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.25876778">
-              <caret line="213" column="7" selection-start-line="213" selection-start-column="7" selection-end-line="213" selection-end-column="7" />
+            <state vertical-scroll-proportion="0.0">
+              <caret line="65" column="7" selection-start-line="65" selection-start-column="7" selection-end-line="65" selection-end-column="7" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="application.dart" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/lib/application.dart">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.4028436">
+              <caret line="171" column="14" selection-start-line="171" selection-start-column="14" selection-end-line="171" selection-end-column="14" />
               <folding />
             </state>
           </provider>
@@ -173,7 +184,6 @@
         <option value="$PROJECT_DIR$/lib/controller_routing.dart" />
         <option value="$PROJECT_DIR$/lib/router.dart" />
         <option value="$PROJECT_DIR$/test/controller_tests.dart" />
-        <option value="$PROJECT_DIR$/lib/application.dart" />
         <option value="$PROJECT_DIR$/test/application_tests.dart" />
         <option value="$PROJECT_DIR$/test/isolate_application_tests.dart" />
         <option value="$PROJECT_DIR$/lib/resource_request.dart" />
@@ -182,6 +192,7 @@
         <option value="$PROJECT_DIR$/lib/request_handler.dart" />
         <option value="$PROJECT_DIR$/test/router_tests.dart" />
         <option value="$PROJECT_DIR$/lib/http_controller.dart" />
+        <option value="$PROJECT_DIR$/lib/application.dart" />
       </list>
     </option>
   </component>
@@ -271,7 +282,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="PackagesPane" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -320,6 +330,7 @@
           </PATH>
         </subPane>
       </pane>
+      <pane id="PackagesPane" />
       <pane id="Scratches">
         <subPane />
       </pane>
@@ -997,13 +1008,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/lib/application.dart">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.33380085">
-          <caret line="169" column="46" selection-start-line="169" selection-start-column="46" selection-end-line="169" selection-end-column="46" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/lib/controller_routing.dart">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.46002805">
@@ -1087,8 +1091,16 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/lib/http_controller.dart">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.25876778">
-          <caret line="213" column="7" selection-start-line="213" selection-start-column="7" selection-end-line="213" selection-end-column="7" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="65" column="7" selection-start-line="65" selection-start-column="7" selection-end-line="65" selection-end-column="7" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/application.dart">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.4028436">
+          <caret line="171" column="14" selection-start-line="171" selection-start-column="14" selection-end-line="171" selection-end-column="14" />
           <folding />
         </state>
       </provider>

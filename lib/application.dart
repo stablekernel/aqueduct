@@ -73,11 +73,11 @@ abstract class ApplicationPipeline extends RequestHandler {
 
   RequestHandler initialHandler();
 
-  void willOpen() {}
+  Future willOpen() { return null; }
 
   void didOpen() {}
 
-  void willReceiveRequest(ResourceRequest request) {}
+  Future willReceiveRequest(ResourceRequest request) { return null; }
 }
 
 /// A container for web server applications.
@@ -159,7 +159,7 @@ class _Server {
 
   Future start() async {
     pipeline.options = configuration.pipelineOptions;
-    pipeline.willOpen();
+    await pipeline.willOpen();
 
     pipeline.next = pipeline.initialHandler();
 
@@ -168,8 +168,8 @@ class _Server {
 
       server.serverHeader = "monadart/${this.identifier}";
 
-      server.map((httpReq) => new ResourceRequest(httpReq)).listen((req) {
-        pipeline.willReceiveRequest(req);
+      server.map((httpReq) => new ResourceRequest(httpReq)).listen((req) async {
+        await pipeline.willReceiveRequest(req);
         pipeline.deliver(req);
       });
 
