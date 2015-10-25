@@ -26,7 +26,7 @@ class Pipeline extends ApplicationPipeline {
   }
 
   @override
-  void willOpen() {
+  Future willOpen() async {
     router.route("/a").then(new Adapter("a").then(new Adapter("b").then(new RequestHandlerGenerator<EndController>())));
   }
 

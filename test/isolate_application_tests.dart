@@ -62,7 +62,7 @@ class TPipeline extends ApplicationPipeline {
   }
 
   @override
-  void willOpen() {
+  Future willOpen() async {
     router = new Router();
 
     router.route("/t").then(new RequestHandlerGenerator<TController>());

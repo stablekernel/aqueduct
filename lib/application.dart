@@ -36,12 +36,7 @@ class ApplicationInstanceConfiguration {
   /// that are attached to this application.
   Map<dynamic, dynamic> pipelineOptions;
 
-  /// Whether or not the server configuration defined by this instance can be shared across isolates.
-  ///
-  /// Defaults to false. When false, only one isolate may listen for requests on the [address] and [port]
-  /// in this configuration. Otherwise, multiple isolates may. You should not need to set this flag directly,
-  /// as starting an [Application] will determine if multiple isolates are being used.
-  bool shared = false;
+  bool _shared = false;
 
   /// The default constructor.
   ApplicationInstanceConfiguration();
@@ -54,7 +49,7 @@ class ApplicationInstanceConfiguration {
         this.isIpv6Only = config.isIpv6Only,
         this.isUsingClientCertificate = config.isUsingClientCertificate,
         this.serverCertificateName = config.serverCertificateName,
-        this.shared = config.shared,
+        this._shared = config._shared,
         this.pipelineOptions = config.pipelineOptions;
 }
 
@@ -114,7 +109,7 @@ class Application {
       }
     }
 
-    configuration.shared = numberOfInstances > 1;
+    configuration._shared = numberOfInstances > 1;
 
     for (int i = 0; i < numberOfInstances; i++) {
       var config =
@@ -124,9 +119,11 @@ class Application {
       servers.add(serverRecord);
     }
 
-    servers.forEach((i) {
-      i.resume();
+    var futures = servers.map((i) {
+      return i.resume();
     });
+
+    await Future.wait(futures);
   }
 
   Future<_ServerRecord> _spawn(
@@ -148,6 +145,8 @@ class Application {
 }
 
 class _Server {
+  static String _FinishedMessage = "finished";
+
   ApplicationInstanceConfiguration configuration;
   SendPort parentMessagePort;
   HttpServer server;
@@ -174,6 +173,8 @@ class _Server {
       });
 
       pipeline.didOpen();
+
+      parentMessagePort.send(_FinishedMessage);
     };
 
     if (configuration.serverCertificateName != null) {
@@ -181,19 +182,19 @@ class _Server {
           .bindSecure(configuration.address, configuration.port,
               certificateName: configuration.serverCertificateName,
               v6Only: configuration.isIpv6Only,
-              shared: configuration.shared)
+              shared: configuration._shared)
           .then(onBind);
     } else if (configuration.isUsingClientCertificate) {
       HttpServer
           .bindSecure(configuration.address, configuration.port,
               requestClientCertificate: true,
               v6Only: configuration.isIpv6Only,
-              shared: configuration.shared)
+              shared: configuration._shared)
           .then(onBind);
     } else {
       HttpServer
           .bind(configuration.address, configuration.port,
-              v6Only: configuration.isIpv6Only, shared: configuration.shared)
+              v6Only: configuration.isIpv6Only, shared: configuration._shared)
           .then(onBind);
     }
   }
@@ -219,8 +220,15 @@ class _ServerRecord {
 
   _ServerRecord(this.isolate, this.receivePort, this.identifier);
 
-  void resume() {
+  Future resume() {
+    var completer = new Completer();
+    receivePort.listen((msg) {
+      if (msg == _Server._FinishedMessage) {
+        completer.complete();
+      }
+    });
     isolate.resume(isolate.pauseCapability);
+    return completer.future.timeout(new Duration(seconds: 30));
   }
 }
 
