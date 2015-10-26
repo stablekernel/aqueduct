@@ -4,20 +4,17 @@ part of monadart;
 ///
 /// Subclasses of this class can process and respond to an HTTP request.
 abstract class HttpController extends RequestHandler {
-  /// The exception handler for a request handler method that generates an HTTP error response.
+  /// An optional exception handler for this controller that generates an HTTP error response.
   ///
-  /// The default handler will always respond to the HTTP request with a 500 status code.
-  /// There are other exception handlers involved in the process of handling a request,
-  /// but once execution enters a handler method (one decorated with [HttpMethod]), this exception handler
-  /// is in place.
+  /// By default, this handler is null. Exceptions will be handled by the default implementation
+  /// of [RequestHandler]. You may provide another exception handler to override the default behavior.
+  /// This exception handler MUST return a [Response] object, no matter what.
   Function get exceptionHandler => _exceptionHandler;
-
   void set exceptionHandler(Response handler(ResourceRequest resourceRequest,
       dynamic exceptionOrError, StackTrace stacktrace)) {
     _exceptionHandler = handler;
   }
-
-  Function _exceptionHandler = _defaultExceptionHandler;
+  Function _exceptionHandler = null;
 
   /// The request being processed by this [HttpController].
   ///
@@ -243,17 +240,13 @@ abstract class HttpController extends RequestHandler {
 
       return response;
     } catch (e, stacktrace) {
-      var response = _exceptionHandler(this.request, e, stacktrace);
-      return response;
+      if (_exceptionHandler != null) {
+        var response = _exceptionHandler(this.request, e, stacktrace);
+        return response;
+      } else {
+        rethrow;
+      }
     }
-  }
-
-  static Response _defaultExceptionHandler(ResourceRequest resourceRequest,
-      dynamic exceptionOrError, StackTrace stacktrace) {
-    print(
-        "Path: ${resourceRequest.innerRequest.uri}\nError: $exceptionOrError\n $stacktrace");
-
-    return new Response.serverError();
   }
 
   @override

@@ -56,14 +56,23 @@ class RequestHandler {
   /// to deliver the [ResourceRequest] to the appropriate route handler. If overriding this
   /// method, it is important that you always invoke subsequent handler's with [deliver]
   /// and not [processRequest].
+
   void deliver(ResourceRequest req) {
-    this.processRequest(req).then((result) {
-      if (result is ResourceRequest && nextHandler != null) {
-        nextHandler.deliver(req);
-      } else if (result is Response) {
-        req.respond(result as Response);
-      }
-    });
+    processRequest(req)
+        .then((result) {
+          if (result is ResourceRequest && nextHandler != null) {
+            nextHandler.deliver(req);
+          } else if (result is Response) {
+            req.respond(result as Response);
+          }
+        })
+        .catchError((err) {
+          if (err is HttpResponseException) {
+            req.respond(err.response());
+          } else {
+            req.respond(new Response.serverError(body: {"error" : "Unexpected exception in ${this.runtimeType}."}));
+          }
+        });
   }
 
   /// Overridden by subclasses to modify or respond to an incoming request.

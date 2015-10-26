@@ -17,3 +17,4 @@ part 'response.dart';
 part 'application.dart';
 part 'request_handler.dart';
 part 'controller_routing.dart';
+part 'http_response_exception.dart';
