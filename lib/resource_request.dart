@@ -9,13 +9,13 @@ class ResourceRequest implements RequestHandlerResult {
   ///
   /// The standard library generated HTTP request object. This contains
   /// all of the request information provided by the client.
-  final HttpRequest request;
+  final HttpRequest innerRequest;
 
   /// The response object of this [ResourceRequest].
   ///
   /// To respond to a request, this object must be written to. It is the same
   /// instance as the [request]'s response.
-  HttpResponse get response => request.response;
+  HttpResponse get response => innerRequest.response;
 
   /// The path and any extracted variable parameters from the URI of this request.
   ///
@@ -31,7 +31,7 @@ class ResourceRequest implements RequestHandlerResult {
   /// to the request so that the handling [HttpController] has access to it.
   Map<dynamic, dynamic> context = new Map();
 
-  ResourceRequest(this.request) {}
+  ResourceRequest(this.innerRequest) {}
 
   void respond(Response respObj) {
     response.statusCode = respObj.statusCode;

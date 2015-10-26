@@ -22,10 +22,10 @@ abstract class HttpController extends RequestHandler {
   /// The request being processed by this [HttpController].
   ///
   /// It is this [HttpController]'s responsibility to return a [Response] object for this request.
-  ResourceRequest resourceRequest;
+  ResourceRequest request;
 
   /// Parameters parsed from the URI of the request, if any exist.
-  Map<String, String> get pathVariables => resourceRequest.path.variables;
+  Map<String, String> get pathVariables => request.path.variables;
 
   /// Types of content this [HttpController] will accept.
   ///
@@ -109,15 +109,15 @@ abstract class HttpController extends RequestHandler {
   }
 
   dynamic _readRequestBodyForRequest(ResourceRequest req) async {
-    if (resourceRequest.request.contentLength > 0) {
-      var incomingContentType = resourceRequest.request.headers.contentType;
+    if (request.innerRequest.contentLength > 0) {
+      var incomingContentType = request.innerRequest.headers.contentType;
       var matchingContentType = acceptedContentTypes.firstWhere((ct) {
         return ct.primaryType == incomingContentType.primaryType &&
             ct.subType == incomingContentType.subType;
       }, orElse: () => null);
 
       if (matchingContentType != null) {
-        return (await HttpBodyHandler.processRequest(resourceRequest.request))
+        return (await HttpBodyHandler.processRequest(request.innerRequest))
             .body;
       } else {
         throw new _InternalControllerException(
@@ -166,7 +166,7 @@ abstract class HttpController extends RequestHandler {
     return handlerMirror.parameters
         .where((methodParmeter) => !methodParmeter.isOptional)
         .map((methodParameter) {
-      var value = this.resourceRequest.path.variables[
+      var value = this.request.path.variables[
           MirrorSystem.getName(methodParameter.simpleName)];
 
       return _convertParameterWithMirror(value, methodParameter);
@@ -175,7 +175,7 @@ abstract class HttpController extends RequestHandler {
 
   Map<Symbol, dynamic> _queryParametersForRequest(
       ResourceRequest req, Symbol handlerMethodSymbol) {
-    var queryParams = req.request.uri.queryParameters;
+    var queryParams = req.innerRequest.uri.queryParameters;
     if (queryParams.length == 0) {
       return null;
     }
@@ -201,13 +201,13 @@ abstract class HttpController extends RequestHandler {
 
   Future<Response> _process() async {
     try {
-      var methodSymbol = _routeMethodSymbolForRequest(resourceRequest);
+      var methodSymbol = _routeMethodSymbolForRequest(request);
       var handlerParameters =
-          _parametersForRequest(resourceRequest, methodSymbol);
+          _parametersForRequest(request, methodSymbol);
       var handlerQueryParameters =
-          _queryParametersForRequest(resourceRequest, methodSymbol);
+          _queryParametersForRequest(request, methodSymbol);
 
-      requestBody = await _readRequestBodyForRequest(resourceRequest);
+      requestBody = await _readRequestBodyForRequest(request);
 
       if (requestBody != null) {
         didDecodeRequestBody(requestBody);
@@ -229,7 +229,7 @@ abstract class HttpController extends RequestHandler {
     } on _InternalControllerException catch (e) {
       var response = new Response(e.statusCode, {}, null);
 
-      resourceRequest.response.statusCode = e.statusCode;
+      request.response.statusCode = e.statusCode;
 
       if (e.additionalHeaders != null) {
         e.additionalHeaders.forEach((name, values) {
@@ -243,7 +243,7 @@ abstract class HttpController extends RequestHandler {
 
       return response;
     } catch (e, stacktrace) {
-      var response = _exceptionHandler(this.resourceRequest, e, stacktrace);
+      var response = _exceptionHandler(this.request, e, stacktrace);
       return response;
     }
   }
@@ -251,14 +251,14 @@ abstract class HttpController extends RequestHandler {
   static Response _defaultExceptionHandler(ResourceRequest resourceRequest,
       dynamic exceptionOrError, StackTrace stacktrace) {
     print(
-        "Path: ${resourceRequest.request.uri}\nError: $exceptionOrError\n $stacktrace");
+        "Path: ${resourceRequest.innerRequest.uri}\nError: $exceptionOrError\n $stacktrace");
 
     return new Response.serverError();
   }
 
   @override
   Future<RequestHandlerResult> processRequest(ResourceRequest req) async {
-    resourceRequest = req;
+    request = req;
 
     willProcessRequest(req);
     var response = await _process();

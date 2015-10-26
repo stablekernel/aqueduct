@@ -87,7 +87,7 @@ class Router extends RequestHandler {
   @override
   void deliver(ResourceRequest req) {
     for (var route in _routes) {
-      var routeMatch = route.pattern.matchUri(req.request.uri);
+      var routeMatch = route.pattern.matchUri(req.innerRequest.uri);
 
       if (routeMatch != null) {
         req.path = routeMatch;

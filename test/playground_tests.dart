@@ -47,6 +47,6 @@ class Adapter extends RequestHandler {
 class EndController extends HttpController {
   @httpGet
   Future<Response> getAll() async {
-    return new Response.ok(resourceRequest.context);
+    return new Response.ok(request.context);
   }
 }

@@ -66,12 +66,34 @@ abstract class ApplicationPipeline extends RequestHandler {
   /// if the user did not set any configuration values.
   Map<String, dynamic> options;
 
+  /// Returns the first handler in the pipeline.
+  ///
+  /// This method must be implemented. When a [ResourceRequest] is delivered to the pipeline, this
+  /// handler will be the first to act on it.  Typically, this is an instance of [Router].
+  /// If you need to add [context] to the [ResourceRequest], override [willReceiveRequest].
   RequestHandler initialHandler();
 
+  /// Executed prior to this being opened.
+  ///
+  /// Use this method to perform any initialization that requires the [options]
+  /// of this pipeline to be set. Initialization that does not require the use of [options]
+  /// should take place in the constructor.
+  /// This method will be executed prior to the start of the [HttpServer].
   Future willOpen() { return null; }
 
+  /// Executed after the pipeline is attached to an [HttpServer].
+  ///
+  /// This method is executed after the [HttpServer] is started and
+  /// the [initialHandler] has been set to start receiving requests.
+  /// Because requests could potentially be queued prior to this pipeline
+  /// being opened, a request could be received prior to this method being executed.
   void didOpen() {}
 
+  /// Executed for each [ResourceRequest] that will be sent to this pipeline.
+  ///
+  /// This method will run prior to each request being [deliver]ed to this
+  /// pipeline's [initialHandler]. Use this method to provide additional
+  /// context to the request prior to it being handled.
   Future willReceiveRequest(ResourceRequest request) { return null; }
 }
 
@@ -148,19 +170,19 @@ class _Server {
   static String _FinishedMessage = "finished";
 
   ApplicationInstanceConfiguration configuration;
-  SendPort parentMessagePort;
+  SendPort supervisingApplicationPort;
   HttpServer server;
   ApplicationPipeline pipeline;
   int identifier;
 
   _Server(this.pipeline, this.configuration, this.identifier,
-      this.parentMessagePort);
+      this.supervisingApplicationPort);
 
   Future start() async {
     pipeline.options = configuration.pipelineOptions;
     await pipeline.willOpen();
 
-    pipeline.next = pipeline.initialHandler();
+    pipeline.nextHandler = pipeline.initialHandler();
 
     var onBind = (s) {
       server = s;
@@ -174,7 +196,7 @@ class _Server {
 
       pipeline.didOpen();
 
-      parentMessagePort.send(_FinishedMessage);
+      supervisingApplicationPort.send(_FinishedMessage);
     };
 
     if (configuration.serverCertificateName != null) {

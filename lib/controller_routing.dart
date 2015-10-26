@@ -45,7 +45,7 @@ class HttpMethod {
 
   /// Returns whether or not this [HttpMethod] matches a [ResourceRequest].
   bool matchesRequest(ResourceRequest req) {
-    if (req.request.method.toLowerCase() != this.method.toLowerCase()) {
+    if (req.innerRequest.method.toLowerCase() != this.method.toLowerCase()) {
       return false;
     }
 

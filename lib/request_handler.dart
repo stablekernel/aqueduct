@@ -26,18 +26,18 @@ class RequestHandler {
   /// The next [RequestHandler] to run if this one responds with [shouldContinue].
   ///
   /// Handlers may be chained together if they have the option not to respond to requests.
-  /// If this handler returns a [ResourceRequest] from [processRequest], this [next]
+  /// If this handler returns a [ResourceRequest] from [processRequest], this [nextHandler]
   /// handler will run. Prefer using [then] to chain together handlers in a single statement.
-  RequestHandler next;
+  RequestHandler nextHandler;
 
   /// The next [RequestHandler] to run if this instance returns a [ResourceRequest].
   ///
   /// Handlers may be chained together if they have the option not to respond to requests.
-  /// If this handler returns a [ResourceRequest] from [processRequest], this [next]
-  /// handler will run. This method sets the [next] property] and returns [this]
+  /// If this handler returns a [ResourceRequest] from [processRequest], this [nextHandler]
+  /// handler will run. This method sets the [nextHandler] property] and returns [this]
   /// to allow chaining.
   RequestHandler then(RequestHandler next) {
-    this.next = next;
+    this.nextHandler = next;
     return this;
   }
 
@@ -45,8 +45,8 @@ class RequestHandler {
   ///
   /// This method is the entry point of a [ResourceRequest] into this [RequestHandler].
   /// By default, it invokes this handler's [processRequest] method and, if that method
-  /// determines processing should continue with the [next] handler and a
-  /// [next] handler exists, the request will be delivered to [next].
+  /// determines processing should continue with the [nextHandler] handler and a
+  /// [nextHandler] handler exists, the request will be delivered to [nextHandler].
   ///
   /// An [ApplicationPipeline] should invoke this method on its initial handler
   /// in its [processRequest] method.
@@ -58,8 +58,8 @@ class RequestHandler {
   /// and not [processRequest].
   void deliver(ResourceRequest req) {
     this.processRequest(req).then((result) {
-      if (result is ResourceRequest && next != null) {
-        next.deliver(req);
+      if (result is ResourceRequest && nextHandler != null) {
+        nextHandler.deliver(req);
       } else if (result is Response) {
         req.respond(result as Response);
       }
@@ -86,7 +86,7 @@ class RequestHandlerGenerator<T> extends RequestHandler {
   void deliver(ResourceRequest req) {
     var handler = reflectClass(T).newInstance(new Symbol(""), []).reflectee
         as RequestHandler;
-    handler.next = this.next;
+    handler.nextHandler = this.nextHandler;
     handler.deliver(req);
   }
 }
