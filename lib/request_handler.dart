@@ -19,7 +19,7 @@ class RequestHandler {
   /// To use a closure-based RequestHandler, you may specify [requestHandler] for
   /// this instance. Otherwise, you may subclass [RequestHandler] and implement
   /// [processRequest] (or in rare cases, [deliver]) to handle request.
-  RequestHandler({RequestHandlerResult requestHandler(ResourceRequest): null}) {
+  RequestHandler({RequestHandlerResult requestHandler(ResourceRequest req): null}) {
     _handler = requestHandler;
   }
 
