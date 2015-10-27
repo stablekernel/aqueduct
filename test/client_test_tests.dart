@@ -7,10 +7,16 @@ import 'dart:async';
 Future main() async {
   var server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 8080);
   server.listen((req) {
-    req.response.statusCode = 200;
-    req.response.headers.add(HttpHeaders.CONTENT_TYPE, "application/json");
-    req.response.writeln(JSON.encode({"error" : "error text"}));
-    req.response.close();
+    var reqHandler = new RequestHandler(requestHandler: (req) {
+      throw new HttpResponseException(400, "This was the error");
+    });
+
+    var resReq = new ResourceRequest(req);
+    reqHandler.deliver(resReq);
+//    req.response.statusCode = 200;
+//    req.response.headers.add(HttpHeaders.CONTENT_TYPE, "application/json");
+//    req.response.writeln(JSON.encode({"error" : "error text"}));
+//    req.response.close();
   });
 
   test ("Client decodes", () async {

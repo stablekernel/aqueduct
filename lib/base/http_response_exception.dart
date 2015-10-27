@@ -7,8 +7,8 @@ class HttpResponseException implements Exception {
   HttpResponseException(this.statusCode, this.message);
 
   Response response() {
-    return new Response(statusCode, {HttpHeaders.CONTENT_TYPE : "application/json"}, {
+    return new Response(statusCode, {HttpHeaders.CONTENT_TYPE : "application/json"}, JSON.encode({
       "error" : message
-    });
+    }));
   }
 }
