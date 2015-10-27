@@ -62,39 +62,39 @@ class AuthDelegate<User extends Model, T extends Model> implements Authenticatio
 
   AuthDelegate(this.adapter);
 
-  Future<T> tokenForAccessToken(String accessToken) {
+  Future<T> tokenForAccessToken(AuthenticationServer server, String accessToken) {
     return _tokenForPredicate(new Predicate("accessToken = @accessToken", {"accessToken" : accessToken}));
   }
 
-  Future<T> tokenForRefreshToken(String refreshToken) {
+  Future<T> tokenForRefreshToken(AuthenticationServer server, String refreshToken) {
     return _tokenForPredicate(new Predicate("refreshToken = @refreshToken", {"refreshToken" : refreshToken}));
   }
 
-  Future<User> authenticatableForUsername(String username) {
+  Future<User> authenticatableForUsername(AuthenticationServer server, String username) {
     var userQ = new Query<User>();
     userQ.predicate = new Predicate("username = @username", {"username" : username});
     return userQ.fetchOne(adapter);
   }
 
-  Future<User> authenticatableForID(int id) {
+  Future<User> authenticatableForID(AuthenticationServer server, int id) {
     var userQ = new Query<User>();
     userQ.predicate = new Predicate("username = @username", {"id" : id});
     return userQ.fetchOne(adapter);
   }
 
-  Future deleteTokenForAccessToken(String accessToken) async {
+  Future deleteTokenForAccessToken(AuthenticationServer server, String accessToken) async {
     var q = new Query<T>();
     q.predicate = new Predicate("accessToken = @ac", {"ac" : accessToken});
     await q.delete(adapter);
   }
 
-  Future storeToken(T t) async {
+  Future storeToken(AuthenticationServer server, T t) async {
     var tokenQ = new Query<T>();
     tokenQ.valueObject = t;
     await tokenQ.insert(adapter);
   }
 
-  Future<Client> clientForID(String id) async {
+  Future<Client> clientForID(AuthenticationServer server, String id) async {
     var salt = "ABCDEFGHIJKLMNOPQRSTUVWXYZ012345";
     if (id == "com.stablekernel.app1") {
       return new Client("com.stablekernel.app1", AuthenticationServer.generatePasswordHash("kilimanjaro", salt), salt);
@@ -106,7 +106,7 @@ class AuthDelegate<User extends Model, T extends Model> implements Authenticatio
     return null;
   }
 
-  Future pruneTokensForResourceOwnerID(dynamic id) async {
+  Future pruneTokensForResourceOwnerID(AuthenticationServer server, dynamic id) async {
     return null;
   }
 

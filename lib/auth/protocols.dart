@@ -18,7 +18,7 @@ class Permission {
   const Permission(this.clientID, this.resourceOwnerIdentifier, this.grantingServer);
 }
 
-abstract class Authenticatable extends Object {
+abstract class Authenticatable {
   String username;
   String hashedPassword;
   String salt;
@@ -26,15 +26,15 @@ abstract class Authenticatable extends Object {
 }
 
 abstract class AuthenticationServerDelegate<ResourceOwner extends Authenticatable, TokenType extends Tokenizable> {
-  Future<TokenType> tokenForAccessToken(String accessToken);
-  Future<TokenType> tokenForRefreshToken(String refreshToken);
-  Future<ResourceOwner> authenticatableForUsername(String username);
-  Future<ResourceOwner> authenticatableForID(dynamic id);
+  Future<TokenType> tokenForAccessToken(AuthenticationServer server, String accessToken);
+  Future<TokenType> tokenForRefreshToken(AuthenticationServer server, String refreshToken);
+  Future<ResourceOwner> authenticatableForUsername(AuthenticationServer server, String username);
+  Future<ResourceOwner> authenticatableForID(AuthenticationServer server, dynamic id);
 
-  Future<Client> clientForID(String id);
-  Future deleteTokenForAccessToken(String accessToken);
+  Future<Client> clientForID(AuthenticationServer server, String id);
+  Future deleteTokenForAccessToken(AuthenticationServer server, String accessToken);
 
-  Future storeToken(TokenType t);
+  Future storeToken(AuthenticationServer server, TokenType t);
 
-  Future pruneTokensForResourceOwnerID(dynamic id);
+  Future pruneTokensForResourceOwnerID(AuthenticationServer server, dynamic id);
 }
