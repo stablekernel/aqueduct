@@ -13,32 +13,24 @@ main() async {
   app.pipelineType = TPipeline;
   await app.start();
 
+  var tc = new TestClient()
+    ..host = "http://localhost:8080"
+    ..defaultClientID = "com.stablekernel.app1"
+    ..defaultClientSecret = "kilimanjaro";
+
   test("Can create user", () async {
-    var response = await http.post("http://localhost:8080/users",
-        headers: {
-          HttpHeaders.AUTHORIZATION : "Basic ${CryptoUtils.bytesToBase64("com.stablekernel.app1:kilimanjaro".codeUnits)}",
-          HttpHeaders.CONTENT_TYPE : "application/json;charset=utf-8",
-          HttpHeaders.ACCEPT : "application/json"
-        },
-        body: JSON.encode({
-          "username" : "bob@stablekernel.com",
-          "password" : "axespin16&"
-        })
-    );
+    var response = await (tc.clientAuthenticatedJSONRequest("/users")..json = {
+      "username" : "bob@stablekernel.com",
+      "password" : "axespin16&"
+    }).post();
     expect(response.statusCode, 200);
+    expect(response.hasOnlyKeys(["access_token", "refresh_token", "token_type", "expires_in"]), true);
 
-    var token = JSON.decode(response.body);
-    var accessToken = token["access_token"];
-    print("$accessToken");
-    response = await http.get("http://localhost:8080/identity",
-      headers: {
-        HttpHeaders.AUTHORIZATION : "Bearer ${accessToken}",
-        HttpHeaders.CONTENT_TYPE : "application/json;charset=utf-8"
-      }
-    );
+    tc.token = response.json;
 
+    response = await (tc.authenticatedJSONRequest("/identity")).get();
     expect(response.statusCode, 200);
-    expect(JSON.decode(response.body)["username"], "bob@stablekernel.com");
+    expect(response.json["username"], "bob@stablekernel.com");
   });
 }
 

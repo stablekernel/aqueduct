@@ -9,6 +9,8 @@ import 'package:crypto/crypto.dart';
 import 'package:pbkdf2/pbkdf2.dart';
 import 'dart:math';
 import 'package:http_server/http_server.dart';
+import 'package:http/http.dart' as http;
+
 export 'package:http_server/http_server.dart';
 
 part 'base/resource_pattern.dart';
@@ -28,3 +30,5 @@ part 'auth/client.dart';
 part 'auth/auth_controller.dart';
 part 'auth/authorization_parser.dart';
 part 'auth/authentication_server.dart';
+
+part 'utilities/test_client.dart';

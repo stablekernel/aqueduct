@@ -5,10 +5,10 @@ dependencies:
   http_server: any
   pbkdf2: any
   crypto: any
+  http: any
 
 dev_dependencies:
   test: any
-  http: any
   inquirer_pgsql:
     git:
       url: https://github.com/stablekernel/inquirer_pgsql.git
