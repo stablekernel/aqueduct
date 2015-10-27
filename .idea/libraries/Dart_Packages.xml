@@ -107,6 +107,20 @@
             </list>
           </value>
         </entry>
+        <entry key="inquirer">
+          <value>
+            <list>
+              <option value="$USER_HOME$/.pub-cache/git/inquirer-5225222ad773a3c4a43000168fc2d8f05462b646/lib" />
+            </list>
+          </value>
+        </entry>
+        <entry key="inquirer_pgsql">
+          <value>
+            <list>
+              <option value="$USER_HOME$/.pub-cache/git/inquirer_pgsql-049dc1eff91abb4e330e823a1447477152d09df3/lib" />
+            </list>
+          </value>
+        </entry>
         <entry key="logging">
           <value>
             <list>
@@ -142,6 +156,13 @@
             </list>
           </value>
         </entry>
+        <entry key="pbkdf2">
+          <value>
+            <list>
+              <option value="$USER_HOME$/.pub-cache/hosted/pub.dartlang.org/pbkdf2-0.1.0/lib" />
+            </list>
+          </value>
+        </entry>
         <entry key="plugin">
           <value>
             <list>
@@ -153,6 +174,13 @@
           <value>
             <list>
               <option value="$USER_HOME$/.pub-cache/hosted/pub.dartlang.org/pool-1.2.0/lib" />
+            </list>
+          </value>
+        </entry>
+        <entry key="postgresql">
+          <value>
+            <list>
+              <option value="$USER_HOME$/.pub-cache/git/postgresql-cf4c04c48df9027a64d4c8c8ee855f8e1ee22662/lib" />
             </list>
           </value>
         </entry>
@@ -257,6 +285,9 @@
       </option>
     </properties>
     <CLASSES>
+      <root url="file://$USER_HOME$/.pub-cache/git/inquirer-5225222ad773a3c4a43000168fc2d8f05462b646/lib" />
+      <root url="file://$USER_HOME$/.pub-cache/git/inquirer_pgsql-049dc1eff91abb4e330e823a1447477152d09df3/lib" />
+      <root url="file://$USER_HOME$/.pub-cache/git/postgresql-cf4c04c48df9027a64d4c8c8ee855f8e1ee22662/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dartlang.org/analyzer-0.26.1+16/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dartlang.org/args-0.13.2/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dartlang.org/async-1.3.0/lib" />
@@ -277,6 +308,7 @@
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dartlang.org/mime-0.9.3/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dartlang.org/package_config-0.1.3/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dartlang.org/path-1.3.6/lib" />
+      <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dartlang.org/pbkdf2-0.1.0/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dartlang.org/plugin-0.1.0/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dartlang.org/pool-1.2.0/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dartlang.org/pub_semver-1.2.2/lib" />

@@ -2,9 +2,14 @@ name: monadart
 version: 0.0.1
 description: A pipeline for building web services
 dependencies:
-    http_server: any
+  http_server: any
+  pbkdf2: any
+  crypto: any
 
 dev_dependencies:
   test: any
   http: any
-
+  inquirer_pgsql:
+    git:
+      url: https://github.com/stablekernel/inquirer_pgsql.git
+      ref: master
