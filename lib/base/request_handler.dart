@@ -70,7 +70,8 @@ class RequestHandler {
           if (err is HttpResponseException) {
             req.respond(err.response());
           } else {
-            req.respond(new Response.serverError(body: {"error" : "Unexpected exception in ${this.runtimeType}.", "stacktrace" : st.toString()}));
+            req.respond(new Response.serverError(headers: {HttpHeaders.CONTENT_TYPE : "application/json"},
+                body: JSON.encode({"error" : "Unexpected exception in ${this.runtimeType}.", "stacktrace" : st.toString()})));
           }
         });
   }
