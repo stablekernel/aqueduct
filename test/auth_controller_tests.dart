@@ -20,7 +20,6 @@ void main() {
     adapter.loggingEnabled = true;
 
     var authenticationServer = new AuthenticationServer<TestUser, Token>(
-        [new Client("com.stablekernel.app1", "kilimanjaro")],
         new AuthDelegate<TestUser, Token>(adapter));
 
     HttpServer

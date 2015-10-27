@@ -24,7 +24,7 @@ void main() {
   });
 
   test("Generate and verify token", () async {
-    var auth = new AuthenticationServer<TestUser, Token>([new Client("com.stablekernel.app1", "kilimanjaro")], delegate);
+    var auth = new AuthenticationServer<TestUser, Token>(delegate);
     TestUser createdUser = (await createUsers(adapter, 1)).first;
 
     var token = await auth.authenticate("bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app1", "kilimanjaro");
@@ -46,7 +46,7 @@ void main() {
   });
 
   test("Bad client ID and secret fails", () async {
-    var auth = new AuthenticationServer<TestUser, Token>([new Client("com.stablekernel.app1", "kilimanjaro")], delegate);
+    var auth = new AuthenticationServer<TestUser, Token>(delegate);
     await createUsers(adapter, 1);
 
     try {
@@ -65,7 +65,7 @@ void main() {
   });
 
   test("Invalid username and password fails", () async {
-    var auth = new AuthenticationServer<TestUser, Token>([new Client("com.stablekernel.app1", "kilimanjaro")], delegate);
+    var auth = new AuthenticationServer<TestUser, Token>(delegate);
     await createUsers(adapter, 1);
 
     try {
@@ -84,7 +84,7 @@ void main() {
   });
 
   test("Expiration date works correctly", () async {
-    var auth = new AuthenticationServer<TestUser, Token>([new Client("com.stablekernel.app1", "kilimanjaro")], delegate);
+    var auth = new AuthenticationServer<TestUser, Token>(delegate);
     await createUsers(adapter, 1);
     var t = await auth.authenticate("bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app1", "kilimanjaro", expirationInSeconds: 5);
 
@@ -102,9 +102,7 @@ void main() {
   });
 
   test("Clients have separate tokens", () async {
-    var auth = new AuthenticationServer<TestUser, Token>(
-    [new Client("com.stablekernel.app1", "kilimanjaro"),
-    new Client("com.stablekernel.app2", "fuji")], delegate);
+    var auth = new AuthenticationServer<TestUser, Token>(delegate);
 
     TestUser createdUser = (await createUsers(adapter, 1)).first;
 
@@ -124,7 +122,7 @@ void main() {
   });
 
   test("Ensure users aren't authenticated by other users", () async {
-    var auth = new AuthenticationServer<TestUser, Token>([new Client("com.stablekernel.app1", "kilimanjaro")], delegate);
+    var auth = new AuthenticationServer<TestUser, Token>(delegate);
     var users = await createUsers(adapter, 10);
     var t1 = await auth.authenticate("bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app1", "kilimanjaro");
     var t2 = await auth.authenticate("bob+4@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app1", "kilimanjaro");
@@ -139,7 +137,7 @@ void main() {
   });
 
   test("Refresh token works correctly", () async {
-    var auth = new AuthenticationServer<TestUser, Token>([new Client("com.stablekernel.app1", "kilimanjaro")], delegate);
+    var auth = new AuthenticationServer<TestUser, Token>(delegate);
     TestUser user = (await createUsers(adapter, 1)).first;
 
     var t1 = await auth.authenticate("bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app1", "kilimanjaro");
@@ -196,13 +194,12 @@ void main() {
   });
 
   test("Refresh token doesn't work on wrong client id", () async {
-    var auth = new AuthenticationServer<TestUser, Token>([new Client("com.stablekernel.app1", "kilimanjaro"),
-    new Client("com.stablekernel.app2", "foobar")], delegate);
+    var auth = new AuthenticationServer<TestUser, Token>(delegate);
     await createUsers(adapter, 1);
 
     var t1 = await auth.authenticate("bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app1", "kilimanjaro");
     try {
-      await auth.refresh(t1.refreshToken, "com.stablekernel.app2", "foobar");
+      await auth.refresh(t1.refreshToken, "com.stablekernel.app2", "fuji");
       fail("Should not get here");
     } catch (e) {
       expect(e.suggestedHTTPStatusCode, 401);

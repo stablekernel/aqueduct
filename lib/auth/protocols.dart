@@ -31,6 +31,7 @@ abstract class AuthenticationServerDelegate<ResourceOwner extends Authenticatabl
   Future<ResourceOwner> authenticatableForUsername(String username);
   Future<ResourceOwner> authenticatableForID(dynamic id);
 
+  Future<Client> clientForID(String id);
   Future deleteTokenForAccessToken(String accessToken);
 
   Future storeToken(TokenType t);

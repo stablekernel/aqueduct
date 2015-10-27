@@ -69,7 +69,6 @@ class TPipeline extends ApplicationPipeline {
     adapter.loggingEnabled = true;
 
     authenticationServer = new AuthenticationServer<TestUser, Token>(
-        [new Client("com.stablekernel.app1", "kilimanjaro")],
         new AuthDelegate<TestUser, Token>(adapter));
 
     router.route(AuthController.RoutePattern).then(new RequestHandlerGenerator<AuthController<TestUser, Token>>());
@@ -124,8 +123,7 @@ class UsersController extends HttpController {
 
     var token = await permission.grantingServer.authenticate(u.username,
         password,
-        permission.clientID,
-        permission.grantingServer.clients[permission.clientID].secret);
+        permission.clientID, "kilimanjaro");
 
     return AuthController.tokenResponse(token);
   }

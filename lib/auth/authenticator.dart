@@ -66,12 +66,12 @@ class Authenticator extends RequestHandler {
       return parser.errorResponse;
     }
 
-    var client = server.clients[parser.username];
+    var client = await server.delegate.clientForID(parser.username);
     if (client == null) {
       return new Response.unauthorized();
     }
 
-    if (client.secret != parser.password) {
+    if (client.hashedSecret != AuthenticationServer.generatePasswordHash(parser.password, client.salt)) {
       return new Response.unauthorized();
     }
 
@@ -92,16 +92,9 @@ class Authenticator extends RequestHandler {
 }
 
 class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType extends Tokenizable> {
-  Map<String, Client> clients;
-  int hashRounds = 1000;
-  int hashLength = 32;
   AuthenticationServerDelegate<ResourceOwner, TokenType> delegate;
 
-  AuthenticationServer(List<Client> clients, this.delegate) {
-    this.clients = {};
-    clients.forEach((c) {
-      this.clients[c.id] = c;
-    });
+  AuthenticationServer(this.delegate) {
   }
 
   Authenticator authenticator({List<String> strategies: const [Authenticator.StrategyResourceOwner]}) {
@@ -143,9 +136,12 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
   }
 
   Future<TokenType> refresh(String refreshToken, String clientID, String clientSecret) async {
-    Client client = clients[clientID];
-    if (client == null || client.secret != clientSecret) {
-      throw new AuthenticationServerException("Invalid client_id or client_secret", 401);
+    Client client = await delegate.clientForID(clientID);
+    if (client == null) {
+      throw new AuthenticationServerException("Invalid client_id", 401);
+    }
+    if (client.hashedSecret != generatePasswordHash(clientSecret, client.salt)) {
+      throw new AuthenticationServerException("Invalid client_secret", 401);
     }
 
     TokenType t = await delegate.tokenForRefreshToken(refreshToken);
@@ -163,9 +159,12 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
   }
 
   Future<TokenType> authenticate(String username, String password, String clientID, String clientSecret, {int expirationInSeconds: 3600}) async {
-    Client client = clients[clientID];
-    if (client == null || client.secret != clientSecret) {
-      throw new AuthenticationServerException("Invalid client_id or client_secret", 401);
+    Client client = await delegate.clientForID(clientID);
+    if (client == null) {
+      throw new AuthenticationServerException("Invalid client_id", 401);
+    }
+    if (client.hashedSecret != generatePasswordHash(clientSecret, client.salt)) {
+      throw new AuthenticationServerException("Invalid client_secret", 401);
     }
 
     var authenticatable = await delegate.authenticatableForUsername(username);
@@ -176,7 +175,7 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
     var dbSalt = authenticatable.salt;
     var dbPassword = authenticatable.hashedPassword;
 
-    var hash = AuthenticationServer.generatePasswordHash(password, dbSalt, hashRounds: hashRounds, hashLength: hashLength);
+    var hash = AuthenticationServer.generatePasswordHash(password, dbSalt);
     if (hash != dbPassword) {
       throw new AuthenticationServerException("Invalid password", 401);
     }

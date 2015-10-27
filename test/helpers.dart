@@ -39,6 +39,7 @@ class Token extends Object with Model implements TokenBacking {
   noSuchMethod(inv) => super.noSuchMethod(inv);
 }
 
+
 class TokenBacking implements Tokenizable {
   @Attributes(primaryKey: true, databaseType: "bigserial")
   int id;
@@ -91,6 +92,18 @@ class AuthDelegate<User extends Model, T extends Model> implements Authenticatio
     var tokenQ = new Query<T>();
     tokenQ.valueObject = t;
     await tokenQ.insert(adapter);
+  }
+
+  Future<Client> clientForID(String id) async {
+    var salt = "ABCDEFGHIJKLMNOPQRSTUVWXYZ012345";
+    if (id == "com.stablekernel.app1") {
+      return new Client("com.stablekernel.app1", AuthenticationServer.generatePasswordHash("kilimanjaro", salt), salt);
+    }
+    if (id == "com.stablekernel.app2") {
+      return new Client("com.stablekernel.app2", AuthenticationServer.generatePasswordHash("fuji", salt), salt);
+    }
+
+    return null;
   }
 
   Future pruneTokensForResourceOwnerID(dynamic id) async {
