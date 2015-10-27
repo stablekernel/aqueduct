@@ -140,7 +140,7 @@ class TestResponse {
 class JSONTestResponse extends TestResponse {
   final Map<String, dynamic> json;
 
-  JSONTestResponse(int statusCode, Map<String, String> headers, dynamic responseBody) : super(statusCode, headers, responseBody), json = JSON.decode(responseBody);
+  JSONTestResponse(int statusCode, Map<String, String> headers, dynamic responseBody) : super(statusCode, headers, responseBody), json = responseBody;
 
   bool hasKeys(List<String> keys) {
     for (var k in keys) {
