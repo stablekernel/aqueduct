@@ -2,10 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="dd762622-8cd1-44be-bf31-6275e1efbac7" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lib/base/http_response_exception.dart" afterPath="$PROJECT_DIR$/lib/base/http_response_exception.dart" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lib/utilities/test_client.dart" afterPath="$PROJECT_DIR$/lib/utilities/test_client.dart" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/client_test_tests.dart" afterPath="$PROJECT_DIR$/test/client_test_tests.dart" />
     </list>
     <ignored path="monadart.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -107,8 +104,8 @@
       <file leaf-file-name="test_client.dart" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/lib/utilities/test_client.dart">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.5929078">
-              <caret line="144" column="62" selection-start-line="144" selection-start-column="62" selection-end-line="144" selection-end-column="62" />
+            <state vertical-scroll-proportion="0.5687943">
+              <caret line="143" column="37" selection-start-line="143" selection-start-column="37" selection-end-line="143" selection-end-column="37" />
               <folding />
             </state>
           </provider>
@@ -752,7 +749,7 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="23" width="1920" height="1173" extended-state="0" />
-    <editor active="false" />
+    <editor active="true" />
     <layout>
       <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
@@ -1206,8 +1203,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/lib/utilities/test_client.dart">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.5929078">
-          <caret line="144" column="62" selection-start-line="144" selection-start-column="62" selection-end-line="144" selection-end-column="62" />
+        <state vertical-scroll-proportion="0.5687943">
+          <caret line="143" column="37" selection-start-line="143" selection-start-column="37" selection-end-line="143" selection-end-column="37" />
           <folding />
         </state>
       </provider>

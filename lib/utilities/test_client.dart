@@ -142,7 +142,6 @@ class JSONTestResponse extends TestResponse {
 
   JSONTestResponse(int statusCode, Map<String, String> headers, dynamic responseBody) : super(statusCode, headers, responseBody) {
     json = JSON.decode(responseBody);
-    print("Received: $responseBody ${responseBody.runtimeType} $json ${json.runtimeType}");
   }
 
   bool hasKeys(List<String> keys) {
