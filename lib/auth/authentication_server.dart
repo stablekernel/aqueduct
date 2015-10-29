@@ -32,7 +32,7 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
 
   Future<Permission> verify(String accessToken) async {
     TokenType t = await delegate.tokenForAccessToken(this, accessToken);
-    if (isTokenExpired(t)) {
+    if (t == null || isTokenExpired(t)) {
       throw new HttpResponseException(401, "Expired token");
     }
 

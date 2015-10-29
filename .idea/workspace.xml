@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="dd762622-8cd1-44be-bf31-6275e1efbac7" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lib/auth/authenticator.dart" afterPath="$PROJECT_DIR$/lib/auth/authenticator.dart" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lib/auth/authentication_server.dart" afterPath="$PROJECT_DIR$/lib/auth/authentication_server.dart" />
     </list>
     <ignored path="monadart.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -37,21 +37,23 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="authentication_server.dart" pinned="false" current-in-tab="false">
+      <file leaf-file-name="authentication_server.dart" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/lib/auth/authentication_server.dart">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="32" column="21" selection-start-line="32" selection-start-column="21" selection-end-line="32" selection-end-column="21" />
-              <folding />
+            <state vertical-scroll-proportion="0.4059829">
+              <caret line="34" column="21" selection-start-line="34" selection-start-column="21" selection-end-line="34" selection-end-column="21" />
+              <folding>
+                <marker date="1446148903000" expanded="true" signature="777:894" placeholder="{...}" />
+              </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="authenticator.dart" pinned="false" current-in-tab="true">
+      <file leaf-file-name="authenticator.dart" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/lib/auth/authenticator.dart">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.33333334">
-              <caret line="53" column="26" selection-start-line="53" selection-start-column="25" selection-end-line="53" selection-end-column="26" />
+            <state vertical-scroll-proportion="-13.37037">
+              <caret line="61" column="34" selection-start-line="61" selection-start-column="34" selection-end-line="61" selection-end-column="34" />
               <folding />
             </state>
           </provider>
@@ -167,9 +169,9 @@
         <option value="$PROJECT_DIR$/lib/utilities/test_client.dart" />
         <option value="$PROJECT_DIR$/lib/auth/auth_controller.dart" />
         <option value="$PROJECT_DIR$/test/helpers.dart" />
-        <option value="$PROJECT_DIR$/lib/auth/authentication_server.dart" />
         <option value="$PROJECT_DIR$/test/authenticate_tests.dart" />
         <option value="$PROJECT_DIR$/lib/auth/authenticator.dart" />
+        <option value="$PROJECT_DIR$/lib/auth/authentication_server.dart" />
       </list>
     </option>
   </component>
@@ -1146,14 +1148,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/lib/auth/authentication_server.dart">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="32" column="21" selection-start-line="32" selection-start-column="21" selection-end-line="32" selection-end-column="21" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/lib/base/http_response_exception.dart">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1164,9 +1158,19 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/lib/auth/authenticator.dart">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.33333334">
-          <caret line="53" column="26" selection-start-line="53" selection-start-column="25" selection-end-line="53" selection-end-column="26" />
+        <state vertical-scroll-proportion="-13.37037">
+          <caret line="61" column="34" selection-start-line="61" selection-start-column="34" selection-end-line="61" selection-end-column="34" />
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/auth/authentication_server.dart">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.4059829">
+          <caret line="34" column="21" selection-start-line="34" selection-start-column="21" selection-end-line="34" selection-end-column="21" />
+          <folding>
+            <marker date="1446148903000" expanded="true" signature="777:894" placeholder="{...}" />
+          </folding>
         </state>
       </provider>
     </entry>
