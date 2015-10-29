@@ -70,7 +70,7 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
     }
 
     TokenType t = await delegate.tokenForRefreshToken(this, refreshToken);
-    if(t.clientID != clientID) {
+    if(t == null || t.clientID != clientID) {
       throw new HttpResponseException(401, "Invalid client_id for token");
     }
 

@@ -40,10 +40,10 @@
       <file leaf-file-name="authentication_server.dart" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/lib/auth/authentication_server.dart">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.4059829">
-              <caret line="34" column="21" selection-start-line="34" selection-start-column="21" selection-end-line="34" selection-end-column="21" />
+            <state vertical-scroll-proportion="0.6965812">
+              <caret line="72" column="20" selection-start-line="72" selection-start-column="20" selection-end-line="72" selection-end-column="20" />
               <folding>
-                <marker date="1446148903000" expanded="true" signature="777:894" placeholder="{...}" />
+                <marker date="1446148950000" expanded="true" signature="777:894" placeholder="{...}" />
               </folding>
             </state>
           </provider>
@@ -1166,10 +1166,10 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/lib/auth/authentication_server.dart">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.4059829">
-          <caret line="34" column="21" selection-start-line="34" selection-start-column="21" selection-end-line="34" selection-end-column="21" />
+        <state vertical-scroll-proportion="0.6965812">
+          <caret line="72" column="20" selection-start-line="72" selection-start-column="20" selection-end-line="72" selection-end-column="20" />
           <folding>
-            <marker date="1446148903000" expanded="true" signature="777:894" placeholder="{...}" />
+            <marker date="1446148950000" expanded="true" signature="777:894" placeholder="{...}" />
           </folding>
         </state>
       </provider>
