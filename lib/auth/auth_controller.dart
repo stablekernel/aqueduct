@@ -2,7 +2,7 @@ part of monadart;
 
 class AuthController<ResourceOwner extends Authenticatable, TokenType extends Tokenizable> extends HttpController {
 
-  static String get RoutePattern => "/auth/token/[:action(refresh|revoke)]";
+  static String get RoutePattern => "/auth/token/[refresh]";
 
   static String get AuthenticationServerContextKey =>
       "AuthenticationServerContextKey";
@@ -15,11 +15,7 @@ class AuthController<ResourceOwner extends Authenticatable, TokenType extends To
   }
 
   @httpPost
-  Future<Response> refreshToken(String action) async {
-    if (action != "refresh") {
-      return new Response.badRequest(body: {"error" : "POST /auth/token/:action; action must be refresh."});
-    }
-
+  Future<Response> refreshToken(String _) async {
     var authorizationHeader = request.innerRequest.headers[HttpHeaders
         .AUTHORIZATION]?.first;
 

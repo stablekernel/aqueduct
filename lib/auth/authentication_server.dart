@@ -3,6 +3,7 @@ part of monadart;
 
 class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType extends Tokenizable> {
   AuthenticationServerDelegate<ResourceOwner, TokenType> delegate;
+  Map<String, Client> _clientCache = {};
 
   AuthenticationServer(this.delegate) {
   }
@@ -16,7 +17,17 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
   }
 
   Future<Client> clientForID(String id) async {
-    return delegate.clientForID(this, id);
+    Client client = _clientCache[id] ?? (await delegate.clientForID(this, id));
+
+    _clientCache[id] = client;
+
+    return client;
+  }
+
+  void revokeClient(String clientID) {
+    _clientCache.remove(clientID);
+
+    // TODO: Call delegate method to revoke client from persistent storage.
   }
 
   Future<Permission> verify(String accessToken) async {
@@ -50,7 +61,7 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
   }
 
   Future<TokenType> refresh(String refreshToken, String clientID, String clientSecret) async {
-    Client client = await delegate.clientForID(this, clientID);
+    Client client = await clientForID(clientID);
     if (client == null) {
       throw new AuthenticationServerException("Invalid client_id", 401);
     }
@@ -73,7 +84,7 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
   }
 
   Future<TokenType> authenticate(String username, String password, String clientID, String clientSecret, {int expirationInSeconds: 3600}) async {
-    Client client = await delegate.clientForID(this, clientID);
+    Client client = await clientForID(clientID);
     if (client == null) {
       throw new AuthenticationServerException("Invalid client_id", 401);
     }
@@ -119,6 +130,7 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
 
     return CryptoUtils.bytesToBase64(salt);
   }
+
 }
 
 class AuthenticationServerException implements Exception {
