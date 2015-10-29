@@ -30,7 +30,7 @@ class Authenticator extends RequestHandler {
 
         errorResponse = result;
       } else if (strategy == Authenticator.StrategyOptionalResourceOwner) {
-        var result = processOptionalResourceOwne(req);
+        var result = processOptionalResourceOwner(req);
         if (result is ResourceRequest) {
           return result;
         }
@@ -51,13 +51,9 @@ class Authenticator extends RequestHandler {
       return parser.errorResponse;
     }
 
-    try {
-      var permission = await server.verify(parser.bearerToken);
-      req.context[PermissionKey] = permission;
-      return req;
-    } catch (e) {
-      return new Response(e.suggestedHTTPStatusCode, null, {"error" : e.message});
-    }
+    var permission = await server.verify(parser.bearerToken);
+    req.context[PermissionKey] = permission;
+    return req;
   }
 
   Future<RequestHandlerResult> processClientRequest(ResourceRequest req) async {
@@ -81,7 +77,7 @@ class Authenticator extends RequestHandler {
     return req;
   }
 
-  Future<RequestHandlerResult> processOptionalResourceOwne(ResourceRequest req) async {
+  Future<RequestHandlerResult> processOptionalResourceOwner(ResourceRequest req) async {
     var authHeader = req.innerRequest.headers[HttpHeaders.AUTHORIZATION]?.first;
     if (authHeader == null) {
       return req;
