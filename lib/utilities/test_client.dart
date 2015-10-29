@@ -135,6 +135,10 @@ class TestResponse {
   final Map<String, String> headers;
 
   TestResponse(this.statusCode, this.headers, this.body);
+
+  String toString() {
+    return "$statusCode - $headers - $body";
+  }
 }
 
 class JSONTestResponse extends TestResponse {
@@ -142,6 +146,10 @@ class JSONTestResponse extends TestResponse {
 
   JSONTestResponse(int statusCode, Map<String, String> headers, dynamic responseBody) : super(statusCode, headers, responseBody) {
     json = JSON.decode(responseBody);
+  }
+
+  String toString() {
+    return "${super.toString()} $json";
   }
 
   bool hasKeys(List<String> keys) {
