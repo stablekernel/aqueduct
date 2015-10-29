@@ -30,13 +30,9 @@ class AuthController<ResourceOwner extends Authenticatable, TokenType extends To
     }
 
     var refreshToken = requestBody["refresh_token"];
-    try {
-      var token = await authenticationServer.refresh(refreshToken, rec.username, rec.password);
+    var token = await authenticationServer.refresh(refreshToken, rec.username, rec.password);
 
-      return AuthController.tokenResponse(token);
-    } on AuthenticationServerException catch (exp) {
-      return new Response(exp.suggestedHTTPStatusCode, {}, null);
-    }
+    return AuthController.tokenResponse(token);
   }
 
   @httpPost
@@ -59,14 +55,10 @@ class AuthController<ResourceOwner extends Authenticatable, TokenType extends To
       return new Response.badRequest(body: {"error" : "username and password required"});
     }
 
-    try {
-      var token = await authenticationServer.authenticate(
-          username, password, rec.username, rec.password);
+    var token = await authenticationServer.authenticate(
+        username, password, rec.username, rec.password);
 
-      return AuthController.tokenResponse(token);
-    } on AuthenticationServerException catch (exp) {
-      return new Response(exp.suggestedHTTPStatusCode, {}, null);
-    }
+    return AuthController.tokenResponse(token);
   }
 
   static Response tokenResponse(Tokenizable token) {

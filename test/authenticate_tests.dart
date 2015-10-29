@@ -41,7 +41,7 @@ void main() {
       permission = await auth.verify("foobar");
       fail("Shouldn't get here");
     } catch (e) {
-      expect(e.suggestedHTTPStatusCode, 401);
+      expect(e.statusCode, 401);
     }
   });
 
@@ -53,14 +53,14 @@ void main() {
       await auth.authenticate("bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app20", "kilimanjaro");
       fail("Shouldn't get here");
     } catch (e) {
-      expect(e.suggestedHTTPStatusCode, 401);
+      expect(e.statusCode, 401);
     }
 
     try {
       await auth.authenticate("bob0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app1", "foobar");
       fail("Shouldn't get here");
     } catch (e) {
-      expect(e.suggestedHTTPStatusCode, 401);
+      expect(e.statusCode, 401);
     }
   });
 
@@ -72,14 +72,14 @@ void main() {
       await auth.authenticate("fred@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app1", "kilimanjaro");
       fail("Shouldn't get here");
     } catch (e) {
-      expect(e.suggestedHTTPStatusCode, 400);
+      expect(e.statusCode, 400);
     }
 
     try {
       await auth.authenticate("bob+0@stablekernel.com", "foobar", "com.stablekernel.app1", "kilimanjaro");
       fail("Shouldn't get here");
     } catch (e) {
-      expect(e.suggestedHTTPStatusCode, 401);
+      expect(e.statusCode, 401);
     }
   });
 
@@ -97,7 +97,7 @@ void main() {
       await auth.verify(t.accessToken);
       fail("Shouldn't get here");
     } catch (e) {
-      expect(e.suggestedHTTPStatusCode, 401);
+      expect(e.statusCode, 401);
     }
   });
 
@@ -154,7 +154,7 @@ void main() {
       await auth.verify(t2.accessToken);
       fail("Should not get here");
     } catch (e) {
-      expect(e.suggestedHTTPStatusCode, 401);
+      expect(e.statusCode, 401);
     }
 
     var n1 = await auth.refresh(t1.refreshToken, "com.stablekernel.app1", "kilimanjaro");
@@ -171,14 +171,14 @@ void main() {
       await auth.verify(t1.accessToken);
       fail("Should not get here");
     } catch (e) {
-      expect(e.suggestedHTTPStatusCode, 401);
+      expect(e.statusCode, 401);
     }
 
     try {
       await auth.verify(t2.accessToken);
       fail("Should not get here");
     } catch (e) {
-      expect(e.suggestedHTTPStatusCode, 401);
+      expect(e.statusCode, 401);
     }
 
     sleep(new Duration(seconds: 5));
@@ -189,7 +189,7 @@ void main() {
       await auth.verify(t2.accessToken);
       fail("Should not get here");
     } catch (e) {
-      expect(e.suggestedHTTPStatusCode, 401);
+      expect(e.statusCode, 401);
     }
   });
 
@@ -202,7 +202,7 @@ void main() {
       await auth.refresh(t1.refreshToken, "com.stablekernel.app2", "fuji");
       fail("Should not get here");
     } catch (e) {
-      expect(e.suggestedHTTPStatusCode, 401);
+      expect(e.statusCode, 401);
     }
   });
 

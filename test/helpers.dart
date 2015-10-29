@@ -115,7 +115,7 @@ class AuthDelegate<User extends Model, T extends Model> implements Authenticatio
     tokenQ.predicate = p;
     var result = await tokenQ.fetchOne(adapter);
     if (result == null) {
-      throw new AuthenticationServerException("Invalid token", 401);
+      throw new HttpResponseException(401, "Invalid Token");
     }
 
     return result;
