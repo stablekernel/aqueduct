@@ -65,9 +65,11 @@ class TPipeline extends ApplicationPipeline {
 
     router.route(AuthController.RoutePattern).then(new RequestHandlerGenerator<AuthController<TestUser, Token>>());
     router.route("/users")
-        .then(authenticationServer.authenticator(strategies: [Authenticator.StrategyResourceOwner, Authenticator.StrategyClient])
-        .then(new RequestHandlerGenerator<UsersController>()));
-    router.route("/identity").then(authenticationServer.authenticator().then(new RequestHandlerGenerator<IdentityController>()));
+        .then(authenticationServer.authenticator(strategies: [Authenticator.StrategyResourceOwner, Authenticator.StrategyClient]))
+        .then(new RequestHandlerGenerator<UsersController>());
+    router.route("/identity")
+        .then(authenticationServer.authenticator())
+        .then(new RequestHandlerGenerator<IdentityController>());
   }
 }
 

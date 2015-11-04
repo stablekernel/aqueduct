@@ -38,7 +38,7 @@ class RequestHandler {
   /// to allow chaining.
   RequestHandler then(RequestHandler next) {
     this.nextHandler = next;
-    return this;
+    return next;
   }
 
   /// The mechanism for delivering a [ResourceRequest] to this handler for processing.
