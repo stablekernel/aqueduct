@@ -118,7 +118,9 @@ class TestRequest <ResponseType extends TestResponse> {
 
 class JSONTestRequest extends TestRequest<JSONTestResponse> {
   void set json(Map<String, dynamic> map) {
-    body = JSON.encode(map);
+    if (map != null) {
+      body = JSON.encode(map);
+    }
   }
 
   @override
