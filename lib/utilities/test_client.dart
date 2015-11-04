@@ -147,7 +147,9 @@ class JSONTestResponse extends TestResponse {
   Map<String, dynamic> json;
 
   JSONTestResponse(int statusCode, Map<String, String> headers, dynamic responseBody) : super(statusCode, headers, responseBody) {
-    json = JSON.decode(responseBody);
+    if (responseBody != null) {
+      json = JSON.decode(responseBody);
+    }
   }
 
   String toString() {

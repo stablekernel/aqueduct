@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="dd762622-8cd1-44be-bf31-6275e1efbac7" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lib/utilities/test_client.dart" afterPath="$PROJECT_DIR$/lib/utilities/test_client.dart" />
     </list>
     <ignored path="monadart.iws" />
@@ -41,8 +40,8 @@
       <file leaf-file-name="test_client.dart" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/lib/utilities/test_client.dart">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.6606635">
-              <caret line="129" column="3" selection-start-line="129" selection-start-column="3" selection-end-line="129" selection-end-column="3" />
+            <state vertical-scroll-proportion="0.38767773">
+              <caret line="151" column="5" selection-start-line="151" selection-start-column="5" selection-end-line="151" selection-end-column="5" />
               <folding />
             </state>
           </provider>
@@ -1206,8 +1205,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/lib/utilities/test_client.dart">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.6606635">
-          <caret line="129" column="3" selection-start-line="129" selection-start-column="3" selection-end-line="129" selection-end-column="3" />
+        <state vertical-scroll-proportion="0.38767773">
+          <caret line="151" column="5" selection-start-line="151" selection-start-column="5" selection-end-line="151" selection-end-column="5" />
           <folding />
         </state>
       </provider>
