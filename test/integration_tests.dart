@@ -8,9 +8,8 @@ import 'dart:io';
 import 'package:crypto/crypto.dart';
 import 'dart:convert';
 main() async {
-  var app = new Application();
+  var app = new Application<TPipeline, ResourceRequest>();
   app.configuration.port = 8080;
-  app.pipelineType = TPipeline;
   await app.start();
 
   var tc = new TestClient()

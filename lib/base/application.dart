@@ -100,9 +100,9 @@ abstract class ApplicationPipeline extends RequestHandler {
 /// A container for web server applications.
 ///
 /// Applications are responsible for managing starting and stopping of HTTP server instances across multiple isolates.
-/// Behavior specific to an application is implemented by setting the [Application]'s [configuration] and providing
-/// a [pipelineType] as a [ApplicationPipeline] subclass.
-class Application {
+/// Behavior specific to an application is implemented by setting the [Application]'s [configuration], and providing
+/// a [PipelineType] and [RequestType].
+class Application<PipelineType extends ApplicationPipeline, RequestType extends ResourceRequest> {
   /// A list of items identifying the Isolates running a HTTP(s) listener and response handlers.
   List<_ServerRecord> servers = [];
 
@@ -112,16 +112,11 @@ class Application {
   ApplicationInstanceConfiguration configuration =
       new ApplicationInstanceConfiguration();
 
-  /// The type of [ApplicationPipeline] that configures how requests are handled.
-  ///
-  /// This must be configured prior to [start]ing the [Application]. Must be a subtype of [ApplicationPipeline].
-  Type pipelineType;
-
   /// Starts the application by spawning Isolates that listen for HTTP(s) requests.
   ///
   /// Returns a [Future] that completes when all Isolates have started listening for requests.
   /// The [numberOfInstances] defines how many Isolates are spawned running this application's [configuration]
-  /// and [pipelineType].
+  /// and [PipelineType].
   Future start({int numberOfInstances: 1}) async {
     if (configuration.address == null) {
       if (configuration.isIpv6Only) {
@@ -152,12 +147,20 @@ class Application {
       ApplicationInstanceConfiguration config, int identifier) async {
     var receivePort = new ReceivePort();
 
-    var pipelineTypeMirror = reflectType(pipelineType);
+    var pipelineTypeMirror = reflectType(PipelineType);
     var pipelineLibraryURI = (pipelineTypeMirror.owner as LibraryMirror).uri;
     var pipelineTypeName = MirrorSystem.getName(pipelineTypeMirror.simpleName);
 
-    var initialMessage = new _InitialServerMessage(pipelineTypeName,
-        pipelineLibraryURI, config, identifier, receivePort.sendPort);
+    var requestTypeMirror = reflectType(RequestType);
+    var requestLibraryURI = (requestTypeMirror.owner as LibraryMirror).uri;
+    var requestTypeName = MirrorSystem.getName(requestTypeMirror.simpleName);
+
+    var initialMessage = new _InitialServerMessage(
+        pipelineTypeName,
+        pipelineLibraryURI,
+        requestTypeName,
+        requestLibraryURI,
+        config, identifier, receivePort.sendPort);
     var isolate =
         await Isolate.spawn(_Server.entry, initialMessage, paused: true);
     isolate.addErrorListener(receivePort.sendPort);
@@ -174,9 +177,23 @@ class _Server {
   HttpServer server;
   ApplicationPipeline pipeline;
   int identifier;
+  ClassMirror requestTypeMirror;
 
-  _Server(this.pipeline, this.configuration, this.identifier,
-      this.supervisingApplicationPort);
+  _Server(this.pipeline,
+      String requestTypeName,
+      Uri requestTypeLibraryURI,
+      this.configuration, this.identifier,
+      this.supervisingApplicationPort)
+  {
+    var reqSourceLibraryMirror = currentMirrorSystem().libraries[requestTypeLibraryURI];
+    requestTypeMirror = reqSourceLibraryMirror.declarations[new Symbol(requestTypeName)] as ClassMirror;
+  }
+
+
+  ResourceRequest createRequest(HttpRequest req) {
+    return requestTypeMirror.newInstance(new Symbol(""), [req]).reflectee;
+
+  }
 
   Future start() async {
     pipeline.options = configuration.pipelineOptions;
@@ -189,7 +206,7 @@ class _Server {
 
       server.serverHeader = "monadart/${this.identifier}";
 
-      server.map((httpReq) => new ResourceRequest(httpReq)).listen((req) async {
+      server.map(createRequest).listen((req) async {
         await pipeline.willReceiveRequest(req);
         pipeline.deliver(req);
       });
@@ -229,7 +246,12 @@ class _Server {
 
     var app = pipelineTypeMirror.newInstance(new Symbol(""), []).reflectee;
     var server = new _Server(
-        app, params.configuration, params.identifier, params.parentMessagePort);
+        app,
+        params.requestTypeName,
+        params.requestLibraryURI,
+        params.configuration,
+        params.identifier,
+        params.parentMessagePort);
 
     server.start();
   }
@@ -257,10 +279,12 @@ class _ServerRecord {
 class _InitialServerMessage {
   String pipelineTypeName;
   Uri pipelineLibraryURI;
+  String requestTypeName;
+  Uri requestLibraryURI;
   ApplicationInstanceConfiguration configuration;
   SendPort parentMessagePort;
   int identifier;
 
-  _InitialServerMessage(this.pipelineTypeName, this.pipelineLibraryURI,
+  _InitialServerMessage(this.pipelineTypeName, this.pipelineLibraryURI, this.requestTypeName, this.requestLibraryURI,
       this.configuration, this.identifier, this.parentMessagePort);
 }

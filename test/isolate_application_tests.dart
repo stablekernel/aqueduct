@@ -4,9 +4,8 @@ import 'dart:async';
 import 'package:http/http.dart' as http;
 
 main() {
-  var app = new Application();
+  var app = new Application<TPipeline, ResourceRequest>();
   app.configuration.port = 8080;
-  app.pipelineType = TPipeline;
 
   test("Application starts", () async {
 
