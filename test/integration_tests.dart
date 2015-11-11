@@ -14,6 +14,14 @@ main() async {
   app.configuration.port = 8080;
   await app.start();
 
+  hierarchicalLoggingEnabled = true;
+  new Logger("monadart").level = Level.ALL;
+  (new Logger("monadart")).onRecord.listen((rec) {
+    print("$rec");
+  });
+  new Logger("monadart").info("HI");
+
+
   var tc = new TestClient()
     ..host = "http://localhost:8080"
     ..defaultClientID = "com.stablekernel.app1"
@@ -58,7 +66,6 @@ class TPipeline extends ApplicationPipeline {
   Future willOpen() async {
     await generateTemporarySchemaFromModels(adapter, [TestUser, Token]);
 
-    adapter.loggingEnabled = true;
 
     authenticationServer = new AuthenticationServer<TestUser, Token>(
         new AuthDelegate<TestUser, Token>(adapter));

@@ -73,7 +73,7 @@ class RequestHandler {
           if (err is HttpResponseException) {
             req.respond(err.response());
           } else {
-            logger.severe("$this generated internal error for request (${req.id}. Stacktrace:\n${st.toString()}");
+            logger.severe("$this generated internal error for request (${req.id}. $err\n Stacktrace:\n${st.toString()}");
             req.respond(new Response.serverError(headers: {HttpHeaders.CONTENT_TYPE : "application/json"},
                 body: JSON.encode({"error" : "Unexpected exception in ${this.runtimeType}.", "stacktrace" : st.toString()})));
           }

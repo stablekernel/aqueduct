@@ -241,7 +241,7 @@ abstract class HttpController extends RequestHandler {
 
       return response;
     } catch (e, stacktrace) {
-      logger.severe("HttpController: Uncaught error in request (${request.id}): ${e} $stacktrace.");
+      logger.severe("HttpController: Uncaught error in request (${request.id}): ${e}\n $stacktrace.");
       if (_exceptionHandler != null) {
         var response = _exceptionHandler(this.request, e, stacktrace);
         return response;
