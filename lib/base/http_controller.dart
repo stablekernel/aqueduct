@@ -224,7 +224,7 @@ abstract class HttpController extends RequestHandler {
 
       return response;
     } on _InternalControllerException catch (e) {
-      logger.info("Request (${request.id}) failed to process: ${e.message}.");
+      logger.info("Request (${request.toDebugString()}) failed to process: ${e.message}.");
       var response = new Response(e.statusCode, {}, null);
 
       request.response.statusCode = e.statusCode;
@@ -241,7 +241,7 @@ abstract class HttpController extends RequestHandler {
 
       return response;
     } catch (e, stacktrace) {
-      logger.severe("HttpController: Uncaught error in request (${request.id}): ${e}\n $stacktrace.");
+      logger.severe("HttpController: Uncaught error in request (${request.toDebugString()}): ${e}\n $stacktrace.");
       if (_exceptionHandler != null) {
         var response = _exceptionHandler(this.request, e, stacktrace);
         return response;

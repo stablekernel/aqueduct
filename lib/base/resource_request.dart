@@ -56,6 +56,15 @@ class ResourceRequest implements RequestHandlerResult {
   }
 
   String toString() {
-    return "${this.innerRequest.uri}\n\t${this.innerRequest.headers}";
+    return "${this.innerRequest.uri} (${this.id})";
+  }
+
+  String toDebugString() {
+    var builder = new StringBuffer();
+    builder.writeln("${this.innerRequest.uri} (${this.id})");
+    this.innerRequest.headers.forEach((name, values) {
+      builder.write("$name $values,");
+    });
+    return builder.toString();
   }
 }

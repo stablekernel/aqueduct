@@ -13,15 +13,7 @@ main() async {
   var app = new Application<TPipeline>();
   app.configuration.port = 8080;
   await app.start();
-
-  hierarchicalLoggingEnabled = true;
-  new Logger("monadart").level = Level.ALL;
-  (new Logger("monadart")).onRecord.listen((rec) {
-    print("$rec");
-  });
-  new Logger("monadart").info("HI");
-
-
+  
   var tc = new TestClient()
     ..host = "http://localhost:8080"
     ..defaultClientID = "com.stablekernel.app1"
