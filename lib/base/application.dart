@@ -102,7 +102,7 @@ abstract class ApplicationPipeline extends RequestHandler {
 /// Applications are responsible for managing starting and stopping of HTTP server instances across multiple isolates.
 /// Behavior specific to an application is implemented by setting the [Application]'s [configuration], and providing
 /// a [PipelineType] and [RequestType].
-class Application<PipelineType extends ApplicationPipeline, RequestType extends ResourceRequest> {
+class Application<PipelineType extends ApplicationPipeline> {
   /// A list of items identifying the Isolates running a HTTP(s) listener and response handlers.
   List<_ServerRecord> servers = [];
 
@@ -151,15 +151,9 @@ class Application<PipelineType extends ApplicationPipeline, RequestType extends 
     var pipelineLibraryURI = (pipelineTypeMirror.owner as LibraryMirror).uri;
     var pipelineTypeName = MirrorSystem.getName(pipelineTypeMirror.simpleName);
 
-    var requestTypeMirror = reflectType(RequestType);
-    var requestLibraryURI = (requestTypeMirror.owner as LibraryMirror).uri;
-    var requestTypeName = MirrorSystem.getName(requestTypeMirror.simpleName);
-
     var initialMessage = new _InitialServerMessage(
         pipelineTypeName,
         pipelineLibraryURI,
-        requestTypeName,
-        requestLibraryURI,
         config, identifier, receivePort.sendPort);
     var isolate =
         await Isolate.spawn(_Server.entry, initialMessage, paused: true);
@@ -177,22 +171,15 @@ class _Server {
   HttpServer server;
   ApplicationPipeline pipeline;
   int identifier;
-  ClassMirror requestTypeMirror;
 
   _Server(this.pipeline,
-      String requestTypeName,
-      Uri requestTypeLibraryURI,
       this.configuration, this.identifier,
-      this.supervisingApplicationPort)
-  {
-    var reqSourceLibraryMirror = currentMirrorSystem().libraries[requestTypeLibraryURI];
-    requestTypeMirror = reqSourceLibraryMirror.declarations[new Symbol(requestTypeName)] as ClassMirror;
-  }
+      this.supervisingApplicationPort);
+
 
 
   ResourceRequest createRequest(HttpRequest req) {
-    return requestTypeMirror.newInstance(new Symbol(""), [req]).reflectee;
-
+    return new ResourceRequest(req);
   }
 
   Future start() async {
@@ -247,8 +234,6 @@ class _Server {
     var app = pipelineTypeMirror.newInstance(new Symbol(""), []).reflectee;
     var server = new _Server(
         app,
-        params.requestTypeName,
-        params.requestLibraryURI,
         params.configuration,
         params.identifier,
         params.parentMessagePort);
@@ -279,12 +264,10 @@ class _ServerRecord {
 class _InitialServerMessage {
   String pipelineTypeName;
   Uri pipelineLibraryURI;
-  String requestTypeName;
-  Uri requestLibraryURI;
   ApplicationInstanceConfiguration configuration;
   SendPort parentMessagePort;
   int identifier;
 
-  _InitialServerMessage(this.pipelineTypeName, this.pipelineLibraryURI, this.requestTypeName, this.requestLibraryURI,
+  _InitialServerMessage(this.pipelineTypeName, this.pipelineLibraryURI,
       this.configuration, this.identifier, this.parentMessagePort);
 }

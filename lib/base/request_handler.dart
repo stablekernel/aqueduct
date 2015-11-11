@@ -92,9 +92,14 @@ class RequestHandler {
 }
 
 class RequestHandlerGenerator<T> extends RequestHandler {
+  List<dynamic> arguments;
+  RequestHandlerGenerator({List<dynamic> arguments: const []}) {
+    this.arguments = arguments;
+  }
+
   @override
   void deliver(ResourceRequest req) {
-    var handler = reflectClass(T).newInstance(new Symbol(""), []).reflectee
+    var handler = reflectClass(T).newInstance(new Symbol(""), arguments).reflectee
         as RequestHandler;
     handler.nextHandler = this.nextHandler;
     handler.deliver(req);
