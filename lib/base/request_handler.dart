@@ -14,6 +14,8 @@ abstract class RequestHandlerResult {}
 class RequestHandler {
   Function _handler;
 
+  Logger get logger => new Logger("monadart");
+
   /// The initializer for RequestHandlers.
   ///
   /// To use a closure-based RequestHandler, you may specify [requestHandler] for
@@ -58,6 +60,7 @@ class RequestHandler {
   /// and not [processRequest].
 
   void deliver(ResourceRequest req) {
+    logger.finest("$this received request $req.");
     processRequest(req)
         .then((result) {
           if (result is ResourceRequest && nextHandler != null) {
@@ -70,6 +73,7 @@ class RequestHandler {
           if (err is HttpResponseException) {
             req.respond(err.response());
           } else {
+            logger.severe("$this generated internal error for request (${req.id}. Stacktrace:\n${st.toString()}");
             req.respond(new Response.serverError(headers: {HttpHeaders.CONTENT_TYPE : "application/json"},
                 body: JSON.encode({"error" : "Unexpected exception in ${this.runtimeType}.", "stacktrace" : st.toString()})));
           }
@@ -99,6 +103,7 @@ class RequestHandlerGenerator<T> extends RequestHandler {
 
   @override
   void deliver(ResourceRequest req) {
+    logger.finest("Generating handler $T with arguments $arguments.");
     var handler = reflectClass(T).newInstance(new Symbol(""), arguments).reflectee
         as RequestHandler;
     handler.nextHandler = this.nextHandler;

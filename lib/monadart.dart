@@ -10,8 +10,10 @@ import 'package:pbkdf2/pbkdf2.dart';
 import 'dart:math';
 import 'package:http_server/http_server.dart';
 import 'package:http/http.dart' as http;
+import 'package:logging/logging.dart';
 
 export 'package:http_server/http_server.dart';
+export 'package:logging/logging.dart';
 
 part 'base/resource_pattern.dart';
 part 'base/resource_request.dart';

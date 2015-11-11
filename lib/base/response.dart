@@ -62,4 +62,8 @@ class Response implements RequestHandlerResult {
 
   Response.serverError({Map<String, String> headers, dynamic body})
       : this(HttpStatus.INTERNAL_SERVER_ERROR, headers, body);
+
+  String toString() {
+    return "$statusCode $headers\n\t$body";
+  }
 }

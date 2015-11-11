@@ -33,9 +33,13 @@ class ResourceRequest implements RequestHandlerResult {
   /// null if no permission has been set.
   Permission permission;
 
+  int id = new DateTime.now().millisecondsSinceEpoch;
+
   ResourceRequest(this.innerRequest) {}
 
   void respond(Response respObj) {
+    new Logger("monadart").info("Request ($id) sending response $respObj.");
+
     response.statusCode = respObj.statusCode;
 
     if (respObj.headers != null) {
@@ -49,5 +53,9 @@ class ResourceRequest implements RequestHandlerResult {
     }
 
     response.close();
+  }
+
+  String toString() {
+    return "${this.innerRequest.uri}\n\t${this.innerRequest.headers}";
   }
 }

@@ -189,11 +189,14 @@ class _Server {
     pipeline.nextHandler = pipeline.initialHandler();
 
     var onBind = (s) {
+      new Logger("monadart").info("Server monadart/$identifier started.");
+
       server = s;
 
       server.serverHeader = "monadart/${this.identifier}";
 
       server.map(createRequest).listen((req) async {
+        new Logger("monadart").info("Request received $req.");
         await pipeline.willReceiveRequest(req);
         pipeline.deliver(req);
       });

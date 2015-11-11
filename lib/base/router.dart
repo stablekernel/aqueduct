@@ -90,12 +90,14 @@ class Router extends RequestHandler {
       var routeMatch = route.pattern.matchUri(req.innerRequest.uri);
 
       if (routeMatch != null) {
+        logger.finest("Router: match for ${req.innerRequest.uri}.");
         req.path = routeMatch;
         route.handler.deliver(req);
         return;
       }
     }
 
+    logger.finest("Router: no matching route for ${req.innerRequest.uri}.");
     _unhandledRequestHandler(req);
   }
 

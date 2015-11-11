@@ -6,6 +6,7 @@ dependencies:
   pbkdf2: any
   crypto: any
   http: any
+  logging: any
 
 dev_dependencies:
   test: any
