@@ -64,6 +64,6 @@ class Response implements RequestHandlerResult {
       : this(HttpStatus.INTERNAL_SERVER_ERROR, headers, body);
 
   String toString() {
-    return "$statusCode $headers\n\t$body";
+    return "$statusCode $headers";
   }
 }

@@ -13,7 +13,7 @@ main() async {
   var app = new Application<TPipeline>();
   app.configuration.port = 8080;
   await app.start();
-  
+
   var tc = new TestClient()
     ..host = "http://localhost:8080"
     ..defaultClientID = "com.stablekernel.app1"
