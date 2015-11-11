@@ -52,7 +52,7 @@ class Authenticator extends RequestHandler {
     }
 
     var permission = await server.verify(parser.bearerToken);
-    req.context[PermissionKey] = permission;
+    req.permission = permission;
     return req;
   }
 
@@ -72,7 +72,7 @@ class Authenticator extends RequestHandler {
     }
 
     var perm = new Permission(client.id, null, server);
-    req.context[PermissionKey] = perm;
+    req.permission = perm;
 
     return req;
   }

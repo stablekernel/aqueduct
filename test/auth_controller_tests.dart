@@ -30,8 +30,7 @@ void main() {
       server = s;
       server.listen((req) {
         var resReq = new ResourceRequest(req);
-        resReq.context[AuthController.AuthenticationServerContextKey] = authenticationServer;
-        var authController = new AuthController<TestUser, Token>();
+        var authController = new AuthController<TestUser, Token>(authenticationServer);
         authController.deliver(resReq);
       });
     });

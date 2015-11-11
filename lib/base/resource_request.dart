@@ -25,15 +25,21 @@ class ResourceRequest implements RequestHandlerResult {
   /// path will have [segments] of ['users', '1'] and [variables] of {'id' : '1'}.
   ResourcePatternMatch path;
 
-  /// Optional data for members of a pipeline to attach to a request for later members to utilize.
+  /// Permission information associated with this request.
   ///
-  /// This is purely contextual to the application. An example is pipeline that adds a database adapter
-  /// to the request so that the handling [HttpController] has access to it.
-  Map<dynamic, dynamic> context = new Map();
+  /// When this request goes through an [Authenticator], this value will be set with
+  /// permission information from the authenticator. Use this to determine client, resource owner
+  /// or other properties of the authentication information in the request. This value will be
+  /// null if no permission has been set.
+  Permission permission;
+
+  int id = new DateTime.now().millisecondsSinceEpoch;
 
   ResourceRequest(this.innerRequest) {}
 
   void respond(Response respObj) {
+    new Logger("monadart").info("Request ($id) sending response $respObj.");
+
     response.statusCode = respObj.statusCode;
 
     if (respObj.headers != null) {
@@ -47,5 +53,18 @@ class ResourceRequest implements RequestHandlerResult {
     }
 
     response.close();
+  }
+
+  String toString() {
+    return "${this.innerRequest.uri} (${this.id})";
+  }
+
+  String toDebugString() {
+    var builder = new StringBuffer();
+    builder.writeln("${this.innerRequest.uri} (${this.id})");
+    this.innerRequest.headers.forEach((name, values) {
+      builder.write("$name $values,");
+    });
+    return builder.toString();
   }
 }

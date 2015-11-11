@@ -7,10 +7,11 @@ import 'helpers.dart';
 import 'dart:io';
 import 'package:crypto/crypto.dart';
 import 'dart:convert';
+
+
 main() async {
-  var app = new Application();
+  var app = new Application<TPipeline>();
   app.configuration.port = 8080;
-  app.pipelineType = TPipeline;
   await app.start();
 
   var tc = new TestClient()
@@ -37,7 +38,7 @@ main() async {
 class TPipeline extends ApplicationPipeline {
   Router router = new Router();
 
-  PostgresModelAdapter adapter = new PostgresModelAdapter(null, () async {
+  static PostgresModelAdapter adapter = new PostgresModelAdapter(null, () async {
     var uri = 'postgres://dart:dart@localhost:5432/dart_test';
     return await connect(uri);
   });
@@ -51,14 +52,12 @@ class TPipeline extends ApplicationPipeline {
 
   @override
   Future willReceiveRequest(ResourceRequest req) async {
-    req.context["adapter"] = adapter;
   }
 
   @override
   Future willOpen() async {
     await generateTemporarySchemaFromModels(adapter, [TestUser, Token]);
 
-    adapter.loggingEnabled = true;
 
     authenticationServer = new AuthenticationServer<TestUser, Token>(
         new AuthDelegate<TestUser, Token>(adapter));
@@ -74,16 +73,13 @@ class TPipeline extends ApplicationPipeline {
 }
 
 class IdentityController extends HttpController {
-  PostgresModelAdapter get adapter => request.context["adapter"];
-  Permission get permission => request.context[Authenticator.PermissionKey];
-
   @httpGet
   Future<Response> getIdentity() async {
     var q = new Query<TestUser>()
         ..resultKeys = ["username", "id"]
-        ..predicateObject = (new TestUser()..id = permission.resourceOwnerIdentifier);
+        ..predicateObject = (new TestUser()..id = request.permission.resourceOwnerIdentifier);
 
-    var user = await q.fetchOne(adapter);
+    var user = await q.fetchOne(TPipeline.adapter);
     if (user == null) {
       return new Response.notFound();
     }
@@ -93,12 +89,9 @@ class IdentityController extends HttpController {
 }
 
 class UsersController extends HttpController {
-  PostgresModelAdapter get adapter => request.context["adapter"];
-  Permission get permission => request.context[Authenticator.PermissionKey];
-
   @httpPost
   Future<Response> createUser() async {
-    if (permission.resourceOwnerIdentifier != null) {
+    if (request.permission.resourceOwnerIdentifier != null) {
       return new Response.badRequest();
     }
 
@@ -113,11 +106,11 @@ class UsersController extends HttpController {
     var q = new Query<TestUser>()
       ..resultKeys = ["username", "id"]
       ..valueObject = u;
-    u = await q.insert(adapter);
+    u = await q.insert(TPipeline.adapter);
 
-    var token = await permission.grantingServer.authenticate(u.username,
+    var token = await request.permission.grantingServer.authenticate(u.username,
         password,
-        permission.clientID, "kilimanjaro");
+        request.permission.clientID, "kilimanjaro");
 
     return AuthController.tokenResponse(token);
   }

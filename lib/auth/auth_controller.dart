@@ -1,16 +1,12 @@
 part of monadart;
 
 class AuthController<ResourceOwner extends Authenticatable, TokenType extends Tokenizable> extends HttpController {
-
   static String get RoutePattern => "/auth/token/[refresh]";
 
-  static String get AuthenticationServerContextKey =>
-      "AuthenticationServerContextKey";
+  AuthenticationServer<ResourceOwner, TokenType> authenticationServer;
 
-  AuthenticationServer<ResourceOwner, TokenType> get authenticationServer =>
-      request.context[AuthenticationServerContextKey];
-
-  AuthController() {
+  AuthController(AuthenticationServer<ResourceOwner, TokenType> authServer) {
+    authenticationServer = authServer;
     acceptedContentTypes = [new ContentType("application", "x-www-form-urlencoded")];
   }
 
