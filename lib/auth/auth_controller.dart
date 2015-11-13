@@ -1,7 +1,7 @@
 part of monadart;
 
 class AuthController<ResourceOwner extends Authenticatable, TokenType extends Tokenizable> extends HttpController {
-  static String get RoutePattern => "/auth/token/[refresh]";
+  static String get RoutePattern => "/auth/token/[:action(refresh)]";
 
   AuthenticationServer<ResourceOwner, TokenType> authenticationServer;
 
