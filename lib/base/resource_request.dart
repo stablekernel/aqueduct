@@ -65,6 +65,7 @@ class ResourceRequest implements RequestHandlerResult {
     this.innerRequest.headers.forEach((name, values) {
       builder.write("$name $values,");
     });
+    builder.writeln("");
     return builder.toString();
   }
 }
