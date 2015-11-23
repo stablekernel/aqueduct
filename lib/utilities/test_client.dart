@@ -28,11 +28,9 @@ class TestClient {
   }
 
   TestRequest request(String path) {
-    JSONTestRequest r = new JSONTestRequest()
+    TestRequest r = new TestRequest()
       ..host = this.host
-      ..path = path
-      ..contentType = "application/json;charset=utf-8"
-      ..accept = "application/json";
+      ..path = path;
     return r;
   }
 
@@ -117,7 +115,7 @@ class TestRequest <ResponseType extends TestResponse> {
 }
 
 class JSONTestRequest extends TestRequest<JSONTestResponse> {
-  void set json(Map<String, dynamic> map) {
+  void set json(dynamic map) {
     if (map != null) {
       body = JSON.encode(map);
     }
@@ -144,7 +142,7 @@ class TestResponse {
 }
 
 class JSONTestResponse extends TestResponse {
-  Map<String, dynamic> json;
+  dynamic json;
 
   JSONTestResponse(int statusCode, Map<String, String> headers, dynamic responseBody) : super(statusCode, headers, responseBody) {
     if (responseBody != null && (responseBody as String).length > 0) {
@@ -157,9 +155,10 @@ class JSONTestResponse extends TestResponse {
   }
 
   bool hasKeys(List<String> keys) {
+    var map = json as Map<String, dynamic>;
     for (var k in keys) {
-      if (json[k] == null) {
-        print("Expected $k in $json");
+      if (map[k] == null) {
+        print("Expected $k in $map");
         return false;
       }
     }
@@ -167,7 +166,8 @@ class JSONTestResponse extends TestResponse {
   }
 
   bool hasOnlyKeys(List<String> keys) {
-    if (json.keys.length != keys.length) {
+    var map = json as Map<String, dynamic>;
+    if (map.keys.length != keys.length) {
       return false;
     }
 
@@ -175,9 +175,10 @@ class JSONTestResponse extends TestResponse {
   }
 
   bool hasValues(Map<String, dynamic> values) {
+    var map = json as Map<String, dynamic>;
     var success = true;
     values.forEach((k, v) {
-      if (json[k] != v) {
+      if (map[k] != v) {
         success = false;
         print("Expected $k : $v in $json");
       }
@@ -186,7 +187,8 @@ class JSONTestResponse extends TestResponse {
   }
 
   bool hasOnlyValues(Map<String, dynamic> values) {
-    if (json.keys.length != values.keys.length) {
+    var map = json as Map<String, dynamic>;
+    if (map.keys.length != values.keys.length) {
       return false;
     }
 
