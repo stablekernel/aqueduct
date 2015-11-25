@@ -12,12 +12,15 @@ void main() {
 
   HttpServer server;
 
+  tearDownAll(() async {
+    await server.close();
+  });
+
   setUp(() async {
     adapter = new PostgresModelAdapter(null, () async {
       var uri = 'postgres://dart:dart@localhost:5432/dart_test';
       return await connect(uri);
     });
-    adapter.loggingEnabled = true;
 
     var authenticationServer = new AuthenticationServer<TestUser, Token>(
         new AuthDelegate<TestUser, Token>(adapter));

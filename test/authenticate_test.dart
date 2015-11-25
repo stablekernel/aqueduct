@@ -13,7 +13,7 @@ void main() {
       var uri = 'postgres://dart:dart@localhost:5432/dart_test';
       return await connect(uri);
     });
-    adapter.loggingEnabled = true;
+
     delegate = new AuthDelegate<TestUser, Token>(adapter);
     await generateTemporarySchemaFromModels(adapter, [TestUser, Token]);
   });

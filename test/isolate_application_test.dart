@@ -7,6 +7,11 @@ main() {
   var app = new Application<TPipeline>();
   app.configuration.port = 8080;
 
+  tearDownAll(() async {
+    app.stop();
+  });
+
+
   test("Application starts", () async {
     await app.start(numberOfInstances: 3);
     expect(app.servers.length, 3);

@@ -9,88 +9,87 @@ import 'dart:async';
 
 void main() {
 
+  HttpServer server;
+
   setUp(() {
   });
 
-  tearDown(() {
+  tearDown(() async {
+    if (server != null) {
+      await server.close();
+    }
+  });
+
+  tearDownAll(() async {
+    if (server != null) {
+      await server.close();
+    }
   });
 
   test("Get w/ no params", () async {
-    var server = await enableController("/a", new RequestHandlerGenerator<TController>());
+    server = await enableController("/a", new RequestHandlerGenerator<TController>());
 
     var res = await http.get("http://localhost:4040/a");
 
     expect(res.statusCode, 200);
     expect(JSON.decode(res.body), "getAll");
 
-    server.close();
   });
 
   test("Get w/ 1 param", () async {
-    var server = await enableController("/a/:id", new RequestHandlerGenerator<TController>());
+    server = await enableController("/a/:id", new RequestHandlerGenerator<TController>());
     var res = await http.get("http://localhost:4040/a/123");
 
     expect(res.statusCode, 200);
     expect(JSON.decode(res.body), "123");
-
-    server.close();
   });
 
   test("Get w/ 2 param", () async {
-    var server = await enableController("/a/:id/:flag", new RequestHandlerGenerator<TController>());
+    server = await enableController("/a/:id/:flag", new RequestHandlerGenerator<TController>());
 
     var res = await http.get("http://localhost:4040/a/123/active");
 
     expect(res.statusCode, 200);
     expect(JSON.decode(res.body), "123active");
-
-    server.close();
   });
 
   test("Unsupported method", () async {
-    var server = await enableController("/a", new RequestHandlerGenerator<TController>());
+    server = await enableController("/a", new RequestHandlerGenerator<TController>());
 
     var res = await http.delete("http://localhost:4040/a");
 
     expect(res.statusCode, 404);
-    server.close();
 
     // expect headers to have Allow: GET, POST, PUT
   });
 
   test("Crashing handler delivers 500", () async {
-    var server = await enableController("/a/:id", new RequestHandlerGenerator<TController>());
+    server = await enableController("/a/:id", new RequestHandlerGenerator<TController>());
 
     var res = await http.put("http://localhost:4040/a/a");
 
     expect(res.statusCode, 500);
-
-    server.close();
   });
 
   test("Only respond to appropriate content types", () async {
-    var server = await enableController("/a", new RequestHandlerGenerator<TController>());
+    server = await enableController("/a", new RequestHandlerGenerator<TController>());
 
     var body = JSON.encode({"a" : "b"});
     var res = await http.post("http://localhost:4040/a", headers: {"Content-Type" : "application/json"}, body: body);
     expect(res.statusCode, 200);
     expect(JSON.decode(res.body), equals({"a" : "b"}));
-
-    server.close();
   });
 
   test("Return error when wrong content type", () async {
-    var server = await enableController("/a", new RequestHandlerGenerator<TController>());
+    server = await enableController("/a", new RequestHandlerGenerator<TController>());
 
     var body = JSON.encode({"a" : "b"});
     var res = await http.post("http://localhost:4040/a", headers: {"Content-Type" : "application/somenonsense"}, body: body);
     expect(res.statusCode, 415);
-
-    server.close();
   });
 
   test("Query parameters get delivered if exposed as optional params", () async {
-    var server = await enableController("/a", new RequestHandlerGenerator<QController>());
+    server = await enableController("/a", new RequestHandlerGenerator<QController>());
 
     var res = await http.get("http://localhost:4040/a?opt=x");
     expect(res.body, "\"OK\"");
@@ -104,7 +103,7 @@ void main() {
     res = await http.get("http://localhost:4040/a?opt=x&q=1");
     expect(res.body, "\"OK\"");
 
-    server.close(force: true);
+    await server.close(force: true);
 
     server = await enableController("/:id", new RequestHandlerGenerator<QController>());
 
@@ -119,13 +118,11 @@ void main() {
 
     res = await http.get("http://localhost:4040/123?opt=x&q=1");
     expect(res.body, "\"OK\"");
-
-    server.close(force: true);
   });
 
 
   test("Path parameters are parsed into appropriate type", () async {
-    var server = await enableController("/:id", new RequestHandlerGenerator<IntController>());
+    server = await enableController("/:id", new RequestHandlerGenerator<IntController>());
 
     var res = await http.get("http://localhost:4040/123");
     expect(res.body, "\"246\"");
@@ -133,7 +130,7 @@ void main() {
     res = await http.get("http://localhost:4040/word");
     expect(res.statusCode, 400);
 
-    server.close(force: true);
+    await server.close(force: true);
 
     server = await enableController("/:time", new RequestHandlerGenerator<DateTimeController>());
     res = await http.get("http://localhost:4040/2001-01-01T00:00:00.000000Z");
@@ -142,12 +139,10 @@ void main() {
 
     res = await http.get("http://localhost:4040/foobar");
     expect(res.statusCode, 400);
-
-    server.close();
   });
 
   test("Query parameters are parsed into appropriate types", () async {
-    var server = await enableController("/a", new RequestHandlerGenerator<IntController>());
+    server = await enableController("/a", new RequestHandlerGenerator<IntController>());
     var res = await http.get("http://localhost:4040/a?opt=12");
     expect(res.body, "\"12\"");
 
@@ -158,7 +153,7 @@ void main() {
     expect(res.statusCode, 200);
     expect(res.body, "\"null\"");
 
-    server.close();
+    await server.close();
 
     server = await enableController("/a", new RequestHandlerGenerator<DateTimeController>());
     res = await http.get("http://localhost:4040/a?opt=2001-01-01T00:00:00.000000Z");
@@ -170,17 +165,13 @@ void main() {
 
     res = await http.get("http://localhost:4040/a?foo=2001-01-01T00:00:00.000000Z");
     expect(res.statusCode, 200);
-
-    server.close();
   });
 
   test("Query parameters can be obtained from x-www-form-urlencoded", () async {
-    var server = await enableController("/a", new RequestHandlerGenerator<IntController>());
+    server = await enableController("/a", new RequestHandlerGenerator<IntController>());
     var res = await http.post("http://localhost:4040/a", headers: {"Content-Type" : "application/x-www-form-urlencoded"}, body: "opt=7");
     expect(res.body, '"7"');
-    server.close();
   });
-
 }
 
 
