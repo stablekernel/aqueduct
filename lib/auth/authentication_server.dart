@@ -1,12 +1,10 @@
 part of monadart;
 
-
 class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType extends Tokenizable> {
   AuthenticationServerDelegate<ResourceOwner, TokenType> delegate;
   Map<String, Client> _clientCache = {};
 
-  AuthenticationServer(this.delegate) {
-  }
+  AuthenticationServer(this.delegate) {}
 
   Authenticator authenticator({List<String> strategies: const [Authenticator.StrategyResourceOwner]}) {
     return new Authenticator(this, strategies);
@@ -70,7 +68,7 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
     }
 
     TokenType t = await delegate.tokenForRefreshToken(this, refreshToken);
-    if(t == null || t.clientID != clientID) {
+    if (t == null || t.clientID != clientID) {
       throw new HttpResponseException(401, "Invalid client_id for token");
     }
 

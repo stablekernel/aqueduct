@@ -31,6 +31,7 @@ void main() {
       server.listen((req) {
         var resReq = new ResourceRequest(req);
         var authController = new AuthController<TestUser, Token>(authenticationServer);
+
         authController.deliver(resReq);
       });
     });
@@ -53,7 +54,7 @@ void main() {
       body += "$k=${Uri.encodeQueryComponent(v)}&";
     });
 
-    var res = await http.post("http://localhost:8080/token",
+    var res = await http.post("http://localhost:8080/auth/token",
         headers: {"Content-Type" : "application/x-www-form-urlencoded",
           "Authorization" : "Basic ${CryptoUtils.bytesToBase64("com.stablekernel.app1:kilimanjaro".codeUnits)}"},
         body: body);
@@ -144,7 +145,41 @@ void main() {
           "Authorization" : "Basic ${CryptoUtils.bytesToBase64("com.stablekernel.app1:kilimanjaro".codeUnits)}"},
         body: encoder({"grant_type" : "password", "username" : "bob+0@stablekernel.com", "password" : "fobar%"}));
     expect(res.statusCode, 401);
+  });
 
+  test("Refresh token responds with token on correct input", () async {
+    await createUsers(adapter, 1);
+
+    var m = {"grant_type" : "password", "username" : "bob+0@stablekernel.com", "password" : "foobaraxegrind21%"};
+    var body = "";
+    m.forEach((k, v) {
+      body += "$k=${Uri.encodeQueryComponent(v)}&";
+    });
+
+    var res = await http.post("http://localhost:8080/auth/token",
+        headers: {"Content-Type" : "application/x-www-form-urlencoded",
+          "Authorization" : "Basic ${CryptoUtils.bytesToBase64("com.stablekernel.app1:kilimanjaro".codeUnits)}"},
+        body: body);
+
+    var json = JSON.decode(res.body);
+
+    m = {"grant_type" : "refresh", "refresh_token" : json["refresh_token"]};
+    body = "";
+    m.forEach((k, v) {
+      body += "$k=${Uri.encodeQueryComponent(v)}&";
+    });
+    res = await http.post("http://localhost:8080/auth/token",
+        headers: {"Content-Type" : "application/x-www-form-urlencoded",
+          "Authorization" : "Basic ${CryptoUtils.bytesToBase64("com.stablekernel.app1:kilimanjaro".codeUnits)}"},
+        body: body);
+
+    expect(res.statusCode, 200);
+    json = JSON.decode(res.body);
+
+    expect(json["access_token"].length, greaterThan(0));
+    expect(json["refresh_token"].length, greaterThan(0));
+    expect(json["expires_in"], greaterThan(3500));
+    expect(json["token_type"], "bearer");
   });
 }
 

@@ -30,10 +30,8 @@ class Response implements RequestHandlerResult {
     }
   }
 
-  Response.ok(dynamic body, {Map<String, String> headers})
-      : this(HttpStatus.OK, headers, body);
-  Response.created(String location,
-      {dynamic body, Map<String, String> headers}) {
+  Response.ok(dynamic body, {Map<String, String> headers}) : this(HttpStatus.OK, headers, body);
+  Response.created(String location, {dynamic body, Map<String, String> headers}) {
     this.headers = headers;
     this.body = body;
     this.statusCode = HttpStatus.CREATED;
@@ -44,24 +42,16 @@ class Response implements RequestHandlerResult {
       this.headers[HttpHeaders.LOCATION] = location;
     }
   }
-  Response.accepted({Map<String, String> headers})
-      : this(HttpStatus.ACCEPTED, headers, null);
+  Response.accepted({Map<String, String> headers}) : this(HttpStatus.ACCEPTED, headers, null);
 
-  Response.badRequest({Map<String, String> headers, dynamic body})
-      : this(HttpStatus.BAD_REQUEST, headers, body);
-  Response.unauthorized({Map<String, String> headers, dynamic body})
-      : this(HttpStatus.UNAUTHORIZED, headers, body);
-  Response.forbidden({Map<String, String> headers, dynamic body})
-      : this(HttpStatus.FORBIDDEN, headers, body);
-  Response.notFound({Map<String, String> headers, dynamic body})
-      : this(HttpStatus.NOT_FOUND, headers, body);
-  Response.conflict({Map<String, String> headers, dynamic body})
-      : this(HttpStatus.CONFLICT, headers, body);
-  Response.gone({Map<String, String> headers, dynamic body})
-      : this(HttpStatus.GONE, headers, body);
+  Response.badRequest({Map<String, String> headers, dynamic body}) : this(HttpStatus.BAD_REQUEST, headers, body);
+  Response.unauthorized({Map<String, String> headers, dynamic body}) : this(HttpStatus.UNAUTHORIZED, headers, body);
+  Response.forbidden({Map<String, String> headers, dynamic body}) : this(HttpStatus.FORBIDDEN, headers, body);
+  Response.notFound({Map<String, String> headers, dynamic body}) : this(HttpStatus.NOT_FOUND, headers, body);
+  Response.conflict({Map<String, String> headers, dynamic body}) : this(HttpStatus.CONFLICT, headers, body);
+  Response.gone({Map<String, String> headers, dynamic body}) : this(HttpStatus.GONE, headers, body);
 
-  Response.serverError({Map<String, String> headers, dynamic body})
-      : this(HttpStatus.INTERNAL_SERVER_ERROR, headers, body);
+  Response.serverError({Map<String, String> headers, dynamic body}) : this(HttpStatus.INTERNAL_SERVER_ERROR, headers, body);
 
   String toString() {
     return "$statusCode $headers";

@@ -42,14 +42,12 @@ class ResourcePattern {
   ResourcePattern(String patternString) {
     List<String> pathElements = splitPattern(patternString);
 
-    List<_ResourcePatternElement> elems =
-        resourceElementsFromPathElements(patternString);
+    List<_ResourcePatternElement> elems = resourceElementsFromPathElements(patternString);
 
     matchHead = matchSpecFromElements(pathElements, elems);
   }
 
-  static _ResourcePatternSet matchSpecFromElements(List<String> pathElements,
-      List<_ResourcePatternElement> resourceElements) {
+  static _ResourcePatternSet matchSpecFromElements(List<String> pathElements, List<_ResourcePatternElement> resourceElements) {
     // These two arrays should be identical in size by the time they get here
 
     _ResourcePatternSet setHead = new _ResourcePatternSet();
@@ -84,8 +82,7 @@ class ResourcePattern {
   }
 
   static List<String> splitPattern(String patternString) {
-    return patternString.split("/").fold(new List<String>(),
-        (List<String> accum, String e) {
+    return patternString.split("/").fold(new List<String>(), (List<String> accum, String e) {
       var trimmed = e.trim();
       if (trimmed.length > 0) {
         accum.add(trimmed);
@@ -94,13 +91,9 @@ class ResourcePattern {
     });
   }
 
-  static List<_ResourcePatternElement> resourceElementsFromPathElements(
-      String patternString) {
+  static List<_ResourcePatternElement> resourceElementsFromPathElements(String patternString) {
     var expr = new RegExp(r"[\[\]]");
-    return splitPattern(patternString)
-        .map((segment) =>
-            new _ResourcePatternElement(segment.replaceAll(expr, "")))
-        .toList();
+    return splitPattern(patternString).map((segment) => new _ResourcePatternElement(segment.replaceAll(expr, ""))).toList();
   }
 
   ResourcePatternMatch matchUri(Uri uri) {
@@ -117,9 +110,7 @@ class ResourcePattern {
 
         var resourceSegment = resourceIterator.current;
         if (resourceSegment.matchesRemaining) {
-          var remainingString = incomingPathSegments
-              .sublist(incomingPathIndex, incomingPathSegments.length)
-              .join("/");
+          var remainingString = incomingPathSegments.sublist(incomingPathIndex, incomingPathSegments.length).join("/");
           match.remainingPath = remainingString;
 
           return match;
@@ -196,14 +187,12 @@ class _ResourcePatternElement {
 
   // I'd prefer that this used a outer non-capturing group on the parantheses after the name;
   // but apparently this regex parser won't pick up the capture group inside the noncapturing group for some reason
-  static RegExp patternFinder =
-      new RegExp(r"^(\w+)(\(([^\)]+)\))?$", caseSensitive: false);
+  static RegExp patternFinder = new RegExp(r"^(\w+)(\(([^\)]+)\))?$", caseSensitive: false);
 
   void constructFromString(String str) {
     Match m = patternFinder.firstMatch(str);
     if (m == null) {
-      throw new ArgumentError(
-          "invalid resource pattern segment ${str}, available formats are the following: literal, *, {name}, {name(pattern)}");
+      throw new ArgumentError("invalid resource pattern segment ${str}, available formats are the following: literal, *, {name}, {name(pattern)}");
     }
 
     name = m.group(1);
@@ -215,17 +204,14 @@ class _ResourcePatternElement {
       }
     }
 
-    matchRegex =
-        new RegExp(r"^" + "${matchString}" + r"$", caseSensitive: false);
+    matchRegex = new RegExp(r"^" + "${matchString}" + r"$", caseSensitive: false);
   }
 
   bool fullMatchForString(String pathSegment) {
     var iter = matchRegex.allMatches(pathSegment).iterator;
     if (iter.moveNext()) {
       var match = iter.current;
-      if (match.start == 0 &&
-          match.end == pathSegment.length &&
-          !iter.moveNext()) {
+      if (match.start == 0 && match.end == pathSegment.length && !iter.moveNext()) {
         return true;
       } else {
         return false;

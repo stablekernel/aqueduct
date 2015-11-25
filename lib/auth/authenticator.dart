@@ -47,7 +47,7 @@ class Authenticator extends RequestHandler {
 
   Future<RequestHandlerResult> processResourceOwnerRequest(ResourceRequest req) async {
     var parser = new AuthorizationBearerParser(req.innerRequest.headers[HttpHeaders.AUTHORIZATION]?.first);
-    if(parser.errorResponse != null) {
+    if (parser.errorResponse != null) {
       return parser.errorResponse;
     }
 

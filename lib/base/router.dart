@@ -77,8 +77,7 @@ class Router extends RequestHandler {
     // Strip out any extraneous /s
     var finalPattern = pattern.split("/").where((c) => c != "").join("/");
 
-    var route = new _ResourceRoute(
-        new ResourcePattern(finalPattern), new RequestHandler());
+    var route = new _ResourceRoute(new ResourcePattern(finalPattern), new RequestHandler());
     _routes.add(route);
 
     return route;
