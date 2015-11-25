@@ -21,14 +21,14 @@ class AuthController<ResourceOwner extends Authenticatable, TokenType extends To
 
     if (grant_type == "password") {
       if (username == null || password == null) {
-        return new Response.badRequest(body: {"error" : "username and password required"});
+        return new Response.badRequest(body: {"error": "username and password required"});
       }
 
       var token = await authenticationServer.authenticate(username, password, rec.username, rec.password);
       return AuthController.tokenResponse(token);
     } else if (grant_type == "refresh") {
       if (refresh_token == null) {
-        return new Response.badRequest(body: {"error" : "missing refresh_token"});
+        return new Response.badRequest(body: {"error": "missing refresh_token"});
       }
 
       var token = await authenticationServer.refresh(refresh_token, rec.username, rec.password);

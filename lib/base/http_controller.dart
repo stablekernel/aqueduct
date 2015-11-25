@@ -36,16 +36,28 @@ abstract class HttpController extends RequestHandler {
 
   /// The content type of responses from this [HttpController].
   ///
-  /// Defaults to "application/json". This type will automatically be written to this response's
-  /// HTTP header.
-  ContentType responseContentType = ContentType.JSON;
+  /// This type will automatically be written to this response's
+  /// HTTP header. Defaults to "application/json". Set with [setResponseEncoder].
+  ContentType get responseContentType => _responseContentType;
+  ContentType _responseContentType = ContentType.JSON;
 
-  // TODO: Privatize these and make method that requires both
-
-  /// Encodes the HTTP response body object that is part of the [Response] returned from this request handler methods.
+  /// Encodes the [Response] body to a suitable format for transmission.
   ///
-  /// By default, this encoder will convert the body object as JSON.
-  dynamic responseBodyEncoder = (body) => JSON.encode(body);
+  /// Encodes the HTTP response body object that is part of the [Response] returned from this request handler methods.
+  /// Must have the signature (dynamic) => dynamic. Use [setResponseEncoder] to set this value.
+  ///
+  /// By default, this encoder will convert the response body as JSON.
+  Function get responseBodyEncoder => _responseBodyEncoder;
+  Function _responseBodyEncoder = (body) => JSON.encode(body);
+
+  /// Sets the [responseContentType] and [responseBodyEncoder].
+  ///
+  /// This method is the only way to set [responseContentType] and [responseBodyEncoder] and ensures
+  /// that both are set simultaneously since they are dependent on one another.
+  void setResponseEncoder(ContentType contentType, dynamic encoder(dynamic value)) {
+    _responseContentType = contentType;
+    _responseBodyEncoder = encoder;
+  }
 
   /// The HTTP request body object, after being decoded.
   ///
@@ -54,6 +66,7 @@ abstract class HttpController extends RequestHandler {
   /// respond with a Unsupported Media Type HTTP response.
   dynamic requestBody;
 
+  // Callbacks
   /// Executed prior to handling a request, but after the [resourceRequest] has been set.
   ///
   /// This method is used to do pre-process setup. The [resourceRequest] will be set, but its body will not be decoded
@@ -163,8 +176,7 @@ abstract class HttpController extends RequestHandler {
 
     if (contentType != null &&
         contentType.primaryType == _applicationWWWFormURLEncodedContentType.primaryType &&
-        contentType.subType == _applicationWWWFormURLEncodedContentType.subType)
-    {
+        contentType.subType == _applicationWWWFormURLEncodedContentType.subType) {
       queryParams = requestBody;
     } else {
       queryParams = req.innerRequest.uri.queryParameters;

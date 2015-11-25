@@ -24,11 +24,11 @@ class ApplicationInstanceConfiguration {
   /// run over HTTP instead of HTTPS.
   bool isUsingClientCertificate = false;
 
-  /// The name of the server-side HTTPS certificate.
+  /// Information for securing the application over HTTPS.
   ///
-  /// Defaults to null. If this is null and [isUsingClientCertificate] is false, the server will
-  /// run over HTTP instead of HTTPs.
-  String serverCertificateName = null;
+  /// Defaults to null. If this is null, this application will run unsecured over HTTP. To
+  /// run securely over HTTPS, this property must be set with valid security details.
+  SecurityContext securityContext = null;
 
   /// Options for instances of ApplicationPipeline to use when in this application.
   ///
@@ -42,19 +42,18 @@ class ApplicationInstanceConfiguration {
   ApplicationInstanceConfiguration();
 
   /// A copy constructor
-  ApplicationInstanceConfiguration.fromConfiguration(ApplicationInstanceConfiguration config)
-      : this.address = config.address,
-        this.port = config.port,
-        this.isIpv6Only = config.isIpv6Only,
-        this.isUsingClientCertificate = config.isUsingClientCertificate,
-        this.serverCertificateName = config.serverCertificateName,
-        this._shared = config._shared,
-        this.pipelineOptions = config.pipelineOptions;
+  ApplicationInstanceConfiguration.fromConfiguration(ApplicationInstanceConfiguration config) {
+    var reflectedThis = reflect(this);
+    var reflectedThat = reflect(config);
+    reflectedThat.type.declarations.values.where((dm) => dm is VariableMirror).forEach((VariableMirror vm) {
+      reflectedThis.setField(vm.simpleName, reflectedThat.getField(vm.simpleName).reflectee);
+    });
+  }
 }
 
 /// A abstract class that concrete subclasses will implement to provide request handling behavior.
 ///
-/// [Application]s set up HTTP(s) listeners, but do not do anything with them. The behavior of how an application
+/// [Application]s set up HTTP(S) listeners, but do not do anything with them. The behavior of how an application
 /// responds to requests is defined by its [ApplicationPipeline]. Instances of this class must implement the
 /// [handleRequest] method from [RequestHandler] - this is the entry point of all requests into this pipeline.
 abstract class ApplicationPipeline extends RequestHandler {
@@ -107,7 +106,7 @@ abstract class ApplicationPipeline extends RequestHandler {
 /// a [PipelineType] and [RequestType].
 class Application<PipelineType extends ApplicationPipeline> {
   /// A list of items identifying the Isolates running a HTTP(s) listener and response handlers.
-  List<_ServerRecord> servers = [];
+  List<_ServerSupervisor> servers = [];
 
   /// The configuration for the HTTP(s) server this application is running.
   ///
@@ -144,7 +143,12 @@ class Application<PipelineType extends ApplicationPipeline> {
     await Future.wait(futures);
   }
 
-  Future<_ServerRecord> _spawn(ApplicationInstanceConfiguration config, int identifier) async {
+  Future stop() async {
+    await Future.wait(servers.map((s) => s.stop()));
+    servers = [];
+  }
+
+  Future<_ServerSupervisor> _spawn(ApplicationInstanceConfiguration config, int identifier) async {
     var receivePort = new ReceivePort();
 
     var pipelineTypeMirror = reflectType(PipelineType);
@@ -155,20 +159,22 @@ class Application<PipelineType extends ApplicationPipeline> {
     var isolate = await Isolate.spawn(_Server.entry, initialMessage, paused: true);
     isolate.addErrorListener(receivePort.sendPort);
 
-    return new _ServerRecord(isolate, receivePort, identifier);
+    return new _ServerSupervisor(isolate, receivePort, identifier);
   }
 }
 
 class _Server {
-  static String _FinishedMessage = "finished";
-
   ApplicationInstanceConfiguration configuration;
   SendPort supervisingApplicationPort;
+  ReceivePort supervisingReceivePort;
   HttpServer server;
   ApplicationPipeline pipeline;
   int identifier;
 
-  _Server(this.pipeline, this.configuration, this.identifier, this.supervisingApplicationPort);
+  _Server(this.pipeline, this.configuration, this.identifier, this.supervisingApplicationPort) {
+    supervisingReceivePort = new ReceivePort();
+    supervisingReceivePort.listen(listener);
+  }
 
   ResourceRequest createRequest(HttpRequest req) {
     return new ResourceRequest(req);
@@ -195,21 +201,24 @@ class _Server {
 
       pipeline.didOpen();
 
-      supervisingApplicationPort.send(_FinishedMessage);
+      supervisingApplicationPort.send(supervisingReceivePort.sendPort);
     };
 
-    if (configuration.serverCertificateName != null) {
+    if (configuration.securityContext != null) {
       HttpServer
-          .bindSecure(configuration.address, configuration.port,
-              certificateName: configuration.serverCertificateName, v6Only: configuration.isIpv6Only, shared: configuration._shared)
-          .then(onBind);
-    } else if (configuration.isUsingClientCertificate) {
-      HttpServer
-          .bindSecure(configuration.address, configuration.port,
-              requestClientCertificate: true, v6Only: configuration.isIpv6Only, shared: configuration._shared)
+          .bindSecure(configuration.address, configuration.port, configuration.securityContext,
+              requestClientCertificate: configuration.isUsingClientCertificate, v6Only: configuration.isIpv6Only, shared: configuration._shared)
           .then(onBind);
     } else {
       HttpServer.bind(configuration.address, configuration.port, v6Only: configuration.isIpv6Only, shared: configuration._shared).then(onBind);
+    }
+  }
+
+  void listener(dynamic message) {
+    if (message == _ServerSupervisor._MessageStop) {
+      server.close().then((s) {
+        supervisingApplicationPort.send(_ServerSupervisor._MessageStop);
+      });
     }
   }
 
@@ -224,22 +233,45 @@ class _Server {
   }
 }
 
-class _ServerRecord {
+class _ServerSupervisor {
+  static String _MessageStop = "_MessageStop";
+
   final Isolate isolate;
   final ReceivePort receivePort;
   final int identifier;
 
-  _ServerRecord(this.isolate, this.receivePort, this.identifier);
+  SendPort _serverSendPort;
+
+  Completer _launchCompleter;
+  Completer _stopCompleter;
+
+  _ServerSupervisor(this.isolate, this.receivePort, this.identifier) {
+  }
 
   Future resume() {
-    var completer = new Completer();
-    receivePort.listen((msg) {
-      if (msg == _Server._FinishedMessage) {
-        completer.complete();
-      }
-    });
+    _launchCompleter = new Completer();
+    receivePort.listen(listener);
+
     isolate.resume(isolate.pauseCapability);
-    return completer.future.timeout(new Duration(seconds: 30));
+    return _launchCompleter.future.timeout(new Duration(seconds: 30));
+  }
+
+  Future stop() {
+    _stopCompleter = new Completer();
+    _serverSendPort.send(_MessageStop);
+    return _stopCompleter.future.timeout(new Duration(seconds: 30));
+  }
+
+  void listener(dynamic message) {
+    if (message is SendPort) {
+      _launchCompleter.complete();
+      _launchCompleter = null;
+
+      _serverSendPort = message;
+    } else if (message == _MessageStop) {
+      _stopCompleter.complete();
+      _stopCompleter = null;
+    }
   }
 }
 
