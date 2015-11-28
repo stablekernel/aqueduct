@@ -61,23 +61,22 @@ class RequestHandler {
 
   void deliver(ResourceRequest req) {
     logger.finest("$this received request $req.");
-    processRequest(req)
-        .then((result) {
-          if (result is ResourceRequest && nextHandler != null) {
-            nextHandler.deliver(req);
-          } else if (result is Response) {
-            req.respond(result as Response);
-          }
-        })
-        .catchError((err, st) {
-          if (err is HttpResponseException) {
-            req.respond(err.response());
-          } else {
-            logger.severe("$this generated internal error for request ${req.toDebugString()}. $err\n Stacktrace:\n${st.toString()}");
-            req.respond(new Response.serverError(headers: {HttpHeaders.CONTENT_TYPE : "application/json"},
-                body: JSON.encode({"error" : "Unexpected exception in ${this.runtimeType}.", "stacktrace" : st.toString()})));
-          }
-        });
+    processRequest(req).then((result) {
+      if (result is ResourceRequest && nextHandler != null) {
+        nextHandler.deliver(req);
+      } else if (result is Response) {
+        req.respond(result as Response);
+      }
+    }).catchError((err, st) {
+      if (err is HttpResponseException) {
+        req.respond(err.response());
+      } else {
+        logger.severe("$this generated internal error for request ${req.toDebugString()}. $err\n Stacktrace:\n${st.toString()}");
+        req.respond(new Response.serverError(
+            headers: {HttpHeaders.CONTENT_TYPE: "application/json"},
+            body: JSON.encode({"error": "Unexpected exception in ${this.runtimeType}.", "stacktrace": st.toString()})));
+      }
+    });
   }
 
   /// Overridden by subclasses to modify or respond to an incoming request.
@@ -104,8 +103,7 @@ class RequestHandlerGenerator<T> extends RequestHandler {
   @override
   void deliver(ResourceRequest req) {
     logger.finest("Generating handler $T with arguments $arguments.");
-    var handler = reflectClass(T).newInstance(new Symbol(""), arguments).reflectee
-        as RequestHandler;
+    var handler = reflectClass(T).newInstance(new Symbol(""), arguments).reflectee as RequestHandler;
     handler.nextHandler = this.nextHandler;
     handler.deliver(req);
   }

@@ -4,7 +4,7 @@ abstract class AuthorizationFailable {
   Response errorResponse;
 }
 
-class AuthorizationBearerParser extends AuthorizationFailable{
+class AuthorizationBearerParser extends AuthorizationFailable {
   String bearerToken;
 
   AuthorizationBearerParser(String authorizationHeader) {
@@ -13,7 +13,7 @@ class AuthorizationBearerParser extends AuthorizationFailable{
 
   Response parse(String authorizationHeader) {
     if (authorizationHeader == null) {
-      return new Response.unauthorized(body: {"error" : "No authorization header."});
+      return new Response.unauthorized(body: {"error": "No authorization header."});
     }
 
     var matcher = new RegExp("Bearer (.*)");
@@ -38,7 +38,7 @@ class AuthorizationBasicParser extends AuthorizationFailable {
 
   Response parse(String authorizationHeader) {
     if (authorizationHeader == null) {
-      return new Response.unauthorized(body: {"error" : "No authorization header."});
+      return new Response.unauthorized(body: {"error": "No authorization header."});
     }
 
     var matcher = new RegExp("Basic (.*)");
@@ -50,15 +50,14 @@ class AuthorizationBasicParser extends AuthorizationFailable {
     var base64String = match[1];
     var decodedCredentials = null;
     try {
-      decodedCredentials = new String.fromCharCodes(
-          CryptoUtils.base64StringToBytes(base64String));
+      decodedCredentials = new String.fromCharCodes(CryptoUtils.base64StringToBytes(base64String));
     } catch (e) {
-      return new Response.badRequest(body: {"error" : "Improper authorization header."});
+      return new Response.badRequest(body: {"error": "Improper authorization header."});
     }
 
     var splitCredentials = decodedCredentials.split(":");
     if (splitCredentials.length != 2) {
-      return new Response.badRequest(body: {"error" : "Improper client credentials."});
+      return new Response.badRequest(body: {"error": "Improper client credentials."});
     }
 
     username = splitCredentials.first;

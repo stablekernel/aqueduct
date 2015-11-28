@@ -42,8 +42,7 @@ class ApplicationInstanceConfiguration {
   ApplicationInstanceConfiguration();
 
   /// A copy constructor
-  ApplicationInstanceConfiguration.fromConfiguration(
-      ApplicationInstanceConfiguration config)
+  ApplicationInstanceConfiguration.fromConfiguration(ApplicationInstanceConfiguration config)
       : this.address = config.address,
         this.port = config.port,
         this.isIpv6Only = config.isIpv6Only,
@@ -79,7 +78,9 @@ abstract class ApplicationPipeline extends RequestHandler {
   /// of this pipeline to be set. Initialization that does not require the use of [options]
   /// should take place in the constructor.
   /// This method will be executed prior to the start of the [HttpServer].
-  Future willOpen() { return null; }
+  Future willOpen() {
+    return null;
+  }
 
   /// Executed after the pipeline is attached to an [HttpServer].
   ///
@@ -94,7 +95,9 @@ abstract class ApplicationPipeline extends RequestHandler {
   /// This method will run prior to each request being [deliver]ed to this
   /// pipeline's [initialHandler]. Use this method to provide additional
   /// context to the request prior to it being handled.
-  Future willReceiveRequest(ResourceRequest request) { return null; }
+  Future willReceiveRequest(ResourceRequest request) {
+    return null;
+  }
 }
 
 /// A container for web server applications.
@@ -109,8 +112,7 @@ class Application<PipelineType extends ApplicationPipeline> {
   /// The configuration for the HTTP(s) server this application is running.
   ///
   /// This must be configured prior to [start]ing the [Application].
-  ApplicationInstanceConfiguration configuration =
-      new ApplicationInstanceConfiguration();
+  ApplicationInstanceConfiguration configuration = new ApplicationInstanceConfiguration();
 
   /// Starts the application by spawning Isolates that listen for HTTP(s) requests.
   ///
@@ -129,8 +131,7 @@ class Application<PipelineType extends ApplicationPipeline> {
     configuration._shared = numberOfInstances > 1;
 
     for (int i = 0; i < numberOfInstances; i++) {
-      var config =
-          new ApplicationInstanceConfiguration.fromConfiguration(configuration);
+      var config = new ApplicationInstanceConfiguration.fromConfiguration(configuration);
 
       var serverRecord = await _spawn(config, i + 1);
       servers.add(serverRecord);
@@ -143,20 +144,15 @@ class Application<PipelineType extends ApplicationPipeline> {
     await Future.wait(futures);
   }
 
-  Future<_ServerRecord> _spawn(
-      ApplicationInstanceConfiguration config, int identifier) async {
+  Future<_ServerRecord> _spawn(ApplicationInstanceConfiguration config, int identifier) async {
     var receivePort = new ReceivePort();
 
     var pipelineTypeMirror = reflectType(PipelineType);
     var pipelineLibraryURI = (pipelineTypeMirror.owner as LibraryMirror).uri;
     var pipelineTypeName = MirrorSystem.getName(pipelineTypeMirror.simpleName);
 
-    var initialMessage = new _InitialServerMessage(
-        pipelineTypeName,
-        pipelineLibraryURI,
-        config, identifier, receivePort.sendPort);
-    var isolate =
-        await Isolate.spawn(_Server.entry, initialMessage, paused: true);
+    var initialMessage = new _InitialServerMessage(pipelineTypeName, pipelineLibraryURI, config, identifier, receivePort.sendPort);
+    var isolate = await Isolate.spawn(_Server.entry, initialMessage, paused: true);
     isolate.addErrorListener(receivePort.sendPort);
 
     return new _ServerRecord(isolate, receivePort, identifier);
@@ -172,11 +168,7 @@ class _Server {
   ApplicationPipeline pipeline;
   int identifier;
 
-  _Server(this.pipeline,
-      this.configuration, this.identifier,
-      this.supervisingApplicationPort);
-
-
+  _Server(this.pipeline, this.configuration, this.identifier, this.supervisingApplicationPort);
 
   ResourceRequest createRequest(HttpRequest req) {
     return new ResourceRequest(req);
@@ -209,37 +201,24 @@ class _Server {
     if (configuration.serverCertificateName != null) {
       HttpServer
           .bindSecure(configuration.address, configuration.port,
-              certificateName: configuration.serverCertificateName,
-              v6Only: configuration.isIpv6Only,
-              shared: configuration._shared)
+              certificateName: configuration.serverCertificateName, v6Only: configuration.isIpv6Only, shared: configuration._shared)
           .then(onBind);
     } else if (configuration.isUsingClientCertificate) {
       HttpServer
           .bindSecure(configuration.address, configuration.port,
-              requestClientCertificate: true,
-              v6Only: configuration.isIpv6Only,
-              shared: configuration._shared)
+              requestClientCertificate: true, v6Only: configuration.isIpv6Only, shared: configuration._shared)
           .then(onBind);
     } else {
-      HttpServer
-          .bind(configuration.address, configuration.port,
-              v6Only: configuration.isIpv6Only, shared: configuration._shared)
-          .then(onBind);
+      HttpServer.bind(configuration.address, configuration.port, v6Only: configuration.isIpv6Only, shared: configuration._shared).then(onBind);
     }
   }
 
   static void entry(_InitialServerMessage params) {
-    var pipelineSourceLibraryMirror =
-        currentMirrorSystem().libraries[params.pipelineLibraryURI];
-    var pipelineTypeMirror = pipelineSourceLibraryMirror.declarations[
-        new Symbol(params.pipelineTypeName)] as ClassMirror;
+    var pipelineSourceLibraryMirror = currentMirrorSystem().libraries[params.pipelineLibraryURI];
+    var pipelineTypeMirror = pipelineSourceLibraryMirror.declarations[new Symbol(params.pipelineTypeName)] as ClassMirror;
 
     var app = pipelineTypeMirror.newInstance(new Symbol(""), []).reflectee;
-    var server = new _Server(
-        app,
-        params.configuration,
-        params.identifier,
-        params.parentMessagePort);
+    var server = new _Server(app, params.configuration, params.identifier, params.parentMessagePort);
 
     server.start();
   }
@@ -271,6 +250,5 @@ class _InitialServerMessage {
   SendPort parentMessagePort;
   int identifier;
 
-  _InitialServerMessage(this.pipelineTypeName, this.pipelineLibraryURI,
-      this.configuration, this.identifier, this.parentMessagePort);
+  _InitialServerMessage(this.pipelineTypeName, this.pipelineLibraryURI, this.configuration, this.identifier, this.parentMessagePort);
 }

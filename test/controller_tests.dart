@@ -170,7 +170,17 @@ void main() {
 
     res = await http.get("http://localhost:4040/a?foo=2001-01-01T00:00:00.000000Z");
     expect(res.statusCode, 200);
+
+    server.close();
   });
+
+  test("Query parameters can be obtained from x-www-form-urlencoded", () async {
+    var server = await enableController("/a", new RequestHandlerGenerator<IntController>());
+    var res = await http.post("http://localhost:4040/a", headers: {"Content-Type" : "application/x-www-form-urlencoded"}, body: "opt=7");
+    expect(res.body, '"7"');
+    server.close();
+  });
+
 }
 
 
@@ -235,6 +245,11 @@ class IntController extends HttpController {
   Future<Response> getAll({int opt: null}) async {
     return new Response.ok("${opt}");
   }
+
+  @httpPost
+  Future<Response> create({int opt: null}) async {
+    return new Response.ok("${opt}");
+  }
 }
 
 class DateTimeController extends HttpController {
@@ -250,6 +265,7 @@ class DateTimeController extends HttpController {
 }
 
 Future<HttpServer> enableController(String pattern, RequestHandler controller) async {
+
   var router = new Router();
   router.route(pattern).then(controller);
 

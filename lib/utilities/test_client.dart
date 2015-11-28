@@ -9,7 +9,6 @@ part of monadart;
       expect(response.jsonObject.hasKeys(["id", "name", "email"]), true);
      */
 
-
 class TestClient {
   String host;
 
@@ -20,10 +19,10 @@ class TestClient {
 
   JSONTestRequest jsonRequest(String path) {
     JSONTestRequest r = new JSONTestRequest()
-        ..host = this.host
-        ..path = path
-        ..contentType = "application/json;charset=utf-8"
-        ..accept = "application/json";
+      ..host = this.host
+      ..path = path
+      ..contentType = "application/json;charset=utf-8"
+      ..accept = "application/json";
     return r;
   }
 
@@ -38,16 +37,14 @@ class TestClient {
     clientID ??= defaultClientID;
     clientSecret ??= defaultClientSecret;
 
-    var req = request(path)
-      ..basicAuthorization = "$clientID:$clientSecret";
+    var req = request(path)..basicAuthorization = "$clientID:$clientSecret";
     return req;
   }
 
   TestRequest authenticatedRequest(String path, {String accessToken: null}) {
     accessToken ??= token["access_token"];
 
-    var req = request(path)
-      ..bearerAuthorization = accessToken;
+    var req = request(path)..bearerAuthorization = accessToken;
     return req;
   }
 
@@ -55,31 +52,32 @@ class TestClient {
     clientID ??= defaultClientID;
     clientSecret ??= defaultClientSecret;
 
-    var req = jsonRequest(path)
-      ..basicAuthorization = "$clientID:$clientSecret";
+    var req = jsonRequest(path)..basicAuthorization = "$clientID:$clientSecret";
     return req;
   }
 
   JSONTestRequest authenticatedJSONRequest(String path, {String accessToken: null}) {
     accessToken ??= token["access_token"];
 
-    var req = jsonRequest(path)
-      ..bearerAuthorization = accessToken;
+    var req = jsonRequest(path)..bearerAuthorization = accessToken;
     return req;
   }
 }
 
-class TestRequest <ResponseType extends TestResponse> {
+class TestRequest<ResponseType extends TestResponse> {
   String host;
   void set basicAuthorization(String str) {
     addHeader(HttpHeaders.AUTHORIZATION, "Basic ${CryptoUtils.bytesToBase64(str.codeUnits)}");
   }
+
   void set bearerAuthorization(String str) {
     addHeader(HttpHeaders.AUTHORIZATION, "Bearer $str");
   }
+
   void set contentType(String str) {
     addHeader(HttpHeaders.CONTENT_TYPE, str);
   }
+
   void set accept(String str) {
     addHeader(HttpHeaders.ACCEPT, str);
   }
@@ -126,7 +124,6 @@ class JSONTestRequest extends TestRequest<JSONTestResponse> {
     var res = await response;
     return new JSONTestResponse(res.statusCode, res.headers, res.body);
   }
-
 }
 
 class TestResponse {
