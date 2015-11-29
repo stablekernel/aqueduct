@@ -85,6 +85,10 @@ abstract class ApplicationPipeline extends RequestHandler {
   Future willReceiveRequest(ResourceRequest request) {
     return null;
   }
+
+  void document(APIDocument doc) {
+    initialHandler().document(doc);
+  }
 }
 
 /// A container for web server applications.
@@ -179,7 +183,7 @@ class _Server {
 
       server.serverHeader = "monadart/${this.identifier}";
 
-      server.map(createRequest).listen((req) async {
+      server.map(createRequest).listen((ResourceRequest req) async {
         new Logger("monadart").info("Request received $req.");
         await pipeline.willReceiveRequest(req);
         pipeline.deliver(req);

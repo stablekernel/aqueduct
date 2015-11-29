@@ -260,6 +260,25 @@ abstract class HttpController extends RequestHandler {
 
     return response;
   }
+
+  @override
+  List<APIDocumentItem> document() {
+    var handlerMethodMirrors = reflect(this).type.declarations.values
+        .where((dm) => dm is MethodMirror)
+        .where((mm) {
+          return mm.metadata.firstWhere((im) => im.reflectee is HttpMethod, orElse: () => null) != null;
+        });
+
+    return handlerMethodMirrors.map((MethodMirror mm) {
+      var i = new APIDocumentItem();
+      var httpMethod = mm.metadata.firstWhere((im) => im.reflectee is HttpMethod).reflectee;
+
+      i.method = httpMethod.method;
+      
+
+
+    }).toList();
+  }
 }
 
 class _InternalControllerException {

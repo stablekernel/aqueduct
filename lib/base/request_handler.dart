@@ -11,7 +11,7 @@ abstract class RequestHandlerResult {}
 /// their [deliver] method, which in turn invokes [processRequest]. Subclasses
 /// should implement [processRequest] to respond to, modify or forward requests.
 /// In some cases, subclasses may also override [deliver].
-class RequestHandler {
+class RequestHandler implements APIDocumentable {
   Function _handler;
 
   Logger get logger => new Logger("monadart");
@@ -91,6 +91,14 @@ class RequestHandler {
       return _handler(req);
     }
     return req;
+  }
+
+  List<APIDocumentItem> document() {
+    if (nextHandler != null) {
+      return nextHandler.document();
+    }
+
+    return [];
   }
 }
 
