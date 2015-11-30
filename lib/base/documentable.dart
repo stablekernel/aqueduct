@@ -25,6 +25,10 @@ class APIDocumentItem {
   List<Map<String, String>> possibleErrors;
 
   String sampleSuccessfulResponse;
+
+  String toString() {
+    return "$path $method $authenticationRequirements $acceptedContentTypes $pathParameters $queryParameters $responseFormats $possibleErrors $sampleSuccessfulResponse";
+  }
 }
 
 class APIParameter {
@@ -32,4 +36,8 @@ class APIParameter {
   String description;
   String type;
   bool required;
+
+  String toString() {
+    return "$type $key $required $description";
+  }
 }
