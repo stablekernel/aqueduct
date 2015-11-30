@@ -274,9 +274,18 @@ abstract class HttpController extends RequestHandler {
       var httpMethod = mm.metadata.firstWhere((im) => im.reflectee is HttpMethod).reflectee;
 
       i.method = httpMethod.method;
-      
 
+      i.pathParameters = mm.parameters
+          .where((pm) => !pm.isOptional)
+          .map((pm) {
+            return new APIParameter()
+                ..key = MirrorSystem.getName(pm.simpleName)
+                ..description = ""
+                ..type = MirrorSystem.getName(pm.type.simpleName)
+                ..required = true;
+      });
 
+      return i;
     }).toList();
   }
 }

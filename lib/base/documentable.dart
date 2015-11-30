@@ -19,8 +19,8 @@ class APIDocumentItem {
   String method;
   String authenticationRequirements;
   List<String> acceptedContentTypes;
-  Map<String, APIParameter> pathParameters;
-  Map<String, APIParameter> queryParameters;
+  List<APIParameter> pathParameters;
+  List<APIParameter> queryParameters;
   List<String> responseFormats;
   List<Map<String, String>> possibleErrors;
 
@@ -28,6 +28,7 @@ class APIDocumentItem {
 }
 
 class APIParameter {
+  String key;
   String description;
   String type;
   bool required;
