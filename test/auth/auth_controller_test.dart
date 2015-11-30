@@ -1,14 +1,14 @@
-import 'package:inquirer_pgsql/inquirer_pgsql.dart';
 import 'package:test/test.dart';
 import 'package:crypto/crypto.dart';
 import 'dart:io';
 import 'package:monadart/monadart.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'helpers.dart';
+import '../helpers.dart';
+import 'package:postgresql/postgresql.dart';
 
 void main() {
-  PostgresModelAdapter adapter;
+  QueryAdapter adapter;
 
   HttpServer server;
 

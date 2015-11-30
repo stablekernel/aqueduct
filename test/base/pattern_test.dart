@@ -1,7 +1,7 @@
 @TestOn("vm")
 import "package:test/test.dart";
 import "dart:core";
-import '../lib/monadart.dart';
+import 'package:monadart/monadart.dart';
 
 void main() {
 

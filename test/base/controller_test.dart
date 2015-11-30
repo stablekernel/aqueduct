@@ -3,7 +3,7 @@ import "package:test/test.dart";
 import "dart:core";
 import "dart:io";
 import 'package:http/http.dart' as http;
-import '../lib/monadart.dart';
+import 'package:monadart/monadart.dart';
 import 'dart:convert';
 import 'dart:async';
 

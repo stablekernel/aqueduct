@@ -7,10 +7,7 @@ dependencies:
   crypto: any
   http: any
   logging: any
+  postgresql: '0.3.2'
 
 dev_dependencies:
   test: any
-  inquirer_pgsql:
-    git:
-      url: https://github.com/stablekernel/inquirer_pgsql.git
-      ref: master

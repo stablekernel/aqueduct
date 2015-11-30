@@ -11,6 +11,7 @@ import 'dart:math';
 import 'package:http_server/http_server.dart';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
+import 'package:postgresql/postgresql.dart';
 
 export 'package:http_server/http_server.dart';
 export 'package:logging/logging.dart';
@@ -32,5 +33,20 @@ part 'auth/client.dart';
 part 'auth/auth_controller.dart';
 part 'auth/authorization_parser.dart';
 part 'auth/authentication_server.dart';
+
+part 'db/model.dart';
+part 'db/model_controller.dart';
+part 'db/predicate.dart';
+part 'db/query.dart';
+part 'db/query_adapter.dart';
+part 'db/query_page.dart';
+part 'db/sort_descriptor.dart';
+
+// PostgreSQL
+
+part 'db/postgresql/postgresl_query.dart';
+part 'db/postgresql/postgresql_helpers.dart';
+part 'db/postgresql/postgresql_model_adapter.dart';
+part 'db/postgresql/postgresql_schema.dart';
 
 part 'utilities/test_client.dart';

@@ -1,8 +1,7 @@
 import 'dart:async';
-import 'package:inquirer_pgsql/inquirer_pgsql.dart';
 import 'package:monadart/monadart.dart';
 
-Future<List<TestUser>> createUsers(PostgresModelAdapter adapter, int count) async {
+Future<List<TestUser>> createUsers(QueryAdapter adapter, int count) async {
   var users = new List<TestUser>();
   for (int i = 0; i < count; i++) {
     var salt = AuthenticationServer.generateRandomSalt();
@@ -58,7 +57,7 @@ class TokenBacking implements Tokenizable {
 }
 
 class AuthDelegate<User extends Model, T extends Model> implements AuthenticationServerDelegate {
-  PostgresModelAdapter adapter;
+  QueryAdapter adapter;
 
   AuthDelegate(this.adapter);
 

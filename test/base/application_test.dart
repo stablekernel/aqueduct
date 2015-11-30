@@ -1,5 +1,5 @@
 import 'package:test/test.dart';
-import '../lib/monadart.dart';
+import 'package:monadart/monadart.dart';
 import 'dart:async';
 import 'package:http/http.dart' as http;
 

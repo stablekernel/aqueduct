@@ -6,6 +6,9 @@
       <excludeFolder url="file://$MODULE_DIR$/.pub" />
       <excludeFolder url="file://$MODULE_DIR$/bin/packages" />
       <excludeFolder url="file://$MODULE_DIR$/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/test/auth/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/test/base/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/test/db/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/packages" />
     </content>
     <orderEntry type="sourceFolder" forTests="false" />

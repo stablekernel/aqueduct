@@ -1,11 +1,11 @@
-import 'package:inquirer_pgsql/inquirer_pgsql.dart';
 import 'package:test/test.dart';
 import 'package:monadart/monadart.dart';
 import 'dart:io';
-import 'helpers.dart';
+import '../helpers.dart';
+import 'package:postgresql/postgresql.dart';
 
 void main() {
-  PostgresModelAdapter adapter;
+  QueryAdapter adapter;
   AuthDelegate<TestUser, Token> delegate;
 
   setUp(() async {
