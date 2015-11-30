@@ -1,10 +1,10 @@
 part of monadart;
 
 class PostgresqlSchema {
-  Map<Type, PostgresqlTable> tables;
+  Map<Type, _PostgresqlTable> tables;
 
   PostgresqlSchema.fromModels(List<Type> modelTypes, {bool temporary: false}) {
-    tables = new Map.fromIterable(modelTypes, key: (t) => t, value: (t) => new PostgresqlTable.fromModel(t, temporary));
+    tables = new Map.fromIterable(modelTypes, key: (t) => t, value: (t) => new _PostgresqlTable.fromModel(t, temporary));
 
     tables.values.forEach((table) {
       table.updateRelationshipsWithTables(tables);
@@ -31,24 +31,24 @@ class PostgresqlSchema {
   }
 }
 
-class PostgresqlTable {
+class _PostgresqlTable {
   Type type;
   bool isTemporary;
   String name;
 
   // Key is the modelKey (property) of the model object. A column stores the database column name.
-  Map<String, PostgresqlColumn> columns;
+  Map<String, _PostgresqlColumn> columns;
 
-  PostgresqlColumn get primaryKeyColumn => columns[primaryModelKey];
+  _PostgresqlColumn get primaryKeyColumn => columns[primaryModelKey];
   String primaryModelKey;
 
-  PostgresqlTable.fromModel(Type t, bool temporary) {
+  _PostgresqlTable.fromModel(Type t, bool temporary) {
     this.type = t;
     this.isTemporary = temporary;
 
-    name = tableNameForType(t);
+    name = _tableNameForType(t);
 
-    var reflectedModel = backingTypeForModelType(t);
+    var reflectedModel = _backingTypeForModelType(t);
     var symbols = [];
 
     reflectedModel.declarations.forEach((k, decl) {
@@ -60,7 +60,7 @@ class PostgresqlTable {
     columns = new Map.fromIterable(symbols,
         key: (sym) => MirrorSystem.getName(sym),
         value: (sym) =>
-            new PostgresqlColumn.fromVariableMirror(reflectedModel.declarations[sym] as VariableMirror, this));
+            new _PostgresqlColumn.fromVariableMirror(reflectedModel.declarations[sym] as VariableMirror, this));
 
     columns.forEach((propertyKey, column) {
       if (column.isPrimaryKey) {
@@ -69,7 +69,7 @@ class PostgresqlTable {
     });
   }
 
-  void updateRelationshipsWithTables(Map<Type, PostgresqlTable> tables) {
+  void updateRelationshipsWithTables(Map<Type, _PostgresqlTable> tables) {
     var columnsWithRelationships = columns.values.where((column) => column.relationship != null);
 
     columnsWithRelationships.forEach((column) {
@@ -98,7 +98,7 @@ class PostgresqlTable {
         columns.values.where((column) => column.relationship != null && !column.ignoreWhenGeneratingSQL());
     var foreignKeyDefinitions =
         foreignKeyColumns.map((column) => "alter table only ${name} add foreign key (${column.name}) "
-            "references ${tableNameForType(
+            "references ${_tableNameForType(
         column.relationship.destinationType)} (${column.relationship
         .foreignColumnName}) "
             "on delete ${column.relationship.deleteRuleText()}");
@@ -110,7 +110,7 @@ class PostgresqlTable {
     return items;
   }
 
-  void verify(Map<Type, PostgresqlTable> tables) {
+  void verify(Map<Type, _PostgresqlTable> tables) {
     if (name == null) {
       throw new PostgresqlGeneratorException("Table for $type has no name.");
     }
@@ -121,7 +121,7 @@ class PostgresqlTable {
   }
 }
 
-class PostgresqlColumn {
+class _PostgresqlColumn {
   bool isPrimaryKey;
   String sqlType;
   bool isNullable;
@@ -130,7 +130,7 @@ class PostgresqlColumn {
   bool isIndexed;
   bool shouldOmitFromDefaultSet;
   String name;
-  PostgresqlRelationship relationship;
+  _PostgresqlRelationship relationship;
 
   bool get isRealColumn {
     if (relationship == null) {
@@ -142,12 +142,12 @@ class PostgresqlColumn {
     return true;
   }
 
-  PostgresqlColumn.fromVariableMirror(VariableMirror mirror, PostgresqlTable table) {
+  _PostgresqlColumn.fromVariableMirror(VariableMirror mirror, _PostgresqlTable table) {
     name = MirrorSystem.getName(mirror.simpleName);
 
     var r = relationshipAttributesForMirror(mirror);
     if (r != null) {
-      relationship = new PostgresqlRelationship(mirror, r);
+      relationship = new _PostgresqlRelationship(mirror, r);
     }
 
     var attributes = adjustedAttributesFromMirror(mirror);
@@ -199,7 +199,7 @@ class PostgresqlColumn {
     return columnAttrs;
   }
 
-  void updateWithTables(Map<Type, PostgresqlTable> tables) {
+  void updateWithTables(Map<Type, _PostgresqlTable> tables) {
     if (this.ignoreWhenGeneratingSQL()) {
       return;
     }
@@ -300,7 +300,7 @@ class PostgresqlColumn {
     return "${name} ${elements.join(' ')}";
   }
 
-  void verify(PostgresqlTable owningTable, Map<Type, PostgresqlTable> tables) {
+  void verify(_PostgresqlTable owningTable, Map<Type, _PostgresqlTable> tables) {
     if (isRealColumn && sqlType == null) {
       throw new PostgresqlGeneratorException("Column $name of ${owningTable
           .name} has no type; should it be marked with @RelationshipAttribute?");
@@ -322,7 +322,7 @@ class PostgresqlColumn {
   }
 }
 
-class PostgresqlRelationship {
+class _PostgresqlRelationship {
   RelationshipDeleteRule deleteRule;
   RelationshipType type;
   Type destinationType;
@@ -330,7 +330,7 @@ class PostgresqlRelationship {
   String inverseModelKey;
   String foreignColumnName;
 
-  PostgresqlRelationship(VariableMirror referenceMirror, RelationshipAttribute attribute) {
+  _PostgresqlRelationship(VariableMirror referenceMirror, RelationshipAttribute attribute) {
     var variableType = referenceMirror.type;
     if (variableType.isSubtypeOf(reflectType(List))) {
       this.destinationType = variableType.typeArguments.first.reflectedType;
@@ -369,8 +369,8 @@ class PostgresqlGeneratorException implements Exception {
   }
 }
 
-String tableNameForType(Type t) {
-  var reflectedModel = backingTypeForModelType(t);
+String _tableNameForType(Type t) {
+  var reflectedModel = _backingTypeForModelType(t);
   var tableNameSymbol = new Symbol("tableName");
   if (reflectedModel.staticMembers[tableNameSymbol] != null) {
     return reflectedModel.invoke(tableNameSymbol, []).reflectee;
@@ -379,7 +379,7 @@ String tableNameForType(Type t) {
   return MirrorSystem.getName(reflectClass(t).simpleName);
 }
 
-ClassMirror backingTypeForModelType(Type modelType) {
+ClassMirror _backingTypeForModelType(Type modelType) {
   var modelBackingMirror = reflectType(modelType)
       .metadata
       .firstWhere((m) => m.type.isSubtypeOf(reflectType(ModelBacking)), orElse: () => null);

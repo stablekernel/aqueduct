@@ -54,22 +54,22 @@ class PostgresModelAdapter extends QueryAdapter {
 
   @override
   Future<dynamic> execute(Query query) {
-    PostgresqlQuery pgsqlQuery = null;
+    _PostgresqlQuery pgsqlQuery = null;
     switch (query.queryType) {
       case QueryType.fetch:
-        pgsqlQuery = new PostgresqlFetchQuery(schema, query);
+        pgsqlQuery = new _PostgresqlFetchQuery(schema, query);
         break;
       case QueryType.count:
 //        query = new PostgresqlFetchQuery(schema, req);
         break;
       case QueryType.delete:
-        pgsqlQuery = new PostgresqlDeleteQuery(schema, query);
+        pgsqlQuery = new _PostgresqlDeleteQuery(schema, query);
         break;
       case QueryType.insert:
-        pgsqlQuery = new PostgresqlInsertQuery(schema, query);
+        pgsqlQuery = new _PostgresqlInsertQuery(schema, query);
         break;
       case QueryType.update:
-        pgsqlQuery = new PostgresqlUpdateQuery(schema, query);
+        pgsqlQuery = new _PostgresqlUpdateQuery(schema, query);
         break;
     }
 
@@ -120,7 +120,7 @@ class PostgresModelAdapter extends QueryAdapter {
     return new QueryException(500, exception.message, 0, stackTrace: stackTrace);
   }
 
-  List<Model> mapRowsAccordingToQuery(List<Row> rows, PostgresqlQuery query) {
+  List<Model> mapRowsAccordingToQuery(List<Row> rows, _PostgresqlQuery query) {
     ClassMirror m = reflectClass(query.query.modelType);
     var table = schema.tables[query.query.modelType];
 

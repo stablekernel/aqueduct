@@ -271,7 +271,7 @@ main() {
     expect(t.asMap()["outputInt"], 3);
 
     try {
-      var z = new TransientTest()
+      var _ = new TransientTest()
         ..readMap({
           "outputInt" : 3
         });

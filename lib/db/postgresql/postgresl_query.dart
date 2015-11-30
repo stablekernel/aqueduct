@@ -1,18 +1,18 @@
 part of monadart;
 
-class MappingElement {
+class _MappingElement {
   final String modelKey;
   final String databaseKey;
 
-  const MappingElement(this.modelKey, this.databaseKey);
+  const _MappingElement(this.modelKey, this.databaseKey);
 }
 
-class PostgresqlQuery {
+class _PostgresqlQuery {
   PostgresqlSchema schema;
   Query query;
   String string;
   Map values = {};
-  List<MappingElement> resultMappingElements;
+  List<_MappingElement> resultMappingElements;
 
   void preprocess() {
     // Transfer predicateObject to predicate if one exists, overwrites the predicate.
@@ -58,13 +58,13 @@ class PostgresqlQuery {
     return new Predicate("(${predicateFmt.toString()})", m);
   }
 
-  List<MappingElement> mappingElementsFromQuery(Query query) {
+  List<_MappingElement> mappingElementsFromQuery(Query query) {
     if (query.resultKeys == null) {
       var columns = schema.tables[query.modelType].columns;
 
       var elements = columns.keys
           .where((k) => columns[k].isRealColumn && !columns[k].shouldOmitFromDefaultSet)
-          .map((modelKey) => new MappingElement(modelKey, columns[modelKey].name));
+          .map((modelKey) => new _MappingElement(modelKey, columns[modelKey].name));
       return elements.toList();
     }
 
@@ -77,7 +77,7 @@ class PostgresqlQuery {
             "Attempting to retrieve $modelKey from ${MirrorSystem.getName(reflectType(query.modelType).simpleName)}, but that key doesn't exist.",
             -1);
       }
-      return new MappingElement(modelKey, columns[modelKey].name);
+      return new _MappingElement(modelKey, columns[modelKey].name);
     });
 
     return elements.toList();
@@ -143,8 +143,8 @@ class PostgresqlQuery {
   }
 }
 
-class PostgresqlInsertQuery extends PostgresqlQuery {
-  PostgresqlInsertQuery(PostgresqlSchema schema, Query query) {
+class _PostgresqlInsertQuery extends _PostgresqlQuery {
+  _PostgresqlInsertQuery(PostgresqlSchema schema, Query query) {
     this.schema = schema;
     this.query = query;
 
@@ -171,8 +171,8 @@ class PostgresqlInsertQuery extends PostgresqlQuery {
   }
 }
 
-class PostgresqlFetchQuery extends PostgresqlQuery {
-  PostgresqlFetchQuery(PostgresqlSchema schema, Query query) {
+class _PostgresqlFetchQuery extends _PostgresqlQuery {
+  _PostgresqlFetchQuery(PostgresqlSchema schema, Query query) {
     this.schema = schema;
     this.query = query;
 
@@ -207,8 +207,8 @@ class PostgresqlFetchQuery extends PostgresqlQuery {
   }
 }
 
-class PostgresqlDeleteQuery extends PostgresqlQuery {
-  PostgresqlDeleteQuery(PostgresqlSchema schema, Query query) {
+class _PostgresqlDeleteQuery extends _PostgresqlQuery {
+  _PostgresqlDeleteQuery(PostgresqlSchema schema, Query query) {
     this.schema = schema;
     this.query = query;
 
@@ -226,8 +226,8 @@ class PostgresqlDeleteQuery extends PostgresqlQuery {
   }
 }
 
-class PostgresqlUpdateQuery extends PostgresqlQuery {
-  PostgresqlUpdateQuery(PostgresqlSchema schema, Query query) {
+class _PostgresqlUpdateQuery extends _PostgresqlQuery {
+  _PostgresqlUpdateQuery(PostgresqlSchema schema, Query query) {
     this.schema = schema;
     this.query = query;
 
