@@ -37,18 +37,6 @@ class ApplicationInstanceConfiguration {
   Map<dynamic, dynamic> pipelineOptions;
 
   bool _shared = false;
-
-  /// The default constructor.
-  ApplicationInstanceConfiguration();
-
-  /// A copy constructor
-  ApplicationInstanceConfiguration.fromConfiguration(ApplicationInstanceConfiguration config) {
-    var reflectedThis = reflect(this);
-    var reflectedThat = reflect(config);
-    reflectedThat.type.declarations.values.where((dm) => dm is VariableMirror).forEach((VariableMirror vm) {
-      reflectedThis.setField(vm.simpleName, reflectedThat.getField(vm.simpleName).reflectee);
-    });
-  }
 }
 
 /// A abstract class that concrete subclasses will implement to provide request handling behavior.
@@ -130,9 +118,7 @@ class Application<PipelineType extends ApplicationPipeline> {
     configuration._shared = numberOfInstances > 1;
 
     for (int i = 0; i < numberOfInstances; i++) {
-      var config = new ApplicationInstanceConfiguration.fromConfiguration(configuration);
-
-      var serverRecord = await _spawn(config, i + 1);
+      var serverRecord = await _spawn(configuration, i + 1);
       servers.add(serverRecord);
     }
 
