@@ -32,7 +32,7 @@ abstract class HttpController extends RequestHandler {
   /// If a request is sent to an instance of [HttpController] and has an HTTP request body,
   /// but the Content-Type of the request isn't within this list, the [HttpController]
   /// will automatically respond with an Unsupported Media Type response.
-  List<ContentType> acceptedContentTypes = [ContentType.JSON];
+  List<ContentType> acceptedContentTypes = [ContentType.JSON, _applicationWWWFormURLEncodedContentType];
 
   /// The content type of responses from this [HttpController].
   ///

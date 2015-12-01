@@ -227,6 +227,7 @@ class QController extends HttpController {
 }
 
 class IntController extends HttpController {
+
   @httpGet
   Future<Response> getOne(int id) async {
     return new Response.ok("${id * 2}");
