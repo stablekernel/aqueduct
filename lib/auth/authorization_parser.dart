@@ -13,13 +13,13 @@ class AuthorizationBearerParser extends AuthorizationFailable {
 
   Response parse(String authorizationHeader) {
     if (authorizationHeader == null) {
-      return new Response.unauthorized(body: {"error": "No authorization header."});
+      return new Response.unauthorized(body: JSON.encode({"error": "No authorization header."}));
     }
 
     var matcher = new RegExp("Bearer (.*)");
     var match = matcher.firstMatch(authorizationHeader);
     if (match == null) {
-      return new Response.badRequest(body: {"error": "Improper authorization header."});
+      return new Response.badRequest(body: JSON.encode({"error": "Improper authorization header."}));
     }
 
     bearerToken = match[1];
@@ -38,13 +38,13 @@ class AuthorizationBasicParser extends AuthorizationFailable {
 
   Response parse(String authorizationHeader) {
     if (authorizationHeader == null) {
-      return new Response.unauthorized(body: {"error": "No authorization header."});
+      return new Response.unauthorized(body: JSON.encode({"error": "No authorization header."}));
     }
 
     var matcher = new RegExp("Basic (.*)");
     var match = matcher.firstMatch(authorizationHeader);
     if (match == null) {
-      return new Response.badRequest(body: {"error": "Improper authorization header."});
+      return new Response.badRequest(body: JSON.encode({"error": "Improper authorization header."}));
     }
 
     var base64String = match[1];
@@ -52,12 +52,12 @@ class AuthorizationBasicParser extends AuthorizationFailable {
     try {
       decodedCredentials = new String.fromCharCodes(CryptoUtils.base64StringToBytes(base64String));
     } catch (e) {
-      return new Response.badRequest(body: {"error": "Improper authorization header."});
+      return new Response.badRequest(body: JSON.encode({"error": "Improper authorization header."}));
     }
 
     var splitCredentials = decodedCredentials.split(":");
     if (splitCredentials.length != 2) {
-      return new Response.badRequest(body: {"error": "Improper client credentials."});
+      return new Response.badRequest(body: JSON.encode({"error": "Improper client credentials."}));
     }
 
     username = splitCredentials.first;
