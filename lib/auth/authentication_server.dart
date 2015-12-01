@@ -47,8 +47,8 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
 
   TokenType generateToken(dynamic ownerID, String clientID, int expirationInSeconds) {
     TokenType token = (reflectType(TokenType) as ClassMirror).newInstance(new Symbol(""), []).reflectee;
-    token.accessToken = randomStringOfLength(256);
-    token.refreshToken = randomStringOfLength(256);
+    token.accessToken = randomStringOfLength(32);
+    token.refreshToken = randomStringOfLength(32);
     token.issueDate = new DateTime.now().toUtc();
     token.expirationDate = token.issueDate.add(new Duration(seconds: expirationInSeconds)).toUtc();
     token.type = "bearer";

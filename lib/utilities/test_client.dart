@@ -1,14 +1,5 @@
 part of monadart;
 
-/*
-      var response = client.json("/users")
-        ..auth = ClientAuth(client.baseClientID, client.baseClientSecret)
-        ..body = {"username" : "bob"}
-        .post();
-      expect(response.statusCode, 200);
-      expect(response.jsonObject.hasKeys(["id", "name", "email"]), true);
-     */
-
 class TestClient {
   String host;
 
