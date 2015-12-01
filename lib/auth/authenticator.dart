@@ -36,22 +36,17 @@ class Authenticator extends RequestHandler {
 
   Future<RequestHandlerResult> processResourceOwnerRequest(ResourceRequest req) async {
     var parser = new AuthorizationBearerParser(req.innerRequest.headers[HttpHeaders.AUTHORIZATION]?.first);
-    if (parser.errorResponse != null) {
-      return parser.errorResponse;
-    }
-
     var permission = await server.verify(parser.bearerToken);
+
     req.permission = permission;
+
     return req;
   }
 
   Future<RequestHandlerResult> processClientRequest(ResourceRequest req) async {
     var parser = new AuthorizationBasicParser(req.innerRequest.headers[HttpHeaders.AUTHORIZATION]?.first);
-    if (parser.errorResponse != null) {
-      return parser.errorResponse;
-    }
-
     var client = await server.clientForID(parser.username);
+
     if (client == null) {
       return new Response.unauthorized();
     }
