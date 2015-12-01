@@ -38,13 +38,12 @@ class ResourcePattern {
   static String remainingPath = "remainingPath";
 
   _ResourcePatternSet matchHead;
+  List<_ResourcePatternElement> elements;
 
   ResourcePattern(String patternString) {
     List<String> pathElements = splitPattern(patternString);
-
-    List<_ResourcePatternElement> elems = resourceElementsFromPathElements(patternString);
-
-    matchHead = matchSpecFromElements(pathElements, elems);
+    elements = resourceElementsFromPathElements(patternString);
+    matchHead = matchSpecFromElements(pathElements, elements);
   }
 
   static _ResourcePatternSet matchSpecFromElements(List<String> pathElements, List<_ResourcePatternElement> resourceElements) {
@@ -94,6 +93,24 @@ class ResourcePattern {
   static List<_ResourcePatternElement> resourceElementsFromPathElements(String patternString) {
     var expr = new RegExp(r"[\[\]]");
     return splitPattern(patternString).map((segment) => new _ResourcePatternElement(segment.replaceAll(expr, ""))).toList();
+  }
+
+  String documentedPathWithVariables(List<APIParameter> params) {
+    var s = new StringBuffer("/");
+    for (var e in elements) {
+      if (e.name == null) {
+        s.write("${e.matchRegex.pattern}/");
+      } else if (params.map((api) => api.key).contains(e.name)) {
+        s.write("{${e.name}}/");
+      } else {
+        break;
+      }
+    }
+    return s.toString();
+  }
+
+  List<String> get variableNames {
+    return elements.where((e) => e.name != null).map((e) => e.name).toList();
   }
 
   ResourcePatternMatch matchUri(Uri uri) {
@@ -192,7 +209,7 @@ class _ResourcePatternElement {
   void constructFromString(String str) {
     Match m = patternFinder.firstMatch(str);
     if (m == null) {
-      throw new ArgumentError("invalid resource pattern segment ${str}, available formats are the following: literal, *, {name}, {name(pattern)}");
+      throw new ArgumentError("invalid resource pattern segment ${str}, available formats are the following: literal, *, :name, :name(pattern)");
     }
 
     name = m.group(1);

@@ -102,17 +102,28 @@ class RequestHandler implements APIDocumentable {
   }
 }
 
-class RequestHandlerGenerator<T> extends RequestHandler {
+class RequestHandlerGenerator<T extends RequestHandler> extends RequestHandler {
   List<dynamic> arguments;
   RequestHandlerGenerator({List<dynamic> arguments: const []}) {
     this.arguments = arguments;
   }
 
+  T instantiate() {
+    var handler = reflectClass(T).newInstance(new Symbol(""), arguments).reflectee as RequestHandler;
+    handler.nextHandler = this.nextHandler;
+    return handler;
+  }
+
   @override
   void deliver(ResourceRequest req) {
     logger.finest("Generating handler $T with arguments $arguments.");
-    var handler = reflectClass(T).newInstance(new Symbol(""), arguments).reflectee as RequestHandler;
-    handler.nextHandler = this.nextHandler;
+    T handler = instantiate();
     handler.deliver(req);
   }
+
+  @override
+  List<APIDocumentItem> document() {
+    return instantiate().document();
+  }
+
 }

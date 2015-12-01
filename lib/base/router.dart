@@ -102,12 +102,19 @@ class Router extends RequestHandler {
 
   @override
   List<APIDocumentItem> document() {
+    List<APIDocumentItem> items = [];
+
     for (var route in _routes) {
-      var items = route.handler.document();
-      print("${items}");
+      var routeItems = route.handler.document();
+
+      items.addAll(routeItems.map((i) {
+        i.path = (basePath ?? "") + route.pattern.documentedPathWithVariables(i.pathParameters);
+        return i;
+      }));
     }
 
-    return [];
+
+    return items;
   }
 
   void _handleUnhandledRequest(ResourceRequest req) {

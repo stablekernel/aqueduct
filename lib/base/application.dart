@@ -39,57 +39,6 @@ class ApplicationInstanceConfiguration {
   bool _shared = false;
 }
 
-/// A abstract class that concrete subclasses will implement to provide request handling behavior.
-///
-/// [Application]s set up HTTP(S) listeners, but do not do anything with them. The behavior of how an application
-/// responds to requests is defined by its [ApplicationPipeline]. Instances of this class must implement the
-/// [handleRequest] method from [RequestHandler] - this is the entry point of all requests into this pipeline.
-abstract class ApplicationPipeline extends RequestHandler {
-  /// Passed in options for this pipeline from its owning [Application].
-  ///
-  /// These values give an opportunity for a pipeline to have a customization point within attachTo., like running
-  /// the owning [Application] in 'Development' or 'Production' mode. This property will always be set prior to invoking attachTo, but may be null
-  /// if the user did not set any configuration values.
-  Map<String, dynamic> options;
-
-  /// Returns the first handler in the pipeline.
-  ///
-  /// This method must be implemented. When a [ResourceRequest] is delivered to the pipeline, this
-  /// handler will be the first to act on it.  Typically, this is an instance of [Router].
-  /// If you need to add [context] to the [ResourceRequest], override [willReceiveRequest].
-  RequestHandler initialHandler();
-
-  /// Executed prior to this being opened.
-  ///
-  /// Use this method to perform any initialization that requires the [options]
-  /// of this pipeline to be set. Initialization that does not require the use of [options]
-  /// should take place in the constructor.
-  /// This method will be executed prior to the start of the [HttpServer].
-  Future willOpen() {
-    return null;
-  }
-
-  /// Executed after the pipeline is attached to an [HttpServer].
-  ///
-  /// This method is executed after the [HttpServer] is started and
-  /// the [initialHandler] has been set to start receiving requests.
-  /// Because requests could potentially be queued prior to this pipeline
-  /// being opened, a request could be received prior to this method being executed.
-  void didOpen() {}
-
-  /// Executed for each [ResourceRequest] that will be sent to this pipeline.
-  ///
-  /// This method will run prior to each request being [deliver]ed to this
-  /// pipeline's [initialHandler]. Use this method to provide additional
-  /// context to the request prior to it being handled.
-  Future willReceiveRequest(ResourceRequest request) {
-    return null;
-  }
-
-  void document(APIDocument doc) {
-    initialHandler().document(doc);
-  }
-}
 
 /// A container for web server applications.
 ///
@@ -171,17 +120,17 @@ class _Server {
   }
 
   Future start() async {
-    pipeline.options = configuration.pipelineOptions;
-    await pipeline.willOpen();
-
+    pipeline.addRoutes();
     pipeline.nextHandler = pipeline.initialHandler();
 
-    var onBind = (s) {
+    var onBind = (s) async {
       new Logger("monadart").info("Server monadart/$identifier started.");
 
       server = s;
 
       server.serverHeader = "monadart/${this.identifier}";
+
+      await pipeline.willOpen();
 
       server.map(createRequest).listen((ResourceRequest req) async {
         new Logger("monadart").info("Request received $req.");
@@ -216,7 +165,7 @@ class _Server {
     var pipelineSourceLibraryMirror = currentMirrorSystem().libraries[params.pipelineLibraryURI];
     var pipelineTypeMirror = pipelineSourceLibraryMirror.declarations[new Symbol(params.pipelineTypeName)] as ClassMirror;
 
-    var app = pipelineTypeMirror.newInstance(new Symbol(""), []).reflectee;
+    var app = pipelineTypeMirror.newInstance(new Symbol(""), [params.configuration.pipelineOptions]).reflectee;
     var server = new _Server(app, params.configuration, params.identifier, params.parentMessagePort);
 
     server.start();
