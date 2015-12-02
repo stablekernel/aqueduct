@@ -55,8 +55,9 @@ class TestClient {
   }
 }
 
-class TestRequest<ResponseType extends TestResponse> {
+class TestRequest {
   String host;
+
   void set basicAuthorization(String str) {
     addHeader(HttpHeaders.AUTHORIZATION, "Basic ${CryptoUtils.bytesToBase64(str.codeUnits)}");
   }
@@ -81,105 +82,176 @@ class TestRequest<ResponseType extends TestResponse> {
     headers[name] = value;
   }
 
-  Future<ResponseType> post() {
-    return wrapResponse(http.post("$host$path", headers: headers, body: body));
+  Future<http.Response> post() {
+    return http.post("$host$path", headers: headers, body: body);
   }
 
-  Future<ResponseType> put() {
-    return wrapResponse(http.put("$host$path", headers: headers, body: body));
+  Future<http.Response> put() {
+    return http.put("$host$path", headers: headers, body: body);
   }
 
-  Future<ResponseType> get() {
-    return wrapResponse(http.get("$host$path", headers: headers));
+  Future<http.Response> get() {
+    return http.get("$host$path", headers: headers);
   }
 
-  Future<ResponseType> delete() {
-    return wrapResponse(http.delete("$host$path", headers: headers));
-  }
-
-  Future<ResponseType> wrapResponse(Future<http.Response> response) async {
-    var res = await response;
-    return new TestResponse(res.statusCode, res.headers, res.body);
+  Future<http.Response> delete() {
+    return http.delete("$host$path", headers: headers);
   }
 }
 
-class JSONTestRequest extends TestRequest<JSONTestResponse> {
+class JSONTestRequest extends TestRequest {
   void set json(dynamic map) {
     if (map != null) {
       body = JSON.encode(map);
     }
   }
 
-  @override
-  Future<JSONTestResponse> wrapResponse(Future<http.Response> response) async {
-    var res = await response;
-    return new JSONTestResponse(res.statusCode, res.headers, res.body);
+  JSONTestRequest() {
+    contentType = "application/json";
   }
 }
 
-class TestResponse {
-  final int statusCode;
-  final dynamic body;
-  final Map<String, String> headers;
+HTTPResponseMatcher hasStatus(int v) => new HTTPResponseMatcher(v, [], null);
+HTTPResponseMatcher hasResponse(int statusCode, List<HTTPHeaderMatcher> headers, HTTPBodyMatcher body) => new HTTPResponseMatcher(statusCode, headers, body);
 
-  TestResponse(this.statusCode, this.headers, this.body);
+class HTTPResponseMatcher extends Matcher {
 
-  String toString() {
-    return "$statusCode - $headers - $body";
-  }
-}
+  HTTPResponseMatcher(this.statusCode, this.headers, this.body);
 
-class JSONTestResponse extends TestResponse {
-  dynamic json;
+  int statusCode = null;
+  List<HTTPHeaderMatcher> headers = [];
+  HTTPBodyMatcher body = null;
 
-  JSONTestResponse(int statusCode, Map<String, String> headers, dynamic responseBody) : super(statusCode, headers, responseBody) {
-    if (responseBody != null && (responseBody as String).length > 0) {
-      json = JSON.decode(responseBody);
+  bool matches(item, Map matchState) {
+    if (item is! http.Response) {
+      matchState["Response Type Is Actually"] = "${item.runtimeType}";
+      return false;
     }
-  }
 
-  String toString() {
-    return "${super.toString()} $json";
-  }
+    var tr = item as http.Response;
+    if (tr.statusCode != statusCode) {
+      matchState["Status Code Is Actually"] = "${tr.statusCode}";
+      return false;
+    }
 
-  bool hasKeys(List<String> keys) {
-    var map = json as Map<String, dynamic>;
-    for (var k in keys) {
-      if (map[k] == null) {
-        print("Expected $k in $map");
+    if (body != null) {
+      body.contentType = ContentType.parse(tr.headers["content-type"]);
+      if (!body.matches(tr.body, matchState)) {
         return false;
       }
     }
+
     return true;
   }
 
-  bool hasOnlyKeys(List<String> keys) {
-    var map = json as Map<String, dynamic>;
-    if (map.keys.length != keys.length) {
+  Description describe(Description description) {
+    if (statusCode != null) {
+      description.add("Status Code: $statusCode");
+    }
+
+    headers.forEach((h) => h.describe(description));
+    if (body != null) {
+      body.describe(description);
+    }
+
+    return description;
+  }
+
+  Description describeMismatch(item, Description mismatchDescription, Map matchState, bool verbose) {
+    mismatchDescription.add(matchState.keys.map((key) {
+      return "${key}: ${matchState[key]}";
+    }).join(", "));
+    return mismatchDescription;
+  }
+}
+
+HTTPBodyMatcher matchesJSON(dynamic jsonMatchSpec) => new HTTPBodyMatcher()
+  ..contentMatcher = jsonMatchSpec
+  ..expectedContentType = ContentType.JSON;
+
+HTTPBodyMatcher matchesForm(dynamic jsonMatchSpec) => new HTTPBodyMatcher()
+  ..contentMatcher = jsonMatchSpec
+  ..expectedContentType = new ContentType("application", "x-www-form-urlencoded");
+
+
+class HTTPBodyMatcher extends Matcher {
+  dynamic contentMatcher;
+  ContentType expectedContentType;
+  ContentType contentType;
+
+  bool matches(dynamic incomingItem, Map matchState) {
+    if (contentType != null && expectedContentType != null
+    && (contentType.primaryType != expectedContentType.primaryType || contentType.subType != expectedContentType.subType)) {
+      matchState["Content Type Is Actually"] = "${contentType}";
       return false;
     }
 
-    return hasKeys(keys);
+    var decodedData = incomingItem;
+    if (contentType.primaryType == "application" && contentType.subType == "json") {
+      decodedData = JSON.decode(decodedData);
+    } else if (contentType.primaryType == "application" && contentType.subType == "x-www-form-urlencoded") {
+      var split = (decodedData as String).split("&");
+      var map = {};
+      split.forEach((str) {
+        var innerSplit = str.split("=");
+        if (innerSplit.length == 2) {
+          map[innerSplit[0]] = innerSplit[1];
+        } else {
+          map[innerSplit[0]] = true;
+        }
+      });
+      decodedData = map;
+    }
+
+    if (contentMatcher is List && decodedData is List) {
+      bool allMatch = true;
+      decodedData.forEach((i) {
+        if (contentMatcher.first is Matcher) {
+          if (!contentMatcher.first.matches(i, matchState)) {
+            allMatch = false;
+          }
+        } else {
+          if (!mapMatches(i, contentMatcher.first, matchState)) {
+            allMatch = false;
+          }
+        }
+      });
+      return allMatch;
+    } else if (contentMatcher is Map && decodedData is Map) {
+      return mapMatches(decodedData, contentMatcher, matchState);
+    } else if (contentMatcher is Matcher) {
+      return contentMatcher.matches(decodedData, matchState);
+    }
+
+    return false;
   }
 
-  bool hasValues(Map<String, dynamic> values) {
-    var map = json as Map<String, dynamic>;
-    var success = true;
-    values.forEach((k, v) {
-      if (map[k] != v) {
-        success = false;
-        print("Expected $k : $v in $json");
+  bool mapMatches(Map<String, dynamic> item, Map<String, Matcher> keyMatches, Map matchState) {
+    return !keyMatches.keys.map((str) {
+      var matcher = keyMatches[str];
+      var value = item[str];
+
+      var matches = matcher.matches(value, matchState);
+
+      if (!matches) {
+        matchState["Value for $str Actually Is"] = value;
       }
-    });
-    return success;
+
+      return matches;
+    }).any((b) => b == false);
   }
 
-  bool hasOnlyValues(Map<String, dynamic> values) {
-    var map = json as Map<String, dynamic>;
-    if (map.keys.length != values.keys.length) {
-      return false;
-    }
+  Description describe(Description description) {
+    return description;
+  }
+}
 
-    return hasValues(values);
+class HTTPHeaderMatcher extends Matcher {
+  bool matches(item, Map matchState) {
+    return false;
+  }
+
+  Description describe(Description description) {
+    return description;
   }
 }

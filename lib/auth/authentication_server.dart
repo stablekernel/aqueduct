@@ -97,16 +97,13 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
 
     var dbSalt = authenticatable.salt;
     var dbPassword = authenticatable.hashedPassword;
-
     var hash = AuthenticationServer.generatePasswordHash(password, dbSalt);
     if (hash != dbPassword) {
       throw new HttpResponseException(401, "Invalid password");
     }
 
     TokenType token = generateToken(authenticatable.id, client.id, expirationInSeconds);
-
     await delegate.storeToken(this, token);
-
     await delegate.pruneTokensForResourceOwnerID(this, authenticatable.id);
 
     return token;
