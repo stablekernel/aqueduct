@@ -36,7 +36,6 @@ main() {
   });
 
   test("Application handles a bunch of requests", () async {
-
     var reqs = [];
     var responses = [];
     for(int i = 0; i < 100; i++) {
@@ -52,7 +51,6 @@ main() {
     expect(responses.any((http.Response resp) => resp.headers["server"] == "monadart/1"), true);
     expect(responses.any((http.Response resp) => resp.headers["server"] == "monadart/2"), true);
     expect(responses.any((http.Response resp) => resp.headers["server"] == "monadart/3"), true);
-
   });
 
   test("Application stops", () async {
@@ -72,17 +70,9 @@ main() {
 }
 
 class TPipeline extends ApplicationPipeline {
-  Router router;
+  TPipeline(Map opts) : super(opts);
 
-  @override
-  RequestHandler initialHandler() {
-    return router;
-  }
-
-  @override
-  Future willOpen() async {
-    router = new Router();
-
+  void addRoutes() {
     router.route("/t").then(new RequestHandlerGenerator<TController>());
     router.route("/r").then(new RequestHandlerGenerator<RController>());
   }

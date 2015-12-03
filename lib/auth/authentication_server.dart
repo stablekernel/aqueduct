@@ -6,8 +6,8 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
 
   AuthenticationServer(this.delegate) {}
 
-  Authenticator authenticator({List<String> strategies: const [Authenticator.StrategyResourceOwner]}) {
-    return new Authenticator(this, strategies);
+  Authenticator authenticator({AuthenticationStrategy strategy: AuthenticationStrategy.ResourceOwner}) {
+    return new Authenticator(this, strategy);
   }
 
   bool isTokenExpired(TokenType t) {

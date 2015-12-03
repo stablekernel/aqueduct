@@ -28,7 +28,7 @@ abstract class HttpController extends RequestHandler {
 
   /// Types of content this [HttpController] will accept.
   ///
-  /// By default, a resource controller will accept 'application/json' and 'application/x-www-form-urlencoded' requests.
+  /// By default, a resource controller will accept 'application/json' requests.
   /// If a request is sent to an instance of [HttpController] and has an HTTP request body,
   /// but the Content-Type of the request isn't within this list, the [HttpController]
   /// will automatically respond with an Unsupported Media Type response.
@@ -259,6 +259,57 @@ abstract class HttpController extends RequestHandler {
     var response = await _process();
 
     return response;
+  }
+
+  @override
+  List<APIDocumentItem> document() {
+    var handlerMethodMirrors = reflect(this).type.declarations.values
+        .where((dm) => dm is MethodMirror)
+        .where((mm) {
+          return mm.metadata.firstWhere((im) => im.reflectee is HttpMethod, orElse: () => null) != null;
+        });
+
+    return handlerMethodMirrors.map((MethodMirror mm) {
+      var i = new APIDocumentItem();
+      var httpMethod = mm.metadata.firstWhere((im) => im.reflectee is HttpMethod).reflectee;
+
+      i.method = httpMethod.method;
+
+      i.pathParameters = mm.parameters
+          .where((pm) => !pm.isOptional)
+          .map((pm) {
+            return new APIParameter()
+                ..key = MirrorSystem.getName(pm.simpleName)
+                ..description = ""
+                ..type = MirrorSystem.getName(pm.type.simpleName)
+                ..required = true
+                ..parameterLocation = APIParameterLocation.path;
+      });
+
+      i.queryParameters = mm.parameters
+          .where((pm) => pm.isOptional)
+          .map((pm) {
+        return new APIParameter()
+          ..key = MirrorSystem.getName(pm.simpleName)
+          ..description = ""
+          ..type = MirrorSystem.getName(pm.type.simpleName)
+          ..required = false;
+      }).toList();
+
+      if (i.method.toLowerCase() == "post" && acceptedContentTypes.firstWhere((cm) => cm.primaryType == "application" && cm.subType == "x-www-form-urlencoded", orElse: () => null) != null) {
+        i.queryParameters.forEach((param) {
+          param.parameterLocation = APIParameterLocation.formData;
+        });
+      } else {
+        i.queryParameters.forEach((param) {
+          param.parameterLocation = APIParameterLocation.query;
+        });
+      }
+
+      i.acceptedContentTypes = acceptedContentTypes.map((ct) => "${ct.primaryType}/${ct.subType}").toList();
+      i.responseFormats = ["${responseContentType.primaryType}/${responseContentType.subType}"];
+      return i;
+    }).toList();
   }
 }
 

@@ -15,10 +15,6 @@ class AuthController<ResourceOwner extends Authenticatable, TokenType extends To
     var authorizationHeader = request.innerRequest.headers[HttpHeaders.AUTHORIZATION]?.first;
 
     var rec = new AuthorizationBasicParser(authorizationHeader);
-    if (rec.errorResponse != null) {
-      return rec.errorResponse;
-    }
-
     if (grant_type == "password") {
       if (username == null || password == null) {
         return new Response.badRequest(body: {"error": "username and password required"});

@@ -25,6 +25,8 @@ part 'base/application.dart';
 part 'base/request_handler.dart';
 part 'base/controller_routing.dart';
 part 'base/http_response_exception.dart';
+part 'base/documentable.dart';
+part 'base/pipeline.dart';
 
 part 'auth/authenticator.dart';
 part 'auth/protocols.dart';
@@ -50,3 +52,4 @@ part 'db/postgresql/postgresql_model_adapter.dart';
 part 'db/postgresql/postgresql_schema.dart';
 
 part 'utilities/test_client.dart';
+

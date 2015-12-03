@@ -1,41 +1,30 @@
 part of monadart;
 
+enum AuthenticationStrategy { ResourceOwner, Client }
+
 class Authenticator extends RequestHandler {
-  static const String StrategyResourceOwner = "StrategyResourceOwner";
-  static const String StrategyClient = "StrategyClient";
-  static const String StrategyOptionalResourceOwner = "StrategyOptionalResourceOwner";
-
-  static const String PermissionKey = "PermissionKey";
   AuthenticationServer server;
-  List<String> strategies;
+  AuthenticationStrategy strategy;
 
-  Authenticator(this.server, this.strategies);
+  Authenticator(this.server, this.strategy);
 
   @override
   Future<RequestHandlerResult> processRequest(ResourceRequest req) async {
     var errorResponse = null;
-    for (var strategy in strategies) {
-      if (strategy == Authenticator.StrategyResourceOwner) {
-        var result = processResourceOwnerRequest(req);
-        if (result is ResourceRequest) {
-          return result;
-        }
-
-        errorResponse = result;
-      } else if (strategy == Authenticator.StrategyClient) {
-        var result = processClientRequest(req);
-        if (result is ResourceRequest) {
-          return result;
-        }
-
-        errorResponse = result;
-      } else if (strategy == Authenticator.StrategyOptionalResourceOwner) {
-        var result = processOptionalResourceOwner(req);
-        if (result is ResourceRequest) {
-          return result;
-        }
-        errorResponse = result;
+    if (strategy == AuthenticationStrategy.ResourceOwner) {
+      var result = processResourceOwnerRequest(req);
+      if (result is ResourceRequest) {
+        return result;
       }
+
+      errorResponse = result;
+    } else if (strategy == AuthenticationStrategy.Client) {
+      var result = processClientRequest(req);
+      if (result is ResourceRequest) {
+        return result;
+      }
+
+      errorResponse = result;
     }
 
     if (errorResponse == null) {
@@ -47,22 +36,17 @@ class Authenticator extends RequestHandler {
 
   Future<RequestHandlerResult> processResourceOwnerRequest(ResourceRequest req) async {
     var parser = new AuthorizationBearerParser(req.innerRequest.headers[HttpHeaders.AUTHORIZATION]?.first);
-    if (parser.errorResponse != null) {
-      return parser.errorResponse;
-    }
-
     var permission = await server.verify(parser.bearerToken);
+
     req.permission = permission;
+
     return req;
   }
 
   Future<RequestHandlerResult> processClientRequest(ResourceRequest req) async {
     var parser = new AuthorizationBasicParser(req.innerRequest.headers[HttpHeaders.AUTHORIZATION]?.first);
-    if (parser.errorResponse != null) {
-      return parser.errorResponse;
-    }
-
     var client = await server.clientForID(parser.username);
+
     if (client == null) {
       return new Response.unauthorized();
     }
@@ -77,12 +61,18 @@ class Authenticator extends RequestHandler {
     return req;
   }
 
-  Future<RequestHandlerResult> processOptionalResourceOwner(ResourceRequest req) async {
-    var authHeader = req.innerRequest.headers[HttpHeaders.AUTHORIZATION]?.first;
-    if (authHeader == null) {
-      return req;
-    }
 
-    return processResourceOwnerRequest(req);
+  List<APIDocumentItem> document() {
+    List<APIDocumentItem> items = nextHandler.document();
+
+    items.forEach((i) {
+      if (strategy == AuthenticationStrategy.Client) {
+        i.securityItemName = "client_auth";
+      } else if (strategy == AuthenticationStrategy.ResourceOwner) {
+        i.securityItemName = "token";
+      }
+    });
+
+    return items;
   }
 }

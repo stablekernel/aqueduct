@@ -206,6 +206,10 @@ void main() {
     }
   });
 
+  test("Malformed header fails", () async {
+
+  });
+
   test("Tokens get pruned", () async {
 
   });

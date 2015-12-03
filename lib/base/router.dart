@@ -100,6 +100,23 @@ class Router extends RequestHandler {
     _unhandledRequestHandler(req);
   }
 
+  @override
+  List<APIDocumentItem> document() {
+    List<APIDocumentItem> items = [];
+
+    for (var route in _routes) {
+      var routeItems = route.handler.document();
+
+      items.addAll(routeItems.map((i) {
+        i.path = (basePath ?? "") + route.pattern.documentedPathWithVariables(i.pathParameters);
+        return i;
+      }));
+    }
+
+
+    return items;
+  }
+
   void _handleUnhandledRequest(ResourceRequest req) {
     req.response.statusCode = HttpStatus.NOT_FOUND;
     req.response.close();

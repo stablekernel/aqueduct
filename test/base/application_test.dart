@@ -46,19 +46,12 @@ main() {
 }
 
 class TPipeline extends ApplicationPipeline {
-  Router router;
+  TPipeline(Map opts) : super(opts);
 
-  @override
-  RequestHandler initialHandler() {
-    return router;
-  }
-
-  @override
-  Future willOpen() async {
-    router = new Router();
-
+  void addRoutes() {
     router.route("/t").then(new RequestHandlerGenerator<TController>());
     router.route("/r").then(new RequestHandlerGenerator<RController>());
+
   }
 }
 
