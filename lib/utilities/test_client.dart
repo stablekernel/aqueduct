@@ -3,60 +3,61 @@ part of monadart;
 class TestClient {
   String host;
 
-  String defaultClientID;
-  String defaultClientSecret;
+  String clientID;
+  String clientSecret;
+  String defaultAccessToken;
+  Map<String, String> defaultHeaders = {};
 
-  Map<String, dynamic> token;
+  TestClient(int port) {
+    host = "http://localhost:$port";
+  }
+  TestClient.fromConfig(ApplicationInstanceConfiguration config) {
+    var hostname = config.address;
+    hostname ??= "localhost";
 
-  JSONTestRequest jsonRequest(String path) {
-    JSONTestRequest r = new JSONTestRequest()
-      ..host = this.host
-      ..path = path
-      ..contentType = "application/json;charset=utf-8"
-      ..accept = "application/json";
-    return r;
+    host = "${config.securityContext != null ? "https" : "http"}://$hostname:${config.port}";
   }
 
   TestRequest request(String path) {
     TestRequest r = new TestRequest()
       ..host = this.host
-      ..path = path;
+      ..path = path
+      ..headers = new Map.from(defaultHeaders);
+
     return r;
   }
 
   TestRequest clientAuthenticatedRequest(String path, {String clientID: null, String clientSecret: null}) {
-    clientID ??= defaultClientID;
-    clientSecret ??= defaultClientSecret;
+    clientID ??= this.clientID;
+    clientSecret ??= this.clientSecret;
 
-    var req = request(path)..basicAuthorization = "$clientID:$clientSecret";
+    var req = request(path)
+      ..basicAuthorization = "$clientID:$clientSecret";
+
     return req;
   }
 
   TestRequest authenticatedRequest(String path, {String accessToken: null}) {
-    accessToken ??= token["access_token"];
+    accessToken ??= defaultAccessToken;
 
-    var req = request(path)..bearerAuthorization = accessToken;
-    return req;
-  }
-
-  JSONTestRequest clientAuthenticatedJSONRequest(String path, {String clientID: null, String clientSecret: null}) {
-    clientID ??= defaultClientID;
-    clientSecret ??= defaultClientSecret;
-
-    var req = jsonRequest(path)..basicAuthorization = "$clientID:$clientSecret";
-    return req;
-  }
-
-  JSONTestRequest authenticatedJSONRequest(String path, {String accessToken: null}) {
-    accessToken ??= token["access_token"];
-
-    var req = jsonRequest(path)..bearerAuthorization = accessToken;
+    var req = request(path)
+      ..bearerAuthorization = accessToken;
     return req;
   }
 }
 
 class TestRequest {
   String host;
+  String path;
+  String body;
+  Map<String, String> get headers => _headers;
+  void set headers(Map<String, String> h) {
+    if (!_headers.isEmpty) {
+      print("WARNING: Setting TestRequest headers, but headers already have values.");
+    }
+    _headers = h;
+  }
+  Map<String, String> _headers = {};
 
   void set basicAuthorization(String str) {
     addHeader(HttpHeaders.AUTHORIZATION, "Basic ${CryptoUtils.bytesToBase64(str.codeUnits)}");
@@ -74,9 +75,15 @@ class TestRequest {
     addHeader(HttpHeaders.ACCEPT, str);
   }
 
-  String path;
-  String body;
-  Map<String, String> headers = {};
+  void set json(dynamic v) {
+    body = JSON.encode(v);
+    contentType = "application/json";
+  }
+
+  void set formData(Map<String, dynamic> args) {
+    body = args.keys.map((key) => "$key=${Uri.encodeQueryComponent(args[key])}").join("&");
+    contentType = "application/x-www-form-urlencoded";
+  }
 
   void addHeader(String name, String value) {
     headers[name] = value;
@@ -99,18 +106,6 @@ class TestRequest {
   }
 }
 
-class JSONTestRequest extends TestRequest {
-  void set json(dynamic map) {
-    if (map != null) {
-      body = JSON.encode(map);
-    }
-  }
-
-  JSONTestRequest() {
-    contentType = "application/json";
-  }
-}
-
 HTTPResponseMatcher hasStatus(int v) => new HTTPResponseMatcher(v, [], null);
 HTTPResponseMatcher hasResponse(int statusCode, List<HTTPHeaderMatcher> headers, HTTPBodyMatcher body) => new HTTPResponseMatcher(statusCode, headers, body);
 
@@ -128,11 +123,16 @@ class HTTPResponseMatcher extends Matcher {
       return false;
     }
 
+    if (item.body != null) {
+      matchState["Response Body"] = item.body;
+    }
+
     var tr = item as http.Response;
     if (tr.statusCode != statusCode) {
       matchState["Status Code Is Actually"] = "${tr.statusCode}";
       return false;
     }
+
 
     if (body != null) {
       body.contentType = ContentType.parse(tr.headers["content-type"]);
@@ -231,7 +231,12 @@ class HTTPBodyMatcher extends Matcher {
       var matcher = keyMatches[str];
       var value = item[str];
 
-      var matches = matcher.matches(value, matchState);
+      var matches = false;
+      if (matcher is Matcher) {
+        matches = matcher.matches(value, matchState);
+      } else {
+        matches = value == matcher;
+      }
 
       if (!matches) {
         matchState["Value for $str Actually Is"] = value;

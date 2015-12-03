@@ -9,8 +9,10 @@ import 'package:postgresql/postgresql.dart';
 
 void main() {
   QueryAdapter adapter;
-
   HttpServer server;
+  TestClient client = new TestClient(8080)
+    ..clientID = "com.stablekernel.app1"
+    ..clientSecret = "kilimanjaro";
 
   tearDownAll(() async {
     await server.close();
@@ -31,10 +33,11 @@ void main() {
           .then((s)
     {
       server = s;
+      //new Logger("monadart").onRecord.listen((rec) => print("${rec}"));
+
       server.listen((req) {
         var resReq = new ResourceRequest(req);
         var authController = new AuthController<TestUser, Token>(authenticationServer);
-
         authController.deliver(resReq);
       });
     });
@@ -51,138 +54,96 @@ void main() {
   test("POST token responds with token on correct input", () async {
     await createUsers(adapter, 1);
 
-    var m = {"grant_type" : "password", "username" : "bob+0@stablekernel.com", "password" : "foobaraxegrind21%"};
-    var body = "";
-    m.forEach((k, v) {
-      body += "$k=${Uri.encodeQueryComponent(v)}&";
-    });
+    var req = client.clientAuthenticatedRequest("/auth/token")
+      ..formData = {"grant_type" : "password", "username" : "bob+0@stablekernel.com", "password" : "foobaraxegrind21%"};
+    var res = await req.post();
 
-    var res = await http.post("http://localhost:8080/auth/token",
-        headers: {"Content-Type" : "application/x-www-form-urlencoded",
-          "Authorization" : "Basic ${CryptoUtils.bytesToBase64("com.stablekernel.app1:kilimanjaro".codeUnits)}"},
-        body: body);
-
-    var json = JSON.decode(res.body);
-    expect(json["access_token"].length, greaterThan(0));
-    expect(json["refresh_token"].length, greaterThan(0));
-    expect(json["expires_in"], greaterThan(3500));
-    expect(json["token_type"], "bearer");
+    expect(res, hasResponse(200, [], matchesJSON({
+      "access_token" : hasLength(greaterThan(0)),
+      "refresh_token" : hasLength(greaterThan(0)),
+      "expires_in" : greaterThan(3500),
+      "token_type" : "bearer"
+    })));
   });
 
   test("POST token header failure cases", () async {
     await createUsers(adapter, 1);
 
     var m = {"grant_type" : "password", "username" : "bob+0@stablekernel.com", "password" : "foobaraxegrind21%"};
-    var body = "";
-    m.forEach((k, v) {
-      body += "$k=${Uri.encodeQueryComponent(v)}&";
-    });
 
-    var res = await http.post("http://localhost:8080/token",
-        headers: {"Content-Type" : "application/x-www-form-urlencoded"},
-        body: body);
-    expect(res.statusCode, 401);
+    var req = client.request("/auth/token")
+      ..formData = m;
+    expect(await req.post(), hasStatus(401), reason: "omit authorization header");
 
-    res = await http.post("http://localhost:8080/token",
-        headers: {"Content-Type" : "application/x-www-form-urlencoded",
-          "Authorization" : "foobar"},
-        body: body);
-    expect(res.statusCode, 400);
+    req = client.request("/auth/token")
+      ..headers = {"Authorization" : "foobar"}
+      ..formData = m;
+    expect(await req.post(), hasStatus(400), reason: "omit 'Basic'");
 
-    res = await http.post("http://localhost:8080/token",
-        headers: {"Content-Type" : "application/x-www-form-urlencoded",
-          "Authorization" : "Basic bad"},
-        body: body);
-    expect(res.statusCode, 400);
+    // Non-base64 data
+    req = client.request("/auth/token")
+      ..headers = {"Authorization" : "Basic bad"}
+      ..formData = m;
+    expect(await req.post(), hasStatus(400), reason: "Non-base64 data");
 
-    res = await http.post("http://localhost:8080/token",
-        headers: {"Content-Type" : "application/x-www-form-urlencoded",
-          "Authorization" : "Basic ${CryptoUtils.bytesToBase64("foobar".codeUnits)}"},
-        body: body);
-    expect(res.statusCode, 400);
+    // Wrong thing
+    req = client.clientAuthenticatedRequest("/auth/token", clientID: "foobar")
+      ..formData = m;
+    expect(await req.post(), hasStatus(401), reason: "Wrong client id");
   });
 
   test("POST token body failure cases", () async {
-    var encoder = (Map m) {
-      var str = "";
-      m.forEach((k, v) {
-        str += "$k=${Uri.encodeQueryComponent(v)}&";
-      });
-      return str;
-    };
-
     await createUsers(adapter, 2);
 
-    var res = await http.post("http://localhost:8080/token",
-        headers: {"Content-Type" : "application/x-www-form-urlencoded",
-          "Authorization" : "Basic ${CryptoUtils.bytesToBase64("com.stablekernel.app1:kilimanjaro".codeUnits)}"},
-        body: encoder({"username" : "bob+0@stablekernel.com", "password" : "foobaraxegrind21%"}));
-    expect(res.statusCode, 400);
+    // Missing grant_type
+    var req = client.clientAuthenticatedRequest("/auth/token")
+      ..formData = {"username" : "bob+0@stablekernel.com", "password" : "foobaraxegrind21%"};
+    expect(await req.post(), hasStatus(400));
 
-    res = await http.post("http://localhost:8080/token",
-        headers: {"Content-Type" : "application/x-www-form-urlencoded",
-          "Authorization" : "Basic ${CryptoUtils.bytesToBase64("com.stablekernel.app1:kilimanjaro".codeUnits)}"},
-        body: encoder({"grant_type" : "foobar", "username" : "bob+0@stablekernel.com", "password" : "foobaraxegrind21%"}));
-    expect(res.statusCode, 400);
+    // Invalid grant_type
+    req = client.clientAuthenticatedRequest("/auth/token")
+      ..formData = {"grant_type" : "foobar", "username" : "bob+0@stablekernel.com", "password" : "foobaraxegrind21%"};
+    expect(await req.post(), hasStatus(400));
 
-    res = await http.post("http://localhost:8080/token",
-        headers: {"Content-Type" : "application/x-www-form-urlencoded",
-          "Authorization" : "Basic ${CryptoUtils.bytesToBase64("com.stablekernel.app1:kilimanjaro".codeUnits)}"},
-        body: encoder({"grant_type" : "password", "password" : "foobaraxegrind21%"}));
-    expect(res.statusCode, 400);
+    // Omit username
+    req = client.clientAuthenticatedRequest("/auth/token")
+      ..formData = {"grant_type" : "password", "password" : "foobaraxegrind21%"};
+    expect(await req.post(), hasStatus(400));
 
-    res = await http.post("http://localhost:8080/token",
-        headers: {"Content-Type" : "application/x-www-form-urlencoded",
-          "Authorization" : "Basic ${CryptoUtils.bytesToBase64("com.stablekernel.app1:kilimanjaro".codeUnits)}"},
-        body: encoder({"grant_type" : "password", "username" : "bob+24@stablekernel.com", "password" : "foobaraxegrind21%"}));
-    expect(res.statusCode, 400);
+    // Invalid user
+    req = client.clientAuthenticatedRequest("/auth/token")
+      ..formData = {"grant_type" : "password", "username" : "bob+24@stablekernel.com", "password" : "foobaraxegrind21%"};
+    expect(await req.post(), hasStatus(400));
 
-    res = await http.post("http://localhost:8080/token",
-        headers: {"Content-Type" : "application/x-www-form-urlencoded",
-          "Authorization" : "Basic ${CryptoUtils.bytesToBase64("com.stablekernel.app1:kilimanjaro".codeUnits)}"},
-        body: encoder({"grant_type" : "password", "username" : "bob+0@stablekernel.com"}));
-    expect(res.statusCode, 400);
+    // Omit password
+    req = client.clientAuthenticatedRequest("/auth/token")
+      ..formData = {"grant_type" : "password", "username" : "bob+0@stablekernel.com"};
+    expect(await req.post(), hasStatus(400));
 
-    res = await http.post("http://localhost:8080/token",
-        headers: {"Content-Type" : "application/x-www-form-urlencoded",
-          "Authorization" : "Basic ${CryptoUtils.bytesToBase64("com.stablekernel.app1:kilimanjaro".codeUnits)}"},
-        body: encoder({"grant_type" : "password", "username" : "bob+0@stablekernel.com", "password" : "fobar%"}));
-    expect(res.statusCode, 401);
+    // Wrong password
+    req = client.clientAuthenticatedRequest("/auth/token")
+      ..formData = {"grant_type" : "password", "username" : "bob+0@stablekernel.com", "password" : "fobar%"};
+    expect(await req.post(), hasStatus(401));
   });
 
   test("Refresh token responds with token on correct input", () async {
     await createUsers(adapter, 1);
 
     var m = {"grant_type" : "password", "username" : "bob+0@stablekernel.com", "password" : "foobaraxegrind21%"};
-    var body = "";
-    m.forEach((k, v) {
-      body += "$k=${Uri.encodeQueryComponent(v)}&";
-    });
 
-    var res = await http.post("http://localhost:8080/auth/token",
-        headers: {"Content-Type" : "application/x-www-form-urlencoded",
-          "Authorization" : "Basic ${CryptoUtils.bytesToBase64("com.stablekernel.app1:kilimanjaro".codeUnits)}"},
-        body: body);
-
-    var json = JSON.decode(res.body);
-
+    var req = client.clientAuthenticatedRequest("/auth/token")
+      ..formData = m;
+    var json = JSON.decode((await req.post()).body);
     m = {"grant_type" : "refresh", "refresh_token" : json["refresh_token"]};
-    body = "";
-    m.forEach((k, v) {
-      body += "$k=${Uri.encodeQueryComponent(v)}&";
-    });
-    res = await http.post("http://localhost:8080/auth/token",
-        headers: {"Content-Type" : "application/x-www-form-urlencoded",
-          "Authorization" : "Basic ${CryptoUtils.bytesToBase64("com.stablekernel.app1:kilimanjaro".codeUnits)}"},
-        body: body);
 
-    expect(res.statusCode, 200);
-    json = JSON.decode(res.body);
-
-    expect(json["access_token"].length, greaterThan(0));
-    expect(json["refresh_token"].length, greaterThan(0));
-    expect(json["expires_in"], greaterThan(3500));
-    expect(json["token_type"], "bearer");
+    req = client.clientAuthenticatedRequest("/auth/token")
+      ..formData = m;
+    expect(await req.post(), hasResponse(200, [], matchesJSON({
+      "access_token" : hasLength(greaterThan(0)),
+      "refresh_token" : hasLength(greaterThan(0)),
+      "expires_in" : greaterThan(3500),
+      "token_type" : "bearer"
+    })));
   });
 }
 

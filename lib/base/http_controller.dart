@@ -177,7 +177,7 @@ abstract class HttpController extends RequestHandler {
     if (contentType != null &&
         contentType.primaryType == _applicationWWWFormURLEncodedContentType.primaryType &&
         contentType.subType == _applicationWWWFormURLEncodedContentType.subType) {
-      queryParams = requestBody;
+      queryParams = requestBody ?? {};
     } else {
       queryParams = req.innerRequest.uri.queryParameters;
     }
