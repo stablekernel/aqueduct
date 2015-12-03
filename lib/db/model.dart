@@ -96,10 +96,7 @@ class Model {
       }
 
       if (!dynamicBacking.containsKey(propertyName)) {
-        throw new QueryException(
-            500,
-            "Accessing property $propertyName on ${MirrorSystem.getName(reflect(this).type.simpleName)}, but is currently undefined for this instance.",
-            -1);
+        return null;
       }
 
       return dynamicBacking[propertyName];
