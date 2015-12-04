@@ -2,6 +2,7 @@ name: monadart
 version: 0.0.1
 description: A pipeline for building web services
 dependencies:
+  matcher: any
   http_server: any
   pbkdf2: any
   crypto: any

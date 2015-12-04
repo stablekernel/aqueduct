@@ -74,7 +74,7 @@ class RequestHandler implements APIDocumentable {
         logger.severe("$this generated internal error for request ${req.toDebugString()}. $err\n Stacktrace:\n${st.toString()}");
         req.respond(new Response.serverError(
             headers: {HttpHeaders.CONTENT_TYPE: "application/json"},
-            body: JSON.encode({"error": "Unexpected exception in ${this.runtimeType}.", "stacktrace": st.toString()})));
+            body: JSON.encode({"error": "${this.runtimeType}: $err.", "stacktrace": st.toString()})));
       }
     });
   }

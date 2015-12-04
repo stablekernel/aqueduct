@@ -47,8 +47,8 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
 
   TokenType generateToken(dynamic ownerID, String clientID, int expirationInSeconds) {
     TokenType token = (reflectType(TokenType) as ClassMirror).newInstance(new Symbol(""), []).reflectee;
-    token.accessToken = randomStringOfLength(256);
-    token.refreshToken = randomStringOfLength(256);
+    token.accessToken = randomStringOfLength(32);
+    token.refreshToken = randomStringOfLength(32);
     token.issueDate = new DateTime.now().toUtc();
     token.expirationDate = token.issueDate.add(new Duration(seconds: expirationInSeconds)).toUtc();
     token.type = "bearer";
@@ -97,16 +97,13 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
 
     var dbSalt = authenticatable.salt;
     var dbPassword = authenticatable.hashedPassword;
-
     var hash = AuthenticationServer.generatePasswordHash(password, dbSalt);
     if (hash != dbPassword) {
       throw new HttpResponseException(401, "Invalid password");
     }
 
     TokenType token = generateToken(authenticatable.id, client.id, expirationInSeconds);
-
     await delegate.storeToken(this, token);
-
     await delegate.pruneTokensForResourceOwnerID(this, authenticatable.id);
 
     return token;
