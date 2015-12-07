@@ -51,15 +51,7 @@ void main() {
 
     expect(item.name, "Joe");
     expect(item.id, id);
-
-    try {
-      var email = item.email;
-      fail("This should throw exception");
-      print("$email");
-    } catch (e) {
-      expect(e.message,
-          "Accessing property email on TestModel, but is currently undefined for this instance.");
-    }
+    expect(item.email, isNull);
   });
 
   test("Ascending sort descriptors work", () async {

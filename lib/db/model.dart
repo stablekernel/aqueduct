@@ -249,14 +249,27 @@ class Model {
       if (value is! Map) {
         throw new QueryException(
             400,
-            "Expecting a map for ${MirrorSystem.getName(typeMirror.simpleName)} in the $key field, got $value instead.",
+            "Expecting a Map for ${MirrorSystem.getName(typeMirror.simpleName)} in the $key field, got $value instead.",
             -1);
-
       }
       Model instance =
           (typeMirror as ClassMirror).newInstance(new Symbol(""), []).reflectee;
       instance.readMap(value);
       return instance;
+    } else if (typeMirror.isSubtypeOf(reflectType(List))) {
+      if (value is! List) {
+        throw new QueryException(
+            400,
+            "Expecting a List for ${MirrorSystem.getName(typeMirror.simpleName)} in the $key field, got $value instead.",
+            -1);
+      }
+
+      var listTypeMirror = typeMirror.typeArguments.first;
+      return (value as List).map((v) {
+        Model instance = (listTypeMirror as ClassMirror).newInstance(new Symbol(""), []).reflectee;
+        instance.readMap(v);
+        return instance;
+      }).toList();
     }
 
     if (typeMirror.isSubtypeOf(reflectType(DateTime))) {

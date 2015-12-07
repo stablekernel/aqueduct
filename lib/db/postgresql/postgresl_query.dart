@@ -95,7 +95,13 @@ class _PostgresqlQuery {
 
     valueObject.dynamicBacking.forEach((modelKey, value) {
       var column = columns[modelKey];
-      if (column.relationship != null) {
+      var relationship = column.relationship;
+
+      if (relationship != null) {
+        if (relationship.type == RelationshipType.hasMany) {
+          return;
+        }
+
         var relatedValue = (value as Model).dynamicBacking[column.relationship.destinationModelKey];
 
         if (relatedValue == null) {
