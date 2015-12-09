@@ -29,16 +29,9 @@ main() {
     }
   });
 
-  test("Accessing model object without field throws exception", () {
+  test("Accessing model object without field should return null", () {
     var user = new User();
-    try {
-      var x = user.name;
-      fail("This should throw an exception.");
-      print("$x");
-    } catch (e) {
-      expect(e.message,
-          "Accessing property name on User, but is currently undefined for this instance.");
-    }
+    expect(user.name, isNull);
   });
 
   test("Getting/setting property that is undeclared throws exception", () {
@@ -182,7 +175,7 @@ main() {
       fail("Should throw");
     } catch (e) {
       expect(e.message,
-          "Expecting a map for User in the owner field, got 12 instead.");
+          "Expecting a Map for User in the owner field, got 12 instead.");
     }
   });
 
@@ -280,7 +273,20 @@ main() {
       expect(e is QueryException, true);
       expect(e.message, "Key outputInt does not exist for TransientTest");
     }
+  });
 
+  test("Reading hasMany relationship from JSON succeeds", () {
+    var u = new User();
+    u.readMap({
+      "name" : "Bob",
+      "id" : 1,
+      "posts" : [
+        {"text" : "Hi", "id" : 1}
+      ]
+    });
+    expect(u.posts.length, 1);
+    expect(u.posts[0].id, 1);
+    expect(u.posts[0].text, "Hi");
   });
 
 }

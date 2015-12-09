@@ -186,6 +186,31 @@ void main() {
     var result = await q.insert(adapter);
     expect(result.transientValue, null);
   });
+
+  test("JSON -> Insert with List", () async {
+    await generateTemporarySchemaFromModels(adapter, [GenUser, GenPost]);
+
+    var json = {
+      "name" : "Bob",
+      "posts" : [
+        {"text" : "Post"}
+      ]
+    };
+
+    var u = new GenUser()
+      ..readMap(json);
+
+    var q = new Query<GenUser>()
+      ..valueObject = u;
+
+    var result = await q.insert(adapter);
+    expect(result.id, greaterThan(0));
+    expect(result.name, "Bob");
+    expect(result.posts, isNull);
+
+    q = new Query<GenPost>();
+    expect(await q.fetch(adapter), hasLength(0));
+  });
 }
 
 @ModelBacking(TestModelBacking)
