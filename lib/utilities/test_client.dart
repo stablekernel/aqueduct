@@ -2,7 +2,7 @@ part of monadart;
 
 class TestClient {
   String host;
-  http.Client _innerClient;
+  http.Client _innerClient = new http.Client();
   String clientID;
   String clientSecret;
   String defaultAccessToken;
