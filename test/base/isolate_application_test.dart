@@ -14,7 +14,7 @@ main() {
 
   test("Application starts", () async {
     await app.start(numberOfInstances: 3);
-    expect(app.servers.length, 3);
+    expect(app.supervisors.length, 3);
   });
 
   ////////////////////////////////////////////

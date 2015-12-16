@@ -28,6 +28,9 @@ part 'base/controller_routing.dart';
 part 'base/http_response_exception.dart';
 part 'base/documentable.dart';
 part 'base/pipeline.dart';
+part 'base/isolate_supervisor.dart';
+part 'base/isolate_server.dart';
+part 'base/application_configuration.dart';
 
 part 'auth/authenticator.dart';
 part 'auth/protocols.dart';

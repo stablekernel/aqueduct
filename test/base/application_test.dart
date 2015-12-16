@@ -13,7 +13,7 @@ main() {
 
   test("Application starts", () async {
     await app.start();
-    expect(app.servers.length, 1);
+    expect(app.supervisors.length, 1);
   });
 
   test("Application responds to request", () async {
@@ -42,6 +42,17 @@ main() {
     await app.start();
     var resp = await http.get("http://localhost:8080/t");
     expect(resp.statusCode, 200);
+
+    await app.stop();
+  });
+
+  test("Application can run on main thread", () async {
+    await app.start(runOnMainIsolate: true);
+
+    var response = await http.get("http://localhost:8080/t");
+    expect(response.statusCode, 200);
+
+    await app.stop();
   });
 }
 
