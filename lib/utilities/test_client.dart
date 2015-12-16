@@ -2,7 +2,7 @@ part of monadart;
 
 class TestClient {
   String host;
-
+  http.Client _innerClient;
   String clientID;
   String clientSecret;
   String defaultAccessToken;
@@ -22,6 +22,7 @@ class TestClient {
     TestRequest r = new TestRequest()
       ..host = this.host
       ..path = path
+      .._innerClient = _innerClient
       ..headers = new Map.from(defaultHeaders);
 
     return r;
@@ -47,6 +48,7 @@ class TestClient {
 }
 
 class TestRequest {
+  http.Client _innerClient;
   String host;
   String path;
   String body;
@@ -90,19 +92,19 @@ class TestRequest {
   }
 
   Future<http.Response> post() {
-    return http.post("$host$path", headers: headers, body: body);
+    return _innerClient.post("$host$path", headers: headers, body: body);
   }
 
   Future<http.Response> put() {
-    return http.put("$host$path", headers: headers, body: body);
+    return _innerClient.put("$host$path", headers: headers, body: body);
   }
 
   Future<http.Response> get() {
-    return http.get("$host$path", headers: headers);
+    return _innerClient.get("$host$path", headers: headers);
   }
 
   Future<http.Response> delete() {
-    return http.delete("$host$path", headers: headers);
+    return _innerClient.delete("$host$path", headers: headers);
   }
 }
 
