@@ -284,7 +284,7 @@ abstract class HttpController extends RequestHandler {
                 ..type = MirrorSystem.getName(pm.type.simpleName)
                 ..required = true
                 ..parameterLocation = APIParameterLocation.path;
-      });
+      }).toList();
 
       i.queryParameters = mm.parameters
           .where((pm) => pm.isOptional)
