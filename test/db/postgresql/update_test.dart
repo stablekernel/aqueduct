@@ -42,6 +42,30 @@ void main() {
     expect(result.emailAddress, "2@a.com");
   });
 
+  test("Setting relationship to null succeeds", () async {
+    await generateTemporarySchemaFromModels(adapter, [Child, Parent]);
+
+    var parent = new Parent()
+      ..name = "Bob";
+    var q = new Query<Parent>()
+      ..valueObject = parent;
+    parent = await q.insert(adapter);
+
+    var child = new Child()
+      ..name = "Fred"
+      ..parent = parent;
+    q = new Query<Child>()
+      ..valueObject = child;
+    child = await q.insert(adapter);
+    expect(child.parent.id, parent.id);
+
+    q = new Query<Child>()
+      ..predicateObject = (new Child()..id = child.id)
+      ..valueObject = (new Child()..parent = null);
+    child = (await q.update(adapter)).first;
+    expect(child.parent, isNull);
+  });
+
   test("Updating non-existant object fails", () async {});
 }
 
@@ -60,3 +84,35 @@ class TestModelBacking extends Model {
   @Attributes(nullable: true, unique: true)
   String emailAddress;
 }
+
+@ModelBacking(ChildBacking) @proxy
+class Child extends Object with Model implements ChildBacking {
+  noSuchMethod(i) => super.noSuchMethod(i);
+}
+
+class ChildBacking {
+  @Attributes(primaryKey: true, databaseType: "bigserial")
+  int id;
+
+  String name;
+
+  @Attributes(nullable: true)
+  @RelationshipAttribute(RelationshipType.belongsTo, "child")
+  Parent parent;
+}
+
+@ModelBacking(ParentBacking) @proxy
+class Parent extends Object with Model implements ChildBacking {
+  noSuchMethod(i) => super.noSuchMethod(i);
+}
+
+class ParentBacking {
+  @Attributes(primaryKey: true, databaseType: "bigserial")
+  int id;
+
+  String name;
+
+  @RelationshipAttribute(RelationshipType.hasOne, "parent")
+  Child child;
+}
+
