@@ -12,6 +12,8 @@ class AuthController<ResourceOwner extends Authenticatable, TokenType extends To
 
   /// Creates or refreshes an authentication token.
   ///
+  /// Authorization header must contain Basic authorization scheme where username is Client ID and password is Client Secret,
+  /// e.g. Authorization: Basic base64(ClientID:ClientSecret)
   /// Content-Type must be application/x-www-form-urlencoded. (Query string in the body, e.g. username=bob&password=password)
   /// Values must be URL percent encoded by client.
   /// When grant_type is 'password', there must be username and password values.
