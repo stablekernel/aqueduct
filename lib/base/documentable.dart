@@ -52,7 +52,7 @@ class APIDocument {
     Map<String, Map<String, APIDocumentItem>> coalesced = {};
     items.forEach((m) {
       var existing = coalesced[m.path];
-      if (existing) {
+      if (existing != null) {
         existing[m.method] = m.asMap();
       } else {
         existing = {
