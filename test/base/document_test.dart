@@ -4,11 +4,21 @@ import 'dart:mirrors';
 import 'dart:async';
 import 'package:analyzer/analyzer.dart';
 import 'dart:convert';
+import 'dart:io';
+
 main() {
+  test("Package resolver", () {
+    String homeDir = Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'];
+    var p = new PackagePathResolver(new File(".packages").path);
+    var resolvedPath = p.resolve(new Uri(scheme: "package", path: "analyzer/file_system/file_system.dart"));
+
+    expect(resolvedPath.endsWith("file_system/file_system.dart"), true);
+    expect(resolvedPath.startsWith("$homeDir/.pub-cache/hosted/pub.dartlang.org"), true);
+  });
 
   test("Documentation test", () {
     var t = new TController();
-    print("${t.document().asMap()}");
+//    print("${t.document().asMap()}");
 
 
   });

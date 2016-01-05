@@ -262,7 +262,7 @@ abstract class HttpController extends RequestHandler {
   }
 
   @override
-  List<APIDocumentItem> document() {
+  List<APIDocumentItem> document(PackagePathResolver resolver) {
     var handlerMethodMirrors = reflect(this).type.declarations.values
         .where((dm) => dm is MethodMirror)
         .where((mm) {
@@ -271,7 +271,7 @@ abstract class HttpController extends RequestHandler {
 
     var reflectedType = reflect(this).type;
     var uri = reflectedType.location.sourceUri;
-    var fileUnit = parseDartFile(uri.path);
+    var fileUnit = parseDartFile(resolver.resolve(uri));
 
     var classUnit = fileUnit.declarations
         .where((u) => u is ClassDeclaration)

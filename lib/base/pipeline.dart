@@ -69,7 +69,7 @@ abstract class ApplicationPipeline extends RequestHandler {
   }
 
   @override
-  List<APIDocumentItem> document() {
-    return initialHandler().document();
+  List<APIDocumentItem> document(PackagePathResolver resolver) {
+    return initialHandler().document(resolver);
   }
 }
