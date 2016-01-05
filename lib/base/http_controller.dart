@@ -292,7 +292,7 @@ abstract class HttpController extends RequestHandler {
       if (matchingMethodDeclaration != null) {
         var comment = matchingMethodDeclaration.documentationComment;
         var tokens = comment?.tokens ?? [];
-        i.description = tokens.map((t) => t.lexeme.trimLeft().substring(3).trim()).join(" ");
+        i.description = tokens.map((t) => t.lexeme.trimLeft().substring(3).trim()).join("\n");
       }
 
       var httpMethod = mm.metadata.firstWhere((im) => im.reflectee is HttpMethod).reflectee;
