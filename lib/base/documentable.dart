@@ -208,7 +208,7 @@ class PackagePathResolver {
       if (packagePath == null) {
         throw new Exception("Package $firstElement could not be resolved.");
       }
-      print("$uri");
+
       var remainingPath = uri.pathSegments.sublist(1).join("/");
       return "$packagePath$remainingPath";
     }
