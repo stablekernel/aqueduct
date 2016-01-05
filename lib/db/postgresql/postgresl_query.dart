@@ -102,21 +102,23 @@ class _PostgresqlQuery {
           return;
         }
 
-        var relatedValue = (value as Model).dynamicBacking[column.relationship.destinationModelKey];
+        if (value != null) {
+          var relatedValue = (value as Model).dynamicBacking[column.relationship.destinationModelKey];
 
-        if (relatedValue == null) {
-          var thisType = MirrorSystem.getName(reflect(valueObject).type.simpleName);
+          if (relatedValue == null) {
+            var thisType = MirrorSystem.getName(reflect(valueObject).type.simpleName);
 
-          var relatedType = MirrorSystem.getName(reflectType(column.relationship.destinationType).simpleName);
+            var relatedType = MirrorSystem.getName(reflectType(column.relationship.destinationType).simpleName);
 
-          throw new QueryException(
-              500,
-              "Query object of type ${thisType} contains embedded object of type ${relatedType},"
-              "but embedded object does not contain foreign model key ${column.relationship.destinationModelKey}",
-              -1);
+            throw new QueryException(500, "Query object of type ${thisType} contains embedded object of type ${relatedType},"
+                                    "but embedded object does not contain foreign model key ${column.relationship.destinationModelKey}",
+                                    -1);
+          }
+
+          m[column.name] = relatedValue;
+        } else {
+          m[column.name] = null;
         }
-
-        m[column.name] = relatedValue;
       } else {
         m[column.name] = value;
       }

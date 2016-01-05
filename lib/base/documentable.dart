@@ -68,7 +68,7 @@ class APIDocument {
 }
 
 abstract class APIDocumentable {
-  List<APIDocumentItem> document();
+  List<APIDocumentItem> document(PackagePathResolver resolver);
 }
 
 enum APISecurityType {
@@ -89,10 +89,9 @@ class APISecurityItem {
     m["description"] = description;
 
     switch(type) {
-      case APISecurityType.basic:
-        {
+      case APISecurityType.basic: {
           m["type"] = "basic";
-        } break;
+      } break;
       case APISecurityType.oauth2: {
         m["type"] = "oauth2";
         if (flow != null) {
@@ -113,6 +112,7 @@ class APIDocumentItem {
   String path;
   String method;
   String securityItemName;
+  String description;
   List<String> acceptedContentTypes;
   List<APIParameter> pathParameters;
   List<APIParameter> queryParameters;
@@ -120,7 +120,7 @@ class APIDocumentItem {
 
   Map<String, dynamic> asMap() {
     Map<String, dynamic> i = {};
-    i["description"] = "Description";
+    i["description"] = description ?? "";
     i["produces"] = responseFormats;
 
     var combined = [];
@@ -177,8 +177,41 @@ class APIParameter {
       case "String" : m["type"] = "string"; break;
       case "bool" : m["type"] = "bool"; break;
       case "double" : m["type"] = "number"; break;
+      default: m["type"] = "string";
     }
 
     return m;
+  }
+}
+
+class PackagePathResolver {
+  PackagePathResolver(String packageMapPath) {
+    var contents = new File(packageMapPath).readAsStringSync();
+    var lines = contents
+        .split("\n")
+        .where((l) => !l.startsWith("#") && l.indexOf(":") != -1)
+        .map((l) {
+          var firstColonIdx = l.indexOf(":");
+          var packageName = l.substring(0, firstColonIdx);
+          var packagePath = l.substring(firstColonIdx + 1, l.length).replaceFirst(r"file://", "");
+          return [packageName, packagePath];
+        });
+    _map = new Map.fromIterable(lines, key: (k) => k.first, value: (v) => v.last);
+  }
+
+  Map<String, String> _map;
+
+  String resolve(Uri uri) {
+    if (uri.scheme == "package") {
+      var firstElement = uri.pathSegments.first;
+      var packagePath = _map[firstElement];
+      if (packagePath == null) {
+        throw new Exception("Package $firstElement could not be resolved.");
+      }
+
+      var remainingPath = uri.pathSegments.sublist(1).join("/");
+      return "$packagePath$remainingPath";
+    }
+    return uri.path;
   }
 }

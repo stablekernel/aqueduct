@@ -101,11 +101,11 @@ class Router extends RequestHandler {
   }
 
   @override
-  List<APIDocumentItem> document() {
+  List<APIDocumentItem> document(PackagePathResolver resolver) {
     List<APIDocumentItem> items = [];
 
     for (var route in _routes) {
-      var routeItems = route.handler.document();
+      var routeItems = route.handler.document(resolver);
 
       items.addAll(routeItems.map((i) {
         i.path = (basePath ?? "") + route.pattern.documentedPathWithVariables(i.pathParameters);

@@ -13,6 +13,7 @@ import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:postgresql/postgresql.dart';
 import 'package:matcher/matcher.dart';
+import 'package:analyzer/analyzer.dart';
 
 export 'package:http_server/http_server.dart';
 export 'package:logging/logging.dart';

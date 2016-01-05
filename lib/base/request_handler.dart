@@ -93,9 +93,9 @@ class RequestHandler implements APIDocumentable {
     return req;
   }
 
-  List<APIDocumentItem> document() {
+  List<APIDocumentItem> document(PackagePathResolver resolver) {
     if (nextHandler != null) {
-      return nextHandler.document();
+      return nextHandler.document(resolver);
     }
 
     return [];
@@ -122,8 +122,8 @@ class RequestHandlerGenerator<T extends RequestHandler> extends RequestHandler {
   }
 
   @override
-  List<APIDocumentItem> document() {
-    return instantiate().document();
+  List<APIDocumentItem> document(PackagePathResolver resolver) {
+    return instantiate().document(resolver);
   }
 
 }
