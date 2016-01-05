@@ -89,10 +89,9 @@ class APISecurityItem {
     m["description"] = description;
 
     switch(type) {
-      case APISecurityType.basic:
-        {
+      case APISecurityType.basic: {
           m["type"] = "basic";
-        } break;
+      } break;
       case APISecurityType.oauth2: {
         m["type"] = "oauth2";
         if (flow != null) {
@@ -113,6 +112,7 @@ class APIDocumentItem {
   String path;
   String method;
   String securityItemName;
+  String description;
   List<String> acceptedContentTypes;
   List<APIParameter> pathParameters;
   List<APIParameter> queryParameters;
@@ -120,7 +120,7 @@ class APIDocumentItem {
 
   Map<String, dynamic> asMap() {
     Map<String, dynamic> i = {};
-    i["description"] = "Description";
+    i["description"] = description ?? "";
     i["produces"] = responseFormats;
 
     var combined = [];
@@ -177,6 +177,7 @@ class APIParameter {
       case "String" : m["type"] = "string"; break;
       case "bool" : m["type"] = "bool"; break;
       case "double" : m["type"] = "number"; break;
+      default: m["type"] = "string";
     }
 
     return m;

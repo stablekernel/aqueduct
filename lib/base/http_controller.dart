@@ -269,8 +269,32 @@ abstract class HttpController extends RequestHandler {
           return mm.metadata.firstWhere((im) => im.reflectee is HttpMethod, orElse: () => null) != null;
         });
 
+    var reflectedType = reflect(this).type;
+    var uri = reflectedType.location.sourceUri;
+    var fileUnit = parseDartFile(uri.path);
+
+    var classUnit = fileUnit.declarations
+        .where((u) => u is ClassDeclaration)
+        .firstWhere((ClassDeclaration u) => u.name.token.lexeme == MirrorSystem.getName(reflectedType.simpleName));
+
+    Map<String, MethodDeclaration> methodMap = {};
+    classUnit.childEntities.forEach((child) {
+      if (child is MethodDeclaration) {
+        MethodDeclaration c = child;
+        methodMap[c.name.token.lexeme] = child;
+      }
+    });
+
     return handlerMethodMirrors.map((MethodMirror mm) {
       var i = new APIDocumentItem();
+
+      var matchingMethodDeclaration = methodMap[MirrorSystem.getName(mm.simpleName)];
+      if (matchingMethodDeclaration != null) {
+        var comment = matchingMethodDeclaration.documentationComment;
+        var tokens = comment?.tokens ?? [];
+        i.description = tokens.map((t) => t.lexeme.trimLeft().substring(3).trim()).join(" ");
+      }
+
       var httpMethod = mm.metadata.firstWhere((im) => im.reflectee is HttpMethod).reflectee;
 
       i.method = httpMethod.method;
@@ -308,6 +332,7 @@ abstract class HttpController extends RequestHandler {
 
       i.acceptedContentTypes = acceptedContentTypes.map((ct) => "${ct.primaryType}/${ct.subType}").toList();
       i.responseFormats = ["${responseContentType.primaryType}/${responseContentType.subType}"];
+
       return i;
     }).toList();
   }
