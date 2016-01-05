@@ -10,6 +10,12 @@ class AuthController<ResourceOwner extends Authenticatable, TokenType extends To
     acceptedContentTypes = [new ContentType("application", "x-www-form-urlencoded")];
   }
 
+  /// Creates or refreshes an authentication token.
+  ///
+  /// Content-Type must be application/x-www-form-urlencoded. (Query string in the body, e.g. username=bob&password=password)
+  /// Values must be URL percent encoded by client.
+  /// When grant_type is 'password', there must be username and password values.
+  /// When grant_type is 'refresh', there must be a refresh_token value.
   @httpPost
   Future<Response> create({String grant_type, String username, String password, String refresh_token}) async {
     var authorizationHeader = request.innerRequest.headers[HttpHeaders.AUTHORIZATION]?.first;
