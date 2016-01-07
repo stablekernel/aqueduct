@@ -8,42 +8,49 @@ main() {
   app.configuration.port = 8080;
 
   tearDownAll(() async {
-    app.stop();
-  });
-
-  test("Application starts", () async {
-    await app.start();
-    expect(app.supervisors.length, 1);
-  });
-
-  test("Application responds to request", () async {
-    var response = await http.get("http://localhost:8080/t");
-    expect(response.statusCode, 200);
-  });
-
-  test("Application properly routes request", () async {
-    var tResponse = await http.get("http://localhost:8080/t");
-    var rResponse = await http.get("http://localhost:8080/r");
-
-    expect(tResponse.body, '"t_ok"');
-    expect(rResponse.body, '"r_ok"');
-  });
-
-  test("Application stops", () async {
     await app.stop();
+  });
 
-    try {
-      var _ = await http.get("http://localhost:8080/t");
-      fail("This should fail immeidlatey");
-    } catch (e) {
-      expect(e, isNotNull);
-    }
+  group("Application lifecycle", () {
+    test("Application starts", () async {
+      await app.start();
+      expect(app.supervisors.length, 1);
+    });
 
-    await app.start();
-    var resp = await http.get("http://localhost:8080/t");
-    expect(resp.statusCode, 200);
+    test("Application responds to request", () async {
+      var response = await http.get("http://localhost:8080/t");
+      expect(response.statusCode, 200);
+    });
 
-    await app.stop();
+    test("Application properly routes request", () async {
+      var tResponse = await http.get("http://localhost:8080/t");
+      var rResponse = await http.get("http://localhost:8080/r");
+
+      expect(tResponse.body, '"t_ok"');
+      expect(rResponse.body, '"r_ok"');
+    });
+
+    test("Application gzips content", () async {
+      var resp = await http.get("http://localhost:8080/t");
+      expect(resp.headers["content-encoding"], "gzip");
+    });
+
+    test("Application stops", () async {
+      await app.stop();
+
+      try {
+        var _ = await http.get("http://localhost:8080/t");
+        fail("This should fail immeidlatey");
+      } catch (e) {
+        expect(e, isNotNull);
+      }
+
+      await app.start();
+      var resp = await http.get("http://localhost:8080/t");
+      expect(resp.statusCode, 200);
+
+      await app.stop();
+    });
   });
 
   test("Application can run on main thread", () async {
