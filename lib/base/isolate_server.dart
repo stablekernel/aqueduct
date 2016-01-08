@@ -26,6 +26,7 @@ class Server {
           shared: configuration._shared);
     }
 
+    s.autoCompress = true;
     await didOpen(s);
   }
 
