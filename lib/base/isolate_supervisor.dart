@@ -39,6 +39,17 @@ class IsolateSupervisor {
     } else if (message == _MessageStop) {
       _stopCompleter.complete();
       _stopCompleter = null;
+    } else if (message is List) {
+      if (_launchCompleter != null) {
+        print("${message.first}");
+        _launchCompleter.completeError(new IsolateSupervisorException(message.first), new StackTrace.fromString(message.last));
+        isolate.kill();
+      }
     }
   }
+}
+
+class IsolateSupervisorException implements Exception {
+  final String message;
+  IsolateSupervisorException(this.message);
 }

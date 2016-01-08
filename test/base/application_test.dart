@@ -53,6 +53,37 @@ main() {
     });
   });
 
+  test("Application (on main thread) start fails and logs appropriate message if pipeline doesn't open", () async {
+    var crashingApp = new Application<CrashPipeline>();
+
+    try {
+      crashingApp.configuration.pipelineOptions = {"crashIn" : "constructor"};
+      await crashingApp.start(runOnMainIsolate: true);
+    } catch (e) {
+      expect(e.message, "constructor");
+    }
+
+    try {
+      crashingApp.configuration.pipelineOptions = {"crashIn" : "addRoutes"};
+      await crashingApp.start(runOnMainIsolate: true);
+    } catch (e) {
+      expect(e.message, "addRoutes");
+    }
+
+    try {
+      crashingApp.configuration.pipelineOptions = {"crashIn" : "willOpen"};
+      await crashingApp.start(runOnMainIsolate: true);
+    } catch (e) {
+      expect(e.message, "willOpen");
+    }
+
+    crashingApp.configuration.pipelineOptions = {"crashIn" : "dontCrash"};
+    await crashingApp.start(runOnMainIsolate: true);
+    var response = await http.get("http://localhost:8080/t");
+    expect(response.statusCode, 200);
+    await crashingApp.stop();
+  });
+
   test("Application can run on main thread", () async {
     await app.start(runOnMainIsolate: true);
 
@@ -61,6 +92,33 @@ main() {
 
     await app.stop();
   });
+}
+
+class TestException implements Exception {
+  final String message;
+  TestException(this.message);
+}
+
+class CrashPipeline extends ApplicationPipeline {
+  CrashPipeline(Map opts) : super(opts) {
+    if (opts["crashIn"] == "constructor") {
+      throw new TestException("constructor");
+    }
+  }
+
+  void addRoutes() {
+    if (options["crashIn"] == "addRoutes") {
+      throw new TestException("addRoutes");
+    }
+    router.route("/t").then(new RequestHandlerGenerator<TController>());
+  }
+
+  @override
+  Future willOpen() async {
+    if (options["crashIn"] == "willOpen") {
+      throw new TestException("willOpen");
+    }
+  }
 }
 
 class TPipeline extends ApplicationPipeline {
