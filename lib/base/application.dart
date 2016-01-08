@@ -50,20 +50,19 @@ class Application<PipelineType extends ApplicationPipeline> {
       await server.start();
     } else {
       configuration._shared = numberOfInstances > 1;
+
       supervisors = [];
+      try {
+        for (int i = 0; i < numberOfInstances; i++) {
+          var supervisor = await _spawn(configuration, i + 1);
 
-      for (int i = 0; i < numberOfInstances; i++) {
-        var serverRecord = await _spawn(configuration, i + 1);
-        supervisors.add(serverRecord);
-      }
-      var futures = supervisors.map((i) {
-        return i.resume();
-      });
+          await supervisor.resume();
 
-      await Future.wait(futures, eagerError: true, cleanUp: (success) async {
-        print("OK did errror $success");
+          supervisors.add(supervisor);
+        }
+      } catch (e) {
         await stop();
-      });
+      }
     }
   }
 

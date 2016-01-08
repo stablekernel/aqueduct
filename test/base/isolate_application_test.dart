@@ -71,7 +71,7 @@ main() {
       expect(resp.statusCode, 200);
     });
   });
-  
+
   test("Application start fails and logs appropriate message if pipeline doesn't open", () async {
     var crashingApp = new Application<CrashPipeline>();
 

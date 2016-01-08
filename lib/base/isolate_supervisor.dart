@@ -24,10 +24,12 @@ class IsolateSupervisor {
     return _launchCompleter.future.timeout(new Duration(seconds: 30));
   }
 
-  Future stop() {
+  Future stop() async {
     _stopCompleter = new Completer();
     _serverSendPort.send(_MessageStop);
-    return _stopCompleter.future.timeout(new Duration(seconds: 30));
+    await _stopCompleter.future.timeout(new Duration(seconds: 30));
+
+    isolate.kill();
   }
 
   void listener(dynamic message) {
@@ -41,9 +43,7 @@ class IsolateSupervisor {
       _stopCompleter = null;
     } else if (message is List) {
       if (_launchCompleter != null) {
-        print("${message.first}");
         _launchCompleter.completeError(new IsolateSupervisorException(message.first), new StackTrace.fromString(message.last));
-        isolate.kill();
       }
     }
   }
