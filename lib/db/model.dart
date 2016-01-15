@@ -343,7 +343,26 @@ class RelationshipAttribute {
         this.inverseKey = inverseKey,
         this.deleteRule = deleteRule,
         this.referenceKey = referenceKey;
+
+  const RelationshipAttribute.hasMany(String inverseKey) :
+      this.type = RelationshipType.hasMany,
+      this.inverseKey = inverseKey,
+      this.deleteRule = RelationshipDeleteRule.nullify,
+      this.referenceKey = null;
+
+  const RelationshipAttribute.hasOne(String inverseKey) :
+        this.type = RelationshipType.hasOne,
+        this.inverseKey = inverseKey,
+        this.deleteRule = RelationshipDeleteRule.nullify,
+        this.referenceKey = null;
+
+  const RelationshipAttribute.belongsTo(String inverseKey, {RelationshipDeleteRule deleteRule: RelationshipDeleteRule.nullify, String referenceKey: null}) :
+        this.type = RelationshipType.belongsTo,
+        this.inverseKey = inverseKey,
+        this.deleteRule = deleteRule,
+        this.referenceKey = referenceKey;
 }
+
 
 /// A declaration annotation for the options on a property in a [ModelBacking].
 ///
