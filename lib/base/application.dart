@@ -62,6 +62,7 @@ class Application<PipelineType extends ApplicationPipeline> {
         }
       } catch (e) {
         await stop();
+        rethrow;
       }
     }
   }

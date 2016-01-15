@@ -2,6 +2,7 @@ import 'package:test/test.dart';
 import 'package:monadart/monadart.dart';
 import 'dart:async';
 import 'package:http/http.dart' as http;
+import 'dart:io';
 
 main() {
   var app = new Application<TPipeline>();
@@ -101,6 +102,29 @@ main() {
     var response = await http.get("http://localhost:8080/t");
     expect(response.statusCode, 200);
     await crashingApp.stop();
+  });
+
+  test("Application that fails to open because port is bound fails gracefully", () async {
+    var server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 8000);
+    server.listen((req) {
+      print("$req");
+    });
+
+    var conflictingApp = new Application<TPipeline>();
+    conflictingApp.configuration.port = 8000;
+
+    try {
+      await conflictingApp.start();
+      fail("App start succeeded");
+    } on IsolateSupervisorException {
+
+    } catch (e) {
+      fail("Wrong exception $e");
+    }
+
+
+    await server.close();
+    await conflictingApp.stop();
   });
 }
 
