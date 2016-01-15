@@ -11,29 +11,31 @@ class Server {
   }
 
   Future start() async {
-    pipeline.addRoutes();
-    pipeline.nextHandler = pipeline.initialHandler();
+    try {
+      pipeline.addRoutes();
+      pipeline.nextHandler = pipeline.initialHandler();
 
-    HttpServer s = null;
-    if (configuration.securityContext != null) {
-      s = await HttpServer.bindSecure(configuration.address, configuration.port, configuration.securityContext,
-          requestClientCertificate: configuration.isUsingClientCertificate,
-          v6Only: configuration.isIpv6Only,
-          shared: configuration._shared);
-    } else {
-      s = await HttpServer.bind(configuration.address, configuration.port,
-          v6Only: configuration.isIpv6Only,
-          shared: configuration._shared);
+      if (configuration.securityContext != null) {
+        server = await HttpServer.bindSecure(configuration.address, configuration.port, configuration.securityContext,
+            requestClientCertificate: configuration.isUsingClientCertificate,
+            v6Only: configuration.isIpv6Only,
+            shared: configuration._shared);
+      } else {
+        server = await HttpServer.bind(configuration.address, configuration.port,
+            v6Only: configuration.isIpv6Only,
+            shared: configuration._shared);
+      }
+
+      server.autoCompress = true;
+      await didOpen();
+    } catch (e) {
+      server?.close();
+      rethrow;
     }
-
-    s.autoCompress = true;
-    await didOpen(s);
   }
 
-  Future didOpen(HttpServer s) async {
+  Future didOpen() async {
     new Logger("monadart").info("Server monadart/$identifier started.");
-
-    server = s;
 
     server.serverHeader = "monadart/${this.identifier}";
 
@@ -60,8 +62,8 @@ class IsolateServer extends Server {
   }
 
   @override
-  Future didOpen(HttpServer s) async {
-    await super.didOpen(s);
+  Future didOpen() async {
+    await super.didOpen();
     supervisingApplicationPort.send(supervisingReceivePort.sendPort);
   }
 

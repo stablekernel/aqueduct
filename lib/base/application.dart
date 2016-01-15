@@ -46,20 +46,23 @@ class Application<PipelineType extends ApplicationPipeline> {
 
       var pipeline = reflectClass(PipelineType).newInstance(new Symbol(""), [configuration.pipelineOptions]).reflectee;
       server = new Server(pipeline, configuration, 1);
+
       await server.start();
     } else {
       configuration._shared = numberOfInstances > 1;
 
-      for (int i = 0; i < numberOfInstances; i++) {
-        var serverRecord = await _spawn(configuration, i + 1);
-        supervisors.add(serverRecord);
+      supervisors = [];
+      try {
+        for (int i = 0; i < numberOfInstances; i++) {
+          var supervisor = await _spawn(configuration, i + 1);
+
+          await supervisor.resume();
+
+          supervisors.add(supervisor);
+        }
+      } catch (e) {
+        await stop();
       }
-
-      var futures = supervisors.map((i) {
-        return i.resume();
-      });
-
-      await Future.wait(futures);
     }
   }
 
