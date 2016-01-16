@@ -134,11 +134,10 @@ void main() {
 
 @ModelBacking(TestModelBacking)
 @proxy
-class TestModel extends Object with Model implements TestModelBacking {
-  noSuchMethod(i) => super.noSuchMethod(i);
+class TestModel extends Model implements TestModelBacking {
 }
 
-class TestModelBacking extends Model {
+class TestModelBacking {
   @Attributes(primaryKey: true, databaseType: "bigserial")
   int id;
 
@@ -161,11 +160,11 @@ class TestModelBacking extends Model {
 
 @ModelBacking(RefModelBacking)
 @proxy
-class RefModel extends Object with Model implements RefModelBacking {
-  noSuchMethod(i) => super.noSuchMethod(i);
+class RefModel extends Model implements RefModelBacking {
+
 }
 
-class RefModelBacking extends Model {
+class RefModelBacking {
   @Attributes(primaryKey: true, databaseType: "serial")
   int id;
 
@@ -175,15 +174,12 @@ class RefModelBacking extends Model {
   TestModel test;
 }
 
-@ModelBacking(GRestrictInverseBacking)
-@proxy
-class GRestrictInverse extends Object
-    with Model
-    implements GRestrictInverseBacking {
-  noSuchMethod(i) => super.noSuchMethod(i);
+@ModelBacking(GRestrictInverseBacking) @proxy
+class GRestrictInverse extends Model implements GRestrictInverseBacking {
+
 }
 
-class GRestrictInverseBacking extends Model {
+class GRestrictInverseBacking {
   @Attributes(primaryKey: true, databaseType: "serial")
   int id;
 
@@ -193,13 +189,12 @@ class GRestrictInverseBacking extends Model {
   GRestrict test;
 }
 
-@ModelBacking(GRestrictBacking)
-@proxy
-class GRestrict extends Object with Model implements GRestrictBacking {
-  noSuchMethod(i) => super.noSuchMethod(i);
+@ModelBacking(GRestrictBacking) @proxy
+class GRestrict extends Model implements GRestrictBacking {
+
 }
 
-class GRestrictBacking extends Model {
+class GRestrictBacking {
   @Attributes(primaryKey: true, databaseType: "serial")
   int id;
 
@@ -209,15 +204,12 @@ class GRestrictBacking extends Model {
   GRestrictInverse test;
 }
 
-@ModelBacking(GCascadeInverseBacking)
-@proxy
-class GCascadeInverse extends Object
-    with Model
-    implements GCascadeInverseBacking {
-  noSuchMethod(i) => super.noSuchMethod(i);
+@ModelBacking(GCascadeInverseBacking) @proxy
+class GCascadeInverse extends Model implements GCascadeInverseBacking {
+
 }
 
-class GCascadeInverseBacking extends Model {
+class GCascadeInverseBacking {
   @Attributes(primaryKey: true, databaseType: "serial")
   int id;
 
@@ -227,13 +219,12 @@ class GCascadeInverseBacking extends Model {
   GCascade test;
 }
 
-@ModelBacking(GCascadeBacking)
-@proxy
-class GCascade extends Object with Model implements GCascadeBacking {
-  noSuchMethod(i) => super.noSuchMethod(i);
+@ModelBacking(GCascadeBacking) @proxy
+class GCascade extends Model implements GCascadeBacking {
+
 }
 
-class GCascadeBacking extends Model {
+class GCascadeBacking {
   @Attributes(primaryKey: true, databaseType: "serial")
   int id;
 

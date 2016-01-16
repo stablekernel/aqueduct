@@ -215,11 +215,11 @@ void main() {
 
 @ModelBacking(TestModelBacking)
 @proxy
-class TestModel extends Object with Model implements TestModelBacking {
+class TestModel extends Model implements TestModelBacking {
   noSuchMethod(i) => super.noSuchMethod(i);
 }
 
-class TestModelBacking extends Model {
+class TestModelBacking {
   @Attributes(primaryKey: true, databaseType: "bigserial")
   int id;
 
@@ -235,11 +235,11 @@ class TestModelBacking extends Model {
 
 @ModelBacking(GenUserBacking)
 @proxy
-class GenUser extends Object with Model implements GenUserBacking {
+class GenUser extends Model implements GenUserBacking {
   noSuchMethod(i) => super.noSuchMethod(i);
 }
 
-class GenUserBacking extends Model {
+class GenUserBacking {
   @Attributes(primaryKey: true, databaseType: "bigserial")
   int id;
 
@@ -255,11 +255,11 @@ class GenUserBacking extends Model {
 
 @ModelBacking(GenPostBacking)
 @proxy
-class GenPost extends Object with Model implements GenPostBacking {
+class GenPost extends Model implements GenPostBacking {
   noSuchMethod(i) => super.noSuchMethod(i);
 }
 
-class GenPostBacking extends Model {
+class GenPostBacking {
   @Attributes(primaryKey: true, databaseType: "bigserial")
   int id;
 
@@ -272,11 +272,11 @@ class GenPostBacking extends Model {
 
 @ModelBacking(GenTimeBacking)
 @proxy
-class GenTime extends Object with Model implements GenTimeBacking {
+class GenTime extends Model implements GenTimeBacking {
   noSuchMethod(i) => super.noSuchMethod(i);
 }
 
-class GenTimeBacking extends Model {
+class GenTimeBacking {
   @Attributes(primaryKey: true, databaseType: "bigserial")
   int id;
 
@@ -288,14 +288,14 @@ class GenTimeBacking extends Model {
 
 @ModelBacking(TransientBacking)
 @proxy
-class TransientModel extends Object with Model implements TransientBacking {
+class TransientModel extends /*Object with*/ Model implements TransientBacking {
   @mappable
   String transientValue;
 
   noSuchMethod(i) => super.noSuchMethod(i);
 }
 
-class TransientBacking extends Model {
+class TransientBacking {
   @Attributes(primaryKey: true, databaseType: "bigserial")
   int id;
 

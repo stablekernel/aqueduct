@@ -491,12 +491,8 @@ void main() {
   });
 }
 
-@ModelBacking(PageableTestModelBacking)
-@proxy
-class PageableTestModel extends Object
-    with Model
-    implements PageableTestModelBacking {
-  noSuchMethod(i) => super.noSuchMethod(i);
+@ModelBacking(PageableTestModelBacking) @proxy
+class PageableTestModel extends Model implements PageableTestModelBacking {
 }
 
 class PageableTestModelBacking {
@@ -508,11 +504,11 @@ class PageableTestModelBacking {
 
 @ModelBacking(TestModelBacking)
 @proxy
-class TestModel extends Object with Model implements TestModelBacking {
-  noSuchMethod(i) => super.noSuchMethod(i);
+class TestModel extends Model implements TestModelBacking {
+
 }
 
-class TestModelBacking extends Model {
+class TestModelBacking {
   @Attributes(primaryKey: true, databaseType: "bigserial")
   int id;
 
@@ -532,8 +528,8 @@ class TestModelBacking extends Model {
 
 @ModelBacking(GenUserBacking)
 @proxy
-class GenUser extends Object with Model implements GenUserBacking {
-  noSuchMethod(i) => super.noSuchMethod(i);
+class GenUser extends Model implements GenUserBacking {
+
 }
 
 class GenUserBacking {
@@ -552,8 +548,8 @@ class GenUserBacking {
 
 @ModelBacking(GenPostBacking)
 @proxy
-class GenPost extends Object with Model implements GenPostBacking {
-  noSuchMethod(i) => super.noSuchMethod(i);
+class GenPost extends Model implements GenPostBacking {
+
 }
 
 class GenPostBacking {
@@ -569,8 +565,8 @@ class GenPostBacking {
 
 @ModelBacking(OmitBacking)
 @proxy
-class Omit extends Object with Model implements OmitBacking {
-  noSuchMethod(i) => super.noSuchMethod(i);
+class Omit extends Model implements OmitBacking {
+
 }
 
 class OmitBacking {

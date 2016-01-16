@@ -19,8 +19,7 @@ Future<List<TestUser>> createUsers(QueryAdapter adapter, int count) async {
 
 @ModelBacking(UserBacking)
 @proxy
-class TestUser extends Object with Model implements UserBacking {
-  noSuchMethod(inv) => super.noSuchMethod(inv);
+class TestUser extends Model implements UserBacking {
 }
 
 class UserBacking implements Authenticatable {
@@ -34,8 +33,7 @@ class UserBacking implements Authenticatable {
 
 @ModelBacking(TokenBacking)
 @proxy
-class Token extends Object with Model implements TokenBacking {
-  noSuchMethod(inv) => super.noSuchMethod(inv);
+class Token extends Model implements TokenBacking {
 }
 
 

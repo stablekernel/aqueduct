@@ -71,11 +71,11 @@ void main() {
 
 @ModelBacking(TestModelBacking)
 @proxy
-class TestModel extends Object with Model implements TestModelBacking {
+class TestModel extends Model implements TestModelBacking {
   noSuchMethod(i) => super.noSuchMethod(i);
 }
 
-class TestModelBacking extends Model {
+class TestModelBacking {
   @Attributes(primaryKey: true, databaseType: "bigserial")
   int id;
 
@@ -86,7 +86,7 @@ class TestModelBacking extends Model {
 }
 
 @ModelBacking(ChildBacking) @proxy
-class Child extends Object with Model implements ChildBacking {
+class Child extends Model implements ChildBacking {
   noSuchMethod(i) => super.noSuchMethod(i);
 }
 
@@ -102,7 +102,7 @@ class ChildBacking {
 }
 
 @ModelBacking(ParentBacking) @proxy
-class Parent extends Object with Model implements ChildBacking {
+class Parent extends Model implements ChildBacking {
   noSuchMethod(i) => super.noSuchMethod(i);
 }
 

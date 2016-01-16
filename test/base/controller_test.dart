@@ -315,7 +315,7 @@ Future<HttpServer> enableController(String pattern, RequestHandler controller) a
 }
 
 @ModelBacking(TestModelBacking) @proxy
-class TestModel extends Object with Model implements TestModelBacking {}
+class TestModel extends Model implements TestModelBacking {}
 class TestModelBacking {
   int id;
   String name;

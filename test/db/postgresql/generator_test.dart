@@ -149,10 +149,7 @@ void main() {
 
 @ModelBacking(GeneratorModel1Backing)
 @proxy
-class GeneratorModel1 extends Object
-    with Model
-    implements GeneratorModel1Backing {
-  noSuchMethod(i) => super.noSuchMethod(i);
+class GeneratorModel1 extends Model implements GeneratorModel1Backing {
 }
 
 class GeneratorModel1Backing {
@@ -176,9 +173,7 @@ class GeneratorModel1Backing {
 
 @ModelBacking(GeneratorModel2Backing)
 @proxy
-class GeneratorModel2 extends Object
-    with Model
-    implements GeneratorModel2Backing {
+class GeneratorModel2 extends Model implements GeneratorModel2Backing {
   noSuchMethod(i) => super.noSuchMethod(i);
 }
 
@@ -193,9 +188,7 @@ class GeneratorModel2Backing {
 
 @ModelBacking(GeneratorModel3Backing)
 @proxy
-class GeneratorModel3 extends Object
-    with Model
-    implements GeneratorModel3Backing {
+class GeneratorModel3 extends Model implements GeneratorModel3Backing {
   noSuchMethod(i) => super.noSuchMethod(i);
 }
 
@@ -225,7 +218,7 @@ class GeneratorModel3Backing {
 
 @ModelBacking(GenUserBacking)
 @proxy
-class GenUser extends Object with Model implements GenUserBacking {
+class GenUser extends Model implements GenUserBacking {
   noSuchMethod(i) => super.noSuchMethod(i);
 }
 
@@ -245,7 +238,7 @@ class GenUserBacking {
 
 @ModelBacking(GenPostBacking)
 @proxy
-class GenPost extends Object with Model implements GenPostBacking {
+class GenPost extends Model implements GenPostBacking {
   noSuchMethod(i) => super.noSuchMethod(i);
 }
 
@@ -266,7 +259,7 @@ class GenPostBacking {
 
 @ModelBacking(GenUnnamedBacking)
 @proxy
-class GenUnnamed extends Object with Model implements GenUnnamedBacking {
+class GenUnnamed extends Model implements GenUnnamedBacking {
   noSuchMethod(i) => super.noSuchMethod(i);
 }
 
@@ -277,7 +270,7 @@ class GenUnnamedBacking {
 
 @ModelBacking(GenOwnerBacking)
 @proxy
-class GenOwner extends Object with Model implements GenOwnerBacking {
+class GenOwner extends Model implements GenOwnerBacking {
   noSuchMethod(i) => super.noSuchMethod(i);
 }
 
@@ -291,7 +284,7 @@ class GenOwnerBacking {
 
 @ModelBacking(GenAuthBacking)
 @proxy
-class GenAuth extends Object with Model implements GenAuthBacking {
+class GenAuth extends Model implements GenAuthBacking {
   noSuchMethod(i) => super.noSuchMethod(i);
 }
 
@@ -306,7 +299,7 @@ class GenAuthBacking {
 
 @ModelBacking(GenLeftBacking)
 @proxy
-class GenLeft extends Object with Model implements GenLeftBacking {
+class GenLeft extends Model implements GenLeftBacking {
   noSuchMethod(i) => super.noSuchMethod(i);
 }
 
@@ -320,7 +313,7 @@ class GenLeftBacking {
 
 @ModelBacking(GenRightBacking)
 @proxy
-class GenRight extends Object with Model implements GenRightBacking {
+class GenRight extends Model implements GenRightBacking {
   noSuchMethod(i) => super.noSuchMethod(i);
 }
 
@@ -334,11 +327,11 @@ class GenRightBacking {
 
 @ModelBacking(GenJoinBacking)
 @proxy
-class GenJoin extends Object with Model implements GenJoinBacking {
+class GenJoin extends Model implements GenJoinBacking {
   noSuchMethod(i) => super.noSuchMethod(i);
 }
 
-class GenJoinBacking extends Model {
+class GenJoinBacking {
   @Attributes(nullable: true)
   @RelationshipAttribute(RelationshipType.belongsTo, "join")
   GenLeft left;
@@ -350,7 +343,7 @@ class GenJoinBacking extends Model {
 
 @ModelBacking(GenObjBacking)
 @proxy
-class GenObj extends Object with Model implements GenObjBacking {
+class GenObj extends Model implements GenObjBacking {
   noSuchMethod(i) => super.noSuchMethod(i);
 }
 
@@ -364,9 +357,7 @@ class GenObjBacking {
 
 @ModelBacking(GenNotNullableBacking)
 @proxy
-class GenNotNullable extends Object
-    with Model
-    implements GenNotNullableBacking {
+class GenNotNullable extends Model implements GenNotNullableBacking {
   noSuchMethod(i) => super.noSuchMethod(i);
 }
 

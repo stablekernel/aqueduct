@@ -185,10 +185,7 @@ class TestModelController extends ModelController<TestModel> {
 
 @proxy
 @ModelBacking(TestModelBacking)
-class TestModel extends Object
-  with Model
-  implements TestModelBacking {
-  noSuchMethod(inv) => super.noSuchMethod(inv);
+class TestModel extends Model implements TestModelBacking {
 }
 
 class TestModelBacking {

@@ -294,12 +294,9 @@ main() {
 
 @proxy
 @ModelBacking(UserBacking)
-class User extends Object with Model implements UserBacking {
-
+class User extends Model implements UserBacking {
   @mappable
   String value;
-
-  noSuchMethod(i) => super.noSuchMethod(i);
 }
 
 class UserBacking {
@@ -316,8 +313,7 @@ class UserBacking {
 
 @proxy
 @ModelBacking(PostBacking)
-class Post extends Object with Model implements PostBacking {
-  noSuchMethod(i) => super.noSuchMethod(i);
+class Post extends Model implements PostBacking {
 }
 
 class PostBacking {
@@ -329,7 +325,7 @@ class PostBacking {
 
 @proxy
 @ModelBacking(TransientTestBacking)
-class TransientTest extends Object with Model implements TransientTestBacking {
+class TransientTest extends Model implements TransientTestBacking {
   @mappable
   String get defaultedText => "Mr. $text";
   void set defaultedText(String str) {
@@ -341,8 +337,6 @@ class TransientTest extends Object with Model implements TransientTestBacking {
 
   @mappableOutput
   int outputInt;
-
-  noSuchMethod(i) => super.noSuchMethod(i);
 }
 
 class TransientTestBacking {

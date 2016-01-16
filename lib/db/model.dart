@@ -6,11 +6,13 @@ part of monadart;
 ///
 /// Example of usage:
 ///     @ModelBacking(UserBacking) @proxy
-///     class User extends Object with Model implements UserBacking {}
+///     class User extends Model implements UserBacking {}
 ///
 ///     class UserBacking {
 ///       @Attributes(primaryKey: true)
 ///       int id;
+///
+///       String name;
 ///     }
 class ModelBacking {
   /// A plain old Dart object type, where each property is a column/field in the database.

@@ -11,7 +11,7 @@ enum MatcherOperator {
   between
 }
 
-abstract class ModelMatcher<T extends Model> {
+class ModelMatcher<T extends Model> {
   List<MatcherExpression> matchers;
   // submatcher tree with or/and
 }
