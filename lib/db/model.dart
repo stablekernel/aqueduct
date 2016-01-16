@@ -28,7 +28,7 @@ class ModelBacking {
 /// Model types in an application must mixin Model. A Model must declare a ModelBacking type and be a proxy.
 /// Model instances are used in an application, while ModelBackings define the properties the Model has that are persisted in the database.
 /// See [ModelBacking] for more details.
-class Model implements Serializable {
+class Model extends ModelBackable implements Serializable {
   /// Applied to each value when a Model is executing [readFromMap].
   ///
   /// Defaults to [_defaultValueDecoder], which simply converts ISO8601 strings to DateTimes.
@@ -56,45 +56,26 @@ class Model implements Serializable {
   /// A value (including null) in [dynamicBacking] for a key means the property has been set on model instance.
   Map<String, dynamic> dynamicBacking = {};
 
-  /// A class mirror on the backing type of the Model.
+  /// Name of primaryKey property.
   ///
-  /// Defined by the Model's [ModelBacking] metadata.
-  ClassMirror get backingType {
-    var modelBacking = reflect(this)
-        .type
-        .metadata
-        .firstWhere((m) => m.type.isSubtypeOf(reflectType(ModelBacking)))
-        .reflectee as ModelBacking;
-    return reflectClass(modelBacking.backingType);
-  }
-
+  /// If this has a primary key (as determined by the having an [Attributes] with [Attributes.primaryKey] set to true,
+  /// returns the name of that property. Otherwise, returns null.
   String get primaryKey {
-    var sym = backingType.declarations.values.firstWhere((dm) {
-      var attr = dm.metadata.firstWhere((md) => md.reflectee is Attributes, orElse: () => null);
+    return _firstPropertyNameWhere((ivar) {
+      var attr = ivar.metadata.firstWhere((md) => md.reflectee is Attributes, orElse: () => null);
       if (attr == null) {
         return false;
       }
 
       return attr.reflectee.isPrimaryKey;
-    }, orElse: () => null)?.simpleName;
-
-    if (sym == null) {
-      return null;
-    }
-
-    return MirrorSystem.getName(sym);
+    });
   }
 
   noSuchMethod(Invocation invocation) {
-    var backingTypeDecls = this.backingType.declarations;
-
     if (invocation.isGetter) {
       var propertyName = MirrorSystem.getName(invocation.memberName);
-      if (backingTypeDecls[invocation.memberName] == null) {
-        throw new QueryException(
-            500,
-            "Model type ${MirrorSystem.getName(reflect(this).type.simpleName)} has no property $propertyName.",
-            -1);
+      if (!_hasProperty(propertyName)) {
+        throw new QueryException(500, "Model type ${MirrorSystem.getName(reflect(this).type.simpleName)} has no property $propertyName.", -1);
       }
 
       if (!dynamicBacking.containsKey(propertyName)) {
@@ -103,40 +84,30 @@ class Model implements Serializable {
 
       return dynamicBacking[propertyName];
     } else if (invocation.isSetter) {
-      var name = MirrorSystem.getName(invocation.memberName);
-      name = name.substring(0, name.length - 1);
+      var propertyName = MirrorSystem.getName(invocation.memberName);
+      propertyName = propertyName.substring(0, propertyName.length - 1);
 
-      var ivarDeclaration = backingTypeDecls[new Symbol(name)];
-      if (ivarDeclaration == null) {
-        throw new QueryException(
-            500,
-            "Model type ${MirrorSystem.getName(reflect(this).type.simpleName)} has no property $name.",
-            -1);
+      if (!_hasProperty(propertyName)) {
+        throw new QueryException(500, "Model type ${MirrorSystem.getName(reflect(this).type.simpleName)} has no property $propertyName.", -1);
       }
 
       var value = invocation.positionalArguments.first;
       if (value != null) {
-        var ivarType = (ivarDeclaration as VariableMirror).type;
+        var ivarType = _typeMirrorForProperty(propertyName);
         var valueType = reflect(value).type;
         if (!valueType.isSubtypeOf(ivarType)) {
           var ivarTypeName = MirrorSystem.getName(ivarType.simpleName);
           var valueTypeName = MirrorSystem.getName(valueType.simpleName);
 
-          throw new QueryException(
-              500,
-              "Type mismatch for property $name on ${MirrorSystem.getName(reflect(this).type.simpleName)}, expected $ivarTypeName but got $valueTypeName.",
-              -1);
+          throw new QueryException(500, "Type mismatch for property $propertyName on ${MirrorSystem.getName(reflect(this).type.simpleName)}, expected $ivarTypeName but got $valueTypeName.", -1);
         }
       }
 
-      dynamicBacking[name] = value;
+      dynamicBacking[propertyName] = value;
       return null;
     }
 
-    throw new NoSuchMethodError(this, invocation.memberName,
-        invocation.positionalArguments, invocation.namedArguments);
-
-    return null;
+    return super.noSuchMethod(invocation);
   }
 
   /// Populates the properties of a Model object from a map.
@@ -151,8 +122,7 @@ class Model implements Serializable {
     }
 
     keyValues.forEach((k, v) {
-      var variableMirror =
-          this.backingType.declarations[new Symbol(k)] as VariableMirror;
+      var variableMirror = _variableMirrorForProperty(k);
 
       if (variableMirror == null) {
         var reflectedThis = reflect(this);
@@ -162,10 +132,7 @@ class Model implements Serializable {
         if(decl != null && _declarationMirrorIsTransientForInput(decl)) {
           reflectedThis.setField(sym, v);
         } else {
-          throw new QueryException(
-            400, "Key $k does not exist for ${MirrorSystem.getName(
-              reflect(this).type.simpleName)}",
-            -1);
+          throw new QueryException(400, "Key $k does not exist for ${MirrorSystem.getName(reflect(this).type.simpleName)}", -1);
         }
       } else {
         var fieldType = variableMirror.type as ClassMirror;
@@ -176,7 +143,7 @@ class Model implements Serializable {
 
 
   bool _declarationMirrorIsTransientForInput(DeclarationMirror dm) {
-    Mappable transientMetadata =  dm.metadata.firstWhere((im) => im.reflectee is Mappable, orElse: () => null)?.reflectee;
+    Mappable transientMetadata = dm.metadata.firstWhere((im) => im.reflectee is Mappable, orElse: () => null)?.reflectee;
 
     if (transientMetadata == null || !transientMetadata.isAvailableAsInput) {
       return false;
@@ -249,25 +216,18 @@ class Model implements Serializable {
   /// The default decoder for values when reading from a map.
   ///
   /// ISO8601 strings are converted to DateTime instances of the type of the property as defined by [key] is DateTime.
-  static dynamic _defaultValueDecoder(
-      TypeMirror typeMirror, String key, dynamic value) {
+  static dynamic _defaultValueDecoder(TypeMirror typeMirror, String key, dynamic value) {
     if (typeMirror.isSubtypeOf(reflectType(Model))) {
       if (value is! Map) {
-        throw new QueryException(
-            400,
-            "Expecting a Map for ${MirrorSystem.getName(typeMirror.simpleName)} in the $key field, got $value instead.",
-            -1);
+        throw new QueryException(400, "Expecting a Map for ${MirrorSystem.getName(typeMirror.simpleName)} in the $key field, got $value instead.", -1);
       }
-      Model instance =
-          (typeMirror as ClassMirror).newInstance(new Symbol(""), []).reflectee;
+      Model instance = (typeMirror as ClassMirror).newInstance(new Symbol(""), []).reflectee;
       instance.readMap(value);
+
       return instance;
     } else if (typeMirror.isSubtypeOf(reflectType(List))) {
       if (value is! List) {
-        throw new QueryException(
-            400,
-            "Expecting a List for ${MirrorSystem.getName(typeMirror.simpleName)} in the $key field, got $value instead.",
-            -1);
+        throw new QueryException(400, "Expecting a List for ${MirrorSystem.getName(typeMirror.simpleName)} in the $key field, got $value instead.", -1);
       }
 
       var listTypeMirror = typeMirror.typeArguments.first;

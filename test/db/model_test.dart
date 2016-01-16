@@ -12,6 +12,18 @@ main() {
     expect(user.id, 1);
   });
 
+  test("NoSuchMethod still throws", () {
+    var user = new User();
+    try {
+      user.foo();
+      fail("Should not get here");
+    } on NoSuchMethodError {
+    } catch (e) {
+      expect(e, isNull);
+    }
+  });
+
+
   test("Mismatched type throws exception", () {
     var user = new User();
     try {
@@ -323,8 +335,7 @@ class PostBacking {
   User owner;
 }
 
-@proxy
-@ModelBacking(TransientTestBacking)
+@proxy @ModelBacking(TransientTestBacking)
 class TransientTest extends Model implements TransientTestBacking {
   @mappable
   String get defaultedText => "Mr. $text";

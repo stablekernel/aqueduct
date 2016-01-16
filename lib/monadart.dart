@@ -42,7 +42,7 @@ part 'auth/auth_controller.dart';
 part 'auth/authorization_parser.dart';
 part 'auth/authentication_server.dart';
 
-part 'db/predicate_matcher.dart';
+part 'db/model_matcher.dart';
 part 'db/model.dart';
 part 'db/model_controller.dart';
 part 'db/predicate.dart';
@@ -51,6 +51,8 @@ part 'db/query_adapter.dart';
 part 'db/query_page.dart';
 part 'db/sort_descriptor.dart';
 part 'db/model_attributes.dart';
+part 'db/model_backable.dart';
+part 'db/matcher_expressions.dart';
 
 // PostgreSQL
 
