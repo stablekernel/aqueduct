@@ -201,6 +201,24 @@ abstract class HttpController extends RequestHandler {
     return retMap;
   }
 
+  dynamic encodedResponseBody(dynamic initialResponseBody) {
+    var serializedBody = null;
+    if (initialResponseBody is Serializable) {
+      serializedBody = (initialResponseBody as Serializable).asSerializable();
+    } else if (initialResponseBody is List) {
+      serializedBody = (initialResponseBody as List).map((value) {
+        if (value is Serializable) {
+          return value.asSerializable();
+        } else {
+          return value;
+        }
+      }).toList();
+    }
+
+    return responseBodyEncoder(serializedBody ?? initialResponseBody);
+
+  }
+
   Future<Response> _process() async {
     try {
       var methodSymbol = _routeMethodSymbolForRequest(request);
@@ -214,12 +232,11 @@ abstract class HttpController extends RequestHandler {
       }
 
       Future<Response> eventualResponse = reflect(this).invoke(methodSymbol, handlerParameters, handlerQueryParameters).reflectee;
-
       var response = await eventualResponse;
 
       willSendResponse(response);
 
-      response.body = responseBodyEncoder(response.body);
+      response.body = encodedResponseBody(response.body);
       response.headers[HttpHeaders.CONTENT_TYPE] = responseContentType.toString();
 
       return response;

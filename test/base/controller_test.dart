@@ -172,6 +172,22 @@ void main() {
     var res = await http.post("http://localhost:4040/a", headers: {"Content-Type" : "application/x-www-form-urlencoded"}, body: "opt=7");
     expect(res.body, '"7"');
   });
+
+  test("Model and lists are encoded in response", () async {
+    server = await enableController("/a/:thing", new RequestHandlerGenerator<ModelEncodeController>());
+    var res = await http.get("http://localhost:4040/a/list");
+    expect(JSON.decode(res.body), [{"id" : 1}, {"id" : 2}]);
+
+    res = await http.get("http://localhost:4040/a/model");
+    expect(JSON.decode(res.body), {"id" : 1, "name" : "Bob"});
+
+    res = await http.get("http://localhost:4040/a/modellist");
+    expect(JSON.decode(res.body), [{"id" : 1, "name" : "Bob"}, {"id" : 2, "name" : "Fred"}]);
+
+    res = await http.get("http://localhost:4040/a/null");
+    expect(JSON.decode(res.body), isNull);
+    expect(res.statusCode, 200);
+  });
 }
 
 
@@ -256,8 +272,37 @@ class DateTimeController extends HttpController {
   }
 }
 
-Future<HttpServer> enableController(String pattern, RequestHandler controller) async {
+class ModelEncodeController extends HttpController {
+  @httpGet getThings(String thing) async {
+    if (thing == "list") {
+      return new Response.ok([{"id" : 1}, {"id" : 2}]);
+    }
 
+    if (thing == "model") {
+      var m = new TestModel()
+        ..id = 1
+        ..name = "Bob";
+      return new Response.ok(m);
+    }
+
+    if (thing == "modellist") {
+      var m1 = new TestModel()
+        ..id = 1
+        ..name = "Bob";
+      var m2 = new TestModel()
+        ..id = 2
+        ..name = "Fred";
+
+      return new Response.ok([m1, m2]);
+    }
+
+    if (thing == "null") {
+      return new Response.ok(null);
+    }
+  }
+}
+
+Future<HttpServer> enableController(String pattern, RequestHandler controller) async {
   var router = new Router();
   router.route(pattern).then(controller);
 
@@ -267,4 +312,11 @@ Future<HttpServer> enableController(String pattern, RequestHandler controller) a
   });
 
   return server;
+}
+
+@ModelBacking(TestModelBacking) @proxy
+class TestModel extends Object with Model implements TestModelBacking {}
+class TestModelBacking {
+  int id;
+  String name;
 }

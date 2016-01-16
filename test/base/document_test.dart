@@ -1,9 +1,6 @@
 import 'package:test/test.dart';
 import 'package:monadart/monadart.dart';
-import 'dart:mirrors';
 import 'dart:async';
-import 'package:analyzer/analyzer.dart';
-import 'dart:convert';
 import 'dart:io';
 
 main() {
@@ -17,9 +14,6 @@ main() {
   });
 
   test("Documentation test", () {
-    var t = new TController();
-//    print("${t.document().asMap()}");
-
 
   });
 

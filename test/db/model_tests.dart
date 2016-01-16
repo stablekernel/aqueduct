@@ -2,6 +2,7 @@ import 'package:monadart/monadart.dart';
 import 'package:test/test.dart';
 
 main() {
+
   test("Model object construction", () {
     var user = new User();
     user.name = "Joe";
