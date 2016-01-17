@@ -1,6 +1,6 @@
 part of monadart;
 
-abstract class ModelMatcher extends ModelBackable {
+class ModelMatcher extends ModelBackable {
   Map<String, MatcherExpression> _map = {};
   Predicate get predicate {
     if (_map.length == 1) {
@@ -17,6 +17,14 @@ abstract class ModelMatcher extends ModelBackable {
     }).toList());
   }
 
+  MatcherExpression operator [](String key) {
+    return _map[key];
+  }
+
+  void operator []=(String key, dynamic value) {
+    _setMatcherForPropertyName(key, value);
+  }
+
   Predicate _predicateForKey(String propertyKey, int index) {
     var expr = _map[propertyKey];
     if (expr is _AmbiguousModelMatcherExpression) {
@@ -25,10 +33,42 @@ abstract class ModelMatcher extends ModelBackable {
     return expr.getPredicate(propertyKey, index);
   }
 
+  bool get _isTypedSubclass {
+    return reflect(this).type != reflectType(ModelMatcher);
+  }
+
+  void _setMatcherForPropertyName(String propertyName, dynamic value) {
+    if (value is _AmbiguousModelMatcherExpression) {
+      if (_isTypedSubclass) {
+        var ivarType = _typeMirrorForProperty(propertyName);
+        if (!(ivarType.isSubtypeOf(reflectType(Model)) || ivarType.isSubtypeOf(reflectType(List)))) {
+          throw new PredicateMatcherException("Type mismatch for property $propertyName; not a Model or List<Model>.");
+        }
+      }
+
+      _map[propertyName] = value;
+    } else if (value is MatcherExpression) {
+      _map[propertyName] = value;
+    } else {
+      if (_isTypedSubclass) {
+        var ivarType = _typeMirrorForProperty(propertyName);
+        var valueType = reflect(value).type;
+        if (!valueType.isSubtypeOf(ivarType)) {
+          var ivarTypeName = MirrorSystem.getName(ivarType.simpleName);
+          var valueTypeName = MirrorSystem.getName(valueType.simpleName);
+
+          var typeName = MirrorSystem.getName(reflect(this).type.simpleName);
+          throw new PredicateMatcherException("Type mismatch for property $propertyName on ${typeName}, expected $ivarTypeName but got $valueTypeName.");
+        }
+      }
+      _map[propertyName] = new _AssignmentMatcherExpression(value);
+    }
+  }
+
   noSuchMethod(Invocation i) {
     if (i.isGetter) {
       var propertyName  = MirrorSystem.getName(i.memberName);
-      return _map[propertyName ];
+      return _map[propertyName];
     } else if (i.isSetter) {
       var propertyName = MirrorSystem.getName(i.memberName);
       propertyName = propertyName.substring(0, propertyName.length - 1);
@@ -39,27 +79,7 @@ abstract class ModelMatcher extends ModelBackable {
         return null;
       }
 
-      if (value is _AmbiguousModelMatcherExpression) {
-        var ivarType = _typeMirrorForProperty(propertyName);
-        if (!(ivarType.isSubtypeOf(reflectType(Model)) || ivarType.isSubtypeOf(reflectType(List)))) {
-          throw new PredicateMatcherException("Type mismatch for property $propertyName; not a Model or List<Model>.");
-        }
-
-        _map[propertyName] = value;
-      } else if (value is MatcherExpression) {
-        _map[propertyName] = value;
-      } else {
-        var ivarType = _typeMirrorForProperty(propertyName);
-        var valueType = reflect(value).type;
-        if (!valueType.isSubtypeOf(ivarType)) {
-          var ivarTypeName = MirrorSystem.getName(ivarType.simpleName);
-          var valueTypeName = MirrorSystem.getName(valueType.simpleName);
-
-          var typeName = MirrorSystem.getName(reflect(this).type.simpleName);
-          throw new PredicateMatcherException("Type mismatch for property $propertyName on ${typeName}, expected $ivarTypeName but got $valueTypeName.");
-        }
-        _map[propertyName] = new _AssignmentMatcherExpression(value);
-      }
+      _setMatcherForPropertyName(propertyName, value);
 
       return null;
     }

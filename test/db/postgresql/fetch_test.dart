@@ -216,25 +216,20 @@ void main() {
       ..predicate = new Predicate("owner_id = @id", {"id": u1.id});
     var res = await req.fetch(adapter);
     expect(res.length, 5);
-    expect(
-        res
-            .map((p) => p.text)
+    expect(res.map((p) => p.text)
             .where((text) => num.parse(text) % 2 == 0)
             .toList()
-            .length,
-        5);
+            .length, 5);
 
-    var gp = new GenPost()..owner = u1;
-    req = new Query<GenPost>()..predicateObject = gp;
+    var matcher = new ModelMatcher();
+    matcher["owner_id"] = u1.id;
+    req = new Query<GenPost>()..predicate = matcher.predicate;
     res = await req.fetch(adapter);
     expect(res.length, 5);
-    expect(
-        res
-            .map((p) => p.text)
+    expect(res.map((p) => p.text)
             .where((text) => num.parse(text) % 2 == 0)
             .toList()
-            .length,
-        5);
+            .length, 5);
   });
 
   test("Fetch object with null reference", () async {
@@ -293,7 +288,9 @@ void main() {
     expect(result.id, greaterThan(0));
     expect(result.dynamicBacking["text"], isNull);
 
-    var fq = new Query<Omit>()..predicateObject = result;
+    var matcher = new ModelMatcher()
+      ..["id"] = whenEqualTo(result.id);
+    var fq = new Query<Omit>()..predicate = matcher.predicate;
 
     var fResult = await fq.fetchOne(adapter);
     expect(fResult.id, result.id);

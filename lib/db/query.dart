@@ -73,18 +73,6 @@ class Query<ModelType extends Model> {
   /// A predicate will identify the rows being accessed, see [Predicate] for more details.
   Predicate predicate;
 
-  /// An object that generates a predicate for filtering the result or operation set.
-  ///
-  /// Will generate the [predicate] for this [Query] using values from this object. For example, the following code
-  /// would generate the predicate "(name = 'Joe' and id = 2)"
-  ///     var user = new User()
-  ///       ..name = 'Joe'
-  ///       ..id = 2;
-  ///     var q = new Query<User>()
-  ///       ..predicateObject = user;
-  ///
-  ModelType predicateObject;
-
   /// Values to be used when inserting or updating an object.
   ///
   /// Keys must be the name of the property on the model object. Prefer to use [valueObject] instead.

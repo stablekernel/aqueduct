@@ -31,7 +31,12 @@ class ResourcePatternMatch {
   ///
   /// The remaining path will will be a single string, including any path delimeters (/),
   /// but will not have a leading path delimeter.
-  String remainingPath;
+  String remainingPath = null;
+
+  /// The name (key in [variables]) of the first matched variable.
+  ///
+  /// The first variable is often the identifier for a specific resource in a resource collection.
+  dynamic firstVariableName = null;
 }
 
 class ResourcePattern {
@@ -39,6 +44,7 @@ class ResourcePattern {
 
   _ResourcePatternSet matchHead;
   List<_ResourcePatternElement> elements;
+  String get firstVariableName => elements.firstWhere((e) => e.isVariable, orElse: () => null)?.name;
 
   ResourcePattern(String patternString) {
     List<String> pathElements = splitPattern(patternString);
@@ -94,6 +100,7 @@ class ResourcePattern {
     var expr = new RegExp(r"[\[\]]");
     return splitPattern(patternString).map((segment) => new _ResourcePatternElement(segment.replaceAll(expr, ""))).toList();
   }
+
 
   String documentedPathWithVariables(List<APIParameter> params) {
     var s = new StringBuffer("/");
@@ -166,6 +173,8 @@ class ResourcePattern {
       }
     }
 
+    match.firstVariableName = firstVariableName;
+
     return match;
   }
 }
@@ -190,10 +199,12 @@ class _ResourcePatternElement {
   bool matchesRemaining = false;
   String name;
   RegExp matchRegex;
+  bool isVariable = false;
 
   _ResourcePatternElement(String segment) {
     if (segment.startsWith(":")) {
       var contents = segment.substring(1, segment.length);
+      isVariable = true;
       constructFromString(contents);
     } else if (segment == "*") {
       matchesRemaining = true;

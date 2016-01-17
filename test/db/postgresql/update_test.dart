@@ -59,8 +59,11 @@ void main() {
     child = await q.insert(adapter);
     expect(child.parent.id, parent.id);
 
+    var matcher = new ModelMatcher()
+      ..["id"] = whenEqualTo(child.id);
     q = new Query<Child>()
-      ..predicateObject = (new Child()..id = child.id)
+      ..predicate = matcher.predicate
+      //..predicateObject = (new Child()..id = child.id)
       ..valueObject = (new Child()..parent = null);
     child = (await q.update(adapter)).first;
     expect(child.parent, isNull);

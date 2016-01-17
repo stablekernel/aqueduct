@@ -8,8 +8,7 @@ import 'dart:convert';
 main() async {
 
   setUp(() async {
-    var server = await
-    HttpServer.bind(InternetAddress.ANY_IP_V4, 8080);
+    var server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 8080);
     var router = new Router();
     router.route("/users/[:id]").then(
       new RequestHandlerGenerator<TestModelController>(arguments: [null]));
@@ -21,30 +20,26 @@ main() async {
   });
 
 
-    test("All", () async {
-      var response = await http.get("http://localhost:8080/users");
-      expect(response.statusCode, 200);
+  test("All", () async {
+    var response = await http.get("http://localhost:8080/users");
+    expect(response.statusCode, 200);
 
-      response = await http.get("http://localhost:8080/users/1");
-      expect(response.statusCode, 200);
+    response = await http.get("http://localhost:8080/users/1");
+    expect(response.statusCode, 200);
 
-      response = await http.delete("http://localhost:8080/users/1");
-      expect(response.statusCode, 200);
+    response = await http.delete("http://localhost:8080/users/1");
+    expect(response.statusCode, 200);
 
-      response = await http.put("http://localhost:8080/users/1", headers: {
-        "Content-Type" : "application/json;charset=utf-8"
-      },
-        body: JSON.encode({"name" : "joe"})
-      );
-      expect(response.statusCode, 200);
+    response = await http.put("http://localhost:8080/users/1", headers: {
+      "Content-Type" : "application/json;charset=utf-8"
+    }, body: JSON.encode({"name" : "joe"}));
+    expect(response.statusCode, 200);
 
-      response = await http.post("http://localhost:8080/users", headers: {
-        "Content-Type" : "application/json;charset=utf-8"
-      },
-        body: JSON.encode({"name" : "joe"})
-      );
-      expect(response.statusCode, 200);
-    });
+    response = await http.post("http://localhost:8080/users", headers: {
+      "Content-Type" : "application/json;charset=utf-8"
+    }, body: JSON.encode({"name" : "joe"}));
+    expect(response.statusCode, 200);
+  });
 
 }
 
@@ -52,8 +47,7 @@ class TestModelController extends ModelController<TestModel> {
   TestModelController(QueryAdapter adapter) : super(adapter);
 
   @httpGet
-  Future<Response> getAll()
-  async {
+  Future<Response> getAll() async {
     int statusCode = 200;
     if (requestModel != null) {
       statusCode = 400;
@@ -61,7 +55,7 @@ class TestModelController extends ModelController<TestModel> {
     if (query == null) {
       statusCode = 400;
     }
-    if (query.predicateObject != null) {
+    if (query.predicate != null) {
       statusCode = 400;
     }
     if (query.valueObject != null) {
@@ -72,26 +66,32 @@ class TestModelController extends ModelController<TestModel> {
   }
 
   @httpGet
-  Future<Response> getOne(int id)
-  async {
+  Future<Response> getOne(int id) async {
+    String reason = null;
     int statusCode = 200;
     if (requestModel != null) {
       statusCode = 400;
+      reason = "requestModel != null";
     }
     if (query == null) {
       statusCode = 400;
+      reason = "query == null";
     }
-    if (query.predicateObject == null) {
+    if (query.predicate == null) {
       statusCode = 400;
+      reason = "predicate == null";
     }
-    if (query.predicateObject.id != id) {
+    if (query.predicate.format != "id = @id_0" || query.predicate.parameters["id_0"] != id) {
       statusCode = 400;
+      reason = "predicate fmtwrong";
     }
+
     if (query.valueObject != null) {
+      reason = "valueObject != null";
       statusCode = 400;
     }
 
-    return new Response(statusCode, {}, null);
+    return new Response(statusCode, {}, {"reason" : reason});
   }
 
   @httpPut
@@ -108,10 +108,10 @@ class TestModelController extends ModelController<TestModel> {
       statusCode = 400;
     }
 
-    if (query.predicateObject == null) {
+    if (query.predicate == null) {
       statusCode = 400;
     }
-    if (query.predicateObject.id != id) {
+    if (query.predicate.format != "id = @id_0" || query.predicate.parameters["id_0"] != id) {
       statusCode = 400;
     }
     if (query.valueObject == null) {
@@ -129,23 +129,29 @@ class TestModelController extends ModelController<TestModel> {
   Future<Response> deleteOne(int id)
   async {
     int statusCode = 200;
+    String reason = null;
     if (requestModel != null) {
+      reason = "requestModel != null";
       statusCode = 400;
     }
     if (query == null) {
+      reason = "query == null";
       statusCode = 400;
     }
-    if (query.predicateObject == null) {
+    if (query.predicate == null) {
+      reason = "predicate = null";
       statusCode = 400;
     }
-    if (query.predicateObject.id != id) {
+
+    if (query.predicate.format != "id = @id_0" || query.predicate.parameters["id_0"] != id) {
+      reason = "predicate invalid";
       statusCode = 400;
     }
     if (query.valueObject != null) {
       statusCode = 400;
     }
 
-    return new Response(statusCode, {}, null);
+    return new Response(statusCode, {}, {"reason" : reason});
 
   }
 
@@ -163,7 +169,7 @@ class TestModelController extends ModelController<TestModel> {
       statusCode = 400;
     }
 
-    if (query.predicateObject != null) {
+    if (query.predicate != null) {
       statusCode = 400;
     }
 

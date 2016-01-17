@@ -15,11 +15,6 @@ class _PostgresqlQuery {
   List<_MappingElement> resultMappingElements;
 
   void preprocess() {
-    // Transfer predicateObject to predicate if one exists, overwrites the predicate.
-    if (query.predicateObject != null) {
-      query.predicate = predicateFromPredicateObject(query.predicateObject);
-    }
-
     resultMappingElements = mappingElementsFromQuery(query);
     if (query.pageDescriptor != null) {
       // // select * from t where id < 11 order by id desc limit 5
@@ -44,18 +39,6 @@ class _PostgresqlQuery {
         query.sortDescriptors = [sortDescriptor];
       }
     }
-  }
-
-  Predicate predicateFromPredicateObject(Model obj) {
-    var m = columnValueMapForObject(obj);
-
-    var predicateItems = [];
-    m.forEach((k, v) {
-      predicateItems.add("${k}=@${k}");
-    });
-
-    var predicateFmt = predicateItems.join(" and ");
-    return new Predicate("(${predicateFmt.toString()})", m);
   }
 
   List<_MappingElement> mappingElementsFromQuery(Query query) {
