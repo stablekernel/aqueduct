@@ -145,6 +145,13 @@ void main() {
           "GenNotNullable will set relationship 'ref_id' to null on delete, but 'ref_id' may not be null");
     }
   });
+
+  test("Verify schema creates the same named foreign keys as model", () {
+    var schema = new PostgresqlSchema.fromModels([GenUser, GenPost]);
+    var p = new GenPost();
+    var fk = p.foreignKeyForProperty("owner");
+    expect(fk, schema.tables[GenPost].columns["owner"].name);
+  });
 }
 
 @ModelBacking(GeneratorModel1Backing)

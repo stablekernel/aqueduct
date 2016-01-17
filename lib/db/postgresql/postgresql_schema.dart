@@ -98,9 +98,7 @@ class _PostgresqlTable {
         columns.values.where((column) => column.relationship != null && !column.ignoreWhenGeneratingSQL());
     var foreignKeyDefinitions =
         foreignKeyColumns.map((column) => "alter table only ${name} add foreign key (${column.name}) "
-            "references ${_tableNameForType(
-        column.relationship.destinationType)} (${column.relationship
-        .foreignColumnName}) "
+            "references ${_tableNameForType(column.relationship.destinationType)} (${column.relationship.foreignColumnName}) "
             "on delete ${column.relationship.deleteRuleText()}");
 
     var items = [];
@@ -207,20 +205,15 @@ class _PostgresqlColumn {
     // Need to set the column type, rename the column, apply unique
     var referenceTable = tables[relationship.destinationType];
     if (referenceTable == null) {
-      throw new PostgresqlGeneratorException(
-          "Reference table for $name not found, has ${relationship.destinationType} been added to the schema?");
+      throw new PostgresqlGeneratorException("Reference table for $name not found, has ${relationship.destinationType} been added to the schema?");
     }
 
-    var foreignModelKey = relationship.destinationModelKey;
-    if (foreignModelKey == null) {
-      foreignModelKey = referenceTable.primaryModelKey;
-    }
-
+    var foreignModelKey = relationship.destinationModelKey ?? referenceTable.primaryModelKey;
     var referenceColumn = referenceTable.columns[foreignModelKey];
     if (referenceColumn == null) {
-      throw new PostgresqlGeneratorException("Reference column for $name not found, expected ${relationship
-                .inverseModelKey} on ${referenceTable.name}.");
+      throw new PostgresqlGeneratorException("Reference column for $name not found, expected ${relationship.inverseModelKey} on ${referenceTable.name}.");
     }
+
     this.sqlType = referenceColumn.sqlType;
     if (this.sqlType == "bigserial" || this.sqlType == "bigserial8") {
       this.sqlType = "bigint";
@@ -235,9 +228,7 @@ class _PostgresqlColumn {
 
     var inverseColumn = referenceTable.columns[relationship.inverseModelKey];
     if (inverseColumn == null || inverseColumn.relationship == null) {
-      throw new PostgresqlGeneratorException(
-          "No inverse column (or relationship) for $name, referencing table ${referenceTable
-              .name}");
+      throw new PostgresqlGeneratorException("No inverse column (or relationship) for $name, referencing table ${referenceTable.name}");
     }
 
     if (inverseColumn.relationship.type == RelationshipType.hasOne) {

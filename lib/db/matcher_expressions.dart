@@ -1,5 +1,7 @@
 part of monadart;
 
+// Still need string matchers, object master
+
 enum _MatcherOperator {
   lessThan,
   greaterThan,
@@ -32,6 +34,10 @@ dynamic whenBetween(dynamic lhs, dynamic rhs) {
 }
 dynamic whenOutsideOf(dynamic lhs, dynamic rhs) {
   return new _RangeMatcherExpression(lhs, rhs, false);
+}
+
+dynamic whenRelatedByValue(dynamic foreignKeyValue) {
+  return new _AmbiguousModelMatcherExpression(foreignKeyValue);
 }
 
 const dynamic whenNull = const _NullMatcherExpression(true);
@@ -90,11 +96,20 @@ class _NullMatcherExpression implements MatcherExpression {
   const _NullMatcherExpression(this.shouldBeNull);
 
   Predicate getPredicate(String propertyName, int matcherIndex) {
-    var formatSpecificationName = "${propertyName}_${matcherIndex}";
     return new Predicate("$propertyName ${shouldBeNull ? "isnull" : "notnull"}", {});
   }
 }
 
+class _AmbiguousModelMatcherExpression implements MatcherExpression {
+  final dynamic value;
+
+  _AmbiguousModelMatcherExpression(this.value);
+
+  Predicate getPredicate(String propertyName, int matcherIndex) {
+    var formatSpecificationName = "${propertyName}_${matcherIndex}";
+    return new Predicate("$propertyName = @$formatSpecificationName", {formatSpecificationName : value});
+  }
+}
 
 class PredicateMatcherException {
   String message;

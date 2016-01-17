@@ -142,7 +142,19 @@ main() {
     matcher.id = whenNotNull;
     predicate = matcher.predicate;
     expect(predicate.format, "id notnull");
+  });
 
+  test("String matcher", () {
+
+  });
+
+  test("Relationship matcher", () {
+    var toManyMatcher = new TestModelBelongToManyMatcher()
+        ..modelToMany = whenRelatedByValue(1);
+    var predicate = toManyMatcher.predicate;
+
+    expect(predicate.format, "modelToMany_id = @modelToMany_id_0");
+    expect(predicate.parameters, {"modelToMany_id_0" : 1});
   });
 }
 
@@ -163,4 +175,43 @@ class TestModelBacking {
   String name;
 
   DateTime dateCreatedAt;
+
+  @RelationshipAttribute.hasMany("modelToMany")
+  List<TestModelBelongToMany> toMany;
+
+  @RelationshipAttribute.hasOne("modelToOne")
+  TestModelBelongToOne toOne;
+}
+
+@proxy @ModelBacking(TestModelBelongToOneBacking)
+class TestModelBelongToOne extends Model implements TestModelBelongToOneBacking {
+}
+
+@proxy @ModelBacking(TestModelBelongToOneBacking)
+class TestModelBelongToOneMatcher extends ModelMatcher implements TestModelBelongToOneBacking {
+}
+
+class TestModelBelongToOneBacking {
+  @Attributes(primaryKey: true, databaseType: "bigserial")
+  int id;
+
+  @RelationshipAttribute.belongsTo("toOne")
+  TestModel modelToOne;
+}
+
+@proxy @ModelBacking(TestModelBelongToManyBacking)
+class TestModelBelongToMany extends Model implements TestModelBacking {
+}
+
+@proxy @ModelBacking(TestModelBelongToManyBacking)
+class TestModelBelongToManyMatcher extends ModelMatcher implements TestModelBelongToManyBacking {
+}
+
+class TestModelBelongToManyBacking {
+  @Attributes(primaryKey: true, databaseType: "bigserial")
+  int id;
+
+  @RelationshipAttribute.belongsTo("toMany")
+  TestModel modelToMany;
+
 }
