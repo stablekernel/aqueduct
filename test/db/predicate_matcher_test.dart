@@ -74,6 +74,74 @@ main() {
   });
 
   test("Comparison matcher - core types", () {
+    var matcher = new TestModelMatcher();
+    matcher.id = whenGreaterThan(1);
+    matcher.name = "Fred";
+    var predicate = matcher.predicate;
+    expect(predicate.format, "(id > @id_0) and (name = @name_1)");
+    expect(predicate.parameters["id_0"], 1);
+    expect(predicate.parameters["name_1"], "Fred");
+
+    matcher = new TestModelMatcher();
+    matcher.id = whenLessThan(1);
+    predicate = matcher.predicate;
+    expect(predicate.format, "id < @id_0");
+    expect(predicate.parameters["id_0"], 1);
+
+    matcher = new TestModelMatcher();
+    matcher.id = whenNotEqual(1);
+    predicate = matcher.predicate;
+    expect(predicate.format, "id != @id_0");
+    expect(predicate.parameters["id_0"], 1);
+
+    matcher = new TestModelMatcher();
+    matcher.id = whenLessThanEqualTo(1);
+    predicate = matcher.predicate;
+    expect(predicate.format, "id <= @id_0");
+    expect(predicate.parameters["id_0"], 1);
+
+    matcher = new TestModelMatcher();
+    matcher.id = whenGreaterThanEqualTo(1);
+    predicate = matcher.predicate;
+    expect(predicate.format, "id >= @id_0");
+    expect(predicate.parameters["id_0"], 1);
+  });
+
+  test("Range matcher - core types", () {
+    var matcher = new TestModelMatcher();
+    matcher.id = whenBetween(1, 2);
+    var predicate = matcher.predicate;
+    expect(predicate.format, "id between @id_lhs0 and @id_rhs0");
+    expect(predicate.parameters["id_lhs0"], 1);
+    expect(predicate.parameters["id_rhs0"], 2);
+
+    matcher = new TestModelMatcher();
+    matcher.id = whenOutsideOf(1, 2);
+    predicate = matcher.predicate;
+    expect(predicate.format, "id not between @id_lhs0 and @id_rhs0");
+    expect(predicate.parameters["id_lhs0"], 1);
+    expect(predicate.parameters["id_rhs0"], 2);
+
+    matcher = new TestModelMatcher();
+    matcher.id = whenOutsideOf(1, 2);
+    matcher.name = "Bob";
+    predicate = matcher.predicate;
+    expect(predicate.format, "(id not between @id_lhs0 and @id_rhs0) and (name = @name_1)");
+    expect(predicate.parameters["id_lhs0"], 1);
+    expect(predicate.parameters["id_rhs0"], 2);
+    expect(predicate.parameters["name_1"], "Bob");
+  });
+
+  test("Null matcher", () {
+    var matcher = new TestModelMatcher();
+    matcher.id = whenNull;
+    var predicate = matcher.predicate;
+    expect(predicate.format, "id isnull");
+
+    matcher = new TestModelMatcher();
+    matcher.id = whenNotNull;
+    predicate = matcher.predicate;
+    expect(predicate.format, "id notnull");
 
   });
 }

@@ -5,9 +5,38 @@ enum _MatcherOperator {
   greaterThan,
   notEqual,
   lessThanEqualTo,
-  greaterThanEqualTo,
- // between
+  greaterThanEqualTo
 }
+dynamic whenEqualTo(dynamic value) {
+  return new _AssignmentMatcherExpression(value);
+}
+
+dynamic whenGreaterThan(dynamic value) {
+  return new _ComparisonMatcherExpression(value, _MatcherOperator.greaterThan);
+}
+dynamic whenGreaterThanEqualTo(dynamic value) {
+  return new _ComparisonMatcherExpression(value, _MatcherOperator.greaterThanEqualTo);
+}
+dynamic whenLessThan(dynamic value) {
+  return new _ComparisonMatcherExpression(value, _MatcherOperator.lessThan);
+}
+dynamic whenLessThanEqualTo(dynamic value) {
+  return new _ComparisonMatcherExpression(value, _MatcherOperator.lessThanEqualTo);
+}
+dynamic whenNotEqual(dynamic value) {
+  return new _ComparisonMatcherExpression(value, _MatcherOperator.notEqual);
+}
+
+dynamic whenBetween(dynamic lhs, dynamic rhs) {
+  return new _RangeMatcherExpression(lhs, rhs, true);
+}
+dynamic whenOutsideOf(dynamic lhs, dynamic rhs) {
+  return new _RangeMatcherExpression(lhs, rhs, false);
+}
+
+const dynamic whenNull = const _NullMatcherExpression(true);
+const dynamic whenNotNull = const _NullMatcherExpression(false);
+
 
 abstract class MatcherExpression {
   Predicate getPredicate(String propertyName, int matcherIndex);
@@ -15,7 +44,7 @@ abstract class MatcherExpression {
 
 class _AssignmentMatcherExpression implements MatcherExpression {
   final dynamic value;
-  _AssignmentMatcherExpression(this.value);
+  const _AssignmentMatcherExpression(this.value);
 
   Predicate getPredicate(String propertyName, int matcherIndex) {
     var formatSpecificationName = "${propertyName}_${matcherIndex}";
@@ -35,13 +64,37 @@ class _ComparisonMatcherExpression implements MatcherExpression {
   final dynamic value;
   final _MatcherOperator operator;
 
-  _ComparisonMatcherExpression(this.value, this.operator);
+  const _ComparisonMatcherExpression(this.value, this.operator);
 
   Predicate getPredicate(String propertyName, int matcherIndex) {
     var formatSpecificationName = "${propertyName}_${matcherIndex}";
     return new Predicate("$propertyName ${symbolTable[operator]} @$formatSpecificationName",  {formatSpecificationName : value});
   }
 }
+
+class _RangeMatcherExpression implements MatcherExpression {
+  final bool within;
+  final dynamic lhs, rhs;
+  const _RangeMatcherExpression(this.lhs, this.rhs, this.within);
+
+  Predicate getPredicate(String propertyName, int matcherIndex) {
+    var lhsFormatSpecificationName = "${propertyName}_lhs${matcherIndex}";
+    var rhsRormatSpecificationName = "${propertyName}_rhs${matcherIndex}";
+    return new Predicate("$propertyName ${within ? "between" : "not between"} @$lhsFormatSpecificationName and @$rhsRormatSpecificationName",
+        {lhsFormatSpecificationName: lhs, rhsRormatSpecificationName : rhs});
+  }
+}
+
+class _NullMatcherExpression implements MatcherExpression {
+  final bool shouldBeNull;
+  const _NullMatcherExpression(this.shouldBeNull);
+
+  Predicate getPredicate(String propertyName, int matcherIndex) {
+    var formatSpecificationName = "${propertyName}_${matcherIndex}";
+    return new Predicate("$propertyName ${shouldBeNull ? "isnull" : "notnull"}", {});
+  }
+}
+
 
 class PredicateMatcherException {
   String message;
