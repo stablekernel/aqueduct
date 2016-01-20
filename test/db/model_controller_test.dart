@@ -81,9 +81,9 @@ class TestModelController extends ModelController<TestModel> {
       statusCode = 400;
       reason = "predicate == null";
     }
-    if (query.predicate.format != "id = @id_0" || query.predicate.parameters["id_0"] != id) {
+    if (query.predicate.format != "id = @pk" || query.predicate.parameters["pk"] != id) {
       statusCode = 400;
-      reason = "predicate fmtwrong";
+      reason = "predicate fmtwrong ${query.predicate.format}";
     }
 
     if (query.valueObject != null) {
@@ -111,7 +111,7 @@ class TestModelController extends ModelController<TestModel> {
     if (query.predicate == null) {
       statusCode = 400;
     }
-    if (query.predicate.format != "id = @id_0" || query.predicate.parameters["id_0"] != id) {
+    if (query.predicate.format != "id = @pk" || query.predicate.parameters["pk"] != id) {
       statusCode = 400;
     }
     if (query.valueObject == null) {
@@ -143,7 +143,7 @@ class TestModelController extends ModelController<TestModel> {
       statusCode = 400;
     }
 
-    if (query.predicate.format != "id = @id_0" || query.predicate.parameters["id_0"] != id) {
+    if (query.predicate.format != "id = @pk" || query.predicate.parameters["pk"] != id) {
       reason = "predicate invalid";
       statusCode = 400;
     }
@@ -190,8 +190,7 @@ class TestModelController extends ModelController<TestModel> {
 }
 
 @proxy
-@ModelBacking(TestModelBacking)
-class TestModel extends Model implements TestModelBacking {
+class TestModel extends Model<TestModelBacking> implements TestModelBacking {
 }
 
 class TestModelBacking {

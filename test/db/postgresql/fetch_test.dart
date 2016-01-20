@@ -221,8 +221,8 @@ void main() {
             .toList()
             .length, 5);
 
-    var matcher = new ModelMatcher();
-    matcher["owner_id"] = u1.id;
+    var matcher = new ModelMatcher<GenPostBacking>();
+    matcher["owner"] = whereRelatedByValue(u1.id);
     req = new Query<GenPost>()..predicate = matcher.predicate;
     res = await req.fetch(adapter);
     expect(res.length, 5);
@@ -288,8 +288,8 @@ void main() {
     expect(result.id, greaterThan(0));
     expect(result.dynamicBacking["text"], isNull);
 
-    var matcher = new ModelMatcher()
-      ..["id"] = whenEqualTo(result.id);
+    var matcher = new ModelMatcher<OmitBacking>()
+      ..["id"] = whereEqualTo(result.id);
     var fq = new Query<Omit>()..predicate = matcher.predicate;
 
     var fResult = await fq.fetchOne(adapter);
@@ -488,8 +488,8 @@ void main() {
   });
 }
 
-@ModelBacking(PageableTestModelBacking) @proxy
-class PageableTestModel extends Model implements PageableTestModelBacking {
+@proxy
+class PageableTestModel extends Model<PageableTestModelBacking> implements PageableTestModelBacking {
 }
 
 class PageableTestModelBacking {
@@ -499,11 +499,8 @@ class PageableTestModelBacking {
   String value;
 }
 
-@ModelBacking(TestModelBacking)
 @proxy
-class TestModel extends Model implements TestModelBacking {
-
-}
+class TestModel extends Model<TestModelBacking> implements TestModelBacking {}
 
 class TestModelBacking {
   @Attributes(primaryKey: true, databaseType: "bigserial")
@@ -523,9 +520,8 @@ class TestModelBacking {
   }
 }
 
-@ModelBacking(GenUserBacking)
 @proxy
-class GenUser extends Model implements GenUserBacking {
+class GenUser extends Model<GenUserBacking> implements GenUserBacking {
 
 }
 
@@ -543,9 +539,8 @@ class GenUserBacking {
   }
 }
 
-@ModelBacking(GenPostBacking)
 @proxy
-class GenPost extends Model implements GenPostBacking {
+class GenPost extends Model<GenPostBacking> implements GenPostBacking {
 
 }
 
@@ -560,9 +555,8 @@ class GenPostBacking {
   GenUser owner;
 }
 
-@ModelBacking(OmitBacking)
 @proxy
-class Omit extends Model implements OmitBacking {
+class Omit extends Model<OmitBacking> implements OmitBacking {
 
 }
 

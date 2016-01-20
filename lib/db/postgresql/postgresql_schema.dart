@@ -46,12 +46,12 @@ class _PostgresqlTable {
     this.type = t;
     this.isTemporary = temporary;
 
-    name = _tableNameForType(t);
+    var reflectedModelType = ModelBackable.backingTypeForModelType(t);
+    name = ModelBackable.tableNameForBackingType(reflectedModelType.reflectedType);
 
-    var reflectedModel = _backingTypeForModelType(t);
     var symbols = [];
 
-    reflectedModel.declarations.forEach((k, decl) {
+    reflectedModelType.declarations.forEach((k, decl) {
       if (decl is VariableMirror) {
         symbols.add(k);
       }
@@ -60,7 +60,7 @@ class _PostgresqlTable {
     columns = new Map.fromIterable(symbols,
         key: (sym) => MirrorSystem.getName(sym),
         value: (sym) =>
-            new _PostgresqlColumn.fromVariableMirror(reflectedModel.declarations[sym] as VariableMirror, this));
+            new _PostgresqlColumn.fromVariableMirror(reflectedModelType.declarations[sym] as VariableMirror, this));
 
     columns.forEach((propertyKey, column) {
       if (column.isPrimaryKey) {
@@ -94,12 +94,15 @@ class _PostgresqlTable {
     var indexDefinitions =
         indexedColumns.map((column) => "create index ${name}_${column.name}_idx on ${name} (${column.name})");
 
-    var foreignKeyColumns =
-        columns.values.where((column) => column.relationship != null && !column.ignoreWhenGeneratingSQL());
-    var foreignKeyDefinitions =
-        foreignKeyColumns.map((column) => "alter table only ${name} add foreign key (${column.name}) "
-            "references ${_tableNameForType(column.relationship.destinationType)} (${column.relationship.foreignColumnName}) "
-            "on delete ${column.relationship.deleteRuleText()}");
+    var foreignKeyColumns = columns.values.where((column) => column.relationship != null && !column.ignoreWhenGeneratingSQL());
+    var foreignKeyDefinitions = foreignKeyColumns.map((column) {
+      var referenceTableName = ModelBackable.tableNameForBackingType(
+          ModelBackable.backingTypeForModelType(column.relationship.destinationType)
+          .reflectedType);
+      return "alter table only ${name} add foreign key (${column.name}) "
+          "references ${referenceTableName} (${column.relationship.foreignColumnName}) "
+          "on delete ${column.relationship.deleteRuleText()}";
+    });
 
     var items = [];
     items.addAll(indexDefinitions);
@@ -358,27 +361,4 @@ class PostgresqlGeneratorException implements Exception {
   String toString() {
     return "PostgresqlGeneratorException: $message";
   }
-}
-
-String _tableNameForType(Type t) {
-  var reflectedModel = _backingTypeForModelType(t);
-  var tableNameSymbol = new Symbol("tableName");
-  if (reflectedModel.staticMembers[tableNameSymbol] != null) {
-    return reflectedModel.invoke(tableNameSymbol, []).reflectee;
-  }
-
-  return MirrorSystem.getName(reflectClass(t).simpleName);
-}
-
-ClassMirror _backingTypeForModelType(Type modelType) {
-  var modelBackingMirror = reflectType(modelType)
-      .metadata
-      .firstWhere((m) => m.type.isSubtypeOf(reflectType(ModelBacking)), orElse: () => null);
-
-  if (modelBackingMirror == null) {
-    throw new PostgresqlGeneratorException("No backing type declared for $modelType.");
-  }
-
-  var modelBacking = modelBackingMirror.reflectee as ModelBacking;
-  return reflectClass(modelBacking.backingType);
 }

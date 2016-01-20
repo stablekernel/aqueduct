@@ -17,9 +17,8 @@ Future<List<TestUser>> createUsers(QueryAdapter adapter, int count) async {
   return users;
 }
 
-@ModelBacking(UserBacking)
 @proxy
-class TestUser extends Model implements UserBacking {
+class TestUser extends Model<UserBacking> implements UserBacking {
 }
 
 class UserBacking implements Authenticatable {
@@ -31,9 +30,8 @@ class UserBacking implements Authenticatable {
   String salt;
 }
 
-@ModelBacking(TokenBacking)
 @proxy
-class Token extends Model implements TokenBacking {
+class Token extends Model<TokenBacking> implements TokenBacking {
 }
 
 

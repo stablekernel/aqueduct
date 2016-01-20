@@ -1,23 +1,50 @@
 part of monadart;
 
-abstract class ModelBackable {
-  ClassMirror _backingType;
+abstract class ModelBackable<T> {
+  static ClassMirror backingTypeForModelType(Type modelType) {
+    var refl = reflectClass(modelType);
+    var modelClass = refl.superclass;
+    var backingClass = modelClass.superclass;
 
-  /// A class mirror on the backing type of the Model.
-  ///
-  /// Defined by the Model's [ModelBacking] metadata.
-  ClassMirror get backingType {
-    if (_backingType == null) {
-      var modelBacking = reflect(this)
-          .type
-          .metadata
-          .firstWhere((m) => m.type.isSubtypeOf(reflectType(ModelBacking)))
-          .reflectee as ModelBacking;
-      _backingType = reflectClass(modelBacking.backingType);
-    }
-    return _backingType;
+    return backingClass.typeArguments.first;
   }
-  void set backingType(ClassMirror b) { _backingType = b; }
+
+  static String tableNameForBackingType(Type backingType) {
+    var backingTypeMirror = reflectClass(backingType);
+    var tableNameSymbol = new Symbol("tableName");
+    if (backingTypeMirror.staticMembers[tableNameSymbol] != null) {
+      return backingTypeMirror
+          .invoke(tableNameSymbol, [])
+          .reflectee;
+    }
+
+    return MirrorSystem.getName(backingTypeMirror.simpleName);
+  }
+
+  ClassMirror get backingType => reflectClass(T);
+
+  /// Name of primaryKey property.
+  ///
+  /// If this has a primary key (as determined by the having an [Attributes] with [Attributes.primaryKey] set to true,
+  /// returns the name of that property. Otherwise, returns null.
+  String get primaryKey {
+    return _firstPropertyNameWhere((ivar) {
+      var attr = ivar.metadata.firstWhere((md) => md.reflectee is Attributes, orElse: () => null);
+      if (attr == null) {
+        return false;
+      }
+
+      return attr.reflectee.isPrimaryKey;
+    });
+  }
+
+  String _cachedTableName;
+  String get tableName {
+    if (_cachedTableName == null) {
+      _cachedTableName = tableNameForBackingType(backingType.reflectedType);
+    }
+    return _cachedTableName;
+  }
 
   String foreignKeyForProperty(String propertyName) {
     var propertyMirror = _variableMirrorForProperty(propertyName);
@@ -32,7 +59,7 @@ abstract class ModelBackable {
 
     var suffixName = attr.referenceKey;
     if (suffixName == null) {
-      var relatedType = _backingTypeForModelType(propertyMirror.type.reflectedType);
+      var relatedType = backingTypeForModelType(propertyMirror.type.reflectedType);
       var relatedTypePrimaryKeyAttr = relatedType.declarations.values.firstWhere((dm) {
         Attributes propAttrs = dm.metadata.firstWhere((im) => im.reflectee is Attributes, orElse: () => null)?.reflectee;
         if (propAttrs == null) {
@@ -85,7 +112,7 @@ abstract class ModelBackable {
   TypeMirror _typeMirrorForProperty(String propertyName) {
     VariableMirror ivarDeclaration = backingType.declarations[new Symbol(propertyName)];
 
-    return ivarDeclaration.type;
+    return ivarDeclaration?.type;
   }
 
   VariableMirror _variableMirrorForProperty(String propertyName) {

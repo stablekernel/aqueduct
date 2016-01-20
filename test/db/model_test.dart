@@ -2,16 +2,6 @@ import 'package:monadart/monadart.dart';
 import 'package:test/test.dart';
 
 main() {
-
-  test("Model object construction", () {
-    var user = new User();
-    user.name = "Joe";
-    user.id = 1;
-
-    expect(user.name, "Joe");
-    expect(user.id, 1);
-  });
-
   test("NoSuchMethod still throws", () {
     var user = new User();
     try {
@@ -21,6 +11,15 @@ main() {
     } catch (e) {
       expect(e, isNull);
     }
+  });
+
+  test("Model object construction", () {
+    var user = new User();
+    user.name = "Joe";
+    user.id = 1;
+
+    expect(user.name, "Joe");
+    expect(user.id, 1);
   });
 
 
@@ -248,8 +247,9 @@ main() {
       "value" : "Foo",
       "name" : "Bob",
       "id" : 1,
-      "dateCreated" : "1900-01-01T00:00:00Z"
+      "dateCreated" : "2000-01-01T00:00:00Z"
     });
+
     expect(u.value, "Foo");
     expect(u.name, "Bob");
 
@@ -305,8 +305,7 @@ main() {
 }
 
 @proxy
-@ModelBacking(UserBacking)
-class User extends Model implements UserBacking {
+class User extends Model<UserBacking> implements UserBacking {
   @mappable
   String value;
 }
@@ -324,8 +323,7 @@ class UserBacking {
 }
 
 @proxy
-@ModelBacking(PostBacking)
-class Post extends Model implements PostBacking {
+class Post extends Model<PostBacking> implements PostBacking {
 }
 
 class PostBacking {
@@ -335,8 +333,8 @@ class PostBacking {
   User owner;
 }
 
-@proxy @ModelBacking(TransientTestBacking)
-class TransientTest extends Model implements TransientTestBacking {
+@proxy
+class TransientTest extends Model<TransientTestBacking> implements TransientTestBacking {
   @mappable
   String get defaultedText => "Mr. $text";
   void set defaultedText(String str) {

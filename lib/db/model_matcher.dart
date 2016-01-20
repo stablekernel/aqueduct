@@ -1,20 +1,44 @@
 part of monadart;
 
-class ModelMatcher extends ModelBackable {
+class ModelMatcher<T> extends ModelBackable<T> {
   Map<String, MatcherExpression> _map = {};
+
   Predicate get predicate {
+    return _buildPredicate(0);
+  }
+
+  Predicate _buildPredicate(int indexOffset) {
     if (_map.length == 1) {
       var exprKey = _map.keys.first;
-      return _predicateForKey(exprKey, 0);
+      return _predicateForKey(exprKey, indexOffset);
     }
 
-    int index = 0;
-    return Predicate.andPredicates(_map.keys.map((propertyKey) {
+    int index = indexOffset;
+    var allPredicates = _map.keys.map((propertyKey) {
       var pred = _predicateForKey(propertyKey, index);
-      index ++;
+      if (pred != null) {
+        index += pred.parameters.length;
+      }
 
       return pred;
-    }).toList());
+    }).where((p) => p != null).toList();
+
+    if (allPredicates.length > 1) {
+      return Predicate.andPredicates(allPredicates.toList());
+    } else if (allPredicates.length == 1) {
+      return allPredicates.first;
+    }
+
+    return null;
+  }
+
+  Predicate _predicateForKey(String propertyKey, int index) {
+    MatcherExpression expr = _map[propertyKey];
+
+    if (expr is _BelongsToModelMatcherExpression) {
+      propertyKey = foreignKeyForProperty(propertyKey);
+    }
+    return expr.getPredicate(tableName, propertyKey, index);
   }
 
   MatcherExpression operator [](String key) {
@@ -25,42 +49,31 @@ class ModelMatcher extends ModelBackable {
     _setMatcherForPropertyName(key, value);
   }
 
-  Predicate _predicateForKey(String propertyKey, int index) {
-    var expr = _map[propertyKey];
-    if (expr is _AmbiguousModelMatcherExpression) {
-      propertyKey = foreignKeyForProperty(propertyKey);
-    }
-    return expr.getPredicate(propertyKey, index);
-  }
-
-  bool get _isTypedSubclass {
-    return reflect(this).type != reflectType(ModelMatcher);
-  }
-
   void _setMatcherForPropertyName(String propertyName, dynamic value) {
-    if (value is _AmbiguousModelMatcherExpression) {
-      if (_isTypedSubclass) {
-        var ivarType = _typeMirrorForProperty(propertyName);
-        if (!(ivarType.isSubtypeOf(reflectType(Model)) || ivarType.isSubtypeOf(reflectType(List)))) {
-          throw new PredicateMatcherException("Type mismatch for property $propertyName; not a Model or List<Model>.");
-        }
+    if (value == null) {
+      _map.remove(propertyName);
+      return;
+    }
+    if (value is _BelongsToModelMatcherExpression) {
+      var ivarRelationship = relationshipAttributeForProperty(propertyName);
+      if (ivarRelationship == null || ivarRelationship.type != RelationshipType.belongsTo) {
+        throw new PredicateMatcherException("Type mismatch for property $propertyName; expecting property with RelationshipType.belongsTo.");
       }
 
       _map[propertyName] = value;
     } else if (value is MatcherExpression) {
       _map[propertyName] = value;
     } else {
-      if (_isTypedSubclass) {
-        var ivarType = _typeMirrorForProperty(propertyName);
-        var valueType = reflect(value).type;
-        if (!valueType.isSubtypeOf(ivarType)) {
-          var ivarTypeName = MirrorSystem.getName(ivarType.simpleName);
-          var valueTypeName = MirrorSystem.getName(valueType.simpleName);
+      var ivarType = _typeMirrorForProperty(propertyName);
+      var valueType = reflect(value).type;
+      if (!valueType.isSubtypeOf(ivarType)) {
+        var ivarTypeName = MirrorSystem.getName(ivarType.simpleName);
+        var valueTypeName = MirrorSystem.getName(valueType.simpleName);
 
-          var typeName = MirrorSystem.getName(reflect(this).type.simpleName);
-          throw new PredicateMatcherException("Type mismatch for property $propertyName on ${typeName}, expected $ivarTypeName but got $valueTypeName.");
-        }
+        var typeName = MirrorSystem.getName(reflect(this).type.simpleName);
+        throw new PredicateMatcherException("Type mismatch for property $propertyName on ${typeName}, expected $ivarTypeName but got $valueTypeName.");
       }
+
       _map[propertyName] = new _AssignmentMatcherExpression(value);
     }
   }
@@ -74,11 +87,6 @@ class ModelMatcher extends ModelBackable {
       propertyName = propertyName.substring(0, propertyName.length - 1);
 
       var value = i.positionalArguments.first;
-      if (value == null) {
-        _map.remove(propertyName);
-        return null;
-      }
-
       _setMatcherForPropertyName(propertyName, value);
 
       return null;

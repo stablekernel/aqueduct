@@ -9,7 +9,8 @@ main() {
     matcher.id = 1;
     matcher.name = "Fred";
     var predicate = matcher.predicate;
-    expect(predicate.format, "(id = @id_0) and (name = @name_1)");
+
+    expect(predicate.format, "(_TestModel.id = @id_0) and (_TestModel.name = @name_1)");
     expect(predicate.parameters["id_0"], 1);
     expect(predicate.parameters["name_1"], "Fred");
 
@@ -19,7 +20,7 @@ main() {
     matcher.name = "Bob";
     matcher.dateCreatedAt = now;
     predicate = matcher.predicate;
-    expect(predicate.format, "(id = @id_0) and (name = @name_1) and (dateCreatedAt = @dateCreatedAt_2)");
+    expect(predicate.format, "(_TestModel.id = @id_0) and (_TestModel.name = @name_1) and (_TestModel.dateCreatedAt = @dateCreatedAt_2)");
     expect(predicate.parameters["id_0"], 2);
     expect(predicate.parameters["name_1"], "Bob");
     expect(predicate.parameters["dateCreatedAt_2"], now);
@@ -29,21 +30,27 @@ main() {
     var matcher = new TestModelMatcher();
     matcher.id = 1;
     var predicate = matcher.predicate;
-    expect(predicate.format, "id = @id_0");
+    expect(predicate.format, "_TestModel.id = @id_0");
     expect(predicate.parameters["id_0"], 1);
 
     matcher = new TestModelMatcher();
     matcher.name = "Fred";
     predicate = matcher.predicate;
-    expect(predicate.format, "name = @name_0");
+    expect(predicate.format, "_TestModel.name = @name_0");
     expect(predicate.parameters["name_0"], "Fred");
 
     var now = new DateTime.now();
     matcher = new TestModelMatcher();
     matcher.dateCreatedAt = now;
     predicate = matcher.predicate;
-    expect(predicate.format, "dateCreatedAt = @dateCreatedAt_0");
+    expect(predicate.format, "_TestModel.dateCreatedAt = @dateCreatedAt_0");
     expect(predicate.parameters["dateCreatedAt_0"], now);
+
+    var defaultMatcher = new ModelMatcher<_TestModel>()
+      ..["id"] = 1;
+    predicate = defaultMatcher.predicate;
+    expect(predicate.format, "_TestModel.id = @id_0");
+    expect(predicate.parameters["id_0"], 1);
   });
 
   test("Assignment matcher must match type - core types", () {
@@ -73,104 +80,151 @@ main() {
     } catch (e) {
       expect(e, isNull);
     }
+
+    try {
+      var _ = new ModelMatcher<_TestModel>()
+        ..["id"] = "foo";
+    } on PredicateMatcherException catch (e) {
+      expect(e.message, startsWith("Type mismatch for property"));
+    } catch (e) {
+      expect(e, isNull);
+    }
   });
 
   test("Comparison matcher - core types", () {
     var matcher = new TestModelMatcher();
-    matcher.id = whenGreaterThan(1);
+    matcher.id = whereGreaterThan(1);
     matcher.name = "Fred";
     var predicate = matcher.predicate;
-    expect(predicate.format, "(id > @id_0) and (name = @name_1)");
+    expect(predicate.format, "(_TestModel.id > @id_0) and (_TestModel.name = @name_1)");
     expect(predicate.parameters["id_0"], 1);
     expect(predicate.parameters["name_1"], "Fred");
 
     matcher = new TestModelMatcher();
-    matcher.id = whenLessThan(1);
+    matcher.id = whereLessThan(1);
     predicate = matcher.predicate;
-    expect(predicate.format, "id < @id_0");
+    expect(predicate.format, "_TestModel.id < @id_0");
     expect(predicate.parameters["id_0"], 1);
 
     matcher = new TestModelMatcher();
-    matcher.id = whenNotEqual(1);
+    matcher.id = whereNotEqual(1);
     predicate = matcher.predicate;
-    expect(predicate.format, "id != @id_0");
+    expect(predicate.format, "_TestModel.id != @id_0");
     expect(predicate.parameters["id_0"], 1);
 
     matcher = new TestModelMatcher();
-    matcher.id = whenLessThanEqualTo(1);
+    matcher.id = whereLessThanEqualTo(1);
     predicate = matcher.predicate;
-    expect(predicate.format, "id <= @id_0");
+    expect(predicate.format, "_TestModel.id <= @id_0");
     expect(predicate.parameters["id_0"], 1);
 
     matcher = new TestModelMatcher();
-    matcher.id = whenGreaterThanEqualTo(1);
+    matcher.id = whereGreaterThanEqualTo(1);
     predicate = matcher.predicate;
-    expect(predicate.format, "id >= @id_0");
+    expect(predicate.format, "_TestModel.id >= @id_0");
     expect(predicate.parameters["id_0"], 1);
   });
 
   test("Range matcher - core types", () {
     var matcher = new TestModelMatcher();
-    matcher.id = whenBetween(1, 2);
+    matcher.id = whereBetween(1, 2);
     var predicate = matcher.predicate;
-    expect(predicate.format, "id between @id_lhs0 and @id_rhs0");
+    expect(predicate.format, "_TestModel.id between @id_lhs0 and @id_rhs1");
     expect(predicate.parameters["id_lhs0"], 1);
-    expect(predicate.parameters["id_rhs0"], 2);
+    expect(predicate.parameters["id_rhs1"], 2);
 
     matcher = new TestModelMatcher();
-    matcher.id = whenOutsideOf(1, 2);
+    matcher.id = whereOutsideOf(1, 2);
     predicate = matcher.predicate;
-    expect(predicate.format, "id not between @id_lhs0 and @id_rhs0");
+    expect(predicate.format, "_TestModel.id not between @id_lhs0 and @id_rhs1");
     expect(predicate.parameters["id_lhs0"], 1);
-    expect(predicate.parameters["id_rhs0"], 2);
+    expect(predicate.parameters["id_rhs1"], 2);
 
     matcher = new TestModelMatcher();
-    matcher.id = whenOutsideOf(1, 2);
+    matcher.id = whereOutsideOf(1, 2);
     matcher.name = "Bob";
     predicate = matcher.predicate;
-    expect(predicate.format, "(id not between @id_lhs0 and @id_rhs0) and (name = @name_1)");
+    expect(predicate.format, "(_TestModel.id not between @id_lhs0 and @id_rhs1) and (_TestModel.name = @name_2)");
     expect(predicate.parameters["id_lhs0"], 1);
-    expect(predicate.parameters["id_rhs0"], 2);
-    expect(predicate.parameters["name_1"], "Bob");
+    expect(predicate.parameters["id_rhs1"], 2);
+    expect(predicate.parameters["name_2"], "Bob");
   });
 
   test("Null matcher", () {
     var matcher = new TestModelMatcher();
-    matcher.id = whenNull;
+    matcher.id = whereNull;
     var predicate = matcher.predicate;
-    expect(predicate.format, "id isnull");
+    expect(predicate.format, "_TestModel.id isnull");
 
     matcher = new TestModelMatcher();
-    matcher.id = whenNotNull;
+    matcher.id = whereNotNull;
     predicate = matcher.predicate;
-    expect(predicate.format, "id notnull");
+    expect(predicate.format, "_TestModel.id notnull");
   });
 
   test("String matcher", () {
 
   });
 
-  test("Relationship matcher", () {
-    var toManyMatcher = new TestModelBelongToManyMatcher()
-        ..modelToMany = whenRelatedByValue(1);
+  test("belongsTo relationship matcher", () {
+    var toManyMatcher = new ModelMatcher<_TestModelBelongToMany>()
+      ..["modelToMany"] = whereRelatedByValue(1);
     var predicate = toManyMatcher.predicate;
 
-    expect(predicate.format, "modelToMany_id = @modelToMany_id_0");
+    expect(predicate.format, "_TestModelBelongToMany.modelToMany_id = @modelToMany_id_0");
     expect(predicate.parameters, {"modelToMany_id_0" : 1});
+
+    toManyMatcher = new TestModelBelongToManyMatcher()
+      ..modelToMany = whereRelatedByValue(1);
+    predicate = toManyMatcher.predicate;
+
+    expect(predicate.format, "_TestModelBelongToMany.modelToMany_id = @modelToMany_id_0");
+    expect(predicate.parameters, {"modelToMany_id_0" : 1});
+
+  });
+
+  test("One-level join", () {
+    var m = new TestModelMatcher()
+        ..id = 1
+        ..toMany = whereAnyMatch;
+    expect(m.predicate.format, "_TestModel.id = @id_0");
+    expect(m.predicate.parameters["id_0"], 1);
+
+    //var subMatchers =
+
+  });
+
+  test("One-level join with predicate", () {
+    var m = new TestModelMatcher()
+      ..id = whereLessThan(3)
+      ..name = "Fred"
+      ..toMany = whereMatching(new TestModelBelongToManyMatcher()
+        ..id = whereLessThan(1));
+
+    expect(m.predicate.format, "(_TestModel.id < @id_0) and (_TestModel.name = @name_1) and (_TestModelBelongToMany.id < @id_2)");
+    expect(m.predicate.parameters["id_0"], 3);
+    expect(m.predicate.parameters["name_1"], "Fred");
+    expect(m.predicate.parameters["id_2"], 1);
+
+    m = new ModelMatcher<_TestModel>()
+      ..["id"] = whereLessThan(3)
+      ..["toMany"] = whereMatching(new ModelMatcher<_TestModelBelongToMany>()
+        ..["id"] = whereLessThan(1));
+
+    expect(m.predicate.format, "(_TestModel.id < @id_0) and (_TestModelBelongToMany.id < @id_1)");
+    expect(m.predicate.parameters["id_0"], 3);
+    expect(m.predicate.parameters["id_1"], 1);
+
   });
 }
 
-@proxy @ModelBacking(TestModelBacking)
-class TestModel extends Model implements TestModelBacking {
+@proxy
+class TestModel extends Model<_TestModel> implements _TestModel {}
 
-}
+@proxy
+class TestModelMatcher extends ModelMatcher<_TestModel> implements _TestModel {}
 
-@proxy @ModelBacking(TestModelBacking)
-class TestModelMatcher extends ModelMatcher implements TestModelBacking {
-
-}
-
-class TestModelBacking {
+class _TestModel {
   @Attributes(primaryKey: true, databaseType: "bigserial")
   int id;
 
@@ -185,15 +239,15 @@ class TestModelBacking {
   TestModelBelongToOne toOne;
 }
 
-@proxy @ModelBacking(TestModelBelongToOneBacking)
-class TestModelBelongToOne extends Model implements TestModelBelongToOneBacking {
+@proxy
+class TestModelBelongToOne extends Model<_TestModelBelongToOne> implements _TestModelBelongToOne {
 }
 
-@proxy @ModelBacking(TestModelBelongToOneBacking)
-class TestModelBelongToOneMatcher extends ModelMatcher implements TestModelBelongToOneBacking {
+@proxy
+class TestModelBelongToOneMatcher extends ModelMatcher<_TestModelBelongToOne> implements _TestModelBelongToOne {
 }
 
-class TestModelBelongToOneBacking {
+class _TestModelBelongToOne {
   @Attributes(primaryKey: true, databaseType: "bigserial")
   int id;
 
@@ -201,19 +255,18 @@ class TestModelBelongToOneBacking {
   TestModel modelToOne;
 }
 
-@proxy @ModelBacking(TestModelBelongToManyBacking)
-class TestModelBelongToMany extends Model implements TestModelBacking {
+@proxy
+class TestModelBelongToMany extends Model<_TestModelBelongToMany> implements _TestModel {
 }
 
-@proxy @ModelBacking(TestModelBelongToManyBacking)
-class TestModelBelongToManyMatcher extends ModelMatcher implements TestModelBelongToManyBacking {
+@proxy
+class TestModelBelongToManyMatcher extends ModelMatcher<_TestModelBelongToMany> implements _TestModelBelongToMany {
 }
 
-class TestModelBelongToManyBacking {
+class _TestModelBelongToMany {
   @Attributes(primaryKey: true, databaseType: "bigserial")
   int id;
 
   @RelationshipAttribute.belongsTo("toMany")
   TestModel modelToMany;
-
 }

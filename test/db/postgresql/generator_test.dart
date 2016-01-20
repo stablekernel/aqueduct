@@ -10,21 +10,21 @@ void main() {
     var cmd = new PostgresqlSchema.fromModels([GeneratorModel1]).toString();
 
     expect(cmd,
-        "create table GeneratorModel1 (id bigserial primary key,name text not null,option boolean not null,points double precision not null unique,validDate timestamp null);\n");
+        "create table _GeneratorModel1 (id bigserial primary key,name text not null,option boolean not null,points double precision not null unique,validDate timestamp null);\n");
   });
 
   test("Create temporary table", () {
     var cmd = new PostgresqlSchema.fromModels([GeneratorModel1],
         temporary: true).toString();
     expect(cmd,
-        "create temporary table GeneratorModel1 (id bigserial primary key,name text not null,option boolean not null,points double precision not null unique,validDate timestamp null);\n");
+        "create temporary table _GeneratorModel1 (id bigserial primary key,name text not null,option boolean not null,points double precision not null unique,validDate timestamp null);\n");
   });
 
   test("Create table with indices", () {
     var cmd = new PostgresqlSchema.fromModels([GeneratorModel2]).toString();
 
     expect(cmd,
-        "create table GeneratorModel2 (id int not null);\ncreate index GeneratorModel2_id_idx on GeneratorModel2 (id);\n");
+        "create table _GeneratorModel2 (id int not null);\ncreate index _GeneratorModel2_id_idx on _GeneratorModel2 (id);\n");
   });
 
   test("Create multiple tables with trailing index", () {
@@ -33,18 +33,18 @@ void main() {
             .toString();
 
     expect(cmd,
-        "create table GeneratorModel1 (id bigserial primary key,name text not null,option boolean not null,points double precision not null unique,validDate timestamp null);\ncreate table GeneratorModel2 (id int not null);\ncreate index GeneratorModel2_id_idx on GeneratorModel2 (id);\n");
+        "create table _GeneratorModel1 (id bigserial primary key,name text not null,option boolean not null,points double precision not null unique,validDate timestamp null);\ncreate table _GeneratorModel2 (id int not null);\ncreate index _GeneratorModel2_id_idx on _GeneratorModel2 (id);\n");
   });
 
   test("Default values are properly serialized", () {
     var cmd = new PostgresqlSchema.fromModels([GeneratorModel3]).toString();
     expect(cmd,
-        "create table GeneratorModel3 (creationDate timestamp not null default (now() at time zone 'utc'),id int not null default 18,option boolean not null default true,otherTime timestamp not null default '1900-01-01T00:00:00.000Z',textValue text not null default \$\$dflt\$\$,value double precision not null default 20.0);\n");
+        "create table _GeneratorModel3 (creationDate timestamp not null default (now() at time zone 'utc'),id int not null default 18,option boolean not null default true,otherTime timestamp not null default '1900-01-01T00:00:00.000Z',textValue text not null default \$\$dflt\$\$,value double precision not null default 20.0);\n");
   });
 
-  test("Table without tableName() defaults to clas name", () {
-    var cmd = new PostgresqlSchema.fromModels([GenUnnamed]).toString();
-    expect(cmd, "create table GenUnnamed (id int primary key);\n");
+  test("Table with tableName() overrides class name", () {
+    var cmd = new PostgresqlSchema.fromModels([GenNamed]).toString();
+    expect(cmd, "create table GenNamed (id int primary key);\n");
   });
 
   test("One-to-one relationships are generated", () {
@@ -53,18 +53,18 @@ void main() {
     var cmds = schema.schemaDefinition();
 
     expect(
-        cmds.contains("create table GenOwner (id bigserial primary key)"), true,
+        cmds.contains("create table _GenOwner (id bigserial primary key)"), true,
         reason: "GenOwner");
     expect(
         cmds.contains(
-            "create table GenAuth (id int primary key,owner_id bigint null unique)"),
+            "create table _GenAuth (id int primary key,owner_id bigint null unique)"),
         true,
         reason: "GenAuth");
-    expect(cmds.contains("create index GenAuth_owner_id_idx on GenAuth (owner_id)"), true);
+    expect(cmds.contains("create index _GenAuth_owner_id_idx on _GenAuth (owner_id)"), true);
 
     expect(
         cmds.contains(
-            "alter table only GenAuth add foreign key (owner_id) references GenOwner (id) on delete set null"),
+            "alter table only _GenAuth add foreign key (owner_id) references _GenOwner (id) on delete set null"),
         true,
         reason: "Alter");
     expect(cmds.length, 4);
@@ -76,22 +76,22 @@ void main() {
 
     expect(
         cmds.contains(
-            "create table GenUser (id int primary key,name text not null)"),
+            "create table _GenUser (id int primary key,name text not null)"),
         true,
         reason: "GenUser table");
     expect(
         cmds.contains(
-            "create table GenPost (id int primary key,owner_id int null,text text not null)"),
+            "create table _GenPost (id int primary key,owner_id int null,text text not null)"),
         true,
         reason: "GenPost table");
     expect(
         cmds.contains(
-            "create index GenPost_owner_id_idx on GenPost (owner_id)"),
+            "create index _GenPost_owner_id_idx on _GenPost (owner_id)"),
         true,
         reason: "GenPost index");
     expect(
         cmds.contains(
-            "alter table only GenPost add foreign key (owner_id) references GenUser (id) on delete set null"),
+            "alter table only _GenPost add foreign key (owner_id) references _GenUser (id) on delete set null"),
         true,
         reason: "Foreign key constraint");
     expect(cmds.length, 4);
@@ -101,27 +101,27 @@ void main() {
     var schema = new PostgresqlSchema.fromModels([GenLeft, GenRight, GenJoin]);
     var cmds = schema.schemaDefinition();
 
-    expect(cmds.contains("create table GenLeft (id int primary key)"), true,
+    expect(cmds.contains("create table _GenLeft (id int primary key)"), true,
         reason: "GenLeft table");
-    expect(cmds.contains("create table GenRight (id int primary key)"), true,
+    expect(cmds.contains("create table _GenRight (id int primary key)"), true,
         reason: "GenRight table");
     expect(
         cmds.contains(
-            "create table GenJoin (left_id int null,right_id int null)"),
+            "create table _GenJoin (left_id int null,right_id int null)"),
         true,
         reason: "GenJoin table");
     expect(
         cmds.contains(
-            "alter table only GenJoin add foreign key (left_id) references GenLeft (id) on delete set null"),
+            "alter table only _GenJoin add foreign key (left_id) references _GenLeft (id) on delete set null"),
         true,
         reason: "Left constraint");
     expect(
         cmds.contains(
-            "alter table only GenJoin add foreign key (right_id) references GenRight (id) on delete set null"),
+            "alter table only _GenJoin add foreign key (right_id) references _GenRight (id) on delete set null"),
         true,
         reason: "Right constraint");
-    expect(cmds.contains("create index GenJoin_left_id_idx on GenJoin (left_id)"), true);
-    expect(cmds.contains("create index GenJoin_right_id_idx on GenJoin (right_id)"), true);
+    expect(cmds.contains("create index _GenJoin_left_id_idx on _GenJoin (left_id)"), true);
+    expect(cmds.contains("create index _GenJoin_right_id_idx on _GenJoin (right_id)"), true);
     expect(cmds.length, 7);
   });
 
@@ -130,7 +130,7 @@ void main() {
     var cmds = schema.schemaDefinition();
     expect(
         cmds.contains(
-            "create table GenAuth (id int primary key,owner_id bigint null unique)"),
+            "create table _GenAuth (id int primary key,owner_id bigint null unique)"),
         true);
   });
 
@@ -142,7 +142,7 @@ void main() {
       schema.toString();
     } catch (e) {
       expect(e.message,
-          "GenNotNullable will set relationship 'ref_id' to null on delete, but 'ref_id' may not be null");
+          "_GenNotNullable will set relationship 'ref_id' to null on delete, but 'ref_id' may not be null");
     }
   });
 
@@ -154,12 +154,10 @@ void main() {
   });
 }
 
-@ModelBacking(GeneratorModel1Backing)
 @proxy
-class GeneratorModel1 extends Model implements GeneratorModel1Backing {
-}
+class GeneratorModel1 extends Model<_GeneratorModel1> implements _GeneratorModel1 {}
 
-class GeneratorModel1Backing {
+class _GeneratorModel1 {
   @Attributes(primaryKey: true, databaseType: "bigserial")
   int id;
 
@@ -172,34 +170,20 @@ class GeneratorModel1Backing {
 
   @Attributes(nullable: true)
   DateTime validDate;
-
-  static String tableName() {
-    return "GeneratorModel1";
-  }
 }
 
-@ModelBacking(GeneratorModel2Backing)
 @proxy
-class GeneratorModel2 extends Model implements GeneratorModel2Backing {
-  noSuchMethod(i) => super.noSuchMethod(i);
-}
+class GeneratorModel2 extends Model<_GeneratorModel2> implements _GeneratorModel2 {}
 
-class GeneratorModel2Backing {
+class _GeneratorModel2 {
   @Attributes(indexed: true)
   int id;
-
-  static String tableName() {
-    return "GeneratorModel2";
-  }
 }
 
-@ModelBacking(GeneratorModel3Backing)
 @proxy
-class GeneratorModel3 extends Model implements GeneratorModel3Backing {
-  noSuchMethod(i) => super.noSuchMethod(i);
-}
+class GeneratorModel3 extends Model<_GeneratorModel3> implements _GeneratorModel3 {}
 
-class GeneratorModel3Backing {
+class _GeneratorModel3 {
   @Attributes(defaultValue: "(now() at time zone 'utc')")
   DateTime creationDate;
 
@@ -217,19 +201,12 @@ class GeneratorModel3Backing {
 
   @Attributes(defaultValue: "20.0")
   double value;
-
-  static String tableName() {
-    return "GeneratorModel3";
-  }
 }
 
-@ModelBacking(GenUserBacking)
 @proxy
-class GenUser extends Model implements GenUserBacking {
-  noSuchMethod(i) => super.noSuchMethod(i);
-}
+class GenUser extends Model<_GenUser> implements _GenUser {}
 
-class GenUserBacking {
+class _GenUser {
   @Attributes(primaryKey: true)
   int id;
 
@@ -237,19 +214,12 @@ class GenUserBacking {
 
   @RelationshipAttribute(RelationshipType.hasMany, "owner")
   List<GenPost> posts;
-
-  static String tableName() {
-    return "GenUser";
-  }
 }
 
-@ModelBacking(GenPostBacking)
 @proxy
-class GenPost extends Model implements GenPostBacking {
-  noSuchMethod(i) => super.noSuchMethod(i);
-}
+class GenPost extends Model<_GenPost> implements _GenPost {}
 
-class GenPostBacking {
+class _GenPost {
   @Attributes(primaryKey: true)
   int id;
 
@@ -258,30 +228,24 @@ class GenPostBacking {
   @Attributes(indexed: true, nullable: true)
   @RelationshipAttribute(RelationshipType.belongsTo, "posts")
   GenUser owner;
+}
+
+@proxy
+class GenNamed extends Model<_GenNamed> implements _GenNamed {}
+
+class _GenNamed {
+  @Attributes(primaryKey: true)
+  int id;
 
   static String tableName() {
-    return "GenPost";
+    return "GenNamed";
   }
 }
 
-@ModelBacking(GenUnnamedBacking)
 @proxy
-class GenUnnamed extends Model implements GenUnnamedBacking {
-  noSuchMethod(i) => super.noSuchMethod(i);
-}
+class GenOwner extends Model<_GenOwner> implements _GenOwner {}
 
-class GenUnnamedBacking {
-  @Attributes(primaryKey: true)
-  int id;
-}
-
-@ModelBacking(GenOwnerBacking)
-@proxy
-class GenOwner extends Model implements GenOwnerBacking {
-  noSuchMethod(i) => super.noSuchMethod(i);
-}
-
-class GenOwnerBacking {
+class _GenOwner {
   @Attributes(primaryKey: true, databaseType: "bigserial")
   int id;
 
@@ -289,13 +253,10 @@ class GenOwnerBacking {
   GenAuth auth;
 }
 
-@ModelBacking(GenAuthBacking)
 @proxy
-class GenAuth extends Model implements GenAuthBacking {
-  noSuchMethod(i) => super.noSuchMethod(i);
-}
+class GenAuth extends Model<_GenAuth> implements _GenAuth {}
 
-class GenAuthBacking {
+class _GenAuth {
   @Attributes(primaryKey: true)
   int id;
 
@@ -304,13 +265,10 @@ class GenAuthBacking {
   GenOwner owner;
 }
 
-@ModelBacking(GenLeftBacking)
 @proxy
-class GenLeft extends Model implements GenLeftBacking {
-  noSuchMethod(i) => super.noSuchMethod(i);
-}
+class GenLeft extends Model<_GenLeft> implements _GenLeft {}
 
-class GenLeftBacking {
+class _GenLeft {
   @Attributes(primaryKey: true)
   int id;
 
@@ -318,13 +276,10 @@ class GenLeftBacking {
   List<GenJoin> join;
 }
 
-@ModelBacking(GenRightBacking)
 @proxy
-class GenRight extends Model implements GenRightBacking {
-  noSuchMethod(i) => super.noSuchMethod(i);
-}
+class GenRight extends Model<_GenRight> implements _GenRight {}
 
-class GenRightBacking {
+class _GenRight {
   @Attributes(primaryKey: true)
   int id;
 
@@ -332,13 +287,10 @@ class GenRightBacking {
   List<GenJoin> join;
 }
 
-@ModelBacking(GenJoinBacking)
 @proxy
-class GenJoin extends Model implements GenJoinBacking {
-  noSuchMethod(i) => super.noSuchMethod(i);
-}
+class GenJoin extends Model<_GenJoin> implements _GenJoin {}
 
-class GenJoinBacking {
+class _GenJoin {
   @Attributes(nullable: true)
   @RelationshipAttribute(RelationshipType.belongsTo, "join")
   GenLeft left;
@@ -348,13 +300,10 @@ class GenJoinBacking {
   GenRight right;
 }
 
-@ModelBacking(GenObjBacking)
 @proxy
-class GenObj extends Model implements GenObjBacking {
-  noSuchMethod(i) => super.noSuchMethod(i);
-}
+class GenObj extends Model<_GenObj> implements _GenObj {}
 
-class GenObjBacking {
+class _GenObj {
   @Attributes(primaryKey: true)
   int id;
 
@@ -362,13 +311,10 @@ class GenObjBacking {
   GenNotNullable gen;
 }
 
-@ModelBacking(GenNotNullableBacking)
 @proxy
-class GenNotNullable extends Model implements GenNotNullableBacking {
-  noSuchMethod(i) => super.noSuchMethod(i);
-}
+class GenNotNullable extends Model<_GenNotNullable> implements _GenNotNullable {}
 
-class GenNotNullableBacking {
+class _GenNotNullable {
   @Attributes(primaryKey: true)
   int id;
 

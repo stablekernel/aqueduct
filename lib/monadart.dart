@@ -18,6 +18,7 @@ import 'package:analyzer/analyzer.dart';
 export 'package:http_server/http_server.dart';
 export 'package:logging/logging.dart';
 
+
 part 'base/resource_pattern.dart';
 part 'base/resource_request.dart';
 part 'base/router.dart';
@@ -52,7 +53,7 @@ part 'db/query_page.dart';
 part 'db/sort_descriptor.dart';
 part 'db/model_attributes.dart';
 part 'db/model_backable.dart';
-part 'db/matcher_expressions.dart';
+part 'db/matcher_expression.dart';
 
 // PostgreSQL
 

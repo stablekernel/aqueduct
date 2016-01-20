@@ -17,7 +17,6 @@ class ModelController<T extends Model> extends HttpController {
       var idValue = req.path.variables[firstVarName];
 
       if (idValue != null) {
-        var matcher = new ModelMatcher();
         var reflectedModel = reflectClass(T).newInstance(new Symbol(""), []);
         var actualModel = (reflectedModel.reflectee as T);
         var pk = actualModel.primaryKey;
@@ -29,9 +28,10 @@ class ModelController<T extends Model> extends HttpController {
         var primaryKeyDecl = backingType.declarations[new Symbol(pk)];
         var primaryKeyType = primaryKeyDecl.type;
 
+        var predicate = null;
         var primaryKeyName = actualModel.primaryKey;
         if (primaryKeyType.isSubtypeOf(reflectType(idValue.runtimeType))) {
-          matcher[primaryKeyName] = whenEqualTo(idValue);
+          query.predicate = new Predicate("$primaryKeyName = @pk", {"pk" : idValue});
           reflectedModel.setField(new Symbol(pk), idValue);
         } else {
           var sym = new Symbol("parse");
@@ -40,14 +40,11 @@ class ModelController<T extends Model> extends HttpController {
             var value = primaryKeyType
                 .invoke(sym, [idValue])
                 .reflectee;
-
-            matcher[primaryKeyName] = whenEqualTo(value);
+            query.predicate = new Predicate("$primaryKeyName = @pk", {"pk" : value});
           } else {
             throw new HttpResponseException(500, "Attempting to interpret path parameter as primary key of type $primaryKeyType, but the type did not match.");
           }
         }
-
-        query.predicate = matcher.predicate;
       }
     }
     super.willProcessRequest(req);

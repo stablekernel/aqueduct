@@ -59,11 +59,10 @@ void main() {
     child = await q.insert(adapter);
     expect(child.parent.id, parent.id);
 
-    var matcher = new ModelMatcher()
-      ..["id"] = whenEqualTo(child.id);
+    var matcher = new ModelMatcher<_Child>()
+      ..["id"] = whereEqualTo(child.id);
     q = new Query<Child>()
       ..predicate = matcher.predicate
-      //..predicateObject = (new Child()..id = child.id)
       ..valueObject = (new Child()..parent = null);
     child = (await q.update(adapter)).first;
     expect(child.parent, isNull);
@@ -72,13 +71,10 @@ void main() {
   test("Updating non-existant object fails", () async {});
 }
 
-@ModelBacking(TestModelBacking)
 @proxy
-class TestModel extends Model implements TestModelBacking {
-  noSuchMethod(i) => super.noSuchMethod(i);
-}
+class TestModel extends Model<_TestModel> implements _TestModel {}
 
-class TestModelBacking {
+class _TestModel {
   @Attributes(primaryKey: true, databaseType: "bigserial")
   int id;
 
@@ -88,12 +84,11 @@ class TestModelBacking {
   String emailAddress;
 }
 
-@ModelBacking(ChildBacking) @proxy
-class Child extends Model implements ChildBacking {
-  noSuchMethod(i) => super.noSuchMethod(i);
+@proxy
+class Child extends Model<_Child> implements _Child {
 }
 
-class ChildBacking {
+class _Child {
   @Attributes(primaryKey: true, databaseType: "bigserial")
   int id;
 
@@ -104,12 +99,11 @@ class ChildBacking {
   Parent parent;
 }
 
-@ModelBacking(ParentBacking) @proxy
-class Parent extends Model implements ChildBacking {
-  noSuchMethod(i) => super.noSuchMethod(i);
+@proxy
+class Parent extends Model<_Parent> implements _Child {
 }
 
-class ParentBacking {
+class _Parent {
   @Attributes(primaryKey: true, databaseType: "bigserial")
   int id;
 

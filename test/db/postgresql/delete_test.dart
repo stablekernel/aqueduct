@@ -132,9 +132,8 @@ void main() {
   });
 }
 
-@ModelBacking(TestModelBacking)
 @proxy
-class TestModel extends Model implements TestModelBacking {
+class TestModel extends Model<TestModelBacking> implements TestModelBacking {
 }
 
 class TestModelBacking {
@@ -158,9 +157,8 @@ class TestModelBacking {
   }
 }
 
-@ModelBacking(RefModelBacking)
 @proxy
-class RefModel extends Model implements RefModelBacking {
+class RefModel extends Model<RefModelBacking> implements RefModelBacking {
 
 }
 
@@ -174,10 +172,8 @@ class RefModelBacking {
   TestModel test;
 }
 
-@ModelBacking(GRestrictInverseBacking) @proxy
-class GRestrictInverse extends Model implements GRestrictInverseBacking {
-
-}
+@proxy
+class GRestrictInverse extends Model<GRestrictInverseBacking> implements GRestrictInverseBacking {}
 
 class GRestrictInverseBacking {
   @Attributes(primaryKey: true, databaseType: "serial")
@@ -189,10 +185,8 @@ class GRestrictInverseBacking {
   GRestrict test;
 }
 
-@ModelBacking(GRestrictBacking) @proxy
-class GRestrict extends Model implements GRestrictBacking {
-
-}
+@proxy
+class GRestrict extends Model<GRestrictBacking> implements GRestrictBacking {}
 
 class GRestrictBacking {
   @Attributes(primaryKey: true, databaseType: "serial")
@@ -204,8 +198,8 @@ class GRestrictBacking {
   GRestrictInverse test;
 }
 
-@ModelBacking(GCascadeInverseBacking) @proxy
-class GCascadeInverse extends Model implements GCascadeInverseBacking {
+@proxy
+class GCascadeInverse extends Model<GCascadeInverseBacking> implements GCascadeInverseBacking {
 
 }
 
@@ -218,9 +212,8 @@ class GCascadeInverseBacking {
   @RelationshipAttribute(RelationshipType.hasMany, "test")
   GCascade test;
 }
-
-@ModelBacking(GCascadeBacking) @proxy
-class GCascade extends Model implements GCascadeBacking {
+@proxy
+class GCascade extends Model<GCascadeBacking> implements GCascadeBacking {
 
 }
 

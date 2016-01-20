@@ -213,10 +213,8 @@ void main() {
   });
 }
 
-@ModelBacking(TestModelBacking)
 @proxy
-class TestModel extends Model implements TestModelBacking {
-  noSuchMethod(i) => super.noSuchMethod(i);
+class TestModel extends Model<TestModelBacking> implements TestModelBacking {
 }
 
 class TestModelBacking {
@@ -233,10 +231,8 @@ class TestModelBacking {
   }
 }
 
-@ModelBacking(GenUserBacking)
 @proxy
-class GenUser extends Model implements GenUserBacking {
-  noSuchMethod(i) => super.noSuchMethod(i);
+class GenUser extends Model<GenUserBacking> implements GenUserBacking {
 }
 
 class GenUserBacking {
@@ -253,10 +249,8 @@ class GenUserBacking {
   }
 }
 
-@ModelBacking(GenPostBacking)
 @proxy
-class GenPost extends Model implements GenPostBacking {
-  noSuchMethod(i) => super.noSuchMethod(i);
+class GenPost extends Model<GenPostBacking> implements GenPostBacking {
 }
 
 class GenPostBacking {
@@ -270,10 +264,8 @@ class GenPostBacking {
   GenUser owner;
 }
 
-@ModelBacking(GenTimeBacking)
 @proxy
-class GenTime extends Model implements GenTimeBacking {
-  noSuchMethod(i) => super.noSuchMethod(i);
+class GenTime extends Model<GenTimeBacking> implements GenTimeBacking {
 }
 
 class GenTimeBacking {
@@ -286,9 +278,8 @@ class GenTimeBacking {
   DateTime dateCreated;
 }
 
-@ModelBacking(TransientBacking)
 @proxy
-class TransientModel extends /*Object with*/ Model implements TransientBacking {
+class TransientModel extends Model<TransientBacking> implements TransientBacking {
   @mappable
   String transientValue;
 
