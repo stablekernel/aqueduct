@@ -1,10 +1,16 @@
 part of monadart;
 
 class PostgresqlSchema {
-  Map<Type, _PostgresqlTable> tables;
+  static Type entityTypeForModelType(Type t) {
+    return reflectClass(t).superclass.typeArguments.first.reflectedType;
+  }
 
   PostgresqlSchema.fromModels(List<Type> modelTypes, {bool temporary: false}) {
-    tables = new Map.fromIterable(modelTypes, key: (t) => t, value: (t) => new _PostgresqlTable.fromModel(t, temporary));
+    tables = new Map.fromIterable(modelTypes, key: (typeKey) => typeKey, value: (t) {
+      var entity = ModelEntity.entityForType(entityTypeForModelType(t));
+      var table = new _PostgresqlTable.fromEntity(entity, temporary);
+      return table;
+    });
 
     tables.values.forEach((table) {
       table.updateRelationshipsWithTables(tables);
@@ -14,6 +20,8 @@ class PostgresqlSchema {
       t.verify(tables);
     });
   }
+
+  Map<Type, _PostgresqlTable> tables;
 
   String toString() {
     var buffer = new StringBuffer();
@@ -32,6 +40,7 @@ class PostgresqlSchema {
 }
 
 class _PostgresqlTable {
+  ModelEntity entity;
   Type type;
   bool isTemporary;
   String name;
@@ -42,17 +51,17 @@ class _PostgresqlTable {
   _PostgresqlColumn get primaryKeyColumn => columns[primaryModelKey];
   String primaryModelKey;
 
-  _PostgresqlTable.fromModel(Type t, bool temporary) {
-    this.type = t;
+  _PostgresqlTable.fromEntity(ModelEntity t, bool temporary) {
+    entity = t;
+    this.type = entity.entityTypeMirror.reflectedType;
     this.isTemporary = temporary;
 
-    var reflectedModelType = ModelBackable.backingTypeForModelType(t);
-    name = ModelBackable.tableNameForBackingType(reflectedModelType.reflectedType);
+    name = t.tableName;
 
     var symbols = [];
 
-    reflectedModelType.declarations.forEach((k, decl) {
-      if (decl is VariableMirror) {
+    entity.entityTypeMirror.declarations.forEach((k, decl) {
+      if (decl is VariableMirror && !decl.isStatic) {
         symbols.add(k);
       }
     });
@@ -60,7 +69,7 @@ class _PostgresqlTable {
     columns = new Map.fromIterable(symbols,
         key: (sym) => MirrorSystem.getName(sym),
         value: (sym) =>
-            new _PostgresqlColumn.fromVariableMirror(reflectedModelType.declarations[sym] as VariableMirror, this));
+            new _PostgresqlColumn.fromVariableMirror(t.entityTypeMirror.declarations[sym] as VariableMirror, this));
 
     columns.forEach((propertyKey, column) {
       if (column.isPrimaryKey) {
@@ -96,11 +105,8 @@ class _PostgresqlTable {
 
     var foreignKeyColumns = columns.values.where((column) => column.relationship != null && !column.ignoreWhenGeneratingSQL());
     var foreignKeyDefinitions = foreignKeyColumns.map((column) {
-      var referenceTableName = ModelBackable.tableNameForBackingType(
-          ModelBackable.backingTypeForModelType(column.relationship.destinationType)
-          .reflectedType);
       return "alter table only ${name} add foreign key (${column.name}) "
-          "references ${referenceTableName} (${column.relationship.foreignColumnName}) "
+          "references ${column.relationship.entity.tableName} (${column.relationship.foreignColumnName}) "
           "on delete ${column.relationship.deleteRuleText()}";
     });
 
@@ -319,6 +325,7 @@ class _PostgresqlColumn {
 class _PostgresqlRelationship {
   RelationshipDeleteRule deleteRule;
   RelationshipType type;
+  ModelEntity entity;
   Type destinationType;
   String destinationModelKey;
   String inverseModelKey;
@@ -332,6 +339,7 @@ class _PostgresqlRelationship {
       this.destinationType = variableType.reflectedType;
     }
 
+    this.entity = ModelEntity.entityForType(this.destinationType);
     this.destinationModelKey = attribute.referenceKey;
     this.type = attribute.type;
     this.deleteRule = attribute.deleteRule;

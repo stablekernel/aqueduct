@@ -1,27 +1,26 @@
 part of monadart;
 
-abstract class ModelBackable<T> {
-  static ClassMirror backingTypeForModelType(Type modelType) {
-    var refl = reflectClass(modelType);
-    var modelClass = refl.superclass;
-    var backingClass = modelClass.superclass;
+class ModelEntity {
+  static ModelEntity entityForType(Type t) {
+    var rt = reflectClass(t);
+    var modelRefl = reflectType(Model);
+    var entityTypeRefl = rt;
 
-    return backingClass.typeArguments.first;
-  }
-
-  static String tableNameForBackingType(Type backingType) {
-    var backingTypeMirror = reflectClass(backingType);
-    var tableNameSymbol = new Symbol("tableName");
-    if (backingTypeMirror.staticMembers[tableNameSymbol] != null) {
-      return backingTypeMirror
-          .invoke(tableNameSymbol, [])
-          .reflectee;
+    while (rt.superclass.isSubtypeOf(modelRefl)) {
+      rt = rt.superclass;
+      entityTypeRefl = rt;
     }
 
-    return MirrorSystem.getName(backingTypeMirror.simpleName);
+    if (rt.isSubtypeOf(modelRefl)) {
+      entityTypeRefl = entityTypeRefl.typeArguments.first;
+    }
+
+    return new ModelEntity()
+        ..entityTypeMirror = entityTypeRefl;
   }
 
-  ClassMirror get backingType => reflectClass(T);
+  ClassMirror entityTypeMirror;
+  Type get type => entityTypeMirror.reflectedType;
 
   /// Name of primaryKey property.
   ///
@@ -41,13 +40,20 @@ abstract class ModelBackable<T> {
   String _cachedTableName;
   String get tableName {
     if (_cachedTableName == null) {
-      _cachedTableName = tableNameForBackingType(backingType.reflectedType);
+      var tableNameSymbol = new Symbol("tableName");
+      if (entityTypeMirror.staticMembers[tableNameSymbol] != null) {
+        _cachedTableName = entityTypeMirror
+            .invoke(tableNameSymbol, [])
+            .reflectee;
+      } else {
+        _cachedTableName = MirrorSystem.getName(entityTypeMirror.simpleName);
+      }
     }
     return _cachedTableName;
   }
 
   String foreignKeyForProperty(String propertyName) {
-    var propertyMirror = _variableMirrorForProperty(propertyName);
+    var propertyMirror = _propertyMirrorForProperty(propertyName);
     if (propertyMirror == null) {
       return null;
     }
@@ -59,8 +65,13 @@ abstract class ModelBackable<T> {
 
     var suffixName = attr.referenceKey;
     if (suffixName == null) {
-      var relatedType = backingTypeForModelType(propertyMirror.type.reflectedType);
-      var relatedTypePrimaryKeyAttr = relatedType.declarations.values.firstWhere((dm) {
+      var propertyTypeMirror = propertyMirror.type;
+      if (propertyTypeMirror.isSubtypeOf(reflectType(List))) {
+        propertyTypeMirror = propertyTypeMirror.typeArguments.first;
+      }
+
+      var relatedEntity = entityForType(propertyTypeMirror.reflectedType);
+      var relatedTypePrimaryKeyAttr = relatedEntity.entityTypeMirror.declarations.values.firstWhere((dm) {
         Attributes propAttrs = dm.metadata.firstWhere((im) => im.reflectee is Attributes, orElse: () => null)?.reflectee;
         if (propAttrs == null) {
           return false;
@@ -70,7 +81,7 @@ abstract class ModelBackable<T> {
 
       if (relatedTypePrimaryKeyAttr == null) {
         var className = MirrorSystem.getName(propertyMirror.owner.simpleName);
-        throw new ModelBackableException("Related value for $propertyName on ${className} does not have a primary key or a reference key.");
+        throw new QueryException(500, "Related value for $propertyName on ${className} does not have a primary key or a reference key.", -1);
       }
 
       suffixName = MirrorSystem.getName(relatedTypePrimaryKeyAttr.simpleName);
@@ -80,7 +91,7 @@ abstract class ModelBackable<T> {
   }
 
   RelationshipAttribute relationshipAttributeForProperty(String propertyName) {
-    var varMirror = _variableMirrorForProperty(propertyName);
+    var varMirror = _propertyMirrorForProperty(propertyName);
     if (varMirror == null) {
       return null;
     }
@@ -93,13 +104,24 @@ abstract class ModelBackable<T> {
   }
 
   bool _hasProperty(String propertyName) {
-    var backingTypeDecls = this.backingType.declarations;
-    return backingTypeDecls.containsKey(new Symbol(propertyName));
+    var decl = this.entityTypeMirror.declarations[new Symbol(propertyName)];
+    if (decl == null) {
+      return false;
+    }
+    if (decl is! VariableMirror) {
+      return false;
+    }
+    if (decl.isStatic) {
+      return false;
+    }
+
+    return true;
   }
 
   String _firstPropertyNameWhere(bool test(VariableMirror element)) {
-    var sym = backingType.declarations.values
+    var sym = entityTypeMirror.declarations.values
         .where((decl) => decl is VariableMirror)
+        .where((VariableMirror vm) => !vm.isStatic)
         .firstWhere(test, orElse: () => null)?.simpleName;
 
     if (sym == null) {
@@ -110,22 +132,17 @@ abstract class ModelBackable<T> {
   }
 
   TypeMirror _typeMirrorForProperty(String propertyName) {
-    VariableMirror ivarDeclaration = backingType.declarations[new Symbol(propertyName)];
+    VariableMirror ivarDeclaration = entityTypeMirror.declarations[new Symbol(propertyName)];
 
     return ivarDeclaration?.type;
   }
 
-  VariableMirror _variableMirrorForProperty(String propertyName) {
-    var decl = backingType.declarations[new Symbol(propertyName)];
-    if (decl is VariableMirror) {
+  VariableMirror _propertyMirrorForProperty(String propertyName) {
+    var decl = entityTypeMirror.declarations[new Symbol(propertyName)];
+    if (decl is VariableMirror && !decl.isStatic) {
       return decl;
     }
 
     return null;
   }
-}
-
-class ModelBackableException {
-  String message;
-  ModelBackableException(this.message);
 }

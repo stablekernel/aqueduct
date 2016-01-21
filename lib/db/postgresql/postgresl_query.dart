@@ -42,25 +42,25 @@ class _PostgresqlQuery {
   }
 
   List<_MappingElement> mappingElementsFromQuery(Query query) {
+    var table = schema.tables[query.modelType];
     if (query.resultKeys == null) {
-      var columns = schema.tables[query.modelType].columns;
+      var columns = table.columns;
 
-      var elements = columns.keys
+      return columns.keys
           .where((k) => columns[k].isRealColumn && !columns[k].shouldOmitFromDefaultSet)
-          .map((modelKey) => new _MappingElement(modelKey, columns[modelKey].name));
-      return elements.toList();
+          .map((modelKey) => new _MappingElement(modelKey, "${table.name}.${columns[modelKey].name}"))
+          .toList();
     }
 
-    var columns = schema.tables[query.modelType].columns;
+    var columns = table.columns;
     var elements = query.resultKeys.map((modelKey) {
       var col = columns[modelKey];
       if (col == null) {
-        throw new QueryException(
-            500,
-            "Attempting to retrieve $modelKey from ${MirrorSystem.getName(reflectType(query.modelType).simpleName)}, but that key doesn't exist.",
-            -1);
+        throw new QueryException(500, "Attempting to retrieve $modelKey from ${query.modelType}, but that key doesn't exist.", -1);
       }
-      return new _MappingElement(modelKey, columns[modelKey].name);
+
+      var columnKey = columns[modelKey].name;
+      return new _MappingElement(modelKey, "${table.name}.$columnKey");
     });
 
     return elements.toList();
@@ -71,8 +71,7 @@ class _PostgresqlQuery {
       return {};
     }
 
-    var type = reflect(valueObject).type.reflectedType;
-    var table = schema.tables[type];
+    var table = schema.tables[query.modelType];
     var columns = table.columns;
     var m = {};
 
@@ -86,7 +85,8 @@ class _PostgresqlQuery {
         }
 
         if (value != null) {
-          var relatedValue = (value as Model).dynamicBacking[column.relationship.destinationModelKey];
+          Model innerModel = value;
+          var relatedValue = innerModel.dynamicBacking[column.relationship.destinationModelKey];
 
           if (relatedValue == null) {
             var thisType = MirrorSystem.getName(reflect(valueObject).type.simpleName);
@@ -110,7 +110,7 @@ class _PostgresqlQuery {
     return m;
   }
 
-  String orderByString() {
+  String get orderByString {
     if (query.sortDescriptors != null) {
       var transformFunc = (SortDescriptor sd) =>
           "${sd.key} ${(sd.order == SortDescriptorOrder.ascending ? "asc" : "desc")}";
@@ -120,16 +120,9 @@ class _PostgresqlQuery {
     return null;
   }
 
-  List<String> resultColumnNames() {
-    var table = schema.tables[query.modelType];
-    var columns = table.columns;
-
+  List<String> get resultColumnNames {
     return resultMappingElements.map((e) {
-      var column = columns[e.modelKey];
-      if (column == null) {
-        throw new QueryException(400, "column \"${e.databaseKey}\" does not exist", 42703);
-      }
-      return "${column.name}";
+      return e.databaseKey;
     }).toList();
   }
 }
@@ -148,12 +141,12 @@ class _PostgresqlInsertQuery extends _PostgresqlQuery {
 
     var queryStringBuffer = new StringBuffer();
     queryStringBuffer.write("insert into ");
-    queryStringBuffer.write("${schema.tables[query.modelType].name} ");
+    queryStringBuffer.write("${query.entity.tableName} ");
     queryStringBuffer.write("(${valueKeys.join(",")}) ");
     queryStringBuffer.write("values (${valueVariables.join(",")}) ");
 
     if (resultMappingElements != null) {
-      var cols = resultColumnNames();
+      var cols = resultColumnNames;
       queryStringBuffer.write("returning ${cols.join(",")} ");
     }
 
@@ -169,10 +162,14 @@ class _PostgresqlFetchQuery extends _PostgresqlQuery {
 
     preprocess();
 
-    var queryColumns = resultColumnNames();
+    var queryColumns = resultColumnNames;
     var queryStringBuffer = new StringBuffer();
     queryStringBuffer.write("select ${queryColumns.join(",")} ");
-    queryStringBuffer.write("from ${schema.tables[query.modelType].name} ");
+    queryStringBuffer.write("from ${query.entity.tableName} ");
+
+    joinStrings?.forEach((str) {
+      queryStringBuffer.writeln(" $str ");
+    });
 
     if (query.predicate != null) {
       queryStringBuffer.write("where ${query.predicate.format} ");
@@ -181,7 +178,7 @@ class _PostgresqlFetchQuery extends _PostgresqlQuery {
 
     // Add page to sort descriptors?
 
-    var orderString = orderByString();
+    var orderString = orderByString;
     if (orderString != null) {
       queryStringBuffer.write("order by ${orderString} ");
     }
@@ -196,6 +193,19 @@ class _PostgresqlFetchQuery extends _PostgresqlQuery {
 
     string = queryStringBuffer.toString();
   }
+
+  List<String> get joinStrings {
+    if (query.subQueries == null || query.subQueries.length == 0) {
+      return null;
+    }
+    List<String> commands = [];
+    var cmds = query.subQueries.keys.map((subqueryPropertyKey) {
+
+    });
+
+    return cmds.expand((element) => element).toList();
+//      queryStringBuffer.write("${je.joinType} join ${je.joinTable} on (${je.lhsColumn}=${je.rhsColumn}) ");
+  }
 }
 
 class _PostgresqlDeleteQuery extends _PostgresqlQuery {
@@ -206,7 +216,7 @@ class _PostgresqlDeleteQuery extends _PostgresqlQuery {
     preprocess();
 
     var queryStringBuffer = new StringBuffer();
-    queryStringBuffer.write("delete from ${schema.tables[query.modelType].name} ");
+    queryStringBuffer.write("delete from ${query.entity.tableName} ");
 
     if (query.predicate != null) {
       queryStringBuffer.write("where ${query.predicate.format} ");
@@ -230,7 +240,7 @@ class _PostgresqlUpdateQuery extends _PostgresqlQuery {
     var setPairs = keys.map((k) => "${k}=@${k}");
 
     var queryStringBuffer = new StringBuffer();
-    queryStringBuffer.write("update ${schema.tables[query.modelType].name} ");
+    queryStringBuffer.write("update ${query.entity.tableName} ");
     queryStringBuffer.write("set ${setPairs.join(",")} ");
 
     if (query.predicate != null) {
@@ -246,7 +256,7 @@ class _PostgresqlUpdateQuery extends _PostgresqlQuery {
     }
 
     if (resultMappingElements != null) {
-      var cols = resultColumnNames();
+      var cols = resultColumnNames;
       queryStringBuffer.write("returning ${cols.join(",")} ");
     }
 

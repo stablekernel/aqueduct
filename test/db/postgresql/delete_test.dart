@@ -132,11 +132,9 @@ void main() {
   });
 }
 
-@proxy
-class TestModel extends Model<TestModelBacking> implements TestModelBacking {
-}
+class TestModel extends Model<_TestModel> implements _TestModel {}
 
-class TestModelBacking {
+class _TestModel {
   @Attributes(primaryKey: true, databaseType: "bigserial")
   int id;
 
@@ -157,12 +155,9 @@ class TestModelBacking {
   }
 }
 
-@proxy
-class RefModel extends Model<RefModelBacking> implements RefModelBacking {
+class RefModel extends Model<_RefModel> implements _RefModel {}
 
-}
-
-class RefModelBacking {
+class _RefModel {
   @Attributes(primaryKey: true, databaseType: "serial")
   int id;
 
@@ -172,10 +167,9 @@ class RefModelBacking {
   TestModel test;
 }
 
-@proxy
-class GRestrictInverse extends Model<GRestrictInverseBacking> implements GRestrictInverseBacking {}
+class GRestrictInverse extends Model<_GRestrictInverse> implements _GRestrictInverse {}
 
-class GRestrictInverseBacking {
+class _GRestrictInverse {
   @Attributes(primaryKey: true, databaseType: "serial")
   int id;
 
@@ -185,10 +179,9 @@ class GRestrictInverseBacking {
   GRestrict test;
 }
 
-@proxy
-class GRestrict extends Model<GRestrictBacking> implements GRestrictBacking {}
+class GRestrict extends Model<_GRestrict> implements _GRestrict {}
 
-class GRestrictBacking {
+class _GRestrict {
   @Attributes(primaryKey: true, databaseType: "serial")
   int id;
 
@@ -198,12 +191,9 @@ class GRestrictBacking {
   GRestrictInverse test;
 }
 
-@proxy
-class GCascadeInverse extends Model<GCascadeInverseBacking> implements GCascadeInverseBacking {
+class GCascadeInverse extends Model<_GCascadeInverse> implements _GCascadeInverse {}
 
-}
-
-class GCascadeInverseBacking {
+class _GCascadeInverse {
   @Attributes(primaryKey: true, databaseType: "serial")
   int id;
 
@@ -212,12 +202,10 @@ class GCascadeInverseBacking {
   @RelationshipAttribute(RelationshipType.hasMany, "test")
   GCascade test;
 }
-@proxy
-class GCascade extends Model<GCascadeBacking> implements GCascadeBacking {
 
-}
+class GCascade extends Model<_GCascade> implements _GCascade {}
 
-class GCascadeBacking {
+class _GCascade {
   @Attributes(primaryKey: true, databaseType: "serial")
   int id;
 

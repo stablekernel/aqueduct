@@ -40,13 +40,13 @@ dynamic whereRelatedByValue(dynamic foreignKeyValue) {
   return new _BelongsToModelMatcherExpression(foreignKeyValue);
 }
 
-dynamic whereMatching(ModelMatcher expr) {
-  return new _HasModelMatcherExpression(expr);
+dynamic whereMatching(ModelQuery expr) {
+  return expr;
 }
 
 const dynamic whereNull = const _NullMatcherExpression(true);
 const dynamic whereNotNull = const _NullMatcherExpression(false);
-dynamic get whereAnyMatch => new _IncludeModelMatcherExpressions();
+dynamic get whereAnyMatch => new _IncludeModelMatcherExpression();
 
 abstract class MatcherExpression {
   Predicate getPredicate(String prefix, String propertyName, int matcherIndex);
@@ -115,17 +115,8 @@ class _BelongsToModelMatcherExpression implements MatcherExpression {
   }
 }
 
-class _HasModelMatcherExpression implements MatcherExpression {
-  final ModelMatcher subexpression;
-  _HasModelMatcherExpression(this.subexpression);
-
-  Predicate getPredicate(String prefix, String propertyName, int matcherIndex) {
-    return subexpression._buildPredicate(matcherIndex);
-  }
-}
-
-class _IncludeModelMatcherExpressions implements MatcherExpression {
-  _IncludeModelMatcherExpressions();
+class _IncludeModelMatcherExpression implements MatcherExpression {
+  _IncludeModelMatcherExpression();
   Predicate getPredicate(String prefix, String propertyName, int matcherIndex) {
     return null;
   }

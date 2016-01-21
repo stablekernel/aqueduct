@@ -18,19 +18,37 @@ enum QueryType {
   count
 }
 
+class JoinElement {
+  final String joinType;
+  final String joinTable;
+  final String lhsColumn;
+  final String rhsColumn;
+
+  JoinElement(this.joinType, this.joinTable, this.lhsColumn, this.rhsColumn);
+}
+
+
 /// An representation of a database operation.
 ///
 /// Queries are used to find, update, insert, delete and count objects in a database.
-/// The ModelType must have a [ModelBacking], be declared with @proxy and mixin the [Model] class.
-/// The results of executing a Query will always be a List of [modelType] or the empty list.
 
 class Query<ModelType extends Model> {
+  Query() {
+    entity = ModelEntity.entityForType(ModelType);
+  }
+
+  Query.withModelType(this._modelType) {
+    entity = ModelEntity.entityForType(this._modelType);
+    print("Inc type: $_modelType $entity");
+  }
+
+  Type _modelType;
+  Type get modelType =>_modelType ?? ModelType;
+
   /// Type of model object this Query deals with.
   ///
   /// This property is defined by the generic ModelType.
-  Type get modelType {
-    return ModelType;
-  }
+  ModelEntity entity;
 
   /// The action this query performs.
   ///
@@ -39,6 +57,8 @@ class Query<ModelType extends Model> {
   /// should not use it, as the [Query] is effectively done once the action method is applied.
   QueryType get queryType => _queryType;
   QueryType _queryType;
+
+  Map<String, Query> subQueries;
 
   /// Number of seconds before a Query times out.
   ///
@@ -95,7 +115,7 @@ class Query<ModelType extends Model> {
   /// By default, [resultKeys] is null and therefore all objects returned will contain all properties
   /// of the object. (Unless those properties are marked as hasOne or hasMany relationships.) Specifying
   /// an explicit list of keys will return only those properties. Keys must match the names of the properties
-  /// in the [ModelBacking] of [modelType].
+  /// in of [modelType].
   List<String> resultKeys;
 
   /// Inserts the data represented by this Query into the database represented by [adapter].

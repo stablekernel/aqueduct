@@ -221,7 +221,7 @@ void main() {
             .toList()
             .length, 5);
 
-    var matcher = new ModelMatcher<GenPostBacking>();
+    var matcher = new ModelQuery<GenPost>();
     matcher["owner"] = whereRelatedByValue(u1.id);
     req = new Query<GenPost>()..predicate = matcher.predicate;
     res = await req.fetch(adapter);
@@ -288,7 +288,7 @@ void main() {
     expect(result.id, greaterThan(0));
     expect(result.dynamicBacking["text"], isNull);
 
-    var matcher = new ModelMatcher<OmitBacking>()
+    var matcher = new ModelQuery<Omit>()
       ..["id"] = whereEqualTo(result.id);
     var fq = new Query<Omit>()..predicate = matcher.predicate;
 
@@ -488,21 +488,18 @@ void main() {
   });
 }
 
-@proxy
-class PageableTestModel extends Model<PageableTestModelBacking> implements PageableTestModelBacking {
-}
+class PageableTestModel extends Model<_PageableTestModel> implements _PageableTestModel {}
 
-class PageableTestModelBacking {
+class _PageableTestModel {
   @Attributes(primaryKey: true, databaseType: "bigserial")
   int id;
 
   String value;
 }
 
-@proxy
-class TestModel extends Model<TestModelBacking> implements TestModelBacking {}
+class TestModel extends Model<_TestModel> implements _TestModel {}
 
-class TestModelBacking {
+class _TestModel {
   @Attributes(primaryKey: true, databaseType: "bigserial")
   int id;
 
@@ -520,12 +517,9 @@ class TestModelBacking {
   }
 }
 
-@proxy
-class GenUser extends Model<GenUserBacking> implements GenUserBacking {
+class GenUser extends Model<_GenUser> implements _GenUser {}
 
-}
-
-class GenUserBacking {
+class _GenUser {
   @Attributes(primaryKey: true, databaseType: "bigserial")
   int id;
 
@@ -539,12 +533,9 @@ class GenUserBacking {
   }
 }
 
-@proxy
-class GenPost extends Model<GenPostBacking> implements GenPostBacking {
+class GenPost extends Model<_GenPost> implements _GenPost {}
 
-}
-
-class GenPostBacking {
+class _GenPost {
   @Attributes(primaryKey: true, databaseType: "bigserial")
   int id;
 
@@ -555,12 +546,9 @@ class GenPostBacking {
   GenUser owner;
 }
 
-@proxy
-class Omit extends Model<OmitBacking> implements OmitBacking {
+class Omit extends Model<_Omit> implements _Omit {}
 
-}
-
-class OmitBacking {
+class _Omit {
   @Attributes(primaryKey: true, databaseType: "bigserial")
   int id;
 

@@ -66,7 +66,7 @@ void main() {
         cmds.contains(
             "alter table only _GenAuth add foreign key (owner_id) references _GenOwner (id) on delete set null"),
         true,
-        reason: "Alter");
+        reason: "Alter $cmds");
     expect(cmds.length, 4);
   });
 
@@ -149,12 +149,11 @@ void main() {
   test("Verify schema creates the same named foreign keys as model", () {
     var schema = new PostgresqlSchema.fromModels([GenUser, GenPost]);
     var p = new GenPost();
-    var fk = p.foreignKeyForProperty("owner");
+    var fk = p.entity.foreignKeyForProperty("owner");
     expect(fk, schema.tables[GenPost].columns["owner"].name);
   });
 }
 
-@proxy
 class GeneratorModel1 extends Model<_GeneratorModel1> implements _GeneratorModel1 {}
 
 class _GeneratorModel1 {
@@ -172,7 +171,6 @@ class _GeneratorModel1 {
   DateTime validDate;
 }
 
-@proxy
 class GeneratorModel2 extends Model<_GeneratorModel2> implements _GeneratorModel2 {}
 
 class _GeneratorModel2 {
@@ -180,7 +178,6 @@ class _GeneratorModel2 {
   int id;
 }
 
-@proxy
 class GeneratorModel3 extends Model<_GeneratorModel3> implements _GeneratorModel3 {}
 
 class _GeneratorModel3 {
@@ -203,7 +200,6 @@ class _GeneratorModel3 {
   double value;
 }
 
-@proxy
 class GenUser extends Model<_GenUser> implements _GenUser {}
 
 class _GenUser {
@@ -216,7 +212,6 @@ class _GenUser {
   List<GenPost> posts;
 }
 
-@proxy
 class GenPost extends Model<_GenPost> implements _GenPost {}
 
 class _GenPost {
@@ -230,7 +225,6 @@ class _GenPost {
   GenUser owner;
 }
 
-@proxy
 class GenNamed extends Model<_GenNamed> implements _GenNamed {}
 
 class _GenNamed {
@@ -242,7 +236,6 @@ class _GenNamed {
   }
 }
 
-@proxy
 class GenOwner extends Model<_GenOwner> implements _GenOwner {}
 
 class _GenOwner {
@@ -253,7 +246,6 @@ class _GenOwner {
   GenAuth auth;
 }
 
-@proxy
 class GenAuth extends Model<_GenAuth> implements _GenAuth {}
 
 class _GenAuth {
@@ -265,7 +257,6 @@ class _GenAuth {
   GenOwner owner;
 }
 
-@proxy
 class GenLeft extends Model<_GenLeft> implements _GenLeft {}
 
 class _GenLeft {
@@ -276,7 +267,6 @@ class _GenLeft {
   List<GenJoin> join;
 }
 
-@proxy
 class GenRight extends Model<_GenRight> implements _GenRight {}
 
 class _GenRight {
@@ -287,7 +277,6 @@ class _GenRight {
   List<GenJoin> join;
 }
 
-@proxy
 class GenJoin extends Model<_GenJoin> implements _GenJoin {}
 
 class _GenJoin {
@@ -300,7 +289,6 @@ class _GenJoin {
   GenRight right;
 }
 
-@proxy
 class GenObj extends Model<_GenObj> implements _GenObj {}
 
 class _GenObj {
@@ -311,7 +299,6 @@ class _GenObj {
   GenNotNullable gen;
 }
 
-@proxy
 class GenNotNullable extends Model<_GenNotNullable> implements _GenNotNullable {}
 
 class _GenNotNullable {

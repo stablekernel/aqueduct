@@ -3,10 +3,20 @@ part of monadart;
 /// A database row represented as an object.
 ///
 /// Provides dynamic backing, serialization and deserialization capabilities.
-/// Model types in an application extend Model. A Model must declare a ModelBacking type as an interface and as class metadata, and be a proxy.
-/// Model instances are used in an application, while ModelBackings define the properties the Model has that are persisted in the database.
-/// See [ModelBacking] for more details.
-class Model<T> extends ModelBackable<T> implements Serializable {
+/// Model types in an application extend Model<T>, where the Model type must also implement T. T holds properties
+/// that are persisted in a database. Any properties in the Model type are not persisted, except those they inherit from T.
+/// Model instances are used in an application. Example:
+///
+/// class User extends Model<_User> implements _User {
+///   String name; // Not persisted
+/// }
+/// class _User {
+///   int id; // persisted
+/// }
+///
+class Model<T> implements Serializable {
+  ModelEntity entity = ModelEntity.entityForType(T);
+
   /// Applied to each value when a Model is executing [readFromMap].
   ///
   /// Defaults to [_defaultValueDecoder], which simply converts ISO8601 strings to DateTimes.
@@ -35,7 +45,7 @@ class Model<T> extends ModelBackable<T> implements Serializable {
   Map<String, dynamic> dynamicBacking = {};
 
   dynamic operator [](String propertyName) {
-    if (!_hasProperty(propertyName)) {
+    if (!entity._hasProperty(propertyName)) {
       throw new QueryException(500, "Model type ${MirrorSystem.getName(reflect(this).type.simpleName)} has no property $propertyName.", -1);
     }
 
@@ -47,12 +57,12 @@ class Model<T> extends ModelBackable<T> implements Serializable {
   }
 
   void operator []=(String propertyName, dynamic value) {
-    if (!_hasProperty(propertyName)) {
+    if (!entity._hasProperty(propertyName)) {
       throw new QueryException(500, "Model type ${MirrorSystem.getName(reflect(this).type.simpleName)} has no property $propertyName.", -1);
     }
 
     if (value != null) {
-      var ivarType = _typeMirrorForProperty(propertyName);
+      var ivarType = entity._typeMirrorForProperty(propertyName);
       var valueType = reflect(value).type;
       if (!valueType.isSubtypeOf(ivarType)) {
         var ivarTypeName = MirrorSystem.getName(ivarType.simpleName);
@@ -94,7 +104,7 @@ class Model<T> extends ModelBackable<T> implements Serializable {
     }
 
     keyValues.forEach((k, v) {
-      var variableMirror = _variableMirrorForProperty(k);
+      var variableMirror = entity._propertyMirrorForProperty(k);
 
       if (variableMirror == null) {
         DeclarationMirror decl = _declarationMirrorForProperty(k);

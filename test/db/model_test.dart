@@ -221,10 +221,10 @@ main() {
 
   test("Primary key works", () {
     var u = new User();
-    expect(u.primaryKey, "id");
+    expect(u.entity.primaryKey, "id");
 
     var p = new Post();
-    expect(p.primaryKey, null);
+    expect(p.entity.primaryKey, null);
   });
 
   test("Mappable properties are handled in readMap and asMap", () {
@@ -305,12 +305,12 @@ main() {
 }
 
 @proxy
-class User extends Model<UserBacking> implements UserBacking {
+class User extends Model<_User> implements _User {
   @mappable
   String value;
 }
 
-class UserBacking {
+class _User {
   @Attributes(nullable: true)
   String name;
 
@@ -323,10 +323,10 @@ class UserBacking {
 }
 
 @proxy
-class Post extends Model<PostBacking> implements PostBacking {
+class Post extends Model<_Post> implements _Post {
 }
 
-class PostBacking {
+class _Post {
   String text;
   int id;
 
@@ -334,7 +334,7 @@ class PostBacking {
 }
 
 @proxy
-class TransientTest extends Model<TransientTestBacking> implements TransientTestBacking {
+class TransientTest extends Model<_TransientTest> implements _TransientTest {
   @mappable
   String get defaultedText => "Mr. $text";
   void set defaultedText(String str) {
@@ -348,7 +348,7 @@ class TransientTest extends Model<TransientTestBacking> implements TransientTest
   int outputInt;
 }
 
-class TransientTestBacking {
+class _TransientTest {
   int id;
   String text;
 

@@ -19,17 +19,16 @@ class ModelController<T extends Model> extends HttpController {
       if (idValue != null) {
         var reflectedModel = reflectClass(T).newInstance(new Symbol(""), []);
         var actualModel = (reflectedModel.reflectee as T);
-        var pk = actualModel.primaryKey;
+        var pk = actualModel.entity.primaryKey;
         if (pk == null) {
           throw new QueryException(500, "$T does not have primary key", -1);
         }
 
-        var backingType = actualModel.backingType;
+        var backingType = actualModel.entity.entityTypeMirror;
         var primaryKeyDecl = backingType.declarations[new Symbol(pk)];
         var primaryKeyType = primaryKeyDecl.type;
 
-        var predicate = null;
-        var primaryKeyName = actualModel.primaryKey;
+        var primaryKeyName = actualModel.entity.primaryKey;
         if (primaryKeyType.isSubtypeOf(reflectType(idValue.runtimeType))) {
           query.predicate = new Predicate("$primaryKeyName = @pk", {"pk" : idValue});
           reflectedModel.setField(new Symbol(pk), idValue);
@@ -55,7 +54,7 @@ class ModelController<T extends Model> extends HttpController {
     var reflectedModel = reflectClass(T).newInstance(new Symbol(""), []);
     requestModel = reflectedModel.reflectee;
     // The bodyMap can't define the id.
-    if (requestModel.dynamicBacking[requestModel.primaryKey] != null) {
+    if (requestModel.dynamicBacking[requestModel.entity.primaryKey] != null) {
       throw new HttpResponseException(400, "HTTP Request body may not define the primary key of a model object.");
     }
 

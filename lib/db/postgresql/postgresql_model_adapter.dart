@@ -121,11 +121,11 @@ class PostgresModelAdapter extends QueryAdapter {
   }
 
   List<Model> mapRowsAccordingToQuery(List<Row> rows, _PostgresqlQuery query) {
-    ClassMirror m = reflectClass(query.query.modelType);
+    ClassMirror modelClassMirror = reflectClass(query.query.modelType);
     var table = schema.tables[query.query.modelType];
 
     return rows.map((row) {
-      var instance = m.newInstance(new Symbol(""), []).reflectee;
+      var instance = modelClassMirror.newInstance(new Symbol(""), []).reflectee;
 
       var map = new Map.fromIterables(query.resultMappingElements.map((m) => m.modelKey), row.toList());
 

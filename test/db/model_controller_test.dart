@@ -190,10 +190,10 @@ class TestModelController extends ModelController<TestModel> {
 }
 
 @proxy
-class TestModel extends Model<TestModelBacking> implements TestModelBacking {
+class TestModel extends Model<_TestModel> implements _TestModel {
 }
 
-class TestModelBacking {
+class _TestModel {
   @Attributes(primaryKey: true)
   int id;
 

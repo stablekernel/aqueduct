@@ -28,7 +28,7 @@ enum RelationshipType {
 
 /// An annotation for a Model property to indicate the values are instances of one or more Models.
 ///
-/// To be used as metadata on a property declaration in a [ModelBacking].
+/// To be used as metadata on a property declaration in model entity class.
 class RelationshipAttribute {
   /// The type of relationship.
   ///
@@ -85,15 +85,15 @@ class RelationshipAttribute {
 }
 
 
-/// A declaration annotation for the options on a property in a [ModelBacking].
+/// A declaration annotation for the options on a property in a entity class.
 ///
-/// By default, simply declaring a a property in a [ModelBacking] will make it a database field
+/// By default, simply declaring a a property in a entity class will make it a database field
 /// and its persistence information will be derived from its type.
 /// If, however, the property needs any of the attributes defined by this class, it should be annotated.
 class Attributes {
   /// When true, indicates that this model property is the primary key.
   ///
-  /// Only one property of a [ModelBacking] may have primaryKey equal to true.
+  /// Only one property of a class may have primaryKey equal to true.
   final bool isPrimaryKey;
 
   /// The type of the field in the database.

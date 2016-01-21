@@ -59,7 +59,7 @@ void main() {
     child = await q.insert(adapter);
     expect(child.parent.id, parent.id);
 
-    var matcher = new ModelMatcher<_Child>()
+    var matcher = new ModelQuery<Child>()
       ..["id"] = whereEqualTo(child.id);
     q = new Query<Child>()
       ..predicate = matcher.predicate

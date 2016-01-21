@@ -17,11 +17,9 @@ Future<List<TestUser>> createUsers(QueryAdapter adapter, int count) async {
   return users;
 }
 
-@proxy
-class TestUser extends Model<UserBacking> implements UserBacking {
-}
+class TestUser extends Model<_User> implements _User {}
 
-class UserBacking implements Authenticatable {
+class _User implements Authenticatable {
   @Attributes(primaryKey: true, databaseType: "bigserial")
   int id;
 
@@ -30,12 +28,10 @@ class UserBacking implements Authenticatable {
   String salt;
 }
 
-@proxy
-class Token extends Model<TokenBacking> implements TokenBacking {
-}
+class Token extends Model<_Token> implements _Token {}
 
 
-class TokenBacking implements Tokenizable {
+class _Token implements Tokenizable {
   @Attributes(primaryKey: true, databaseType: "bigserial")
   int id;
 

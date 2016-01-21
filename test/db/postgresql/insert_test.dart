@@ -214,10 +214,10 @@ void main() {
 }
 
 @proxy
-class TestModel extends Model<TestModelBacking> implements TestModelBacking {
+class TestModel extends Model<_TestModel> implements _TestModel {
 }
 
-class TestModelBacking {
+class _TestModel {
   @Attributes(primaryKey: true, databaseType: "bigserial")
   int id;
 
@@ -232,10 +232,10 @@ class TestModelBacking {
 }
 
 @proxy
-class GenUser extends Model<GenUserBacking> implements GenUserBacking {
+class GenUser extends Model<_GenUser> implements _GenUser {
 }
 
-class GenUserBacking {
+class _GenUser {
   @Attributes(primaryKey: true, databaseType: "bigserial")
   int id;
 
@@ -250,10 +250,10 @@ class GenUserBacking {
 }
 
 @proxy
-class GenPost extends Model<GenPostBacking> implements GenPostBacking {
+class GenPost extends Model<_GenPost> implements _GenPost {
 }
 
-class GenPostBacking {
+class _GenPost {
   @Attributes(primaryKey: true, databaseType: "bigserial")
   int id;
 
@@ -265,10 +265,10 @@ class GenPostBacking {
 }
 
 @proxy
-class GenTime extends Model<GenTimeBacking> implements GenTimeBacking {
+class GenTime extends Model<_GenTime> implements _GenTime {
 }
 
-class GenTimeBacking {
+class _GenTime {
   @Attributes(primaryKey: true, databaseType: "bigserial")
   int id;
 
@@ -279,14 +279,13 @@ class GenTimeBacking {
 }
 
 @proxy
-class TransientModel extends Model<TransientBacking> implements TransientBacking {
+class TransientModel extends Model<_Transient> implements _Transient {
   @mappable
   String transientValue;
 
-  noSuchMethod(i) => super.noSuchMethod(i);
 }
 
-class TransientBacking {
+class _Transient {
   @Attributes(primaryKey: true, databaseType: "bigserial")
   int id;
 
