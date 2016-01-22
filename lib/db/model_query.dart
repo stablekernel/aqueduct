@@ -19,29 +19,17 @@ class ModelQuery<T extends Model> extends Query<T> {
 
     return map;
   }
-
   void set subQueries(Map<String, Query> e) { throw new QueryException(500, "Cannot set subQueries of ModelQuery, it is dervied.", -1);}
 
   Predicate get predicate {
-    return _buildPredicate(0);
-  }
-  void set predicate(Predicate p) { throw new QueryException(500, "Cannot set Predicate of ModelQuery, it is derived.", -1); }
-
-  Predicate _buildPredicate(int indexOffset) {
     if (_map.length == 1) {
       var exprKey = _map.keys.first;
-      return _predicateForPropertyName(exprKey, indexOffset);
+      return _predicateForPropertyName(exprKey);
     }
 
-    int index = indexOffset;
-    var allPredicates = _map.keys.map((propertyKey) {
-      var pred = _predicateForPropertyName(propertyKey, index);
-      if (pred != null) {
-        index += pred.parameters.length;
-      }
-
-      return pred;
-    }).where((p) => p != null).toList();
+    var allPredicates = _map.keys
+        .map((propertyKey) => _predicateForPropertyName(propertyKey))
+        .where((p) => p != null).toList();
 
     if (allPredicates.length > 1) {
       return Predicate.andPredicates(allPredicates.toList());
@@ -51,30 +39,30 @@ class ModelQuery<T extends Model> extends Query<T> {
 
     return null;
   }
+  void set predicate(Predicate p) { throw new QueryException(500, "Cannot set Predicate of ModelQuery, it is derived.", -1); }
 
-  Predicate _predicateForPropertyName(String propertyKey, int index) {
+  Predicate _predicateForPropertyName(String propertyKey) {
     dynamic expr = _map[propertyKey];
-
-    if (expr is ModelQuery) {
-      return expr._buildPredicate(index);
-    } else if (expr is List<ModelQuery>) {
-      return expr.first._buildPredicate(index);
+    if (_matcherIsSubquery(expr)) {
+      return null;
     }
 
-    return expr.getPredicate(entity.tableName, propertyKey, index);
+    return expr.getPredicate(entity.tableName, propertyKey);
   }
 
   dynamic _createSubqueryForPropertyName(String propertyName) {
     var ivar = entity._propertyMirrorForProperty(propertyName);
     ClassMirror ivarType = ivar.type;
+
+    var subQuery = null;
     if (ivarType.isSubtypeOf(reflectType(Model))) {
-      return new ModelQuery.withModelType(ivarType.reflectedType);
+      subQuery = new ModelQuery.withModelType(ivarType.reflectedType);
     } else if (ivarType.isSubtypeOf(reflectType(List))) {
       ClassMirror innerIvarType = ivarType.typeArguments.first;
-      return [new ModelQuery.withModelType(innerIvarType.reflectedType)];
+      subQuery = [new ModelQuery.withModelType(innerIvarType.reflectedType)];
     }
 
-    return null;
+    return subQuery;
   }
 
   dynamic operator [](String key) {

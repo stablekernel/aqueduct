@@ -15,18 +15,11 @@ enum QueryType {
   delete,
 
   /// Specifies that the Query will only return the number of objects that it finds.
-  count
+  count,
+
+  /// Specifies that the Query is a subquery as part of a larger query
+  join
 }
-
-class JoinElement {
-  final String joinType;
-  final String joinTable;
-  final String lhsColumn;
-  final String rhsColumn;
-
-  JoinElement(this.joinType, this.joinTable, this.lhsColumn, this.rhsColumn);
-}
-
 
 /// An representation of a database operation.
 ///

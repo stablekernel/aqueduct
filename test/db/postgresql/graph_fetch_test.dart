@@ -50,9 +50,9 @@ void main() {
     sourceUsers[0].locations.first.equipment = await Future.wait(equipmentCreator([["Fridge", "Appliance"], ["Microwave", "Appliance"]], sourceUsers[0].locations.first));
     sourceUsers[0].locations.last.equipment = await Future.wait(equipmentCreator([["Computer", "Electronics"]], sourceUsers[0].locations.last));
     sourceUsers[1].locations.first.equipment = await Future.wait(equipmentCreator([["Cash Register", "Admin"]], sourceUsers[1].locations.first));
+    sourceUsers[1].locations.last.equipment = [];
     sourceUsers[2].locations.first.equipment = await Future.wait(equipmentCreator([["Fire Truck", "Vehicle"]], sourceUsers[2].locations.first));
-
-    print("$sourceUsers");
+    sourceUsers[3].locations.first.equipment = [];
   });
 
   tearDownAll(() {
@@ -96,6 +96,10 @@ void main() {
     expect(loc.equipment, isNull);
   });
 
+  test("Keys with same name across table still yields appropriate result", () async {
+
+  });
+
   test("Can do one level join with single root object", () async {
     var q = new UserQuery()
         ..id = 1
@@ -131,19 +135,41 @@ void main() {
     }
   });
 
-  test("Can join two tables, single root object", () async {
+  test("Can two level join, single root object", () async {
     var q = new UserQuery()
       ..id = 1
-      ..locations.single.id = whereGreaterThanEqualTo(5)
       ..locations.single.equipment = whereAnyMatch;
 
     var users = await q.fetch(adapter);
-
     expect(users.first, equals(sourceUsers.first));
   });
 
+  test("Can two level join, multiple root objects", () async {
+    var q = new UserQuery()
+      ..locations.single.equipment = whereAnyMatch;
+
+    var users = await q.fetch(adapter);
+    expect(users, equals(sourceUsers));
+  });
+
+  test("Can two level join, multiple root objects, predicate on bottom", () async {
+    var q = new UserQuery()
+      ..locations.single.equipment = [new EquipmentQuery()
+        ..id = 1
+      ];
+
+    var users = await q.fetch(adapter);
+    var sourceTrunc = sourceUsers.map((u) => new User.fromUser(u)).toList();
+    sourceTrunc.forEach((User u) {
+      u.locations?.forEach((loc) {
+        loc.equipment = loc.equipment?.where((eq) => eq.id == 1).toList() ?? [];
+      });
+    });
+    expect(users, equals(sourceTrunc));
+  });
+
   test("Can join from middle of graph", () async {
-    fail("NYI");
+    //var q = new
   });
 
   test("ToOne relationships are null if not available", () async {

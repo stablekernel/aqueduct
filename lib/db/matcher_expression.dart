@@ -49,15 +49,15 @@ const dynamic whereNotNull = const _NullMatcherExpression(false);
 dynamic get whereAnyMatch => new _IncludeModelMatcherExpression();
 
 abstract class MatcherExpression {
-  Predicate getPredicate(String prefix, String propertyName, int matcherIndex);
+  Predicate getPredicate(String prefix, String propertyName);
 }
 
 class _AssignmentMatcherExpression implements MatcherExpression {
   final dynamic value;
   const _AssignmentMatcherExpression(this.value);
 
-  Predicate getPredicate(String prefix, String propertyName, int matcherIndex) {
-    var formatSpecificationName = "${propertyName}_${matcherIndex}";
+  Predicate getPredicate(String prefix, String propertyName) {
+    var formatSpecificationName = "${propertyName}";
     return new Predicate("$prefix.$propertyName = @$formatSpecificationName",  {formatSpecificationName : value});
   }
 }
@@ -76,8 +76,8 @@ class _ComparisonMatcherExpression implements MatcherExpression {
 
   const _ComparisonMatcherExpression(this.value, this.operator);
 
-  Predicate getPredicate(String prefix, String propertyName, int matcherIndex) {
-    var formatSpecificationName = "${propertyName}_${matcherIndex}";
+  Predicate getPredicate(String prefix, String propertyName) {
+    var formatSpecificationName = "${propertyName}";
     return new Predicate("$prefix.$propertyName ${symbolTable[operator]} @$formatSpecificationName",  {formatSpecificationName : value});
   }
 }
@@ -87,9 +87,9 @@ class _RangeMatcherExpression implements MatcherExpression {
   final dynamic lhs, rhs;
   const _RangeMatcherExpression(this.lhs, this.rhs, this.within);
 
-  Predicate getPredicate(String prefix, String propertyName, int matcherIndex) {
-    var lhsFormatSpecificationName = "${propertyName}_lhs${matcherIndex}";
-    var rhsRormatSpecificationName = "${propertyName}_rhs${matcherIndex + 1}";
+  Predicate getPredicate(String prefix, String propertyName) {
+    var lhsFormatSpecificationName = "${propertyName}_lhs";
+    var rhsRormatSpecificationName = "${propertyName}_rhs";
     return new Predicate("$prefix.$propertyName ${within ? "between" : "not between"} @$lhsFormatSpecificationName and @$rhsRormatSpecificationName",
         {lhsFormatSpecificationName: lhs, rhsRormatSpecificationName : rhs});
   }
@@ -99,7 +99,7 @@ class _NullMatcherExpression implements MatcherExpression {
   final bool shouldBeNull;
   const _NullMatcherExpression(this.shouldBeNull);
 
-  Predicate getPredicate(String prefix, String propertyName, int matcherIndex) {
+  Predicate getPredicate(String prefix, String propertyName) {
     return new Predicate("$prefix.$propertyName ${shouldBeNull ? "isnull" : "notnull"}", {});
   }
 }
@@ -109,15 +109,15 @@ class _BelongsToModelMatcherExpression implements MatcherExpression {
 
   _BelongsToModelMatcherExpression(this.value);
 
-  Predicate getPredicate(String prefix, String propertyName, int matcherIndex) {
-    var formatSpecificationName = "${propertyName}_${matcherIndex}";
+  Predicate getPredicate(String prefix, String propertyName) {
+    var formatSpecificationName = "${propertyName}";
     return new Predicate("$prefix.$propertyName = @$formatSpecificationName", {formatSpecificationName : value});
   }
 }
 
 class _IncludeModelMatcherExpression implements MatcherExpression {
   _IncludeModelMatcherExpression();
-  Predicate getPredicate(String prefix, String propertyName, int matcherIndex) {
+  Predicate getPredicate(String prefix, String propertyName) {
     return null;
   }
 }

@@ -7,6 +7,7 @@ void main() {
   setUp(() {
     adapter = new PostgresModelAdapter.fromConnectionInfo(
         null, "dart", "dart", "localhost", 5432, "dart_test");
+    //PostgresModelAdapter.logger.onRecord.listen((rec) => print("$rec"));
   });
 
   tearDown(() {
@@ -186,12 +187,15 @@ void main() {
     try {
       await req.fetch(adapter);
       fail("This should throw an expcetion");
-    } catch (e) {
+    } on QueryException catch (e) {
       expect(e.message,
           "Attempting to retrieve badkey from TestModel, but that key doesn't exist.");
       expect(e.errorCode, -1);
       expect(e.statusCode, 500);
+    } catch (e) {
+      fail("$e");
     }
+
   });
 
   test("Value for foreign key in predicate", () async {

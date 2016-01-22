@@ -61,6 +61,7 @@ part 'db/postgresql/postgresl_query.dart';
 part 'db/postgresql/postgresql_helpers.dart';
 part 'db/postgresql/postgresql_model_adapter.dart';
 part 'db/postgresql/postgresql_schema.dart';
+part 'db/postgresql/postgresql_statement.dart';
 
 part 'utilities/test_client.dart';
 

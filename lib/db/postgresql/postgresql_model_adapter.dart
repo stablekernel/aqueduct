@@ -54,47 +54,37 @@ class PostgresModelAdapter extends QueryAdapter {
 
   @override
   Future<dynamic> execute(Query query) {
-    _PostgresqlQuery pgsqlQuery = null;
-    switch (query.queryType) {
-      case QueryType.fetch:
-        pgsqlQuery = new _PostgresqlFetchQuery(schema, query);
-        break;
-      case QueryType.count:
-//        query = new PostgresqlFetchQuery(schema, req);
-        break;
-      case QueryType.delete:
-        pgsqlQuery = new _PostgresqlDeleteQuery(schema, query);
-        break;
-      case QueryType.insert:
-        pgsqlQuery = new _PostgresqlInsertQuery(schema, query);
-        break;
-      case QueryType.update:
-        pgsqlQuery = new _PostgresqlUpdateQuery(schema, query);
-        break;
-    }
+    _PostgresqlQuery pgsqlQuery = new _PostgresqlQuery(schema, query);
+    pgsqlQuery.logger = logger;
+
+    var statement = pgsqlQuery.statement;
+    statement.compile();
+
+    var formatString = statement.formatString;
+    var formatParameters = statement.formatParameters;
 
     return new Future(() async {
-      logger.info("Inquirer: Executing ${pgsqlQuery.string} ${pgsqlQuery.values}");
-
       try {
         var conn = await getDatabaseConnection();
+        if (pgsqlQuery.resultColumnNames != null && pgsqlQuery.resultColumnNames.length > 0) {
+          var results = await conn.query(formatString, formatParameters).toList();
+          logger?.info("Inquirer: Querying $formatString $formatParameters -- Yielded: $results");
 
-        if (pgsqlQuery.query.queryType == QueryType.fetch ||
-            pgsqlQuery.query.queryType == QueryType.update ||
-            pgsqlQuery.query.queryType == QueryType.insert) {
-          var result = await conn.query(pgsqlQuery.string, pgsqlQuery.values).toList();
-
-          logger.info("Inquirer: Received $result");
-
-          return mapRowsAccordingToQuery(result, pgsqlQuery);
+          return mapRowsAccordingToQuery(results, pgsqlQuery);
         } else {
-          return await conn.execute(pgsqlQuery.string, pgsqlQuery.values);
+          var result = await conn.execute(formatString, formatParameters);
+          logger?.info("Inquirer: Executing $formatString $formatParameters -- Yielded: $result");
+
+          return result;
         }
       } on PostgresqlException catch (e, stackTrace) {
+        logger.info("Inquirer: SQL Failed $formatString $formatParameters");
         throw interpretException(e, stackTrace);
       } on QueryException {
+        logger.info("Inquirer: Query Failed $formatString $formatParameters");
         rethrow;
       } catch (e, stackTrace) {
+        logger.info("Inquirer: Unknown Failure $formatString $formatParameters");
         throw new QueryException(500, e.toString(), -1, stackTrace: stackTrace);
       }
     });
@@ -180,14 +170,11 @@ class PostgresModelAdapter extends QueryAdapter {
             if (ownerRelationship.type == RelationshipType.hasMany) {
               var list = cacheObject.dynamicBacking[inverseKey];
               if (list == null) {
-                print("UHM $cacheObject $obj");
                 cacheObject.dynamicBacking[inverseKey] = [obj];
               } else {
-                print("WHOZZ $cacheObject $obj");
                 cacheObject.dynamicBacking[inverseKey].add(obj);
               }
             } else {
-              print("What?!");
               cacheObject.dynamicBacking[inverseKey] = obj;
             }
           }
@@ -206,7 +193,6 @@ class PostgresModelAdapter extends QueryAdapter {
       });
     });
 
-    print("${objectCache}");
     return objectCache[query.query.entity].values.toList();
   }
 

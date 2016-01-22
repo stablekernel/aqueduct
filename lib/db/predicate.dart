@@ -51,6 +51,14 @@ class Predicate {
 
     return new Predicate(predicateFormat, valueMap);
   }
+
+  void prefixKeysWith(String prefix) {
+    _format = _format?.replaceAll("@", "@$prefix");
+    var keys = _parameters?.keys;
+    keys?.forEach((k) {
+      _parameters["@$prefix$k"] = _parameters[k];
+    });
+  }
 }
 
 class PredicateException implements Exception {
