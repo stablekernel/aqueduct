@@ -225,6 +225,9 @@ void main() {
     matcher["owner"] = whereRelatedByValue(u1.id);
     req = new Query<GenPost>()..predicate = matcher.predicate;
     res = await req.fetch(adapter);
+
+    GenUser user = res.first.owner;
+    expect(user, isNotNull);
     expect(res.length, 5);
     expect(res.map((p) => p.text)
             .where((text) => num.parse(text) % 2 == 0)

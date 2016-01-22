@@ -6,11 +6,18 @@ class ModelQuery<T extends Model> extends Query<T> {
 
   Map<String, dynamic> _map = {};
   Map<String, Query> get subQueries {
-    var subKeys = _map.keys.where((k) {
-      return _matcherIsSubquery(_map[k]);
-    }).toList();
+    var map = {};
+    _map.forEach((k, m) {
+      if (_matcherIsSubquery(m)) {
+        if (m is List) {
+          map[k] = m.first;
+        } else {
+          map[k] = m;
+        }
+      }
+    });
 
-    return new Map.fromIterables(subKeys, _map.keys.map((key) => _map[key]));
+    return map;
   }
 
   void set subQueries(Map<String, Query> e) { throw new QueryException(500, "Cannot set subQueries of ModelQuery, it is dervied.", -1);}
@@ -55,30 +62,6 @@ class ModelQuery<T extends Model> extends Query<T> {
     }
 
     return expr.getPredicate(entity.tableName, propertyKey, index);
-  }
-
-  List<JoinElement> _joinElementsForPropertyName(String property) {
-    var joinMatcher = _map[property];
-    if (joinMatcher == null) {
-      return [];
-    }
-
-    var joinElements = [];
-    if (_matcherIsSubquery(joinMatcher)) {
-      ModelQuery actualMatcher = (joinMatcher is ModelQuery ? joinMatcher : joinMatcher.first);
-      var propertyMirror = entity._propertyMirrorForProperty(property);
-      var joinTableName = actualMatcher.entity.tableName;
-      var relationship = entity._relationshipAttributeForPropertyMirror(propertyMirror);
-      var propertyNameOnJoinEntity = relationship.inverseKey;
-      var foreignKey = actualMatcher.entity.foreignKeyForProperty(propertyNameOnJoinEntity);
-      var referencedKey = relationship.referenceKey ?? entity.primaryKey;
-
-      var element = new JoinElement("left outer", joinTableName, "${entity.tableName}.${referencedKey}", "${joinTableName}.$foreignKey");
-      joinElements.add(element);
-      //joinElements.addAll(actualMatcher.joinElements);
-    }
-
-    return joinElements;
   }
 
   dynamic _createSubqueryForPropertyName(String propertyName) {

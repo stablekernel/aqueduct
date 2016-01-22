@@ -145,4 +145,12 @@ class ModelEntity {
 
     return null;
   }
+
+  int get hashCode {
+    return tableName.hashCode;
+  }
+
+  operator ==(ModelEntity other) {
+    return tableName == other.tableName;
+  }
 }

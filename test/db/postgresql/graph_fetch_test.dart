@@ -4,6 +4,7 @@ import 'dart:async';
 
 void main() {
   PostgresModelAdapter adapter;
+  var userNames = ["Joe", "Fred", "Bob", "John", "Sally"];
 
   setUpAll(() async {
     new Logger("monadart").onRecord.listen((rec) => print("$rec"));
@@ -12,8 +13,6 @@ void main() {
     await generateTemporarySchemaFromModels(adapter, [User, Equipment, Location]);
 
     // Create a bunch of sample data
-
-    var userNames = ["Joe", "Fred", "Bob", "John", "Sally"];
     var users = await Future.wait(userNames.map((name) {
       var q = new Query<User>()
           ..valueObject = (new User()..name = name);
@@ -57,6 +56,19 @@ void main() {
     adapter = null;
   });
 
+  test("Graph fetch ensures primary key exists for all objects", () async {
+    // Can't join on entities without primary key, if you omit primary key it is automaically added.
+    var q = new UserQuery()
+        ..resultKeys = ["name"]
+        ..locations.single
+          ..resultKeys = ["name"];
+    print("${q.subQueries}");
+  });
+
+  test("Graph fetch ensures foreign key exists for all objects", () async {
+
+  });
+
   test("Can still get object", () async {
     var q = new UserQuery()
         ..id = 1;
@@ -79,14 +91,48 @@ void main() {
     expect(loc.equipment, isNull);
   });
 
-  test("Can join with one table, get all", () async {
-    print("Start");
+  test("Can do one level join with single root object", () async {
     var q = new UserQuery()
         ..id = 1
         ..locations = whereAnyMatch;
-    var user = (await q.fetch(adapter)).first;
+    var users = await q.fetch(adapter);
+    expect(users.length, 1);
+
+    var user = users.first;
     expect(user.id, 1);
     expect(user.locations.length, 2);
+  });
+
+  test("can do onelevel join with multiple root object", () async {
+    var q = new UserQuery()
+      ..locations = whereAnyMatch;
+    var users = await q.fetch(adapter);
+    expect(users.length, 5);
+
+    users.sort((u1, u2) => u1.id - u2.id);
+
+    expect(users[0].name, userNames[0]);
+    expect(users[0].locations.length, 2);
+
+    expect(users[1].name, userNames[1]);
+    expect(users[1].locations.length, 2);
+
+    expect(users[2].name, userNames[2]);
+    expect(users[2].locations.length, 1);
+
+    expect(users[3].name, userNames[3]);
+    expect(users[3].locations.length, 1);
+
+    expect(users[4].name, userNames[4]);
+    expect(users[4].locations, hasLength(0));
+  });
+
+  test("Can join two tables", () async {
+    fail("NYI");
+  });
+
+  test("Cyclic model graph still works", () async {
+    fail("NYI");
   });
 
 }

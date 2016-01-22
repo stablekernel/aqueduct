@@ -3,8 +3,16 @@ part of monadart;
 class _MappingElement {
   final String modelKey;
   final String databaseKey;
+  final Type modelType;
+  final Type destinationType;
+  final ModelEntity entity;
+  final ModelEntity destinationEntity;
 
-  const _MappingElement(this.modelKey, this.databaseKey);
+  const _MappingElement(this.modelType, this.entity, this.modelKey, this.databaseKey, this.destinationType, this.destinationEntity);
+
+  String toString() {
+    return "$modelType.$modelKey -> $databaseKey";
+  }
 }
 
 class _PostgresqlQuery {
@@ -15,9 +23,8 @@ class _PostgresqlQuery {
   List<_MappingElement> resultMappingElements;
 
   void preprocess() {
-    resultMappingElements = mappingElementsFromQuery(query);
+    resultMappingElements = mappingElementsFromQuery(schema, query);
     if (query.pageDescriptor != null) {
-      // // select * from t where id < 11 order by id desc limit 5
       if (query.pageDescriptor.referenceValue != null) {
         var operator = (query.pageDescriptor.direction == PageDirection.after ? ">" : "<");
         var pagePredicate = new Predicate("${query.pageDescriptor.referenceKey} ${operator} @inq_page_value",
@@ -41,29 +48,45 @@ class _PostgresqlQuery {
     }
   }
 
-  List<_MappingElement> mappingElementsFromQuery(Query query) {
-    var table = schema.tables[query.modelType];
+  static List<_MappingElement> mappingElementsFromQuery(PostgresqlSchema sqlSchema, Query query) {
+    var mapElements = [];
+
+    var table = sqlSchema.tables[query.modelType];
     if (query.resultKeys == null) {
       var columns = table.columns;
 
-      return columns.keys
+      mapElements.addAll(columns.keys
           .where((k) => columns[k].isRealColumn && !columns[k].shouldOmitFromDefaultSet)
-          .map((modelKey) => new _MappingElement(modelKey, "${table.name}.${columns[modelKey].name}"))
-          .toList();
+          .map((modelKey) => new _MappingElement(query.modelType,
+            query.entity,
+            modelKey,
+            "${table.name}.${columns[modelKey].name}",
+            columns[modelKey].relationship?.destinationType,
+            columns[modelKey].relationship?.entity)));
+    } else {
+      var columns = table.columns;
+      var elements = query.resultKeys.map((modelKey) {
+        var col = columns[modelKey];
+        if (col == null) {
+          throw new QueryException(500, "Attempting to retrieve $modelKey from ${query.modelType}, but that key doesn't exist.", -1);
+        }
+
+        var columnKey = columns[modelKey].name;
+        return new _MappingElement(query.modelType,
+            query.entity, modelKey,
+            "${table.name}.$columnKey",
+            columns[modelKey].relationship?.destinationType,
+            columns[modelKey].relationship?.entity);
+      });
+      mapElements.addAll(elements);
     }
 
-    var columns = table.columns;
-    var elements = query.resultKeys.map((modelKey) {
-      var col = columns[modelKey];
-      if (col == null) {
-        throw new QueryException(500, "Attempting to retrieve $modelKey from ${query.modelType}, but that key doesn't exist.", -1);
-      }
-
-      var columnKey = columns[modelKey].name;
-      return new _MappingElement(modelKey, "${table.name}.$columnKey");
-    });
-
-    return elements.toList();
+    if (query.subQueries != null) {
+      query.subQueries.forEach((_, subquery) {
+        mapElements.addAll(_PostgresqlQuery.mappingElementsFromQuery(sqlSchema, subquery));
+      });
+    }
+    return mapElements;
   }
 
   Map<String, dynamic> columnValueMapForObject(Model valueObject) {
@@ -168,7 +191,7 @@ class _PostgresqlFetchQuery extends _PostgresqlQuery {
     queryStringBuffer.write("from ${query.entity.tableName} ");
 
     joinStrings?.forEach((str) {
-      queryStringBuffer.writeln(" $str ");
+      queryStringBuffer.write(" $str ");
     });
 
     if (query.predicate != null) {
@@ -198,13 +221,31 @@ class _PostgresqlFetchQuery extends _PostgresqlQuery {
     if (query.subQueries == null || query.subQueries.length == 0) {
       return null;
     }
-    List<String> commands = [];
     var cmds = query.subQueries.keys.map((subqueryPropertyKey) {
-
+      var thisJoin = joinStringsForQuery(subqueryPropertyKey, query);
+      return thisJoin;
     });
 
     return cmds.expand((element) => element).toList();
-//      queryStringBuffer.write("${je.joinType} join ${je.joinTable} on (${je.lhsColumn}=${je.rhsColumn}) ");
+  }
+
+  static List<String> joinStringsForQuery(String subqueryPropertyKey, Query query) {
+    var subquery = query.subQueries[subqueryPropertyKey];
+    var propertyMirror = query.entity._propertyMirrorForProperty(subqueryPropertyKey);
+    var joinTableName = subquery.entity.tableName;
+    var relationship = subquery.entity._relationshipAttributeForPropertyMirror(propertyMirror);
+    var propertyNameOnJoinEntity = relationship.inverseKey;
+    var foreignKey = subquery.entity.foreignKeyForProperty(propertyNameOnJoinEntity);
+    var referencedKey = relationship.referenceKey ?? query.entity.primaryKey;
+
+    var thisQuery = ["left outer join $joinTableName on (${query.entity.tableName}.${referencedKey}=${joinTableName}.$foreignKey)"];
+
+    var subqueryJoins = subquery.subQueries?.keys?.map((k) => joinStringsForQuery(k, subquery))?.toList();
+    if (subqueryJoins != null) {
+      var expanded = subqueryJoins.expand((e) => e).toList();
+      thisQuery.addAll(expanded);
+    }
+    return thisQuery;
   }
 }
 

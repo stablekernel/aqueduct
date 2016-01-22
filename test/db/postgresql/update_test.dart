@@ -66,6 +66,7 @@ void main() {
       ..valueObject = (new Child()..parent = null);
     child = (await q.update(adapter)).first;
     expect(child.parent, isNull);
+
   });
 
   test("Updating non-existant object fails", () async {});

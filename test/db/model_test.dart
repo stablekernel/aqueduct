@@ -301,7 +301,6 @@ main() {
     expect(u.posts[0].id, 1);
     expect(u.posts[0].text, "Hi");
   });
-
 }
 
 @proxy

@@ -39,7 +39,6 @@ class Query<ModelType extends Model> {
 
   Query.withModelType(this._modelType) {
     entity = ModelEntity.entityForType(this._modelType);
-    print("Inc type: $_modelType $entity");
   }
 
   Type _modelType;

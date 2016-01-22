@@ -121,33 +121,138 @@ class PostgresModelAdapter extends QueryAdapter {
   }
 
   List<Model> mapRowsAccordingToQuery(List<Row> rows, _PostgresqlQuery query) {
-    ClassMirror modelClassMirror = reflectClass(query.query.modelType);
-    var table = schema.tables[query.query.modelType];
+    var representedEntities = new Set.from(query.resultMappingElements.map((e) => e.entity));
+    Map<ModelEntity, Map<dynamic, dynamic>> objectCache = new Map.fromIterable(representedEntities, key: (e) => e, value: (e) => {});
+    Map<ModelEntity, _RowRange> entityRowRangeMap = rangeMapForQuery(query);
+    List<Model> instantiatedObjects = [];
+    Map<ModelEntity, ClassMirror> entityToModelClassMirrorMapping = new Map.fromIterable(representedEntities, key: (k) => k, value: (entity) {
+      return reflectClass(query.resultMappingElements.firstWhere((e) => e.entity == entity).modelType);
+    });
 
-    return rows.map((row) {
-      var instance = modelClassMirror.newInstance(new Symbol(""), []).reflectee;
+    rows.forEach((row) {
+      var rowItems = row.toList();
+      entityRowRangeMap.keys.forEach((entity) {
+        var range = entityRowRangeMap[entity];
+        var entityCache = objectCache[entity];
 
-      var map = new Map.fromIterables(query.resultMappingElements.map((m) => m.modelKey), row.toList());
+        var objectValues = rowItems.sublist(range.startIndex, range.endIndex + 1);
+        var pkValue = objectValues[range.primaryKeyInnerIndex];
+        if (pkValue == null) {
+          return;
+        }
 
-      // Replace any foreign keys with embedded object
-      query.resultMappingElements.forEach((e) {
-        var column = table.columns[e.modelKey];
-        var value = map[e.modelKey];
-        if (column.relationship != null && value != null) {
-          var innerKey = column.relationship.destinationModelKey;
-
-          var innerMap = {innerKey: value};
-          var innerModel = reflectClass(column.relationship.destinationType).newInstance(new Symbol(""), []).reflectee;
-          mapToModel(innerModel, innerMap);
-
-          map[e.modelKey] = innerModel;
+        var existingObject = entityCache[pkValue];
+        if (existingObject == null) {
+          var newObject = instantiateObject(entityToModelClassMirrorMapping[entity], range, objectValues);
+          entityCache[pkValue] = newObject;
+          instantiatedObjects.add(newObject);
         }
       });
+    });
 
-      mapToModel(instance, map);
+    // Sew up relationships, replace foreign keys with model objects.
+    instantiatedObjects.forEach((obj) {
+      for (var key in obj.dynamicBacking.keys) {
+        var value = obj.dynamicBacking[key];
+        if (value is _DelayedInstance) {
+          var entityCache = objectCache[value.entity];
+          if (entityCache == null) {
+            entityCache = {};
+            objectCache[value.entity] = entityCache;
+          }
 
-      return instance;
-    }).toList();
+          var cacheObject = entityCache[value.value];
+          bool relatedObjectWasInResultSet = true;
+          if (cacheObject == null) {
+            relatedObjectWasInResultSet = false;
+            cacheObject = reflectClass(value.type).newInstance(new Symbol(""), []).reflectee;
+            cacheObject.dynamicBacking[value.entity.primaryKey] = value.value;
+            entityCache[value.value] = cacheObject;
+          }
+
+          obj.dynamicBacking[key] = cacheObject;
+          if(relatedObjectWasInResultSet) {
+            // Set opposite side of relationship
+            var belongToRelationship = obj.entity.relationshipAttributeForProperty(key);
+            var inverseKey = belongToRelationship.inverseKey;
+            var ownerRelationship = cacheObject.entity.relationshipAttributeForProperty(inverseKey);
+            if (ownerRelationship.type == RelationshipType.hasMany) {
+              var list = cacheObject.dynamicBacking[inverseKey];
+              if (list == null) {
+                cacheObject.dynamicBacking[inverseKey] = [obj];
+              } else {
+                cacheObject.dynamicBacking[inverseKey].add(obj);
+              }
+            } else {
+              cacheObject[inverseKey] = obj;
+            }
+          }
+        }
+      }
+    });
+
+    // Set any to-many relationships we wanted to fetch that yielded no results to the empty list
+    var expectedRelationships = expectedRelationshipsForQuery(query.query);
+
+    expectedRelationships.forEach((modelType, propertyName) {
+      instantiatedObjects.where((o) => o.runtimeType == modelType)?.forEach((m) {
+        if (m.dynamicBacking[propertyName] == null) {
+          m.dynamicBacking[propertyName] = [];
+        }
+      });
+    });
+
+    return objectCache[query.query.entity].values.toList();
+  }
+
+  dynamic instantiateObject(ClassMirror modelTypeMirror, _RowRange range, List<dynamic> objectValues) {
+    Model model = modelTypeMirror.newInstance(new Symbol(""), []).reflectee;
+    var propertyIterator = range.innerMappingElements.iterator;
+    objectValues.forEach((value) {
+      propertyIterator.moveNext();
+      var key = propertyIterator.current.modelKey;
+      if (propertyIterator.current.destinationEntity != null) {
+        if (value != null) {
+          model.dynamicBacking[key] = new _DelayedInstance(propertyIterator.current.destinationType,
+              propertyIterator.current.destinationEntity, value);
+        }
+      } else {
+        model.dynamicBacking[key] = value;
+      }
+    });
+    return model;
+  }
+
+  Map<ModelEntity, _RowRange> rangeMapForQuery(_PostgresqlQuery query) {
+    Map<ModelEntity, _RowRange> entityRowRangeMap = {};
+    ModelEntity currentEntity;
+    var startIndex = 0;
+    var currentEntityPrimaryKey;
+    var lastNoticedPrimaryKeyIndex = 0;
+    for (int i = 0; i < query.resultMappingElements.length; i++) {
+      var mapElement = query.resultMappingElements[i];
+      if (currentEntity != mapElement.entity) {
+        if (currentEntity != null) {
+          entityRowRangeMap[currentEntity] = new _RowRange(startIndex,
+              i - 1,
+              lastNoticedPrimaryKeyIndex - startIndex,
+              query.resultMappingElements);
+        }
+        startIndex = i;
+        currentEntity = mapElement.entity;
+        currentEntityPrimaryKey = currentEntity.primaryKey;
+      }
+
+      if (mapElement.modelKey == currentEntityPrimaryKey) {
+        lastNoticedPrimaryKeyIndex = i;
+      }
+    }
+
+    entityRowRangeMap[currentEntity] = new _RowRange(startIndex,
+        query.resultMappingElements.length - 1,
+        lastNoticedPrimaryKeyIndex - startIndex,
+        query.resultMappingElements);
+    return entityRowRangeMap;
   }
 
   void mapToModel(Model object, Map<String, dynamic> values) {
@@ -155,4 +260,33 @@ class PostgresModelAdapter extends QueryAdapter {
       object.dynamicBacking[k] = v;
     });
   }
+
+  Map<Type, String> expectedRelationshipsForQuery(Query q) {
+    var m = {};
+    q.subQueries?.forEach((k, subQuery) {
+      m[q.modelType] = k;
+      m.addAll(expectedRelationshipsForQuery(subQuery));
+    });
+
+    return m;
+  }
+}
+
+class _RowRange {
+  final int startIndex;
+  final int endIndex;
+  final int primaryKeyInnerIndex;
+  List<_MappingElement> innerMappingElements;
+
+  _RowRange(int sIndex, int eIndex, this.primaryKeyInnerIndex, List<_MappingElement> outerMappingElements) :
+        startIndex = sIndex,
+        endIndex = eIndex,
+        innerMappingElements = outerMappingElements.sublist(sIndex, eIndex + 1);
+}
+
+class _DelayedInstance {
+  final dynamic value;
+  final ModelEntity entity;
+  final Type type;
+  _DelayedInstance(this.type, this.entity, this.value);
 }
