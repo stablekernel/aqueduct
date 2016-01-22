@@ -4,7 +4,7 @@ import 'dart:async';
 
 void main() {
   PostgresModelAdapter adapter;
-  var userNames = ["Joe", "Fred", "Bob", "John", "Sally"];
+  List<User> sourceUsers;
 
   setUpAll(() async {
     new Logger("monadart").onRecord.listen((rec) => print("$rec"));
@@ -12,8 +12,9 @@ void main() {
         null, "dart", "dart", "localhost", 5432, "dart_test");
     await generateTemporarySchemaFromModels(adapter, [User, Equipment, Location]);
 
+    var userNames = ["Joe", "Fred", "Bob", "John", "Sally"];
     // Create a bunch of sample data
-    var users = await Future.wait(userNames.map((name) {
+    sourceUsers = await Future.wait(userNames.map((name) {
       var q = new Query<User>()
           ..valueObject = (new User()..name = name);
       return q.insert(adapter);
@@ -29,10 +30,11 @@ void main() {
       });
     };
 
-    var joeLocations = await Future.wait(locationCreator(["Crestridge", "SK"], users[0]));
-    var fredLocations = await Future.wait(locationCreator(["Krog St", "Dumpster"], users[1]));
-    var bobLocations = await Future.wait(locationCreator(["Omaha"], users[2]));
-    await Future.wait(locationCreator(["London"], users[3]));
+    sourceUsers[0].locations = await Future.wait(locationCreator(["Crestridge", "SK"], sourceUsers[0]));
+    sourceUsers[1].locations = await Future.wait(locationCreator(["Krog St", "Dumpster"], sourceUsers[1]));
+    sourceUsers[2].locations = await Future.wait(locationCreator(["Omaha"], sourceUsers[2]));
+    sourceUsers[3].locations = await Future.wait(locationCreator(["London"], sourceUsers[3]));
+    sourceUsers[4].locations = [];
 
     var equipmentCreator = (List<List<String>> pairs, Location loc) {
       return pairs.map((pair) {
@@ -45,10 +47,12 @@ void main() {
       });
     };
 
-    await Future.wait(equipmentCreator([["Fridge", "Appliance"], ["Microwave", "Appliance"]], joeLocations.first));
-    await Future.wait(equipmentCreator([["Computer", "Electronics"]], joeLocations.last));
-    await Future.wait(equipmentCreator([["Cash Register", "Admin"]], fredLocations.first));
-    await Future.wait(equipmentCreator([["Fire Truck", "Vehicle"]], bobLocations.first));
+    sourceUsers[0].locations.first.equipment = await Future.wait(equipmentCreator([["Fridge", "Appliance"], ["Microwave", "Appliance"]], sourceUsers[0].locations.first));
+    sourceUsers[0].locations.last.equipment = await Future.wait(equipmentCreator([["Computer", "Electronics"]], sourceUsers[0].locations.last));
+    sourceUsers[1].locations.first.equipment = await Future.wait(equipmentCreator([["Cash Register", "Admin"]], sourceUsers[1].locations.first));
+    sourceUsers[2].locations.first.equipment = await Future.wait(equipmentCreator([["Fire Truck", "Vehicle"]], sourceUsers[2].locations.first));
+
+    print("$sourceUsers");
   });
 
   tearDownAll(() {
@@ -88,6 +92,7 @@ void main() {
     var loc = await q.fetchOne(adapter);
     expect(loc.id, 1);
     expect(loc.user.id, 1);
+    expect(loc.user.name, isNull);
     expect(loc.equipment, isNull);
   });
 
@@ -99,11 +104,13 @@ void main() {
     expect(users.length, 1);
 
     var user = users.first;
-    expect(user.id, 1);
-    expect(user.locations.length, 2);
+    var sourceUserTruncated = new User.fromUser(sourceUsers.firstWhere((u) => u.id == 1));
+    sourceUserTruncated.locations.first.equipment = null;
+    sourceUserTruncated.locations.last.equipment = null;
+    expect(user, equals(sourceUserTruncated));
   });
 
-  test("can do onelevel join with multiple root object", () async {
+  test("Can do one level join with multiple root object", () async {
     var q = new UserQuery()
       ..locations = whereAnyMatch;
     var users = await q.fetch(adapter);
@@ -111,33 +118,84 @@ void main() {
 
     users.sort((u1, u2) => u1.id - u2.id);
 
-    expect(users[0].name, userNames[0]);
-    expect(users[0].locations.length, 2);
+    var sourceUsersTruncuated = sourceUsers.map((u) {
+      var uu = new User.fromUser(u);
+      uu.locations.forEach((loc) => loc.equipment = null);
+      return uu;
+    }).toList();
 
-    expect(users[1].name, userNames[1]);
-    expect(users[1].locations.length, 2);
+    sourceUsersTruncuated.sort((u1, u2) => u1.id - u2.id);
 
-    expect(users[2].name, userNames[2]);
-    expect(users[2].locations.length, 1);
-
-    expect(users[3].name, userNames[3]);
-    expect(users[3].locations.length, 1);
-
-    expect(users[4].name, userNames[4]);
-    expect(users[4].locations, hasLength(0));
+    for (var i = 0; i < users.length; i++) {
+      expect(users[i], equals(sourceUsersTruncuated[i]));
+    }
   });
 
-  test("Can join two tables", () async {
+  test("Can join two tables, single root object", () async {
+    var q = new UserQuery()
+      ..id = 1
+      ..locations.single.id = whereGreaterThanEqualTo(5)
+      ..locations.single.equipment = whereAnyMatch;
+
+    var users = await q.fetch(adapter);
+
+    expect(users.first, equals(sourceUsers.first));
+  });
+
+  test("Can join from middle of graph", () async {
     fail("NYI");
   });
+
+  test("ToOne relationships are null if not available", () async {
+    fail("NYI");
+  });
+
 
   test("Cyclic model graph still works", () async {
     fail("NYI");
   });
-
 }
 
-class User extends Model<_User> implements _User {}
+class User extends Model<_User> implements _User {
+  User();
+  User.fromUser(User u) {
+    this
+        ..id = u.id
+        ..name = u.name
+        ..locations = u.locations?.map((l) => new Location.fromLocation(l))?.toList();
+  }
+  operator == (User other) {
+    var propsEqual = this.id == other.id && this.name == other.name;
+    if (!propsEqual) {
+      return false;
+    }
+
+    if(this.locations == null && other.locations == null) {
+      return true;
+    }
+
+    if(this.locations == null || other.locations == null) {
+      return false;
+    }
+
+    if (this.locations.length != other.locations.length) {
+      return false;
+    }
+    for (var i = 0; i < this.locations.length; i++) {
+      if (this.locations[i] != other.locations[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
+  int get hashCode {
+    return this.id;
+  }
+
+  String toString() {
+    return "User: $id $name L: $locations";
+  }
+}
 class UserQuery extends ModelQuery<User> implements _User {}
 class _User {
   @Attributes(primaryKey: true, databaseType: "bigserial")
@@ -149,7 +207,45 @@ class _User {
   List<Location> locations;
 }
 
-class Location extends Model<_Location> implements _Location {}
+class Location extends Model<_Location> implements _Location {
+  Location();
+  Location.fromLocation(Location loc) {
+    this
+        ..id = loc.id
+        ..name = loc.name
+        ..equipment = loc.equipment?.map((eq) => new Equipment.fromEquipment(eq))?.toList()
+        ..user = loc.user != null ? (new User()..id = loc.user.id) : null;
+  }
+  operator == (Location other) {
+    var propTruth = this.id == other.id && this.name == other.name && this.user?.id == other.user?.id;
+    if (!propTruth) {
+      return false;
+    }
+    if(this.equipment == null && other.equipment == null) {
+      return true;
+    }
+    if(this.equipment == null || other.equipment == null) {
+      return false;
+    }
+    if (this.equipment.length != other.equipment.length) {
+      return false;
+    }
+    for (var i = 0; i < this.equipment.length; i++) {
+      if (this.equipment[i] != other.equipment[i]) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+  int get hashCode {
+    return this.id;
+  }
+
+  String toString() {
+    return "Location: $id $name FK: ${user?.id} EQ: $equipment";
+  }
+}
 class LocationQuery extends ModelQuery<Location> implements _Location {}
 class _Location {
   @Attributes(primaryKey: true, databaseType: "bigserial")
@@ -164,7 +260,26 @@ class _Location {
   List<Equipment> equipment;
 }
 
-class Equipment extends Model<_Equipment> implements _Equipment {}
+class Equipment extends Model<_Equipment> implements _Equipment {
+  Equipment();
+  Equipment.fromEquipment(Equipment eq) {
+    this
+        ..id = eq.id
+        ..name = eq.name
+        ..type = eq.type
+        ..location = eq.location != null ? (new Location()..id = eq.location.id) : null;
+  }
+  int get hashCode {
+    return this.id;
+  }
+  operator == (Equipment other) {
+    return this.id == other.id && this.name == other.name && this.type == other.type && this.location?.id == other.location?.id;
+  }
+
+  String toString() {
+    return "Equipment: $id $name $type FK: ${location.id}";
+  }
+}
 class EquipmentQuery extends ModelQuery<Equipment> implements _Equipment {}
 class _Equipment {
   @Attributes(primaryKey: true, databaseType: "bigserial")

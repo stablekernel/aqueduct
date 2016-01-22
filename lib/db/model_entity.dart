@@ -153,4 +153,8 @@ class ModelEntity {
   operator ==(ModelEntity other) {
     return tableName == other.tableName;
   }
+
+  String toString() {
+    return "ModelEntity on $tableName";
+  }
 }

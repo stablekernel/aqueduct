@@ -176,15 +176,19 @@ class PostgresModelAdapter extends QueryAdapter {
             var belongToRelationship = obj.entity.relationshipAttributeForProperty(key);
             var inverseKey = belongToRelationship.inverseKey;
             var ownerRelationship = cacheObject.entity.relationshipAttributeForProperty(inverseKey);
+
             if (ownerRelationship.type == RelationshipType.hasMany) {
               var list = cacheObject.dynamicBacking[inverseKey];
               if (list == null) {
+                print("UHM $cacheObject $obj");
                 cacheObject.dynamicBacking[inverseKey] = [obj];
               } else {
+                print("WHOZZ $cacheObject $obj");
                 cacheObject.dynamicBacking[inverseKey].add(obj);
               }
             } else {
-              cacheObject[inverseKey] = obj;
+              print("What?!");
+              cacheObject.dynamicBacking[inverseKey] = obj;
             }
           }
         }
@@ -192,16 +196,17 @@ class PostgresModelAdapter extends QueryAdapter {
     });
 
     // Set any to-many relationships we wanted to fetch that yielded no results to the empty list
-    var expectedRelationships = expectedRelationshipsForQuery(query.query);
-
-    expectedRelationships.forEach((modelType, propertyName) {
+    expectedRelationshipsForQuery(query.query).forEach((modelType, propertyName) {
       instantiatedObjects.where((o) => o.runtimeType == modelType)?.forEach((m) {
-        if (m.dynamicBacking[propertyName] == null) {
-          m.dynamicBacking[propertyName] = [];
+        if(m.entity.relationshipAttributeForProperty(propertyName).type == RelationshipType.hasMany) {
+          if (m.dynamicBacking[propertyName] == null) {
+            m.dynamicBacking[propertyName] = [];
+          }
         }
       });
     });
 
+    print("${objectCache}");
     return objectCache[query.query.entity].values.toList();
   }
 
@@ -253,12 +258,6 @@ class PostgresModelAdapter extends QueryAdapter {
         lastNoticedPrimaryKeyIndex - startIndex,
         query.resultMappingElements);
     return entityRowRangeMap;
-  }
-
-  void mapToModel(Model object, Map<String, dynamic> values) {
-    values.forEach((k, v) {
-      object.dynamicBacking[k] = v;
-    });
   }
 
   Map<Type, String> expectedRelationshipsForQuery(Query q) {

@@ -301,6 +301,10 @@ main() {
     expect(u.posts[0].id, 1);
     expect(u.posts[0].text, "Hi");
   });
+
+  test("Cyclic graphs are mapped without infinite loop", () {
+
+  });
 }
 
 @proxy
