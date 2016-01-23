@@ -12,7 +12,7 @@ enum _MatcherOperator {
 dynamic whereEqualTo(dynamic value) {
   return new _AssignmentMatcherExpression(value);
 }
-dynamic whereIn(List<dynamic> values) {
+dynamic whereIn(Iterable<dynamic> values) {
   return new _WithinMatcherExpression(values);
 }
 dynamic whereGreaterThan(dynamic value) {
