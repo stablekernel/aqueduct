@@ -132,7 +132,6 @@ class _PostgresqlStatement {
     }
 
     queryStringBuffer.write(")");
-    print("JOIN QVM: $queryValueMap");
     formatParameters = queryValueMap;
 
     return queryStringBuffer.toString();

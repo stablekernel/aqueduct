@@ -301,20 +301,6 @@ main() {
     expect(u.posts[0].id, 1);
     expect(u.posts[0].text, "Hi");
   });
-
-  test("One-level cyclic graphs are mapped without infinite recursion", () {
-    var u = new User()
-      ..value = "bar"
-      ..id = 2
-      ..dateCreated = new DateTime.now().toUtc();
-    u.posts = [new Post()
-      ..text = "Foo"
-      ..id = 1
-      ..owner = u];
-
-    var uMap = u.asMap();
-    print("$uMap");
-  });
 }
 
 @proxy
