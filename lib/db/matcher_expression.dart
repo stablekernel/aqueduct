@@ -12,7 +12,9 @@ enum _MatcherOperator {
 dynamic whereEqualTo(dynamic value) {
   return new _AssignmentMatcherExpression(value);
 }
-
+dynamic whereIn(List<dynamic> values) {
+  return new _WithinMatcherExpression(values);
+}
 dynamic whereGreaterThan(dynamic value) {
   return new _ComparisonMatcherExpression(value, _MatcherOperator.greaterThan);
 }
@@ -121,6 +123,17 @@ class _IncludeModelMatcherExpression implements MatcherExpression {
     return null;
   }
 }
+
+class _WithinMatcherExpression implements MatcherExpression {
+  List<dynamic> values;
+  _WithinMatcherExpression(this.values);
+
+  Predicate getPredicate(String prefix, String propertyName) {
+    return new Predicate("$prefix.$propertyName in (${values.join(",")})",  {});
+  }
+
+}
+
 
 class PredicateMatcherException {
   String message;
