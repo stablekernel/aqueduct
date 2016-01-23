@@ -3,69 +3,13 @@ import 'package:monadart/monadart.dart';
 import 'dart:async';
 
 void main() {
-  PostgresModelAdapter adapter;
-  List<User> sourceUsers;
-
-  setUpAll(() async {
-    new Logger("monadart").onRecord.listen((rec) => print("$rec"));
-    adapter = new PostgresModelAdapter.fromConnectionInfo(
-        null, "dart", "dart", "localhost", 5432, "dart_test");
-    await generateTemporarySchemaFromModels(adapter, [User, Equipment, Location]);
-
-    var userNames = ["Joe", "Fred", "Bob", "John", "Sally"];
-    // Create a bunch of sample data
-    sourceUsers = await Future.wait(userNames.map((name) {
-      var q = new Query<User>()
-          ..valueObject = (new User()..name = name);
-      return q.insert(adapter);
-    }));
-
-    var locationCreator = (List<String> names, User u) {
-      return names.map((name) {
-        var q = new Query<Location>()
-          ..valueObject = (new Location()
-            ..name = name
-            ..user = (new User()..id = u.id));
-        return q.insert(adapter);
-      });
-    };
-
-    sourceUsers[0].locations = await Future.wait(locationCreator(["Crestridge", "SK"], sourceUsers[0]));
-    sourceUsers[1].locations = await Future.wait(locationCreator(["Krog St", "Dumpster"], sourceUsers[1]));
-    sourceUsers[2].locations = await Future.wait(locationCreator(["Omaha"], sourceUsers[2]));
-    sourceUsers[3].locations = await Future.wait(locationCreator(["London"], sourceUsers[3]));
-    sourceUsers[4].locations = [];
-
-    var equipmentCreator = (List<List<String>> pairs, Location loc) {
-      return pairs.map((pair) {
-        var q = new Query<Equipment>()
-          ..valueObject = (new Equipment()
-            ..name = pair.first
-            ..type = pair.last
-            ..location = (new Location()..id = loc.id));
-        return q.insert(adapter);
-      });
-    };
-
-    sourceUsers[0].locations.first.equipment = await Future.wait(equipmentCreator([["Fridge", "Appliance"], ["Microwave", "Appliance"]], sourceUsers[0].locations.first));
-    sourceUsers[0].locations.last.equipment = await Future.wait(equipmentCreator([["Computer", "Electronics"]], sourceUsers[0].locations.last));
-    sourceUsers[1].locations.first.equipment = await Future.wait(equipmentCreator([["Cash Register", "Admin"]], sourceUsers[1].locations.first));
-    sourceUsers[1].locations.last.equipment = [];
-    sourceUsers[2].locations.first.equipment = await Future.wait(equipmentCreator([["Fire Truck", "Vehicle"]], sourceUsers[2].locations.first));
-    sourceUsers[3].locations.first.equipment = [];
-  });
-
-  tearDownAll(() {
-    adapter.close();
-    adapter = null;
-  });
 
   test("Graph fetch ensures primary key exists for all objects", () async {
     // Can't join on entities without primary key, if you omit primary key it is automaically added.
     var q = new UserQuery()
-        ..resultKeys = ["name"]
-        ..locations.single
-          ..resultKeys = ["name"];
+      ..resultKeys = ["name"]
+      ..locations.single
+      ..resultKeys = ["name"];
     print("${q.subQueries}");
   });
 
@@ -73,112 +17,410 @@ void main() {
 
   });
 
-  test("Can still get object", () async {
-    var q = new UserQuery()
+  group("Tomany graph", () {
+    PostgresModelAdapter adapter;
+    List<User> sourceUsers;
+
+    setUpAll(() async {
+      adapter = new PostgresModelAdapter.fromConnectionInfo(
+          null, "dart", "dart", "localhost", 5432, "dart_test");
+      await generateTemporarySchemaFromModels(
+          adapter, [User, Equipment, Location]);
+
+      var userNames = ["Joe", "Fred", "Bob", "John", "Sally"];
+      // Create a bunch of sample data
+      sourceUsers = await Future.wait(userNames.map((name) {
+        var q = new Query<User>()
+          ..valueObject = (new User()
+            ..name = name);
+        return q.insert(adapter);
+      }));
+
+      var locationCreator = (List<String> names, User u) {
+        return names.map((name) {
+          var q = new Query<Location>()
+            ..valueObject = (new Location()
+              ..name = name
+              ..user = (new User()
+                ..id = u.id));
+          return q.insert(adapter);
+        });
+      };
+
+      sourceUsers[0].locations =
+      await Future.wait(locationCreator(["Crestridge", "SK"], sourceUsers[0]));
+      sourceUsers[1].locations = await Future.wait(
+          locationCreator(["Krog St", "Dumpster"], sourceUsers[1]));
+      sourceUsers[2].locations =
+      await Future.wait(locationCreator(["Omaha"], sourceUsers[2]));
+      sourceUsers[3].locations =
+      await Future.wait(locationCreator(["London"], sourceUsers[3]));
+      sourceUsers[4].locations = [];
+
+      var equipmentCreator = (List<List<String>> pairs, Location loc) {
+        return pairs.map((pair) {
+          var q = new Query<Equipment>()
+            ..valueObject = (new Equipment()
+              ..name = pair.first
+              ..type = pair.last
+              ..location = (new Location()
+                ..id = loc.id));
+          return q.insert(adapter);
+        });
+      };
+
+      sourceUsers[0].locations.first.equipment = await Future.wait(
+          equipmentCreator(
+              [["Fridge", "Appliance"], ["Microwave", "Appliance"]],
+              sourceUsers[0].locations.first));
+      sourceUsers[0].locations.last.equipment = await Future.wait(
+          equipmentCreator(
+              [["Computer", "Electronics"]], sourceUsers[0].locations.last));
+      sourceUsers[1].locations.first.equipment = await Future.wait(
+          equipmentCreator(
+              [["Cash Register", "Admin"]], sourceUsers[1].locations.first));
+      sourceUsers[1].locations.last.equipment = [];
+      sourceUsers[2].locations.first.equipment = await Future.wait(
+          equipmentCreator(
+              [["Fire Truck", "Vehicle"]], sourceUsers[2].locations.first));
+      sourceUsers[3].locations.first.equipment = [];
+    });
+
+    tearDownAll(() {
+      adapter.close();
+      adapter = null;
+    });
+
+    test("Can still get object", () async {
+      var q = new UserQuery()
         ..id = 1;
-    var user = await q.fetchOne(adapter);
-    expect(user.id, 1);
-    expect(user.name, "Joe");
-    expect(user.locations, isNull);
+      var user = await q.fetchOne(adapter);
+      expect(user.id, 1);
+      expect(user.name, "Joe");
+      expect(user.locations, isNull);
 
-    q = new UserQuery();
-    var users = await q.fetch(adapter);
-    expect(users.length, 5);
-  });
+      q = new UserQuery();
+      var users = await q.fetch(adapter);
+      expect(users.length, 5);
+    });
 
-  test("Can still fetch objects with foreign keys", () async {
-    var q = new LocationQuery()
+    test("Can still fetch objects with foreign keys", () async {
+      var q = new LocationQuery()
         ..id = 1;
-    var loc = await q.fetchOne(adapter);
-    expect(loc.id, 1);
-    expect(loc.user.id, 1);
-    expect(loc.user.name, isNull);
-    expect(loc.equipment, isNull);
-  });
+      var loc = await q.fetchOne(adapter);
+      expect(loc.id, 1);
+      expect(loc.user.id, 1);
+      expect(loc.user.name, isNull);
+      expect(loc.equipment, isNull);
+    });
 
-  test("Keys with same name across table still yields appropriate result", () async {
+    test(
+        "Keys with same name across table still yields appropriate result", () async {
 
-  });
+    });
 
-  test("Can do one level join with single root object", () async {
-    var q = new UserQuery()
+    test("Can do one level join with single root object", () async {
+      var q = new UserQuery()
         ..id = 1
         ..locations = whereAnyMatch;
-    var users = await q.fetch(adapter);
-    expect(users.length, 1);
+      var users = await q.fetch(adapter);
+      expect(users.length, 1);
 
-    var user = users.first;
-    var sourceUserTruncated = new User.fromUser(sourceUsers.firstWhere((u) => u.id == 1));
-    sourceUserTruncated.locations.first.equipment = null;
-    sourceUserTruncated.locations.last.equipment = null;
-    expect(user, equals(sourceUserTruncated));
-  });
+      var user = users.first;
+      var sourceUserTruncated = new User.fromUser(
+          sourceUsers.firstWhere((u) => u.id == 1));
+      sourceUserTruncated.locations.first.equipment = null;
+      sourceUserTruncated.locations.last.equipment = null;
+      expect(user, equals(sourceUserTruncated));
 
-  test("Can do one level join with multiple root object", () async {
-    var q = new UserQuery()
-      ..locations = whereAnyMatch;
-    var users = await q.fetch(adapter);
-    expect(users.length, 5);
-
-    users.sort((u1, u2) => u1.id - u2.id);
-
-    var sourceUsersTruncuated = sourceUsers.map((u) {
-      var uu = new User.fromUser(u);
-      uu.locations.forEach((loc) => loc.equipment = null);
-      return uu;
-    }).toList();
-
-    sourceUsersTruncuated.sort((u1, u2) => u1.id - u2.id);
-
-    for (var i = 0; i < users.length; i++) {
-      expect(users[i], equals(sourceUsersTruncuated[i]));
-    }
-  });
-
-  test("Can two level join, single root object", () async {
-    var q = new UserQuery()
-      ..id = 1
-      ..locations.single.equipment = whereAnyMatch;
-
-    var users = await q.fetch(adapter);
-    expect(users.first, equals(sourceUsers.first));
-  });
-
-  test("Can two level join, multiple root objects", () async {
-    var q = new UserQuery()
-      ..locations.single.equipment = whereAnyMatch;
-
-    var users = await q.fetch(adapter);
-    expect(users, equals(sourceUsers));
-  });
-
-  test("Can two level join, multiple root objects, predicate on bottom", () async {
-    var q = new UserQuery()
-      ..locations.single.equipment = [new EquipmentQuery()
-        ..id = 1
-      ];
-
-    var users = await q.fetch(adapter);
-    var sourceTrunc = sourceUsers.map((u) => new User.fromUser(u)).toList();
-    sourceTrunc.forEach((User u) {
-      u.locations?.forEach((loc) {
-        loc.equipment = loc.equipment?.where((eq) => eq.id == 1).toList() ?? [];
+      var map = user.asMap();
+      expect(map, {
+        "id" : 1,
+        "name" : "Joe",
+        "locations" : [
+          {"id" : 1, "name" : "Crestridge", "user" : {"id" : 1}},
+          {"id" : 2, "name" : "SK", "user" : {"id" : 1}},
+        ]
       });
     });
-    expect(users, equals(sourceTrunc));
+
+    test("Can do one level join with multiple root object", () async {
+      var q = new UserQuery()
+        ..locations = whereAnyMatch;
+      var users = await q.fetch(adapter);
+      expect(users.length, 5);
+
+      users.sort((u1, u2) => u1.id - u2.id);
+
+      var sourceUsersTruncuated = sourceUsers.map((u) {
+        var uu = new User.fromUser(u);
+        uu.locations.forEach((loc) => loc.equipment = null);
+        return uu;
+      }).toList();
+
+      sourceUsersTruncuated.sort((u1, u2) => u1.id - u2.id);
+
+      for (var i = 0; i < users.length; i++) {
+        expect(users[i], equals(sourceUsersTruncuated[i]));
+      }
+
+      var mapList = users.map((u) => u.asMap()).toList();
+      expect(mapList, [
+        {"id" : 1,
+        "name" : "Joe",
+        "locations" : [
+          {"id" : 1, "name" : "Crestridge", "user" : {"id" : 1}},
+          {"id" : 2, "name" : "SK", "user" : {"id" : 1}},
+        ]},
+        {
+          "id" : 2,
+          "name" : "Fred",
+          "locations" : [
+            {"id" : 3, "name" : "Krog St", "user" : {"id" : 2}},
+            {"id" : 4, "name" : "Dumpster", "user" : {"id" : 2}}
+        ]},
+        {
+          "id" : 3,
+          "name" : "Bob",
+          "locations" : [
+            {"id" : 5, "name" : "Omaha", "user" : {"id" : 3}}
+        ]},
+        {
+          "id" : 4,
+          "name" : "John",
+          "locations" : [
+            {"id" : 6, "name" : "London", "user" : {"id" : 4}}
+        ]},
+        {
+          "id" : 5,
+          "name" : "Sally",
+          "locations" : []
+        }
+      ]);
+    });
+
+    test("Can two level join, single root object", () async {
+      var q = new UserQuery()
+        ..id = 1
+        ..locations.single.equipment = whereAnyMatch;
+
+      var users = await q.fetch(adapter);
+      expect(users.first, equals(sourceUsers.first));
+
+      var map = users.first.asMap();
+      expect(map, {
+        "id" : 1,
+        "name" : "Joe",
+        "locations" : [
+          {"id" : 1, "name" : "Crestridge", "user" : {"id" : 1}, "equipment" : [
+            {"id" : 1, "name" : "Fridge", "type" : "Appliance", "location" : {"id" : 1}},
+            {"id" : 2, "name" : "Microwave", "type" : "Appliance", "location" : {"id" : 1}}
+          ]},
+          {"id" : 2, "name" : "SK", "user" : {"id" : 1}, "equipment" : [
+            {"id" : 3, "name" : "Computer", "type" : "Electronics", "location" : {"id" : 2}}
+          ]},
+        ]
+      });
+
+    });
+
+    test("Can two level join, multiple root objects", () async {
+      var q = new UserQuery()
+        ..locations.single.equipment = whereAnyMatch;
+
+      var users = await q.fetch(adapter);
+      expect(users, equals(sourceUsers));
+
+      var mapList = users.map((u) => u.asMap()).toList();
+      expect(mapList, [
+        {"id" : 1,
+          "name" : "Joe",
+          "locations" : [
+            {"id" : 1, "name" : "Crestridge", "user" : {"id" : 1}, "equipment" : [
+              {"id" : 1, "name" : "Fridge", "type" : "Appliance", "location" : {"id" : 1}},
+              {"id" : 2, "name" : "Microwave", "type" : "Appliance", "location" : {"id" : 1}}
+            ]},
+            {"id" : 2, "name" : "SK", "user" : {"id" : 1}, "equipment" : [
+              {"id" : 3, "name" : "Computer", "type" : "Electronics", "location" : {"id" : 2}}
+            ]},
+          ]},
+        {
+          "id" : 2,
+          "name" : "Fred",
+          "locations" : [
+            {"id" : 3, "name" : "Krog St", "user" : {"id" : 2}, "equipment" : [
+              {"id" : 4, "name" : "Cash Register", "type" : "Admin", "location" : {"id" : 3}}
+            ]},
+            {"id" : 4, "name" : "Dumpster", "user" : {"id" : 2}, "equipment" : []}
+          ]},
+        {
+          "id" : 3,
+          "name" : "Bob",
+          "locations" : [
+            {"id" : 5, "name" : "Omaha", "user" : {"id" : 3}, "equipment" : [
+              {"id" : 5, "name" : "Fire Truck", "type" : "Vehicle", "location" : {"id" : 5}}
+            ]}
+          ]},
+        {
+          "id" : 4,
+          "name" : "John",
+          "locations" : [
+            {"id" : 6, "name" : "London", "user" : {"id" : 4}, "equipment" : []}
+          ]},
+        {
+          "id" : 5,
+          "name" : "Sally",
+          "locations" : []
+        }
+      ]);
+    });
+
+    test("Can two level join, multiple root objects, predicate on bottom", () async {
+      var q = new UserQuery()
+        ..locations.single.equipment = [new EquipmentQuery()
+          ..id = 1
+        ];
+
+      var users = await q.fetch(adapter);
+      var sourceTrunc = sourceUsers.map((u) => new User.fromUser(u)).toList();
+      sourceTrunc.forEach((User u) {
+        u.locations?.forEach((loc) {
+          loc.equipment =
+              loc.equipment?.where((eq) => eq.id == 1).toList() ?? [];
+        });
+      });
+      expect(users, equals(sourceTrunc));
+
+      var mapList = users.map((u) => u.asMap()).toList();
+      expect(mapList, [
+        {"id" : 1,
+          "name" : "Joe",
+          "locations" : [
+            {"id" : 1, "name" : "Crestridge", "user" : {"id" : 1}, "equipment" : [
+              {"id" : 1, "name" : "Fridge", "type" : "Appliance", "location" : {"id" : 1}}
+            ]},
+            {"id" : 2, "name" : "SK", "user" : {"id" : 1}, "equipment" : []},
+          ]},
+        {
+          "id" : 2,
+          "name" : "Fred",
+          "locations" : [
+            {"id" : 3, "name" : "Krog St", "user" : {"id" : 2}, "equipment" : []},
+            {"id" : 4, "name" : "Dumpster", "user" : {"id" : 2}, "equipment" : []}
+          ]},
+        {
+          "id" : 3,
+          "name" : "Bob",
+          "locations" : [
+            {"id" : 5, "name" : "Omaha", "user" : {"id" : 3}, "equipment" : []}
+          ]},
+        {
+          "id" : 4,
+          "name" : "John",
+          "locations" : [
+            {"id" : 6, "name" : "London", "user" : {"id" : 4}, "equipment" : []}
+          ]},
+        {
+          "id" : 5,
+          "name" : "Sally",
+          "locations" : []
+        }
+      ]);
+    });
+
+    test("Can join from middle of graph", () async {
+      var q = new LocationQuery()
+        ..equipment = whereAnyMatch;
+      var locations = await q.fetch(adapter);
+
+      var sourceTrunc = sourceUsers.map((u) => u.locations)
+          .expand((l) => l)
+          .map((loc) => new Location.fromLocation(loc))
+          .toList();
+      sourceTrunc.sort((l1, l2) => l1.id - l2.id);
+      locations.sort((l1, l2) => l1.id - l2.id);
+      expect(locations, equals(sourceTrunc));
+    });
   });
 
-  test("Can join from middle of graph", () async {
-    //var q = new
-  });
+  group("ToOne graph", () {
+    PostgresModelAdapter adapter;
+    List<User> sourceUsers;
 
-  test("ToOne relationships are null if not available", () async {
-    fail("NYI");
-  });
+    setUpAll(() async {
+      new Logger("monadart").onRecord.listen((rec) => print("$rec"));
+      adapter = new PostgresModelAdapter.fromConnectionInfo(null, "dart", "dart", "localhost", 5432, "dart_test");
+      await generateTemporarySchemaFromModels(adapter, [Owned, Owner]);
 
+      var o = ["A", "B", "C"];
+      var owners = await Future.wait(o.map((x) {
+        var q = new Query<Owner>()
+          ..valueObject = (new Owner()
+            ..name = x);
+        return q.insert(adapter);
+      }));
 
-  test("Cyclic model graph still works", () async {
-    fail("NYI");
+      for (var o in owners) {
+        var q = new Query<Owned>()
+            ..valueObject = (new Owned()
+              ..name = "${o.name}1"
+              ..owner = (new Owner()..id = o.id));
+        await q.insert(adapter);
+      }
+    });
+
+    tearDownAll(() {
+      adapter.close();
+      adapter = null;
+    });
+
+    test("Join with single root object", () async {
+      var q = new OwnerQuery()
+          ..id = 1
+          ..owned = whereAnyMatch;
+      var o = (await q.fetch(adapter)).first.asMap();
+
+      expect(o, {
+        "id" : 1,
+        "name" : "A",
+        "owned" : {
+          "id" : 1,
+          "name" : "A1",
+          "owner" : {"id" : 1}
+        }
+      });
+    });
+
+    test("Join with multi root object", () async {
+      var q = new OwnerQuery()
+        ..owned = whereAnyMatch;
+      var o = await q.fetch(adapter);
+
+      var mapList = o.map((x) => x.asMap()).toList();
+      expect(mapList, [
+        {
+          "id" : 1, "name" : "A", "owned" : {
+            "id" : 1,
+            "name" : "A1",
+            "owner" : {"id" : 1}
+          }
+        },
+        {
+          "id" : 2, "name" : "B", "owned" : {
+            "id" : 2,
+            "name" : "B1",
+            "owner" : {"id" : 2}
+          }
+        },
+        {
+          "id" : 3, "name" : "C", "owned" : {
+            "id" : 3,
+            "name" : "C1",
+            "owner" : {"id" : 3}
+          }
+        }
+      ]);
+    });
   });
 }
 
@@ -224,7 +466,7 @@ class User extends Model<_User> implements _User {
 }
 class UserQuery extends ModelQuery<User> implements _User {}
 class _User {
-  @Attributes(primaryKey: true, databaseType: "bigserial")
+  @primaryKey
   int id;
 
   String name;
@@ -274,7 +516,7 @@ class Location extends Model<_Location> implements _Location {
 }
 class LocationQuery extends ModelQuery<Location> implements _Location {}
 class _Location {
-  @Attributes(primaryKey: true, databaseType: "bigserial")
+  @primaryKey
   int id;
 
   String name;
@@ -308,7 +550,7 @@ class Equipment extends Model<_Equipment> implements _Equipment {
 }
 class EquipmentQuery extends ModelQuery<Equipment> implements _Equipment {}
 class _Equipment {
-  @Attributes(primaryKey: true, databaseType: "bigserial")
+  @primaryKey
   int id;
 
   String name;
@@ -316,5 +558,27 @@ class _Equipment {
 
   @RelationshipAttribute.belongsTo("equipment", deleteRule: RelationshipDeleteRule.cascade)
   Location location;
+}
 
+class Owner extends Model<_Owner> implements _Owner {}
+class OwnerQuery extends ModelQuery<Owner> implements _Owner {}
+class _Owner {
+  @primaryKey
+  int id;
+  String name;
+
+  @RelationshipAttribute.hasOne("owner")
+  Owned owned;
+}
+
+class Owned extends Model<_Owned> implements _Owned {}
+class OwnedQuery extends ModelQuery<Owned> implements _Owned {}
+class _Owned {
+  @primaryKey
+  int id;
+  String name;
+
+  @Attributes(nullable: true)
+  @RelationshipAttribute.belongsTo("owned")
+  Owner owner;
 }

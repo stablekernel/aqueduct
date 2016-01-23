@@ -112,7 +112,7 @@ class PostgresModelAdapter extends QueryAdapter {
 
   List<Model> mapRowsAccordingToQuery(List<Row> rows, _PostgresqlQuery query) {
     var representedEntities = new Set.from(query.resultMappingElements.map((e) => e.entity));
-    Map<ModelEntity, Map<dynamic, dynamic>> objectCache = new Map.fromIterable(representedEntities, key: (e) => e, value: (e) => {});
+    var objectCache = new Map.fromIterable(representedEntities, key: (e) => e, value: (e) => {});
     Map<ModelEntity, _RowRange> entityRowRangeMap = rangeMapForQuery(query);
     List<Model> instantiatedObjects = [];
     Map<ModelEntity, ClassMirror> entityToModelClassMirrorMapping = new Map.fromIterable(representedEntities, key: (k) => k, value: (entity) {
@@ -144,7 +144,8 @@ class PostgresModelAdapter extends QueryAdapter {
     instantiatedObjects.forEach((obj) {
       for (var key in obj.dynamicBacking.keys) {
         var value = obj.dynamicBacking[key];
-        if (value is _DelayedInstance) {
+
+        if (value is _DelayedInstanceForeignKey) {
           var entityCache = objectCache[value.entity];
           if (entityCache == null) {
             entityCache = {};
@@ -162,7 +163,7 @@ class PostgresModelAdapter extends QueryAdapter {
 
           obj.dynamicBacking[key] = cacheObject;
           if(relatedObjectWasInResultSet) {
-            // Set opposite side of relationship
+            // Set opposite side of relationship and prevent cycles
             var belongToRelationship = obj.entity.relationshipAttributeForProperty(key);
             var inverseKey = belongToRelationship.inverseKey;
             var ownerRelationship = cacheObject.entity.relationshipAttributeForProperty(inverseKey);
@@ -177,12 +178,17 @@ class PostgresModelAdapter extends QueryAdapter {
             } else {
               cacheObject.dynamicBacking[inverseKey] = obj;
             }
+
+            var replacementObject = reflectClass(value.type).newInstance(new Symbol(""), []).reflectee;
+            replacementObject[value.entity.primaryKey] = cacheObject.dynamicBacking[value.entity.primaryKey];
+            obj.dynamicBacking[key] = replacementObject;
           }
         }
       }
     });
 
-    // Set any to-many relationships we wanted to fetch that yielded no results to the empty list
+    // Set any to-many relationships we wanted to fetch that yielded no results to the empty list,
+    // to-one relationships will already be null.
     expectedRelationshipsForQuery(query.query).forEach((modelType, propertyName) {
       instantiatedObjects.where((o) => o.runtimeType == modelType)?.forEach((m) {
         if(m.entity.relationshipAttributeForProperty(propertyName).type == RelationshipType.hasMany) {
@@ -204,7 +210,7 @@ class PostgresModelAdapter extends QueryAdapter {
       var key = propertyIterator.current.modelKey;
       if (propertyIterator.current.destinationEntity != null) {
         if (value != null) {
-          model.dynamicBacking[key] = new _DelayedInstance(propertyIterator.current.destinationType,
+          model.dynamicBacking[key] = new _DelayedInstanceForeignKey(propertyIterator.current.destinationType,
               propertyIterator.current.destinationEntity, value);
         }
       } else {
@@ -269,9 +275,9 @@ class _RowRange {
         innerMappingElements = outerMappingElements.sublist(sIndex, eIndex + 1);
 }
 
-class _DelayedInstance {
+class _DelayedInstanceForeignKey {
   final dynamic value;
   final ModelEntity entity;
   final Type type;
-  _DelayedInstance(this.type, this.entity, this.value);
+  _DelayedInstanceForeignKey(this.type, this.entity, this.value);
 }

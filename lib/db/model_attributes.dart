@@ -84,6 +84,7 @@ class RelationshipAttribute {
         this.referenceKey = referenceKey;
 }
 
+const Attributes primaryKey = const Attributes(primaryKey: true, databaseType: "bigserial");
 
 /// A declaration annotation for the options on a property in a entity class.
 ///
