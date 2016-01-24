@@ -241,7 +241,7 @@ abstract class HttpController extends RequestHandler {
 
       return response;
     } on _InternalControllerException catch (e) {
-      logger.info("Request (${request.toDebugString()}) failed to process: ${e.message}.");
+      logger.info("Request (${request.toDebugString()}) failed: ${e.message}.");
       var response = new Response(e.statusCode, {}, null);
 
       request.response.statusCode = e.statusCode;

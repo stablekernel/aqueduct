@@ -56,7 +56,7 @@ class ResourceRequest implements RequestHandlerResult {
   }
 
   String toString() {
-    return "${this.innerRequest.uri} (${this.id})";
+    return "${innerRequest.method} ${this.innerRequest.uri} (${this.id})";
   }
 
   String toDebugString() {
