@@ -254,6 +254,8 @@ abstract class HttpController extends RequestHandler {
       var response = await _process();
 
       return response;
+    } on HttpResponseException catch (e) {
+      req.respond(e.response());
     } on _InternalIgnoreBullshitException {
       return null;
     } on _InternalControllerException catch (e) {
