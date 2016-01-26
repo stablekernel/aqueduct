@@ -263,7 +263,7 @@ abstract class HttpController extends RequestHandler {
         var response = _exceptionHandler(this.request, e, stacktrace);
         return response;
       } else {
-        rethrow;
+        return new Response.serverError();
       }
     }
   }
