@@ -121,7 +121,11 @@ abstract class HttpController extends RequestHandler {
       }, orElse: () => null);
 
       if (matchingContentType != null) {
-        return (await HttpBodyHandler.processRequest(request.innerRequest)).body;
+        try {
+          return (await HttpBodyHandler.processRequest(request.innerRequest)).body;
+        } catch (e) {
+          throw new _InternalIgnoreBullshitException();
+        }
       } else {
         throw new _InternalControllerException("Unsupported Content-Type", HttpStatus.UNSUPPORTED_MEDIA_TYPE);
       }
@@ -220,26 +224,38 @@ abstract class HttpController extends RequestHandler {
   }
 
   Future<Response> _process() async {
+    var methodSymbol = _routeMethodSymbolForRequest(request);
+    var handlerParameters = _parametersForRequest(request, methodSymbol);
+
+    requestBody = await _readRequestBodyForRequest(request);
+    var handlerQueryParameters = _queryParametersForRequest(request, requestBody, methodSymbol);
+
+    if (requestBody != null) {
+      didDecodeRequestBody(requestBody);
+    }
+
+    Future<Response> eventualResponse = reflect(this).invoke(methodSymbol, handlerParameters, handlerQueryParameters).reflectee;
+    var response = await eventualResponse;
+
+    willSendResponse(response);
+
+    response.body = encodedResponseBody(response.body);
+    response.headers[HttpHeaders.CONTENT_TYPE] = responseContentType.toString();
+
+    return response;
+  }
+
+  @override
+  Future<RequestHandlerResult> processRequest(ResourceRequest req) async {
     try {
-      var methodSymbol = _routeMethodSymbolForRequest(request);
-      var handlerParameters = _parametersForRequest(request, methodSymbol);
+      request = req;
 
-      requestBody = await _readRequestBodyForRequest(request);
-      var handlerQueryParameters = _queryParametersForRequest(request, requestBody, methodSymbol);
-
-      if (requestBody != null) {
-        didDecodeRequestBody(requestBody);
-      }
-
-      Future<Response> eventualResponse = reflect(this).invoke(methodSymbol, handlerParameters, handlerQueryParameters).reflectee;
-      var response = await eventualResponse;
-
-      willSendResponse(response);
-
-      response.body = encodedResponseBody(response.body);
-      response.headers[HttpHeaders.CONTENT_TYPE] = responseContentType.toString();
+      willProcessRequest(req);
+      var response = await _process();
 
       return response;
+    } on _InternalIgnoreBullshitException {
+      return null;
     } on _InternalControllerException catch (e) {
       logger.info("Request (${request.toDebugString()}) failed: ${e.message}.");
       var response = new Response(e.statusCode, {}, null);
@@ -266,16 +282,6 @@ abstract class HttpController extends RequestHandler {
         return new Response.serverError();
       }
     }
-  }
-
-  @override
-  Future<RequestHandlerResult> processRequest(ResourceRequest req) async {
-    request = req;
-
-    willProcessRequest(req);
-    var response = await _process();
-
-    return response;
   }
 
   @override
@@ -355,6 +361,9 @@ abstract class HttpController extends RequestHandler {
   }
 }
 
+class _InternalIgnoreBullshitException {
+  _InternalIgnoreBullshitException();
+}
 class _InternalControllerException {
   final String message;
   final int statusCode;

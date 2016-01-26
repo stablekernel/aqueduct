@@ -39,7 +39,6 @@ class ResourceRequest implements RequestHandlerResult {
 
   void respond(Response respObj) {
     new Logger("monadart").info("Request ($id) sending response $respObj.");
-
     response.statusCode = respObj.statusCode;
 
     if (respObj.headers != null) {

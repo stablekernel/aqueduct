@@ -84,7 +84,7 @@ class Router extends RequestHandler {
   }
 
   @override
-  void deliver(ResourceRequest req) {
+  Future deliver(ResourceRequest req) async {
     for (var route in _routes) {
       var routeMatch = route.pattern.matchUri(req.innerRequest.uri);
 

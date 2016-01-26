@@ -188,6 +188,15 @@ void main() {
     expect(JSON.decode(res.body), isNull);
     expect(res.statusCode, 200);
   });
+
+  test("Sending bad JSON returns 500", () async {
+    server = await enableController("/a", new RequestHandlerGenerator<TController>());
+    var res = await http.post("http://localhost:4040/a", body: "{`foobar' : 2}", headers: {"Content-Type" : "application/json"});
+    expect(res.statusCode, 400);
+
+    res = await http.get("http://localhost:4040/a");
+    expect(res.statusCode, 200);
+  });
 }
 
 
