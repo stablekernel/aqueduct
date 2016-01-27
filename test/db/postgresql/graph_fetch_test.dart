@@ -341,6 +341,18 @@ void main() {
       locations.sort((l1, l2) => l1.id - l2.id);
       expect(locations, equals(sourceTrunc));
     });
+
+    test("Foreign key relationships do not get mirrored in owned object", () async {
+      var q = new LocationQuery()
+        ..user = whereRelatedByValue(1);
+
+      var locations = await q.fetch(adapter);
+      for (var loc in locations) {
+        var u = loc.user;
+        expect(u.dynamicBacking.length, 1);
+        expect(u.id, 1);
+      }
+    });
   });
 
   group("ToOne graph", () {

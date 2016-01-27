@@ -140,6 +140,7 @@ class PostgresModelAdapter extends QueryAdapter {
       });
     });
 
+
     // Sew up relationships, replace foreign keys with model objects.
     instantiatedObjects.forEach((obj) {
       for (var key in obj.dynamicBacking.keys) {
@@ -158,7 +159,6 @@ class PostgresModelAdapter extends QueryAdapter {
             relatedObjectWasInResultSet = false;
             cacheObject = reflectClass(value.type).newInstance(new Symbol(""), []).reflectee;
             cacheObject.dynamicBacking[value.entity.primaryKey] = value.value;
-            entityCache[value.value] = cacheObject;
           }
 
           obj.dynamicBacking[key] = cacheObject;
