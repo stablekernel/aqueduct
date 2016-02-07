@@ -285,8 +285,7 @@ void main() {
       var sourceTrunc = sourceUsers.map((u) => new User.fromUser(u)).toList();
       sourceTrunc.forEach((User u) {
         u.locations?.forEach((loc) {
-          loc.equipment =
-              loc.equipment?.where((eq) => eq.id == 1).toList() ?? [];
+          loc.equipment = loc.equipment?.where((eq) => eq.id == 1)?.toList() ?? [];
         });
       });
       expect(users, equals(sourceTrunc));

@@ -53,7 +53,7 @@ class PostgresModelAdapter extends QueryAdapter {
   }
 
   @override
-  Future<dynamic> execute(Query query) {
+  Future<dynamic> execute(Query query) async {
     _PostgresqlQuery pgsqlQuery = new _PostgresqlQuery(schema, query);
     pgsqlQuery.logger = logger;
 
@@ -63,31 +63,31 @@ class PostgresModelAdapter extends QueryAdapter {
     var formatString = statement.formatString;
     var formatParameters = statement.formatParameters;
 
-    return new Future(() async {
-      try {
-        var conn = await getDatabaseConnection();
-        if (pgsqlQuery.resultColumnNames != null && pgsqlQuery.resultColumnNames.length > 0) {
-          var results = await conn.query(formatString, formatParameters).toList();
-          logger?.info("Inquirer: Querying $formatString $formatParameters -- Yielded: $results");
+    try {
+      var conn = await getDatabaseConnection();
+      if (pgsqlQuery.resultColumnNames != null && pgsqlQuery.resultColumnNames.length > 0) {
+        var results = await conn.query(formatString, formatParameters).toList();
+        logger?.info("Inquirer: Querying $formatString $formatParameters -- Yielded: $results");
 
-          return mapRowsAccordingToQuery(results, pgsqlQuery);
-        } else {
-          var result = await conn.execute(formatString, formatParameters);
-          logger?.info("Inquirer: Executing $formatString $formatParameters -- Yielded: $result");
+        return mapRowsAccordingToQuery(results, pgsqlQuery);
+      } else {
+        var result = await conn.execute(formatString, formatParameters);
+        logger?.info("Inquirer: Executing $formatString $formatParameters -- Yielded: $result");
 
-          return result;
-        }
-      } on PostgresqlException catch (e, stackTrace) {
-        logger.info("Inquirer: SQL Failed $formatString $formatParameters");
-        throw interpretException(e, stackTrace);
-      } on QueryException {
-        logger.info("Inquirer: Query Failed $formatString $formatParameters");
-        rethrow;
-      } catch (e, stackTrace) {
-        logger.info("Inquirer: Unknown Failure $formatString $formatParameters");
-        throw new QueryException(500, e.toString(), -1, stackTrace: stackTrace);
+        return result;
       }
-    });
+    } on TimeoutException {
+      throw new QueryException(503, "Could not connect to database.", -1);
+    } on PostgresqlException catch (e, stackTrace) {
+      logger.info("Inquirer: SQL Failed $formatString $formatParameters");
+      throw interpretException(e, stackTrace);
+    } on QueryException {
+      logger.info("Inquirer: Query Failed $formatString $formatParameters");
+      rethrow;
+    } catch (e, stackTrace) {
+      logger.info("Inquirer: Unknown Failure $formatString $formatParameters");
+      throw new QueryException(500, e.toString(), -1, stackTrace: stackTrace);
+    }
   }
 
   Exception interpretException(PostgresqlException exception, StackTrace stackTrace) {
