@@ -121,7 +121,11 @@ abstract class HttpController extends RequestHandler {
       }, orElse: () => null);
 
       if (matchingContentType != null) {
-        return (await HttpBodyHandler.processRequest(request.innerRequest)).body;
+        try {
+          return (await HttpBodyHandler.processRequest(request.innerRequest)).body;
+        } catch (e) {
+          throw new _InternalIgnoreBullshitException();
+        }
       } else {
         throw new _InternalControllerException("Unsupported Content-Type", HttpStatus.UNSUPPORTED_MEDIA_TYPE);
       }
@@ -223,6 +227,8 @@ abstract class HttpController extends RequestHandler {
       response.headers[HttpHeaders.CONTENT_TYPE] = responseContentType.toString();
 
       return response;
+    } on _InternalIgnoreBullshitException {
+      return null;
     } on _InternalControllerException catch (e) {
       logger.info("Request (${request.toDebugString()}) failed to process: ${e.message}.");
       var response = new Response(e.statusCode, {}, null);
@@ -347,4 +353,8 @@ class _InternalControllerException {
   _InternalControllerException(this.message, this.statusCode, {HttpHeaders additionalHeaders: null, String responseMessage: null})
       : this.additionalHeaders = additionalHeaders,
         this.responseMessage = responseMessage;
+}
+
+class _InternalIgnoreBullshitException {
+  _InternalIgnoreBullshitException();
 }
