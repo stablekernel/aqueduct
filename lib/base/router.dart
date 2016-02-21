@@ -12,7 +12,7 @@ part of monadart;
 ///
 /// Each route added to a [Router] creates a [Stream] of [ResourceRequest]s that a handler can listen to.
 class Router extends RequestHandler {
-  List<_ResourceRoute> _routes;
+  List<ResourceRoute> routes;
 
   /// A string to be prepended to the beginning of every route this [Router] manages.
   ///
@@ -24,8 +24,8 @@ class Router extends RequestHandler {
 
   String get basePath => _basePath;
   void set basePath(String bp) {
-    if (_routes.length > 0) {
-      throw new _RouterException("Cannot alter basePath after adding routes.");
+    if (routes.length > 0) {
+      throw new RouterException("Cannot alter basePath after adding routes.");
     }
     _basePath = bp;
   }
@@ -47,7 +47,7 @@ class Router extends RequestHandler {
 
   /// Creates a new [Router].
   Router() {
-    _routes = [];
+    routes = [];
     unhandledRequestHandler = _handleUnhandledRequest;
   }
 
@@ -69,7 +69,7 @@ class Router extends RequestHandler {
     return _createRoute(pattern).handler;
   }
 
-  _ResourceRoute _createRoute(String pattern) {
+  ResourceRoute _createRoute(String pattern) {
     if (basePath != null) {
       pattern = basePath + pattern;
     }
@@ -77,15 +77,15 @@ class Router extends RequestHandler {
     // Strip out any extraneous /s
     var finalPattern = pattern.split("/").where((c) => c != "").join("/");
 
-    var route = new _ResourceRoute(new ResourcePattern(finalPattern), new RequestHandler());
-    _routes.add(route);
+    var route = new ResourceRoute(new ResourcePattern(finalPattern), new RequestHandler());
+    routes.add(route);
 
     return route;
   }
 
   @override
   Future deliver(ResourceRequest req) async {
-    for (var route in _routes) {
+    for (var route in routes) {
       var routeMatch = route.pattern.matchUri(req.innerRequest.uri);
 
       if (routeMatch != null) {
@@ -104,7 +104,7 @@ class Router extends RequestHandler {
   List<APIDocumentItem> document(PackagePathResolver resolver) {
     List<APIDocumentItem> items = [];
 
-    for (var route in _routes) {
+    for (var route in routes) {
       var routeItems = route.handler.document(resolver);
 
       items.addAll(routeItems.map((i) {
@@ -123,14 +123,14 @@ class Router extends RequestHandler {
   }
 }
 
-class _ResourceRoute {
+class ResourceRoute {
   final ResourcePattern pattern;
   final RequestHandler handler;
 
-  _ResourceRoute(this.pattern, this.handler);
+  ResourceRoute(this.pattern, this.handler);
 }
 
-class _RouterException implements Exception {
+class RouterException implements Exception {
   final String message;
-  _RouterException(this.message);
+  RouterException(this.message);
 }
