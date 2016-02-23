@@ -96,15 +96,16 @@ class PostgresModelAdapter extends QueryAdapter {
       return new QueryException(500, exception.message, 0, stackTrace: stackTrace);
     }
 
+    var totalMessage = "${exception.message}${msg.detail != null ? ": ${msg.detail}" : ""}";
     switch (msg.code) {
       case "42703":
-        return new QueryException(400, exception.message, 42703, stackTrace: stackTrace);
+        return new QueryException(400, totalMessage, 42703, stackTrace: stackTrace);
       case "23505":
-        return new QueryException(409, exception.message, 23505, stackTrace: stackTrace);
+        return new QueryException(409, totalMessage, 23505, stackTrace: stackTrace);
       case "23502":
-        return new QueryException(400, exception.message, 23502, stackTrace: stackTrace);
+        return new QueryException(400, totalMessage, 23502, stackTrace: stackTrace);
       case "23503":
-        return new QueryException(400, exception.message, 23503, stackTrace: stackTrace);
+        return new QueryException(400, totalMessage, 23503, stackTrace: stackTrace);
     }
 
     return new QueryException(500, exception.message, 0, stackTrace: stackTrace);
