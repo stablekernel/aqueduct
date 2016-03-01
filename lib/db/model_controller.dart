@@ -53,13 +53,14 @@ class ModelController<T extends Model> extends HttpController {
   void didDecodeRequestBody(Map <String, dynamic> bodyMap) {
     var reflectedModel = reflectClass(T).newInstance(new Symbol(""), []);
     requestModel = reflectedModel.reflectee;
-    // The bodyMap can't define the id.
-    if (requestModel.dynamicBacking[requestModel.entity.primaryKey] != null) {
-      throw new HttpResponseException(400, "HTTP Request body may not define the primary key of a model object.");
-    }
 
     query.valueObject = requestModel;
 
     requestModel.readMap(bodyMap);
+
+    // The bodyMap can't define the id.
+    if (requestModel.dynamicBacking[requestModel.entity.primaryKey] != null) {
+      throw new HttpResponseException(400, "HTTP Request body may not define the primary key of a model object.");
+    }
   }
 }
