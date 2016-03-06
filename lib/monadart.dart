@@ -34,6 +34,7 @@ part 'base/isolate_supervisor.dart';
 part 'base/isolate_server.dart';
 part 'base/application_configuration.dart';
 part 'base/serializable.dart';
+part 'base/cors_policy.dart';
 
 part 'auth/authenticator.dart';
 part 'auth/protocols.dart';

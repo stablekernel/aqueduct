@@ -23,6 +23,8 @@ abstract class HttpController extends RequestHandler {
   /// It is this [HttpController]'s responsibility to return a [Response] object for this request.
   ResourceRequest request;
 
+  CORSPolicy policy = new CORSPolicy();
+
   /// Parameters parsed from the URI of the request, if any exist.
   Map<String, String> get pathVariables => request.path.variables;
 
@@ -250,8 +252,24 @@ abstract class HttpController extends RequestHandler {
     try {
       request = req;
 
+      var corsHeaders = null;
+      if (policy != null) {
+        if (request.innerRequest.method == "OPTIONS") {
+          return policy.preflightResponse(req);
+        }
+
+        corsHeaders = policy.headersForRequest(request);
+      }
       willProcessRequest(req);
       var response = await _process();
+
+      if (corsHeaders != null) {
+        if (response.headers != null) {
+          response.headers.addAll(corsHeaders);
+        } else {
+          response.headers = corsHeaders;
+        }
+      }
 
       return response;
     } on HttpResponseException catch (e) {
