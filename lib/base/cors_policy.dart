@@ -23,17 +23,25 @@ class CORSPolicy {
   }
 
   bool validatePreflightRequest(HttpRequest request) {
-    if (!allowedOrigins.contains("*") && !allowedOrigins.contains(request.headers.value("origin"))) {
+    var origin = request.headers.value("origin");
+    var method = request.headers.value("access-control-request-method");
+    if (origin == null || method == null) {
       return false;
     }
 
-    if (!allowedMethods.contains(request.headers.value("access-control-request-method"))) {
+    if (!allowedOrigins.contains("*") && !allowedOrigins.contains(origin)) {
+      return false;
+    }
+
+    if (!allowedMethods.contains(method)) {
       return false;
     }
 
     var requestedHeaders = request.headers["access-control-request-headers"];
-    if (requestedHeaders.any((h) => !allowedRequestHeaders.contains(h))) {
-      return false;
+    if (requestedHeaders != null) {
+      if (requestedHeaders.any((h) => !allowedRequestHeaders.contains(h))) {
+        return false;
+      }
     }
 
     return true;
