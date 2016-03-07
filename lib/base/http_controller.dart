@@ -253,13 +253,22 @@ abstract class HttpController extends RequestHandler {
       request = req;
 
       var corsHeaders = null;
-      if (policy != null) {
-        if (request.innerRequest.method == "OPTIONS") {
-          return policy.preflightResponse(req);
-        }
+      if (request.innerRequest.headers.value("origin") != null) {
+        if (policy != null) {
+          if (!policy.isRequestOriginAllowed(request.innerRequest)) {
+            return new Response.forbidden();
+          }
 
-        corsHeaders = policy.headersForRequest(request);
+          if (request.innerRequest.method == "OPTIONS" && request.innerRequest.headers.value("origin") != null) {
+            // Preflight request
+            return policy.preflightResponse(req);
+          } else {
+            // Normal request
+            corsHeaders = policy.headersForRequest(request);
+          }
+        }
       }
+
       willProcessRequest(req);
       var response = await _process();
 

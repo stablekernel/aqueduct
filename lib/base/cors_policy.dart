@@ -6,33 +6,36 @@ class CORSPolicy {
   List<String> exposedResponseHeaders = [];
 
   List<String> allowedMethods = ["POST", "PUT", "DELETE", "GET"];
-  List<String> allowedRequestHeaders = ["authorization"];
+  List<String> allowedRequestHeaders = ["Authorization"];
   int cacheInSeconds = 3600;
 
   Map<String, dynamic> headersForRequest(ResourceRequest request) {
     var origin = request.innerRequest.headers.value("origin");
-    if (origin == null) {
-      return null;
+
+    var headers = {};
+    if (allowedOrigins.contains("*") || allowedOrigins.contains(origin)) {
+      headers["Access-Control-Allow-Origin"] = origin;
     }
 
-    if (allowedOrigins.contains(origin)) {
-      return {"Access-Control-Allow-Origin" : origin};
+    if (exposedResponseHeaders.length > 0) {
+      headers["Access-Control-Expose-Headers"] = exposedResponseHeaders.join(" ,");
     }
 
-    return null;
+    headers["Access-Control-Allow-Credentials"] = allowCredentials ? "true" : "false";
+
+    return headers;
   }
 
-  bool validatePreflightRequest(HttpRequest request) {
+  bool isRequestOriginAllowed(HttpRequest request) {
     var origin = request.headers.value("origin");
-    var method = request.headers.value("access-control-request-method");
-    if (origin == null || method == null) {
-      return false;
-    }
-
     if (!allowedOrigins.contains("*") && !allowedOrigins.contains(origin)) {
       return false;
     }
+    return true;
+  }
 
+  bool validatePreflightRequest(HttpRequest request) {
+    var method = request.headers.value("access-control-request-method");
     if (!allowedMethods.contains(method)) {
       return false;
     }
@@ -49,13 +52,13 @@ class CORSPolicy {
 
   Response preflightResponse(ResourceRequest req) {
     if (!validatePreflightRequest(req.innerRequest)) {
-      return new Response.ok(null);
+      return new Response.forbidden();
     }
 
     return new Response.ok(null, headers: {
-      "Access-Allow-Control-Origin" : "*",
-      "Access-Control-Allow-Methods" : allowedMethods.join(","),
-      "Access-Control-Allow-Headers" : allowedRequestHeaders.join(",")
+      "Access-Control-Allow-Origin" : req.innerRequest.headers.value("origin"),
+      "Access-Control-Allow-Methods" : allowedMethods.join(", "),
+      "Access-Control-Allow-Headers" : allowedRequestHeaders.join(", ")
     });
   }
 }
