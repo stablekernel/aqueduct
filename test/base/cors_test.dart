@@ -92,6 +92,7 @@ void main() {
       req.headers.add("Access-Control-Request-Method", "GET");
       var resp = await req.close();
       expect(resp.statusCode, 200);
+      expect(resp.contentLength, 0);
       expect(resp.headers.value("access-control-allow-origin"), "http://localhost");
       expect(resp.headers.value("access-control-allow-methods"), "POST, PUT, DELETE, GET");
       expect(resp.headers.value("access-control-allow-headers"), "Authorization");
