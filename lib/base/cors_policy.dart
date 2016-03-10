@@ -29,6 +29,7 @@ class CORSPolicy {
   bool isRequestOriginAllowed(HttpRequest request) {
     var origin = request.headers.value("origin");
     if (!allowedOrigins.contains("*") && !allowedOrigins.contains(origin)) {
+      new Logger("monadart").info("HUh? $origin $allowedOrigins");
       return false;
     }
     return true;
