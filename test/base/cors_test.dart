@@ -91,6 +91,7 @@ void main() {
       req.headers.add("Origin", "http://localhost");
       req.headers.add("Access-Control-Request-Method", "POST");
       req.headers.add("Access-Control-Request-Headers", "authorization,x-requested-with");
+      req.headers.add("Accept", "*/*");
       var resp = await req.close();
       expect(resp.statusCode, 200);
       expect(resp.contentLength, 0);
