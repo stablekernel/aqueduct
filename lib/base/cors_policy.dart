@@ -6,7 +6,7 @@ class CORSPolicy {
   List<String> exposedResponseHeaders = [];
 
   List<String> allowedMethods = ["POST", "PUT", "DELETE", "GET"];
-  List<String> allowedRequestHeaders = ["Authorization"];
+  List<String> allowedRequestHeaders = ["authorization", "x-requested-with"];
   int cacheInSeconds = 3600;
 
   Map<String, dynamic> headersForRequest(ResourceRequest request) {
@@ -40,9 +40,10 @@ class CORSPolicy {
       return false;
     }
 
-    var requestedHeaders = request.headers["access-control-request-headers"];
+    var requestedHeaders = request.headers.value("access-control-request-headers").split(",").map((str) => str.trim());
     if (requestedHeaders != null) {
-      if (requestedHeaders.any((h) => !allowedRequestHeaders.contains(h))) {
+      if (requestedHeaders.any((h) => !allowedRequestHeaders.contains(h.toLowerCase()))) {
+        print("$allowedRequestHeaders $requestedHeaders");
         return false;
       }
     }

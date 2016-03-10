@@ -89,14 +89,16 @@ void main() {
       var client = new HttpClient();
       var req = await client.openUrl("OPTIONS", new Uri(scheme: "http", host: "localhost", port: 8000, path: "a"));
       req.headers.add("Origin", "http://localhost");
-      req.headers.add("Access-Control-Request-Method", "GET");
+      req.headers.add("Access-Control-Request-Method", "POST");
+      req.headers.add("Access-Control-Request-Headers", "authorization,x-requested-with");
       var resp = await req.close();
       expect(resp.statusCode, 200);
       expect(resp.contentLength, 0);
       expect(resp.headers.value("access-control-allow-origin"), "http://localhost");
       expect(resp.headers.value("access-control-allow-methods"), "POST, PUT, DELETE, GET");
-      expect(resp.headers.value("access-control-allow-headers"), "Authorization");
+      expect(resp.headers.value("access-control-allow-headers"), "authorization, x-requested-with");
     });
+
   });
 }
 
