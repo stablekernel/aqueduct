@@ -42,7 +42,7 @@ class CORSPolicy {
       return false;
     }
 
-    var requestedHeaders = request.headers.value("access-control-request-headers").split(",").map((str) => str.trim()).toList();
+    var requestedHeaders = request.headers.value("access-control-request-headers")?.split(",").map((str) => str.trim()).toList();
     new Logger("monadart").info("requested header: $requestedHeaders");
     if (requestedHeaders != null) {
       if (requestedHeaders.any((h) => !allowedRequestHeaders.contains(h.toLowerCase()))) {
