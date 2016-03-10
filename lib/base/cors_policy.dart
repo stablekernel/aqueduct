@@ -38,6 +38,7 @@ class CORSPolicy {
   bool validatePreflightRequest(HttpRequest request) {
     var method = request.headers.value("access-control-request-method");
     if (!allowedMethods.contains(method)) {
+      new Logger("monadart").info("WHAT?! $allowedMethods $method");
       return false;
     }
 
