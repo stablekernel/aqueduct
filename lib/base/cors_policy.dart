@@ -29,7 +29,6 @@ class CORSPolicy {
   bool isRequestOriginAllowed(HttpRequest request) {
     var origin = request.headers.value("origin");
     if (!allowedOrigins.contains("*") && !allowedOrigins.contains(origin)) {
-      new Logger("monadart").info("HUh? $origin $allowedOrigins");
       return false;
     }
     return true;
@@ -38,12 +37,10 @@ class CORSPolicy {
   bool validatePreflightRequest(HttpRequest request) {
     var method = request.headers.value("access-control-request-method");
     if (!allowedMethods.contains(method)) {
-      new Logger("monadart").info("WHAT?! $allowedMethods $method");
       return false;
     }
 
     var requestedHeaders = request.headers.value("access-control-request-headers")?.split(",")?.map((str) => str.trim())?.toList();
-    new Logger("monadart").info("requested header: $requestedHeaders");
     if (requestedHeaders != null) {
       if (requestedHeaders.any((h) => !allowedRequestHeaders.contains(h.toLowerCase()))) {
         return false;
