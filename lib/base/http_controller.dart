@@ -71,9 +71,12 @@ abstract class HttpController extends RequestHandler {
   // Callbacks
   /// Executed prior to handling a request, but after the [resourceRequest] has been set.
   ///
-  /// This method is used to do pre-process setup. The [resourceRequest] will be set, but its body will not be decoded
-  /// nor will the appropriate handler method be selected yet. By default, does nothing.
-  void willProcessRequest(ResourceRequest req) {}
+  /// This method is used to do pre-process setup and filtering. The [resourceRequest] will be set, but its body will not be decoded
+  /// nor will the appropriate handler method be selected yet. By default, returns the request. If this method returns a [Response], this
+  /// controller will stop processing the request and immediately return the [Response] to the HTTP client.
+  Future<RequestHandlerResult> willProcessRequest(ResourceRequest req) async {
+    return req;
+  }
 
   /// Executed prior to request being handled, but after the body has been processed.
   ///
@@ -269,8 +272,15 @@ abstract class HttpController extends RequestHandler {
         }
       }
 
-      willProcessRequest(req);
-      var response = await _process();
+      var preprocessedResult = await willProcessRequest(req);
+      Response response = null;
+      if (preprocessedResult is ResourceRequest) {
+        response = await _process();
+      } else if (preprocessedResult is Response) {
+        response = preprocessedResult;
+      } else {
+        throw new _InternalControllerException("Preprocessing request did not yield result", 500);
+      }
 
       if (corsHeaders != null) {
         if (response.headers != null) {

@@ -197,8 +197,33 @@ void main() {
     res = await http.get("http://localhost:4040/a");
     expect(res.statusCode, 200);
   });
+
+  test("Prefilter requests", () async {
+    server = await enableController("/a", new RequestHandlerGenerator<FilteringController>());
+
+    var resp = await http.get("http://localhost:4040/a");
+    expect(resp.statusCode, 200);
+
+    resp = await http.get("http://localhost:4040/a", headers: {"Ignore" : "true"});
+    expect(resp.statusCode, 400);
+    expect(resp.body, "ignored");
+  });
 }
 
+class FilteringController extends HttpController {
+  @httpGet getAll() async {
+    return new Response.ok(null);
+  }
+
+  @override
+  Future<RequestHandlerResult> willProcessRequest(ResourceRequest req) async {
+    if (req.innerRequest.headers.value("ignore") != null) {
+      return new Response.badRequest(body: "ignored");
+    }
+    return super.willProcessRequest(req);
+  }
+
+}
 
 class TController extends HttpController {
 

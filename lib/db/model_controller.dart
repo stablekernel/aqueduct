@@ -11,7 +11,7 @@ class ModelController<T extends Model> extends HttpController {
   Query<T> query = new Query<T>();
 
   @override
-  void willProcessRequest(ResourceRequest req) {
+  Future<RequestHandlerResult> willProcessRequest(ResourceRequest req) async {
     var firstVarName = req.path.firstVariableName;
     if (firstVarName != null) {
       var idValue = req.path.variables[firstVarName];
@@ -46,7 +46,8 @@ class ModelController<T extends Model> extends HttpController {
         }
       }
     }
-    super.willProcessRequest(req);
+
+    return super.willProcessRequest(req);
   }
 
   @override
