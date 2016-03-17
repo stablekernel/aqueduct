@@ -129,7 +129,15 @@ class _WithinMatcherExpression implements MatcherExpression {
   _WithinMatcherExpression(this.values);
 
   Predicate getPredicate(String prefix, String propertyName) {
-    return new Predicate("$prefix.$propertyName in (${values.join(",")})",  {});
+    var tokenList = [];
+    var pairedMap = {};
+    for (var i = 0; i < values.length; i++) {
+      var token = "wme$prefix${propertyName}_$i";
+      tokenList.add("@$token");
+      pairedMap[token] = values[i];
+    }
+
+    return new Predicate("$prefix.$propertyName in (${tokenList.join(",")})", pairedMap);
   }
 
 }
