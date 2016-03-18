@@ -65,4 +65,4 @@ part 'db/postgresql/postgresql_schema.dart';
 part 'db/postgresql/postgresql_statement.dart';
 
 part 'utilities/test_client.dart';
-
+part 'utilities/mock_server.dart';
