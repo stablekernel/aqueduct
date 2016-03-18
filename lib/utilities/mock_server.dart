@@ -23,7 +23,10 @@ abstract class MockServer {
 
   Future next() {
     if (_queue.isEmpty) {
-      _nextEventCompleter = new Completer();
+      if (_nextEventCompleter == null) {
+        _nextEventCompleter = new Completer();
+      }
+
       return _nextEventCompleter.future;
     }
 
