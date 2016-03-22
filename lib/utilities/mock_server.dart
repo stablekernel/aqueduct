@@ -1,21 +1,16 @@
 part of monadart;
 
 abstract class MockServer {
-  MockServer() {
-    _queue = [];
-    _nextEventCompleter = null;
-  }
-
-  List _queue;
-  Completer _nextEventCompleter;
+  List _queue = [];
+  List<Completer> _completerQueue = [];
 
   Future open();
   Future close();
 
   void add(dynamic value) {
-    if (_nextEventCompleter != null) {
-      _nextEventCompleter.complete(value);
-      _nextEventCompleter = null;
+    if (_completerQueue.length > 0) {
+      var nextEventCompleter = _completerQueue.removeAt(0);
+      nextEventCompleter.complete(value);
     } else {
       _queue.add(value);
     }
@@ -23,11 +18,9 @@ abstract class MockServer {
 
   Future next() {
     if (_queue.isEmpty) {
-      if (_nextEventCompleter == null) {
-        _nextEventCompleter = new Completer();
-      }
-
-      return _nextEventCompleter.future;
+      var c = new Completer();
+      _completerQueue.add(c);
+      return c.future;
     }
 
     var val = _queue.removeAt(0);
@@ -42,7 +35,7 @@ class MockHTTPRequest {
   Map<String, dynamic> queryParameters;
   Map<String, dynamic> headers;
 
-  dynamic bodyAsJSON() {
+  dynamic get jsonBody {
     return JSON.decode(body);
   }
 }
@@ -57,6 +50,11 @@ class MockHTTPServer extends MockServer {
 
   void queueResponse(Response resp) {
     responseQueue.add(resp);
+  }
+
+  @override
+  Future<MockHTTPRequest> next() async {
+    return super.next();
   }
 
   @override
@@ -76,6 +74,8 @@ class MockHTTPServer extends MockServer {
       if (req.contentLength > 0) {
         mockReq.body = new String.fromCharCodes(await req.first);
       }
+
+      add(mockReq);
 
       if (responseQueue.length > 0) {
         var respObj = responseQueue.first;
