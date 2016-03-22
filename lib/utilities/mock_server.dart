@@ -40,7 +40,13 @@ class MockHTTPRequest {
   }
 }
 
+
+
+
 class MockHTTPServer extends MockServer {
+  static final int _mockConnectionFailureStatusCode = -1;
+  static final Response mockConnectionFailureResponse = new Response(_mockConnectionFailureStatusCode , {}, null);
+
   MockHTTPServer(this.port) : super();
 
   int port;
@@ -80,6 +86,11 @@ class MockHTTPServer extends MockServer {
       if (responseQueue.length > 0) {
         var respObj = responseQueue.first;
         responseQueue.removeAt(0);
+
+        if (respObj.statusCode == _mockConnectionFailureStatusCode) {
+          // We let this one die by not responding.
+          return;
+        }
 
         req.response.statusCode = respObj.statusCode;
 
