@@ -5,7 +5,7 @@ import 'dart:async';
 import 'dart:mirrors';
 import 'dart:isolate';
 import 'dart:convert';
-import 'package:crypto/crypto.dart';
+import 'package:crypto/crypto.dart' show sha256;
 import 'package:pbkdf2/pbkdf2.dart';
 import 'dart:math';
 import 'package:http_server/http_server.dart';

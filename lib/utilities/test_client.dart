@@ -62,7 +62,7 @@ class TestRequest {
   Map<String, String> _headers = {};
 
   void set basicAuthorization(String str) {
-    addHeader(HttpHeaders.AUTHORIZATION, "Basic ${CryptoUtils.bytesToBase64(str.codeUnits)}");
+    addHeader(HttpHeaders.AUTHORIZATION, "Basic ${new Base64Encoder().convert(str.codeUnits)}");
   }
 
   void set bearerAuthorization(String str) {

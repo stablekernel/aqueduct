@@ -110,10 +110,10 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
   }
 
   static String generatePasswordHash(String password, String salt, {int hashRounds: 1000, int hashLength: 32}) {
-    var generator = new PBKDF2(hash: new SHA256());
+    var generator = new PBKDF2(hash: sha256);
     var key = generator.generateKey(password, salt, hashRounds, hashLength);
 
-    return CryptoUtils.bytesToBase64(key);
+    return new Base64Encoder().convert(key);
   }
 
   static String generateRandomSalt({int hashLength: 32}) {
@@ -123,6 +123,6 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
       salt.add(random.nextInt(256));
     }
 
-    return CryptoUtils.bytesToBase64(salt);
+    return new Base64Encoder().convert(salt);
   }
 }

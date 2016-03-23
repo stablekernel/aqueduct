@@ -36,7 +36,7 @@ class AuthorizationBasicParser {
     var base64String = match[1];
     var decodedCredentials = null;
     try {
-      decodedCredentials = new String.fromCharCodes(CryptoUtils.base64StringToBytes(base64String));
+      decodedCredentials = new String.fromCharCodes(new Base64Decoder().convert(base64String));
     } catch (e) {
       throw new HttpResponseException(400, "Improper authorization header.");
     }

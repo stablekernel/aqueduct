@@ -41,8 +41,6 @@ class MockHTTPRequest {
 }
 
 
-
-
 class MockHTTPServer extends MockServer {
   static final int _mockConnectionFailureStatusCode = -1;
   static final Response mockConnectionFailureResponse = new Response(_mockConnectionFailureStatusCode , {}, null);
