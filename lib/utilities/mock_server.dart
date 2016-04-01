@@ -16,6 +16,11 @@ abstract class MockServer {
     }
   }
 
+  void clear() {
+    _queue = [];
+    _completerQueue = [];
+  }
+
   Future next() {
     if (_queue.isEmpty) {
       var c = new Completer();
@@ -39,7 +44,6 @@ class MockHTTPRequest {
     return JSON.decode(body);
   }
 }
-
 
 class MockHTTPServer extends MockServer {
   static final int _mockConnectionFailureStatusCode = -1;
