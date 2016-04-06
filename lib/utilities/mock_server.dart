@@ -4,6 +4,8 @@ abstract class MockServer {
   List _queue = [];
   List<Completer> _completerQueue = [];
 
+  bool get isEmpty => _queue.isEmpty;
+
   Future open();
   Future close();
 
