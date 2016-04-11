@@ -67,3 +67,30 @@ class ConfigurationException {
 
   String message;
 }
+
+class DatabaseConnectionConfiguration extends ConfigurationItem {
+  String host;
+  int port;
+  String databaseName;
+
+  @optionalConfiguration
+  String username;
+  @optionalConfiguration
+  String password;
+  @optionalConfiguration
+  bool isTemporary;
+
+  DatabaseConnectionConfiguration(this.username, this.password, this.host, this.port, this.databaseName, {bool temporary: false}) {
+    isTemporary = temporary;
+  }
+}
+
+class APIConfiguration extends ConfigurationItem {
+  String baseURL;
+
+  @optionalConfiguration
+  String clientID;
+
+  @optionalConfiguration
+  String clientSecret;
+}
