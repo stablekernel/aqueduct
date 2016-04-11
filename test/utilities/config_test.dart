@@ -107,6 +107,45 @@ void main() {
       expect(true, false, reason: "Should not reach here");
     }
   });
+
+  test("Map and list cases", () {
+    var yamlString =
+        "strings:\n"
+        "-  abcd\n"
+        "-  efgh\n"
+        "databaseRecords:\n"
+        "- name: db1\n"
+        "  port: 1000\n"
+        "- user: bob\n"
+        "  name: db2\n"
+        "  port: 2000\n"
+        "integers:\n"
+        "  first: 1\n"
+        "  second: 2\n"
+        "databaseMap:\n"
+        "  db1:\n"
+        "    name: db1\n"
+        "    port: 1000\n"
+        "  db2:\n"
+        "    user: bob\n"
+        "    name: db2\n"
+        "    port: 2000\n";
+
+    var special = new SpecialInfo(yamlString);
+    expect(special.strings, ["abcd", "efgh"]);
+    expect(special.databaseRecords.first.name, "db1");
+    expect(special.databaseRecords.first.port, 1000);
+    expect(special.databaseRecords.last.user, "bob");
+    expect(special.databaseRecords.last.name, "db2");
+    expect(special.databaseRecords.last.port, 2000);
+    expect(special.integers["first"], 1);
+    expect(special.integers["second"], 2);
+    expect(special.databaseMap["db1"].name, "db1");
+    expect(special.databaseMap["db1"].port, 1000);
+    expect(special.databaseMap["db2"].user, "bob");
+    expect(special.databaseMap["db2"].name, "db2");
+    expect(special.databaseMap["db2"].port, 2000);
+  });
 }
 
 class TopLevelConfiguration extends ConfigurationItem {
@@ -130,4 +169,14 @@ class DatabaseInfo extends ConfigurationItem {
   String password;
   String name;
   int port;
+}
+
+class SpecialInfo extends ConfigurationItem {
+  SpecialInfo(String contents) {
+    loadConfigurationFromString(contents);
+  }
+  List<String> strings;
+  List<DatabaseInfo> databaseRecords;
+  Map<String, int> integers;
+  Map<String, DatabaseInfo> databaseMap;
 }

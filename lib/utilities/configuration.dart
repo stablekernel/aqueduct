@@ -18,31 +18,89 @@ abstract class ConfigurationItem {
   void _setItemsFromYaml(dynamic items) {
     var reflectedThis = reflect(this);
     reflectedThis.type.declarations.forEach((sym, decl) {
-      if (decl is VariableMirror) {
-        VariableMirror variableMirror = decl;
-        var value = items[MirrorSystem.getName(sym)];
-
-        if (value == null) {
-          ConfigurationItemAttribute attribute = variableMirror.metadata
-              .firstWhere((im) => im.type.isSubtypeOf(reflectType(ConfigurationItemAttribute)), orElse: () => null)
-              ?.reflectee;
-
-          if (attribute == null || attribute.type == ConfigurationItemAttributeType.required) {
-            throw new ConfigurationException("${MirrorSystem.getName(sym)} is required but was not found in configuration.");
-          }
-        } else {
-          if (variableMirror.type.isSubtypeOf(reflectType(ConfigurationItem))) {
-            var decodedValue = (variableMirror.type as ClassMirror).newInstance(new Symbol(""), []).reflectee;
-            decodedValue.subItem = value;
-            reflectedThis.setField(sym, decodedValue);
-          } else {
-            reflectedThis.setField(sym, value);
-          }
-        }
+      if (decl is! VariableMirror) {
+        return;
       }
+
+      VariableMirror variableMirror = decl;
+      var value = items[MirrorSystem.getName(sym)];
+
+      if (value == null && isVariableRequired(sym, variableMirror)) {
+        throw new ConfigurationException("${MirrorSystem.getName(sym)} is required but was not found in configuration.");
+      }
+
+      _readConfigurationItem(sym, variableMirror, value);
     });
   }
 
+  bool isVariableRequired(Symbol symbol, VariableMirror m) {
+    ConfigurationItemAttribute attribute = m.metadata
+        .firstWhere((im) => im.type.isSubtypeOf(reflectType(ConfigurationItemAttribute)), orElse: () => null)
+        ?.reflectee;
+
+    return attribute == null || attribute.type == ConfigurationItemAttributeType.required;
+  }
+
+  void _readConfigurationItem(Symbol symbol, VariableMirror mirror, dynamic value) {
+    var reflectedThis = reflect(this);
+
+    var decodedValue = null;
+    if (mirror.type.isSubtypeOf(reflectType(ConfigurationItem))) {
+      decodedValue = _decodedConfigurationItem(mirror.type, value);
+    } else if (mirror.type.isSubtypeOf(reflectType(List))) {
+      decodedValue = _decodedConfigurationList(mirror.type, value);
+    } else if (mirror.type.isSubtypeOf(reflectType(Map))) {
+      decodedValue = _decodedConfigurationMap(mirror.type, value);
+    } else {
+      decodedValue = value;
+    }
+
+    reflectedThis.setField(symbol, decodedValue);
+  }
+
+  dynamic _decodedConfigurationItem(TypeMirror typeMirror, dynamic value) {
+    ConfigurationItem newInstance = (typeMirror as ClassMirror).newInstance(new Symbol(""), []).reflectee;
+    newInstance.subItem = value;
+    return newInstance;
+  }
+
+  List<dynamic> _decodedConfigurationList(TypeMirror typeMirror, YamlList value) {
+    var decoder = (v) {
+      return v;
+    };
+
+    if (typeMirror.typeArguments.first.isSubtypeOf(reflectType(ConfigurationItem))) {
+      var innerClassMirror = typeMirror.typeArguments.first as ClassMirror;
+      decoder = (v) {
+        ConfigurationItem newInstance = (innerClassMirror as ClassMirror).newInstance(new Symbol(""), []).reflectee;
+        newInstance.subItem = v;
+        return newInstance;
+      };
+    }
+
+    return value.map(decoder).toList();
+  }
+
+  Map<String, dynamic> _decodedConfigurationMap(TypeMirror typeMirror, YamlMap value) {
+    var decoder = (v) {
+      return v;
+    };
+
+    if (typeMirror.typeArguments.last.isSubtypeOf(reflectType(ConfigurationItem))) {
+      var innerClassMirror = typeMirror.typeArguments.last as ClassMirror;
+      decoder = (v) {
+        ConfigurationItem newInstance = (innerClassMirror as ClassMirror).newInstance(new Symbol(""), []).reflectee;
+        newInstance.subItem = v;
+        return newInstance;
+      };
+    }
+
+    var map = {};
+    value.keys.forEach((k) {
+      map[k] = decoder(value[k]);
+    });
+    return map;
+  }
 
   dynamic noSuchMethod(Invocation i) {
     return null;
@@ -66,6 +124,10 @@ class ConfigurationException {
   ConfigurationException(this.message);
 
   String message;
+
+  String toString() {
+    return "ConfigurationException: $message";
+  }
 }
 
 class DatabaseConnectionConfiguration extends ConfigurationItem {
