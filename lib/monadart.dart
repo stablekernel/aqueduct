@@ -14,6 +14,7 @@ import 'package:logging/logging.dart';
 import 'package:postgresql/postgresql.dart';
 import 'package:matcher/matcher.dart';
 import 'package:analyzer/analyzer.dart';
+import 'package:yaml/yaml.dart';
 
 export 'package:http_server/http_server.dart';
 export 'package:logging/logging.dart';
@@ -66,3 +67,4 @@ part 'db/postgresql/postgresql_statement.dart';
 
 part 'utilities/test_client.dart';
 part 'utilities/mock_server.dart';
+part 'utilities/configuration.dart';
