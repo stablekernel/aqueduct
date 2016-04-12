@@ -131,6 +131,10 @@ class ConfigurationException {
 }
 
 class DatabaseConnectionConfiguration extends ConfigurationItem {
+  DatabaseConnectionConfiguration();
+  DatabaseConnectionConfiguration.withConnectionInfo(this.username, this.password, this.host, this.port, this.databaseName, {bool temporary: false}) {
+    isTemporary = temporary;
+  }
   String host;
   int port;
   String databaseName;
@@ -142,9 +146,6 @@ class DatabaseConnectionConfiguration extends ConfigurationItem {
   @optionalConfiguration
   bool isTemporary;
 
-  DatabaseConnectionConfiguration(this.username, this.password, this.host, this.port, this.databaseName, {bool temporary: false}) {
-    isTemporary = temporary;
-  }
 }
 
 class APIConfiguration extends ConfigurationItem {
