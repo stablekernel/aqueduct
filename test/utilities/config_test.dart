@@ -146,6 +146,22 @@ void main() {
     expect(special.databaseMap["db2"].name, "db2");
     expect(special.databaseMap["db2"].port, 2000);
   });
+
+  test("DatabaseConfig", () {
+    var yamlString =
+        "database:\n"
+        "  username: bob\n"
+        "  password: fred\n"
+        "  host: localhost\n"
+        "  databaseName: dbname\n"
+        "  port: 5000";
+    var d = new ConstructorWrapper(yamlString);
+    expect(d.database.databaseName, "dbname");
+    expect(d.database.username, "bob");
+    expect(d.database.host, "localhost");
+    expect(d.database.password, "fred");
+    expect(d.database.port, 5000);
+  });
 }
 
 class TopLevelConfiguration extends ConfigurationItem {
@@ -179,4 +195,12 @@ class SpecialInfo extends ConfigurationItem {
   List<DatabaseInfo> databaseRecords;
   Map<String, int> integers;
   Map<String, DatabaseInfo> databaseMap;
+}
+
+class ConstructorWrapper extends ConfigurationItem {
+  ConstructorWrapper(String contents) {
+    loadConfigurationFromString(contents);
+  }
+
+  DatabaseConnectionConfiguration database;
 }
