@@ -15,10 +15,11 @@ import 'package:postgresql/postgresql.dart';
 import 'package:matcher/matcher.dart';
 import 'package:analyzer/analyzer.dart';
 import 'package:yaml/yaml.dart';
+import 'package:safe_config/safe_config.dart';
 
 export 'package:http_server/http_server.dart';
 export 'package:logging/logging.dart';
-
+export 'package:safe_config/safe_config.dart';
 
 part 'base/resource_pattern.dart';
 part 'base/resource_request.dart';
@@ -67,4 +68,3 @@ part 'db/postgresql/postgresql_statement.dart';
 
 part 'utilities/test_client.dart';
 part 'utilities/mock_server.dart';
-part 'utilities/configuration.dart';

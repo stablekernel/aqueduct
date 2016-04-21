@@ -2,6 +2,10 @@ name: monadart
 version: 0.0.1
 description: A pipeline for building web services
 dependencies:
+  safe_config:
+    git:
+      url: git@github.com:stablekernel/safe_config.git
+      ref: master
   yaml: any
   matcher: any
   http_server: any
