@@ -53,51 +53,41 @@ class PostgresModelAdapter extends QueryAdapter {
   }
 
   @override
-  Future<dynamic> execute(Query query) {
-    _PostgresqlQuery pgsqlQuery = null;
-    switch (query.queryType) {
-      case QueryType.fetch:
-        pgsqlQuery = new _PostgresqlFetchQuery(schema, query);
-        break;
-      case QueryType.count:
-//        query = new PostgresqlFetchQuery(schema, req);
-        break;
-      case QueryType.delete:
-        pgsqlQuery = new _PostgresqlDeleteQuery(schema, query);
-        break;
-      case QueryType.insert:
-        pgsqlQuery = new _PostgresqlInsertQuery(schema, query);
-        break;
-      case QueryType.update:
-        pgsqlQuery = new _PostgresqlUpdateQuery(schema, query);
-        break;
-    }
+  Future<dynamic> execute(Query query) async {
+    _PostgresqlQuery pgsqlQuery = new _PostgresqlQuery(schema, query);
+    pgsqlQuery.logger = logger;
 
-    return new Future(() async {
-      logger.info("Inquirer: Executing ${pgsqlQuery.string} ${pgsqlQuery.values}");
+    var statement = pgsqlQuery.statement;
+    statement.compile();
 
-      try {
-        var conn = await getDatabaseConnection();
+    var formatString = statement.formatString;
+    var formatParameters = statement.formatParameters;
 
-        if (pgsqlQuery.query.queryType == QueryType.fetch ||
-            pgsqlQuery.query.queryType == QueryType.update ||
-            pgsqlQuery.query.queryType == QueryType.insert) {
-          var result = await conn.query(pgsqlQuery.string, pgsqlQuery.values).toList();
+    try {
+      var conn = await getDatabaseConnection();
+      if (pgsqlQuery.resultColumnNames != null && pgsqlQuery.resultColumnNames.length > 0) {
+        var results = await conn.query(formatString, formatParameters).toList();
+        logger?.info("Inquirer: Querying $formatString $formatParameters -- Yielded: $results");
 
-          logger.info("Inquirer: Received $result");
+        return mapRowsAccordingToQuery(results, pgsqlQuery);
+      } else {
+        var result = await conn.execute(formatString, formatParameters);
+        logger?.info("Inquirer: Executing $formatString $formatParameters -- Yielded: $result");
 
-          return mapRowsAccordingToQuery(result, pgsqlQuery);
-        } else {
-          return await conn.execute(pgsqlQuery.string, pgsqlQuery.values);
-        }
-      } on PostgresqlException catch (e, stackTrace) {
-        throw interpretException(e, stackTrace);
-      } on QueryException {
-        rethrow;
-      } catch (e, stackTrace) {
-        throw new QueryException(500, e.toString(), -1, stackTrace: stackTrace);
+        return result;
       }
-    });
+    } on TimeoutException {
+      throw new QueryException(503, "Could not connect to database.", -1);
+    } on PostgresqlException catch (e, stackTrace) {
+      logger.info("Inquirer: SQL Failed $formatString $formatParameters");
+      throw interpretException(e, stackTrace);
+    } on QueryException {
+      logger.info("Inquirer: Query Failed $formatString $formatParameters");
+      rethrow;
+    } catch (e, stackTrace) {
+      logger.info("Inquirer: Unknown Failure $formatString $formatParameters");
+      throw new QueryException(500, e.toString(), -1, stackTrace: stackTrace);
+    }
   }
 
   Exception interpretException(PostgresqlException exception, StackTrace stackTrace) {
@@ -106,53 +96,189 @@ class PostgresModelAdapter extends QueryAdapter {
       return new QueryException(500, exception.message, 0, stackTrace: stackTrace);
     }
 
+    var totalMessage = "${exception.message}${msg.detail != null ? ": ${msg.detail}" : ""}";
     switch (msg.code) {
       case "42703":
-        return new QueryException(400, exception.message, 42703, stackTrace: stackTrace);
+        return new QueryException(400, totalMessage, 42703, stackTrace: stackTrace);
       case "23505":
-        return new QueryException(409, exception.message, 23505, stackTrace: stackTrace);
+        return new QueryException(409, totalMessage, 23505, stackTrace: stackTrace);
       case "23502":
-        return new QueryException(400, exception.message, 23502, stackTrace: stackTrace);
+        return new QueryException(400, totalMessage, 23502, stackTrace: stackTrace);
       case "23503":
-        return new QueryException(400, exception.message, 23503, stackTrace: stackTrace);
+        return new QueryException(400, totalMessage, 23503, stackTrace: stackTrace);
     }
 
     return new QueryException(500, exception.message, 0, stackTrace: stackTrace);
   }
 
   List<Model> mapRowsAccordingToQuery(List<Row> rows, _PostgresqlQuery query) {
-    ClassMirror m = reflectClass(query.query.modelType);
-    var table = schema.tables[query.query.modelType];
+    var representedEntities = new Set.from(query.resultMappingElements.map((e) => e.entity));
+    var objectCache = new Map.fromIterable(representedEntities, key: (e) => e, value: (e) => {});
+    Map<ModelEntity, _RowRange> entityRowRangeMap = rangeMapForQuery(query);
+    List<Model> instantiatedObjects = [];
+    Map<ModelEntity, ClassMirror> entityToModelClassMirrorMapping = new Map.fromIterable(representedEntities, key: (k) => k, value: (entity) {
+      return reflectClass(query.resultMappingElements.firstWhere((e) => e.entity == entity).modelType);
+    });
 
-    return rows.map((row) {
-      var instance = m.newInstance(new Symbol(""), []).reflectee;
+    rows.forEach((row) {
+      var rowItems = row.toList();
+      entityRowRangeMap.keys.forEach((entity) {
+        var range = entityRowRangeMap[entity];
+        var entityCache = objectCache[entity];
 
-      var map = new Map.fromIterables(query.resultMappingElements.map((m) => m.modelKey), row.toList());
+        var objectValues = rowItems.sublist(range.startIndex, range.endIndex + 1);
+        var pkValue = objectValues[range.primaryKeyInnerIndex];
+        if (pkValue == null) {
+          return;
+        }
 
-      // Replace any foreign keys with embedded object
-      query.resultMappingElements.forEach((e) {
-        var column = table.columns[e.modelKey];
-        var value = map[e.modelKey];
-        if (column.relationship != null && value != null) {
-          var innerKey = column.relationship.destinationModelKey;
-
-          var innerMap = {innerKey: value};
-          var innerModel = reflectClass(column.relationship.destinationType).newInstance(new Symbol(""), []).reflectee;
-          mapToModel(innerModel, innerMap);
-
-          map[e.modelKey] = innerModel;
+        var existingObject = entityCache[pkValue];
+        if (existingObject == null) {
+          var newObject = instantiateObject(entityToModelClassMirrorMapping[entity], range, objectValues);
+          entityCache[pkValue] = newObject;
+          instantiatedObjects.add(newObject);
         }
       });
-
-      mapToModel(instance, map);
-
-      return instance;
-    }).toList();
-  }
-
-  void mapToModel(Model object, Map<String, dynamic> values) {
-    values.forEach((k, v) {
-      object.dynamicBacking[k] = v;
     });
+
+
+    // Sew up relationships, replace foreign keys with model objects.
+    instantiatedObjects.forEach((obj) {
+      for (var key in obj.dynamicBacking.keys) {
+        var value = obj.dynamicBacking[key];
+
+        if (value is _DelayedInstanceForeignKey) {
+          var entityCache = objectCache[value.entity];
+          if (entityCache == null) {
+            entityCache = {};
+            objectCache[value.entity] = entityCache;
+          }
+
+          var cacheObject = entityCache[value.value];
+          bool relatedObjectWasInResultSet = true;
+          if (cacheObject == null) {
+            relatedObjectWasInResultSet = false;
+            cacheObject = reflectClass(value.type).newInstance(new Symbol(""), []).reflectee;
+            cacheObject.dynamicBacking[value.entity.primaryKey] = value.value;
+          }
+
+          obj.dynamicBacking[key] = cacheObject;
+          if(relatedObjectWasInResultSet) {
+            // Set opposite side of relationship and prevent cycles
+            var belongToRelationship = obj.entity.relationshipAttributeForProperty(key);
+            var inverseKey = belongToRelationship.inverseKey;
+            var ownerRelationship = cacheObject.entity.relationshipAttributeForProperty(inverseKey);
+
+            if (ownerRelationship.type == RelationshipType.hasMany) {
+              var list = cacheObject.dynamicBacking[inverseKey];
+              if (list == null) {
+                cacheObject.dynamicBacking[inverseKey] = [obj];
+              } else {
+                cacheObject.dynamicBacking[inverseKey].add(obj);
+              }
+            } else {
+              cacheObject.dynamicBacking[inverseKey] = obj;
+            }
+
+            var replacementObject = reflectClass(value.type).newInstance(new Symbol(""), []).reflectee;
+            replacementObject[value.entity.primaryKey] = cacheObject.dynamicBacking[value.entity.primaryKey];
+            obj.dynamicBacking[key] = replacementObject;
+          }
+        }
+      }
+    });
+
+    // Set any to-many relationships we wanted to fetch that yielded no results to the empty list,
+    // to-one relationships will already be null.
+    expectedRelationshipsForQuery(query.query).forEach((modelType, propertyName) {
+      instantiatedObjects.where((o) => o.runtimeType == modelType)?.forEach((m) {
+        if(m.entity.relationshipAttributeForProperty(propertyName).type == RelationshipType.hasMany) {
+          if (m.dynamicBacking[propertyName] == null) {
+            m.dynamicBacking[propertyName] = [];
+          }
+        }
+      });
+    });
+
+    return objectCache[query.query.entity].values.toList();
   }
+
+  dynamic instantiateObject(ClassMirror modelTypeMirror, _RowRange range, List<dynamic> objectValues) {
+    Model model = modelTypeMirror.newInstance(new Symbol(""), []).reflectee;
+    var propertyIterator = range.innerMappingElements.iterator;
+    objectValues.forEach((value) {
+      propertyIterator.moveNext();
+      var key = propertyIterator.current.modelKey;
+      if (propertyIterator.current.destinationEntity != null) {
+        if (value != null) {
+          model.dynamicBacking[key] = new _DelayedInstanceForeignKey(propertyIterator.current.destinationType,
+              propertyIterator.current.destinationEntity, value);
+        }
+      } else {
+        model.dynamicBacking[key] = value;
+      }
+    });
+    return model;
+  }
+
+  Map<ModelEntity, _RowRange> rangeMapForQuery(_PostgresqlQuery query) {
+    Map<ModelEntity, _RowRange> entityRowRangeMap = {};
+    ModelEntity currentEntity;
+    var startIndex = 0;
+    var currentEntityPrimaryKey;
+    var lastNoticedPrimaryKeyIndex = 0;
+    for (int i = 0; i < query.resultMappingElements.length; i++) {
+      var mapElement = query.resultMappingElements[i];
+      if (currentEntity != mapElement.entity) {
+        if (currentEntity != null) {
+          entityRowRangeMap[currentEntity] = new _RowRange(startIndex,
+              i - 1,
+              lastNoticedPrimaryKeyIndex - startIndex,
+              query.resultMappingElements);
+        }
+        startIndex = i;
+        currentEntity = mapElement.entity;
+        currentEntityPrimaryKey = currentEntity.primaryKey;
+      }
+
+      if (mapElement.modelKey == currentEntityPrimaryKey) {
+        lastNoticedPrimaryKeyIndex = i;
+      }
+    }
+
+    entityRowRangeMap[currentEntity] = new _RowRange(startIndex,
+        query.resultMappingElements.length - 1,
+        lastNoticedPrimaryKeyIndex - startIndex,
+        query.resultMappingElements);
+    return entityRowRangeMap;
+  }
+
+  Map<Type, String> expectedRelationshipsForQuery(Query q) {
+    var m = {};
+    q.subQueries?.forEach((k, subQuery) {
+      m[q.modelType] = k;
+      m.addAll(expectedRelationshipsForQuery(subQuery));
+    });
+
+    return m;
+  }
+}
+
+class _RowRange {
+  final int startIndex;
+  final int endIndex;
+  final int primaryKeyInnerIndex;
+  List<_MappingElement> innerMappingElements;
+
+  _RowRange(int sIndex, int eIndex, this.primaryKeyInnerIndex, List<_MappingElement> outerMappingElements) :
+        startIndex = sIndex,
+        endIndex = eIndex,
+        innerMappingElements = outerMappingElements.sublist(sIndex, eIndex + 1);
+}
+
+class _DelayedInstanceForeignKey {
+  final dynamic value;
+  final ModelEntity entity;
+  final Type type;
+  _DelayedInstanceForeignKey(this.type, this.entity, this.value);
 }

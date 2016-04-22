@@ -17,6 +17,11 @@ abstract class ApplicationPipeline extends RequestHandler {
   /// that can be triggered in [willOpen], but still must be initialized in this constructor.
   ApplicationPipeline(this.options);
 
+  /// This pipeline's owning server.
+  ///
+  /// Reference back to the owning server sending requests into this pipeline.
+  Server server;
+
   /// This pipeline's router.
   ///
   /// The default router for a pipeline. Configure [router] by adding routes to it in [addRoutes].

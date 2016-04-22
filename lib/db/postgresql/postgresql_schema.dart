@@ -1,10 +1,16 @@
 part of monadart;
 
 class PostgresqlSchema {
-  Map<Type, _PostgresqlTable> tables;
+  static Type entityTypeForModelType(Type t) {
+    return reflectClass(t).superclass.typeArguments.first.reflectedType;
+  }
 
   PostgresqlSchema.fromModels(List<Type> modelTypes, {bool temporary: false}) {
-    tables = new Map.fromIterable(modelTypes, key: (t) => t, value: (t) => new _PostgresqlTable.fromModel(t, temporary));
+    tables = new Map.fromIterable(modelTypes, key: (typeKey) => typeKey, value: (t) {
+      var entity = ModelEntity.entityForType(entityTypeForModelType(t));
+      var table = new _PostgresqlTable.fromEntity(entity, temporary);
+      return table;
+    });
 
     tables.values.forEach((table) {
       table.updateRelationshipsWithTables(tables);
@@ -14,6 +20,8 @@ class PostgresqlSchema {
       t.verify(tables);
     });
   }
+
+  Map<Type, _PostgresqlTable> tables;
 
   String toString() {
     var buffer = new StringBuffer();
@@ -32,6 +40,7 @@ class PostgresqlSchema {
 }
 
 class _PostgresqlTable {
+  ModelEntity entity;
   Type type;
   bool isTemporary;
   String name;
@@ -42,17 +51,17 @@ class _PostgresqlTable {
   _PostgresqlColumn get primaryKeyColumn => columns[primaryModelKey];
   String primaryModelKey;
 
-  _PostgresqlTable.fromModel(Type t, bool temporary) {
-    this.type = t;
+  _PostgresqlTable.fromEntity(ModelEntity t, bool temporary) {
+    entity = t;
+    this.type = entity.entityTypeMirror.reflectedType;
     this.isTemporary = temporary;
 
-    name = _tableNameForType(t);
+    name = t.tableName;
 
-    var reflectedModel = _backingTypeForModelType(t);
     var symbols = [];
 
-    reflectedModel.declarations.forEach((k, decl) {
-      if (decl is VariableMirror) {
+    entity.entityTypeMirror.declarations.forEach((k, decl) {
+      if (decl is VariableMirror && !decl.isStatic) {
         symbols.add(k);
       }
     });
@@ -60,7 +69,7 @@ class _PostgresqlTable {
     columns = new Map.fromIterable(symbols,
         key: (sym) => MirrorSystem.getName(sym),
         value: (sym) =>
-            new _PostgresqlColumn.fromVariableMirror(reflectedModel.declarations[sym] as VariableMirror, this));
+            new _PostgresqlColumn.fromVariableMirror(t.entityTypeMirror.declarations[sym] as VariableMirror, this));
 
     columns.forEach((propertyKey, column) {
       if (column.isPrimaryKey) {
@@ -94,14 +103,12 @@ class _PostgresqlTable {
     var indexDefinitions =
         indexedColumns.map((column) => "create index ${name}_${column.name}_idx on ${name} (${column.name})");
 
-    var foreignKeyColumns =
-        columns.values.where((column) => column.relationship != null && !column.ignoreWhenGeneratingSQL());
-    var foreignKeyDefinitions =
-        foreignKeyColumns.map((column) => "alter table only ${name} add foreign key (${column.name}) "
-            "references ${_tableNameForType(
-        column.relationship.destinationType)} (${column.relationship
-        .foreignColumnName}) "
-            "on delete ${column.relationship.deleteRuleText()}");
+    var foreignKeyColumns = columns.values.where((column) => column.relationship != null && !column.ignoreWhenGeneratingSQL());
+    var foreignKeyDefinitions = foreignKeyColumns.map((column) {
+      return "alter table only ${name} add foreign key (${column.name}) "
+          "references ${column.relationship.entity.tableName} (${column.relationship.foreignColumnName}) "
+          "on delete ${column.relationship.deleteRuleText()}";
+    });
 
     var items = [];
     items.addAll(indexDefinitions);
@@ -207,20 +214,15 @@ class _PostgresqlColumn {
     // Need to set the column type, rename the column, apply unique
     var referenceTable = tables[relationship.destinationType];
     if (referenceTable == null) {
-      throw new PostgresqlGeneratorException(
-          "Reference table for $name not found, has ${relationship.destinationType} been added to the schema?");
+      throw new PostgresqlGeneratorException("Reference table for $name not found, has ${relationship.destinationType} been added to the schema?");
     }
 
-    var foreignModelKey = relationship.destinationModelKey;
-    if (foreignModelKey == null) {
-      foreignModelKey = referenceTable.primaryModelKey;
-    }
-
+    var foreignModelKey = relationship.destinationModelKey ?? referenceTable.primaryModelKey;
     var referenceColumn = referenceTable.columns[foreignModelKey];
     if (referenceColumn == null) {
-      throw new PostgresqlGeneratorException("Reference column for $name not found, expected ${relationship
-                .inverseModelKey} on ${referenceTable.name}.");
+      throw new PostgresqlGeneratorException("Reference column for $name not found, expected ${relationship.inverseModelKey} on ${referenceTable.name}.");
     }
+
     this.sqlType = referenceColumn.sqlType;
     if (this.sqlType == "bigserial" || this.sqlType == "bigserial8") {
       this.sqlType = "bigint";
@@ -235,9 +237,7 @@ class _PostgresqlColumn {
 
     var inverseColumn = referenceTable.columns[relationship.inverseModelKey];
     if (inverseColumn == null || inverseColumn.relationship == null) {
-      throw new PostgresqlGeneratorException(
-          "No inverse column (or relationship) for $name, referencing table ${referenceTable
-              .name}");
+      throw new PostgresqlGeneratorException("No inverse column (or relationship) for $name, referencing table ${referenceTable.name}");
     }
 
     if (inverseColumn.relationship.type == RelationshipType.hasOne) {
@@ -325,6 +325,7 @@ class _PostgresqlColumn {
 class _PostgresqlRelationship {
   RelationshipDeleteRule deleteRule;
   RelationshipType type;
+  ModelEntity entity;
   Type destinationType;
   String destinationModelKey;
   String inverseModelKey;
@@ -338,6 +339,7 @@ class _PostgresqlRelationship {
       this.destinationType = variableType.reflectedType;
     }
 
+    this.entity = ModelEntity.entityForType(this.destinationType);
     this.destinationModelKey = attribute.referenceKey;
     this.type = attribute.type;
     this.deleteRule = attribute.deleteRule;
@@ -367,27 +369,4 @@ class PostgresqlGeneratorException implements Exception {
   String toString() {
     return "PostgresqlGeneratorException: $message";
   }
-}
-
-String _tableNameForType(Type t) {
-  var reflectedModel = _backingTypeForModelType(t);
-  var tableNameSymbol = new Symbol("tableName");
-  if (reflectedModel.staticMembers[tableNameSymbol] != null) {
-    return reflectedModel.invoke(tableNameSymbol, []).reflectee;
-  }
-
-  return MirrorSystem.getName(reflectClass(t).simpleName);
-}
-
-ClassMirror _backingTypeForModelType(Type modelType) {
-  var modelBackingMirror = reflectType(modelType)
-      .metadata
-      .firstWhere((m) => m.type.isSubtypeOf(reflectType(ModelBacking)), orElse: () => null);
-
-  if (modelBackingMirror == null) {
-    throw new PostgresqlGeneratorException("No backing type declared for $modelType.");
-  }
-
-  var modelBacking = modelBackingMirror.reflectee as ModelBacking;
-  return reflectClass(modelBacking.backingType);
 }

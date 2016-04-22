@@ -2,6 +2,17 @@ import 'package:monadart/monadart.dart';
 import 'package:test/test.dart';
 
 main() {
+  test("NoSuchMethod still throws", () {
+    var user = new User();
+    try {
+      user.foo();
+      fail("Should not get here");
+    } on NoSuchMethodError {
+    } catch (e) {
+      expect(e, isNull);
+    }
+  });
+
   test("Model object construction", () {
     var user = new User();
     user.name = "Joe";
@@ -10,6 +21,7 @@ main() {
     expect(user.name, "Joe");
     expect(user.id, 1);
   });
+
 
   test("Mismatched type throws exception", () {
     var user = new User();
@@ -209,10 +221,10 @@ main() {
 
   test("Primary key works", () {
     var u = new User();
-    expect(u.primaryKey, "id");
+    expect(u.entity.primaryKey, "id");
 
     var p = new Post();
-    expect(p.primaryKey, null);
+    expect(p.entity.primaryKey, null);
   });
 
   test("Mappable properties are handled in readMap and asMap", () {
@@ -235,8 +247,9 @@ main() {
       "value" : "Foo",
       "name" : "Bob",
       "id" : 1,
-      "dateCreated" : "1900-01-01T00:00:00Z"
+      "dateCreated" : "2000-01-01T00:00:00Z"
     });
+
     expect(u.value, "Foo");
     expect(u.name, "Bob");
 
@@ -288,20 +301,15 @@ main() {
     expect(u.posts[0].id, 1);
     expect(u.posts[0].text, "Hi");
   });
-
 }
 
 @proxy
-@ModelBacking(UserBacking)
-class User extends Object with Model implements UserBacking {
-
+class User extends Model<_User> implements _User {
   @mappable
   String value;
-
-  noSuchMethod(i) => super.noSuchMethod(i);
 }
 
-class UserBacking {
+class _User {
   @Attributes(nullable: true)
   String name;
 
@@ -314,12 +322,10 @@ class UserBacking {
 }
 
 @proxy
-@ModelBacking(PostBacking)
-class Post extends Object with Model implements PostBacking {
-  noSuchMethod(i) => super.noSuchMethod(i);
+class Post extends Model<_Post> implements _Post {
 }
 
-class PostBacking {
+class _Post {
   String text;
   int id;
 
@@ -327,8 +333,7 @@ class PostBacking {
 }
 
 @proxy
-@ModelBacking(TransientTestBacking)
-class TransientTest extends Object with Model implements TransientTestBacking {
+class TransientTest extends Model<_TransientTest> implements _TransientTest {
   @mappable
   String get defaultedText => "Mr. $text";
   void set defaultedText(String str) {
@@ -340,11 +345,9 @@ class TransientTest extends Object with Model implements TransientTestBacking {
 
   @mappableOutput
   int outputInt;
-
-  noSuchMethod(i) => super.noSuchMethod(i);
 }
 
-class TransientTestBacking {
+class _TransientTest {
   int id;
   String text;
 

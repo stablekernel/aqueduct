@@ -213,13 +213,11 @@ void main() {
   });
 }
 
-@ModelBacking(TestModelBacking)
 @proxy
-class TestModel extends Object with Model implements TestModelBacking {
-  noSuchMethod(i) => super.noSuchMethod(i);
+class TestModel extends Model<_TestModel> implements _TestModel {
 }
 
-class TestModelBacking extends Model {
+class _TestModel {
   @Attributes(primaryKey: true, databaseType: "bigserial")
   int id;
 
@@ -233,13 +231,11 @@ class TestModelBacking extends Model {
   }
 }
 
-@ModelBacking(GenUserBacking)
 @proxy
-class GenUser extends Object with Model implements GenUserBacking {
-  noSuchMethod(i) => super.noSuchMethod(i);
+class GenUser extends Model<_GenUser> implements _GenUser {
 }
 
-class GenUserBacking extends Model {
+class _GenUser {
   @Attributes(primaryKey: true, databaseType: "bigserial")
   int id;
 
@@ -253,13 +249,11 @@ class GenUserBacking extends Model {
   }
 }
 
-@ModelBacking(GenPostBacking)
 @proxy
-class GenPost extends Object with Model implements GenPostBacking {
-  noSuchMethod(i) => super.noSuchMethod(i);
+class GenPost extends Model<_GenPost> implements _GenPost {
 }
 
-class GenPostBacking extends Model {
+class _GenPost {
   @Attributes(primaryKey: true, databaseType: "bigserial")
   int id;
 
@@ -270,13 +264,11 @@ class GenPostBacking extends Model {
   GenUser owner;
 }
 
-@ModelBacking(GenTimeBacking)
 @proxy
-class GenTime extends Object with Model implements GenTimeBacking {
-  noSuchMethod(i) => super.noSuchMethod(i);
+class GenTime extends Model<_GenTime> implements _GenTime {
 }
 
-class GenTimeBacking extends Model {
+class _GenTime {
   @Attributes(primaryKey: true, databaseType: "bigserial")
   int id;
 
@@ -286,16 +278,14 @@ class GenTimeBacking extends Model {
   DateTime dateCreated;
 }
 
-@ModelBacking(TransientBacking)
 @proxy
-class TransientModel extends Object with Model implements TransientBacking {
+class TransientModel extends Model<_Transient> implements _Transient {
   @mappable
   String transientValue;
 
-  noSuchMethod(i) => super.noSuchMethod(i);
 }
 
-class TransientBacking extends Model {
+class _Transient {
   @Attributes(primaryKey: true, databaseType: "bigserial")
   int id;
 

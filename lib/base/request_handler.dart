@@ -59,24 +59,21 @@ class RequestHandler implements APIDocumentable {
   /// method, it is important that you always invoke subsequent handler's with [deliver]
   /// and not [processRequest].
 
-  void deliver(ResourceRequest req) {
+  Future deliver(ResourceRequest req) async {
     logger.finest("$this received request $req.");
-    processRequest(req).then((result) {
+    try {
+      var result = await processRequest(req);
       if (result is ResourceRequest && nextHandler != null) {
         nextHandler.deliver(req);
       } else if (result is Response) {
         req.respond(result as Response);
       }
-    }).catchError((err, st) {
-      if (err is HttpResponseException) {
-        req.respond(err.response());
-      } else {
-        logger.severe("$this generated internal error for request ${req.toDebugString()}. $err\n Stacktrace:\n${st.toString()}");
-        req.respond(new Response.serverError(
-            headers: {HttpHeaders.CONTENT_TYPE: "application/json"},
-            body: JSON.encode({"error": "${this.runtimeType}: $err.", "stacktrace": st.toString()})));
-      }
-    });
+    } on HttpResponseException catch (e) {
+      req.respond(e.response());
+    } catch (err, st) {
+      logger.severe("$this generated internal error for request ${req.toDebugString()}. $err\n Stacktrace:\n${st.toString()}");
+      req.respond(new Response.serverError(headers: {HttpHeaders.CONTENT_TYPE: "application/json"}, body: JSON.encode({"error": "${this.runtimeType}: $err.", "stacktrace": st.toString()})));
+    }
   }
 
   /// Overridden by subclasses to modify or respond to an incoming request.
@@ -115,10 +112,10 @@ class RequestHandlerGenerator<T extends RequestHandler> extends RequestHandler {
   }
 
   @override
-  void deliver(ResourceRequest req) {
+  Future deliver(ResourceRequest req) async {
     logger.finest("Generating handler $T with arguments $arguments.");
     T handler = instantiate();
-    handler.deliver(req);
+    await handler.deliver(req);
   }
 
   @override

@@ -17,13 +17,9 @@ Future<List<TestUser>> createUsers(QueryAdapter adapter, int count) async {
   return users;
 }
 
-@ModelBacking(UserBacking)
-@proxy
-class TestUser extends Object with Model implements UserBacking {
-  noSuchMethod(inv) => super.noSuchMethod(inv);
-}
+class TestUser extends Model<_User> implements _User {}
 
-class UserBacking implements Authenticatable {
+class _User implements Authenticatable {
   @Attributes(primaryKey: true, databaseType: "bigserial")
   int id;
 
@@ -32,14 +28,10 @@ class UserBacking implements Authenticatable {
   String salt;
 }
 
-@ModelBacking(TokenBacking)
-@proxy
-class Token extends Object with Model implements TokenBacking {
-  noSuchMethod(inv) => super.noSuchMethod(inv);
-}
+class Token extends Model<_Token> implements _Token {}
 
 
-class TokenBacking implements Tokenizable {
+class _Token implements Tokenizable {
   @Attributes(primaryKey: true, databaseType: "bigserial")
   int id;
 

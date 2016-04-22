@@ -10,7 +10,9 @@ class Response implements RequestHandlerResult {
   /// This is typically a map that will be encoded to JSON.
   dynamic body;
 
+  /// Map of headers to send in this response.
   ///
+  /// Where the key is the Header name and value is the Header value.
   Map<String, String> headers;
 
   /// The HTTP status code of this response.

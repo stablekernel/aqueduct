@@ -7,7 +7,7 @@ class Server {
   int identifier;
 
   Server(this.pipeline, this.configuration, this.identifier) {
-
+    pipeline.server = this;
   }
 
   Future start() async {
@@ -57,6 +57,7 @@ class IsolateServer extends Server {
 
   IsolateServer(ApplicationPipeline pipeline, ApplicationInstanceConfiguration configuration, int identifier, this.supervisingApplicationPort)
     : super(pipeline, configuration, identifier) {
+    pipeline.server = this;
     supervisingReceivePort = new ReceivePort();
     supervisingReceivePort.listen(listener);
   }

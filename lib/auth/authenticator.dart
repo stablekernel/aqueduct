@@ -10,6 +10,10 @@ class Authenticator extends RequestHandler {
 
   @override
   Future<RequestHandlerResult> processRequest(ResourceRequest req) async {
+    if (req.innerRequest.method == "OPTIONS") {
+      return req;
+    }
+
     var errorResponse = null;
     if (strategy == AuthenticationStrategy.ResourceOwner) {
       var result = processResourceOwnerRequest(req);

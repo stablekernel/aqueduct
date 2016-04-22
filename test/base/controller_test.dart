@@ -172,8 +172,58 @@ void main() {
     var res = await http.post("http://localhost:4040/a", headers: {"Content-Type" : "application/x-www-form-urlencoded"}, body: "opt=7");
     expect(res.body, '"7"');
   });
+
+  test("Model and lists are encoded in response", () async {
+    server = await enableController("/a/:thing", new RequestHandlerGenerator<ModelEncodeController>());
+    var res = await http.get("http://localhost:4040/a/list");
+    expect(JSON.decode(res.body), [{"id" : 1}, {"id" : 2}]);
+
+    res = await http.get("http://localhost:4040/a/model");
+    expect(JSON.decode(res.body), {"id" : 1, "name" : "Bob"});
+
+    res = await http.get("http://localhost:4040/a/modellist");
+    expect(JSON.decode(res.body), [{"id" : 1, "name" : "Bob"}, {"id" : 2, "name" : "Fred"}]);
+
+    res = await http.get("http://localhost:4040/a/null");
+    expect(JSON.decode(res.body), isNull);
+    expect(res.statusCode, 200);
+  });
+
+  test("Sending bad JSON returns 500", () async {
+    server = await enableController("/a", new RequestHandlerGenerator<TController>());
+    var res = await http.post("http://localhost:4040/a", body: "{`foobar' : 2}", headers: {"Content-Type" : "application/json"});
+    expect(res.statusCode, 400);
+
+    res = await http.get("http://localhost:4040/a");
+    expect(res.statusCode, 200);
+  });
+
+  test("Prefilter requests", () async {
+    server = await enableController("/a", new RequestHandlerGenerator<FilteringController>());
+
+    var resp = await http.get("http://localhost:4040/a");
+    expect(resp.statusCode, 200);
+
+    resp = await http.get("http://localhost:4040/a", headers: {"Ignore" : "true"});
+    expect(resp.statusCode, 400);
+    expect(resp.body, "ignored");
+  });
 }
 
+class FilteringController extends HttpController {
+  @httpGet getAll() async {
+    return new Response.ok(null);
+  }
+
+  @override
+  Future<RequestHandlerResult> willProcessRequest(ResourceRequest req) async {
+    if (req.innerRequest.headers.value("ignore") != null) {
+      return new Response.badRequest(body: "ignored");
+    }
+    return super.willProcessRequest(req);
+  }
+
+}
 
 class TController extends HttpController {
 
@@ -256,8 +306,37 @@ class DateTimeController extends HttpController {
   }
 }
 
-Future<HttpServer> enableController(String pattern, RequestHandler controller) async {
+class ModelEncodeController extends HttpController {
+  @httpGet getThings(String thing) async {
+    if (thing == "list") {
+      return new Response.ok([{"id" : 1}, {"id" : 2}]);
+    }
 
+    if (thing == "model") {
+      var m = new TestModel()
+        ..id = 1
+        ..name = "Bob";
+      return new Response.ok(m);
+    }
+
+    if (thing == "modellist") {
+      var m1 = new TestModel()
+        ..id = 1
+        ..name = "Bob";
+      var m2 = new TestModel()
+        ..id = 2
+        ..name = "Fred";
+
+      return new Response.ok([m1, m2]);
+    }
+
+    if (thing == "null") {
+      return new Response.ok(null);
+    }
+  }
+}
+
+Future<HttpServer> enableController(String pattern, RequestHandler controller) async {
   var router = new Router();
   router.route(pattern).then(controller);
 
@@ -267,4 +346,10 @@ Future<HttpServer> enableController(String pattern, RequestHandler controller) a
   });
 
   return server;
+}
+
+class TestModel extends Model<_TestModel> implements _TestModel {}
+class _TestModel {
+  int id;
+  String name;
 }
