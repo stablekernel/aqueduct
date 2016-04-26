@@ -2,6 +2,8 @@ name: monadart
 version: 0.0.1
 description: A pipeline for building web services
 dependencies:
+  safe_config: "^1.0.2"
+  yaml: any
   matcher: any
   http_server: any
   pbkdf2: any

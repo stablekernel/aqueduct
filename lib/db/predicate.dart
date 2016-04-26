@@ -33,8 +33,7 @@ class Predicate {
   ///
   /// For combining multiple predicate together.
   static Predicate andPredicates(List<Predicate> predicates) {
-    var predicateFormat =
-        predicates.map((pred) => "(${pred.format})").join(" and ");
+    var predicateFormat = predicates.map((pred) => "${pred.format}").join(" and ");
 
     var valueMap = {};
     predicates.forEach((p) {
@@ -51,6 +50,14 @@ class Predicate {
     });
 
     return new Predicate(predicateFormat, valueMap);
+  }
+
+  void prefixKeysWith(String prefix) {
+    _format = _format?.replaceAll("@", "@$prefix");
+    var keys = _parameters?.keys;
+    keys?.forEach((k) {
+      _parameters["@$prefix$k"] = _parameters[k];
+    });
   }
 }
 

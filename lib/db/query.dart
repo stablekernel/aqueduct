@@ -15,22 +15,32 @@ enum QueryType {
   delete,
 
   /// Specifies that the Query will only return the number of objects that it finds.
-  count
+  count,
+
+  /// Specifies that the Query is a subquery as part of a larger query
+  join
 }
 
 /// An representation of a database operation.
 ///
 /// Queries are used to find, update, insert, delete and count objects in a database.
-/// The ModelType must have a [ModelBacking], be declared with @proxy and mixin the [Model] class.
-/// The results of executing a Query will always be a List of [modelType] or the empty list.
 
 class Query<ModelType extends Model> {
+  Query() {
+    entity = ModelEntity.entityForType(ModelType);
+  }
+
+  Query.withModelType(this._modelType) {
+    entity = ModelEntity.entityForType(this._modelType);
+  }
+
+  Type _modelType;
+  Type get modelType =>_modelType ?? ModelType;
+
   /// Type of model object this Query deals with.
   ///
   /// This property is defined by the generic ModelType.
-  Type get modelType {
-    return ModelType;
-  }
+  ModelEntity entity;
 
   /// The action this query performs.
   ///
@@ -39,6 +49,8 @@ class Query<ModelType extends Model> {
   /// should not use it, as the [Query] is effectively done once the action method is applied.
   QueryType get queryType => _queryType;
   QueryType _queryType;
+
+  Map<String, Query> subQueries;
 
   /// Number of seconds before a Query times out.
   ///
@@ -73,18 +85,6 @@ class Query<ModelType extends Model> {
   /// A predicate will identify the rows being accessed, see [Predicate] for more details.
   Predicate predicate;
 
-  /// An object that generates a predicate for filtering the result or operation set.
-  ///
-  /// Will generate the [predicate] for this [Query] using values from this object. For example, the following code
-  /// would generate the predicate "(name = 'Joe' and id = 2)"
-  ///     var user = new User()
-  ///       ..name = 'Joe'
-  ///       ..id = 2;
-  ///     var q = new Query<User>()
-  ///       ..predicateObject = user;
-  ///
-  ModelType predicateObject;
-
   /// Values to be used when inserting or updating an object.
   ///
   /// Keys must be the name of the property on the model object. Prefer to use [valueObject] instead.
@@ -107,7 +107,7 @@ class Query<ModelType extends Model> {
   /// By default, [resultKeys] is null and therefore all objects returned will contain all properties
   /// of the object. (Unless those properties are marked as hasOne or hasMany relationships.) Specifying
   /// an explicit list of keys will return only those properties. Keys must match the names of the properties
-  /// in the [ModelBacking] of [modelType].
+  /// in of [modelType].
   List<String> resultKeys;
 
   /// Inserts the data represented by this Query into the database represented by [adapter].

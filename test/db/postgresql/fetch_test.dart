@@ -7,6 +7,7 @@ void main() {
   setUp(() {
     adapter = new PostgresModelAdapter.fromConnectionInfo(
         null, "dart", "dart", "localhost", 5432, "dart_test");
+    //PostgresModelAdapter.logger.onRecord.listen((rec) => print("$rec"));
   });
 
   tearDown(() {
@@ -186,12 +187,15 @@ void main() {
     try {
       await req.fetch(adapter);
       fail("This should throw an expcetion");
-    } catch (e) {
+    } on QueryException catch (e) {
       expect(e.message,
           "Attempting to retrieve badkey from TestModel, but that key doesn't exist.");
       expect(e.errorCode, -1);
       expect(e.statusCode, 500);
+    } catch (e) {
+      fail("$e");
     }
+
   });
 
   test("Value for foreign key in predicate", () async {
@@ -216,25 +220,23 @@ void main() {
       ..predicate = new Predicate("owner_id = @id", {"id": u1.id});
     var res = await req.fetch(adapter);
     expect(res.length, 5);
-    expect(
-        res
-            .map((p) => p.text)
+    expect(res.map((p) => p.text)
             .where((text) => num.parse(text) % 2 == 0)
             .toList()
-            .length,
-        5);
+            .length, 5);
 
-    var gp = new GenPost()..owner = u1;
-    req = new Query<GenPost>()..predicateObject = gp;
+    var matcher = new ModelQuery<GenPost>();
+    matcher["owner"] = whereRelatedByValue(u1.id);
+    req = new Query<GenPost>()..predicate = matcher.predicate;
     res = await req.fetch(adapter);
+
+    GenUser user = res.first.owner;
+    expect(user, isNotNull);
     expect(res.length, 5);
-    expect(
-        res
-            .map((p) => p.text)
+    expect(res.map((p) => p.text)
             .where((text) => num.parse(text) % 2 == 0)
             .toList()
-            .length,
-        5);
+            .length, 5);
   });
 
   test("Fetch object with null reference", () async {
@@ -293,7 +295,9 @@ void main() {
     expect(result.id, greaterThan(0));
     expect(result.dynamicBacking["text"], isNull);
 
-    var fq = new Query<Omit>()..predicateObject = result;
+    var matcher = new ModelQuery<Omit>()
+      ..["id"] = whereEqualTo(result.id);
+    var fq = new Query<Omit>()..predicate = matcher.predicate;
 
     var fResult = await fq.fetchOne(adapter);
     expect(fResult.id, result.id);
@@ -489,30 +493,48 @@ void main() {
     res = await req.fetch(adapter);
     check([10, 9, 8, 7, 6], res);
   });
+
+  test("whereIn Matcher", () async {
+    await generateTemporarySchemaFromModels(adapter, [TestModel]);
+
+    for (int i = 0; i < 3; i++) {
+      var m = new TestModel()
+        ..name = "$i"
+        ..email = "$i@a.com";
+      var req = new Query<TestModel>()
+        ..valueObject = m;
+
+      await req.insert(adapter);
+    }
+
+    var q = new ModelQuery<TestModel>()
+      ..["id"] = whereIn([1, 2]);
+    var results = await q.fetch(adapter);
+    expect(results.length, 2);
+    expect(results.first["name"], "0");
+    expect(results.last["name"], "1");
+
+    q = new ModelQuery<TestModel>()
+      ..["name"] = whereIn(['1', '2']);
+    results = await q.fetch(adapter);
+    expect(results.length, 2);
+    expect(results.first["name"], "1");
+    expect(results.last["name"], "2");
+  });
 }
 
-@ModelBacking(PageableTestModelBacking)
-@proxy
-class PageableTestModel extends Object
-    with Model
-    implements PageableTestModelBacking {
-  noSuchMethod(i) => super.noSuchMethod(i);
-}
+class PageableTestModel extends Model<_PageableTestModel> implements _PageableTestModel {}
 
-class PageableTestModelBacking {
+class _PageableTestModel {
   @Attributes(primaryKey: true, databaseType: "bigserial")
   int id;
 
   String value;
 }
 
-@ModelBacking(TestModelBacking)
-@proxy
-class TestModel extends Object with Model implements TestModelBacking {
-  noSuchMethod(i) => super.noSuchMethod(i);
-}
+class TestModel extends Model<_TestModel> implements _TestModel {}
 
-class TestModelBacking extends Model {
+class _TestModel {
   @Attributes(primaryKey: true, databaseType: "bigserial")
   int id;
 
@@ -530,13 +552,9 @@ class TestModelBacking extends Model {
   }
 }
 
-@ModelBacking(GenUserBacking)
-@proxy
-class GenUser extends Object with Model implements GenUserBacking {
-  noSuchMethod(i) => super.noSuchMethod(i);
-}
+class GenUser extends Model<_GenUser> implements _GenUser {}
 
-class GenUserBacking {
+class _GenUser {
   @Attributes(primaryKey: true, databaseType: "bigserial")
   int id;
 
@@ -550,13 +568,9 @@ class GenUserBacking {
   }
 }
 
-@ModelBacking(GenPostBacking)
-@proxy
-class GenPost extends Object with Model implements GenPostBacking {
-  noSuchMethod(i) => super.noSuchMethod(i);
-}
+class GenPost extends Model<_GenPost> implements _GenPost {}
 
-class GenPostBacking {
+class _GenPost {
   @Attributes(primaryKey: true, databaseType: "bigserial")
   int id;
 
@@ -567,13 +581,9 @@ class GenPostBacking {
   GenUser owner;
 }
 
-@ModelBacking(OmitBacking)
-@proxy
-class Omit extends Object with Model implements OmitBacking {
-  noSuchMethod(i) => super.noSuchMethod(i);
-}
+class Omit extends Model<_Omit> implements _Omit {}
 
-class OmitBacking {
+class _Omit {
   @Attributes(primaryKey: true, databaseType: "bigserial")
   int id;
 

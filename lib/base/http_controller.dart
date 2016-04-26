@@ -23,6 +23,8 @@ abstract class HttpController extends RequestHandler {
   /// It is this [HttpController]'s responsibility to return a [Response] object for this request.
   ResourceRequest request;
 
+  CORSPolicy policy = new CORSPolicy();
+
   /// Parameters parsed from the URI of the request, if any exist.
   Map<String, String> get pathVariables => request.path.variables;
 
@@ -69,9 +71,12 @@ abstract class HttpController extends RequestHandler {
   // Callbacks
   /// Executed prior to handling a request, but after the [resourceRequest] has been set.
   ///
-  /// This method is used to do pre-process setup. The [resourceRequest] will be set, but its body will not be decoded
-  /// nor will the appropriate handler method be selected yet. By default, does nothing.
-  void willProcessRequest(ResourceRequest req) {}
+  /// This method is used to do pre-process setup and filtering. The [resourceRequest] will be set, but its body will not be decoded
+  /// nor will the appropriate handler method be selected yet. By default, returns the request. If this method returns a [Response], this
+  /// controller will stop processing the request and immediately return the [Response] to the HTTP client.
+  Future<RequestHandlerResult> willProcessRequest(ResourceRequest req) async {
+    return req;
+  }
 
   /// Executed prior to request being handled, but after the body has been processed.
   ///
@@ -121,7 +126,11 @@ abstract class HttpController extends RequestHandler {
       }, orElse: () => null);
 
       if (matchingContentType != null) {
-        return (await HttpBodyHandler.processRequest(request.innerRequest)).body;
+        try {
+          return (await HttpBodyHandler.processRequest(request.innerRequest)).body;
+        } catch (e) {
+          throw new _InternalIgnoreBullshitException();
+        }
       } else {
         throw new _InternalControllerException("Unsupported Content-Type", HttpStatus.UNSUPPORTED_MEDIA_TYPE);
       }
@@ -201,30 +210,93 @@ abstract class HttpController extends RequestHandler {
     return retMap;
   }
 
+  dynamic encodedResponseBody(dynamic initialResponseBody) {
+    var serializedBody = null;
+    if (initialResponseBody is Serializable) {
+      serializedBody = (initialResponseBody as Serializable).asSerializable();
+    } else if (initialResponseBody is List) {
+      serializedBody = (initialResponseBody as List).map((value) {
+        if (value is Serializable) {
+          return value.asSerializable();
+        } else {
+          return value;
+        }
+      }).toList();
+    }
+
+    return responseBodyEncoder(serializedBody ?? initialResponseBody);
+
+  }
+
   Future<Response> _process() async {
+    var methodSymbol = _routeMethodSymbolForRequest(request);
+    var handlerParameters = _parametersForRequest(request, methodSymbol);
+
+    requestBody = await _readRequestBodyForRequest(request);
+    var handlerQueryParameters = _queryParametersForRequest(request, requestBody, methodSymbol);
+
+    if (requestBody != null) {
+      didDecodeRequestBody(requestBody);
+    }
+
+    Future<Response> eventualResponse = reflect(this).invoke(methodSymbol, handlerParameters, handlerQueryParameters).reflectee;
+    var response = await eventualResponse;
+
+    willSendResponse(response);
+
+    response.body = encodedResponseBody(response.body);
+    response.headers[HttpHeaders.CONTENT_TYPE] = responseContentType.toString();
+
+    return response;
+  }
+
+  @override
+  Future<RequestHandlerResult> processRequest(ResourceRequest req) async {
     try {
-      var methodSymbol = _routeMethodSymbolForRequest(request);
-      var handlerParameters = _parametersForRequest(request, methodSymbol);
+      request = req;
 
-      requestBody = await _readRequestBodyForRequest(request);
-      var handlerQueryParameters = _queryParametersForRequest(request, requestBody, methodSymbol);
+      var corsHeaders = null;
+      if (request.innerRequest.headers.value("origin") != null) {
+        if (policy != null) {
+          if (!policy.isRequestOriginAllowed(request.innerRequest)) {
+            return new Response.forbidden();
+          }
 
-      if (requestBody != null) {
-        didDecodeRequestBody(requestBody);
+          if (request.innerRequest.method == "OPTIONS") {
+            // Preflight request
+            return policy.preflightResponse(req);
+          } else {
+            // Normal request
+            corsHeaders = policy.headersForRequest(request);
+          }
+        }
       }
 
-      Future<Response> eventualResponse = reflect(this).invoke(methodSymbol, handlerParameters, handlerQueryParameters).reflectee;
+      var preprocessedResult = await willProcessRequest(req);
+      Response response = null;
+      if (preprocessedResult is ResourceRequest) {
+        response = await _process();
+      } else if (preprocessedResult is Response) {
+        response = preprocessedResult;
+      } else {
+        throw new _InternalControllerException("Preprocessing request did not yield result", 500);
+      }
 
-      var response = await eventualResponse;
-
-      willSendResponse(response);
-
-      response.body = responseBodyEncoder(response.body);
-      response.headers[HttpHeaders.CONTENT_TYPE] = responseContentType.toString();
+      if (corsHeaders != null) {
+        if (response.headers != null) {
+          response.headers.addAll(corsHeaders);
+        } else {
+          response.headers = corsHeaders;
+        }
+      }
 
       return response;
+    } on HttpResponseException catch (e) {
+      return e.response();
+    } on _InternalIgnoreBullshitException {
+      return null;
     } on _InternalControllerException catch (e) {
-      logger.info("Request (${request.toDebugString()}) failed to process: ${e.message}.");
+      logger.info("Request (${request.toDebugString()}) failed: ${e.message}.");
       var response = new Response(e.statusCode, {}, null);
 
       request.response.statusCode = e.statusCode;
@@ -246,19 +318,9 @@ abstract class HttpController extends RequestHandler {
         var response = _exceptionHandler(this.request, e, stacktrace);
         return response;
       } else {
-        rethrow;
+        return new Response.serverError();
       }
     }
-  }
-
-  @override
-  Future<RequestHandlerResult> processRequest(ResourceRequest req) async {
-    request = req;
-
-    willProcessRequest(req);
-    var response = await _process();
-
-    return response;
   }
 
   @override
@@ -338,6 +400,9 @@ abstract class HttpController extends RequestHandler {
   }
 }
 
+class _InternalIgnoreBullshitException {
+  _InternalIgnoreBullshitException();
+}
 class _InternalControllerException {
   final String message;
   final int statusCode;
