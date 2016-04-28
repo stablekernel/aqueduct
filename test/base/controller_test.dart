@@ -350,6 +350,7 @@ Future<HttpServer> enableController(String pattern, RequestHandler controller) a
 
 class TestModel extends Model<_TestModel> implements _TestModel {}
 class _TestModel {
+  @primaryKey
   int id;
   String name;
 }

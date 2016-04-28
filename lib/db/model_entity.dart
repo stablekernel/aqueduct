@@ -1,7 +1,13 @@
 part of monadart;
 
 class ModelEntity {
+  static Map<Type, ModelEntity> _entityCache = {};
   static ModelEntity entityForType(Type t) {
+    var cachedEntity = _entityCache[t];
+    if (cachedEntity != null) {
+      return cachedEntity;
+    }
+
     var rt = reflectClass(t);
     var modelRefl = reflectType(Model);
     var entityTypeRefl = rt;
@@ -15,11 +21,18 @@ class ModelEntity {
       entityTypeRefl = entityTypeRefl.typeArguments.first;
     }
 
-    return new ModelEntity()
-        ..entityTypeMirror = entityTypeRefl;
+    var entity = new ModelEntity(entityTypeRefl);
+
+    _entityCache[t] = entity;
+
+    return entity;
   }
 
-  ClassMirror entityTypeMirror;
+  ModelEntity(this.entityTypeMirror) {
+    _buildCaches();
+  }
+
+  final ClassMirror entityTypeMirror;
   Type get type => entityTypeMirror.reflectedType;
 
   /// Name of primaryKey property.
@@ -27,30 +40,21 @@ class ModelEntity {
   /// If this has a primary key (as determined by the having an [Attributes] with [Attributes.primaryKey] set to true,
   /// returns the name of that property. Otherwise, returns null.
   String get primaryKey {
-    return _firstPropertyNameWhere((ivar) {
-      var attr = ivar.metadata.firstWhere((md) => md.reflectee is Attributes, orElse: () => null);
-      if (attr == null) {
-        return false;
-      }
-
-      return attr.reflectee.isPrimaryKey;
-    });
+    return _primaryKey;
   }
+  String _primaryKey;
 
-  String _cachedTableName;
+  /// Name of table in database.
+  ///
+  /// By default, the table will be named by the backing type, e.g., a model class defined as class User extends Model<_User> implements _User has a backing
+  /// type of _User. The table will be named _User. You may implement the static method tableName that returns a [String] to change this table name
+  /// to that methods returned value.
   String get tableName {
-    if (_cachedTableName == null) {
-      var tableNameSymbol = new Symbol("tableName");
-      if (entityTypeMirror.staticMembers[tableNameSymbol] != null) {
-        _cachedTableName = entityTypeMirror
-            .invoke(tableNameSymbol, [])
-            .reflectee;
-      } else {
-        _cachedTableName = MirrorSystem.getName(entityTypeMirror.simpleName);
-      }
-    }
-    return _cachedTableName;
+    return _tableName;
   }
+  String _tableName;
+
+  Map<String, VariableMirror> _propertyCache;
 
   String foreignKeyForProperty(String propertyName) {
     var propertyMirror = _propertyMirrorForProperty(propertyName);
@@ -104,46 +108,21 @@ class ModelEntity {
   }
 
   bool _hasProperty(String propertyName) {
-    var decl = this.entityTypeMirror.declarations[new Symbol(propertyName)];
-    if (decl == null) {
-      return false;
-    }
-    if (decl is! VariableMirror) {
-      return false;
-    }
-    if (decl.isStatic) {
-      return false;
-    }
-
-    return true;
+    return _propertyCache[propertyName] != null;
   }
 
   String _firstPropertyNameWhere(bool test(VariableMirror element)) {
-    var sym = entityTypeMirror.declarations.values
-        .where((decl) => decl is VariableMirror)
-        .where((VariableMirror vm) => !vm.isStatic)
-        .firstWhere(test, orElse: () => null)?.simpleName;
-
-    if (sym == null) {
-      return null;
-    }
+    var sym = _propertyCache.values.firstWhere(test, orElse: () => null)?.simpleName;
 
     return MirrorSystem.getName(sym);
   }
 
   TypeMirror _typeMirrorForProperty(String propertyName) {
-    VariableMirror ivarDeclaration = entityTypeMirror.declarations[new Symbol(propertyName)];
-
-    return ivarDeclaration?.type;
+    return _propertyCache[propertyName]?.type;
   }
 
   VariableMirror _propertyMirrorForProperty(String propertyName) {
-    var decl = entityTypeMirror.declarations[new Symbol(propertyName)];
-    if (decl is VariableMirror && !decl.isStatic) {
-      return decl;
-    }
-
-    return null;
+    return _propertyCache[propertyName];
   }
 
   int get hashCode {
@@ -156,5 +135,34 @@ class ModelEntity {
 
   String toString() {
     return "ModelEntity on $tableName";
+  }
+
+  void _buildCaches() {
+    var tableNameSymbol = new Symbol("tableName");
+    if (entityTypeMirror.staticMembers[tableNameSymbol] != null) {
+      _tableName = entityTypeMirror
+          .invoke(tableNameSymbol, [])
+          .reflectee;
+    } else {
+      _tableName = MirrorSystem.getName(entityTypeMirror.simpleName);
+    }
+
+    _propertyCache = {};
+    entityTypeMirror.declarations.forEach((sym, declMir) {
+      if (declMir is VariableMirror && !declMir.isStatic) {
+        var key = MirrorSystem.getName(sym);
+        _propertyCache[key] = declMir;
+      }
+    });
+
+    _primaryKey = _firstPropertyNameWhere((ivar) {
+      var attr = ivar.metadata.firstWhere((md) => md.reflectee is Attributes, orElse: () => null);
+      if (attr == null) {
+        return false;
+      }
+
+      return attr.reflectee.isPrimaryKey;
+    });
+
   }
 }

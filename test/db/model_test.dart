@@ -224,7 +224,7 @@ main() {
     expect(u.entity.primaryKey, "id");
 
     var p = new Post();
-    expect(p.entity.primaryKey, null);
+    expect(p.entity.primaryKey, "id");
   });
 
   test("Mappable properties are handled in readMap and asMap", () {
@@ -326,8 +326,10 @@ class Post extends Model<_Post> implements _Post {
 }
 
 class _Post {
-  String text;
+  @primaryKey
   int id;
+
+  String text;
 
   User owner;
 }
@@ -348,7 +350,9 @@ class TransientTest extends Model<_TransientTest> implements _TransientTest {
 }
 
 class _TransientTest {
+  @primaryKey
   int id;
+
   String text;
 
 }
