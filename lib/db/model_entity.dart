@@ -8,7 +8,16 @@ class ModelEntity {
       return cachedEntity;
     }
 
-    var rt = reflectClass(t);
+    var entityTypeRefl = _modelDefinitionMirror(t);
+    var entity = new ModelEntity(entityTypeRefl);
+
+    _entityCache[t] = entity;
+
+    return entity;
+  }
+
+  static ClassMirror _modelDefinitionMirror(Type modelType) {
+    var rt = reflectClass(modelType);
     var modelRefl = reflectType(Model);
     var entityTypeRefl = rt;
 
@@ -20,13 +29,9 @@ class ModelEntity {
     if (rt.isSubtypeOf(modelRefl)) {
       entityTypeRefl = entityTypeRefl.typeArguments.first;
     }
-
-    var entity = new ModelEntity(entityTypeRefl);
-
-    _entityCache[t] = entity;
-
-    return entity;
+    return entityTypeRefl;
   }
+
 
   ModelEntity(this.entityTypeMirror) {
     _buildCaches();
@@ -55,43 +60,10 @@ class ModelEntity {
   String _tableName;
 
   Map<String, VariableMirror> _propertyCache;
+  Map<String, String> _foreignKeyCache;
 
   String foreignKeyForProperty(String propertyName) {
-    var propertyMirror = _propertyMirrorForProperty(propertyName);
-    if (propertyMirror == null) {
-      return null;
-    }
-
-    var attr = _relationshipAttributeForPropertyMirror(propertyMirror);
-    if (attr == null) {
-      return null;
-    }
-
-    var suffixName = attr.referenceKey;
-    if (suffixName == null) {
-      var propertyTypeMirror = propertyMirror.type;
-      if (propertyTypeMirror.isSubtypeOf(reflectType(List))) {
-        propertyTypeMirror = propertyTypeMirror.typeArguments.first;
-      }
-
-      var relatedEntity = entityForType(propertyTypeMirror.reflectedType);
-      var relatedTypePrimaryKeyAttr = relatedEntity.entityTypeMirror.declarations.values.firstWhere((dm) {
-        Attributes propAttrs = dm.metadata.firstWhere((im) => im.reflectee is Attributes, orElse: () => null)?.reflectee;
-        if (propAttrs == null) {
-          return false;
-        }
-        return propAttrs.isPrimaryKey;
-      }, orElse: () => null);
-
-      if (relatedTypePrimaryKeyAttr == null) {
-        var className = MirrorSystem.getName(propertyMirror.owner.simpleName);
-        throw new QueryException(500, "Related value for $propertyName on ${className} does not have a primary key or a reference key.", -1);
-      }
-
-      suffixName = MirrorSystem.getName(relatedTypePrimaryKeyAttr.simpleName);
-    }
-
-    return "${propertyName}_${suffixName}";
+    return _foreignKeyCache[propertyName];
   }
 
   RelationshipAttribute relationshipAttributeForProperty(String propertyName) {
@@ -162,6 +134,45 @@ class ModelEntity {
       }
 
       return attr.reflectee.isPrimaryKey;
+    });
+
+    _buildForeignKeyCache();
+  }
+
+  void _buildForeignKeyCache() {
+    _foreignKeyCache = {};
+
+    _propertyCache.forEach((propertyName, variableMirror) {
+      var attr = _relationshipAttributeForPropertyMirror(variableMirror);
+      if (attr == null) {
+        return;
+      }
+
+      var suffixName = attr.referenceKey;
+      if (suffixName == null) {
+        var propertyTypeMirror = variableMirror.type;
+        if (propertyTypeMirror.isSubtypeOf(reflectType(List))) {
+          propertyTypeMirror = propertyTypeMirror.typeArguments.first;
+        }
+
+        var relatedBackingMirror = _modelDefinitionMirror(propertyTypeMirror.reflectedType);
+        var relatedTypePrimaryKeyAttr = relatedBackingMirror.declarations.values.firstWhere((dm) {
+          Attributes propAttrs = dm.metadata.firstWhere((im) => im.reflectee is Attributes, orElse: () => null)?.reflectee;
+          if (propAttrs == null) {
+            return false;
+          }
+          return propAttrs.isPrimaryKey;
+        }, orElse: () => null);
+
+        if (relatedTypePrimaryKeyAttr == null) {
+          var className = MirrorSystem.getName(variableMirror.owner.simpleName);
+          throw new QueryException(500, "Related value for $propertyName on ${className} does not have a primary key or a reference key.", -1);
+        }
+
+        suffixName = MirrorSystem.getName(relatedTypePrimaryKeyAttr.simpleName);
+      }
+
+      _foreignKeyCache[propertyName] = "${propertyName}_${suffixName}";
     });
 
   }
