@@ -201,7 +201,7 @@ class _PostgresqlColumn {
       throw new PostgresqlGeneratorException("Reference table for $name not found, has ${relationship.destinationType} been added to the schema?");
     }
 
-    var foreignModelKey = relationship.destinationModelKey ?? referenceTable.primaryModelKey;
+    var foreignModelKey = relationship.destinationModelKey ?? referenceTable.primaryKeyColumn.name;
     var referenceColumn = referenceTable.columns[foreignModelKey];
     if (referenceColumn == null) {
       throw new PostgresqlGeneratorException("Reference column for $name not found, expected ${relationship.inverseModelKey} on ${referenceTable.name}.");
