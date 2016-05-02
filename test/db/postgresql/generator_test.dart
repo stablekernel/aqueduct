@@ -24,7 +24,7 @@ void main() {
     var cmd = new PostgresqlSchema.fromModels([GeneratorModel2]).toString();
 
     expect(cmd,
-        "create table _GeneratorModel2 (id int not null);\ncreate index _GeneratorModel2_id_idx on _GeneratorModel2 (id);\n");
+        "create table _GeneratorModel2 (id int primary key);\ncreate index _GeneratorModel2_id_idx on _GeneratorModel2 (id);\n");
   });
 
   test("Create multiple tables with trailing index", () {
@@ -33,13 +33,13 @@ void main() {
             .toString();
 
     expect(cmd,
-        "create table _GeneratorModel1 (id bigserial primary key,name text not null,option boolean not null,points double precision not null unique,validDate timestamp null);\ncreate table _GeneratorModel2 (id int not null);\ncreate index _GeneratorModel2_id_idx on _GeneratorModel2 (id);\n");
+        "create table _GeneratorModel1 (id bigserial primary key,name text not null,option boolean not null,points double precision not null unique,validDate timestamp null);\ncreate table _GeneratorModel2 (id int primary key);\ncreate index _GeneratorModel2_id_idx on _GeneratorModel2 (id);\n");
   });
 
   test("Default values are properly serialized", () {
     var cmd = new PostgresqlSchema.fromModels([GeneratorModel3]).toString();
     expect(cmd,
-        "create table _GeneratorModel3 (creationDate timestamp not null default (now() at time zone 'utc'),id int not null default 18,option boolean not null default true,otherTime timestamp not null default '1900-01-01T00:00:00.000Z',textValue text not null default \$\$dflt\$\$,value double precision not null default 20.0);\n");
+        "create table _GeneratorModel3 (creationDate timestamp not null default (now() at time zone 'utc'),id int primary key default 18,option boolean not null default true,otherTime timestamp not null default '1900-01-01T00:00:00.000Z',textValue text not null default \$\$dflt\$\$,value double precision not null default 20.0);\n");
   });
 
   test("Table with tableName() overrides class name", () {
@@ -107,7 +107,7 @@ void main() {
         reason: "GenRight table");
     expect(
         cmds.contains(
-            "create table _GenJoin (left_id int null,right_id int null)"),
+            "create table _GenJoin (id bigserial primary key,left_id int null,right_id int null)"),
         true,
         reason: "GenJoin table");
     expect(
@@ -174,7 +174,7 @@ class _GeneratorModel1 {
 class GeneratorModel2 extends Model<_GeneratorModel2> implements _GeneratorModel2 {}
 
 class _GeneratorModel2 {
-  @Attributes(indexed: true)
+  @Attributes(primaryKey: true, indexed: true)
   int id;
 }
 
@@ -184,7 +184,7 @@ class _GeneratorModel3 {
   @Attributes(defaultValue: "(now() at time zone 'utc')")
   DateTime creationDate;
 
-  @Attributes(defaultValue: "18")
+  @Attributes(primaryKey: true, defaultValue: "18")
   int id;
 
   @Attributes(defaultValue: "\$\$dflt\$\$")
@@ -280,6 +280,9 @@ class _GenRight {
 class GenJoin extends Model<_GenJoin> implements _GenJoin {}
 
 class _GenJoin {
+  @primaryKey
+  int id;
+
   @Attributes(nullable: true)
   @RelationshipAttribute(RelationshipType.belongsTo, "join")
   GenLeft left;

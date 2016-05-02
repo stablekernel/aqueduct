@@ -48,34 +48,18 @@ class _PostgresqlTable {
   // Key is the modelKey (property) of the model object. A column stores the database column name.
   Map<String, _PostgresqlColumn> columns;
 
-  _PostgresqlColumn get primaryKeyColumn => columns[primaryModelKey];
-  String primaryModelKey;
+  _PostgresqlColumn get primaryKeyColumn => columns[entity.primaryKey];
 
   _PostgresqlTable.fromEntity(ModelEntity t, bool temporary) {
     entity = t;
     this.type = entity.entityTypeMirror.reflectedType;
     this.isTemporary = temporary;
 
-    name = t.tableName;
+    name = entity.tableName;
 
-    var symbols = [];
-
-    entity.entityTypeMirror.declarations.forEach((k, decl) {
-      if (decl is VariableMirror && !decl.isStatic) {
-        symbols.add(k);
-      }
-    });
-
-    columns = new Map.fromIterable(symbols,
-        key: (sym) => MirrorSystem.getName(sym),
-        value: (sym) =>
-            new _PostgresqlColumn.fromVariableMirror(t.entityTypeMirror.declarations[sym] as VariableMirror, this));
-
-    columns.forEach((propertyKey, column) {
-      if (column.isPrimaryKey) {
-        primaryModelKey = propertyKey;
-      }
-    });
+    columns = new Map.fromIterable(entity._propertyCache.keys,
+        key: (key) => key,
+        value: (key) => new _PostgresqlColumn.fromVariableMirror(entity._propertyCache[key], this));
   }
 
   void updateRelationshipsWithTables(Map<Type, _PostgresqlTable> tables) {
@@ -217,7 +201,7 @@ class _PostgresqlColumn {
       throw new PostgresqlGeneratorException("Reference table for $name not found, has ${relationship.destinationType} been added to the schema?");
     }
 
-    var foreignModelKey = relationship.destinationModelKey ?? referenceTable.primaryModelKey;
+    var foreignModelKey = relationship.destinationModelKey ?? referenceTable.primaryKeyColumn.name;
     var referenceColumn = referenceTable.columns[foreignModelKey];
     if (referenceColumn == null) {
       throw new PostgresqlGeneratorException("Reference column for $name not found, expected ${relationship.inverseModelKey} on ${referenceTable.name}.");
