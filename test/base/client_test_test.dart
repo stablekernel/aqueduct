@@ -7,14 +7,13 @@ Future main() async {
 
   TestClient client = new TestClient(8080);
 
-  var server = null;
+  HttpServer server = null;
 
   setUpAll(() async {
     HttpServer
         .bind("localhost", 8080,
         v6Only: false, shared: false)
-        .then((s)
-    {
+        .then((s) {
       server = s;
 
       server.listen((req) {
@@ -26,7 +25,7 @@ Future main() async {
   });
 
   tearDownAll(() async {
-    await server.close();
+    await server?.close();
   });
 
 

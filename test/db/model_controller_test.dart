@@ -7,8 +7,9 @@ import 'dart:convert';
 
 main() async {
 
-  setUp(() async {
-    var server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 8080);
+  HttpServer server = null;
+  setUpAll(() async {
+    server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8080);
     var router = new Router();
     router.route("/users/[:id]").then(
       new RequestHandlerGenerator<TestModelController>(arguments: [null]));
@@ -17,6 +18,10 @@ main() async {
       var resReq = new ResourceRequest(req);
       router.deliver(resReq);
     });
+  });
+
+  tearDownAll(() async {
+    await server?.close();
   });
 
 

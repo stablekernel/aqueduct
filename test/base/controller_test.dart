@@ -15,15 +15,11 @@ void main() {
   });
 
   tearDown(() async {
-    if (server != null) {
-      await server.close();
-    }
+    await server?.close();
   });
 
   tearDownAll(() async {
-    if (server != null) {
-      await server.close();
-    }
+    await server?.close();
   });
 
   test("Get w/ no params", () async {

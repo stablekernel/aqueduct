@@ -34,9 +34,7 @@ void main() {
       server = await enableController("/a", new RequestHandlerGenerator<NoPolicyController>());
     });
     tearDownAll(() async {
-      if (server != null) {
-        await server.close();
-      }
+      await server?.close();
     });
 
     test("Normal request when no CORS policy", () async {
