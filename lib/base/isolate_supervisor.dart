@@ -8,12 +8,13 @@ class IsolateSupervisor {
   final ReceivePort receivePort;
   final int identifier;
 
+  Application supervisingApplication;
   SendPort _serverSendPort;
-
+  Logger logger;
   Completer _launchCompleter;
   Completer _stopCompleter;
 
-  IsolateSupervisor(this.isolate, this.receivePort, this.identifier) {
+  IsolateSupervisor(this.supervisingApplication, this.isolate, this.receivePort, this.identifier, this.logger) {
   }
 
   Future resume() {
@@ -44,9 +45,18 @@ class IsolateSupervisor {
     } else if (message is List) {
       if (_launchCompleter != null) {
         _launchCompleter.completeError(new IsolateSupervisorException(message.first), new StackTrace.fromString(message.last));
+      } else {
+        _tearDownWithError(message.first, message.last);
       }
     }
   }
+
+  void _tearDownWithError(String errorMessage, String stackTrace) {
+    _launchCompleter = null;
+    _stopCompleter = null;
+    supervisingApplication.isolateDidExitWithError(this, errorMessage, new StackTrace.fromString(stackTrace));
+  }
+
 }
 
 class IsolateSupervisorException implements Exception {

@@ -18,6 +18,8 @@ class Application<PipelineType extends ApplicationPipeline> {
   /// set to true and represents the only [Server] this application is running.
   Server server;
 
+  Logger logger = new Logger("monadart");
+
   /// The configuration for the HTTP(s) server this application is running.
   ///
   /// This must be configured prior to [start]ing the [Application].
@@ -41,7 +43,7 @@ class Application<PipelineType extends ApplicationPipeline> {
 
     if (runOnMainIsolate) {
       if (numberOfInstances > 1) {
-        print("runOnMainIsolate set to true, ignoring numberOfInstances (set to $numberOfInstances)");
+        logger.info("runOnMainIsolate set to true, ignoring numberOfInstances (set to $numberOfInstances)");
       }
 
       var pipeline = reflectClass(PipelineType).newInstance(new Symbol(""), [configuration.pipelineOptions]).reflectee;
@@ -49,7 +51,7 @@ class Application<PipelineType extends ApplicationPipeline> {
 
       await server.start();
     } else {
-      configuration._shared = numberOfInstances > 1;
+      configuration._shared = true;
 
       supervisors = [];
       try {
@@ -60,8 +62,9 @@ class Application<PipelineType extends ApplicationPipeline> {
 
           supervisors.add(supervisor);
         }
-      } catch (e) {
+      } catch (e, st) {
         await stop();
+        logger.severe("$e\n$st");
         rethrow;
       }
     }
@@ -89,7 +92,22 @@ class Application<PipelineType extends ApplicationPipeline> {
     var isolate = await Isolate.spawn(IsolateServer.entry, initialMessage, paused: true);
     isolate.addErrorListener(receivePort.sendPort);
 
-    return new IsolateSupervisor(isolate, receivePort, identifier);
+    return new IsolateSupervisor(this, isolate, receivePort, identifier, logger);
+  }
+
+  Future isolateDidExitWithError(IsolateSupervisor supervisor, String errorMessage, StackTrace stackTrace) async {
+    logger.severe("Restarting terminated isolate. Exit reason $errorMessage\n${stackTrace}.");
+
+    var identifier = supervisor.identifier;
+    supervisors.remove(supervisor);
+    try {
+      var supervisor = await _spawn(configuration, identifier);
+      await supervisor.resume();
+      supervisors.add(supervisor);
+    } catch (e, st) {
+      await stop();
+      logger.severe("$e\n$st");
+    }
   }
 }
 
