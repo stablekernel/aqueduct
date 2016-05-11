@@ -1,5 +1,5 @@
 import 'package:test/test.dart';
-import 'package:monadart/monadart.dart';
+import 'package:aqueduct/aqueduct.dart';
 import 'dart:io';
 import '../helpers.dart';
 import 'package:postgresql/postgresql.dart';

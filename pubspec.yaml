@@ -1,4 +1,4 @@
-name: monadart
+name: aqueduct
 version: 0.0.1
 description: A pipeline for building web services
 dependencies:

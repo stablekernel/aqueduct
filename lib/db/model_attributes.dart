@@ -1,4 +1,4 @@
-part of monadart;
+part of aqueduct;
 
 
 /// Possible values for a delete rule in a [RelationshipAttribute]

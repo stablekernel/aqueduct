@@ -1,4 +1,4 @@
-part of monadart;
+part of aqueduct;
 
 class AuthController<ResourceOwner extends Authenticatable, TokenType extends Tokenizable> extends HttpController {
   static String get RoutePattern => "/auth/token";

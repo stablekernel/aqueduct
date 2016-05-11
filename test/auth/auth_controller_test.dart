@@ -1,6 +1,6 @@
 import 'package:test/test.dart';
 import 'dart:io';
-import 'package:monadart/monadart.dart';
+import 'package:aqueduct/aqueduct.dart';
 import 'dart:convert';
 import '../helpers.dart';
 import 'package:postgresql/postgresql.dart';
@@ -26,18 +26,15 @@ void main() {
         new AuthDelegate<TestUser, Token>(adapter));
 
     HttpServer
-        .bind("localhost", 8080,
-          v6Only: false, shared: false)
-          .then((s)
-    {
-      server = s;
-      //new Logger("monadart").onRecord.listen((rec) => print("${rec}"));
+        .bind("localhost", 8080, v6Only: false, shared: false)
+        .then((s) {
+          server = s;
 
-      server.listen((req) {
-        var resReq = new ResourceRequest(req);
-        var authController = new AuthController<TestUser, Token>(authenticationServer);
-        authController.deliver(resReq);
-      });
+          server.listen((req) {
+            var resReq = new ResourceRequest(req);
+            var authController = new AuthController<TestUser, Token>(authenticationServer);
+            authController.deliver(resReq);
+        });
     });
 
     await generateTemporarySchemaFromModels(adapter, [TestUser, Token]);

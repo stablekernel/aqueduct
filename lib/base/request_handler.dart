@@ -1,4 +1,4 @@
-part of monadart;
+part of aqueduct;
 
 /// The unifying protocol for [ResourceRequest] and [Response] classes.
 ///
@@ -14,7 +14,7 @@ abstract class RequestHandlerResult {}
 class RequestHandler implements APIDocumentable {
   Function _handler;
 
-  Logger get logger => new Logger("monadart");
+  Logger get logger => new Logger("aqueduct");
 
   /// The initializer for RequestHandlers.
   ///

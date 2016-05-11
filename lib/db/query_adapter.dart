@@ -1,4 +1,4 @@
-part of monadart;
+part of aqueduct;
 
 /// An interface for allowing different databases to implement inquirer.
 ///

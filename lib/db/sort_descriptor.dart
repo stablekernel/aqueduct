@@ -1,4 +1,4 @@
-part of monadart;
+part of aqueduct;
 
 /// Order value for [SortDescriptor]s.
 enum SortDescriptorOrder {

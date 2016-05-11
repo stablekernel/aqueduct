@@ -2,13 +2,12 @@ import "package:test/test.dart";
 import "dart:core";
 import "dart:io";
 import 'package:http/http.dart' as http;
-import 'package:monadart/monadart.dart';
-import 'dart:convert';
+import 'package:aqueduct/aqueduct.dart';
 import 'dart:async';
 
 void main() {
   setUpAll(() {
-    new Logger("monadart").onRecord.listen((rec) => print("$rec"));
+    new Logger("aqueduct").onRecord.listen((rec) => print("$rec"));
   });
 
 /*

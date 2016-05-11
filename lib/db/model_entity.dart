@@ -1,4 +1,4 @@
-part of monadart;
+part of aqueduct;
 
 class ModelEntity {
   static Map<Type, ModelEntity> _entityCache = {};

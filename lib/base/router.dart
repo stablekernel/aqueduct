@@ -1,4 +1,4 @@
-part of monadart;
+part of aqueduct;
 
 /// A [ResourceRequest] router to split requests onto separate streams based on their URI.
 ///

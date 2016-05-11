@@ -1,4 +1,4 @@
-part of monadart;
+part of aqueduct;
 
 /// Page direction value for [QueryPage].
 enum PageDirection {

@@ -1,4 +1,4 @@
-part of monadart;
+part of aqueduct;
 
 Future generateTemporarySchemaFromModels(PostgresModelAdapter adapter, List<Type> models) async {
   var schema = new PostgresqlSchema.fromModels(models, temporary: true);

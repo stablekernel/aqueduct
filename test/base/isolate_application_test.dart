@@ -1,5 +1,5 @@
 import 'package:test/test.dart';
-import 'package:monadart/monadart.dart';
+import 'package:aqueduct/aqueduct.dart';
 import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'dart:io';
@@ -50,11 +50,11 @@ main() {
       await Future.wait(reqs);
 
       expect(responses.any((http.Response resp) => resp.headers["server"] ==
-          "monadart/1"), true);
+          "aqueduct/1"), true);
       expect(responses.any((http.Response resp) => resp.headers["server"] ==
-          "monadart/2"), true);
+          "aqueduct/2"), true);
       expect(responses.any((http.Response resp) => resp.headers["server"] ==
-          "monadart/3"), true);
+          "aqueduct/3"), true);
     });
 
     test("Application stops", () async {

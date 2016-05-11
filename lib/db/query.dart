@@ -1,4 +1,4 @@
-part of monadart;
+part of aqueduct;
 
 /// The operation a Query can perform.
 enum QueryType {

@@ -1,5 +1,5 @@
 import 'package:test/test.dart';
-import 'package:monadart/monadart.dart';
+import 'package:aqueduct/aqueduct.dart';
 import 'dart:async';
 
 void main() {
@@ -356,10 +356,9 @@ void main() {
 
   group("ToOne graph", () {
     PostgresModelAdapter adapter;
-    List<User> sourceUsers;
 
     setUpAll(() async {
-      new Logger("monadart").onRecord.listen((rec) => print("$rec"));
+      new Logger("aqueduct").onRecord.listen((rec) => print("$rec"));
       adapter = new PostgresModelAdapter.fromConnectionInfo(null, "dart", "dart", "localhost", 5432, "dart_test");
       await generateTemporarySchemaFromModels(adapter, [Owned, Owner]);
 

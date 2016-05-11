@@ -1,7 +1,7 @@
-part of monadart;
+part of aqueduct;
 
 class PostgresModelAdapter extends QueryAdapter {
-  static Logger logger = new Logger("monadart");
+  static Logger logger = new Logger("aqueduct");
 
   PostgresqlSchema schema;
   Connection _databaseConnection;

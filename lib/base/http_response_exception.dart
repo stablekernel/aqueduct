@@ -1,4 +1,4 @@
-part of monadart;
+part of aqueduct;
 
 class HttpResponseException implements Exception {
   String message;

@@ -1,4 +1,4 @@
-part of monadart;
+part of aqueduct;
 
 /// A database row represented as an object.
 ///

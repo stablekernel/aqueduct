@@ -1,4 +1,4 @@
-part of monadart;
+part of aqueduct;
 
 /// A predicate contains instructions for identifying criteria of objects.
 ///

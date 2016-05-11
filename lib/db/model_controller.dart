@@ -1,4 +1,4 @@
-part of monadart;
+part of aqueduct;
 
 class ModelController<T extends Model> extends HttpController {
   QueryAdapter adapter;

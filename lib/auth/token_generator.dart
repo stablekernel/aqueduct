@@ -1,4 +1,4 @@
-part of monadart;
+part of aqueduct;
 
 String randomStringOfLength(int length) {
   var possibleCharacters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";

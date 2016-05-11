@@ -1,4 +1,4 @@
-part of monadart;
+part of aqueduct;
 
 /// A container for web server applications.
 ///
@@ -18,7 +18,7 @@ class Application<PipelineType extends ApplicationPipeline> {
   /// set to true and represents the only [Server] this application is running.
   Server server;
 
-  Logger logger = new Logger("monadart");
+  Logger logger = new Logger("aqueduct");
 
   /// The configuration for the HTTP(s) server this application is running.
   ///

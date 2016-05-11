@@ -1,4 +1,4 @@
-library monadart;
+library aqueduct;
 
 import 'dart:io';
 import 'dart:async';

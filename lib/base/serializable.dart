@@ -1,4 +1,4 @@
-part of monadart;
+part of aqueduct;
 
 abstract class Serializable {
   dynamic asSerializable();
