@@ -11,7 +11,7 @@ void main() {
   HttpServer server;
 
   tearDown(() async {
-    await server?.close();
+    await server?.close(force: true);
     server = null;
   });
 
@@ -142,7 +142,7 @@ void main() {
     expect(res.statusCode, 200);
     expect(res.body, "\"null\"");
 
-    await server.close();
+    await server.close(force: true);
 
     server = await enableController("/a", new RequestHandlerGenerator<DateTimeController>());
     res = await http.get("http://localhost:4040/a?opt=2001-01-01T00:00:00.000000Z");

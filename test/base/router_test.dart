@@ -26,7 +26,7 @@ void main() {
     var response = await http.get("http://localhost:4040/player");
     expect(response.statusCode, equals(200));
 
-    server.close(force: true);
+    await server.close(force: true);
   });
 
   test("Router 404s on no match", () async {
@@ -41,7 +41,7 @@ void main() {
     var response = await http.get("http://localhost:4040/notplayer");
     expect(response.statusCode, equals(404));
 
-    server.close(force: true);
+    await server.close(force: true);
   });
 
   test("Router delivers path values", () async {
@@ -57,7 +57,7 @@ void main() {
     expect(response.statusCode, equals(200));
     expect(response.body, equals("foobar"));
 
-    server.close(force: true);
+    await server.close(force: true);
   });
 
   test(
@@ -86,7 +86,7 @@ void main() {
     response = await http.get("http://localhost:4040/player");
     expect(response.statusCode, equals(404));
 
-    server.close(force: true);
+    await server.close(force: true);
   });
 
   test("Router uses request handlers", () async {
@@ -107,7 +107,7 @@ void main() {
     expect(response.body, "1");
 
 
-    server.close(force: true);
+    await server.close(force: true);
   });
 
   test("Router uses request handler generators", () async {
@@ -124,7 +124,7 @@ void main() {
       expect(response.body, "${i + 1}");
     }
 
-    server.close(force: true);
+    await server.close(force: true);
   });
 }
 

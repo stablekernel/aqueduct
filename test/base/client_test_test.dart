@@ -17,7 +17,7 @@ Future main() async {
   });
 
   tearDownAll(() async {
-    await server?.close();
+    await server?.close(force: true);
   });
 
   test("Client can expect array of JSON", () async {

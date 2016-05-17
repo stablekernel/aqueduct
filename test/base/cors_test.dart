@@ -33,7 +33,7 @@ void main() {
       server = await enableController("/a", new RequestHandlerGenerator<NoPolicyController>());
     });
     tearDownAll(() async {
-      await server?.close();
+      await server?.close(force: true);
       server = null;
     });
 
@@ -66,7 +66,7 @@ void main() {
       server = await enableController("/a", new RequestHandlerGenerator<DefaultPolicyController>());
     });
     tearDownAll(() async {
-      await server?.close();
+      await server?.close(force: true);
       server = null;
     });
 

@@ -121,7 +121,7 @@ main() {
       fail("Wrong exception $e");
     }
 
-    await server.close();
+    await server.close(force: true);
     await conflictingApp.stop();
   });
 }
