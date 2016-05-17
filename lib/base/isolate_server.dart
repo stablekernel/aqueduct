@@ -29,7 +29,7 @@ class Server {
       server.autoCompress = true;
       await didOpen();
     } catch (e) {
-      server?.close();
+      await server?.close();
       rethrow;
     }
   }
@@ -69,6 +69,7 @@ class IsolateServer extends Server {
   }
 
   void listener(dynamic message) {
+    new Logger("aqueduct").info("Sent message $message");
     if (message == IsolateSupervisor._MessageStop) {
       server.close().then((s) {
         supervisingApplicationPort.send(IsolateSupervisor._MessageStop);
