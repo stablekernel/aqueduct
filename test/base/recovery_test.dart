@@ -7,7 +7,7 @@ main() {
   group("Recovers", () {
     var app = new Application<Pipeline>();
 
-    tearDown(() async {
+    tearDownAll(() async {
       await app?.stop();
     });
 
@@ -19,7 +19,7 @@ main() {
 
       // This request should timeout and fail.
       var timeoutRan = false;
-      await http.get("http://localhost:8080/1").timeout(new Duration(milliseconds: 300), onTimeout: () {
+      await http.get("http://localhost:8080/1").timeout(new Duration(milliseconds: 500), onTimeout: () {
         timeoutRan = true;
       });
       expect(timeoutRan, true);
@@ -32,6 +32,8 @@ main() {
 
       expect(logQueue.length, 1);
       expect(logQueue.first.message, startsWith("Restarting terminated isolate. Exit reason"));
+
+      await app.stop();
     });
 
     test("Application with multiple isolates where one dies recovers", () async {
@@ -50,11 +52,6 @@ main() {
       // Wait for new isolate to pick back up...
       await new Future.delayed(new Duration(seconds: 3));
 
-      // Now hit the server a few times with successful responses to ensure we get back responses from both isolates.
-      new Future.delayed(new Duration(seconds: 2)).then((_) {
-        fail("Didn't complete");
-      });
-
       bool foundFirstServer = false;
       bool foundSecondServer = false;
       while (!foundFirstServer && !foundSecondServer) {
@@ -68,6 +65,8 @@ main() {
           foundSecondServer = true;
         }
       }
+
+      await app.stop();
     });
 
     test("", () {});
