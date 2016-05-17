@@ -8,6 +8,10 @@ main() {
     var app = new Application<Pipeline>();
     app.configuration.port = 8080;
 
+    tearDown(() async {
+      await app?.stop();
+    });
+
     test("Application reports uncaught error, recovers", () async {
       List<LogRecord> logQueue = [];
       app.logger.onRecord.listen((rec) => logQueue.add(rec));
@@ -29,7 +33,6 @@ main() {
 
       expect(logQueue.length, 1);
       expect(logQueue.first.message, startsWith("Restarting terminated isolate. Exit reason"));
-      await app.stop();
     });
 
     test("Application with multiple isolates where one dies recovers", () async {
@@ -49,7 +52,6 @@ main() {
       await new Future.delayed(new Duration(seconds: 3));
 
       // Now hit the server a few times with successful responses to ensure we get back responses from both isolates.
-
       new Future.delayed(new Duration(seconds: 2)).then((_) {
         fail("Didn't complete");
       });
@@ -67,8 +69,6 @@ main() {
           foundSecondServer = true;
         }
       }
-
-      await app.stop();
     });
 
     test("", () {});

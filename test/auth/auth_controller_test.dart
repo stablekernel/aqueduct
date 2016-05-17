@@ -13,7 +13,7 @@ void main() {
     ..clientSecret = "kilimanjaro";
 
   tearDownAll(() async {
-    await server.close();
+    await server?.close();
   });
 
   setUp(() async {
@@ -35,9 +35,10 @@ void main() {
   });
 
   tearDown(() async {
-    await server.close(force: true);
-    await adapter.close();
+    await server?.close(force: true);
+    await adapter?.close();
     adapter = null;
+    server = null;
   });
 
   test("POST token responds with token on correct input", () async {

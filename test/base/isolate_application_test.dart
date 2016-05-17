@@ -10,7 +10,7 @@ main() {
 
   group("Lifecycle", () {
     tearDownAll(() async {
-      await app.stop();
+      await app?.stop();
     });
 
     test("Application starts", () async {

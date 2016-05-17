@@ -8,18 +8,11 @@ import 'dart:convert';
 import 'dart:async';
 
 void main() {
-
   HttpServer server;
-
-  setUp(() {
-  });
 
   tearDown(() async {
     await server?.close();
-  });
-
-  tearDownAll(() async {
-    await server?.close();
+    server = null;
   });
 
   test("Get w/ no params", () async {

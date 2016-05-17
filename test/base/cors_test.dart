@@ -34,6 +34,7 @@ void main() {
     });
     tearDownAll(() async {
       await server?.close();
+      server = null;
     });
 
     test("Normal request when no CORS policy", () async {
@@ -66,6 +67,7 @@ void main() {
     });
     tearDownAll(() async {
       await server?.close();
+      server = null;
     });
 
     test("Normal request", () async {
