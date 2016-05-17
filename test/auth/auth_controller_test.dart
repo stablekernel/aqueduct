@@ -40,9 +40,9 @@ void main() {
     await generateTemporarySchemaFromModels(adapter, [TestUser, Token]);
   });
 
-  tearDown(() {
-    server.close(force: true);
-    adapter.close();
+  tearDown(() async {
+    await server.close(force: true);
+    await adapter.close();
     adapter = null;
   });
 
