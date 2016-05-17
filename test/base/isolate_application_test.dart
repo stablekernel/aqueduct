@@ -6,7 +6,6 @@ import 'dart:io';
 
 main() {
   var app = new Application<TPipeline>();
-  app.configuration.port = 8080;
 
   group("Lifecycle", () {
     tearDownAll(() async {
@@ -105,23 +104,21 @@ main() {
   });
 
   test("Application that fails to open because port is bound fails gracefully", () async {
-    var server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 8000);
+    var server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 8080);
     server.listen((req) {
       print("$req");
     });
 
     var conflictingApp = new Application<TPipeline>();
-    conflictingApp.configuration.port = 8000;
 
     try {
       await conflictingApp.start();
       fail("App start succeeded");
-    } on IsolateSupervisorException {
-
+    } on IsolateSupervisorException catch (e) {
+      print("Intended failure $e");
     } catch (e) {
       fail("Wrong exception $e");
     }
-
 
     await server.close();
     await conflictingApp.stop();

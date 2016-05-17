@@ -7,7 +7,6 @@ main() {
 
   group("Application lifecycle", () {
     var app = new Application<TPipeline>();
-    app.configuration.port = 8080;
 
     setUpAll(() {
       new Logger("aqueduct").onRecord.listen((rec) {
@@ -92,7 +91,6 @@ main() {
 
     test("Application can run on main thread", () async {
       var app = new Application<TPipeline>();
-      app.configuration.port = 8080;
 
       await app.start(runOnMainIsolate: true);
 

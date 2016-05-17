@@ -6,7 +6,6 @@ import 'package:http/http.dart' as http;
 main() {
   group("Recovers", () {
     var app = new Application<Pipeline>();
-    app.configuration.port = 8080;
 
     tearDown(() async {
       await app?.stop();
