@@ -22,19 +22,13 @@ void main() {
       return await connect(uri);
     });
 
-    var authenticationServer = new AuthenticationServer<TestUser, Token>(
-        new AuthDelegate<TestUser, Token>(adapter));
+    var authenticationServer = new AuthenticationServer<TestUser, Token>(new AuthDelegate<TestUser, Token>(adapter));
 
-    HttpServer
-        .bind("localhost", 8080, v6Only: false, shared: false)
-        .then((s) {
-          server = s;
-
-          server.listen((req) {
-            var resReq = new ResourceRequest(req);
-            var authController = new AuthController<TestUser, Token>(authenticationServer);
-            authController.deliver(resReq);
-        });
+    server = await HttpServer.bind("localhost", 8080, v6Only: false, shared: false);
+    server.listen((req) {
+      var resReq = new ResourceRequest(req);
+      var authController = new AuthController<TestUser, Token>(authenticationServer);
+      authController.deliver(resReq);
     });
 
     await generateTemporarySchemaFromModels(adapter, [TestUser, Token]);
