@@ -8,12 +8,6 @@ import 'package:aqueduct/aqueduct.dart';
 
 
 void main() {
-  setUp(() {
-
-  });
-
-  tearDown(() {});
-
   test("Router Handles Requests", () async {
     Router router = new Router();
 
@@ -131,8 +125,7 @@ void main() {
 
 Future<HttpServer> enableRouter(Router router) async {
   var server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 4040);
-  server.map((httpReq) => new ResourceRequest(httpReq)).listen(
-      router.deliver);
+  server.map((httpReq) => new ResourceRequest(httpReq)).listen(router.deliver);
   return server;
 }
 
