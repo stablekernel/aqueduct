@@ -8,7 +8,7 @@ main() {
   app.configuration.port = 8080;
 
   tearDownAll(() async {
-    await app.stop();
+    await app?.stop();
   });
 
   group("Application lifecycle", () {
@@ -36,6 +36,7 @@ main() {
     });
 
     test("Application stops", () async {
+      print("Stop 1");
       await app.stop();
 
       try {
@@ -45,11 +46,14 @@ main() {
         expect(e, isNotNull);
       }
 
+      print("Restart");
+
       await app.start();
       var resp = await http.get("http://localhost:8080/t");
       expect(resp.statusCode, 200);
-
+      print("stop 2");
       await app.stop();
+      print("stop 3");
     });
   });
 
