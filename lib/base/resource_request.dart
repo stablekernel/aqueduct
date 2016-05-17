@@ -1,4 +1,4 @@
-part of monadart;
+part of aqueduct;
 
 /// Represents a single HTTP request.
 ///
@@ -38,7 +38,7 @@ class ResourceRequest implements RequestHandlerResult {
   ResourceRequest(this.innerRequest) {}
 
   void respond(Response respObj) {
-    new Logger("monadart").info("Request ($id) sending response $respObj.");
+    new Logger("aqueduct").info("Request ($id) sending response $respObj.");
     response.statusCode = respObj.statusCode;
 
     if (respObj.headers != null) {

@@ -1,4 +1,4 @@
-part of monadart;
+part of aqueduct;
 
 /// A set of values to configure an instance of a web server application.
 class ApplicationInstanceConfiguration {

@@ -1,4 +1,4 @@
-part of monadart;
+part of aqueduct;
 
 class ModelQuery<T extends Model> extends Query<T> {
   ModelQuery() : super();

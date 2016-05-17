@@ -2,7 +2,7 @@
 // is governed by a BSD-style license that can be found in the LICENSE file.
 
 import 'package:test/test.dart';
-import 'package:monadart/monadart.dart';
+import 'package:aqueduct/aqueduct.dart';
 import 'package:postgresql/postgresql.dart' as postgresql;
 
 void main() {

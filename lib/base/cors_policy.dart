@@ -1,4 +1,4 @@
-part of monadart;
+part of aqueduct;
 
 class CORSPolicy {
   List<String> allowedOrigins = ["*"];

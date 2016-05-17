@@ -1,4 +1,4 @@
-part of monadart;
+part of aqueduct;
 
 abstract class Tokenizable {
   String accessToken;

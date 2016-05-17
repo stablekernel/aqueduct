@@ -1,4 +1,4 @@
-part of monadart;
+part of aqueduct;
 
 class Server {
   ApplicationInstanceConfiguration configuration;
@@ -35,14 +35,14 @@ class Server {
   }
 
   Future didOpen() async {
-    new Logger("monadart").info("Server monadart/$identifier started.");
+    new Logger("aqueduct").info("Server aqueduct/$identifier started.");
 
-    server.serverHeader = "monadart/${this.identifier}";
+    server.serverHeader = "aqueduct/${this.identifier}";
 
     await pipeline.willOpen();
 
     server.map((baseReq) => new ResourceRequest(baseReq)).listen((ResourceRequest req) async {
-      new Logger("monadart").info("Request received $req.");
+      new Logger("aqueduct").info("Request received $req.");
       await pipeline.willReceiveRequest(req);
       pipeline.deliver(req);
     });

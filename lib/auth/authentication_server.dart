@@ -1,4 +1,4 @@
-part of monadart;
+part of aqueduct;
 
 class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType extends Tokenizable> {
   AuthenticationServerDelegate<ResourceOwner, TokenType> delegate;

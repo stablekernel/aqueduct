@@ -1,4 +1,4 @@
-part of monadart;
+part of aqueduct;
 
 /// Represents the information in an HTTP response.
 ///

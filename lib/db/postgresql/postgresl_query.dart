@@ -1,4 +1,4 @@
-part of monadart;
+part of aqueduct;
 
 class _MappingElement {
   final String modelKey;
