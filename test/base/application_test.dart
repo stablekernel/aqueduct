@@ -4,7 +4,6 @@ import 'dart:async';
 import 'package:http/http.dart' as http;
 
 main() {
-
   group("Application lifecycle", () {
     var app = new Application<TPipeline>();
 
@@ -19,8 +18,8 @@ main() {
     });
 
     test("Application starts", () async {
-      await app.start();
-      expect(app.supervisors.length, 1);
+      await app.start(runOnMainIsolate: true);
+      expect(app.supervisors.length, 0);
     });
 
     test("Application responds to request", () async {
@@ -51,7 +50,7 @@ main() {
         expect(e, isNotNull);
       }
 
-      await app.start();
+      await app.start(runOnMainIsolate: true);
       var resp = await http.get("http://localhost:8080/t");
       expect(resp.statusCode, 200);
     });
