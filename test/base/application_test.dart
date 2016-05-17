@@ -7,6 +7,11 @@ main() {
   var app = new Application<TPipeline>();
   app.configuration.port = 8080;
 
+  setUpAll(() {
+    new Logger("aqueduct").onRecord.listen((rec) {
+      print("${rec}");
+    });
+  });
   tearDownAll(() async {
     await app?.stop();
   });
