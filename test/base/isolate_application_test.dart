@@ -76,26 +76,33 @@ main() {
     test("Application start fails and logs appropriate message if pipeline doesn't open", () async {
       var crashingApp = new Application<CrashPipeline>();
 
+      var succeeded = false;
       try {
         crashingApp.configuration.pipelineOptions = {"crashIn" : "constructor"};
         await crashingApp.start();
+        succeeded = true;
       } catch (e) {
         expect(e.message, "TestException: constructor");
       }
+      expect(succeeded, false);
 
       try {
         crashingApp.configuration.pipelineOptions = {"crashIn" : "addRoutes"};
         await crashingApp.start();
+        succeeded = true;
       } catch (e) {
         expect(e.message, "TestException: addRoutes");
       }
+      expect(succeeded, false);
 
       try {
         crashingApp.configuration.pipelineOptions = {"crashIn" : "willOpen"};
         await crashingApp.start();
+        succeeded = true;
       } catch (e) {
         expect(e.message, "TestException: willOpen");
       }
+      expect(succeeded, false);
 
       crashingApp.configuration.pipelineOptions = {"crashIn" : "dontCrash"};
       await crashingApp.start();
