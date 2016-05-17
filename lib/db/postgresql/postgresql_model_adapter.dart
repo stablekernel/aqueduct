@@ -14,7 +14,7 @@ class PostgresModelAdapter extends QueryAdapter {
       {String timezone: "UTC"}) {
     var uri = "postgres://$username:$password@$host:$port/$databaseName";
     this.connectFunction = () async {
-      logger.info("Inquirer: PostgresqlModelAdapter connecting, $username@$host:$port/$databaseName.");
+      logger.info("PostgresqlModelAdapter connecting, $username@$host:$port/$databaseName.");
       return await connect(uri, timeZone: timezone);
     };
   }
@@ -67,25 +67,25 @@ class PostgresModelAdapter extends QueryAdapter {
       var conn = await getDatabaseConnection();
       if (pgsqlQuery.resultColumnNames != null && pgsqlQuery.resultColumnNames.length > 0) {
         var results = await conn.query(formatString, formatParameters).toList();
-        logger?.info("Inquirer: Querying $formatString $formatParameters -- Yielded: $results");
+        logger?.info("Querying $formatString $formatParameters -- Yielded: $results");
 
         return mapRowsAccordingToQuery(results, pgsqlQuery);
       } else {
         var result = await conn.execute(formatString, formatParameters);
-        logger?.info("Inquirer: Executing $formatString $formatParameters -- Yielded: $result");
+        logger?.info("Executing $formatString $formatParameters -- Yielded: $result");
 
         return result;
       }
     } on TimeoutException {
       throw new QueryException(503, "Could not connect to database.", -1);
     } on PostgresqlException catch (e, stackTrace) {
-      logger.info("Inquirer: SQL Failed $formatString $formatParameters");
+      logger.info("SQL Failed $formatString $formatParameters");
       throw interpretException(e, stackTrace);
     } on QueryException {
-      logger.info("Inquirer: Query Failed $formatString $formatParameters");
+      logger.info("Query Failed $formatString $formatParameters");
       rethrow;
     } catch (e, stackTrace) {
-      logger.info("Inquirer: Unknown Failure $formatString $formatParameters");
+      logger.info("Unknown Failure $formatString $formatParameters");
       throw new QueryException(500, e.toString(), -1, stackTrace: stackTrace);
     }
   }

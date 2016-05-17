@@ -99,7 +99,7 @@ class Attributes {
 
   /// The type of the field in the database.
   ///
-  /// By default, the inquirer adapter will use the appropriate type for Dart type, e.g. a Dart String is a PostgreSQL text type.
+  /// By default, the adapter will use the appropriate type for Dart type, e.g. a Dart String is a PostgreSQL text type.
   /// This allows you to override the default type mapping for the annotated property.
   final String databaseType;
 
