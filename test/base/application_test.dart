@@ -4,10 +4,11 @@ import 'dart:async';
 import 'package:http/http.dart' as http;
 
 main() {
-  var app = new Application<TPipeline>();
-  app.configuration.port = 8080;
 
   group("Application lifecycle", () {
+    var app = new Application<TPipeline>();
+    app.configuration.port = 8080;
+
     setUpAll(() {
       new Logger("aqueduct").onRecord.listen((rec) {
         print("${rec}");
@@ -42,7 +43,6 @@ main() {
     });
 
     test("Application stops", () async {
-      print("Stop 1");
       await app.stop();
 
       try {
@@ -52,55 +52,55 @@ main() {
         expect(e, isNotNull);
       }
 
-      print("Restart");
-
       await app.start();
       var resp = await http.get("http://localhost:8080/t");
       expect(resp.statusCode, 200);
-      print("stop 2");
-      await app.stop();
-      print("stop 3");
     });
   });
 
-  test("Application (on main thread) start fails and logs appropriate message if pipeline doesn't open", () async {
-    var crashingApp = new Application<CrashPipeline>();
+  group("Failure", () {
+    test("Application (on main thread) start fails and logs appropriate message if pipeline doesn't open", () async {
+      var crashingApp = new Application<CrashPipeline>();
 
-    try {
-      crashingApp.configuration.pipelineOptions = {"crashIn" : "constructor"};
+      try {
+        crashingApp.configuration.pipelineOptions = {"crashIn" : "constructor"};
+        await crashingApp.start(runOnMainIsolate: true);
+      } catch (e) {
+        expect(e.message, "constructor");
+      }
+
+      try {
+        crashingApp.configuration.pipelineOptions = {"crashIn" : "addRoutes"};
+        await crashingApp.start(runOnMainIsolate: true);
+      } catch (e) {
+        expect(e.message, "addRoutes");
+      }
+
+      try {
+        crashingApp.configuration.pipelineOptions = {"crashIn" : "willOpen"};
+        await crashingApp.start(runOnMainIsolate: true);
+      } catch (e) {
+        expect(e.message, "willOpen");
+      }
+
+      crashingApp.configuration.pipelineOptions = {"crashIn" : "dontCrash"};
       await crashingApp.start(runOnMainIsolate: true);
-    } catch (e) {
-      expect(e.message, "constructor");
-    }
+      var response = await http.get("http://localhost:8080/t");
+      expect(response.statusCode, 200);
+      await crashingApp.stop();
+    });
 
-    try {
-      crashingApp.configuration.pipelineOptions = {"crashIn" : "addRoutes"};
-      await crashingApp.start(runOnMainIsolate: true);
-    } catch (e) {
-      expect(e.message, "addRoutes");
-    }
+    test("Application can run on main thread", () async {
+      var app = new Application<TPipeline>();
+      app.configuration.port = 8080;
 
-    try {
-      crashingApp.configuration.pipelineOptions = {"crashIn" : "willOpen"};
-      await crashingApp.start(runOnMainIsolate: true);
-    } catch (e) {
-      expect(e.message, "willOpen");
-    }
+      await app.start(runOnMainIsolate: true);
 
-    crashingApp.configuration.pipelineOptions = {"crashIn" : "dontCrash"};
-    await crashingApp.start(runOnMainIsolate: true);
-    var response = await http.get("http://localhost:8080/t");
-    expect(response.statusCode, 200);
-    await crashingApp.stop();
-  });
+      var response = await http.get("http://localhost:8080/t");
+      expect(response.statusCode, 200);
 
-  test("Application can run on main thread", () async {
-    await app.start(runOnMainIsolate: true);
-
-    var response = await http.get("http://localhost:8080/t");
-    expect(response.statusCode, 200);
-
-    await app.stop();
+      await app.stop();
+    });
   });
 }
 
