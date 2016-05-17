@@ -110,6 +110,7 @@ main() {
     });
 
     var conflictingApp = new Application<TPipeline>();
+    conflictingApp.configuration.port = 8080;
 
     try {
       await conflictingApp.start();
