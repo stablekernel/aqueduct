@@ -4,37 +4,37 @@ import 'dart:async';
 import 'package:http/http.dart' as http;
 
 main() {
-//  group("Recovers", () {
-//    var app = new Application<Pipeline>();
-//
-//    tearDownAll(() async {
-//      await app?.stop();
-//    });
-//
-//    test("Application reports uncaught error, recovers", () async {
-//      List<LogRecord> logQueue = [];
-//      app.logger.onRecord.listen((rec) => logQueue.add(rec));
-//      await app.start(numberOfInstances: 1);
-//      await http.get("http://localhost:8080/");
-//
-//      // This request should timeout and fail.
-//      var timeoutRan = false;
-//      await http.get("http://localhost:8080/1").timeout(new Duration(milliseconds: 500), onTimeout: () {
-//        timeoutRan = true;
-//      });
-//      expect(timeoutRan, true);
-//
-//      await new Future.delayed(new Duration(seconds: 3));
-//
-//      // After restart, this should succeeded.
-//      var response = await http.get("http://localhost:8080/1");
-//      expect(response.statusCode, 200);
-//
-//      expect(logQueue.length, 1);
-//      expect(logQueue.first.message, startsWith("Restarting terminated isolate. Exit reason"));
-//
-//      await app.stop();
-//    });
+  group("Recovers", () {
+    var app = new Application<Pipeline>();
+
+    tearDownAll(() async {
+      await app?.stop();
+    });
+
+    test("Application reports uncaught error, recovers", () async {
+      List<LogRecord> logQueue = [];
+      app.logger.onRecord.listen((rec) => logQueue.add(rec));
+      await app.start(numberOfInstances: 1);
+      await http.get("http://localhost:8080/");
+
+      // This request should timeout and fail.
+      var timeoutRan = false;
+      await http.get("http://localhost:8080/1").timeout(new Duration(milliseconds: 500), onTimeout: () {
+        timeoutRan = true;
+      });
+      expect(timeoutRan, true);
+
+      await new Future.delayed(new Duration(seconds: 3));
+
+      // After restart, this should succeeded.
+      var response = await http.get("http://localhost:8080/1");
+      expect(response.statusCode, 200);
+
+      expect(logQueue.length, 1);
+      expect(logQueue.first.message, startsWith("Restarting terminated isolate. Exit reason"));
+
+      await app.stop();
+    });
 //
 //    test("Application with multiple isolates where one dies recovers", () async {
 //      List<LogRecord> logQueue = [];
@@ -76,7 +76,7 @@ main() {
 //    });
 //
 //    test("", () {});
-//  });
+  });
 }
 
 class Pipeline extends ApplicationPipeline {
