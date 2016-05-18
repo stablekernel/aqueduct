@@ -6,16 +6,15 @@ import 'package:http/http.dart' as http;
 main() {
   group("Recovers", () {
     var app = new Application<Pipeline>();
+    List<LogRecord> logQueue = [];
+    app.logger.onRecord.listen((rec) => logQueue.add(rec));
 
     tearDown(() async {
-      print("Tearing down?");
       await app?.stop();
-      print ("Tore down");
+      logQueue = [];
     });
 
     test("Application reports uncaught error, recovers", () async {
-      List<LogRecord> logQueue = [];
-      app.logger.onRecord.listen((rec) => logQueue.add(rec));
       await app.start(numberOfInstances: 1);
 
       // This request will crash the app
@@ -39,9 +38,9 @@ main() {
     });
 
     test("Application with multiple isolates where one dies recovers", () async {
-      List<LogRecord> logQueue = [];
-      app.logger.onRecord.listen((rec) => logQueue.add(rec));
       await app.start(numberOfInstances: 2);
+
+      // This is the crasher
       await http.get("http://localhost:8080/");
 
       // This request should succeed, the other isolate will pick it up.

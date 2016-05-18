@@ -18,6 +18,7 @@ class IsolateSupervisor {
   }
 
   Future resume() {
+    isolate.setErrorsFatal(true);
     _launchCompleter = new Completer();
     receivePort.listen(listener);
 
