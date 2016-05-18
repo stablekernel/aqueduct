@@ -8,7 +8,7 @@ main() {
     var app = new Application<Pipeline>();
 
     tearDown(() async {
-      print("Tearing down?")
+      print("Tearing down?");
       await app?.stop();
       print ("Tore down");
     });
