@@ -52,8 +52,8 @@ abstract class ApplicationPipeline extends RequestHandler {
   ///
   /// This method allows the pipeline to perform any asynchronous initialization prior to
   /// receiving requests. The pipeline will not open until the [Future] returned from this method completes.
-  Future willOpen() {
-    return null;
+  Future willOpen() async {
+
   }
 
   /// Executed after the pipeline is attached to an [HttpServer].

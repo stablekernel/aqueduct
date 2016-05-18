@@ -5,6 +5,7 @@ class Server {
   HttpServer server;
   ApplicationPipeline pipeline;
   int identifier;
+  Logger get logger => new Logger("aqueduct");
 
   Server(this.pipeline, this.configuration, this.identifier) {
     pipeline.server = this;
@@ -35,14 +36,14 @@ class Server {
   }
 
   Future didOpen() async {
-    new Logger("aqueduct").info("Server aqueduct/$identifier started.");
+    logger.info("Server aqueduct/$identifier started.");
 
     server.serverHeader = "aqueduct/${this.identifier}";
 
     await pipeline.willOpen();
 
     server.map((baseReq) => new ResourceRequest(baseReq)).listen((ResourceRequest req) async {
-      new Logger("aqueduct").info("Request received $req.");
+      logger.fine("Request received $req.", req);
       await pipeline.willReceiveRequest(req);
       pipeline.deliver(req);
     });

@@ -42,6 +42,7 @@ class Application<PipelineType extends ApplicationPipeline> {
     }
 
     if (runOnMainIsolate) {
+      logger.info("Starting application on main isolate");
       if (numberOfInstances > 1) {
         logger.info("runOnMainIsolate set to true, ignoring numberOfInstances (set to $numberOfInstances)");
       }
@@ -51,6 +52,7 @@ class Application<PipelineType extends ApplicationPipeline> {
 
       await server.start();
     } else {
+      logger.info("Starting application with $numberOfInstances isolates");
       configuration._shared = true;
 
       supervisors = [];
@@ -64,7 +66,7 @@ class Application<PipelineType extends ApplicationPipeline> {
         }
       } catch (e, st) {
         await stop();
-        logger.severe("$e\n$st");
+        logger.severe("$e", this, st);
         rethrow;
       }
     }
@@ -96,7 +98,7 @@ class Application<PipelineType extends ApplicationPipeline> {
   }
 
   Future isolateDidExitWithError(IsolateSupervisor supervisor, String errorMessage, StackTrace stackTrace) async {
-    logger.severe("Restarting terminated isolate. Exit reason $errorMessage\n${stackTrace}.");
+    logger.severe("Restarting terminated isolate. Exit reason $errorMessage", supervisor, stackTrace);
 
     var identifier = supervisor.identifier;
     supervisors.remove(supervisor);
@@ -106,7 +108,7 @@ class Application<PipelineType extends ApplicationPipeline> {
       supervisors.add(supervisor);
     } catch (e, st) {
       await stop();
-      logger.severe("$e\n$st");
+      logger.severe("$e", supervisor, st);
     }
   }
 }

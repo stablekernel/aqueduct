@@ -5,6 +5,8 @@ part of aqueduct;
 /// Contains a standard library [HttpRequest], along with other values
 /// to associate data with a request.
 class ResourceRequest implements RequestHandlerResult {
+  ResourceRequest(this.innerRequest) {}
+
   /// The internal [HttpRequest] of this [ResourceRequest].
   ///
   /// The standard library generated HTTP request object. This contains
@@ -33,12 +35,51 @@ class ResourceRequest implements RequestHandlerResult {
   /// null if no permission has been set.
   Permission permission;
 
-  int id = new DateTime.now().millisecondsSinceEpoch;
+  /// The request body object, as determined by how it was decoded.
+  ///
+  /// This value will be null until [decodeBodyWithDecoder] is executed or if there is no request body.
+  /// Once decoded, this value will be an object that is determined by the decoder passed to [decodeBodyWithDecoder].
+  /// For example, if the request body was a JSON object and the decoder handled JSON, this value would be a [Map]
+  /// representing the JSON object.
+  dynamic requestBodyObject;
 
-  ResourceRequest(this.innerRequest) {}
+  DateTime receivedDate = new DateTime.now().toUtc();
+  DateTime respondDate = null;
+  Logger get logger => new Logger("aqueduct");
+
+  String get _sanitizedHeaders {
+    StringBuffer buf = new StringBuffer("{");
+    innerRequest.headers.forEach((k, v) {
+      buf.write("${_truncatedString(k)} : ${_truncatedString(v.join(","))}\\n");
+    });
+    buf.write("}");
+    return buf.toString();
+  }
+
+  String get _sanitizedBody {
+    if (requestBodyObject != null) {
+      return _truncatedString(requestBodyObject, charSize: 512);
+    }
+
+    return "-";
+  }
+
+  String _truncatedString(String originalString, {int charSize: 128}) {
+    if (originalString.length <= charSize) {
+      return originalString;
+    }
+    return originalString.substring(0, charSize);
+  }
+
+  Future decodeBodyWithDecoder(Future decoder(HttpRequest req)) async {
+    if (innerRequest.contentLength > 0) {
+      requestBodyObject = await decoder(innerRequest);
+    }
+  }
 
   void respond(Response respObj) {
-    new Logger("aqueduct").info("Request ($id) sending response $respObj.");
+    respondDate = new DateTime.now().toUtc();
+
     response.statusCode = respObj.statusCode;
 
     if (respObj.headers != null) {
@@ -55,16 +96,35 @@ class ResourceRequest implements RequestHandlerResult {
   }
 
   String toString() {
-    return "${innerRequest.method} ${this.innerRequest.uri} (${this.id})";
+    return "${innerRequest.method} ${this.innerRequest.uri} (${this.receivedDate.millisecondsSinceEpoch})";
   }
 
-  String toDebugString() {
+  String toDebugString({bool includeElapsedTime: true, bool includeRequestIP: true, bool includeMethod: true, bool includeResource: true, bool includeStatusCode: true, bool includeContentSize: false, bool includeHeaders: false, bool includeBody: false}) {
     var builder = new StringBuffer();
-    builder.writeln("${this.innerRequest.uri} (${this.id})");
-    this.innerRequest.headers.forEach((name, values) {
-      builder.write("$name $values,");
-    });
-    builder.writeln("");
+    if (includeRequestIP) {
+      builder.write("${innerRequest.connectionInfo.remoteAddress.address} ");
+    }
+    if (includeMethod) {
+      builder.write("${innerRequest.method} ");
+    }
+    if (includeResource) {
+      builder.write("${innerRequest.uri} ");
+    }
+    if (includeElapsedTime && respondDate != null) {
+      builder.write("${respondDate.difference(receivedDate).inMilliseconds}ms ");
+    }
+    if (includeStatusCode) {
+      builder.write("${innerRequest.response.statusCode} ");
+    }
+    if (includeContentSize) {
+      builder.write("${innerRequest.response.contentLength} ");
+    }
+    if (includeHeaders) {
+      builder.write("${_sanitizedHeaders} ");
+    }
+    if (includeBody) {
+      builder.write("${_sanitizedBody} ");
+    }
     return builder.toString();
   }
 }

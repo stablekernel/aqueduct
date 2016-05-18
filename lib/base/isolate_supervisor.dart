@@ -1,7 +1,6 @@
 part of aqueduct;
 
 class IsolateSupervisor {
-
   static String _MessageStop = "_MessageStop";
 
   final Isolate isolate;
@@ -14,8 +13,7 @@ class IsolateSupervisor {
   Completer _launchCompleter;
   Completer _stopCompleter;
 
-  IsolateSupervisor(this.supervisingApplication, this.isolate, this.receivePort, this.identifier, this.logger) {
-  }
+  IsolateSupervisor(this.supervisingApplication, this.isolate, this.receivePort, this.identifier, this.logger);
 
   Future resume() {
     _launchCompleter = new Completer();

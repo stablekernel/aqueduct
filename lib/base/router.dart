@@ -89,14 +89,12 @@ class Router extends RequestHandler {
       var routeMatch = route.pattern.matchUri(req.innerRequest.uri);
 
       if (routeMatch != null) {
-        logger.finest("Router: match for ${req.innerRequest.uri}.");
         req.path = routeMatch;
         route.handler.deliver(req);
         return;
       }
     }
 
-    logger.finest("Router: no matching route for ${req.innerRequest.uri}.");
     _unhandledRequestHandler(req);
   }
 
@@ -113,13 +111,12 @@ class Router extends RequestHandler {
       }));
     }
 
-
     return items;
   }
 
   void _handleUnhandledRequest(ResourceRequest req) {
-    req.response.statusCode = HttpStatus.NOT_FOUND;
-    req.response.close();
+    req.respond(new Response.notFound());
+    logger.info("No matching route", req);
   }
 }
 
