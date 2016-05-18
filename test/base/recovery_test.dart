@@ -8,7 +8,9 @@ main() {
     var app = new Application<Pipeline>();
 
     tearDown(() async {
+      print("Tearing down?")
       await app?.stop();
+      print ("Tore down");
     });
 
     test("Application reports uncaught error, recovers", () async {
