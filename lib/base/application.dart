@@ -75,7 +75,6 @@ class Application<PipelineType extends ApplicationPipeline> {
   /// Closes down every pipeline (or [server] if started with [runOnMainIsolate]) and the associated servers.
   ///
   Future stop() async {
-    logger.info("Supervisors: $supervisors");
     await Future.wait(supervisors.map((s) => s.stop()));
     supervisors = [];
 

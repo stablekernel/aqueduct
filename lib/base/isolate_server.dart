@@ -65,11 +65,11 @@ class IsolateServer extends Server {
   @override
   Future didOpen() async {
     await super.didOpen();
+
     supervisingApplicationPort.send(supervisingReceivePort.sendPort);
   }
 
   void listener(dynamic message) {
-    new Logger("aqueduct").info("Sent message $message");
     if (message == IsolateSupervisor._MessageStop) {
       server.close(force: true).then((s) {
         supervisingApplicationPort.send(IsolateSupervisor._MessageStop);
@@ -78,6 +78,7 @@ class IsolateServer extends Server {
   }
 
   static void entry(_InitialServerMessage params) {
+    print("Spinng up isolate ${params.identifier}");
     var pipelineSourceLibraryMirror = currentMirrorSystem().libraries[params.pipelineLibraryURI];
     var pipelineTypeMirror = pipelineSourceLibraryMirror.declarations[new Symbol(params.pipelineTypeName)] as ClassMirror;
 

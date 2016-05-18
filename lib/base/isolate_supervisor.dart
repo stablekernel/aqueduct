@@ -27,7 +27,6 @@ class IsolateSupervisor {
 
   Future stop() async {
     _stopCompleter = new Completer();
-    logger.info("Sending stop...");
     _serverSendPort.send(_MessageStop);
     await _stopCompleter.future.timeout(new Duration(seconds: 30));
 
@@ -35,6 +34,7 @@ class IsolateSupervisor {
   }
 
   void listener(dynamic message) {
+    print("Got message: $message");
     if (message is SendPort) {
       _launchCompleter.complete();
       _launchCompleter = null;
