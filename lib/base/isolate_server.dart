@@ -71,7 +71,9 @@ class IsolateServer extends Server {
 
   void listener(dynamic message) {
     if (message == IsolateSupervisor._MessageStop) {
+      print("Stopping isolate $identifier");
       server.close(force: true).then((s) {
+        print("Stopped isolate $identifier");
         supervisingApplicationPort.send(IsolateSupervisor._MessageStop);
       });
     }
