@@ -33,7 +33,8 @@ void main() {
       server = await enableController("/a", new RequestHandlerGenerator<NoPolicyController>());
     });
     tearDownAll(() async {
-      await server?.close();
+      await server?.close(force: true);
+      server = null;
     });
 
     test("Normal request when no CORS policy", () async {
@@ -65,7 +66,8 @@ void main() {
       server = await enableController("/a", new RequestHandlerGenerator<DefaultPolicyController>());
     });
     tearDownAll(() async {
-      await server?.close();
+      await server?.close(force: true);
+      server = null;
     });
 
     test("Normal request", () async {

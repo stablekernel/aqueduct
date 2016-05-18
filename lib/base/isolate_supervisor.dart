@@ -21,7 +21,9 @@ class IsolateSupervisor {
     _launchCompleter = new Completer();
     receivePort.listen(listener);
 
+    isolate.setErrorsFatal(false);
     isolate.resume(isolate.pauseCapability);
+
     return _launchCompleter.future.timeout(new Duration(seconds: 30));
   }
 
@@ -40,7 +42,7 @@ class IsolateSupervisor {
 
       _serverSendPort = message;
     } else if (message == _MessageStop) {
-      _stopCompleter.complete();
+      _stopCompleter?.complete();
       _stopCompleter = null;
     } else if (message is List) {
       if (_launchCompleter != null) {
@@ -52,9 +54,11 @@ class IsolateSupervisor {
   }
 
   void _tearDownWithError(String errorMessage, String stackTrace) {
-    _launchCompleter = null;
-    _stopCompleter = null;
-    supervisingApplication.isolateDidExitWithError(this, errorMessage, new StackTrace.fromString(stackTrace));
+    stop().then((_) {
+      _launchCompleter = null;
+      _stopCompleter = null;
+      supervisingApplication.isolateDidExitWithError(this, errorMessage, new StackTrace.fromString(stackTrace));
+    });
   }
 
 }

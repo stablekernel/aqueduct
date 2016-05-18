@@ -19,7 +19,7 @@ void main() {
   });
 
   tearDown(() {
-    adapter.close();
+    adapter?.close();
     adapter = null;
   });
 

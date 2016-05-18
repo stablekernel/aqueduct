@@ -5,12 +5,11 @@ import 'package:http/http.dart' as http;
 import 'dart:io';
 
 main() {
-  var app = new Application<TPipeline>();
-  app.configuration.port = 8080;
-
   group("Lifecycle", () {
+    var app = new Application<TPipeline>();
+
     tearDownAll(() async {
-      app.stop();
+      await app?.stop();
     });
 
     test("Application starts", () async {
@@ -73,58 +72,66 @@ main() {
     });
   });
 
-  test("Application start fails and logs appropriate message if pipeline doesn't open", () async {
-    var crashingApp = new Application<CrashPipeline>();
+  group("Failures", () {
+    test("Application start fails and logs appropriate message if pipeline doesn't open", () async {
+      var crashingApp = new Application<CrashPipeline>();
 
-    try {
-      crashingApp.configuration.pipelineOptions = {"crashIn" : "constructor"};
+      var succeeded = false;
+      try {
+        crashingApp.configuration.pipelineOptions = {"crashIn" : "constructor"};
+        await crashingApp.start();
+        succeeded = true;
+      } catch (e) {
+        expect(e.message, "TestException: constructor");
+      }
+      expect(succeeded, false);
+
+      try {
+        crashingApp.configuration.pipelineOptions = {"crashIn" : "addRoutes"};
+        await crashingApp.start();
+        succeeded = true;
+      } catch (e) {
+        expect(e.message, "TestException: addRoutes");
+      }
+      expect(succeeded, false);
+
+      try {
+        crashingApp.configuration.pipelineOptions = {"crashIn" : "willOpen"};
+        await crashingApp.start();
+        succeeded = true;
+      } catch (e) {
+        expect(e.message, "TestException: willOpen");
+      }
+      expect(succeeded, false);
+
+      crashingApp.configuration.pipelineOptions = {"crashIn" : "dontCrash"};
       await crashingApp.start();
-    } catch (e) {
-      expect(e.message, "TestException: constructor");
-    }
-
-    try {
-      crashingApp.configuration.pipelineOptions = {"crashIn" : "addRoutes"};
-      await crashingApp.start();
-    } catch (e) {
-      expect(e.message, "TestException: addRoutes");
-    }
-
-    try {
-      crashingApp.configuration.pipelineOptions = {"crashIn" : "willOpen"};
-      await crashingApp.start();
-    } catch (e) {
-      expect(e.message, "TestException: willOpen");
-    }
-
-    crashingApp.configuration.pipelineOptions = {"crashIn" : "dontCrash"};
-    await crashingApp.start();
-    var response = await http.get("http://localhost:8080/t");
-    expect(response.statusCode, 200);
-    await crashingApp.stop();
-  });
-
-  test("Application that fails to open because port is bound fails gracefully", () async {
-    var server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 8000);
-    server.listen((req) {
-      print("$req");
+      var response = await http.get("http://localhost:8080/t");
+      expect(response.statusCode, 200);
+      await crashingApp.stop();
     });
 
-    var conflictingApp = new Application<TPipeline>();
-    conflictingApp.configuration.port = 8000;
+    test("Application that fails to open because port is bound fails gracefully", () async {
+      var server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 8080);
+      server.listen((req) {
+        print("$req");
+      });
 
-    try {
-      await conflictingApp.start();
-      fail("App start succeeded");
-    } on IsolateSupervisorException {
+      var conflictingApp = new Application<TPipeline>();
+      conflictingApp.configuration.port = 8080;
 
-    } catch (e) {
-      fail("Wrong exception $e");
-    }
+      try {
+        await conflictingApp.start();
+        fail("App start succeeded");
+      } on IsolateSupervisorException catch (e) {
+        print("Intended failure $e");
+      } catch (e) {
+        fail("Wrong exception $e");
+      }
 
-
-    await server.close();
-    await conflictingApp.stop();
+      await server.close(force: true);
+      await conflictingApp.stop();
+    });
   });
 }
 

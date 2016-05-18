@@ -29,7 +29,7 @@ class Server {
       server.autoCompress = true;
       await didOpen();
     } catch (e) {
-      server?.close();
+      await server?.close(force: true);
       rethrow;
     }
   }
@@ -65,12 +65,13 @@ class IsolateServer extends Server {
   @override
   Future didOpen() async {
     await super.didOpen();
+
     supervisingApplicationPort.send(supervisingReceivePort.sendPort);
   }
 
   void listener(dynamic message) {
     if (message == IsolateSupervisor._MessageStop) {
-      server.close().then((s) {
+      server.close(force: true).then((s) {
         supervisingApplicationPort.send(IsolateSupervisor._MessageStop);
       });
     }
