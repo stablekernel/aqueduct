@@ -21,11 +21,13 @@ main() {
       await http.get("http://localhost:8080/");
 
       // This request should timeout and fail, because there was one isolate and it just died.
-      var timeoutRan = false;
-      await http.get("http://localhost:8080/1").timeout(new Duration(milliseconds: 500), onTimeout: () {
-        timeoutRan = true;
-      });
-      expect(timeoutRan, true);
+      bool succeeded = false;
+      try {
+        await http.get("http://localhost:8080/1");
+        succeeded = true;
+      } catch (e) {}
+
+      expect(succeeded, false);
 
       await new Future.delayed(new Duration(seconds: 3));
 
@@ -61,7 +63,6 @@ main() {
         response = await http.get("http://localhost:8080/1");
         expect(response.statusCode, 200);
 
-        print("Got response ${response.headers["server"]}");
         var serverIdentifier = response.headers["server"].split("/").last;
 
         if (serverIdentifier == "1") {

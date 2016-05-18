@@ -18,11 +18,12 @@ class IsolateSupervisor {
   }
 
   Future resume() {
-    isolate.setErrorsFatal(true);
     _launchCompleter = new Completer();
     receivePort.listen(listener);
 
+    isolate.setErrorsFatal(false);
     isolate.resume(isolate.pauseCapability);
+
     return _launchCompleter.future.timeout(new Duration(seconds: 30));
   }
 
@@ -35,14 +36,13 @@ class IsolateSupervisor {
   }
 
   void listener(dynamic message) {
-    print("Got message: $message");
     if (message is SendPort) {
       _launchCompleter.complete();
       _launchCompleter = null;
 
       _serverSendPort = message;
     } else if (message == _MessageStop) {
-      _stopCompleter.complete();
+      _stopCompleter?.complete();
       _stopCompleter = null;
     } else if (message is List) {
       if (_launchCompleter != null) {
@@ -54,9 +54,11 @@ class IsolateSupervisor {
   }
 
   void _tearDownWithError(String errorMessage, String stackTrace) {
-    _launchCompleter = null;
-    _stopCompleter = null;
-    supervisingApplication.isolateDidExitWithError(this, errorMessage, new StackTrace.fromString(stackTrace));
+    stop().then((_) {
+      _launchCompleter = null;
+      _stopCompleter = null;
+      supervisingApplication.isolateDidExitWithError(this, errorMessage, new StackTrace.fromString(stackTrace));
+    });
   }
 
 }

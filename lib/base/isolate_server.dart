@@ -71,16 +71,13 @@ class IsolateServer extends Server {
 
   void listener(dynamic message) {
     if (message == IsolateSupervisor._MessageStop) {
-      print("Stopping isolate $identifier");
       server.close(force: true).then((s) {
-        print("Stopped isolate $identifier");
         supervisingApplicationPort.send(IsolateSupervisor._MessageStop);
       });
     }
   }
 
   static void entry(_InitialServerMessage params) {
-    print("Spinng up isolate ${params.identifier}");
     var pipelineSourceLibraryMirror = currentMirrorSystem().libraries[params.pipelineLibraryURI];
     var pipelineTypeMirror = pipelineSourceLibraryMirror.declarations[new Symbol(params.pipelineTypeName)] as ClassMirror;
 
