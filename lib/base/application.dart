@@ -42,7 +42,6 @@ class Application<PipelineType extends ApplicationPipeline> {
     }
 
     if (runOnMainIsolate) {
-      logger.info("Starting application on main isolate");
       if (numberOfInstances > 1) {
         logger.info("runOnMainIsolate set to true, ignoring numberOfInstances (set to $numberOfInstances)");
       }
@@ -52,7 +51,6 @@ class Application<PipelineType extends ApplicationPipeline> {
 
       await server.start();
     } else {
-      logger.info("Starting application with $numberOfInstances isolates");
       configuration._shared = true;
 
       supervisors = [];

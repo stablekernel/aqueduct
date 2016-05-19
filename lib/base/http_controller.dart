@@ -279,30 +279,15 @@ abstract class HttpController extends RequestHandler {
       }
 
       return response;
-    } on HttpResponseException catch (e) {
-      return e.response();
     } on _InternalIgnoreBullshitException {
-      // If this happens, the JSON decoder decided to respond for us, which is a real dick move, so we have to return null here.
-      // This will also generate an error in the log for an unterminated request.
+      // If this happens, the JSON decoder decided to respond for us, which is a real dick move, so we have to return null here and
+      // manually update the respondDate. Remove this code once we remove the dependency on HttpBodyParser.
+      req.respondDate = new DateTime.now().toUtc();
+      logger.info(req.toDebugString(includeHeaders: true, includeBody: true));
 
       return null;
     } on _InternalControllerException catch (e) {
-      logger.info("Request (${request.toDebugString()}) failed: ${e.message}.");
-      var response = new Response(e.statusCode, {}, null);
-
-      request.response.statusCode = e.statusCode;
-
-      if (e.additionalHeaders != null) {
-        e.additionalHeaders.forEach((name, values) {
-          response.headers[name] = values;
-        });
-      }
-
-      if (e.responseMessage != null) {
-        response.body = {"error": e.responseMessage};
-      }
-
-      return response;
+      return e.response;
     }
   }
 
@@ -396,4 +381,17 @@ class _InternalControllerException {
   _InternalControllerException(this.message, this.statusCode, {HttpHeaders additionalHeaders: null, String responseMessage: null})
       : this.additionalHeaders = additionalHeaders,
         this.responseMessage = responseMessage;
+
+  Response get response {
+    var headerMap = {};
+    additionalHeaders?.forEach((k, _) {
+      headerMap[k] = additionalHeaders.value(k);
+    });
+
+    var bodyMap = null;
+    if (responseMessage != null) {
+      bodyMap = {"error" : responseMessage};
+    }
+    return new Response(statusCode, headerMap, bodyMap);
+  }
 }

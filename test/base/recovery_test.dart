@@ -35,6 +35,8 @@ main() {
       var response = await http.get("http://localhost:8080/1");
       expect(response.statusCode, 200);
 
+      print("$logQueue");
+
       expect(logQueue.length, 1);
       expect(logQueue.first.message, startsWith("Restarting terminated isolate. Exit reason"));
     });
@@ -49,6 +51,7 @@ main() {
       var response = await http.get("http://localhost:8080/1");
       expect(response.statusCode, 200);
 
+      print("$logQueue");
       expect(logQueue.length, 1);
       expect(logQueue.first.message, startsWith("Restarting terminated isolate. Exit reason"));
 

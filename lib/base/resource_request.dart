@@ -58,7 +58,7 @@ class ResourceRequest implements RequestHandlerResult {
 
   String get _sanitizedBody {
     if (requestBodyObject != null) {
-      return _truncatedString(requestBodyObject, charSize: 512);
+      return _truncatedString("$requestBodyObject", charSize: 512);
     }
 
     return "-";

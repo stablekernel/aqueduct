@@ -7,7 +7,6 @@ Future generateTemporarySchemaFromModels(PostgresModelAdapter adapter, List<Type
 
   var conn = await adapter.getDatabaseConnection();
   for (var def in schema.schemaDefinition()) {
-    PostgresModelAdapter.logger.info("$def");
     await conn.execute(def);
   }
 }

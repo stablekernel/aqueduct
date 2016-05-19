@@ -67,14 +67,14 @@ class RequestHandler implements APIDocumentable {
         nextHandler.deliver(req);
       } else if (result is Response) {
         req.respond(result as Response);
-      } else {
-        logger.severe("Unterminated request ${req.toDebugString()}", this);
+        logger.info(req.toDebugString());
       }
     } on HttpResponseException catch (e) {
       req.respond(e.response());
+      logger.info(req.toDebugString(includeHeaders: true, includeBody: true));
     } catch (err, st) {
-      logger.severe("Internal error for request ${req.toDebugString()}: $err", this, st);
       req.respond(new Response.serverError(headers: {HttpHeaders.CONTENT_TYPE: "application/json"}, body: JSON.encode({"error": "${this.runtimeType}: $err.", "stacktrace": st.toString()})));
+      logger.severe(req.toDebugString(includeHeaders: true, includeBody: true));
     }
   }
 
