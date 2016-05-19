@@ -6,18 +6,6 @@ part of aqueduct;
 abstract class HttpController extends RequestHandler {
   static ContentType _applicationWWWFormURLEncodedContentType = new ContentType("application", "x-www-form-urlencoded");
 
-  /// An optional exception handler for this controller that generates an HTTP error response.
-  ///
-  /// By default, this handler is null. Exceptions will be handled by the default implementation
-  /// of [RequestHandler]. You may provide another exception handler to override the default behavior.
-  /// This exception handler MUST return a [Response] object, no matter what.
-  Function get exceptionHandler => _exceptionHandler;
-  void set exceptionHandler(Response handler(ResourceRequest resourceRequest, dynamic exceptionOrError, StackTrace stacktrace)) {
-    _exceptionHandler = handler;
-  }
-
-  Function _exceptionHandler = null;
-
   /// The request being processed by this [HttpController].
   ///
   /// It is this [HttpController]'s responsibility to return a [Response] object for this request.
@@ -66,7 +54,7 @@ abstract class HttpController extends RequestHandler {
   /// This object will be decoded according to the this request's content type. If there was no body, this value will be null.
   /// If this resource controller does not support the content type of the body, the controller will automatically
   /// respond with a Unsupported Media Type HTTP response.
-  dynamic requestBody;
+  dynamic get requestBody => request.requestBodyObject;
 
   // Callbacks
   /// Executed prior to handling a request, but after the [resourceRequest] has been set.
@@ -118,25 +106,25 @@ abstract class HttpController extends RequestHandler {
     return symbol;
   }
 
-  dynamic _readRequestBodyForRequest(ResourceRequest req) async {
+  Future _readRequestBodyForRequest(ResourceRequest req) async {
     if (request.innerRequest.contentLength > 0) {
       var incomingContentType = request.innerRequest.headers.contentType;
       var matchingContentType = acceptedContentTypes.firstWhere((ct) {
         return ct.primaryType == incomingContentType.primaryType && ct.subType == incomingContentType.subType;
       }, orElse: () => null);
 
-      if (matchingContentType != null) {
-        try {
-          return (await HttpBodyHandler.processRequest(request.innerRequest)).body;
-        } catch (e) {
-          throw new _InternalIgnoreBullshitException();
-        }
-      } else {
+      if (matchingContentType == null) {
         throw new _InternalControllerException("Unsupported Content-Type", HttpStatus.UNSUPPORTED_MEDIA_TYPE);
       }
-    }
 
-    return null;
+      try {
+        await req.decodeBodyWithDecoder((r) async {
+          return (await HttpBodyHandler.processRequest(r)).body;
+        });
+      } catch (e) {
+        throw new _InternalIgnoreBullshitException();
+      }
+    }
   }
 
   dynamic _convertParameterWithMirror(String parameterValue, ParameterMirror parameterMirror) {
@@ -232,7 +220,7 @@ abstract class HttpController extends RequestHandler {
     var methodSymbol = _routeMethodSymbolForRequest(request);
     var handlerParameters = _parametersForRequest(request, methodSymbol);
 
-    requestBody = await _readRequestBodyForRequest(request);
+    await _readRequestBodyForRequest(request);
     var handlerQueryParameters = _queryParametersForRequest(request, requestBody, methodSymbol);
 
     if (requestBody != null) {
@@ -291,35 +279,15 @@ abstract class HttpController extends RequestHandler {
       }
 
       return response;
-    } on HttpResponseException catch (e) {
-      return e.response();
     } on _InternalIgnoreBullshitException {
+      // If this happens, the JSON decoder decided to respond for us, which is a real dick move, so we have to return null here and
+      // manually update the respondDate. Remove this code once we remove the dependency on HttpBodyParser.
+      req.respondDate = new DateTime.now().toUtc();
+      logger.info(req.toDebugString(includeHeaders: true, includeBody: true));
+
       return null;
     } on _InternalControllerException catch (e) {
-      logger.info("Request (${request.toDebugString()}) failed: ${e.message}.");
-      var response = new Response(e.statusCode, {}, null);
-
-      request.response.statusCode = e.statusCode;
-
-      if (e.additionalHeaders != null) {
-        e.additionalHeaders.forEach((name, values) {
-          response.headers[name] = values;
-        });
-      }
-
-      if (e.responseMessage != null) {
-        response.body = {"error": e.responseMessage};
-      }
-
-      return response;
-    } catch (e, stacktrace) {
-      logger.severe("HttpController: Uncaught error in request (${request.toDebugString()}): ${e}\n $stacktrace.");
-      if (_exceptionHandler != null) {
-        var response = _exceptionHandler(this.request, e, stacktrace);
-        return response;
-      } else {
-        return new Response.serverError();
-      }
+      return e.response;
     }
   }
 
@@ -403,6 +371,7 @@ abstract class HttpController extends RequestHandler {
 class _InternalIgnoreBullshitException {
   _InternalIgnoreBullshitException();
 }
+
 class _InternalControllerException {
   final String message;
   final int statusCode;
@@ -412,4 +381,17 @@ class _InternalControllerException {
   _InternalControllerException(this.message, this.statusCode, {HttpHeaders additionalHeaders: null, String responseMessage: null})
       : this.additionalHeaders = additionalHeaders,
         this.responseMessage = responseMessage;
+
+  Response get response {
+    var headerMap = {};
+    additionalHeaders?.forEach((k, _) {
+      headerMap[k] = additionalHeaders.value(k);
+    });
+
+    var bodyMap = null;
+    if (responseMessage != null) {
+      bodyMap = {"error" : responseMessage};
+    }
+    return new Response(statusCode, headerMap, bodyMap);
+  }
 }

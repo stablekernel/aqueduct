@@ -46,9 +46,7 @@ void main() {
     server = await enableController("/a", new RequestHandlerGenerator<TController>());
 
     var res = await http.delete("http://localhost:4040/a");
-
     expect(res.statusCode, 404);
-
     // expect headers to have Allow: GET, POST, PUT
   });
 

@@ -100,14 +100,16 @@ void main() {
     req = new Query<GRestrict>()..valueObject = obj;
     await req.insert(adapter);
 
+    var successful = false;
     try {
       req = new Query<GRestrictInverse>();
       await req.delete(adapter);
-      fail("Should not be able to delete object");
+      successful = true;
     } catch (e) {
       expect(e.statusCode, 400);
       expect(e.errorCode, 23503);
     }
+    expect(successful, false);
   });
 
   test("Deleting cascade object deletes other object", () async {

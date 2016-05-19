@@ -50,29 +50,31 @@ class RequestHandler implements APIDocumentable {
   /// determines processing should continue with the [nextHandler] handler and a
   /// [nextHandler] handler exists, the request will be delivered to [nextHandler].
   ///
-  /// An [ApplicationPipeline] should invoke this method on its initial handler
+  /// An [ApplicationPipeline] invokes this method on its initial handler
   /// in its [processRequest] method.
   ///
   /// Some [RequestHandler]s may override this method if they do not wish to
-  /// use simple chaining. For example, the [Router] class] overrides this method
+  /// use simple chaining. For example, the [Router] class overrides this method
   /// to deliver the [ResourceRequest] to the appropriate route handler. If overriding this
   /// method, it is important that you always invoke subsequent handler's with [deliver]
   /// and not [processRequest].
 
   Future deliver(ResourceRequest req) async {
-    logger.finest("$this received request $req.");
     try {
       var result = await processRequest(req);
+
       if (result is ResourceRequest && nextHandler != null) {
         nextHandler.deliver(req);
       } else if (result is Response) {
         req.respond(result as Response);
+        logger.info(req.toDebugString());
       }
     } on HttpResponseException catch (e) {
       req.respond(e.response());
+      logger.info(req.toDebugString(includeHeaders: true, includeBody: true));
     } catch (err, st) {
-      logger.severe("$this generated internal error for request ${req.toDebugString()}. $err\n Stacktrace:\n${st.toString()}");
       req.respond(new Response.serverError(headers: {HttpHeaders.CONTENT_TYPE: "application/json"}, body: JSON.encode({"error": "${this.runtimeType}: $err.", "stacktrace": st.toString()})));
+      logger.severe(req.toDebugString(includeHeaders: true, includeBody: true));
     }
   }
 

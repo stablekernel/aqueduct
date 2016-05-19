@@ -95,7 +95,6 @@ class UncaughtCrashController extends HttpController {
     new Future(() {
       var x = null;
       x.foo();
-      print("HELLO");
     }).then((_) {
 
     });

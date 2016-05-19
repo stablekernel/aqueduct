@@ -34,7 +34,7 @@ class Authenticator extends RequestHandler {
     if (errorResponse == null) {
       errorResponse = new Response.serverError();
     }
-
+    
     return errorResponse;
   }
 

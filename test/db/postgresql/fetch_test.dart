@@ -184,18 +184,16 @@ void main() {
     req = new Query<TestModel>();
     req.resultKeys = ["id", "badkey"];
 
+    var successful = false;
     try {
       await req.fetch(adapter);
-      fail("This should throw an expcetion");
+      successful = true;
     } on QueryException catch (e) {
-      expect(e.message,
-          "Attempting to retrieve badkey from TestModel, but that key doesn't exist.");
+      expect(e.message, "Attempting to retrieve badkey from TestModel, but that key doesn't exist.");
       expect(e.errorCode, -1);
       expect(e.statusCode, 500);
-    } catch (e) {
-      fail("$e");
     }
-
+    expect(successful, false);
   });
 
   test("Value for foreign key in predicate", () async {

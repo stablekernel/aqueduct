@@ -30,13 +30,15 @@ void main() {
         "bad_key": "doesntmatter"
       };
 
+    var successful = false;
     try {
       await insertReq.insert(adapter);
-      fail("Succeeded with inserting bad key");
+      successful = true;
     } catch (e) {
       expect(e.statusCode, 400);
       expect(e.errorCode, 42703);
     }
+    expect(successful, false);
   });
 
   test("Inserting an object that violated a unique constraint fails", () async {
@@ -52,13 +54,15 @@ void main() {
 
     var insertReqDup = new Query<TestModel>()..valueObject = m;
 
+    var successful = false;
     try {
       await insertReqDup.insert(adapter);
-      fail("Query should have failed to insert unique constraint object");
+      successful = true;
     } catch (e) {
       expect(e.statusCode, 409);
       expect(e.errorCode, 23505);
     }
+    expect(successful, false);
 
     m.emailAddress = "dup1@a.com";
     var insertReqFollowup = new Query<TestModel>()..valueObject = m;
@@ -111,18 +115,18 @@ void main() {
 
     var insertReq = new Query<TestModel>()..valueObject = m;
 
+    var successful = false;
     try {
       await insertReq.insert(adapter);
-      fail("Query should have failed");
+      successful = true;
     } catch (e) {
       expect(e.statusCode, 400);
       expect(e.errorCode, 23502);
     }
+    expect(successful, false);
   });
 
-  test(
-      "Inserting an object via a values map works and returns appropriate object",
-      () async {
+  test("Inserting an object via a values map works and returns appropriate object", () async {
     await generateTemporarySchemaFromModels(adapter, [TestModel]);
 
     var insertReq = new Query<TestModel>()
