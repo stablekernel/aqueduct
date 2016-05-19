@@ -116,7 +116,7 @@ class Router extends RequestHandler {
 
   void _handleUnhandledRequest(ResourceRequest req) {
     req.respond(new Response.notFound());
-    logger.info("No matching route", req);
+    logger.info(req.toDebugString());
   }
 }
 
