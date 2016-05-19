@@ -5,16 +5,9 @@ import 'dart:async';
 void main() {
 
   test("Graph fetch ensures primary key exists for all objects", () async {
-    // Can't join on entities without primary key, if you omit primary key it is automaically added.
-    var q = new UserQuery()
-      ..resultKeys = ["name"]
-      ..locations.single
-      ..resultKeys = ["name"];
-    print("${q.subQueries}");
   });
 
   test("Graph fetch ensures foreign key exists for all objects", () async {
-
   });
 
   group("Tomany graph", () {

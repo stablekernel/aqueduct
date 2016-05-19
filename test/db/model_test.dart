@@ -4,13 +4,13 @@ import 'package:test/test.dart';
 main() {
   test("NoSuchMethod still throws", () {
     var user = new User();
+    var successful = false;
     try {
       user.foo();
-      fail("Should not get here");
+      successful = true;
     } on NoSuchMethodError {
-    } catch (e) {
-      expect(e, isNull);
     }
+    expect(successful, false);
   });
 
   test("Model object construction", () {
@@ -25,20 +25,22 @@ main() {
 
   test("Mismatched type throws exception", () {
     var user = new User();
+    var successful = false;
     try {
       user.name = 1;
-      fail("This should throw an exception.");
+      successful = true;
     } catch (e) {
-      expect(e.message,
-          "Type mismatch for property name on User, expected String but got _Smi.");
+      expect(e.message, "Type mismatch for property name on User, expected String but got _Smi.");
     }
+    expect(successful, false);
+
     try {
       user.id = "foo";
-      fail("This should throw an exception.");
+      successful = true;
     } catch (e) {
-      expect(e.message,
-          "Type mismatch for property id on User, expected int but got _OneByteString.");
+      expect(e.message, "Type mismatch for property id on User, expected int but got _OneByteString.");
     }
+    expect(successful, false);
   });
 
   test("Accessing model object without field should return null", () {
@@ -48,19 +50,22 @@ main() {
 
   test("Getting/setting property that is undeclared throws exception", () {
     var user = new User();
+    var successful = false;
     try {
-      var x = user.foo;
-      fail("Should throw exception.");
-      print("$x");
+      var _ = user.foo;
+      successful = true;
     } catch (e) {
       expect(e.message, "Model type User has no property foo.");
     }
+    expect(successful, false);
+
     try {
       user.foo = "hey";
-      fail("Should throw exception.");
+      successful = true;
     } catch (e) {
       expect(e.message, "Model type User has no property foo.");
     }
+    expect(successful, false);
   });
 
   test("Can assign and read embedded objects", () {
@@ -145,12 +150,14 @@ main() {
     var map = {"id": 1, "name": "Bob", "bad_key": "value"};
 
     var user = new User();
+    var successful = false;
     try {
       user.readMap(map);
-      fail("Should throw");
+      successful = true;
     } catch (e) {
       expect(e.message, "Key bad_key does not exist for User");
     }
+    expect(successful, false);
   });
 
   test("Handles DateTime conversion", () {
@@ -182,13 +189,14 @@ main() {
   test("Trying to read embedded object that isnt an object fails", () {
     var postMap = {"text": "hey", "id": 1, "owner": 12};
     var post = new Post();
+    var successful = false;
     try {
       post.readMap(postMap);
-      fail("Should throw");
+      successful = true;
     } catch (e) {
-      expect(e.message,
-          "Expecting a Map for User in the owner field, got 12 instead.");
+      expect(e.message, "Expecting a Map for User in the owner field, got 12 instead.");
     }
+    expect(successful, false);
   });
 
   test("Setting embeded object to null doesn't throw exception", () {
@@ -205,18 +213,10 @@ main() {
     var u = new User();
     u.name = "Bob";
     u.dateCreated = null;
-    u.name =
-        null; // I previously set this to a value on purpose and then reset it to null
+    u.name = null; // I previously set this to a value on purpose and then reset it to null
 
     expect(u.name, isNull);
     expect(u.dateCreated, isNull);
-
-    try {
-      var _ = u.id;
-      fail("Should throw");
-    } catch (e) {
-      expect(e, isNotNull);
-    }
   });
 
   test("Primary key works", () {
@@ -276,16 +276,18 @@ main() {
     t.outputInt = 3;
     expect(t.asMap()["outputInt"], 3);
 
+    var successful = false;
     try {
       var _ = new TransientTest()
         ..readMap({
           "outputInt" : 3
         });
-      fail("Should not get here");
+      successful = true;
     } catch (e) {
       expect(e is QueryException, true);
       expect(e.message, "Key outputInt does not exist for TransientTest");
     }
+    expect(successful, false);
   });
 
   test("Reading hasMany relationship from JSON succeeds", () {

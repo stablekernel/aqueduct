@@ -59,12 +59,14 @@ main() {
     test("Application stops", () async {
       await app.stop();
 
+      var successful = false;
       try {
         var _ = await http.get("http://localhost:8080/t");
-        fail("This should fail immediately");
+        successful = true;
       } catch (e) {
         expect(e, isNotNull);
       }
+      expect(successful, false);
 
       await app.start(numberOfInstances: 3);
       var resp = await http.get("http://localhost:8080/t");
@@ -114,20 +116,20 @@ main() {
     test("Application that fails to open because port is bound fails gracefully", () async {
       var server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 8080);
       server.listen((req) {
-        print("$req");
+
       });
 
       var conflictingApp = new Application<TPipeline>();
       conflictingApp.configuration.port = 8080;
 
+      var successful = false;
       try {
         await conflictingApp.start();
-        fail("App start succeeded");
-      } on IsolateSupervisorException catch (e) {
-        print("Intended failure $e");
+        successful = true;
       } catch (e) {
-        fail("Wrong exception $e");
+        expect(e, new isInstanceOf<IsolateSupervisorException>());
       }
+      expect(successful, false);
 
       await server.close(force: true);
       await conflictingApp.stop();

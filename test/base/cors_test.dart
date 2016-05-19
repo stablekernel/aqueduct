@@ -6,10 +6,6 @@ import 'package:aqueduct/aqueduct.dart';
 import 'dart:async';
 
 void main() {
-  setUpAll(() {
-    new Logger("aqueduct").onRecord.listen((rec) => print("$rec"));
-  });
-
 /*
   Check same-origin requests that contain Origin
 

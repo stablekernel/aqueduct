@@ -134,16 +134,16 @@ void main() {
         true);
   });
 
-  test("Delete rule of setNull throws exception if property is not nullable",
-      () {
+  test("Delete rule of setNull throws exception if property is not nullable", () {
+    var successful = false;
     try {
       var schema = new PostgresqlSchema.fromModels([GenObj, GenNotNullable]);
-      fail("Schema should not generate");
+      successful = true;
       schema.toString();
     } catch (e) {
-      expect(e.message,
-          "_GenNotNullable will set relationship 'ref_id' to null on delete, but 'ref_id' may not be null");
+      expect(e.message, "_GenNotNullable will set relationship 'ref_id' to null on delete, but 'ref_id' may not be null");
     }
+    expect(successful, false);
   });
 
   test("Verify schema creates the same named foreign keys as model", () {

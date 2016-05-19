@@ -7,12 +7,6 @@ main() {
   group("Application lifecycle", () {
     var app = new Application<TPipeline>();
 
-    setUpAll(() {
-      new Logger("aqueduct").onRecord.listen((rec) {
-        print("${rec}");
-      });
-    });
-
     tearDownAll(() async {
       await app?.stop();
     });
@@ -43,12 +37,14 @@ main() {
     test("Application stops", () async {
       await app.stop();
 
+      var successful = false;
       try {
         var _ = await http.get("http://localhost:8080/t");
-        fail("This should fail immeidlatey");
+        successful = true;
       } catch (e) {
         expect(e, isNotNull);
       }
+      expect(successful, false);
 
       await app.start(runOnMainIsolate: true);
       var resp = await http.get("http://localhost:8080/t");

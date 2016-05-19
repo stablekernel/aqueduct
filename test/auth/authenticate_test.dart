@@ -37,50 +37,58 @@ void main() {
     expect(permission.clientID, "com.stablekernel.app1");
     expect(permission.resourceOwnerIdentifier, createdUser.id);
 
+    var successful = false;
     try {
       permission = await auth.verify("foobar");
-      fail("Shouldn't get here");
+      successful = true;
     } catch (e) {
       expect(e.statusCode, 401);
     }
+    expect(successful, false);
   });
 
   test("Bad client ID and secret fails", () async {
     var auth = new AuthenticationServer<TestUser, Token>(delegate);
     await createUsers(adapter, 1);
 
+    var successful = false;
     try {
       await auth.authenticate("bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app20", "kilimanjaro");
-      fail("Shouldn't get here");
+      successful = true;
     } catch (e) {
       expect(e.statusCode, 401);
     }
+    expect(successful, false);
 
     try {
       await auth.authenticate("bob0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app1", "foobar");
-      fail("Shouldn't get here");
+      successful = true;
     } catch (e) {
       expect(e.statusCode, 401);
     }
+    expect(successful, false);
   });
 
   test("Invalid username and password fails", () async {
     var auth = new AuthenticationServer<TestUser, Token>(delegate);
     await createUsers(adapter, 1);
 
+    var successful = false;
     try {
       await auth.authenticate("fred@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app1", "kilimanjaro");
-      fail("Shouldn't get here");
+      successful = true;
     } catch (e) {
       expect(e.statusCode, 400);
     }
+    expect(successful, false);
 
     try {
       await auth.authenticate("bob+0@stablekernel.com", "foobar", "com.stablekernel.app1", "kilimanjaro");
-      fail("Shouldn't get here");
+      successful = true;
     } catch (e) {
       expect(e.statusCode, 401);
     }
+    successful = false;
   });
 
   test("Expiration date works correctly", () async {
@@ -93,12 +101,14 @@ void main() {
 
     sleep(new Duration(seconds: 5));
 
+    var successful = false;
     try {
       await auth.verify(t.accessToken);
-      fail("Shouldn't get here");
+      successful = true;
     } catch (e) {
       expect(e.statusCode, 401);
     }
+    expect(successful, false);
   });
 
   test("Clients have separate tokens", () async {
@@ -150,12 +160,14 @@ void main() {
 
     sleep(new Duration(seconds: 5));
 
+    var successful = false;
     try {
       await auth.verify(t2.accessToken);
-      fail("Should not get here");
+      successful = true;
     } catch (e) {
       expect(e.statusCode, 401);
     }
+    expect(successful, false);
 
     var n1 = await auth.refresh(t1.refreshToken, "com.stablekernel.app1", "kilimanjaro");
     var n2 = await auth.refresh(t2.refreshToken, "com.stablekernel.app1", "kilimanjaro");
@@ -169,17 +181,19 @@ void main() {
 
     try {
       await auth.verify(t1.accessToken);
-      fail("Should not get here");
+      successful = true;
     } catch (e) {
       expect(e.statusCode, 401);
     }
+    expect(successful, false);
 
     try {
       await auth.verify(t2.accessToken);
-      fail("Should not get here");
+      successful = true;
     } catch (e) {
       expect(e.statusCode, 401);
     }
+    expect(successful, false);
 
     sleep(new Duration(seconds: 5));
 
@@ -187,10 +201,11 @@ void main() {
     expect(p1.resourceOwnerIdentifier, user.id);
     try {
       await auth.verify(t2.accessToken);
-      fail("Should not get here");
+      successful = true;
     } catch (e) {
       expect(e.statusCode, 401);
     }
+    expect(successful, false);
   });
 
   test("Refresh token doesn't work on wrong client id", () async {
@@ -198,12 +213,14 @@ void main() {
     await createUsers(adapter, 1);
 
     var t1 = await auth.authenticate("bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app1", "kilimanjaro");
+    var successful = false;
     try {
       await auth.refresh(t1.refreshToken, "com.stablekernel.app2", "fuji");
-      fail("Should not get here");
+      successful = true;
     } catch (e) {
       expect(e.statusCode, 401);
     }
+    expect(successful, false);
   });
 
   test("Malformed header fails", () async {

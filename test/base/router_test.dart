@@ -54,17 +54,18 @@ void main() {
     await server.close(force: true);
   });
 
-  test(
-      "Base API Path Throws exception when adding routes prior to setting it", () async {
+  test("Base API Path Throws exception when adding routes prior to setting it", () async {
     var router = new Router();
     router.route("/a");
 
+    var successful = false;
     try {
       router.basePath = "/api";
-      fail("This should fail");
+      successful = true;
     } catch (e) {
       expect(e is Exception, true);
     }
+    expect(successful, false);
   });
 
   test("Base API adds to path", () async {
