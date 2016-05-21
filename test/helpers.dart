@@ -20,7 +20,7 @@ Future<List<TestUser>> createUsers(QueryAdapter adapter, int count) async {
 class TestUser extends Model<_User> implements _User {}
 
 class _User implements Authenticatable {
-  @Attributes(primaryKey: true, databaseType: "bigserial")
+  @primaryKey
   int id;
 
   String username;
@@ -32,7 +32,7 @@ class Token extends Model<_Token> implements _Token {}
 
 
 class _Token implements Tokenizable {
-  @Attributes(primaryKey: true, databaseType: "bigserial")
+  @primaryKey
   int id;
 
   @Attributes(indexed: true)
@@ -111,4 +111,14 @@ class AuthDelegate<User extends Model, T extends Model> implements Authenticatio
 
     return result;
   }
+}
+
+String commandsForModelTypes(List<Type> modelTypes, {bool temporary: false}) {
+  var persistentStore = new DefaultPersistentStore();
+  var dataModel = new DataModel(persistentStore, modelTypes);
+  var generator = new SchemaGenerator(persistentStore, dataModel);
+  var json = generator.serialized;
+  var pGenerator = new PostgreSQLSchemaGenerator(json, temporary: temporary);
+
+  return pGenerator.commandList;
 }

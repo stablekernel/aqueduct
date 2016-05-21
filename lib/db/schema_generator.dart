@@ -37,7 +37,7 @@ class SchemaTable {
 
     foreignKeyConstraints = validProperties
       .where((p) => p is RelationshipDescription)
-      .map((p) => new SchemaForeignKeyConstraints(p, columns))
+      .map((p) => new SchemaForeignKeyConstraint(p, columns))
       .toList();
 
     indexes = validProperties
@@ -46,10 +46,17 @@ class SchemaTable {
         .toList();
   }
 
+  SchemaTable.fromJSON(Map<String, dynamic> json) {
+    name = json["name"];
+    columns = json["columns"].map((c) => new SchemaColumn.fromJSON(c)).toList();
+    indexes = json["indexes"].map((c) => new SchemaIndex.fromJSON(c)).toList();
+    foreignKeyConstraints = json["constraints"].map((c) => new SchemaForeignKeyConstraint.fromJSON(c)).toList();
+  }
+
   String name;
   List<SchemaColumn> columns;
   List<SchemaIndex> indexes;
-  List<SchemaForeignKeyConstraints> foreignKeyConstraints;
+  List<SchemaForeignKeyConstraint> foreignKeyConstraints;
 
   Map<String, dynamic> asSerializable() {
     return {
@@ -79,6 +86,16 @@ class SchemaColumn {
     isNullable = desc.isNullable;
     autoincrement = desc.autoincrement;
     isUnique = desc.isUnique;
+  }
+
+  SchemaColumn.fromJSON(Map<String, dynamic> json) {
+    name = json["name"];
+    type = json["type"];
+    isNullable = json["nullable"];
+    autoincrement = json["autoincrement"];
+    isUnique = json["unique"];
+    defaultValue = json["defaultValue"];
+    isPrimaryKey = json["primaryKey"];
   }
 
   String _propertyName;
@@ -116,12 +133,23 @@ class SchemaColumn {
 }
 
 
-class SchemaForeignKeyConstraints {
-  SchemaForeignKeyConstraints(RelationshipDescription desc, List<SchemaColumn> columns) {
+class SchemaForeignKeyConstraint {
+  SchemaForeignKeyConstraint(RelationshipDescription desc, List<SchemaColumn> columns) {
     columnName = columns.firstWhere((sc) => sc._propertyName == desc.name).name;
     foreignTableName = desc.destinationEntity.tableName;
     foreignColumnName = desc.destinationEntity.primaryKey;
     deleteRule = deleteRuleStringForDeleteRule(desc.deleteRule);
+
+    if (desc.deleteRule == RelationshipDeleteRule.nullify && desc.isNullable) {
+      throw new DataModelException("Relationship ${desc.name} on ${desc.entity.tableName} set to nullify on delete, but is not nullable");
+    }
+  }
+
+  SchemaForeignKeyConstraint.fromJSON(Map<String, dynamic> json) {
+    columnName = json["columnName"];
+    foreignColumnName = json["foreignColumnName"];
+    foreignTableName = json["foreignTableName"];
+    deleteRule = json["deleteRule"];
   }
 
   String columnName;
@@ -157,6 +185,10 @@ class SchemaIndex {
     }
   }
 
+  SchemaIndex.fromJSON(Map<String, dynamic> json) {
+    name = json["name"];
+  }
+
   String name;
 
   Map<String, dynamic> asSerializable() {
@@ -164,4 +196,30 @@ class SchemaIndex {
       "name" : name
     };
   }
+}
+
+abstract class SchemaGeneratorBackend {
+  SchemaGeneratorBackend(List<Map> operations, {bool temporary: false}) {
+    isTemporary = temporary;
+    operations.forEach((op) {
+      _parseOperation(op);
+    });
+  }
+
+  List<String> commands;
+  bool isTemporary;
+
+  String get commandList {
+    return commands.join("\n");
+  }
+
+  void _parseOperation(Map<String, dynamic> operation) {
+    switch(operation["op"]) {
+      case "table.add" : handleAddTableCommand(new SchemaTable.fromJSON(operation["table"]));
+    }
+
+    return null;
+  }
+
+  void handleAddTableCommand(SchemaTable table);
 }
