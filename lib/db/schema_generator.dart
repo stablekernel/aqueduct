@@ -139,10 +139,6 @@ class SchemaForeignKeyConstraint {
     foreignTableName = desc.destinationEntity.tableName;
     foreignColumnName = desc.destinationEntity.primaryKey;
     deleteRule = deleteRuleStringForDeleteRule(desc.deleteRule);
-
-    if (desc.deleteRule == RelationshipDeleteRule.nullify && desc.isNullable) {
-      throw new DataModelException("Relationship ${desc.name} on ${desc.entity.tableName} set to nullify on delete, but is not nullable");
-    }
   }
 
   SchemaForeignKeyConstraint.fromJSON(Map<String, dynamic> json) {

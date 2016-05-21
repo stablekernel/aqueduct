@@ -6,7 +6,8 @@ void main() {
   test("Delete rule of setNull throws exception if property is not nullable", () {
     var successful = false;
     try {
-      var _ = commandsForModelTypes([GenObj, GenNotNullable]);
+      var dataModel = new DataModel(new DefaultPersistentStore(), [GenObj, GenNotNullable]);
+
       successful = true;
     } catch (e) {
       expect(e.message, "Relationship ref on _GenNotNullable set to nullify on delete, but is not nullable");
