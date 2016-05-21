@@ -1,5 +1,6 @@
 part of aqueduct;
 
+
 class PostgresqlSchema {
   static Type entityTypeForModelType(Type t) {
     return reflectClass(t).superclass.typeArguments.first.reflectedType;

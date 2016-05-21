@@ -14,8 +14,6 @@ import 'package:logging/logging.dart';
 import 'package:postgresql/postgresql.dart';
 import 'package:matcher/matcher.dart';
 import 'package:analyzer/analyzer.dart';
-import 'package:yaml/yaml.dart';
-import 'package:safe_config/safe_config.dart';
 
 export 'package:http_server/http_server.dart';
 export 'package:logging/logging.dart';
@@ -46,6 +44,9 @@ part 'auth/auth_controller.dart';
 part 'auth/authorization_parser.dart';
 part 'auth/authentication_server.dart';
 
+part 'db/schema_generator.dart';
+part 'db/data_model.dart';
+part 'db/model_entity_property.dart';
 part 'db/model_query.dart';
 part 'db/model.dart';
 part 'db/model_controller.dart';
@@ -57,6 +58,8 @@ part 'db/sort_descriptor.dart';
 part 'db/model_attributes.dart';
 part 'db/model_entity.dart';
 part 'db/matcher_expression.dart';
+part 'db/persistent_store.dart';
+part 'db/model_context.dart';
 
 // PostgreSQL
 

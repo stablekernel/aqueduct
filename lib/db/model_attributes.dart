@@ -41,11 +41,6 @@ class RelationshipAttribute {
   /// See [RelationshipDeleteRule] for possible values.
   final RelationshipDeleteRule deleteRule;
 
-  /// The name of the property on the related object that this relationship ensures referential integrity through.
-  ///
-  /// By default, this will be the primary key of the related object.
-  final String referenceKey;
-
   /// The required name of the inverse property in the related model.
   ///
   /// For example, a social network 'Post' model object
@@ -54,37 +49,42 @@ class RelationshipAttribute {
   /// on the Post would be 'posts'. All relationships must have an inverse.
   final String inverseKey;
 
+  /// Whether or not this relationship must be non-null.
+  ///
+  /// For [hasOne] or [hasMany] relationships, this has no effect. For [belongsTo] relationship, this requires the foreign key
+  /// to be non-null. The default is true for [belongsTo] relationships, false otherwise.
+  bool get isRequired => type == RelationshipType.belongsTo ? _isRequired : false;
+  final bool _isRequired;
+
   /// Constructor for relationship to be used as metadata for a model property.
   ///
   /// [type] and [inverseName] are required. All Relationships must have an inverse in the corresponding model.
-  const RelationshipAttribute(RelationshipType type, String inverseKey,
-      {RelationshipDeleteRule deleteRule: RelationshipDeleteRule.nullify,
-      String referenceKey: null})
+  const RelationshipAttribute(RelationshipType type, String inverseKey, {RelationshipDeleteRule deleteRule: RelationshipDeleteRule.nullify, bool required: true})
       : this.type = type,
         this.inverseKey = inverseKey,
         this.deleteRule = deleteRule,
-        this.referenceKey = referenceKey;
+        this._isRequired = required;
 
   const RelationshipAttribute.hasMany(String inverseKey) :
         this.type = RelationshipType.hasMany,
         this.inverseKey = inverseKey,
         this.deleteRule = RelationshipDeleteRule.nullify,
-        this.referenceKey = null;
+        this._isRequired = false;
 
   const RelationshipAttribute.hasOne(String inverseKey) :
         this.type = RelationshipType.hasOne,
         this.inverseKey = inverseKey,
         this.deleteRule = RelationshipDeleteRule.nullify,
-        this.referenceKey = null;
+        this._isRequired = false;
 
-  const RelationshipAttribute.belongsTo(String inverseKey, {RelationshipDeleteRule deleteRule: RelationshipDeleteRule.nullify, String referenceKey: null}) :
+  const RelationshipAttribute.belongsTo(String inverseKey, {RelationshipDeleteRule deleteRule: RelationshipDeleteRule.nullify, bool required: true}) :
         this.type = RelationshipType.belongsTo,
         this.inverseKey = inverseKey,
         this.deleteRule = deleteRule,
-        this.referenceKey = referenceKey;
+        this._isRequired = required;
 }
 
-const Attributes primaryKey = const Attributes(primaryKey: true, databaseType: "bigserial");
+const Attributes primaryKey = const Attributes(primaryKey: true, databaseType: PropertyType.bigInteger, autoincrement: true);
 
 /// A declaration annotation for the options on a property in a entity class.
 ///
@@ -101,7 +101,7 @@ class Attributes {
   ///
   /// By default, the adapter will use the appropriate type for Dart type, e.g. a Dart String is a PostgreSQL text type.
   /// This allows you to override the default type mapping for the annotated property.
-  final String databaseType;
+  final PropertyType databaseType;
 
   /// Indicates whether or not the property can be null or not.
   ///
@@ -131,32 +131,41 @@ class Attributes {
   /// This flag will remove the associated property from the result set unless it is explicitly specified by [resultKeys].
   final bool shouldOmitByDefault;
 
+  /// Indicate to the underlying database to use a serial counter when inserted an instance.
+  ///
+  /// This is typically used for integer primary keys. In PostgreSQL, for example, an auto-incrementing bigInteger type
+  /// will be represented by "bigserial".
+  final bool autoincrement;
+
   /// The metadata constructor.
   const Attributes(
       {bool primaryKey: false,
-      String databaseType,
+      PropertyType databaseType,
       bool nullable: false,
       dynamic defaultValue,
       bool unique: false,
       bool indexed: false,
-      bool omitByDefault: false})
+      bool omitByDefault: false,
+      bool autoincrement: false})
       : this.isPrimaryKey = primaryKey,
         this.databaseType = databaseType,
         this.isNullable = nullable,
         this.defaultValue = defaultValue,
         this.isUnique = unique,
         this.isIndexed = indexed,
-        this.shouldOmitByDefault = omitByDefault;
+        this.shouldOmitByDefault = omitByDefault,
+        this.autoincrement = autoincrement;
 
   /// A supporting constructor to support modifying Attributes.
-  Attributes.fromAttributes(Attributes source, String databaseType)
+  Attributes.fromAttributes(Attributes source, PropertyType databaseType)
       : this.databaseType = databaseType,
         this.isPrimaryKey = source.isPrimaryKey,
         this.isNullable = source.isNullable,
         this.defaultValue = source.defaultValue,
         this.isUnique = source.isUnique,
         this.isIndexed = source.isIndexed,
-        this.shouldOmitByDefault = source.shouldOmitByDefault;
+        this.shouldOmitByDefault = source.shouldOmitByDefault,
+        this.autoincrement = source.autoincrement;
 }
 
 const Mappable mappable = const Mappable(availableAsInput: true, availableAsOutput: true);

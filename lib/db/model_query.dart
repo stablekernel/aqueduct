@@ -4,10 +4,10 @@ class ModelQuery<T extends Model> extends Query<T> {
   ModelQuery() : super();
   ModelQuery.withModelType(Type t) : super.withModelType(t);
 
-  Map<String, dynamic> _map = {};
+  Map<String, dynamic> _queryMap = {};
   Map<String, Query> get subQueries {
     var map = {};
-    _map.forEach((k, m) {
+    _queryMap.forEach((k, m) {
       if (_matcherIsSubquery(m)) {
         if (m is List) {
           map[k] = m.first;
@@ -19,15 +19,16 @@ class ModelQuery<T extends Model> extends Query<T> {
 
     return map;
   }
-  void set subQueries(Map<String, Query> e) { throw new QueryException(500, "Cannot set subQueries of ModelQuery, it is dervied.", -1);}
+  @override
+  void set subQueries(_) { throw new QueryException(500, "Cannot set subQueries of ModelQuery, it is derived.", -1); }
 
   Predicate get predicate {
-    if (_map.length == 1) {
-      var exprKey = _map.keys.first;
+    if (_queryMap.length == 1) {
+      var exprKey = _queryMap.keys.first;
       return _predicateForPropertyName(exprKey);
     }
 
-    var allPredicates = _map.keys
+    var allPredicates = _queryMap.keys
         .map((propertyKey) => _predicateForPropertyName(propertyKey))
         .where((p) => p != null).toList();
 
@@ -42,7 +43,7 @@ class ModelQuery<T extends Model> extends Query<T> {
   void set predicate(Predicate p) { throw new QueryException(500, "Cannot set Predicate of ModelQuery, it is derived.", -1); }
 
   Predicate _predicateForPropertyName(String propertyKey) {
-    dynamic expr = _map[propertyKey];
+    dynamic expr = _queryMap[propertyKey];
     if (_matcherIsSubquery(expr)) {
       return null;
     }
@@ -51,18 +52,18 @@ class ModelQuery<T extends Model> extends Query<T> {
   }
 
   dynamic _createSubqueryForPropertyName(String propertyName) {
-    var ivar = entity._propertyMirrorForProperty(propertyName);
-    ClassMirror ivarType = ivar.type;
-
-    var subQuery = null;
-    if (ivarType.isSubtypeOf(reflectType(Model))) {
-      subQuery = new ModelQuery.withModelType(ivarType.reflectedType);
-    } else if (ivarType.isSubtypeOf(reflectType(List))) {
-      ClassMirror innerIvarType = ivarType.typeArguments.first;
-      subQuery = [new ModelQuery.withModelType(innerIvarType.reflectedType)];
+    var relationshipDesc = entity.relationships[propertyName];
+    if (relationshipDesc == null) {
+      return null;
     }
 
-    return subQuery;
+    if (relationshipDesc.relationshipType == RelationshipType.hasMany) {
+      return new ModelQuery.withModelType(relationshipDesc.destinationEntity.instanceTypeMirror.reflectedType);
+    } else if (relationshipDesc.relationshipType == RelationshipType.hasOne) {
+      return [new ModelQuery.withModelType(relationshipDesc.destinationEntity.instanceTypeMirror.reflectedType)];
+    }
+
+    throw new QueryException(500, "Right joins not supported, subquery for $propertyName references foreign key column.", -1);
   }
 
   dynamic operator [](String key) {
@@ -74,14 +75,14 @@ class ModelQuery<T extends Model> extends Query<T> {
   }
 
   dynamic _getMatcherForPropertyName(String propertyName) {
-    var expr = _map[propertyName];
+    var expr = _queryMap[propertyName];
     if (expr != null) {
       return expr;
     }
 
     var subquery = _createSubqueryForPropertyName(propertyName);
     if (subquery != null) {
-      _map[propertyName] = subquery;
+      _queryMap[propertyName] = subquery;
       return subquery;
     }
 
@@ -90,35 +91,31 @@ class ModelQuery<T extends Model> extends Query<T> {
 
   void _setMatcherForPropertyName(String propertyName, dynamic value) {
     if (value == null) {
-      _map.remove(propertyName);
+      _queryMap.remove(propertyName);
       return;
     }
 
     if (_matcherIsSubquery(value)) {
-      _map[propertyName] = value; //TODO: Add type checking to blow this up here to prevent it from blowing up later.
+      _queryMap[propertyName] = value; //TODO: Add type checking to blow this up here to prevent it from blowing up later.
     } else if (value is _BelongsToModelMatcherExpression) {
-      var ivarRelationship = entity.relationshipAttributeForProperty(propertyName);
-      if (ivarRelationship == null || ivarRelationship.type != RelationshipType.belongsTo) {
+      var relationshipDesc = entity.relationships[propertyName];
+      if (relationshipDesc == null || relationshipDesc.relationshipType != RelationshipType.belongsTo) {
         throw new PredicateMatcherException("Type mismatch for property $propertyName; expecting property with RelationshipType.belongsTo.");
       }
-      _map[entity.foreignKeyForProperty(propertyName)] = value;
+      _queryMap[relationshipDesc.columnName] = value;
     } else if (value is _IncludeModelMatcherExpression) {
-      _map[propertyName] = _createSubqueryForPropertyName(propertyName);
+      _queryMap[propertyName] = _createSubqueryForPropertyName(propertyName);
     } else if (value is MatcherExpression) {
-      _map[propertyName] = value;
+      _queryMap[propertyName] = value;
     } else {
       // Setting simply a value, wrap it with an AssignmentMatcher
-      var ivarType = entity._typeMirrorForProperty(propertyName);
-      var valueType = reflect(value).type;
-      if (!valueType.isSubtypeOf(ivarType)) {
-        var ivarTypeName = MirrorSystem.getName(ivarType.simpleName);
-        var valueTypeName = MirrorSystem.getName(valueType.simpleName);
-
-        var typeName = MirrorSystem.getName(reflect(this).type.simpleName);
-        throw new PredicateMatcherException("Type mismatch for property $propertyName on ${typeName}, expected $ivarTypeName but got $valueTypeName.");
+      var attributeDesc = entity.attributes[propertyName];
+      if (attributeDesc.isAssignableWith(value)) {
+        _queryMap[propertyName] = new _AssignmentMatcherExpression(value);
+      } else {
+        var valueTypeName = MirrorSystem.getName(reflect(value).type.simpleName);
+        throw new PredicateMatcherException("Type mismatch for property $propertyName on ${MirrorSystem.getName(entity.instanceTypeMirror.simpleName)}, expected ${attributeDesc.type} but got $valueTypeName.");
       }
-
-      _map[propertyName] = new _AssignmentMatcherExpression(value);
     }
   }
 

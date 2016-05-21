@@ -27,20 +27,15 @@ enum QueryType {
 
 class Query<ModelType extends Model> {
   Query() {
-    entity = ModelEntity.entityForType(ModelType);
+
   }
 
   Query.withModelType(this._modelType) {
-    entity = ModelEntity.entityForType(this._modelType);
+
   }
 
   Type _modelType;
-  Type get modelType =>_modelType ?? ModelType;
-
-  /// Type of model object this Query deals with.
-  ///
-  /// This property is defined by the generic ModelType.
-  ModelEntity entity;
+  Type get modelType => _modelType ?? ModelType;
 
   /// The action this query performs.
   ///
