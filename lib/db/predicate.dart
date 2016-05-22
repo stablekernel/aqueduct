@@ -33,6 +33,10 @@ class Predicate {
   ///
   /// For combining multiple predicate together.
   static Predicate andPredicates(List<Predicate> predicates) {
+    if (predicates.length == 0) {
+      return null;
+    }
+
     var predicateFormat = predicates.map((pred) => "${pred.format}").join(" and ");
 
     var valueMap = {};

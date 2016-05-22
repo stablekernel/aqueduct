@@ -1,5 +1,238 @@
 part of aqueduct;
 
+class PostgreSQLPersistentStore extends PersistentStore {
+  static Logger logger = new Logger("aqueduct");
+
+  Connection _databaseConnection;
+  Function connectFunction;
+
+  PostgreSQLPersistentStore(this.connectFunction) : super();
+  PostgreSQLPersistentStore.fromConnectionInfo(String username, String password, String host, int port, String databaseName, {String timezone: "UTC"}) {
+    var uri = "postgres://$username:$password@$host:$port/$databaseName";
+    this.connectFunction = () async {
+      logger.info("PostgresqlModelAdapter connecting, $username@$host:$port/$databaseName.");
+      return await connect(uri, timeZone: timezone);
+    };
+  }
+
+  Future<Connection> getDatabaseConnection() async {
+    if (_databaseConnection == null || _databaseConnection.state == ConnectionState.closed) {
+      if (connectFunction == null) {
+        throw new QueryException(503, "Could not connect to database, no connect function.", 1);
+      }
+      try {
+        _databaseConnection = await connectFunction();
+      } catch (e) {
+        throw new QueryException(503, "Could not connect to database ${e}", 1);
+      }
+    }
+
+    return _databaseConnection;
+  }
+
+  @override
+  Future<dynamic> execute(String sql) async {
+    var dbConnection = await getDatabaseConnection();
+    return await dbConnection.execute(sql);
+  }
+
+  @override
+  Future close() async {
+    await _databaseConnection?.close();
+    _databaseConnection = null;
+  }
+
+  @override
+  String foreignKeyForRelationshipDescription(RelationshipDescription desc) {
+    return "${desc.name}_${desc.destinationEntity.primaryKey}";
+  }
+
+  Future<List<Row>> _executeQuery(String formatString, dynamic values, int timeoutInSeconds, {bool returnCount: false}) async {
+    try {
+      var dbConnection = await getDatabaseConnection();
+      print("$formatString $values");
+      if (!returnCount) {
+        return (await dbConnection.query(formatString, values).toList().timeout(new Duration(seconds: timeoutInSeconds)));
+      } else {
+        return (await dbConnection.execute(formatString, values).timeout(new Duration(seconds: timeoutInSeconds)));
+      }
+    } on TimeoutException {
+      throw new QueryException(503, "Could not connect to database.", -1);
+    } on PostgresqlException catch (e, stackTrace) {
+      logger.severe("SQL Failed $formatString $values");
+      throw _interpretException(e, stackTrace);
+    } on QueryException {
+      logger.severe("Query Failed $formatString $values");
+      rethrow;
+    } catch (e, stackTrace) {
+      logger.severe("Unknown Failure $formatString $values");
+      throw new QueryException(500, e.toString(), -1, stackTrace: stackTrace);
+    }
+  }
+
+  Future<List<MappingElement>> executeInsertQuery(PersistentStoreQuery q) async {
+    var queryStringBuffer = new StringBuffer();
+    queryStringBuffer.write("insert into ${q.entity.tableName} ");
+    queryStringBuffer.write("(${q.values.map((m) => m.property.columnName).join(",")}) ");
+    queryStringBuffer.write("values (${q.values.map((m) => "@${m.property.columnName}").join(",")}) ");
+
+    if (q.resultKeys != null && q.resultKeys.length > 0) {
+      queryStringBuffer.write("returning ${q.resultKeys.map((m) => m.property.columnName).join(",")} ");
+    }
+    var valueMap = new Map.fromIterable(q.values,
+        key: (MappingElement m) => m.property.columnName,
+        value: (MappingElement m) => m.value);
+
+    var results = await _executeQuery(queryStringBuffer.toString(), valueMap, q.timeoutInSeconds);
+    return _mappingElementsFromResults(results, q.resultKeys).first;
+  }
+
+  Future<List<List<MappingElement>>> executeFetchQuery(PersistentStoreQuery q) async {
+    var queryStringBuffer = new StringBuffer();
+    queryStringBuffer.write("select ${q.resultKeys.map((m) => m.property.columnName).join(",")} from ${q.entity.tableName} ");
+
+    var valueMap = null;
+    var allPredicates = Predicate.andPredicates([q.predicate, _pagePredicateForQuery(q)].where((p) => p != null).toList());
+    if (allPredicates != null) {
+      queryStringBuffer.write("where ${allPredicates.format} ");
+      valueMap = allPredicates.parameters;
+    }
+
+    var orderingString = _orderByStringForQuery(q);
+    if (orderingString != null) {
+      queryStringBuffer.write("$orderingString ");
+    }
+
+    if (q.fetchLimit != 0) {
+      queryStringBuffer.write("limit ${q.fetchLimit} ");
+    }
+
+    if (q.offset != 0) {
+      queryStringBuffer.write("offset ${q.offset} ");
+    }
+
+    var results = await _executeQuery(queryStringBuffer.toString(), valueMap, q.timeoutInSeconds);
+
+    return _mappingElementsFromResults(results, q.resultKeys);
+  }
+
+  Future<int> executeDeleteQuery(PersistentStoreQuery q) async {
+    var queryStringBuffer = new StringBuffer();
+    queryStringBuffer.write("delete from ${q.entity.tableName} ");
+
+    var valueMap = null;
+    if (q.predicate != null) {
+      queryStringBuffer.write("where ${q.predicate.format} ");
+      valueMap = q.predicate.parameters;
+    }
+
+    var results = await _executeQuery(queryStringBuffer.toString(), valueMap, q.timeoutInSeconds, returnCount: true);
+
+    return results;
+  }
+
+  Future<List<List<MappingElement>>> executeUpdateQuery(PersistentStoreQuery q) async {
+    var queryStringBuffer = new StringBuffer();
+    queryStringBuffer.write("update ${q.entity.tableName} ");
+    queryStringBuffer.write("set ${q.values.map((m) => m.property.columnName).map((keyName) => "$keyName=@u_$keyName").join(",")} ");
+
+    var predicateValueMap = {};
+    if (q.predicate != null) {
+      queryStringBuffer.write("where ${q.predicate.format} ");
+      predicateValueMap = q.predicate.parameters;
+    }
+
+    if (q.resultKeys != null && q.resultKeys.length > 0) {
+      queryStringBuffer.write("returning ${q.resultKeys.map((m) => m.property.columnName).join(",")} ");
+    }
+
+    var updateValueMap = new Map.fromIterable(q.values,
+        key: (MappingElement elem) => "u_${elem.property.columnName}",
+        value: (MappingElement elem) => elem.value);
+    updateValueMap.addAll(predicateValueMap);
+
+    var results = await _executeQuery(queryStringBuffer.toString(), updateValueMap, q.timeoutInSeconds);
+
+    return _mappingElementsFromResults(results, q.resultKeys);
+  }
+
+  Future<int> executeCountQuery(PersistentStoreQuery q) async {
+
+  }
+
+  List<List<MappingElement>> _mappingElementsFromResults(List<Row> rows, List<MappingElement> columns) {
+    return rows.map((row) {
+      var iterator = columns.iterator;
+      return row.toList().map((columnValue) {
+        iterator.moveNext();
+        return new MappingElement()
+          ..property = iterator.current.property
+          ..value = columnValue;
+      }).toList();
+    }).toList();
+  }
+
+  QueryException _interpretException(PostgresqlException exception, StackTrace stackTrace) {
+    ServerMessage msg = exception.serverMessage;
+    if (msg == null) {
+      return new QueryException(500, exception.message, 0, stackTrace: stackTrace);
+    }
+
+    var totalMessage = "${exception.message}${msg.detail != null ? ": ${msg.detail}" : ""}";
+    switch (msg.code) {
+      case "42703":
+        return new QueryException(400, totalMessage, 42703, stackTrace: stackTrace);
+      case "23505":
+        return new QueryException(409, totalMessage, 23505, stackTrace: stackTrace);
+      case "23502":
+        return new QueryException(400, totalMessage, 23502, stackTrace: stackTrace);
+      case "23503":
+        return new QueryException(400, totalMessage, 23503, stackTrace: stackTrace);
+    }
+
+    return new QueryException(500, exception.message, 0, stackTrace: stackTrace);
+  }
+
+  String _orderByStringForQuery(PersistentStoreQuery q) {
+    List<SortDescriptor> sortDescs = q.sortDescriptors ?? [];
+    if (q.pageDescriptor != null) {
+      var order = (q.pageDescriptor.direction == PageDirection.after
+          ? SortDescriptorOrder.ascending
+          : SortDescriptorOrder.descending);
+
+      sortDescs.insert(0, new SortDescriptor(q.pageDescriptor.referenceKey, order));
+    }
+
+    if (sortDescs.length == 0) {
+      return null;
+    }
+
+    var transformFunc = (SortDescriptor sd) => "${q.entity.properties[sd.key].name} ${(sd.order == SortDescriptorOrder.ascending ? "asc" : "desc")}";
+    var joinedSortDescriptors = sortDescs.map(transformFunc).join(",");
+
+    return "order by $joinedSortDescriptors";
+  }
+
+  Predicate _pagePredicateForQuery(PersistentStoreQuery query) {
+    if(query.pageDescriptor?.referenceValue == null) {
+      return null;
+    }
+
+    var operator = (query.pageDescriptor.direction == PageDirection.after ? ">" : "<");
+    return new Predicate("${query.pageDescriptor.referenceKey} ${operator} @inq_page_value",
+        {"inq_page_value": query.pageDescriptor.referenceValue});
+  }
+}
+
+class PostgreSQLPersistentStoreException implements Exception {
+  PostgreSQLPersistentStoreException(this.message);
+  String message;
+
+  String toString() {
+    return "PostgreSQLPersistentStoreException: $message";
+  }
+}
+/*
 class PostgresModelAdapter extends QueryAdapter {
   static Logger logger = new Logger("aqueduct");
 
@@ -281,4 +514,4 @@ class _DelayedInstanceForeignKey {
   final ModelEntity entity;
   final Type type;
   _DelayedInstanceForeignKey(this.type, this.entity, this.value);
-}
+}*/

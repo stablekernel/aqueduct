@@ -52,14 +52,14 @@ class RelationshipAttribute {
   /// Whether or not this relationship must be non-null.
   ///
   /// For [hasOne] or [hasMany] relationships, this has no effect. For [belongsTo] relationship, this requires the foreign key
-  /// to be non-null. The default is true for [belongsTo] relationships, false otherwise.
+  /// to be non-null. The default value is false.
   bool get isRequired => type == RelationshipType.belongsTo ? _isRequired : false;
   final bool _isRequired;
 
   /// Constructor for relationship to be used as metadata for a model property.
   ///
   /// [type] and [inverseName] are required. All Relationships must have an inverse in the corresponding model.
-  const RelationshipAttribute(RelationshipType type, String inverseKey, {RelationshipDeleteRule deleteRule: RelationshipDeleteRule.nullify, bool required: true})
+  const RelationshipAttribute(RelationshipType type, String inverseKey, {RelationshipDeleteRule deleteRule: RelationshipDeleteRule.nullify, bool required: false})
       : this.type = type,
         this.inverseKey = inverseKey,
         this.deleteRule = deleteRule,
@@ -77,7 +77,7 @@ class RelationshipAttribute {
         this.deleteRule = RelationshipDeleteRule.nullify,
         this._isRequired = false;
 
-  const RelationshipAttribute.belongsTo(String inverseKey, {RelationshipDeleteRule deleteRule: RelationshipDeleteRule.nullify, bool required: true}) :
+  const RelationshipAttribute.belongsTo(String inverseKey, {RelationshipDeleteRule deleteRule: RelationshipDeleteRule.nullify, bool required: false}) :
         this.type = RelationshipType.belongsTo,
         this.inverseKey = inverseKey,
         this.deleteRule = deleteRule,

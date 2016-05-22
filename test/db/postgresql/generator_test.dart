@@ -58,7 +58,7 @@ void main() {
 
     expect(cmds.contains("create table _GenLeft (id int primary key)"), true);
     expect(cmds.contains("create table _GenRight (id int primary key)"), true);
-    expect(cmds.contains("create table _GenJoin (id bigserial primary key,left_id int not null,right_id int not null)"), true);
+    expect(cmds.contains("create table _GenJoin (id bigserial primary key,left_id int null,right_id int null)"), true);
     expect(cmds.contains("alter table only _GenJoin add foreign key (left_id) references _GenLeft (id) on delete set null"), true);
     expect(cmds.contains("alter table only _GenJoin add foreign key (right_id) references _GenRight (id) on delete set null"), true);
     expect(cmds.contains("create index _GenJoin_left_id_idx on _GenJoin (left_id)"), true);

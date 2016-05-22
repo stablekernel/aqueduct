@@ -6,7 +6,7 @@ import '../helpers.dart';
 import 'package:postgresql/postgresql.dart';
 
 void main() {
-  QueryAdapter adapter;
+  ModelContext context = null;
   HttpServer server;
   TestClient client = new TestClient(8080)
     ..clientID = "com.stablekernel.app1"
@@ -17,12 +17,8 @@ void main() {
   });
 
   setUp(() async {
-    adapter = new PostgresModelAdapter(null, () async {
-      var uri = 'postgres://dart:dart@localhost:5432/dart_test';
-      return await connect(uri);
-    });
-
-    var authenticationServer = new AuthenticationServer<TestUser, Token>(new AuthDelegate<TestUser, Token>(adapter));
+    context = await contextWithModels([TestUser, Token]);
+    var authenticationServer = new AuthenticationServer<TestUser, Token>(new AuthDelegate<TestUser, Token>(context));
 
     server = await HttpServer.bind("localhost", 8080, v6Only: false, shared: false);
     server.listen((req) {
@@ -30,19 +26,17 @@ void main() {
       var authController = new AuthController<TestUser, Token>(authenticationServer);
       authController.deliver(resReq);
     });
-
-    await generateTemporarySchemaFromModels(adapter, [TestUser, Token]);
   });
 
   tearDown(() async {
     await server?.close(force: true);
-    await adapter?.close();
-    adapter = null;
+    await context?.persistentStore?.close();
+    context = null;
     server = null;
   });
 
   test("POST token responds with token on correct input", () async {
-    await createUsers(adapter, 1);
+    await createUsers(1);
 
     var req = client.clientAuthenticatedRequest("/auth/token")
       ..formData = {"grant_type" : "password", "username" : "bob+0@stablekernel.com", "password" : "foobaraxegrind21%"};
@@ -57,7 +51,7 @@ void main() {
   });
 
   test("POST token header failure cases", () async {
-    await createUsers(adapter, 1);
+    await createUsers(1);
 
     var m = {"grant_type" : "password", "username" : "bob+0@stablekernel.com", "password" : "foobaraxegrind21%"};
 
@@ -83,7 +77,7 @@ void main() {
   });
 
   test("POST token body failure cases", () async {
-    await createUsers(adapter, 2);
+    await createUsers(2);
 
     // Missing grant_type
     var req = client.clientAuthenticatedRequest("/auth/token")
@@ -117,7 +111,7 @@ void main() {
   });
 
   test("Refresh token responds with token on correct input", () async {
-    await createUsers(adapter, 1);
+    await createUsers(1);
 
     var m = {"grant_type" : "password", "username" : "bob+0@stablekernel.com", "password" : "foobaraxegrind21%"};
 

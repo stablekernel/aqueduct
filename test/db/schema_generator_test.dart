@@ -180,7 +180,7 @@ void main() {
     expect(defaultItemColumns.last, {
       "name" : "container_id",
       "type" : "bigInteger",
-      "nullable" : false,
+      "nullable" : true,
       "autoincrement" : false,
       "unique" : false,
       "defaultValue" : null,

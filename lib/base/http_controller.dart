@@ -368,11 +368,11 @@ abstract class HttpController extends RequestHandler {
   }
 }
 
-class _InternalIgnoreBullshitException {
+class _InternalIgnoreBullshitException implements Exception {
   _InternalIgnoreBullshitException();
 }
 
-class _InternalControllerException {
+class _InternalControllerException implements Exception {
   final String message;
   final int statusCode;
   final HttpHeaders additionalHeaders;

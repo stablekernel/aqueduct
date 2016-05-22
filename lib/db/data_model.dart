@@ -4,15 +4,17 @@ class DataModel {
   DataModel(this.persistentStore, List<Type> modelTypes) {
     _buildEntities(modelTypes);
   }
+
   DataModel.fromModelBundle(this.persistentStore, String modelBundlePath) {
     // This would build the model from a series of schema files.
   }
 
   final PersistentStore persistentStore;
-  Map<Type, ModelEntity> entities = {};
+  Map<Type, ModelEntity> _entities = {};
+  Map<Type, ModelEntity> _persistentTypeToEntityMap = {};
 
   ModelEntity entityForType(Type t) {
-    var entity = entities[t];
+    var entity = _entities[t] ?? _persistentTypeToEntityMap[t];
     if (entity == null) {
       throw new DataModelException("Unknown ModelEntity for ${MirrorSystem.getName(reflectType(t).simpleName)}");
     }
@@ -21,10 +23,12 @@ class DataModel {
 
   void _buildEntities(List<Type> modelTypes) {
     modelTypes.forEach((type) {
-      entities[type] = new ModelEntity(this, reflectClass(type), _backingMirrorForType(type));
+      var entity = new ModelEntity(this, reflectClass(type), _backingMirrorForType(type));
+      _entities[type] = entity;
+      _persistentTypeToEntityMap[entity.persistentInstanceTypeMirror.reflectedType] = entity;
     });
 
-    entities.forEach((_, entity) {
+    _entities.forEach((_, entity) {
       entity._tableName = _tableNameForEntity(entity);
       entity.attributes = _attributeMapForEntity(entity);
       entity._primaryKey = entity.attributes.values.firstWhere((attrDesc) => attrDesc.isPrimaryKey, orElse: () => null)?.name;
@@ -33,7 +37,7 @@ class DataModel {
       }
     });
 
-    entities.forEach((_, entity) {
+    _entities.forEach((_, entity) {
       entity.relationships = _relationshipMapForEntity(entity);
     });
   }
@@ -126,9 +130,10 @@ class DataModel {
       throw new DataModelException("Relationship ${MirrorSystem.getName(mirror.simpleName)} on ${MirrorSystem.getName(entity.persistentInstanceTypeMirror.simpleName)} inverse ($inverseKey) has non-complimentary RelationshipType");
     }
 
+    print("${relationshipAttribute.type} ${relationshipAttribute.deleteRule} ${relationshipAttribute.isRequired}");
     if (relationshipAttribute.type == RelationshipType.belongsTo
     && relationshipAttribute.deleteRule == RelationshipDeleteRule.nullify
-    && !relationshipAttribute.isRequired) {
+    && relationshipAttribute.isRequired) {
       throw new DataModelException("Relationship ${MirrorSystem.getName(mirror.simpleName)} on ${entity.tableName} set to nullify on delete, but is not nullable");
     }
 
@@ -148,7 +153,7 @@ class DataModel {
       typeMirror = typeMirror.typeArguments.first;
     }
 
-    var destinationEntity = entities[typeMirror.reflectedType];
+    var destinationEntity = _entities[typeMirror.reflectedType];
     if (destinationEntity == null) {
       throw new DataModelException("Relationship ${MirrorSystem.getName(mirror.simpleName)} on ${MirrorSystem.getName(entity.persistentInstanceTypeMirror.simpleName)} destination ModelEntity does not exist");
     }
@@ -176,7 +181,7 @@ class DataModel {
   }
 }
 
-class DataModelException {
+class DataModelException implements Exception {
   DataModelException(this.message);
 
   final String message;

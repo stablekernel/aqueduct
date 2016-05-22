@@ -1,6 +1,7 @@
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
 import 'dart:async';
+import '../../helpers.dart';
 
 void main() {
 
@@ -11,14 +12,11 @@ void main() {
   });
 
   group("Tomany graph", () {
-    PostgresModelAdapter adapter;
+    ModelContext context = null;
     List<User> sourceUsers;
 
     setUpAll(() async {
-      adapter = new PostgresModelAdapter.fromConnectionInfo(
-          null, "dart", "dart", "localhost", 5432, "dart_test");
-      await generateTemporarySchemaFromModels(
-          adapter, [User, Equipment, Location]);
+      context = await contextWithModels([User, Equipment, Location]);
 
       var userNames = ["Joe", "Fred", "Bob", "John", "Sally"];
       // Create a bunch of sample data
@@ -26,7 +24,7 @@ void main() {
         var q = new Query<User>()
           ..valueObject = (new User()
             ..name = name);
-        return q.insert(adapter);
+        return q.insert();
       }));
 
       var locationCreator = (List<String> names, User u) {
@@ -36,7 +34,7 @@ void main() {
               ..name = name
               ..user = (new User()
                 ..id = u.id));
-          return q.insert(adapter);
+          return q.insert();
         });
       };
 
@@ -58,42 +56,39 @@ void main() {
               ..type = pair.last
               ..location = (new Location()
                 ..id = loc.id));
-          return q.insert(adapter);
+          return q.insert();
         });
       };
 
       sourceUsers[0].locations.first.equipment = await Future.wait(
-          equipmentCreator(
-              [["Fridge", "Appliance"], ["Microwave", "Appliance"]],
-              sourceUsers[0].locations.first));
+          equipmentCreator([["Fridge", "Appliance"], ["Microwave", "Appliance"]], sourceUsers[0].locations.first));
       sourceUsers[0].locations.last.equipment = await Future.wait(
-          equipmentCreator(
-              [["Computer", "Electronics"]], sourceUsers[0].locations.last));
+          equipmentCreator([["Computer", "Electronics"]], sourceUsers[0].locations.last));
       sourceUsers[1].locations.first.equipment = await Future.wait(
-          equipmentCreator(
-              [["Cash Register", "Admin"]], sourceUsers[1].locations.first));
+          equipmentCreator([["Cash Register", "Admin"]], sourceUsers[1].locations.first));
+
       sourceUsers[1].locations.last.equipment = [];
+
       sourceUsers[2].locations.first.equipment = await Future.wait(
-          equipmentCreator(
-              [["Fire Truck", "Vehicle"]], sourceUsers[2].locations.first));
+          equipmentCreator([["Fire Truck", "Vehicle"]], sourceUsers[2].locations.first));
       sourceUsers[3].locations.first.equipment = [];
     });
 
     tearDownAll(() {
-      adapter.close();
-      adapter = null;
+      context?.persistentStore?.close();
+      context = null;
     });
 
     test("Can still get object", () async {
       var q = new UserQuery()
         ..id = 1;
-      var user = await q.fetchOne(adapter);
+      var user = await q.fetchOne();
       expect(user.id, 1);
       expect(user.name, "Joe");
       expect(user.locations, isNull);
 
       q = new UserQuery();
-      var users = await q.fetch(adapter);
+      var users = await q.fetch();
       expect(users.length, 5);
     });
 
@@ -107,8 +102,7 @@ void main() {
       expect(loc.equipment, isNull);
     });
 
-    test(
-        "Keys with same name across table still yields appropriate result", () async {
+    test("Keys with same name across table still yields appropriate result", () async {
 
     });
 

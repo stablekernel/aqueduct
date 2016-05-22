@@ -5,12 +5,38 @@ class ModelEntity {
 
   }
 
+  /// The type of instances represented by this entity.
+  ///
+  /// Model objects are made up of two components, a persistent type and an instance type. Applications
+  /// use instance types. This value is the [ClassMirror] on that tpye.
   final ClassMirror instanceTypeMirror;
+
+  /// The type of persistent instances represented by this enity.
+  ///
+  /// Model objects are made up of two components, a persistent type and an instance type. This value
+  /// is the [ClassMirror] on the persistent portion of a [Model] object.
   final ClassMirror persistentInstanceTypeMirror;
   final DataModel dataModel;
 
+  /// All attribute values of this entity.
+  ///
+  /// An attribute maps to a single column or field in a database that is a single value, such as a string, integer, etc.
+  /// The keys are the case-sensitive name of the attribute. Values that represent a relationship to another object
+  /// are not stored in [attributes].
   Map<String, AttributeDescription> attributes;
+
+  /// All relationship values of this entity.
+  ///
+  /// A relationship represents a value that is another [Model] or [List] of [Model]s. Not all relationships
+  /// correspond to a column or field in a database. In a relational database, if the [RelationshipDescription]
+  /// has a [relationshipType] of [RelationshipType.belongsTo], the relationship represents the foreign key column.
+  /// Keys are the case-sensitive name of the relationship.
   Map<String, RelationshipDescription> relationships;
+
+  /// All properties (relationships and attributes) of this entity.
+  ///
+  /// The string key is the name of the property, case-sensitive. Values will be instances of either [AttributeDescription]
+  /// or [RelationshipDescription]. This is the concatenation of [attributes] and [relationships].
   Map<String, PropertyDescription> get properties {
     var all = new Map.from(attributes);
     if (relationships != null) {
@@ -18,6 +44,27 @@ class ModelEntity {
     }
     return all;
   }
+
+  /// The list of default properties returned when querying an instance of this type.
+  ///
+  /// By default, a [Query] will return all the properties named in this list. You may specify
+  /// a different set of properties by setting the [Query]'s [resultKeys] value. The default
+  /// set of properties is a list of all attributes that do not have the [omitByDefault] flag
+  /// set in their [Attributes] and all [RelationshipType.belongsTo] relationships.
+  List<String> get defaultProperties {
+    if (_defaultProperties == null) {
+      _defaultProperties = attributes.values
+          .where((prop) => prop.isIncludedInDefaultResultSet)
+          .map((prop) => prop.name)
+          .toList();
+      _defaultProperties.addAll(relationships.values
+          .where((prop) => prop.isIncludedInDefaultResultSet && prop.relationshipType == RelationshipType.belongsTo)
+          .map((prop) => prop.name)
+          .toList());
+    }
+    return _defaultProperties;
+  }
+  List<String> _defaultProperties;
 
   /// Name of primaryKey property.
   ///
@@ -38,48 +85,12 @@ class ModelEntity {
   }
   String _tableName;
 
-//  Map<String, VariableMirror> _propertyCache;
-//  Map<String, String> _foreignKeyCache;
-//
-//  String foreignKeyForProperty(String propertyName) {
-//    return _foreignKeyCache[propertyName];
-//  }
-//
-//  RelationshipAttribute relationshipAttributeForProperty(String propertyName) {
-//    var varMirror = _propertyMirrorForProperty(propertyName);
-//    if (varMirror == null) {
-//      return null;
-//    }
-//
-//    return _relationshipAttributeForPropertyMirror(varMirror);
-//  }
-//
-//  RelationshipAttribute _relationshipAttributeForPropertyMirror(VariableMirror mirror) {
-//    return mirror.metadata.firstWhere((m) => m.reflectee is RelationshipAttribute, orElse: () => null)?.reflectee;
-//  }
-//
-//  bool _hasProperty(String propertyName) {
-//    return _propertyCache[propertyName] != null;
-//  }
-//
-//  String _firstPropertyNameWhere(bool test(VariableMirror element)) {
-//    var sym = _propertyCache.values.firstWhere(test, orElse: () => null)?.simpleName;
-//
-//    return MirrorSystem.getName(sym);
-//  }
-//
-//  TypeMirror _typeMirrorForProperty(String propertyName) {
-//    return _propertyCache[propertyName]?.type;
-//  }
-//
-//  VariableMirror _propertyMirrorForProperty(String propertyName) {
-//    return _propertyCache[propertyName];
-//  }
-
+  /// Derived from this' [tableName].
   int get hashCode {
     return tableName.hashCode;
   }
 
+  /// Two entities are considered equal if they have the same [tableName].
   operator ==(ModelEntity other) {
     return tableName == other.tableName;
   }
@@ -87,71 +98,4 @@ class ModelEntity {
   String toString() {
     return "ModelEntity on $tableName";
   }
-
-//  void _buildCaches() {
-//    var tableNameSymbol = new Symbol("tableName");
-//    if (entityTypeMirror.staticMembers[tableNameSymbol] != null) {
-//      _tableName = entityTypeMirror
-//          .invoke(tableNameSymbol, [])
-//          .reflectee;
-//    } else {
-//      _tableName = MirrorSystem.getName(entityTypeMirror.simpleName);
-//    }
-//
-//    _propertyCache = {};
-//    entityTypeMirror.declarations.forEach((sym, declMir) {
-//      if (declMir is VariableMirror && !declMir.isStatic) {
-//        var key = MirrorSystem.getName(sym);
-//        _propertyCache[key] = declMir;
-//      }
-//    });
-//
-//    _primaryKey = _firstPropertyNameWhere((ivar) {
-//      var attr = ivar.metadata.firstWhere((md) => md.reflectee is Attributes, orElse: () => null);
-//      if (attr == null) {
-//        return false;
-//      }
-//
-//      return attr.reflectee.isPrimaryKey;
-//    });
-//
-//    _buildForeignKeyCache();
-//  }
-//
-//  void _buildForeignKeyCache() {
-//    _foreignKeyCache = {};
-//
-//    _propertyCache.forEach((propertyName, variableMirror) {
-//      var attr = _relationshipAttributeForPropertyMirror(variableMirror);
-//      if (attr == null) {
-//        return;
-//      }
-//
-//      var suffixName = attr.referenceKey;
-//      if (suffixName == null) {
-//        var propertyTypeMirror = variableMirror.type;
-//        if (propertyTypeMirror.isSubtypeOf(reflectType(List))) {
-//          propertyTypeMirror = propertyTypeMirror.typeArguments.first;
-//        }
-//
-//        var relatedBackingMirror = _modelDefinitionMirror(propertyTypeMirror.reflectedType);
-//        var relatedTypePrimaryKeyAttr = relatedBackingMirror.declarations.values.firstWhere((dm) {
-//          Attributes propAttrs = dm.metadata.firstWhere((im) => im.reflectee is Attributes, orElse: () => null)?.reflectee;
-//          if (propAttrs == null) {
-//            return false;
-//          }
-//          return propAttrs.isPrimaryKey;
-//        }, orElse: () => null);
-//
-//        if (relatedTypePrimaryKeyAttr == null) {
-//          var className = MirrorSystem.getName(variableMirror.owner.simpleName);
-//          throw new QueryException(500, "Related value for $propertyName on ${className} does not have a primary key or a reference key.", -1);
-//        }
-//
-//        suffixName = MirrorSystem.getName(relatedTypePrimaryKeyAttr.simpleName);
-//      }
-//
-//      _foreignKeyCache[propertyName] = "${propertyName}_${suffixName}";
-//    });
-//  }
 }

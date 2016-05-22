@@ -1,26 +1,5 @@
 part of aqueduct;
 
-/// The operation a Query can perform.
-enum QueryType {
-  /// Specifies that the Query will retrieve objects.
-  fetch,
-
-  /// Specifies that the Query will update existing object.
-  update,
-
-  /// Specifies that the Query will insert new objects.
-  insert,
-
-  /// Specifies that the Query will delete existing objects.
-  delete,
-
-  /// Specifies that the Query will only return the number of objects that it finds.
-  count,
-
-  /// Specifies that the Query is a subquery as part of a larger query
-  join
-}
-
 /// An representation of a database operation.
 ///
 /// Queries are used to find, update, insert, delete and count objects in a database.
@@ -36,14 +15,6 @@ class Query<ModelType extends Model> {
 
   Type _modelType;
   Type get modelType => _modelType ?? ModelType;
-
-  /// The action this query performs.
-  ///
-  /// This property is set during execution of the action methods such as [insert], [fetch], [fetchOne], etc.
-  /// This method is used by adapter implementations to determine the type of action to execute. Client code
-  /// should not use it, as the [Query] is effectively done once the action method is applied.
-  QueryType get queryType => _queryType;
-  QueryType _queryType;
 
   Map<String, Query> subQueries;
 
@@ -62,7 +33,6 @@ class Query<ModelType extends Model> {
   /// The set of rows returned will exclude the first [offset] number of rows selected in the query.
   int offset = 0;
 
-  ///
   /// A specifier for a page of results.
   ///
   /// Defaults to null. Use a [QueryPage] along with [fetchLimit] when wanting to return a large set of data
@@ -105,7 +75,7 @@ class Query<ModelType extends Model> {
   /// in of [modelType].
   List<String> resultKeys;
 
-  /// Inserts the data represented by this Query into the database represented by [adapter].
+  /// Inserts the data represented by this Query into the database represented by [context] (defaults to [ModelContext.defaultContext]).
   ///
   /// The [Query] must have its [valueObject] or [values] property set. This action method will
   /// insert a row with the data supplied in those fields to the database represented by [adapter]. The return value is
@@ -115,32 +85,11 @@ class Query<ModelType extends Model> {
   ///       q.valueObject = new User();
   ///       var newUser = await q.insert(adapter);
   ///
-  Future<ModelType> insert(QueryAdapter adapter) async {
-    this._queryType = QueryType.insert;
-
-    var results = await _execute(adapter);
-    if (results.length == 1) {
-      return results.first;
-    }
-    throw new QueryException(500, "Query insert for ${ModelType} did not yield results", -1);
+  Future<ModelType> insert({ModelContext context: null}) async {
+    return await (context ?? ModelContext.defaultContext).executeInsertQuery(this);
   }
 
-  /// Inserts the [object] into the database represented by [adapter].
-  ///
-  /// This is a convenience for setting [valueObject] or [values]. This action method will
-  /// insert a row with the [object] to the database represented by [adapter]. The return value is
-  /// a [Future] with the inserted object. Example:
-  ///
-  ///       var q = new Query<User>();
-  ///       var newUser = await q.insertObject(adapter, new User());
-  ///
-  Future<ModelType> insertObject(QueryAdapter adapter, ModelType object) async {
-    this._queryType = QueryType.insert;
-    this.valueObject = object;
-    return insert(adapter);
-  }
-
-  /// Updates rows in the database represented by [adapter].
+  /// Updates rows in the database represented by [context] (defaults to [ModelContext.defaultContext]).
   ///
   /// Update queries update the values of the rows identified by [predicate] or [predicateObject]
   /// with the values in [valueObject] or [values] in the database represented by [adapter]. Example:
@@ -151,13 +100,11 @@ class Query<ModelType extends Model> {
   ///       q.predicate = new Predicate("id = @id", {"id" : existingUser.id});
   ///       q.valueObject = existingUser;
   ///       var updatedUsers = await q.update(adapter);
-  Future<List<ModelType>> update(QueryAdapter adapter) async {
-    this._queryType = QueryType.update;
-
-    return await _execute(adapter);
+  Future<List<ModelType>> update({ModelContext context: null}) async {
+    return await (context ?? ModelContext.defaultContext).executeUpdateQuery(this);
   }
 
-  /// Fetches rows in the database represented by [adapter].
+  /// Fetches rows in the database represented by [context] (defaults to [ModelContext.defaultContext]).
   ///
   /// Fetch queries will return objects for the rows identified by [predicate] or [predicateObject] from
   /// the database represented by [adapter]. Example:
@@ -165,12 +112,11 @@ class Query<ModelType extends Model> {
   ///       var q = new Query<User>();
   ///       var allUsers = q.fetch(adapter);
   ///
-  Future<List<ModelType>> fetch(QueryAdapter adapter) async {
-    this._queryType = QueryType.fetch;
-    return await _execute(adapter);
+  Future<List<ModelType>> fetch({ModelContext context: null}) async {
+    return await (context ?? ModelContext.defaultContext).executeFetchQuery(this);
   }
 
-  /// Fetches a single object from the database represented by [adapter].
+  /// Fetches a single object from the database represented by [context] (defaults to [ModelContext.defaultContext]).
   ///
   /// This method will return a single object identified by [predicate] or [predicateObject] from
   /// the database represented by [adapter]. If no match is found, this method returns [null].
@@ -179,23 +125,15 @@ class Query<ModelType extends Model> {
   ///       var q = new Query<User>();
   ///       q.predicate = new Predicate("id = @id", {"id" : 1});
   ///       var user = await q.fetchOne(adapter);
-  Future<ModelType> fetchOne(QueryAdapter adapter) async {
-    this._queryType = QueryType.fetch;
-
-    var results = await _execute(adapter);
-
-    if (results.length > 1) {
-      throw new QueryException(500, "Tried to fetch single instance of ${ModelType}, but found many.", -1);
-    }
-
+  Future<ModelType> fetchOne({ModelContext context: null}) async {
+    var results = await (context ?? ModelContext.defaultContext).executeFetchQuery(this);
     if (results.length == 1) {
       return results.first;
     }
-
     return null;
   }
 
-  /// Deletes rows from the database represented by [adapter].
+  /// Deletes rows from the database represented by [context] (defaults to [ModelContext.defaultContext]).
   ///
   /// This method will delete rows identified by [predicate] or [predicateObject]
   /// from the database represented by [adapter] and returns the number of rows affected.
@@ -205,13 +143,11 @@ class Query<ModelType extends Model> {
   ///       q.predicate = new Predicate("id = @id", {"id" : 1});
   ///       var deleted = await q.delete(adapter);
   ///
-  Future<int> delete(QueryAdapter adapter) async {
-    this._queryType = QueryType.delete;
-
-    return await _execute(adapter);
+  Future<int> delete({ModelContext context: null}) async {
+    return await (context ?? ModelContext.defaultContext).executeDeleteQuery(this); // or null
   }
 
-  /// Returns the number of rows matching this [Query] in the database represented by [adapter].
+  /// Returns the number of rows matching this [Query] in the database represented by [context] (defaults to [ModelContext.defaultContext]).
   ///
   /// This method will return the number of rows identified by [predicate] or [predicateObject]
   /// from the database represented by [adapter]. Example:
@@ -219,22 +155,8 @@ class Query<ModelType extends Model> {
   /// var q = new Query<User>();
   /// var count = await q.count(adapter);
   ///
-  Future<int> count(QueryAdapter adapter) async {
-    this._queryType = QueryType.count;
-
-    return await _execute(adapter);
-  }
-
-  /// Executes a fully formed query and returns a list of results.
-  ///
-  /// A [Query] must have a [modelType] and [type] to be executed. This will schedule execution
-  /// and the results will be returned in a List. Not all Queries will return objects (like delete or count).
-  Future<dynamic> _execute(QueryAdapter adapter) {
-    return adapter
-        .execute(this)
-        .timeout(new Duration(seconds: timeoutInSeconds), onTimeout: () {
-      throw new QueryException(503, "Query Timeout", -1);
-    });
+  Future<int> count({ModelContext context: null}) async {
+    return await (context ?? ModelContext.defaultContext).executeCountQuery(this); // or null
   }
 }
 

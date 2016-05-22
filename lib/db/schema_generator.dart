@@ -2,7 +2,7 @@ part of aqueduct;
 
 class SchemaGenerator {
   SchemaGenerator(PersistentStore persistentStore, DataModel dataModel, {String previousDataModelString: null}) {
-    tables = dataModel.entities.values.map((e) => new SchemaTable(persistentStore, e)).toList();
+    tables = dataModel._entities.values.map((e) => new SchemaTable(persistentStore, e)).toList();
 
     serialized = _buildOperationsFromPreviousDataModelString(previousDataModelString);
   }

@@ -111,7 +111,7 @@ class ModelQuery<T extends Model> extends Query<T> {
       // Setting simply a value, wrap it with an AssignmentMatcher
       var attributeDesc = entity.attributes[propertyName];
       if (attributeDesc.isAssignableWith(value)) {
-        _queryMap[propertyName] = new _AssignmentMatcherExpression(value);
+        _queryMap[propertyName] = new _ComparisonMatcherExpression(value, _MatcherOperator.equalTo);
       } else {
         var valueTypeName = MirrorSystem.getName(reflect(value).type.simpleName);
         throw new PredicateMatcherException("Type mismatch for property $propertyName on ${MirrorSystem.getName(entity.instanceTypeMirror.simpleName)}, expected ${attributeDesc.type} but got $valueTypeName.");

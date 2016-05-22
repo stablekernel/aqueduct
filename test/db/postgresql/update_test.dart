@@ -1,31 +1,24 @@
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
-import 'package:postgresql/postgresql.dart' as postgresql;
+import '../../helpers.dart';
 
 void main() {
-  PostgresModelAdapter adapter;
+  ModelContext context = null;
 
-  setUp(() {
-    adapter = new PostgresModelAdapter(null, () async {
-      var uri = 'postgres://dart:dart@localhost:5432/dart_test';
-      return await postgresql.connect(uri);
-    });
-  });
-
-  tearDown(() {
-    adapter.close();
-    adapter = null;
+  tearDown(() async {
+    await context?.persistentStore?.close();
+    context = null;
   });
 
   test("Updating existing object works", () async {
-    await generateTemporarySchemaFromModels(adapter, [TestModel]);
+    context = await contextWithModels([TestModel]);
 
     var m = new TestModel()
       ..name = "Bob"
       ..emailAddress = "1@a.com";
 
     var req = new Query<TestModel>()..valueObject = m;
-    await req.insert(adapter);
+    await req.insert();
 
     m
       ..name = "Fred"
@@ -35,7 +28,7 @@ void main() {
       ..predicate = new Predicate("name = @name", {"name": "Bob"})
       ..valueObject = m;
 
-    var response = await req.update(adapter);
+    var response = await req.update();
     var result = response.first;
 
     expect(result.name, "Fred");
@@ -43,40 +36,65 @@ void main() {
   });
 
   test("Setting relationship to null succeeds", () async {
-    await generateTemporarySchemaFromModels(adapter, [Child, Parent]);
+    context = await contextWithModels([Child, Parent]);
 
     var parent = new Parent()
       ..name = "Bob";
     var q = new Query<Parent>()
       ..valueObject = parent;
-    parent = await q.insert(adapter);
+    parent = await q.insert();
 
     var child = new Child()
       ..name = "Fred"
       ..parent = parent;
     q = new Query<Child>()
       ..valueObject = child;
-    child = await q.insert(adapter);
+    child = await q.insert();
     expect(child.parent.id, parent.id);
 
-    var matcher = new ModelQuery<Child>()
-      ..["id"] = whereEqualTo(child.id);
-    q = new Query<Child>()
-      ..predicate = matcher.predicate
-      ..valueObject = (new Child()..parent = null);
-    child = (await q.update(adapter)).first;
-    expect(child.parent, isNull);
+    fail("Find a new place for this");
+//    var matcher = new ModelQuery<Child>()
+//      ..["id"] = whereEqualTo(child.id);
+//    q = new Query<Child>()
+//      ..predicate = matcher.predicate
+//      ..valueObject = (new Child()..parent = null);
+//    child = (await q.update()).first;
+//    expect(child.parent, isNull);
 
   });
 
-  test("Updating non-existant object fails", () async {});
+  test("Updating non-existent object fails", () async {
+    context = await contextWithModels([TestModel]);
+
+    var m = new TestModel()
+      ..name = "Bob"
+      ..emailAddress = "1@a.com";
+
+    var req = new Query<TestModel>()..valueObject = m;
+    await req.insert();
+
+    m
+      ..name = "Fred"
+      ..emailAddress = "2@a.com";
+
+    req = new Query<TestModel>()
+      ..predicate = new Predicate("name = @name", {"name": "John"})
+      ..valueObject = m;
+
+    var response = await req.update();
+    expect(response.length, 0);
+
+    req = new Query<TestModel>();
+    response = await req.fetchOne();
+    expect(response.name, "Bob");
+    expect(response.emailAddress, "1@a.com");
+
+  });
 }
 
-@proxy
 class TestModel extends Model<_TestModel> implements _TestModel {}
-
 class _TestModel {
-  @Attributes(primaryKey: true, databaseType: "bigserial")
+  @primaryKey
   int id;
 
   String name;
@@ -85,27 +103,20 @@ class _TestModel {
   String emailAddress;
 }
 
-@proxy
-class Child extends Model<_Child> implements _Child {
-}
-
+class Child extends Model<_Child> implements _Child {}
 class _Child {
-  @Attributes(primaryKey: true, databaseType: "bigserial")
+  @primaryKey
   int id;
 
   String name;
 
-  @Attributes(nullable: true)
-  @RelationshipAttribute(RelationshipType.belongsTo, "child")
+  @RelationshipAttribute(RelationshipType.belongsTo, "child", required: false, deleteRule: RelationshipDeleteRule.cascade)
   Parent parent;
 }
 
-@proxy
-class Parent extends Model<_Parent> implements _Child {
-}
-
+class Parent extends Model<_Parent> implements _Child {}
 class _Parent {
-  @Attributes(primaryKey: true, databaseType: "bigserial")
+  @primaryKey
   int id;
 
   String name;

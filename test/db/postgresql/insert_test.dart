@@ -3,25 +3,20 @@
 
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
-import 'package:postgresql/postgresql.dart' as postgresql;
+import '../../helpers.dart';
+import 'dart:async';
+
 
 void main() {
-  PostgresModelAdapter adapter;
+  ModelContext context = null;
 
-  setUp(() async {
-    adapter = new PostgresModelAdapter(null, () async {
-      var uri = 'postgres://dart:dart@localhost:5432/dart_test';
-      return await postgresql.connect(uri, timeZone: 'UTC');
-    });
-  });
-
-  tearDown(() {
-    adapter.close();
-    adapter = null;
+  tearDown(() async {
+    await context?.persistentStore?.close();
+    context = null;
   });
 
   test("Insert Bad Key", () async {
-    await generateTemporarySchemaFromModels(adapter, [TestModel]);
+    context = await contextWithModels([TestModel]);
 
     var insertReq = new Query<TestModel>()
       ..values = {
@@ -32,31 +27,31 @@ void main() {
 
     var successful = false;
     try {
-      await insertReq.insert(adapter);
+      await insertReq.insert();
       successful = true;
-    } catch (e) {
+    } on QueryException catch (e) {
+      expect(e.message, "Property bad_key in values does not exist on simple");
       expect(e.statusCode, 400);
-      expect(e.errorCode, 42703);
+      expect(e.errorCode, -1);
     }
     expect(successful, false);
   });
 
   test("Inserting an object that violated a unique constraint fails", () async {
-    await generateTemporarySchemaFromModels(adapter, [TestModel]);
+    context = await contextWithModels([TestModel]);
 
     var m = new TestModel()
       ..name = "bob"
       ..emailAddress = "dup@a.com";
 
     var insertReq = new Query<TestModel>()..valueObject = m;
-
-    await insertReq.insert(adapter);
+    await insertReq.insert();
 
     var insertReqDup = new Query<TestModel>()..valueObject = m;
 
     var successful = false;
     try {
-      await insertReqDup.insert(adapter);
+      await insertReqDup.insert();
       successful = true;
     } catch (e) {
       expect(e.statusCode, 409);
@@ -67,13 +62,13 @@ void main() {
     m.emailAddress = "dup1@a.com";
     var insertReqFollowup = new Query<TestModel>()..valueObject = m;
 
-    var result = await insertReqFollowup.insert(adapter);
+    var result = await insertReqFollowup.insert();
 
     expect(result.emailAddress, "dup1@a.com");
   });
 
   test("Inserting an object works and returns the object", () async {
-    await generateTemporarySchemaFromModels(adapter, [TestModel]);
+    context = await contextWithModels([TestModel]);
 
     var m = new TestModel()
       ..name = "bob"
@@ -81,7 +76,7 @@ void main() {
 
     var insertReq = new Query<TestModel>()..valueObject = m;
 
-    var result = await insertReq.insert(adapter);
+    var result = await insertReq.insert();
 
     expect(result is TestModel, true);
     expect(result.id, greaterThan(0));
@@ -90,7 +85,7 @@ void main() {
   });
 
   test("Inserting an object works", () async {
-    await generateTemporarySchemaFromModels(adapter, [TestModel]);
+    context = await contextWithModels([TestModel]);
 
     var m = new TestModel()
       ..name = "bob"
@@ -98,18 +93,18 @@ void main() {
 
     var insertReq = new Query<TestModel>()..valueObject = m;
 
-    var result = await insertReq.insert(adapter);
+    var result = await insertReq.insert();
 
     var readReq = new Query<TestModel>()
       ..predicate =
           new Predicate("emailAddress = @email", {"email": "2@a.com"});
 
-    result = await readReq.fetchOne(adapter);
+    result = await readReq.fetchOne();
     expect(result.name, "bob");
   });
 
   test("Inserting an object without required key fails", () async {
-    await generateTemporarySchemaFromModels(adapter, [TestModel]);
+    context = await contextWithModels([TestModel]);
 
     var m = new TestModel()..emailAddress = "required@a.com";
 
@@ -117,7 +112,7 @@ void main() {
 
     var successful = false;
     try {
-      await insertReq.insert(adapter);
+      await insertReq.insert();
       successful = true;
     } catch (e) {
       expect(e.statusCode, 400);
@@ -127,13 +122,13 @@ void main() {
   });
 
   test("Inserting an object via a values map works and returns appropriate object", () async {
-    await generateTemporarySchemaFromModels(adapter, [TestModel]);
+    context = await contextWithModels([TestModel]);
 
     var insertReq = new Query<TestModel>()
       ..values = {"id": 20, "name": "Bob"}
       ..resultKeys = ["id", "name"];
 
-    var value = await insertReq.insert(adapter);
+    var value = await insertReq.insert();
     expect(value.id, 20);
     expect(value.name, "Bob");
     expect(value.asMap().containsKey("emailAddress"), false);
@@ -142,7 +137,7 @@ void main() {
       ..values = {"id": 21, "name": "Bob"}
       ..resultKeys = ["id", "name", "emailAddress"];
 
-    value = await insertReq.insert(adapter);
+    value = await insertReq.insert();
     expect(value.id, 21);
     expect(value.name, "Bob");
     expect(value.emailAddress, null);
@@ -151,48 +146,49 @@ void main() {
   });
 
   test("Inserting object with relationship returns embedded object", () async {
-    await generateTemporarySchemaFromModels(adapter, [GenUser, GenPost]);
+    context = await contextWithModels([GenUser, GenPost]);
 
     var u = new GenUser()..name = "Joe";
-    var q = new Query<GenUser>()..valueObject = u;
-    u = await q.insert(adapter);
+    var q = new Query<GenUser>()
+      ..valueObject = u;
+    u = await q.insert();
 
     var p = new GenPost()
       ..owner = u
       ..text = "1";
-    q = new Query<GenPost>()..valueObject = p;
-    p = await q.insert(adapter);
+    q = new Query<GenPost>()
+      ..valueObject = p;
+    p = await q.insert();
 
     expect(p.id, greaterThan(0));
     expect(p.owner.id, greaterThan(0));
   });
 
   test("Timestamp inserted correctly by default", () async {
-    await generateTemporarySchemaFromModels(adapter, [GenTime]);
+    context = await contextWithModels([GenTime]);
 
     var t = new GenTime()..text = "hey";
 
     var q = new Query<GenTime>()..valueObject = t;
 
-    var result = await q.insert(adapter);
+    var result = await q.insert();
 
     expect(result.dateCreated is DateTime, true);
-    expect(
-        result.dateCreated.difference(new DateTime.now()).inSeconds <= 0, true);
+    expect(result.dateCreated.difference(new DateTime.now()).inSeconds <= 0, true);
   });
 
   test("Transient values work correctly", () async {
-    await generateTemporarySchemaFromModels(adapter, [TransientModel]);
+    context = await contextWithModels([TransientModel]);
 
     var t = new TransientModel()..value = "foo";
 
     var q = new Query<TransientModel>()..valueObject = t;
-    var result = await q.insert(adapter);
+    var result = await q.insert();
     expect(result.transientValue, null);
   });
 
   test("JSON -> Insert with List", () async {
-    await generateTemporarySchemaFromModels(adapter, [GenUser, GenPost]);
+    context = await contextWithModels([GenUser, GenPost]);
 
     var json = {
       "name" : "Bob",
@@ -207,13 +203,13 @@ void main() {
     var q = new Query<GenUser>()
       ..valueObject = u;
 
-    var result = await q.insert(adapter);
+    var result = await q.insert();
     expect(result.id, greaterThan(0));
     expect(result.name, "Bob");
     expect(result.posts, isNull);
 
     q = new Query<GenPost>();
-    expect(await q.fetch(adapter), hasLength(0));
+    expect(await q.fetch(), hasLength(0));
   });
 }
 
@@ -222,7 +218,7 @@ class TestModel extends Model<_TestModel> implements _TestModel {
 }
 
 class _TestModel {
-  @Attributes(primaryKey: true, databaseType: "bigserial")
+  @primaryKey
   int id;
 
   String name;
@@ -235,35 +231,22 @@ class _TestModel {
   }
 }
 
-@proxy
-class GenUser extends Model<_GenUser> implements _GenUser {
-}
-
+class GenUser extends Model<_GenUser> implements _GenUser {}
 class _GenUser {
-  @Attributes(primaryKey: true, databaseType: "bigserial")
+  @primaryKey
   int id;
-
   String name;
 
   @RelationshipAttribute(RelationshipType.hasMany, "owner")
   List<GenPost> posts;
-
-  static String tableName() {
-    return "GenUser";
-  }
 }
 
-@proxy
-class GenPost extends Model<_GenPost> implements _GenPost {
-}
-
+class GenPost extends Model<_GenPost> implements _GenPost {}
 class _GenPost {
-  @Attributes(primaryKey: true, databaseType: "bigserial")
+  @primaryKey
   int id;
-
   String text;
 
-  @Attributes(indexed: true, nullable: true)
   @RelationshipAttribute(RelationshipType.belongsTo, "posts")
   GenUser owner;
 }
@@ -273,7 +256,7 @@ class GenTime extends Model<_GenTime> implements _GenTime {
 }
 
 class _GenTime {
-  @Attributes(primaryKey: true, databaseType: "bigserial")
+  @primaryKey
   int id;
 
   String text;
@@ -290,7 +273,7 @@ class TransientModel extends Model<_Transient> implements _Transient {
 }
 
 class _Transient {
-  @Attributes(primaryKey: true, databaseType: "bigserial")
+  @primaryKey
   int id;
 
   String value;

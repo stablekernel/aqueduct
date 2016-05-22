@@ -7,10 +7,11 @@ enum _MatcherOperator {
   greaterThan,
   notEqual,
   lessThanEqualTo,
-  greaterThanEqualTo
+  greaterThanEqualTo,
+  equalTo
 }
 dynamic whereEqualTo(dynamic value) {
-  return new _AssignmentMatcherExpression(value);
+  return new _ComparisonMatcherExpression(value, _MatcherOperator.equalTo);
 }
 dynamic whereIn(Iterable<dynamic> values) {
   return new _WithinMatcherExpression(values);
@@ -54,23 +55,14 @@ abstract class MatcherExpression {
   Predicate getPredicate(String prefix, String propertyName);
 }
 
-class _AssignmentMatcherExpression implements MatcherExpression {
-  final dynamic value;
-  const _AssignmentMatcherExpression(this.value);
-
-  Predicate getPredicate(String prefix, String propertyName) {
-    var formatSpecificationName = "${propertyName}";
-    return new Predicate("$prefix.$propertyName = @$formatSpecificationName",  {formatSpecificationName : value});
-  }
-}
-
 class _ComparisonMatcherExpression implements MatcherExpression {
   static Map<_MatcherOperator, String> symbolTable = {
     _MatcherOperator.lessThan : "<",
     _MatcherOperator.greaterThan : ">",
     _MatcherOperator.notEqual : "!=",
     _MatcherOperator.lessThanEqualTo : "<=",
-    _MatcherOperator.greaterThanEqualTo : ">="
+    _MatcherOperator.greaterThanEqualTo : ">=",
+    _MatcherOperator.equalTo : "="
   };
 
   final dynamic value;
@@ -139,11 +131,9 @@ class _WithinMatcherExpression implements MatcherExpression {
 
     return new Predicate("$prefix.$propertyName in (${tokenList.join(",")})", pairedMap);
   }
-
 }
 
-
-class PredicateMatcherException {
+class PredicateMatcherException implements Exception {
   String message;
   PredicateMatcherException(this.message);
 }

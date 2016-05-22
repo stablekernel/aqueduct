@@ -23,6 +23,7 @@ class PropertyDescription {
 
   final PropertyType type;
 
+  String get columnName => name;
   final String name;
   final bool isUnique;
   final bool isIndexed;
@@ -84,6 +85,7 @@ class RelationshipDescription extends PropertyDescription {
   final RelationshipType relationshipType;
   final String inverseKey;
 
+  @override
   String get columnName => (relationshipType == RelationshipType.belongsTo ? entity.dataModel.persistentStore.foreignKeyForRelationshipDescription(this) : null);
   RelationshipDescription get inverseRelationship => destinationEntity.relationships[inverseKey];
 
