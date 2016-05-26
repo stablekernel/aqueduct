@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:aqueduct/aqueduct.dart';
 import 'dart:convert';
 import '../helpers.dart';
-import 'package:postgresql/postgresql.dart';
 
 void main() {
   ModelContext context = null;

@@ -63,10 +63,8 @@ part 'db/model_context.dart';
 
 // PostgreSQL
 
-part 'db/postgresql/postgresl_query.dart';
 part 'db/postgresql/postgresql_persistent_store.dart';
-part 'db/postgresql/postgresql_schema.dart';
-part 'db/postgresql/postgresql_statement.dart';
+part 'db/postgresql/postgresql_schema_generator.dart';
 
 part 'utilities/test_client.dart';
 part 'utilities/mock_server.dart';

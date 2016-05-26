@@ -1,12 +1,11 @@
 import 'package:aqueduct/aqueduct.dart';
 import 'package:test/test.dart';
-import '../helpers.dart';
 
 void main() {
   test("Delete rule of setNull throws exception if property is not nullable", () {
     var successful = false;
     try {
-      var dataModel = new DataModel(new DefaultPersistentStore(), [GenObj, GenNotNullable]);
+      var _ = new DataModel(new DefaultPersistentStore(), [GenObj, GenNotNullable]);
 
       successful = true;
     } catch (e) {

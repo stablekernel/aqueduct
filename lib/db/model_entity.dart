@@ -90,6 +90,33 @@ class ModelEntity {
     return tableName.hashCode;
   }
 
+  Model instanceFromMappingElements(List<MappingElement> elements) {
+    Model instance = instanceTypeMirror.newInstance(new Symbol(""), []).reflectee;
+
+    elements.forEach((e) {
+      if (e is! JoinElement) {
+        if (e.property is RelationshipDescription) {
+          // A belongsTo relationship, keep the foreign key.
+          RelationshipDescription relDesc = e.property;
+          Model innerInstance = relDesc.destinationEntity.instanceTypeMirror.newInstance(new Symbol(""), []).reflectee;
+          innerInstance.dynamicBacking[relDesc.destinationEntity.primaryKey] = e.value;
+          instance.dynamicBacking[e.property.name] = innerInstance;
+        } else {
+          instance.dynamicBacking[e.property.name] = e.value;
+        }
+      } else if (e is JoinElement) {
+        // Initialize any Lists, leave hasOne alone.
+        RelationshipDescription relDesc = e.property;
+        if (relDesc.relationshipType == RelationshipType.hasMany) {
+          instance.dynamicBacking[relDesc.name] = [];
+        }
+      }
+    });
+
+    return instance;
+  }
+
+
   /// Two entities are considered equal if they have the same [tableName].
   operator ==(ModelEntity other) {
     return tableName == other.tableName;

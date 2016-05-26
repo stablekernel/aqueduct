@@ -5,18 +5,19 @@ part of aqueduct;
 /// Queries are used to find, update, insert, delete and count objects in a database.
 
 class Query<ModelType extends Model> {
-  Query() {
-
+  Query({ModelContext context: null}) {
+    this.context = context ?? ModelContext.defaultContext;
   }
 
-  Query.withModelType(this._modelType) {
-
+  Query.withModelType(this._modelType, {ModelContext context: null}) {
+    this.context = context ?? ModelContext.defaultContext;
   }
 
   Type _modelType;
   Type get modelType => _modelType ?? ModelType;
 
-  Map<String, Query> subQueries;
+  ModelContext context;
+  ModelEntity get entity => context.dataModel.entityForType(modelType);
 
   /// Number of seconds before a Query times out.
   ///
@@ -157,6 +158,10 @@ class Query<ModelType extends Model> {
   ///
   Future<int> count({ModelContext context: null}) async {
     return await (context ?? ModelContext.defaultContext).executeCountQuery(this); // or null
+  }
+
+  Predicate _compilePredicate(DataModel dataModel, PersistentStore) {
+    return predicate;
   }
 }
 

@@ -23,7 +23,7 @@ class PropertyDescription {
 
   final PropertyType type;
 
-  String get columnName => name;
+  //String get columnName => name;
   final String name;
   final bool isUnique;
   final bool isIndexed;
@@ -72,6 +72,10 @@ class AttributeDescription extends PropertyDescription {
 
   final bool isPrimaryKey;
   final String defaultValue;
+
+  String toString() {
+    return "AttributeDescription on ${entity.tableName}.$name Type: $type";
+  }
 }
 
 class RelationshipDescription extends PropertyDescription {
@@ -85,8 +89,8 @@ class RelationshipDescription extends PropertyDescription {
   final RelationshipType relationshipType;
   final String inverseKey;
 
-  @override
-  String get columnName => (relationshipType == RelationshipType.belongsTo ? entity.dataModel.persistentStore.foreignKeyForRelationshipDescription(this) : null);
+  //@override
+  //String get columnName => (relationshipType == RelationshipType.belongsTo ? entity.dataModel.persistentStore.foreignKeyForRelationshipDescription(this) : null);
   RelationshipDescription get inverseRelationship => destinationEntity.relationships[inverseKey];
 
   bool isAssignableWith(dynamic dartValue) {
@@ -96,9 +100,22 @@ class RelationshipDescription extends PropertyDescription {
       if (relationshipType != RelationshipType.hasMany) {
         throw new DataModelException("Trying to assign List to relationship that isn't hasMany for ${MirrorSystem.getName(entity.persistentInstanceTypeMirror.simpleName)} $name");
       }
+
       type = type.typeArguments.first;
+      if (type == reflectType(dynamic)) {
+        // We can't say for sure... so we have to assume it to be true at the current stage.
+        return true;
+      }
     }
 
     return type == destinationEntity.instanceTypeMirror;
+  }
+
+  String toString() {
+    if (relationshipType == RelationshipType.belongsTo) {
+      return "RelationshipDescription on ${entity.tableName}.$name Type: ${relationshipType} ($type)";
+    }
+
+    return "RelationshipDescription on ${entity.tableName}.$name Type: ${relationshipType}";
   }
 }

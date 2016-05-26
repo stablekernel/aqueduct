@@ -14,20 +14,18 @@ class Predicate {
   ///
   /// This is the predicate text. Do not add values to the format string, instead, prefix an identifier with @
   /// and add that identifier to the parameters map.
-  String get format => _format;
-  String _format;
+  String format;
 
   /// A map of values to interpolate into the format string at execution time.
   ///
-  /// Input values should not be in the format string, but instaed provided in this map.
+  /// Input values should not be in the format string, but instead provided in this map.
   /// Keys of this map will be searched for in the format string and be replaced by the value in this map.
-  Map<String, dynamic> get parameters => _parameters;
-  Map<String, dynamic> _parameters;
+  Map<String, dynamic> parameters;
 
   /// Default constructor
   ///
   /// The [format] and [parameters] of this predicate.
-  Predicate(this._format, this._parameters);
+  Predicate(this.format, this.parameters);
 
   /// Joins together a list of predicates by the 'and' token.
   ///
@@ -45,8 +43,7 @@ class Predicate {
 
       pValueMap.keys.forEach((k) {
         if (valueMap.containsKey(k)) {
-          throw new PredicateException(
-              "Duplicate keys in and predicate, ${k} appears in multiple predicates. Make keys more specific.");
+          throw new PredicateException("Duplicate keys in and predicate, ${k} appears in multiple predicates. Make keys more specific.");
         }
       });
 
@@ -54,14 +51,6 @@ class Predicate {
     });
 
     return new Predicate(predicateFormat, valueMap);
-  }
-
-  void prefixKeysWith(String prefix) {
-    _format = _format?.replaceAll("@", "@$prefix");
-    var keys = _parameters?.keys;
-    keys?.forEach((k) {
-      _parameters["@$prefix$k"] = _parameters[k];
-    });
   }
 }
 

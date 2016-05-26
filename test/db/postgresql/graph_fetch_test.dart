@@ -38,14 +38,10 @@ void main() {
         });
       };
 
-      sourceUsers[0].locations =
-      await Future.wait(locationCreator(["Crestridge", "SK"], sourceUsers[0]));
-      sourceUsers[1].locations = await Future.wait(
-          locationCreator(["Krog St", "Dumpster"], sourceUsers[1]));
-      sourceUsers[2].locations =
-      await Future.wait(locationCreator(["Omaha"], sourceUsers[2]));
-      sourceUsers[3].locations =
-      await Future.wait(locationCreator(["London"], sourceUsers[3]));
+      sourceUsers[0].locations = await Future.wait(locationCreator(["Crestridge", "SK"], sourceUsers[0]));
+      sourceUsers[1].locations = await Future.wait(locationCreator(["Krog St", "Dumpster"], sourceUsers[1]));
+      sourceUsers[2].locations = await Future.wait(locationCreator(["Omaha"], sourceUsers[2]));
+      sourceUsers[3].locations = await Future.wait(locationCreator(["London"], sourceUsers[3]));
       sourceUsers[4].locations = [];
 
       var equipmentCreator = (List<List<String>> pairs, Location loc) {
@@ -95,7 +91,7 @@ void main() {
     test("Can still fetch objects with foreign keys", () async {
       var q = new LocationQuery()
         ..id = 1;
-      var loc = await q.fetchOne(adapter);
+      var loc = await q.fetchOne();
       expect(loc.id, 1);
       expect(loc.user.id, 1);
       expect(loc.user.name, isNull);
@@ -110,7 +106,7 @@ void main() {
       var q = new UserQuery()
         ..id = 1
         ..locations = whereAnyMatch;
-      var users = await q.fetch(adapter);
+      var users = await q.fetch();
       expect(users.length, 1);
 
       var user = users.first;
@@ -134,7 +130,7 @@ void main() {
     test("Can do one level join with multiple root object", () async {
       var q = new UserQuery()
         ..locations = whereAnyMatch;
-      var users = await q.fetch(adapter);
+      var users = await q.fetch();
       expect(users.length, 5);
 
       users.sort((u1, u2) => u1.id - u2.id);
@@ -191,7 +187,7 @@ void main() {
         ..id = 1
         ..locations.single.equipment = whereAnyMatch;
 
-      var users = await q.fetch(adapter);
+      var users = await q.fetch();
       expect(users.first, equals(sourceUsers.first));
 
       var map = users.first.asMap();
@@ -215,7 +211,7 @@ void main() {
       var q = new UserQuery()
         ..locations.single.equipment = whereAnyMatch;
 
-      var users = await q.fetch(adapter);
+      var users = await q.fetch();
       expect(users, equals(sourceUsers));
 
       var mapList = users.map((u) => u.asMap()).toList();
@@ -268,7 +264,7 @@ void main() {
           ..id = 1
         ];
 
-      var users = await q.fetch(adapter);
+      var users = await q.fetch();
       var sourceTrunc = sourceUsers.map((u) => new User.fromUser(u)).toList();
       sourceTrunc.forEach((User u) {
         u.locations?.forEach((loc) {
@@ -317,7 +313,7 @@ void main() {
     test("Can join from middle of graph", () async {
       var q = new LocationQuery()
         ..equipment = whereAnyMatch;
-      var locations = await q.fetch(adapter);
+      var locations = await q.fetch();
 
       var sourceTrunc = sourceUsers.map((u) => u.locations)
           .expand((l) => l)
@@ -332,7 +328,7 @@ void main() {
       var q = new LocationQuery()
         ..user = whereRelatedByValue(1);
 
-      var locations = await q.fetch(adapter);
+      var locations = await q.fetch();
       for (var loc in locations) {
         var u = loc.user;
         expect(u.dynamicBacking.length, 1);

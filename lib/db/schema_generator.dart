@@ -72,12 +72,11 @@ class SchemaTable {
 class SchemaColumn {
   SchemaColumn(PersistentStore persistentStore, ModelEntity entity, PropertyDescription desc) {
     _propertyName = desc.name;
+    name = persistentStore.columnNameForProperty(desc);
 
     if (desc is RelationshipDescription) {
-      name = persistentStore.foreignKeyForRelationshipDescription(desc);
       isPrimaryKey = false;
     } else if (desc is AttributeDescription) {
-      name = desc.name;
       defaultValue = desc.defaultValue;
       isPrimaryKey = desc.isPrimaryKey;
     }
@@ -174,11 +173,7 @@ class SchemaForeignKeyConstraint {
 
 class SchemaIndex {
   SchemaIndex(PersistentStore store, PropertyDescription desc) {
-    if (desc is RelationshipDescription) {
-      name = store.foreignKeyForRelationshipDescription(desc);
-    } else {
-      name = desc.name;
-    }
+    name = store.columnNameForProperty(desc);
   }
 
   SchemaIndex.fromJSON(Map<String, dynamic> json) {
