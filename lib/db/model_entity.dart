@@ -97,18 +97,14 @@ class ModelEntity {
       if (e is! JoinElement) {
         if (e.property is RelationshipDescription) {
           // A belongsTo relationship, keep the foreign key.
-          RelationshipDescription relDesc = e.property;
-          Model innerInstance = relDesc.destinationEntity.instanceTypeMirror.newInstance(new Symbol(""), []).reflectee;
-          innerInstance.dynamicBacking[relDesc.destinationEntity.primaryKey] = e.value;
-          instance.dynamicBacking[e.property.name] = innerInstance;
+          if (e.value != null) {
+            RelationshipDescription relDesc = e.property;
+            Model innerInstance = relDesc.destinationEntity.instanceTypeMirror.newInstance(new Symbol(""), []).reflectee;
+            innerInstance.dynamicBacking[relDesc.destinationEntity.primaryKey] = e.value;
+            instance.dynamicBacking[e.property.name] = innerInstance;
+          }
         } else {
           instance.dynamicBacking[e.property.name] = e.value;
-        }
-      } else if (e is JoinElement) {
-        // Initialize any Lists, leave hasOne alone.
-        RelationshipDescription relDesc = e.property;
-        if (relDesc.relationshipType == RelationshipType.hasMany) {
-          instance.dynamicBacking[relDesc.name] = [];
         }
       }
     });

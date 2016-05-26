@@ -136,6 +136,7 @@ void main() {
       ..resultKeys = ["id", "name", "emailAddress"];
 
     value = await insertReq.insert();
+    print("${value.dynamicBacking}");
     expect(value.id, 21);
     expect(value.name, "Bob");
     expect(value.emailAddress, null);

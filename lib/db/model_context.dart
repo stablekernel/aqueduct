@@ -80,27 +80,33 @@ class ModelContext {
           matchMap[name] = {};
         });
 
+
     elements.forEach((row) {
-      var primaryTypeInstance = _createInstance(entity, row, primaryKeyColumnIndex, matchMap).first;
+      // Fnd a better way to set lists to empty on instantiation of instance, if a join does exist..
+      var primaryTypeInstance = _createInstanceIfNecessary(entity, row, primaryKeyColumnIndex, joinElements, matchMap).first;
+      Map<ModelEntity, Model> instancesInThisRow = {entity : primaryTypeInstance};
 
       joinElementIndexes
           .map((joinIndex) => row[joinIndex])
           .forEach((JoinElement joinElement) {
-            var subInstanceTuple = _createInstance(joinElement.joinProperty.entity, joinElement.values, joinElement.primaryKeyIndex, matchMap);
+            var subInstanceTuple = _createInstanceIfNecessary(joinElement.joinProperty.entity, joinElement.values, joinElement.primaryKeyIndex, joinElements, matchMap);
             if (subInstanceTuple == null) {
               return;
             }
 
+            Model subInstance = subInstanceTuple.first;
+            instancesInThisRow[joinElement.joinProperty.entity] = subInstance;
             if (subInstanceTuple.last) {
-              // This is a new element, associate it
-              Model subInstance = subInstanceTuple.first;
+              // This is a new element, associate it. Find the matching instance from THIS row and sets it dynamic backing for the inversePropertyName.
+
               RelationshipDescription owningModelPropertyDesc = joinElement.property;
+              Model owningInstance = instancesInThisRow[owningModelPropertyDesc.entity];
 
               var inversePropertyName = owningModelPropertyDesc.name;
               if (owningModelPropertyDesc.relationshipType == RelationshipType.hasMany) {
-                primaryTypeInstance.dynamicBacking[inversePropertyName].add(subInstance);
+                owningInstance.dynamicBacking[inversePropertyName].add(subInstance);
               } else {
-                primaryTypeInstance.dynamicBacking[inversePropertyName] = subInstance;
+                owningInstance.dynamicBacking[inversePropertyName] = subInstance;
               }
             }
           });
@@ -109,7 +115,7 @@ class ModelContext {
     return matchMap[primaryTypeString].values.toList();
   }
 
-  List<dynamic> _createInstance(ModelEntity mappingEntity, List<MappingElement> columns, int primaryKeyIndex, Map<String, Map<dynamic, Model>> matchMap) {
+  List<dynamic> _createInstanceIfNecessary(ModelEntity mappingEntity, List<MappingElement> columns, int primaryKeyIndex, List<JoinElement> joinElements, Map<String, Map<dynamic, Model>> matchMap) {
     var primaryKeyValue = columns[primaryKeyIndex].value;
     if (primaryKeyValue == null) {
       return null;
@@ -121,7 +127,13 @@ class ModelContext {
     if (primaryTypeInstance == null) {
       isNewInstance = true;
       primaryTypeInstance = mappingEntity.instanceFromMappingElements(columns);
+      joinElements
+          .where((je) => je.property.entity == mappingEntity && je.property.relationshipType == RelationshipType.hasMany)
+          .forEach((je) {
+            primaryTypeInstance[je.property.name] = [];
+      });
       matchMap[mappingEntity.tableName][primaryKeyValue] = primaryTypeInstance;
+
     }
     return [primaryTypeInstance, isNewInstance];
   }

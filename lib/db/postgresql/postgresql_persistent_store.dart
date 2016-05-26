@@ -95,6 +95,7 @@ class PostgreSQLPersistentStore extends PersistentStore {
         value: (MappingElement m) => m.value);
 
     var results = await _executeQuery(queryStringBuffer.toString(), valueMap, q.timeoutInSeconds);
+    print("${results}");
     return _mappingElementsFromResults(results, q.resultKeys).first;
   }
 
@@ -296,8 +297,8 @@ class PostgreSQLPersistentStore extends PersistentStore {
 
     var transformFunc = (SortDescriptor sd) {
       var property = q.entity.properties[sd.key];
-      var columnName = "${property.entity.tableName}.${property.columnName}";
-      return "$columnName ${(sd.order == SortDescriptorOrder.ascending ? "asc" : "desc")};";
+      var columnName = "${property.entity.tableName}.${columnNameForProperty(property)}";
+      return "$columnName ${(sd.order == SortDescriptorOrder.ascending ? "asc" : "desc")}";
     };
     var joinedSortDescriptors = sortDescs.map(transformFunc).join(",");
 
@@ -315,7 +316,6 @@ class PostgreSQLPersistentStore extends PersistentStore {
   }
 
   String _joinStringForJoin(JoinElement ji) {
-    print("${ji.property} ${ji.joinProperty}");
     var parentEntity = ji.property.entity;
     var childEntity = ji.joinProperty.entity;
     var predicate = new Predicate("${parentEntity.tableName}.${columnNameForProperty(parentEntity.properties[parentEntity.primaryKey])}=${childEntity.tableName}.${columnNameForProperty(ji.joinProperty)}", {});

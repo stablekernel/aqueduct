@@ -58,10 +58,12 @@ class ModelQuery<T extends Model> extends Query<T> {
     }
 
     if (_matcherIsSubquery(value)) {
+      if (value is List) {
+        value = value.first;
+      }
       subQueries[propertyName] = value;
     } else if (value is _IncludeModelMatcherExpression) {
       subQueries[propertyName] = _createSubqueryForPropertyNameIfApplicable(entity.properties[propertyName]);
-      print("${subQueries}");
     } else if (value is MatcherExpression) {
       _queryMap[propertyName] = value;
     } else {
