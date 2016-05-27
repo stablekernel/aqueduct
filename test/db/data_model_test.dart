@@ -29,6 +29,6 @@ class _GenNotNullable {
   @primaryKey
   int id;
 
-  @RelationshipAttribute(RelationshipType.belongsTo, "gen", deleteRule: RelationshipDeleteRule.nullify, required: false)
+  @RelationshipAttribute(RelationshipType.belongsTo, "gen", deleteRule: RelationshipDeleteRule.nullify, required: true)
   GenObj ref;
 }

@@ -338,19 +338,17 @@ void main() {
   });
 
   group("ToOne graph", () {
-    PostgresModelAdapter adapter;
+    ModelContext context = null;
 
     setUpAll(() async {
-      new Logger("aqueduct").onRecord.listen((rec) => print("$rec"));
-      adapter = new PostgresModelAdapter.fromConnectionInfo(null, "dart", "dart", "localhost", 5432, "dart_test");
-      await generateTemporarySchemaFromModels(adapter, [Owned, Owner]);
+      context = await contextWithModels([Owned, Owner]);
 
       var o = ["A", "B", "C"];
       var owners = await Future.wait(o.map((x) {
         var q = new Query<Owner>()
           ..valueObject = (new Owner()
             ..name = x);
-        return q.insert(adapter);
+        return q.insert();
       }));
 
       for (var o in owners) {
@@ -358,20 +356,19 @@ void main() {
             ..valueObject = (new Owned()
               ..name = "${o.name}1"
               ..owner = (new Owner()..id = o.id));
-        await q.insert(adapter);
+        await q.insert();
       }
     });
 
     tearDownAll(() {
-      adapter.close();
-      adapter = null;
+      context?.persistentStore?.close();
     });
 
     test("Join with single root object", () async {
       var q = new OwnerQuery()
           ..id = 1
           ..owned = whereAnyMatch;
-      var o = (await q.fetch(adapter)).first.asMap();
+      var o = (await q.fetch()).first.asMap();
 
       expect(o, {
         "id" : 1,
@@ -387,7 +384,7 @@ void main() {
     test("Join with multi root object", () async {
       var q = new OwnerQuery()
         ..owned = whereAnyMatch;
-      var o = await q.fetch(adapter);
+      var o = await q.fetch();
 
       var mapList = o.map((x) => x.asMap()).toList();
       expect(mapList, [
@@ -571,7 +568,6 @@ class _Owned {
   int id;
   String name;
 
-  @Attributes(nullable: true)
   @RelationshipAttribute.belongsTo("owned")
   Owner owner;
 }

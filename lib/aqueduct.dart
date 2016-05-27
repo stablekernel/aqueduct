@@ -52,7 +52,6 @@ part 'db/model.dart';
 part 'db/model_controller.dart';
 part 'db/predicate.dart';
 part 'db/query.dart';
-part 'db/query_adapter.dart';
 part 'db/query_page.dart';
 part 'db/sort_descriptor.dart';
 part 'db/model_attributes.dart';

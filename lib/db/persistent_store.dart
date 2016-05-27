@@ -130,12 +130,14 @@ class PersistentStoreQuery {
             return null;
           }
 
-          if (value is Model) {
-            value = value.dynamicBacking[property.destinationEntity.primaryKey];
-          } else if (value is Map) {
-            value = value[property.destinationEntity.primaryKey];
-          } else {
-            throw new QueryException(500, "Property $key on ${entity.tableName} in Query values must be a Map or ${MirrorSystem.getName(property.destinationEntity.instanceTypeMirror.simpleName)} ", -1);
+          if (value != null) {
+            if (value is Model) {
+              value = value.dynamicBacking[property.destinationEntity.primaryKey];
+            } else if (value is Map) {
+              value = value[property.destinationEntity.primaryKey];
+            } else {
+              throw new QueryException(500, "Property $key on ${entity.tableName} in Query values must be a Map or ${MirrorSystem.getName(property.destinationEntity.instanceTypeMirror.simpleName)} ", -1);
+            }
           }
         }
 

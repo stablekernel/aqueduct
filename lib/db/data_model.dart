@@ -132,7 +132,7 @@ class DataModel {
 
     if (relationshipAttribute.type == RelationshipType.belongsTo
     && relationshipAttribute.deleteRule == RelationshipDeleteRule.nullify
-    && !relationshipAttribute.isRequired) {
+    && relationshipAttribute.isRequired) {
       throw new DataModelException("Relationship ${MirrorSystem.getName(mirror.simpleName)} on ${entity.tableName} set to nullify on delete, but is not nullable");
     }
 

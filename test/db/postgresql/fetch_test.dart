@@ -218,20 +218,17 @@ void main() {
             .toList()
             .length, 5);
 
-    fail("Find a new place for this test, does not belong here");
-//
-//    var matcher = new ModelQuery<GenPost>();
-//    matcher["owner"] = whereRelatedByValue(u1.id);
-//    req = new Query<GenPost>()..predicate = matcher.predicate;
-//    res = await req.fetch();
-//
-//    GenUser user = res.first.owner;
-//    expect(user, isNotNull);
-//    expect(res.length, 5);
-//    expect(res.map((p) => p.text)
-//            .where((text) => num.parse(text) % 2 == 0)
-//            .toList()
-//            .length, 5);
+    var query = new ModelQuery<GenPost>();
+    query["owner"] = whereRelatedByValue(u1.id);
+    res = await query.fetch();
+
+    GenUser user = res.first.owner;
+    expect(user, isNotNull);
+    expect(res.length, 5);
+    expect(res.map((p) => p.text)
+            .where((text) => num.parse(text) % 2 == 0)
+            .toList()
+            .length, 5);
   });
 
   test("Fetch object with null reference", () async {
@@ -289,14 +286,13 @@ void main() {
     expect(result.id, greaterThan(0));
     expect(result.dynamicBacking["text"], isNull);
 
-    fail("Put this in a new test");
-//    var matcher = new ModelQuery<Omit>()
-//      ..["id"] = whereEqualTo(result.id);
-//    var fq = new Query<Omit>()..predicate = matcher.predicate;
-//
-//    var fResult = await fq.fetchOne();
-//    expect(fResult.id, result.id);
-//    expect(fResult.dynamicBacking["text"], isNull);
+    var matcher = new ModelQuery<Omit>()
+      ..["id"] = whereEqualTo(result.id);
+    var fq = new Query<Omit>()..predicate = matcher.predicate;
+
+    var fResult = await fq.fetchOne();
+    expect(fResult.id, result.id);
+    expect(fResult.dynamicBacking["text"], isNull);
   });
 
   test("Paging", () async {
@@ -490,32 +486,31 @@ void main() {
   });
 
   test("whereIn Matcher", () async {
-    fail("Add this test elsewhere");
-//    await generateTemporarySchemaFromModels(adapter, [TestModel]);
-//
-//    for (int i = 0; i < 3; i++) {
-//      var m = new TestModel()
-//        ..name = "$i"
-//        ..email = "$i@a.com";
-//      var req = new Query<TestModel>()
-//        ..valueObject = m;
-//
-//      await req.insert(adapter);
-//    }
-//
-//    var q = new ModelQuery<TestModel>()
-//      ..["id"] = whereIn([1, 2]);
-//    var results = await q.fetch(adapter);
-//    expect(results.length, 2);
-//    expect(results.first["name"], "0");
-//    expect(results.last["name"], "1");
-//
-//    q = new ModelQuery<TestModel>()
-//      ..["name"] = whereIn(['1', '2']);
-//    results = await q.fetch(adapter);
-//    expect(results.length, 2);
-//    expect(results.first["name"], "1");
-//    expect(results.last["name"], "2");
+    context = await contextWithModels([TestModel]);
+
+    for (int i = 0; i < 3; i++) {
+      var m = new TestModel()
+        ..name = "$i"
+        ..email = "$i@a.com";
+      var req = new Query<TestModel>()
+        ..valueObject = m;
+
+      await req.insert();
+    }
+
+    var q = new ModelQuery<TestModel>()
+      ..["id"] = whereIn([1, 2]);
+    var results = await q.fetch();
+    expect(results.length, 2);
+    expect(results.first["name"], "0");
+    expect(results.last["name"], "1");
+
+    q = new ModelQuery<TestModel>()
+      ..["name"] = whereIn(['1', '2']);
+    results = await q.fetch();
+    expect(results.length, 2);
+    expect(results.first["name"], "1");
+    expect(results.last["name"], "2");
   });
 }
 

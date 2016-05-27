@@ -52,15 +52,11 @@ void main() {
     child = await q.insert();
     expect(child.parent.id, parent.id);
 
-    fail("Find a new place for this");
-//    var matcher = new ModelQuery<Child>()
-//      ..["id"] = whereEqualTo(child.id);
-//    q = new Query<Child>()
-//      ..predicate = matcher.predicate
-//      ..valueObject = (new Child()..parent = null);
-//    child = (await q.update()).first;
-//    expect(child.parent, isNull);
-
+    q = new ModelQuery<Child>()
+      ..["id"] = whereEqualTo(child.id)
+      ..valueObject = (new Child()..parent = null);
+    child = (await q.update()).first;
+    expect(child.parent, isNull);
   });
 
   test("Updating non-existent object fails", () async {

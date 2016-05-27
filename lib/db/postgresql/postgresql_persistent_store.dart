@@ -18,7 +18,7 @@ class PostgreSQLPersistentStore extends PersistentStore {
   PostgreSQLPersistentStore.fromConnectionInfo(String username, String password, String host, int port, String databaseName, {String timezone: "UTC"}) {
     var uri = "postgres://$username:$password@$host:$port/$databaseName";
     this.connectFunction = () async {
-      logger.info("PostgresqlModelAdapter connecting, $username@$host:$port/$databaseName.");
+      logger.info("PostgreSQL connecting, $username@$host:$port/$databaseName.");
       return await connect(uri, timeZone: timezone);
     };
   }
@@ -61,12 +61,16 @@ class PostgreSQLPersistentStore extends PersistentStore {
   Future<List<Row>> _executeQuery(String formatString, dynamic values, int timeoutInSeconds, {bool returnCount: false}) async {
     try {
       var dbConnection = await getDatabaseConnection();
-      print("$formatString $values");
+      var results = null;
       if (!returnCount) {
-        return (await dbConnection.query(formatString, values).toList().timeout(new Duration(seconds: timeoutInSeconds)));
+        results = (await dbConnection.query(formatString, values).toList().timeout(new Duration(seconds: timeoutInSeconds)));
       } else {
-        return (await dbConnection.execute(formatString, values).timeout(new Duration(seconds: timeoutInSeconds)));
+        results = (await dbConnection.execute(formatString, values).timeout(new Duration(seconds: timeoutInSeconds)));
       }
+
+      logger.fine("Query $formatString $values -> $results");
+
+      return results;
     } on TimeoutException {
       throw new QueryException(503, "Could not connect to database.", -1);
     } on PostgresqlException catch (e, stackTrace) {
@@ -95,7 +99,7 @@ class PostgreSQLPersistentStore extends PersistentStore {
         value: (MappingElement m) => m.value);
 
     var results = await _executeQuery(queryStringBuffer.toString(), valueMap, q.timeoutInSeconds);
-    print("${results}");
+
     return _mappingElementsFromResults(results, q.resultKeys).first;
   }
 

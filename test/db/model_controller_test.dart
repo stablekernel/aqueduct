@@ -4,19 +4,20 @@ import 'package:test/test.dart';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../helpers.dart';
 
 main() async {
-
+  ModelContext context = null;
   HttpServer server = null;
+
   setUpAll(() async {
+    context = await contextWithModels([TestModel]);
     server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8080);
     var router = new Router();
-    router.route("/users/[:id]").then(
-      new RequestHandlerGenerator<TestModelController>(arguments: [null]));
+    router.route("/users/[:id]").then(new RequestHandlerGenerator<TestModelController>(arguments: []));
 
     server.listen((req) async {
-      var resReq = new ResourceRequest(req);
-      router.deliver(resReq);
+      router.deliver(new ResourceRequest(req));
     });
   });
 
@@ -24,23 +25,30 @@ main() async {
     await server?.close(force: true);
   });
 
-
-  test("All", () async {
+  test("Request with no path parameters OK", () async {
     var response = await http.get("http://localhost:8080/users");
     expect(response.statusCode, 200);
+  });
 
-    response = await http.get("http://localhost:8080/users/1");
+  test("Request with path parameter of type needing parse OK", () async {
+    var response = await http.get("http://localhost:8080/users/1");
     expect(response.statusCode, 200);
+  });
 
-    response = await http.delete("http://localhost:8080/users/1");
-    expect(response.statusCode, 200);
+  test("Request with path parameter of wrong type returns 404", () async {
+    var response = await http.get("http://localhost:8080/users/foo");
+    expect(response.statusCode, 404);
+  });
 
-    response = await http.put("http://localhost:8080/users/1", headers: {
+  test("Request with path parameter and body", () async {
+    var response = await http.put("http://localhost:8080/users/2", headers: {
       "Content-Type" : "application/json;charset=utf-8"
     }, body: JSON.encode({"name" : "joe"}));
     expect(response.statusCode, 200);
+  });
 
-    response = await http.post("http://localhost:8080/users", headers: {
+  test("Request without path parameter and body", () async {
+    var response = await http.post("http://localhost:8080/users", headers: {
       "Content-Type" : "application/json;charset=utf-8"
     }, body: JSON.encode({"name" : "joe"}));
     expect(response.statusCode, 200);
@@ -49,18 +57,12 @@ main() async {
 }
 
 class TestModelController extends ModelController<TestModel> {
-  TestModelController(QueryAdapter adapter) : super(adapter);
+  TestModelController() : super();
 
-  @httpGet
-  Future<Response> getAll() async {
+  @httpGet getAll() async {
     int statusCode = 200;
-    if (requestModel != null) {
-      statusCode = 400;
-    }
+
     if (query == null) {
-      statusCode = 400;
-    }
-    if (query.predicate != null) {
       statusCode = 400;
     }
     if (query.valueObject != null) {
@@ -70,55 +72,46 @@ class TestModelController extends ModelController<TestModel> {
     return new Response(statusCode, {}, null);
   }
 
-  @httpGet
-  Future<Response> getOne(int id) async {
-    String reason = null;
+  @httpGet getOne(int id) async {
     int statusCode = 200;
-    if (requestModel != null) {
+
+    if (query.valueObject != null) {
       statusCode = 400;
-      reason = "requestModel != null";
     }
     if (query == null) {
       statusCode = 400;
-      reason = "query == null";
     }
-    if (query.predicate == null) {
+
+    var comparisonMatcher = query["id"];
+    if (comparisonMatcher.operator != MatcherOperator.equalTo || comparisonMatcher.value != id) {
       statusCode = 400;
-      reason = "predicate == null";
-    }
-    if (query.predicate.format != "id = @pk" || query.predicate.parameters["pk"] != id) {
-      statusCode = 400;
-      reason = "predicate fmtwrong ${query.predicate.format}";
     }
 
     if (query.valueObject != null) {
-      reason = "valueObject != null";
       statusCode = 400;
     }
 
-    return new Response(statusCode, {}, {"reason" : reason});
+    return new Response(statusCode, {}, null);
   }
 
-  @httpPut
-  Future<Response> putOne(int id)
-  async {
+  @httpPut putOne(int id) async {
     int statusCode = 200;
-    if (requestModel == null) {
+
+    if (query.valueObject == null) {
       statusCode = 400;
     }
-    if (requestModel.name != "joe") {
+    if (query.valueObject.name != "joe") {
       statusCode = 400;
     }
     if (query == null) {
       statusCode = 400;
     }
 
-    if (query.predicate == null) {
+    var comparisonMatcher = query["id"];
+    if (comparisonMatcher.operator != MatcherOperator.equalTo || comparisonMatcher.value != id) {
       statusCode = 400;
     }
-    if (query.predicate.format != "id = @pk" || query.predicate.parameters["pk"] != id) {
-      statusCode = 400;
-    }
+
     if (query.valueObject == null) {
       statusCode = 400;
     }
@@ -130,74 +123,27 @@ class TestModelController extends ModelController<TestModel> {
     return new Response(statusCode, {}, null);
   }
 
-  @httpDelete
-  Future<Response> deleteOne(int id)
-  async {
+  @httpPost create() async {
     int statusCode = 200;
-    String reason = null;
-    if (requestModel != null) {
-      reason = "requestModel != null";
-      statusCode = 400;
-    }
-    if (query == null) {
-      reason = "query == null";
-      statusCode = 400;
-    }
-    if (query.predicate == null) {
-      reason = "predicate = null";
-      statusCode = 400;
-    }
-
-    if (query.predicate.format != "id = @pk" || query.predicate.parameters["pk"] != id) {
-      reason = "predicate invalid";
-      statusCode = 400;
-    }
-    if (query.valueObject != null) {
-      statusCode = 400;
-    }
-
-    return new Response(statusCode, {}, {"reason" : reason});
-
-  }
-
-  @httpPost
-  Future<Response> create()
-  async {
-    int statusCode = 200;
-    if (requestModel == null) {
-      statusCode = 400;
-    }
-    if (requestModel.name != "joe") {
-      statusCode = 400;
-    }
-    if (query == null) {
-      statusCode = 400;
-    }
-
-    if (query.predicate != null) {
-      statusCode = 400;
-    }
-
     if (query.valueObject == null) {
       statusCode = 400;
     }
     if (query.valueObject.name != "joe") {
       statusCode = 400;
     }
+    if (query == null) {
+      statusCode = 400;
+    }
 
     return new Response(statusCode, {}, null);
   }
 
-  @httpPost
-  Future<Response> crash(int id) async {
+  @httpPost crash(int id) async {
     return new Response.ok("");
   }
 }
 
-@proxy
-class TestModel extends Model<_TestModel> implements _TestModel {
-}
-
+class TestModel extends Model<_TestModel> implements _TestModel {}
 class _TestModel {
   @Attributes(primaryKey: true)
   int id;

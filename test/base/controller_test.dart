@@ -12,7 +12,7 @@ void main() {
 
   var ps = new DefaultPersistentStore();
   DataModel dm = new DataModel(ps, [TestModel]);
-  ModelContext ctx = new ModelContext(dm, ps);
+  ModelContext _ = new ModelContext(dm, ps);
 
   tearDown(() async {
     await server?.close(force: true);

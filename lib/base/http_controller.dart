@@ -183,8 +183,10 @@ abstract class HttpController extends RequestHandler {
       return null;
     }
 
-    var optionalParams =
-        (reflect(this).type.declarations[handlerMethodSymbol] as MethodMirror).parameters.where((methodParameter) => methodParameter.isOptional).toList();
+    var optionalParams = (reflect(this).type.declarations[handlerMethodSymbol] as MethodMirror)
+        .parameters
+        .where((methodParameter) => methodParameter.isOptional)
+        .toList();
 
     var retMap = {};
     queryParams.forEach((k, v) {
@@ -263,6 +265,8 @@ abstract class HttpController extends RequestHandler {
       var preprocessedResult = await willProcessRequest(req);
       Response response = null;
       if (preprocessedResult is ResourceRequest) {
+        logger.info("process");
+
         response = await _process();
       } else if (preprocessedResult is Response) {
         response = preprocessedResult;

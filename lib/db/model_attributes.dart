@@ -77,7 +77,6 @@ class RelationshipAttribute {
         this.deleteRule = RelationshipDeleteRule.nullify,
         this._isRequired = false;
 
-  // Change this to cascade + required?
   const RelationshipAttribute.belongsTo(String inverseKey, {RelationshipDeleteRule deleteRule: RelationshipDeleteRule.nullify, bool required: false}) :
         this.type = RelationshipType.belongsTo,
         this.inverseKey = inverseKey,

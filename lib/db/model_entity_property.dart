@@ -49,14 +49,15 @@ class PropertyDescription {
   }
 
   bool isAssignableWith(dynamic dartValue) {
-    var valueType = reflect(dartValue).type;
+    new Logger("aqueduct").info("$dartValue ${type}");
+
     switch(type) {
-      case PropertyType.integer: return valueType.isSubtypeOf(reflectType(int));
-      case PropertyType.bigInteger: return valueType.isSubtypeOf(reflectType(int));
-      case PropertyType.boolean: return valueType.isSubtypeOf(reflectType(bool));
-      case PropertyType.datetime: return valueType.isSubtypeOf(reflectType(DateTime));
-      case PropertyType.doublePrecision: return valueType.isSubtypeOf(reflectType(double));
-      case PropertyType.string: return valueType.isSubtypeOf(reflectType(String));
+      case PropertyType.integer: return dartValue is int;
+      case PropertyType.bigInteger: return dartValue is int;
+      case PropertyType.boolean: return dartValue is bool;
+      case PropertyType.datetime: return dartValue is DateTime;
+      case PropertyType.doublePrecision: return dartValue is double;
+      case PropertyType.string: return dartValue is String;
     }
     return false;
   }
