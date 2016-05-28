@@ -4,7 +4,10 @@ import 'dart:async';
 import '../../helpers.dart';
 
 void main() {
-
+  var logger = new Logger("aqueduct");
+  hierarchicalLoggingEnabled = true;
+  logger.level = Level.ALL;
+  logger.onRecord.listen((r) => print("$r"));
   test("Graph fetch ensures primary key exists for all objects", () async {
   });
 

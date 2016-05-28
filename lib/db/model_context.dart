@@ -42,11 +42,6 @@ class ModelContext {
     return await persistentStore.executeDeleteQuery(new PersistentStoreQuery(dataModel.entityForType(query.modelType), persistentStore, query));
   }
 
-  Future<int> executeCountQuery(Query query) async {
-    var results = await persistentStore.executeCountQuery(new PersistentStoreQuery(dataModel.entityForType(query.modelType), persistentStore, query));
-    return results;
-  }
-
   List<Model> _coalesceAndMapRows(List<List<MappingElement>> elements, ModelEntity entity) {
     if (elements.length == 0) {
       return [];
@@ -59,7 +54,7 @@ class ModelContext {
       }).toList();
     }
 
-    // Need to order these by dependents, which I think we can do prior to them going into the grinder
+    // There needs to be tests to ensure that the order of JoinElements is dependent.
     var joinElements = elements.first
         .where((e) => e is JoinElement)
         .toList();
@@ -80,9 +75,7 @@ class ModelContext {
           matchMap[name] = {};
         });
 
-
     elements.forEach((row) {
-      // Fnd a better way to set lists to empty on instantiation of instance, if a join does exist..
       var primaryTypeInstance = _createInstanceIfNecessary(entity, row, primaryKeyColumnIndex, joinElements, matchMap).first;
       Map<ModelEntity, Model> instancesInThisRow = {entity : primaryTypeInstance};
 
@@ -97,8 +90,6 @@ class ModelContext {
             Model subInstance = subInstanceTuple.first;
             instancesInThisRow[joinElement.joinProperty.entity] = subInstance;
             if (subInstanceTuple.last) {
-              // This is a new element, associate it. Find the matching instance from THIS row and sets it dynamic backing for the inversePropertyName.
-
               RelationshipDescription owningModelPropertyDesc = joinElement.property;
               Model owningInstance = instancesInThisRow[owningModelPropertyDesc.entity];
 
@@ -115,28 +106,30 @@ class ModelContext {
     return matchMap[primaryTypeString].values.toList();
   }
 
+  // Returns a two element tuple, where the first element is the instance represented by mapping the columns across the mappingEntity. The second
+  // element is a boolean indicating if the instance was newly created (true) or already existed in the result set (false).
   List<dynamic> _createInstanceIfNecessary(ModelEntity mappingEntity, List<MappingElement> columns, int primaryKeyIndex, List<JoinElement> joinElements, Map<String, Map<dynamic, Model>> matchMap) {
     var primaryKeyValue = columns[primaryKeyIndex].value;
     if (primaryKeyValue == null) {
       return null;
     }
 
-    var primaryTypeInstance = matchMap[mappingEntity.tableName][primaryKeyValue];
+    var existingInstance = matchMap[mappingEntity.tableName][primaryKeyValue];
 
     var isNewInstance = false;
-    if (primaryTypeInstance == null) {
+    if (existingInstance == null) {
       isNewInstance = true;
-      primaryTypeInstance = mappingEntity.instanceFromMappingElements(columns);
+
+      existingInstance = mappingEntity.instanceFromMappingElements(columns);
       joinElements
           .where((je) => je.property.entity == mappingEntity && je.property.relationshipType == RelationshipType.hasMany)
           .forEach((je) {
-            primaryTypeInstance[je.property.name] = [];
-      });
-      matchMap[mappingEntity.tableName][primaryKeyValue] = primaryTypeInstance;
+            existingInstance[je.property.name] = [];
+          });
 
+      matchMap[mappingEntity.tableName][primaryKeyValue] = existingInstance;
     }
-    return [primaryTypeInstance, isNewInstance];
+    return [existingInstance, isNewInstance];
   }
-
 }
 

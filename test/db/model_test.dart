@@ -3,7 +3,7 @@ import 'package:test/test.dart';
 
 main() {
   var ps = new DefaultPersistentStore();
-  DataModel dm = new DataModel(ps, [TransientTest, User, Post]);
+  DataModel dm = new DataModel([TransientTest, User, Post]);
   ModelContext _ = new ModelContext(dm, ps);
 
   test("NoSuchMethod still throws", () {

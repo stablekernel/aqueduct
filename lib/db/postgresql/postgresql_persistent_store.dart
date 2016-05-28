@@ -62,13 +62,15 @@ class PostgreSQLPersistentStore extends PersistentStore {
     try {
       var dbConnection = await getDatabaseConnection();
       var results = null;
+
+      var now = new DateTime.now().toUtc();
       if (!returnCount) {
         results = (await dbConnection.query(formatString, values).toList().timeout(new Duration(seconds: timeoutInSeconds)));
       } else {
         results = (await dbConnection.execute(formatString, values).timeout(new Duration(seconds: timeoutInSeconds)));
       }
 
-      logger.fine("Query $formatString $values -> $results");
+      logger.fine(() => "Query (${(new DateTime.now().toUtc().difference(now).inMilliseconds)}ms) $formatString $values -> $results");
 
       return results;
     } on TimeoutException {
@@ -190,10 +192,6 @@ class PostgreSQLPersistentStore extends PersistentStore {
     var results = await _executeQuery(queryStringBuffer.toString(), updateValueMap, q.timeoutInSeconds);
 
     return _mappingElementsFromResults(results, q.resultKeys);
-  }
-
-  Future<int> executeCountQuery(PersistentStoreQuery q) async {
-
   }
 
   @override

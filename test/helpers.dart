@@ -19,7 +19,6 @@ Future<List<TestUser>> createUsers(int count) async {
 }
 
 class TestUser extends Model<_User> implements _User {}
-
 class _User implements Authenticatable {
   @primaryKey
   int id;
@@ -30,8 +29,6 @@ class _User implements Authenticatable {
 }
 
 class Token extends Model<_Token> implements _Token {}
-
-
 class _Token implements Tokenizable {
   @primaryKey
   int id;
@@ -120,7 +117,7 @@ Future<ModelContext> contextWithModels(List<Type> modelTypes) async {
     return await postgresql.connect(uri, timeZone: 'UTC');
   });
 
-  var dataModel = new DataModel(persistentStore, modelTypes);
+  var dataModel = new DataModel(modelTypes);
   var generator = new SchemaGenerator(persistentStore, dataModel);
   var json = generator.serialized;
   var pGenerator = new PostgreSQLSchemaGenerator(json, temporary: true);
@@ -136,9 +133,8 @@ Future<ModelContext> contextWithModels(List<Type> modelTypes) async {
 }
 
 String commandsForModelTypes(List<Type> modelTypes, {bool temporary: false}) {
-  var persistentStore = new DefaultPersistentStore();
-  var dataModel = new DataModel(persistentStore, modelTypes);
-  var generator = new SchemaGenerator(persistentStore, dataModel);
+  var dataModel = new DataModel(modelTypes);
+  var generator = new SchemaGenerator(new DefaultPersistentStore(), dataModel);
   var json = generator.serialized;
   var pGenerator = new PostgreSQLSchemaGenerator(json, temporary: temporary);
 

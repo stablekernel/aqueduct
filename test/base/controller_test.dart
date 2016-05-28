@@ -10,9 +10,8 @@ import 'dart:async';
 void main() {
   HttpServer server;
 
-  var ps = new DefaultPersistentStore();
-  DataModel dm = new DataModel(ps, [TestModel]);
-  ModelContext _ = new ModelContext(dm, ps);
+  DataModel dm = new DataModel([TestModel]);
+  ModelContext _ = new ModelContext(dm, new DefaultPersistentStore());
 
   tearDown(() async {
     await server?.close(force: true);

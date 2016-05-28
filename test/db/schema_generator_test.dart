@@ -3,9 +3,8 @@ import 'package:test/test.dart';
 
 void main() {
   test("A single, simple model", () {
-    var persistentStore = new DefaultPersistentStore();
-    var dataModel = new DataModel(persistentStore, [SimpleModel]);
-    var generator = new SchemaGenerator(persistentStore, dataModel);
+    var dataModel = new DataModel([SimpleModel]);
+    var generator = new SchemaGenerator(new DefaultPersistentStore(), dataModel);
     var json = generator.serialized;
     expect(json.length, 1);
     expect(json.first["op"], "table.add");
@@ -29,9 +28,8 @@ void main() {
   });
 
   test("An extensive model", () {
-    var persistentStore = new DefaultPersistentStore();
-    var dataModel = new DataModel(persistentStore, [ExtensiveModel]);
-    var generator = new SchemaGenerator(persistentStore, dataModel);
+    var dataModel = new DataModel([ExtensiveModel]);
+    var generator = new SchemaGenerator(new DefaultPersistentStore(), dataModel);
     var json = generator.serialized;
     expect(json.length, 1);
     expect(json.first["op"], "table.add");
@@ -131,9 +129,8 @@ void main() {
   });
 
   test("A model graph", () {
-    var persistentStore = new DefaultPersistentStore();
-    var dataModel = new DataModel(persistentStore, [Container, DefaultItem, LoadedItem, LoadedSingleItem]);
-    var generator = new SchemaGenerator(persistentStore, dataModel);
+    var dataModel = new DataModel([Container, DefaultItem, LoadedItem, LoadedSingleItem]);
+    var generator = new SchemaGenerator(new DefaultPersistentStore(), dataModel);
     var json = generator.serialized;
 
     expect(json.length, 4);

@@ -59,6 +59,7 @@ part 'db/model_entity.dart';
 part 'db/matcher_expression.dart';
 part 'db/persistent_store.dart';
 part 'db/model_context.dart';
+part 'db/persistent_store_query.dart';
 
 // PostgreSQL
 

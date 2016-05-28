@@ -2,10 +2,14 @@ import 'package:aqueduct/aqueduct.dart';
 import 'package:test/test.dart';
 
 void main() {
+  test("Can generate models appropriately", () {
+
+  });
+
   test("Delete rule of setNull throws exception if property is not nullable", () {
     var successful = false;
     try {
-      var _ = new DataModel(new DefaultPersistentStore(), [GenObj, GenNotNullable]);
+      var _ = new DataModel([GenObj, GenNotNullable]);
 
       successful = true;
     } catch (e) {
@@ -14,6 +18,16 @@ void main() {
     expect(successful, false);
   });
 }
+
+class TestUser extends Model<_User> implements _User {}
+class _User {
+  @primaryKey
+  int id;
+
+
+  String username;
+}
+
 
 class GenObj extends Model<_GenObj> implements _GenObj {}
 class _GenObj {

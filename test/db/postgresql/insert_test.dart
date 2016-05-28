@@ -211,10 +211,7 @@ void main() {
   });
 }
 
-@proxy
-class TestModel extends Model<_TestModel> implements _TestModel {
-}
-
+class TestModel extends Model<_TestModel> implements _TestModel {}
 class _TestModel {
   @primaryKey
   int id;
@@ -249,9 +246,7 @@ class _GenPost {
   GenUser owner;
 }
 
-@proxy
-class GenTime extends Model<_GenTime> implements _GenTime {
-}
+class GenTime extends Model<_GenTime> implements _GenTime {}
 
 class _GenTime {
   @primaryKey
@@ -263,11 +258,9 @@ class _GenTime {
   DateTime dateCreated;
 }
 
-@proxy
 class TransientModel extends Model<_Transient> implements _Transient {
   @mappable
   String transientValue;
-
 }
 
 class _Transient {

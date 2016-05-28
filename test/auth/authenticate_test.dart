@@ -168,6 +168,7 @@ void main() {
     expect(n1.accessToken != t1.accessToken, true);
     expect(n2.accessToken != t2.accessToken, true);
 
+
     p1 = await auth.verify(n1.accessToken);
     p2 = await auth.verify(n2.accessToken);
     expect(p1.resourceOwnerIdentifier, user.id);

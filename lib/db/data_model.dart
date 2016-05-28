@@ -1,15 +1,14 @@
 part of aqueduct;
 
 class DataModel {
-  DataModel(this.persistentStore, List<Type> modelTypes) {
+  DataModel(List<Type> modelTypes) {
     _buildEntities(modelTypes);
   }
 
-  DataModel.fromModelBundle(this.persistentStore, String modelBundlePath) {
+  DataModel.fromModelBundle(String modelBundlePath) {
     // This would build the model from a series of schema files.
   }
 
-  final PersistentStore persistentStore;
   Map<Type, ModelEntity> _entities = {};
   Map<Type, ModelEntity> _persistentTypeToEntityMap = {};
 

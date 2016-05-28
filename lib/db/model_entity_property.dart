@@ -49,8 +49,6 @@ class PropertyDescription {
   }
 
   bool isAssignableWith(dynamic dartValue) {
-    new Logger("aqueduct").info("$dartValue ${type}");
-
     switch(type) {
       case PropertyType.integer: return dartValue is int;
       case PropertyType.bigInteger: return dartValue is int;

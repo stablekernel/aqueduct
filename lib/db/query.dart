@@ -127,6 +127,8 @@ class Query<ModelType extends Model> {
   ///       q.predicate = new Predicate("id = @id", {"id" : 1});
   ///       var user = await q.fetchOne(adapter);
   Future<ModelType> fetchOne({ModelContext context: null}) async {
+    fetchLimit = 1;
+
     var results = await (context ?? ModelContext.defaultContext).executeFetchQuery(this);
     if (results.length == 1) {
       return results.first;
@@ -146,18 +148,6 @@ class Query<ModelType extends Model> {
   ///
   Future<int> delete({ModelContext context: null}) async {
     return await (context ?? ModelContext.defaultContext).executeDeleteQuery(this); // or null
-  }
-
-  /// Returns the number of rows matching this [Query] in the database represented by [context] (defaults to [ModelContext.defaultContext]).
-  ///
-  /// This method will return the number of rows identified by [predicate] or [predicateObject]
-  /// from the database represented by [adapter]. Example:
-  ///
-  /// var q = new Query<User>();
-  /// var count = await q.count(adapter);
-  ///
-  Future<int> count({ModelContext context: null}) async {
-    return await (context ?? ModelContext.defaultContext).executeCountQuery(this); // or null
   }
 
   Predicate _compilePredicate(DataModel dataModel, PersistentStore) {
