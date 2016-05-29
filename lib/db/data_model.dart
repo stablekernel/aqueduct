@@ -13,11 +13,7 @@ class DataModel {
   Map<Type, ModelEntity> _persistentTypeToEntityMap = {};
 
   ModelEntity entityForType(Type t) {
-    var entity = _entities[t] ?? _persistentTypeToEntityMap[t];
-    if (entity == null) {
-      throw new DataModelException("Unknown ModelEntity for ${MirrorSystem.getName(reflectType(t).simpleName)}");
-    }
-    return entity;
+    return _entities[t] ?? _persistentTypeToEntityMap[t];
   }
 
   void _buildEntities(List<Type> modelTypes) {

@@ -1,6 +1,10 @@
 part of aqueduct;
 
 class ModelEntity {
+
+  /// Creates an instance of a ModelEntity.
+  ///
+  /// You should never call this method directly, it will be called by [DataModel] instances.
   ModelEntity(this.dataModel, this.instanceTypeMirror, this.persistentInstanceTypeMirror) {
 
   }
@@ -16,6 +20,8 @@ class ModelEntity {
   /// Model objects are made up of two components, a persistent type and an instance type. This value
   /// is the [ClassMirror] on the persistent portion of a [Model] object.
   final ClassMirror persistentInstanceTypeMirror;
+
+  /// The [DataModel] this instance belongs to.
   final DataModel dataModel;
 
   /// All attribute values of this entity.
