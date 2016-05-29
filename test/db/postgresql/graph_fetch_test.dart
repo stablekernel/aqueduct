@@ -4,16 +4,6 @@ import 'dart:async';
 import '../../helpers.dart';
 
 void main() {
-  var logger = new Logger("aqueduct");
-  hierarchicalLoggingEnabled = true;
-  logger.level = Level.ALL;
-  logger.onRecord.listen((r) => print("$r"));
-  test("Graph fetch ensures primary key exists for all objects", () async {
-  });
-
-  test("Graph fetch ensures foreign key exists for all objects", () async {
-  });
-
   group("Tomany graph", () {
     ModelContext context = null;
     List<User> sourceUsers;
@@ -337,6 +327,21 @@ void main() {
         expect(u.dynamicBacking.length, 1);
         expect(u.id, 1);
       }
+    });
+
+    test("Can fetch graph when omitting foreign or primary keys from query", () async {
+      var q = new UserQuery()
+        ..resultKeys = ["name"]
+        ..locations = [
+          new LocationQuery()
+            ..resultKeys = ["name"]
+        ];
+
+      var users = await q.fetch();
+      expect(users.first.name, isNotNull);
+      expect(users.first.id, isNotNull);
+      expect(users.first.locations.length, greaterThan(0));
+      expect(users.first.locations.first.name, isNotNull);
     });
   });
 

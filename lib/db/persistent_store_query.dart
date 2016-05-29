@@ -56,6 +56,10 @@ class PersistentStoreQuery {
   }
 
   static List<MappingElement> _mappingElementsForList(List<String> keys, ModelEntity entity) {
+    if (!keys.contains(entity.primaryKey)) {
+      keys.add(entity.primaryKey);
+    }
+
     return keys.map((key) {
       var property = entity.properties[key];
       if (property == null) {
