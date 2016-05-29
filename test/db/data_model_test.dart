@@ -44,6 +44,17 @@ void main() {
       });
     });
 
+    test("Relationships aren't attributes and vice versa", () {
+      expect(dataModel.entityForType(User).relationships["id"], isNull);
+      expect(dataModel.entityForType(User).attributes["id"], isNotNull);
+
+      expect(dataModel.entityForType(User).attributes["manager"], isNull);
+      expect(dataModel.entityForType(User).relationships["manager"], isNotNull);
+
+      expect(dataModel.entityForType(Manager).attributes["worker"], isNull);
+      expect(dataModel.entityForType(Manager).relationships["worker"], isNotNull);
+    });
+
     test("Entities have appropriate metadata", () {
       var entity = dataModel.entityForType(User);
       expect(entity.tableName, "_User");
