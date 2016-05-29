@@ -113,7 +113,7 @@ class PostgreSQLPersistentStore extends PersistentStore {
     var mapElementToString = (MappingElement e) => "${e.property.entity.tableName}.${columnNameForProperty(e.property)}";
     var selectColumns =  q.resultKeys
         .map((mapElement) {
-          if (mapElement is JoinElement) {
+          if (mapElement is JoinMappingElement) {
             return mapElement.resultKeys.map(mapElementToString).join(",");
           } else {
             return mapElementToString(mapElement);
@@ -122,8 +122,8 @@ class PostgreSQLPersistentStore extends PersistentStore {
 
     queryStringBuffer.write("$selectColumns from ${q.entity.tableName} ");
 
-    q.resultKeys.where((mapElement) => mapElement is JoinElement)
-        .forEach((JoinElement joinElement) {
+    q.resultKeys.where((mapElement) => mapElement is JoinMappingElement)
+        .forEach((JoinMappingElement joinElement) {
           queryStringBuffer.write("${_joinStringForJoin(joinElement)} ");
           if (joinElement.predicate != null) {
             predicateValueMap.addAll(joinElement.predicate.parameters);
@@ -243,14 +243,14 @@ class PostgreSQLPersistentStore extends PersistentStore {
       while (columnDefinitionIterator.moveNext()) {
         var element = columnDefinitionIterator.current;
 
-        if (element is JoinElement) {
+        if (element is JoinMappingElement) {
           var innerColumnIterator = element.resultKeys.iterator;
           var innerResultColumns = [];
           while (innerColumnIterator.moveNext()) {
             rowIterator.moveNext();
             innerResultColumns.add(new MappingElement.fromElement(innerColumnIterator.current, rowIterator.current));
           }
-          resultColumns.add(new JoinElement.fromElement(element, innerResultColumns));
+          resultColumns.add(new JoinMappingElement.fromElement(element, innerResultColumns));
         } else {
           rowIterator.moveNext();
           resultColumns.add(new MappingElement.fromElement(element, rowIterator.current));
@@ -317,7 +317,7 @@ class PostgreSQLPersistentStore extends PersistentStore {
         {"inq_page_value": query.pageDescriptor.referenceValue});
   }
 
-  String _joinStringForJoin(JoinElement ji) {
+  String _joinStringForJoin(JoinMappingElement ji) {
     var parentEntity = ji.property.entity;
     var childEntity = ji.joinProperty.entity;
     var predicate = new Predicate("${parentEntity.tableName}.${columnNameForProperty(parentEntity.properties[parentEntity.primaryKey])}=${childEntity.tableName}.${columnNameForProperty(ji.joinProperty)}", {});

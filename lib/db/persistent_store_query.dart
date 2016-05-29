@@ -16,7 +16,7 @@ class PersistentStoreQuery {
   QueryPage pageDescriptor;
   List<SortDescriptor> sortDescriptors;
   Predicate predicate;
-  JoinElement joinInfo;
+  JoinMappingElement joinInfo;
   List<MappingElement> values;
   List<MappingElement> resultKeys;
 
@@ -99,13 +99,13 @@ class PersistentStoreQuery {
     ?.toList();
   }
 
-  static List<JoinElement> _joinsForQuery(PersistentStore store, ModelQuery query, String subQueryKey) {
+  static List<JoinMappingElement> _joinsForQuery(PersistentStore store, ModelQuery query, String subQueryKey) {
     var relationship = query.entity.relationships[subQueryKey];
     var destinationEntity = relationship.destinationEntity;
     var subQuery = query.subQueries[subQueryKey];
 
     var mappingElements = _mappingElementsForList(subQuery.resultKeys ?? destinationEntity.defaultProperties, destinationEntity);
-    var thisJoin = new JoinElement(JoinType.leftOuter, relationship, subQuery._compilePredicate(query.entity.dataModel, store), mappingElements);
+    var thisJoin = new JoinMappingElement(JoinType.leftOuter, relationship, subQuery._compilePredicate(query.entity.dataModel, store), mappingElements);
 
     var subSubQueryJoins = subQuery.subQueries.keys.map((innerSubqueryKey) {
       return _joinsForQuery(store, subQuery, innerSubqueryKey);
@@ -135,11 +135,11 @@ enum JoinType {
   leftOuter
 }
 
-class JoinElement extends MappingElement {
-  JoinElement(this.type, PropertyDescription property, this.predicate, this.resultKeys) : super(property, null) {
+class JoinMappingElement extends MappingElement {
+  JoinMappingElement(this.type, PropertyDescription property, this.predicate, this.resultKeys) : super(property, null) {
     primaryKeyIndex = this.resultKeys.indexOf(this.resultKeys.firstWhere((e) => e.property is AttributeDescription && e.property.isPrimaryKey));
   }
-  JoinElement.fromElement(JoinElement original, List<MappingElement> values) : super.fromElement(original, values) {
+  JoinMappingElement.fromElement(JoinMappingElement original, List<MappingElement> values) : super.fromElement(original, values) {
     type = original.type;
     primaryKeyIndex = original.primaryKeyIndex;
   }

@@ -5,9 +5,7 @@ class ModelEntity {
   /// Creates an instance of a ModelEntity.
   ///
   /// You should never call this method directly, it will be called by [DataModel] instances.
-  ModelEntity(this.dataModel, this.instanceTypeMirror, this.persistentInstanceTypeMirror) {
-
-  }
+  ModelEntity(this.dataModel, this.instanceTypeMirror, this.persistentInstanceTypeMirror);
 
   /// The type of instances represented by this entity.
   ///
@@ -83,9 +81,9 @@ class ModelEntity {
 
   /// Name of table in database.
   ///
-  /// By default, the table will be named by the backing type, e.g., a model class defined as class User extends Model<_User> implements _User has a backing
-  /// type of _User. The table will be named _User. You may implement the static method tableName that returns a [String] to change this table name
-  /// to that methods returned value.
+  /// By default, the table will be named by the persistent type, e.g., a model class defined as class User extends Model<_User> implements _User has a persistent
+  /// type of _User. The table will be named _User. You may implement the static method [tableName] on the persistent type to return a [String] table
+  /// name override this behavior. If this method is implemented, this property will be the returned [String].
   String get tableName {
     return _tableName;
   }
@@ -96,11 +94,17 @@ class ModelEntity {
     return tableName.hashCode;
   }
 
+  /// Creates an instance of this entity from a list of [MappingElement]s.
+  ///
+  /// This method is used by a [ModelContext] to instantiate entities from a row
+  /// returned from a database. It will initialize all column values, including belongsTo
+  /// relationships. It will not populate data from hasMany or hasOne relationships
+  /// that were populated in a join query, as this is the responsibility of the context.
   Model instanceFromMappingElements(List<MappingElement> elements) {
     Model instance = instanceTypeMirror.newInstance(new Symbol(""), []).reflectee;
 
     elements.forEach((e) {
-      if (e is! JoinElement) {
+      if (e is! JoinMappingElement) {
         if (e.property is RelationshipDescription) {
           // A belongsTo relationship, keep the foreign key.
           if (e.value != null) {

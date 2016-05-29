@@ -5,6 +5,8 @@ import 'dart:mirrors';
 void main() {
   group("Valid data model", () {
     var dataModel = new DataModel([User, Item, Manager]);
+    var context = new ModelContext(dataModel, new DefaultPersistentStore());
+    ModelContext.defaultContext = context;
 
     test("Entities have appropriate types", () {
       var entity = dataModel.entityForType(User);
@@ -140,6 +142,38 @@ void main() {
       expect(relDesc.relationshipType, RelationshipType.hasOne);
 
       expect(entity.relationships["items"].relationshipType, RelationshipType.hasMany);
+    });
+
+    test("Instances created from entity only have mapped elements", () {
+      var entity = dataModel.entityForType(User);
+      User instance = entity.instanceFromMappingElements([new MappingElement(entity.attributes["id"], 2)]);
+      expect(instance.id, 2);
+      expect(instance.loadedTimestamp, isNull);
+      expect(instance.manager, isNull);
+      expect(instance.items, isNull);
+    });
+
+    test("Instances created from entity contain belongsTo relationships as model objects", () {
+      var entity = dataModel.entityForType(Item);
+      Item instance = entity.instanceFromMappingElements([
+        new MappingElement(entity.attributes["name"], "foo"),
+        new MappingElement(entity.relationships["user"], 1)
+      ]);
+      expect(instance.name, "foo");
+      expect(instance.user is User, true);
+      expect(instance.user.id, 1);
+    });
+
+    test("Instances created from entity omit joined element", () {
+      var entity = dataModel.entityForType(User);
+      User instance = entity.instanceFromMappingElements([
+        new MappingElement(entity.attributes["id"], 2),
+        new JoinMappingElement(JoinType.leftOuter, entity.attributes["items"], null, [
+          new MappingElement(dataModel.entityForType(Item).attributes["name"], "foobar")
+        ])
+      ]);
+      expect(instance.id, 2);
+      expect(instance.items, isNull);
     });
   });
 

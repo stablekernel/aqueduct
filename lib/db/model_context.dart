@@ -48,7 +48,7 @@ class ModelContext {
     }
 
     // If we don't have any JoinElements, we should avoid doing anything special.
-    if (!elements.first.any((e) => e is JoinElement)) {
+    if (!elements.first.any((e) => e is JoinMappingElement)) {
       return elements.map((row) {
         return entity.instanceFromMappingElements(row);
       }).toList();
@@ -56,7 +56,7 @@ class ModelContext {
 
     // There needs to be tests to ensure that the order of JoinElements is dependent.
     var joinElements = elements.first
-        .where((e) => e is JoinElement)
+        .where((e) => e is JoinMappingElement)
         .toList();
 
     var joinElementIndexes = joinElements
@@ -70,7 +70,7 @@ class ModelContext {
     var primaryTypeString = entity.tableName;
     matchMap[primaryTypeString] = {};
     joinElements
-        .map((JoinElement e) => e.joinProperty.entity.tableName)
+        .map((JoinMappingElement e) => e.joinProperty.entity.tableName)
         .forEach((name) {
           matchMap[name] = {};
         });
@@ -81,7 +81,7 @@ class ModelContext {
 
       joinElementIndexes
           .map((joinIndex) => row[joinIndex])
-          .forEach((JoinElement joinElement) {
+          .forEach((JoinMappingElement joinElement) {
             var subInstanceTuple = _createInstanceIfNecessary(joinElement.joinProperty.entity, joinElement.values, joinElement.primaryKeyIndex, joinElements, matchMap);
             if (subInstanceTuple == null) {
               return;
@@ -108,7 +108,7 @@ class ModelContext {
 
   // Returns a two element tuple, where the first element is the instance represented by mapping the columns across the mappingEntity. The second
   // element is a boolean indicating if the instance was newly created (true) or already existed in the result set (false).
-  List<dynamic> _createInstanceIfNecessary(ModelEntity mappingEntity, List<MappingElement> columns, int primaryKeyIndex, List<JoinElement> joinElements, Map<String, Map<dynamic, Model>> matchMap) {
+  List<dynamic> _createInstanceIfNecessary(ModelEntity mappingEntity, List<MappingElement> columns, int primaryKeyIndex, List<JoinMappingElement> joinElements, Map<String, Map<dynamic, Model>> matchMap) {
     var primaryKeyValue = columns[primaryKeyIndex].value;
     if (primaryKeyValue == null) {
       return null;
