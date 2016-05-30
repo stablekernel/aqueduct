@@ -17,7 +17,7 @@ void main() {
     context = await contextWithModels([TestModel]);
 
     var insertReq = new Query<TestModel>()
-      ..values = {
+      ..valueMap = {
         "name": "bob",
         "emailAddress": "bk@a.com",
         "bad_key": "doesntmatter"
@@ -42,10 +42,10 @@ void main() {
       ..name = "bob"
       ..emailAddress = "dup@a.com";
 
-    var insertReq = new Query<TestModel>()..valueObject = m;
+    var insertReq = new Query<TestModel>()..values = m;
     await insertReq.insert();
 
-    var insertReqDup = new Query<TestModel>()..valueObject = m;
+    var insertReqDup = new Query<TestModel>()..values = m;
 
     var successful = false;
     try {
@@ -58,7 +58,7 @@ void main() {
     expect(successful, false);
 
     m.emailAddress = "dup1@a.com";
-    var insertReqFollowup = new Query<TestModel>()..valueObject = m;
+    var insertReqFollowup = new Query<TestModel>()..values = m;
 
     var result = await insertReqFollowup.insert();
 
@@ -72,7 +72,7 @@ void main() {
       ..name = "bob"
       ..emailAddress = "1@a.com";
 
-    var insertReq = new Query<TestModel>()..valueObject = m;
+    var insertReq = new Query<TestModel>()..values = m;
 
     var result = await insertReq.insert();
 
@@ -89,13 +89,12 @@ void main() {
       ..name = "bob"
       ..emailAddress = "2@a.com";
 
-    var insertReq = new Query<TestModel>()..valueObject = m;
+    var insertReq = new Query<TestModel>()..values = m;
 
     var result = await insertReq.insert();
 
     var readReq = new Query<TestModel>()
-      ..predicate =
-          new Predicate("emailAddress = @email", {"email": "2@a.com"});
+      ..predicate = new Predicate("emailAddress = @email", {"email": "2@a.com"});
 
     result = await readReq.fetchOne();
     expect(result.name, "bob");
@@ -106,7 +105,7 @@ void main() {
 
     var m = new TestModel()..emailAddress = "required@a.com";
 
-    var insertReq = new Query<TestModel>()..valueObject = m;
+    var insertReq = new Query<TestModel>()..values = m;
 
     var successful = false;
     try {
@@ -123,7 +122,7 @@ void main() {
     context = await contextWithModels([TestModel]);
 
     var insertReq = new Query<TestModel>()
-      ..values = {"id": 20, "name": "Bob"}
+      ..valueMap = {"id": 20, "name": "Bob"}
       ..resultKeys = ["id", "name"];
 
     var value = await insertReq.insert();
@@ -132,7 +131,7 @@ void main() {
     expect(value.asMap().containsKey("emailAddress"), false);
 
     insertReq = new Query<TestModel>()
-      ..values = {"id": 21, "name": "Bob"}
+      ..valueMap = {"id": 21, "name": "Bob"}
       ..resultKeys = ["id", "name", "emailAddress"];
 
     value = await insertReq.insert();
@@ -148,14 +147,14 @@ void main() {
 
     var u = new GenUser()..name = "Joe";
     var q = new Query<GenUser>()
-      ..valueObject = u;
+      ..values = u;
     u = await q.insert();
 
     var p = new GenPost()
       ..owner = u
       ..text = "1";
     q = new Query<GenPost>()
-      ..valueObject = p;
+      ..values = p;
     p = await q.insert();
 
     expect(p.id, greaterThan(0));
@@ -167,7 +166,7 @@ void main() {
 
     var t = new GenTime()..text = "hey";
 
-    var q = new Query<GenTime>()..valueObject = t;
+    var q = new Query<GenTime>()..values = t;
 
     var result = await q.insert();
 
@@ -180,7 +179,7 @@ void main() {
 
     var t = new TransientModel()..value = "foo";
 
-    var q = new Query<TransientModel>()..valueObject = t;
+    var q = new Query<TransientModel>()..values = t;
     var result = await q.insert();
     expect(result.transientValue, null);
   });
@@ -199,7 +198,7 @@ void main() {
       ..readMap(json);
 
     var q = new Query<GenUser>()
-      ..valueObject = u;
+      ..values = u;
 
     var result = await q.insert();
     expect(result.id, greaterThan(0));

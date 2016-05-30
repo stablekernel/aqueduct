@@ -11,7 +11,7 @@ Future<List<TestUser>> createUsers(int count) async {
       ..salt = salt
       ..hashedPassword = AuthenticationServer.generatePasswordHash("foobaraxegrind21%", salt);
 
-    var q = new Query<TestUser>()..valueObject = u;
+    var q = new Query<TestUser>()..values = u;
     var insertedUser = await q.insert();
     users.add(insertedUser);
   }
@@ -79,7 +79,7 @@ class AuthDelegate<User extends Model, T extends Model> implements Authenticatio
 
   Future storeToken(AuthenticationServer server, T t) async {
     var tokenQ = new Query<T>();
-    tokenQ.valueObject = t;
+    tokenQ.values = t;
     await tokenQ.insert();
   }
 

@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../helpers.dart';
 
-main() async {
+main() {
   ModelContext context = null;
   HttpServer server = null;
 
@@ -64,7 +64,8 @@ class TestModelController extends ModelController<TestModel> {
     if (query == null) {
       statusCode = 400;
     }
-    if (query.valueObject != null) {
+
+    if (query.values.dynamicBacking.length != 0) {
       statusCode = 400;
     }
 
@@ -74,9 +75,6 @@ class TestModelController extends ModelController<TestModel> {
   @httpGet getOne(int id) async {
     int statusCode = 200;
 
-    if (query.valueObject != null) {
-      statusCode = 400;
-    }
     if (query == null) {
       statusCode = 400;
     }
@@ -86,7 +84,7 @@ class TestModelController extends ModelController<TestModel> {
       statusCode = 400;
     }
 
-    if (query.valueObject != null) {
+    if (query.values.dynamicBacking.length != 0) {
       statusCode = 400;
     }
 
@@ -96,10 +94,10 @@ class TestModelController extends ModelController<TestModel> {
   @httpPut putOne(int id) async {
     int statusCode = 200;
 
-    if (query.valueObject == null) {
+    if (query.values == null) {
       statusCode = 400;
     }
-    if (query.valueObject.name != "joe") {
+    if (query.values.name != "joe") {
       statusCode = 400;
     }
     if (query == null) {
@@ -111,11 +109,11 @@ class TestModelController extends ModelController<TestModel> {
       statusCode = 400;
     }
 
-    if (query.valueObject == null) {
+    if (query.values == null) {
       statusCode = 400;
     }
 
-    if (query.valueObject.name != "joe") {
+    if (query.values.name != "joe") {
       statusCode = 400;
     }
 
@@ -124,10 +122,10 @@ class TestModelController extends ModelController<TestModel> {
 
   @httpPost create() async {
     int statusCode = 200;
-    if (query.valueObject == null) {
+    if (query.values == null) {
       statusCode = 400;
     }
-    if (query.valueObject.name != "joe") {
+    if (query.values.name != "joe") {
       statusCode = 400;
     }
     if (query == null) {

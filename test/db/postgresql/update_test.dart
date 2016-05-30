@@ -17,7 +17,7 @@ void main() {
       ..name = "Bob"
       ..emailAddress = "1@a.com";
 
-    var req = new Query<TestModel>()..valueObject = m;
+    var req = new Query<TestModel>()..values = m;
     await req.insert();
 
     m
@@ -26,7 +26,7 @@ void main() {
 
     req = new Query<TestModel>()
       ..predicate = new Predicate("name = @name", {"name": "Bob"})
-      ..valueObject = m;
+      ..values = m;
 
     var response = await req.update();
     var result = response.first;
@@ -41,32 +41,32 @@ void main() {
     var parent = new Parent()
       ..name = "Bob";
     var q = new Query<Parent>()
-      ..valueObject = parent;
+      ..values = parent;
     parent = await q.insert();
 
     var child = new Child()
       ..name = "Fred"
       ..parent = parent;
     q = new Query<Child>()
-      ..valueObject = child;
+      ..values = child;
     child = await q.insert();
     expect(child.parent.id, parent.id);
 
     q = new ModelQuery<Child>()
       ..["id"] = whereEqualTo(child.id)
-      ..valueObject = (new Child()..parent = null);
+      ..values = (new Child()..parent = null);
     child = (await q.update()).first;
     expect(child.parent, isNull);
   });
 
-  test("Updating non-existent object fails", () async {
+  test("Updating non-existent object does nothing", () async {
     context = await contextWithModels([TestModel]);
 
     var m = new TestModel()
       ..name = "Bob"
       ..emailAddress = "1@a.com";
 
-    var req = new Query<TestModel>()..valueObject = m;
+    var req = new Query<TestModel>()..values = m;
     await req.insert();
 
     m
@@ -75,7 +75,7 @@ void main() {
 
     req = new Query<TestModel>()
       ..predicate = new Predicate("name = @name", {"name": "John"})
-      ..valueObject = m;
+      ..values = m;
 
     var response = await req.update();
     expect(response.length, 0);
@@ -84,7 +84,40 @@ void main() {
     response = await req.fetchOne();
     expect(response.name, "Bob");
     expect(response.emailAddress, "1@a.com");
+  });
 
+  test("Update object with ModelQuery", () async {
+    new Logger("aqueduct").onRecord.listen((r) => print("$r"));
+    context = await contextWithModels([TestModel]);
+
+    var m1 = new TestModel()
+      ..name = "Bob"
+      ..emailAddress = "1@a.com";
+
+    var req = new Query<TestModel>()..values = m1;
+    m1 = await req.insert();
+
+    var m2 = new TestModel()
+      ..name = "Fred"
+      ..emailAddress = "2@a.com";
+
+    req = new Query<TestModel>()..values = m2;
+    await req.insert();
+
+    var q = new ModelQuery<TestModel>()
+      ..["name"] = "Bob"
+      ..values = (new TestModel()..emailAddress = "3@a.com");
+
+    List<TestModel> results = await q.update();
+    expect(results, hasLength(1));
+    expect(results.first.id, m1.id);
+    expect(results.first.emailAddress, "3@a.com");
+    expect(results.first.name, "Bob");
+
+  });
+
+  test("Update object and", () async {
+    context = await contextWithModels([TestModel]);
   });
 }
 

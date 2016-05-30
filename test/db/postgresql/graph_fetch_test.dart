@@ -15,18 +15,15 @@ void main() {
       // Create a bunch of sample data
       sourceUsers = await Future.wait(userNames.map((name) {
         var q = new Query<User>()
-          ..valueObject = (new User()
-            ..name = name);
+          ..values.name = name;
         return q.insert();
       }));
 
       var locationCreator = (List<String> names, User u) {
         return names.map((name) {
           var q = new Query<Location>()
-            ..valueObject = (new Location()
-              ..name = name
-              ..user = (new User()
-                ..id = u.id));
+            ..values.name = name
+            ..values.user = (new User()..id = u.id);
           return q.insert();
         });
       };
@@ -40,11 +37,9 @@ void main() {
       var equipmentCreator = (List<List<String>> pairs, Location loc) {
         return pairs.map((pair) {
           var q = new Query<Equipment>()
-            ..valueObject = (new Equipment()
-              ..name = pair.first
-              ..type = pair.last
-              ..location = (new Location()
-                ..id = loc.id));
+            ..values.name = pair.first
+            ..values.type = pair.last
+            ..values.location = (new Location()..id = loc.id);
           return q.insert();
         });
       };
@@ -354,16 +349,14 @@ void main() {
       var o = ["A", "B", "C"];
       var owners = await Future.wait(o.map((x) {
         var q = new Query<Owner>()
-          ..valueObject = (new Owner()
-            ..name = x);
+          ..values.name = x;
         return q.insert();
       }));
 
       for (var o in owners) {
         var q = new Query<Owned>()
-            ..valueObject = (new Owned()
-              ..name = "${o.name}1"
-              ..owner = (new Owner()..id = o.id));
+          ..values.name = "${o.name}1"
+          ..values.owner = (new Owner()..id = o.id);
         await q.insert();
       }
     });

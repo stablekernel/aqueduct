@@ -16,7 +16,7 @@ void main() {
     var m = new TestModel()
       ..email = "a@a.com"
       ..name = "joe";
-    var req = new Query<TestModel>()..valueObject = m;
+    var req = new Query<TestModel>()..values = m;
 
     var inserted = await req.insert();
     expect(inserted.id, greaterThan(0));
@@ -43,7 +43,7 @@ void main() {
         ..email = "${i}@a.com"
         ..name = "joe";
 
-      var req = new Query<TestModel>()..valueObject = m;
+      var req = new Query<TestModel>()..values = m;
 
       await req.insert();
     }
@@ -69,7 +69,7 @@ void main() {
         ..email = "${i}@a.com"
         ..name = "joe";
 
-      var req = new Query<TestModel>()..valueObject = m;
+      var req = new Query<TestModel>()..values = m;
 
       await req.insert();
     }
@@ -91,11 +91,11 @@ void main() {
     context = await contextWithModels([TestModel, RefModel]);
 
     var obj = new TestModel()..name = "a";
-    var req = new Query<TestModel>()..valueObject = obj;
+    var req = new Query<TestModel>()..values = obj;
     var testObj = await req.insert();
 
     obj = new RefModel()..test = testObj;
-    req = new Query<RefModel>()..valueObject = obj;
+    req = new Query<RefModel>()..values = obj;
     var refObj = await req.insert();
 
     req = new Query<TestModel>();
@@ -111,11 +111,11 @@ void main() {
     context = await contextWithModels([GRestrict, GRestrictInverse]);
 
     var obj = new GRestrictInverse()..name = "a";
-    var req = new Query<GRestrictInverse>()..valueObject = obj;
+    var req = new Query<GRestrictInverse>()..values = obj;
     var testObj = await req.insert();
 
     obj = new GRestrict()..test = testObj;
-    req = new Query<GRestrict>()..valueObject = obj;
+    req = new Query<GRestrict>()..values = obj;
     await req.insert();
 
     var successful = false;
@@ -134,11 +134,11 @@ void main() {
     context = await contextWithModels([GCascade, GCascadeInverse]);
 
     var obj = new GCascadeInverse()..name = "a";
-    var req = new Query<GCascadeInverse>()..valueObject = obj;
+    var req = new Query<GCascadeInverse>()..values = obj;
     var testObj = await req.insert();
 
     obj = new GCascade()..test = testObj;
-    req = new Query<GCascade>()..valueObject = obj;
+    req = new Query<GCascade>()..values = obj;
     await req.insert();
 
     req = new Query<GCascadeInverse>();

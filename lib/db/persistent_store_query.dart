@@ -47,11 +47,7 @@ class PersistentStoreQuery {
     q._compilePredicate(entity.dataModel, store);
     predicate = q._compilePredicate(entity.dataModel, store);
 
-    if (q.valueObject != null && q.values != null) {
-      throw new QueryException(500, "Query has both values and valueObject set", -1);
-    }
-
-    values = _mappingElementsForMap((q.values ?? q.valueObject?.dynamicBacking), this.entity);
+    values = _mappingElementsForMap((q.valueMap ?? q.values?.dynamicBacking), this.entity);
     resultKeys = _mappingElementsForList((q.resultKeys ?? entity.defaultProperties), this.entity);
   }
 

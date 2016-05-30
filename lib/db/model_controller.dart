@@ -10,6 +10,7 @@ class ModelController<T extends Model> extends HttpController {
   @override
   Future<RequestHandlerResult> willProcessRequest(ResourceRequest req) async {
     var firstVarName = req.path.firstVariableName;
+
     if (firstVarName != null) {
       var idValue = req.path.variables[firstVarName];
 
@@ -40,9 +41,9 @@ class ModelController<T extends Model> extends HttpController {
   @override
   void didDecodeRequestBody(Map <String, dynamic> bodyMap) {
     var reflectedModel = reflectClass(T).newInstance(new Symbol(""), []);
-    query.valueObject = reflectedModel.reflectee;
-    query.valueObject.readMap(bodyMap);
+    query.values = reflectedModel.reflectee;
+    query.values.readMap(bodyMap);
 
-    query.valueObject.dynamicBacking.remove(query.valueObject.entity.primaryKey);
+    query.values.dynamicBacking.remove(query.values.entity.primaryKey);
   }
 }

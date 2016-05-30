@@ -53,12 +53,12 @@ class Query<ModelType extends Model> {
 
   /// Values to be used when inserting or updating an object.
   ///
-  /// Keys must be the name of the property on the model object. Prefer to use [valueObject] instead.
-  Map<String, dynamic> values;
+  /// Keys must be the name of the property on the model object. Prefer to use [values] instead.
+  Map<String, dynamic> valueMap;
 
   /// Values to be used when inserting or updating an object.
   ///
-  /// Will generate the [values] for this [Query] using values from this object. For example, the following
+  /// Will generate the [valueMap] for this [Query] using values from this object. For example, the following
   /// code would generate the values map {'name' = 'Joe', 'id' = 2}:
   ///     var user = new User()
   ///       ..name = 'Joe'
@@ -66,7 +66,16 @@ class Query<ModelType extends Model> {
   ///     var q = new Query<User>()
   ///       ..valueObject = user;
   ///
-  ModelType valueObject;
+  ModelType get values {
+    if (_valueObject == null) {
+      _valueObject = reflectClass(ModelType).newInstance(new Symbol(""), []).reflectee;
+    }
+    return _valueObject;
+  }
+  void set values(ModelType obj) {
+    _valueObject = obj;
+  }
+  ModelType _valueObject;
 
   /// A list of properties to be returned by the Query.
   ///
@@ -78,7 +87,7 @@ class Query<ModelType extends Model> {
 
   /// Inserts the data represented by this Query into the database represented by [context] (defaults to [ModelContext.defaultContext]).
   ///
-  /// The [Query] must have its [valueObject] or [values] property set. This action method will
+  /// The [Query] must have its [values] or [valueMap] property set. This action method will
   /// insert a row with the data supplied in those fields to the database represented by [adapter]. The return value is
   /// a [Future] with the inserted object. Example:
   ///
@@ -93,7 +102,7 @@ class Query<ModelType extends Model> {
   /// Updates rows in the database represented by [context] (defaults to [ModelContext.defaultContext]).
   ///
   /// Update queries update the values of the rows identified by [predicate] or [predicateObject]
-  /// with the values in [valueObject] or [values] in the database represented by [adapter]. Example:
+  /// with the values in [values] or [valueMap] in the database represented by [adapter]. Example:
   ///
   ///       var existingUser = ...;
   ///       existingUser.name = "Bob";

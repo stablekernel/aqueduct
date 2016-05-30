@@ -17,7 +17,7 @@ void main() {
       ..name = "Joe"
       ..email = "a@a.com";
 
-    var req = new Query<TestModel>()..valueObject = m;
+    var req = new Query<TestModel>()..values = m;
     var item = await req.insert();
 
     req = new Query<TestModel>()
@@ -34,7 +34,7 @@ void main() {
     var m = new TestModel()
       ..name = "Joe"
       ..email = "b@a.com";
-    var req = new Query<TestModel>()..valueObject = m;
+    var req = new Query<TestModel>()..values = m;
 
     var item = await req.insert();
     var id = item.id;
@@ -57,7 +57,7 @@ void main() {
       var m = new TestModel()
         ..name = "Joe${i}"
         ..email = "asc${i}@a.com";
-      var req = new Query<TestModel>()..valueObject = m;
+      var req = new Query<TestModel>()..values = m;
       await req.insert();
     }
 
@@ -95,7 +95,7 @@ void main() {
         ..name = "Joe${i}"
         ..email = "desc${i}@a.com";
 
-      var req = new Query<TestModel>()..valueObject = m;
+      var req = new Query<TestModel>()..values = m;
 
       await req.insert();
     }
@@ -121,7 +121,7 @@ void main() {
         ..name = "Joe${i%2}"
         ..email = "multi${i}@a.com";
 
-      var req = new Query<TestModel>()..valueObject = m;
+      var req = new Query<TestModel>()..values = m;
 
       await req.insert();
     }
@@ -173,7 +173,7 @@ void main() {
       ..name = "invkey"
       ..email = "invkey@a.com";
 
-    var req = new Query<TestModel>()..valueObject = m;
+    var req = new Query<TestModel>()..values = m;
     await req.insert();
 
     req = new Query<TestModel>();
@@ -196,17 +196,17 @@ void main() {
 
     var u1 = new GenUser()..name = "Joe";
     var u2 = new GenUser()..name = "Fred";
-    u1 = await (new Query<GenUser>()..valueObject = u1).insert();
-    u2 = await (new Query<GenUser>()..valueObject = u2).insert();
+    u1 = await (new Query<GenUser>()..values = u1).insert();
+    u2 = await (new Query<GenUser>()..values = u2).insert();
 
     for (int i = 0; i < 5; i++) {
       var p1 = new GenPost()..text = "${2 * i}";
       p1.owner = u1;
-      await (new Query<GenPost>()..valueObject = p1).insert();
+      await (new Query<GenPost>()..values = p1).insert();
 
       var p2 = new GenPost()..text = "${2 * i + 1}";
       p2.owner = u2;
-      await (new Query<GenPost>()..valueObject = p2).insert();
+      await (new Query<GenPost>()..values = p2).insert();
     }
 
     var req = new Query<GenPost>()
@@ -233,7 +233,7 @@ void main() {
 
   test("Fetch object with null reference", () async {
     context = await contextWithModels([GenUser, GenPost]);
-    var p1 = await (new Query<GenPost>()..valueObject = (new GenPost()..text = "1")).insert();
+    var p1 = await (new Query<GenPost>()..values = (new GenPost()..text = "1")).insert();
 
     var req = new Query<GenPost>();
     p1 = await req.fetchOne();
@@ -246,7 +246,7 @@ void main() {
 
     for (int i = 0; i < 10; i++) {
       var p = new PageableTestModel()..value = "${i}";
-      await (new Query<PageableTestModel>()..valueObject = p).insert();
+      await (new Query<PageableTestModel>()..values = p).insert();
     }
 
     var q = new Query<PageableTestModel>()
@@ -280,7 +280,7 @@ void main() {
   test("Omits specific keys", () async {
     context = await contextWithModels([Omit]);
 
-    var iq = new Query<Omit>()..valueObject = (new Omit()..text = "foobar");
+    var iq = new Query<Omit>()..values = (new Omit()..text = "foobar");
 
     var result = await iq.insert();
     expect(result.id, greaterThan(0));
@@ -333,7 +333,7 @@ void main() {
     for (int i = 0; i < 10; i++) {
       var p = new PageableTestModel()..value = "${i}";
 
-      await (new Query<PageableTestModel>()..valueObject = p).insert();
+      await (new Query<PageableTestModel>()..values = p).insert();
     }
 
     // after
@@ -493,7 +493,7 @@ void main() {
         ..name = "$i"
         ..email = "$i@a.com";
       var req = new Query<TestModel>()
-        ..valueObject = m;
+        ..values = m;
 
       await req.insert();
     }
