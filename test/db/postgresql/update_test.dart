@@ -116,8 +116,30 @@ void main() {
 
   });
 
-  test("Update object and", () async {
+  test("Update object with new value for column in predicate", () async {
     context = await contextWithModels([TestModel]);
+    var m1 = new TestModel()
+      ..name = "Bob"
+      ..emailAddress = "1@a.com";
+
+    m1 = await (new Query<TestModel>()..values = m1).insert();
+
+    await (new Query<TestModel>()
+      ..values = (new TestModel()
+        ..name = "Fred"
+        ..emailAddress = "2@a.com")).insert();
+
+    var updateQuery = new ModelQuery<TestModel>()
+      ..["emailAddress"] = "1@a.com"
+      ..values.emailAddress = "3@a.com";
+    var updatedObject = (await updateQuery.update()).first;
+
+    expect(updatedObject.emailAddress, "3@a.com");
+
+    var allUsers = await (new Query<TestModel>()).fetch();
+    expect(allUsers.length, 2);
+    expect(allUsers.firstWhere((m) => m.id == m1.id).emailAddress, "3@a.com");
+    expect(allUsers.firstWhere((m) => m.id != m1.id).emailAddress, "2@a.com");
   });
 }
 

@@ -484,34 +484,6 @@ void main() {
     res = await req.fetch();
     check([10, 9, 8, 7, 6], res);
   });
-
-  test("whereIn Matcher", () async {
-    context = await contextWithModels([TestModel]);
-
-    for (int i = 0; i < 3; i++) {
-      var m = new TestModel()
-        ..name = "$i"
-        ..email = "$i@a.com";
-      var req = new Query<TestModel>()
-        ..values = m;
-
-      await req.insert();
-    }
-
-    var q = new ModelQuery<TestModel>()
-      ..["id"] = whereIn([1, 2]);
-    var results = await q.fetch();
-    expect(results.length, 2);
-    expect(results.first["name"], "0");
-    expect(results.last["name"], "1");
-
-    q = new ModelQuery<TestModel>()
-      ..["name"] = whereIn(['1', '2']);
-    results = await q.fetch();
-    expect(results.length, 2);
-    expect(results.first["name"], "1");
-    expect(results.last["name"], "2");
-  });
 }
 
 class PageableTestModel extends Model<_PageableTestModel> implements _PageableTestModel {}

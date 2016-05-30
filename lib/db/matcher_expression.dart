@@ -13,9 +13,6 @@ enum MatcherOperator {
 dynamic whereEqualTo(dynamic value) {
   return new _ComparisonMatcherExpression(value, MatcherOperator.equalTo);
 }
-dynamic whereIn(Iterable<dynamic> values) {
-  return new _WithinMatcherExpression(values.toList());
-}
 dynamic whereGreaterThan(dynamic value) {
   return new _ComparisonMatcherExpression(value, MatcherOperator.greaterThan);
 }
@@ -32,6 +29,10 @@ dynamic whereNotEqual(dynamic value) {
   return new _ComparisonMatcherExpression(value, MatcherOperator.notEqual);
 }
 
+dynamic whereIn(Iterable<dynamic> values) {
+  return new _WithinMatcherExpression(values.toList());
+}
+
 dynamic whereBetween(dynamic lhs, dynamic rhs) {
   return new _RangeMatcherExpression(lhs, rhs, true);
 }
@@ -41,10 +42,6 @@ dynamic whereOutsideOf(dynamic lhs, dynamic rhs) {
 
 dynamic whereRelatedByValue(dynamic foreignKeyValue) {
   return new _ComparisonMatcherExpression(foreignKeyValue, MatcherOperator.equalTo);
-}
-
-dynamic whereMatching(ModelQuery expr) {
-  return expr;
 }
 
 const dynamic whereNull = const _NullMatcherExpression(true);
