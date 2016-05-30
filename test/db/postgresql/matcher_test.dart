@@ -98,6 +98,15 @@ void main() {
     expect(results.length, 2);
     expect(results[0].id, 1);
     expect(results[1].id, 2);
+
+    // Now as iterable
+    var iter = [1, 2].map((i) => i);
+    q = new ModelQuery<TestModel>()
+      ..["id"] = whereIn(iter);
+    results = await q.fetch();
+    expect(results.length, 2);
+    expect(results[0].id, 1);
+    expect(results[1].id, 2);
   });
 
   test("whereBetween matcher", () async {

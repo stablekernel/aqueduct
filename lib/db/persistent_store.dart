@@ -20,7 +20,7 @@ abstract class PersistentStore {
   String columnNameForProperty(PropertyDescription desc);
 
   Predicate comparisonPredicate(PropertyDescription desc, MatcherOperator operator, dynamic value);
-  Predicate containsPredicate(PropertyDescription desc, List<dynamic> values);
+  Predicate containsPredicate(PropertyDescription desc, Iterable<dynamic> values);
   Predicate nullPredicate(PropertyDescription desc, bool isNull);
   Predicate rangePredicate(PropertyDescription desc, dynamic lhsValue, dynamic rhsValue, bool insideRange);
 }
@@ -34,7 +34,7 @@ class DefaultPersistentStore extends PersistentStore {
   Future<List<List<MappingElement>>> executeUpdateQuery(PersistentStoreQuery q) async { return null; }
 
   Predicate comparisonPredicate(PropertyDescription desc, MatcherOperator operator, dynamic value) { return null; }
-  Predicate containsPredicate(PropertyDescription desc, List<dynamic> values) { return null; }
+  Predicate containsPredicate(PropertyDescription desc, Iterable<dynamic> values) { return null; }
   Predicate nullPredicate(PropertyDescription desc, bool isNull) { return null; }
   Predicate rangePredicate(PropertyDescription desc, dynamic lhsValue, dynamic rhsValue, bool insideRange) { return null; }
 

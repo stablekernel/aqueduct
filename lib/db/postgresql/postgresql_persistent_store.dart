@@ -202,17 +202,20 @@ class PostgreSQLPersistentStore extends PersistentStore {
   }
 
   @override
-  Predicate containsPredicate(PropertyDescription desc, List<dynamic> values) {
+  Predicate containsPredicate(PropertyDescription desc, Iterable<dynamic> values) {
     var tokenList = [];
     var pairedMap = {};
     var prefix = desc.entity.tableName;
     var propertyName = columnNameForProperty(desc);
 
-    for (var i = 0; i < values.length; i++) {
-      var token = "wme$prefix${propertyName}_$i";
+    var counter = 0;
+    values.forEach((value) {
+      var token = "wme$prefix${propertyName}_$counter";
       tokenList.add("@$token");
-      pairedMap[token] = values[i];
-    }
+      pairedMap[token] = value;
+
+      counter ++;
+    });
 
     return new Predicate("$prefix.$propertyName in (${tokenList.join(",")})", pairedMap);
   }
