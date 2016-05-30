@@ -156,9 +156,7 @@ void main() {
     for (var i = 1; i < results.length; i++) {
       expect(results[i].inner, isNull);
     }
-
   });
-
 }
 
 class TestModel extends Model<_TestModel> implements _TestModel {}
