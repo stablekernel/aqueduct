@@ -95,8 +95,8 @@ class Query<ModelType extends Model> {
   ///       q.valueObject = new User();
   ///       var newUser = await q.insert(adapter);
   ///
-  Future<ModelType> insert({ModelContext context: null}) async {
-    return await (context ?? ModelContext.defaultContext).executeInsertQuery(this);
+  Future<ModelType> insert() async {
+    return await (context).executeInsertQuery(this);
   }
 
   /// Updates rows in the database represented by [context] (defaults to [ModelContext.defaultContext]).
