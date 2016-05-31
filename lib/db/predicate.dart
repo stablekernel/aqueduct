@@ -31,6 +31,10 @@ class Predicate {
   ///
   /// For combining multiple predicate together.
   static Predicate andPredicates(List<Predicate> predicates) {
+    if (predicates == null) {
+      return null;
+    }
+
     if (predicates.length == 0) {
       return null;
     }
