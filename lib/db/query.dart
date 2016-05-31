@@ -88,7 +88,7 @@ class Query<ModelType extends Model> {
   /// Inserts the data represented by this Query into the database represented by [context] (defaults to [ModelContext.defaultContext]).
   ///
   /// The [Query] must have its [values] or [valueMap] property set. This action method will
-  /// insert a row with the data supplied in those fields to the database represented by [adapter]. The return value is
+  /// insert a row with the data supplied in those fields to the database represented by [context]. The return value is
   /// a [Future] with the inserted object. Example:
   ///
   ///       var q = new Query<User>();
@@ -96,13 +96,13 @@ class Query<ModelType extends Model> {
   ///       var newUser = await q.insert(adapter);
   ///
   Future<ModelType> insert() async {
-    return await (context).executeInsertQuery(this);
+    return await context.executeInsertQuery(this);
   }
 
   /// Updates rows in the database represented by [context] (defaults to [ModelContext.defaultContext]).
   ///
   /// Update queries update the values of the rows identified by [predicate] or [predicateObject]
-  /// with the values in [values] or [valueMap] in the database represented by [adapter]. Example:
+  /// with the values in [values] or [valueMap] in the database represented by [context]. Example:
   ///
   ///       var existingUser = ...;
   ///       existingUser.name = "Bob";
@@ -110,35 +110,35 @@ class Query<ModelType extends Model> {
   ///       q.predicate = new Predicate("id = @id", {"id" : existingUser.id});
   ///       q.valueObject = existingUser;
   ///       var updatedUsers = await q.update(adapter);
-  Future<List<ModelType>> update({ModelContext context: null}) async {
-    return await (context ?? ModelContext.defaultContext).executeUpdateQuery(this);
+  Future<List<ModelType>> update() async {
+    return await context.executeUpdateQuery(this);
   }
 
   /// Fetches rows in the database represented by [context] (defaults to [ModelContext.defaultContext]).
   ///
   /// Fetch queries will return objects for the rows identified by [predicate] or [predicateObject] from
-  /// the database represented by [adapter]. Example:
+  /// the database represented by [context]. Example:
   ///
   ///       var q = new Query<User>();
   ///       var allUsers = q.fetch(adapter);
   ///
-  Future<List<ModelType>> fetch({ModelContext context: null}) async {
-    return await (context ?? ModelContext.defaultContext).executeFetchQuery(this);
+  Future<List<ModelType>> fetch() async {
+    return await context.executeFetchQuery(this);
   }
 
   /// Fetches a single object from the database represented by [context] (defaults to [ModelContext.defaultContext]).
   ///
   /// This method will return a single object identified by [predicate] or [predicateObject] from
-  /// the database represented by [adapter]. If no match is found, this method returns [null].
+  /// the database represented by [context]. If no match is found, this method returns [null].
   /// If more than one match is found, this method throws an exception. Example:
   ///
   ///       var q = new Query<User>();
   ///       q.predicate = new Predicate("id = @id", {"id" : 1});
   ///       var user = await q.fetchOne(adapter);
-  Future<ModelType> fetchOne({ModelContext context: null}) async {
+  Future<ModelType> fetchOne() async {
     fetchLimit = 1;
 
-    var results = await (context ?? ModelContext.defaultContext).executeFetchQuery(this);
+    var results = await context.executeFetchQuery(this);
     if (results.length == 1) {
       return results.first;
     }
@@ -148,15 +148,15 @@ class Query<ModelType extends Model> {
   /// Deletes rows from the database represented by [context] (defaults to [ModelContext.defaultContext]).
   ///
   /// This method will delete rows identified by [predicate] or [predicateObject]
-  /// from the database represented by [adapter] and returns the number of rows affected.
+  /// from the database represented by [context] and returns the number of rows affected.
   /// Example:
   ///
   ///       var q = new Query<User>();
   ///       q.predicate = new Predicate("id = @id", {"id" : 1});
   ///       var deleted = await q.delete(adapter);
   ///
-  Future<int> delete({ModelContext context: null}) async {
-    return await (context ?? ModelContext.defaultContext).executeDeleteQuery(this); // or null
+  Future<int> delete() async {
+    return await context.executeDeleteQuery(this); // or null
   }
 
   Predicate _compilePredicate(DataModel dataModel, PersistentStore) {
