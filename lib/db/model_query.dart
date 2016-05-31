@@ -17,7 +17,6 @@ class ModelQuery<T extends Model> extends Query<T> {
     }
 
     RelationshipDescription relDesc = desc;
-    print("What? ${relDesc.inverseRelationship.entity.instanceTypeMirror.reflectedType}");
     return new ModelQuery.withModelType(relDesc.inverseRelationship.entity.instanceTypeMirror.reflectedType, context: this.context)
       .._representsListQuery = relDesc.relationshipType == RelationshipType.hasMany;
   }
