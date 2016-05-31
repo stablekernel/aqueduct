@@ -17,6 +17,7 @@ class ModelQuery<T extends Model> extends Query<T> {
     }
 
     RelationshipDescription relDesc = desc;
+    print("What? ${relDesc.inverseRelationship.entity.instanceTypeMirror.reflectedType}");
     return new ModelQuery.withModelType(relDesc.inverseRelationship.entity.instanceTypeMirror.reflectedType, context: this.context)
       .._representsListQuery = relDesc.relationshipType == RelationshipType.hasMany;
   }
@@ -101,8 +102,8 @@ class ModelQuery<T extends Model> extends Query<T> {
   }
 
   Predicate _compilePredicate(DataModel dataModel, PersistentStore persistentStore) {
-    return Predicate.andPredicates(_queryMap.keys.map((queryKey) {
-      var desc = dataModel.entityForType(T).properties[queryKey];
+    return Predicate.andPredicates(_queryMap?.keys?.map((queryKey) {
+      var desc = dataModel.entityForType(modelType).properties[queryKey];
       var matcher = _queryMap[queryKey];
 
       if (matcher is _ComparisonMatcherExpression) {
@@ -114,6 +115,6 @@ class ModelQuery<T extends Model> extends Query<T> {
       } else if (matcher is _WithinMatcherExpression) {
         return persistentStore.containsPredicate(desc, matcher.values);
       }
-    }).toList());
+    })?.toList());
   }
 }

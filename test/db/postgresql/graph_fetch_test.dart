@@ -298,6 +298,23 @@ void main() {
       ]);
     });
 
+    test("Can join with predicates on both", () async {
+      var q = new LocationQuery()
+        ..user = whereRelatedByValue(1)
+        ..equipment.single.name = "Fridge";
+
+      var results = await q.fetch();
+      var mapList = results.map((u) => u.asMap()).toList();
+      expect(mapList, [
+        {
+          "name" : "Crestridge", "id" : 1, "user" : {"id" : 1}, "equipment" : [
+            {"id" : 1, "name" : "Fridge", "type" : "Appliance", "location" : {"id" : 1}}
+          ]
+        },
+        {"name" : "SK", "id" : 2, "user" : {"id" : 1}, "equipment" : []}
+      ]);
+    });
+
     test("Can join from middle of graph", () async {
       var q = new LocationQuery()
         ..equipment = whereAnyMatch;

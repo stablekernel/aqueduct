@@ -4,7 +4,6 @@ class AuthController<ResourceOwner extends Authenticatable, TokenType extends To
   static String get RoutePattern => "/auth/token";
 
   AuthenticationServer<ResourceOwner, TokenType> authenticationServer;
-
   AuthController(AuthenticationServer<ResourceOwner, TokenType> authServer) {
     authenticationServer = authServer;
     acceptedContentTypes = [new ContentType("application", "x-www-form-urlencoded")];
