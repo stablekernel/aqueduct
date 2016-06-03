@@ -265,8 +265,6 @@ abstract class HttpController extends RequestHandler {
       var preprocessedResult = await willProcessRequest(req);
       Response response = null;
       if (preprocessedResult is ResourceRequest) {
-        logger.info("process");
-
         response = await _process();
       } else if (preprocessedResult is Response) {
         response = preprocessedResult;
