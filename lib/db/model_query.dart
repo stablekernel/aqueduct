@@ -1,68 +1,24 @@
 part of aqueduct;
 
 class ModelQuery<T extends Model> extends Query<T> {
-  ModelQuery() : super();
-  ModelQuery.withModelType(Type t) : super.withModelType(t);
+  ModelQuery({ModelContext context: null}) : super(context: context);
+  ModelQuery.withModelType(Type t, {ModelContext context: null}) : super.withModelType(t, context: null);
 
-  Map<String, dynamic> _map = {};
-  Map<String, Query> get subQueries {
-    var map = {};
-    _map.forEach((k, m) {
-      if (_matcherIsSubquery(m)) {
-        if (m is List) {
-          map[k] = m.first;
-        } else {
-          map[k] = m;
-        }
-      }
-    });
+  Predicate get predicate => null;
+  void set predicate(Predicate p) { throw new QueryException(500, "ModelQuery predicate is immutable", -1); }
 
-    return map;
-  }
-  void set subQueries(Map<String, Query> e) { throw new QueryException(500, "Cannot set subQueries of ModelQuery, it is dervied.", -1);}
+  Map<String, ModelQuery> subQueries = {};
+  Map<String, dynamic> _queryMap = {};
+  bool _representsListQuery = false;
 
-  Predicate get predicate {
-    if (_map.length == 1) {
-      var exprKey = _map.keys.first;
-      return _predicateForPropertyName(exprKey);
-    }
-
-    var allPredicates = _map.keys
-        .map((propertyKey) => _predicateForPropertyName(propertyKey))
-        .where((p) => p != null).toList();
-
-    if (allPredicates.length > 1) {
-      return Predicate.andPredicates(allPredicates.toList());
-    } else if (allPredicates.length == 1) {
-      return allPredicates.first;
-    }
-
-    return null;
-  }
-  void set predicate(Predicate p) { throw new QueryException(500, "Cannot set Predicate of ModelQuery, it is derived.", -1); }
-
-  Predicate _predicateForPropertyName(String propertyKey) {
-    dynamic expr = _map[propertyKey];
-    if (_matcherIsSubquery(expr)) {
+  dynamic _createSubqueryForPropertyNameIfApplicable(PropertyDescription desc) {
+    if (desc is! RelationshipDescription) {
       return null;
     }
 
-    return expr.getPredicate(entity.tableName, propertyKey);
-  }
-
-  dynamic _createSubqueryForPropertyName(String propertyName) {
-    var ivar = entity._propertyMirrorForProperty(propertyName);
-    ClassMirror ivarType = ivar.type;
-
-    var subQuery = null;
-    if (ivarType.isSubtypeOf(reflectType(Model))) {
-      subQuery = new ModelQuery.withModelType(ivarType.reflectedType);
-    } else if (ivarType.isSubtypeOf(reflectType(List))) {
-      ClassMirror innerIvarType = ivarType.typeArguments.first;
-      subQuery = [new ModelQuery.withModelType(innerIvarType.reflectedType)];
-    }
-
-    return subQuery;
+    RelationshipDescription relDesc = desc;
+    return new ModelQuery.withModelType(relDesc.inverseRelationship.entity.instanceTypeMirror.reflectedType, context: this.context)
+      .._representsListQuery = relDesc.relationshipType == RelationshipType.hasMany;
   }
 
   dynamic operator [](String key) {
@@ -74,15 +30,21 @@ class ModelQuery<T extends Model> extends Query<T> {
   }
 
   dynamic _getMatcherForPropertyName(String propertyName) {
-    var expr = _map[propertyName];
+    var expr = _queryMap[propertyName];
     if (expr != null) {
       return expr;
     }
 
-    var subquery = _createSubqueryForPropertyName(propertyName);
-    if (subquery != null) {
-      _map[propertyName] = subquery;
-      return subquery;
+    var subQuery = subQueries[propertyName];
+    if (subQuery != null) {
+      return subQuery;
+    }
+
+    // Automatically generate a subquery once accessed
+    subQuery = _createSubqueryForPropertyNameIfApplicable(entity.properties[propertyName]);
+    if (subQuery != null) {
+      subQueries[propertyName] = subQuery;
+      return subQuery;
     }
 
     return null;
@@ -90,43 +52,38 @@ class ModelQuery<T extends Model> extends Query<T> {
 
   void _setMatcherForPropertyName(String propertyName, dynamic value) {
     if (value == null) {
-      _map.remove(propertyName);
+      _queryMap.remove(propertyName);
+      subQueries?.remove(propertyName);
       return;
     }
 
     if (_matcherIsSubquery(value)) {
-      _map[propertyName] = value; //TODO: Add type checking to blow this up here to prevent it from blowing up later.
-    } else if (value is _BelongsToModelMatcherExpression) {
-      var ivarRelationship = entity.relationshipAttributeForProperty(propertyName);
-      if (ivarRelationship == null || ivarRelationship.type != RelationshipType.belongsTo) {
-        throw new PredicateMatcherException("Type mismatch for property $propertyName; expecting property with RelationshipType.belongsTo.");
+      if (value is List) {
+        value = value.first;
       }
-      _map[entity.foreignKeyForProperty(propertyName)] = value;
+      subQueries[propertyName] = value;
     } else if (value is _IncludeModelMatcherExpression) {
-      _map[propertyName] = _createSubqueryForPropertyName(propertyName);
+      subQueries[propertyName] = _createSubqueryForPropertyNameIfApplicable(entity.properties[propertyName]);
     } else if (value is MatcherExpression) {
-      _map[propertyName] = value;
+      _queryMap[propertyName] = value;
     } else {
       // Setting simply a value, wrap it with an AssignmentMatcher
-      var ivarType = entity._typeMirrorForProperty(propertyName);
-      var valueType = reflect(value).type;
-      if (!valueType.isSubtypeOf(ivarType)) {
-        var ivarTypeName = MirrorSystem.getName(ivarType.simpleName);
-        var valueTypeName = MirrorSystem.getName(valueType.simpleName);
-
-        var typeName = MirrorSystem.getName(reflect(this).type.simpleName);
-        throw new PredicateMatcherException("Type mismatch for property $propertyName on ${typeName}, expected $ivarTypeName but got $valueTypeName.");
-      }
-
-      _map[propertyName] = new _AssignmentMatcherExpression(value);
+      _queryMap[propertyName] = new _ComparisonMatcherExpression(value, MatcherOperator.equalTo);
     }
   }
 
   noSuchMethod(Invocation i) {
     if (i.isGetter) {
-      var propertyName  = MirrorSystem.getName(i.memberName);
+      var propertyName = MirrorSystem.getName(i.memberName);
+      var matcher = _getMatcherForPropertyName(propertyName);
 
-      return _getMatcherForPropertyName(propertyName);
+      if (matcher is ModelQuery) {
+        if (matcher._representsListQuery) {
+          return [matcher];
+        }
+      }
+
+      return matcher;
     } else if (i.isSetter) {
       var propertyName = MirrorSystem.getName(i.memberName);
       propertyName = propertyName.substring(0, propertyName.length - 1);
@@ -142,5 +99,21 @@ class ModelQuery<T extends Model> extends Query<T> {
   static bool _matcherIsSubquery(dynamic expr) {
     return expr is ModelQuery || expr is List<ModelQuery>;
   }
-}
 
+  Predicate _compilePredicate(DataModel dataModel, PersistentStore persistentStore) {
+    return Predicate.andPredicates(_queryMap?.keys?.map((queryKey) {
+      var desc = dataModel.entityForType(modelType).properties[queryKey];
+      var matcher = _queryMap[queryKey];
+
+      if (matcher is _ComparisonMatcherExpression) {
+        return persistentStore.comparisonPredicate(desc, matcher.operator, matcher.value);
+      } else if (matcher is _RangeMatcherExpression) {
+        return persistentStore.rangePredicate(desc, matcher.lhs, matcher.rhs, matcher.within);
+      } else if (matcher is _NullMatcherExpression) {
+        return persistentStore.nullPredicate(desc, matcher.shouldBeNull);
+      } else if (matcher is _WithinMatcherExpression) {
+        return persistentStore.containsPredicate(desc, matcher.values);
+      }
+    })?.toList());
+  }
+}

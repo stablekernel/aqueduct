@@ -125,6 +125,7 @@ class ResourceRequest implements RequestHandlerResult {
     if (includeBody) {
       builder.write("${_sanitizedBody} ");
     }
+
     return builder.toString();
   }
 }

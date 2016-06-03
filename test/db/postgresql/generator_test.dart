@@ -1,163 +1,81 @@
 import 'package:aqueduct/aqueduct.dart';
 import 'package:test/test.dart';
+import '../../helpers.dart';
 
 void main() {
-  setUp(() {});
-
-  tearDown(() {});
-
   test("Property tables generate appropriate postgresql commands", () {
-    var cmd = new PostgresqlSchema.fromModels([GeneratorModel1]).toString();
-
-    expect(cmd,
-        "create table _GeneratorModel1 (id bigserial primary key,name text not null,option boolean not null,points double precision not null unique,validDate timestamp null);\n");
+    expect(commandsForModelTypes([GeneratorModel1]),
+        "create table _GeneratorModel1 (id bigserial primary key,name text not null,option boolean not null,points double precision not null unique,validDate timestamp null);");
   });
 
   test("Create temporary table", () {
-    var cmd = new PostgresqlSchema.fromModels([GeneratorModel1],
-        temporary: true).toString();
-    expect(cmd,
-        "create temporary table _GeneratorModel1 (id bigserial primary key,name text not null,option boolean not null,points double precision not null unique,validDate timestamp null);\n");
+    expect(commandsForModelTypes([GeneratorModel1], temporary: true),
+        "create temporary table _GeneratorModel1 (id bigserial primary key,name text not null,option boolean not null,points double precision not null unique,validDate timestamp null);");
   });
 
   test("Create table with indices", () {
-    var cmd = new PostgresqlSchema.fromModels([GeneratorModel2]).toString();
-
-    expect(cmd,
-        "create table _GeneratorModel2 (id int primary key);\ncreate index _GeneratorModel2_id_idx on _GeneratorModel2 (id);\n");
+    expect(commandsForModelTypes([GeneratorModel2]),
+        "create table _GeneratorModel2 (id int primary key);\ncreate index _GeneratorModel2_id_idx on _GeneratorModel2 (id);");
   });
 
   test("Create multiple tables with trailing index", () {
-    var cmd =
-        new PostgresqlSchema.fromModels([GeneratorModel1, GeneratorModel2])
-            .toString();
-
-    expect(cmd,
-        "create table _GeneratorModel1 (id bigserial primary key,name text not null,option boolean not null,points double precision not null unique,validDate timestamp null);\ncreate table _GeneratorModel2 (id int primary key);\ncreate index _GeneratorModel2_id_idx on _GeneratorModel2 (id);\n");
+    expect(commandsForModelTypes([GeneratorModel1, GeneratorModel2]),
+        "create table _GeneratorModel1 (id bigserial primary key,name text not null,option boolean not null,points double precision not null unique,validDate timestamp null);\ncreate table _GeneratorModel2 (id int primary key);\ncreate index _GeneratorModel2_id_idx on _GeneratorModel2 (id);");
   });
 
   test("Default values are properly serialized", () {
-    var cmd = new PostgresqlSchema.fromModels([GeneratorModel3]).toString();
-    expect(cmd,
-        "create table _GeneratorModel3 (creationDate timestamp not null default (now() at time zone 'utc'),id int primary key default 18,option boolean not null default true,otherTime timestamp not null default '1900-01-01T00:00:00.000Z',textValue text not null default \$\$dflt\$\$,value double precision not null default 20.0);\n");
+    expect(commandsForModelTypes([GeneratorModel3]),
+        "create table _GeneratorModel3 (creationDate timestamp not null default (now() at time zone 'utc'),id int primary key,option boolean not null default true,otherTime timestamp not null default '1900-01-01T00:00:00.000Z',textValue text not null default \$\$dflt\$\$,value double precision not null default 20.0);");
   });
 
   test("Table with tableName() overrides class name", () {
-    var cmd = new PostgresqlSchema.fromModels([GenNamed]).toString();
-    expect(cmd, "create table GenNamed (id int primary key);\n");
+    expect(commandsForModelTypes([GenNamed]),
+        "create table GenNamed (id int primary key);");
   });
 
   test("One-to-one relationships are generated", () {
-    var schema = new PostgresqlSchema.fromModels([GenOwner, GenAuth]);
+    var cmds = commandsForModelTypes([GenOwner, GenAuth]);
 
-    var cmds = schema.schemaDefinition();
-
-    expect(
-        cmds.contains("create table _GenOwner (id bigserial primary key)"), true,
-        reason: "GenOwner");
-    expect(
-        cmds.contains(
-            "create table _GenAuth (id int primary key,owner_id bigint null unique)"),
-        true,
-        reason: "GenAuth");
+    expect(cmds.contains("create table _GenOwner (id bigserial primary key)"), true);
+    expect(cmds.contains("create table _GenAuth (id int primary key,owner_id bigint null unique)"), true);
     expect(cmds.contains("create index _GenAuth_owner_id_idx on _GenAuth (owner_id)"), true);
-
-    expect(
-        cmds.contains(
-            "alter table only _GenAuth add foreign key (owner_id) references _GenOwner (id) on delete set null"),
-        true,
-        reason: "Alter $cmds");
-    expect(cmds.length, 4);
+    expect(cmds.contains("alter table only _GenAuth add foreign key (owner_id) references _GenOwner (id) on delete cascade"), true);
+    expect(cmds.split("\n").length, 4);
   });
 
   test("One-to-many relationships are generated", () {
-    var schema = new PostgresqlSchema.fromModels([GenUser, GenPost]);
-    var cmds = schema.schemaDefinition();
+    var cmds = commandsForModelTypes([GenUser, GenPost]);
 
-    expect(
-        cmds.contains(
-            "create table _GenUser (id int primary key,name text not null)"),
-        true,
-        reason: "GenUser table");
-    expect(
-        cmds.contains(
-            "create table _GenPost (id int primary key,owner_id int null,text text not null)"),
-        true,
-        reason: "GenPost table");
-    expect(
-        cmds.contains(
-            "create index _GenPost_owner_id_idx on _GenPost (owner_id)"),
-        true,
-        reason: "GenPost index");
-    expect(
-        cmds.contains(
-            "alter table only _GenPost add foreign key (owner_id) references _GenUser (id) on delete set null"),
-        true,
-        reason: "Foreign key constraint");
-    expect(cmds.length, 4);
+    expect(cmds.contains("create table _GenUser (id int primary key,name text not null)"), true);
+    expect(cmds.contains("create table _GenPost (id int primary key,owner_id int null,text text not null)"), true);
+    expect(cmds.contains("create index _GenPost_owner_id_idx on _GenPost (owner_id)"), true);
+    expect(cmds.contains("alter table only _GenPost add foreign key (owner_id) references _GenUser (id) on delete restrict"), true);
+    expect(cmds.split("\n").length, 4);
   });
 
   test("Many-to-many relationships are generated", () {
-    var schema = new PostgresqlSchema.fromModels([GenLeft, GenRight, GenJoin]);
-    var cmds = schema.schemaDefinition();
+    var cmds = commandsForModelTypes([GenLeft, GenRight, GenJoin]);
 
-    expect(cmds.contains("create table _GenLeft (id int primary key)"), true,
-        reason: "GenLeft table");
-    expect(cmds.contains("create table _GenRight (id int primary key)"), true,
-        reason: "GenRight table");
-    expect(
-        cmds.contains(
-            "create table _GenJoin (id bigserial primary key,left_id int null,right_id int null)"),
-        true,
-        reason: "GenJoin table");
-    expect(
-        cmds.contains(
-            "alter table only _GenJoin add foreign key (left_id) references _GenLeft (id) on delete set null"),
-        true,
-        reason: "Left constraint");
-    expect(
-        cmds.contains(
-            "alter table only _GenJoin add foreign key (right_id) references _GenRight (id) on delete set null"),
-        true,
-        reason: "Right constraint");
+    expect(cmds.contains("create table _GenLeft (id int primary key)"), true);
+    expect(cmds.contains("create table _GenRight (id int primary key)"), true);
+    expect(cmds.contains("create table _GenJoin (id bigserial primary key,left_id int null,right_id int null)"), true);
+    expect(cmds.contains("alter table only _GenJoin add foreign key (left_id) references _GenLeft (id) on delete set null"), true);
+    expect(cmds.contains("alter table only _GenJoin add foreign key (right_id) references _GenRight (id) on delete set null"), true);
     expect(cmds.contains("create index _GenJoin_left_id_idx on _GenJoin (left_id)"), true);
     expect(cmds.contains("create index _GenJoin_right_id_idx on _GenJoin (right_id)"), true);
-    expect(cmds.length, 7);
+    expect(cmds.split("\n").length, 7);
   });
 
   test("Serial types in relationships are properly inversed", () {
-    var schema = new PostgresqlSchema.fromModels([GenOwner, GenAuth]);
-    var cmds = schema.schemaDefinition();
-    expect(
-        cmds.contains(
-            "create table _GenAuth (id int primary key,owner_id bigint null unique)"),
-        true);
-  });
-
-  test("Delete rule of setNull throws exception if property is not nullable", () {
-    var successful = false;
-    try {
-      var schema = new PostgresqlSchema.fromModels([GenObj, GenNotNullable]);
-      successful = true;
-      schema.toString();
-    } catch (e) {
-      expect(e.message, "_GenNotNullable will set relationship 'ref_id' to null on delete, but 'ref_id' may not be null");
-    }
-    expect(successful, false);
-  });
-
-  test("Verify schema creates the same named foreign keys as model", () {
-    var schema = new PostgresqlSchema.fromModels([GenUser, GenPost]);
-    var p = new GenPost();
-    var fk = p.entity.foreignKeyForProperty("owner");
-    expect(fk, schema.tables[GenPost].columns["owner"].name);
+    var cmds = commandsForModelTypes([GenOwner, GenAuth]);
+    expect(cmds.contains("create table _GenAuth (id int primary key,owner_id bigint null unique)"), true);
   });
 }
 
 class GeneratorModel1 extends Model<_GeneratorModel1> implements _GeneratorModel1 {}
 
 class _GeneratorModel1 {
-  @Attributes(primaryKey: true, databaseType: "bigserial")
+  @primaryKey
   int id;
 
   String name;
@@ -172,14 +90,12 @@ class _GeneratorModel1 {
 }
 
 class GeneratorModel2 extends Model<_GeneratorModel2> implements _GeneratorModel2 {}
-
 class _GeneratorModel2 {
   @Attributes(primaryKey: true, indexed: true)
   int id;
 }
 
 class GeneratorModel3 extends Model<_GeneratorModel3> implements _GeneratorModel3 {}
-
 class _GeneratorModel3 {
   @Attributes(defaultValue: "(now() at time zone 'utc')")
   DateTime creationDate;
@@ -213,15 +129,13 @@ class _GenUser {
 }
 
 class GenPost extends Model<_GenPost> implements _GenPost {}
-
 class _GenPost {
   @Attributes(primaryKey: true)
   int id;
 
   String text;
 
-  @Attributes(indexed: true, nullable: true)
-  @RelationshipAttribute(RelationshipType.belongsTo, "posts")
+  @RelationshipAttribute(RelationshipType.belongsTo, "posts", required: false, deleteRule: RelationshipDeleteRule.restrict)
   GenUser owner;
 }
 
@@ -237,9 +151,8 @@ class _GenNamed {
 }
 
 class GenOwner extends Model<_GenOwner> implements _GenOwner {}
-
 class _GenOwner {
-  @Attributes(primaryKey: true, databaseType: "bigserial")
+  @primaryKey
   int id;
 
   @RelationshipAttribute(RelationshipType.hasOne, "owner")
@@ -247,13 +160,11 @@ class _GenOwner {
 }
 
 class GenAuth extends Model<_GenAuth> implements _GenAuth {}
-
 class _GenAuth {
   @Attributes(primaryKey: true)
   int id;
 
-  @Attributes(nullable: true)
-  @RelationshipAttribute(RelationshipType.belongsTo, "auth")
+  @RelationshipAttribute(RelationshipType.belongsTo, "auth", required: false, deleteRule: RelationshipDeleteRule.cascade)
   GenOwner owner;
 }
 
@@ -278,24 +189,20 @@ class _GenRight {
 }
 
 class GenJoin extends Model<_GenJoin> implements _GenJoin {}
-
 class _GenJoin {
   @primaryKey
   int id;
 
-  @Attributes(nullable: true)
   @RelationshipAttribute(RelationshipType.belongsTo, "join")
   GenLeft left;
 
-  @Attributes(nullable: true)
   @RelationshipAttribute(RelationshipType.belongsTo, "join")
   GenRight right;
 }
 
 class GenObj extends Model<_GenObj> implements _GenObj {}
-
 class _GenObj {
-  @Attributes(primaryKey: true)
+  @primaryKey
   int id;
 
   @RelationshipAttribute(RelationshipType.hasOne, "ref")
@@ -303,13 +210,10 @@ class _GenObj {
 }
 
 class GenNotNullable extends Model<_GenNotNullable> implements _GenNotNullable {}
-
 class _GenNotNullable {
-  @Attributes(primaryKey: true)
+  @primaryKey
   int id;
 
-  @Attributes(nullable: false)
-  @RelationshipAttribute(RelationshipType.belongsTo, "gen",
-      deleteRule: RelationshipDeleteRule.nullify)
+  @RelationshipAttribute(RelationshipType.belongsTo, "gen", deleteRule: RelationshipDeleteRule.nullify, required: false)
   GenObj ref;
 }

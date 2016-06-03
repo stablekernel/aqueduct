@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'package:aqueduct/aqueduct.dart';
+import 'package:postgresql/postgresql.dart' as postgresql;
 
-Future<List<TestUser>> createUsers(QueryAdapter adapter, int count) async {
+Future<List<TestUser>> createUsers(int count) async {
   var users = new List<TestUser>();
   for (int i = 0; i < count; i++) {
     var salt = AuthenticationServer.generateRandomSalt();
@@ -10,17 +11,16 @@ Future<List<TestUser>> createUsers(QueryAdapter adapter, int count) async {
       ..salt = salt
       ..hashedPassword = AuthenticationServer.generatePasswordHash("foobaraxegrind21%", salt);
 
-    var q = new Query<TestUser>()..valueObject = u;
-    var insertedUser = await q.insert(adapter);
+    var q = new Query<TestUser>()..values = u;
+    var insertedUser = await q.insert();
     users.add(insertedUser);
   }
   return users;
 }
 
 class TestUser extends Model<_User> implements _User {}
-
 class _User implements Authenticatable {
-  @Attributes(primaryKey: true, databaseType: "bigserial")
+  @primaryKey
   int id;
 
   String username;
@@ -29,10 +29,8 @@ class _User implements Authenticatable {
 }
 
 class Token extends Model<_Token> implements _Token {}
-
-
 class _Token implements Tokenizable {
-  @Attributes(primaryKey: true, databaseType: "bigserial")
+  @primaryKey
   int id;
 
   @Attributes(indexed: true)
@@ -49,9 +47,9 @@ class _Token implements Tokenizable {
 }
 
 class AuthDelegate<User extends Model, T extends Model> implements AuthenticationServerDelegate {
-  QueryAdapter adapter;
+  ModelContext context;
 
-  AuthDelegate(this.adapter);
+  AuthDelegate(this.context);
 
   Future<T> tokenForAccessToken(AuthenticationServer server, String accessToken) {
     return _tokenForPredicate(new Predicate("accessToken = @accessToken", {"accessToken" : accessToken}));
@@ -64,25 +62,25 @@ class AuthDelegate<User extends Model, T extends Model> implements Authenticatio
   Future<User> authenticatableForUsername(AuthenticationServer server, String username) {
     var userQ = new Query<User>();
     userQ.predicate = new Predicate("username = @username", {"username" : username});
-    return userQ.fetchOne(adapter);
+    return userQ.fetchOne();
   }
 
   Future<User> authenticatableForID(AuthenticationServer server, int id) {
     var userQ = new Query<User>();
     userQ.predicate = new Predicate("username = @username", {"id" : id});
-    return userQ.fetchOne(adapter);
+    return userQ.fetchOne();
   }
 
   Future deleteTokenForAccessToken(AuthenticationServer server, String accessToken) async {
     var q = new Query<T>();
     q.predicate = new Predicate("accessToken = @ac", {"ac" : accessToken});
-    await q.delete(adapter);
+    await q.delete();
   }
 
   Future storeToken(AuthenticationServer server, T t) async {
     var tokenQ = new Query<T>();
-    tokenQ.valueObject = t;
-    await tokenQ.insert(adapter);
+    tokenQ.values = t;
+    await tokenQ.insert();
   }
 
   Future<Client> clientForID(AuthenticationServer server, String id) async {
@@ -104,11 +102,41 @@ class AuthDelegate<User extends Model, T extends Model> implements Authenticatio
   Future<T> _tokenForPredicate(Predicate p) async {
     var tokenQ = new Query<T>();
     tokenQ.predicate = p;
-    var result = await tokenQ.fetchOne(adapter);
+    var result = await tokenQ.fetchOne();
     if (result == null) {
       throw new HttpResponseException(401, "Invalid Token");
     }
 
     return result;
   }
+}
+
+Future<ModelContext> contextWithModels(List<Type> modelTypes) async {
+  var persistentStore = new PostgreSQLPersistentStore(() async {
+    var uri = "postgres://dart:dart@localhost:5432/dart_test";
+    return await postgresql.connect(uri, timeZone: 'UTC');
+  });
+
+  var dataModel = new DataModel(modelTypes);
+  var generator = new SchemaGenerator(persistentStore, dataModel);
+  var json = generator.serialized;
+  var pGenerator = new PostgreSQLSchemaGenerator(json, temporary: true);
+
+  var context = new ModelContext(dataModel, persistentStore);
+  ModelContext.defaultContext = context;
+
+  for (var cmd in pGenerator.commandList.split(";\n")) {
+    await persistentStore.execute(cmd);
+  }
+
+  return context;
+}
+
+String commandsForModelTypes(List<Type> modelTypes, {bool temporary: false}) {
+  var dataModel = new DataModel(modelTypes);
+  var generator = new SchemaGenerator(new DefaultPersistentStore(), dataModel);
+  var json = generator.serialized;
+  var pGenerator = new PostgreSQLSchemaGenerator(json, temporary: temporary);
+
+  return pGenerator.commandList;
 }

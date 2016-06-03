@@ -2,30 +2,24 @@ import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
 import 'dart:io';
 import '../helpers.dart';
-import 'package:postgresql/postgresql.dart';
 
 void main() {
-  QueryAdapter adapter;
+  ModelContext context = null;
   AuthDelegate<TestUser, Token> delegate;
 
   setUp(() async {
-    adapter = new PostgresModelAdapter(null, () async {
-      var uri = 'postgres://dart:dart@localhost:5432/dart_test';
-      return await connect(uri);
-    });
-
-    delegate = new AuthDelegate<TestUser, Token>(adapter);
-    await generateTemporarySchemaFromModels(adapter, [TestUser, Token]);
+    context = await contextWithModels([TestUser, Token]);
+    delegate = new AuthDelegate<TestUser, Token>(context);
   });
 
-  tearDown(() {
-    adapter?.close();
-    adapter = null;
+  tearDown(() async {
+    await context?.persistentStore?.close();
+    context = null;
   });
 
   test("Generate and verify token", () async {
     var auth = new AuthenticationServer<TestUser, Token>(delegate);
-    TestUser createdUser = (await createUsers(adapter, 1)).first;
+    TestUser createdUser = (await createUsers(1)).first;
 
     var token = await auth.authenticate("bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app1", "kilimanjaro");
 
@@ -49,7 +43,7 @@ void main() {
 
   test("Bad client ID and secret fails", () async {
     var auth = new AuthenticationServer<TestUser, Token>(delegate);
-    await createUsers(adapter, 1);
+    await createUsers(1);
 
     var successful = false;
     try {
@@ -71,7 +65,7 @@ void main() {
 
   test("Invalid username and password fails", () async {
     var auth = new AuthenticationServer<TestUser, Token>(delegate);
-    await createUsers(adapter, 1);
+    await createUsers(1);
 
     var successful = false;
     try {
@@ -93,7 +87,7 @@ void main() {
 
   test("Expiration date works correctly", () async {
     var auth = new AuthenticationServer<TestUser, Token>(delegate);
-    await createUsers(adapter, 1);
+    await createUsers(1);
     var t = await auth.authenticate("bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app1", "kilimanjaro", expirationInSeconds: 5);
 
     var p1 = await auth.verify(t.accessToken);
@@ -114,7 +108,7 @@ void main() {
   test("Clients have separate tokens", () async {
     var auth = new AuthenticationServer<TestUser, Token>(delegate);
 
-    TestUser createdUser = (await createUsers(adapter, 1)).first;
+    TestUser createdUser = (await createUsers(1)).first;
 
     var token = await auth.authenticate("bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app1", "kilimanjaro");
     var p1 = await auth.verify(token.accessToken);
@@ -133,7 +127,7 @@ void main() {
 
   test("Ensure users aren't authenticated by other users", () async {
     var auth = new AuthenticationServer<TestUser, Token>(delegate);
-    var users = await createUsers(adapter, 10);
+    var users = await createUsers(10);
     var t1 = await auth.authenticate("bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app1", "kilimanjaro");
     var t2 = await auth.authenticate("bob+4@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app1", "kilimanjaro");
 
@@ -148,7 +142,7 @@ void main() {
 
   test("Refresh token works correctly", () async {
     var auth = new AuthenticationServer<TestUser, Token>(delegate);
-    TestUser user = (await createUsers(adapter, 1)).first;
+    TestUser user = (await createUsers(1)).first;
 
     var t1 = await auth.authenticate("bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app1", "kilimanjaro");
     var t2 = await auth.authenticate("bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app1", "kilimanjaro", expirationInSeconds: 5);
@@ -173,6 +167,7 @@ void main() {
     var n2 = await auth.refresh(t2.refreshToken, "com.stablekernel.app1", "kilimanjaro");
     expect(n1.accessToken != t1.accessToken, true);
     expect(n2.accessToken != t2.accessToken, true);
+
 
     p1 = await auth.verify(n1.accessToken);
     p2 = await auth.verify(n2.accessToken);
@@ -210,7 +205,7 @@ void main() {
 
   test("Refresh token doesn't work on wrong client id", () async {
     var auth = new AuthenticationServer<TestUser, Token>(delegate);
-    await createUsers(adapter, 1);
+    await createUsers(1);
 
     var t1 = await auth.authenticate("bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app1", "kilimanjaro");
     var successful = false;

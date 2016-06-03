@@ -183,8 +183,10 @@ abstract class HttpController extends RequestHandler {
       return null;
     }
 
-    var optionalParams =
-        (reflect(this).type.declarations[handlerMethodSymbol] as MethodMirror).parameters.where((methodParameter) => methodParameter.isOptional).toList();
+    var optionalParams = (reflect(this).type.declarations[handlerMethodSymbol] as MethodMirror)
+        .parameters
+        .where((methodParameter) => methodParameter.isOptional)
+        .toList();
 
     var retMap = {};
     queryParams.forEach((k, v) {
@@ -368,11 +370,11 @@ abstract class HttpController extends RequestHandler {
   }
 }
 
-class _InternalIgnoreBullshitException {
+class _InternalIgnoreBullshitException implements Exception {
   _InternalIgnoreBullshitException();
 }
 
-class _InternalControllerException {
+class _InternalControllerException implements Exception {
   final String message;
   final int statusCode;
   final HttpHeaders additionalHeaders;

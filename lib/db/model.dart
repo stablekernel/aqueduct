@@ -15,15 +15,15 @@ part of aqueduct;
 /// }
 ///
 class Model<T> implements Serializable {
-  ModelEntity entity = ModelEntity.entityForType(T);
+  ModelContext context = ModelContext.defaultContext;
+  ModelEntity get entity => context.dataModel.entityForType(T);
 
   /// Applied to each value when a Model is executing [readFromMap].
   ///
   /// Defaults to [_defaultValueDecoder], which simply converts ISO8601 strings to DateTimes.
-  /// [typeMirror] is the type of the model object's property. [key] is the name of the property. [value] is the value being read and assigned to the property [key].
+  /// [propertyDescription] is the [PropertyDescription] definition of the property being assigned. [key] is the name of the property. [value] is the value being read and assigned to the property [key].
   Function get valueDecoder => _valueDecoder;
-  void set valueDecoder(
-      dynamic decode(TypeMirror typeMirror, String key, dynamic value)) {
+  void set valueDecoder(dynamic decode(PropertyDescription propertyDescription, dynamic value)) {
     _valueDecoder = decode;
   }
   Function _valueDecoder = _defaultValueDecoder;
@@ -45,8 +45,8 @@ class Model<T> implements Serializable {
   Map<String, dynamic> dynamicBacking = {};
 
   dynamic operator [](String propertyName) {
-    if (!entity._hasProperty(propertyName)) {
-      throw new QueryException(500, "Model type ${MirrorSystem.getName(reflect(this).type.simpleName)} has no property $propertyName.", -1);
+    if (entity.properties[propertyName] == null) {
+      throw new DataModelException("Model type ${MirrorSystem.getName(reflect(this).type.simpleName)} has no property $propertyName.");
     }
 
     if (!dynamicBacking.containsKey(propertyName)) {
@@ -57,18 +57,15 @@ class Model<T> implements Serializable {
   }
 
   void operator []=(String propertyName, dynamic value) {
-    if (!entity._hasProperty(propertyName)) {
-      throw new QueryException(500, "Model type ${MirrorSystem.getName(reflect(this).type.simpleName)} has no property $propertyName.", -1);
+    var property = entity.properties[propertyName];
+    if (property == null) {
+      throw new DataModelException("Model type ${MirrorSystem.getName(reflect(this).type.simpleName)} has no property $propertyName.");
     }
 
     if (value != null) {
-      var ivarType = entity._typeMirrorForProperty(propertyName);
-      var valueType = reflect(value).type;
-      if (!valueType.isSubtypeOf(ivarType)) {
-        var ivarTypeName = MirrorSystem.getName(ivarType.simpleName);
-        var valueTypeName = MirrorSystem.getName(valueType.simpleName);
-
-        throw new QueryException(500, "Type mismatch for property $propertyName on ${MirrorSystem.getName(reflect(this).type.simpleName)}, expected $ivarTypeName but got $valueTypeName.", -1);
+      if (!property.isAssignableWith(value)) {
+        var valueTypeName = MirrorSystem.getName(reflect(value).type.simpleName);
+        throw new DataModelException("Type mismatch for property $propertyName on ${MirrorSystem.getName(entity.persistentInstanceTypeMirror.simpleName)}, expected assignable type matching ${property.type} but got $valueTypeName.");
       }
     }
 
@@ -104,9 +101,9 @@ class Model<T> implements Serializable {
     }
 
     keyValues.forEach((k, v) {
-      var variableMirror = entity._propertyMirrorForProperty(k);
+      var property = entity.properties[k];
 
-      if (variableMirror == null) {
+      if (property == null) {
         DeclarationMirror decl = _declarationMirrorForProperty(k);
 
         if(decl != null && _declarationMirrorIsMappableOnInput(decl)) {
@@ -115,8 +112,7 @@ class Model<T> implements Serializable {
           throw new QueryException(400, "Key $k does not exist for ${MirrorSystem.getName(reflect(this).type.simpleName)}", -1);
         }
       } else {
-        var fieldType = variableMirror.type as ClassMirror;
-        dynamicBacking[k] = _valueDecoder(fieldType, k, v);
+        dynamicBacking[k] = _valueDecoder(property, v);
       }
     });
   }
@@ -198,30 +194,42 @@ class Model<T> implements Serializable {
   /// The default decoder for values when reading from a map.
   ///
   /// ISO8601 strings are converted to DateTime instances of the type of the property as defined by [key] is DateTime.
-  static dynamic _defaultValueDecoder(TypeMirror typeMirror, String key, dynamic value) {
-    if (typeMirror.isSubtypeOf(reflectType(Model))) {
-      if (value is! Map) {
-        throw new QueryException(400, "Expecting a Map for ${MirrorSystem.getName(typeMirror.simpleName)} in the $key field, got $value instead.", -1);
-      }
-      Model instance = (typeMirror as ClassMirror).newInstance(new Symbol(""), []).reflectee;
-      instance.readMap(value);
-
-      return instance;
-    } else if (typeMirror.isSubtypeOf(reflectType(List))) {
-      if (value is! List) {
-        throw new QueryException(400, "Expecting a List for ${MirrorSystem.getName(typeMirror.simpleName)} in the $key field, got $value instead.", -1);
+  static dynamic _defaultValueDecoder(PropertyDescription propertyDescription, dynamic value) {
+    if (propertyDescription is AttributeDescription) {
+      if (propertyDescription.type == PropertyType.datetime) {
+        value = DateTime.parse(value);
       }
 
-      var listTypeMirror = typeMirror.typeArguments.first;
-      return (value as List).map((v) {
-        Model instance = (listTypeMirror as ClassMirror).newInstance(new Symbol(""), []).reflectee;
-        instance.readMap(v);
+      if (propertyDescription.isAssignableWith(value)) {
+        return value;
+      }
+    } else if (propertyDescription is RelationshipDescription) {
+      RelationshipDescription relationshipDescription = propertyDescription;
+      var destinationEntity = relationshipDescription.destinationEntity;
+      if (relationshipDescription.relationshipType == RelationshipType.belongsTo || relationshipDescription.relationshipType == RelationshipType.hasOne) {
+        if (value is! Map) {
+          throw new QueryException(400, "Expecting a Map for ${MirrorSystem.getName(destinationEntity.instanceTypeMirror.simpleName)} in the ${relationshipDescription.name} field, got $value instead.", -1);
+        }
+
+        Model instance = destinationEntity.instanceTypeMirror.newInstance(new Symbol(""), []).reflectee;
+        instance.readMap(value);
+
         return instance;
-      }).toList();
-    }
+      } else if (relationshipDescription.relationshipType == RelationshipType.hasMany) {
+        if (value is! List) {
+          throw new QueryException(400, "Expecting a List for ${MirrorSystem.getName(destinationEntity.instanceTypeMirror.simpleName)} in the ${relationshipDescription.name} field, got $value instead.", -1);
+        }
 
-    if (typeMirror.isSubtypeOf(reflectType(DateTime))) {
-      return DateTime.parse(value);
+        if (value.length > 0 && value.first is! Map) {
+          throw new QueryException(400, "Expecting a List<Map> for ${MirrorSystem.getName(destinationEntity.instanceTypeMirror.simpleName)} in the ${relationshipDescription.name} field, got $value instead.", -1);
+        }
+
+        return (value as List).map((v) {
+          Model instance = destinationEntity.instanceTypeMirror.newInstance(new Symbol(""), []).reflectee;
+          instance.readMap(v);
+          return instance;
+        }).toList();
+      }
     }
 
     return value;

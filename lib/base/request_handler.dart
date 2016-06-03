@@ -69,12 +69,12 @@ class RequestHandler implements APIDocumentable {
         req.respond(result as Response);
         logger.info(req.toDebugString());
       }
-    } on HttpResponseException catch (e) {
-      req.respond(e.response());
-      logger.info(req.toDebugString(includeHeaders: true, includeBody: true));
+    } on HttpResponseException catch (err, st) {
+      req.respond(err.response());
+      logger.info("${req.toDebugString(includeHeaders: true, includeBody: true)} $err $st");
     } catch (err, st) {
       req.respond(new Response.serverError(headers: {HttpHeaders.CONTENT_TYPE: "application/json"}, body: JSON.encode({"error": "${this.runtimeType}: $err.", "stacktrace": st.toString()})));
-      logger.severe(req.toDebugString(includeHeaders: true, includeBody: true));
+      logger.severe("${req.toDebugString(includeHeaders: true, includeBody: true)} $err $st");
     }
   }
 
@@ -102,10 +102,11 @@ class RequestHandler implements APIDocumentable {
 }
 
 class RequestHandlerGenerator<T extends RequestHandler> extends RequestHandler {
-  List<dynamic> arguments;
   RequestHandlerGenerator({List<dynamic> arguments: const []}) {
     this.arguments = arguments;
   }
+
+  List<dynamic> arguments;
 
   T instantiate() {
     var handler = reflectClass(T).newInstance(new Symbol(""), arguments).reflectee as RequestHandler;

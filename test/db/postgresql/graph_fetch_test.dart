@@ -1,114 +1,92 @@
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
 import 'dart:async';
+import '../../helpers.dart';
 
 void main() {
-
-  test("Graph fetch ensures primary key exists for all objects", () async {
-  });
-
-  test("Graph fetch ensures foreign key exists for all objects", () async {
-  });
-
   group("Tomany graph", () {
-    PostgresModelAdapter adapter;
+    ModelContext context = null;
     List<User> sourceUsers;
 
     setUpAll(() async {
-      adapter = new PostgresModelAdapter.fromConnectionInfo(
-          null, "dart", "dart", "localhost", 5432, "dart_test");
-      await generateTemporarySchemaFromModels(
-          adapter, [User, Equipment, Location]);
+      context = await contextWithModels([User, Equipment, Location]);
 
       var userNames = ["Joe", "Fred", "Bob", "John", "Sally"];
       // Create a bunch of sample data
       sourceUsers = await Future.wait(userNames.map((name) {
         var q = new Query<User>()
-          ..valueObject = (new User()
-            ..name = name);
-        return q.insert(adapter);
+          ..values.name = name;
+        return q.insert();
       }));
 
       var locationCreator = (List<String> names, User u) {
         return names.map((name) {
           var q = new Query<Location>()
-            ..valueObject = (new Location()
-              ..name = name
-              ..user = (new User()
-                ..id = u.id));
-          return q.insert(adapter);
+            ..values.name = name
+            ..values.user = (new User()..id = u.id);
+          return q.insert();
         });
       };
 
-      sourceUsers[0].locations =
-      await Future.wait(locationCreator(["Crestridge", "SK"], sourceUsers[0]));
-      sourceUsers[1].locations = await Future.wait(
-          locationCreator(["Krog St", "Dumpster"], sourceUsers[1]));
-      sourceUsers[2].locations =
-      await Future.wait(locationCreator(["Omaha"], sourceUsers[2]));
-      sourceUsers[3].locations =
-      await Future.wait(locationCreator(["London"], sourceUsers[3]));
+      sourceUsers[0].locations = await Future.wait(locationCreator(["Crestridge", "SK"], sourceUsers[0]));
+      sourceUsers[1].locations = await Future.wait(locationCreator(["Krog St", "Dumpster"], sourceUsers[1]));
+      sourceUsers[2].locations = await Future.wait(locationCreator(["Omaha"], sourceUsers[2]));
+      sourceUsers[3].locations = await Future.wait(locationCreator(["London"], sourceUsers[3]));
       sourceUsers[4].locations = [];
 
       var equipmentCreator = (List<List<String>> pairs, Location loc) {
         return pairs.map((pair) {
           var q = new Query<Equipment>()
-            ..valueObject = (new Equipment()
-              ..name = pair.first
-              ..type = pair.last
-              ..location = (new Location()
-                ..id = loc.id));
-          return q.insert(adapter);
+            ..values.name = pair.first
+            ..values.type = pair.last
+            ..values.location = (new Location()..id = loc.id);
+          return q.insert();
         });
       };
 
       sourceUsers[0].locations.first.equipment = await Future.wait(
-          equipmentCreator(
-              [["Fridge", "Appliance"], ["Microwave", "Appliance"]],
-              sourceUsers[0].locations.first));
+          equipmentCreator([["Fridge", "Appliance"], ["Microwave", "Appliance"]], sourceUsers[0].locations.first));
       sourceUsers[0].locations.last.equipment = await Future.wait(
-          equipmentCreator(
-              [["Computer", "Electronics"]], sourceUsers[0].locations.last));
+          equipmentCreator([["Computer", "Electronics"]], sourceUsers[0].locations.last));
       sourceUsers[1].locations.first.equipment = await Future.wait(
-          equipmentCreator(
-              [["Cash Register", "Admin"]], sourceUsers[1].locations.first));
+          equipmentCreator([["Cash Register", "Admin"]], sourceUsers[1].locations.first));
+
       sourceUsers[1].locations.last.equipment = [];
+
       sourceUsers[2].locations.first.equipment = await Future.wait(
-          equipmentCreator(
-              [["Fire Truck", "Vehicle"]], sourceUsers[2].locations.first));
+          equipmentCreator([["Fire Truck", "Vehicle"]], sourceUsers[2].locations.first));
       sourceUsers[3].locations.first.equipment = [];
     });
 
     tearDownAll(() {
-      adapter.close();
-      adapter = null;
+      context?.persistentStore?.close();
+      context = null;
     });
 
     test("Can still get object", () async {
       var q = new UserQuery()
         ..id = 1;
-      var user = await q.fetchOne(adapter);
+      var user = await q.fetchOne();
       expect(user.id, 1);
       expect(user.name, "Joe");
       expect(user.locations, isNull);
 
       q = new UserQuery();
-      var users = await q.fetch(adapter);
+      var users = await q.fetch();
       expect(users.length, 5);
     });
 
     test("Can still fetch objects with foreign keys", () async {
       var q = new LocationQuery()
         ..id = 1;
-      var loc = await q.fetchOne(adapter);
+      var loc = await q.fetchOne();
       expect(loc.id, 1);
       expect(loc.user.id, 1);
       expect(loc.user.name, isNull);
       expect(loc.equipment, isNull);
     });
 
-    test(
-        "Keys with same name across table still yields appropriate result", () async {
+    test("Keys with same name across table still yields appropriate result", () async {
 
     });
 
@@ -116,7 +94,7 @@ void main() {
       var q = new UserQuery()
         ..id = 1
         ..locations = whereAnyMatch;
-      var users = await q.fetch(adapter);
+      var users = await q.fetch();
       expect(users.length, 1);
 
       var user = users.first;
@@ -140,7 +118,7 @@ void main() {
     test("Can do one level join with multiple root object", () async {
       var q = new UserQuery()
         ..locations = whereAnyMatch;
-      var users = await q.fetch(adapter);
+      var users = await q.fetch();
       expect(users.length, 5);
 
       users.sort((u1, u2) => u1.id - u2.id);
@@ -197,7 +175,7 @@ void main() {
         ..id = 1
         ..locations.single.equipment = whereAnyMatch;
 
-      var users = await q.fetch(adapter);
+      var users = await q.fetch();
       expect(users.first, equals(sourceUsers.first));
 
       var map = users.first.asMap();
@@ -221,7 +199,7 @@ void main() {
       var q = new UserQuery()
         ..locations.single.equipment = whereAnyMatch;
 
-      var users = await q.fetch(adapter);
+      var users = await q.fetch();
       expect(users, equals(sourceUsers));
 
       var mapList = users.map((u) => u.asMap()).toList();
@@ -274,7 +252,7 @@ void main() {
           ..id = 1
         ];
 
-      var users = await q.fetch(adapter);
+      var users = await q.fetch();
       var sourceTrunc = sourceUsers.map((u) => new User.fromUser(u)).toList();
       sourceTrunc.forEach((User u) {
         u.locations?.forEach((loc) {
@@ -320,10 +298,27 @@ void main() {
       ]);
     });
 
+    test("Can join with predicates on both", () async {
+      var q = new LocationQuery()
+        ..user = whereRelatedByValue(1)
+        ..equipment.single.name = "Fridge";
+
+      var results = await q.fetch();
+      var mapList = results.map((u) => u.asMap()).toList();
+      expect(mapList, [
+        {
+          "name" : "Crestridge", "id" : 1, "user" : {"id" : 1}, "equipment" : [
+            {"id" : 1, "name" : "Fridge", "type" : "Appliance", "location" : {"id" : 1}}
+          ]
+        },
+        {"name" : "SK", "id" : 2, "user" : {"id" : 1}, "equipment" : []}
+      ]);
+    });
+
     test("Can join from middle of graph", () async {
       var q = new LocationQuery()
         ..equipment = whereAnyMatch;
-      var locations = await q.fetch(adapter);
+      var locations = await q.fetch();
 
       var sourceTrunc = sourceUsers.map((u) => u.locations)
           .expand((l) => l)
@@ -338,50 +333,60 @@ void main() {
       var q = new LocationQuery()
         ..user = whereRelatedByValue(1);
 
-      var locations = await q.fetch(adapter);
+      var locations = await q.fetch();
       for (var loc in locations) {
         var u = loc.user;
         expect(u.dynamicBacking.length, 1);
         expect(u.id, 1);
       }
     });
+
+    test("Can fetch graph when omitting foreign or primary keys from query", () async {
+      var q = new UserQuery()
+        ..resultKeys = ["name"]
+        ..locations = [
+          new LocationQuery()
+            ..resultKeys = ["name"]
+        ];
+
+      var users = await q.fetch();
+      expect(users.first.name, isNotNull);
+      expect(users.first.id, isNotNull);
+      expect(users.first.locations.length, greaterThan(0));
+      expect(users.first.locations.first.name, isNotNull);
+    });
   });
 
   group("ToOne graph", () {
-    PostgresModelAdapter adapter;
+    ModelContext context = null;
 
     setUpAll(() async {
-      new Logger("aqueduct").onRecord.listen((rec) => print("$rec"));
-      adapter = new PostgresModelAdapter.fromConnectionInfo(null, "dart", "dart", "localhost", 5432, "dart_test");
-      await generateTemporarySchemaFromModels(adapter, [Owned, Owner]);
+      context = await contextWithModels([Owned, Owner]);
 
       var o = ["A", "B", "C"];
       var owners = await Future.wait(o.map((x) {
         var q = new Query<Owner>()
-          ..valueObject = (new Owner()
-            ..name = x);
-        return q.insert(adapter);
+          ..values.name = x;
+        return q.insert();
       }));
 
       for (var o in owners) {
         var q = new Query<Owned>()
-            ..valueObject = (new Owned()
-              ..name = "${o.name}1"
-              ..owner = (new Owner()..id = o.id));
-        await q.insert(adapter);
+          ..values.name = "${o.name}1"
+          ..values.owner = (new Owner()..id = o.id);
+        await q.insert();
       }
     });
 
     tearDownAll(() {
-      adapter.close();
-      adapter = null;
+      context?.persistentStore?.close();
     });
 
     test("Join with single root object", () async {
       var q = new OwnerQuery()
           ..id = 1
           ..owned = whereAnyMatch;
-      var o = (await q.fetch(adapter)).first.asMap();
+      var o = (await q.fetch()).first.asMap();
 
       expect(o, {
         "id" : 1,
@@ -397,7 +402,7 @@ void main() {
     test("Join with multi root object", () async {
       var q = new OwnerQuery()
         ..owned = whereAnyMatch;
-      var o = await q.fetch(adapter);
+      var o = await q.fetch();
 
       var mapList = o.map((x) => x.asMap()).toList();
       expect(mapList, [
@@ -581,7 +586,6 @@ class _Owned {
   int id;
   String name;
 
-  @Attributes(nullable: true)
   @RelationshipAttribute.belongsTo("owned")
   Owner owner;
 }

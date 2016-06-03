@@ -2,6 +2,10 @@ import 'package:aqueduct/aqueduct.dart';
 import 'package:test/test.dart';
 
 main() {
+  var ps = new DefaultPersistentStore();
+  DataModel dm = new DataModel([TransientTest, User, Post]);
+  ModelContext _ = new ModelContext(dm, ps);
+
   test("NoSuchMethod still throws", () {
     var user = new User();
     var successful = false;
@@ -30,7 +34,7 @@ main() {
       user.name = 1;
       successful = true;
     } catch (e) {
-      expect(e.message, "Type mismatch for property name on User, expected String but got _Smi.");
+      expect(e.message, "Type mismatch for property name on _User, expected assignable type matching PropertyType.string but got _Smi.");
     }
     expect(successful, false);
 
@@ -38,7 +42,7 @@ main() {
       user.id = "foo";
       successful = true;
     } catch (e) {
-      expect(e.message, "Type mismatch for property id on User, expected int but got _OneByteString.");
+      expect(e.message, "Type mismatch for property id on _User, expected assignable type matching PropertyType.integer but got _OneByteString.");
     }
     expect(successful, false);
   });
@@ -305,7 +309,6 @@ main() {
   });
 }
 
-@proxy
 class User extends Model<_User> implements _User {
   @mappable
   String value;
@@ -320,23 +323,21 @@ class _User {
 
   DateTime dateCreated;
 
+  @RelationshipAttribute.hasMany("owner")
   List<Post> posts;
 }
 
-@proxy
-class Post extends Model<_Post> implements _Post {
-}
-
+class Post extends Model<_Post> implements _Post {}
 class _Post {
   @primaryKey
   int id;
 
   String text;
 
+  @RelationshipAttribute.belongsTo("posts")
   User owner;
 }
 
-@proxy
 class TransientTest extends Model<_TransientTest> implements _TransientTest {
   @mappable
   String get defaultedText => "Mr. $text";
