@@ -61,4 +61,8 @@ class Predicate {
 class PredicateException implements Exception {
   final String message;
   PredicateException(this.message);
+
+  String toString() {
+    return "PredicateException: $message";
+  }
 }

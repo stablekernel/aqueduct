@@ -4,6 +4,7 @@ import "dart:io";
 import 'package:http/http.dart' as http;
 import 'package:aqueduct/aqueduct.dart';
 import 'dart:async';
+import 'dart:mirrors';
 
 void main() {
 /*
@@ -26,7 +27,7 @@ void main() {
     HttpServer server;
 
     setUpAll(() async {
-      server = await enableController("/a", new RequestHandlerGenerator<NoPolicyController>());
+      server = await enableController("/a", NoPolicyController);
     });
     tearDownAll(() async {
       await server?.close(force: true);
@@ -59,7 +60,7 @@ void main() {
     HttpServer server;
 
     setUpAll(() async {
-      server = await enableController("/a", new RequestHandlerGenerator<DefaultPolicyController>());
+      server = await enableController("/a", DefaultPolicyController);
     });
     tearDownAll(() async {
       await server?.close(force: true);
@@ -98,9 +99,10 @@ void main() {
   });
 }
 
-Future<HttpServer> enableController(String pattern, RequestHandler controller) async {
+Future<HttpServer> enableController(String pattern, Type controller) async {
   var router = new Router();
-  router.route(pattern).then(controller);
+  router.route(pattern).then(() => reflectClass(controller).newInstance(new Symbol(""), []).reflectee);
+
 
   var server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 8000);
   server.map((httpReq) => new ResourceRequest(httpReq)).listen((req) {

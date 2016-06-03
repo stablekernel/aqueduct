@@ -37,10 +37,32 @@ class RequestHandler implements APIDocumentable {
   /// Handlers may be chained together if they have the option not to respond to requests.
   /// If this handler returns a [ResourceRequest] from [processRequest], this [nextHandler]
   /// handler will run. This method sets the [nextHandler] property] and returns [this]
-  /// to allow chaining.
-  RequestHandler then(RequestHandler next) {
+  /// to allow chaining. This parameter may be an instance of [RequestHandler] or a
+  /// function that takes no arguments and returns a [RequestHandler]. In the latter instance,
+  /// a new instance of the returned [RequestHandler] is created for each request. Otherwise,
+  /// the same instance is used for each request. All [HttpController]s and subclasses should
+  /// be wrapped in a function that returns a new instance of the controller.
+  RequestHandler then(dynamic next) {
+    if (next is Function) {
+      next = new _RequestHandlerGenerator(next);
+    } else {
+      var typeMirror = reflect(next).type;
+      if (_requestHandlerTypeRequiresInstantion(typeMirror)) {
+        throw new IsolateSupervisorException("RequestHandler ${typeMirror.reflectedType} instances cannot be reused. Rewrite as .then(() => new ${typeMirror.reflectedType}())");
+      }
+    }
     this.nextHandler = next;
     return next;
+  }
+
+  bool _requestHandlerTypeRequiresInstantion(ClassMirror mirror) {
+    if (mirror.metadata.firstWhere((im) => im.reflectee is _RequiresInstantion, orElse: () => null) != null) {
+      return true;
+    }
+    if (mirror.isSubtypeOf(reflectType(RequestHandler))) {
+      return _requestHandlerTypeRequiresInstantion(mirror.superclass);
+    }
+    return false;
   }
 
   /// The mechanism for delivering a [ResourceRequest] to this handler for processing.
@@ -58,7 +80,6 @@ class RequestHandler implements APIDocumentable {
   /// to deliver the [ResourceRequest] to the appropriate route handler. If overriding this
   /// method, it is important that you always invoke subsequent handler's with [deliver]
   /// and not [processRequest].
-
   Future deliver(ResourceRequest req) async {
     try {
       var result = await processRequest(req);
@@ -69,9 +90,9 @@ class RequestHandler implements APIDocumentable {
         req.respond(result as Response);
         logger.info(req.toDebugString());
       }
-    } on HttpResponseException catch (err, st) {
+    } on HttpResponseException catch (err) {
       req.respond(err.response());
-      logger.info("${req.toDebugString(includeHeaders: true, includeBody: true)} $err $st");
+      logger.info("${req.toDebugString(includeHeaders: true, includeBody: true)} ${err.message}");
     } catch (err, st) {
       req.respond(new Response.serverError(headers: {HttpHeaders.CONTENT_TYPE: "application/json"}, body: JSON.encode({"error": "${this.runtimeType}: $err.", "stacktrace": st.toString()})));
       logger.severe("${req.toDebugString(includeHeaders: true, includeBody: true)} $err $st");
@@ -89,6 +110,7 @@ class RequestHandler implements APIDocumentable {
     if (_handler != null) {
       return _handler(req);
     }
+
     return req;
   }
 
@@ -101,29 +123,40 @@ class RequestHandler implements APIDocumentable {
   }
 }
 
-class RequestHandlerGenerator<T extends RequestHandler> extends RequestHandler {
-  RequestHandlerGenerator({List<dynamic> arguments: const []}) {
-    this.arguments = arguments;
+/// Metadata for a [RequestHandler] subclass that indicates it must be instantiated for each request.
+///
+/// [RequestHandler]s may carry some state throughout the course of their handling of a request. If
+/// that [RequestHandler] is reused for another request, some of that state may carry over. Therefore,
+/// it is a better solution to instantiate the [RequestHandler] for each incoming request. Marking
+/// a [RequestHandler] subclass with this flag will ensure that an exception is thrown if an instance
+/// of [RequestHandler] is chained in a pipeline. These instances must be generated with a closure:
+///
+///       router.route("/path").then(() => new RequestHandlerSubclass());
+const _RequiresInstantion cannotBeReused = const _RequiresInstantion();
+class _RequiresInstantion {
+  const _RequiresInstantion();
+}
+
+class _RequestHandlerGenerator extends RequestHandler {
+  _RequestHandlerGenerator(RequestHandler generator()) {
+    this.generator = generator;
   }
 
-  List<dynamic> arguments;
+  Function generator;
 
-  T instantiate() {
-    var handler = reflectClass(T).newInstance(new Symbol(""), arguments).reflectee as RequestHandler;
-    handler.nextHandler = this.nextHandler;
-    return handler;
+  RequestHandler instantiate() {
+    RequestHandler instance = generator();
+    instance.nextHandler = this.nextHandler;
+    return instance;
   }
 
   @override
   Future deliver(ResourceRequest req) async {
-    logger.finest("Generating handler $T with arguments $arguments.");
-    T handler = instantiate();
-    await handler.deliver(req);
+    await instantiate().deliver(req);
   }
 
   @override
   List<APIDocumentItem> document(PackagePathResolver resolver) {
     return instantiate().document(resolver);
   }
-
 }

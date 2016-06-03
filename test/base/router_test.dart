@@ -109,7 +109,7 @@ void main() {
     Handler.counter = 0;
 
     var router = new Router();
-    router.route("/a").then(new RequestHandlerGenerator<Handler>());
+    router.route("/a").then(() => new Handler());
     var server = await enableRouter(router);
 
 

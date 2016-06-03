@@ -34,6 +34,7 @@ class IsolateSupervisor {
   }
 
   void listener(dynamic message) {
+
     if (message is SendPort) {
       _launchCompleter.complete();
       _launchCompleter = null;
@@ -64,4 +65,8 @@ class IsolateSupervisor {
 class IsolateSupervisorException implements Exception {
   final String message;
   IsolateSupervisorException(this.message);
+
+  String toString() {
+    return "$message";
+  }
 }

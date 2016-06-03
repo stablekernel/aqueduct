@@ -81,4 +81,8 @@ class _WithinMatcherExpression implements MatcherExpression {
 class PredicateMatcherException implements Exception {
   String message;
   PredicateMatcherException(this.message);
+
+  String toString() {
+    return "PredicateMatcherException: $message";
+  }
 }

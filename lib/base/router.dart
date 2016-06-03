@@ -130,4 +130,8 @@ class ResourceRoute {
 class RouterException implements Exception {
   final String message;
   RouterException(this.message);
+
+  String toString() {
+    return "RouterException: $message";
+  }
 }
