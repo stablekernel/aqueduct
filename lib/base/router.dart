@@ -115,7 +115,9 @@ class Router extends RequestHandler {
   }
 
   void _handleUnhandledRequest(ResourceRequest req) {
-    req.respond(new Response.notFound());
+    var response = new Response.notFound();
+    _applyCORSHeadersIfNecessary(req, response);
+    req.respond(response);
     logger.info(req.toDebugString());
   }
 }

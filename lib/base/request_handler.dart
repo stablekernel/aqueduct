@@ -16,6 +16,8 @@ class RequestHandler implements APIDocumentable {
 
   Logger get logger => new Logger("aqueduct");
 
+  CORSPolicy policy = new CORSPolicy();
+
   /// The initializer for RequestHandlers.
   ///
   /// To use a closure-based RequestHandler, you may specify [requestHandler] for
@@ -61,19 +63,49 @@ class RequestHandler implements APIDocumentable {
 
   Future deliver(ResourceRequest req) async {
     try {
+      if (isPreflightRequest(req)) {
+        var handlerToDictatePolicy = _lastRequestHandler();
+        if (handlerToDictatePolicy != this) {
+          handlerToDictatePolicy.deliver(req);
+          return;
+        }
+
+        if (policy != null) {
+          if (!policy.validatePreflightRequest(req.innerRequest)) {
+            req.respond(new Response.forbidden());
+            logger.info(req.toDebugString(includeHeaders: true));
+          } else {
+            // If we are the last on the chain, we can OK the preflight request, otherwise, we let the next handler deal with it.
+            if (nextHandler == null) {
+              req.respond(policy.preflightResponse(req));
+              logger.info(req.toDebugString());
+            } else {
+              nextHandler.deliver(req);
+            }
+          }
+          return;
+        }
+        // If we have no policy, then it isn't really a preflight request because we don't support CORS so let it fall thru.
+      }
+
       var result = await processRequest(req);
 
       if (result is ResourceRequest && nextHandler != null) {
         nextHandler.deliver(req);
       } else if (result is Response) {
+        _applyCORSHeadersIfNecessary(req, result);
         req.respond(result as Response);
         logger.info(req.toDebugString());
       }
     } on HttpResponseException catch (e) {
-      req.respond(e.response());
+      var response = e.response();
+      _applyCORSHeadersIfNecessary(req, response);
+      req.respond(response);
       logger.info(req.toDebugString(includeHeaders: true, includeBody: true));
     } catch (err, st) {
-      req.respond(new Response.serverError(headers: {HttpHeaders.CONTENT_TYPE: "application/json"}, body: JSON.encode({"error": "${this.runtimeType}: $err.", "stacktrace": st.toString()})));
+      var response = new Response.serverError(headers: {HttpHeaders.CONTENT_TYPE: "application/json"}, body: JSON.encode({"error": "${this.runtimeType}: $err.", "stacktrace": st.toString()}));
+      _applyCORSHeadersIfNecessary(req, response);
+      req.respond(response);
       logger.severe(req.toDebugString(includeHeaders: true, includeBody: true));
     }
   }
@@ -92,6 +124,35 @@ class RequestHandler implements APIDocumentable {
     return req;
   }
 
+  RequestHandler _lastRequestHandler() {
+    var handler = this;
+    while (handler.nextHandler != null) {
+      handler = handler.nextHandler;
+    }
+    return handler;
+  }
+
+  void _applyCORSHeadersIfNecessary(ResourceRequest req, Response resp) {
+    if (isCORSRequest(req)) {
+      var lastPolicyHandler = _lastRequestHandler();
+      var p = lastPolicyHandler.policy;
+      if (p != null) {
+        resp.headers.addAll(p.headersForRequest(req));
+      }
+    }
+  }
+
+  bool isCORSRequest(ResourceRequest req) {
+    return req.innerRequest.headers.value("origin") != null;
+  }
+
+  bool isPreflightRequest(ResourceRequest req) {
+    if (req.innerRequest.headers.value("origin") != null) {
+      return req.innerRequest.method == "OPTIONS";
+    }
+    return false;
+  }
+
   List<APIDocumentItem> document(PackagePathResolver resolver) {
     if (nextHandler != null) {
       return nextHandler.document(resolver);
@@ -102,10 +163,15 @@ class RequestHandler implements APIDocumentable {
 }
 
 class RequestHandlerGenerator<T extends RequestHandler> extends RequestHandler {
-  List<dynamic> arguments;
   RequestHandlerGenerator({List<dynamic> arguments: const []}) {
     this.arguments = arguments;
   }
+
+  List<dynamic> arguments;
+  CORSPolicy get policy {
+    return instantiate().policy;
+  }
+  void set policy(CORSPolicy p) {}
 
   T instantiate() {
     var handler = reflectClass(T).newInstance(new Symbol(""), arguments).reflectee as RequestHandler;

@@ -11,8 +11,6 @@ abstract class HttpController extends RequestHandler {
   /// It is this [HttpController]'s responsibility to return a [Response] object for this request.
   ResourceRequest request;
 
-  CORSPolicy policy = new CORSPolicy();
-
   /// Parameters parsed from the URI of the request, if any exist.
   Map<String, String> get pathVariables => request.path.variables;
 
@@ -243,23 +241,6 @@ abstract class HttpController extends RequestHandler {
     try {
       request = req;
 
-      var corsHeaders = null;
-      if (request.innerRequest.headers.value("origin") != null) {
-        if (policy != null) {
-          if (!policy.isRequestOriginAllowed(request.innerRequest)) {
-            return new Response.forbidden();
-          }
-
-          if (request.innerRequest.method == "OPTIONS") {
-            // Preflight request
-            return policy.preflightResponse(req);
-          } else {
-            // Normal request
-            corsHeaders = policy.headersForRequest(request);
-          }
-        }
-      }
-
       var preprocessedResult = await willProcessRequest(req);
       Response response = null;
       if (preprocessedResult is ResourceRequest) {
@@ -268,14 +249,6 @@ abstract class HttpController extends RequestHandler {
         response = preprocessedResult;
       } else {
         throw new _InternalControllerException("Preprocessing request did not yield result", 500);
-      }
-
-      if (corsHeaders != null) {
-        if (response.headers != null) {
-          response.headers.addAll(corsHeaders);
-        } else {
-          response.headers = corsHeaders;
-        }
       }
 
       return response;
