@@ -14,6 +14,7 @@ abstract class RequestHandlerResult {}
 class RequestHandler implements APIDocumentable {
   Function _handler;
 
+  CORSPolicy policy = new CORSPolicy();
   Logger get logger => new Logger("aqueduct");
 
   /// The initializer for RequestHandlers.
@@ -79,22 +80,53 @@ class RequestHandler implements APIDocumentable {
   /// use simple chaining. For example, the [Router] class overrides this method
   /// to deliver the [ResourceRequest] to the appropriate route handler. If overriding this
   /// method, it is important that you always invoke subsequent handler's with [deliver]
-  /// and not [processRequest].
+  /// and not [processRequest]. You must also ensure that CORS requests are handled properly,
+  /// as this method does the heavy-lifting for handling CORS requests.
   Future deliver(ResourceRequest req) async {
     try {
+      if (isPreflightRequest(req)) {
+        var handlerToDictatePolicy = _lastRequestHandler();
+        if (handlerToDictatePolicy != this) {
+          handlerToDictatePolicy.deliver(req);
+          return;
+        }
+
+        if (policy != null) {
+          if (!policy.validatePreflightRequest(req.innerRequest)) {
+            req.respond(new Response.forbidden());
+            logger.info(req.toDebugString(includeHeaders: true));
+          } else {
+            // If we are the last on the chain, we can OK the preflight request, otherwise, we let the next handler deal with it.
+            if (nextHandler == null) {
+              req.respond(policy.preflightResponse(req));
+              logger.info(req.toDebugString());
+            } else {
+              nextHandler.deliver(req);
+            }
+          }
+          return;
+        }
+        // If we have no policy, then it isn't really a preflight request because we don't support CORS so let it fall thru.
+      }
+
       var result = await processRequest(req);
 
       if (result is ResourceRequest && nextHandler != null) {
         nextHandler.deliver(req);
       } else if (result is Response) {
+        _applyCORSHeadersIfNecessary(req, result);
         req.respond(result as Response);
         logger.info(req.toDebugString());
       }
     } on HttpResponseException catch (err) {
-      req.respond(err.response());
+      var response = err.response();
+      _applyCORSHeadersIfNecessary(req, response);
+      req.respond(response);
       logger.info("${req.toDebugString(includeHeaders: true, includeBody: true)} ${err.message}");
     } catch (err, st) {
-      req.respond(new Response.serverError(headers: {HttpHeaders.CONTENT_TYPE: "application/json"}, body: JSON.encode({"error": "${this.runtimeType}: $err.", "stacktrace": st.toString()})));
+      var response = new Response.serverError(headers: {HttpHeaders.CONTENT_TYPE: "application/json"}, body: JSON.encode({"error": "${this.runtimeType}: $err.", "stacktrace": st.toString()}));
+      _applyCORSHeadersIfNecessary(req, response);
+      req.respond(response);
       logger.severe("${req.toDebugString(includeHeaders: true, includeBody: true)} $err $st");
     }
   }
@@ -112,6 +144,35 @@ class RequestHandler implements APIDocumentable {
     }
 
     return req;
+  }
+
+  RequestHandler _lastRequestHandler() {
+    var handler = this;
+    while (handler.nextHandler != null) {
+      handler = handler.nextHandler;
+    }
+    return handler;
+  }
+
+  void _applyCORSHeadersIfNecessary(ResourceRequest req, Response resp) {
+    if (isCORSRequest(req)) {
+      var lastPolicyHandler = _lastRequestHandler();
+      var p = lastPolicyHandler.policy;
+      if (p != null) {
+        resp.headers.addAll(p.headersForRequest(req));
+      }
+    }
+  }
+
+  bool isCORSRequest(ResourceRequest req) {
+    return req.innerRequest.headers.value("origin") != null;
+  }
+
+  bool isPreflightRequest(ResourceRequest req) {
+    if (req.innerRequest.headers.value("origin") != null) {
+      return req.innerRequest.method == "OPTIONS";
+    }
+    return false;
   }
 
   List<APIDocumentItem> document(PackagePathResolver resolver) {
@@ -147,7 +208,18 @@ class _RequestHandlerGenerator extends RequestHandler {
   RequestHandler instantiate() {
     RequestHandler instance = generator();
     instance.nextHandler = this.nextHandler;
+    if (_policy != null) {
+      instance.policy = _policy;
+    }
     return instance;
+  }
+
+  CORSPolicy _policy;
+  CORSPolicy get policy {
+    return instantiate().policy;
+  }
+  void set policy(CORSPolicy p) {
+    _policy = p;
   }
 
   @override
