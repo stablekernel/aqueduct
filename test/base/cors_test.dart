@@ -94,7 +94,6 @@ void main() {
   group("Default CORS Policy", () {
     var app = new Application<CORSPipeline>();
     app.configuration.port = 8000;
-    new Logger("aqueduct").onRecord.listen((r) => print("$r"));
 
     setUpAll(() async {
       await app.start(runOnMainIsolate: true);
@@ -189,7 +188,10 @@ void main() {
     });
 
     test("Endpoint that throws exception returns appropriate value", () async {
-      var resp = await http.post("http://localhost:8000/defaultpolicyauth", headers: {"Authorization" : "Bearer auth"});
+      var resp = await http.post("http://localhost:8000/defaultpolicyauth", headers: {
+        "Authorization" : "Bearer auth",
+        "Origin" : "http://somewhereelse.com"
+      });
       expect(resp.statusCode, 400);
       expect(resp.headers["access-control-allow-origin"], "http://somewhereelse.com");
     });
