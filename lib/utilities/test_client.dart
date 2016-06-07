@@ -11,6 +11,7 @@ class TestClient {
   TestClient(int port) {
     host = "http://localhost:$port";
   }
+
   TestClient.fromConfig(ApplicationInstanceConfiguration config) {
     var hostname = config.address;
     hostname ??= "localhost";
@@ -52,6 +53,7 @@ class TestRequest {
   String host;
   String path;
   String body;
+  Map<String, String> queryParameters = {};
   Map<String, String> get headers => _headers;
   void set headers(Map<String, String> h) {
     if (!_headers.isEmpty) {
@@ -60,6 +62,30 @@ class TestRequest {
     _headers = h;
   }
   Map<String, String> _headers = {};
+
+  String get requestURL {
+    String url = null;
+    if (path.startsWith("/")) {
+      url = "$host$path";
+    } else {
+      url = [host, path].join("/");
+    }
+
+    var queryElements = [];
+    queryParameters?.forEach((key, val) {
+      if (val == null || val == true) {
+        queryElements.add("$key");
+      } else {
+        queryElements.add("$key=${Uri.encodeComponent("$val")}");
+      }
+    });
+
+    if (queryElements.length > 0) {
+      url = url + "?" + queryElements.join("&");
+    }
+
+    return url;
+  }
 
   void set basicAuthorization(String str) {
     addHeader(HttpHeaders.AUTHORIZATION, "Basic ${new Base64Encoder().convert(str.codeUnits)}");
@@ -91,20 +117,70 @@ class TestRequest {
     headers[name] = value;
   }
 
-  Future<http.Response> post() {
-    return _innerClient.post("$host$path", headers: headers, body: body);
+  Future<TestResponse> post() {
+    return _wrap(_innerClient.post(requestURL, headers: headers, body: body));
   }
 
-  Future<http.Response> put() {
-    return _innerClient.put("$host$path", headers: headers, body: body);
+  Future<TestResponse> put() {
+    return _wrap(_innerClient.put(requestURL, headers: headers, body: body));
   }
 
-  Future<http.Response> get() {
-    return _innerClient.get("$host$path", headers: headers);
+  Future<TestResponse> get() {
+    return _wrap(_innerClient.get(requestURL, headers: headers));
   }
 
-  Future<http.Response> delete() {
-    return _innerClient.delete("$host$path", headers: headers);
+  Future<TestResponse> delete() {
+    return _wrap(_innerClient.delete(requestURL, headers: headers));
+  }
+
+  Future<TestResponse> _wrap(Future<http.Response> req) async {
+    return new TestResponse(await req);
+  }
+}
+
+class TestResponse {
+  TestResponse(this._innerResponse) {
+    body = _innerResponse.body;
+
+    if (contentLength > 0) {
+      var contentType = this._innerResponse.headers["content-type"];
+      if (contentType == ContentType.JSON) {
+        _decodedBody = JSON.decode(body);
+      } else if (contentType == "application/x-www-form-urlencoded") {
+        var split = body.split("&");
+        var map = {};
+        split.forEach((str) {
+          var innerSplit = str.split("=");
+          if (innerSplit.length == 2) {
+            map[innerSplit[0]] = innerSplit[1];
+          } else {
+            map[innerSplit[0]] = true;
+          }
+        });
+        _decodedBody = map;
+      }
+    }
+  }
+
+  dynamic _decodedBody;
+  String body;
+  Map<String, String> get headers => _innerResponse.headers;
+  int get contentLength => _innerResponse.contentLength;
+  int get statusCode => _innerResponse.statusCode;
+  final http.Response _innerResponse;
+  bool get isRedirect => _innerResponse.isRedirect;
+  bool get persistentConnection => _innerResponse.persistentConnection;
+
+  List<dynamic> asList() {
+    return _decodedBody;
+  }
+
+  Map<dynamic, dynamic> asMap() {
+    return _decodedBody;
+  }
+
+  String asString() {
+    return _decodedBody;
   }
 }
 
@@ -112,7 +188,6 @@ HTTPResponseMatcher hasStatus(int v) => new HTTPResponseMatcher(v, [], null);
 HTTPResponseMatcher hasResponse(int statusCode, List<HTTPHeaderMatcher> headers, HTTPBodyMatcher body) => new HTTPResponseMatcher(statusCode, headers, body);
 
 class HTTPResponseMatcher extends Matcher {
-
   HTTPResponseMatcher(this.statusCode, this.headers, this.body);
 
   int statusCode = null;
