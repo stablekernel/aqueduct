@@ -6,7 +6,7 @@ class CORSPolicy {
   List<String> exposedResponseHeaders = [];
 
   List<String> allowedMethods = ["POST", "PUT", "DELETE", "GET"];
-  List<String> allowedRequestHeaders = ["authorization", "x-requested-with", "content-type", "accept"];
+  List<String> allowedRequestHeaders = ["authorization", "x-requested-with", "content-type", "accept", "x-forwarded-for"];
   int cacheInSeconds = 3600;
 
   Map<String, dynamic> headersForRequest(ResourceRequest request) {
