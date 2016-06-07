@@ -85,7 +85,10 @@ void main() {
     });
 
     test("Endpoint that throws exception returns appropriate value", () async {
-      var resp = await http.post("http://localhost:8000/nopolicyauth", headers: {"Authorization" : "Bearer auth"});
+      var resp = await http.post("http://localhost:8000/nopolicyauth", headers: {
+        "Authorization" : "Bearer auth",
+        "Origin" : "http://somewhereelse.com"
+      });
       expect(resp.statusCode, 400);
       expect(resp.headers["access-control-allow-origin"], isNull);
     });
