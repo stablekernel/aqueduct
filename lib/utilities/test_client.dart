@@ -45,6 +45,10 @@ class TestClient {
       ..bearerAuthorization = accessToken;
     return req;
   }
+
+  void close() {
+    _innerClient?.close();
+  }
 }
 
 class TestRequest {
