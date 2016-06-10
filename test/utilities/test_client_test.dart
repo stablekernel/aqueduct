@@ -50,6 +50,13 @@ void main() {
       expect(msg.path, "/foo");
       expect(msg.headers["x-content"], "1");
 
+      await (defaultTestClient.request("/foo")
+        ..headers = {"X-Content" : [1, 2]}).get();
+
+      msg = await server.next();
+      expect(msg.path, "/foo");
+      expect(msg.headers["x-content"], "1, 2");
+      print("${msg.headers}");
     });
   });
 
