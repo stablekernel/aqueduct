@@ -131,7 +131,7 @@ void main() {
       expect(resp.contentLength, 0);
       expect(resp.headers.value("access-control-allow-origin"), "http://localhost");
       expect(resp.headers.value("access-control-allow-methods"), "POST, PUT, DELETE, GET");
-      expect(resp.headers.value("access-control-allow-headers"), "authorization, x-requested-with, content-type, accept");
+      expect(resp.headers.value("access-control-allow-headers"), "authorization, x-requested-with, content-type, accept, x-forwarded-for, origin");
     });
 
   /////////
@@ -162,7 +162,7 @@ void main() {
       expect(resp.contentLength, 0);
       expect(resp.headers.value("access-control-allow-origin"), "http://localhost");
       expect(resp.headers.value("access-control-allow-methods"), "POST, PUT, DELETE, GET");
-      expect(resp.headers.value("access-control-allow-headers"), "authorization, x-requested-with, content-type, accept");
+      expect(resp.headers.value("access-control-allow-headers"), "authorization, x-requested-with, content-type, accept, x-forwarded-for, origin");
     });
 
     test("Normal request + Auth (Failure)", () async {

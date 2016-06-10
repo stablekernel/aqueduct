@@ -64,6 +64,10 @@ abstract class ApplicationPipeline extends RequestHandler {
   /// being opened, a request could be received prior to this method being executed.
   void didOpen() {}
 
+  Future didClose() async {
+
+  }
+
   /// Executed for each [ResourceRequest] that will be sent to this pipeline.
   ///
   /// This method will run prior to each request being [deliver]ed to this

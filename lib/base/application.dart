@@ -78,7 +78,9 @@ class Application<PipelineType extends ApplicationPipeline> {
     await Future.wait(supervisors.map((s) => s.stop()));
     supervisors = [];
 
-    await server?.server?.close(force: true);
+    if (server != null) {
+      await server.close();
+    }
   }
 
   Future<IsolateSupervisor> _spawn(ApplicationInstanceConfiguration config, int identifier) async {

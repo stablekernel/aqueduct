@@ -50,6 +50,11 @@ class Server {
 
     pipeline.didOpen();
   }
+
+  Future close() async {
+    await server?.close(force: true);
+    await pipeline.didClose();
+  }
 }
 
 class IsolateServer extends Server {

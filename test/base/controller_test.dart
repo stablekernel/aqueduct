@@ -157,6 +157,7 @@ void main() {
   test("Query parameters can be obtained from x-www-form-urlencoded", () async {
     server = await enableController("/a", new RequestHandlerGenerator<IntController>());
     var res = await http.post("http://localhost:4040/a", headers: {"Content-Type" : "application/x-www-form-urlencoded"}, body: "opt=7");
+    print("${res.headers}");
     expect(res.body, '"7"');
   });
 
