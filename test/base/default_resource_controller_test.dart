@@ -3,7 +3,6 @@ import 'package:aqueduct/aqueduct.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
-import 'dart:mirrors';
 
 void main() {
   group("Standard operations", () {
@@ -85,7 +84,6 @@ void main() {
 
   group("Standard operation failure cases", () {
     Application app = null;
-    List<TestModel> allObjects = [];
 
     setUpAll(() async {
       app = new Application<TestPipeline>();

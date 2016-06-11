@@ -1,11 +1,10 @@
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
-import 'dart:isolate';
 import 'dart:io';
-import 'dart:async';
+import 'dart:convert';
 
 void main() {
-  group("Test Client/Request/Response", () {
+  group("Test Client/Request", () {
     var server = new MockHTTPServer(4040);
     setUpAll(() async {
       await server.open();
@@ -40,6 +39,31 @@ void main() {
       expect((defaultTestClient.request("/foo")..queryParameters = {"baz" : true, "boom" : 7}).requestURL, "http://localhost:4040/foo?baz&boom=7");
     });
 
+    test("HTTP requests are issued", () async {
+      var defaultTestClient = new TestClient(4040);
+      expect((await defaultTestClient.request("/foo").get()) is TestResponse, true);
+      var msg = await server.next();
+      expect(msg.path, "/foo");
+      expect(msg.method, "GET");
+
+      expect((await defaultTestClient.request("/foo").delete()) is TestResponse, true);
+      msg = await server.next();
+      expect(msg.path, "/foo");
+      expect(msg.method, "DELETE");
+
+      expect((await (defaultTestClient.request("/foo")..json = {"foo" : "bar"} ).post()) is TestResponse, true);
+      msg = await server.next();
+      expect(msg.path, "/foo");
+      expect(msg.method, "POST");
+      expect(msg.body, '{"foo":"bar"}');
+
+      expect((await (defaultTestClient.request("/foo")..json = {"foo" : "bar"} ).put()) is TestResponse, true);
+      msg = await server.next();
+      expect(msg.path, "/foo");
+      expect(msg.method, "PUT");
+      expect(msg.body, '{"foo":"bar"}');
+    });
+
     test("Headers are added correctly", () async {
       var defaultTestClient = new TestClient(4040);
 
@@ -56,7 +80,42 @@ void main() {
       msg = await server.next();
       expect(msg.path, "/foo");
       expect(msg.headers["x-content"], "1, 2");
-      print("${msg.headers}");
+    });
+  });
+
+  group("Test Response", () {
+    test("Responses have body", () async {
+      var server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 4000);
+      server.listen((req) {
+        req.response.statusCode = 200;
+        req.response.headers.contentType = ContentType.JSON;
+        var json = UTF8.encode(JSON.encode([{"a" : "b"}]));
+        req.response.headers.contentLength = json.length;
+        req.response.add(json);
+        req.response.close();
+      });
+
+      var defaultTestClient = new TestClient(4000);
+      var response = await defaultTestClient.request("/foo").get();
+      expect(response.asList.length, 1);
+      expect(response.asList.first["a"], "b");
+
+      await server.close(force: true);
+    });
+
+    test("Responses with no body don't return one", () async {
+      var server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 4000);
+      server.listen((req) {
+        req.response.statusCode = 200;
+        req.response.close();
+      });
+
+      var defaultTestClient = new TestClient(4000);
+      var response = await defaultTestClient.request("/foo").get();
+      expect(response.body, isNull);
+
+      await server.close(force: true);
+
     });
   });
 

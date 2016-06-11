@@ -1,6 +1,5 @@
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
-import 'dart:mirrors';
 
 void main() {
   test("RequestHandler requiring instantion throws exception when instantiated early", () async {

@@ -69,3 +69,4 @@ part 'db/postgresql/postgresql_schema_generator.dart';
 
 part 'utilities/test_client.dart';
 part 'utilities/mock_server.dart';
+part 'utilities/test_matchers.dart';
