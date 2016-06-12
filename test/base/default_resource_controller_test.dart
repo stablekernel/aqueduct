@@ -6,11 +6,11 @@ import 'dart:async';
 
 void main() {
   group("Standard operations", () {
-    Application app = null;
+    Application app = new Application<TestPipeline>();
     List<TestModel> allObjects = [];
 
     setUpAll(() async {
-      app = new Application<TestPipeline>();
+
       app.configuration.port = 8080;
       await app.start(runOnMainIsolate: true);
 
@@ -53,10 +53,10 @@ void main() {
       }, body: JSON.encode({
         "name" : "Fred"
       }));
-      expect(resp, hasResponse(200, [], matchesJSON(expectedMap)));
+      expect(resp, hasResponse(200, expectedMap));
 
-      expect(await http.get("http://localhost:8080/controller/1"), hasResponse(200, [], matchesJSON(expectedMap)));
-      expect(await http.get("http://localhost:8080/controller/2"), hasResponse(200, [], matchesJSON(allObjects[1].asMap())));
+      expect(await http.get("http://localhost:8080/controller/1"), hasResponse(200, expectedMap));
+      expect(await http.get("http://localhost:8080/controller/2"), hasResponse(200, allObjects[1].asMap()));
     });
 
     test("Can create an object", () async {
@@ -72,8 +72,8 @@ void main() {
         "name" : "John",
         "createdAt" : "2000-12-12T00:00:00.000Z"
       };
-      expect(resp, hasResponse(200, [], matchesJSON(expectedMap)));
-      expect(await http.get("http://localhost:8080/controller/${expectedMap["id"]}"), hasResponse(200, [], matchesJSON(expectedMap)));
+      expect(resp, hasResponse(200, expectedMap));
+      expect(await http.get("http://localhost:8080/controller/${expectedMap["id"]}"), hasResponse(200, expectedMap));
     });
 
     test("Can delete object", () async {
@@ -181,50 +181,50 @@ void main() {
 
     test("Can get all objects w/ count and offset", () async {
       var resp = await http.get("http://localhost:8080/controller?count=2&offset=1");
-      expect(resp, hasResponse(200, [], matchesJSONExactly(allObjects.sublist(1, 2).map((m) => m.asMap()).toList())));
+      expect(resp, hasResponse(200, allObjects.sublist(1, 2).map((m) => m.asMap()).toList()));
     });
 
     test("Can get all objects w/ sort descriptor", () async {
       var resp = await http.get("http://localhost:8080/controller?sortBy=name,asc");
-      expect(resp, hasResponse(200, [], matchesJSONExactly(allObjects.reversed.map((m) => m.asMap()).toList())));
+      expect(resp, hasResponse(200, allObjects.reversed.map((m) => m.asMap()).toList()));
 
       resp = await http.get("http://localhost:8080/controller?sortBy=createdAt,asc");
-      expect(resp, hasResponse(200, [], matchesJSONExactly(allObjects.map((m) => m.asMap()).toList())));
+      expect(resp, hasResponse(200, allObjects.map((m) => m.asMap()).toList()));
     });
 
     test("Getting all objects with sort descriptor referencing unknown key fails", () async {
       var resp = await http.get("http://localhost:8080/controller?sortBy=foobar,asc");
-      expect(resp, hasResponse(400, [], matchesJSON({"error" : "sortBy key foobar does not exist for _TestModel"})));
+      expect(resp, hasResponse(400, {"error" : "sortBy key foobar does not exist for _TestModel"}));
     });
 
     test("Getting all objects with a unknown sort descriptor order fails", () async {
       var resp = await http.get("http://localhost:8080/controller?sortBy=name,name");
-      expect(resp, hasResponse(400, [], matchesJSON({"error" : "sortBy order must be either asc or desc, not name"})));
+      expect(resp, hasResponse(400, {"error" : "sortBy order must be either asc or desc, not name"}));
     });
 
     test("Paging after", () async {
       var resp = await http.get("http://localhost:8080/controller?pageBy=createdAt&pageAfter=${allObjects[5].createdAt.toIso8601String()}");
-      expect(resp, hasResponse(200, [], matchesJSONExactly(allObjects.sublist(6, 9).map((m) => m.asMap()).toList())));
+      expect(resp, hasResponse(200, allObjects.sublist(6, 9).map((m) => m.asMap()).toList()));
     });
 
     test("Paging before", () async {
       var resp = await http.get("http://localhost:8080/controller?pageBy=createdAt&pagePrior=${allObjects[5].createdAt.toIso8601String()}");
-      expect(resp, hasResponse(200, [], matchesJSONExactly(allObjects.sublist(0, 5).reversed.map((m) => m.asMap()).toList())));
+      expect(resp, hasResponse(200, allObjects.sublist(0, 5).reversed.map((m) => m.asMap()).toList()));
     });
 
     test("Paging with null value", () async {
       var resp = await http.get("http://localhost:8080/controller?pageBy=createdAt&pageAfter=null");
-      expect(resp, hasResponse(200, [], matchesJSONExactly(allObjects.map((m) => m.asMap()).toList())));
+      expect(resp, hasResponse(200, allObjects.map((m) => m.asMap()).toList()));
     });
 
     test("Paging with no pageAfter/pagePrior", () async {
       var resp = await http.get("http://localhost:8080/controller?pageBy=createdAt");
-      expect(resp, hasResponse(400, [], matchesJSONExactly({"error" : "If defining pageBy, either pageAfter or pagePrior must be defined. 'null' is a valid value"})));
+      expect(resp, hasResponse(400, {"error" : "If defining pageBy, either pageAfter or pagePrior must be defined. 'null' is a valid value"}));
     });
 
     test("Paging with wrong key", () async {
       var resp = await http.get("http://localhost:8080/controller?pageBy=foobar&pagePrior=10");
-      expect(resp, hasResponse(400, [], matchesJSONExactly({"error" : "pageBy key foobar does not exist for _TestModel"})));
+      expect(resp, hasResponse(400, {"error" : "pageBy key foobar does not exist for _TestModel"}));
     });
   });
 }

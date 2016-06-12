@@ -8,6 +8,12 @@ import 'package:aqueduct/aqueduct.dart';
 
 
 void main() {
+  HttpServer server = null;
+
+  tearDown(() async {
+    await server?.close(force: true);
+  });
+
   test("Router Handles Requests", () async {
     Router router = new Router();
 
@@ -15,12 +21,10 @@ void main() {
       return new Response.ok("");
     }));
 
-    var server = await enableRouter(router);
+    server = await enableRouter(router);
 
     var response = await http.get("http://localhost:4040/player");
     expect(response.statusCode, equals(200));
-
-    await server.close(force: true);
   });
 
   test("Router 404s on no match", () async {
@@ -30,12 +34,10 @@ void main() {
       return new Response.ok("");
     }));
 
-    var server = await enableRouter(router);
+    server = await enableRouter(router);
 
     var response = await http.get("http://localhost:4040/notplayer");
     expect(response.statusCode, equals(404));
-
-    await server.close(force: true);
   });
 
   test("Router delivers path values", () async {
@@ -45,13 +47,11 @@ void main() {
       return new Response.ok("${req.path.variables["id"]}");
     }));
 
-    var server = await enableRouter(router);
+    server = await enableRouter(router);
 
     var response = await http.get("http://localhost:4040/player/foobar");
     expect(response.statusCode, equals(200));
-    expect(response.body, equals("foobar"));
-
-    await server.close(force: true);
+    expect(response.body, equals('"foobar"'));
   });
 
   test("Base API Path Throws exception when adding routes prior to setting it", () async {
@@ -73,36 +73,30 @@ void main() {
     router.basePath = "/api";
     router.route("/player/").then(new Handler());
 
-    var server = await enableRouter(router);
+    server = await enableRouter(router);
 
     var response = await http.get("http://localhost:4040/api/player");
     expect(response.statusCode, equals(202));
 
     response = await http.get("http://localhost:4040/player");
     expect(response.statusCode, equals(404));
-
-    await server.close(force: true);
   });
 
   test("Router uses request handlers", () async {
-
     Handler.counter = 0;
 
     var router = new Router();
     router.route("/a").then(new Handler());
 
-    var server = await enableRouter(router);
+    server = await enableRouter(router);
 
     var response = await http.get("http://localhost:4040/a");
     expect(response.statusCode, equals(202));
-    expect(response.body, "1");
+    expect(response.body, '"1"');
 
     response = await http.get("http://localhost:4040/a");
     expect(response.statusCode, equals(202));
-    expect(response.body, "1");
-
-
-    await server.close(force: true);
+    expect(response.body, '"1"');
   });
 
   test("Router uses request handler generators", () async {
@@ -110,16 +104,13 @@ void main() {
 
     var router = new Router();
     router.route("/a").then(() => new Handler());
-    var server = await enableRouter(router);
-
+    server = await enableRouter(router);
 
     for (int i = 0; i < 10; i++) {
       var response = await http.get("http://localhost:4040/a");
       expect(response.statusCode, equals(202));
-      expect(response.body, "${i + 1}");
+      expect(response.body, '"${i + 1}"');
     }
-
-    await server.close(force: true);
   });
 }
 

@@ -14,9 +14,12 @@ Future main() async {
     });
 
     var resp = await client.request("/na").get();
-    expect(resp, hasResponse(200, [], matchesJSON([{
+    expect(resp, hasResponse(200, everyElement({
       "id" : greaterThan(0)
-    }])));
+    })));
+//        [], matchesJSON([{
+//      "id" : greaterThan(0)
+//    }])));
 
     await server?.close(force: true);
   });

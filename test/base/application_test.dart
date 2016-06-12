@@ -30,7 +30,7 @@ main() {
     });
 
     test("Application gzips content", () async {
-      var resp = await http.get("http://localhost:8080/t");
+      var resp = await http.get("http://localhost:8080/t", headers: {"Accept-Encoding" : "gzip"});
       expect(resp.headers["content-encoding"], "gzip");
     });
 

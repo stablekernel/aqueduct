@@ -176,7 +176,7 @@ void main() {
     expect(JSON.decode(res.body), [{"id" : 1, "name" : "Bob"}, {"id" : 2, "name" : "Fred"}]);
 
     res = await http.get("http://localhost:4040/a/null");
-    expect(JSON.decode(res.body), isNull);
+    expect(res.body, isEmpty);
     expect(res.statusCode, 200);
   });
 
@@ -197,7 +197,7 @@ void main() {
 
     resp = await http.get("http://localhost:4040/a", headers: {"Ignore" : "true"});
     expect(resp.statusCode, 400);
-    expect(resp.body, "ignored");
+    expect(resp.body, '"ignored"');
   });
 
   test("Request with multiple query parameters of same key", () async {

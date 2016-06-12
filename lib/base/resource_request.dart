@@ -103,7 +103,11 @@ class ResourceRequest implements RequestHandlerResult {
 
     if (respObj.headers != null) {
       respObj.headers.forEach((k, v) {
-        response.headers.add(k, v);
+        if (v is ContentType) {
+          response.headers.add(HttpHeaders.CONTENT_TYPE, v.toString());
+        } else {
+          response.headers.add(k, v);
+        }
       });
     }
 
@@ -135,17 +139,7 @@ class ResourceRequest implements RequestHandlerResult {
     }
 
     var encodedValue = encoder(respObj.body);
-    if (contentType.charset == "utf-8" || contentType.charset == null) {
-      encodedValue = UTF8.encode(encodedValue);
-    } else if (contentType == "us-ascii") {
-      encodedValue = ASCII.encode(encodedValue);
-    } else {
-      throw new ResourceRequestException("Unsupported charset ${contentType.charset}");
-    }
-
-    List<int> bytes = encodedValue;
-    response.headers.contentLength = bytes.length;
-    response.add(bytes);
+    response.write(encodedValue);
   }
 
   String toString() {

@@ -58,7 +58,7 @@ class PostgreSQLPersistentStore extends PersistentStore {
     return desc.name;
   }
 
-  Future<List<Row>> _executeQuery(String formatString, dynamic values, int timeoutInSeconds, {bool returnCount: false}) async {
+  Future<dynamic> _executeQuery(String formatString, dynamic values, int timeoutInSeconds, {bool returnCount: false}) async {
     try {
       var dbConnection = await getDatabaseConnection();
       var results = null;

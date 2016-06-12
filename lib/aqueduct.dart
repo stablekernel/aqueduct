@@ -9,7 +9,6 @@ import 'package:crypto/crypto.dart' show sha256;
 import 'package:pbkdf2/pbkdf2.dart';
 import 'dart:math';
 import 'package:http_server/http_server.dart';
-import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:postgresql/postgresql.dart';
 import 'package:matcher/matcher.dart';

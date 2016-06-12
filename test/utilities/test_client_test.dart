@@ -6,11 +6,11 @@ import 'dart:convert';
 void main() {
   group("Test Client/Request", () {
     var server = new MockHTTPServer(4040);
-    setUpAll(() async {
+    setUp(() async {
       await server.open();
     });
 
-    tearDownAll(() async {
+    tearDown(() async {
       await server?.close();
     });
 
@@ -268,11 +268,11 @@ void main() {
 
   group("Body, content-type matchers", () {
     MockHTTPServer server = new MockHTTPServer(4000);
-    setUpAll(() async {
+    setUp(() async {
       await server.open();
     });
 
-    tearDownAll(() async {
+    tearDown(() async {
       await server?.close();
     });
 
@@ -308,7 +308,7 @@ void main() {
         expect(response, hasBody("foobar"));
         expect(true, false);
       } on TestFailure catch (e) {
-        expect(e.toString(), contains("Expected: Body: foobar"));
+        expect(e.toString(), contains("Expected: Body: 'foobar'"));
         expect(e.toString(), contains("Body: text"));
       }
     });
@@ -326,7 +326,8 @@ void main() {
         expect(response, hasBody({"foo" : "notbar"}));
         expect(true, false);
       } on TestFailure catch (e) {
-        expect(e.toString(), contains("Expected: Body: {foo: notbar}"));
+        print("$e");
+        expect(e.toString(), contains("Expected: Body: {'foo': 'notbar'}"));
         expect(e.toString(), contains('Body: {"foo":"bar"}'));
       }
 
@@ -449,13 +450,13 @@ void main() {
 
       server.queueResponse(new Response.ok({"foo" : "bar"}, headers: {"content-type" : "application/json"}));
       var response = await defaultTestClient.request("/foo").get();
-      expect(response, hasResponse(null, {"foo" : "bar"}, headers: {"content-type" : "application/json"}));
+      expect(response, hasResponse(null, {"foo" : "bar"}, headers: {"content-type" : "application/json; charset=utf-8"}));
     });
 
     test("Omit headers ignores them", () async {
       var defaultTestClient = new TestClient(4000);
 
-      server.queueResponse(new Response.ok({"foo" : "bar"}, headers: {"content-type" : "application/json"}));
+      server.queueResponse(new Response.ok({"foo" : "bar"}, headers: {"content-type" : "application/json; charset=utf-8"}));
       var response = await defaultTestClient.request("/foo").get();
 
       expect(response, hasResponse(200, {"foo" : "bar"}));
@@ -466,7 +467,7 @@ void main() {
 
       server.queueResponse(new Response.ok({"foo" : "bar"}, headers: {"content-type" : "application/json"}));
       var response = await defaultTestClient.request("/foo").get();
-      expect(response, hasResponse(null, null, headers: {"Content-Type" : "application/json"}));
+      expect(response, hasResponse(null, null, headers: {"Content-Type" : "application/json; charset=utf8"}));
 
     });
   });

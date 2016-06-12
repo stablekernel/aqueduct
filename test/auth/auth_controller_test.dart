@@ -41,12 +41,12 @@ void main() {
       ..formData = {"grant_type" : "password", "username" : "bob+0@stablekernel.com", "password" : "foobaraxegrind21%"};
     var res = await req.post();
 
-    expect(res, hasResponse(200, [], matchesJSON({
+    expect(res, hasResponse(200, {
       "access_token" : hasLength(greaterThan(0)),
       "refresh_token" : hasLength(greaterThan(0)),
       "expires_in" : greaterThan(3500),
       "token_type" : "bearer"
-    })));
+    }));
   });
 
   test("POST token header failure cases", () async {
@@ -121,12 +121,12 @@ void main() {
 
     req = client.clientAuthenticatedRequest("/auth/token")
       ..formData = m;
-    expect(await req.post(), hasResponse(200, [], matchesJSON({
+    expect(await req.post(), hasResponse(200, {
       "access_token" : hasLength(greaterThan(0)),
       "refresh_token" : hasLength(greaterThan(0)),
       "expires_in" : greaterThan(3500),
       "token_type" : "bearer"
-    })));
+    }));
   });
 }
 

@@ -63,7 +63,6 @@ class HTTPResponseMatcher extends Matcher {
   }
 
   Description describeMismatch(item, Description mismatchDescription, Map matchState, bool verbose) {
-    print("DESCRIBE MISMATCH");
     var responseTypeMismatch = matchState["Response Type"];
     if (responseTypeMismatch != null) {
       mismatchDescription.add("Actual value is not a TestResponse, but instead $responseTypeMismatch.");
@@ -123,14 +122,17 @@ class HTTPBodyMatcher extends Matcher {
         .addDescriptionOf(contentMatcher)
         .add(' which ');
 
-    var subDescription = new StringDescription();
-    contentMatcher.describeMismatch(item, subDescription, matchState, verbose);
-    if (subDescription.length > 0) {
-      mismatchDescription.add(subDescription.toString());
-    } else {
-      mismatchDescription.add("doesn't match ");
-      contentMatcher.describe(mismatchDescription);
-    }
+    try {
+      var subDescription = new StringDescription();
+      contentMatcher.describeMismatch(
+          item, subDescription, matchState, verbose);
+      if (subDescription.length > 0) {
+        mismatchDescription.add(subDescription.toString());
+      } else {
+        mismatchDescription.add("doesn't match ");
+        contentMatcher.describe(mismatchDescription);
+      }
+    } catch (_) {}
 
     return mismatchDescription;
   }

@@ -87,7 +87,6 @@ void main() {
   });
 
   test("Update object with ModelQuery", () async {
-    new Logger("aqueduct").onRecord.listen((r) => print("$r"));
     context = await contextWithModels([TestModel]);
 
     var m1 = new TestModel()

@@ -3,7 +3,6 @@ part of aqueduct;
 class TestClient {
   String host;
   HttpClient _client = new HttpClient();
-  http.Client _innerClient = new http.Client();
   String clientID;
   String clientSecret;
   String defaultAccessToken;
@@ -58,7 +57,7 @@ class TestRequest {
   String host;
   String path;
   ContentType contentType = ContentType.JSON;
-  List<int> _bodyBytes;
+  dynamic body;
 
   Map<String, String> queryParameters = {};
 
@@ -108,13 +107,13 @@ class TestRequest {
   }
 
   void set json(dynamic v) {
-    _bodyBytes = UTF8.encode(JSON.encode(v));
+    body = JSON.encode(v);
     contentType = ContentType.JSON;
   }
 
   void set formData(Map<String, dynamic> args) {
-    _bodyBytes = UTF8.encode(args.keys.map((key) => "$key=${Uri.encodeQueryComponent(args[key])}").join("&"));
-    contentType = new ContentType("application", "x-www-form-urlencoded", charset: "utf-8");
+    body = args.keys.map((key) => "$key=${Uri.encodeQueryComponent(args[key])}").join("&");
+    contentType = new ContentType("application", "x-www-form-urlencoded");
   }
 
   void addHeader(String name, String value) {
@@ -143,10 +142,10 @@ class TestRequest {
       request.headers.add(headerKey, headerValue);
     });
 
-    if (_bodyBytes != null) {
+    if (body != null) {
       request.headers.contentType = contentType;
-      request.headers.contentLength = _bodyBytes.length;
-      request.add(_bodyBytes);
+      request.headers.contentLength = body.length;
+      request.add(UTF8.encode(body));
     }
 
     var response = new TestResponse(await request.close());
@@ -158,14 +157,12 @@ class TestRequest {
 
 class TestResponse {
   TestResponse(this._innerResponse) {
-    if (_innerResponse.contentLength > 0) {
-      _bodyDecodeCompleter = new Completer();
-      _innerResponse.transform(UTF8.decoder).listen((contents) {
-        body = contents;
-        _decodeBody();
-        _bodyDecodeCompleter.complete();
-      });
-    }
+    _bodyDecodeCompleter = new Completer();
+    _innerResponse.transform(UTF8.decoder).listen((contents) {
+      body = contents;
+      _decodeBody();
+      _bodyDecodeCompleter.complete();
+    });
   }
 
   final HttpClientResponse _innerResponse;

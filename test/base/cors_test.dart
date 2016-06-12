@@ -109,7 +109,6 @@ void main() {
       var resp = await http.get("http://localhost:8000/foobar", headers: {
         "Origin" : "http://somewhereelse.com"
       });
-      print("${resp.headers}");
       expect(resp.statusCode, 404);
       expect(resp.headers["access-control-allow-origin"], "http://somewhereelse.com");
     });
