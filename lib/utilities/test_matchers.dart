@@ -4,8 +4,15 @@ const Matcher isNumber = const isInstanceOf<num>();
 const Matcher isInteger = const isInstanceOf<int>();
 const Matcher isDouble = const isInstanceOf<double>();
 const Matcher isString = const isInstanceOf<String>();
-const Matcher isDateTime = const isInstanceOf<DateTime>();
 const Matcher isBoolean = const isInstanceOf<bool>();
+Matcher isTimestamp = predicate((str) {
+  try {
+    var value = DateTime.parse(str);
+    return value != null;
+  } catch (e) {
+    return false;
+  }
+}, "is timestamp");
 
 HTTPResponseMatcher hasStatus(int v) => new HTTPResponseMatcher(v, null, null);
 HTTPResponseMatcher hasResponse(int statusCode, dynamic bodyMatcher, {Map<String, dynamic> headers: null, bool failIfContainsUnmatchedHeader: false}) {
