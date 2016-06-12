@@ -5,6 +5,25 @@ part of aqueduct;
 /// Contains a standard library [HttpRequest], along with other values
 /// to associate data with a request.
 class ResourceRequest implements RequestHandlerResult {
+  static Map<String, Map<String, Function>> Encoders = {
+    "application" : {
+      "json" : (v) => JSON.encode(v),
+    },
+    "text" : {
+      "plain" : (Object v) => v.toString()
+    }
+  };
+
+  static void addEncoder(ContentType type, dynamic encoder(dynamic value)) {
+    var topLevel = Encoders[type.primaryType];
+    if (topLevel == null) {
+      topLevel = {};
+      Encoders[topLevel] = topLevel;
+    }
+
+    topLevel[type.subType] = encoder;
+  }
+
   ResourceRequest(this.innerRequest) {}
 
   /// The internal [HttpRequest] of this [ResourceRequest].
@@ -89,10 +108,44 @@ class ResourceRequest implements RequestHandlerResult {
     }
 
     if (respObj.body != null) {
-      response.write(respObj.body);
+      _encodeBody(respObj);
     }
 
     response.close();
+  }
+
+  void _encodeBody(Response respObj) {
+    var contentTypeValue = respObj.headers["Content-Type"];
+    if (contentTypeValue == null) {
+      contentTypeValue = ContentType.JSON;
+      response.headers.contentType = ContentType.JSON;
+    } else if (contentTypeValue is String) {
+      contentTypeValue = ContentType.parse(contentTypeValue);
+    }
+
+    ContentType contentType = contentTypeValue;
+    var topLevel = Encoders[contentType.primaryType];
+    if (topLevel == null) {
+      throw new ResourceRequestException("No encoder for $contentTypeValue, add with ResourceRequest.addEncoder().");
+    }
+
+    var encoder = topLevel[contentType.subType];
+    if (encoder == null) {
+      throw new ResourceRequestException("No encoder for $contentTypeValue, add with ResourceRequest.addEncoder().");
+    }
+
+    var encodedValue = encoder(respObj.body);
+    if (contentType.charset == "utf-8" || contentType.charset == null) {
+      encodedValue = UTF8.encode(encodedValue);
+    } else if (contentType == "us-ascii") {
+      encodedValue = ASCII.encode(encodedValue);
+    } else {
+      throw new ResourceRequestException("Unsupported charset ${contentType.charset}");
+    }
+
+    List<int> bytes = encodedValue;
+    response.headers.contentLength = bytes.length;
+    response.add(bytes);
   }
 
   String toString() {
@@ -128,4 +181,9 @@ class ResourceRequest implements RequestHandlerResult {
 
     return builder.toString();
   }
+}
+
+class ResourceRequestException implements Exception {
+  ResourceRequestException(this.message);
+  String message;
 }

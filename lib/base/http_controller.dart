@@ -26,27 +26,9 @@ abstract class HttpController extends RequestHandler {
   /// The content type of responses from this [HttpController].
   ///
   /// This type will automatically be written to this response's
-  /// HTTP header. Defaults to "application/json". Set with [setResponseEncoder].
-  ContentType get responseContentType => _responseContentType;
-  ContentType _responseContentType = ContentType.JSON;
-
-  /// Encodes the [Response] body to a suitable format for transmission.
-  ///
-  /// Encodes the HTTP response body object that is part of the [Response] returned from this request handler methods.
-  /// Must have the signature (dynamic) => dynamic. Use [setResponseEncoder] to set this value.
-  ///
-  /// By default, this encoder will convert the response body as JSON.
-  Function get responseBodyEncoder => _responseBodyEncoder;
-  Function _responseBodyEncoder = (body) => JSON.encode(body);
-
-  /// Sets the [responseContentType] and [responseBodyEncoder].
-  ///
-  /// This method is the only way to set [responseContentType] and [responseBodyEncoder] and ensures
-  /// that both are set simultaneously since they are dependent on one another.
-  void setResponseEncoder(ContentType contentType, dynamic encoder(dynamic value)) {
-    _responseContentType = contentType;
-    _responseBodyEncoder = encoder;
-  }
+  /// HTTP header. Defaults to "application/json". This value determines how the body data returned from this controller
+  /// in a [Response] is encoded.
+  ContentType responseContentType = ContentType.JSON;
 
   /// The HTTP request body object, after being decoded.
   ///
@@ -213,7 +195,7 @@ abstract class HttpController extends RequestHandler {
     return retMap;
   }
 
-  dynamic encodedResponseBody(dynamic initialResponseBody) {
+  dynamic serializedResponseBody(dynamic initialResponseBody) {
     var serializedBody = null;
     if (initialResponseBody is Serializable) {
       serializedBody = (initialResponseBody as Serializable).asSerializable();
@@ -227,7 +209,7 @@ abstract class HttpController extends RequestHandler {
       }).toList();
     }
 
-    return responseBodyEncoder(serializedBody ?? initialResponseBody);
+    return serializedBody ?? initialResponseBody;
 
   }
 
@@ -247,8 +229,8 @@ abstract class HttpController extends RequestHandler {
 
     willSendResponse(response);
 
-    response.body = encodedResponseBody(response.body);
-    response.headers[HttpHeaders.CONTENT_TYPE] = responseContentType.toString();
+    response.body = serializedResponseBody(response.body);
+    response.headers[HttpHeaders.CONTENT_TYPE] = responseContentType;
 
     return response;
   }

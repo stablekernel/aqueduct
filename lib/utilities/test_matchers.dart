@@ -1,35 +1,44 @@
 part of aqueduct;
 
-HTTPResponseMatcher hasStatus(int v) => new HTTPResponseMatcher(v, [], null);
-HTTPResponseMatcher hasResponse(int statusCode, List<HTTPHeaderMatcher> headers, HTTPBodyMatcher body) => new HTTPResponseMatcher(statusCode, headers, body);
+const Matcher isNumber = const isInstanceOf<num>();
+const Matcher isInteger = const isInstanceOf<int>();
+const Matcher isDouble = const isInstanceOf<double>();
+const Matcher isString = const isInstanceOf<String>();
+const Matcher isDateTime = const isInstanceOf<DateTime>();
+
+HTTPResponseMatcher hasStatus(int v) => new HTTPResponseMatcher(v, null, null);
+HTTPResponseMatcher hasResponse(int statusCode, dynamic bodyMatcher, {Map<String, dynamic> headers: null, bool failIfContainsUnmatchedHeader: false}) {
+  return new HTTPResponseMatcher(statusCode,
+      (headers != null ? new HTTPHeaderMatcher(headers, failIfContainsUnmatchedHeader) : null),
+      (bodyMatcher != null ? new HTTPBodyMatcher(bodyMatcher) : null));
+}
 
 class HTTPResponseMatcher extends Matcher {
   HTTPResponseMatcher(this.statusCode, this.headers, this.body);
 
   int statusCode = null;
-  List<HTTPHeaderMatcher> headers = [];
+  HTTPHeaderMatcher headers = null;
   HTTPBodyMatcher body = null;
 
   bool matches(item, Map matchState) {
-    if (item is! http.Response) {
-      matchState["Response Type Is Actually"] = "${item.runtimeType}";
+    if (item is! TestResponse) {
+      matchState["Response Type"] = item.runtimeType;
       return false;
     }
 
-    if (item.body != null) {
-      matchState["Response Body"] = item.body;
-    }
-
-    var tr = item as http.Response;
-    if (tr.statusCode != statusCode) {
-      matchState["Status Code Is Actually"] = "${tr.statusCode}";
+    if (statusCode != null && item.statusCode != statusCode) {
+      matchState["Status Code"] = item.statusCode;
       return false;
     }
 
+    if (headers != null) {
+      if (!headers.matches(item, matchState)) {
+        return false;
+      }
+    }
 
     if (body != null) {
-      body.contentType = ContentType.parse(tr.headers["content-type"]);
-      if (!body.matches(tr.body, matchState)) {
+      if (!body.matches(item, matchState)) {
         return false;
       }
     }
@@ -39,11 +48,14 @@ class HTTPResponseMatcher extends Matcher {
 
   Description describe(Description description) {
     if (statusCode != null) {
-      description.add("Status Code: $statusCode");
+      description.add("\n\tStatus Code: $statusCode");
     }
-
-    headers.forEach((h) => h.describe(description));
+    if (headers != null) {
+      description.add("\n\t");
+      headers.describe(description);
+    }
     if (body != null) {
+      description.add("\n\t");
       body.describe(description);
     }
 
@@ -51,129 +63,291 @@ class HTTPResponseMatcher extends Matcher {
   }
 
   Description describeMismatch(item, Description mismatchDescription, Map matchState, bool verbose) {
-    mismatchDescription.add(matchState.keys.map((key) {
-      return "${key}: ${matchState[key]}";
-    }).join(", "));
+    print("DESCRIBE MISMATCH");
+    var responseTypeMismatch = matchState["Response Type"];
+    if (responseTypeMismatch != null) {
+      mismatchDescription.add("Actual value is not a TestResponse, but instead $responseTypeMismatch.");
+    }
+
+    var statusMismatch = matchState["Status Code"];
+    if (statusMismatch != null) {
+       mismatchDescription.add("Status Code $statusCode != $statusMismatch");
+    }
+
     return mismatchDescription;
   }
 }
 
-HTTPBodyMatcher matchesJSONExactly(dynamic jsonMatchSpec) => new HTTPBodyMatcher()
-  ..requiresExactMatch = true
-  ..contentMatcher = jsonMatchSpec
-  ..expectedContentType = ContentType.JSON;
-
-HTTPBodyMatcher matchesJSON(dynamic jsonMatchSpec) => new HTTPBodyMatcher()
-  ..requiresExactMatch = false
-  ..contentMatcher = jsonMatchSpec
-  ..expectedContentType = ContentType.JSON;
-
-HTTPBodyMatcher matchesForm(dynamic jsonMatchSpec) => new HTTPBodyMatcher()
-  ..contentMatcher = jsonMatchSpec
-  ..expectedContentType = new ContentType("application", "x-www-form-urlencoded");
-
+HTTPBodyMatcher hasBody(dynamic matchSpec) => new HTTPBodyMatcher(matchSpec);
 
 class HTTPBodyMatcher extends Matcher {
-  dynamic contentMatcher;
-  ContentType expectedContentType;
-  ContentType contentType;
-  bool requiresExactMatch = false;
+  HTTPBodyMatcher(dynamic matcher) {
+    if (matcher is Matcher) {
+      contentMatcher = matcher;
+    } else {
+      contentMatcher = equals(matcher);
+    }
+  }
 
-  bool matches(dynamic incomingItem, Map matchState) {
-    if (contentType != null && expectedContentType != null
-        && (contentType.primaryType != expectedContentType.primaryType || contentType.subType != expectedContentType.subType)) {
-      matchState["Content Type Is Actually"] = "${contentType}";
+  dynamic contentMatcher;
+
+  bool matches(dynamic item, Map matchState) {
+    if (item is! TestResponse) {
+      matchState["Response Type"] = item.runtimeType;
       return false;
     }
 
-    var decodedData = incomingItem;
-    if (contentType.primaryType == "application" && contentType.subType == "json") {
-      decodedData = JSON.decode(decodedData);
-    } else if (contentType.primaryType == "application" && contentType.subType == "x-www-form-urlencoded") {
-      var split = (decodedData as String).split("&");
-      var map = {};
-      split.forEach((str) {
-        var innerSplit = str.split("=");
-        if (innerSplit.length == 2) {
-          map[innerSplit[0]] = innerSplit[1];
-        } else {
-          map[innerSplit[0]] = true;
-        }
-      });
-      decodedData = map;
+    var decodedData = item.decodedBody;
+    if (!contentMatcher.matches(decodedData, matchState)) {
+      return false;
     }
 
-    if (contentMatcher is List && decodedData is List) {
-      var dataIterator = decodedData.iterator;
-      if (requiresExactMatch) {
-        for (var matcher in contentMatcher) {
-          dataIterator.moveNext();
-          var element = dataIterator.current;
-          if (matcher is Matcher) {
-            if (!matcher.matches(element, matchState)) {
-              return false;
-            }
-          } else {
-            if (!mapMatches(element, matcher, matchState)) {
-              return false;
-            }
-          }
-        }
-      } else {
-        var matcher = contentMatcher.first;
-        for (var element in decodedData) {
-          if (matcher is Matcher) {
-            if (!matcher.matches(element, matchState)) {
-              return false;
-            } else {
-              if (!mapMatches(element, matcher, matchState)) {
-                return false;
-              }
-            }
-          }
-        }
-      }
-      return true;
-    } else if (contentMatcher is Map && decodedData is Map) {
-      return mapMatches(decodedData, contentMatcher, matchState);
-    } else if (contentMatcher is Matcher) {
-      return contentMatcher.matches(decodedData, matchState);
-    }
-
-    return false;
-  }
-
-  bool mapMatches(Map<String, dynamic> item, Map<String, Matcher> keyMatches, Map matchState) {
-    return !keyMatches.keys.map((str) {
-      var matcher = keyMatches[str];
-      var value = item[str];
-
-      var matches = false;
-      if (matcher is Matcher) {
-        matches = matcher.matches(value, matchState);
-      } else {
-        matches = value == matcher;
-      }
-
-      if (!matches) {
-        matchState["Value for $str Actually Is"] = value;
-      }
-
-      return matches;
-    }).any((b) => b == false);
+    return true;
   }
 
   Description describe(Description description) {
+    description.add("Body: ");
+    description.addDescriptionOf(contentMatcher);
+
     return description;
+  }
+
+  Description describeMismatch(item, Description mismatchDescription, Map matchState, bool verbose) {
+    var responseTypeMismatch = matchState["Response Type"];
+    if (responseTypeMismatch != null) {
+      mismatchDescription.add("Actual value is not a TestResponse, but instead $responseTypeMismatch.");
+    }
+
+    mismatchDescription
+        .add('has value ')
+        .addDescriptionOf(contentMatcher)
+        .add(' which ');
+
+    var subDescription = new StringDescription();
+    contentMatcher.describeMismatch(item, subDescription, matchState, verbose);
+    if (subDescription.length > 0) {
+      mismatchDescription.add(subDescription.toString());
+    } else {
+      mismatchDescription.add("doesn't match ");
+      contentMatcher.describe(mismatchDescription);
+    }
+
+    return mismatchDescription;
   }
 }
 
+HTTPHeaderMatcher hasHeaders(Map<String, dynamic> matchers, {bool failIfContainsUnmatchedHeader: false}) => new HTTPHeaderMatcher(matchers, failIfContainsUnmatchedHeader);
+
 class HTTPHeaderMatcher extends Matcher {
+  HTTPHeaderMatcher(this.matchHeaders, this.shouldFailIfOthersPresent);
+  Map<String, dynamic> matchHeaders;
+  bool shouldFailIfOthersPresent;
+
   bool matches(item, Map matchState) {
-    return false;
+    if (item is! TestResponse) {
+      matchState["Response Type"] = item.runtimeType;
+      return false;
+    }
+
+    var failedToMatch = false;
+    matchHeaders.forEach((headerKey, valueMatcher) {
+      var headerValue = item.headers.value(headerKey.toLowerCase());
+
+      if (valueMatcher is _NotPresentMatcher) {
+        if (headerValue != null) {
+          matchState[headerKey] = "must not be present, but was $headerValue.";
+          failedToMatch = true;
+        }
+        return;
+      }
+
+      if (valueMatcher is _Converter) {
+        headerValue = valueMatcher.convertValue(headerValue);
+        valueMatcher = valueMatcher.term;
+      }
+
+      if (valueMatcher is Matcher) {
+        if (!valueMatcher.matches(headerValue, matchState)) {
+          failedToMatch = true;
+        }
+      } else {
+        if (headerValue != valueMatcher) {
+          matchState[headerKey] = "must equal to $valueMatcher, but was $headerValue";
+          failedToMatch = true;
+        }
+      }
+    });
+
+    if (failedToMatch) {
+      return false;
+    }
+
+    if (shouldFailIfOthersPresent) {
+      item.headers.forEach((key, _) {
+        if (!matchHeaders.containsKey(key)) {
+          failedToMatch = true;
+          matchState["Header $key"] = "was in response headers, but not part of the match set and failIfContainsUnmatchedHeader was true.";
+        }
+      });
+
+      if (failedToMatch) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   Description describe(Description description) {
+    description.add("Headers: ");
+    var first = false;
+    matchHeaders.forEach((key, value) {
+      if (first) {
+        description.add("\n\t\t\t");
+        first = false;
+      }
+      if (value is _NotPresentMatcher) {
+        description.add("$key: (Must Not Exist)");
+      } else if (value is Matcher) {
+        description.add("$key: ");
+        value.describe(description);
+      } else {
+        description.add("$key: $value");
+      }
+    });
+
     return description;
+  }
+
+  Description describeMismatch(item, Description mismatchDescription, Map matchState, bool verbose) {
+    var responseTypeMismatch = matchState["Response Type"];
+    if (responseTypeMismatch != null) {
+      mismatchDescription.add("Actual value is not a TestResponse, but instead $responseTypeMismatch.");
+    }
+
+    var errors = matchState.keys.map((k) {
+      return "$k ${matchState[k]}";
+    }).join("\n\t\t  ");
+
+    mismatchDescription.add(errors);
+
+    return mismatchDescription;
+  }
+}
+
+_PartialMapMatcher partial(Map map) => new _PartialMapMatcher(map);
+
+class _PartialMapMatcher extends Matcher {
+  _PartialMapMatcher(Map m) {
+    m.forEach((key, val) {
+      if (val is Matcher) {
+        map[key] = val;
+      } else {
+        map[key] = equals(val);
+      }
+    });
+  }
+
+  Map<dynamic, Matcher> map = {};
+
+  bool matches(item, Map matchState) {
+    if (item is! Map) {
+      matchState["Not Map"] = "was ${item.runtimeType}";
+      return false;
+    }
+
+    for (var matchKey in map.keys) {
+      var matchValue = map[matchKey];
+      var value = item[matchKey];
+
+      if (value == null) {
+        var missing = matchState["missing"];
+        if (missing == null) {
+          missing = [];
+          matchState["missing"] = missing;
+        }
+        missing = matchKey;
+        return false;
+      }
+
+      if (matchValue is Matcher) {
+        if (!matchValue.matches(value, matchState)) {
+          addStateInfo(matchState, {"key" : matchKey, "element" : value});
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
+  Description describe(Description description) {
+    description.add("Partially matches: {");
+    map.forEach((key, matcher) {
+      description.add("$key: ");
+      description.addDescriptionOf(matcher);
+      description.add(",");
+    });
+    description.add("}");
+
+    return description;
+  }
+
+  Description describeMismatch(item, Description mismatchDescription, Map matchState, bool verbose) {
+    if (matchState["Not Map"] != null) {
+      mismatchDescription.add("${matchState["Not Map"]} is not a map");
+    }
+
+    if(matchState["missing"] != null) {
+      mismatchDescription.add("Missing ${matchState["missing"].join(",")}");
+    }
+
+    if (matchState["key"] != null) {
+      var key = matchState["key"];
+      var element = matchState["element"];
+      mismatchDescription
+          .add('has value ')
+          .addDescriptionOf(element)
+          .add(' which ');
+
+      var subMatcher = map[key];
+      var subDescription = new StringDescription();
+      subMatcher.describeMismatch(element, subDescription, matchState['state'], verbose);
+      if (subDescription.length > 0) {
+        mismatchDescription.add(subDescription.toString());
+      } else {
+        mismatchDescription.add("doesn't match ");
+        subMatcher.describe(mismatchDescription);
+      }
+      mismatchDescription.add(' for key $key');
+    }
+
+    return mismatchDescription;
+  }
+}
+
+const isNotPresent = const _NotPresentMatcher();
+class _NotPresentMatcher {
+  const _NotPresentMatcher();
+}
+
+_Converter asNumber(dynamic term) => new _Converter(_ConverterType.number, term);
+_Converter asDateTime(dynamic term) => new _Converter(_ConverterType.datetime, term);
+
+enum _ConverterType {
+  number,
+  datetime
+}
+class _Converter {
+  _Converter(this.type, this.term);
+  final _ConverterType type;
+  final dynamic term;
+
+  dynamic convertValue(dynamic value) {
+    switch (type) {
+      case _ConverterType.number: return num.parse(value);
+      case _ConverterType.datetime: return DateTime.parse(value);
+    }
+    return value;
   }
 }

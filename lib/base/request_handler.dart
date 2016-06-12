@@ -124,7 +124,7 @@ class RequestHandler implements APIDocumentable {
       req.respond(response);
       logger.info("${req.toDebugString(includeHeaders: true, includeBody: true)} ${err.message}");
     } catch (err, st) {
-      var response = new Response.serverError(headers: {HttpHeaders.CONTENT_TYPE: "application/json"}, body: JSON.encode({"error": "${this.runtimeType}: $err.", "stacktrace": st.toString()}));
+      var response = new Response.serverError(headers: {HttpHeaders.CONTENT_TYPE: ContentType.JSON}, body: {"error": "${this.runtimeType}: $err.", "stacktrace": st.toString()});
       _applyCORSHeadersIfNecessary(req, response);
       req.respond(response);
       logger.severe("${req.toDebugString(includeHeaders: true, includeBody: true)} $err $st");

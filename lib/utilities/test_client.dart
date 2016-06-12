@@ -170,7 +170,7 @@ class TestResponse {
 
   final HttpClientResponse _innerResponse;
   Completer _bodyDecodeCompleter;
-  dynamic _decodedBody;
+  dynamic decodedBody;
   String body;
   HttpHeaders get headers => _innerResponse.headers;
   int get contentLength => _innerResponse.contentLength;
@@ -178,13 +178,13 @@ class TestResponse {
   bool get isRedirect => _innerResponse.isRedirect;
   bool get persistentConnection => _innerResponse.persistentConnection;
 
-  List<dynamic> get asList => _decodedBody as List;
-  Map<dynamic, dynamic> get asMap => _decodedBody as Map;
+  List<dynamic> get asList => decodedBody as List;
+  Map<dynamic, dynamic> get asMap => decodedBody as Map;
 
   void _decodeBody() {
     var contentType = this._innerResponse.headers.contentType;
     if (contentType.primaryType == "application" && contentType.subType == "json") {
-      _decodedBody = JSON.decode(body);
+      decodedBody = JSON.decode(body);
     } else if (contentType.primaryType == "application" && contentType.subType == "x-www-form-urlencoded") {
       var split = body.split("&");
       var map = {};
@@ -196,7 +196,16 @@ class TestResponse {
           map[innerSplit[0]] = true;
         }
       });
-      _decodedBody = map;
+      decodedBody = map;
+    } else {
+      decodedBody = body;
     }
+  }
+
+  String toString() {
+    var headerItems = headers.toString().split("\n");
+    headerItems.removeWhere((str) => str == "");
+    var headerString = headerItems.join("\n\t\t\t ");
+    return "\n\tStatus Code: $statusCode\n\tHeaders: ${headerString}\n\tBody: $body";
   }
 }
