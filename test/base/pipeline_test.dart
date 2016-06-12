@@ -4,14 +4,14 @@ import 'package:aqueduct/aqueduct.dart';
 void main() {
   test("RequestHandler requiring instantion throws exception when instantiated early", () async {
     var app = new Application<TestPipeline>();
-    var success = false;
     try {
       await app.start();
-      success = true;
+      expect(true, false);
     } on IsolateSupervisorException catch (e) {
       expect(e.message, "RequestHandler FailingController instances cannot be reused. Rewrite as .then(() => new FailingController())");
+    } catch (e) {
+      print("$e");
     }
-    expect(success, false);
   });
 }
 
