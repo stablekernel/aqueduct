@@ -58,13 +58,14 @@ class Query<ModelType extends Model> {
 
   /// Values to be used when inserting or updating an object.
   ///
-  /// Will generate the [valueMap] for this [Query] using values from this object. For example, the following
-  /// code would generate the values map {'name' = 'Joe', 'id' = 2}:
-  ///     var user = new User()
-  ///       ..name = 'Joe'
-  ///       ..id = 2;
+  /// Will generate the [valueMap] for this [Query] using values from this object. This object is created
+  /// once accessed, so it is not necessary to create an instance and set this property, but instead,
+  /// set properties of this property.
+  ///
+  /// For example, the following code would generate the values map {'name' = 'Joe', 'job' = 'programmer'}:
   ///     var q = new Query<User>()
-  ///       ..valueObject = user;
+  ///       ..values.name = 'Joe
+  ///       ..values.job = 'programmer';
   ///
   ModelType get values {
     if (_valueObject == null) {
