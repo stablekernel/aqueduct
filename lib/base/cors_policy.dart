@@ -51,10 +51,6 @@ class CORSPolicy {
   }
 
   Response preflightResponse(ResourceRequest req) {
-    if (!validatePreflightRequest(req.innerRequest)) {
-      return new Response.forbidden();
-    }
-
     return new Response.ok(null, headers: {
       "Access-Control-Allow-Origin" : req.innerRequest.headers.value("origin"),
       "Access-Control-Allow-Methods" : allowedMethods.join(", "),

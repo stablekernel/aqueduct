@@ -3,6 +3,7 @@ part of aqueduct;
 /// Base class for web service handlers.
 ///
 /// Subclasses of this class can process and respond to an HTTP request.
+@cannotBeReused
 abstract class HttpController extends RequestHandler {
   static ContentType _applicationWWWFormURLEncodedContentType = new ContentType("application", "x-www-form-urlencoded");
 
@@ -10,8 +11,6 @@ abstract class HttpController extends RequestHandler {
   ///
   /// It is this [HttpController]'s responsibility to return a [Response] object for this request.
   ResourceRequest request;
-
-  CORSPolicy policy = new CORSPolicy();
 
   /// Parameters parsed from the URI of the request, if any exist.
   Map<String, String> get pathVariables => request.path.variables;
@@ -127,18 +126,28 @@ abstract class HttpController extends RequestHandler {
     }
   }
 
-  dynamic _convertParameterWithMirror(String parameterValue, ParameterMirror parameterMirror) {
-    var typeMirror = parameterMirror.type;
+  dynamic _convertParameterListWithMirror(List<String> parameterValues, TypeMirror typeMirror) {
+    if (typeMirror.isSubtypeOf(reflectType(List))) {
+      return parameterValues.map((str) => _convertParameterWithMirror(str, typeMirror.typeArguments.first)).toList();
+    } else {
+      return _convertParameterWithMirror(parameterValues.first, typeMirror);
+    }
+  }
+
+  dynamic _convertParameterWithMirror(String parameterValue, TypeMirror typeMirror) {
+    if (typeMirror.isSubtypeOf(reflectType(bool))) {
+      return true;
+    }
+
     if (typeMirror.isSubtypeOf(reflectType(String))) {
       return parameterValue;
     }
 
     if (typeMirror is ClassMirror) {
-      var cm = (typeMirror as ClassMirror);
-      var parseDecl = cm.declarations[new Symbol("parse")];
+      var parseDecl = typeMirror.declarations[new Symbol("parse")];
       if (parseDecl != null) {
         try {
-          var reflValue = cm.invoke(parseDecl.simpleName, [parameterValue]);
+          var reflValue = typeMirror.invoke(parseDecl.simpleName, [parameterValue]);
           return reflValue.reflectee;
         } catch (e) {
           throw new _InternalControllerException("Invalid value for parameter type", HttpStatus.BAD_REQUEST, responseMessage: "URI parameter is wrong type");
@@ -158,12 +167,12 @@ abstract class HttpController extends RequestHandler {
     return handlerMirror.parameters.where((methodParmeter) => !methodParmeter.isOptional).map((methodParameter) {
       var value = this.request.path.variables[MirrorSystem.getName(methodParameter.simpleName)];
 
-      return _convertParameterWithMirror(value, methodParameter);
+      return _convertParameterWithMirror(value, methodParameter.type);
     }).toList();
   }
 
   Map<Symbol, dynamic> _queryParametersForRequest(ResourceRequest req, dynamic body, Symbol handlerMethodSymbol) {
-    Map<String, String> queryParams = {};
+    Map<String, dynamic> queryParams = {};
 
     var contentTypeString = req.innerRequest.headers.value(HttpHeaders.CONTENT_TYPE);
     var contentType = null;
@@ -171,12 +180,12 @@ abstract class HttpController extends RequestHandler {
       contentType = ContentType.parse(contentTypeString);
     }
 
-    if (contentType != null &&
-        contentType.primaryType == _applicationWWWFormURLEncodedContentType.primaryType &&
-        contentType.subType == _applicationWWWFormURLEncodedContentType.subType) {
+    if (contentType != null
+    &&  contentType.primaryType == _applicationWWWFormURLEncodedContentType.primaryType
+    &&  contentType.subType == _applicationWWWFormURLEncodedContentType.subType) {
       queryParams = requestBody ?? {};
     } else {
-      queryParams = req.innerRequest.uri.queryParameters;
+      queryParams = req.innerRequest.uri.queryParametersAll;
     }
 
     if (queryParams.length == 0) {
@@ -193,7 +202,11 @@ abstract class HttpController extends RequestHandler {
       var keySymbol = new Symbol(k);
       var matchingParameter = optionalParams.firstWhere((p) => p.simpleName == keySymbol, orElse: () => null);
       if (matchingParameter != null) {
-        retMap[keySymbol] = _convertParameterWithMirror(v, matchingParameter);
+        if (v is List) {
+          retMap[keySymbol] = _convertParameterListWithMirror(v, matchingParameter.type);
+        } else {
+          retMap[keySymbol] = _convertParameterWithMirror(v, matchingParameter.type);
+        }
       }
     });
 
@@ -245,23 +258,6 @@ abstract class HttpController extends RequestHandler {
     try {
       request = req;
 
-      var corsHeaders = null;
-      if (request.innerRequest.headers.value("origin") != null) {
-        if (policy != null) {
-          if (!policy.isRequestOriginAllowed(request.innerRequest)) {
-            return new Response.forbidden();
-          }
-
-          if (request.innerRequest.method == "OPTIONS") {
-            // Preflight request
-            return policy.preflightResponse(req);
-          } else {
-            // Normal request
-            corsHeaders = policy.headersForRequest(request);
-          }
-        }
-      }
-
       var preprocessedResult = await willProcessRequest(req);
       Response response = null;
       if (preprocessedResult is ResourceRequest) {
@@ -270,14 +266,6 @@ abstract class HttpController extends RequestHandler {
         response = preprocessedResult;
       } else {
         throw new _InternalControllerException("Preprocessing request did not yield result", 500);
-      }
-
-      if (corsHeaders != null) {
-        if (response.headers != null) {
-          response.headers.addAll(corsHeaders);
-        } else {
-          response.headers = corsHeaders;
-        }
       }
 
       return response;

@@ -82,8 +82,12 @@ class IsolateServer extends Server {
     var pipelineSourceLibraryMirror = currentMirrorSystem().libraries[params.pipelineLibraryURI];
     var pipelineTypeMirror = pipelineSourceLibraryMirror.declarations[new Symbol(params.pipelineTypeName)] as ClassMirror;
 
-    var app = pipelineTypeMirror.newInstance(new Symbol(""), [params.configuration.pipelineOptions]).reflectee;
-    var server = new IsolateServer(app, params.configuration, params.identifier, params.parentMessagePort);
+    var app = pipelineTypeMirror
+        .newInstance(new Symbol(""), [params.configuration.pipelineOptions])
+        .reflectee;
+    var server = new IsolateServer(
+        app, params.configuration, params.identifier,
+        params.parentMessagePort);
 
     server.start();
   }

@@ -14,6 +14,7 @@ abstract class RequestHandlerResult {}
 class RequestHandler implements APIDocumentable {
   Function _handler;
 
+  CORSPolicy policy = new CORSPolicy();
   Logger get logger => new Logger("aqueduct");
 
   /// The initializer for RequestHandlers.
@@ -37,10 +38,32 @@ class RequestHandler implements APIDocumentable {
   /// Handlers may be chained together if they have the option not to respond to requests.
   /// If this handler returns a [ResourceRequest] from [processRequest], this [nextHandler]
   /// handler will run. This method sets the [nextHandler] property] and returns [this]
-  /// to allow chaining.
-  RequestHandler then(RequestHandler next) {
+  /// to allow chaining. This parameter may be an instance of [RequestHandler] or a
+  /// function that takes no arguments and returns a [RequestHandler]. In the latter instance,
+  /// a new instance of the returned [RequestHandler] is created for each request. Otherwise,
+  /// the same instance is used for each request. All [HttpController]s and subclasses should
+  /// be wrapped in a function that returns a new instance of the controller.
+  RequestHandler then(dynamic next) {
+    if (next is Function) {
+      next = new _RequestHandlerGenerator(next);
+    } else {
+      var typeMirror = reflect(next).type;
+      if (_requestHandlerTypeRequiresInstantion(typeMirror)) {
+        throw new IsolateSupervisorException("RequestHandler ${typeMirror.reflectedType} instances cannot be reused. Rewrite as .then(() => new ${typeMirror.reflectedType}())");
+      }
+    }
     this.nextHandler = next;
     return next;
+  }
+
+  bool _requestHandlerTypeRequiresInstantion(ClassMirror mirror) {
+    if (mirror.metadata.firstWhere((im) => im.reflectee is _RequiresInstantion, orElse: () => null) != null) {
+      return true;
+    }
+    if (mirror.isSubtypeOf(reflectType(RequestHandler))) {
+      return _requestHandlerTypeRequiresInstantion(mirror.superclass);
+    }
+    return false;
   }
 
   /// The mechanism for delivering a [ResourceRequest] to this handler for processing.
@@ -57,23 +80,53 @@ class RequestHandler implements APIDocumentable {
   /// use simple chaining. For example, the [Router] class overrides this method
   /// to deliver the [ResourceRequest] to the appropriate route handler. If overriding this
   /// method, it is important that you always invoke subsequent handler's with [deliver]
-  /// and not [processRequest].
-
+  /// and not [processRequest]. You must also ensure that CORS requests are handled properly,
+  /// as this method does the heavy-lifting for handling CORS requests.
   Future deliver(ResourceRequest req) async {
     try {
+      if (isPreflightRequest(req)) {
+        var handlerToDictatePolicy = _lastRequestHandler();
+        if (handlerToDictatePolicy != this) {
+          handlerToDictatePolicy.deliver(req);
+          return;
+        }
+
+        if (policy != null) {
+          if (!policy.validatePreflightRequest(req.innerRequest)) {
+            req.respond(new Response.forbidden());
+            logger.info(req.toDebugString(includeHeaders: true));
+          } else {
+            // If we are the last on the chain, we can OK the preflight request, otherwise, we let the next handler deal with it.
+            if (nextHandler == null) {
+              req.respond(policy.preflightResponse(req));
+              logger.info(req.toDebugString());
+            } else {
+              nextHandler.deliver(req);
+            }
+          }
+          return;
+        }
+        // If we have no policy, then it isn't really a preflight request because we don't support CORS so let it fall thru.
+      }
+
       var result = await processRequest(req);
 
       if (result is ResourceRequest && nextHandler != null) {
         nextHandler.deliver(req);
       } else if (result is Response) {
+        _applyCORSHeadersIfNecessary(req, result);
         req.respond(result as Response);
         logger.info(req.toDebugString());
       }
-    } on HttpResponseException catch (err, st) {
-      req.respond(err.response());
-      logger.info("${req.toDebugString(includeHeaders: true, includeBody: true)} $err $st");
+    } on HttpResponseException catch (err) {
+      var response = err.response();
+      _applyCORSHeadersIfNecessary(req, response);
+      req.respond(response);
+      logger.info("${req.toDebugString(includeHeaders: true, includeBody: true)} ${err.message}");
     } catch (err, st) {
-      req.respond(new Response.serverError(headers: {HttpHeaders.CONTENT_TYPE: "application/json"}, body: JSON.encode({"error": "${this.runtimeType}: $err.", "stacktrace": st.toString()})));
+      var response = new Response.serverError(headers: {HttpHeaders.CONTENT_TYPE: "application/json"}, body: JSON.encode({"error": "${this.runtimeType}: $err.", "stacktrace": st.toString()}));
+      _applyCORSHeadersIfNecessary(req, response);
+      req.respond(response);
       logger.severe("${req.toDebugString(includeHeaders: true, includeBody: true)} $err $st");
     }
   }
@@ -89,7 +142,37 @@ class RequestHandler implements APIDocumentable {
     if (_handler != null) {
       return _handler(req);
     }
+
     return req;
+  }
+
+  RequestHandler _lastRequestHandler() {
+    var handler = this;
+    while (handler.nextHandler != null) {
+      handler = handler.nextHandler;
+    }
+    return handler;
+  }
+
+  void _applyCORSHeadersIfNecessary(ResourceRequest req, Response resp) {
+    if (isCORSRequest(req)) {
+      var lastPolicyHandler = _lastRequestHandler();
+      var p = lastPolicyHandler.policy;
+      if (p != null) {
+        resp.headers.addAll(p.headersForRequest(req));
+      }
+    }
+  }
+
+  bool isCORSRequest(ResourceRequest req) {
+    return req.innerRequest.headers.value("origin") != null;
+  }
+
+  bool isPreflightRequest(ResourceRequest req) {
+    if (req.innerRequest.headers.value("origin") != null) {
+      return req.innerRequest.method == "OPTIONS";
+    }
+    return false;
   }
 
   List<APIDocumentItem> document(PackagePathResolver resolver) {
@@ -101,29 +184,51 @@ class RequestHandler implements APIDocumentable {
   }
 }
 
-class RequestHandlerGenerator<T extends RequestHandler> extends RequestHandler {
-  RequestHandlerGenerator({List<dynamic> arguments: const []}) {
-    this.arguments = arguments;
+/// Metadata for a [RequestHandler] subclass that indicates it must be instantiated for each request.
+///
+/// [RequestHandler]s may carry some state throughout the course of their handling of a request. If
+/// that [RequestHandler] is reused for another request, some of that state may carry over. Therefore,
+/// it is a better solution to instantiate the [RequestHandler] for each incoming request. Marking
+/// a [RequestHandler] subclass with this flag will ensure that an exception is thrown if an instance
+/// of [RequestHandler] is chained in a pipeline. These instances must be generated with a closure:
+///
+///       router.route("/path").then(() => new RequestHandlerSubclass());
+const _RequiresInstantion cannotBeReused = const _RequiresInstantion();
+class _RequiresInstantion {
+  const _RequiresInstantion();
+}
+
+class _RequestHandlerGenerator extends RequestHandler {
+  _RequestHandlerGenerator(RequestHandler generator()) {
+    this.generator = generator;
   }
 
-  List<dynamic> arguments;
+  Function generator;
 
-  T instantiate() {
-    var handler = reflectClass(T).newInstance(new Symbol(""), arguments).reflectee as RequestHandler;
-    handler.nextHandler = this.nextHandler;
-    return handler;
+  RequestHandler instantiate() {
+    RequestHandler instance = generator();
+    instance.nextHandler = this.nextHandler;
+    if (_policy != null) {
+      instance.policy = _policy;
+    }
+    return instance;
+  }
+
+  CORSPolicy _policy;
+  CORSPolicy get policy {
+    return instantiate().policy;
+  }
+  void set policy(CORSPolicy p) {
+    _policy = p;
   }
 
   @override
   Future deliver(ResourceRequest req) async {
-    logger.finest("Generating handler $T with arguments $arguments.");
-    T handler = instantiate();
-    await handler.deliver(req);
+    await instantiate().deliver(req);
   }
 
   @override
   List<APIDocumentItem> document(PackagePathResolver resolver) {
     return instantiate().document(resolver);
   }
-
 }

@@ -167,7 +167,13 @@ class HTTPResponseMatcher extends Matcher {
   }
 }
 
+HTTPBodyMatcher matchesJSONExactly(dynamic jsonMatchSpec) => new HTTPBodyMatcher()
+  ..requiresExactMatch = true
+  ..contentMatcher = jsonMatchSpec
+  ..expectedContentType = ContentType.JSON;
+
 HTTPBodyMatcher matchesJSON(dynamic jsonMatchSpec) => new HTTPBodyMatcher()
+  ..requiresExactMatch = false
   ..contentMatcher = jsonMatchSpec
   ..expectedContentType = ContentType.JSON;
 
@@ -180,6 +186,7 @@ class HTTPBodyMatcher extends Matcher {
   dynamic contentMatcher;
   ContentType expectedContentType;
   ContentType contentType;
+  bool requiresExactMatch = false;
 
   bool matches(dynamic incomingItem, Map matchState) {
     if (contentType != null && expectedContentType != null
@@ -206,19 +213,36 @@ class HTTPBodyMatcher extends Matcher {
     }
 
     if (contentMatcher is List && decodedData is List) {
-      bool allMatch = true;
-      decodedData.forEach((i) {
-        if (contentMatcher.first is Matcher) {
-          if (!contentMatcher.first.matches(i, matchState)) {
-            allMatch = false;
-          }
-        } else {
-          if (!mapMatches(i, contentMatcher.first, matchState)) {
-            allMatch = false;
+      var dataIterator = decodedData.iterator;
+      if (requiresExactMatch) {
+        for (var matcher in contentMatcher) {
+          dataIterator.moveNext();
+          var element = dataIterator.current;
+          if (matcher is Matcher) {
+            if (!matcher.matches(element, matchState)) {
+              return false;
+            }
+          } else {
+            if (!mapMatches(element, matcher, matchState)) {
+              return false;
+            }
           }
         }
-      });
-      return allMatch;
+      } else {
+        var matcher = contentMatcher.first;
+        for (var element in decodedData) {
+          if (matcher is Matcher) {
+            if (!matcher.matches(element, matchState)) {
+              return false;
+            } else {
+              if (!mapMatches(element, matcher, matchState)) {
+                return false;
+              }
+            }
+          }
+        }
+      }
+      return true;
     } else if (contentMatcher is Map && decodedData is Map) {
       return mapMatches(decodedData, contentMatcher, matchState);
     } else if (contentMatcher is Matcher) {

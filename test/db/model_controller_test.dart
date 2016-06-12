@@ -13,7 +13,7 @@ main() {
     context = await contextWithModels([TestModel]);
     server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8080);
     var router = new Router();
-    router.route("/users/[:id]").then(new RequestHandlerGenerator<TestModelController>(arguments: []));
+    router.route("/users/[:id]").then(() => new TestModelController());
 
     server.listen((req) async {
       router.deliver(new ResourceRequest(req));

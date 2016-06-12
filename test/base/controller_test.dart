@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:aqueduct/aqueduct.dart';
 import 'dart:convert';
 import 'dart:async';
+import 'dart:mirrors';
 
 void main() {
   HttpServer server;
@@ -19,7 +20,7 @@ void main() {
   });
 
   test("Get w/ no params", () async {
-    server = await enableController("/a", new RequestHandlerGenerator<TController>());
+    server = await enableController("/a", TController);
 
     var res = await http.get("http://localhost:4040/a");
 
@@ -29,7 +30,7 @@ void main() {
   });
 
   test("Get w/ 1 param", () async {
-    server = await enableController("/a/:id", new RequestHandlerGenerator<TController>());
+    server = await enableController("/a/:id", TController);
     var res = await http.get("http://localhost:4040/a/123");
 
     expect(res.statusCode, 200);
@@ -37,7 +38,7 @@ void main() {
   });
 
   test("Get w/ 2 param", () async {
-    server = await enableController("/a/:id/:flag", new RequestHandlerGenerator<TController>());
+    server = await enableController("/a/:id/:flag", TController);
 
     var res = await http.get("http://localhost:4040/a/123/active");
 
@@ -46,7 +47,7 @@ void main() {
   });
 
   test("Unsupported method", () async {
-    server = await enableController("/a", new RequestHandlerGenerator<TController>());
+    server = await enableController("/a", TController);
 
     var res = await http.delete("http://localhost:4040/a");
     expect(res.statusCode, 404);
@@ -54,7 +55,7 @@ void main() {
   });
 
   test("Crashing handler delivers 500", () async {
-    server = await enableController("/a/:id", new RequestHandlerGenerator<TController>());
+    server = await enableController("/a/:id", TController);
 
     var res = await http.put("http://localhost:4040/a/a");
 
@@ -62,7 +63,7 @@ void main() {
   });
 
   test("Only respond to appropriate content types", () async {
-    server = await enableController("/a", new RequestHandlerGenerator<TController>());
+    server = await enableController("/a", TController);
 
     var body = JSON.encode({"a" : "b"});
     var res = await http.post("http://localhost:4040/a", headers: {"Content-Type" : "application/json"}, body: body);
@@ -71,7 +72,7 @@ void main() {
   });
 
   test("Return error when wrong content type", () async {
-    server = await enableController("/a", new RequestHandlerGenerator<TController>());
+    server = await enableController("/a", TController);
 
     var body = JSON.encode({"a" : "b"});
     var res = await http.post("http://localhost:4040/a", headers: {"Content-Type" : "application/somenonsense"}, body: body);
@@ -79,7 +80,7 @@ void main() {
   });
 
   test("Query parameters get delivered if exposed as optional params", () async {
-    server = await enableController("/a", new RequestHandlerGenerator<QController>());
+    server = await enableController("/a", QController);
 
     var res = await http.get("http://localhost:4040/a?opt=x");
     expect(res.body, "\"OK\"");
@@ -95,7 +96,7 @@ void main() {
 
     await server.close(force: true);
 
-    server = await enableController("/:id", new RequestHandlerGenerator<QController>());
+    server = await enableController("/:id", QController);
 
     res = await http.get("http://localhost:4040/123?opt=x");
     expect(res.body, "\"OK\"");
@@ -112,7 +113,7 @@ void main() {
 
 
   test("Path parameters are parsed into appropriate type", () async {
-    server = await enableController("/:id", new RequestHandlerGenerator<IntController>());
+    server = await enableController("/:id", IntController);
 
     var res = await http.get("http://localhost:4040/123");
     expect(res.body, "\"246\"");
@@ -122,7 +123,7 @@ void main() {
 
     await server.close(force: true);
 
-    server = await enableController("/:time", new RequestHandlerGenerator<DateTimeController>());
+    server = await enableController("/:time", DateTimeController);
     res = await http.get("http://localhost:4040/2001-01-01T00:00:00.000000Z");
     expect(res.statusCode, 200);
     expect(res.body, "\"2001-01-01 00:00:05.000Z\"");
@@ -132,7 +133,7 @@ void main() {
   });
 
   test("Query parameters are parsed into appropriate types", () async {
-    server = await enableController("/a", new RequestHandlerGenerator<IntController>());
+    server = await enableController("/a", IntController);
     var res = await http.get("http://localhost:4040/a?opt=12");
     expect(res.body, "\"12\"");
 
@@ -145,7 +146,7 @@ void main() {
 
     await server.close(force: true);
 
-    server = await enableController("/a", new RequestHandlerGenerator<DateTimeController>());
+    server = await enableController("/a", DateTimeController);
     res = await http.get("http://localhost:4040/a?opt=2001-01-01T00:00:00.000000Z");
     expect(res.statusCode, 200);
     expect(res.body, "\"2001-01-01 00:00:00.000Z\"");
@@ -158,13 +159,13 @@ void main() {
   });
 
   test("Query parameters can be obtained from x-www-form-urlencoded", () async {
-    server = await enableController("/a", new RequestHandlerGenerator<IntController>());
+    server = await enableController("/a", IntController);
     var res = await http.post("http://localhost:4040/a", headers: {"Content-Type" : "application/x-www-form-urlencoded"}, body: "opt=7");
     expect(res.body, '"7"');
   });
 
   test("Model and lists are encoded in response", () async {
-    server = await enableController("/a/:thing", new RequestHandlerGenerator<ModelEncodeController>());
+    server = await enableController("/a/:thing", ModelEncodeController);
     var res = await http.get("http://localhost:4040/a/list");
     expect(JSON.decode(res.body), [{"id" : 1}, {"id" : 2}]);
 
@@ -180,7 +181,7 @@ void main() {
   });
 
   test("Sending bad JSON returns 500", () async {
-    server = await enableController("/a", new RequestHandlerGenerator<TController>());
+    server = await enableController("/a", TController);
     var res = await http.post("http://localhost:4040/a", body: "{`foobar' : 2}", headers: {"Content-Type" : "application/json"});
     expect(res.statusCode, 400);
 
@@ -189,7 +190,7 @@ void main() {
   });
 
   test("Prefilter requests", () async {
-    server = await enableController("/a", new RequestHandlerGenerator<FilteringController>());
+    server = await enableController("/a", FilteringController);
 
     var resp = await http.get("http://localhost:4040/a");
     expect(resp.statusCode, 200);
@@ -197,6 +198,24 @@ void main() {
     resp = await http.get("http://localhost:4040/a", headers: {"Ignore" : "true"});
     expect(resp.statusCode, 400);
     expect(resp.body, "ignored");
+  });
+
+  test("Request with multiple query parameters of same key", () async {
+    server = await enableController("/a", MultiQueryParamController);
+    var resp = await http.get("http://localhost:4040/a?params=1&params=2");
+    expect(resp.statusCode, 200);
+    expect(resp.body, '"1,2"');
+  });
+
+  test("Request with query parameter key is bool", () async {
+    server = await enableController("/a", BooleanQueryParamController);
+    var resp = await http.get("http://localhost:4040/a?param");
+    expect(resp.statusCode, 200);
+    expect(resp.body, '"true"');
+
+    resp = await http.get("http://localhost:4040/a");
+    expect(resp.statusCode, 200);
+    expect(resp.body, '"false"');
   });
 }
 
@@ -212,11 +231,9 @@ class FilteringController extends HttpController {
     }
     return super.willProcessRequest(req);
   }
-
 }
 
 class TController extends HttpController {
-
   @httpGet
   Future<Response> getAll() async {
     return new Response.ok("getAll");
@@ -296,6 +313,19 @@ class DateTimeController extends HttpController {
   }
 }
 
+class MultiQueryParamController extends HttpController {
+  @httpGet
+  Future<Response> get({List<String> params: null}) async {
+    return new Response.ok(params.join(","));
+  }
+}
+
+class BooleanQueryParamController extends HttpController {
+  @httpGet get({bool param: false}) async {
+    return new Response.ok(param ? "true" : "false");
+  }
+}
+
 class ModelEncodeController extends HttpController {
   @httpGet getThings(String thing) async {
     if (thing == "list") {
@@ -326,9 +356,9 @@ class ModelEncodeController extends HttpController {
   }
 }
 
-Future<HttpServer> enableController(String pattern, RequestHandler controller) async {
+Future<HttpServer> enableController(String pattern, Type controller) async {
   var router = new Router();
-  router.route(pattern).then(controller);
+  router.route(pattern).then(() => reflectClass(controller).newInstance(new Symbol(""), []).reflectee);
 
   var server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 4040);
   server.map((httpReq) => new ResourceRequest(httpReq)).listen((req) {
