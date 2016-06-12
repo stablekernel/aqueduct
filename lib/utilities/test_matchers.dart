@@ -5,6 +5,7 @@ const Matcher isInteger = const isInstanceOf<int>();
 const Matcher isDouble = const isInstanceOf<double>();
 const Matcher isString = const isInstanceOf<String>();
 const Matcher isDateTime = const isInstanceOf<DateTime>();
+const Matcher isBoolean = const isInstanceOf<bool>();
 
 HTTPResponseMatcher hasStatus(int v) => new HTTPResponseMatcher(v, null, null);
 HTTPResponseMatcher hasResponse(int statusCode, dynamic bodyMatcher, {Map<String, dynamic> headers: null, bool failIfContainsUnmatchedHeader: false}) {
