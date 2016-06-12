@@ -14,6 +14,10 @@ void main() {
       expect(openFuture, completes);
     });
 
+    tearDownAll(() async {
+      await server.close();
+    });
+
     test("Request is enqueued and immediately available", () async {
       var response = (testClient.request("/hello?foo=bar")..headers = {
         "X" : "Y"

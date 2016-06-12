@@ -7,11 +7,11 @@ import 'dart:async';
 void main() {
   group("Standard operations", () {
     Application app = new Application<TestPipeline>();
+    app.configuration.port = 8080;
+    var client = new TestClient(8080);
     List<TestModel> allObjects = [];
 
     setUpAll(() async {
-
-      app.configuration.port = 8080;
       await app.start(runOnMainIsolate: true);
 
       var now = new DateTime.now().toUtc();
@@ -30,15 +30,13 @@ void main() {
     });
 
     test("Can get one object", () async {
-      var resp = await http.get("http://localhost:8080/controller/1");
-      expect(resp.statusCode, 200);
-      expect(JSON.decode(resp.body), allObjects.first.asMap());
+      var resp = await client.request("/controller/1").get();
+      expect(resp, hasResponse(200, allObjects.first.asMap()));
     });
 
     test("Can get all objects", () async {
-      var resp = await http.get("http://localhost:8080/controller");
-      expect(resp.statusCode, 200);
-      expect(JSON.decode(resp.body), allObjects.map((m) => m.asMap()).toList());
+      var resp = await client.request("/controller").get();
+      expect(resp, hasResponse(200, allObjects.map((m) => m.asMap()).toList()));
     });
 
     test("Can update an object", () async {
@@ -48,24 +46,22 @@ void main() {
         "createdAt" : allObjects.first.createdAt.toIso8601String()
       };
 
-      var resp = await http.put("http://localhost:8080/controller/1", headers: {
-        "Content-Type" : "application/json"
-      }, body: JSON.encode({
-        "name" : "Fred"
-      }));
+      var resp = await (client.request("/controller/1")
+          ..json = {
+            "name" : "Fred"
+          }).put();
       expect(resp, hasResponse(200, expectedMap));
 
-      expect(await http.get("http://localhost:8080/controller/1"), hasResponse(200, expectedMap));
-      expect(await http.get("http://localhost:8080/controller/2"), hasResponse(200, allObjects[1].asMap()));
+      expect(await client.request("/controller/1").get(), hasResponse(200, expectedMap));
+      expect(await client.request("/controller/2").get(), hasResponse(200, allObjects[1].asMap()));
     });
 
     test("Can create an object", () async {
-      var resp = await http.post("http://localhost:8080/controller", headers: {
-        "Content-Type" : "application/json"
-      }, body: JSON.encode({
-        "name" : "John",
-        "createdAt" : new DateTime(2000, 12, 12).toIso8601String()
-      }));
+      var resp = await (client.request("/controller")
+          ..json = {
+            "name" : "John",
+            "createdAt" : new DateTime(2000, 12, 12).toIso8601String()
+          }).post();
 
       var expectedMap = {
         "id" : allObjects.length + 1,
@@ -73,21 +69,21 @@ void main() {
         "createdAt" : "2000-12-12T00:00:00.000Z"
       };
       expect(resp, hasResponse(200, expectedMap));
-      expect(await http.get("http://localhost:8080/controller/${expectedMap["id"]}"), hasResponse(200, expectedMap));
+      expect(await client.request("/controller/${expectedMap["id"]}").get(), hasResponse(200, expectedMap));
     });
 
     test("Can delete object", () async {
-      expect(await http.delete("http://localhost:8080/controller/1"), hasStatus(200));
-      expect(await http.get("http://localhost:8080/controller/1"), hasStatus(404));
+      expect(await client.request("/controller/1").delete(), hasStatus(200));
+      expect(await client.request("/controller/1").get(), hasStatus(404));
     });
   });
 
   group("Standard operation failure cases", () {
-    Application app = null;
+    Application app = new Application<TestPipeline>();
+    app.configuration.port = 8080;
+    var client = new TestClient(8080);
 
     setUpAll(() async {
-      app = new Application<TestPipeline>();
-      app.configuration.port = 8080;
       await app.start(runOnMainIsolate: true);
     });
 
@@ -96,31 +92,28 @@ void main() {
     });
 
     test("Get an object with the wrong type of path param returns 404", () async {
-      var resp = await http.get("http://localhost:8080/controller/one");
-      expect(resp.statusCode, 404);
+      expect(await client.request("/controller/one").get(), hasStatus(404));
     });
 
     test("Put an object with the wrong type of path param returns 404", () async {
-      var resp = await http.put("http://localhost:8080/controller/one", headers: {
-        "Content-Type" : "application/json"
-      }, body: JSON.encode({
+      var resp = await (client.request("/controller/one")..json = {
         "name" : "Fred"
-      }));
-      expect(resp.statusCode, 404);
+      }).put();
+      expect(resp, hasStatus(404));
     });
 
     test("Delete an object with the wrong type of path param returns 404", () async {
-      var resp = await http.delete("http://localhost:8080/controller/one");
-      expect(resp.statusCode, 404);
+      expect(await client.request("/controller/one").delete(), hasStatus(404));
     });
   });
 
   group("Objects that don't exist", () {
     Application app = null;
+    app = new Application<TestPipeline>();
+    app.configuration.port = 8080;
+    var client = new TestClient(8080);
 
     setUpAll(() async {
-      app = new Application<TestPipeline>();
-      app.configuration.port = 8080;
       await app.start(runOnMainIsolate: true);
     });
 
@@ -129,39 +122,32 @@ void main() {
     });
 
     test("Can't get object that doesn't exist - 404", () async {
-      var resp = await http.get("http://localhost:8080/controller/1");
-      expect(resp.statusCode, 404);
-
+      expect(await client.request("/controller/1").get(), hasStatus(404));
     });
 
     test("Can get all objects - there are none", () async {
-      var resp = await http.get("http://localhost:8080/controller");
-      expect(resp.statusCode, 200);
-      expect(JSON.decode(resp.body), []);
+      expect(await client.request("/controller").get(), hasResponse(200, []));
     });
 
     test("Updating an object returns 404", () async {
-      var resp = await http.put("http://localhost:8080/controller/1", headers: {
-        "Content-Type" : "application/json"
-      }, body: JSON.encode({
+      expect(await (client.request("/controller/1")..json = {
         "name" : "Fred"
-      }));
-      expect(resp, hasStatus(404));
+      }).put(), hasStatus(404));
     });
 
     test("Delete nonexistant object is 404", () async {
-      expect(await http.delete("http://localhost:8080/controller/1"), hasStatus(404));
+      expect(await client.request("http://localhost:8080/controller/1").delete(), hasStatus(404));
     });
   });
 
   group("Extended GET requests", () {
     Application app = null;
+    app = new Application<TestPipeline>();
+    app.configuration.port = 8080;
+    var client = new TestClient(8080);
     List<TestModel> allObjects = [];
 
     setUpAll(() async {
-
-      app = new Application<TestPipeline>();
-      app.configuration.port = 8080;
       await app.start(runOnMainIsolate: true);
 
       var now = new DateTime.now().toUtc();
@@ -180,51 +166,44 @@ void main() {
     });
 
     test("Can get all objects w/ count and offset", () async {
-      var resp = await http.get("http://localhost:8080/controller?count=2&offset=1");
-      expect(resp, hasResponse(200, allObjects.sublist(1, 2).map((m) => m.asMap()).toList()));
+      expect(await client.request("/controller?count=2&offset=1").get(), hasResponse(200, allObjects.sublist(1, 3).map((m) => m.asMap()).toList()));
     });
 
     test("Can get all objects w/ sort descriptor", () async {
-      var resp = await http.get("http://localhost:8080/controller?sortBy=name,asc");
-      expect(resp, hasResponse(200, allObjects.reversed.map((m) => m.asMap()).toList()));
-
-      resp = await http.get("http://localhost:8080/controller?sortBy=createdAt,asc");
-      expect(resp, hasResponse(200, allObjects.map((m) => m.asMap()).toList()));
+      expect(await client.request("/controller?sortBy=name,asc").get(), hasResponse(200, allObjects.reversed.map((m) => m.asMap()).toList()));
+      expect(await client.request("/controller?sortBy=createdAt,asc").get(), hasResponse(200, allObjects.map((m) => m.asMap()).toList()));
     });
 
     test("Getting all objects with sort descriptor referencing unknown key fails", () async {
-      var resp = await http.get("http://localhost:8080/controller?sortBy=foobar,asc");
-      expect(resp, hasResponse(400, {"error" : "sortBy key foobar does not exist for _TestModel"}));
+      expect(await client.request("/controller?sortBy=foobar,asc").get(), hasResponse(400, {"error" : "sortBy key foobar does not exist for _TestModel"}));
     });
 
     test("Getting all objects with a unknown sort descriptor order fails", () async {
-      var resp = await http.get("http://localhost:8080/controller?sortBy=name,name");
-      expect(resp, hasResponse(400, {"error" : "sortBy order must be either asc or desc, not name"}));
+      expect(await client.request("/controller?sortBy=name,name").get(), hasResponse(400, {"error" : "sortBy order must be either asc or desc, not name"}));
     });
 
     test("Paging after", () async {
-      var resp = await http.get("http://localhost:8080/controller?pageBy=createdAt&pageAfter=${allObjects[5].createdAt.toIso8601String()}");
-      expect(resp, hasResponse(200, allObjects.sublist(6, 9).map((m) => m.asMap()).toList()));
+      expect(await client.request("/controller?pageBy=createdAt&pageAfter=${allObjects[5].createdAt.toIso8601String()}").get(),
+          hasResponse(200, allObjects.sublist(6).map((m) => m.asMap()).toList()));
     });
 
     test("Paging before", () async {
-      var resp = await http.get("http://localhost:8080/controller?pageBy=createdAt&pagePrior=${allObjects[5].createdAt.toIso8601String()}");
-      expect(resp, hasResponse(200, allObjects.sublist(0, 5).reversed.map((m) => m.asMap()).toList()));
+      expect(await client.request("/controller?pageBy=createdAt&pagePrior=${allObjects[5].createdAt.toIso8601String()}").get(),
+          hasResponse(200, allObjects.sublist(0, 5).reversed.map((m) => m.asMap()).toList()));
     });
 
     test("Paging with null value", () async {
-      var resp = await http.get("http://localhost:8080/controller?pageBy=createdAt&pageAfter=null");
-      expect(resp, hasResponse(200, allObjects.map((m) => m.asMap()).toList()));
+      expect(await client.request("controller?pageBy=createdAt&pageAfter=null").get(),
+          hasResponse(200, allObjects.map((m) => m.asMap()).toList()));
     });
 
     test("Paging with no pageAfter/pagePrior", () async {
-      var resp = await http.get("http://localhost:8080/controller?pageBy=createdAt");
-      expect(resp, hasResponse(400, {"error" : "If defining pageBy, either pageAfter or pagePrior must be defined. 'null' is a valid value"}));
+      expect(await client.request("controller?pageBy=createdAt").get(),
+          hasResponse(400, {"error" : "If defining pageBy, either pageAfter or pagePrior must be defined. 'null' is a valid value"}));
     });
 
     test("Paging with wrong key", () async {
-      var resp = await http.get("http://localhost:8080/controller?pageBy=foobar&pagePrior=10");
-      expect(resp, hasResponse(400, {"error" : "pageBy key foobar does not exist for _TestModel"}));
+      expect(await client.request("/controller?pageBy=foobar&pagePrior=10").get(), hasResponse(400, {"error" : "pageBy key foobar does not exist for _TestModel"}));
     });
   });
 }

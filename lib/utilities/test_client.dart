@@ -148,25 +148,19 @@ class TestRequest {
       request.add(UTF8.encode(body));
     }
 
-    var response = new TestResponse(await request.close());
-    await response._bodyDecodeCompleter;
+    var requestResponse = await request.close();
+
+    var response = new TestResponse(requestResponse);
+    await response._decodeBody();
 
     return response;
   }
 }
 
 class TestResponse {
-  TestResponse(this._innerResponse) {
-    _bodyDecodeCompleter = new Completer();
-    _innerResponse.transform(UTF8.decoder).listen((contents) {
-      body = contents;
-      _decodeBody();
-      _bodyDecodeCompleter.complete();
-    });
-  }
+  TestResponse(this._innerResponse);
 
   final HttpClientResponse _innerResponse;
-  Completer _bodyDecodeCompleter;
   dynamic decodedBody;
   String body;
   HttpHeaders get headers => _innerResponse.headers;
@@ -178,25 +172,37 @@ class TestResponse {
   List<dynamic> get asList => decodedBody as List;
   Map<dynamic, dynamic> get asMap => decodedBody as Map;
 
-  void _decodeBody() {
-    var contentType = this._innerResponse.headers.contentType;
-    if (contentType.primaryType == "application" && contentType.subType == "json") {
-      decodedBody = JSON.decode(body);
-    } else if (contentType.primaryType == "application" && contentType.subType == "x-www-form-urlencoded") {
-      var split = body.split("&");
-      var map = {};
-      split.forEach((str) {
-        var innerSplit = str.split("=");
-        if (innerSplit.length == 2) {
-          map[innerSplit[0]] = innerSplit[1];
+  Future _decodeBody() async {
+    var completer = new Completer();
+    _innerResponse.transform(UTF8.decoder).listen((contents) {
+      body = contents;
+
+      if (body != null) {
+        var contentType = this._innerResponse.headers.contentType;
+        if (contentType.primaryType == "application" && contentType.subType == "json") {
+          decodedBody = JSON.decode(body);
+        } else if (contentType.primaryType == "application" && contentType.subType == "x-www-form-urlencoded") {
+          var split = body.split("&");
+          var map = {};
+          split.forEach((str) {
+            var innerSplit = str.split("=");
+            if (innerSplit.length == 2) {
+              map[innerSplit[0]] = innerSplit[1];
+            } else {
+              map[innerSplit[0]] = true;
+            }
+          });
+          decodedBody = map;
         } else {
-          map[innerSplit[0]] = true;
+          decodedBody = body;
         }
-      });
-      decodedBody = map;
-    } else {
-      decodedBody = body;
-    }
+      }
+
+    }).onDone(() {
+      completer.complete();
+    });
+
+    await completer.future;
   }
 
   String toString() {

@@ -93,12 +93,8 @@ void main() {
     test("Responses have body", () async {
       server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 4000);
       server.listen((req) {
-        req.response.statusCode = 200;
-        req.response.headers.contentType = ContentType.JSON;
-        var json = UTF8.encode(JSON.encode([{"a" : "b"}]));
-        req.response.headers.contentLength = json.length;
-        req.response.add(json);
-        req.response.close();
+        var resReq = new ResourceRequest(req);
+        resReq.respond(new Response.ok([{"a" : "b"}]));
       });
 
       var defaultTestClient = new TestClient(4000);
@@ -326,7 +322,6 @@ void main() {
         expect(response, hasBody({"foo" : "notbar"}));
         expect(true, false);
       } on TestFailure catch (e) {
-        print("$e");
         expect(e.toString(), contains("Expected: Body: {'foo': 'notbar'}"));
         expect(e.toString(), contains('Body: {"foo":"bar"}'));
       }
@@ -467,8 +462,7 @@ void main() {
 
       server.queueResponse(new Response.ok({"foo" : "bar"}, headers: {"content-type" : "application/json"}));
       var response = await defaultTestClient.request("/foo").get();
-      expect(response, hasResponse(null, null, headers: {"Content-Type" : "application/json; charset=utf8"}));
-
+      expect(response, hasResponse(null, null, headers: {"Content-Type" : "application/json; charset=utf-8"}));
     });
   });
 }
