@@ -65,7 +65,7 @@ class ResourceController<ModelType extends Model> extends HttpController {
   }
 
   @httpDelete deleteObject(String id) async {
-    _query[_query.entity.primaryKey] = _parsePrimaryKey(id);
+    _query[_query.entity.primaryKey] = whereEqualTo(_parsePrimaryKey(id));
 
     _query = await willDeleteObjectWithQuery(_query);
 
@@ -91,7 +91,7 @@ class ResourceController<ModelType extends Model> extends HttpController {
   }
 
   @httpPut updateObject(String id) async {
-    _query[_query.entity.primaryKey] = _parsePrimaryKey(id);
+    _query[_query.entity.primaryKey] = whereEqualTo(_parsePrimaryKey(id));
 
     ModelType instance = _query.entity.instanceTypeMirror.newInstance(new Symbol(""), []).reflectee;
     instance.readMap(requestBody);

@@ -104,7 +104,6 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
 
     TokenType token = generateToken(authenticatable.id, client.id, expirationInSeconds);
     await delegate.storeToken(this, token);
-    await delegate.pruneTokensForResourceOwnerID(this, authenticatable.id);
 
     return token;
   }

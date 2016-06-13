@@ -268,7 +268,6 @@ class CORSPipeline extends ApplicationPipeline implements AuthenticationServerDe
 
   Future deleteTokenForAccessToken(AuthenticationServer server, String accessToken) async {}
   Future storeToken(AuthenticationServer server, TokenImpl t) async {}
-  Future pruneTokensForResourceOwnerID(AuthenticationServer server, dynamic id) async {}
 }
 class AuthImpl implements Authenticatable {
   String username;
