@@ -10,6 +10,11 @@ enum MatcherOperator {
   greaterThanEqualTo,
   equalTo
 }
+
+enum StringMatcherOperator {
+  beginsWith, contains, endsWith
+}
+
 dynamic whereEqualTo(dynamic value) {
   return new _ComparisonMatcherExpression(value, MatcherOperator.equalTo);
 }
@@ -27,6 +32,16 @@ dynamic whereLessThanEqualTo(dynamic value) {
 }
 dynamic whereNotEqual(dynamic value) {
   return new _ComparisonMatcherExpression(value, MatcherOperator.notEqual);
+}
+
+dynamic whereContains(String value) {
+  return new _StringMatcherExpression(value, StringMatcherOperator.contains);
+}
+dynamic whereBeginsWith(String value) {
+  return new _StringMatcherExpression(value, StringMatcherOperator.beginsWith);
+}
+dynamic whereEndsWith(String value) {
+  return new _StringMatcherExpression(value, StringMatcherOperator.endsWith);
 }
 
 dynamic whereIn(Iterable<dynamic> values) {
@@ -48,25 +63,26 @@ const dynamic whereNull = const _NullMatcherExpression(true);
 const dynamic whereNotNull = const _NullMatcherExpression(false);
 dynamic get whereAnyMatch => new _IncludeModelMatcherExpression();
 
-abstract class MatcherExpression {
-}
+abstract class MatcherExpression {}
 
 class _ComparisonMatcherExpression implements MatcherExpression {
+  const _ComparisonMatcherExpression(this.value, this.operator);
+
   final dynamic value;
   final MatcherOperator operator;
-
-  const _ComparisonMatcherExpression(this.value, this.operator);
 }
 
 class _RangeMatcherExpression implements MatcherExpression {
+  const _RangeMatcherExpression(this.lhs, this.rhs, this.within);
+
   final bool within;
   final dynamic lhs, rhs;
-  const _RangeMatcherExpression(this.lhs, this.rhs, this.within);
 }
 
 class _NullMatcherExpression implements MatcherExpression {
-  final bool shouldBeNull;
   const _NullMatcherExpression(this.shouldBeNull);
+
+  final bool shouldBeNull;
 }
 
 class _IncludeModelMatcherExpression implements MatcherExpression {
@@ -74,8 +90,16 @@ class _IncludeModelMatcherExpression implements MatcherExpression {
 }
 
 class _WithinMatcherExpression implements MatcherExpression {
-  List<dynamic> values;
   _WithinMatcherExpression(this.values);
+
+  List<dynamic> values;
+}
+
+class _StringMatcherExpression implements MatcherExpression {
+  _StringMatcherExpression(this.value, this.operator);
+
+  StringMatcherOperator operator;
+  String value;
 }
 
 class PredicateMatcherException implements Exception {

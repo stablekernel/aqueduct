@@ -113,6 +113,8 @@ class ModelQuery<T extends Model> extends Query<T> {
         return persistentStore.nullPredicate(desc, matcher.shouldBeNull);
       } else if (matcher is _WithinMatcherExpression) {
         return persistentStore.containsPredicate(desc, matcher.values);
+      } else if (matcher is _StringMatcherExpression) {
+        return persistentStore.stringPredicate(desc, matcher.operator, matcher.value);
       }
     })?.toList());
   }

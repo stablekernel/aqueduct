@@ -166,6 +166,31 @@ void main() {
       expect(results[i].inner, isNull);
     }
   });
+
+  test("whereContains matcher", () async {
+    var q = new ModelQuery<TestModel>()
+        ..["name"] = whereContains("y");
+    var results = await q.fetch();
+    expect(results.length, 2);
+    expect(results.first.name, "Sally");
+    expect(results.last.name, "Kanye");
+  });
+
+  test("whereBeginsWith matcher", () async {
+    var q = new ModelQuery<TestModel>()
+      ..["name"] = whereBeginsWith("B");
+    var results = await q.fetch();
+    expect(results.length, 1);
+    expect(results.first.name, "Bob");
+  });
+
+  test("whereEndsWith matcher", () async {
+    var q = new ModelQuery<TestModel>()
+      ..["name"] = whereEndsWith("m");
+    var results = await q.fetch();
+    expect(results.length, 1);
+    expect(results.first.name, "Tim");
+  });
 }
 
 class TestModel extends Model<_TestModel> implements _TestModel {}

@@ -196,9 +196,10 @@ class PostgreSQLPersistentStore extends PersistentStore {
 
   @override
   Predicate comparisonPredicate(PropertyDescription desc, MatcherOperator operator, dynamic value) {
+    var prefix = desc.entity.tableName;
     var columnName = columnNameForProperty(desc);
-    var formatSpecificationName = "${columnName}";
-    return new Predicate("${desc.entity.tableName}.${columnName} ${symbolTable[operator]} @$formatSpecificationName",  {formatSpecificationName : value});
+    var formatSpecificationName = "$prefix${columnName}";
+    return new Predicate("$prefix.${columnName} ${symbolTable[operator]} @$formatSpecificationName",  {formatSpecificationName : value});
   }
 
   @override
@@ -231,10 +232,25 @@ class PostgreSQLPersistentStore extends PersistentStore {
   Predicate rangePredicate(PropertyDescription desc, dynamic lhsValue, dynamic rhsValue, bool insideRange) {
     var prefix = desc.entity.tableName;
     var propertyName = columnNameForProperty(desc);
-    var lhsFormatSpecificationName = "${propertyName}_lhs";
-    var rhsRormatSpecificationName = "${propertyName}_rhs";
+    var lhsFormatSpecificationName = "$prefix${propertyName}_lhs";
+    var rhsRormatSpecificationName = "$prefix${propertyName}_rhs";
     return new Predicate("$prefix.$propertyName ${insideRange ? "between" : "not between"} @$lhsFormatSpecificationName and @$rhsRormatSpecificationName",
         {lhsFormatSpecificationName: lhsValue, rhsRormatSpecificationName : rhsValue});
+  }
+
+  @override
+  Predicate stringPredicate(PropertyDescription desc, StringMatcherOperator operator, dynamic value) {
+    var prefix = desc.entity.tableName;
+    var propertyName = columnNameForProperty(desc);
+    var formatSpecificationName = "$prefix${propertyName}";
+    var matchValue = value;
+    switch(operator) {
+      case StringMatcherOperator.beginsWith: matchValue = "$matchValue%"; break;
+      case StringMatcherOperator.endsWith: matchValue = "%$matchValue"; break;
+      case StringMatcherOperator.contains: matchValue = "%$matchValue%"; break;
+    }
+
+    return new Predicate("$prefix.$propertyName like @$formatSpecificationName", {formatSpecificationName : matchValue});
   }
 
   List<List<MappingElement>> _mappingElementsFromResults(List<Row> rows, List<MappingElement> columnDefinitions) {
