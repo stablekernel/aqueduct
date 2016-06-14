@@ -29,7 +29,7 @@ Next, you'll want PostgreSQL. A fundamental premise of `aqueduct` is testability
 
 IntelliJ IDEA is probably done downloading by now, so you'll want to install the Dart plugin. Open up Preferences in IntelliJ, and navigate to the Plugins section. Click on 'Install JetBrains plugin...' and search for Dart. Click Install.
 
-![Dart Plugin](/images/ch01/plugin.png)
+![Dart Plugin](images/ch01/plugin.png)
 
 Finally, you'll install a Dart package called `wildfire`. This package is just a tool to generate a template project that makes this whole thing easy. From the command line,
 
@@ -47,15 +47,15 @@ pub global run wildfire:ignite quiz
 
 After a few moments, you'll have a new directory named quiz. In IntelliJ, choose 'Open' from the welcome panel and select the quiz directory.
 
-![IntelliJ Open](/images/ch01/openproj.png)
+![IntelliJ Open](images/ch01/openproj.png)
 
 Once the project window opens, expand the project navigator on the left by selecting the Project side tab.
 
-![IntelliJ Project Nav](/images/ch01/projnav.png)
+![IntelliJ Project Nav](images/ch01/projnav.png)
 
 If IntelliJ doesn't recognize that this is a Dart project, it'll start popping up little warning boxes. If that is the case, open your Preferences, select Dart from Languages and Frameworks. Set the Dark SDK Path to installed Dart SDK (if you are using Homebrew, the SDK is the directory /usr/local/Cellar/dart/1.17.1/libexec/).
 
-![IntelliJ SDK Config](/images/ch01/sdk.png)
+![IntelliJ SDK Config](images/ch01/sdk.png)
 
 There's some directories in the project navigator. The ones you care about are bin, lib and test. Bin is where executables are that you run from the command line to do things, lib is where the code for your project is, and test is where your tests that make sure your project actually work live. There's some other files, too, and we'll get to all of them eventually, but for now there is one you care about: pubspec.yaml. Open that file.
 
@@ -150,7 +150,7 @@ RequestHandlers
 
 `RequestHandler`s are pretty simple. They receive a request and may or may not respond to it. If they don't respond, they send it to the next `RequestHandler`.
 
-![Pipeline Diagram](/images/ch01/pipelinediagram.png)
+![Pipeline Diagram](images/ch01/pipelinediagram.png)
 
 An `Authenticator`, for example, will check the credentials of a request to see if they are valid. If not, it will respond to the request with a 401 status code and prevent that request from moving on to the next handler.
 
