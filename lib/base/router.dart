@@ -12,7 +12,7 @@ part of aqueduct;
 ///
 /// Each route added to a [Router] creates a [Stream] of [Request]s that a handler can listen to.
 class Router extends RequestHandler {
-  List<ResourceRoute> routes;
+  List<RouteHandler> routes;
 
   /// A string to be prepended to the beginning of every route this [Router] manages.
   ///
@@ -69,7 +69,7 @@ class Router extends RequestHandler {
     return _createRoute(pattern).handler;
   }
 
-  ResourceRoute _createRoute(String pattern) {
+  RouteHandler _createRoute(String pattern) {
     if (basePath != null) {
       pattern = basePath + pattern;
     }
@@ -77,7 +77,7 @@ class Router extends RequestHandler {
     // Strip out any extraneous /s
     var finalPattern = pattern.split("/").where((c) => c != "").join("/");
 
-    var route = new ResourceRoute(new ResourcePattern(finalPattern), new RequestHandler());
+    var route = new RouteHandler(new ResourcePattern(finalPattern), new RequestHandler());
     routes.add(route);
 
     return route;
@@ -122,11 +122,11 @@ class Router extends RequestHandler {
   }
 }
 
-class ResourceRoute {
+class RouteHandler {
   final ResourcePattern pattern;
   final RequestHandler handler;
 
-  ResourceRoute(this.pattern, this.handler);
+  RouteHandler(this.pattern, this.handler);
 }
 
 class RouterException implements Exception {
