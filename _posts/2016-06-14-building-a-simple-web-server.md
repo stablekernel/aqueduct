@@ -29,7 +29,7 @@ Next, you'll want PostgreSQL. A fundamental premise of `aqueduct` is testability
 
 IntelliJ IDEA is probably done downloading by now, so you'll want to install the Dart plugin. Open up Preferences in IntelliJ, and navigate to the Plugins section. Click on 'Install JetBrains plugin...' and search for Dart. Click Install.
 
-![Dart Plugin](../images/ch01/plugin.png width=600)
+![Dart Plugin](../images/ch01/plugin.png)
 
 Finally, you'll install a Dart package called `wildfire`. This package is just a tool to generate a template project that makes this whole thing easy. From the command line,
 
