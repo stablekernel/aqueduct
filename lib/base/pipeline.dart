@@ -3,8 +3,7 @@ part of aqueduct;
 /// A abstract class that concrete subclasses will implement to provide request handling behavior.
 ///
 /// [Application]s set up HTTP(S) listeners, but do not do anything with them. The behavior of how an application
-/// responds to requests is defined by its [ApplicationPipeline]. Instances of this class must implement the
-/// [handleRequest] method from [RequestHandler] - this is the entry point of all requests into this pipeline.
+/// responds to requests is defined by its [ApplicationPipeline]. This is the entry point of all requests into this pipeline.
 abstract class ApplicationPipeline extends RequestHandler {
 
   /// Default constructor.
