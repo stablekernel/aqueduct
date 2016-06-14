@@ -12,7 +12,7 @@ date: 2016-06-14 12:54:26
 The boring part: Installation
 ---
 
-You'll need to install a few things and they are all painless: Dart, IntelliJ IDEA Community Edition, PostgreSQL and a Dart package called `wildfire`. 
+You'll need to install a few things and they are all painless: Dart, IntelliJ IDEA Community Edition, PostgreSQL and a Dart package called `wildfire`.
 
 First, start downloading IntelliJ IDEA CE because it'll take the longest to download: [https://www.jetbrains.com/idea/download/](https://www.jetbrains.com/idea/download/). The Community Edition is free (and still has all of the Dart features), but if you already have the Ultimate Edition or something like WebStorm, you're done with this step.
 
@@ -25,11 +25,11 @@ brew install dart
 
 If you don't have Homebrew installed or you are on another platform, visit [https://www.dartlang.org/downloads](https://www.dartlang.org/downloads). It'll be quick, promise.
 
-Next, you'll want PostgreSQL. A fundamental premise of `aqueduct` is testability, and having a local PostgreSQL instance is essential for that. Good news: just download the Postgres app from [http://postgresapp.com](http://postgresapp.com). Once you've downloaded it, just run it - there's now a self-contained local instance of PostgreSQL running on your machine. You can quit the app to stop it. If you're like me, you develop a lot - so I've added Postgres.app to my Startup Items. 
+Next, you'll want PostgreSQL. A fundamental premise of `aqueduct` is testability, and having a local PostgreSQL instance is essential for that. Good news: just download the Postgres app from [http://postgresapp.com](http://postgresapp.com). Once you've downloaded it, just run it - there's now a self-contained local instance of PostgreSQL running on your machine. You can quit the app to stop it. If you're like me, you develop a lot - so I've added Postgres.app to my Startup Items.
 
 IntelliJ IDEA is probably done downloading by now, so you'll want to install the Dart plugin. Open up Preferences in IntelliJ, and navigate to the Plugins section. Click on 'Install JetBrains plugin...' and search for Dart. Click Install.
 
-`image`
+![Dart Plugin](/images/ch01/plugin.png)
 
 Finally, you'll install a Dart package called `wildfire`. This package is just a tool to generate a template project that makes this whole thing easy. From the command line,
 
@@ -47,15 +47,15 @@ pub global run wildfire:ignite quiz
 
 After a few moments, you'll have a new directory named quiz. In IntelliJ, choose 'Open' from the welcome panel and select the quiz directory.
 
-`image`
+![IntelliJ Open](/images/ch01/openproj.png)
 
 Once the project window opens, expand the project navigator on the left by selecting the Project side tab.
 
-`image`
+![IntelliJ Project Nav](/images/ch01/projnav.png)
 
 If IntelliJ doesn't recognize that this is a Dart project, it'll start popping up little warning boxes. If that is the case, open your Preferences, select Dart from Languages and Frameworks. Set the Dark SDK Path to installed Dart SDK (if you are using Homebrew, the SDK is the directory /usr/local/Cellar/dart/1.17.1/libexec/).
 
-`image`
+![IntelliJ SDK Config](/images/ch01/sdk.png)
 
 There's some directories in the project navigator. The ones you care about are bin, lib and test. Bin is where executables are that you run from the command line to do things, lib is where the code for your project is, and test is where your tests that make sure your project actually work live. There's some other files, too, and we'll get to all of them eventually, but for now there is one you care about: pubspec.yaml. Open that file.
 
@@ -64,7 +64,7 @@ These are the dependencies for your project. Click on the 'Get Dependencies' but
 Building a Quiz
 ---
 
-We're going to build a totally useful Quiz web server. There will be an endpoint to get a list of questions, and an endpoint to get a list of answers. There will also be an endpoint to get a specific question and a specific answer. 
+We're going to build a totally useful Quiz web server. There will be an endpoint to get a list of questions, and an endpoint to get a list of answers. There will also be an endpoint to get a specific question and a specific answer.
 
 Let's write some code. Create a new file by control-clicking on lib/src/controller and selecting New -> Dart File. Name this file `question_controller` (the .dart suffix gets added automatically). Then, we have to add this file to the `quiz` library file, which is something the IDE should really do for us, but it doesn't. Locate src/quiz.dart and add the following line to the bottom of it:
 
@@ -94,7 +94,7 @@ class QuestionController extends HttpController {
 		"How much wood can a woodchuck chuck?",
 		"What's the tallest mountain in the world?"
 	];
-	
+
 	@httpGet getAllQuestions() async {
 		return new Response.ok(questions);
 	}
@@ -103,7 +103,7 @@ class QuestionController extends HttpController {
 
 Methods in an `HttpController` that are annotated with @httpGet, @httpPost, etc. are called *handler methods*. When a GET request makes its way to this controller, this method will be executed. All handler methods must return an instance of `Response`. A `Response` has a bunch of built-in convenience constructors for typical HTTP status codes. This specific one, `Response.ok`, will return a 200 and the argument (a list of strings) will be serialized into JSON in the HTTP response body. (There's plenty of stuff to return all kinds of status codes, headers, content types, and handle weird HTTP methods, but we'll save those for later.)
 
-In order for the `QuestionsController` to get a request, we need to set up a route to it. Open the file lib/src/pipeline.dart and locate the class `QuizPipeline`. 
+In order for the `QuestionsController` to get a request, we need to set up a route to it. Open the file lib/src/pipeline.dart and locate the class `QuizPipeline`.
 
 All `aqueduct` applications have a pipeline, which is a subclass of `ApplicationPipeline`.  A pipeline is also a `RequestHandler`. In fact, it is always the first request handler - the entry point into your application's code. The job of the pipeline is to set up what's in store for a request by setting up a series of `RequestHandler`s.
 
@@ -148,9 +148,9 @@ So, an application is a generic container for an application-specific pipeline. 
 RequestHandlers
 ---
 
-`RequestHandler`s are pretty simple. They receive a request and may or may not respond to it. If they don't respond, they send it to the next `RequestHandler`. 
+`RequestHandler`s are pretty simple. They receive a request and may or may not respond to it. If they don't respond, they send it to the next `RequestHandler`.
 
-```image```
+![Pipeline Diagram](/images/ch01/pipelinediagram.png)
 
 An `Authenticator`, for example, will check the credentials of a request to see if they are valid. If not, it will respond to the request with a 401 status code and prevent that request from moving on to the next handler.
 
@@ -171,11 +171,11 @@ handlerA
 	.next(() => new HandlerC());
 ```
 
-For `HttpController`s, it is required that you always create a new instance for every request. That's because the controller keeps a bit of state about the request that you can access in your handler methods. If we reused the same controller for each request, really bad things would happen - especially because more than one request can be processed at once! 
+For `HttpController`s, it is required that you always create a new instance for every request. That's because the controller keeps a bit of state about the request that you can access in your handler methods. If we reused the same controller for each request, really bad things would happen - especially because more than one request can be processed at once!
 
 Don't worry though, `HttpController`s are marked with `@cannotBeReused` metadata, so if you forget to wrap it in a closure, your application will throw an error immediately and tell you to wrap it in a closure.
 
-Routers are slightly different. Instead of having just one `next`, they contain a collection of "next" s, set through the `route` method. `route` generates an instance of a `RouteHandler` that is added to the router. Because `RouteHandler` is a subclass of `RequestHandler`, you can chain handlers off it. 
+Routers are slightly different. Instead of having just one `next`, they contain a collection of "next" s, set through the `route` method. `route` generates an instance of a `RouteHandler` that is added to the router. Because `RouteHandler` is a subclass of `RequestHandler`, you can chain handlers off it.
 If a router gets a request for which it has a matching route, it sends it to that `RouteHandler`, which then immediately forwards it to its `next`. If a router can't find a route that matches the incoming request, it responds to the request with a 404.
 
 
@@ -195,7 +195,7 @@ In `pipeline.dart`, modify the code in `addRoutes` by adding "/[:id]" to the rou
 	...
 ```
 
-The square brackets indicate that part of the path is optional, and the colon indicates that it is a path variable. A path variable matches anything. Therefore, this route will match if the path is `/questions` or `/questions/2` or `/questions/foo`. 
+The square brackets indicate that part of the path is optional, and the colon indicates that it is a path variable. A path variable matches anything. Therefore, this route will match if the path is `/questions` or `/questions/2` or `/questions/foo`.
 
 When using path variables, you may optionally restrict which values they match with a regular expression. The regular expression syntax goes into parantheses after the path variable name. Let's restrict the `id` path variable to only numbers:
 
@@ -233,7 +233,7 @@ class QuestionController extends HttpController {
 
 Run the application again. In your browser, enter http://localhost:8000/questions and you'll get the list of questions. Then, enter http://localhost:8000/questions/0 and you'll get the first question. If you enter an index not within the list of questions or something other than an integer, you'll get a 404.
 
-Now, there isn't any magic here. When a route has a path variable and a request comes in that matches that path variable, the router will add a map containing the path variable name (in this case, `index`) and the value for that path variable for the specific request. As you know, an `HttpController` already looks at the HTTP method of an incoming request to determine which handler method to use. When the request has a path variable map added to it by the router, the `HttpController` also looks at the arguments to each of your handler methods. 
+Now, there isn't any magic here. When a route has a path variable and a request comes in that matches that path variable, the router will add a map containing the path variable name (in this case, `index`) and the value for that path variable for the specific request. As you know, an `HttpController` already looks at the HTTP method of an incoming request to determine which handler method to use. When the request has a path variable map added to it by the router, the `HttpController` also looks at the arguments to each of your handler methods.
 
 It then looks at the name of the argument - `getQuestionAtIndex` has an argument named `index` - and if that argument name matches the name of the path variable in `route`, it selects that method to handle the request.
 
@@ -252,4 +252,4 @@ Second, the way `aqueduct` applications are structured makes it really difficult
 
 Finally, `aqueduct` is set up to run on multiple threads (the `numberOfInstances` argument for the `Application`'s `start` method), which Dart calls `Isolate`s. An isolate is a effectively thread that shares no memory with other isolates. If we were to keep track of state in some way, that state would not be reflected across all of the isolates running on this web server. So depending on which isolate grabbed a request, it may have different state than you might expect. Of course, this is also the case if you have multiple servers running the same `aqueduct` application as well, so `aqueduct` forces you into this model.
 
-Isolates will spread themselves out across CPUs on the host machine. Having multiple isolates running the same stateless web server on one machine allows for faster request handling. Each isolate also maintains its own set of resources, like database connections. 
+Isolates will spread themselves out across CPUs on the host machine. Having multiple isolates running the same stateless web server on one machine allows for faster request handling. Each isolate also maintains its own set of resources, like database connections.
