@@ -19,7 +19,7 @@ export 'package:logging/logging.dart';
 export 'package:safe_config/safe_config.dart';
 
 part 'base/resource_pattern.dart';
-part 'base/resource_request.dart';
+part 'base/request.dart';
 part 'base/router.dart';
 part 'base/http_controller.dart';
 part 'base/response.dart';

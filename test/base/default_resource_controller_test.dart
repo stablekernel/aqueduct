@@ -231,7 +231,7 @@ class TestPipeline extends ApplicationPipeline {
   void addRoutes() {
     router
         .route("/controller/[:id]")
-        .then(() => new ResourceController<TestModel>());
+        .next(() => new ResourceController<TestModel>());
   }
 }
 

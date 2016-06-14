@@ -4,7 +4,7 @@ part of aqueduct;
 ///
 /// Contains a standard library [HttpRequest], along with other values
 /// to associate data with a request.
-class ResourceRequest implements RequestHandlerResult {
+class Request implements RequestHandlerResult {
   static Map<String, Map<String, Function>> Encoders = {
     "application" : {
       "json" : (v) => JSON.encode(v),
@@ -24,15 +24,15 @@ class ResourceRequest implements RequestHandlerResult {
     topLevel[type.subType] = encoder;
   }
 
-  ResourceRequest(this.innerRequest) {}
+  Request(this.innerRequest) {}
 
-  /// The internal [HttpRequest] of this [ResourceRequest].
+  /// The internal [HttpRequest] of this [Request].
   ///
   /// The standard library generated HTTP request object. This contains
   /// all of the request information provided by the client.
   final HttpRequest innerRequest;
 
-  /// The response object of this [ResourceRequest].
+  /// The response object of this [Request].
   ///
   /// To respond to a request, this object must be written to. It is the same
   /// instance as the [request]'s response.

@@ -9,7 +9,7 @@ class CORSPolicy {
   List<String> allowedRequestHeaders = ["authorization", "x-requested-with", "content-type", "accept"];
   int cacheInSeconds = 3600;
 
-  Map<String, dynamic> headersForRequest(ResourceRequest request) {
+  Map<String, dynamic> headersForRequest(Request request) {
     var origin = request.innerRequest.headers.value("origin");
 
     var headers = {};
@@ -50,7 +50,7 @@ class CORSPolicy {
     return true;
   }
 
-  Response preflightResponse(ResourceRequest req) {
+  Response preflightResponse(Request req) {
     return new Response.ok(null, headers: {
       "Access-Control-Allow-Origin" : req.innerRequest.headers.value("origin"),
       "Access-Control-Allow-Methods" : allowedMethods.join(", "),

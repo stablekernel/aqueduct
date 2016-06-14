@@ -21,7 +21,7 @@ void main() {
 
     server = await HttpServer.bind("localhost", 8080, v6Only: false, shared: false);
     server.listen((req) {
-      var resReq = new ResourceRequest(req);
+      var resReq = new Request(req);
       var authController = new AuthController<TestUser, Token>(authenticationServer);
       authController.deliver(resReq);
     });

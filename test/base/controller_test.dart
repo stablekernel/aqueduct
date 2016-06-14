@@ -225,7 +225,7 @@ class FilteringController extends HttpController {
   }
 
   @override
-  Future<RequestHandlerResult> willProcessRequest(ResourceRequest req) async {
+  Future<RequestHandlerResult> willProcessRequest(Request req) async {
     if (req.innerRequest.headers.value("ignore") != null) {
       return new Response.badRequest(body: "ignored");
     }
@@ -358,10 +358,10 @@ class ModelEncodeController extends HttpController {
 
 Future<HttpServer> enableController(String pattern, Type controller) async {
   var router = new Router();
-  router.route(pattern).then(() => reflectClass(controller).newInstance(new Symbol(""), []).reflectee);
+  router.route(pattern).next(() => reflectClass(controller).newInstance(new Symbol(""), []).reflectee);
 
   var server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 4040);
-  server.map((httpReq) => new ResourceRequest(httpReq)).listen((req) {
+  server.map((httpReq) => new Request(httpReq)).listen((req) {
     router.deliver(req);
   });
 

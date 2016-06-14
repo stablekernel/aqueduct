@@ -17,7 +17,7 @@ void main() {
   test("Router Handles Requests", () async {
     Router router = new Router();
 
-    router.route("/player").then(new RequestHandler(requestHandler: (req) {
+    router.route("/player").next(new RequestHandler(requestHandler: (req) {
       return new Response.ok("");
     }));
 
@@ -30,7 +30,7 @@ void main() {
   test("Router 404s on no match", () async {
     Router router = new Router();
 
-    router.route("/player").then(new RequestHandler(requestHandler: (req) {
+    router.route("/player").next(new RequestHandler(requestHandler: (req) {
       return new Response.ok("");
     }));
 
@@ -43,7 +43,7 @@ void main() {
   test("Router delivers path values", () async {
     Router router = new Router();
 
-    router.route("/player/:id").then(new RequestHandler(requestHandler: (req) {
+    router.route("/player/:id").next(new RequestHandler(requestHandler: (req) {
       return new Response.ok("${req.path.variables["id"]}");
     }));
 
@@ -71,7 +71,7 @@ void main() {
   test("Base API adds to path", () async {
     var router = new Router();
     router.basePath = "/api";
-    router.route("/player/").then(new Handler());
+    router.route("/player/").next(new Handler());
 
     server = await enableRouter(router);
 
@@ -86,7 +86,7 @@ void main() {
     Handler.counter = 0;
 
     var router = new Router();
-    router.route("/a").then(new Handler());
+    router.route("/a").next(new Handler());
 
     server = await enableRouter(router);
 
@@ -103,7 +103,7 @@ void main() {
     Handler.counter = 0;
 
     var router = new Router();
-    router.route("/a").then(() => new Handler());
+    router.route("/a").next(() => new Handler());
     server = await enableRouter(router);
 
     for (int i = 0; i < 10; i++) {
@@ -117,7 +117,7 @@ void main() {
 
 Future<HttpServer> enableRouter(Router router) async {
   var server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 4040);
-  server.map((httpReq) => new ResourceRequest(httpReq)).listen(router.deliver);
+  server.map((httpReq) => new Request(httpReq)).listen(router.deliver);
   return server;
 }
 
@@ -129,7 +129,7 @@ class Handler extends RequestHandler {
   }
 
   @override
-  Future<RequestHandlerResult> processRequest(ResourceRequest req) async {
+  Future<RequestHandlerResult> processRequest(Request req) async {
     return new Response(202, null, "$counter");
   }
 }

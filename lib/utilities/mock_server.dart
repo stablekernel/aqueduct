@@ -96,7 +96,7 @@ class MockHTTPServer extends MockServer {
           return;
         }
 
-        var wrappedReq = new ResourceRequest(req);
+        var wrappedReq = new Request(req);
         wrappedReq.respond(respObj);
       } else {
         req.response.statusCode = 200;

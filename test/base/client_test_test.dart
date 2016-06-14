@@ -8,7 +8,7 @@ Future main() async {
     TestClient client = new TestClient(8080);
     HttpServer server = await HttpServer.bind("localhost", 8080, v6Only: false, shared: false);
     server.listen((req) {
-      var resReq = new ResourceRequest(req);
+      var resReq = new Request(req);
       var controller = new TestController();
       controller.deliver(resReq);
     });

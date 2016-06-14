@@ -93,7 +93,7 @@ void main() {
     test("Responses have body", () async {
       server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 4000);
       server.listen((req) {
-        var resReq = new ResourceRequest(req);
+        var resReq = new Request(req);
         resReq.respond(new Response.ok([{"a" : "b"}]));
       });
 

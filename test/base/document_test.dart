@@ -33,7 +33,7 @@ class TPipeline extends ApplicationPipeline {
   TPipeline(Map opts) : super(opts);
 
   void addRoutes() {
-    router.route("/t").then(() => new TController());
+    router.route("/t").next(() => new TController());
   }
 }
 

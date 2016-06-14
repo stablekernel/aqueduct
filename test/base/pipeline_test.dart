@@ -20,7 +20,7 @@ class TestPipeline extends ApplicationPipeline {
   void addRoutes() {
     router
         .route("/controller/[:id]")
-        .then(new FailingController());
+        .next(new FailingController());
   }
 }
 class FailingController extends HttpController {

@@ -208,14 +208,14 @@ class CORSPipeline extends ApplicationPipeline implements AuthenticationServerDe
   AuthenticationServer<AuthImpl, TokenImpl> authServer;
 
   void addRoutes() {
-    router.route("/nopolicy").then(() => new NoPolicyController());
-    router.route("/defaultpolicy").then(() => new DefaultPolicyController());
+    router.route("/nopolicy").next(() => new NoPolicyController());
+    router.route("/defaultpolicy").next(() => new DefaultPolicyController());
     router.route("/nopolicyauth")
-        .then(authServer.authenticator())
-        .then(() => new NoPolicyController());
+        .next(authServer.authenticator())
+        .next(() => new NoPolicyController());
     router.route("/defaultpolicyauth")
-        .then(authServer.authenticator())
-        .then(() => new DefaultPolicyController());
+        .next(authServer.authenticator())
+        .next(() => new DefaultPolicyController());
   }
 
   Future<TokenImpl> tokenForAccessToken(AuthenticationServer server, String accessToken) async {
