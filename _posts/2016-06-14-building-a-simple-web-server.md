@@ -18,7 +18,7 @@ First, start downloading IntelliJ IDEA CE because it'll take the longest to down
 
 Next, install Dart. If you have Homebrew installed, run these from terminal:
 
-```
+```bash
 brew tap dart-lang/dart
 brew install dart
 ```
@@ -33,7 +33,7 @@ IntelliJ IDEA is probably done downloading by now, so you'll want to install the
 
 Finally, you'll install a Dart package called `wildfire`. This package is just a tool to generate a template project that makes this whole thing easy. From the command line,
 
-```
+```bash
 pub global activate --source git https://github.com/stablekernel/wildfire.git
 ```
 
@@ -41,7 +41,7 @@ That's it for now. We'll tweak some of this stuff soon, but that's all of the in
 
 Now, you'll create a new project. From the command line, navigate to the directory you want the project in and use `wildfire` to generate it. We'll call this new project `quiz` (Have you noticed that Dart application and library names are all lowercase? They also should use underscores instead of spaces, because some filesystems aren't cool with case sensitivity or spaces.)
 
-```
+```bash
 pub global run wildfire:ignite quiz
 ```
 
@@ -68,13 +68,13 @@ We're going to build a totally useful Quiz web server. There will be an endpoint
 
 Let's write some code. Create a new file by control-clicking on lib/src/controller and selecting New -> Dart File. Name this file `question_controller` (the .dart suffix gets added automatically). Then, we have to add this file to the `quiz` library file, which is something the IDE should really do for us, but it doesn't. Locate src/quiz.dart and add the following line to the bottom of it:
 
-```
+```dart
 part 'src/controller/question_controller.dart';
 ```
 
 Great, now back in `question_controller.dart` we'll create a new subclass of `HttpController`.
 
-```
+```dart
 part of quiz;
 
 class QuestionController extends HttpController {
@@ -86,7 +86,7 @@ An `HttpController` is a `RequestHandler`. The fundamental purpose of a `Request
 
 `HttpController`s are the final stop for a request, and so they should also respond to a request when they receive one. We want this particular `QuestionsController` handler to return a JSON list of question strings when it gets a GET request. Fill out the body of this class as so:
 
-```
+```dart
 part of quiz;
 
 class QuestionController extends HttpController {
@@ -109,7 +109,7 @@ All `aqueduct` applications have a pipeline, which is a subclass of `Application
 
 A pipeline doesn't hang on to a request for long, it simply forwards it to its `router` - an instance of `Router`, which as you may have guessed is another `RequestHandler` subclass. The router's job is to look at the path of the request and send it on to the next handler in the pipeline. We'd like this router to send requests with the `/questions` path to an instance of `QuestionsController`. In the method `addRoutes`, add the following code to the top of the method (ignoring the boilerpate):
 
-```
+```dart
 @override
 void addRoutes() {
 	router
@@ -128,7 +128,7 @@ Let's trace how that all went down. Open `bin/start.dart`, this is the executabl
 
 We'll look into the configuration and logging stuff later, but the interesting bit here is the `Application` and its start method. An application is a container for instances of a specific pipeline, and that pipeline is determined by its type argument:
 
-```
+```dart
 var app = new Application<QuizPipeline>();
 app.configuration.port = config.port;
 app.configuration.pipelineOptions = {
@@ -156,7 +156,7 @@ An `Authenticator`, for example, will check the credentials of a request to see 
 
 With the exception of routers, `RequestHandler`s are chained through their `next` method. This method takes the next `RequestHandler` as an argument and returns that same `RequestHandler` as a result. This allows for chaining together of `RequestHandlers`:
 
-```
+```dart
 handlerA
 	.next(handlerB)
 	.next(handlerC)
@@ -165,7 +165,7 @@ handlerA
 
 It oftentimes makes sense to create a new instance of a `RequestHandler` for each request - that way the `RequestHandler` can maintain some state while it is in the process of handling a request. Once the request is finished, the handler will get discarded, and a new one will get created the next time it is needed. Therefore, you may also pass a closure that returns an instance of a `RequestHandler` as a `next`.
 
-```
+```dart
 handlerA
 	.next(handlerB)
 	.next(() => new HandlerC());
@@ -186,7 +186,7 @@ So far, we've added a route that matches the constant string `/questions`. Route
 
 In `pipeline.dart`, modify the code in `addRoutes` by adding "/[:id]" to the route.
 
-```
+```dart
   @override
   void addRoutes() {
 	router
@@ -199,7 +199,7 @@ The square brackets indicate that part of the path is optional, and the colon in
 
 When using path variables, you may optionally restrict which values they match with a regular expression. The regular expression syntax goes into parantheses after the path variable name. Let's restrict the `id` path variable to only numbers:
 
-```
+```dart
   @override
   void addRoutes() {
 	router
@@ -210,7 +210,7 @@ When using path variables, you may optionally restrict which values they match w
 
 Now, there are two types of requests that will get forwarded to a `QuestionController` - a request for all questions (`/questions`) and and a request for a specific question at some index (`/questions/1`). We need to add a new handler method to `QuestionController`, so add the following to `question_controller.dart`.
 
-```
+```dart
 class QuestionController extends HttpController {
   var questions = [
     "How much wood can a woodchuck chuck?",
