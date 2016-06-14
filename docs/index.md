@@ -3,7 +3,7 @@ layout: default
 title: "Jekyll Docs Template"
 ---
 
-{% include content.md %}
+{% include _posts/2016-06-14-building-a-simple-web-server.md %}
 
 ### Get Started
 
