@@ -1,13 +1,21 @@
 part of aqueduct;
 
 class AuthController<ResourceOwner extends Authenticatable, TokenType extends Tokenizable> extends HttpController {
-  static String get RoutePattern => "/auth/token";
 
-  AuthenticationServer<ResourceOwner, TokenType> authenticationServer;
+  /// Creates a new instance of an [AuthController].
+  ///
+  /// An [AuthController] requires an [AuthenticationServer], with the specified [ResourceOwner] and [TokenType] instance
+  /// types. These types will be used when communicating with the [AuthenticationServer] for creating and refreshing
+  /// authentication tokens.
+  ///
+  /// By default, an [AuthController] has only one [acceptedContentTypes] - 'application/x-www-form-urlencoded'.
   AuthController(AuthenticationServer<ResourceOwner, TokenType> authServer) {
     authenticationServer = authServer;
     acceptedContentTypes = [new ContentType("application", "x-www-form-urlencoded")];
   }
+
+  /// A reference to the [AuthenticationServer] this controller uses to grant tokens.
+  AuthenticationServer<ResourceOwner, TokenType> authenticationServer;
 
   /// Creates or refreshes an authentication token.
   ///
@@ -21,26 +29,28 @@ class AuthController<ResourceOwner extends Authenticatable, TokenType extends To
   Future<Response> create({String grant_type, String username, String password, String refresh_token}) async {
     var authorizationHeader = request.innerRequest.headers[HttpHeaders.AUTHORIZATION]?.first;
 
-    var rec = new AuthorizationBasicParser(authorizationHeader);
+    var basicRecord = AuthorizationBasicParser.parse(authorizationHeader);
     if (grant_type == "password") {
       if (username == null || password == null) {
         return new Response.badRequest(body: {"error": "username and password required"});
       }
 
-      var token = await authenticationServer.authenticate(username, password, rec.username, rec.password);
+      var token = await authenticationServer.authenticate(username, password, basicRecord.username, basicRecord.password);
       return AuthController.tokenResponse(token);
     } else if (grant_type == "refresh") {
       if (refresh_token == null) {
         return new Response.badRequest(body: {"error": "missing refresh_token"});
       }
 
-      var token = await authenticationServer.refresh(refresh_token, rec.username, rec.password);
+      var token = await authenticationServer.refresh(refresh_token, basicRecord.username, basicRecord.password);
       return AuthController.tokenResponse(token);
     }
 
     return new Response.badRequest(body: {"error": "invalid grant_type"});
   }
 
+  /// Transforms a [Tokenizable] into a [Response] object with an RFC6749 compliant JSON token
+  /// as the HTTP response body.
   static Response tokenResponse(Tokenizable token) {
     var jsonToken = {
       "access_token": token.accessToken,

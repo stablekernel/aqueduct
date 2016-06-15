@@ -8,7 +8,7 @@ void main() {
       await app.start();
       expect(true, false);
     } on IsolateSupervisorException catch (e) {
-      expect(e.message, "RequestHandler FailingController instances cannot be reused. Rewrite as .then(() => new FailingController())");
+      expect(e.message, "RequestHandler FailingController instances cannot be reused. Rewrite as .next(() => new FailingController())");
     }
   });
 }

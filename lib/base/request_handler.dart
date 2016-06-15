@@ -49,7 +49,7 @@ class RequestHandler implements APIDocumentable {
     } else {
       var typeMirror = reflect(n).type;
       if (_requestHandlerTypeRequiresInstantion(typeMirror)) {
-        throw new IsolateSupervisorException("RequestHandler ${typeMirror.reflectedType} instances cannot be reused. Rewrite as .then(() => new ${typeMirror.reflectedType}())");
+        throw new IsolateSupervisorException("RequestHandler ${typeMirror.reflectedType} instances cannot be reused. Rewrite as .next(() => new ${typeMirror.reflectedType}())");
       }
     }
     this.nextHandler = n;

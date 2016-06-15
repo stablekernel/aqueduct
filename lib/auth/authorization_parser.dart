@@ -1,9 +1,12 @@
 part of aqueduct;
 
+/// Parses a Bearer token in an Authorization header.
 class AuthorizationBearerParser {
-  String bearerToken;
 
-  AuthorizationBearerParser(String authorizationHeader) {
+  /// Parses a Bearer token from [authorizationHeader]. If the header is malformed or doesn't exist,
+  /// throws an [HttpResponseException]. Otherwise, returns the [String] representation of the bearer token.
+  /// For example, if the input to this method is "Authorization: Bearer token" it would return 'token'.
+  static String parse(String authorizationHeader) {
     if (authorizationHeader == null) {
       throw new HttpResponseException(401, "No authorization header.");
     }
@@ -13,16 +16,27 @@ class AuthorizationBearerParser {
     if (match == null) {
       throw new HttpResponseException(400, "Improper authorization header.");
     }
-
-    bearerToken = match[1];
+    return match[1];
   }
 }
 
-class AuthorizationBasicParser {
-  String username;
-  String password;
+/// A container for Basic authorization elements.
+class AuthorizationBasicElements {
 
-  AuthorizationBasicParser(String authorizationHeader) {
+  /// The username of a Basic Authorization header.
+  String username;
+
+  /// The password of a Basic Authorization header.
+  String password;
+}
+
+/// Parses a Basic Authorization header.
+class AuthorizationBasicParser {
+  /// Returns a [AuthorizationBasicElements] containing the username and password
+  /// base64 encoded in [authorizationHeader]. For example, if the input to this method
+  /// was 'Authorization: Basic base64String' it would decode the base64String,
+  /// and return the username and password by splitting that decoded string around the character ':'.
+  static AuthorizationBasicElements parse(String authorizationHeader) {
     if (authorizationHeader == null) {
       throw new HttpResponseException(401, "No authorization header.");
     }
@@ -46,7 +60,8 @@ class AuthorizationBasicParser {
       throw new HttpResponseException(400, "Improper client credentials.");
     }
 
-    username = splitCredentials.first;
-    password = splitCredentials.last;
+    return new AuthorizationBasicElements()
+        ..username = splitCredentials.first
+        ..password = splitCredentials.last;
   }
 }
