@@ -3,8 +3,7 @@ part of aqueduct;
 /// A abstract class that concrete subclasses will implement to provide request handling behavior.
 ///
 /// [Application]s set up HTTP(S) listeners, but do not do anything with them. The behavior of how an application
-/// responds to requests is defined by its [ApplicationPipeline]. Instances of this class must implement the
-/// [handleRequest] method from [RequestHandler] - this is the entry point of all requests into this pipeline.
+/// responds to requests is defined by its [ApplicationPipeline]. This is the entry point of all requests into this pipeline.
 abstract class ApplicationPipeline extends RequestHandler {
 
   /// Default constructor.
@@ -36,7 +35,7 @@ abstract class ApplicationPipeline extends RequestHandler {
 
   /// Returns the first handler in the pipeline.
   ///
-  /// When a [ResourceRequest] is delivered to the pipeline, this
+  /// When a [Request] is delivered to the pipeline, this
   /// handler will be the first to act on it.  By default, this is [router].
   RequestHandler initialHandler() {
     return router;
@@ -64,12 +63,12 @@ abstract class ApplicationPipeline extends RequestHandler {
   /// being opened, a request could be received prior to this method being executed.
   void didOpen() {}
 
-  /// Executed for each [ResourceRequest] that will be sent to this pipeline.
+  /// Executed for each [Request] that will be sent to this pipeline.
   ///
   /// This method will run prior to each request being [deliver]ed to this
   /// pipeline's [initialHandler]. Use this method to provide additional
   /// context to the request prior to it being handled.
-  Future willReceiveRequest(ResourceRequest request) async {
+  Future willReceiveRequest(Request request) async {
 
   }
 

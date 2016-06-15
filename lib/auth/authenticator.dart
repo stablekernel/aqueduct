@@ -11,18 +11,18 @@ class Authenticator extends RequestHandler {
   }
 
   @override
-  Future<RequestHandlerResult> processRequest(ResourceRequest req) async {
+  Future<RequestHandlerResult> processRequest(Request req) async {
     var errorResponse = null;
     if (strategy == AuthenticationStrategy.ResourceOwner) {
       var result = processResourceOwnerRequest(req);
-      if (result is ResourceRequest) {
+      if (result is Request) {
         return result;
       }
 
       errorResponse = result;
     } else if (strategy == AuthenticationStrategy.Client) {
       var result = processClientRequest(req);
-      if (result is ResourceRequest) {
+      if (result is Request) {
         return result;
       }
 
@@ -36,7 +36,7 @@ class Authenticator extends RequestHandler {
     return errorResponse;
   }
 
-  Future<RequestHandlerResult> processResourceOwnerRequest(ResourceRequest req) async {
+  Future<RequestHandlerResult> processResourceOwnerRequest(Request req) async {
     var parser = new AuthorizationBearerParser(req.innerRequest.headers[HttpHeaders.AUTHORIZATION]?.first);
     var permission = await server.verify(parser.bearerToken);
 
@@ -45,7 +45,7 @@ class Authenticator extends RequestHandler {
     return req;
   }
 
-  Future<RequestHandlerResult> processClientRequest(ResourceRequest req) async {
+  Future<RequestHandlerResult> processClientRequest(Request req) async {
     var parser = new AuthorizationBasicParser(req.innerRequest.headers[HttpHeaders.AUTHORIZATION]?.first);
     var client = await server.clientForID(parser.username);
 

@@ -35,6 +35,4 @@ abstract class AuthenticationServerDelegate<ResourceOwner extends Authenticatabl
   Future deleteTokenForAccessToken(AuthenticationServer server, String accessToken);
 
   Future storeToken(AuthenticationServer server, TokenType t);
-
-  Future pruneTokensForResourceOwnerID(AuthenticationServer server, dynamic id);
 }

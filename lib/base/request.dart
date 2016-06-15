@@ -4,16 +4,35 @@ part of aqueduct;
 ///
 /// Contains a standard library [HttpRequest], along with other values
 /// to associate data with a request.
-class ResourceRequest implements RequestHandlerResult {
-  ResourceRequest(this.innerRequest) {}
+class Request implements RequestHandlerResult {
+  static Map<String, Map<String, Function>> Encoders = {
+    "application" : {
+      "json" : (v) => JSON.encode(v),
+    },
+    "text" : {
+      "plain" : (Object v) => v.toString()
+    }
+  };
 
-  /// The internal [HttpRequest] of this [ResourceRequest].
+  static void addEncoder(ContentType type, dynamic encoder(dynamic value)) {
+    var topLevel = Encoders[type.primaryType];
+    if (topLevel == null) {
+      topLevel = {};
+      Encoders[topLevel] = topLevel;
+    }
+
+    topLevel[type.subType] = encoder;
+  }
+
+  Request(this.innerRequest) {}
+
+  /// The internal [HttpRequest] of this [Request].
   ///
   /// The standard library generated HTTP request object. This contains
   /// all of the request information provided by the client.
   final HttpRequest innerRequest;
 
-  /// The response object of this [ResourceRequest].
+  /// The response object of this [Request].
   ///
   /// To respond to a request, this object must be written to. It is the same
   /// instance as the [request]'s response.
@@ -84,15 +103,43 @@ class ResourceRequest implements RequestHandlerResult {
 
     if (respObj.headers != null) {
       respObj.headers.forEach((k, v) {
-        response.headers.add(k, v);
+        if (v is ContentType) {
+          response.headers.add(HttpHeaders.CONTENT_TYPE, v.toString());
+        } else {
+          response.headers.add(k, v);
+        }
       });
     }
 
     if (respObj.body != null) {
-      response.write(respObj.body);
+      _encodeBody(respObj);
     }
 
     response.close();
+  }
+
+  void _encodeBody(Response respObj) {
+    var contentTypeValue = respObj.headers["Content-Type"];
+    if (contentTypeValue == null) {
+      contentTypeValue = ContentType.JSON;
+      response.headers.contentType = ContentType.JSON;
+    } else if (contentTypeValue is String) {
+      contentTypeValue = ContentType.parse(contentTypeValue);
+    }
+
+    ContentType contentType = contentTypeValue;
+    var topLevel = Encoders[contentType.primaryType];
+    if (topLevel == null) {
+      throw new ResourceRequestException("No encoder for $contentTypeValue, add with ResourceRequest.addEncoder().");
+    }
+
+    var encoder = topLevel[contentType.subType];
+    if (encoder == null) {
+      throw new ResourceRequestException("No encoder for $contentTypeValue, add with ResourceRequest.addEncoder().");
+    }
+
+    var encodedValue = encoder(respObj.body);
+    response.write(encodedValue);
   }
 
   String toString() {
@@ -128,4 +175,9 @@ class ResourceRequest implements RequestHandlerResult {
 
     return builder.toString();
   }
+}
+
+class ResourceRequestException implements Exception {
+  ResourceRequestException(this.message);
+  String message;
 }

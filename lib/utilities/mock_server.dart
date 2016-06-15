@@ -96,19 +96,8 @@ class MockHTTPServer extends MockServer {
           return;
         }
 
-        req.response.statusCode = respObj.statusCode;
-
-        if (respObj.headers != null) {
-          respObj.headers.forEach((k, v) {
-            req.response.headers.add(k, v);
-          });
-        }
-
-        if (respObj.body != null) {
-          req.response.write(respObj.body);
-        }
-
-        req.response.close();
+        var wrappedReq = new Request(req);
+        wrappedReq.respond(respObj);
       } else {
         req.response.statusCode = 200;
         req.response.close();

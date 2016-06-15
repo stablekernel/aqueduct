@@ -1,13 +1,13 @@
 part of aqueduct;
 
-/// The unifying protocol for [ResourceRequest] and [Response] classes.
+/// The unifying protocol for [Request] and [Response] classes.
 ///
 ///
 abstract class RequestHandlerResult {}
 
 /// RequestHandlers respond to, modify or forward requests.
 ///
-/// This class is intended to be extended. RequestHandlers are sent [ResourceRequest]s through
+/// This class is intended to be extended. RequestHandlers are sent [Request]s through
 /// their [deliver] method, which in turn invokes [processRequest]. Subclasses
 /// should implement [processRequest] to respond to, modify or forward requests.
 /// In some cases, subclasses may also override [deliver].
@@ -22,38 +22,38 @@ class RequestHandler implements APIDocumentable {
   /// To use a closure-based RequestHandler, you may specify [requestHandler] for
   /// this instance. Otherwise, you may subclass [RequestHandler] and implement
   /// [processRequest] (or in rare cases, [deliver]) to handle request.
-  RequestHandler({RequestHandlerResult requestHandler(ResourceRequest req): null}) {
+  RequestHandler({RequestHandlerResult requestHandler(Request req): null}) {
     _handler = requestHandler;
   }
 
   /// The next [RequestHandler] to run if this one responds with [shouldContinue].
   ///
   /// Handlers may be chained together if they have the option not to respond to requests.
-  /// If this handler returns a [ResourceRequest] from [processRequest], this [nextHandler]
-  /// handler will run. Prefer using [then] to chain together handlers in a single statement.
+  /// If this handler returns a [Request] from [processRequest], this [nextHandler]
+  /// handler will run. Prefer using [next] to chain together handlers in a single statement.
   RequestHandler nextHandler;
 
-  /// The next [RequestHandler] to run if this instance returns a [ResourceRequest].
+  /// The next [RequestHandler] to run if this instance returns a [Request].
   ///
   /// Handlers may be chained together if they have the option not to respond to requests.
-  /// If this handler returns a [ResourceRequest] from [processRequest], this [nextHandler]
+  /// If this handler returns a [Request] from [processRequest], this [nextHandler]
   /// handler will run. This method sets the [nextHandler] property] and returns [this]
   /// to allow chaining. This parameter may be an instance of [RequestHandler] or a
   /// function that takes no arguments and returns a [RequestHandler]. In the latter instance,
   /// a new instance of the returned [RequestHandler] is created for each request. Otherwise,
   /// the same instance is used for each request. All [HttpController]s and subclasses should
   /// be wrapped in a function that returns a new instance of the controller.
-  RequestHandler then(dynamic next) {
-    if (next is Function) {
-      next = new _RequestHandlerGenerator(next);
+  RequestHandler next(dynamic n) {
+    if (n is Function) {
+      n = new _RequestHandlerGenerator(n);
     } else {
-      var typeMirror = reflect(next).type;
+      var typeMirror = reflect(n).type;
       if (_requestHandlerTypeRequiresInstantion(typeMirror)) {
         throw new IsolateSupervisorException("RequestHandler ${typeMirror.reflectedType} instances cannot be reused. Rewrite as .then(() => new ${typeMirror.reflectedType}())");
       }
     }
-    this.nextHandler = next;
-    return next;
+    this.nextHandler = n;
+    return n;
   }
 
   bool _requestHandlerTypeRequiresInstantion(ClassMirror mirror) {
@@ -66,9 +66,9 @@ class RequestHandler implements APIDocumentable {
     return false;
   }
 
-  /// The mechanism for delivering a [ResourceRequest] to this handler for processing.
+  /// The mechanism for delivering a [Request] to this handler for processing.
   ///
-  /// This method is the entry point of a [ResourceRequest] into this [RequestHandler].
+  /// This method is the entry point of a [Request] into this [RequestHandler].
   /// By default, it invokes this handler's [processRequest] method and, if that method
   /// determines processing should continue with the [nextHandler] handler and a
   /// [nextHandler] handler exists, the request will be delivered to [nextHandler].
@@ -78,11 +78,11 @@ class RequestHandler implements APIDocumentable {
   ///
   /// Some [RequestHandler]s may override this method if they do not wish to
   /// use simple chaining. For example, the [Router] class overrides this method
-  /// to deliver the [ResourceRequest] to the appropriate route handler. If overriding this
+  /// to deliver the [Request] to the appropriate route handler. If overriding this
   /// method, it is important that you always invoke subsequent handler's with [deliver]
   /// and not [processRequest]. You must also ensure that CORS requests are handled properly,
   /// as this method does the heavy-lifting for handling CORS requests.
-  Future deliver(ResourceRequest req) async {
+  Future deliver(Request req) async {
     try {
       if (isPreflightRequest(req)) {
         var handlerToDictatePolicy = _lastRequestHandler();
@@ -111,7 +111,7 @@ class RequestHandler implements APIDocumentable {
 
       var result = await processRequest(req);
 
-      if (result is ResourceRequest && nextHandler != null) {
+      if (result is Request && nextHandler != null) {
         nextHandler.deliver(req);
       } else if (result is Response) {
         _applyCORSHeadersIfNecessary(req, result);
@@ -124,7 +124,7 @@ class RequestHandler implements APIDocumentable {
       req.respond(response);
       logger.info("${req.toDebugString(includeHeaders: true, includeBody: true)} ${err.message}");
     } catch (err, st) {
-      var response = new Response.serverError(headers: {HttpHeaders.CONTENT_TYPE: "application/json"}, body: JSON.encode({"error": "${this.runtimeType}: $err.", "stacktrace": st.toString()}));
+      var response = new Response.serverError(headers: {HttpHeaders.CONTENT_TYPE: ContentType.JSON}, body: {"error": "${this.runtimeType}: $err.", "stacktrace": st.toString()});
       _applyCORSHeadersIfNecessary(req, response);
       req.respond(response);
       logger.severe("${req.toDebugString(includeHeaders: true, includeBody: true)} $err $st");
@@ -137,8 +137,8 @@ class RequestHandler implements APIDocumentable {
   /// should either modify or respond to the request.
   ///
   /// [RequestHandler]s should return a [Response] from this method if they responded to the request.
-  /// If a [RequestHandler] does not respond to the request, but instead modifies it, this method must return the same [ResourceRequest].
-  Future<RequestHandlerResult> processRequest(ResourceRequest req) async {
+  /// If a [RequestHandler] does not respond to the request, but instead modifies it, this method must return the same [Request].
+  Future<RequestHandlerResult> processRequest(Request req) async {
     if (_handler != null) {
       return _handler(req);
     }
@@ -154,7 +154,7 @@ class RequestHandler implements APIDocumentable {
     return handler;
   }
 
-  void _applyCORSHeadersIfNecessary(ResourceRequest req, Response resp) {
+  void _applyCORSHeadersIfNecessary(Request req, Response resp) {
     if (isCORSRequest(req)) {
       var lastPolicyHandler = _lastRequestHandler();
       var p = lastPolicyHandler.policy;
@@ -164,11 +164,11 @@ class RequestHandler implements APIDocumentable {
     }
   }
 
-  bool isCORSRequest(ResourceRequest req) {
+  bool isCORSRequest(Request req) {
     return req.innerRequest.headers.value("origin") != null;
   }
 
-  bool isPreflightRequest(ResourceRequest req) {
+  bool isPreflightRequest(Request req) {
     if (req.innerRequest.headers.value("origin") != null) {
       return req.innerRequest.method == "OPTIONS";
     }
@@ -223,7 +223,7 @@ class _RequestHandlerGenerator extends RequestHandler {
   }
 
   @override
-  Future deliver(ResourceRequest req) async {
+  Future deliver(Request req) async {
     await instantiate().deliver(req);
   }
 

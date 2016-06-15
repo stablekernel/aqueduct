@@ -13,7 +13,7 @@ class Response implements RequestHandlerResult {
   /// Map of headers to send in this response.
   ///
   /// Where the key is the Header name and value is the Header value.
-  Map<String, String> headers;
+  Map<String, dynamic> headers;
 
   /// The HTTP status code of this response.
   int statusCode;

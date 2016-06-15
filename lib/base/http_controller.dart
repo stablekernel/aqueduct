@@ -10,7 +10,7 @@ abstract class HttpController extends RequestHandler {
   /// The request being processed by this [HttpController].
   ///
   /// It is this [HttpController]'s responsibility to return a [Response] object for this request.
-  ResourceRequest request;
+  Request request;
 
   /// Parameters parsed from the URI of the request, if any exist.
   Map<String, String> get pathVariables => request.path.variables;
@@ -26,27 +26,9 @@ abstract class HttpController extends RequestHandler {
   /// The content type of responses from this [HttpController].
   ///
   /// This type will automatically be written to this response's
-  /// HTTP header. Defaults to "application/json". Set with [setResponseEncoder].
-  ContentType get responseContentType => _responseContentType;
-  ContentType _responseContentType = ContentType.JSON;
-
-  /// Encodes the [Response] body to a suitable format for transmission.
-  ///
-  /// Encodes the HTTP response body object that is part of the [Response] returned from this request handler methods.
-  /// Must have the signature (dynamic) => dynamic. Use [setResponseEncoder] to set this value.
-  ///
-  /// By default, this encoder will convert the response body as JSON.
-  Function get responseBodyEncoder => _responseBodyEncoder;
-  Function _responseBodyEncoder = (body) => JSON.encode(body);
-
-  /// Sets the [responseContentType] and [responseBodyEncoder].
-  ///
-  /// This method is the only way to set [responseContentType] and [responseBodyEncoder] and ensures
-  /// that both are set simultaneously since they are dependent on one another.
-  void setResponseEncoder(ContentType contentType, dynamic encoder(dynamic value)) {
-    _responseContentType = contentType;
-    _responseBodyEncoder = encoder;
-  }
+  /// HTTP header. Defaults to "application/json". This value determines how the body data returned from this controller
+  /// in a [Response] is encoded.
+  ContentType responseContentType = ContentType.JSON;
 
   /// The HTTP request body object, after being decoded.
   ///
@@ -61,7 +43,7 @@ abstract class HttpController extends RequestHandler {
   /// This method is used to do pre-process setup and filtering. The [resourceRequest] will be set, but its body will not be decoded
   /// nor will the appropriate handler method be selected yet. By default, returns the request. If this method returns a [Response], this
   /// controller will stop processing the request and immediately return the [Response] to the HTTP client.
-  Future<RequestHandlerResult> willProcessRequest(ResourceRequest req) async {
+  Future<RequestHandlerResult> willProcessRequest(Request req) async {
     return req;
   }
 
@@ -76,7 +58,7 @@ abstract class HttpController extends RequestHandler {
   /// This method is used to post-process a response before it is finally sent. By default, does nothing.
   void willSendResponse(Response response) {}
 
-  Symbol _routeMethodSymbolForRequest(ResourceRequest req) {
+  Symbol _routeMethodSymbolForRequest(Request req) {
     var symbol = null;
 
     var decls = reflect(this).type.declarations;
@@ -105,7 +87,7 @@ abstract class HttpController extends RequestHandler {
     return symbol;
   }
 
-  Future _readRequestBodyForRequest(ResourceRequest req) async {
+  Future _readRequestBodyForRequest(Request req) async {
     if (request.innerRequest.contentLength > 0) {
       var incomingContentType = request.innerRequest.headers.contentType;
       var matchingContentType = acceptedContentTypes.firstWhere((ct) {
@@ -161,7 +143,7 @@ abstract class HttpController extends RequestHandler {
     return null;
   }
 
-  List<dynamic> _parametersForRequest(ResourceRequest req, Symbol handlerMethodSymbol) {
+  List<dynamic> _parametersForRequest(Request req, Symbol handlerMethodSymbol) {
     var handlerMirror = reflect(this).type.declarations[handlerMethodSymbol] as MethodMirror;
 
     return handlerMirror.parameters.where((methodParmeter) => !methodParmeter.isOptional).map((methodParameter) {
@@ -171,7 +153,7 @@ abstract class HttpController extends RequestHandler {
     }).toList();
   }
 
-  Map<Symbol, dynamic> _queryParametersForRequest(ResourceRequest req, dynamic body, Symbol handlerMethodSymbol) {
+  Map<Symbol, dynamic> _queryParametersForRequest(Request req, dynamic body, Symbol handlerMethodSymbol) {
     Map<String, dynamic> queryParams = {};
 
     var contentTypeString = req.innerRequest.headers.value(HttpHeaders.CONTENT_TYPE);
@@ -213,7 +195,7 @@ abstract class HttpController extends RequestHandler {
     return retMap;
   }
 
-  dynamic encodedResponseBody(dynamic initialResponseBody) {
+  dynamic serializedResponseBody(dynamic initialResponseBody) {
     var serializedBody = null;
     if (initialResponseBody is Serializable) {
       serializedBody = (initialResponseBody as Serializable).asSerializable();
@@ -227,7 +209,7 @@ abstract class HttpController extends RequestHandler {
       }).toList();
     }
 
-    return responseBodyEncoder(serializedBody ?? initialResponseBody);
+    return serializedBody ?? initialResponseBody;
 
   }
 
@@ -247,20 +229,20 @@ abstract class HttpController extends RequestHandler {
 
     willSendResponse(response);
 
-    response.body = encodedResponseBody(response.body);
-    response.headers[HttpHeaders.CONTENT_TYPE] = responseContentType.toString();
+    response.body = serializedResponseBody(response.body);
+    response.headers[HttpHeaders.CONTENT_TYPE] = responseContentType;
 
     return response;
   }
 
   @override
-  Future<RequestHandlerResult> processRequest(ResourceRequest req) async {
+  Future<RequestHandlerResult> processRequest(Request req) async {
     try {
       request = req;
 
       var preprocessedResult = await willProcessRequest(req);
       Response response = null;
-      if (preprocessedResult is ResourceRequest) {
+      if (preprocessedResult is Request) {
         response = await _process();
       } else if (preprocessedResult is Response) {
         response = preprocessedResult;

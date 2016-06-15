@@ -43,8 +43,8 @@ class HttpMethod {
       : this.method = m.method,
         this._parameters = parameters;
 
-  /// Returns whether or not this [HttpMethod] matches a [ResourceRequest].
-  bool matchesRequest(ResourceRequest req) {
+  /// Returns whether or not this [HttpMethod] matches a [Request].
+  bool matchesRequest(Request req) {
     if (req.innerRequest.method.toLowerCase() != this.method.toLowerCase()) {
       return false;
     }

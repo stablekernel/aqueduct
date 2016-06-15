@@ -109,7 +109,6 @@ void main() {
       var resp = await http.get("http://localhost:8000/foobar", headers: {
         "Origin" : "http://somewhereelse.com"
       });
-      print("${resp.headers}");
       expect(resp.statusCode, 404);
       expect(resp.headers["access-control-allow-origin"], "http://somewhereelse.com");
     });
@@ -209,14 +208,14 @@ class CORSPipeline extends ApplicationPipeline implements AuthenticationServerDe
   AuthenticationServer<AuthImpl, TokenImpl> authServer;
 
   void addRoutes() {
-    router.route("/nopolicy").then(() => new NoPolicyController());
-    router.route("/defaultpolicy").then(() => new DefaultPolicyController());
+    router.route("/nopolicy").next(() => new NoPolicyController());
+    router.route("/defaultpolicy").next(() => new DefaultPolicyController());
     router.route("/nopolicyauth")
-        .then(authServer.authenticator())
-        .then(() => new NoPolicyController());
+        .next(authServer.authenticator())
+        .next(() => new NoPolicyController());
     router.route("/defaultpolicyauth")
-        .then(authServer.authenticator())
-        .then(() => new DefaultPolicyController());
+        .next(authServer.authenticator())
+        .next(() => new DefaultPolicyController());
   }
 
   Future<TokenImpl> tokenForAccessToken(AuthenticationServer server, String accessToken) async {
@@ -269,7 +268,6 @@ class CORSPipeline extends ApplicationPipeline implements AuthenticationServerDe
 
   Future deleteTokenForAccessToken(AuthenticationServer server, String accessToken) async {}
   Future storeToken(AuthenticationServer server, TokenImpl t) async {}
-  Future pruneTokensForResourceOwnerID(AuthenticationServer server, dynamic id) async {}
 }
 class AuthImpl implements Authenticatable {
   String username;

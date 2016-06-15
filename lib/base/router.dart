@@ -1,6 +1,6 @@
 part of aqueduct;
 
-/// A [ResourceRequest] router to split requests onto separate streams based on their URI.
+/// A [Request] router to split requests onto separate streams based on their URI.
 ///
 /// Instances of this class maintain a collection of streams for each route that has been registered with it.
 /// A route is defined by a [String] format, for example:
@@ -10,9 +10,9 @@ part of aqueduct;
 ///     router.addRoute("/numbers/:id(\d+)");
 ///     router.addRoute("/files/*");
 ///
-/// Each route added to a [Router] creates a [Stream] of [ResourceRequest]s that a handler can listen to.
+/// Each route added to a [Router] creates a [Stream] of [Request]s that a handler can listen to.
 class Router extends RequestHandler {
-  List<ResourceRoute> routes;
+  List<RouteHandler> routes;
 
   /// A string to be prepended to the beginning of every route this [Router] manages.
   ///
@@ -32,14 +32,14 @@ class Router extends RequestHandler {
 
   String _basePath;
 
-  /// How this router handles [ResourceRequest]s that don't match its routes.
+  /// How this router handles [Request]s that don't match its routes.
   ///
-  /// If a [ResourceRequest] delivered via [routeRequest] has no matching route in this [Router],
+  /// If a [Request] delivered via [routeRequest] has no matching route in this [Router],
   /// this function will be called.
-  /// By default, this handler will respond to the incoming [ResourceRequest] with a 404 response,
-  /// and does not forward or allow consumption of the [ResourceRequest] for later handlers.
+  /// By default, this handler will respond to the incoming [Request] with a 404 response,
+  /// and does not forward or allow consumption of the [Request] for later handlers.
   Function get unhandledRequestHandler => _unhandledRequestHandler;
-  void set unhandledRequestHandler(void handler(ResourceRequest req)) {
+  void set unhandledRequestHandler(void handler(Request req)) {
     _unhandledRequestHandler = handler;
   }
 
@@ -51,7 +51,7 @@ class Router extends RequestHandler {
     unhandledRequestHandler = _handleUnhandledRequest;
   }
 
-  /// Adds a route to this router and provides a forwarding [RequestHandler] for all [ResourceRequest]s that match that route to be delivered on.
+  /// Adds a route to this router and provides a forwarding [RequestHandler] for all [Request]s that match that route to be delivered on.
   ///
   /// A router manages route to [Stream] mappings that are added through this method.
   /// The [pattern] must follow the rules of route patterns (see the guide for more explanation).
@@ -69,7 +69,7 @@ class Router extends RequestHandler {
     return _createRoute(pattern).handler;
   }
 
-  ResourceRoute _createRoute(String pattern) {
+  RouteHandler _createRoute(String pattern) {
     if (basePath != null) {
       pattern = basePath + pattern;
     }
@@ -77,14 +77,14 @@ class Router extends RequestHandler {
     // Strip out any extraneous /s
     var finalPattern = pattern.split("/").where((c) => c != "").join("/");
 
-    var route = new ResourceRoute(new ResourcePattern(finalPattern), new RequestHandler());
+    var route = new RouteHandler(new ResourcePattern(finalPattern), new RequestHandler());
     routes.add(route);
 
     return route;
   }
 
   @override
-  Future deliver(ResourceRequest req) async {
+  Future deliver(Request req) async {
     for (var route in routes) {
       var routeMatch = route.pattern.matchUri(req.innerRequest.uri);
 
@@ -114,7 +114,7 @@ class Router extends RequestHandler {
     return items;
   }
 
-  void _handleUnhandledRequest(ResourceRequest req) {
+  void _handleUnhandledRequest(Request req) {
     var response = new Response.notFound();
     _applyCORSHeadersIfNecessary(req, response);
     req.respond(response);
@@ -122,11 +122,11 @@ class Router extends RequestHandler {
   }
 }
 
-class ResourceRoute {
+class RouteHandler {
   final ResourcePattern pattern;
   final RequestHandler handler;
 
-  ResourceRoute(this.pattern, this.handler);
+  RouteHandler(this.pattern, this.handler);
 }
 
 class RouterException implements Exception {

@@ -95,10 +95,6 @@ class AuthDelegate<User extends Model, T extends Model> implements Authenticatio
     return null;
   }
 
-  Future pruneTokensForResourceOwnerID(AuthenticationServer server, dynamic id) async {
-    return null;
-  }
-
   Future<T> _tokenForPredicate(Predicate p) async {
     var tokenQ = new Query<T>();
     tokenQ.predicate = p;

@@ -23,6 +23,7 @@ abstract class PersistentStore {
   Predicate containsPredicate(PropertyDescription desc, Iterable<dynamic> values);
   Predicate nullPredicate(PropertyDescription desc, bool isNull);
   Predicate rangePredicate(PropertyDescription desc, dynamic lhsValue, dynamic rhsValue, bool insideRange);
+  Predicate stringPredicate(PropertyDescription desc, StringMatcherOperator operator, dynamic value);
 }
 
 class DefaultPersistentStore extends PersistentStore {
@@ -37,6 +38,7 @@ class DefaultPersistentStore extends PersistentStore {
   Predicate containsPredicate(PropertyDescription desc, Iterable<dynamic> values) { return null; }
   Predicate nullPredicate(PropertyDescription desc, bool isNull) { return null; }
   Predicate rangePredicate(PropertyDescription desc, dynamic lhsValue, dynamic rhsValue, bool insideRange) { return null; }
+  Predicate stringPredicate(PropertyDescription desc, StringMatcherOperator operator, dynamic value) { return null; }
 
   String columnNameForProperty(PropertyDescription desc) {
     if (desc is RelationshipDescription) {

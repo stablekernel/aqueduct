@@ -1,18 +1,15 @@
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
-import 'dart:mirrors';
 
 void main() {
   test("RequestHandler requiring instantion throws exception when instantiated early", () async {
     var app = new Application<TestPipeline>();
-    var success = false;
     try {
       await app.start();
-      success = true;
+      expect(true, false);
     } on IsolateSupervisorException catch (e) {
       expect(e.message, "RequestHandler FailingController instances cannot be reused. Rewrite as .then(() => new FailingController())");
     }
-    expect(success, false);
   });
 }
 
@@ -23,7 +20,7 @@ class TestPipeline extends ApplicationPipeline {
   void addRoutes() {
     router
         .route("/controller/[:id]")
-        .then(new FailingController());
+        .next(new FailingController());
   }
 }
 class FailingController extends HttpController {

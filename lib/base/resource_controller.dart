@@ -25,6 +25,7 @@ class ResourceController<ModelType extends Model> extends HttpController {
     _query = await willFindObjectWithQuery(_query);
 
     var result = await _query.fetchOne();
+
     if (result == null) {
       return await didNotFindObject();
     } else {

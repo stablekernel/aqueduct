@@ -87,7 +87,6 @@ void main() {
   });
 
   test("Update object with ModelQuery", () async {
-    new Logger("aqueduct").onRecord.listen((r) => print("$r"));
     context = await contextWithModels([TestModel]);
 
     var m1 = new TestModel()
@@ -140,6 +139,58 @@ void main() {
     expect(allUsers.length, 2);
     expect(allUsers.firstWhere((m) => m.id == m1.id).emailAddress, "3@a.com");
     expect(allUsers.firstWhere((m) => m.id != m1.id).emailAddress, "2@a.com");
+  });
+
+  test("updateOne returns updated object if found, null if not", () async {
+    context = await contextWithModels([TestModel]);
+
+    var m = new TestModel()
+      ..name = "Bob"
+      ..emailAddress = "1@a.com";
+
+    var req = new Query<TestModel>()..values = m;
+    await req.insert();
+
+    req = new Query<TestModel>()
+      ..predicate = new Predicate("name = @name", {"name": "Bob"})
+      ..values.name = "John";
+
+    var response = await req.updateOne();
+    expect(response.name, "John");
+    expect(response.emailAddress, "1@a.com");
+
+    req = new Query<TestModel>()
+      ..predicate = new Predicate("name = @name", {"name": "Bob"})
+      ..values.name = "John";
+
+    response = await req.updateOne();
+    expect(response, isNull);
+  });
+
+  test("updateOne throws exception if it updated more than one object", () async {
+    context = await contextWithModels([TestModel]);
+
+    var m = new TestModel()
+      ..name = "Bob"
+      ..emailAddress = "1@a.com";
+    var fred = new TestModel()
+      ..name = "Fred"
+      ..emailAddress = "2@a.com";
+
+    var req = new Query<TestModel>()..values = m;
+    await req.insert();
+    req = new Query<TestModel>()..values = fred;
+    await req.insert();
+
+    req = new Query<TestModel>()
+      ..values.name = "Joe";
+
+    try {
+      var res = await req.updateOne();
+      expect(true, false);
+    } on QueryException catch (e) {
+      expect(e.message, "updateOne modified more than one row, this is a serious error.");
+    }
   });
 }
 

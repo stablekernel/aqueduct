@@ -58,13 +58,14 @@ class Query<ModelType extends Model> {
 
   /// Values to be used when inserting or updating an object.
   ///
-  /// Will generate the [valueMap] for this [Query] using values from this object. For example, the following
-  /// code would generate the values map {'name' = 'Joe', 'id' = 2}:
-  ///     var user = new User()
-  ///       ..name = 'Joe'
-  ///       ..id = 2;
+  /// Will generate the [valueMap] for this [Query] using values from this object. This object is created
+  /// once accessed, so it is not necessary to create an instance and set this property, but instead,
+  /// set properties of this property.
+  ///
+  /// For example, the following code would generate the values map {'name' = 'Joe', 'job' = 'programmer'}:
   ///     var q = new Query<User>()
-  ///       ..valueObject = user;
+  ///       ..values.name = 'Joe
+  ///       ..values.job = 'programmer';
   ///
   ModelType get values {
     if (_valueObject == null) {
@@ -92,8 +93,8 @@ class Query<ModelType extends Model> {
   /// a [Future] with the inserted object. Example:
   ///
   ///       var q = new Query<User>();
-  ///       q.valueObject = new User();
-  ///       var newUser = await q.insert(adapter);
+  ///       q.values.name = "Joe";
+  ///       var newUser = await q.insert();
   ///
   Future<ModelType> insert() async {
     return await context.executeInsertQuery(this);
@@ -101,26 +102,48 @@ class Query<ModelType extends Model> {
 
   /// Updates rows in the database represented by [context] (defaults to [ModelContext.defaultContext]).
   ///
-  /// Update queries update the values of the rows identified by [predicate] or [predicateObject]
+  /// Update queries update the values of the rows identified by [predicate]
   /// with the values in [values] or [valueMap] in the database represented by [context]. Example:
   ///
   ///       var existingUser = ...;
   ///       existingUser.name = "Bob";
   ///       var q = new Query<User>();
   ///       q.predicate = new Predicate("id = @id", {"id" : existingUser.id});
-  ///       q.valueObject = existingUser;
-  ///       var updatedUsers = await q.update(adapter);
+  ///       q.values = existingUser;
+  ///       var updatedUsers = await q.update();
   Future<List<ModelType>> update() async {
     return await context.executeUpdateQuery(this);
   }
 
+  /// Updates a row in the database represented by [context] (defaults to [ModelContext.defaultContext]).
+  ///
+  /// Update queries update the values of the rows identified by [predicate]
+  /// with the values in [values] or [valueMap] in the database represented by [context]. Example:
+  ///
+  ///       var existingUser = ...;
+  ///       existingUser.name = "Bob";
+  ///       var q = new Query<User>();
+  ///       q.predicate = new Predicate("id = @id", {"id" : existingUser.id});
+  ///       q.values = existingUser;
+  ///       var updatedUsers = await q.update();
+  Future<ModelType> updateOne() async {
+    var results = await context.executeUpdateQuery(this);
+    if (results.length == 1) {
+      return results.first;
+    } else if (results.length == 0) {
+      return null;
+    }
+
+    throw new QueryException(500, "updateOne modified more than one row, this is a serious error.", -1);
+  }
+
   /// Fetches rows in the database represented by [context] (defaults to [ModelContext.defaultContext]).
   ///
-  /// Fetch queries will return objects for the rows identified by [predicate] or [predicateObject] from
+  /// Fetch queries will return objects for the rows identified by [predicate] from
   /// the database represented by [context]. Example:
   ///
   ///       var q = new Query<User>();
-  ///       var allUsers = q.fetch(adapter);
+  ///       var allUsers = q.fetch();
   ///
   Future<List<ModelType>> fetch() async {
     return await context.executeFetchQuery(this);
@@ -128,13 +151,13 @@ class Query<ModelType extends Model> {
 
   /// Fetches a single object from the database represented by [context] (defaults to [ModelContext.defaultContext]).
   ///
-  /// This method will return a single object identified by [predicate] or [predicateObject] from
+  /// This method will return a single object identified by [predicate] from
   /// the database represented by [context]. If no match is found, this method returns [null].
   /// If more than one match is found, this method throws an exception. Example:
   ///
   ///       var q = new Query<User>();
   ///       q.predicate = new Predicate("id = @id", {"id" : 1});
-  ///       var user = await q.fetchOne(adapter);
+  ///       var user = await q.fetchOne();
   Future<ModelType> fetchOne() async {
     fetchLimit = 1;
 
@@ -147,13 +170,13 @@ class Query<ModelType extends Model> {
 
   /// Deletes rows from the database represented by [context] (defaults to [ModelContext.defaultContext]).
   ///
-  /// This method will delete rows identified by [predicate] or [predicateObject]
+  /// This method will delete rows identified by [predicate]
   /// from the database represented by [context] and returns the number of rows affected.
   /// Example:
   ///
   ///       var q = new Query<User>();
   ///       q.predicate = new Predicate("id = @id", {"id" : 1});
-  ///       var deleted = await q.delete(adapter);
+  ///       var deleted = await q.delete();
   ///
   Future<int> delete() async {
     return await context.executeDeleteQuery(this); // or null

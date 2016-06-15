@@ -8,7 +8,7 @@ class ModelController<T extends Model> extends HttpController {
   ModelQuery<T> query;
 
   @override
-  Future<RequestHandlerResult> willProcessRequest(ResourceRequest req) async {
+  Future<RequestHandlerResult> willProcessRequest(Request req) async {
     var firstVarName = req.path.firstVariableName;
 
     if (firstVarName != null) {

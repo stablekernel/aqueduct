@@ -42,7 +42,7 @@ class Server {
 
     await pipeline.willOpen();
 
-    server.map((baseReq) => new ResourceRequest(baseReq)).listen((ResourceRequest req) async {
+    server.map((baseReq) => new Request(baseReq)).listen((Request req) async {
       logger.fine("Request received $req.", req);
       await pipeline.willReceiveRequest(req);
       pipeline.deliver(req);
