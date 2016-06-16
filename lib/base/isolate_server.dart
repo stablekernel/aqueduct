@@ -1,13 +1,13 @@
 part of aqueduct;
 
-class Server {
+class _Server {
   ApplicationInstanceConfiguration configuration;
   HttpServer server;
   ApplicationPipeline pipeline;
   int identifier;
   Logger get logger => new Logger("aqueduct");
 
-  Server(this.pipeline, this.configuration, this.identifier) {
+  _Server(this.pipeline, this.configuration, this.identifier) {
     pipeline.server = this;
   }
 
@@ -52,11 +52,11 @@ class Server {
   }
 }
 
-class IsolateServer extends Server {
+class _IsolateServer extends _Server {
   SendPort supervisingApplicationPort;
   ReceivePort supervisingReceivePort;
 
-  IsolateServer(ApplicationPipeline pipeline, ApplicationInstanceConfiguration configuration, int identifier, this.supervisingApplicationPort)
+  _IsolateServer(ApplicationPipeline pipeline, ApplicationInstanceConfiguration configuration, int identifier, this.supervisingApplicationPort)
     : super(pipeline, configuration, identifier) {
     pipeline.server = this;
     supervisingReceivePort = new ReceivePort();
@@ -85,7 +85,7 @@ class IsolateServer extends Server {
     var app = pipelineTypeMirror
         .newInstance(new Symbol(""), [params.configuration.pipelineOptions])
         .reflectee;
-    var server = new IsolateServer(
+    var server = new _IsolateServer(
         app, params.configuration, params.identifier,
         params.parentMessagePort);
 

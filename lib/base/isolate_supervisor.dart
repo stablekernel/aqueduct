@@ -1,6 +1,6 @@
 part of aqueduct;
 
-/// Represents the supervision of a [IsolateServer].
+/// Represents the supervision of a [_IsolateServer].
 ///
 /// You should not use this class directly.
 class IsolateSupervisor {

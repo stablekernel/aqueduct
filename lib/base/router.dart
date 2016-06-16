@@ -77,7 +77,7 @@ class Router extends RequestHandler {
     // Strip out any extraneous /s
     var finalPattern = pattern.split("/").where((c) => c != "").join("/");
 
-    var route = new RouteHandler(new ResourcePattern(finalPattern));
+    var route = new RouteHandler(new RoutePattern(finalPattern));
     _routes.add(route);
 
     return route;
@@ -123,7 +123,7 @@ class Router extends RequestHandler {
 }
 
 class RouteHandler extends RequestHandler {
-  final ResourcePattern pattern;
+  final RoutePattern pattern;
 
   RouteHandler(this.pattern);
 }

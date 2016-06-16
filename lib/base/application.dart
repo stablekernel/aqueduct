@@ -15,8 +15,8 @@ class Application<PipelineType extends ApplicationPipeline> {
   /// The server this application is running when started on the main isolate.
   ///
   /// This value will be available to [Application]s that are [start]ed with [runOnMainIsolate]
-  /// set to true and represents the only [Server] this application is running.
-  Server server;
+  /// set to true and represents the only [_Server] this application is running.
+  _Server server;
 
   /// A reference to a logger.
   ///
@@ -50,7 +50,7 @@ class Application<PipelineType extends ApplicationPipeline> {
       }
 
       var pipeline = reflectClass(PipelineType).newInstance(new Symbol(""), [configuration.pipelineOptions]).reflectee;
-      server = new Server(pipeline, configuration, 1);
+      server = new _Server(pipeline, configuration, 1);
 
       await server.start();
     } else {
@@ -92,7 +92,7 @@ class Application<PipelineType extends ApplicationPipeline> {
     var pipelineTypeName = MirrorSystem.getName(pipelineTypeMirror.simpleName);
 
     var initialMessage = new _InitialServerMessage(pipelineTypeName, pipelineLibraryURI, config, identifier, receivePort.sendPort);
-    var isolate = await Isolate.spawn(IsolateServer.entry, initialMessage, paused: true);
+    var isolate = await Isolate.spawn(_IsolateServer.entry, initialMessage, paused: true);
     isolate.addErrorListener(receivePort.sendPort);
 
     return new IsolateSupervisor(this, isolate, receivePort, identifier, logger);

@@ -14,14 +14,14 @@ void main() {
    */
 
   test("Root", () {
-    ResourcePattern p = new ResourcePattern("");
+    RoutePattern p = new RoutePattern("");
     var m = p.matchUri(new Uri.http("test.com", "/"));
     expect(m, isNotNull);
     expect(m.segments.length, 0);
   });
 
   test("Literal", () {
-    ResourcePattern p = new ResourcePattern("/player");
+    RoutePattern p = new RoutePattern("/player");
 
     var m = p.matchUri(new Uri.http("test.com", "/player"));
     expect(m, isNotNull);
@@ -33,7 +33,7 @@ void main() {
   });
 
   test("Literal Many", () {
-    ResourcePattern p = new ResourcePattern("/player/one");
+    RoutePattern p = new RoutePattern("/player/one");
 
     var m = p.matchUri(new Uri.http("test.com", "/player/one"));
     expect(m, isNotNull);
@@ -48,7 +48,7 @@ void main() {
   });
 
   test("Star", () {
-    ResourcePattern p = new ResourcePattern("/*");
+    RoutePattern p = new RoutePattern("/*");
 
     var m = p.matchUri(new Uri.http("test.com", "/player/2mnasd"));
     expect(m.remainingPath, "player/2mnasd");
@@ -65,7 +65,7 @@ void main() {
   });
 
   test("Literal Star", () {
-    ResourcePattern p = new ResourcePattern("/player/*");
+    RoutePattern p = new RoutePattern("/player/*");
 
     var m = p.matchUri(new Uri.http("test.com", "/player/2mnasd"));
     expect(m.remainingPath, "2mnasd");
@@ -79,7 +79,7 @@ void main() {
   });
 
   test("Variable Plain", () {
-    ResourcePattern p = new ResourcePattern("/:id");
+    RoutePattern p = new RoutePattern("/:id");
 
     var m = p.matchUri(new Uri.http("test.com", "/player"));
     expect(m.variables, containsPair("id", "player"));
@@ -90,7 +90,7 @@ void main() {
   });
 
   test("Literal Variable", () {
-    ResourcePattern p = new ResourcePattern("/player/:id");
+    RoutePattern p = new RoutePattern("/player/:id");
 
     var m = p.matchUri(new Uri.http("test.com", "/player/foobar"));
     expect(m.variables, containsPair("id", "foobar"));
@@ -103,7 +103,7 @@ void main() {
   });
 
   test("Optional Basic", () {
-    ResourcePattern p = new ResourcePattern("/a/[b]");
+    RoutePattern p = new RoutePattern("/a/[b]");
 
     var m = p.matchUri(new Uri.http("test.com", "/a"));
     expect(m.segments[0], "a");
@@ -118,7 +118,7 @@ void main() {
   });
 
   test("Optional Multiple", () {
-    ResourcePattern p = new ResourcePattern("/a/[b/c]");
+    RoutePattern p = new RoutePattern("/a/[b/c]");
 
     var m = p.matchUri(new Uri.http("test.com", "/a"));
     expect(m.segments[0], "a");
@@ -132,7 +132,7 @@ void main() {
   });
 
   test("Optional Imbricated", () {
-    ResourcePattern p = new ResourcePattern("/a/[b/[c]]");
+    RoutePattern p = new RoutePattern("/a/[b/[c]]");
 
     var m = p.matchUri(new Uri.http("test.com", "/a"));
     expect(m.segments[0], "a");
@@ -150,7 +150,7 @@ void main() {
   });
 
   test("Optional w/ variable", () {
-    ResourcePattern p = new ResourcePattern("/a/[:b]");
+    RoutePattern p = new RoutePattern("/a/[:b]");
 
     var m = p.matchUri(new Uri.http("test.com", "/a"));
     expect(m.segments[0], "a");
@@ -164,7 +164,7 @@ void main() {
   });
 
   test("Optional imbricated w/ variables", () {
-    ResourcePattern p = new ResourcePattern("/a/[:b/[:c]]");
+    RoutePattern p = new RoutePattern("/a/[:b/[:c]]");
 
     var m = p.matchUri(new Uri.http("test.com", "/a"));
     expect(m.segments[0], "a");
@@ -183,7 +183,7 @@ void main() {
   });
 
   test("Sub Pattern", () {
-    ResourcePattern p = new ResourcePattern(r"/:b(\D+)");
+    RoutePattern p = new RoutePattern(r"/:b(\D+)");
 
     var m = p.matchUri(new Uri.http("test.com", "/raw"));
     expect(m.variables, containsPair("b", "raw"));
@@ -193,7 +193,7 @@ void main() {
   });
 
   test("Sub Pattern", () {
-    ResourcePattern p = new ResourcePattern(r"/:b(7\w*)");
+    RoutePattern p = new RoutePattern(r"/:b(7\w*)");
 
     var m = p.matchUri(new Uri.http("test.com", "/7"));
     expect(m.variables, containsPair("b", "7"));
@@ -207,7 +207,7 @@ void main() {
   });
 
   test("All", () {
-    ResourcePattern p = new ResourcePattern(r"/literal/[:b(\d+)/*]");
+    RoutePattern p = new RoutePattern(r"/literal/[:b(\d+)/*]");
 
     var m = p.matchUri(new Uri.http("test.com", "/literal"));
     expect(m.segments[0], "literal");

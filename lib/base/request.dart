@@ -5,6 +5,17 @@ part of aqueduct;
 /// Contains a standard library [HttpRequest], along with other values
 /// to associate data with a request.
 class Request implements RequestHandlerResult {
+
+  /// The set of available encoders for HTTP response data.
+  ///
+  /// If this [Request]'s [Response] has an HTTP body, the body is encoded
+  /// with a function from this map of encoders. The HTTP header for Content-Type
+  /// is broken into two pieces, primary type (e.g., 'application') and subtype (e.g., 'json').
+  /// The primary type is the first key in [Encoders], and then the subtype is used to return the specific encoding
+  /// function from this map. Encoders take any argument and return the encoded version of it based on those two values.
+  /// By default, if a [Response] has no Content-Type header, 'application/json' is used. There are only two
+  /// encoders available by default, 'application/json' and 'text/plain'. You may add extra encoders to this map using
+  /// [addEncoder]. Do not try and manipulate [Encoders] directlry.
   static Map<String, Map<String, Function>> Encoders = {
     "application" : {
       "json" : (v) => JSON.encode(v),
@@ -14,6 +25,7 @@ class Request implements RequestHandlerResult {
     }
   };
 
+  /// Adds an encoder for a content type. See [Encoders].
   static void addEncoder(ContentType type, dynamic encoder(dynamic value)) {
     var topLevel = Encoders[type.primaryType];
     if (topLevel == null) {
@@ -24,7 +36,8 @@ class Request implements RequestHandlerResult {
     topLevel[type.subType] = encoder;
   }
 
-  Request(this.innerRequest) {}
+  /// Creates an instance of [Request], no need to do so manually.
+  Request(this.innerRequest);
 
   /// The internal [HttpRequest] of this [Request].
   ///
@@ -35,16 +48,15 @@ class Request implements RequestHandlerResult {
   /// The response object of this [Request].
   ///
   /// To respond to a request, this object must be written to. It is the same
-  /// instance as the [request]'s response.
+  /// instance as the [innerRequest]'s response.
   HttpResponse get response => innerRequest.response;
 
   /// The path and any extracted variable parameters from the URI of this request.
   ///
   /// Typically set by a [Router] instance when the request has been piped through one,
   /// this property will contain a list of each path segment, a map of matched variables,
-  /// and any remaining wildcard path. For example, if the path '/users/:id' and a the request URI path is '/users/1',
-  /// path will have [segments] of ['users', '1'] and [variables] of {'id' : '1'}.
-  ResourcePatternMatch path;
+  /// and any remaining wildcard path.
+  RequestPath path;
 
   /// Permission information associated with this request.
   ///
@@ -62,8 +74,15 @@ class Request implements RequestHandlerResult {
   /// representing the JSON object.
   dynamic requestBodyObject;
 
+  /// The timestamp for when this request was received.
   DateTime receivedDate = new DateTime.now().toUtc();
+
+  /// The timestamp for when this request was responded to.
+  ///
+  /// Used for logging.
   DateTime respondDate = null;
+
+  /// Access to logger directly from this instance.
   Logger get logger => new Logger("aqueduct");
 
   String get _sanitizedHeaders {
@@ -96,6 +115,9 @@ class Request implements RequestHandlerResult {
     }
   }
 
+  /// Sends a [Response] to the requester.
+  ///
+  /// Once this method has executed, the [Request] is no longer valid.
   void respond(Response respObj) {
     respondDate = new DateTime.now().toUtc();
 
@@ -130,12 +152,12 @@ class Request implements RequestHandlerResult {
     ContentType contentType = contentTypeValue;
     var topLevel = Encoders[contentType.primaryType];
     if (topLevel == null) {
-      throw new ResourceRequestException("No encoder for $contentTypeValue, add with ResourceRequest.addEncoder().");
+      throw new RequestException("No encoder for $contentTypeValue, add with ResourceRequest.addEncoder().");
     }
 
     var encoder = topLevel[contentType.subType];
     if (encoder == null) {
-      throw new ResourceRequestException("No encoder for $contentTypeValue, add with ResourceRequest.addEncoder().");
+      throw new RequestException("No encoder for $contentTypeValue, add with ResourceRequest.addEncoder().");
     }
 
     var encodedValue = encoder(respObj.body);
@@ -177,7 +199,8 @@ class Request implements RequestHandlerResult {
   }
 }
 
-class ResourceRequestException implements Exception {
-  ResourceRequestException(this.message);
+/// Thrown when a [Request] encounters an error.
+class RequestException implements Exception {
+  RequestException(this.message);
   String message;
 }

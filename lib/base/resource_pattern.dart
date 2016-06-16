@@ -4,7 +4,7 @@ part of aqueduct;
 ///
 /// Instances of this class can be used by handlers after the router to inspect
 /// specifics of the incoming path without having to dissect the path on their own.
-class ResourcePatternMatch {
+class RequestPath {
   /// A map of variable to values in this match.
   ///
   /// If a path has variables (indicated by the :name syntax) in the path,
@@ -39,14 +39,15 @@ class ResourcePatternMatch {
   dynamic firstVariableName = null;
 }
 
-class ResourcePattern {
+/// Used internally.
+class RoutePattern {
   static String remainingPath = "remainingPath";
 
   _ResourcePatternSet matchHead;
   List<_ResourcePatternElement> elements;
   String get firstVariableName => elements.firstWhere((e) => e.isVariable, orElse: () => null)?.name;
 
-  ResourcePattern(String patternString) {
+  RoutePattern(String patternString) {
     List<String> pathElements = splitPattern(patternString);
     elements = resourceElementsFromPathElements(patternString);
     matchHead = matchSpecFromElements(pathElements, elements);
@@ -120,8 +121,8 @@ class ResourcePattern {
     return elements.where((e) => e.name != null).map((e) => e.name).toList();
   }
 
-  ResourcePatternMatch matchUri(Uri uri) {
-    ResourcePatternMatch match = new ResourcePatternMatch();
+  RequestPath matchUri(Uri uri) {
+    RequestPath match = new RequestPath();
 
     var incomingPathSegments = uri.pathSegments;
     var incomingPathIndex = 0;
