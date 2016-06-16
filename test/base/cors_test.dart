@@ -128,6 +128,7 @@ void main() {
     });
 
     test("Preflight request, valid", () async {
+      new Logger("aqueduct").onRecord.listen((r) => print("$r"));
       var client = new HttpClient();
       var req = await client.openUrl("OPTIONS", new Uri(scheme: "http", host: "localhost", port: 8000, path: "defaultpolicy"));
       req.headers.add("Origin", "http://localhost");
@@ -135,6 +136,7 @@ void main() {
       req.headers.add("Access-Control-Request-Headers", "authorization,x-requested-with");
       req.headers.add("Accept", "*/*");
       var resp = await req.close();
+      print("${resp.headers}");
       expect(resp.statusCode, 200);
       expect(resp.contentLength, 0);
       expect(resp.headers.value("access-control-allow-origin"), "http://localhost");

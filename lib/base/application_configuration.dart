@@ -5,7 +5,9 @@ class ApplicationInstanceConfiguration {
   /// The address to listen for HTTP requests on.
   ///
   /// By default, this address will default to 'any' address. If [isIpv6Only] is true,
-  /// the address will be any IPv6 address, otherwise, it will be any IPv4 address.
+  /// 'any' will be any IPv6 address, otherwise, it will be any IPv4 address (0.0.0.0).
+  ///
+  /// This value may be an [InternetAddress] or a [String].
   dynamic address;
 
   /// The port to listen for HTTP requests on.
@@ -13,15 +15,14 @@ class ApplicationInstanceConfiguration {
   /// Defaults to 8080.
   int port = 8080;
 
-  /// Whether or not the application should only listen for IPv6 requests.
+  /// Whether or not the application should only connections over IPv6.
   ///
   /// Defaults to false. This flag impacts the [address] property if it has not been set.
   bool isIpv6Only = false;
 
   /// Whether or not the application's request handlers should use client-side HTTPS certificates.
   ///
-  /// Defaults to false. If this is false and [serverCertificateName] is null, the server will
-  /// run over HTTP instead of HTTPS.
+  /// Defaults to false.
   bool isUsingClientCertificate = false;
 
   /// Information for securing the application over HTTPS.

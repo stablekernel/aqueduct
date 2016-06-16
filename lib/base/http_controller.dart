@@ -72,7 +72,7 @@ abstract class HttpController extends RequestHandler {
 
           HttpMethod r = new HttpMethod._fromMethod(methodAttrs.reflectee, params);
 
-          if (r.matchesRequest(req)) {
+          if (r._matchesRequest(req)) {
             symbol = key;
             break;
           }

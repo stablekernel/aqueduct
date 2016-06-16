@@ -84,7 +84,7 @@ class RequestHandler implements APIDocumentable {
   /// as this method does the heavy-lifting for handling CORS requests.
   Future deliver(Request req) async {
     try {
-      if (isPreflightRequest(req)) {
+      if (isCORSRequest(req) && isPreflightRequest(req)) {
         var handlerToDictatePolicy = _lastRequestHandler();
         if (handlerToDictatePolicy != this) {
           handlerToDictatePolicy.deliver(req);
@@ -96,13 +96,8 @@ class RequestHandler implements APIDocumentable {
             req.respond(new Response.forbidden());
             logger.info(req.toDebugString(includeHeaders: true));
           } else {
-            // If we are the last on the chain, we can OK the preflight request, otherwise, we let the next handler deal with it.
-            if (nextHandler == null) {
-              req.respond(policy.preflightResponse(req));
-              logger.info(req.toDebugString());
-            } else {
-              nextHandler.deliver(req);
-            }
+            req.respond(policy.preflightResponse(req));
+            logger.info(req.toDebugString());
           }
           return;
         }
@@ -159,7 +154,9 @@ class RequestHandler implements APIDocumentable {
       var lastPolicyHandler = _lastRequestHandler();
       var p = lastPolicyHandler.policy;
       if (p != null) {
-        resp.headers.addAll(p.headersForRequest(req));
+        if (p.isRequestOriginAllowed(req.innerRequest)) {
+          resp.headers.addAll(p.headersForRequest(req));
+        }
       }
     }
   }
@@ -169,10 +166,7 @@ class RequestHandler implements APIDocumentable {
   }
 
   bool isPreflightRequest(Request req) {
-    if (req.innerRequest.headers.value("origin") != null) {
-      return req.innerRequest.method == "OPTIONS";
-    }
-    return false;
+    return req.innerRequest.method == "OPTIONS" && req.innerRequest.headers.value("access-control-request-method") != null;
   }
 
   List<APIDocumentItem> document(PackagePathResolver resolver) {
