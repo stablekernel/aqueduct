@@ -9,15 +9,20 @@ abstract class HttpController extends RequestHandler {
 
   /// The request being processed by this [HttpController].
   ///
-  /// It is this [HttpController]'s responsibility to return a [Response] object for this request.
+  /// It is this [HttpController]'s responsibility to return a [Response] object for this request. Handler methods
+  /// may access this request to determine how to respond to it.
   Request request;
 
   /// Parameters parsed from the URI of the request, if any exist.
-  Map<String, String> get pathVariables => request.path.variables;
+  ///
+  /// These values are attached by a [Router] instance that precedes this [RequestHandler]. Is [null]
+  /// if no [Router] preceded the controller and is the empty map if there are no values. The keys
+  /// are the case-sensitive name of the path variables as defined by the [route].
+  Map<String, String> get pathVariables => request.path?.variables;
 
   /// Types of content this [HttpController] will accept.
   ///
-  /// By default, a resource controller will accept 'application/json' requests.
+  /// By default, a resource controller will accept 'application/json' and 'application/x-www-form-urlencoded' requests.
   /// If a request is sent to an instance of [HttpController] and has an HTTP request body,
   /// but the Content-Type of the request isn't within this list, the [HttpController]
   /// will automatically respond with an Unsupported Media Type response.
@@ -33,14 +38,11 @@ abstract class HttpController extends RequestHandler {
   /// The HTTP request body object, after being decoded.
   ///
   /// This object will be decoded according to the this request's content type. If there was no body, this value will be null.
-  /// If this resource controller does not support the content type of the body, the controller will automatically
-  /// respond with a Unsupported Media Type HTTP response.
   dynamic get requestBody => request.requestBodyObject;
 
-  // Callbacks
-  /// Executed prior to handling a request, but after the [resourceRequest] has been set.
+  /// Executed prior to handling a request, but after the [request] has been set.
   ///
-  /// This method is used to do pre-process setup and filtering. The [resourceRequest] will be set, but its body will not be decoded
+  /// This method is used to do pre-process setup and filtering. The [request] will be set, but its body will not be decoded
   /// nor will the appropriate handler method be selected yet. By default, returns the request. If this method returns a [Response], this
   /// controller will stop processing the request and immediately return the [Response] to the HTTP client.
   Future<RequestHandlerResult> willProcessRequest(Request req) async {
@@ -53,9 +55,10 @@ abstract class HttpController extends RequestHandler {
   /// handled by the appropriate handler method.
   void didDecodeRequestBody(dynamic decodedObject) {}
 
-  /// Executed prior to [response] being sent, but after the handler method has been executed.
+  /// Executed prior to [Response] being sent, but after the handler method has been executed.
   ///
   /// This method is used to post-process a response before it is finally sent. By default, does nothing.
+  /// This method will have no impact on when or how the [Response] is sent, is is simply informative.
   void willSendResponse(Response response) {}
 
   Symbol _routeMethodSymbolForRequest(Request req) {
@@ -138,9 +141,9 @@ abstract class HttpController extends RequestHandler {
     }
 
     // If we get here, then it wasn't a string and couldn't be parsed, and we should throw?
-    throw new _InternalControllerException("Invalid path parameter type, types must be String or implement parse", HttpStatus.INTERNAL_SERVER_ERROR,
+    throw new _InternalControllerException("Invalid path parameter type, types must be String or implement parse",
+        HttpStatus.INTERNAL_SERVER_ERROR,
         responseMessage: "URI parameter is wrong type");
-    return null;
   }
 
   List<dynamic> _parametersForRequest(Request req, Symbol handlerMethodSymbol) {
@@ -195,7 +198,7 @@ abstract class HttpController extends RequestHandler {
     return retMap;
   }
 
-  dynamic serializedResponseBody(dynamic initialResponseBody) {
+  dynamic _serializedResponseBody(dynamic initialResponseBody) {
     var serializedBody = null;
     if (initialResponseBody is Serializable) {
       serializedBody = (initialResponseBody as Serializable).asSerializable();
@@ -210,7 +213,6 @@ abstract class HttpController extends RequestHandler {
     }
 
     return serializedBody ?? initialResponseBody;
-
   }
 
   Future<Response> _process() async {
@@ -229,7 +231,7 @@ abstract class HttpController extends RequestHandler {
 
     willSendResponse(response);
 
-    response.body = serializedResponseBody(response.body);
+    response.body = _serializedResponseBody(response.body);
     response.headers[HttpHeaders.CONTENT_TYPE] = responseContentType;
 
     return response;
