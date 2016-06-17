@@ -18,7 +18,7 @@ export 'package:http_server/http_server.dart';
 export 'package:logging/logging.dart';
 export 'package:safe_config/safe_config.dart';
 
-part 'base/resource_pattern.dart';
+part 'base/request_path.dart';
 part 'base/request.dart';
 part 'base/router.dart';
 part 'base/http_controller.dart';

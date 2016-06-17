@@ -1,20 +1,77 @@
 part of aqueduct;
 
+/// A [RequestHandler] for performing CRUD operations on [Model] instances.
+///
+/// Instances of this class create and execute [Query]s based on [Request]'s they receive. This instances of this class effectively map a REST API call
+/// directly to the database. For example, this [RequestHandler] handles an HTTP PUT request by executing an update [Query]; the path variable in the request
+/// indicates the value of the primary key for the updated row and the HTTP request body are the values updated.
+///
+/// When routing to a [ResourceController], you must provide the following route pattern, where <name> can be any string:
+///
+///       router.route("/<name>/[:id]")
+///
+/// You may optionally use the static method [routePattern] to create this string for you.
+///
+/// The mapping for HTTP request to action is as follows:
+///
+///       GET /<name>/:id -> Fetch Object by ID
+///       PUT /<name>/:id -> Update Object by ID, HTTP Request Body contains update values.
+///       DELETE /<name>/:id -> Delete Object by ID
+///       POST /<name> -> Create new Object, HTTP Request Body contains update values.
+///       GET /<name> -> Fetch instances of Object
+///
+/// You may use this class without subclassing, but you may also subclass it to modify the executed [Query] prior to its execution or the returned [Response] based
+/// on the [Query]'s results.
+///
+/// The HTTP response body is encoded according to [responseContentType].
+///
+/// GET requests with no path parameter can take extra query parameters to modify the request. The following are the available query parameters:
+///
+///       count (integer): restricts the number of objects fetched to count. By default, this is null, which means no restrictions.
+///       offset (integer): offsets the fetch by offset amount of objects. By default, this is null, which means no offset.
+///       pageBy (string): indicates the key in which to page by. See [QueryPage] for more information on paging. If this value is passed as part of the query, either pageAfter or pagePrior must also be passed, but only one of those.
+///       pageAfter (string): indicates the page value and direction of the paging. pageBy must also be set. See [QueryPage] for more information.
+///       pagePrior (string): indicates the page value and direction of the paging. pageBy must also be set. See [QueryPage] for more information.
+///       sortBy (string): indicates the sort order. The syntax is 'sortBy=key,order' where key is a property of [ModelType] and order is either 'asc' or 'desc'. You may specify multiple sortBy parameters.
+///
 class ResourceController<ModelType extends Model> extends HttpController {
+  /// Returns a route pattern for using [ResourceController]s.
+  ///
+  /// Returns the string "/$name/[:id]", to be used as a route pattern in a [Router] for instances of [ResourceController] and subclasses.
+  static String routePattern(String name) {
+    return "/$name/[:id]";
+  }
+
+  /// Creates an instance of a [ResourceController].
+  ///
+  /// [context] defaults to [DefaultContext].
   ResourceController([ModelContext context]) : super() {
     _query = new ModelQuery<ModelType>(context: context ?? ModelContext.defaultContext);
   }
 
   ModelQuery<ModelType> _query;
 
+  /// Executed prior to a fetch by ID query.
+  ///
+  /// You may modify the [query] prior to its execution in this method. The [query] will have a single matcher, where the [ModelType]'s primary key
+  /// is equal to the first path argument in the [Request]. You may also return a new [Query],
+  /// but it must have the same [ModelType] as this controller. If you return null from this method, no [Query] will be executed
+  /// and [didNotFindObject] will immediately be called.
   Future<ModelQuery<ModelType>> willFindObjectWithQuery(ModelQuery<ModelType> query) async {
     return query;
   }
 
+  /// Executed after a fetch by ID query that found a matching instance.
+  ///
+  /// By default, returns a [Response.ok] with the encoded instance. The [result] is the fetched [ModelType]. You may override this method
+  /// to provide some other behavior.
   Future<Response> didFindObject(ModelType result) async {
     return new Response.ok(result);
   }
 
+  /// Executed after a fetch by ID query that did not find a matching instance.
+  ///
+  /// By default, returns [Response.notFound]. You may override this method to provide some other behavior.
   Future<Response> didNotFindObject() async {
     return new Response.notFound();
   }
@@ -24,7 +81,7 @@ class ResourceController<ModelType extends Model> extends HttpController {
 
     _query = await willFindObjectWithQuery(_query);
 
-    var result = await _query.fetchOne();
+    var result = await _query?.fetchOne();
 
     if (result == null) {
       return await didNotFindObject();
@@ -33,10 +90,18 @@ class ResourceController<ModelType extends Model> extends HttpController {
     }
   }
 
+  /// Executed prior to an insert query being executed.
+  ///
+  /// You may modify the [query] prior to its execution in this method. You may also return a new [Query],
+  /// but it must have the same type argument as this controller. If you return null from this method,
+  /// no values will be inserted and [didInsertObject] will immediately be called with the value null.
   Future<ModelQuery<ModelType>> willInsertObjectWithQuery(ModelQuery<ModelType> query) async {
     return query;
   }
 
+  /// Executed after an insert query is successful.
+  ///
+  /// By default, returns [Response.ok]. The [object] is the newly inserted [ModelType]. You may override this method to provide some other behavior.
   Future<Response> didInsertObject(ModelType object) async {
     return new Response.ok(object);
   }
@@ -47,19 +112,30 @@ class ResourceController<ModelType extends Model> extends HttpController {
     _query.values = instance;
 
     _query = await willInsertObjectWithQuery(_query);
-    var result = await _query.insert();
+    var result = await _query?.insert();
 
     return await didInsertObject(result);
   }
 
+  /// Executed prior to a delete query being executed.
+  ///
+  /// You may modify the [query] prior to its execution in this method. You may also return a new [Query],
+  /// but it must have the same type argument as this controller. If you return null from this method,
+  /// no delete operation will be performed and [didNotFindObjectToDeleteWithID] will immediately be called with the value null.
   Future<ModelQuery<ModelType>> willDeleteObjectWithQuery(ModelQuery<ModelType> query) async {
     return query;
   }
 
+  /// Executed after an object was deleted.
+  ///
+  /// By default, returns [Response.ok] with no response body. You may override this method to provide some other behavior.
   Future<Response> didDeleteObjectWithID(dynamic id) async {
     return new Response.ok(null);
   }
 
+  /// Executed when no object was deleted during a delete query.
+  ///
+  /// Defaults to return [Response.notFound]. You may override this method to provide some other behavior.
   Future<Response> didNotFindObjectToDeleteWithID(dynamic id) async {
     return new Response.notFound();
   }
@@ -69,7 +145,7 @@ class ResourceController<ModelType extends Model> extends HttpController {
 
     _query = await willDeleteObjectWithQuery(_query);
 
-    var result = await _query.delete();
+    var result = await _query?.delete();
 
     if (result == 0) {
       return await didNotFindObjectToDeleteWithID(id);
@@ -78,14 +154,25 @@ class ResourceController<ModelType extends Model> extends HttpController {
     }
   }
 
+  /// Executed prior to a update query being executed.
+  ///
+  /// You may modify the [query] prior to its execution in this method. You may also return a new [Query],
+  /// but it must have the same type argument as this controller. If you return null from this method,
+  /// no values will be inserted and [didNotFindObjectToUpdateWithID] will immediately be called with the value null.
   Future<ModelQuery<ModelType>> willUpdateObjectWithQuery(ModelQuery<ModelType> query) async {
     return query;
   }
 
+  /// Executed after an object was updated.
+  ///
+  /// By default, returns [Response.ok] with the encoded, updated object. You may override this method to provide some other behavior.
   Future<Response> didUpdateObject(ModelType object) async {
     return new Response.ok(object);
   }
 
+  /// Executed after an object not found during an update query.
+  ///
+  /// By default, returns [Response.notFound]. You may override this method to provide some other behavior.
   Future<Response> didNotFindObjectToUpdateWithID(dynamic id) async {
     return new Response.notFound();
   }
@@ -98,18 +185,27 @@ class ResourceController<ModelType extends Model> extends HttpController {
     _query.values = instance;
 
     _query = await willUpdateObjectWithQuery(_query);
-    var results = await _query.update();
-    if (results.length == 0) {
+
+    var results = await _query?.updateOne();
+    if (results == null) {
       return await didNotFindObjectToDeleteWithID(id);
     } else {
-      return didUpdateObject(results.first);
+      return didUpdateObject(results);
     }
   }
 
+  /// Executed prior to a fetch query being executed.
+  ///
+  /// You may modify the [query] prior to its execution in this method. You may also return a new [Query],
+  /// but it must have the same type argument as this controller. If you return null from this method,
+  /// no objects will be fetched and [didFindObjects] will immediately be called with the value null.
   Future<ModelQuery<ModelType>> willFindObjectsWithQuery(ModelQuery<ModelType> query) async {
     return query;
   }
 
+  /// Executed after a list of objects has been fetched.
+  ///
+  /// By defualt, returns [Response.ok] with the encoded list of founds objects (which may be the empty list).
   Future<Response> didFindObjects(List<ModelType> objects) async {
     return new Response.ok(objects);
   }
@@ -154,7 +250,9 @@ class ResourceController<ModelType extends Model> extends HttpController {
       }).toList();
     }
 
-    var results = await _query.fetch();
+    _query = await willFindObjectsWithQuery(_query);
+
+    var results = await _query?.fetch();
 
     return await didFindObjects(results);
   }
