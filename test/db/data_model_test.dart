@@ -201,10 +201,10 @@ class _User {
   @Attributes(nullable: true, defaultValue: "'now()'", unique: true, indexed: true, omitByDefault: true)
   DateTime loadedTimestamp;
 
-  @RelationshipAttribute.hasMany("user")
+  @Relationship.hasMany("user")
   List<Item> items;
 
-  @RelationshipAttribute.hasOne("worker")
+  @Relationship.hasOne("worker")
   Manager manager;
 }
 
@@ -213,7 +213,7 @@ class _Item {
   @Attributes(primaryKey: true)
   String name;
 
-  @RelationshipAttribute.belongsTo("items", deleteRule: RelationshipDeleteRule.cascade, required: true)
+  @Relationship.belongsTo("items", deleteRule: RelationshipDeleteRule.cascade, required: true)
   User user;
 }
 
@@ -224,7 +224,7 @@ class _Manager {
 
   String name;
 
-  @RelationshipAttribute.belongsTo("manager")
+  @Relationship.belongsTo("manager")
   User worker;
 }
 
@@ -233,7 +233,7 @@ class _Owner {
   @primaryKey
   int id;
 
-  @RelationshipAttribute(RelationshipType.hasOne, "ref")
+  @Relationship(RelationshipType.hasOne, "ref")
   FailingChild gen;
 }
 
@@ -242,6 +242,6 @@ class _FailingChild {
   @primaryKey
   int id;
 
-  @RelationshipAttribute(RelationshipType.belongsTo, "gen", deleteRule: RelationshipDeleteRule.nullify, required: true)
+  @Relationship(RelationshipType.belongsTo, "gen", deleteRule: RelationshipDeleteRule.nullify, required: true)
   Owner ref;
 }

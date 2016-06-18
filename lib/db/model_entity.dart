@@ -1,10 +1,16 @@
 part of aqueduct;
 
+/// Instances are a representation of a table in a database.
+///
+/// A model entity describes all of the properties of a [Model] object. A property is either an attribute or
+/// a relationship. Attributes always map to a similarly named column in the persistent storage for a [Model].
+/// A relationship property represents a foreign key value in persistent storage in the case of a [belongsTo] relationship.
+/// For [hasOne] and [hasMany] relationships, the relationship property is not backed in persistent storage, but is still
+/// a property of the [Model] object.
 class ModelEntity {
-
   /// Creates an instance of a ModelEntity.
   ///
-  /// You should never call this method directly, it will be called by [DataModel] instances.
+  /// You should never call this method directly, it will be called by [DataModel].
   ModelEntity(this.dataModel, this.instanceTypeMirror, this.persistentInstanceTypeMirror);
 
   /// The type of instances represented by this entity.
@@ -52,7 +58,7 @@ class ModelEntity {
   /// The list of default properties returned when querying an instance of this type.
   ///
   /// By default, a [Query] will return all the properties named in this list. You may specify
-  /// a different set of properties by setting the [Query]'s [resultKeys] value. The default
+  /// a different set of properties by setting the [Query]'s [resultProperties] value. The default
   /// set of properties is a list of all attributes that do not have the [omitByDefault] flag
   /// set in their [Attributes] and all [RelationshipType.belongsTo] relationships.
   List<String> get defaultProperties {

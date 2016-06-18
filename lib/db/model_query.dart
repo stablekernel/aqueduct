@@ -1,12 +1,42 @@
 part of aqueduct;
 
+/// A class for building [Query]s using the Hamcrest matcher style.
+///
+/// Instances of this class must define the type of [Model] they operate on by specifying a type argument.
+/// Example:
+///
+///       var query = new ModelQuery<User>()
+///         ..["name"] = whereEqualTo("Bob");
+///       var usersWithTheNameBob = await query.fetch();
+///
+///  Properties on the Model type argument can be assigned matchers which will be used to generate
+///  a [Predicate] for this query.
+///
+/// Since stringly-typed data is often difficult to work with, it often makes sense to create a subclass of
+/// [ModelQuery] that implements the interface of the Model type argument:
+///
+///       class UserQuery extends ModelQuery<User> implements User {}
+///
+/// This allows the following query to be equivalent to the earlier example:
+///       var query = new UserQuery()
+///         ..name = whereEqualTo("Bob");
+///
+/// [ModelQuery]s may also perform database joins. When supplying a matcher to a [RelationshipDescription],
+/// instances in that relationship will be fetched as well.
 class ModelQuery<T extends Model> extends Query<T> {
+  /// Creates an instance of [ModelQuery].
+  ///
+  /// By default, [context] will be the [ModelContext.defaultContext].
   ModelQuery({ModelContext context: null}) : super(context: context);
-  ModelQuery.withModelType(Type t, {ModelContext context: null}) : super.withModelType(t, context: null);
+  ModelQuery._withModelType(Type t, {ModelContext context: null}) : super.withModelType(t, context: null);
 
+  /// Not allowed on [ModelQuery].
+  ///
+  /// Since a [ModelQuery] will create its own predicate based on supplied matchers
   Predicate get predicate => null;
   void set predicate(Predicate p) { throw new QueryException(500, "ModelQuery predicate is immutable", -1); }
 
+  /// The map of sub-queries for database joins. Do not modify directly.
   Map<String, ModelQuery> subQueries = {};
   Map<String, dynamic> _queryMap = {};
   bool _representsListQuery = false;
@@ -17,14 +47,16 @@ class ModelQuery<T extends Model> extends Query<T> {
     }
 
     RelationshipDescription relDesc = desc;
-    return new ModelQuery.withModelType(relDesc.inverseRelationship.entity.instanceTypeMirror.reflectedType, context: this.context)
+    return new ModelQuery._withModelType(relDesc.inverseRelationship.entity.instanceTypeMirror.reflectedType, context: this.context)
       .._representsListQuery = relDesc.relationshipType == RelationshipType.hasMany;
   }
 
+  /// Retrieves a matcher for a property name.
   dynamic operator [](String key) {
     return _getMatcherForPropertyName(key);
   }
 
+  /// Sets a matcher for a property name.
   void operator []=(String key, dynamic value) {
     _setMatcherForPropertyName(key, value);
   }

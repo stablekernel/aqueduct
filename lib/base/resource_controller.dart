@@ -44,7 +44,7 @@ class ResourceController<ModelType extends Model> extends HttpController {
 
   /// Creates an instance of a [ResourceController].
   ///
-  /// [context] defaults to [DefaultContext].
+  /// [context] defaults to [defaultContext].
   ResourceController([ModelContext context]) : super() {
     _query = new ModelQuery<ModelType>(context: context ?? ModelContext.defaultContext);
   }

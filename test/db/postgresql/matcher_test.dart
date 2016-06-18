@@ -203,7 +203,7 @@ class _TestModel {
   @Attributes(nullable: true, unique: true)
   String email;
 
-  @RelationshipAttribute.hasOne("owner")
+  @Relationship.hasOne("owner")
   InnerModel inner;
 }
 
@@ -214,6 +214,6 @@ class _InnerModel {
 
   String name;
 
-  @RelationshipAttribute.belongsTo("inner")
+  @Relationship.belongsTo("inner")
   TestModel owner;
 }

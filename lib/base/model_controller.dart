@@ -19,7 +19,7 @@ part of aqueduct;
 /// 3. If the [Request] contains a body, it will be decoded per the [acceptedContentTypes] and deserialized into the [query]'s [values] property via [readMap].
 abstract class ModelController<T extends Model> extends HttpController {
 
-  /// Create an instance of [ModelController]. By default, [context] is the [DefaultContext].
+  /// Create an instance of [ModelController]. By default, [context] is the [defaultContext].
   ModelController([ModelContext context]) : super() {
     query = new ModelQuery<T>(context: context ?? ModelContext.defaultContext);
   }

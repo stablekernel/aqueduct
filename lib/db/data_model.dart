@@ -1,19 +1,38 @@
 part of aqueduct;
 
+/// Container for [ModelEntity]s, representing [Model] objects and their properties.
+///
+/// Required for [ModelContext].
 class DataModel {
+
+  /// Creates an instance of [DataModel] from a list of types that extends [Model].
+  ///
+  /// To register a class as a model object within this, you must include its type in the list. Example:
+  ///
+  ///       new DataModel([User, Token, Posts]);
   DataModel(List<Type> modelTypes) {
     _buildEntities(modelTypes);
   }
 
-  DataModel.fromModelBundle(String modelBundlePath) {
-    // This would build the model from a series of schema files.
+  DataModel._fromModelBundle(String modelBundlePath) {
+    // This will build the model from a series of schema files.
   }
 
   Map<Type, ModelEntity> _entities = {};
   Map<Type, ModelEntity> _persistentTypeToEntityMap = {};
 
-  ModelEntity entityForType(Type t) {
-    return _entities[t] ?? _persistentTypeToEntityMap[t];
+  /// Returns a [ModelEntity] for a [Type].
+  ///
+  /// [type] may be either the instance type or persistent instance type. For example, the following model
+  /// definition, you could retrieve its entity via MyModel or _MyModel:
+  ///
+  ///         class MyModel extends Model<_MyModel> implements _MyModel {}
+  ///         class _MyModel {
+  ///           @primaryKey
+  ///           int id;
+  ///         }
+  ModelEntity entityForType(Type type) {
+    return _entities[type] ?? _persistentTypeToEntityMap[type];
   }
 
   void _buildEntities(List<Type> modelTypes) {
@@ -53,7 +72,7 @@ class DataModel {
     entity.persistentInstanceTypeMirror.declarations.forEach((sym, declMir) {
       if (declMir is VariableMirror && !declMir.isStatic) {
         var key = MirrorSystem.getName(sym);
-        bool hasRelationship = declMir.metadata.firstWhere((im) => im.type.isSubtypeOf(reflectType(RelationshipAttribute)), orElse: () => null) != null;
+        bool hasRelationship = declMir.metadata.firstWhere((im) => im.type.isSubtypeOf(reflectType(Relationship)), orElse: () => null) != null;
         if (!hasRelationship) {
           map[key] = _attributeFromVariableMirror(entity, declMir);
         }
@@ -88,8 +107,8 @@ class DataModel {
     entity.persistentInstanceTypeMirror.declarations.forEach((sym, declMir) {
       if (declMir is VariableMirror && !declMir.isStatic) {
         var key = MirrorSystem.getName(sym);
-        RelationshipAttribute relationshipAttribute = declMir.metadata
-            .firstWhere((im) => im.type.isSubtypeOf(reflectType(RelationshipAttribute)), orElse: () => null)
+        Relationship relationshipAttribute = declMir.metadata
+            .firstWhere((im) => im.type.isSubtypeOf(reflectType(Relationship)), orElse: () => null)
             ?.reflectee;
 
         if (relationshipAttribute != null) {
@@ -101,7 +120,7 @@ class DataModel {
     return map;
   }
 
-  RelationshipDescription _relationshipFromVariableMirror(ModelEntity entity, VariableMirror mirror, RelationshipAttribute relationshipAttribute) {
+  RelationshipDescription _relationshipFromVariableMirror(ModelEntity entity, VariableMirror mirror, Relationship relationshipAttribute) {
     if (mirror.metadata.firstWhere((im) => im.type.isSubtypeOf(reflectType(Attributes)), orElse: () => null) != null) {
       throw new DataModelException("Relationship ${MirrorSystem.getName(mirror.simpleName)} on ${MirrorSystem.getName(entity.persistentInstanceTypeMirror.simpleName)} must not define additional Attributes");
     }
@@ -113,8 +132,8 @@ class DataModel {
       throw new DataModelException("Relationship ${MirrorSystem.getName(mirror.simpleName)} on ${MirrorSystem.getName(entity.persistentInstanceTypeMirror.simpleName)} has no inverse (tried $inverseKey)");
     }
 
-    RelationshipAttribute inverseRelationshipProperties = destinationVariableMirror.metadata
-        .firstWhere((im) => im.type.isSubtypeOf(reflectType(RelationshipAttribute)), orElse: () => null)
+    Relationship inverseRelationshipProperties = destinationVariableMirror.metadata
+        .firstWhere((im) => im.type.isSubtypeOf(reflectType(Relationship)), orElse: () => null)
         ?.reflectee;
     if (inverseRelationshipProperties == null) {
       throw new DataModelException("Relationship ${MirrorSystem.getName(mirror.simpleName)} on ${MirrorSystem.getName(entity.persistentInstanceTypeMirror.simpleName)} inverse ($inverseKey) has no RelationshipAttribute");
@@ -175,6 +194,7 @@ class DataModel {
   }
 }
 
+/// Thrown when a [DataModel] encounters an error.
 class DataModelException implements Exception {
   DataModelException(this.message);
 

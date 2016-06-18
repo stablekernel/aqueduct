@@ -11,12 +11,12 @@ class Request implements RequestHandlerResult {
   /// If this [Request]'s [Response] has an HTTP body, the body is encoded
   /// with a function from this map of encoders. The HTTP header for Content-Type
   /// is broken into two pieces, primary type (e.g., 'application') and subtype (e.g., 'json').
-  /// The primary type is the first key in [Encoders], and then the subtype is used to return the specific encoding
+  /// The primary type is the first key in [encoders], and then the subtype is used to return the specific encoding
   /// function from this map. Encoders take any argument and return the encoded version of it based on those two values.
   /// By default, if a [Response] has no Content-Type header, 'application/json' is used. There are only two
   /// encoders available by default, 'application/json' and 'text/plain'. You may add extra encoders to this map using
-  /// [addEncoder]. Do not try and manipulate [Encoders] directlry.
-  static Map<String, Map<String, Function>> Encoders = {
+  /// [addEncoder]. Do not try and manipulate [encoders] directlry.
+  static Map<String, Map<String, Function>> encoders = {
     "application" : {
       "json" : (v) => JSON.encode(v),
     },
@@ -25,12 +25,12 @@ class Request implements RequestHandlerResult {
     }
   };
 
-  /// Adds an encoder for a content type. See [Encoders].
+  /// Adds an encoder for a content type. See [encoders].
   static void addEncoder(ContentType type, dynamic encoder(dynamic value)) {
-    var topLevel = Encoders[type.primaryType];
+    var topLevel = encoders[type.primaryType];
     if (topLevel == null) {
       topLevel = {};
-      Encoders[topLevel] = topLevel;
+      encoders[topLevel] = topLevel;
     }
 
     topLevel[type.subType] = encoder;
@@ -150,7 +150,7 @@ class Request implements RequestHandlerResult {
     }
 
     ContentType contentType = contentTypeValue;
-    var topLevel = Encoders[contentType.primaryType];
+    var topLevel = encoders[contentType.primaryType];
     if (topLevel == null) {
       throw new RequestException("No encoder for $contentTypeValue, add with ResourceRequest.addEncoder().");
     }

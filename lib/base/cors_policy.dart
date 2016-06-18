@@ -10,7 +10,7 @@ class CORSPolicy {
   /// You may modify this default policy. All instances of [CORSPolicy] are instantiated
   /// using the values of this default policy.
   ///
-  static CORSPolicy get DefaultPolicy {
+  static CORSPolicy get defaultPolicy {
     if (_defaultPolicy == null) {
       _defaultPolicy = new CORSPolicy._defaults();
     }
@@ -22,19 +22,19 @@ class CORSPolicy {
   ///
   /// These are headers that are considered acceptable as part of any CORS request. They are cache-control, content-language, content-type, expires, last-modified,
   /// pragma, accept, accept-language and origin.
-  static List<String> SimpleHeaders = ["cache-control", "content-language", "content-type", "expires", "last-modified", "pragma", "accept", "accept-language", "origin"];
+  static List<String> simpleHeaders = ["cache-control", "content-language", "content-type", "expires", "last-modified", "pragma", "accept", "accept-language", "origin"];
 
   /// Create a new instance of [CORSPolicy].
   ///
-  /// Values are set to match [DefaultPolicy].
+  /// Values are set to match [defaultPolicy].
   CORSPolicy() {
-    var defaultPolicy = DefaultPolicy;
-    allowedOrigins = defaultPolicy.allowedOrigins;
-    allowCredentials = defaultPolicy.allowCredentials;
-    exposedResponseHeaders = defaultPolicy.exposedResponseHeaders;
-    allowedMethods = defaultPolicy.allowedMethods;
-    allowedRequestHeaders = defaultPolicy.allowedRequestHeaders;
-    cacheInSeconds = defaultPolicy.cacheInSeconds;
+    var def = defaultPolicy;
+    allowedOrigins = def.allowedOrigins;
+    allowCredentials = def.allowCredentials;
+    exposedResponseHeaders = def.exposedResponseHeaders;
+    allowedMethods = def.allowedMethods;
+    allowedRequestHeaders = def.allowedRequestHeaders;
+    cacheInSeconds = def.cacheInSeconds;
   }
 
   CORSPolicy._defaults() {
@@ -69,7 +69,7 @@ class CORSPolicy {
   /// The allowed request headers.
   ///
   /// Defaults to authorization, x-requested-with, x-forwarded-for. Must be lowercase.
-  /// Use in conjunction with [SimpleHeaders].
+  /// Use in conjunction with [simpleHeaders].
   List<String> allowedRequestHeaders;
 
   /// The number of seconds to cache a pre-flight request for a requesting client.
@@ -117,7 +117,7 @@ class CORSPolicy {
 
     var requestedHeaders = request.headers.value("access-control-request-headers").split(",").map((str) => str.trim()).toList();
     if (requestedHeaders != null) {
-      var nonSimpleHeaders = requestedHeaders.where((str) => !SimpleHeaders.contains(str));
+      var nonSimpleHeaders = requestedHeaders.where((str) => !simpleHeaders.contains(str));
       if (nonSimpleHeaders.any((h) => !allowedRequestHeaders.contains(h))) {
         return false;
       }

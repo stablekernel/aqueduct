@@ -323,7 +323,7 @@ class _User {
 
   DateTime dateCreated;
 
-  @RelationshipAttribute.hasMany("owner")
+  @Relationship.hasMany("owner")
   List<Post> posts;
 }
 
@@ -334,7 +334,7 @@ class _Post {
 
   String text;
 
-  @RelationshipAttribute.belongsTo("posts")
+  @Relationship.belongsTo("posts")
   User owner;
 }
 

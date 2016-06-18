@@ -29,7 +29,7 @@ class PersistentStoreQuery {
     sortDescriptors = q.sortDescriptors;
 
     predicate = q._compilePredicate(entity.dataModel, store);
-    resultKeys = _mappingElementsForList((q.resultKeys ?? entity.defaultProperties), entity);
+    resultKeys = _mappingElementsForList((q.resultProperties ?? entity.defaultProperties), entity);
 
     resultKeys.addAll(q.subQueries.keys
         .map((subqueryKey) => _joinsForQuery(store, q, subqueryKey))
@@ -48,7 +48,7 @@ class PersistentStoreQuery {
     predicate = q._compilePredicate(entity.dataModel, store);
 
     values = _mappingElementsForMap((q.valueMap ?? q.values?.dynamicBacking), this.entity);
-    resultKeys = _mappingElementsForList((q.resultKeys ?? entity.defaultProperties), this.entity);
+    resultKeys = _mappingElementsForList((q.resultProperties ?? entity.defaultProperties), this.entity);
   }
 
   static List<MappingElement> _mappingElementsForList(List<String> keys, ModelEntity entity) {
@@ -104,7 +104,7 @@ class PersistentStoreQuery {
     var destinationEntity = relationship.destinationEntity;
     var subQuery = query.subQueries[subQueryKey];
 
-    var mappingElements = _mappingElementsForList(subQuery.resultKeys ?? destinationEntity.defaultProperties, destinationEntity);
+    var mappingElements = _mappingElementsForList(subQuery.resultProperties ?? destinationEntity.defaultProperties, destinationEntity);
     var thisJoin = new JoinMappingElement(JoinType.leftOuter, relationship, subQuery._compilePredicate(query.entity.dataModel, store), mappingElements);
 
     var subSubQueryJoins = subQuery.subQueries.keys.map((innerSubqueryKey) {

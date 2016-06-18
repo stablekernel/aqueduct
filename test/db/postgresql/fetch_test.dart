@@ -41,7 +41,7 @@ void main() {
 
     req = new Query<TestModel>()
       ..predicate = new Predicate("id = @id", {"id": item.id})
-      ..resultKeys = ["id", "name"];
+      ..resultProperties = ["id", "name"];
 
     item = await req.fetchOne();
 
@@ -177,7 +177,7 @@ void main() {
     await req.insert();
 
     req = new Query<TestModel>();
-    req.resultKeys = ["id", "badkey"];
+    req.resultProperties = ["id", "badkey"];
 
     var successful = false;
     try {
@@ -520,7 +520,7 @@ class _GenUser {
 
   String name;
 
-  @RelationshipAttribute(RelationshipType.hasMany, "owner")
+  @Relationship(RelationshipType.hasMany, "owner")
   List<GenPost> posts;
 
   static String tableName() {
@@ -535,7 +535,7 @@ class _GenPost {
 
   String text;
 
-  @RelationshipAttribute(RelationshipType.belongsTo, "posts", deleteRule: RelationshipDeleteRule.cascade, required: false)
+  @Relationship(RelationshipType.belongsTo, "posts", deleteRule: RelationshipDeleteRule.cascade, required: false)
   GenUser owner;
 }
 
