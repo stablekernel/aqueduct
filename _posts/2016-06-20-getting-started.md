@@ -65,9 +65,9 @@ The structure of `aqueduct` is like most server-side frameworks: requests go to 
 ```dart
 class QuestionController extends HTTPController {
   var questions = [
-		"How much wood can a woodchuck chuck?",
-		"What's the tallest mountain in the world?"
-	];
+    "How much wood can a woodchuck chuck?",
+    "What's the tallest mountain in the world?"
+  ];
 
   @httpGet getAllQuestions() async {
     return new Response.ok(questions);
@@ -130,7 +130,7 @@ pub run quiz
 
 In a browser, open the URL `http://localhost:8080/questions`. You'll see the list of questions! (You can shut down the server by hitting Ctrl-C in the command line.)
 
-So how did that work?
+Magic is for children - so what happened?
 ---
 
 Every Dart application starts in a `main` function. In most languages, the program will terminate once main is done executing, but Dart is not most languages. Instead, if there are any open `Stream`s still listening for events, the program will continue to run after main has finished. Therefore, main is more of a 'start' than anything else. Your `main` function creates an instance of `Application`, which opens a specific kind of `Stream`, an `HttpServer`.
@@ -222,3 +222,15 @@ Make sure you've stopped the application from running, and then run the applicat
 Now, there isn't any magic here. When a route has a path variable and a request comes in that matches that path variable, the router will add a map containing the path variable name (in this case, `index`) and the value for that path variable for the specific request. As you know, an `HTTPController` already looks at the HTTP method of an incoming request to determine which handler method to use. When the request has a path variable map added to it by the router, the `HttpController` also looks at the arguments to each of your handler methods.
 
 It then looks at the name of the argument - `getQuestionAtIndex` has an argument named `index` - and if that argument name matches the name of the path variable in `route`, it selects that method to handle the request.
+
+The More You Know: Multi-threading and Application State
+---
+In this simple exercise, we used a constant list of question as the source of data for the questions endpoint. For a simple getting-your-feet-wet demo, this is fine.
+
+However, in a real application, it is important that we don't keep any mutable state in a pipeline or any request handlers. This is for three reasons. First, it's just bad practice - web servers should be stateless. They are facilitators between a client and a repository of data, not a repository of data themselves. A repository of data is typically a database.
+
+Second, the way `aqueduct` applications are structured makes it really difficult to keep state. For example, `HTTPController` is instantiated each time a new request comes in. Any state they have is discarded after the request is finished processing. This is intentional - you won't run into an issue when scaling to multiple server instances in the future, because the code is already structured to 'statelessly' run across a number of isolates.
+
+Finally, isolates. `aqueduct` is set up to run on multiple isolates (the `numberOfInstances` argument for the `Application`'s `start` method). An isolate is effectively a thread that shares no memory with other isolates. If we were to keep track of state in some way, that state would not be reflected across all of the isolates running on this web server. So depending on which isolate grabbed a request, it may have different state than you might expect. Again, `aqueduct` forces you into this model on purpose.
+
+Isolates will spread themselves out across CPUs on the host machine. Having multiple isolates running the same stateless web server on one machine allows for faster request handling. Each isolate also maintains its own set of resources, like database connections.
