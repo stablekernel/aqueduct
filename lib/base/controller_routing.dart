@@ -3,35 +3,35 @@ part of aqueduct;
 /// 'GET' HttpMethod metadata.
 ///
 /// Handler methods on [HTTPController]s that handle GET requests must be marked with this.
-const HttpMethod httpGet = const HttpMethod("get");
+const HTTPMethod httpGet = const HTTPMethod("get");
 
 /// 'PUT' HttpMethod metadata.
 ///
 /// Handler methods on [HTTPController]s that handle PUT requests must be marked with this.
-const HttpMethod httpPut = const HttpMethod("put");
+const HTTPMethod httpPut = const HTTPMethod("put");
 
 /// 'POST' HttpMethod metadata.
 ///
 /// Handler methods on [HTTPController]s that handle POST requests must be marked with this.
-const HttpMethod httpPost = const HttpMethod("post");
+const HTTPMethod httpPost = const HTTPMethod("post");
 
 /// 'DELETE' HttpMethod metadata.
 ///
 /// Handler methods on [HTTPController]s that handle DELETE requests must be marked with this.
-const HttpMethod httpDelete = const HttpMethod("delete");
+const HTTPMethod httpDelete = const HTTPMethod("delete");
 
 /// 'PATCH' HttpMethod metadata.
 ///
 /// Handler methods on [HTTPController]s that handle PATCH requests must be marked with this.
-const HttpMethod httpPatch = const HttpMethod("patch");
+const HTTPMethod httpPatch = const HTTPMethod("patch");
 
 /// Resource controller handler method metadata for indicating the HTTP method the controller method corresponds to.
 ///
 /// Each [HTTPController] handler method for an HTTP request must be marked with an instance
-/// of [HttpMethod]. See [httpGet], [httpPut], [httpPost] and [httpDelete] for concrete examples.
-class HttpMethod {
-  /// Creates an instance of [HttpMethod] that will case-insensitively match the [String] argument of an HTTP request.
-  const HttpMethod(this.method) : this._parameters = null;
+/// of [HTTPMethod]. See [httpGet], [httpPut], [httpPost] and [httpDelete] for concrete examples.
+class HTTPMethod {
+  /// Creates an instance of [HTTPMethod] that will case-insensitively match the [String] argument of an HTTP request.
+  const HTTPMethod(this.method) : this._parameters = null;
 
   /// The method that the marked request handler method corresponds to.
   ///
@@ -40,7 +40,7 @@ class HttpMethod {
 
   final List<String> _parameters;
 
-  HttpMethod._fromMethod(HttpMethod m, List<String> parameters)
+  HTTPMethod._fromMethod(HTTPMethod m, List<String> parameters)
       : this.method = m.method,
         this._parameters = parameters;
 

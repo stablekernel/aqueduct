@@ -68,12 +68,12 @@ abstract class HTTPController extends RequestHandler {
     for (var key in decls.keys) {
       var decl = decls[key];
       if (decl is MethodMirror) {
-        var methodAttrs = decl.metadata.firstWhere((attr) => attr.reflectee is HttpMethod, orElse: () => null);
+        var methodAttrs = decl.metadata.firstWhere((attr) => attr.reflectee is HTTPMethod, orElse: () => null);
 
         if (methodAttrs != null) {
           var params = (decl as MethodMirror).parameters.where((pm) => !pm.isOptional).map((pm) => MirrorSystem.getName(pm.simpleName)).toList();
 
-          HttpMethod r = new HttpMethod._fromMethod(methodAttrs.reflectee, params);
+          HTTPMethod r = new HTTPMethod._fromMethod(methodAttrs.reflectee, params);
 
           if (r._matchesRequest(req)) {
             symbol = key;
@@ -270,7 +270,7 @@ abstract class HTTPController extends RequestHandler {
     var handlerMethodMirrors = reflect(this).type.declarations.values
         .where((dm) => dm is MethodMirror)
         .where((mm) {
-          return mm.metadata.firstWhere((im) => im.reflectee is HttpMethod, orElse: () => null) != null;
+          return mm.metadata.firstWhere((im) => im.reflectee is HTTPMethod, orElse: () => null) != null;
         });
 
     var reflectedType = reflect(this).type;
@@ -299,7 +299,7 @@ abstract class HTTPController extends RequestHandler {
         i.description = tokens.map((t) => t.lexeme.trimLeft().substring(3).trim()).join("\n");
       }
 
-      var httpMethod = mm.metadata.firstWhere((im) => im.reflectee is HttpMethod).reflectee;
+      var httpMethod = mm.metadata.firstWhere((im) => im.reflectee is HTTPMethod).reflectee;
 
       i.method = httpMethod.method;
 
