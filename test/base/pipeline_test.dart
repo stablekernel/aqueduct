@@ -23,7 +23,7 @@ class TestPipeline extends ApplicationPipeline {
         .next(new FailingController());
   }
 }
-class FailingController extends HttpController {
+class FailingController extends HTTPController {
   @httpGet get() async {
     return new Response.ok(null);
   }

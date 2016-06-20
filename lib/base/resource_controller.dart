@@ -34,7 +34,7 @@ part of aqueduct;
 ///       pagePrior (string): indicates the page value and direction of the paging. pageBy must also be set. See [QueryPage] for more information.
 ///       sortBy (string): indicates the sort order. The syntax is 'sortBy=key,order' where key is a property of [ModelType] and order is either 'asc' or 'desc'. You may specify multiple sortBy parameters.
 ///
-class ResourceController<ModelType extends Model> extends HttpController {
+class ResourceController<ModelType extends Model> extends HTTPController {
   /// Returns a route pattern for using [ResourceController]s.
   ///
   /// Returns the string "/$name/[:id]", to be used as a route pattern in a [Router] for instances of [ResourceController] and subclasses.

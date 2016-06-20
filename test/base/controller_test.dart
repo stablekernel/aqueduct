@@ -219,7 +219,7 @@ void main() {
   });
 }
 
-class FilteringController extends HttpController {
+class FilteringController extends HTTPController {
   @httpGet getAll() async {
     return new Response.ok(null);
   }
@@ -233,7 +233,7 @@ class FilteringController extends HttpController {
   }
 }
 
-class TController extends HttpController {
+class TController extends HTTPController {
   @httpGet
   Future<Response> getAll() async {
     return new Response.ok("getAll");
@@ -263,7 +263,7 @@ class TController extends HttpController {
   }
 }
 
-class QController extends HttpController {
+class QController extends HTTPController {
   @httpGet
   Future<Response> getAll({String opt: null}) async {
     if (opt == null) {
@@ -283,7 +283,7 @@ class QController extends HttpController {
   }
 }
 
-class IntController extends HttpController {
+class IntController extends HTTPController {
 
   @httpGet
   Future<Response> getOne(int id) async {
@@ -301,7 +301,7 @@ class IntController extends HttpController {
   }
 }
 
-class DateTimeController extends HttpController {
+class DateTimeController extends HTTPController {
   @httpGet
   Future<Response> getOne(DateTime time) async {
     return new Response.ok("${time.add(new Duration(seconds: 5))}");
@@ -313,20 +313,20 @@ class DateTimeController extends HttpController {
   }
 }
 
-class MultiQueryParamController extends HttpController {
+class MultiQueryParamController extends HTTPController {
   @httpGet
   Future<Response> get({List<String> params: null}) async {
     return new Response.ok(params.join(","));
   }
 }
 
-class BooleanQueryParamController extends HttpController {
+class BooleanQueryParamController extends HTTPController {
   @httpGet get({bool param: false}) async {
     return new Response.ok(param ? "true" : "false");
   }
 }
 
-class ModelEncodeController extends HttpController {
+class ModelEncodeController extends HTTPController {
   @httpGet getThings(String thing) async {
     if (thing == "list") {
       return new Response.ok([{"id" : 1}, {"id" : 2}]);

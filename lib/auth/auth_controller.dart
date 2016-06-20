@@ -1,6 +1,6 @@
 part of aqueduct;
 
-class AuthController<ResourceOwner extends Authenticatable, TokenType extends Tokenizable> extends HttpController {
+class AuthController<ResourceOwner extends Authenticatable, TokenType extends Tokenizable> extends HTTPController {
 
   /// Creates a new instance of an [AuthController].
   ///

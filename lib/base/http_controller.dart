@@ -4,12 +4,12 @@ part of aqueduct;
 ///
 /// Subclasses of this class can process and respond to an HTTP request.
 @cannotBeReused
-abstract class HttpController extends RequestHandler {
+abstract class HTTPController extends RequestHandler {
   static ContentType _applicationWWWFormURLEncodedContentType = new ContentType("application", "x-www-form-urlencoded");
 
-  /// The request being processed by this [HttpController].
+  /// The request being processed by this [HTTPController].
   ///
-  /// It is this [HttpController]'s responsibility to return a [Response] object for this request. Handler methods
+  /// It is this [HTTPController]'s responsibility to return a [Response] object for this request. Handler methods
   /// may access this request to determine how to respond to it.
   Request request;
 
@@ -20,15 +20,15 @@ abstract class HttpController extends RequestHandler {
   /// are the case-sensitive name of the path variables as defined by the [route].
   Map<String, String> get pathVariables => request.path?.variables;
 
-  /// Types of content this [HttpController] will accept.
+  /// Types of content this [HTTPController] will accept.
   ///
   /// By default, a resource controller will accept 'application/json' and 'application/x-www-form-urlencoded' requests.
-  /// If a request is sent to an instance of [HttpController] and has an HTTP request body,
-  /// but the Content-Type of the request isn't within this list, the [HttpController]
+  /// If a request is sent to an instance of [HTTPController] and has an HTTP request body,
+  /// but the Content-Type of the request isn't within this list, the [HTTPController]
   /// will automatically respond with an Unsupported Media Type response.
   List<ContentType> acceptedContentTypes = [ContentType.JSON, _applicationWWWFormURLEncodedContentType];
 
-  /// The content type of responses from this [HttpController].
+  /// The content type of responses from this [HTTPController].
   ///
   /// This type will automatically be written to this response's
   /// HTTP header. Defaults to "application/json". This value determines how the body data returned from this controller

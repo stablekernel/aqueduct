@@ -41,7 +41,7 @@ class RequestHandler implements APIDocumentable {
   /// to allow chaining. This parameter may be an instance of [RequestHandler] or a
   /// function that takes no arguments and returns a [RequestHandler]. In the latter instance,
   /// a new instance of the returned [RequestHandler] is created for each request. Otherwise,
-  /// the same instance is used for each request. All [HttpController]s and subclasses should
+  /// the same instance is used for each request. All [HTTPController]s and subclasses should
   /// be wrapped in a function that returns a new instance of the controller.
   RequestHandler next(dynamic n) {
     if (n is Function) {

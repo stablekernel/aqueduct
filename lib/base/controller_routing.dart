@@ -2,32 +2,32 @@ part of aqueduct;
 
 /// 'GET' HttpMethod metadata.
 ///
-/// Handler methods on [HttpController]s that handle GET requests must be marked with this.
+/// Handler methods on [HTTPController]s that handle GET requests must be marked with this.
 const HttpMethod httpGet = const HttpMethod("get");
 
 /// 'PUT' HttpMethod metadata.
 ///
-/// Handler methods on [HttpController]s that handle PUT requests must be marked with this.
+/// Handler methods on [HTTPController]s that handle PUT requests must be marked with this.
 const HttpMethod httpPut = const HttpMethod("put");
 
 /// 'POST' HttpMethod metadata.
 ///
-/// Handler methods on [HttpController]s that handle POST requests must be marked with this.
+/// Handler methods on [HTTPController]s that handle POST requests must be marked with this.
 const HttpMethod httpPost = const HttpMethod("post");
 
 /// 'DELETE' HttpMethod metadata.
 ///
-/// Handler methods on [HttpController]s that handle DELETE requests must be marked with this.
+/// Handler methods on [HTTPController]s that handle DELETE requests must be marked with this.
 const HttpMethod httpDelete = const HttpMethod("delete");
 
 /// 'PATCH' HttpMethod metadata.
 ///
-/// Handler methods on [HttpController]s that handle PATCH requests must be marked with this.
+/// Handler methods on [HTTPController]s that handle PATCH requests must be marked with this.
 const HttpMethod httpPatch = const HttpMethod("patch");
 
 /// Resource controller handler method metadata for indicating the HTTP method the controller method corresponds to.
 ///
-/// Each [HttpController] handler method for an HTTP request must be marked with an instance
+/// Each [HTTPController] handler method for an HTTP request must be marked with an instance
 /// of [HttpMethod]. See [httpGet], [httpPut], [httpPost] and [httpDelete] for concrete examples.
 class HttpMethod {
   /// Creates an instance of [HttpMethod] that will case-insensitively match the [String] argument of an HTTP request.

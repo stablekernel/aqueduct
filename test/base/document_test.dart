@@ -40,7 +40,7 @@ class TPipeline extends ApplicationPipeline {
 ///
 /// Documentation
 ///
-class TController extends HttpController {
+class TController extends HTTPController {
   /// ABCD
   /// EFGH
   /// IJKL

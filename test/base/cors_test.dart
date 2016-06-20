@@ -287,7 +287,7 @@ class TokenImpl implements Tokenizable {
   String clientID;
 }
 
-class NoPolicyController extends HttpController {
+class NoPolicyController extends HTTPController {
   NoPolicyController() {
     policy = null;
   }
@@ -302,7 +302,7 @@ class NoPolicyController extends HttpController {
   }
 }
 
-class DefaultPolicyController extends HttpController {
+class DefaultPolicyController extends HTTPController {
   @httpGet getAll() async {
     return new Response.ok("getAll");
   }

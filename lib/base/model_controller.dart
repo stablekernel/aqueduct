@@ -1,9 +1,9 @@
 part of aqueduct;
 
-/// A partial class for implementing an [HttpController] that has a few conveniences
+/// A partial class for implementing an [HTTPController] that has a few conveniences
 /// for handling [Model] objects.
 ///
-/// Intended to be subclassed. Instances of [ModelController] are [HttpController]s whose
+/// Intended to be subclassed. Instances of [ModelController] are [HTTPController]s whose
 /// type argument indicates the type of [Model] object they are responsible for executing [Query]s
 /// on. [ModelController]s expose a [query] property that is pre-populated with data from the incoming [Request].
 ///
@@ -17,7 +17,7 @@ part of aqueduct;
 ///         query = new ModelQuery<User>()..userID = whereEqualTo(req.path["id"]);
 ///
 /// 3. If the [Request] contains a body, it will be decoded per the [acceptedContentTypes] and deserialized into the [query]'s [values] property via [readMap].
-abstract class ModelController<T extends Model> extends HttpController {
+abstract class ModelController<T extends Model> extends HTTPController {
 
   /// Create an instance of [ModelController]. By default, [context] is the [defaultContext].
   ModelController([ModelContext context]) : super() {
