@@ -2,7 +2,7 @@ part of aqueduct;
 
 /// A storage-agnostic authenticating mechanism.
 ///
-/// Instances of this type will work with a [AuthenticationServerDelegate] to
+/// Instances of this type will work with a [AuthenticationServerDelegate] to faciliate authentication.
 class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType extends Tokenizable> {
   /// Creates a new instance of an [AuthenticationServer] with a [delegate].
   AuthenticationServer(this.delegate);
