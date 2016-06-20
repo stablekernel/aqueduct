@@ -1,18 +1,34 @@
 part of aqueduct;
 
+/// Instances are responsible for coordinate with a [DataModel] and [PersistentStore] to execute queries and
+/// translate between [Model] objects and a database.
+///
+/// A [Query] must have a valid [ModelContext] to execute.
 class ModelContext {
+  /// The default context that all [Query]s run on.
+  ///
+  /// By default, this will be the first [ModelContext] instantiated in an isolate. Most applications
+  /// will not use more than one [ModelContext]. For the purpose of testing, you should set
+  /// this value each time you instantiate a [ModelContext] to ensure that a previous test isolate
+  /// state does not set this property.
   static ModelContext defaultContext = null;
 
+  /// Creates an instance of [ModelContext] from a [DataModel] and [PersistentStore].
+  ///
+  /// If this is the first [ModelContext] instantiated on an isolate, this instance will because the [defaultContext].
   ModelContext(this.dataModel, this.persistentStore) {
     if (defaultContext == null) {
       defaultContext = this;
     }
   }
 
+  /// The persistent store that [Query]s on this context are executed on.
   PersistentStore persistentStore;
+
+  /// The data model containing the [ModelEntity]s for all types that are managed by this context.
   DataModel dataModel;
 
-  Future<Model> executeInsertQuery(Query query) async {
+  Future<Model> _executeInsertQuery(Query query) async {
     var entity = dataModel.entityForType(query.modelType);
     var psq = new PersistentStoreQuery(entity, persistentStore, query);
     var results = await persistentStore.executeInsertQuery(psq);
@@ -20,7 +36,7 @@ class ModelContext {
     return entity.instanceFromMappingElements(results);
   }
 
-  Future<List<Model>> executeFetchQuery(Query query) async {
+  Future<List<Model>> _executeFetchQuery(Query query) async {
     var entity = dataModel.entityForType(query.modelType);
     var psq = new PersistentStoreQuery(entity, persistentStore, query);
     var results = await persistentStore.executeFetchQuery(psq);
@@ -28,7 +44,7 @@ class ModelContext {
     return _coalesceAndMapRows(results, entity);
   }
 
-  Future<List<Model>> executeUpdateQuery(Query query) async {
+  Future<List<Model>> _executeUpdateQuery(Query query) async {
     var entity = dataModel.entityForType(query.modelType);
     var psq = new PersistentStoreQuery(entity, persistentStore, query);
     var results = await persistentStore.executeUpdateQuery(psq);
@@ -38,7 +54,7 @@ class ModelContext {
     }).toList();
   }
 
-  Future<int> executeDeleteQuery(Query query) async {
+  Future<int> _executeDeleteQuery(Query query) async {
     return await persistentStore.executeDeleteQuery(new PersistentStoreQuery(dataModel.entityForType(query.modelType), persistentStore, query));
   }
 

@@ -1,7 +1,7 @@
 part of aqueduct;
 
 
-/// Possible values for a delete rule in a [RelationshipAttribute]
+/// Possible values for a delete rule in a [Relationship]
 ///
 /// * [restrict] will prevent a delete operation if there is a reference to the would-be deleted object.
 /// * [cascade] will delete all objects with references to this relationship.
@@ -29,7 +29,7 @@ enum RelationshipType {
 /// An annotation for a Model property to indicate the values are instances of one or more Models.
 ///
 /// To be used as metadata on a property declaration in model entity class.
-class RelationshipAttribute {
+class Relationship {
   /// The type of relationship.
   ///
   /// If the type is [hasOne] or [hasMany], the inverse relationship must be [belongsTo]. Likewise, a [belongsTo] relationship must have a [hasOne] or [hasMany]
@@ -59,31 +59,33 @@ class RelationshipAttribute {
   /// Constructor for relationship to be used as metadata for a model property.
   ///
   /// [type] and [inverseName] are required. All Relationships must have an inverse in the corresponding model.
-  const RelationshipAttribute(RelationshipType type, String inverseKey, {RelationshipDeleteRule deleteRule: RelationshipDeleteRule.nullify, bool required: false})
+  const Relationship(RelationshipType type, String inverseKey, {RelationshipDeleteRule deleteRule: RelationshipDeleteRule.nullify, bool required: false})
       : this.type = type,
         this.inverseKey = inverseKey,
         this.deleteRule = deleteRule,
         this._isRequired = required;
 
-  const RelationshipAttribute.hasMany(String inverseKey) :
+  const Relationship.hasMany(String inverseKey) :
         this.type = RelationshipType.hasMany,
         this.inverseKey = inverseKey,
         this.deleteRule = RelationshipDeleteRule.nullify,
         this._isRequired = false;
 
-  const RelationshipAttribute.hasOne(String inverseKey) :
+  const Relationship.hasOne(String inverseKey) :
         this.type = RelationshipType.hasOne,
         this.inverseKey = inverseKey,
         this.deleteRule = RelationshipDeleteRule.nullify,
         this._isRequired = false;
 
-  const RelationshipAttribute.belongsTo(String inverseKey, {RelationshipDeleteRule deleteRule: RelationshipDeleteRule.nullify, bool required: false}) :
+  const Relationship.belongsTo(String inverseKey, {RelationshipDeleteRule deleteRule: RelationshipDeleteRule.nullify, bool required: false}) :
         this.type = RelationshipType.belongsTo,
         this.inverseKey = inverseKey,
         this.deleteRule = deleteRule,
         this._isRequired = required;
 }
 
+/// Marks a property as a primary key, database type big integer, and autoincrementing. The corresponding property
+/// type must be [int].
 const Attributes primaryKey = const Attributes(primaryKey: true, databaseType: PropertyType.bigInteger, autoincrement: true);
 
 /// A declaration annotation for the options on a property in a entity class.
@@ -128,7 +130,7 @@ class Attributes {
   /// Whether or not fetching an instance of this type should include this property.
   ///
   /// By default, all properties on a Model are returned if not specified (unless they are to-many relationship properties).
-  /// This flag will remove the associated property from the result set unless it is explicitly specified by [resultKeys].
+  /// This flag will remove the associated property from the result set unless it is explicitly specified by [resultProperties].
   final bool shouldOmitByDefault;
 
   /// Indicate to the underlying database to use a serial counter when inserted an instance.
@@ -168,13 +170,16 @@ class Attributes {
         this.autoincrement = source.autoincrement;
 }
 
+/// Metadata for a instance type property that indicates it can be used in [readMap] and [asMap], but is not persisted.
 const Mappable mappable = const Mappable(availableAsInput: true, availableAsOutput: true);
+
+/// Metadata for a instance type property that indicates it can be used in [readMap], but is not persisted.
 const Mappable mappableInput = const Mappable(availableAsInput: true, availableAsOutput: false);
+
+/// Metadata for a instance type property that indicates it can be used in [asMap], but is not persisted.
 const Mappable mappableOutput = const Mappable(availableAsInput: false, availableAsOutput: true);
 
 /// Metadata to associate with a property to indicate it is not a column, but is part of the Model object.
-///
-///
 class Mappable {
   final bool isAvailableAsInput;
   final bool isAvailableAsOutput;

@@ -123,7 +123,7 @@ void main() {
 
     var insertReq = new Query<TestModel>()
       ..valueMap = {"id": 20, "name": "Bob"}
-      ..resultKeys = ["id", "name"];
+      ..resultProperties = ["id", "name"];
 
     var value = await insertReq.insert();
     expect(value.id, 20);
@@ -132,7 +132,7 @@ void main() {
 
     insertReq = new Query<TestModel>()
       ..valueMap = {"id": 21, "name": "Bob"}
-      ..resultKeys = ["id", "name", "emailAddress"];
+      ..resultProperties = ["id", "name", "emailAddress"];
 
     value = await insertReq.insert();
     expect(value.id, 21);
@@ -231,7 +231,7 @@ class _GenUser {
   int id;
   String name;
 
-  @RelationshipAttribute(RelationshipType.hasMany, "owner")
+  @Relationship(RelationshipType.hasMany, "owner")
   List<GenPost> posts;
 }
 
@@ -241,7 +241,7 @@ class _GenPost {
   int id;
   String text;
 
-  @RelationshipAttribute(RelationshipType.belongsTo, "posts")
+  @Relationship(RelationshipType.belongsTo, "posts")
   GenUser owner;
 }
 

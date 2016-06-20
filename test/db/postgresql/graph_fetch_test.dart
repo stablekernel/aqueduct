@@ -343,10 +343,10 @@ void main() {
 
     test("Can fetch graph when omitting foreign or primary keys from query", () async {
       var q = new UserQuery()
-        ..resultKeys = ["name"]
+        ..resultProperties = ["name"]
         ..locations = [
           new LocationQuery()
-            ..resultKeys = ["name"]
+            ..resultProperties = ["name"]
         ];
 
       var users = await q.fetch();
@@ -479,7 +479,7 @@ class _User {
 
   String name;
 
-  @RelationshipAttribute.hasMany("user")
+  @Relationship.hasMany("user")
   List<Location> locations;
 }
 
@@ -529,10 +529,10 @@ class _Location {
 
   String name;
 
-  @RelationshipAttribute.belongsTo("locations", deleteRule: RelationshipDeleteRule.cascade)
+  @Relationship.belongsTo("locations", deleteRule: RelationshipDeleteRule.cascade)
   User user;
 
-  @RelationshipAttribute.hasMany("location")
+  @Relationship.hasMany("location")
   List<Equipment> equipment;
 }
 
@@ -564,7 +564,7 @@ class _Equipment {
   String name;
   String type;
 
-  @RelationshipAttribute.belongsTo("equipment", deleteRule: RelationshipDeleteRule.cascade)
+  @Relationship.belongsTo("equipment", deleteRule: RelationshipDeleteRule.cascade)
   Location location;
 }
 
@@ -575,7 +575,7 @@ class _Owner {
   int id;
   String name;
 
-  @RelationshipAttribute.hasOne("owner")
+  @Relationship.hasOne("owner")
   Owned owned;
 }
 
@@ -586,6 +586,6 @@ class _Owned {
   int id;
   String name;
 
-  @RelationshipAttribute.belongsTo("owned")
+  @Relationship.belongsTo("owned")
   Owner owner;
 }

@@ -2,20 +2,25 @@ part of aqueduct;
 
 /// A database row represented as an object.
 ///
-/// Provides dynamic backing, serialization and deserialization capabilities.
+/// Provides storage, serialization and deserialization capabilities.
 /// Model types in an application extend Model<T>, where the Model type must also implement T. T holds properties
-/// that are persisted in a database. Any properties in the Model type are not persisted, except those they inherit from T.
+/// that are persisted in a database. T in the context is called the 'persistent instance type'. The subclass of Model<T>
+/// is known as the 'instance type'. Any properties in the instance type are not persisted, except those they inherit from T.
 /// Model instances are used in an application. Example:
 ///
 /// class User extends Model<_User> implements _User {
 ///   String name; // Not persisted
 /// }
 /// class _User {
+///   @primaryKey
 ///   int id; // persisted
 /// }
 ///
 class Model<T> implements Serializable {
+  /// The [ModelContext] this instance belongs to.
   ModelContext context = ModelContext.defaultContext;
+
+  /// The [ModelEntity] this instance is described by.
   ModelEntity get entity => context.dataModel.entityForType(T);
 
   /// Applied to each value when a Model is executing [readFromMap].
@@ -44,6 +49,7 @@ class Model<T> implements Serializable {
   /// A value (including null) in [dynamicBacking] for a key means the property has been set on model instance.
   Map<String, dynamic> dynamicBacking = {};
 
+  /// Retrieves a value by property name.
   dynamic operator [](String propertyName) {
     if (entity.properties[propertyName] == null) {
       throw new DataModelException("Model type ${MirrorSystem.getName(reflect(this).type.simpleName)} has no property $propertyName.");
@@ -56,6 +62,7 @@ class Model<T> implements Serializable {
     return dynamicBacking[propertyName];
   }
 
+  /// Sets a value by property name.
   void operator []=(String propertyName, dynamic value) {
     var property = entity.properties[propertyName];
     if (property == null) {

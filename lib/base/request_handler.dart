@@ -41,7 +41,7 @@ class RequestHandler implements APIDocumentable {
   /// to allow chaining. This parameter may be an instance of [RequestHandler] or a
   /// function that takes no arguments and returns a [RequestHandler]. In the latter instance,
   /// a new instance of the returned [RequestHandler] is created for each request. Otherwise,
-  /// the same instance is used for each request. All [HttpController]s and subclasses should
+  /// the same instance is used for each request. All [HTTPController]s and subclasses should
   /// be wrapped in a function that returns a new instance of the controller.
   RequestHandler next(dynamic n) {
     if (n is Function) {
@@ -49,7 +49,7 @@ class RequestHandler implements APIDocumentable {
     } else {
       var typeMirror = reflect(n).type;
       if (_requestHandlerTypeRequiresInstantion(typeMirror)) {
-        throw new IsolateSupervisorException("RequestHandler ${typeMirror.reflectedType} instances cannot be reused. Rewrite as .then(() => new ${typeMirror.reflectedType}())");
+        throw new IsolateSupervisorException("RequestHandler ${typeMirror.reflectedType} instances cannot be reused. Rewrite as .next(() => new ${typeMirror.reflectedType}())");
       }
     }
     this.nextHandler = n;
@@ -84,7 +84,7 @@ class RequestHandler implements APIDocumentable {
   /// as this method does the heavy-lifting for handling CORS requests.
   Future deliver(Request req) async {
     try {
-      if (isPreflightRequest(req)) {
+      if (isCORSRequest(req) && isPreflightRequest(req)) {
         var handlerToDictatePolicy = _lastRequestHandler();
         if (handlerToDictatePolicy != this) {
           handlerToDictatePolicy.deliver(req);
@@ -96,13 +96,8 @@ class RequestHandler implements APIDocumentable {
             req.respond(new Response.forbidden());
             logger.info(req.toDebugString(includeHeaders: true));
           } else {
-            // If we are the last on the chain, we can OK the preflight request, otherwise, we let the next handler deal with it.
-            if (nextHandler == null) {
-              req.respond(policy.preflightResponse(req));
-              logger.info(req.toDebugString());
-            } else {
-              nextHandler.deliver(req);
-            }
+            req.respond(policy.preflightResponse(req));
+            logger.info(req.toDebugString());
           }
           return;
         }
@@ -118,7 +113,7 @@ class RequestHandler implements APIDocumentable {
         req.respond(result as Response);
         logger.info(req.toDebugString());
       }
-    } on HttpResponseException catch (err) {
+    } on HTTPResponseException catch (err) {
       var response = err.response();
       _applyCORSHeadersIfNecessary(req, response);
       req.respond(response);
@@ -159,7 +154,9 @@ class RequestHandler implements APIDocumentable {
       var lastPolicyHandler = _lastRequestHandler();
       var p = lastPolicyHandler.policy;
       if (p != null) {
-        resp.headers.addAll(p.headersForRequest(req));
+        if (p.isRequestOriginAllowed(req.innerRequest)) {
+          resp.headers.addAll(p.headersForRequest(req));
+        }
       }
     }
   }
@@ -169,10 +166,7 @@ class RequestHandler implements APIDocumentable {
   }
 
   bool isPreflightRequest(Request req) {
-    if (req.innerRequest.headers.value("origin") != null) {
-      return req.innerRequest.method == "OPTIONS";
-    }
-    return false;
+    return req.innerRequest.method == "OPTIONS" && req.innerRequest.headers.value("access-control-request-method") != null;
   }
 
   List<APIDocumentItem> document(PackagePathResolver resolver) {

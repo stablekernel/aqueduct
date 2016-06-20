@@ -124,7 +124,7 @@ class _GenUser {
 
   String name;
 
-  @RelationshipAttribute(RelationshipType.hasMany, "owner")
+  @Relationship(RelationshipType.hasMany, "owner")
   List<GenPost> posts;
 }
 
@@ -135,7 +135,7 @@ class _GenPost {
 
   String text;
 
-  @RelationshipAttribute(RelationshipType.belongsTo, "posts", required: false, deleteRule: RelationshipDeleteRule.restrict)
+  @Relationship(RelationshipType.belongsTo, "posts", required: false, deleteRule: RelationshipDeleteRule.restrict)
   GenUser owner;
 }
 
@@ -155,7 +155,7 @@ class _GenOwner {
   @primaryKey
   int id;
 
-  @RelationshipAttribute(RelationshipType.hasOne, "owner")
+  @Relationship(RelationshipType.hasOne, "owner")
   GenAuth auth;
 }
 
@@ -164,7 +164,7 @@ class _GenAuth {
   @Attributes(primaryKey: true)
   int id;
 
-  @RelationshipAttribute(RelationshipType.belongsTo, "auth", required: false, deleteRule: RelationshipDeleteRule.cascade)
+  @Relationship(RelationshipType.belongsTo, "auth", required: false, deleteRule: RelationshipDeleteRule.cascade)
   GenOwner owner;
 }
 
@@ -174,7 +174,7 @@ class _GenLeft {
   @Attributes(primaryKey: true)
   int id;
 
-  @RelationshipAttribute(RelationshipType.hasMany, "left")
+  @Relationship(RelationshipType.hasMany, "left")
   List<GenJoin> join;
 }
 
@@ -184,7 +184,7 @@ class _GenRight {
   @Attributes(primaryKey: true)
   int id;
 
-  @RelationshipAttribute(RelationshipType.hasMany, "right")
+  @Relationship(RelationshipType.hasMany, "right")
   List<GenJoin> join;
 }
 
@@ -193,10 +193,10 @@ class _GenJoin {
   @primaryKey
   int id;
 
-  @RelationshipAttribute(RelationshipType.belongsTo, "join")
+  @Relationship(RelationshipType.belongsTo, "join")
   GenLeft left;
 
-  @RelationshipAttribute(RelationshipType.belongsTo, "join")
+  @Relationship(RelationshipType.belongsTo, "join")
   GenRight right;
 }
 
@@ -205,7 +205,7 @@ class _GenObj {
   @primaryKey
   int id;
 
-  @RelationshipAttribute(RelationshipType.hasOne, "ref")
+  @Relationship(RelationshipType.hasOne, "ref")
   GenNotNullable gen;
 }
 
@@ -214,6 +214,6 @@ class _GenNotNullable {
   @primaryKey
   int id;
 
-  @RelationshipAttribute(RelationshipType.belongsTo, "gen", deleteRule: RelationshipDeleteRule.nullify, required: false)
+  @Relationship(RelationshipType.belongsTo, "gen", deleteRule: RelationshipDeleteRule.nullify, required: false)
   GenObj ref;
 }

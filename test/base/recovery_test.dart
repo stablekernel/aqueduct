@@ -90,7 +90,7 @@ class Pipeline extends ApplicationPipeline {
   }
 }
 
-class UncaughtCrashController extends HttpController {
+class UncaughtCrashController extends HTTPController {
   @httpGet crashUncaught() async {
     new Future(() {
       var x = null;

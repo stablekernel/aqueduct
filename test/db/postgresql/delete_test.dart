@@ -102,7 +102,7 @@ void main() {
     var count = await req.delete();
     expect(count, 1);
 
-    req = new Query<RefModel>()..resultKeys = ["id", "test"];
+    req = new Query<RefModel>()..resultProperties = ["id", "test"];
     refObj = await req.fetchOne();
     expect(refObj.test, null);
   });
@@ -161,7 +161,7 @@ class _TestModel {
   @Attributes(nullable: true, unique: true)
   String email;
 
-  @RelationshipAttribute(RelationshipType.hasMany, "test")
+  @Relationship(RelationshipType.hasMany, "test")
   RefModel ref;
 
   static String tableName() {
@@ -178,7 +178,7 @@ class _RefModel {
   @primaryKey
   int id;
 
-  @RelationshipAttribute(RelationshipType.belongsTo, "ref", required: false, deleteRule: RelationshipDeleteRule.nullify)
+  @Relationship(RelationshipType.belongsTo, "ref", required: false, deleteRule: RelationshipDeleteRule.nullify)
   TestModel test;
 }
 
@@ -189,7 +189,7 @@ class _GRestrictInverse {
 
   String name;
 
-  @RelationshipAttribute(RelationshipType.hasMany, "test")
+  @Relationship(RelationshipType.hasMany, "test")
   GRestrict test;
 }
 
@@ -199,7 +199,7 @@ class _GRestrict {
   @primaryKey
   int id;
 
-  @RelationshipAttribute(RelationshipType.belongsTo, "test", required: false, deleteRule: RelationshipDeleteRule.restrict)
+  @Relationship(RelationshipType.belongsTo, "test", required: false, deleteRule: RelationshipDeleteRule.restrict)
   GRestrictInverse test;
 }
 
@@ -211,7 +211,7 @@ class _GCascadeInverse {
 
   String name;
 
-  @RelationshipAttribute(RelationshipType.hasMany, "test")
+  @Relationship(RelationshipType.hasMany, "test")
   GCascade test;
 }
 
@@ -221,6 +221,6 @@ class _GCascade {
   @primaryKey
   int id;
 
-  @RelationshipAttribute(RelationshipType.belongsTo, "test", required: false, deleteRule: RelationshipDeleteRule.cascade)
+  @Relationship(RelationshipType.belongsTo, "test", required: false, deleteRule: RelationshipDeleteRule.cascade)
   GCascadeInverse test;
 }

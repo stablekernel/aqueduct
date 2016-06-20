@@ -8,7 +8,7 @@ void main() {
       await app.start();
       expect(true, false);
     } on IsolateSupervisorException catch (e) {
-      expect(e.message, "RequestHandler FailingController instances cannot be reused. Rewrite as .then(() => new FailingController())");
+      expect(e.message, "RequestHandler FailingController instances cannot be reused. Rewrite as .next(() => new FailingController())");
     }
   });
 }
@@ -23,7 +23,7 @@ class TestPipeline extends ApplicationPipeline {
         .next(new FailingController());
   }
 }
-class FailingController extends HttpController {
+class FailingController extends HTTPController {
   @httpGet get() async {
     return new Response.ok(null);
   }

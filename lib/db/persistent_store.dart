@@ -1,5 +1,8 @@
 part of aqueduct;
 
+/// An interface for implementing persistent storage.
+///
+/// Implementors of this class serve as the bridge between [Query]s and a specific database.
 abstract class PersistentStore {
   /// Executes an arbitrary command.
   Future execute(String sql);

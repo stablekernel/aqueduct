@@ -1,20 +1,34 @@
 part of aqueduct;
 
+/// Represents the supervision of a [_IsolateServer].
+///
+/// You should not use this class directly.
 class IsolateSupervisor {
   static String _MessageStop = "_MessageStop";
 
+  /// Create an isntance of [IsolateSupervisor].
+  IsolateSupervisor(this.supervisingApplication, this.isolate, this.receivePort, this.identifier, this.logger);
+
+  /// The [Isolate] being supervised.
   final Isolate isolate;
+
+  /// The [ReceivePort] for which messages coming from [isolate] will be received.
   final ReceivePort receivePort;
+
+  /// A numeric identifier for the isolate relative to the [Application].
   final int identifier;
 
+  /// A reference to the owning [Application]
   Application supervisingApplication;
-  SendPort _serverSendPort;
+
+  /// A reference to the [Logger] used by the [supervisingApplication].
   Logger logger;
+
+  SendPort _serverSendPort;
   Completer _launchCompleter;
   Completer _stopCompleter;
 
-  IsolateSupervisor(this.supervisingApplication, this.isolate, this.receivePort, this.identifier, this.logger);
-
+  /// Resumes the [Isolate] being supervised.
   Future resume() {
     _launchCompleter = new Completer();
     receivePort.listen(listener);
@@ -25,6 +39,7 @@ class IsolateSupervisor {
     return _launchCompleter.future.timeout(new Duration(seconds: 30));
   }
 
+  /// Stops the [Isolate] being supervised.
   Future stop() async {
     _stopCompleter = new Completer();
     _serverSendPort.send(_MessageStop);
@@ -34,7 +49,6 @@ class IsolateSupervisor {
   }
 
   void listener(dynamic message) {
-
     if (message is SendPort) {
       _launchCompleter.complete();
       _launchCompleter = null;
@@ -59,12 +73,13 @@ class IsolateSupervisor {
       supervisingApplication.isolateDidExitWithError(this, errorMessage, new StackTrace.fromString(stackTrace));
     });
   }
-
 }
 
+/// An exception originating from an [Isolate] within an [Application].
 class IsolateSupervisorException implements Exception {
-  final String message;
   IsolateSupervisorException(this.message);
+
+  final String message;
 
   String toString() {
     return "$message";

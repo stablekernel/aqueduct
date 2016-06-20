@@ -80,11 +80,11 @@ class Query<ModelType extends Model> {
 
   /// A list of properties to be returned by the Query.
   ///
-  /// By default, [resultKeys] is null and therefore all objects returned will contain all properties
+  /// By default, [resultProperties] is null and therefore all objects returned will contain all properties
   /// of the object. (Unless those properties are marked as hasOne or hasMany relationships.) Specifying
   /// an explicit list of keys will return only those properties. Keys must match the names of the properties
   /// in of [modelType].
-  List<String> resultKeys;
+  List<String> resultProperties;
 
   /// Inserts the data represented by this Query into the database represented by [context] (defaults to [ModelContext.defaultContext]).
   ///
@@ -97,7 +97,7 @@ class Query<ModelType extends Model> {
   ///       var newUser = await q.insert();
   ///
   Future<ModelType> insert() async {
-    return await context.executeInsertQuery(this);
+    return await context._executeInsertQuery(this);
   }
 
   /// Updates rows in the database represented by [context] (defaults to [ModelContext.defaultContext]).
@@ -112,7 +112,7 @@ class Query<ModelType extends Model> {
   ///       q.values = existingUser;
   ///       var updatedUsers = await q.update();
   Future<List<ModelType>> update() async {
-    return await context.executeUpdateQuery(this);
+    return await context._executeUpdateQuery(this);
   }
 
   /// Updates a row in the database represented by [context] (defaults to [ModelContext.defaultContext]).
@@ -127,7 +127,7 @@ class Query<ModelType extends Model> {
   ///       q.values = existingUser;
   ///       var updatedUsers = await q.update();
   Future<ModelType> updateOne() async {
-    var results = await context.executeUpdateQuery(this);
+    var results = await context._executeUpdateQuery(this);
     if (results.length == 1) {
       return results.first;
     } else if (results.length == 0) {
@@ -146,7 +146,7 @@ class Query<ModelType extends Model> {
   ///       var allUsers = q.fetch();
   ///
   Future<List<ModelType>> fetch() async {
-    return await context.executeFetchQuery(this);
+    return await context._executeFetchQuery(this);
   }
 
   /// Fetches a single object from the database represented by [context] (defaults to [ModelContext.defaultContext]).
@@ -161,7 +161,7 @@ class Query<ModelType extends Model> {
   Future<ModelType> fetchOne() async {
     fetchLimit = 1;
 
-    var results = await context.executeFetchQuery(this);
+    var results = await context._executeFetchQuery(this);
     if (results.length == 1) {
       return results.first;
     }
@@ -179,7 +179,7 @@ class Query<ModelType extends Model> {
   ///       var deleted = await q.delete();
   ///
   Future<int> delete() async {
-    return await context.executeDeleteQuery(this); // or null
+    return await context._executeDeleteQuery(this); // or null
   }
 
   Predicate _compilePredicate(DataModel dataModel, PersistentStore) {
@@ -190,7 +190,7 @@ class Query<ModelType extends Model> {
 /// An exception describing an issue with a query.
 ///
 /// A suggested HTTP status code based on the type of exception will always be available.
-class QueryException extends HttpResponseException {
+class QueryException extends HTTPResponseException {
 
   /// An error code defined by the implementing adapter.
   final int errorCode;

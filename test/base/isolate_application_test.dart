@@ -177,14 +177,14 @@ class TPipeline extends ApplicationPipeline {
   }
 }
 
-class TController extends HttpController {
+class TController extends HTTPController {
   @httpGet
   Future<Response> getAll() async {
     return new Response.ok("t_ok");
   }
 }
 
-class RController extends HttpController {
+class RController extends HTTPController {
   @httpGet
   Future<Response> getAll() async {
     return new Response.ok("r_ok");

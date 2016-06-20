@@ -134,12 +134,13 @@ void main() {
       req.headers.add("Access-Control-Request-Method", "POST");
       req.headers.add("Access-Control-Request-Headers", "authorization,x-requested-with");
       req.headers.add("Accept", "*/*");
+
       var resp = await req.close();
       expect(resp.statusCode, 200);
       expect(resp.contentLength, 0);
       expect(resp.headers.value("access-control-allow-origin"), "http://localhost");
       expect(resp.headers.value("access-control-allow-methods"), "POST, PUT, DELETE, GET");
-      expect(resp.headers.value("access-control-allow-headers"), "authorization, x-requested-with, content-type, accept");
+      expect(resp.headers.value("access-control-allow-headers"), "authorization, x-requested-with, x-forwarded-for");
     });
 
     /////////
@@ -171,7 +172,7 @@ void main() {
       expect(resp.contentLength, 0);
       expect(resp.headers.value("access-control-allow-origin"), "http://localhost");
       expect(resp.headers.value("access-control-allow-methods"), "POST, PUT, DELETE, GET");
-      expect(resp.headers.value("access-control-allow-headers"), "authorization, x-requested-with, content-type, accept");
+      expect(resp.headers.value("access-control-allow-headers"), "authorization, x-requested-with, x-forwarded-for");
     });
 
     test("Normal request + Auth (Failure)", () async {
@@ -286,7 +287,7 @@ class TokenImpl implements Tokenizable {
   String clientID;
 }
 
-class NoPolicyController extends HttpController {
+class NoPolicyController extends HTTPController {
   NoPolicyController() {
     policy = null;
   }
@@ -296,17 +297,17 @@ class NoPolicyController extends HttpController {
   }
 
   @httpPost throwException() async {
-    throw new HttpResponseException(400, "Foobar");
+    throw new HTTPResponseException(400, "Foobar");
     return new Response.ok(null);
   }
 }
 
-class DefaultPolicyController extends HttpController {
+class DefaultPolicyController extends HTTPController {
   @httpGet getAll() async {
     return new Response.ok("getAll");
   }
   @httpPost throwException() async {
-    throw new HttpResponseException(400, "Foobar");
+    throw new HTTPResponseException(400, "Foobar");
     return new Response.ok(null);
   }
 }

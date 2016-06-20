@@ -25,7 +25,7 @@ Future main() async {
   });
 }
 
-class TestController extends HttpController {
+class TestController extends HTTPController {
   @httpGet get() async {
     return new Response.ok([{"id" : 1}, {"id" : 2}]);
   }
