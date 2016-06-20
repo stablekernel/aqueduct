@@ -113,7 +113,7 @@ class RequestHandler implements APIDocumentable {
         req.respond(result as Response);
         logger.info(req.toDebugString());
       }
-    } on HttpResponseException catch (err) {
+    } on HTTPResponseException catch (err) {
       var response = err.response();
       _applyCORSHeadersIfNecessary(req, response);
       req.respond(response);

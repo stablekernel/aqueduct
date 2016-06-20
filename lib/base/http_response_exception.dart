@@ -5,9 +5,9 @@ part of aqueduct;
 /// If thrown from a [RequestHandler], a [Response] instance with [statusCode] and [message]
 /// is used to respond to the [Request] being processed. The [message] is returned
 /// as a value in a JSON Object for the key 'error'.
-class HttpResponseException implements Exception {
-  /// Creates an instance of a [HttpResponseException].
-  HttpResponseException(this.statusCode, this.message);
+class HTTPResponseException implements Exception {
+  /// Creates an instance of a [HTTPResponseException].
+  HTTPResponseException(this.statusCode, this.message);
 
   /// The message to return to the client.
   ///

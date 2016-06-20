@@ -190,7 +190,7 @@ class Query<ModelType extends Model> {
 /// An exception describing an issue with a query.
 ///
 /// A suggested HTTP status code based on the type of exception will always be available.
-class QueryException extends HttpResponseException {
+class QueryException extends HTTPResponseException {
 
   /// An error code defined by the implementing adapter.
   final int errorCode;

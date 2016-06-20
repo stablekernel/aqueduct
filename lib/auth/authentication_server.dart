@@ -54,12 +54,12 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
   /// Returns a [Permission] for the specified [accessToken].
   ///
   /// This method obtains a [TokenType] from the [delegate] and then verifies if that token is valid.
-  /// If the token is valid, a [Permission] object is returned. Otherwise, an [HttpResponseException]
+  /// If the token is valid, a [Permission] object is returned. Otherwise, an [HTTPResponseException]
   /// with status code 401 is returned.
   Future<Permission> verify(String accessToken) async {
     TokenType t = await delegate.tokenForAccessToken(this, accessToken);
     if (t == null || isTokenExpired(t)) {
-      throw new HttpResponseException(401, "Expired token");
+      throw new HTTPResponseException(401, "Expired token");
     }
 
     var permission = new Permission(t.clientID, t.resourceOwnerIdentifier, this);
@@ -98,19 +98,19 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
   ///
   /// This method will refresh a [TokenType] given the [TokenType]'s [refreshToken] for a given client ID if the client secret matches according
   /// to the [delegate]. It coordinates with the [delegate] to delete the old token and store the new one if successful. If not successful,
-  /// it will throw the appropriate [HttpResponseException].
+  /// it will throw the appropriate [HTTPResponseException].
   Future<TokenType> refresh(String refreshToken, String clientID, String clientSecret) async {
     Client client = await clientForID(clientID);
     if (client == null) {
-      throw new HttpResponseException(401, "Invalid client_id");
+      throw new HTTPResponseException(401, "Invalid client_id");
     }
     if (client.hashedSecret != generatePasswordHash(clientSecret, client.salt)) {
-      throw new HttpResponseException(401, "Invalid client_secret");
+      throw new HTTPResponseException(401, "Invalid client_secret");
     }
 
     TokenType t = await delegate.tokenForRefreshToken(this, refreshToken);
     if (t == null || t.clientID != clientID) {
-      throw new HttpResponseException(401, "Invalid client_id for token");
+      throw new HTTPResponseException(401, "Invalid client_id for token");
     }
 
     await delegate.deleteTokenForAccessToken(this, t.accessToken);
@@ -125,26 +125,26 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
   /// Authenticates a resource owner for a given client ID.
   ///
   /// This method works with the [delegate] to generate and store a new token if all credentials are correct.
-  /// If credentials are not correct, it will throw the appropriate [HttpResponseException].
+  /// If credentials are not correct, it will throw the appropriate [HTTPResponseException].
   Future<TokenType> authenticate(String username, String password, String clientID, String clientSecret, {int expirationInSeconds: 3600}) async {
     Client client = await clientForID(clientID);
     if (client == null) {
-      throw new HttpResponseException(401, "Invalid client_id");
+      throw new HTTPResponseException(401, "Invalid client_id");
     }
     if (client.hashedSecret != generatePasswordHash(clientSecret, client.salt)) {
-      throw new HttpResponseException(401, "Invalid client_secret");
+      throw new HTTPResponseException(401, "Invalid client_secret");
     }
 
     var authenticatable = await delegate.authenticatableForUsername(this, username);
     if (authenticatable == null) {
-      throw new HttpResponseException(400, "Invalid username");
+      throw new HTTPResponseException(400, "Invalid username");
     }
 
     var dbSalt = authenticatable.salt;
     var dbPassword = authenticatable.hashedPassword;
     var hash = AuthenticationServer.generatePasswordHash(password, dbSalt);
     if (hash != dbPassword) {
-      throw new HttpResponseException(401, "Invalid password");
+      throw new HTTPResponseException(401, "Invalid password");
     }
 
     TokenType token = generateToken(authenticatable.id, client.id, expirationInSeconds);

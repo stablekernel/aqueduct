@@ -297,7 +297,7 @@ class NoPolicyController extends HTTPController {
   }
 
   @httpPost throwException() async {
-    throw new HttpResponseException(400, "Foobar");
+    throw new HTTPResponseException(400, "Foobar");
     return new Response.ok(null);
   }
 }
@@ -307,7 +307,7 @@ class DefaultPolicyController extends HTTPController {
     return new Response.ok("getAll");
   }
   @httpPost throwException() async {
-    throw new HttpResponseException(400, "Foobar");
+    throw new HTTPResponseException(400, "Foobar");
     return new Response.ok(null);
   }
 }

@@ -4,17 +4,17 @@ part of aqueduct;
 class AuthorizationBearerParser {
 
   /// Parses a Bearer token from [authorizationHeader]. If the header is malformed or doesn't exist,
-  /// throws an [HttpResponseException]. Otherwise, returns the [String] representation of the bearer token.
+  /// throws an [HTTPResponseException]. Otherwise, returns the [String] representation of the bearer token.
   /// For example, if the input to this method is "Authorization: Bearer token" it would return 'token'.
   static String parse(String authorizationHeader) {
     if (authorizationHeader == null) {
-      throw new HttpResponseException(401, "No authorization header.");
+      throw new HTTPResponseException(401, "No authorization header.");
     }
 
     var matcher = new RegExp("Bearer (.*)");
     var match = matcher.firstMatch(authorizationHeader);
     if (match == null) {
-      throw new HttpResponseException(400, "Improper authorization header.");
+      throw new HTTPResponseException(400, "Improper authorization header.");
     }
     return match[1];
   }
@@ -38,13 +38,13 @@ class AuthorizationBasicParser {
   /// and return the username and password by splitting that decoded string around the character ':'.
   static AuthorizationBasicElements parse(String authorizationHeader) {
     if (authorizationHeader == null) {
-      throw new HttpResponseException(401, "No authorization header.");
+      throw new HTTPResponseException(401, "No authorization header.");
     }
 
     var matcher = new RegExp("Basic (.*)");
     var match = matcher.firstMatch(authorizationHeader);
     if (match == null) {
-      throw new HttpResponseException(400, "Improper authorization header.");
+      throw new HTTPResponseException(400, "Improper authorization header.");
     }
 
     var base64String = match[1];
@@ -52,12 +52,12 @@ class AuthorizationBasicParser {
     try {
       decodedCredentials = new String.fromCharCodes(new Base64Decoder().convert(base64String));
     } catch (e) {
-      throw new HttpResponseException(400, "Improper authorization header.");
+      throw new HTTPResponseException(400, "Improper authorization header.");
     }
 
     var splitCredentials = decodedCredentials.split(":");
     if (splitCredentials.length != 2) {
-      throw new HttpResponseException(400, "Improper client credentials.");
+      throw new HTTPResponseException(400, "Improper client credentials.");
     }
 
     return new AuthorizationBasicElements()

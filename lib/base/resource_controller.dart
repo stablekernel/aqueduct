@@ -228,7 +228,7 @@ class ResourceController<ModelType extends Model> extends HTTPController {
       }
 
       if (_query.entity.properties[pageBy] == null) {
-        throw new HttpResponseException(400, "pageBy key ${pageBy} does not exist for ${_query.entity.tableName}");
+        throw new HTTPResponseException(400, "pageBy key ${pageBy} does not exist for ${_query.entity.tableName}");
       }
 
       _query.pageDescriptor = new QueryPage(direction, pageBy, pageValue == "null" ? null : pageValue);
@@ -238,13 +238,13 @@ class ResourceController<ModelType extends Model> extends HTTPController {
       _query.sortDescriptors = sortBy.map((sort) {
         var split = sort.split(",").map((str) => str.trim()).toList();
         if (split.length != 2) {
-          throw new HttpResponseException(500, "sortBy keys must be string pairs delimited by a comma: key,asc or key,desc");
+          throw new HTTPResponseException(500, "sortBy keys must be string pairs delimited by a comma: key,asc or key,desc");
         }
         if (_query.entity.properties[split.first] == null) {
-          throw new HttpResponseException(400, "sortBy key ${split.first} does not exist for ${_query.entity.tableName}");
+          throw new HTTPResponseException(400, "sortBy key ${split.first} does not exist for ${_query.entity.tableName}");
         }
         if (split.last != "asc" && split.last != "desc") {
-          throw new HttpResponseException(400, "sortBy order must be either asc or desc, not ${split.last}");
+          throw new HTTPResponseException(400, "sortBy order must be either asc or desc, not ${split.last}");
         }
         return new SortDescriptor(split.first, split.last == "asc" ? SortDescriptorOrder.ascending : SortDescriptorOrder.descending);
       }).toList();
