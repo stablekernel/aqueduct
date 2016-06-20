@@ -18,7 +18,7 @@ brew install dart
 
 If you don't have Homebrew installed or you are on another platform, visit [https://www.dartlang.org/downloads](https://www.dartlang.org/downloads). It'll be quick, promise.
 
-You should really install Atom as well for editing your code, and the Dart support is great. You can get it from [https://atom.io](https://atom.io). Once Atom is installed, install the Dart package.
+You should really install Atom as well for editing your code, and the Dart support is great. You can get it from [https://atom.io](https://atom.io). Once Atom is installed, install the 'dartlang' package from 'dart-atom' (not any of the other ones).
 
 Creating a Project
 ---
