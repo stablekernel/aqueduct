@@ -57,4 +57,21 @@ import 'package:aqueduct/aqueduct.dart';
 
 ```
 
-An `aqueduct` application is defined by its `ApplicationPipeline`. A pipeline is the entry point into your application-specific code for all HTTP requests, and defines how those requests should be routed and eventually responded to. 
+The structure of `aqueduct` is like most server-side frameworks: requests go to a router, which then get sent off to a series of request handlers. The most generic request handler is `HTTPController`. We'll create a `HTTPController` subclass that will handle requests by returning a list of questions in JSON. In `quiz.dart`, create this subclass:
+
+```dart
+class QuestionController extends HTTPController {
+  var questions = [
+		"How much wood can a woodchuck chuck?",
+		"What's the tallest mountain in the world?"
+	];
+
+  @httpGet getAllQuestions() {
+    return new Response.ok(questions);
+  }
+}
+```
+
+The `QuestionController` class defines a property named `questions` that has a list of strings. Then, it defines a 'handler method' called `getAllQuestions`. 
+
+An `aqueduct` application is defined by its `ApplicationPipeline`. A pipeline is the entry point into your application-specific code for all HTTP requests, and defines how those requests should be routed and eventually responded to.
