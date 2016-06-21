@@ -39,7 +39,7 @@ A persistent type is a simple Dart class. Each property maps to a column in a da
 @Attributes(primaryKey: true, databaseType: PropertyType.bigInteger, autoincrement: true)
 ```
 
-Other interesting flags are `indexed`, `nullable` and `defaultValue`. If a property does not have an `Attribute`, it is still a persistent property, it's just a normal column. Supported Dart types are `int`, `double`, `String`, `DateTime` and `bool`.
+*All models must have a primary key.* Other interesting flags are `indexed`, `nullable` and `defaultValue`. If a property does not have an `Attribute`, it is still a persistent property, it's just a normal column. Supported Dart types are `int`, `double`, `String`, `DateTime` and `bool`.
 
 Once a persistent type has been defined, you must define an instance type. At the top of this file, but underneath the part of directive, add the following:
 

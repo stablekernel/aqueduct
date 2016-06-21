@@ -89,7 +89,7 @@ Now that we have defined this relationship, we can associate answers with questi
 }
 ```
 
-Yeah, that was it. The matcher `whereAnyMatch`, when applied to a relationship property, will configure a join on the Answers table when fetching the questions. When the resulting model objects comes back, for each question, its `answer` property will be populated (if it has an answer). Model objects also know how to recursively serialize themselves, so you'll get the following JSON when fetching a question that has been joined with its answer:
+Yeah, that was it. The matcher `whereAnyMatch`, when applied to a `hasOne` or `hasMany` relationship property, will configure a join on the Answers table when fetching the questions. When the resulting model objects comes back, for each question, its `answer` property will be populated (if it has an answer). Model objects also know how to recursively serialize themselves, so you'll get the following JSON when fetching a question that has been joined with its answer:
 
 ```json
 {
@@ -102,9 +102,23 @@ Yeah, that was it. The matcher `whereAnyMatch`, when applied to a relationship p
 }
 ```
 
-Let's update our tests to ensure this works correctly. If you run your tests now, the two tests that get a list of `Question`s will fail.
+Let's update our tests to ensure this works correctly. If you run your tests now, the two tests that get a list of `Question`s will fail because they don't expect an answer key in the JSON. Now, we don't really care about the 'id' of the answer at all, just its 'description'. Therefore, when we add to the HTTP body matcher to match the inner 'answer' object, it'd be great if we could just ignore it. That's why there is the `partial` matcher. A `partial` matcher will match a `Map`, but will only verify the values for each key in the partial matcher. Let's try that out by updating the first test for getting all questions:
 
-First, let's actually insert some answers in `setUpAll` of `question_controller_test.dart`:
+```dart
+test("/questions returns list of questions", () async {
+    var response = await client.request("/questions").get();
+    expect(response, hasResponse(200, everyElement({
+        "index" : greaterThanOrEqualTo(0),
+        "description" : endsWith("?"),
+        "answer" : partial({
+          "description" : isString
+        })
+    })));
+    expect(response.decodedBody, hasLength(greaterThan(0)));
+  });
+```
+
+The partial matcher here will just check to see if the 'answer' key is a map that contains a `String` 'description' value. The extraneous 'id' key won't cause a failure. If you run the tests now, this test will still fail - 'answer' is null because there are no answers in the database. Let's insert some in `setUpAll` of `question_controller_test.dart`:
 
 ```dart
 var questions = [
@@ -129,7 +143,7 @@ for (var question in questions) {
 }
 ```
 
-Notice that we took the result of the question insert - which returns an instance of `Question` - and used it as the value of the `AnswerQuery`'s `question`. This will take the primary key value of the `question` and insert it into the foreign key column in the `Answer`. Now, it just so happens we have a full `Question` object that we just received from the database that we could set to that property. If we did, and instead had just the `index` of the `Question`, we'd have to do this instead:
+Notice that we took the result of the question insert - which returns an instance of `Question` - and used it as the value of the `AnswerQuery`'s `question`. This will take the primary key value of the `question` and insert it into the foreign key column in the `Answer`. Now, it just so happens we have a full `Question` object that we just received from the database that we could set to that property. If we did, and instead had just the `index` of the `Question`, we'd do this instead:
 
 ```dart
 insertQuery = new AnswerQuery()
@@ -137,4 +151,20 @@ insertQuery = new AnswerQuery()
   ..values.question = (new Question()..index = 1);
 ```
 
-Now, our tests will appropriately fail because they check that each question is a map that has an index and description, but with this change, each question will also have an 'answer' map.
+Now, running the tests against, the first one will succeed again. Update the last test that checks a list of questions when sending a 'contains' query parameter:
+
+```dart
+test("/questions returns list of questions filtered by contains", () async {
+  var response = await client.request("/questions?contains=mountain").get();
+  expect(response, hasResponse(200, [{
+      "index" : greaterThanOrEqualTo(0),
+      "description" : "What's the tallest mountain in the world?",
+      "answer" : partial({
+        "description" : "Mount Everest"
+      })
+  }]));
+  expect(response.decodedBody, hasLength(1));
+});
+```
+
+All tests are back to passing.
