@@ -50,8 +50,7 @@ class PostgreSQLPersistentStore extends PersistentStore {
     _databaseConnection = null;
   }
 
-  @override
-  String columnNameForProperty(PropertyDescription desc) {
+  String _columnNameForProperty(PropertyDescription desc) {
     if (desc is RelationshipDescription) {
       return "${desc.name}_${desc.destinationEntity.primaryKey}";
     }
@@ -90,14 +89,14 @@ class PostgreSQLPersistentStore extends PersistentStore {
   Future<List<MappingElement>> executeInsertQuery(PersistentStoreQuery q) async {
     var queryStringBuffer = new StringBuffer();
     queryStringBuffer.write("insert into ${q.entity.tableName} ");
-    queryStringBuffer.write("(${q.values.map((m) => columnNameForProperty(m.property)).join(",")}) ");
-    queryStringBuffer.write("values (${q.values.map((m) => "@${columnNameForProperty(m.property)}").join(",")}) ");
+    queryStringBuffer.write("(${q.values.map((m) => _columnNameForProperty(m.property)).join(",")}) ");
+    queryStringBuffer.write("values (${q.values.map((m) => "@${_columnNameForProperty(m.property)}").join(",")}) ");
 
     if (q.resultKeys != null && q.resultKeys.length > 0) {
-      queryStringBuffer.write("returning ${q.resultKeys.map((m) => columnNameForProperty(m.property)).join(",")} ");
+      queryStringBuffer.write("returning ${q.resultKeys.map((m) => _columnNameForProperty(m.property)).join(",")} ");
     }
     var valueMap = new Map.fromIterable(q.values,
-        key: (MappingElement m) => columnNameForProperty(m.property),
+        key: (MappingElement m) => _columnNameForProperty(m.property),
         value: (MappingElement m) => m.value);
 
     var results = await _executeQuery(queryStringBuffer.toString(), valueMap, q.timeoutInSeconds);
@@ -109,7 +108,7 @@ class PostgreSQLPersistentStore extends PersistentStore {
     var queryStringBuffer = new StringBuffer("select ");
 
     var predicateValueMap = {};
-    var mapElementToString = (MappingElement e) => "${e.property.entity.tableName}.${columnNameForProperty(e.property)}";
+    var mapElementToString = (MappingElement e) => "${e.property.entity.tableName}.${_columnNameForProperty(e.property)}";
     var selectColumns =  q.resultKeys
         .map((mapElement) {
           if (mapElement is JoinMappingElement) {
@@ -171,7 +170,7 @@ class PostgreSQLPersistentStore extends PersistentStore {
   Future<List<List<MappingElement>>> executeUpdateQuery(PersistentStoreQuery q) async {
     var queryStringBuffer = new StringBuffer();
     queryStringBuffer.write("update ${q.entity.tableName} ");
-    queryStringBuffer.write("set ${q.values.map((m) => columnNameForProperty(m.property)).map((keyName) => "$keyName=@u_$keyName").join(",")} ");
+    queryStringBuffer.write("set ${q.values.map((m) => _columnNameForProperty(m.property)).map((keyName) => "$keyName=@u_$keyName").join(",")} ");
 
     var predicateValueMap = {};
     if (q.predicate != null) {
@@ -180,11 +179,11 @@ class PostgreSQLPersistentStore extends PersistentStore {
     }
 
     if (q.resultKeys != null && q.resultKeys.length > 0) {
-      queryStringBuffer.write("returning ${q.resultKeys.map((m) => columnNameForProperty(m.property)).join(",")} ");
+      queryStringBuffer.write("returning ${q.resultKeys.map((m) => _columnNameForProperty(m.property)).join(",")} ");
     }
 
     var updateValueMap = new Map.fromIterable(q.values,
-        key: (MappingElement elem) => "u_${columnNameForProperty(elem.property)}",
+        key: (MappingElement elem) => "u_${_columnNameForProperty(elem.property)}",
         value: (MappingElement elem) => elem.value);
     updateValueMap.addAll(predicateValueMap);
 
@@ -196,7 +195,7 @@ class PostgreSQLPersistentStore extends PersistentStore {
   @override
   Predicate comparisonPredicate(PropertyDescription desc, MatcherOperator operator, dynamic value) {
     var prefix = desc.entity.tableName;
-    var columnName = columnNameForProperty(desc);
+    var columnName = _columnNameForProperty(desc);
     var formatSpecificationName = "$prefix${columnName}";
     return new Predicate("$prefix.${columnName} ${symbolTable[operator]} @$formatSpecificationName",  {formatSpecificationName : value});
   }
@@ -206,7 +205,7 @@ class PostgreSQLPersistentStore extends PersistentStore {
     var tokenList = [];
     var pairedMap = {};
     var prefix = desc.entity.tableName;
-    var propertyName = columnNameForProperty(desc);
+    var propertyName = _columnNameForProperty(desc);
 
     var counter = 0;
     values.forEach((value) {
@@ -223,14 +222,14 @@ class PostgreSQLPersistentStore extends PersistentStore {
   @override
   Predicate nullPredicate(PropertyDescription desc, bool isNull) {
     var prefix = desc.entity.tableName;
-    var propertyName = columnNameForProperty(desc);
+    var propertyName = _columnNameForProperty(desc);
     return new Predicate("$prefix.$propertyName ${isNull ? "isnull" : "notnull"}", {});
   }
 
   @override
   Predicate rangePredicate(PropertyDescription desc, dynamic lhsValue, dynamic rhsValue, bool insideRange) {
     var prefix = desc.entity.tableName;
-    var propertyName = columnNameForProperty(desc);
+    var propertyName = _columnNameForProperty(desc);
     var lhsFormatSpecificationName = "$prefix${propertyName}_lhs";
     var rhsRormatSpecificationName = "$prefix${propertyName}_rhs";
     return new Predicate("$prefix.$propertyName ${insideRange ? "between" : "not between"} @$lhsFormatSpecificationName and @$rhsRormatSpecificationName",
@@ -240,7 +239,7 @@ class PostgreSQLPersistentStore extends PersistentStore {
   @override
   Predicate stringPredicate(PropertyDescription desc, StringMatcherOperator operator, dynamic value) {
     var prefix = desc.entity.tableName;
-    var propertyName = columnNameForProperty(desc);
+    var propertyName = _columnNameForProperty(desc);
     var formatSpecificationName = "$prefix${propertyName}";
     var matchValue = value;
     switch(operator) {
@@ -317,7 +316,7 @@ class PostgreSQLPersistentStore extends PersistentStore {
 
     var transformFunc = (SortDescriptor sd) {
       var property = q.entity.properties[sd.key];
-      var columnName = "${property.entity.tableName}.${columnNameForProperty(property)}";
+      var columnName = "${property.entity.tableName}.${_columnNameForProperty(property)}";
       return "$columnName ${(sd.order == SortDescriptorOrder.ascending ? "asc" : "desc")}";
     };
     var joinedSortDescriptors = sortDescs.map(transformFunc).join(",");
@@ -338,7 +337,7 @@ class PostgreSQLPersistentStore extends PersistentStore {
   String _joinStringForJoin(JoinMappingElement ji) {
     var parentEntity = ji.property.entity;
     var childEntity = ji.joinProperty.entity;
-    var predicate = new Predicate("${parentEntity.tableName}.${columnNameForProperty(parentEntity.properties[parentEntity.primaryKey])}=${childEntity.tableName}.${columnNameForProperty(ji.joinProperty)}", {});
+    var predicate = new Predicate("${parentEntity.tableName}.${_columnNameForProperty(parentEntity.properties[parentEntity.primaryKey])}=${childEntity.tableName}.${_columnNameForProperty(ji.joinProperty)}", {});
     if (ji.predicate != null) {
       predicate = Predicate.andPredicates([predicate, ji.predicate]);
     }

@@ -20,7 +20,7 @@ abstract class PersistentStore {
   Future<int> executeDeleteQuery(PersistentStoreQuery q);
   Future<List<List<MappingElement>>> executeUpdateQuery(PersistentStoreQuery q);
 
-  String columnNameForProperty(PropertyDescription desc);
+//  String columnNameForProperty(PropertyDescription desc);
 
   Predicate comparisonPredicate(PropertyDescription desc, MatcherOperator operator, dynamic value);
   Predicate containsPredicate(PropertyDescription desc, Iterable<dynamic> values);
@@ -43,11 +43,11 @@ class DefaultPersistentStore extends PersistentStore {
   Predicate rangePredicate(PropertyDescription desc, dynamic lhsValue, dynamic rhsValue, bool insideRange) { return null; }
   Predicate stringPredicate(PropertyDescription desc, StringMatcherOperator operator, dynamic value) { return null; }
 
-  String columnNameForProperty(PropertyDescription desc) {
-    if (desc is RelationshipDescription) {
-      return "${desc.name}_${desc.destinationEntity.primaryKey}";
-    }
-    return desc.name;
-  }
+//  String columnNameForProperty(PropertyDescription desc) {
+//    if (desc is RelationshipDescription) {
+//      return "${desc.name}_${desc.destinationEntity.primaryKey}";
+//    }
+//    return desc.name;
+//  }
 }
 
