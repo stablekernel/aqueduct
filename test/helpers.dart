@@ -114,7 +114,7 @@ Future<ModelContext> contextWithModels(List<Type> modelTypes) async {
   });
 
   var dataModel = new DataModel(modelTypes);
-  var generator = new SchemaGenerator(persistentStore, dataModel);
+  var generator = new SchemaGenerator(dataModel);
   var json = generator.serialized;
   var pGenerator = new PostgreSQLSchemaGenerator(json, temporary: true);
 
@@ -130,7 +130,7 @@ Future<ModelContext> contextWithModels(List<Type> modelTypes) async {
 
 String commandsForModelTypes(List<Type> modelTypes, {bool temporary: false}) {
   var dataModel = new DataModel(modelTypes);
-  var generator = new SchemaGenerator(new DefaultPersistentStore(), dataModel);
+  var generator = new SchemaGenerator(dataModel);
   var json = generator.serialized;
   var pGenerator = new PostgreSQLSchemaGenerator(json, temporary: temporary);
 

@@ -108,7 +108,6 @@ class PostgreSQLPersistentStore extends PersistentStore {
   Future<List<List<MappingElement>>> executeFetchQuery(PersistentStoreQuery q) async {
     var queryStringBuffer = new StringBuffer("select ");
 
-
     var predicateValueMap = {};
     var mapElementToString = (MappingElement e) => "${e.property.entity.tableName}.${columnNameForProperty(e.property)}";
     var selectColumns =  q.resultKeys
