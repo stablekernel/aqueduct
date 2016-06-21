@@ -128,7 +128,7 @@ You'll notice in your pipeline, the configuration parameters for the `PostgreSQL
 setUpAll(() async {
   await app.start(runOnMainIsolate: true);
 
-  var generator = new SchemaGenerator(ModelContext.defaultContext.persistentStore, ModelContext.defaultContext.dataModel);
+  var generator = new SchemaGenerator(ModelContext.defaultContext.dataModel);
   var json = generator.serialized;
   var pGenerator = new PostgreSQLSchemaGenerator(json, temporary: true);
 
@@ -138,4 +138,156 @@ setUpAll(() async {
 });
 ```
 
-After the application is started, we know that it creates and sets the `ModelContext.defaultContext` with a `DataModel` containing `Question`. 
+After the application is started, we know that it creates and sets the `ModelContext.defaultContext` with a `DataModel` containing `Question`. The class `SchemaGenerator` will create a database-agnostic JSON schema file. Subclasses of `SchemaGeneratorBackend`, like `PostgreSQLSchemaGenerator`, can take that JSON and create SQL commands that create all of the tables, indices and constraints defined by the JSON schema. Each of those is executed on the context, creating the schema in the database. (Note that the `temporary` flag adds makes all of the tables temporary and therefore they disappear when the database connection in the context's persistent store closes.)
+
+Because the `PostgreSQLPersistentStore`'s connection to the database is also a stream, it, too, must be closed to let the test's main function terminate. In `tearDownAll`, add this code before the app is terminated:
+
+```dart
+tearDownAll(() async {
+  await ModelContext.defaultContext.persistentStore.close();
+  await app.stop();
+});
+
+```
+
+Now, if you run your tests, two of them will fail and one of them really should fail, but doesn't. The first test, that checks that every string returned from the `/questions` endpoint should end in a `?` succeeds, but that's because the `everyElement` matcher matches every element, and there are no elements, so it doesn't match any. We never really checked how many questions there were. So, it wasn't a very good test. We don't want to specifically say there are just two questions, so we ought to update that test to make sure there is at least one question. We can apply another expectation, just to the body this time. Update that test in `question_controller_test.dart`:
+
+```dart
+test("/questions returns list of questions", () async {
+  var response = await client.request("/questions").get();
+  expect(response, hasResponse(200, everyElement(endsWith("?"))));
+  expect(response.decodedBody, hasLength(greaterThan(0)));
+});
+```
+
+You can access the String body of a `TestResponse` directly with `body`, its decoded body - like we did here - with `decodedBody`. Or, have the analyzer cast the `decodedBody` into a `List` or `Map` with `asList` or `asMap`. It's sometimes helpful to print out these values during testing, although using `hasResponse` will print out the `TestResponse` on failure.
+
+Ok, good, back to all tests failing - as they should, because there are no `Question`s in the database and the old `getQuestionAtIndex` doesn't yet use a database query. Let's first seed the database with some questions using an insert query at the end of `setUpAll`.
+
+```dart
+setUpAll(() async {
+  await app.start(runOnMainIsolate: true);
+  var generator = new SchemaGenerator(ModelContext.defaultContext.dataModel);
+  var json = generator.serialized;
+  var pGenerator = new PostgreSQLSchemaGenerator(json, temporary: true);
+
+  for (var cmd in pGenerator.commands) {
+    await ModelContext.defaultContext.persistentStore.execute(cmd);
+  }
+
+  var questions = [
+    "How much wood can a woodchuck chuck?",
+    "What's the tallest mountain in the world?"
+  ];
+
+  for (var question in questions) {
+    var insertQuery = new Query<Question>()
+      ..values.description = question;
+    await insertQuery.insert();
+  }
+});
+```
+
+Now, this is also a lesson in insert queries. `Query` has a property named `values`, which will be an instance of the type argument of the `Query` - in this case, a `Question`. It's automatically created the first time you access it, so you can simply start setting properties of a `Question` on it. When the `Query` is inserted, all of the values that have been set on `values` property are inserted into the database. (If you don't set a value, it isn't sent in the insert query at all. It does not send `null` unless you explicitly set a value to `null`.)
+
+In our seeded test database, there will be two questions. If you re-run the tests, the first one should pa... wait, no it fails. The test results says this:
+
+```
+Expected:
+  Status Code: 200
+  Body: every element(a string ending with '?')
+  Actual: TestResponse:<
+  Status Code: 200
+  Headers: transfer-encoding: chunked
+       content-encoding: gzip
+       x-frame-options: SAMEORIGIN
+       content-type: application/json; charset=utf-8
+       x-xss-protection: 1; mode=block
+       x-content-type-options: nosniff
+       server: aqueduct/1
+  Body: [{"index":1,"description":"How much wood can a woodchuck chuck?"},{"index":2,"description":"What's the tallest mountain in the world?"}]>
+```
+
+When a `hasResponse` matcher fails, it prints out what you expected and what the `TestResponse` actually was. The expectation was that every element is a string ending with '?'. Instead, the bottom of the test result says that the body is actually a list of maps, for which there is a index and a description. This is the list of JSON-encoded `Question` objects, and they are obviously not Strings.
+
+Let's update this test to test each JSON object in the list.
+```dart
+test("/questions returns list of questions", () async {
+  var response = await client.request("/questions").get();
+  expect(response, hasResponse(200, everyElement({
+      "index" : greaterThan(0),
+      "description" : endsWith("?")
+  })));
+  expect(response.decodedBody, hasLength(greaterThan(0)));
+});
+```
+Now, the expectation is that every element in the response body is a Map, for which it has an `index` greater than or equal to 0 and and a `description` that ends with `?`. Run these tests again, and that first one will now pass. Notice that a `Model` object is encoded so that each property is a key in the resulting JSON.
+
+Go ahead and update the second test for a single question to match this same map:
+
+```dart
+test("/questions/index returns a single question", () async {
+  var response = await client.request("/questions/0").get();
+  expect(response, hasResponse(200, {
+      "index" : greaterThanOrEqualTo(0),
+      "description" : endsWith("?")
+  }));
+});
+```
+
+Next, let's update the `getQuestionAtIndex` method to use a query, but apply a predicate (a where clause). We're going to show you the ugly way first, then a pretty way, then a really pretty way. In `question_controller.dart`, replace the `getQuestionAtIndex` method.
+
+```dart
+@httpGet getQuestionAtIndex(int index) async {
+  var questionQuery = new Query<Question>()
+    ..predicate = new Predicate("index = @idx", {"idx" : index + 1});
+  var question = await questionQuery.fetchOne();
+
+  if (question == null) {
+    return new Response.notFound();
+  }
+  return new Response.ok(question);
+}
+```
+
+So, this is the ugly way. We set the `predicate` of the `Query`. A `Predicate` is basically the same thing as just writing a where clause, except you don't pass input values directly to the `Predicate` format string, but instead provide a map of key-value pairs, where each key is prefixed with an `@` symbol in the format string. (We also increment the index by 1, because we were fetching the question out of a 0-based array, and now we're fetching it by a 1-based primary key.) We use `fetchOne` instead of `fetch`, which limits the result set to one row and returns an instance of the type argument of the `Query`, `Question`, instead of a list. If `fetchOne` doesn't yield any results, it returns `null`.
+
+So, this is nice, but the crappy thing about `Predicate`s is that they are strings, and refactoring tools generally won't catch them, and Strings aren't very safe. We can pretty this up somewhat by using a `ModelQuery<T>`. A `ModelQuery` allows us to set the predicate by referencing property names and using matchers, similar to test matchers. (Except they are different.) Update that method to use a `ModelQuery`:
+
+```dart
+@httpGet getQuestionAtIndex(int index) async {
+  var questionQuery = new ModelQuery<Question>()
+    ..["index"] = whereEqualTo(index + 1);    
+  var question = await questionQuery.fetchOne();
+
+  if (question == null) {
+    return new Response.notFound();
+  }
+  return new Response.ok(question);
+}
+```
+
+To reference a specific property of the Model type argument, you use the brackets and the name of the property. The value is a matcher. All matchers for `Query`s begin with the word `where`, and there are plenty of them. Check the `aqueduct` API reference to see them all. This will yield the same result as the `Predicate` from before.
+
+We can still go one step further, and remove all the strings and get the analyzer to make sure we write the correct property names. Back in `model/question.dart`, create a subclass of `ModelQuery`.
+
+```dart
+class QuestionQuery extends ModelQuery<Question> implements _Question {}
+```
+
+Note that the type argument is `Question` - the instance type - and the implemented interface is `_Question`, the persistent type. This will create a new class named `QuestionQuery` that will have all the same properties of the persistent type. When we set one of the properties of the persistent type on `QuestionQuery`, it automatically looks up the name of that property and invokes the same `["propertyName"]` setter as it would in a non-specific `ModelQuery`. Update the code again in `getQuestionAtIndex`.
+
+```dart
+@httpGet getQuestionAtIndex(int index) async {
+  var questionQuery = new QuestionQuery()
+    ..index = whereEqualTo(index + 1);    
+  var question = await questionQuery.fetchOne();
+
+  if (question == null) {
+    return new Response.notFound();
+  }
+  return new Response.ok(question);
+}
+```
+
+Run the tests again, good to go!
