@@ -372,10 +372,13 @@ void main() {
       }));
 
       for (var o in owners) {
-        var q = new Query<Owned>()
-          ..values.name = "${o.name}1"
-          ..values.owner = (new Owner()..id = o.id);
-        await q.insert();
+        if (o.name != "C") {
+          var q = new Query<Owned>()
+            ..values.name = "${o.name}1"
+            ..values.owner = (new Owner()
+              ..id = o.id);
+          await q.insert();
+        }
       }
     });
 
@@ -397,6 +400,19 @@ void main() {
           "name" : "A1",
           "owner" : {"id" : 1}
         }
+      });
+    });
+
+    test("Join with null value still has key", () async {
+      var q = new OwnerQuery()
+        ..id = 3
+        ..owned = whereAnyMatch;
+      var o = (await q.fetch()).first.asMap();
+
+      expect(o, {
+        "id" : 3,
+        "name" : "C",
+        "owned" : null
       });
     });
 
@@ -422,11 +438,7 @@ void main() {
           }
         },
         {
-          "id" : 3, "name" : "C", "owned" : {
-            "id" : 3,
-            "name" : "C1",
-            "owner" : {"id" : 3}
-          }
+          "id" : 3, "name" : "C", "owned" : null
         }
       ]);
     });
