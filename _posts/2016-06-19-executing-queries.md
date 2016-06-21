@@ -127,7 +127,7 @@ You'll notice in your pipeline, the configuration parameters for the `PostgreSQL
 ```dart
 setUpAll(() async {
   await app.start(runOnMainIsolate: true);
-  
+
   var generator = new SchemaGenerator(ModelContext.defaultContext.persistentStore, ModelContext.defaultContext.dataModel);
   var json = generator.serialized;
   var pGenerator = new PostgreSQLSchemaGenerator(json, temporary: true);
@@ -137,3 +137,5 @@ setUpAll(() async {
   }
 });
 ```
+
+After the application is started, we know that it creates and sets the `ModelContext.defaultContext` with a `DataModel` containing `Question`. 
