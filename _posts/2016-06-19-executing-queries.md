@@ -322,4 +322,4 @@ test("/questions returns list of questions filtered by contains", () async {
 });
 ```
 
-This will pass, too - along with the rest of them!
+This will pass, too - along with the rest of them! Don't worry, you don't have to do this - you can grab all query parameters from the `HTTPController`'s `request.innerRequest`. However, doing this makes your code clearer and will help with the automatic documentation generator we'll talk about later.
