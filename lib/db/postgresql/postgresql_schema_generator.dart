@@ -24,22 +24,25 @@ class PostgreSQLSchemaGenerator extends SchemaGeneratorBackend {
     sortedIndexes.sort((a, b) => a.name.compareTo(b.name));
     indexCommands.addAll(sortedIndexes.map((i) => _indexStringForTableIndex(table, i)).toList());
 
-    List<SchemaForeignKeyConstraint> sortedConstraints = new List.from(table.foreignKeyConstraints);
-    sortedConstraints.sort((a, b) => a.columnName.compareTo(b.columnName));
+    List<SchemaColumn> sortedConstraints = table.columns
+      .where((col) => col.relatedColumnName != null)
+      .toList();
+    sortedConstraints.sort((a, b) => a.name.compareTo(b.name));
     constraintCommands.addAll(sortedConstraints.map((c) => _foreignKeyConstraintForTableConstraint(table, c)).toList());
   }
 
-  String _foreignKeyConstraintForTableConstraint(SchemaTable sourceTable, SchemaForeignKeyConstraint constraint) =>
-      "alter table only ${sourceTable.name} add foreign key (${constraint.columnName}) "
-          "references ${constraint.foreignTableName} (${constraint.foreignColumnName}) "
-          "on delete ${_deleteRuleStringForDeleteRule(constraint.deleteRule)};";
+  String _foreignKeyConstraintForTableConstraint(SchemaTable sourceTable, SchemaColumn column) =>
+      "alter table only ${sourceTable.name} add foreign key (${_columnNameForColumn(column)}) "
+          "references ${column.relatedTableName} (${column.relatedColumnName}) "
+          "on delete ${_deleteRuleStringForDeleteRule(column.deleteRule)};";
 
-  String _indexStringForTableIndex(SchemaTable table, SchemaIndex i) =>
-      "create index ${table.name}_${i.name}_idx on ${table.name} (${i.name});";
+  String _indexStringForTableIndex(SchemaTable table, SchemaIndex i) {
+    var actualColumn = table.columns.firstWhere((col) => col.name == i.name);
+    return "create index ${table.name}_${_columnNameForColumn(actualColumn)}_idx on ${table.name} (${_columnNameForColumn(actualColumn)});";
+  }
 
   String _columnStringForColumn(SchemaColumn col) {
-    var elements = [col.name, _postgreSQLTypeForColumn(col)];
-
+    var elements = [_columnNameForColumn(col), _postgreSQLTypeForColumn(col)];
     if (col.isPrimaryKey) {
       elements.add("primary key");
     } else {
@@ -53,6 +56,14 @@ class PostgreSQLSchemaGenerator extends SchemaGeneratorBackend {
     }
 
     return elements.join(" ");
+  }
+
+  String _columnNameForColumn(SchemaColumn column) {
+    if (column.relatedColumnName != null) {
+      return "${column.name}_${column.relatedColumnName}";
+    }
+
+    return column.name;
   }
 
   String _deleteRuleStringForDeleteRule(String deleteRule) {

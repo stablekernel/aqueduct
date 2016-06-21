@@ -9,6 +9,7 @@ void main() {
     List<User> sourceUsers;
 
     setUpAll(() async {
+
       context = await contextWithModels([User, Equipment, Location]);
 
       var userNames = ["Joe", "Fred", "Bob", "John", "Sally"];
