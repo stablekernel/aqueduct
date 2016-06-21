@@ -291,3 +291,35 @@ Note that the type argument is `Question` - the instance type - and the implemen
 ```
 
 Run the tests again, good to go!
+
+That's fetch an insert. Delete works the same way - you specify a predicate, or use a `ModelQuery` to define the where clause and invoke `delete` on the query. If you want to update database rows, you specify both `values` and a predicate or `ModelQuery` properties. (Unless you want to update all of the rows, then you don't specify a predicate.)
+
+The more you know: Query parameters
+---
+You can specify that a `HTTPController` handler method extract HTTP query parameters for you and use them in the handler method. We'll allow the `getAllQuestions` method to take a query parameter named `contains`. If this query parameter is passed, we'll filter the questions on whether or not that question contains the value for `contains`. In `question_controller.dart`, update this method:
+
+```dart
+@httpGet getAllQuestions({String contains: null}) async {
+    var questionQuery = new QuestionQuery();
+    if (contains != null) {
+      questionQuery.description = whereContains(contains);
+    }
+    var questions = await questionQuery.fetch();
+    return new Response.ok(questions);
+  }
+```
+
+Then, add a new test:
+
+```dart
+test("/questions returns list of questions filtered by contains", () async {
+  var response = await client.request("/questions?contains=mountain").get();
+  expect(response, hasResponse(200, [{
+      "index" : greaterThanOrEqualTo(0),
+      "description" : "What's the tallest mountain in the world?"
+  }]));
+  expect(response.decodedBody, hasLength(1));
+});
+```
+
+This will pass, too - along with the rest of them!
