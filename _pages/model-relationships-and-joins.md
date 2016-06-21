@@ -1,0 +1,1 @@
+../_posts/2016-06-21-model-relationships-and-joins.md

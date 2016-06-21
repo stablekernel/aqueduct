@@ -8,7 +8,7 @@ order: 3
 
 This chapter expands on the [previous](http://stablekernel.github.io/aqueduct/tut/writing-tests.html).
 
-Now that you've seen how to route HTTP requests and respond to them, we'll do something useful with those requests: interact with a database. We will continue to build on the last chapter project, `quiz`, by storing the questions (and answers!) in a database and retrieving them from the database.
+Now that you've seen how to route HTTP requests and respond to them, we'll do something useful with those requests: interact with a database. We will continue to build on the last chapter project, `quiz`, by storing the questions in a database and retrieving them from the database.
 
 Building Models
 ---
