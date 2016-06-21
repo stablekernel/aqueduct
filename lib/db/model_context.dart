@@ -138,9 +138,13 @@ class ModelContext {
 
       existingInstance = mappingEntity.instanceFromMappingElements(columns);
       joinElements
-          .where((je) => je.property.entity == mappingEntity && je.property.relationshipType == RelationshipType.hasMany)
+          .where((je) => je.property.entity == mappingEntity)
           .forEach((je) {
-            existingInstance[je.property.name] = [];
+            if (je.property.relationshipType == RelationshipType.hasMany) {
+              existingInstance[je.property.name] = [];
+            } else {
+              existingInstance[je.property.name] = null;
+            }
           });
 
       matchMap[mappingEntity.tableName][primaryKeyValue] = existingInstance;
