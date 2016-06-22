@@ -1,6 +1,6 @@
 ---
 layout: page
-title: "Interacting with a Database"
+title: "3. Interacting with a Database"
 category: tut
 date: 2016-06-19 21:22:35
 order: 3

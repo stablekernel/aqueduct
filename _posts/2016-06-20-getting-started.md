@@ -23,7 +23,7 @@ You should really install Atom as well for editing your code, and the Dart suppo
 Creating a Project
 ---
 
-To start, we'll keep it simple. Create a new directory named `quiz` (ensure that it is lowercase). Within this directory, create a new file named `pubspec.yaml`. Dart uses this file to define your project and its dependencies. For the purposes of this getting started guide, you may want to use a capable text editor that you are familiar with and that supports both YAML and Dart. We suggest using
+To start, we'll keep it simple. Create a new directory named `quiz` (ensure that it is lowercase). Within this directory, create a new file named `pubspec.yaml`. Dart uses this file to define your project and its dependencies.
 
 In the pubspec, enter the following markup:
 
