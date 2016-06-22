@@ -1,6 +1,6 @@
 ---
 layout: page
-title: "Model Relationships and Joins"
+title: "4. Model Relationships and Joins"
 category: tut
 date: 2016-06-21 12:38:44
 order: 4
