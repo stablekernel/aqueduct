@@ -74,6 +74,11 @@ class Request implements RequestHandlerResult {
   /// representing the JSON object.
   dynamic requestBodyObject;
 
+  /// Container for any data a [RequestHandler] wants to attach to this request for the purpose of being used by a later [RequestHandler].
+  ///
+  /// Use this property to attach data to a [Request] for use by later [RequestHandler]s.
+  Map<dynamic, dynamic> attachments = {};
+
   /// The timestamp for when this request was received.
   DateTime receivedDate = new DateTime.now().toUtc();
 

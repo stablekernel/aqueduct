@@ -40,7 +40,7 @@ abstract class Tokenizable {
 /// property to carry the authentication information to the next [RequestHandler]s.
 class Permission {
   /// Creates an instance of a [Permission].
-  const Permission(this.clientID, this.resourceOwnerIdentifier, this.grantingServer);
+  Permission(this.clientID, this.resourceOwnerIdentifier, this.grantingServer);
 
   /// The client ID the permission was granted under.
   final String clientID;
@@ -54,6 +54,11 @@ class Permission {
 
   /// The [AuthenticationServer] that granted this permission.
   final AuthenticationServer grantingServer;
+
+  /// Container for any data a [RequestHandler] wants to attach to this permission for the purpose of being used by a later [RequestHandler].
+  ///
+  /// Use this property to attach data to a [Request] for use by later [RequestHandler]s.
+  Map<dynamic, dynamic> attachments = {};
 }
 
 /// An interface for implementing a resource owner.
