@@ -184,3 +184,8 @@ before_script:
   - pub get
 script: pub run test -j 1 -r expanded
 ```    
+
+Logging
+---
+
+`aqueduct` logs requests, the amount of information depending on the result of the request. These are logged at the 'info' level using the `logger` package. At more granular levels, `aqueduct` also logs database queries. `wildfire` templates incorporate the `scribe` package to manage logging to files and the console. See it for more examples.
