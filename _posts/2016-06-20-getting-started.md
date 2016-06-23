@@ -219,9 +219,12 @@ class QuestionController extends HTTPController {
 
 Make sure you've stopped the application from running, and then run the application again. In your browser, enter http://localhost:8000/questions and you'll get the list of questions. Then, enter http://localhost:8000/questions/0 and you'll get the first question. If you enter an index not within the list of questions or something other than an integer, you'll get a 404.
 
-Now, there isn't any magic here. When a route has a path variable and a request comes in that matches that path variable, the router will add a map containing the path variable name (in this case, `index`) and the value for that path variable for the specific request. As you know, an `HTTPController` already looks at the HTTP method of an incoming request to determine which handler method to use. When the request has a path variable map added to it by the router, the `HttpController` also looks at the arguments to each of your handler methods.
+Now, there isn't any magic here. There is an instance of [Request] that represents each request as it passes through different `RequestHandler`s.
+When a route has a path variable and a request comes in that matches that path variable, the router will extract that path variable and store it in the `Request`'s `path` property (which is just a glorified `Map`).
+The key of the path variable in the `path` will be the name of the path variable configured in the route (in this case, 'index'). The value is the path segment of the specific request.
 
-It then looks at the name of the argument - `getQuestionAtIndex` has an argument named `index` - and if that argument name matches the name of the path variable in `route`, it selects that method to handle the request.
+As you know, an `HTTPController` already looks at the HTTP method of an incoming request to determine which handler method to use. When the request has path variables, the `HttpController` also looks at the arguments to each of your handler methods.
+It then looks at the name of the argument - `getQuestionAtIndex` has an argument named `index` - and if that argument name matches the key of the path variable in `route`, it selects that method to handle the request.
 
 The More You Know: Multi-threading and Application State
 ---
