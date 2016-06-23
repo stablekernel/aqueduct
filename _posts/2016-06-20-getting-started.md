@@ -219,7 +219,7 @@ class QuestionController extends HTTPController {
 
 Make sure you've stopped the application from running, and then run the application again. In your browser, enter http://localhost:8000/questions and you'll get the list of questions. Then, enter http://localhost:8000/questions/0 and you'll get the first question. If you enter an index not within the list of questions or something other than an integer, you'll get a 404.
 
-Now, there isn't any magic here. There is an instance of [Request] that represents each request as it passes through different `RequestHandler`s.
+Now, there isn't any magic here. There is an instance of `Request` that represents each request as it passes through different `RequestHandler`s.
 When a route has a path variable and a request comes in that matches that path variable, the router will extract that path variable and store it in the `Request`'s `path` property (which is just a glorified `Map`).
 The key of the path variable in the `path` will be the name of the path variable configured in the route (in this case, 'index'). The value is the path segment of the specific request.
 
