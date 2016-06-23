@@ -168,3 +168,19 @@ test("/questions returns list of questions filtered by contains", () async {
 ```
 
 All tests are back to passing.
+
+By the way, if you wanted to have a to-many relationship of answers, you'd declare the relationship property as `hasMany` and make it a `List` of the related instance type.
+
+```dart
+class _Question {
+  @primaryKey
+  int index;
+
+  String description;
+
+  @Relationship.hasMany("question")
+  List<Answer> answer;
+}
+```
+
+There would be no change required anywhere else. (Well, except for your tests, because answers would now be encoded as a list of JSON objects.)
