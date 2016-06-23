@@ -1,3 +1,6 @@
+/// A server-side framework built for productivity and testability.
+///
+/// See http://stablekernel.github.io/aqueduct for more in-depth tutorials and guides.
 library aqueduct;
 
 import 'dart:io';

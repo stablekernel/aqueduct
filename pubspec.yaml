@@ -1,6 +1,10 @@
 name: aqueduct
-version: 0.0.1
-description: A pipeline for building web services
+version: 0.9.0
+description: A fully featured server-side framework built for productivity and testability.
+author: stable|kernel
+homepage: https://github.com/stablekernel/aqueduct
+documentation:
+
 dependencies:
   safe_config: "^1.0.2"
   yaml: any
@@ -11,7 +15,7 @@ dependencies:
   http: any
   logging: any
   analyzer: any
-  postgresql: '0.3.2'
+  postgresql: '0.3.3'
 
 dev_dependencies:
   test: any
