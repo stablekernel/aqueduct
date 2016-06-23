@@ -154,7 +154,7 @@ handlerA
 	.next(() => new HandlerC());
 ```
 
-For `HTTPController`s, it is required that you always create a new instance for every request. That's because the controller keeps a bit of state about the request that you can access in your handler methods. If we reused the same controller for each request, really bad things would happen - especially because more than one request can be processed at once! (This is why your `QuizController` is wrapped in a closure.)
+For `HTTPController`s, it is required that you always create a new instance for every request. That's because the controller keeps a bit of state about the request that you can access in your handler methods. If we reused the same controller for each request, really bad things would happen - especially because more than one request can be processed at once! (This is why your `QuestionController` is wrapped in a closure.)
 
 Don't worry though, `HTTPController`s are marked with `@cannotBeReused` metadata, so if you forget to wrap it in a closure, your application will throw an error immediately and tell you to wrap it in a closure.
 
