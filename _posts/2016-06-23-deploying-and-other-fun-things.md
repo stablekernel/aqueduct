@@ -162,3 +162,25 @@ Documentation
 ---
 
 `aqueduct` has a built-in Swagger spec documentation generator feature. Check out the [wildfire](https://github.com/stablekernel/wildfire) repository for the `bin/generate_api_docs.dart` script.
+
+
+Automated Testing/CI
+---
+
+Again, `wildfire` is your best bet here as this already exists in projects created with it. However, if you want to add support for running `aqueduct` tests as part of Travis-CI, the following .travis.yml file will do:
+
+```yaml
+language: dart
+sudo: required
+addons:
+  postgresql: "9.4"
+services:
+  - postgresql
+before_script:
+  - psql -c 'create database dart_test;' -U postgres
+  - psql -c 'create user dart with createdb;' -U postgres
+  - psql -c "alter user dart with password 'dart';" -U postgres
+  - psql -c 'grant all on database dart_test to dart;' -U postgres
+  - pub get
+script: pub run test -j 1 -r expanded
+```    
