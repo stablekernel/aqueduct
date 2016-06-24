@@ -2,19 +2,27 @@ body {
     font-weight: 400;
     text-shadow: 0 1px 1px rgba(255, 255, 255, 0.7);
     font-family: 'Lucida Grande', 'Lucida Sans Unicode', 'Lucida Sans', Verdana, Tahoma, sans-serif;
-    background-color: #eeeeee;
-    color: #111111
+    background-color: #fefefe;
+    color: rgb(85, 85, 85);
 }
 
+.language-bash, .language-yaml, .language-dart {
+  border-left-color: #76c4d5;
+  border-left-style: 2px;
+  border-left-style: solid;
+}
+
+
 pre, code, pre code {
+    text-shadow: none;
     border: none;
     border-radius: 0;
-    background-color: #f9f9f9;
-    font-size: 0.85em;
+    font-size: .9em;
+    color: #ffffff;
 }
 
 .highlight {
-    background-color: #f9f9f9;
+    background-color: #2E2E31;
 }
 
 pre {
@@ -22,7 +30,9 @@ pre {
 }
 
 code {
+    background-color: #fefefe;
     color: inherit;
+    padding: 0px;
 }
 
 #header {
@@ -94,4 +104,8 @@ table {
 td, th {
   padding: .25rem .5rem;
   border: 1px solid #e5e5e5;
+}
+
+h1, h2, h3, h4, a {
+  color: #76c4d5
 }

@@ -113,7 +113,7 @@ Routes are registered with a router using the method `route`. If a HTTP request'
 
 With a pipeline and a route hooked up, we can write code that starts the web server. At the top of `quiz.dart`, underneath the import, define a `main` function like so:
 
-```
+```dart
 import 'package:aqueduct/aqueduct.dart';
 
 void main() {

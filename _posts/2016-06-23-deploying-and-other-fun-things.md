@@ -118,7 +118,7 @@ void main() {
   var client = new TestClient(app.configuration.port);
 
   var config = new QuizConfiguration("config.yaml.src");
-  app.configuration = {
+  app.configuration.pipelineOptions = {
     QuizPipeline.ConfigurationKey : config
   };
 
@@ -136,7 +136,7 @@ import 'package:quiz/quiz.dart';
 void main() {
   var config = new QuizConfiguration("config.yaml");
   var app = new Application<QuizPipeline>()
-    ..configuration = {
+    ..configuration.pipelineOptions = {
       QuizPipeline.ConfigurationKey : config
     };
 
