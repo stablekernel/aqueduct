@@ -208,7 +208,9 @@ Which, when fetched and then encoded to JSON, would look something like this:
     "name" : "Somebody",
     "posts : [
         {
-            "id" : 4, "postDate" : "2016-01-02T00:23:11.000021Z", likers : [
+            "id" : 4,
+            "postDate" : "2016-01-02T00:23:11.000021Z",
+            "likers" : [
                 "id" : 18,
                 "name" : "Fred Freddieson"
             ]
