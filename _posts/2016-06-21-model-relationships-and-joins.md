@@ -1,5 +1,5 @@
 ---
-layout: default
+layout: page
 title: "4. Model Relationships and Joins"
 category: tut
 date: 2016-06-21 12:38:44

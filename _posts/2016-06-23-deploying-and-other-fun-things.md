@@ -1,5 +1,5 @@
 ---
-layout: default
+layout: page
 title: "5. Deploying and Other Fun Things"
 category: tut
 date: 2016-06-23 13:27:59

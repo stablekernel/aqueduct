@@ -1,7 +1,9 @@
 body {
     font-weight: 400;
     text-shadow: 0 1px 1px rgba(255, 255, 255, 0.7);
-    font-family: 'Proxima Nova Lt', HelveticaNeue, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-family: 'Lucida Grande', 'Lucida Sans Unicode', 'Lucida Sans', Verdana, Tahoma, sans-serif;
+    background-color: #eeeeee;
+    color: #111111
 }
 
 pre, code, pre code {

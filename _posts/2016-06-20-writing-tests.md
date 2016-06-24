@@ -1,5 +1,5 @@
 ---
-layout: default
+layout: page
 title: "2. Writing Tests"
 category: tut
 date: 2016-06-20 09:38:12
