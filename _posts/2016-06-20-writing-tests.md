@@ -171,7 +171,7 @@ test("/questions returns list of questions", () async {
 });
 ```
 
-Now, make sure you shut down your application if you were running it from a previous chapter. To run a test file in Atom, you can do two things: manually hit Cmd-Shift-P and type in run test or use the keyboard shortcut, Cmd-Option-Ctrl-T. The test results will appear in a panel. (Make sure you save your test file first! Oh, and you can also run the tests just by running the test file in the same way you ran the `quiz.dart` file. Atom currently isn't great displaying test results, and that's why we are still using IntelliJ IDEA Community Edition. Atom was just better for a tutorial.)
+Now, make sure you shut down your application if you were running it from a previous chapter. To run a test file in Atom, you can do two things: manually hit Cmd-Shift-P and type in run test or use the keyboard shortcut, Cmd-Option-Ctrl-T. The test results will appear in a panel. (Make sure you save your test file first! Oh, and you can also run the tests just by running the test file in the same way you ran the `quiz.dart` file. Atom currently isn't great at displaying test results. A more powerful option is IntelliJ IDEA Community Edition, but Atom is a lot friendlier for a tutorial.)
 
 What sort of wizardry is this?
 ---

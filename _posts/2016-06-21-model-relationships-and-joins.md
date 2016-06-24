@@ -169,7 +169,12 @@ test("/questions returns list of questions filtered by contains", () async {
 
 All tests are back to passing.
 
-By the way, if you wanted to have a to-many relationship of answers, you'd declare the relationship property as `hasMany` and make it a `List` of the related instance type.
+More on Joins and Relationships
+---
+
+As relationships and joins are a complex topic, you may want to read the corresponding guide on them to get a full understanding of how `aqueduct` supports them.
+However, it is important to note that to-many relationships are also available. For example, if you wanted many answers for a question,
+you'd declare the relationship property as `hasMany` and make it a `List` of the related instance type:
 
 ```dart
 class _Question {
@@ -179,8 +184,35 @@ class _Question {
   String description;
 
   @Relationship.hasMany("question")
-  List<Answer> answer;
+  List<Answer> answers;
 }
 ```
 
-There would be no change required anywhere else. (Well, except for your tests, because answers would now be encoded as a list of JSON objects.)
+Note that `answers` was pluralized and therefore the `belongsTo` side of the relationship would need to update its inverse key.
+
+Join queries can be nested indefinitely, and can have their own matchers applied to them using the same syntax. For example, this would
+return a social media user with a specific ID, all of their posts in the since the beginning of 2016, and all of the people that have liked their post who have the name 'Fred':
+
+```dart
+var query = new UserQuery()
+    ..id = whereEqualTo(24)
+    ..posts.single.postDate = whereGreaterThanEqualTo(new DateTime(2016).toUtc())
+    ..posts.single.likers.single.name = whereContains("Fred");
+```
+
+Which, when fetched and then encoded to JSON, would look something like this:
+
+```json
+{
+    "id" : 24,
+    "name" : "Somebody",
+    "posts : [
+        {
+            "id" : 4, "postDate" : "2016-01-02T00:23:11.000021Z", likers : [
+                "id" : 18,
+                "name" : "Fred Freddieson"
+            ]
+        }, ...
+    ]
+}
+```
