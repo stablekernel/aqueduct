@@ -12,7 +12,7 @@ One of the core principles of `aqueduct` is efficient testing. While opening up 
 
 In general, testing in Dart is simple: you write a `main` function and use the `test` function register a test. Each test is a closure that runs some code and has expectations. For example, this code would test that 1 + 1 = 2:
 
-```
+```dart
 import 'package:test/test.dart';
 
 void main() {
@@ -108,7 +108,7 @@ We'd like to ensure that when we hit the `/questions` endpoint, that we actually
 
 In Dart, tests are stored in a top-level `test` directory. Create that directory in `quiz`. Then, add a new file to it named `question_controller_test.dart`. (Test must end in `_test.dart` and live in the `test` directory for the tools to find them without you having to specify their path.) In this file, import both the `test` and `quiz` package.
 
-```
+```dart
 import 'package:test/test.dart';
 import 'package:quiz/quiz.dart';
 ```

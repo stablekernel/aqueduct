@@ -131,7 +131,7 @@ var answersIterator = [
 ].iterator;
 
 for (var question in questions) {
-  var insertQuery = new Query<Question>()
+  var insertQuery = new QuestionQuery()
     ..values.description = question;
   question = await insertQuery.insert();
 

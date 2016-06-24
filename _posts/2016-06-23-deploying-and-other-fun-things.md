@@ -43,12 +43,10 @@ dart bin/generate_schema.dart
 will create a file named `schema.sql`. You can add that to a database via the command-line tool for PostgreSQL:
 
 ```
-psql -h <DatabaseHost> -p 5432 -U <Username> -d <DatabaseName> -f schema.sql
+psql -h <DatabaseHost> -p <Port> -U <Username> -d <DatabaseName> -f schema.sql
 ```
 
-(We're currently working on database migration tools, so if you are already thinking about 'OK, but what if I change this?' We're on it.)
-
-Next, we need to allow our `quiz` app to take database connection info from a configuration file. For that, we need the `safe_config` package (also by stable|kernel). Add it to `pubspec.yaml`:
+(We're currently working on database migration tools, so if you are already thinking about 'OK, but what if I change this?' We're on it.) Next, we need to allow our `quiz` app to take database connection info from a configuration file. For that, we need the `safe_config` package (also by `stable|kernel`). Add it to `pubspec.yaml`:
 
 ```yaml
 name: quiz
@@ -98,7 +96,7 @@ class QuizPipeline extends ApplicationPipeline {
   static String ConfigurationKey = "QuizPipeline.Configuration";
 
   QuizPipeline(Map options) : super(options) {
-    var dataModel = new DataModel([Question]);
+    var dataModel = new DataModel([Question, Answer]);
 
     var config = options[ConfigurationKey];
 
@@ -144,19 +142,32 @@ void main() {
 }
 ```
 
-To get your code onto a server, we recommend putting it in a GitHub repository, setting up an [access key](https://help.github.com/articles/generating-an-ssh-key/), and then cloning the repository onto your remote machine. Then, copy the configuration source file into a file named `config.yaml` (the one being referenced from `bin/quiz.dart`) with values pointing at your actual database. Finally, to run your application, you simply run the following command from the top-level of `quiz`:
+To get your code onto a server, we recommend putting it in a GitHub repository, setting up an [access key](https://help.github.com/articles/generating-an-ssh-key/), and then cloning the repository onto your remote machine. Then, copy the configuration source file into a file named `config.yaml` (the one being referenced from `bin/quiz.dart`) with values pointing at your actual database. The database you are running won't have questions or answers, so if you wish to one-time seed the database, the following SQL will work (after creating the tables):
+
+```sql
+insert into _question (description) values ('How much wood would a woodchuck chuck?');
+insert into _question (description) values ('What is the tallest mountain?');
+insert into _answer (description, question_id) values ('Depends on if it can.', 1);
+insert into _answer (description, question_id) values ('Mount Everest.', 2);
+```
+
+(Of course, there are much better ways of doing that than typing it out yourself, but that's a whole other topic.)
+
+Finally, to run your application, you simply run the following command from the top-level of `quiz`:
 
 ```
 nohup dart bin/start.dart > /dev/null 2>&1 &
 ```
 
-If you want to take down the server, just run:
+If you want to take down the server, you can run the kill command on the process. If you're running this on a server, you can just use the following command:
 
 ```
 pkill dart
 ```
 
-Remember, you'll have to install Dart on your target machine.
+However, if you are running it locally, don't use the trailing `&`, that way you can simply cancel the process from your command line with Ctrl-C.
+
+Lastly, remember, you'll have to install Dart on your target machine.
 
 Documentation
 ---
