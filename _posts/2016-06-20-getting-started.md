@@ -1,5 +1,5 @@
 ---
-layout: page
+layout: default
 title: "1. Routing and Request Handling"
 category: tut
 date: 2016-06-20 10:35:56
