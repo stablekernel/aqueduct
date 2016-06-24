@@ -147,8 +147,8 @@ To get your code onto a server, we recommend putting it in a GitHub repository, 
 ```sql
 insert into _question (description) values ('How much wood would a woodchuck chuck?');
 insert into _question (description) values ('What is the tallest mountain?');
-insert into _answer (description, question_id) values ('Depends on if it can.', 1);
-insert into _answer (description, question_id) values ('Mount Everest.', 2);
+insert into _answer (description, question_index) values ('Depends on if it can.', 1);
+insert into _answer (description, question_index) values ('Mount Everest.', 2);
 ```
 
 (Of course, there are much better ways of doing that than typing it out yourself, but that's a whole other topic.)
