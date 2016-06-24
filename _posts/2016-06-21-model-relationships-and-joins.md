@@ -202,14 +202,14 @@ var query = new UserQuery()
 
 Which, when fetched and then encoded to JSON, would look something like this:
 
-```
+```json
 {
     "id" : 24,
     "name" : "Somebody",
     "posts : [
         {
             "id" : 4,
-            "postDate" : "2016-01-02T00:23:11.000021Z",
+            "postDate" : "2016-01-02...",
             "likers" : [
                 "id" : 18,
                 "name" : "Fred Freddieson"
