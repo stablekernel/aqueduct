@@ -10,6 +10,8 @@ This chapter expands on the [previous](http://stablekernel.github.io/aqueduct/tu
 
 One of the core principles of `aqueduct` is efficient testing. While opening up your browser and typing in a URL can verify the code you just wrote succeeds, it's not a very reliable way of testing software. We'll also run into some dead-ends when we test HTTP requests that use an HTTP method other than GET. Therefore, there are some helpful utilities for writing tests built into `aqueduct`.
 
+(As a note, testing Dart in Atom is not well supported - yet. Once you get past this tutorial, it is highly recommended you download IntelliJ IDEA Community Edition for better test support. Most importantly, `aqueduct`'s style of testing requires that test files are not run in parallel - and Atom only runs them in parallel.)
+
 In general, testing in Dart is simple: you write a `main` function and use the `test` function register a test. Each test is a closure that runs some code and has expectations. For example, this code would test that 1 + 1 = 2:
 
 ```dart
