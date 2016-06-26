@@ -1,6 +1,6 @@
 # aqueduct
 
-![Build Status](https://travis-ci.org/stablekernel/aqueduct.svg?branch=master)
+[![Build Status](https://travis-ci.org/stablekernel/aqueduct.svg?branch=master)](https://travis-ci.org/stablekernel/aqueduct)
 
 `aqueduct` is a server-side framework written in Dart, focusing on productivity and testability.
 
