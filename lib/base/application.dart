@@ -97,7 +97,7 @@ class Application<PipelineType extends ApplicationPipeline> {
     return new IsolateSupervisor(this, isolate, receivePort, identifier, logger);
   }
 
-  Future isolateDidExitWithError(IsolateSupervisor supervisor, String errorMessage, StackTrace stackTrace) async {
+  Future isolateDidExitWithError(IsolateSupervisor supervisor, String errorMessage, dynamic stackTrace) async {
     logger.severe("Restarting terminated isolate. Exit reason $errorMessage", supervisor, stackTrace);
 
     var identifier = supervisor.identifier;

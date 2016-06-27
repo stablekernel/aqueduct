@@ -51,11 +51,11 @@ class IsolateSupervisor {
     }
   }
 
-  void _tearDownWithError(String errorMessage, String stackTrace) {
+  void _tearDownWithError(String errorMessage, dynamic stackTrace) {
     stop().then((_) {
       _launchCompleter = null;
       _stopCompleter = null;
-      supervisingApplication.isolateDidExitWithError(this, errorMessage, new StackTrace.fromString(stackTrace));
+      supervisingApplication.isolateDidExitWithError(this, errorMessage, stackTrace);
     });
   }
 
