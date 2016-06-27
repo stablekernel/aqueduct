@@ -98,7 +98,7 @@ class Application<PipelineType extends ApplicationPipeline> {
   }
 
   Future isolateDidExitWithError(IsolateSupervisor supervisor, String errorMessage, dynamic stackTrace) async {
-    logger.severe("Restarting terminated isolate. Exit reason $errorMessage", supervisor, stackTrace);
+    logger.severe("Restarting terminated isolate. Exit reason $errorMessage $stackTrace", supervisor);
 
     var identifier = supervisor.identifier;
     supervisors.remove(supervisor);
@@ -108,7 +108,7 @@ class Application<PipelineType extends ApplicationPipeline> {
       supervisors.add(supervisor);
     } catch (e, st) {
       await stop();
-      logger.severe("$e", supervisor, st);
+      logger.severe("$e", st);
     }
   }
 }
