@@ -107,6 +107,7 @@ class RequestHandler implements APIDocumentable {
       _applyCORSHeadersIfNecessary(req, response);
       req.respond(response);
       logger.severe(req.toDebugString(includeHeaders: true, includeBody: true));
+      logger.severe("${st}");
     }
   }
 
