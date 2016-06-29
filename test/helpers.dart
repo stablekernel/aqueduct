@@ -46,41 +46,48 @@ class _Token implements Tokenizable {
   String clientID;
 }
 
-class AuthDelegate<User extends Model, T extends Model> implements AuthenticationServerDelegate {
+class AuthDelegate implements AuthenticationServerDelegate<TestUser, Token> {
   ModelContext context;
 
   AuthDelegate(this.context);
 
-  Future<T> tokenForAccessToken(AuthenticationServer server, String accessToken) {
+  Future<Token> tokenForAccessToken(AuthenticationServer server, String accessToken) {
     return _tokenForPredicate(new Predicate("accessToken = @accessToken", {"accessToken" : accessToken}));
   }
 
-  Future<T> tokenForRefreshToken(AuthenticationServer server, String refreshToken) {
+  Future<Token> tokenForRefreshToken(AuthenticationServer server, String refreshToken) {
     return _tokenForPredicate(new Predicate("refreshToken = @refreshToken", {"refreshToken" : refreshToken}));
   }
 
-  Future<User> authenticatableForUsername(AuthenticationServer server, String username) {
-    var userQ = new Query<User>();
+  Future<TestUser> authenticatableForUsername(AuthenticationServer server, String username) {
+    var userQ = new Query<TestUser>();
     userQ.predicate = new Predicate("username = @username", {"username" : username});
     return userQ.fetchOne();
   }
 
-  Future<User> authenticatableForID(AuthenticationServer server, int id) {
-    var userQ = new Query<User>();
+  Future<TestUser> authenticatableForID(AuthenticationServer server, int id) {
+    var userQ = new Query<TestUser>();
     userQ.predicate = new Predicate("username = @username", {"id" : id});
     return userQ.fetchOne();
   }
 
   Future deleteTokenForAccessToken(AuthenticationServer server, String accessToken) async {
-    var q = new Query<T>();
+    var q = new Query<Token>();
     q.predicate = new Predicate("accessToken = @ac", {"ac" : accessToken});
     await q.delete();
   }
 
-  Future storeToken(AuthenticationServer server, T t) async {
-    var tokenQ = new Query<T>();
+  Future storeToken(AuthenticationServer server, Token t) async {
+    var tokenQ = new Query<Token>();
     tokenQ.values = t;
     await tokenQ.insert();
+  }
+
+  Future updateToken(AuthenticationServer server, Token t) async {
+    var tokenQ = new Query<Token>();
+    tokenQ.predicate = new Predicate("refreshToken = @refreshToken", {"refreshToken" : t.refreshToken});
+    tokenQ.values = t;
+    return tokenQ.updateOne();
   }
 
   Future<Client> clientForID(AuthenticationServer server, String id) async {
@@ -95,8 +102,8 @@ class AuthDelegate<User extends Model, T extends Model> implements Authenticatio
     return null;
   }
 
-  Future<T> _tokenForPredicate(Predicate p) async {
-    var tokenQ = new Query<T>();
+  Future<Token> _tokenForPredicate(Predicate p) async {
+    var tokenQ = new Query<Token>();
     tokenQ.predicate = p;
     var result = await tokenQ.fetchOne();
     if (result == null) {

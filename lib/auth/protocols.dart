@@ -127,6 +127,11 @@ abstract class AuthenticationServerDelegate<ResourceOwner extends Authenticatabl
 
   /// Asks this instance to store a [TokenType] for [server].
   ///
-  /// The implementing class must persistent the token [t].
+  /// The implementing class must persist the token [t].
   Future storeToken(AuthenticationServer server, TokenType t);
+
+  /// Asks this instance to update an existing [TokenType] for [server].
+  ///
+  /// The implementing class must persist the token [t].
+  Future updateToken(AuthenticationServer server, TokenType t);
 }

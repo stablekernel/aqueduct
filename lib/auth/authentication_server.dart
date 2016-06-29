@@ -83,15 +83,22 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
   /// The token is not stored in this method.
   TokenType generateToken(dynamic ownerID, String clientID, int expirationInSeconds) {
     TokenType token = (reflectType(TokenType) as ClassMirror).newInstance(new Symbol(""), []).reflectee;
-    token.accessToken = randomStringOfLength(32);
     token.refreshToken = randomStringOfLength(32);
-    token.issueDate = new DateTime.now().toUtc();
-    token.expirationDate = token.issueDate.add(new Duration(seconds: expirationInSeconds)).toUtc();
+    appendNewAccessToken(token, expirationInSeconds);
     token.type = "bearer";
     token.resourceOwnerIdentifier = ownerID;
     token.clientID = clientID;
 
     return token;
+  }
+
+  /// Given a [TokenType], generates and sets a new access token.
+  ///
+  /// This updates the access token, issue and expiration dates for a token.
+  void appendNewAccessToken(TokenType token, int expirationInSeconds) {
+    token.accessToken = randomStringOfLength(32);
+    token.issueDate = new DateTime.now().toUtc();
+    token.expirationDate = token.issueDate.add(new Duration(seconds: expirationInSeconds)).toUtc();
   }
 
   /// Refreshes a valid [TokenType].
@@ -113,13 +120,10 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
       throw new HTTPResponseException(401, "Invalid client_id for token");
     }
 
-    await delegate.deleteTokenForAccessToken(this, t.accessToken);
-
     var diff = t.expirationDate.difference(t.issueDate);
-    var newToken = generateToken(t.resourceOwnerIdentifier, t.clientID, diff.inSeconds);
-    await delegate.storeToken(this, newToken);
+    appendNewAccessToken(t, diff.inSeconds);
 
-    return newToken;
+    return delegate.updateToken(this, t);
   }
 
   /// Authenticates a resource owner for a given client ID.
