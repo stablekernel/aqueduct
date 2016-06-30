@@ -153,6 +153,10 @@ class PostgreSQLPersistentStore extends PersistentStore {
   }
 
   Future<int> executeDeleteQuery(PersistentStoreQuery q) async {
+    if (q.predicate == null && !q.confirmQueryModifiesAllInstancesOnDeleteOrUpdate) {
+      throw new HTTPResponseException(500, "Query would impact all records. This could be a destructive error. Set confirmQueryModifiesAllInstancesOnDeleteOrUpdate on the Query to execute anyway.");
+    }
+
     var queryStringBuffer = new StringBuffer();
     queryStringBuffer.write("delete from ${q.entity.tableName} ");
 
@@ -168,6 +172,10 @@ class PostgreSQLPersistentStore extends PersistentStore {
   }
 
   Future<List<List<MappingElement>>> executeUpdateQuery(PersistentStoreQuery q) async {
+    if (q.predicate == null && !q.confirmQueryModifiesAllInstancesOnDeleteOrUpdate) {
+      throw new HTTPResponseException(500, "Query would impact all records. This could be a destructive error. Set confirmQueryModifiesAllInstancesOnDeleteOrUpdate on the Query to execute anyway.");
+    }
+
     var queryStringBuffer = new StringBuffer();
     queryStringBuffer.write("update ${q.entity.tableName} ");
     queryStringBuffer.write("set ${q.values.map((m) => _columnNameForProperty(m.property)).map((keyName) => "$keyName=@u_$keyName").join(",")} ");

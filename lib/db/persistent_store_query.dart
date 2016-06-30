@@ -13,6 +13,7 @@ class PersistentStoreQuery {
   int timeoutInSeconds = 30;
   int fetchLimit = 0;
   int offset = 0;
+  bool confirmQueryModifiesAllInstancesOnDeleteOrUpdate;
   QueryPage pageDescriptor;
   List<SortDescriptor> sortDescriptors;
   Predicate predicate;
@@ -21,6 +22,7 @@ class PersistentStoreQuery {
   List<MappingElement> resultKeys;
 
   void _instantiateFromMultiJoinQuery(PersistentStore store, ModelQuery q) {
+    confirmQueryModifiesAllInstancesOnDeleteOrUpdate = q.confirmQueryModifiesAllInstancesOnDeleteOrUpdate;
     // This only gets called if we DO have subqueries, so assume that.
 
     // Ignore fetchLimit, offset, pageDescriptor - do we throw an exception or just run them in software?
@@ -38,6 +40,7 @@ class PersistentStoreQuery {
   }
 
   void _instantiateFromSingleQuery(PersistentStore store, Query q) {
+    confirmQueryModifiesAllInstancesOnDeleteOrUpdate = q.confirmQueryModifiesAllInstancesOnDeleteOrUpdate;
     timeoutInSeconds = q.timeoutInSeconds;
     fetchLimit = q.fetchLimit;
     offset = q.offset;

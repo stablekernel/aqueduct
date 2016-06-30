@@ -183,6 +183,7 @@ void main() {
     await req.insert();
 
     req = new Query<TestModel>()
+      ..predicate = new Predicate("name is not null", {})
       ..values.name = "Joe";
 
     try {
@@ -191,6 +192,55 @@ void main() {
     } on QueryException catch (e) {
       expect(e.message, "updateOne modified more than one row, this is a serious error.");
     }
+  });
+
+  test("Update all without safeguard fails", () async {
+    context = await contextWithModels([TestModel]);
+
+    var m = new TestModel()
+      ..name = "Bob"
+      ..emailAddress = "1@a.com";
+    var fred = new TestModel()
+      ..name = "Fred"
+      ..emailAddress = "2@a.com";
+
+    var req = new Query<TestModel>()..values = m;
+    await req.insert();
+    req = new Query<TestModel>()..values = fred;
+    await req.insert();
+
+    req = new Query<TestModel>()
+      ..values.name = "Joe";
+
+    try {
+      var res = await req.update();
+      expect(true, false);
+    } on HTTPResponseException catch (e) {
+      expect(e.statusCode, 500);
+    }
+  });
+
+  test("Update all WITH safeguard succeeds", () async {
+    context = await contextWithModels([TestModel]);
+
+    var m = new TestModel()
+      ..name = "Bob"
+      ..emailAddress = "1@a.com";
+    var fred = new TestModel()
+      ..name = "Fred"
+      ..emailAddress = "2@a.com";
+
+    var req = new Query<TestModel>()..values = m;
+    await req.insert();
+    req = new Query<TestModel>()..values = fred;
+    await req.insert();
+
+    req = new Query<TestModel>()
+      ..confirmQueryModifiesAllInstancesOnDeleteOrUpdate = true
+      ..values.name = "Fred";
+
+    var res = await req.update();
+    expect(res.map((tm) => tm.name), everyElement("Fred"));
   });
 }
 
