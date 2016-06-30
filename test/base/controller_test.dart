@@ -180,6 +180,14 @@ void main() {
     expect(res.statusCode, 200);
   });
 
+  test("Controllers return no body if null", () async {
+    server = await enableController("/a/:thing", ModelEncodeController);
+
+    var res = await http.get("http://localhost:4040/a/null");
+    expect(res.body, isEmpty);
+    expect(res.statusCode, 200);
+  });
+
   test("Sending bad JSON returns 500", () async {
     server = await enableController("/a", TController);
     var res = await http.post("http://localhost:4040/a", body: "{`foobar' : 2}", headers: {"Content-Type" : "application/json"});
