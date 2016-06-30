@@ -197,6 +197,9 @@ abstract class HttpController extends RequestHandler {
   }
 
   dynamic encodedResponseBody(dynamic initialResponseBody) {
+    if (initialResponseBody == null) {
+      return null;
+    }
     var serializedBody = null;
     if (initialResponseBody is Serializable) {
       serializedBody = (initialResponseBody as Serializable).asSerializable();
@@ -211,7 +214,6 @@ abstract class HttpController extends RequestHandler {
     }
 
     return responseBodyEncoder(serializedBody ?? initialResponseBody);
-
   }
 
   Future<Response> _process() async {

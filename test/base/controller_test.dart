@@ -173,7 +173,14 @@ void main() {
     expect(JSON.decode(res.body), [{"id" : 1, "name" : "Bob"}, {"id" : 2, "name" : "Fred"}]);
 
     res = await http.get("http://localhost:4040/a/null");
-    expect(JSON.decode(res.body), isNull);
+    expect(res.body.isEmpty, true);
+    expect(res.statusCode, 200);
+  });
+
+  test("Controllers returning null body return empty string", () async {
+    server = await enableController("/a/:thing", new RequestHandlerGenerator<ModelEncodeController>());
+    var res = await http.get("http://localhost:4040/a/null");
+    expect(res.body.isEmpty, true);
     expect(res.statusCode, 200);
   });
 
