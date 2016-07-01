@@ -17,7 +17,7 @@ void main() {
 
   setUp(() async {
     context = await contextWithModels([TestUser, Token]);
-    var authenticationServer = new AuthenticationServer<TestUser, Token>(new AuthDelegate<TestUser, Token>(context));
+    var authenticationServer = new AuthenticationServer<TestUser, Token>(new AuthDelegate(context));
 
     server = await HttpServer.bind("localhost", 8080, v6Only: false, shared: false);
     server.listen((req) {
@@ -123,7 +123,7 @@ void main() {
       ..formData = m;
     expect(await req.post(), hasResponse(200, {
       "access_token" : hasLength(greaterThan(0)),
-      "refresh_token" : hasLength(greaterThan(0)),
+      "refresh_token" : json["refresh_token"],
       "expires_in" : greaterThan(3500),
       "token_type" : "bearer"
     }));

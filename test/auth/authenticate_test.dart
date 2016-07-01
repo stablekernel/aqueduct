@@ -5,11 +5,11 @@ import '../helpers.dart';
 
 void main() {
   ModelContext context = null;
-  AuthDelegate<TestUser, Token> delegate;
+  AuthDelegate delegate;
 
   setUp(() async {
     context = await contextWithModels([TestUser, Token]);
-    delegate = new AuthDelegate<TestUser, Token>(context);
+    delegate = new AuthDelegate(context);
   });
 
   tearDown(() async {

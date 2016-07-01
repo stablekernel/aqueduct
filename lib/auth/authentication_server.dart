@@ -113,13 +113,12 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
       throw new HTTPResponseException(401, "Invalid client_id for token");
     }
 
-    await delegate.deleteTokenForAccessToken(this, t.accessToken);
-
     var diff = t.expirationDate.difference(t.issueDate);
-    var newToken = generateToken(t.resourceOwnerIdentifier, t.clientID, diff.inSeconds);
-    await delegate.storeToken(this, newToken);
+    t.accessToken = randomStringOfLength(32);
+    t.issueDate = new DateTime.now().toUtc();
+    t.expirationDate = t.issueDate.add(new Duration(seconds: diff.inSeconds)).toUtc();
 
-    return newToken;
+    return delegate.updateToken(this, t);
   }
 
   /// Authenticates a resource owner for a given client ID.
