@@ -45,7 +45,7 @@ class Response implements RequestHandlerResult {
     }
   }
   Response.accepted({Map<String, String> headers}) : this(HttpStatus.ACCEPTED, headers, null);
-
+  Response.noContent({Map<String, String> headers}) : this(HttpStatus.NO_CONTENT, headers, null);
   Response.badRequest({Map<String, String> headers, dynamic body}) : this(HttpStatus.BAD_REQUEST, headers, body);
   Response.unauthorized({Map<String, String> headers, dynamic body}) : this(HttpStatus.UNAUTHORIZED, headers, body);
   Response.forbidden({Map<String, String> headers, dynamic body}) : this(HttpStatus.FORBIDDEN, headers, body);
