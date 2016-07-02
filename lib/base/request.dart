@@ -12,10 +12,10 @@ class Request implements RequestHandlerResult {
   /// with a function from this map of encoders. The HTTP header for Content-Type
   /// is broken into two pieces, primary type (e.g., 'application') and subtype (e.g., 'json').
   /// The primary type is the first key in [encoders], and then the subtype is used to return the specific encoding
-  /// function from this map. Encoders take any argument and return the encoded version of it based on those two values.
+  /// function from this map. Encoders take any argument and return the encoded version of it based on the Content-Type pair.
   /// By default, if a [Response] has no Content-Type header, 'application/json' is used. There are only two
   /// encoders available by default, 'application/json' and 'text/plain'. You may add extra encoders to this map using
-  /// [addEncoder]. Do not try and manipulate [encoders] directlry.
+  /// [addEncoder]. Do not try and manipulate [encoders] directly.
   static Map<String, Map<String, Function>> encoders = {
     "application" : {
       "json" : (v) => JSON.encode(v),
@@ -68,8 +68,8 @@ class Request implements RequestHandlerResult {
 
   /// The request body object, as determined by how it was decoded.
   ///
-  /// This value will be null until [decodeBodyWithDecoder] is executed or if there is no request body.
-  /// Once decoded, this value will be an object that is determined by the decoder passed to [decodeBodyWithDecoder].
+  /// This value will be null until [decodeBody] is executed or if there is no request body.
+  /// Once decoded, this value will be an object that is determined by the decoder passed to [decodeBody].
   /// For example, if the request body was a JSON object and the decoder handled JSON, this value would be a [Map]
   /// representing the JSON object.
   dynamic requestBodyObject;
@@ -114,9 +114,9 @@ class Request implements RequestHandlerResult {
     return originalString.substring(0, charSize);
   }
 
-  Future decodeBodyWithDecoder(Future decoder(HttpRequest req)) async {
+  Future decodeBody() async {
     if (innerRequest.contentLength > 0) {
-      requestBodyObject = await decoder(innerRequest);
+      requestBodyObject = await HTTPBodyDecoder.decode(innerRequest);
     }
   }
 

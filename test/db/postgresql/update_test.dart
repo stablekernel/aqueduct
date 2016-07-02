@@ -186,7 +186,7 @@ void main() {
       ..values.name = "Joe";
 
     try {
-      var res = await req.updateOne();
+      var _ = await req.updateOne();
       expect(true, false);
     } on QueryException catch (e) {
       expect(e.message, "updateOne modified more than one row, this is a serious error.");
