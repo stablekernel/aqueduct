@@ -61,7 +61,7 @@ void main() {
     expect(result.length, 9);
   });
 
-  test("Deleting all objects works", () async {
+  test("Deleting all objects works, as long as you specify the magic", () async {
     context = await contextWithModels([TestModel, RefModel]);
 
     for (int i = 0; i < 10; i++) {
@@ -78,13 +78,43 @@ void main() {
     var result = await req.fetch();
     expect(result.length, 10);
 
-    req = new Query<TestModel>();
+    req = new Query<TestModel>()
+      ..confirmQueryModifiesAllInstancesOnDeleteOrUpdate = true;
     var count = await req.delete();
     expect(count, 10);
 
     req = new Query<TestModel>();
     result = await req.fetch();
     expect(result.length, 0);
+  });
+
+  test("Trying to delete all objects without specifying the magic fails", () async {
+    context = await contextWithModels([TestModel, RefModel]);
+
+    for (int i = 0; i < 10; i++) {
+      var m = new TestModel()
+        ..email = "${i}@a.com"
+        ..name = "joe";
+
+      var req = new Query<TestModel>()..values = m;
+
+      await req.insert();
+    }
+
+    var req = new Query<TestModel>();
+    var result = await req.fetch();
+    expect(result.length, 10);
+
+    try {
+      req = new Query<TestModel>();
+      await req.delete();
+    } on HTTPResponseException catch (e) {
+      expect(e.statusCode, 500);
+    }
+
+    req = new Query<TestModel>();
+    result = await req.fetch();
+    expect(result.length, 10);
   });
 
   test("Deleting a related object w/nullify sets property to null", () async {
@@ -98,7 +128,8 @@ void main() {
     req = new Query<RefModel>()..values = obj;
     var refObj = await req.insert();
 
-    req = new Query<TestModel>();
+    req = new Query<TestModel>()
+      ..confirmQueryModifiesAllInstancesOnDeleteOrUpdate = true;
     var count = await req.delete();
     expect(count, 1);
 
@@ -120,7 +151,8 @@ void main() {
 
     var successful = false;
     try {
-      req = new Query<GRestrictInverse>();
+      req = new Query<GRestrictInverse>()
+        ..confirmQueryModifiesAllInstancesOnDeleteOrUpdate = true;
       await req.delete();
       successful = true;
     } catch (e) {
@@ -141,7 +173,8 @@ void main() {
     req = new Query<GCascade>()..values = obj;
     await req.insert();
 
-    req = new Query<GCascadeInverse>();
+    req = new Query<GCascadeInverse>()
+      ..confirmQueryModifiesAllInstancesOnDeleteOrUpdate = true;
     var count = await req.delete();
     expect(count, 1);
 

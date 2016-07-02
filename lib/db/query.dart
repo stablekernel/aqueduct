@@ -19,6 +19,14 @@ class Query<ModelType extends Model> {
   ModelContext context;
   ModelEntity get entity => context.dataModel.entityForType(modelType);
 
+  /// Confirms that a query has no predicate before executing it.
+  ///
+  /// This is a safety measure for update and delete queries. This flag defaults to false, meaning that if this query is
+  /// either an update or a delete, but contains no predicate, it will fail. If a query is meant to update or delete every
+  /// row on a table, you may set this to true to allow this query to proceed.
+  bool confirmQueryModifiesAllInstancesOnDeleteOrUpdate = false;
+
+  ///
   /// Number of seconds before a Query times out.
   ///
   /// A Query will fail and throw a [QueryException] if [timeoutInSeconds] seconds elapse before the query completes.
