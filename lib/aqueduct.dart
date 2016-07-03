@@ -24,13 +24,11 @@ import 'dart:convert';
 import 'package:crypto/crypto.dart' show sha256;
 import 'package:pbkdf2/pbkdf2.dart';
 import 'dart:math';
-import 'package:http_server/http_server.dart';
 import 'package:logging/logging.dart';
 import 'package:postgresql/postgresql.dart';
 import 'package:matcher/matcher.dart';
 import 'package:analyzer/analyzer.dart';
 
-export 'package:http_server/http_server.dart';
 export 'package:logging/logging.dart';
 export 'package:safe_config/safe_config.dart';
 
@@ -52,6 +50,7 @@ part 'base/serializable.dart';
 part 'base/cors_policy.dart';
 part 'base/resource_controller.dart';
 part 'base/model_controller.dart';
+part 'base/body_decoder.dart';
 
 part 'auth/authenticator.dart';
 part 'auth/protocols.dart';
