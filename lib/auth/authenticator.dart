@@ -81,8 +81,8 @@ class Authenticator extends RequestHandler {
   }
 
 
-  List<APIDocumentItem> document(PackagePathResolver resolver) {
-    List<APIDocumentItem> items = nextHandler.document(resolver);
+  List<APIPath> document(PackagePathResolver resolver) {
+    List<APIPath> items = nextHandler.document(resolver);
 
     items.forEach((i) {
       if (strategy == AuthenticationStrategy.Client) {

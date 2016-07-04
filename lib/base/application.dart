@@ -84,6 +84,13 @@ class Application<PipelineType extends ApplicationPipeline> {
     await server?.server?.close(force: true);
   }
 
+  APIDocument document(PackagePathResolver resolver) {
+    ApplicationPipeline pipeline = reflectClass(PipelineType).newInstance(new Symbol(""), [configuration.pipelineOptions]).reflectee;
+    pipeline.addRoutes();
+
+    return pipeline.document(resolver);
+  }
+
   Future<IsolateSupervisor> _spawn(ApplicationInstanceConfiguration config, int identifier) async {
     var receivePort = new ReceivePort();
 

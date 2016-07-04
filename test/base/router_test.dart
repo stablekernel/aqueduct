@@ -1,10 +1,11 @@
-@TestOn("vm")
 import "package:test/test.dart";
 import "dart:core";
 import "dart:io";
 import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'package:aqueduct/aqueduct.dart';
+
+// Add to make sure variables and remaining path get stuffed into PathRequest
 
 
 void main() {
@@ -54,20 +55,6 @@ void main() {
     expect(response.body, equals('"foobar"'));
   });
 
-  test("Base API Path Throws exception when adding routes prior to setting it", () async {
-    var router = new Router();
-    router.route("/a");
-
-    var successful = false;
-    try {
-      router.basePath = "/api";
-      successful = true;
-    } catch (e) {
-      expect(e is Exception, true);
-    }
-    expect(successful, false);
-  });
-
   test("Base API adds to path", () async {
     var router = new Router();
     router.basePath = "/api";
@@ -80,6 +67,15 @@ void main() {
 
     response = await http.get("http://localhost:4040/player");
     expect(response.statusCode, equals(404));
+  });
+
+  test("Change Base API Path after adding routes still succeeds", () async {
+    var router = new Router();
+    router.route("/a").next(new Handler());
+    router.basePath = "/api";
+    server = await enableRouter(router);
+    var response = await http.get("http://localhost:4040/api/a");
+    expect(response.statusCode, equals(202));
   });
 
   test("Router uses request handlers", () async {
@@ -111,6 +107,27 @@ void main() {
       expect(response.statusCode, equals(202));
       expect(response.body, '"${i + 1}"');
     }
+  });
+
+  test("Router matches right route when many are similar", () async {
+    var router = new Router();
+    router.route("/a/[:id]").next(new RequestHandler(requestHandler: (Request req) {
+      req.respond(new Response(200, null, null));
+    }));
+    router.route("/a/:id/f").next(new RequestHandler(requestHandler: (Request req) {
+      req.respond(new Response(201, null, null));
+    }));
+
+    server = await enableRouter(router);
+
+    var response = await http.get("http://localhost:4040/a");
+    expect(response.statusCode, equals(200));
+
+    response = await http.get("http://localhost:4040/a/1");
+    expect(response.statusCode, equals(200));
+
+    response = await http.get("http://localhost:4040/a/1/f");
+    expect(response.statusCode, equals(201));
   });
 }
 

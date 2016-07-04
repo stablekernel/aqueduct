@@ -4,7 +4,7 @@ part of aqueduct;
 ///
 /// [Application]s set up HTTP(S) listeners, but do not do anything with them. The behavior of how an application
 /// responds to requests is defined by its [ApplicationPipeline]. Must be subclassed.
-abstract class ApplicationPipeline extends RequestHandler {
+abstract class ApplicationPipeline extends RequestHandler implements APIDocumentable {
   /// Default constructor.
   ///
   /// The default constructor takes a [Map] of configuration [options]. The constructor should initialize
@@ -14,6 +14,9 @@ abstract class ApplicationPipeline extends RequestHandler {
   /// must be initialized asynchronously, those properties should implement their own deferred initialization mechanism
   /// that can be triggered in [willOpen], but still must be initialized in this constructor.
   ApplicationPipeline(this.options);
+
+  /// Documentation info for this pipeline.
+  APIInfo apiInfo = new APIInfo();
 
   /// This pipeline's owning server.
   ///
@@ -72,7 +75,12 @@ abstract class ApplicationPipeline extends RequestHandler {
   }
 
   @override
-  List<APIDocumentItem> document(PackagePathResolver resolver) {
-    return initialHandler().document(resolver);
+  APIDocument document(PackagePathResolver resolver) {
+    var doc = new APIDocument()
+      ..info = apiInfo;
+
+    doc.items = initialHandler().document(resolver);
+
+    return doc;
   }
 }

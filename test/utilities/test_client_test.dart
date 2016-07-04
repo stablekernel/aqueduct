@@ -1,8 +1,6 @@
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
 import 'dart:io';
-import 'dart:convert';
-
 void main() {
   group("Test Client/Request", () {
     var server = new MockHTTPServer(4040);

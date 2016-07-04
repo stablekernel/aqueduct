@@ -169,12 +169,9 @@ class RequestHandler implements APIDocumentable {
     return req.innerRequest.method == "OPTIONS" && req.innerRequest.headers.value("access-control-request-method") != null;
   }
 
-  List<APIDocumentItem> document(PackagePathResolver resolver) {
-    if (nextHandler != null) {
-      return nextHandler.document(resolver);
-    }
-
-    return [];
+  @override
+  dynamic document(PackagePathResolver resolver) {
+    return null;
   }
 }
 
@@ -222,7 +219,7 @@ class _RequestHandlerGenerator extends RequestHandler {
   }
 
   @override
-  List<APIDocumentItem> document(PackagePathResolver resolver) {
+  dynamic document(PackagePathResolver resolver) {
     return instantiate().document(resolver);
   }
 }

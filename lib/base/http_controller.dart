@@ -266,7 +266,7 @@ abstract class HTTPController extends RequestHandler {
   }
 
   @override
-  List<APIDocumentItem> document(PackagePathResolver resolver) {
+  List<APIPath> document(PackagePathResolver resolver) {
     var handlerMethodMirrors = reflect(this).type.declarations.values
         .where((dm) => dm is MethodMirror)
         .where((mm) {
@@ -290,7 +290,7 @@ abstract class HTTPController extends RequestHandler {
     });
 
     return handlerMethodMirrors.map((MethodMirror mm) {
-      var i = new APIDocumentItem();
+      var i = new APIPath();
 
       var matchingMethodDeclaration = methodMap[MirrorSystem.getName(mm.simpleName)];
       if (matchingMethodDeclaration != null) {
