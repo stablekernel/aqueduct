@@ -5,18 +5,7 @@ part of aqueduct;
 /// Contains a standard library [HttpRequest], along with other values
 /// to associate data with a request.
 class Request implements RequestHandlerResult {
-
-  /// The set of available encoders for HTTP response data.
-  ///
-  /// If this [Request]'s [Response] has an HTTP body, the body is encoded
-  /// with a function from this map of encoders. The HTTP header for Content-Type
-  /// is broken into two pieces, primary type (e.g., 'application') and subtype (e.g., 'json').
-  /// The primary type is the first key in [encoders], and then the subtype is used to return the specific encoding
-  /// function from this map. Encoders take any argument and return the encoded version of it based on those two values.
-  /// By default, if a [Response] has no Content-Type header, 'application/json' is used. There are only two
-  /// encoders available by default, 'application/json' and 'text/plain'. You may add extra encoders to this map using
-  /// [addEncoder]. Do not try and manipulate [encoders] directlry.
-  static Map<String, Map<String, Function>> encoders = {
+  static Map<String, Map<String, Function>> _encoders = {
     "application" : {
       "json" : (v) => JSON.encode(v),
     },
@@ -25,12 +14,19 @@ class Request implements RequestHandlerResult {
     }
   };
 
-  /// Adds an encoder for a content type. See [encoders].
+  /// Adds an HTTP Response Body encoder to list of available encoders for all [Request]s.
+  ///
+  /// By default, 'application/json' and 'text/plain' are implemented. If you wish to add another encoder
+  /// to your application, use this method. The [encoder] must take one argument of any type, and return a value
+  /// that will become the HTTP response body.
+  ///
+  /// The return value is written to the response with [IOSink.write] and so it must either be a [String] or its [toString]
+  /// must produce the desired value.
   static void addEncoder(ContentType type, dynamic encoder(dynamic value)) {
-    var topLevel = encoders[type.primaryType];
+    var topLevel = _encoders[type.primaryType];
     if (topLevel == null) {
       topLevel = {};
-      encoders[topLevel] = topLevel;
+      _encoders[topLevel] = topLevel;
     }
 
     topLevel[type.subType] = encoder;
@@ -68,8 +64,8 @@ class Request implements RequestHandlerResult {
 
   /// The request body object, as determined by how it was decoded.
   ///
-  /// This value will be null until [decodeBodyWithDecoder] is executed or if there is no request body.
-  /// Once decoded, this value will be an object that is determined by the decoder passed to [decodeBodyWithDecoder].
+  /// This value will be null until [decodeBody] is executed or if there is no request body.
+  /// Once decoded, this value will be an object that is determined by the decoder passed to [decodeBody].
   /// For example, if the request body was a JSON object and the decoder handled JSON, this value would be a [Map]
   /// representing the JSON object.
   dynamic requestBodyObject;
@@ -114,22 +110,27 @@ class Request implements RequestHandlerResult {
     return originalString.substring(0, charSize);
   }
 
-  Future decodeBodyWithDecoder(Future decoder(HttpRequest req)) async {
+  Future decodeBody() async {
     if (innerRequest.contentLength > 0) {
-      requestBodyObject = await decoder(innerRequest);
+      requestBodyObject = await HTTPBodyDecoder.decode(innerRequest);
     }
   }
 
-  /// Sends a [Response] to the requester.
+  /// Sends a [Response] to this [Request]'s client.
   ///
-  /// Once this method has executed, the [Request] is no longer valid.
-  void respond(Response respObj) {
+  /// Once this method has executed, the [Request] is no longer valid. All headers from [responseObject] are
+  /// added to the HTTP response. If [responseObject] has a [Response.body], this request will attempt to encode the body data according to the
+  /// Content-Type in the [responseObject]'s [Response.headers].
+  ///
+  /// By default, 'application/json' and 'text/plain' are supported HTTP response body encoding types. If you wish to encode another
+  /// format, see [addEncoder].
+  void respond(Response responseObject) {
     respondDate = new DateTime.now().toUtc();
 
-    response.statusCode = respObj.statusCode;
+    response.statusCode = responseObject.statusCode;
 
-    if (respObj.headers != null) {
-      respObj.headers.forEach((k, v) {
+    if (responseObject.headers != null) {
+      responseObject.headers.forEach((k, v) {
         if (v is ContentType) {
           response.headers.add(HttpHeaders.CONTENT_TYPE, v.toString());
         } else {
@@ -138,8 +139,8 @@ class Request implements RequestHandlerResult {
       });
     }
 
-    if (respObj.body != null) {
-      _encodeBody(respObj);
+    if (responseObject.body != null) {
+      _encodeBody(responseObject);
     }
 
     response.close();
@@ -155,14 +156,14 @@ class Request implements RequestHandlerResult {
     }
 
     ContentType contentType = contentTypeValue;
-    var topLevel = encoders[contentType.primaryType];
+    var topLevel = _encoders[contentType.primaryType];
     if (topLevel == null) {
-      throw new RequestException("No encoder for $contentTypeValue, add with ResourceRequest.addEncoder().");
+      throw new RequestException("No encoder for $contentTypeValue, add with Request.addEncoder().");
     }
 
     var encoder = topLevel[contentType.subType];
     if (encoder == null) {
-      throw new RequestException("No encoder for $contentTypeValue, add with ResourceRequest.addEncoder().");
+      throw new RequestException("No encoder for $contentTypeValue, add with Request.addEncoder().");
     }
 
     var encodedValue = encoder(respObj.body);

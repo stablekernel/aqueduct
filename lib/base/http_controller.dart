@@ -90,25 +90,11 @@ abstract class HTTPController extends RequestHandler {
     return symbol;
   }
 
-  Future _readRequestBodyForRequest(Request req) async {
-    if (request.innerRequest.contentLength > 0) {
-      var incomingContentType = request.innerRequest.headers.contentType;
-      var matchingContentType = acceptedContentTypes.firstWhere((ct) {
-        return ct.primaryType == incomingContentType.primaryType && ct.subType == incomingContentType.subType;
-      }, orElse: () => null);
-
-      if (matchingContentType == null) {
-        throw new _InternalControllerException("Unsupported Content-Type", HttpStatus.UNSUPPORTED_MEDIA_TYPE);
-      }
-
-      try {
-        await req.decodeBodyWithDecoder((r) async {
-          return (await HttpBodyHandler.processRequest(r)).body;
-        });
-      } catch (e) {
-        throw new _InternalIgnoreBullshitException();
-      }
-    }
+  bool _requestContentTypeIsSupported(Request req) {
+    var incomingContentType = request.innerRequest.headers.contentType;
+    return acceptedContentTypes.firstWhere((ct) {
+      return ct.primaryType == incomingContentType.primaryType && ct.subType == incomingContentType.subType;
+    }, orElse: () => null) != null;
   }
 
   dynamic _convertParameterListWithMirror(List<String> parameterValues, TypeMirror typeMirror) {
@@ -159,11 +145,7 @@ abstract class HTTPController extends RequestHandler {
   Map<Symbol, dynamic> _queryParametersForRequest(Request req, dynamic body, Symbol handlerMethodSymbol) {
     Map<String, dynamic> queryParams = {};
 
-    var contentTypeString = req.innerRequest.headers.value(HttpHeaders.CONTENT_TYPE);
-    var contentType = null;
-    if (contentTypeString != null) {
-      contentType = ContentType.parse(contentTypeString);
-    }
+    var contentType = req.innerRequest.headers.contentType;
 
     if (contentType != null
     &&  contentType.primaryType == _applicationWWWFormURLEncodedContentType.primaryType
@@ -219,7 +201,13 @@ abstract class HTTPController extends RequestHandler {
     var methodSymbol = _routeMethodSymbolForRequest(request);
     var handlerParameters = _parametersForRequest(request, methodSymbol);
 
-    await _readRequestBodyForRequest(request);
+    if (request.innerRequest.contentLength > 0) {
+      if (_requestContentTypeIsSupported(request)) {
+        await request.decodeBody();
+      } else {
+        return new Response(HttpStatus.UNSUPPORTED_MEDIA_TYPE, null, null);
+      }
+    }
     var handlerQueryParameters = _queryParametersForRequest(request, requestBody, methodSymbol);
 
     if (requestBody != null) {
@@ -249,17 +237,10 @@ abstract class HTTPController extends RequestHandler {
       } else if (preprocessedResult is Response) {
         response = preprocessedResult;
       } else {
-        throw new _InternalControllerException("Preprocessing request did not yield result", 500);
+        response = new Response.serverError(body: {"error" : "Preprocessing request did not yield result"});
       }
 
       return response;
-    } on _InternalIgnoreBullshitException {
-      // If this happens, the JSON decoder decided to respond for us, which is a real dick move, so we have to return null here and
-      // manually update the respondDate. Remove this code once we remove the dependency on HttpBodyParser.
-      req.respondDate = new DateTime.now().toUtc();
-      logger.info(req.toDebugString(includeHeaders: true, includeBody: true));
-
-      return null;
     } on _InternalControllerException catch (e) {
       return e.response;
     }
@@ -340,10 +321,6 @@ abstract class HTTPController extends RequestHandler {
       return i;
     }).toList();
   }
-}
-
-class _InternalIgnoreBullshitException implements Exception {
-  _InternalIgnoreBullshitException();
 }
 
 class _InternalControllerException implements Exception {
