@@ -87,6 +87,7 @@ class Application<PipelineType extends ApplicationPipeline> {
   APIDocument document(PackagePathResolver resolver) {
     ApplicationPipeline pipeline = reflectClass(PipelineType).newInstance(new Symbol(""), [configuration.pipelineOptions]).reflectee;
     pipeline.addRoutes();
+    pipeline.router.finalize();
 
     return pipeline.document(resolver);
   }

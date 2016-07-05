@@ -79,13 +79,3 @@ class _RouteNode {
     return anyMatcherChildNode;
   }
 }
-
-String _segmentAtLevel(RoutePathSpecification spec, int level) {
-  if (level < spec.segments.length) {
-    var seg = spec.segments[level];
-    if (seg.isLiteralMatcher) {
-      return seg.literal;
-    }
-  }
-  return null;
-}

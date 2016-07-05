@@ -110,6 +110,15 @@ class Router extends RequestHandler {
     _unhandledRequestHandler(req);
   }
 
+  /// Returns a [List] of [APIPath]s configured in this router.
+  @override
+  dynamic document(PackagePathResolver resolver) {
+    return _routeHandlers
+        .expand((rh) => rh.patterns)
+        .map((routeSpec) => routeSpec.document(resolver))
+        .toList();
+  }
+
   void _handleUnhandledRequest(Request req) {
     var response = new Response.notFound();
     _applyCORSHeadersIfNecessary(req, response);

@@ -10,7 +10,7 @@ class APIDocument {
   List<ContentType> consumes = [];
   List<ContentType> produces = [];
   List<APISecurityRequirement> securityRequirements = [];
-  List<APIPath> items = [];
+  List<APIPath> paths = [];
 
   Map<String, dynamic> asMap() {
     var m = {};
@@ -22,7 +22,8 @@ class APIDocument {
     m["produces"] = produces.map((ct) => ct.toString()).toList();
     m["security"] = securityRequirements.map((sec) => sec.asMap()).toList();
     m["paths"] = {};
-    items.forEach((apiPath) {
+
+    paths.forEach((apiPath) {
       m["paths"][apiPath.path] = apiPath.asMap();
     });
 
@@ -260,7 +261,7 @@ class APIParameter {
     m["description"] = description;
     m["required"] = (parameterLocation == APIParameterLocation.path ? true : required);
     m["deprecated"] = deprecated;
-    m["schema"] = schemaObject.asMap();
+    m["schema"] = schemaObject?.asMap();
 
     switch (parameterLocation) {
       case APIParameterLocation.query: m["in"] = "query"; break;

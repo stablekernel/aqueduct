@@ -74,12 +74,18 @@ abstract class ApplicationPipeline extends RequestHandler implements APIDocument
 
   }
 
+  /// Document generator for pipeline.
+  ///
+  /// This method will return a new [APIDocument]. It will derive the [APIDocument.paths] from its [initialHandler],
+  /// which must return a [List] of [APIPath]s. By default, the [initialHandler] is a [Router], which
+  /// implements [Router.document] to return that list. However, if you change the [initialHandler], you
+  /// must override its [document] method to return the same.
   @override
   APIDocument document(PackagePathResolver resolver) {
     var doc = new APIDocument()
       ..info = apiInfo;
 
-    doc.items = initialHandler().document(resolver);
+    doc.paths = initialHandler().document(resolver);
 
     return doc;
   }

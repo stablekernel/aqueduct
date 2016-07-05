@@ -67,24 +67,8 @@ class RoutePathSpecification implements APIDocumentable {
   /// A list of all variables in this route.
   List<String> variableNames;
 
+  /// A reference back to the [RequestHandler] to be used when this specification is matched.
   RequestHandler handler;
-
-  bool matches(List<String> requestSegments) {
-    var iter = requestSegments.iterator;
-
-    for (var seg in segments) {
-      if (seg.isRemainingMatcher) {
-        return true;
-      }
-      iter.moveNext();
-
-      if (!seg.matches(iter.current)) {
-        return false;
-      }
-    }
-
-    return iter.moveNext() == false;
-  }
 
   RequestPath requestPathForSegments(List<String> requestSegments) {
     var p = new RequestPath();
@@ -116,9 +100,29 @@ class RoutePathSpecification implements APIDocumentable {
 
   @override
   dynamic document(PackagePathResolver resolver) {
-    var paths = [];
+    var p = new APIPath();
+    p.path = "/" + segments.map((rs) {
+      if (rs.isLiteralMatcher) {
+        return rs.literal;
+      } else if (rs.isVariable) {
+        return "{${rs.variableName}}";
+      } else if (rs.isRemainingMatcher) {
+        return "*";
+      }
+    }).join("/");
 
-    return paths;
+    p.parameters = segments
+        .where((seg) => seg.isVariable)
+        .map((seg) {
+          var param = new APIParameter()
+              ..name = seg.variableName
+              ..parameterLocation = APIParameterLocation.path;
+
+          return param;
+        }).toList();
+
+
+    return p;
   }
 
   String toString() => segments.join("/");

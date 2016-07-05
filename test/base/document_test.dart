@@ -13,7 +13,10 @@ main() {
     expect(resolvedPath.startsWith("$homeDir/.pub-cache/hosted/pub.dartlang.org"), true);
   });
 
-  test("Documentation test", () {
+  test("App-to-router test", () {
+    var app = new Application<TPipeline>();
+    var doc = app.document(new PackagePathResolver(new File(".packages").path));
+    print("${doc.asMap()}");
 
   });
 
@@ -33,7 +36,7 @@ class TPipeline extends ApplicationPipeline {
   TPipeline(Map opts) : super(opts);
 
   void addRoutes() {
-    router.route("/t").next(() => new TController());
+    router.route("/t[/:a]").next(() => new TController());
   }
 }
 
