@@ -247,7 +247,7 @@ abstract class HTTPController extends RequestHandler {
   }
 
   @override
-  List<APIPath> document(PackagePathResolver resolver) {
+  List<APIOperation> document(PackagePathResolver resolver) {
     var handlerMethodMirrors = reflect(this).type.declarations.values
         .where((dm) => dm is MethodMirror)
         .where((mm) {
@@ -271,54 +271,61 @@ abstract class HTTPController extends RequestHandler {
     });
 
     return handlerMethodMirrors.map((MethodMirror mm) {
-      var i = new APIPath();
+      var operation = new APIOperation();
+      operation.id = "${MirrorSystem.getName(reflect(this).type.simpleName)}.${MirrorSystem.getName(mm.simpleName)}";
 
       var matchingMethodDeclaration = methodMap[MirrorSystem.getName(mm.simpleName)];
+
       if (matchingMethodDeclaration != null) {
         var comment = matchingMethodDeclaration.documentationComment;
-        var tokens = comment?.tokens ?? [];
-        i.description = tokens.map((t) => t.lexeme.trimLeft().substring(3).trim()).join("\n");
+        List tokens = comment?.tokens ?? [];
+        var lines = tokens.map((t) => t.lexeme.trimLeft().substring(3).trim()).toList();
+        if (lines.length > 0) {
+          operation.summary = lines.first;
+        }
+        if (lines.length > 1) {
+          operation.description = lines.sublist(1, lines.length).join("\n");
+        }
       }
 
-      var httpMethod = mm.metadata.firstWhere((im) => im.reflectee is HTTPMethod).reflectee;
+      HTTPMethod httpMethod = mm.metadata.firstWhere((im) => im.reflectee is HTTPMethod).reflectee;
 
-      i.method = httpMethod.method;
+      operation.method = httpMethod.method;
 
-      i.pathParameters = mm.parameters
+      operation.parameters = mm.parameters
           .where((pm) => !pm.isOptional)
           .map((pm) {
             return new APIParameter()
-                ..key = MirrorSystem.getName(pm.simpleName)
-                ..description = ""
+                ..name = MirrorSystem.getName(pm.simpleName)
                 ..type = MirrorSystem.getName(pm.type.simpleName)
-                ..required = true
                 ..parameterLocation = APIParameterLocation.path;
       }).toList();
 
-      i.queryParameters = mm.parameters
+      List<APIParameter> optionalParams = mm.parameters
           .where((pm) => pm.isOptional)
           .map((pm) {
-        return new APIParameter()
-          ..key = MirrorSystem.getName(pm.simpleName)
-          ..description = ""
-          ..type = MirrorSystem.getName(pm.type.simpleName)
-          ..required = false;
-      }).toList();
+            return new APIParameter()
+              ..name = MirrorSystem.getName(pm.simpleName)
+              ..description = ""
+              ..type = MirrorSystem.getName(pm.type.simpleName)
+              ..required = false;
+          }).toList();
 
-      if (i.method.toLowerCase() == "post" && acceptedContentTypes.firstWhere((cm) => cm.primaryType == "application" && cm.subType == "x-www-form-urlencoded", orElse: () => null) != null) {
-        i.queryParameters.forEach((param) {
+      if (operation.method.toLowerCase() == "post" && acceptedContentTypes.firstWhere((cm) => cm.primaryType == "application" && cm.subType == "x-www-form-urlencoded", orElse: () => null) != null) {
+        optionalParams.forEach((param) {
           param.parameterLocation = APIParameterLocation.formData;
         });
       } else {
-        i.queryParameters.forEach((param) {
+        optionalParams.forEach((param) {
           param.parameterLocation = APIParameterLocation.query;
         });
       }
+      operation.parameters.addAll(optionalParams);
 
-      i.acceptedContentTypes = acceptedContentTypes.map((ct) => "${ct.primaryType}/${ct.subType}").toList();
-      i.responseFormats = ["${responseContentType.primaryType}/${responseContentType.subType}"];
+      operation.consumes = acceptedContentTypes.map((ct) => "${ct.primaryType}/${ct.subType}").toList();
+      operation.produces = ["${responseContentType.primaryType}/${responseContentType.subType}"];
 
-      return i;
+      return operation;
     }).toList();
   }
 }

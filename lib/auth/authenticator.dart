@@ -81,16 +81,17 @@ class Authenticator extends RequestHandler {
   }
 
 
-  List<APIPath> document(PackagePathResolver resolver) {
-    List<APIPath> items = nextHandler.document(resolver);
+  @override
+  List<APIOperation> document(PackagePathResolver resolver) {
+    List<APIOperation> items = nextHandler.document(resolver);
 
-    items.forEach((i) {
-      if (strategy == AuthenticationStrategy.Client) {
-        i.securityItemName = "client_auth";
-      } else if (strategy == AuthenticationStrategy.ResourceOwner) {
-        i.securityItemName = "token";
-      }
-    });
+//    items.forEach((i) {
+//      if (strategy == AuthenticationStrategy.Client) {
+//        i.securityItemName = "client_auth";
+//      } else if (strategy == AuthenticationStrategy.ResourceOwner) {
+//        i.securityItemName = "token";
+//      }
+//    });
 
     return items;
   }

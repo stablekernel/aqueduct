@@ -171,7 +171,7 @@ class RequestHandler implements APIDocumentable {
 
   @override
   dynamic document(PackagePathResolver resolver) {
-    return null;
+    return nextHandler?.document(resolver);
   }
 }
 

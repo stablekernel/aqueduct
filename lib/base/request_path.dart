@@ -98,6 +98,11 @@ class RoutePathSpecification implements APIDocumentable {
     return p;
   }
 
+  /// Returns an [APIPath].
+  ///
+  /// This method will create and return an [APIPath] for the path that it represents. It will
+  /// invoke [document] on its [handler] to retrieve a list of [APIOperation]s. Those operations
+  /// will be filtered to only include those that have matching parameters.
   @override
   dynamic document(PackagePathResolver resolver) {
     var p = new APIPath();
@@ -121,6 +126,25 @@ class RoutePathSpecification implements APIDocumentable {
           return param;
         }).toList();
 
+    List<APIOperation> allOperations = handler.document(resolver);
+    p.operations = allOperations
+        .where((op) {
+          var opPathParamNames = op.parameters
+              .where((p) => p.parameterLocation == APIParameterLocation.path)
+              .map((p) => p.name)
+              .toList();
+          var pathParamNames = p.parameters
+            .where((p) => p.parameterLocation == APIParameterLocation.path)
+            .toList();
+          if (pathParamNames.length != opPathParamNames.length) {
+            return false;
+          }
+          return pathParamNames.every((p) => opPathParamNames.contains(p.name));
+        }).toList();
+
+    p.operations.forEach((op) {
+      op.parameters = op.parameters.where((p) => p.parameterLocation != APIParameterLocation.path).toList();
+    });
 
     return p;
   }

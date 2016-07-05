@@ -2,6 +2,7 @@ import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
 import 'dart:async';
 import 'dart:io';
+import 'dart:convert';
 
 main() {
   test("Package resolver", () {
@@ -16,7 +17,7 @@ main() {
   test("App-to-router test", () {
     var app = new Application<TPipeline>();
     var doc = app.document(new PackagePathResolver(new File(".packages").path));
-    print("${doc.asMap()}");
+    print("${JSON.encode(doc.asMap())}");
 
   });
 
@@ -36,7 +37,7 @@ class TPipeline extends ApplicationPipeline {
   TPipeline(Map opts) : super(opts);
 
   void addRoutes() {
-    router.route("/t[/:a]").next(() => new TController());
+    router.route("/t[/:id[/:notID]]").next(() => new TController());
   }
 }
 

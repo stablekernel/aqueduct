@@ -95,6 +95,10 @@ class APIHost {
 class APISecurityRequirement {
   String name;
   String type;
+
+  Map<String, dynamic> asMap() {
+    return {};
+  }
 }
 
 enum APISecurityType {
@@ -183,7 +187,7 @@ class APIOperation {
     m["consumes"] = consumes.map((ct) => ct.toString()).toList();
     m["produces"] = produces.map((ct) => ct.toString()).toList();
     m["parameters"] = parameters.map((param) => param.asMap()).toList();
-    m["requestBody"] = requestBody.asMap();
+    m["requestBody"] = requestBody?.asMap();
     m["responses"] = {};
     responses.forEach((resp) {
       m["responses"][resp.key] = resp.asMap();
