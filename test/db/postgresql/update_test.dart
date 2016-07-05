@@ -213,7 +213,7 @@ void main() {
       ..values.name = "Joe";
 
     try {
-      var res = await req.update();
+      var _ = await req.update();
       expect(true, false);
     } on HTTPResponseException catch (e) {
       expect(e.statusCode, 500);

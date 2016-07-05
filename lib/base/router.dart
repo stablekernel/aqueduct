@@ -20,7 +20,8 @@ class Router extends RequestHandler {
     unhandledRequestHandler = _handleUnhandledRequest;
   }
 
-  List<RouteHandler> _routesHandlers = [];
+  List<RouteHandler> _routeHandlers = [];
+  _RouteNode _rootRouteNode;
 
   /// A string to be prepended to the beginning of every route this [Router] manages.
   ///
@@ -65,8 +66,16 @@ class Router extends RequestHandler {
   ///       /constantString/[segment1/segment2]
   RequestHandler route(String pattern) {
     var routeHandler = new RouteHandler(RoutePathSpecification.specificationsForRoutePattern(pattern));
-    _routesHandlers.add(routeHandler);
+    _routeHandlers.add(routeHandler);
     return routeHandler;
+  }
+
+  /// Invoke on this router once all routes are added.
+  ///
+  /// If you are using the default router from [ApplicationPipeline], this method is called for you. Otherwise,
+  /// you must call this method after all routes have been added to build a tree of routes for optimized route finding.
+  void finalize() {
+    _rootRouteNode = new _RouteNode(_routeHandlers.expand((rh) => rh.patterns).toList());
   }
 
   @override
@@ -86,34 +95,19 @@ class Router extends RequestHandler {
     while (requestURISegmentIterator.moveNext()) {
       remainingSegments.add(requestURISegmentIterator.current);
     }
+    if (remainingSegments.isEmpty) {
+      remainingSegments = [""];
+    }
 
-    for (var route in _routesHandlers) {
-      var routeMatch = route.pattern.matchSegments(remainingSegments);
-
-      if (routeMatch != null) {
-        req.path = routeMatch;
-        route.deliver(req);
-        return;
-      }
+    var node = _rootRouteNode.nodeForPathSegments(remainingSegments);
+    if (node?.specification != null) {
+      var requestPath = node.specification.requestPathForSegments(remainingSegments);
+      req.path = requestPath;
+      node.handler.deliver(req);
+      return;
     }
 
     _unhandledRequestHandler(req);
-  }
-
-  @override
-  dynamic document(PackagePathResolver resolver) {
-
-    List<APIPath> items = [];
-
-    for (var route in _routesHandlers) {
-      var routeItems = route.document(resolver);
-      items.addAll(routeItems.map((i) {
-        i.path = (basePath ?? "") + route.pattern.documentedPathWithVariables(i.pathParameters);
-        return i;
-      }));
-    }
-
-    return items;
   }
 
   void _handleUnhandledRequest(Request req) {
@@ -125,9 +119,13 @@ class Router extends RequestHandler {
 }
 
 class RouteHandler extends RequestHandler {
-  final List<RoutePathSpecification> patterns;
+  RouteHandler(this.patterns) {
+    patterns.forEach((p) {
+      p.handler = this;
+    });
+  }
 
-  RouteHandler(this.patterns);
+  final List<RoutePathSpecification> patterns;
 }
 
 class RouterException implements Exception {

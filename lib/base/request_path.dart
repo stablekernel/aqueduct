@@ -54,17 +54,64 @@ class RoutePathSpecification implements APIDocumentable {
   /// The [patternString] must be stripped of any optionals.
   RoutePathSpecification(String patternString) {
     segments = splitPathSegments(patternString);
+    firstVariableName = segments.firstWhere((e) => e.isVariable, orElse: () => null)?.variableName;
+    variableNames = segments.where((e) => e.variableName != null).map((e) => e.variableName).toList();
   }
 
   /// A list of this specification's [RouteSegment]s.
   List<RouteSegment> segments;
 
   /// The first variable name in this route.
-  String get firstVariableName => segments.firstWhere((e) => e.isVariable, orElse: () => null)?.variableName;
+  String firstVariableName;
 
   /// A list of all variables in this route.
-  List<String> get variableNames {
-    return segments.where((e) => e.variableName != null).map((e) => e.variableName).toList();
+  List<String> variableNames;
+
+  RequestHandler handler;
+
+  bool matches(List<String> requestSegments) {
+    var iter = requestSegments.iterator;
+
+    for (var seg in segments) {
+      if (seg.isRemainingMatcher) {
+        return true;
+      }
+      iter.moveNext();
+
+      if (!seg.matches(iter.current)) {
+        return false;
+      }
+    }
+
+    return iter.moveNext() == false;
+  }
+
+  RequestPath requestPathForSegments(List<String> requestSegments) {
+    var p = new RequestPath();
+
+    p.firstVariableName = firstVariableName;
+    p.segments = requestSegments;
+
+    var requestIterator = requestSegments.iterator;
+    for (var segment in segments) {
+      requestIterator.moveNext();
+      var requestSegment = requestIterator.current;
+
+      if (segment.isVariable) {
+        p.variables[segment.variableName] = requestSegment;
+      } else if (segment.isRemainingMatcher) {
+        var remaining = [];
+        remaining.add(requestIterator.current);
+        while(requestIterator.moveNext()) {
+          remaining.add(requestIterator.current);
+        }
+        p.remainingPath = remaining.join("/");
+
+        return p;
+      }
+    }
+
+    return p;
   }
 
   @override
@@ -73,6 +120,8 @@ class RoutePathSpecification implements APIDocumentable {
 
     return paths;
   }
+
+  String toString() => segments.join("/");
 }
 
 class RouteSegment {
@@ -115,6 +164,24 @@ class RouteSegment {
   bool get isVariable => variableName != null;
   bool isRemainingMatcher = false;
 
+  bool matches(String pathSegment) {
+    if (isLiteralMatcher) {
+      return pathSegment == literal;
+    }
+
+    if (hasRegularExpression) {
+      if (matcher.firstMatch(pathSegment) == null) {
+        return false;
+      }
+    }
+
+    if (isVariable) {
+      return true;
+    }
+
+    return false;
+  }
+
   operator ==(dynamic other) {
     if (other is! RouteSegment) {
       return false;
@@ -126,7 +193,21 @@ class RouteSegment {
         && matcher?.pattern == other.matcher?.pattern;
   }
 
-  String toString() => "Literal $literal Var: $variableName Expr: ${matcher?.pattern} Remaining: $isRemainingMatcher";
+  String toString() {
+    if (isLiteralMatcher) {
+      return literal;
+    }
+
+    if (isVariable) {
+      return variableName;
+    }
+
+    if (hasRegularExpression) {
+      return "(${matcher.pattern})";
+    }
+
+    return "*";
+  }
 }
 
 /// Utility method to take Route syntax into one or more full paths.

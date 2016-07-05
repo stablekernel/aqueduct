@@ -14,6 +14,7 @@ class _Server {
   Future start() async {
     try {
       pipeline.addRoutes();
+      pipeline.router?.finalize();
       pipeline.nextHandler = pipeline.initialHandler();
 
       if (configuration.securityContext != null) {
