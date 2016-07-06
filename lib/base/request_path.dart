@@ -136,13 +136,23 @@ class RoutePathSpecification implements APIDocumentable {
           var pathParamNames = p.parameters
             .where((p) => p.parameterLocation == APIParameterLocation.path)
             .toList();
+
           if (pathParamNames.length != opPathParamNames.length) {
             return false;
           }
+
           return pathParamNames.every((p) => opPathParamNames.contains(p.name));
         }).toList();
 
+    // Strip operation parameters that are already in the path, but move their type into
+    // the path's path parameters
     p.operations.forEach((op) {
+      var typedPathParameters = op.parameters.where((pi) => pi.parameterLocation == APIParameterLocation.path).toList();
+      p.parameters.forEach((p) {
+        var matchingTypedPathParam = typedPathParameters.firstWhere((typedParam) => typedParam.name == p.name, orElse: () => null);
+        p.type = matchingTypedPathParam?.type;
+      });
+
       op.parameters = op.parameters.where((p) => p.parameterLocation != APIParameterLocation.path).toList();
     });
 

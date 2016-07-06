@@ -87,6 +87,9 @@ abstract class ApplicationPipeline extends RequestHandler implements APIDocument
 
     doc.paths = initialHandler().document(resolver);
 
+    doc.consumes = new Set.from(doc.paths.expand((p) => p.operations.expand((op) => op.consumes))).toList();
+    doc.produces = new Set.from(doc.paths.expand((p) => p.operations.expand((op) => op.produces))).toList();
+
     return doc;
   }
 }

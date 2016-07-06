@@ -297,7 +297,7 @@ abstract class HTTPController extends RequestHandler {
           .map((pm) {
             return new APIParameter()
                 ..name = MirrorSystem.getName(pm.simpleName)
-                ..type = MirrorSystem.getName(pm.type.simpleName)
+                ..type = APIParameter.typeStringForVariableMirror(pm)
                 ..parameterLocation = APIParameterLocation.path;
       }).toList();
 
@@ -307,7 +307,7 @@ abstract class HTTPController extends RequestHandler {
             return new APIParameter()
               ..name = MirrorSystem.getName(pm.simpleName)
               ..description = ""
-              ..type = MirrorSystem.getName(pm.type.simpleName)
+              ..type = APIParameter.typeStringForVariableMirror(pm)
               ..required = false;
           }).toList();
 

@@ -48,11 +48,11 @@ class TController extends HTTPController {
   /// ABCD
   /// EFGH
   /// IJKL
-  @httpGet getAll() async {
+  @httpGet getAll({String param: null}) async {
     return new Response.ok("");
   }
   /// ABCD
-  @httpPut putOne(int id) async {
+  @httpPut putOne(int id, {int p1: null, int p2: null}) async {
     return new Response.ok("");
   }
   @httpGet getOne(int id) async {

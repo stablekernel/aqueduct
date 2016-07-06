@@ -251,6 +251,22 @@ enum APIParameterLocation {
 }
 
 class APIParameter {
+  static String typeStringForVariableMirror(VariableMirror m) {
+    if (m.type.isSubtypeOf(reflectType(int))) {
+      return "int32";
+    } else if (m.type.isSubtypeOf(reflectType(double))) {
+      return "double";
+    } else if (m.type.isSubtypeOf(reflectType(String))) {
+      return "string";
+    } else if (m.type.isSubtypeOf(reflectType(bool))) {
+      return "boolean";
+    } else if (m.type.isSubtypeOf(reflectType(DateTime))) {
+      return "date-time";
+    }
+
+    return null;
+  }
+
   String name;
   String description;
   String type;
@@ -266,6 +282,7 @@ class APIParameter {
     m["required"] = (parameterLocation == APIParameterLocation.path ? true : required);
     m["deprecated"] = deprecated;
     m["schema"] = schemaObject?.asMap();
+    m["type"] = type;
 
     switch (parameterLocation) {
       case APIParameterLocation.query: m["in"] = "query"; break;
