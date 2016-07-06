@@ -17,7 +17,7 @@ main() {
   test("App-to-router test", () {
     var app = new Application<TPipeline>();
     var doc = app.document(new PackagePathResolver(new File(".packages").path));
-    print("${JSON.encode(doc.asMap())}");
+    //print("${JSON.encode(doc.asMap())}");
 
   });
 
