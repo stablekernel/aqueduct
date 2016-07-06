@@ -306,15 +306,15 @@ enum APIParameterLocation {
 class APIParameter {
   static String typeStringForVariableMirror(VariableMirror m) {
     if (m.type.isSubtypeOf(reflectType(int))) {
-      return "int32";
+      return APISchemaObjectFormatInt32;
     } else if (m.type.isSubtypeOf(reflectType(double))) {
-      return "double";
+      return APISchemaObjectFormatDouble;
     } else if (m.type.isSubtypeOf(reflectType(String))) {
-      return "string";
+      return APISchemaObjectFormatString;
     } else if (m.type.isSubtypeOf(reflectType(bool))) {
-      return "boolean";
+      return APISchemaObjectFormatBoolean;
     } else if (m.type.isSubtypeOf(reflectType(DateTime))) {
-      return "date-time";
+      return APISchemaObjectFormatDateTime;
     }
 
     return null;
