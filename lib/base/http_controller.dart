@@ -247,7 +247,7 @@ abstract class HTTPController extends RequestHandler {
   }
 
   @override
-  List<APIOperation> document(PackagePathResolver resolver) {
+  List<APIOperation> documentOperations(PackagePathResolver resolver) {
     var handlerMethodMirrors = reflect(this).type.declarations.values
         .where((dm) => dm is MethodMirror)
         .where((mm) {

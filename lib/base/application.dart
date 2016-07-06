@@ -89,7 +89,7 @@ class Application<PipelineType extends ApplicationPipeline> {
     pipeline.addRoutes();
     pipeline.router.finalize();
 
-    return pipeline.document(resolver);
+    return pipeline.documentAPI(resolver);
   }
 
   Future<IsolateSupervisor> _spawn(ApplicationInstanceConfiguration config, int identifier) async {

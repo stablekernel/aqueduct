@@ -33,11 +33,28 @@ main() {
 
 }
 
-class TPipeline extends ApplicationPipeline {
-  TPipeline(Map opts) : super(opts);
+class TPipeline extends ApplicationPipeline implements AuthenticationServerDelegate {
+  TPipeline(Map opts) : super(opts) {
+    authServer = new AuthenticationServer(this);
+  }
+
+  AuthenticationServer authServer;
 
   void addRoutes() {
-    router.route("/t[/:id[/:notID]]").next(() => new TController());
+    router.route("/t[/:id[/:notID]]").next(authServer.authenticator()).next(() => new TController());
+  }
+
+  Future<dynamic> tokenForAccessToken(AuthenticationServer server, String accessToken) => null;
+  Future<dynamic> tokenForRefreshToken(AuthenticationServer server, String refreshToken) => null;
+  Future<dynamic> authenticatableForUsername(AuthenticationServer server, String username) => null;
+  Future<dynamic> authenticatableForID(AuthenticationServer server, dynamic id) => null;
+  Future<Client> clientForID(AuthenticationServer server, String id) => null;
+  Future deleteTokenForAccessToken(AuthenticationServer server, String accessToken) => null;
+  Future storeToken(AuthenticationServer server, dynamic t) => null;
+  Future updateToken(AuthenticationServer server, dynamic t) => null;
+
+  Map<String, APISecurityScheme> documentSecuritySchemes(PackagePathResolver resolver) {
+    return authServer.documentSecuritySchemes(resolver);
   }
 }
 

@@ -3,7 +3,7 @@ part of aqueduct;
 /// A storage-agnostic authenticating mechanism.
 ///
 /// Instances of this type will work with a [AuthenticationServerDelegate] to faciliate authentication.
-class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType extends Tokenizable> {
+class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType extends Tokenizable> extends Object with APIDocumentable {
   /// Creates a new instance of an [AuthenticationServer] with a [delegate].
   AuthenticationServer(this.delegate);
 
@@ -150,6 +150,21 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
     await delegate.storeToken(this, token);
 
     return token;
+  }
+
+  @override
+  Map<String, APISecurityScheme> documentSecuritySchemes(PackagePathResolver resolver) {
+    var secApp = new APISecurityScheme.oauth2()
+      ..description = "OAuth 2.0 Application Flow"
+      ..oauthFlow = APISecuritySchemeFlow.application;
+    var secPassword = new APISecurityScheme.oauth2()
+      ..description = "OAuth 2.0 Resource Owner Flow"
+      ..oauthFlow = APISecuritySchemeFlow.password;
+
+    return {
+      "oauth2.application" : secApp,
+      "oauth2.password" : secPassword
+    };
   }
 
   /// A utility method to generate a password hash using the PBKDF2 scheme.

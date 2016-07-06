@@ -42,7 +42,7 @@ class RequestPath {
 /// Specifies a matchable route path.
 ///
 /// Contains [RouteSegment]s for each path segment.
-class RoutePathSpecification implements APIDocumentable {
+class RoutePathSpecification extends Object with APIDocumentable {
   static List<RoutePathSpecification> specificationsForRoutePattern(String routePattern) {
     return pathsFromRoutePattern(routePattern)
         .map((path) => new RoutePathSpecification(path))
@@ -98,13 +98,13 @@ class RoutePathSpecification implements APIDocumentable {
     return p;
   }
 
-  /// Returns an [APIPath].
+  /// Returns a [List] one [APIPath].
   ///
   /// This method will create and return an [APIPath] for the path that it represents. It will
-  /// invoke [document] on its [handler] to retrieve a list of [APIOperation]s. Those operations
+  /// invoke the [documentOperations] on its [handler] to retrieve a list of [APIOperation]s. Those operations
   /// will be filtered to only include those that have matching parameters.
   @override
-  dynamic document(PackagePathResolver resolver) {
+  List<APIPath> documentPaths(PackagePathResolver resolver) {
     var p = new APIPath();
     p.path = "/" + segments.map((rs) {
       if (rs.isLiteralMatcher) {
@@ -126,7 +126,7 @@ class RoutePathSpecification implements APIDocumentable {
           return param;
         }).toList();
 
-    List<APIOperation> allOperations = handler.document(resolver);
+    List<APIOperation> allOperations = handler.documentOperations(resolver);
     p.operations = allOperations
         .where((op) {
           var opPathParamNames = op.parameters
@@ -156,7 +156,7 @@ class RoutePathSpecification implements APIDocumentable {
       op.parameters = op.parameters.where((p) => p.parameterLocation != APIParameterLocation.path).toList();
     });
 
-    return p;
+    return [p];
   }
 
   String toString() => segments.join("/");

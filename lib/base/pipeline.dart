@@ -81,11 +81,12 @@ abstract class ApplicationPipeline extends RequestHandler implements APIDocument
   /// implements [Router.document] to return that list. However, if you change the [initialHandler], you
   /// must override its [document] method to return the same.
   @override
-  APIDocument document(PackagePathResolver resolver) {
+  APIDocument documentAPI(PackagePathResolver resolver) {
     var doc = new APIDocument()
       ..info = apiInfo;
 
-    doc.paths = initialHandler().document(resolver);
+    doc.paths = initialHandler().documentPaths(resolver);
+    doc.securitySchemes = this.documentSecuritySchemes(resolver);
 
     doc.consumes = new Set.from(doc.paths.expand((p) => p.operations.expand((op) => op.consumes))).toList();
     doc.produces = new Set.from(doc.paths.expand((p) => p.operations.expand((op) => op.produces))).toList();

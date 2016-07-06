@@ -112,10 +112,10 @@ class Router extends RequestHandler {
 
   /// Returns a [List] of [APIPath]s configured in this router.
   @override
-  dynamic document(PackagePathResolver resolver) {
+  List<APIPath> documentPaths(PackagePathResolver resolver) {
     return _routeHandlers
         .expand((rh) => rh.patterns)
-        .map((routeSpec) => routeSpec.document(resolver))
+        .map((RoutePathSpecification routeSpec) => routeSpec.documentPaths(resolver).first)
         .toList();
   }
 

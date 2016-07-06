@@ -1,7 +1,12 @@
 part of aqueduct;
 
-abstract class APIDocumentable {
-  dynamic document(PackagePathResolver resolver);
+class APIDocumentable {
+  APIDocumentable get documentableChild => null;
+
+  APIDocument documentAPI(PackagePathResolver resolver) => documentableChild?.documentAPI(resolver);
+  List<APIPath> documentPaths(PackagePathResolver resolver) => documentableChild?.documentPaths(resolver);
+  List<APIOperation> documentOperations(PackagePathResolver resolver) => documentableChild?.documentOperations(resolver);
+  Map<String, APISecurityScheme> documentSecuritySchemes(PackagePathResolver resolver) => documentableChild?.documentSecuritySchemes(resolver);
 }
 
 class APIDocument {
@@ -9,8 +14,9 @@ class APIDocument {
   List<APIHost> hosts = [];
   List<ContentType> consumes = [];
   List<ContentType> produces = [];
-  List<APISecurityRequirement> securityRequirements = [];
   List<APIPath> paths = [];
+  List<APISecurityRequirement> securityRequirements = [];
+  Map<String, APISecurityScheme> securitySchemes = {};
 
   Map<String, dynamic> asMap() {
     var m = {};
@@ -20,12 +26,14 @@ class APIDocument {
     m["hosts"] = hosts;
     m["consumes"] = consumes.map((ct) => ct.toString()).toList();
     m["produces"] = produces.map((ct) => ct.toString()).toList();
-    m["security"] = securityRequirements.map((sec) => sec.asMap()).toList();
-    m["paths"] = {};
+    m["security"] = securityRequirements.map((sec) => sec.name).toList();
+    m["paths"] = new Map.fromIterable(paths, key: (APIPath k) => k.path, value: (APIPath v) => v.asMap());
 
-    paths.forEach((apiPath) {
-      m["paths"][apiPath.path] = apiPath.asMap();
+    var mappedSchemes = {};
+    securitySchemes?.forEach((k, scheme) {
+      mappedSchemes[k] = scheme.asMap();
     });
+    m["securityDefinitions"] = mappedSchemes;
 
     return m;
   }
@@ -94,49 +102,96 @@ class APIHost {
 
 class APISecurityRequirement {
   String name;
-  String type;
+  List<APISecurityScope> scopes;
 
   Map<String, dynamic> asMap() {
-    return {};
+    return {
+      name : scopes.map((scope) => scope.name).toList()
+    };
   }
 }
 
-enum APISecurityType {
-  oauth2, basic
+class APISecurityScope {
+  String name;
+  String description;
 }
 
-class APISecurityItem {
+class APISecurityDefinition {
   String name;
+  APISecurityScheme scheme;
 
-  APISecurityType type;
-  String flow;
-  String tokenURL;
+  Map<String, dynamic> asMap() => scheme.asMap();
+}
+
+
+enum APISecuritySchemeFlow {
+  implicit, password, application, accessCode
+}
+
+class APISecurityScheme {
+  static String stringForFlow(APISecuritySchemeFlow flow) {
+    switch (flow) {
+      case APISecuritySchemeFlow.accessCode: return "accessCode";
+      case APISecuritySchemeFlow.password: return "password";
+      case APISecuritySchemeFlow.implicit: return "implicit";
+      case APISecuritySchemeFlow.application: return "application";
+    }
+    return null;
+  }
+  APISecurityScheme.basic() {
+    type = "basic";
+  }
+
+  APISecurityScheme.apiKey() {
+    type = "apiKey";
+  }
+
+  APISecurityScheme.oauth2() {
+    type = "oauth2";
+  }
+
+  String type;
   String description;
 
+  // API Key
+  String apiKeyName;
+  APIParameterLocation apiKeyLocation;
+
+  // Oauth2
+  APISecuritySchemeFlow oauthFlow;
+  String authorizationURL;
+  String tokenURL;
+  List<APISecurityScope> scopes = [];
+
   Map<String, dynamic> asMap() {
-    var m = {};
+    var m = {
+      "type" : type,
+      "description" : description
+    };
 
-    m["description"] = description;
+    if (type == "basic") {
+      /* nothing to do */
+    } else if (type == "apiKey") {
+      m["name"] = apiKeyName;
+      m["in"] = APIParameter.parameterLocationStringForType(apiKeyLocation);
+    } else if (type == "oauth2") {
+      m["flow"] = stringForFlow(oauthFlow);
 
-    switch(type) {
-      case APISecurityType.basic: {
-          m["type"] = "basic";
-      } break;
-      case APISecurityType.oauth2: {
-        m["type"] = "oauth2";
-        if (flow != null) {
-          m["flow"] = flow;
-        }
+      if (oauthFlow == APISecuritySchemeFlow.implicit || oauthFlow == APISecuritySchemeFlow.accessCode) {
+        m["authorizationUrl"] = authorizationURL;
+      }
 
-        if (tokenURL != null) {
-          m["tokenUrl"] = tokenURL;
-        }
-        m["scopes"] = {"default" : "default"};
-      } break;
+      if (oauthFlow != APISecuritySchemeFlow.implicit) {
+        m["tokenUrl"] = tokenURL;
+      }
+
+      m["scopes"] = new Map.fromIterable(scopes, key: (APISecurityScope k) => k.name, value: (APISecurityScope v) => v.description);
     }
+
     return m;
   }
 }
+
 
 class APIPath {
   String path;
@@ -188,10 +243,8 @@ class APIOperation {
     m["produces"] = produces.map((ct) => ct.toString()).toList();
     m["parameters"] = parameters.map((param) => param.asMap()).toList();
     m["requestBody"] = requestBody?.asMap();
-    m["responses"] = {};
-    responses.forEach((resp) {
-      m["responses"][resp.key] = resp.asMap();
-    });
+    m["responses"] = new Map.fromIterable(responses, key: (APIResponse k) => k.key, value: (APIResponse v) => v.asMap());
+    m["security"] = new Map.fromIterable(security, key: (APISecurityRequirement k) => k.name, value: (APISecurityRequirement v) => v.asMap());
 
     return m;
   }
@@ -267,6 +320,17 @@ class APIParameter {
     return null;
   }
 
+  static String parameterLocationStringForType(APIParameterLocation parameterLocation) {
+    switch (parameterLocation) {
+      case APIParameterLocation.query: return "query";
+      case APIParameterLocation.header: return "header";
+      case APIParameterLocation.path: return "path";
+      case APIParameterLocation.formData: return "formData";
+      case APIParameterLocation.cookie: return "cookie";
+    }
+    return null;
+  }
+
   String name;
   String description;
   String type;
@@ -283,14 +347,7 @@ class APIParameter {
     m["deprecated"] = deprecated;
     m["schema"] = schemaObject?.asMap();
     m["type"] = type;
-
-    switch (parameterLocation) {
-      case APIParameterLocation.query: m["in"] = "query"; break;
-      case APIParameterLocation.header: m["in"] = "header"; break;
-      case APIParameterLocation.path: m["in"] = "path"; break;
-      case APIParameterLocation.formData: m["in"] = "formData"; break;
-      case APIParameterLocation.cookie: m["in"] = "cookie"; break;
-    }
+    m["in"] = parameterLocationStringForType(parameterLocation);
 
     return m;
   }
