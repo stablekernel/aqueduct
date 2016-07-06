@@ -103,17 +103,17 @@ class APIHost {
 class APISecurityRequirement {
   String name;
   List<APISecurityScope> scopes;
-
-  Map<String, dynamic> asMap() {
-    return {
-      name : scopes.map((scope) => scope.name).toList()
-    };
-  }
 }
 
 class APISecurityScope {
   String name;
   String description;
+
+  Map<String, String> asMap() {
+    return {
+      name : description
+    };
+  }
 }
 
 class APISecurityDefinition {
@@ -244,7 +244,7 @@ class APIOperation {
     m["parameters"] = parameters.map((param) => param.asMap()).toList();
     m["requestBody"] = requestBody?.asMap();
     m["responses"] = new Map.fromIterable(responses, key: (APIResponse k) => k.key, value: (APIResponse v) => v.asMap());
-    m["security"] = new Map.fromIterable(security, key: (APISecurityRequirement k) => k.name, value: (APISecurityRequirement v) => v.asMap());
+    m["security"] = new Map.fromIterable(security, key: (APISecurityRequirement k) => k.name, value: (APISecurityRequirement v) => v.scopes.map((scope) => scope.name).toList());
 
     return m;
   }
