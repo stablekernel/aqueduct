@@ -57,9 +57,13 @@ class MockHTTPServer extends MockServer {
   HttpServer server;
 
   List<Response> responseQueue = [];
+  Map<dynamic, int> delays = {};
 
-  void queueResponse(Response resp) {
+  void queueResponse(Response resp, {int delay: null}) {
     responseQueue.add(resp);
+    if (delay != null) {
+      delays[resp.hashCode] = delay;
+    }
   }
 
   @override
@@ -108,7 +112,13 @@ class MockHTTPServer extends MockServer {
           req.response.write(respObj.body);
         }
 
-        req.response.close();
+        var delay = delays[respObj.hashCode];
+        if (delay != null) {
+          await new Future.delayed(new Duration(seconds: delay));
+          req.response.close();
+        } else {
+          req.response.close();
+        }
       } else {
         req.response.statusCode = 200;
         req.response.close();
