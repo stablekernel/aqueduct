@@ -143,7 +143,7 @@ void main() {
       router.route("/file/*").next(new RequestHandler(requestHandler: (Request req) {
         req.respond(new Response(200, null, "/file/${req.path.remainingPath}"));
       }));
-      await enableRouter(router);
+      server = await enableRouter(router);
     });
 
     tearDownAll(() async {
