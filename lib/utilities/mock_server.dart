@@ -114,6 +114,7 @@ class MockHTTPServer extends MockServer {
 
         var delay = delays[respObj.hashCode];
         if (delay != null) {
+          delays.remove(respObj.hashCode);
           await new Future.delayed(new Duration(seconds: delay));
           req.response.close();
         } else {

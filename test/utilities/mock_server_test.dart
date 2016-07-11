@@ -49,6 +49,15 @@ void main() {
       expect(serverRequest.path, "/bar");
     });
 
+    test("Delayed queued responses show up later", () async {
+      server.queueResponse(new Response.ok(null), delay: 5);
+      var time = new DateTime.now();
+      var response = await testClient.request("/foo").get();
+      var nowTime = new DateTime.now();
+      var diff = time.difference(nowTime).inSeconds.abs();
+      expect(diff, greaterThanOrEqualTo(5));
+    });
+
   });
 }
 
