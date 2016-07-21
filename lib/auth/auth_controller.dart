@@ -1,6 +1,6 @@
 part of aqueduct;
 
-class AuthController<ResourceOwner extends Authenticatable, TokenType extends Tokenizable> extends HTTPController {
+class AuthController<ResourceOwner extends Authenticatable, TokenType extends Tokenizable, AuthCodeType extends AuthorizationCode> extends HTTPController {
 
   /// Creates a new instance of an [AuthController].
   ///
@@ -9,13 +9,13 @@ class AuthController<ResourceOwner extends Authenticatable, TokenType extends To
   /// authentication tokens.
   ///
   /// By default, an [AuthController] has only one [acceptedContentTypes] - 'application/x-www-form-urlencoded'.
-  AuthController(AuthenticationServer<ResourceOwner, TokenType> authServer) {
+  AuthController(AuthenticationServer<ResourceOwner, TokenType, AuthCodeType> authServer) {
     authenticationServer = authServer;
     acceptedContentTypes = [new ContentType("application", "x-www-form-urlencoded")];
   }
 
   /// A reference to the [AuthenticationServer] this controller uses to grant tokens.
-  AuthenticationServer<ResourceOwner, TokenType> authenticationServer;
+  AuthenticationServer<ResourceOwner, TokenType, AuthCodeType> authenticationServer;
 
   /// Creates or refreshes an authentication token.
   ///
@@ -26,7 +26,7 @@ class AuthController<ResourceOwner extends Authenticatable, TokenType extends To
   /// When grant_type is 'password', there must be username and password values.
   /// When grant_type is 'refresh', there must be a refresh_token value.
   @httpPost
-  Future<Response> create({String grant_type, String username, String password, String refresh_token}) async {
+  Future<Response> create({String grant_type, String username, String password, String refresh_token, String authorization_code}) async {
     var authorizationHeader = request.innerRequest.headers[HttpHeaders.AUTHORIZATION]?.first;
 
     var basicRecord = AuthorizationBasicParser.parse(authorizationHeader);
@@ -44,9 +44,32 @@ class AuthController<ResourceOwner extends Authenticatable, TokenType extends To
 
       var token = await authenticationServer.refresh(refresh_token, basicRecord.username, basicRecord.password);
       return AuthController.tokenResponse(token);
+    } else if (grant_type == "authorization_code") {
+      if (authorization_code == null) {
+        return new Response.badRequest(body: {"error": "missing authorization_code"});
+      }
+
+      var token = await authenticationServer.exchange(authorization_code, basicRecord.username, basicRecord.password);
+      return AuthController.tokenResponse(token);
     }
 
     return new Response.badRequest(body: {"error": "invalid grant_type"});
+  }
+
+  @httpPost
+  Future<Response> authorize() async {
+    await request.decodeBody();
+    var body = request.requestBodyObject;
+    var clientId = body["client_id"];
+    var username = body["username"];
+    var password = body["password"];
+
+    if (clientId == null || username == null || password == null) {
+      return new Response.badRequest();
+    }
+
+    var authCode = await authenticationServer.createAuthCode(username, password, clientId);
+    return AuthController.authCodeResponse(authCode);
   }
 
   /// Transforms a [Tokenizable] into a [Response] object with an RFC6749 compliant JSON token
@@ -59,5 +82,13 @@ class AuthController<ResourceOwner extends Authenticatable, TokenType extends To
       "refresh_token": token.refreshToken
     };
     return new Response(200, {"Cache-Control": "no-store", "Pragma": "no-cache"}, jsonToken);
+  }
+
+  static Response authCodeResponse(AuthorizationCode authCode) {
+    var jsonAuthCode = {
+      "code": authCode.code,
+      "state": authCode.clientState
+    };
+    return new Response(200, {"Cache-Control": "no-store", "Pragma": "no-cache"}, jsonAuthCode);
   }
 }

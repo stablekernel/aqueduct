@@ -33,6 +33,16 @@ abstract class Tokenizable {
   String clientID;
 }
 
+abstract class AuthorizationCode {
+  String redirectURI;
+  String clientState;
+  String code;
+  String clientID;
+  dynamic resourceOwnerIdentifier;
+  DateTime issueDate;
+  DateTime expirationDate;
+}
+
 /// A representation of authentication information to be attached to a [Request].
 ///
 /// When a [Request] passes through an [Authenticator] and is validated,
@@ -88,7 +98,7 @@ abstract class Authenticatable {
 /// This interface is responsible for persisting information generated and requested by an [AuthenticationServer].
 /// The [ResourceOwner] often represents a user, and must implement [Authenticatable]. The [TokenType]
 /// is a concrete instance of [Tokenizable].
-abstract class AuthenticationServerDelegate<ResourceOwner extends Authenticatable, TokenType extends Tokenizable> {
+abstract class AuthenticationServerDelegate<ResourceOwner extends Authenticatable, TokenType extends Tokenizable, AuthCodeType extends AuthorizationCode> {
   /// Returns a [TokenType] for an [accessToken].
   ///
   /// This method returns an instance of [TokenType] if one exists for [accessToken], and [null] otherwise.
@@ -134,4 +144,11 @@ abstract class AuthenticationServerDelegate<ResourceOwner extends Authenticatabl
   ///
   /// The implementing class must persist the token [t].
   Future updateToken(AuthenticationServer server, TokenType t);
+
+  /// Asks this instance to store a [AuthCodeType] for [server].
+  ///
+  /// The implementing class must persist the auth code [ac].
+  Future storeAuthCode(AuthenticationServer server, AuthCodeType ac);
+
+  Future<AuthCodeType> authCodeForCode(AuthenticationServer server, String code);
 }

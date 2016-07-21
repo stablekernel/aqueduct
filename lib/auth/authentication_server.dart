@@ -3,7 +3,7 @@ part of aqueduct;
 /// A storage-agnostic authenticating mechanism.
 ///
 /// Instances of this type will work with a [AuthenticationServerDelegate] to faciliate authentication.
-class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType extends Tokenizable> {
+class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType extends Tokenizable, AuthCodeType extends AuthorizationCode> {
   /// Creates a new instance of an [AuthenticationServer] with a [delegate].
   AuthenticationServer(this.delegate);
 
@@ -12,7 +12,7 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
   /// An [AuthenticationServerDelegate] implementation is responsible for storing, fetching and deleting
   /// [TokenType]s and [ResourceOwners]. The [AuthenticationServer] will handle the logic of how
   /// these objects are used to verify authentication.
-  AuthenticationServerDelegate<ResourceOwner, TokenType> delegate;
+  AuthenticationServerDelegate<ResourceOwner, TokenType, AuthCodeType> delegate;
   Map<String, Client> _clientCache = {};
 
   /// Returns a new instance of [Authenticator] for use in a [RequestHandler] chain.
@@ -94,6 +94,19 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
     return token;
   }
 
+  AuthCodeType generateAuthCode(dynamic ownerId, String clientID) {
+    AuthCodeType authCode = (reflectType(AuthCodeType) as ClassMirror).newInstance(new Symbol(""), []).reflectee;
+    authCode.code = "0xDEADBEEF";
+    authCode.clientID = clientID;
+    authCode.resourceOwnerIdentifier = ownerId;
+    authCode.issueDate = new DateTime.now().toUtc();
+    authCode.expirationDate = authCode.issueDate.add(new Duration(minutes: 10)).toUtc();
+    authCode.redirectURI = "http://stablekernel.com/redirect";
+    authCode.clientState = "0xBABAB0B0";
+
+    return authCode;
+  }
+
   /// Refreshes a valid [TokenType].
   ///
   /// This method will refresh a [TokenType] given the [TokenType]'s [refreshToken] for a given client ID if the client secret matches according
@@ -147,6 +160,56 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
     }
 
     TokenType token = generateToken(authenticatable.id, client.id, expirationInSeconds);
+    await delegate.storeToken(this, token);
+
+    return token;
+  }
+
+  Future<AuthCodeType> createAuthCode(String username, String password, String clientID) async {
+    Client client = await clientForID(clientID);
+    if (client == null) {
+      throw new HTTPResponseException(401, "Invalid client_id");
+    }
+
+    var authenticatable = await delegate.authenticatableForUsername(this, username);
+    if (authenticatable == null) {
+      throw new HTTPResponseException(400, "Invalid username");
+    }
+
+    var dbSalt = authenticatable.salt;
+    var dbPassword = authenticatable.hashedPassword;
+    var hash = AuthenticationServer.generatePasswordHash(password, dbSalt);
+    if (hash != dbPassword) {
+      throw new HTTPResponseException(401, "Invalid password");
+    }
+
+    AuthCodeType authCode = generateAuthCode(authenticatable.id, client.id);
+    await delegate.storeAuthCode(this, authCode);
+
+    return authCode;
+  }
+
+  Future<TokenType> exchange(String authCodeString, String clientID, String clientSecret, {int expirationInSeconds: 3600}) async {
+    Client client = await clientForID(clientID);
+    if (client == null) {
+      throw new HTTPResponseException(401, "Invalid client_id");
+    }
+    if (client.hashedSecret != generatePasswordHash(clientSecret, client.salt)) {
+      throw new HTTPResponseException(401, "Invalid client_secret");
+    }
+
+    AuthCodeType authCode = await delegate.authCodeForCode(this, authCodeString);
+    if (authCode == null) {
+      return null;
+    }
+
+    // check if valid still
+    if (authCode.expirationDate.difference(new DateTime.now()).inSeconds <= 0) {
+      return null;
+    }
+
+    // check other things
+    TokenType token = generateToken(authCode.resourceOwnerIdentifier, client.id, expirationInSeconds);
     await delegate.storeToken(this, token);
 
     return token;
