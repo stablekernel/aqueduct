@@ -1,6 +1,6 @@
 part of aqueduct;
 
-class AuthController<ResourceOwner extends Authenticatable, TokenType extends Tokenizable, AuthCodeType extends AuthorizationCode> extends HTTPController {
+class AuthController<ResourceOwner extends Authenticatable, TokenType extends Tokenizable, AuthCodeType extends Authorizable> extends HTTPController {
 
   /// Creates a new instance of an [AuthController].
   ///
@@ -63,13 +63,14 @@ class AuthController<ResourceOwner extends Authenticatable, TokenType extends To
     var clientId = body["client_id"];
     var username = body["username"];
     var password = body["password"];
+    var clientState = body["state"];
 
     if (clientId == null || username == null || password == null) {
       return new Response.badRequest();
     }
 
     var authCode = await authenticationServer.createAuthCode(username, password, clientId);
-    return AuthController.authCodeResponse(authCode);
+    return AuthController.authCodeResponse(authCode, clientState);
   }
 
   /// Transforms a [Tokenizable] into a [Response] object with an RFC6749 compliant JSON token
@@ -84,11 +85,22 @@ class AuthController<ResourceOwner extends Authenticatable, TokenType extends To
     return new Response(200, {"Cache-Control": "no-store", "Pragma": "no-cache"}, jsonToken);
   }
 
-  static Response authCodeResponse(AuthorizationCode authCode) {
-    var jsonAuthCode = {
-      "code": authCode.code,
-      "state": authCode.clientState
-    };
-    return new Response(200, {"Cache-Control": "no-store", "Pragma": "no-cache"}, jsonAuthCode);
+  static Response authCodeResponse(Authorizable authCode, String clientState) {
+    var redirectURI = Uri.parse(authCode.redirectURI);
+    var queryParameters = redirectURI.queryParameters;
+    queryParameters["code"] = authCode.code;
+    if (clientState != null) {
+      queryParameters["state"] = clientState;
+    }
+
+    var responseURI = new Uri(
+        scheme: redirectURI.scheme,
+        userInfo: redirectURI.userInfo,
+        host: redirectURI.host,
+        port: redirectURI.port,
+        path: redirectURI.path,
+        queryParameters: queryParameters
+    );
+    return new Response(HttpStatus.MOVED_TEMPORARILY, {"Location": responseURI.toString(), "Cache-Control": "no-store", "Pragma": "no-cache"}, null);
   }
 }

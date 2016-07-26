@@ -13,4 +13,7 @@ class Client {
 
   /// The salt the hashed secret was hashed with.
   String salt;
+
+  /// The redirection URI for authorization codes and/or tokens.
+  String redirectURI;
 }

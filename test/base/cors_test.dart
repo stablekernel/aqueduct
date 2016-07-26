@@ -201,12 +201,12 @@ void main() {
   });
 }
 
-class CORSPipeline extends ApplicationPipeline implements AuthenticationServerDelegate<AuthImpl, TokenImpl> {
+class CORSPipeline extends ApplicationPipeline implements AuthenticationServerDelegate<AuthImpl, TokenImpl, AuthCodeImpl> {
   CORSPipeline(Map opts) : super(opts) {
-    authServer = new AuthenticationServer<AuthImpl, TokenImpl>(this);
+    authServer = new AuthenticationServer<AuthImpl, TokenImpl, AuthCodeImpl>(this);
   }
 
-  AuthenticationServer<AuthImpl, TokenImpl> authServer;
+  AuthenticationServer<AuthImpl, TokenImpl, AuthCodeImpl> authServer;
 
   void addRoutes() {
     router.route("/nopolicy").next(() => new NoPolicyController());
@@ -270,6 +270,12 @@ class CORSPipeline extends ApplicationPipeline implements AuthenticationServerDe
   Future deleteTokenForAccessToken(AuthenticationServer server, String accessToken) async {}
   Future storeToken(AuthenticationServer server, TokenImpl t) async {}
   Future updateToken(AuthenticationServer server, TokenImpl t) async {}
+  Future storeAuthCode(AuthenticationServer server, AuthCodeImpl ac) async {}
+  Future<AuthCodeImpl> authCodeForCode(AuthenticationServer server, String authCode) async {
+    return new AuthCodeImpl()
+        ..code = authCode
+        ..expirationDate = new DateTime.now().add(new Duration(minutes: 10));
+  }
 }
 class AuthImpl implements Authenticatable {
   String username;
@@ -286,6 +292,15 @@ class TokenImpl implements Tokenizable {
   String type;
   dynamic resourceOwnerIdentifier;
   String clientID;
+}
+
+class AuthCodeImpl implements Authorizable {
+  String redirectURI;
+  String code;
+  String clientID;
+  dynamic resourceOwnerIdentifier;
+  DateTime issueDate;
+  DateTime expirationDate;
 }
 
 class NoPolicyController extends HTTPController {

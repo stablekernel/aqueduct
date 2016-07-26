@@ -46,7 +46,23 @@ class _Token implements Tokenizable {
   String clientID;
 }
 
-class AuthDelegate implements AuthenticationServerDelegate<TestUser, Token> {
+class AuthCode extends Model<_AuthCode> implements _AuthCode {}
+class _AuthCode implements Authorizable {
+  @primaryKey
+  int id;
+
+  @Attributes(indexed: true)
+  String code;
+
+  @Attributes(nullable: true)
+  String redirectURI;
+  String clientID;
+  int resourceOwnerIdentifier;
+  DateTime issueDate;
+  DateTime expirationDate;
+}
+
+class AuthDelegate implements AuthenticationServerDelegate<TestUser, Token, AuthCode> {
   ModelContext context;
 
   AuthDelegate(this.context);
@@ -88,6 +104,18 @@ class AuthDelegate implements AuthenticationServerDelegate<TestUser, Token> {
     tokenQ.predicate = new Predicate("refreshToken = @refreshToken", {"refreshToken" : t.refreshToken});
     tokenQ.values = t;
     return tokenQ.updateOne();
+  }
+
+  Future storeAuthCode(AuthenticationServer server, AuthCode code) async {
+    var authCodeQ = new Query<AuthCode>();
+    authCodeQ.values = code;
+    await authCodeQ.insert();
+  }
+
+  Future<AuthCode> authCodeForCode(AuthenticationServer server, String code) async {
+    var authCodeQ = new Query<AuthCode>();
+    authCodeQ.predicate = new Predicate("code = @code", {"code" : code});
+    return authCodeQ.fetchOne();
   }
 
   Future<Client> clientForID(AuthenticationServer server, String id) async {

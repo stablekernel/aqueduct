@@ -3,7 +3,7 @@ part of aqueduct;
 /// A storage-agnostic authenticating mechanism.
 ///
 /// Instances of this type will work with a [AuthenticationServerDelegate] to faciliate authentication.
-class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType extends Tokenizable, AuthCodeType extends AuthorizationCode> {
+class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType extends Tokenizable, AuthCodeType extends Authorizable> {
   /// Creates a new instance of an [AuthenticationServer] with a [delegate].
   AuthenticationServer(this.delegate);
 
@@ -28,6 +28,10 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
   /// Returns whether or not a token from this server has expired.
   bool isTokenExpired(TokenType t) {
     return t.expirationDate.difference(new DateTime.now().toUtc()).inSeconds <= 0;
+  }
+
+  bool isAuthCodeExpired(AuthCodeType ac) {
+    return ac.expirationDate.difference(new DateTime.now().toUtc()).inSeconds <= 0;
   }
 
   /// Returns a [Client] record for an [id].
@@ -94,15 +98,25 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
     return token;
   }
 
-  AuthCodeType generateAuthCode(dynamic ownerId, String clientID) {
+  Future<Permission> verifyCode(String code) async {
+    AuthCodeType ac = await delegate.authCodeForCode(this, code);
+    if (ac == null || isAuthCodeExpired(ac)) {
+      throw new HTTPResponseException(HttpStatus.UNAUTHORIZED, "Expired authorization code");
+    }
+
+    var permission = new Permission(ac.clientID, ac.resourceOwnerIdentifier, this);
+
+    return permission;
+  }
+
+  AuthCodeType generateAuthCode(dynamic ownerId, Client client) {
     AuthCodeType authCode = (reflectType(AuthCodeType) as ClassMirror).newInstance(new Symbol(""), []).reflectee;
-    authCode.code = "0xDEADBEEF";
-    authCode.clientID = clientID;
+    authCode.code = randomStringOfLength(32);
+    authCode.clientID = client.id;
     authCode.resourceOwnerIdentifier = ownerId;
     authCode.issueDate = new DateTime.now().toUtc();
     authCode.expirationDate = authCode.issueDate.add(new Duration(minutes: 10)).toUtc();
-    authCode.redirectURI = "http://stablekernel.com/redirect";
-    authCode.clientState = "0xBABAB0B0";
+    authCode.redirectURI = client.redirectURI;
 
     return authCode;
   }
@@ -183,7 +197,7 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
       throw new HTTPResponseException(401, "Invalid password");
     }
 
-    AuthCodeType authCode = generateAuthCode(authenticatable.id, client.id);
+    AuthCodeType authCode = generateAuthCode(authenticatable.id, client);
     await delegate.storeAuthCode(this, authCode);
 
     return authCode;

@@ -33,9 +33,8 @@ abstract class Tokenizable {
   String clientID;
 }
 
-abstract class AuthorizationCode {
+abstract class Authorizable {
   String redirectURI;
-  String clientState;
   String code;
   String clientID;
   dynamic resourceOwnerIdentifier;
@@ -98,7 +97,7 @@ abstract class Authenticatable {
 /// This interface is responsible for persisting information generated and requested by an [AuthenticationServer].
 /// The [ResourceOwner] often represents a user, and must implement [Authenticatable]. The [TokenType]
 /// is a concrete instance of [Tokenizable].
-abstract class AuthenticationServerDelegate<ResourceOwner extends Authenticatable, TokenType extends Tokenizable, AuthCodeType extends AuthorizationCode> {
+abstract class AuthenticationServerDelegate<ResourceOwner extends Authenticatable, TokenType extends Tokenizable, AuthCodeType extends Authorizable> {
   /// Returns a [TokenType] for an [accessToken].
   ///
   /// This method returns an instance of [TokenType] if one exists for [accessToken], and [null] otherwise.
