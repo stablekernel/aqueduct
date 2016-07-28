@@ -57,20 +57,13 @@ class AuthController<ResourceOwner extends Authenticatable, TokenType extends To
   }
 
   @httpPost
-  Future<Response> authorize() async {
-    await request.decodeBody();
-    var body = request.requestBodyObject;
-    var clientId = body["client_id"];
-    var username = body["username"];
-    var password = body["password"];
-    var clientState = body["state"];
-
-    if (clientId == null || username == null || password == null) {
+  Future<Response> authorize({String client_id, String username, String password, String state}) async {
+    if (client_id == null || username == null || password == null) {
       return new Response.badRequest();
     }
 
-    var authCode = await authenticationServer.createAuthCode(username, password, clientId);
-    return AuthController.authCodeResponse(authCode, clientState);
+    var authCode = await authenticationServer.createAuthCode(username, password, client_id);
+    return AuthController.authCodeResponse(authCode, state);
   }
 
   /// Transforms a [Tokenizable] into a [Response] object with an RFC6749 compliant JSON token

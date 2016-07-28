@@ -63,6 +63,31 @@ void main() {
     expect(successful, false);
   });
 
+  test("Exchange auth code for token", () async{
+    var auth = new AuthenticationServer<TestUser, Token, AuthCode>(delegate);
+    TestUser createdUser = (await createUsers(1)).first;
+
+    var authCode = await auth.createAuthCode("bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app1");
+    var token = await auth.exchange(authCode.code, "com.stablekernel.app1", "kilimanjaro");
+
+    expect(token.accessToken.length, greaterThan(0));
+    expect(token.refreshToken.length, greaterThan(0));
+    expect(token.type, "bearer");
+
+    var permission = await auth.verify(token.accessToken);
+    expect(permission.clientID, "com.stablekernel.app1");
+    expect(permission.resourceOwnerIdentifier, createdUser.id);
+
+    var successful = false;
+    try {
+      permission = await auth.verify("foobar");
+      successful = true;
+    } catch (e) {
+      expect(e.statusCode, 401);
+    }
+    expect(successful, false);
+  });
+
   test("Bad client ID and secret fails", () async {
     var auth = new AuthenticationServer<TestUser, Token, AuthCode>(delegate);
     await createUsers(1);
