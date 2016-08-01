@@ -53,11 +53,11 @@ class _Server {
   }
 }
 
-class _IsolateServer extends _Server {
+class IsolateServer extends _Server {
   SendPort supervisingApplicationPort;
   ReceivePort supervisingReceivePort;
 
-  _IsolateServer(ApplicationPipeline pipeline, ApplicationInstanceConfiguration configuration, int identifier, this.supervisingApplicationPort)
+  IsolateServer(ApplicationPipeline pipeline, ApplicationInstanceConfiguration configuration, int identifier, this.supervisingApplicationPort)
     : super(pipeline, configuration, identifier) {
     pipeline.server = this;
     supervisingReceivePort = new ReceivePort();
@@ -78,18 +78,18 @@ class _IsolateServer extends _Server {
       });
     }
   }
+}
 
-  static void entry(_InitialServerMessage params) {
-    var pipelineSourceLibraryMirror = currentMirrorSystem().libraries[params.pipelineLibraryURI];
-    var pipelineTypeMirror = pipelineSourceLibraryMirror.declarations[new Symbol(params.pipelineTypeName)] as ClassMirror;
+void isolateServerEntryPoint(InitialServerMessage params) {
+  var pipelineSourceLibraryMirror = currentMirrorSystem().libraries[params.pipelineLibraryURI];
+  var pipelineTypeMirror = pipelineSourceLibraryMirror.declarations[new Symbol(params.pipelineTypeName)] as ClassMirror;
 
-    var app = pipelineTypeMirror
-        .newInstance(new Symbol(""), [params.configuration.pipelineOptions])
-        .reflectee;
-    var server = new _IsolateServer(
-        app, params.configuration, params.identifier,
-        params.parentMessagePort);
+  var app = pipelineTypeMirror
+      .newInstance(new Symbol(""), [params.configuration.pipelineOptions])
+      .reflectee;
+  var server = new IsolateServer(
+      app, params.configuration, params.identifier,
+      params.parentMessagePort);
 
-    server.start();
-  }
+  server.start();
 }

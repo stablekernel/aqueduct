@@ -99,8 +99,8 @@ class Application<PipelineType extends ApplicationPipeline> {
     var pipelineLibraryURI = (pipelineTypeMirror.owner as LibraryMirror).uri;
     var pipelineTypeName = MirrorSystem.getName(pipelineTypeMirror.simpleName);
 
-    var initialMessage = new _InitialServerMessage(pipelineTypeName, pipelineLibraryURI, config, identifier, receivePort.sendPort);
-    var isolate = await Isolate.spawn(_IsolateServer.entry, initialMessage, paused: true);
+    var initialMessage = new InitialServerMessage(pipelineTypeName, pipelineLibraryURI, config, identifier, receivePort.sendPort);
+    var isolate = await Isolate.spawn(isolateServerEntryPoint, initialMessage, paused: true);
     isolate.addErrorListener(receivePort.sendPort);
 
     return new IsolateSupervisor(this, isolate, receivePort, identifier, logger);
@@ -122,12 +122,12 @@ class Application<PipelineType extends ApplicationPipeline> {
   }
 }
 
-class _InitialServerMessage {
+class InitialServerMessage {
   String pipelineTypeName;
   Uri pipelineLibraryURI;
   ApplicationInstanceConfiguration configuration;
   SendPort parentMessagePort;
   int identifier;
 
-  _InitialServerMessage(this.pipelineTypeName, this.pipelineLibraryURI, this.configuration, this.identifier, this.parentMessagePort);
+  InitialServerMessage(this.pipelineTypeName, this.pipelineLibraryURI, this.configuration, this.identifier, this.parentMessagePort);
 }
