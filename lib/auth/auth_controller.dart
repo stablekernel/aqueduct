@@ -1,6 +1,6 @@
 part of aqueduct;
 
-class AuthController<ResourceOwner extends Authenticatable, TokenType extends Tokenizable, AuthCodeType extends Authorizable> extends HTTPController {
+class AuthController extends HTTPController {
 
   /// Creates a new instance of an [AuthController].
   ///
@@ -9,13 +9,13 @@ class AuthController<ResourceOwner extends Authenticatable, TokenType extends To
   /// authentication tokens.
   ///
   /// By default, an [AuthController] has only one [acceptedContentTypes] - 'application/x-www-form-urlencoded'.
-  AuthController(AuthenticationServer<ResourceOwner, TokenType, AuthCodeType> authServer) {
+  AuthController(AuthenticationServer authServer) {
     authenticationServer = authServer;
     acceptedContentTypes = [new ContentType("application", "x-www-form-urlencoded")];
   }
 
   /// A reference to the [AuthenticationServer] this controller uses to grant tokens.
-  AuthenticationServer<ResourceOwner, TokenType, AuthCodeType> authenticationServer;
+  AuthenticationServer authenticationServer;
 
   /// Creates or refreshes an authentication token.
   ///
@@ -56,16 +56,6 @@ class AuthController<ResourceOwner extends Authenticatable, TokenType extends To
     return new Response.badRequest(body: {"error": "invalid grant_type"});
   }
 
-  @httpPost
-  Future<Response> authorize({String client_id, String username, String password, String state}) async {
-    if (client_id == null || username == null || password == null) {
-      return new Response.badRequest();
-    }
-
-    var authCode = await authenticationServer.createAuthCode(username, password, client_id);
-    return AuthController.authCodeResponse(authCode, state);
-  }
-
   /// Transforms a [Tokenizable] into a [Response] object with an RFC6749 compliant JSON token
   /// as the HTTP response body.
   static Response tokenResponse(Tokenizable token) {
@@ -76,24 +66,5 @@ class AuthController<ResourceOwner extends Authenticatable, TokenType extends To
       "refresh_token": token.refreshToken
     };
     return new Response(200, {"Cache-Control": "no-store", "Pragma": "no-cache"}, jsonToken);
-  }
-
-  static Response authCodeResponse(Authorizable authCode, String clientState) {
-    var redirectURI = Uri.parse(authCode.redirectURI);
-    var queryParameters = redirectURI.queryParameters;
-    queryParameters["code"] = authCode.code;
-    if (clientState != null) {
-      queryParameters["state"] = clientState;
-    }
-
-    var responseURI = new Uri(
-        scheme: redirectURI.scheme,
-        userInfo: redirectURI.userInfo,
-        host: redirectURI.host,
-        port: redirectURI.port,
-        path: redirectURI.path,
-        queryParameters: queryParameters
-    );
-    return new Response(HttpStatus.MOVED_TEMPORARILY, {"Location": responseURI.toString(), "Cache-Control": "no-store", "Pragma": "no-cache"}, null);
   }
 }

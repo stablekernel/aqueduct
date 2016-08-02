@@ -57,6 +57,7 @@ part 'auth/protocols.dart';
 part 'auth/token_generator.dart';
 part 'auth/client.dart';
 part 'auth/auth_controller.dart';
+part 'auth/auth_code_controller.dart';
 part 'auth/authorization_parser.dart';
 part 'auth/authentication_server.dart';
 

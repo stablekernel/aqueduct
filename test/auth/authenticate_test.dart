@@ -17,18 +17,66 @@ void main() {
     context = null;
   });
 
-  test("Generate and verify token", () async {
+  test("Generate and verify a auth code", () async {
     var auth = new AuthenticationServer<TestUser, Token, AuthCode>(delegate);
     TestUser createdUser = (await createUsers(1)).first;
 
-    var token = await auth.authenticate("bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app1", "kilimanjaro");
+    var authCode = await auth.createAuthCode("bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app3");
+
+    expect(authCode.code.length, greaterThan(0));
+
+    var permission = await auth.verifyCode(authCode.code);
+    expect(permission.clientID, "com.stablekernel.app3");
+    expect(permission.resourceOwnerIdentifier, createdUser.id);
+  });
+
+  test("Generate auth code with bad user data fails", () async {
+    var auth = new AuthenticationServer<TestUser, Token, AuthCode>(delegate);
+    await createUsers(1);
+
+    var successful = false;
+    try {
+      // Bad username
+      await auth.createAuthCode("bob+0@stable", "foobaraxegrind21%","com.stablekernel.app3");
+      successful = true;
+    } catch (e) {
+      expect(e.statusCode, HttpStatus.BAD_REQUEST);
+    }
+    expect(successful, false);
+
+    try {
+      // Bad password
+      await auth.createAuthCode("bob+0@stablekernel.com", "foobaraxegri%","com.stablekernel.app3");
+      successful = true;
+    } catch (e) {
+      expect(e.statusCode, HttpStatus.UNAUTHORIZED);
+    }
+    expect(successful, false);
+
+    try {
+      // Bad client id
+      await auth.createAuthCode("bob+0@stablekernel.com", "foobaraxegrind21%","com.stabl");
+      successful = true;
+    } catch (e) {
+      expect(e.statusCode, HttpStatus.UNAUTHORIZED);
+    }
+    expect(successful, false);
+
+  });
+
+  test("Exchange auth code for token", () async {
+    var auth = new AuthenticationServer<TestUser, Token, AuthCode>(delegate);
+    TestUser createdUser = (await createUsers(1)).first;
+
+    var authCode = await auth.createAuthCode("bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app3");
+    var token = await auth.exchange(authCode.code, "com.stablekernel.app3", "mckinley");
 
     expect(token.accessToken.length, greaterThan(0));
     expect(token.refreshToken.length, greaterThan(0));
     expect(token.type, "bearer");
 
     var permission = await auth.verify(token.accessToken);
-    expect(permission.clientID, "com.stablekernel.app1");
+    expect(permission.clientID, "com.stablekernel.app3");
     expect(permission.resourceOwnerIdentifier, createdUser.id);
 
     var successful = false;
@@ -41,34 +89,74 @@ void main() {
     expect(successful, false);
   });
 
-  test("Generate and verify a auth code", () async {
+  test("Auth code only usable once", () async {
+    await createUsers(1);
     var auth = new AuthenticationServer<TestUser, Token, AuthCode>(delegate);
-    TestUser createdUser = (await createUsers(1)).first;
 
-    var authCode = await auth.createAuthCode("bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app1");
+    var authCode = await auth.createAuthCode("bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app3");
+    var token1 = await auth.exchange(authCode.code, "com.stablekernel.app3", "mckinley");
 
-    expect(authCode.code.length, greaterThan(0));
 
-    var permission = await auth.verifyCode(authCode.code);
-    expect(permission.clientID, "com.stablekernel.app1");
-    expect(permission.resourceOwnerIdentifier, createdUser.id);
-
-    var successful = false;
+    expect(token1, isNotNull);
+    var token2 = null;
     try {
-      permission = await auth.verify("foobar");
-      successful = true;
+      token2 = await auth.exchange(authCode.code, "com.stablekernel.app3", "mckinley");
     } catch (e) {
-      expect(e.statusCode, 401);
+      expect(e.statusCode, HttpStatus.UNAUTHORIZED);
     }
-    expect(successful, false);
+
+    expect(token2, isNull);
   });
 
-  test("Exchange auth code for token", () async{
+  test("Auth code unusable after expiration", () async {
+    await createUsers(1);
+    var auth = new AuthenticationServer<TestUser, Token, AuthCode>(delegate);
+
+    var authCode = await auth.createAuthCode("bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app3", expirationInSeconds: 1);
+    sleep(new Duration(seconds: 2));
+
+    var token = null;
+    try {
+      await auth.exchange(authCode.code, "com.stablekernel.app3", "mckinley");
+    } catch (e) {
+      expect(e.statusCode, HttpStatus.UNAUTHORIZED);
+    }
+    expect(token, isNull);
+  });
+
+  test("Auth code unusable by other client", () async {
+    await createUsers(1);
+    var auth = new AuthenticationServer<TestUser, Token, AuthCode>(delegate);
+
+    var authCode = await auth.createAuthCode("bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app3");
+
+    var token = null;
+    try {
+      token = await auth.exchange(authCode.code, "com.stablekernel.app1", "kilimanjaro");
+    } catch (e) {
+      expect(e.statusCode, HttpStatus.UNAUTHORIZED);
+    }
+    expect(token, isNull);
+  });
+
+  test("Auth code generation fails when client has no redirect URI", () async {
+    await createUsers(1);
+    var auth = new AuthenticationServer<TestUser, Token, AuthCode>(delegate);
+
+    var authCode = null;
+    try {
+      authCode = await auth.createAuthCode("bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app1");
+    } catch (e) {
+      expect(e.statusCode, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+    expect(authCode, isNull);
+  });
+
+  test("Generate and verify token", () async {
     var auth = new AuthenticationServer<TestUser, Token, AuthCode>(delegate);
     TestUser createdUser = (await createUsers(1)).first;
 
-    var authCode = await auth.createAuthCode("bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app1");
-    var token = await auth.exchange(authCode.code, "com.stablekernel.app1", "kilimanjaro");
+    var token = await auth.authenticate("bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app1", "kilimanjaro");
 
     expect(token.accessToken.length, greaterThan(0));
     expect(token.refreshToken.length, greaterThan(0));

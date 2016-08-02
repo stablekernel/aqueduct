@@ -115,7 +115,10 @@ class AuthDelegate implements AuthenticationServerDelegate<TestUser, Token, Auth
   Future<AuthCode> authCodeForCode(AuthenticationServer server, String code) async {
     var authCodeQ = new Query<AuthCode>();
     authCodeQ.predicate = new Predicate("code = @code", {"code" : code});
-    return authCodeQ.fetchOne();
+    var authCode = authCodeQ.fetchOne();
+    await authCodeQ.delete();
+
+    return authCode;
   }
 
   Future<Client> clientForID(AuthenticationServer server, String id) async {
@@ -125,6 +128,9 @@ class AuthDelegate implements AuthenticationServerDelegate<TestUser, Token, Auth
     }
     if (id == "com.stablekernel.app2") {
       return new Client("com.stablekernel.app2", AuthenticationServer.generatePasswordHash("fuji", salt), salt);
+    }
+    if (id == "com.stablekernel.app3") {
+      return new Client.withRedirectURI("com.stablekernel.app3", AuthenticationServer.generatePasswordHash("mckinley", salt), salt, "http://stablekernel.com/auth/redirect");
     }
 
     return null;

@@ -109,13 +109,13 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
     return permission;
   }
 
-  AuthCodeType generateAuthCode(dynamic ownerId, Client client) {
+  AuthCodeType generateAuthCode(dynamic ownerId, Client client, int expirationInSeconds) {
     AuthCodeType authCode = (reflectType(AuthCodeType) as ClassMirror).newInstance(new Symbol(""), []).reflectee;
     authCode.code = randomStringOfLength(32);
     authCode.clientID = client.id;
     authCode.resourceOwnerIdentifier = ownerId;
     authCode.issueDate = new DateTime.now().toUtc();
-    authCode.expirationDate = authCode.issueDate.add(new Duration(minutes: 10)).toUtc();
+    authCode.expirationDate = authCode.issueDate.add(new Duration(seconds: expirationInSeconds)).toUtc();
     authCode.redirectURI = client.redirectURI;
 
     return authCode;
@@ -179,10 +179,14 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
     return token;
   }
 
-  Future<AuthCodeType> createAuthCode(String username, String password, String clientID) async {
+  Future<AuthCodeType> createAuthCode(String username, String password, String clientID, {int expirationInSeconds: 600}) async {
     Client client = await clientForID(clientID);
     if (client == null) {
       throw new HTTPResponseException(401, "Invalid client_id");
+    }
+
+    if (client.redirectURI == null) {
+      throw new HTTPResponseException(500, "Client does not have a redirect URI");
     }
 
     var authenticatable = await delegate.authenticatableForUsername(this, username);
@@ -197,7 +201,7 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
       throw new HTTPResponseException(401, "Invalid password");
     }
 
-    AuthCodeType authCode = generateAuthCode(authenticatable.id, client);
+    AuthCodeType authCode = generateAuthCode(authenticatable.id, client, expirationInSeconds);
     await delegate.storeAuthCode(this, authCode);
 
     return authCode;
@@ -206,23 +210,27 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
   Future<TokenType> exchange(String authCodeString, String clientID, String clientSecret, {int expirationInSeconds: 3600}) async {
     Client client = await clientForID(clientID);
     if (client == null) {
-      throw new HTTPResponseException(401, "Invalid client_id");
+      throw new HTTPResponseException(HttpStatus.UNAUTHORIZED, "Invalid client_id");
     }
     if (client.hashedSecret != generatePasswordHash(clientSecret, client.salt)) {
-      throw new HTTPResponseException(401, "Invalid client_secret");
+      throw new HTTPResponseException(HttpStatus.UNAUTHORIZED, "Invalid client_secret");
     }
 
     AuthCodeType authCode = await delegate.authCodeForCode(this, authCodeString);
     if (authCode == null) {
-      return null;
+      throw new HTTPResponseException(HttpStatus.UNAUTHORIZED, "Invalid code");
     }
 
     // check if valid still
     if (authCode.expirationDate.difference(new DateTime.now()).inSeconds <= 0) {
-      return null;
+      throw new HTTPResponseException(HttpStatus.UNAUTHORIZED, "Authorization code has expired");
     }
 
     // check other things
+    if (authCode.clientID != client.id) {
+      throw new HTTPResponseException(HttpStatus.UNAUTHORIZED, "Invalid client_id for authorization code");
+    }
+
     TokenType token = generateToken(authCode.resourceOwnerIdentifier, client.id, expirationInSeconds);
     await delegate.storeToken(this, token);
 
