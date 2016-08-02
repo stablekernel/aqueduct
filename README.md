@@ -28,4 +28,4 @@ More of a learn as you go type? Follow the quick steps at [wildfire](https://git
 
 ## Documentation
 
-You can find the API reference on the [Dart Package Manager, Pub](https://pub.dartlang.org/packages/aqueduct).
+You can find the API reference [here](https://www.dartdocs.org/documentation/aqueduct/latest).
