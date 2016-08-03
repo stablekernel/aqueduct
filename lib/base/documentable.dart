@@ -75,12 +75,12 @@ class APIContact {
 
 class APILicense {
   String name;
-  String URL;
+  String url;
 
   Map<String, String> asMap() {
     return {
       "name" : name,
-      "url" : URL
+      "url" : url
     };
   }
 }
