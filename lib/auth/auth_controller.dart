@@ -25,6 +25,7 @@ class AuthController extends HTTPController {
   /// Values must be URL percent encoded by client.
   /// When grant_type is 'password', there must be username and password values.
   /// When grant_type is 'refresh', there must be a refresh_token value.
+  /// When grant_type is 'authorization_code', there must be a authorization_code value.
   @httpPost
   Future<Response> create({String grant_type, String username, String password, String refresh_token, String authorization_code}) async {
     var authorizationHeader = request.innerRequest.headers[HttpHeaders.AUTHORIZATION]?.first;

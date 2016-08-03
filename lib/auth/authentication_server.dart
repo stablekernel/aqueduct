@@ -98,6 +98,11 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
     return token;
   }
 
+  /// Returns a [Permission] for the specified [code].
+  ///
+  /// This method obtains a [AuthCodeType] from the [delegate] and then verifies
+  /// if that authorization code is valid. If the token is valid, a [Permission]
+  /// object is returned. Otherwise, an [HTTPResponseException] with status code 401 is returned.
   Future<Permission> verifyCode(String code) async {
     AuthCodeType ac = await delegate.authCodeForCode(this, code);
     if (ac == null || isAuthCodeExpired(ac)) {
@@ -109,6 +114,10 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
     return permission;
   }
 
+  /// Instantiates a [AuthCodeType] given the arguments.
+  ///
+  /// This method creates an instance of [AuthCodeType] given an [ownerId], [client], and [expirationInSeconds].
+  /// The authorization code is not stored in this method.
   AuthCodeType generateAuthCode(dynamic ownerId, Client client, int expirationInSeconds) {
     AuthCodeType authCode = (reflectType(AuthCodeType) as ClassMirror).newInstance(new Symbol(""), []).reflectee;
     authCode.code = randomStringOfLength(32);
@@ -179,6 +188,11 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
     return token;
   }
 
+  /// Creates a one-time use authorization code for a given client ID and user credentials.
+  ///
+  /// This methods works with the [delegate] to generate and store the authorization code
+  /// if the credentials are correct. If they are not correct, it will throw the
+  /// appropriate [HTTPResponseException].
   Future<AuthCodeType> createAuthCode(String username, String password, String clientID, {int expirationInSeconds: 600}) async {
     Client client = await clientForID(clientID);
     if (client == null) {
@@ -207,6 +221,11 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
     return authCode;
   }
 
+  /// Exchanges a valid authorization code for a pair of refresh and access tokens.
+  ///
+  /// If the authorization code has not expired, has not been used, matches the client ID,
+  /// and the client secret is correct, it will return a valid pair of tokens. Otherwise,
+  /// it will throw an appropriate [HTTPResponseException].
   Future<TokenType> exchange(String authCodeString, String clientID, String clientSecret, {int expirationInSeconds: 3600}) async {
     Client client = await clientForID(clientID);
     if (client == null) {
