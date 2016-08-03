@@ -180,8 +180,17 @@ abstract class HTTPController extends RequestHandler {
   }
 
   Future<Response> _process() async {
-    var methodSymbol = _routeMethodSymbolForRequest(request);
-    var handlerParameters = _parametersForRequest(request, methodSymbol);
+    var key = _generateHandlerMethodKey(request.innerRequest.method, request.path.orderedVariableNames);
+    var cachedMethod = _methodCache[this.runtimeType][key];
+    if (cachedMethod == null) {
+      return new Response.notFound();
+    }
+
+    var methodSymbol = cachedMethod.methodSymbol;
+    var handlerParameters = cachedMethod
+        .orderedPathParameters
+        .map((param) => _convertParameterWithMirror(this.request.path.variables[param.name], param.typeMirror))
+        .toList();
 
     if (request.innerRequest.contentLength > 0) {
       if (_requestContentTypeIsSupported(request)) {
@@ -245,13 +254,17 @@ abstract class HTTPController extends RequestHandler {
             .firstWhere((attr) => attr.reflectee is HTTPMethod, orElse: () => null);
 
         if (methodAttrs != null) {
-          List<String> params = (declaration as MethodMirror)
+          List<_HTTPControllerCachedParameter> params = (declaration as MethodMirror)
               .parameters
               .where((pm) => !pm.isOptional)
-              .map((pm) => MirrorSystem.getName(pm.simpleName))
+              .map((pm) {
+                return new _HTTPControllerCachedParameter()
+                    ..name = MirrorSystem.getName(pm.simpleName)
+                    ..typeMirror = pm.type;
+              })
               .toList();
 
-          var generatedKey = _generateHandlerMethodKey((methodAttrs.reflectee as HTTPMethod).method, params);
+          var generatedKey = _generateHandlerMethodKey((methodAttrs.reflectee as HTTPMethod).method, params.map((p) => p.name).toList());
           var cachedMethod = new _HTTPControllerCachedMethod()
             ..methodSymbol = key
             ..orderedPathParameters = params;
@@ -378,5 +391,10 @@ class _InternalControllerException implements Exception {
 
 class _HTTPControllerCachedMethod {
   Symbol methodSymbol;
-  List<String> orderedPathParameters = [];
+  List<_HTTPControllerCachedParameter> orderedPathParameters = [];
+}
+
+class _HTTPControllerCachedParameter {
+  String name;
+  TypeMirror typeMirror;
 }
