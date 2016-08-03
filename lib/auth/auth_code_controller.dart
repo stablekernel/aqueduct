@@ -17,6 +17,12 @@ class AuthCodeController extends HTTPController {
   /// A reference to the [AuthenticationServer] this controller uses to grant tokens.
   AuthenticationServer authenticationServer;
 
+  /// Creates a one-time use authorization code.
+  ///
+  /// Content-Type must be application/x-www-form-urlencoded. (Query string in the body, e.g. username=bob&password=password)
+  /// Values must be URL percent encoded by client.
+  /// If [state] is supplied, it will be returned in the response object as a way
+  /// for the client to insure it is receiving a response from the expected endpoint.
   @httpPost
   Future<Response> authorize({String client_id, String username, String password, String state}) async {
     if (client_id == null || username == null || password == null) {
