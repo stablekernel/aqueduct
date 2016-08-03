@@ -24,7 +24,6 @@ abstract class ModelController<T extends Model> extends HTTPController {
     query = new ModelQuery<T>(context: context ?? ModelContext.defaultContext);
   }
 
-
   /// A query representing the values received from the [request] being processed.
   ///
   /// You may execute this [query] as is or modify it.
@@ -32,13 +31,11 @@ abstract class ModelController<T extends Model> extends HTTPController {
 
   @override
   Future<RequestHandlerResult> willProcessRequest(Request req) async {
-    var firstVarName = req.path.firstVariableName;
-
-    if (firstVarName != null) {
+    if (req.path.orderedVariableNames.length > 0) {
+      var firstVarName = req.path.orderedVariableNames.first;
       var idValue = req.path.variables[firstVarName];
 
       if (idValue != null) {
-
         var primaryKeyDesc = query.entity.attributes[query.entity.primaryKey];
         if (primaryKeyDesc.isAssignableWith(idValue)) {
           query[query.entity.primaryKey] = idValue;
@@ -46,13 +43,16 @@ abstract class ModelController<T extends Model> extends HTTPController {
           try {
             query[query.entity.primaryKey] = int.parse(idValue);
           } on FormatException {
-            var errorMessage = "Expected integer value for ModelController on ${query.entity}, but $idValue was not able to be parsed to an integer.";
+            var errorMessage = "Expected integer value for ModelController on ${query
+                .entity}, but $idValue was not able to be parsed to an integer.";
             logger.info(errorMessage);
+
             return new Response.notFound(body: {"error" : errorMessage});
           }
         } else {
           var errorMessage = "ID Value $idValue is not assignable for ModelController on ${query.entity}, expected value of type ${primaryKeyDesc.type}";
           logger.info(errorMessage);
+
           return new Response.notFound(body: {"error" : errorMessage});
         }
       }

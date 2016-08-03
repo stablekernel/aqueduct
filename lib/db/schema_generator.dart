@@ -117,6 +117,7 @@ class SchemaColumn {
       case PropertyType.datetime: return "datetime";
       case PropertyType.string: return "string";
     }
+    return null;
   }
 
   String deleteRuleStringForDeleteRule(RelationshipDeleteRule rule) {
@@ -126,6 +127,7 @@ class SchemaColumn {
       case RelationshipDeleteRule.restrict: return "restrict";
       case RelationshipDeleteRule.setDefault: return "default";
     }
+    return null;
   }
 
   Map<String, dynamic> asSerializable() {

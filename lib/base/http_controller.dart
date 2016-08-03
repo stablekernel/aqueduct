@@ -5,6 +5,7 @@ part of aqueduct;
 /// Subclasses of this class can process and respond to an HTTP request.
 @cannotBeReused
 abstract class HTTPController extends RequestHandler {
+  static Map<Type, Map<String, _HTTPControllerCachedMethod>> _methodCache = {};
   static ContentType _applicationWWWFormURLEncodedContentType = new ContentType("application", "x-www-form-urlencoded");
 
   /// The request being processed by this [HTTPController].
@@ -62,27 +63,8 @@ abstract class HTTPController extends RequestHandler {
   void willSendResponse(Response response) {}
 
   Symbol _routeMethodSymbolForRequest(Request req) {
-    var symbol = null;
-
-    var decls = reflect(this).type.declarations;
-    for (var key in decls.keys) {
-      var decl = decls[key];
-      if (decl is MethodMirror) {
-        var methodAttrs = decl.metadata.firstWhere((attr) => attr.reflectee is HTTPMethod, orElse: () => null);
-
-        if (methodAttrs != null) {
-          var params = (decl as MethodMirror).parameters.where((pm) => !pm.isOptional).map((pm) => MirrorSystem.getName(pm.simpleName)).toList();
-
-          HTTPMethod r = new HTTPMethod._fromMethod(methodAttrs.reflectee, params);
-
-          if (r._matchesRequest(req)) {
-            symbol = key;
-            break;
-          }
-        }
-      }
-    }
-
+    var key = _generateHandlerMethodKey(req.innerRequest.method, req.path.orderedVariableNames);
+    var symbol = _methodCache[this.runtimeType][key]?.methodSymbol;
     if (symbol == null) {
       throw new _InternalControllerException("No handler for request method and parameters available.", HttpStatus.NOT_FOUND);
     }
@@ -227,6 +209,8 @@ abstract class HTTPController extends RequestHandler {
 
   @override
   Future<RequestHandlerResult> processRequest(Request req) async {
+    _buildCachesIfNecessary();
+
     try {
       request = req;
 
@@ -244,6 +228,43 @@ abstract class HTTPController extends RequestHandler {
     } on _InternalControllerException catch (e) {
       return e.response;
     }
+  }
+
+  void _buildCachesIfNecessary() {
+    if (_methodCache.containsKey(this.runtimeType)) {
+      return;
+    }
+
+    var methodMap = {};
+    var allDeclarations = reflect(this).type.declarations;
+    for (var key in allDeclarations.keys) {
+      var declaration = allDeclarations[key];
+      if (declaration is MethodMirror) {
+        var methodAttrs = declaration
+            .metadata
+            .firstWhere((attr) => attr.reflectee is HTTPMethod, orElse: () => null);
+
+        if (methodAttrs != null) {
+          List<String> params = (declaration as MethodMirror)
+              .parameters
+              .where((pm) => !pm.isOptional)
+              .map((pm) => MirrorSystem.getName(pm.simpleName))
+              .toList();
+
+          var generatedKey = _generateHandlerMethodKey((methodAttrs.reflectee as HTTPMethod).method, params);
+          var cachedMethod = new _HTTPControllerCachedMethod()
+            ..methodSymbol = key
+            ..orderedPathParameters = params;
+          methodMap[generatedKey] = cachedMethod;
+        }
+      }
+    }
+
+    _methodCache[this.runtimeType] = methodMap;
+  }
+
+  String _generateHandlerMethodKey(String httpMethod, List<String> params) {
+    return "${httpMethod.toLowerCase()}-" + params.map((pathParam) => pathParam).join("-");
   }
 
   @override
@@ -352,4 +373,10 @@ class _InternalControllerException implements Exception {
     }
     return new Response(statusCode, headerMap, bodyMap);
   }
+}
+
+
+class _HTTPControllerCachedMethod {
+  Symbol methodSymbol;
+  List<String> orderedPathParameters = [];
 }

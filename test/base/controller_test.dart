@@ -260,7 +260,6 @@ class TController extends HTTPController {
   @httpPut
   Future<Response> putOne(String id) async {
     throw new Exception("Exception!");
-    return new Response.ok("$id");
   }
 
   @httpPost
@@ -370,9 +369,7 @@ Future<HttpServer> enableController(String pattern, Type controller) async {
   router.finalize();
 
   var server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 4040);
-  server.map((httpReq) => new Request(httpReq)).listen((req) {
-    router.deliver(req);
-  });
+  server.map((httpReq) => new Request(httpReq)).listen(router.deliver);
 
   return server;
 }
