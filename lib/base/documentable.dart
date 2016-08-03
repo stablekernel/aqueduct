@@ -61,13 +61,13 @@ class APIInfo {
 
 class APIContact {
   String name;
-  String URL;
+  String url;
   String email;
 
   Map<String, String> asMap() {
     return {
       "name" : name,
-      "url" : URL,
+      "url" : url,
       "email" : email
     };
   }
