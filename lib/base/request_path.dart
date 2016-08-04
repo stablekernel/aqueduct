@@ -282,7 +282,7 @@ List<String> pathsFromRoutePattern(String routePattern) {
         buffer.writeCharCode(code);
         insideExpression = false;
       } else {
-        buffer.writeCharCode(code);
+        throw new RouterException("Invalid route $routePattern, cannot use expression that contains '(' or ')'");
       }
     } else if (code == openOptional) {
       if (insideExpression) {
