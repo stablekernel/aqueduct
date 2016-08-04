@@ -13,24 +13,6 @@ main() {
     expect(resolvedPath.endsWith("file_system/file_system.dart"), true);
     expect(resolvedPath.startsWith("$homeDir/.pub-cache/hosted/pub.dartlang.org"), true);
   });
-
-  test("App-to-router test", () {
-    var app = new Application<TPipeline>();
-    var doc = app.document(new PackagePathResolver(new File(".packages").path));
-    //print("${JSON.encode(doc.asMap())}");
-
-  });
-
-  test("Tests", () {
-//    ApplicationPipeline pipeline = new TPipeline({});
-//    pipeline.addRoutes();
-//
-//    var docs = pipeline.document();
-//    var document = new APIDocument()
-//      ..items = docs;
-
-  });
-
 }
 
 class TPipeline extends ApplicationPipeline implements AuthenticationServerDelegate {
