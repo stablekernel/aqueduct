@@ -44,6 +44,10 @@ class _Token implements Tokenizable {
   int resourceOwnerIdentifier;
   String type;
   String clientID;
+
+  @Relationship.hasOne("token")
+  AuthCode code;
+
 }
 
 class AuthCode extends Model<_AuthCode> implements _AuthCode {}
@@ -60,6 +64,9 @@ class _AuthCode implements Authorizer {
   int resourceOwnerIdentifier;
   DateTime issueDate;
   DateTime expirationDate;
+
+  @Relationship.belongsTo("code", required: false, deleteRule: RelationshipDeleteRule.cascade)
+  Token token;
 }
 
 class AuthDelegate implements AuthenticationServerDelegate<TestUser, Token, AuthCode> {
@@ -87,16 +94,16 @@ class AuthDelegate implements AuthenticationServerDelegate<TestUser, Token, Auth
     return userQ.fetchOne();
   }
 
-  Future deleteTokenForAccessToken(AuthenticationServer server, String accessToken) async {
+  Future deleteTokenForRefreshToken(AuthenticationServer server, String refreshToken) async {
     var q = new Query<Token>();
-    q.predicate = new Predicate("accessToken = @ac", {"ac" : accessToken});
+    q.predicate = new Predicate("refreshToken = @rf", {"rf" : refreshToken});
     await q.delete();
   }
 
-  Future storeToken(AuthenticationServer server, Token t) async {
+  Future<Token> storeToken(AuthenticationServer server, Token t) async {
     var tokenQ = new Query<Token>();
     tokenQ.values = t;
-    await tokenQ.insert();
+    return await tokenQ.insert();
   }
 
   Future updateToken(AuthenticationServer server, Token t) async {
@@ -106,19 +113,25 @@ class AuthDelegate implements AuthenticationServerDelegate<TestUser, Token, Auth
     return tokenQ.updateOne();
   }
 
-  Future storeAuthCode(AuthenticationServer server, AuthCode code) async {
+  Future<AuthCode> storeAuthCode(AuthenticationServer server, AuthCode code) async {
     var authCodeQ = new Query<AuthCode>();
     authCodeQ.values = code;
-    await authCodeQ.insert();
+    return await authCodeQ.insert();
   }
 
   Future<AuthCode> authCodeForCode(AuthenticationServer server, String code) async {
     var authCodeQ = new Query<AuthCode>();
     authCodeQ.predicate = new Predicate("code = @code", {"code" : code});
     var authCode = authCodeQ.fetchOne();
-    await authCodeQ.delete();
 
     return authCode;
+  }
+
+  Future updateAuthCode(AuthenticationServer server, AuthCode code) async {
+    var authCodeQ = new Query<AuthCode>();
+    authCodeQ.predicate = new Predicate("id = @id", {"id" : code.id});
+    authCodeQ.values = code;
+    return authCodeQ.updateOne();
   }
 
   Future<Client> clientForID(AuthenticationServer server, String id) async {

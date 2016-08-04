@@ -50,7 +50,6 @@ abstract class Authorizer {
   /// The clientID the authorization code was issued under.
   String clientID;
 
-
   /// The identifier of the resource owner.
   ///
   /// Authorization codes are owned by a resource owner, typically a User, Profile or Account
@@ -63,6 +62,9 @@ abstract class Authorizer {
 
   /// When this authorization code expires, recommended for 10 minutes after issue date.
   DateTime expirationDate;
+
+  /// The token vended for this authorization code
+  Tokenizable token;
 }
 
 /// A representation of authentication information to be attached to a [Request].
@@ -151,16 +153,18 @@ abstract class AuthenticationServerDelegate<ResourceOwner extends Authenticatabl
   /// [server] is the [AuthenticationServer] requesting the [Client].
   Future<Client> clientForID(AuthenticationServer server, String id);
 
-  /// Deletes a [TokenType] for [accessToken].
+  /// Deletes a [TokenType] for [refreshToken].
   ///
-  /// If the [server] wishes to delete an authentication token, it will invoke this method. The
-  /// concrete instance must delete that token from its persistent storage.
-  Future deleteTokenForAccessToken(AuthenticationServer server, String accessToken);
+  /// If the [server] wishes to delete an authentication token, given a [refreshToken],
+  /// it will invoke this method. The implementing class must delete that token
+  /// from its persistent storage. If the [refreshToken] was retrieved from an
+  /// authorization code, that corresponding authorization code must be deleted as well.
+  Future deleteTokenForRefreshToken(AuthenticationServer server, String refreshToken);
 
   /// Asks this instance to store a [TokenType] for [server].
   ///
   /// The implementing class must persist the token [t].
-  Future storeToken(AuthenticationServer server, TokenType t);
+  Future<TokenType> storeToken(AuthenticationServer server, TokenType t);
 
   /// Asks this instance to update an existing [TokenType] for [server].
   ///
@@ -170,11 +174,16 @@ abstract class AuthenticationServerDelegate<ResourceOwner extends Authenticatabl
   /// Asks this instance to store a [AuthCodeType] for [server].
   ///
   /// The implementing class must persist the auth code [ac].
-  Future storeAuthCode(AuthenticationServer server, AuthCodeType ac);
+  Future<AuthCodeType> storeAuthCode(AuthenticationServer server, AuthCodeType ac);
 
   /// Asks this instance to retrieve an auth code from provided code [code].
   ///
   /// This returns an instance of [AuthCodeType] if one exists for [code], and
   /// [null] otherwise.
   Future<AuthCodeType> authCodeForCode(AuthenticationServer server, String code);
+
+  /// Asks this instance to update an existing [AuthCodeType] for [server].
+  ///
+  /// The implementing class must persist the auth code [ac].
+  Future updateAuthCode(AuthenticationServer server, AuthCodeType ac);
 }

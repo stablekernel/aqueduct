@@ -214,9 +214,7 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
     }
 
     AuthCodeType authCode = generateAuthCode(authenticatable.id, client, expirationInSeconds);
-    await delegate.storeAuthCode(this, authCode);
-
-    return authCode;
+    return await delegate.storeAuthCode(this, authCode);
   }
 
   /// Exchanges a valid authorization code for a pair of refresh and access tokens.
@@ -243,13 +241,23 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
       throw new HTTPResponseException(HttpStatus.UNAUTHORIZED, "Authorization code has expired");
     }
 
-    // check other things
+    // check that client ids match
     if (authCode.clientID != client.id) {
       throw new HTTPResponseException(HttpStatus.UNAUTHORIZED, "Invalid client_id for authorization code");
     }
 
+    // check to see if has already been used
+    if (authCode.token != null) {
+      await delegate.deleteTokenForRefreshToken(this, authCode.token.refreshToken);
+
+      throw new HTTPResponseException(HttpStatus.UNAUTHORIZED, "Authorization code has already been used");
+    }
+
     TokenType token = generateToken(authCode.resourceOwnerIdentifier, client.id, expirationInSeconds);
-    await delegate.storeToken(this, token);
+    token = await delegate.storeToken(this, token);
+
+    authCode.token = token;
+    await delegate.updateAuthCode(this, authCode);
 
     return token;
   }

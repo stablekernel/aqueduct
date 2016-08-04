@@ -96,7 +96,6 @@ void main() {
     var authCode = await auth.createAuthCode("bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app3");
     var token1 = await auth.exchange(authCode.code, "com.stablekernel.app3", "mckinley");
 
-
     expect(token1, isNotNull);
     var token2 = null;
     try {
@@ -106,6 +105,14 @@ void main() {
     }
 
     expect(token2, isNull);
+
+    // Original token should now also be invalid
+    try {
+      var permission = await auth.verify(token1.accessToken);
+      expect(permission, isNotNull);
+    } catch (e) {
+      expect(e.statusCode, HttpStatus.UNAUTHORIZED);
+    }
   });
 
   test("Auth code unusable after expiration", () async {

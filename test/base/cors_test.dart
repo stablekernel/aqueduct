@@ -267,10 +267,11 @@ class CORSPipeline extends ApplicationPipeline implements AuthenticationServerDe
     return new Client("access", password, salt);
   }
 
-  Future deleteTokenForAccessToken(AuthenticationServer server, String accessToken) async {}
+  Future deleteTokenForRefreshToken(AuthenticationServer server, String refreshToken) async {}
   Future storeToken(AuthenticationServer server, TokenImpl t) async {}
   Future updateToken(AuthenticationServer server, TokenImpl t) async {}
   Future storeAuthCode(AuthenticationServer server, AuthCodeImpl ac) async {}
+  Future updateAuthCode(AuthenticationServer server, AuthCodeImpl ac) async {}
   Future<AuthCodeImpl> authCodeForCode(AuthenticationServer server, String authCode) async {
     return new AuthCodeImpl()
         ..code = authCode
@@ -301,6 +302,7 @@ class AuthCodeImpl implements Authorizer {
   dynamic resourceOwnerIdentifier;
   DateTime issueDate;
   DateTime expirationDate;
+  TokenImpl token;
 }
 
 class NoPolicyController extends HTTPController {
