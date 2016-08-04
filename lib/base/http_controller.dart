@@ -124,7 +124,7 @@ abstract class HTTPController extends RequestHandler {
     }).toList();
   }
 
-  Map<Symbol, dynamic> _queryParametersForRequest(Request req, dynamic body, Symbol handlerMethodSymbol) {
+  Map<String, dynamic> _queryParametersFromRequest(Request req, dynamic body) {
     Map<String, dynamic> queryParams = {};
 
     var contentType = req.innerRequest.headers.contentType;
@@ -137,29 +137,23 @@ abstract class HTTPController extends RequestHandler {
       queryParams = req.innerRequest.uri.queryParametersAll;
     }
 
-    if (queryParams.length == 0) {
-      return null;
-    }
+    return queryParams;
+  }
 
-    var optionalParams = (reflect(this).type.declarations[handlerMethodSymbol] as MethodMirror)
-        .parameters
-        .where((methodParameter) => methodParameter.isOptional)
-        .toList();
-
-    var retMap = {};
-    queryParams.forEach((k, v) {
-      var keySymbol = new Symbol(k);
-      var matchingParameter = optionalParams.firstWhere((p) => p.simpleName == keySymbol, orElse: () => null);
-      if (matchingParameter != null) {
-        if (v is List) {
-          retMap[keySymbol] = _convertParameterListWithMirror(v, matchingParameter.type);
+  Map<Symbol, dynamic> _symbolicateAndConvertMap(Map<String, dynamic> values, Map<String, _HTTPControllerCachedParameter> desiredParameters) {
+    var returnValue = {};
+    values.forEach((key, value) {
+      var desired = desiredParameters[key];
+      if (desired != null) {
+        if (value is List) {
+          returnValue[new Symbol(key)] = _convertParameterListWithMirror(value, desired.typeMirror);
         } else {
-          retMap[keySymbol] = _convertParameterWithMirror(v, matchingParameter.type);
+          returnValue[new Symbol(key)] = _convertParameterWithMirror(value, desired.typeMirror);
         }
       }
     });
 
-    return retMap;
+    return returnValue;
   }
 
   dynamic _serializedResponseBody(dynamic initialResponseBody) {
@@ -199,13 +193,15 @@ abstract class HTTPController extends RequestHandler {
         return new Response(HttpStatus.UNSUPPORTED_MEDIA_TYPE, null, null);
       }
     }
-    var handlerQueryParameters = _queryParametersForRequest(request, requestBody, methodSymbol);
+
+    var queryParameterMap = _queryParametersFromRequest(request, requestBody);
+    var symbolicatedQueryParameters = _symbolicateAndConvertMap(queryParameterMap, cachedMethod.optionalParameters);
 
     if (requestBody != null) {
       didDecodeRequestBody(requestBody);
     }
 
-    Future<Response> eventualResponse = reflect(this).invoke(methodSymbol, handlerParameters, handlerQueryParameters).reflectee;
+    Future<Response> eventualResponse = reflect(this).invoke(methodSymbol, handlerParameters, symbolicatedQueryParameters).reflectee;
     var response = await eventualResponse;
 
     willSendResponse(response);
@@ -264,10 +260,20 @@ abstract class HTTPController extends RequestHandler {
               })
               .toList();
 
+          Iterable<_HTTPControllerCachedParameter> optionalParams = (declaration as MethodMirror)
+              .parameters
+              .where((methodParameter) => methodParameter.isOptional)
+              .map((pm) {
+                return new _HTTPControllerCachedParameter()
+                  ..name = MirrorSystem.getName(pm.simpleName)
+                  ..typeMirror = pm.type;
+              });
+
           var generatedKey = _generateHandlerMethodKey((methodAttrs.reflectee as HTTPMethod).method, params.map((p) => p.name).toList());
           var cachedMethod = new _HTTPControllerCachedMethod()
             ..methodSymbol = key
-            ..orderedPathParameters = params;
+            ..orderedPathParameters = params
+            ..optionalParameters = new Map.fromIterable(optionalParams, key: (p) => p.name, value: (p) => p);
           methodMap[generatedKey] = cachedMethod;
         }
       }
@@ -392,6 +398,7 @@ class _InternalControllerException implements Exception {
 class _HTTPControllerCachedMethod {
   Symbol methodSymbol;
   List<_HTTPControllerCachedParameter> orderedPathParameters = [];
+  Map<String, _HTTPControllerCachedParameter> optionalParameters = {};
 }
 
 class _HTTPControllerCachedParameter {
