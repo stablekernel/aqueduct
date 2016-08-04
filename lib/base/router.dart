@@ -10,7 +10,7 @@ part of aqueduct;
 /// A route is defined by a [String] format, for example:
 ///     router.route("/users");
 ///     router.route("/posts/:id");
-///     router.route("/things/[:id]");
+///     router.route("/things[/:id]");
 ///     router.route("/numbers/:id(\d+)");
 ///     router.route("/files/*");
 ///
@@ -20,23 +20,19 @@ class Router extends RequestHandler {
     unhandledRequestHandler = _handleUnhandledRequest;
   }
 
-  List<RouteHandler> _routes = [];
+  List<RouteHandler> _routeHandlers = [];
+  _RouteNode _rootRouteNode;
 
   /// A string to be prepended to the beginning of every route this [Router] manages.
   ///
-  /// For example, if this [Router]'s base route is "/api" and the routes "/users/"
-  /// and "/posts" are added, the actual routes will be "/api/users" and "/api/posts".
-  /// This property MUST be set prior to adding routes, an exception will be thrown
-  /// otherwise.
-  ///
-  String get basePath => _basePath;
-  void set basePath(String bp) {
-    if (_routes.length > 0) {
-      throw new RouterException("Cannot alter basePath after adding routes.");
-    }
-    _basePath = bp;
+  /// For example, if this [Router]'s base path is "/api" and the route "/users"
+  /// is added, the actual route will be "/api/users". Using this property will make route matching
+  /// more efficient than including the base path in each route.
+  String get basePath => _basePathSegments.join("/");
+  set basePath(String bp) {
+    _basePathSegments = bp.split("/").where((str) => !str.isEmpty).toList();
   }
-  String _basePath;
+  List<String> _basePathSegments = [];
 
   /// How this router handles [Request]s that don't match its routes.
   ///
@@ -61,57 +57,66 @@ class Router extends RequestHandler {
   /// Path variables may optionally contain regular expression syntax within parentheses to constrain their matches.
   ///       /:pathVariable(\d+)
   /// Path segments may be marked as optional by using square brackets around the segment. The opening square
-  /// bracket must follow the preceding path delimeter (/).
+  /// bracket may be on either side of the preceding path delimiter (/) with no effect.
   ///       /constantString/[:optionalVariable]
+  ///       /constantString[/:optionalVariable]
   /// Routes may have multiple optional segments, but they must be nested.
   ///       /constantString/[:optionalVariable/[optionalConstantString]]
+  /// Routes may also contain multiple path segments in the same optional grouping.
+  ///       /constantString/[segment1/segment2]
   RequestHandler route(String pattern) {
-    return _createRoute(pattern);
+    var routeHandler = new RouteHandler(RoutePathSpecification.specificationsForRoutePattern(pattern));
+    _routeHandlers.add(routeHandler);
+    return routeHandler;
   }
 
-  RouteHandler _createRoute(String pattern) {
-    if (basePath != null) {
-      pattern = basePath + pattern;
-    }
-
-    // Strip out any extraneous /s
-    var finalPattern = pattern.split("/").where((c) => c != "").join("/");
-
-    var route = new RouteHandler(new RoutePattern(finalPattern));
-    _routes.add(route);
-
-    return route;
+  /// Invoke on this router once all routes are added.
+  ///
+  /// If you are using the default router from [ApplicationPipeline], this method is called for you. Otherwise,
+  /// you must call this method after all routes have been added to build a tree of routes for optimized route finding.
+  void finalize() {
+    _rootRouteNode = new _RouteNode(_routeHandlers.expand((rh) => rh.patterns).toList());
   }
 
   @override
   Future deliver(Request req) async {
-    for (var route in _routes) {
-      var routeMatch = route.pattern.matchUri(req.innerRequest.uri);
-
-      if (routeMatch != null) {
-        req.path = routeMatch;
-        route.deliver(req);
-        return;
+    var requestURISegmentIterator = req.innerRequest.uri.pathSegments.iterator;
+    if (_basePathSegments.length > 0) {
+      for (var i = 0; i < _basePathSegments.length; i++) {
+        requestURISegmentIterator.moveNext();
+        if (_basePathSegments[i] != requestURISegmentIterator.current) {
+          _unhandledRequestHandler(req);
+          return;
+        }
       }
+    }
+
+    var remainingSegments = [];
+    while (requestURISegmentIterator.moveNext()) {
+      remainingSegments.add(requestURISegmentIterator.current);
+    }
+    if (remainingSegments.isEmpty) {
+      remainingSegments = [""];
+    }
+
+    var node = _rootRouteNode.nodeForPathSegments(remainingSegments);
+    if (node?.specification != null) {
+      var requestPath = new RequestPath(node.specification, remainingSegments);
+      req.path = requestPath;
+      node.handler.deliver(req);
+      return;
     }
 
     _unhandledRequestHandler(req);
   }
 
+  /// Returns a [List] of [APIPath]s configured in this router.
   @override
-  List<APIDocumentItem> document(PackagePathResolver resolver) {
-    List<APIDocumentItem> items = [];
-
-    for (var route in _routes) {
-      var routeItems = route.document(resolver);
-
-      items.addAll(routeItems.map((i) {
-        i.path = (basePath ?? "") + route.pattern.documentedPathWithVariables(i.pathParameters);
-        return i;
-      }));
-    }
-
-    return items;
+  List<APIPath> documentPaths(PackagePathResolver resolver) {
+    return _routeHandlers
+        .expand((rh) => rh.patterns)
+        .map((RoutePathSpecification routeSpec) => routeSpec.documentPaths(resolver).first)
+        .toList();
   }
 
   void _handleUnhandledRequest(Request req) {
@@ -123,9 +128,13 @@ class Router extends RequestHandler {
 }
 
 class RouteHandler extends RequestHandler {
-  final RoutePattern pattern;
+  RouteHandler(this.patterns) {
+    patterns.forEach((p) {
+      p.handler = this;
+    });
+  }
 
-  RouteHandler(this.pattern);
+  final List<RoutePathSpecification> patterns;
 }
 
 class RouterException implements Exception {

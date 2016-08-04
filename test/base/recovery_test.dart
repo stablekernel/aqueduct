@@ -76,8 +76,6 @@ main() {
         }
       }
     });
-
-    test("", () {});
   });
 }
 
@@ -95,8 +93,6 @@ class UncaughtCrashController extends HTTPController {
     new Future(() {
       var x = null;
       x.foo();
-    }).then((_) {
-
     });
     return new Response.ok(null);
   }

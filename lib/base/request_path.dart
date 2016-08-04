@@ -5,6 +5,31 @@ part of aqueduct;
 /// Instances of this class can be used by handlers after the router to inspect
 /// specifics of the incoming path without having to dissect the path on their own.
 class RequestPath {
+  /// Default constructor for [RequestPath].
+  RequestPath(RoutePathSpecification specification, List<String> requestSegments) {
+    firstVariableName = specification.firstVariableName;
+    segments = requestSegments;
+
+    var requestIterator = requestSegments.iterator;
+    for (var segment in specification.segments) {
+      requestIterator.moveNext();
+      var requestSegment = requestIterator.current;
+
+      if (segment.isVariable) {
+        variables[segment.variableName] = requestSegment;
+      } else if (segment.isRemainingMatcher) {
+        var remaining = [];
+        remaining.add(requestIterator.current);
+        while(requestIterator.moveNext()) {
+          remaining.add(requestIterator.current);
+        }
+        remainingPath = remaining.join("/");
+
+        return;
+      }
+    }
+  }
+
   /// A map of variable to values in this match.
   ///
   /// If a path has variables (indicated by the :name syntax) in the path,
@@ -29,8 +54,8 @@ class RequestPath {
   /// If a match specification uses the asterisk 'match all' token,
   /// the part of the path matched by that token will be stored in this property.
   ///
-  /// The remaining path will will be a single string, including any path delimeters (/),
-  /// but will not have a leading path delimeter.
+  /// The remaining path will will be a single string, including any path delimiters (/),
+  /// but will not have a leading path delimiter.
   String remainingPath = null;
 
   /// The name (key in [variables]) of the first matched variable.
@@ -39,222 +64,297 @@ class RequestPath {
   dynamic firstVariableName = null;
 }
 
-/// Used internally.
-class RoutePattern {
-  static String remainingPath = "remainingPath";
-
-  _ResourcePatternSet matchHead;
-  List<_ResourcePatternElement> elements;
-  String get firstVariableName => elements.firstWhere((e) => e.isVariable, orElse: () => null)?.name;
-
-  RoutePattern(String patternString) {
-    List<String> pathElements = splitPattern(patternString);
-    elements = resourceElementsFromPathElements(patternString);
-    matchHead = matchSpecFromElements(pathElements, elements);
+/// Specifies a matchable route path.
+///
+/// Contains [RouteSegment]s for each path segment.
+class RoutePathSpecification extends Object with APIDocumentable {
+  static List<RoutePathSpecification> specificationsForRoutePattern(String routePattern) {
+    return pathsFromRoutePattern(routePattern)
+        .map((path) => new RoutePathSpecification(path))
+        .toList();
   }
 
-  static _ResourcePatternSet matchSpecFromElements(List<String> pathElements, List<_ResourcePatternElement> resourceElements) {
-    // These two arrays should be identical in size by the time they get here
-
-    _ResourcePatternSet setHead = new _ResourcePatternSet();
-    _ResourcePatternSet setPtr = setHead;
-
-    for (int i = 0; i < pathElements.length; i++) {
-      String seg = pathElements[i];
-
-      if (seg.startsWith("[")) {
-        _ResourcePatternSet set = new _ResourcePatternSet();
-        setPtr.nextOptionalSet = set;
-
-        setPtr = set;
-      }
-
-      setPtr.addElement(resourceElements[i]);
-
-      for (int i = seg.length - 1; i >= 0; i--) {
-        if (seg[i] == "]") {
-          setPtr = setPtr.parentSet;
-        } else {
-          break;
-        }
-      }
-    }
-
-    if (setPtr != setHead) {
-      throw new ArgumentError("unmatched brackets in optional paths");
-    }
-
-    return setHead;
+  /// Creates a new [RoutePathSpecification] from a [String].
+  ///
+  /// The [patternString] must be stripped of any optionals.
+  RoutePathSpecification(String patternString) {
+    segments = splitPathSegments(patternString);
+    firstVariableName = segments.firstWhere((e) => e.isVariable, orElse: () => null)?.variableName;
+    variableNames = segments.where((e) => e.variableName != null).map((e) => e.variableName).toList();
   }
 
-  static List<String> splitPattern(String patternString) {
-    return patternString.split("/").fold(new List<String>(), (List<String> accum, String e) {
-      var trimmed = e.trim();
-      if (trimmed.length > 0) {
-        accum.add(trimmed);
+  /// A list of this specification's [RouteSegment]s.
+  List<RouteSegment> segments;
+
+  /// The first variable name in this route.
+  String firstVariableName;
+
+  /// A list of all variables in this route.
+  List<String> variableNames;
+
+  /// A reference back to the [RequestHandler] to be used when this specification is matched.
+  RequestHandler handler;
+
+  /// Returns a [List] one [APIPath].
+  ///
+  /// This method will create and return an [APIPath] for the path that it represents. It will
+  /// invoke the [documentOperations] on its [handler] to retrieve a list of [APIOperation]s. Those operations
+  /// will be filtered to only include those that have matching parameters.
+  @override
+  List<APIPath> documentPaths(PackagePathResolver resolver) {
+    var p = new APIPath();
+    p.path = "/" + segments.map((rs) {
+      if (rs.isLiteralMatcher) {
+        return rs.literal;
+      } else if (rs.isVariable) {
+        return "{${rs.variableName}}";
+      } else if (rs.isRemainingMatcher) {
+        return "*";
       }
-      return accum;
+    }).join("/");
+
+    p.parameters = segments
+        .where((seg) => seg.isVariable)
+        .map((seg) {
+          var param = new APIParameter()
+              ..name = seg.variableName
+              ..parameterLocation = APIParameterLocation.path;
+
+          return param;
+        }).toList();
+
+    List<APIOperation> allOperations = handler.documentOperations(resolver);
+    p.operations = allOperations
+        .where((op) {
+          var opPathParamNames = op.parameters
+              .where((p) => p.parameterLocation == APIParameterLocation.path)
+              .map((p) => p.name)
+              .toList();
+          var pathParamNames = p.parameters
+            .where((p) => p.parameterLocation == APIParameterLocation.path)
+            .toList();
+
+          if (pathParamNames.length != opPathParamNames.length) {
+            return false;
+          }
+
+          return pathParamNames.every((p) => opPathParamNames.contains(p.name));
+        }).toList();
+
+    // Strip operation parameters that are already in the path, but move their type into
+    // the path's path parameters
+    p.operations.forEach((op) {
+      var typedPathParameters = op.parameters.where((pi) => pi.parameterLocation == APIParameterLocation.path).toList();
+      p.parameters.forEach((p) {
+        var matchingTypedPathParam = typedPathParameters.firstWhere((typedParam) => typedParam.name == p.name, orElse: () => null);
+        p.type = matchingTypedPathParam?.type;
+      });
+
+      op.parameters = op.parameters.where((p) => p.parameterLocation != APIParameterLocation.path).toList();
     });
+
+    return [p];
   }
 
-  static List<_ResourcePatternElement> resourceElementsFromPathElements(String patternString) {
-    var expr = new RegExp(r"[\[\]]");
-    return splitPattern(patternString).map((segment) => new _ResourcePatternElement(segment.replaceAll(expr, ""))).toList();
-  }
-
-
-  String documentedPathWithVariables(List<APIParameter> params) {
-    var s = new StringBuffer("/");
-    for (var e in elements) {
-      if (e.name == null) {
-        s.write("${e.matchRegex.pattern}/");
-      } else if (params.map((api) => api.key).contains(e.name)) {
-        s.write("{${e.name}}/");
-      } else {
-        break;
-      }
-    }
-    return s.toString();
-  }
-
-  List<String> get variableNames {
-    return elements.where((e) => e.name != null).map((e) => e.name).toList();
-  }
-
-  RequestPath matchUri(Uri uri) {
-    RequestPath match = new RequestPath();
-
-    var incomingPathSegments = uri.pathSegments;
-    var incomingPathIndex = 0;
-    var resourceSet = matchHead;
-    var resourceIterator = resourceSet.elements.iterator;
-
-    while (resourceSet != null) {
-      while (resourceIterator.moveNext()) {
-        // If we run into a *, then we're definitely a match so just grab the end of the path and return it.
-
-        var resourceSegment = resourceIterator.current;
-        if (resourceSegment.matchesRemaining) {
-          var remainingString = incomingPathSegments.sublist(incomingPathIndex, incomingPathSegments.length).join("/");
-          match.remainingPath = remainingString;
-
-          return match;
-        } else {
-          // If we're out of path segments, then we don't match
-          if (incomingPathIndex >= incomingPathSegments.length) {
-            return null;
-          }
-
-          var pathSegment = incomingPathSegments[incomingPathIndex];
-          incomingPathIndex++;
-
-          bool matches = resourceSegment.fullMatchForString(pathSegment);
-          if (!matches) {
-            // There was a path segment available, but it did not match
-            return null;
-          }
-
-          // We match!
-          if (resourceSegment.name != null) {
-            match.variables[resourceSegment.name] = pathSegment;
-          }
-
-          match.segments.add(pathSegment);
-        }
-      }
-      resourceSet = resourceSet.nextOptionalSet;
-
-      // If we have path remaining, then we either have optional left or we don't have a match
-      if (incomingPathIndex < incomingPathSegments.length) {
-        if (resourceSet == null) {
-          return null;
-        } else {
-          resourceIterator = resourceSet.elements.iterator;
-        }
-      }
-    }
-
-    match.firstVariableName = firstVariableName;
-
-    return match;
-  }
+  String toString() => segments.join("/");
 }
 
-class _ResourcePatternSet {
-  List<_ResourcePatternElement> elements = [];
+class RouteSegment {
+  RouteSegment(String segment) {
+    if (segment == "*") {
+      isRemainingMatcher = true;
+      return;
+    }
 
-  _ResourcePatternSet parentSet;
-  _ResourcePatternSet _nextOptionalSet;
-  _ResourcePatternSet get nextOptionalSet => _nextOptionalSet;
-  void set nextOptionalSet(_ResourcePatternSet s) {
-    _nextOptionalSet = s;
-    s.parentSet = this;
-  }
+    var regexIndex = segment.indexOf("(");
+    if (regexIndex != -1) {
+      var regexText = segment.substring(regexIndex + 1, segment.length - 1);
+      matcher = new RegExp(regexText);
 
-  void addElement(_ResourcePatternElement e) {
-    elements.add(e);
-  }
-}
+      segment = segment.substring(0, regexIndex);
+    }
 
-class _ResourcePatternElement {
-  bool matchesRemaining = false;
-  String name;
-  RegExp matchRegex;
-  bool isVariable = false;
-
-  _ResourcePatternElement(String segment) {
     if (segment.startsWith(":")) {
-      var contents = segment.substring(1, segment.length);
-      isVariable = true;
-      constructFromString(contents);
-    } else if (segment == "*") {
-      matchesRemaining = true;
-    } else {
-      matchRegex = new RegExp(segment);
+      variableName = segment.substring(1, segment.length);
+    } else if (regexIndex == -1) {
+      literal = segment;
     }
   }
 
-  // I'd prefer that this used a outer non-capturing group on the parantheses after the name;
-  // but apparently this regex parser won't pick up the capture group inside the noncapturing group for some reason
-  static RegExp patternFinder = new RegExp(r"^(\w+)(\(([^\)]+)\))?$", caseSensitive: false);
-
-  void constructFromString(String str) {
-    Match m = patternFinder.firstMatch(str);
-    if (m == null) {
-      throw new ArgumentError("invalid resource pattern segment ${str}, available formats are the following: literal, *, :name, :name(pattern)");
+  RouteSegment.direct({String literal: null, String variableName: null, String expression: null, bool matchesAnything: false}) {
+    this.literal = literal;
+    this.variableName = variableName;
+    this.isRemainingMatcher = matchesAnything;
+    if (expression != null) {
+      this.matcher = new RegExp(expression);
     }
-
-    name = m.group(1);
-
-    var matchString = ".+";
-    if (m.groupCount == 3) {
-      if (m.group(2) != null) {
-        matchString = m.group(2);
-      }
-    }
-
-    matchRegex = new RegExp(r"^" + "${matchString}" + r"$", caseSensitive: false);
   }
 
-  bool fullMatchForString(String pathSegment) {
-    var iter = matchRegex.allMatches(pathSegment).iterator;
-    if (iter.moveNext()) {
-      var match = iter.current;
-      if (match.start == 0 && match.end == pathSegment.length && !iter.moveNext()) {
-        return true;
-      } else {
+  String literal;
+  String variableName;
+  RegExp matcher;
+
+  bool get isLiteralMatcher => !isRemainingMatcher && !isVariable && !hasRegularExpression;
+  bool get hasRegularExpression => matcher != null;
+  bool get isVariable => variableName != null;
+  bool isRemainingMatcher = false;
+
+  bool matches(String pathSegment) {
+    if (isLiteralMatcher) {
+      return pathSegment == literal;
+    }
+
+    if (hasRegularExpression) {
+      if (matcher.firstMatch(pathSegment) == null) {
         return false;
       }
+    }
+
+    if (isVariable) {
+      return true;
     }
 
     return false;
   }
 
-  String toString() {
-    String str = "${matchesRemaining} ${name} ";
-    if (matchRegex != null) {
-      str = str + matchRegex.pattern;
+  operator ==(dynamic other) {
+    if (other is! RouteSegment) {
+      return false;
     }
-    return str;
+
+    return literal == other.literal
+        && variableName == other.variableName
+        && isRemainingMatcher == other.isRemainingMatcher
+        && matcher?.pattern == other.matcher?.pattern;
   }
+
+  String toString() {
+    if (isLiteralMatcher) {
+      return literal;
+    }
+
+    if (isVariable) {
+      return variableName;
+    }
+
+    if (hasRegularExpression) {
+      return "(${matcher.pattern})";
+    }
+
+    return "*";
+  }
+}
+
+/// Utility method to take Route syntax into one or more full paths.
+///
+/// This method strips away optionals in the route syntax, yielding an individual path for every combination of the route syntax.
+/// The returned [String]s no longer contain optional syntax.
+List<String> pathsFromRoutePattern(String routePattern) {
+  var endingOptionalCloseCount = 0;
+  while (routePattern.endsWith("]")) {
+    routePattern = routePattern.substring(0, routePattern.length - 1);
+    endingOptionalCloseCount ++;
+  }
+
+  var chars = routePattern.codeUnits;
+  var patterns = [];
+  var buffer = new StringBuffer();
+  var openOptional = '['.codeUnitAt(0);
+  var openExpression = '('.codeUnitAt(0);
+  var closeExpression = ')'.codeUnitAt(0);
+
+  bool insideExpression = false;
+  for (var i = 0; i < chars.length; i++) {
+    var code = chars[i];
+
+    if (code == openExpression) {
+      if (insideExpression) {
+        throw new RouterException("Invalid route $routePattern, cannot use expression that contains '(' or ')'");
+      } else {
+        buffer.writeCharCode(code);
+        insideExpression = true;
+      }
+    } else if (code == closeExpression) {
+      if (insideExpression) {
+        buffer.writeCharCode(code);
+        insideExpression = false;
+      } else {
+        throw new RouterException("Invalid route $routePattern, cannot use expression that contains '(' or ')'");
+      }
+    } else if (code == openOptional) {
+      if (insideExpression) {
+        buffer.writeCharCode(code);
+      } else {
+        patterns.add(buffer.toString());
+      }
+    } else {
+      buffer.writeCharCode(code);
+    }
+  }
+
+  if (insideExpression) {
+    throw new RouterException("Invalid route $routePattern, unterminated regular expression");
+  }
+
+  if (endingOptionalCloseCount != patterns.length) {
+    throw new RouterException("Invalid pattern specifiation, $routePattern, does not close all optionals");
+  }
+
+  // Add the final pattern - if no optionals, this is the only pattern.
+  patterns.add(buffer.toString());
+
+  return patterns;
+}
+
+
+/// Utility method for turning a path into a list of [RouteSegment]s.
+List<RouteSegment> splitPathSegments(String path) {
+  // Once we've gotten into this method, the path has been validated for optionals and regex and optionals have been removed.
+
+  // Trim leading and trailing
+  while (path.startsWith("/")) {
+    path = path.substring(1, path.length);
+  }
+  while(path.endsWith("/")) {
+    path = path.substring(0, path.length - 1);
+  }
+
+  var segments = [];
+  var chars = path.codeUnits;
+  var buffer = new StringBuffer();
+
+  var openExpression = '('.codeUnitAt(0);
+  var closeExpression = ')'.codeUnitAt(0);
+  var pathDelimiter = '/'.codeUnitAt(0);
+  bool insideExpression = false;
+
+  for (var i = 0; i < path.length; i++) {
+    var code = chars[i];
+
+    if (code == openExpression) {
+      buffer.writeCharCode(code);
+      insideExpression = true;
+    } else if (code == closeExpression) {
+      buffer.writeCharCode(code);
+      insideExpression = false;
+    } else if (code == pathDelimiter) {
+      if (insideExpression) {
+        buffer.writeCharCode(code);
+      } else {
+        segments.add(buffer.toString());
+        buffer = new StringBuffer();
+      }
+    } else {
+      buffer.writeCharCode(code);
+    }
+  }
+
+  if (segments.any((seg) => seg == "")) {
+    throw new RouterException("Invalid route path $path, contains an empty path segment");
+  }
+
+  // Add final
+  segments.add(buffer.toString());
+
+  return segments.map((seg) => new RouteSegment(seg)).toList();
 }

@@ -1,188 +1,418 @@
 part of aqueduct;
 
-class APIHeader {
+class APIDocumentable {
+  APIDocumentable get documentableChild => null;
+
+  APIDocument documentAPI(PackagePathResolver resolver) => documentableChild?.documentAPI(resolver);
+  List<APIPath> documentPaths(PackagePathResolver resolver) => documentableChild?.documentPaths(resolver);
+  List<APIOperation> documentOperations(PackagePathResolver resolver) => documentableChild?.documentOperations(resolver);
+  Map<String, APISecurityScheme> documentSecuritySchemes(PackagePathResolver resolver) => documentableChild?.documentSecuritySchemes(resolver);
+}
+
+class APIDocument {
+  APIInfo info = new APIInfo();
+  List<APIHost> hosts = [];
+  List<ContentType> consumes = [];
+  List<ContentType> produces = [];
+  List<APIPath> paths = [];
+  List<APISecurityRequirement> securityRequirements = [];
+  Map<String, APISecurityScheme> securitySchemes = {};
+
+  Map<String, dynamic> asMap() {
+    var m = {};
+
+    m["openapi"] = "3.0.*";
+    m["info"] = info.asMap();
+    m["hosts"] = hosts;
+    m["consumes"] = consumes.map((ct) => ct.toString()).toList();
+    m["produces"] = produces.map((ct) => ct.toString()).toList();
+    m["security"] = securityRequirements.map((sec) => sec.name).toList();
+    m["paths"] = new Map.fromIterable(paths, key: (APIPath k) => k.path, value: (APIPath v) => v.asMap());
+
+    var mappedSchemes = {};
+    securitySchemes?.forEach((k, scheme) {
+      mappedSchemes[k] = scheme.asMap();
+    });
+    m["securityDefinitions"] = mappedSchemes;
+
+    return m;
+  }
+}
+
+class APIInfo {
   String title = "API";
   String description = "Description";
   String version = "1.0";
+  String termsOfServiceURL = "";
+  APIContact contact;
+  APILicense license;
 
   Map<String, String> asMap() {
     return {
       "title" : title,
       "description" : description,
-      "version" : version
+      "version" : version,
+      "termsOfService" : termsOfServiceURL,
+      "contact" : contact?.asMap(),
+      "license" : license?.asMap()
     };
   }
 }
 
-class APIDocument {
-  APIHeader header = new APIHeader();
-  List<APIDocumentItem> items = [];
-  String host = "localhost:8080";
-  List<String> schemes = ["http", "https"];
-
-  List<APISecurityItem> securityItems = [
-    new APISecurityItem()
-      ..name = "client_auth"
-      ..description = "Authorization: Basic base64({ClientID}:{ClientSecret})"
-      ..type = APISecurityType.basic,
-    new APISecurityItem()
-      ..name = "token"
-      ..description = "Authorization: Bearer {Token}"
-      ..type = APISecurityType.oauth2
-      ..tokenURL = ""
-      ..flow = "password"
-  ];
-
-  Map<String, dynamic> asMap() {
-    var m = {};
-
-    m["swagger"] = "2.0";
-    m["info"] = header.asMap();
-    m["host"] = host;
-    m["schemes"] = schemes;
-
-    if (securityItems != null) {
-      var sec = {};
-      securityItems.forEach((si) {
-        sec[si.name] = si.asMap();
-      });
-      m["securityDefinitions"] = sec;
-    }
-
-    Map<String, Map<String, APIDocumentItem>> coalesced = {};
-    items.forEach((m) {
-      var existing = coalesced[m.path];
-      if (existing != null) {
-        existing[m.method] = m.asMap();
-      } else {
-        existing = {
-          m.method : m.asMap()
-        };
-        coalesced[m.path] = existing;
-      }
-    });
-    m["paths"] = coalesced;
-
-    return m;
-  }
-}
-
-abstract class APIDocumentable {
-  List<APIDocumentItem> document(PackagePathResolver resolver);
-}
-
-enum APISecurityType {
-  oauth2, basic
-}
-
-class APISecurityItem {
+class APIContact {
   String name;
+  String url;
+  String email;
 
-  APISecurityType type;
-  String flow;
-  String tokenURL;
+  Map<String, String> asMap() {
+    return {
+      "name" : name,
+      "url" : url,
+      "email" : email
+    };
+  }
+}
+
+class APILicense {
+  String name;
+  String url;
+
+  Map<String, String> asMap() {
+    return {
+      "name" : name,
+      "url" : url
+    };
+  }
+}
+
+class APIHost {
+  String host = "localhost:8000";
+  String basePath = "/";
+  String scheme = "http";
+
+  Map<String, String> asMap() {
+    return {
+      "host" : host,
+      "basePath" : basePath,
+      "scheme" : scheme
+    };
+  }
+}
+
+
+class APISecurityRequirement {
+  String name;
+  List<APISecurityScope> scopes;
+}
+
+class APISecurityScope {
+  String name;
   String description;
 
-  Map<String, dynamic> asMap() {
-    var m = {};
+  Map<String, String> asMap() {
+    return {
+      name : description
+    };
+  }
+}
 
-    m["description"] = description;
+class APISecurityDefinition {
+  String name;
+  APISecurityScheme scheme;
 
-    switch(type) {
-      case APISecurityType.basic: {
-          m["type"] = "basic";
-      } break;
-      case APISecurityType.oauth2: {
-        m["type"] = "oauth2";
-        if (flow != null) {
-          m["flow"] = flow;
-        }
+  Map<String, dynamic> asMap() => scheme.asMap();
+}
 
-        if (tokenURL != null) {
-          m["tokenUrl"] = tokenURL;
-        }
-        m["scopes"] = {"default" : "default"};
-      } break;
+
+enum APISecuritySchemeFlow {
+  implicit, password, application, accessCode
+}
+
+class APISecurityScheme {
+  static String stringForFlow(APISecuritySchemeFlow flow) {
+    switch (flow) {
+      case APISecuritySchemeFlow.accessCode: return "accessCode";
+      case APISecuritySchemeFlow.password: return "password";
+      case APISecuritySchemeFlow.implicit: return "implicit";
+      case APISecuritySchemeFlow.application: return "application";
     }
+    return null;
+  }
+  APISecurityScheme.basic() {
+    type = "basic";
+  }
+
+  APISecurityScheme.apiKey() {
+    type = "apiKey";
+  }
+
+  APISecurityScheme.oauth2() {
+    type = "oauth2";
+  }
+
+  String type;
+  String description;
+
+  // API Key
+  String apiKeyName;
+  APIParameterLocation apiKeyLocation;
+
+  // Oauth2
+  APISecuritySchemeFlow oauthFlow;
+  String authorizationURL;
+  String tokenURL;
+  List<APISecurityScope> scopes = [];
+
+  Map<String, dynamic> asMap() {
+    var m = {
+      "type" : type,
+      "description" : description
+    };
+
+    if (type == "basic") {
+      /* nothing to do */
+    } else if (type == "apiKey") {
+      m["name"] = apiKeyName;
+      m["in"] = APIParameter.parameterLocationStringForType(apiKeyLocation);
+    } else if (type == "oauth2") {
+      m["flow"] = stringForFlow(oauthFlow);
+
+      if (oauthFlow == APISecuritySchemeFlow.implicit || oauthFlow == APISecuritySchemeFlow.accessCode) {
+        m["authorizationUrl"] = authorizationURL;
+      }
+
+      if (oauthFlow != APISecuritySchemeFlow.implicit) {
+        m["tokenUrl"] = tokenURL;
+      }
+
+      m["scopes"] = new Map.fromIterable(scopes, key: (APISecurityScope k) => k.name, value: (APISecurityScope v) => v.description);
+    }
+
     return m;
   }
 }
 
-class APIDocumentItem {
+
+class APIPath {
   String path;
-  String method;
-  String securityItemName;
-  String description;
-  List<String> acceptedContentTypes;
-  List<APIParameter> pathParameters;
-  List<APIParameter> queryParameters;
-  List<String> responseFormats;
+
+  String summary = "";
+  String description = "";
+  List<APIOperation> operations = [];
+  List<APIParameter> parameters = [];
 
   Map<String, dynamic> asMap() {
     Map<String, dynamic> i = {};
-    i["description"] = description ?? "";
-    i["produces"] = responseFormats;
+    i["description"] = description;
+    i["summary"] = summary;
+    i["parameters"] = parameters.map((p) => p.asMap()).toList();
 
-    var combined = [];
-    combined.addAll(pathParameters);
-    combined.addAll(queryParameters);
-    i["parameters"] = combined.map((p) => p.asMap()).toList();
-
-    i["consumes"] = acceptedContentTypes;
-
-    if (securityItemName != null) {
-      i["security"] = [{securityItemName : []}];
-    }
+    operations.forEach((op) {
+      i[op.method] = op.asMap();
+    });
 
     return i;
   }
+}
 
-  String toString() {
-    return "$path $method $securityItemName $acceptedContentTypes $pathParameters $queryParameters $responseFormats";
+class APIOperation {
+  String method;
+
+  String summary = "";
+  String description = "";
+  String id;
+  bool deprecated = false;
+
+  List<String> tags = [];
+  List<ContentType> consumes = [];
+  List<ContentType> produces = [];
+  List<APIParameter> parameters = [];
+  List<APISecurityRequirement> security = [];
+  APIRequestBody requestBody;
+  List<APIResponse> responses = [];
+
+  Map<String, dynamic> asMap() {
+    var m = {};
+
+    m["summary"] = summary;
+    m["description"] = description;
+    m["id"] = id;
+    m["deprecated"] = deprecated;
+    m["tags"] = tags;
+    m["consumes"] = consumes.map((ct) => ct.toString()).toList();
+    m["produces"] = produces.map((ct) => ct.toString()).toList();
+    m["parameters"] = parameters.map((param) => param.asMap()).toList();
+    m["requestBody"] = requestBody?.asMap();
+    m["responses"] = new Map.fromIterable(responses, key: (APIResponse k) => k.key, value: (APIResponse v) => v.asMap());
+    m["security"] = new Map.fromIterable(security, key: (APISecurityRequirement k) => k.name, value: (APISecurityRequirement v) => v.scopes.map((scope) => scope.name).toList());
+
+    return m;
+  }
+}
+
+class APIResponse {
+  String key;
+  String description;
+  APISchemaObject schema;
+  Map<String, APIHeader> headers = {};
+  set statusCode(int code) {
+    key = "$code";
+  }
+
+  Map<String, dynamic> asMap() {
+    var mappedHeaders = {};
+    headers.forEach((headerName, headerObject) {
+      mappedHeaders[headerName] = headerObject.asMap();
+    });
+
+    return {
+      "description" : description,
+      "schema" : schema.asMap(),
+      "headers" : mappedHeaders
+    };
+  }
+}
+
+enum APIHeaderType {
+  string, number, integer, boolean
+}
+
+class APIHeader {
+  String description;
+  APIHeaderType type;
+
+  static String headerTypeStringForType(APIHeaderType type) {
+    switch (type) {
+      case APIHeaderType.string: return "string";
+      case APIHeaderType.number: return "number";
+      case APIHeaderType.integer: return "integer";
+      case APIHeaderType.boolean: return "boolean";
+    }
+    return null;
+  }
+
+  Map<String, dynamic> asMap() {
+    return {
+      "description" : description,
+      "type" : headerTypeStringForType(type)
+    };
   }
 }
 
 enum APIParameterLocation {
-  query, header, path, formData, body
+  query, header, path, formData, cookie
 }
 
 class APIParameter {
-  String key;
+  static String typeStringForVariableMirror(VariableMirror m) {
+    if (m.type.isSubtypeOf(reflectType(int))) {
+      return APISchemaObjectFormatInt32;
+    } else if (m.type.isSubtypeOf(reflectType(double))) {
+      return APISchemaObjectFormatDouble;
+    } else if (m.type.isSubtypeOf(reflectType(String))) {
+      return APISchemaObjectFormatString;
+    } else if (m.type.isSubtypeOf(reflectType(bool))) {
+      return APISchemaObjectFormatBoolean;
+    } else if (m.type.isSubtypeOf(reflectType(DateTime))) {
+      return APISchemaObjectFormatDateTime;
+    }
+
+    return null;
+  }
+
+  static String parameterLocationStringForType(APIParameterLocation parameterLocation) {
+    switch (parameterLocation) {
+      case APIParameterLocation.query: return "query";
+      case APIParameterLocation.header: return "header";
+      case APIParameterLocation.path: return "path";
+      case APIParameterLocation.formData: return "formData";
+      case APIParameterLocation.cookie: return "cookie";
+    }
+    return null;
+  }
+
+  String name;
   String description;
   String type;
-  bool required;
-
+  bool required = false;
+  bool deprecated = false;
+  APISchemaObject schemaObject;
   APIParameterLocation parameterLocation;
-
-  String toString() {
-    return "$type $key $required $description";
-  }
 
   Map<String, dynamic> asMap() {
     var m = {};
-    m["name"] = key;
-
-    switch (parameterLocation) {
-      case APIParameterLocation.query: m["in"] = "query"; break;
-      case APIParameterLocation.header: m["in"] = "header"; break;
-      case APIParameterLocation.path: m["in"] = "path"; break;
-      case APIParameterLocation.formData: m["in"] = "formData"; break;
-      case APIParameterLocation.body: m["in"] = "body"; break;
-    }
-
-    m["required"] = required;
-
-    switch(type) {
-      case "int" : m["type"] = "integer"; break;
-      case "String" : m["type"] = "string"; break;
-      case "bool" : m["type"] = "bool"; break;
-      case "double" : m["type"] = "number"; break;
-      default: m["type"] = "string";
-    }
+    m["name"] = name;
+    m["description"] = description;
+    m["required"] = (parameterLocation == APIParameterLocation.path ? true : required);
+    m["deprecated"] = deprecated;
+    m["schema"] = schemaObject?.asMap();
+    m["type"] = type;
+    m["in"] = parameterLocationStringForType(parameterLocation);
 
     return m;
   }
 }
+
+class APIRequestBody {
+  String description;
+  APISchemaObject schema;
+  bool required;
+
+  Map<String, dynamic> asMap() {
+    return {
+      "description" : description,
+      "schema" : schema.asMap(),
+      "required" : required
+    };
+  }
+}
+
+const String APISchemaObjectTypeString = "string";
+const String APISchemaObjectTypeArray = "array";
+const String APISchemaObjectTypeObject = "object";
+const String APISchemaObjectTypeNumber = "number";
+
+const String APISchemaObjectFormatInt32 = "int32";
+const String APISchemaObjectFormatInt64 = "int64";
+const String APISchemaObjectFormatDouble = "double";
+const String APISchemaObjectFormatString = "string";
+const String APISchemaObjectFormatBase64 = "byte";
+const String APISchemaObjectFormatBinary = "binary";
+const String APISchemaObjectFormatBoolean = "boolean";
+const String APISchemaObjectFormatDateTime = "date-time";
+const String APISchemaObjectFormatPassword = "password";
+const String APISchemaObjectFormatEmail = "email";
+
+class APISchemaObject {
+  String title;
+  String type;
+  String format;
+  String description;
+  bool required;
+  bool readOnly = false;
+  String example;
+  bool deprecated = false;
+  Map<String, APISchemaObject> properties = {};
+  Map<String, APISchemaObject> additionalProperties = {};
+
+  Map<String, dynamic> asMap() {
+    var m = {};
+    m["title"] = title;
+    m["type"] = type;
+    m["format"] = format;
+    m["description"] = description;
+    m["required"] = required;
+    m["readOnly"] = readOnly;
+    m["example"] = example;
+    m["deprecated"] = deprecated;
+
+    m["properties"] = properties;
+    m["additionalProperties"] = additionalProperties;
+
+    return m;
+  }
+}
+
 
 class PackagePathResolver {
   PackagePathResolver(String packageMapPath) {
