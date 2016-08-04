@@ -59,16 +59,12 @@ main() {
     test("Application stops", () async {
       await app.stop();
 
-      var successful = false;
       try {
-        var _ = await http.get("http://localhost:8080/t");
-        successful = true;
-      } catch (e) {
-        expect(e, isNotNull);
-      }
-      expect(successful, false);
+        await http.get("http://localhost:8080/t");
+      } on SocketException {}
 
       await app.start(numberOfInstances: 3);
+
       var resp = await http.get("http://localhost:8080/t");
       expect(resp.statusCode, 200);
     });

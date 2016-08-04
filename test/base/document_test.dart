@@ -2,6 +2,7 @@ import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
 import 'dart:async';
 import 'dart:io';
+import 'dart:convert';
 
 main() {
   test("Package resolver", () {
@@ -12,28 +13,30 @@ main() {
     expect(resolvedPath.endsWith("file_system/file_system.dart"), true);
     expect(resolvedPath.startsWith("$homeDir/.pub-cache/hosted/pub.dartlang.org"), true);
   });
-
-  test("Documentation test", () {
-
-  });
-
-  test("Tests", () {
-//    ApplicationPipeline pipeline = new TPipeline({});
-//    pipeline.addRoutes();
-//
-//    var docs = pipeline.document();
-//    var document = new APIDocument()
-//      ..items = docs;
-
-  });
-
 }
 
-class TPipeline extends ApplicationPipeline {
-  TPipeline(Map opts) : super(opts);
+class TPipeline extends ApplicationPipeline implements AuthenticationServerDelegate {
+  TPipeline(Map opts) : super(opts) {
+    authServer = new AuthenticationServer(this);
+  }
+
+  AuthenticationServer authServer;
 
   void addRoutes() {
-    router.route("/t").next(() => new TController());
+    router.route("/t[/:id[/:notID]]").next(authServer.authenticator()).next(() => new TController());
+  }
+
+  Future<dynamic> tokenForAccessToken(AuthenticationServer server, String accessToken) => null;
+  Future<dynamic> tokenForRefreshToken(AuthenticationServer server, String refreshToken) => null;
+  Future<dynamic> authenticatableForUsername(AuthenticationServer server, String username) => null;
+  Future<dynamic> authenticatableForID(AuthenticationServer server, dynamic id) => null;
+  Future<Client> clientForID(AuthenticationServer server, String id) => null;
+  Future deleteTokenForAccessToken(AuthenticationServer server, String accessToken) => null;
+  Future storeToken(AuthenticationServer server, dynamic t) => null;
+  Future updateToken(AuthenticationServer server, dynamic t) => null;
+
+  Map<String, APISecurityScheme> documentSecuritySchemes(PackagePathResolver resolver) {
+    return authServer.documentSecuritySchemes(resolver);
   }
 }
 
@@ -44,11 +47,11 @@ class TController extends HTTPController {
   /// ABCD
   /// EFGH
   /// IJKL
-  @httpGet getAll() async {
+  @httpGet getAll({String param: null}) async {
     return new Response.ok("");
   }
   /// ABCD
-  @httpPut putOne(int id) async {
+  @httpPut putOne(int id, {int p1: null, int p2: null}) async {
     return new Response.ok("");
   }
   @httpGet getOne(int id) async {

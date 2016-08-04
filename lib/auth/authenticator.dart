@@ -81,15 +81,21 @@ class Authenticator extends RequestHandler {
   }
 
 
-  List<APIDocumentItem> document(PackagePathResolver resolver) {
-    List<APIDocumentItem> items = nextHandler.document(resolver);
+  @override
+  List<APIOperation> documentOperations(PackagePathResolver resolver) {
+    List<APIOperation> items = nextHandler.documentOperations(resolver);
+
+    var secReq= new APISecurityRequirement()
+      ..scopes = [];
+
+    if (strategy == AuthenticationStrategy.Client) {
+      secReq.name = "oauth2.application";
+    } else if (strategy == AuthenticationStrategy.ResourceOwner) {
+      secReq.name = "oauth2.password";
+    }
 
     items.forEach((i) {
-      if (strategy == AuthenticationStrategy.Client) {
-        i.securityItemName = "client_auth";
-      } else if (strategy == AuthenticationStrategy.ResourceOwner) {
-        i.securityItemName = "token";
-      }
+      i.security = [secReq];
     });
 
     return items;

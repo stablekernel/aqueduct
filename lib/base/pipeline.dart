@@ -4,7 +4,7 @@ part of aqueduct;
 ///
 /// [Application]s set up HTTP(S) listeners, but do not do anything with them. The behavior of how an application
 /// responds to requests is defined by its [ApplicationPipeline]. Must be subclassed.
-abstract class ApplicationPipeline extends RequestHandler {
+abstract class ApplicationPipeline extends RequestHandler implements APIDocumentable {
   /// Default constructor.
   ///
   /// The default constructor takes a [Map] of configuration [options]. The constructor should initialize
@@ -14,6 +14,9 @@ abstract class ApplicationPipeline extends RequestHandler {
   /// must be initialized asynchronously, those properties should implement their own deferred initialization mechanism
   /// that can be triggered in [willOpen], but still must be initialized in this constructor.
   ApplicationPipeline(this.options);
+
+  /// Documentation info for this pipeline.
+  APIInfo apiInfo = new APIInfo();
 
   /// This pipeline's owning server.
   ///
@@ -71,8 +74,23 @@ abstract class ApplicationPipeline extends RequestHandler {
 
   }
 
+  /// Document generator for pipeline.
+  ///
+  /// This method will return a new [APIDocument]. It will derive the [APIDocument.paths] from its [initialHandler],
+  /// which must return a [List] of [APIPath]s. By default, the [initialHandler] is a [Router], which
+  /// implements [Router.document] to return that list. However, if you change the [initialHandler], you
+  /// must override its [document] method to return the same.
   @override
-  List<APIDocumentItem> document(PackagePathResolver resolver) {
-    return initialHandler().document(resolver);
+  APIDocument documentAPI(PackagePathResolver resolver) {
+    var doc = new APIDocument()
+      ..info = apiInfo;
+
+    doc.paths = initialHandler().documentPaths(resolver);
+    doc.securitySchemes = this.documentSecuritySchemes(resolver);
+
+    doc.consumes = new Set.from(doc.paths.expand((p) => p.operations.expand((op) => op.consumes))).toList();
+    doc.produces = new Set.from(doc.paths.expand((p) => p.operations.expand((op) => op.produces))).toList();
+
+    return doc;
   }
 }

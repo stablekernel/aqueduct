@@ -11,11 +11,14 @@ abstract class RequestHandlerResult {}
 /// their [deliver] method, which in turn invokes [processRequest]. Subclasses
 /// should implement [processRequest] to respond to, modify or forward requests.
 /// In some cases, subclasses may also override [deliver].
-class RequestHandler implements APIDocumentable {
+class RequestHandler extends Object with APIDocumentable {
   Function _handler;
 
-  CORSPolicy policy = new CORSPolicy();
+  @override
+  APIDocumentable get documentableChild => nextHandler;
+
   Logger get logger => new Logger("aqueduct");
+  CORSPolicy policy = new CORSPolicy();
 
   /// The initializer for RequestHandlers.
   ///
@@ -168,14 +171,6 @@ class RequestHandler implements APIDocumentable {
   bool isPreflightRequest(Request req) {
     return req.innerRequest.method == "OPTIONS" && req.innerRequest.headers.value("access-control-request-method") != null;
   }
-
-  List<APIDocumentItem> document(PackagePathResolver resolver) {
-    if (nextHandler != null) {
-      return nextHandler.document(resolver);
-    }
-
-    return [];
-  }
 }
 
 /// Metadata for a [RequestHandler] subclass that indicates it must be instantiated for each request.
@@ -222,7 +217,14 @@ class _RequestHandlerGenerator extends RequestHandler {
   }
 
   @override
-  List<APIDocumentItem> document(PackagePathResolver resolver) {
-    return instantiate().document(resolver);
-  }
+  APIDocument documentAPI(PackagePathResolver resolver) => instantiate().documentAPI(resolver);
+
+  @override
+  List<APIPath> documentPaths(PackagePathResolver resolver) => instantiate().documentPaths(resolver);
+
+  @override
+  List<APIOperation> documentOperations(PackagePathResolver resolver) => instantiate().documentOperations(resolver);
+
+  @override
+  Map<String, APISecurityScheme> documentSecuritySchemes(PackagePathResolver resolver) => instantiate().documentSecuritySchemes(resolver);
 }
