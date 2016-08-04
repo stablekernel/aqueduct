@@ -8,6 +8,7 @@ class RequestPath {
   /// Default constructor for [RequestPath].
   RequestPath(RoutePathSpecification specification, List<String> requestSegments) {
     segments = requestSegments;
+    orderedVariableNames = [];
 
     var requestIterator = requestSegments.iterator;
     for (var segment in specification.segments) {
@@ -16,6 +17,7 @@ class RequestPath {
 
       if (segment.isVariable) {
         variables[segment.variableName] = requestSegment;
+        orderedVariableNames.add(segment.variableName);
       } else if (segment.isRemainingMatcher) {
         var remaining = [];
         remaining.add(requestIterator.current);
