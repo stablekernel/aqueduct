@@ -5,6 +5,31 @@ part of aqueduct;
 /// Instances of this class can be used by handlers after the router to inspect
 /// specifics of the incoming path without having to dissect the path on their own.
 class RequestPath {
+  /// Default constructor for [RequestPath].
+  RequestPath(RoutePathSpecification specification, List<String> requestSegments) {
+    firstVariableName = specification.firstVariableName;
+    segments = requestSegments;
+
+    var requestIterator = requestSegments.iterator;
+    for (var segment in specification.segments) {
+      requestIterator.moveNext();
+      var requestSegment = requestIterator.current;
+
+      if (segment.isVariable) {
+        variables[segment.variableName] = requestSegment;
+      } else if (segment.isRemainingMatcher) {
+        var remaining = [];
+        remaining.add(requestIterator.current);
+        while(requestIterator.moveNext()) {
+          remaining.add(requestIterator.current);
+        }
+        remainingPath = remaining.join("/");
+
+        return;
+      }
+    }
+  }
+
   /// A map of variable to values in this match.
   ///
   /// If a path has variables (indicated by the :name syntax) in the path,
@@ -69,34 +94,6 @@ class RoutePathSpecification extends Object with APIDocumentable {
 
   /// A reference back to the [RequestHandler] to be used when this specification is matched.
   RequestHandler handler;
-
-  RequestPath requestPathForSegments(List<String> requestSegments) {
-    var p = new RequestPath();
-
-    p.firstVariableName = firstVariableName;
-    p.segments = requestSegments;
-
-    var requestIterator = requestSegments.iterator;
-    for (var segment in segments) {
-      requestIterator.moveNext();
-      var requestSegment = requestIterator.current;
-
-      if (segment.isVariable) {
-        p.variables[segment.variableName] = requestSegment;
-      } else if (segment.isRemainingMatcher) {
-        var remaining = [];
-        remaining.add(requestIterator.current);
-        while(requestIterator.moveNext()) {
-          remaining.add(requestIterator.current);
-        }
-        p.remainingPath = remaining.join("/");
-
-        return p;
-      }
-    }
-
-    return p;
-  }
 
   /// Returns a [List] one [APIPath].
   ///
