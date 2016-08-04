@@ -101,7 +101,7 @@ class Router extends RequestHandler {
 
     var node = _rootRouteNode.nodeForPathSegments(remainingSegments);
     if (node?.specification != null) {
-      var requestPath = node.specification.requestPathForSegments(remainingSegments);
+      var requestPath = new RequestPath(node.specification, remainingSegments);
       req.path = requestPath;
       node.handler.deliver(req);
       return;
