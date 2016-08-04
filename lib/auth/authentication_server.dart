@@ -3,7 +3,7 @@ part of aqueduct;
 /// A storage-agnostic authenticating mechanism.
 ///
 /// Instances of this type will work with a [AuthenticationServerDelegate] to faciliate authentication.
-class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType extends Tokenizable, AuthCodeType extends Authorizable extends Object with APIDocumentable {
+class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType extends Tokenizable, AuthCodeType extends Authorizer> extends Object with APIDocumentable {
   /// Creates a new instance of an [AuthenticationServer] with a [delegate].
   AuthenticationServer(this.delegate);
 
@@ -63,7 +63,7 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
   Future<Permission> verify(String accessToken) async {
     TokenType t = await delegate.tokenForAccessToken(this, accessToken);
     if (t == null || isTokenExpired(t)) {
-      throw new HTTPResponseException(401, "Expired token");
+      throw new HTTPResponseException(HttpStatus.UNAUTHORIZED, "Expired token");
     }
 
     var permission = new Permission(t.clientID, t.resourceOwnerIdentifier, this);
@@ -109,20 +109,18 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
       throw new HTTPResponseException(HttpStatus.UNAUTHORIZED, "Expired authorization code");
     }
 
-    var permission = new Permission(ac.clientID, ac.resourceOwnerIdentifier, this);
-
-    return permission;
+    return new Permission(ac.clientID, ac.resourceOwnerIdentifier, this);
   }
 
   /// Instantiates a [AuthCodeType] given the arguments.
   ///
   /// This method creates an instance of [AuthCodeType] given an [ownerId], [client], and [expirationInSeconds].
   /// The authorization code is not stored in this method.
-  AuthCodeType generateAuthCode(dynamic ownerId, Client client, int expirationInSeconds) {
+  AuthCodeType generateAuthCode(dynamic ownerID, Client client, int expirationInSeconds) {
     AuthCodeType authCode = (reflectType(AuthCodeType) as ClassMirror).newInstance(new Symbol(""), []).reflectee;
     authCode.code = randomStringOfLength(32);
     authCode.clientID = client.id;
-    authCode.resourceOwnerIdentifier = ownerId;
+    authCode.resourceOwnerIdentifier = ownerID;
     authCode.issueDate = new DateTime.now().toUtc();
     authCode.expirationDate = authCode.issueDate.add(new Duration(seconds: expirationInSeconds)).toUtc();
     authCode.redirectURI = client.redirectURI;
@@ -138,15 +136,15 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
   Future<TokenType> refresh(String refreshToken, String clientID, String clientSecret) async {
     Client client = await clientForID(clientID);
     if (client == null) {
-      throw new HTTPResponseException(401, "Invalid client_id");
+      throw new HTTPResponseException(HttpStatus.UNAUTHORIZED, "Invalid client_id");
     }
     if (client.hashedSecret != generatePasswordHash(clientSecret, client.salt)) {
-      throw new HTTPResponseException(401, "Invalid client_secret");
+      throw new HTTPResponseException(HttpStatus.UNAUTHORIZED, "Invalid client_secret");
     }
 
     TokenType t = await delegate.tokenForRefreshToken(this, refreshToken);
     if (t == null || t.clientID != clientID) {
-      throw new HTTPResponseException(401, "Invalid client_id for token");
+      throw new HTTPResponseException(HttpStatus.UNAUTHORIZED, "Invalid client_id for token");
     }
 
     var diff = t.expirationDate.difference(t.issueDate);
@@ -164,22 +162,22 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
   Future<TokenType> authenticate(String username, String password, String clientID, String clientSecret, {int expirationInSeconds: 3600}) async {
     Client client = await clientForID(clientID);
     if (client == null) {
-      throw new HTTPResponseException(401, "Invalid client_id");
+      throw new HTTPResponseException(HttpStatus.UNAUTHORIZED, "Invalid client_id");
     }
     if (client.hashedSecret != generatePasswordHash(clientSecret, client.salt)) {
-      throw new HTTPResponseException(401, "Invalid client_secret");
+      throw new HTTPResponseException(HttpStatus.UNAUTHORIZED, "Invalid client_secret");
     }
 
     var authenticatable = await delegate.authenticatableForUsername(this, username);
     if (authenticatable == null) {
-      throw new HTTPResponseException(400, "Invalid username");
+      throw new HTTPResponseException(HttpStatus.BAD_REQUEST, "Invalid username");
     }
 
     var dbSalt = authenticatable.salt;
     var dbPassword = authenticatable.hashedPassword;
     var hash = AuthenticationServer.generatePasswordHash(password, dbSalt);
     if (hash != dbPassword) {
-      throw new HTTPResponseException(401, "Invalid password");
+      throw new HTTPResponseException(HttpStatus.UNAUTHORIZED, "Invalid password");
     }
 
     TokenType token = generateToken(authenticatable.id, client.id, expirationInSeconds);
@@ -188,7 +186,6 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
     return token;
   }
 
-<<<<<<< HEAD
   /// Creates a one-time use authorization code for a given client ID and user credentials.
   ///
   /// This methods works with the [delegate] to generate and store the authorization code
@@ -197,23 +194,23 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
   Future<AuthCodeType> createAuthCode(String username, String password, String clientID, {int expirationInSeconds: 600}) async {
     Client client = await clientForID(clientID);
     if (client == null) {
-      throw new HTTPResponseException(401, "Invalid client_id");
+      throw new HTTPResponseException(HttpStatus.UNAUTHORIZED, "Invalid client_id");
     }
 
     if (client.redirectURI == null) {
-      throw new HTTPResponseException(500, "Client does not have a redirect URI");
+      throw new HTTPResponseException(HttpStatus.INTERNAL_SERVER_ERROR, "Client does not have a redirect URI");
     }
 
     var authenticatable = await delegate.authenticatableForUsername(this, username);
     if (authenticatable == null) {
-      throw new HTTPResponseException(400, "Invalid username");
+      throw new HTTPResponseException(HttpStatus.BAD_REQUEST, "Invalid username");
     }
 
     var dbSalt = authenticatable.salt;
     var dbPassword = authenticatable.hashedPassword;
     var hash = AuthenticationServer.generatePasswordHash(password, dbSalt);
     if (hash != dbPassword) {
-      throw new HTTPResponseException(401, "Invalid password");
+      throw new HTTPResponseException(HttpStatus.UNAUTHORIZED, "Invalid password");
     }
 
     AuthCodeType authCode = generateAuthCode(authenticatable.id, client, expirationInSeconds);
@@ -257,8 +254,7 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
     return token;
   }
 
-  /// A utility method to generate a password hash using the PBKDF2 scheme.
-=======
+
   @override
   Map<String, APISecurityScheme> documentSecuritySchemes(PackagePathResolver resolver) {
     var secApp = new APISecurityScheme.oauth2()
@@ -274,8 +270,7 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
     };
   }
 
-  /// A utility method to generate am password hash using the PBKDF2 scheme.
->>>>>>> master
+  /// A utility method to generate a password hash using the PBKDF2 scheme.
   static String generatePasswordHash(String password, String salt, {int hashRounds: 1000, int hashLength: 32}) {
     var generator = new PBKDF2(hash: sha256);
     var key = generator.generateKey(password, salt, hashRounds, hashLength);

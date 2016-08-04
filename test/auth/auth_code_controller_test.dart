@@ -35,6 +35,7 @@ void main() {
     var uri = Uri.parse(location);
 
     expect(uri.queryParameters["code"], hasLength(greaterThan(0)));
+    expect(uri.queryParameters["state"], isNull);
     expect(uri.host, equals("stablekernel.com"));
     expect(uri.path, equals("/auth/redirect"));
   });
@@ -61,8 +62,6 @@ void main() {
   });
 
   test("POST fails on bad client data", () async {
-    await createUsers(1);
-
     // Omit client_id
     var req = client.request("/auth/code")
       ..formData = {

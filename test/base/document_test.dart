@@ -34,6 +34,8 @@ class TPipeline extends ApplicationPipeline implements AuthenticationServerDeleg
   Future deleteTokenForAccessToken(AuthenticationServer server, String accessToken) => null;
   Future storeToken(AuthenticationServer server, dynamic t) => null;
   Future updateToken(AuthenticationServer server, dynamic t) => null;
+  Future storeAuthCode(AuthenticationServer server, dynamic ac) => null;
+  Future<dynamic> authCodeForCode(AuthenticationServer server, String code) => null;
 
   Map<String, APISecurityScheme> documentSecuritySchemes(PackagePathResolver resolver) {
     return authServer.documentSecuritySchemes(resolver);
