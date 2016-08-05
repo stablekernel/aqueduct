@@ -249,33 +249,35 @@ abstract class HTTPController extends RequestHandler {
             .metadata
             .firstWhere((attr) => attr.reflectee is HTTPMethod, orElse: () => null);
 
-        if (methodAttrs != null) {
-          List<_HTTPControllerCachedParameter> params = (declaration as MethodMirror)
-              .parameters
-              .where((pm) => !pm.isOptional)
-              .map((pm) {
-                return new _HTTPControllerCachedParameter()
-                    ..name = MirrorSystem.getName(pm.simpleName)
-                    ..typeMirror = pm.type;
-              })
-              .toList();
+        if (methodAttrs == null) {
+          continue;
+        }
 
-          Iterable<_HTTPControllerCachedParameter> optionalParams = (declaration as MethodMirror)
-              .parameters
-              .where((methodParameter) => methodParameter.isOptional)
-              .map((pm) {
-                return new _HTTPControllerCachedParameter()
+        List<_HTTPControllerCachedParameter> params = (declaration as MethodMirror)
+            .parameters
+            .where((pm) => !pm.isOptional)
+            .map((pm) {
+              return new _HTTPControllerCachedParameter()
                   ..name = MirrorSystem.getName(pm.simpleName)
                   ..typeMirror = pm.type;
-              });
+            })
+            .toList();
 
-          var generatedKey = _generateHandlerMethodKey((methodAttrs.reflectee as HTTPMethod).method, params.map((p) => p.name).toList());
-          var cachedMethod = new _HTTPControllerCachedMethod()
-            ..methodSymbol = key
-            ..orderedPathParameters = params
-            ..optionalParameters = new Map.fromIterable(optionalParams, key: (p) => p.name, value: (p) => p);
-          methodMap[generatedKey] = cachedMethod;
-        }
+        Iterable<_HTTPControllerCachedParameter> optionalParams = (declaration as MethodMirror)
+            .parameters
+            .where((methodParameter) => methodParameter.isOptional)
+            .map((pm) {
+              return new _HTTPControllerCachedParameter()
+                ..name = MirrorSystem.getName(pm.simpleName)
+                ..typeMirror = pm.type;
+            });
+
+        var generatedKey = _generateHandlerMethodKey((methodAttrs.reflectee as HTTPMethod).method, params.map((p) => p.name).toList());
+        var cachedMethod = new _HTTPControllerCachedMethod()
+          ..methodSymbol = key
+          ..orderedPathParameters = params
+          ..optionalParameters = new Map.fromIterable(optionalParams, key: (p) => p.name, value: (p) => p);
+        methodMap[generatedKey] = cachedMethod;
       }
     }
 

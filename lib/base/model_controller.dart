@@ -43,8 +43,7 @@ abstract class ModelController<T extends Model> extends HTTPController {
           try {
             query[query.entity.primaryKey] = int.parse(idValue);
           } on FormatException {
-            var errorMessage = "Expected integer value for ModelController on ${query
-                .entity}, but $idValue was not able to be parsed to an integer.";
+            var errorMessage = "Expected integer value for ModelController on ${query.entity}, but $idValue was not able to be parsed to an integer.";
             logger.info(errorMessage);
 
             return new Response.notFound(body: {"error" : errorMessage});
