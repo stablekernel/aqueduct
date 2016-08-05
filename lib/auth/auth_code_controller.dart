@@ -4,7 +4,7 @@ class AuthCodeController extends HTTPController {
 
   /// Creates a new instance of an [AuthCodeController].
   ///
-  /// An [AuthCodeController] requires an [AuthenticationServer], with the specified [ResourceOwner] and [TokenType] instance
+  /// An [AuthCodeController] requires an [AuthenticationServer], with the specified [ResourceOwner] and [AuthCodeType] instance
   /// types. These types will be used when communicating with the [AuthenticationServer] for creating and refreshing
   /// authentication tokens.
   ///
