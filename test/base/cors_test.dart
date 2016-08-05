@@ -296,7 +296,7 @@ class TokenImpl implements Tokenizable {
   String clientID;
 }
 
-class AuthCodeImpl implements Authorizer {
+class AuthCodeImpl implements TokenExchangable {
   String redirectURI;
   String code;
   String clientID;

@@ -33,7 +33,7 @@ class AuthCodeController extends HTTPController {
     return AuthCodeController.authCodeResponse(authCode, state);
   }
 
-  static Response authCodeResponse(Authorizer authCode, String clientState) {
+  static Response authCodeResponse(TokenExchangable authCode, String clientState) {
     var redirectURI = Uri.parse(authCode.redirectURI);
     var queryParameters = new Map.from(redirectURI.queryParameters);
     queryParameters["code"] = authCode.code;

@@ -39,7 +39,7 @@ abstract class Tokenizable {
 /// that its [AuthCodeType] implement this interface. You will likely use
 /// this interface in defining a [Model] that represents a concrete implementation
 /// of a authorization code in your application.
-abstract class Authorizer {
+abstract class TokenExchangable {
   /// This is the URI that the response object will redirect to with the
   /// authorization code in the query.
   String redirectURI;
@@ -122,7 +122,7 @@ abstract class Authenticatable {
 /// This interface is responsible for persisting information generated and requested by an [AuthenticationServer].
 /// The [ResourceOwner] often represents a user, and must implement [Authenticatable]. The [TokenType]
 /// is a concrete instance of [Tokenizable].
-abstract class AuthenticationServerDelegate<ResourceOwner extends Authenticatable, TokenType extends Tokenizable, AuthCodeType extends Authorizer> {
+abstract class AuthenticationServerDelegate<ResourceOwner extends Authenticatable, TokenType extends Tokenizable, AuthCodeType extends TokenExchangable> {
   /// Returns a [TokenType] for an [accessToken].
   ///
   /// This method returns an instance of [TokenType] if one exists for [accessToken], and [null] otherwise.

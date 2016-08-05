@@ -51,7 +51,7 @@ class _Token implements Tokenizable {
 }
 
 class AuthCode extends Model<_AuthCode> implements _AuthCode {}
-class _AuthCode implements Authorizer {
+class _AuthCode implements TokenExchangable {
   @primaryKey
   int id;
 
