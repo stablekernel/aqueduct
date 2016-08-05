@@ -242,15 +242,14 @@ abstract class HTTPController extends RequestHandler {
 
     var methodMap = {};
     var allDeclarations = reflect(this).type.declarations;
-    for (var key in allDeclarations.keys) {
-      var declaration = allDeclarations[key];
+    allDeclarations.forEach((key, declaration) {
       if (declaration is MethodMirror) {
         var methodAttrs = declaration
             .metadata
             .firstWhere((attr) => attr.reflectee is HTTPMethod, orElse: () => null);
 
         if (methodAttrs == null) {
-          continue;
+          return;
         }
 
         List<_HTTPControllerCachedParameter> params = (declaration as MethodMirror)
@@ -279,7 +278,7 @@ abstract class HTTPController extends RequestHandler {
           ..optionalParameters = new Map.fromIterable(optionalParams, key: (p) => p.name, value: (p) => p);
         methodMap[generatedKey] = cachedMethod;
       }
-    }
+    });
 
     _methodCache[this.runtimeType] = methodMap;
   }
