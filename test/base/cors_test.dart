@@ -268,10 +268,11 @@ class CORSPipeline extends ApplicationPipeline implements AuthenticationServerDe
   }
 
   Future deleteTokenForRefreshToken(AuthenticationServer server, String refreshToken) async {}
-  Future storeToken(AuthenticationServer server, TokenImpl t) async {}
+  Future<TokenImpl> storeToken(AuthenticationServer server, TokenImpl t) async => null;
   Future updateToken(AuthenticationServer server, TokenImpl t) async {}
-  Future storeAuthCode(AuthenticationServer server, AuthCodeImpl ac) async {}
+  Future<AuthCodeImpl> storeAuthCode(AuthenticationServer server, AuthCodeImpl ac) async => null;
   Future updateAuthCode(AuthenticationServer server, AuthCodeImpl ac) async {}
+  Future deleteAuthCode(AuthenticationServer server, AuthCodeImpl ac) async {}
   Future<AuthCodeImpl> authCodeForCode(AuthenticationServer server, String authCode) async {
     return new AuthCodeImpl()
         ..code = authCode

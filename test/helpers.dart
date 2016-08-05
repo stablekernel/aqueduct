@@ -116,15 +116,13 @@ class AuthDelegate implements AuthenticationServerDelegate<TestUser, Token, Auth
   Future<AuthCode> storeAuthCode(AuthenticationServer server, AuthCode code) async {
     var authCodeQ = new Query<AuthCode>();
     authCodeQ.values = code;
-    return await authCodeQ.insert();
+    return authCodeQ.insert();
   }
 
   Future<AuthCode> authCodeForCode(AuthenticationServer server, String code) async {
     var authCodeQ = new Query<AuthCode>();
     authCodeQ.predicate = new Predicate("code = @code", {"code" : code});
-    var authCode = authCodeQ.fetchOne();
-
-    return authCode;
+    return authCodeQ.fetchOne();
   }
 
   Future updateAuthCode(AuthenticationServer server, AuthCode code) async {
@@ -132,6 +130,12 @@ class AuthDelegate implements AuthenticationServerDelegate<TestUser, Token, Auth
     authCodeQ.predicate = new Predicate("id = @id", {"id" : code.id});
     authCodeQ.values = code;
     return authCodeQ.updateOne();
+  }
+
+  Future deleteAuthCode(AuthenticationServer server, AuthCode code) async {
+    var authCodeQ = new Query<AuthCode>();
+    authCodeQ.predicate = new Predicate("id = @id", {"id" : code.id});
+    return authCodeQ.delete();
   }
 
   Future<Client> clientForID(AuthenticationServer server, String id) async {

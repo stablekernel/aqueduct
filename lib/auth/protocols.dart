@@ -186,4 +186,9 @@ abstract class AuthenticationServerDelegate<ResourceOwner extends Authenticatabl
   ///
   /// The implementing class must persist the auth code [ac].
   Future updateAuthCode(AuthenticationServer server, AuthCodeType ac);
+
+  /// Asks this instance to delete an existing [AuthCodeType] for [server].
+  ///
+  /// The implementing class must delete that auth code from its persistent storage.
+  Future deleteAuthCode(AuthenticationServer server, AuthCodeType ac);
 }
