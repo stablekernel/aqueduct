@@ -270,12 +270,13 @@ abstract class HTTPController extends RequestHandler {
                 ..name = MirrorSystem.getName(pm.simpleName)
                 ..typeMirror = pm.type;
             });
+        var optionalParameters = new Map.fromIterable(optionalParams, key: (p) => p.name, value: (p) => p);
 
         var generatedKey = _generateHandlerMethodKey((methodAttrs.reflectee as HTTPMethod).method, params.map((p) => p.name).toList());
         var cachedMethod = new _HTTPControllerCachedMethod()
           ..methodSymbol = key
           ..orderedPathParameters = params
-          ..optionalParameters = new Map.fromIterable(optionalParams, key: (p) => p.name, value: (p) => p);
+          ..optionalParameters = optionalParameters;
         methodMap[generatedKey] = cachedMethod;
       }
     });
