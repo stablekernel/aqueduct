@@ -44,9 +44,32 @@ class _Token implements Tokenizable {
   int resourceOwnerIdentifier;
   String type;
   String clientID;
+
+  @Relationship.hasOne("token")
+  AuthCode code;
+
 }
 
-class AuthDelegate implements AuthenticationServerDelegate<TestUser, Token> {
+class AuthCode extends Model<_AuthCode> implements _AuthCode {}
+class _AuthCode implements TokenExchangable {
+  @primaryKey
+  int id;
+
+  @Attributes(indexed: true)
+  String code;
+
+  @Attributes(nullable: true)
+  String redirectURI;
+  String clientID;
+  int resourceOwnerIdentifier;
+  DateTime issueDate;
+  DateTime expirationDate;
+
+  @Relationship.belongsTo("code", required: false, deleteRule: RelationshipDeleteRule.cascade)
+  Token token;
+}
+
+class AuthDelegate implements AuthenticationServerDelegate<TestUser, Token, AuthCode> {
   ModelContext context;
 
   AuthDelegate(this.context);
@@ -71,16 +94,16 @@ class AuthDelegate implements AuthenticationServerDelegate<TestUser, Token> {
     return userQ.fetchOne();
   }
 
-  Future deleteTokenForAccessToken(AuthenticationServer server, String accessToken) async {
+  Future deleteTokenForRefreshToken(AuthenticationServer server, String refreshToken) async {
     var q = new Query<Token>();
-    q.predicate = new Predicate("accessToken = @ac", {"ac" : accessToken});
+    q.predicate = new Predicate("refreshToken = @rf", {"rf" : refreshToken});
     await q.delete();
   }
 
-  Future storeToken(AuthenticationServer server, Token t) async {
+  Future<Token> storeToken(AuthenticationServer server, Token t) async {
     var tokenQ = new Query<Token>();
     tokenQ.values = t;
-    await tokenQ.insert();
+    return await tokenQ.insert();
   }
 
   Future updateToken(AuthenticationServer server, Token t) async {
@@ -90,6 +113,31 @@ class AuthDelegate implements AuthenticationServerDelegate<TestUser, Token> {
     return tokenQ.updateOne();
   }
 
+  Future<AuthCode> storeAuthCode(AuthenticationServer server, AuthCode code) async {
+    var authCodeQ = new Query<AuthCode>();
+    authCodeQ.values = code;
+    return authCodeQ.insert();
+  }
+
+  Future<AuthCode> authCodeForCode(AuthenticationServer server, String code) async {
+    var authCodeQ = new Query<AuthCode>();
+    authCodeQ.predicate = new Predicate("code = @code", {"code" : code});
+    return authCodeQ.fetchOne();
+  }
+
+  Future updateAuthCode(AuthenticationServer server, AuthCode code) async {
+    var authCodeQ = new Query<AuthCode>();
+    authCodeQ.predicate = new Predicate("id = @id", {"id" : code.id});
+    authCodeQ.values = code;
+    return authCodeQ.updateOne();
+  }
+
+  Future deleteAuthCode(AuthenticationServer server, AuthCode code) async {
+    var authCodeQ = new Query<AuthCode>();
+    authCodeQ.predicate = new Predicate("id = @id", {"id" : code.id});
+    return authCodeQ.delete();
+  }
+
   Future<Client> clientForID(AuthenticationServer server, String id) async {
     var salt = "ABCDEFGHIJKLMNOPQRSTUVWXYZ012345";
     if (id == "com.stablekernel.app1") {
@@ -97,6 +145,9 @@ class AuthDelegate implements AuthenticationServerDelegate<TestUser, Token> {
     }
     if (id == "com.stablekernel.app2") {
       return new Client("com.stablekernel.app2", AuthenticationServer.generatePasswordHash("fuji", salt), salt);
+    }
+    if (id == "com.stablekernel.app3") {
+      return new Client.withRedirectURI("com.stablekernel.app3", AuthenticationServer.generatePasswordHash("mckinley", salt), salt, "http://stablekernel.com/auth/redirect");
     }
 
     return null;

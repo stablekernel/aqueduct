@@ -8,7 +8,7 @@ void main() {
   AuthDelegate delegate;
 
   setUp(() async {
-    context = await contextWithModels([TestUser, Token]);
+    context = await contextWithModels([TestUser, Token, AuthCode]);
     delegate = new AuthDelegate(context);
   });
 
@@ -17,8 +17,150 @@ void main() {
     context = null;
   });
 
+  test("Generate and verify a auth code", () async {
+    var auth = new AuthenticationServer<TestUser, Token, AuthCode>(delegate);
+    TestUser createdUser = (await createUsers(1)).first;
+
+    var authCode = await auth.createAuthCode("bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app3");
+
+    expect(authCode.code.length, greaterThan(0));
+
+    var permission = await auth.verifyCode(authCode.code);
+    expect(permission.clientID, "com.stablekernel.app3");
+    expect(permission.resourceOwnerIdentifier, createdUser.id);
+  });
+
+  test("Generate auth code with bad user data fails", () async {
+    var auth = new AuthenticationServer<TestUser, Token, AuthCode>(delegate);
+    await createUsers(1);
+
+    var successful = false;
+    try {
+      // Bad username
+      await auth.createAuthCode("bob+0@stable", "foobaraxegrind21%","com.stablekernel.app3");
+      successful = true;
+    } catch (e) {
+      expect(e.statusCode, HttpStatus.BAD_REQUEST);
+    }
+    expect(successful, false);
+
+    try {
+      // Bad password
+      await auth.createAuthCode("bob+0@stablekernel.com", "foobaraxegri%","com.stablekernel.app3");
+      successful = true;
+    } catch (e) {
+      expect(e.statusCode, HttpStatus.UNAUTHORIZED);
+    }
+    expect(successful, false);
+
+    try {
+      // Bad client id
+      await auth.createAuthCode("bob+0@stablekernel.com", "foobaraxegrind21%","com.stabl");
+      successful = true;
+    } catch (e) {
+      expect(e.statusCode, HttpStatus.UNAUTHORIZED);
+    }
+    expect(successful, false);
+
+  });
+
+  test("Exchange auth code for token", () async {
+    var auth = new AuthenticationServer<TestUser, Token, AuthCode>(delegate);
+    TestUser createdUser = (await createUsers(1)).first;
+
+    var authCode = await auth.createAuthCode("bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app3");
+    var token = await auth.exchange(authCode.code, "com.stablekernel.app3", "mckinley");
+
+    expect(token.accessToken.length, greaterThan(0));
+    expect(token.refreshToken.length, greaterThan(0));
+    expect(token.type, "bearer");
+
+    var permission = await auth.verify(token.accessToken);
+    expect(permission.clientID, "com.stablekernel.app3");
+    expect(permission.resourceOwnerIdentifier, createdUser.id);
+
+    var successful = false;
+    try {
+      permission = await auth.verify("foobar");
+      successful = true;
+    } catch (e) {
+      expect(e.statusCode, 401);
+    }
+    expect(successful, false);
+  });
+
+  test("Auth code only usable once", () async {
+    await createUsers(1);
+    var auth = new AuthenticationServer<TestUser, Token, AuthCode>(delegate);
+
+    var authCode = await auth.createAuthCode("bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app3");
+    var token1 = await auth.exchange(authCode.code, "com.stablekernel.app3", "mckinley");
+
+    expect(token1, isNotNull);
+    var token2 = null;
+    try {
+      token2 = await auth.exchange(authCode.code, "com.stablekernel.app3", "mckinley");
+    } catch (e) {
+      expect(e.statusCode, HttpStatus.UNAUTHORIZED);
+    }
+
+    expect(token2, isNull);
+
+    // Original token should now also be invalid
+    try {
+      var permission = await auth.verify(token1.accessToken);
+      expect(permission, isNotNull);
+    } catch (e) {
+      expect(e.statusCode, HttpStatus.UNAUTHORIZED);
+    }
+  });
+
+  test("Auth code unusable after expiration", () async {
+    await createUsers(1);
+    var auth = new AuthenticationServer<TestUser, Token, AuthCode>(delegate);
+
+    var authCode = await auth.createAuthCode("bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app3", expirationInSeconds: 1);
+    sleep(new Duration(seconds: 2));
+
+    var token = null;
+    try {
+      await auth.exchange(authCode.code, "com.stablekernel.app3", "mckinley");
+    } catch (e) {
+      expect(e.statusCode, HttpStatus.UNAUTHORIZED);
+    }
+    expect(token, isNull);
+  });
+
+  test("Auth code unusable by other client", () async {
+    await createUsers(1);
+    var auth = new AuthenticationServer<TestUser, Token, AuthCode>(delegate);
+
+    var authCode = await auth.createAuthCode("bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app3");
+
+    var token = null;
+    try {
+      token = await auth.exchange(authCode.code, "com.stablekernel.app1", "kilimanjaro");
+    } catch (e) {
+      expect(e.statusCode, HttpStatus.UNAUTHORIZED);
+    }
+    expect(token, isNull);
+  });
+
+  test("Auth code generation fails when client has no redirect URI", () async {
+    await createUsers(1);
+    var auth = new AuthenticationServer<TestUser, Token, AuthCode>(delegate);
+
+    var authCode = null;
+    try {
+      authCode = await auth.createAuthCode("bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app1");
+    } catch (e) {
+      expect(e.statusCode, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+    expect(authCode, isNull);
+  });
+
   test("Generate and verify token", () async {
-    var auth = new AuthenticationServer<TestUser, Token>(delegate);
+    var auth = new AuthenticationServer<TestUser, Token, AuthCode>(delegate);
     TestUser createdUser = (await createUsers(1)).first;
 
     var token = await auth.authenticate("bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app1", "kilimanjaro");
@@ -42,7 +184,7 @@ void main() {
   });
 
   test("Bad client ID and secret fails", () async {
-    var auth = new AuthenticationServer<TestUser, Token>(delegate);
+    var auth = new AuthenticationServer<TestUser, Token, AuthCode>(delegate);
     await createUsers(1);
 
     var successful = false;
@@ -64,7 +206,7 @@ void main() {
   });
 
   test("Invalid username and password fails", () async {
-    var auth = new AuthenticationServer<TestUser, Token>(delegate);
+    var auth = new AuthenticationServer<TestUser, Token, AuthCode>(delegate);
     await createUsers(1);
 
     var successful = false;
@@ -86,7 +228,7 @@ void main() {
   });
 
   test("Expiration date works correctly", () async {
-    var auth = new AuthenticationServer<TestUser, Token>(delegate);
+    var auth = new AuthenticationServer<TestUser, Token, AuthCode>(delegate);
     await createUsers(1);
     var t = await auth.authenticate("bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app1", "kilimanjaro", expirationInSeconds: 5);
 
@@ -106,7 +248,7 @@ void main() {
   });
 
   test("Clients have separate tokens", () async {
-    var auth = new AuthenticationServer<TestUser, Token>(delegate);
+    var auth = new AuthenticationServer<TestUser, Token, AuthCode>(delegate);
 
     TestUser createdUser = (await createUsers(1)).first;
 
@@ -126,7 +268,7 @@ void main() {
   });
 
   test("Ensure users aren't authenticated by other users", () async {
-    var auth = new AuthenticationServer<TestUser, Token>(delegate);
+    var auth = new AuthenticationServer<TestUser, Token, AuthCode>(delegate);
     var users = await createUsers(10);
     var t1 = await auth.authenticate("bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app1", "kilimanjaro");
     var t2 = await auth.authenticate("bob+4@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app1", "kilimanjaro");
@@ -141,7 +283,7 @@ void main() {
   });
 
   test("Refresh token works correctly", () async {
-    var auth = new AuthenticationServer<TestUser, Token>(delegate);
+    var auth = new AuthenticationServer<TestUser, Token, AuthCode>(delegate);
     TestUser user = (await createUsers(1)).first;
 
     var t1 = await auth.authenticate("bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app1", "kilimanjaro");
@@ -204,7 +346,7 @@ void main() {
   });
 
   test("Refresh token doesn't work on wrong client id", () async {
-    var auth = new AuthenticationServer<TestUser, Token>(delegate);
+    var auth = new AuthenticationServer<TestUser, Token, AuthCode>(delegate);
     await createUsers(1);
 
     var t1 = await auth.authenticate("bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app1", "kilimanjaro");

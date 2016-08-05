@@ -11,9 +11,9 @@ void main() {
     ..clientID = "com.stablekernel.app1"
     ..clientSecret = "kilimanjaro";
 
-  var authenticationServer = new AuthenticationServer<TestUser, Token>(new AuthDelegate(context));
+  var authenticationServer = new AuthenticationServer<TestUser, Token, AuthCode>(new AuthDelegate(context));
   var router = new Router();
-  router.route("/auth/token").next(() => new AuthController<TestUser, Token>(authenticationServer));
+  router.route("/auth/token").next(() => new AuthController(authenticationServer));
   router.finalize();
 
   tearDownAll(() async {
@@ -21,10 +21,11 @@ void main() {
   });
 
   setUp(() async {
-    context = await contextWithModels([TestUser, Token]);
+    context = await contextWithModels([TestUser, Token, AuthCode]);
 
     server = await HttpServer.bind("localhost", 8080, v6Only: false, shared: false);
     server.map((req) => new Request(req)).listen(router.deliver);
+
   });
 
   tearDown(() async {

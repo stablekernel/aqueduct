@@ -62,16 +62,6 @@ abstract class HTTPController extends RequestHandler {
   /// This method will have no impact on when or how the [Response] is sent, is is simply informative.
   void willSendResponse(Response response) {}
 
-  Symbol _routeMethodSymbolForRequest(Request req) {
-    var key = _generateHandlerMethodKey(req.innerRequest.method, req.path.orderedVariableNames);
-    var symbol = _methodCache[this.runtimeType][key]?.methodSymbol;
-    if (symbol == null) {
-      throw new _InternalControllerException("No handler for request method and parameters available.", HttpStatus.NOT_FOUND);
-    }
-
-    return symbol;
-  }
-
   bool _requestContentTypeIsSupported(Request req) {
     var incomingContentType = request.innerRequest.headers.contentType;
     return acceptedContentTypes.firstWhere((ct) {
@@ -112,16 +102,6 @@ abstract class HTTPController extends RequestHandler {
     throw new _InternalControllerException("Invalid path parameter type, types must be String or implement parse",
         HttpStatus.INTERNAL_SERVER_ERROR,
         responseMessage: "URI parameter is wrong type");
-  }
-
-  List<dynamic> _parametersForRequest(Request req, Symbol handlerMethodSymbol) {
-    var handlerMirror = reflect(this).type.declarations[handlerMethodSymbol] as MethodMirror;
-
-    return handlerMirror.parameters.where((methodParmeter) => !methodParmeter.isOptional).map((methodParameter) {
-      var value = this.request.path.variables[MirrorSystem.getName(methodParameter.simpleName)];
-
-      return _convertParameterWithMirror(value, methodParameter.type);
-    }).toList();
   }
 
   Map<String, dynamic> _queryParametersFromRequest(Request req, dynamic body) {

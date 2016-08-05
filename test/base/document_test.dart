@@ -2,7 +2,6 @@ import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
 import 'dart:async';
 import 'dart:io';
-import 'dart:convert';
 
 main() {
   test("Package resolver", () {
@@ -31,9 +30,13 @@ class TPipeline extends ApplicationPipeline implements AuthenticationServerDeleg
   Future<dynamic> authenticatableForUsername(AuthenticationServer server, String username) => null;
   Future<dynamic> authenticatableForID(AuthenticationServer server, dynamic id) => null;
   Future<Client> clientForID(AuthenticationServer server, String id) => null;
-  Future deleteTokenForAccessToken(AuthenticationServer server, String accessToken) => null;
-  Future storeToken(AuthenticationServer server, dynamic t) => null;
+  Future deleteTokenForRefreshToken(AuthenticationServer server, String refreshToken) => null;
+  Future<dynamic> storeToken(AuthenticationServer server, dynamic t) => null;
   Future updateToken(AuthenticationServer server, dynamic t) => null;
+  Future<dynamic> storeAuthCode(AuthenticationServer server, dynamic ac) => null;
+  Future updateAuthCode(AuthenticationServer server, dynamic ac) => null;
+  Future deleteAuthCode(AuthenticationServer server, dynamic ac) => null;
+  Future<dynamic> authCodeForCode(AuthenticationServer server, String code) => null;
 
   Map<String, APISecurityScheme> documentSecuritySchemes(PackagePathResolver resolver) {
     return authServer.documentSecuritySchemes(resolver);

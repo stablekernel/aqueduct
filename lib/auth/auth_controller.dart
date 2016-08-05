@@ -1,6 +1,6 @@
 part of aqueduct;
 
-class AuthController<ResourceOwner extends Authenticatable, TokenType extends Tokenizable> extends HTTPController {
+class AuthController extends HTTPController {
 
   /// Creates a new instance of an [AuthController].
   ///
@@ -9,13 +9,13 @@ class AuthController<ResourceOwner extends Authenticatable, TokenType extends To
   /// authentication tokens.
   ///
   /// By default, an [AuthController] has only one [acceptedContentTypes] - 'application/x-www-form-urlencoded'.
-  AuthController(AuthenticationServer<ResourceOwner, TokenType> authServer) {
+  AuthController(AuthenticationServer authServer) {
     authenticationServer = authServer;
     acceptedContentTypes = [new ContentType("application", "x-www-form-urlencoded")];
   }
 
   /// A reference to the [AuthenticationServer] this controller uses to grant tokens.
-  AuthenticationServer<ResourceOwner, TokenType> authenticationServer;
+  AuthenticationServer authenticationServer;
 
   /// Creates or refreshes an authentication token.
   ///
@@ -25,8 +25,9 @@ class AuthController<ResourceOwner extends Authenticatable, TokenType extends To
   /// Values must be URL percent encoded by client.
   /// When grant_type is 'password', there must be username and password values.
   /// When grant_type is 'refresh', there must be a refresh_token value.
+  /// When grant_type is 'authorization_code', there must be a authorization_code value.
   @httpPost
-  Future<Response> create({String grant_type, String username, String password, String refresh_token}) async {
+  Future<Response> create({String grant_type, String username, String password, String refresh_token, String authorization_code}) async {
     var authorizationHeader = request.innerRequest.headers[HttpHeaders.AUTHORIZATION]?.first;
 
     var basicRecord = AuthorizationBasicParser.parse(authorizationHeader);
@@ -43,6 +44,13 @@ class AuthController<ResourceOwner extends Authenticatable, TokenType extends To
       }
 
       var token = await authenticationServer.refresh(refresh_token, basicRecord.username, basicRecord.password);
+      return AuthController.tokenResponse(token);
+    } else if (grant_type == "authorization_code") {
+      if (authorization_code == null) {
+        return new Response.badRequest(body: {"error": "missing authorization_code"});
+      }
+
+      var token = await authenticationServer.exchange(authorization_code, basicRecord.username, basicRecord.password);
       return AuthController.tokenResponse(token);
     }
 
