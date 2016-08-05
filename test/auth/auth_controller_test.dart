@@ -16,13 +16,13 @@ void main() {
   });
 
   setUp(() async {
-    context = await contextWithModels([TestUser, Token]);
-    var authenticationServer = new AuthenticationServer<TestUser, Token>(new AuthDelegate(context));
+    context = await contextWithModels([TestUser, Token, AuthCode]);
+    var authenticationServer = new AuthenticationServer<TestUser, Token, AuthCode>(new AuthDelegate(context));
 
     server = await HttpServer.bind("localhost", 8080, v6Only: false, shared: false);
     server.listen((req) {
       var resReq = new Request(req);
-      var authController = new AuthController<TestUser, Token>(authenticationServer);
+      var authController = new AuthController(authenticationServer);
       authController.deliver(resReq);
     });
   });

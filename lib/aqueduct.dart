@@ -33,6 +33,7 @@ import 'package:postgresql/postgresql.dart';
 export 'package:logging/logging.dart';
 export 'package:safe_config/safe_config.dart';
 
+part 'auth/auth_code_controller.dart';
 part 'auth/auth_controller.dart';
 part 'auth/authentication_server.dart';
 part 'auth/authenticator.dart';
