@@ -2,7 +2,6 @@ import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
 import 'dart:async';
 import 'dart:io';
-import 'dart:convert';
 
 main() {
   test("Package resolver", () {

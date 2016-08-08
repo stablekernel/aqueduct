@@ -11,20 +11,21 @@ void main() {
     ..clientID = "com.stablekernel.app1"
     ..clientSecret = "kilimanjaro";
 
+  var authenticationServer = new AuthenticationServer<TestUser, Token, AuthCode>(new AuthDelegate(context));
+  var router = new Router();
+  router.route("/auth/token").next(() => new AuthController(authenticationServer));
+  router.finalize();
+
   tearDownAll(() async {
     await server?.close(force: true);
   });
 
   setUp(() async {
     context = await contextWithModels([TestUser, Token, AuthCode]);
-    var authenticationServer = new AuthenticationServer<TestUser, Token, AuthCode>(new AuthDelegate(context));
 
     server = await HttpServer.bind("localhost", 8080, v6Only: false, shared: false);
-    server.listen((req) {
-      var resReq = new Request(req);
-      var authController = new AuthController(authenticationServer);
-      authController.deliver(resReq);
-    });
+    server.map((req) => new Request(req)).listen(router.deliver);
+
   });
 
   tearDown(() async {

@@ -7,8 +7,8 @@ part of aqueduct;
 class RequestPath {
   /// Default constructor for [RequestPath].
   RequestPath(RoutePathSpecification specification, List<String> requestSegments) {
-    firstVariableName = specification.firstVariableName;
     segments = requestSegments;
+    orderedVariableNames = [];
 
     var requestIterator = requestSegments.iterator;
     for (var segment in specification.segments) {
@@ -17,6 +17,7 @@ class RequestPath {
 
       if (segment.isVariable) {
         variables[segment.variableName] = requestSegment;
+        orderedVariableNames.add(segment.variableName);
       } else if (segment.isRemainingMatcher) {
         var remaining = [];
         remaining.add(requestIterator.current);
@@ -58,10 +59,13 @@ class RequestPath {
   /// but will not have a leading path delimiter.
   String remainingPath = null;
 
-  /// The name (key in [variables]) of the first matched variable.
+  /// An ordered list of variable names (the keys in [variables]) based on their position in the path.
   ///
-  /// The first variable is often the identifier for a specific resource in a resource collection.
-  dynamic firstVariableName = null;
+  /// If no path variables are present in the request, this list is empty. Only path variables that are
+  /// available for the specific request are in this list. For example, if a route has two path variables,
+  /// but the incoming request this [RequestPath] represents only has one variable, only that one variable
+  /// will appear in this property.
+  List<String> orderedVariableNames = [];
 }
 
 /// Specifies a matchable route path.
@@ -79,15 +83,11 @@ class RoutePathSpecification extends Object with APIDocumentable {
   /// The [patternString] must be stripped of any optionals.
   RoutePathSpecification(String patternString) {
     segments = splitPathSegments(patternString);
-    firstVariableName = segments.firstWhere((e) => e.isVariable, orElse: () => null)?.variableName;
-    variableNames = segments.where((e) => e.variableName != null).map((e) => e.variableName).toList();
+    variableNames = segments.where((e) => e.isVariable).map((e) => e.variableName).toList();
   }
 
   /// A list of this specification's [RouteSegment]s.
   List<RouteSegment> segments;
-
-  /// The first variable name in this route.
-  String firstVariableName;
 
   /// A list of all variables in this route.
   List<String> variableNames;
