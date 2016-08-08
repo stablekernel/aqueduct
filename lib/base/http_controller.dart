@@ -120,20 +120,47 @@ abstract class HTTPController extends RequestHandler {
     return queryParams;
   }
 
-  Map<Symbol, dynamic> _symbolicateAndConvertMap(Map<String, dynamic> values, Map<String, _HTTPControllerCachedParameter> desiredParameters) {
-    var returnValue = {};
-    values.forEach((key, value) {
-      var desired = desiredParameters[key];
+  Map<String, dynamic> _headerParametersFromRequest(Request request, _HTTPControllerCachedMethod cachedMethod) {
+    Map<String, dynamic> headerParams = {};
+
+    cachedMethod.headerParameters.forEach((name, param) {
+      var headerName = param.externalName;
+      if (headerName != null) {
+        headerParams[name] = request.innerRequest.headers[headerName];
+      }
+    });
+
+    return headerParams;
+  }
+
+  Map<Symbol, dynamic> _symbolicateAndConvertParameters(_HTTPControllerCachedMethod method, Map<String, dynamic> queryValues, Map<String, dynamic> headerValues) {
+    var symbolicatedValues = {};
+
+    var queryParameters = method.optionalParameters;
+    queryValues.forEach((key, value) {
+      var desired = queryParameters[key];
       if (desired != null) {
         if (value is List) {
-          returnValue[new Symbol(key)] = _convertParameterListWithMirror(value, desired.typeMirror);
+          symbolicatedValues[new Symbol(key)] = _convertParameterListWithMirror(value, desired.typeMirror);
         } else {
-          returnValue[new Symbol(key)] = _convertParameterWithMirror(value, desired.typeMirror);
+          symbolicatedValues[new Symbol(key)] = _convertParameterWithMirror(value, desired.typeMirror);
         }
       }
     });
 
-    return returnValue;
+    var headerParameters = method.headerParameters;
+    headerValues.forEach((key, value) {
+      var desired = headerParameters[key];
+      if (desired != null) {
+        if (value is List) {
+          symbolicatedValues[new Symbol(key)] = _convertParameterListWithMirror(value, desired.typeMirror);
+        } else {
+          symbolicatedValues[new Symbol(key)] = _convertParameterWithMirror(value, desired.typeMirror);
+        }
+      }
+    });
+
+    return symbolicatedValues;
   }
 
   dynamic _serializedResponseBody(dynamic initialResponseBody) {
@@ -175,13 +202,14 @@ abstract class HTTPController extends RequestHandler {
     }
 
     var queryParameterMap = _queryParametersFromRequest(request, requestBody);
-    var symbolicatedQueryParameters = _symbolicateAndConvertMap(queryParameterMap, cachedMethod.optionalParameters);
+    var headerParameterMap = _headerParametersFromRequest(request, cachedMethod);
+    var symbolicatedOptionalParameters = _symbolicateAndConvertParameters(cachedMethod, queryParameterMap, headerParameterMap);
 
     if (requestBody != null) {
       didDecodeRequestBody(requestBody);
     }
 
-    Future<Response> eventualResponse = reflect(this).invoke(methodSymbol, handlerParameters, symbolicatedQueryParameters).reflectee;
+    Future<Response> eventualResponse = reflect(this).invoke(methodSymbol, handlerParameters, symbolicatedOptionalParameters).reflectee;
     var response = await eventualResponse;
 
     willSendResponse(response);
@@ -236,8 +264,10 @@ abstract class HTTPController extends RequestHandler {
             .parameters
             .where((pm) => !pm.isOptional)
             .map((pm) {
+              var name = MirrorSystem.getName(pm.simpleName);
               return new _HTTPControllerCachedParameter()
-                  ..name = MirrorSystem.getName(pm.simpleName)
+                  ..name = name
+                  ..externalName = name
                   ..typeMirror = pm.type;
             })
             .toList();
@@ -246,8 +276,10 @@ abstract class HTTPController extends RequestHandler {
             .parameters
             .where((pm) => pm.isOptional && !pm.metadata.any((im) => im.reflectee is HTTPHeader))
             .map((pm) {
+              var name = MirrorSystem.getName(pm.simpleName);
               return new _HTTPControllerCachedParameter()
-                ..name = MirrorSystem.getName(pm.simpleName)
+                ..name = name
+                ..externalName = name
                 ..typeMirror = pm.type;
             });
         var optionalParameters = new Map.fromIterable(optionalParams, key: (p) => p.name, value: (p) => p);
@@ -256,12 +288,14 @@ abstract class HTTPController extends RequestHandler {
             .parameters
             .where((pm) => pm.isOptional && pm.metadata.any((im) => im.reflectee is HTTPHeader))
             .map((pm) {
+              var headerName = pm.metadata.firstWhere((im) => im.reflectee is HTTPHeader).reflectee.header;
               return new _HTTPControllerCachedParameter()
                 ..name = MirrorSystem.getName(pm.simpleName)
+                ..externalName = headerName
                 ..typeMirror = pm.type;
             });
         var headerParameters = new Map.fromIterable(headerParams, key: (p) => p.name, value: (p) => p);
-        print(headerParameters);
+//        print(headerParameters);
 
         var generatedKey = _generateHandlerMethodKey((methodAttrs.reflectee as HTTPMethod).method, params.map((p) => p.name).toList());
         var cachedMethod = new _HTTPControllerCachedMethod()
@@ -398,5 +432,6 @@ class _HTTPControllerCachedMethod {
 
 class _HTTPControllerCachedParameter {
   String name;
+  String externalName;
   TypeMirror typeMirror;
 }

@@ -31,12 +31,43 @@ const HTTPMethod httpPatch = const HTTPMethod("patch");
 /// of [HTTPMethod]. See [httpGet], [httpPut], [httpPost] and [httpDelete] for concrete examples.
 class HTTPMethod {
   /// Creates an instance of [HTTPMethod] that will case-insensitively match the [String] argument of an HTTP request.
-  const HTTPMethod(this.method);
+  const HTTPMethod(this.method) : this._parameters = null;
 
   /// The method that the marked request handler method corresponds to.
   ///
   /// Case-insensitive.
   final String method;
+
+  final List<String> _parameters;
+
+  HTTPMethod._fromMethod(HTTPMethod m, List<String> parameters)
+      : this.method = m.method,
+        this._parameters = parameters;
+
+  bool _matchesRequest(Request req) {
+    if (req.innerRequest.method.toLowerCase() != this.method.toLowerCase()) {
+      return false;
+    }
+
+    if (req.path == null || req.path.variables == null) {
+      if (this._parameters.length == 0) {
+        return true;
+      }
+      return false;
+    }
+
+    if (req.path.variables.length != this._parameters.length) {
+      return false;
+    }
+
+    for (var id in this._parameters) {
+      if (req.path.variables[id] == null) {
+        return false;
+      }
+    }
+
+    return true;
+  }
 }
 
 class HTTPHeader {

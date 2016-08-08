@@ -35,6 +35,7 @@ class AuthController extends HTTPController {
                           String refresh_token,
                           String authorization_code
                           }) async {
+    print(authHeader);
     var authorizationHeader = request.innerRequest.headers[HttpHeaders.AUTHORIZATION]?.first; // .first for type, all for List<Type>
 
     var basicRecord = AuthorizationBasicParser.parse(authorizationHeader);
