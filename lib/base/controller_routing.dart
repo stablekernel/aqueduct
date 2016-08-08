@@ -38,3 +38,13 @@ class HTTPMethod {
   /// Case-insensitive.
   final String method;
 }
+
+class HTTPHeader {
+  const HTTPHeader(this.header);
+
+  final String header;
+
+  bool _matchesRequest(Request req) {
+    return req.innerRequest.headers[header] != null;
+  }
+}

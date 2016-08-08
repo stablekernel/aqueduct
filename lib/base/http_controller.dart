@@ -244,7 +244,7 @@ abstract class HTTPController extends RequestHandler {
 
         Iterable<_HTTPControllerCachedParameter> optionalParams = (declaration as MethodMirror)
             .parameters
-            .where((methodParameter) => methodParameter.isOptional)
+            .where((pm) => pm.isOptional && !pm.metadata.any((im) => im.reflectee is HTTPHeader))
             .map((pm) {
               return new _HTTPControllerCachedParameter()
                 ..name = MirrorSystem.getName(pm.simpleName)
@@ -252,11 +252,23 @@ abstract class HTTPController extends RequestHandler {
             });
         var optionalParameters = new Map.fromIterable(optionalParams, key: (p) => p.name, value: (p) => p);
 
+        Iterable<_HTTPControllerCachedParameter> headerParams = (declaration as MethodMirror)
+            .parameters
+            .where((pm) => pm.isOptional && pm.metadata.any((im) => im.reflectee is HTTPHeader))
+            .map((pm) {
+              return new _HTTPControllerCachedParameter()
+                ..name = MirrorSystem.getName(pm.simpleName)
+                ..typeMirror = pm.type;
+            });
+        var headerParameters = new Map.fromIterable(headerParams, key: (p) => p.name, value: (p) => p);
+        print(headerParameters);
+
         var generatedKey = _generateHandlerMethodKey((methodAttrs.reflectee as HTTPMethod).method, params.map((p) => p.name).toList());
         var cachedMethod = new _HTTPControllerCachedMethod()
           ..methodSymbol = key
           ..orderedPathParameters = params
-          ..optionalParameters = optionalParameters;
+          ..optionalParameters = optionalParameters
+          ..headerParameters = headerParameters;
         methodMap[generatedKey] = cachedMethod;
       }
     });
@@ -381,6 +393,7 @@ class _HTTPControllerCachedMethod {
   Symbol methodSymbol;
   List<_HTTPControllerCachedParameter> orderedPathParameters = [];
   Map<String, _HTTPControllerCachedParameter> optionalParameters = {};
+  Map<String, _HTTPControllerCachedParameter> headerParameters = {};
 }
 
 class _HTTPControllerCachedParameter {
