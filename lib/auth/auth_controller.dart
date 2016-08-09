@@ -28,16 +28,13 @@ class AuthController extends HTTPController {
   /// When grant_type is 'authorization_code', there must be a authorization_code value.
   @httpPost
   Future<Response> create({
-                          @HTTPHeader("Authorization") String authHeader,
+                          @HTTPHeader("Authorization") String authorizationHeader,
                           String grant_type,
                           String username,
                           String password,
                           String refresh_token,
                           String authorization_code
                           }) async {
-    print(authHeader);
-    var authorizationHeader = request.innerRequest.headers[HttpHeaders.AUTHORIZATION]?.first; // .first for type, all for List<Type>
-
     var basicRecord = AuthorizationBasicParser.parse(authorizationHeader);
     if (grant_type == "password") {
       if (username == null || password == null) {

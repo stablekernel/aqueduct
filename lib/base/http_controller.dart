@@ -124,13 +124,24 @@ abstract class HTTPController extends RequestHandler {
     Map<String, dynamic> headerParams = {};
 
     cachedMethod.headerParameters.forEach((name, param) {
-      var headerName = param.externalName;
+      String headerName = param.externalName;
       if (headerName != null) {
         headerParams[name] = request.innerRequest.headers[headerName];
       }
     });
 
     return headerParams;
+  }
+
+  String _checkForRequiredParameters(_HTTPControllerCachedMethod cachedMethod, Map<String, dynamic> headerParameters) {
+    List<String> missingHeaders = [];
+    cachedMethod.headerParameters.forEach((name, param) {
+      if (headerParameters[name] == null && param.isRequired) {
+        missingHeaders.add("'${param.externalName}'");
+      }
+    });
+
+    return missingHeaders.isEmpty ? null : missingHeaders.join(", ");
   }
 
   Map<Symbol, dynamic> _symbolicateAndConvertParameters(_HTTPControllerCachedMethod method, Map<String, dynamic> queryValues, Map<String, dynamic> headerValues) {
@@ -203,6 +214,11 @@ abstract class HTTPController extends RequestHandler {
 
     var queryParameterMap = _queryParametersFromRequest(request, requestBody);
     var headerParameterMap = _headerParametersFromRequest(request, cachedMethod);
+    var missingHeaderString = _checkForRequiredParameters(cachedMethod, headerParameterMap);
+    if (missingHeaderString != null) {
+      return new Response.badRequest(body: {"error": "Missing header(s): ${missingHeaderString}."});
+    }
+
     var symbolicatedOptionalParameters = _symbolicateAndConvertParameters(cachedMethod, queryParameterMap, headerParameterMap);
 
     if (requestBody != null) {
@@ -268,6 +284,7 @@ abstract class HTTPController extends RequestHandler {
               return new _HTTPControllerCachedParameter()
                   ..name = name
                   ..externalName = name
+                  ..isRequired = true
                   ..typeMirror = pm.type;
             })
             .toList();
@@ -280,6 +297,7 @@ abstract class HTTPController extends RequestHandler {
               return new _HTTPControllerCachedParameter()
                 ..name = name
                 ..externalName = name
+                ..isRequired = false
                 ..typeMirror = pm.type;
             });
         var optionalParameters = new Map.fromIterable(optionalParams, key: (p) => p.name, value: (p) => p);
@@ -288,14 +306,14 @@ abstract class HTTPController extends RequestHandler {
             .parameters
             .where((pm) => pm.isOptional && pm.metadata.any((im) => im.reflectee is HTTPHeader))
             .map((pm) {
-              var headerName = pm.metadata.firstWhere((im) => im.reflectee is HTTPHeader).reflectee.header;
+              HTTPHeader httpHeader = pm.metadata.firstWhere((im) => im.reflectee is HTTPHeader).reflectee;
               return new _HTTPControllerCachedParameter()
                 ..name = MirrorSystem.getName(pm.simpleName)
-                ..externalName = headerName
+                ..externalName = httpHeader.header
+                ..isRequired = httpHeader.isRequired
                 ..typeMirror = pm.type;
             });
         var headerParameters = new Map.fromIterable(headerParams, key: (p) => p.name, value: (p) => p);
-//        print(headerParameters);
 
         var generatedKey = _generateHandlerMethodKey((methodAttrs.reflectee as HTTPMethod).method, params.map((p) => p.name).toList());
         var cachedMethod = new _HTTPControllerCachedMethod()
@@ -433,5 +451,6 @@ class _HTTPControllerCachedMethod {
 class _HTTPControllerCachedParameter {
   String name;
   String externalName;
+  bool isRequired;
   TypeMirror typeMirror;
 }
