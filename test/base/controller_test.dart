@@ -272,7 +272,7 @@ class TController extends HTTPController {
 
 class QController extends HTTPController {
   @httpGet
-  Future<Response> getAll({String opt: null}) async {
+  Future<Response> getAll({@httpQuery String opt: null}) async {
     if (opt == null) {
       return new Response.ok("NOT");
     }
@@ -281,7 +281,7 @@ class QController extends HTTPController {
   }
 
   @httpGet
-  Future<Response> getOne(String id, {String opt: null}) async {
+  Future<Response> getOne(String id, {@httpQuery String opt: null}) async {
     if (opt == null) {
       return new Response.ok("NOT");
     }
@@ -298,12 +298,12 @@ class IntController extends HTTPController {
   }
 
   @httpGet
-  Future<Response> getAll({int opt: null}) async {
+  Future<Response> getAll({@httpQuery int opt: null}) async {
     return new Response.ok("${opt}");
   }
 
   @httpPost
-  Future<Response> create({int opt: null}) async {
+  Future<Response> create({@httpQuery int opt: null}) async {
     return new Response.ok("${opt}");
   }
 }
@@ -315,20 +315,20 @@ class DateTimeController extends HTTPController {
   }
 
   @httpGet
-  Future<Response> getAll({DateTime opt: null}) async {
+  Future<Response> getAll({@httpQuery DateTime opt: null}) async {
     return new Response.ok("${opt}");
   }
 }
 
 class MultiQueryParamController extends HTTPController {
   @httpGet
-  Future<Response> get({List<String> params: null}) async {
+  Future<Response> get({@httpQuery List<String> params: null}) async {
     return new Response.ok(params.join(","));
   }
 }
 
 class BooleanQueryParamController extends HTTPController {
-  @httpGet get({bool param: false}) async {
+  @httpGet get({@httpQuery bool param: false}) async {
     return new Response.ok(param ? "true" : "false");
   }
 }
