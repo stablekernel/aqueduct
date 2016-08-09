@@ -17,6 +17,8 @@ class AuthController extends HTTPController {
   /// A reference to the [AuthenticationServer] this controller uses to grant tokens.
   AuthenticationServer authenticationServer;
 
+  @HTTPHeader("Authorization") String authorizationHeader;
+
   /// Creates or refreshes an authentication token.
   ///
   /// Authorization header must contain Basic authorization scheme where username is Client ID and password is Client Secret,
@@ -28,7 +30,6 @@ class AuthController extends HTTPController {
   /// When grant_type is 'authorization_code', there must be a authorization_code value.
   @httpPost
   Future<Response> create({
-                          @HTTPHeader("Authorization") String authorizationHeader,
                           String grant_type,
                           String username,
                           String password,

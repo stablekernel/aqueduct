@@ -6,6 +6,7 @@ part of aqueduct;
 @cannotBeReused
 abstract class HTTPController extends RequestHandler {
   static Map<Type, Map<String, _HTTPControllerCachedMethod>> _methodCache = {};
+  static Map<Type, Map<Symbol, _HTTPControllerCachedParameter>> _controllerLevelParameters = {};
   static ContentType _applicationWWWFormURLEncodedContentType = new ContentType("application", "x-www-form-urlencoded");
 
   /// The request being processed by this [HTTPController].
@@ -133,10 +134,29 @@ abstract class HTTPController extends RequestHandler {
     return headerParams;
   }
 
+  void _setControllerLevelParametersFromRequest(Request request) {
+    _controllerLevelParameters[this.runtimeType].forEach((sym, param) {
+      var externalValue = request.innerRequest.headers[param.externalName];
+      var internalValue;
+      if (externalValue is List) {
+        internalValue = _convertParameterListWithMirror(externalValue, param.typeMirror);
+      }
+
+      reflect(this).setField(sym, internalValue);
+    });
+  }
+
   String _checkForRequiredParameters(_HTTPControllerCachedMethod cachedMethod, Map<String, dynamic> headerParameters) {
     List<String> missingHeaders = [];
     cachedMethod.headerParameters.forEach((name, param) {
       if (headerParameters[name] == null && param.isRequired) {
+        missingHeaders.add("'${param.externalName}'");
+      }
+    });
+
+    _controllerLevelParameters[this.runtimeType].forEach((sym, param) {
+      var value = reflect(this).getField(sym).reflectee;
+      if (value == null && param.isRequired) {
         missingHeaders.add("'${param.externalName}'");
       }
     });
@@ -214,6 +234,7 @@ abstract class HTTPController extends RequestHandler {
 
     var queryParameterMap = _queryParametersFromRequest(request, requestBody);
     var headerParameterMap = _headerParametersFromRequest(request, cachedMethod);
+    _setControllerLevelParametersFromRequest(request);
     var missingHeaderString = _checkForRequiredParameters(cachedMethod, headerParameterMap);
     if (missingHeaderString != null) {
       return new Response.badRequest(body: {"error": "Missing header(s): ${missingHeaderString}."});
@@ -264,10 +285,19 @@ abstract class HTTPController extends RequestHandler {
       return;
     }
 
+    var controllerLevelMap = {};
     var methodMap = {};
     var allDeclarations = reflect(this).type.declarations;
     allDeclarations.forEach((key, declaration) {
-      if (declaration is MethodMirror) {
+      if (declaration is VariableMirror) {
+        HTTPHeader httpHeader = declaration.metadata.firstWhere((im) => im.reflectee is HTTPHeader, orElse: () => null)?.reflectee;
+        if (httpHeader == null) { return; }
+        controllerLevelMap[key] = new _HTTPControllerCachedParameter()
+          ..name = MirrorSystem.getName(key)
+          ..externalName = httpHeader.header
+          ..isRequired = httpHeader.isRequired
+          ..typeMirror = declaration.type;
+      } else if (declaration is MethodMirror) {
         var methodAttrs = declaration
             .metadata
             .firstWhere((attr) => attr.reflectee is HTTPMethod, orElse: () => null);
@@ -326,6 +356,7 @@ abstract class HTTPController extends RequestHandler {
     });
 
     _methodCache[this.runtimeType] = methodMap;
+    _controllerLevelParameters[this.runtimeType] = controllerLevelMap;
   }
 
   String _generateHandlerMethodKey(String httpMethod, List<String> params) {
