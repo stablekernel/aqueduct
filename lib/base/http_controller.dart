@@ -146,10 +146,10 @@ abstract class HTTPController extends RequestHandler {
 
     cachedMethod.optionalParameters.forEach((name, param) {
       if (param.httpParameter.isRequired) {
-        var externalName = (param.httpParameter.externalName ?? name).toLowerCase();
+        var externalName = param.httpParameter.externalName ?? name;
         if (param.httpParameter is HTTPQuery && queryParameters[externalName] == null) {
           missingQueries.add("'${externalName}'");
-        } else if (param.httpParameter is HTTPHeader && headerParameters[externalName] == null) {
+        } else if (param.httpParameter is HTTPHeader && headerParameters[externalName.toLowerCase()] == null) {
           missingHeaders.add("'${externalName}'");
         }
       }
@@ -157,10 +157,10 @@ abstract class HTTPController extends RequestHandler {
 
     _controllerLevelParameters[this.runtimeType].forEach((sym, param) {
       if (param.httpParameter.isRequired) {
-        var externalName = (param.httpParameter.externalName ?? MirrorSystem.getName(sym)).toLowerCase();
+        var externalName = param.httpParameter.externalName ?? MirrorSystem.getName(sym);
         if (param.httpParameter is HTTPQuery && queryParameters[externalName] == null) {
           missingQueries.add("'${externalName}'");
-        } else if (param.httpParameter is HTTPHeader && headerParameters[externalName] == null) {
+        } else if (param.httpParameter is HTTPHeader && headerParameters[externalName.toLowerCase()] == null) {
           missingHeaders.add("'${externalName}'");
         }
       }
@@ -187,17 +187,17 @@ abstract class HTTPController extends RequestHandler {
     var symbolicatedValues = {};
 
     method.optionalParameters.forEach((name, param) {
-      var externalName = (param.httpParameter.externalName ?? name).toLowerCase();
+      var externalName = param.httpParameter.externalName ?? name;
       var value;
       if (param.httpParameter is HTTPHeader) {
-        value = headerValues[externalName];
+        value = headerValues[externalName.toLowerCase()];
       } else if (param.httpParameter is HTTPQuery) {
         value = queryValues[externalName];
       }
 
       if (value is List) {
         symbolicatedValues[new Symbol(name)] = _convertParameterListWithMirror(value, param.typeMirror);
-      } else {
+      } else if (value != null) {
         symbolicatedValues[new Symbol(name)] = _convertParameterWithMirror(value, param.typeMirror);
       }
     });
@@ -246,8 +246,6 @@ abstract class HTTPController extends RequestHandler {
     var queryParameterMap = _queryParametersFromRequest(request, requestBody);
     var headerParameterMap = _headerParametersFromRequest(request);
 
-//    print(queryParameterMap);
-//    print(headerParameterMap);
     var missingParameterString = _checkForRequiredParameters(cachedMethod, queryParameterMap, headerParameterMap);
     if (missingParameterString != null) {
       return new Response.badRequest(body: {"error": missingParameterString});
@@ -306,6 +304,7 @@ abstract class HTTPController extends RequestHandler {
       if (declaration is VariableMirror) {
         _HTTPParameter httpParameter = declaration.metadata.firstWhere((im) => im.reflectee is _HTTPParameter, orElse: () => null)?.reflectee;
         if (httpParameter == null) { return; }
+
         controllerLevelMap[key] = new _HTTPControllerCachedParameter()
           ..name = MirrorSystem.getName(key)
           ..httpParameter = httpParameter

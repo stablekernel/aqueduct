@@ -210,7 +210,14 @@ class ResourceController<ModelType extends Model> extends HTTPController {
     return new Response.ok(objects);
   }
 
-  @httpGet getObjects({int count: 0, int offset: 0, String pageBy: null, String pageAfter: null, String pagePrior: null, List<String> sortBy: null}) async {
+  @httpGet getObjects({
+                      @httpQuery int count: 0,
+                      @httpQuery int offset: 0,
+                      @httpQuery String pageBy: null,
+                      @httpQuery String pageAfter: null,
+                      @httpQuery String pagePrior: null,
+                      @httpQuery List<String> sortBy: null
+                      }) async {
     _query.fetchLimit = count;
     _query.offset = offset;
 

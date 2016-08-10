@@ -41,7 +41,7 @@ class HTTPMethod {
 
 abstract class _HTTPParameter {
   const _HTTPParameter(String externalName) : this.required(externalName);
-  const _HTTPParameter.unnamed({this.isRequired: true }) : externalName = null;
+  const _HTTPParameter.unnamed({ this.isRequired: false }) : externalName = null;
   const _HTTPParameter.required(this.externalName) : isRequired = true;
   const _HTTPParameter.optional(this.externalName) : isRequired = false;
 
@@ -55,7 +55,7 @@ const HTTPHeader httpHeader = const HTTPHeader.unnamed();
 /// the HTTP header indicated by the [header] field.
 class HTTPHeader extends _HTTPParameter {
   const HTTPHeader(String header) : super.required(header);
-  const HTTPHeader.unnamed({bool isRequired: true }) : super.unnamed(isRequired: isRequired);
+  const HTTPHeader.unnamed({ bool isRequired: false }) : super.unnamed(isRequired: isRequired);
   const HTTPHeader.required(String header) : super.required(header);
   const HTTPHeader.optional(String header) : super.optional(header);
 }
@@ -64,7 +64,7 @@ const HTTPQuery httpQuery = const HTTPQuery.unnamed();
 
 class HTTPQuery extends _HTTPParameter {
   const HTTPQuery(String key) : this.required(key);
-  const HTTPQuery.unnamed({bool isRequired: true }) : super.unnamed(isRequired: isRequired);
+  const HTTPQuery.unnamed({ bool isRequired: false }) : super.unnamed(isRequired: isRequired);
   const HTTPQuery.required(String key) : super.required(key);
   const HTTPQuery.optional(String key) : super.optional(key);
 }
