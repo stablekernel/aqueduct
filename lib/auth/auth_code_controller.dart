@@ -25,16 +25,12 @@ class AuthCodeController extends HTTPController {
   /// for the client to ensure it is receiving a response from the expected endpoint.
   @httpPost
   Future<Response> authorize({
-                             @HTTPQuery("client_id") String client_id,
+                             @HTTPQuery("client_id") String clientID,
                              @HTTPQuery("username") String username,
                              @HTTPQuery("password") String password,
-                             @HTTPQuery.optional("state") String state
+                             @httpQuery String state
                              }) async {
-    if (client_id == null || username == null || password == null) {
-      return new Response.badRequest();
-    }
-
-    var authCode = await authenticationServer.createAuthCode(username, password, client_id);
+    var authCode = await authenticationServer.createAuthCode(username, password, clientID);
     return AuthCodeController.authCodeResponse(authCode, state);
   }
 
