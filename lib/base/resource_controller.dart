@@ -205,7 +205,7 @@ class ResourceController<ModelType extends Model> extends HTTPController {
 
   /// Executed after a list of objects has been fetched.
   ///
-  /// By defualt, returns [Response.ok] with the encoded list of founds objects (which may be the empty list).
+  /// By default, returns [Response.ok] with the encoded list of founds objects (which may be the empty list).
   Future<Response> didFindObjects(List<ModelType> objects) async {
     return new Response.ok(objects);
   }
