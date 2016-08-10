@@ -128,15 +128,23 @@ abstract class HTTPController extends RequestHandler {
     return headerParams;
   }
 
-  void _setControllerLevelParametersFromRequest(Request request) {
+  void _setControllerLevelParameters(Map<String, dynamic> queryValues, Map<String, dynamic> headerValues) {
     _controllerLevelParameters[this.runtimeType].forEach((sym, param) {
-      var externalValue = request.innerRequest.headers[param.httpParameter.externalName];
-      var internalValue;
-      if (externalValue is List) {
-        internalValue = _convertParameterListWithMirror(externalValue, param.typeMirror);
+      var externalName = param.httpParameter.externalName ?? MirrorSystem.getName(sym);
+      var value;
+      if (param.httpParameter is HTTPHeader) {
+        value = headerValues[externalName.toLowerCase()];
+      } else if (param.httpParameter is HTTPQuery) {
+        value = queryValues[externalName];
       }
 
-      reflect(this).setField(sym, internalValue);
+      if (value is List) {
+        value = _convertParameterListWithMirror(value, param.typeMirror);
+      } else if (value != null) {
+        value = _convertParameterWithMirror(value, param.typeMirror);
+      }
+
+      reflect(this).setField(sym, value);
     });
   }
 
@@ -251,7 +259,7 @@ abstract class HTTPController extends RequestHandler {
       return new Response.badRequest(body: {"error": missingParameterString});
     }
 
-    _setControllerLevelParametersFromRequest(request);
+    _setControllerLevelParameters(queryParameterMap, headerParameterMap);
     var symbolicatedOptionalParameters = _symbolicateAndConvertParameters(cachedMethod, queryParameterMap, headerParameterMap);
 
     if (requestBody != null) {
