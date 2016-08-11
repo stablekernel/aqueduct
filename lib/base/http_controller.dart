@@ -130,7 +130,7 @@ abstract class HTTPController extends RequestHandler {
 
   void _setControllerLevelParameters(Map<String, dynamic> queryValues, Map<String, dynamic> headerValues) {
     _controllerLevelParameters[this.runtimeType].forEach((sym, param) {
-      var externalName = param.httpParameter.externalName ?? MirrorSystem.getName(sym);
+      var externalName = param.httpParameter.externalName;
       var value;
       if (param.httpParameter is HTTPHeader) {
         value = headerValues[externalName.toLowerCase()];
@@ -154,7 +154,7 @@ abstract class HTTPController extends RequestHandler {
 
     cachedMethod.optionalParameters.forEach((name, param) {
       if (param.httpParameter.isRequired) {
-        var externalName = param.httpParameter.externalName ?? name;
+        var externalName = param.httpParameter.externalName;
         if (param.httpParameter is HTTPQuery && queryParameters[externalName] == null) {
           missingQueries.add("'${externalName}'");
         } else if (param.httpParameter is HTTPHeader && headerParameters[externalName.toLowerCase()] == null) {
@@ -165,7 +165,7 @@ abstract class HTTPController extends RequestHandler {
 
     _controllerLevelParameters[this.runtimeType].forEach((sym, param) {
       if (param.httpParameter.isRequired) {
-        var externalName = param.httpParameter.externalName ?? MirrorSystem.getName(sym);
+        var externalName = param.httpParameter.externalName;
         if (param.httpParameter is HTTPQuery && queryParameters[externalName] == null) {
           missingQueries.add("'${externalName}'");
         } else if (param.httpParameter is HTTPHeader && headerParameters[externalName.toLowerCase()] == null) {
@@ -195,7 +195,7 @@ abstract class HTTPController extends RequestHandler {
     var symbolicatedValues = {};
 
     method.optionalParameters.forEach((name, param) {
-      var externalName = param.httpParameter.externalName ?? name;
+      var externalName = param.httpParameter.externalName;
       var value;
       if (param.httpParameter is HTTPHeader) {
         value = headerValues[externalName.toLowerCase()];
