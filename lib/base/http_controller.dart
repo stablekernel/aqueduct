@@ -88,8 +88,8 @@ abstract class HTTPController extends RequestHandler {
   }
 
   Future<Response> _process() async {
-    var parameterMatcher = new _ParameterMatcher(this, request);
-    if (parameterMatcher == null) {
+    var parametersTemplate = new _HTTPMethodParameterTemplate(this, request);
+    if (parametersTemplate == null) {
       return new Response.notFound();
     }
 
@@ -104,19 +104,18 @@ abstract class HTTPController extends RequestHandler {
     if (requestBody != null) {
       didDecodeRequestBody(requestBody);
     }
-
-    // ParameterResolverFactoryBeanFactory
-    parameterMatcher.parseParameters();
-    if (parameterMatcher.isMissingRequiredParameters) {
-      return new Response.badRequest(body: {"error": parameterMatcher.missingParametersString});
+    
+    var parametersValues = parametersTemplate.parseRequest();
+    if (parametersValues.isMissingRequiredParameters) {
+      return new Response.badRequest(body: {"error": parametersValues.missingParametersString});
     }
 
-    parameterMatcher.controllerParametersForRequest.forEach((sym, value) => reflect(this).setField(sym, value));
+    parametersValues.controllerParametersForRequest.forEach((sym, value) => reflect(this).setField(sym, value));
 
     Future<Response> eventualResponse = reflect(this).invoke(
-        parameterMatcher.methodSymbolForRequest,
-        parameterMatcher.orderedParametersForRequest,
-        parameterMatcher.optionalParametersForRequest
+        parametersValues.methodSymbolForRequest,
+        parametersValues.orderedParametersForRequest,
+        parametersValues.optionalParametersForRequest
     ).reflectee;
     var response = await eventualResponse;
 
