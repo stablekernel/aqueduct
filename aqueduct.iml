@@ -4,7 +4,12 @@
     <exclude-output />
     <content url="file://$MODULE_DIR$">
       <excludeFolder url="file://$MODULE_DIR$/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/bin/packages" />
       <excludeFolder url="file://$MODULE_DIR$/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/templates/default/bin/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/templates/default/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/templates/default/test/mock/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/templates/default/test/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/auth/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/base/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/db/packages" />
