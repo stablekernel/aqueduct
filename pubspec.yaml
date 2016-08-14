@@ -17,6 +17,7 @@ dependencies:
   logging: ">=0.11.3 <0.12.0"
   analyzer: ">=0.27.3 <0.28.0"
   postgresql: '>=0.3.3 <0.4.0'
+  args: ">=0.13.5 < 1.0.0"
 
 dev_dependencies:
   test: any
