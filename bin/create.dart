@@ -9,7 +9,7 @@ Future main(List<String> args) async {
   var parser = new ArgParser(allowTrailingOptions: false);
   parser.addOption("template", abbr: "t", defaultsTo: "default", help: "Name of the template. Defaults to default. Available options are: default");
   parser.addOption("name", abbr: "n", help: "Name of project in snake_case.");
-  parser.addFlag("local", abbr: "l", defaultsTo: false, hide: true);
+  parser.addOption("template-directory", hide: true);
 
   var argValues = parser.parse(args);
 
@@ -25,6 +25,10 @@ Future main(List<String> args) async {
   }
 
   var sourceDirectory = new Directory("${packageURI.path}/example/templates/${argValues["template"]}");
+  if (argValues["template-directory"] != null) {
+    sourceDirectory = new Directory("${argValues["template-directory"]}/${argValues["template"]}");
+  }
+
   if (!sourceDirectory.existsSync()) {
     print("Error: no template named ${argValues["template"]}");
     return;
@@ -150,9 +154,12 @@ void copyProjectFiles(Directory destinationDirectory, Directory sourceDirectory,
     print("Supplying project values...");
     destinationDirectory.createSync();
 
-    new Directory(sourceDirectory.path).listSync().forEach((f) {
-      interpretContentFile(projectName, destinationDirectory, f);
-    });
+    new Directory(sourceDirectory.path)
+        .listSync()
+        .where((entity) => !entity.uri.pathSegments.last.startsWith("."))
+        .forEach((f) {
+          interpretContentFile(projectName, destinationDirectory, f);
+        });
 
     print("Fetching dependencies...");
     Process.runSync("pub", ["get"], workingDirectory: destinationDirectory.path);
