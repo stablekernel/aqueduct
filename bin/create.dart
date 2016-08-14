@@ -5,7 +5,7 @@ import 'dart:isolate';
 import 'package:args/args.dart';
 
 Future main(List<String> args) async {
-  var packageURI = await Isolate.resolvePackageUri(new Uri(scheme: "package", path: "aqueduct/aqueduct.dart"));
+  var packageURI = await Isolate.resolvePackageUri(new Uri(scheme: "package", path: "aqueduct"));
   var parser = new ArgParser(allowTrailingOptions: false);
   parser.addOption("template", abbr: "t", defaultsTo: "default", help: "Name of the template. Defaults to default. Available options are: default");
   parser.addOption("name", abbr: "n", help: "Name of project in snake_case.");
@@ -13,22 +13,22 @@ Future main(List<String> args) async {
 
   var argValues = parser.parse(args);
 
-  if (!isSnakeCase(argValues["name"])) {
+  if (argValues["name"] == null || !isSnakeCase(argValues["name"])) {
     print("Invalid project name\n${parser.usage}");
     return;
   }
 
-  Directory destDirectory = destinationDirectoryFromPath(argValues["name"]);
+  var destDirectory = destinationDirectoryFromPath(argValues["name"]);
+  var sourceDirectory = new Directory("${packageURI.path}/example/templates/${argValues["template"]}");
   if (destDirectory.existsSync()) {
-    print("Error: file already exists at path ${destDirectory.path}.");
+    print("${destDirectory.path} already exists.");
     return;
   }
 
-  var sourceDirectory = new Directory("${packageURI.path}/example/templates/${argValues["template"]}");
   if (argValues["template-directory"] != null) {
     sourceDirectory = new Directory("${argValues["template-directory"]}/${argValues["template"]}");
   }
-
+  print("${sourceDirectory}");
   if (!sourceDirectory.existsSync()) {
     print("Error: no template named ${argValues["template"]}");
     return;
@@ -137,15 +137,8 @@ String projectNameFromPath(String pathString) {
 }
 
 Future createProjectSpecificFiles(String directoryPath) async {
-  // Put config.yaml in, but then also put it in the gitignore.
   var configSrcPath = new File(directoryPath + "/config.yaml.src");
   configSrcPath.copySync(new File(directoryPath + "/config.yaml").path);
-
-  var gitIgnoreFile = new File(directoryPath + "/.gitignore");
-  var contents = gitIgnoreFile.readAsStringSync();
-  contents = contents.replaceFirst("pubspec.lock", "");
-
-  gitIgnoreFile.writeAsStringSync(contents, mode: FileMode.WRITE);
 }
 
 void copyProjectFiles(Directory destinationDirectory, Directory sourceDirectory, String projectName) {
@@ -156,7 +149,6 @@ void copyProjectFiles(Directory destinationDirectory, Directory sourceDirectory,
 
     new Directory(sourceDirectory.path)
         .listSync()
-        .where((entity) => !entity.uri.pathSegments.last.startsWith("."))
         .forEach((f) {
           interpretContentFile(projectName, destinationDirectory, f);
         });
