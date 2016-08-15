@@ -6,7 +6,8 @@ import 'dart:io';
 
 main() async {
   try {
-    var config = new WildfireConfiguration("config.yaml");
+    var configFileName = "config.yaml";
+    var config = new WildfireConfiguration(configFileName);
 
     var path = "api.log";
     var logger = new LoggingServer([new RotatingLoggingBackend(path)]);
@@ -16,7 +17,7 @@ main() async {
     app.configuration.port = config.port;
     app.configuration.pipelineOptions = {
       WildfirePipeline.LoggingTargetKey : logger.getNewTarget(),
-      WildfirePipeline.ConfigurationKey : config
+      WildfirePipeline.ConfigurationFileKey : configFileName
     };
 
     await app.start(numberOfInstances: 3);

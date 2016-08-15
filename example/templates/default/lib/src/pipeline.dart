@@ -8,22 +8,22 @@ class WildfireConfiguration extends ConfigurationItem {
 }
 
 class WildfirePipeline extends ApplicationPipeline {
-  static const String ConfigurationKey = "ConfigurationKey";
+  static const String ConfigurationFileKey = "ConfigurationFileKey";
   static const String LoggingTargetKey = "LoggingTargetKey";
 
   WildfirePipeline(Map<String, dynamic> opts) : super(opts) {
-    configuration = opts[ConfigurationKey];
+    configuration = new WildfireConfiguration(opts[ConfigurationFileKey]);
 
     LoggingTarget target = opts[LoggingTargetKey];
     target?.bind(logger);
 
     context = contextWithConnectionInfo(configuration.database);
 
-    authenticationServer = new AuthenticationServer<User, Token>(new WildfireAuthenticationDelegate());
+    authenticationServer = new AuthenticationServer<User, Token, AuthCode>(new WildfireAuthenticationDelegate());
   }
 
   ModelContext context;
-  AuthenticationServer<User, Token> authenticationServer;
+  AuthenticationServer<User, Token, AuthCode> authenticationServer;
   WildfireConfiguration configuration;
 
   @override
@@ -31,7 +31,12 @@ class WildfirePipeline extends ApplicationPipeline {
     router
         .route("/auth/token")
         .next(authenticationServer.authenticator(strategy: AuthenticationStrategy.Client))
-        .next(() => new AuthController<User, Token>(authenticationServer));
+        .next(() => new AuthController(authenticationServer));
+
+    router
+        .route("/auth/code")
+        .next(authenticationServer.authenticator(strategy: AuthenticationStrategy.Client))
+        .next(() => new AuthCodeController(authenticationServer));
 
     router
         .route("/identity")

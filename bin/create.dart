@@ -1,7 +1,5 @@
 import 'dart:io';
 import 'dart:async';
-import 'dart:mirrors';
-import 'dart:isolate';
 import 'package:args/args.dart';
 import 'package:aqueduct/aqueduct.dart';
 
@@ -35,8 +33,10 @@ Future main(List<String> args) async {
   }
   destDirectory.createSync();
 
+  var aqueductVersion = aqueductDependencyString(versionString: argValues["version"], gitHost: argValues["git-url"], gitRef: argValues["git-ref"], path: argValues["path-source"]);
+
   print("Fetching template source...");
-  var aqueductPath = await determineAqueductPath(destDirectory, argValues);
+  var aqueductPath = await determineAqueductPath(destDirectory, aqueductVersion);
   var sourceDirectory = new Directory("${aqueductPath}/example/templates/${argValues["template"]}");
 
   if (argValues["template-directory"] != null) {
@@ -51,13 +51,16 @@ Future main(List<String> args) async {
   await copyProjectFiles(destDirectory, sourceDirectory, argValues["name"]);
 
   print("Generating project files...");
-  await createProjectSpecificFiles(destDirectory.path);
+  await createProjectSpecificFiles(destDirectory.path, aqueductVersion);
+
+  print("Fetching dependencies...");
+  Process.runSync("pub", ["get"], workingDirectory: destDirectory.path);
 
   print("${argValues["name"]} created at ${destDirectory.path}");
 }
 
-String determineAqueductPath(Directory projectDirectory, ArgResults argValues) {
-  var temporaryPubspec = generatingPubspec(versionString: argValues["version"], gitHost: argValues["git-url"], gitRef: argValues["git-ref"], path: argValues["path-source"]);
+String determineAqueductPath(Directory projectDirectory, String aqueductVersion) {
+  var temporaryPubspec = generatingPubspec(aqueductVersion);
 
   new File(projectDirectory.path + "/pubspec.yaml").writeAsStringSync(temporaryPubspec);
   var result = Process.runSync("pub", ["get"], workingDirectory: projectDirectory.path);
@@ -170,9 +173,13 @@ String projectNameFromPath(String pathString) {
   return pathString.substring(lastPathComponentIndex + 1);
 }
 
-Future createProjectSpecificFiles(String directoryPath) async {
+Future createProjectSpecificFiles(String directoryPath, String aqueductVersion) async {
   var configSrcPath = new File(directoryPath + "/config.yaml.src");
   configSrcPath.copySync(new File(directoryPath + "/config.yaml").path);
+
+  var pubspecContents = new File(directoryPath + "/pubspec.yaml").readAsStringSync();
+  pubspecContents = pubspecContents.replaceFirst("aqueduct: any", aqueductVersion);
+  new File(directoryPath + "/pubspec.yaml").writeAsStringSync(pubspecContents);
 }
 
 void copyProjectFiles(Directory destinationDirectory, Directory sourceDirectory, String projectName) {
@@ -184,18 +191,14 @@ void copyProjectFiles(Directory destinationDirectory, Directory sourceDirectory,
         .forEach((f) {
           interpretContentFile(projectName, destinationDirectory, f);
         });
-
-    print("Fetching dependencies...");
-    Process.runSync("pub", ["get"], workingDirectory: destinationDirectory.path);
   } catch (e) {
     Process.runSync("rm", ["-rf", destinationDirectory.path]);
     print("${e}");
   }
 }
 
-String generatingPubspec({String versionString: "any", String gitHost: null, String gitRef: "master", String path: null}) {
-  var str = 'name: aqueduct_generator\nversion: 1.0.0\nenvironment:\n  sdk: ">=1.16.0 <2.0.0"\ndependencies:\n  aqueduct: ';
-
+String aqueductDependencyString({String versionString: "any", String gitHost: null, String gitRef: "master", String path: null}) {
+  var str = "aqueduct: ";
   if (gitHost != null) {
     str += "\n";
     str += "    git:\n";
@@ -207,8 +210,11 @@ String generatingPubspec({String versionString: "any", String gitHost: null, Str
   } else {
     str += '"$versionString"';
   }
-
   return str;
+}
+
+String generatingPubspec(String aqueductDependencyString) {
+  return 'name: aqueduct_generator\nversion: 1.0.0\nenvironment:\n  sdk: ">=1.16.0 <2.0.0"\ndependencies:\n  ' + aqueductDependencyString;
 }
 
 bool isSnakeCase(String string) {

@@ -9,7 +9,7 @@ environment:
   sdk: ">=1.16.0 <2.0.0"
 
 dependencies:
-  safe_config: "^1.0.2"
+  safe_config: ">=1.0.0 <2.0.0"
   yaml: ">=2.1.9 <3.0.0"
   matcher: ">=0.12.0+2 <0.13.0"
   pbkdf2: ">=0.1.0 <0.2.0"

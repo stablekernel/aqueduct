@@ -2,10 +2,10 @@ import 'dart:async';
 
 import 'package:test/test.dart';
 import 'package:wildfire/wildfire.dart';
-import 'dart:convert';
 import 'mock/startup.dart';
+
 Future main() async {
-  group("1", () {
+  group("Success cases", () {
     TestApplication app = new TestApplication();
 
     setUpAll(() async {

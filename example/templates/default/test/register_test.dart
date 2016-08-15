@@ -3,7 +3,7 @@ import 'package:wildfire/wildfire.dart';
 import 'mock/startup.dart';
 
 main() {
-  group("1", () {
+  group("Success cases", () {
     TestApplication app = new TestApplication();
 
     setUpAll(() async {
@@ -22,7 +22,18 @@ main() {
         "access_token": hasLength(greaterThan(0))
       })));
     });
+  });
 
+  group("Failure cases", () {
+    TestApplication app = new TestApplication();
+
+    setUpAll(() async {
+      await app.start();
+    });
+
+    tearDownAll(() async {
+      await app.stop();
+    });
     test("Trying to create existing user fails", () async {
       var response = await (app.client.clientAuthenticatedRequest("/register")
         ..json = {"email": "bob@stablekernel.com", "password": "foobaraxegrind12%"}).post();

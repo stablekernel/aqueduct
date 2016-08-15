@@ -1,6 +1,6 @@
 part of wildfire;
 
-class WildfireAuthenticationDelegate implements AuthenticationServerDelegate<User, Token> {
+class WildfireAuthenticationDelegate implements AuthenticationServerDelegate<User, Token, AuthCode> {
   Future<Client> clientForID(AuthenticationServer server, String id) async {
     var clientQ = new ClientRecordQuery()
       ..id = id;
@@ -11,6 +11,19 @@ class WildfireAuthenticationDelegate implements AuthenticationServerDelegate<Use
     }
 
     return new Client(clientRecord.id, clientRecord.hashedPassword, clientRecord.salt);
+  }
+
+  Future deleteTokenForRefreshToken(AuthenticationServer server, String refreshToken) async {
+    var q = new Query<Token>();
+    q.predicate = new Predicate("refreshToken = @rf", {"rf" : refreshToken});
+    await q.delete();
+  }
+
+  Future updateToken(AuthenticationServer server, Token t) async {
+    var tokenQ = new Query<Token>();
+    tokenQ.predicate = new Predicate("refreshToken = @refreshToken", {"refreshToken" : t.refreshToken});
+    tokenQ.values = t;
+    return tokenQ.updateOne();
   }
 
   Future<Token> tokenForAccessToken(AuthenticationServer server, String accessToken) {
@@ -59,6 +72,31 @@ class WildfireAuthenticationDelegate implements AuthenticationServerDelegate<Use
     pruneResourceOwnerTokensAfterIssuingToken(t).catchError((e) {
       new Logger("aqueduct").severe("Failed to prune tokens $e");
     });
+  }
+
+  Future<AuthCode> storeAuthCode(AuthenticationServer server, AuthCode code) async {
+    var authCodeQ = new Query<AuthCode>();
+    authCodeQ.values = code;
+    return authCodeQ.insert();
+  }
+
+  Future<AuthCode> authCodeForCode(AuthenticationServer server, String code) async {
+    var authCodeQ = new Query<AuthCode>();
+    authCodeQ.predicate = new Predicate("code = @code", {"code" : code});
+    return authCodeQ.fetchOne();
+  }
+
+  Future updateAuthCode(AuthenticationServer server, AuthCode code) async {
+    var authCodeQ = new Query<AuthCode>();
+    authCodeQ.predicate = new Predicate("id = @id", {"id" : code.id});
+    authCodeQ.values = code;
+    return authCodeQ.updateOne();
+  }
+
+  Future deleteAuthCode(AuthenticationServer server, AuthCode code) async {
+    var authCodeQ = new Query<AuthCode>();
+    authCodeQ.predicate = new Predicate("id = @id", {"id" : code.id});
+    return authCodeQ.delete();
   }
 
   Future pruneResourceOwnerTokensAfterIssuingToken(Token t, {int count: 25}) async {

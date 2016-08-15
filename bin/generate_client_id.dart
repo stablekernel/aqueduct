@@ -3,7 +3,7 @@ import 'package:aqueduct/aqueduct.dart';
 
 void main(List<String> args) {
   if (args.length != 2) {
-    print("Usage: dart bin/generate_client_id.dart clientID clientSecret");
+    print("Usage: pub global run aqueduct:generate_client_id client_id client_secret");
     return;
   }
 

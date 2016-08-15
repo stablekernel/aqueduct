@@ -1,5 +1,26 @@
 part of wildfire;
 
+class AuthCode extends Model<_AuthCode> implements _AuthCode {}
+class _AuthCode implements TokenExchangable {
+  @primaryKey
+  int id;
+
+  @Attributes(indexed: true)
+  String code;
+
+  @Attributes(nullable: true)
+  String redirectURI;
+
+  String clientID;
+  int resourceOwnerIdentifier;
+  DateTime issueDate;
+  DateTime expirationDate;
+
+  @Relationship.belongsTo("code", required: false, deleteRule: RelationshipDeleteRule.cascade)
+  Token token;
+}
+
+
 class TokenQuery extends ModelQuery<Token> implements _Token {}
 class Token extends Model<_Token> implements _Token, Tokenizable {
   String get clientID => client.id;

@@ -1,9 +1,10 @@
-import 'package:wildfire/wildfire.dart';
+import 'package:aqueduct/aqueduct.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
 Future main(List<String> args) async {
+  // First try config.yaml, then config.yaml.src. If passing in config file, use that.
   var configuration = new WildfireConfiguration("config.yaml.src");
   configuration.database.isTemporary = true;
 
