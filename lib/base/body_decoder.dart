@@ -61,7 +61,7 @@ class HTTPBodyDecoder {
 
   static Future<dynamic> _wwwFormURLEncodedDecoder(HttpRequest req) async {
     var bodyAsString = await streamDecoderForCharset(req.headers.contentType.charset, defaultEncoding: ASCII)(req);
-    return Uri.splitQueryString(bodyAsString, encoding: Encoding.getByName(req.headers.contentType.charset) ?? ASCII);
+    return new Uri(query: bodyAsString).queryParametersAll;
   }
 
   static Future<dynamic> _textDecoder(HttpRequest req) async {
