@@ -92,10 +92,10 @@ class _HTTPMethodParameterTemplate {
   Request _request;
   Symbol _methodSymbol;
 
-  Map<String, dynamic> _queryParameters = {};
+  Map<String, List<String>> _queryParameters = {};
   List<String> _missingQueries = [];
 
-  Map<String, dynamic> _headerParameters = {};
+  HttpHeaders _headerParameters;
   List<String> _missingHeaders = [];
 
   factory _HTTPMethodParameterTemplate(HTTPController con, Request req) {
@@ -183,8 +183,8 @@ class _HTTPMethodParameterTemplate {
     var orderedParameters = _parseOrderedParameters();
 
     _parseOptionalParameters();
-    var controllerParameters = _symbolicateControllerParameters();
-    var optionalParameters = _symbolicateOptionalParameters();
+    var controllerParameters = _symbolicateControllerParameterValues();
+    var optionalParameters = _symbolicateOptionalParameterValues();
 
     return new _HTTPMethodParameterValues(
         _methodSymbol,
@@ -215,14 +215,28 @@ class _HTTPMethodParameterTemplate {
       _queryParameters = _request.innerRequest.uri.queryParametersAll;
     }
 
-    _request.innerRequest.headers.forEach((k,v) => _headerParameters[k] = v);
+    _headerParameters = _request.innerRequest.headers;
   }
 
-  Map<Symbol, dynamic> _symbolicateControllerParameters() {
-    Map<Symbol, dynamic> controllerParameters = {};
-    _controllerLevelParameters[_controller.runtimeType].forEach((sym, param) {
+  Map<Symbol, dynamic> _symbolicateControllerParameterValues() {
+    return _symbolicateParameterValues(_controllerLevelParameters[_controller.runtimeType]);
+  }
+
+  Map<Symbol, dynamic>_symbolicateOptionalParameterValues() {
+    var key = _generateHandlerMethodKey(_request.innerRequest.method, _request.path.orderedVariableNames);
+    var method = _methodCache[_controller.runtimeType][key];
+
+    var symbolizedCachedParameters = {};
+    method.optionalParameters.forEach((name, param) => symbolizedCachedParameters[new Symbol(name)] = param);
+    return _symbolicateParameterValues(symbolizedCachedParameters);
+  }
+
+  Map<Symbol, dynamic> _symbolicateParameterValues(Map<Symbol, _HTTPControllerCachedParameter> parameters) {
+    Map<Symbol, dynamic> symbolicatedParameters = {};
+
+    parameters.forEach((sym, param) {
       var externalName = param.httpParameter.externalName;
-      var value;
+      List<String> value;
       if (param.httpParameter is HTTPQuery) {
         value = _queryParameters[externalName];
 
@@ -237,46 +251,12 @@ class _HTTPMethodParameterTemplate {
         }
       }
 
-      if (value is List) {
-        controllerParameters[sym] = _convertParameterListWithMirror(value, param.typeMirror);
-      } else if (value != null) {
-        controllerParameters[sym] = _convertParameterWithMirror(value, param.typeMirror);
+      if (value != null) {
+        symbolicatedParameters[sym] = _convertParameterListWithMirror(value, param.typeMirror);
       }
     });
 
-    return controllerParameters;
-  }
-
-  Map<Symbol, dynamic>_symbolicateOptionalParameters() {
-    Map<Symbol, dynamic> optionalParameters = {};
-
-    var key = _generateHandlerMethodKey(_request.innerRequest.method, _request.path.orderedVariableNames);
-    var method = _methodCache[_controller.runtimeType][key];
-    method.optionalParameters.forEach((name, param) {
-      var externalName = param.httpParameter.externalName;
-      var value;
-      if (param.httpParameter is HTTPHeader) {
-        value = _headerParameters[externalName.toLowerCase()];
-
-        if (value == null && param.httpParameter.isRequired) {
-          _missingHeaders.add(externalName);
-        }
-      } else if (param.httpParameter is HTTPQuery) {
-        value = _queryParameters[externalName];
-
-        if (value == null && param.httpParameter.isRequired) {
-          _missingQueries.add(externalName);
-        }
-      }
-
-      if (value is List) {
-        optionalParameters[new Symbol(name)] = _convertParameterListWithMirror(value, param.typeMirror);
-      } else if (value != null) {
-        optionalParameters[new Symbol(name)] = _convertParameterWithMirror(value, param.typeMirror);
-      }
-    });
-
-    return optionalParameters;
+    return symbolicatedParameters;
   }
 
   dynamic _convertParameterListWithMirror(List<String> parameterValues, TypeMirror typeMirror) {
