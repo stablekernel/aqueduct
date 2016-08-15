@@ -214,7 +214,7 @@ class _HTTPMethodParameterTemplate {
   }
 
   void _symbolicateControllerParameterValues(_HTTPMethodParameterValues values) {
-    values.controllerParametersForRequest = _symbolicateParameterValues(_controllerLevelParameters[_controller.runtimeType], values);
+    _symbolicateParameterValues(_controllerLevelParameters[_controller.runtimeType], values.controllerParametersForRequest, values._missingQueries, values._missingHeaders);
   }
 
   void _symbolicateOptionalParameterValues(_HTTPMethodParameterValues values) {
@@ -223,12 +223,10 @@ class _HTTPMethodParameterTemplate {
 
     var symbolizedCachedParameters = {};
     method.optionalParameters.forEach((name, param) => symbolizedCachedParameters[new Symbol(name)] = param);
-    values.optionalParametersForRequest = _symbolicateParameterValues(symbolizedCachedParameters, values);
+    _symbolicateParameterValues(symbolizedCachedParameters, values.optionalParametersForRequest, values._missingQueries, values._missingHeaders);
   }
 
-  Map<Symbol, dynamic> _symbolicateParameterValues(Map<Symbol, _HTTPControllerCachedParameter> parameters, _HTTPMethodParameterValues values) {
-    Map<Symbol, dynamic> symbolicatedParameters = {};
-
+  void _symbolicateParameterValues(Map<Symbol, _HTTPControllerCachedParameter> parameters, Map<Symbol, dynamic> symbolicatedParameterValues, List<String> missingQueries, List<String> missingHeaders) {
     parameters.forEach((sym, param) {
       var externalName = param.httpParameter.externalName;
       List<String> value;
@@ -236,22 +234,20 @@ class _HTTPMethodParameterTemplate {
         value = _queryParameters[externalName];
 
         if (value == null && param.httpParameter.isRequired) {
-          values._missingQueries.add(externalName);
+          missingQueries.add(externalName);
         }
       } else if (param.httpParameter is HTTPHeader) {
         value = _headerParameters[externalName.toLowerCase()];
 
         if (value == null && param.httpParameter.isRequired) {
-          values._missingHeaders.add(externalName);
+          missingHeaders.add(externalName);
         }
       }
 
       if (value != null) {
-        symbolicatedParameters[sym] = _convertParameterListWithMirror(value, param.typeMirror);
+        symbolicatedParameterValues[sym] = _convertParameterListWithMirror(value, param.typeMirror);
       }
     });
-
-    return symbolicatedParameters;
   }
 
   dynamic _convertParameterListWithMirror(List<String> parameterValues, TypeMirror typeMirror) {
