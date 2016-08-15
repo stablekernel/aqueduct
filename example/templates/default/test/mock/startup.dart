@@ -20,7 +20,7 @@ class TestApplication {
 
     application = new Application<WildfirePipeline>();
     application.configuration.pipelineOptions = {
-      WildfirePipeline.ConfigurationFileKey: configuration,
+      WildfirePipeline.ConfigurationKey: configuration,
       WildfirePipeline.LoggingTargetKey : logger.getNewTarget()
     };
     application.configuration.port = port;

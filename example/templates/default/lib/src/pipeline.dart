@@ -8,11 +8,11 @@ class WildfireConfiguration extends ConfigurationItem {
 }
 
 class WildfirePipeline extends ApplicationPipeline {
-  static const String ConfigurationFileKey = "ConfigurationFileKey";
+  static const String ConfigurationKey = "ConfigurationKey";
   static const String LoggingTargetKey = "LoggingTargetKey";
 
   WildfirePipeline(Map<String, dynamic> opts) : super(opts) {
-    configuration = new WildfireConfiguration(opts[ConfigurationFileKey]);
+    configuration = opts[ConfigurationKey];
 
     LoggingTarget target = opts[LoggingTargetKey];
     target?.bind(logger);
