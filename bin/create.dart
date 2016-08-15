@@ -3,15 +3,25 @@ import 'dart:async';
 import 'dart:mirrors';
 import 'dart:isolate';
 import 'package:args/args.dart';
+import 'package:aqueduct/aqueduct.dart';
 
 Future main(List<String> args) async {
-  var packageURI = await Isolate.resolvePackageUri(new Uri(scheme: "package", path: "aqueduct"));
   var parser = new ArgParser(allowTrailingOptions: false);
   parser.addOption("template", abbr: "t", defaultsTo: "default", help: "Name of the template. Defaults to default. Available options are: default");
   parser.addOption("name", abbr: "n", help: "Name of project in snake_case.");
   parser.addOption("template-directory", hide: true);
+  parser.addOption("git-url", help: "Git url, will trigger generating the template from the specified git repository instead of pub.");
+  parser.addOption("git-ref", defaultsTo: "master", help: "Git reference (branch or commit), will trigger generating the template from the git repository instead of pub.");
+  parser.addOption("path-source", help: "Full path on filesystem, will trigger generating the template from the aqueduct source at path-source instead of pub.");
+  parser.addOption("version", defaultsTo: "any", help: "Version string for aqueduct on pub for template source.");
+  parser.addFlag("help", negatable: false, help: "Shows this documentation");
 
   var argValues = parser.parse(args);
+
+  if (argValues["help"] == true) {
+    print("${parser.usage}");
+    return;
+  }
 
   if (argValues["name"] == null || !isSnakeCase(argValues["name"])) {
     print("Invalid project name\n${parser.usage}");
@@ -19,26 +29,50 @@ Future main(List<String> args) async {
   }
 
   var destDirectory = destinationDirectoryFromPath(argValues["name"]);
-  var sourceDirectory = new Directory("${packageURI.path}/example/templates/${argValues["template"]}");
   if (destDirectory.existsSync()) {
     print("${destDirectory.path} already exists.");
     return;
   }
+  destDirectory.createSync();
+
+  print("Fetching template source...");
+  var aqueductPath = await determineAqueductPath(destDirectory, argValues);
+  var sourceDirectory = new Directory("${aqueductPath}/example/templates/${argValues["template"]}");
 
   if (argValues["template-directory"] != null) {
     sourceDirectory = new Directory("${argValues["template-directory"]}/${argValues["template"]}");
   }
-  print("${sourceDirectory}");
   if (!sourceDirectory.existsSync()) {
     print("Error: no template named ${argValues["template"]}");
     return;
   }
 
+  print("Copying project files...");
   await copyProjectFiles(destDirectory, sourceDirectory, argValues["name"]);
 
+  print("Generating project files...");
   await createProjectSpecificFiles(destDirectory.path);
 
   print("${argValues["name"]} created at ${destDirectory.path}");
+}
+
+String determineAqueductPath(Directory projectDirectory, ArgResults argValues) {
+  var temporaryPubspec = generatingPubspec(versionString: argValues["version"], gitHost: argValues["git-url"], gitRef: argValues["git-ref"], path: argValues["path-source"]);
+
+  new File(projectDirectory.path + "/pubspec.yaml").writeAsStringSync(temporaryPubspec);
+  var result = Process.runSync("pub", ["get"], workingDirectory: projectDirectory.path);
+  if (result.exitCode != 0) {
+    throw new Exception("${result.stderr}");
+  }
+
+  var resolver = new PackagePathResolver(projectDirectory.path + "/.packages");
+  var resolvedURL = resolver.resolve(new Uri(scheme: "package", path: "aqueduct"));
+
+  new File(projectDirectory.path + "/pubspec.yaml").deleteSync();
+  new File(projectDirectory.path + "/.packages").deleteSync();
+
+  var lastLibIndex = resolvedURL.lastIndexOf("/lib");
+  return resolvedURL.substring(0, lastLibIndex);
 }
 
 bool shouldIncludeItem(FileSystemEntity entity) {
@@ -142,9 +176,7 @@ Future createProjectSpecificFiles(String directoryPath) async {
 }
 
 void copyProjectFiles(Directory destinationDirectory, Directory sourceDirectory, String projectName) {
-  print("Creating project '$projectName'...");
   try {
-    print("Supplying project values...");
     destinationDirectory.createSync();
 
     new Directory(sourceDirectory.path)
@@ -159,6 +191,24 @@ void copyProjectFiles(Directory destinationDirectory, Directory sourceDirectory,
     Process.runSync("rm", ["-rf", destinationDirectory.path]);
     print("${e}");
   }
+}
+
+String generatingPubspec({String versionString: "any", String gitHost: null, String gitRef: "master", String path: null}) {
+  var str = 'name: aqueduct_generator\nversion: 1.0.0\nenvironment:\n  sdk: ">=1.16.0 <2.0.0"\ndependencies:\n  aqueduct: ';
+
+  if (gitHost != null) {
+    str += "\n";
+    str += "    git:\n";
+    str += '      url: "$gitHost"\n';
+    str += '      ref: "$gitRef"';
+  } else if (path != null) {
+    str += "\n";
+    str += "    path: $path";
+  } else {
+    str += '"$versionString"';
+  }
+
+  return str;
 }
 
 bool isSnakeCase(String string) {
