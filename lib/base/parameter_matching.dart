@@ -44,36 +44,24 @@ class _HTTPMethodParameterValues {
   List<dynamic> orderedParametersForRequest = [];
   Map<Symbol, dynamic> optionalParametersForRequest = {};
 
-  bool isMissingRequiredParameters;
-  String missingParametersString;
-
-  _HTTPMethodParameterValues(this.methodSymbolForRequest,
-                             this.controllerParametersForRequest,
-                             this.orderedParametersForRequest,
-                             this.optionalParametersForRequest,
-                             List<String> missingQueries,
-                             List<String> missingHeaders) {
-    isMissingRequiredParameters = missingQueries.isNotEmpty || missingHeaders.isNotEmpty;
-    missingParametersString = buildMissingParameterString(missingQueries, missingHeaders);
-  }
-
-  String buildMissingParameterString(List<String> missingQueries, List<String> missingHeaders) {
+  bool get isMissingRequiredParameters => _missingQueries.isNotEmpty || _missingHeaders.isNotEmpty;
+  String get missingParametersString {
     if (!isMissingRequiredParameters) {
       return null;
     }
 
     StringBuffer missings = new StringBuffer();
-    if (missingQueries.isNotEmpty) {
-      var missingQueriesString = missingQueries
+    if (_missingQueries.isNotEmpty) {
+      var missingQueriesString = _missingQueries
           .map((p) => "'${p}'")
           .join(", ");
       missings.write("Missing query value(s): ${missingQueriesString}.");
     }
-    if (missingQueries.isNotEmpty && missingHeaders.isNotEmpty) {
+    if (_missingQueries.isNotEmpty && _missingHeaders.isNotEmpty) {
       missings.write(" ");
     }
-    if (missingHeaders.isNotEmpty) {
-      var missingHeadersString = missingHeaders
+    if (_missingHeaders.isNotEmpty) {
+      var missingHeadersString = _missingHeaders
           .map((p) => "'${p}'")
           .join(", ");
       missings.write("Missing header(s): ${missingHeadersString}.");
@@ -81,6 +69,9 @@ class _HTTPMethodParameterValues {
 
     return missings.toString();
   }
+
+  List<String> _missingQueries = [];
+  List<String> _missingHeaders = [];
 }
 
 class _HTTPMethodParameterTemplate {
@@ -189,26 +180,21 @@ class _HTTPMethodParameterTemplate {
   }
 
   _HTTPMethodParameterValues parseRequest() {
-    var orderedParameters = _parseOrderedParameters();
+    var parameterValues = new _HTTPMethodParameterValues()
+      ..methodSymbolForRequest = _methodSymbol;
 
+    _parseOrderedParameters(parameterValues);
     _parseOptionalParameters();
-    var controllerParameters = _symbolicateControllerParameterValues();
-    var optionalParameters = _symbolicateOptionalParameterValues();
+    _symbolicateControllerParameterValues(parameterValues);
+    _symbolicateOptionalParameterValues(parameterValues);
 
-    return new _HTTPMethodParameterValues(
-        _methodSymbol,
-        controllerParameters,
-        orderedParameters,
-        optionalParameters,
-        _missingQueries,
-        _missingHeaders
-    );
+    return parameterValues;
   }
 
-  List<dynamic> _parseOrderedParameters() {
+  void _parseOrderedParameters(_HTTPMethodParameterValues values) {
     var key = _generateHandlerMethodKey(_request.innerRequest.method, _request.path.orderedVariableNames);
     var method = _methodCache[_controller.runtimeType][key];
-    return method
+    values.orderedParametersForRequest = method
         .orderedPathParameters
         .map((param) => _convertParameterWithMirror(_request.path.variables[param.name], param.typeMirror))
         .toList();
@@ -227,20 +213,20 @@ class _HTTPMethodParameterTemplate {
     _headerParameters = _request.innerRequest.headers;
   }
 
-  Map<Symbol, dynamic> _symbolicateControllerParameterValues() {
-    return _symbolicateParameterValues(_controllerLevelParameters[_controller.runtimeType]);
+  void _symbolicateControllerParameterValues(_HTTPMethodParameterValues values) {
+    values.controllerParametersForRequest = _symbolicateParameterValues(_controllerLevelParameters[_controller.runtimeType], values);
   }
 
-  Map<Symbol, dynamic>_symbolicateOptionalParameterValues() {
+  void _symbolicateOptionalParameterValues(_HTTPMethodParameterValues values) {
     var key = _generateHandlerMethodKey(_request.innerRequest.method, _request.path.orderedVariableNames);
     var method = _methodCache[_controller.runtimeType][key];
 
     var symbolizedCachedParameters = {};
     method.optionalParameters.forEach((name, param) => symbolizedCachedParameters[new Symbol(name)] = param);
-    return _symbolicateParameterValues(symbolizedCachedParameters);
+    values.optionalParametersForRequest = _symbolicateParameterValues(symbolizedCachedParameters, values);
   }
 
-  Map<Symbol, dynamic> _symbolicateParameterValues(Map<Symbol, _HTTPControllerCachedParameter> parameters) {
+  Map<Symbol, dynamic> _symbolicateParameterValues(Map<Symbol, _HTTPControllerCachedParameter> parameters, _HTTPMethodParameterValues values) {
     Map<Symbol, dynamic> symbolicatedParameters = {};
 
     parameters.forEach((sym, param) {
@@ -250,13 +236,13 @@ class _HTTPMethodParameterTemplate {
         value = _queryParameters[externalName];
 
         if (value == null && param.httpParameter.isRequired) {
-          _missingQueries.add(externalName);
+          values._missingQueries.add(externalName);
         }
       } else if (param.httpParameter is HTTPHeader) {
         value = _headerParameters[externalName.toLowerCase()];
 
         if (value == null && param.httpParameter.isRequired) {
-          _missingHeaders.add(externalName);
+          values._missingHeaders.add(externalName);
         }
       }
 
