@@ -211,13 +211,13 @@ class ResourceController<ModelType extends Model> extends HTTPController {
   }
 
   @httpGet getObjects({
-                      @HTTPQuery.optional("count") int count: 0,
-                      @HTTPQuery.optional("offset") int offset: 0,
-                      @HTTPQuery.optional("pageBy") String pageBy: null,
-                      @HTTPQuery.optional("pageAfter") String pageAfter: null,
-                      @HTTPQuery.optional("pagePrior") String pagePrior: null,
-                      @HTTPQuery.optional("sortBy") List<String> sortBy: null
-                      }) async {
+  @HTTPQuery.optional("count") int count: 0,
+    @HTTPQuery.optional("offset") int offset: 0,
+    @HTTPQuery.optional("pageBy") String pageBy: null,
+    @HTTPQuery.optional("pageAfter") String pageAfter: null,
+    @HTTPQuery.optional("pagePrior") String pagePrior: null,
+    @HTTPQuery.optional("sortBy") List<String> sortBy: null
+  }) async {
     _query.fetchLimit = count;
     _query.offset = offset;
 

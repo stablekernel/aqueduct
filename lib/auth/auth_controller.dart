@@ -31,11 +31,11 @@ class AuthController extends HTTPController {
   /// When grant_type is 'authorization_code', there must be a authorization_code value.
   @httpPost
   Future<Response> create({
-                          @HTTPQuery.optional("username") String username,
-                          @HTTPQuery.optional("password") String password,
-                          @HTTPQuery.optional("refresh_token") String refreshToken,
-                          @HTTPQuery.optional("authorization_code") String authCode
-                          }) async {
+    @HTTPQuery.optional("username") String username,
+    @HTTPQuery.optional("password") String password,
+    @HTTPQuery.optional("refresh_token") String refreshToken,
+    @HTTPQuery.optional("authorization_code") String authCode
+  }) async {
     var basicRecord = AuthorizationBasicParser.parse(authHeader);
     if (grantType == "password") {
       if (username == null || password == null) {

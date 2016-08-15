@@ -447,11 +447,11 @@ class HTTPParameterController extends HTTPController {
 
   @httpGet
   Future<Response> get({
-                       @HTTPHeader.required("Cookie") String cookieBrand,
-                       @HTTPHeader.optional("Milk") String milkBrand,
-                       @HTTPQuery.required("Table") String tableBrand,
-                       @HTTPQuery.optional("table_legs") int numberOfTableLegs
-                       }) async {
+    @HTTPHeader.required("Cookie") String cookieBrand,
+    @HTTPHeader.optional("Milk") String milkBrand,
+    @HTTPQuery.required("Table") String tableBrand,
+    @HTTPQuery.optional("table_legs") int numberOfTableLegs
+  }) async {
     return new Response.ok({
       "location" : location,
       "x-request-id" : requestId,
