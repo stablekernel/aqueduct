@@ -204,25 +204,27 @@ abstract class HTTPController extends RequestHandler {
                 ..parameterLocation = APIParameterLocation.path;
       }).toList();
 
+      bool usesFormEncodedData = operation.method.toLowerCase() == "post" && acceptedContentTypes.any((ct) => ct.primaryType == "application" && ct.subType == "x-www-form-urlencoded");
       List<APIParameter> optionalParams = mm.parameters
-          .where((pm) => pm.isOptional)
+          .where((pm) => pm.metadata.any((im) => im.reflectee is _HTTPParameter))
           .map((pm) {
+            _HTTPParameter httpParameter = pm.metadata.firstWhere((im) => im.reflectee is _HTTPParameter).reflectee;
+            APIParameterLocation pl;
+            if (httpParameter is HTTPHeader) {
+              pl = APIParameterLocation.header;
+            } else if (usesFormEncodedData) {
+              pl = APIParameterLocation.formData;
+            } else {
+              pl = APIParameterLocation.query;
+            }
             return new APIParameter()
               ..name = MirrorSystem.getName(pm.simpleName)
               ..description = ""
               ..type = APIParameter.typeStringForVariableMirror(pm)
-              ..required = false;
+              ..required = httpParameter.isRequired
+              ..parameterLocation = pl;
           }).toList();
 
-      if (operation.method.toLowerCase() == "post" && acceptedContentTypes.firstWhere((cm) => cm.primaryType == "application" && cm.subType == "x-www-form-urlencoded", orElse: () => null) != null) {
-        optionalParams.forEach((param) {
-          param.parameterLocation = APIParameterLocation.formData;
-        });
-      } else {
-        optionalParams.forEach((param) {
-          param.parameterLocation = APIParameterLocation.query;
-        });
-      }
       operation.parameters.addAll(optionalParams);
 
       operation.consumes = acceptedContentTypes.map((ct) => "${ct.primaryType}/${ct.subType}").toList();
