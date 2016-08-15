@@ -111,7 +111,7 @@ class _HTTPMethodParameterTemplate {
     return new _HTTPMethodParameterTemplate._internal(con, req, matchingMethod.methodSymbol);
   }
 
-  _HTTPMethodParameterTemplate._internal(HTTPController this._controller, Request this._request, Symbol this._methodSymbol);
+  _HTTPMethodParameterTemplate._internal(this._controller, this._request, this._methodSymbol);
 
   static void _buildCachesIfNecessary(Type controllerType) {
     if (_methodCache.containsKey(controllerType)) {
@@ -124,7 +124,9 @@ class _HTTPMethodParameterTemplate {
     allDeclarations.forEach((key, declaration) {
       if (declaration is VariableMirror) {
         _HTTPParameter httpParameter = declaration.metadata.firstWhere((im) => im.reflectee is _HTTPParameter, orElse: () => null)?.reflectee;
-        if (httpParameter == null) { return; }
+        if (httpParameter == null) {
+          return;
+        }
 
         controllerLevelMap[key] = new _HTTPControllerCachedParameter()
           ..name = MirrorSystem.getName(key)
@@ -143,23 +145,22 @@ class _HTTPMethodParameterTemplate {
             .parameters
             .where((pm) => !pm.isOptional)
             .map((pm) {
-          var name = MirrorSystem.getName(pm.simpleName);
-          return new _HTTPControllerCachedParameter()
-            ..name = name
-            ..typeMirror = pm.type;
-        })
-            .toList();
+              var name = MirrorSystem.getName(pm.simpleName);
+              return new _HTTPControllerCachedParameter()
+                ..name = name
+                ..typeMirror = pm.type;
+            }).toList();
 
         Iterable<_HTTPControllerCachedParameter> optionalParams = (declaration as MethodMirror)
             .parameters
             .where((pm) => pm.metadata.any((im) => im.reflectee is _HTTPParameter))
             .map((pm) {
-          _HTTPParameter httpParameter = pm.metadata.firstWhere((im) => im.reflectee is _HTTPParameter).reflectee;
-          return new _HTTPControllerCachedParameter()
-            ..name = MirrorSystem.getName(pm.simpleName)
-            ..httpParameter = httpParameter
-            ..typeMirror = pm.type;
-        });
+              _HTTPParameter httpParameter = pm.metadata.firstWhere((im) => im.reflectee is _HTTPParameter).reflectee;
+              return new _HTTPControllerCachedParameter()
+                ..name = MirrorSystem.getName(pm.simpleName)
+                ..httpParameter = httpParameter
+                ..typeMirror = pm.type;
+            });
         var optionalParameters = new Map.fromIterable(optionalParams, key: (p) => p.name, value: (p) => p);
 
         var generatedKey = _generateHandlerMethodKey((methodAttrs.reflectee as HTTPMethod).method, params.map((p) => p.name).toList());
