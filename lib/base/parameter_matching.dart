@@ -37,47 +37,48 @@ class HTTPQuery extends _HTTPParameter {
   const HTTPQuery.optional(String key) : super.optional(key);
 }
 
-class _HTTPMethodParameterValues {
-  Symbol methodSymbolForRequest;
-
-  Map<Symbol, dynamic> controllerParametersForRequest = {};
-  List<dynamic> orderedParametersForRequest = [];
-  Map<Symbol, dynamic> optionalParametersForRequest = {};
-
-  bool get isMissingRequiredParameters => _missingQueries.isNotEmpty || _missingHeaders.isNotEmpty;
-  String get missingParametersString {
-    if (!isMissingRequiredParameters) {
-      return null;
+class _HTTPControllerCache {
+  static Map<Type, _HTTPControllerCache> controllerCache = {};
+  static _HTTPControllerCache cacheForType(Type t) {
+    var cacheItem = controllerCache[t];
+    if (cacheItem != null) {
+      return cacheItem;
     }
 
-    StringBuffer missings = new StringBuffer();
-    if (_missingQueries.isNotEmpty) {
-      var missingQueriesString = _missingQueries
-          .map((p) => "'${p}'")
-          .join(", ");
-      missings.write("Missing query value(s): ${missingQueriesString}.");
-    }
-    if (_missingQueries.isNotEmpty && _missingHeaders.isNotEmpty) {
-      missings.write(" ");
-    }
-    if (_missingHeaders.isNotEmpty) {
-      var missingHeadersString = _missingHeaders
-          .map((p) => "'${p}'")
-          .join(", ");
-      missings.write("Missing header(s): ${missingHeadersString}.");
-    }
-
-    return missings.toString();
+    controllerCache[t] = new _HTTPControllerCache(t);
+    return controllerCache[t];
   }
 
-  List<String> _missingQueries = [];
-  List<String> _missingHeaders = [];
+  _HTTPControllerCache(Type controllerType) {
+    var allDeclarations = reflectClass(controllerType).declarations;
+
+    allDeclarations.values
+        .where((decl) => decl is VariableMirror)
+        .where((decl) => decl.metadata.any((im) => im.reflectee is _HTTPParameter))
+        .map((decl) => new _HTTPControllerCachedParameter(decl))
+        .forEach((_HTTPControllerCachedParameter param) {
+          propertyCache[new Symbol(param.name)] = param;
+        });
+
+    allDeclarations.values
+        .where((decl) => decl is MethodMirror)
+        .where((decl) => decl.metadata.any((im) => im.reflectee is HTTPMethod))
+        .map((decl) => new _HTTPControllerCachedMethod(decl))
+        .forEach((_HTTPControllerCachedMethod method) {
+          var key = _HTTPControllerCachedMethod.generateHandlerMethodKey(method.httpMethod.method, method.orderedPathParameters.map((p) => p.name).toList());
+          methodCache[key] = method;
+        });
+  }
+
+  Map<String, _HTTPControllerCachedMethod> methodCache = {};
+  Map<Symbol, _HTTPControllerCachedParameter> propertyCache = {};
+
+  _HTTPControllerCachedMethod mapperForRequest(Request req) {
+    return methodCache[_HTTPControllerCachedMethod.generateHandlerMethodKey(req.innerRequest.method, req.path.orderedVariableNames)];
+  }
 }
 
 class _HTTPMethodParameterTemplate {
-  static Map<Type, Map<String, _HTTPControllerCachedMethod>> _methodCache = {};
-  static Map<Type, Map<Symbol, _HTTPControllerCachedParameter>> _controllerLevelParameters = {};
-  static ContentType _applicationWWWFormURLEncodedContentType = new ContentType("application", "x-www-form-urlencoded");
 
   HTTPController _controller;
   Request _request;
@@ -89,98 +90,10 @@ class _HTTPMethodParameterTemplate {
   HttpHeaders _headerParameters;
   List<String> _missingHeaders = [];
 
-  factory _HTTPMethodParameterTemplate(HTTPController con, Request req) {
-    Type controllerType = con.runtimeType;
-    _buildCachesIfNecessary(controllerType);
-
-    var key = _generateHandlerMethodKey(req.innerRequest.method, req.path.orderedVariableNames);
-    var matchingMethod = _methodCache[controllerType][key];
-    if (matchingMethod == null) {
-      return null;
-    }
-
-    return new _HTTPMethodParameterTemplate._internal(con, req, matchingMethod.methodSymbol);
-  }
-
   _HTTPMethodParameterTemplate._internal(this._controller, this._request, this._methodSymbol);
 
-  static void _buildCachesIfNecessary(Type controllerType) {
-    if (_methodCache.containsKey(controllerType)) {
-      return;
-    }
-
-    var controllerLevelMap = {};
-    var methodMap = {};
-    var allDeclarations = reflectClass(controllerType).declarations;
-    allDeclarations.forEach((key, declaration) {
-      if (declaration is VariableMirror) {
-        var cachedParameter = _cachedParameterFrom(key, declaration);
-        if (cachedParameter == null) {
-          return;
-        }
-
-        controllerLevelMap[key] = cachedParameter;
-      } else if (declaration is MethodMirror) {
-        var methodAttrs = declaration.metadata.firstWhere((attr) => attr.reflectee is HTTPMethod, orElse: () => null);
-        if (methodAttrs == null) {
-          return;
-        }
-
-        var cachedMethod = _cachedMethodFrom(key, declaration);
-        var generatedKey = _generateHandlerMethodKey((methodAttrs.reflectee as HTTPMethod).method, cachedMethod.orderedPathParameters.map((p) => p.name).toList());
-        methodMap[generatedKey] = cachedMethod;
-      }
-    });
-
-    _methodCache[controllerType] = methodMap;
-    _controllerLevelParameters[controllerType] = controllerLevelMap;
-  }
-
-  static _HTTPControllerCachedParameter _cachedParameterFrom(Symbol sym, VariableMirror vm) {
-    _HTTPParameter httpParameter = vm.metadata.firstWhere((im) => im.reflectee is _HTTPParameter, orElse: () => null)?.reflectee;
-    if (httpParameter == null) {
-      return null;
-    }
-
-    return new _HTTPControllerCachedParameter()
-      ..name = MirrorSystem.getName(sym)
-      ..httpParameter = httpParameter
-      ..typeMirror = vm.type;
-  }
-
-  static _HTTPControllerCachedMethod _cachedMethodFrom(Symbol sym, MethodMirror mm) {
-    List<_HTTPControllerCachedParameter> params = mm.parameters
-        .where((pm) => !pm.isOptional)
-        .map((pm) {
-          var name = MirrorSystem.getName(pm.simpleName);
-          return new _HTTPControllerCachedParameter()
-            ..name = name
-            ..typeMirror = pm.type;
-        }).toList();
-
-    Iterable<_HTTPControllerCachedParameter> optionalParams = mm.parameters
-        .where((pm) => pm.metadata.any((im) => im.reflectee is _HTTPParameter))
-        .map((pm) {
-          _HTTPParameter httpParameter = pm.metadata.firstWhere((im) => im.reflectee is _HTTPParameter).reflectee;
-          return new _HTTPControllerCachedParameter()
-            ..name = MirrorSystem.getName(pm.simpleName)
-            ..httpParameter = httpParameter
-            ..typeMirror = pm.type;
-        });
-    var optionalParameters = new Map.fromIterable(optionalParams, key: (p) => p.name, value: (p) => p);
-
-    return new _HTTPControllerCachedMethod()
-      ..methodSymbol = sym
-      ..orderedPathParameters = params
-      ..optionalParameters = optionalParameters;
-  }
-
-  static String _generateHandlerMethodKey(String httpMethod, List<String> params) {
-    return "${httpMethod.toLowerCase()}-" + params.map((pathParam) => pathParam).join("-");
-  }
-
-  _HTTPMethodParameterValues parseRequest() {
-    var parameterValues = new _HTTPMethodParameterValues()
+  _HTTPControllerInvocation parseRequest() {
+    var parameterValues = new _HTTPControllerInvocation()
       ..methodSymbolForRequest = _methodSymbol;
 
     _parseOrderedParameters(parameterValues);
@@ -191,8 +104,8 @@ class _HTTPMethodParameterTemplate {
     return parameterValues;
   }
 
-  void _parseOrderedParameters(_HTTPMethodParameterValues values) {
-    var key = _generateHandlerMethodKey(_request.innerRequest.method, _request.path.orderedVariableNames);
+  void _parseOrderedParameters(_HTTPControllerInvocation values) {
+    var key = generateHandlerMethodKey(_request.innerRequest.method, _request.path.orderedVariableNames);
     var method = _methodCache[_controller.runtimeType][key];
     values.orderedParametersForRequest = method
         .orderedPathParameters
@@ -213,12 +126,12 @@ class _HTTPMethodParameterTemplate {
     _headerParameters = _request.innerRequest.headers;
   }
 
-  void _symbolicateControllerParameterValues(_HTTPMethodParameterValues values) {
+  void _symbolicateControllerParameterValues(_HTTPControllerInvocation values) {
     _symbolicateParameterValues(_controllerLevelParameters[_controller.runtimeType], values.controllerParametersForRequest, values._missingQueries, values._missingHeaders);
   }
 
-  void _symbolicateOptionalParameterValues(_HTTPMethodParameterValues values) {
-    var key = _generateHandlerMethodKey(_request.innerRequest.method, _request.path.orderedVariableNames);
+  void _symbolicateOptionalParameterValues(_HTTPControllerInvocation values) {
+    var key = generateHandlerMethodKey(_request.innerRequest.method, _request.path.orderedVariableNames);
     var method = _methodCache[_controller.runtimeType][key];
 
     var symbolizedCachedParameters = {};
@@ -290,13 +203,79 @@ class _HTTPMethodParameterTemplate {
   }
 }
 
+class _HTTPControllerInvocation {
+  Symbol methodSymbolForRequest;
+
+  Map<Symbol, dynamic> controllerParametersForRequest = {};
+  List<dynamic> orderedParametersForRequest = [];
+  Map<Symbol, dynamic> optionalParametersForRequest = {};
+
+  List<String> _missingQueries = [];
+  List<String> _missingHeaders = [];
+
+  bool get isMissingRequiredParameters => _missingQueries.isNotEmpty || _missingHeaders.isNotEmpty;
+  String get missingParametersString {
+    if (!isMissingRequiredParameters) {
+      return null;
+    }
+
+    StringBuffer missings = new StringBuffer();
+    if (_missingQueries.isNotEmpty) {
+      var missingQueriesString = _missingQueries
+          .map((p) => "'${p}'")
+          .join(", ");
+      missings.write("Missing query value(s): ${missingQueriesString}.");
+    }
+    if (_missingQueries.isNotEmpty && _missingHeaders.isNotEmpty) {
+      missings.write(" ");
+    }
+    if (_missingHeaders.isNotEmpty) {
+      var missingHeadersString = _missingHeaders
+          .map((p) => "'${p}'")
+          .join(", ");
+      missings.write("Missing header(s): ${missingHeadersString}.");
+    }
+
+    return missings.toString();
+  }
+}
+
 class _HTTPControllerCachedMethod {
+  static String generateHandlerMethodKey(String httpMethod, List<String> params) {
+    return "${httpMethod.toLowerCase()}-" + params.map((pathParam) => pathParam).join("-");
+  }
+
+  _HTTPControllerCachedMethod(MethodMirror mirror) {
+    List<_HTTPControllerCachedParameter> params = mirror.parameters
+        .where((pm) => !pm.isOptional)
+        .map((pm) => new _HTTPControllerCachedParameter(pm))
+        .toList();
+
+    Iterable<_HTTPControllerCachedParameter> optionalParams = mirror.parameters
+        .where((pm) => pm.metadata.any((im) => im.reflectee is _HTTPParameter))
+        .map((pm) => new _HTTPControllerCachedParameter(pm));
+
+    var optionalParameters = new Map.fromIterable(optionalParams, key: (p) => p.name, value: (p) => p);
+
+    httpMethod = mirror.metadata.firstWhere((m) => m is HTTPMethod).reflectee;
+    methodSymbol = mirror.simpleName;
+    orderedPathParameters = params;
+    optionalParameters = optionalParameters;
+  }
+
   Symbol methodSymbol;
+  HTTPMethod httpMethod;
   List<_HTTPControllerCachedParameter> orderedPathParameters = [];
   Map<String, _HTTPControllerCachedParameter> optionalParameters = {};
 }
 
 class _HTTPControllerCachedParameter {
+  _HTTPControllerCachedParameter(VariableMirror mirror) {
+    name = MirrorSystem.getName(mirror.simpleName);
+    httpParameter = mirror.metadata.firstWhere((im) => im.reflectee is _HTTPParameter, orElse: () => null)?.reflectee;
+    typeMirror = mirror.type;
+  }
+
   String name;
   TypeMirror typeMirror;
   _HTTPParameter httpParameter;

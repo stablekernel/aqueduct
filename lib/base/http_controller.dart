@@ -88,8 +88,9 @@ abstract class HTTPController extends RequestHandler {
   }
 
   Future<Response> _process() async {
-    var parametersTemplate = new _HTTPMethodParameterTemplate(this, request);
-    if (parametersTemplate == null) {
+    var controllerCache = _HTTPControllerCache.cacheForType(runtimeType);
+    var mapper = controllerCache.mapperForRequest(request);
+    if (mapper == null) {
       return new Response.notFound();
     }
 
