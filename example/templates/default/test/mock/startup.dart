@@ -11,7 +11,6 @@ class TestApplication {
   Application<WildfirePipeline> application;
   WildfirePipeline get pipeline => application.server.pipeline;
   LoggingServer logger = new LoggingServer([]);
-  int port = 8080;
   TestClient client;
   WildfireConfiguration configuration;
 
@@ -23,7 +22,6 @@ class TestApplication {
       WildfirePipeline.ConfigurationKey: configuration,
       WildfirePipeline.LoggingTargetKey : logger.getNewTarget()
     };
-    application.configuration.port = port;
 
     await application.start(runOnMainIsolate: true);
 
@@ -32,7 +30,7 @@ class TestApplication {
     await createDatabaseSchema(pipeline.context, pipeline.logger);
     await addClientRecord();
 
-    client = new TestClient(port)
+    client = new TestClient(configuration.port)
       ..clientID = "com.aqueduct.test"
       ..clientSecret = "kilimanjaro";
   }
