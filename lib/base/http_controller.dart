@@ -100,21 +100,36 @@ abstract class HTTPController extends RequestHandler {
       }
     }
 
+
     if (requestBody != null) {
       didDecodeRequestBody(requestBody);
     }
-    
-    var parametersValues = parametersTemplate.parseRequest();
-    if (parametersValues.isMissingRequiredParameters) {
-      return new Response.badRequest(body: {"error": parametersValues.missingParametersString});
+
+    var queryParameters = request.innerRequest.uri.queryParametersAll;
+    var contentType = request.innerRequest.headers.contentType;
+    if (contentType != null
+    &&  contentType.primaryType == HTTPController._applicationWWWFormURLEncodedContentType .primaryType
+    &&  contentType.subType == HTTPController._applicationWWWFormURLEncodedContentType.subType) {
+      queryParameters = requestBody ?? {};
     }
 
-    parametersValues.controllerParametersForRequest.forEach((sym, value) => reflect(this).setField(sym, value));
+    var properties = controllerCache.propertiesFromRequest(request.innerRequest.headers, queryParameters);
+    var orderedParameters = mapper.orderedParametersFromRequest(request);
+    var optionalParameters = mapper.optionalParametersFromRequest(request.innerRequest.headers, queryParameters);
+
+    print("Properties: $properties\norderedParameters: $orderedParameters\noptoinalParameters: $optionalParameters");
+
+    var missingResponse = _missingRequiredParameterResponseIfNecessary(properties, optionalParameters);
+    if (missingResponse != null) {
+      return missingResponse;
+    }
+
+    properties.forEach((sym, value) => reflect(this).setField(sym, value));
 
     Future<Response> eventualResponse = reflect(this).invoke(
-        parametersValues.methodSymbolForRequest,
-        parametersValues.orderedParametersForRequest,
-        parametersValues.optionalParametersForRequest
+        mapper.methodSymbol,
+        orderedParameters,
+        optionalParameters
     ).reflectee;
     var response = await eventualResponse;
 
@@ -128,7 +143,6 @@ abstract class HTTPController extends RequestHandler {
 
   @override
   Future<RequestHandlerResult> processRequest(Request req) async {
-
     try {
       request = req;
 
@@ -232,6 +246,8 @@ abstract class HTTPController extends RequestHandler {
       return operation;
     }).toList();
   }
+
+
 }
 
 class _InternalControllerException implements Exception {
@@ -256,4 +272,38 @@ class _InternalControllerException implements Exception {
     }
     return new Response(statusCode, headerMap, bodyMap);
   }
+}
+
+Response _missingRequiredParameterResponseIfNecessary(Map<Symbol, dynamic> properties, Map<Symbol, dynamic> optionalParameters) {
+  List<_HTTPControllerMissingParameter> missingParams = [properties, optionalParameters]
+      .expand((m) => m.values)
+      .where((v) => v is _HTTPControllerMissingParameter)
+      .toList();
+
+  if (missingParams.isEmpty) {
+    return null;
+  }
+
+  var missingHeaders = missingParams.where((p) => p.type == _HTTPControllerMissingParameterType.header).map((p) => p.externalName).toList();
+  var missingQueryParameters = missingParams.where((p) => p.type == _HTTPControllerMissingParameterType.query).map((p) => p.externalName).toList();
+
+  print("${missingHeaders} $missingQueryParameters");
+  StringBuffer missings = new StringBuffer();
+  if (missingQueryParameters.isNotEmpty) {
+    var missingQueriesString = missingQueryParameters
+        .map((p) => "'${p}'")
+        .join(", ");
+    missings.write("Missing query value(s): ${missingQueriesString}.");
+  }
+  if (missingQueryParameters.isNotEmpty && missingHeaders.isNotEmpty) {
+    missings.write(" ");
+  }
+  if (missingHeaders.isNotEmpty) {
+    var missingHeadersString = missingHeaders
+        .map((p) => "'${p}'")
+        .join(", ");
+    missings.write("Missing header(s): ${missingHeadersString}.");
+  }
+
+  return new Response.badRequest(body: {"error" : missings.toString()});
 }

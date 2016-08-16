@@ -235,6 +235,7 @@ void main() {
         "Cookie" : "Chips Ahoy",
         "Milk" : "Publix",
       });
+      print("${resp.body}");
 
       expect(resp.statusCode, 200);
       expect(JSON.decode(resp.body), {
