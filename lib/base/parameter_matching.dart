@@ -153,7 +153,7 @@ Map<Symbol, dynamic> _parseParametersFromRequest(Map<Symbol, _HTTPControllerCach
     if (mapper.httpParameter is HTTPQuery) {
       parameterType = _HTTPControllerMissingParameterType.query;
       value = queryParameters[mapper.httpParameter.externalName];
-    } else if (mapper.httpParameter is HTTPMethod) {
+    } else if (mapper.httpParameter is HTTPHeader) {
       parameterType = _HTTPControllerMissingParameterType.header;
       value = headers[mapper.httpParameter.externalName];
     }

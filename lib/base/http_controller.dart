@@ -117,8 +117,6 @@ abstract class HTTPController extends RequestHandler {
     var orderedParameters = mapper.orderedParametersFromRequest(request);
     var optionalParameters = mapper.optionalParametersFromRequest(request.innerRequest.headers, queryParameters);
 
-    print("Properties: $properties\norderedParameters: $orderedParameters\noptoinalParameters: $optionalParameters");
-
     var missingResponse = _missingRequiredParameterResponseIfNecessary(properties, optionalParameters);
     if (missingResponse != null) {
       return missingResponse;
@@ -287,7 +285,6 @@ Response _missingRequiredParameterResponseIfNecessary(Map<Symbol, dynamic> prope
   var missingHeaders = missingParams.where((p) => p.type == _HTTPControllerMissingParameterType.header).map((p) => p.externalName).toList();
   var missingQueryParameters = missingParams.where((p) => p.type == _HTTPControllerMissingParameterType.query).map((p) => p.externalName).toList();
 
-  print("${missingHeaders} $missingQueryParameters");
   StringBuffer missings = new StringBuffer();
   if (missingQueryParameters.isNotEmpty) {
     var missingQueriesString = missingQueryParameters
