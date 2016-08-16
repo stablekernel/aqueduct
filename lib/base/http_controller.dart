@@ -5,8 +5,6 @@ part of aqueduct;
 /// Subclasses of this class can process and respond to an HTTP request.
 @cannotBeReused
 abstract class HTTPController extends RequestHandler {
-  static Map<Type, Map<String, _HTTPControllerCachedMethod>> _methodCache = {};
-  static Map<Type, Map<Symbol, _HTTPControllerCachedParameter>> _controllerLevelParameters = {};
   static ContentType _applicationWWWFormURLEncodedContentType = new ContentType("application", "x-www-form-urlencoded");
 
   /// The request being processed by this [HTTPController].
