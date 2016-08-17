@@ -205,12 +205,19 @@ class ResourceController<ModelType extends Model> extends HTTPController {
 
   /// Executed after a list of objects has been fetched.
   ///
-  /// By defualt, returns [Response.ok] with the encoded list of founds objects (which may be the empty list).
+  /// By default, returns [Response.ok] with the encoded list of founds objects (which may be the empty list).
   Future<Response> didFindObjects(List<ModelType> objects) async {
     return new Response.ok(objects);
   }
 
-  @httpGet getObjects({int count: 0, int offset: 0, String pageBy: null, String pageAfter: null, String pagePrior: null, List<String> sortBy: null}) async {
+  @httpGet getObjects({
+  @HTTPQuery.optional("count") int count: 0,
+    @HTTPQuery.optional("offset") int offset: 0,
+    @HTTPQuery.optional("pageBy") String pageBy: null,
+    @HTTPQuery.optional("pageAfter") String pageAfter: null,
+    @HTTPQuery.optional("pagePrior") String pagePrior: null,
+    @HTTPQuery.optional("sortBy") List<String> sortBy: null
+  }) async {
     _query.fetchLimit = count;
     _query.offset = offset;
 

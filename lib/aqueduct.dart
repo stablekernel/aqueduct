@@ -52,6 +52,7 @@ part 'base/http_response_exception.dart';
 part 'base/isolate_server.dart';
 part 'base/isolate_supervisor.dart';
 part 'base/model_controller.dart';
+part 'base/parameter_matching.dart';
 part 'base/pipeline.dart';
 part 'base/request.dart';
 part 'base/request_handler.dart';
