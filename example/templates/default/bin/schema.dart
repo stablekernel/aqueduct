@@ -1,4 +1,4 @@
-import 'package:aqueduct/aqueduct.dart';
+import 'package:wildfire/wildfire.dart';
 import 'dart:io';
 
 main() {
