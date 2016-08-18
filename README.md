@@ -24,7 +24,19 @@ If you don't yet know Dart, don't worry - it's easy to learn, especially if you 
 
 ## The up-and-running way
 
-More of a learn as you go type? Follow the quick steps at [wildfire](https://github.com/stablekernel/wildfire) to get a running web server, complete with authentication, database schema generation and documentation generation.
+More of a learn as you go type? Install `aqueduct` as a global package:
+
+```
+pub global activate aqueduct
+```
+
+Then, create a new project (project names must be snake_case):
+
+```
+pub global run aqueduct:create -n my_project
+```
+
+This will create a new project complete with authentication, database schema generation and documentation generation. Make sure to see the `README.md` file in the new project for further instructions.
 
 ## Documentation
 

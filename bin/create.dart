@@ -57,6 +57,7 @@ Future main(List<String> args) async {
   Process.runSync("pub", ["get"], workingDirectory: destDirectory.path);
 
   print("${argValues["name"]} created at ${destDirectory.path}");
+  print("Make sure to follow the instructions in ${destDirectory.path}/README.md to be able to run your project!");
 }
 
 String determineAqueductPath(Directory projectDirectory, String aqueductVersion) {

@@ -8,8 +8,7 @@ environment:
 
 dependencies:
   scribe: any
-  aqueduct:
-    path: /Users/joeconway/Projects/aqueduct
+  aqueduct: any
 
 dev_dependencies:
   test: '>=0.12.0 <0.13.0'
