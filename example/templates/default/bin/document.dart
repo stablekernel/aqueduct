@@ -36,8 +36,5 @@ Future main(List<String> args) async {
   }).toList();
 
   var json = JSON.encode(document.asMap());
-  var file = new File("api.json");
-  var sink = file.openWrite();
-  sink.write(json);
-  await sink.close();
+  print("$json");
 }

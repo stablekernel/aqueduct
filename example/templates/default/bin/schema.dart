@@ -10,6 +10,5 @@ main() {
   var json = generator.serialized;
   var pGenerator = new PostgreSQLSchemaGenerator(json);
 
-  var schemaFile = new File("schema.sql");
-  schemaFile.writeAsStringSync(pGenerator.commandList);
+  print("${pGenerator.commandList}");
 }
