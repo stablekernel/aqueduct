@@ -36,7 +36,7 @@ Then, create a new project (project names must be snake_case):
 pub global run aqueduct:create -n my_project
 ```
 
-This will create a new project complete with authentication, database schema generation and documentation generation. Make sure to see the `README.md` file in the new project for further instructions.
+This will create a new project complete with authentication, test harness, database schema generation and documentation generation. Make sure to see the `README.md` file in the new project for further instructions.
 
 ## Documentation
 
