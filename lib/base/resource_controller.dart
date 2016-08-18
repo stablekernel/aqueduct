@@ -211,7 +211,7 @@ class ResourceController<ModelType extends Model> extends HTTPController {
   }
 
   @httpGet getObjects({
-  @HTTPQuery.optional("count") int count: 0,
+    @HTTPQuery.optional("count") int count: 0,
     @HTTPQuery.optional("offset") int offset: 0,
     @HTTPQuery.optional("pageBy") String pageBy: null,
     @HTTPQuery.optional("pageAfter") String pageAfter: null,
@@ -262,6 +262,18 @@ class ResourceController<ModelType extends Model> extends HTTPController {
     var results = await _query?.fetch();
 
     return await didFindObjects(results);
+  }
+
+  @override
+  List<APIResponse> documentResponsesForOperation(APIOperation operation) {
+    if(operation.id == APIOperation.idForMethod(this, new Symbol("getObject"))) {
+      return [
+        new APIResponse()
+          ..statusCode = HttpStatus.OK
+          ..description = "A `ModelType` object was found."
+          ..schema = ModelContext.defaultContext.entityForType(ModelType).documentedResponseSchema
+      ];
+    }
   }
 
   dynamic _parsePrimaryKey(String id) {

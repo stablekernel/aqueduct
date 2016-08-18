@@ -28,6 +28,73 @@ class ModelEntity {
   /// The [DataModel] this instance belongs to.
   final DataModel dataModel;
 
+  /// Schema of the model as returned from a request
+  APISchemaObject get documentedResponseSchema {
+    if (_documentedResponseSchema == null) {
+      _documentedResponseSchema = new APISchemaObject()
+        ..title = MirrorSystem.getName(instanceTypeMirror.simpleName)
+        ..type = APISchemaObjectTypeObject
+        ..properties = _propertiesForEntity(this);
+    }
+    return _documentedResponseSchema;
+  }
+
+  Map<String, APISchemaObject> _propertiesForEntity(ModelEntity me) {
+    Map<String, APISchemaObject> schemaProperties = {};
+    me.attributes.forEach((key, attribute) {
+      schemaProperties[attribute.name] = new APISchemaObject()
+        ..title = attribute.name
+        ..type = _schemaObjectTypeForPropertyType(attribute.type)
+        ..format = _schemaObjectFormatForPropertyType(attribute.type);
+    });
+
+    me.relationships.values
+        .where((relationship) => relationship.relationshipType != RelationshipType.belongsTo)
+        .forEach((relationship) {
+      schemaProperties[relationship.name] = new APISchemaObject()
+        ..title = relationship.name
+        ..type = relationship.relationshipType == RelationshipType.hasOne
+            ? APISchemaObjectTypeObject
+            : APISchemaObjectTypeArray
+        ..properties = _propertiesForEntity(relationship.destinationEntity);
+    });
+
+    return schemaProperties;
+  }
+  APISchemaObject _documentedResponseSchema;
+
+  String _schemaObjectTypeForPropertyType(PropertyType pt) {
+    switch (pt) {
+      case PropertyType.integer:
+      case PropertyType.bigInteger:
+        return APISchemaObjectTypeInteger;
+      case PropertyType.string:
+      case PropertyType.datetime:
+        return APISchemaObjectTypeString;
+      case PropertyType.boolean:
+        return APISchemaObjectTypeBoolean;
+      case PropertyType.doublePrecision:
+        return APISchemaObjectTypeNumber;
+      default:
+        return null;
+    }
+  }
+
+  String _schemaObjectFormatForPropertyType(PropertyType pt) {
+    switch (pt) {
+      case PropertyType.integer:
+        return APISchemaObjectFormatInt32;
+      case PropertyType.bigInteger:
+        return APISchemaObjectFormatInt64;
+      case PropertyType.datetime:
+        return APISchemaObjectFormatDateTime;
+      case PropertyType.doublePrecision:
+        return APISchemaObjectFormatDouble;
+      default:
+        return null;
+    }
+  }
+
   /// All attribute values of this entity.
   ///
   /// An attribute maps to a single column or field in a database that is a single value, such as a string, integer, etc.

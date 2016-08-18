@@ -186,7 +186,7 @@ abstract class HTTPController extends RequestHandler {
 
     return handlerMethodMirrors.map((MethodMirror mm) {
       var operation = new APIOperation();
-      operation.id = "${MirrorSystem.getName(reflect(this).type.simpleName)}.${MirrorSystem.getName(mm.simpleName)}";
+      operation.id = APIOperation.idForMethod(this, mm.simpleName);
 
       var matchingMethodDeclaration = methodMap[MirrorSystem.getName(mm.simpleName)];
 
@@ -240,12 +240,16 @@ abstract class HTTPController extends RequestHandler {
 
       operation.consumes = acceptedContentTypes.map((ct) => "${ct.primaryType}/${ct.subType}").toList();
       operation.produces = ["${responseContentType.primaryType}/${responseContentType.subType}"];
+      operation.responses = documentResponsesForOperation(operation);
 
       return operation;
     }).toList();
   }
 
-
+  @override
+  List<APIResponse> documentResponsesForOperation(APIOperation operation) {
+    return null;
+  }
 }
 
 class _InternalControllerException implements Exception {

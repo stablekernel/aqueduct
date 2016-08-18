@@ -21,7 +21,8 @@ class AuthCodeController extends HTTPController {
   ///
   /// Content-Type must be application/x-www-form-urlencoded. (Query string in the body, e.g. username=bob&password=password)
   /// Values must be URL percent encoded by client.
-  /// If [state] is supplied, it will be returned in the response object as a way
+  /// The authorization code is returned as a query parameter in the resulting 302 response.
+  /// If [state] is supplied, it will be returned in the query as a way
   /// for the client to ensure it is receiving a response from the expected endpoint.
   @httpPost
   Future<Response> authorize({
@@ -51,5 +52,24 @@ class AuthCodeController extends HTTPController {
         queryParameters: queryParameters
     );
     return new Response(HttpStatus.MOVED_TEMPORARILY, {"Location": responseURI.toString(), "Cache-Control": "no-store", "Pragma": "no-cache"}, null);
+  }
+
+  @override
+  List<APIResponse> documentResponsesForOperation(APIOperation operation) {
+    if (operation.id == APIOperation.idForMethod(this, new Symbol("authorize"))) {
+      return [
+        new APIResponse()
+          ..statusCode = HttpStatus.MOVED_TEMPORARILY
+          ..description = "Successfully issued an authorization code.",
+        new APIResponse()
+          ..statusCode = HttpStatus.BAD_REQUEST
+          ..description = "Missing one or more of: 'client_id', 'username', 'password'.",
+        new APIResponse()
+          ..key = "default"
+          ..description = "Something went wrong",
+      ];
+    }
+
+    return null;
   }
 }

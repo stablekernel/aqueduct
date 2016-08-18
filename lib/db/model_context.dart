@@ -28,6 +28,10 @@ class ModelContext {
   /// The data model containing the [ModelEntity]s for all types that are managed by this context.
   DataModel dataModel;
 
+  ModelEntity entityForType(Type type) {
+    return dataModel.entityForType(type);
+  }
+
   Future<Model> _executeInsertQuery(Query query) async {
     var entity = dataModel.entityForType(query.modelType);
     var psq = new PersistentStoreQuery(entity, persistentStore, query);

@@ -6,6 +6,7 @@ class APIDocumentable {
   APIDocument documentAPI(PackagePathResolver resolver) => documentableChild?.documentAPI(resolver);
   List<APIPath> documentPaths(PackagePathResolver resolver) => documentableChild?.documentPaths(resolver);
   List<APIOperation> documentOperations(PackagePathResolver resolver) => documentableChild?.documentOperations(resolver);
+  List<APIResponse> documentResponsesForOperation(APIOperation operation) => documentableChild?.documentResponsesForOperation(operation);
   Map<String, APISecurityScheme> documentSecuritySchemes(PackagePathResolver resolver) => documentableChild?.documentSecuritySchemes(resolver);
 }
 
@@ -231,6 +232,10 @@ class APIOperation {
   APIRequestBody requestBody;
   List<APIResponse> responses = [];
 
+  static String idForMethod(Object classInstance, Symbol methodSymbol) {
+    return "${MirrorSystem.getName(reflect(classInstance).type.simpleName)}.${MirrorSystem.getName(methodSymbol)}";
+  }
+
   Map<String, dynamic> asMap() {
     var m = {};
 
@@ -371,14 +376,15 @@ const String APISchemaObjectTypeString = "string";
 const String APISchemaObjectTypeArray = "array";
 const String APISchemaObjectTypeObject = "object";
 const String APISchemaObjectTypeNumber = "number";
+const String APISchemaObjectTypeInteger = "integer";
+const String APISchemaObjectTypeBoolean = "boolean";
 
 const String APISchemaObjectFormatInt32 = "int32";
 const String APISchemaObjectFormatInt64 = "int64";
 const String APISchemaObjectFormatDouble = "double";
-const String APISchemaObjectFormatString = "string";
 const String APISchemaObjectFormatBase64 = "byte";
 const String APISchemaObjectFormatBinary = "binary";
-const String APISchemaObjectFormatBoolean = "boolean";
+const String APISchemaObjectFormatDate = "date";
 const String APISchemaObjectFormatDateTime = "date-time";
 const String APISchemaObjectFormatPassword = "password";
 const String APISchemaObjectFormatEmail = "email";
