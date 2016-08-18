@@ -4,18 +4,17 @@ import 'package:args/args.dart';
 import 'package:aqueduct/aqueduct.dart';
 
 Future main(List<String> args) async {
-  var parser = new ArgParser(allowTrailingOptions: false);
-  parser.addOption("template", abbr: "t", defaultsTo: "default", help: "Name of the template. Defaults to default. Available options are: default");
-  parser.addOption("name", abbr: "n", help: "Name of project in snake_case.");
-  parser.addOption("template-directory", hide: true);
-  parser.addOption("git-url", help: "Git url, will trigger generating the template from the specified git repository instead of pub.");
-  parser.addOption("git-ref", defaultsTo: "master", help: "Git reference (branch or commit), will trigger generating the template from the git repository instead of pub.");
-  parser.addOption("path-source", help: "Full path on filesystem, will trigger generating the template from the aqueduct source at path-source instead of pub.");
-  parser.addOption("version", defaultsTo: "any", help: "Version string for aqueduct on pub for template source.");
-  parser.addFlag("help", negatable: false, help: "Shows this documentation");
+  var parser = new ArgParser(allowTrailingOptions: false)
+    ..addOption("template", abbr: "t", defaultsTo: "default", help: "Name of the template. Defaults to default. Available options are: default")
+    ..addOption("name", abbr: "n", help: "Name of project in snake_case.")
+    ..addOption("template-directory", hide: true)
+    ..addOption("git-url", help: "Git url, will trigger generating the template from the specified git repository instead of pub.")
+    ..addOption("git-ref", defaultsTo: "master", help: "Git reference (branch or commit), will trigger generating the template from the git repository instead of pub.")
+    ..addOption("path-source", help: "Full path on filesystem, will trigger generating the template from the aqueduct source at path-source instead of pub.")
+    ..addOption("version", defaultsTo: "any", help: "Version string for aqueduct on pub for template source.")
+    ..addFlag("help", negatable: false, help: "Shows this documentation");
 
   var argValues = parser.parse(args);
-
   if (argValues["help"] == true) {
     print("${parser.usage}");
     return;
