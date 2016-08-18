@@ -9,7 +9,7 @@ Future main(List<String> args) async {
   argParser.addFlag("help", negatable: false, help: "Shows this documentation");
 
   var values = argParser.parse(args);
-  if (values["help"] != null) {
+  if (values["help"]) {
     print(argParser.usage);
     return;
   }
