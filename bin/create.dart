@@ -86,8 +86,11 @@ bool shouldIncludeItem(FileSystemEntity entity) {
     "workspace.xml",
     "tasks.xml",
     "vcs.xml",
-    "ignite.dart",
-    "ignite_test.dart"
+  ];
+
+  var hiddenFilesToKeep = [
+    ".gitignore",
+    ".travis.yml"
   ];
 
   var lastComponent = entity.uri.pathSegments.last;
@@ -96,7 +99,7 @@ bool shouldIncludeItem(FileSystemEntity entity) {
   }
 
   if (lastComponent.startsWith(".")) {
-    if (lastComponent != ".gitignore") {
+    if (!hiddenFilesToKeep.contains(lastComponent)) {
       return false;
     }
   }

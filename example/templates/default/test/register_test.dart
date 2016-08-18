@@ -35,6 +35,9 @@ main() {
       await app.stop();
     });
     test("Trying to create existing user fails", () async {
+      await (app.client.clientAuthenticatedRequest("/register")
+        ..json = {"email": "bob@stablekernel.com", "password": "someotherpassword"}).post();
+
       var response = await (app.client.clientAuthenticatedRequest("/register")
         ..json = {"email": "bob@stablekernel.com", "password": "foobaraxegrind12%"}).post();
 

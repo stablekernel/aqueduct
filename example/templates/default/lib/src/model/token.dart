@@ -47,6 +47,9 @@ class _Token {
   @Relationship.belongsTo("tokens", deleteRule: RelationshipDeleteRule.cascade)
   User owner;
 
+  @Relationship.hasMany("token")
+  AuthCode code;
+
   DateTime issueDate;
   DateTime expirationDate;
   String type;
