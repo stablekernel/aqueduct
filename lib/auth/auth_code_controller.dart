@@ -24,12 +24,13 @@ class AuthCodeController extends HTTPController {
   /// If [state] is supplied, it will be returned in the response object as a way
   /// for the client to ensure it is receiving a response from the expected endpoint.
   @httpPost
-  Future<Response> authorize({String client_id, String username, String password, String state}) async {
-    if (client_id == null || username == null || password == null) {
-      return new Response.badRequest();
-    }
-
-    var authCode = await authenticationServer.createAuthCode(username, password, client_id);
+  Future<Response> authorize({
+    @HTTPQuery.required("client_id") String clientID,
+    @HTTPQuery.required("username") String username,
+    @HTTPQuery.required("password") String password,
+    @HTTPQuery.optional("state") String state
+  }) async {
+    var authCode = await authenticationServer.createAuthCode(username, password, clientID);
     return AuthCodeController.authCodeResponse(authCode, state);
   }
 

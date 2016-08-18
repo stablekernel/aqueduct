@@ -31,8 +31,8 @@ void main() {
 
       var body = await HTTPBodyDecoder.decode(request);
       expect(body, {
-        "a" : "b",
-        "c" : "2"
+        "a" : ["b"],
+        "c" : ["2"]
       });
     });
 

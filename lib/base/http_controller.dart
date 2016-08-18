@@ -5,7 +5,6 @@ part of aqueduct;
 /// Subclasses of this class can process and respond to an HTTP request.
 @cannotBeReused
 abstract class HTTPController extends RequestHandler {
-  static Map<Type, Map<String, _HTTPControllerCachedMethod>> _methodCache = {};
   static ContentType _applicationWWWFormURLEncodedContentType = new ContentType("application", "x-www-form-urlencoded");
 
   /// The request being processed by this [HTTPController].
@@ -69,73 +68,6 @@ abstract class HTTPController extends RequestHandler {
     }, orElse: () => null) != null;
   }
 
-  dynamic _convertParameterListWithMirror(List<String> parameterValues, TypeMirror typeMirror) {
-    if (typeMirror.isSubtypeOf(reflectType(List))) {
-      return parameterValues.map((str) => _convertParameterWithMirror(str, typeMirror.typeArguments.first)).toList();
-    } else {
-      return _convertParameterWithMirror(parameterValues.first, typeMirror);
-    }
-  }
-
-  dynamic _convertParameterWithMirror(String parameterValue, TypeMirror typeMirror) {
-    if (typeMirror.isSubtypeOf(reflectType(bool))) {
-      return true;
-    }
-
-    if (typeMirror.isSubtypeOf(reflectType(String))) {
-      return parameterValue;
-    }
-
-    if (typeMirror is ClassMirror) {
-      var parseDecl = typeMirror.declarations[new Symbol("parse")];
-      if (parseDecl != null) {
-        try {
-          var reflValue = typeMirror.invoke(parseDecl.simpleName, [parameterValue]);
-          return reflValue.reflectee;
-        } catch (e) {
-          throw new _InternalControllerException("Invalid value for parameter type", HttpStatus.BAD_REQUEST, responseMessage: "URI parameter is wrong type");
-        }
-      }
-    }
-
-    // If we get here, then it wasn't a string and couldn't be parsed, and we should throw?
-    throw new _InternalControllerException("Invalid path parameter type, types must be String or implement parse",
-        HttpStatus.INTERNAL_SERVER_ERROR,
-        responseMessage: "URI parameter is wrong type");
-  }
-
-  Map<String, dynamic> _queryParametersFromRequest(Request req, dynamic body) {
-    Map<String, dynamic> queryParams = {};
-
-    var contentType = req.innerRequest.headers.contentType;
-
-    if (contentType != null
-    &&  contentType.primaryType == _applicationWWWFormURLEncodedContentType.primaryType
-    &&  contentType.subType == _applicationWWWFormURLEncodedContentType.subType) {
-      queryParams = requestBody ?? {};
-    } else {
-      queryParams = req.innerRequest.uri.queryParametersAll;
-    }
-
-    return queryParams;
-  }
-
-  Map<Symbol, dynamic> _symbolicateAndConvertMap(Map<String, dynamic> values, Map<String, _HTTPControllerCachedParameter> desiredParameters) {
-    var returnValue = {};
-    values.forEach((key, value) {
-      var desired = desiredParameters[key];
-      if (desired != null) {
-        if (value is List) {
-          returnValue[new Symbol(key)] = _convertParameterListWithMirror(value, desired.typeMirror);
-        } else {
-          returnValue[new Symbol(key)] = _convertParameterWithMirror(value, desired.typeMirror);
-        }
-      }
-    });
-
-    return returnValue;
-  }
-
   dynamic _serializedResponseBody(dynamic initialResponseBody) {
     var serializedBody = null;
     if (initialResponseBody is Serializable) {
@@ -154,17 +86,11 @@ abstract class HTTPController extends RequestHandler {
   }
 
   Future<Response> _process() async {
-    var key = _generateHandlerMethodKey(request.innerRequest.method, request.path.orderedVariableNames);
-    var cachedMethod = _methodCache[this.runtimeType][key];
-    if (cachedMethod == null) {
+    var controllerCache = _HTTPControllerCache.cacheForType(runtimeType);
+    var mapper = controllerCache.mapperForRequest(request);
+    if (mapper == null) {
       return new Response.notFound();
     }
-
-    var methodSymbol = cachedMethod.methodSymbol;
-    var handlerParameters = cachedMethod
-        .orderedPathParameters
-        .map((param) => _convertParameterWithMirror(this.request.path.variables[param.name], param.typeMirror))
-        .toList();
 
     if (request.innerRequest.contentLength > 0) {
       if (_requestContentTypeIsSupported(request)) {
@@ -174,14 +100,35 @@ abstract class HTTPController extends RequestHandler {
       }
     }
 
-    var queryParameterMap = _queryParametersFromRequest(request, requestBody);
-    var symbolicatedQueryParameters = _symbolicateAndConvertMap(queryParameterMap, cachedMethod.optionalParameters);
 
     if (requestBody != null) {
       didDecodeRequestBody(requestBody);
     }
 
-    Future<Response> eventualResponse = reflect(this).invoke(methodSymbol, handlerParameters, symbolicatedQueryParameters).reflectee;
+    var queryParameters = request.innerRequest.uri.queryParametersAll;
+    var contentType = request.innerRequest.headers.contentType;
+    if (contentType != null
+    &&  contentType.primaryType == HTTPController._applicationWWWFormURLEncodedContentType .primaryType
+    &&  contentType.subType == HTTPController._applicationWWWFormURLEncodedContentType.subType) {
+      queryParameters = requestBody ?? {};
+    }
+
+    var properties = controllerCache.propertiesFromRequest(request.innerRequest.headers, queryParameters);
+    var orderedParameters = mapper.orderedParametersFromRequest(request);
+    var optionalParameters = mapper.optionalParametersFromRequest(request.innerRequest.headers, queryParameters);
+
+    var missingResponse = _missingRequiredParameterResponseIfNecessary(properties, optionalParameters);
+    if (missingResponse != null) {
+      return missingResponse;
+    }
+
+    properties.forEach((sym, value) => reflect(this).setField(sym, value));
+
+    Future<Response> eventualResponse = reflect(this).invoke(
+        mapper.methodSymbol,
+        orderedParameters,
+        optionalParameters
+    ).reflectee;
     var response = await eventualResponse;
 
     willSendResponse(response);
@@ -194,8 +141,6 @@ abstract class HTTPController extends RequestHandler {
 
   @override
   Future<RequestHandlerResult> processRequest(Request req) async {
-    _buildCachesIfNecessary();
-
     try {
       request = req;
 
@@ -213,59 +158,6 @@ abstract class HTTPController extends RequestHandler {
     } on _InternalControllerException catch (e) {
       return e.response;
     }
-  }
-
-  void _buildCachesIfNecessary() {
-    if (_methodCache.containsKey(this.runtimeType)) {
-      return;
-    }
-
-    var methodMap = {};
-    var allDeclarations = reflect(this).type.declarations;
-    allDeclarations.forEach((key, declaration) {
-      if (declaration is MethodMirror) {
-        var methodAttrs = declaration
-            .metadata
-            .firstWhere((attr) => attr.reflectee is HTTPMethod, orElse: () => null);
-
-        if (methodAttrs == null) {
-          return;
-        }
-
-        List<_HTTPControllerCachedParameter> params = (declaration as MethodMirror)
-            .parameters
-            .where((pm) => !pm.isOptional)
-            .map((pm) {
-              return new _HTTPControllerCachedParameter()
-                  ..name = MirrorSystem.getName(pm.simpleName)
-                  ..typeMirror = pm.type;
-            })
-            .toList();
-
-        Iterable<_HTTPControllerCachedParameter> optionalParams = (declaration as MethodMirror)
-            .parameters
-            .where((methodParameter) => methodParameter.isOptional)
-            .map((pm) {
-              return new _HTTPControllerCachedParameter()
-                ..name = MirrorSystem.getName(pm.simpleName)
-                ..typeMirror = pm.type;
-            });
-        var optionalParameters = new Map.fromIterable(optionalParams, key: (p) => p.name, value: (p) => p);
-
-        var generatedKey = _generateHandlerMethodKey((methodAttrs.reflectee as HTTPMethod).method, params.map((p) => p.name).toList());
-        var cachedMethod = new _HTTPControllerCachedMethod()
-          ..methodSymbol = key
-          ..orderedPathParameters = params
-          ..optionalParameters = optionalParameters;
-        methodMap[generatedKey] = cachedMethod;
-      }
-    });
-
-    _methodCache[this.runtimeType] = methodMap;
-  }
-
-  String _generateHandlerMethodKey(String httpMethod, List<String> params) {
-    return "${httpMethod.toLowerCase()}-" + params.map((pathParam) => pathParam).join("-");
   }
 
   @override
@@ -323,25 +215,27 @@ abstract class HTTPController extends RequestHandler {
                 ..parameterLocation = APIParameterLocation.path;
       }).toList();
 
+      bool usesFormEncodedData = operation.method.toLowerCase() == "post" && acceptedContentTypes.any((ct) => ct.primaryType == "application" && ct.subType == "x-www-form-urlencoded");
       List<APIParameter> optionalParams = mm.parameters
-          .where((pm) => pm.isOptional)
+          .where((pm) => pm.metadata.any((im) => im.reflectee is _HTTPParameter))
           .map((pm) {
+            _HTTPParameter httpParameter = pm.metadata.firstWhere((im) => im.reflectee is _HTTPParameter).reflectee;
+            APIParameterLocation pl;
+            if (httpParameter is HTTPHeader) {
+              pl = APIParameterLocation.header;
+            } else if (usesFormEncodedData) {
+              pl = APIParameterLocation.formData;
+            } else {
+              pl = APIParameterLocation.query;
+            }
             return new APIParameter()
               ..name = MirrorSystem.getName(pm.simpleName)
               ..description = ""
               ..type = APIParameter.typeStringForVariableMirror(pm)
-              ..required = false;
+              ..required = httpParameter.isRequired
+              ..parameterLocation = pl;
           }).toList();
 
-      if (operation.method.toLowerCase() == "post" && acceptedContentTypes.firstWhere((cm) => cm.primaryType == "application" && cm.subType == "x-www-form-urlencoded", orElse: () => null) != null) {
-        optionalParams.forEach((param) {
-          param.parameterLocation = APIParameterLocation.formData;
-        });
-      } else {
-        optionalParams.forEach((param) {
-          param.parameterLocation = APIParameterLocation.query;
-        });
-      }
       operation.parameters.addAll(optionalParams);
 
       operation.consumes = acceptedContentTypes.map((ct) => "${ct.primaryType}/${ct.subType}").toList();
@@ -350,6 +244,8 @@ abstract class HTTPController extends RequestHandler {
       return operation;
     }).toList();
   }
+
+
 }
 
 class _InternalControllerException implements Exception {
@@ -376,14 +272,35 @@ class _InternalControllerException implements Exception {
   }
 }
 
+Response _missingRequiredParameterResponseIfNecessary(Map<Symbol, dynamic> properties, Map<Symbol, dynamic> optionalParameters) {
+  List<_HTTPControllerMissingParameter> missingParams = [properties, optionalParameters]
+      .expand((m) => m.values)
+      .where((v) => v is _HTTPControllerMissingParameter)
+      .toList();
 
-class _HTTPControllerCachedMethod {
-  Symbol methodSymbol;
-  List<_HTTPControllerCachedParameter> orderedPathParameters = [];
-  Map<String, _HTTPControllerCachedParameter> optionalParameters = {};
-}
+  if (missingParams.isEmpty) {
+    return null;
+  }
 
-class _HTTPControllerCachedParameter {
-  String name;
-  TypeMirror typeMirror;
+  var missingHeaders = missingParams.where((p) => p.type == _HTTPControllerMissingParameterType.header).map((p) => p.externalName).toList();
+  var missingQueryParameters = missingParams.where((p) => p.type == _HTTPControllerMissingParameterType.query).map((p) => p.externalName).toList();
+
+  StringBuffer missings = new StringBuffer();
+  if (missingQueryParameters.isNotEmpty) {
+    var missingQueriesString = missingQueryParameters
+        .map((p) => "'${p}'")
+        .join(", ");
+    missings.write("Missing query value(s): ${missingQueriesString}.");
+  }
+  if (missingQueryParameters.isNotEmpty && missingHeaders.isNotEmpty) {
+    missings.write(" ");
+  }
+  if (missingHeaders.isNotEmpty) {
+    var missingHeadersString = missingHeaders
+        .map((p) => "'${p}'")
+        .join(", ");
+    missings.write("Missing header(s): ${missingHeadersString}.");
+  }
+
+  return new Response.badRequest(body: {"error" : missings.toString()});
 }

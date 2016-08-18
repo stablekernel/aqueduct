@@ -225,6 +225,112 @@ void main() {
     expect(resp.statusCode, 200);
     expect(resp.body, '"false"');
   });
+
+  group("Annotated HTTP parameters", () {
+    test("are supplied correctly", () async {
+      server = await enableController("/a", HTTPParameterController);
+      var resp = await http.get("http://localhost:4040/a?number=3&Shaqs=1&Table=IKEA&table_legs=8", headers: {
+        "x-request-id" : "3423423adfea90",
+        "location" : "Nowhere",
+        "Cookie" : "Chips Ahoy",
+        "Milk" : "Publix",
+      });
+
+      expect(resp.statusCode, 200);
+      expect(JSON.decode(resp.body), {
+        "x-request-id" : "3423423adfea90",
+        "location" : "Nowhere",
+        "cookie" : "Chips Ahoy",
+        "milk" : "Publix",
+        "number" : 3,
+        "Shaqs" : 1,
+        "Table" : "IKEA",
+        "table_legs" : 8
+      });
+    });
+
+    test("optional parameters aren't required", () async {
+      server = await enableController("/a", HTTPParameterController);
+      var resp = await http.get("http://localhost:4040/a?Shaqs=1&Table=IKEA", headers: {
+        "x-request-id" : "3423423adfea90",
+        "Cookie" : "Chips Ahoy",
+      });
+
+      expect(resp.statusCode, 200);
+      expect(JSON.decode(resp.body), {
+        "x-request-id" : "3423423adfea90",
+        "location" : null,
+        "cookie" : "Chips Ahoy",
+        "milk" : null,
+        "number" : null,
+        "Shaqs" : 1,
+        "Table" : "IKEA",
+        "table_legs" : null
+      });
+    });
+
+    test("missing required controller header param fails", () async {
+      server = await enableController("/a", HTTPParameterController);
+      var resp = await http.get("http://localhost:4040/a?Shaqs=1&Table=IKEA", headers: {
+        "Cookie" : "Chips Ahoy",
+      });
+
+      expect(resp.statusCode, 400);
+      expect(JSON.decode(resp.body), {
+        "error" : "Missing header(s): 'X-Request-id'."
+      });
+    });
+
+    test("missing required controller query param fails", () async {
+      server = await enableController("/a", HTTPParameterController);
+      var resp = await http.get("http://localhost:4040/a?Table=IKEA", headers: {
+        "x-request-id" : "3423423adfea90",
+        "Cookie" : "Chips Ahoy",
+      });
+
+      expect(resp.statusCode, 400);
+      expect(JSON.decode(resp.body), {
+        "error" : "Missing query value(s): 'Shaqs'."
+      });
+    });
+
+    test("missing required method header param fails", () async {
+      server = await enableController("/a", HTTPParameterController);
+      var resp = await http.get("http://localhost:4040/a?Shaqs=1&Table=IKEA", headers: {
+        "x-request-id" : "3423423adfea90",
+      });
+
+      expect(resp.statusCode, 400);
+      expect(JSON.decode(resp.body), {
+        "error" : "Missing header(s): 'Cookie'."
+      });
+    });
+
+    test("missing require method query param fails", () async {
+      server = await enableController("/a", HTTPParameterController);
+      var resp = await http.get("http://localhost:4040/a?Shaqs=1", headers: {
+        "x-request-id" : "3423423adfea90",
+        "Cookie" : "Chips Ahoy",
+      });
+
+      expect(resp.statusCode, 400);
+      expect(JSON.decode(resp.body), {
+        "error" : "Missing query value(s): 'Table'."
+      });
+    });
+
+    test("reports all missing required parameters", () async {
+      server = await enableController("/a", HTTPParameterController);
+      var resp = await http.get("http://localhost:4040/a");
+
+      expect(resp.statusCode, 400);
+      var errorMessage = JSON.decode(resp.body)["error"];
+      expect(errorMessage, contains("'X-Request-id'"));
+      expect(errorMessage, contains("'Shaqs'"));
+      expect(errorMessage, contains("'Cookie'"));
+      expect(errorMessage, contains("'Table'"));
+    });
+  });
 }
 
 class FilteringController extends HTTPController {
@@ -272,7 +378,7 @@ class TController extends HTTPController {
 
 class QController extends HTTPController {
   @httpGet
-  Future<Response> getAll({String opt: null}) async {
+  Future<Response> getAll({@HTTPQuery.optional("opt") String opt: null}) async {
     if (opt == null) {
       return new Response.ok("NOT");
     }
@@ -281,7 +387,7 @@ class QController extends HTTPController {
   }
 
   @httpGet
-  Future<Response> getOne(String id, {String opt: null}) async {
+  Future<Response> getOne(String id, {@HTTPQuery.optional("opt") String opt: null}) async {
     if (opt == null) {
       return new Response.ok("NOT");
     }
@@ -298,12 +404,12 @@ class IntController extends HTTPController {
   }
 
   @httpGet
-  Future<Response> getAll({int opt: null}) async {
+  Future<Response> getAll({@HTTPQuery.optional("opt") int opt: null}) async {
     return new Response.ok("${opt}");
   }
 
   @httpPost
-  Future<Response> create({int opt: null}) async {
+  Future<Response> create({@HTTPQuery.optional("opt") int opt: null}) async {
     return new Response.ok("${opt}");
   }
 }
@@ -315,21 +421,47 @@ class DateTimeController extends HTTPController {
   }
 
   @httpGet
-  Future<Response> getAll({DateTime opt: null}) async {
+  Future<Response> getAll({@HTTPQuery.optional("opt") DateTime opt: null}) async {
     return new Response.ok("${opt}");
   }
 }
 
 class MultiQueryParamController extends HTTPController {
   @httpGet
-  Future<Response> get({List<String> params: null}) async {
+  Future<Response> get({@HTTPQuery.optional("params") List<String> params: null}) async {
     return new Response.ok(params.join(","));
   }
 }
 
 class BooleanQueryParamController extends HTTPController {
-  @httpGet get({bool param: false}) async {
+  @httpGet get({@HTTPQuery.optional("param") bool param: false}) async {
     return new Response.ok(param ? "true" : "false");
+  }
+}
+
+class HTTPParameterController extends HTTPController {
+  @HTTPHeader.optional("Location") String location;
+  @HTTPHeader.required("X-Request-id") String requestId;
+  @HTTPQuery.optional("number") int number;
+  @HTTPQuery.required("Shaqs") int numberOfShaqs;
+
+  @httpGet
+  Future<Response> get({
+    @HTTPHeader.required("Cookie") String cookieBrand,
+    @HTTPHeader.optional("Milk") String milkBrand,
+    @HTTPQuery.required("Table") String tableBrand,
+    @HTTPQuery.optional("table_legs") int numberOfTableLegs
+  }) async {
+    return new Response.ok({
+      "location" : location,
+      "x-request-id" : requestId,
+      "number" : number,
+      "Shaqs" : numberOfShaqs,
+      "cookie" : cookieBrand,
+      "milk" : milkBrand,
+      "Table" : tableBrand,
+      "table_legs" : numberOfTableLegs
+    });
   }
 }
 

@@ -159,7 +159,7 @@ void main() {
 
     var req = client.request("/auth/token")
       ..formData = formData;
-    expect(await req.post(), hasStatus(401), reason: "omit authorization header");
+    expect(await req.post(), hasStatus(400), reason: "omit authorization header");
 
     req = client.request("/auth/token")
       ..headers = {"Authorization" : "foobar"}

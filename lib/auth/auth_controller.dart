@@ -17,6 +17,9 @@ class AuthController extends HTTPController {
   /// A reference to the [AuthenticationServer] this controller uses to grant tokens.
   AuthenticationServer authenticationServer;
 
+  @HTTPHeader.required(HttpHeaders.AUTHORIZATION) String authHeader;
+  @HTTPQuery.required("grant_type") String grantType;
+
   /// Creates or refreshes an authentication token.
   ///
   /// Authorization header must contain Basic authorization scheme where username is Client ID and password is Client Secret,
@@ -27,30 +30,33 @@ class AuthController extends HTTPController {
   /// When grant_type is 'refresh', there must be a refresh_token value.
   /// When grant_type is 'authorization_code', there must be a authorization_code value.
   @httpPost
-  Future<Response> create({String grant_type, String username, String password, String refresh_token, String authorization_code}) async {
-    var authorizationHeader = request.innerRequest.headers[HttpHeaders.AUTHORIZATION]?.first;
-
-    var basicRecord = AuthorizationBasicParser.parse(authorizationHeader);
-    if (grant_type == "password") {
+  Future<Response> create({
+    @HTTPQuery.optional("username") String username,
+    @HTTPQuery.optional("password") String password,
+    @HTTPQuery.optional("refresh_token") String refreshToken,
+    @HTTPQuery.optional("authorization_code") String authCode
+  }) async {
+    var basicRecord = AuthorizationBasicParser.parse(authHeader);
+    if (grantType == "password") {
       if (username == null || password == null) {
         return new Response.badRequest(body: {"error": "username and password required"});
       }
 
       var token = await authenticationServer.authenticate(username, password, basicRecord.username, basicRecord.password);
       return AuthController.tokenResponse(token);
-    } else if (grant_type == "refresh") {
-      if (refresh_token == null) {
+    } else if (grantType == "refresh") {
+      if (refreshToken == null) {
         return new Response.badRequest(body: {"error": "missing refresh_token"});
       }
 
-      var token = await authenticationServer.refresh(refresh_token, basicRecord.username, basicRecord.password);
+      var token = await authenticationServer.refresh(refreshToken, basicRecord.username, basicRecord.password);
       return AuthController.tokenResponse(token);
-    } else if (grant_type == "authorization_code") {
-      if (authorization_code == null) {
+    } else if (grantType == "authorization_code") {
+      if (authCode == null) {
         return new Response.badRequest(body: {"error": "missing authorization_code"});
       }
 
-      var token = await authenticationServer.exchange(authorization_code, basicRecord.username, basicRecord.password);
+      var token = await authenticationServer.exchange(authCode, basicRecord.username, basicRecord.password);
       return AuthController.tokenResponse(token);
     }
 

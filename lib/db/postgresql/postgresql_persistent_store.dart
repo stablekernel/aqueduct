@@ -13,6 +13,8 @@ class PostgreSQLPersistentStore extends PersistentStore {
 
   Connection _databaseConnection;
   Function connectFunction;
+  bool _isConnecting = false;
+  List<Completer<Connection>> _pendingConnectionCompleters = [];
 
   PostgreSQLPersistentStore(this.connectFunction) : super();
   PostgreSQLPersistentStore.fromConnectionInfo(String username, String password, String host, int port, String databaseName, {String timezone: "UTC"}) {
@@ -28,9 +30,26 @@ class PostgreSQLPersistentStore extends PersistentStore {
       if (connectFunction == null) {
         throw new QueryException(503, "Could not connect to database, no connect function.", 1);
       }
+
+      if (_isConnecting) {
+        var completer = new Completer<Connection>();
+        _pendingConnectionCompleters.add(completer);
+        return completer.future;
+      }
+
+      _isConnecting = true;
       try {
         _databaseConnection = await connectFunction();
+        _isConnecting = false;
+        _informWaiters((completer) {
+          completer.complete(_databaseConnection);
+        });
       } catch (e) {
+        _isConnecting = false;
+        _informWaiters((completer) {
+          completer.completeError(new QueryException(503, "Could not connect to database ${e}", 1));
+        });
+
         throw new QueryException(503, "Could not connect to database ${e}", 1);
       }
     }
@@ -41,13 +60,28 @@ class PostgreSQLPersistentStore extends PersistentStore {
   @override
   Future<dynamic> execute(String sql) async {
     var dbConnection = await getDatabaseConnection();
-    return await dbConnection.execute(sql);
+    var results = await dbConnection.query(sql);
+    var rows = await results.toList();
+
+    return rows.map((row) => row.toList()).toList();
   }
 
   @override
   Future close() async {
     await _databaseConnection?.close();
     _databaseConnection = null;
+  }
+
+  void _informWaiters(void f(Completer c)) {
+    if (!_pendingConnectionCompleters.isEmpty) {
+      List<Completer<Connection>> copiedCompleters = new List.from(_pendingConnectionCompleters);
+      _pendingConnectionCompleters = [];
+      copiedCompleters.forEach((completer) {
+        scheduleMicrotask(() {
+          f(completer);
+        });
+      });
+    }
   }
 
   String _columnNameForProperty(PropertyDescription desc) {
