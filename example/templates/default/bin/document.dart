@@ -4,9 +4,9 @@ import 'dart:convert';
 import 'dart:io';
 
 Future main(List<String> args) async {
-  var argParser = new ArgParser();
-  argParser.addOption("host", allowMultiple: true, help: "Scheme, host and port for available instances. Example: https://api.myapp.com:8000");
-  argParser.addFlag("help", negatable: false, help: "Shows this documentation");
+  var argParser = new ArgParser()
+    ..addOption("host", allowMultiple: true, help: "Scheme, host and port for available instances. Example: https://api.myapp.com:8000")
+    ..addFlag("help", negatable: false, help: "Shows this documentation");
 
   var values = argParser.parse(args);
   if (values["help"]) {
