@@ -15,10 +15,6 @@ abstract class ApplicationPipeline extends RequestHandler implements APIDocument
   /// that can be triggered in [willOpen], but still must be initialized in this constructor.
   ApplicationPipeline(this.options);
 
-  ApplicationPipeline.forDocumentation() {
-
-  }
-
   /// Documentation info for this pipeline.
   APIInfo apiInfo = new APIInfo();
 
