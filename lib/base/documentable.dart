@@ -314,10 +314,6 @@ class APIParameter {
       return APISchemaObjectFormatInt32;
     } else if (m.type.isSubtypeOf(reflectType(double))) {
       return APISchemaObjectFormatDouble;
-    } else if (m.type.isSubtypeOf(reflectType(String))) {
-      return APISchemaObjectFormatString;
-    } else if (m.type.isSubtypeOf(reflectType(bool))) {
-      return APISchemaObjectFormatBoolean;
     } else if (m.type.isSubtypeOf(reflectType(DateTime))) {
       return APISchemaObjectFormatDateTime;
     }

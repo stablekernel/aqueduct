@@ -56,7 +56,7 @@ class AuthCodeController extends HTTPController {
 
   @override
   List<APIResponse> documentResponsesForOperation(APIOperation operation) {
-    if (operation.id == APIOperation.idForMethod(this, new Symbol("authorize"))) {
+    if (operation.id == APIOperation.idForMethod(this, #authorize)) {
       return [
         new APIResponse()
           ..statusCode = HttpStatus.MOVED_TEMPORARILY

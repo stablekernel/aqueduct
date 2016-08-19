@@ -274,6 +274,8 @@ class ResourceController<ModelType extends Model> extends HTTPController {
           ..schema = ModelContext.defaultContext.entityForType(ModelType).documentedResponseSchema
       ];
     }
+
+    return null;
   }
 
   dynamic _parsePrimaryKey(String id) {
