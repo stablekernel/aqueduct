@@ -98,10 +98,8 @@ bool shouldIncludeItem(FileSystemEntity entity) {
     lastComponent = entity.uri.pathSegments[entity.uri.pathSegments.length - 2];
   }
 
-  if (lastComponent.startsWith(".")) {
-    if (!hiddenFilesToKeep.contains(lastComponent)) {
+  if (lastComponent.startsWith(".") && !hiddenFilesToKeep.contains(lastComponent)) {
       return false;
-    }
   }
 
   if (ignoreFiles.contains(lastComponent)) {
