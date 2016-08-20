@@ -219,7 +219,8 @@ String generatingPubspec(String aqueductDependencyString) {
 }
 
 bool isSnakeCase(String string) {
-  return string.toLowerCase() == string;
+  var expr = new RegExp("^[a-z][a-z0-9_]*\$");
+  return expr.hasMatch(string);
 }
 
 String camelCaseFromSnakeCase(String string) {
