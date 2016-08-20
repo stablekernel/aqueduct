@@ -1,5 +1,6 @@
 import 'package:wildfire/wildfire.dart';
 import 'dart:io';
+import 'dart:async';
 
 main() async {
   try {
@@ -18,14 +19,17 @@ main() async {
     };
 
     await app.start(numberOfInstances: 3);
+
+    var signalPath = new File(".aqueductsignal");
+    await signalPath.writeAsString("ok");
   } on IsolateSupervisorException catch (e, st) {
-    writeError("IsolateSupervisorException, server failed to start: ${e.message} $st");
+    await writeError("IsolateSupervisorException, server failed to start: ${e.message} $st");
   } catch (e, st) {
-    writeError("Server failed to start: $e $st");
+    await writeError("Server failed to start: $e $st");
   }
 }
 
-void writeError(String error) {
+Future writeError(String error) async {
   var file = new File("error.log");
-  file.writeAsStringSync(error);
+  await file.writeAsString(error);
 }
