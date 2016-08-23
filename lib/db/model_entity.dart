@@ -39,11 +39,8 @@ class ModelEntity {
 
     return _documentedResponseSchema;
   }
+  APISchemaObject _documentedResponseSchema;
 
-  // DONE: respect mappable columns settings (omitByDefault)
-  // TODO: check for non-persistent properties (transient)
-  // DONE: all properties, belongsTo relationships (foreign key) - partial object with just primary key
-  // HOLD OFF: function to specify which keys to return in response
   Map<String, APISchemaObject> _propertiesForEntity(ModelEntity me, {bool shallow: false}) {
     Map<String, APISchemaObject> schemaProperties = {};
     me.attributes.values
@@ -72,7 +69,6 @@ class ModelEntity {
 
     return schemaProperties;
   }
-  APISchemaObject _documentedResponseSchema;
 
   String _schemaObjectTypeForPropertyType(PropertyType pt) {
     switch (pt) {

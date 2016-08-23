@@ -78,6 +78,10 @@ abstract class PropertyDescription {
         return PropertyType.boolean;
       case double:
         return PropertyType.doublePrecision;
+      case Map:
+        return PropertyType.transientMap;
+      case List:
+        return PropertyType.transientList;
     }
 
     return null;
@@ -92,9 +96,8 @@ abstract class PropertyDescription {
       case PropertyType.datetime: return dartValue is DateTime;
       case PropertyType.doublePrecision: return dartValue is double;
       case PropertyType.string: return dartValue is String;
-      case PropertyType.transientMap:
-      case PropertyType.transientList:
-        return false;
+      case PropertyType.transientMap: return dartValue is Map;
+      case PropertyType.transientList: return dartValue is List;
     }
     return false;
   }
