@@ -69,21 +69,36 @@ class DataModel {
 
   Map<String, AttributeDescription> _attributeMapForEntity(ModelEntity entity) {
     Map<String, AttributeDescription> map = {};
-    entity.persistentInstanceTypeMirror.declarations.forEach((sym, declMir) {
-      if (declMir is VariableMirror && !declMir.isStatic) {
-        var key = MirrorSystem.getName(sym);
-        bool hasRelationship = declMir.metadata.firstWhere((im) => im.type.isSubtypeOf(reflectType(Relationship)), orElse: () => null) != null;
-        if (!hasRelationship) {
-          map[key] = _attributeFromVariableMirror(entity, declMir);
+    Map<Symbol, DeclarationMirror> persistentDeclarations = entity.persistentInstanceTypeMirror.declarations;
+    entity.instanceTypeMirror.declarations.values
+      .where((declMir) => declMir is VariableMirror && !declMir.isStatic)
+      .where((declMir) => !declMir.metadata.any((im) => im.type.isSubtypeOf(reflectType(Relationship))))
+      .forEach((declMir) {
+        var key = MirrorSystem.getName(declMir.simpleName);
+        var persistentMirror = persistentDeclarations[declMir.simpleName];
+        var isMappable = declMir.metadata.any((im) => im.type.isSubtypeOf(reflectType(Mappable)));
+
+        if (persistentMirror != null || isMappable) {
+          map[key] = _attributeFromVariableMirror(entity, declMir, persistentMirror);
         }
-      }
     });
+
+    persistentDeclarations.values
+      .where((declMir) => declMir is VariableMirror && !declMir.isStatic)
+      .where((declMir) => !declMir.metadata.any((im) => im.type.isSubtypeOf(reflectType(Relationship))))
+      .where((declMir) => !map.containsKey(MirrorSystem.getName(declMir.simpleName)))
+      .forEach((declMir) {
+        var key = MirrorSystem.getName(declMir.simpleName);
+        map[key] = _attributeFromVariableMirror(entity, null, declMir);
+      });
+
     return map;
   }
 
-  AttributeDescription _attributeFromVariableMirror(ModelEntity entity, VariableMirror mirror) {
+  AttributeDescription _attributeFromVariableMirror(ModelEntity entity, VariableMirror instanceMirror, VariableMirror persistentMirror) {
+    VariableMirror mirror = persistentMirror ?? instanceMirror;
     Attributes metadataAttrs = mirror.metadata
-        .firstWhere((im) => im.type.isSubtypeOf(reflectType(Attributes)), orElse: () => null)
+        ?.firstWhere((im) => im.type.isSubtypeOf(reflectType(Attributes)), orElse: () => null)
         ?.reflectee;
 
     var type = metadataAttrs?.databaseType ?? PropertyDescription.propertyTypeForDartType(mirror.type.reflectedType);
@@ -92,6 +107,7 @@ class DataModel {
     }
 
     return new AttributeDescription(entity, MirrorSystem.getName(mirror.simpleName), type,
+        transient: persistentMirror == null,
         primaryKey: metadataAttrs?.isPrimaryKey ?? false,
         defaultValue: metadataAttrs?.defaultValue ?? null,
         unique: metadataAttrs?.isUnique ?? false,

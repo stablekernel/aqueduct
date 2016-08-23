@@ -36,28 +36,39 @@ class ModelEntity {
         ..type = APISchemaObjectTypeObject
         ..properties = _propertiesForEntity(this);
     }
+
     return _documentedResponseSchema;
   }
 
-  Map<String, APISchemaObject> _propertiesForEntity(ModelEntity me) {
+  // DONE: respect mappable columns settings (omitByDefault)
+  // TODO: check for non-persistent properties (transient)
+  // DONE: all properties, belongsTo relationships (foreign key) - partial object with just primary key
+  // HOLD OFF: function to specify which keys to return in response
+  Map<String, APISchemaObject> _propertiesForEntity(ModelEntity me, {bool shallow: false}) {
     Map<String, APISchemaObject> schemaProperties = {};
-    me.attributes.forEach((key, attribute) {
-      schemaProperties[attribute.name] = new APISchemaObject()
-        ..title = attribute.name
-        ..type = _schemaObjectTypeForPropertyType(attribute.type)
-        ..format = _schemaObjectFormatForPropertyType(attribute.type);
-    });
+    me.attributes.values
+      .where((attribute) => attribute.isIncludedInDefaultResultSet)
+      .where((attribute) => !shallow || attribute.isPrimaryKey)
+      .forEach((attribute) {
+        schemaProperties[attribute.name] = new APISchemaObject()
+          ..title = attribute.name
+          ..type = _schemaObjectTypeForPropertyType(attribute.type)
+          ..format = _schemaObjectFormatForPropertyType(attribute.type);
+      });
+
+    if (shallow) {
+      return schemaProperties;
+    }
 
     me.relationships.values
-        .where((relationship) => relationship.relationshipType != RelationshipType.belongsTo)
-        .forEach((relationship) {
-      schemaProperties[relationship.name] = new APISchemaObject()
-        ..title = relationship.name
-        ..type = relationship.relationshipType == RelationshipType.hasOne
-            ? APISchemaObjectTypeObject
-            : APISchemaObjectTypeArray
-        ..properties = _propertiesForEntity(relationship.destinationEntity);
-    });
+      .where((relationship) => relationship.isIncludedInDefaultResultSet)
+      .where((relationship) => relationship.relationshipType == RelationshipType.belongsTo)
+      .forEach((relationship) {
+        schemaProperties[relationship.name] = new APISchemaObject()
+          ..title = relationship.name
+          ..type = APISchemaObjectTypeObject
+          ..properties = _propertiesForEntity(relationship.destinationEntity, shallow: true);
+      });
 
     return schemaProperties;
   }
@@ -75,6 +86,10 @@ class ModelEntity {
         return APISchemaObjectTypeBoolean;
       case PropertyType.doublePrecision:
         return APISchemaObjectTypeNumber;
+      case PropertyType.transientList:
+        return APISchemaObjectTypeArray;
+      case PropertyType.transientMap:
+        return APISchemaObjectTypeObject;
       default:
         return null;
     }
