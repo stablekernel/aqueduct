@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+
+COMMAND="$1"
+BRANCH="${2:-master}"
+
+stop_server()
+{
+  SILENT=$1
+
+  delete_signal_file
+
+  if [ -f ".aqueductpid" ]
+    then
+      PID=$(<.aqueductpid)
+      kill $PID
+      rm .aqueductpid
+      echo "Stopped server (PID: $PID)."
+  elif [ $SILENT -eq 0 ]
+    then
+      echo 'Server is not running.'
+  fi
+}
+
+delete_signal_file()
+{
+  if [ -f ".aqueductsignal" ]
+    then
+      rm .aqueductsignal
+  fi
+}
+
+delete_error_file()
+{
+    if [ -f "error.log" ]
+      then
+        rm error.log
+    fi
+}
+
+start_server()
+{
+  BRANCH=$1
+
+  stop_server 1
+  delete_error_file
+  delete_signal_file
+
+  if [ -d ".git" ]
+    then
+      git fetch
+      git checkout $BRANCH
+      git reset --hard
+      git pull
+  fi
+
+  PUB=`which pub`
+
+  $PUB get
+
+  echo 'Starting...'
+  nohup dart bin/start.dart > /dev/null 2>&1 &
+
+  until [ -f ".aqueductsignal" ] || [ -f "error.log" ]
+    do
+      sleep 1
+  done
+
+  if [ -f ".aqueductsignal" ]
+    then
+      echo 'Server running.'
+      echo $! > .aqueductpid
+      exit 0
+  elif [ -f "error.log" ]
+    then
+      echo -e "*** START FAILED ***\n\n $(<error.log)"
+      exit 1
+  fi
+}
+
+if [ "$COMMAND" = "stop" ]
+  then
+    stop_server 0
+elif [ "$COMMAND" = "start" ]
+  then
+    start_server $BRANCH
+fi
