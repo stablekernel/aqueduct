@@ -28,7 +28,7 @@ class SchemaTable {
     name = entity.tableName;
 
     var validProperties = entity.properties.values
-        .where((p) => (p is AttributeDescription) || (p is RelationshipDescription && p.relationshipType == RelationshipType.belongsTo))
+        .where((p) => (p is AttributeDescription && !p.isTransient) || (p is RelationshipDescription && p.relationshipType == RelationshipType.belongsTo))
         .toList();
 
     columns = validProperties

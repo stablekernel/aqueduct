@@ -97,7 +97,7 @@ class DataModel {
 
   AttributeDescription _attributeFromVariableMirror(ModelEntity entity, VariableMirror instanceMirror, VariableMirror persistentMirror) {
     VariableMirror mirror = persistentMirror ?? instanceMirror;
-    Attributes metadataAttrs = mirror.metadata
+    Attributes metadataAttrs = persistentMirror?.metadata
         ?.firstWhere((im) => im.type.isSubtypeOf(reflectType(Attributes)), orElse: () => null)
         ?.reflectee;
 

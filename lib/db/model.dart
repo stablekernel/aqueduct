@@ -109,17 +109,14 @@ class Model<T> implements Serializable {
 
     keyValues.forEach((k, v) {
       var property = entity.properties[k];
+      DeclarationMirror decl = _declarationMirrorForProperty(k);
 
-      if (property == null) {
-        DeclarationMirror decl = _declarationMirrorForProperty(k);
-
-        if(decl != null && _declarationMirrorIsMappableOnInput(decl)) {
-          reflect(this).setField(decl.simpleName, v);
-        } else {
-          throw new QueryException(400, "Key $k does not exist for ${MirrorSystem.getName(reflect(this).type.simpleName)}", -1);
-        }
-      } else {
+      if (property != null && !(property is AttributeDescription && property.isTransient)) {
         dynamicBacking[k] = _valueDecoder(property, v);
+      } else if (decl != null && _declarationMirrorIsMappableOnInput(decl)) {
+        reflect(this).setField(decl.simpleName, v);
+      } else {
+        throw new QueryException(400, "Key $k does not exist for ${MirrorSystem.getName(reflect(this).type.simpleName)}", -1);
       }
     });
   }

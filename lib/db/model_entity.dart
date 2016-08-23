@@ -147,6 +147,7 @@ class ModelEntity {
     if (_defaultProperties == null) {
       _defaultProperties = attributes.values
           .where((prop) => prop.isIncludedInDefaultResultSet)
+          .where((prop) => !prop.isTransient)
           .map((prop) => prop.name)
           .toList();
       _defaultProperties.addAll(relationships.values
