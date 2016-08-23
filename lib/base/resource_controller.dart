@@ -266,12 +266,63 @@ class ResourceController<ModelType extends Model> extends HTTPController {
 
   @override
   List<APIResponse> documentResponsesForOperation(APIOperation operation) {
-    if(operation.id == APIOperation.idForMethod(this, new Symbol("getObject"))) {
+    if(operation.id == APIOperation.idForMethod(this, #getObject)) {
       return [
         new APIResponse()
           ..statusCode = HttpStatus.OK
           ..description = "A `ModelType` object was found."
-          ..schema = ModelContext.defaultContext.entityForType(ModelType).documentedResponseSchema
+          ..schema = ModelContext.defaultContext.entityForType(ModelType).documentedResponseSchema,
+        new APIResponse()
+          ..statusCode = HttpStatus.NOT_FOUND
+          ..description = "No `ModelType` object was found for the provided `id`."
+          ..schema = (new APISchemaObject()
+            ..type = APISchemaObjectTypeObject
+            ..properties = {
+              "error" : new APISchemaObject()..type = APISchemaObjectTypeString
+            }
+          ),
+      ];
+    } else if (operation.id == APIOperation.idForMethod(this, #createObject)) {
+      return [
+        new APIResponse()
+          ..statusCode = HttpStatus.OK
+          ..description = "A `ModelType` object was created."
+          ..schema = ModelContext.defaultContext.entityForType(ModelType).documentedResponseSchema,
+      ];
+    } else if (operation.id == APIOperation.idForMethod(this, #deleteObject)) {
+      return [
+        new APIResponse()
+          ..statusCode = HttpStatus.OK
+          ..description = "A `ModelType` object was deleted."
+          ..schema = ModelContext.defaultContext.entityForType(ModelType).documentedResponseSchema,
+        new APIResponse()
+          ..statusCode = HttpStatus.NOT_FOUND
+          ..description = "No `ModelType` object was found for the provided `id`."
+          ..schema = (new APISchemaObject()
+            ..type = APISchemaObjectTypeObject
+            ..properties = {
+              "error" : new APISchemaObject()..type = APISchemaObjectTypeString
+            }
+          ),
+      ];
+    } else if (operation.id == APIOperation.idForMethod(this, #getObjects)) {
+      return [
+        new APIResponse()
+          ..statusCode = HttpStatus.OK
+          ..description = "`ModelType` objects were found."
+          ..schema = (new APISchemaObject()
+            ..type = APISchemaObjectTypeArray
+            ..items = ModelContext.defaultContext.entityForType(ModelType).documentedResponseSchema
+          ),
+        new APIResponse()
+          ..statusCode = HttpStatus.NOT_FOUND
+          ..description = "No `ModelType` objects were found."
+          ..schema = (new APISchemaObject()
+            ..type = APISchemaObjectTypeObject
+            ..properties = {
+              "error" : new APISchemaObject()..type = APISchemaObjectTypeString
+            }
+          ),
       ];
     }
 

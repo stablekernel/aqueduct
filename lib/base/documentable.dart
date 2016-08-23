@@ -394,6 +394,7 @@ class APISchemaObject {
   bool readOnly = false;
   String example;
   bool deprecated = false;
+  APISchemaObject items;
   Map<String, APISchemaObject> properties = {};
   Map<String, APISchemaObject> additionalProperties = {};
 
@@ -408,6 +409,7 @@ class APISchemaObject {
     m["example"] = example;
     m["deprecated"] = deprecated;
 
+    m["items"] = items;
     m["properties"] = properties;
     m["additionalProperties"] = additionalProperties;
 
