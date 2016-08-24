@@ -287,7 +287,25 @@ class ResourceController<ModelType extends Model> extends HTTPController {
         new APIResponse()
           ..statusCode = HttpStatus.OK
           ..description = ""
+          ..schema = ModelContext.defaultContext
+              .entityForType(ModelType)
+              .documentedResponseSchema,
+      ];
+    } else if (operation.id == APIOperation.idForMethod(this, #updateObject)) {
+      return [
+        new APIResponse()
+          ..statusCode = HttpStatus.OK
+          ..description = ""
           ..schema = ModelContext.defaultContext.entityForType(ModelType).documentedResponseSchema,
+        new APIResponse()
+          ..statusCode = HttpStatus.NOT_FOUND
+          ..description = ""
+          ..schema = (new APISchemaObject()
+            ..type = APISchemaObjectTypeObject
+            ..properties = {
+              "error" : new APISchemaObject()..type = APISchemaObjectTypeString
+            }
+          ),
       ];
     } else if (operation.id == APIOperation.idForMethod(this, #deleteObject)) {
       return [

@@ -214,10 +214,7 @@ void main() {
     var operations = c.documentOperations(resolver);
 
     test("includes responses for each operation", () {
-      operations.forEach((op) {
-        print(op.id);
-        expect(c.documentResponsesForOperation(op).length, greaterThan(0));
-      });
+      operations.forEach((op) => expect(c.documentResponsesForOperation(op).length, greaterThan(0)));
     });
   });
 }
