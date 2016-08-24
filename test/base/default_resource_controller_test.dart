@@ -1,12 +1,13 @@
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
 import 'dart:async';
+import 'dart:io';
 
 void main() {
   group("Standard operations", () {
     Application app = new Application<TestPipeline>();
     app.configuration.port = 8080;
-    var client = new TestClient(8080);
+    var client = new TestClient(app.configuration.port);
     List<TestModel> allObjects = [];
 
     setUpAll(() async {
@@ -202,6 +203,21 @@ void main() {
 
     test("Paging with wrong key", () async {
       expect(await client.request("/controller?pageBy=foobar&pagePrior=10").get(), hasResponse(400, {"error" : "pageBy key foobar does not exist for _TestModel"}));
+    });
+  });
+
+  group("Documentation", () {
+    var dataModel = new DataModel([TestModel]);
+    ModelContext.defaultContext = new ModelContext(dataModel, new DefaultPersistentStore());
+    ResourceController c = new ResourceController<TestModel>();
+    var resolver = new PackagePathResolver(new File(".packages").path);
+    var operations = c.documentOperations(resolver);
+
+    test("includes responses for each operation", () {
+      operations.forEach((op) {
+        print(op.id);
+        expect(c.documentResponsesForOperation(op).length, greaterThan(0));
+      });
     });
   });
 }

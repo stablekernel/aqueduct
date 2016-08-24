@@ -248,7 +248,7 @@ abstract class HTTPController extends RequestHandler {
 
   @override
   List<APIResponse> documentResponsesForOperation(APIOperation operation) {
-    return null;
+    return [];
   }
 }
 

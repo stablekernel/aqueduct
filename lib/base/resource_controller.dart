@@ -326,7 +326,7 @@ class ResourceController<ModelType extends Model> extends HTTPController {
       ];
     }
 
-    return null;
+    return [];
   }
 
   dynamic _parsePrimaryKey(String id) {

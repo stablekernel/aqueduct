@@ -43,6 +43,8 @@ class TPipeline extends ApplicationPipeline implements AuthenticationServerDeleg
   }
 }
 
+/* DON'T CHANGE WHITESPACE BLOCK */
+
 ///
 /// Documentation
 ///
@@ -75,3 +77,5 @@ class TController extends HTTPController {
     return new Response.ok("");
   }
 }
+
+/* END DON'T CHANGE WHITESPACE BLOCK */

@@ -24,7 +24,7 @@ class APIDocument {
 
     m["openapi"] = "3.0.*";
     m["info"] = info.asMap();
-    m["hosts"] = hosts;
+    m["hosts"] = hosts.map((host) => host.asMap()).toList();
     m["consumes"] = consumes.map((ct) => ct.toString()).toList();
     m["produces"] = produces.map((ct) => ct.toString()).toList();
     m["security"] = securityRequirements.map((sec) => sec.name).toList();
@@ -409,9 +409,9 @@ class APISchemaObject {
     m["example"] = example;
     m["deprecated"] = deprecated;
 
-    m["items"] = items;
-    m["properties"] = properties;
-    m["additionalProperties"] = additionalProperties;
+    m["items"] = items?.asMap() ?? {};
+    m["properties"] = new Map.fromIterable(properties.keys, key: (key) => key, value: (key) => properties[key].asMap());
+    m["additionalProperties"] = new Map.fromIterable(additionalProperties.keys, key: (key) => key, value: (key) => additionalProperties[key].asMap());
 
     return m;
   }
