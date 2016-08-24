@@ -270,11 +270,11 @@ class ResourceController<ModelType extends Model> extends HTTPController {
       return [
         new APIResponse()
           ..statusCode = HttpStatus.OK
-          ..description = "A `ModelType` object was found."
+          ..description = ""
           ..schema = ModelContext.defaultContext.entityForType(ModelType).documentedResponseSchema,
         new APIResponse()
           ..statusCode = HttpStatus.NOT_FOUND
-          ..description = "No `ModelType` object was found for the provided `id`."
+          ..description = ""
           ..schema = (new APISchemaObject()
             ..type = APISchemaObjectTypeObject
             ..properties = {
@@ -286,18 +286,18 @@ class ResourceController<ModelType extends Model> extends HTTPController {
       return [
         new APIResponse()
           ..statusCode = HttpStatus.OK
-          ..description = "A `ModelType` object was created."
+          ..description = ""
           ..schema = ModelContext.defaultContext.entityForType(ModelType).documentedResponseSchema,
       ];
     } else if (operation.id == APIOperation.idForMethod(this, #deleteObject)) {
       return [
         new APIResponse()
           ..statusCode = HttpStatus.OK
-          ..description = "A `ModelType` object was deleted."
+          ..description = ""
           ..schema = ModelContext.defaultContext.entityForType(ModelType).documentedResponseSchema,
         new APIResponse()
           ..statusCode = HttpStatus.NOT_FOUND
-          ..description = "No `ModelType` object was found for the provided `id`."
+          ..description = ""
           ..schema = (new APISchemaObject()
             ..type = APISchemaObjectTypeObject
             ..properties = {
@@ -309,14 +309,14 @@ class ResourceController<ModelType extends Model> extends HTTPController {
       return [
         new APIResponse()
           ..statusCode = HttpStatus.OK
-          ..description = "`ModelType` objects were found."
+          ..description = ""
           ..schema = (new APISchemaObject()
             ..type = APISchemaObjectTypeArray
             ..items = ModelContext.defaultContext.entityForType(ModelType).documentedResponseSchema
           ),
         new APIResponse()
           ..statusCode = HttpStatus.NOT_FOUND
-          ..description = "No `ModelType` objects were found."
+          ..description = ""
           ..schema = (new APISchemaObject()
             ..type = APISchemaObjectTypeObject
             ..properties = {
