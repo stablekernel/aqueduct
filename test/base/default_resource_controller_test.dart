@@ -216,6 +216,69 @@ void main() {
     test("includes responses for each operation", () {
       operations.forEach((op) => expect(c.documentResponsesForOperation(op).length, greaterThan(0)));
     });
+
+    test("getObject", () {
+      var op = operations.firstWhere((e) => e.id == APIOperation.idForMethod(c, #getObject));
+      List<APIResponse> getResponses = c.documentResponsesForOperation(op);
+
+      expect(getResponses.length, 2);
+
+      var successResponse = getResponses.firstWhere((r) => r.key == "200");
+      expect(successResponse.schema.title, "TestModel");
+
+      var errorResponse = getResponses.firstWhere((r) => r.key == "404");
+      expect(errorResponse.schema.properties["error"].type, APISchemaObjectTypeString);
+    });
+
+    test("createObject", () {
+      var op = operations.firstWhere((e) => e.id == APIOperation.idForMethod(c, #createObject));
+      List<APIResponse> getResponses = c.documentResponsesForOperation(op);
+
+      expect(getResponses.length, 1);
+
+      var successResponse = getResponses.firstWhere((r) => r.key == "200");
+      expect(successResponse.schema.title, "TestModel");
+    });
+
+    test("updateObject", () {
+      var op = operations.firstWhere((e) => e.id == APIOperation.idForMethod(c, #updateObject));
+      List<APIResponse> getResponses = c.documentResponsesForOperation(op);
+
+      expect(getResponses.length, 2);
+
+      var successResponse = getResponses.firstWhere((r) => r.key == "200");
+      expect(successResponse.schema.title, "TestModel");
+
+      var errorResponse = getResponses.firstWhere((r) => r.key == "404");
+      expect(errorResponse.schema.properties["error"].type, APISchemaObjectTypeString);
+    });
+
+    test("deleteObject", () {
+      var op = operations.firstWhere((e) => e.id == APIOperation.idForMethod(c, #deleteObject));
+      List<APIResponse> getResponses = c.documentResponsesForOperation(op);
+
+      expect(getResponses.length, 2);
+
+      var successResponse = getResponses.firstWhere((r) => r.key == "200");
+      expect(successResponse.schema.title, "TestModel");
+
+      var errorResponse = getResponses.firstWhere((r) => r.key == "404");
+      expect(errorResponse.schema.properties["error"].type, APISchemaObjectTypeString);
+    });
+
+    test("getObjects", () {
+      var op = operations.firstWhere((e) => e.id == APIOperation.idForMethod(c, #getObjects));
+      List<APIResponse> getResponses = c.documentResponsesForOperation(op);
+
+      expect(getResponses.length, 2);
+
+      var successResponse = getResponses.firstWhere((r) => r.key == "200");
+      expect(successResponse.schema.type, APISchemaObjectTypeArray);
+      expect(successResponse.schema.items.title, "TestModel");
+
+      var errorResponse = getResponses.firstWhere((r) => r.key == "404");
+      expect(errorResponse.schema.properties["error"].type, APISchemaObjectTypeString);
+    });
   });
 }
 
