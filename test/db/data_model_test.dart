@@ -87,7 +87,7 @@ void main() {
 
     test("Default properties omit omitted attributes and has* relationships", () {
       var entity = dataModel.entityForType(User);
-      expect(entity.defaultProperties, ["id", "username", "flag"]);
+      expect(entity.defaultProperties, ["id", "stringId", "username", "flag"]);
       expect(entity.properties["loadedTimestamp"], isNotNull);
       expect(entity.properties["manager"], isNotNull);
       expect(entity.properties["items"], isNotNull);
