@@ -129,5 +129,24 @@ void main() {
       "token_type" : "bearer"
     }));
   });
+
+  test("Response documentation", () {
+    AuthController ac = new AuthController(new AuthenticationServer(new AuthDelegate(ModelContext.defaultContext)));
+    var resolver = new PackagePathResolver(new File(".packages").path);
+    var operations = ac.documentOperations(resolver);
+
+    expect(operations.length, 1);
+
+    List<APIResponse> responses = ac.documentResponsesForOperation(operations.first);
+    APIResponse okResponse = responses.firstWhere((ar) => ar.key == "${HttpStatus.OK}");
+    expect(okResponse.schema.properties["access_token"].type, APISchemaObjectTypeString);
+    expect(okResponse.schema.properties["token_type"].type, APISchemaObjectTypeString);
+    expect(okResponse.schema.properties["expires_in"].type, APISchemaObjectTypeInteger);
+    expect(okResponse.schema.properties["expires_in"].format, APISchemaObjectFormatInt32);
+    expect(okResponse.schema.properties["refresh_token"].type, APISchemaObjectTypeString);
+
+    APIResponse badResponse = responses.firstWhere((ar) => ar.key == "${HttpStatus.BAD_REQUEST}");
+    expect(badResponse.schema.properties["error"], isNotNull);
+  });
 }
 

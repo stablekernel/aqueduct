@@ -188,12 +188,49 @@ void main() {
     }
     expect(successful, false);
   });
+
+  group("Schema generation", () {
+    var dataModel = new DataModel([User, Item, Manager]);
+    var context = new ModelContext(dataModel, new DefaultPersistentStore());
+    ModelContext.defaultContext = context;
+
+    test("works for a data model", () {
+      var entity = dataModel.entityForType(User);
+
+      expect(entity.documentedResponseSchema.title, "User");
+      expect(entity.documentedResponseSchema.type, APISchemaObjectTypeObject);
+      expect(entity.documentedResponseSchema.properties.isNotEmpty, true);
+    });
+
+    test("includes transient properties", () {
+      var entity = dataModel.entityForType(User);
+      expect(entity.documentedResponseSchema.properties["stringId"].type, APISchemaObjectTypeString);
+    });
+
+    test("does not include has(One|Many) relationships", () {
+      var entity = dataModel.entityForType(User);
+      expect(entity.documentedResponseSchema.properties.containsKey("items"), false);
+      expect(entity.documentedResponseSchema.properties.containsKey("manager"), false);
+    });
+
+    test("includes belongsTo relationships", () {
+      var entity = dataModel.entityForType(Item);
+      expect(entity.documentedResponseSchema.properties["user"], isNotNull);
+
+      // Make sure that only primary key is included
+      expect(entity.documentedResponseSchema.properties["user"].properties["id"], isNotNull);
+      expect(entity.documentedResponseSchema.properties["user"].properties.containsKey("username"), false);
+    });
+  });
 }
 
 class User extends Model<_User> implements _User {}
 class _User {
   @primaryKey
   int id;
+
+  @mappable
+  String stringId;
 
   String username;
   bool flag;
