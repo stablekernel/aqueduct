@@ -73,14 +73,10 @@ class DataModel {
     entity.instanceTypeMirror.declarations.values
       .where((declMir) => declMir is VariableMirror && !declMir.isStatic)
       .where((declMir) => !declMir.metadata.any((im) => im.type.isSubtypeOf(reflectType(Relationship))))
+      .where((declMir) => declMir.metadata.any((im) => im.type.isSubtypeOf(reflectType(Mappable))))
       .forEach((declMir) {
         var key = MirrorSystem.getName(declMir.simpleName);
-        var persistentMirror = persistentDeclarations[declMir.simpleName];
-        var isMappable = declMir.metadata.any((im) => im.type.isSubtypeOf(reflectType(Mappable)));
-
-        if (persistentMirror != null || isMappable) {
-          map[key] = _attributeFromVariableMirror(entity, declMir, persistentMirror);
-        }
+        map[key] = _attributeFromVariableMirror(entity, declMir);
     });
 
     persistentDeclarations.values
@@ -89,32 +85,42 @@ class DataModel {
       .where((declMir) => !map.containsKey(MirrorSystem.getName(declMir.simpleName)))
       .forEach((declMir) {
         var key = MirrorSystem.getName(declMir.simpleName);
-        map[key] = _attributeFromVariableMirror(entity, null, declMir);
+        map[key] = _attributeFromVariableMirror(entity, declMir);
       });
 
     return map;
   }
 
-  AttributeDescription _attributeFromVariableMirror(ModelEntity entity, VariableMirror instanceMirror, VariableMirror persistentMirror) {
-    VariableMirror mirror = persistentMirror ?? instanceMirror;
-    Attributes metadataAttrs = persistentMirror?.metadata
-        ?.firstWhere((im) => im.type.isSubtypeOf(reflectType(Attributes)), orElse: () => null)
-        ?.reflectee;
+  AttributeDescription _attributeFromVariableMirror(ModelEntity entity, VariableMirror mirror) {
+    if (entity.instanceTypeMirror == mirror.owner) {
+      // Transient
+      var type = PropertyDescription.propertyTypeForDartType(mirror.type.reflectedType);
+      if (type == null) {
+        throw new DataModelException("Property ${MirrorSystem.getName(mirror.simpleName)} on ${MirrorSystem.getName(entity.instanceTypeMirror.simpleName)} has invalid type");
+      }
 
-    var type = metadataAttrs?.databaseType ?? PropertyDescription.propertyTypeForDartType(mirror.type.reflectedType);
-    if (type == null) {
-      throw new DataModelException("Property ${MirrorSystem.getName(mirror.simpleName)} on ${MirrorSystem.getName(entity.persistentInstanceTypeMirror.simpleName)} has invalid type");
+      return new AttributeDescription(entity, MirrorSystem.getName(mirror.simpleName), type, transient: true);
+    } else {
+      // Persistent
+      Attributes metadataAttrs = mirror.metadata
+          .firstWhere((im) => im.type.isSubtypeOf(reflectType(Attributes)), orElse: () => null)
+          ?.reflectee;
+
+      var type = metadataAttrs?.databaseType ?? PropertyDescription.propertyTypeForDartType(mirror.type.reflectedType);
+      if (type == null) {
+        throw new DataModelException("Property ${MirrorSystem.getName(mirror.simpleName)} on ${MirrorSystem.getName(entity.persistentInstanceTypeMirror.simpleName)} has invalid type");
+      }
+
+      return new AttributeDescription(entity, MirrorSystem.getName(mirror.simpleName), type,
+          transient: false,
+          primaryKey: metadataAttrs?.isPrimaryKey ?? false,
+          defaultValue: metadataAttrs?.defaultValue ?? null,
+          unique: metadataAttrs?.isUnique ?? false,
+          indexed: metadataAttrs?.isIndexed ?? false,
+          nullable: metadataAttrs?.isNullable ?? false,
+          includedInDefaultResultSet: !(metadataAttrs?.shouldOmitByDefault ?? false),
+          autoincrement: metadataAttrs?.autoincrement ?? false);
     }
-
-    return new AttributeDescription(entity, MirrorSystem.getName(mirror.simpleName), type,
-        transient: persistentMirror == null,
-        primaryKey: metadataAttrs?.isPrimaryKey ?? false,
-        defaultValue: metadataAttrs?.defaultValue ?? null,
-        unique: metadataAttrs?.isUnique ?? false,
-        indexed: metadataAttrs?.isIndexed ?? false,
-        nullable: metadataAttrs?.isNullable ?? false,
-        includedInDefaultResultSet: !(metadataAttrs?.shouldOmitByDefault ?? false),
-        autoincrement: metadataAttrs?.autoincrement ?? false);
   }
 
   Map<String, RelationshipDescription> _relationshipMapForEntity(ModelEntity entity) {
