@@ -221,7 +221,7 @@ void main() {
       var op = operations.firstWhere((e) => e.id == APIOperation.idForMethod(c, #getObject));
       List<APIResponse> getResponses = c.documentResponsesForOperation(op);
 
-      expect(getResponses.length, 2);
+      expect(getResponses.length, 3);
 
       var successResponse = getResponses.firstWhere((r) => r.key == "200");
       expect(successResponse.schema.title, "TestModel");
@@ -234,7 +234,7 @@ void main() {
       var op = operations.firstWhere((e) => e.id == APIOperation.idForMethod(c, #createObject));
       List<APIResponse> getResponses = c.documentResponsesForOperation(op);
 
-      expect(getResponses.length, 1);
+      expect(getResponses.length, 2);
 
       var successResponse = getResponses.firstWhere((r) => r.key == "200");
       expect(successResponse.schema.title, "TestModel");
@@ -244,7 +244,7 @@ void main() {
       var op = operations.firstWhere((e) => e.id == APIOperation.idForMethod(c, #updateObject));
       List<APIResponse> getResponses = c.documentResponsesForOperation(op);
 
-      expect(getResponses.length, 2);
+      expect(getResponses.length, 3);
 
       var successResponse = getResponses.firstWhere((r) => r.key == "200");
       expect(successResponse.schema.title, "TestModel");
@@ -257,7 +257,7 @@ void main() {
       var op = operations.firstWhere((e) => e.id == APIOperation.idForMethod(c, #deleteObject));
       List<APIResponse> getResponses = c.documentResponsesForOperation(op);
 
-      expect(getResponses.length, 2);
+      expect(getResponses.length, 3);
 
       var successResponse = getResponses.firstWhere((r) => r.key == "200");
       expect(successResponse.schema.title, "TestModel");
@@ -270,7 +270,7 @@ void main() {
       var op = operations.firstWhere((e) => e.id == APIOperation.idForMethod(c, #getObjects));
       List<APIResponse> getResponses = c.documentResponsesForOperation(op);
 
-      expect(getResponses.length, 2);
+      expect(getResponses.length, 3);
 
       var successResponse = getResponses.firstWhere((r) => r.key == "200");
       expect(successResponse.schema.type, APISchemaObjectTypeArray);
