@@ -407,6 +407,10 @@ class APISchemaObject {
   Map<String, APISchemaObject> properties = {};
   Map<String, APISchemaObject> additionalProperties = {};
 
+  APISchemaObject();
+  APISchemaObject.string() : type = APISchemaObjectTypeString;
+  APISchemaObject.int() : type = APISchemaObjectTypeInteger, format = APISchemaObjectFormatInt32;
+
   Map<String, dynamic> asMap() {
     var m = {};
     m["title"] = title;

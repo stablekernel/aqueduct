@@ -86,10 +86,10 @@ class AuthController extends HTTPController {
           ..schema = (new APISchemaObject()
             ..type = APISchemaObjectTypeObject
             ..properties = {
-              "access_token" : new APISchemaObject()..type = APISchemaObjectTypeString,
-              "token_type" : new APISchemaObject()..type = APISchemaObjectTypeString,
-              "expires_in" : new APISchemaObject()..type = APISchemaObjectTypeInteger ..format = APISchemaObjectFormatInt32,
-              "refresh_token" : new APISchemaObject()..type = APISchemaObjectTypeString
+              "access_token" : new APISchemaObject.string(),
+              "token_type" : new APISchemaObject.string(),
+              "expires_in" : new APISchemaObject.int(),
+              "refresh_token" : new APISchemaObject.string()
             }
           ),
         new APIResponse()
@@ -98,7 +98,7 @@ class AuthController extends HTTPController {
           ..schema = (new APISchemaObject()
             ..type = APISchemaObjectTypeObject
             ..properties = {
-              "error" : new APISchemaObject()..type = APISchemaObjectTypeString
+              "error" : new APISchemaObject.string()
             }
           ),
       ]);

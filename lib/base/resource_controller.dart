@@ -279,7 +279,7 @@ class ResourceController<ModelType extends Model> extends HTTPController {
           ..schema = (new APISchemaObject()
             ..type = APISchemaObjectTypeObject
             ..properties = {
-              "error" : new APISchemaObject()..type = APISchemaObjectTypeString
+              "error" : new APISchemaObject.string()
             }
           ),
       ]);
@@ -304,7 +304,7 @@ class ResourceController<ModelType extends Model> extends HTTPController {
           ..schema = (new APISchemaObject()
             ..type = APISchemaObjectTypeObject
             ..properties = {
-              "error" : new APISchemaObject()..type = APISchemaObjectTypeString
+              "error" : new APISchemaObject.string()
             }
           ),
       ]);
@@ -320,7 +320,7 @@ class ResourceController<ModelType extends Model> extends HTTPController {
           ..schema = (new APISchemaObject()
             ..type = APISchemaObjectTypeObject
             ..properties = {
-              "error" : new APISchemaObject()..type = APISchemaObjectTypeString
+              "error" : new APISchemaObject.string()
             }
           ),
       ]);
@@ -339,7 +339,7 @@ class ResourceController<ModelType extends Model> extends HTTPController {
           ..schema = (new APISchemaObject()
             ..type = APISchemaObjectTypeObject
             ..properties = {
-              "error" : new APISchemaObject()..type = APISchemaObjectTypeString
+              "error" : new APISchemaObject.string()
             }
           ),
       ]);
