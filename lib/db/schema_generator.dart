@@ -116,9 +116,8 @@ class SchemaColumn {
       case PropertyType.boolean: return "boolean";
       case PropertyType.datetime: return "datetime";
       case PropertyType.string: return "string";
-      case PropertyType.transientList:
-      case PropertyType.transientMap:
-        return null;
+      case PropertyType.transientList: return null;
+      case PropertyType.transientMap: return null;
     }
     return null;
   }
