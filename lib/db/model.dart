@@ -114,7 +114,7 @@ class Model<T> implements Serializable {
       if (property != null && !(property is AttributeDescription && property.isTransient)) {
         dynamicBacking[k] = _valueDecoder(property, v);
       } else if (decl != null && _declarationMirrorIsMappableOnInput(decl)) {
-        reflect(this).setField(decl.simpleName, v);
+        reflect(this).setField(decl.simpleName, _valueDecoder(property, v));
       } else {
         throw new QueryException(400, "Key $k does not exist for ${MirrorSystem.getName(reflect(this).type.simpleName)}", -1);
       }
