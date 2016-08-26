@@ -56,8 +56,9 @@ class AuthCodeController extends HTTPController {
 
   @override
   List<APIResponse> documentResponsesForOperation(APIOperation operation) {
+    var responses = super.documentResponsesForOperation(operation);
     if (operation.id == APIOperation.idForMethod(this, #authorize)) {
-      return [
+      responses.addAll([
         new APIResponse()
           ..statusCode = HttpStatus.MOVED_TEMPORARILY
           ..description = "Successfully issued an authorization code.",
@@ -67,9 +68,9 @@ class AuthCodeController extends HTTPController {
         new APIResponse()
           ..key = "default"
           ..description = "Something went wrong",
-      ];
+      ]);
     }
 
-    return null;
+    return responses;
   }
 }

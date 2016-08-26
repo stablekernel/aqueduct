@@ -77,8 +77,9 @@ class AuthController extends HTTPController {
 
   @override
   List<APIResponse> documentResponsesForOperation(APIOperation operation) {
+    var responses = super.documentResponsesForOperation(operation);
     if (operation.id == APIOperation.idForMethod(this, #create)) {
-      return [
+      responses.addAll([
         new APIResponse()
           ..statusCode = HttpStatus.OK
           ..description = "Successfully exchanged credentials for credentials"
@@ -100,12 +101,9 @@ class AuthController extends HTTPController {
               "error" : new APISchemaObject()..type = APISchemaObjectTypeString
             }
           ),
-        new APIResponse()
-          ..key = "default"
-          ..description = "Something went wrong",
-      ];
+      ]);
     }
 
-    return null;
+    return responses;
   }
 }

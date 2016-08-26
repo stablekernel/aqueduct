@@ -248,7 +248,32 @@ abstract class HTTPController extends RequestHandler {
 
   @override
   List<APIResponse> documentResponsesForOperation(APIOperation operation) {
-    return [];
+    List<APIResponse> responses = [
+      new APIResponse()
+        ..key = "default"
+        ..description = "Something went wrong",
+    ];
+
+    var symbol = APIOperation.symbolForId(operation.id, this);
+    if (symbol != null) {
+      var controllerCache = _HTTPControllerCache.cacheForType(runtimeType);
+      var methodMirror = reflect(this).type.declarations[symbol];
+
+      if (controllerCache.hasRequiredParametersForMethod(methodMirror)) {
+        responses.add(new APIResponse()
+          ..statusCode = HttpStatus.BAD_REQUEST
+          ..description = "Missing required query and/or header parameter(s)."
+          ..schema = (new APISchemaObject()
+            ..type = APISchemaObjectTypeObject
+            ..properties = {
+              "error" : new APISchemaObject()..type = APISchemaObjectTypeString
+            }
+          )
+        );
+      }
+    }
+
+    return responses;
   }
 }
 

@@ -266,8 +266,9 @@ class ResourceController<ModelType extends Model> extends HTTPController {
 
   @override
   List<APIResponse> documentResponsesForOperation(APIOperation operation) {
+    var responses = super.documentResponsesForOperation(operation);
     if(operation.id == APIOperation.idForMethod(this, #getObject)) {
-      return [
+      responses.addAll([
         new APIResponse()
           ..statusCode = HttpStatus.OK
           ..description = ""
@@ -281,18 +282,18 @@ class ResourceController<ModelType extends Model> extends HTTPController {
               "error" : new APISchemaObject()..type = APISchemaObjectTypeString
             }
           ),
-      ];
+      ]);
     } else if (operation.id == APIOperation.idForMethod(this, #createObject)) {
-      return [
+      responses.addAll([
         new APIResponse()
           ..statusCode = HttpStatus.OK
           ..description = ""
           ..schema = ModelContext.defaultContext
               .entityForType(ModelType)
               .documentedResponseSchema,
-      ];
+      ]);
     } else if (operation.id == APIOperation.idForMethod(this, #updateObject)) {
-      return [
+      responses.addAll([
         new APIResponse()
           ..statusCode = HttpStatus.OK
           ..description = ""
@@ -306,9 +307,9 @@ class ResourceController<ModelType extends Model> extends HTTPController {
               "error" : new APISchemaObject()..type = APISchemaObjectTypeString
             }
           ),
-      ];
+      ]);
     } else if (operation.id == APIOperation.idForMethod(this, #deleteObject)) {
-      return [
+      responses.addAll([
         new APIResponse()
           ..statusCode = HttpStatus.OK
           ..description = ""
@@ -322,9 +323,9 @@ class ResourceController<ModelType extends Model> extends HTTPController {
               "error" : new APISchemaObject()..type = APISchemaObjectTypeString
             }
           ),
-      ];
+      ]);
     } else if (operation.id == APIOperation.idForMethod(this, #getObjects)) {
-      return [
+      responses.addAll([
         new APIResponse()
           ..statusCode = HttpStatus.OK
           ..description = ""
@@ -341,10 +342,10 @@ class ResourceController<ModelType extends Model> extends HTTPController {
               "error" : new APISchemaObject()..type = APISchemaObjectTypeString
             }
           ),
-      ];
+      ]);
     }
 
-    return [];
+    return responses;
   }
 
   dynamic _parsePrimaryKey(String id) {

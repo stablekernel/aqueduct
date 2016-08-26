@@ -236,6 +236,15 @@ class APIOperation {
     return "${MirrorSystem.getName(reflect(classInstance).type.simpleName)}.${MirrorSystem.getName(methodSymbol)}";
   }
 
+  static Symbol symbolForId(String operationId, Object classInstance) {
+    var components = operationId.split(".");
+    if (components.length != 2 || components.first != MirrorSystem.getName(reflect(classInstance).type.simpleName)) {
+      return null;
+    }
+
+    return new Symbol(components.last);
+  }
+
   Map<String, dynamic> asMap() {
     var m = {};
 
