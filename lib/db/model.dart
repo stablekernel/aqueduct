@@ -152,7 +152,7 @@ class Model<T> implements Serializable {
   /// Usage:
   ///     var json = JSON.encode(model.asMap());
   Map<String, dynamic> asMap() {
-    var outputMap = {};
+    var outputMap = <String, dynamic>{};
 
     dynamicBacking.forEach((k, v) {
       outputMap[k] = _valueEncoder(k, v);
@@ -181,15 +181,15 @@ class Model<T> implements Serializable {
   /// DateTime instances are converted to ISO8601 strings.
   static dynamic _defaultValueEncoder(String key, dynamic value) {
     if (value is List) {
-      return (value as List)
+      return value
           .map((Model innerValue) => innerValue.asMap())
           .toList();
     } else if (value is Model) {
-      return (value as Model).asMap();
+      return value.asMap();
     }
 
     if (value is DateTime) {
-      return (value as DateTime).toIso8601String();
+      return value.toIso8601String();
     }
 
     return value;
@@ -211,16 +211,16 @@ class Model<T> implements Serializable {
       RelationshipDescription relationshipDescription = propertyDescription;
       var destinationEntity = relationshipDescription.destinationEntity;
       if (relationshipDescription.relationshipType == RelationshipType.belongsTo || relationshipDescription.relationshipType == RelationshipType.hasOne) {
-        if (value is! Map) {
+        if (value is! Map<String, dynamic>) {
           throw new QueryException(400, "Expecting a Map for ${MirrorSystem.getName(destinationEntity.instanceTypeMirror.simpleName)} in the ${relationshipDescription.name} field, got $value instead.", -1);
         }
 
         Model instance = destinationEntity.instanceTypeMirror.newInstance(new Symbol(""), []).reflectee;
-        instance.readMap(value);
+        instance.readMap(value as Map<String, dynamic>);
 
         return instance;
       } else if (relationshipDescription.relationshipType == RelationshipType.hasMany) {
-        if (value is! List) {
+        if (value is! List<Map<String, dynamic>>) {
           throw new QueryException(400, "Expecting a List for ${MirrorSystem.getName(destinationEntity.instanceTypeMirror.simpleName)} in the ${relationshipDescription.name} field, got $value instead.", -1);
         }
 
@@ -228,7 +228,7 @@ class Model<T> implements Serializable {
           throw new QueryException(400, "Expecting a List<Map> for ${MirrorSystem.getName(destinationEntity.instanceTypeMirror.simpleName)} in the ${relationshipDescription.name} field, got $value instead.", -1);
         }
 
-        return (value as List).map((v) {
+        return (value as List<Map<String, dynamic>>).map((v) {
           Model instance = destinationEntity.instanceTypeMirror.newInstance(new Symbol(""), []).reflectee;
           instance.readMap(v);
           return instance;

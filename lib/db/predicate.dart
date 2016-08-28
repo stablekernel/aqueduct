@@ -41,7 +41,7 @@ class Predicate {
 
     var predicateFormat = predicates.map((pred) => "${pred.format}").join(" and ");
 
-    var valueMap = {};
+    var valueMap = <String, dynamic>{};
     predicates.forEach((p) {
       var pValueMap = p.parameters;
 

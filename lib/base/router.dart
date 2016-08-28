@@ -91,7 +91,7 @@ class Router extends RequestHandler {
       }
     }
 
-    var remainingSegments = [];
+    var remainingSegments = <String>[];
     while (requestURISegmentIterator.moveNext()) {
       remainingSegments.add(requestURISegmentIterator.current);
     }

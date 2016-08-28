@@ -257,7 +257,7 @@ List<String> pathsFromRoutePattern(String routePattern) {
   }
 
   var chars = routePattern.codeUnits;
-  var patterns = [];
+  var patterns = <String>[];
   var buffer = new StringBuffer();
   var openOptional = '['.codeUnitAt(0);
   var openExpression = '('.codeUnitAt(0);

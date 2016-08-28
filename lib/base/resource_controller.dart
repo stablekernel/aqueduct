@@ -107,8 +107,8 @@ class ResourceController<ModelType extends Model> extends HTTPController {
   }
 
   @httpPost createObject() async {
-    ModelType instance = _query.entity.instanceTypeMirror.newInstance(new Symbol(""), []).reflectee;
-    instance.readMap(requestBody);
+    ModelType instance = _query.entity.instanceTypeMirror.newInstance(new Symbol(""), []).reflectee as ModelType;
+    instance.readMap(requestBody as Map<String, dynamic>);
     _query.values = instance;
 
     _query = await willInsertObjectWithQuery(_query);
@@ -180,8 +180,8 @@ class ResourceController<ModelType extends Model> extends HTTPController {
   @httpPut updateObject(String id) async {
     _query[_query.entity.primaryKey] = whereEqualTo(_parsePrimaryKey(id));
 
-    ModelType instance = _query.entity.instanceTypeMirror.newInstance(new Symbol(""), []).reflectee;
-    instance.readMap(requestBody);
+    ModelType instance = _query.entity.instanceTypeMirror.newInstance(new Symbol(""), []).reflectee as ModelType;
+    instance.readMap(requestBody as Map<String, dynamic>);
     _query.values = instance;
 
     _query = await willUpdateObjectWithQuery(_query);
@@ -360,6 +360,8 @@ class ResourceController<ModelType extends Model> extends HTTPController {
         case PropertyType.datetime: return DateTime.parse(id);
         case PropertyType.doublePrecision: return double.parse(id);
         case PropertyType.boolean: return id == "true";
+        case PropertyType.transientList: return null;
+        case PropertyType.transientMap: return null;
       }
     } on FormatException {
       throw new QueryException(404, "Unknown primary key", -1);

@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:aqueduct/aqueduct.dart';
 
 void main(List<String> args) {

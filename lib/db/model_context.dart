@@ -75,7 +75,7 @@ class ModelContext {
     }
 
     // There needs to be tests to ensure that the order of JoinElements is dependent.
-    var joinElements = elements.first
+    List<JoinMappingElement> joinElements = elements.first
         .where((e) => e is JoinMappingElement)
         .toList();
 
@@ -83,7 +83,14 @@ class ModelContext {
         .map((e) => elements.first.indexOf(e))
         .toList();
 
-    var primaryKeyColumn = elements.first.firstWhere((e) => e.property is AttributeDescription && e.property.isPrimaryKey);
+    var primaryKeyColumn = elements.first.firstWhere((e) {
+      var eProp = e.property;
+      if (eProp is AttributeDescription) {
+        return eProp.isPrimaryKey;
+      }
+      return false;
+    });
+
     var primaryKeyColumnIndex = elements.first.indexOf(primaryKeyColumn);
     Map<String, Map<dynamic, Model>> matchMap = {};
 
@@ -101,7 +108,9 @@ class ModelContext {
 
       joinElementIndexes
           .map((joinIndex) => row[joinIndex])
-          .forEach((JoinMappingElement joinElement) {
+          .forEach((MappingElement element) {
+            JoinMappingElement joinElement = element;
+
             var subInstanceTuple = _createInstanceIfNecessary(joinElement.joinProperty.entity, joinElement.values, joinElement.primaryKeyIndex, joinElements, matchMap);
             if (subInstanceTuple == null) {
               return;
@@ -144,7 +153,9 @@ class ModelContext {
       joinElements
           .where((je) => je.property.entity == mappingEntity)
           .forEach((je) {
-            if (je.property.relationshipType == RelationshipType.hasMany) {
+            RelationshipDescription relDesc = je.property;
+
+            if (relDesc.relationshipType == RelationshipType.hasMany) {
               existingInstance[je.property.name] = [];
             } else {
               existingInstance[je.property.name] = null;

@@ -56,7 +56,7 @@ class ModelEntity {
   /// The string key is the name of the property, case-sensitive. Values will be instances of either [AttributeDescription]
   /// or [RelationshipDescription]. This is the concatenation of [attributes] and [relationships].
   Map<String, PropertyDescription> get properties {
-    var all = new Map.from(attributes);
+    var all = new Map.from(attributes) as Map<String, PropertyDescription>;
     if (relationships != null) {
       all.addAll(relationships);
     }
@@ -76,6 +76,7 @@ class ModelEntity {
           .where((prop) => !prop.isTransient)
           .map((prop) => prop.name)
           .toList();
+
       _defaultProperties.addAll(relationships.values
           .where((prop) => prop.isIncludedInDefaultResultSet && prop.relationshipType == RelationshipType.belongsTo)
           .map((prop) => prop.name)
@@ -210,7 +211,7 @@ class ModelEntity {
   }
 
   /// Two entities are considered equal if they have the same [tableName].
-  operator ==(ModelEntity other) {
+  operator ==(dynamic other) {
     return tableName == other.tableName;
   }
 

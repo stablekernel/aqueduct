@@ -24,16 +24,16 @@ import 'dart:math';
 import 'dart:mirrors';
 
 import 'package:analyzer/analyzer.dart';
-import 'package:crypto/crypto.dart' show sha256;
+import 'package:crypto/crypto.dart';
 import 'package:logging/logging.dart';
 import 'package:matcher/matcher.dart';
-import 'package:pbkdf2/pbkdf2.dart';
 import 'package:postgresql/postgresql.dart';
 
 export 'package:logging/logging.dart';
 export 'package:safe_config/safe_config.dart';
 export 'package:args/args.dart';
 
+part 'utilities/pbkdf2.dart';
 part 'auth/auth_code_controller.dart';
 part 'auth/auth_controller.dart';
 part 'auth/authentication_server.dart';

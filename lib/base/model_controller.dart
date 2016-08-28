@@ -61,9 +61,10 @@ abstract class ModelController<T extends Model> extends HTTPController {
   }
 
   @override
-  void didDecodeRequestBody(Map <String, dynamic> bodyMap) {
+  void didDecodeRequestBody(dynamic body) {
+    var bodyMap = body as Map<String, dynamic>;
     var reflectedModel = reflectClass(T).newInstance(new Symbol(""), []);
-    query.values = reflectedModel.reflectee;
+    query.values = reflectedModel.reflectee as T;
     query.values.readMap(bodyMap);
 
     query.values.dynamicBacking.remove(query.values.entity.primaryKey);

@@ -3,7 +3,7 @@ part of aqueduct;
 /// A storage-agnostic authenticating mechanism.
 ///
 /// Instances of this type will work with a [AuthenticationServerDelegate] to faciliate authentication.
-class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType extends Tokenizable, AuthCodeType extends TokenExchangable> extends Object with APIDocumentable {
+class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType extends Tokenizable, AuthCodeType extends TokenExchangable<TokenType>> extends Object with APIDocumentable {
   /// Creates a new instance of an [AuthenticationServer] with a [delegate].
   AuthenticationServer(this.delegate);
 
@@ -86,7 +86,7 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
   /// This method creates an instance of a [TokenType] given an [ownerID], [clientID] and [expirationInSeconds].
   /// The token is not stored in this method.
   TokenType generateToken(dynamic ownerID, String clientID, int expirationInSeconds) {
-    TokenType token = (reflectType(TokenType) as ClassMirror).newInstance(new Symbol(""), []).reflectee;
+    TokenType token = (reflectType(TokenType) as ClassMirror).newInstance(new Symbol(""), []).reflectee as TokenType;
     token.accessToken = randomStringOfLength(32);
     token.refreshToken = randomStringOfLength(32);
     token.issueDate = new DateTime.now().toUtc();
@@ -117,7 +117,8 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
   /// This method creates an instance of [AuthCodeType] given an [ownerId], [client], and [expirationInSeconds].
   /// The authorization code is not stored in this method.
   AuthCodeType generateAuthCode(dynamic ownerID, Client client, int expirationInSeconds) {
-    AuthCodeType authCode = (reflectType(AuthCodeType) as ClassMirror).newInstance(new Symbol(""), []).reflectee;
+    AuthCodeType authCode = (reflectType(AuthCodeType) as ClassMirror).newInstance(new Symbol(""), []).reflectee as AuthCodeType;
+
     authCode.code = randomStringOfLength(32);
     authCode.clientID = client.id;
     authCode.resourceOwnerIdentifier = ownerID;
@@ -280,7 +281,7 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
 
   /// A utility method to generate a password hash using the PBKDF2 scheme.
   static String generatePasswordHash(String password, String salt, {int hashRounds: 1000, int hashLength: 32}) {
-    var generator = new PBKDF2(hash: sha256);
+    var generator = new PBKDF2(hashFunction: sha256);
     var key = generator.generateKey(password, salt, hashRounds, hashLength);
 
     return new Base64Encoder().convert(key);

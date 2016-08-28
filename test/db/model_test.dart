@@ -1,20 +1,20 @@
 import 'package:aqueduct/aqueduct.dart';
 import 'package:test/test.dart';
+import 'dart:mirrors';
 
-main() {
+void main() {
   var ps = new DefaultPersistentStore();
   DataModel dm = new DataModel([TransientTest, User, Post]);
   ModelContext _ = new ModelContext(dm, ps);
 
   test("NoSuchMethod still throws", () {
     var user = new User();
-    var successful = false;
     try {
-      user.foo();
-      successful = true;
-    } on NoSuchMethodError {
-    }
-    expect(successful, false);
+      reflect(user).invoke(#foo, []);
+
+      expect(true, false);
+    } on NoSuchMethodError {}
+
   });
 
   test("Model object construction", () {
@@ -29,22 +29,19 @@ main() {
 
   test("Mismatched type throws exception", () {
     var user = new User();
-    var successful = false;
     try {
-      user.name = 1;
-      successful = true;
-    } catch (e) {
+      reflect(user).setField(#name, 1);
+
+      expect(true, false);
+    } on DataModelException catch (e) {
       expect(e.message, "Type mismatch for property name on _User, expected assignable type matching PropertyType.string but got _Smi.");
     }
-    expect(successful, false);
 
     try {
-      user.id = "foo";
-      successful = true;
-    } catch (e) {
+      reflect(user).setField(#id, "foo");
+    } on DataModelException catch (e) {
       expect(e.message, "Type mismatch for property id on _User, expected assignable type matching PropertyType.integer but got _OneByteString.");
     }
-    expect(successful, false);
   });
 
   test("Accessing model object without field should return null", () {
@@ -54,22 +51,20 @@ main() {
 
   test("Getting/setting property that is undeclared throws exception", () {
     var user = new User();
-    var successful = false;
-    try {
-      var _ = user.foo;
-      successful = true;
-    } catch (e) {
-      expect(e.message, "Model type User has no property foo.");
-    }
-    expect(successful, false);
 
     try {
-      user.foo = "hey";
-      successful = true;
-    } catch (e) {
+      reflect(user).getField(#foo);
+      expect(true, false);
+    } on DataModelException catch (e) {
       expect(e.message, "Model type User has no property foo.");
     }
-    expect(successful, false);
+
+    try {
+      reflect(user).setField(#foo, "hey");
+      expect(true, false);
+    } on DataModelException catch (e) {
+      expect(e.message, "Model type User has no property foo.");
+    }
   });
 
   test("Can assign and read embedded objects", () {

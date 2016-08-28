@@ -37,7 +37,7 @@ class AuthCodeController extends HTTPController {
 
   static Response authCodeResponse(TokenExchangable authCode, String clientState) {
     var redirectURI = Uri.parse(authCode.redirectURI);
-    var queryParameters = new Map.from(redirectURI.queryParameters);
+    Map<String, String> queryParameters = new Map.from(redirectURI.queryParameters);
     queryParameters["code"] = authCode.code;
     if (clientState != null) {
       queryParameters["state"] = clientState;

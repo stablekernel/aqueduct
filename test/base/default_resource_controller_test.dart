@@ -283,7 +283,7 @@ void main() {
 }
 
 class TestPipeline extends ApplicationPipeline {
-  TestPipeline(dynamic opts) : super (opts) {
+  TestPipeline(Map<String, dynamic> opts) : super (opts) {
     var dataModel = new DataModel([TestModel]);
     var persistentStore = new PostgreSQLPersistentStore.fromConnectionInfo("dart", "dart", "localhost", 5432, "dart_test");
     context = new ModelContext(dataModel, persistentStore);

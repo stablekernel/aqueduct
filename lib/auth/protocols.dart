@@ -6,7 +6,7 @@ part of aqueduct;
 /// that its [TokenType] implement this interface. You will likely use
 /// this interface in defining a [Model] that represents the concrete implementation of a authentication
 /// token in your application.
-abstract class Tokenizable {
+abstract class Tokenizable<ResourceIdentifierType> {
   /// The value to be passed as a Bearer Authorization header.
   String accessToken;
 
@@ -27,7 +27,7 @@ abstract class Tokenizable {
   /// Tokens are owned by a resource owner, typically a User, Profile or Account
   /// in an application. This value is the primary key or identifying value of those
   /// instances.
-  dynamic resourceOwnerIdentifier;
+  ResourceIdentifierType resourceOwnerIdentifier;
 
   /// The clientID this token was issued under.
   String clientID;
@@ -39,7 +39,7 @@ abstract class Tokenizable {
 /// that its [AuthCodeType] implement this interface. You will likely use
 /// this interface in defining a [Model] that represents a concrete implementation
 /// of a authorization code in your application.
-abstract class TokenExchangable {
+abstract class TokenExchangable<TokenType extends Tokenizable> {
   /// This is the URI that the response object will redirect to with the
   /// authorization code in the query.
   String redirectURI;
@@ -64,7 +64,7 @@ abstract class TokenExchangable {
   DateTime expirationDate;
 
   /// The token vended for this authorization code
-  Tokenizable token;
+  TokenType token;
 }
 
 /// A representation of authentication information to be attached to a [Request].
@@ -122,7 +122,7 @@ abstract class Authenticatable {
 /// This interface is responsible for persisting information generated and requested by an [AuthenticationServer].
 /// The [ResourceOwner] often represents a user, and must implement [Authenticatable]. The [TokenType]
 /// is a concrete instance of [Tokenizable].
-abstract class AuthenticationServerDelegate<ResourceOwner extends Authenticatable, TokenType extends Tokenizable, AuthCodeType extends TokenExchangable> {
+abstract class AuthenticationServerDelegate<ResourceOwner extends Authenticatable, TokenType extends Tokenizable, AuthCodeType extends TokenExchangable<TokenType>> {
   /// Returns a [TokenType] for an [accessToken].
   ///
   /// This method returns an instance of [TokenType] if one exists for [accessToken], and [null] otherwise.

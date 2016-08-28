@@ -1,5 +1,4 @@
 import 'package:wildfire/wildfire.dart';
-import 'dart:io';
 
 main() {
   var dataModel = new DataModel(WildfirePipeline.modelTypes());

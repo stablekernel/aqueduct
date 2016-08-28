@@ -14,7 +14,7 @@ void main() {
 }
 
 class TestPipeline extends ApplicationPipeline {
-  TestPipeline(dynamic opts) : super (opts);
+  TestPipeline(Map<String, dynamic> opts) : super (opts);
 
   @override
   void addRoutes() {

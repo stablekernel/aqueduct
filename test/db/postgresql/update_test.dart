@@ -47,15 +47,15 @@ void main() {
     var child = new Child()
       ..name = "Fred"
       ..parent = parent;
-    q = new Query<Child>()
+    var childQuery = new Query<Child>()
       ..values = child;
-    child = await q.insert();
+    child = await childQuery.insert();
     expect(child.parent.id, parent.id);
 
-    q = new ModelQuery<Child>()
+    childQuery = new ModelQuery<Child>()
       ..["id"] = whereEqualTo(child.id)
       ..values = (new Child()..parent = null);
-    child = (await q.update()).first;
+    child = (await childQuery.update()).first;
     expect(child.parent, isNull);
   });
 
@@ -81,9 +81,9 @@ void main() {
     expect(response.length, 0);
 
     req = new Query<TestModel>();
-    response = await req.fetchOne();
-    expect(response.name, "Bob");
-    expect(response.emailAddress, "1@a.com");
+    var fetchResponse = await req.fetchOne();
+    expect(fetchResponse.name, "Bob");
+    expect(fetchResponse.emailAddress, "1@a.com");
   });
 
   test("Update object with ModelQuery", () async {

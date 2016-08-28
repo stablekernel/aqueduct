@@ -140,7 +140,15 @@ enum JoinType {
 
 class JoinMappingElement extends MappingElement {
   JoinMappingElement(this.type, PropertyDescription property, this.predicate, this.resultKeys) : super(property, null) {
-    primaryKeyIndex = this.resultKeys.indexOf(this.resultKeys.firstWhere((e) => e.property is AttributeDescription && e.property.isPrimaryKey));
+    var primaryKeyElement = this.resultKeys.firstWhere((e) {
+      var eProp = e.property;
+      if (eProp is AttributeDescription) {
+        return eProp.isPrimaryKey;
+      }
+      return false;
+    });
+
+    primaryKeyIndex = this.resultKeys.indexOf(primaryKeyElement);
   }
   JoinMappingElement.fromElement(JoinMappingElement original, List<MappingElement> values) : super.fromElement(original, values) {
     type = original.type;
@@ -153,5 +161,5 @@ class JoinMappingElement extends MappingElement {
   List<MappingElement> resultKeys;
 
   int primaryKeyIndex;
-  List<MappingElement> get values => value;
+  List<MappingElement> get values => value as List<MappingElement>;
 }

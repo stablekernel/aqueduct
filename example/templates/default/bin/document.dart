@@ -1,7 +1,6 @@
 import 'package:wildfire/wildfire.dart';
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 Future main(List<String> args) async {
   var argParser = new ArgParser()
@@ -14,7 +13,7 @@ Future main(List<String> args) async {
     return;
   }
 
-  List<String> hostValues = values["host"];
+  List<String> hostValues = values["host"] as List<String>;
   List<Uri> hosts = hostValues?.map((str) => Uri.parse(str))?.toList() ?? [];
   if (hosts.any((uri) => uri == null)) {
     print("Invalid host in $hostValues, must identity scheme, host and port. Example: https://api.myapp.com:8000");

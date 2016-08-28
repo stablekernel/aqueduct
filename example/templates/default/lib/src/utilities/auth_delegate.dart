@@ -48,7 +48,7 @@ class WildfireAuthenticationDelegate implements AuthenticationServerDelegate<Use
     return await userQ.fetchOne();
   }
 
-  Future<User> authenticatableForID(AuthenticationServer server, int id) async {
+  Future<User> authenticatableForID(AuthenticationServer server, dynamic id) async {
     var userQ = new UserQuery()
       ..id = id
       ..resultProperties = ["email", "hashedPassword", "salt", "id"];
@@ -63,15 +63,17 @@ class WildfireAuthenticationDelegate implements AuthenticationServerDelegate<Use
     await q.delete();
   }
 
-  Future storeToken(AuthenticationServer server, Token t) async {
+  Future<Token> storeToken(AuthenticationServer server, Token t) async {
     var tokenQ = new Query<Token>();
     tokenQ.values = t;
 
-    await tokenQ.insert();
+    var insertedToken = await tokenQ.insert();
 
     pruneResourceOwnerTokensAfterIssuingToken(t).catchError((e) {
       new Logger("aqueduct").severe("Failed to prune tokens $e");
     });
+
+    return insertedToken;
   }
 
   Future<AuthCode> storeAuthCode(AuthenticationServer server, AuthCode code) async {

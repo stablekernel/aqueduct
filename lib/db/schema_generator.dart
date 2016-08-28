@@ -8,9 +8,9 @@ class SchemaGenerator {
   }
 
   List<SchemaTable> tables;
-  List serialized;
+  List<Map<String, dynamic>> serialized;
 
-  List _buildOperationsFromPreviousDataModelString(String previousDataModelString) {
+  List<Map<String, dynamic>> _buildOperationsFromPreviousDataModelString(String previousDataModelString) {
     if (previousDataModelString == null) {
       // Fresh, so only table.add
       return tables
@@ -167,7 +167,7 @@ class SchemaIndex {
 }
 
 abstract class SchemaGeneratorBackend {
-  SchemaGeneratorBackend(List<Map> operations, {bool temporary: false}) {
+  SchemaGeneratorBackend(List<Map<String, dynamic>> operations, {bool temporary: false}) {
     isTemporary = temporary;
     operations.forEach((op) {
       _parseOperation(op);

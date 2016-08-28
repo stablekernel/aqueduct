@@ -1,7 +1,7 @@
 part of wildfire;
 
 class AuthCode extends Model<_AuthCode> implements _AuthCode {}
-class _AuthCode implements TokenExchangable {
+class _AuthCode implements TokenExchangable<Token> {
   @primaryKey
   int id;
 
@@ -22,7 +22,7 @@ class _AuthCode implements TokenExchangable {
 
 
 class TokenQuery extends ModelQuery<Token> implements _Token {}
-class Token extends Model<_Token> implements _Token, Tokenizable {
+class Token extends Model<_Token> implements _Token, Tokenizable<int> {
   String get clientID => client.id;
   void set clientID(cid) {
     client = new ClientRecord()..id = cid;
@@ -33,7 +33,6 @@ class Token extends Model<_Token> implements _Token, Tokenizable {
     owner = new User()..id = roid;
   }
 }
-
 class _Token {
   @Attributes(primaryKey: true)
   String accessToken;

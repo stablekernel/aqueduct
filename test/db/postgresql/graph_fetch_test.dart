@@ -453,7 +453,8 @@ class User extends Model<_User> implements _User {
         ..name = u.name
         ..locations = u.locations?.map((l) => new Location.fromLocation(l))?.toList();
   }
-  operator == (User other) {
+  operator == (dynamic o) {
+    User other = o;
     var propsEqual = this.id == other.id && this.name == other.name;
     if (!propsEqual) {
       return false;
@@ -505,7 +506,8 @@ class Location extends Model<_Location> implements _Location {
         ..equipment = loc.equipment?.map((eq) => new Equipment.fromEquipment(eq))?.toList()
         ..user = loc.user != null ? (new User()..id = loc.user.id) : null;
   }
-  operator == (Location other) {
+  operator ==(dynamic o) {
+    Location other = o;
     var propTruth = this.id == other.id && this.name == other.name && this.user?.id == other.user?.id;
     if (!propTruth) {
       return false;
@@ -561,7 +563,8 @@ class Equipment extends Model<_Equipment> implements _Equipment {
   int get hashCode {
     return this.id;
   }
-  operator == (Equipment other) {
+  operator ==(dynamic o) {
+    Equipment other = o;
     return this.id == other.id && this.name == other.name && this.type == other.type && this.location?.id == other.location?.id;
   }
 
@@ -569,7 +572,7 @@ class Equipment extends Model<_Equipment> implements _Equipment {
     return "Equipment: $id $name $type FK: ${location.id}";
   }
 }
-class EquipmentQuery extends ModelQuery<Equipment> implements _Equipment {}
+class EquipmentQuery extends ModelQuery<Equipment> implements Equipment {}
 class _Equipment {
   @primaryKey
   int id;

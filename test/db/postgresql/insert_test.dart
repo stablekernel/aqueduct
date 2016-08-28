@@ -153,9 +153,9 @@ void main() {
     var p = new GenPost()
       ..owner = u
       ..text = "1";
-    q = new Query<GenPost>()
+    var pq = new Query<GenPost>()
       ..values = p;
-    p = await q.insert();
+    p = await pq.insert();
 
     expect(p.id, greaterThan(0));
     expect(p.owner.id, greaterThan(0));
@@ -205,8 +205,8 @@ void main() {
     expect(result.name, "Bob");
     expect(result.posts, isNull);
 
-    q = new Query<GenPost>();
-    expect(await q.fetch(), hasLength(0));
+    var pq = new Query<GenPost>();
+    expect(await pq.fetch(), hasLength(0));
   });
 }
 

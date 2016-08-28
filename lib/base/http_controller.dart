@@ -71,9 +71,9 @@ abstract class HTTPController extends RequestHandler {
   dynamic _serializedResponseBody(dynamic initialResponseBody) {
     var serializedBody = null;
     if (initialResponseBody is Serializable) {
-      serializedBody = (initialResponseBody as Serializable).asSerializable();
+      serializedBody = initialResponseBody.asSerializable();
     } else if (initialResponseBody is List) {
-      serializedBody = (initialResponseBody as List).map((value) {
+      serializedBody = initialResponseBody.map((value) {
         if (value is Serializable) {
           return value.asSerializable();
         } else {
@@ -100,7 +100,6 @@ abstract class HTTPController extends RequestHandler {
       }
     }
 
-
     if (requestBody != null) {
       didDecodeRequestBody(requestBody);
     }
@@ -110,7 +109,7 @@ abstract class HTTPController extends RequestHandler {
     if (contentType != null
     &&  contentType.primaryType == HTTPController._applicationWWWFormURLEncodedContentType .primaryType
     &&  contentType.subType == HTTPController._applicationWWWFormURLEncodedContentType.subType) {
-      queryParameters = requestBody ?? {};
+      queryParameters = requestBody as Map<String, List<String>> ?? {};
     }
 
     var properties = controllerCache.propertiesFromRequest(request.innerRequest.headers, queryParameters);
@@ -128,7 +127,7 @@ abstract class HTTPController extends RequestHandler {
         mapper.methodSymbol,
         orderedParameters,
         optionalParameters
-    ).reflectee;
+    ).reflectee as Future<Response>;
     var response = await eventualResponse;
 
     willSendResponse(response);
@@ -162,7 +161,7 @@ abstract class HTTPController extends RequestHandler {
 
   @override
   List<APIOperation> documentOperations(PackagePathResolver resolver) {
-    var handlerMethodMirrors = reflect(this).type.declarations.values
+    Iterable<MethodMirror> handlerMethodMirrors = reflect(this).type.declarations.values
         .where((dm) => dm is MethodMirror)
         .where((mm) {
           return mm.metadata.firstWhere((im) => im.reflectee is HTTPMethod, orElse: () => null) != null;
@@ -174,7 +173,10 @@ abstract class HTTPController extends RequestHandler {
 
     var classUnit = fileUnit.declarations
         .where((u) => u is ClassDeclaration)
-        .firstWhere((ClassDeclaration u) => u.name.token.lexeme == MirrorSystem.getName(reflectedType.simpleName));
+        .firstWhere((CompilationUnitMember u) {
+          ClassDeclaration classDecl = u;
+          return classDecl.name.token.lexeme == MirrorSystem.getName(reflectedType.simpleName);
+        });
 
     Map<String, MethodDeclaration> methodMap = {};
     classUnit.childEntities.forEach((child) {
@@ -238,8 +240,8 @@ abstract class HTTPController extends RequestHandler {
 
       operation.parameters.addAll(optionalParams);
 
-      operation.consumes = acceptedContentTypes.map((ct) => "${ct.primaryType}/${ct.subType}").toList();
-      operation.produces = ["${responseContentType.primaryType}/${responseContentType.subType}"];
+      operation.consumes = acceptedContentTypes;
+      operation.produces = [responseContentType];
       operation.responses = documentResponsesForOperation(operation);
 
       return operation;
@@ -288,7 +290,7 @@ class _InternalControllerException implements Exception {
         this.responseMessage = responseMessage;
 
   Response get response {
-    var headerMap = {};
+    var headerMap = <String, dynamic>{};
     additionalHeaders?.forEach((k, _) {
       headerMap[k] = additionalHeaders.value(k);
     });
@@ -302,10 +304,10 @@ class _InternalControllerException implements Exception {
 }
 
 Response _missingRequiredParameterResponseIfNecessary(Map<Symbol, dynamic> properties, Map<Symbol, dynamic> optionalParameters) {
-  List<_HTTPControllerMissingParameter> missingParams = [properties, optionalParameters]
+  var missingParams = [properties, optionalParameters]
       .expand((m) => m.values)
       .where((v) => v is _HTTPControllerMissingParameter)
-      .toList();
+      .toList() as List<_HTTPControllerMissingParameter>;
 
   if (missingParams.isEmpty) {
     return null;

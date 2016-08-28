@@ -82,7 +82,7 @@ class CORSPolicy {
   Map<String, dynamic> headersForRequest(Request request) {
     var origin = request.innerRequest.headers.value("origin");
 
-    var headers = {};
+    var headers = <String, dynamic>{};
     headers["Access-Control-Allow-Origin"] = origin;
 
     if (exposedResponseHeaders.length > 0) {

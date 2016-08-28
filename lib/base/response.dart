@@ -22,7 +22,7 @@ class Response implements RequestHandlerResult {
   ///
   /// There exist convenience constructors for common response status codes
   /// and you should prefer to use those.
-  Response(int statusCode, Map<String, String> headers, dynamic body) {
+  Response(int statusCode, Map<String, dynamic> headers, dynamic body) {
     this.body = body;
     this.headers = headers;
     this.statusCode = statusCode;
@@ -33,12 +33,12 @@ class Response implements RequestHandlerResult {
   }
 
   /// Represents a 200 response.
-  Response.ok(dynamic body, {Map<String, String> headers}) : this(HttpStatus.OK, headers, body);
+  Response.ok(dynamic body, {Map<String, dynamic> headers}) : this(HttpStatus.OK, headers, body);
 
   /// Represents a 201 response.
   ///
   /// The [location] is a URI that is added as the Location header.
-  Response.created(String location, {dynamic body, Map<String, String> headers}) {
+  Response.created(String location, {dynamic body, Map<String, dynamic> headers}) {
     this.headers = headers;
     this.body = body;
     this.statusCode = HttpStatus.CREATED;
@@ -51,28 +51,28 @@ class Response implements RequestHandlerResult {
   }
 
   /// Represents a 202 response.
-  Response.accepted({Map<String, String> headers}) : this(HttpStatus.ACCEPTED, headers, null);
+  Response.accepted({Map<String, dynamic> headers}) : this(HttpStatus.ACCEPTED, headers, null);
 
   /// Represents a 400 response.
-  Response.badRequest({Map<String, String> headers, dynamic body}) : this(HttpStatus.BAD_REQUEST, headers, body);
+  Response.badRequest({Map<String, dynamic> headers, dynamic body}) : this(HttpStatus.BAD_REQUEST, headers, body);
 
   /// Represents a 401 response.
-  Response.unauthorized({Map<String, String> headers, dynamic body}) : this(HttpStatus.UNAUTHORIZED, headers, body);
+  Response.unauthorized({Map<String, dynamic> headers, dynamic body}) : this(HttpStatus.UNAUTHORIZED, headers, body);
 
   /// Represents a 403 response.
-  Response.forbidden({Map<String, String> headers, dynamic body}) : this(HttpStatus.FORBIDDEN, headers, body);
+  Response.forbidden({Map<String, dynamic> headers, dynamic body}) : this(HttpStatus.FORBIDDEN, headers, body);
 
   /// Represents a 404 response.
-  Response.notFound({Map<String, String> headers, dynamic body}) : this(HttpStatus.NOT_FOUND, headers, body);
+  Response.notFound({Map<String, dynamic> headers, dynamic body}) : this(HttpStatus.NOT_FOUND, headers, body);
 
   /// Represents a 409 response.
-  Response.conflict({Map<String, String> headers, dynamic body}) : this(HttpStatus.CONFLICT, headers, body);
+  Response.conflict({Map<String, dynamic> headers, dynamic body}) : this(HttpStatus.CONFLICT, headers, body);
 
   /// Represents a 410 response.
-  Response.gone({Map<String, String> headers, dynamic body}) : this(HttpStatus.GONE, headers, body);
+  Response.gone({Map<String, dynamic> headers, dynamic body}) : this(HttpStatus.GONE, headers, body);
 
   /// Represents a 500 response.
-  Response.serverError({Map<String, String> headers, dynamic body}) : this(HttpStatus.INTERNAL_SERVER_ERROR, headers, body);
+  Response.serverError({Map<String, dynamic> headers, dynamic body}) : this(HttpStatus.INTERNAL_SERVER_ERROR, headers, body);
 
   String toString() {
     return "$statusCode $headers";

@@ -26,7 +26,7 @@ class Request implements RequestHandlerResult {
     var topLevel = _encoders[type.primaryType];
     if (topLevel == null) {
       topLevel = {};
-      _encoders[topLevel] = topLevel;
+      _encoders[type.primaryType] = topLevel;
     }
 
     topLevel[type.subType] = encoder;

@@ -135,7 +135,7 @@ class PostgreSQLPersistentStore extends PersistentStore {
 
     var results = await _executeQuery(queryStringBuffer.toString(), valueMap, q.timeoutInSeconds);
 
-    return _mappingElementsFromResults(results, q.resultKeys).first;
+    return _mappingElementsFromResults(results as List<Row>, q.resultKeys).first;
   }
 
   Future<List<List<MappingElement>>> executeFetchQuery(PersistentStoreQuery q) async {
@@ -154,8 +154,10 @@ class PostgreSQLPersistentStore extends PersistentStore {
 
     queryStringBuffer.write("$selectColumns from ${q.entity.tableName} ");
 
-    q.resultKeys.where((mapElement) => mapElement is JoinMappingElement)
-        .forEach((JoinMappingElement joinElement) {
+    q.resultKeys
+        .where((mapElement) => mapElement is JoinMappingElement)
+        .forEach((MappingElement je) {
+          JoinMappingElement joinElement = je;
           queryStringBuffer.write("${_joinStringForJoin(joinElement)} ");
           if (joinElement.predicate != null) {
             predicateValueMap.addAll(joinElement.predicate.parameters);
@@ -183,7 +185,7 @@ class PostgreSQLPersistentStore extends PersistentStore {
 
     var results = await _executeQuery(queryStringBuffer.toString(), predicateValueMap, q.timeoutInSeconds);
 
-    return _mappingElementsFromResults(results, q.resultKeys);
+    return _mappingElementsFromResults(results as List<Row>, q.resultKeys);
   }
 
   Future<int> executeDeleteQuery(PersistentStoreQuery q) async {
@@ -214,7 +216,7 @@ class PostgreSQLPersistentStore extends PersistentStore {
     queryStringBuffer.write("update ${q.entity.tableName} ");
     queryStringBuffer.write("set ${q.values.map((m) => _columnNameForProperty(m.property)).map((keyName) => "$keyName=@u_$keyName").join(",")} ");
 
-    var predicateValueMap = {};
+    var predicateValueMap = <String, dynamic>{};
     if (q.predicate != null) {
       queryStringBuffer.write("where ${q.predicate.format} ");
       predicateValueMap = q.predicate.parameters;
@@ -231,7 +233,7 @@ class PostgreSQLPersistentStore extends PersistentStore {
 
     var results = await _executeQuery(queryStringBuffer.toString(), updateValueMap, q.timeoutInSeconds);
 
-    return _mappingElementsFromResults(results, q.resultKeys);
+    return _mappingElementsFromResults(results as List<Row>, q.resultKeys);
   }
 
   @override
@@ -245,7 +247,7 @@ class PostgreSQLPersistentStore extends PersistentStore {
   @override
   Predicate containsPredicate(PropertyDescription desc, Iterable<dynamic> values) {
     var tokenList = [];
-    var pairedMap = {};
+    var pairedMap = <String, dynamic>{};
     var prefix = desc.entity.tableName;
     var propertyName = _columnNameForProperty(desc);
 
@@ -304,7 +306,7 @@ class PostgreSQLPersistentStore extends PersistentStore {
 
         if (element is JoinMappingElement) {
           var innerColumnIterator = element.resultKeys.iterator;
-          var innerResultColumns = [];
+          var innerResultColumns = <MappingElement>[];
           while (innerColumnIterator.moveNext()) {
             rowIterator.moveNext();
             innerResultColumns.add(new MappingElement.fromElement(innerColumnIterator.current, rowIterator.current));

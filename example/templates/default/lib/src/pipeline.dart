@@ -70,10 +70,12 @@ class WildfirePipeline extends ApplicationPipeline {
     var modelMirror = reflectClass(Model);
 
     LibraryMirror libMirror = reflectType(WildfirePipeline).owner;
-    return libMirror.declarations.values
-        .where((decl) => decl is ClassMirror)
-        .where((ClassMirror m) => m.isSubclassOf(modelMirror))
-        .map((ClassMirror m) => m.reflectedType)
+    Iterable<ClassMirror> allClasses = libMirror.declarations.values
+        .where((decl) => decl is ClassMirror);
+
+    return allClasses
+        .where((m) => m.isSubclassOf(modelMirror))
+        .map((m) => m.reflectedType)
         .toList();
   }
 }

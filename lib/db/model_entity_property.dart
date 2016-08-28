@@ -109,12 +109,15 @@ abstract class PropertyDescription {
 /// adds two properties to [PropertyDescription] that are only valid for non-relationship types, [isPrimaryKey] and [defaultValue].
 class AttributeDescription extends PropertyDescription {
   AttributeDescription(ModelEntity entity, String name, PropertyType type, {bool transient: false, bool primaryKey: false, String defaultValue: null, bool unique: false, bool indexed: false, bool nullable: false, bool includedInDefaultResultSet: true, bool autoincrement: false}) :
-      super(entity, name, type, unique: unique, indexed: indexed, nullable: nullable, includedInDefaultResultSet: includedInDefaultResultSet, autoincrement: autoincrement),
-      isTransient = transient,
-      isPrimaryKey = primaryKey,
-      this.defaultValue = defaultValue {
-
-  }
+        isTransient = transient,
+        isPrimaryKey = primaryKey,
+        this.defaultValue = defaultValue,
+        super(entity, name, type,
+          unique: unique,
+          indexed: indexed,
+          nullable: nullable,
+          includedInDefaultResultSet: includedInDefaultResultSet,
+          autoincrement: autoincrement);
 
   /// Whether or not this attribute is the primary key for its [ModelEntity].
   ///

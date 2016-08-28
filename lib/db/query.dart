@@ -77,7 +77,7 @@ class Query<ModelType extends Model> {
   ///
   ModelType get values {
     if (_valueObject == null) {
-      _valueObject = reflectClass(ModelType).newInstance(new Symbol(""), []).reflectee;
+      _valueObject = reflectClass(ModelType).newInstance(new Symbol(""), []).reflectee as ModelType;
     }
     return _valueObject;
   }
@@ -190,7 +190,7 @@ class Query<ModelType extends Model> {
     return await context._executeDeleteQuery(this); // or null
   }
 
-  Predicate _compilePredicate(DataModel dataModel, PersistentStore) {
+  Predicate _compilePredicate(DataModel dataModel, PersistentStore persistentStore) {
     return predicate;
   }
 }
@@ -208,7 +208,7 @@ class QueryException extends HTTPResponseException {
 
   QueryException(int statusCode, String message, this.errorCode,
       {StackTrace stackTrace: null})
-      : super(statusCode, message), this.stackTrace = stackTrace;
+      : this.stackTrace = stackTrace, super(statusCode, message);
 
   String toString() {
     return "QueryException: ${message} ${errorCode} ${statusCode} ${stackTrace}";

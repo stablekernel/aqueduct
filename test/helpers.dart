@@ -29,7 +29,7 @@ class _User implements Authenticatable {
 }
 
 class Token extends Model<_Token> implements _Token {}
-class _Token implements Tokenizable {
+class _Token implements Tokenizable<int> {
   @primaryKey
   int id;
 
@@ -47,11 +47,10 @@ class _Token implements Tokenizable {
 
   @Relationship.hasOne("token")
   AuthCode code;
-
 }
 
 class AuthCode extends Model<_AuthCode> implements _AuthCode {}
-class _AuthCode implements TokenExchangable {
+class _AuthCode implements TokenExchangable<Token> {
   @primaryKey
   int id;
 
@@ -88,7 +87,7 @@ class AuthDelegate implements AuthenticationServerDelegate<TestUser, Token, Auth
     return userQ.fetchOne();
   }
 
-  Future<TestUser> authenticatableForID(AuthenticationServer server, int id) {
+  Future<TestUser> authenticatableForID(AuthenticationServer server, dynamic id) {
     var userQ = new Query<TestUser>();
     userQ.predicate = new Predicate("username = @username", {"id" : id});
     return userQ.fetchOne();

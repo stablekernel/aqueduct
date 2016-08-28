@@ -30,12 +30,6 @@ class ModelQuery<T extends Model> extends Query<T> {
   ModelQuery({ModelContext context: null}) : super(context: context);
   ModelQuery._withModelType(Type t, {ModelContext context: null}) : super.withModelType(t, context: null);
 
-  /// Not allowed on [ModelQuery].
-  ///
-  /// Since a [ModelQuery] will create its own predicate based on supplied matchers
-  Predicate get predicate => null;
-  void set predicate(Predicate p) { throw new QueryException(500, "ModelQuery predicate is immutable", -1); }
-
   /// The map of sub-queries for database joins. Do not modify directly.
   Map<String, ModelQuery> subQueries = {};
   Map<String, dynamic> _queryMap = {};
@@ -133,6 +127,10 @@ class ModelQuery<T extends Model> extends Query<T> {
   }
 
   Predicate _compilePredicate(DataModel dataModel, PersistentStore persistentStore) {
+    if (predicate != null) {
+      throw new QueryException(500, "ModelQuery predicate must not be altered, was set to $predicate", -1);
+    }
+
     return Predicate.andPredicates(_queryMap?.keys?.map((queryKey) {
       var desc = dataModel.entityForType(modelType).properties[queryKey];
       var matcher = _queryMap[queryKey];
