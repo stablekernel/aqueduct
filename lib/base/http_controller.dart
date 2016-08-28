@@ -163,6 +163,7 @@ abstract class HTTPController extends RequestHandler {
   List<APIOperation> documentOperations(PackagePathResolver resolver) {
     Iterable<MethodMirror> handlerMethodMirrors = reflect(this).type.declarations.values
         .where((dm) => dm is MethodMirror)
+        .map((dm) => dm as MethodMirror)
         .where((mm) {
           return mm.metadata.firstWhere((im) => im.reflectee is HTTPMethod, orElse: () => null) != null;
         });

@@ -127,8 +127,8 @@ class ModelQuery<T extends Model> extends Query<T> {
   }
 
   Predicate _compilePredicate(DataModel dataModel, PersistentStore persistentStore) {
-    if (predicate != null) {
-      throw new QueryException(500, "ModelQuery predicate must not be altered, was set to $predicate", -1);
+    if (this.predicate != null) {
+      throw new QueryException(500, "ModelQuery predicate must not be altered, was set to ${this.predicate}", -1);
     }
 
     return Predicate.andPredicates(_queryMap?.keys?.map((queryKey) {
