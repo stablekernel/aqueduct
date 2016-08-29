@@ -254,7 +254,7 @@ abstract class HTTPController extends RequestHandler {
         ..description = "Something went wrong",
     ];
 
-    var symbol = APIOperation.symbolForId(operation.id, this);
+    var symbol = APIOperation.symbolForID(operation.id, this);
     if (symbol != null) {
       var controllerCache = _HTTPControllerCache.cacheForType(runtimeType);
       var methodMirror = reflect(this).type.declarations[symbol];

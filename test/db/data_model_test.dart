@@ -87,7 +87,7 @@ void main() {
 
     test("Default properties omit omitted attributes and has* relationships", () {
       var entity = dataModel.entityForType(User);
-      expect(entity.defaultProperties, ["id", "stringId", "username", "flag"]);
+      expect(entity.defaultProperties, ["id", "username", "flag"]);
       expect(entity.properties["loadedTimestamp"], isNotNull);
       expect(entity.properties["manager"], isNotNull);
       expect(entity.properties["items"], isNotNull);
@@ -204,7 +204,7 @@ void main() {
 
     test("includes transient properties", () {
       var entity = dataModel.entityForType(User);
-      expect(entity.documentedResponseSchema.properties["stringId"].type, APISchemaObjectTypeString);
+      expect(entity.documentedResponseSchema.properties["stringID"].type, APISchemaObjectTypeString);
     });
 
     test("does not include has(One|Many) relationships", () {
@@ -224,13 +224,13 @@ void main() {
   });
 }
 
-class User extends Model<_User> implements _User {}
+class User extends Model<_User> implements _User {
+  @mappable
+  String stringID;
+}
 class _User {
   @primaryKey
   int id;
-
-  @mappable
-  String stringId;
 
   String username;
   bool flag;
