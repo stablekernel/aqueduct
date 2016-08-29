@@ -70,14 +70,15 @@ class DataModel {
   Map<String, AttributeDescription> _attributeMapForEntity(ModelEntity entity) {
     Map<String, AttributeDescription> map = {};
     Map<Symbol, DeclarationMirror> persistentDeclarations = entity.persistentInstanceTypeMirror.declarations;
+
     entity.instanceTypeMirror.declarations.values
       .where((declMir) => declMir is VariableMirror && !declMir.isStatic)
       .where((declMir) => !declMir.metadata.any((im) => im.type.isSubtypeOf(reflectType(Relationship))))
       .where((declMir) => declMir.metadata.any((im) => im.type.isSubtypeOf(reflectType(Mappable))))
       .forEach((declMir) {
-        var key = MirrorSystem.getName(declMir.simpleName);
-        map[key] = _attributeFromVariableMirror(entity, declMir);
-    });
+          var key = MirrorSystem.getName(declMir.simpleName);
+          map[key] = _attributeFromVariableMirror(entity, declMir);
+      });
 
     persistentDeclarations.values
       .where((declMir) => declMir is VariableMirror && !declMir.isStatic)
@@ -199,7 +200,7 @@ class DataModel {
 
   ModelEntity _destinationEntityForVariableMirror(ModelEntity entity, VariableMirror mirror) {
     var typeMirror = mirror.type;
-    if (mirror.type.isSubtypeOf(reflectType(List))) {
+    if (mirror.type.isSubtypeOf(reflectType(OrderedSet))) {
       typeMirror = typeMirror.typeArguments.first;
     }
 

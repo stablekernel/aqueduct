@@ -22,6 +22,7 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:math';
 import 'dart:mirrors';
+import 'dart:collection';
 
 import 'package:analyzer/analyzer.dart';
 import 'package:crypto/crypto.dart';

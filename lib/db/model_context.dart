@@ -124,9 +124,9 @@ class ModelContext {
 
               var inversePropertyName = owningModelPropertyDesc.name;
               if (owningModelPropertyDesc.relationshipType == RelationshipType.hasMany) {
-                owningInstance.dynamicBacking[inversePropertyName].add(subInstance);
+                owningInstance[inversePropertyName].add(subInstance);
               } else {
-                owningInstance.dynamicBacking[inversePropertyName] = subInstance;
+                owningInstance[inversePropertyName] = subInstance;
               }
             }
           });

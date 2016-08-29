@@ -334,8 +334,10 @@ class _Post {
 }
 
 class TransientTest extends Model<_TransientTest> implements _TransientTest {
-  @mappable
+  @mappableOutput
   String get defaultedText => "Mr. $text";
+
+  @mappableInput
   void set defaultedText(String str) {
     text = str.split(" ").last;
   }

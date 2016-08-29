@@ -126,11 +126,11 @@ class ModelEntity {
           if (e.value != null) {
             RelationshipDescription relDesc = e.property;
             Model innerInstance = relDesc.destinationEntity.instanceTypeMirror.newInstance(new Symbol(""), []).reflectee;
-            innerInstance.dynamicBacking[relDesc.destinationEntity.primaryKey] = e.value;
-            instance.dynamicBacking[e.property.name] = innerInstance;
+            innerInstance[relDesc.destinationEntity.primaryKey] = e.value;
+            instance[e.property.name] = innerInstance;
           }
         } else {
-          instance.dynamicBacking[e.property.name] = e.value;
+          instance[e.property.name] = e.value;
         }
       }
     });

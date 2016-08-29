@@ -284,7 +284,7 @@ void main() {
 
     var result = await iq.insert();
     expect(result.id, greaterThan(0));
-    expect(result.dynamicBacking["text"], isNull);
+    expect(result.populatedPropertyValues["text"], isNull);
 
     var matcher = new ModelQuery<Omit>()
       ..["id"] = whereEqualTo(result.id);
@@ -292,7 +292,7 @@ void main() {
 
     var fResult = await fq.fetchOne();
     expect(fResult.id, result.id);
-    expect(fResult.dynamicBacking["text"], isNull);
+    expect(fResult.populatedPropertyValues["text"], isNull);
   });
 
   test("Paging", () async {

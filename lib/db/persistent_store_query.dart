@@ -50,7 +50,7 @@ class PersistentStoreQuery {
     q._compilePredicate(entity.dataModel, store);
     predicate = q._compilePredicate(entity.dataModel, store);
 
-    values = _mappingElementsForMap((q.valueMap ?? q.values?.dynamicBacking), this.entity);
+    values = _mappingElementsForMap((q.valueMap ?? q.values?.populatedPropertyValues), this.entity);
     resultKeys = _mappingElementsForList((q.resultProperties ?? entity.defaultProperties), this.entity);
   }
 
@@ -87,7 +87,7 @@ class PersistentStoreQuery {
 
         if (value != null) {
           if (value is Model) {
-            value = value.dynamicBacking[property.destinationEntity.primaryKey];
+            value = value[property.destinationEntity.primaryKey];
           } else if (value is Map) {
             value = value[property.destinationEntity.primaryKey];
           } else {

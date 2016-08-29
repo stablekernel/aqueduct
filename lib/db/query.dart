@@ -62,6 +62,7 @@ class Query<ModelType extends Model> {
   ModelType get matchOn {
     if (_matchOn == null) {
       _matchOn = reflectClass(ModelType).newInstance(new Symbol(""), []).reflectee as ModelType;
+      _matchOn.context = context;
     }
     return _matchOn;
   }
@@ -86,6 +87,7 @@ class Query<ModelType extends Model> {
   ModelType get values {
     if (_valueObject == null) {
       _valueObject = reflectClass(ModelType).newInstance(new Symbol(""), []).reflectee as ModelType;
+      _valueObject.context = context;
     }
     return _valueObject;
   }

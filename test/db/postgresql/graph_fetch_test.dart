@@ -9,7 +9,6 @@ void main() {
     List<User> sourceUsers;
 
     setUpAll(() async {
-
       context = await contextWithModels([User, Equipment, Location]);
 
       var userNames = ["Joe", "Fred", "Bob", "John", "Sally"];
@@ -337,7 +336,7 @@ void main() {
       var locations = await q.fetch();
       for (var loc in locations) {
         var u = loc.user;
-        expect(u.dynamicBacking.length, 1);
+        expect(u.populatedPropertyValues.length, 1);
         expect(u.id, 1);
       }
     });
