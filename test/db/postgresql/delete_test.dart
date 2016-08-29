@@ -195,8 +195,8 @@ class _TestModel {
   @Attributes(nullable: true, unique: true)
   String email;
 
-  @Relationship(RelationshipType.hasMany, "test")
-  RefModel ref;
+  @Relationship.hasMany("test")
+  OrderedSet<RefModel> ref;
 
   static String tableName() {
     return "simple";
@@ -223,8 +223,8 @@ class _GRestrictInverse {
 
   String name;
 
-  @Relationship(RelationshipType.hasMany, "test")
-  GRestrict test;
+  @Relationship.hasMany("test")
+  OrderedSet<GRestrict> test;
 }
 
 class GRestrict extends Model<_GRestrict> implements _GRestrict {}
@@ -245,8 +245,8 @@ class _GCascadeInverse {
 
   String name;
 
-  @Relationship(RelationshipType.hasMany, "test")
-  GCascade test;
+  @Relationship.hasMany("test")
+  OrderedSet<GCascade> test;
 }
 
 class GCascade extends Model<_GCascade> implements _GCascade {}

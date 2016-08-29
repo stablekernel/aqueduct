@@ -125,7 +125,7 @@ class _GenUser {
   String name;
 
   @Relationship(RelationshipType.hasMany, "owner")
-  List<GenPost> posts;
+  OrderedSet<GenPost> posts;
 }
 
 class GenPost extends Model<_GenPost> implements _GenPost {}
@@ -175,7 +175,7 @@ class _GenLeft {
   int id;
 
   @Relationship(RelationshipType.hasMany, "left")
-  List<GenJoin> join;
+  OrderedSet<GenJoin> join;
 }
 
 class GenRight extends Model<_GenRight> implements _GenRight {}
@@ -185,7 +185,7 @@ class _GenRight {
   int id;
 
   @Relationship(RelationshipType.hasMany, "right")
-  List<GenJoin> join;
+  OrderedSet<GenJoin> join;
 }
 
 class GenJoin extends Model<_GenJoin> implements _GenJoin {}

@@ -25,5 +25,5 @@ class _User {
   String salt;
 
   @Relationship.hasMany("owner")
-  List<Token> tokens;
+  OrderedSet<Token> tokens;
 }

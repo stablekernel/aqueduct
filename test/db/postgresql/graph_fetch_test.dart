@@ -29,11 +29,11 @@ void main() {
         });
       };
 
-      sourceUsers[0].locations = await Future.wait(locationCreator(["Crestridge", "SK"], sourceUsers[0]));
-      sourceUsers[1].locations = await Future.wait(locationCreator(["Krog St", "Dumpster"], sourceUsers[1]));
-      sourceUsers[2].locations = await Future.wait(locationCreator(["Omaha"], sourceUsers[2]));
-      sourceUsers[3].locations = await Future.wait(locationCreator(["London"], sourceUsers[3]));
-      sourceUsers[4].locations = [];
+      sourceUsers[0].locations = new OrderedSet.from(await Future.wait(locationCreator(["Crestridge", "SK"], sourceUsers[0])));
+      sourceUsers[1].locations = new OrderedSet.from(await Future.wait(locationCreator(["Krog St", "Dumpster"], sourceUsers[1])));
+      sourceUsers[2].locations = new OrderedSet.from(await Future.wait(locationCreator(["Omaha"], sourceUsers[2])));
+      sourceUsers[3].locations = new OrderedSet.from(await Future.wait(locationCreator(["London"], sourceUsers[3])));
+      sourceUsers[4].locations = new OrderedSet();
 
       var equipmentCreator = (List<List<String>> pairs, Location loc) {
         return pairs.map((pair) {
@@ -45,18 +45,18 @@ void main() {
         });
       };
 
-      sourceUsers[0].locations.first.equipment = await Future.wait(
-          equipmentCreator([["Fridge", "Appliance"], ["Microwave", "Appliance"]], sourceUsers[0].locations.first));
-      sourceUsers[0].locations.last.equipment = await Future.wait(
-          equipmentCreator([["Computer", "Electronics"]], sourceUsers[0].locations.last));
-      sourceUsers[1].locations.first.equipment = await Future.wait(
-          equipmentCreator([["Cash Register", "Admin"]], sourceUsers[1].locations.first));
+      sourceUsers[0].locations.first.equipment = new OrderedSet.from(await Future.wait(
+          equipmentCreator([["Fridge", "Appliance"], ["Microwave", "Appliance"]], sourceUsers[0].locations.first)));
+      sourceUsers[0].locations.last.equipment = new OrderedSet.from(await Future.wait(
+          equipmentCreator([["Computer", "Electronics"]], sourceUsers[0].locations.last)));
+      sourceUsers[1].locations.first.equipment = new OrderedSet.from(await Future.wait(
+          equipmentCreator([["Cash Register", "Admin"]], sourceUsers[1].locations.first)));
 
-      sourceUsers[1].locations.last.equipment = [];
+      sourceUsers[1].locations.last.equipment = new OrderedSet();
 
-      sourceUsers[2].locations.first.equipment = await Future.wait(
-          equipmentCreator([["Fire Truck", "Vehicle"]], sourceUsers[2].locations.first));
-      sourceUsers[3].locations.first.equipment = [];
+      sourceUsers[2].locations.first.equipment = new OrderedSet.from(await Future.wait(
+          equipmentCreator([["Fire Truck", "Vehicle"]], sourceUsers[2].locations.first)));
+      sourceUsers[3].locations.first.equipment = new OrderedSet();
     });
 
     tearDownAll(() {
@@ -257,7 +257,7 @@ void main() {
       var sourceTrunc = sourceUsers.map((u) => new User.fromUser(u)).toList();
       sourceTrunc.forEach((User u) {
         u.locations?.forEach((loc) {
-          loc.equipment = loc.equipment?.where((eq) => eq.id == 1)?.toList() ?? [];
+          loc.equipment = new OrderedSet.from(loc.equipment?.where((eq) => eq.id == 1) ?? <Equipment>[]);
         });
       });
       expect(users, equals(sourceTrunc));
@@ -451,7 +451,7 @@ class User extends Model<_User> implements _User {
     this
         ..id = u.id
         ..name = u.name
-        ..locations = u.locations?.map((l) => new Location.fromLocation(l))?.toList();
+        ..locations = new OrderedSet.from(u.locations?.map((l) => new Location.fromLocation(l)));
   }
   operator == (dynamic o) {
     User other = o;
@@ -494,7 +494,7 @@ class _User {
   String name;
 
   @Relationship.hasMany("user")
-  List<Location> locations;
+  OrderedSet<Location> locations;
 }
 
 class Location extends Model<_Location> implements _Location {
@@ -503,7 +503,7 @@ class Location extends Model<_Location> implements _Location {
     this
         ..id = loc.id
         ..name = loc.name
-        ..equipment = loc.equipment?.map((eq) => new Equipment.fromEquipment(eq))?.toList()
+        ..equipment = new OrderedSet.from(loc.equipment?.map((eq) => new Equipment.fromEquipment(eq)))
         ..user = loc.user != null ? (new User()..id = loc.user.id) : null;
   }
   operator ==(dynamic o) {
@@ -548,7 +548,7 @@ class _Location {
   User user;
 
   @Relationship.hasMany("location")
-  List<Equipment> equipment;
+  OrderedSet<Equipment> equipment;
 }
 
 class Equipment extends Model<_Equipment> implements _Equipment {

@@ -143,6 +143,21 @@ class DataModel {
   }
 
   RelationshipDescription _relationshipFromVariableMirror(ModelEntity entity, VariableMirror mirror, Relationship relationshipAttribute) {
+    if (relationshipAttribute.type == RelationshipType.hasMany) {
+      if (!mirror.type.isSubtypeOf(reflectType(OrderedSet))) {
+        throw new DataModelException("Relationship ${MirrorSystem.getName(mirror.simpleName)} on ${MirrorSystem.getName(entity.persistentInstanceTypeMirror.simpleName)} declares a hasMany relationship, but the property is not an OrderedSet.");
+      }
+
+      var innerType = mirror.type.typeArguments.first;
+      if (!innerType.isSubtypeOf(reflectType(Model))) {
+        throw new DataModelException("Relationship ${MirrorSystem.getName(mirror.simpleName)} on ${MirrorSystem.getName(entity.persistentInstanceTypeMirror.simpleName)} declares a hasMany relationship, but the generic type of OrderedSet is not a subclass of Model.");
+      }
+    } else {
+      if (!mirror.type.isSubtypeOf(reflectType(Model))) {
+        throw new DataModelException("Relationship ${MirrorSystem.getName(mirror.simpleName)} on ${MirrorSystem.getName(entity.persistentInstanceTypeMirror.simpleName)} does not declare a property that extends Model.");
+      }
+    }
+
     if (mirror.metadata.firstWhere((im) => im.type.isSubtypeOf(reflectType(Attributes)), orElse: () => null) != null) {
       throw new DataModelException("Relationship ${MirrorSystem.getName(mirror.simpleName)} on ${MirrorSystem.getName(entity.persistentInstanceTypeMirror.simpleName)} must not define additional Attributes");
     }

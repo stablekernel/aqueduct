@@ -86,7 +86,7 @@ void main() {
         ..owner = user,
     ];
 
-    user.posts = posts;
+    user.posts = new OrderedSet.from(posts);
 
     expect(user.posts.length, 3);
     expect(user.posts.first.owner, user);
@@ -111,7 +111,7 @@ void main() {
         ..text = "C"
         ..id = 3,
     ];
-    user.posts = posts;
+    user.posts = new OrderedSet.from(posts);
 
     var m = user.asMap();
     expect(m is Map, true);
@@ -319,7 +319,7 @@ class _User {
   DateTime dateCreated;
 
   @Relationship.hasMany("owner")
-  List<Post> posts;
+  OrderedSet<Post> posts;
 }
 
 class Post extends Model<_Post> implements _Post {}
@@ -352,5 +352,4 @@ class _TransientTest {
   int id;
 
   String text;
-
 }

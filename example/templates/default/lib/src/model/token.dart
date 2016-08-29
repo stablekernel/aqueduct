@@ -46,7 +46,7 @@ class _Token {
   @Relationship.belongsTo("tokens", deleteRule: RelationshipDeleteRule.cascade)
   User owner;
 
-  @Relationship.hasMany("token")
+  @Relationship.hasOne("token")
   AuthCode code;
 
   DateTime issueDate;
@@ -61,7 +61,7 @@ class _Client {
   String id;
 
   @Relationship.hasMany("client")
-  List<Token> tokens;
+  OrderedSet<Token> tokens;
 
   String hashedPassword;
   String salt;

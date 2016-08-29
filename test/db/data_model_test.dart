@@ -239,7 +239,7 @@ class _User {
   DateTime loadedTimestamp;
 
   @Relationship.hasMany("user")
-  List<Item> items;
+  OrderedSet<Item> items;
 
   @Relationship.hasOne("worker")
   Manager manager;

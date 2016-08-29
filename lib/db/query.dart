@@ -59,6 +59,14 @@ class Query<ModelType extends Model> {
   /// A predicate will identify the rows being accessed, see [Predicate] for more details.
   Predicate predicate;
 
+  ModelType get matchOn {
+    if (_matchOn == null) {
+      _matchOn = reflectClass(ModelType).newInstance(new Symbol(""), []).reflectee as ModelType;
+    }
+    return _matchOn;
+  }
+  ModelType _matchOn;
+
   /// Values to be used when inserting or updating an object.
   ///
   /// Keys must be the name of the property on the model object. Prefer to use [values] instead.

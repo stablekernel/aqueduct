@@ -295,10 +295,10 @@ class _Container {
   int id;
 
   @Relationship.hasMany("container")
-  List<DefaultItem> defaultItems;
+  OrderedSet<DefaultItem> defaultItems;
 
   @Relationship.hasMany("container")
-  List<LoadedItem> loadedItems;
+  OrderedSet<LoadedItem> loadedItems;
 
   @Relationship.hasOne("container")
   LoadedSingleItem loadedSingleItem;

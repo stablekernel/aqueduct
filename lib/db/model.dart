@@ -23,26 +23,6 @@ class Model<T> implements Serializable {
   /// The [ModelEntity] this instance is described by.
   ModelEntity get entity => context.dataModel.entityForType(T);
 
-  /// Applied to each value when a Model is executing [readFromMap].
-  ///
-  /// Defaults to [_defaultValueDecoder], which simply converts ISO8601 strings to DateTimes.
-  /// [propertyDescription] is the [PropertyDescription] definition of the property being assigned. [key] is the name of the property. [value] is the value being read and assigned to the property [key].
-  Function get valueDecoder => _valueDecoder;
-  void set valueDecoder(dynamic decode(PropertyDescription propertyDescription, dynamic value)) {
-    _valueDecoder = decode;
-  }
-  Function _valueDecoder = _defaultValueDecoder;
-
-  /// Applied to each value when a Model is executing [asMap].
-  ///
-  /// Defaults to [_defaultValueEncoder], which converts DateTime objects to ISO8601 strings.
-  /// [key] is the name of the property. [value] is the value of that property.
-  Function get valueEncoder => _valueEncoder;
-  void set valueEncoder(dynamic encode(String key, dynamic value)) {
-    _valueEncoder = encode;
-  }
-  Function _valueEncoder = _defaultValueEncoder;
-
   /// A model object's data.
   ///
   /// Model objects may be sparsely populated; when values have not been assigned to a property, the key will not exist in [dynamicBacking].
@@ -122,10 +102,7 @@ class Model<T> implements Serializable {
   }
 
   DeclarationMirror _declarationMirrorForProperty(String propertyName) {
-    var reflectedThis = reflect(this);
-    var sym = new Symbol(propertyName);
-
-    return reflectedThis.type.declarations[sym];
+    return reflect(this).type.declarations[new Symbol(propertyName)];
   }
 
   Mappable _mappableAttributeForDeclarationMirror(DeclarationMirror mirror) {
@@ -175,11 +152,7 @@ class Model<T> implements Serializable {
     return asMap();
   }
 
-  /// The default encoder for values when converting them to a map.
-  ///
-  /// Embedded model objects and lists of embedded model objects will also be sent asMap().
-  /// DateTime instances are converted to ISO8601 strings.
-  static dynamic _defaultValueEncoder(String key, dynamic value) {
+  static dynamic _valueEncoder(String key, dynamic value) {
     if (value is List) {
       return value
           .map((Model innerValue) => innerValue.asMap())
@@ -195,10 +168,7 @@ class Model<T> implements Serializable {
     return value;
   }
 
-  /// The default decoder for values when reading from a map.
-  ///
-  /// ISO8601 strings are converted to DateTime instances of the type of the property as defined by [key] is DateTime.
-  static dynamic _defaultValueDecoder(PropertyDescription propertyDescription, dynamic value) {
+  static dynamic _valueDecoder(PropertyDescription propertyDescription, dynamic value) {
     if (propertyDescription is AttributeDescription) {
       if (propertyDescription.type == PropertyType.datetime) {
         value = DateTime.parse(value);
@@ -238,4 +208,24 @@ class Model<T> implements Serializable {
 
     return value;
   }
+}
+
+class OrderedSet<T extends Model> implements Iterable<T> {
+  OrderedSet() {
+    _innerValues = [];
+  }
+
+  OrderedSet.from(Iterable<T> items) {
+    _innerValues = items.toList();
+  }
+
+  List<T> _innerValues;
+  T matchOn;
+
+  operator [](int index) => _innerValues[index];
+  operator []=(int index, T value) {
+    _innerValues[index] = value;
+  }
+
+  noSuchMethod(Invocation i) => _innerValues.noSuchMethod(i);
 }

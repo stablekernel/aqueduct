@@ -232,7 +232,7 @@ class _GenUser {
   String name;
 
   @Relationship(RelationshipType.hasMany, "owner")
-  List<GenPost> posts;
+  OrderedSet<GenPost> posts;
 }
 
 class GenPost extends Model<_GenPost> implements _GenPost {}
