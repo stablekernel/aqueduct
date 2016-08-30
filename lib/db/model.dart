@@ -17,21 +17,13 @@ part of aqueduct;
 /// }
 ///
 class Model<T> implements Serializable {
-  Model() {
-    _backing = new _ModelValueBacking();
-  }
-
-  Model._forMatching() {
-
-  }
-
   /// The [ModelContext] this instance belongs to.
   ModelContext context = ModelContext.defaultContext;
 
   /// The [ModelEntity] this instance is described by.
   ModelEntity get entity => context.dataModel.entityForType(T);
 
-  _ModelBacking _backing;
+  _ModelBacking _backing = new _ModelValueBacking();
 
   /// The values available in this representation.
   ///
@@ -208,8 +200,10 @@ class OrderedSet<T extends Model> extends Object with ListMixin<T> {
     _innerValues = items.toList();
   }
 
+  ClassMirror _modelTypeMirror;
   List<T> _innerValues;
   T matchOn;
+  T include;
 
   int get length => _innerValues.length;
   void set length(int newLength) {
@@ -221,28 +215,25 @@ class OrderedSet<T extends Model> extends Object with ListMixin<T> {
   }
 }
 
-abstract class _ModelBacking<T> {
+abstract class _ModelBacking {
   dynamic valueForProperty(ModelEntity entity, String propertyName);
   void setValueForProperty(ModelEntity entity, String propertyName, dynamic value);
-  void removeProperty(String propertyName);
+  void removeProperty(String propertyName) {
+    valueMap.remove(propertyName);
+  }
 
   Map<String, dynamic> get valueMap;
 }
 
-class _ModelValueBacking<T> extends _ModelBacking<T> {
-  Map<String, dynamic> get valueMap => values;
-  Map<String, dynamic> values = {};
-
-  void removeProperty(String propertyName) {
-    values.remove(propertyName);
-  }
+class _ModelValueBacking extends _ModelBacking {
+  Map<String, dynamic> valueMap = {};
 
   dynamic valueForProperty(ModelEntity entity, String propertyName) {
     if (entity.properties[propertyName] == null) {
       throw new DataModelException("Model type ${MirrorSystem.getName(entity.instanceTypeMirror.simpleName)} has no property $propertyName.");
     }
 
-    return values[propertyName];
+    return valueMap[propertyName];
   }
 
   void setValueForProperty(ModelEntity entity, String propertyName, dynamic value) {
@@ -258,6 +249,19 @@ class _ModelValueBacking<T> extends _ModelBacking<T> {
       }
     }
 
-    values[propertyName] = value;
+    valueMap[propertyName] = value;
+  }
+}
+
+class _ModelMatcherBacking extends _ModelBacking {
+  Map<String, dynamic> valueMap = {};
+
+  dynamic valueForProperty(ModelEntity entity, String propertyName) {
+    // Create one if necessary?
+    return valueMap[propertyName];
+  }
+
+  void setValueForProperty(ModelEntity entity, String propertyName, dynamic value) {
+    valueMap[propertyName] = value;
   }
 }

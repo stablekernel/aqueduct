@@ -1,6 +1,5 @@
 part of wildfire;
 
-class UserQuery extends ModelQuery<User> implements _User {}
 class User extends Model<_User> implements _User, Authenticatable {
   @mappableInput
   String password;

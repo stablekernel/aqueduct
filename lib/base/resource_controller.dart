@@ -46,10 +46,10 @@ class ResourceController<ModelType extends Model> extends HTTPController {
   ///
   /// [context] defaults to [defaultContext].
   ResourceController([ModelContext context]) : super() {
-    _query = new ModelQuery<ModelType>(context: context ?? ModelContext.defaultContext);
+    _query = new Query<ModelType>(context: context ?? ModelContext.defaultContext);
   }
 
-  ModelQuery<ModelType> _query;
+  Query<ModelType> _query;
 
   /// Executed prior to a fetch by ID query.
   ///
@@ -57,7 +57,7 @@ class ResourceController<ModelType extends Model> extends HTTPController {
   /// is equal to the first path argument in the [Request]. You may also return a new [Query],
   /// but it must have the same [ModelType] as this controller. If you return null from this method, no [Query] will be executed
   /// and [didNotFindObject] will immediately be called.
-  Future<ModelQuery<ModelType>> willFindObjectWithQuery(ModelQuery<ModelType> query) async {
+  Future<Query<ModelType>> willFindObjectWithQuery(Query<ModelType> query) async {
     return query;
   }
 
@@ -95,7 +95,7 @@ class ResourceController<ModelType extends Model> extends HTTPController {
   /// You may modify the [query] prior to its execution in this method. You may also return a new [Query],
   /// but it must have the same type argument as this controller. If you return null from this method,
   /// no values will be inserted and [didInsertObject] will immediately be called with the value null.
-  Future<ModelQuery<ModelType>> willInsertObjectWithQuery(ModelQuery<ModelType> query) async {
+  Future<Query<ModelType>> willInsertObjectWithQuery(Query<ModelType> query) async {
     return query;
   }
 
@@ -122,7 +122,7 @@ class ResourceController<ModelType extends Model> extends HTTPController {
   /// You may modify the [query] prior to its execution in this method. You may also return a new [Query],
   /// but it must have the same type argument as this controller. If you return null from this method,
   /// no delete operation will be performed and [didNotFindObjectToDeleteWithID] will immediately be called with the value null.
-  Future<ModelQuery<ModelType>> willDeleteObjectWithQuery(ModelQuery<ModelType> query) async {
+  Future<Query<ModelType>> willDeleteObjectWithQuery(Query<ModelType> query) async {
     return query;
   }
 
@@ -159,7 +159,7 @@ class ResourceController<ModelType extends Model> extends HTTPController {
   /// You may modify the [query] prior to its execution in this method. You may also return a new [Query],
   /// but it must have the same type argument as this controller. If you return null from this method,
   /// no values will be inserted and [didNotFindObjectToUpdateWithID] will immediately be called with the value null.
-  Future<ModelQuery<ModelType>> willUpdateObjectWithQuery(ModelQuery<ModelType> query) async {
+  Future<Query<ModelType>> willUpdateObjectWithQuery(Query<ModelType> query) async {
     return query;
   }
 
@@ -199,7 +199,7 @@ class ResourceController<ModelType extends Model> extends HTTPController {
   /// You may modify the [query] prior to its execution in this method. You may also return a new [Query],
   /// but it must have the same type argument as this controller. If you return null from this method,
   /// no objects will be fetched and [didFindObjects] will immediately be called with the value null.
-  Future<ModelQuery<ModelType>> willFindObjectsWithQuery(ModelQuery<ModelType> query) async {
+  Future<Query<ModelType>> willFindObjectsWithQuery(Query<ModelType> query) async {
     return query;
   }
 

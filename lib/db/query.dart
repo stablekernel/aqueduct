@@ -9,12 +9,7 @@ class Query<ModelType extends Model> {
     this.context = context ?? ModelContext.defaultContext;
   }
 
-  Query.withModelType(this._modelType, {ModelContext context: null}) {
-    this.context = context ?? ModelContext.defaultContext;
-  }
-
-  Type _modelType;
-  Type get modelType => _modelType ?? ModelType;
+  Type get modelType => ModelType;
 
   ModelContext context;
   ModelEntity get entity => context.dataModel.entityForType(modelType);
@@ -62,11 +57,22 @@ class Query<ModelType extends Model> {
   ModelType get matchOn {
     if (_matchOn == null) {
       _matchOn = reflectClass(ModelType).newInstance(new Symbol(""), []).reflectee as ModelType;
+      _matchOn._backing = new _ModelMatcherBacking();
       _matchOn.context = context;
     }
     return _matchOn;
   }
   ModelType _matchOn;
+
+  ModelType get include {
+    if (_include == null) {
+      _include = reflectClass(ModelType).newInstance(new Symbol(""), []).reflectee as ModelType;
+      _include._backing = new _ModelMatcherBacking();
+      _include.context = context;
+    }
+    return _include;
+  }
+  ModelType _include;
 
   /// Values to be used when inserting or updating an object.
   ///
@@ -201,6 +207,28 @@ class Query<ModelType extends Model> {
   }
 
   Predicate _compilePredicate(DataModel dataModel, PersistentStore persistentStore) {
+    if (_matchOn != null) {
+      return Predicate.andPredicates(_matchOn.populatedPropertyValues.keys.map((queryKey) {
+        var desc = dataModel.entityForType(modelType).properties[queryKey];
+        var matcher = _matchOn.populatedPropertyValues[queryKey];
+
+        if (matcher is _ComparisonMatcherExpression) {
+          return persistentStore.comparisonPredicate(desc, matcher.operator, matcher.value);
+        } else if (matcher is _RangeMatcherExpression) {
+          return persistentStore.rangePredicate(desc, matcher.lhs, matcher.rhs, matcher.within);
+        } else if (matcher is _NullMatcherExpression) {
+          return persistentStore.nullPredicate(desc, matcher.shouldBeNull);
+        } else if (matcher is _WithinMatcherExpression) {
+          return persistentStore.containsPredicate(desc, matcher.values);
+        } else if (matcher is _StringMatcherExpression) {
+          return persistentStore.stringPredicate(desc, matcher.operator, matcher.value);
+        } else {
+          // If this is a raw value, we assume it to be an equals to.
+          return persistentStore.comparisonPredicate(desc, MatcherOperator.equalTo, matcher);
+        }
+      })?.toList());
+    }
+
     return predicate;
   }
 }

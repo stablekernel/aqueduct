@@ -218,7 +218,7 @@ void main() {
             .toList()
             .length, 5);
 
-    var query = new ModelQuery<GenPost>();
+    var query = new Query<GenPost>();
     query["owner"] = whereRelatedByValue(u1.id);
     res = await query.fetch();
 
@@ -286,7 +286,7 @@ void main() {
     expect(result.id, greaterThan(0));
     expect(result.populatedPropertyValues["text"], isNull);
 
-    var matcher = new ModelQuery<Omit>()
+    var matcher = new Query<Omit>()
       ..["id"] = whereEqualTo(result.id);
     var fq = new Query<Omit>()..predicate = matcher.predicate;
 

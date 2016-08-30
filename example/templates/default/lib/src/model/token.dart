@@ -20,8 +20,6 @@ class _AuthCode implements TokenExchangable<Token> {
   Token token;
 }
 
-
-class TokenQuery extends ModelQuery<Token> implements _Token {}
 class Token extends Model<_Token> implements _Token, Tokenizable<int> {
   String get clientID => client.id;
   void set clientID(cid) {
@@ -54,7 +52,6 @@ class _Token {
   String type;
 }
 
-class ClientRecordQuery extends ModelQuery<ClientRecord> implements _Client {}
 class ClientRecord extends Model<_Client> implements _Client {}
 class _Client {
   @Attributes(primaryKey: true)

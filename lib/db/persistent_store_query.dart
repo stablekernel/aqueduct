@@ -2,7 +2,7 @@ part of aqueduct;
 
 class PersistentStoreQuery {
   PersistentStoreQuery(this.entity, PersistentStore store, Query q) {
-    if (q is ModelQuery && q.subQueries.length > 0) {
+    if (q._include != null) {
       _instantiateFromMultiJoinQuery(store, q);
     } else {
       _instantiateFromSingleQuery(store, q);
@@ -21,7 +21,7 @@ class PersistentStoreQuery {
   List<MappingElement> values;
   List<MappingElement> resultKeys;
 
-  void _instantiateFromMultiJoinQuery(PersistentStore store, ModelQuery q) {
+  void _instantiateFromMultiJoinQuery(PersistentStore store, Query q) {
     confirmQueryModifiesAllInstancesOnDeleteOrUpdate = q.confirmQueryModifiesAllInstancesOnDeleteOrUpdate;
     // This only gets called if we DO have subqueries, so assume that.
 
@@ -47,7 +47,6 @@ class PersistentStoreQuery {
     pageDescriptor = q.pageDescriptor;
     sortDescriptors = q.sortDescriptors;
 
-    q._compilePredicate(entity.dataModel, store);
     predicate = q._compilePredicate(entity.dataModel, store);
 
     values = _mappingElementsForMap((q.valueMap ?? q.values?.populatedPropertyValues), this.entity);
@@ -102,7 +101,7 @@ class PersistentStoreQuery {
     ?.toList();
   }
 
-  static List<JoinMappingElement> _joinsForQuery(PersistentStore store, ModelQuery query, String subQueryKey) {
+  static List<JoinMappingElement> _joinsForQuery(PersistentStore store, Query query, String subQueryKey) {
     var relationship = query.entity.relationships[subQueryKey];
     var destinationEntity = relationship.destinationEntity;
     var subQuery = query.subQueries[subQueryKey];

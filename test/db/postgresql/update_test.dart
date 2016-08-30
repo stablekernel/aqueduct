@@ -52,7 +52,7 @@ void main() {
     child = await childQuery.insert();
     expect(child.parent.id, parent.id);
 
-    childQuery = new ModelQuery<Child>()
+    childQuery = new Query<Child>()
       ..["id"] = whereEqualTo(child.id)
       ..values = (new Child()..parent = null);
     child = (await childQuery.update()).first;
@@ -103,7 +103,7 @@ void main() {
     req = new Query<TestModel>()..values = m2;
     await req.insert();
 
-    var q = new ModelQuery<TestModel>()
+    var q = new Query<TestModel>()
       ..["name"] = "Bob"
       ..values = (new TestModel()..emailAddress = "3@a.com");
 
@@ -128,7 +128,7 @@ void main() {
         ..name = "Fred"
         ..emailAddress = "2@a.com")).insert();
 
-    var updateQuery = new ModelQuery<TestModel>()
+    var updateQuery = new Query<TestModel>()
       ..["emailAddress"] = "1@a.com"
       ..values.emailAddress = "3@a.com";
     var updatedObject = (await updateQuery.update()).first;

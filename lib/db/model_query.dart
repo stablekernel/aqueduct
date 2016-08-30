@@ -23,7 +23,7 @@ part of aqueduct;
 ///
 /// [ModelQuery]s may also perform database joins. When supplying a matcher to a [RelationshipDescription],
 /// instances in that relationship will be fetched as well.
-class ModelQuery<T extends Model> extends Query<T> {
+/*class ModelQuery<T extends Model> extends Query<T> {
   /// Creates an instance of [ModelQuery].
   ///
   /// By default, [context] will be the [ModelContext.defaultContext].
@@ -148,4 +148,4 @@ class ModelQuery<T extends Model> extends Query<T> {
       }
     })?.toList());
   }
-}
+}*/

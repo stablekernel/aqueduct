@@ -63,22 +63,22 @@ void main() {
       context = null;
     });
 
-    test("Can still get object", () async {
-      var q = new UserQuery()
-        ..id = 1;
+    test("Can fetch an object by using matchOn and a matcher", () async {
+      var q = new Query<User>()
+        ..matchOn.id = whereEqualTo(1);
       var user = await q.fetchOne();
       expect(user.id, 1);
       expect(user.name, "Joe");
       expect(user.locations, isNull);
 
-      q = new UserQuery();
+      q = new Query<User>();
       var users = await q.fetch();
       expect(users.length, 5);
     });
 
-    test("Can still fetch objects with foreign keys", () async {
-      var q = new LocationQuery()
-        ..id = 1;
+    test("Can fetch object by specifying a value in matchOn without a matcher", () async {
+      var q = new Query<Location>()
+        ..matchOn.id = 1;
       var loc = await q.fetchOne();
       expect(loc.id, 1);
       expect(loc.user.id, 1);
@@ -91,9 +91,9 @@ void main() {
     });
 
     test("Can do one level join with single root object", () async {
-      var q = new UserQuery()
-        ..id = 1
-        ..locations = whereAnyMatch;
+      var q = new Query<User>()
+        ..matchOn.id = 1
+        ..include.locations = whereAnyMatch;
       var users = await q.fetch();
       expect(users.length, 1);
 
@@ -116,8 +116,8 @@ void main() {
     });
 
     test("Can do one level join with multiple root object", () async {
-      var q = new UserQuery()
-        ..locations = whereAnyMatch;
+      var q = new Query<User>()
+        ..include.locations = whereAnyMatch;
       var users = await q.fetch();
       expect(users.length, 5);
 
@@ -171,9 +171,9 @@ void main() {
     });
 
     test("Can two level join, single root object", () async {
-      var q = new UserQuery()
-        ..id = 1
-        ..locations.single.equipment = whereAnyMatch;
+      var q = new Query<User>()
+        ..matchOn.id = 1
+        ..include.locations.include.equipment = whereAnyMatch;
 
       var users = await q.fetch();
       expect(users.first, equals(sourceUsers.first));
@@ -196,8 +196,8 @@ void main() {
     });
 
     test("Can two level join, multiple root objects", () async {
-      var q = new UserQuery()
-        ..locations.single.equipment = whereAnyMatch;
+      var q = new Query<User>()
+        ..include.locations.include.equipment = whereAnyMatch;
 
       var users = await q.fetch();
       expect(users, equals(sourceUsers));
@@ -247,10 +247,8 @@ void main() {
     });
 
     test("Can two level join, multiple root objects, predicate on bottom", () async {
-      var q = new UserQuery()
-        ..locations.single.equipment = [new EquipmentQuery()
-          ..id = 1
-        ];
+      var q = new Query<User>()
+        ..include.locations.include.equipment.matchOn.id = whereEqualTo(1);
 
       var users = await q.fetch();
       var sourceTrunc = sourceUsers.map((u) => new User.fromUser(u)).toList();
@@ -299,9 +297,9 @@ void main() {
     });
 
     test("Can join with predicates on both", () async {
-      var q = new LocationQuery()
-        ..user = whereRelatedByValue(1)
-        ..equipment.single.name = "Fridge";
+      var q = new Query<Location>()
+        ..matchOn.user = whereRelatedByValue(1)
+        ..include.equipment.matchOn.name = "Fridge";
 
       var results = await q.fetch();
       var mapList = results.map((u) => u.asMap()).toList();
@@ -316,8 +314,8 @@ void main() {
     });
 
     test("Can join from middle of graph", () async {
-      var q = new LocationQuery()
-        ..equipment = whereAnyMatch;
+      var q = new Query<Location>()
+        ..include.equipment = whereAnyMatch;
       var locations = await q.fetch();
 
       var sourceTrunc = sourceUsers.map((u) => u.locations)
@@ -330,8 +328,8 @@ void main() {
     });
 
     test("Foreign key relationships do not get mirrored in owned object", () async {
-      var q = new LocationQuery()
-        ..user = whereRelatedByValue(1);
+      var q = new Query<Location>()
+        ..matchOn.user = whereRelatedByValue(1);
 
       var locations = await q.fetch();
       for (var loc in locations) {
@@ -342,10 +340,10 @@ void main() {
     });
 
     test("Can fetch graph when omitting foreign or primary keys from query", () async {
-      var q = new UserQuery()
+      var q = new Query<User>()
         ..resultProperties = ["name"]
         ..locations = [
-          new LocationQuery()
+          new Query<Location>()
             ..resultProperties = ["name"]
         ];
 
@@ -354,6 +352,10 @@ void main() {
       expect(users.first.id, isNotNull);
       expect(users.first.locations.length, greaterThan(0));
       expect(users.first.locations.first.name, isNotNull);
+    });
+
+    test("Can specify result keys multiple levels down", () async {
+
     });
   });
 
@@ -386,9 +388,9 @@ void main() {
     });
 
     test("Join with single root object", () async {
-      var q = new OwnerQuery()
-          ..id = 1
-          ..owned = whereAnyMatch;
+      var q = new Query<Owner>()
+          ..matchOn.id = 1
+          ..include.owned = whereExists;
       var o = (await q.fetch()).first.asMap();
 
       expect(o, {
@@ -403,9 +405,9 @@ void main() {
     });
 
     test("Join with null value still has key", () async {
-      var q = new OwnerQuery()
-        ..id = 3
-        ..owned = whereAnyMatch;
+      var q = new Query<Owner>()
+        ..matchOn.id = 3
+        ..include.owned = whereExists;
       var o = (await q.fetch()).first.asMap();
 
       expect(o, {
@@ -416,8 +418,8 @@ void main() {
     });
 
     test("Join with multi root object", () async {
-      var q = new OwnerQuery()
-        ..owned = whereAnyMatch;
+      var q = new Query<Owner>()
+        ..include.owned = whereExists;
       var o = await q.fetch();
 
       var mapList = o.map((x) => x.asMap()).toList();
@@ -485,7 +487,6 @@ class User extends Model<_User> implements _User {
     return "User: $id $name L: $locations";
   }
 }
-class UserQuery extends ModelQuery<User> implements _User {}
 class _User {
   @primaryKey
   int id;
@@ -536,7 +537,6 @@ class Location extends Model<_Location> implements _Location {
     return "Location: $id $name FK: ${user?.id} EQ: $equipment";
   }
 }
-class LocationQuery extends ModelQuery<Location> implements _Location {}
 class _Location {
   @primaryKey
   int id;
@@ -571,7 +571,6 @@ class Equipment extends Model<_Equipment> implements _Equipment {
     return "Equipment: $id $name $type FK: ${location.id}";
   }
 }
-class EquipmentQuery extends ModelQuery<Equipment> implements Equipment {}
 class _Equipment {
   @primaryKey
   int id;
@@ -584,7 +583,6 @@ class _Equipment {
 }
 
 class Owner extends Model<_Owner> implements _Owner {}
-class OwnerQuery extends ModelQuery<Owner> implements _Owner {}
 class _Owner {
   @primaryKey
   int id;
@@ -595,7 +593,6 @@ class _Owner {
 }
 
 class Owned extends Model<_Owned> implements _Owned {}
-class OwnedQuery extends ModelQuery<Owned> implements _Owned {}
 class _Owned {
   @primaryKey
   int id;

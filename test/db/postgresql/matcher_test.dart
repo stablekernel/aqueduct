@@ -34,7 +34,7 @@ void main() {
   });
 
   test("Equals matcher", () async {
-    var q = new ModelQuery<TestModel>()
+    var q = new Query<TestModel>()
         ..["id"] = whereEqualTo(1);
     var results = await q.fetch();
     expect(results.length, 1);
@@ -42,7 +42,7 @@ void main() {
   });
 
   test("Less than matcher", () async {
-    var q = new ModelQuery<TestModel>()
+    var q = new Query<TestModel>()
       ..["id"] = whereLessThan(3);
     var results = await q.fetch();
     expect(results.length, 2);
@@ -51,7 +51,7 @@ void main() {
   });
 
   test("Less than equal to matcher", () async {
-    var q = new ModelQuery<TestModel>()
+    var q = new Query<TestModel>()
       ..["id"] = whereLessThanEqualTo(3);
     var results = await q.fetch();
     expect(results.length, 3);
@@ -61,7 +61,7 @@ void main() {
   });
 
   test("Greater than matcher", () async {
-    var q = new ModelQuery<TestModel>()
+    var q = new Query<TestModel>()
       ..["id"] = whereGreaterThan(4);
     var results = await q.fetch();
     expect(results.length, 2);
@@ -70,7 +70,7 @@ void main() {
   });
 
   test("Greater than equal to matcher", () async {
-    var q = new ModelQuery<TestModel>()
+    var q = new Query<TestModel>()
       ..["id"] = whereGreaterThanEqualTo(4);
     var results = await q.fetch();
     expect(results.length, 3);
@@ -80,7 +80,7 @@ void main() {
   });
 
   test("Not equal to matcher", () async {
-    var q = new ModelQuery<TestModel>()
+    var q = new Query<TestModel>()
       ..["id"] = whereNotEqual(1);
     var results = await q.fetch();
     expect(results.length, 5);
@@ -92,7 +92,7 @@ void main() {
   });
 
   test("whereIn matcher", () async {
-    var q = new ModelQuery<TestModel>()
+    var q = new Query<TestModel>()
       ..["id"] = whereIn([1, 2]);
     var results = await q.fetch();
     expect(results.length, 2);
@@ -101,7 +101,7 @@ void main() {
 
     // Now as iterable
     var iter = [1, 2].map((i) => i);
-    q = new ModelQuery<TestModel>()
+    q = new Query<TestModel>()
       ..["id"] = whereIn(iter);
     results = await q.fetch();
     expect(results.length, 2);
@@ -110,7 +110,7 @@ void main() {
   });
 
   test("whereBetween matcher", () async {
-    var q = new ModelQuery<TestModel>()
+    var q = new Query<TestModel>()
       ..["id"] = whereBetween(2, 4);
     var results = await q.fetch();
     expect(results.length, 3);
@@ -120,7 +120,7 @@ void main() {
   });
 
   test("whereOutsideOf matcher", () async {
-    var q = new ModelQuery<TestModel>()
+    var q = new Query<TestModel>()
       ..["id"] = whereOutsideOf(2, 4);
     var results = await q.fetch();
     expect(results.length, 3);
@@ -130,7 +130,7 @@ void main() {
   });
 
   test("whereRelatedByValue matcher", () async {
-    var q = new ModelQuery<InnerModel>()
+    var q = new Query<InnerModel>()
       ..["owner"] = whereRelatedByValue(1);
     var results = await q.fetch();
     expect(results.length, 1);
@@ -138,7 +138,7 @@ void main() {
   });
 
   test("whereNull matcher", () async {
-    var q = new ModelQuery<InnerModel>()
+    var q = new Query<InnerModel>()
       ..["owner"] = whereNull;
     var results = await q.fetch();
     expect(results.length, 1);
@@ -146,7 +146,7 @@ void main() {
   });
 
   test("whereNotNull matcher", () async {
-    var q = new ModelQuery<InnerModel>()
+    var q = new Query<InnerModel>()
       ..["owner"] = whereNotNull;
     var results = await q.fetch();
     expect(results.length, 1);
@@ -154,7 +154,7 @@ void main() {
   });
 
   test("whereAnyMatch matcher", () async {
-    var q = new ModelQuery<TestModel>()
+    var q = new Query<TestModel>()
       ..["inner"] = whereAnyMatch;
     var results = await q.fetch();
     expect(results.length, 6);
@@ -168,7 +168,7 @@ void main() {
   });
 
   test("whereContains matcher", () async {
-    var q = new ModelQuery<TestModel>()
+    var q = new Query<TestModel>()
         ..["name"] = whereContains("y");
     var results = await q.fetch();
     expect(results.length, 2);
@@ -177,7 +177,7 @@ void main() {
   });
 
   test("whereBeginsWith matcher", () async {
-    var q = new ModelQuery<TestModel>()
+    var q = new Query<TestModel>()
       ..["name"] = whereBeginsWith("B");
     var results = await q.fetch();
     expect(results.length, 1);
@@ -185,7 +185,7 @@ void main() {
   });
 
   test("whereEndsWith matcher", () async {
-    var q = new ModelQuery<TestModel>()
+    var q = new Query<TestModel>()
       ..["name"] = whereEndsWith("m");
     var results = await q.fetch();
     expect(results.length, 1);

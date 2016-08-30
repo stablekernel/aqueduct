@@ -21,13 +21,13 @@ abstract class ModelController<T extends Model> extends HTTPController {
 
   /// Create an instance of [ModelController]. By default, [context] is the [defaultContext].
   ModelController([ModelContext context]) : super() {
-    query = new ModelQuery<T>(context: context ?? ModelContext.defaultContext);
+    query = new Query<T>(context: context ?? ModelContext.defaultContext);
   }
 
   /// A query representing the values received from the [request] being processed.
   ///
   /// You may execute this [query] as is or modify it.
-  ModelQuery<T> query;
+  Query<T> query;
 
   @override
   Future<RequestHandlerResult> willProcessRequest(Request req) async {

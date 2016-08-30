@@ -15,7 +15,7 @@ void main() {
 
       var now = new DateTime.now().toUtc();
       for (var i = 0; i < 5; i++) {
-        var q = new ModelQuery<TestModel>()
+        var q = new Query<TestModel>()
             ..values.createdAt = now
             ..values.name = "$i";
         allObjects.add(await q.insert());
@@ -151,7 +151,7 @@ void main() {
 
       var now = new DateTime.now().toUtc();
       for (var i = 0; i < 10; i++) {
-        var q = new ModelQuery<TestModel>()
+        var q = new Query<TestModel>()
           ..values.createdAt = now
           ..values.name = "${9 - i}";
         allObjects.add(await q.insert());
