@@ -108,10 +108,19 @@ abstract class PropertyDescription {
 /// Each non-relationship property [Model] object persists is described by an instance of [AttributeDescription]. This class
 /// adds two properties to [PropertyDescription] that are only valid for non-relationship types, [isPrimaryKey] and [defaultValue].
 class AttributeDescription extends PropertyDescription {
-  AttributeDescription(ModelEntity entity, String name, PropertyType type, {bool transient: false, bool primaryKey: false, String defaultValue: null, bool unique: false, bool indexed: false, bool nullable: false, bool includedInDefaultResultSet: true, bool autoincrement: false}) :
-        isTransient = transient,
+  AttributeDescription.transient(ModelEntity entity, String name, PropertyType type, this.transientStatus) :
+      isPrimaryKey = false,
+      this.defaultValue = null,
+      super(entity, name, type, unique: false,
+          indexed: false,
+          nullable: false,
+          includedInDefaultResultSet: false,
+          autoincrement: false);
+
+  AttributeDescription(ModelEntity entity, String name, PropertyType type, {Mappable transientStatus: null, bool primaryKey: false, String defaultValue: null, bool unique: false, bool indexed: false, bool nullable: false, bool includedInDefaultResultSet: true, bool autoincrement: false}) :
         isPrimaryKey = primaryKey,
         this.defaultValue = defaultValue,
+        this.transientStatus = transientStatus,
         super(entity, name, type,
           unique: unique,
           indexed: indexed,
@@ -132,8 +141,13 @@ class AttributeDescription extends PropertyDescription {
 
   /// Whether or not this attribute is backed directly by the database.
   ///
-  /// Defaults to false
-  final bool isTransient;
+  /// If [transientStatus] is non-null, this value will be true. Otherwise, the attribute is backed by a database field/column.
+  bool get isTransient => transientStatus != null;
+
+  /// The validity of a transient attribute as input, output or both.
+  ///
+  /// If this property is non-null, the attribute is transient (not backed by a database field/column).
+  final Mappable transientStatus;
 
   String toString() {
     return "AttributeDescription on ${entity.tableName}.$name Type: $type";

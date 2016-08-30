@@ -69,18 +69,47 @@ class DataModel {
 
   Map<String, AttributeDescription> _attributeMapForEntity(ModelEntity entity) {
     Map<String, AttributeDescription> map = {};
-    Map<Symbol, DeclarationMirror> persistentDeclarations = entity.persistentInstanceTypeMirror.declarations;
 
+    // Grab actual properties from instance type
     entity.instanceTypeMirror.declarations.values
       .where((declMir) => declMir is VariableMirror && !declMir.isStatic)
-      .where((declMir) => !declMir.metadata.any((im) => im.type.isSubtypeOf(reflectType(Relationship))))
-      .where((declMir) => declMir.metadata.any((im) => im.type.isSubtypeOf(reflectType(Mappable))))
+      .where((declMir) => _mappableFromDeclaration(declMir) != null)
       .forEach((declMir) {
           var key = MirrorSystem.getName(declMir.simpleName);
           map[key] = _attributeFromVariableMirror(entity, declMir);
       });
 
-    persistentDeclarations.values
+    // Grab getters/setters from instance type, as long as they the right type of Mappable
+    entity.instanceTypeMirror.declarations.values
+        .where((declMir) => declMir is MethodMirror && !declMir.isStatic && (declMir.isSetter || declMir.isGetter) && !declMir.isSynthetic)
+        .where((declMir) {
+          var mapMetadata = _mappableFromDeclaration(declMir);
+          if (mapMetadata == null) {
+            return false;
+          }
+
+          MethodMirror methodMirror = declMir;
+
+          // A setter must be available as an input ONLY, a getter must be available as an output. This is confusing.
+          return (methodMirror.isSetter && mapMetadata.isAvailableAsInput)
+              || (methodMirror.isGetter && mapMetadata.isAvailableAsOutput);
+        })
+        .map((declMir) => _attributeFromMethodMirror(entity, declMir))
+        .fold(<String, AttributeDescription>{}, (Map<String, AttributeDescription> collectedMap, attr) {
+          if (collectedMap.containsKey(attr.name)) {
+            collectedMap[attr.name] = new AttributeDescription.transient(entity, attr.name, attr.type, mappable);
+          } else {
+            collectedMap[attr.name] = attr;
+          }
+
+          return collectedMap;
+        })
+        .forEach((_, attr) {
+          map[attr.name] = attr;
+        });
+
+    // Grab persistent values, which must be properties
+    entity.persistentInstanceTypeMirror.declarations.values
       .where((declMir) => declMir is VariableMirror && !declMir.isStatic)
       .where((declMir) => !declMir.metadata.any((im) => im.type.isSubtypeOf(reflectType(Relationship))))
       .where((declMir) => !map.containsKey(MirrorSystem.getName(declMir.simpleName)))
@@ -92,35 +121,48 @@ class DataModel {
     return map;
   }
 
+  AttributeDescription _attributeFromMethodMirror(ModelEntity entity, MethodMirror methodMirror) {
+    var name = MirrorSystem.getName(methodMirror.simpleName);
+    var dartTypeMirror = methodMirror.returnType;
+    if (methodMirror.isSetter) {
+      name = name.substring(0, name.length - 1);
+      dartTypeMirror = methodMirror.parameters.first.type;
+    }
+
+    // We don't care about the mappable on the declaration when we specify it to the AttributeDescription,
+    // only whether or not it is a getter/setter.
+    return new AttributeDescription.transient(entity, name,
+        PropertyDescription.propertyTypeForDartType(dartTypeMirror.reflectedType),
+        new Mappable(availableAsInput: methodMirror.isSetter, availableAsOutput: methodMirror.isGetter));
+  }
+
   AttributeDescription _attributeFromVariableMirror(ModelEntity entity, VariableMirror mirror) {
     if (entity.instanceTypeMirror == mirror.owner) {
-      // Transient
+      // Transient; must be marked as Mappable.
+
+      var name = MirrorSystem.getName(mirror.simpleName);
       var type = PropertyDescription.propertyTypeForDartType(mirror.type.reflectedType);
       if (type == null) {
-        throw new DataModelException("Property ${MirrorSystem.getName(mirror.simpleName)} on ${MirrorSystem.getName(entity.instanceTypeMirror.simpleName)} has invalid type");
+        throw new DataModelException("Property $name on ${MirrorSystem.getName(entity.instanceTypeMirror.simpleName)} has invalid type");
       }
-
-      return new AttributeDescription(entity, MirrorSystem.getName(mirror.simpleName), type, transient: true);
+      return new AttributeDescription.transient(entity, name, type, _mappableFromDeclaration(mirror));
     } else {
       // Persistent
-      Attributes metadataAttrs = mirror.metadata
-          .firstWhere((im) => im.type.isSubtypeOf(reflectType(Attributes)), orElse: () => null)
-          ?.reflectee;
+      var attrs = _attributeMetadataFromDeclaration(mirror);
 
-      var type = metadataAttrs?.databaseType ?? PropertyDescription.propertyTypeForDartType(mirror.type.reflectedType);
+      var type = attrs?.databaseType ?? PropertyDescription.propertyTypeForDartType(mirror.type.reflectedType);
       if (type == null) {
         throw new DataModelException("Property ${MirrorSystem.getName(mirror.simpleName)} on ${MirrorSystem.getName(entity.persistentInstanceTypeMirror.simpleName)} has invalid type");
       }
 
       return new AttributeDescription(entity, MirrorSystem.getName(mirror.simpleName), type,
-          transient: false,
-          primaryKey: metadataAttrs?.isPrimaryKey ?? false,
-          defaultValue: metadataAttrs?.defaultValue ?? null,
-          unique: metadataAttrs?.isUnique ?? false,
-          indexed: metadataAttrs?.isIndexed ?? false,
-          nullable: metadataAttrs?.isNullable ?? false,
-          includedInDefaultResultSet: !(metadataAttrs?.shouldOmitByDefault ?? false),
-          autoincrement: metadataAttrs?.autoincrement ?? false);
+          primaryKey: attrs?.isPrimaryKey ?? false,
+          defaultValue: attrs?.defaultValue ?? null,
+          unique: attrs?.isUnique ?? false,
+          indexed: attrs?.isIndexed ?? false,
+          nullable: attrs?.isNullable ?? false,
+          includedInDefaultResultSet: !(attrs?.shouldOmitByDefault ?? false),
+          autoincrement: attrs?.autoincrement ?? false);
     }
   }
 
@@ -130,9 +172,7 @@ class DataModel {
     entity.persistentInstanceTypeMirror.declarations.forEach((sym, declMir) {
       if (declMir is VariableMirror && !declMir.isStatic) {
         var key = MirrorSystem.getName(sym);
-        Relationship relationshipAttribute = declMir.metadata
-            .firstWhere((im) => im.type.isSubtypeOf(reflectType(Relationship)), orElse: () => null)
-            ?.reflectee;
+        var relationshipAttribute = _relationshipFromDeclaration(declMir);
 
         if (relationshipAttribute != null) {
           map[key] = _relationshipFromVariableMirror(entity, declMir, relationshipAttribute);
@@ -159,7 +199,7 @@ class DataModel {
       }
     }
 
-    if (mirror.metadata.firstWhere((im) => im.type.isSubtypeOf(reflectType(Attributes)), orElse: () => null) != null) {
+    if (_attributeMetadataFromDeclaration(mirror) != null) {
       throw new DataModelException("Relationship ${MirrorSystem.getName(mirror.simpleName)} on ${MirrorSystem.getName(entity.persistentInstanceTypeMirror.simpleName)} must not define additional Attributes");
     }
 
@@ -170,9 +210,7 @@ class DataModel {
       throw new DataModelException("Relationship ${MirrorSystem.getName(mirror.simpleName)} on ${MirrorSystem.getName(entity.persistentInstanceTypeMirror.simpleName)} has no inverse (tried $inverseKey)");
     }
 
-    Relationship inverseRelationshipProperties = destinationVariableMirror.metadata
-        .firstWhere((im) => im.type.isSubtypeOf(reflectType(Relationship)), orElse: () => null)
-        ?.reflectee;
+    var inverseRelationshipProperties = _relationshipFromDeclaration(destinationVariableMirror);
     if (inverseRelationshipProperties == null) {
       throw new DataModelException("Relationship ${MirrorSystem.getName(mirror.simpleName)} on ${MirrorSystem.getName(entity.persistentInstanceTypeMirror.simpleName)} inverse ($inverseKey) has no RelationshipAttribute");
     }

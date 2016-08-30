@@ -226,67 +226,145 @@ void main() {
     expect(p.entity.primaryKey, "id");
   });
 
-  test("Mappable properties are handled in readMap and asMap", () {
+  test("Transient properties aren't stored in backing", () {
     var t = new TransientTest();
-    t.id = 1;
-    t.text = "Bob";
-    var m = t.asMap();
-    expect(m["id"], 1);
-    expect(m["text"], "Bob");
-    expect(m["defaultedText"], "Mr. Bob");
-
-    m["defaultedText"] = "Mr. Fred";
-    t.readMap(m);
-    expect(t.defaultedText, "Mr. Fred");
-    expect(t.text, "Fred");
-    expect(t.id, 1);
-
-    var u = new User();
-    u.readMap({
-      "value" : "Foo",
-      "name" : "Bob",
-      "id" : 1,
-      "dateCreated" : "2000-01-01T00:00:00Z"
-    });
-
-    expect(u.value, "Foo");
-    expect(u.name, "Bob");
-
-    u = new User()
-      ..id = 1;
-    var um = u.asMap();
-    expect(um["values"], null);
-    expect(um["id"], 1);
-    expect(um.length, 1);
+    t.readMap({"inOut" : 2});
+    expect(t.inOut, 2);
+    expect(t["inOut"], isNull);
   });
 
-  test("Mappable properties can be restricted to input/output only", () {
+  test("mappableInput properties are read in readMap", () {
     var t = new TransientTest()..readMap({
       "id" : 1,
-      "inputInt" : 2,
-      "text" : "foo"
+      "defaultedText" : "bar foo"
     });
     expect(t.id, 1);
+    expect(t.text, "foo");
+    expect(t.inputInt, isNull);
+    expect(t.inOut, isNull);
+
+    t = new TransientTest()..readMap({
+      "inputOnly" : "foo"
+    });
+    expect(t.text, "foo");
+
+    t = new TransientTest()..readMap({
+      "inputInt" : 2
+    });
     expect(t.inputInt, 2);
 
-    expect(t.asMap().containsKey("inputInt"), false);
+    t = new TransientTest()..readMap({
+      "inOut" : 2
+    });
+    expect(t.inOut, 2);
 
-    t.inputInt = 4;
-    t.outputInt = 3;
-    expect(t.asMap()["outputInt"], 3);
+    t = new TransientTest()..readMap({
+      "bothOverQualified" : "foo"
+    });
+    expect(t.text, "foo");
+  });
 
-    var successful = false;
+  test("mappableOutput properties are emitted in asMap", () {
+    var t = new TransientTest()
+      ..text = "foo";
+
+    expect(t.asMap()["defaultedText"], "Mr. foo");
+    expect(t.asMap()["outputOnly"], "foo");
+    expect(t.asMap()["bothButOnlyOnOne"], "foo");
+    expect(t.asMap()["bothOverQualified"], "foo");
+
+    t = new TransientTest()
+      ..outputInt = 2;
+    expect(t.asMap()["outputInt"], 2);
+
+    t = new TransientTest()
+      ..inOut = 2;
+    expect(t.asMap()["inOut"], 2);
+  });
+
+  test("Transient properties are type checked in readMap", () {
     try {
-      var _ = new TransientTest()
-        ..readMap({
-          "outputInt" : 3
-        });
-      successful = true;
-    } catch (e) {
-      expect(e is QueryException, true);
-      expect(e.message, "Key outputInt does not exist for TransientTest");
-    }
-    expect(successful, false);
+      new TransientTest()..readMap({
+        "id" : 1,
+        "defaultedText" : 2
+      });
+
+      throw 'Unreachable';
+    } on QueryException {}
+
+    try {
+      new TransientTest()..readMap({
+        "id" : 1,
+        "inputInt" : "foo"
+      });
+
+      throw 'Unreachable';
+    } on QueryException {}
+  });
+
+  test("Properties that aren't mappableInput are not read in readMap", () {
+    try {
+      new TransientTest()..readMap({
+        "outputOnly" : "foo"
+      });
+      throw 'Unreachable';
+    } on QueryException {}
+
+    try {
+      new TransientTest()..readMap({
+        "invalidOutput" : "foo"
+      });
+      throw 'Unreachable';
+    } on QueryException {}
+
+    try {
+      new TransientTest()..readMap({
+        "invalidInput" : "foo"
+      });
+      throw 'Unreachable';
+    } on QueryException {}
+
+    try {
+      new TransientTest()..readMap({
+        "bothButOnlyOnOne" : "foo"
+      });
+      throw 'Unreachable';
+    } on QueryException {}
+
+    try {
+      new TransientTest()..readMap({
+        "outputInt" : "foo"
+      });
+      throw 'Unreachable';
+    } on QueryException {}
+  });
+
+  test("mappableOutput properties that are null are not emitted in asMap", () {
+    var m = (new TransientTest()
+      ..id = 1
+      ..text = null
+    ).asMap();
+
+    expect(m.length, 3);
+    expect(m["id"], 1);
+    expect(m["text"], null);
+    expect(m["defaultedText"], "Mr. null");
+  });
+
+  test("Properties that aren't mappableOutput are not emitted in asMap", () {
+    var m = (new TransientTest()
+      ..id = 1
+      ..text = "foo"
+      ..inputInt = 2
+    ).asMap();
+
+    expect(m.length, 6);
+    expect(m["id"], 1);
+    expect(m["text"], "foo");
+    expect(m["defaultedText"], "Mr. foo");
+    expect(m["outputOnly"], "foo");
+    expect(m["bothButOnlyOnOne"], "foo");
+    expect(m["bothOverQualified"], "foo");
   });
 
   test("Reading hasMany relationship from JSON succeeds", () {
@@ -343,10 +421,48 @@ class TransientTest extends Model<_TransientTest> implements _TransientTest {
   }
 
   @mappableInput
+  void set inputOnly(String s) {
+    text = s;
+  }
+
+  @mappableOutput
+  String get outputOnly => text;
+  void set outputOnly(String s) {
+    text = s;
+  }
+
+  // This is intentionally invalid
+  @mappableInput
+  String get invalidInput => text;
+
+  // This is intentionally invalid
+  @mappableOutput
+  void set invalidOutput(String s) {
+    text = s;
+  }
+
+  @mappable
+  String get bothButOnlyOnOne => text;
+  void set bothButOnlyOnOne(String s) {
+    text = s;
+  }
+
+  @mappableInput
   int inputInt;
 
   @mappableOutput
   int outputInt;
+
+  @mappable
+  int inOut;
+
+  @mappable
+  String get bothOverQualified => text;
+  @mappable
+  void set bothOverQualified(String s) {
+    text = s;
+  }
+
 }
 
 class _TransientTest {

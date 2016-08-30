@@ -78,16 +78,20 @@ class Model<T> implements Serializable {
 
     keyValues.forEach((k, v) {
       var property = entity.properties[k];
-      print("${entity.properties}");
 
       if (property != null) {
         if (property is AttributeDescription) {
           if (!property.isTransient) {
             _backing.setValueForProperty(entity, k, _valueDecoder(property, v));
           } else {
-            DeclarationMirror decl = _declarationMirrorForProperty(k);
-            if (_declarationMirrorIsMappableOnInput(decl)) {
-              mirror.setField(decl.simpleName, _valueDecoder(property, v));
+            if (property.transientStatus.isAvailableAsInput) {
+              var decodedValue = _valueDecoder(property, v);
+              if(property.isAssignableWith(decodedValue)) {
+                mirror.setField(new Symbol(k), decodedValue);
+              } else {
+                var valueTypeName = MirrorSystem.getName(reflect(decodedValue).type.simpleName);
+                throw new QueryException(400, "Type mismatch for property ${property.name} on ${MirrorSystem.getName(entity.persistentInstanceTypeMirror.simpleName)}, expected assignable type matching ${property.type} but got $valueTypeName.", -1);
+              }
             } else {
               throw new QueryException(400, "Key $k does not exist for ${MirrorSystem.getName(mirror.type.simpleName)}", -1);
             }
@@ -100,27 +104,6 @@ class Model<T> implements Serializable {
       }
     });
   }
-
-  DeclarationMirror _declarationMirrorForProperty(String propertyName) {
-    return reflect(this).type.declarations[new Symbol(propertyName)];
-  }
-
-  Mappable _mappableAttributeForDeclarationMirror(DeclarationMirror mirror) {
-    return mirror.metadata.firstWhere((im) => im.reflectee is Mappable, orElse: () => null)?.reflectee;
-  }
-
-  bool _declarationMirrorIsMappableOnInput(DeclarationMirror dm) {
-    Mappable transientMetadata = _mappableAttributeForDeclarationMirror(dm);
-
-    return transientMetadata != null && transientMetadata.isAvailableAsInput;
-  }
-
-  bool _declarationMirrorIsMappableOnOutput(DeclarationMirror dm) {
-    Mappable transientMetadata =  _mappableAttributeForDeclarationMirror(dm);
-
-    return transientMetadata != null && transientMetadata.isAvailableAsOutput;
-  }
-
 
   /// Converts a model object into a serializable map.
   ///
@@ -140,14 +123,16 @@ class Model<T> implements Serializable {
     });
 
     var reflectedThis = reflect(this);
-    reflectedThis.type.declarations.forEach((sym, decl) {
-      if (_declarationMirrorIsMappableOnOutput(decl)) {
-        var value = reflectedThis.getField(sym).reflectee;
-        if (value != null) {
-          outputMap[MirrorSystem.getName(sym)] = reflectedThis.getField(sym).reflectee;
-        }
-      }
-    });
+    entity.attributes.values
+        .where((attr) => attr.isTransient)
+        .forEach((attr) {
+          if (attr.transientStatus.isAvailableAsOutput) {
+            var value = reflectedThis.getField(new Symbol(attr.name)).reflectee;
+            if (value != null) {
+              outputMap[attr.name] = value;
+            }
+          }
+        });
 
     return outputMap;
   }
