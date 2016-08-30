@@ -186,7 +186,7 @@ abstract class HTTPController extends RequestHandler {
 
     return handlerMethodMirrors.map((MethodMirror mm) {
       var operation = new APIOperation();
-      operation.id = "${MirrorSystem.getName(reflect(this).type.simpleName)}.${MirrorSystem.getName(mm.simpleName)}";
+      operation.id = APIOperation.idForMethod(this, mm.simpleName);
 
       var matchingMethodDeclaration = methodMap[MirrorSystem.getName(mm.simpleName)];
 
@@ -240,12 +240,41 @@ abstract class HTTPController extends RequestHandler {
 
       operation.consumes = acceptedContentTypes.map((ct) => "${ct.primaryType}/${ct.subType}").toList();
       operation.produces = ["${responseContentType.primaryType}/${responseContentType.subType}"];
+      operation.responses = documentResponsesForOperation(operation);
 
       return operation;
     }).toList();
   }
 
+  @override
+  List<APIResponse> documentResponsesForOperation(APIOperation operation) {
+    List<APIResponse> responses = [
+      new APIResponse()
+        ..key = "default"
+        ..description = "Something went wrong",
+    ];
 
+    var symbol = APIOperation.symbolForID(operation.id, this);
+    if (symbol != null) {
+      var controllerCache = _HTTPControllerCache.cacheForType(runtimeType);
+      var methodMirror = reflect(this).type.declarations[symbol];
+
+      if (controllerCache.hasRequiredParametersForMethod(methodMirror)) {
+        responses.add(new APIResponse()
+          ..statusCode = HttpStatus.BAD_REQUEST
+          ..description = "Missing required query and/or header parameter(s)."
+          ..schema = (new APISchemaObject()
+            ..type = APISchemaObjectTypeObject
+            ..properties = {
+              "error" : new APISchemaObject()..type = APISchemaObjectTypeString
+            }
+          )
+        );
+      }
+    }
+
+    return responses;
+  }
 }
 
 class _InternalControllerException implements Exception {

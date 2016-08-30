@@ -74,4 +74,36 @@ class AuthController extends HTTPController {
     };
     return new Response(200, {"Cache-Control": "no-store", "Pragma": "no-cache"}, jsonToken);
   }
+
+  @override
+  List<APIResponse> documentResponsesForOperation(APIOperation operation) {
+    var responses = super.documentResponsesForOperation(operation);
+    if (operation.id == APIOperation.idForMethod(this, #create)) {
+      responses.addAll([
+        new APIResponse()
+          ..statusCode = HttpStatus.OK
+          ..description = "Successfully exchanged credentials for credentials"
+          ..schema = (new APISchemaObject()
+            ..type = APISchemaObjectTypeObject
+            ..properties = {
+              "access_token" : new APISchemaObject.string(),
+              "token_type" : new APISchemaObject.string(),
+              "expires_in" : new APISchemaObject.int(),
+              "refresh_token" : new APISchemaObject.string()
+            }
+          ),
+        new APIResponse()
+          ..statusCode = HttpStatus.BAD_REQUEST
+          ..description = "Missing one or more of: 'client_id', 'username', 'password'."
+          ..schema = (new APISchemaObject()
+            ..type = APISchemaObjectTypeObject
+            ..properties = {
+              "error" : new APISchemaObject.string()
+            }
+          ),
+      ]);
+    }
+
+    return responses;
+  }
 }

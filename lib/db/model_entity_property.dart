@@ -7,7 +7,9 @@ enum PropertyType {
   string,
   datetime,
   boolean,
-  doublePrecision
+  doublePrecision,
+  transientMap,
+  transientList
 }
 
 
@@ -76,6 +78,10 @@ abstract class PropertyDescription {
         return PropertyType.boolean;
       case double:
         return PropertyType.doublePrecision;
+      case Map:
+        return PropertyType.transientMap;
+      case List:
+        return PropertyType.transientList;
     }
 
     return null;
@@ -90,6 +96,8 @@ abstract class PropertyDescription {
       case PropertyType.datetime: return dartValue is DateTime;
       case PropertyType.doublePrecision: return dartValue is double;
       case PropertyType.string: return dartValue is String;
+      case PropertyType.transientMap: return dartValue is Map;
+      case PropertyType.transientList: return dartValue is List;
     }
     return false;
   }
@@ -100,8 +108,9 @@ abstract class PropertyDescription {
 /// Each non-relationship property [Model] object persists is described by an instance of [AttributeDescription]. This class
 /// adds two properties to [PropertyDescription] that are only valid for non-relationship types, [isPrimaryKey] and [defaultValue].
 class AttributeDescription extends PropertyDescription {
-  AttributeDescription(ModelEntity entity, String name, PropertyType type, {bool primaryKey: false, String defaultValue: null, bool unique: false, bool indexed: false, bool nullable: false, bool includedInDefaultResultSet: true, bool autoincrement: false}) :
+  AttributeDescription(ModelEntity entity, String name, PropertyType type, {bool transient: false, bool primaryKey: false, String defaultValue: null, bool unique: false, bool indexed: false, bool nullable: false, bool includedInDefaultResultSet: true, bool autoincrement: false}) :
       super(entity, name, type, unique: unique, indexed: indexed, nullable: nullable, includedInDefaultResultSet: includedInDefaultResultSet, autoincrement: autoincrement),
+      isTransient = transient,
       isPrimaryKey = primaryKey,
       this.defaultValue = defaultValue {
 
@@ -117,6 +126,11 @@ class AttributeDescription extends PropertyDescription {
   /// By default, null. This value is a String, so the underlying persistent store is responsible for parsing it. This allows for default values
   /// that aren't constant values, such as database function calls.
   final String defaultValue;
+
+  /// Whether or not this attribute is backed directly by the database.
+  ///
+  /// Defaults to false
+  final bool isTransient;
 
   String toString() {
     return "AttributeDescription on ${entity.tableName}.$name Type: $type";

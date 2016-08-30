@@ -6,6 +6,7 @@ class APIDocumentable {
   APIDocument documentAPI(PackagePathResolver resolver) => documentableChild?.documentAPI(resolver);
   List<APIPath> documentPaths(PackagePathResolver resolver) => documentableChild?.documentPaths(resolver);
   List<APIOperation> documentOperations(PackagePathResolver resolver) => documentableChild?.documentOperations(resolver);
+  List<APIResponse> documentResponsesForOperation(APIOperation operation) => documentableChild?.documentResponsesForOperation(operation);
   Map<String, APISecurityScheme> documentSecuritySchemes(PackagePathResolver resolver) => documentableChild?.documentSecuritySchemes(resolver);
 }
 
@@ -23,7 +24,7 @@ class APIDocument {
 
     m["openapi"] = "3.0.*";
     m["info"] = info.asMap();
-    m["hosts"] = hosts;
+    m["hosts"] = hosts.map((host) => host.asMap()).toList();
     m["consumes"] = consumes.map((ct) => ct.toString()).toList();
     m["produces"] = produces.map((ct) => ct.toString()).toList();
     m["security"] = securityRequirements.map((sec) => sec.name).toList();
@@ -231,6 +232,19 @@ class APIOperation {
   APIRequestBody requestBody;
   List<APIResponse> responses = [];
 
+  static String idForMethod(Object classInstance, Symbol methodSymbol) {
+    return "${MirrorSystem.getName(reflect(classInstance).type.simpleName)}.${MirrorSystem.getName(methodSymbol)}";
+  }
+
+  static Symbol symbolForID(String operationId, Object classInstance) {
+    var components = operationId.split(".");
+    if (components.length != 2 || components.first != MirrorSystem.getName(reflect(classInstance).type.simpleName)) {
+      return null;
+    }
+
+    return new Symbol(components.last);
+  }
+
   Map<String, dynamic> asMap() {
     var m = {};
 
@@ -309,10 +323,6 @@ class APIParameter {
       return APISchemaObjectFormatInt32;
     } else if (m.type.isSubtypeOf(reflectType(double))) {
       return APISchemaObjectFormatDouble;
-    } else if (m.type.isSubtypeOf(reflectType(String))) {
-      return APISchemaObjectFormatString;
-    } else if (m.type.isSubtypeOf(reflectType(bool))) {
-      return APISchemaObjectFormatBoolean;
     } else if (m.type.isSubtypeOf(reflectType(DateTime))) {
       return APISchemaObjectFormatDateTime;
     }
@@ -371,14 +381,15 @@ const String APISchemaObjectTypeString = "string";
 const String APISchemaObjectTypeArray = "array";
 const String APISchemaObjectTypeObject = "object";
 const String APISchemaObjectTypeNumber = "number";
+const String APISchemaObjectTypeInteger = "integer";
+const String APISchemaObjectTypeBoolean = "boolean";
 
 const String APISchemaObjectFormatInt32 = "int32";
 const String APISchemaObjectFormatInt64 = "int64";
 const String APISchemaObjectFormatDouble = "double";
-const String APISchemaObjectFormatString = "string";
 const String APISchemaObjectFormatBase64 = "byte";
 const String APISchemaObjectFormatBinary = "binary";
-const String APISchemaObjectFormatBoolean = "boolean";
+const String APISchemaObjectFormatDate = "date";
 const String APISchemaObjectFormatDateTime = "date-time";
 const String APISchemaObjectFormatPassword = "password";
 const String APISchemaObjectFormatEmail = "email";
@@ -392,8 +403,13 @@ class APISchemaObject {
   bool readOnly = false;
   String example;
   bool deprecated = false;
+  APISchemaObject items;
   Map<String, APISchemaObject> properties = {};
   Map<String, APISchemaObject> additionalProperties = {};
+
+  APISchemaObject();
+  APISchemaObject.string() : type = APISchemaObjectTypeString;
+  APISchemaObject.int() : type = APISchemaObjectTypeInteger, format = APISchemaObjectFormatInt32;
 
   Map<String, dynamic> asMap() {
     var m = {};
@@ -406,8 +422,9 @@ class APISchemaObject {
     m["example"] = example;
     m["deprecated"] = deprecated;
 
-    m["properties"] = properties;
-    m["additionalProperties"] = additionalProperties;
+    m["items"] = items?.asMap() ?? {};
+    m["properties"] = new Map.fromIterable(properties.keys, key: (key) => key, value: (key) => properties[key].asMap());
+    m["additionalProperties"] = new Map.fromIterable(additionalProperties.keys, key: (key) => key, value: (key) => additionalProperties[key].asMap());
 
     return m;
   }

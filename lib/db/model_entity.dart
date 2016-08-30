@@ -16,10 +16,10 @@ class ModelEntity {
   /// The type of instances represented by this entity.
   ///
   /// Model objects are made up of two components, a persistent type and an instance type. Applications
-  /// use instance types. This value is the [ClassMirror] on that tpye.
+  /// use instance types. This value is the [ClassMirror] on that type.
   final ClassMirror instanceTypeMirror;
 
-  /// The type of persistent instances represented by this enity.
+  /// The type of persistent instances represented by this entity.
   ///
   /// Model objects are made up of two components, a persistent type and an instance type. This value
   /// is the [ClassMirror] on the persistent portion of a [Model] object.
@@ -27,6 +27,14 @@ class ModelEntity {
 
   /// The [DataModel] this instance belongs to.
   final DataModel dataModel;
+
+  /// Schema of the model as returned from a request
+  APISchemaObject get documentedResponseSchema {
+    return new APISchemaObject()
+      ..title = MirrorSystem.getName(instanceTypeMirror.simpleName)
+      ..type = APISchemaObjectTypeObject
+      ..properties = _propertiesForEntity(this);
+  }
 
   /// All attribute values of this entity.
   ///
@@ -65,6 +73,7 @@ class ModelEntity {
     if (_defaultProperties == null) {
       _defaultProperties = attributes.values
           .where((prop) => prop.isIncludedInDefaultResultSet)
+          .where((prop) => !prop.isTransient)
           .map((prop) => prop.name)
           .toList();
       _defaultProperties.addAll(relationships.values
@@ -128,6 +137,77 @@ class ModelEntity {
     return instance;
   }
 
+  Map<String, APISchemaObject> _propertiesForEntity(ModelEntity me, {bool shallow: false}) {
+    Map<String, APISchemaObject> schemaProperties = {};
+
+    if (shallow) {
+      // Only include the primary key
+      var primaryKeyAttribute = me.attributes[me.primaryKey];
+      schemaProperties[me.primaryKey] = new APISchemaObject()
+        ..title = primaryKeyAttribute.name
+        ..type = _schemaObjectTypeForPropertyType(primaryKeyAttribute.type)
+        ..format = _schemaObjectFormatForPropertyType(primaryKeyAttribute.type);
+
+      return schemaProperties;
+    }
+
+    me.attributes.values
+        .where((attribute) => attribute.isIncludedInDefaultResultSet)
+        .forEach((attribute) {
+      schemaProperties[attribute.name] = new APISchemaObject()
+        ..title = attribute.name
+        ..type = _schemaObjectTypeForPropertyType(attribute.type)
+        ..format = _schemaObjectFormatForPropertyType(attribute.type);
+    });
+
+    me.relationships.values
+        .where((relationship) => relationship.isIncludedInDefaultResultSet)
+        .where((relationship) => relationship.relationshipType == RelationshipType.belongsTo)
+        .forEach((relationship) {
+      schemaProperties[relationship.name] = new APISchemaObject()
+        ..title = relationship.name
+        ..type = APISchemaObjectTypeObject
+        ..properties = _propertiesForEntity(relationship.destinationEntity, shallow: true);
+    });
+
+    return schemaProperties;
+  }
+
+  String _schemaObjectTypeForPropertyType(PropertyType pt) {
+    switch (pt) {
+      case PropertyType.integer:
+      case PropertyType.bigInteger:
+        return APISchemaObjectTypeInteger;
+      case PropertyType.string:
+      case PropertyType.datetime:
+        return APISchemaObjectTypeString;
+      case PropertyType.boolean:
+        return APISchemaObjectTypeBoolean;
+      case PropertyType.doublePrecision:
+        return APISchemaObjectTypeNumber;
+      case PropertyType.transientList:
+        return APISchemaObjectTypeArray;
+      case PropertyType.transientMap:
+        return APISchemaObjectTypeObject;
+      default:
+        return null;
+    }
+  }
+
+  String _schemaObjectFormatForPropertyType(PropertyType pt) {
+    switch (pt) {
+      case PropertyType.integer:
+        return APISchemaObjectFormatInt32;
+      case PropertyType.bigInteger:
+        return APISchemaObjectFormatInt64;
+      case PropertyType.datetime:
+        return APISchemaObjectFormatDateTime;
+      case PropertyType.doublePrecision:
+        return APISchemaObjectFormatDouble;
+      default:
+        return null;
+    }
+  }
 
   /// Two entities are considered equal if they have the same [tableName].
   operator ==(ModelEntity other) {

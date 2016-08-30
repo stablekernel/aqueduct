@@ -57,6 +57,10 @@ class _HTTPControllerCache {
         .where((decl) => decl.metadata.any((im) => im.reflectee is _HTTPParameter))
         .map((decl) => new _HTTPControllerCachedParameter(decl))
         .forEach((_HTTPControllerCachedParameter param) {
+          if (param.httpParameter.isRequired) {
+            _hasControllerRequiredParameter = true;
+          }
+
           propertyCache[param.symbol] = param;
         });
 
@@ -72,6 +76,21 @@ class _HTTPControllerCache {
 
   Map<String, _HTTPControllerCachedMethod> methodCache = {};
   Map<Symbol, _HTTPControllerCachedParameter> propertyCache = {};
+  bool _hasControllerRequiredParameter = false;
+
+  bool hasRequiredParametersForMethod(MethodMirror mm) {
+    if (_hasControllerRequiredParameter) {
+      return true;
+    }
+
+    if (mm is MethodMirror && mm.metadata.any((im) => im.reflectee is HTTPMethod)) {
+      _HTTPControllerCachedMethod method = new _HTTPControllerCachedMethod(mm);
+      var key = _HTTPControllerCachedMethod.generateHandlerMethodKey(method.httpMethod.method, method.orderedPathParameters.map((p) => p.name).toList());
+      return methodCache[key].optionalParameters.values.any((p) => p.httpParameter.isRequired);
+    }
+
+    return false;
+  }
 
   _HTTPControllerCachedMethod mapperForRequest(Request req) {
     return methodCache[_HTTPControllerCachedMethod.generateHandlerMethodKey(req.innerRequest.method, req.path.orderedVariableNames)];

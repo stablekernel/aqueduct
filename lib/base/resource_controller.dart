@@ -211,7 +211,7 @@ class ResourceController<ModelType extends Model> extends HTTPController {
   }
 
   @httpGet getObjects({
-  @HTTPQuery.optional("count") int count: 0,
+    @HTTPQuery.optional("count") int count: 0,
     @HTTPQuery.optional("offset") int offset: 0,
     @HTTPQuery.optional("pageBy") String pageBy: null,
     @HTTPQuery.optional("pageAfter") String pageAfter: null,
@@ -262,6 +262,90 @@ class ResourceController<ModelType extends Model> extends HTTPController {
     var results = await _query?.fetch();
 
     return await didFindObjects(results);
+  }
+
+  @override
+  List<APIResponse> documentResponsesForOperation(APIOperation operation) {
+    var responses = super.documentResponsesForOperation(operation);
+    if(operation.id == APIOperation.idForMethod(this, #getObject)) {
+      responses.addAll([
+        new APIResponse()
+          ..statusCode = HttpStatus.OK
+          ..description = ""
+          ..schema = ModelContext.defaultContext.entityForType(ModelType).documentedResponseSchema,
+        new APIResponse()
+          ..statusCode = HttpStatus.NOT_FOUND
+          ..description = ""
+          ..schema = (new APISchemaObject()
+            ..type = APISchemaObjectTypeObject
+            ..properties = {
+              "error" : new APISchemaObject.string()
+            }
+          ),
+      ]);
+    } else if (operation.id == APIOperation.idForMethod(this, #createObject)) {
+      responses.addAll([
+        new APIResponse()
+          ..statusCode = HttpStatus.OK
+          ..description = ""
+          ..schema = ModelContext.defaultContext
+              .entityForType(ModelType)
+              .documentedResponseSchema,
+      ]);
+    } else if (operation.id == APIOperation.idForMethod(this, #updateObject)) {
+      responses.addAll([
+        new APIResponse()
+          ..statusCode = HttpStatus.OK
+          ..description = ""
+          ..schema = ModelContext.defaultContext.entityForType(ModelType).documentedResponseSchema,
+        new APIResponse()
+          ..statusCode = HttpStatus.NOT_FOUND
+          ..description = ""
+          ..schema = (new APISchemaObject()
+            ..type = APISchemaObjectTypeObject
+            ..properties = {
+              "error" : new APISchemaObject.string()
+            }
+          ),
+      ]);
+    } else if (operation.id == APIOperation.idForMethod(this, #deleteObject)) {
+      responses.addAll([
+        new APIResponse()
+          ..statusCode = HttpStatus.OK
+          ..description = ""
+          ..schema = ModelContext.defaultContext.entityForType(ModelType).documentedResponseSchema,
+        new APIResponse()
+          ..statusCode = HttpStatus.NOT_FOUND
+          ..description = ""
+          ..schema = (new APISchemaObject()
+            ..type = APISchemaObjectTypeObject
+            ..properties = {
+              "error" : new APISchemaObject.string()
+            }
+          ),
+      ]);
+    } else if (operation.id == APIOperation.idForMethod(this, #getObjects)) {
+      responses.addAll([
+        new APIResponse()
+          ..statusCode = HttpStatus.OK
+          ..description = ""
+          ..schema = (new APISchemaObject()
+            ..type = APISchemaObjectTypeArray
+            ..items = ModelContext.defaultContext.entityForType(ModelType).documentedResponseSchema
+          ),
+        new APIResponse()
+          ..statusCode = HttpStatus.NOT_FOUND
+          ..description = ""
+          ..schema = (new APISchemaObject()
+            ..type = APISchemaObjectTypeObject
+            ..properties = {
+              "error" : new APISchemaObject.string()
+            }
+          ),
+      ]);
+    }
+
+    return responses;
   }
 
   dynamic _parsePrimaryKey(String id) {

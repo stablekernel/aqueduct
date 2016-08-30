@@ -1,12 +1,13 @@
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
 import 'dart:async';
+import 'dart:io';
 
 void main() {
   group("Standard operations", () {
     Application app = new Application<TestPipeline>();
     app.configuration.port = 8080;
-    var client = new TestClient(8080);
+    var client = new TestClient(app.configuration.port);
     List<TestModel> allObjects = [];
 
     setUpAll(() async {
@@ -202,6 +203,81 @@ void main() {
 
     test("Paging with wrong key", () async {
       expect(await client.request("/controller?pageBy=foobar&pagePrior=10").get(), hasResponse(400, {"error" : "pageBy key foobar does not exist for _TestModel"}));
+    });
+  });
+
+  group("Documentation", () {
+    var dataModel = new DataModel([TestModel]);
+    ModelContext.defaultContext = new ModelContext(dataModel, new DefaultPersistentStore());
+    ResourceController c = new ResourceController<TestModel>();
+    var resolver = new PackagePathResolver(new File(".packages").path);
+    var operations = c.documentOperations(resolver);
+
+    test("includes responses for each operation", () {
+      operations.forEach((op) => expect(c.documentResponsesForOperation(op).length, greaterThan(0)));
+    });
+
+    test("getObject", () {
+      var op = operations.firstWhere((e) => e.id == APIOperation.idForMethod(c, #getObject));
+      List<APIResponse> getResponses = c.documentResponsesForOperation(op);
+
+      expect(getResponses.length, 3);
+
+      var successResponse = getResponses.firstWhere((r) => r.key == "200");
+      expect(successResponse.schema.title, "TestModel");
+
+      var errorResponse = getResponses.firstWhere((r) => r.key == "404");
+      expect(errorResponse.schema.properties["error"].type, APISchemaObjectTypeString);
+    });
+
+    test("createObject", () {
+      var op = operations.firstWhere((e) => e.id == APIOperation.idForMethod(c, #createObject));
+      List<APIResponse> getResponses = c.documentResponsesForOperation(op);
+
+      expect(getResponses.length, 2);
+
+      var successResponse = getResponses.firstWhere((r) => r.key == "200");
+      expect(successResponse.schema.title, "TestModel");
+    });
+
+    test("updateObject", () {
+      var op = operations.firstWhere((e) => e.id == APIOperation.idForMethod(c, #updateObject));
+      List<APIResponse> getResponses = c.documentResponsesForOperation(op);
+
+      expect(getResponses.length, 3);
+
+      var successResponse = getResponses.firstWhere((r) => r.key == "200");
+      expect(successResponse.schema.title, "TestModel");
+
+      var errorResponse = getResponses.firstWhere((r) => r.key == "404");
+      expect(errorResponse.schema.properties["error"].type, APISchemaObjectTypeString);
+    });
+
+    test("deleteObject", () {
+      var op = operations.firstWhere((e) => e.id == APIOperation.idForMethod(c, #deleteObject));
+      List<APIResponse> getResponses = c.documentResponsesForOperation(op);
+
+      expect(getResponses.length, 3);
+
+      var successResponse = getResponses.firstWhere((r) => r.key == "200");
+      expect(successResponse.schema.title, "TestModel");
+
+      var errorResponse = getResponses.firstWhere((r) => r.key == "404");
+      expect(errorResponse.schema.properties["error"].type, APISchemaObjectTypeString);
+    });
+
+    test("getObjects", () {
+      var op = operations.firstWhere((e) => e.id == APIOperation.idForMethod(c, #getObjects));
+      List<APIResponse> getResponses = c.documentResponsesForOperation(op);
+
+      expect(getResponses.length, 3);
+
+      var successResponse = getResponses.firstWhere((r) => r.key == "200");
+      expect(successResponse.schema.type, APISchemaObjectTypeArray);
+      expect(successResponse.schema.items.title, "TestModel");
+
+      var errorResponse = getResponses.firstWhere((r) => r.key == "404");
+      expect(errorResponse.schema.properties["error"].type, APISchemaObjectTypeString);
     });
   });
 }

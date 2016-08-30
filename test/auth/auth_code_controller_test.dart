@@ -220,6 +220,19 @@ void main() {
       };
     expect(await req.post(), hasStatus(401));
   });
+
+  test("Response documentation", () {
+    AuthCodeController ac = new AuthCodeController(new AuthenticationServer(new AuthDelegate(ModelContext.defaultContext)));
+    var resolver = new PackagePathResolver(new File(".packages").path);
+    var operations = ac.documentOperations(resolver);
+
+    expect(operations.length, 1);
+
+    List<APIResponse> responses = ac.documentResponsesForOperation(operations.first);
+    expect(responses.any((ar) => ar.key == "${HttpStatus.MOVED_TEMPORARILY}"), true);
+    expect(responses.any((ar) => ar.key == "${HttpStatus.BAD_REQUEST}"), true);
+    expect(responses.any((ar) => ar.key == "default"), true);
+  });
 }
 
 class AuthPipeline extends ApplicationPipeline {

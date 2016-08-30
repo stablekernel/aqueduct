@@ -28,7 +28,7 @@ class SchemaTable {
     name = entity.tableName;
 
     var validProperties = entity.properties.values
-        .where((p) => (p is AttributeDescription) || (p is RelationshipDescription && p.relationshipType == RelationshipType.belongsTo))
+        .where((p) => (p is AttributeDescription && !p.isTransient) || (p is RelationshipDescription && p.relationshipType == RelationshipType.belongsTo))
         .toList();
 
     columns = validProperties
@@ -116,6 +116,8 @@ class SchemaColumn {
       case PropertyType.boolean: return "boolean";
       case PropertyType.datetime: return "datetime";
       case PropertyType.string: return "string";
+      case PropertyType.transientList: return null;
+      case PropertyType.transientMap: return null;
     }
     return null;
   }
