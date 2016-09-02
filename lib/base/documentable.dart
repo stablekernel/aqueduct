@@ -281,7 +281,7 @@ class APIResponse {
 
     return {
       "description" : description,
-      "schema" : schema.asMap(),
+      "schema" : schema?.asMap(),
       "headers" : mappedHeaders
     };
   }
