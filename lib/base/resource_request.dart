@@ -102,7 +102,7 @@ class ResourceRequest implements RequestHandlerResult {
   String toDebugString({bool includeElapsedTime: true, bool includeRequestIP: true, bool includeMethod: true, bool includeResource: true, bool includeStatusCode: true, bool includeContentSize: false, bool includeHeaders: false, bool includeBody: false}) {
     var builder = new StringBuffer();
     if (includeRequestIP) {
-      builder.write("${innerRequest.connectionInfo.remoteAddress.address} ");
+      builder.write("${innerRequest.connectionInfo?.remoteAddress?.address} ");
     }
     if (includeMethod) {
       builder.write("${innerRequest.method} ");
