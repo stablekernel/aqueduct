@@ -114,10 +114,7 @@ class RequestHandler extends Object with APIDocumentable {
       } else if (result is Response) {
         _applyCORSHeadersIfNecessary(req, result);
         req.respond(result as Response);
-
-        new Future.delayed(new Duration(seconds: 10)).then((_) {
-          logger.info(req.toDebugString());
-        });
+        logger.info(req.toDebugString());
       }
     } on HTTPResponseException catch (err) {
       _handleResponseException(req, err);
