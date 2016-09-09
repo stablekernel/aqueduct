@@ -5,13 +5,17 @@ part of aqueduct;
 /// Contains a standard library [HttpRequest], along with other values
 /// to associate data with a request.
 class ResourceRequest implements RequestHandlerResult {
-  ResourceRequest(this.innerRequest) {}
+  ResourceRequest(this.innerRequest) {
+    connectionInfo = innerRequest.connectionInfo;
+  }
 
   /// The internal [HttpRequest] of this [ResourceRequest].
   ///
   /// The standard library generated HTTP request object. This contains
   /// all of the request information provided by the client.
   final HttpRequest innerRequest;
+
+  HttpConnectionInfo connectionInfo;
 
   /// The response object of this [ResourceRequest].
   ///
@@ -49,7 +53,7 @@ class ResourceRequest implements RequestHandlerResult {
 
   String get _sanitizedHeaders {
     StringBuffer buf = new StringBuffer("{");
-    innerRequest.headers.forEach((k, v) {
+    innerRequest?.headers?.forEach((k, v) {
       buf.write("${_truncatedString(k)} : ${_truncatedString(v.join(","))}\\n");
     });
     buf.write("}");
@@ -101,24 +105,28 @@ class ResourceRequest implements RequestHandlerResult {
 
   String toDebugString({bool includeElapsedTime: true, bool includeRequestIP: true, bool includeMethod: true, bool includeResource: true, bool includeStatusCode: true, bool includeContentSize: false, bool includeHeaders: false, bool includeBody: false}) {
     var builder = new StringBuffer();
-    if (includeRequestIP) {
-      builder.write("${innerRequest.connectionInfo.remoteAddress.address} ");
+
+    if (innerRequest != null) {
+      if (includeRequestIP) {
+        builder.write("${connectionInfo?.remoteAddress?.address} ");
+      }
+      if (includeMethod) {
+        builder.write("${innerRequest.method} ");
+      }
+      if (includeResource) {
+        builder.write("${innerRequest.uri} ");
+      }
+      if (includeElapsedTime && respondDate != null && receivedDate != null) {
+        builder.write("${respondDate.difference(receivedDate).inMilliseconds}ms ");
+      }
+      if (includeStatusCode) {
+        builder.write("${innerRequest.response?.statusCode} ");
+      }
+      if (includeContentSize) {
+        builder.write("${innerRequest.response?.contentLength} ");
+      }
     }
-    if (includeMethod) {
-      builder.write("${innerRequest.method} ");
-    }
-    if (includeResource) {
-      builder.write("${innerRequest.uri} ");
-    }
-    if (includeElapsedTime && respondDate != null) {
-      builder.write("${respondDate.difference(receivedDate).inMilliseconds}ms ");
-    }
-    if (includeStatusCode) {
-      builder.write("${innerRequest.response.statusCode} ");
-    }
-    if (includeContentSize) {
-      builder.write("${innerRequest.response.contentLength} ");
-    }
+
     if (includeHeaders) {
       builder.write("${_sanitizedHeaders} ");
     }
