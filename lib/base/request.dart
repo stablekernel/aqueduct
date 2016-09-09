@@ -34,7 +34,7 @@ class Request implements RequestHandlerResult {
 
   /// Creates an instance of [Request], no need to do so manually.
   Request(this.innerRequest) {
-    connectionInfo  = innerRequest.connectionInfo;
+    connectionInfo = innerRequest.connectionInfo;
   }
 
   /// The internal [HttpRequest] of this [Request].
@@ -185,7 +185,7 @@ class Request implements RequestHandlerResult {
     var builder = new StringBuffer();
     if (innerRequest != null) {
       if (includeRequestIP) {
-        builder.write("${innerRequest.connectionInfo?.remoteAddress?.address} ");
+        builder.write("${connectionInfo?.remoteAddress?.address} ");
       }
       if (includeMethod) {
         builder.write("${innerRequest.method} ");
