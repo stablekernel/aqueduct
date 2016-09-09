@@ -33,13 +33,18 @@ class Request implements RequestHandlerResult {
   }
 
   /// Creates an instance of [Request], no need to do so manually.
-  Request(this.innerRequest);
+  Request(this.innerRequest) {
+    connectionInfo = innerRequest.connectionInfo;
+  }
 
   /// The internal [HttpRequest] of this [Request].
   ///
   /// The standard library generated HTTP request object. This contains
   /// all of the request information provided by the client.
   final HttpRequest innerRequest;
+
+  /// Information about the client connection.
+  HttpConnectionInfo connectionInfo;
 
   /// The response object of this [Request].
   ///
@@ -88,10 +93,12 @@ class Request implements RequestHandlerResult {
 
   String get _sanitizedHeaders {
     StringBuffer buf = new StringBuffer("{");
-    innerRequest.headers.forEach((k, v) {
+
+    innerRequest?.headers?.forEach((k, v) {
       buf.write("${_truncatedString(k)} : ${_truncatedString(v.join(","))}\\n");
     });
     buf.write("}");
+
     return buf.toString();
   }
 
@@ -176,23 +183,25 @@ class Request implements RequestHandlerResult {
 
   String toDebugString({bool includeElapsedTime: true, bool includeRequestIP: true, bool includeMethod: true, bool includeResource: true, bool includeStatusCode: true, bool includeContentSize: false, bool includeHeaders: false, bool includeBody: false}) {
     var builder = new StringBuffer();
-    if (includeRequestIP) {
-      builder.write("${innerRequest.connectionInfo.remoteAddress.address} ");
-    }
-    if (includeMethod) {
-      builder.write("${innerRequest.method} ");
-    }
-    if (includeResource) {
-      builder.write("${innerRequest.uri} ");
-    }
-    if (includeElapsedTime && respondDate != null) {
-      builder.write("${respondDate.difference(receivedDate).inMilliseconds}ms ");
-    }
-    if (includeStatusCode) {
-      builder.write("${innerRequest.response.statusCode} ");
-    }
-    if (includeContentSize) {
-      builder.write("${innerRequest.response.contentLength} ");
+    if (innerRequest != null) {
+      if (includeRequestIP) {
+        builder.write("${connectionInfo?.remoteAddress?.address} ");
+      }
+      if (includeMethod) {
+        builder.write("${innerRequest.method} ");
+      }
+      if (includeResource) {
+        builder.write("${innerRequest.uri} ");
+      }
+      if (includeElapsedTime && respondDate != null && receivedDate != null) {
+        builder.write("${respondDate.difference(receivedDate).inMilliseconds}ms ");
+      }
+      if (includeStatusCode) {
+        builder.write("${innerRequest.response?.statusCode} ");
+      }
+      if (includeContentSize) {
+        builder.write("${innerRequest.response?.contentLength} ");
+      }
     }
     if (includeHeaders) {
       builder.write("${_sanitizedHeaders} ");

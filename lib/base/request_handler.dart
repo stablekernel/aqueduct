@@ -117,15 +117,9 @@ class RequestHandler extends Object with APIDocumentable {
         logger.info(req.toDebugString());
       }
     } on HTTPResponseException catch (err) {
-      var response = err.response();
-      _applyCORSHeadersIfNecessary(req, response);
-      req.respond(response);
-      logger.info("${req.toDebugString(includeHeaders: true, includeBody: true)} ${err.message}");
+      _handleResponseException(req, err);
     } catch (err, st) {
-      var response = new Response.serverError(headers: {HttpHeaders.CONTENT_TYPE: ContentType.JSON}, body: {"error": "${this.runtimeType}: $err.", "stacktrace": st.toString()});
-      _applyCORSHeadersIfNecessary(req, response);
-      req.respond(response);
-      logger.severe("${req.toDebugString(includeHeaders: true, includeBody: true)} $err $st");
+      _handleUncaughtError(req, err, st);
     }
   }
 
@@ -142,6 +136,32 @@ class RequestHandler extends Object with APIDocumentable {
     }
 
     return req;
+  }
+
+  void _handleResponseException(Request request, HTTPResponseException exception) {
+    try {
+      var response = exception.response();
+      _applyCORSHeadersIfNecessary(request, response);
+      request.respond(response);
+
+      logger.info("${request.toDebugString(includeHeaders: true, includeBody: true)} ${exception.message}");
+    } catch (_) {
+      // If we get here, well, there isn't anything else we can do.
+      request.response.close();
+    }
+  }
+
+  void _handleUncaughtError(Request request, dynamic error, StackTrace stack) {
+    try {
+      var response = new Response.serverError(headers: {HttpHeaders.CONTENT_TYPE: ContentType.JSON}, body: {"error": "${this.runtimeType}: $error.", "stacktrace": stack.toString()});
+      _applyCORSHeadersIfNecessary(request, response);
+      request.respond(response);
+
+      logger.severe("${request.toDebugString(includeHeaders: true, includeBody: true)} $error $stack");
+    } catch (_) {
+      // If we get here, well, there isn't anything else we can do.
+      request.response.close();
+    }
   }
 
   RequestHandler _lastRequestHandler() {
