@@ -38,10 +38,10 @@ abstract class ModelController<T extends Model> extends HTTPController {
       if (idValue != null) {
         var primaryKeyDesc = query.entity.attributes[query.entity.primaryKey];
         if (primaryKeyDesc.isAssignableWith(idValue)) {
-          query[query.entity.primaryKey] = idValue;
+          query.matchOn[query.entity.primaryKey] = idValue;
         } else if (primaryKeyDesc.type == PropertyType.bigInteger || primaryKeyDesc.type == PropertyType.integer) {
           try {
-            query[query.entity.primaryKey] = int.parse(idValue);
+            query.matchOn[query.entity.primaryKey] = int.parse(idValue);
           } on FormatException {
             var errorMessage = "Expected integer value for ModelController on ${query.entity}, but $idValue was not able to be parsed to an integer.";
             logger.info(errorMessage);
