@@ -155,7 +155,7 @@ void main() {
 
   test("whereAnyMatch matcher", () async {
     var q = new Query<TestModel>()
-      ..matchOn["inner"] = whereAnyMatch;
+      ..include["inner"] = whereExists;
     var results = await q.fetch();
     expect(results.length, 6);
 

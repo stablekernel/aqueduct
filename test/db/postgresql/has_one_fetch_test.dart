@@ -41,10 +41,10 @@ void main() {
       expect(o, {
         "id" : 1,
         "name" : "A",
-        "owned" : {
+        "child" : {
           "id" : 1,
           "name" : "A1",
-          "owner" : {"id" : 1}
+          "parent" : {"id" : 1}
         }
       });
     });
@@ -58,7 +58,7 @@ void main() {
       expect(o, {
         "id" : 3,
         "name" : "C",
-        "owned" : null
+        "child" : null
       });
     });
 
@@ -70,21 +70,21 @@ void main() {
       var mapList = o.map((x) => x.asMap()).toList();
       expect(mapList, [
         {
-          "id" : 1, "name" : "A", "owned" : {
+          "id" : 1, "name" : "A", "child" : {
             "id" : 1,
             "name" : "A1",
-            "owner" : {"id" : 1}
+            "parent" : {"id" : 1}
           }
         },
         {
-          "id" : 2, "name" : "B", "owned" : {
+          "id" : 2, "name" : "B", "child" : {
             "id" : 2,
             "name" : "B1",
-            "owner" : {"id" : 2}
+            "parent" : {"id" : 2}
           }
         },
         {
-          "id" : 3, "name" : "C", "owned" : null
+          "id" : 3, "name" : "C", "child" : null
         }
       ]);
     });

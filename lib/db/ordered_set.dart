@@ -11,9 +11,6 @@ class OrderedSet<T extends Model> extends Object with ListMixin<T> {
     entity = ModelContext.defaultContext.dataModel.entityForType(T);
   }
 
-  /// The [ModelContext] this instance belongs to.
-  ModelContext context = ModelContext.defaultContext;
-
   /// The [ModelEntity] this instance is described by.
   ModelEntity entity;
 
