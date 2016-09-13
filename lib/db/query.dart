@@ -3,16 +3,32 @@ part of aqueduct;
 /// An representation of a database operation.
 ///
 /// Queries are used to find, update, insert, delete and count objects in a database.
-
 class Query<ModelType extends Model> {
   Query({ModelContext context: null}) {
     this.context = context ?? ModelContext.defaultContext;
+    entity = this.context.dataModel.entityForType(ModelType);
   }
 
-  Type get modelType => ModelType;
+  ModelEntity entity;
+  ModelContext context = ModelContext.defaultContext;
 
-  ModelContext context;
-  ModelEntity get entity => context.dataModel.entityForType(modelType);
+  ModelType get matchOn {
+    if (_matchOn == null) {
+      _matchOn = entity.newInstance() as ModelType;
+      _matchOn._backing = new _ModelMatcherBacking();
+    }
+    return _matchOn;
+  }
+  ModelType _matchOn;
+
+  ModelType get include {
+    if (_include == null) {
+      _include = entity.newInstance() as ModelType;
+      _include._backing = new _ModelMatcherBacking();
+    }
+    return _include;
+  }
+  ModelType _include;
 
   /// Confirms that a query has no predicate before executing it.
   ///
@@ -54,26 +70,6 @@ class Query<ModelType extends Model> {
   /// A predicate will identify the rows being accessed, see [Predicate] for more details.
   Predicate predicate;
 
-  ModelType get matchOn {
-    if (_matchOn == null) {
-      _matchOn = reflectClass(ModelType).newInstance(new Symbol(""), []).reflectee as ModelType;
-      _matchOn._backing = new _ModelMatcherBacking();
-      _matchOn.context = context;
-    }
-    return _matchOn;
-  }
-  ModelType _matchOn;
-
-  ModelType get include {
-    if (_include == null) {
-      _include = reflectClass(ModelType).newInstance(new Symbol(""), []).reflectee as ModelType;
-      _include._backing = new _ModelMatcherBacking();
-      _include.context = context;
-    }
-    return _include;
-  }
-  ModelType _include;
-
   /// Values to be used when inserting or updating an object.
   ///
   /// Keys must be the name of the property on the model object. Prefer to use [values] instead.
@@ -92,8 +88,7 @@ class Query<ModelType extends Model> {
   ///
   ModelType get values {
     if (_valueObject == null) {
-      _valueObject = reflectClass(ModelType).newInstance(new Symbol(""), []).reflectee as ModelType;
-      _valueObject.context = context;
+      _valueObject = entity.newInstance() as ModelType;
     }
     return _valueObject;
   }
@@ -109,6 +104,8 @@ class Query<ModelType extends Model> {
   /// an explicit list of keys will return only those properties. Keys must match the names of the properties
   /// in of [modelType].
   List<String> resultProperties;
+
+  Map<Type, List<String>> nestedResultProperties = {};
 
   /// Inserts the data represented by this Query into the database represented by [context] (defaults to [ModelContext.defaultContext]).
   ///
@@ -204,32 +201,6 @@ class Query<ModelType extends Model> {
   ///
   Future<int> delete() async {
     return await context._executeDeleteQuery(this); // or null
-  }
-
-  Predicate _compilePredicate(DataModel dataModel, PersistentStore persistentStore) {
-    if (_matchOn != null) {
-      return Predicate.andPredicates(_matchOn.populatedPropertyValues.keys.map((queryKey) {
-        var desc = dataModel.entityForType(modelType).properties[queryKey];
-        var matcher = _matchOn.populatedPropertyValues[queryKey];
-
-        if (matcher is _ComparisonMatcherExpression) {
-          return persistentStore.comparisonPredicate(desc, matcher.operator, matcher.value);
-        } else if (matcher is _RangeMatcherExpression) {
-          return persistentStore.rangePredicate(desc, matcher.lhs, matcher.rhs, matcher.within);
-        } else if (matcher is _NullMatcherExpression) {
-          return persistentStore.nullPredicate(desc, matcher.shouldBeNull);
-        } else if (matcher is _WithinMatcherExpression) {
-          return persistentStore.containsPredicate(desc, matcher.values);
-        } else if (matcher is _StringMatcherExpression) {
-          return persistentStore.stringPredicate(desc, matcher.operator, matcher.value);
-        } else {
-          // If this is a raw value, we assume it to be an equals to.
-          return persistentStore.comparisonPredicate(desc, MatcherOperator.equalTo, matcher);
-        }
-      })?.toList());
-    }
-
-    return predicate;
   }
 }
 

@@ -4,7 +4,7 @@ import 'dart:async';
 import '../../helpers.dart';
 
 void main() {
-  group("Tomany graph", () {
+  group("HasMany relationships", () {
     ModelContext context = null;
     List<User> sourceUsers;
 
@@ -86,20 +86,16 @@ void main() {
       expect(loc.equipment, isNull);
     });
 
-    test("Keys with same name across table still yields appropriate result", () async {
-
-    });
-
     test("Can do one level join with single root object", () async {
       var q = new Query<User>()
         ..matchOn.id = 1
         ..include.locations = whereAnyMatch;
+
       var users = await q.fetch();
       expect(users.length, 1);
 
       var user = users.first;
-      var sourceUserTruncated = new User.fromUser(
-          sourceUsers.firstWhere((u) => u.id == 1));
+      var sourceUserTruncated = new User.fromUser(sourceUsers.firstWhere((u) => u.id == 1));
       sourceUserTruncated.locations.first.equipment = null;
       sourceUserTruncated.locations.last.equipment = null;
       expect(user, equals(sourceUserTruncated));
@@ -138,30 +134,30 @@ void main() {
       var mapList = users.map((u) => u.asMap()).toList();
       expect(mapList, [
         {"id" : 1,
-        "name" : "Joe",
-        "locations" : [
-          {"id" : 1, "name" : "Crestridge", "user" : {"id" : 1}},
-          {"id" : 2, "name" : "SK", "user" : {"id" : 1}},
-        ]},
+          "name" : "Joe",
+          "locations" : [
+            {"id" : 1, "name" : "Crestridge", "user" : {"id" : 1}},
+            {"id" : 2, "name" : "SK", "user" : {"id" : 1}},
+          ]},
         {
           "id" : 2,
           "name" : "Fred",
           "locations" : [
             {"id" : 3, "name" : "Krog St", "user" : {"id" : 2}},
             {"id" : 4, "name" : "Dumpster", "user" : {"id" : 2}}
-        ]},
+          ]},
         {
           "id" : 3,
           "name" : "Bob",
           "locations" : [
             {"id" : 5, "name" : "Omaha", "user" : {"id" : 3}}
-        ]},
+          ]},
         {
           "id" : 4,
           "name" : "John",
           "locations" : [
             {"id" : 6, "name" : "London", "user" : {"id" : 4}}
-        ]},
+          ]},
         {
           "id" : 5,
           "name" : "Sally",
@@ -306,8 +302,8 @@ void main() {
       expect(mapList, [
         {
           "name" : "Crestridge", "id" : 1, "user" : {"id" : 1}, "equipment" : [
-            {"id" : 1, "name" : "Fridge", "type" : "Appliance", "location" : {"id" : 1}}
-          ]
+          {"id" : 1, "name" : "Fridge", "type" : "Appliance", "location" : {"id" : 1}}
+        ]
         },
         {"name" : "SK", "id" : 2, "user" : {"id" : 1}, "equipment" : []}
       ]);
@@ -342,10 +338,8 @@ void main() {
     test("Can fetch graph when omitting foreign or primary keys from query", () async {
       var q = new Query<User>()
         ..resultProperties = ["name"]
-        ..locations = [
-          new Query<Location>()
-            ..resultProperties = ["name"]
-        ];
+        ..nestedResultProperties[Location] = ["name"]
+        ..include.locations = whereAnyMatch;
 
       var users = await q.fetch();
       expect(users.first.name, isNotNull);
@@ -355,93 +349,7 @@ void main() {
     });
 
     test("Can specify result keys multiple levels down", () async {
-
-    });
-  });
-
-  group("ToOne graph", () {
-    ModelContext context = null;
-
-    setUpAll(() async {
-      context = await contextWithModels([Owned, Owner]);
-
-      var o = ["A", "B", "C"];
-      var owners = await Future.wait(o.map((x) {
-        var q = new Query<Owner>()
-          ..values.name = x;
-        return q.insert();
-      }));
-
-      for (var o in owners) {
-        if (o.name != "C") {
-          var q = new Query<Owned>()
-            ..values.name = "${o.name}1"
-            ..values.owner = (new Owner()
-              ..id = o.id);
-          await q.insert();
-        }
-      }
-    });
-
-    tearDownAll(() {
-      context?.persistentStore?.close();
-    });
-
-    test("Join with single root object", () async {
-      var q = new Query<Owner>()
-          ..matchOn.id = 1
-          ..include.owned = whereExists;
-      var o = (await q.fetch()).first.asMap();
-
-      expect(o, {
-        "id" : 1,
-        "name" : "A",
-        "owned" : {
-          "id" : 1,
-          "name" : "A1",
-          "owner" : {"id" : 1}
-        }
-      });
-    });
-
-    test("Join with null value still has key", () async {
-      var q = new Query<Owner>()
-        ..matchOn.id = 3
-        ..include.owned = whereExists;
-      var o = (await q.fetch()).first.asMap();
-
-      expect(o, {
-        "id" : 3,
-        "name" : "C",
-        "owned" : null
-      });
-    });
-
-    test("Join with multi root object", () async {
-      var q = new Query<Owner>()
-        ..include.owned = whereExists;
-      var o = await q.fetch();
-
-      var mapList = o.map((x) => x.asMap()).toList();
-      expect(mapList, [
-        {
-          "id" : 1, "name" : "A", "owned" : {
-            "id" : 1,
-            "name" : "A1",
-            "owner" : {"id" : 1}
-          }
-        },
-        {
-          "id" : 2, "name" : "B", "owned" : {
-            "id" : 2,
-            "name" : "B1",
-            "owner" : {"id" : 2}
-          }
-        },
-        {
-          "id" : 3, "name" : "C", "owned" : null
-        }
-      ]);
+      fail("NYI");
     });
   });
 }
@@ -450,9 +358,9 @@ class User extends Model<_User> implements _User {
   User();
   User.fromUser(User u) {
     this
-        ..id = u.id
-        ..name = u.name
-        ..locations = new OrderedSet.from(u.locations?.map((l) => new Location.fromLocation(l)));
+      ..id = u.id
+      ..name = u.name
+      ..locations = new OrderedSet.from(u.locations?.map((l) => new Location.fromLocation(l)));
   }
   operator == (dynamic o) {
     User other = o;
@@ -501,10 +409,10 @@ class Location extends Model<_Location> implements _Location {
   Location();
   Location.fromLocation(Location loc) {
     this
-        ..id = loc.id
-        ..name = loc.name
-        ..equipment = new OrderedSet.from(loc.equipment?.map((eq) => new Equipment.fromEquipment(eq)))
-        ..user = loc.user != null ? (new User()..id = loc.user.id) : null;
+      ..id = loc.id
+      ..name = loc.name
+      ..equipment = new OrderedSet.from(loc.equipment?.map((eq) => new Equipment.fromEquipment(eq)))
+      ..user = loc.user != null ? (new User()..id = loc.user.id) : null;
   }
   operator ==(dynamic o) {
     Location other = o;
@@ -554,10 +462,10 @@ class Equipment extends Model<_Equipment> implements _Equipment {
   Equipment();
   Equipment.fromEquipment(Equipment eq) {
     this
-        ..id = eq.id
-        ..name = eq.name
-        ..type = eq.type
-        ..location = eq.location != null ? (new Location()..id = eq.location.id) : null;
+      ..id = eq.id
+      ..name = eq.name
+      ..type = eq.type
+      ..location = eq.location != null ? (new Location()..id = eq.location.id) : null;
   }
   int get hashCode {
     return this.id;
@@ -580,24 +488,4 @@ class _Equipment {
 
   @Relationship.belongsTo("equipment", deleteRule: RelationshipDeleteRule.cascade)
   Location location;
-}
-
-class Owner extends Model<_Owner> implements _Owner {}
-class _Owner {
-  @primaryKey
-  int id;
-  String name;
-
-  @Relationship.hasOne("owner")
-  Owned owned;
-}
-
-class Owned extends Model<_Owned> implements _Owned {}
-class _Owned {
-  @primaryKey
-  int id;
-  String name;
-
-  @Relationship.belongsTo("owned")
-  Owner owner;
 }

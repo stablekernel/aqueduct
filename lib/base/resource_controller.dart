@@ -77,7 +77,7 @@ class ResourceController<ModelType extends Model> extends HTTPController {
   }
 
   @httpGet getObject(String id) async {
-    _query[_query.entity.primaryKey] = whereEqualTo(_parsePrimaryKey(id));
+    _query.matchOn[_query.entity.primaryKey] = whereEqualTo(_parsePrimaryKey(id));
 
     _query = await willFindObjectWithQuery(_query);
 
@@ -141,7 +141,7 @@ class ResourceController<ModelType extends Model> extends HTTPController {
   }
 
   @httpDelete deleteObject(String id) async {
-    _query[_query.entity.primaryKey] = whereEqualTo(_parsePrimaryKey(id));
+    _query.matchOn[_query.entity.primaryKey] = whereEqualTo(_parsePrimaryKey(id));
 
     _query = await willDeleteObjectWithQuery(_query);
 
@@ -178,7 +178,7 @@ class ResourceController<ModelType extends Model> extends HTTPController {
   }
 
   @httpPut updateObject(String id) async {
-    _query[_query.entity.primaryKey] = whereEqualTo(_parsePrimaryKey(id));
+    _query.matchOn[_query.entity.primaryKey] = whereEqualTo(_parsePrimaryKey(id));
 
     ModelType instance = _query.entity.instanceTypeMirror.newInstance(new Symbol(""), []).reflectee as ModelType;
     instance.readMap(requestBody as Map<String, dynamic>);

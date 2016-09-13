@@ -122,7 +122,7 @@ class PostgreSQLPersistentStore extends PersistentStore {
 
   Future<List<MappingElement>> executeInsertQuery(PersistentStoreQuery q) async {
     var queryStringBuffer = new StringBuffer();
-    queryStringBuffer.write("insert into ${q.entity.tableName} ");
+    queryStringBuffer.write("insert into ${q.rootEntity.tableName} ");
     queryStringBuffer.write("(${q.values.map((m) => _columnNameForProperty(m.property)).join(",")}) ");
     queryStringBuffer.write("values (${q.values.map((m) => "@${_columnNameForProperty(m.property)}").join(",")}) ");
 
@@ -143,7 +143,7 @@ class PostgreSQLPersistentStore extends PersistentStore {
 
     var predicateValueMap = {};
     var mapElementToString = (MappingElement e) => "${e.property.entity.tableName}.${_columnNameForProperty(e.property)}";
-    var selectColumns =  q.resultKeys
+    var selectColumns = q.resultKeys
         .map((mapElement) {
           if (mapElement is JoinMappingElement) {
             return mapElement.resultKeys.map(mapElementToString).join(",");
@@ -152,13 +152,14 @@ class PostgreSQLPersistentStore extends PersistentStore {
           }
         }).join(",");
 
-    queryStringBuffer.write("$selectColumns from ${q.entity.tableName} ");
+    queryStringBuffer.write("$selectColumns from ${q.rootEntity.tableName} ");
 
     q.resultKeys
         .where((mapElement) => mapElement is JoinMappingElement)
         .forEach((MappingElement je) {
           JoinMappingElement joinElement = je;
           queryStringBuffer.write("${_joinStringForJoin(joinElement)} ");
+
           if (joinElement.predicate != null) {
             predicateValueMap.addAll(joinElement.predicate.parameters);
           }
@@ -194,7 +195,7 @@ class PostgreSQLPersistentStore extends PersistentStore {
     }
 
     var queryStringBuffer = new StringBuffer();
-    queryStringBuffer.write("delete from ${q.entity.tableName} ");
+    queryStringBuffer.write("delete from ${q.rootEntity.tableName} ");
 
     var valueMap = null;
     if (q.predicate != null) {
@@ -213,7 +214,7 @@ class PostgreSQLPersistentStore extends PersistentStore {
     }
 
     var queryStringBuffer = new StringBuffer();
-    queryStringBuffer.write("update ${q.entity.tableName} ");
+    queryStringBuffer.write("update ${q.rootEntity.tableName} ");
     queryStringBuffer.write("set ${q.values.map((m) => _columnNameForProperty(m.property)).map((keyName) => "$keyName=@u_$keyName").join(",")} ");
 
     var predicateValueMap = <String, dynamic>{};
@@ -298,7 +299,7 @@ class PostgreSQLPersistentStore extends PersistentStore {
   List<List<MappingElement>> _mappingElementsFromResults(List<Row> rows, List<MappingElement> columnDefinitions) {
     return rows.map((row) {
       var columnDefinitionIterator = columnDefinitions.iterator;
-      var rowIterator = row.toList().iterator;
+      var rowValueIterator = row.toList().iterator;
       var resultColumns = [];
 
       while (columnDefinitionIterator.moveNext()) {
@@ -308,13 +309,13 @@ class PostgreSQLPersistentStore extends PersistentStore {
           var innerColumnIterator = element.resultKeys.iterator;
           var innerResultColumns = <MappingElement>[];
           while (innerColumnIterator.moveNext()) {
-            rowIterator.moveNext();
-            innerResultColumns.add(new MappingElement.fromElement(innerColumnIterator.current, rowIterator.current));
+            rowValueIterator.moveNext();
+            innerResultColumns.add(new MappingElement.fromElement(innerColumnIterator.current, rowValueIterator.current));
           }
           resultColumns.add(new JoinMappingElement.fromElement(element, innerResultColumns));
         } else {
-          rowIterator.moveNext();
-          resultColumns.add(new MappingElement.fromElement(element, rowIterator.current));
+          rowValueIterator.moveNext();
+          resultColumns.add(new MappingElement.fromElement(element, rowValueIterator.current));
         }
       }
 
@@ -359,7 +360,7 @@ class PostgreSQLPersistentStore extends PersistentStore {
     }
 
     var transformFunc = (SortDescriptor sd) {
-      var property = q.entity.properties[sd.key];
+      var property = q.rootEntity.properties[sd.key];
       var columnName = "${property.entity.tableName}.${_columnNameForProperty(property)}";
       return "$columnName ${(sd.order == SortDescriptorOrder.ascending ? "asc" : "desc")}";
     };

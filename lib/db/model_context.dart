@@ -33,33 +33,30 @@ class ModelContext {
   }
 
   Future<Model> _executeInsertQuery(Query query) async {
-    var entity = dataModel.entityForType(query.modelType);
-    var psq = new PersistentStoreQuery(entity, persistentStore, query);
+    var psq = new PersistentStoreQuery(query.entity, persistentStore, query);
     var results = await persistentStore.executeInsertQuery(psq);
 
-    return entity.instanceFromMappingElements(results);
+    return query.entity.instanceFromMappingElements(results);
   }
 
   Future<List<Model>> _executeFetchQuery(Query query) async {
-    var entity = dataModel.entityForType(query.modelType);
-    var psq = new PersistentStoreQuery(entity, persistentStore, query);
+    var psq = new PersistentStoreQuery(query.entity, persistentStore, query);
     var results = await persistentStore.executeFetchQuery(psq);
 
-    return _coalesceAndMapRows(results, entity);
+    return _coalesceAndMapRows(results, query.entity);
   }
 
   Future<List<Model>> _executeUpdateQuery(Query query) async {
-    var entity = dataModel.entityForType(query.modelType);
-    var psq = new PersistentStoreQuery(entity, persistentStore, query);
+    var psq = new PersistentStoreQuery(query.entity, persistentStore, query);
     var results = await persistentStore.executeUpdateQuery(psq);
 
     return results.map((row) {
-      return entity.instanceFromMappingElements(row);
+      return query.entity.instanceFromMappingElements(row);
     }).toList();
   }
 
   Future<int> _executeDeleteQuery(Query query) async {
-    return await persistentStore.executeDeleteQuery(new PersistentStoreQuery(dataModel.entityForType(query.modelType), persistentStore, query));
+    return await persistentStore.executeDeleteQuery(new PersistentStoreQuery(query.entity, persistentStore, query));
   }
 
   List<Model> _coalesceAndMapRows(List<List<MappingElement>> elements, ModelEntity entity) {
@@ -156,7 +153,7 @@ class ModelContext {
             RelationshipDescription relDesc = je.property;
 
             if (relDesc.relationshipType == RelationshipType.hasMany) {
-              existingInstance[je.property.name] = [];
+              existingInstance[je.property.name] = new OrderedSet();
             } else {
               existingInstance[je.property.name] = null;
             }

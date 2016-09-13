@@ -3,7 +3,7 @@ part of wildfire;
 class WildfireAuthenticationDelegate implements AuthenticationServerDelegate<User, Token, AuthCode> {
   Future<Client> clientForID(AuthenticationServer server, String id) async {
     var clientQ = new Query<ClientRecord>()
-      ..id = id;
+      ..matchOn.id = id;
 
     var clientRecord = await clientQ.fetchOne();
     if (clientRecord == null) {
@@ -28,21 +28,21 @@ class WildfireAuthenticationDelegate implements AuthenticationServerDelegate<Use
 
   Future<Token> tokenForAccessToken(AuthenticationServer server, String accessToken) {
     var tokenQ = new Query<Token>()
-      ..accessToken = accessToken;
+      ..matchOn.accessToken = accessToken;
 
     return tokenQ.fetchOne();
   }
 
   Future<Token> tokenForRefreshToken(AuthenticationServer server, String refreshToken) {
     var tokenQ = new Query<Token>()
-      ..refreshToken = refreshToken;
+      ..matchOn.refreshToken = refreshToken;
 
     return tokenQ.fetchOne();
   }
 
   Future<User> authenticatableForUsername(AuthenticationServer server, String username) async {
     var userQ = new Query<User>()
-      ..email = username
+      ..matchOn.email = username
       ..resultProperties= ["email", "hashedPassword", "salt", "id"];
 
     return await userQ.fetchOne();
@@ -50,7 +50,7 @@ class WildfireAuthenticationDelegate implements AuthenticationServerDelegate<Use
 
   Future<User> authenticatableForID(AuthenticationServer server, dynamic id) async {
     var userQ = new Query<User>()
-      ..id = id
+      ..matchOn.id = id
       ..resultProperties = ["email", "hashedPassword", "salt", "id"];
 
     return await userQ.fetchOne();
@@ -58,7 +58,7 @@ class WildfireAuthenticationDelegate implements AuthenticationServerDelegate<Use
 
   Future deleteTokenForAccessToken(AuthenticationServer server, String accessToken) async {
     var q = new Query<Token>()
-      ..accessToken = accessToken;
+      ..matchOn.accessToken = accessToken;
 
     await q.delete();
   }
@@ -103,8 +103,8 @@ class WildfireAuthenticationDelegate implements AuthenticationServerDelegate<Use
 
   Future pruneResourceOwnerTokensAfterIssuingToken(Token t, {int count: 25}) async {
     var tokenQ = new Query<Token>()
-      ..owner = whereRelatedByValue(t.owner.id)
-      ..client = whereRelatedByValue(t.client.id)
+      ..matchOn.owner = whereRelatedByValue(t.owner.id)
+      ..matchOn.client = whereRelatedByValue(t.client.id)
       ..sortDescriptors = [new SortDescriptor("issueDate", SortDescriptorOrder.descending)]
       ..offset = 24
       ..fetchLimit = 1
@@ -113,9 +113,9 @@ class WildfireAuthenticationDelegate implements AuthenticationServerDelegate<Use
     var results = await tokenQ.fetch();
     if (results.length == 1) {
       var deleteQ = new Query<Token>()
-        ..owner = whereRelatedByValue(t.owner.id)
-        ..client = whereRelatedByValue(t.client.id)
-        ..issueDate = whereLessThan(results.first.issueDate);
+        ..matchOn.owner = whereRelatedByValue(t.owner.id)
+        ..matchOn.client = whereRelatedByValue(t.client.id)
+        ..matchOn.issueDate = whereLessThan(results.first.issueDate);
 
       await deleteQ.delete();
     }

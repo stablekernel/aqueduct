@@ -27,6 +27,37 @@ class Predicate {
   /// The [format] and [parameters] of this predicate.
   Predicate(this.format, this.parameters);
 
+  factory Predicate._fromMatcherBackedObject(Model obj, PersistentStore persistentStore) {
+    var entity = obj.entity;
+    var attributeKeys = obj.populatedPropertyValues.keys.where((propertyName) {
+      var desc = entity.properties[propertyName];
+      if (desc is RelationshipDescription) {
+        return desc.relationshipType == RelationshipType.belongsTo;
+      }
+
+      return true;
+    });
+
+    return Predicate.andPredicates(attributeKeys.map((queryKey) {
+      var desc = entity.properties[queryKey];
+      var matcher = obj.populatedPropertyValues[queryKey];
+
+      if (matcher is _ComparisonMatcherExpression) {
+        return persistentStore.comparisonPredicate(desc, matcher.operator, matcher.value);
+      } else if (matcher is _RangeMatcherExpression) {
+        return persistentStore.rangePredicate(desc, matcher.lhs, matcher.rhs, matcher.within);
+      } else if (matcher is _NullMatcherExpression) {
+        return persistentStore.nullPredicate(desc, matcher.shouldBeNull);
+      } else if (matcher is _WithinMatcherExpression) {
+        return persistentStore.containsPredicate(desc, matcher.values);
+      } else if (matcher is _StringMatcherExpression) {
+        return persistentStore.stringPredicate(desc, matcher.operator, matcher.value);
+      }
+
+      throw new PredicateException("Unknown MatcherExpression ${matcher.runtimeType}");
+    }).toList());
+  }
+
   /// Joins together a list of predicates by the 'and' token.
   ///
   /// For combining multiple predicate together.

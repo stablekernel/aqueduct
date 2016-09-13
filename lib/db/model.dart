@@ -17,11 +17,27 @@ part of aqueduct;
 /// }
 ///
 class Model<T> implements Serializable {
-  /// The [ModelContext] this instance belongs to.
-  ModelContext context = ModelContext.defaultContext;
+  T get matchOn {
+    if (_matchOn == null) {
+      _matchOn = entity.newInstance();
+      _matchOn._backing = new _ModelMatcherBacking();
+    }
+
+    return _matchOn;
+  }
+  dynamic _matchOn;
+
+  T get include {
+    if (_include == null) {
+      _include = entity.newInstance();
+      _include._backing = new _ModelMatcherBacking();
+    }
+    return _include;
+  }
+  dynamic _include;
 
   /// The [ModelEntity] this instance is described by.
-  ModelEntity get entity => context.dataModel.entityForType(T);
+  ModelEntity entity = ModelContext.defaultContext.dataModel.entityForType(T);
 
   _ModelBacking _backing = new _ModelValueBacking();
 
@@ -104,10 +120,6 @@ class Model<T> implements Serializable {
   /// Usage:
   ///     var json = JSON.encode(model.asMap());
   Map<String, dynamic> asMap() {
-    if (_backing is! _ModelValueBacking) {
-      throw new QueryException(500, "Accessing Model instance as data object using asMap, but Model represents a 'matcher'.", -1);
-    }
-
     var outputMap = <String, dynamic>{};
 
     _backing.valueMap.forEach((k, v) {
@@ -188,80 +200,5 @@ class Model<T> implements Serializable {
     }
 
     return value;
-  }
-}
-
-class OrderedSet<T extends Model> extends Object with ListMixin<T> {
-  OrderedSet() {
-    _innerValues = [];
-  }
-
-  OrderedSet.from(Iterable<T> items) {
-    _innerValues = items.toList();
-  }
-
-  ClassMirror _modelTypeMirror;
-  List<T> _innerValues;
-  T matchOn;
-  T include;
-
-  int get length => _innerValues.length;
-  void set length(int newLength) {
-    _innerValues.length = newLength;
-  }
-  operator [](int index) => _innerValues[index];
-  operator []=(int index, T value) {
-    _innerValues[index] = value;
-  }
-}
-
-abstract class _ModelBacking {
-  dynamic valueForProperty(ModelEntity entity, String propertyName);
-  void setValueForProperty(ModelEntity entity, String propertyName, dynamic value);
-  void removeProperty(String propertyName) {
-    valueMap.remove(propertyName);
-  }
-
-  Map<String, dynamic> get valueMap;
-}
-
-class _ModelValueBacking extends _ModelBacking {
-  Map<String, dynamic> valueMap = {};
-
-  dynamic valueForProperty(ModelEntity entity, String propertyName) {
-    if (entity.properties[propertyName] == null) {
-      throw new DataModelException("Model type ${MirrorSystem.getName(entity.instanceTypeMirror.simpleName)} has no property $propertyName.");
-    }
-
-    return valueMap[propertyName];
-  }
-
-  void setValueForProperty(ModelEntity entity, String propertyName, dynamic value) {
-    var property = entity.properties[propertyName];
-    if (property == null) {
-      throw new DataModelException("Model type ${MirrorSystem.getName(entity.instanceTypeMirror.simpleName)} has no property $propertyName.");
-    }
-
-    if (value != null) {
-      if (!property.isAssignableWith(value)) {
-        var valueTypeName = MirrorSystem.getName(reflect(value).type.simpleName);
-        throw new DataModelException("Type mismatch for property $propertyName on ${MirrorSystem.getName(entity.persistentInstanceTypeMirror.simpleName)}, expected assignable type matching ${property.type} but got $valueTypeName.");
-      }
-    }
-
-    valueMap[propertyName] = value;
-  }
-}
-
-class _ModelMatcherBacking extends _ModelBacking {
-  Map<String, dynamic> valueMap = {};
-
-  dynamic valueForProperty(ModelEntity entity, String propertyName) {
-    // Create one if necessary?
-    return valueMap[propertyName];
-  }
-
-  void setValueForProperty(ModelEntity entity, String propertyName, dynamic value) {
-    valueMap[propertyName] = value;
   }
 }

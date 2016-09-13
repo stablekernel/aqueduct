@@ -53,7 +53,7 @@ void main() {
     expect(child.parent.id, parent.id);
 
     childQuery = new Query<Child>()
-      ..["id"] = whereEqualTo(child.id)
+      ..matchOn["id"] = whereEqualTo(child.id)
       ..values = (new Child()..parent = null);
     child = (await childQuery.update()).first;
     expect(child.parent, isNull);
@@ -104,7 +104,7 @@ void main() {
     await req.insert();
 
     var q = new Query<TestModel>()
-      ..["name"] = "Bob"
+      ..matchOn["name"] = "Bob"
       ..values = (new TestModel()..emailAddress = "3@a.com");
 
     List<TestModel> results = await q.update();
@@ -129,7 +129,7 @@ void main() {
         ..emailAddress = "2@a.com")).insert();
 
     var updateQuery = new Query<TestModel>()
-      ..["emailAddress"] = "1@a.com"
+      ..matchOn["emailAddress"] = "1@a.com"
       ..values.emailAddress = "3@a.com";
     var updatedObject = (await updateQuery.update()).first;
 

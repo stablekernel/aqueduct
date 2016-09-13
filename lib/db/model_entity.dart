@@ -110,6 +110,12 @@ class ModelEntity {
     return tableName.hashCode;
   }
 
+  Model newInstance() {
+    var model = instanceTypeMirror.newInstance(new Symbol(""), []).reflectee as Model;
+
+    return model;
+  }
+
   /// Creates an instance of this entity from a list of [MappingElement]s.
   ///
   /// This method is used by a [ModelContext] to instantiate entities from a row
@@ -117,7 +123,7 @@ class ModelEntity {
   /// relationships. It will not populate data from hasMany or hasOne relationships
   /// that were populated in a join query, as this is the responsibility of the context.
   Model instanceFromMappingElements(List<MappingElement> elements) {
-    Model instance = instanceTypeMirror.newInstance(new Symbol(""), []).reflectee;
+    Model instance = newInstance();
 
     elements.forEach((e) {
       if (e is! JoinMappingElement) {
@@ -125,7 +131,7 @@ class ModelEntity {
           // A belongsTo relationship, keep the foreign key.
           if (e.value != null) {
             RelationshipDescription relDesc = e.property;
-            Model innerInstance = relDesc.destinationEntity.instanceTypeMirror.newInstance(new Symbol(""), []).reflectee;
+            Model innerInstance = relDesc.destinationEntity.newInstance();
             innerInstance[relDesc.destinationEntity.primaryKey] = e.value;
             instance[e.property.name] = innerInstance;
           }

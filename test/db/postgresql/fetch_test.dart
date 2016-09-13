@@ -219,7 +219,7 @@ void main() {
             .length, 5);
 
     var query = new Query<GenPost>();
-    query["owner"] = whereRelatedByValue(u1.id);
+    query.matchOn["owner"] = whereRelatedByValue(u1.id);
     res = await query.fetch();
 
     GenUser user = res.first.owner;
@@ -287,7 +287,7 @@ void main() {
     expect(result.populatedPropertyValues["text"], isNull);
 
     var matcher = new Query<Omit>()
-      ..["id"] = whereEqualTo(result.id);
+      ..matchOn["id"] = whereEqualTo(result.id);
     var fq = new Query<Omit>()..predicate = matcher.predicate;
 
     var fResult = await fq.fetchOne();

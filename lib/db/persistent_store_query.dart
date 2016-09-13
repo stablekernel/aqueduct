@@ -1,15 +1,31 @@
 part of aqueduct;
 
 class PersistentStoreQuery {
-  PersistentStoreQuery(this.entity, PersistentStore store, Query q) {
-    if (q._include != null) {
-      _instantiateFromMultiJoinQuery(store, q);
+  PersistentStoreQuery(this.rootEntity, PersistentStore store, Query q) {
+    confirmQueryModifiesAllInstancesOnDeleteOrUpdate = q.confirmQueryModifiesAllInstancesOnDeleteOrUpdate;
+    timeoutInSeconds = q.timeoutInSeconds;
+    sortDescriptors = q.sortDescriptors;
+    resultKeys = _mappingElementsForList((q.resultProperties ?? rootEntity.defaultProperties), rootEntity);
+
+    if (q._matchOn != null) {
+      predicate = new Predicate._fromMatcherBackedObject(q._matchOn, store);
     } else {
-      _instantiateFromSingleQuery(store, q);
+      predicate = q.predicate;
+    }
+
+    if (q._include != null) {
+      var joinElements = _joinElementsForMatcherBackedObject(q._include, store, q.nestedResultProperties);
+      resultKeys.addAll(joinElements);
+    } else {
+      fetchLimit = q.fetchLimit;
+      offset = q.offset;
+      pageDescriptor = q.pageDescriptor;
+
+      values = _mappingElementsForMap((q.valueMap ?? q.values?.populatedPropertyValues), rootEntity);
     }
   }
 
-  ModelEntity entity;
+  ModelEntity rootEntity;
   int timeoutInSeconds = 30;
   int fetchLimit = 0;
   int offset = 0;
@@ -17,41 +33,8 @@ class PersistentStoreQuery {
   QueryPage pageDescriptor;
   List<SortDescriptor> sortDescriptors;
   Predicate predicate;
-  JoinMappingElement joinInfo;
   List<MappingElement> values;
   List<MappingElement> resultKeys;
-
-  void _instantiateFromMultiJoinQuery(PersistentStore store, Query q) {
-    confirmQueryModifiesAllInstancesOnDeleteOrUpdate = q.confirmQueryModifiesAllInstancesOnDeleteOrUpdate;
-    // This only gets called if we DO have subqueries, so assume that.
-
-    // Ignore fetchLimit, offset, pageDescriptor - do we throw an exception or just run them in software?
-
-    timeoutInSeconds = q.timeoutInSeconds;
-    sortDescriptors = q.sortDescriptors;
-
-    predicate = q._compilePredicate(entity.dataModel, store);
-    resultKeys = _mappingElementsForList((q.resultProperties ?? entity.defaultProperties), entity);
-
-    resultKeys.addAll(q.subQueries.keys
-        .map((subqueryKey) => _joinsForQuery(store, q, subqueryKey))
-        .expand((l) => l)
-    );
-  }
-
-  void _instantiateFromSingleQuery(PersistentStore store, Query q) {
-    confirmQueryModifiesAllInstancesOnDeleteOrUpdate = q.confirmQueryModifiesAllInstancesOnDeleteOrUpdate;
-    timeoutInSeconds = q.timeoutInSeconds;
-    fetchLimit = q.fetchLimit;
-    offset = q.offset;
-    pageDescriptor = q.pageDescriptor;
-    sortDescriptors = q.sortDescriptors;
-
-    predicate = q._compilePredicate(entity.dataModel, store);
-
-    values = _mappingElementsForMap((q.valueMap ?? q.values?.populatedPropertyValues), this.entity);
-    resultKeys = _mappingElementsForList((q.resultProperties ?? entity.defaultProperties), this.entity);
-  }
 
   static List<MappingElement> _mappingElementsForList(List<String> keys, ModelEntity entity) {
     if (!keys.contains(entity.primaryKey)) {
@@ -101,21 +84,41 @@ class PersistentStoreQuery {
     ?.toList();
   }
 
-  static List<JoinMappingElement> _joinsForQuery(PersistentStore store, Query query, String subQueryKey) {
-    var relationship = query.entity.relationships[subQueryKey];
-    var destinationEntity = relationship.destinationEntity;
-    var subQuery = query.subQueries[subQueryKey];
+  static List<JoinMappingElement> _joinElementsForMatcherBackedObject(Model matcherBackedObject, PersistentStore store, Map<Type, List<String>> nestedResultProperties) {
+    var entity = matcherBackedObject.entity;
+    var relationshipKeys = matcherBackedObject.populatedPropertyValues.keys.where((propertyName) {
+      var matcherRelationship = entity.relationships[propertyName];
+      if (matcherRelationship == null) {
+        return false;
+      }
 
-    var mappingElements = _mappingElementsForList(subQuery.resultProperties ?? destinationEntity.defaultProperties, destinationEntity);
-    var thisJoin = new JoinMappingElement(JoinType.leftOuter, relationship, subQuery._compilePredicate(query.entity.dataModel, store), mappingElements);
+      return matcherRelationship.relationshipType == RelationshipType.hasMany
+          || matcherRelationship.relationshipType == RelationshipType.hasOne;
+    }).toList();
 
-    var subSubQueryJoins = subQuery.subQueries.keys.map((innerSubqueryKey) {
-      return _joinsForQuery(store, subQuery, innerSubqueryKey);
+    return relationshipKeys.map((propertyName) {
+      var matcher = matcherBackedObject.populatedPropertyValues[propertyName];
+
+      var relDesc = entity.relationships[propertyName];
+      var predicate = null;
+      if (matcher._matchOn != null) {
+        predicate = new Predicate._fromMatcherBackedObject(matcher.matchOn, store);
+      }
+
+      var nestedProperties = nestedResultProperties[matcher.entity.instanceTypeMirror.reflectedType];
+      var propertiesToFetch = nestedProperties ?? matcher.entity.defaultProperties;
+      // Using default props
+      var joinElements = [new JoinMappingElement(JoinType.leftOuter,
+          relDesc,
+          predicate,
+          _mappingElementsForList(propertiesToFetch, matcher.entity))];
+
+      if (matcher._include != null) {
+        joinElements.addAll(_joinElementsForMatcherBackedObject(matcher._include, store, nestedResultProperties));
+      }
+
+      return joinElements;
     }).expand((l) => l).toList();
-
-    var ordered = [thisJoin];
-    ordered.addAll(subSubQueryJoins);
-    return ordered;
   }
 }
 
@@ -138,7 +141,9 @@ enum JoinType {
 }
 
 class JoinMappingElement extends MappingElement {
-  JoinMappingElement(this.type, PropertyDescription property, this.predicate, this.resultKeys) : super(property, null) {
+  JoinMappingElement(this.type, PropertyDescription property, this.predicate, this.resultKeys)
+      : super(property, null)
+  {
     var primaryKeyElement = this.resultKeys.firstWhere((e) {
       var eProp = e.property;
       if (eProp is AttributeDescription) {
@@ -149,6 +154,7 @@ class JoinMappingElement extends MappingElement {
 
     primaryKeyIndex = this.resultKeys.indexOf(primaryKeyElement);
   }
+
   JoinMappingElement.fromElement(JoinMappingElement original, List<MappingElement> values) : super.fromElement(original, values) {
     type = original.type;
     primaryKeyIndex = original.primaryKeyIndex;
