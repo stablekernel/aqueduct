@@ -21,15 +21,6 @@ class Query<ModelType extends Model> {
   }
   ModelType _matchOn;
 
-  ModelType get include {
-    if (_include == null) {
-      _include = entity.newInstance() as ModelType;
-      _include._backing = new _ModelMatcherBacking();
-    }
-    return _include;
-  }
-  ModelType _include;
-
   /// Confirms that a query has no predicate before executing it.
   ///
   /// This is a safety measure for update and delete queries. This flag defaults to false, meaning that if this query is
@@ -221,5 +212,30 @@ class QueryException extends HTTPResponseException {
 
   String toString() {
     return "QueryException: ${message} ${errorCode} ${statusCode} ${stackTrace}";
+  }
+}
+
+abstract class QueryMatchable {
+  ModelEntity entity;
+  bool includeInResultSet;
+
+  Map<String, dynamic> get _matcherMap;
+}
+
+abstract class _QueryMatchableExtension implements QueryMatchable {
+  bool get _hasJoinElements {
+    return _matcherMap.values
+        .where((item) => item is QueryMatchable)
+        .any((QueryMatchable item) => item.includeInResultSet);
+  }
+
+  List<String> get _joinPropertyKeys {
+    return _matcherMap.keys.where((propertyName) {
+      var val = _matcherMap[propertyName];
+      var relDesc = entity.relationships[propertyName];
+
+      return val is QueryMatchable
+          && (relDesc?.relationshipType == RelationshipType.hasMany || relDesc?.relationshipType == RelationshipType.hasOne);
+    }).toList();
   }
 }

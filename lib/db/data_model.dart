@@ -4,12 +4,11 @@ part of aqueduct;
 ///
 /// Required for [ModelContext].
 class DataModel {
-
   /// Creates an instance of [DataModel] from a list of types that extends [Model].
   ///
   /// To register a class as a model object within this, you must include its type in the list. Example:
   ///
-  ///       new DataModel([User, Token, Posts]);
+  ///       new DataModel([User, Token, Post]);
   DataModel(List<Type> modelTypes) {
     _buildEntities(modelTypes);
   }
@@ -39,15 +38,18 @@ class DataModel {
     modelTypes.forEach((type) {
       var entity = new ModelEntity(this, reflectClass(type), _backingMirrorForType(type));
       _entities[type] = entity;
-      _persistentTypeToEntityMap[entity.persistentInstanceTypeMirror.reflectedType] = entity;
+      _persistentTypeToEntityMap[entity.persistentTypeMirror.reflectedType] = entity;
     });
 
     _entities.forEach((_, entity) {
       entity._tableName = _tableNameForEntity(entity);
       entity.attributes = _attributeMapForEntity(entity);
-      entity._primaryKey = entity.attributes.values.firstWhere((attrDesc) => attrDesc.isPrimaryKey, orElse: () => null)?.name;
+      entity._primaryKey = entity.attributes.values
+          .firstWhere((attrDesc) => attrDesc.isPrimaryKey, orElse: () => null)
+          ?.name;
+
       if (entity.primaryKey == null) {
-        throw new DataModelException("No primary key for entity ${MirrorSystem.getName(entity.persistentInstanceTypeMirror.simpleName)}");
+        throw new DataModelException("No primary key for entity ${MirrorSystem.getName(entity.persistentTypeMirror.simpleName)}");
       }
     });
 
@@ -58,13 +60,13 @@ class DataModel {
 
   String _tableNameForEntity(ModelEntity entity) {
     var tableNameSymbol = new Symbol("tableName");
-    if (entity.persistentInstanceTypeMirror.staticMembers[tableNameSymbol] != null) {
-      return entity.persistentInstanceTypeMirror
+    if (entity.persistentTypeMirror.staticMembers[tableNameSymbol] != null) {
+      return entity.persistentTypeMirror
           .invoke(tableNameSymbol, [])
           .reflectee;
     }
 
-    return MirrorSystem.getName(entity.persistentInstanceTypeMirror.simpleName);
+    return MirrorSystem.getName(entity.persistentTypeMirror.simpleName);
   }
 
   Map<String, AttributeDescription> _attributeMapForEntity(ModelEntity entity) {
@@ -109,7 +111,7 @@ class DataModel {
         });
 
     // Grab persistent values, which must be properties
-    entity.persistentInstanceTypeMirror.declarations.values
+    entity.persistentTypeMirror.declarations.values
       .where((declMir) => declMir is VariableMirror && !declMir.isStatic)
       .where((declMir) => !declMir.metadata.any((im) => im.type.isSubtypeOf(reflectType(Relationship))))
       .where((declMir) => !map.containsKey(MirrorSystem.getName(declMir.simpleName)))
@@ -152,7 +154,7 @@ class DataModel {
 
       var type = attrs?.databaseType ?? PropertyDescription.propertyTypeForDartType(mirror.type.reflectedType);
       if (type == null) {
-        throw new DataModelException("Property ${MirrorSystem.getName(mirror.simpleName)} on ${MirrorSystem.getName(entity.persistentInstanceTypeMirror.simpleName)} has invalid type");
+        throw new DataModelException("Property ${MirrorSystem.getName(mirror.simpleName)} on ${MirrorSystem.getName(entity.persistentTypeMirror.simpleName)} has invalid type");
       }
 
       return new AttributeDescription(entity, MirrorSystem.getName(mirror.simpleName), type,
@@ -169,7 +171,7 @@ class DataModel {
   Map<String, RelationshipDescription> _relationshipMapForEntity(ModelEntity entity) {
     Map<String, RelationshipDescription> map = {};
 
-    entity.persistentInstanceTypeMirror.declarations.forEach((sym, declMir) {
+    entity.persistentTypeMirror.declarations.forEach((sym, declMir) {
       if (declMir is VariableMirror && !declMir.isStatic) {
         var key = MirrorSystem.getName(sym);
         var relationshipAttribute = _relationshipFromDeclaration(declMir);
@@ -186,38 +188,38 @@ class DataModel {
   RelationshipDescription _relationshipFromVariableMirror(ModelEntity entity, VariableMirror mirror, Relationship relationshipAttribute) {
     if (relationshipAttribute.type == RelationshipType.hasMany) {
       if (!mirror.type.isSubtypeOf(reflectType(OrderedSet))) {
-        throw new DataModelException("Relationship ${MirrorSystem.getName(mirror.simpleName)} on ${MirrorSystem.getName(entity.persistentInstanceTypeMirror.simpleName)} declares a hasMany relationship, but the property is not an OrderedSet.");
+        throw new DataModelException("Relationship ${MirrorSystem.getName(mirror.simpleName)} on ${MirrorSystem.getName(entity.persistentTypeMirror.simpleName)} declares a hasMany relationship, but the property is not an OrderedSet.");
       }
 
       var innerType = mirror.type.typeArguments.first;
       if (!innerType.isSubtypeOf(reflectType(Model))) {
-        throw new DataModelException("Relationship ${MirrorSystem.getName(mirror.simpleName)} on ${MirrorSystem.getName(entity.persistentInstanceTypeMirror.simpleName)} declares a hasMany relationship, but the generic type of OrderedSet is not a subclass of Model.");
+        throw new DataModelException("Relationship ${MirrorSystem.getName(mirror.simpleName)} on ${MirrorSystem.getName(entity.persistentTypeMirror.simpleName)} declares a hasMany relationship, but the generic type of OrderedSet is not a subclass of Model.");
       }
     } else {
       if (!mirror.type.isSubtypeOf(reflectType(Model))) {
-        throw new DataModelException("Relationship ${MirrorSystem.getName(mirror.simpleName)} on ${MirrorSystem.getName(entity.persistentInstanceTypeMirror.simpleName)} does not declare a property that extends Model.");
+        throw new DataModelException("Relationship ${MirrorSystem.getName(mirror.simpleName)} on ${MirrorSystem.getName(entity.persistentTypeMirror.simpleName)} does not declare a property that extends Model.");
       }
     }
 
     if (_attributeMetadataFromDeclaration(mirror) != null) {
-      throw new DataModelException("Relationship ${MirrorSystem.getName(mirror.simpleName)} on ${MirrorSystem.getName(entity.persistentInstanceTypeMirror.simpleName)} must not define additional Attributes");
+      throw new DataModelException("Relationship ${MirrorSystem.getName(mirror.simpleName)} on ${MirrorSystem.getName(entity.persistentTypeMirror.simpleName)} must not define additional Attributes");
     }
 
     String inverseKey = relationshipAttribute.inverseKey;
     var destinationEntity = _destinationEntityForVariableMirror(entity, mirror);
-    var destinationVariableMirror = destinationEntity.persistentInstanceTypeMirror.declarations[new Symbol(inverseKey)];
+    var destinationVariableMirror = destinationEntity.persistentTypeMirror.declarations[new Symbol(inverseKey)];
     if (destinationVariableMirror == null) {
-      throw new DataModelException("Relationship ${MirrorSystem.getName(mirror.simpleName)} on ${MirrorSystem.getName(entity.persistentInstanceTypeMirror.simpleName)} has no inverse (tried $inverseKey)");
+      throw new DataModelException("Relationship ${MirrorSystem.getName(mirror.simpleName)} on ${MirrorSystem.getName(entity.persistentTypeMirror.simpleName)} has no inverse (tried $inverseKey)");
     }
 
     var inverseRelationshipProperties = _relationshipFromDeclaration(destinationVariableMirror);
     if (inverseRelationshipProperties == null) {
-      throw new DataModelException("Relationship ${MirrorSystem.getName(mirror.simpleName)} on ${MirrorSystem.getName(entity.persistentInstanceTypeMirror.simpleName)} inverse ($inverseKey) has no RelationshipAttribute");
+      throw new DataModelException("Relationship ${MirrorSystem.getName(mirror.simpleName)} on ${MirrorSystem.getName(entity.persistentTypeMirror.simpleName)} inverse ($inverseKey) has no RelationshipAttribute");
     }
 
     if ((relationshipAttribute.type == inverseRelationshipProperties.type)
     ||  (relationshipAttribute.type != RelationshipType.belongsTo && inverseRelationshipProperties.type != RelationshipType.belongsTo)) {
-      throw new DataModelException("Relationship ${MirrorSystem.getName(mirror.simpleName)} on ${MirrorSystem.getName(entity.persistentInstanceTypeMirror.simpleName)} inverse ($inverseKey) has non-complimentary RelationshipType");
+      throw new DataModelException("Relationship ${MirrorSystem.getName(mirror.simpleName)} on ${MirrorSystem.getName(entity.persistentTypeMirror.simpleName)} inverse ($inverseKey) has non-complimentary RelationshipType");
     }
 
     if (relationshipAttribute.type == RelationshipType.belongsTo
@@ -244,7 +246,7 @@ class DataModel {
 
     var destinationEntity = _entities[typeMirror.reflectedType];
     if (destinationEntity == null) {
-      throw new DataModelException("Relationship ${MirrorSystem.getName(mirror.simpleName)} on ${MirrorSystem.getName(entity.persistentInstanceTypeMirror.simpleName)} destination ModelEntity does not exist");
+      throw new DataModelException("Relationship ${MirrorSystem.getName(mirror.simpleName)} on ${MirrorSystem.getName(entity.persistentTypeMirror.simpleName)} destination ModelEntity does not exist");
     }
 
     return destinationEntity;

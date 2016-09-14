@@ -35,7 +35,7 @@ void main() {
     test("Join with single root object", () async {
       var q = new Query<Parent>()
           ..matchOn.id = 1
-          ..include.child = whereExists;
+          ..matchOn.child.includeInResultSet = true;
       var o = (await q.fetch()).first.asMap();
 
       expect(o, {
@@ -52,7 +52,7 @@ void main() {
     test("Join with null value still has key", () async {
       var q = new Query<Parent>()
         ..matchOn.id = 3
-        ..include.child = whereExists;
+        ..matchOn.child.includeInResultSet = true;
       var o = (await q.fetch()).first.asMap();
 
       expect(o, {
@@ -64,7 +64,7 @@ void main() {
 
     test("Join with multi root object", () async {
       var q = new Query<Parent>()
-        ..include.child = whereExists;
+        ..matchOn.child.includeInResultSet = true;
       var o = await q.fetch();
 
       var mapList = o.map((x) => x.asMap()).toList();
@@ -91,10 +91,12 @@ void main() {
 
     test("Multi-level join", () async {
       var q = new Query<Parent>()
-        ..include.child.include.toy.matchOn.id = 1;
+        ..matchOn.child.includeInResultSet = true
+        ..matchOn.child.toy.includeInResultSet = true;
 
       var o = await q.fetch();
 
+      fail("NYI");
       print("${o.first.asMap()}");
     });
   });

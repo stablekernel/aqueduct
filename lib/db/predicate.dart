@@ -27,9 +27,9 @@ class Predicate {
   /// The [format] and [parameters] of this predicate.
   Predicate(this.format, this.parameters);
 
-  factory Predicate._fromMatcherBackedObject(Model obj, PersistentStore persistentStore) {
+  factory Predicate._fromQueryIncludable(QueryMatchable obj, PersistentStore persistentStore) {
     var entity = obj.entity;
-    var attributeKeys = obj.populatedPropertyValues.keys.where((propertyName) {
+    var attributeKeys = obj._matcherMap.keys.where((propertyName) {
       var desc = entity.properties[propertyName];
       if (desc is RelationshipDescription) {
         return desc.relationshipType == RelationshipType.belongsTo;
@@ -40,7 +40,7 @@ class Predicate {
 
     return Predicate.andPredicates(attributeKeys.map((queryKey) {
       var desc = entity.properties[queryKey];
-      var matcher = obj.populatedPropertyValues[queryKey];
+      var matcher = obj._matcherMap[queryKey];
 
       if (matcher is _ComparisonMatcherExpression) {
         return persistentStore.comparisonPredicate(desc, matcher.operator, matcher.value);

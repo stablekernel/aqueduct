@@ -63,9 +63,10 @@ void main() {
       context = null;
     });
 
-    test("Can fetch an object by using matchOn and a matcher", () async {
+    test("Can fetch an object by using matchOn and a MatcherExpression", () async {
       var q = new Query<User>()
         ..matchOn.id = whereEqualTo(1);
+
       var user = await q.fetchOne();
       expect(user.id, 1);
       expect(user.name, "Joe");
@@ -73,12 +74,13 @@ void main() {
 
       q = new Query<User>();
       var users = await q.fetch();
-      expect(users.length, 5);
+      expect(users.length, sourceUsers.length);
     });
 
-    test("Can fetch object by specifying a value in matchOn without a matcher", () async {
+    test("Can fetch object by specifying a non-MatcherExpression value in matchOn", () async {
       var q = new Query<Location>()
         ..matchOn.id = 1;
+
       var loc = await q.fetchOne();
       expect(loc.id, 1);
       expect(loc.user.id, 1);
@@ -86,10 +88,10 @@ void main() {
       expect(loc.equipment, isNull);
     });
 
-    test("Can do one level join with single root object", () async {
+    test("Setting predicate on root object and including subobject returns a single object and its subobjects", () async {
       var q = new Query<User>()
         ..matchOn.id = 1
-        ..include.locations = whereAnyMatch;
+        ..matchOn.locations.includeInResultSet = true;
 
       var users = await q.fetch();
       expect(users.length, 1);
@@ -111,24 +113,24 @@ void main() {
       });
     });
 
-    test("Can do one level join with multiple root object", () async {
+    test("Fetching multiple instances of root type and including subobjects returns entire object graph", () async {
       var q = new Query<User>()
-        ..include.locations = whereAnyMatch;
+        ..matchOn.locations.includeInResultSet = true;
       var users = await q.fetch();
-      expect(users.length, 5);
+      expect(users.length, sourceUsers.length);
 
       users.sort((u1, u2) => u1.id - u2.id);
 
-      var sourceUsersTruncuated = sourceUsers.map((u) {
+      var sourceUsersTruncated = sourceUsers.map((u) {
         var uu = new User.fromUser(u);
         uu.locations.forEach((loc) => loc.equipment = null);
         return uu;
       }).toList();
 
-      sourceUsersTruncuated.sort((u1, u2) => u1.id - u2.id);
+      sourceUsersTruncated.sort((u1, u2) => u1.id - u2.id);
 
       for (var i = 0; i < users.length; i++) {
-        expect(users[i], equals(sourceUsersTruncuated[i]));
+        expect(users[i], equals(sourceUsersTruncated[i]));
       }
 
       var mapList = users.map((u) => u.asMap()).toList();
@@ -166,10 +168,11 @@ void main() {
       ]);
     });
 
-    test("Can two level join, single root object", () async {
+    test("Fetching root type with predicate and two-levels of joins returns that one object, all of its subobjects and subobject's subobjeccts", () async {
       var q = new Query<User>()
         ..matchOn.id = 1
-        ..include.locations.include.equipment = whereAnyMatch;
+        ..matchOn.locations.includeInResultSet = true
+        ..matchOn.locations.matchOn.equipment.includeInResultSet = true;
 
       var users = await q.fetch();
       expect(users.first, equals(sourceUsers.first));
@@ -191,9 +194,10 @@ void main() {
 
     });
 
-    test("Can two level join, multiple root objects", () async {
+    test("Fetching root type without predicate and two-levels of joins returns entire object graph", () async {
       var q = new Query<User>()
-        ..include.locations.include.equipment = whereAnyMatch;
+        ..matchOn.locations.includeInResultSet = true
+        ..matchOn.locations.matchOn.equipment.includeInResultSet = true;
 
       var users = await q.fetch();
       expect(users, equals(sourceUsers));
@@ -242,9 +246,11 @@ void main() {
       ]);
     });
 
-    test("Can two level join, multiple root objects, predicate on bottom", () async {
+    test("Fetching two-level deep with matcher on the last level will return full object graph until last level", () async {
       var q = new Query<User>()
-        ..include.locations.include.equipment.matchOn.id = whereEqualTo(1);
+        ..matchOn.locations.includeInResultSet = true
+        ..matchOn.locations.matchOn.equipment.includeInResultSet = true
+        ..matchOn.locations.matchOn.equipment.matchOn.id = whereEqualTo(1);
 
       var users = await q.fetch();
       var sourceTrunc = sourceUsers.map((u) => new User.fromUser(u)).toList();
@@ -292,54 +298,29 @@ void main() {
       ]);
     });
 
-    test("Can join with predicates on both", () async {
+    test("Fetching with join using predicate on both root and subobject filters appropriately", () async {
       var q = new Query<Location>()
         ..matchOn.user = whereRelatedByValue(1)
-        ..include.equipment.matchOn.name = "Fridge";
+        ..matchOn.equipment.includeInResultSet = true
+        ..matchOn.equipment.matchOn.name = "Fridge";
 
       var results = await q.fetch();
       var mapList = results.map((u) => u.asMap()).toList();
       expect(mapList, [
         {
           "name" : "Crestridge", "id" : 1, "user" : {"id" : 1}, "equipment" : [
-          {"id" : 1, "name" : "Fridge", "type" : "Appliance", "location" : {"id" : 1}}
-        ]
+            {"id" : 1, "name" : "Fridge", "type" : "Appliance", "location" : {"id" : 1}}
+          ]
         },
         {"name" : "SK", "id" : 2, "user" : {"id" : 1}, "equipment" : []}
       ]);
-    });
-
-    test("Can join from middle of graph", () async {
-      var q = new Query<Location>()
-        ..include.equipment = whereAnyMatch;
-      var locations = await q.fetch();
-
-      var sourceTrunc = sourceUsers.map((u) => u.locations)
-          .expand((l) => l)
-          .map((loc) => new Location.fromLocation(loc))
-          .toList();
-      sourceTrunc.sort((l1, l2) => l1.id - l2.id);
-      locations.sort((l1, l2) => l1.id - l2.id);
-      expect(locations, equals(sourceTrunc));
-    });
-
-    test("Foreign key relationships do not get mirrored in owned object", () async {
-      var q = new Query<Location>()
-        ..matchOn.user = whereRelatedByValue(1);
-
-      var locations = await q.fetch();
-      for (var loc in locations) {
-        var u = loc.user;
-        expect(u.populatedPropertyValues.length, 1);
-        expect(u.id, 1);
-      }
     });
 
     test("Can fetch graph when omitting foreign or primary keys from query", () async {
       var q = new Query<User>()
         ..resultProperties = ["name"]
         ..nestedResultProperties[Location] = ["name"]
-        ..include.locations = whereAnyMatch;
+        ..matchOn.locations.includeInResultSet = true;
 
       var users = await q.fetch();
       expect(users.first.name, isNotNull);
@@ -348,8 +329,22 @@ void main() {
       expect(users.first.locations.first.name, isNotNull);
     });
 
-    test("Can specify result keys multiple levels down", () async {
-      fail("NYI");
+    test("Can specify result keys for all joined objects", () async {
+      var q = new Query<User>()
+        ..resultProperties = ["id"]
+        ..nestedResultProperties[Location] = ["id"]
+        ..nestedResultProperties[Equipment] = ["id"]
+        ..matchOn.locations.includeInResultSet = true
+        ..matchOn.locations.matchOn.equipment.includeInResultSet = true;
+
+      var users = await q.fetch();
+      expect(users.every((u) {
+        return u.populatedPropertyValues.length == 2 && u.populatedPropertyValues.containsKey("id") && u.locations.every((l) {
+          return l.populatedPropertyValues.length == 2 && l.populatedPropertyValues.containsKey("id") && l.equipment.every((eq) {
+            return eq.populatedPropertyValues.length == 1 && eq.populatedPropertyValues.containsKey("id");
+          });
+        });
+      }), true);
     });
   });
 }

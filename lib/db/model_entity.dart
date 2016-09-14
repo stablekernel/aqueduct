@@ -11,7 +11,7 @@ class ModelEntity {
   /// Creates an instance of a ModelEntity.
   ///
   /// You should never call this method directly, it will be called by [DataModel].
-  ModelEntity(this.dataModel, this.instanceTypeMirror, this.persistentInstanceTypeMirror);
+  ModelEntity(this.dataModel, this.instanceTypeMirror, this.persistentTypeMirror);
 
   /// The type of instances represented by this entity.
   ///
@@ -23,7 +23,7 @@ class ModelEntity {
   ///
   /// Model objects are made up of two components, a persistent type and an instance type. This value
   /// is the [ClassMirror] on the persistent portion of a [Model] object.
-  final ClassMirror persistentInstanceTypeMirror;
+  final ClassMirror persistentTypeMirror;
 
   /// The [DataModel] this instance belongs to.
   final DataModel dataModel;
@@ -112,7 +112,7 @@ class ModelEntity {
 
   Model newInstance() {
     var model = instanceTypeMirror.newInstance(new Symbol(""), []).reflectee as Model;
-
+    model.entity = this;
     return model;
   }
 

@@ -31,7 +31,7 @@ class _ModelValueBacking extends _ModelBacking {
     if (value != null) {
       if (!property.isAssignableWith(value)) {
         var valueTypeName = MirrorSystem.getName(reflect(value).type.simpleName);
-        throw new DataModelException("Type mismatch for property $propertyName on ${MirrorSystem.getName(entity.persistentInstanceTypeMirror.simpleName)}, expected assignable type matching ${property.type} but got $valueTypeName.");
+        throw new DataModelException("Type mismatch for property $propertyName on ${MirrorSystem.getName(entity.persistentTypeMirror.simpleName)}, expected assignable type matching ${property.type} but got $valueTypeName.");
       }
     }
 

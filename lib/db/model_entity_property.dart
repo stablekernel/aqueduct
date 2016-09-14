@@ -182,7 +182,7 @@ class RelationshipDescription extends PropertyDescription {
 
     if (type.isSubtypeOf(reflectType(List))) {
       if (relationshipType != RelationshipType.hasMany) {
-        throw new DataModelException("Trying to assign List to relationship that isn't hasMany for ${MirrorSystem.getName(entity.persistentInstanceTypeMirror.simpleName)} $name");
+        throw new DataModelException("Trying to assign List to relationship that isn't hasMany for ${MirrorSystem.getName(entity.persistentTypeMirror.simpleName)} $name");
       }
 
       type = type.typeArguments.first;

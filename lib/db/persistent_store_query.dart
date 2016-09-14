@@ -8,13 +8,13 @@ class PersistentStoreQuery {
     resultKeys = _mappingElementsForList((q.resultProperties ?? rootEntity.defaultProperties), rootEntity);
 
     if (q._matchOn != null) {
-      predicate = new Predicate._fromMatcherBackedObject(q._matchOn, store);
+      predicate = new Predicate._fromQueryIncludable(q._matchOn, store);
     } else {
       predicate = q.predicate;
     }
 
-    if (q._include != null) {
-      var joinElements = _joinElementsForMatcherBackedObject(q._include, store, q.nestedResultProperties);
+    if (q.matchOn?._hasJoinElements ?? false) {
+      var joinElements = _joinElementsFromQueryMatchable(q.matchOn, store, q.nestedResultProperties);
       resultKeys.addAll(joinElements);
     } else {
       fetchLimit = q.fetchLimit;
@@ -84,37 +84,24 @@ class PersistentStoreQuery {
     ?.toList();
   }
 
-  static List<JoinMappingElement> _joinElementsForMatcherBackedObject(Model matcherBackedObject, PersistentStore store, Map<Type, List<String>> nestedResultProperties) {
+  static List<JoinMappingElement> _joinElementsFromQueryMatchable(_QueryMatchableExtension matcherBackedObject, PersistentStore store, Map<Type, List<String>> nestedResultProperties) {
     var entity = matcherBackedObject.entity;
-    var relationshipKeys = matcherBackedObject.populatedPropertyValues.keys.where((propertyName) {
-      var matcherRelationship = entity.relationships[propertyName];
-      if (matcherRelationship == null) {
-        return false;
-      }
+    var propertiesToJoin = matcherBackedObject._joinPropertyKeys;
 
-      return matcherRelationship.relationshipType == RelationshipType.hasMany
-          || matcherRelationship.relationshipType == RelationshipType.hasOne;
-    }).toList();
-
-    return relationshipKeys.map((propertyName) {
-      var matcher = matcherBackedObject.populatedPropertyValues[propertyName];
+    return propertiesToJoin.map((propertyName) {
+      _QueryMatchableExtension inner = matcherBackedObject._matcherMap[propertyName];
 
       var relDesc = entity.relationships[propertyName];
-      var predicate = null;
-      if (matcher._matchOn != null) {
-        predicate = new Predicate._fromMatcherBackedObject(matcher.matchOn, store);
-      }
+      var predicate = new Predicate._fromQueryIncludable(inner, store);
+      var nestedProperties = nestedResultProperties[inner.entity.instanceTypeMirror.reflectedType];
+      var propertiesToFetch = nestedProperties ?? inner.entity.defaultProperties;
 
-      var nestedProperties = nestedResultProperties[matcher.entity.instanceTypeMirror.reflectedType];
-      var propertiesToFetch = nestedProperties ?? matcher.entity.defaultProperties;
-      // Using default props
-      var joinElements = [new JoinMappingElement(JoinType.leftOuter,
-          relDesc,
-          predicate,
-          _mappingElementsForList(propertiesToFetch, matcher.entity))];
+      var joinElements = [
+        new JoinMappingElement(JoinType.leftOuter, relDesc, predicate, _mappingElementsForList(propertiesToFetch, inner.entity))
+      ];
 
-      if (matcher._include != null) {
-        joinElements.addAll(_joinElementsForMatcherBackedObject(matcher._include, store, nestedResultProperties));
+      if (inner._hasJoinElements) {
+        joinElements.addAll(_joinElementsFromQueryMatchable(inner, store, nestedResultProperties));
       }
 
       return joinElements;

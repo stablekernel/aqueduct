@@ -16,30 +16,14 @@ part of aqueduct;
 ///   int id; // persisted
 /// }
 ///
-class Model<T> implements Serializable {
-  T get matchOn {
-    if (_matchOn == null) {
-      _matchOn = entity.newInstance();
-      _matchOn._backing = new _ModelMatcherBacking();
-    }
-
-    return _matchOn;
-  }
-  dynamic _matchOn;
-
-  T get include {
-    if (_include == null) {
-      _include = entity.newInstance();
-      _include._backing = new _ModelMatcherBacking();
-    }
-    return _include;
-  }
-  dynamic _include;
-
+class Model<T> extends Object with _QueryMatchableExtension implements Serializable, QueryMatchable {
   /// The [ModelEntity] this instance is described by.
   ModelEntity entity = ModelContext.defaultContext.dataModel.entityForType(T);
 
   _ModelBacking _backing = new _ModelValueBacking();
+
+  bool includeInResultSet = false;
+  Map<String, dynamic> get _matcherMap => populatedPropertyValues;
 
   /// The values available in this representation.
   ///
@@ -98,7 +82,7 @@ class Model<T> implements Serializable {
                 mirror.setField(new Symbol(k), decodedValue);
               } else {
                 var valueTypeName = MirrorSystem.getName(reflect(decodedValue).type.simpleName);
-                throw new QueryException(400, "Type mismatch for property ${property.name} on ${MirrorSystem.getName(entity.persistentInstanceTypeMirror.simpleName)}, expected assignable type matching ${property.type} but got $valueTypeName.", -1);
+                throw new QueryException(400, "Type mismatch for property ${property.name} on ${MirrorSystem.getName(entity.persistentTypeMirror.simpleName)}, expected assignable type matching ${property.type} but got $valueTypeName.", -1);
               }
             } else {
               throw new QueryException(400, "Key $k does not exist for ${MirrorSystem.getName(mirror.type.simpleName)}", -1);
