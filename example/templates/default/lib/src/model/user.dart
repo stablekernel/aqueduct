@@ -23,6 +23,6 @@ class _User {
   @Attributes(omitByDefault: true)
   String salt;
 
-  @Relationship.hasMany("owner")
+  @Relationship.hasMany(#owner)
   OrderedSet<Token> tokens;
 }

@@ -171,10 +171,10 @@ class RelationshipDescription extends PropertyDescription {
   final RelationshipType relationshipType;
 
   /// The name of the [RelationshipDescription] on [destinationEntity] that represents the inverse of this relationship.
-  final String inverseKey;
+  final Symbol inverseKey;
 
   /// The [RelationshipDescription] on [destinationEntity] that represents the inverse of this relationship.
-  RelationshipDescription get inverseRelationship => destinationEntity.relationships[inverseKey];
+  RelationshipDescription get inverseRelationship => destinationEntity.relationships[MirrorSystem.getName(inverseKey)];
 
   /// Whether or not a the argument can be assigned to this property.
   bool isAssignableWith(dynamic dartValue) {

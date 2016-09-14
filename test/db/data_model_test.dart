@@ -117,7 +117,7 @@ void main() {
       var relDesc = entity.relationships["user"];
       expect(relDesc is RelationshipDescription, true);
       expect(relDesc.isNullable, false);
-      expect(relDesc.inverseKey, "items");
+      expect(relDesc.inverseKey, #items);
       expect(relDesc.inverseRelationship == dataModel.entityForType(User).relationships[relDesc.inverseKey], true);
       expect(relDesc.deleteRule, RelationshipDeleteRule.cascade);
       expect(relDesc.destinationEntity == dataModel.entityForType(User), true);
@@ -238,10 +238,10 @@ class _User {
   @Attributes(nullable: true, defaultValue: "'now()'", unique: true, indexed: true, omitByDefault: true)
   DateTime loadedTimestamp;
 
-  @Relationship.hasMany("user")
+  @Relationship.hasMany(#user)
   OrderedSet<Item> items;
 
-  @Relationship.hasOne("worker")
+  @Relationship.hasOne(#worker)
   Manager manager;
 }
 
@@ -250,7 +250,7 @@ class _Item {
   @Attributes(primaryKey: true)
   String name;
 
-  @Relationship.belongsTo("items", deleteRule: RelationshipDeleteRule.cascade, required: true)
+  @Relationship.belongsTo(#items, deleteRule: RelationshipDeleteRule.cascade, required: true)
   User user;
 }
 
@@ -261,7 +261,7 @@ class _Manager {
 
   String name;
 
-  @Relationship.belongsTo("manager")
+  @Relationship.belongsTo(#manager)
   User worker;
 }
 
@@ -270,7 +270,7 @@ class _Owner {
   @primaryKey
   int id;
 
-  @Relationship(RelationshipType.hasOne, "ref")
+  @Relationship(RelationshipType.hasOne, #ref)
   FailingChild gen;
 }
 
@@ -279,6 +279,6 @@ class _FailingChild {
   @primaryKey
   int id;
 
-  @Relationship(RelationshipType.belongsTo, "gen", deleteRule: RelationshipDeleteRule.nullify, required: true)
+  @Relationship(RelationshipType.belongsTo, #gen, deleteRule: RelationshipDeleteRule.nullify, required: true)
   Owner ref;
 }

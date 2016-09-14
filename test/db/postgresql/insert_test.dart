@@ -231,7 +231,7 @@ class _GenUser {
   int id;
   String name;
 
-  @Relationship(RelationshipType.hasMany, "owner")
+  @Relationship(RelationshipType.hasMany, #owner)
   OrderedSet<GenPost> posts;
 }
 
@@ -241,7 +241,7 @@ class _GenPost {
   int id;
   String text;
 
-  @Relationship(RelationshipType.belongsTo, "posts")
+  @Relationship(RelationshipType.belongsTo, #posts)
   GenUser owner;
 }
 

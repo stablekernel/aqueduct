@@ -520,7 +520,7 @@ class _GenUser {
 
   String name;
 
-  @Relationship(RelationshipType.hasMany, "owner")
+  @Relationship(RelationshipType.hasMany, #owner)
   OrderedSet<GenPost> posts;
 
   static String tableName() {
@@ -535,7 +535,7 @@ class _GenPost {
 
   String text;
 
-  @Relationship(RelationshipType.belongsTo, "posts", deleteRule: RelationshipDeleteRule.cascade, required: false)
+  @Relationship(RelationshipType.belongsTo, #posts, deleteRule: RelationshipDeleteRule.cascade, required: false)
   GenUser owner;
 }
 

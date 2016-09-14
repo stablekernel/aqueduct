@@ -1,6 +1,6 @@
 part of aqueduct;
 
-class OrderedSet<InstanceType extends Model> extends Object with ListMixin<InstanceType>, _QueryMatchableExtension implements QueryMatchable  {
+class OrderedSet<InstanceType extends Model> extends Object with ListMixin<InstanceType>, _QueryMatchableExtension implements QueryMatchable, Serializable  {
   OrderedSet() {
     _innerValues = [];
     entity = ModelContext.defaultContext.dataModel.entityForType(InstanceType);
@@ -41,5 +41,9 @@ class OrderedSet<InstanceType extends Model> extends Object with ListMixin<Insta
   operator [](int index) => _innerValues[index];
   operator []=(int index, InstanceType value) {
     _innerValues[index] = value;
+  }
+
+  dynamic asSerializable() {
+    return _innerValues.map((i) => i.asSerializable()).toList();
   }
 }

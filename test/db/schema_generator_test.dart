@@ -294,13 +294,13 @@ class _Container {
   @primaryKey
   int id;
 
-  @Relationship.hasMany("container")
+  @Relationship.hasMany(#container)
   OrderedSet<DefaultItem> defaultItems;
 
-  @Relationship.hasMany("container")
+  @Relationship.hasMany(#container)
   OrderedSet<LoadedItem> loadedItems;
 
-  @Relationship.hasOne("container")
+  @Relationship.hasOne(#container)
   LoadedSingleItem loadedSingleItem;
 }
 
@@ -309,7 +309,7 @@ class _DefaultItem {
   @primaryKey
   int id;
 
-  @Relationship.belongsTo("defaultItems")
+  @Relationship.belongsTo(#defaultItems)
   Container container;
 }
 
@@ -321,7 +321,7 @@ class _LoadedItem {
   @Attributes(indexed: true)
   String someIndexedThing;
 
-  @Relationship.belongsTo("loadedItems", deleteRule: RelationshipDeleteRule.restrict, required: false)
+  @Relationship.belongsTo(#loadedItems, deleteRule: RelationshipDeleteRule.restrict, required: false)
   Container container;
 }
 
@@ -330,7 +330,7 @@ class _LoadedSingleItem {
   @primaryKey
   int id;
 
-  @Relationship.belongsTo("loadedSingleItem", deleteRule: RelationshipDeleteRule.cascade, required: true)
+  @Relationship.belongsTo(#loadedSingleItem, deleteRule: RelationshipDeleteRule.cascade, required: true)
   Container container;
 }
 

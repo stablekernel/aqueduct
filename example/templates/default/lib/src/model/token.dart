@@ -16,7 +16,7 @@ class _AuthCode implements TokenExchangable<Token> {
   DateTime issueDate;
   DateTime expirationDate;
 
-  @Relationship.belongsTo("code", required: false, deleteRule: RelationshipDeleteRule.cascade)
+  @Relationship.belongsTo(#code, required: false, deleteRule: RelationshipDeleteRule.cascade)
   Token token;
 }
 
@@ -38,13 +38,13 @@ class _Token {
   @Attributes(indexed: true)
   String refreshToken;
 
-  @Relationship.belongsTo("tokens", deleteRule: RelationshipDeleteRule.cascade)
+  @Relationship.belongsTo(#tokens, deleteRule: RelationshipDeleteRule.cascade)
   ClientRecord client;
 
-  @Relationship.belongsTo("tokens", deleteRule: RelationshipDeleteRule.cascade)
+  @Relationship.belongsTo(#tokens, deleteRule: RelationshipDeleteRule.cascade)
   User owner;
 
-  @Relationship.hasOne("token")
+  @Relationship.hasOne(#token)
   AuthCode code;
 
   DateTime issueDate;
@@ -57,7 +57,7 @@ class _Client {
   @Attributes(primaryKey: true)
   String id;
 
-  @Relationship.hasMany("client")
+  @Relationship.hasMany(#client)
   OrderedSet<Token> tokens;
 
   String hashedPassword;

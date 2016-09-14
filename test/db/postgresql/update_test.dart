@@ -262,7 +262,7 @@ class _Child {
 
   String name;
 
-  @Relationship(RelationshipType.belongsTo, "child", required: false, deleteRule: RelationshipDeleteRule.cascade)
+  @Relationship(RelationshipType.belongsTo, #child, required: false, deleteRule: RelationshipDeleteRule.cascade)
   Parent parent;
 }
 
@@ -273,7 +273,7 @@ class _Parent {
 
   String name;
 
-  @Relationship(RelationshipType.hasOne, "parent")
+  @Relationship(RelationshipType.hasOne, #parent)
   Child child;
 }
 

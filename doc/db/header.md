@@ -22,7 +22,7 @@ class _User {
 
 Each property in a persistent type maps to a column in a table. In this example, we are declaring that there is a table named *_User* and it has two columns, an integer primary key named `id` and a text column named `name`. You won't use instances of this class in your code, it simply provides the mapping information between your code and a database.
 
-Instead, your application code will use instances of the model type. The model type provides the functionality for doing useful things in your application with a model object, like writing the model object to an HTTP response body. An model type must extend `Model<PersistentType>` as well as implement the interface its `PersistentType`. Here is the corresponding model type for `_User`:
+Instead, your application code will use instances of the model type to manipulate and view persistent data. The model type provides the functionality for doing useful things in your application with a model object, like writing the model object to an HTTP response body. An model type must extend `Model<PersistentType>` as well as implement the interface its `PersistentType`. Here is the corresponding model type for `_User`:
 
 ```dart
 class User extends Model<_User> implements _User {  
@@ -37,11 +37,11 @@ var user = new User()
   ..user.name = "Bob";
 ```
 
-This pair of classes creates a fully formed model that can be used to transfer data back and forth between a database and your application, and your application and an HTTP client.
+This pair of classes creates a fully formed *entity* whose instances can be used to transfer data back and forth between a database and your application, and your application and an HTTP client.
 
 ### Persistent Types
 
-Persistent types define the mapping between your code and a database table (and are often used to generate those tables in a database). As each property in a persistent type represents a database column, the type of the property must be storable in a database. The following list defines the simple Dart types that properties in a persistent type can be:
+Persistent types define the mapping between your code and a database table (and are often used to generate those tables in a database). As each property in a persistent type represents a database column, the type of the property must be storable in a database. The following types are available as primitive properties on a persistent type:
 
 * int
 * double
@@ -75,13 +75,12 @@ There are eight configurable attributes available in the [Attributes] class.
 
 By not specifying [Attributes], the default values for each of these possible configurations is used and the database type is inferred from the type of the property.
 
-Every persistent type must have at least one property with  [Attributes] where `primaryKey` is true. There is a convenience instance of [Attributes] for this purpose, `@primaryKey`, which is equivalent to the following:
+Every persistent type must have at least one property with [Attributes] where `primaryKey` is true. There is a convenience instance of [Attributes] for this purpose, `@primaryKey`, which is equivalent to the following:
 
 ```dart
 @Attributes(primaryKey: true, databaseType: PropertyType.bigInteger, autoincrement: true)
 ```
-
-By convention, persistent types begin with an underscore, but there is nothing that prevents you from changing this. Bear in mind, the name of the persistent type will be the name of the corresponding database table. You may override the name of the table by implementing a static method that returns the name of the table in a persistent type:
+By convention, persistent types begin with an underscore, but there is nothing that prevents you from changing this. Bear in mind, the name of the persistent type will be the name of the corresponding database table (and some databases, like PostgreSQL, already have a table named 'user'). You may override the name of the table by implementing a static method that returns the name of the table in a persistent type:
 
 ```dart
 class _User {
@@ -96,9 +95,11 @@ class _User {
 }
 ```
 
+Note that the specific database driver determines whether or not the table name is case-sensitive or not. The included database driver for PostgreSQL automatically lowercases table names and is case-insensitive.
+
 ### Model types
 
-Instances of model types hold data in an Aqueduct application. When data is sent as part of an HTTP request body, you may deserialize that data into a model object. That object can then be operated on and sent to the database to insert, fetch, delete or update data via a `Query`. When getting data back from a database, you will receive instances of the appropriate model type. Model objects can be used as the `body` of `Response` objects as well. The following code snippet is a pretty common usage of a model object:
+Instances of model types hold data in an Aqueduct application. Model objects can have their data populated by a `Map`, oftentimes acquired from an HTTP request body (deserialization). They can be used to insert, fetch, delete or update data in a database with help of a `Query` object. Model objects are also used to populate the body of an HTTP response (serialization). The following code snippet is a pretty common usage of a model object:
 
 
 ```dart
@@ -118,8 +119,6 @@ Instances of model types hold data in an Aqueduct application. When data is sent
   return new Response.ok(insertedUser);
 }
 ```
-
-In other words, there are three primary features of a model object: it can set its properties from a HTTP request body, it can be used to configure a `Query` and it can be used to set the body of an HTTP response.
 
 When getting model objects from a database, each instance will represent one row. For example, consider the *_User* table and its rows, and the previous example of `_User` and `User` persistent and model types:
 
@@ -161,7 +160,7 @@ class _Video {
 
 Note that, by default, transient properties are not serialized or deserialized.
 
-It is important to understand that a `Model` is a effectively a wrapper around a `Map<String, dynamic>`. This `Map` is the *backing* of the `Model` object. A `Model` object's values are stored in this `Map` - when you access a property of a model object, the name of the property is transformed into a `String` key and evaluated against the backing. This is why the model type *implements* its persistent type - the actual storage for the properties declared in the persistent type are dynamically implemented by the `Model`'s backing map.
+It is important to understand that a `Model` is a effectively a wrapper around a `Map<String, dynamic>`. This `Map` is the *backing* of the `Model` object. A `Model` object's values are stored in this `Map` - when you access a property of a model object, the name of the property is transformed into a `String` key in the backing map. This is why the model type *implements* its persistent type - the actual storage for the properties are in this backing map, inherited from `Model`.
 
 ### Serialization and Deserialization
 
@@ -293,7 +292,73 @@ class User extends Model<_User> implements _User {
 
 ### Modeling Object Relationships
 
+In addition to primitive properties, model objects may also have relationships to other model objects or collections of model objects. A relationship allows you to specify that a model object contains a collection of other model objects or a reference to another, individual model object. Defining a relationship sets up referential integrity between two models. It also makes querying entire graphs of objects much easier.
 
+For example, in a social network application, a user may have many posts that they have created. A user 'has many' posts and this relationship would be represented by a has-many relationship in Aqueduct. A user might also have a reference to a `Profile`, and this relationship is modeled as a has-one relationship.
+
+Relationships are *always* declared in the persistent type of a model by declaring a property and adding `Relationship` metadata to that property. In the example of a social media application, you would add the `posts` property to a user's persistent type:
+
+```dart
+class User extends Model<_User> implements _User {}
+class _User {
+  @primaryKey
+  int id;
+
+  String name;
+
+  @Relationship.hasMany(#user)
+  OrderedSet<Post> posts;
+
+  @Relationship.hasOne(#user)
+  Profile profile;
+}
+```
+
+The type of relationship is defined by the `Relationship` metadata. `@Relationship.hasMany` indicates that there can be zero or more instances and `@Relationship.hasOne` indicates that there must be zero or one instance. When a relationship is declared as `hasOne`, the type of the property *must* be the model type of the related object (here, it is `Profile`). When the relationship is declared as `hasMany`, the type of the property must be an `OrderedSet<InstanceType>` (here, it is `OrderedSet<Post>`). (An `OrderedSet` is a glorified `List` - it can do everything a `List` can do - but has some additional behavior to help manage relationships and build queries.)
+
+All relationships must have an inverse. An inverse is a property on the other model's persistent type that is the other side of the relationship. In the previous example, because `_User` declared a relationship with `Post`, `_Post` must have an inverse relationship to `User`; likewise with `Profile`:
+
+```dart
+class Post extends Model<_Post> implements _Post {}
+class _Post {
+  @primaryKey
+  int id;
+
+  String text;
+
+  @Relationship.belongsTo(#posts)
+  User user;
+}
+
+class Profile extends Model<_Profile> implements _Profile {}
+class _Profile {
+  @primaryKey
+  int id;
+
+  String profilePhotoURL;
+
+  @Relationship.belongsTo(#profile)
+  User user;
+}
+```
+
+Notice first that the inverse of a both relationships is `belongsTo`. This is the third and final type of relationship and is only used for the inverse. Notice also the first argument to any `Relationship` is a symbol. This symbol is the symbol for the property on the inverse entity. For example, the `_User` declares that its `posts` inverse is `user`. This is what indicates that the `user` property on `_Post` is the inverse; it too referencing the inverse `posts` property on the `_User`. (This allows us to define multiple relationships between entities.)
+
+When translated to SQL, the entity with the `belongsTo` property is a `foreign key column`. The other side of the relationship does not take up a column in the underlying database. The `belongsTo` side of the relationship may define some extra metadata - a delete rule and whether or not it is required. So, if we adjust the relationships as follows, we will require that every `Post` must have a user (that is, the foreign key may not be null) and that if you delete a `User`, it will also delete its `Profile`:
+
+```dart
+class _Post {
+  ...
+  @Relationship.belongsTo(#posts, required: true)
+  User user;
+}
+
+class _Profile {
+  ...
+  @Relationship.belongsTo(#profile, deleteRule: RelationshipDeleteRule.cascade)
+  User user;
+}
+```
 
 ## The Layers Between Aqueduct and Your Database
 

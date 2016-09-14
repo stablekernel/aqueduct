@@ -205,9 +205,9 @@ class DataModel {
       throw new DataModelException("Relationship ${MirrorSystem.getName(mirror.simpleName)} on ${MirrorSystem.getName(entity.persistentTypeMirror.simpleName)} must not define additional Attributes");
     }
 
-    String inverseKey = relationshipAttribute.inverseKey;
+    var inverseKey = relationshipAttribute.inverseKey;
     var destinationEntity = _destinationEntityForVariableMirror(entity, mirror);
-    var destinationVariableMirror = destinationEntity.persistentTypeMirror.declarations[new Symbol(inverseKey)];
+    var destinationVariableMirror = destinationEntity.persistentTypeMirror.declarations[inverseKey];
     if (destinationVariableMirror == null) {
       throw new DataModelException("Relationship ${MirrorSystem.getName(mirror.simpleName)} on ${MirrorSystem.getName(entity.persistentTypeMirror.simpleName)} has no inverse (tried $inverseKey)");
     }

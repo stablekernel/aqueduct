@@ -47,7 +47,7 @@ class Relationship {
   /// would have a 'creator' property, related to the user that created it. Likewise, the User would have a 'posts' property
   /// of posts it has created. The inverseName of 'posts' on the User would be 'creator' and the inverseName of 'creator'
   /// on the Post would be 'posts'. All relationships must have an inverse.
-  final String inverseKey;
+  final Symbol inverseKey;
 
   /// Whether or not this relationship must be non-null.
   ///
@@ -59,25 +59,25 @@ class Relationship {
   /// Constructor for relationship to be used as metadata for a model property.
   ///
   /// [type] and [inverseName] are required. All Relationships must have an inverse in the corresponding model.
-  const Relationship(RelationshipType type, String inverseKey, {RelationshipDeleteRule deleteRule: RelationshipDeleteRule.nullify, bool required: false})
+  const Relationship(RelationshipType type, Symbol inverseKey, {RelationshipDeleteRule deleteRule: RelationshipDeleteRule.nullify, bool required: false})
       : this.type = type,
         this.inverseKey = inverseKey,
         this.deleteRule = deleteRule,
         this._isRequired = required;
 
-  const Relationship.hasMany(String inverseKey) :
+  const Relationship.hasMany(Symbol inverseKey) :
         this.type = RelationshipType.hasMany,
         this.inverseKey = inverseKey,
         this.deleteRule = RelationshipDeleteRule.nullify,
         this._isRequired = false;
 
-  const Relationship.hasOne(String inverseKey) :
+  const Relationship.hasOne(Symbol inverseKey) :
         this.type = RelationshipType.hasOne,
         this.inverseKey = inverseKey,
         this.deleteRule = RelationshipDeleteRule.nullify,
         this._isRequired = false;
 
-  const Relationship.belongsTo(String inverseKey, {RelationshipDeleteRule deleteRule: RelationshipDeleteRule.nullify, bool required: false}) :
+  const Relationship.belongsTo(Symbol inverseKey, {RelationshipDeleteRule deleteRule: RelationshipDeleteRule.nullify, bool required: false}) :
         this.type = RelationshipType.belongsTo,
         this.inverseKey = inverseKey,
         this.deleteRule = deleteRule,

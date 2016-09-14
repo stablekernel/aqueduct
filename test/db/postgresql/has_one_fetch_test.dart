@@ -109,7 +109,7 @@ class _Parent {
   int id;
   String name;
 
-  @Relationship.hasOne("parent")
+  @Relationship.hasOne(#parent)
   Child child;
 }
 
@@ -119,10 +119,10 @@ class _Child {
   int id;
   String name;
 
-  @Relationship.belongsTo("child")
+  @Relationship.belongsTo(#child)
   Parent parent;
 
-  @Relationship.hasOne("child")
+  @Relationship.hasOne(#child)
   Toy toy;
 }
 
@@ -133,6 +133,6 @@ class _Toy {
 
   String name;
 
-  @Relationship.belongsTo("toy")
+  @Relationship.belongsTo(#toy)
   Child child;
 }

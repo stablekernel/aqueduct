@@ -45,7 +45,7 @@ class _Token implements Tokenizable<int> {
   String type;
   String clientID;
 
-  @Relationship.hasOne("token")
+  @Relationship.hasOne(#token)
   AuthCode code;
 }
 
@@ -64,7 +64,7 @@ class _AuthCode implements TokenExchangable<Token> {
   DateTime issueDate;
   DateTime expirationDate;
 
-  @Relationship.belongsTo("code", required: false, deleteRule: RelationshipDeleteRule.cascade)
+  @Relationship.belongsTo(#code, required: false, deleteRule: RelationshipDeleteRule.cascade)
   Token token;
 }
 

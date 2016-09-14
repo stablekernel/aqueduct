@@ -396,7 +396,7 @@ class _User {
 
   String name;
 
-  @Relationship.hasMany("user")
+  @Relationship.hasMany(#user)
   OrderedSet<Location> locations;
 }
 
@@ -446,10 +446,10 @@ class _Location {
 
   String name;
 
-  @Relationship.belongsTo("locations", deleteRule: RelationshipDeleteRule.cascade)
+  @Relationship.belongsTo(#locations, deleteRule: RelationshipDeleteRule.cascade)
   User user;
 
-  @Relationship.hasMany("location")
+  @Relationship.hasMany(#location)
   OrderedSet<Equipment> equipment;
 }
 
@@ -481,6 +481,6 @@ class _Equipment {
   String name;
   String type;
 
-  @Relationship.belongsTo("equipment", deleteRule: RelationshipDeleteRule.cascade)
+  @Relationship.belongsTo(#equipment, deleteRule: RelationshipDeleteRule.cascade)
   Location location;
 }

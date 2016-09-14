@@ -396,7 +396,7 @@ class _User {
 
   DateTime dateCreated;
 
-  @Relationship.hasMany("owner")
+  @Relationship.hasMany(#owner)
   OrderedSet<Post> posts;
 }
 
@@ -407,7 +407,7 @@ class _Post {
 
   String text;
 
-  @Relationship.belongsTo("posts")
+  @Relationship.belongsTo(#posts)
   User owner;
 }
 
