@@ -67,6 +67,6 @@ abstract class ModelController<T extends Model> extends HTTPController {
     query.values = reflectedModel.reflectee as T;
     query.values.readMap(bodyMap);
 
-    query.values.removeProperty(query.values.entity.primaryKey);
+    query.values.removePropertyFromBackingMap(query.values.entity.primaryKey);
   }
 }

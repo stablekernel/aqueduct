@@ -1,21 +1,21 @@
 part of aqueduct;
 
-class OrderedSet<T extends Model> extends Object with ListMixin<T>, _QueryMatchableExtension implements QueryMatchable  {
+class OrderedSet<InstanceType extends Model> extends Object with ListMixin<InstanceType>, _QueryMatchableExtension implements QueryMatchable  {
   OrderedSet() {
     _innerValues = [];
-    entity = ModelContext.defaultContext.dataModel.entityForType(T);
+    entity = ModelContext.defaultContext.dataModel.entityForType(InstanceType);
   }
 
-  OrderedSet.from(Iterable<T> items) {
+  OrderedSet.from(Iterable<InstanceType> items) {
     _innerValues = items.toList();
-    entity = ModelContext.defaultContext.dataModel.entityForType(T);
+    entity = ModelContext.defaultContext.dataModel.entityForType(InstanceType);
   }
 
   ModelEntity entity;
   bool includeInResultSet = false;
-  T get matchOn {
+  InstanceType get matchOn {
     if (_matchOn == null) {
-      _matchOn = entity.newInstance() as T;
+      _matchOn = entity.newInstance() as InstanceType;
       _matchOn._backing = new _ModelMatcherBacking();
     }
     return _matchOn;
@@ -26,20 +26,20 @@ class OrderedSet<T extends Model> extends Object with ListMixin<T>, _QueryMatcha
     _innerValues.length = newLength;
   }
 
-  Map<String, dynamic> get _matcherMap => matchOn.populatedPropertyValues;
-  List<T> _innerValues;
-  T _matchOn;
+  Map<String, dynamic> get _matcherMap => matchOn.backingMap;
+  List<InstanceType> _innerValues;
+  InstanceType _matchOn;
 
-  void add(T item) {
+  void add(InstanceType item) {
     _innerValues.add(item);
   }
 
-  void addAll(Iterable<T> items) {
+  void addAll(Iterable<InstanceType> items) {
     _innerValues.addAll(items);
   }
 
   operator [](int index) => _innerValues[index];
-  operator []=(int index, T value) {
+  operator []=(int index, InstanceType value) {
     _innerValues[index] = value;
   }
 }

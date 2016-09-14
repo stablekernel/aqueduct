@@ -3,9 +3,9 @@ part of aqueduct;
 /// A database row represented as an object.
 ///
 /// Provides storage, serialization and deserialization capabilities.
-/// Model types in an application extend Model<T>, where the Model type must also implement T. T holds properties
-/// that are persisted in a database. T in the context is called the 'persistent instance type'. The subclass of Model<T>
-/// is known as the 'instance type'. Any properties in the instance type are not persisted, except those they inherit from T.
+/// Model types in an application extend [Model<PersistentType>], where the model type must also implement [PersistentType]. [PersistentType] holds properties
+/// that are persisted in a database. The subclass of [Model<PersistentType>]
+/// is known as the 'model type'. Any properties in the model type are not persisted, except those they inherit from [PersistentType].
 /// Model instances are used in an application. Example:
 ///
 /// class User extends Model<_User> implements _User {
@@ -16,20 +16,20 @@ part of aqueduct;
 ///   int id; // persisted
 /// }
 ///
-class Model<T> extends Object with _QueryMatchableExtension implements Serializable, QueryMatchable {
+class Model<PersistentType> extends Object with _QueryMatchableExtension implements Serializable, QueryMatchable {
   /// The [ModelEntity] this instance is described by.
-  ModelEntity entity = ModelContext.defaultContext.dataModel.entityForType(T);
+  ModelEntity entity = ModelContext.defaultContext.dataModel.entityForType(PersistentType);
 
   _ModelBacking _backing = new _ModelValueBacking();
 
   bool includeInResultSet = false;
-  Map<String, dynamic> get _matcherMap => populatedPropertyValues;
+  Map<String, dynamic> get _matcherMap => backingMap;
 
   /// The values available in this representation.
   ///
   /// Not all values are fetched or populated in a [Model] instance. This value contains
   /// any key-value pairs for properties that are stored in this instance.
-  Map<String, dynamic> get populatedPropertyValues => _backing.valueMap;
+  Map<String, dynamic> get backingMap => _backing.valueMap;
 
   /// Retrieves a value by property name.
   dynamic operator [](String propertyName) => _backing.valueForProperty(entity, propertyName);
@@ -39,9 +39,14 @@ class Model<T> extends Object with _QueryMatchableExtension implements Serializa
     _backing.setValueForProperty(entity, propertyName, value);
   }
 
-  void removeProperty(String propertyName) {
+  void removePropertyFromBackingMap(String propertyName) {
     _backing.removeProperty(propertyName);
   }
+
+  bool hasValueForProperty(String propertyName) {
+    return backingMap.containsKey(propertyName);
+  }
+
 
   noSuchMethod(Invocation invocation) {
     if (invocation.isGetter) {
@@ -159,24 +164,24 @@ class Model<T> extends Object with _QueryMatchableExtension implements Serializa
       var destinationEntity = relationshipDescription.destinationEntity;
       if (relationshipDescription.relationshipType == RelationshipType.belongsTo || relationshipDescription.relationshipType == RelationshipType.hasOne) {
         if (value is! Map<String, dynamic>) {
-          throw new QueryException(400, "Expecting a Map for ${MirrorSystem.getName(destinationEntity.instanceTypeMirror.simpleName)} in the ${relationshipDescription.name} field, got $value instead.", -1);
+          throw new QueryException(400, "Expecting a Map for ${MirrorSystem.getName(destinationEntity.modelTypeMirror.simpleName)} in the ${relationshipDescription.name} field, got $value instead.", -1);
         }
 
-        Model instance = destinationEntity.instanceTypeMirror.newInstance(new Symbol(""), []).reflectee;
+        Model instance = destinationEntity.modelTypeMirror.newInstance(new Symbol(""), []).reflectee;
         instance.readMap(value as Map<String, dynamic>);
 
         return instance;
       } else if (relationshipDescription.relationshipType == RelationshipType.hasMany) {
         if (value is! List<Map<String, dynamic>>) {
-          throw new QueryException(400, "Expecting a List for ${MirrorSystem.getName(destinationEntity.instanceTypeMirror.simpleName)} in the ${relationshipDescription.name} field, got $value instead.", -1);
+          throw new QueryException(400, "Expecting a List for ${MirrorSystem.getName(destinationEntity.modelTypeMirror.simpleName)} in the ${relationshipDescription.name} field, got $value instead.", -1);
         }
 
         if (value.length > 0 && value.first is! Map) {
-          throw new QueryException(400, "Expecting a List<Map> for ${MirrorSystem.getName(destinationEntity.instanceTypeMirror.simpleName)} in the ${relationshipDescription.name} field, got $value instead.", -1);
+          throw new QueryException(400, "Expecting a List<Map> for ${MirrorSystem.getName(destinationEntity.modelTypeMirror.simpleName)} in the ${relationshipDescription.name} field, got $value instead.", -1);
         }
 
         return new OrderedSet.from((value as List<Map<String, dynamic>>).map((v) {
-          Model instance = destinationEntity.instanceTypeMirror.newInstance(new Symbol(""), []).reflectee;
+          Model instance = destinationEntity.modelTypeMirror.newInstance(new Symbol(""), []).reflectee;
           instance.readMap(v);
           return instance;
         }));

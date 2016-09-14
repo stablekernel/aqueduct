@@ -339,9 +339,9 @@ void main() {
 
       var users = await q.fetch();
       expect(users.every((u) {
-        return u.populatedPropertyValues.length == 2 && u.populatedPropertyValues.containsKey("id") && u.locations.every((l) {
-          return l.populatedPropertyValues.length == 2 && l.populatedPropertyValues.containsKey("id") && l.equipment.every((eq) {
-            return eq.populatedPropertyValues.length == 1 && eq.populatedPropertyValues.containsKey("id");
+        return u.backingMap.length == 2 && u.backingMap.containsKey("id") && u.locations.every((l) {
+          return l.backingMap.length == 2 && l.backingMap.containsKey("id") && l.equipment.every((eq) {
+            return eq.backingMap.length == 1 && eq.backingMap.containsKey("id");
           });
         });
       }), true);

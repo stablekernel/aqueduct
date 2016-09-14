@@ -68,7 +68,7 @@ class TestModelController extends ModelController<TestModel> {
       statusCode = 400;
     }
 
-    if (query.values.populatedPropertyValues.length != 0) {
+    if (query.values.backingMap.length != 0) {
       statusCode = 400;
     }
 
@@ -87,7 +87,7 @@ class TestModelController extends ModelController<TestModel> {
       statusCode = 400;
     }
 
-    if (query.values.populatedPropertyValues.length != 0) {
+    if (query.values.backingMap.length != 0) {
       statusCode = 400;
     }
 

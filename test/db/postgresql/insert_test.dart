@@ -258,7 +258,7 @@ class _GenTime {
 }
 
 class TransientModel extends Model<_Transient> implements _Transient {
-  @mappable
+  @availableAsInputAndOutput
   String transientValue;
 }
 

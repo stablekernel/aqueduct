@@ -1,7 +1,7 @@
 part of wildfire;
 
 class User extends Model<_User> implements _User, Authenticatable {
-  @mappableInput
+  @availableAsInput
   String password;
 
   String get username => email;

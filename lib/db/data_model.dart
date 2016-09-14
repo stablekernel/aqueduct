@@ -22,7 +22,7 @@ class DataModel {
 
   /// Returns a [ModelEntity] for a [Type].
   ///
-  /// [type] may be either the instance type or persistent instance type. For example, the following model
+  /// [type] may be either the model type or persistent type. For example, the following model
   /// definition, you could retrieve its entity via MyModel or _MyModel:
   ///
   ///         class MyModel extends Model<_MyModel> implements _MyModel {}
@@ -72,8 +72,8 @@ class DataModel {
   Map<String, AttributeDescription> _attributeMapForEntity(ModelEntity entity) {
     Map<String, AttributeDescription> map = {};
 
-    // Grab actual properties from instance type
-    entity.instanceTypeMirror.declarations.values
+    // Grab actual properties from model type
+    entity.modelTypeMirror.declarations.values
       .where((declMir) => declMir is VariableMirror && !declMir.isStatic)
       .where((declMir) => _mappableFromDeclaration(declMir) != null)
       .forEach((declMir) {
@@ -81,8 +81,8 @@ class DataModel {
           map[key] = _attributeFromVariableMirror(entity, declMir);
       });
 
-    // Grab getters/setters from instance type, as long as they the right type of Mappable
-    entity.instanceTypeMirror.declarations.values
+    // Grab getters/setters from model type, as long as they the right type of Mappable
+    entity.modelTypeMirror.declarations.values
         .where((declMir) => declMir is MethodMirror && !declMir.isStatic && (declMir.isSetter || declMir.isGetter) && !declMir.isSynthetic)
         .where((declMir) {
           var mapMetadata = _mappableFromDeclaration(declMir);
@@ -99,7 +99,7 @@ class DataModel {
         .map((declMir) => _attributeFromMethodMirror(entity, declMir))
         .fold(<String, AttributeDescription>{}, (Map<String, AttributeDescription> collectedMap, attr) {
           if (collectedMap.containsKey(attr.name)) {
-            collectedMap[attr.name] = new AttributeDescription.transient(entity, attr.name, attr.type, mappable);
+            collectedMap[attr.name] = new AttributeDescription.transient(entity, attr.name, attr.type, availableAsInputAndOutput);
           } else {
             collectedMap[attr.name] = attr;
           }
@@ -135,17 +135,17 @@ class DataModel {
     // only whether or not it is a getter/setter.
     return new AttributeDescription.transient(entity, name,
         PropertyDescription.propertyTypeForDartType(dartTypeMirror.reflectedType),
-        new Mappable(availableAsInput: methodMirror.isSetter, availableAsOutput: methodMirror.isGetter));
+        new TransientMappability(availableAsInput: methodMirror.isSetter, availableAsOutput: methodMirror.isGetter));
   }
 
   AttributeDescription _attributeFromVariableMirror(ModelEntity entity, VariableMirror mirror) {
-    if (entity.instanceTypeMirror == mirror.owner) {
+    if (entity.modelTypeMirror == mirror.owner) {
       // Transient; must be marked as Mappable.
 
       var name = MirrorSystem.getName(mirror.simpleName);
       var type = PropertyDescription.propertyTypeForDartType(mirror.type.reflectedType);
       if (type == null) {
-        throw new DataModelException("Property $name on ${MirrorSystem.getName(entity.instanceTypeMirror.simpleName)} has invalid type");
+        throw new DataModelException("Property $name on ${MirrorSystem.getName(entity.modelTypeMirror.simpleName)} has invalid type");
       }
       return new AttributeDescription.transient(entity, name, type, _mappableFromDeclaration(mirror));
     } else {

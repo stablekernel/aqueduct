@@ -1,7 +1,7 @@
 part of aqueduct;
 
 
-Mappable _mappableFromDeclaration(DeclarationMirror dm) => _metadataFromDeclaration(Mappable, dm);
+TransientMappability _mappableFromDeclaration(DeclarationMirror dm) => _metadataFromDeclaration(TransientMappability, dm);
 Attributes _attributeMetadataFromDeclaration(DeclarationMirror dm) => _metadataFromDeclaration(Attributes, dm);
 Relationship _relationshipFromDeclaration(DeclarationMirror dm) => _metadataFromDeclaration(Relationship, dm);
 

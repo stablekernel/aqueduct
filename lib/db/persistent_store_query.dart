@@ -21,7 +21,7 @@ class PersistentStoreQuery {
       offset = q.offset;
       pageDescriptor = q.pageDescriptor;
 
-      values = _mappingElementsForMap((q.valueMap ?? q.values?.populatedPropertyValues), rootEntity);
+      values = _mappingElementsForMap((q.valueMap ?? q.values?.backingMap), rootEntity);
     }
   }
 
@@ -73,7 +73,7 @@ class PersistentStoreQuery {
           } else if (value is Map) {
             value = value[property.destinationEntity.primaryKey];
           } else {
-            throw new QueryException(500, "Property $key on ${entity.tableName} in Query values must be a Map or ${MirrorSystem.getName(property.destinationEntity.instanceTypeMirror.simpleName)} ", -1);
+            throw new QueryException(500, "Property $key on ${entity.tableName} in Query values must be a Map or ${MirrorSystem.getName(property.destinationEntity.modelTypeMirror.simpleName)} ", -1);
           }
         }
       }
@@ -93,7 +93,7 @@ class PersistentStoreQuery {
 
       var relDesc = entity.relationships[propertyName];
       var predicate = new Predicate._fromQueryIncludable(inner, store);
-      var nestedProperties = nestedResultProperties[inner.entity.instanceTypeMirror.reflectedType];
+      var nestedProperties = nestedResultProperties[inner.entity.modelTypeMirror.reflectedType];
       var propertiesToFetch = nestedProperties ?? inner.entity.defaultProperties;
 
       var joinElements = [

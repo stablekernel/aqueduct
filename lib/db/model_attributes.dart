@@ -170,19 +170,19 @@ class Attributes {
         this.autoincrement = source.autoincrement;
 }
 
-/// Metadata for a instance type property that indicates it can be used in [readMap] and [asMap], but is not persisted.
-const Mappable mappable = const Mappable(availableAsInput: true, availableAsOutput: true);
+/// Metadata for a model type property that indicates it can be used in [readMap] and [asMap], but is not persisted.
+const TransientMappability availableAsInputAndOutput = const TransientMappability(availableAsInput: true, availableAsOutput: true);
 
-/// Metadata for a instance type property that indicates it can be used in [readMap], but is not persisted.
-const Mappable mappableInput = const Mappable(availableAsInput: true, availableAsOutput: false);
+/// Metadata for a model type property that indicates it can be used in [readMap], but is not persisted.
+const TransientMappability availableAsInput = const TransientMappability(availableAsInput: true, availableAsOutput: false);
 
-/// Metadata for a instance type property that indicates it can be used in [asMap], but is not persisted.
-const Mappable mappableOutput = const Mappable(availableAsInput: false, availableAsOutput: true);
+/// Metadata for a model type property that indicates it can be used in [asMap], but is not persisted.
+const TransientMappability availableAsOutput = const TransientMappability(availableAsInput: false, availableAsOutput: true);
 
 /// Metadata to associate with a property to indicate it is not a column, but is part of the Model object.
-class Mappable {
+class TransientMappability {
   final bool isAvailableAsInput;
   final bool isAvailableAsOutput;
-  const Mappable({bool availableAsInput: true, bool availableAsOutput: true}) :
+  const TransientMappability({bool availableAsInput: true, bool availableAsOutput: true}) :
         isAvailableAsInput = availableAsInput, isAvailableAsOutput = availableAsOutput;
 }

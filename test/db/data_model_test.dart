@@ -10,15 +10,15 @@ void main() {
 
     test("Entities have appropriate types", () {
       var entity = dataModel.entityForType(User);
-      expect(reflectClass(User) == entity.instanceTypeMirror, true);
+      expect(reflectClass(User) == entity.modelTypeMirror, true);
       expect(reflectClass(_User) == entity.persistentTypeMirror, true);
 
       entity = dataModel.entityForType(Item);
-      expect(reflectClass(Item) == entity.instanceTypeMirror, true);
+      expect(reflectClass(Item) == entity.modelTypeMirror, true);
       expect(reflectClass(_Item) == entity.persistentTypeMirror, true);
 
       entity = dataModel.entityForType(Manager);
-      expect(reflectClass(Manager) == entity.instanceTypeMirror, true);
+      expect(reflectClass(Manager) == entity.modelTypeMirror, true);
       expect(reflectClass(_Manager) == entity.persistentTypeMirror, true);
     });
 
@@ -229,7 +229,7 @@ class _User {
   @primaryKey
   int id;
 
-  @mappable
+  @availableAsInputAndOutput
   String stringId;
 
   String username;

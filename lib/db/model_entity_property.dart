@@ -117,7 +117,7 @@ class AttributeDescription extends PropertyDescription {
           includedInDefaultResultSet: false,
           autoincrement: false);
 
-  AttributeDescription(ModelEntity entity, String name, PropertyType type, {Mappable transientStatus: null, bool primaryKey: false, String defaultValue: null, bool unique: false, bool indexed: false, bool nullable: false, bool includedInDefaultResultSet: true, bool autoincrement: false}) :
+  AttributeDescription(ModelEntity entity, String name, PropertyType type, {TransientMappability transientStatus: null, bool primaryKey: false, String defaultValue: null, bool unique: false, bool indexed: false, bool nullable: false, bool includedInDefaultResultSet: true, bool autoincrement: false}) :
         isPrimaryKey = primaryKey,
         this.defaultValue = defaultValue,
         this.transientStatus = transientStatus,
@@ -147,7 +147,7 @@ class AttributeDescription extends PropertyDescription {
   /// The validity of a transient attribute as input, output or both.
   ///
   /// If this property is non-null, the attribute is transient (not backed by a database field/column).
-  final Mappable transientStatus;
+  final TransientMappability transientStatus;
 
   String toString() {
     return "AttributeDescription on ${entity.tableName}.$name Type: $type";
@@ -192,7 +192,7 @@ class RelationshipDescription extends PropertyDescription {
       }
     }
 
-    return type == destinationEntity.instanceTypeMirror;
+    return type == destinationEntity.modelTypeMirror;
   }
 
   String toString() {

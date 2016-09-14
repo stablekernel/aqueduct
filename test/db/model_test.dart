@@ -383,7 +383,7 @@ void main() {
 }
 
 class User extends Model<_User> implements _User {
-  @mappable
+  @availableAsInputAndOutput
   String value;
 }
 
@@ -412,53 +412,53 @@ class _Post {
 }
 
 class TransientTest extends Model<_TransientTest> implements _TransientTest {
-  @mappableOutput
+  @availableAsOutput
   String get defaultedText => "Mr. $text";
 
-  @mappableInput
+  @availableAsInput
   void set defaultedText(String str) {
     text = str.split(" ").last;
   }
 
-  @mappableInput
+  @availableAsInput
   void set inputOnly(String s) {
     text = s;
   }
 
-  @mappableOutput
+  @availableAsOutput
   String get outputOnly => text;
   void set outputOnly(String s) {
     text = s;
   }
 
   // This is intentionally invalid
-  @mappableInput
+  @availableAsInput
   String get invalidInput => text;
 
   // This is intentionally invalid
-  @mappableOutput
+  @availableAsOutput
   void set invalidOutput(String s) {
     text = s;
   }
 
-  @mappable
+  @availableAsInputAndOutput
   String get bothButOnlyOnOne => text;
   void set bothButOnlyOnOne(String s) {
     text = s;
   }
 
-  @mappableInput
+  @availableAsInput
   int inputInt;
 
-  @mappableOutput
+  @availableAsOutput
   int outputInt;
 
-  @mappable
+  @availableAsInputAndOutput
   int inOut;
 
-  @mappable
+  @availableAsInputAndOutput
   String get bothOverQualified => text;
-  @mappable
+  @availableAsInputAndOutput
   void set bothOverQualified(String s) {
     text = s;
   }
