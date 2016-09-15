@@ -200,10 +200,9 @@ class _TestModel {
 
   String name;
 
-  @Attributes(nullable: true, unique: true)
+  @AttributeHint(nullable: true, unique: true)
   String email;
 
-  @Relationship.hasOne(#owner)
   InnerModel inner;
 }
 
@@ -214,6 +213,6 @@ class _InnerModel {
 
   String name;
 
-  @Relationship.belongsTo(#inner)
+  @RelationshipInverse(#inner)
   TestModel owner;
 }

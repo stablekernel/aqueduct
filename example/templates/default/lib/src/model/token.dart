@@ -5,10 +5,10 @@ class _AuthCode implements TokenExchangable<Token> {
   @primaryKey
   int id;
 
-  @Attributes(indexed: true)
+  @AttributeHint(indexed: true)
   String code;
 
-  @Attributes(nullable: true)
+  @AttributeHint(nullable: true)
   String redirectURI;
 
   String clientID;
@@ -16,7 +16,7 @@ class _AuthCode implements TokenExchangable<Token> {
   DateTime issueDate;
   DateTime expirationDate;
 
-  @Relationship.belongsTo(#code, required: false, deleteRule: RelationshipDeleteRule.cascade)
+  @RelationshipInverse(#code, isRequired: false, onDelete: RelationshipDeleteRule.cascade)
   Token token;
 }
 
@@ -32,19 +32,18 @@ class Token extends Model<_Token> implements _Token, Tokenizable<int> {
   }
 }
 class _Token {
-  @Attributes(primaryKey: true)
+  @AttributeHint(primaryKey: true)
   String accessToken;
 
-  @Attributes(indexed: true)
+  @AttributeHint(indexed: true)
   String refreshToken;
 
-  @Relationship.belongsTo(#tokens, deleteRule: RelationshipDeleteRule.cascade)
+  @RelationshipInverse(#tokens, onDelete: RelationshipDeleteRule.cascade)
   ClientRecord client;
 
-  @Relationship.belongsTo(#tokens, deleteRule: RelationshipDeleteRule.cascade)
+  @RelationshipInverse(#tokens, onDelete: RelationshipDeleteRule.cascade)
   User owner;
 
-  @Relationship.hasOne(#token)
   AuthCode code;
 
   DateTime issueDate;
@@ -54,10 +53,9 @@ class _Token {
 
 class ClientRecord extends Model<_Client> implements _Client {}
 class _Client {
-  @Attributes(primaryKey: true)
+  @AttributeHint(primaryKey: true)
   String id;
 
-  @Relationship.hasMany(#client)
   OrderedSet<Token> tokens;
 
   String hashedPassword;

@@ -49,6 +49,15 @@ void main() {
       });
     });
 
+    test("Objects returned in join are not the same instance", () async {
+      var q = new Query<Parent>()
+        ..matchOn.id = 1
+        ..matchOn.child.includeInResultSet = true;
+
+      var o = await q.fetchOne();
+      expect(identical(o.child.parent, o), false);
+    });
+
     test("Join with null value still has key", () async {
       var q = new Query<Parent>()
         ..matchOn.id = 3
@@ -66,6 +75,8 @@ void main() {
       var q = new Query<Parent>()
         ..matchOn.child.includeInResultSet = true;
       var o = await q.fetch();
+
+      print("${identical(o.first.child.parent, o.first)}");
 
       var mapList = o.map((x) => x.asMap()).toList();
       expect(mapList, [
@@ -109,7 +120,6 @@ class _Parent {
   int id;
   String name;
 
-  @Relationship.hasOne(#parent)
   Child child;
 }
 
@@ -119,10 +129,9 @@ class _Child {
   int id;
   String name;
 
-  @Relationship.belongsTo(#child)
+  @RelationshipInverse(#child)
   Parent parent;
 
-  @Relationship.hasOne(#child)
   Toy toy;
 }
 
@@ -133,6 +142,6 @@ class _Toy {
 
   String name;
 
-  @Relationship.belongsTo(#toy)
+  @RelationshipInverse(#toy)
   Child child;
 }

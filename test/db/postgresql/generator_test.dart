@@ -35,7 +35,6 @@ void main() {
 
   test("One-to-one relationships are generated", () {
     var cmds = commandsForModelTypes([GenOwner, GenAuth]);
-
     expect(cmds.contains("create table _GenOwner (id bigserial primary key)"), true);
     expect(cmds.contains("create table _GenAuth (id int primary key,owner_id bigint null unique)"), true);
     expect(cmds.contains("create index _GenAuth_owner_id_idx on _GenAuth (owner_id)"), true);
@@ -82,67 +81,66 @@ class _GeneratorModel1 {
 
   bool option;
 
-  @Attributes(unique: true)
+  @AttributeHint(unique: true)
   double points;
 
-  @Attributes(nullable: true)
+  @AttributeHint(nullable: true)
   DateTime validDate;
 }
 
 class GeneratorModel2 extends Model<_GeneratorModel2> implements _GeneratorModel2 {}
 class _GeneratorModel2 {
-  @Attributes(primaryKey: true, indexed: true)
+  @AttributeHint(primaryKey: true, indexed: true)
   int id;
 }
 
 class GeneratorModel3 extends Model<_GeneratorModel3> implements _GeneratorModel3 {}
 class _GeneratorModel3 {
-  @Attributes(defaultValue: "(now() at time zone 'utc')")
+  @AttributeHint(defaultValue: "(now() at time zone 'utc')")
   DateTime creationDate;
 
-  @Attributes(primaryKey: true, defaultValue: "18")
+  @AttributeHint(primaryKey: true, defaultValue: "18")
   int id;
 
-  @Attributes(defaultValue: "\$\$dflt\$\$")
+  @AttributeHint(defaultValue: "\$\$dflt\$\$")
   String textValue;
 
-  @Attributes(defaultValue: "true")
+  @AttributeHint(defaultValue: "true")
   bool option;
 
-  @Attributes(defaultValue: "'1900-01-01T00:00:00.000Z'")
+  @AttributeHint(defaultValue: "'1900-01-01T00:00:00.000Z'")
   DateTime otherTime;
 
-  @Attributes(defaultValue: "20.0")
+  @AttributeHint(defaultValue: "20.0")
   double value;
 }
 
 class GenUser extends Model<_GenUser> implements _GenUser {}
 
 class _GenUser {
-  @Attributes(primaryKey: true)
+  @AttributeHint(primaryKey: true)
   int id;
 
   String name;
 
-  @Relationship(RelationshipType.hasMany, #owner)
   OrderedSet<GenPost> posts;
 }
 
 class GenPost extends Model<_GenPost> implements _GenPost {}
 class _GenPost {
-  @Attributes(primaryKey: true)
+  @AttributeHint(primaryKey: true)
   int id;
 
   String text;
 
-  @Relationship(RelationshipType.belongsTo, #posts, required: false, deleteRule: RelationshipDeleteRule.restrict)
+  @RelationshipInverse(#posts, isRequired: false, onDelete: RelationshipDeleteRule.restrict)
   GenUser owner;
 }
 
 class GenNamed extends Model<_GenNamed> implements _GenNamed {}
 
 class _GenNamed {
-  @Attributes(primaryKey: true)
+  @AttributeHint(primaryKey: true)
   int id;
 
   static String tableName() {
@@ -155,36 +153,31 @@ class _GenOwner {
   @primaryKey
   int id;
 
-  @Relationship(RelationshipType.hasOne, #owner)
   GenAuth auth;
 }
 
 class GenAuth extends Model<_GenAuth> implements _GenAuth {}
 class _GenAuth {
-  @Attributes(primaryKey: true)
+  @AttributeHint(primaryKey: true)
   int id;
 
-  @Relationship(RelationshipType.belongsTo, #auth, required: false, deleteRule: RelationshipDeleteRule.cascade)
+  @RelationshipInverse(#auth, isRequired: false, onDelete: RelationshipDeleteRule.cascade)
   GenOwner owner;
 }
 
 class GenLeft extends Model<_GenLeft> implements _GenLeft {}
-
 class _GenLeft {
-  @Attributes(primaryKey: true)
+  @AttributeHint(primaryKey: true)
   int id;
 
-  @Relationship(RelationshipType.hasMany, #left)
   OrderedSet<GenJoin> join;
 }
 
 class GenRight extends Model<_GenRight> implements _GenRight {}
-
 class _GenRight {
-  @Attributes(primaryKey: true)
+  @AttributeHint(primaryKey: true)
   int id;
 
-  @Relationship(RelationshipType.hasMany, #right)
   OrderedSet<GenJoin> join;
 }
 
@@ -193,10 +186,10 @@ class _GenJoin {
   @primaryKey
   int id;
 
-  @Relationship(RelationshipType.belongsTo, #join)
+  @RelationshipInverse(#join)
   GenLeft left;
 
-  @Relationship(RelationshipType.belongsTo, #join)
+  @RelationshipInverse(#join)
   GenRight right;
 }
 
@@ -205,7 +198,6 @@ class _GenObj {
   @primaryKey
   int id;
 
-  @Relationship(RelationshipType.hasOne, #ref)
   GenNotNullable gen;
 }
 
@@ -214,6 +206,6 @@ class _GenNotNullable {
   @primaryKey
   int id;
 
-  @Relationship(RelationshipType.belongsTo, #gen, deleteRule: RelationshipDeleteRule.nullify, required: false)
+  @RelationshipInverse(#gen, onDelete: RelationshipDeleteRule.nullify, isRequired: false)
   GenObj ref;
 }

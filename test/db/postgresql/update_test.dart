@@ -251,7 +251,7 @@ class _TestModel {
 
   String name;
 
-  @Attributes(nullable: true, unique: true)
+  @AttributeHint(nullable: true, unique: true)
   String emailAddress;
 }
 
@@ -262,7 +262,7 @@ class _Child {
 
   String name;
 
-  @Relationship(RelationshipType.belongsTo, #child, required: false, deleteRule: RelationshipDeleteRule.cascade)
+  @RelationshipInverse(#child, isRequired: false, onDelete: RelationshipDeleteRule.cascade)
   Parent parent;
 }
 
@@ -273,7 +273,6 @@ class _Parent {
 
   String name;
 
-  @Relationship(RelationshipType.hasOne, #parent)
   Child child;
 }
 

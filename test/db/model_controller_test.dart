@@ -145,7 +145,7 @@ class TestModelController extends ModelController<TestModel> {
 
 class TestModel extends Model<_TestModel> implements _TestModel {}
 class _TestModel {
-  @Attributes(primaryKey: true)
+  @AttributeHint(primaryKey: true)
   int id;
 
   String name;

@@ -294,13 +294,8 @@ class _Container {
   @primaryKey
   int id;
 
-  @Relationship.hasMany(#container)
   OrderedSet<DefaultItem> defaultItems;
-
-  @Relationship.hasMany(#container)
   OrderedSet<LoadedItem> loadedItems;
-
-  @Relationship.hasOne(#container)
   LoadedSingleItem loadedSingleItem;
 }
 
@@ -309,7 +304,7 @@ class _DefaultItem {
   @primaryKey
   int id;
 
-  @Relationship.belongsTo(#defaultItems)
+  @RelationshipInverse(#defaultItems)
   Container container;
 }
 
@@ -318,10 +313,10 @@ class _LoadedItem {
   @primaryKey
   int id;
 
-  @Attributes(indexed: true)
+  @AttributeHint(indexed: true)
   String someIndexedThing;
 
-  @Relationship.belongsTo(#loadedItems, deleteRule: RelationshipDeleteRule.restrict, required: false)
+  @RelationshipInverse(#loadedItems, onDelete: RelationshipDeleteRule.restrict, isRequired: false)
   Container container;
 }
 
@@ -330,7 +325,7 @@ class _LoadedSingleItem {
   @primaryKey
   int id;
 
-  @Relationship.belongsTo(#loadedSingleItem, deleteRule: RelationshipDeleteRule.cascade, required: true)
+  @RelationshipInverse(#loadedSingleItem, onDelete: RelationshipDeleteRule.cascade, isRequired: true)
   Container container;
 }
 
@@ -342,26 +337,26 @@ class _SimpleModel {
 
 class ExtensiveModel extends Model<_ExtensiveModel> implements _ExtensiveModel {}
 class _ExtensiveModel {
-  @Attributes(primaryKey: true, databaseType: PropertyType.string)
+  @AttributeHint(primaryKey: true, databaseType: PropertyType.string)
   String id;
 
   DateTime startDate;
 
-  @Attributes(indexed: true)
+  @AttributeHint(indexed: true)
   int indexedValue;
 
-  @Attributes(autoincrement: true)
+  @AttributeHint(autoincrement: true)
   int autoincrementValue;
 
-  @Attributes(unique: true)
+  @AttributeHint(unique: true)
   String uniqueValue;
 
-  @Attributes(defaultValue: "'foo'")
+  @AttributeHint(defaultValue: "'foo'")
   String defaultItem;
 
-  @Attributes(nullable: true)
+  @AttributeHint(nullable: true)
   bool nullableValue;
 
-  @Attributes(databaseType: PropertyType.bigInteger, nullable: true, defaultValue: "7", unique: true, indexed: true, autoincrement: true)
+  @AttributeHint(databaseType: PropertyType.bigInteger, nullable: true, defaultValue: "7", unique: true, indexed: true, autoincrement: true)
   int loadedValue;
 }

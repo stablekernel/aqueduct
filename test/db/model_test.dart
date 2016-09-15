@@ -383,20 +383,19 @@ void main() {
 }
 
 class User extends Model<_User> implements _User {
-  @availableAsInputAndOutput
+  @transientAttribute
   String value;
 }
 
 class _User {
-  @Attributes(nullable: true)
+  @AttributeHint(nullable: true)
   String name;
 
-  @Attributes(primaryKey: true)
+  @AttributeHint(primaryKey: true)
   int id;
 
   DateTime dateCreated;
 
-  @Relationship.hasMany(#owner)
   OrderedSet<Post> posts;
 }
 
@@ -407,58 +406,58 @@ class _Post {
 
   String text;
 
-  @Relationship.belongsTo(#posts)
+  @RelationshipInverse(#posts)
   User owner;
 }
 
 class TransientTest extends Model<_TransientTest> implements _TransientTest {
-  @availableAsOutput
+  @transientOutputAttribute
   String get defaultedText => "Mr. $text";
 
-  @availableAsInput
+  @transientInputAttribute
   void set defaultedText(String str) {
     text = str.split(" ").last;
   }
 
-  @availableAsInput
+  @transientInputAttribute
   void set inputOnly(String s) {
     text = s;
   }
 
-  @availableAsOutput
+  @transientOutputAttribute
   String get outputOnly => text;
   void set outputOnly(String s) {
     text = s;
   }
 
   // This is intentionally invalid
-  @availableAsInput
+  @transientInputAttribute
   String get invalidInput => text;
 
   // This is intentionally invalid
-  @availableAsOutput
+  @transientOutputAttribute
   void set invalidOutput(String s) {
     text = s;
   }
 
-  @availableAsInputAndOutput
+  @transientAttribute
   String get bothButOnlyOnOne => text;
   void set bothButOnlyOnOne(String s) {
     text = s;
   }
 
-  @availableAsInput
+  @transientInputAttribute
   int inputInt;
 
-  @availableAsOutput
+  @transientOutputAttribute
   int outputInt;
 
-  @availableAsInputAndOutput
+  @transientAttribute
   int inOut;
 
-  @availableAsInputAndOutput
+  @transientAttribute
   String get bothOverQualified => text;
-  @availableAsInputAndOutput
+  @transientAttribute
   void set bothOverQualified(String s) {
     text = s;
   }

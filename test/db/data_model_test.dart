@@ -118,7 +118,7 @@ void main() {
       expect(relDesc is RelationshipDescription, true);
       expect(relDesc.isNullable, false);
       expect(relDesc.inverseKey, #items);
-      expect(relDesc.inverseRelationship == dataModel.entityForType(User).relationships[relDesc.inverseKey], true);
+      expect(relDesc.inverseRelationship == dataModel.entityForType(User).relationships[MirrorSystem.getName(relDesc.inverseKey)], true);
       expect(relDesc.deleteRule, RelationshipDeleteRule.cascade);
       expect(relDesc.destinationEntity == dataModel.entityForType(User), true);
       expect(relDesc.relationshipType, RelationshipType.belongsTo);
@@ -127,8 +127,8 @@ void main() {
       relDesc = entity.relationships["worker"];
       expect(relDesc is RelationshipDescription, true);
       expect(relDesc.isNullable, true);
-      expect(relDesc.inverseKey, "manager");
-      expect(relDesc.inverseRelationship == dataModel.entityForType(User).relationships[relDesc.inverseKey], true);
+      expect(relDesc.inverseKey, #manager);
+      expect(relDesc.inverseRelationship == dataModel.entityForType(User).relationships[MirrorSystem.getName(relDesc.inverseKey)], true);
       expect(relDesc.deleteRule, RelationshipDeleteRule.nullify);
       expect(relDesc.destinationEntity == dataModel.entityForType(User), true);
       expect(relDesc.relationshipType, RelationshipType.belongsTo);
@@ -136,8 +136,8 @@ void main() {
       entity = dataModel.entityForType(User);
       relDesc = entity.relationships["manager"];
       expect(relDesc is RelationshipDescription, true);
-      expect(relDesc.inverseKey, "worker");
-      expect(relDesc.inverseRelationship == dataModel.entityForType(Manager).relationships[relDesc.inverseKey], true);
+      expect(relDesc.inverseKey, #worker);
+      expect(relDesc.inverseRelationship == dataModel.entityForType(Manager).relationships[MirrorSystem.getName(relDesc.inverseKey)], true);
       expect(relDesc.destinationEntity == dataModel.entityForType(Manager), true);
       expect(relDesc.relationshipType, RelationshipType.hasOne);
 
@@ -229,28 +229,26 @@ class _User {
   @primaryKey
   int id;
 
-  @availableAsInputAndOutput
+  @transientAttribute
   String stringId;
 
   String username;
   bool flag;
 
-  @Attributes(nullable: true, defaultValue: "'now()'", unique: true, indexed: true, omitByDefault: true)
+  @AttributeHint(nullable: true, defaultValue: "'now()'", unique: true, indexed: true, omitByDefault: true)
   DateTime loadedTimestamp;
 
-  @Relationship.hasMany(#user)
   OrderedSet<Item> items;
 
-  @Relationship.hasOne(#worker)
   Manager manager;
 }
 
 class Item extends Model<_Item> implements _Item {}
 class _Item {
-  @Attributes(primaryKey: true)
+  @AttributeHint(primaryKey: true)
   String name;
 
-  @Relationship.belongsTo(#items, deleteRule: RelationshipDeleteRule.cascade, required: true)
+  @RelationshipInverse(#items, onDelete: RelationshipDeleteRule.cascade, isRequired: true)
   User user;
 }
 
@@ -261,7 +259,7 @@ class _Manager {
 
   String name;
 
-  @Relationship.belongsTo(#manager)
+  @RelationshipInverse(#manager)
   User worker;
 }
 
@@ -270,7 +268,6 @@ class _Owner {
   @primaryKey
   int id;
 
-  @Relationship(RelationshipType.hasOne, #ref)
   FailingChild gen;
 }
 
@@ -279,6 +276,6 @@ class _FailingChild {
   @primaryKey
   int id;
 
-  @Relationship(RelationshipType.belongsTo, #gen, deleteRule: RelationshipDeleteRule.nullify, required: true)
+  @RelationshipInverse(#gen, onDelete: RelationshipDeleteRule.nullify, isRequired: true)
   Owner ref;
 }

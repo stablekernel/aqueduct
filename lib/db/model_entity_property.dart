@@ -117,7 +117,7 @@ class AttributeDescription extends PropertyDescription {
           includedInDefaultResultSet: false,
           autoincrement: false);
 
-  AttributeDescription(ModelEntity entity, String name, PropertyType type, {TransientMappability transientStatus: null, bool primaryKey: false, String defaultValue: null, bool unique: false, bool indexed: false, bool nullable: false, bool includedInDefaultResultSet: true, bool autoincrement: false}) :
+  AttributeDescription(ModelEntity entity, String name, PropertyType type, {TransientAttribute transientStatus: null, bool primaryKey: false, String defaultValue: null, bool unique: false, bool indexed: false, bool nullable: false, bool includedInDefaultResultSet: true, bool autoincrement: false}) :
         isPrimaryKey = primaryKey,
         this.defaultValue = defaultValue,
         this.transientStatus = transientStatus,
@@ -147,7 +147,7 @@ class AttributeDescription extends PropertyDescription {
   /// The validity of a transient attribute as input, output or both.
   ///
   /// If this property is non-null, the attribute is transient (not backed by a database field/column).
-  final TransientMappability transientStatus;
+  final TransientAttribute transientStatus;
 
   String toString() {
     return "AttributeDescription on ${entity.tableName}.$name Type: $type";
@@ -158,7 +158,6 @@ class AttributeDescription extends PropertyDescription {
 class RelationshipDescription extends PropertyDescription {
   RelationshipDescription(ModelEntity entity, String name, PropertyType type, this.destinationEntity, this.deleteRule, this.relationshipType, this.inverseKey, {bool unique: false, bool indexed: false, bool nullable: false, bool includedInDefaultResultSet: true})
     : super(entity, name, type, unique: unique, indexed: indexed, nullable: nullable, includedInDefaultResultSet: includedInDefaultResultSet) {
-
   }
 
   /// The entity that this relationship's instances are represented by.

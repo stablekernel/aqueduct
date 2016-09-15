@@ -501,7 +501,7 @@ class _TestModel {
 
   String name;
 
-  @Attributes(nullable: true, unique: true)
+  @AttributeHint(nullable: true, unique: true)
   String email;
 
   static String tableName() {
@@ -520,7 +520,6 @@ class _GenUser {
 
   String name;
 
-  @Relationship(RelationshipType.hasMany, #owner)
   OrderedSet<GenPost> posts;
 
   static String tableName() {
@@ -535,7 +534,7 @@ class _GenPost {
 
   String text;
 
-  @Relationship(RelationshipType.belongsTo, #posts, deleteRule: RelationshipDeleteRule.cascade, required: false)
+  @RelationshipInverse(#posts, onDelete: RelationshipDeleteRule.cascade, isRequired: false)
   GenUser owner;
 }
 
@@ -544,6 +543,6 @@ class _Omit {
   @primaryKey
   int id;
 
-  @Attributes(omitByDefault: true)
+  @AttributeHint(omitByDefault: true)
   String text;
 }

@@ -217,7 +217,7 @@ class _TestModel {
 
   String name;
 
-  @Attributes(nullable: true, unique: true)
+  @AttributeHint(nullable: true, unique: true)
   String emailAddress;
 
   static String tableName() {
@@ -231,7 +231,6 @@ class _GenUser {
   int id;
   String name;
 
-  @Relationship(RelationshipType.hasMany, #owner)
   OrderedSet<GenPost> posts;
 }
 
@@ -241,7 +240,7 @@ class _GenPost {
   int id;
   String text;
 
-  @Relationship(RelationshipType.belongsTo, #posts)
+  @RelationshipInverse(#posts)
   GenUser owner;
 }
 
@@ -253,12 +252,12 @@ class _GenTime {
 
   String text;
 
-  @Attributes(defaultValue: "(now() at time zone 'utc')")
+  @AttributeHint(defaultValue: "(now() at time zone 'utc')")
   DateTime dateCreated;
 }
 
 class TransientModel extends Model<_Transient> implements _Transient {
-  @availableAsInputAndOutput
+  @transientAttribute
   String transientValue;
 }
 

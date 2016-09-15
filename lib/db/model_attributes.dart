@@ -1,6 +1,5 @@
 part of aqueduct;
 
-
 /// Possible values for a delete rule in a [Relationship]
 ///
 /// * [restrict] will prevent a delete operation if there is a reference to the would-be deleted object.
@@ -12,6 +11,14 @@ enum RelationshipDeleteRule {
   cascade,
   nullify,
   setDefault
+}
+
+class RelationshipInverse {
+  const RelationshipInverse(this.inverseKey, {this.onDelete: RelationshipDeleteRule.nullify, this.isRequired: false});
+
+  final Symbol inverseKey;
+  final RelationshipDeleteRule onDelete;
+  final bool isRequired;
 }
 
 /// The different types of relationships.
@@ -26,74 +33,16 @@ enum RelationshipType {
   belongsTo // foreign key goes on this entity
 }
 
-/// An annotation for a Model property to indicate the values are instances of one or more Models.
-///
-/// To be used as metadata on a property declaration in model entity class.
-class Relationship {
-  /// The type of relationship.
-  ///
-  /// If the type is [hasOne] or [hasMany], the inverse relationship must be [belongsTo]. Likewise, a [belongsTo] relationship must have a [hasOne] or [hasMany]
-  /// inverse relationship.
-  final RelationshipType type;
-
-  /// The delete rule for this relationship.
-  ///
-  /// See [RelationshipDeleteRule] for possible values.
-  final RelationshipDeleteRule deleteRule;
-
-  /// The required name of the inverse property in the related model.
-  ///
-  /// For example, a social network 'Post' model object
-  /// would have a 'creator' property, related to the user that created it. Likewise, the User would have a 'posts' property
-  /// of posts it has created. The inverseName of 'posts' on the User would be 'creator' and the inverseName of 'creator'
-  /// on the Post would be 'posts'. All relationships must have an inverse.
-  final Symbol inverseKey;
-
-  /// Whether or not this relationship must be non-null.
-  ///
-  /// For [hasOne] or [hasMany] relationships, this has no effect. For [belongsTo] relationship, this requires the foreign key
-  /// to be non-null. The default value is false.
-  bool get isRequired => type == RelationshipType.belongsTo ? _isRequired : false;
-  final bool _isRequired;
-
-  /// Constructor for relationship to be used as metadata for a model property.
-  ///
-  /// [type] and [inverseName] are required. All Relationships must have an inverse in the corresponding model.
-  const Relationship(RelationshipType type, Symbol inverseKey, {RelationshipDeleteRule deleteRule: RelationshipDeleteRule.nullify, bool required: false})
-      : this.type = type,
-        this.inverseKey = inverseKey,
-        this.deleteRule = deleteRule,
-        this._isRequired = required;
-
-  const Relationship.hasMany(Symbol inverseKey) :
-        this.type = RelationshipType.hasMany,
-        this.inverseKey = inverseKey,
-        this.deleteRule = RelationshipDeleteRule.nullify,
-        this._isRequired = false;
-
-  const Relationship.hasOne(Symbol inverseKey) :
-        this.type = RelationshipType.hasOne,
-        this.inverseKey = inverseKey,
-        this.deleteRule = RelationshipDeleteRule.nullify,
-        this._isRequired = false;
-
-  const Relationship.belongsTo(Symbol inverseKey, {RelationshipDeleteRule deleteRule: RelationshipDeleteRule.nullify, bool required: false}) :
-        this.type = RelationshipType.belongsTo,
-        this.inverseKey = inverseKey,
-        this.deleteRule = deleteRule,
-        this._isRequired = required;
-}
-
 /// Marks a property as a primary key, database type big integer, and autoincrementing. The corresponding property
 /// type must be [int].
-const Attributes primaryKey = const Attributes(primaryKey: true, databaseType: PropertyType.bigInteger, autoincrement: true);
+const AttributeHint primaryKey = const AttributeHint(primaryKey: true, databaseType: PropertyType.bigInteger, autoincrement: true);
 
 /// A declaration annotation for the options on a property in a entity class.
 ///
 /// By default, simply declaring a a property in a entity class will make it a database field
 /// and its persistence information will be derived from its type.
 /// If, however, the property needs any of the attributes defined by this class, it should be annotated.
-class Attributes {
+class AttributeHint {
   /// When true, indicates that this model property is the primary key.
   ///
   /// Only one property of a class may have primaryKey equal to true.
@@ -140,7 +89,7 @@ class Attributes {
   final bool autoincrement;
 
   /// The metadata constructor.
-  const Attributes(
+  const AttributeHint(
       {bool primaryKey: false,
       PropertyType databaseType,
       bool nullable: false,
@@ -159,7 +108,7 @@ class Attributes {
         this.autoincrement = autoincrement;
 
   /// A supporting constructor to support modifying Attributes.
-  Attributes.fromAttributes(Attributes source, PropertyType databaseType)
+  AttributeHint.fromAttributes(AttributeHint source, PropertyType databaseType)
       : this.databaseType = databaseType,
         this.isPrimaryKey = source.isPrimaryKey,
         this.isNullable = source.isNullable,
@@ -171,18 +120,18 @@ class Attributes {
 }
 
 /// Metadata for a model type property that indicates it can be used in [readMap] and [asMap], but is not persisted.
-const TransientMappability availableAsInputAndOutput = const TransientMappability(availableAsInput: true, availableAsOutput: true);
+const TransientAttribute transientAttribute = const TransientAttribute(availableAsInput: true, availableAsOutput: true);
 
 /// Metadata for a model type property that indicates it can be used in [readMap], but is not persisted.
-const TransientMappability availableAsInput = const TransientMappability(availableAsInput: true, availableAsOutput: false);
+const TransientAttribute transientInputAttribute = const TransientAttribute(availableAsInput: true, availableAsOutput: false);
 
 /// Metadata for a model type property that indicates it can be used in [asMap], but is not persisted.
-const TransientMappability availableAsOutput = const TransientMappability(availableAsInput: false, availableAsOutput: true);
+const TransientAttribute transientOutputAttribute = const TransientAttribute(availableAsInput: false, availableAsOutput: true);
 
 /// Metadata to associate with a property to indicate it is not a column, but is part of the Model object.
-class TransientMappability {
+class TransientAttribute {
   final bool isAvailableAsInput;
   final bool isAvailableAsOutput;
-  const TransientMappability({bool availableAsInput: true, bool availableAsOutput: true}) :
+  const TransientAttribute({bool availableAsInput: true, bool availableAsOutput: true}) :
         isAvailableAsInput = availableAsInput, isAvailableAsOutput = availableAsOutput;
 }

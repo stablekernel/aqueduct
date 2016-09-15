@@ -192,10 +192,9 @@ class _TestModel {
 
   String name;
 
-  @Attributes(nullable: true, unique: true)
+  @AttributeHint(nullable: true, unique: true)
   String email;
 
-  @Relationship.hasMany(#test)
   OrderedSet<RefModel> ref;
 
   static String tableName() {
@@ -212,7 +211,7 @@ class _RefModel {
   @primaryKey
   int id;
 
-  @Relationship(RelationshipType.belongsTo, #ref, required: false, deleteRule: RelationshipDeleteRule.nullify)
+  @RelationshipInverse(#ref, isRequired: false, onDelete: RelationshipDeleteRule.nullify)
   TestModel test;
 }
 
@@ -223,7 +222,6 @@ class _GRestrictInverse {
 
   String name;
 
-  @Relationship.hasMany(#test)
   OrderedSet<GRestrict> test;
 }
 
@@ -233,7 +231,7 @@ class _GRestrict {
   @primaryKey
   int id;
 
-  @Relationship(RelationshipType.belongsTo, #test, required: false, deleteRule: RelationshipDeleteRule.restrict)
+  @RelationshipInverse(#test, isRequired: false, onDelete: RelationshipDeleteRule.restrict)
   GRestrictInverse test;
 }
 
@@ -245,7 +243,6 @@ class _GCascadeInverse {
 
   String name;
 
-  @Relationship.hasMany(#test)
   OrderedSet<GCascade> test;
 }
 
@@ -255,6 +252,6 @@ class _GCascade {
   @primaryKey
   int id;
 
-  @Relationship(RelationshipType.belongsTo, #test, required: false, deleteRule: RelationshipDeleteRule.cascade)
+  @RelationshipInverse(#test, isRequired: false, onDelete: RelationshipDeleteRule.cascade)
   GCascadeInverse test;
 }

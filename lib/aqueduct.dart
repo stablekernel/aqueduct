@@ -34,6 +34,7 @@ export 'package:logging/logging.dart';
 export 'package:safe_config/safe_config.dart';
 export 'package:args/args.dart';
 
+part 'db/data_model_builder.dart';
 part 'db/model_backing.dart';
 part 'db/ordered_set.dart';
 part 'utilities/mirror_helpers.dart';

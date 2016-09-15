@@ -33,10 +33,10 @@ class _Token implements Tokenizable<int> {
   @primaryKey
   int id;
 
-  @Attributes(indexed: true)
+  @AttributeHint(indexed: true)
   String accessToken;
 
-  @Attributes(indexed: true)
+  @AttributeHint(indexed: true)
   String refreshToken;
 
   DateTime issueDate;
@@ -45,7 +45,6 @@ class _Token implements Tokenizable<int> {
   String type;
   String clientID;
 
-  @Relationship.hasOne(#token)
   AuthCode code;
 }
 
@@ -54,17 +53,17 @@ class _AuthCode implements TokenExchangable<Token> {
   @primaryKey
   int id;
 
-  @Attributes(indexed: true)
+  @AttributeHint(indexed: true)
   String code;
 
-  @Attributes(nullable: true)
+  @AttributeHint(nullable: true)
   String redirectURI;
   String clientID;
   int resourceOwnerIdentifier;
   DateTime issueDate;
   DateTime expirationDate;
 
-  @Relationship.belongsTo(#code, required: false, deleteRule: RelationshipDeleteRule.cascade)
+  @RelationshipInverse(#code, isRequired: false, onDelete: RelationshipDeleteRule.cascade)
   Token token;
 }
 

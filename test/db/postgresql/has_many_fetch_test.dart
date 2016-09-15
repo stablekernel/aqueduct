@@ -88,6 +88,15 @@ void main() {
       expect(loc.equipment, isNull);
     });
 
+    test("Objects returned in join are not the same instance", () async {
+      var q = new Query<User>()
+        ..matchOn.id = 1
+        ..matchOn.locations.includeInResultSet = true;
+
+      var o = await q.fetchOne();
+      expect(identical(o.locations.first.user, o), false);
+    });
+
     test("Setting predicate on root object and including subobject returns a single object and its subobjects", () async {
       var q = new Query<User>()
         ..matchOn.id = 1
@@ -396,7 +405,6 @@ class _User {
 
   String name;
 
-  @Relationship.hasMany(#user)
   OrderedSet<Location> locations;
 }
 
@@ -446,10 +454,9 @@ class _Location {
 
   String name;
 
-  @Relationship.belongsTo(#locations, deleteRule: RelationshipDeleteRule.cascade)
+  @RelationshipInverse(#locations, onDelete: RelationshipDeleteRule.cascade)
   User user;
 
-  @Relationship.hasMany(#location)
   OrderedSet<Equipment> equipment;
 }
 
@@ -481,6 +488,6 @@ class _Equipment {
   String name;
   String type;
 
-  @Relationship.belongsTo(#equipment, deleteRule: RelationshipDeleteRule.cascade)
+  @RelationshipInverse(#equipment, onDelete: RelationshipDeleteRule.cascade)
   Location location;
 }

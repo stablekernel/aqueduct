@@ -49,7 +49,9 @@ Persistent types define the mapping between your code and a database table (and 
 * DateTime
 * bool
 
-In addition to a type and name, each property can also have [Attributes] that further specify the corresponding column. [Attributes] are added as metadata to a property. For example, the following change to the `_User` persistent type adds a `String` `email` property which must be unique across all users:
+Properties that are one of these types are more specifically referred to the *attributes* of an entity.
+
+In addition to a type and name, each property can also have [AttributeHint] that further specify the corresponding column. [AttributeHint] is added as metadata to a property. For example, the following change to the `_User` persistent type adds a `String` `email` property which must be unique across all users:
 
 ```dart
 class _User {
@@ -58,11 +60,11 @@ class _User {
 
   String name;
 
-  @Attributes(unique: true)
+  @AttributeHint(unique: true)
   String email;
 }
 ```
-There are eight configurable attributes available in the [Attributes] class.
+There are eight configurable hints available in the [AttributeHint] class.
 
 * `primaryKey` - Indicates that property is the primary key of the table represented by this persistent type. Must be one per persistent type.
 * `databaseType` - Uses a more specific type for the database column than can be derived from the Dart type of the property. For example, you may wish to specify that an integer property is stored in a database column that holds an 8-byte integer, instead of the default 4-byte integer.
@@ -73,12 +75,12 @@ There are eight configurable attributes available in the [Attributes] class.
 * `omitByDefault` - Toggles whether or not this property should be fetched from the database by default. Useful for properties like hashed passwords, where you don't want to return that information when fetching an account unless you explicitly want the check the password.
 * `autoincrement` - Toggles whether or not the underlying database should generate a new value from a serial generator each time a new instance is inserted into the database.
 
-By not specifying [Attributes], the default values for each of these possible configurations is used and the database type is inferred from the type of the property.
+By not specifying [AttributeHint], the default values for each of these possible configurations is used and the database type is inferred from the type of the property.
 
-Every persistent type must have at least one property with [Attributes] where `primaryKey` is true. There is a convenience instance of [Attributes] for this purpose, `@primaryKey`, which is equivalent to the following:
+Every persistent type must have at least one property with [AttributeHint] where `primaryKey` is true. There is a convenience instance of [AttributeHint] for this purpose, `@primaryKey`, which is equivalent to the following:
 
 ```dart
-@Attributes(primaryKey: true, databaseType: PropertyType.bigInteger, autoincrement: true)
+@AttributeHint(primaryKey: true, databaseType: PropertyType.bigInteger, autoincrement: true)
 ```
 By convention, persistent types begin with an underscore, but there is nothing that prevents you from changing this. Bear in mind, the name of the persistent type will be the name of the corresponding database table (and some databases, like PostgreSQL, already have a table named 'user'). You may override the name of the table by implementing a static method that returns the name of the table in a persistent type:
 
@@ -158,7 +160,7 @@ class _Video {
 }
 ```
 
-Note that, by default, transient properties are not serialized or deserialized.
+Note that, by default, transient properties are not serialized or deserialized, and are not `attributes` of their entity.
 
 It is important to understand that a `Model` is a effectively a wrapper around a `Map<String, dynamic>`. This `Map` is the *backing* of the `Model` object. A `Model` object's values are stored in this `Map` - when you access a property of a model object, the name of the property is transformed into a `String` key in the backing map. This is why the model type *implements* its persistent type - the actual storage for the properties are in this backing map, inherited from `Model`.
 
@@ -189,10 +191,17 @@ However, it is also possible that a property's value is actually the `null` valu
 
 ```dart
 var user = new User()..id = 2;
-var map = user.asMap(); // -> {'id' : 2}
+var map = user.asMap();
+map == {
+  'id' : 2
+};
 
 user.name = null;
-map = user.asMap(); // -> {'id' : 2, 'name' : null}
+map = user.asMap();
+map = {
+  'id' : 2,
+  'name' : null
+};
 ```
 
 The inverse is true when deserializing: any keys not present in the `Map` will not be set in the model's backing.
@@ -215,22 +224,33 @@ Because setting the value `null` for a property doesn't "remove" that property f
 var user = new User()
   ..id = 2
   ..name = 'Bob';
-var map = user.asMap(); // -> {'id' : 2, 'name' : 'Bob'}
+var map = user.asMap();
+map == {
+  'id' : 2,
+  'name' : 'Bob'
+};
 
 user.name = null;
-map = user.asMap(); // -> {'id' : 2, 'name' : null}
+map = user.asMap();
+map == {
+  'id' : 2,
+  'name' : null
+};
 
 user.removePropertyFromBackingMap("name");
-map = user.asMap(); // -> {'id' : 2}
+map = user.asMap();
+map == {
+  'id' : 2
+};
 ```
 
 ### Transient Properties and Serialization/Deserialization
 
-By default, transient properties and getters are *not* included in the `Map` produced when serializing a model object. (Setters are obviously not included, as they don't hold a value.) To include a transient property or getter during serialization, you may mark it with `@availableAsOutput` metadata. Properties marked with this metadata will be included in the serialized `Map` if and only if they are not null. A good reason to use this feature is when you want to provide a value to the consumer of the API that is derived from one or more values in persistent type of the model object:
+By default, transient properties and getters are *not* included in the `Map` produced when serializing a model object. (Setters are obviously not included, as they don't hold a value.) To include a transient property or getter during serialization, you may mark it with `@transientOutputAttribute` metadata. Properties marked with this metadata will be included in the serialized `Map` if and only if they are not null. A good reason to use this feature is when you want to provide a value to the consumer of the API that is derived from one or more values in persistent type of the model object:
 
 ```dart
 class User extends Model<_User> implements _User {
-  @availableAsOutput
+  @transientOutputAttribute
   String get fullName => "$firstName $lastName";
 }
 
@@ -246,15 +266,19 @@ var user = new User()
   ..lastName = "Boberson";
 
 var map = user.asMap();
-// -> {'firstName' : 'Bob', 'lastName' : 'Boberson', 'fullName' : 'Bob Boberson'};
+map == {
+  'firstName' : 'Bob',
+  'lastName' : 'Boberson',
+  'fullName' : 'Bob Boberson'
+};
 
 ```
 
-Transient properties may also be used as inputs when deserializing a `Map` into a model object by marking the property with `@availableAsInput`. For example, consider how to handle user passwords. The persistent type - a direct mapping to the database - does not have a password property for security purposes. Instead, it has a password hash and a salt. An model type could then define a password property, which automatically set the salt and hash of the password in the underlying persistent type:
+Transient properties may also be used as inputs when deserializing a `Map` into a model object by marking the property with `@transientInputAttribute`. For example, consider how to handle user passwords. The persistent type - a direct mapping to the database - does not have a password property for security purposes. Instead, it has a password hash and a salt. An model type could then define a password property, which automatically set the salt and hash of the password in the underlying persistent type:
 
 ```dart
 class User extends Model<_User> implements _User {
-  @availableAsInput
+  @transientInputAttribute
   void set password(String pw) {
     salt = generateSalt();
     hashedPassword = hash(pw, salt);
@@ -276,27 +300,29 @@ var hashedPassword = user.hashedPassword; // 'somehashedstring'
 var password = user.password; // error, this property does not exist!
 ```
 
-Transient inputs must be setters or properties. For properties that are both inputs and outputs, you may use the metadata `@availableAsInputAndOutput`. A separate getter and setter may exist for the same name to allow both input and output:
+Transient inputs must be setters or properties. For properties that are both inputs and outputs, you may use the metadata `@transientAttribute`. Also, a separate getter and setter may exist for the same name to allow both input and output:
 
 ```dart
 class User extends Model<_User> implements _User {
-  @availableAsInput
+  @transientInputAttribute
   void set transientValue(String s) {
     ...
   }
 
-  @availableAsOutput
+  @transientOutputAttribute
   String get transientValue => ...;
 }
 ```
 
-### Modeling Object Relationships
+Transient properties marked with this metadata *are* `attributes` on an entity (like primitive properties on the persistent type, but unlike other properties on the model type).
 
-In addition to primitive properties, model objects may also have relationships to other model objects or collections of model objects. A relationship allows you to specify that a model object contains a collection of other model objects or a reference to another, individual model object. Defining a relationship sets up referential integrity between two models. It also makes querying entire graphs of objects much easier.
+### Modeling Model Object Relationships
 
-For example, in a social network application, a user may have many posts that they have created. A user 'has many' posts and this relationship would be represented by a has-many relationship in Aqueduct. A user might also have a reference to a `Profile`, and this relationship is modeled as a has-one relationship.
+In addition to attributes, model objects may also have properties that are other model objects or collections of other model objects. These types of properties are called *relationships*. For example, in a social network application, a user may have many posts that they have created. A user, then, should have a property that is a list of posts. This is called a 'hasMany' relationship, because a user can have many posts.
 
-Relationships are *always* declared in the persistent type of a model by declaring a property and adding `Relationship` metadata to that property. In the example of a social media application, you would add the `posts` property to a user's persistent type:
+A user might also have an associated profile, so it should also have a property that is an instance of some profile class. This is called a 'hasOne' relationship, because a user can only ever have one profile.
+
+These relationships are declared in the persistent type of a model. In the above examples, a user would look like this:
 
 ```dart
 class User extends Model<_User> implements _User {}
@@ -306,17 +332,14 @@ class _User {
 
   String name;
 
-  @Relationship.hasMany(#user)
-  OrderedSet<Post> posts;
-
-  @Relationship.hasOne(#user)
   Profile profile;
+  OrderedSet<Post> posts;
 }
 ```
 
-The type of relationship is defined by the `Relationship` metadata. `@Relationship.hasMany` indicates that there can be zero or more instances and `@Relationship.hasOne` indicates that there must be zero or one instance. When a relationship is declared as `hasOne`, the type of the property *must* be the model type of the related object (here, it is `Profile`). When the relationship is declared as `hasMany`, the type of the property must be an `OrderedSet<InstanceType>` (here, it is `OrderedSet<Post>`). (An `OrderedSet` is a glorified `List` - it can do everything a `List` can do - but has some additional behavior to help manage relationships and build queries.)
+An `OrderedSet` is what indicates that the relationship is hasMany. An `OrderedSet` is a glorified `List` - it can do everything a `List` can do - but has some additional behavior to help manage relationships and build queries.
 
-All relationships must have an inverse. An inverse is a property on the other model's persistent type that is the other side of the relationship. In the previous example, because `_User` declared a relationship with `Post`, `_Post` must have an inverse relationship to `User`; likewise with `Profile`:
+All relationships properties of an entity must have a inverse relationship property on the destination entity. If a user has posts, then all posts have a user. If a user has a profile, then a profile has a user. Thus, the `Post` and `Profile` entities both must have a property that is a `User`. Inverse relationship properties, like relationship properties, are declared in the entity's persistent type. `Post` and `Profile` would declare these `User` properties like so:
 
 ```dart
 class Post extends Model<_Post> implements _Post {}
@@ -326,7 +349,7 @@ class _Post {
 
   String text;
 
-  @Relationship.belongsTo(#posts)
+  @RelationshipInverse(#posts)
   User user;
 }
 
@@ -337,14 +360,20 @@ class _Profile {
 
   String profilePhotoURL;
 
-  @Relationship.belongsTo(#profile)
+  @RelationshipInverse(#profile)
   User user;
 }
 ```
 
-Notice first that the inverse of a both relationships is `belongsTo`. This is the third and final type of relationship and is only used for the inverse. Notice also the first argument to any `Relationship` is a symbol. This symbol is the symbol for the property on the inverse entity. For example, the `_User` declares that its `posts` inverse is `user`. This is what indicates that the `user` property on `_Post` is the inverse; it too referencing the inverse `posts` property on the `_User`. (This allows us to define multiple relationships between entities.)
+The inverse relationship properties have to have `RelationshipInverse` metadata. The only argument of its constructor is the symbol name of the property in the other entity. For example, `User` calls its list of posts `posts` and therefore the argument to the inverse property constructor must be the symbol `posts`.
 
-When translated to SQL, the entity with the `belongsTo` property is a `foreign key column`. The other side of the relationship does not take up a column in the underlying database. The `belongsTo` side of the relationship may define some extra metadata - a delete rule and whether or not it is required. So, if we adjust the relationships as follows, we will require that every `Post` must have a user (that is, the foreign key may not be null) and that if you delete a `User`, it will also delete its `Profile`:
+When translated to SQL, the `RelationshipInverse` property is actually a column on the corresponding database table; more specifically, a foreign key column. The data type of the corresponding column will be inferred from the type of the primary key on the other side of the relationship.
+
+The 'has' side of a relationship - the property without `RelationshipInverse` metadata - is not a column in the database, but is an entire row (hasOne) or many rows (hasMany).
+
+The `RelationshipInverse` property of the relationship may define some extra configuration parameters - a delete rule and whether and whether or not it is required.
+
+By making the `_Post`'s `user` required, we will require that every `Post` must have a user to be inserted into the database. This means that a `Post` cannot be created without a user (i.e., the foreign key may not be null).
 
 ```dart
 class _Post {
@@ -352,13 +381,139 @@ class _Post {
   @Relationship.belongsTo(#posts, required: true)
   User user;
 }
+```
 
+By changing the `_Profile`'s `user`'s delete rule to `RelationshipDeleteRule.cascade`, deleting a `User` will also delete its `Profile`:
+```
 class _Profile {
   ...
   @Relationship.belongsTo(#profile, deleteRule: RelationshipDeleteRule.cascade)
   User user;
 }
 ```
+
+When fetching a model object from a database, `RelationshipInverse` properties will be be fetched by default. However, the entire object is not fetched - only its `primaryKey` value. The remainder of its properties will not be present in the `backingMap`.
+
+```dart
+var query = new Query<Profile>();
+var profile = await query.fetchOne();
+
+var userBacking = profile.user.backingMap;
+userBacking == {
+  'id' : 1
+}; // does not contain 'name', 'profile' or 'posts'
+```
+
+The 'has' side of the relationship will not be fetched unless the `Query` explicitly indicates to do so (this will trigger a join query). Property keys for un-fetched relationships are not present in the `backingMap`.
+
+```dart
+var query = new Query<User>();
+var user = await query.fetchOne();
+
+var userBacking = user.backingMap;
+userBacking == {
+  'id' : 1,
+  'name' : 'Bob'
+}; // does not contain 'profile' or 'posts'
+```
+
+### Serialization and Deserialization of Relationships
+
+A model object will serialize any relationship properties as `Map`s or a `List<Map>` if those properties are present in its `backingMap`.
+
+'hasOne' and inverse properties are always serialized as `Map`s. Thus, the following:
+
+```dart
+var user = new User()
+  ..id = 1;
+  ..profile = (new Profile()..id = 2);
+
+var userMap = user.asMap();
+userMap == {
+  'id' : 1,
+  'profile' : {
+    'id' : 2
+  }
+};
+```
+
+'hasMany' relationships are always serialized as a `List` of `Map`s:
+```dart
+var user = new User()
+  ..id = 1;
+  ..posts = new OrderedSet.from([
+      new Post()..id = 2,
+      new Post()..id = 3
+  ]);
+
+var userMap = user.asMap();
+userMap == {
+  'id' : 1,
+  'posts' : [
+    {
+      'id' : 2
+    },
+    {
+      'id' : 3
+    }
+  ]
+};
+```
+
+It is important to note the potential for cyclic object graphs. Since all relationship properties have an inverse, the two properties in that relationship are references to one another. That is, you could do something like this:
+
+```dart
+identical(user.profile.user, user);
+identical(user.posts.first.user, user);
+```
+
+When fetching objects from a database, this won't happen - Aqueduct will create multiple instances of the same row when necessary to avoid this. Therefore, the previous code snippet would not be true, but the following two statements would be:
+
+```
+user.profile.user.id == user.id;
+
+user.posts.first.user.id == user.id
+```
+
+While fetched objects will not have cyclic references, model objects you instantiate yourself can (if you mistakenly do so). While these cyclic object graphs can be used build `Query`s, they cannot be serialized. You'll get a stack overflow error. It's best to avoid creating cyclic graphs altogether. For example:
+
+```dart
+
+// do:
+var user = ... from somewhere ...
+posts.forEach((p) {
+  p.user = new User()..id = user.id;
+});
+
+// do not:
+var user = ... from somewhere ...
+posts.forEach((p) {
+  p.user = user;
+});
+```
+
+Relationships may also be deserialized from a map or list of maps. Thus, the following will do what you expect:
+
+```dart
+var map = {
+  'id' : 1,
+  'name' : 'Bob'
+  'profile' : {
+    'id' : 3,
+    'profilePhotoURL' : 'http://somewhereout.there'
+  },
+  'posts' : [
+    {
+      'id' : 2,
+      'text' : 'Foo'
+    }
+  ]
+};
+
+var user = new User()
+  ..readMap(map);
+```
+
 
 ## The Layers Between Aqueduct and Your Database
 
