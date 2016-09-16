@@ -9,8 +9,8 @@ class DataModel {
   /// To register a class as a model object within this, you must include its type in the list. Example:
   ///
   ///       new DataModel([User, Token, Post]);
-  DataModel(List<Type> modelTypes) {
-    var builder = new _DataModelBuilder(this, modelTypes);
+  DataModel(List<Type> instanceTypes) {
+    var builder = new _DataModelBuilder(this, instanceTypes);
     _entities = builder.entities;
     _persistentTypeToEntityMap = builder.persistentTypeToEntityMap;
   }

@@ -163,13 +163,13 @@ class AuthDelegate implements AuthenticationServerDelegate<TestUser, Token, Auth
   }
 }
 
-Future<ModelContext> contextWithModels(List<Type> modelTypes) async {
+Future<ModelContext> contextWithModels(List<Type> instanceTypes) async {
   var persistentStore = new PostgreSQLPersistentStore(() async {
     var uri = "postgres://dart:dart@localhost:5432/dart_test";
     return await postgresql.connect(uri, timeZone: 'UTC');
   });
 
-  var dataModel = new DataModel(modelTypes);
+  var dataModel = new DataModel(instanceTypes);
   var generator = new SchemaGenerator(dataModel);
   var json = generator.serialized;
   var pGenerator = new PostgreSQLSchemaGenerator(json, temporary: true);
@@ -184,8 +184,8 @@ Future<ModelContext> contextWithModels(List<Type> modelTypes) async {
   return context;
 }
 
-String commandsForModelTypes(List<Type> modelTypes, {bool temporary: false}) {
-  var dataModel = new DataModel(modelTypes);
+String commandsForModelInstanceTypes(List<Type> instanceTypes, {bool temporary: false}) {
+  var dataModel = new DataModel(instanceTypes);
   var generator = new SchemaGenerator(dataModel);
   var json = generator.serialized;
   var pGenerator = new PostgreSQLSchemaGenerator(json, temporary: temporary);

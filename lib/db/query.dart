@@ -3,23 +3,23 @@ part of aqueduct;
 /// An representation of a database operation.
 ///
 /// Queries are used to find, update, insert, delete and count objects in a database.
-class Query<ModelType extends Model> {
-  Query({ModelContext context: null}) {
-    this.context = context ?? ModelContext.defaultContext;
-    entity = this.context.dataModel.entityForType(ModelType);
+class Query<InstanceType extends Model> {
+  Query({this.context}) {
+    context ??= ModelContext.defaultContext;
+    entity = context.dataModel.entityForType(InstanceType);
   }
 
   ModelEntity entity;
-  ModelContext context = ModelContext.defaultContext;
+  ModelContext context;
 
-  ModelType get matchOn {
+  InstanceType get matchOn {
     if (_matchOn == null) {
-      _matchOn = entity.newInstance() as ModelType;
+      _matchOn = entity.newInstance() as InstanceType;
       _matchOn._backing = new _ModelMatcherBacking();
     }
     return _matchOn;
   }
-  ModelType _matchOn;
+  InstanceType _matchOn;
 
   /// Confirms that a query has no predicate before executing it.
   ///
@@ -77,16 +77,16 @@ class Query<ModelType extends Model> {
   ///       ..values.name = 'Joe
   ///       ..values.job = 'programmer';
   ///
-  ModelType get values {
+  InstanceType get values {
     if (_valueObject == null) {
-      _valueObject = entity.newInstance() as ModelType;
+      _valueObject = entity.newInstance() as InstanceType;
     }
     return _valueObject;
   }
-  void set values(ModelType obj) {
+  void set values(InstanceType obj) {
     _valueObject = obj;
   }
-  ModelType _valueObject;
+  InstanceType _valueObject;
 
   /// A list of properties to be returned by the Query.
   ///
@@ -108,7 +108,7 @@ class Query<ModelType extends Model> {
   ///       q.values.name = "Joe";
   ///       var newUser = await q.insert();
   ///
-  Future<ModelType> insert() async {
+  Future<InstanceType> insert() async {
     return await context._executeInsertQuery(this);
   }
 
@@ -123,7 +123,7 @@ class Query<ModelType extends Model> {
   ///       q.predicate = new Predicate("id = @id", {"id" : existingUser.id});
   ///       q.values = existingUser;
   ///       var updatedUsers = await q.update();
-  Future<List<ModelType>> update() async {
+  Future<List<InstanceType>> update() async {
     return await context._executeUpdateQuery(this);
   }
 
@@ -138,7 +138,7 @@ class Query<ModelType extends Model> {
   ///       q.predicate = new Predicate("id = @id", {"id" : existingUser.id});
   ///       q.values = existingUser;
   ///       var updatedUsers = await q.update();
-  Future<ModelType> updateOne() async {
+  Future<InstanceType> updateOne() async {
     var results = await context._executeUpdateQuery(this);
     if (results.length == 1) {
       return results.first;
@@ -157,7 +157,7 @@ class Query<ModelType extends Model> {
   ///       var q = new Query<User>();
   ///       var allUsers = q.fetch();
   ///
-  Future<List<ModelType>> fetch() async {
+  Future<List<InstanceType>> fetch() async {
     return await context._executeFetchQuery(this);
   }
 
@@ -170,7 +170,7 @@ class Query<ModelType extends Model> {
   ///       var q = new Query<User>();
   ///       q.predicate = new Predicate("id = @id", {"id" : 1});
   ///       var user = await q.fetchOne();
-  Future<ModelType> fetchOne() async {
+  Future<InstanceType> fetchOne() async {
     fetchLimit = 1;
 
     var results = await context._executeFetchQuery(this);

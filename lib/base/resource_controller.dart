@@ -32,9 +32,9 @@ part of aqueduct;
 ///       pageBy (string): indicates the key in which to page by. See [QueryPage] for more information on paging. If this value is passed as part of the query, either pageAfter or pagePrior must also be passed, but only one of those.
 ///       pageAfter (string): indicates the page value and direction of the paging. pageBy must also be set. See [QueryPage] for more information.
 ///       pagePrior (string): indicates the page value and direction of the paging. pageBy must also be set. See [QueryPage] for more information.
-///       sortBy (string): indicates the sort order. The syntax is 'sortBy=key,order' where key is a property of [ModelType] and order is either 'asc' or 'desc'. You may specify multiple sortBy parameters.
+///       sortBy (string): indicates the sort order. The syntax is 'sortBy=key,order' where key is a property of [InstanceType] and order is either 'asc' or 'desc'. You may specify multiple sortBy parameters.
 ///
-class ResourceController<ModelType extends Model> extends HTTPController {
+class ResourceController<InstanceType extends Model> extends HTTPController {
   /// Returns a route pattern for using [ResourceController]s.
   ///
   /// Returns the string "/$name/[:id]", to be used as a route pattern in a [Router] for instances of [ResourceController] and subclasses.
@@ -46,26 +46,26 @@ class ResourceController<ModelType extends Model> extends HTTPController {
   ///
   /// [context] defaults to [defaultContext].
   ResourceController([ModelContext context]) : super() {
-    _query = new Query<ModelType>(context: context ?? ModelContext.defaultContext);
+    _query = new Query<InstanceType>(context: context ?? ModelContext.defaultContext);
   }
 
-  Query<ModelType> _query;
+  Query<InstanceType> _query;
 
   /// Executed prior to a fetch by ID query.
   ///
-  /// You may modify the [query] prior to its execution in this method. The [query] will have a single matcher, where the [ModelType]'s primary key
+  /// You may modify the [query] prior to its execution in this method. The [query] will have a single matcher, where the [InstanceType]'s primary key
   /// is equal to the first path argument in the [Request]. You may also return a new [Query],
-  /// but it must have the same [ModelType] as this controller. If you return null from this method, no [Query] will be executed
+  /// but it must have the same [InstanceType] as this controller. If you return null from this method, no [Query] will be executed
   /// and [didNotFindObject] will immediately be called.
-  Future<Query<ModelType>> willFindObjectWithQuery(Query<ModelType> query) async {
+  Future<Query<InstanceType>> willFindObjectWithQuery(Query<InstanceType> query) async {
     return query;
   }
 
   /// Executed after a fetch by ID query that found a matching instance.
   ///
-  /// By default, returns a [Response.ok] with the encoded instance. The [result] is the fetched [ModelType]. You may override this method
+  /// By default, returns a [Response.ok] with the encoded instance. The [result] is the fetched [InstanceType]. You may override this method
   /// to provide some other behavior.
-  Future<Response> didFindObject(ModelType result) async {
+  Future<Response> didFindObject(InstanceType result) async {
     return new Response.ok(result);
   }
 
@@ -95,19 +95,19 @@ class ResourceController<ModelType extends Model> extends HTTPController {
   /// You may modify the [query] prior to its execution in this method. You may also return a new [Query],
   /// but it must have the same type argument as this controller. If you return null from this method,
   /// no values will be inserted and [didInsertObject] will immediately be called with the value null.
-  Future<Query<ModelType>> willInsertObjectWithQuery(Query<ModelType> query) async {
+  Future<Query<InstanceType>> willInsertObjectWithQuery(Query<InstanceType> query) async {
     return query;
   }
 
   /// Executed after an insert query is successful.
   ///
-  /// By default, returns [Response.ok]. The [object] is the newly inserted [ModelType]. You may override this method to provide some other behavior.
-  Future<Response> didInsertObject(ModelType object) async {
+  /// By default, returns [Response.ok]. The [object] is the newly inserted [InstanceType]. You may override this method to provide some other behavior.
+  Future<Response> didInsertObject(InstanceType object) async {
     return new Response.ok(object);
   }
 
   @httpPost createObject() async {
-    ModelType instance = _query.entity.instanceType.newInstance(new Symbol(""), []).reflectee as ModelType;
+    InstanceType instance = _query.entity.instanceType.newInstance(new Symbol(""), []).reflectee as InstanceType;
     instance.readMap(requestBody as Map<String, dynamic>);
     _query.values = instance;
 
@@ -122,7 +122,7 @@ class ResourceController<ModelType extends Model> extends HTTPController {
   /// You may modify the [query] prior to its execution in this method. You may also return a new [Query],
   /// but it must have the same type argument as this controller. If you return null from this method,
   /// no delete operation will be performed and [didNotFindObjectToDeleteWithID] will immediately be called with the value null.
-  Future<Query<ModelType>> willDeleteObjectWithQuery(Query<ModelType> query) async {
+  Future<Query<InstanceType>> willDeleteObjectWithQuery(Query<InstanceType> query) async {
     return query;
   }
 
@@ -159,14 +159,14 @@ class ResourceController<ModelType extends Model> extends HTTPController {
   /// You may modify the [query] prior to its execution in this method. You may also return a new [Query],
   /// but it must have the same type argument as this controller. If you return null from this method,
   /// no values will be inserted and [didNotFindObjectToUpdateWithID] will immediately be called with the value null.
-  Future<Query<ModelType>> willUpdateObjectWithQuery(Query<ModelType> query) async {
+  Future<Query<InstanceType>> willUpdateObjectWithQuery(Query<InstanceType> query) async {
     return query;
   }
 
   /// Executed after an object was updated.
   ///
   /// By default, returns [Response.ok] with the encoded, updated object. You may override this method to provide some other behavior.
-  Future<Response> didUpdateObject(ModelType object) async {
+  Future<Response> didUpdateObject(InstanceType object) async {
     return new Response.ok(object);
   }
 
@@ -180,7 +180,7 @@ class ResourceController<ModelType extends Model> extends HTTPController {
   @httpPut updateObject(String id) async {
     _query.matchOn[_query.entity.primaryKey] = whereEqualTo(_parsePrimaryKey(id));
 
-    ModelType instance = _query.entity.instanceType.newInstance(new Symbol(""), []).reflectee as ModelType;
+    InstanceType instance = _query.entity.instanceType.newInstance(new Symbol(""), []).reflectee as InstanceType;
     instance.readMap(requestBody as Map<String, dynamic>);
     _query.values = instance;
 
@@ -199,14 +199,14 @@ class ResourceController<ModelType extends Model> extends HTTPController {
   /// You may modify the [query] prior to its execution in this method. You may also return a new [Query],
   /// but it must have the same type argument as this controller. If you return null from this method,
   /// no objects will be fetched and [didFindObjects] will immediately be called with the value null.
-  Future<Query<ModelType>> willFindObjectsWithQuery(Query<ModelType> query) async {
+  Future<Query<InstanceType>> willFindObjectsWithQuery(Query<InstanceType> query) async {
     return query;
   }
 
   /// Executed after a list of objects has been fetched.
   ///
   /// By default, returns [Response.ok] with the encoded list of founds objects (which may be the empty list).
-  Future<Response> didFindObjects(List<ModelType> objects) async {
+  Future<Response> didFindObjects(List<InstanceType> objects) async {
     return new Response.ok(objects);
   }
 
@@ -272,7 +272,7 @@ class ResourceController<ModelType extends Model> extends HTTPController {
         new APIResponse()
           ..statusCode = HttpStatus.OK
           ..description = ""
-          ..schema = ModelContext.defaultContext.entityForType(ModelType).documentedResponseSchema,
+          ..schema = ModelContext.defaultContext.entityForType(InstanceType).documentedResponseSchema,
         new APIResponse()
           ..statusCode = HttpStatus.NOT_FOUND
           ..description = ""
@@ -289,7 +289,7 @@ class ResourceController<ModelType extends Model> extends HTTPController {
           ..statusCode = HttpStatus.OK
           ..description = ""
           ..schema = ModelContext.defaultContext
-              .entityForType(ModelType)
+              .entityForType(InstanceType)
               .documentedResponseSchema,
       ]);
     } else if (operation.id == APIOperation.idForMethod(this, #updateObject)) {
@@ -297,7 +297,7 @@ class ResourceController<ModelType extends Model> extends HTTPController {
         new APIResponse()
           ..statusCode = HttpStatus.OK
           ..description = ""
-          ..schema = ModelContext.defaultContext.entityForType(ModelType).documentedResponseSchema,
+          ..schema = ModelContext.defaultContext.entityForType(InstanceType).documentedResponseSchema,
         new APIResponse()
           ..statusCode = HttpStatus.NOT_FOUND
           ..description = ""
@@ -313,7 +313,7 @@ class ResourceController<ModelType extends Model> extends HTTPController {
         new APIResponse()
           ..statusCode = HttpStatus.OK
           ..description = ""
-          ..schema = ModelContext.defaultContext.entityForType(ModelType).documentedResponseSchema,
+          ..schema = ModelContext.defaultContext.entityForType(InstanceType).documentedResponseSchema,
         new APIResponse()
           ..statusCode = HttpStatus.NOT_FOUND
           ..description = ""
@@ -331,7 +331,7 @@ class ResourceController<ModelType extends Model> extends HTTPController {
           ..description = ""
           ..schema = (new APISchemaObject()
             ..type = APISchemaObjectTypeArray
-            ..items = ModelContext.defaultContext.entityForType(ModelType).documentedResponseSchema
+            ..items = ModelContext.defaultContext.entityForType(InstanceType).documentedResponseSchema
           ),
         new APIResponse()
           ..statusCode = HttpStatus.NOT_FOUND

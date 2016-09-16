@@ -4,37 +4,37 @@ import '../../helpers.dart';
 
 void main() {
   test("Property tables generate appropriate postgresql commands", () {
-    expect(commandsForModelTypes([GeneratorModel1]),
+    expect(commandsForModelInstanceTypes([GeneratorModel1]),
         "create table _GeneratorModel1 (id bigserial primary key,name text not null,option boolean not null,points double precision not null unique,validDate timestamp null);");
   });
 
   test("Create temporary table", () {
-    expect(commandsForModelTypes([GeneratorModel1], temporary: true),
+    expect(commandsForModelInstanceTypes([GeneratorModel1], temporary: true),
         "create temporary table _GeneratorModel1 (id bigserial primary key,name text not null,option boolean not null,points double precision not null unique,validDate timestamp null);");
   });
 
   test("Create table with indices", () {
-    expect(commandsForModelTypes([GeneratorModel2]),
+    expect(commandsForModelInstanceTypes([GeneratorModel2]),
         "create table _GeneratorModel2 (id int primary key);\ncreate index _GeneratorModel2_id_idx on _GeneratorModel2 (id);");
   });
 
   test("Create multiple tables with trailing index", () {
-    expect(commandsForModelTypes([GeneratorModel1, GeneratorModel2]),
+    expect(commandsForModelInstanceTypes([GeneratorModel1, GeneratorModel2]),
         "create table _GeneratorModel1 (id bigserial primary key,name text not null,option boolean not null,points double precision not null unique,validDate timestamp null);\ncreate table _GeneratorModel2 (id int primary key);\ncreate index _GeneratorModel2_id_idx on _GeneratorModel2 (id);");
   });
 
   test("Default values are properly serialized", () {
-    expect(commandsForModelTypes([GeneratorModel3]),
+    expect(commandsForModelInstanceTypes([GeneratorModel3]),
         "create table _GeneratorModel3 (creationDate timestamp not null default (now() at time zone 'utc'),id int primary key,option boolean not null default true,otherTime timestamp not null default '1900-01-01T00:00:00.000Z',textValue text not null default \$\$dflt\$\$,value double precision not null default 20.0);");
   });
 
   test("Table with tableName() overrides class name", () {
-    expect(commandsForModelTypes([GenNamed]),
+    expect(commandsForModelInstanceTypes([GenNamed]),
         "create table GenNamed (id int primary key);");
   });
 
   test("One-to-one relationships are generated", () {
-    var cmds = commandsForModelTypes([GenOwner, GenAuth]);
+    var cmds = commandsForModelInstanceTypes([GenOwner, GenAuth]);
     expect(cmds.contains("create table _GenOwner (id bigserial primary key)"), true);
     expect(cmds.contains("create table _GenAuth (id int primary key,owner_id bigint null unique)"), true);
     expect(cmds.contains("create index _GenAuth_owner_id_idx on _GenAuth (owner_id)"), true);
@@ -43,7 +43,7 @@ void main() {
   });
 
   test("One-to-many relationships are generated", () {
-    var cmds = commandsForModelTypes([GenUser, GenPost]);
+    var cmds = commandsForModelInstanceTypes([GenUser, GenPost]);
 
     expect(cmds.contains("create table _GenUser (id int primary key,name text not null)"), true);
     expect(cmds.contains("create table _GenPost (id int primary key,owner_id int null,text text not null)"), true);
@@ -53,7 +53,7 @@ void main() {
   });
 
   test("Many-to-many relationships are generated", () {
-    var cmds = commandsForModelTypes([GenLeft, GenRight, GenJoin]);
+    var cmds = commandsForModelInstanceTypes([GenLeft, GenRight, GenJoin]);
 
     expect(cmds.contains("create table _GenLeft (id int primary key)"), true);
     expect(cmds.contains("create table _GenRight (id int primary key)"), true);
@@ -66,7 +66,7 @@ void main() {
   });
 
   test("Serial types in relationships are properly inversed", () {
-    var cmds = commandsForModelTypes([GenOwner, GenAuth]);
+    var cmds = commandsForModelInstanceTypes([GenOwner, GenAuth]);
     expect(cmds.contains("create table _GenAuth (id int primary key,owner_id bigint null unique)"), true);
   });
 }

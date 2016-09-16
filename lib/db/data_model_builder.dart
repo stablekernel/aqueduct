@@ -1,8 +1,8 @@
 part of aqueduct;
 
 class _DataModelBuilder {
-  _DataModelBuilder(DataModel dataModel, List<Type> modelTypes) {
-    modelTypes.forEach((type) {
+  _DataModelBuilder(DataModel dataModel, List<Type> instanceTypes) {
+    instanceTypes.forEach((type) {
       var entity = new ModelEntity(dataModel, reflectClass(type), backingMirrorForType(type));
       entities[type] = entity;
       persistentTypeToEntityMap[entity.persistentType.reflectedType] = entity;
@@ -232,8 +232,8 @@ class _DataModelBuilder {
     return destinationEntity;
   }
 
-  ClassMirror backingMirrorForType(Type modelType) {
-    var rt = reflectClass(modelType);
+  ClassMirror backingMirrorForType(Type instanceType) {
+    var rt = reflectClass(instanceType);
     var modelRefl = reflectType(Model);
     var entityTypeRefl = rt;
 
@@ -245,7 +245,7 @@ class _DataModelBuilder {
     if (rt.isSubtypeOf(modelRefl)) {
       entityTypeRefl = entityTypeRefl.typeArguments.first;
     } else {
-      throw new DataModelException("Invalid modelType $modelType ${reflectClass(modelType).simpleName}");
+      throw new DataModelException("Invalid instance type $instanceType ${reflectClass(instanceType).simpleName}");
     }
 
     return entityTypeRefl;
