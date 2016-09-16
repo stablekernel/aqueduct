@@ -16,7 +16,7 @@ class _ModelValueBacking extends _ModelBacking {
 
   dynamic valueForProperty(ModelEntity entity, String propertyName) {
     if (entity.properties[propertyName] == null) {
-      throw new DataModelException("Model type ${MirrorSystem.getName(entity.modelTypeMirror.simpleName)} has no property $propertyName.");
+      throw new DataModelException("Model type ${MirrorSystem.getName(entity.instanceType.simpleName)} has no property $propertyName.");
     }
 
     return valueMap[propertyName];
@@ -25,13 +25,13 @@ class _ModelValueBacking extends _ModelBacking {
   void setValueForProperty(ModelEntity entity, String propertyName, dynamic value) {
     var property = entity.properties[propertyName];
     if (property == null) {
-      throw new DataModelException("Model type ${MirrorSystem.getName(entity.modelTypeMirror.simpleName)} has no property $propertyName.");
+      throw new DataModelException("Model type ${MirrorSystem.getName(entity.instanceType.simpleName)} has no property $propertyName.");
     }
 
     if (value != null) {
       if (!property.isAssignableWith(value)) {
         var valueTypeName = MirrorSystem.getName(reflect(value).type.simpleName);
-        throw new DataModelException("Type mismatch for property $propertyName on ${MirrorSystem.getName(entity.persistentTypeMirror.simpleName)}, expected assignable type matching ${property.type} but got $valueTypeName.");
+        throw new DataModelException("Type mismatch for property $propertyName on ${MirrorSystem.getName(entity.persistentType.simpleName)}, expected assignable type matching ${property.type} but got $valueTypeName.");
       }
     }
 

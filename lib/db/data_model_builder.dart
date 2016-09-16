@@ -5,7 +5,7 @@ class _DataModelBuilder {
     modelTypes.forEach((type) {
       var entity = new ModelEntity(dataModel, reflectClass(type), backingMirrorForType(type));
       entities[type] = entity;
-      persistentTypeToEntityMap[entity.persistentTypeMirror.reflectedType] = entity;
+      persistentTypeToEntityMap[entity.persistentType.reflectedType] = entity;
     });
 
     entities.forEach((_, entity) {
@@ -16,7 +16,7 @@ class _DataModelBuilder {
           ?.name;
 
       if (entity.primaryKey == null) {
-        throw new DataModelException("No primary key for entity ${MirrorSystem.getName(entity.persistentTypeMirror.simpleName)}");
+        throw new DataModelException("No primary key for entity ${MirrorSystem.getName(entity.persistentType.simpleName)}");
       }
     });
 
@@ -30,20 +30,20 @@ class _DataModelBuilder {
 
   String tableNameForEntity(ModelEntity entity) {
     var tableNameSymbol = new Symbol("tableName");
-    if (entity.persistentTypeMirror.staticMembers[tableNameSymbol] != null) {
-      return entity.persistentTypeMirror
+    if (entity.persistentType.staticMembers[tableNameSymbol] != null) {
+      return entity.persistentType
           .invoke(tableNameSymbol, [])
           .reflectee;
     }
 
-    return MirrorSystem.getName(entity.persistentTypeMirror.simpleName);
+    return MirrorSystem.getName(entity.persistentType.simpleName);
   }
 
   Map<String, AttributeDescription> attributeMapForEntity(ModelEntity entity) {
     Map<String, AttributeDescription> map = {};
 
-    // Grab actual properties from model type
-    entity.modelTypeMirror.declarations.values
+    // Grab actual properties from instance type
+    entity.instanceType.declarations.values
       .where((declMir) => declMir is VariableMirror && !declMir.isStatic)
       .where((declMir) => _mappableFromDeclaration(declMir) != null)
       .forEach((declMir) {
@@ -51,8 +51,8 @@ class _DataModelBuilder {
         map[key] = attributeFromVariableMirror(entity, declMir);
       });
 
-    // Grab getters/setters from model type, as long as they the right type of Mappable
-    entity.modelTypeMirror.declarations.values
+    // Grab getters/setters from instance type, as long as they the right type of Mappable
+    entity.instanceType.declarations.values
       .where((declMir) => declMir is MethodMirror && !declMir.isStatic && (declMir.isSetter || declMir.isGetter) && !declMir.isSynthetic)
       .where((declMir) {
         var mapMetadata = _mappableFromDeclaration(declMir);
@@ -81,7 +81,7 @@ class _DataModelBuilder {
       });
 
     // Grab persistent values, which must be properties (not relationships)
-    entity.persistentTypeMirror.declarations.values
+    entity.persistentType.declarations.values
       .where((declMir) => declMir is VariableMirror && !declMir.isStatic)
       .where((declMir) => !_doesVariableMirrorRepresentRelationship(declMir))
       .where((declMir) => !map.containsKey(MirrorSystem.getName(declMir.simpleName)))
@@ -109,13 +109,13 @@ class _DataModelBuilder {
   }
 
   AttributeDescription attributeFromVariableMirror(ModelEntity entity, VariableMirror mirror) {
-    if (entity.modelTypeMirror == mirror.owner) {
+    if (entity.instanceType == mirror.owner) {
       // Transient; must be marked as Mappable.
 
       var name = MirrorSystem.getName(mirror.simpleName);
       var type = PropertyDescription.propertyTypeForDartType(mirror.type.reflectedType);
       if (type == null) {
-        throw new DataModelException("Property $name on ${MirrorSystem.getName(entity.modelTypeMirror.simpleName)} has invalid type");
+        throw new DataModelException("Property $name on ${MirrorSystem.getName(entity.instanceType.simpleName)} has invalid type");
       }
       return new AttributeDescription.transient(entity, name, type, _mappableFromDeclaration(mirror));
     } else {
@@ -124,7 +124,7 @@ class _DataModelBuilder {
 
       var type = attrs?.databaseType ?? PropertyDescription.propertyTypeForDartType(mirror.type.reflectedType);
       if (type == null) {
-        throw new DataModelException("Property ${MirrorSystem.getName(mirror.simpleName)} on ${MirrorSystem.getName(entity.persistentTypeMirror.simpleName)} has invalid type");
+        throw new DataModelException("Property ${MirrorSystem.getName(mirror.simpleName)} on ${MirrorSystem.getName(entity.persistentType.simpleName)} has invalid type");
       }
 
       return new AttributeDescription(entity, MirrorSystem.getName(mirror.simpleName), type,
@@ -141,7 +141,7 @@ class _DataModelBuilder {
   Map<String, RelationshipDescription> relationshipMapForEntity(ModelEntity entity) {
     Map<String, RelationshipDescription> map = {};
 
-    entity.persistentTypeMirror.declarations.forEach((sym, declMir) {
+    entity.persistentType.declarations.forEach((sym, declMir) {
       if (declMir is VariableMirror && !declMir.isStatic) {
         var key = MirrorSystem.getName(sym);
 
@@ -156,7 +156,7 @@ class _DataModelBuilder {
 
   RelationshipDescription relationshipFromVariableMirror(ModelEntity entity, VariableMirror mirror) {
     if (_attributeMetadataFromDeclaration(mirror) != null) {
-      throw new DataModelException("Relationship ${MirrorSystem.getName(mirror.simpleName)} on ${MirrorSystem.getName(entity.persistentTypeMirror.simpleName)} must not define additional Attributes");
+      throw new DataModelException("Relationship ${MirrorSystem.getName(mirror.simpleName)} on ${MirrorSystem.getName(entity.persistentType.simpleName)} must not define additional Attributes");
     }
 
     var destinationEntity = destinationEntityForVariableMirror(entity, mirror);
@@ -165,10 +165,10 @@ class _DataModelBuilder {
 
     if (belongsToAttr != null) {
       var inverseKey = belongsToAttr.inverseKey;
-      var destinationVariableMirror = destinationEntity.persistentTypeMirror.declarations[inverseKey];
+      var destinationVariableMirror = destinationEntity.persistentType.declarations[inverseKey];
 
       if (destinationVariableMirror == null) {
-        throw new DataModelException("Relationship ${MirrorSystem.getName(mirror.simpleName)} on ${MirrorSystem.getName(entity.persistentTypeMirror.simpleName)} has no inverse (tried $inverseKey)");
+        throw new DataModelException("Relationship ${MirrorSystem.getName(mirror.simpleName)} on ${MirrorSystem.getName(entity.persistentType.simpleName)} has no inverse (tried $inverseKey)");
       }
 
       if (belongsToAttr.onDelete == RelationshipDeleteRule.nullify && belongsToAttr.isRequired) {
@@ -187,11 +187,11 @@ class _DataModelBuilder {
           includedInDefaultResultSet: true);
     }
 
-    VariableMirror inversePropertyMirror = destinationEntity.persistentTypeMirror.declarations.values.firstWhere((DeclarationMirror destinationDeclarationMirror) {
+    VariableMirror inversePropertyMirror = destinationEntity.persistentType.declarations.values.firstWhere((DeclarationMirror destinationDeclarationMirror) {
       if (destinationDeclarationMirror is VariableMirror) {
         var inverseBelongsToAttr = _belongsToMetadataFromDeclaration(destinationDeclarationMirror);
         var matchesInverseKey = inverseBelongsToAttr?.inverseKey == mirror.simpleName;
-        var isBelongsToVarMirrorSubtypeRightType = destinationDeclarationMirror.type.isSubtypeOf(entity.modelTypeMirror);
+        var isBelongsToVarMirrorSubtypeRightType = destinationDeclarationMirror.type.isSubtypeOf(entity.instanceType);
 
         if (matchesInverseKey && isBelongsToVarMirrorSubtypeRightType) {
           return true;
@@ -202,7 +202,7 @@ class _DataModelBuilder {
     }, orElse: () => null);
 
     if (inversePropertyMirror == null) {
-      throw new DataModelException("Relationship ${MirrorSystem.getName(mirror.simpleName)} on ${entity.tableName} has no inverse declared in ${MirrorSystem.getName(destinationEntity.persistentTypeMirror.simpleName)} of appropriate type.");
+      throw new DataModelException("Relationship ${MirrorSystem.getName(mirror.simpleName)} on ${entity.tableName} has no inverse declared in ${MirrorSystem.getName(destinationEntity.persistentType.simpleName)} of appropriate type.");
     }
 
     var relType = RelationshipType.hasOne;
@@ -226,7 +226,7 @@ class _DataModelBuilder {
 
     var destinationEntity = entities[typeMirror.reflectedType];
     if (destinationEntity == null) {
-      throw new DataModelException("Relationship ${MirrorSystem.getName(mirror.simpleName)} on ${MirrorSystem.getName(entity.persistentTypeMirror.simpleName)} destination ModelEntity does not exist");
+      throw new DataModelException("Relationship ${MirrorSystem.getName(mirror.simpleName)} on ${MirrorSystem.getName(entity.persistentType.simpleName)} destination ModelEntity does not exist");
     }
 
     return destinationEntity;

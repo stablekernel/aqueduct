@@ -2,7 +2,7 @@
 
 In Aqueduct, data from a database is represented by *model objects*. A model object is an instance of a `Model` subclass that you define in your application code. These subclasses are used to map a Dart object to a database row. Thus, every instance of a `Model` object in your application represents a row (or a row to be inserted) in a database. These subclasses are referred to as *entities*. For example, you may have an application with a `User` class that is a subclass of `Model`. This creates a User entity in your application, which maps to a user table in your database. When fetching rows from the user table, your application will receive instances of `User` that represent these rows.
 
-An entity must have properties that correspond to the columns in the table it represents. An entity is actually made up of two classes: a *persistent type* and an *model type*. The persistent type is a plain Dart class that defines the mapping to a database table and its columns. A model type is the subclass of `Model`; instances of this type are used in an application.
+An entity must have properties that correspond to the columns in the table it represents. An entity is actually made up of two classes: a *persistent type* and an *instance type*. The persistent type is a plain Dart class that defines the mapping to a database table and its columns. A instance type is the subclass of `Model`; instances of this type are used in an application.
 
 Here's an example of a model and persistent type, which are always declared together:
 
@@ -17,11 +17,11 @@ class _User {
 }
 ```
 
-This declares a User entity. The model type here is `User` because it extends `Model`. The `Model` class provides storage for an object that is fetched from a database. It also handles serialization and deserialization so that a model object can be encoded or decoded into formats like JSON.
+This declares a User entity. The instance type here is `User` because it extends `Model`. The `Model` class provides storage for an object that is fetched from a database. It also handles serialization and deserialization so that a model object can be encoded or decoded into formats like JSON.
 
 The type parameter for a `Model` must be the entity's corresponding persistent type. Here, the persistent type is `_User`. (By convention, a persistent type is prefixed with an underscore.) The persistent type declares properties for every column that is actually on the database table this entity maps to. In this example, we are declaring that there is a table named *_User* and it has two columns, an integer primary key named `id` and a text column named `name`.
 
-A model type must also implement the interface of its persistent type. This allows the model type to have accessor methods for each of the properties defined in its persistent type:
+A instance type must also implement the interface of its persistent type. This allows the instance type to have accessor methods for each of the properties defined in its persistent type:
 
 ```dart
 var user = new User();
@@ -30,11 +30,11 @@ user.id = 1;
 user.name = "Bob";
 ```
 
-Because the model type implements the persistent type (as opposed to extending it), the inherited properties from the persistent type do not have instance storage. That is, the model type only exposes a getter and setter for each property in the persistent type, but does not have an instance variable to store any values. Instead, the model type's superclass, `Model`, takes care of storage by overriding `noSuchMethod` to store and retrieve values from its `backingMap`. By providing the type parameter `_User` to the `Model` superclass, the `User` can validate properties against the interface provided in `_User`.
+Because the instance type implements the persistent type (as opposed to extending it), the inherited properties from the persistent type do not have instance storage. That is, the instance type only exposes a getter and setter for each property in the persistent type, but does not have an instance variable to store any values. Instead, the instance type's superclass, `Model`, takes care of storage by overriding `noSuchMethod` to store and retrieve values from its `backingMap`. By providing the type parameter `_User` to the `Model` superclass, the `User` can validate properties against the interface provided in `_User`.
 
 Thus, a persistent type is never instantiated, it simply provides the mapping information between your model objects and a database table. All entities must be declared in this two-class setup. In the long-run, this significantly cuts down on typing and properly differentiates between database-backed properties and functionality that a model object may expose on top of those values.
 
-In order to use an entity in your application, it must be compiled into a `DataModel` [see inside_the_db.md]. A `DataModel` will create instances of `ModelEntity` that preprocess and validate the information described in your persistent and model types at application startup.
+In order to use an entity in your application, it must be compiled into a `DataModel` [see inside_the_db.md]. A `DataModel` will create instances of `ModelEntity` that preprocess and validate the information described in your persistent and instance types at application startup.
 
 ### More on Persistent Types
 
@@ -92,9 +92,9 @@ class _User {
 
 Note that the specific database driver determines whether or not the table name is case-sensitive or not. The included database driver for PostgreSQL automatically lowercases table names and is case-insensitive.
 
-### Model types
+### instance types
 
-In using model objects in your application code, you will always use instances of an entity's model type. Model objects can be transferred to and from a database to insert or fetch data. Model objects can also read their properties from a `Map`, oftentimes from JSON data in an HTTP request body. Model objects also know how to serialize themselves back into a `Map`, so they can be used as an HTTP response body. Additionally, model objects are used to help build queries in a safe way. The following code snippet is a pretty common usage of a model object:
+In using model objects in your application code, you will always use instances of an entity's instance type. Model objects can be transferred to and from a database to insert or fetch data. Model objects can also read their properties from a `Map`, oftentimes from JSON data in an HTTP request body. Model objects also know how to serialize themselves back into a `Map`, so they can be used as an HTTP response body. Additionally, model objects are used to help build queries in a safe way. The following code snippet is a pretty common usage of a model object:
 
 
 ```dart
@@ -115,7 +115,7 @@ In using model objects in your application code, you will always use instances o
 }
 ```
 
-When getting model objects from a database, each instance will represent one row. For example, consider the following table, and the previous example of `_User` and `User` persistent and model types:
+When getting model objects from a database, each instance will represent one row. For example, consider the following table, and the previous example of `_User` and `User` persistent and instance types:
 
 id|name
 --|----
@@ -135,9 +135,9 @@ var users = [
 ];
 ```
 
-Model types may also define properties and methods on top of those it implements from its persistent type. Because these properties and methods are not part of the persistent type, they are *transient* - that is, they are not stored in the database. Any method or property defined on an model type is ignored when used in a `Query`. This is in contrast to a persistent type, where every property explicitly maps to a database column.
+instance types may also define properties and methods on top of those it implements from its persistent type. Because these properties and methods are not part of the persistent type, they are *transient* - that is, they are not stored in the database. Any method or property defined on an instance type is ignored when used in a `Query`. This is in contrast to a persistent type, where every property explicitly maps to a database column.
 
-It is often the case that you have a method or property on the model type that makes some operation more convenient. For example, consider an entity that represented a video on a video sharing site. Each video has a persistent property that indicates when the video was uploaded. As a convenience, you'd like to be able to determine if a video instance is "recent" - that is, it has been uploaded in the last week. Adding a `isRecent` property to the persistent type doesn't make any sense, because that information can be derived from the existing upload date property. Thus, its a good use of a transient property:
+It is often the case that you have a method or property on the instance type that makes some operation more convenient. For example, consider an entity that represented a video on a video sharing site. Each video has a persistent property that indicates when the video was uploaded. As a convenience, you'd like to be able to determine if a video instance is "recent" - that is, it has been uploaded in the last week. Adding a `isRecent` property to the persistent type doesn't make any sense, because that information can be derived from the existing upload date property. Thus, its a good use of a transient property:
 
 ```dart
 class Video extends Model<_Video> implements _Video {
@@ -153,7 +153,7 @@ class _Video {
 
 Note that, by default, transient properties are not serialized or deserialized, and are not `attributes` of their entity.
 
-It is important to understand that a `Model` is a effectively a wrapper around a `Map<String, dynamic>`. This `Map` is the *backing* of the `Model` object. A `Model` object's values are stored in this `Map` - when you access a property of a model object, the name of the property is transformed into a `String` key in the backing map. This is why the model type *implements* its persistent type - the actual storage for the properties are in this backing map, inherited from `Model`. The `Model` class implements `noSuchMethod` to set and get data from its backing map when an accessor is invoked on a `Model` subclass.
+It is important to understand that a `Model` is a effectively a wrapper around a `Map<String, dynamic>`. This `Map` is the *backing* of the `Model` object. A `Model` object's values are stored in this `Map` - when you access a property of a model object, the name of the property is transformed into a `String` key in the backing map. This is why the instance type *implements* its persistent type - the actual storage for the properties are in this backing map, inherited from `Model`. The `Model` class implements `noSuchMethod` to set and get data from its backing map when an accessor is invoked on a `Model` subclass.
 
 ### Modeling Model Object Relationships
 
@@ -175,7 +175,7 @@ class _User {
 
 An `OrderedSet` is what indicates that the relationship is hasMany. An `OrderedSet` is a glorified `List` - it can do everything a `List` can do - but has some additional behavior to help manage relationships and build queries.
 
-Relationship properties do *not* map to columns in the database, but actually map to entire rows in some other table in a database. The type of a relationship property must be the model type of an entity (as opposed to the persistent type).
+Relationship properties do *not* map to columns in the database, but actually map to entire rows in some other table in a database. The type of a relationship property must be the instance type of an entity (as opposed to the persistent type).
 
 All relationships of an entity must have a inverse relationship property on the destination entity. If a user has posts, then posts have a user. If a user has a profile, then a profile has a user. Thus, the `Post` and `Profile` entities both must have a property that is a `User`. Inverse relationship properties, like relationship properties, are declared in the entity's persistent type. Thus, the Post and Profile entities would be declared like so:
 
@@ -203,7 +203,7 @@ The `RelationshipInverse` metadata is the special addition here. This accomplish
 
 Additionally, the first argument to `RelationshipInverse` allows you to pick the relationship property on the other entity that this property is inversely related to. For example, a User entity could potentially have two relationships with posts: posts they've created and posts that have queued for future posting. The Post table must have two foreign key columns to keep track of whether or not a User has already posted it or simply queued it. This `Symbol` for the property on the other side of the relationship makes this link.
 
-Finally, the type of the inverse property must be the other entity's model type.
+Finally, the type of the inverse property must be the other entity's instance type.
 
 During `DataModel` compilation to generate `ModelEntity`s, inverses are checked for integrity by ensuring that the `RelationshipInverse` symbol and the types of the relationship properties match. If they do not, the `DataModel` will throw an exception.
 

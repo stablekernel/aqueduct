@@ -107,7 +107,7 @@ class ResourceController<ModelType extends Model> extends HTTPController {
   }
 
   @httpPost createObject() async {
-    ModelType instance = _query.entity.modelTypeMirror.newInstance(new Symbol(""), []).reflectee as ModelType;
+    ModelType instance = _query.entity.instanceType.newInstance(new Symbol(""), []).reflectee as ModelType;
     instance.readMap(requestBody as Map<String, dynamic>);
     _query.values = instance;
 
@@ -180,7 +180,7 @@ class ResourceController<ModelType extends Model> extends HTTPController {
   @httpPut updateObject(String id) async {
     _query.matchOn[_query.entity.primaryKey] = whereEqualTo(_parsePrimaryKey(id));
 
-    ModelType instance = _query.entity.modelTypeMirror.newInstance(new Symbol(""), []).reflectee as ModelType;
+    ModelType instance = _query.entity.instanceType.newInstance(new Symbol(""), []).reflectee as ModelType;
     instance.readMap(requestBody as Map<String, dynamic>);
     _query.values = instance;
 

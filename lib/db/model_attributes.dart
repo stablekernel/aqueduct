@@ -119,13 +119,13 @@ class AttributeHint {
         this.autoincrement = source.autoincrement;
 }
 
-/// Metadata for a model type property that indicates it can be used in [readMap] and [asMap], but is not persisted.
+/// Metadata for a instance type property that indicates it can be used in [readMap] and [asMap], but is not persisted.
 const TransientAttribute transientAttribute = const TransientAttribute(availableAsInput: true, availableAsOutput: true);
 
-/// Metadata for a model type property that indicates it can be used in [readMap], but is not persisted.
+/// Metadata for a instance type property that indicates it can be used in [readMap], but is not persisted.
 const TransientAttribute transientInputAttribute = const TransientAttribute(availableAsInput: true, availableAsOutput: false);
 
-/// Metadata for a model type property that indicates it can be used in [asMap], but is not persisted.
+/// Metadata for a instance type property that indicates it can be used in [asMap], but is not persisted.
 const TransientAttribute transientOutputAttribute = const TransientAttribute(availableAsInput: false, availableAsOutput: true);
 
 /// Metadata to associate with a property to indicate it is not a column, but is part of the Model object.

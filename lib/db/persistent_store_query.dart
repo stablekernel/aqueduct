@@ -13,7 +13,7 @@ class PersistentStoreQuery {
       predicate = q.predicate;
     }
 
-    if (q.matchOn?._hasJoinElements ?? false) {
+    if (q._matchOn?._hasJoinElements ?? false) {
       var joinElements = _joinElementsFromQueryMatchable(q.matchOn, store, q.nestedResultProperties);
       resultKeys.addAll(joinElements);
     } else {
@@ -25,14 +25,14 @@ class PersistentStoreQuery {
     }
   }
 
-  ModelEntity rootEntity;
-  int timeoutInSeconds = 30;
-  int fetchLimit = 0;
   int offset = 0;
+  int fetchLimit = 0;
+  int timeoutInSeconds = 30;
   bool confirmQueryModifiesAllInstancesOnDeleteOrUpdate;
+  ModelEntity rootEntity;
   QueryPage pageDescriptor;
-  List<SortDescriptor> sortDescriptors;
   Predicate predicate;
+  List<SortDescriptor> sortDescriptors;
   List<MappingElement> values;
   List<MappingElement> resultKeys;
 
@@ -73,7 +73,7 @@ class PersistentStoreQuery {
           } else if (value is Map) {
             value = value[property.destinationEntity.primaryKey];
           } else {
-            throw new QueryException(500, "Property $key on ${entity.tableName} in Query values must be a Map or ${MirrorSystem.getName(property.destinationEntity.modelTypeMirror.simpleName)} ", -1);
+            throw new QueryException(500, "Property $key on ${entity.tableName} in Query values must be a Map or ${MirrorSystem.getName(property.destinationEntity.instanceType.simpleName)} ", -1);
           }
         }
       }
@@ -93,7 +93,7 @@ class PersistentStoreQuery {
 
       var relDesc = entity.relationships[propertyName];
       var predicate = new Predicate._fromQueryIncludable(inner, store);
-      var nestedProperties = nestedResultProperties[inner.entity.modelTypeMirror.reflectedType];
+      var nestedProperties = nestedResultProperties[inner.entity.instanceType.reflectedType];
       var propertiesToFetch = nestedProperties ?? inner.entity.defaultProperties;
 
       var joinElements = [

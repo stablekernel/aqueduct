@@ -3,9 +3,9 @@ part of aqueduct;
 /// A database row represented as an object.
 ///
 /// Provides storage, serialization and deserialization capabilities.
-/// Model types in an application extend [Model<PersistentType>], where the model type must also implement [PersistentType]. [PersistentType] holds properties
+/// Instance types in an application extend [Model<PersistentType>], where the instance type must also implement [PersistentType]. [PersistentType] holds properties
 /// that are persisted in a database. The subclass of [Model<PersistentType>]
-/// is known as the 'model type'. Any properties in the model type are not persisted, except those they inherit from [PersistentType].
+/// is known as the 'instance type'. Any properties in the instance type are not persisted, except those they inherit from [PersistentType].
 /// Model instances are used in an application. Example:
 ///
 /// class User extends Model<_User> implements _User {
@@ -87,7 +87,7 @@ class Model<PersistentType> extends Object with _QueryMatchableExtension impleme
                 mirror.setField(new Symbol(k), decodedValue);
               } else {
                 var valueTypeName = MirrorSystem.getName(reflect(decodedValue).type.simpleName);
-                throw new QueryException(400, "Type mismatch for property ${property.name} on ${MirrorSystem.getName(entity.persistentTypeMirror.simpleName)}, expected assignable type matching ${property.type} but got $valueTypeName.", -1);
+                throw new QueryException(400, "Type mismatch for property ${property.name} on ${MirrorSystem.getName(entity.persistentType.simpleName)}, expected assignable type matching ${property.type} but got $valueTypeName.", -1);
               }
             } else {
               throw new QueryException(400, "Key $k does not exist for ${MirrorSystem.getName(mirror.type.simpleName)}", -1);
@@ -164,24 +164,24 @@ class Model<PersistentType> extends Object with _QueryMatchableExtension impleme
       var destinationEntity = relationshipDescription.destinationEntity;
       if (relationshipDescription.relationshipType == RelationshipType.belongsTo || relationshipDescription.relationshipType == RelationshipType.hasOne) {
         if (value is! Map<String, dynamic>) {
-          throw new QueryException(400, "Expecting a Map for ${MirrorSystem.getName(destinationEntity.modelTypeMirror.simpleName)} in the ${relationshipDescription.name} field, got $value instead.", -1);
+          throw new QueryException(400, "Expecting a Map for ${MirrorSystem.getName(destinationEntity.instanceType.simpleName)} in the ${relationshipDescription.name} field, got $value instead.", -1);
         }
 
-        Model instance = destinationEntity.modelTypeMirror.newInstance(new Symbol(""), []).reflectee;
+        Model instance = destinationEntity.instanceType.newInstance(new Symbol(""), []).reflectee;
         instance.readMap(value as Map<String, dynamic>);
 
         return instance;
       } else if (relationshipDescription.relationshipType == RelationshipType.hasMany) {
         if (value is! List<Map<String, dynamic>>) {
-          throw new QueryException(400, "Expecting a List for ${MirrorSystem.getName(destinationEntity.modelTypeMirror.simpleName)} in the ${relationshipDescription.name} field, got $value instead.", -1);
+          throw new QueryException(400, "Expecting a List for ${MirrorSystem.getName(destinationEntity.instanceType.simpleName)} in the ${relationshipDescription.name} field, got $value instead.", -1);
         }
 
         if (value.length > 0 && value.first is! Map) {
-          throw new QueryException(400, "Expecting a List<Map> for ${MirrorSystem.getName(destinationEntity.modelTypeMirror.simpleName)} in the ${relationshipDescription.name} field, got $value instead.", -1);
+          throw new QueryException(400, "Expecting a List<Map> for ${MirrorSystem.getName(destinationEntity.instanceType.simpleName)} in the ${relationshipDescription.name} field, got $value instead.", -1);
         }
 
         return new OrderedSet.from((value as List<Map<String, dynamic>>).map((v) {
-          Model instance = destinationEntity.modelTypeMirror.newInstance(new Symbol(""), []).reflectee;
+          Model instance = destinationEntity.instanceType.newInstance(new Symbol(""), []).reflectee;
           instance.readMap(v);
           return instance;
         }));

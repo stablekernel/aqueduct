@@ -108,7 +108,7 @@ map == {
 
 ```
 
-Transient properties may also be used as inputs when deserializing a `Map` into a model object by marking the property with `@transientInputAttribute`. For example, consider how to handle user passwords. The persistent type - a direct mapping to the database - does not have a password property for security purposes. Instead, it has a password hash and a salt. An model type could then define a password property, which automatically set the salt and hash of the password in the underlying persistent type:
+Transient properties may also be used as inputs when deserializing a `Map` into a model object by marking the property with `@transientInputAttribute`. For example, consider how to handle user passwords. The persistent type - a direct mapping to the database - does not have a password property for security purposes. Instead, it has a password hash and a salt. An instance type could then define a password property, which automatically set the salt and hash of the password in the underlying persistent type:
 
 ```dart
 class User extends Model<_User> implements _User {
@@ -148,7 +148,7 @@ class User extends Model<_User> implements _User {
 }
 ```
 
-Transient properties marked with this metadata *are* `attributes` on an entity (like primitive properties on the persistent type, but unlike other properties on the model type).
+Transient properties marked with this metadata *are* `attributes` on an entity (like primitive properties on the persistent type, but unlike other properties on the instance type).
 
 
 

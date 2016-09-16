@@ -11,19 +11,19 @@ class ModelEntity {
   /// Creates an instance of a ModelEntity.
   ///
   /// You should never call this method directly, it will be called by [DataModel].
-  ModelEntity(this.dataModel, this.modelTypeMirror, this.persistentTypeMirror);
+  ModelEntity(this.dataModel, this.instanceType, this.persistentType);
 
   /// The type of instances represented by this entity.
   ///
-  /// Model objects are made up of two components, a persistent type and a model type. Applications
-  /// use model types. This value is the [ClassMirror] on that type.
-  final ClassMirror modelTypeMirror;
+  /// Model objects are made up of two components, a persistent type and a instance type. Applications
+  /// use instance types. This value is the [ClassMirror] on that type.
+  final ClassMirror instanceType;
 
   /// The type of persistent instances represented by this entity.
   ///
-  /// Model objects are made up of two components, a persistent type and a model type. This value
+  /// Model objects are made up of two components, a persistent type and a instance type. This value
   /// is the [ClassMirror] on the persistent portion of a [Model] object.
-  final ClassMirror persistentTypeMirror;
+  final ClassMirror persistentType;
 
   /// The [DataModel] this instance belongs to.
   final DataModel dataModel;
@@ -31,7 +31,7 @@ class ModelEntity {
   /// Schema of the model as returned from a request
   APISchemaObject get documentedResponseSchema {
     return new APISchemaObject()
-      ..title = MirrorSystem.getName(modelTypeMirror.simpleName)
+      ..title = MirrorSystem.getName(instanceType.simpleName)
       ..type = APISchemaObjectTypeObject
       ..properties = _propertiesForEntity(this);
   }
@@ -111,7 +111,7 @@ class ModelEntity {
   }
 
   Model newInstance() {
-    var model = modelTypeMirror.newInstance(new Symbol(""), []).reflectee as Model;
+    var model = instanceType.newInstance(new Symbol(""), []).reflectee as Model;
     model.entity = this;
     return model;
   }

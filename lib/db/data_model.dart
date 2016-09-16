@@ -24,7 +24,7 @@ class DataModel {
 
   /// Returns a [ModelEntity] for a [Type].
   ///
-  /// [type] may be either the model type or persistent type. For example, the following model
+  /// [type] may be either the instance type or persistent type. For example, the following model
   /// definition, you could retrieve its entity via MyModel or _MyModel:
   ///
   ///         class MyModel extends Model<_MyModel> implements _MyModel {}

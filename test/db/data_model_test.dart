@@ -10,16 +10,16 @@ void main() {
 
     test("Entities have appropriate types", () {
       var entity = dataModel.entityForType(User);
-      expect(reflectClass(User) == entity.modelTypeMirror, true);
-      expect(reflectClass(_User) == entity.persistentTypeMirror, true);
+      expect(reflectClass(User) == entity.instanceType, true);
+      expect(reflectClass(_User) == entity.persistentType, true);
 
       entity = dataModel.entityForType(Item);
-      expect(reflectClass(Item) == entity.modelTypeMirror, true);
-      expect(reflectClass(_Item) == entity.persistentTypeMirror, true);
+      expect(reflectClass(Item) == entity.instanceType, true);
+      expect(reflectClass(_Item) == entity.persistentType, true);
 
       entity = dataModel.entityForType(Manager);
-      expect(reflectClass(Manager) == entity.modelTypeMirror, true);
-      expect(reflectClass(_Manager) == entity.persistentTypeMirror, true);
+      expect(reflectClass(Manager) == entity.instanceType, true);
+      expect(reflectClass(_Manager) == entity.persistentType, true);
     });
 
     test("Non-existent entity is null", () {
