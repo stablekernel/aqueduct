@@ -32,4 +32,6 @@ A `DataModel` will also validate all entities and their relationships. If valida
 
 There is nothing that prevents a `PersistentStore` implementation from connecting to and working with a NoSQL database, but the interface is certainly more geared towards SQL databases.
 
-`PersistentStore`s are not used directly. Instead, a `ModelContext` has a persistent store that it uses to coordinate database queries. Prior to sending a `Query` to a persistent store, a `ModelContext` will transform a `Query` into a `PersistentStoreQuery`. `PersistentStoreQuery`s are effectively the 'compiled' version of a `Query`. There is no reason to use a `PersistentStoreQuery` directly.
+`PersistentStore`s are rarely used directly. Instead, a `ModelContext` has a persistent store that it uses to coordinate database queries. Prior to sending a `Query` to a persistent store, a `ModelContext` will transform a `Query` into a `PersistentStoreQuery`. `PersistentStoreQuery`s are effectively the 'compiled' version of a `Query`.
+
+`PersistentStore`s may be used directly to issue direct SQL to its underlying database connection. This is often useful for scripts and tests that modify a database schema. For this purpose, `PersistentStore` has an `execute` method to run raw SQL.
