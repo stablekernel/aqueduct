@@ -1,5 +1,10 @@
 part of aqueduct;
 
+enum JoinType {
+  leftOuter
+}
+
+
 class PersistentStoreQuery {
   PersistentStoreQuery(this.rootEntity, PersistentStore store, Query q) {
     confirmQueryModifiesAllInstancesOnDeleteOrUpdate = q.confirmQueryModifiesAllInstancesOnDeleteOrUpdate;
@@ -123,9 +128,6 @@ class MappingElement {
   }
 }
 
-enum JoinType {
-  leftOuter
-}
 
 class JoinMappingElement extends MappingElement {
   JoinMappingElement(this.type, PropertyDescription property, this.predicate, this.resultKeys)

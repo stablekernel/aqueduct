@@ -93,7 +93,7 @@ class Query<InstanceType extends Model> {
   /// By default, [resultProperties] is null and therefore all objects returned will contain all properties
   /// of the object. (Unless those properties are marked as hasOne or hasMany relationships.) Specifying
   /// an explicit list of keys will return only those properties. Keys must match the names of the properties
-  /// in of [modelType].
+  /// in of [InstanceType].
   List<String> resultProperties;
 
   Map<Type, List<String>> nestedResultProperties = {};
@@ -191,7 +191,7 @@ class Query<InstanceType extends Model> {
   ///       var deleted = await q.delete();
   ///
   Future<int> delete() async {
-    return await context._executeDeleteQuery(this); // or null
+    return await context._executeDeleteQuery(this);
   }
 }
 
@@ -217,6 +217,7 @@ class QueryException extends HTTPResponseException {
 
 abstract class QueryMatchable {
   ModelEntity entity;
+
   bool includeInResultSet;
 
   Map<String, dynamic> get _matcherMap;
