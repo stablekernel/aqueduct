@@ -348,11 +348,7 @@ class PostgreSQLPersistentStore extends PersistentStore {
     List<SortDescriptor> sortDescs = q.sortDescriptors ?? [];
 
     if (q.pageDescriptor != null) {
-      var order = (q.pageDescriptor.direction == PageDirection.after
-          ? SortDescriptorOrder.ascending
-          : SortDescriptorOrder.descending);
-
-      sortDescs.insert(0, new SortDescriptor(q.pageDescriptor.referenceKey, order));
+      sortDescs.insert(0, new SortDescriptor(q.pageDescriptor.propertyName, q.pageDescriptor.direction));
     }
 
     if (sortDescs.length == 0) {
@@ -362,7 +358,7 @@ class PostgreSQLPersistentStore extends PersistentStore {
     var transformFunc = (SortDescriptor sd) {
       var property = q.rootEntity.properties[sd.key];
       var columnName = "${property.entity.tableName}.${_columnNameForProperty(property)}";
-      return "$columnName ${(sd.order == SortDescriptorOrder.ascending ? "asc" : "desc")}";
+      return "$columnName ${(sd.order == SortOrder.ascending ? "asc" : "desc")}";
     };
     var joinedSortDescriptors = sortDescs.map(transformFunc).join(",");
 
@@ -374,8 +370,8 @@ class PostgreSQLPersistentStore extends PersistentStore {
       return null;
     }
 
-    var operator = (query.pageDescriptor.direction == PageDirection.after ? ">" : "<");
-    return new Predicate("${query.pageDescriptor.referenceKey} ${operator} @inq_page_value",
+    var operator = (query.pageDescriptor.direction == SortOrder.ascending ? ">" : "<");
+    return new Predicate("${query.pageDescriptor.propertyName} ${operator} @inq_page_value",
         {"inq_page_value": query.pageDescriptor.referenceValue});
   }
 

@@ -105,7 +105,7 @@ class WildfireAuthenticationDelegate implements AuthenticationServerDelegate<Use
     var tokenQ = new Query<Token>()
       ..matchOn.owner = whereRelatedByValue(t.owner.id)
       ..matchOn.client = whereRelatedByValue(t.client.id)
-      ..sortDescriptors = [new SortDescriptor("issueDate", SortDescriptorOrder.descending)]
+      ..sortDescriptors = [new SortDescriptor("issueDate", SortOrder.descending)]
       ..offset = 24
       ..fetchLimit = 1
       ..resultProperties = ["issueDate"];

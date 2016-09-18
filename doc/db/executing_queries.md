@@ -183,22 +183,49 @@ var query = new Query<User>()
   ..matchOn.email = whereEqualTo("bob@stablekernel.com");
 
 var bob = await query.fetchOne();
-
-// bob.salt and bob.hashedPassword only exist because they are explicitly in resultProperties,
-// otherwise they would not be fetched because they are marked as omitByDefault
-// bob.name == null and bob.gender == null, as they were not fetched.
-if (hash(inputPassword, bob.salt) == bob.hashedPassword) {
-  var tokenForUser = createTokenForUserID(bob.id);
-  ...
-}
+bob.backingMap == {
+  "id" : 1,
+  "email" : "bob@stablekernel.com",
+  "hashedPassword" : "ABCD1234ABCD",
+  "salt" : "ABCD4321"
+};
 ```
 
-If you specify a `resultProperty` that doesn't exist for an entity, you will get an exception when the `Query` is executed.
+If you specify a property that doesn't exist for an entity in `resultProperties`, you will get an exception when the `Query` is executed.
 
 You may not add a 'hasMany' or 'hasOne' relationship to `resultProperties`, as this mechanism is achieved by other functionality on a `Query`. If you do add a 'hasOne' or 'hasMany' relationship property name to the list of `resultProperties`, an exception will be thrown when the query is executed.
 
-### Paging
+### Paging Fetched Result Sets
 
+In larger data sets, it may make sense to only return a portion of rows from a database. For example, in a social media application, a user could have thousands of pieces of content they had created over many years. The likely use case for fetching their content would be to grab only the most recent content, and only grab earlier content as necessary. There are many ways to accomplish paging, and the right solution oftentimes depends on the context and may require additional services beyond just a single database - Aqueduct doesn't pretend to fully solve this problem. Aqueduct does provide two mechanisms on `Query` instances for building queries that can fetch a subset of rows within a certain range.
+
+First, naive paging can be accomplished using the `fetchLimit` and `offset` properties of a `Query`. For example, if a table contains 100 rows, and you would like to vend them out 10 at a time to a client, each query would have a value of 10 for its `fetchLimit`. The first query would have an `offset` of 0, then 10, then 20, and so on. Especially when adding `sortDescriptors` to a `Query`, this type of paging can be effective.
+
+One of the drawbacks to this type of paging is that it can skip or duplicate rows if rows are being added or deleted while fetching subsequent pages. For example, if a table again contains 100 rows, and you have made two queries to fetch the first 20, the next query (to grab rows 20-29) should have an `offset` of 20 and a `fetchLimit` of 10. If a row is inserted prior to executing the third query that gets rows 20-29, the row that was previously #19 gets moved into the #20 slot. Thus, the query to get rows 20-29 will contain a duplicate from the previous query. Likewise, if a row is deleted from within the first 20 rows, what would have been row #20 moves into slot #19. When fetching rows 20-29, #19 is not fetched and it is skipped.
+
+Therefore, `Query` has a property named `pageDescriptor` (an instance of `QueryPage`) to better handle paging and avoid the problem of sliding rows. A `QueryPage` specifies which property of the entity defines row order, a value for that property that indicates the point where the query starts fetching rows from, and a direction to fetch the rows in.
+
+For example, consider an entity that has a `createdDate` property:
+
+```dart
+class Task extends Model<_Task> implements _Task {}
+class _Task {
+  @primaryKey int id;
+  String text;
+
+  @AttributeHint(indexed: true)
+  DateTime createdDate;
+}
+```
+
+In an application that displays a timeline of `Task`s, a user would most likely want to see their most recent five tasks first. Then, if they choose to continue browsing, the next five tasks after that, and then the next five and so on. Thus, the property a `QueryPage` refers to is the `createdDate`.
+
+This timeline query should fetch rows such that the first row is the newest and the next row is less recent. Since most recent dates are *greater than*
+
+
+A `QueryPage` has a `propertyName` value that indicates which property of the entity should be used to determine order. In this example, `createdDate` would be as the order-determining property of a timeline.
+
+The `referenceValue` of a `QueryPage` determines the beginning of the page to be fetched. This value must be a valid value for the order-determining property of the page. In this example, `referenceValue` must be a `DateTime` since `createdDate` is a `DateTime`. Finally, `QueryPage`'s
 
 
 ***

@@ -1,29 +1,12 @@
 part of aqueduct;
 
-/// Page direction value for [QueryPage].
-enum PageDirection {
-  /// Indicates the page will contain results prior to the referenceValie.
-  ///
-  /// In the context of integer values, a page using [prior] and a [referenceValue]
-  /// of 4 will specify 3, 2, 1, 0, -1, ... and so on. In the context of a DateTime, it
-  /// will specify the moments before the [referenceValue].
-  prior,
-
-  /// Indicates the page will contain results after to the referenceValie.
-  ///
-  /// In the context of integer values, a page using [after] and a [referenceValue]
-  /// of 1 will specify 2, 3, ... and so on. In the context of a DateTime, it
-  /// will specify the moments after the [referenceValue].
-  after
-}
-
 /// A description of a page of results to be applied to a [Query].
 ///
 /// [QueryPage]s are a convenient way of accomplishing paging through a large
 /// set of values.
 ///
 /// A [QueryPage] instance defines three things to accomplish this.
-/// The [referenceKey] is the property of the model that is being paged upon.
+/// The [propertyName] is the property of the model that is being paged upon.
 /// The [referenceValue] is a value that the consumer already has that represents
 /// the last item in its previous page.
 /// The [order] is the direction to move in to receive the next page.
@@ -40,19 +23,20 @@ enum PageDirection {
 ///
 class QueryPage {
   /// The direction to travel in relative to this [referenceValue].
-  PageDirection direction;
+  SortOrder direction;
 
   /// The property of the model object to page upon.
-  String referenceKey;
+  String propertyName;
 
   /// The value to page from.
   ///
-  /// Objects with this value for [referenceKey] are NOT included in the data set, the [referenceValue]
+  /// Objects with this value for [propertyName] are NOT included in the data set, the [referenceValue]
   /// defines the bounds of the query, non-inclusive. For example, a reference value of 1 and a direction of after
   /// would yield results of >= 2, but never 1.
   /// This value may be null to indicate there is no reference value, and a fresh set of data should be returned
   /// from either the very beginning of very end of the ordered data set.
   dynamic referenceValue;
 
-  QueryPage(this.direction, this.referenceKey, this.referenceValue);
+  QueryPage(this.direction, this.propertyName, this.referenceValue);
+  QueryPage.fromEdge(this.direction, this.propertyName);
 }

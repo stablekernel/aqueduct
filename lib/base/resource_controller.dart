@@ -225,10 +225,10 @@ class ResourceController<InstanceType extends Model> extends HTTPController {
       var direction = null;
       var pageValue = null;
       if (pageAfter != null) {
-        direction = PageDirection.after;
+        direction = SortOrder.ascending;
         pageValue = pageAfter;
       } else if (pagePrior != null) {
-        direction = PageDirection.prior;
+        direction = SortOrder.descending;
         pageValue = pagePrior;
       } else {
         return new Response.badRequest(body: {"error" : "If defining pageBy, either pageAfter or pagePrior must be defined. 'null' is a valid value"});
@@ -253,7 +253,7 @@ class ResourceController<InstanceType extends Model> extends HTTPController {
         if (split.last != "asc" && split.last != "desc") {
           throw new HTTPResponseException(400, "sortBy order must be either asc or desc, not ${split.last}");
         }
-        return new SortDescriptor(split.first, split.last == "asc" ? SortDescriptorOrder.ascending : SortDescriptorOrder.descending);
+        return new SortDescriptor(split.first, split.last == "asc" ? SortOrder.ascending : SortOrder.descending);
       }).toList();
     }
 
