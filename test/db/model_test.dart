@@ -1,6 +1,7 @@
 import 'package:aqueduct/aqueduct.dart';
 import 'package:test/test.dart';
 import 'dart:mirrors';
+import '../helpers.dart';
 
 void main() {
   var ps = new DefaultPersistentStore();

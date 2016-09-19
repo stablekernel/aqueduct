@@ -192,3 +192,19 @@ String commandsForModelInstanceTypes(List<Type> instanceTypes, {bool temporary: 
 
   return pGenerator.commandList;
 }
+
+class DefaultPersistentStore extends PersistentStore {
+  Future<dynamic> execute(String sql) async { return null; }
+  Future close() async {}
+  Future<List<MappingElement>> executeInsertQuery(PersistentStoreQuery q) async { return null; }
+  Future<List<List<MappingElement>>> executeFetchQuery(PersistentStoreQuery q) async { return null; }
+  Future<int> executeDeleteQuery(PersistentStoreQuery q) async { return null; }
+  Future<List<List<MappingElement>>> executeUpdateQuery(PersistentStoreQuery q) async { return null; }
+
+  Predicate comparisonPredicate(PropertyDescription desc, MatcherOperator operator, dynamic value) { return null; }
+  Predicate containsPredicate(PropertyDescription desc, Iterable<dynamic> values) { return null; }
+  Predicate nullPredicate(PropertyDescription desc, bool isNull) { return null; }
+  Predicate rangePredicate(PropertyDescription desc, dynamic lhsValue, dynamic rhsValue, bool insideRange) { return null; }
+  Predicate stringPredicate(PropertyDescription desc, StringMatcherOperator operator, dynamic value) { return null; }
+}
+
