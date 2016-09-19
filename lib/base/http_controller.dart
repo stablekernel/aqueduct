@@ -254,10 +254,16 @@ abstract class HTTPController extends RequestHandler {
     List<APIResponse> responses = [
       new APIResponse()
         ..key = "default"
-        ..description = "Something went wrong",
+        ..description = "Something went wrong"
+        ..schema = (new APISchemaObject()
+          ..type = APISchemaObjectTypeObject
+          ..properties = {
+            "error" : new APISchemaObject()..type = APISchemaObjectTypeString
+          }
+        ),
     ];
 
-    var symbol = APIOperation.symbolForId(operation.id, this);
+    var symbol = APIOperation.symbolForID(operation.id, this);
     if (symbol != null) {
       var controllerCache = _HTTPControllerCache.cacheForType(runtimeType);
       var methodMirror = reflect(this).type.declarations[symbol];
