@@ -76,8 +76,6 @@ void main() {
         ..matchOn.child.includeInResultSet = true;
       var o = await q.fetch();
 
-      print("${identical(o.first.child.parent, o.first)}");
-
       var mapList = o.map((x) => x.asMap()).toList();
       expect(mapList, [
         {
