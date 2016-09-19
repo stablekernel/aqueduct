@@ -178,15 +178,21 @@ void main() {
   });
 
   test("Delete rule of setNull throws exception if property is not nullable", () {
-    var successful = false;
     try {
-      var _ = new DataModel([Owner, FailingChild]);
-
-      successful = true;
-    } catch (e) {
+      new DataModel([Owner, FailingChild]);
+      expect(true, false);
+    } on DataModelException catch (e) {
       expect(e.message, "Relationship ref on _FailingChild set to nullify on delete, but is not nullable");
     }
-    expect(successful, false);
+  });
+
+  test("Entity without primary key fails", () {
+    try {
+      new DataModel([NoPrimaryKey]);
+      expect(true, false);
+    } on DataModelException catch (e) {
+      expect(e.message, "No primary key for entity _NoPrimaryKey");
+    }
   });
 
   test("Transient properties are appropriately added to entity", () {
@@ -350,4 +356,10 @@ class _TransientTest {
   @primaryKey int id;
 
   String text;
+}
+
+class NoPrimaryKey extends Model<_NoPrimaryKey> implements _NoPrimaryKey {
+}
+class _NoPrimaryKey {
+  String foo;
 }
