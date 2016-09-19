@@ -91,20 +91,6 @@ const dynamic whereNull = const _NullMatcherExpression(true);
 /// Matcher for matching everything but null in a [Query].
 const dynamic whereNotNull = const _NullMatcherExpression(false);
 
-/// Matcher for matching hasMany relationships in a [Query].
-///
-/// This matcher may only be used on hasMany relationships. If a relationship property
-/// of that type is matched on this term, the [Query] will join the property
-/// and include all of the rows matching the join condition.
-OrderedSet get whereAnyMatch => new OrderedSet();
-
-/// Matcher for matching hasOne relationships in a [Query].
-///
-/// This matcher may only be used on hasOne relationships. If a relationship property
-/// of that type is matched on this term, the [Query] will join the property
-/// and include all of the rows matching the join condition.
-dynamic get whereExists => new _IncludeModelMatcherExpression();
-
 abstract class MatcherExpression {}
 
 class _ComparisonMatcherExpression implements MatcherExpression {
@@ -125,10 +111,6 @@ class _NullMatcherExpression implements MatcherExpression {
   const _NullMatcherExpression(this.shouldBeNull);
 
   final bool shouldBeNull;
-}
-
-class _IncludeModelMatcherExpression implements MatcherExpression {
-  _IncludeModelMatcherExpression();
 }
 
 class _WithinMatcherExpression implements MatcherExpression {

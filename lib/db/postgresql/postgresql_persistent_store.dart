@@ -348,7 +348,7 @@ class PostgreSQLPersistentStore extends PersistentStore {
     List<SortDescriptor> sortDescs = q.sortDescriptors ?? [];
 
     if (q.pageDescriptor != null) {
-      sortDescs.insert(0, new SortDescriptor(q.pageDescriptor.propertyName, q.pageDescriptor.direction));
+      sortDescs.insert(0, new SortDescriptor(q.pageDescriptor.propertyName, q.pageDescriptor.order));
     }
 
     if (sortDescs.length == 0) {
@@ -366,13 +366,13 @@ class PostgreSQLPersistentStore extends PersistentStore {
   }
 
   Predicate _pagePredicateForQuery(PersistentStoreQuery query) {
-    if(query.pageDescriptor?.referenceValue == null) {
+    if(query.pageDescriptor?.boundingValue == null) {
       return null;
     }
 
-    var operator = (query.pageDescriptor.direction == SortOrder.ascending ? ">" : "<");
+    var operator = (query.pageDescriptor.order == SortOrder.ascending ? ">" : "<");
     return new Predicate("${query.pageDescriptor.propertyName} ${operator} @inq_page_value",
-        {"inq_page_value": query.pageDescriptor.referenceValue});
+        {"inq_page_value": query.pageDescriptor.boundingValue});
   }
 
   String _joinStringForJoin(JoinMappingElement ji) {

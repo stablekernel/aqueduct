@@ -238,7 +238,7 @@ class ResourceController<InstanceType extends Model> extends HTTPController {
         throw new HTTPResponseException(400, "pageBy key ${pageBy} does not exist for ${_query.entity.tableName}");
       }
 
-      _query.pageDescriptor = new QueryPage(direction, pageBy, pageValue == "null" ? null : pageValue);
+      _query.pageDescriptor = new QueryPage(direction, pageBy, boundingValue: pageValue == "null" ? null : pageValue);
     }
 
     if (sortBy != null) {

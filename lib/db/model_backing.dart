@@ -66,23 +66,10 @@ class _ModelMatcherBacking extends _ModelBacking {
     if (value is MatcherExpression) {
       var relDesc = entity.relationships[propertyName];
 
-      if (value is _IncludeModelMatcherExpression) {
-        if (relDesc?.relationshipType != RelationshipType.hasOne) {
-          throw new QueryException(500, "Attempting to set hasOne matcher for property $propertyName on ${entity.tableName}, but that property is not a hasOne relationship.", -1);
-        }
-
-        valueMap[propertyName] = relDesc.destinationEntity.newInstance()
-          .._backing = new _ModelMatcherBacking();
-      } else {
-        valueMap[propertyName] = value;
-      }
-    } else if (value is OrderedSet) {
-      var relDesc = entity.relationships[propertyName];
-      if (relDesc?.relationshipType != RelationshipType.hasMany) {
-        throw new QueryException(500, "Attempting to set hasMany matcher for property $propertyName on ${entity.tableName}, but that property is not a hasMany relationship.", -1);
+      if (relDesc != null && relDesc.relationshipType != RelationshipType.belongsTo) {
+        throw new QueryException(500, "Attempting to set matcher on hasOne or hasMany relationship. Use includeInResultSet.", -1);
       }
 
-      value.entity = relDesc.destinationEntity;
       valueMap[propertyName] = value;
     } else {
       // Setting simply a value, wrap it with an AssignmentMatcher if applicable.

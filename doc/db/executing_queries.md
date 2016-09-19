@@ -203,7 +203,9 @@ First, naive paging can be accomplished using the `fetchLimit` and `offset` prop
 
 One of the drawbacks to this type of paging is that it can skip or duplicate rows if rows are being added or deleted while fetching subsequent pages. For example, if a table again contains 100 rows, and you have made two queries to fetch the first 20, the next query (to grab rows 20-29) should have an `offset` of 20 and a `fetchLimit` of 10. If a row is inserted prior to executing the third query that gets rows 20-29, the row that was previously #19 gets moved into the #20 slot. Thus, the query to get rows 20-29 will contain a duplicate from the previous query. Likewise, if a row is deleted from within the first 20 rows, what would have been row #20 moves into slot #19. When fetching rows 20-29, #19 is not fetched and it is skipped.
 
-Therefore, `Query` has a property named `pageDescriptor` (an instance of `QueryPage`) to better handle paging and avoid the problem of sliding rows. A `QueryPage` specifies which property of the entity defines row order, a value for that property that indicates the point where the query starts fetching rows from, and a direction to fetch the rows in.
+Therefore, `Query` has a property named `pageDescriptor` (an instance of `QueryPage`) to better handle paging and avoid the problem of sliding rows. A `QueryPage` works by using the value of some property as its starting point for results. For example, given an entity that has a `dateCreated` property, a `QueryPage` could specify that the 'starting' point of the result set was at a specific date. A `QueryPage` also indicates whether the rows should be fetched before or after the starting point. In the context of a `dateCreated` property, this would mean whether the query would fetch rows newer than the starting point or older than the starting point.
+
+A `QueryPage`, then, has three pieces of information: the name of the property on the entity that the query is paging by, the value for the property that indicates the starting point, and a direction to go from that starting point. Respectively, these properties are `propertyName`, `boundingValue` and `order`.
 
 For example, consider an entity that has a `createdDate` property:
 
@@ -214,25 +216,93 @@ class _Task {
   String text;
 
   @AttributeHint(indexed: true)
-  DateTime createdDate;
+  DateTime dateCreated;
 }
 ```
 
-In an application that displays a timeline of `Task`s, a user would most likely want to see their most recent five tasks first. Then, if they choose to continue browsing, the next five tasks after that, and then the next five and so on. Thus, the property a `QueryPage` refers to is the `createdDate`.
+In an application that displays a timeline of `Task`s, a user would most likely want to see their most recent five tasks first. Then, if they choose to continue browsing, the next five tasks after that, and then the next five and so on. Thus, the `order` must be `SortOrder.descending` - later dates are 'less than' more recent dates and the `propertyName` must be `dateCreated`. This particular query would fetch the first five `Task`s:
 
-This timeline query should fetch rows such that the first row is the newest and the next row is less recent. Since most recent dates are *greater than*
+```dart
+var query = new Query<Task>()
+  ..fetchLimit = 5
+  ..pageDescriptor = new QueryPage(SortOrder.descending, "dateCreated");
+var firstFive = await query.fetch();
+```
 
+Notice that `fetchLimit` is set, otherwise all instances of the entity would be fetched.
 
-A `QueryPage` has a `propertyName` value that indicates which property of the entity should be used to determine order. In this example, `createdDate` would be as the order-determining property of a timeline.
+When fetching the first page, like in this example, the value of `boundingValue` should be `null`. The `null` value indicates that the query will grab the first `fetchLimit` number of rows after ordering by the `propertyName`. Once a page has been fetched, the last value for the page property should be used as the `boundingValue` for the next.
 
-The `referenceValue` of a `QueryPage` determines the beginning of the page to be fetched. This value must be a valid value for the order-determining property of the page. In this example, `referenceValue` must be a `DateTime` since `createdDate` is a `DateTime`. Finally, `QueryPage`'s
+```dart
+var firstFive = await query.fetch();
 
+var nextPageQuery = new Query<Task>()
+  ..fetchLimit = 5
+  ..pageDescriptor = new QueryPage(SortOrder.descending, "dateCreated", boundingValue: firstFive.last.dateCreated);
+var nextFive = await nextPageQuery.fetch();  
+```
+
+The `boundingValue` is *not* inclusive. For example, if the last task in first page if tasks has a `dateCreated` of October 5, 2013, the next page would be fetched using `boundingValue` of that same date. The first result in the next page would be *after* October 5, 2013. (Obviously, if the `order` is `SortOrder.ascending`, the next page would be *before* that date.)
+
+The `boundingValue` will be encoded according to its type when sent to the underlying database, so you may pass normal Dart types like `DateTime` and `int`. The order of the rows returned by a query that has been paged will always match the order defined by the `QueryPage`'s `order`. If the query finds no more instances - that is, it runs out of data - the query will simply return zero model objects.
+
+The value `null` should be the `boundingValue` when fetching the first page. It is also permissible to use a value that is known to be well outside of the range of possible values - for example, a date in the year 3000 is unlikely to exclude the most recent task object.
+
+It is a good idea to add an index `AttributeHint` to any property that is used in a `QueryPage`.
+
+Do not use the `offset` property of a `Query` when performing pages, as the property and bounding value already provide an offset into the data.
+
+### Filtering Results of a Fetch Operation
+
+More often than not, fetching every instance of some entity doesn't make sense. Instead, the desired result of a fetch is a specific object or set of objects matching some condition. Aqueduct offers two ways to perform this filtering, both of which translate to a SQL *where clause*.
+
+The first option is the least prohibitive, the most prone to error and the most difficult to maintain: a `Query`'s `predicate` property. A `Predicate` is effectively a `String` that is added to the underlying query's where clause. A `Predicate` has two properties, a `format` string and a `Map<String, dynamic>` of parameter values. The `format` string can (and should) parameterize any input values. Parameters are indicated in the format string using the `@` token:
+
+```dart
+// Creates a predicate that would only include instances where some column "id" is less than 2
+var predicate = new Predicate("id < @id", {"id" : 2});
+```
+
+The text following the `@` token may contain `[A-Za-z0-9_]`. The resulting where clause will be formed by replacing each token with the matching key in the parameters map. The value is not transformed in any way, so it must be the appropriate type for the property it is filtering by. If a key is not present, an exception will be thrown. Extra keys will be ignored.
+
+A raw `Predicate` like this one suffers from a few issues. First, predicates are *database specific* that is, after the values from the `parameters` are added to the `format` string, the resulting `String` is evaluated as-is by the underlying database. Perhaps more importantly, there is nothing to verify that the `Predicate` refers to the appropriate column names or that the data in the `parameters` is the right type. This can cause chaos when refactoring code, where a simple name change to a property would break a `Predicate`. This option is primarily intended to be used as a fallback if a Aqueduct is incapable of expressing the desired SQL.
+
+In most cases, the `matchOn` property of a `Query` is a much safer and elegant way is to have `Query` generate a `Predicate` using the query's `matchOn` property. The `matchOn` property allows you to assign `MatcherExpression`s to the properties of the entity being queried. A `MatcherExpression` is effectively a conditional to apply to some property and follows the same Hamcrest matcher style that the Dart test framework use. For example, there are `MatcherExpression`s for checking if two values are equal, if a value is between two other values, or whether a value begins with a certain string.
+
+The `matchOn` property of a `Query` has the same interface as the entity of the `Query` - i.e., it has all of the properties of the object you're fetching. For each property that is assigned a `MatcherExpression`, the resulting conditional will be built into a generated `Predicate`. Here's an example of a `Query` using `matchOn` to find a `User` with an `id` equal to 1:
+
+```dart
+var query = new Query<User>()
+  ..matchOn.id = whereEqualTo(1);
+```
+
+(The generated SQL here would be 'SELECT \_user.id, \_user.name, ... FROM \_user WHERE \_user.id = 1'.)
+
+All `MatcherExpression`s are created using one of the `where` top-level methods in Aqueduct. Other examples are `whereGreaterThan`, `whereBetween`, and `whereIn`. Every matcher set on a `matchOn` is combined using logical 'and'. In other words, the following will yield a `Predicate` that ensures that `id` equals 1 and `email` is not null:
+
+```dart
+var query = new Query<User>()
+  ..matchOn.id = whereEqualTo(1)
+  ..matchOn.email = whereNotNull;
+```
+
+Matcher expression methods all have a `dynamic` return type, the actual object type is opaque. The `matchOn` property it actually an instance of `Model`, just like other `Model` objects you may use in your application, but its `backingMap` has different behavior. This different behavior allows a `Query` to type check values in matcher expressions, among other things.
+
+Relationship properties may also be matched, but there are important nuances to understand. When matching on `RelationshipInverse` properties - the properties that represent foreign key columns - you must use the `whereRelatedByValue` matcher. For example, the following `Query` would fetch all tasks that belong to `User` with `id` equal to 1:
+
+```dart
+var query = new Query<Task>()
+  ..matchOn.user = whereRelatedByValue(1);
+```
+
+Notice that a matcher is not assigned to the `id` of the `user`, but instead, to the `user` property itself. The argument for this matcher will filter the result set to only include results where the argument is equal to `Task`'s foreign key to its user. (In other words, the primary key value of a `User`.) This matcher will infer the type and name of the foreign key of the related entity.
+
+Note that a query that is matching on a `RelationshipInverse` property does not add any additional information to the results of the query. The rules change slightly for hasOne and hasMany relationships. This topic is covered in a later section.
+
+Setting the `predicate` and using `matchOn` property of a `Query` at the same time has undefined behavior, you should only use one or the other. The `Predicate` generated by a `matchOn` property is database-agnostic.
 
 ***
 Failures, exceptions
 nestedResultProperties
 Joins
-Offset/fetch limit
-Sort descriptors
-paging
 Statement reuse

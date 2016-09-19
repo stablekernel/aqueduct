@@ -7,7 +7,7 @@ part of aqueduct;
 ///
 /// A [QueryPage] instance defines three things to accomplish this.
 /// The [propertyName] is the property of the model that is being paged upon.
-/// The [referenceValue] is a value that the consumer already has that represents
+/// The [boundingValue] is a value that the consumer already has that represents
 /// the last item in its previous page.
 /// The [order] is the direction to move in to receive the next page.
 ///
@@ -22,21 +22,20 @@ part of aqueduct;
 ///     var qp = new QueryPage(PageOrder.prior, "dateCreated", items.first.dateCreated);
 ///
 class QueryPage {
-  /// The direction to travel in relative to this [referenceValue].
-  SortOrder direction;
+  /// The direction to travel in relative to this [boundingValue].
+  SortOrder order;
 
   /// The property of the model object to page upon.
   String propertyName;
 
   /// The value to page from.
   ///
-  /// Objects with this value for [propertyName] are NOT included in the data set, the [referenceValue]
+  /// Objects with this value for [propertyName] are NOT included in the data set, the [boundingValue]
   /// defines the bounds of the query, non-inclusive. For example, a reference value of 1 and a direction of after
   /// would yield results of >= 2, but never 1.
   /// This value may be null to indicate there is no reference value, and a fresh set of data should be returned
   /// from either the very beginning of very end of the ordered data set.
-  dynamic referenceValue;
+  dynamic boundingValue;
 
-  QueryPage(this.direction, this.propertyName, this.referenceValue);
-  QueryPage.fromEdge(this.direction, this.propertyName);
+  QueryPage(this.order, this.propertyName, {this.boundingValue});
 }

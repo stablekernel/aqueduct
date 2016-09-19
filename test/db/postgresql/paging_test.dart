@@ -3,8 +3,6 @@ import 'package:aqueduct/aqueduct.dart';
 import '../../helpers.dart';
 
 void main() {
-
-
   group("Offset/limit", () {
     ModelContext context = null;
 
@@ -107,7 +105,7 @@ void main() {
 
     test("Ascending from known data set edge, limited to inside data set", () async {
       // select * from t where id > 0 order by id asc limit 5;
-      var pageObject = new QueryPage(SortOrder.ascending, "id", 0);
+      var pageObject = new QueryPage(SortOrder.ascending, "id", boundingValue: 0);
       var req = new Query<PageableTestModel>()
         ..pageDescriptor = pageObject
         ..fetchLimit = 5;
@@ -117,7 +115,7 @@ void main() {
 
     test("Ascending from first element, limited to inside data set", () async {
       // select * from t where id > 1 order by id asc limit 5;
-      var pageObject = new QueryPage(SortOrder.ascending, "id", 1);
+      var pageObject = new QueryPage(SortOrder.ascending, "id", boundingValue: 1);
       var req = new Query<PageableTestModel>()
         ..pageDescriptor = pageObject
         ..fetchLimit = 5;
@@ -127,7 +125,7 @@ void main() {
 
     test("Ascending from first element, extended past data set", () async {
       // select * from t where id > 0 order by id asc limit 15;
-      var pageObject = new QueryPage(SortOrder.ascending, "id", 0);
+      var pageObject = new QueryPage(SortOrder.ascending, "id", boundingValue: 0);
       var req = new Query<PageableTestModel>()
         ..pageDescriptor = pageObject
         ..fetchLimit = 15;
@@ -137,7 +135,7 @@ void main() {
 
     test("Ascending from inside data set to known edge", () async {
       // select * from t where id > 6 order by id asc limit 4;
-      var pageObject = new QueryPage(SortOrder.ascending, "id", 6);
+      var pageObject = new QueryPage(SortOrder.ascending, "id", boundingValue: 6);
       var req = new Query<PageableTestModel>()
         ..pageDescriptor = pageObject
         ..fetchLimit = 4;
@@ -147,7 +145,7 @@ void main() {
 
     test("Ascending from inside data set to past edge", () async {
       // select * from t where id > 6 order by id asc limit 5
-      var pageObject = new QueryPage(SortOrder.ascending, "id", 6);
+      var pageObject = new QueryPage(SortOrder.ascending, "id", boundingValue: 6);
       var req = new Query<PageableTestModel>()
         ..pageDescriptor = pageObject
         ..fetchLimit = 5;
@@ -157,7 +155,7 @@ void main() {
 
     test("Ascending from edge of data set into outside data set", () async {
       // select * from t where id > 10 order by id asc limit 5
-      var pageObject = new QueryPage(SortOrder.ascending, "id", 10);
+      var pageObject = new QueryPage(SortOrder.ascending, "id", boundingValue: 10);
       var req = new Query<PageableTestModel>()
         ..pageDescriptor = pageObject
         ..fetchLimit = 5;
@@ -167,7 +165,7 @@ void main() {
 
     test("Ascending from outside the data set and onward", () async {
       // select * from t where id > 11 order by id asc limit 10
-      var pageObject = new QueryPage(SortOrder.ascending, "id", 11);
+      var pageObject = new QueryPage(SortOrder.ascending, "id", boundingValue: 11);
       var req = new Query<PageableTestModel>()
         ..pageDescriptor = pageObject
         ..fetchLimit = 10;
@@ -177,7 +175,7 @@ void main() {
 
     test("Ascending from null to all the way outside the data set", () async {
       // select * from t order by id asc limit 15
-      var pageObject = new QueryPage(SortOrder.ascending, "id", null);
+      var pageObject = new QueryPage(SortOrder.ascending, "id");
       var req = new Query<PageableTestModel>()
         ..pageDescriptor = pageObject
         ..fetchLimit = 15;
@@ -187,7 +185,7 @@ void main() {
 
     test("Ascending from null to halfway into the data set", () async {
       // select * from t order by id asc limit 5;
-      var pageObject = new QueryPage(SortOrder.ascending, "id", null);
+      var pageObject = new QueryPage(SortOrder.ascending, "id");
       var req = new Query<PageableTestModel>()
         ..pageDescriptor = pageObject
         ..fetchLimit = 5;
@@ -197,7 +195,7 @@ void main() {
 
     test("Descending from beginning of data set to before data set", () async {
       // select * from t where id < 0 order by id desc limit 10
-      var pageObject = new QueryPage(SortOrder.descending, "id", 0);
+      var pageObject = new QueryPage(SortOrder.descending, "id", boundingValue: 0);
       var req = new Query<PageableTestModel>()
         ..pageDescriptor = pageObject
         ..fetchLimit = 10;
@@ -207,7 +205,7 @@ void main() {
 
     test("Descending from first element in data set to before data set", () async {
       // select * from t where id < 1 order by id desc limit 10;
-      var pageObject = new QueryPage(SortOrder.descending, "id", 1);
+      var pageObject = new QueryPage(SortOrder.descending, "id", boundingValue: 1);
       var req = new Query<PageableTestModel>()
         ..pageDescriptor = pageObject
         ..fetchLimit = 10;
@@ -217,7 +215,7 @@ void main() {
 
     test("Descending from middle of data set to before data set", () async {
       // select * from t where id < 4 order by id desc limit 10;
-      var pageObject = new QueryPage(SortOrder.descending, "id", 4);
+      var pageObject = new QueryPage(SortOrder.descending, "id", boundingValue: 4);
       var req = new Query<PageableTestModel>()
         ..pageDescriptor = pageObject
         ..fetchLimit = 10;
@@ -227,7 +225,7 @@ void main() {
 
     test("Descending from middle of data set to edge of data set", () async {
       // select * from t where id < 5 order by id desc limit 4;
-      var pageObject = new QueryPage(SortOrder.descending, "id", 5);
+      var pageObject = new QueryPage(SortOrder.descending, "id", boundingValue: 5);
       var req = new Query<PageableTestModel>()
         ..pageDescriptor = pageObject
         ..fetchLimit = 4;
@@ -237,7 +235,7 @@ void main() {
 
     test("Descending from outside end of data set to beginning edge of data set", () async {
       // select * from t where id < 11 order by id desc limit 10;
-      var pageObject = new QueryPage(SortOrder.descending, "id", 11);
+      var pageObject = new QueryPage(SortOrder.descending, "id", boundingValue: 11);
       var req = new Query<PageableTestModel>()
         ..pageDescriptor = pageObject
         ..fetchLimit = 10;
@@ -247,7 +245,7 @@ void main() {
 
     test("Descending from last element in data set to middle of data set", () async {
       // select * from t where id < 10 order by id desc limit 5;
-      var pageObject = new QueryPage(SortOrder.descending, "id", 10);
+      var pageObject = new QueryPage(SortOrder.descending, "id", boundingValue: 10);
       var req = new Query<PageableTestModel>()
         ..pageDescriptor = pageObject
         ..fetchLimit = 5;
@@ -257,7 +255,7 @@ void main() {
 
     test("Descending from outside end of data set to middle of data set", () async {
       // select * from t where id < 11 order by id desc limit 5
-      var pageObject = new QueryPage(SortOrder.descending, "id", 11);
+      var pageObject = new QueryPage(SortOrder.descending, "id", boundingValue: 11);
       var req = new Query<PageableTestModel>()
         ..pageDescriptor = pageObject
         ..fetchLimit = 5;
@@ -267,7 +265,7 @@ void main() {
 
     test("Descending from null to beginning of data set", () async {
       // select * from t order by id desc limit 10
-      var pageObject = new QueryPage(SortOrder.descending, "id", null);
+      var pageObject = new QueryPage(SortOrder.descending, "id");
       var req = new Query<PageableTestModel>()
         ..pageDescriptor = pageObject
         ..fetchLimit = 10;
@@ -277,7 +275,7 @@ void main() {
 
     test("Descending from null to middle of data set", () async {
       // select * from t order by id desc limit 5
-      var pageObject = new QueryPage(SortOrder.descending, "id", null);
+      var pageObject = new QueryPage(SortOrder.descending, "id");
       var req = new Query<PageableTestModel>()
         ..pageDescriptor = pageObject
         ..fetchLimit = 5;
