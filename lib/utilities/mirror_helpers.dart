@@ -13,7 +13,7 @@ bool _doesVariableMirrorRepresentRelationship(VariableMirror mirror) {
   return false;
 }
 
-TransientAttribute _mappableFromDeclaration(DeclarationMirror dm) => _metadataFromDeclaration(TransientAttribute, dm);
+TransientAttribute _transientFromDeclaration(DeclarationMirror dm) => _metadataFromDeclaration(TransientAttribute, dm);
 AttributeHint _attributeMetadataFromDeclaration(DeclarationMirror dm) => _metadataFromDeclaration(AttributeHint, dm);
 RelationshipInverse _belongsToMetadataFromDeclaration(DeclarationMirror dm) => _metadataFromDeclaration(RelationshipInverse, dm);
 

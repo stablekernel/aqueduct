@@ -161,21 +161,22 @@ class ModelEntity {
     me.attributes.values
         .where((attribute) => attribute.isIncludedInDefaultResultSet)
         .forEach((attribute) {
-      schemaProperties[attribute.name] = new APISchemaObject()
-        ..title = attribute.name
-        ..type = _schemaObjectTypeForPropertyType(attribute.type)
-        ..format = _schemaObjectFormatForPropertyType(attribute.type);
-    });
+      print ("$attribute");
+          schemaProperties[attribute.name] = new APISchemaObject()
+            ..title = attribute.name
+            ..type = _schemaObjectTypeForPropertyType(attribute.type)
+            ..format = _schemaObjectFormatForPropertyType(attribute.type);
+        });
 
     me.relationships.values
         .where((relationship) => relationship.isIncludedInDefaultResultSet)
         .where((relationship) => relationship.relationshipType == RelationshipType.belongsTo)
         .forEach((relationship) {
-      schemaProperties[relationship.name] = new APISchemaObject()
-        ..title = relationship.name
-        ..type = APISchemaObjectTypeObject
-        ..properties = _propertiesForEntity(relationship.destinationEntity, shallow: true);
-    });
+          schemaProperties[relationship.name] = new APISchemaObject()
+            ..title = relationship.name
+            ..type = APISchemaObjectTypeObject
+            ..properties = _propertiesForEntity(relationship.destinationEntity, shallow: true);
+        });
 
     return schemaProperties;
   }

@@ -189,6 +189,24 @@ void main() {
     expect(successful, false);
   });
 
+  test("Transient properties are appropriately added to entity", () {
+    var dm = new DataModel([TransientTest]);
+    var entity = dm.entityForType(TransientTest);
+
+    expect(entity.attributes["defaultedText"].isTransient, true);
+    expect(entity.attributes["inputOnly"].isTransient, true);
+    expect(entity.attributes["outputOnly"].isTransient, true);
+    expect(entity.attributes["bothButOnlyOnOne"].isTransient, true);
+    expect(entity.attributes["inputInt"].isTransient, true);
+    expect(entity.attributes["outputInt"].isTransient, true);
+    expect(entity.attributes["inOut"].isTransient, true);
+    expect(entity.attributes["bothOverQualified"].isTransient, true);
+
+    expect(entity.attributes["invalidInput"], isNull);
+    expect(entity.attributes["invalidOutput"], isNull);
+    expect(entity.attributes["notAnAttribute"], isNull);
+  });
+
   group("Schema generation", () {
     var dataModel = new DataModel([User, Item, Manager]);
     var context = new ModelContext(dataModel, new DefaultPersistentStore());
@@ -231,9 +249,6 @@ class User extends Model<_User> implements _User {
 class _User {
   @primaryKey
   int id;
-
-  @transientAttribute
-  String stringId;
 
   String username;
   bool flag;
@@ -281,4 +296,58 @@ class _FailingChild {
 
   @RelationshipInverse(#gen, onDelete: RelationshipDeleteRule.nullify, isRequired: true)
   Owner ref;
+}
+
+class TransientTest extends Model<_TransientTest> implements _TransientTest {
+  String notAnAttribute;
+
+  @transientOutputAttribute
+  String get defaultedText => "Mr. $text";
+
+  @transientInputAttribute
+  void set defaultedText(String str) {
+    text = str.split(" ").last;
+  }
+
+  @transientInputAttribute
+  void set inputOnly(String s) {
+    text = s;
+  }
+
+  @transientOutputAttribute String get outputOnly => text;
+  void set outputOnly(String s) {
+    text = s;
+  }
+
+  // This is intentionally invalid
+  @transientInputAttribute String get invalidInput => text;
+
+  // This is intentionally invalid
+  @transientOutputAttribute
+  void set invalidOutput(String s) {
+    text = s;
+  }
+
+  @transientAttribute String get bothButOnlyOnOne => text;
+  void set bothButOnlyOnOne(String s) {
+    text = s;
+  }
+
+  @transientInputAttribute int inputInt;
+
+  @transientOutputAttribute int outputInt;
+
+  @transientAttribute int inOut;
+
+  @transientAttribute String get bothOverQualified => text;
+  @transientAttribute
+  void set bothOverQualified(String s) {
+    text = s;
+  }
+}
+
+class _TransientTest {
+  @primaryKey int id;
+
+  String text;
 }

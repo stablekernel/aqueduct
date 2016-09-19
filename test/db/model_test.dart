@@ -380,6 +380,19 @@ void main() {
     expect(u.posts[0].id, 1);
     expect(u.posts[0].text, "Hi");
   });
+
+  test("Reading/writing instance property that isn't marked as transient shows up nowhere", () {
+    var t = new TransientTest();
+    try {
+      t.readMap({
+        "notAnAttribute" : true
+      });
+      expect(true, false);
+    } on QueryException {}
+
+    t.notAnAttribute = "foo";
+    expect(t.asMap().containsKey("notAnAttribute"), false);
+  });
 }
 
 class User extends Model<_User> implements _User {
@@ -411,6 +424,8 @@ class _Post {
 }
 
 class TransientTest extends Model<_TransientTest> implements _TransientTest {
+  String notAnAttribute;
+
   @transientOutputAttribute
   String get defaultedText => "Mr. $text";
 
@@ -461,7 +476,6 @@ class TransientTest extends Model<_TransientTest> implements _TransientTest {
   void set bothOverQualified(String s) {
     text = s;
   }
-
 }
 
 class _TransientTest {

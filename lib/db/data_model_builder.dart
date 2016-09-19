@@ -45,7 +45,7 @@ class _DataModelBuilder {
     // Grab actual properties from instance type
     entity.instanceType.declarations.values
       .where((declMir) => declMir is VariableMirror && !declMir.isStatic)
-      .where((declMir) => _mappableFromDeclaration(declMir) != null)
+      .where((declMir) => _transientFromDeclaration(declMir) != null)
       .forEach((declMir) {
         var key = MirrorSystem.getName(declMir.simpleName);
         map[key] = attributeFromVariableMirror(entity, declMir);
@@ -55,7 +55,7 @@ class _DataModelBuilder {
     entity.instanceType.declarations.values
       .where((declMir) => declMir is MethodMirror && !declMir.isStatic && (declMir.isSetter || declMir.isGetter) && !declMir.isSynthetic)
       .where((declMir) {
-        var mapMetadata = _mappableFromDeclaration(declMir);
+        var mapMetadata = _transientFromDeclaration(declMir);
         if (mapMetadata == null) {
           return false;
         }
@@ -117,7 +117,7 @@ class _DataModelBuilder {
       if (type == null) {
         throw new DataModelException("Property $name on ${MirrorSystem.getName(entity.instanceType.simpleName)} has invalid type");
       }
-      return new AttributeDescription.transient(entity, name, type, _mappableFromDeclaration(mirror));
+      return new AttributeDescription.transient(entity, name, type, _transientFromDeclaration(mirror));
     } else {
       // Persistent
       var attrs = _attributeMetadataFromDeclaration(mirror);
