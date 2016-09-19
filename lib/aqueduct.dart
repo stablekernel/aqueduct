@@ -74,7 +74,6 @@ part 'db/model_attributes.dart';
 part 'db/model_context.dart';
 part 'db/model_entity.dart';
 part 'db/model_entity_property.dart';
-part 'db/model_query.dart';
 part 'db/persistent_store.dart';
 part 'db/persistent_store_query.dart';
 part 'db/postgresql/postgresql_persistent_store.dart';
