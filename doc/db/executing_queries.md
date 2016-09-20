@@ -111,7 +111,7 @@ var query = new Query<User>()
 int usersDeleted = await query.delete();
 ```
 
-Also like update queries, delete queries have a safety feature that prevents you from accidentally deleting every row in a table. If you try to execute a `Query` to do an update and no `predicate` or `matchOn` property is defined, the default behavior of `Query` will throw an exception prior to carrying out the request. If you explicitly want to delete every instance of some entity (that is, every row of a table), you must set the `Query`'s `confirmQueryModifiesAllInstancesOnDeleteOrUpdate` to `true` prior to execution.
+Also like update queries, delete queries have a safety feature that prevents you from accidentally deleting every row in a table with `confirmQueryModifiesAllInstancesOnDeleteOrUpdate`. 
 
 Any properties set in the query's `values` or `valueMap` are ignored when executing a delete.
 
