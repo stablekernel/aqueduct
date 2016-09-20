@@ -111,7 +111,7 @@ var query = new Query<User>()
 int usersDeleted = await query.delete();
 ```
 
-Also like update queries, delete queries have a safety feature that prevents you from accidentally deleting every row in a table with `confirmQueryModifiesAllInstancesOnDeleteOrUpdate`. 
+Also like update queries, delete queries have a safety feature that prevents you from accidentally deleting every row in a table with `confirmQueryModifiesAllInstancesOnDeleteOrUpdate`.
 
 Any properties set in the query's `values` or `valueMap` are ignored when executing a delete.
 
@@ -341,7 +341,7 @@ user.tasks.every((Task t) =>
 ) == true;
 ```
 
-As shown, you may still apply matcher expressions to the primary entity of the query. You may also apply matchers to the related objects. In the case of hasOne relationships, this doesn't make much sense - one you've included the only possible related object, filtering do anything useful. Thus, when fetching hasOne properties, you need only set the relationships `includeInResultSet` property.
+As shown, you may still apply matcher expressions to the primary entity of the query. You may also apply matchers to the related objects. In the case of hasOne relationships, this doesn't make much sense - one you've included the only possible related object, filtering doesn't do anything useful. Thus, when fetching hasOne properties, you need only set the relationships `includeInResultSet` property.
 
 However, in the case of hasMany, it often makes sense to further filter the result set - e.g. fetching a user and their pending tasks, instead of a user and all their entire task history. `OrderedSet`s - the type of hasMany relationship properties - *also* has a `matchOn` property. Matcher expressions applied to the nested `matchOn` will filter the instances returned in the relationship property.
 
