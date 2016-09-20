@@ -142,12 +142,11 @@ class _DataModelBuilder {
     Map<String, RelationshipDescription> map = {};
 
     entity.persistentType.declarations.forEach((sym, declMir) {
-      if (declMir is VariableMirror && !declMir.isStatic) {
+      if (declMir is VariableMirror
+      && !declMir.isStatic
+      && _doesVariableMirrorRepresentRelationship(declMir)) {
         var key = MirrorSystem.getName(sym);
-
-        if (_doesVariableMirrorRepresentRelationship(declMir)) {
-          map[key] = relationshipFromVariableMirror(entity, declMir);
-        }
+        map[key] = relationshipFromVariableMirror(entity, declMir);
       }
     });
 

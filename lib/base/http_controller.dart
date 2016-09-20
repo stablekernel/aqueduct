@@ -174,8 +174,8 @@ abstract class HTTPController extends RequestHandler {
 
     var classUnit = fileUnit.declarations
         .where((u) => u is ClassDeclaration)
-        .firstWhere((CompilationUnitMember u) {
-          ClassDeclaration classDecl = u;
+        .map((cu) => cu as ClassDeclaration)
+        .firstWhere((ClassDeclaration classDecl) {
           return classDecl.name.token.lexeme == MirrorSystem.getName(reflectedType.simpleName);
         });
 

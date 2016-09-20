@@ -159,9 +159,8 @@ class ModelEntity {
     }
 
     me.attributes.values
-        .where((attribute) => attribute.isIncludedInDefaultResultSet)
+        .where((attribute) => attribute.isIncludedInDefaultResultSet || (attribute.transientStatus?.isAvailableAsOutput ?? false))
         .forEach((attribute) {
-      print ("$attribute");
           schemaProperties[attribute.name] = new APISchemaObject()
             ..title = attribute.name
             ..type = _schemaObjectTypeForPropertyType(attribute.type)

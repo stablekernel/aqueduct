@@ -135,7 +135,7 @@ var users = [
 ];
 ```
 
-instance types may also define properties and methods on top of those it implements from its persistent type. Because these properties and methods are not part of the persistent type, they are *transient* - that is, they are not stored in the database. Any method or property defined on an instance type is ignored when used in a `Query`. This is in contrast to a persistent type, where every property explicitly maps to a database column.
+Instance types may also define properties and methods on top of those it implements from its persistent type. Because these properties and methods are not part of the persistent type, they are *transient* - that is, they are not stored in the database. Any method or property defined on an instance type is ignored when used in a `Query`. This is in contrast to a persistent type, where every property explicitly maps to a database column.
 
 It is often the case that you have a method or property on the instance type that makes some operation more convenient. For example, consider an entity that represented a video on a video sharing site. Each video has a persistent property that indicates when the video was uploaded. As a convenience, you'd like to be able to determine if a video instance is "recent" - that is, it has been uploaded in the last week. Adding a `isRecent` property to the persistent type doesn't make any sense, because that information can be derived from the existing upload date property. Thus, its a good use of a transient property:
 
