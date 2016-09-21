@@ -81,44 +81,44 @@ class _GeneratorModel1 {
 
   bool option;
 
-  @AttributeHint(unique: true)
+  @ColumnAttributes(unique: true)
   double points;
 
-  @AttributeHint(nullable: true)
+  @ColumnAttributes(nullable: true)
   DateTime validDate;
 }
 
 class GeneratorModel2 extends Model<_GeneratorModel2> implements _GeneratorModel2 {}
 class _GeneratorModel2 {
-  @AttributeHint(primaryKey: true, indexed: true)
+  @ColumnAttributes(primaryKey: true, indexed: true)
   int id;
 }
 
 class GeneratorModel3 extends Model<_GeneratorModel3> implements _GeneratorModel3 {}
 class _GeneratorModel3 {
-  @AttributeHint(defaultValue: "(now() at time zone 'utc')")
+  @ColumnAttributes(defaultValue: "(now() at time zone 'utc')")
   DateTime creationDate;
 
-  @AttributeHint(primaryKey: true, defaultValue: "18")
+  @ColumnAttributes(primaryKey: true, defaultValue: "18")
   int id;
 
-  @AttributeHint(defaultValue: "\$\$dflt\$\$")
+  @ColumnAttributes(defaultValue: "\$\$dflt\$\$")
   String textValue;
 
-  @AttributeHint(defaultValue: "true")
+  @ColumnAttributes(defaultValue: "true")
   bool option;
 
-  @AttributeHint(defaultValue: "'1900-01-01T00:00:00.000Z'")
+  @ColumnAttributes(defaultValue: "'1900-01-01T00:00:00.000Z'")
   DateTime otherTime;
 
-  @AttributeHint(defaultValue: "20.0")
+  @ColumnAttributes(defaultValue: "20.0")
   double value;
 }
 
 class GenUser extends Model<_GenUser> implements _GenUser {}
 
 class _GenUser {
-  @AttributeHint(primaryKey: true)
+  @ColumnAttributes(primaryKey: true)
   int id;
 
   String name;
@@ -128,7 +128,7 @@ class _GenUser {
 
 class GenPost extends Model<_GenPost> implements _GenPost {}
 class _GenPost {
-  @AttributeHint(primaryKey: true)
+  @ColumnAttributes(primaryKey: true)
   int id;
 
   String text;
@@ -140,7 +140,7 @@ class _GenPost {
 class GenNamed extends Model<_GenNamed> implements _GenNamed {}
 
 class _GenNamed {
-  @AttributeHint(primaryKey: true)
+  @ColumnAttributes(primaryKey: true)
   int id;
 
   static String tableName() {
@@ -158,7 +158,7 @@ class _GenOwner {
 
 class GenAuth extends Model<_GenAuth> implements _GenAuth {}
 class _GenAuth {
-  @AttributeHint(primaryKey: true)
+  @ColumnAttributes(primaryKey: true)
   int id;
 
   @RelationshipInverse(#auth, isRequired: false, onDelete: RelationshipDeleteRule.cascade)
@@ -167,7 +167,7 @@ class _GenAuth {
 
 class GenLeft extends Model<_GenLeft> implements _GenLeft {}
 class _GenLeft {
-  @AttributeHint(primaryKey: true)
+  @ColumnAttributes(primaryKey: true)
   int id;
 
   OrderedSet<GenJoin> join;
@@ -175,7 +175,7 @@ class _GenLeft {
 
 class GenRight extends Model<_GenRight> implements _GenRight {}
 class _GenRight {
-  @AttributeHint(primaryKey: true)
+  @ColumnAttributes(primaryKey: true)
   int id;
 
   OrderedSet<GenJoin> join;

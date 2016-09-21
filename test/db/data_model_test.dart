@@ -260,7 +260,7 @@ class _User {
   String username;
   bool flag;
 
-  @AttributeHint(nullable: true, defaultValue: "'now()'", unique: true, indexed: true, omitByDefault: true)
+  @ColumnAttributes(nullable: true, defaultValue: "'now()'", unique: true, indexed: true, omitByDefault: true)
   DateTime loadedTimestamp;
 
   OrderedSet<Item> items;
@@ -270,7 +270,7 @@ class _User {
 
 class Item extends Model<_Item> implements _Item {}
 class _Item {
-  @AttributeHint(primaryKey: true)
+  @ColumnAttributes(primaryKey: true)
   String name;
 
   @RelationshipInverse(#items, onDelete: RelationshipDeleteRule.cascade, isRequired: true)

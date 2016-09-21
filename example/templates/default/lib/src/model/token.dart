@@ -5,10 +5,10 @@ class _AuthCode implements TokenExchangable<Token> {
   @primaryKey
   int id;
 
-  @AttributeHint(indexed: true)
+  @ColumnAttributes(indexed: true)
   String code;
 
-  @AttributeHint(nullable: true)
+  @ColumnAttributes(nullable: true)
   String redirectURI;
 
   String clientID;
@@ -32,10 +32,10 @@ class Token extends Model<_Token> implements _Token, Tokenizable<int> {
   }
 }
 class _Token {
-  @AttributeHint(primaryKey: true)
+  @ColumnAttributes(primaryKey: true)
   String accessToken;
 
-  @AttributeHint(indexed: true)
+  @ColumnAttributes(indexed: true)
   String refreshToken;
 
   @RelationshipInverse(#tokens, onDelete: RelationshipDeleteRule.cascade)
@@ -53,7 +53,7 @@ class _Token {
 
 class ClientRecord extends Model<_Client> implements _Client {}
 class _Client {
-  @AttributeHint(primaryKey: true)
+  @ColumnAttributes(primaryKey: true)
   String id;
 
   OrderedSet<Token> tokens;

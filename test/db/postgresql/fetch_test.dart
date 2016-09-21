@@ -270,7 +270,7 @@ class _TestModel {
 
   String name;
 
-  @AttributeHint(nullable: true, unique: true)
+  @ColumnAttributes(nullable: true, unique: true)
   String email;
 
   static String tableName() {
@@ -312,6 +312,6 @@ class _Omit {
   @primaryKey
   int id;
 
-  @AttributeHint(omitByDefault: true)
+  @ColumnAttributes(omitByDefault: true)
   String text;
 }

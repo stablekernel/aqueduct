@@ -20,7 +20,7 @@ Instances of `DataModel` are one of the two components of a `ModelContext`. A `D
 
 `ModelEntity`s are the description of a database table in your application.  A `ModelEntity` contains references to the two types that make up an fully formed entity. They also contain the information derived from these types - the attributes and relationships - into a more readily available format.
 
-`ModelEntity`s store relationship and attribute information in instances of `RelationshipDescription` and `AttributeDescription`, both of which extend `PropertyDescription`. This information is used by the rest of Aqueduct to determine how database rows and model objects are translated back and forth. This information is derived from persistent and instance type declarations, and `AttributeHint`s and `RelationshipInverse` metadata that is used when defining your model classes.
+`ModelEntity`s store relationship and attribute information in instances of `RelationshipDescription` and `AttributeDescription`, both of which extend `PropertyDescription`. This information is used by the rest of Aqueduct to determine how database rows and model objects are translated back and forth. This information is derived from persistent and instance type declarations, and `ColumnAttributes`s and `RelationshipInverse` metadata that is used when defining your model classes.
 
 A `DataModel` will also validate all entities and their relationships. If validation fails, an exception will be thrown. As `DataModel`s are created at the beginning of the application's startup, this behavior will stop your application from running if there are data model errors.
 

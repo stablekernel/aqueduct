@@ -154,7 +154,7 @@ Fetch queries can fetch an entity's relationships (these are carried out as *dat
 
 When executing a query that returns model objects (i.e., insert, update and fetch queries), you may configure which properties are actually fetched for each instance. Every entity has a set of `defaultProperties`. If you do not specify exactly which properties to be fetched, these an instance will have all of the properties in its entity's `defaultProperties` set in its `backingMap`.
 
-The default properties of an entity are all attributes declared in the persistent type that do not explicitly have the `omitByDefault` `AttributeHint` set to true and all `InverseRelationship` properties. (In other words, every actual column on the corresponding database table that you haven't specifically marked to be ignored.) Transient properties are never included in `defaultProperties`, as they are not actually fetched from a database.
+The default properties of an entity are all attributes declared in the persistent type that do not explicitly have the `omitByDefault` `ColumnAttributes` set to true and all `InverseRelationship` properties. (In other words, every actual column on the corresponding database table that you haven't specifically marked to be ignored.) Transient properties are never included in `defaultProperties`, as they are not actually fetched from a database.
 
 Properties like a hashed password and salt are likely candidates to be marked as `omitByDefault`, as you don't typically want to return that information in an HTTP response body. Marking a attribute as such frees you from having to exclude it each time you create a `Query`.
 
@@ -168,13 +168,13 @@ class _User {
   String name;
   String gender;
 
-  @AttributeHint(unique: true, indexed: true)
+  @ColumnAttributes(unique: true, indexed: true)
   String email;
 
-  @AttributeHint(omitByDefault: true)
+  @ColumnAttributes(omitByDefault: true)
   String hashedPassword;
 
-  @AttributeHint(omitByDefault: true)
+  @ColumnAttributes(omitByDefault: true)
   String salt;
 }
 
@@ -217,7 +217,7 @@ class _Task {
   @primaryKey int id;
   String text;
 
-  @AttributeHint(indexed: true)
+  @ColumnAttributes(indexed: true)
   DateTime dateCreated;
 }
 ```
@@ -250,7 +250,7 @@ The `boundingValue` will be encoded according to its type when sent to the under
 
 The value `null` should be the `boundingValue` when fetching the first page. It is also permissible to use a value that is known to be well outside of the range of possible values - for example, a date in the year 3000 is unlikely to exclude the most recent task object.
 
-It is a good idea to add an index `AttributeHint` to any property that is used in a `QueryPage`.
+It is a good idea to add an index `ColumnAttributes` to any property that is used in a `QueryPage`.
 
 Do not use the `offset` property of a `Query` when performing pages, as the property and bounding value already provide an offset into the data.
 

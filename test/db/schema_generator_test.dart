@@ -313,7 +313,7 @@ class _LoadedItem {
   @primaryKey
   int id;
 
-  @AttributeHint(indexed: true)
+  @ColumnAttributes(indexed: true)
   String someIndexedThing;
 
   @RelationshipInverse(#loadedItems, onDelete: RelationshipDeleteRule.restrict, isRequired: false)
@@ -337,26 +337,26 @@ class _SimpleModel {
 
 class ExtensiveModel extends Model<_ExtensiveModel> implements _ExtensiveModel {}
 class _ExtensiveModel {
-  @AttributeHint(primaryKey: true, databaseType: PropertyType.string)
+  @ColumnAttributes(primaryKey: true, databaseType: PropertyType.string)
   String id;
 
   DateTime startDate;
 
-  @AttributeHint(indexed: true)
+  @ColumnAttributes(indexed: true)
   int indexedValue;
 
-  @AttributeHint(autoincrement: true)
+  @ColumnAttributes(autoincrement: true)
   int autoincrementValue;
 
-  @AttributeHint(unique: true)
+  @ColumnAttributes(unique: true)
   String uniqueValue;
 
-  @AttributeHint(defaultValue: "'foo'")
+  @ColumnAttributes(defaultValue: "'foo'")
   String defaultItem;
 
-  @AttributeHint(nullable: true)
+  @ColumnAttributes(nullable: true)
   bool nullableValue;
 
-  @AttributeHint(databaseType: PropertyType.bigInteger, nullable: true, defaultValue: "7", unique: true, indexed: true, autoincrement: true)
+  @ColumnAttributes(databaseType: PropertyType.bigInteger, nullable: true, defaultValue: "7", unique: true, indexed: true, autoincrement: true)
   int loadedValue;
 }

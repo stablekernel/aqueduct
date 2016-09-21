@@ -14,13 +14,13 @@ class _User {
   @primaryKey
   int id;
 
-  @AttributeHint(unique: true, indexed: true)
+  @ColumnAttributes(unique: true, indexed: true)
   String email;
 
-  @AttributeHint(omitByDefault: true)
+  @ColumnAttributes(omitByDefault: true)
   String hashedPassword;
 
-  @AttributeHint(omitByDefault: true)
+  @ColumnAttributes(omitByDefault: true)
   String salt;
 
   OrderedSet<Token> tokens;

@@ -48,18 +48,18 @@ Persistent types define the mapping between your code and a database table (and 
 
 Properties that are one of these types are more specifically referred to the *attributes* of an entity. (Properties that are references to other model objects are called *relationships*. Collectively, attributes and relationships are called properties.)
 
-In addition to a type and name, each property can also have `AttributeHint` that further specifies the corresponding column. `AttributeHint` is added as metadata to a property. For example, the following change to the `_User` persistent type adds a `String` `email` property which must be unique across all users:
+In addition to a type and name, each property can also have `ColumnAttributes` that further specifies the corresponding column. `ColumnAttributes` is added as metadata to a property. For example, the following change to the `_User` persistent type adds a `String` `email` property which must be unique across all users:
 
 ```dart
 class _User {
   @primaryKey int id;
   String name;
 
-  @AttributeHint(unique: true)
+  @ColumnAttributes(unique: true)
   String email;
 }
 ```
-There are eight configurable hints available in the `AttributeHint` class.
+There are eight configurable items available in the `ColumnAttributes` class.
 
 * `primaryKey` - Indicates that property is the primary key of the table represented by this persistent type. Must be one per persistent type.
 * `databaseType` - Uses a more specific type for the database column than can be derived from the Dart type of the property. For example, you may wish to specify that an integer property is stored in a database column that holds an 8-byte integer, instead of the default 4-byte integer.
@@ -70,12 +70,12 @@ There are eight configurable hints available in the `AttributeHint` class.
 * `omitByDefault` - Toggles whether or not this property should be fetched from the database by default. Useful for properties like hashed passwords, where you don't want to return that information when fetching an account unless you explicitly want the check the password.
 * `autoincrement` - Toggles whether or not the underlying database should generate a new value from a serial generator each time a new instance is inserted into the database.
 
-By not specifying `AttributeHint`, the default values for each of these possible configurations is used and the database type is inferred from the type of the property.
+By not specifying `ColumnAttributes`, the default values for each of these possible configurations is used and the database type is inferred from the type of the property.
 
-Every persistent type must have at least one property with `AttributeHint` where `primaryKey` is true. There is a convenience instance of `AttributeHint` for this purpose, `@primaryKey`, which is equivalent to the following:
+Every persistent type must have at least one property with `ColumnAttributes` where `primaryKey` is true. There is a convenience instance of `ColumnAttributes` for this purpose, `@primaryKey`, which is equivalent to the following:
 
 ```dart
-@AttributeHint(primaryKey: true, databaseType: PropertyType.bigInteger, autoincrement: true)
+@ColumnAttributes(primaryKey: true, databaseType: PropertyType.bigInteger, autoincrement: true)
 ```
 By convention, persistent types begin with an underscore, but there is nothing that prevents you from changing this. Bear in mind, the name of the persistent type will be the name of the corresponding database table (and some databases, like PostgreSQL, already have a table named 'user'). You may override the name of the table by implementing a static method that returns the name of the table in a persistent type:
 

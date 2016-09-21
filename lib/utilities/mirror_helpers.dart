@@ -14,7 +14,7 @@ bool _doesVariableMirrorRepresentRelationship(VariableMirror mirror) {
 }
 
 TransientAttribute _transientFromDeclaration(DeclarationMirror dm) => _metadataFromDeclaration(TransientAttribute, dm);
-AttributeHint _attributeMetadataFromDeclaration(DeclarationMirror dm) => _metadataFromDeclaration(AttributeHint, dm);
+ColumnAttributes _attributeMetadataFromDeclaration(DeclarationMirror dm) => _metadataFromDeclaration(ColumnAttributes, dm);
 RelationshipInverse _belongsToMetadataFromDeclaration(DeclarationMirror dm) => _metadataFromDeclaration(RelationshipInverse, dm);
 
 dynamic _metadataFromDeclaration(Type t, DeclarationMirror dm) {

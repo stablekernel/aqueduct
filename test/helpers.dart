@@ -33,10 +33,10 @@ class _Token implements Tokenizable<int> {
   @primaryKey
   int id;
 
-  @AttributeHint(indexed: true)
+  @ColumnAttributes(indexed: true)
   String accessToken;
 
-  @AttributeHint(indexed: true)
+  @ColumnAttributes(indexed: true)
   String refreshToken;
 
   DateTime issueDate;
@@ -53,10 +53,10 @@ class _AuthCode implements TokenExchangable<Token> {
   @primaryKey
   int id;
 
-  @AttributeHint(indexed: true)
+  @ColumnAttributes(indexed: true)
   String code;
 
-  @AttributeHint(nullable: true)
+  @ColumnAttributes(nullable: true)
   String redirectURI;
   String clientID;
   int resourceOwnerIdentifier;

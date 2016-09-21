@@ -68,7 +68,7 @@ class ModelEntity {
   /// By default, a [Query] will return all the properties named in this list. You may specify
   /// a different set of properties by setting the [Query]'s [resultProperties] value. The default
   /// set of properties is a list of all attributes that do not have the [omitByDefault] flag
-  /// set in their [AttributeHint] and all [RelationshipType.belongsTo] relationships.
+  /// set in their [ColumnAttributes] and all [RelationshipType.belongsTo] relationships.
   List<String> get defaultProperties {
     if (_defaultProperties == null) {
       _defaultProperties = attributes.values
@@ -88,7 +88,7 @@ class ModelEntity {
 
   /// Name of primaryKey property.
   ///
-  /// If this has a primary key (as determined by the having an [AttributeHint] with [AttributeHint.primaryKey] set to true,
+  /// If this has a primary key (as determined by the having an [ColumnAttributes] with [ColumnAttributes.primaryKey] set to true,
   /// returns the name of that property. Otherwise, returns null.
   String get primaryKey {
     return _primaryKey;

@@ -251,7 +251,7 @@ class _TestModel {
 
   String name;
 
-  @AttributeHint(nullable: true, unique: true)
+  @ColumnAttributes(nullable: true, unique: true)
   String emailAddress;
 }
 

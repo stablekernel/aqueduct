@@ -217,7 +217,7 @@ class _TestModel {
 
   String name;
 
-  @AttributeHint(nullable: true, unique: true)
+  @ColumnAttributes(nullable: true, unique: true)
   String emailAddress;
 
   static String tableName() {
@@ -252,7 +252,7 @@ class _GenTime {
 
   String text;
 
-  @AttributeHint(defaultValue: "(now() at time zone 'utc')")
+  @ColumnAttributes(defaultValue: "(now() at time zone 'utc')")
   DateTime dateCreated;
 }
 

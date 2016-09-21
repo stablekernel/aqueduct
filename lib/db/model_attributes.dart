@@ -35,14 +35,14 @@ enum RelationshipType {
 
 /// Marks a property as a primary key, database type big integer, and autoincrementing. The corresponding property
 /// type must be [int].
-const AttributeHint primaryKey = const AttributeHint(primaryKey: true, databaseType: PropertyType.bigInteger, autoincrement: true);
+const ColumnAttributes primaryKey = const ColumnAttributes(primaryKey: true, databaseType: PropertyType.bigInteger, autoincrement: true);
 
 /// A declaration annotation for the options on a property in a entity class.
 ///
 /// By default, simply declaring a a property in a entity class will make it a database field
 /// and its persistence information will be derived from its type.
 /// If, however, the property needs any of the attributes defined by this class, it should be annotated.
-class AttributeHint {
+class ColumnAttributes {
   /// When true, indicates that this model property is the primary key.
   ///
   /// Only one property of a class may have primaryKey equal to true.
@@ -89,7 +89,7 @@ class AttributeHint {
   final bool autoincrement;
 
   /// The metadata constructor.
-  const AttributeHint(
+  const ColumnAttributes(
       {bool primaryKey: false,
       PropertyType databaseType,
       bool nullable: false,
@@ -108,7 +108,7 @@ class AttributeHint {
         this.autoincrement = autoincrement;
 
   /// A supporting constructor to support modifying Attributes.
-  AttributeHint.fromAttributes(AttributeHint source, PropertyType databaseType)
+  ColumnAttributes.fromAttributes(ColumnAttributes source, PropertyType databaseType)
       : this.databaseType = databaseType,
         this.isPrimaryKey = source.isPrimaryKey,
         this.isNullable = source.isNullable,

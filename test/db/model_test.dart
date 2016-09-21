@@ -402,10 +402,10 @@ class User extends Model<_User> implements _User {
 }
 
 class _User {
-  @AttributeHint(nullable: true)
+  @ColumnAttributes(nullable: true)
   String name;
 
-  @AttributeHint(primaryKey: true)
+  @ColumnAttributes(primaryKey: true)
   int id;
 
   DateTime dateCreated;
