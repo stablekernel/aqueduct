@@ -15,10 +15,10 @@ dependencies:
   crypto: "^2.0.0"
   logging: ">=0.11.3 <0.12.0"
   analyzer: ">=0.28.0 <0.30.0"
-  postgresql:
+  postgres:
     git:
-      url: git@github.com:stablekernel/dart_postgresql.git
-      ref: jc/modern
+      url: git@github.com:stablekernel/postgresql-dart.git
+      ref: master
   args: ">=0.13.5 < 1.0.0"
 
 dev_dependencies:
