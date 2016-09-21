@@ -122,12 +122,12 @@ class PostgreSQLPersistentStore extends PersistentStore {
 
   Future<List<MappingElement>> executeInsertQuery(PersistentStoreQuery q) async {
     var queryStringBuffer = new StringBuffer();
-    queryStringBuffer.write("insert into ${q.rootEntity.tableName} ");
+    queryStringBuffer.write("INSERT INTO ${q.rootEntity.tableName} ");
     queryStringBuffer.write("(${q.values.map((m) => _columnNameForProperty(m.property)).join(",")}) ");
-    queryStringBuffer.write("values (${q.values.map((m) => "@${_columnNameForProperty(m.property)}").join(",")}) ");
+    queryStringBuffer.write("VALUES (${q.values.map((m) => "@${_columnNameForProperty(m.property)}").join(",")}) ");
 
     if (q.resultKeys != null && q.resultKeys.length > 0) {
-      queryStringBuffer.write("returning ${q.resultKeys.map((m) => _columnNameForProperty(m.property)).join(",")} ");
+      queryStringBuffer.write("RETURNING ${q.resultKeys.map((m) => _columnNameForProperty(m.property)).join(",")} ");
     }
     var valueMap = new Map.fromIterable(q.values,
         key: (MappingElement m) => _columnNameForProperty(m.property),
@@ -139,7 +139,7 @@ class PostgreSQLPersistentStore extends PersistentStore {
   }
 
   Future<List<List<MappingElement>>> executeFetchQuery(PersistentStoreQuery q) async {
-    var queryStringBuffer = new StringBuffer("select ");
+    var queryStringBuffer = new StringBuffer("SELECT ");
 
     var predicateValueMap = {};
     var mapElementToString = (MappingElement e) => "${e.property.entity.tableName}.${_columnNameForProperty(e.property)}";
@@ -152,7 +152,7 @@ class PostgreSQLPersistentStore extends PersistentStore {
           }
         }).join(",");
 
-    queryStringBuffer.write("$selectColumns from ${q.rootEntity.tableName} ");
+    queryStringBuffer.write("$selectColumns FROM ${q.rootEntity.tableName} ");
 
     q.resultKeys
         .where((mapElement) => mapElement is JoinMappingElement)
@@ -167,7 +167,7 @@ class PostgreSQLPersistentStore extends PersistentStore {
 
     var allPredicates = Predicate.andPredicates([q.predicate, _pagePredicateForQuery(q)].where((p) => p != null).toList());
     if (allPredicates != null) {
-      queryStringBuffer.write("where ${allPredicates.format} ");
+      queryStringBuffer.write("WHERE ${allPredicates.format} ");
       predicateValueMap.addAll(allPredicates.parameters);
     }
 
@@ -177,11 +177,11 @@ class PostgreSQLPersistentStore extends PersistentStore {
     }
 
     if (q.fetchLimit != 0) {
-      queryStringBuffer.write("limit ${q.fetchLimit} ");
+      queryStringBuffer.write("LIMIT ${q.fetchLimit} ");
     }
 
     if (q.offset != 0) {
-      queryStringBuffer.write("offset ${q.offset} ");
+      queryStringBuffer.write("OFFSET ${q.offset} ");
     }
 
     var results = await _executeQuery(queryStringBuffer.toString(), predicateValueMap, q.timeoutInSeconds);
@@ -195,7 +195,7 @@ class PostgreSQLPersistentStore extends PersistentStore {
     }
 
     var queryStringBuffer = new StringBuffer();
-    queryStringBuffer.write("delete from ${q.rootEntity.tableName} ");
+    queryStringBuffer.write("DELETE FROM ${q.rootEntity.tableName} ");
 
     var valueMap = null;
     if (q.predicate != null) {
@@ -214,8 +214,8 @@ class PostgreSQLPersistentStore extends PersistentStore {
     }
 
     var queryStringBuffer = new StringBuffer();
-    queryStringBuffer.write("update ${q.rootEntity.tableName} ");
-    queryStringBuffer.write("set ${q.values.map((m) => _columnNameForProperty(m.property)).map((keyName) => "$keyName=@u_$keyName").join(",")} ");
+    queryStringBuffer.write("UPDATE ${q.rootEntity.tableName} ");
+    queryStringBuffer.write("SET ${q.values.map((m) => _columnNameForProperty(m.property)).map((keyName) => "$keyName=@u_$keyName").join(",")} ");
 
     var predicateValueMap = <String, dynamic>{};
     if (q.predicate != null) {
@@ -224,7 +224,7 @@ class PostgreSQLPersistentStore extends PersistentStore {
     }
 
     if (q.resultKeys != null && q.resultKeys.length > 0) {
-      queryStringBuffer.write("returning ${q.resultKeys.map((m) => _columnNameForProperty(m.property)).join(",")} ");
+      queryStringBuffer.write("RETURNING ${q.resultKeys.map((m) => _columnNameForProperty(m.property)).join(",")} ");
     }
 
     var updateValueMap = new Map.fromIterable(q.values,
@@ -358,11 +358,11 @@ class PostgreSQLPersistentStore extends PersistentStore {
     var transformFunc = (SortDescriptor sd) {
       var property = q.rootEntity.properties[sd.key];
       var columnName = "${property.entity.tableName}.${_columnNameForProperty(property)}";
-      return "$columnName ${(sd.order == SortOrder.ascending ? "asc" : "desc")}";
+      return "$columnName ${(sd.order == SortOrder.ascending ? "ASC" : "DESC")}";
     };
     var joinedSortDescriptors = sortDescs.map(transformFunc).join(",");
 
-    return "order by $joinedSortDescriptors";
+    return "ORDER BY $joinedSortDescriptors";
   }
 
   Predicate _pagePredicateForQuery(PersistentStoreQuery query) {
@@ -383,12 +383,12 @@ class PostgreSQLPersistentStore extends PersistentStore {
       predicate = Predicate.andPredicates([predicate, ji.predicate]);
     }
 
-    return "${_stringForJoinType(ji.type)} join ${ji.joinProperty.entity.tableName} on (${predicate.format})";
+    return "${_stringForJoinType(ji.type)} JOIN ${ji.joinProperty.entity.tableName} ON (${predicate.format})";
   }
 
   String _stringForJoinType(JoinType t) {
     switch (t) {
-      case JoinType.leftOuter: return "left outer";
+      case JoinType.leftOuter: return "LEFT OUTER";
     }
     return null;
   }

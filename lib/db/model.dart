@@ -76,28 +76,28 @@ class Model<PersistentType> extends Object with _QueryMatchableExtension impleme
     keyValues.forEach((k, v) {
       var property = entity.properties[k];
 
-      if (property != null) {
-        if (property is AttributeDescription) {
-          if (!property.isTransient) {
-            _backing.setValueForProperty(entity, k, _valueDecoder(property, v));
-          } else {
-            if (property.transientStatus.isAvailableAsInput) {
-              var decodedValue = _valueDecoder(property, v);
-              if(property.isAssignableWith(decodedValue)) {
-                mirror.setField(new Symbol(k), decodedValue);
-              } else {
-                var valueTypeName = MirrorSystem.getName(reflect(decodedValue).type.simpleName);
-                throw new QueryException(400, "Type mismatch for property ${property.name} on ${MirrorSystem.getName(entity.persistentType.simpleName)}, expected assignable type matching ${property.type} but got $valueTypeName.", -1);
-              }
-            } else {
-              throw new QueryException(400, "Key $k does not exist for ${MirrorSystem.getName(mirror.type.simpleName)}", -1);
-            }
-          }
-        } else {
+      if (property == null) {
+        throw new QueryException(400, "Key $k does not exist for ${MirrorSystem.getName(mirror.type.simpleName)}", -1);
+      }
+
+      if (property is AttributeDescription) {
+        if (!property.isTransient) {
           _backing.setValueForProperty(entity, k, _valueDecoder(property, v));
+        } else {
+          if (!property.transientStatus.isAvailableAsInput) {
+            throw new QueryException(400, "Key $k does not exist for ${MirrorSystem.getName(mirror.type.simpleName)}", -1);
+          }
+
+          var decodedValue = _valueDecoder(property, v);
+          if(property.isAssignableWith(decodedValue)) {
+            mirror.setField(new Symbol(k), decodedValue);
+          } else {
+            var valueTypeName = MirrorSystem.getName(reflect(decodedValue).type.simpleName);
+            throw new QueryException(400, "Type mismatch for property ${property.name} on ${MirrorSystem.getName(entity.persistentType.simpleName)}, expected assignable type matching ${property.type} but got $valueTypeName.", -1);
+          }
         }
       } else {
-        throw new QueryException(400, "Key $k does not exist for ${MirrorSystem.getName(mirror.type.simpleName)}", -1);
+        _backing.setValueForProperty(entity, k, _valueDecoder(property, v));
       }
     });
   }
@@ -117,13 +117,11 @@ class Model<PersistentType> extends Object with _QueryMatchableExtension impleme
 
     var reflectedThis = reflect(this);
     entity.attributes.values
-        .where((attr) => attr.isTransient)
+        .where((attr) => attr.transientStatus?.isAvailableAsOutput ?? false)
         .forEach((attr) {
-          if (attr.transientStatus.isAvailableAsOutput) {
-            var value = reflectedThis.getField(new Symbol(attr.name)).reflectee;
-            if (value != null) {
-              outputMap[attr.name] = value;
-            }
+          var value = reflectedThis.getField(new Symbol(attr.name)).reflectee;
+          if (value != null) {
+            outputMap[attr.name] = value;
           }
         });
 

@@ -15,13 +15,13 @@ class ModelEntity {
 
   /// The type of instances represented by this entity.
   ///
-  /// Model objects are made up of two components, a persistent type and a instance type. Applications
+  /// Model objects are made up of two components, a persistent type and an instance type. Applications
   /// use instance types. This value is the [ClassMirror] on that type.
   final ClassMirror instanceType;
 
   /// The type of persistent instances represented by this entity.
   ///
-  /// Model objects are made up of two components, a persistent type and a instance type. This value
+  /// Model objects are made up of two components, a persistent type and an instance type. This value
   /// is the [ClassMirror] on the persistent portion of a [Model] object.
   final ClassMirror persistentType;
 
