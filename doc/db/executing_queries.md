@@ -2,7 +2,7 @@
 
 To send commands to a database - whether to fetch, insert, delete or update objects - you will create, configure and execute instances of `Query`. A `Query` allows you to create database operations in Dart code in the domain of your application, as opposed to writing SQL. `Query`s are executed against a `ModelContext`. By default, every `Query` uses `ModelContext.defaultContext`, but this can be changed during the instantiation of a `Query`.
 
-(Note that raw SQL may be sent to a database in an Aqueduct application using instances of `PersistentStore` directly. Queries are meant for data operations, not database management.)
+(Note that raw SQL may be sent to a database in an Aqueduct application using instances of `PersistentStore` directly. Queries are meant for typical data operations. Tasks such as schema management, or queries that require special optimization are the typical reasons to write SQL directly using `execute` or `query` on the `PersistentStore`).
 
 Instances of `Query` are generic. The type parameter indicates the entity you are fetching, inserting, deleting or updating. The type parameter must be a subclass of `Model` for which a fully formed `ModelEntity` exists. When a `Query` is created, it sets its `entity` property to `ModelEntity` that represents its type parameter:
 
@@ -154,7 +154,7 @@ Fetch queries can fetch an entity's relationships (these are carried out as *dat
 
 When executing a query that returns model objects (i.e., insert, update and fetch queries), you may configure which properties are actually fetched for each instance. Every entity has a set of `defaultProperties`. If you do not specify exactly which properties to be fetched, these an instance will have all of the properties in its entity's `defaultProperties` set in its `backingMap`.
 
-The default properties of an entity are all attributes declared in the persistent type that do not explicitly have the `omitByDefault` `AttributeHint` set to true and all `InverseRelationship` properties. (In other words, every actual column on the corresponding database table that you haven't specifically marked to be ignored.) Transient properties are never included in `defaultProperties`, as they are not actually fetched from a database. 
+The default properties of an entity are all attributes declared in the persistent type that do not explicitly have the `omitByDefault` `AttributeHint` set to true and all `InverseRelationship` properties. (In other words, every actual column on the corresponding database table that you haven't specifically marked to be ignored.) Transient properties are never included in `defaultProperties`, as they are not actually fetched from a database.
 
 Properties like a hashed password and salt are likely candidates to be marked as `omitByDefault`, as you don't typically want to return that information in an HTTP response body. Marking a attribute as such frees you from having to exclude it each time you create a `Query`.
 
