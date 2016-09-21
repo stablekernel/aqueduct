@@ -12,8 +12,6 @@ var query = new Query<User>();
 query.entity.instanceType; // -> ClassMirror on 'User'
 ```
 
-The `DataModel` that a `Query`'s `entity` must belongs to same `ModelContext` as the `Query`'s `context`.
-
 A `Query` has four basic execution methods: `fetch`, `update`, `insert`, `delete`. These methods will perform a database operation based on the information configured in the `Query`.
 
 * `fetch` will retrieve data from a database (it is equivalent to the SQL operation `SELECT`). Rows are returned in instances of the `Query`'s generic type.
