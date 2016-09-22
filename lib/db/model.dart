@@ -89,12 +89,12 @@ class Model<PersistentType> extends Object with _QueryMatchableExtension impleme
           }
 
           var decodedValue = _valueDecoder(property, v);
-          if(property.isAssignableWith(decodedValue)) {
-            mirror.setField(new Symbol(k), decodedValue);
-          } else {
+          if (!property.isAssignableWith(decodedValue)) {
             var valueTypeName = MirrorSystem.getName(reflect(decodedValue).type.simpleName);
             throw new QueryException(QueryExceptionEvent.requestFailure, message: "Type mismatch for property ${property.name} on ${MirrorSystem.getName(entity.persistentType.simpleName)}, expected assignable type matching ${property.type} but got $valueTypeName.");
           }
+
+          mirror.setField(new Symbol(k), decodedValue);
         }
       } else {
         _backing.setValueForProperty(entity, k, _valueDecoder(property, v));
