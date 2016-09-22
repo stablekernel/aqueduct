@@ -84,4 +84,28 @@ void main() {
 
     expect(ensureExceptionIsCapturedByDeliver.future, completes);
   });
+
+  test("Request handler maps QueryExceptions appropriately", () async {
+    var handler = new RequestHandler(requestHandler: (Request req) {
+      var v = int.parse(req.innerRequest.uri.queryParameters["p"]);
+      switch (v) {
+        case 0: throw new QueryException(QueryExceptionEvent.internalFailure);
+        case 1: throw new QueryException(QueryExceptionEvent.requestFailure);
+        case 2: throw new QueryException(QueryExceptionEvent.conflict);
+        case 3: throw new QueryException(QueryExceptionEvent.connectionFailure);
+      }
+    });
+    server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8000);
+    server
+        .map((req) => new Request(req))
+        .listen((req) async {
+          await handler.deliver(req);
+        });
+
+    var statusCodes = (await Future.wait(
+          [0, 1, 2, 3].map((p) => http.get("http://localhost:8000/?p=$p"))))
+        .map((resp) => resp.statusCode)
+        .toList();
+    expect(statusCodes, [500, 400, 409, 503]);
+  });
 }
