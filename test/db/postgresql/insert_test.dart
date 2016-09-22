@@ -28,9 +28,8 @@ void main() {
       await insertReq.insert();
       successful = true;
     } on QueryException catch (e) {
-      expect(e.message, "Property bad_key in values does not exist on simple");
-      expect(e.statusCode, 400);
-      expect(e.errorCode, -1);
+      expect(e.toString(), "Property bad_key in values does not exist on simple");
+      expect(e.event, QueryExceptionEvent.requestFailure);
     }
     expect(successful, false);
   });
@@ -51,9 +50,9 @@ void main() {
     try {
       await insertReqDup.insert();
       successful = true;
-    } catch (e) {
-      expect(e.statusCode, 409);
-      expect(e.errorCode, 23505);
+    } on QueryException catch (e) {
+      expect(e.event, QueryExceptionEvent.conflict);
+      expect(e.underlyingException.code, "23505");
     }
     expect(successful, false);
 
@@ -111,9 +110,9 @@ void main() {
     try {
       await insertReq.insert();
       successful = true;
-    } catch (e) {
-      expect(e.statusCode, 400);
-      expect(e.errorCode, 23502);
+    } on QueryException catch (e) {
+      expect(e.event, QueryExceptionEvent.requestFailure);
+      expect(e.underlyingException.code, "23502");
     }
     expect(successful, false);
   });

@@ -154,8 +154,8 @@ void main() {
     try {
       user.readMap(map);
       successful = true;
-    } catch (e) {
-      expect(e.message, "Key bad_key does not exist for User");
+    } on QueryException catch (e) {
+      expect(e.toString(), "Key bad_key does not exist for User");
     }
     expect(successful, false);
   });
@@ -193,8 +193,8 @@ void main() {
     try {
       post.readMap(postMap);
       successful = true;
-    } catch (e) {
-      expect(e.message, "Expecting a Map for User in the owner field, got 12 instead.");
+    } on QueryException catch (e) {
+      expect(e.toString(), "Expecting a Map for User in the owner field, got 12 instead.");
     }
     expect(successful, false);
   });
