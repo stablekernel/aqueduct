@@ -60,7 +60,7 @@ Since most model objects have an auto-incrementing primary key, it is important 
 
 Note that only the data explicitly set in `values` (or `valueMap`) is sent to the database. Unset values are *not* sent as `null` and entirely omitted from the insert command.
 
-If an insert query fails because of a conflict - a unique constraint is violated - Aqueduct will automatically generate an `HTTPResponseException` with a 409 status code. This default behavior means that you don't have to check for the specific error of unique constraint violation and Aqueduct will abandon execution and return a 409 'Conflict' response to the calling client.
+If an insert query fails because of a conflict - a unique constraint is violated - Aqueduct will automatically generate a `QueryException` that a `RequestHandler` will translate to a 409 status code. This default behavior means that you don't have to check for the specific error of unique constraint violation and Aqueduct will abandon execution and return a 409 'Conflict' response to the calling client.
 
 ### Updating Data with a Query
 
@@ -94,7 +94,7 @@ User updatedUser = await query.updateOne();
 
 The `updateOne` method will return `null` if no rows were updated. It is important to note that if `updateOne` is used and more than one row is updated, `updateOne` will throw an exception and the changes to the data *are not reversible*. Because this is likely a mistake, this is considered an error, hence the exception is thrown. It is up to the programmer to recognize whether or not a particular `updateOne` query would impact multiple rows.
 
-If an update violates a unique property, an `HTTPResponseException` with status code 409 will be thrown.
+If an update violates a unique property, a `QueryException` will be thrown with `QueryExceptionEvent.conflict` as its `event`. A `RequestHandler` will respond to a request with a status code 409 when this exception is bubbled up to its exception handler.
 
 Update queries have a safety feature that prevents you from accidentally updating every row. If you try to execute a `Query` to do an update and no `predicate` or `matchOn` property is defined, the default behavior of `Query` will throw an exception prior to carrying out the request. If you explicitly want to update every instance of some entity (that is, every row of a table), you must set the `Query`'s `confirmQueryModifiesAllInstancesOnDeleteOrUpdate` to `true` prior to execution. (This property defaults to `false`.)
 
@@ -417,7 +417,9 @@ Note that a query will always add the primary key of a nested object if it is om
 
 ### Exceptions and Errors
 
-An error encountered in preparing or executing a query will throw a `QueryException`. A `QueryException` extends `HTTPResponseException`, and therefore has a suggested HTTP status code. For common scenarios - like a unique violation generating an exception with suggested status code of `409` - Aqueduct will return a reasonable status code to the requesting HTTP client. Therefore, you do not have to catch query executions unless you wish to override the returned status code.
+An error encountered in preparing or executing a query will throw a `QueryException`. `PersistentStore` subclasses generate instances of `QueryException` and specify the type of event that caused the exception - a value in `QueryExceptionEvent`. 
+
+`RequestHandler`s, by default, will interpret the event of a `QueryException` to return a `Response` to an HTTP client. For common scenarios - like a unique violation generating an exception with suggested status code of `409` - Aqueduct will return a reasonable status code to the requesting HTTP client. Therefore, you do not have to catch query executions unless you wish to override the returned status code.
 
 ### Statement Reuse
 
