@@ -159,7 +159,7 @@ class RequestHandler extends Object with APIDocumentable {
         // Note that if the event is an internal failure, this code is skipped and the 500 handler is executed.
         var statusCode = 500;
         switch(caughtValue.event) {
-          //case QueryExceptionEvent.requestFailure: statusCode = 400; break;
+          case QueryExceptionEvent.requestFailure: statusCode = 400; break;
           case QueryExceptionEvent.internalFailure: statusCode = 500; break;
           case QueryExceptionEvent.connectionFailure: statusCode = 503; break;
           case QueryExceptionEvent.conflict: statusCode = 409; break;
