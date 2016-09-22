@@ -29,7 +29,7 @@ class PostgreSQLPersistentStore extends PersistentStore {
   Future<PostgreSQLConnection> getDatabaseConnection() async {
     if (_databaseConnection == null || _databaseConnection.isClosed) {
       if (connectFunction == null) {
-        throw new QueryException(503, "Could not connect to database, no connect function.", 1);
+        throw new QueryException(QueryExceptionEvent.internalFailure, message: "Could not connect to database, no connect function.");
       }
 
       if (_isConnecting) {
@@ -47,11 +47,13 @@ class PostgreSQLPersistentStore extends PersistentStore {
         });
       } catch (e) {
         _isConnecting = false;
+
+        var exception = new QueryException(QueryExceptionEvent.connectionFailure, underlyingException: e);
         _informWaiters((completer) {
-          completer.completeError(new QueryException(503, "Could not connect to database ${e}", 1));
+          completer.completeError(exception);
         });
 
-        throw new QueryException(503, "Could not connect to database ${e}", 1);
+        throw exception;
       }
     }
 
@@ -107,17 +109,10 @@ class PostgreSQLPersistentStore extends PersistentStore {
       logger.fine(() => "Query (${(new DateTime.now().toUtc().difference(now).inMilliseconds)}ms) $formatString $values -> $results");
 
       return results;
-    } on TimeoutException {
-      throw new QueryException(503, "Could not connect to database.", -1);
-    } on PostgreSQLException catch (e, stackTrace) {
-      logger.severe("SQL Failed $formatString $values");
-      throw _interpretException(e, stackTrace);
-    } on QueryException {
-      logger.severe("Query Failed $formatString $values");
-      rethrow;
-    } catch (e, stackTrace) {
-      logger.severe("Unknown Failure $formatString $values");
-      throw new QueryException(500, e.toString(), -1, stackTrace: stackTrace);
+    } on TimeoutException catch (e) {
+      throw new QueryException(QueryExceptionEvent.connectionFailure, underlyingException: e);
+    } on PostgreSQLException catch (e) {
+      throw _interpretException(e);
     }
   }
 
@@ -192,7 +187,7 @@ class PostgreSQLPersistentStore extends PersistentStore {
 
   Future<int> executeDeleteQuery(PersistentStoreQuery q) async {
     if (q.predicate == null && !q.confirmQueryModifiesAllInstancesOnDeleteOrUpdate) {
-      throw new HTTPResponseException(500, "Query would impact all records. This could be a destructive error. Set confirmQueryModifiesAllInstancesOnDeleteOrUpdate on the Query to execute anyway.");
+      throw new QueryException(QueryExceptionEvent.internalFailure, message: "Query would impact all records. This could be a destructive error. Set confirmQueryModifiesAllInstancesOnDeleteOrUpdate on the Query to execute anyway.");
     }
 
     var queryStringBuffer = new StringBuffer();
@@ -211,7 +206,7 @@ class PostgreSQLPersistentStore extends PersistentStore {
 
   Future<List<List<MappingElement>>> executeUpdateQuery(PersistentStoreQuery q) async {
     if (q.predicate == null && !q.confirmQueryModifiesAllInstancesOnDeleteOrUpdate) {
-      throw new HTTPResponseException(500, "Query would impact all records. This could be a destructive error. Set confirmQueryModifiesAllInstancesOnDeleteOrUpdate on the Query to execute anyway.");
+      throw new QueryException(QueryExceptionEvent.internalFailure, message: "Query would impact all records. This could be a destructive error. Set confirmQueryModifiesAllInstancesOnDeleteOrUpdate on the Query to execute anyway.");
     }
 
     var queryStringBuffer = new StringBuffer();
@@ -324,20 +319,19 @@ class PostgreSQLPersistentStore extends PersistentStore {
     }).toList();
   }
 
-  QueryException _interpretException(PostgreSQLException exception, StackTrace stackTrace) {
-    var totalMessage = "${exception.message}. ${exception.detail ?? ""}";
+  QueryException _interpretException(PostgreSQLException exception) {
     switch (exception.code) {
       case "42703":
-        return new QueryException(400, totalMessage, 42703, stackTrace: stackTrace);
+        return new QueryException(QueryExceptionEvent.requestFailure, underlyingException: exception);
       case "23505":
-        return new QueryException(409, totalMessage, 23505, stackTrace: stackTrace);
+        return new QueryException(QueryExceptionEvent.conflict, underlyingException: exception);
       case "23502":
-        return new QueryException(400, totalMessage, 23502, stackTrace: stackTrace);
+        return new QueryException(QueryExceptionEvent.requestFailure, underlyingException: exception);
       case "23503":
-        return new QueryException(400, totalMessage, 23503, stackTrace: stackTrace);
+        return new QueryException(QueryExceptionEvent.requestFailure, underlyingException: exception);
     }
 
-    return new QueryException(500, exception.message, 0, stackTrace: stackTrace);
+    return new QueryException(QueryExceptionEvent.internalFailure, underlyingException: exception);
   }
 
   String _orderByStringForQuery(PersistentStoreQuery q) {

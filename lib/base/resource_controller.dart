@@ -364,7 +364,7 @@ class ResourceController<InstanceType extends Model> extends HTTPController {
         case PropertyType.transientMap: return null;
       }
     } on FormatException {
-      throw new QueryException(404, "Unknown primary key", -1);
+      throw new HTTPResponseException(404, "Unknown primary key");
     }
 
     return null;

@@ -77,7 +77,7 @@ class Model<PersistentType> extends Object with _QueryMatchableExtension impleme
       var property = entity.properties[k];
 
       if (property == null) {
-        throw new QueryException(400, "Key $k does not exist for ${MirrorSystem.getName(mirror.type.simpleName)}", -1);
+        throw new QueryException(QueryExceptionEvent.requestFailure, message: "Key $k does not exist for ${MirrorSystem.getName(mirror.type.simpleName)}");
       }
 
       if (property is AttributeDescription) {
@@ -85,7 +85,7 @@ class Model<PersistentType> extends Object with _QueryMatchableExtension impleme
           _backing.setValueForProperty(entity, k, _valueDecoder(property, v));
         } else {
           if (!property.transientStatus.isAvailableAsInput) {
-            throw new QueryException(400, "Key $k does not exist for ${MirrorSystem.getName(mirror.type.simpleName)}", -1);
+            throw new QueryException(QueryExceptionEvent.requestFailure, message: "Key $k does not exist for ${MirrorSystem.getName(mirror.type.simpleName)}");
           }
 
           var decodedValue = _valueDecoder(property, v);
@@ -93,7 +93,7 @@ class Model<PersistentType> extends Object with _QueryMatchableExtension impleme
             mirror.setField(new Symbol(k), decodedValue);
           } else {
             var valueTypeName = MirrorSystem.getName(reflect(decodedValue).type.simpleName);
-            throw new QueryException(400, "Type mismatch for property ${property.name} on ${MirrorSystem.getName(entity.persistentType.simpleName)}, expected assignable type matching ${property.type} but got $valueTypeName.", -1);
+            throw new QueryException(QueryExceptionEvent.requestFailure, message: "Type mismatch for property ${property.name} on ${MirrorSystem.getName(entity.persistentType.simpleName)}, expected assignable type matching ${property.type} but got $valueTypeName.");
           }
         }
       } else {
@@ -162,7 +162,7 @@ class Model<PersistentType> extends Object with _QueryMatchableExtension impleme
       var destinationEntity = relationshipDescription.destinationEntity;
       if (relationshipDescription.relationshipType == RelationshipType.belongsTo || relationshipDescription.relationshipType == RelationshipType.hasOne) {
         if (value is! Map<String, dynamic>) {
-          throw new QueryException(400, "Expecting a Map for ${MirrorSystem.getName(destinationEntity.instanceType.simpleName)} in the ${relationshipDescription.name} field, got $value instead.", -1);
+          throw new QueryException(QueryExceptionEvent.requestFailure, message: "Expecting a Map for ${MirrorSystem.getName(destinationEntity.instanceType.simpleName)} in the ${relationshipDescription.name} field, got $value instead.");
         }
 
         Model instance = destinationEntity.instanceType.newInstance(new Symbol(""), []).reflectee;
@@ -171,11 +171,11 @@ class Model<PersistentType> extends Object with _QueryMatchableExtension impleme
         return instance;
       } else if (relationshipDescription.relationshipType == RelationshipType.hasMany) {
         if (value is! List<Map<String, dynamic>>) {
-          throw new QueryException(400, "Expecting a List for ${MirrorSystem.getName(destinationEntity.instanceType.simpleName)} in the ${relationshipDescription.name} field, got $value instead.", -1);
+          throw new QueryException(QueryExceptionEvent.requestFailure, message: "Expecting a List for ${MirrorSystem.getName(destinationEntity.instanceType.simpleName)} in the ${relationshipDescription.name} field, got $value instead.");
         }
 
         if (value.length > 0 && value.first is! Map) {
-          throw new QueryException(400, "Expecting a List<Map> for ${MirrorSystem.getName(destinationEntity.instanceType.simpleName)} in the ${relationshipDescription.name} field, got $value instead.", -1);
+          throw new QueryException(QueryExceptionEvent.requestFailure, message: "Expecting a List<Map> for ${MirrorSystem.getName(destinationEntity.instanceType.simpleName)} in the ${relationshipDescription.name} field, got $value instead.");
         }
 
         return new OrderedSet.from((value as List<Map<String, dynamic>>).map((v) {

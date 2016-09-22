@@ -146,7 +146,7 @@ class Query<InstanceType extends Model> {
       return null;
     }
 
-    throw new QueryException(500, "updateOne modified more than one row, this is a serious error.", -1);
+    throw new QueryException(QueryExceptionEvent.internalFailure, message: "updateOne modified more than one row, this is a serious error.");
   }
 
   /// Fetches rows in the database represented by [context] (defaults to [ModelContext.defaultContext]).
@@ -198,21 +198,22 @@ class Query<InstanceType extends Model> {
 /// An exception describing an issue with a query.
 ///
 /// A suggested HTTP status code based on the type of exception will always be available.
-class QueryException extends HTTPResponseException {
+class QueryException implements Exception {
+  QueryException(this.event, {String message: null, this.underlyingException: null}) :
+      this._message = message;
 
-  /// An error code defined by the implementing adapter.
-  final int errorCode;
+  final String _message;
+  final dynamic underlyingException;
+  final QueryExceptionEvent event;
 
-  /// An optional stack trace at the site of the throw.
-  final StackTrace stackTrace;
+  String toString() => _message ?? underlyingException.toString();
+}
 
-  QueryException(int statusCode, String message, this.errorCode,
-      {StackTrace stackTrace: null})
-      : this.stackTrace = stackTrace, super(statusCode, message);
-
-  String toString() {
-    return "QueryException: ${message} ${errorCode} ${statusCode} ${stackTrace}";
-  }
+enum QueryExceptionEvent {
+  conflict,
+  internalFailure,
+  connectionFailure,
+  requestFailure
 }
 
 abstract class QueryMatchable {
