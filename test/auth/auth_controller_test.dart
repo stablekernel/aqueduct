@@ -138,6 +138,7 @@ void main() {
     expect(operations.length, 1);
 
     List<APIResponse> responses = ac.documentResponsesForOperation(operations.first);
+
     APIResponse okResponse = responses.firstWhere((ar) => ar.key == "${HttpStatus.OK}");
     expect(okResponse.schema.properties["access_token"].type, APISchemaObjectTypeString);
     expect(okResponse.schema.properties["token_type"].type, APISchemaObjectTypeString);

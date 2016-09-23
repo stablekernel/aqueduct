@@ -8,9 +8,9 @@ order: 2
 
 This chapter expands on the [previous](http://stablekernel.github.io/aqueduct/tut/getting-started.html).
 
-One of the core principles of `aqueduct` is efficient testing. While opening up your browser and typing in a URL can verify the code you just wrote succeeds, it's not a very reliable way of testing software. We'll also run into some dead-ends when we test HTTP requests that use an HTTP method other than GET. Therefore, there are some helpful utilities for writing tests built into `aqueduct`.
+One of the core principles of Aqueduct is efficient testing. While opening up your browser and typing in a URL can verify the code you just wrote succeeds, it's not a very reliable way of testing software. We'll also run into some dead-ends when we test HTTP requests that use an HTTP method other than GET. Therefore, there are some helpful utilities for writing tests built into Aqueduct.
 
-(As a note, testing Dart in Atom is not well supported - yet. Once you get past this tutorial, it is highly recommended you download IntelliJ IDEA Community Edition for better test support. Most importantly, `aqueduct`'s style of testing requires that test files are not run in parallel - and Atom only runs them in parallel. In the meantime, you can install a Terminal plugin for Atom and run the tests correctly using the command `pub run test -j 1`.)
+(As a note, testing Dart in Atom is not well supported - yet. Once you get past this tutorial, it is highly recommended you download IntelliJ IDEA Community Edition for better test support. Most importantly, Aqueduct's style of testing requires that test files are not run in parallel - and Atom only runs them in parallel. In the meantime, you can install a Terminal plugin for Atom and run the tests correctly using the command `pub run test -j 1`.)
 
 In general, testing in Dart is simple: you write a `main` function and use the `test` function register a test. Each test is a closure that runs some code and has expectations. For example, this code would test that 1 + 1 = 2:
 
@@ -101,7 +101,7 @@ void main() {
 }
 ```
 
-Note that the import statement changed from importing `aqueduct` to `quiz`. Since the `quiz` library exports `aqueduct`, any file that imports `quiz` will also import `aqueduct`. Finally, get your dependencies again to get your project to recognize that `quiz` is now a library package. You can ensure that everything still works by running `bin/quiz.dart` again and typing the URL into your browser.
+Note that the import statement changed from importing Aqueduct to `quiz`. Since the `quiz` library exports Aqueduct, any file that imports `quiz` will also import Aqueduct. Finally, get your dependencies again to get your project to recognize that `quiz` is now a library package. You can ensure that everything still works by running `bin/quiz.dart` again and typing the URL into your browser.
 
 Writings Tests
 ---
@@ -115,7 +115,7 @@ import 'package:test/test.dart';
 import 'package:quiz/quiz.dart';
 ```
 
-The way `aqueduct` accomplishes testing is by starting an entire application, running the tests, then stopping the application. The `Application` class is set up to handle this quite nicely, and in later chapters, we'll see that there some other tools for making that easy as an application continues to grow. A Dart test file can declare a `setUpAll` and `tearDownAll` method to run before and after all tests. After the import statements, add a `main` function with the appropriate setup and teardown code:
+The way Aqueduct accomplishes testing is by starting an entire application, running the tests, then stopping the application. The `Application` class is set up to handle this quite nicely, and in later chapters, we'll see that there some other tools for making that easy as an application continues to grow. A Dart test file can declare a `setUpAll` and `tearDownAll` method to run before and after all tests. After the import statements, add a `main` function with the appropriate setup and teardown code:
 
 ```dart
 void main() {
@@ -133,9 +133,9 @@ void main() {
 
 Once we add tests and run this test file, an instance of a `QuizPipeline` driven `Application` will be started. Because starting an application takes a few milliseconds, we must make sure that we `await` it startup prior to moving on to the tests. Likewise, we may run multiple groups of tests or files with different tests in them, so we have to shut down the application when the tests are finished to free up the port the `Application` is listening on. (You really really shouldn't forget to shut it down, because if you don't, subsequent tests will start to fail because the application can't bind to the listening port.)
 
-Notice also that `start` takes an optional argument, `runOnMainIsolate`. In the previous chapter, we talked about an application spreading across multiple isolates. All of that behavior is tested in `aqueduct`, and so your tests should only test the logic of your pipeline and its related `RequestHandler`s. Since isolates can't share memory, if you ever want to dig into your pipeline and check things out or use some of its resources directly, you wouldn't be able to do that from the tests - the tests would run on a separate isolate from the pipeline. Therefore, when running tests, you should set this flag to true. (This flag is specifically meant for tests.)
+Notice also that `start` takes an optional argument, `runOnMainIsolate`. In the previous chapter, we talked about an application spreading across multiple isolates. All of that behavior is tested in Aqueduct, and so your tests should only test the logic of your pipeline and its related `RequestHandler`s. Since isolates can't share memory, if you ever want to dig into your pipeline and check things out or use some of its resources directly, you wouldn't be able to do that from the tests - the tests would run on a separate isolate from the pipeline. Therefore, when running tests, you should set this flag to true. (This flag is specifically meant for tests.)
 
-Now, we need to add a test to verify that hitting the `/questions` endpoint does return our definition of 'questions'. In `aqueduct`, there is a utility called a `TestClient` to make this a lot easier. At the top of your main function, but after we create the application instance, declare a new variable:
+Now, we need to add a test to verify that hitting the `/questions` endpoint does return our definition of 'questions'. In Aqueduct, there is a utility called a `TestClient` to make this a lot easier. At the top of your main function, but after we create the application instance, declare a new variable:
 
 ```dart
 void main() {
@@ -144,7 +144,7 @@ void main() {
 ...
 ```
 
-A `TestClient` will execute HTTP requests on your behalf in your tests, and is configured to point at the running application. Testing an `aqueduct` application is generally two steps: make a request and then verify you got the response you wanted. Let's create a new test and do the first step. Near the end of main, add the following test:
+A `TestClient` will execute HTTP requests on your behalf in your tests, and is configured to point at the running application. Testing an Aqueduct application is generally two steps: make a request and then verify you got the response you wanted. Let's create a new test and do the first step. Near the end of main, add the following test:
 
 ```dart
 void main() {
@@ -158,7 +158,7 @@ void main() {
 
 If you run this test file now, an instance of your application will spin up on the main isolate, and your first test will execute a GET `http://localhost:8080/questions`, then your application will be torn down. Of course, we don't verify anything about the response, so we should actually do something there.
 
-The value of `response` in the previous code snippet is an instance of `TestResponse`. Dart tests use the Hamcrest style matchers in their expectations. There are built-in matchers in `aqueduct` for setting up and matching expectations on `TestResponse` instances. For example, if we wanted to verify that we got a 404 back, we'd simply do:
+The value of `response` in the previous code snippet is an instance of `TestResponse`. Dart tests use the Hamcrest style matchers in their expectations. There are built-in matchers in Aqueduct for setting up and matching expectations on `TestResponse` instances. For example, if we wanted to verify that we got a 404 back, we'd simply do:
 
 ```dart
   expect(response, hasStatus(404));

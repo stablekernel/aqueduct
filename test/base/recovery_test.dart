@@ -97,7 +97,7 @@ class UncaughtCrashController extends HTTPController {
     return new Response.ok(null);
   }
 
-  @httpGet dontCrash(int id) async {
+  @httpGet dontCrash(@HTTPPath("id") int id) async {
     return new Response.ok(null);
   }
 }

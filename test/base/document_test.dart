@@ -57,17 +57,17 @@ class TController extends HTTPController {
     return new Response.ok("");
   }
   /// ABCD
-  @httpPut putOne(int id, {int p1: null, int p2: null}) async {
+  @httpPut putOne(@HTTPPath("id") int id, {int p1: null, int p2: null}) async {
     return new Response.ok("");
   }
-  @httpGet getOne(int id) async {
+  @httpGet getOne(@HTTPPath("id") int id) async {
     return new Response.ok("");
   }
 
   /// MNOP
   /// QRST
 
-  @httpGet getTwo(int id, int notID) async {
+  @httpGet getTwo(@HTTPPath("id") int id, @HTTPPath("notID") int notID) async {
     return new Response.ok("");
   }
   /// EFGH

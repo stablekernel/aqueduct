@@ -8,13 +8,13 @@ order: 5
 
 This chapter expands on the [previous](http://stablekernel.github.io/aqueduct/tut/model-relationships-and-joins.html).
 
-We've only touched on a small part of `aqueduct`, but we've hit the fundamentals pretty well. The rest of the documentation should lead you towards more specific features, in a less hand-holding way. A lot of the code you have written throughout the tutorial is stuff that exists in the [wildfire](https://github.com/stablekernel/wildfire) template-generating package. So it's likely that this is the last time you'll write the 'setup code' you wrote throughout this tutorial.
+We've only touched on a small part of Aqueduct, but we've hit the fundamentals pretty well. The rest of the documentation should lead you towards more specific features, in a less hand-holding way. A lot of the code you have written throughout the tutorial is stuff that exists in the [wildfire](https://github.com/stablekernel/wildfire) template-generating package. So it's likely that this is the last time you'll write the 'setup code' you wrote throughout this tutorial.
 
 Make sure you use and check out the instructions on the `wildfire` page when you start building your next project - it has helpful tools for everything we will discuss, takes care of boilerplate, and adds a helper for setting up tests in one line of code.
 
 There is one last thing we want to cover, though, and that is deployment.
 
-We're not going to advocate a specific tool or process for deployment, but we can show you how `aqueduct` helps. First, we need to get `quiz`'s schema onto a real database. The following Dart script, available in `wildfire`, will generate a list of PostgreSQL commands to create the appropriate tables, indices and constraints on a PostgreSQL database. You can drop this in your `bin` directory and name it `generate_schema.dart`:
+We're not going to advocate a specific tool or process for deployment, but we can show you how Aqueduct helps. First, we need to get `quiz`'s schema onto a real database. The following Dart script, available in `wildfire`, will generate a list of PostgreSQL commands to create the appropriate tables, indices and constraints on a PostgreSQL database. You can drop this in your `bin` directory and name it `generate_schema.dart`:
 
 ```dart
 import 'package:quiz/quiz.dart';
@@ -172,13 +172,13 @@ Lastly, remember, you'll have to install Dart on your target machine.
 Documentation
 ---
 
-`aqueduct` has a built-in Swagger spec documentation generator feature. Check out the [wildfire](https://github.com/stablekernel/wildfire) repository for the `bin/generate_api_docs.dart` script.
+Aqueduct has a built-in Swagger spec documentation generator feature. Check out the [wildfire](https://github.com/stablekernel/wildfire) repository for the `bin/generate_api_docs.dart` script.
 
 
 Automated Testing/CI
 ---
 
-Again, `wildfire` is your best bet here as this already exists in projects created with it. However, if you want to add support for running `aqueduct` tests as part of Travis-CI, the following .travis.yml file will do:
+Again, `wildfire` is your best bet here as this already exists in projects created with it. However, if you want to add support for running Aqueduct tests as part of Travis-CI, the following .travis.yml file will do:
 
 ```yaml
 language: dart
@@ -199,4 +199,4 @@ script: pub run test -j 1 -r expanded
 Logging
 ---
 
-`aqueduct` logs requests, the amount of information depending on the result of the request. These are logged at the 'info' level using the `logger` package. At more granular levels, `aqueduct` also logs database queries. `wildfire` templates incorporate the `scribe` package to manage logging to files and the console. See it for more examples.
+Aqueduct logs requests, the amount of information depending on the result of the request. These are logged at the 'info' level using the `logger` package. At more granular levels, Aqueduct also logs database queries. `wildfire` templates incorporate the `scribe` package to manage logging to files and the console. See it for more examples.

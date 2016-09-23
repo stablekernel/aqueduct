@@ -319,12 +319,28 @@ enum APIParameterLocation {
 
 class APIParameter {
   static String typeStringForVariableMirror(VariableMirror m) {
-    if (m.type.isSubtypeOf(reflectType(int))) {
+    return typeStringForTypeMirror(m.type);
+  }
+
+  static String typeStringForTypeMirror(TypeMirror m) {
+    if (m.isSubtypeOf(reflectType(int))) {
       return APISchemaObjectFormatInt32;
-    } else if (m.type.isSubtypeOf(reflectType(double))) {
+    } else if (m.isSubtypeOf(reflectType(double))) {
       return APISchemaObjectFormatDouble;
-    } else if (m.type.isSubtypeOf(reflectType(DateTime))) {
+    } else if (m.isSubtypeOf(reflectType(DateTime))) {
       return APISchemaObjectFormatDateTime;
+    }
+
+    return null;
+  }
+
+  static APIParameterLocation _parameterLocationFromHTTPParameter(_HTTPParameter p) {
+    if (p is HTTPPath) {
+      return APIParameterLocation.path;
+    } else if (p is HTTPQuery) {
+      return APIParameterLocation.query;
+    } else if (p is HTTPHeader) {
+      return APIParameterLocation.header;
     }
 
     return null;

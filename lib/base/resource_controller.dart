@@ -76,7 +76,7 @@ class ResourceController<InstanceType extends Model> extends HTTPController {
     return new Response.notFound();
   }
 
-  @httpGet getObject(String id) async {
+  @httpGet getObject(@HTTPPath("id") String id) async {
     _query.matchOn[_query.entity.primaryKey] = whereEqualTo(_parsePrimaryKey(id));
 
     _query = await willFindObjectWithQuery(_query);
@@ -140,7 +140,7 @@ class ResourceController<InstanceType extends Model> extends HTTPController {
     return new Response.notFound();
   }
 
-  @httpDelete deleteObject(String id) async {
+  @httpDelete deleteObject(@HTTPPath("id") String id) async {
     _query.matchOn[_query.entity.primaryKey] = whereEqualTo(_parsePrimaryKey(id));
 
     _query = await willDeleteObjectWithQuery(_query);
@@ -177,7 +177,7 @@ class ResourceController<InstanceType extends Model> extends HTTPController {
     return new Response.notFound();
   }
 
-  @httpPut updateObject(String id) async {
+  @httpPut updateObject(@HTTPPath("id") String id) async {
     _query.matchOn[_query.entity.primaryKey] = whereEqualTo(_parsePrimaryKey(id));
 
     InstanceType instance = _query.entity.instanceType.newInstance(new Symbol(""), []).reflectee as InstanceType;
@@ -211,12 +211,12 @@ class ResourceController<InstanceType extends Model> extends HTTPController {
   }
 
   @httpGet getObjects({
-    @HTTPQuery.optional("count") int count: 0,
-    @HTTPQuery.optional("offset") int offset: 0,
-    @HTTPQuery.optional("pageBy") String pageBy: null,
-    @HTTPQuery.optional("pageAfter") String pageAfter: null,
-    @HTTPQuery.optional("pagePrior") String pagePrior: null,
-    @HTTPQuery.optional("sortBy") List<String> sortBy: null
+    @HTTPQuery("count") int count: 0,
+    @HTTPQuery("offset") int offset: 0,
+    @HTTPQuery("pageBy") String pageBy: null,
+    @HTTPQuery("pageAfter") String pageAfter: null,
+    @HTTPQuery("pagePrior") String pagePrior: null,
+    @HTTPQuery("sortBy") List<String> sortBy: null
   }) async {
     _query.fetchLimit = count;
     _query.offset = offset;

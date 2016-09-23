@@ -13,7 +13,7 @@ Now that you've seen how to route HTTP requests and respond to them, we'll do so
 Building Models
 ---
 
-`aqueduct` has a built-in ORM (some of which is modeled after the iOS/macOS Core Data framework). Like all ORMs, rows of a database are mapped to objects. In `aqueduct`, these instances are of type `Model<T>`. Let's define a model that represents a 'question'. Create a new directory in `lib` named `model`, and then add a new file to it named `question.dart`.
+Aqueduct has a built-in ORM (some of which is modeled after the iOS/macOS Core Data framework). Like all ORMs, rows of a database are mapped to objects. In Aqueduct, these instances are of type `Model<T>`. Let's define a model that represents a 'question'. Create a new directory in `lib` named `model`, and then add a new file to it named `question.dart`.
 
 A model is made up of two classes, its instance type and its persistent type. In your request handling methods, you deal with the instance type. The persistent type is declared once and used to indicate which properties of the model are actually stored in the database. By convention, but not required, persistent types are the name of the instance type, prefixed with '\_'. In `question.dart`, let's define a persistent type for a question:
 
@@ -107,9 +107,9 @@ The only problem? We don't have a database yet.
 Configuring a Database
 ---
 
-As we've mentioned a few times, a key facet to `aqueduct` is efficient automated testing. The scheme for testing is to create a 'test' database that all of your `aqueduct` projects run against. When you run tests against that database, the tests create *temporary* tables prior to executing. The good news is that the `DataModel` in your application can drive this table creation, so you don't need to do anything special. The tests are run against the current version of the schema, as defined by your code.
+As we've mentioned a few times, a key facet to Aqueduct is efficient automated testing. The scheme for testing is to create a 'test' database that all of your Aqueduct projects run against. When you run tests against that database, the tests create *temporary* tables prior to executing. The good news is that the `DataModel` in your application can drive this table creation, so you don't need to do anything special. The tests are run against the current version of the schema, as defined by your code.
 
-Therefore, on any machine you're going to test on, you need a database (so, your local machine and your CI) that has been configured to have an `aqueduct` development database with a specific user. (So, you'll only need to set this up once.) On macOS, the best way to do this locally is download [Postgres.app](http://postgresapp.com). This has a self-contained instance of Postgres that you start by opening up the application itself. Download this application and run it.
+Therefore, on any machine you're going to test on, you need a database (so, your local machine and your CI) that has been configured to have an Aqueduct development database with a specific user. (So, you'll only need to set this up once.) On macOS, the best way to do this locally is download [Postgres.app](http://postgresapp.com). This has a self-contained instance of Postgres that you start by opening up the application itself. Download this application and run it.
 
 Once it starts running, its icon (an elephant) will appear in your menu bar. Select 'Open psql' from its menu, and a command line prompt will appear, connected to the local database. To set up PostgreSQL once and for all for testing, run the following commands in psql:
 
@@ -266,7 +266,7 @@ So, this is nice, but the crappy thing about `Predicate`s is that they are strin
 }
 ```
 
-To reference a specific property of the Model type argument, you use the brackets and the name of the property. The value is a matcher. All matchers for `Query`s begin with the word `where`, and there are plenty of them. Check the `aqueduct` API reference to see them all. This will yield the same result as the `Predicate` from before.
+To reference a specific property of the Model type argument, you use the brackets and the name of the property. The value is a matcher. All matchers for `Query`s begin with the word `where`, and there are plenty of them. Check the Aqueduct API reference to see them all. This will yield the same result as the `Predicate` from before.
 
 We can still go one step further, and remove all the strings and get the analyzer to make sure we write the correct property names. Back in `model/question.dart`, create a subclass of `ModelQuery`.
 

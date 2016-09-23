@@ -172,7 +172,7 @@ All tests are back to passing.
 More on Joins and Relationships
 ---
 
-As relationships and joins are a complex topic, you may want to read the corresponding guide on them to get a full understanding of how `aqueduct` supports them.
+As relationships and joins are a complex topic, you may want to read the corresponding guide on them to get a full understanding of how Aqueduct supports them.
 However, it is important to note that to-many relationships are also available. For example, if you wanted many answers for a question,
 you'd declare the relationship property as `hasMany` and make it a `List` of the related instance type:
 
