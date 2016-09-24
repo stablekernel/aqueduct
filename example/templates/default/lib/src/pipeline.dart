@@ -30,28 +30,28 @@ class WildfirePipeline extends ApplicationPipeline {
   void addRoutes() {
     router
         .route("/auth/token")
-        .next(authenticationServer.authenticator(strategy: AuthenticationStrategy.Client))
-        .next(() => new AuthController(authenticationServer));
+        .thenDeliver(authenticationServer.newAuthenticator(strategy: AuthenticationStrategy.Client))
+        .thenGenerate(() => new AuthController(authenticationServer));
 
     router
         .route("/auth/code")
-        .next(authenticationServer.authenticator(strategy: AuthenticationStrategy.Client))
-        .next(() => new AuthCodeController(authenticationServer));
+        .thenDeliver(authenticationServer.newAuthenticator(strategy: AuthenticationStrategy.Client))
+        .thenGenerate(() => new AuthCodeController(authenticationServer));
 
     router
         .route("/identity")
-        .next(authenticationServer.authenticator())
-        .next(() => new IdentityController());
+        .thenDeliver(authenticationServer.newAuthenticator())
+        .thenGenerate(() => new IdentityController());
 
     router
         .route("/register")
-        .next(authenticationServer.authenticator(strategy: AuthenticationStrategy.Client))
-        .next(() => new RegisterController());
+        .thenDeliver(authenticationServer.newAuthenticator(strategy: AuthenticationStrategy.Client))
+        .thenGenerate(() => new RegisterController());
 
     router
         .route("/users/[:id]")
-        .next(authenticationServer.authenticator())
-        .next(() => new UserController());
+        .thenDeliver(authenticationServer.newAuthenticator())
+        .thenGenerate(() => new UserController());
   }
 
   ModelContext contextWithConnectionInfo(DatabaseConnectionConfiguration database) {

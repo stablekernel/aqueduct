@@ -113,7 +113,7 @@ class CrashPipeline extends ApplicationPipeline {
     if (options["crashIn"] == "addRoutes") {
       throw new TestException("addRoutes");
     }
-    router.route("/t").next(() => new TController());
+    router.route("/t").thenGenerate(() => new TController());
   }
 
   @override
@@ -128,8 +128,8 @@ class TPipeline extends ApplicationPipeline {
   TPipeline(Map<String, dynamic> opts) : super(opts);
 
   void addRoutes() {
-    router.route("/t").next(() => new TController());
-    router.route("/r").next(() => new RController());
+    router.route("/t").thenGenerate(() => new TController());
+    router.route("/r").thenGenerate(() => new RController());
 
   }
 }

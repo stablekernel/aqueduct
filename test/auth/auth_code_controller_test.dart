@@ -243,8 +243,8 @@ class AuthPipeline extends ApplicationPipeline {
   AuthenticationServer authServer;
 
   void addRoutes() {
-    router.route("/auth/code").next(() => new AuthCodeController(authServer));
-    router.route("/auth/token").next(() => new AuthController(authServer));
+    router.route("/auth/code").thenGenerate(() => new AuthCodeController(authServer));
+    router.route("/auth/token").thenGenerate(() => new AuthController(authServer));
   }
 }
 

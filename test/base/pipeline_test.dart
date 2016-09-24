@@ -8,7 +8,7 @@ void main() {
       await app.start();
       expect(true, false);
     } on IsolateSupervisorException catch (e) {
-      expect(e.message, "RequestHandler FailingController instances cannot be reused. Rewrite as .next(() => new FailingController())");
+      expect(e.message, "RequestHandler FailingController instances cannot be reused. Rewrite as .thenGenerate(() => new FailingController())");
     }
   });
 }
@@ -20,7 +20,7 @@ class TestPipeline extends ApplicationPipeline {
   void addRoutes() {
     router
         .route("/controller/[:id]")
-        .next(new FailingController());
+        .thenDeliver(new FailingController());
   }
 }
 class FailingController extends HTTPController {

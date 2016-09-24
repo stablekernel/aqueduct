@@ -13,7 +13,7 @@ void main() {
 
   var authenticationServer = new AuthenticationServer<TestUser, Token, AuthCode>(new AuthDelegate(context));
   var router = new Router();
-  router.route("/auth/token").next(() => new AuthController(authenticationServer));
+  router.route("/auth/token").thenGenerate(() => new AuthController(authenticationServer));
   router.finalize();
 
   tearDownAll(() async {

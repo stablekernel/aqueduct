@@ -23,7 +23,7 @@ class TPipeline extends ApplicationPipeline implements AuthenticationServerDeleg
   AuthenticationServer<TestUser, Token, AuthCode> authServer;
 
   void addRoutes() {
-    router.route("/t[/:id[/:notID]]").next(authServer.authenticator()).next(() => new TController());
+    router.route("/t[/:id[/:notID]]").thenDeliver(authServer.newAuthenticator()).thenGenerate(() => new TController());
   }
 
   Future<Token> tokenForAccessToken(AuthenticationServer server, String accessToken) => null;

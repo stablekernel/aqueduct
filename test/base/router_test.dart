@@ -19,9 +19,9 @@ void main() {
     test("Router Handles Requests", () async {
       Router router = new Router();
 
-      router.route("/player").next(new RequestHandler(requestHandler: (req) {
+      router.route("/player").thenHandle((req) async {
         return new Response.ok("");
-      }));
+      });
 
       server = await enableRouter(router);
 
@@ -32,9 +32,9 @@ void main() {
     test("Router 404s on no match", () async {
       Router router = new Router();
 
-      router.route("/player").next(new RequestHandler(requestHandler: (req) {
+      router.route("/player").thenHandle((req) async {
         return new Response.ok("");
-      }));
+      });
 
       server = await enableRouter(router);
 
@@ -45,9 +45,9 @@ void main() {
     test("Router delivers path values", () async {
       Router router = new Router();
 
-      router.route("/player/:id").next(new RequestHandler(requestHandler: (req) {
+      router.route("/player/:id").thenHandle((req) async {
         return new Response.ok("${req.path.variables["id"]}");
-      }));
+      });
 
       server = await enableRouter(router);
 
@@ -59,7 +59,7 @@ void main() {
     test("Base API adds to path", () async {
       var router = new Router();
       router.basePath = "/api";
-      router.route("/player/").next(new Handler());
+      router.route("/player/").thenDeliver(new Handler());
 
       server = await enableRouter(router);
 
@@ -72,7 +72,7 @@ void main() {
 
     test("Change Base API Path after adding routes still succeeds", () async {
       var router = new Router();
-      router.route("/a").next(new Handler());
+      router.route("/a").thenDeliver(new Handler());
       router.basePath = "/api";
       server = await enableRouter(router);
       var response = await http.get("http://localhost:4040/api/a");
@@ -83,7 +83,7 @@ void main() {
       Handler.counter = 0;
 
       var router = new Router();
-      router.route("/a").next(new Handler());
+      router.route("/a").thenDeliver(new Handler());
 
       server = await enableRouter(router);
 
@@ -98,12 +98,12 @@ void main() {
 
     test("Router matches right route when many are similar", () async {
       var router = new Router();
-      router.route("/a/[:id]").next(new RequestHandler(requestHandler: (Request req) {
+      router.route("/a/[:id]").thenHandle((req) async {
         req.respond(new Response(200, null, null));
-      }));
-      router.route("/a/:id/f").next(new RequestHandler(requestHandler: (Request req) {
+      });
+      router.route("/a/:id/f").thenHandle((req) async {
         req.respond(new Response(201, null, null));
-      }));
+      });
 
       server = await enableRouter(router);
 
@@ -122,27 +122,27 @@ void main() {
     HttpServer server = null;
     var router = new Router();
     setUpAll(() async {
-      router.route("/").next(new RequestHandler(requestHandler: (Request req) {
+      router.route("/").thenHandle((req) async {
         req.respond(new Response(200, null, "/"));
-      }));
-      router.route("/users/[:id]").next(new RequestHandler(requestHandler: (Request req) {
+      });
+      router.route("/users/[:id]").thenHandle((req) async {
         req.respond(new Response(200, null, "/users/${req.path.variables["id"]}"));
-      }));
-      router.route("/locations[/:id]").next(new RequestHandler(requestHandler: (Request req) {
+      });
+      router.route("/locations[/:id]").thenHandle((req) async {
         req.respond(new Response(200, null, "/locations/${req.path.variables["id"]}"));
-      }));
-      router.route("/locations/:id/vacation").next(new RequestHandler(requestHandler: (Request req) {
+      });
+      router.route("/locations/:id/vacation").thenHandle((req) async {
         req.respond(new Response(200, null, "/locations/${req.path.variables["id"]}/vacation"));
-      }));
-      router.route("/locations/:id/alarms[/*]").next(new RequestHandler(requestHandler: (Request req) {
+      });
+      router.route("/locations/:id/alarms[/*]").thenHandle((req) async {
         req.respond(new Response(200, null, "/locations/${req.path.variables["id"]}/alarms/${req.path.remainingPath}"));
-      }));
-      router.route("/equipment/[:id[/:property]]").next(new RequestHandler(requestHandler: (Request req) {
+      });
+      router.route("/equipment/[:id[/:property]]").thenHandle((req) async {
         req.respond(new Response(200, null, "/equipment/${req.path.variables["id"]}/${req.path.variables["property"]}"));
-      }));
-      router.route("/file/*").next(new RequestHandler(requestHandler: (Request req) {
+      });
+      router.route("/file/*").thenHandle((req) async {
         req.respond(new Response(200, null, "/file/${req.path.remainingPath}"));
-      }));
+      });
       server = await enableRouter(router);
     });
 

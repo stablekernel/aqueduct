@@ -8,7 +8,7 @@ Future main() async {
     TestClient client = new TestClient(8080);
     HttpServer server = await HttpServer.bind("localhost", 8080, v6Only: false, shared: false);
     var router = new Router();
-    router.route("/na").next(() => new TestController());
+    router.route("/na").thenGenerate(() => new TestController());
     router.finalize();
     server.map((req) => new Request(req)).listen(router.deliver);
 

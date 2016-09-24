@@ -15,7 +15,7 @@ main() {
 
     server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8080);
     var router = new Router();
-    router.route("/users/[:id]").next(() => new TestModelController());
+    router.route("/users/[:id]").thenGenerate(() => new TestModelController());
     router.finalize();
 
     server.listen((req) async {

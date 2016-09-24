@@ -21,7 +21,7 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
   /// against this [AuthenticationServer]. The [strategy] indicates whether the [Request] is
   /// evaluated for client credentials in a Basic Authorization scheme or for a token in a Bearer Authorization
   /// scheme.
-  Authenticator authenticator({AuthenticationStrategy strategy: AuthenticationStrategy.ResourceOwner}) {
+  Authenticator newAuthenticator({AuthenticationStrategy strategy: AuthenticationStrategy.ResourceOwner}) {
     return new Authenticator(this, strategy);
   }
 

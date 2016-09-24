@@ -497,7 +497,7 @@ class ModelEncodeController extends HTTPController {
 
 Future<HttpServer> enableController(String pattern, Type controller) async {
   var router = new Router();
-  router.route(pattern).next(() => reflectClass(controller).newInstance(new Symbol(""), []).reflectee);
+  router.route(pattern).thenGenerate(() => reflectClass(controller).newInstance(new Symbol(""), []).reflectee);
   router.finalize();
 
   var server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 4040);

@@ -84,7 +84,7 @@ class Pipeline extends ApplicationPipeline {
 
   @override
   void addRoutes() {
-    router.route("/[:id]").next(() => new UncaughtCrashController());
+    router.route("/[:id]").thenGenerate(() => new UncaughtCrashController());
   }
 }
 

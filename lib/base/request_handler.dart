@@ -1,6 +1,7 @@
 part of aqueduct;
 
-typedef RequestHandler _RequestHandlerGeneratorFunction();
+typedef RequestHandler RequestHandlerGeneratorFunction();
+typedef Future<RequestHandlerResult> RequestHandlerFunction(Request request);
 
 /// The unifying protocol for [Request] and [Response] classes.
 ///
@@ -17,6 +18,7 @@ class RequestHandler extends Object with APIDocumentable {
   static bool includeErrorDetailsInServerErrorResponses = false;
 
   Function _handler;
+  RequestHandler nextHandler;
 
   @override
   APIDocumentable get documentableChild => nextHandler;
@@ -29,22 +31,6 @@ class RequestHandler extends Object with APIDocumentable {
     _policy = p;
   }
 
-  /// The initializer for RequestHandlers.
-  ///
-  /// To use a closure-based RequestHandler, you may specify [requestHandler] for
-  /// this instance. Otherwise, you may subclass [RequestHandler] and implement
-  /// [processRequest] (or in rare cases, [deliver]) to handle request.
-  RequestHandler({RequestHandlerResult requestHandler(Request req): null}) {
-    _handler = requestHandler;
-  }
-
-  /// The next [RequestHandler] to run if this one responds with [shouldContinue].
-  ///
-  /// Handlers may be chained together if they have the option not to respond to requests.
-  /// If this handler returns a [Request] from [processRequest], this [nextHandler]
-  /// handler will run. Prefer using [next] to chain together handlers in a single statement.
-  RequestHandler nextHandler;
-
   /// The next [RequestHandler] to run if this instance returns a [Request].
   ///
   /// Handlers may be chained together if they have the option not to respond to requests.
@@ -55,18 +41,26 @@ class RequestHandler extends Object with APIDocumentable {
   /// a new instance of the returned [RequestHandler] is created for each request. Otherwise,
   /// the same instance is used for each request. All [HTTPController]s and subclasses should
   /// be wrapped in a function that returns a new instance of the controller.
-  RequestHandler next(dynamic n) {
-    if (n is _RequestHandlerGeneratorFunction) {
-      this.nextHandler = new _RequestHandlerGenerator(n);
-    } else {
-      var typeMirror = reflect(n).type;
-      if (_requestHandlerTypeRequiresInstantion(typeMirror)) {
-        throw new IsolateSupervisorException("RequestHandler ${typeMirror.reflectedType} instances cannot be reused. Rewrite as .next(() => new ${typeMirror.reflectedType}())");
-      }
-      this.nextHandler = n;
+  RequestHandler thenDeliver(RequestHandler n) {
+    var typeMirror = reflect(n).type;
+    if (_requestHandlerTypeRequiresInstantion(typeMirror)) {
+      throw new IsolateSupervisorException("RequestHandler ${typeMirror.reflectedType} instances cannot be reused. Rewrite as .thenGenerate(() => new ${typeMirror.reflectedType}())");
     }
+    this.nextHandler = n;
 
     return this.nextHandler;
+  }
+
+  RequestHandler thenGenerate(RequestHandlerGeneratorFunction generatorFunction) {
+    this.nextHandler = new _RequestHandlerGenerator(generatorFunction);
+    return this.nextHandler;
+  }
+
+  RequestHandler thenHandle(RequestHandlerFunction f) {
+    var handler = new RequestHandler()
+        .._handler = f;
+    this.nextHandler = handler;
+    return handler;
   }
 
   bool _requestHandlerTypeRequiresInstantion(ClassMirror mirror) {
@@ -141,7 +135,7 @@ class RequestHandler extends Object with APIDocumentable {
   /// If a [RequestHandler] does not respond to the request, but instead modifies it, this method must return the same [Request].
   Future<RequestHandlerResult> processRequest(Request req) async {
     if (_handler != null) {
-      return _handler(req);
+      return await _handler(req);
     }
 
     return req;
@@ -235,7 +229,7 @@ class _RequiresInstantion {
 }
 
 class _RequestHandlerGenerator extends RequestHandler {
-  _RequestHandlerGenerator(_RequestHandlerGeneratorFunction generator) {
+  _RequestHandlerGenerator(RequestHandlerGeneratorFunction generator) {
     this.generator = generator;
   }
 
