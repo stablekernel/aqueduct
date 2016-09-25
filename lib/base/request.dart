@@ -4,7 +4,7 @@ part of aqueduct;
 ///
 /// Contains a standard library [HttpRequest], along with other values
 /// to associate data with a request.
-class Request implements RequestHandlerResult {
+class Request implements RequestControllerEvent {
   static Map<String, Map<String, Function>> _encoders = {
     "application" : {
       "json" : (v) => JSON.encode(v),
@@ -70,9 +70,9 @@ class Request implements RequestHandlerResult {
   /// representing the JSON object.
   dynamic requestBodyObject;
 
-  /// Container for any data a [RequestHandler] wants to attach to this request for the purpose of being used by a later [RequestHandler].
+  /// Container for any data a [RequestController] wants to attach to this request for the purpose of being used by a later [RequestController].
   ///
-  /// Use this property to attach data to a [Request] for use by later [RequestHandler]s.
+  /// Use this property to attach data to a [Request] for use by later [RequestController]s.
   Map<dynamic, dynamic> attachments = {};
 
   /// The timestamp for when this request was received.

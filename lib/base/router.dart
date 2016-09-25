@@ -2,9 +2,9 @@ part of aqueduct;
 
 /// A router to split requests based on their URI.
 ///
-/// Instances of this class maintain a collection of [RouteHandler]s for each route that has been registered with it.
-/// [RouteHandler]s are subclasses of [RequestHandler] so that further [RequestHandler]s can be chained off of it.
-/// When a [Request] is delivered to the router, it will pass it on to the associated [RouteHandler] or respond to the
+/// Instances of this class maintain a collection of [RouteController]s for each route that has been registered with it.
+/// [RouteController]s are subclasses of [RequestController] so that further [RequestController]s can be chained off of it.
+/// When a [Request] is delivered to the router, it will pass it on to the associated [RouteController] or respond to the
 /// [Request] with a 404 status code.
 ///
 /// A route is defined by a [String] format, for example:
@@ -14,13 +14,13 @@ part of aqueduct;
 ///     router.route("/numbers/:id(\d+)");
 ///     router.route("/files/*");
 ///
-class Router extends RequestHandler {
+class Router extends RequestController {
   /// Creates a new [Router].
   Router() {
-    unhandledRequestHandler = _handleUnhandledRequest;
+    unhandledRequestController = _handleUnhandledRequest;
   }
 
-  List<RouteHandler> _routeHandlers = [];
+  List<RouteController> _routeControllers = [];
   _RouteNode _rootRouteNode;
 
   /// A string to be prepended to the beginning of every route this [Router] manages.
@@ -38,18 +38,18 @@ class Router extends RequestHandler {
   ///
   /// If a [Request] has no matching route, this function will be called.
   /// By default, this function will respond to the incoming [Request] with a 404 response,
-  /// and does not forward or allow consumption of the [Request] for later handlers.
-  Function get unhandledRequestHandler => _unhandledRequestHandler;
-  void set unhandledRequestHandler(void handler(Request req)) {
-    _unhandledRequestHandler = handler;
+  /// and does not forward or allow consumption of the [Request] for later controllers.
+  Function get unhandledRequestController => _unhandledRequestController;
+  void set unhandledRequestController(void listener(Request req)) {
+    _unhandledRequestController = listener;
   }
-  var _unhandledRequestHandler;
+  var _unhandledRequestController;
 
 
-  /// Adds a route to this router and provides a forwarding [RequestHandler] for all [Request]s that match that route to be delivered on.
+  /// Adds a route to this router and provides a forwarding [RequestController] for all [Request]s that match that route to be delivered on.
   ///
-  /// This method will create an instance of a [RouteHandler] and attach it to this router, returning the [RouteHandler] instance
-  /// to allow further [RequestHandler]s to be attached.
+  /// This method will create an instance of a [RouteController] and attach it to this router, returning the [RouteController] instance
+  /// to allow further [RequestController]s to be attached.
   /// The [pattern] must follow the rules of route patterns (see the guide for more explanation).
   /// A pattern consists of one or more path segments. A path segment can be a constant string,
   /// a path variable (a word prefixed with the : character) or the wildcard character (the asterisk character *)
@@ -64,28 +64,41 @@ class Router extends RequestHandler {
   ///       /constantString/[:optionalVariable/[optionalConstantString]]
   /// Routes may also contain multiple path segments in the same optional grouping.
   ///       /constantString/[segment1/segment2]
-  RequestHandler route(String pattern) {
-    var routeHandler = new RouteHandler(RoutePathSpecification.specificationsForRoutePattern(pattern));
-    _routeHandlers.add(routeHandler);
-    return routeHandler;
+  RequestController route(String pattern) {
+    var routeController = new RouteController(RoutePathSpecification.specificationsForRoutePattern(pattern));
+    _routeControllers.add(routeController);
+    return routeController;
   }
 
   /// Invoke on this router once all routes are added.
   ///
-  /// If you are using the default router from [ApplicationPipeline], this method is called for you. Otherwise,
+  /// If you are using the default router from [RequestSink], this method is called for you. Otherwise,
   /// you must call this method after all routes have been added to build a tree of routes for optimized route finding.
   void finalize() {
-    _rootRouteNode = new _RouteNode(_routeHandlers.expand((rh) => rh.patterns).toList());
+    _rootRouteNode = new _RouteNode(_routeControllers.expand((rh) => rh.patterns).toList());
+  }
+
+
+  RequestController pipe(RequestController n) {
+    throw new RouterException("Routers may not use pipe, use route instead.");
+  }
+
+  RequestController generate(RequestController generatorFunction()) {
+    throw new RouterException("Routers may not use generate, use route instead.");
+  }
+
+  RequestController listen(Future<RequestControllerEvent> requestControllerFunction(Request request)) {
+    throw new RouterException("Routers may not use listen, use route instead.");
   }
 
   @override
-  Future deliver(Request req) async {
+  Future receive(Request req) async {
     var requestURISegmentIterator = req.innerRequest.uri.pathSegments.iterator;
     if (_basePathSegments.length > 0) {
       for (var i = 0; i < _basePathSegments.length; i++) {
         requestURISegmentIterator.moveNext();
         if (_basePathSegments[i] != requestURISegmentIterator.current) {
-          _unhandledRequestHandler(req);
+          _unhandledRequestController(req);
           return;
         }
       }
@@ -103,17 +116,17 @@ class Router extends RequestHandler {
     if (node?.specification != null) {
       var requestPath = new RequestPath(node.specification, remainingSegments);
       req.path = requestPath;
-      node.handler.deliver(req);
+      node.controller.receive(req);
       return;
     }
 
-    _unhandledRequestHandler(req);
+    _unhandledRequestController(req);
   }
 
   /// Returns a [List] of [APIPath]s configured in this router.
   @override
   List<APIPath> documentPaths(PackagePathResolver resolver) {
-    return _routeHandlers
+    return _routeControllers
         .expand((rh) => rh.patterns)
         .map((RoutePathSpecification routeSpec) => routeSpec.documentPaths(resolver).first)
         .toList();
@@ -127,10 +140,10 @@ class Router extends RequestHandler {
   }
 }
 
-class RouteHandler extends RequestHandler {
-  RouteHandler(this.patterns) {
+class RouteController extends RequestController {
+  RouteController(this.patterns) {
     patterns.forEach((p) {
-      p.handler = this;
+      p.controller = this;
     });
   }
 

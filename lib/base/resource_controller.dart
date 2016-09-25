@@ -1,9 +1,9 @@
 part of aqueduct;
 
-/// A [RequestHandler] for performing CRUD operations on [Model] instances.
+/// A [RequestController] for performing CRUD operations on [Model] instances.
 ///
 /// Instances of this class create and execute [Query]s based on [Request]'s they receive. This instances of this class effectively map a REST API call
-/// directly to the database. For example, this [RequestHandler] handles an HTTP PUT request by executing an update [Query]; the path variable in the request
+/// directly to the database. For example, this [RequestController] handles an HTTP PUT request by executing an update [Query]; the path variable in the request
 /// indicates the value of the primary key for the updated row and the HTTP request body are the values updated.
 ///
 /// When routing to a [ResourceController], you must provide the following route pattern, where <name> can be any string:

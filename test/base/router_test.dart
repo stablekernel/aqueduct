@@ -19,7 +19,7 @@ void main() {
     test("Router Handles Requests", () async {
       Router router = new Router();
 
-      router.route("/player").thenHandle((req) async {
+      router.route("/player").listen((req) async {
         return new Response.ok("");
       });
 
@@ -32,7 +32,7 @@ void main() {
     test("Router 404s on no match", () async {
       Router router = new Router();
 
-      router.route("/player").thenHandle((req) async {
+      router.route("/player").listen((req) async {
         return new Response.ok("");
       });
 
@@ -45,7 +45,7 @@ void main() {
     test("Router delivers path values", () async {
       Router router = new Router();
 
-      router.route("/player/:id").thenHandle((req) async {
+      router.route("/player/:id").listen((req) async {
         return new Response.ok("${req.path.variables["id"]}");
       });
 
@@ -59,7 +59,7 @@ void main() {
     test("Base API adds to path", () async {
       var router = new Router();
       router.basePath = "/api";
-      router.route("/player/").thenDeliver(new Handler());
+      router.route("/player/").pipe(new Handler());
 
       server = await enableRouter(router);
 
@@ -72,18 +72,18 @@ void main() {
 
     test("Change Base API Path after adding routes still succeeds", () async {
       var router = new Router();
-      router.route("/a").thenDeliver(new Handler());
+      router.route("/a").pipe(new Handler());
       router.basePath = "/api";
       server = await enableRouter(router);
       var response = await http.get("http://localhost:4040/api/a");
       expect(response.statusCode, equals(202));
     });
 
-    test("Router passes on to next request handler", () async {
+    test("Router passes on to next request controller", () async {
       Handler.counter = 0;
 
       var router = new Router();
-      router.route("/a").thenDeliver(new Handler());
+      router.route("/a").pipe(new Handler());
 
       server = await enableRouter(router);
 
@@ -98,10 +98,10 @@ void main() {
 
     test("Router matches right route when many are similar", () async {
       var router = new Router();
-      router.route("/a/[:id]").thenHandle((req) async {
+      router.route("/a/[:id]").listen((req) async {
         req.respond(new Response(200, null, null));
       });
-      router.route("/a/:id/f").thenHandle((req) async {
+      router.route("/a/:id/f").listen((req) async {
         req.respond(new Response(201, null, null));
       });
 
@@ -122,25 +122,25 @@ void main() {
     HttpServer server = null;
     var router = new Router();
     setUpAll(() async {
-      router.route("/").thenHandle((req) async {
+      router.route("/").listen((req) async {
         req.respond(new Response(200, null, "/"));
       });
-      router.route("/users/[:id]").thenHandle((req) async {
+      router.route("/users/[:id]").listen((req) async {
         req.respond(new Response(200, null, "/users/${req.path.variables["id"]}"));
       });
-      router.route("/locations[/:id]").thenHandle((req) async {
+      router.route("/locations[/:id]").listen((req) async {
         req.respond(new Response(200, null, "/locations/${req.path.variables["id"]}"));
       });
-      router.route("/locations/:id/vacation").thenHandle((req) async {
+      router.route("/locations/:id/vacation").listen((req) async {
         req.respond(new Response(200, null, "/locations/${req.path.variables["id"]}/vacation"));
       });
-      router.route("/locations/:id/alarms[/*]").thenHandle((req) async {
+      router.route("/locations/:id/alarms[/*]").listen((req) async {
         req.respond(new Response(200, null, "/locations/${req.path.variables["id"]}/alarms/${req.path.remainingPath}"));
       });
-      router.route("/equipment/[:id[/:property]]").thenHandle((req) async {
+      router.route("/equipment/[:id[/:property]]").listen((req) async {
         req.respond(new Response(200, null, "/equipment/${req.path.variables["id"]}/${req.path.variables["property"]}"));
       });
-      router.route("/file/*").thenHandle((req) async {
+      router.route("/file/*").listen((req) async {
         req.respond(new Response(200, null, "/file/${req.path.remainingPath}"));
       });
       server = await enableRouter(router);
@@ -211,11 +211,11 @@ void main() {
 Future<HttpServer> enableRouter(Router router) async {
   router.finalize();
   var server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 4040);
-  server.map((httpReq) => new Request(httpReq)).listen(router.deliver);
+  server.map((httpReq) => new Request(httpReq)).listen(router.receive);
   return server;
 }
 
-class Handler extends RequestHandler {
+class Handler extends RequestController {
   static int counter = 0;
 
   Handler() {
@@ -223,7 +223,7 @@ class Handler extends RequestHandler {
   }
 
   @override
-  Future<RequestHandlerResult> processRequest(Request req) async {
+  Future<RequestControllerEvent> processRequest(Request req) async {
     return new Response(202, null, "$counter");
   }
 }

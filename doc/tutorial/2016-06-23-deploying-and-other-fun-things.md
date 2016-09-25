@@ -91,11 +91,11 @@ Now, we need to do two things to make this configuration file become a reality. 
 Let's take care of the pipeline stuff first. Add a new static property in `pipeline.dart` and update the constructor:
 
 ```dart
-class QuizPipeline extends ApplicationPipeline {
+class QuizSink extends RequestSink {
 
-  static String ConfigurationKey = "QuizPipeline.Configuration";
+  static String ConfigurationKey = "QuizSink.Configuration";
 
-  QuizPipeline(Map options) : super(options) {
+  QuizSink(Map options) : super(options) {
     var dataModel = new DataModel([Question, Answer]);
 
     var config = options[ConfigurationKey];
@@ -112,12 +112,12 @@ Next, we'll need to read in the configuration file as an instance of `QuizConfig
 
 ```dart
 void main() {
-  var app = new Application<QuizPipeline>();
+  var app = new Application<QuizSink>();
   var client = new TestClient(app.configuration.port);
 
   var config = new QuizConfiguration("config.yaml.src");
   app.configuration.pipelineOptions = {
-    QuizPipeline.ConfigurationKey : config
+    QuizSink.ConfigurationKey : config
   };
 
   setUpAll(() async {
@@ -133,9 +133,9 @@ import 'package:quiz/quiz.dart';
 
 void main() {
   var config = new QuizConfiguration("config.yaml");
-  var app = new Application<QuizPipeline>()
+  var app = new Application<QuizSink>()
     ..configuration.pipelineOptions = {
-      QuizPipeline.ConfigurationKey : config
+      QuizSink.ConfigurationKey : config
     };
 
   app.start();

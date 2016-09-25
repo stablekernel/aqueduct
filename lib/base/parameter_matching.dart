@@ -14,7 +14,7 @@ class HTTPRequiredParameter {
   const HTTPRequiredParameter();
 }
 
-/// Specifies the route path variable for the associated handler method argument.
+/// Specifies the route path variable for the associated controller method argument.
 class HTTPPath extends _HTTPParameter {
   const HTTPPath(String segment) : super(segment);
 }
@@ -69,7 +69,7 @@ class _HTTPControllerCache {
         .where((decl) => decl.metadata.any((im) => im.reflectee is HTTPMethod))
         .map((decl) => new _HTTPControllerCachedMethod(decl))
         .forEach((_HTTPControllerCachedMethod method) {
-          var key = _HTTPControllerCachedMethod.generateHandlerMethodKey(method.httpMethod.method, method.pathParameters.length);
+          var key = _HTTPControllerCachedMethod.generateRequestMethodKey(method.httpMethod.method, method.pathParameters.length);
 
           methodCache[key] = method;
         });
@@ -86,7 +86,7 @@ class _HTTPControllerCache {
 
     if (mm is MethodMirror && mm.metadata.any((im) => im.reflectee is HTTPMethod)) {
       _HTTPControllerCachedMethod method = new _HTTPControllerCachedMethod(mm);
-      var key = _HTTPControllerCachedMethod.generateHandlerMethodKey(method.httpMethod.method, method.pathParameters.length);
+      var key = _HTTPControllerCachedMethod.generateRequestMethodKey(method.httpMethod.method, method.pathParameters.length);
 
       return methodCache[key].positionalParameters.any((p) => p.httpParameter is! HTTPPath && p.isRequired);
     }
@@ -95,7 +95,7 @@ class _HTTPControllerCache {
   }
 
   _HTTPControllerCachedMethod mapperForRequest(Request req) {
-    var key = _HTTPControllerCachedMethod.generateHandlerMethodKey(req.innerRequest.method, req.path.orderedVariableNames.length);
+    var key = _HTTPControllerCachedMethod.generateRequestMethodKey(req.innerRequest.method, req.path.orderedVariableNames.length);
 
     return methodCache[key];
   }
@@ -106,7 +106,7 @@ class _HTTPControllerCache {
 }
 
 class _HTTPControllerCachedMethod {
-  static String generateHandlerMethodKey(String httpMethod, int arity) {
+  static String generateRequestMethodKey(String httpMethod, int arity) {
     return "${httpMethod.toLowerCase()}/$arity";
   }
 

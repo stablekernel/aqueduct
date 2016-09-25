@@ -13,7 +13,9 @@ void main() {
 
   var authenticationServer = new AuthenticationServer<TestUser, Token, AuthCode>(new AuthDelegate(context));
   var router = new Router();
-  router.route("/auth/token").thenGenerate(() => new AuthController(authenticationServer));
+  router
+      .route("/auth/token")
+      .generate(() => new AuthController(authenticationServer));
   router.finalize();
 
   tearDownAll(() async {
@@ -24,7 +26,7 @@ void main() {
     context = await contextWithModels([TestUser, Token, AuthCode]);
 
     server = await HttpServer.bind("localhost", 8080, v6Only: false, shared: false);
-    server.map((req) => new Request(req)).listen(router.deliver);
+    server.map((req) => new Request(req)).listen(router.receive);
 
   });
 

@@ -61,11 +61,11 @@ Why there is a persistent and instance type we'll dig into later, but it is impo
 Defining a Context
 ---
 
-In order for an application to work with a database, it needs a `ModelContext`. A `ModelContext` is the facilitator between your code, model objects and a database. It is made up of two components, a `DataModel` (the thing that keeps track of all model types) and `PersistentStore` (the thing that talks to the database). These objects are set up in a pipeline. In `pipeline.dart`, add the following code to the constructor for `QuizPipeline` and define a new property:
+In order for an application to work with a database, it needs a `ModelContext`. A `ModelContext` is the facilitator between your code, model objects and a database. It is made up of two components, a `DataModel` (the thing that keeps track of all model types) and `PersistentStore` (the thing that talks to the database). These objects are set up in a pipeline. In `pipeline.dart`, add the following code to the constructor for `QuizSink` and define a new property:
 
 ```dart
-class QuizPipeline extends ApplicationPipeline {
-  QuizPipeline(Map options) : super(options) {
+class QuizSink extends RequestSink {
+  QuizSink(Map options) : super(options) {
     var dataModel = new DataModel([Question]);
     var persistentStore = new PostgreSQLPersistentStore.fromConnectionInfo("dart", "dart", "localhost", 5432, "dart_test");
     context = new ModelContext(dataModel, persistentStore);

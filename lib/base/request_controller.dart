@@ -1,27 +1,24 @@
 part of aqueduct;
 
-typedef RequestHandler RequestHandlerGeneratorFunction();
-typedef Future<RequestHandlerResult> RequestHandlerFunction(Request request);
-
 /// The unifying protocol for [Request] and [Response] classes.
 ///
 ///
-abstract class RequestHandlerResult {}
+abstract class RequestControllerEvent {}
 
-/// RequestHandlers respond to, modify or forward requests.
+/// [RequestController]s respond to, modify or forward requests.
 ///
-/// This class is intended to be extended. RequestHandlers are sent [Request]s through
-/// their [deliver] method, which in turn invokes [processRequest]. Subclasses
+/// This class is intended to be extended. [RequestController]s are sent [Request]s through
+/// their [receive] method, which in turn invokes [processRequest]. Subclasses
 /// should implement [processRequest] to respond to, modify or forward requests.
-/// In some cases, subclasses may also override [deliver].
-class RequestHandler extends Object with APIDocumentable {
+/// In some cases, subclasses may also override [receive].
+class RequestController extends Object with APIDocumentable {
   static bool includeErrorDetailsInServerErrorResponses = false;
 
-  Function _handler;
-  RequestHandler nextHandler;
+  Function _listener;
+  RequestController nextController;
 
   @override
-  APIDocumentable get documentableChild => nextHandler;
+  APIDocumentable get documentableChild => nextController;
 
   Logger get logger => new Logger("aqueduct");
 
@@ -31,70 +28,70 @@ class RequestHandler extends Object with APIDocumentable {
     _policy = p;
   }
 
-  /// The next [RequestHandler] to run if this instance returns a [Request].
+  /// The next [RequestController] to run if this instance returns a [Request].
   ///
-  /// Handlers may be chained together if they have the option not to respond to requests.
-  /// If this handler returns a [Request] from [processRequest], this [nextHandler]
-  /// handler will run. This method sets the [nextHandler] property] and returns [this]
-  /// to allow chaining. This parameter may be an instance of [RequestHandler] or a
-  /// function that takes no arguments and returns a [RequestHandler]. In the latter instance,
-  /// a new instance of the returned [RequestHandler] is created for each request. Otherwise,
+  /// Controllers  may be chained together if they have the option not to respond to requests.
+  /// If this controller returns a [Request] from [processRequest], this [nextController]
+  /// will run. This method sets the [nextController] property] and returns [this]
+  /// to allow chaining. This parameter may be an instance of [RequestController] or a
+  /// function that takes no arguments and returns a [RequestController]. In the latter instance,
+  /// a new instance of the returned [RequestController] is created for each request. Otherwise,
   /// the same instance is used for each request. All [HTTPController]s and subclasses should
   /// be wrapped in a function that returns a new instance of the controller.
-  RequestHandler thenDeliver(RequestHandler n) {
+  RequestController pipe(RequestController n) {
     var typeMirror = reflect(n).type;
-    if (_requestHandlerTypeRequiresInstantion(typeMirror)) {
-      throw new IsolateSupervisorException("RequestHandler ${typeMirror.reflectedType} instances cannot be reused. Rewrite as .thenGenerate(() => new ${typeMirror.reflectedType}())");
+    if (_requestControllerTypeRequiresInstantion(typeMirror)) {
+      throw new IsolateSupervisorException("RequestController subclass ${typeMirror.reflectedType} instances cannot be reused. Rewrite as .generate(() => new ${typeMirror.reflectedType}())");
     }
-    this.nextHandler = n;
+    this.nextController = n;
 
-    return this.nextHandler;
+    return this.nextController;
   }
 
-  RequestHandler thenGenerate(RequestHandlerGeneratorFunction generatorFunction) {
-    this.nextHandler = new _RequestHandlerGenerator(generatorFunction);
-    return this.nextHandler;
+  RequestController generate(RequestController generatorFunction()) {
+    this.nextController = new _RequestControllerGenerator(generatorFunction);
+    return this.nextController;
   }
 
-  RequestHandler thenHandle(RequestHandlerFunction f) {
-    var handler = new RequestHandler()
-        .._handler = f;
-    this.nextHandler = handler;
-    return handler;
+  RequestController listen(Future<RequestControllerEvent> requestControllerFunction(Request request)) {
+    var controller = new RequestController()
+        .._listener = requestControllerFunction;
+    this.nextController = controller;
+    return controller;
   }
 
-  bool _requestHandlerTypeRequiresInstantion(ClassMirror mirror) {
+  bool _requestControllerTypeRequiresInstantion(ClassMirror mirror) {
     if (mirror.metadata.firstWhere((im) => im.reflectee is _RequiresInstantion, orElse: () => null) != null) {
       return true;
     }
-    if (mirror.isSubtypeOf(reflectType(RequestHandler))) {
-      return _requestHandlerTypeRequiresInstantion(mirror.superclass);
+    if (mirror.isSubtypeOf(reflectType(RequestController))) {
+      return _requestControllerTypeRequiresInstantion(mirror.superclass);
     }
     return false;
   }
 
-  /// The mechanism for delivering a [Request] to this handler for processing.
+  /// The mechanism for delivering a [Request] to this controller for processing.
   ///
-  /// This method is the entry point of a [Request] into this [RequestHandler].
-  /// By default, it invokes this handler's [processRequest] method and, if that method
-  /// determines processing should continue with the [nextHandler] handler and a
-  /// [nextHandler] handler exists, the request will be delivered to [nextHandler].
+  /// This method is the entry point of a [Request] into this [RequestController].
+  /// By default, it invokes this controller's [processRequest] method and, if that method
+  /// determines processing should continue with the [nextController] and a
+  /// [nextController] exists, the request will be delivered to [nextController].
   ///
-  /// An [ApplicationPipeline] invokes this method on its initial handler
+  /// An [RequestSink] invokes this method on its initial controller
   /// in its [processRequest] method.
   ///
-  /// Some [RequestHandler]s may override this method if they do not wish to
+  /// Some [RequestController]s may override this method if they do not wish to
   /// use simple chaining. For example, the [Router] class overrides this method
-  /// to deliver the [Request] to the appropriate route handler. If overriding this
-  /// method, it is important that you always invoke subsequent handler's with [deliver]
+  /// to deliver the [Request] to the appropriate route controller. If overriding this
+  /// method, it is important that you always invoke subsequent controller's with [receive]
   /// and not [processRequest]. You must also ensure that CORS requests are handled properly,
   /// as this method does the heavy-lifting for handling CORS requests.
-  Future deliver(Request req) async {
+  Future receive(Request req) async {
     try {
       if (isCORSRequest(req) && isPreflightRequest(req)) {
-        var handlerToDictatePolicy = _lastRequestHandler();
-        if (handlerToDictatePolicy != this) {
-          handlerToDictatePolicy.deliver(req);
+        var controllerToDictatePolicy = _lastRequestController();
+        if (controllerToDictatePolicy != this) {
+          controllerToDictatePolicy.receive(req);
           return;
         }
 
@@ -113,8 +110,8 @@ class RequestHandler extends Object with APIDocumentable {
 
       var result = await processRequest(req);
 
-      if (result is Request && nextHandler != null) {
-        nextHandler.deliver(req);
+      if (result is Request && nextController != null) {
+        nextController.receive(req);
       } else if (result is Response) {
         _applyCORSHeadersIfNecessary(req, result);
         req.respond(result);
@@ -128,14 +125,14 @@ class RequestHandler extends Object with APIDocumentable {
 
   /// Overridden by subclasses to modify or respond to an incoming request.
   ///
-  /// Subclasses override this method to provide their specific handling of a request. A [RequestHandler]
+  /// Subclasses override this method to provide their specific handling of a request. A [RequestController]
   /// should either modify or respond to the request.
   ///
-  /// [RequestHandler]s should return a [Response] from this method if they responded to the request.
-  /// If a [RequestHandler] does not respond to the request, but instead modifies it, this method must return the same [Request].
-  Future<RequestHandlerResult> processRequest(Request req) async {
-    if (_handler != null) {
-      return await _handler(req);
+  /// [RequestController]s should return a [Response] from this method if they responded to the request.
+  /// If a [RequestController] does not respond to the request, but instead modifies it, this method must return the same [Request].
+  Future<RequestControllerEvent> processRequest(Request req) async {
+    if (_listener != null) {
+      return await _listener(req);
     }
 
     return req;
@@ -185,18 +182,18 @@ class RequestHandler extends Object with APIDocumentable {
     } catch (_) {}
   }
 
-  RequestHandler _lastRequestHandler() {
-    var handler = this;
-    while (handler.nextHandler != null) {
-      handler = handler.nextHandler;
+  RequestController _lastRequestController() {
+    var controller = this;
+    while (controller.nextController != null) {
+      controller = controller.nextController;
     }
-    return handler;
+    return controller;
   }
 
   void _applyCORSHeadersIfNecessary(Request req, Response resp) {
     if (isCORSRequest(req)) {
-      var lastPolicyHandler = _lastRequestHandler();
-      var p = lastPolicyHandler.policy;
+      var lastPolicyController = _lastRequestController();
+      var p = lastPolicyController.policy;
       if (p != null) {
         if (p.isRequestOriginAllowed(req.innerRequest)) {
           resp.headers.addAll(p.headersForRequest(req));
@@ -214,31 +211,31 @@ class RequestHandler extends Object with APIDocumentable {
   }
 }
 
-/// Metadata for a [RequestHandler] subclass that indicates it must be instantiated for each request.
+/// Metadata for a [RequestController] subclass that indicates it must be instantiated for each request.
 ///
-/// [RequestHandler]s may carry some state throughout the course of their handling of a request. If
-/// that [RequestHandler] is reused for another request, some of that state may carry over. Therefore,
-/// it is a better solution to instantiate the [RequestHandler] for each incoming request. Marking
-/// a [RequestHandler] subclass with this flag will ensure that an exception is thrown if an instance
-/// of [RequestHandler] is chained in a pipeline. These instances must be generated with a closure:
+/// [RequestController]s may carry some state throughout the course of their handling of a request. If
+/// that [RequestController] is reused for another request, some of that state may carry over. Therefore,
+/// it is a better solution to instantiate the [RequestController] for each incoming request. Marking
+/// a [RequestController] subclass with this flag will ensure that an exception is thrown if an instance
+/// of [RequestController] is chained in a [RequestSink]. These instances must be generated with a closure:
 ///
-///       router.route("/path").then(() => new RequestHandlerSubclass());
+///       router.route("/path").generate(() => new RequestControllerSubclass());
 const _RequiresInstantion cannotBeReused = const _RequiresInstantion();
 class _RequiresInstantion {
   const _RequiresInstantion();
 }
 
-class _RequestHandlerGenerator extends RequestHandler {
-  _RequestHandlerGenerator(RequestHandlerGeneratorFunction generator) {
+class _RequestControllerGenerator extends RequestController {
+  _RequestControllerGenerator(RequestController generator()) {
     this.generator = generator;
   }
 
   Function generator;
   CORSPolicy _policyOverride = null;
 
-  RequestHandler instantiate() {
-    RequestHandler instance = generator();
-    instance.nextHandler = this.nextHandler;
+  RequestController instantiate() {
+    RequestController instance = generator();
+    instance.nextController = this.nextController;
     if (_policyOverride != null) {
       instance.policy = _policyOverride;
     }
@@ -253,8 +250,8 @@ class _RequestHandlerGenerator extends RequestHandler {
   }
 
   @override
-  Future deliver(Request req) async {
-    await instantiate().deliver(req);
+  Future receive(Request req) async {
+    await instantiate().receive(req);
   }
 
   @override

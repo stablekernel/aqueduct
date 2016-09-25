@@ -54,7 +54,7 @@ void main() {
     // expect headers to have Allow: GET, POST, PUT
   });
 
-  test("Crashing handler delivers 500", () async {
+  test("Crashing controller delivers 500", () async {
     server = await enableController("/a/:id", TController);
 
     var res = await http.put("http://localhost:4040/a/a");
@@ -339,7 +339,7 @@ class FilteringController extends HTTPController {
   }
 
   @override
-  Future<RequestHandlerResult> willProcessRequest(Request req) async {
+  Future<RequestControllerEvent> willProcessRequest(Request req) async {
     if (req.innerRequest.headers.value("ignore") != null) {
       return new Response.badRequest(body: "ignored");
     }
@@ -497,11 +497,11 @@ class ModelEncodeController extends HTTPController {
 
 Future<HttpServer> enableController(String pattern, Type controller) async {
   var router = new Router();
-  router.route(pattern).thenGenerate(() => reflectClass(controller).newInstance(new Symbol(""), []).reflectee);
+  router.route(pattern).generate(() => reflectClass(controller).newInstance(new Symbol(""), []).reflectee);
   router.finalize();
 
   var server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 4040);
-  server.map((httpReq) => new Request(httpReq)).listen(router.deliver);
+  server.map((httpReq) => new Request(httpReq)).listen(router.receive);
 
   return server;
 }

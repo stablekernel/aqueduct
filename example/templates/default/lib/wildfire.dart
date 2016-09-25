@@ -17,7 +17,7 @@ export 'package:scribe/scribe.dart';
 
 part 'src/model/token.dart';
 part 'src/model/user.dart';
-part 'src/pipeline.dart';
+part 'src/wildfire_stream.dart';
 part 'src/controller/user_controller.dart';
 part 'src/controller/identity_controller.dart';
 part 'src/controller/register_controller.dart';

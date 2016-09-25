@@ -10,7 +10,7 @@ This chapter expands on the [previous](http://stablekernel.github.io/aqueduct/tu
 
 One of the core principles of Aqueduct is efficient testing. While opening up your browser and typing in a URL can verify the code you just wrote succeeds, it's not a very reliable way of testing software. We'll also run into some dead-ends when we test HTTP requests that use an HTTP method other than GET. Therefore, there are some helpful utilities for writing tests built into Aqueduct.
 
-(As a note, testing Dart in Atom is not well supported - yet. Once you get past this tutorial, it is highly recommended you download IntelliJ IDEA Community Edition for better test support. Most importantly, Aqueduct's style of testing requires that test files are not run in parallel - and Atom only runs them in parallel. In the meantime, you can install a Terminal plugin for Atom and run the tests correctly using the command `pub run test -j 1`.)
+(As a note, testing Dart in Atom is not well supported - yet. Once you get past this tutorial, it is highly recommended you download IntelliJ IDEA Community Edition for better test support. Most importantly, Aqueduct's style of testing requires that test files are not run in parallel - and Atom only runs them in parallel. In the meantime, you can use the command line and run the tests serially using the command `pub run test -j 1`.)
 
 In general, testing in Dart is simple: you write a `main` function and use the `test` function register a test. Each test is a closure that runs some code and has expectations. For example, this code would test that 1 + 1 = 2:
 
@@ -28,7 +28,7 @@ Tests are made possible by the `test` package which you'll need to claim as a de
 
 ```yaml
 dev_dependencies:
-  test: '>=0.12.0 <0.13.0'
+  test: any
 ```
 
 Now, get the dependencies again by right-clicking on any project file and selecting 'Pub Get'. (Or run `pub get` from the command line in the `quiz` directory.)
@@ -36,7 +36,7 @@ Now, get the dependencies again by right-clicking on any project file and select
 Restructuring quiz
 ---
 
-Last chapter, we just threw everything in a single file to get started. To test, we really need to add some structure to our project. At the top-level directory `quiz`, create a new directory named `lib`. In this directory, create a new file named `quiz.dart`. This is your library file and it will contain references to every file in your project and packages you wish to import. Add the following:
+Last chapter, we just threw everything in a single file to get started. To test, we really need to add some structure to our project. In the top-level directory `quiz`, create a new directory named `lib`. In this directory, create a new file named `quiz.dart`. This is your library file and it will contain references to every file in your project and packages you wish to import. Add the following:
 
 ```dart
 library quiz;
@@ -45,15 +45,15 @@ import 'package:aqueduct/aqueduct.dart';
 export 'package:aqueduct/aqueduct.dart';
 
 part 'controller/question_controller.dart';
-part 'pipeline.dart';
+part 'quiz_sink.dart';
 ```
 
-You'll get some warnings because `controller/question_controller.dart` and `pipeline.dart` don't yet exist. So, let's create those. Create a new directory at `quiz/lib/controller` and add the file `question_controller.dart` to that directory. At the top of this file, link this 'part' back to the library file and then copy and paste the `QuestionController` class from `bin/quiz.dart` into it:
+You'll get some warnings because `controller/question_controller.dart` and `quiz_sink.dart` don't yet exist. Let's create those. Create a new directory at `quiz/lib/controller` and add the file `question_controller.dart` to that directory. At the top of this file, link this 'part' back to the library file and then copy and paste the `QuestionController` class from `bin/quiz.dart` into it:
 
 ```dart
 part of quiz;
 
-class QuestionController extends HttpController {
+class QuestionController extends HTTPController {
   var questions = [
 		"How much wood can a woodchuck chuck?",
 		"What's the tallest mountain in the world?"
@@ -73,35 +73,35 @@ class QuestionController extends HttpController {
 }
 ```
 
-Next, create a new file at `lib/pipeline.dart`, link this part back to the library, and copy and paste the `QuizPipeline` class into this file:
+Next, create a new file at `lib/quiz_sink.dart`, link this part back to the library, and copy and paste the `QuizSink` class into this file:
 
 ```dart
 part of quiz;
 
-class QuizPipeline extends ApplicationPipeline {
-  QuizPipeline(Map options) : super(options);
+class QuizSink extends RequestSink {
+  QuizSink(Map<String, dynamic> options) : super(options);
 
   void addRoutes() {
     router
       .route("/questions/[:index(\\d+)]")
-      .next(() => new QuestionController());
+      .generate(() => new QuestionController());
   }
 }
 ```
 
-Now that you've moved the definition of your quiz application to a library, you can update `bin/quiz.dart` to import your `quiz` library and only have the main function. (Remember, there are two `quiz.dart` files now - this isn't a requirement by any means, you can name the file in `bin` whatever you want.)
+Now that you've split up the project across multiple files, we no longer need the `quiz.dart` file in `bin/`, so delete it. (Don't delete the `quiz.dart` file in `lib/`!) Create a new file in `bin/` named `start.dart` Add the startup `main` function to that file:
 
 ```dart
 import 'package:quiz/quiz.dart';
 
 void main() {
-  var app = new Application<QuizPipeline>();
+  var app = new Application<QuizSink>();
 
   app.start();
 }
 ```
 
-Note that the import statement changed from importing Aqueduct to `quiz`. Since the `quiz` library exports Aqueduct, any file that imports `quiz` will also import Aqueduct. Finally, get your dependencies again to get your project to recognize that `quiz` is now a library package. You can ensure that everything still works by running `bin/quiz.dart` again and typing the URL into your browser.
+Note that we import `quiz.dart` and since the `quiz` library defined in this file exports Aqueduct, any file that imports `quiz.dart` will also import Aqueduct. Finally, get your dependencies again to get your project to recognize that `quiz` is now a library package. You can ensure that everything still works by running `bin/start.dart` again and typing a URL into your browser.
 
 Writings Tests
 ---
@@ -119,7 +119,7 @@ The way Aqueduct accomplishes testing is by starting an entire application, runn
 
 ```dart
 void main() {
-  var app = new Application<QuizPipeline>();
+  var app = new Application<QuizSink>();
 
   setUpAll(() async {
     await app.start(runOnMainIsolate: true);
@@ -131,7 +131,7 @@ void main() {
 }
 ```
 
-Once we add tests and run this test file, an instance of a `QuizPipeline` driven `Application` will be started. Because starting an application takes a few milliseconds, we must make sure that we `await` it startup prior to moving on to the tests. Likewise, we may run multiple groups of tests or files with different tests in them, so we have to shut down the application when the tests are finished to free up the port the `Application` is listening on. (You really really shouldn't forget to shut it down, because if you don't, subsequent tests will start to fail because the application can't bind to the listening port.)
+Once we add tests and run this test file, an instance of a `QuizSink` driven `Application` will be started. Because starting an application takes a few milliseconds, we must make sure that we `await` it startup prior to moving on to the tests. Likewise, we may run multiple groups of tests or files with different tests in them, so we have to shut down the application when the tests are finished to free up the port the `Application` is listening on. (You really really shouldn't forget to shut it down, because if you don't, subsequent tests will start to fail because the application can't bind to the listening port.)
 
 Notice also that `start` takes an optional argument, `runOnMainIsolate`. In the previous chapter, we talked about an application spreading across multiple isolates. All of that behavior is tested in Aqueduct, and so your tests should only test the logic of your pipeline and its related `RequestHandler`s. Since isolates can't share memory, if you ever want to dig into your pipeline and check things out or use some of its resources directly, you wouldn't be able to do that from the tests - the tests would run on a separate isolate from the pipeline. Therefore, when running tests, you should set this flag to true. (This flag is specifically meant for tests.)
 
@@ -139,7 +139,7 @@ Now, we need to add a test to verify that hitting the `/questions` endpoint does
 
 ```dart
 void main() {
-  var app = new Application<QuizPipeline>();
+  var app = new Application<QuizSink>();
   var client = new TestClient(app.configuration.port);
 ...
 ```

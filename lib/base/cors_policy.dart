@@ -1,8 +1,8 @@
 part of aqueduct;
 
-/// Describes a CORS policy for a [RequestHandler].
+/// Describes a CORS policy for a [RequestController].
 ///
-/// These instances can be set as a [RequestHandler]s [policy] property, which will
+/// These instances can be set as a [RequestController]s [policy] property, which will
 /// manage CORS requests according to the policy's properties.
 class CORSPolicy {
   /// The default CORS policy.

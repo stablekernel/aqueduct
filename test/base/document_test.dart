@@ -15,15 +15,15 @@ main() {
   });
 }
 
-class TPipeline extends ApplicationPipeline implements AuthenticationServerDelegate<TestUser, Token, AuthCode> {
-  TPipeline(Map<String, dynamic> opts) : super(opts) {
+class TestSink extends RequestSink implements AuthenticationServerDelegate<TestUser, Token, AuthCode> {
+  TestSink(Map<String, dynamic> opts) : super(opts) {
     authServer = new AuthenticationServer<TestUser, Token, AuthCode>(this);
   }
 
   AuthenticationServer<TestUser, Token, AuthCode> authServer;
 
   void addRoutes() {
-    router.route("/t[/:id[/:notID]]").thenDeliver(authServer.newAuthenticator()).thenGenerate(() => new TController());
+    router.route("/t[/:id[/:notID]]").pipe(authServer.newAuthenticator()).generate(() => new TController());
   }
 
   Future<Token> tokenForAccessToken(AuthenticationServer server, String accessToken) => null;

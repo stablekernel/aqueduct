@@ -2,7 +2,7 @@ part of aqueduct;
 
 /// A representation of a Route match, containing the elements of the matched path.
 ///
-/// Instances of this class can be used by handlers after the router to inspect
+/// Instances of this class can be used by controllers after the router to inspect
 /// specifics of the incoming path without having to dissect the path on their own.
 class RequestPath {
   /// Default constructor for [RequestPath].
@@ -92,13 +92,13 @@ class RoutePathSpecification extends Object with APIDocumentable {
   /// A list of all variables in this route.
   List<String> variableNames;
 
-  /// A reference back to the [RequestHandler] to be used when this specification is matched.
-  RequestHandler handler;
+  /// A reference back to the [RequestController] to be used when this specification is matched.
+  RequestController controller;
 
   /// Returns a [List] one [APIPath].
   ///
   /// This method will create and return an [APIPath] for the path that it represents. It will
-  /// invoke the [documentOperations] on its [handler] to retrieve a list of [APIOperation]s. Those operations
+  /// invoke the [documentOperations] on its [controller] to retrieve a list of [APIOperation]s. Those operations
   /// will be filtered to only include those that have matching parameters.
   @override
   List<APIPath> documentPaths(PackagePathResolver resolver) {
@@ -123,7 +123,7 @@ class RoutePathSpecification extends Object with APIDocumentable {
           return param;
         }).toList();
 
-    List<APIOperation> allOperations = handler.documentOperations(resolver);
+    List<APIOperation> allOperations = controller.documentOperations(resolver);
     p.operations = allOperations
         .where((op) {
           var opPathParamNames = op.parameters

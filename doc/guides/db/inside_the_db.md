@@ -12,7 +12,7 @@ Because most applications only have one `ModelContext`, there is a default conte
 ModelContext.defaultContext = new ModelContext(dataModel, persistentStore);
 ```
 
-Contexts are typically instantiated in a `ApplicationPipeline`'s constructor or some other point in an application's startup process. Contexts are rarely accessed directly after they are created.  A `Query`, when executed, will work with private methods on a context to carry out its job. A context must be instantiated with a `DataModel` and `PersistentStore`, and the context effectively coordinates these two objects to carry out its tasks.
+Contexts are typically instantiated in a `RequestSink`'s constructor or some other point in an application's startup process. Contexts are rarely accessed directly after they are created.  A `Query`, when executed, will work with private methods on a context to carry out its job. A context must be instantiated with a `DataModel` and `PersistentStore`, and the context effectively coordinates these two objects to carry out its tasks.
 
 ### DataModels Describe an Application's Entities
 

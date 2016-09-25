@@ -7,7 +7,7 @@ import '../helpers.dart';
 
 void main() {
   group("Standard operations", () {
-    Application app = new Application<TestPipeline>();
+    Application app = new Application<TestSink>();
     app.configuration.port = 8080;
     var client = new TestClient(app.configuration.port);
     List<TestModel> allObjects = [];
@@ -80,7 +80,7 @@ void main() {
   });
 
   group("Standard operation failure cases", () {
-    Application app = new Application<TestPipeline>();
+    Application app = new Application<TestSink>();
     app.configuration.port = 8080;
     var client = new TestClient(8080);
 
@@ -110,7 +110,7 @@ void main() {
 
   group("Objects that don't exist", () {
     Application app = null;
-    app = new Application<TestPipeline>();
+    app = new Application<TestSink>();
     app.configuration.port = 8080;
     var client = new TestClient(8080);
 
@@ -143,7 +143,7 @@ void main() {
 
   group("Extended GET requests", () {
     Application app = null;
-    app = new Application<TestPipeline>();
+    app = new Application<TestSink>();
     app.configuration.port = 8080;
     var client = new TestClient(8080);
     List<TestModel> allObjects = [];
@@ -284,8 +284,8 @@ void main() {
   });
 }
 
-class TestPipeline extends ApplicationPipeline {
-  TestPipeline(Map<String, dynamic> opts) : super (opts) {
+class TestSink extends RequestSink {
+  TestSink(Map<String, dynamic> opts) : super (opts) {
     var dataModel = new DataModel([TestModel]);
     var persistentStore = new PostgreSQLPersistentStore.fromConnectionInfo("dart", "dart", "localhost", 5432, "dart_test");
     context = new ModelContext(dataModel, persistentStore);
@@ -307,7 +307,7 @@ class TestPipeline extends ApplicationPipeline {
   void addRoutes() {
     router
         .route("/controller/[:id]")
-        .thenGenerate(() => new ResourceController<TestModel>());
+        .generate(() => new ResourceController<TestModel>());
   }
 }
 

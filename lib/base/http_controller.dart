@@ -1,21 +1,21 @@
 part of aqueduct;
 
-/// Base class for web service handlers.
+/// Base class for API web service controller.
 ///
 /// Subclasses of this class can process and respond to an HTTP request.
 @cannotBeReused
-abstract class HTTPController extends RequestHandler {
+abstract class HTTPController extends RequestController {
   static ContentType _applicationWWWFormURLEncodedContentType = new ContentType("application", "x-www-form-urlencoded");
 
   /// The request being processed by this [HTTPController].
   ///
-  /// It is this [HTTPController]'s responsibility to return a [Response] object for this request. Handler methods
+  /// It is this [HTTPController]'s responsibility to return a [Response] object for this request. Responder methods
   /// may access this request to determine how to respond to it.
   Request request;
 
   /// Parameters parsed from the URI of the request, if any exist.
   ///
-  /// These values are attached by a [Router] instance that precedes this [RequestHandler]. Is [null]
+  /// These values are attached by a [Router] instance that precedes this [RequestController]. Is [null]
   /// if no [Router] preceded the controller and is the empty map if there are no values. The keys
   /// are the case-sensitive name of the path variables as defined by the [route].
   Map<String, String> get pathVariables => request.path?.variables;
@@ -43,19 +43,19 @@ abstract class HTTPController extends RequestHandler {
   /// Executed prior to handling a request, but after the [request] has been set.
   ///
   /// This method is used to do pre-process setup and filtering. The [request] will be set, but its body will not be decoded
-  /// nor will the appropriate handler method be selected yet. By default, returns the request. If this method returns a [Response], this
+  /// nor will the appropriate responder method be selected yet. By default, returns the request. If this method returns a [Response], this
   /// controller will stop processing the request and immediately return the [Response] to the HTTP client.
-  Future<RequestHandlerResult> willProcessRequest(Request req) async {
+  Future<RequestControllerEvent> willProcessRequest(Request req) async {
     return req;
   }
 
   /// Executed prior to request being handled, but after the body has been processed.
   ///
   /// This method is called after the body has been processed by the decoder, but prior to the request being
-  /// handled by the appropriate handler method.
+  /// handled by the appropriate responder method.
   void didDecodeRequestBody(dynamic decodedObject) {}
 
-  /// Executed prior to [Response] being sent, but after the handler method has been executed.
+  /// Executed prior to [Response] being sent, but after the responder method has been executed.
   ///
   /// This method is used to post-process a response before it is finally sent. By default, does nothing.
   /// This method will have no impact on when or how the [Response] is sent, is is simply informative.
@@ -140,7 +140,7 @@ abstract class HTTPController extends RequestHandler {
   }
 
   @override
-  Future<RequestHandlerResult> processRequest(Request req) async {
+  Future<RequestControllerEvent> processRequest(Request req) async {
     try {
       request = req;
 

@@ -71,7 +71,7 @@ abstract class TokenExchangable<TokenType extends Tokenizable> {
 ///
 /// When a [Request] passes through an [Authenticator] and is validated,
 /// the [Authenticator] attaches an instance of [Permission] to its [permission]
-/// property to carry the authentication information to the next [RequestHandler]s.
+/// property to carry the authentication information to the next [RequestController]s.
 class Permission {
   /// Creates an instance of a [Permission].
   Permission(this.clientID, this.resourceOwnerIdentifier, this.grantingServer);
@@ -89,9 +89,9 @@ class Permission {
   /// The [AuthenticationServer] that granted this permission.
   final AuthenticationServer grantingServer;
 
-  /// Container for any data a [RequestHandler] wants to attach to this permission for the purpose of being used by a later [RequestHandler].
+  /// Container for any data a [RequestController] wants to attach to this permission for the purpose of being used by a later [RequestController].
   ///
-  /// Use this property to attach data to a [Request] for use by later [RequestHandler]s.
+  /// Use this property to attach data to a [Request] for use by later [RequestController]s.
   Map<dynamic, dynamic> attachments = {};
 }
 
