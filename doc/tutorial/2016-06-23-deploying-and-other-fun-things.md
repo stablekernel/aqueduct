@@ -6,11 +6,9 @@ date: 2016-06-23 13:27:59
 order: 5
 ---
 
-This chapter expands on the [previous](http://stablekernel.github.io/aqueduct/tut/model-relationships-and-joins.html).
+This chapter expands on the [previous](model-relationships-and-joins.html).
 
-We've only touched on a small part of Aqueduct, but we've hit the fundamentals pretty well. The rest of the documentation should lead you towards more specific features, in a less hand-holding way. A lot of the code you have written throughout the tutorial is stuff that exists in the [wildfire](https://github.com/stablekernel/wildfire) template-generating package. So it's likely that this is the last time you'll write the 'setup code' you wrote throughout this tutorial.
-
-Make sure you use and check out the instructions on the `wildfire` page when you start building your next project - it has helpful tools for everything we will discuss, takes care of boilerplate, and adds a helper for setting up tests in one line of code.
+We've only touched on a small part of Aqueduct, but we've hit the fundamentals pretty well. The rest of the documentation should lead you towards more specific features, in a less hand-holding way. A lot of the code you have written throughout the tutorial is part of the templates that ship with Aqueduct. So it's likely that this is the last time you'll write the 'setup code' you wrote throughout this tutorial.
 
 There is one last thing we want to cover, though, and that is deployment.
 

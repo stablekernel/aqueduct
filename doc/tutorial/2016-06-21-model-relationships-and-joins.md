@@ -6,7 +6,7 @@ date: 2016-06-21 12:38:44
 order: 4
 ---
 
-This chapter expands on the [previous](http://stablekernel.github.io/aqueduct/tut/executing-queries.html).
+This chapter expands on the [previous](executing-queries.html).
 
 Model objects can also have relationships to other model objects. There are two types of relationships: to-one and to-many. Let's add an answer for each `Question` in the form of a to-one relationship. First, create a new file `lib/model/answer.dart` and define a new model object to represent an answer:
 

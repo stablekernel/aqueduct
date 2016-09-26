@@ -6,7 +6,7 @@ date: 2016-06-20 09:38:12
 order: 2
 ---
 
-This chapter expands on the [previous](http://stablekernel.github.io/aqueduct/tut/getting-started.html).
+This chapter expands on the [previous](getting-started.html).
 
 One of the core principles of Aqueduct is efficient testing. While opening up your browser and typing in a URL can verify the code you just wrote succeeds, it's not a very reliable way of testing software. We'll also run into some dead-ends when we test HTTP requests that use an HTTP method other than GET. Therefore, there are some helpful utilities for writing tests built into Aqueduct.
 
