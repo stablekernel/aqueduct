@@ -106,7 +106,7 @@ Note that we import `quiz.dart` and since the `quiz` library defined in this fil
 Writings Tests
 ---
 
-We'd like to ensure that when we hit the `/questions` endpoint, that we actually get questions. What does that mean? Well, that is up to us. But, let's say that 'questions' means 'a list of strings that all end in a question mark'.
+We'd like to ensure that when we hit the `/questions` endpoint, we get a response with questions. What does that mean? Well, that is up to us. But, let's say that 'questions' means 'a list of strings that all end in a question mark'.
 
 In Dart, tests are stored in a top-level `test` directory. Create that directory in `quiz`. Then, add a new file to it named `question_controller_test.dart`. (Test must end in `_test.dart` and live in the `test` directory for the tools to find them without you having to specify their path.) In this file, import both the `test` and `quiz` package.
 
@@ -115,7 +115,7 @@ import 'package:test/test.dart';
 import 'package:quiz/quiz.dart';
 ```
 
-The way Aqueduct accomplishes testing is by starting an entire application, running the tests, then stopping the application. The `Application` class is set up to handle this quite nicely, and in later chapters, we'll see that there some other tools for making that easy as an application continues to grow. A Dart test file can declare a `setUpAll` and `tearDownAll` method to run before and after all tests. After the import statements, add a `main` function with the appropriate setup and teardown code:
+The way Aqueduct accomplishes testing is by starting an entire application, running the tests, then stopping the application. To accomplish this, declare a `setUpAll` and `tearDownAll` method to run before and after all tests. After the import statements, add a `main` function with the appropriate setup and teardown code:
 
 ```dart
 void main() {
@@ -131,9 +131,9 @@ void main() {
 }
 ```
 
-Once we add tests and run this test file, an instance of a `QuizSink` driven `Application` will be started. Because starting an application takes a few milliseconds, we must make sure that we `await` it startup prior to moving on to the tests. Likewise, we may run multiple groups of tests or files with different tests in them, so we have to shut down the application when the tests are finished to free up the port the `Application` is listening on. (You really really shouldn't forget to shut it down, because if you don't, subsequent tests will start to fail because the application can't bind to the listening port.)
+Once we add tests and run this test file, an instance of a `QuizSink` driven `Application` will be started. Because starting an application takes a few milliseconds, we must make sure that we `await` its startup prior to moving on to the tests. Likewise, we may run multiple groups of tests or files with different tests in them, so we have to shut down the application when the tests are finished to free up the port the `Application` is listening on. (You really really shouldn't forget to shut it down, because if you don't, subsequent tests will start to fail because the application can't bind to the listening port.)
 
-Notice also that `start` takes an optional argument, `runOnMainIsolate`. In the previous chapter, we talked about an application spreading across multiple isolates. All of that behavior is tested in Aqueduct, and so your tests should only test the logic of your pipeline and its related `RequestHandler`s. Since isolates can't share memory, if you ever want to dig into your pipeline and check things out or use some of its resources directly, you wouldn't be able to do that from the tests - the tests would run on a separate isolate from the pipeline. Therefore, when running tests, you should set this flag to true. (This flag is specifically meant for tests.)
+Notice also that `start` takes an optional argument, `runOnMainIsolate`. In the previous chapter, we talked about an application spreading across multiple isolates. All of that behavior is tested in Aqueduct, and so your tests should only test the logic of your `QuizSink` and its streams of `RequestController`s. Since isolates can't share memory, if you ever want to dig into your `QuizSink` and check things out or use some of its resources directly, you wouldn't be able to do that from the tests when running across multiple isolates - the test isolate is separate from the running `QuizSink` isolates. Therefore, when running tests, you should set this flag to true. (This flag is specifically meant for tests.)
 
 Now, we need to add a test to verify that hitting the `/questions` endpoint does return our definition of 'questions'. In Aqueduct, there is a utility called a `TestClient` to make this a lot easier. At the top of your main function, but after we create the application instance, declare a new variable:
 
@@ -178,15 +178,15 @@ Now, make sure you shut down your application if you were running it from a prev
 What sort of wizardry is this?
 ---
 
-The `hasResponse` matcher takes two arguments: a status code and a 'body matcher'. If the response's status code is 200, this matcher will move on to matching the body. The body matcher is more of a workhorse. First, within the `TestClient`, the body of the HTTP response is decoded according to its `Content-Type` header. Then, that decoded body is matched against the body matcher.
+The `hasResponse` matcher takes two arguments: a status code and a 'body matcher'. If the response's status code matches the first argument of `hasResponse` - 200 in this case - the matcher will move on to the body. The response's HTTP body will be decoded according to its `Content-Type` header. In this example, the body is a JSON list of strings, and therefore it will be decoded into a Dart list of strings.
 
-There are a LOT of built-in matchers - see the documentation for the test package [here](https://www.dartdocs.org/documentation/test/0.12.13%2B5/) - and `everyElement` and `endsWith` are two examples. Since the body is a JSON list of strings, it'll be decoded into a Dart list of strings. `everyElement` verifies that the decoded body is a list, and then runs the `endsWith` matcher on every string in that list. Since every string ends with ?, this matcher as a whole will succeed.
+Next, the decoded body is matched against the body matcher. There are a lot of built-in matchers - see the documentation for the test package [here](https://www.dartdocs.org/documentation/test/latest) - and `everyElement` and `endsWith` are two examples. `everyElement` verifies that the decoded body is a list, and then runs the `endsWith` matcher on every string in that list. Since every string ends with ?, this matcher as a whole will succeed.
 
-Let's write two more tests - first, that getting a specific question returns a question (a string with a question mark at the end) and then a test that ensures a question outside of the range of questions will return a 404. Add the following two tests to the bottom of the main function:
+Let's write two more tests - first, that getting a specific question returns a question (a string with a question mark at the end) and then a test that ensures a question outside of the range of questions will return a 404. Add the following two tests inside the main function:
 
 ```dart
 test("/questions/index returns a single question", () async {
-  var response = await client.request("/questions/0").get();
+  var response = await client.request("/questions/1").get();
   expect(response, hasResponse(200, endsWith("?")));
 });
 

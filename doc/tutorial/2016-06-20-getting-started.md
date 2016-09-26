@@ -166,7 +166,7 @@ In the previous code, you set up a `Router` to pass `Request`s with the route `/
 6. The `QuestionController` matches the HTTP method ('GET') to its responder method, `getAllQuestions`.
 7. `getAllQuestions` is invoked and a `Response` is returned, which is used to construct and send an HTTP response by the internal mechanisms of `RequestController`.
 
-![Pipeline Diagram](../images/ch01/pipelinediagram.png)
+![Application Diagram](../images/ch01/pipelinediagram.png)
 
 This is the life of most `Request`s in an Aqueduct application. The stream of `RequestController`s must result in a `Response` at some point. Along the way, any `RequestController` may choose to respond to a `Request`, which prevents it from continuing down the stream. For example, a `Router` will respond with a 404 if no registered route matches. Some controllers, like subclasses of `HTTPController`, always respond to their request and therefore chaining subsequent controllers doesn't make much sense. (In the future, Aqueduct may have 'post-processing' controllers, but for now, it does not.)
 
@@ -179,7 +179,7 @@ Routing and Another Route
 
 So far, we've added a route that matches the constant string `/questions`. Routers can do more than match a constant string, they can also include path variables, optional path components, regular expression matching and the wildcard character. We'll add to the existing `/questions` route by allowing requests to get a specific question.
 
-In `quiz.dart`, modify the code in the pipeline's `addRoutes` method by adding "/[:index]" to the route.
+In `quiz.dart`, modify the code in the `QuizSink`'s `addRoutes` method by adding "/[:index]" to the route.
 
 ```dart
   @override
@@ -240,10 +240,10 @@ The More You Know: Multi-threading and Application State
 ---
 In this simple exercise, we used a constant list of question as the source of data for the questions endpoint. For a simple getting-your-feet-wet demo, this is fine.
 
-However, in a real application, it is important that we don't keep any mutable state in a pipeline or any request controllers. This is for three reasons. First, it's just bad practice - web servers should be stateless. They are facilitators between a client and a repository of data, not a repository of data themselves. A repository of data is typically a database.
+However, in a real application, it is important that we don't keep any mutable state in a `RequestSink` or any `RequestController`s. This is for three reasons. First, it's just bad practice - web servers should be stateless. They are facilitators between a client and a repository of data, not a repository of data themselves. A repository of data is typically a database.
 
 Second, the way Aqueduct applications are structured makes it really difficult to keep state. For example, `HTTPController` is instantiated each time a new request comes in. Any state they have is discarded after the request is finished processing. This is intentional - you won't run into an issue when scaling to multiple server instances in the future, because the code is already structured to 'statelessly'.
 
 Finally, isolates. Aqueduct applications are set up to run on multiple isolates (the `numberOfInstances` argument for the `Application`'s `start` method). An isolate is effectively a thread that shares no memory with other threads. If we were to keep track of state in some way, that state would not be reflected across all of the isolates running on this web server. So depending on which isolate grabbed a request, it may have different state than you might expect. Again, Aqueduct forces you into this model on purpose.
 
-Isolates will spread themselves out across CPUs on the host machine. Having multiple isolates running the same stateless web server on one machine allows for faster request handling. Each isolate also maintains its own set of resources, like database connections.
+Isolates will spread themselves out across CPUs on the host machine. Each isolate will have its own instance of your `RequestSink` subclass. Having multiple isolates running the same stateless web server on one machine allows for faster request handling. Each isolate also maintains its own set of resources, like database connections.
