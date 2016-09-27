@@ -312,11 +312,9 @@ void main() {
   });
 }
 
-
 class Parent extends Model<_Parent> implements _Parent {}
 class _Parent {
-  @primaryKey
-  int id;
+  @primaryKey int id;
   String name;
 
   Child child;
@@ -324,8 +322,7 @@ class _Parent {
 
 class Child extends Model<_Child> implements _Child {}
 class _Child {
-  @primaryKey
-  int id;
+  @primaryKey int id;
   String name;
 
   @RelationshipInverse(#child)
@@ -338,8 +335,7 @@ class _Child {
 
 class Toy extends Model<_Toy> implements _Toy {}
 class _Toy {
-  @primaryKey
-  int id;
+  @primaryKey int id;
 
   String name;
 
