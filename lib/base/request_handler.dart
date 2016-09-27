@@ -1,5 +1,7 @@
 part of aqueduct;
 
+typedef RequestHandler _RequestHandlerGeneratorFunction();
+
 /// The unifying protocol for [Request] and [Response] classes.
 ///
 ///
@@ -18,7 +20,12 @@ class RequestHandler extends Object with APIDocumentable {
   APIDocumentable get documentableChild => nextHandler;
 
   Logger get logger => new Logger("aqueduct");
-  CORSPolicy policy = new CORSPolicy();
+
+  CORSPolicy get policy => _policy;
+  CORSPolicy _policy = new CORSPolicy();
+  void set policy(CORSPolicy p) {
+    _policy = p;
+  }
 
   /// The initializer for RequestHandlers.
   ///
@@ -47,16 +54,17 @@ class RequestHandler extends Object with APIDocumentable {
   /// the same instance is used for each request. All [HTTPController]s and subclasses should
   /// be wrapped in a function that returns a new instance of the controller.
   RequestHandler next(dynamic n) {
-    if (n is Function) {
-      n = new _RequestHandlerGenerator(n);
+    if (n is _RequestHandlerGeneratorFunction) {
+      this.nextHandler = new _RequestHandlerGenerator(n);
     } else {
       var typeMirror = reflect(n).type;
       if (_requestHandlerTypeRequiresInstantion(typeMirror)) {
         throw new IsolateSupervisorException("RequestHandler ${typeMirror.reflectedType} instances cannot be reused. Rewrite as .next(() => new ${typeMirror.reflectedType}())");
       }
+      this.nextHandler = n;
     }
-    this.nextHandler = n;
-    return n;
+
+    return this.nextHandler;
   }
 
   bool _requestHandlerTypeRequiresInstantion(ClassMirror mirror) {
@@ -113,7 +121,7 @@ class RequestHandler extends Object with APIDocumentable {
         nextHandler.deliver(req);
       } else if (result is Response) {
         _applyCORSHeadersIfNecessary(req, result);
-        req.respond(result as Response);
+        req.respond(result);
         logger.info(req.toDebugString());
       }
     } on HTTPResponseException catch (err) {
@@ -188,27 +196,27 @@ class _RequiresInstantion {
 }
 
 class _RequestHandlerGenerator extends RequestHandler {
-  _RequestHandlerGenerator(RequestHandler generator()) {
+  _RequestHandlerGenerator(_RequestHandlerGeneratorFunction generator) {
     this.generator = generator;
   }
 
   Function generator;
+  CORSPolicy _policyOverride = null;
 
   RequestHandler instantiate() {
     RequestHandler instance = generator();
     instance.nextHandler = this.nextHandler;
-    if (_policy != null) {
-      instance.policy = _policy;
+    if (_policyOverride != null) {
+      instance.policy = _policyOverride;
     }
     return instance;
   }
 
-  CORSPolicy _policy;
   CORSPolicy get policy {
     return instantiate().policy;
   }
   void set policy(CORSPolicy p) {
-    _policy = p;
+    _policyOverride = p;
   }
 
   @override

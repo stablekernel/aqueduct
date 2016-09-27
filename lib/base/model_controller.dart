@@ -21,13 +21,13 @@ abstract class ModelController<T extends Model> extends HTTPController {
 
   /// Create an instance of [ModelController]. By default, [context] is the [defaultContext].
   ModelController([ModelContext context]) : super() {
-    query = new ModelQuery<T>(context: context ?? ModelContext.defaultContext);
+    query = new Query<T>(context: context ?? ModelContext.defaultContext);
   }
 
   /// A query representing the values received from the [request] being processed.
   ///
   /// You may execute this [query] as is or modify it.
-  ModelQuery<T> query;
+  Query<T> query;
 
   @override
   Future<RequestHandlerResult> willProcessRequest(Request req) async {
@@ -38,10 +38,10 @@ abstract class ModelController<T extends Model> extends HTTPController {
       if (idValue != null) {
         var primaryKeyDesc = query.entity.attributes[query.entity.primaryKey];
         if (primaryKeyDesc.isAssignableWith(idValue)) {
-          query[query.entity.primaryKey] = idValue;
+          query.matchOn[query.entity.primaryKey] = idValue;
         } else if (primaryKeyDesc.type == PropertyType.bigInteger || primaryKeyDesc.type == PropertyType.integer) {
           try {
-            query[query.entity.primaryKey] = int.parse(idValue);
+            query.matchOn[query.entity.primaryKey] = int.parse(idValue);
           } on FormatException {
             var errorMessage = "Expected integer value for ModelController on ${query.entity}, but $idValue was not able to be parsed to an integer.";
             logger.info(errorMessage);
@@ -61,11 +61,12 @@ abstract class ModelController<T extends Model> extends HTTPController {
   }
 
   @override
-  void didDecodeRequestBody(Map <String, dynamic> bodyMap) {
+  void didDecodeRequestBody(dynamic body) {
+    var bodyMap = body as Map<String, dynamic>;
     var reflectedModel = reflectClass(T).newInstance(new Symbol(""), []);
-    query.values = reflectedModel.reflectee;
+    query.values = reflectedModel.reflectee as T;
     query.values.readMap(bodyMap);
 
-    query.values.dynamicBacking.remove(query.values.entity.primaryKey);
+    query.values.removePropertyFromBackingMap(query.values.entity.primaryKey);
   }
 }

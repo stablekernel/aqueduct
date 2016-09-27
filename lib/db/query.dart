@@ -3,21 +3,23 @@ part of aqueduct;
 /// An representation of a database operation.
 ///
 /// Queries are used to find, update, insert, delete and count objects in a database.
-
-class Query<ModelType extends Model> {
-  Query({ModelContext context: null}) {
-    this.context = context ?? ModelContext.defaultContext;
+class Query<InstanceType extends Model> {
+  Query({this.context}) {
+    context ??= ModelContext.defaultContext;
+    entity = context.dataModel.entityForType(InstanceType);
   }
 
-  Query.withModelType(this._modelType, {ModelContext context: null}) {
-    this.context = context ?? ModelContext.defaultContext;
-  }
-
-  Type _modelType;
-  Type get modelType => _modelType ?? ModelType;
-
+  ModelEntity entity;
   ModelContext context;
-  ModelEntity get entity => context.dataModel.entityForType(modelType);
+
+  InstanceType get matchOn {
+    if (_matchOn == null) {
+      _matchOn = entity.newInstance() as InstanceType;
+      _matchOn._backing = new _ModelMatcherBacking();
+    }
+    return _matchOn;
+  }
+  InstanceType _matchOn;
 
   /// Confirms that a query has no predicate before executing it.
   ///
@@ -75,24 +77,26 @@ class Query<ModelType extends Model> {
   ///       ..values.name = 'Joe
   ///       ..values.job = 'programmer';
   ///
-  ModelType get values {
+  InstanceType get values {
     if (_valueObject == null) {
-      _valueObject = reflectClass(ModelType).newInstance(new Symbol(""), []).reflectee;
+      _valueObject = entity.newInstance() as InstanceType;
     }
     return _valueObject;
   }
-  void set values(ModelType obj) {
+  void set values(InstanceType obj) {
     _valueObject = obj;
   }
-  ModelType _valueObject;
+  InstanceType _valueObject;
 
   /// A list of properties to be returned by the Query.
   ///
   /// By default, [resultProperties] is null and therefore all objects returned will contain all properties
   /// of the object. (Unless those properties are marked as hasOne or hasMany relationships.) Specifying
   /// an explicit list of keys will return only those properties. Keys must match the names of the properties
-  /// in of [modelType].
+  /// in of [InstanceType].
   List<String> resultProperties;
+
+  Map<Type, List<String>> nestedResultProperties = {};
 
   /// Inserts the data represented by this Query into the database represented by [context] (defaults to [ModelContext.defaultContext]).
   ///
@@ -104,7 +108,7 @@ class Query<ModelType extends Model> {
   ///       q.values.name = "Joe";
   ///       var newUser = await q.insert();
   ///
-  Future<ModelType> insert() async {
+  Future<InstanceType> insert() async {
     return await context._executeInsertQuery(this);
   }
 
@@ -119,7 +123,7 @@ class Query<ModelType extends Model> {
   ///       q.predicate = new Predicate("id = @id", {"id" : existingUser.id});
   ///       q.values = existingUser;
   ///       var updatedUsers = await q.update();
-  Future<List<ModelType>> update() async {
+  Future<List<InstanceType>> update() async {
     return await context._executeUpdateQuery(this);
   }
 
@@ -134,7 +138,7 @@ class Query<ModelType extends Model> {
   ///       q.predicate = new Predicate("id = @id", {"id" : existingUser.id});
   ///       q.values = existingUser;
   ///       var updatedUsers = await q.update();
-  Future<ModelType> updateOne() async {
+  Future<InstanceType> updateOne() async {
     var results = await context._executeUpdateQuery(this);
     if (results.length == 1) {
       return results.first;
@@ -153,7 +157,7 @@ class Query<ModelType extends Model> {
   ///       var q = new Query<User>();
   ///       var allUsers = q.fetch();
   ///
-  Future<List<ModelType>> fetch() async {
+  Future<List<InstanceType>> fetch() async {
     return await context._executeFetchQuery(this);
   }
 
@@ -166,7 +170,7 @@ class Query<ModelType extends Model> {
   ///       var q = new Query<User>();
   ///       q.predicate = new Predicate("id = @id", {"id" : 1});
   ///       var user = await q.fetchOne();
-  Future<ModelType> fetchOne() async {
+  Future<InstanceType> fetchOne() async {
     fetchLimit = 1;
 
     var results = await context._executeFetchQuery(this);
@@ -187,11 +191,7 @@ class Query<ModelType extends Model> {
   ///       var deleted = await q.delete();
   ///
   Future<int> delete() async {
-    return await context._executeDeleteQuery(this); // or null
-  }
-
-  Predicate _compilePredicate(DataModel dataModel, PersistentStore) {
-    return predicate;
+    return await context._executeDeleteQuery(this);
   }
 }
 
@@ -208,9 +208,35 @@ class QueryException extends HTTPResponseException {
 
   QueryException(int statusCode, String message, this.errorCode,
       {StackTrace stackTrace: null})
-      : super(statusCode, message), this.stackTrace = stackTrace;
+      : this.stackTrace = stackTrace, super(statusCode, message);
 
   String toString() {
     return "QueryException: ${message} ${errorCode} ${statusCode} ${stackTrace}";
+  }
+}
+
+abstract class QueryMatchable {
+  ModelEntity entity;
+
+  bool includeInResultSet;
+
+  Map<String, dynamic> get _matcherMap;
+}
+
+abstract class _QueryMatchableExtension implements QueryMatchable {
+  bool get _hasJoinElements {
+    return _matcherMap.values
+        .where((item) => item is QueryMatchable)
+        .any((QueryMatchable item) => item.includeInResultSet);
+  }
+
+  List<String> get _joinPropertyKeys {
+    return _matcherMap.keys.where((propertyName) {
+      var val = _matcherMap[propertyName];
+      var relDesc = entity.relationships[propertyName];
+
+      return val is QueryMatchable
+          && (relDesc?.relationshipType == RelationshipType.hasMany || relDesc?.relationshipType == RelationshipType.hasOne);
+    }).toList();
   }
 }

@@ -3,9 +3,9 @@ part of aqueduct;
 /// A database row represented as an object.
 ///
 /// Provides storage, serialization and deserialization capabilities.
-/// Model types in an application extend Model<T>, where the Model type must also implement T. T holds properties
-/// that are persisted in a database. T in the context is called the 'persistent instance type'. The subclass of Model<T>
-/// is known as the 'instance type'. Any properties in the instance type are not persisted, except those they inherit from T.
+/// Instance types in an application extend [Model<PersistentType>], where the instance type must also implement [PersistentType]. [PersistentType] holds properties
+/// that are persisted in a database. The subclass of [Model<PersistentType>]
+/// is known as the 'instance type'. Any properties in the instance type are not persisted, except those they inherit from [PersistentType].
 /// Model instances are used in an application. Example:
 ///
 /// class User extends Model<_User> implements _User {
@@ -16,69 +16,37 @@ part of aqueduct;
 ///   int id; // persisted
 /// }
 ///
-class Model<T> implements Serializable {
-  /// The [ModelContext] this instance belongs to.
-  ModelContext context = ModelContext.defaultContext;
-
+class Model<PersistentType> extends Object with _QueryMatchableExtension implements Serializable, QueryMatchable {
   /// The [ModelEntity] this instance is described by.
-  ModelEntity get entity => context.dataModel.entityForType(T);
+  ModelEntity entity = ModelContext.defaultContext.dataModel.entityForType(PersistentType);
 
-  /// Applied to each value when a Model is executing [readFromMap].
-  ///
-  /// Defaults to [_defaultValueDecoder], which simply converts ISO8601 strings to DateTimes.
-  /// [propertyDescription] is the [PropertyDescription] definition of the property being assigned. [key] is the name of the property. [value] is the value being read and assigned to the property [key].
-  Function get valueDecoder => _valueDecoder;
-  void set valueDecoder(dynamic decode(PropertyDescription propertyDescription, dynamic value)) {
-    _valueDecoder = decode;
-  }
-  Function _valueDecoder = _defaultValueDecoder;
+  _ModelBacking _backing = new _ModelValueBacking();
 
-  /// Applied to each value when a Model is executing [asMap].
-  ///
-  /// Defaults to [_defaultValueEncoder], which converts DateTime objects to ISO8601 strings.
-  /// [key] is the name of the property. [value] is the value of that property.
-  Function get valueEncoder => _valueEncoder;
-  void set valueEncoder(dynamic encode(String key, dynamic value)) {
-    _valueEncoder = encode;
-  }
-  Function _valueEncoder = _defaultValueEncoder;
+  bool includeInResultSet = false;
+  Map<String, dynamic> get _matcherMap => backingMap;
 
-  /// A model object's data.
+  /// The values available in this representation.
   ///
-  /// Model objects may be sparsely populated; when values have not been assigned to a property, the key will not exist in [dynamicBacking].
-  /// A value (including null) in [dynamicBacking] for a key means the property has been set on model instance.
-  Map<String, dynamic> dynamicBacking = {};
+  /// Not all values are fetched or populated in a [Model] instance. This value contains
+  /// any key-value pairs for properties that are stored in this instance.
+  Map<String, dynamic> get backingMap => _backing.valueMap;
 
   /// Retrieves a value by property name.
-  dynamic operator [](String propertyName) {
-    if (entity.properties[propertyName] == null) {
-      throw new DataModelException("Model type ${MirrorSystem.getName(reflect(this).type.simpleName)} has no property $propertyName.");
-    }
-
-    if (!dynamicBacking.containsKey(propertyName)) {
-      return null;
-    }
-
-    return dynamicBacking[propertyName];
-  }
+  dynamic operator [](String propertyName) => _backing.valueForProperty(entity, propertyName);
 
   /// Sets a value by property name.
   void operator []=(String propertyName, dynamic value) {
-    var property = entity.properties[propertyName];
-    if (property == null) {
-      throw new DataModelException("Model type ${MirrorSystem.getName(reflect(this).type.simpleName)} has no property $propertyName.");
-    }
-
-    if (value != null) {
-      if (!property.isAssignableWith(value)) {
-        var valueTypeName = MirrorSystem.getName(reflect(value).type.simpleName);
-        throw new DataModelException("Type mismatch for property $propertyName on ${MirrorSystem.getName(entity.persistentInstanceTypeMirror.simpleName)}, expected assignable type matching ${property.type} but got $valueTypeName.");
-      }
-    }
-
-    dynamicBacking[propertyName] = value;
-    return null;
+    _backing.setValueForProperty(entity, propertyName, value);
   }
+
+  void removePropertyFromBackingMap(String propertyName) {
+    _backing.removeProperty(propertyName);
+  }
+
+  bool hasValueForProperty(String propertyName) {
+    return backingMap.containsKey(propertyName);
+  }
+
 
   noSuchMethod(Invocation invocation) {
     if (invocation.isGetter) {
@@ -103,47 +71,36 @@ class Model<T> implements Serializable {
   ///     var model = new UserModel()
   ///       ..readFromMap(values);
   void readMap(Map<String, dynamic> keyValues) {
-    if (dynamicBacking == null) {
-      dynamicBacking = {};
-    }
+    var mirror = reflect(this);
 
     keyValues.forEach((k, v) {
       var property = entity.properties[k];
-      DeclarationMirror decl = _declarationMirrorForProperty(k);
 
-      if (property != null && !(property is AttributeDescription && property.isTransient)) {
-        dynamicBacking[k] = _valueDecoder(property, v);
-      } else if (decl != null && _declarationMirrorIsMappableOnInput(decl)) {
-        reflect(this).setField(decl.simpleName, _valueDecoder(property, v));
+      if (property == null) {
+        throw new QueryException(400, "Key $k does not exist for ${MirrorSystem.getName(mirror.type.simpleName)}", -1);
+      }
+
+      if (property is AttributeDescription) {
+        if (!property.isTransient) {
+          _backing.setValueForProperty(entity, k, _valueDecoder(property, v));
+        } else {
+          if (!property.transientStatus.isAvailableAsInput) {
+            throw new QueryException(400, "Key $k does not exist for ${MirrorSystem.getName(mirror.type.simpleName)}", -1);
+          }
+
+          var decodedValue = _valueDecoder(property, v);
+          if(property.isAssignableWith(decodedValue)) {
+            mirror.setField(new Symbol(k), decodedValue);
+          } else {
+            var valueTypeName = MirrorSystem.getName(reflect(decodedValue).type.simpleName);
+            throw new QueryException(400, "Type mismatch for property ${property.name} on ${MirrorSystem.getName(entity.persistentType.simpleName)}, expected assignable type matching ${property.type} but got $valueTypeName.", -1);
+          }
+        }
       } else {
-        throw new QueryException(400, "Key $k does not exist for ${MirrorSystem.getName(reflect(this).type.simpleName)}", -1);
+        _backing.setValueForProperty(entity, k, _valueDecoder(property, v));
       }
     });
   }
-
-  DeclarationMirror _declarationMirrorForProperty(String propertyName) {
-    var reflectedThis = reflect(this);
-    var sym = new Symbol(propertyName);
-
-    return reflectedThis.type.declarations[sym];
-  }
-
-  Mappable _mappableAttributeForDeclarationMirror(DeclarationMirror mirror) {
-    return mirror.metadata.firstWhere((im) => im.reflectee is Mappable, orElse: () => null)?.reflectee;
-  }
-
-  bool _declarationMirrorIsMappableOnInput(DeclarationMirror dm) {
-    Mappable transientMetadata = _mappableAttributeForDeclarationMirror(dm);
-
-    return transientMetadata != null && transientMetadata.isAvailableAsInput;
-  }
-
-  bool _declarationMirrorIsMappableOnOutput(DeclarationMirror dm) {
-    Mappable transientMetadata =  _mappableAttributeForDeclarationMirror(dm);
-
-    return transientMetadata != null && transientMetadata.isAvailableAsOutput;
-  }
-
 
   /// Converts a model object into a serializable map.
   ///
@@ -152,21 +109,21 @@ class Model<T> implements Serializable {
   /// Usage:
   ///     var json = JSON.encode(model.asMap());
   Map<String, dynamic> asMap() {
-    var outputMap = {};
+    var outputMap = <String, dynamic>{};
 
-    dynamicBacking.forEach((k, v) {
+    _backing.valueMap.forEach((k, v) {
       outputMap[k] = _valueEncoder(k, v);
     });
 
     var reflectedThis = reflect(this);
-    reflectedThis.type.declarations.forEach((sym, decl) {
-      if (_declarationMirrorIsMappableOnOutput(decl)) {
-        var value = reflectedThis.getField(sym).reflectee;
-        if (value != null) {
-          outputMap[MirrorSystem.getName(sym)] = reflectedThis.getField(sym).reflectee;
-        }
-      }
-    });
+    entity.attributes.values
+        .where((attr) => attr.transientStatus?.isAvailableAsOutput ?? false)
+        .forEach((attr) {
+          var value = reflectedThis.getField(new Symbol(attr.name)).reflectee;
+          if (value != null) {
+            outputMap[attr.name] = value;
+          }
+        });
 
     return outputMap;
   }
@@ -175,30 +132,23 @@ class Model<T> implements Serializable {
     return asMap();
   }
 
-  /// The default encoder for values when converting them to a map.
-  ///
-  /// Embedded model objects and lists of embedded model objects will also be sent asMap().
-  /// DateTime instances are converted to ISO8601 strings.
-  static dynamic _defaultValueEncoder(String key, dynamic value) {
-    if (value is List) {
-      return (value as List)
+  static dynamic _valueEncoder(String key, dynamic value) {
+    if (value is OrderedSet) {
+      return value
           .map((Model innerValue) => innerValue.asMap())
           .toList();
     } else if (value is Model) {
-      return (value as Model).asMap();
+      return value.asMap();
     }
 
     if (value is DateTime) {
-      return (value as DateTime).toIso8601String();
+      return value.toIso8601String();
     }
 
     return value;
   }
 
-  /// The default decoder for values when reading from a map.
-  ///
-  /// ISO8601 strings are converted to DateTime instances of the type of the property as defined by [key] is DateTime.
-  static dynamic _defaultValueDecoder(PropertyDescription propertyDescription, dynamic value) {
+  static dynamic _valueDecoder(PropertyDescription propertyDescription, dynamic value) {
     if (propertyDescription is AttributeDescription) {
       if (propertyDescription.type == PropertyType.datetime) {
         value = DateTime.parse(value);
@@ -211,28 +161,28 @@ class Model<T> implements Serializable {
       RelationshipDescription relationshipDescription = propertyDescription;
       var destinationEntity = relationshipDescription.destinationEntity;
       if (relationshipDescription.relationshipType == RelationshipType.belongsTo || relationshipDescription.relationshipType == RelationshipType.hasOne) {
-        if (value is! Map) {
-          throw new QueryException(400, "Expecting a Map for ${MirrorSystem.getName(destinationEntity.instanceTypeMirror.simpleName)} in the ${relationshipDescription.name} field, got $value instead.", -1);
+        if (value is! Map<String, dynamic>) {
+          throw new QueryException(400, "Expecting a Map for ${MirrorSystem.getName(destinationEntity.instanceType.simpleName)} in the ${relationshipDescription.name} field, got $value instead.", -1);
         }
 
-        Model instance = destinationEntity.instanceTypeMirror.newInstance(new Symbol(""), []).reflectee;
-        instance.readMap(value);
+        Model instance = destinationEntity.instanceType.newInstance(new Symbol(""), []).reflectee;
+        instance.readMap(value as Map<String, dynamic>);
 
         return instance;
       } else if (relationshipDescription.relationshipType == RelationshipType.hasMany) {
-        if (value is! List) {
-          throw new QueryException(400, "Expecting a List for ${MirrorSystem.getName(destinationEntity.instanceTypeMirror.simpleName)} in the ${relationshipDescription.name} field, got $value instead.", -1);
+        if (value is! List<Map<String, dynamic>>) {
+          throw new QueryException(400, "Expecting a List for ${MirrorSystem.getName(destinationEntity.instanceType.simpleName)} in the ${relationshipDescription.name} field, got $value instead.", -1);
         }
 
         if (value.length > 0 && value.first is! Map) {
-          throw new QueryException(400, "Expecting a List<Map> for ${MirrorSystem.getName(destinationEntity.instanceTypeMirror.simpleName)} in the ${relationshipDescription.name} field, got $value instead.", -1);
+          throw new QueryException(400, "Expecting a List<Map> for ${MirrorSystem.getName(destinationEntity.instanceType.simpleName)} in the ${relationshipDescription.name} field, got $value instead.", -1);
         }
 
-        return (value as List).map((v) {
-          Model instance = destinationEntity.instanceTypeMirror.newInstance(new Symbol(""), []).reflectee;
+        return new OrderedSet.from((value as List<Map<String, dynamic>>).map((v) {
+          Model instance = destinationEntity.instanceType.newInstance(new Symbol(""), []).reflectee;
           instance.readMap(v);
           return instance;
-        }).toList();
+        }));
       }
     }
 

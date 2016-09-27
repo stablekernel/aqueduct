@@ -91,10 +91,10 @@ void main() {
     HttpServer server;
 
     setUpAll(() {
-      HTTPBodyDecoder.addDecoder(new ContentType("application", "thingy"), (req) {
+      HTTPBodyDecoder.addDecoder(new ContentType("application", "thingy"), (req) async {
         return "application/thingy";
       });
-      HTTPBodyDecoder.addDecoder(new ContentType("somethingelse", "*"), (req) {
+      HTTPBodyDecoder.addDecoder(new ContentType("somethingelse", "*"), (req) async {
         return "somethingelse/*";
       });
     });

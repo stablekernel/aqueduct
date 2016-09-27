@@ -167,7 +167,7 @@ Map<Symbol, dynamic> _parseParametersFromRequest(Map<Symbol, _HTTPControllerCach
   return mappings.keys.fold({}, (m, sym) {
     var mapper = mappings[sym];
     var parameterType = null;
-    var value = null;
+    List<String> value = null;
 
     if (mapper.httpParameter is HTTPQuery) {
       parameterType = _HTTPControllerMissingParameterType.query;

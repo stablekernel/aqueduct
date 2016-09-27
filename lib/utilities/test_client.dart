@@ -59,16 +59,16 @@ class TestRequest {
   ContentType contentType = ContentType.JSON;
   dynamic body;
 
-  Map<String, String> queryParameters = {};
+  Map<String, dynamic> queryParameters = {};
 
-  Map<String, String> get headers => _headers;
-  void set headers(Map<String, String> h) {
+  Map<String, dynamic> get headers => _headers;
+  void set headers(Map<String, dynamic> h) {
     if (!_headers.isEmpty) {
       print("WARNING: Setting TestRequest headers, but headers already have values.");
     }
     _headers = h;
   }
-  Map<String, String> _headers = {};
+  Map<String, dynamic> _headers = {};
 
   String get requestURL {
     String url = null;

@@ -3,7 +3,7 @@ part of aqueduct;
 /// A decoding method for decoding a stream of bytes into a String based.
 ///
 /// Typically, this represents the function [Utf8Codec.decodeStream].
-typedef Future<String> BodyStreamDecoder(Stream s);
+typedef Future<String> BodyStreamDecoder(Stream<List<int>> s);
 
 class HTTPBodyDecoder {
   /// The set of available decoders for HTTP request data.

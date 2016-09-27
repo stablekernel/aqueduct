@@ -93,7 +93,7 @@ class MockHTTPServer extends MockServer {
 
         if (respObj.statusCode == _mockConnectionFailureStatusCode) {
           // We let this one die by not responding.
-          return;
+          return null;
         }
 
         var wrappedReq = new Request(req);

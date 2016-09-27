@@ -14,3 +14,4 @@ script: pub run test -j 1 -r expanded
 branches:
   only:
     - master
+    - 1.0

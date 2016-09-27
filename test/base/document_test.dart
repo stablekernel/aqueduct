@@ -2,6 +2,7 @@ import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
 import 'dart:async';
 import 'dart:io';
+import '../helpers.dart';
 
 main() {
   test("Package resolver", () {
@@ -14,29 +15,29 @@ main() {
   });
 }
 
-class TPipeline extends ApplicationPipeline implements AuthenticationServerDelegate {
-  TPipeline(Map opts) : super(opts) {
-    authServer = new AuthenticationServer(this);
+class TPipeline extends ApplicationPipeline implements AuthenticationServerDelegate<TestUser, Token, AuthCode> {
+  TPipeline(Map<String, dynamic> opts) : super(opts) {
+    authServer = new AuthenticationServer<TestUser, Token, AuthCode>(this);
   }
 
-  AuthenticationServer authServer;
+  AuthenticationServer<TestUser, Token, AuthCode> authServer;
 
   void addRoutes() {
     router.route("/t[/:id[/:notID]]").next(authServer.authenticator()).next(() => new TController());
   }
 
-  Future<dynamic> tokenForAccessToken(AuthenticationServer server, String accessToken) => null;
-  Future<dynamic> tokenForRefreshToken(AuthenticationServer server, String refreshToken) => null;
-  Future<dynamic> authenticatableForUsername(AuthenticationServer server, String username) => null;
-  Future<dynamic> authenticatableForID(AuthenticationServer server, dynamic id) => null;
+  Future<Token> tokenForAccessToken(AuthenticationServer server, String accessToken) => null;
+  Future<Token> tokenForRefreshToken(AuthenticationServer server, String refreshToken) => null;
+  Future<TestUser> authenticatableForUsername(AuthenticationServer server, String username) => null;
+  Future<TestUser> authenticatableForID(AuthenticationServer server, dynamic id) => null;
   Future<Client> clientForID(AuthenticationServer server, String id) => null;
   Future deleteTokenForRefreshToken(AuthenticationServer server, String refreshToken) => null;
-  Future<dynamic> storeToken(AuthenticationServer server, dynamic t) => null;
+  Future<Token> storeToken(AuthenticationServer server, dynamic t) => null;
   Future updateToken(AuthenticationServer server, dynamic t) => null;
-  Future<dynamic> storeAuthCode(AuthenticationServer server, dynamic ac) => null;
+  Future<AuthCode> storeAuthCode(AuthenticationServer server, dynamic ac) => null;
   Future updateAuthCode(AuthenticationServer server, dynamic ac) => null;
   Future deleteAuthCode(AuthenticationServer server, dynamic ac) => null;
-  Future<dynamic> authCodeForCode(AuthenticationServer server, String code) => null;
+  Future<AuthCode> authCodeForCode(AuthenticationServer server, String code) => null;
 
   Map<String, APISecurityScheme> documentSecuritySchemes(PackagePathResolver resolver) {
     return authServer.documentSecuritySchemes(resolver);

@@ -11,19 +11,19 @@ class ModelEntity {
   /// Creates an instance of a ModelEntity.
   ///
   /// You should never call this method directly, it will be called by [DataModel].
-  ModelEntity(this.dataModel, this.instanceTypeMirror, this.persistentInstanceTypeMirror);
+  ModelEntity(this.dataModel, this.instanceType, this.persistentType);
 
   /// The type of instances represented by this entity.
   ///
   /// Model objects are made up of two components, a persistent type and an instance type. Applications
   /// use instance types. This value is the [ClassMirror] on that type.
-  final ClassMirror instanceTypeMirror;
+  final ClassMirror instanceType;
 
   /// The type of persistent instances represented by this entity.
   ///
   /// Model objects are made up of two components, a persistent type and an instance type. This value
   /// is the [ClassMirror] on the persistent portion of a [Model] object.
-  final ClassMirror persistentInstanceTypeMirror;
+  final ClassMirror persistentType;
 
   /// The [DataModel] this instance belongs to.
   final DataModel dataModel;
@@ -31,7 +31,7 @@ class ModelEntity {
   /// Schema of the model as returned from a request
   APISchemaObject get documentedResponseSchema {
     return new APISchemaObject()
-      ..title = MirrorSystem.getName(instanceTypeMirror.simpleName)
+      ..title = MirrorSystem.getName(instanceType.simpleName)
       ..type = APISchemaObjectTypeObject
       ..properties = _propertiesForEntity(this);
   }
@@ -56,7 +56,7 @@ class ModelEntity {
   /// The string key is the name of the property, case-sensitive. Values will be instances of either [AttributeDescription]
   /// or [RelationshipDescription]. This is the concatenation of [attributes] and [relationships].
   Map<String, PropertyDescription> get properties {
-    var all = new Map.from(attributes);
+    var all = new Map.from(attributes) as Map<String, PropertyDescription>;
     if (relationships != null) {
       all.addAll(relationships);
     }
@@ -68,7 +68,7 @@ class ModelEntity {
   /// By default, a [Query] will return all the properties named in this list. You may specify
   /// a different set of properties by setting the [Query]'s [resultProperties] value. The default
   /// set of properties is a list of all attributes that do not have the [omitByDefault] flag
-  /// set in their [Attributes] and all [RelationshipType.belongsTo] relationships.
+  /// set in their [ColumnAttributes] and all [RelationshipType.belongsTo] relationships.
   List<String> get defaultProperties {
     if (_defaultProperties == null) {
       _defaultProperties = attributes.values
@@ -76,6 +76,7 @@ class ModelEntity {
           .where((prop) => !prop.isTransient)
           .map((prop) => prop.name)
           .toList();
+
       _defaultProperties.addAll(relationships.values
           .where((prop) => prop.isIncludedInDefaultResultSet && prop.relationshipType == RelationshipType.belongsTo)
           .map((prop) => prop.name)
@@ -87,7 +88,7 @@ class ModelEntity {
 
   /// Name of primaryKey property.
   ///
-  /// If this has a primary key (as determined by the having an [Attributes] with [Attributes.primaryKey] set to true,
+  /// If this has a primary key (as determined by the having an [ColumnAttributes] with [ColumnAttributes.primaryKey] set to true,
   /// returns the name of that property. Otherwise, returns null.
   String get primaryKey {
     return _primaryKey;
@@ -109,6 +110,12 @@ class ModelEntity {
     return tableName.hashCode;
   }
 
+  Model newInstance() {
+    var model = instanceType.newInstance(new Symbol(""), []).reflectee as Model;
+    model.entity = this;
+    return model;
+  }
+
   /// Creates an instance of this entity from a list of [MappingElement]s.
   ///
   /// This method is used by a [ModelContext] to instantiate entities from a row
@@ -116,7 +123,7 @@ class ModelEntity {
   /// relationships. It will not populate data from hasMany or hasOne relationships
   /// that were populated in a join query, as this is the responsibility of the context.
   Model instanceFromMappingElements(List<MappingElement> elements) {
-    Model instance = instanceTypeMirror.newInstance(new Symbol(""), []).reflectee;
+    Model instance = newInstance();
 
     elements.forEach((e) {
       if (e is! JoinMappingElement) {
@@ -124,12 +131,12 @@ class ModelEntity {
           // A belongsTo relationship, keep the foreign key.
           if (e.value != null) {
             RelationshipDescription relDesc = e.property;
-            Model innerInstance = relDesc.destinationEntity.instanceTypeMirror.newInstance(new Symbol(""), []).reflectee;
-            innerInstance.dynamicBacking[relDesc.destinationEntity.primaryKey] = e.value;
-            instance.dynamicBacking[e.property.name] = innerInstance;
+            Model innerInstance = relDesc.destinationEntity.newInstance();
+            innerInstance[relDesc.destinationEntity.primaryKey] = e.value;
+            instance[e.property.name] = innerInstance;
           }
         } else {
-          instance.dynamicBacking[e.property.name] = e.value;
+          instance[e.property.name] = e.value;
         }
       }
     });
@@ -152,23 +159,23 @@ class ModelEntity {
     }
 
     me.attributes.values
-        .where((attribute) => attribute.isIncludedInDefaultResultSet)
+        .where((attribute) => attribute.isIncludedInDefaultResultSet || (attribute.transientStatus?.isAvailableAsOutput ?? false))
         .forEach((attribute) {
-      schemaProperties[attribute.name] = new APISchemaObject()
-        ..title = attribute.name
-        ..type = _schemaObjectTypeForPropertyType(attribute.type)
-        ..format = _schemaObjectFormatForPropertyType(attribute.type);
-    });
+          schemaProperties[attribute.name] = new APISchemaObject()
+            ..title = attribute.name
+            ..type = _schemaObjectTypeForPropertyType(attribute.type)
+            ..format = _schemaObjectFormatForPropertyType(attribute.type);
+        });
 
     me.relationships.values
         .where((relationship) => relationship.isIncludedInDefaultResultSet)
         .where((relationship) => relationship.relationshipType == RelationshipType.belongsTo)
         .forEach((relationship) {
-      schemaProperties[relationship.name] = new APISchemaObject()
-        ..title = relationship.name
-        ..type = APISchemaObjectTypeObject
-        ..properties = _propertiesForEntity(relationship.destinationEntity, shallow: true);
-    });
+          schemaProperties[relationship.name] = new APISchemaObject()
+            ..title = relationship.name
+            ..type = APISchemaObjectTypeObject
+            ..properties = _propertiesForEntity(relationship.destinationEntity, shallow: true);
+        });
 
     return schemaProperties;
   }
@@ -210,7 +217,7 @@ class ModelEntity {
   }
 
   /// Two entities are considered equal if they have the same [tableName].
-  operator ==(ModelEntity other) {
+  operator ==(dynamic other) {
     return tableName == other.tableName;
   }
 

@@ -202,7 +202,7 @@ void main() {
 }
 
 class CORSPipeline extends ApplicationPipeline implements AuthenticationServerDelegate<AuthImpl, TokenImpl, AuthCodeImpl> {
-  CORSPipeline(Map opts) : super(opts) {
+  CORSPipeline(Map<String, dynamic> opts) : super(opts) {
     authServer = new AuthenticationServer<AuthImpl, TokenImpl, AuthCodeImpl>(this);
   }
 
@@ -296,13 +296,14 @@ class TokenImpl implements Tokenizable {
   String clientID;
 }
 
-class AuthCodeImpl implements TokenExchangable {
+class AuthCodeImpl implements TokenExchangable<TokenImpl> {
   String redirectURI;
   String code;
   String clientID;
   dynamic resourceOwnerIdentifier;
   DateTime issueDate;
   DateTime expirationDate;
+
   TokenImpl token;
 }
 

@@ -1,7 +1,7 @@
 part of aqueduct;
 
 /// Order value for [SortDescriptor]s.
-enum SortDescriptorOrder {
+enum SortOrder {
   /// Ascending order; 1, 2, 3, 4, ...
   ascending,
 
@@ -19,8 +19,8 @@ class SortDescriptor {
 
   /// The order in which values should be sorted.
   ///
-  /// See [SortDescriptorOrder] for possible values.
-  SortDescriptorOrder order;
+  /// See [SortOrder] for possible values.
+  SortOrder order;
 
   SortDescriptor(this.key, this.order);
 }

@@ -47,15 +47,15 @@ void main() {
     var child = new Child()
       ..name = "Fred"
       ..parent = parent;
-    q = new Query<Child>()
+    var childQuery = new Query<Child>()
       ..values = child;
-    child = await q.insert();
+    child = await childQuery.insert();
     expect(child.parent.id, parent.id);
 
-    q = new ModelQuery<Child>()
-      ..["id"] = whereEqualTo(child.id)
+    childQuery = new Query<Child>()
+      ..matchOn["id"] = whereEqualTo(child.id)
       ..values = (new Child()..parent = null);
-    child = (await q.update()).first;
+    child = (await childQuery.update()).first;
     expect(child.parent, isNull);
   });
 
@@ -81,9 +81,9 @@ void main() {
     expect(response.length, 0);
 
     req = new Query<TestModel>();
-    response = await req.fetchOne();
-    expect(response.name, "Bob");
-    expect(response.emailAddress, "1@a.com");
+    var fetchResponse = await req.fetchOne();
+    expect(fetchResponse.name, "Bob");
+    expect(fetchResponse.emailAddress, "1@a.com");
   });
 
   test("Update object with ModelQuery", () async {
@@ -103,8 +103,8 @@ void main() {
     req = new Query<TestModel>()..values = m2;
     await req.insert();
 
-    var q = new ModelQuery<TestModel>()
-      ..["name"] = "Bob"
+    var q = new Query<TestModel>()
+      ..matchOn["name"] = "Bob"
       ..values = (new TestModel()..emailAddress = "3@a.com");
 
     List<TestModel> results = await q.update();
@@ -128,8 +128,8 @@ void main() {
         ..name = "Fred"
         ..emailAddress = "2@a.com")).insert();
 
-    var updateQuery = new ModelQuery<TestModel>()
-      ..["emailAddress"] = "1@a.com"
+    var updateQuery = new Query<TestModel>()
+      ..matchOn["emailAddress"] = "1@a.com"
       ..values.emailAddress = "3@a.com";
     var updatedObject = (await updateQuery.update()).first;
 
@@ -251,7 +251,7 @@ class _TestModel {
 
   String name;
 
-  @Attributes(nullable: true, unique: true)
+  @ColumnAttributes(nullable: true, unique: true)
   String emailAddress;
 }
 
@@ -262,7 +262,7 @@ class _Child {
 
   String name;
 
-  @Relationship(RelationshipType.belongsTo, "child", required: false, deleteRule: RelationshipDeleteRule.cascade)
+  @RelationshipInverse(#child, isRequired: false, onDelete: RelationshipDeleteRule.cascade)
   Parent parent;
 }
 
@@ -273,7 +273,6 @@ class _Parent {
 
   String name;
 
-  @Relationship(RelationshipType.hasOne, "parent")
   Child child;
 }
 

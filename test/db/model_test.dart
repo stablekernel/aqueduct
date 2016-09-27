@@ -1,20 +1,21 @@
 import 'package:aqueduct/aqueduct.dart';
 import 'package:test/test.dart';
+import 'dart:mirrors';
+import '../helpers.dart';
 
-main() {
+void main() {
   var ps = new DefaultPersistentStore();
   DataModel dm = new DataModel([TransientTest, User, Post]);
   ModelContext _ = new ModelContext(dm, ps);
 
   test("NoSuchMethod still throws", () {
     var user = new User();
-    var successful = false;
     try {
-      user.foo();
-      successful = true;
-    } on NoSuchMethodError {
-    }
-    expect(successful, false);
+      reflect(user).invoke(#foo, []);
+
+      expect(true, false);
+    } on NoSuchMethodError {}
+
   });
 
   test("Model object construction", () {
@@ -29,22 +30,19 @@ main() {
 
   test("Mismatched type throws exception", () {
     var user = new User();
-    var successful = false;
     try {
-      user.name = 1;
-      successful = true;
-    } catch (e) {
+      reflect(user).setField(#name, 1);
+
+      expect(true, false);
+    } on DataModelException catch (e) {
       expect(e.message, "Type mismatch for property name on _User, expected assignable type matching PropertyType.string but got _Smi.");
     }
-    expect(successful, false);
 
     try {
-      user.id = "foo";
-      successful = true;
-    } catch (e) {
+      reflect(user).setField(#id, "foo");
+    } on DataModelException catch (e) {
       expect(e.message, "Type mismatch for property id on _User, expected assignable type matching PropertyType.integer but got _OneByteString.");
     }
-    expect(successful, false);
   });
 
   test("Accessing model object without field should return null", () {
@@ -54,22 +52,20 @@ main() {
 
   test("Getting/setting property that is undeclared throws exception", () {
     var user = new User();
-    var successful = false;
-    try {
-      var _ = user.foo;
-      successful = true;
-    } catch (e) {
-      expect(e.message, "Model type User has no property foo.");
-    }
-    expect(successful, false);
 
     try {
-      user.foo = "hey";
-      successful = true;
-    } catch (e) {
+      reflect(user).getField(#foo);
+      expect(true, false);
+    } on DataModelException catch (e) {
       expect(e.message, "Model type User has no property foo.");
     }
-    expect(successful, false);
+
+    try {
+      reflect(user).setField(#foo, "hey");
+      expect(true, false);
+    } on DataModelException catch (e) {
+      expect(e.message, "Model type User has no property foo.");
+    }
   });
 
   test("Can assign and read embedded objects", () {
@@ -91,7 +87,7 @@ main() {
         ..owner = user,
     ];
 
-    user.posts = posts;
+    user.posts = new OrderedSet.from(posts);
 
     expect(user.posts.length, 3);
     expect(user.posts.first.owner, user);
@@ -116,7 +112,7 @@ main() {
         ..text = "C"
         ..id = 3,
     ];
-    user.posts = posts;
+    user.posts = new OrderedSet.from(posts);
 
     var m = user.asMap();
     expect(m is Map, true);
@@ -231,67 +227,145 @@ main() {
     expect(p.entity.primaryKey, "id");
   });
 
-  test("Mappable properties are handled in readMap and asMap", () {
+  test("Transient properties aren't stored in backing", () {
     var t = new TransientTest();
-    t.id = 1;
-    t.text = "Bob";
-    var m = t.asMap();
-    expect(m["id"], 1);
-    expect(m["text"], "Bob");
-    expect(m["defaultedText"], "Mr. Bob");
-
-    m["defaultedText"] = "Mr. Fred";
-    t.readMap(m);
-    expect(t.defaultedText, "Mr. Fred");
-    expect(t.text, "Fred");
-    expect(t.id, 1);
-
-    var u = new User();
-    u.readMap({
-      "value" : "Foo",
-      "name" : "Bob",
-      "id" : 1,
-      "dateCreated" : "2000-01-01T00:00:00Z"
-    });
-
-    expect(u.value, "Foo");
-    expect(u.name, "Bob");
-
-    u = new User()
-      ..id = 1;
-    var um = u.asMap();
-    expect(um["values"], null);
-    expect(um["id"], 1);
-    expect(um.length, 1);
+    t.readMap({"inOut" : 2});
+    expect(t.inOut, 2);
+    expect(t["inOut"], isNull);
   });
 
-  test("Mappable properties can be restricted to input/output only", () {
+  test("mappableInput properties are read in readMap", () {
     var t = new TransientTest()..readMap({
       "id" : 1,
-      "inputInt" : 2,
-      "text" : "foo"
+      "defaultedText" : "bar foo"
     });
     expect(t.id, 1);
+    expect(t.text, "foo");
+    expect(t.inputInt, isNull);
+    expect(t.inOut, isNull);
+
+    t = new TransientTest()..readMap({
+      "inputOnly" : "foo"
+    });
+    expect(t.text, "foo");
+
+    t = new TransientTest()..readMap({
+      "inputInt" : 2
+    });
     expect(t.inputInt, 2);
 
-    expect(t.asMap().containsKey("inputInt"), false);
+    t = new TransientTest()..readMap({
+      "inOut" : 2
+    });
+    expect(t.inOut, 2);
 
-    t.inputInt = 4;
-    t.outputInt = 3;
-    expect(t.asMap()["outputInt"], 3);
+    t = new TransientTest()..readMap({
+      "bothOverQualified" : "foo"
+    });
+    expect(t.text, "foo");
+  });
 
-    var successful = false;
+  test("mappableOutput properties are emitted in asMap", () {
+    var t = new TransientTest()
+      ..text = "foo";
+
+    expect(t.asMap()["defaultedText"], "Mr. foo");
+    expect(t.asMap()["outputOnly"], "foo");
+    expect(t.asMap()["bothButOnlyOnOne"], "foo");
+    expect(t.asMap()["bothOverQualified"], "foo");
+
+    t = new TransientTest()
+      ..outputInt = 2;
+    expect(t.asMap()["outputInt"], 2);
+
+    t = new TransientTest()
+      ..inOut = 2;
+    expect(t.asMap()["inOut"], 2);
+  });
+
+  test("Transient properties are type checked in readMap", () {
     try {
-      var _ = new TransientTest()
-        ..readMap({
-          "outputInt" : 3
-        });
-      successful = true;
-    } catch (e) {
-      expect(e is QueryException, true);
-      expect(e.message, "Key outputInt does not exist for TransientTest");
-    }
-    expect(successful, false);
+      new TransientTest()..readMap({
+        "id" : 1,
+        "defaultedText" : 2
+      });
+
+      throw 'Unreachable';
+    } on QueryException {}
+
+    try {
+      new TransientTest()..readMap({
+        "id" : 1,
+        "inputInt" : "foo"
+      });
+
+      throw 'Unreachable';
+    } on QueryException {}
+  });
+
+  test("Properties that aren't mappableInput are not read in readMap", () {
+    try {
+      new TransientTest()..readMap({
+        "outputOnly" : "foo"
+      });
+      throw 'Unreachable';
+    } on QueryException {}
+
+    try {
+      new TransientTest()..readMap({
+        "invalidOutput" : "foo"
+      });
+      throw 'Unreachable';
+    } on QueryException {}
+
+    try {
+      new TransientTest()..readMap({
+        "invalidInput" : "foo"
+      });
+      throw 'Unreachable';
+    } on QueryException {}
+
+    try {
+      new TransientTest()..readMap({
+        "bothButOnlyOnOne" : "foo"
+      });
+      throw 'Unreachable';
+    } on QueryException {}
+
+    try {
+      new TransientTest()..readMap({
+        "outputInt" : "foo"
+      });
+      throw 'Unreachable';
+    } on QueryException {}
+  });
+
+  test("mappableOutput properties that are null are not emitted in asMap", () {
+    var m = (new TransientTest()
+      ..id = 1
+      ..text = null
+    ).asMap();
+
+    expect(m.length, 3);
+    expect(m["id"], 1);
+    expect(m["text"], null);
+    expect(m["defaultedText"], "Mr. null");
+  });
+
+  test("Properties that aren't mappableOutput are not emitted in asMap", () {
+    var m = (new TransientTest()
+      ..id = 1
+      ..text = "foo"
+      ..inputInt = 2
+    ).asMap();
+
+    expect(m.length, 6);
+    expect(m["id"], 1);
+    expect(m["text"], "foo");
+    expect(m["defaultedText"], "Mr. foo");
+    expect(m["outputOnly"], "foo");
+    expect(m["bothButOnlyOnOne"], "foo");
+    expect(m["bothOverQualified"], "foo");
   });
 
   test("Reading hasMany relationship from JSON succeeds", () {
@@ -307,24 +381,36 @@ main() {
     expect(u.posts[0].id, 1);
     expect(u.posts[0].text, "Hi");
   });
+
+  test("Reading/writing instance property that isn't marked as transient shows up nowhere", () {
+    var t = new TransientTest();
+    try {
+      t.readMap({
+        "notAnAttribute" : true
+      });
+      expect(true, false);
+    } on QueryException {}
+
+    t.notAnAttribute = "foo";
+    expect(t.asMap().containsKey("notAnAttribute"), false);
+  });
 }
 
 class User extends Model<_User> implements _User {
-  @mappable
+  @transientAttribute
   String value;
 }
 
 class _User {
-  @Attributes(nullable: true)
+  @ColumnAttributes(nullable: true)
   String name;
 
-  @Attributes(primaryKey: true)
+  @ColumnAttributes(primaryKey: true)
   int id;
 
   DateTime dateCreated;
 
-  @Relationship.hasMany("owner")
-  List<Post> posts;
+  OrderedSet<Post> posts;
 }
 
 class Post extends Model<_Post> implements _Post {}
@@ -334,22 +420,63 @@ class _Post {
 
   String text;
 
-  @Relationship.belongsTo("posts")
+  @RelationshipInverse(#posts)
   User owner;
 }
 
 class TransientTest extends Model<_TransientTest> implements _TransientTest {
-  @mappable
+  String notAnAttribute;
+
+  @transientOutputAttribute
   String get defaultedText => "Mr. $text";
+
+  @transientInputAttribute
   void set defaultedText(String str) {
     text = str.split(" ").last;
   }
 
-  @mappableInput
+  @transientInputAttribute
+  void set inputOnly(String s) {
+    text = s;
+  }
+
+  @transientOutputAttribute
+  String get outputOnly => text;
+  void set outputOnly(String s) {
+    text = s;
+  }
+
+  // This is intentionally invalid
+  @transientInputAttribute
+  String get invalidInput => text;
+
+  // This is intentionally invalid
+  @transientOutputAttribute
+  void set invalidOutput(String s) {
+    text = s;
+  }
+
+  @transientAttribute
+  String get bothButOnlyOnOne => text;
+  void set bothButOnlyOnOne(String s) {
+    text = s;
+  }
+
+  @transientInputAttribute
   int inputInt;
 
-  @mappableOutput
+  @transientOutputAttribute
   int outputInt;
+
+  @transientAttribute
+  int inOut;
+
+  @transientAttribute
+  String get bothOverQualified => text;
+  @transientAttribute
+  void set bothOverQualified(String s) {
+    text = s;
+  }
 }
 
 class _TransientTest {
@@ -357,5 +484,4 @@ class _TransientTest {
   int id;
 
   String text;
-
 }

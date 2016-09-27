@@ -36,7 +36,7 @@ main() {
     });
 
     test("Application handles a bunch of requests", () async {
-      var reqs = [];
+      var reqs = <Future>[];
       var responses = [];
       for (int i = 0; i < 100; i++) {
         var req = http.get("http://localhost:8080/t");
@@ -143,7 +143,7 @@ class TestException implements Exception {
 }
 
 class CrashPipeline extends ApplicationPipeline {
-  CrashPipeline(Map opts) : super(opts) {
+  CrashPipeline(Map<String, dynamic> opts) : super(opts) {
     if (opts["crashIn"] == "constructor") {
       throw new TestException("constructor");
     }
@@ -165,7 +165,7 @@ class CrashPipeline extends ApplicationPipeline {
 }
 
 class TPipeline extends ApplicationPipeline {
-  TPipeline(Map opts) : super(opts);
+  TPipeline(Map<String, dynamic> opts) : super(opts);
 
   void addRoutes() {
     router.route("/t").next(() => new TController());

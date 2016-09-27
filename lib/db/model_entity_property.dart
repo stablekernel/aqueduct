@@ -108,13 +108,25 @@ abstract class PropertyDescription {
 /// Each non-relationship property [Model] object persists is described by an instance of [AttributeDescription]. This class
 /// adds two properties to [PropertyDescription] that are only valid for non-relationship types, [isPrimaryKey] and [defaultValue].
 class AttributeDescription extends PropertyDescription {
-  AttributeDescription(ModelEntity entity, String name, PropertyType type, {bool transient: false, bool primaryKey: false, String defaultValue: null, bool unique: false, bool indexed: false, bool nullable: false, bool includedInDefaultResultSet: true, bool autoincrement: false}) :
-      super(entity, name, type, unique: unique, indexed: indexed, nullable: nullable, includedInDefaultResultSet: includedInDefaultResultSet, autoincrement: autoincrement),
-      isTransient = transient,
-      isPrimaryKey = primaryKey,
-      this.defaultValue = defaultValue {
+  AttributeDescription.transient(ModelEntity entity, String name, PropertyType type, this.transientStatus) :
+      isPrimaryKey = false,
+      this.defaultValue = null,
+      super(entity, name, type, unique: false,
+          indexed: false,
+          nullable: false,
+          includedInDefaultResultSet: false,
+          autoincrement: false);
 
-  }
+  AttributeDescription(ModelEntity entity, String name, PropertyType type, {TransientAttribute transientStatus: null, bool primaryKey: false, String defaultValue: null, bool unique: false, bool indexed: false, bool nullable: false, bool includedInDefaultResultSet: true, bool autoincrement: false}) :
+        isPrimaryKey = primaryKey,
+        this.defaultValue = defaultValue,
+        this.transientStatus = transientStatus,
+        super(entity, name, type,
+          unique: unique,
+          indexed: indexed,
+          nullable: nullable,
+          includedInDefaultResultSet: includedInDefaultResultSet,
+          autoincrement: autoincrement);
 
   /// Whether or not this attribute is the primary key for its [ModelEntity].
   ///
@@ -129,8 +141,13 @@ class AttributeDescription extends PropertyDescription {
 
   /// Whether or not this attribute is backed directly by the database.
   ///
-  /// Defaults to false
-  final bool isTransient;
+  /// If [transientStatus] is non-null, this value will be true. Otherwise, the attribute is backed by a database field/column.
+  bool get isTransient => transientStatus != null;
+
+  /// The validity of a transient attribute as input, output or both.
+  ///
+  /// If this property is non-null, the attribute is transient (not backed by a database field/column).
+  final TransientAttribute transientStatus;
 
   String toString() {
     return "AttributeDescription on ${entity.tableName}.$name Type: $type";
@@ -141,7 +158,6 @@ class AttributeDescription extends PropertyDescription {
 class RelationshipDescription extends PropertyDescription {
   RelationshipDescription(ModelEntity entity, String name, PropertyType type, this.destinationEntity, this.deleteRule, this.relationshipType, this.inverseKey, {bool unique: false, bool indexed: false, bool nullable: false, bool includedInDefaultResultSet: true})
     : super(entity, name, type, unique: unique, indexed: indexed, nullable: nullable, includedInDefaultResultSet: includedInDefaultResultSet) {
-
   }
 
   /// The entity that this relationship's instances are represented by.
@@ -154,10 +170,10 @@ class RelationshipDescription extends PropertyDescription {
   final RelationshipType relationshipType;
 
   /// The name of the [RelationshipDescription] on [destinationEntity] that represents the inverse of this relationship.
-  final String inverseKey;
+  final Symbol inverseKey;
 
   /// The [RelationshipDescription] on [destinationEntity] that represents the inverse of this relationship.
-  RelationshipDescription get inverseRelationship => destinationEntity.relationships[inverseKey];
+  RelationshipDescription get inverseRelationship => destinationEntity.relationships[MirrorSystem.getName(inverseKey)];
 
   /// Whether or not a the argument can be assigned to this property.
   bool isAssignableWith(dynamic dartValue) {
@@ -165,7 +181,7 @@ class RelationshipDescription extends PropertyDescription {
 
     if (type.isSubtypeOf(reflectType(List))) {
       if (relationshipType != RelationshipType.hasMany) {
-        throw new DataModelException("Trying to assign List to relationship that isn't hasMany for ${MirrorSystem.getName(entity.persistentInstanceTypeMirror.simpleName)} $name");
+        throw new DataModelException("Trying to assign List to relationship that isn't hasMany for ${MirrorSystem.getName(entity.persistentType.simpleName)} $name");
       }
 
       type = type.typeArguments.first;
@@ -175,7 +191,7 @@ class RelationshipDescription extends PropertyDescription {
       }
     }
 
-    return type == destinationEntity.instanceTypeMirror;
+    return type == destinationEntity.instanceType;
   }
 
   String toString() {

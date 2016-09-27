@@ -236,7 +236,7 @@ void main() {
 }
 
 class AuthPipeline extends ApplicationPipeline {
-  AuthPipeline(Map opts) : super(opts) {
+  AuthPipeline(Map<String, dynamic> opts) : super(opts) {
     authServer = new AuthenticationServer<TestUser, Token, AuthCode>(new AuthDelegate(ModelContext.defaultContext));
   }
 

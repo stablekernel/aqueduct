@@ -120,40 +120,41 @@ void main() {
   test("Deleting a related object w/nullify sets property to null", () async {
     context = await contextWithModels([TestModel, RefModel]);
 
-    var obj = new TestModel()..name = "a";
-    var req = new Query<TestModel>()..values = obj;
-    var testObj = await req.insert();
 
-    obj = new RefModel()..test = testObj;
-    req = new Query<RefModel>()..values = obj;
-    var refObj = await req.insert();
+    var testModelObject = new TestModel()..name = "a";
+    var testModelReq = new Query<TestModel>()..values = testModelObject;
+    var testObj = await testModelReq.insert();
 
-    req = new Query<TestModel>()
+    var refModelObject = new RefModel()..test = testObj;
+    var refModelReq = new Query<RefModel>()..values = refModelObject;
+    var refObj = await refModelReq.insert();
+
+    testModelReq = new Query<TestModel>()
       ..confirmQueryModifiesAllInstancesOnDeleteOrUpdate = true;
-    var count = await req.delete();
+    var count = await testModelReq.delete();
     expect(count, 1);
 
-    req = new Query<RefModel>()..resultProperties = ["id", "test"];
-    refObj = await req.fetchOne();
+    refModelReq = new Query<RefModel>()..resultProperties = ["id", "test"];
+    refObj = await refModelReq.fetchOne();
     expect(refObj.test, null);
   });
 
   test("Deleting a related object w/restrict fails", () async {
     context = await contextWithModels([GRestrict, GRestrictInverse]);
 
-    var obj = new GRestrictInverse()..name = "a";
-    var req = new Query<GRestrictInverse>()..values = obj;
-    var testObj = await req.insert();
+    var griObject = new GRestrictInverse()..name = "a";
+    var griReq = new Query<GRestrictInverse>()..values = griObject;
+    var testObj = await griReq.insert();
 
-    obj = new GRestrict()..test = testObj;
-    req = new Query<GRestrict>()..values = obj;
-    await req.insert();
+    var grObject = new GRestrict()..test = testObj;
+    var grReq = new Query<GRestrict>()..values = grObject;
+    await grReq.insert();
 
     var successful = false;
     try {
-      req = new Query<GRestrictInverse>()
+      griReq = new Query<GRestrictInverse>()
         ..confirmQueryModifiesAllInstancesOnDeleteOrUpdate = true;
-      await req.delete();
+      await griReq.delete();
       successful = true;
     } catch (e) {
       expect(e.statusCode, 400);
@@ -169,17 +170,17 @@ void main() {
     var req = new Query<GCascadeInverse>()..values = obj;
     var testObj = await req.insert();
 
-    obj = new GCascade()..test = testObj;
-    req = new Query<GCascade>()..values = obj;
-    await req.insert();
+    var cascadeObj = new GCascade()..test = testObj;
+    var cascadeReq = new Query<GCascade>()..values = cascadeObj;
+    await cascadeReq.insert();
 
     req = new Query<GCascadeInverse>()
       ..confirmQueryModifiesAllInstancesOnDeleteOrUpdate = true;
     var count = await req.delete();
     expect(count, 1);
 
-    req = new Query<GCascade>();
-    var res = await req.fetch();
+    cascadeReq = new Query<GCascade>();
+    var res = await cascadeReq.fetch();
     expect(res.length, 0);
   });
 }
@@ -191,11 +192,10 @@ class _TestModel {
 
   String name;
 
-  @Attributes(nullable: true, unique: true)
+  @ColumnAttributes(nullable: true, unique: true)
   String email;
 
-  @Relationship(RelationshipType.hasMany, "test")
-  RefModel ref;
+  OrderedSet<RefModel> ref;
 
   static String tableName() {
     return "simple";
@@ -211,7 +211,7 @@ class _RefModel {
   @primaryKey
   int id;
 
-  @Relationship(RelationshipType.belongsTo, "ref", required: false, deleteRule: RelationshipDeleteRule.nullify)
+  @RelationshipInverse(#ref, isRequired: false, onDelete: RelationshipDeleteRule.nullify)
   TestModel test;
 }
 
@@ -222,8 +222,7 @@ class _GRestrictInverse {
 
   String name;
 
-  @Relationship(RelationshipType.hasMany, "test")
-  GRestrict test;
+  OrderedSet<GRestrict> test;
 }
 
 class GRestrict extends Model<_GRestrict> implements _GRestrict {}
@@ -232,7 +231,7 @@ class _GRestrict {
   @primaryKey
   int id;
 
-  @Relationship(RelationshipType.belongsTo, "test", required: false, deleteRule: RelationshipDeleteRule.restrict)
+  @RelationshipInverse(#test, isRequired: false, onDelete: RelationshipDeleteRule.restrict)
   GRestrictInverse test;
 }
 
@@ -244,8 +243,7 @@ class _GCascadeInverse {
 
   String name;
 
-  @Relationship(RelationshipType.hasMany, "test")
-  GCascade test;
+  OrderedSet<GCascade> test;
 }
 
 class GCascade extends Model<_GCascade> implements _GCascade {}
@@ -254,6 +252,6 @@ class _GCascade {
   @primaryKey
   int id;
 
-  @Relationship(RelationshipType.belongsTo, "test", required: false, deleteRule: RelationshipDeleteRule.cascade)
+  @RelationshipInverse(#test, isRequired: false, onDelete: RelationshipDeleteRule.cascade)
   GCascadeInverse test;
 }

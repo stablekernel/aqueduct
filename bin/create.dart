@@ -90,7 +90,8 @@ bool shouldIncludeItem(FileSystemEntity entity) {
 
   var hiddenFilesToKeep = [
     ".gitignore",
-    ".travis.yml"
+    ".travis.yml",
+    ".analysis_options"
   ];
 
   var lastComponent = entity.uri.pathSegments.last;

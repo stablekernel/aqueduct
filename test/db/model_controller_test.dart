@@ -68,7 +68,7 @@ class TestModelController extends ModelController<TestModel> {
       statusCode = 400;
     }
 
-    if (query.values.dynamicBacking.length != 0) {
+    if (query.values.backingMap.length != 0) {
       statusCode = 400;
     }
 
@@ -82,12 +82,12 @@ class TestModelController extends ModelController<TestModel> {
       statusCode = 400;
     }
 
-    var comparisonMatcher = query["id"];
+    var comparisonMatcher = query.matchOn["id"];
     if (comparisonMatcher.operator != MatcherOperator.equalTo || comparisonMatcher.value != id) {
       statusCode = 400;
     }
 
-    if (query.values.dynamicBacking.length != 0) {
+    if (query.values.backingMap.length != 0) {
       statusCode = 400;
     }
 
@@ -107,7 +107,7 @@ class TestModelController extends ModelController<TestModel> {
       statusCode = 400;
     }
 
-    var comparisonMatcher = query["id"];
+    var comparisonMatcher = query.matchOn["id"];
     if (comparisonMatcher.operator != MatcherOperator.equalTo || comparisonMatcher.value != id) {
       statusCode = 400;
     }
@@ -145,7 +145,7 @@ class TestModelController extends ModelController<TestModel> {
 
 class TestModel extends Model<_TestModel> implements _TestModel {}
 class _TestModel {
-  @Attributes(primaryKey: true)
+  @ColumnAttributes(primaryKey: true)
   int id;
 
   String name;

@@ -29,14 +29,14 @@ class _User implements Authenticatable {
 }
 
 class Token extends Model<_Token> implements _Token {}
-class _Token implements Tokenizable {
+class _Token implements Tokenizable<int> {
   @primaryKey
   int id;
 
-  @Attributes(indexed: true)
+  @ColumnAttributes(indexed: true)
   String accessToken;
 
-  @Attributes(indexed: true)
+  @ColumnAttributes(indexed: true)
   String refreshToken;
 
   DateTime issueDate;
@@ -45,27 +45,25 @@ class _Token implements Tokenizable {
   String type;
   String clientID;
 
-  @Relationship.hasOne("token")
   AuthCode code;
-
 }
 
 class AuthCode extends Model<_AuthCode> implements _AuthCode {}
-class _AuthCode implements TokenExchangable {
+class _AuthCode implements TokenExchangable<Token> {
   @primaryKey
   int id;
 
-  @Attributes(indexed: true)
+  @ColumnAttributes(indexed: true)
   String code;
 
-  @Attributes(nullable: true)
+  @ColumnAttributes(nullable: true)
   String redirectURI;
   String clientID;
   int resourceOwnerIdentifier;
   DateTime issueDate;
   DateTime expirationDate;
 
-  @Relationship.belongsTo("code", required: false, deleteRule: RelationshipDeleteRule.cascade)
+  @RelationshipInverse(#code, isRequired: false, onDelete: RelationshipDeleteRule.cascade)
   Token token;
 }
 
@@ -88,7 +86,7 @@ class AuthDelegate implements AuthenticationServerDelegate<TestUser, Token, Auth
     return userQ.fetchOne();
   }
 
-  Future<TestUser> authenticatableForID(AuthenticationServer server, int id) {
+  Future<TestUser> authenticatableForID(AuthenticationServer server, dynamic id) {
     var userQ = new Query<TestUser>();
     userQ.predicate = new Predicate("username = @username", {"id" : id});
     return userQ.fetchOne();
@@ -165,13 +163,13 @@ class AuthDelegate implements AuthenticationServerDelegate<TestUser, Token, Auth
   }
 }
 
-Future<ModelContext> contextWithModels(List<Type> modelTypes) async {
+Future<ModelContext> contextWithModels(List<Type> instanceTypes) async {
   var persistentStore = new PostgreSQLPersistentStore(() async {
     var uri = "postgres://dart:dart@localhost:5432/dart_test";
     return await postgresql.connect(uri, timeZone: 'UTC');
   });
 
-  var dataModel = new DataModel(modelTypes);
+  var dataModel = new DataModel(instanceTypes);
   var generator = new SchemaGenerator(dataModel);
   var json = generator.serialized;
   var pGenerator = new PostgreSQLSchemaGenerator(json, temporary: true);
@@ -186,11 +184,27 @@ Future<ModelContext> contextWithModels(List<Type> modelTypes) async {
   return context;
 }
 
-String commandsForModelTypes(List<Type> modelTypes, {bool temporary: false}) {
-  var dataModel = new DataModel(modelTypes);
+String commandsForModelInstanceTypes(List<Type> instanceTypes, {bool temporary: false}) {
+  var dataModel = new DataModel(instanceTypes);
   var generator = new SchemaGenerator(dataModel);
   var json = generator.serialized;
   var pGenerator = new PostgreSQLSchemaGenerator(json, temporary: temporary);
 
   return pGenerator.commandList;
 }
+
+class DefaultPersistentStore extends PersistentStore {
+  Future<dynamic> execute(String sql) async { return null; }
+  Future close() async {}
+  Future<List<MappingElement>> executeInsertQuery(PersistentStoreQuery q) async { return null; }
+  Future<List<List<MappingElement>>> executeFetchQuery(PersistentStoreQuery q) async { return null; }
+  Future<int> executeDeleteQuery(PersistentStoreQuery q) async { return null; }
+  Future<List<List<MappingElement>>> executeUpdateQuery(PersistentStoreQuery q) async { return null; }
+
+  Predicate comparisonPredicate(PropertyDescription desc, MatcherOperator operator, dynamic value) { return null; }
+  Predicate containsPredicate(PropertyDescription desc, Iterable<dynamic> values) { return null; }
+  Predicate nullPredicate(PropertyDescription desc, bool isNull) { return null; }
+  Predicate rangePredicate(PropertyDescription desc, dynamic lhsValue, dynamic rhsValue, bool insideRange) { return null; }
+  Predicate stringPredicate(PropertyDescription desc, StringMatcherOperator operator, dynamic value) { return null; }
+}
+

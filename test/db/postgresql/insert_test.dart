@@ -153,9 +153,9 @@ void main() {
     var p = new GenPost()
       ..owner = u
       ..text = "1";
-    q = new Query<GenPost>()
+    var pq = new Query<GenPost>()
       ..values = p;
-    p = await q.insert();
+    p = await pq.insert();
 
     expect(p.id, greaterThan(0));
     expect(p.owner.id, greaterThan(0));
@@ -205,8 +205,8 @@ void main() {
     expect(result.name, "Bob");
     expect(result.posts, isNull);
 
-    q = new Query<GenPost>();
-    expect(await q.fetch(), hasLength(0));
+    var pq = new Query<GenPost>();
+    expect(await pq.fetch(), hasLength(0));
   });
 }
 
@@ -217,7 +217,7 @@ class _TestModel {
 
   String name;
 
-  @Attributes(nullable: true, unique: true)
+  @ColumnAttributes(nullable: true, unique: true)
   String emailAddress;
 
   static String tableName() {
@@ -231,8 +231,7 @@ class _GenUser {
   int id;
   String name;
 
-  @Relationship(RelationshipType.hasMany, "owner")
-  List<GenPost> posts;
+  OrderedSet<GenPost> posts;
 }
 
 class GenPost extends Model<_GenPost> implements _GenPost {}
@@ -241,7 +240,7 @@ class _GenPost {
   int id;
   String text;
 
-  @Relationship(RelationshipType.belongsTo, "posts")
+  @RelationshipInverse(#posts)
   GenUser owner;
 }
 
@@ -253,12 +252,12 @@ class _GenTime {
 
   String text;
 
-  @Attributes(defaultValue: "(now() at time zone 'utc')")
+  @ColumnAttributes(defaultValue: "(now() at time zone 'utc')")
   DateTime dateCreated;
 }
 
 class TransientModel extends Model<_Transient> implements _Transient {
-  @mappable
+  @transientAttribute
   String transientValue;
 }
 

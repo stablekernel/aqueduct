@@ -33,33 +33,30 @@ class ModelContext {
   }
 
   Future<Model> _executeInsertQuery(Query query) async {
-    var entity = dataModel.entityForType(query.modelType);
-    var psq = new PersistentStoreQuery(entity, persistentStore, query);
+    var psq = new PersistentStoreQuery(query.entity, persistentStore, query);
     var results = await persistentStore.executeInsertQuery(psq);
 
-    return entity.instanceFromMappingElements(results);
+    return query.entity.instanceFromMappingElements(results);
   }
 
   Future<List<Model>> _executeFetchQuery(Query query) async {
-    var entity = dataModel.entityForType(query.modelType);
-    var psq = new PersistentStoreQuery(entity, persistentStore, query);
+    var psq = new PersistentStoreQuery(query.entity, persistentStore, query);
     var results = await persistentStore.executeFetchQuery(psq);
 
-    return _coalesceAndMapRows(results, entity);
+    return _coalesceAndMapRows(results, query.entity);
   }
 
   Future<List<Model>> _executeUpdateQuery(Query query) async {
-    var entity = dataModel.entityForType(query.modelType);
-    var psq = new PersistentStoreQuery(entity, persistentStore, query);
+    var psq = new PersistentStoreQuery(query.entity, persistentStore, query);
     var results = await persistentStore.executeUpdateQuery(psq);
 
     return results.map((row) {
-      return entity.instanceFromMappingElements(row);
+      return query.entity.instanceFromMappingElements(row);
     }).toList();
   }
 
   Future<int> _executeDeleteQuery(Query query) async {
-    return await persistentStore.executeDeleteQuery(new PersistentStoreQuery(dataModel.entityForType(query.modelType), persistentStore, query));
+    return await persistentStore.executeDeleteQuery(new PersistentStoreQuery(query.entity, persistentStore, query));
   }
 
   List<Model> _coalesceAndMapRows(List<List<MappingElement>> elements, ModelEntity entity) {
@@ -75,7 +72,7 @@ class ModelContext {
     }
 
     // There needs to be tests to ensure that the order of JoinElements is dependent.
-    var joinElements = elements.first
+    List<JoinMappingElement> joinElements = elements.first
         .where((e) => e is JoinMappingElement)
         .toList();
 
@@ -83,7 +80,14 @@ class ModelContext {
         .map((e) => elements.first.indexOf(e))
         .toList();
 
-    var primaryKeyColumn = elements.first.firstWhere((e) => e.property is AttributeDescription && e.property.isPrimaryKey);
+    var primaryKeyColumn = elements.first.firstWhere((e) {
+      var eProp = e.property;
+      if (eProp is AttributeDescription) {
+        return eProp.isPrimaryKey;
+      }
+      return false;
+    });
+
     var primaryKeyColumnIndex = elements.first.indexOf(primaryKeyColumn);
     Map<String, Map<dynamic, Model>> matchMap = {};
 
@@ -101,7 +105,9 @@ class ModelContext {
 
       joinElementIndexes
           .map((joinIndex) => row[joinIndex])
-          .forEach((JoinMappingElement joinElement) {
+          .forEach((MappingElement element) {
+            JoinMappingElement joinElement = element;
+
             var subInstanceTuple = _createInstanceIfNecessary(joinElement.joinProperty.entity, joinElement.values, joinElement.primaryKeyIndex, joinElements, matchMap);
             if (subInstanceTuple == null) {
               return;
@@ -115,9 +121,9 @@ class ModelContext {
 
               var inversePropertyName = owningModelPropertyDesc.name;
               if (owningModelPropertyDesc.relationshipType == RelationshipType.hasMany) {
-                owningInstance.dynamicBacking[inversePropertyName].add(subInstance);
+                owningInstance[inversePropertyName].add(subInstance);
               } else {
-                owningInstance.dynamicBacking[inversePropertyName] = subInstance;
+                owningInstance[inversePropertyName] = subInstance;
               }
             }
           });
@@ -144,8 +150,10 @@ class ModelContext {
       joinElements
           .where((je) => je.property.entity == mappingEntity)
           .forEach((je) {
-            if (je.property.relationshipType == RelationshipType.hasMany) {
-              existingInstance[je.property.name] = [];
+            RelationshipDescription relDesc = je.property;
+
+            if (relDesc.relationshipType == RelationshipType.hasMany) {
+              existingInstance[je.property.name] = new OrderedSet();
             } else {
               existingInstance[je.property.name] = null;
             }

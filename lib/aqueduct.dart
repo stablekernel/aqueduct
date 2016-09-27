@@ -22,18 +22,23 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:math';
 import 'dart:mirrors';
+import 'dart:collection';
 
 import 'package:analyzer/analyzer.dart';
-import 'package:crypto/crypto.dart' show sha256;
+import 'package:crypto/crypto.dart';
 import 'package:logging/logging.dart';
 import 'package:matcher/matcher.dart';
-import 'package:pbkdf2/pbkdf2.dart';
 import 'package:postgresql/postgresql.dart';
 
 export 'package:logging/logging.dart';
 export 'package:safe_config/safe_config.dart';
 export 'package:args/args.dart';
 
+part 'db/data_model_builder.dart';
+part 'db/model_backing.dart';
+part 'db/ordered_set.dart';
+part 'utilities/mirror_helpers.dart';
+part 'utilities/pbkdf2.dart';
 part 'auth/auth_code_controller.dart';
 part 'auth/auth_controller.dart';
 part 'auth/authentication_server.dart';
@@ -69,7 +74,6 @@ part 'db/model_attributes.dart';
 part 'db/model_context.dart';
 part 'db/model_entity.dart';
 part 'db/model_entity_property.dart';
-part 'db/model_query.dart';
 part 'db/persistent_store.dart';
 part 'db/persistent_store_query.dart';
 part 'db/postgresql/postgresql_persistent_store.dart';

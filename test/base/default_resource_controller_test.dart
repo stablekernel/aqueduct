@@ -2,6 +2,8 @@ import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
 import 'dart:async';
 import 'dart:io';
+import '../helpers.dart';
+
 
 void main() {
   group("Standard operations", () {
@@ -15,7 +17,7 @@ void main() {
 
       var now = new DateTime.now().toUtc();
       for (var i = 0; i < 5; i++) {
-        var q = new ModelQuery<TestModel>()
+        var q = new Query<TestModel>()
             ..values.createdAt = now
             ..values.name = "$i";
         allObjects.add(await q.insert());
@@ -151,7 +153,7 @@ void main() {
 
       var now = new DateTime.now().toUtc();
       for (var i = 0; i < 10; i++) {
-        var q = new ModelQuery<TestModel>()
+        var q = new Query<TestModel>()
           ..values.createdAt = now
           ..values.name = "${9 - i}";
         allObjects.add(await q.insert());
@@ -283,7 +285,7 @@ void main() {
 }
 
 class TestPipeline extends ApplicationPipeline {
-  TestPipeline(dynamic opts) : super (opts) {
+  TestPipeline(Map<String, dynamic> opts) : super (opts) {
     var dataModel = new DataModel([TestModel]);
     var persistentStore = new PostgreSQLPersistentStore.fromConnectionInfo("dart", "dart", "localhost", 5432, "dart_test");
     context = new ModelContext(dataModel, persistentStore);

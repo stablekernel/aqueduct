@@ -20,7 +20,7 @@ class APIDocument {
   Map<String, APISecurityScheme> securitySchemes = {};
 
   Map<String, dynamic> asMap() {
-    var m = {};
+    var m = <String, dynamic>{};
 
     m["openapi"] = "3.0.*";
     m["info"] = info.asMap();
@@ -48,7 +48,7 @@ class APIInfo {
   APIContact contact;
   APILicense license;
 
-  Map<String, String> asMap() {
+  Map<String, dynamic> asMap() {
     return {
       "title" : title,
       "description" : description,
@@ -165,7 +165,7 @@ class APISecurityScheme {
   List<APISecurityScope> scopes = [];
 
   Map<String, dynamic> asMap() {
-    var m = {
+    var m = <String, dynamic>{
       "type" : type,
       "description" : description
     };
@@ -246,7 +246,7 @@ class APIOperation {
   }
 
   Map<String, dynamic> asMap() {
-    var m = {};
+    var m = <String, dynamic>{};
 
     m["summary"] = summary;
     m["description"] = description;
@@ -281,7 +281,7 @@ class APIResponse {
 
     return {
       "description" : description,
-      "schema" : schema.asMap(),
+      "schema" : schema?.asMap(),
       "headers" : mappedHeaders
     };
   }
@@ -350,7 +350,7 @@ class APIParameter {
   APIParameterLocation parameterLocation;
 
   Map<String, dynamic> asMap() {
-    var m = {};
+    var m = <String, dynamic>{};
     m["name"] = name;
     m["description"] = description;
     m["required"] = (parameterLocation == APIParameterLocation.path ? true : required);
@@ -412,7 +412,7 @@ class APISchemaObject {
   APISchemaObject.int() : type = APISchemaObjectTypeInteger, format = APISchemaObjectFormatInt32;
 
   Map<String, dynamic> asMap() {
-    var m = {};
+    var m = <String, dynamic>{};
     m["title"] = title;
     m["type"] = type;
     m["format"] = format;

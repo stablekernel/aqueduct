@@ -1,6 +1,7 @@
 import 'package:aqueduct/aqueduct.dart';
 import 'package:test/test.dart';
 import 'dart:mirrors';
+import '../helpers.dart';
 
 void main() {
   group("Valid data model", () {
@@ -10,16 +11,16 @@ void main() {
 
     test("Entities have appropriate types", () {
       var entity = dataModel.entityForType(User);
-      expect(reflectClass(User) == entity.instanceTypeMirror, true);
-      expect(reflectClass(_User) == entity.persistentInstanceTypeMirror, true);
+      expect(reflectClass(User) == entity.instanceType, true);
+      expect(reflectClass(_User) == entity.persistentType, true);
 
       entity = dataModel.entityForType(Item);
-      expect(reflectClass(Item) == entity.instanceTypeMirror, true);
-      expect(reflectClass(_Item) == entity.persistentInstanceTypeMirror, true);
+      expect(reflectClass(Item) == entity.instanceType, true);
+      expect(reflectClass(_Item) == entity.persistentType, true);
 
       entity = dataModel.entityForType(Manager);
-      expect(reflectClass(Manager) == entity.instanceTypeMirror, true);
-      expect(reflectClass(_Manager) == entity.persistentInstanceTypeMirror, true);
+      expect(reflectClass(Manager) == entity.instanceType, true);
+      expect(reflectClass(_Manager) == entity.persistentType, true);
     });
 
     test("Non-existent entity is null", () {
@@ -117,8 +118,8 @@ void main() {
       var relDesc = entity.relationships["user"];
       expect(relDesc is RelationshipDescription, true);
       expect(relDesc.isNullable, false);
-      expect(relDesc.inverseKey, "items");
-      expect(relDesc.inverseRelationship == dataModel.entityForType(User).relationships[relDesc.inverseKey], true);
+      expect(relDesc.inverseKey, #items);
+      expect(relDesc.inverseRelationship == dataModel.entityForType(User).relationships[MirrorSystem.getName(relDesc.inverseKey)], true);
       expect(relDesc.deleteRule, RelationshipDeleteRule.cascade);
       expect(relDesc.destinationEntity == dataModel.entityForType(User), true);
       expect(relDesc.relationshipType, RelationshipType.belongsTo);
@@ -127,8 +128,8 @@ void main() {
       relDesc = entity.relationships["worker"];
       expect(relDesc is RelationshipDescription, true);
       expect(relDesc.isNullable, true);
-      expect(relDesc.inverseKey, "manager");
-      expect(relDesc.inverseRelationship == dataModel.entityForType(User).relationships[relDesc.inverseKey], true);
+      expect(relDesc.inverseKey, #manager);
+      expect(relDesc.inverseRelationship == dataModel.entityForType(User).relationships[MirrorSystem.getName(relDesc.inverseKey)], true);
       expect(relDesc.deleteRule, RelationshipDeleteRule.nullify);
       expect(relDesc.destinationEntity == dataModel.entityForType(User), true);
       expect(relDesc.relationshipType, RelationshipType.belongsTo);
@@ -136,8 +137,8 @@ void main() {
       entity = dataModel.entityForType(User);
       relDesc = entity.relationships["manager"];
       expect(relDesc is RelationshipDescription, true);
-      expect(relDesc.inverseKey, "worker");
-      expect(relDesc.inverseRelationship == dataModel.entityForType(Manager).relationships[relDesc.inverseKey], true);
+      expect(relDesc.inverseKey, #worker);
+      expect(relDesc.inverseRelationship == dataModel.entityForType(Manager).relationships[MirrorSystem.getName(relDesc.inverseKey)], true);
       expect(relDesc.destinationEntity == dataModel.entityForType(Manager), true);
       expect(relDesc.relationshipType, RelationshipType.hasOne);
 
@@ -178,15 +179,39 @@ void main() {
   });
 
   test("Delete rule of setNull throws exception if property is not nullable", () {
-    var successful = false;
     try {
-      var _ = new DataModel([Owner, FailingChild]);
-
-      successful = true;
-    } catch (e) {
+      new DataModel([Owner, FailingChild]);
+      expect(true, false);
+    } on DataModelException catch (e) {
       expect(e.message, "Relationship ref on _FailingChild set to nullify on delete, but is not nullable");
     }
-    expect(successful, false);
+  });
+
+  test("Entity without primary key fails", () {
+    try {
+      new DataModel([NoPrimaryKey]);
+      expect(true, false);
+    } on DataModelException catch (e) {
+      expect(e.message, "No primary key for entity _NoPrimaryKey");
+    }
+  });
+
+  test("Transient properties are appropriately added to entity", () {
+    var dm = new DataModel([TransientTest]);
+    var entity = dm.entityForType(TransientTest);
+
+    expect(entity.attributes["defaultedText"].isTransient, true);
+    expect(entity.attributes["inputOnly"].isTransient, true);
+    expect(entity.attributes["outputOnly"].isTransient, true);
+    expect(entity.attributes["bothButOnlyOnOne"].isTransient, true);
+    expect(entity.attributes["inputInt"].isTransient, true);
+    expect(entity.attributes["outputInt"].isTransient, true);
+    expect(entity.attributes["inOut"].isTransient, true);
+    expect(entity.attributes["bothOverQualified"].isTransient, true);
+
+    expect(entity.attributes["invalidInput"], isNull);
+    expect(entity.attributes["invalidOutput"], isNull);
+    expect(entity.attributes["notAnAttribute"], isNull);
   });
 
   group("Schema generation", () {
@@ -225,7 +250,7 @@ void main() {
 }
 
 class User extends Model<_User> implements _User {
-  @mappable
+  @transientAttribute
   String stringID;
 }
 class _User {
@@ -235,22 +260,20 @@ class _User {
   String username;
   bool flag;
 
-  @Attributes(nullable: true, defaultValue: "'now()'", unique: true, indexed: true, omitByDefault: true)
+  @ColumnAttributes(nullable: true, defaultValue: "'now()'", unique: true, indexed: true, omitByDefault: true)
   DateTime loadedTimestamp;
 
-  @Relationship.hasMany("user")
-  List<Item> items;
+  OrderedSet<Item> items;
 
-  @Relationship.hasOne("worker")
   Manager manager;
 }
 
 class Item extends Model<_Item> implements _Item {}
 class _Item {
-  @Attributes(primaryKey: true)
+  @ColumnAttributes(primaryKey: true)
   String name;
 
-  @Relationship.belongsTo("items", deleteRule: RelationshipDeleteRule.cascade, required: true)
+  @RelationshipInverse(#items, onDelete: RelationshipDeleteRule.cascade, isRequired: true)
   User user;
 }
 
@@ -261,7 +284,7 @@ class _Manager {
 
   String name;
 
-  @Relationship.belongsTo("manager")
+  @RelationshipInverse(#manager)
   User worker;
 }
 
@@ -270,7 +293,6 @@ class _Owner {
   @primaryKey
   int id;
 
-  @Relationship(RelationshipType.hasOne, "ref")
   FailingChild gen;
 }
 
@@ -279,6 +301,66 @@ class _FailingChild {
   @primaryKey
   int id;
 
-  @Relationship(RelationshipType.belongsTo, "gen", deleteRule: RelationshipDeleteRule.nullify, required: true)
+  @RelationshipInverse(#gen, onDelete: RelationshipDeleteRule.nullify, isRequired: true)
   Owner ref;
+}
+
+class TransientTest extends Model<_TransientTest> implements _TransientTest {
+  String notAnAttribute;
+
+  @transientOutputAttribute
+  String get defaultedText => "Mr. $text";
+
+  @transientInputAttribute
+  void set defaultedText(String str) {
+    text = str.split(" ").last;
+  }
+
+  @transientInputAttribute
+  void set inputOnly(String s) {
+    text = s;
+  }
+
+  @transientOutputAttribute String get outputOnly => text;
+  void set outputOnly(String s) {
+    text = s;
+  }
+
+  // This is intentionally invalid
+  @transientInputAttribute String get invalidInput => text;
+
+  // This is intentionally invalid
+  @transientOutputAttribute
+  void set invalidOutput(String s) {
+    text = s;
+  }
+
+  @transientAttribute String get bothButOnlyOnOne => text;
+  void set bothButOnlyOnOne(String s) {
+    text = s;
+  }
+
+  @transientInputAttribute int inputInt;
+
+  @transientOutputAttribute int outputInt;
+
+  @transientAttribute int inOut;
+
+  @transientAttribute String get bothOverQualified => text;
+  @transientAttribute
+  void set bothOverQualified(String s) {
+    text = s;
+  }
+}
+
+class _TransientTest {
+  @primaryKey int id;
+
+  String text;
+}
+
+class NoPrimaryKey extends Model<_NoPrimaryKey> implements _NoPrimaryKey {
+}
+class _NoPrimaryKey {
+  String foo;
 }
