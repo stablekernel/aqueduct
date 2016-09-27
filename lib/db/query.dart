@@ -237,6 +237,7 @@ abstract class _QueryMatchableExtension implements QueryMatchable {
       var relDesc = entity.relationships[propertyName];
 
       return val is QueryMatchable
+          && val.includeInResultSet
           && (relDesc?.relationshipType == RelationshipType.hasMany || relDesc?.relationshipType == RelationshipType.hasOne);
     }).toList();
   }
