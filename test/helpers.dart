@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:aqueduct/aqueduct.dart';
-import 'package:postgresql/postgresql.dart' as postgresql;
+import 'package:postgres/postgres.dart';
 
 Future<List<TestUser>> createUsers(int count) async {
   var users = new List<TestUser>();
@@ -165,8 +165,9 @@ class AuthDelegate implements AuthenticationServerDelegate<TestUser, Token, Auth
 
 Future<ModelContext> contextWithModels(List<Type> instanceTypes) async {
   var persistentStore = new PostgreSQLPersistentStore(() async {
-    var uri = "postgres://dart:dart@localhost:5432/dart_test";
-    return await postgresql.connect(uri, timeZone: 'UTC');
+    var conn = new PostgreSQLConnection("localhost", 5432, "dart_test", username: "dart", password: "dart");
+    await conn.open();
+    return conn;
   });
 
   var dataModel = new DataModel(instanceTypes);

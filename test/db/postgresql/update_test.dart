@@ -190,7 +190,7 @@ void main() {
       var _ = await req.updateOne();
       expect(true, false);
     } on QueryException catch (e) {
-      expect(e.message, "updateOne modified more than one row, this is a serious error.");
+      expect(e.toString(), "updateOne modified more than one row, this is a serious error.");
     }
   });
 
@@ -215,8 +215,8 @@ void main() {
     try {
       var _ = await req.update();
       expect(true, false);
-    } on HTTPResponseException catch (e) {
-      expect(e.statusCode, 500);
+    } on QueryException catch (e) {
+      expect(e.event, QueryExceptionEvent.internalFailure);
     }
   });
 

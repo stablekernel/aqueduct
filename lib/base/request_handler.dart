@@ -14,6 +14,8 @@ abstract class RequestHandlerResult {}
 /// should implement [processRequest] to respond to, modify or forward requests.
 /// In some cases, subclasses may also override [deliver].
 class RequestHandler extends Object with APIDocumentable {
+  static bool includeErrorDetailsInServerErrorResponses = false;
+
   Function _handler;
 
   @override
@@ -122,18 +124,11 @@ class RequestHandler extends Object with APIDocumentable {
       } else if (result is Response) {
         _applyCORSHeadersIfNecessary(req, result);
         req.respond(result);
+
         logger.info(req.toDebugString());
       }
-    } on HTTPResponseException catch (err) {
-      var response = err.response();
-      _applyCORSHeadersIfNecessary(req, response);
-      req.respond(response);
-      logger.info("${req.toDebugString(includeHeaders: true, includeBody: true)} ${err.message}");
-    } catch (err, st) {
-      var response = new Response.serverError(headers: {HttpHeaders.CONTENT_TYPE: ContentType.JSON}, body: {"error": "${this.runtimeType}: $err.", "stacktrace": st.toString()});
-      _applyCORSHeadersIfNecessary(req, response);
-      req.respond(response);
-      logger.severe("${req.toDebugString(includeHeaders: true, includeBody: true)} $err $st");
+    } catch (any, stacktrace) {
+      _handleError(req, any, stacktrace);
     }
   }
 
@@ -150,6 +145,50 @@ class RequestHandler extends Object with APIDocumentable {
     }
 
     return req;
+  }
+
+  void _handleError(Request request, dynamic caughtValue, StackTrace trace) {
+    try {
+      if (caughtValue is HTTPResponseException) {
+        var response = caughtValue.response;
+        _applyCORSHeadersIfNecessary(request, response);
+        request.respond(response);
+
+        logger.info("${request.toDebugString(includeHeaders: true, includeBody: true)}");
+      } else if (caughtValue is QueryException && caughtValue.event != QueryExceptionEvent.internalFailure) {
+        // Note that if the event is an internal failure, this code is skipped and the 500 handler is executed.
+        var statusCode = 500;
+        switch(caughtValue.event) {
+          case QueryExceptionEvent.requestFailure: statusCode = 400; break;
+          case QueryExceptionEvent.internalFailure: statusCode = 500; break;
+          case QueryExceptionEvent.connectionFailure: statusCode = 503; break;
+          case QueryExceptionEvent.conflict: statusCode = 409; break;
+        }
+
+        var response = new Response(statusCode, null, {"error" : caughtValue.toString()});
+        _applyCORSHeadersIfNecessary(request, response);
+        request.respond(response);
+
+        logger.info("${request.toDebugString(includeHeaders: true, includeBody: true)}");
+      } else {
+        var body = null;
+        if (includeErrorDetailsInServerErrorResponses) {
+          body = {
+            "error": "${this.runtimeType}: $caughtValue.",
+            "stacktrace": trace.toString()
+          };
+        }
+
+        var response = new Response.serverError(headers: {
+          HttpHeaders.CONTENT_TYPE : ContentType.JSON
+        }, body: body);
+
+        _applyCORSHeadersIfNecessary(request, response);
+        request.respond(response);
+
+        logger.severe("${request.toDebugString(includeHeaders: true, includeBody: true)}", caughtValue, trace);
+        }
+    } catch (_) {}
   }
 
   RequestHandler _lastRequestHandler() {

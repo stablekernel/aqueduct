@@ -67,14 +67,14 @@ class _ModelMatcherBacking extends _ModelBacking {
       var relDesc = entity.relationships[propertyName];
 
       if (relDesc != null && relDesc.relationshipType != RelationshipType.belongsTo) {
-        throw new QueryException(500, "Attempting to set matcher on hasOne or hasMany relationship. Use includeInResultSet.", -1);
+        throw new QueryException(QueryExceptionEvent.internalFailure, message: "Attempting to set matcher on hasOne or hasMany relationship. Use includeInResultSet.");
       }
 
       valueMap[propertyName] = value;
     } else {
       // Setting simply a value, wrap it with an AssignmentMatcher if applicable.
       if (entity.relationships.containsKey(propertyName)) {
-        throw new QueryException(500, "Attempting to set simple value matcher for property $propertyName on ${entity.tableName}, but that property is a relationship.", -1);
+        throw new QueryException(QueryExceptionEvent.internalFailure, message: "Attempting to set simple value matcher for property $propertyName on ${entity.tableName}, but that property is a relationship.");
       }
 
       valueMap[propertyName] = new _ComparisonMatcherExpression(value, MatcherOperator.equalTo);

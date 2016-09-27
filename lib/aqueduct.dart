@@ -28,7 +28,7 @@ import 'package:analyzer/analyzer.dart';
 import 'package:crypto/crypto.dart';
 import 'package:logging/logging.dart';
 import 'package:matcher/matcher.dart';
-import 'package:postgresql/postgresql.dart';
+import 'package:postgres/postgres.dart';
 
 export 'package:logging/logging.dart';
 export 'package:safe_config/safe_config.dart';

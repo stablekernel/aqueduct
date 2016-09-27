@@ -49,10 +49,10 @@ class PersistentStoreQuery {
     return keys.map((key) {
       var property = entity.properties[key];
       if (property == null) {
-        throw new QueryException(500, "Property $key in resultKeys does not exist on ${entity.tableName}", -1);
+        throw new QueryException(QueryExceptionEvent.internalFailure, message: "Property $key in resultKeys does not exist on ${entity.tableName}");
       }
       if (property is RelationshipDescription && property.relationshipType != RelationshipType.belongsTo) {
-        throw new QueryException(500, "Property $key in resultKeys is a hasMany or hasOne relationship and is invalid on ${entity.tableName}", -1);
+        throw new QueryException(QueryExceptionEvent.internalFailure, message: "Property $key in resultKeys is a hasMany or hasOne relationship and is invalid on ${entity.tableName}");
       }
 
       return new MappingElement(property, null);
@@ -63,7 +63,7 @@ class PersistentStoreQuery {
     return valueMap?.keys?.map((key) {
       var property = entity.properties[key];
       if (property == null) {
-        throw new QueryException(400, "Property $key in values does not exist on ${entity.tableName}", -1);
+        throw new QueryException(QueryExceptionEvent.requestFailure, message: "Property $key in values does not exist on ${entity.tableName}");
       }
 
       var value = valueMap[key];
@@ -78,7 +78,7 @@ class PersistentStoreQuery {
           } else if (value is Map) {
             value = value[property.destinationEntity.primaryKey];
           } else {
-            throw new QueryException(500, "Property $key on ${entity.tableName} in Query values must be a Map or ${MirrorSystem.getName(property.destinationEntity.instanceType.simpleName)} ", -1);
+            throw new QueryException(QueryExceptionEvent.internalFailure, message: "Property $key on ${entity.tableName} in Query values must be a Map or ${MirrorSystem.getName(property.destinationEntity.instanceType.simpleName)} ");
           }
         }
       }

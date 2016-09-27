@@ -1,6 +1,6 @@
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
-import 'package:postgresql/postgresql.dart' as postgresql;
+import 'package:postgres/postgres.dart';
 import 'dart:async';
 
 void main() {
@@ -8,8 +8,9 @@ void main() {
 
   setUp(() {
     persistentStore = new PostgreSQLPersistentStore(() async {
-      var uri = "postgres://dart:dart@localhost:5432/dart_test";
-      return await postgresql.connect(uri, timeZone: 'UTC');
+      var connection = new PostgreSQLConnection("localhost", 5432, "dart_test", username: "dart", password: "dart");
+      await connection.open();
+      return connection;
     });
   });
 
@@ -42,8 +43,9 @@ void main() {
 
   test("Make multiple requests at once, all fail because db connect fails", () async {
     persistentStore = new PostgreSQLPersistentStore(() async {
-      var uri = "postgres://dart:dart@localhost:5432/xyzxyznotadb";
-      return await postgresql.connect(uri, timeZone: 'UTC');
+      var connection = new PostgreSQLConnection("localhost", 5432, "xyzxyznotadb", username: "dart", password: "dart");
+      await connection.open();
+      return connection;
     });
     var expectedValues = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
     var values = await Future.wait(expectedValues.map((i) => persistentStore.execute("select $i").catchError((e) => e)));
@@ -53,9 +55,11 @@ void main() {
   test("Make multiple requests at once, first few fails because db connect fails (but eventually succeeds)", () async {
     var counter = 0;
     persistentStore = new PostgreSQLPersistentStore(() async {
-      var uri = (counter == 0 ? "postgres://dart:dart@localhost:5432/xyzxyznotadb" : "postgres://dart:dart@localhost:5432/dart_test");
+      var conn = (counter == 0 ? new PostgreSQLConnection("localhost", 5432, "xyzxyznotadb", username: "dart", password: "dart")
+          : new PostgreSQLConnection("localhost", 5432, "dart_test", username: "dart", password: "dart"));
       counter ++;
-      return await postgresql.connect(uri, timeZone: 'UTC');
+      await conn.open();
+      return conn;
     });
     var expectedValues = [1, 2, 3, 4, 5];
     var values = await Future.wait(expectedValues.map((i) => persistentStore.execute("select $i").catchError((e) => e)));

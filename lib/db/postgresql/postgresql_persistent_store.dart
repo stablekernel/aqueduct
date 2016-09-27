@@ -11,28 +11,29 @@ class PostgreSQLPersistentStore extends PersistentStore {
     MatcherOperator.equalTo : "="
   };
 
-  Connection _databaseConnection;
+  PostgreSQLConnection _databaseConnection;
   Function connectFunction;
   bool _isConnecting = false;
-  List<Completer<Connection>> _pendingConnectionCompleters = [];
+  List<Completer<PostgreSQLConnection>> _pendingConnectionCompleters = [];
 
   PostgreSQLPersistentStore(this.connectFunction) : super();
   PostgreSQLPersistentStore.fromConnectionInfo(String username, String password, String host, int port, String databaseName, {String timezone: "UTC"}) {
-    var uri = "postgres://$username:$password@$host:$port/$databaseName";
     this.connectFunction = () async {
       logger.info("PostgreSQL connecting, $username@$host:$port/$databaseName.");
-      return await connect(uri, timeZone: timezone);
+      var connection = new PostgreSQLConnection(host, port, databaseName, username: username, password: password, timeZone: timezone);
+      await connection.open();
+      return connection;
     };
   }
 
-  Future<Connection> getDatabaseConnection() async {
-    if (_databaseConnection == null || _databaseConnection.state == ConnectionState.closed) {
+  Future<PostgreSQLConnection> getDatabaseConnection() async {
+    if (_databaseConnection == null || _databaseConnection.isClosed) {
       if (connectFunction == null) {
-        throw new QueryException(503, "Could not connect to database, no connect function.", 1);
+        throw new QueryException(QueryExceptionEvent.internalFailure, message: "Could not connect to database, no connect function.");
       }
 
       if (_isConnecting) {
-        var completer = new Completer<Connection>();
+        var completer = new Completer<PostgreSQLConnection>();
         _pendingConnectionCompleters.add(completer);
         return completer.future;
       }
@@ -46,11 +47,13 @@ class PostgreSQLPersistentStore extends PersistentStore {
         });
       } catch (e) {
         _isConnecting = false;
+
+        var exception = new QueryException(QueryExceptionEvent.connectionFailure, underlyingException: e);
         _informWaiters((completer) {
-          completer.completeError(new QueryException(503, "Could not connect to database ${e}", 1));
+          completer.completeError(exception);
         });
 
-        throw new QueryException(503, "Could not connect to database ${e}", 1);
+        throw exception;
       }
     }
 
@@ -74,7 +77,7 @@ class PostgreSQLPersistentStore extends PersistentStore {
 
   void _informWaiters(void f(Completer c)) {
     if (!_pendingConnectionCompleters.isEmpty) {
-      List<Completer<Connection>> copiedCompleters = new List.from(_pendingConnectionCompleters);
+      List<Completer<PostgreSQLConnection>> copiedCompleters = new List.from(_pendingConnectionCompleters);
       _pendingConnectionCompleters = [];
       copiedCompleters.forEach((completer) {
         scheduleMicrotask(() {
@@ -91,32 +94,25 @@ class PostgreSQLPersistentStore extends PersistentStore {
     return desc.name;
   }
 
-  Future<dynamic> _executeQuery(String formatString, dynamic values, int timeoutInSeconds, {bool returnCount: false}) async {
+  Future<dynamic> _executeQuery(String formatString, Map<String, dynamic> values, int timeoutInSeconds, {bool returnCount: false}) async {
     try {
       var dbConnection = await getDatabaseConnection();
       var results = null;
 
       var now = new DateTime.now().toUtc();
       if (!returnCount) {
-        results = (await dbConnection.query(formatString, values).toList().timeout(new Duration(seconds: timeoutInSeconds)));
+        results = await dbConnection.query(formatString, substitutionValues: values).timeout(new Duration(seconds: timeoutInSeconds));
       } else {
-        results = (await dbConnection.execute(formatString, values).timeout(new Duration(seconds: timeoutInSeconds)));
+        results = await dbConnection.execute(formatString, substitutionValues: values).timeout(new Duration(seconds: timeoutInSeconds));
       }
 
       logger.fine(() => "Query (${(new DateTime.now().toUtc().difference(now).inMilliseconds)}ms) $formatString $values -> $results");
 
       return results;
-    } on TimeoutException {
-      throw new QueryException(503, "Could not connect to database.", -1);
-    } on PostgresqlException catch (e, stackTrace) {
-      logger.severe("SQL Failed $formatString $values");
-      throw _interpretException(e, stackTrace);
-    } on QueryException {
-      logger.severe("Query Failed $formatString $values");
-      rethrow;
-    } catch (e, stackTrace) {
-      logger.severe("Unknown Failure $formatString $values");
-      throw new QueryException(500, e.toString(), -1, stackTrace: stackTrace);
+    } on TimeoutException catch (e) {
+      throw new QueryException(QueryExceptionEvent.connectionFailure, underlyingException: e);
+    } on PostgreSQLException catch (e) {
+      throw _interpretException(e);
     }
   }
 
@@ -135,13 +131,13 @@ class PostgreSQLPersistentStore extends PersistentStore {
 
     var results = await _executeQuery(queryStringBuffer.toString(), valueMap, q.timeoutInSeconds);
 
-    return _mappingElementsFromResults(results as List<Row>, q.resultKeys).first;
+    return _mappingElementsFromResults(results as List<List<dynamic>>, q.resultKeys).first;
   }
 
   Future<List<List<MappingElement>>> executeFetchQuery(PersistentStoreQuery q) async {
     var queryStringBuffer = new StringBuffer("SELECT ");
 
-    var predicateValueMap = {};
+    var predicateValueMap = <String, dynamic>{};
     var mapElementToString = (MappingElement e) => "${e.property.entity.tableName}.${_columnNameForProperty(e.property)}";
     var selectColumns = q.resultKeys
         .map((mapElement) {
@@ -186,18 +182,18 @@ class PostgreSQLPersistentStore extends PersistentStore {
 
     var results = await _executeQuery(queryStringBuffer.toString(), predicateValueMap, q.timeoutInSeconds);
 
-    return _mappingElementsFromResults(results as List<Row>, q.resultKeys);
+    return _mappingElementsFromResults(results as List<List<dynamic>>, q.resultKeys);
   }
 
   Future<int> executeDeleteQuery(PersistentStoreQuery q) async {
     if (q.predicate == null && !q.confirmQueryModifiesAllInstancesOnDeleteOrUpdate) {
-      throw new HTTPResponseException(500, "Query would impact all records. This could be a destructive error. Set confirmQueryModifiesAllInstancesOnDeleteOrUpdate on the Query to execute anyway.");
+      throw new QueryException(QueryExceptionEvent.internalFailure, message: "Query would impact all records. This could be a destructive error. Set confirmQueryModifiesAllInstancesOnDeleteOrUpdate on the Query to execute anyway.");
     }
 
     var queryStringBuffer = new StringBuffer();
     queryStringBuffer.write("DELETE FROM ${q.rootEntity.tableName} ");
 
-    var valueMap = null;
+    Map<String, dynamic> valueMap = null;
     if (q.predicate != null) {
       queryStringBuffer.write("where ${q.predicate.format} ");
       valueMap = q.predicate.parameters;
@@ -210,7 +206,7 @@ class PostgreSQLPersistentStore extends PersistentStore {
 
   Future<List<List<MappingElement>>> executeUpdateQuery(PersistentStoreQuery q) async {
     if (q.predicate == null && !q.confirmQueryModifiesAllInstancesOnDeleteOrUpdate) {
-      throw new HTTPResponseException(500, "Query would impact all records. This could be a destructive error. Set confirmQueryModifiesAllInstancesOnDeleteOrUpdate on the Query to execute anyway.");
+      throw new QueryException(QueryExceptionEvent.internalFailure, message: "Query would impact all records. This could be a destructive error. Set confirmQueryModifiesAllInstancesOnDeleteOrUpdate on the Query to execute anyway.");
     }
 
     var queryStringBuffer = new StringBuffer();
@@ -234,7 +230,7 @@ class PostgreSQLPersistentStore extends PersistentStore {
 
     var results = await _executeQuery(queryStringBuffer.toString(), updateValueMap, q.timeoutInSeconds);
 
-    return _mappingElementsFromResults(results as List<Row>, q.resultKeys);
+    return _mappingElementsFromResults(results as List<List<dynamic>>, q.resultKeys);
   }
 
   @override
@@ -296,7 +292,7 @@ class PostgreSQLPersistentStore extends PersistentStore {
     return new Predicate("$prefix.$propertyName like @$formatSpecificationName", {formatSpecificationName : matchValue});
   }
 
-  List<List<MappingElement>> _mappingElementsFromResults(List<Row> rows, List<MappingElement> columnDefinitions) {
+  List<List<MappingElement>> _mappingElementsFromResults(List<List<dynamic>> rows, List<MappingElement> columnDefinitions) {
     return rows.map((row) {
       var columnDefinitionIterator = columnDefinitions.iterator;
       var rowValueIterator = row.toList().iterator;
@@ -323,25 +319,19 @@ class PostgreSQLPersistentStore extends PersistentStore {
     }).toList();
   }
 
-  QueryException _interpretException(PostgresqlException exception, StackTrace stackTrace) {
-    ServerMessage msg = exception.serverMessage;
-    if (msg == null) {
-      return new QueryException(500, exception.message, 0, stackTrace: stackTrace);
-    }
-
-    var totalMessage = "${exception.message}${msg.detail != null ? ": ${msg.detail}" : ""}";
-    switch (msg.code) {
+  QueryException _interpretException(PostgreSQLException exception) {
+    switch (exception.code) {
       case "42703":
-        return new QueryException(400, totalMessage, 42703, stackTrace: stackTrace);
+        return new QueryException(QueryExceptionEvent.requestFailure, underlyingException: exception);
       case "23505":
-        return new QueryException(409, totalMessage, 23505, stackTrace: stackTrace);
+        return new QueryException(QueryExceptionEvent.conflict, underlyingException: exception);
       case "23502":
-        return new QueryException(400, totalMessage, 23502, stackTrace: stackTrace);
+        return new QueryException(QueryExceptionEvent.requestFailure, underlyingException: exception);
       case "23503":
-        return new QueryException(400, totalMessage, 23503, stackTrace: stackTrace);
+        return new QueryException(QueryExceptionEvent.requestFailure, underlyingException: exception);
     }
 
-    return new QueryException(500, exception.message, 0, stackTrace: stackTrace);
+    return new QueryException(QueryExceptionEvent.internalFailure, underlyingException: exception);
   }
 
   String _orderByStringForQuery(PersistentStoreQuery q) {
