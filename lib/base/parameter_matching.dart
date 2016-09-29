@@ -52,7 +52,7 @@ class _HTTPControllerCache {
         .where((decl) => decl is VariableMirror)
         .where((decl) => decl.metadata.any((im) => im.reflectee is _HTTPParameter))
         .forEach((decl) {
-          _HTTPControllerCachedParameter param = null;
+          _HTTPControllerCachedParameter param;
           var isRequired = allDeclarations[decl.simpleName].metadata.any((im) => im.reflectee is HTTPRequiredParameter);
           if (isRequired) {
             hasControllerRequiredParameter = true;
