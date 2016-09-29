@@ -287,7 +287,7 @@ You can specify that a `HTTPController` responder method extract HTTP query para
 
 Notice that the string used to match the query parameter is the first argument to `HTTPQuery`. You may name the associated variable whatever you like, it doesn't have to match the name in the query parameter. Also, note that we first check `containsSubstring` to make sure it is not-null. If we simply assigned `null` to `description`, we'd be creating a predicate that checked to see if the `description` *contained* `null`.
 
-Using HTTP header values as parameters is accomplished in the same way, except using the `HTTPHeader` metadata. Both are evaluated case-insensitively.
+Using HTTP header values as parameters is accomplished in the same way, except using the `HTTPHeader` metadata. Query parameters are case sensitive, where header parameters are not.
 
 Then, add a new test:
 
@@ -314,7 +314,7 @@ This test will pass, along with the rest of them. It's important to note that GE
   if (containsSubstring != null) {
     questionQuery.matchOn.description = whereContains(containsSubstring);
   }
-  
+
   var questions = await questionQuery.fetch();
   return new Response.ok(questions);
 }

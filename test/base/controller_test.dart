@@ -330,6 +330,42 @@ void main() {
       expect(errorMessage, contains("'Cookie'"));
       expect(errorMessage, contains("'Table'"));
     });
+
+    test("Headers are case-INsensitive", () async {
+      server = await enableController("/a", HTTPParameterController);
+      var resp = await http.get("http://localhost:4040/a?number=3&Shaqs=1&Table=IKEA&table_legs=8", headers: {
+        "X-Request-ID" : "3423423adfea90",
+        "location" : "Nowhere",
+        "Cookie" : "Chips Ahoy",
+        "Milk" : "Publix",
+      });
+
+      expect(resp.statusCode, 200);
+      expect(JSON.decode(resp.body), {
+        "x-request-id" : "3423423adfea90",
+        "location" : "Nowhere",
+        "cookie" : "Chips Ahoy",
+        "milk" : "Publix",
+        "number" : 3,
+        "Shaqs" : 1,
+        "Table" : "IKEA",
+        "table_legs" : 8
+      });
+    });
+
+    test("Query parameters are case-SENSITIVE", () async {
+      server = await enableController("/a", HTTPParameterController);
+      var resp = await http.get("http://localhost:4040/a?SHAQS=1&table=IKEA", headers: {
+        "X-Request-ID" : "3423423adfea90",
+        "Cookie" : "Chips Ahoy",
+      });
+
+      expect(resp.statusCode, 400);
+
+      expect(JSON.decode(resp.body)["error"], contains("Missing query value"));
+      expect(JSON.decode(resp.body)["error"], contains("Table"));
+      expect(JSON.decode(resp.body)["error"], contains("Shaqs"));
+    });
   });
 }
 
