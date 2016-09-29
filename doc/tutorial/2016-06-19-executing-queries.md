@@ -272,20 +272,20 @@ That's fetch and insert. Delete works the same way - you specify a `predicate` o
 
 The more you know: Query Parameters and HTTP Headers
 ---
-You can specify that a `HTTPController` responder method extract HTTP query parameters and headers and supply them as arguments to the method. We'll allow the `getAllQuestions` method to take a query parameter named `contains`. If this query parameter is passed, we'll filter the questions on whether or not that question contains a substring. In `question_controller.dart`, update this method:
+You can specify that a `HTTPController` responder method extract HTTP query parameters and headers and supply them as arguments to the method. We'll allow the `getAllQuestions` method to take a query parameter named `contains`. If this query parameter is part of the request, we'll filter the questions on whether or not that question contains some substring. In `question_controller.dart`, update this method:
 
 ```dart
-@httpGet getAllQuestions({@HTTPQuery("contains") String contains: null}) async {
+@httpGet getAllQuestions({@HTTPQuery("contains") String containsSubstring: null}) async {
   var questionQuery = new Query<Question>();
-  if (contains != null) {
-    questionQuery.matchOn.description = whereContains(contains);
+  if (containsSubstring != null) {
+    questionQuery.matchOn.description = whereContains(containsSubstring);
   }
   var questions = await questionQuery.fetch();
   return new Response.ok(questions);
 }
 ```
 
-Notice that the string used to match the query parameter is the first argument to `HTTPQuery`. You may name the associated variable whatever you like, it doesn't have to match the name in the query parameter. Also, note that we first check `contains` to make sure it is not-null. If we simply assigned `null` to `description`, we'd be creating a predicate that checked to see if the `description` *contained* `null`.
+Notice that the string used to match the query parameter is the first argument to `HTTPQuery`. You may name the associated variable whatever you like, it doesn't have to match the name in the query parameter. Also, note that we first check `containsSubstring` to make sure it is not-null. If we simply assigned `null` to `description`, we'd be creating a predicate that checked to see if the `description` *contained* `null`.
 
 Using HTTP header values as parameters is accomplished in the same way, except using the `HTTPHeader` metadata. Both are evaluated case-insensitively.
 
@@ -305,15 +305,16 @@ test("/questions returns list of questions filtered by contains", () async {
 This test will pass, along with the rest of them. It's important to note that GET `/questions` without a `contains` query still yields the correct results. That is because the `HTTPQuery` argument was declared in the optional parameters portion of the responder method. If the parameter were in the required, positional set of parameters and the query string was not included, this request would respond with a 400. (The same positional vs. optional behavior is true of `HTTPHeader`s as well.) For example, if we wanted to make a 'X-Client-ID' header that had to be included on this request, we'd do the following:
 
 ```dart
-@httpGet getAllQuestions(@HTTPHeader("X-Client-ID") int clientID, {@HTTPQuery("contains") String contains: null}) async {
+@httpGet getAllQuestions(@HTTPHeader("X-Client-ID") int clientID, {@HTTPQuery("contains") String containsSubstring: null}) async {
   if (clientID != 12345) {
     return new Response.unauthorized();
   }
 
   var questionQuery = new Query<Question>();
-  if (contains != null) {
-    questionQuery.matchOn.description = whereContains(contains);
+  if (containsSubstring != null) {
+    questionQuery.matchOn.description = whereContains(containsSubstring);
   }
+  
   var questions = await questionQuery.fetch();
   return new Response.ok(questions);
 }
