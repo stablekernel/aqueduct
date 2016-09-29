@@ -41,20 +41,25 @@ class PersistentStoreQuery {
   List<MappingElement> values;
   List<MappingElement> resultKeys;
 
+  static PropertyDescription _propertyForName(ModelEntity entity, String propertyName) {
+    var property = entity.properties[propertyName];
+    if (property == null) {
+      throw new QueryException(QueryExceptionEvent.internalFailure, message: "Property $propertyName does not exist on ${entity.tableName}");
+    }
+    if (property is RelationshipDescription && property.relationshipType != RelationshipType.belongsTo) {
+      throw new QueryException(QueryExceptionEvent.internalFailure, message: "Property $propertyName is a hasMany or hasOne relationship and is invalid as a result property of ${entity.tableName}, use matchOn.$propertyName.includeInResultSet = true instead.");
+    }
+
+    return property;
+  }
+
   static List<MappingElement> _mappingElementsForList(List<String> keys, ModelEntity entity) {
     if (!keys.contains(entity.primaryKey)) {
       keys.add(entity.primaryKey);
     }
 
     return keys.map((key) {
-      var property = entity.properties[key];
-      if (property == null) {
-        throw new QueryException(QueryExceptionEvent.internalFailure, message: "Property $key in resultKeys does not exist on ${entity.tableName}");
-      }
-      if (property is RelationshipDescription && property.relationshipType != RelationshipType.belongsTo) {
-        throw new QueryException(QueryExceptionEvent.internalFailure, message: "Property $key in resultKeys is a hasMany or hasOne relationship and is invalid on ${entity.tableName}");
-      }
-
+      var property = _propertyForName(entity, key);
       return new MappingElement(property, null);
     }).toList();
   }

@@ -351,7 +351,6 @@ void main() {
     ModelContext context = null;
 
     setUpAll(() async {
-      // apply predicates at various levels!!!
       context = await contextWithModels([Child, Parent, Toy, Vaccine]);
       await populate();
     });
@@ -370,6 +369,27 @@ void main() {
       for (var p in results) {
         expect(p.child?.backingMap?.containsKey("toy") ?? true, true);
         expect(p.child?.backingMap?.containsKey("vaccinations") ?? false, false);
+      }
+    });
+
+    test("Trying to fetch hasOne relationship through resultProperties fails", () async {
+      var q = new Query<Parent>()
+          ..resultProperties = ["id", "child"];
+      try {
+        await q.fetchOne();
+        expect(true, false);
+      } on QueryException catch (e) {
+        expect(e.toString(), contains("Property child is a hasMany or hasOne relationship and is invalid as a result property of _Parent, use matchOn.child.includeInResultSet = true instead"));
+      }
+
+      q = new Query<Parent>()
+        ..matchOn.child.includeInResultSet = true
+        ..nestedResultProperties[Child] = ["id", "toy"];
+      try {
+        await q.fetchOne();
+        expect(true, false);
+      } on QueryException catch (e) {
+        expect(e.toString(), contains("Property toy is a hasMany or hasOne relationship and is invalid as a result property of _Child, use matchOn.toy.includeInResultSet = true instead"));
       }
     });
   });

@@ -313,6 +313,54 @@ void main() {
     });
   });
 
+  group("Sort descriptor impact", () {
+    ModelContext context = null;
+    List<Parent> truth;
+
+    setUpAll(() async {
+      context = await contextWithModels([Child, Parent, Toy, Vaccine]);
+      truth = await populate();
+    });
+
+    tearDownAll(() {
+      context?.persistentStore?.close();
+    });
+
+    test("Sort descriptor on top-level object doesn't impact lower level objects", () async {
+      var q = new Query<Parent>()
+          ..matchOn.children.includeInResultSet = true
+          ..matchOn.children.matchOn.toy.includeInResultSet = true
+          ..matchOn.children.matchOn.vaccinations.includeInResultSet = true
+          ..sortDescriptors = [new SortDescriptor("name", SortOrder.descending)];
+      var results = await q.fetch();
+
+      var originalIterator = truth.reversed.iterator;
+      for (var p in results) {
+        originalIterator.moveNext();
+        expect(p.id, originalIterator.current.id);
+        expect(p.name, originalIterator.current.name);
+
+        var originalChildrenIterator = p.children.iterator;
+        p.children?.forEach((child) {
+          originalChildrenIterator.moveNext();
+          expect(child.id, originalChildrenIterator.current.id);
+          expect(child.name, originalChildrenIterator.current.name);
+          expect(child.toy?.id, originalChildrenIterator.current.toy?.id);
+          expect(child.toy?.name, originalChildrenIterator.current.toy?.name);
+
+          var vacIter = originalChildrenIterator.current.vaccinations?.iterator ?? <Vaccine>[].iterator;
+          child.vaccinations?.forEach((v) {
+            vacIter.moveNext();
+            expect(v.id, vacIter.current.id);
+            expect(v.kind, vacIter.current.kind);
+          });
+          expect(vacIter.moveNext(), false);
+        });
+      }
+      expect(originalIterator.moveNext(), false);
+    });
+  });
+
   group("Offhand assumptions about data", () {
     ModelContext context = null;
 
@@ -341,7 +389,6 @@ void main() {
     ModelContext context = null;
 
     setUpAll(() async {
-      // apply predicates at various levels!!!
       context = await contextWithModels([Child, Parent, Toy, Vaccine]);
       await populate();
     });
@@ -362,6 +409,53 @@ void main() {
           expect(c.backingMap?.containsKey("toy") ?? true, true);
           expect(c.backingMap?.containsKey("vaccinations") ?? false, false);
         }
+      }
+    });
+
+    test("Trying to fetch hasMany relationship through resultProperties fails", () async {
+      var q = new Query<Parent>()
+        ..resultProperties = ["id", "children"];
+      try {
+        await q.fetchOne();
+      } on QueryException catch (e) {
+        expect(e.toString(), contains("Property children is a hasMany or hasOne relationship and is invalid as a result property of _Parent, use matchOn.children.includeInResultSet = true instead"));
+      }
+    });
+
+    test("Trying to fetch hasMany relationship through resultProperties fails", () async {
+      var q = new Query<Parent>()
+        ..resultProperties = ["id", "children"];
+      try {
+        await q.fetchOne();
+        expect(true, false);
+      } on QueryException catch (e) {
+        expect(e.toString(), contains("Property children is a hasMany or hasOne relationship and is invalid as a result property of _Parent, use matchOn.children.includeInResultSet = true instead"));
+      }
+
+      q = new Query<Parent>()
+        ..matchOn.children.includeInResultSet = true
+        ..nestedResultProperties[Child] = ["id", "vaccinations"];
+      try {
+        await q.fetchOne();
+        expect(true, false);
+      } on QueryException catch (e) {
+        expect(e.toString(), contains("Property vaccinations is a hasMany or hasOne relationship and is invalid as a result property of _Child, use matchOn.vaccinations.includeInResultSet = true instead"));
+      }
+    });
+
+    test("Trying to add hasMany RelationshipInverse to resultProperties fails", () async {
+      var l = new Logger("");
+      hierarchicalLoggingEnabled = true;
+      l.level = Level.ALL;
+      l.onRecord.listen((r) => print("$r"));
+
+      var q = new Query<Child>()
+        ..matchOn.parent.includeInResultSet = true;
+      try {
+        await q.fetchOne();
+        expect(true, false);
+      } on QueryException catch (e) {
+        expect(e.toString(), contains("Property children is a hasMany or hasOne relationship and is invalid as a result property of _Parent, use matchOn.children.includeInResultSet = true instead"));
       }
     });
   });

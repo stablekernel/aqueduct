@@ -176,6 +176,8 @@ class Query<InstanceType extends Model> {
     var results = await context._executeFetchQuery(this);
     if (results.length == 1) {
       return results.first;
+    } else if (results.length > 1) {
+      throw new QueryException(QueryExceptionEvent.requestFailure, message: "Query expected to fetch one instance, but ${results.length} instances were returned.");
     }
     return null;
   }

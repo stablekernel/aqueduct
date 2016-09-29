@@ -214,6 +214,15 @@ void main() {
     expect(entity.attributes["notAnAttribute"], isNull);
   });
 
+  test("Model with unsupported property type fails on compilation", () {
+    try {
+      new DataModel([InvalidModel]);
+      expect(true, false);
+    } on DataModelException catch (e) {
+      expect(e.message, contains("Property uri on _InvalidModel has invalid type"));
+    }
+  });
+
   group("Schema generation", () {
     var dataModel = new DataModel([User, Item, Manager]);
     var context = new ModelContext(dataModel, new DefaultPersistentStore());
@@ -363,4 +372,11 @@ class NoPrimaryKey extends Model<_NoPrimaryKey> implements _NoPrimaryKey {
 }
 class _NoPrimaryKey {
   String foo;
+}
+
+class InvalidModel extends Model<_InvalidModel> implements _InvalidModel {}
+class _InvalidModel {
+  @primaryKey int id;
+
+  Uri uri;
 }

@@ -51,6 +51,8 @@ class _ModelMatcherBacking extends _ModelBacking {
       } else if (relDesc?.relationshipType == RelationshipType.hasOne) {
         valueMap[propertyName] = relDesc.destinationEntity.newInstance()
             .._backing = new _ModelMatcherBacking();
+      } else if (relDesc?.relationshipType == RelationshipType.belongsTo) {
+        throw new QueryException(QueryExceptionEvent.requestFailure, message: "Attempting to access matcher on RelationshipInverse $propertyName on ${entity.tableName}. Assign this value to whereRelatedByValue instead.");
       }
     }
 
