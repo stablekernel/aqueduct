@@ -136,7 +136,7 @@ class Router extends RequestController {
     var response = new Response.notFound();
     _applyCORSHeadersIfNecessary(req, response);
     req.respond(response);
-    logger.info(req.toDebugString());
+    logger.info("${req.toDebugString()}");
   }
 }
 
