@@ -76,7 +76,7 @@ class QuestionController extends HTTPController {
 }
 ```
 
-The `QuestionController` class defines a property named `questions` that has a list of strings. Then, it defines a 'responder method' called `getAllQuestions`. Responder methods in an `HTTPController` are responsible for responding to a request. To be a responder method in an `HTTPController`, it must have `HTTPMethod` metadata that indicates which HTTP method it responds to. In this case, `getAllQuestions` will respond to `@httpGet` requests. There are built-in constants for the common HTTP methods - like `@httpPut`, `@httpPost` - which are all instances of `HTTPMethod`.
+The `QuestionController` class defines a property named `questions` that has a list of strings. Then, it defines a *responder method* called `getAllQuestions`. Responder methods in an `HTTPController` are responsible for responding to a request. To be a responder method in an `HTTPController`, it must have `HTTPMethod` metadata that indicates which HTTP method it responds to. In this case, `getAllQuestions` will respond to `@httpGet` requests. There are built-in constants for the common HTTP methods - like `@httpPut`, `@httpPost` - which are all instances of `HTTPMethod`.
 
 A responder method must return an instance of `Response`. A `Response` always has a status code. There are built-in convenience constructors for common status codes. In this example, `Response.ok` creates a `Response` with status code 200. Depending on the convenience constructor used, the argument may mean something different. In the case of `Response.ok`, the argument is an object that will be encoded as the HTTP response body.
 
