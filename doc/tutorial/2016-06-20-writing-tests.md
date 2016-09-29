@@ -63,7 +63,7 @@ class QuestionController extends HTTPController {
     return new Response.ok(questions);
   }
 
-  @httpGet getQuestionAtIndex(int index) async {
+  @httpGet getQuestionAtIndex(@HTTPPath("index") int index) async {
     if (index < 0 || index >= questions.length) {
       return new Response.notFound();
     }
