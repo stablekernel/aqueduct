@@ -443,9 +443,9 @@ void main() {
       }
     });
 
-    test("Trying to add hasMany RelationshipInverse to resultProperties fails", () async {
+    test("Trying to include hasMany RelationshipInverse in result set fails", () async {
       try {
-        var q = new Query<Child>()
+        var _ = new Query<Child>()
           ..matchOn.parent.includeInResultSet = true;
 
         expect(true, false);
