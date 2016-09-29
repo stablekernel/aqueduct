@@ -444,18 +444,13 @@ void main() {
     });
 
     test("Trying to add hasMany RelationshipInverse to resultProperties fails", () async {
-      var l = new Logger("");
-      hierarchicalLoggingEnabled = true;
-      l.level = Level.ALL;
-      l.onRecord.listen((r) => print("$r"));
-
-      var q = new Query<Child>()
-        ..matchOn.parent.includeInResultSet = true;
       try {
-        await q.fetchOne();
+        var q = new Query<Child>()
+          ..matchOn.parent.includeInResultSet = true;
+
         expect(true, false);
       } on QueryException catch (e) {
-        expect(e.toString(), contains("Property children is a hasMany or hasOne relationship and is invalid as a result property of _Parent, use matchOn.children.includeInResultSet = true instead"));
+        expect(e.toString(), contains("Attempting to access matcher on RelationshipInverse parent on _Child. Assign this value to whereRelatedByValue instead."));
       }
     });
   });
