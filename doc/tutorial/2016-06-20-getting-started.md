@@ -36,13 +36,13 @@ version: 0.0.1
 author: Me
 
 environment:
-  sdk: '>=1.0.0 <2.0.0'
+  sdk: '>=1.19.0 <2.0.0'
 
 dependencies:
   aqueduct: any  
 ```
 
-This pubspec declares an application named `quiz` (all Dart files, directories and application identifiers are snake_case), indicates that it can use a version of the Dart SDK between 1.0 and 2.0, and depends on the `aqueduct` package.
+This pubspec declares an application named `quiz` (all Dart files, directories and application identifiers are snake_case), indicates that it can use a version of the Dart SDK between 1.19 and 2.0, and depends on the `aqueduct` package.
 
 Next, you will fetch the dependencies of the `quiz` project - this will fetch the source for `aqueduct` from Dart's hosted package manager. If you are using Atom, you'll get a popup that tells you to do this and you can just click the button. (You may also right-click on file in Atom and select 'Pub Get'). If you aren't using Atom, from the command line, run the following from inside the `quiz` directory:
 
