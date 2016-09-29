@@ -168,7 +168,6 @@ void main() {
     ModelContext context = null;
 
     setUpAll(() async {
-      // apply predicates at various levels!!!
       context = await contextWithModels([Child, Parent, Toy, Vaccine]);
       await populate();
     });
@@ -261,11 +260,75 @@ void main() {
     });
   });
 
+  group("Result keys", () {
+    ModelContext context = null;
+    List<Parent> truth;
+    setUpAll(() async {
+      context = await contextWithModels([Child, Parent, Toy, Vaccine]);
+      truth = await populate();
+    });
+
+    tearDownAll(() async {
+      await context?.persistentStore?.close();
+    });
+
+    test("Can fetch graph when omitting foreign or primary keys from query", () async {
+      var q = new Query<Parent>()
+        ..resultProperties = ["name"]
+        ..nestedResultProperties[Child] = ["name"]
+        ..nestedResultProperties[Vaccine] = ["kind"]
+        ..matchOn.child.includeInResultSet = true
+        ..matchOn.child.vaccinations.includeInResultSet = true;
+
+      var parents = await q.fetch();
+      for (var p in parents) {
+        expect(p.name, isNotNull);
+        expect(p.id, isNotNull);
+        expect(p.backingMap.length, 3);
+
+        if (p.child != null) {
+          expect(p.child.name, isNotNull);
+          expect(p.child.id, isNotNull);
+          expect(p.child.backingMap.length, 3);
+
+          for (var v in p.child.vaccinations) {
+            expect(v.kind, isNotNull);
+            expect(v.id, isNotNull);
+          }
+        }
+      }
+    });
+
+    test("Can specify result keys for all joined objects", () async {
+      var q = new Query<Parent>()
+        ..resultProperties = ["id"]
+        ..nestedResultProperties[Child] = ["id"]
+        ..nestedResultProperties[Vaccine] = ["id"]
+        ..matchOn.child.includeInResultSet = true
+        ..matchOn.child.vaccinations.includeInResultSet = true;
+
+      var parents = await q.fetch();
+      for (var p in parents) {
+        expect(p.id, isNotNull);
+        expect(p.backingMap.length, 2);
+
+        if (p.child != null) {
+          expect(p.child.id, isNotNull);
+          expect(p.child.backingMap.length, 2);
+
+          for (var v in p.child.vaccinations) {
+            expect(v.id, isNotNull);
+            expect(v.backingMap.length, 1);
+          }
+        }
+      }
+    });
+  });
+
   group("Offhand assumptions about data", () {
     ModelContext context = null;
 
     setUpAll(() async {
-      // apply predicates at various levels!!!
       context = await contextWithModels([Child, Parent, Toy, Vaccine]);
       await populate();
     });
