@@ -262,10 +262,10 @@ void main() {
 
   group("Result keys", () {
     ModelContext context = null;
-    List<Parent> truth;
+
     setUpAll(() async {
       context = await contextWithModels([Child, Parent, Toy, Vaccine]);
-      truth = await populate();
+      await populate();
     });
 
     tearDownAll(() async {

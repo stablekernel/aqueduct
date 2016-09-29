@@ -15,6 +15,27 @@ class DataModel {
     _persistentTypeToEntityMap = builder.persistentTypeToEntityMap;
   }
 
+  /// Creates an instance on [DataModel] from a list of [Model] instance types declared in the same package as [type].
+  ///
+  /// This is a convenience constructor for creating a [DataModel] for an application package. It will find all subclasses of `Model`
+  /// in the package that [type] belongs to. Typically, you pass the [Type] of an application's [RequestSink] subclass.
+  DataModel.fromPackageContainingType(Type type) {
+    var modelMirror = reflectClass(Model);
+
+    LibraryMirror libMirror = reflectType(type).owner;
+    Iterable<ClassMirror> allClasses = libMirror.declarations.values
+        .where((decl) => decl is ClassMirror);
+
+    var modelTypes = allClasses
+        .where((m) => m.isSubclassOf(modelMirror))
+        .map((m) => m.reflectedType)
+        .toList();
+
+    var builder = new _DataModelBuilder(this, modelTypes);
+    _entities = builder.entities;
+    _persistentTypeToEntityMap = builder.persistentTypeToEntityMap;
+  }
+
   DataModel._fromModelBundle(String modelBundlePath) {
     // This will build the model from a series of schema files.
   }
