@@ -3,6 +3,7 @@ import 'package:aqueduct/aqueduct.dart';
 import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'dart:io';
+import 'dart:convert';
 
 void main() {
   HttpServer server = null;
@@ -118,4 +119,32 @@ void main() {
         .toList();
     expect(statusCodes, [500, 400, 409, 503]);
   });
+
+  test("Request controller's can serialize and encode Serializable objects as JSON by default", () async {
+    server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8080);
+    server
+        .map((req) => new Request(req))
+        .listen((req) async {
+          var next = new RequestController();
+          next.listen((req) async {
+            var obj = new SomeObject()..name = "Bob";
+            return new Response.ok(obj);
+          });
+          await next.receive(req);
+        });
+
+    var resp = await http.get("http://localhost:8080");
+    expect(resp.headers["content-type"], startsWith("application/json"));
+    expect(JSON.decode(resp.body), {"name" : "Bob"});
+  });
+}
+
+class SomeObject implements Serializable {
+  String name;
+
+  Map<String, dynamic> asSerializable() {
+    return {
+      "name" : name
+    };
+  }
 }

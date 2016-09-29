@@ -5,10 +5,33 @@ part of aqueduct;
 /// This object can be used to write an HTTP response and contains conveniences
 /// for creating these objects.
 class Response implements RequestControllerEvent {
-  /// An object representing the body of the [Response], which will be encoded when used by [Request] [respond].
+  /// An object representing the body of the [Response], which will be encoded when used to [Request.respond].
   ///
-  /// This is typically a map or list of maps that will be encoded to JSON.
-  dynamic body;
+  /// This is typically a map or list of maps that will be encoded to JSON. If the [body] was previously set with a [Serializable] object
+  /// or a list of [Serializable] objects, this property will be the already serialized (but not encoded) body.
+  dynamic get body => _body;
+
+  /// Sets the unencoded response body.
+  ///
+  /// This may be any value that can be encoded into an HTTP response body. If this value is a [Serializable] or a [List] of [Serializable],
+  /// each instance of [Serializable] will transformed via its [Serializable.asSerializable] method before being set.
+  void set body(dynamic initialResponseBody) {
+      var serializedBody = null;
+      if (initialResponseBody is Serializable) {
+        serializedBody = initialResponseBody.asSerializable();
+      } else if (initialResponseBody is List) {
+        serializedBody = initialResponseBody.map((value) {
+          if (value is Serializable) {
+            return value.asSerializable();
+          } else {
+            return value;
+          }
+        }).toList();
+      }
+
+    _body = serializedBody ?? initialResponseBody;
+  }
+  dynamic _body;
 
   /// Map of headers to send in this response.
   ///
