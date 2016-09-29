@@ -108,7 +108,7 @@ Writings Tests
 
 We'd like to ensure that when we hit the `/questions` endpoint, we get a response with questions. What does that mean? Well, that is up to us. But, let's say that 'questions' means 'a list of strings that all end in a question mark'.
 
-In Dart, tests are stored in a top-level `test` directory. Create that directory in `quiz`. Then, add a new file to it named `question_controller_test.dart`. (Test must end in `_test.dart` and live in the `test` directory for the tools to find them without you having to specify their path.) In this file, import both the `test` and `quiz` package.
+In Dart, tests are stored in a top-level `test` directory. Create that directory in `quiz`. Then, add a new file to it named `question_controller_test.dart`. (Tests must end in `_test.dart` and live in the `test` directory for the tools to find them without you having to specify their path.) In this file, import both the `test` and `quiz` package.
 
 ```dart
 import 'package:test/test.dart';
