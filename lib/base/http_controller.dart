@@ -1,21 +1,21 @@
 part of aqueduct;
 
-/// Base class for web service handlers.
+/// Base class for API web service controller.
 ///
 /// Subclasses of this class can process and respond to an HTTP request.
 @cannotBeReused
-abstract class HTTPController extends RequestHandler {
+abstract class HTTPController extends RequestController {
   static ContentType _applicationWWWFormURLEncodedContentType = new ContentType("application", "x-www-form-urlencoded");
 
   /// The request being processed by this [HTTPController].
   ///
-  /// It is this [HTTPController]'s responsibility to return a [Response] object for this request. Handler methods
+  /// It is this [HTTPController]'s responsibility to return a [Response] object for this request. Responder methods
   /// may access this request to determine how to respond to it.
   Request request;
 
   /// Parameters parsed from the URI of the request, if any exist.
   ///
-  /// These values are attached by a [Router] instance that precedes this [RequestHandler]. Is [null]
+  /// These values are attached by a [Router] instance that precedes this [RequestController]. Is [null]
   /// if no [Router] preceded the controller and is the empty map if there are no values. The keys
   /// are the case-sensitive name of the path variables as defined by the [route].
   Map<String, String> get pathVariables => request.path?.variables;
@@ -43,19 +43,19 @@ abstract class HTTPController extends RequestHandler {
   /// Executed prior to handling a request, but after the [request] has been set.
   ///
   /// This method is used to do pre-process setup and filtering. The [request] will be set, but its body will not be decoded
-  /// nor will the appropriate handler method be selected yet. By default, returns the request. If this method returns a [Response], this
+  /// nor will the appropriate responder method be selected yet. By default, returns the request. If this method returns a [Response], this
   /// controller will stop processing the request and immediately return the [Response] to the HTTP client.
-  Future<RequestHandlerResult> willProcessRequest(Request req) async {
+  Future<RequestControllerEvent> willProcessRequest(Request req) async {
     return req;
   }
 
   /// Executed prior to request being handled, but after the body has been processed.
   ///
   /// This method is called after the body has been processed by the decoder, but prior to the request being
-  /// handled by the appropriate handler method.
+  /// handled by the appropriate responder method.
   void didDecodeRequestBody(dynamic decodedObject) {}
 
-  /// Executed prior to [Response] being sent, but after the handler method has been executed.
+  /// Executed prior to [Response] being sent, but after the responder method has been executed.
   ///
   /// This method is used to post-process a response before it is finally sent. By default, does nothing.
   /// This method will have no impact on when or how the [Response] is sent, is is simply informative.
@@ -112,26 +112,27 @@ abstract class HTTPController extends RequestHandler {
       queryParameters = requestBody as Map<String, List<String>> ?? {};
     }
 
-    var properties = controllerCache.propertiesFromRequest(request.innerRequest.headers, queryParameters);
-    var orderedParameters = mapper.orderedParametersFromRequest(request);
-    var optionalParameters = mapper.optionalParametersFromRequest(request.innerRequest.headers, queryParameters);
-
-    var missingResponse = _missingRequiredParameterResponseIfNecessary(properties, optionalParameters);
-    if (missingResponse != null) {
-      return missingResponse;
+    var orderedParameters = mapper.positionalParametersFromRequest(request, queryParameters);
+    var controllerProperties = controllerCache.propertiesFromRequest(request.innerRequest.headers, queryParameters);
+    var missingParameters = [orderedParameters, controllerProperties.values]
+        .expand((p) => p)
+        .where((p) => p is _HTTPControllerMissingParameter)
+        .map((p) => p as _HTTPControllerMissingParameter)
+        .toList();
+    if (missingParameters.length > 0) {
+      return _missingRequiredParameterResponseIfNecessary(missingParameters);
     }
 
-    properties.forEach((sym, value) => reflect(this).setField(sym, value));
+    controllerProperties.forEach((sym, value) => reflect(this).setField(sym, value));
 
     Future<Response> eventualResponse = reflect(this).invoke(
         mapper.methodSymbol,
         orderedParameters,
-        optionalParameters
+        mapper.optionalParametersFromRequest(request.innerRequest.headers, queryParameters)
     ).reflectee as Future<Response>;
+
     var response = await eventualResponse;
-
     willSendResponse(response);
-
     response.body = _serializedResponseBody(response.body);
     response.headers[HttpHeaders.CONTENT_TYPE] = responseContentType;
 
@@ -139,7 +140,7 @@ abstract class HTTPController extends RequestHandler {
   }
 
   @override
-  Future<RequestHandlerResult> processRequest(Request req) async {
+  Future<RequestControllerEvent> processRequest(Request req) async {
     try {
       request = req;
 
@@ -161,91 +162,66 @@ abstract class HTTPController extends RequestHandler {
 
   @override
   List<APIOperation> documentOperations(PackagePathResolver resolver) {
-    Iterable<MethodMirror> handlerMethodMirrors = reflect(this).type.declarations.values
-        .where((dm) => dm is MethodMirror)
-        .map((dm) => dm as MethodMirror)
-        .where((mm) {
-          return mm.metadata.firstWhere((im) => im.reflectee is HTTPMethod, orElse: () => null) != null;
-        });
-
+    var controllerCache = _HTTPControllerCache.cacheForType(runtimeType);
     var reflectedType = reflect(this).type;
     var uri = reflectedType.location.sourceUri;
     var fileUnit = parseDartFile(resolver.resolve(uri));
-
     var classUnit = fileUnit.declarations
         .where((u) => u is ClassDeclaration)
         .map((cu) => cu as ClassDeclaration)
         .firstWhere((ClassDeclaration classDecl) {
-          return classDecl.name.token.lexeme == MirrorSystem.getName(reflectedType.simpleName);
-        });
+      return classDecl.name.token.lexeme == MirrorSystem.getName(reflectedType.simpleName);
+    });
 
     Map<String, MethodDeclaration> methodMap = {};
     classUnit.childEntities.forEach((child) {
       if (child is MethodDeclaration) {
-        MethodDeclaration c = child;
-        methodMap[c.name.token.lexeme] = child;
+        methodMap[child.name.token.lexeme] = child;
       }
     });
 
-    return handlerMethodMirrors.map((MethodMirror mm) {
-      var operation = new APIOperation();
-      operation.id = APIOperation.idForMethod(this, mm.simpleName);
+    return controllerCache.methodCache.values.map((cachedMethod) {
+      var op = new APIOperation();
+      op.id = APIOperation.idForMethod(this, cachedMethod.methodSymbol);
+      op.method = cachedMethod.httpMethod.method;
+      op.consumes = acceptedContentTypes;
+      op.produces = [responseContentType];
+      op.responses = documentResponsesForOperation(op);
 
-      var matchingMethodDeclaration = methodMap[MirrorSystem.getName(mm.simpleName)];
-
-      if (matchingMethodDeclaration != null) {
-        var comment = matchingMethodDeclaration.documentationComment;
-        List tokens = comment?.tokens ?? [];
+      // Add documentation comments
+      var methodDeclaration = methodMap[cachedMethod.methodSymbol];
+      if (methodDeclaration != null) {
+        var comment = methodDeclaration.documentationComment;
+        var tokens = comment?.tokens ?? [];
         var lines = tokens.map((t) => t.lexeme.trimLeft().substring(3).trim()).toList();
         if (lines.length > 0) {
-          operation.summary = lines.first;
+          op.summary = lines.first;
         }
         if (lines.length > 1) {
-          operation.description = lines.sublist(1, lines.length).join("\n");
+          op.description = lines.sublist(1, lines.length).join("\n");
         }
       }
 
-      HTTPMethod httpMethod = mm.metadata.firstWhere((im) => im.reflectee is HTTPMethod).reflectee;
-
-      operation.method = httpMethod.method;
-
-      operation.parameters = mm.parameters
-          .where((pm) => !pm.isOptional)
-          .map((pm) {
-            return new APIParameter()
-                ..name = MirrorSystem.getName(pm.simpleName)
-                ..type = APIParameter.typeStringForVariableMirror(pm)
-                ..parameterLocation = APIParameterLocation.path;
-      }).toList();
-
-      bool usesFormEncodedData = operation.method.toLowerCase() == "post" && acceptedContentTypes.any((ct) => ct.primaryType == "application" && ct.subType == "x-www-form-urlencoded");
-      List<APIParameter> optionalParams = mm.parameters
-          .where((pm) => pm.metadata.any((im) => im.reflectee is _HTTPParameter))
-          .map((pm) {
-            _HTTPParameter httpParameter = pm.metadata.firstWhere((im) => im.reflectee is _HTTPParameter).reflectee;
-            APIParameterLocation pl;
-            if (httpParameter is HTTPHeader) {
-              pl = APIParameterLocation.header;
-            } else if (usesFormEncodedData) {
-              pl = APIParameterLocation.formData;
-            } else {
-              pl = APIParameterLocation.query;
+      bool usesFormEncodedData = op.method.toLowerCase() == "post"
+        && acceptedContentTypes.any((ct) => ct.primaryType == "application"
+        && ct.subType == "x-www-form-urlencoded");
+      op.parameters = [cachedMethod.positionalParameters, cachedMethod.optionalParameters.values, controllerCache.propertyCache.values]
+          .expand((i) => i.toList())
+          .map((param) {
+            var paramLocation = APIParameter._parameterLocationFromHTTPParameter(param.httpParameter);
+            if (usesFormEncodedData && paramLocation == APIParameterLocation.query) {
+              paramLocation = APIParameterLocation.formData;
             }
+
             return new APIParameter()
-              ..name = MirrorSystem.getName(pm.simpleName)
-              ..description = ""
-              ..type = APIParameter.typeStringForVariableMirror(pm)
-              ..required = httpParameter.isRequired
-              ..parameterLocation = pl;
-          }).toList();
+              ..name = param.name
+              ..type = APIParameter.typeStringForTypeMirror(param.typeMirror)
+              ..required = false
+              ..parameterLocation = paramLocation;
+          })
+          .toList();
 
-      operation.parameters.addAll(optionalParams);
-
-      operation.consumes = acceptedContentTypes;
-      operation.produces = [responseContentType];
-      operation.responses = documentResponsesForOperation(operation);
-
-      return operation;
+      return op;
     }).toList();
   }
 
@@ -310,18 +286,9 @@ class _InternalControllerException implements Exception {
   }
 }
 
-Response _missingRequiredParameterResponseIfNecessary(Map<Symbol, dynamic> properties, Map<Symbol, dynamic> optionalParameters) {
-  var missingParams = [properties, optionalParameters]
-      .expand((m) => m.values)
-      .where((v) => v is _HTTPControllerMissingParameter)
-      .toList() as List<_HTTPControllerMissingParameter>;
-
-  if (missingParams.isEmpty) {
-    return null;
-  }
-
-  var missingHeaders = missingParams.where((p) => p.type == _HTTPControllerMissingParameterType.header).map((p) => p.externalName).toList();
-  var missingQueryParameters = missingParams.where((p) => p.type == _HTTPControllerMissingParameterType.query).map((p) => p.externalName).toList();
+Response _missingRequiredParameterResponseIfNecessary(List<_HTTPControllerMissingParameter> params) {
+  var missingHeaders = params.where((p) => p.type == _HTTPControllerMissingParameterType.header).map((p) => p.externalName).toList();
+  var missingQueryParameters = params.where((p) => p.type == _HTTPControllerMissingParameterType.query).map((p) => p.externalName).toList();
 
   StringBuffer missings = new StringBuffer();
   if (missingQueryParameters.isNotEmpty) {

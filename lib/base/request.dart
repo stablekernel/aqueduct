@@ -4,7 +4,7 @@ part of aqueduct;
 ///
 /// Contains a standard library [HttpRequest], along with other values
 /// to associate data with a request.
-class Request implements RequestHandlerResult {
+class Request implements RequestControllerEvent {
   static Map<String, Map<String, Function>> _encoders = {
     "application" : {
       "json" : (v) => JSON.encode(v),
@@ -70,9 +70,9 @@ class Request implements RequestHandlerResult {
   /// representing the JSON object.
   dynamic requestBodyObject;
 
-  /// Container for any data a [RequestHandler] wants to attach to this request for the purpose of being used by a later [RequestHandler].
+  /// Container for any data a [RequestController] wants to attach to this request for the purpose of being used by a later [RequestController].
   ///
-  /// Use this property to attach data to a [Request] for use by later [RequestHandler]s.
+  /// Use this property to attach data to a [Request] for use by later [RequestController]s.
   Map<dynamic, dynamic> attachments = {};
 
   /// The timestamp for when this request was received.
@@ -177,7 +177,7 @@ class Request implements RequestHandlerResult {
   String toDebugString({bool includeElapsedTime: true, bool includeRequestIP: true, bool includeMethod: true, bool includeResource: true, bool includeStatusCode: true, bool includeContentSize: false, bool includeHeaders: false, bool includeBody: false}) {
     var builder = new StringBuffer();
     if (includeRequestIP) {
-      builder.write("${innerRequest.connectionInfo.remoteAddress.address} ");
+      builder.write("${innerRequest.connectionInfo?.remoteAddress?.address} ");
     }
     if (includeMethod) {
       builder.write("${innerRequest.method} ");

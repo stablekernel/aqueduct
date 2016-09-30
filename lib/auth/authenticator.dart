@@ -9,13 +9,13 @@ enum AuthenticationStrategy {
   Client
 }
 
-/// A [RequestHandler] that will authorize further passage in a [RequestHandler] chain via an [AuthenticationStrategy].
+/// A [RequestController] that will authorize further passage in a [RequestController] chain via an [AuthenticationStrategy].
 ///
 /// An instance of [Authenticator] will validate a [Request] given a [strategy] with its [server].
 /// If the [Request] is unauthorized, it will respond with the appropriate status code and prevent
 /// further request processing. If the [Request] is valid, it will attach a [Permission]
-/// to the [Request] and deliver it to the next [RequestHandler].
-class Authenticator extends RequestHandler {
+/// to the [Request] and deliver it to the next [RequestController].
+class Authenticator extends RequestController {
   /// Creates an instance of [Authenticator] with a reference back to its [server] and a [strategy].
   Authenticator(this.server, this.strategy) {
     policy = null;
@@ -28,7 +28,7 @@ class Authenticator extends RequestHandler {
   AuthenticationStrategy strategy;
 
   @override
-  Future<RequestHandlerResult> processRequest(Request req) async {
+  Future<RequestControllerEvent> processRequest(Request req) async {
     var errorResponse = null;
     if (strategy == AuthenticationStrategy.ResourceOwner) {
       var result = _processResourceOwnerRequest(req);
@@ -53,7 +53,7 @@ class Authenticator extends RequestHandler {
     return errorResponse;
   }
 
-  Future<RequestHandlerResult> _processResourceOwnerRequest(Request req) async {
+  Future<RequestControllerEvent> _processResourceOwnerRequest(Request req) async {
     var bearerToken = AuthorizationBearerParser.parse(req.innerRequest.headers.value(HttpHeaders.AUTHORIZATION));
     var permission = await server.verify(bearerToken);
 
@@ -62,7 +62,7 @@ class Authenticator extends RequestHandler {
     return req;
   }
 
-  Future<RequestHandlerResult> _processClientRequest(Request req) async {
+  Future<RequestControllerEvent> _processClientRequest(Request req) async {
     var parser = AuthorizationBasicParser.parse(req.innerRequest.headers.value(HttpHeaders.AUTHORIZATION));
     var client = await server.clientForID(parser.username);
 
@@ -83,7 +83,7 @@ class Authenticator extends RequestHandler {
 
   @override
   List<APIOperation> documentOperations(PackagePathResolver resolver) {
-    List<APIOperation> items = nextHandler.documentOperations(resolver);
+    List<APIOperation> items = nextController.documentOperations(resolver);
 
     var secReq= new APISecurityRequirement()
       ..scopes = [];

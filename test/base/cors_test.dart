@@ -7,7 +7,7 @@ import 'dart:async';
 
 void main() {
   group("No CORS Policy", () {
-    var app = new Application<CORSPipeline>();
+    var app = new Application<CORSSink>();
     app.configuration.port = 8000;
 
     setUpAll(() async {
@@ -95,7 +95,7 @@ void main() {
   });
 
   group("Default CORS Policy", () {
-    var app = new Application<CORSPipeline>();
+    var app = new Application<CORSSink>();
     app.configuration.port = 8000;
 
     setUpAll(() async {
@@ -201,22 +201,22 @@ void main() {
   });
 }
 
-class CORSPipeline extends ApplicationPipeline implements AuthenticationServerDelegate<AuthImpl, TokenImpl, AuthCodeImpl> {
-  CORSPipeline(Map<String, dynamic> opts) : super(opts) {
+class CORSSink extends RequestSink implements AuthenticationServerDelegate<AuthImpl, TokenImpl, AuthCodeImpl> {
+  CORSSink(Map<String, dynamic> opts) : super(opts) {
     authServer = new AuthenticationServer<AuthImpl, TokenImpl, AuthCodeImpl>(this);
   }
 
   AuthenticationServer<AuthImpl, TokenImpl, AuthCodeImpl> authServer;
 
   void addRoutes() {
-    router.route("/nopolicy").next(() => new NoPolicyController());
-    router.route("/defaultpolicy").next(() => new DefaultPolicyController());
+    router.route("/nopolicy").generate(() => new NoPolicyController());
+    router.route("/defaultpolicy").generate(() => new DefaultPolicyController());
     router.route("/nopolicyauth")
-        .next(authServer.authenticator())
-        .next(() => new NoPolicyController());
+        .pipe(authServer.newAuthenticator())
+        .generate(() => new NoPolicyController());
     router.route("/defaultpolicyauth")
-        .next(authServer.authenticator())
-        .next(() => new DefaultPolicyController());
+        .pipe(authServer.newAuthenticator())
+        .generate(() => new DefaultPolicyController());
   }
 
   Future<TokenImpl> tokenForAccessToken(AuthenticationServer server, String accessToken) async {

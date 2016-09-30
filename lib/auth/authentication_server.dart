@@ -15,13 +15,13 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
   AuthenticationServerDelegate<ResourceOwner, TokenType, AuthCodeType> delegate;
   Map<String, Client> _clientCache = {};
 
-  /// Returns a new instance of [Authenticator] for use in a [RequestHandler] chain.
+  /// Returns a new instance of [Authenticator] for use in a [RequestController] chain.
   ///
-  /// These instances will be used in a [RequestHandler] chain to authenticate an incoming [Request]
+  /// These instances will be used in a [RequestController] chain to authenticate an incoming [Request]
   /// against this [AuthenticationServer]. The [strategy] indicates whether the [Request] is
   /// evaluated for client credentials in a Basic Authorization scheme or for a token in a Bearer Authorization
   /// scheme.
-  Authenticator authenticator({AuthenticationStrategy strategy: AuthenticationStrategy.ResourceOwner}) {
+  Authenticator newAuthenticator({AuthenticationStrategy strategy: AuthenticationStrategy.ResourceOwner}) {
     return new Authenticator(this, strategy);
   }
 

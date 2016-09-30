@@ -15,11 +15,11 @@ main() {
 
     server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8080);
     var router = new Router();
-    router.route("/users/[:id]").next(() => new TestModelController());
+    router.route("/users/[:id]").generate(() => new TestModelController());
     router.finalize();
 
     server.listen((req) async {
-      router.deliver(new Request(req));
+      router.receive(new Request(req));
     });
   });
 
@@ -75,7 +75,7 @@ class TestModelController extends ModelController<TestModel> {
     return new Response(statusCode, {}, null);
   }
 
-  @httpGet getOne(int id) async {
+  @httpGet getOne(@HTTPPath("id") int id) async {
     int statusCode = 200;
 
     if (query == null) {
@@ -94,7 +94,7 @@ class TestModelController extends ModelController<TestModel> {
     return new Response(statusCode, {}, null);
   }
 
-  @httpPut putOne(int id) async {
+  @httpPut putOne(@HTTPPath("id") int id) async {
     int statusCode = 200;
 
     if (query.values == null) {
@@ -138,7 +138,7 @@ class TestModelController extends ModelController<TestModel> {
     return new Response(statusCode, {}, null);
   }
 
-  @httpPost crash(int id) async {
+  @httpPost crash(@HTTPPath("id") int id) async {
     return new Response.ok("");
   }
 }

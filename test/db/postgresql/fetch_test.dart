@@ -184,9 +184,8 @@ void main() {
       await req.fetch();
       successful = true;
     } on QueryException catch (e) {
-      expect(e.message, "Property badkey in resultKeys does not exist on simple");
-      expect(e.errorCode, -1);
-      expect(e.statusCode, 500);
+      expect(e.toString(), "Property badkey in resultKeys does not exist on simple");
+      expect(e.event, QueryExceptionEvent.internalFailure);
     }
     expect(successful, false);
   });

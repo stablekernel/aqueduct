@@ -7,7 +7,7 @@ part of aqueduct;
 /// type argument indicates the type of [Model] object they are responsible for executing [Query]s
 /// on. [ModelController]s expose a [query] property that is pre-populated with data from the incoming [Request].
 ///
-/// Prior to executing a handler method in subclasses of [ModelController], the [query]
+/// Prior to executing a controller method in subclasses of [ModelController], the [query]
 /// will have the following attributes under the following conditions:
 ///
 /// 1. The Query will always have a type argument that matches [T].
@@ -30,7 +30,7 @@ abstract class ModelController<T extends Model> extends HTTPController {
   Query<T> query;
 
   @override
-  Future<RequestHandlerResult> willProcessRequest(Request req) async {
+  Future<RequestControllerEvent> willProcessRequest(Request req) async {
     if (req.path.orderedVariableNames.length > 0) {
       var firstVarName = req.path.orderedVariableNames.first;
       var idValue = req.path.variables[firstVarName];

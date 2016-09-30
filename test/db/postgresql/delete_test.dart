@@ -108,8 +108,8 @@ void main() {
     try {
       req = new Query<TestModel>();
       await req.delete();
-    } on HTTPResponseException catch (e) {
-      expect(e.statusCode, 500);
+    } on QueryException catch (e) {
+      expect(e.event, QueryExceptionEvent.internalFailure);
     }
 
     req = new Query<TestModel>();
@@ -156,9 +156,9 @@ void main() {
         ..confirmQueryModifiesAllInstancesOnDeleteOrUpdate = true;
       await griReq.delete();
       successful = true;
-    } catch (e) {
-      expect(e.statusCode, 400);
-      expect(e.errorCode, 23503);
+    } on QueryException catch (e) {
+      expect(e.event, QueryExceptionEvent.requestFailure);
+      expect(e.underlyingException.code, "23503");
     }
     expect(successful, false);
   });

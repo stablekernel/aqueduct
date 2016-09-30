@@ -13,7 +13,9 @@ void main() {
 
   var authenticationServer = new AuthenticationServer<TestUser, Token, AuthCode>(new AuthDelegate(context));
   var router = new Router();
-  router.route("/auth/token").next(() => new AuthController(authenticationServer));
+  router
+      .route("/auth/token")
+      .generate(() => new AuthController(authenticationServer));
   router.finalize();
 
   tearDownAll(() async {
@@ -24,7 +26,7 @@ void main() {
     context = await contextWithModels([TestUser, Token, AuthCode]);
 
     server = await HttpServer.bind("localhost", 8080, v6Only: false, shared: false);
-    server.map((req) => new Request(req)).listen(router.deliver);
+    server.map((req) => new Request(req)).listen(router.receive);
 
   });
 
@@ -138,6 +140,7 @@ void main() {
     expect(operations.length, 1);
 
     List<APIResponse> responses = ac.documentResponsesForOperation(operations.first);
+
     APIResponse okResponse = responses.firstWhere((ar) => ar.key == "${HttpStatus.OK}");
     expect(okResponse.schema.properties["access_token"].type, APISchemaObjectTypeString);
     expect(okResponse.schema.properties["token_type"].type, APISchemaObjectTypeString);

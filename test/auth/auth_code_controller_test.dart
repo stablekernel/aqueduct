@@ -4,7 +4,7 @@ import 'package:aqueduct/aqueduct.dart';
 import '../helpers.dart';
 
 void main() {
-  Application<AuthPipeline> application = new Application<AuthPipeline>();
+  Application<TestSink> application = new Application<TestSink>();
   TestClient client = new TestClient(8080)
     ..clientID = "com.stablekernel.app3"
     ..clientSecret = "mckinley";
@@ -235,16 +235,20 @@ void main() {
   });
 }
 
-class AuthPipeline extends ApplicationPipeline {
-  AuthPipeline(Map<String, dynamic> opts) : super(opts) {
+class TestSink extends RequestSink {
+  TestSink(Map<String, dynamic> opts) : super(opts) {
     authServer = new AuthenticationServer<TestUser, Token, AuthCode>(new AuthDelegate(ModelContext.defaultContext));
   }
 
   AuthenticationServer authServer;
 
   void addRoutes() {
-    router.route("/auth/code").next(() => new AuthCodeController(authServer));
-    router.route("/auth/token").next(() => new AuthController(authServer));
+    router
+        .route("/auth/code")
+        .generate(() => new AuthCodeController(authServer));
+    router
+        .route("/auth/token")
+        .generate(() => new AuthController(authServer));
   }
 }
 

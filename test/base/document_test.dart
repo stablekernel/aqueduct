@@ -15,15 +15,15 @@ main() {
   });
 }
 
-class TPipeline extends ApplicationPipeline implements AuthenticationServerDelegate<TestUser, Token, AuthCode> {
-  TPipeline(Map<String, dynamic> opts) : super(opts) {
+class TestSink extends RequestSink implements AuthenticationServerDelegate<TestUser, Token, AuthCode> {
+  TestSink(Map<String, dynamic> opts) : super(opts) {
     authServer = new AuthenticationServer<TestUser, Token, AuthCode>(this);
   }
 
   AuthenticationServer<TestUser, Token, AuthCode> authServer;
 
   void addRoutes() {
-    router.route("/t[/:id[/:notID]]").next(authServer.authenticator()).next(() => new TController());
+    router.route("/t[/:id[/:notID]]").pipe(authServer.newAuthenticator()).generate(() => new TController());
   }
 
   Future<Token> tokenForAccessToken(AuthenticationServer server, String accessToken) => null;
@@ -57,17 +57,17 @@ class TController extends HTTPController {
     return new Response.ok("");
   }
   /// ABCD
-  @httpPut putOne(int id, {int p1: null, int p2: null}) async {
+  @httpPut putOne(@HTTPPath("id") int id, {int p1: null, int p2: null}) async {
     return new Response.ok("");
   }
-  @httpGet getOne(int id) async {
+  @httpGet getOne(@HTTPPath("id") int id) async {
     return new Response.ok("");
   }
 
   /// MNOP
   /// QRST
 
-  @httpGet getTwo(int id, int notID) async {
+  @httpGet getTwo(@HTTPPath("id") int id, @HTTPPath("notID") int notID) async {
     return new Response.ok("");
   }
   /// EFGH

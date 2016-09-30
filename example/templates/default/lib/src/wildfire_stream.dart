@@ -7,11 +7,11 @@ class WildfireConfiguration extends ConfigurationItem {
   int port;
 }
 
-class WildfirePipeline extends ApplicationPipeline {
+class WildfireSink extends RequestSink {
   static const String ConfigurationKey = "ConfigurationKey";
   static const String LoggingTargetKey = "LoggingTargetKey";
 
-  WildfirePipeline(Map<String, dynamic> opts) : super(opts) {
+  WildfireSink(Map<String, dynamic> opts) : super(opts) {
     configuration = opts[ConfigurationKey];
 
     LoggingTarget target = opts[LoggingTargetKey];
@@ -30,28 +30,28 @@ class WildfirePipeline extends ApplicationPipeline {
   void addRoutes() {
     router
         .route("/auth/token")
-        .next(authenticationServer.authenticator(strategy: AuthenticationStrategy.Client))
-        .next(() => new AuthController(authenticationServer));
+        .pipe(authenticationServer.newAuthenticator(strategy: AuthenticationStrategy.Client))
+        .generate(() => new AuthController(authenticationServer));
 
     router
         .route("/auth/code")
-        .next(authenticationServer.authenticator(strategy: AuthenticationStrategy.Client))
-        .next(() => new AuthCodeController(authenticationServer));
+        .pipe(authenticationServer.newAuthenticator(strategy: AuthenticationStrategy.Client))
+        .generate(() => new AuthCodeController(authenticationServer));
 
     router
         .route("/identity")
-        .next(authenticationServer.authenticator())
-        .next(() => new IdentityController());
+        .pipe(authenticationServer.newAuthenticator())
+        .generate(() => new IdentityController());
 
     router
         .route("/register")
-        .next(authenticationServer.authenticator(strategy: AuthenticationStrategy.Client))
-        .next(() => new RegisterController());
+        .pipe(authenticationServer.newAuthenticator(strategy: AuthenticationStrategy.Client))
+        .generate(() => new RegisterController());
 
     router
         .route("/users/[:id]")
-        .next(authenticationServer.authenticator())
-        .next(() => new UserController());
+        .pipe(authenticationServer.newAuthenticator())
+        .generate(() => new UserController());
   }
 
   ModelContext contextWithConnectionInfo(DatabaseConnectionConfiguration database) {
@@ -69,7 +69,7 @@ class WildfirePipeline extends ApplicationPipeline {
   static List<Type> modelTypes() {
     var modelMirror = reflectClass(Model);
 
-    LibraryMirror libMirror = reflectType(WildfirePipeline).owner;
+    LibraryMirror libMirror = reflectType(WildfireSink).owner;
     Iterable<ClassMirror> allClasses = libMirror.declarations.values
         .where((decl) => decl is ClassMirror);
 
