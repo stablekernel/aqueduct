@@ -3,6 +3,7 @@ import 'package:aqueduct/aqueduct.dart';
 import 'dart:async';
 import 'dart:io';
 import '../helpers.dart';
+import 'dart:convert';
 
 main() {
   test("Package resolver", () {
@@ -13,6 +14,31 @@ main() {
     expect(resolvedPath.endsWith("file_system/file_system.dart"), true);
     expect(resolvedPath.startsWith("$homeDir/.pub-cache/hosted/pub.dartlang.org"), true);
   });
+
+  group("Happy path", () {
+    var app = new Application<TestSink>();
+    var apiDocs = app.document(new PackagePathResolver(new File(".packages").path)).asMap();
+
+    test("Document has appropriate metadata", () {
+      expect(apiDocs["openapi"], contains("3.0"));
+      expect(apiDocs["info"], contains("title"));
+      expect(apiDocs["info"], contains("description"));
+      expect(apiDocs["info"], contains("version"));
+      expect(apiDocs["info"], contains("termsOfService"));
+      expect(apiDocs["info"], contains("contact"));
+      expect(apiDocs["info"], contains("license"));
+    });
+
+    test("Document has appropriate content types at top-level", () {
+      expect(apiDocs["consumes"], contains("application/json; charset=utf-8"));
+      expect(apiDocs["consumes"], contains("application/x-www-form-urlencoded"));
+      expect(apiDocs["produces"], contains("application/json; charset=utf-8"));
+    });
+
+
+
+  });
+
 }
 
 class TestSink extends RequestSink implements AuthenticationServerDelegate<TestUser, Token, AuthCode> {
@@ -53,11 +79,11 @@ class TController extends HTTPController {
   /// ABCD
   /// EFGH
   /// IJKL
-  @httpGet getAll({String param: null}) async {
+  @httpGet getAll({@HTTPQuery("param") String param: null}) async {
     return new Response.ok("");
   }
   /// ABCD
-  @httpPut putOne(@HTTPPath("id") int id, {int p1: null, int p2: null}) async {
+  @httpPut putOne(@HTTPPath("id") int id, {@HTTPQuery("p1") int p1: null, @HTTPHeader("X-P2") int p2: null}) async {
     return new Response.ok("");
   }
   @httpGet getOne(@HTTPPath("id") int id) async {

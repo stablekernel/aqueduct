@@ -169,6 +169,7 @@ abstract class HTTPController extends RequestController {
       op.consumes = acceptedContentTypes;
       op.produces = [responseContentType];
       op.responses = documentResponsesForOperation(op);
+      op.requestBody = documentRequestBodyForOperation(op);
 
       // Add documentation comments
       var methodDeclaration = methodMap[cachedMethod.methodSymbol];
@@ -185,8 +186,8 @@ abstract class HTTPController extends RequestController {
       }
 
       bool usesFormEncodedData = op.method.toLowerCase() == "post"
-        && acceptedContentTypes.any((ct) => ct.primaryType == "application"
-        && ct.subType == "x-www-form-urlencoded");
+        && acceptedContentTypes.any((ct) => ct.primaryType == "application" && ct.subType == "x-www-form-urlencoded");
+
       op.parameters = [cachedMethod.positionalParameters, cachedMethod.optionalParameters.values, controllerCache.propertyCache.values]
           .expand((i) => i.toList())
           .map((param) {
