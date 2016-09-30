@@ -50,10 +50,10 @@ psql -h <DatabaseHost> -p <Port> -U <Username> -d <DatabaseName> -f schema.sql
 name: quiz
 description: A quiz web server
 version: 0.0.1
-author: Me
+author: Thor Odinson <thor@asgard.yg>
 
 environment:
-  sdk: '>=1.0.0 <2.0.0'
+  sdk: '>=1.19.0 <2.0.0'
 
 dependencies:
   aqueduct: any
