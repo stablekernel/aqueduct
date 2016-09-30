@@ -19,6 +19,8 @@ main() {
     var app = new Application<TestSink>();
     var apiDocs = app.document(new PackagePathResolver(new File(".packages").path)).asMap();
 
+    print("${JSON.encode(apiDocs)}");
+
     test("Document has appropriate metadata", () {
       expect(apiDocs["openapi"], contains("3.0"));
       expect(apiDocs["info"], contains("title"));
@@ -27,6 +29,9 @@ main() {
       expect(apiDocs["info"], contains("termsOfService"));
       expect(apiDocs["info"], contains("contact"));
       expect(apiDocs["info"], contains("license"));
+
+      expect(apiDocs["host"], []);
+      expect(apiDocs["security"], []);
     });
 
     test("Document has appropriate content types at top-level", () {
@@ -35,6 +40,11 @@ main() {
       expect(apiDocs["produces"], contains("application/json; charset=utf-8"));
     });
 
+    test("Document provides all security schemes", () {
+      var secDefs = apiDocs["securityDefinitions"] as Map<String, Map<String, dynamic>>;
+      expect(secDefs.length, 3);
+      //expect(secDefs["oauth2.application"], )
+    });
 
 
   });
@@ -49,6 +59,7 @@ class TestSink extends RequestSink implements AuthenticationServerDelegate<TestU
   AuthenticationServer<TestUser, Token, AuthCode> authServer;
 
   void addRoutes() {
+    router.route("/auth/token").pipe(authServer.newAuthenticator(strategy: AuthenticationStrategy.Client)).generate(() => new AuthController(authServer));
     router.route("/t[/:id[/:notID]]").pipe(authServer.newAuthenticator()).generate(() => new TController());
   }
 

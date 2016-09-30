@@ -88,9 +88,67 @@ abstract class RequestSink extends RequestController implements APIDocumentable 
     doc.paths = initialController().documentPaths(resolver);
     doc.securitySchemes = this.documentSecuritySchemes(resolver);
 
+    var host = new Uri(scheme: "http", host: "localhost");
+    if (doc.hosts.length > 0) {
+      host = doc.hosts.first.uri;
+    }
+    doc.securitySchemes.values.forEach((scheme) {
+      if (scheme.isOAuth2) {
+        if (scheme.oauthFlow == APISecuritySchemeFlow.implicit
+        || scheme.oauthFlow == APISecuritySchemeFlow.accessCode) {
+          var morePath = _authorizationPath(doc.paths);
+          if (morePath != null) {
+            scheme.authorizationURL = host.resolve(morePath).path;
+          }
+        }
+
+        if (scheme.oauthFlow == APISecuritySchemeFlow.password
+        || scheme.oauthFlow == APISecuritySchemeFlow.accessCode
+        || scheme.oauthFlow == APISecuritySchemeFlow.application) {
+          var morePath = _authorizationTokenPath(doc.paths);
+          scheme.tokenURL = host.resolve(morePath).path;
+        }
+      }
+    });
+
     doc.consumes = new Set<ContentType>.from(doc.paths.expand((p) => p.operations.expand((op) => op.consumes))).toList();
     doc.produces = new Set<ContentType>.from(doc.paths.expand((p) => p.operations.expand((op) => op.produces))).toList();
 
     return doc;
   }
+
+  String _authorizationPath(List<APIPath> paths) {
+    var op = paths
+        .expand((p) => p.operations)
+        .firstWhere((op) {
+          return op.method.toLowerCase() == "post" && op.responses.any((resp) {
+            return ["access_token", "token_type", "expires_in", "refresh_token"].every((property) => resp.schema.properties.containsKey(property));
+          });
+        }, orElse: () => null);
+
+    if (op == null) {
+      return null;
+    }
+
+    var path = paths.firstWhere((p) => p.operations.contains(op));
+    return path.path;
+  }
+
+  String _authorizationTokenPath(List<APIPath> paths) {
+    var op = paths
+        .expand((p) => p.operations)
+        .firstWhere((op) {
+      return op.method.toLowerCase() == "post" && op.responses.any((resp) {
+        return ["access_token", "token_type", "expires_in", "refresh_token"].every((property) => resp.schema.properties.containsKey(property));
+      });
+    }, orElse: () => null);
+
+    if (op == null) {
+      return null;
+    }
+
+    var path = paths.firstWhere((p) => p.operations.contains(op));
+    return path.path;
+  }
+
 }

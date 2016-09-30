@@ -92,6 +92,10 @@ class APIHost {
   String basePath = "/";
   String scheme = "http";
 
+  Uri get uri {
+    return new Uri(scheme: scheme, host: host, path: basePath);
+  }
+
   Map<String, String> asMap() {
     return {
       "host" : host,
@@ -140,6 +144,7 @@ class APISecurityScheme {
     }
     return null;
   }
+
   APISecurityScheme.basic() {
     type = "basic";
   }
@@ -164,6 +169,10 @@ class APISecurityScheme {
   String authorizationURL;
   String tokenURL;
   List<APISecurityScope> scopes = [];
+
+  bool get isOAuth2 {
+    return type == "oauth2";
+  }
 
   Map<String, dynamic> asMap() {
     var m = <String, dynamic>{
