@@ -1,5 +1,15 @@
 part of aqueduct;
 
+Map<String, dynamic> _stripNull(Map<String, dynamic> m) {
+  var outMap = <String, dynamic>{};
+  m.forEach((k, v) {
+    if (v != null) {
+      outMap[k] = v;
+    }
+  });
+  return outMap;
+}
+
 class APIDocumentable {
   APIDocumentable get documentableChild => null;
 
@@ -20,12 +30,24 @@ class APIDocument {
   List<APISecurityRequirement> securityRequirements = [];
   Map<String, APISecurityScheme> securitySchemes = {};
 
-  Map<String, dynamic> asMap() {
+  Map<String, dynamic> asMap({String version: "2.0"}) {
     var m = <String, dynamic>{};
 
-    m["openapi"] = "3.0.*";
+    if (version.startsWith("2.")) {
+      m["swagger"] = version;
+    } else {
+      m["openapi"] = version;
+    }
     m["info"] = info.asMap();
-    m["hosts"] = hosts.map((host) => host.asMap()).toList();
+
+    if (version.startsWith("2.")) {
+      if (hosts.length > 0) {
+        m["host"] = hosts.first.host;
+      }
+    } else {
+      m["hosts"] = hosts.map((host) => host.asMap()).toList();
+    }
+
     m["consumes"] = consumes.map((ct) => ct.toString()).toList();
     m["produces"] = produces.map((ct) => ct.toString()).toList();
     m["security"] = securityRequirements.map((sec) => sec.name).toList();
@@ -46,25 +68,25 @@ class APIInfo {
   String description = "Description";
   String version = "1.0";
   String termsOfServiceURL = "";
-  APIContact contact;
-  APILicense license;
+  APIContact contact = new APIContact();
+  APILicense license = new APILicense();
 
   Map<String, dynamic> asMap() {
-    return {
+    return _stripNull({
       "title" : title,
       "description" : description,
       "version" : version,
       "termsOfService" : termsOfServiceURL,
-      "contact" : contact?.asMap(),
-      "license" : license?.asMap()
-    };
+      "contact" : contact.asMap(),
+      "license" : license.asMap()
+    });
   }
 }
 
 class APIContact {
-  String name;
-  String url;
-  String email;
+  String name = "default";
+  String url = "http://localhost";
+  String email = "default";
 
   Map<String, String> asMap() {
     return {
@@ -76,8 +98,8 @@ class APIContact {
 }
 
 class APILicense {
-  String name;
-  String url;
+  String name = "default";
+  String url = "http://localhost";
 
   Map<String, String> asMap() {
     return {
@@ -215,14 +237,11 @@ class APIPath {
 
   String summary = "";
   String description = "";
-  List<APIOperation> operations = [];
   List<APIParameter> parameters = [];
+  List<APIOperation> operations = [];
 
   Map<String, dynamic> asMap() {
     Map<String, dynamic> i = {};
-    i["description"] = description;
-    i["summary"] = summary;
-    i["parameters"] = parameters.map((p) => p.asMap()).toList();
 
     operations.forEach((op) {
       i[op.method] = op.asMap();
@@ -276,13 +295,13 @@ class APIOperation {
     m["responses"] = new Map.fromIterable(responses, key: (APIResponse k) => k.key, value: (APIResponse v) => v.asMap());
     m["security"] = security.map((req) => req.asMap()).toList();
 
-    return m;
+    return _stripNull(m);
   }
 }
 
 class APIResponse {
   String key;
-  String description;
+  String description = "";
   APISchemaObject schema;
   Map<String, APIHeader> headers = {};
 
@@ -303,11 +322,11 @@ class APIResponse {
       mappedHeaders[headerName] = headerObject.asMap();
     });
 
-    return {
+    return _stripNull({
       "description" : description,
       "schema" : schema?.asMap(),
       "headers" : mappedHeaders
-    };
+    });
   }
 }
 
@@ -382,7 +401,7 @@ class APIParameter {
   }
 
   String name;
-  String description;
+  String description = "";
   bool required = false;
   bool deprecated = false;
   APISchemaObject schemaObject;
@@ -397,14 +416,14 @@ class APIParameter {
     m["schema"] = schemaObject?.asMap();
     m["in"] = parameterLocationStringForType(parameterLocation);
 
-    return m;
+    return _stripNull(m);
   }
 }
 
 class APIRequestBody {
   String description;
   APISchemaObject schema;
-  bool required;
+  bool required = true;
 
   Map<String, dynamic> asMap() {
     return {
@@ -437,9 +456,9 @@ class APISchemaObject {
   String type;
   String format;
   String description;
-  bool required;
-  bool readOnly = false;
   String example;
+  bool required = true;
+  bool readOnly = false;
   bool deprecated = false;
   APISchemaObject items;
   Map<String, APISchemaObject> properties;
@@ -451,7 +470,6 @@ class APISchemaObject {
   APISchemaObject.fromTypeMirror(TypeMirror m) {
     type = typeFromTypeMirror(m);
     format = formatFromTypeMirror(m);
-    print("$type $format");
   }
 
   static String typeFromTypeMirror(TypeMirror m) {
@@ -488,14 +506,26 @@ class APISchemaObject {
 
   Map<String, dynamic> asMap() {
     var m = <String, dynamic>{};
-    m["title"] = title;
+
     m["type"] = type;
-    m["format"] = format;
-    m["description"] = description;
     m["required"] = required;
     m["readOnly"] = readOnly;
-    m["example"] = example;
     m["deprecated"] = deprecated;
+
+    if (title != null) {
+      m["title"] = title;
+    }
+    if (format != null) {
+      m["format"] = format;
+    }
+
+    if (description != null) {
+      m["description"] = description;
+    }
+
+    if (example != null) {
+      m["example"] = example;
+    }
 
     if (items != null) {
       m["items"] = items.asMap();

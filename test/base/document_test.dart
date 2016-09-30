@@ -19,10 +19,8 @@ main() {
     var app = new Application<TestSink>();
     var apiDocs = app.document(new PackagePathResolver(new File(".packages").path)).asMap();
 
-    print("${JSON.encode(apiDocs)}");
-
     test("Document has appropriate metadata", () {
-      expect(apiDocs["openapi"], contains("3.0"));
+      expect(apiDocs["swagger"], contains("2.0"));
       expect(apiDocs["info"], contains("title"));
       expect(apiDocs["info"], contains("description"));
       expect(apiDocs["info"], contains("version"));
@@ -30,7 +28,6 @@ main() {
       expect(apiDocs["info"], contains("contact"));
       expect(apiDocs["info"], contains("license"));
 
-      expect(apiDocs["host"], []);
       expect(apiDocs["security"], []);
     });
 
@@ -43,10 +40,343 @@ main() {
     test("Document provides all security schemes", () {
       var secDefs = apiDocs["securityDefinitions"] as Map<String, Map<String, dynamic>>;
       expect(secDefs.length, 3);
-      //expect(secDefs["oauth2.application"], )
+
+      expect(secDefs["oauth2.application"], {
+        "type" : "oauth2",
+        "description" : isNotNull,
+        "flow" : "application",
+        "tokenUrl" : "http://localhost/auth/token",
+        "scopes" : isNotNull
+      });
+
+      expect(secDefs["oauth2.password"], {
+        "type" : "oauth2",
+        "description" : isNotNull,
+        "flow" : "password",
+        "tokenUrl" : "http://localhost/auth/token",
+        "scopes" : isNotNull
+      });
+
+      expect(secDefs["oauth2.accessCode"], {
+        "type" : "oauth2",
+        "description" : isNotNull,
+        "flow" : "accessCode",
+        "authorizationUrl" : "http://localhost/auth/code",
+        "tokenUrl" : "http://localhost/auth/token",
+        "scopes" : isNotNull
+      });
     });
 
+    test("Paths", () {
+      var paths = apiDocs["paths"] as Map<String, Map<String, dynamic>>;
+      expect(paths.length, 5);
+      expect(paths.keys.contains("/auth/code"), true);
+      expect(paths.keys.contains("/auth/token"), true);
+      expect(paths.keys.contains("/t"), true);
+      expect(paths.keys.contains("/t/{id}"), true);
+      expect(paths.keys.contains("/t/{id}/{notID}"), true);
+    });
 
+    test("Operations /t", () {
+      var ops = apiDocs["paths"]["/t"] as Map<String, dynamic>;
+      expect(ops.length, 2);
+      expect(ops["get"], {
+        "summary": "ABCD",
+        "description": "EFGH\nIJKL",
+        "id": "TController.getAll",
+        "deprecated": false,
+        "tags": [],
+        "consumes": [
+          "application/json; charset=utf-8",
+          "application/x-www-form-urlencoded"
+        ],
+        "produces": [
+          "application/json; charset=utf-8"
+        ],
+        "parameters": [
+          {
+            "name": "param",
+            "description": "",
+            "required": false,
+            "deprecated": false,
+            "schema": {
+              "type": "string",
+              "required": true,
+              "readOnly": false,
+              "deprecated": false
+            },
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "500": {
+            "description": "Something went wrong",
+            "schema": {
+              "type": "object",
+              "required": true,
+              "readOnly": false,
+              "deprecated": false,
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "required": true,
+                  "readOnly": false,
+                  "deprecated": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "oauth2.password": []
+          }
+        ]
+      });
+
+      expect(ops["post"], {
+        "summary": "EFGH",
+        "description": "IJKL",
+        "id": "TController.createOne",
+        "deprecated": false,
+        "tags": [],
+        "consumes": [
+          "application/json; charset=utf-8",
+          "application/x-www-form-urlencoded"
+        ],
+        "produces": [
+          "application/json; charset=utf-8"
+        ],
+        "parameters": [{
+          "name": "X-Date",
+          "description": "",
+          "required": true,
+          "deprecated": false,
+          "schema": {
+            "type": "string",
+            "required": true,
+            "readOnly": false,
+            "deprecated": false,
+            "format" : "date-time"
+          },
+          "in": "header"
+        },{
+          "name": "foo",
+          "description": "",
+          "required": true,
+          "deprecated": false,
+          "schema": {
+            "type": "string",
+            "required": true,
+            "readOnly": false,
+            "deprecated": false
+          },
+          "in": "formData"
+        }],
+        "responses": {
+          "500": {
+            "description": "Something went wrong",
+            "schema": {
+              "type": "object",
+              "required": true,
+              "readOnly": false,
+              "deprecated": false,
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "required": true,
+                  "readOnly": false,
+                  "deprecated": false
+                }
+              }
+            },
+            "headers": {}
+          },
+          "400": {
+            "description": "Missing required query and/or header parameter(s).",
+            "schema": {
+              "type": "object",
+              "required": true,
+              "readOnly": false,
+              "deprecated": false,
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "required": true,
+                  "readOnly": false,
+                  "deprecated": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "oauth2.password": []
+          }
+        ]
+      });
+    });
+
+    test("Operations /t/:id", () {
+      var ops = apiDocs["paths"]["/t/{id}"] as Map<String, dynamic>;
+      expect(ops, {
+        "put": {
+          "summary": "ABCD",
+          "description": "",
+          "id": "TController.putOne",
+          "deprecated": false,
+          "tags": [],
+          "consumes": [
+            "application/json; charset=utf-8",
+            "application/x-www-form-urlencoded"
+          ],
+          "produces": [
+            "application/json; charset=utf-8"
+          ],
+          "parameters": [
+            {
+              "name": "p1",
+              "description": "",
+              "required": false,
+              "deprecated": false,
+              "schema": {
+                "type": "integer",
+                "required": true,
+                "readOnly": false,
+                "deprecated": false,
+                "format": "int32"
+              },
+              "in": "query"
+            },
+            {
+              "name": "X-P2",
+              "description": "",
+              "required": false,
+              "deprecated": false,
+              "schema": {
+                "type": "integer",
+                "required": true,
+                "readOnly": false,
+                "deprecated": false,
+                "format": "int32"
+              },
+              "in": "header"
+            }
+          ],
+          "responses": {
+            "500": {
+              "description": "Something went wrong",
+              "schema": {
+                "type": "object",
+                "required": true,
+                "readOnly": false,
+                "deprecated": false,
+                "properties": {
+                  "error": {
+                    "type": "string",
+                    "required": true,
+                    "readOnly": false,
+                    "deprecated": false
+                  }
+                }
+              },
+              "headers": {}
+            }
+          },
+          "security": [
+            {
+              "oauth2.password": []
+            }
+          ]
+        },
+        "get": {
+          "summary": "",
+          "description": "",
+          "id": "TController.getOne",
+          "deprecated": false,
+          "tags": [],
+          "consumes": [
+            "application/json; charset=utf-8",
+            "application/x-www-form-urlencoded"
+          ],
+          "produces": [
+            "application/json; charset=utf-8"
+          ],
+          "parameters": [],
+          "responses": {
+            "500": {
+              "description": "Something went wrong",
+              "schema": {
+                "type": "object",
+                "required": true,
+                "readOnly": false,
+                "deprecated": false,
+                "properties": {
+                  "error": {
+                    "type": "string",
+                    "required": true,
+                    "readOnly": false,
+                    "deprecated": false
+                  }
+                }
+              },
+              "headers": {}
+            }
+          },
+          "security": [
+            {
+              "oauth2.password": []
+            }
+          ]
+        }
+      });
+    });
+
+    test("Operation t/:id/:notID", () {
+      expect(apiDocs["paths"]["/t/{id}/{notID}"]["get"], {
+        "summary": "MNOP",
+        "description": "QRST",
+        "id": "TController.getTwo",
+        "deprecated": false,
+        "tags": [],
+        "consumes": [
+          "application/json; charset=utf-8",
+          "application/x-www-form-urlencoded"
+        ],
+        "produces": [
+          "application/json; charset=utf-8"
+        ],
+        "parameters": [],
+        "responses": {
+          "500": {
+            "description": "Something went wrong",
+            "schema": {
+              "type": "object",
+              "required": true,
+              "readOnly": false,
+              "deprecated": false,
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "required": true,
+                  "readOnly": false,
+                  "deprecated": false
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "oauth2.password": []
+          }
+        ]
+      });
+    });
   });
 
 }
@@ -112,7 +442,7 @@ class TController extends HTTPController {
   /// IJKL
   @httpPost
 
-  Future<Response> createOne() async {
+  Future<Response> createOne(@HTTPHeader("X-Date") DateTime date, @HTTPQuery("foo") String foo) async {
     return new Response.ok("");
   }
 }

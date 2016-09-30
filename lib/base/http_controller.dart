@@ -200,11 +200,10 @@ abstract class HTTPController extends RequestController {
 
             return new APIParameter()
               ..name = param.name
-              ..required = false
+              ..required = param.isRequired
               ..parameterLocation = paramLocation
               ..schemaObject = (
                   new APISchemaObject.fromTypeMirror(param.typeMirror)
-                    ..required = param.isRequired
               );
           })
           .toList();
@@ -217,7 +216,7 @@ abstract class HTTPController extends RequestController {
   List<APIResponse> documentResponsesForOperation(APIOperation operation) {
     List<APIResponse> responses = [
       new APIResponse()
-        ..key = "default"
+        ..statusCode = 500
         ..description = "Something went wrong"
         ..schema = new APISchemaObject(properties: {
           "error" : new APISchemaObject.string()
