@@ -229,7 +229,7 @@ void main() {
       expect(successResponse.schema.title, "TestModel");
 
       var errorResponse = getResponses.firstWhere((r) => r.key == "404");
-      expect(errorResponse.schema.properties["error"].type, APISchemaObjectTypeString);
+      expect(errorResponse.schema.properties["error"].type, APISchemaObject.TypeString);
     });
 
     test("createObject", () {
@@ -252,7 +252,7 @@ void main() {
       expect(successResponse.schema.title, "TestModel");
 
       var errorResponse = getResponses.firstWhere((r) => r.key == "404");
-      expect(errorResponse.schema.properties["error"].type, APISchemaObjectTypeString);
+      expect(errorResponse.schema.properties["error"].type, APISchemaObject.TypeString);
     });
 
     test("deleteObject", () {
@@ -265,7 +265,7 @@ void main() {
       expect(successResponse.schema.title, "TestModel");
 
       var errorResponse = getResponses.firstWhere((r) => r.key == "404");
-      expect(errorResponse.schema.properties["error"].type, APISchemaObjectTypeString);
+      expect(errorResponse.schema.properties["error"].type, APISchemaObject.TypeString);
     });
 
     test("getObjects", () {
@@ -275,11 +275,11 @@ void main() {
       expect(getResponses.length, 3);
 
       var successResponse = getResponses.firstWhere((r) => r.key == "200");
-      expect(successResponse.schema.type, APISchemaObjectTypeArray);
+      expect(successResponse.schema.type, APISchemaObject.TypeArray);
       expect(successResponse.schema.items.title, "TestModel");
 
       var errorResponse = getResponses.firstWhere((r) => r.key == "404");
-      expect(errorResponse.schema.properties["error"].type, APISchemaObjectTypeString);
+      expect(errorResponse.schema.properties["error"].type, APISchemaObject.TypeString);
     });
   });
 }

@@ -265,7 +265,4 @@ class _RequestControllerGenerator extends RequestController {
 
   @override
   Map<String, APISecurityScheme> documentSecuritySchemes(PackagePathResolver resolver) => instantiate().documentSecuritySchemes(resolver);
-
-  @override
-  APIRequestBody documentRequestBodyForOperation(APIOperation operation) => instantiate().documentRequestBodyForOperation(operation);
 }

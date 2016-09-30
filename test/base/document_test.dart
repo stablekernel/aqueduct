@@ -59,6 +59,7 @@ class TestSink extends RequestSink implements AuthenticationServerDelegate<TestU
   AuthenticationServer<TestUser, Token, AuthCode> authServer;
 
   void addRoutes() {
+    router.route("/auth/code").pipe(authServer.newAuthenticator(strategy: AuthenticationStrategy.Client)).generate(() => new AuthCodeController(authServer));
     router.route("/auth/token").pipe(authServer.newAuthenticator(strategy: AuthenticationStrategy.Client)).generate(() => new AuthController(authServer));
     router.route("/t[/:id[/:notID]]").pipe(authServer.newAuthenticator()).generate(() => new TController());
   }

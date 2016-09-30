@@ -272,10 +272,14 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
     var secPassword = new APISecurityScheme.oauth2()
       ..description = "OAuth 2.0 Resource Owner Flow"
       ..oauthFlow = APISecuritySchemeFlow.password;
+    var secAccess = new APISecurityScheme.oauth2()
+        ..description = "OAuth 2.0 Access Code Flow"
+        ..oauthFlow = APISecuritySchemeFlow.accessCode;
 
     return {
       "oauth2.application" : secApp,
-      "oauth2.password" : secPassword
+      "oauth2.password" : secPassword,
+      "oauth2.accessCode" : secAccess
     };
   }
 

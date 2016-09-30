@@ -232,13 +232,13 @@ void main() {
       var entity = dataModel.entityForType(User);
 
       expect(entity.documentedResponseSchema.title, "User");
-      expect(entity.documentedResponseSchema.type, APISchemaObjectTypeObject);
+      expect(entity.documentedResponseSchema.type, APISchemaObject.TypeObject);
       expect(entity.documentedResponseSchema.properties.isNotEmpty, true);
     });
 
     test("includes transient properties", () {
       var entity = dataModel.entityForType(User);
-      expect(entity.documentedResponseSchema.properties["stringID"].type, APISchemaObjectTypeString);
+      expect(entity.documentedResponseSchema.properties["stringID"].type, APISchemaObject.TypeString);
     });
 
     test("does not include has(One|Many) relationships", () {

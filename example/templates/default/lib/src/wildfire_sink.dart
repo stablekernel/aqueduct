@@ -65,4 +65,10 @@ class WildfireSink extends RequestSink {
 
     return ctx;
   }
+
+  @override
+  Map<String, APISecurityScheme> documentSecuritySchemes(PackagePathResolver resolver) {
+    return authenticationServer.documentSecuritySchemes(resolver);
+  }
+
 }

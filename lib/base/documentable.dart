@@ -109,6 +109,12 @@ class APIHost {
 class APISecurityRequirement {
   String name;
   List<APISecurityScope> scopes;
+
+  Map<String, dynamic> asMap() {
+    return {
+      name : scopes
+    };
+  }
 }
 
 class APISecurityScope {
@@ -268,7 +274,7 @@ class APIOperation {
     m["parameters"] = parameters.map((param) => param.asMap()).toList();
     m["requestBody"] = requestBody?.asMap();
     m["responses"] = new Map.fromIterable(responses, key: (APIResponse k) => k.key, value: (APIResponse v) => v.asMap());
-    m["security"] = new Map.fromIterable(security, key: (APISecurityRequirement k) => k.name, value: (APISecurityRequirement v) => v.scopes.map((scope) => scope.name).toList());
+    m["security"] = security.map((req) => req.asMap()).toList();
 
     return m;
   }
@@ -279,9 +285,17 @@ class APIResponse {
   String description;
   APISchemaObject schema;
   Map<String, APIHeader> headers = {};
-  set statusCode(int code) {
+
+  int get statusCode {
+    if (key == null || key == "default") {
+      return null;
+    }
+    return int.parse(key);
+  }
+  void set statusCode(int code) {
     key = "$code";
   }
+
 
   Map<String, dynamic> asMap() {
     var mappedHeaders = {};
@@ -334,11 +348,11 @@ class APIParameter {
 
   static String typeStringForTypeMirror(TypeMirror m) {
     if (m.isSubtypeOf(reflectType(int))) {
-      return APISchemaObjectFormatInt32;
+      return APISchemaObject.FormatInt32;
     } else if (m.isSubtypeOf(reflectType(double))) {
-      return APISchemaObjectFormatDouble;
+      return APISchemaObject.FormatDouble;
     } else if (m.isSubtypeOf(reflectType(DateTime))) {
-      return APISchemaObjectFormatDateTime;
+      return APISchemaObject.FormatDateTime;
     }
 
     return null;
@@ -369,7 +383,6 @@ class APIParameter {
 
   String name;
   String description;
-  String type;
   bool required = false;
   bool deprecated = false;
   APISchemaObject schemaObject;
@@ -382,7 +395,6 @@ class APIParameter {
     m["required"] = (parameterLocation == APIParameterLocation.path ? true : required);
     m["deprecated"] = deprecated;
     m["schema"] = schemaObject?.asMap();
-    m["type"] = type;
     m["in"] = parameterLocationStringForType(parameterLocation);
 
     return m;
@@ -403,24 +415,24 @@ class APIRequestBody {
   }
 }
 
-const String APISchemaObjectTypeString = "string";
-const String APISchemaObjectTypeArray = "array";
-const String APISchemaObjectTypeObject = "object";
-const String APISchemaObjectTypeNumber = "number";
-const String APISchemaObjectTypeInteger = "integer";
-const String APISchemaObjectTypeBoolean = "boolean";
-
-const String APISchemaObjectFormatInt32 = "int32";
-const String APISchemaObjectFormatInt64 = "int64";
-const String APISchemaObjectFormatDouble = "double";
-const String APISchemaObjectFormatBase64 = "byte";
-const String APISchemaObjectFormatBinary = "binary";
-const String APISchemaObjectFormatDate = "date";
-const String APISchemaObjectFormatDateTime = "date-time";
-const String APISchemaObjectFormatPassword = "password";
-const String APISchemaObjectFormatEmail = "email";
-
 class APISchemaObject {
+  static const String TypeString = "string";
+  static const String TypeArray = "array";
+  static const String TypeObject = "object";
+  static const String TypeNumber = "number";
+  static const String TypeInteger = "integer";
+  static const String TypeBoolean = "boolean";
+
+  static const String FormatInt32 = "int32";
+  static const String FormatInt64 = "int64";
+  static const String FormatDouble = "double";
+  static const String FormatBase64 = "byte";
+  static const String FormatBinary = "binary";
+  static const String FormatDate = "date";
+  static const String FormatDateTime = "date-time";
+  static const String FormatPassword = "password";
+  static const String FormatEmail = "email";
+
   String title;
   String type;
   String format;
@@ -430,12 +442,49 @@ class APISchemaObject {
   String example;
   bool deprecated = false;
   APISchemaObject items;
-  Map<String, APISchemaObject> properties = {};
-  Map<String, APISchemaObject> additionalProperties = {};
+  Map<String, APISchemaObject> properties;
+  Map<String, APISchemaObject> additionalProperties;
 
-  APISchemaObject();
-  APISchemaObject.string() : type = APISchemaObjectTypeString;
-  APISchemaObject.int() : type = APISchemaObjectTypeInteger, format = APISchemaObjectFormatInt32;
+  APISchemaObject({this.properties, this.additionalProperties}) : type = APISchemaObject.TypeObject;
+  APISchemaObject.string() : type = APISchemaObject.TypeString;
+  APISchemaObject.int() : type = APISchemaObject.TypeInteger, format = APISchemaObject.FormatInt32;
+  APISchemaObject.fromTypeMirror(TypeMirror m) {
+    type = typeFromTypeMirror(m);
+    format = formatFromTypeMirror(m);
+    print("$type $format");
+  }
+
+  static String typeFromTypeMirror(TypeMirror m) {
+    if (m.isSubtypeOf(reflectType(String))) {
+      return TypeString;
+    } else if (m.isSubtypeOf(reflectType(List))) {
+      return TypeArray;
+    } else if (m.isSubtypeOf(reflectType(Map))) {
+      return TypeObject;
+    } else if (m.isSubtypeOf(reflectType(int))) {
+      return TypeInteger;
+    } else if (m.isSubtypeOf(reflectType(num))) {
+      return TypeNumber;
+    } else if (m.isSubtypeOf(reflectType(bool))) {
+      return TypeBoolean;
+    } else if (m.isSubtypeOf(reflectType(DateTime))) {
+      return TypeString;
+    }
+
+    return null;
+  }
+
+  static String formatFromTypeMirror(TypeMirror m) {
+    if (m.isSubtypeOf(reflectType(int))) {
+      return FormatInt32;
+    } else if (m.isSubtypeOf(reflectType(double))) {
+      return FormatDouble;
+    }  else if (m.isSubtypeOf(reflectType(DateTime))) {
+      return FormatDateTime;
+    }
+
+    return null;
+  }
 
   Map<String, dynamic> asMap() {
     var m = <String, dynamic>{};
@@ -448,9 +497,15 @@ class APISchemaObject {
     m["example"] = example;
     m["deprecated"] = deprecated;
 
-    m["items"] = items?.asMap() ?? {};
-    m["properties"] = new Map.fromIterable(properties.keys, key: (key) => key, value: (key) => properties[key].asMap());
-    m["additionalProperties"] = new Map.fromIterable(additionalProperties.keys, key: (key) => key, value: (key) => additionalProperties[key].asMap());
+    if (items != null) {
+      m["items"] = items.asMap();
+    }
+    if (properties != null) {
+      m["properties"] = new Map.fromIterable(properties.keys, key: (key) => key, value: (key) => properties[key].asMap());
+    }
+    if (additionalProperties != null) {
+      m["additionalProperties"] = new Map.fromIterable(additionalProperties.keys, key: (key) => key, value: (key) => additionalProperties[key].asMap());
+    }
 
     return m;
   }
