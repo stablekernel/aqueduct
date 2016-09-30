@@ -3,19 +3,19 @@ part of aqueduct;
 class _Server {
   ApplicationInstanceConfiguration configuration;
   HttpServer server;
-  ApplicationPipeline pipeline;
+  RequestSink stream;
   int identifier;
   Logger get logger => new Logger("aqueduct");
 
-  _Server(this.pipeline, this.configuration, this.identifier) {
-    pipeline.server = this;
+  _Server(this.stream, this.configuration, this.identifier) {
+    stream.server = this;
   }
 
   Future start() async {
     try {
-      pipeline.addRoutes();
-      pipeline.router?.finalize();
-      pipeline.nextHandler = pipeline.initialHandler();
+      stream.addRoutes();
+      stream.router?.finalize();
+      stream.nextController = stream.initialController();
 
       if (configuration.securityContext != null) {
         server = await HttpServer.bindSecure(configuration.address, configuration.port, configuration.securityContext,
@@ -41,15 +41,15 @@ class _Server {
 
     server.serverHeader = "aqueduct/${this.identifier}";
 
-    await pipeline.willOpen();
+    await stream.willOpen();
 
     server.map((baseReq) => new Request(baseReq)).listen((Request req) async {
       logger.fine("Request received $req.", req);
-      await pipeline.willReceiveRequest(req);
-      pipeline.deliver(req);
+      await stream.willReceiveRequest(req);
+      stream.receive(req);
     });
 
-    pipeline.didOpen();
+    stream.didOpen();
   }
 }
 
@@ -57,9 +57,9 @@ class IsolateServer extends _Server {
   SendPort supervisingApplicationPort;
   ReceivePort supervisingReceivePort;
 
-  IsolateServer(ApplicationPipeline pipeline, ApplicationInstanceConfiguration configuration, int identifier, this.supervisingApplicationPort)
-    : super(pipeline, configuration, identifier) {
-    pipeline.server = this;
+  IsolateServer(RequestSink sink, ApplicationInstanceConfiguration configuration, int identifier, this.supervisingApplicationPort)
+    : super(sink, configuration, identifier) {
+    sink.server = this;
     supervisingReceivePort = new ReceivePort();
     supervisingReceivePort.listen(listener);
   }
@@ -81,11 +81,11 @@ class IsolateServer extends _Server {
 }
 
 void isolateServerEntryPoint(InitialServerMessage params) {
-  var pipelineSourceLibraryMirror = currentMirrorSystem().libraries[params.pipelineLibraryURI];
-  var pipelineTypeMirror = pipelineSourceLibraryMirror.declarations[new Symbol(params.pipelineTypeName)] as ClassMirror;
+  var streamSourceLibraryMirror = currentMirrorSystem().libraries[params.streamLibraryURI];
+  var streamTypeMirror = streamSourceLibraryMirror.declarations[new Symbol(params.streamTypeName)] as ClassMirror;
 
-  var app = pipelineTypeMirror
-      .newInstance(new Symbol(""), [params.configuration.pipelineOptions])
+  var app = streamTypeMirror
+      .newInstance(new Symbol(""), [params.configuration.configurationOptions])
       .reflectee;
   var server = new IsolateServer(
       app, params.configuration, params.identifier,

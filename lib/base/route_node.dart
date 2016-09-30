@@ -50,7 +50,7 @@ class _RouteNode {
 
   bool matchingAnything = false;
   RegExp patternMatcher;
-  RequestHandler get handler => specification?.handler;
+  RequestController get controller => specification?.controller;
   RoutePathSpecification specification;
   List<_RouteNode> patternMatchChildren = [];
   Map<String, _RouteNode> literalChildren = {};

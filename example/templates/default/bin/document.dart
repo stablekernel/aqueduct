@@ -21,9 +21,9 @@ Future main(List<String> args) async {
   }
 
   var configuration = new WildfireConfiguration("config.yaml.src");
-  var app = new Application<WildfirePipeline>()
-    ..configuration.pipelineOptions = {
-      WildfirePipeline.ConfigurationKey : configuration
+  var app = new Application<WildfireSink>()
+    ..configuration.configurationOptions = {
+      WildfireSink.ConfigurationKey : configuration
     };
 
   var resolver = new PackagePathResolver(".packages");

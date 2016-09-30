@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 
 main() {
   group("Application lifecycle", () {
-    var app = new Application<TPipeline>();
+    var app = new Application<TestSink>();
 
     tearDownAll(() async {
       await app?.stop();
@@ -53,31 +53,31 @@ main() {
   });
 
   group("Failure", () {
-    test("Application (on main thread) start fails and logs appropriate message if pipeline doesn't open", () async {
-      var crashingApp = new Application<CrashPipeline>();
+    test("Application (on main thread) start fails and logs appropriate message if request stream doesn't open", () async {
+      var crashingApp = new Application<CrashingTestSink>();
 
       try {
-        crashingApp.configuration.pipelineOptions = {"crashIn" : "constructor"};
+        crashingApp.configuration.configurationOptions = {"crashIn" : "constructor"};
         await crashingApp.start(runOnMainIsolate: true);
       } catch (e) {
         expect(e.message, "constructor");
       }
 
       try {
-        crashingApp.configuration.pipelineOptions = {"crashIn" : "addRoutes"};
+        crashingApp.configuration.configurationOptions = {"crashIn" : "addRoutes"};
         await crashingApp.start(runOnMainIsolate: true);
       } catch (e) {
         expect(e.message, "addRoutes");
       }
 
       try {
-        crashingApp.configuration.pipelineOptions = {"crashIn" : "willOpen"};
+        crashingApp.configuration.configurationOptions = {"crashIn" : "willOpen"};
         await crashingApp.start(runOnMainIsolate: true);
       } catch (e) {
         expect(e.message, "willOpen");
       }
 
-      crashingApp.configuration.pipelineOptions = {"crashIn" : "dontCrash"};
+      crashingApp.configuration.configurationOptions = {"crashIn" : "dontCrash"};
       await crashingApp.start(runOnMainIsolate: true);
       var response = await http.get("http://localhost:8080/t");
       expect(response.statusCode, 200);
@@ -85,7 +85,7 @@ main() {
     });
 
     test("Application can run on main thread", () async {
-      var app = new Application<TPipeline>();
+      var app = new Application<TestSink>();
 
       await app.start(runOnMainIsolate: true);
 
@@ -102,8 +102,8 @@ class TestException implements Exception {
   TestException(this.message);
 }
 
-class CrashPipeline extends ApplicationPipeline {
-  CrashPipeline(Map<String, dynamic> opts) : super(opts) {
+class CrashingTestSink extends RequestSink {
+  CrashingTestSink(Map<String, dynamic> opts) : super(opts) {
     if (opts["crashIn"] == "constructor") {
       throw new TestException("constructor");
     }
@@ -113,7 +113,7 @@ class CrashPipeline extends ApplicationPipeline {
     if (options["crashIn"] == "addRoutes") {
       throw new TestException("addRoutes");
     }
-    router.route("/t").next(() => new TController());
+    router.route("/t").generate(() => new TController());
   }
 
   @override
@@ -124,12 +124,12 @@ class CrashPipeline extends ApplicationPipeline {
   }
 }
 
-class TPipeline extends ApplicationPipeline {
-  TPipeline(Map<String, dynamic> opts) : super(opts);
+class TestSink extends RequestSink {
+  TestSink(Map<String, dynamic> opts) : super(opts);
 
   void addRoutes() {
-    router.route("/t").next(() => new TController());
-    router.route("/r").next(() => new RController());
+    router.route("/t").generate(() => new TController());
+    router.route("/r").generate(() => new RController());
 
   }
 }

@@ -11,26 +11,29 @@ void main() {
   });
 
   test("Logging after socket is closed does not throw exception", () async {
-    var handler = new RequestHandler(requestHandler: (Request req) {
-      req.innerRequest.response.detachSocket().then((s) async {
-        s.destroy();
+    var handler = (Request req) async {
+      var socket = await req.innerRequest.response.detachSocket();
+      socket.destroy();
 
-        req.toDebugString(includeHeaders: true, includeBody: true, includeContentSize: true,
-            includeElapsedTime: true, includeMethod: true, includeRequestIP: true, includeResource: true,
-            includeStatusCode: true);
-      });
-    });
+      req.toDebugString(includeHeaders: true, includeBody: true, includeContentSize: true,
+          includeElapsedTime: true, includeMethod: true, includeRequestIP: true, includeResource: true,
+          includeStatusCode: true);
+
+      return new Response.ok(null);
+    };
 
     var ensureExceptionIsCapturedByDeliver = new Completer();
     server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8000);
-    server
-        .map((req) => new Request(req))
+    server.map((req) => new Request(req))
         .listen((req) async {
-      await handler.deliver(req);
+          var next = new RequestController();
+          next.listen(handler);
 
-      // We won't get here unless an exception is thrown, and that's what we're testing
-      ensureExceptionIsCapturedByDeliver.complete(true);
-    });
+          await next.receive(req);
+
+          // We'll get here only if delivery succeeds, evne tho the response must be an error
+          ensureExceptionIsCapturedByDeliver.complete(true);
+        });
 
     try {
       await http.get("http://localhost:8000");
@@ -39,54 +42,57 @@ void main() {
     expect(ensureExceptionIsCapturedByDeliver.future, completes);
   });
 
-  test("Request handler that dies on bad state: header already sent is captured in RequestHandler", () async {
-    var handler = new RequestHandler(requestHandler: (Request req) {
-      req.response.close();
+  test("Request controller that dies on bad state: header already sent is captured in RequestController", () async {
+    var handler = (Request req) async {
+      await req.response.close();
 
       return new Response.ok(null);
-    });
+    };
 
     var ensureExceptionIsCapturedByDeliver = new Completer();
     server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8000);
     server
         .map((req) => new Request(req))
         .listen((req) async {
-      await handler.deliver(req);
-
-      // We won't get here unless an exception is thrown, and that's what we're testing
-      ensureExceptionIsCapturedByDeliver.complete(true);
-    });
+          var next = new RequestController();
+          next.listen(handler);
+          await next.receive(req);
+          // We won't get here unless an exception is thrown, and that's what we're testing
+          ensureExceptionIsCapturedByDeliver.complete(true);
+        });
 
     await http.get("http://localhost:8000");
 
     expect(ensureExceptionIsCapturedByDeliver.future, completes);
   });
 
-  test("Request handler throwing HttpResponseException that dies on bad state: header already sent is captured in RequestHandler", () async {
-    var handler = new RequestHandler(requestHandler: (Request req) {
-      req.response.close();
+  test("Request controller throwing HttpResponseException that dies on bad state: header already sent is captured in RequestController", () async {
+    var handler = (Request req) async {
+      await req.response.close();
 
       throw new HTTPResponseException(400, "whocares");
-    });
+      return new Response.ok(null);
+    };
 
     var ensureExceptionIsCapturedByDeliver = new Completer();
     server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8000);
     server
         .map((req) => new Request(req))
         .listen((req) async {
-      await handler.deliver(req);
-
-      // We won't get here unless an exception is thrown, and that's what we're testing
-      ensureExceptionIsCapturedByDeliver.complete(true);
-    });
+          var next = new RequestController();
+          next.listen(handler);
+          await next.receive(req);
+          // We won't get here unless an exception is thrown, and that's what we're testing
+          ensureExceptionIsCapturedByDeliver.complete(true);
+        });
 
     await http.get("http://localhost:8000");
 
     expect(ensureExceptionIsCapturedByDeliver.future, completes);
   });
 
-  test("Request handler maps QueryExceptions appropriately", () async {
-    var handler = new RequestHandler(requestHandler: (Request req) {
+  test("Request controller maps QueryExceptions appropriately", () async {
+    var handler = (Request req) async {
       var v = int.parse(req.innerRequest.uri.queryParameters["p"]);
       switch (v) {
         case 0: throw new QueryException(QueryExceptionEvent.internalFailure);
@@ -94,12 +100,16 @@ void main() {
         case 2: throw new QueryException(QueryExceptionEvent.conflict);
         case 3: throw new QueryException(QueryExceptionEvent.connectionFailure);
       }
-    });
+
+      return new Response.ok(null);
+    };
     server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8000);
     server
         .map((req) => new Request(req))
         .listen((req) async {
-          await handler.deliver(req);
+          var next = new RequestController();
+          next.listen(handler);
+          await next.receive(req);
         });
 
     var statusCodes = (await Future.wait(

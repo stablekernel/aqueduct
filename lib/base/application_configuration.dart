@@ -20,7 +20,7 @@ class ApplicationInstanceConfiguration {
   /// Defaults to false. This flag impacts the [address] property if it has not been set.
   bool isIpv6Only = false;
 
-  /// Whether or not the application's request handlers should use client-side HTTPS certificates.
+  /// Whether or not the application's request controllers should use client-side HTTPS certificates.
   ///
   /// Defaults to false.
   bool isUsingClientCertificate = false;
@@ -31,11 +31,11 @@ class ApplicationInstanceConfiguration {
   /// run securely over HTTPS, this property must be set with valid security details.
   SecurityContext securityContext = null;
 
-  /// Options for instances of ApplicationPipeline to use when in this application.
+  /// Options for each [RequestSink] to use when in this application.
   ///
-  /// Allows delivery of custom configuration parameters to ApplicationPipeline instances
+  /// Allows delivery of custom configuration parameters to [RequestSink] instances
   /// that are attached to this application.
-  Map<dynamic, dynamic> pipelineOptions;
+  Map<dynamic, dynamic> configurationOptions;
 
   bool _shared = false;
 }

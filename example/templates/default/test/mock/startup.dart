@@ -8,8 +8,8 @@ class TestApplication {
     configuration.database.isTemporary = true;
   }
 
-  Application<WildfirePipeline> application;
-  WildfirePipeline get pipeline => application.server.pipeline;
+  Application<WildfireSink> application;
+  WildfireSink get stream => application.server.stream;
   LoggingServer logger = new LoggingServer([]);
   TestClient client;
   WildfireConfiguration configuration;
@@ -17,17 +17,17 @@ class TestApplication {
   Future start() async {
     await logger.start();
 
-    application = new Application<WildfirePipeline>();
-    application.configuration.pipelineOptions = {
-      WildfirePipeline.ConfigurationKey: configuration,
-      WildfirePipeline.LoggingTargetKey : logger.getNewTarget()
+    application = new Application<WildfireSink>();
+    application.configuration.configurationOptions = {
+      WildfireSink.ConfigurationKey: configuration,
+      WildfireSink.LoggingTargetKey : logger.getNewTarget()
     };
 
     await application.start(runOnMainIsolate: true);
 
-    ModelContext.defaultContext = pipeline.context;
+    ModelContext.defaultContext = stream.context;
 
-    await createDatabaseSchema(pipeline.context, pipeline.logger);
+    await createDatabaseSchema(stream.context, stream.logger);
     await addClientRecord();
 
     client = new TestClient(application.configuration.port)
@@ -36,7 +36,7 @@ class TestApplication {
   }
 
   Future stop() async {
-    await pipeline.context.persistentStore?.close();
+    await stream.context.persistentStore?.close();
     await logger?.stop();
     await application?.stop();
   }

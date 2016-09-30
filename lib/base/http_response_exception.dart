@@ -1,8 +1,8 @@
 part of aqueduct;
 
-/// An exception for early-exiting a [RequestHandler] to respond to a request.
+/// An exception for early-exiting a [RequestController] to respond to a request.
 ///
-/// If thrown from a [RequestHandler], a [Response] instance with [statusCode] and [message]
+/// If thrown from a [RequestController], a [Response] instance with [statusCode] and [message]
 /// is used to respond to the [Request] being processed. The [message] is returned
 /// as a value in a JSON Object for the key 'error'.
 class HTTPResponseException implements Exception {

@@ -17,8 +17,8 @@ class AuthController extends HTTPController {
   /// A reference to the [AuthenticationServer] this controller uses to grant tokens.
   AuthenticationServer authenticationServer;
 
-  @HTTPHeader.required(HttpHeaders.AUTHORIZATION) String authHeader;
-  @HTTPQuery.required("grant_type") String grantType;
+  @requiredHTTPParameter @HTTPHeader(HttpHeaders.AUTHORIZATION) String authHeader;
+  @requiredHTTPParameter @HTTPQuery("grant_type") String grantType;
 
   /// Creates or refreshes an authentication token.
   ///
@@ -31,10 +31,10 @@ class AuthController extends HTTPController {
   /// When grant_type is 'authorization_code', there must be a authorization_code value.
   @httpPost
   Future<Response> create({
-    @HTTPQuery.optional("username") String username,
-    @HTTPQuery.optional("password") String password,
-    @HTTPQuery.optional("refresh_token") String refreshToken,
-    @HTTPQuery.optional("authorization_code") String authCode
+    @HTTPQuery("username") String username,
+    @HTTPQuery("password") String password,
+    @HTTPQuery("refresh_token") String refreshToken,
+    @HTTPQuery("authorization_code") String authCode
   }) async {
     var basicRecord = AuthorizationBasicParser.parse(authHeader);
     if (grantType == "password") {

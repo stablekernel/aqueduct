@@ -4,7 +4,7 @@ part of aqueduct;
 ///
 /// This object can be used to write an HTTP response and contains conveniences
 /// for creating these objects.
-class Response implements RequestHandlerResult {
+class Response implements RequestControllerEvent {
   /// An object representing the body of the [Response], which will be encoded when used by [Request] [respond].
   ///
   /// This is typically a map or list of maps that will be encoded to JSON.

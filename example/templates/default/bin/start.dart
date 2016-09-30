@@ -11,11 +11,11 @@ main() async {
     var logger = new LoggingServer([new RotatingLoggingBackend(logPath)]);
     await logger.start();
 
-    var app = new Application<WildfirePipeline>();
+    var app = new Application<WildfireSink>();
     app.configuration.port = config.port;
-    app.configuration.pipelineOptions = {
-      WildfirePipeline.LoggingTargetKey : logger.getNewTarget(),
-      WildfirePipeline.ConfigurationKey : config
+    app.configuration.configurationOptions = {
+      WildfireSink.LoggingTargetKey : logger.getNewTarget(),
+      WildfireSink.ConfigurationKey : config
     };
 
     await app.start(numberOfInstances: 3);
