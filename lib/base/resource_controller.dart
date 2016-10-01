@@ -77,7 +77,8 @@ class ResourceController<InstanceType extends Model> extends HTTPController {
   }
 
   @httpGet getObject(@HTTPPath("id") String id) async {
-    _query.matchOn[_query.entity.primaryKey] = whereEqualTo(_parsePrimaryKey(id));
+    var primaryKey = _query.entity.primaryKey;
+    _query.matchOn[primaryKey] = whereEqualTo(_parseValueForProperty(id, _query.entity.properties[primaryKey]));
 
     _query = await willFindObjectWithQuery(_query);
 
@@ -141,7 +142,8 @@ class ResourceController<InstanceType extends Model> extends HTTPController {
   }
 
   @httpDelete deleteObject(@HTTPPath("id") String id) async {
-    _query.matchOn[_query.entity.primaryKey] = whereEqualTo(_parsePrimaryKey(id));
+    var primaryKey = _query.entity.primaryKey;
+    _query.matchOn[primaryKey] = whereEqualTo(_parseValueForProperty(id, _query.entity.properties[primaryKey]));
 
     _query = await willDeleteObjectWithQuery(_query);
 
@@ -178,7 +180,8 @@ class ResourceController<InstanceType extends Model> extends HTTPController {
   }
 
   @httpPut updateObject(@HTTPPath("id") String id) async {
-    _query.matchOn[_query.entity.primaryKey] = whereEqualTo(_parsePrimaryKey(id));
+    var primaryKey = _query.entity.primaryKey;
+    _query.matchOn[primaryKey] = whereEqualTo(_parseValueForProperty(id, _query.entity.properties[primaryKey]));
 
     InstanceType instance = _query.entity.instanceType.newInstance(new Symbol(""), []).reflectee as InstanceType;
     instance.readMap(requestBody as Map<String, dynamic>);
@@ -234,10 +237,12 @@ class ResourceController<InstanceType extends Model> extends HTTPController {
         return new Response.badRequest(body: {"error" : "If defining pageBy, either pageAfter or pagePrior must be defined. 'null' is a valid value"});
       }
 
-      if (_query.entity.properties[pageBy] == null) {
+      var pageByProperty = _query.entity.properties[pageBy];
+      if (pageByProperty == null) {
         throw new HTTPResponseException(400, "pageBy key ${pageBy} does not exist for ${_query.entity.tableName}");
       }
 
+      pageValue = _parseValueForProperty(pageValue, pageByProperty);
       _query.pageDescriptor = new QueryPage(direction, pageBy, boundingValue: pageValue == "null" ? null : pageValue);
     }
 
@@ -348,18 +353,20 @@ class ResourceController<InstanceType extends Model> extends HTTPController {
     return responses;
   }
 
-  dynamic _parsePrimaryKey(String id) {
-    var primaryKey = _query.entity.primaryKey;
-    var primaryAttribute = _query.entity.attributes[primaryKey];
+  dynamic _parseValueForProperty(String value, PropertyDescription desc) {
+    if (value == "null") {
+      return null;
+    }
 
+    print("${desc.type} $value");
     try {
-      switch (primaryAttribute.type) {
-        case PropertyType.string: return id;
-        case PropertyType.bigInteger: return int.parse(id);
-        case PropertyType.integer: return int.parse(id);
-        case PropertyType.datetime: return DateTime.parse(id);
-        case PropertyType.doublePrecision: return double.parse(id);
-        case PropertyType.boolean: return id == "true";
+      switch (desc.type) {
+        case PropertyType.string: return value;
+        case PropertyType.bigInteger: return int.parse(value);
+        case PropertyType.integer: return int.parse(value);
+        case PropertyType.datetime: return DateTime.parse(value);
+        case PropertyType.doublePrecision: return double.parse(value);
+        case PropertyType.boolean: return value == "true";
         case PropertyType.transientList: return null;
         case PropertyType.transientMap: return null;
       }
