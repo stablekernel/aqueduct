@@ -63,11 +63,11 @@ class _Answer {
 }
 ```
 
-There is nothing extra to do for the 'has one' side of the relationship when setting these extra relationship attributes. Finally, we need to add `Answer` to the `DataModel` in `quiz_sink.dart`. (Also by the way, it is easy to write a function that simply reflects on your application to find all `Model` types for you so you don't have to remember to do this, but again, we're staying manual to understand the concepts.)
+There is nothing extra to do for the 'has one' side of the relationship when setting these extra relationship attributes. Finally, we need to add `Answer` to the `DataModel` in `quiz_request_sink.dart`. (Also by the way, it is easy to write a function that simply reflects on your application to find all `Model` types for you so you don't have to remember to do this, but again, we're staying manual to understand the concepts.)
 
 ```dart
-class QuizSink extends RequestSink {
-  QuizSink(Map<String, dynamic> options) : super(options) {
+class QuizRequestSink extends RequestSink {
+  QuizRequestSink(Map<String, dynamic> options) : super(options) {
     var dataModel = new DataModel([Question, Answer]);
     var persistentStore = new PostgreSQLPersistentStore.fromConnectionInfo("dart", "dart", "localhost", 5432, "dart_test");
     context = new ModelContext(dataModel, persistentStore);

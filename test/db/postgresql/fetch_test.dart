@@ -13,10 +13,7 @@ void main() {
   test("Fetching an object gets entire object", () async {
     context = await contextWithModels([TestModel]);
 
-    var m = new TestModel()
-      ..name = "Joe"
-      ..email = "a@a.com";
-
+    var m = new TestModel(name: "Joe", email: "a@a.com");
     var req = new Query<TestModel>()..values = m;
     var item = await req.insert();
 
@@ -31,9 +28,7 @@ void main() {
   test("Specifying resultProperties works", () async {
     context = await contextWithModels([TestModel]);
 
-    var m = new TestModel()
-      ..name = "Joe"
-      ..email = "b@a.com";
+    var m = new TestModel(name: "Joe", email: "b@a.com");
     var req = new Query<TestModel>()..values = m;
 
     var item = await req.insert();
@@ -54,9 +49,7 @@ void main() {
     context = await contextWithModels([TestModel]);
 
     for (int i = 0; i < 10; i++) {
-      var m = new TestModel()
-        ..name = "Joe${i}"
-        ..email = "asc${i}@a.com";
+      var m = new TestModel(name: "Joe${i}", email: "asc${i}@a.com");
       var req = new Query<TestModel>()..values = m;
       await req.insert();
     }
@@ -91,9 +84,7 @@ void main() {
     context = await contextWithModels([TestModel]);
 
     for (int i = 0; i < 10; i++) {
-      var m = new TestModel()
-        ..name = "Joe${i}"
-        ..email = "desc${i}@a.com";
+      var m = new TestModel(name: "Joe${i}", email: "desc${i}@a.com");
 
       var req = new Query<TestModel>()..values = m;
 
@@ -117,9 +108,7 @@ void main() {
     context = await contextWithModels([TestModel]);
 
     for (int i = 0; i < 10; i++) {
-      var m = new TestModel()
-        ..name = "Joe${i%2}"
-        ..email = "multi${i}@a.com";
+      var m = new TestModel(name: "Joe${i%2}", email: "multi${i}@a.com");
 
       var req = new Query<TestModel>()..values = m;
 
@@ -169,9 +158,7 @@ void main() {
   test("Fetching an invalid key fails", () async {
     context = await contextWithModels([TestModel]);
 
-    var m = new TestModel()
-      ..name = "invkey"
-      ..email = "invkey@a.com";
+    var m = new TestModel(name: "invkey", email: "invkey@a.com");
 
     var req = new Query<TestModel>()..values = m;
     await req.insert();
@@ -334,7 +321,12 @@ void main() {
   });
 }
 
-class TestModel extends Model<_TestModel> implements _TestModel {}
+class TestModel extends Model<_TestModel> implements _TestModel {
+  TestModel({String name: null, String email: null}) {
+    this.name = name;
+    this.email = email;
+  }
+}
 class _TestModel {
   @primaryKey
   int id;
