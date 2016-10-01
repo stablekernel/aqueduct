@@ -231,7 +231,6 @@ class APISecurityScheme {
   }
 }
 
-
 class APIPath {
   String path;
 
@@ -267,6 +266,17 @@ class APIOperation {
   APIRequestBody requestBody;
   List<APIResponse> responses = [];
 
+  Map<String, dynamic> get _requestBodyParameterMap {
+    var param = new APIParameter();
+    param.schemaObject = requestBody.schema;
+    param.description = requestBody.description;
+    param.name = "Body";
+    param.deprecated = false;
+    param.parameterLocation = APIParameterLocation.body;
+    param.required = true;
+    return param.asMap();
+  }
+
   static String idForMethod(Object classInstance, Symbol methodSymbol) {
     return "${MirrorSystem.getName(reflect(classInstance).type.simpleName)}.${MirrorSystem.getName(methodSymbol)}";
   }
@@ -291,9 +301,14 @@ class APIOperation {
     m["consumes"] = consumes.map((ct) => ct.toString()).toList();
     m["produces"] = produces.map((ct) => ct.toString()).toList();
     m["parameters"] = parameters.map((param) => param.asMap()).toList();
-    m["requestBody"] = requestBody?.asMap();
+    if (requestBody != null) {
+      m["parameters"].add(_requestBodyParameterMap);
+    }
+
     m["responses"] = new Map.fromIterable(responses, key: (APIResponse k) => k.key, value: (APIResponse v) => v.asMap());
     m["security"] = security.map((req) => req.asMap()).toList();
+
+    // m["requestBody"] = requestBody?.asMap();
 
     return _stripNull(m);
   }
@@ -357,7 +372,7 @@ class APIHeader {
 }
 
 enum APIParameterLocation {
-  query, header, path, formData, cookie
+  query, header, path, formData, cookie, body
 }
 
 class APIParameter {
@@ -396,6 +411,7 @@ class APIParameter {
       case APIParameterLocation.path: return "path";
       case APIParameterLocation.formData: return "formData";
       case APIParameterLocation.cookie: return "cookie";
+      case APIParameterLocation.body: return "body";
     }
     return null;
   }
@@ -540,7 +556,6 @@ class APISchemaObject {
     return m;
   }
 }
-
 
 class PackagePathResolver {
   PackagePathResolver(String packageMapPath) {

@@ -264,6 +264,23 @@ class ResourceController<InstanceType extends Model> extends HTTPController {
     return await didFindObjects(results);
   }
 
+
+  @override
+  APIRequestBody documentRequestBodyForOperation(APIOperation operation) {
+    var req = new APIRequestBody()
+        ..required = true
+        ..description = "Request Body"
+        ..schema = ModelContext.defaultContext.entityForType(InstanceType).documentedRequestSchema;
+
+    if (operation.id == APIOperation.idForMethod(this, #createObject)) {
+
+    } else if (operation.id == APIOperation.idForMethod(this, #updateObject)) {
+
+    }
+
+    return req;
+  }
+
   @override
   List<APIResponse> documentResponsesForOperation(APIOperation operation) {
     var responses = super.documentResponsesForOperation(operation);

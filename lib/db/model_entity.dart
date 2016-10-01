@@ -36,6 +36,14 @@ class ModelEntity {
       ..properties = _propertiesForEntity(this);
   }
 
+  /// Schema of the model as returned from a request
+  APISchemaObject get documentedRequestSchema {
+    return new APISchemaObject()
+      ..title = MirrorSystem.getName(instanceType.simpleName)
+      ..type = APISchemaObject.TypeObject
+      ..properties = _propertiesForEntity(this);
+  }
+
   /// All attribute values of this entity.
   ///
   /// An attribute maps to a single column or field in a database that is a single value, such as a string, integer, etc.
