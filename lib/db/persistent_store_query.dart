@@ -21,10 +21,15 @@ class PersistentStoreQuery {
     if (q._matchOn?._hasJoinElements ?? false) {
       var joinElements = _joinElementsFromQueryMatchable(q.matchOn, store, q.nestedResultProperties);
       resultKeys.addAll(joinElements);
+
+      if (q.pageDescriptor != null) {
+        throw new QueryException(QueryExceptionEvent.requestFailure, message: "Query cannot have properties that are includeInResultSet and also have a pageDescriptor.");
+      }
     } else {
       fetchLimit = q.fetchLimit;
       offset = q.offset;
-      pageDescriptor = q.pageDescriptor;
+
+      pageDescriptor = _validatePageDescriptor(q.pageDescriptor);
 
       values = _mappingElementsForMap((q.valueMap ?? q.values?.backingMap), rootEntity);
     }
@@ -62,6 +67,23 @@ class PersistentStoreQuery {
       var property = _propertyForName(entity, key);
       return new MappingElement(property, null);
     }).toList();
+  }
+
+  QueryPage _validatePageDescriptor(QueryPage page) {
+    if (page == null) {
+      return null;
+    }
+
+    var prop = rootEntity.attributes[page.propertyName];
+    if (prop == null) {
+      throw new QueryException(QueryExceptionEvent.requestFailure, message: "Property ${page.propertyName} in pageDescriptor does not exist on ${rootEntity.tableName}.");
+    }
+
+    if (page.boundingValue != null && !prop.isAssignableWith(page.boundingValue)) {
+      throw new QueryException(QueryExceptionEvent.requestFailure, message: "Property ${page.propertyName} in pageDescriptor has invalid type (${page.boundingValue.runtimeType}).");
+    }
+
+    return page;
   }
 
   List<MappingElement> _mappingElementsForMap(Map<String, dynamic> valueMap, ModelEntity entity) {

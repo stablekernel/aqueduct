@@ -283,6 +283,65 @@ void main() {
       check([10, 9, 8, 7, 6], res);
     });
   });
+
+  group("Failure cases", () {
+    ModelContext context = null;
+    var check = (List checkIDs, List values) {
+      expect(checkIDs.length, values.length);
+      var ids = values.map((v) => v.id).toList();
+      for (int i = 0; i < ids.length; i++) {
+        expect(ids[i], checkIDs[i]);
+      }
+    };
+
+    setUpAll(() async {
+      context = await contextWithModels([PageableTestModel]);
+      for (int i = 0; i < 10; i++) {
+        var p = new PageableTestModel()..value = "${i}";
+        await (new Query<PageableTestModel>()..values = p).insert();
+      }
+    });
+
+    tearDownAll(() async {
+      await context?.persistentStore?.close();
+      context = null;
+    });
+
+    test("Incorrect type for boundingValue", () async {
+      var pageObject = new QueryPage(SortOrder.ascending, "value", boundingValue: 0);
+      var req = new Query<PageableTestModel>()
+        ..pageDescriptor = pageObject;
+      try {
+        var _ = await req.fetch();
+        expect(true, false);
+      } on QueryException catch (e) {
+        expect(e.toString(), contains("Property value in pageDescriptor has invalid type (int)."));
+      }
+    });
+
+    test("Page property doesn't exist throws error", () async {
+      var pageObject = new QueryPage(SortOrder.ascending, "foobar", boundingValue: "0");
+      var req = new Query<PageableTestModel>()
+        ..pageDescriptor = pageObject;
+
+      try {
+        var _ = await req.fetch();
+        expect(true, false);
+      } on QueryException catch (e) {
+        expect(e.toString(), contains("Property foobar in pageDescriptor does not exist"));
+      }
+    });
+
+    test("Query when not fetching paging property still succeeds", () async {
+      var pageObject = new QueryPage(SortOrder.ascending, "value", boundingValue: "0");
+      var req = new Query<PageableTestModel>()
+        ..pageDescriptor = pageObject
+        ..resultProperties = ["id"]
+        ..fetchLimit = 5;
+      var res = await req.fetch();
+      check([2, 3, 4, 5, 6], res);
+    });
+  });
 }
 
 class PageableTestModel extends Model<_PageableTestModel> implements _PageableTestModel {}

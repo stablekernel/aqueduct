@@ -3,7 +3,6 @@ import 'package:aqueduct/aqueduct.dart';
 import 'dart:async';
 import 'dart:io';
 import '../helpers.dart';
-import 'dart:convert';
 
 void main() {
   group("Standard operations", () {
@@ -209,9 +208,6 @@ void main() {
   });
 
   group("Documentation", () {
-    var app = new Application<TestSink>();
-    var apiDoc = app.document(new PackagePathResolver(new File(".packages").path));
-
     var dataModel = new DataModel([TestModel]);
     ModelContext.defaultContext = new ModelContext(dataModel, new DefaultPersistentStore());
     ResourceController c = new ResourceController<TestModel>();

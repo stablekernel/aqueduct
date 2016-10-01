@@ -392,6 +392,19 @@ void main() {
         expect(e.toString(), contains("Property toy is a hasMany or hasOne relationship and is invalid as a result property of _Child, use matchOn.toy.includeInResultSet = true instead"));
       }
     });
+
+    test("Including paging on a join fails", () async {
+      var q = new Query<Parent>()
+        ..matchOn.child.includeInResultSet = true
+        ..pageDescriptor = new QueryPage(SortOrder.ascending, "id");
+
+      try {
+        await q.fetchOne();
+        expect(true, false);
+      } on QueryException catch (e) {
+        expect(e.toString(), contains("Query cannot have properties that are includeInResultSet and also have a pageDescriptor"));
+      }
+    });
   });
 }
 
