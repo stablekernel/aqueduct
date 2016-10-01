@@ -79,7 +79,8 @@ main() {
 
     test("Operations /t", () {
       var ops = apiDocs["paths"]["/t"] as Map<String, dynamic>;
-      expect(ops.length, 2);
+      expect(ops.length, 3);
+      expect(ops["parameters"], []);
       expect(ops["get"], {
         "summary": "ABCD",
         "description": "EFGH\nIJKL",
@@ -223,6 +224,20 @@ main() {
     test("Operations /t/:id", () {
       var ops = apiDocs["paths"]["/t/{id}"] as Map<String, dynamic>;
       expect(ops, {
+        "parameters" : [{
+          'name': 'id',
+          'description': '',
+          'required': true,
+          'deprecated': false,
+          'schema': {
+            'type': 'integer',
+            'required': true,
+            'readOnly': false,
+            'deprecated': false,
+            'format': 'int32'
+          },
+          'in': 'path'
+        }],
         "put": {
           "summary": "ABCD",
           "description": "",
@@ -336,6 +351,32 @@ main() {
     });
 
     test("Operation t/:id/:notID", () {
+      expect(apiDocs["paths"]["/t/{id}/{notID}"]["parameters"], [{
+        "name": "id",
+        "description": "",
+        "required": true,
+        "deprecated": false,
+        "schema": {
+          "type": "integer",
+          "required": true,
+          "readOnly": false,
+          "deprecated": false, "format": "int32"
+        },
+        "in": "path"}, {
+          "name": "notID",
+          "description": "",
+          "required": true,
+          "deprecated": false,
+          "schema": {
+            "type": "integer",
+            "required": true,
+            "readOnly": false,
+            "deprecated": false,
+            "format": "int32"
+          },
+        "in": "path"
+      }]);
+
       expect(apiDocs["paths"]["/t/{id}/{notID}"]["get"], {
         "summary": "MNOP",
         "description": "QRST",

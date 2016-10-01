@@ -242,6 +242,7 @@ class APIPath {
   Map<String, dynamic> asMap() {
     Map<String, dynamic> i = {};
 
+    i["parameters"] = parameters.map((api) => api.asMap()).toList();
     operations.forEach((op) {
       i[op.method] = op.asMap();
     });
@@ -376,22 +377,6 @@ enum APIParameterLocation {
 }
 
 class APIParameter {
-  static String typeStringForVariableMirror(VariableMirror m) {
-    return typeStringForTypeMirror(m.type);
-  }
-
-  static String typeStringForTypeMirror(TypeMirror m) {
-    if (m.isSubtypeOf(reflectType(int))) {
-      return APISchemaObject.FormatInt32;
-    } else if (m.isSubtypeOf(reflectType(double))) {
-      return APISchemaObject.FormatDouble;
-    } else if (m.isSubtypeOf(reflectType(DateTime))) {
-      return APISchemaObject.FormatDateTime;
-    }
-
-    return null;
-  }
-
   static APIParameterLocation _parameterLocationFromHTTPParameter(_HTTPParameter p) {
     if (p is HTTPPath) {
       return APIParameterLocation.path;
@@ -486,6 +471,12 @@ class APISchemaObject {
   APISchemaObject.fromTypeMirror(TypeMirror m) {
     type = typeFromTypeMirror(m);
     format = formatFromTypeMirror(m);
+
+    if (type == TypeArray) {
+      items = new APISchemaObject.fromTypeMirror(m.typeArguments.first);
+    } else if (type == TypeObject) {
+
+    }
   }
 
   static String typeFromTypeMirror(TypeMirror m) {

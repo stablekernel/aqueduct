@@ -276,6 +276,8 @@ class ResourceController<InstanceType extends Model> extends HTTPController {
 
     } else if (operation.id == APIOperation.idForMethod(this, #updateObject)) {
 
+    } else {
+      return null;
     }
 
     return req;
@@ -293,9 +295,6 @@ class ResourceController<InstanceType extends Model> extends HTTPController {
         new APIResponse()
           ..statusCode = HttpStatus.NOT_FOUND
           ..description = ""
-          ..schema = new APISchemaObject(properties: {
-            "error" : new APISchemaObject.string()
-          })
       ]);
     } else if (operation.id == APIOperation.idForMethod(this, #createObject)) {
       responses.addAll([
@@ -303,6 +302,10 @@ class ResourceController<InstanceType extends Model> extends HTTPController {
           ..statusCode = HttpStatus.OK
           ..description = ""
           ..schema = ModelContext.defaultContext.entityForType(InstanceType).documentedResponseSchema,
+        new APIResponse()
+          ..statusCode = HttpStatus.CONFLICT
+          ..description = "Object already exists"
+          ..schema = new APISchemaObject(properties: {"error" : new APISchemaObject.string()})
       ]);
     } else if (operation.id == APIOperation.idForMethod(this, #updateObject)) {
       responses.addAll([
@@ -312,23 +315,20 @@ class ResourceController<InstanceType extends Model> extends HTTPController {
           ..schema = ModelContext.defaultContext.entityForType(InstanceType).documentedResponseSchema,
         new APIResponse()
           ..statusCode = HttpStatus.NOT_FOUND
-          ..description = ""
-          ..schema = new APISchemaObject(properties: {
-            "error" : new APISchemaObject.string()
-          }),
+          ..description = "",
+        new APIResponse()
+          ..statusCode = HttpStatus.CONFLICT
+          ..description = "Object already exists"
+          ..schema = new APISchemaObject(properties: {"error" : new APISchemaObject.string()})
       ]);
     } else if (operation.id == APIOperation.idForMethod(this, #deleteObject)) {
       responses.addAll([
         new APIResponse()
           ..statusCode = HttpStatus.OK
-          ..description = ""
-          ..schema = ModelContext.defaultContext.entityForType(InstanceType).documentedResponseSchema,
+          ..description = "",
         new APIResponse()
           ..statusCode = HttpStatus.NOT_FOUND
           ..description = ""
-          ..schema = new APISchemaObject(properties: {
-            "error" : new APISchemaObject.string()
-          }),
       ]);
     } else if (operation.id == APIOperation.idForMethod(this, #getObjects)) {
       responses.addAll([
@@ -342,9 +342,6 @@ class ResourceController<InstanceType extends Model> extends HTTPController {
         new APIResponse()
           ..statusCode = HttpStatus.NOT_FOUND
           ..description = ""
-          ..schema = new APISchemaObject(properties: {
-            "error" : new APISchemaObject.string()
-          }),
       ]);
     }
 

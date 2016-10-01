@@ -3,7 +3,7 @@ import 'package:aqueduct/aqueduct.dart';
 import 'dart:async';
 import 'dart:io';
 import '../helpers.dart';
-
+import 'dart:convert';
 
 void main() {
   group("Standard operations", () {
@@ -209,6 +209,10 @@ void main() {
   });
 
   group("Documentation", () {
+    var app = new Application<TestSink>();
+    var apiDoc = app.document(new PackagePathResolver(new File(".packages").path));
+    print("${JSON.encode(apiDoc.asMap())}");
+
     var dataModel = new DataModel([TestModel]);
     ModelContext.defaultContext = new ModelContext(dataModel, new DefaultPersistentStore());
     ResourceController c = new ResourceController<TestModel>();
@@ -229,21 +233,11 @@ void main() {
       expect(successResponse.schema.title, "TestModel");
 
       var errorResponse = getResponses.firstWhere((r) => r.key == "404");
-      expect(errorResponse.schema.properties["error"].type, APISchemaObject.TypeString);
+      expect(errorResponse.schema, isNull);
     });
 
     test("createObject", () {
       var op = operations.firstWhere((e) => e.id == APIOperation.idForMethod(c, #createObject));
-      List<APIResponse> getResponses = c.documentResponsesForOperation(op);
-
-      expect(getResponses.length, 2);
-
-      var successResponse = getResponses.firstWhere((r) => r.key == "200");
-      expect(successResponse.schema.title, "TestModel");
-    });
-
-    test("updateObject", () {
-      var op = operations.firstWhere((e) => e.id == APIOperation.idForMethod(c, #updateObject));
       List<APIResponse> getResponses = c.documentResponsesForOperation(op);
 
       expect(getResponses.length, 3);
@@ -251,8 +245,22 @@ void main() {
       var successResponse = getResponses.firstWhere((r) => r.key == "200");
       expect(successResponse.schema.title, "TestModel");
 
+      expect(getResponses.firstWhere((r) => r.key == "409"), isNotNull);
+    });
+
+    test("updateObject", () {
+      var op = operations.firstWhere((e) => e.id == APIOperation.idForMethod(c, #updateObject));
+      List<APIResponse> getResponses = c.documentResponsesForOperation(op);
+
+      expect(getResponses.length, 4);
+
+      var successResponse = getResponses.firstWhere((r) => r.key == "200");
+      expect(successResponse.schema.title, "TestModel");
+
       var errorResponse = getResponses.firstWhere((r) => r.key == "404");
-      expect(errorResponse.schema.properties["error"].type, APISchemaObject.TypeString);
+      expect(errorResponse.schema, isNull);
+
+      expect(getResponses.firstWhere((r) => r.key == "409"), isNotNull);
     });
 
     test("deleteObject", () {
@@ -262,10 +270,10 @@ void main() {
       expect(getResponses.length, 3);
 
       var successResponse = getResponses.firstWhere((r) => r.key == "200");
-      expect(successResponse.schema.title, "TestModel");
+      expect(successResponse.schema, isNull);
 
       var errorResponse = getResponses.firstWhere((r) => r.key == "404");
-      expect(errorResponse.schema.properties["error"].type, APISchemaObject.TypeString);
+      expect(errorResponse.schema, isNull);
     });
 
     test("getObjects", () {
@@ -279,7 +287,7 @@ void main() {
       expect(successResponse.schema.items.title, "TestModel");
 
       var errorResponse = getResponses.firstWhere((r) => r.key == "404");
-      expect(errorResponse.schema.properties["error"].type, APISchemaObject.TypeString);
+      expect(errorResponse.schema, isNull);
     });
   });
 }

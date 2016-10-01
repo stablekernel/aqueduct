@@ -41,7 +41,7 @@ class ModelEntity {
     return new APISchemaObject()
       ..title = MirrorSystem.getName(instanceType.simpleName)
       ..type = APISchemaObject.TypeObject
-      ..properties = _propertiesForEntity(this);
+      ..properties = _propertiesForEntity(this, asRequestObject: true);
   }
 
   /// All attribute values of this entity.
@@ -152,7 +152,7 @@ class ModelEntity {
     return instance;
   }
 
-  Map<String, APISchemaObject> _propertiesForEntity(ModelEntity me, {bool shallow: false}) {
+  Map<String, APISchemaObject> _propertiesForEntity(ModelEntity me, {bool shallow: false, bool asRequestObject: false}) {
     Map<String, APISchemaObject> schemaProperties = {};
 
     if (shallow) {
@@ -168,6 +168,7 @@ class ModelEntity {
 
     me.attributes.values
         .where((attribute) => attribute.isIncludedInDefaultResultSet || (attribute.transientStatus?.isAvailableAsOutput ?? false))
+        .where((attribute) => !asRequestObject || (asRequestObject && !attribute.autoincrement))
         .forEach((attribute) {
           schemaProperties[attribute.name] = new APISchemaObject()
             ..title = attribute.name

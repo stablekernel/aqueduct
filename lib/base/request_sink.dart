@@ -93,7 +93,7 @@ abstract class RequestSink extends RequestController implements APIDocumentable 
       host = doc.hosts.first.uri;
     }
 
-    doc.securitySchemes.values.forEach((scheme) {
+    doc.securitySchemes?.values?.forEach((scheme) {
       if (scheme.isOAuth2) {
         if (scheme.oauthFlow == APISecuritySchemeFlow.implicit
         || scheme.oauthFlow == APISecuritySchemeFlow.accessCode) {
