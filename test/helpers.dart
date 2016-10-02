@@ -171,27 +171,26 @@ Future<ModelContext> contextWithModels(List<Type> instanceTypes) async {
   });
 
   var dataModel = new DataModel(instanceTypes);
-  var generator = new SchemaGenerator(dataModel);
-  var json = generator.serialized;
-  var pGenerator = new PostgreSQLSchemaGenerator(json, temporary: true);
-
+  var commands = commandsFromDataModel(dataModel, temporary: true);
   var context = new ModelContext(dataModel, persistentStore);
   ModelContext.defaultContext = context;
 
-  for (var cmd in pGenerator.commandList.split(";\n")) {
+  for (var cmd in commands) {
     await persistentStore.execute(cmd);
   }
 
   return context;
 }
 
-String commandsForModelInstanceTypes(List<Type> instanceTypes, {bool temporary: false}) {
-  var dataModel = new DataModel(instanceTypes);
-  var generator = new SchemaGenerator(dataModel);
-  var json = generator.serialized;
-  var pGenerator = new PostgreSQLSchemaGenerator(json, temporary: temporary);
+List<String> commandsFromDataModel(DataModel dataModel, {bool temporary: false}) {
+  var targetSchema = new Schema(dataModel);
+  var builder = new SchemaBuilder(new PostgreSQLPersistentStore(() => null), new Schema.empty(), targetSchema, isTemporary: temporary);
+  return builder.commands;
+}
 
-  return pGenerator.commandList;
+List<String> commandsForModelInstanceTypes(List<Type> instanceTypes, {bool temporary: false}) {
+  var dataModel = new DataModel(instanceTypes);
+  return commandsFromDataModel(dataModel, temporary: temporary);
 }
 
 class DefaultPersistentStore extends PersistentStore {
@@ -207,5 +206,7 @@ class DefaultPersistentStore extends PersistentStore {
   Predicate nullPredicate(PropertyDescription desc, bool isNull) { return null; }
   Predicate rangePredicate(PropertyDescription desc, dynamic lhsValue, dynamic rhsValue, bool insideRange) { return null; }
   Predicate stringPredicate(PropertyDescription desc, StringMatcherOperator operator, dynamic value) { return null; }
+
+  List<String> createTable(SchemaTable t, {bool isTemporary: false}) {return [];}
 }
 

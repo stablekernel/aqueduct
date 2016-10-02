@@ -4,18 +4,14 @@ import 'package:test/test.dart';
 void main() {
   test("A single, simple model", () {
     var dataModel = new DataModel([SimpleModel]);
-    var generator = new SchemaGenerator(dataModel);
-    var json = generator.serialized;
-    expect(json.length, 1);
-    expect(json.first["op"], "table.add");
+    var schema = new Schema(dataModel);
+    expect(schema.tables.length, 1);
+    var t = schema.tables.first;
 
-    var tableJSON = json.first["table"];
-    expect(tableJSON["name"], "_SimpleModel");
-    expect(tableJSON["indexes"], []);
-
-    var tableColumns = tableJSON["columns"];
+    expect(t.name, "_SimpleModel");
+    var tableColumns = t.columns;
     expect(tableColumns.length, 1);
-    expect(tableColumns.first, {
+    expect(tableColumns.first.asMap(), {
       "name" : "id",
       "type" : "bigInteger",
       "nullable" : false,
@@ -25,29 +21,23 @@ void main() {
       "primaryKey" : true,
       "relatedTableName" : null,
       "relatedColumnName" : null,
-      "deleteRule" : null
+      "deleteRule" : null,
+      "indexed" : false
     });
   });
 
   test("An extensive model", () {
     var dataModel = new DataModel([ExtensiveModel]);
-    var generator = new SchemaGenerator(dataModel);
-    var json = generator.serialized;
-    expect(json.length, 1);
-    expect(json.first["op"], "table.add");
+    var schema = new Schema(dataModel);
+    expect(schema.tables.length, 1);
 
-    var tableJSON = json.first["table"];
-    expect(tableJSON["name"], "_ExtensiveModel");
+    var table = schema.tables.first;
+    expect(table.name, "_ExtensiveModel");
 
-    var indexes = tableJSON["indexes"];
-    expect(indexes.length, 2);
-    expect(indexes.first["name"], "indexedValue");
-    expect(indexes.last["name"], "loadedValue");
-
-    var columns = tableJSON["columns"];
+    var columns = table.columns;
     expect(columns.length, 8);
 
-    expect(columns.firstWhere((c) => c["name"] == "id"), {
+    expect(columns.firstWhere((c) => c.name == "id").asMap(), {
       "name" : "id",
       "type" : "string",
       "nullable" : false,
@@ -57,10 +47,11 @@ void main() {
       "primaryKey" : true,
       "relatedTableName" : null,
       "relatedColumnName" : null,
-      "deleteRule" : null
+      "deleteRule" : null,
+      "indexed" : false
     });
 
-    expect(columns.firstWhere((c) => c["name"] == "startDate"), {
+    expect(columns.firstWhere((c) => c.name == "startDate").asMap(), {
       "name" : "startDate",
       "type" : "datetime",
       "nullable" : false,
@@ -70,10 +61,11 @@ void main() {
       "primaryKey" : false,
       "relatedTableName" : null,
       "relatedColumnName" : null,
-      "deleteRule" : null
+      "deleteRule" : null,
+      "indexed" : false
     });
 
-    expect(columns.firstWhere((c) => c["name"] == "indexedValue"), {
+    expect(columns.firstWhere((c) => c.name == "indexedValue").asMap(), {
       "name" : "indexedValue",
       "type" : "integer",
       "nullable" : false,
@@ -83,10 +75,11 @@ void main() {
       "primaryKey" : false,
       "relatedTableName" : null,
       "relatedColumnName" : null,
-      "deleteRule" : null
+      "deleteRule" : null,
+      "indexed" : true
     });
 
-    expect(columns.firstWhere((c) => c["name"] == "autoincrementValue"), {
+    expect(columns.firstWhere((c) => c.name == "autoincrementValue").asMap(), {
       "name" : "autoincrementValue",
       "type" : "integer",
       "nullable" : false,
@@ -96,10 +89,11 @@ void main() {
       "primaryKey" : false,
       "relatedTableName" : null,
       "relatedColumnName" : null,
-      "deleteRule" : null
+      "deleteRule" : null,
+      "indexed" : false
     });
 
-    expect(columns.firstWhere((c) => c["name"] == "uniqueValue"), {
+    expect(columns.firstWhere((c) => c.name == "uniqueValue").asMap(), {
       "name" : "uniqueValue",
       "type" : "string",
       "nullable" : false,
@@ -109,10 +103,11 @@ void main() {
       "primaryKey" : false,
       "relatedTableName" : null,
       "relatedColumnName" : null,
-      "deleteRule" : null
+      "deleteRule" : null,
+      "indexed" : false
     });
 
-    expect(columns.firstWhere((c) => c["name"] == "defaultItem"), {
+    expect(columns.firstWhere((c) => c.name == "defaultItem").asMap(), {
       "name" : "defaultItem",
       "type" : "string",
       "nullable" : false,
@@ -122,10 +117,11 @@ void main() {
       "primaryKey" : false,
       "relatedTableName" : null,
       "relatedColumnName" : null,
-      "deleteRule" : null
+      "deleteRule" : null,
+      "indexed" : false
     });
 
-    expect(columns.firstWhere((c) => c["name"] == "nullableValue"), {
+    expect(columns.firstWhere((c) => c.name == "nullableValue").asMap(), {
       "name" : "nullableValue",
       "type" : "boolean",
       "nullable" : true,
@@ -135,10 +131,11 @@ void main() {
       "primaryKey" : false,
       "relatedTableName" : null,
       "relatedColumnName" : null,
-      "deleteRule" : null
+      "deleteRule" : null,
+      "indexed" : false
     });
 
-    expect(columns.firstWhere((c) => c["name"] == "loadedValue"), {
+    expect(columns.firstWhere((c) => c.name == "loadedValue").asMap(), {
       "name" : "loadedValue",
       "type" : "bigInteger",
       "nullable" : true,
@@ -148,24 +145,22 @@ void main() {
       "primaryKey" : false,
       "relatedTableName" : null,
       "relatedColumnName" : null,
-      "deleteRule" : null
+      "deleteRule" : null,
+      "indexed" : true
     });
   });
 
   test("A model graph", () {
     var dataModel = new DataModel([Container, DefaultItem, LoadedItem, LoadedSingleItem]);
-    var generator = new SchemaGenerator(dataModel);
-    var json = generator.serialized;
+    var schema = new Schema(dataModel);
 
-    expect(json.length, 4);
-    expect(json.every((i) => i["op"] == "table.add"), true);
+    expect(schema.tables.length, 4);
 
-    var containerTable = json.firstWhere((op) => op["table"]["name"] == "_Container")["table"];
-    expect(containerTable["name"], "_Container");
-    expect(containerTable["indexes"].length, 0);
-    var containerColumns = containerTable["columns"];
+    var containerTable = schema.tables.firstWhere((t) => t.name == "_Container");
+    expect(containerTable.name, "_Container");
+    var containerColumns = containerTable.columns;
     expect(containerColumns.length, 1);
-    expect(containerColumns.first, {
+    expect(containerColumns.first.asMap(), {
       "name" : "id",
       "type" : "bigInteger",
       "nullable" : false,
@@ -175,17 +170,15 @@ void main() {
       "primaryKey" : true,
       "relatedTableName" : null,
       "relatedColumnName" : null,
-      "deleteRule" : null
+      "deleteRule" : null,
+      "indexed" : false
     });
 
-    var defaultItemTable = json.firstWhere((op) => op["table"]["name"] == "_DefaultItem")["table"];
-    expect(defaultItemTable["name"], "_DefaultItem");
-    expect(defaultItemTable["indexes"], [
-      {"name" : "container"}
-    ]);
-    var defaultItemColumns = defaultItemTable["columns"];
+    var defaultItemTable = schema.tables.firstWhere((t) => t.name == "_DefaultItem");
+    expect(defaultItemTable.name, "_DefaultItem");
+    var defaultItemColumns = defaultItemTable.columns;
     expect(defaultItemColumns.length, 2);
-    expect(defaultItemColumns.first, {
+    expect(defaultItemColumns.first.asMap(), {
       "name" : "id",
       "type" : "bigInteger",
       "nullable" : false,
@@ -195,9 +188,10 @@ void main() {
       "primaryKey" : true,
       "relatedTableName" : null,
       "relatedColumnName" : null,
-      "deleteRule" : null
+      "deleteRule" : null,
+      "indexed" : false
     });
-    expect(defaultItemColumns.last, {
+    expect(defaultItemColumns.last.asMap(), {
       "name" : "container",
       "type" : "bigInteger",
       "nullable" : true,
@@ -208,17 +202,14 @@ void main() {
       "relatedTableName" : "_Container",
       "relatedColumnName" : "id",
       "deleteRule" : "nullify",
+      "indexed" : true
     });
 
-    var loadedItemTable = json.firstWhere((op) => op["table"]["name"] == "_LoadedItem")["table"];
-    expect(loadedItemTable ["name"], "_LoadedItem");
-    expect(loadedItemTable ["indexes"], [
-      {"name" : "someIndexedThing"},
-      {"name" : "container"}
-    ]);
-    var loadedColumns = loadedItemTable["columns"];
+    var loadedItemTable = schema.tables.firstWhere((t) => t.name == "_LoadedItem");
+    expect(loadedItemTable.name, "_LoadedItem");
+    var loadedColumns = loadedItemTable.columns;
     expect(loadedColumns.length, 3);
-    expect(loadedColumns[0], {
+    expect(loadedColumns[0].asMap(), {
       "name" : "id",
       "type" : "bigInteger",
       "nullable" : false,
@@ -228,9 +219,10 @@ void main() {
       "primaryKey" : true,
       "relatedTableName" : null,
       "relatedColumnName" : null,
-      "deleteRule" : null
+      "deleteRule" : null,
+      "indexed" : false
     });
-    expect(loadedColumns[1], {
+    expect(loadedColumns[1].asMap(), {
       "name" : "someIndexedThing",
       "type" : "string",
       "nullable" : false,
@@ -240,9 +232,10 @@ void main() {
       "primaryKey" : false,
       "relatedTableName" : null,
       "relatedColumnName" : null,
-      "deleteRule" : null
+      "deleteRule" : null,
+      "indexed" : true
     });
-    expect(loadedColumns[2], {
+    expect(loadedColumns[2].asMap(), {
       "name" : "container",
       "type" : "bigInteger",
       "nullable" : true,
@@ -252,17 +245,15 @@ void main() {
       "primaryKey" : false,
       "relatedTableName" : "_Container",
       "relatedColumnName" : "id",
-      "deleteRule" : "restrict"
+      "deleteRule" : "restrict",
+      "indexed" : true
     });
 
-    var loadedSingleItemTable = json.firstWhere((op) => op["table"]["name"] == "_LoadedSingleItem")["table"];
-    expect(loadedSingleItemTable ["name"], "_LoadedSingleItem");
-    expect(loadedSingleItemTable ["indexes"], [
-      {"name" : "container"}
-    ]);
-    var loadedSingleColumns = loadedSingleItemTable["columns"];
+    var loadedSingleItemTable = schema.tables.firstWhere((t) => t.name == "_LoadedSingleItem");
+    expect(loadedSingleItemTable.name, "_LoadedSingleItem");
+    var loadedSingleColumns = loadedSingleItemTable.columns;
     expect(loadedSingleColumns.length, 2);
-    expect(loadedSingleColumns[0], {
+    expect(loadedSingleColumns[0].asMap(), {
       "name" : "id",
       "type" : "bigInteger",
       "nullable" : false,
@@ -272,9 +263,10 @@ void main() {
       "primaryKey" : true,
       "relatedTableName" : null,
       "relatedColumnName" : null,
-      "deleteRule" : null
+      "deleteRule" : null,
+      "indexed" : false
     });
-    expect(loadedSingleColumns[1], {
+    expect(loadedSingleColumns[1].asMap(), {
       "name" : "container",
       "type" : "bigInteger",
       "nullable" : false,
@@ -284,7 +276,8 @@ void main() {
       "primaryKey" : false,
       "relatedTableName" : "_Container",
       "relatedColumnName" : "id",
-      "deleteRule" : "cascade"
+      "deleteRule" : "cascade",
+      "indexed" : true
     });
   });
 }
@@ -335,7 +328,10 @@ class _SimpleModel {
   int id;
 }
 
-class ExtensiveModel extends Model<_ExtensiveModel> implements _ExtensiveModel {}
+class ExtensiveModel extends Model<_ExtensiveModel> implements _ExtensiveModel {
+  @transientAttribute
+  String transientProperty;
+}
 class _ExtensiveModel {
   @ColumnAttributes(primaryKey: true, databaseType: PropertyType.string)
   String id;

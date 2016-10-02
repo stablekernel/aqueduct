@@ -1,44 +1,35 @@
 part of aqueduct;
 
-class PostgreSQLSchemaGenerator extends SchemaGeneratorBackend {
-  PostgreSQLSchemaGenerator(List<Map> operations, {bool temporary: false}) : super(operations, temporary: temporary) {
-    commands = [];
-    commands.addAll(tableCommands);
-    commands.addAll(indexCommands);
-    commands.addAll(constraintCommands);
+class PostgreSQLSchemaGenerator {
+  List<String> createTable(SchemaTable table, {bool isTemporary: false}) {
+    var columnString = table.columns.map((col) => _columnStringForColumn(col)).join(",");
+    var tableCommand = "CREATE${isTemporary ? " TEMPORARY " : " "}TABLE ${table.name} (${columnString})";
+
+    var indexCommands = table.columns
+        .where((col) => col.isIndexed)
+        .map((col) => createIndicesForColumn(col))
+        .expand((commands) => commands);
+
+    var constraintCommands = table.columns
+        .where((sc) => sc.isForeignKey)
+        .map((col) => createConstraintsForColumn(col))
+        .expand((commands) => commands);
+
+    return [[tableCommand], indexCommands, constraintCommands].expand((cmds) => cmds).toList();
   }
 
-  List<String> tableCommands = [];
-  List<String> indexCommands = [];
-  List<String> constraintCommands = [];
-
-
-  void handleAddTableCommand(SchemaTable table) {
-    List<SchemaColumn> sortedColumns = new List.from(table.columns);
-    sortedColumns.sort((a, b) => a.name.compareTo(b.name));
-    var columnString = sortedColumns.map((sc) => _columnStringForColumn(sc)).join(",");
-
-    tableCommands.add("CREATE${isTemporary ? " TEMPORARY " : " "}TABLE ${table.name} (${columnString});");
-
-    List<SchemaIndex> sortedIndexes = new List.from(table.indexes);
-    sortedIndexes.sort((a, b) => a.name.compareTo(b.name));
-    indexCommands.addAll(sortedIndexes.map((i) => _indexStringForTableIndex(table, i)).toList());
-
-    List<SchemaColumn> sortedConstraints = table.columns
-      .where((col) => col.relatedColumnName != null)
-      .toList();
-    sortedConstraints.sort((a, b) => a.name.compareTo(b.name));
-    constraintCommands.addAll(sortedConstraints.map((c) => _foreignKeyConstraintForTableConstraint(table, c)).toList());
+  List<String> createIndicesForColumn(SchemaColumn column) {
+    return [
+      "CREATE INDEX ${column.table.name}_${_columnNameForColumn(column)}_idx ON ${column.table.name} (${_columnNameForColumn(column)})"
+    ];
   }
 
-  String _foreignKeyConstraintForTableConstraint(SchemaTable sourceTable, SchemaColumn column) =>
-      "ALTER TABLE ONLY ${sourceTable.name} ADD FOREIGN KEY (${_columnNameForColumn(column)}) "
+  List<String> createConstraintsForColumn(SchemaColumn column) {
+    return [
+      "ALTER TABLE ONLY ${column.table.name} ADD FOREIGN KEY (${_columnNameForColumn(column)}) "
           "REFERENCES ${column.relatedTableName} (${column.relatedColumnName}) "
-          "ON DELETE ${_deleteRuleStringForDeleteRule(column.deleteRule)};";
-
-  String _indexStringForTableIndex(SchemaTable table, SchemaIndex i) {
-    var actualColumn = table.columns.firstWhere((col) => col.name == i.name);
-    return "CREATE INDEX ${table.name}_${_columnNameForColumn(actualColumn)}_idx ON ${table.name} (${_columnNameForColumn(actualColumn)});";
+          "ON DELETE ${_deleteRuleStringForDeleteRule(column.deleteRule)}"
+    ];
   }
 
   String _columnStringForColumn(SchemaColumn col) {

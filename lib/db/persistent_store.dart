@@ -25,4 +25,6 @@ abstract class PersistentStore {
   Predicate nullPredicate(PropertyDescription desc, bool isNull);
   Predicate rangePredicate(PropertyDescription desc, dynamic lhsValue, dynamic rhsValue, bool insideRange);
   Predicate stringPredicate(PropertyDescription desc, StringMatcherOperator operator, dynamic value);
+
+  List<String> createTable(SchemaTable table, {bool isTemporary: false});
 }

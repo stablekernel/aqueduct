@@ -3,11 +3,7 @@ import 'package:wildfire/wildfire.dart';
 main() {
   var dataModel = new DataModel.fromPackageContainingType(WildfireSink);
   var persistentStore = new PostgreSQLPersistentStore(() => null);
-  var ctx = new ModelContext(dataModel, persistentStore);
 
-  var generator = new SchemaGenerator(ctx.dataModel);
-  var json = generator.serialized;
-  var pGenerator = new PostgreSQLSchemaGenerator(json);
-
-  print("${pGenerator.commandList}");
+  var builder = new SchemaBuilder(persistentStore, new Schema.empty(), new Schema(dataModel));
+  print("${builder.commands.join(";\n")}");
 }

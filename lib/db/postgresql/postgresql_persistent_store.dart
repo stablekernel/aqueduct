@@ -1,6 +1,6 @@
 part of aqueduct;
 
-class PostgreSQLPersistentStore extends PersistentStore {
+class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGenerator {
   static Logger logger = new Logger("aqueduct");
   static Map<MatcherOperator, String> symbolTable = {
     MatcherOperator.lessThan : "<",

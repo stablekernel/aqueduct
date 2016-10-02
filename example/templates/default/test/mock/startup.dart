@@ -57,11 +57,9 @@ class TestApplication {
   }
 
   static Future createDatabaseSchema(ModelContext context, Logger logger) async {
-    var generator = new SchemaGenerator(context.dataModel);
-    var json = generator.serialized;
-    var pGenerator = new PostgreSQLSchemaGenerator(json, temporary: true);
+    var builder = new SchemaBuilder(context.persistentStore, new Schema.empty(), new Schema(context.dataModel), isTemporary: true);
 
-    for (var cmd in pGenerator.commandList.split(";\n")) {
+    for (var cmd in builder.commands) {
       logger?.info("$cmd");
       await context.persistentStore.execute(cmd);
     }

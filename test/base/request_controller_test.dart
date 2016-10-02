@@ -71,7 +71,10 @@ void main() {
     var handler = (Request req) async {
       await req.response.close();
 
-      throw new HTTPResponseException(400, "whocares");
+      // To stop the analyzer from complaining, since it see through the bullshit of 'if (true)' and the return type would be dead code.
+      if ([1].any((i) => true)) {
+        throw new HTTPResponseException(400, "whocares");
+      }
       return new Response.ok(null);
     };
 

@@ -4,52 +4,54 @@ import '../../helpers.dart';
 
 void main() {
   test("Property tables generate appropriate postgresql commands", () {
-    expect(commandsForModelInstanceTypes([GeneratorModel1]),
-        "CREATE TABLE _GeneratorModel1 (id BIGSERIAL PRIMARY KEY,name TEXT NOT NULL,option BOOLEAN NOT NULL,points DOUBLE PRECISION NOT NULL UNIQUE,validDate TIMESTAMP NULL);");
+    var commands = commandsForModelInstanceTypes([GeneratorModel1]);
+    expect(commands[0], "CREATE TABLE _GeneratorModel1 (id BIGSERIAL PRIMARY KEY,name TEXT NOT NULL,option BOOLEAN NOT NULL,points DOUBLE PRECISION NOT NULL UNIQUE,validDate TIMESTAMP NULL)");
   });
 
   test("Create temporary table", () {
-    expect(commandsForModelInstanceTypes([GeneratorModel1], temporary: true),
-        "CREATE TEMPORARY TABLE _GeneratorModel1 (id BIGSERIAL PRIMARY KEY,name TEXT NOT NULL,option BOOLEAN NOT NULL,points DOUBLE PRECISION NOT NULL UNIQUE,validDate TIMESTAMP NULL);");
+    var commands = commandsForModelInstanceTypes([GeneratorModel1], temporary: true);
+    expect(commands[0], "CREATE TEMPORARY TABLE _GeneratorModel1 (id BIGSERIAL PRIMARY KEY,name TEXT NOT NULL,option BOOLEAN NOT NULL,points DOUBLE PRECISION NOT NULL UNIQUE,validDate TIMESTAMP NULL)");
   });
 
   test("Create table with indices", () {
-    expect(commandsForModelInstanceTypes([GeneratorModel2]),
-        "CREATE TABLE _GeneratorModel2 (id INT PRIMARY KEY);\nCREATE INDEX _GeneratorModel2_id_idx ON _GeneratorModel2 (id);");
+    var commands = commandsForModelInstanceTypes([GeneratorModel2]);
+    expect(commands[0], "CREATE TABLE _GeneratorModel2 (id INT PRIMARY KEY)");
+    expect(commands[1], "CREATE INDEX _GeneratorModel2_id_idx ON _GeneratorModel2 (id)");
   });
 
   test("Create multiple tables with trailing index", () {
-    expect(commandsForModelInstanceTypes([GeneratorModel1, GeneratorModel2]),
-        "CREATE TABLE _GeneratorModel1 (id BIGSERIAL PRIMARY KEY,name TEXT NOT NULL,option BOOLEAN NOT NULL,points DOUBLE PRECISION NOT NULL UNIQUE,validDate TIMESTAMP NULL);\nCREATE TABLE _GeneratorModel2 (id INT PRIMARY KEY);\nCREATE INDEX _GeneratorModel2_id_idx ON _GeneratorModel2 (id);");
+    var commands = commandsForModelInstanceTypes([GeneratorModel1, GeneratorModel2]);
+    expect(commands[0], "CREATE TABLE _GeneratorModel1 (id BIGSERIAL PRIMARY KEY,name TEXT NOT NULL,option BOOLEAN NOT NULL,points DOUBLE PRECISION NOT NULL UNIQUE,validDate TIMESTAMP NULL)");
+    expect(commands[1], "CREATE TABLE _GeneratorModel2 (id INT PRIMARY KEY)");
+    expect(commands[2], "CREATE INDEX _GeneratorModel2_id_idx ON _GeneratorModel2 (id)");
   });
 
   test("Default values are properly serialized", () {
-    expect(commandsForModelInstanceTypes([GeneratorModel3]),
-        "CREATE TABLE _GeneratorModel3 (creationDate TIMESTAMP NOT NULL DEFAULT (now() at time zone 'utc'),id INT PRIMARY KEY,option BOOLEAN NOT NULL DEFAULT true,otherTime TIMESTAMP NOT NULL DEFAULT '1900-01-01T00:00:00.000Z',textValue TEXT NOT NULL DEFAULT \$\$dflt\$\$,value DOUBLE PRECISION NOT NULL DEFAULT 20.0);");
+    var commands = commandsForModelInstanceTypes([GeneratorModel3]);
+    expect(commands[0], "CREATE TABLE _GeneratorModel3 (creationDate TIMESTAMP NOT NULL DEFAULT (now() at time zone 'utc'),id INT PRIMARY KEY,textValue TEXT NOT NULL DEFAULT \$\$dflt\$\$,option BOOLEAN NOT NULL DEFAULT true,otherTime TIMESTAMP NOT NULL DEFAULT '1900-01-01T00:00:00.000Z',value DOUBLE PRECISION NOT NULL DEFAULT 20.0)");
   });
 
   test("Table with tableName() overrides class name", () {
-    expect(commandsForModelInstanceTypes([GenNamed]),
-        "CREATE TABLE GenNamed (id INT PRIMARY KEY);");
+    expect(commandsForModelInstanceTypes([GenNamed]), ["CREATE TABLE GenNamed (id INT PRIMARY KEY)"]);
   });
 
   test("One-to-one relationships are generated", () {
     var cmds = commandsForModelInstanceTypes([GenOwner, GenAuth]);
-    expect(cmds.contains("CREATE TABLE _GenOwner (id BIGSERIAL PRIMARY KEY)"), true);
-    expect(cmds.contains("CREATE TABLE _GenAuth (id INT PRIMARY KEY,owner_id BIGINT NULL UNIQUE)"), true);
-    expect(cmds.contains("CREATE INDEX _GenAuth_owner_id_idx ON _GenAuth (owner_id)"), true);
-    expect(cmds.contains("ALTER TABLE ONLY _GenAuth ADD FOREIGN KEY (owner_id) REFERENCES _GenOwner (id) ON DELETE CASCADE"), true);
-    expect(cmds.split("\n").length, 4);
+    expect(cmds[0], "CREATE TABLE _GenOwner (id BIGSERIAL PRIMARY KEY)");
+    expect(cmds[1], "CREATE TABLE _GenAuth (id INT PRIMARY KEY,owner_id BIGINT NULL UNIQUE)");
+    expect(cmds[2], "CREATE INDEX _GenAuth_owner_id_idx ON _GenAuth (owner_id)");
+    expect(cmds[3], "ALTER TABLE ONLY _GenAuth ADD FOREIGN KEY (owner_id) REFERENCES _GenOwner (id) ON DELETE CASCADE");
+    expect(cmds.length, 4);
   });
 
   test("One-to-many relationships are generated", () {
     var cmds = commandsForModelInstanceTypes([GenUser, GenPost]);
 
     expect(cmds.contains("CREATE TABLE _GenUser (id INT PRIMARY KEY,name TEXT NOT NULL)"), true);
-    expect(cmds.contains("CREATE TABLE _GenPost (id INT PRIMARY KEY,owner_id INT NULL,text TEXT NOT NULL)"), true);
+    expect(cmds.contains("CREATE TABLE _GenPost (id INT PRIMARY KEY,text TEXT NOT NULL,owner_id INT NULL)"), true);
     expect(cmds.contains("CREATE INDEX _GenPost_owner_id_idx ON _GenPost (owner_id)"), true);
     expect(cmds.contains("ALTER TABLE ONLY _GenPost ADD FOREIGN KEY (owner_id) REFERENCES _GenUser (id) ON DELETE RESTRICT"), true);
-    expect(cmds.split("\n").length, 4);
+    expect(cmds.length, 4);
   });
 
   test("Many-to-many relationships are generated", () {
@@ -62,7 +64,7 @@ void main() {
     expect(cmds.contains("ALTER TABLE ONLY _GenJoin ADD FOREIGN KEY (right_id) REFERENCES _GenRight (id) ON DELETE SET NULL"), true);
     expect(cmds.contains("CREATE INDEX _GenJoin_left_id_idx ON _GenJoin (left_id)"), true);
     expect(cmds.contains("CREATE INDEX _GenJoin_right_id_idx ON _GenJoin (right_id)"), true);
-    expect(cmds.split("\n").length, 7);
+    expect(cmds.length, 7);
   });
 
   test("Serial types in relationships are properly inversed", () {
@@ -71,7 +73,10 @@ void main() {
   });
 }
 
-class GeneratorModel1 extends Model<_GeneratorModel1> implements _GeneratorModel1 {}
+class GeneratorModel1 extends Model<_GeneratorModel1> implements _GeneratorModel1 {
+  @transientAttribute
+  String foo;
+}
 
 class _GeneratorModel1 {
   @primaryKey

@@ -1,30 +1,65 @@
 part of aqueduct;
 
-class SchemaGenerator {
-  SchemaGenerator(DataModel dataModel, {String previousDataModelString: null}) {
-    tables = dataModel._entities.values.map((e) => new SchemaTable(e)).toList();
+abstract class SchemaElement {
+  Map<String, dynamic> asMap();
+}
 
-    serialized = _buildOperationsFromPreviousDataModelString(previousDataModelString);
+class Schema {
+  Schema(DataModel dataModel) {
+    tables = dataModel._entities.values.map((e) => new SchemaTable(this, e)).toList();
+  }
+
+  Schema.from(Schema otherSchema) {
+    tables = otherSchema?.tables?.map((table) => new SchemaTable.from(this, table))?.toList() ?? [];
+  }
+
+  Schema.empty() {
+    tables = [];
   }
 
   List<SchemaTable> tables;
-  List<Map<String, dynamic>> serialized;
+  List<SchemaTable> get dependencyOrderedTables => _orderedTables([], tables);
 
-  List<Map<String, dynamic>> _buildOperationsFromPreviousDataModelString(String previousDataModelString) {
-    if (previousDataModelString == null) {
-      // Fresh, so only table.add
-      return tables
-          .map((t) => t.asSerializable())
-          .map((s) => {"op" : "table.add", "table" : s})
-          .toList();
+  SchemaTable tableForName(String name) {
+    var lowercaseName = name.toLowerCase();
+    return tables.firstWhere((t) => t.name.toLowerCase() == lowercaseName, orElse: () => null);
+  }
+
+  void addTable(SchemaTable table) {
+
+  }
+
+  List<SchemaTable> _orderedTables(List<SchemaTable> tablesAccountedFor, List<SchemaTable> remainingTables) {
+    if (remainingTables.isEmpty) {
+      return tablesAccountedFor;
     }
 
-    return null;
+    var tableIsReady = (SchemaTable t) {
+      var foreignKeyColumns = t.columns.where((sc) => sc.relatedTableName != null).toList();
+
+      if (foreignKeyColumns.isEmpty) {
+        return true;
+      }
+
+      return foreignKeyColumns
+          .map((sc) => sc.relatedTableName)
+          .every((tableName) => tablesAccountedFor.map((st) => st.name).contains(tableName));
+    };
+
+    tablesAccountedFor.addAll(remainingTables.where(tableIsReady));
+
+    return _orderedTables(tablesAccountedFor, remainingTables.where((st) => !tablesAccountedFor.contains(st)).toList());
+  }
+
+  Map<String, dynamic> asMap() {
+    return {
+      "tables" : tables.map((t) => t.asMap()).toList()
+    };
   }
 }
 
-class SchemaTable {
-  SchemaTable(ModelEntity entity ) {
+class SchemaTable extends SchemaElement {
+  SchemaTable(this.schema, ModelEntity entity) {
     name = entity.tableName;
 
     var validProperties = entity.properties.values
@@ -32,37 +67,36 @@ class SchemaTable {
         .toList();
 
     columns = validProperties
-        .map((p) => new SchemaColumn(entity, p))
-        .toList();
-
-    indexes = validProperties
-        .where((p) => p.isIndexed)
-        .map((p) => new SchemaIndex(p))
+        .map((p) => new SchemaColumn(this, entity, p))
         .toList();
   }
 
-  SchemaTable.fromJSON(Map<String, dynamic> json) {
-    name = json["name"];
-    columns = json["columns"].map((c) => new SchemaColumn.fromJSON(c)).toList();
-    indexes = json["indexes"].map((c) => new SchemaIndex.fromJSON(c)).toList();
+  SchemaTable.from(this.schema, SchemaTable otherTable) {
+    name = otherTable.name;
+    columns = otherTable.columns.map((col) => new SchemaColumn.from(this, col)).toList();
   }
 
+  final Schema schema;
   String name;
   List<SchemaColumn> columns;
-  List<SchemaIndex> indexes;
 
-  Map<String, dynamic> asSerializable() {
+  SchemaColumn columnForName(String name) {
+    var lowercaseName = name.toLowerCase();
+    return columns.firstWhere((col) => col.name.toLowerCase() == lowercaseName, orElse: () => null);
+  }
+
+  Map<String, dynamic> asMap() {
     return {
       "name" : name,
-      "columns" : columns.map((c) => c.asSerializable()).toList(),
-      "indexes" : indexes.map((i) => i.asSerializable()).toList()
+      "columns" : columns.map((c) => c.asMap()).toList()
     };
   }
 
+  String toString() => name;
 }
 
-class SchemaColumn {
-  SchemaColumn(ModelEntity entity, PropertyDescription desc) {
+class SchemaColumn extends SchemaElement {
+  SchemaColumn(this.table, ModelEntity entity, PropertyDescription desc) {
     name = desc.name;
 
     if (desc is RelationshipDescription) {
@@ -79,25 +113,29 @@ class SchemaColumn {
     isNullable = desc.isNullable;
     autoincrement = desc.autoincrement;
     isUnique = desc.isUnique;
+    isIndexed = desc.isIndexed;
   }
 
-  SchemaColumn.fromJSON(Map<String, dynamic> json) {
-    name = json["name"];
-    type = json["type"];
-    isNullable = json["nullable"];
-    autoincrement = json["autoincrement"];
-    isUnique = json["unique"];
-    defaultValue = json["defaultValue"];
-    isPrimaryKey = json["primaryKey"];
-
-    relatedColumnName = json["relatedColumnName"];
-    relatedTableName = json["relatedTableName"];
-    deleteRule = json["deleteRule"];
+  SchemaColumn.from(this.table, SchemaColumn otherColumn) {
+    name = otherColumn.name;
+    type = otherColumn.type;
+    isIndexed = otherColumn.isIndexed;
+    isNullable = otherColumn.isNullable;
+    autoincrement = otherColumn.autoincrement;
+    isUnique = otherColumn.isUnique;
+    defaultValue = otherColumn.defaultValue;
+    isPrimaryKey = otherColumn.isPrimaryKey;
+    relatedTableName = otherColumn.relatedTableName;
+    relatedColumnName = otherColumn.relatedColumnName;
+    deleteRule = otherColumn.deleteRule;
   }
+
+  final SchemaTable table;
 
   String name;
   String type;
 
+  bool isIndexed;
   bool isNullable;
   bool autoincrement;
   bool isUnique;
@@ -107,6 +145,10 @@ class SchemaColumn {
   String relatedTableName;
   String relatedColumnName;
   String deleteRule;
+
+  bool get isForeignKey {
+    return relatedTableName != null && relatedColumnName != null;
+  }
 
   String typeStringForType(PropertyType type) {
     switch (type) {
@@ -132,7 +174,7 @@ class SchemaColumn {
     return null;
   }
 
-  Map<String, dynamic> asSerializable() {
+  Map<String, dynamic> asMap() {
     return {
       "name" : name,
       "type" : type,
@@ -144,50 +186,9 @@ class SchemaColumn {
       "relatedTableName" : relatedTableName,
       "relatedColumnName" : relatedColumnName,
       "deleteRule" : deleteRule,
+      "indexed" : isIndexed
     };
   }
-}
 
-class SchemaIndex {
-  SchemaIndex(PropertyDescription desc) {
-    name = desc.name;
-  }
-
-  SchemaIndex.fromJSON(Map<String, dynamic> json) {
-    name = json["name"];
-  }
-
-  String name;
-
-  Map<String, dynamic> asSerializable() {
-    return {
-      "name" : name
-    };
-  }
-}
-
-abstract class SchemaGeneratorBackend {
-  SchemaGeneratorBackend(List<Map<String, dynamic>> operations, {bool temporary: false}) {
-    isTemporary = temporary;
-    operations.forEach((op) {
-      _parseOperation(op);
-    });
-  }
-
-  List<String> commands;
-  bool isTemporary;
-
-  String get commandList {
-    return commands.join("\n");
-  }
-
-  void _parseOperation(Map<String, dynamic> operation) {
-    switch(operation["op"]) {
-      case "table.add" : handleAddTableCommand(new SchemaTable.fromJSON(operation["table"]));
-    }
-
-    return null;
-  }
-
-  void handleAddTableCommand(SchemaTable table);
+  String toString() => "$name $relatedTableName";
 }

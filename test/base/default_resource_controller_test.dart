@@ -299,9 +299,11 @@ class TestSink extends RequestSink {
 
   @override
   Future willOpen() async {
-    var generator = new SchemaGenerator(context.dataModel);
-    var specificGenerator = new PostgreSQLSchemaGenerator(generator.serialized, temporary: true);
-    for (var cmd in specificGenerator.commands) {
+    var targetSchema = new Schema(context.dataModel);
+    var schemaBuilder = new SchemaBuilder(context.persistentStore, new Schema.empty(), targetSchema, isTemporary: true);
+
+    var commands = schemaBuilder.commands;
+    for (var cmd in commands) {
       await context.persistentStore.execute(cmd);
     }
   }

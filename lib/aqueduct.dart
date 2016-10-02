@@ -79,6 +79,7 @@ part 'db/persistent_store_query.dart';
 part 'db/postgresql/postgresql_persistent_store.dart';
 part 'db/postgresql/postgresql_schema_generator.dart';
 part 'db/predicate.dart';
+part 'db/schema_builder.dart';
 part 'db/query.dart';
 part 'db/query_page.dart';
 part 'db/schema.dart';
