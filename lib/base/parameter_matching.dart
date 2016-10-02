@@ -224,7 +224,7 @@ dynamic _convertParameterWithMirror(String parameterValue, TypeMirror typeMirror
   }
 
   if (typeMirror is ClassMirror) {
-    var parseDecl = typeMirror.declarations[new Symbol("parse")];
+    var parseDecl = typeMirror.declarations[#parse];
     if (parseDecl != null) {
       try {
         var reflValue = typeMirror.invoke(parseDecl.simpleName, [parameterValue]);

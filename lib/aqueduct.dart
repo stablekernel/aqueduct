@@ -81,7 +81,7 @@ part 'db/postgresql/postgresql_schema_generator.dart';
 part 'db/predicate.dart';
 part 'db/query.dart';
 part 'db/query_page.dart';
-part 'db/schema_generator.dart';
+part 'db/schema.dart';
 part 'db/sort_descriptor.dart';
 part 'utilities/mock_server.dart';
 part 'utilities/test_client.dart';

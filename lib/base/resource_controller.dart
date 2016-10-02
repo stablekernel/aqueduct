@@ -112,6 +112,9 @@ class ResourceController<InstanceType extends Model> extends HTTPController {
     instance.readMap(requestBody as Map<String, dynamic>);
     _query.values = instance;
 
+    logger.info("${_query.values.backingMap}");
+
+
     _query = await willInsertObjectWithQuery(_query);
     var result = await _query?.insert();
 
@@ -358,7 +361,6 @@ class ResourceController<InstanceType extends Model> extends HTTPController {
       return null;
     }
 
-    print("${desc.type} $value");
     try {
       switch (desc.type) {
         case PropertyType.string: return value;

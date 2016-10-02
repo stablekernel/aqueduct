@@ -18,7 +18,7 @@ class PostgreSQLSchemaGenerator extends SchemaGeneratorBackend {
     sortedColumns.sort((a, b) => a.name.compareTo(b.name));
     var columnString = sortedColumns.map((sc) => _columnStringForColumn(sc)).join(",");
 
-    tableCommands.add("create${isTemporary ? " temporary " : " "}table ${table.name} (${columnString});");
+    tableCommands.add("CREATE${isTemporary ? " TEMPORARY " : " "}TABLE ${table.name} (${columnString});");
 
     List<SchemaIndex> sortedIndexes = new List.from(table.indexes);
     sortedIndexes.sort((a, b) => a.name.compareTo(b.name));
@@ -32,26 +32,26 @@ class PostgreSQLSchemaGenerator extends SchemaGeneratorBackend {
   }
 
   String _foreignKeyConstraintForTableConstraint(SchemaTable sourceTable, SchemaColumn column) =>
-      "alter table only ${sourceTable.name} add foreign key (${_columnNameForColumn(column)}) "
-          "references ${column.relatedTableName} (${column.relatedColumnName}) "
-          "on delete ${_deleteRuleStringForDeleteRule(column.deleteRule)};";
+      "ALTER TABLE ONLY ${sourceTable.name} ADD FOREIGN KEY (${_columnNameForColumn(column)}) "
+          "REFERENCES ${column.relatedTableName} (${column.relatedColumnName}) "
+          "ON DELETE ${_deleteRuleStringForDeleteRule(column.deleteRule)};";
 
   String _indexStringForTableIndex(SchemaTable table, SchemaIndex i) {
     var actualColumn = table.columns.firstWhere((col) => col.name == i.name);
-    return "create index ${table.name}_${_columnNameForColumn(actualColumn)}_idx on ${table.name} (${_columnNameForColumn(actualColumn)});";
+    return "CREATE INDEX ${table.name}_${_columnNameForColumn(actualColumn)}_idx ON ${table.name} (${_columnNameForColumn(actualColumn)});";
   }
 
   String _columnStringForColumn(SchemaColumn col) {
     var elements = [_columnNameForColumn(col), _postgreSQLTypeForColumn(col)];
     if (col.isPrimaryKey) {
-      elements.add("primary key");
+      elements.add("PRIMARY KEY");
     } else {
-      elements.add(col.isNullable ? "null" : "not null");
+      elements.add(col.isNullable ? "NULL" : "NOT NULL");
       if (col.defaultValue != null) {
-        elements.add("default ${col.defaultValue}");
+        elements.add("DEFAULT ${col.defaultValue}");
       }
       if (col.isUnique) {
-        elements.add("unique");
+        elements.add("UNIQUE");
       }
     }
 
@@ -69,13 +69,13 @@ class PostgreSQLSchemaGenerator extends SchemaGeneratorBackend {
   String _deleteRuleStringForDeleteRule(String deleteRule) {
     switch (deleteRule) {
       case "cascade":
-        return "cascade";
+        return "CASCADE";
       case "restrict":
-        return "restrict";
+        return "RESTRICT";
       case "default":
-        return "set default";
+        return "SET DEFAULT";
       case "nullify":
-        return "set null";
+        return "SET NULL";
     }
 
     return null;
@@ -85,24 +85,24 @@ class PostgreSQLSchemaGenerator extends SchemaGeneratorBackend {
     switch (t.type) {
       case "integer": {
         if (t.autoincrement) {
-          return "serial";
+          return "SERIAL";
         }
-        return "int";
+        return "INT";
       } break;
       case "bigInteger": {
         if (t.autoincrement) {
-          return "bigserial";
+          return "BIGSERIAL";
         }
-        return "bigint";
+        return "BIGINT";
       } break;
       case "string":
-        return "text";
+        return "TEXT";
       case "datetime":
-        return "timestamp";
+        return "TIMESTAMP";
       case "boolean":
-        return "boolean";
+        return "BOOLEAN";
       case "double":
-        return "double precision";
+        return "DOUBLE PRECISION";
     }
 
     return null;

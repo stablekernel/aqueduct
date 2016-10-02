@@ -5,69 +5,69 @@ import '../../helpers.dart';
 void main() {
   test("Property tables generate appropriate postgresql commands", () {
     expect(commandsForModelInstanceTypes([GeneratorModel1]),
-        "create table _GeneratorModel1 (id bigserial primary key,name text not null,option boolean not null,points double precision not null unique,validDate timestamp null);");
+        "CREATE TABLE _GeneratorModel1 (id BIGSERIAL PRIMARY KEY,name TEXT NOT NULL,option BOOLEAN NOT NULL,points DOUBLE PRECISION NOT NULL UNIQUE,validDate TIMESTAMP NULL);");
   });
 
   test("Create temporary table", () {
     expect(commandsForModelInstanceTypes([GeneratorModel1], temporary: true),
-        "create temporary table _GeneratorModel1 (id bigserial primary key,name text not null,option boolean not null,points double precision not null unique,validDate timestamp null);");
+        "CREATE TEMPORARY TABLE _GeneratorModel1 (id BIGSERIAL PRIMARY KEY,name TEXT NOT NULL,option BOOLEAN NOT NULL,points DOUBLE PRECISION NOT NULL UNIQUE,validDate TIMESTAMP NULL);");
   });
 
   test("Create table with indices", () {
     expect(commandsForModelInstanceTypes([GeneratorModel2]),
-        "create table _GeneratorModel2 (id int primary key);\ncreate index _GeneratorModel2_id_idx on _GeneratorModel2 (id);");
+        "CREATE TABLE _GeneratorModel2 (id INT PRIMARY KEY);\nCREATE INDEX _GeneratorModel2_id_idx ON _GeneratorModel2 (id);");
   });
 
   test("Create multiple tables with trailing index", () {
     expect(commandsForModelInstanceTypes([GeneratorModel1, GeneratorModel2]),
-        "create table _GeneratorModel1 (id bigserial primary key,name text not null,option boolean not null,points double precision not null unique,validDate timestamp null);\ncreate table _GeneratorModel2 (id int primary key);\ncreate index _GeneratorModel2_id_idx on _GeneratorModel2 (id);");
+        "CREATE TABLE _GeneratorModel1 (id BIGSERIAL PRIMARY KEY,name TEXT NOT NULL,option BOOLEAN NOT NULL,points DOUBLE PRECISION NOT NULL UNIQUE,validDate TIMESTAMP NULL);\nCREATE TABLE _GeneratorModel2 (id INT PRIMARY KEY);\nCREATE INDEX _GeneratorModel2_id_idx ON _GeneratorModel2 (id);");
   });
 
   test("Default values are properly serialized", () {
     expect(commandsForModelInstanceTypes([GeneratorModel3]),
-        "create table _GeneratorModel3 (creationDate timestamp not null default (now() at time zone 'utc'),id int primary key,option boolean not null default true,otherTime timestamp not null default '1900-01-01T00:00:00.000Z',textValue text not null default \$\$dflt\$\$,value double precision not null default 20.0);");
+        "CREATE TABLE _GeneratorModel3 (creationDate TIMESTAMP NOT NULL DEFAULT (now() at time zone 'utc'),id INT PRIMARY KEY,option BOOLEAN NOT NULL DEFAULT true,otherTime TIMESTAMP NOT NULL DEFAULT '1900-01-01T00:00:00.000Z',textValue TEXT NOT NULL DEFAULT \$\$dflt\$\$,value DOUBLE PRECISION NOT NULL DEFAULT 20.0);");
   });
 
   test("Table with tableName() overrides class name", () {
     expect(commandsForModelInstanceTypes([GenNamed]),
-        "create table GenNamed (id int primary key);");
+        "CREATE TABLE GenNamed (id INT PRIMARY KEY);");
   });
 
   test("One-to-one relationships are generated", () {
     var cmds = commandsForModelInstanceTypes([GenOwner, GenAuth]);
-    expect(cmds.contains("create table _GenOwner (id bigserial primary key)"), true);
-    expect(cmds.contains("create table _GenAuth (id int primary key,owner_id bigint null unique)"), true);
-    expect(cmds.contains("create index _GenAuth_owner_id_idx on _GenAuth (owner_id)"), true);
-    expect(cmds.contains("alter table only _GenAuth add foreign key (owner_id) references _GenOwner (id) on delete cascade"), true);
+    expect(cmds.contains("CREATE TABLE _GenOwner (id BIGSERIAL PRIMARY KEY)"), true);
+    expect(cmds.contains("CREATE TABLE _GenAuth (id INT PRIMARY KEY,owner_id BIGINT NULL UNIQUE)"), true);
+    expect(cmds.contains("CREATE INDEX _GenAuth_owner_id_idx ON _GenAuth (owner_id)"), true);
+    expect(cmds.contains("ALTER TABLE ONLY _GenAuth ADD FOREIGN KEY (owner_id) REFERENCES _GenOwner (id) ON DELETE CASCADE"), true);
     expect(cmds.split("\n").length, 4);
   });
 
   test("One-to-many relationships are generated", () {
     var cmds = commandsForModelInstanceTypes([GenUser, GenPost]);
 
-    expect(cmds.contains("create table _GenUser (id int primary key,name text not null)"), true);
-    expect(cmds.contains("create table _GenPost (id int primary key,owner_id int null,text text not null)"), true);
-    expect(cmds.contains("create index _GenPost_owner_id_idx on _GenPost (owner_id)"), true);
-    expect(cmds.contains("alter table only _GenPost add foreign key (owner_id) references _GenUser (id) on delete restrict"), true);
+    expect(cmds.contains("CREATE TABLE _GenUser (id INT PRIMARY KEY,name TEXT NOT NULL)"), true);
+    expect(cmds.contains("CREATE TABLE _GenPost (id INT PRIMARY KEY,owner_id INT NULL,text TEXT NOT NULL)"), true);
+    expect(cmds.contains("CREATE INDEX _GenPost_owner_id_idx ON _GenPost (owner_id)"), true);
+    expect(cmds.contains("ALTER TABLE ONLY _GenPost ADD FOREIGN KEY (owner_id) REFERENCES _GenUser (id) ON DELETE RESTRICT"), true);
     expect(cmds.split("\n").length, 4);
   });
 
   test("Many-to-many relationships are generated", () {
     var cmds = commandsForModelInstanceTypes([GenLeft, GenRight, GenJoin]);
 
-    expect(cmds.contains("create table _GenLeft (id int primary key)"), true);
-    expect(cmds.contains("create table _GenRight (id int primary key)"), true);
-    expect(cmds.contains("create table _GenJoin (id bigserial primary key,left_id int null,right_id int null)"), true);
-    expect(cmds.contains("alter table only _GenJoin add foreign key (left_id) references _GenLeft (id) on delete set null"), true);
-    expect(cmds.contains("alter table only _GenJoin add foreign key (right_id) references _GenRight (id) on delete set null"), true);
-    expect(cmds.contains("create index _GenJoin_left_id_idx on _GenJoin (left_id)"), true);
-    expect(cmds.contains("create index _GenJoin_right_id_idx on _GenJoin (right_id)"), true);
+    expect(cmds.contains("CREATE TABLE _GenLeft (id INT PRIMARY KEY)"), true);
+    expect(cmds.contains("CREATE TABLE _GenRight (id INT PRIMARY KEY)"), true);
+    expect(cmds.contains("CREATE TABLE _GenJoin (id BIGSERIAL PRIMARY KEY,left_id INT NULL,right_id INT NULL)"), true);
+    expect(cmds.contains("ALTER TABLE ONLY _GenJoin ADD FOREIGN KEY (left_id) REFERENCES _GenLeft (id) ON DELETE SET NULL"), true);
+    expect(cmds.contains("ALTER TABLE ONLY _GenJoin ADD FOREIGN KEY (right_id) REFERENCES _GenRight (id) ON DELETE SET NULL"), true);
+    expect(cmds.contains("CREATE INDEX _GenJoin_left_id_idx ON _GenJoin (left_id)"), true);
+    expect(cmds.contains("CREATE INDEX _GenJoin_right_id_idx ON _GenJoin (right_id)"), true);
     expect(cmds.split("\n").length, 7);
   });
 
   test("Serial types in relationships are properly inversed", () {
     var cmds = commandsForModelInstanceTypes([GenOwner, GenAuth]);
-    expect(cmds.contains("create table _GenAuth (id int primary key,owner_id bigint null unique)"), true);
+    expect(cmds.contains("CREATE TABLE _GenAuth (id INT PRIMARY KEY,owner_id BIGINT NULL UNIQUE)"), true);
   });
 }
 

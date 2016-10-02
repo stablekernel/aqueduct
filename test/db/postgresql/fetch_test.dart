@@ -4,7 +4,6 @@ import '../../helpers.dart';
 
 void main() {
   ModelContext context = null;
-
   tearDown(() async {
     await context?.persistentStore?.close();
     context = null;
