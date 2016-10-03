@@ -136,6 +136,7 @@ class SchemaTable extends SchemaElement {
   }
 
   void alterColumn(SchemaColumn newColumn) {
+    // TODO: change delete rule at same time nullability is changed hsould be ok
     var existingColumn = columnForName(newColumn.name);
     if (existingColumn == null) {
       throw new SchemaException("Column ${existingColumn.name} does not exists.");

@@ -68,6 +68,9 @@ class PostgreSQLSchemaGenerator {
       if (targetColumn.isNullable) {
         allCommands.add("ALTER TABLE ${table.name} ALTER COLUMN ${_columnNameForColumn(existingColumn)} DROP NOT NULL");
       } else {
+        if (unencodedInitialValue == null) {
+          throw new SchemaException("Attempting to change column ${existingColumn.name} to 'not nullable', but no value specified to set values that are currently null in the database to avoid violating that constraint change.");
+        }
         allCommands.add("UPDATE ${table.name} SET ${_columnNameForColumn(existingColumn)}=${unencodedInitialValue} WHERE ${_columnNameForColumn(existingColumn)} IS NULL");
         allCommands.add("ALTER TABLE ${table.name} ALTER COLUMN ${_columnNameForColumn(existingColumn)} SET NOT NULL");
       }
@@ -76,7 +79,7 @@ class PostgreSQLSchemaGenerator {
     if (existingColumn.isUnique != targetColumn.isUnique) {
       // TODO: require data validation
       if (targetColumn.isUnique) {
-        allCommands.add("ALTER TABLE ${table.name} add unique (${existingColumn.name})");
+        allCommands.add("ALTER TABLE ${table.name} ADD UNIQUE (${existingColumn.name})");
       } else {
         allCommands.add("ALTER TABLE ${table.name} DROP CONSTRAINT ${_uniqueKeyName(table, existingColumn)}");
       }
