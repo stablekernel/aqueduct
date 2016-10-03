@@ -128,25 +128,26 @@ void main() {
       "expires_in" : greaterThan(3500),
       "token_type" : "bearer"
     }));
-	
-    test("Refresh token responds with token on correct input. grant_type=refresh_token version", () async {
-      await createUsers(1);
+  });
 
-      var m = {"grant_type" : "password", "username" : "bob+0@stablekernel.com", "password" : "foobaraxegrind21%"};
+  test("Refresh token responds with token on correct input. grant_type=refresh_token version", () async {
+    await createUsers(1);
 
-      var req = client.clientAuthenticatedRequest("/auth/token")
-        ..formData = m;
-      var json = JSON.decode((await req.post()).body);
-      m = {"grant_type" : "refresh_token", "refresh_token" : json["refresh_token"]};
+    var m = {"grant_type" : "password", "username" : "bob+0@stablekernel.com", "password" : "foobaraxegrind21%"};
 
-      req = client.clientAuthenticatedRequest("/auth/token")
-        ..formData = m;
-      expect(await req.post(), hasResponse(200, {
-        "access_token" : hasLength(greaterThan(0)),
-        "refresh_token" : json["refresh_token"],
-        "expires_in" : greaterThan(3500),
-        "token_type" : "bearer"
-      }));
+    var req = client.clientAuthenticatedRequest("/auth/token")
+      ..formData = m;
+    var json = JSON.decode((await req.post()).body);
+    m = {"grant_type" : "refresh_token", "refresh_token" : json["refresh_token"]};
+
+    req = client.clientAuthenticatedRequest("/auth/token")
+      ..formData = m;
+    expect(await req.post(), hasResponse(200, {
+      "access_token" : hasLength(greaterThan(0)),
+      "refresh_token" : json["refresh_token"],
+      "expires_in" : greaterThan(3500),
+      "token_type" : "bearer"
+    }));
   });
 
   test("Response documentation", () {
