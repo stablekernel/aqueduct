@@ -19,6 +19,13 @@ class SchemaBuilder {
   bool isTemporary;
   List<String> commands = [];
 
+  Future _executeCommands() async {
+    // Wrap in transaction
+    for (var cmd in commands) {
+      await store.execute(cmd);
+    }
+  }
+
   void createTable(SchemaTable table) {
     _builtSchema.addTable(table);
 

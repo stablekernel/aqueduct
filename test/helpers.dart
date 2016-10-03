@@ -194,19 +194,30 @@ List<String> commandsForModelInstanceTypes(List<Type> instanceTypes, {bool tempo
 }
 
 class DefaultPersistentStore extends PersistentStore {
-  Future<dynamic> execute(String sql) async { return null; }
+  Future<dynamic> execute(String sql) async => null;
   Future close() async {}
-  Future<List<MappingElement>> executeInsertQuery(PersistentStoreQuery q) async { return null; }
-  Future<List<List<MappingElement>>> executeFetchQuery(PersistentStoreQuery q) async { return null; }
-  Future<int> executeDeleteQuery(PersistentStoreQuery q) async { return null; }
-  Future<List<List<MappingElement>>> executeUpdateQuery(PersistentStoreQuery q) async { return null; }
+  Future<List<MappingElement>> executeInsertQuery(PersistentStoreQuery q) async => null;
+  Future<List<List<MappingElement>>> executeFetchQuery(PersistentStoreQuery q) async => null;
+  Future<int> executeDeleteQuery(PersistentStoreQuery q) async => null;
+  Future<List<List<MappingElement>>> executeUpdateQuery(PersistentStoreQuery q) async => null;
 
-  Predicate comparisonPredicate(PropertyDescription desc, MatcherOperator operator, dynamic value) { return null; }
-  Predicate containsPredicate(PropertyDescription desc, Iterable<dynamic> values) { return null; }
-  Predicate nullPredicate(PropertyDescription desc, bool isNull) { return null; }
-  Predicate rangePredicate(PropertyDescription desc, dynamic lhsValue, dynamic rhsValue, bool insideRange) { return null; }
-  Predicate stringPredicate(PropertyDescription desc, StringMatcherOperator operator, dynamic value) { return null; }
+  Predicate comparisonPredicate(PropertyDescription desc, MatcherOperator operator, dynamic value) => null;
+  Predicate containsPredicate(PropertyDescription desc, Iterable<dynamic> values) => null;
+  Predicate nullPredicate(PropertyDescription desc, bool isNull) => null;
+  Predicate rangePredicate(PropertyDescription desc, dynamic lhsValue, dynamic rhsValue, bool insideRange) => null;
+  Predicate stringPredicate(PropertyDescription desc, StringMatcherOperator operator, dynamic value) => null;
 
-  List<String> createTable(SchemaTable t, {bool isTemporary: false}) {return [];}
+  List<String> createTable(SchemaTable t, {bool isTemporary: false}) => [];
+  List<String> renameTable(SchemaTable table, String name) => [];
+  List<String> deleteTable(SchemaTable table) => [];
+
+  List<String> addColumn(SchemaTable table, SchemaColumn column) => [];
+  List<String> deleteColumn(SchemaTable table, SchemaColumn column) => [];
+  List<String> renameColumn(SchemaTable table, SchemaColumn column, String name) => [];
+  List<String> alterColumn(SchemaTable table, SchemaColumn existingColumn, SchemaColumn targetColumn) => [];
+
+  List<String> addIndexToColumn(SchemaTable table, SchemaColumn column) => [];
+  List<String> deleteIndexFromColumn(SchemaTable table, SchemaColumn column) => [];
+  List<String> renameIndexOnColumn(SchemaTable table, SchemaColumn column, String targetIndexName) => [];
 }
 

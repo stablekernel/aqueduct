@@ -3,73 +3,182 @@ import 'package:test/test.dart';
 import '../../helpers.dart';
 
 void main() {
-  test("Property tables generate appropriate postgresql commands", () {
-    var commands = commandsForModelInstanceTypes([GeneratorModel1]);
-    expect(commands[0], "CREATE TABLE _GeneratorModel1 (id BIGSERIAL PRIMARY KEY,name TEXT NOT NULL,option BOOLEAN NOT NULL,points DOUBLE PRECISION NOT NULL UNIQUE,validDate TIMESTAMP NULL)");
+  group("Table generation command mapping", () {
+    PostgreSQLPersistentStore psc;
+    setUp(() {
+      psc = new PostgreSQLPersistentStore(() => null);
+    });
+
+    test("Property tables generate appropriate postgresql commands", () {
+      var dm = new DataModel([GeneratorModel1]);
+      var schema = new Schema(dm);
+      var commands = schema.tables.map((t) => psc.createTable(t)).expand((l) => l).toList();
+
+      expect(commands[0], "CREATE TABLE _GeneratorModel1 (id BIGSERIAL PRIMARY KEY,name TEXT NOT NULL,option BOOLEAN NOT NULL,points DOUBLE PRECISION NOT NULL UNIQUE,validDate TIMESTAMP NULL)");
+    });
+
+    test("Create temporary table", () {
+      var dm = new DataModel([GeneratorModel1]);
+      var schema = new Schema(dm);
+      var commands = schema.tables.map((t) => psc.createTable(t, isTemporary: true)).expand((l) => l).toList();
+
+      expect(commands[0], "CREATE TEMPORARY TABLE _GeneratorModel1 (id BIGSERIAL PRIMARY KEY,name TEXT NOT NULL,option BOOLEAN NOT NULL,points DOUBLE PRECISION NOT NULL UNIQUE,validDate TIMESTAMP NULL)");
+    });
+
+    test("Create table with indices", () {
+      var dm = new DataModel([GeneratorModel2]);
+      var schema = new Schema(dm);
+      var commands = schema.tables.map((t) => psc.createTable(t)).expand((l) => l).toList();
+
+      expect(commands[0], "CREATE TABLE _GeneratorModel2 (id INT PRIMARY KEY)");
+      expect(commands[1], "CREATE INDEX _GeneratorModel2_id_idx ON _GeneratorModel2 (id)");
+    });
+
+    test("Create multiple tables with trailing index", () {
+      var dm = new DataModel([GeneratorModel1, GeneratorModel2]);
+      var schema = new Schema(dm);
+      var commands = schema.tables.map((t) => psc.createTable(t)).expand((l) => l).toList();
+
+      expect(commands[0], "CREATE TABLE _GeneratorModel1 (id BIGSERIAL PRIMARY KEY,name TEXT NOT NULL,option BOOLEAN NOT NULL,points DOUBLE PRECISION NOT NULL UNIQUE,validDate TIMESTAMP NULL)");
+      expect(commands[1], "CREATE TABLE _GeneratorModel2 (id INT PRIMARY KEY)");
+      expect(commands[2], "CREATE INDEX _GeneratorModel2_id_idx ON _GeneratorModel2 (id)");
+    });
+
+    test("Default values are properly serialized", () {
+      var dm = new DataModel([GeneratorModel3]);
+      var schema = new Schema(dm);
+      var commands = schema.tables.map((t) => psc.createTable(t)).expand((l) => l).toList();
+
+      expect(commands[0], "CREATE TABLE _GeneratorModel3 (creationDate TIMESTAMP NOT NULL DEFAULT (now() at time zone 'utc'),id INT PRIMARY KEY,textValue TEXT NOT NULL DEFAULT \$\$dflt\$\$,option BOOLEAN NOT NULL DEFAULT true,otherTime TIMESTAMP NOT NULL DEFAULT '1900-01-01T00:00:00.000Z',value DOUBLE PRECISION NOT NULL DEFAULT 20.0)");
+    });
+
+    test("Table with tableName() overrides class name", () {
+      var dm = new DataModel([GenNamed]);
+      var schema = new Schema(dm);
+      var commands = schema.tables.map((t) => psc.createTable(t)).expand((l) => l).toList();
+
+      expect(commands, ["CREATE TABLE GenNamed (id INT PRIMARY KEY)"]);
+    });
+
+    test("One-to-one relationships are generated", () {
+      var dm = new DataModel([GenOwner, GenAuth]);
+      var schema = new Schema(dm);
+      var cmds = schema.tables.map((t) => psc.createTable(t)).expand((l) => l).toList();
+
+      expect(cmds[0], "CREATE TABLE _GenOwner (id BIGSERIAL PRIMARY KEY)");
+      expect(cmds[1], "CREATE TABLE _GenAuth (id INT PRIMARY KEY,owner_id BIGINT NULL UNIQUE)");
+      expect(cmds[2], "CREATE INDEX _GenAuth_owner_id_idx ON _GenAuth (owner_id)");
+      expect(cmds[3], "ALTER TABLE ONLY _GenAuth ADD FOREIGN KEY (owner_id) REFERENCES _GenOwner (id) ON DELETE CASCADE");
+      expect(cmds.length, 4);
+    });
+
+    test("One-to-many relationships are generated", () {
+      var dm = new DataModel([GenUser, GenPost]);
+      var schema = new Schema(dm);
+      var cmds = schema.tables.map((t) => psc.createTable(t)).expand((l) => l).toList();
+
+      expect(cmds.contains("CREATE TABLE _GenUser (id INT PRIMARY KEY,name TEXT NOT NULL)"), true);
+      expect(cmds.contains("CREATE TABLE _GenPost (id INT PRIMARY KEY,text TEXT NOT NULL,owner_id INT NULL)"), true);
+      expect(cmds.contains("CREATE INDEX _GenPost_owner_id_idx ON _GenPost (owner_id)"), true);
+      expect(cmds.contains("ALTER TABLE ONLY _GenPost ADD FOREIGN KEY (owner_id) REFERENCES _GenUser (id) ON DELETE RESTRICT"), true);
+      expect(cmds.length, 4);
+    });
+
+    test("Many-to-many relationships are generated", () {
+      var dm = new DataModel([GenLeft, GenRight, GenJoin]);
+      var schema = new Schema(dm);
+      var cmds = schema.tables.map((t) => psc.createTable(t)).expand((l) => l).toList();
+
+      expect(cmds.contains("CREATE TABLE _GenLeft (id INT PRIMARY KEY)"), true);
+      expect(cmds.contains("CREATE TABLE _GenRight (id INT PRIMARY KEY)"), true);
+      expect(cmds.contains("CREATE TABLE _GenJoin (id BIGSERIAL PRIMARY KEY,left_id INT NULL,right_id INT NULL)"), true);
+      expect(cmds.contains("ALTER TABLE ONLY _GenJoin ADD FOREIGN KEY (left_id) REFERENCES _GenLeft (id) ON DELETE SET NULL"), true);
+      expect(cmds.contains("ALTER TABLE ONLY _GenJoin ADD FOREIGN KEY (right_id) REFERENCES _GenRight (id) ON DELETE SET NULL"), true);
+      expect(cmds.contains("CREATE INDEX _GenJoin_left_id_idx ON _GenJoin (left_id)"), true);
+      expect(cmds.contains("CREATE INDEX _GenJoin_right_id_idx ON _GenJoin (right_id)"), true);
+      expect(cmds.length, 7);
+    });
+
+    test("Serial types in relationships are properly inversed", () {
+      var dm = new DataModel([GenOwner, GenAuth]);
+      var schema = new Schema(dm);
+      var cmds = schema.tables.map((t) => psc.createTable(t)).expand((l) => l).toList();
+
+      expect(cmds.contains("CREATE TABLE _GenAuth (id INT PRIMARY KEY,owner_id BIGINT NULL UNIQUE)"), true);
+    });
   });
 
-  test("Create temporary table", () {
-    var commands = commandsForModelInstanceTypes([GeneratorModel1], temporary: true);
-    expect(commands[0], "CREATE TEMPORARY TABLE _GeneratorModel1 (id BIGSERIAL PRIMARY KEY,name TEXT NOT NULL,option BOOLEAN NOT NULL,points DOUBLE PRECISION NOT NULL UNIQUE,validDate TIMESTAMP NULL)");
-  });
+  group("Non-create table generator mappings", () {
+    PostgreSQLPersistentStore psc;
+    setUp(() {
+      psc = new PostgreSQLPersistentStore(() => null);
+    });
 
-  test("Create table with indices", () {
-    var commands = commandsForModelInstanceTypes([GeneratorModel2]);
-    expect(commands[0], "CREATE TABLE _GeneratorModel2 (id INT PRIMARY KEY)");
-    expect(commands[1], "CREATE INDEX _GeneratorModel2_id_idx ON _GeneratorModel2 (id)");
-  });
+    test("Delete table", () {
+      var dm = new DataModel([GeneratorModel1]);
+      var schema = new Schema(dm);
+      var cmds = psc.deleteTable(schema.tables.first);
+      expect(cmds, ["DROP TABLE _GeneratorModel1"]);
+    });
 
-  test("Create multiple tables with trailing index", () {
-    var commands = commandsForModelInstanceTypes([GeneratorModel1, GeneratorModel2]);
-    expect(commands[0], "CREATE TABLE _GeneratorModel1 (id BIGSERIAL PRIMARY KEY,name TEXT NOT NULL,option BOOLEAN NOT NULL,points DOUBLE PRECISION NOT NULL UNIQUE,validDate TIMESTAMP NULL)");
-    expect(commands[1], "CREATE TABLE _GeneratorModel2 (id INT PRIMARY KEY)");
-    expect(commands[2], "CREATE INDEX _GeneratorModel2_id_idx ON _GeneratorModel2 (id)");
-  });
+    test("Add simple column", () {
+      var dm = new DataModel([GeneratorModel1]);
+      var schema = new Schema(dm);
 
-  test("Default values are properly serialized", () {
-    var commands = commandsForModelInstanceTypes([GeneratorModel3]);
-    expect(commands[0], "CREATE TABLE _GeneratorModel3 (creationDate TIMESTAMP NOT NULL DEFAULT (now() at time zone 'utc'),id INT PRIMARY KEY,textValue TEXT NOT NULL DEFAULT \$\$dflt\$\$,option BOOLEAN NOT NULL DEFAULT true,otherTime TIMESTAMP NOT NULL DEFAULT '1900-01-01T00:00:00.000Z',value DOUBLE PRECISION NOT NULL DEFAULT 20.0)");
-  });
+      var propDesc = new AttributeDescription(dm.entityForType(GeneratorModel1), "foobar", PropertyType.integer);
+      var cmds = psc.addColumn(schema.tables.first, new SchemaColumn(schema.tables.first, dm.entityForType(GeneratorModel1), propDesc));
+      expect(cmds, ["ALTER TABLE _GeneratorModel1 ADD COLUMN foobar INT NOT NULL"]);
+    });
 
-  test("Table with tableName() overrides class name", () {
-    expect(commandsForModelInstanceTypes([GenNamed]), ["CREATE TABLE GenNamed (id INT PRIMARY KEY)"]);
-  });
+    test("Add complex column", () {
+      var dm = new DataModel([GeneratorModel1]);
+      var schema = new Schema(dm);
 
-  test("One-to-one relationships are generated", () {
-    var cmds = commandsForModelInstanceTypes([GenOwner, GenAuth]);
-    expect(cmds[0], "CREATE TABLE _GenOwner (id BIGSERIAL PRIMARY KEY)");
-    expect(cmds[1], "CREATE TABLE _GenAuth (id INT PRIMARY KEY,owner_id BIGINT NULL UNIQUE)");
-    expect(cmds[2], "CREATE INDEX _GenAuth_owner_id_idx ON _GenAuth (owner_id)");
-    expect(cmds[3], "ALTER TABLE ONLY _GenAuth ADD FOREIGN KEY (owner_id) REFERENCES _GenOwner (id) ON DELETE CASCADE");
-    expect(cmds.length, 4);
-  });
+      var propDesc = new AttributeDescription(dm.entityForType(GeneratorModel1), "foobar", PropertyType.integer, defaultValue: "4", unique: true, indexed: true, nullable: true, autoincrement: true);
+      var cmds = psc.addColumn(schema.tables.first, new SchemaColumn(schema.tables.first, dm.entityForType(GeneratorModel1), propDesc));
+      expect(cmds.first, "ALTER TABLE _GeneratorModel1 ADD COLUMN foobar SERIAL NULL DEFAULT 4 UNIQUE");
+      expect(cmds.last, "CREATE INDEX _GeneratorModel1_foobar_idx ON _GeneratorModel1 (foobar)");
+    });
 
-  test("One-to-many relationships are generated", () {
-    var cmds = commandsForModelInstanceTypes([GenUser, GenPost]);
+    test("Add foreign key column", () {
+      var dm = new DataModel([GeneratorModel1, GeneratorModel2]);
+      var schema = new Schema(dm);
 
-    expect(cmds.contains("CREATE TABLE _GenUser (id INT PRIMARY KEY,name TEXT NOT NULL)"), true);
-    expect(cmds.contains("CREATE TABLE _GenPost (id INT PRIMARY KEY,text TEXT NOT NULL,owner_id INT NULL)"), true);
-    expect(cmds.contains("CREATE INDEX _GenPost_owner_id_idx ON _GenPost (owner_id)"), true);
-    expect(cmds.contains("ALTER TABLE ONLY _GenPost ADD FOREIGN KEY (owner_id) REFERENCES _GenUser (id) ON DELETE RESTRICT"), true);
-    expect(cmds.length, 4);
-  });
+      var propDesc = new RelationshipDescription(dm.entityForType(GeneratorModel1), "foobar", PropertyType.string, dm.entityForType(GeneratorModel2),
+        RelationshipDeleteRule.cascade, RelationshipType.belongsTo, new Symbol(dm.entityForType(GeneratorModel2).primaryKey), indexed: true);
+      var cmds = psc.addColumn(schema.tables.first, new SchemaColumn(schema.tables.first, dm.entityForType(GeneratorModel1), propDesc));
+      expect(cmds[0], "ALTER TABLE _GeneratorModel1 ADD COLUMN foobar_id TEXT NOT NULL");
+      expect(cmds[1], "CREATE INDEX _GeneratorModel1_foobar_id_idx ON _GeneratorModel1 (foobar_id)");
+      expect(cmds[2], "ALTER TABLE ONLY _GeneratorModel1 ADD FOREIGN KEY (foobar_id) REFERENCES _GeneratorModel2 (id) ON DELETE CASCADE");
+    });
 
-  test("Many-to-many relationships are generated", () {
-    var cmds = commandsForModelInstanceTypes([GenLeft, GenRight, GenJoin]);
+    test("Delete column", () {
+      var dm = new DataModel([GeneratorModel1]);
+      var schema = new Schema(dm);
+      var cmds = psc.deleteColumn(schema.tables.first, schema.tables.first.columns.last);
+      expect(cmds.first, "ALTER TABLE _GeneratorModel1 DROP COLUMN validDate RESTRICT");
+    });
 
-    expect(cmds.contains("CREATE TABLE _GenLeft (id INT PRIMARY KEY)"), true);
-    expect(cmds.contains("CREATE TABLE _GenRight (id INT PRIMARY KEY)"), true);
-    expect(cmds.contains("CREATE TABLE _GenJoin (id BIGSERIAL PRIMARY KEY,left_id INT NULL,right_id INT NULL)"), true);
-    expect(cmds.contains("ALTER TABLE ONLY _GenJoin ADD FOREIGN KEY (left_id) REFERENCES _GenLeft (id) ON DELETE SET NULL"), true);
-    expect(cmds.contains("ALTER TABLE ONLY _GenJoin ADD FOREIGN KEY (right_id) REFERENCES _GenRight (id) ON DELETE SET NULL"), true);
-    expect(cmds.contains("CREATE INDEX _GenJoin_left_id_idx ON _GenJoin (left_id)"), true);
-    expect(cmds.contains("CREATE INDEX _GenJoin_right_id_idx ON _GenJoin (right_id)"), true);
-    expect(cmds.length, 7);
-  });
+    test("Delete foreign key column", () {
+      var dm = new DataModel([GenUser, GenPost]);
+      var schema = new Schema(dm);
+      var cmds = psc.deleteColumn(schema.tables.last, schema.tables.last.columns.firstWhere((c) => c.name == "owner"));
+      expect(cmds.first, "ALTER TABLE _GenPost DROP COLUMN owner_id CASCADE");
+    });
 
-  test("Serial types in relationships are properly inversed", () {
-    var cmds = commandsForModelInstanceTypes([GenOwner, GenAuth]);
-    expect(cmds.contains("CREATE TABLE _GenAuth (id INT PRIMARY KEY,owner_id BIGINT NULL UNIQUE)"), true);
+    test("Add index to column", () {
+      var dm = new DataModel([GeneratorModel1]);
+      var schema = new Schema(dm);
+      var cmds = psc.addIndexToColumn(schema.tables.first, schema.tables.first.columns.last);
+      expect(cmds.first, "CREATE INDEX _GeneratorModel1_validDate_idx ON _GeneratorModel1 (validDate)");
+    });
+
+    test("Remove index from column", () {
+      var dm = new DataModel([GeneratorModel1]);
+      var schema = new Schema(dm);
+      var cmds = psc.deleteIndexFromColumn(schema.tables.first, schema.tables.first.columns.last);
+      expect(cmds.first, "DROP INDEX _GeneratorModel1_validDate_idx");
+    });
   });
 }
 

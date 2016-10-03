@@ -7,29 +7,82 @@ class PostgreSQLSchemaGenerator {
 
     var indexCommands = table.columns
         .where((col) => col.isIndexed)
-        .map((col) => createIndicesForColumn(col))
+        .map((col) => addIndexToColumn(table, col))
         .expand((commands) => commands);
 
     var constraintCommands = table.columns
         .where((sc) => sc.isForeignKey)
-        .map((col) => createConstraintsForColumn(col))
+        .map((col) => _addConstraintsForColumn(table, col))
         .expand((commands) => commands);
 
     return [[tableCommand], indexCommands, constraintCommands].expand((cmds) => cmds).toList();
   }
 
-  List<String> createIndicesForColumn(SchemaColumn column) {
-    return [
-      "CREATE INDEX ${column.table.name}_${_columnNameForColumn(column)}_idx ON ${column.table.name} (${_columnNameForColumn(column)})"
-    ];
+  List<String> renameTable(SchemaTable table, String name) {
+    throw new UnsupportedError("renameTable is not yet supported.");
   }
 
-  List<String> createConstraintsForColumn(SchemaColumn column) {
+  List<String> deleteTable(SchemaTable table) {
+    return ["DROP TABLE ${table.name}"];
+  }
+
+  List<String> _addConstraintsForColumn(SchemaTable table, SchemaColumn column) {
     return [
-      "ALTER TABLE ONLY ${column.table.name} ADD FOREIGN KEY (${_columnNameForColumn(column)}) "
+      "ALTER TABLE ONLY ${table.name} ADD FOREIGN KEY (${_columnNameForColumn(column)}) "
           "REFERENCES ${column.relatedTableName} (${column.relatedColumnName}) "
           "ON DELETE ${_deleteRuleStringForDeleteRule(column.deleteRule)}"
     ];
+  }
+
+  List<String> addColumn(SchemaTable table, SchemaColumn column) {
+    var commands = [
+      "ALTER TABLE ${table.name} ADD COLUMN ${_columnStringForColumn(column)}"
+    ];
+
+    if (column.isIndexed) {
+      commands.addAll(addIndexToColumn(table, column));
+    }
+
+    if (column.isForeignKey) {
+      commands.addAll(_addConstraintsForColumn(table, column));
+    }
+
+    return commands;
+  }
+
+  List<String> deleteColumn(SchemaTable table, SchemaColumn column) {
+    return [
+      "ALTER TABLE ${table.name} DROP COLUMN ${_columnNameForColumn(column)} ${column.relatedColumnName != null ? "CASCADE" : "RESTRICT"}"
+    ];
+  }
+
+  List<String> renameColumn(SchemaTable table, SchemaColumn column, String name) {
+    throw new UnsupportedError("renameColumn is not yet supported.");
+  }
+
+  List<String> alterColumn(SchemaTable table, SchemaColumn existingColumn, SchemaColumn targetColumn) {
+    throw new UnsupportedError("renameColumn is not yet supported.");
+  }
+
+  List<String> addIndexToColumn(SchemaTable table, SchemaColumn column) {
+    return [
+      "CREATE INDEX ${_indexNameForColumn(table, column)} ON ${table.name} (${_columnNameForColumn(column)})"
+    ];
+  }
+
+  List<String> deleteIndexFromColumn(SchemaTable table, SchemaColumn column) {
+    return [
+      "DROP INDEX ${_indexNameForColumn(table, column)}"
+    ];
+
+  }
+
+  String _indexNameForColumn(SchemaTable table, SchemaColumn column) {
+    return "${table.name}_${_columnNameForColumn(column)}_idx";
+  }
+
+  List<String> renameIndexOnColumn(SchemaTable table, SchemaColumn column, String targetIndexName) {
+    throw new UnsupportedError("renameColumn is not yet supported.");
   }
 
   String _columnStringForColumn(SchemaColumn col) {

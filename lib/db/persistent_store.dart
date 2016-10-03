@@ -27,4 +27,15 @@ abstract class PersistentStore {
   Predicate stringPredicate(PropertyDescription desc, StringMatcherOperator operator, dynamic value);
 
   List<String> createTable(SchemaTable table, {bool isTemporary: false});
+  List<String> renameTable(SchemaTable table, String name);
+  List<String> deleteTable(SchemaTable table);
+
+  List<String> addColumn(SchemaTable table, SchemaColumn column);
+  List<String> deleteColumn(SchemaTable table, SchemaColumn column);
+  List<String> renameColumn(SchemaTable table, SchemaColumn column, String name);
+  List<String> alterColumn(SchemaTable table, SchemaColumn existingColumn, SchemaColumn targetColumn);
+
+  List<String> addIndexToColumn(SchemaTable table, SchemaColumn column);
+  List<String> deleteIndexFromColumn(SchemaTable table, SchemaColumn column);
+  List<String> renameIndexOnColumn(SchemaTable table, SchemaColumn column, String targetIndexName);
 }
