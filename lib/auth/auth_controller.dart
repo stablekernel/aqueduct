@@ -27,7 +27,7 @@ class AuthController extends HTTPController {
   /// Content-Type must be application/x-www-form-urlencoded. (Query string in the body, e.g. username=bob&password=password)
   /// Values must be URL percent encoded by client.
   /// When grant_type is 'password', there must be username and password values.
-  /// When grant_type is 'refresh', there must be a refresh_token value.
+  /// When grant_type is 'refresh_token', there must be a refresh_token value.
   /// When grant_type is 'authorization_code', there must be a authorization_code value.
   @httpPost
   Future<Response> create({
@@ -44,7 +44,7 @@ class AuthController extends HTTPController {
 
       var token = await authenticationServer.authenticate(username, password, basicRecord.username, basicRecord.password);
       return AuthController.tokenResponse(token);
-    } else if (grantType == "refresh") {
+    } else if (grantType == "refresh_token") {
       if (refreshToken == null) {
         return new Response.badRequest(body: {"error": "missing refresh_token"});
       }
