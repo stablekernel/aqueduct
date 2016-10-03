@@ -126,7 +126,7 @@ void main() {
       var schema = new Schema(dm);
 
       var propDesc = new AttributeDescription(dm.entityForType(GeneratorModel1), "foobar", PropertyType.integer);
-      var cmds = psc.addColumn(schema.tables.first, new SchemaColumn(schema.tables.first, dm.entityForType(GeneratorModel1), propDesc));
+      var cmds = psc.addColumn(schema.tables.first, new SchemaColumn(dm.entityForType(GeneratorModel1), propDesc));
       expect(cmds, ["ALTER TABLE _GeneratorModel1 ADD COLUMN foobar INT NOT NULL"]);
     });
 
@@ -135,7 +135,7 @@ void main() {
       var schema = new Schema(dm);
 
       var propDesc = new AttributeDescription(dm.entityForType(GeneratorModel1), "foobar", PropertyType.integer, defaultValue: "4", unique: true, indexed: true, nullable: true, autoincrement: true);
-      var cmds = psc.addColumn(schema.tables.first, new SchemaColumn(schema.tables.first, dm.entityForType(GeneratorModel1), propDesc));
+      var cmds = psc.addColumn(schema.tables.first, new SchemaColumn(dm.entityForType(GeneratorModel1), propDesc));
       expect(cmds.first, "ALTER TABLE _GeneratorModel1 ADD COLUMN foobar SERIAL NULL DEFAULT 4 UNIQUE");
       expect(cmds.last, "CREATE INDEX _GeneratorModel1_foobar_idx ON _GeneratorModel1 (foobar)");
     });
@@ -146,7 +146,7 @@ void main() {
 
       var propDesc = new RelationshipDescription(dm.entityForType(GeneratorModel1), "foobar", PropertyType.string, dm.entityForType(GeneratorModel2),
         RelationshipDeleteRule.cascade, RelationshipType.belongsTo, new Symbol(dm.entityForType(GeneratorModel2).primaryKey), indexed: true);
-      var cmds = psc.addColumn(schema.tables.first, new SchemaColumn(schema.tables.first, dm.entityForType(GeneratorModel1), propDesc));
+      var cmds = psc.addColumn(schema.tables.first, new SchemaColumn(dm.entityForType(GeneratorModel1), propDesc));
       expect(cmds[0], "ALTER TABLE _GeneratorModel1 ADD COLUMN foobar_id TEXT NOT NULL");
       expect(cmds[1], "CREATE INDEX _GeneratorModel1_foobar_id_idx ON _GeneratorModel1 (foobar_id)");
       expect(cmds[2], "ALTER TABLE ONLY _GeneratorModel1 ADD FOREIGN KEY (foobar_id) REFERENCES _GeneratorModel2 (id) ON DELETE CASCADE");

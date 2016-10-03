@@ -214,7 +214,8 @@ class DefaultPersistentStore extends PersistentStore {
   List<String> addColumn(SchemaTable table, SchemaColumn column) => [];
   List<String> deleteColumn(SchemaTable table, SchemaColumn column) => [];
   List<String> renameColumn(SchemaTable table, SchemaColumn column, String name) => [];
-  List<String> alterColumn(SchemaTable table, SchemaColumn existingColumn, SchemaColumn targetColumn) => [];
+  List<String> alterColumn(SchemaTable table, SchemaColumn existingColumn, SchemaColumn targetColumn, {String unencodedInitialValue}) => [];
+  List<String> renameIndex(String existingIndexName, String newIndexName) => [];
 
   List<String> addIndexToColumn(SchemaTable table, SchemaColumn column) => [];
   List<String> deleteIndexFromColumn(SchemaTable table, SchemaColumn column) => [];

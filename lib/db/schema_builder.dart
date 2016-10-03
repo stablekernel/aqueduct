@@ -31,4 +31,7 @@ class SchemaBuilder {
 
     commands.addAll(store.createTable(table, isTemporary: isTemporary));
   }
+
+  // alter table, if setting to not null, must include initialValue
+  // alter table, change delete rule, must be verified - already verified by DataModel
 }

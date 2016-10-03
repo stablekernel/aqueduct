@@ -6,11 +6,11 @@ abstract class SchemaElement {
 
 class Schema {
   Schema(DataModel dataModel) {
-    tables = dataModel._entities.values.map((e) => new SchemaTable(this, e)).toList();
+    tables = dataModel._entities.values.map((e) => new SchemaTable(e)).toList();
   }
 
   Schema.from(Schema otherSchema) {
-    tables = otherSchema?.tables?.map((table) => new SchemaTable.from(this, table))?.toList() ?? [];
+    tables = otherSchema?.tables?.map((table) => new SchemaTable.from(table))?.toList() ?? [];
   }
 
   Schema.empty() {
@@ -20,13 +20,43 @@ class Schema {
   List<SchemaTable> tables;
   List<SchemaTable> get dependencyOrderedTables => _orderedTables([], tables);
 
+  void addTable(SchemaTable table) {
+    if (tableForName(table.name) != null) {
+      throw new SchemaException("Table ${table.name} already exist.");
+    }
+
+    tables.add(table);
+  }
+
+  void deleteTable(SchemaTable table) {
+    if (tableForName(table.name) == null) {
+      throw new SchemaException("Table ${table.name} does not exist.");
+    }
+
+    tables.removeWhere((t) => t.name == table.name);
+  }
+
+  void renameTable(SchemaTable table, String newName) {
+    if (tableForName(table.name) == null) {
+      throw new SchemaException("Table ${newName} does not exist.");
+    }
+
+    if (tableForName(newName) != null) {
+      throw new SchemaException("Table ${newName} already exist.");
+    }
+
+    tableForName(table.name).name = newName;
+  }
+
   SchemaTable tableForName(String name) {
     var lowercaseName = name.toLowerCase();
     return tables.firstWhere((t) => t.name.toLowerCase() == lowercaseName, orElse: () => null);
   }
 
-  void addTable(SchemaTable table) {
-
+  Map<String, dynamic> asMap() {
+    return {
+      "tables" : tables.map((t) => t.asMap()).toList()
+    };
   }
 
   List<SchemaTable> _orderedTables(List<SchemaTable> tablesAccountedFor, List<SchemaTable> remainingTables) {
@@ -50,16 +80,10 @@ class Schema {
 
     return _orderedTables(tablesAccountedFor, remainingTables.where((st) => !tablesAccountedFor.contains(st)).toList());
   }
-
-  Map<String, dynamic> asMap() {
-    return {
-      "tables" : tables.map((t) => t.asMap()).toList()
-    };
-  }
 }
 
 class SchemaTable extends SchemaElement {
-  SchemaTable(this.schema, ModelEntity entity) {
+  SchemaTable(ModelEntity entity) {
     name = entity.tableName;
 
     var validProperties = entity.properties.values
@@ -67,18 +91,79 @@ class SchemaTable extends SchemaElement {
         .toList();
 
     columns = validProperties
-        .map((p) => new SchemaColumn(this, entity, p))
+        .map((p) => new SchemaColumn(entity, p))
         .toList();
   }
 
-  SchemaTable.from(this.schema, SchemaTable otherTable) {
+  SchemaTable.from(SchemaTable otherTable) {
     name = otherTable.name;
-    columns = otherTable.columns.map((col) => new SchemaColumn.from(this, col)).toList();
+    columns = otherTable.columns.map((col) => new SchemaColumn.from(col)).toList();
   }
 
-  final Schema schema;
   String name;
   List<SchemaColumn> columns;
+
+  void addColumn(SchemaColumn column) {
+    if (columnForName(column.name) != null) {
+      throw new SchemaException("Column ${column.name} already exists.");
+    }
+
+    columns.add(column);
+  }
+
+  void renameColumn(SchemaColumn column, String newName) {
+    if (columnForName(column.name) == null) {
+      throw new SchemaException("Column ${column.name} does not exists.");
+    }
+
+    if (columnForName(newName) != null) {
+      throw new SchemaException("Column ${newName} already exists.");
+    }
+
+    if (column.isPrimaryKey) {
+      throw new SchemaException("May not rename primary key column (${column.name} -> ${newName})");
+    }
+
+    columnForName(column.name).name = newName;
+  }
+
+  void deleteColumn(SchemaColumn column) {
+    if (columnForName(column.name) == null) {
+      throw new SchemaException("Column ${column.name} does not exists.");
+    }
+
+    columns.removeWhere((c) => c.name == column.name);
+  }
+
+  void alterColumn(SchemaColumn newColumn) {
+    var existingColumn = columnForName(newColumn.name);
+    if (existingColumn == null) {
+      throw new SchemaException("Column ${existingColumn.name} does not exists.");
+    }
+
+    if (existingColumn.type != newColumn.type) {
+      throw new SchemaException("May not change column (${existingColumn.name}) type (${existingColumn.type} -> ${newColumn.type})");
+    }
+
+    if (existingColumn.autoincrement != newColumn.autoincrement) {
+      throw new SchemaException("May not change column (${existingColumn.name}) autoincrementing behavior");
+    }
+
+    if (existingColumn.isPrimaryKey != newColumn.isPrimaryKey) {
+      throw new SchemaException("May not change column (${existingColumn.name}) to/from primary key");
+    }
+
+    if(existingColumn.relatedTableName != newColumn.relatedTableName) {
+      throw new SchemaException("May not change column (${existingColumn.name}) reference table (${existingColumn.relatedTableName} -> ${newColumn.relatedTableName})");
+    }
+
+    if(existingColumn.relatedColumnName != newColumn.relatedColumnName) {
+      throw new SchemaException("May not change column (${existingColumn.name}) reference column (${existingColumn.relatedColumnName} -> ${newColumn.relatedColumnName})");
+    }
+
+    var idx = columns.indexOf(existingColumn);
+    columns[idx] = newColumn;
+  }
 
   SchemaColumn columnForName(String name) {
     var lowercaseName = name.toLowerCase();
@@ -96,7 +181,7 @@ class SchemaTable extends SchemaElement {
 }
 
 class SchemaColumn extends SchemaElement {
-  SchemaColumn(this.table, ModelEntity entity, PropertyDescription desc) {
+  SchemaColumn(ModelEntity entity, PropertyDescription desc) {
     name = desc.name;
 
     if (desc is RelationshipDescription) {
@@ -116,7 +201,7 @@ class SchemaColumn extends SchemaElement {
     isIndexed = desc.isIndexed;
   }
 
-  SchemaColumn.from(this.table, SchemaColumn otherColumn) {
+  SchemaColumn.from(SchemaColumn otherColumn) {
     name = otherColumn.name;
     type = otherColumn.type;
     isIndexed = otherColumn.isIndexed;
@@ -129,8 +214,6 @@ class SchemaColumn extends SchemaElement {
     relatedColumnName = otherColumn.relatedColumnName;
     deleteRule = otherColumn.deleteRule;
   }
-
-  final SchemaTable table;
 
   String name;
   String type;
@@ -191,4 +274,10 @@ class SchemaColumn extends SchemaElement {
   }
 
   String toString() => "$name $relatedTableName";
+}
+
+class SchemaException implements Exception {
+  SchemaException(this.message);
+
+  String message;
 }
