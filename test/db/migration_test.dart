@@ -27,7 +27,7 @@ void main() {
     schema.tables.first.columnForName("col1").isIndexed = true;
     schema.tables.add(Migration1.tableToAdd);
 
-    expect(db.builtSchema.matches(schema), true);
+    expect(db.schema.matches(schema), true);
 
     print("${mig.database.commands}");
   });

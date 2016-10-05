@@ -1,5 +1,7 @@
 part of aqueduct;
 
+typedef Future<PostgreSQLConnection> PostgreSQLConnectionFunction();
+
 class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGenerator {
   static Logger logger = new Logger("aqueduct");
   static Map<MatcherOperator, String> symbolTable = {
@@ -12,9 +14,9 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
   };
 
   PostgreSQLConnection _databaseConnection;
-  Function connectFunction;
-  bool _isConnecting = false;
-  List<Completer<PostgreSQLConnection>> _pendingConnectionCompleters = [];
+  PostgreSQLConnectionFunction connectFunction;
+  Completer<PostgreSQLConnection> _pendingConnectionCompleter;
+//  List<Completer<PostgreSQLConnection>> _pendingConnectionCompleters = [];
 
   PostgreSQLPersistentStore(this.connectFunction) : super();
   PostgreSQLPersistentStore.fromConnectionInfo(String username, String password, String host, int port, String databaseName, {String timezone: "UTC"}) {
@@ -32,29 +34,20 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
         throw new QueryException(QueryExceptionEvent.internalFailure, message: "Could not connect to database, no connect function.");
       }
 
-      if (_isConnecting) {
-        var completer = new Completer<PostgreSQLConnection>();
-        _pendingConnectionCompleters.add(completer);
-        return completer.future;
+      if (_pendingConnectionCompleter != null) {
+        return _pendingConnectionCompleter.future;
       }
+      _pendingConnectionCompleter = new Completer<PostgreSQLConnection>();
 
-      _isConnecting = true;
-      try {
-        _databaseConnection = await connectFunction();
-        _isConnecting = false;
-        _informWaiters((completer) {
-          completer.complete(_databaseConnection);
-        });
-      } catch (e) {
-        _isConnecting = false;
-
-        var exception = new QueryException(QueryExceptionEvent.connectionFailure, underlyingException: e);
-        _informWaiters((completer) {
-          completer.completeError(exception);
-        });
-
-        throw exception;
-      }
+      connectFunction().then((conn) {
+        _databaseConnection = conn;
+        _pendingConnectionCompleter.complete(_databaseConnection);
+        _pendingConnectionCompleter = null;
+      }).catchError((e) {
+        _pendingConnectionCompleter.completeError(new QueryException(QueryExceptionEvent.connectionFailure, underlyingException: e));
+        _pendingConnectionCompleter = null;
+      });
+      return _pendingConnectionCompleter.future;
     }
 
     return _databaseConnection;
@@ -76,18 +69,6 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
   Future close() async {
     await _databaseConnection?.close();
     _databaseConnection = null;
-  }
-
-  void _informWaiters(void f(Completer c)) {
-    if (!_pendingConnectionCompleters.isEmpty) {
-      List<Completer<PostgreSQLConnection>> copiedCompleters = new List.from(_pendingConnectionCompleters);
-      _pendingConnectionCompleters = [];
-      copiedCompleters.forEach((completer) {
-        scheduleMicrotask(() {
-          f(completer);
-        });
-      });
-    }
   }
 
   String _columnNameForProperty(PropertyDescription desc) {
