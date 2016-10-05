@@ -1,7 +1,7 @@
 part of aqueduct;
 
 abstract class Migration {
-  Schema get currentSchema => database.currentSchema;
+  Schema get currentSchema => database._currentSchema;
   PersistentStore get store => database.store;
   SchemaBuilder database;
 
