@@ -57,7 +57,7 @@ class TestApplication {
   }
 
   static Future createDatabaseSchema(ModelContext context, Logger logger) async {
-    var builder = new SchemaBuilder(context.persistentStore, new Schema.empty(), new Schema(context.dataModel), isTemporary: true);
+    var builder = new SchemaBuilder.toSchema(context.persistentStore, new Schema(context.dataModel), isTemporary: true);
 
     for (var cmd in builder.commands) {
       logger?.info("$cmd");

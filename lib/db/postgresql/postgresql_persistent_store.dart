@@ -331,6 +331,32 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
     return new Predicate("$tableName.$propertyName like @$formatSpecificationName", {keyName : matchValue});
   }
 
+  SchemaTable get _versionTable {
+    return new SchemaTable.empty()
+      ..name = "_aqueduct_version_pgsql"
+      ..columns = [
+        (new SchemaColumn.empty()..name = "versionNumber"..type = SchemaColumn.typeStringForType(PropertyType.integer)),
+        (new SchemaColumn.empty()..name = "dateOfUpgrade"..type = SchemaColumn.typeStringForType(PropertyType.datetime)),
+      ];
+  }
+
+  Future createVersionTableIfNecessary() async {
+    var commands = createTable(_versionTable);
+    for (var cmd in commands) {
+      await execute(cmd);
+    }
+  }
+
+  Future<int> get schemaVersion async {
+    var values = await execute("SELECT versionNumber, dateOfUpgrade FROM _aqueduct_version_pgsql ORDER BY dateOfUpgrade ASC") as List<List<dynamic>>;
+
+    if (values.length == 0) {
+      return 0;
+    }
+
+    return values.last.first;
+  }
+
   List<List<MappingElement>> _mappingElementsFromResults(List<List<dynamic>> rows, List<MappingElement> columnDefinitions) {
     return rows.map((row) {
       var columnDefinitionIterator = columnDefinitions.iterator;

@@ -17,35 +17,34 @@ class Schema {
     tables = [];
   }
 
+  Schema.withTables(this.tables);
+
   List<SchemaTable> tables;
   List<SchemaTable> get dependencyOrderedTables => _orderedTables([], tables);
 
-  void addTable(SchemaTable table) {
-    if (tableForName(table.name) != null) {
-      throw new SchemaException("Table ${table.name} already exist.");
+  operator [](String tableName) => tableForName(tableName);
+
+  bool matches(Schema schema) {
+    if (schema.tables.length != tables.length) {
+      return false;
     }
 
+    return schema.tables.every((otherTable) {
+      return tableForName(otherTable.name).matches(otherTable);
+    });
+  }
+
+  void addTable(SchemaTable table) {
     tables.add(table);
   }
 
-  void deleteTable(SchemaTable table) {
-    if (tableForName(table.name) == null) {
-      throw new SchemaException("Table ${table.name} does not exist.");
-    }
-
-    tables.removeWhere((t) => t.name == table.name);
+  void renameTable(SchemaTable table, String newName) {
+    // Rename indices and constraints
+    table.name = newName;
   }
 
-  void renameTable(SchemaTable table, String newName) {
-    if (tableForName(table.name) == null) {
-      throw new SchemaException("Table ${newName} does not exist.");
-    }
-
-    if (tableForName(newName) != null) {
-      throw new SchemaException("Table ${newName} already exist.");
-    }
-
-    tableForName(table.name).name = newName;
+  void removeTable(SchemaTable table) {
+    tables.remove(table);
   }
 
   SchemaTable tableForName(String name) {
@@ -100,70 +99,41 @@ class SchemaTable extends SchemaElement {
     columns = otherTable.columns.map((col) => new SchemaColumn.from(col)).toList();
   }
 
+  SchemaTable.empty();
+
+  SchemaTable.withColumns(this.name, this.columns);
+
   String name;
   List<SchemaColumn> columns;
 
-  void addColumn(SchemaColumn column) {
-    if (columnForName(column.name) != null) {
-      throw new SchemaException("Column ${column.name} already exists.");
+  SchemaColumn operator [](String columnName) => columnForName(columnName);
+
+  bool matches(SchemaTable table) {
+    if (columns.length != table.columns.length) {
+      return false;
     }
 
+    return table.columns.every((otherColumn) {
+      return columnForName(otherColumn.name).matches(otherColumn);
+    });
+  }
+
+  void addColumn(SchemaColumn column) {
     columns.add(column);
   }
 
   void renameColumn(SchemaColumn column, String newName) {
-    if (columnForName(column.name) == null) {
-      throw new SchemaException("Column ${column.name} does not exists.");
-    }
-
-    if (columnForName(newName) != null) {
-      throw new SchemaException("Column ${newName} already exists.");
-    }
-
-    if (column.isPrimaryKey) {
-      throw new SchemaException("May not rename primary key column (${column.name} -> ${newName})");
-    }
-
-    columnForName(column.name).name = newName;
+    // We also must rename indices
+    column.name = newName;
   }
 
-  void deleteColumn(SchemaColumn column) {
-    if (columnForName(column.name) == null) {
-      throw new SchemaException("Column ${column.name} does not exists.");
-    }
-
-    columns.removeWhere((c) => c.name == column.name);
+  void removeColumn(SchemaColumn column) {
+    columns.remove(column);
   }
 
-  void alterColumn(SchemaColumn newColumn) {
-    // TODO: change delete rule at same time nullability is changed hsould be ok
-    var existingColumn = columnForName(newColumn.name);
-    if (existingColumn == null) {
-      throw new SchemaException("Column ${existingColumn.name} does not exists.");
-    }
-
-    if (existingColumn.type != newColumn.type) {
-      throw new SchemaException("May not change column (${existingColumn.name}) type (${existingColumn.type} -> ${newColumn.type})");
-    }
-
-    if (existingColumn.autoincrement != newColumn.autoincrement) {
-      throw new SchemaException("May not change column (${existingColumn.name}) autoincrementing behavior");
-    }
-
-    if (existingColumn.isPrimaryKey != newColumn.isPrimaryKey) {
-      throw new SchemaException("May not change column (${existingColumn.name}) to/from primary key");
-    }
-
-    if(existingColumn.relatedTableName != newColumn.relatedTableName) {
-      throw new SchemaException("May not change column (${existingColumn.name}) reference table (${existingColumn.relatedTableName} -> ${newColumn.relatedTableName})");
-    }
-
-    if(existingColumn.relatedColumnName != newColumn.relatedColumnName) {
-      throw new SchemaException("May not change column (${existingColumn.name}) reference column (${existingColumn.relatedColumnName} -> ${newColumn.relatedColumnName})");
-    }
-
-    var idx = columns.indexOf(existingColumn);
-    columns[idx] = newColumn;
+  void replaceColumn(SchemaColumn existingColumn, SchemaColumn newColumn) {
+    var index = columns.indexOf(existingColumn);
+    columns[index] = newColumn;
   }
 
   SchemaColumn columnForName(String name) {
@@ -216,15 +186,21 @@ class SchemaColumn extends SchemaElement {
     deleteRule = otherColumn.deleteRule;
   }
 
+  SchemaColumn.withName(this.name, PropertyType t) {
+    type = typeStringForType(t);
+  }
+
+  SchemaColumn.empty();
+
   String name;
   String type;
 
-  bool isIndexed;
-  bool isNullable;
-  bool autoincrement;
-  bool isUnique;
+  bool isIndexed = false;
+  bool isNullable = false;
+  bool autoincrement = false;
+  bool isUnique = false;
   String defaultValue;
-  bool isPrimaryKey;
+  bool isPrimaryKey = false;
 
   String relatedTableName;
   String relatedColumnName;
@@ -234,7 +210,21 @@ class SchemaColumn extends SchemaElement {
     return relatedTableName != null && relatedColumnName != null;
   }
 
-  String typeStringForType(PropertyType type) {
+  bool matches(SchemaColumn otherColumn) {
+    return name == otherColumn.name
+        && type == otherColumn.type
+        && isIndexed == otherColumn.isIndexed
+        && isNullable == otherColumn.isNullable
+        && autoincrement == otherColumn.autoincrement
+        && isUnique == otherColumn.isUnique
+        && defaultValue == otherColumn.defaultValue
+        && isPrimaryKey == otherColumn.isPrimaryKey
+        && relatedTableName == otherColumn.relatedTableName
+        && relatedColumnName == otherColumn.relatedColumnName
+        && deleteRule == otherColumn.deleteRule;
+  }
+
+  static String typeStringForType(PropertyType type) {
     switch (type) {
       case PropertyType.integer: return "integer";
       case PropertyType.doublePrecision: return "double";
@@ -248,7 +238,7 @@ class SchemaColumn extends SchemaElement {
     return null;
   }
 
-  String deleteRuleStringForDeleteRule(RelationshipDeleteRule rule) {
+  static String deleteRuleStringForDeleteRule(RelationshipDeleteRule rule) {
     switch (rule) {
       case RelationshipDeleteRule.cascade: return "cascade";
       case RelationshipDeleteRule.nullify: return "nullify";

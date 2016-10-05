@@ -1,6 +1,5 @@
 import 'package:aqueduct/aqueduct.dart';
 import 'package:test/test.dart';
-import '../../helpers.dart';
 
 void main() {
   group("Table generation command mapping", () {
@@ -119,7 +118,7 @@ void main() {
     test("Delete table", () {
       var dm = new DataModel([GeneratorModel1]);
       var schema = new Schema(dm);
-      var cmds = psc.deleteTable(schema.tables.first);
+      var cmds = psc.deleteTable(schema.tableForName("_GeneratorModel1"));
       expect(cmds, ["DROP TABLE _GeneratorModel1"]);
     });
 
@@ -165,7 +164,7 @@ void main() {
       var dm = new DataModel([GenUser, GenPost]);
       var schema = new Schema(dm);
       var cmds = psc.deleteColumn(schema.tables.last, schema.tables.last.columns.firstWhere((c) => c.name == "owner"));
-      expect(cmds.first, "ALTER TABLE _GenPost DROP COLUMN owner_id RESTRICT");
+      expect(cmds.first, "ALTER TABLE _GenPost DROP COLUMN owner_id CASCADE");
     });
 
     test("Add index to column", () {
@@ -182,24 +181,6 @@ void main() {
       expect(cmds.first, "DROP INDEX _GeneratorModel1_validDate_idx");
     });
 
-    test("Alter column change index", () {
-      var dm = new DataModel([GeneratorModel1]);
-      var schema = new Schema(dm);
-      var originalColumn = schema.tables.first.columns.firstWhere((sc) => sc.name == "name");
-      expect(originalColumn.isIndexed, false);
-
-      var col = new SchemaColumn.from(originalColumn);
-      col.isIndexed = true;
-
-      // Add the index
-      var cmds = psc.alterColumn(schema.tables.first, originalColumn, col);
-      expect(cmds.first, "CREATE INDEX _GeneratorModel1_name_idx ON _GeneratorModel1 (name)");
-
-      // Remove the index
-      cmds = psc.alterColumn(schema.tables.first, col, originalColumn);
-      expect(cmds.first, "DROP INDEX _GeneratorModel1_name_idx");
-    });
-
     test("Alter column change nullabiity", () {
       var dm = new DataModel([GeneratorModel1]);
       var schema = new Schema(dm);
@@ -207,19 +188,20 @@ void main() {
       expect(originalColumn.isNullable, false);
 
       var col = new SchemaColumn.from(originalColumn);
-      col.isNullable = true;
 
       // Add nullability
-      var cmds = psc.alterColumn(schema.tables.first, originalColumn, col);
+      col.isNullable = true;
+      var cmds = psc.alterColumnNullability(schema.tables.first, col, null);
       expect(cmds.first, "ALTER TABLE _GeneratorModel1 ALTER COLUMN name DROP NOT NULL");
 
       // Remove nullability, but don't provide value to update things to:
+      col.isNullable = false;
       try {
-        cmds = psc.alterColumn(schema.tables.first, col, originalColumn);
+        cmds = psc.alterColumnNullability(schema.tables.first, col, null);
         expect(true, false);
       } on SchemaException {}
 
-      cmds = psc.alterColumn(schema.tables.first, col, originalColumn, unencodedInitialValue: "'foo'");
+      cmds = psc.alterColumnNullability(schema.tables.first, col, "'foo'");
       expect(cmds.first, "UPDATE _GeneratorModel1 SET name='foo' WHERE name IS NULL");
       expect(cmds.last, "ALTER TABLE _GeneratorModel1 ALTER COLUMN name SET NOT NULL");
     });
@@ -231,14 +213,15 @@ void main() {
       expect(originalColumn.isUnique, false);
 
       var col = new SchemaColumn.from(originalColumn);
-      col.isUnique = true;
 
       // Add unique
-      var cmds = psc.alterColumn(schema.tables.first, originalColumn, col);
+      col.isUnique = true;
+      var cmds = psc.alterColumnUniqueness(schema.tables.first, col);
       expect(cmds.first, "ALTER TABLE _GeneratorModel1 ADD UNIQUE (name)");
 
       // Remove unique
-      cmds = psc.alterColumn(schema.tables.first, col, originalColumn);
+      col.isUnique = false;
+      cmds = psc.alterColumnUniqueness(schema.tables.first, col);
       expect(cmds.first, "ALTER TABLE _GeneratorModel1 DROP CONSTRAINT _GeneratorModel1_name_key");
     });
 
@@ -249,14 +232,15 @@ void main() {
       expect(originalColumn.defaultValue, isNull);
 
       var col = new SchemaColumn.from(originalColumn);
-      col.defaultValue = "'foobar'";
 
       // Add default
-      var cmds = psc.alterColumn(schema.tables.first, originalColumn, col);
+      col.defaultValue = "'foobar'";
+      var cmds = psc.alterColumnDefaultValue(schema.tables.first, col);
       expect(cmds.first, "ALTER TABLE _GeneratorModel1 ALTER COLUMN name SET DEFAULT 'foobar'");
 
       // Remove default
-      cmds = psc.alterColumn(schema.tables.first, col, originalColumn);
+      col.defaultValue = null;
+      cmds = psc.alterColumnDefaultValue(schema.tables.first, col);
       expect(cmds.first, "ALTER TABLE _GeneratorModel1 ALTER COLUMN name DROP DEFAULT");
     });
 
@@ -268,30 +252,12 @@ void main() {
       expect(originalColumn.deleteRule, "restrict");
 
       var col = new SchemaColumn.from(originalColumn);
-      col.deleteRule = "nullify";
 
       // Change delete rule
-      var cmds = psc.alterColumn(postTable, originalColumn, col);
+      col.deleteRule = "nullify";
+      var cmds = psc.alterColumnDeleteRule(postTable, col);
       expect(cmds.first, "ALTER TABLE ONLY _GenPost DROP CONSTRAINT _GenPost_owner_id_fkey");
       expect(cmds.last, "ALTER TABLE ONLY _GenPost ADD FOREIGN KEY (owner_id) REFERENCES _GenUser (id) ON DELETE SET NULL");
-    });
-
-    test("Alter column; nullability comes before change of delete rule", () {
-      var dm = new DataModel([GenUser, GenPost]);
-      var schema = new Schema(dm);
-      var postTable = schema.tables.firstWhere((t) => t.name == "_GenPost");
-      var originalColumn = postTable.columns.firstWhere((sc) => sc.name == "owner");
-      originalColumn.isNullable = false;
-      originalColumn.deleteRule = "restrict";
-
-      var col = new SchemaColumn.from(originalColumn);
-      col.deleteRule = "nullify";
-      col.isNullable = true;
-
-      var cmds = psc.alterColumn(postTable, originalColumn, col);
-      expect(cmds[0], "ALTER TABLE _GenPost ALTER COLUMN owner_id DROP NOT NULL");
-      expect(cmds[1], "ALTER TABLE ONLY _GenPost DROP CONSTRAINT _GenPost_owner_id_fkey");
-      expect(cmds[2], "ALTER TABLE ONLY _GenPost ADD FOREIGN KEY (owner_id) REFERENCES _GenUser (id) ON DELETE SET NULL");
     });
   });
 }

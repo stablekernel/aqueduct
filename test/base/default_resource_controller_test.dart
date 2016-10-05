@@ -300,7 +300,7 @@ class TestSink extends RequestSink {
   @override
   Future willOpen() async {
     var targetSchema = new Schema(context.dataModel);
-    var schemaBuilder = new SchemaBuilder(context.persistentStore, new Schema.empty(), targetSchema, isTemporary: true);
+    var schemaBuilder = new SchemaBuilder.toSchema(context.persistentStore, targetSchema, isTemporary: true);
 
     var commands = schemaBuilder.commands;
     for (var cmd in commands) {

@@ -26,6 +26,8 @@ abstract class PersistentStore {
   Predicate rangePredicate(PropertyDescription desc, dynamic lhsValue, dynamic rhsValue, bool insideRange);
   Predicate stringPredicate(PropertyDescription desc, StringMatcherOperator operator, dynamic value);
 
+  // -- Schema Ops --
+
   List<String> createTable(SchemaTable table, {bool isTemporary: false});
   List<String> renameTable(SchemaTable table, String name);
   List<String> deleteTable(SchemaTable table);
@@ -33,10 +35,15 @@ abstract class PersistentStore {
   List<String> addColumn(SchemaTable table, SchemaColumn column);
   List<String> deleteColumn(SchemaTable table, SchemaColumn column);
   List<String> renameColumn(SchemaTable table, SchemaColumn column, String name);
-  List<String> alterColumn(SchemaTable table, SchemaColumn existingColumn, SchemaColumn targetColumn, {String unencodedInitialValue});
+  List<String> alterColumnNullability(SchemaTable table, SchemaColumn column, String unencodedInitialValue);
+  List<String> alterColumnUniqueness(SchemaTable table, SchemaColumn column);
+  List<String> alterColumnDefaultValue(SchemaTable table, SchemaColumn column);
+  List<String> alterColumnDeleteRule(SchemaTable table, SchemaColumn column);
 
   List<String> addIndexToColumn(SchemaTable table, SchemaColumn column);
-  List<String> renameIndex(String existingIndexName, String newIndexName);
+  List<String> renameIndex(SchemaTable table, SchemaColumn column, String newIndexName);
   List<String> deleteIndexFromColumn(SchemaTable table, SchemaColumn column);
-  List<String> renameIndexOnColumn(SchemaTable table, SchemaColumn column, String targetIndexName);
+
+  Future createVersionTableIfNecessary();
+  Future<int> get schemaVersion;
 }

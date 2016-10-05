@@ -184,7 +184,7 @@ Future<ModelContext> contextWithModels(List<Type> instanceTypes) async {
 
 List<String> commandsFromDataModel(DataModel dataModel, {bool temporary: false}) {
   var targetSchema = new Schema(dataModel);
-  var builder = new SchemaBuilder(new PostgreSQLPersistentStore(() => null), new Schema.empty(), targetSchema, isTemporary: temporary);
+  var builder = new SchemaBuilder.toSchema(new PostgreSQLPersistentStore(() => null), targetSchema, isTemporary: temporary);
   return builder.commands;
 }
 
@@ -214,11 +214,16 @@ class DefaultPersistentStore extends PersistentStore {
   List<String> addColumn(SchemaTable table, SchemaColumn column) => [];
   List<String> deleteColumn(SchemaTable table, SchemaColumn column) => [];
   List<String> renameColumn(SchemaTable table, SchemaColumn column, String name) => [];
-  List<String> alterColumn(SchemaTable table, SchemaColumn existingColumn, SchemaColumn targetColumn, {String unencodedInitialValue}) => [];
-  List<String> renameIndex(String existingIndexName, String newIndexName) => [];
+  List<String> alterColumnNullability(SchemaTable table, SchemaColumn column, String unencodedInitialValue) => [];
+  List<String> alterColumnUniqueness(SchemaTable table, SchemaColumn column) => [];
+  List<String> alterColumnDefaultValue(SchemaTable table, SchemaColumn column) => [];
+  List<String> alterColumnDeleteRule(SchemaTable table, SchemaColumn column) => [];
 
   List<String> addIndexToColumn(SchemaTable table, SchemaColumn column) => [];
+  List<String> renameIndex(SchemaTable table, SchemaColumn column, String newIndexName) => [];
   List<String> deleteIndexFromColumn(SchemaTable table, SchemaColumn column) => [];
-  List<String> renameIndexOnColumn(SchemaTable table, SchemaColumn column, String targetIndexName) => [];
+
+  Future createVersionTableIfNecessary() async => null;
+  Future<int> get schemaVersion async => 0;
 }
 
