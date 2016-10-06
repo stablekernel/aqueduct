@@ -1,7 +1,7 @@
 part of aqueduct;
 
 abstract class Migration {
-  Schema get currentSchema => database.inputSchema;
+  Schema get currentSchema => database.schema;
   PersistentStore get store => database.store;
   SchemaBuilder database;
 
@@ -44,12 +44,12 @@ class MigrationExecutor {
     return files;
   }
 
-  Future<bool> upgrade() async {
+  Future<Schema> upgrade() async {
     await persistentStore.createVersionTableIfNecessary();
 
     var files = migrationFiles;
     if (files.isEmpty) {
-      return false;
+      return null;
     }
 
     var latestMigrationFile = files.last;
@@ -66,10 +66,6 @@ class MigrationExecutor {
       migrationFilesToRun = files.sublist(indexOfCurrent + 1);
     }
 
-    if (migrationFilesToRun == null) {
-      return false;
-    }
-
     var schema = new Schema.empty();
     for (var migration in migrationFilesToGetToCurrent) {
       schema = await _executeUpgradeForFile(migration, schema, dryRun: true);
@@ -79,7 +75,7 @@ class MigrationExecutor {
       schema = await _executeUpgradeForFile(migration, schema, dryRun: false);
     }
 
-    return true;
+    return schema;
   }
 
   int _versionNumberFromFile(File file) {
@@ -105,7 +101,7 @@ class MigrationExecutor {
 
       var controlPort = new ReceivePort()
         ..listen((results) {
-          onFinish.complete(results);
+          onFinish.complete(new Schema.fromMap(results as Map<String, dynamic>));
         });
 
       Map<String, dynamic> dbInfo;

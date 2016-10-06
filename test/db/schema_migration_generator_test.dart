@@ -19,6 +19,8 @@ void main() {
   });
 
   test("Empty schema to schema with tables", () async {
+    tablesToDelete = ["t1, t2"];
+
     var s1 = new Schema.empty();
     var s2 = new Schema([
       new SchemaTable("t1", [
@@ -34,7 +36,8 @@ void main() {
     new File("${Directory.current.path}/tmp/1_initial.migration.dart").writeAsStringSync(source);
 
     var executor = new MigrationExecutor(store, new Uri.file("${Directory.current.path}/tmp"));
-    expect(await executor.upgrade(), true);
+    var outSchema = await executor.upgrade();
+    expect(outSchema.matches(s2), true);
 
     expect(await executor.persistentStore.execute("select * from t1"), []);
     expect(await executor.persistentStore.execute("select * from t2"), []);
