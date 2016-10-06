@@ -19,7 +19,7 @@ class _User {
 
 This declares a User entity. The instance type here is `User` because it extends `Model`. The `Model` class provides storage for an object that is fetched from a database. It also handles serialization and deserialization so that a model object can be encoded or decoded into formats like JSON.
 
-The type parameter for a `Model` must be the entity's corresponding persistent type. Here, the persistent type is `_User`. (By convention, a persistent type is prefixed with an underscore.) The persistent type declares properties for every column that is actually on the database table this entity maps to. In this example, we are declaring that there is a table named *_User* and it has two columns, an integer primary key named `id` and a text column named `name`.
+The type parameter for `Model` must be the entity's persistent type. Here, the persistent type is `_User`. (By convention, a persistent type is prefixed with an underscore.) The persistent type declares properties for every column that is actually on the database table this entity maps to. In this example, we are declaring that there is a table named *_User* and it has two columns, an integer primary key named `id` and a text column named `name`.
 
 A instance type must also implement the interface of its persistent type. This allows the instance type to have accessor methods for each of the properties defined in its persistent type:
 
@@ -30,9 +30,11 @@ user.id = 1;
 user.name = "Bob";
 ```
 
-Because the instance type implements the persistent type (as opposed to extending it), the inherited properties from the persistent type do not have instance storage. That is, the instance type only exposes a getter and setter for each property in the persistent type, but does not have an instance variable to store any values. Instead, the instance type's superclass, `Model`, takes care of storage by overriding `noSuchMethod` to store and retrieve values from its `backingMap`. By providing the type parameter `_User` to the `Model` superclass, the `User` can validate properties against the interface provided in `_User`.
+Because the instance type implements the persistent type (as opposed to extending it), the inherited properties from the persistent type do not have instance storage. That is, the instance type only exposes accessors for each property, but does not have an instance variable to store those values. Instead, the instance type's superclass, `Model`, takes care of storage by overriding `noSuchMethod` to store and retrieve values from its `backingMap`. `Model` will make sure the type of a value is the type declared in the persistent type before storing it in the `backingMap`.
 
-Thus, a persistent type is never instantiated, it simply provides the mapping information between your model objects and a database table. All entities must be declared in this two-class setup. In the long-run, this significantly cuts down on typing and properly differentiates between database-backed properties and functionality that a model object may expose on top of those values.
+![image](../../images/modelBacking.png)
+
+A persistent type is never instantiated, it simply declares which properties are actually stored in a database and their types. All entities must be declared in this two-class setup. In the long-run, this significantly cuts down on typing and properly differentiates between database-backed properties and functionality that a model object may expose on top of those values.
 
 In order to use an entity in your application, it must be compiled into a `DataModel` [see inside_the_db.md]. A `DataModel` will create instances of `ModelEntity` that preprocess and validate the information described in your persistent and instance types at application startup.
 
@@ -92,9 +94,9 @@ class _User {
 
 Note that the specific database driver determines whether or not the table name is case-sensitive or not. The included database driver for PostgreSQL automatically lowercases table names and is case-insensitive.
 
-### instance types
+### Instance Types
 
-In using model objects in your application code, you will always use instances of an entity's instance type. Model objects can be transferred to and from a database to insert or fetch data. Model objects can also read their properties from a `Map`, oftentimes from JSON data in an HTTP request body. Model objects also know how to serialize themselves back into a `Map`, so they can be used as an HTTP response body. Additionally, model objects are used to help build queries in a safe way. The following code snippet is a pretty common usage of a model object:
+In using model objects in your application code, you will always an entity's instance type. Model objects can be transferred to and from a database to insert or fetch data. Model objects can also read their properties from a `Map`, oftentimes from JSON data in an HTTP request body. Model objects also know how to serialize themselves back into a `Map`, so they can be used as an HTTP response body. Additionally, model objects are used to help build queries in a safe way. The following code snippet is a pretty common usage of a model object:
 
 
 ```dart
@@ -199,7 +201,9 @@ class _Profile {
 }
 ```
 
-The `RelationshipInverse` metadata is the special addition here. This accomplishes two things. First, the `RelationshipInverse` property is actually a column in the database. More specifically, it is a foreign key to the other entity's table. In SQL databases, relationships are maintained through foreign key references. By specifying `RelationshipInverse`, you get to pick which table has the foreign key.
+The `RelationshipInverse` metadata is the special addition here. This accomplishes two things. First, the `RelationshipInverse` property is actually a column in the database: it is a foreign key to the other entity's table. In SQL databases, relationships are maintained through foreign key references. By specifying `RelationshipInverse`, you get to pick which table has the foreign key.
+
+![RelationshipInverse](../../images/relationshipBacking.png)
 
 Additionally, the first argument to `RelationshipInverse` allows you to pick the relationship property on the other entity that this property is inversely related to. For example, a User entity could potentially have two relationships with posts: posts they've created and posts that have queued for future posting. The Post table must have two foreign key columns to keep track of whether or not a User has already posted it or simply queued it. This `Symbol` for the property on the other side of the relationship makes this link.
 

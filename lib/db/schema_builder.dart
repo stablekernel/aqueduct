@@ -1,18 +1,18 @@
 part of aqueduct;
 
 class SchemaBuilder {
+  SchemaBuilder(this.store, this.inputSchema, {this.isTemporary: false}) {
+    schema = new Schema.from(inputSchema);
+  }
+
   SchemaBuilder.toSchema(this.store, Schema targetSchema, {this.isTemporary: false}) {
     schema = new Schema.empty();
     targetSchema.dependencyOrderedTables.forEach((t) {
-      _createTable(t);
+      createTable(t);
     });
   }
 
-  SchemaBuilder(this.store, this._currentSchema, {this.isTemporary: false}) {
-    schema = new Schema.from(_currentSchema);
-  }
-
-  Schema _currentSchema;
+  Schema inputSchema;
   Schema schema;
   PersistentStore store;
   bool isTemporary;
@@ -25,30 +25,15 @@ class SchemaBuilder {
     }
   }
 
-  void _createTable(SchemaTable table) {
-    if (schema.tableForName(table.name) != null) {
-      throw new SchemaException("Table ${table.name} already exist.");
-    }
-
+  void createTable(SchemaTable table) {
     schema.addTable(table);
     commands.addAll(store.createTable(table, isTemporary: isTemporary));
-  }
-
-  void createTable(void create(SchemaTable table)) {
-    var table = new SchemaTable.empty();
-    create(table);
-
-    _createTable(table);
   }
 
   void renameTable(String currentTableName, String newName) {
     var table = schema.tableForName(currentTableName);
     if (table == null) {
-      throw new SchemaException("Table ${newName} does not exist.");
-    }
-
-    if (schema.tableForName(newName) != null) {
-      throw new SchemaException("Table ${newName} already exist.");
+      throw new SchemaException("Table ${currentTableName} does not exist.");
     }
 
     schema.renameTable(table, newName);
@@ -65,16 +50,10 @@ class SchemaBuilder {
     commands.addAll(store.deleteTable(table));
   }
 
-  void addColumn(String tableName, void create(SchemaColumn column)) {
+  void addColumn(String tableName, SchemaColumn column) {
     var table = schema.tableForName(tableName);
     if (table == null) {
       throw new SchemaException("Table ${tableName} does not exist.");
-    }
-
-    var column = new SchemaColumn.empty();
-    create(column);
-    if (table.columnForName(column.name) != null) {
-      throw new SchemaException("Column ${column.name} already exists.");
     }
 
     table.addColumn(column);
@@ -108,14 +87,6 @@ class SchemaBuilder {
       throw new SchemaException("Column ${columnName} does not exists.");
     }
 
-    if (table.columnForName(newName) != null) {
-      throw new SchemaException("Column ${newName} already exists.");
-    }
-
-    if (column.isPrimaryKey) {
-      throw new SchemaException("May not rename primary key column (${column.name} -> ${newName})");
-    }
-
     table.renameColumn(column, newName);
     commands.addAll(store.renameColumn(table, column, newName));
   }
@@ -127,7 +98,7 @@ class SchemaBuilder {
     }
 
     var existingColumn = table[columnName];
-    if (existingColumn != null) {
+    if (existingColumn == null) {
       throw new SchemaException("Column ${columnName} does not exist.");
     }
 
@@ -159,7 +130,7 @@ class SchemaBuilder {
       renameColumn(tableName, existingColumn.name, newColumn.name);
     }
 
-    table.replaceColumn(existingColumn, newColumn);
+    table._replaceColumn(existingColumn, newColumn);
 
     if (existingColumn.isIndexed != newColumn.isIndexed) {
       if (newColumn.isIndexed) {

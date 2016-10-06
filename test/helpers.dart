@@ -183,7 +183,7 @@ Future<ModelContext> contextWithModels(List<Type> instanceTypes) async {
 }
 
 List<String> commandsFromDataModel(DataModel dataModel, {bool temporary: false}) {
-  var targetSchema = new Schema(dataModel);
+  var targetSchema = new Schema.fromDataModel(dataModel);
   var builder = new SchemaBuilder.toSchema(new PostgreSQLPersistentStore(() => null), targetSchema, isTemporary: temporary);
   return builder.commands;
 }

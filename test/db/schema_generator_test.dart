@@ -4,7 +4,7 @@ import 'package:test/test.dart';
 void main() {
   test("A single, simple model", () {
     var dataModel = new DataModel([SimpleModel]);
-    var schema = new Schema(dataModel);
+    var schema = new Schema.fromDataModel(dataModel);
     expect(schema.tables.length, 1);
     var t = schema.tables.first;
 
@@ -28,7 +28,7 @@ void main() {
 
   test("An extensive model", () {
     var dataModel = new DataModel([ExtensiveModel]);
-    var schema = new Schema(dataModel);
+    var schema = new Schema.fromDataModel(dataModel);
     expect(schema.tables.length, 1);
 
     var table = schema.tables.first;
@@ -152,7 +152,7 @@ void main() {
 
   test("A model graph", () {
     var dataModel = new DataModel([Container, DefaultItem, LoadedItem, LoadedSingleItem]);
-    var schema = new Schema(dataModel);
+    var schema = new Schema.fromDataModel(dataModel);
 
     expect(schema.tables.length, 4);
 

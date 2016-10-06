@@ -10,7 +10,7 @@ void main() {
 
     test("Property tables generate appropriate postgresql commands", () {
       var dm = new DataModel([GeneratorModel1]);
-      var schema = new Schema(dm);
+      var schema = new Schema.fromDataModel(dm);
       var commands = schema.tables.map((t) => psc.createTable(t)).expand((l) => l).toList();
 
       expect(commands[0], "CREATE TABLE _GeneratorModel1 (id BIGSERIAL PRIMARY KEY,name TEXT NOT NULL,option BOOLEAN NOT NULL,points DOUBLE PRECISION NOT NULL UNIQUE,validDate TIMESTAMP NULL)");
@@ -18,7 +18,7 @@ void main() {
 
     test("Create temporary table", () {
       var dm = new DataModel([GeneratorModel1]);
-      var schema = new Schema(dm);
+      var schema = new Schema.fromDataModel(dm);
       var commands = schema.tables.map((t) => psc.createTable(t, isTemporary: true)).expand((l) => l).toList();
 
       expect(commands[0], "CREATE TEMPORARY TABLE _GeneratorModel1 (id BIGSERIAL PRIMARY KEY,name TEXT NOT NULL,option BOOLEAN NOT NULL,points DOUBLE PRECISION NOT NULL UNIQUE,validDate TIMESTAMP NULL)");
@@ -26,7 +26,7 @@ void main() {
 
     test("Create table with indices", () {
       var dm = new DataModel([GeneratorModel2]);
-      var schema = new Schema(dm);
+      var schema = new Schema.fromDataModel(dm);
       var commands = schema.tables.map((t) => psc.createTable(t)).expand((l) => l).toList();
 
       expect(commands[0], "CREATE TABLE _GeneratorModel2 (id INT PRIMARY KEY)");
@@ -35,7 +35,7 @@ void main() {
 
     test("Create multiple tables with trailing index", () {
       var dm = new DataModel([GeneratorModel1, GeneratorModel2]);
-      var schema = new Schema(dm);
+      var schema = new Schema.fromDataModel(dm);
       var commands = schema.tables.map((t) => psc.createTable(t)).expand((l) => l).toList();
 
       expect(commands[0], "CREATE TABLE _GeneratorModel1 (id BIGSERIAL PRIMARY KEY,name TEXT NOT NULL,option BOOLEAN NOT NULL,points DOUBLE PRECISION NOT NULL UNIQUE,validDate TIMESTAMP NULL)");
@@ -45,7 +45,7 @@ void main() {
 
     test("Default values are properly serialized", () {
       var dm = new DataModel([GeneratorModel3]);
-      var schema = new Schema(dm);
+      var schema = new Schema.fromDataModel(dm);
       var commands = schema.tables.map((t) => psc.createTable(t)).expand((l) => l).toList();
 
       expect(commands[0], "CREATE TABLE _GeneratorModel3 (creationDate TIMESTAMP NOT NULL DEFAULT (now() at time zone 'utc'),id INT PRIMARY KEY,textValue TEXT NOT NULL DEFAULT \$\$dflt\$\$,option BOOLEAN NOT NULL DEFAULT true,otherTime TIMESTAMP NOT NULL DEFAULT '1900-01-01T00:00:00.000Z',value DOUBLE PRECISION NOT NULL DEFAULT 20.0)");
@@ -53,7 +53,7 @@ void main() {
 
     test("Table with tableName() overrides class name", () {
       var dm = new DataModel([GenNamed]);
-      var schema = new Schema(dm);
+      var schema = new Schema.fromDataModel(dm);
       var commands = schema.tables.map((t) => psc.createTable(t)).expand((l) => l).toList();
 
       expect(commands, ["CREATE TABLE GenNamed (id INT PRIMARY KEY)"]);
@@ -61,7 +61,7 @@ void main() {
 
     test("One-to-one relationships are generated", () {
       var dm = new DataModel([GenOwner, GenAuth]);
-      var schema = new Schema(dm);
+      var schema = new Schema.fromDataModel(dm);
       var cmds = schema.tables.map((t) => psc.createTable(t)).expand((l) => l).toList();
 
       expect(cmds[0], "CREATE TABLE _GenOwner (id BIGSERIAL PRIMARY KEY)");
@@ -73,7 +73,7 @@ void main() {
 
     test("One-to-many relationships are generated", () {
       var dm = new DataModel([GenUser, GenPost]);
-      var schema = new Schema(dm);
+      var schema = new Schema.fromDataModel(dm);
       var cmds = schema.tables.map((t) => psc.createTable(t)).expand((l) => l).toList();
 
       expect(cmds.contains("CREATE TABLE _GenUser (id INT PRIMARY KEY,name TEXT NOT NULL)"), true);
@@ -85,7 +85,7 @@ void main() {
 
     test("Many-to-many relationships are generated", () {
       var dm = new DataModel([GenLeft, GenRight, GenJoin]);
-      var schema = new Schema(dm);
+      var schema = new Schema.fromDataModel(dm);
       var cmds = schema.tables.map((t) => psc.createTable(t)).expand((l) => l).toList();
 
       expect(cmds.contains("CREATE TABLE _GenLeft (id INT PRIMARY KEY)"), true);
@@ -100,7 +100,7 @@ void main() {
 
     test("Serial types in relationships are properly inversed", () {
       var dm = new DataModel([GenOwner, GenAuth]);
-      var schema = new Schema(dm);
+      var schema = new Schema.fromDataModel(dm);
       var cmds = schema.tables.map((t) => psc.createTable(t)).expand((l) => l).toList();
 
       expect(cmds.contains("CREATE TABLE _GenAuth (id INT PRIMARY KEY,owner_id BIGINT NULL UNIQUE)"), true);
@@ -117,37 +117,37 @@ void main() {
 
     test("Delete table", () {
       var dm = new DataModel([GeneratorModel1]);
-      var schema = new Schema(dm);
+      var schema = new Schema.fromDataModel(dm);
       var cmds = psc.deleteTable(schema.tableForName("_GeneratorModel1"));
       expect(cmds, ["DROP TABLE _GeneratorModel1"]);
     });
 
     test("Add simple column", () {
       var dm = new DataModel([GeneratorModel1]);
-      var schema = new Schema(dm);
+      var schema = new Schema.fromDataModel(dm);
 
       var propDesc = new AttributeDescription(dm.entityForType(GeneratorModel1), "foobar", PropertyType.integer);
-      var cmds = psc.addColumn(schema.tables.first, new SchemaColumn(dm.entityForType(GeneratorModel1), propDesc));
+      var cmds = psc.addColumn(schema.tables.first, new SchemaColumn.fromEntity(dm.entityForType(GeneratorModel1), propDesc));
       expect(cmds, ["ALTER TABLE _GeneratorModel1 ADD COLUMN foobar INT NOT NULL"]);
     });
 
     test("Add column with index", () {
       var dm = new DataModel([GeneratorModel1]);
-      var schema = new Schema(dm);
+      var schema = new Schema.fromDataModel(dm);
 
       var propDesc = new AttributeDescription(dm.entityForType(GeneratorModel1), "foobar", PropertyType.integer, defaultValue: "4", unique: true, indexed: true, nullable: true, autoincrement: true);
-      var cmds = psc.addColumn(schema.tables.first, new SchemaColumn(dm.entityForType(GeneratorModel1), propDesc));
+      var cmds = psc.addColumn(schema.tables.first, new SchemaColumn.fromEntity(dm.entityForType(GeneratorModel1), propDesc));
       expect(cmds.first, "ALTER TABLE _GeneratorModel1 ADD COLUMN foobar SERIAL NULL DEFAULT 4 UNIQUE");
       expect(cmds.last, "CREATE INDEX _GeneratorModel1_foobar_idx ON _GeneratorModel1 (foobar)");
     });
 
     test("Add foreign key column (index + constraint)", () {
       var dm = new DataModel([GeneratorModel1, GeneratorModel2]);
-      var schema = new Schema(dm);
+      var schema = new Schema.fromDataModel(dm);
 
       var propDesc = new RelationshipDescription(dm.entityForType(GeneratorModel1), "foobar", PropertyType.string, dm.entityForType(GeneratorModel2),
         RelationshipDeleteRule.cascade, RelationshipType.belongsTo, new Symbol(dm.entityForType(GeneratorModel2).primaryKey), indexed: true);
-      var cmds = psc.addColumn(schema.tables.first, new SchemaColumn(dm.entityForType(GeneratorModel1), propDesc));
+      var cmds = psc.addColumn(schema.tables.first, new SchemaColumn.fromEntity(dm.entityForType(GeneratorModel1), propDesc));
       expect(cmds[0], "ALTER TABLE _GeneratorModel1 ADD COLUMN foobar_id TEXT NOT NULL");
       expect(cmds[1], "CREATE INDEX _GeneratorModel1_foobar_id_idx ON _GeneratorModel1 (foobar_id)");
       expect(cmds[2], "ALTER TABLE ONLY _GeneratorModel1 ADD FOREIGN KEY (foobar_id) REFERENCES _GeneratorModel2 (id) ON DELETE CASCADE");
@@ -155,35 +155,35 @@ void main() {
 
     test("Delete column", () {
       var dm = new DataModel([GeneratorModel1]);
-      var schema = new Schema(dm);
+      var schema = new Schema.fromDataModel(dm);
       var cmds = psc.deleteColumn(schema.tables.first, schema.tables.first.columns.last);
       expect(cmds.first, "ALTER TABLE _GeneratorModel1 DROP COLUMN validDate RESTRICT");
     });
 
     test("Delete foreign key column", () {
       var dm = new DataModel([GenUser, GenPost]);
-      var schema = new Schema(dm);
+      var schema = new Schema.fromDataModel(dm);
       var cmds = psc.deleteColumn(schema.tables.last, schema.tables.last.columns.firstWhere((c) => c.name == "owner"));
       expect(cmds.first, "ALTER TABLE _GenPost DROP COLUMN owner_id CASCADE");
     });
 
     test("Add index to column", () {
       var dm = new DataModel([GeneratorModel1]);
-      var schema = new Schema(dm);
+      var schema = new Schema.fromDataModel(dm);
       var cmds = psc.addIndexToColumn(schema.tables.first, schema.tables.first.columns.last);
       expect(cmds.first, "CREATE INDEX _GeneratorModel1_validDate_idx ON _GeneratorModel1 (validDate)");
     });
 
     test("Remove index from column", () {
       var dm = new DataModel([GeneratorModel1]);
-      var schema = new Schema(dm);
+      var schema = new Schema.fromDataModel(dm);
       var cmds = psc.deleteIndexFromColumn(schema.tables.first, schema.tables.first.columns.last);
       expect(cmds.first, "DROP INDEX _GeneratorModel1_validDate_idx");
     });
 
     test("Alter column change nullabiity", () {
       var dm = new DataModel([GeneratorModel1]);
-      var schema = new Schema(dm);
+      var schema = new Schema.fromDataModel(dm);
       var originalColumn = schema.tables.first.columns.firstWhere((sc) => sc.name == "name");
       expect(originalColumn.isNullable, false);
 
@@ -208,7 +208,7 @@ void main() {
 
     test("Alter column change uniqueness", () {
       var dm = new DataModel([GeneratorModel1]);
-      var schema = new Schema(dm);
+      var schema = new Schema.fromDataModel(dm);
       var originalColumn = schema.tables.first.columns.firstWhere((sc) => sc.name == "name");
       expect(originalColumn.isUnique, false);
 
@@ -227,7 +227,7 @@ void main() {
 
     test("Alter column change default value", () {
       var dm = new DataModel([GeneratorModel1]);
-      var schema = new Schema(dm);
+      var schema = new Schema.fromDataModel(dm);
       var originalColumn = schema.tables.first.columns.firstWhere((sc) => sc.name == "name");
       expect(originalColumn.defaultValue, isNull);
 
@@ -246,7 +246,7 @@ void main() {
 
     test("Alter column change delete rule", () {
       var dm = new DataModel([GenUser, GenPost]);
-      var schema = new Schema(dm);
+      var schema = new Schema.fromDataModel(dm);
       var postTable = schema.tables.firstWhere((t) => t.name == "_GenPost");
       var originalColumn = postTable.columns.firstWhere((sc) => sc.name == "owner");
       expect(originalColumn.deleteRule, "restrict");

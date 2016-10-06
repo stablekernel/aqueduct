@@ -1,7 +1,7 @@
 part of aqueduct;
 
 abstract class Migration {
-  Schema get currentSchema => database._currentSchema;
+  Schema get currentSchema => database.inputSchema;
   PersistentStore get store => database.store;
   SchemaBuilder database;
 
@@ -22,7 +22,11 @@ class MigrationExecutor {
 
   List<File> get migrationFiles  {
     var dir = new Directory.fromUri(migrationFileDirectory);
-    var files = dir.listSync().where((fse) => fse.path.endsWith(".migration.dart")).toList();
+    var files = dir.listSync()
+        .where((fse) => fse is File)
+        .map((fse) => fse as File)
+        .where((fse) => fse.path.endsWith(".migration.dart"))
+        .toList();
 
     files.forEach((fse) {
       var fileName = fse.uri.pathSegments.last;
@@ -31,7 +35,7 @@ class MigrationExecutor {
       try {
         int.parse(versionNumber);
       } catch (e) {
-        throw new MigrationException("Migration files must have the following format: Version_Name.migration.dart, where Version must be an integer and '_Name' is optional. Offender: ${fse.uri}");
+        throw new MigrationException("Migration files must have the following format: Version_Name.migration.dart, where Version must be an integer (no longer than 8 characters) and '_Name' is optional. Offender: ${fse.uri}");
       }
     });
 
@@ -41,15 +45,16 @@ class MigrationExecutor {
   }
 
   Future<bool> upgrade() async {
+    await persistentStore.createVersionTableIfNecessary();
+
     var files = migrationFiles;
     if (files.isEmpty) {
-      throw new MigrationException("No migration files in ${migrationFileDirectory}.");
+      return false;
     }
 
     var latestMigrationFile = files.last;
     var latestMigrationVersionNumber = _versionNumberFromFile(latestMigrationFile);
 
-    await persistentStore.createVersionTableIfNecessary();
     var currentVersion = await persistentStore.schemaVersion;
 
     List<File> migrationFilesToRun;
@@ -77,27 +82,29 @@ class MigrationExecutor {
     return int.parse(migrationName.split("_").first);
   }
 
-  Future _executeUpgradeForFile(File file) {
-    var source = _sourceWithFile(file, "upgrade");
+  Future _executeUpgradeForFile(File file) async {
+    var source = _upgradeSourceWithFile(file);
 
   }
 
-  String _sourceWithFile(File file, String command) {
+  String _upgradeSourceWithFile(File file) {
+    var f = (List<String> args, SendPort sendPort) async {
+      var migrationClassMirror = currentMirrorSystem().isolate.rootLibrary.declarations.values.firstWhere((dm) => dm is ClassMirror && dm.isSubclassOf(reflectClass(Migration))) as ClassMirror;
+      var migrationInstance = migrationClassMirror.newInstance(new Symbol(''), []).reflectee as Migration;
+      migrationInstance.database = null;
+
+      await migrationInstance.upgrade();
+      await migrationInstance.database.execute();
+      var outSchema = migrationInstance.currentSchema;
+      sendPort.send(outSchema.asMap());
+    };
+
+    var source = (reflect(f) as ClosureMirror).function.source;
     var builder = new StringBuffer();
-    builder.writeln("import 'dart:async';");
-    builder.writeln("import 'dart:io';");
-    builder.writeln("import 'package:aqueduct/aqueduct.dart';");
     builder.writeln(file.readAsStringSync());
+    builder.writeln("");
     builder.writeln("Future main (List<String> args, SendPort sendPort) async {");
-    builder.writeln("  var migrationClassMirror = currentMirrorSystem().isolate.rootLibrary.declarations.values.firstWhere((dm) => dm is ClassMirror && dm.isSubclassOf(reflectClass(Migration)));");
-    builder.writeln("  var migrationInstance = migrationClassMirror.newInstance(new Symbol(''), []).reflectee;");
-    builder.writeln("  migrationInstance.database = ;");
-    builder.writeln("  await migrationInstance.$command();");
-    builder.writeln("  if (!migrationInstance.database.builtSchema.matches(codebaseSchema)) {");
-    builder.writeln("    throw new MigrationException(");
-    builder.writeln("  }");
-    builder.writeln("  var finishedSchema = await migrationInstance.database.execute();");
-    builder.writeln("  sendPort.send(finishedSchema);");
+    builder.writeln(source);
     builder.writeln("}");
 
     return builder.toString();

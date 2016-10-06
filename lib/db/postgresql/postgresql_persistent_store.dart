@@ -16,7 +16,6 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
   PostgreSQLConnection _databaseConnection;
   PostgreSQLConnectionFunction connectFunction;
   Completer<PostgreSQLConnection> _pendingConnectionCompleter;
-//  List<Completer<PostgreSQLConnection>> _pendingConnectionCompleters = [];
 
   PostgreSQLPersistentStore(this.connectFunction) : super();
   PostgreSQLPersistentStore.fromConnectionInfo(String username, String password, String host, int port, String databaseName, {String timezone: "UTC"}) {
@@ -47,6 +46,7 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
         _pendingConnectionCompleter.completeError(new QueryException(QueryExceptionEvent.connectionFailure, underlyingException: e));
         _pendingConnectionCompleter = null;
       });
+
       return _pendingConnectionCompleter.future;
     }
 
@@ -71,53 +71,26 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
     _databaseConnection = null;
   }
 
-  String _columnNameForProperty(PropertyDescription desc) {
-    if (desc is RelationshipDescription) {
-      return "${desc.name}_${desc.destinationEntity.primaryKey}";
-    }
-    return desc.name;
-  }
-
-  static Map<PropertyType, PostgreSQLDataType> _typeMap = {
-    PropertyType.integer : PostgreSQLDataType.integer,
-    PropertyType.bigInteger : PostgreSQLDataType.bigInteger,
-    PropertyType.string : PostgreSQLDataType.text,
-    PropertyType.datetime : PostgreSQLDataType.timestampWithoutTimezone,
-    PropertyType.boolean : PostgreSQLDataType.boolean,
-    PropertyType.doublePrecision : PostgreSQLDataType.double
-  };
-
-  String _typedColumnName(String name, PropertyDescription desc) {
-    var type = PostgreSQLFormat.dataTypeStringForDataType(_typeMap[desc.type]);
-    if (type == null) {
-      return name;
-    }
-    return "$name:$type";
-  }
-
-  Future<dynamic> _executeQuery(String formatString, Map<String, dynamic> values, int timeoutInSeconds, {bool returnCount: false}) async {
-    var now = new DateTime.now().toUtc();
-    try {
-      var dbConnection = await getDatabaseConnection();
-      var results = null;
-
-      if (!returnCount) {
-        results = await dbConnection.query(formatString, substitutionValues: values).timeout(new Duration(seconds: timeoutInSeconds));
-      } else {
-        results = await dbConnection.execute(formatString, substitutionValues: values).timeout(new Duration(seconds: timeoutInSeconds));
-      }
-
-      logger.fine(() => "Query (${(new DateTime.now().toUtc().difference(now).inMilliseconds)}ms) $formatString $values -> $results");
-
-      return results;
-    } on TimeoutException catch (e) {
-      throw new QueryException(QueryExceptionEvent.connectionFailure, underlyingException: e);
-    } on PostgreSQLException catch (e) {
-      logger.fine(() => "Query (${(new DateTime.now().toUtc().difference(now).inMilliseconds)}ms) $formatString $values");
-      throw _interpretException(e);
+  @override
+  Future createVersionTableIfNecessary() async {
+    var commands = createTable(_versionTable);
+    for (var cmd in commands) {
+      await execute(cmd);
     }
   }
 
+  @override
+  Future<int> get schemaVersion async {
+    var values = await execute("SELECT versionNumber, dateOfUpgrade FROM _aqueduct_version_pgsql ORDER BY dateOfUpgrade ASC") as List<List<dynamic>>;
+
+    if (values.length == 0) {
+      return 0;
+    }
+
+    return values.last.first;
+  }
+
+  @override
   Future<List<MappingElement>> executeInsertQuery(PersistentStoreQuery q) async {
     var columnsBeingInserted = q.values
         .map((m) => _columnNameForProperty(m.property))
@@ -145,6 +118,7 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
     return _mappingElementsFromResults(results as List<List<dynamic>>, q.resultKeys).first;
   }
 
+  @override
   Future<List<List<MappingElement>>> executeFetchQuery(PersistentStoreQuery q) async {
     var predicateValueMap = <String, dynamic>{};
     var mapElementToStringTransform = (MappingElement e) => "${e.property.entity.tableName}.${_columnNameForProperty(e.property)}";
@@ -192,6 +166,7 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
     return _mappingElementsFromResults(results as List<List<dynamic>>, q.resultKeys);
   }
 
+  @override
   Future<int> executeDeleteQuery(PersistentStoreQuery q) async {
     if (q.predicate == null && !q.confirmQueryModifiesAllInstancesOnDeleteOrUpdate) {
       throw new QueryException(QueryExceptionEvent.internalFailure, message: "Query would impact all records. This could be a destructive error. Set confirmQueryModifiesAllInstancesOnDeleteOrUpdate on the Query to execute anyway.");
@@ -211,6 +186,7 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
     return results;
   }
 
+  @override
   Future<List<List<MappingElement>>> executeUpdateQuery(PersistentStoreQuery q) async {
     if (q.predicate == null && !q.confirmQueryModifiesAllInstancesOnDeleteOrUpdate) {
       throw new QueryException(QueryExceptionEvent.internalFailure, message: "Query would impact all records. This could be a destructive error. Set confirmQueryModifiesAllInstancesOnDeleteOrUpdate on the Query to execute anyway.");
@@ -312,6 +288,53 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
     return new Predicate("$tableName.$propertyName like @$formatSpecificationName", {keyName : matchValue});
   }
 
+  String _columnNameForProperty(PropertyDescription desc) {
+    if (desc is RelationshipDescription) {
+      return "${desc.name}_${desc.destinationEntity.primaryKey}";
+    }
+    return desc.name;
+  }
+
+  static Map<PropertyType, PostgreSQLDataType> _typeMap = {
+    PropertyType.integer : PostgreSQLDataType.integer,
+    PropertyType.bigInteger : PostgreSQLDataType.bigInteger,
+    PropertyType.string : PostgreSQLDataType.text,
+    PropertyType.datetime : PostgreSQLDataType.timestampWithoutTimezone,
+    PropertyType.boolean : PostgreSQLDataType.boolean,
+    PropertyType.doublePrecision : PostgreSQLDataType.double
+  };
+
+  String _typedColumnName(String name, PropertyDescription desc) {
+    var type = PostgreSQLFormat.dataTypeStringForDataType(_typeMap[desc.type]);
+    if (type == null) {
+      return name;
+    }
+    return "$name:$type";
+  }
+
+  Future<dynamic> _executeQuery(String formatString, Map<String, dynamic> values, int timeoutInSeconds, {bool returnCount: false}) async {
+    var now = new DateTime.now().toUtc();
+    try {
+      var dbConnection = await getDatabaseConnection();
+      var results = null;
+
+      if (!returnCount) {
+        results = await dbConnection.query(formatString, substitutionValues: values).timeout(new Duration(seconds: timeoutInSeconds));
+      } else {
+        results = await dbConnection.execute(formatString, substitutionValues: values).timeout(new Duration(seconds: timeoutInSeconds));
+      }
+
+      logger.fine(() => "Query (${(new DateTime.now().toUtc().difference(now).inMilliseconds)}ms) $formatString $values -> $results");
+
+      return results;
+    } on TimeoutException catch (e) {
+      throw new QueryException(QueryExceptionEvent.connectionFailure, underlyingException: e);
+    } on PostgreSQLException catch (e) {
+      logger.fine(() => "Query (${(new DateTime.now().toUtc().difference(now).inMilliseconds)}ms) $formatString $values");
+      throw _interpretException(e);
+    }
+  }
+
   SchemaTable get _versionTable {
     return new SchemaTable.empty()
       ..name = "_aqueduct_version_pgsql"
@@ -319,23 +342,6 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
         (new SchemaColumn.empty()..name = "versionNumber"..type = SchemaColumn.typeStringForType(PropertyType.integer)),
         (new SchemaColumn.empty()..name = "dateOfUpgrade"..type = SchemaColumn.typeStringForType(PropertyType.datetime)),
       ];
-  }
-
-  Future createVersionTableIfNecessary() async {
-    var commands = createTable(_versionTable);
-    for (var cmd in commands) {
-      await execute(cmd);
-    }
-  }
-
-  Future<int> get schemaVersion async {
-    var values = await execute("SELECT versionNumber, dateOfUpgrade FROM _aqueduct_version_pgsql ORDER BY dateOfUpgrade ASC") as List<List<dynamic>>;
-
-    if (values.length == 0) {
-      return 0;
-    }
-
-    return values.last.first;
   }
 
   List<List<MappingElement>> _mappingElementsFromResults(List<List<dynamic>> rows, List<MappingElement> columnDefinitions) {

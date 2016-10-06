@@ -1,63 +1,82 @@
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
 import 'dart:async';
+import 'dart:io';
 
 void main() {
-  test("Migration subclasses can be executed and all commands are linked up", () async {
-    var schema = new Schema.withTables([
-      new SchemaTable.withColumns("tableToKeep", [
-        new SchemaColumn.withName("columnToEdit", PropertyType.integer),
-        new SchemaColumn.withName("columnToDelete", PropertyType.integer)
-      ]),
-      new SchemaTable.withColumns("tableToDelete", [
-        new SchemaColumn.withName("whocares", PropertyType.integer)
-      ]),
-      new SchemaTable.withColumns("tableToRename", [
-        new SchemaColumn.withName("whocares", PropertyType.integer)
-      ])
-    ]);
+  group("Versioning", () {
+    PostgreSQLPersistentStore store;
+    MigrationExecutor executor;
 
-    var store = new PostgreSQLPersistentStore.fromConnectionInfo("dart", "dart", "localhost", 5432, "dart_test");
-    var db = new SchemaBuilder(store, schema, isTemporary: true);
-    var mig = new Migration1()
-      ..database = db;
+    setUp(() async {
+      store = new PostgreSQLPersistentStore.fromConnectionInfo("dart", "dart", "localhost", 5432, "dart_test");
+      executor = new MigrationExecutor(store, Directory.current.uri);
+    });
 
-    await mig.upgrade();
+    tearDown(() async {
+      await store.execute("drop table _aqueduct_version_pgsql");
+      await store.close();
+    });
 
-    schema.tables.first.columnForName("col1").isIndexed = true;
-    schema.tables.add(Migration1.tableToAdd);
+    test("When upgrading, version table is created if does not exist", () async {
+      await executor.upgrade();
 
-    expect(db.schema.matches(schema), true);
+      var results = await executor.persistentStore.execute("SELECT versionNumber, dateOfUpgrade FROM _aqueduct_version_pgsql");
+      expect(results, []);
+    });
 
-    print("${mig.database.commands}");
+    test("Version number is indicated by most recent dateOfUpgrade", () async {
+      await executor.persistentStore.createVersionTableIfNecessary();
+      await executor.persistentStore.execute("INSERT INTO _aqueduct_version_pgsql (versionNumber, dateOfUpgrade) VALUES (1, '2016-01-01 00:00:00')");
+      await executor.persistentStore.execute("INSERT INTO _aqueduct_version_pgsql (versionNumber, dateOfUpgrade) VALUES (2, '2016-01-02 00:00:00')");
+      var recentVersion = await executor.persistentStore.schemaVersion;
+      expect(recentVersion, 2);
+    });
   });
+
+//  test("Migration subclasses can be executed and all commands are linked up", () async {
+//    var schema = new Schema([
+//      new SchemaTable("tableToKeep", [
+//        new SchemaColumn("columnToEdit", PropertyType.integer),
+//        new SchemaColumn("columnToDelete", PropertyType.integer)
+//      ]),
+//      new SchemaTable("tableToDelete", [
+//        new SchemaColumn("whocares", PropertyType.integer)
+//      ]),
+//      new SchemaTable("tableToRename", [
+//        new SchemaColumn("whocares", PropertyType.integer)
+//      ])
+//    ]);
+//
+//    var store = new PostgreSQLPersistentStore.fromConnectionInfo("dart", "dart", "localhost", 5432, "dart_test");
+//    var db = new SchemaBuilder(store, schema, isTemporary: true);
+//    var mig = new Migration1()
+//      ..database = db;
+//
+//    await mig.upgrade();
+//
+//    //schema.tableForName("tableToKeep").columnForName("col1").isIndexed = true;
+//    //schema.tables.add(Migration1.tableToAdd);
+//
+////    expect(db.schema.matches(schema), true);
+//
+//    print("${mig.database.commands}");
+//  });
 }
 
 class Migration1 extends Migration {
-  static SchemaTable tableToAdd = new SchemaTable.withColumns("addedTable", [
-    new SchemaColumn.withName("col", PropertyType.integer)
-  ]);
-/*
-List<String> createTable(SchemaTable table, {bool isTemporary: false});
-  List<String> renameTable(SchemaTable table, String name);
-  List<String> deleteTable(SchemaTable table);
-
-  List<String> addColumn(SchemaTable table, SchemaColumn column);
-  List<String> deleteColumn(SchemaTable table, SchemaColumn column);
-  List<String> renameColumn(SchemaTable table, SchemaColumn column, String name);
-  List<String> alterColumn(SchemaTable table, SchemaColumn existingColumn, SchemaColumn targetColumn, {String unencodedInitialValue});
-
- */
-
   Future upgrade() async {
-    database.createTable(tableToAdd);
+    database.createTable(new SchemaTable("foo", [
+      new SchemaColumn("foobar", PropertyType.integer, isIndexed: true)
+    ]));
+
     //database.renameTable(currentSchema["tableToRename"], "renamedTable");
     database.deleteTable("tableToDelete");
 
-    database.addColumn("tableToKeep", new SchemaColumn.withName("addedColumn", PropertyType.integer));
+    database.addColumn("tableToKeep", new SchemaColumn("addedColumn", PropertyType.integer, defaultValue: "2"));
     database.deleteColumn("tableToKeep", "columnToDelete");
     //database.renameColumn()
-    database.alterColumn(currentSchema["tableToKeep"], "columnToEdit", (col) {
+    database.alterColumn("tableToKeep", "columnToEdit", (col) {
       col.defaultValue = "'foo'";
     });
   }
