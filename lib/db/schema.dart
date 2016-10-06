@@ -21,6 +21,11 @@ class Schema {
     tables = otherSchema?.tables?.map((table) => new SchemaTable.from(table))?.toList() ?? [];
   }
 
+  Schema.fromMap(Map<String, dynamic> map) {
+    tables = (map["tables"] as List<Map<String, dynamic>>).map((t) => new SchemaTable.fromMap(t)).toList();
+  }
+
+
   Schema.empty() {
     tables = [];
   }

@@ -46,4 +46,5 @@ abstract class PersistentStore {
 
   Future createVersionTableIfNecessary();
   Future<int> get schemaVersion;
+  Future updateVersionNumber(int versionNumber);
 }

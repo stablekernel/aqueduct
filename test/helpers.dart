@@ -225,5 +225,6 @@ class DefaultPersistentStore extends PersistentStore {
 
   Future createVersionTableIfNecessary() async => null;
   Future<int> get schemaVersion async => 0;
+  Future updateVersionNumber(int versionNumber) => null;
 }
 

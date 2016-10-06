@@ -22,6 +22,11 @@ class SchemaTable extends SchemaElement {
 
   SchemaTable.empty();
 
+  SchemaTable.fromMap(Map<String, dynamic> map) {
+    name = map["name"];
+    columns = (map["columns"] as List<Map<String, dynamic>>).map((c) => new SchemaColumn.fromMap(c)).toList();
+  }
+
   String name;
   List<SchemaColumn> columns;
 

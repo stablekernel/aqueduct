@@ -43,6 +43,20 @@ class SchemaColumn extends SchemaElement {
     deleteRule = otherColumn.deleteRule;
   }
 
+  SchemaColumn.fromMap(Map<String, dynamic> map) {
+    name = map["name"];
+    type = map["type"];
+    isIndexed = map["indexed"];
+    isNullable = map["nullable"];
+    autoincrement = map["autoincrement"];
+    isUnique = map["unique"];
+    defaultValue = map["defaultValue"];
+    isPrimaryKey = map["primaryKey"];
+    relatedTableName = map["relatedTableName"];
+    relatedColumnName = map["relatedColumnName"];
+    deleteRule = map["deleteRule"];
+  }
+
   SchemaColumn.empty();
 
   String name;
@@ -90,6 +104,19 @@ class SchemaColumn extends SchemaElement {
     }
     return null;
   }
+
+  static PropertyType typeFromTypeString(String type) {
+    switch (type) {
+      case "integer": return PropertyType.integer;
+      case "double": return PropertyType.doublePrecision;
+      case "bigInteger": return PropertyType.bigInteger;
+      case "boolean": return PropertyType.boolean;
+      case "datetime": return PropertyType.datetime;
+      case "string": return PropertyType.string;
+    }
+    return null;
+  }
+
 
   static String deleteRuleStringForDeleteRule(RelationshipDeleteRule rule) {
     switch (rule) {

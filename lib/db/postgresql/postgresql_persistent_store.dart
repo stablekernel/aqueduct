@@ -16,12 +16,18 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
   PostgreSQLConnection _databaseConnection;
   PostgreSQLConnectionFunction connectFunction;
   Completer<PostgreSQLConnection> _pendingConnectionCompleter;
+  String username;
+  String password;
+  String host;
+  int port;
+  String databaseName;
+  String timeZone = "UTC";
 
   PostgreSQLPersistentStore(this.connectFunction) : super();
-  PostgreSQLPersistentStore.fromConnectionInfo(String username, String password, String host, int port, String databaseName, {String timezone: "UTC"}) {
+  PostgreSQLPersistentStore.fromConnectionInfo(this.username, this.password, this.host, this.port, this.databaseName, {this.timeZone: "UTC"}) {
     this.connectFunction = () async {
       logger.info("PostgreSQL connecting, $username@$host:$port/$databaseName.");
-      var connection = new PostgreSQLConnection(host, port, databaseName, username: username, password: password, timeZone: timezone);
+      var connection = new PostgreSQLConnection(host, port, databaseName, username: username, password: password, timeZone: timeZone);
       await connection.open();
       return connection;
     };
@@ -88,6 +94,11 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
     }
 
     return values.last.first;
+  }
+
+  @override
+  Future updateVersionNumber(int versionNumber) async {
+    await execute("INSERT INTO _aqueduct_version_pgsql (versionNumber, dateOfUpgrade) VALUES ($versionNumber, '${new DateTime.now().toUtc().toIso8601String()}')");
   }
 
   @override

@@ -54,14 +54,15 @@ class MigrationExecutor {
 
     var latestMigrationFile = files.last;
     var latestMigrationVersionNumber = _versionNumberFromFile(latestMigrationFile);
-
     var currentVersion = await persistentStore.schemaVersion;
 
     List<File> migrationFilesToRun;
+    List<File> migrationFilesToGetToCurrent = [];
     if (currentVersion == 0) {
       migrationFilesToRun = files;
     } else if (latestMigrationVersionNumber > currentVersion) {
       var indexOfCurrent = files.indexOf(files.firstWhere((f) => _versionNumberFromFile(f) == latestMigrationVersionNumber));
+      migrationFilesToGetToCurrent = files.sublist(0, indexOfCurrent + 1);
       migrationFilesToRun = files.sublist(indexOfCurrent + 1);
     }
 
@@ -69,8 +70,13 @@ class MigrationExecutor {
       return false;
     }
 
+    var schema = new Schema.empty();
+    for (var migration in migrationFilesToGetToCurrent) {
+      schema = await _executeUpgradeForFile(migration, schema, dryRun: true);
+    }
+
     for (var migration in migrationFilesToRun) {
-      await _executeUpgradeForFile(migration);
+      schema = await _executeUpgradeForFile(migration, schema, dryRun: false);
     }
 
     return true;
@@ -82,29 +88,89 @@ class MigrationExecutor {
     return int.parse(migrationName.split("_").first);
   }
 
-  Future _executeUpgradeForFile(File file) async {
-    var source = _upgradeSourceWithFile(file);
+  Future<Schema> _executeUpgradeForFile(File file, Schema schema, {bool dryRun: false}) async {
+    var versionNumber = _versionNumberFromFile(file);
+    var onFinish = new Completer();
+    var source = _upgradeContentsForMigrationContents(file.readAsStringSync());
+    var tmpFile = new File("${file.path}.tmp");
+    try {
+      tmpFile.writeAsStringSync(source);
 
+      var onErrorPort = new ReceivePort()
+        ..listen((err) {
+          if (!onFinish.isCompleted) {
+            onFinish.completeError(err);
+          }
+        });
+
+      var controlPort = new ReceivePort()
+        ..listen((results) {
+          onFinish.complete(results);
+        });
+
+      Map<String, dynamic> dbInfo;
+      if (persistentStore is PostgreSQLPersistentStore) {
+        var s = persistentStore as PostgreSQLPersistentStore;
+        dbInfo = {
+          "flavor" : "postgres",
+          "username" : s.username,
+          "password" : s.password,
+          "host" : s.host,
+          "port" : s.port,
+          "databaseName" : s.databaseName,
+          "timeZone" : s.timeZone
+        };
+      }
+
+      await Isolate.spawnUri(tmpFile.uri, ["$versionNumber"], {
+        "dryRun" : dryRun,
+        "schema" : schema.asMap(),
+        "sendPort" : controlPort.sendPort,
+        "dbInfo" : dbInfo,
+      }, errorsAreFatal: true, onError: onErrorPort.sendPort);
+
+      return onFinish.future;
+    } finally {
+      tmpFile.deleteSync();
+    }
   }
 
-  String _upgradeSourceWithFile(File file) {
-    var f = (List<String> args, SendPort sendPort) async {
+  String _upgradeContentsForMigrationContents(String contents) {
+    var f = (List<String> args, Map<String, dynamic> values) async {
+      SendPort sendPort = values["sendPort"];
+      var inputSchema = new Schema.fromMap(values["schema"] as Map<String, dynamic>);
+      var dbInfo = values["dbInfo"];
+      var dryRun = values["dryRun"];
+
+      PersistentStore store;
+      if (dbInfo["flavor"] == "postgres") {
+        store = new PostgreSQLPersistentStore.fromConnectionInfo(dbInfo["username"], dbInfo["password"], dbInfo["host"], dbInfo["port"], dbInfo["databaseName"], timeZone: dbInfo["timeZone"]);
+      }
+
+      var versionNumber = int.parse(args.first);
       var migrationClassMirror = currentMirrorSystem().isolate.rootLibrary.declarations.values.firstWhere((dm) => dm is ClassMirror && dm.isSubclassOf(reflectClass(Migration))) as ClassMirror;
       var migrationInstance = migrationClassMirror.newInstance(new Symbol(''), []).reflectee as Migration;
-      migrationInstance.database = null;
+      migrationInstance.database = new SchemaBuilder(store, inputSchema);
 
       await migrationInstance.upgrade();
-      await migrationInstance.database.execute();
+      if (!dryRun) {
+        await migrationInstance.database.execute(versionNumber);
+        await migrationInstance.database.store.close();
+      }
+
       var outSchema = migrationInstance.currentSchema;
       sendPort.send(outSchema.asMap());
     };
 
     var source = (reflect(f) as ClosureMirror).function.source;
     var builder = new StringBuffer();
-    builder.writeln(file.readAsStringSync());
+    builder.writeln("import 'dart:isolate';");
+    builder.writeln("import 'dart:mirrors';");
+    builder.writeln(contents);
     builder.writeln("");
-    builder.writeln("Future main (List<String> args, SendPort sendPort) async {");
-    builder.writeln(source);
+    builder.writeln("Future main (List<String> args, Map<String, dynamic> sendPort) async {");
+    builder.writeln("  var f = $source;");
+    builder.writeln("  await f(args, sendPort);");
     builder.writeln("}");
 
     return builder.toString();

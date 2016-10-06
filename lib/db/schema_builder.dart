@@ -18,11 +18,12 @@ class SchemaBuilder {
   bool isTemporary;
   List<String> commands = [];
 
-  Future execute() async {
+  Future execute(int versionNumber) async {
     // Wrap in transaction
     for (var cmd in commands) {
       await store.execute(cmd);
     }
+    await store.updateVersionNumber(versionNumber);
   }
 
   void createTable(SchemaTable table) {
@@ -155,5 +156,79 @@ class SchemaBuilder {
     if (existingColumn.deleteRule != newColumn.deleteRule) {
       commands.addAll(store.alterColumnDeleteRule(table, newColumn));
     }
+  }
+
+  static String sourceForSchemaUpgrade(Schema existingSchema, Schema newSchema, int version) {
+    var builder = new StringBuffer();
+    builder.writeln("import 'package:aqueduct/aqueduct.dart';");
+    builder.writeln("");
+    builder.writeln("class Migration$version extends Migration {");
+    builder.writeln("  Future upgrade() async {");
+
+    var existingTableNames = existingSchema.tables.map((t) => t.name).toList();
+    var newTableNames = newSchema.tables.map((t) => t.name).toList();
+
+    newSchema.tables
+        .where((t) => !existingTableNames.contains(t.name))
+        .forEach((t) {
+          builder.writeln(_createTableString(t, "    "));
+        });
+
+    builder.writeln("  }");
+    builder.writeln("");
+    builder.writeln("  Future downgrade() async {");
+    builder.writeln("  }");
+    builder.writeln("  Future seed() async {");
+    builder.writeln("  }");
+    builder.writeln("}");
+
+    return builder.toString();
+  }
+
+  static String _createTableString(SchemaTable table, String spaceOffset, {bool temporary: false}) {
+    var builder = new StringBuffer();
+    builder.writeln('${spaceOffset}database.createTable(new SchemaTable("${table.name}", [');
+    table.columns.forEach((col) {
+      builder.writeln("${spaceOffset}${_newColumnString(table, col, "  ")},");
+    });
+    builder.writeln('${spaceOffset}]));');
+
+    return builder.toString();
+  }
+
+  static String _newColumnString(SchemaTable table, SchemaColumn column, String spaceOffset) {
+    var builder = new StringBuffer();
+    builder.write('${spaceOffset}new SchemaColumn("${column.name}", ${SchemaColumn.typeFromTypeString(column.type)}');
+    if (column.isPrimaryKey) {
+      builder.write(", isPrimaryKey: true");
+    } else {
+      builder.write(", isPrimaryKey: false");
+    }
+    if (column.isIndexed) {
+      builder.write(", isIndexed: true");
+    } else {
+      builder.write(", isIndexed: false");
+    }
+    if (column.isNullable) {
+      builder.write(", isNullable: true");
+    } else {
+      builder.write(", isNullable: false");
+    }
+    if (column.isUnique) {
+      builder.write(", isUnique: true");
+    } else {
+      builder.write(", isUnique: false");
+    }
+    if (column.autoincrement) {
+      builder.write(", autoincrement: true");
+    } else {
+      builder.write(", autoincrement: false");
+    }
+    if (column.defaultValue != null) {
+      builder.write(', defaultValue: "${column.defaultValue}"');
+    }
+
+    builder.write(")");
+    return builder.toString();
   }
 }
