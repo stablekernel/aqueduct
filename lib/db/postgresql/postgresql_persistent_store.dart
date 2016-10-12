@@ -100,9 +100,9 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
       }
 
       return values.last.first;
-    } on PostgreSQLException catch (e) {
-      if (e.code != PostgreSQLErrorCode.undefinedTable) {
-        throw _interpretException(e);
+    } on QueryException catch (e) {
+      if (e.underlyingException.code != PostgreSQLErrorCode.undefinedTable) {
+        throw _interpretException(e.underlyingException);
       }
     }
 
@@ -132,7 +132,7 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
         await ctx.execute("INSERT INTO $_versionTableName (versionNumber, dateOfUpgrade) VALUES ($versionNumber, '${new DateTime.now().toUtc().toIso8601String()}')");
       });
     } on PostgreSQLException catch (e) {
-      throw _interpretException(e);;
+      throw _interpretException(e);
     }
   }
 

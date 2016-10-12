@@ -166,7 +166,6 @@ void main() {
       expect(builder.schema.tableForName("_LoadedItem").columnForName("someIndexedThing").defaultValue, "'bar'");
       expect(builder.schema.tableForName("_LoadedItem").columnForName("someIndexedThing").deleteRule, RelationshipDeleteRule.setDefault);
     });
-
   });
 }
 

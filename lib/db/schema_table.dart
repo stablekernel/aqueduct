@@ -73,20 +73,20 @@ class SchemaTable {
   void renameColumn(SchemaColumn column, String newName) {
     throw new SchemaException("Renaming a column not yet implemented!");
 
-    if (!columns.contains(column)) {
-      throw new SchemaException("Column ${column.name} does not exist on ${name}.");
-    }
-
-    if (columnForName(newName) != null) {
-      throw new SchemaException("Column ${newName} already exists.");
-    }
-
-    if (column.isPrimaryKey) {
-      throw new SchemaException("May not rename primary key column (${column.name} -> ${newName})");
-    }
-
-    // We also must rename indices
-    column.name = newName;
+//    if (!columns.contains(column)) {
+//      throw new SchemaException("Column ${column.name} does not exist on ${name}.");
+//    }
+//
+//    if (columnForName(newName) != null) {
+//      throw new SchemaException("Column ${newName} already exists.");
+//    }
+//
+//    if (column.isPrimaryKey) {
+//      throw new SchemaException("May not rename primary key column (${column.name} -> ${newName})");
+//    }
+//
+//    // We also must rename indices
+//    column.name = newName;
   }
 
   void removeColumn(SchemaColumn column) {

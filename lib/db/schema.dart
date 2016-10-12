@@ -69,17 +69,17 @@ class Schema {
 
   void renameTable(SchemaTable table, String newName) {
     throw new SchemaException("Renaming a table not yet implemented!");
-
-    if (tableForName(newName) != null) {
-      throw new SchemaException("Table ${newName} already exist.");
-    }
-
-    if (!tables.contains(table)) {
-      throw new SchemaException("Table ${table.name} does not exist in schema.");
-    }
-
-    // Rename indices and constraints
-    table.name = newName;
+//
+//    if (tableForName(newName) != null) {
+//      throw new SchemaException("Table ${newName} already exist.");
+//    }
+//
+//    if (!tables.contains(table)) {
+//      throw new SchemaException("Table ${table.name} does not exist in schema.");
+//    }
+//
+//    // Rename indices and constraints
+//    table.name = newName;
   }
 
   void removeTable(SchemaTable table) {

@@ -113,8 +113,6 @@ void main() {
       psc = new PostgreSQLPersistentStore(() => null);
     });
 
-    // TODO: MIssing tests for all ops
-
     test("Delete table", () {
       var dm = new DataModel([GeneratorModel1]);
       var schema = new Schema.fromDataModel(dm);
@@ -249,12 +247,12 @@ void main() {
       var schema = new Schema.fromDataModel(dm);
       var postTable = schema.tables.firstWhere((t) => t.name == "_GenPost");
       var originalColumn = postTable.columns.firstWhere((sc) => sc.name == "owner");
-      expect(originalColumn.deleteRule, "restrict");
+      expect(originalColumn.deleteRule, RelationshipDeleteRule.restrict);
 
       var col = new SchemaColumn.from(originalColumn);
 
       // Change delete rule
-      col.deleteRule = "nullify";
+      col.deleteRule = RelationshipDeleteRule.nullify;
       var cmds = psc.alterColumnDeleteRule(postTable, col);
       expect(cmds.first, "ALTER TABLE ONLY _GenPost DROP CONSTRAINT _GenPost_owner_id_fkey");
       expect(cmds.last, "ALTER TABLE ONLY _GenPost ADD FOREIGN KEY (owner_id) REFERENCES _GenUser (id) ON DELETE SET NULL");

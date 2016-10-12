@@ -14,6 +14,7 @@
       <excludeFolder url="file://$MODULE_DIR$/example/templates/default/lib/src/model/packages" />
       <excludeFolder url="file://$MODULE_DIR$/example/templates/default/lib/src/packages" />
       <excludeFolder url="file://$MODULE_DIR$/example/templates/default/lib/src/utilities/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/example/templates/default/migrations/packages" />
       <excludeFolder url="file://$MODULE_DIR$/example/templates/default/packages" />
       <excludeFolder url="file://$MODULE_DIR$/example/templates/default/test/mock/packages" />
       <excludeFolder url="file://$MODULE_DIR$/example/templates/default/test/packages" />
