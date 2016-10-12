@@ -1,24 +1,29 @@
 part of aqueduct;
 
+class MigrationException {
+  MigrationException(this.message);
+  String message;
+}
+
 abstract class Migration {
   Schema get currentSchema => database.schema;
   PersistentStore get store => database.store;
   SchemaBuilder database;
 
-  // This needs to be wrapped in a transaction.
   Future upgrade();
 
-  // This needs to be wrapped in a transaction.
   Future downgrade();
 
   Future seed();
 }
 
 class MigrationExecutor {
-  MigrationExecutor(this.persistentStore, this.migrationFileDirectory);
+  MigrationExecutor(this.persistentStore, this.projectDirectoryPath, this.libraryName, this.migrationFileDirectory);
 
   PersistentStore persistentStore;
   Uri migrationFileDirectory;
+  Uri projectDirectoryPath;
+  String libraryName;
 
   List<File> get migrationFiles  {
     var dir = new Directory.fromUri(migrationFileDirectory);
@@ -35,7 +40,7 @@ class MigrationExecutor {
       try {
         int.parse(versionNumber);
       } catch (e) {
-        throw new MigrationException("Migration files must have the following format: Version_Name.migration.dart, where Version must be an integer (no longer than 8 characters) and '_Name' is optional. Offender: ${fse.uri}");
+        throw new MigrationException("Migration files must have the following format: Version_Name.migration.dart, where Version must be an integer (no longer than 8 characters, optionally prefixed with 0s, e.g. '00000002') and '_Name' is optional. Offender: ${fse.uri}");
       }
     });
 
@@ -44,19 +49,56 @@ class MigrationExecutor {
     return files;
   }
 
-  Future<Schema> upgrade() async {
-    await persistentStore.createVersionTableIfNecessary();
+  Future validate() async {
 
+  }
+
+  Future<String> generate() async {
+    var files = migrationFiles;
+    if (!files.isEmpty) {
+      // For now, just make a new empty one...
+    }
+
+    // Create the initial migration file
+    // 1. Get the Schema from the package
+    // 2. Run schemabuilder.sourceForSchemaUpgrade
+
+    ///Users/joeconway/Projects/aqueduct/example/templates/default/lib/wildfire.dart
+
+    print("${libraryName}");
+    // ALWAYS run this from the project directory.
+    var generator = new _SourceGenerator((List<String> args, Map<String, dynamic> values) async {
+      var dataModel = new DataModel.fromURI(new Uri(scheme: "package", path: args[0]));
+      var schema = new Schema.fromDataModel(dataModel);
+
+      return SchemaBuilder.sourceForSchemaUpgrade(new Schema.empty(), schema, 1);
+    }, imports: [
+      "package:aqueduct/aqueduct.dart",
+      "package:$libraryName",
+      "dart:isolate",
+      "dart:mirrors",
+      "dart:async",
+      "dart:convert"
+    ]);
+
+    var executor = new _IsolateExecutor(generator, [libraryName], packageConfigURI: projectDirectoryPath.resolve(".packages"));
+
+    return await executor.execute(workingDirectory: projectDirectoryPath);
+  }
+
+  Future<Schema> upgrade() async {
     var files = migrationFiles;
     if (files.isEmpty) {
       return null;
     }
 
-    var latestMigrationFile = files.last;
-    var latestMigrationVersionNumber = _versionNumberFromFile(latestMigrationFile);
+    await persistentStore.createVersionTableIfNecessary();
     var currentVersion = await persistentStore.schemaVersion;
 
-    List<File> migrationFilesToRun;
+    var latestMigrationFile = files.last;
+    var latestMigrationVersionNumber = _versionNumberFromFile(latestMigrationFile);
+
+    List<File> migrationFilesToRun = [];
     List<File> migrationFilesToGetToCurrent = [];
     if (currentVersion == 0) {
       migrationFilesToRun = files;
@@ -64,6 +106,8 @@ class MigrationExecutor {
       var indexOfCurrent = files.indexOf(files.firstWhere((f) => _versionNumberFromFile(f) == latestMigrationVersionNumber));
       migrationFilesToGetToCurrent = files.sublist(0, indexOfCurrent + 1);
       migrationFilesToRun = files.sublist(indexOfCurrent + 1);
+    } else {
+      migrationFilesToGetToCurrent = files;
     }
 
     var schema = new Schema.empty();
@@ -86,54 +130,27 @@ class MigrationExecutor {
 
   Future<Schema> _executeUpgradeForFile(File file, Schema schema, {bool dryRun: false}) async {
     var versionNumber = _versionNumberFromFile(file);
-    var onFinish = new Completer();
-    var source = _upgradeContentsForMigrationContents(file.readAsStringSync());
-    var tmpFile = new File("${file.path}.tmp");
-    try {
-      tmpFile.writeAsStringSync(source);
-
-      var onErrorPort = new ReceivePort()
-        ..listen((err) {
-          if (!onFinish.isCompleted) {
-            onFinish.completeError(err);
-          }
-        });
-
-      var controlPort = new ReceivePort()
-        ..listen((results) {
-          onFinish.complete(new Schema.fromMap(results as Map<String, dynamic>));
-        });
-
-      Map<String, dynamic> dbInfo;
-      if (persistentStore is PostgreSQLPersistentStore) {
-        var s = persistentStore as PostgreSQLPersistentStore;
-        dbInfo = {
-          "flavor" : "postgres",
-          "username" : s.username,
-          "password" : s.password,
-          "host" : s.host,
-          "port" : s.port,
-          "databaseName" : s.databaseName,
-          "timeZone" : s.timeZone
-        };
-      }
-
-      await Isolate.spawnUri(tmpFile.uri, ["$versionNumber"], {
-        "dryRun" : dryRun,
-        "schema" : schema.asMap(),
-        "sendPort" : controlPort.sendPort,
-        "dbInfo" : dbInfo,
-      }, errorsAreFatal: true, onError: onErrorPort.sendPort);
-
-      return onFinish.future;
-    } finally {
-      tmpFile.deleteSync();
+    Map<String, dynamic> dbInfo;
+    if (persistentStore is PostgreSQLPersistentStore) {
+      var s = persistentStore as PostgreSQLPersistentStore;
+      dbInfo = {
+        "flavor" : "postgres",
+        "username" : s.username,
+        "password" : s.password,
+        "host" : s.host,
+        "port" : s.port,
+        "databaseName" : s.databaseName,
+        "timeZone" : s.timeZone
+      };
     }
-  }
 
-  String _upgradeContentsForMigrationContents(String contents) {
-    var f = (List<String> args, Map<String, dynamic> values) async {
-      SendPort sendPort = values["sendPort"];
+    var message = {
+      "dryRun" : dryRun,
+      "schema" : schema.asMap(),
+      "dbInfo" : dbInfo,
+    };
+
+    var generator = new _SourceGenerator((List<String> args, Map<String, dynamic> values) async {
       var inputSchema = new Schema.fromMap(values["schema"] as Map<String, dynamic>);
       var dbInfo = values["dbInfo"];
       var dryRun = values["dryRun"];
@@ -154,26 +171,11 @@ class MigrationExecutor {
         await migrationInstance.database.store.close();
       }
 
-      var outSchema = migrationInstance.currentSchema;
-      sendPort.send(outSchema.asMap());
-    };
+      return migrationInstance.currentSchema.asMap();
+    }, imports: ["dart:isolate", "dart:mirrors"], additionalContents: file.readAsStringSync());
 
-    var source = (reflect(f) as ClosureMirror).function.source;
-    var builder = new StringBuffer();
-    builder.writeln("import 'dart:isolate';");
-    builder.writeln("import 'dart:mirrors';");
-    builder.writeln(contents);
-    builder.writeln("");
-    builder.writeln("Future main (List<String> args, Map<String, dynamic> sendPort) async {");
-    builder.writeln("  var f = $source;");
-    builder.writeln("  await f(args, sendPort);");
-    builder.writeln("}");
-
-    return builder.toString();
+    var executor = new _IsolateExecutor(generator, ["$versionNumber"], message: message);
+    var schemaMap = await executor.execute();
+    return new Schema.fromMap(schemaMap as Map<String, dynamic>);
   }
-}
-
-class MigrationException {
-  MigrationException(this.message);
-  String message;
 }

@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:async';
 import 'package:args/args.dart';
 import 'package:aqueduct/aqueduct.dart';
@@ -14,7 +13,7 @@ Future<int> main(List<String> args) async {
   var values = totalParser.parse(args);
 
   if (values.command == null) {
-    print("Invalid command, options are: ${totalParser.commands.keys.join(",")}");
+    print("Invalid command, options are: ${totalParser.commands.keys.join(", ")}");
     return -1;
   } else if (values.command.name == "create") {
     return await templateCreator.handle(values.command);

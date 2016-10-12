@@ -5,10 +5,17 @@ abstract class CLICommand {
 
   Future<int> handle(ArgResults results);
 
+  Future cleanup() async {
+
+  }
+
   Future<int> process(ArgResults results) async {
     try {
-      return await handle(results);
+      var returnValue = await handle(results);
+      await cleanup();
+      return returnValue;
     } catch (e) {
+      await cleanup();
       print("${e}");
     }
     return -1;

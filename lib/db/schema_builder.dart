@@ -28,7 +28,10 @@ class SchemaBuilder {
 
   void createTable(SchemaTable table) {
     schema.addTable(table);
-    commands.addAll(store.createTable(table, isTemporary: isTemporary));
+
+    if (store != null) {
+      commands.addAll(store.createTable(table, isTemporary: isTemporary));
+    }
   }
 
   void renameTable(String currentTableName, String newName) {
@@ -38,7 +41,9 @@ class SchemaBuilder {
     }
 
     schema.renameTable(table, newName);
-    commands.addAll(store.renameTable(table, newName));
+    if (store != null) {
+      commands.addAll(store.renameTable(table, newName));
+    }
   }
 
   void deleteTable(String tableName) {
@@ -48,7 +53,10 @@ class SchemaBuilder {
     }
 
     schema.removeTable(table);
-    commands.addAll(store.deleteTable(table));
+
+    if (store != null) {
+      commands.addAll(store.deleteTable(table));
+    }
   }
 
   void addColumn(String tableName, SchemaColumn column) {
@@ -58,7 +66,9 @@ class SchemaBuilder {
     }
 
     table.addColumn(column);
-    commands.addAll(store.addColumn(table, column));
+    if (store != null) {
+      commands.addAll(store.addColumn(table, column));
+    }
   }
 
   void deleteColumn(String tableName, String columnName) {
@@ -74,7 +84,9 @@ class SchemaBuilder {
 
     table.removeColumn(column);
 
-    commands.addAll(store.deleteColumn(table, column));
+    if (store != null) {
+      commands.addAll(store.deleteColumn(table, column));
+    }
   }
 
   void renameColumn(String tableName, String columnName, String newName) {
@@ -89,7 +101,10 @@ class SchemaBuilder {
     }
 
     table.renameColumn(column, newName);
-    commands.addAll(store.renameColumn(table, column, newName));
+
+    if (store != null) {
+      commands.addAll(store.renameColumn(table, column, newName));
+    }
   }
 
   void alterColumn(String tableName, String columnName, void modify(SchemaColumn targetColumn), {String unencodedInitialValue}) {
@@ -133,28 +148,30 @@ class SchemaBuilder {
 
     table._replaceColumn(existingColumn, newColumn);
 
-    if (existingColumn.isIndexed != newColumn.isIndexed) {
-      if (newColumn.isIndexed) {
-        commands.addAll(store.addIndexToColumn(table, newColumn));
-      } else {
-        commands.addAll(store.deleteIndexFromColumn(table, newColumn));
+    if (store != null) {
+      if (existingColumn.isIndexed != newColumn.isIndexed) {
+        if (newColumn.isIndexed) {
+          commands.addAll(store.addIndexToColumn(table, newColumn));
+        } else {
+          commands.addAll(store.deleteIndexFromColumn(table, newColumn));
+        }
       }
-    }
 
-    if (existingColumn.isNullable != newColumn.isNullable) {
-      commands.addAll(store.alterColumnNullability(table, newColumn, unencodedInitialValue));
-    }
+      if (existingColumn.isNullable != newColumn.isNullable) {
+        commands.addAll(store.alterColumnNullability(table, newColumn, unencodedInitialValue));
+      }
 
-    if (existingColumn.isUnique != newColumn.isUnique) {
-      commands.addAll(store.alterColumnUniqueness(table, newColumn));
-    }
+      if (existingColumn.isUnique != newColumn.isUnique) {
+        commands.addAll(store.alterColumnUniqueness(table, newColumn));
+      }
 
-    if (existingColumn.defaultValue != newColumn.defaultValue) {
-      commands.addAll(store.alterColumnDefaultValue(table, newColumn));
-    }
+      if (existingColumn.defaultValue != newColumn.defaultValue) {
+        commands.addAll(store.alterColumnDefaultValue(table, newColumn));
+      }
 
-    if (existingColumn.deleteRule != newColumn.deleteRule) {
-      commands.addAll(store.alterColumnDeleteRule(table, newColumn));
+      if (existingColumn.deleteRule != newColumn.deleteRule) {
+        commands.addAll(store.alterColumnDeleteRule(table, newColumn));
+      }
     }
   }
 

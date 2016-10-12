@@ -31,6 +31,7 @@ import 'package:matcher/matcher.dart';
 import 'package:postgres/postgres.dart';
 import 'package:args/args.dart';
 import 'package:safe_config/safe_config.dart';
+import 'package:yaml/yaml.dart';
 
 export 'package:args/args.dart';
 export 'package:logging/logging.dart';
@@ -98,3 +99,4 @@ part 'utilities/mock_server.dart';
 part 'utilities/pbkdf2.dart';
 part 'utilities/test_client.dart';
 part 'utilities/test_matchers.dart';
+part 'utilities/source_generator.dart';

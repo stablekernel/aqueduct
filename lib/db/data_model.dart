@@ -20,24 +20,20 @@ class DataModel {
   /// This is a convenience constructor for creating a [DataModel] for an application package. It will find all subclasses of `Model`
   /// in the package that [type] belongs to. Typically, you pass the [Type] of an application's [RequestSink] subclass.
   DataModel.fromPackageContainingType(Type type) {
-    var modelMirror = reflectClass(Model);
-
     LibraryMirror libMirror = reflectType(type).owner;
-    Iterable<ClassMirror> allClasses = libMirror.declarations.values
-        .where((decl) => decl is ClassMirror);
 
-    var modelTypes = allClasses
-        .where((m) => m.isSubclassOf(modelMirror))
-        .map((m) => m.reflectedType)
-        .toList();
-
-    var builder = new _DataModelBuilder(this, modelTypes);
+    var builder = new _DataModelBuilder(this, _modelTypesFromLibraryMirror(libMirror));
     _entities = builder.entities;
     _persistentTypeToEntityMap = builder.persistentTypeToEntityMap;
   }
 
-  DataModel._fromModelBundle(String modelBundlePath) {
-    // This will build the model from a series of schema files.
+  DataModel.fromURI(Uri libraryURI) {
+    if (!libraryURI.isAbsolute) {
+      libraryURI = new Uri.file(libraryURI.path);
+    }
+    var libMirror = currentMirrorSystem().libraries[libraryURI];
+    var builder = new _DataModelBuilder(this, _modelTypesFromLibraryMirror(libMirror));
+    _entities = builder.entities;
   }
 
   Map<Type, ModelEntity> _entities = {};
@@ -55,6 +51,17 @@ class DataModel {
   ///         }
   ModelEntity entityForType(Type type) {
     return _entities[type] ?? _persistentTypeToEntityMap[type];
+  }
+
+  List<Type> _modelTypesFromLibraryMirror(LibraryMirror libMirror) {
+    var modelMirror = reflectClass(Model);
+    Iterable<ClassMirror> allClasses = libMirror.declarations.values
+        .where((decl) => decl is ClassMirror);
+
+    return allClasses
+        .where((m) => m.isSubclassOf(modelMirror))
+        .map((m) => m.reflectedType)
+        .toList();
   }
 }
 
