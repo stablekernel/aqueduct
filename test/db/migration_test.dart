@@ -4,36 +4,6 @@ import 'dart:async';
 import 'dart:io';
 
 void main() {
-  group("Versioning", () {
-    PostgreSQLPersistentStore store;
-    MigrationExecutor executor;
-
-    setUp(() async {
-      store = new PostgreSQLPersistentStore.fromConnectionInfo("dart", "dart", "localhost", 5432, "dart_test");
-      executor = new MigrationExecutor(store, Directory.current.uri);
-    });
-
-    tearDown(() async {
-      await store.execute("drop table _aqueduct_version_pgsql");
-      await store.close();
-    });
-
-    test("When upgrading, version table is created if does not exist", () async {
-      await executor.upgrade();
-
-      var results = await executor.persistentStore.execute("SELECT versionNumber, dateOfUpgrade FROM _aqueduct_version_pgsql");
-      expect(results, []);
-    });
-
-    test("Version number is indicated by most recent dateOfUpgrade", () async {
-      await executor.persistentStore.createVersionTableIfNecessary();
-      await executor.persistentStore.execute("INSERT INTO _aqueduct_version_pgsql (versionNumber, dateOfUpgrade) VALUES (1, '2016-01-01 00:00:00')");
-      await executor.persistentStore.execute("INSERT INTO _aqueduct_version_pgsql (versionNumber, dateOfUpgrade) VALUES (2, '2016-01-02 00:00:00')");
-      var recentVersion = await executor.persistentStore.schemaVersion;
-      expect(recentVersion, 2);
-    });
-  });
-
 //  test("Migration subclasses can be executed and all commands are linked up", () async {
 //    var schema = new Schema([
 //      new SchemaTable("tableToKeep", [

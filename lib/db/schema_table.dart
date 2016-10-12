@@ -1,6 +1,6 @@
 part of aqueduct;
 
-class SchemaTable extends SchemaElement {
+class SchemaTable {
   SchemaTable(this.name, this.columns);
 
   SchemaTable.fromEntity(ModelEntity entity) {
@@ -32,14 +32,34 @@ class SchemaTable extends SchemaElement {
 
   SchemaColumn operator [](String columnName) => columnForName(columnName);
 
-  bool matches(SchemaTable table) {
-    if (columns.length != table.columns.length) {
-      return false;
+  bool matches(SchemaTable table, [List<String> reasons]) {
+    var matches = true;
+
+    for (var receiverColumn in columns) {
+      var matchingArgColumn = table.columns.firstWhere((st) => st.name == receiverColumn.name, orElse: () => null);
+      if (matchingArgColumn == null) {
+        matches = false;
+        reasons?.add("Compared table ${table.name} does not contain ${receiverColumn.name}, but that column exists in receiver schema.");
+      } else {
+        var columnReasons = <String>[];
+        if (!receiverColumn.matches(matchingArgColumn, columnReasons)) {
+          reasons?.addAll(columnReasons.map((reason) => reason.replaceAll("\$table", table.name)));
+          matches = false;
+        }
+      }
     }
 
-    return table.columns.every((otherColumn) {
-      return columnForName(otherColumn.name).matches(otherColumn);
-    });
+    if (table.columns.length > columns.length) {
+      matches = false;
+      var receiverColumnNames = columns.map((st) => st.name).toList();
+      table.columns
+          .where((st) => !receiverColumnNames.contains(st.name))
+          .forEach((st) {
+        reasons?.add("Receiver table ${table.name} does not contain ${st.name}, but that column exists in compared table.");
+      });
+    }
+
+    return matches;
   }
 
   void addColumn(SchemaColumn column) {
@@ -51,6 +71,8 @@ class SchemaTable extends SchemaElement {
   }
 
   void renameColumn(SchemaColumn column, String newName) {
+    throw new SchemaException("Renaming a column not yet implemented!");
+
     if (!columns.contains(column)) {
       throw new SchemaException("Column ${column.name} does not exist on ${name}.");
     }

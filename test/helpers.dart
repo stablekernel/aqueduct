@@ -223,8 +223,7 @@ class DefaultPersistentStore extends PersistentStore {
   List<String> renameIndex(SchemaTable table, SchemaColumn column, String newIndexName) => [];
   List<String> deleteIndexFromColumn(SchemaTable table, SchemaColumn column) => [];
 
-  Future createVersionTableIfNecessary() async => null;
   Future<int> get schemaVersion async => 0;
-  Future updateVersionNumber(int versionNumber) => null;
+  Future upgrade(int versionNumber, List<String> commands) async => null;
 }
 

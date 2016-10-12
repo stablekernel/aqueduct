@@ -1,6 +1,6 @@
 part of aqueduct;
 
-class SchemaColumn extends SchemaElement {
+class SchemaColumn {
   SchemaColumn(this.name, PropertyType t, {this.isIndexed: false, this.isNullable: false, this.autoincrement: false, this.isUnique: false, this.defaultValue, this.isPrimaryKey: false}) {
     type = typeStringForType(t);
   }
@@ -77,18 +77,24 @@ class SchemaColumn extends SchemaElement {
     return relatedTableName != null && relatedColumnName != null;
   }
 
-  bool matches(SchemaColumn otherColumn) {
-    return name == otherColumn.name
-        && type == otherColumn.type
-        && isIndexed == otherColumn.isIndexed
-        && isNullable == otherColumn.isNullable
-        && autoincrement == otherColumn.autoincrement
-        && isUnique == otherColumn.isUnique
-        && defaultValue == otherColumn.defaultValue
-        && isPrimaryKey == otherColumn.isPrimaryKey
-        && relatedTableName == otherColumn.relatedTableName
-        && relatedColumnName == otherColumn.relatedColumnName
-        && deleteRule == otherColumn.deleteRule;
+  bool matches(SchemaColumn otherColumn, [List<String> reasons]) {
+    var matches = true;
+
+    var symbols = [
+      #name, #isIndexed, #type, #isNullable, #autoincrement, #isUnique, #defaultValue, #isPrimaryKey, #relatedTableName,
+      #relatedColumnName, #deleteRule
+    ];
+
+    var receiverColumnMirror = reflect(this);
+    var argColumnMirror = reflect(otherColumn);
+    symbols.forEach((sym) {
+      if (receiverColumnMirror.getField(sym).reflectee != argColumnMirror.getField(sym).reflectee) {
+        matches = false;
+        reasons?.add("\$table.${name} does not have same ${MirrorSystem.getName(sym)}.");
+      }
+    });
+
+    return matches;
   }
 
   static String typeStringForType(PropertyType type) {

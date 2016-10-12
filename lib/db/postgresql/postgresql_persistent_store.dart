@@ -12,6 +12,14 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
     MatcherOperator.greaterThanEqualTo : ">=",
     MatcherOperator.equalTo : "="
   };
+  static Map<PropertyType, PostgreSQLDataType> _typeMap = {
+    PropertyType.integer : PostgreSQLDataType.integer,
+    PropertyType.bigInteger : PostgreSQLDataType.bigInteger,
+    PropertyType.string : PostgreSQLDataType.text,
+    PropertyType.datetime : PostgreSQLDataType.timestampWithoutTimezone,
+    PropertyType.boolean : PostgreSQLDataType.boolean,
+    PropertyType.doublePrecision : PostgreSQLDataType.double
+  };
 
   PostgreSQLConnection _databaseConnection;
   PostgreSQLConnectionFunction connectFunction;
@@ -22,6 +30,8 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
   int port;
   String databaseName;
   String timeZone = "UTC";
+
+  String get _versionTableName => "_aqueduct_version_pgsql";
 
   PostgreSQLPersistentStore(this.connectFunction) : super();
   PostgreSQLPersistentStore.fromConnectionInfo(this.username, this.password, this.host, this.port, this.databaseName, {this.timeZone: "UTC"}) {
@@ -63,12 +73,16 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
   Future<dynamic> execute(String sql) async {
     var now = new DateTime.now().toUtc();
     var dbConnection = await getDatabaseConnection();
-    var results = await dbConnection.query(sql);
-    var rows = await results.toList();
+    try {
+      var results = await dbConnection.query(sql);
+      var rows = await results.toList();
 
-    var mappedRows = rows.map((row) => row.toList()).toList();
-    logger.fine(() => "Query:execute (${(new DateTime.now().toUtc().difference(now).inMilliseconds)}ms) $sql -> $mappedRows");
-    return mappedRows;
+      var mappedRows = rows.map((row) => row.toList()).toList();
+      logger.fine(() => "Query:execute (${(new DateTime.now().toUtc().difference(now).inMilliseconds)}ms) $sql -> $mappedRows");
+      return mappedRows;
+    } on PostgreSQLException catch (e) {
+      throw _interpretException(e);
+    }
   }
 
   @override
@@ -78,27 +92,48 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
   }
 
   @override
-  Future createVersionTableIfNecessary() async {
-    var commands = createTable(_versionTable);
-    for (var cmd in commands) {
-      await execute(cmd);
-    }
-  }
-
-  @override
   Future<int> get schemaVersion async {
-    var values = await execute("SELECT versionNumber, dateOfUpgrade FROM _aqueduct_version_pgsql ORDER BY dateOfUpgrade ASC") as List<List<dynamic>>;
+    try {
+      var values = await execute("SELECT versionNumber, dateOfUpgrade FROM $_versionTableName ORDER BY dateOfUpgrade ASC") as List<List<dynamic>>;
+      if (values.length == 0) {
+        return 0;
+      }
 
-    if (values.length == 0) {
-      return 0;
+      return values.last.first;
+    } on PostgreSQLException catch (e) {
+      if (e.code != PostgreSQLErrorCode.undefinedTable) {
+        throw _interpretException(e);
+      }
     }
 
-    return values.last.first;
+    return 0;
   }
 
   @override
-  Future updateVersionNumber(int versionNumber) async {
-    await execute("INSERT INTO _aqueduct_version_pgsql (versionNumber, dateOfUpgrade) VALUES ($versionNumber, '${new DateTime.now().toUtc().toIso8601String()}')");
+  Future upgrade(int versionNumber, List<String> commands) async {
+    await _createVersionTableIfNecessary();
+
+    var connection = await getDatabaseConnection();
+
+    try {
+      await connection.transaction((ctx) async {
+        var existingVersionRows = await ctx.query("SELECT versionNumber, dateOfUpgrade FROM $_versionTableName WHERE versionNumber=@v:int4", substitutionValues: {
+          "v" : versionNumber
+        });
+        if (existingVersionRows.length > 0) {
+          var date = existingVersionRows.first.last;
+          throw new MigrationException("Trying to upgrade database to version $versionNumber, but that migration has already been performed on ${date}.");
+        }
+
+        for (var cmd in commands) {
+          await ctx.execute(cmd);
+        }
+
+        await ctx.execute("INSERT INTO $_versionTableName (versionNumber, dateOfUpgrade) VALUES ($versionNumber, '${new DateTime.now().toUtc().toIso8601String()}')");
+      });
+    } on PostgreSQLException catch (e) {
+      throw _interpretException(e);;
+    }
   }
 
   @override
@@ -115,7 +150,6 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
     var valueMap = new Map.fromIterable(q.values,
         key: (MappingElement m) => _columnNameForProperty(m.property),
         value: (MappingElement m) => m.value);
-
 
     var queryStringBuffer = new StringBuffer();
     queryStringBuffer.write("INSERT INTO ${q.rootEntity.tableName} ($columnsBeingInserted) ");
@@ -306,15 +340,6 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
     return desc.name;
   }
 
-  static Map<PropertyType, PostgreSQLDataType> _typeMap = {
-    PropertyType.integer : PostgreSQLDataType.integer,
-    PropertyType.bigInteger : PostgreSQLDataType.bigInteger,
-    PropertyType.string : PostgreSQLDataType.text,
-    PropertyType.datetime : PostgreSQLDataType.timestampWithoutTimezone,
-    PropertyType.boolean : PostgreSQLDataType.boolean,
-    PropertyType.doublePrecision : PostgreSQLDataType.double
-  };
-
   String _typedColumnName(String name, PropertyDescription desc) {
     var type = PostgreSQLFormat.dataTypeStringForDataType(_typeMap[desc.type]);
     if (type == null) {
@@ -346,15 +371,6 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
     }
   }
 
-  SchemaTable get _versionTable {
-    return new SchemaTable.empty()
-      ..name = "_aqueduct_version_pgsql"
-      ..columns = [
-        (new SchemaColumn.empty()..name = "versionNumber"..type = SchemaColumn.typeStringForType(PropertyType.integer)),
-        (new SchemaColumn.empty()..name = "dateOfUpgrade"..type = SchemaColumn.typeStringForType(PropertyType.datetime)),
-      ];
-  }
-
   List<List<MappingElement>> _mappingElementsFromResults(List<List<dynamic>> rows, List<MappingElement> columnDefinitions) {
     return rows.map((row) {
       var columnDefinitionIterator = columnDefinitions.iterator;
@@ -384,13 +400,13 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
 
   QueryException _interpretException(PostgreSQLException exception) {
     switch (exception.code) {
-      case "42703":
+      case PostgreSQLErrorCode.undefinedColumn:
         return new QueryException(QueryExceptionEvent.requestFailure, underlyingException: exception);
-      case "23505":
+      case PostgreSQLErrorCode.uniqueViolation:
         return new QueryException(QueryExceptionEvent.conflict, underlyingException: exception);
-      case "23502":
+      case PostgreSQLErrorCode.notNullViolation:
         return new QueryException(QueryExceptionEvent.requestFailure, underlyingException: exception);
-      case "23503":
+      case PostgreSQLErrorCode.foreignKeyViolation:
         return new QueryException(QueryExceptionEvent.requestFailure, underlyingException: exception);
     }
 
@@ -447,6 +463,31 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
     }
     return null;
   }
+
+  SchemaTable get _versionTable {
+    return new SchemaTable.empty()
+      ..name = _versionTableName
+      ..columns = [
+        (new SchemaColumn.empty()..name = "versionNumber"..type = SchemaColumn.typeStringForType(PropertyType.integer)),
+        (new SchemaColumn.empty()..name = "dateOfUpgrade"..type = SchemaColumn.typeStringForType(PropertyType.datetime)),
+      ];
+  }
+
+  Future _createVersionTableIfNecessary() async {
+    var conn = await getDatabaseConnection();
+    var commands = createTable(_versionTable);
+    try {
+      await conn.transaction((ctx) async {
+        for (var cmd in commands) {
+          await ctx.execute(cmd);
+        }
+      });
+    } on PostgreSQLException catch (e) {
+      if (e.code != PostgreSQLErrorCode.duplicateTable) {
+        rethrow;
+      }
+    }
+  }
 }
 
 class PostgreSQLPersistentStoreException implements Exception {
@@ -456,4 +497,13 @@ class PostgreSQLPersistentStoreException implements Exception {
   String toString() {
     return "PostgreSQLPersistentStoreException: $message";
   }
+}
+
+class PostgreSQLErrorCode {
+  static const String duplicateTable = "42P07";
+  static const String undefinedTable = "42P01";
+  static const String undefinedColumn = "42703";
+  static const String uniqueViolation = "23505";
+  static const String notNullViolation = "23502";
+  static const String foreignKeyViolation = "23503";
 }

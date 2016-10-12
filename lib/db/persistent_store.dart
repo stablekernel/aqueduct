@@ -44,7 +44,6 @@ abstract class PersistentStore {
   List<String> renameIndex(SchemaTable table, SchemaColumn column, String newIndexName);
   List<String> deleteIndexFromColumn(SchemaTable table, SchemaColumn column);
 
-  Future createVersionTableIfNecessary();
   Future<int> get schemaVersion;
-  Future updateVersionNumber(int versionNumber);
+  Future upgrade(int versionNumber, List<String> commands);
 }

@@ -18,14 +18,6 @@ class SchemaBuilder {
   bool isTemporary;
   List<String> commands = [];
 
-  Future execute(int versionNumber) async {
-    // Wrap in transaction
-    for (var cmd in commands) {
-      await store.execute(cmd);
-    }
-    await store.updateVersionNumber(versionNumber);
-  }
-
   void createTable(SchemaTable table) {
     schema.addTable(table);
 
@@ -74,7 +66,7 @@ class SchemaBuilder {
   void deleteColumn(String tableName, String columnName) {
     var table = schema.tableForName(tableName);
     if (table == null) {
-      throw new SchemaException("Table ${table.name} does not exist.");
+      throw new SchemaException("Table ${tableName} does not exist.");
     }
 
     var column = table.columnForName(columnName);

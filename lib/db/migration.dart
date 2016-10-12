@@ -3,6 +3,8 @@ part of aqueduct;
 class MigrationException {
   MigrationException(this.message);
   String message;
+
+  String toString() => message;
 }
 
 abstract class Migration {
@@ -50,6 +52,28 @@ class MigrationExecutor {
   }
 
   Future validate() async {
+    var generator = new _SourceGenerator((List<String> args, Map<String, dynamic> values) async {
+      var dataModel = new DataModel.fromURI(new Uri(scheme: "package", path: args[0]));
+      var schema = new Schema.fromDataModel(dataModel);
+
+      return schema.asMap();
+    }, imports: [
+      "package:aqueduct/aqueduct.dart",
+      "package:$libraryName",
+      "dart:isolate",
+      "dart:mirrors",
+      "dart:async"
+    ]);
+
+    var executor = new _IsolateExecutor(generator, [libraryName], packageConfigURI: projectDirectoryPath.resolve(".packages"));
+
+    var projectSchema = await executor.execute(workingDirectory: projectDirectoryPath);
+
+    var schema = new Schema.empty();
+    for (var migration in migrationFiles) {
+      schema = await _executeUpgradeForFile(migration, schema, dryRun: true);
+    }
+
 
   }
 
@@ -59,14 +83,6 @@ class MigrationExecutor {
       // For now, just make a new empty one...
     }
 
-    // Create the initial migration file
-    // 1. Get the Schema from the package
-    // 2. Run schemabuilder.sourceForSchemaUpgrade
-
-    ///Users/joeconway/Projects/aqueduct/example/templates/default/lib/wildfire.dart
-
-    print("${libraryName}");
-    // ALWAYS run this from the project directory.
     var generator = new _SourceGenerator((List<String> args, Map<String, dynamic> values) async {
       var dataModel = new DataModel.fromURI(new Uri(scheme: "package", path: args[0]));
       var schema = new Schema.fromDataModel(dataModel);
@@ -77,8 +93,7 @@ class MigrationExecutor {
       "package:$libraryName",
       "dart:isolate",
       "dart:mirrors",
-      "dart:async",
-      "dart:convert"
+      "dart:async"
     ]);
 
     var executor = new _IsolateExecutor(generator, [libraryName], packageConfigURI: projectDirectoryPath.resolve(".packages"));
@@ -92,23 +107,10 @@ class MigrationExecutor {
       return null;
     }
 
-    await persistentStore.createVersionTableIfNecessary();
     var currentVersion = await persistentStore.schemaVersion;
-
-    var latestMigrationFile = files.last;
-    var latestMigrationVersionNumber = _versionNumberFromFile(latestMigrationFile);
-
-    List<File> migrationFilesToRun = [];
-    List<File> migrationFilesToGetToCurrent = [];
-    if (currentVersion == 0) {
-      migrationFilesToRun = files;
-    } else if (latestMigrationVersionNumber > currentVersion) {
-      var indexOfCurrent = files.indexOf(files.firstWhere((f) => _versionNumberFromFile(f) == latestMigrationVersionNumber));
-      migrationFilesToGetToCurrent = files.sublist(0, indexOfCurrent + 1);
-      migrationFilesToRun = files.sublist(indexOfCurrent + 1);
-    } else {
-      migrationFilesToGetToCurrent = files;
-    }
+    var migrationFileSplit = _splitMigrationFiles(currentVersion);
+    var migrationFilesToGetToCurrent = migrationFileSplit.first;
+    List<File> migrationFilesToRun = migrationFileSplit.last;
 
     var schema = new Schema.empty();
     for (var migration in migrationFilesToGetToCurrent) {
@@ -128,28 +130,27 @@ class MigrationExecutor {
     return int.parse(migrationName.split("_").first);
   }
 
-  Future<Schema> _executeUpgradeForFile(File file, Schema schema, {bool dryRun: false}) async {
-    var versionNumber = _versionNumberFromFile(file);
-    Map<String, dynamic> dbInfo;
-    if (persistentStore is PostgreSQLPersistentStore) {
-      var s = persistentStore as PostgreSQLPersistentStore;
-      dbInfo = {
-        "flavor" : "postgres",
-        "username" : s.username,
-        "password" : s.password,
-        "host" : s.host,
-        "port" : s.port,
-        "databaseName" : s.databaseName,
-        "timeZone" : s.timeZone
-      };
+  List<List<File>> _splitMigrationFiles(int aroundVersion) {
+    var files = migrationFiles;
+    var latestMigrationFile = files.last;
+    var latestMigrationVersionNumber = _versionNumberFromFile(latestMigrationFile);
+
+    List<File> migrationFilesToRun = [];
+    List<File> migrationFilesToGetToCurrent = [];
+    if (aroundVersion == 0) {
+      migrationFilesToRun = files;
+    } else if (latestMigrationVersionNumber > aroundVersion) {
+      var indexOfCurrent = files.indexOf(files.firstWhere((f) => _versionNumberFromFile(f) == latestMigrationVersionNumber));
+      migrationFilesToGetToCurrent = files.sublist(0, indexOfCurrent + 1);
+      migrationFilesToRun = files.sublist(indexOfCurrent + 1);
+    } else {
+      migrationFilesToGetToCurrent = files;
     }
 
-    var message = {
-      "dryRun" : dryRun,
-      "schema" : schema.asMap(),
-      "dbInfo" : dbInfo,
-    };
+    return [migrationFilesToGetToCurrent, migrationFilesToRun];
+  }
 
+  Future<Schema> _executeUpgradeForFile(File file, Schema schema, {bool dryRun: false}) async {
     var generator = new _SourceGenerator((List<String> args, Map<String, dynamic> values) async {
       var inputSchema = new Schema.fromMap(values["schema"] as Map<String, dynamic>);
       var dbInfo = values["dbInfo"];
@@ -161,21 +162,43 @@ class MigrationExecutor {
       }
 
       var versionNumber = int.parse(args.first);
-      var migrationClassMirror = currentMirrorSystem().isolate.rootLibrary.declarations.values.firstWhere((dm) => dm is ClassMirror && dm.isSubclassOf(reflectClass(Migration))) as ClassMirror;
+      var migrationClassMirror = currentMirrorSystem().isolate.rootLibrary.declarations.values
+          .firstWhere((dm) => dm is ClassMirror && dm.isSubclassOf(reflectClass(Migration))) as ClassMirror;
       var migrationInstance = migrationClassMirror.newInstance(new Symbol(''), []).reflectee as Migration;
       migrationInstance.database = new SchemaBuilder(store, inputSchema);
 
       await migrationInstance.upgrade();
-      if (!dryRun) {
-        await migrationInstance.database.execute(versionNumber);
+      if (!dryRun && !migrationInstance.database.commands.isEmpty) {
+        await migrationInstance.store.upgrade(versionNumber, migrationInstance.database.commands);
         await migrationInstance.database.store.close();
       }
 
       return migrationInstance.currentSchema.asMap();
     }, imports: ["dart:isolate", "dart:mirrors"], additionalContents: file.readAsStringSync());
 
-    var executor = new _IsolateExecutor(generator, ["$versionNumber"], message: message);
+    var executor = new _IsolateExecutor(generator, ["${_versionNumberFromFile(file)}"], message: {
+      "dryRun" : dryRun,
+      "schema" : schema.asMap(),
+      "dbInfo" : _storeConnectionMap,
+    });
     var schemaMap = await executor.execute();
     return new Schema.fromMap(schemaMap as Map<String, dynamic>);
+  }
+
+  Map<String, dynamic> get _storeConnectionMap {
+    if (persistentStore is PostgreSQLPersistentStore) {
+      var s = persistentStore as PostgreSQLPersistentStore;
+      return {
+        "flavor" : "postgres",
+        "username" : s.username,
+        "password" : s.password,
+        "host" : s.host,
+        "port" : s.port,
+        "databaseName" : s.databaseName,
+        "timeZone" : s.timeZone
+      };
+    }
+
+    return null;
   }
 }
