@@ -125,7 +125,7 @@ class PostgreSQLSchemaGenerator {
     return [
       "ALTER TABLE ONLY ${tableName} ADD FOREIGN KEY (${_columnNameForColumn(column)}) "
           "REFERENCES ${column.relatedTableName} (${column.relatedColumnName}) "
-          "ON DELETE ${_deleteRuleStringForDeleteRule(column.deleteRule)}"
+          "ON DELETE ${_deleteRuleStringForDeleteRule(column._deleteRule)}"
     ];
   }
 
@@ -174,7 +174,7 @@ class PostgreSQLSchemaGenerator {
   }
 
   String _postgreSQLTypeForColumn(SchemaColumn t) {
-    switch (t.type) {
+    switch (t._type) {
       case "integer": {
         if (t.autoincrement) {
           return "SERIAL";

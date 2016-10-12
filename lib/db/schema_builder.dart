@@ -114,8 +114,8 @@ class SchemaBuilder {
     modify(newColumn);
 
     // TODO: change delete rule at same time nullability is changed hsould be ok
-    if (existingColumn.type != newColumn.type) {
-      throw new SchemaException("May not change column (${existingColumn.name}) type (${existingColumn.type} -> ${newColumn.type})");
+    if (existingColumn._type != newColumn._type) {
+      throw new SchemaException("May not change column (${existingColumn.name}) type (${existingColumn._type} -> ${newColumn._type})");
     }
 
     if (existingColumn.autoincrement != newColumn.autoincrement) {
@@ -136,6 +136,10 @@ class SchemaBuilder {
 
     if (existingColumn.name != newColumn.name) {
       renameColumn(tableName, existingColumn.name, newColumn.name);
+    }
+
+    if (existingColumn.isNullable == false && newColumn.isNullable == true && unencodedInitialValue == null) {
+      throw new SchemaException("May not change column (${existingColumn.name}) to be nullable without unencodedInitialValue.");
     }
 
     table._replaceColumn(existingColumn, newColumn);
@@ -161,7 +165,7 @@ class SchemaBuilder {
         commands.addAll(store.alterColumnDefaultValue(table, newColumn));
       }
 
-      if (existingColumn.deleteRule != newColumn.deleteRule) {
+      if (existingColumn._deleteRule != newColumn._deleteRule) {
         commands.addAll(store.alterColumnDeleteRule(table, newColumn));
       }
     }
@@ -207,7 +211,7 @@ class SchemaBuilder {
 
   static String _newColumnString(SchemaTable table, SchemaColumn column, String spaceOffset) {
     var builder = new StringBuffer();
-    builder.write('${spaceOffset}new SchemaColumn("${column.name}", ${SchemaColumn.typeFromTypeString(column.type)}');
+    builder.write('${spaceOffset}new SchemaColumn("${column.name}", ${SchemaColumn.typeFromTypeString(column._type)}');
     if (column.isPrimaryKey) {
       builder.write(", isPrimaryKey: true");
     } else {

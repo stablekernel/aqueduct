@@ -2,11 +2,11 @@ part of aqueduct;
 
 class SchemaColumn {
   SchemaColumn(this.name, PropertyType t, {this.isIndexed: false, this.isNullable: false, this.autoincrement: false, this.isUnique: false, this.defaultValue, this.isPrimaryKey: false}) {
-    type = typeStringForType(t);
+    _type = typeStringForType(t);
   }
 
   SchemaColumn.relationship(this.name, PropertyType t, {this.isNullable: true, this.isUnique: false, this.relatedTableName, this.relatedColumnName, RelationshipDeleteRule rule: RelationshipDeleteRule.nullify}) {
-    deleteRule = deleteRuleStringForDeleteRule(rule);
+    _deleteRule = deleteRuleStringForDeleteRule(rule);
   }
 
   SchemaColumn.fromEntity(ModelEntity entity, PropertyDescription desc) {
@@ -16,13 +16,13 @@ class SchemaColumn {
       isPrimaryKey = false;
       relatedTableName = desc.destinationEntity.tableName;
       relatedColumnName = desc.destinationEntity.primaryKey;
-      deleteRule = deleteRuleStringForDeleteRule(desc.deleteRule);
+      _deleteRule = deleteRuleStringForDeleteRule(desc.deleteRule);
     } else if (desc is AttributeDescription) {
       defaultValue = desc.defaultValue;
       isPrimaryKey = desc.isPrimaryKey;
     }
 
-    type = typeStringForType(desc.type);
+    _type = typeStringForType(desc.type);
     isNullable = desc.isNullable;
     autoincrement = desc.autoincrement;
     isUnique = desc.isUnique;
@@ -31,7 +31,7 @@ class SchemaColumn {
 
   SchemaColumn.from(SchemaColumn otherColumn) {
     name = otherColumn.name;
-    type = otherColumn.type;
+    _type = otherColumn._type;
     isIndexed = otherColumn.isIndexed;
     isNullable = otherColumn.isNullable;
     autoincrement = otherColumn.autoincrement;
@@ -40,12 +40,12 @@ class SchemaColumn {
     isPrimaryKey = otherColumn.isPrimaryKey;
     relatedTableName = otherColumn.relatedTableName;
     relatedColumnName = otherColumn.relatedColumnName;
-    deleteRule = otherColumn.deleteRule;
+    _deleteRule = otherColumn._deleteRule;
   }
 
   SchemaColumn.fromMap(Map<String, dynamic> map) {
     name = map["name"];
-    type = map["type"];
+    _type = map["type"];
     isIndexed = map["indexed"];
     isNullable = map["nullable"];
     autoincrement = map["autoincrement"];
@@ -54,13 +54,19 @@ class SchemaColumn {
     isPrimaryKey = map["primaryKey"];
     relatedTableName = map["relatedTableName"];
     relatedColumnName = map["relatedColumnName"];
-    deleteRule = map["deleteRule"];
+    _deleteRule = map["deleteRule"];
   }
 
   SchemaColumn.empty();
 
   String name;
-  String type;
+  String _type;
+
+  PropertyType get type => typeFromTypeString(_type);
+  void set type(PropertyType t) {
+    _type = typeStringForType(t);
+  }
+
 
   bool isIndexed = false;
   bool isNullable = false;
@@ -71,7 +77,11 @@ class SchemaColumn {
 
   String relatedTableName;
   String relatedColumnName;
-  String deleteRule;
+  String _deleteRule;
+  RelationshipDeleteRule get deleteRule => deleteRuleForDeleteRuleString(_deleteRule);
+  void set deleteRule(RelationshipDeleteRule t) {
+    _deleteRule = deleteRuleStringForDeleteRule(t);
+  }
 
   bool get isForeignKey {
     return relatedTableName != null && relatedColumnName != null;
@@ -134,10 +144,20 @@ class SchemaColumn {
     return null;
   }
 
+  static RelationshipDeleteRule deleteRuleForDeleteRuleString(String rule) {
+    switch (rule) {
+      case "cascade": return RelationshipDeleteRule.cascade;
+      case "nullify": return RelationshipDeleteRule.nullify;
+      case "restrict": return RelationshipDeleteRule.restrict;
+      case "default": return RelationshipDeleteRule.setDefault;
+    }
+    return null;
+  }
+
   Map<String, dynamic> asMap() {
     return {
       "name" : name,
-      "type" : type,
+      "type" : _type,
       "nullable" : isNullable,
       "autoincrement" : autoincrement,
       "unique" : isUnique,
@@ -145,7 +165,7 @@ class SchemaColumn {
       "primaryKey" : isPrimaryKey,
       "relatedTableName" : relatedTableName,
       "relatedColumnName" : relatedColumnName,
-      "deleteRule" : deleteRule,
+      "deleteRule" : _deleteRule,
       "indexed" : isIndexed
     };
   }

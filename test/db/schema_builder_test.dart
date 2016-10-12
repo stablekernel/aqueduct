@@ -85,7 +85,86 @@ void main() {
     });
 
     test("Altering column", () {
+      try {
+        builder.alterColumn("_Container", "defaultItem", ((c) {}));
+        expect(true, false);
+      } on SchemaException catch (e) {
+        expect(e.message, contains("does not exist"));
+      }
 
+      try {
+        builder.alterColumn("_DefaultItem", "foo", ((c) {}));
+        expect(true, false);
+      } on SchemaException catch (e) {
+        expect(e.message, contains("does not exist"));
+      }
+
+      try {
+        builder.alterColumn("foobar", "id", ((c) {}));
+        expect(true, false);
+      } on SchemaException catch (e) {
+        expect(e.message, contains("does not exist"));
+      }
+
+      // This also tests case sensitivity
+      try {
+        builder.alterColumn("_defaultITEM", "id", (c) {
+          c.type = PropertyType.boolean;
+        });
+        expect(true, false);
+      } on SchemaException catch (e) {
+        expect(e.message, contains("May not change"));
+      }
+
+      try {
+        builder.alterColumn("_defaultItem", "id", (c) {
+          c.autoincrement = !c.autoincrement;
+        });
+        expect(true, false);
+      } on SchemaException catch (e) {
+        expect(e.message, contains("May not change"));
+      }
+
+      try {
+        builder.alterColumn("_defaultItem", "id", (c) {
+          c.relatedTableName = "foo";
+        });
+        expect(true, false);
+      } on SchemaException catch (e) {
+        expect(e.message, contains("May not change"));
+      }
+
+      try {
+        builder.alterColumn("_defaultItem", "id", (c) {
+          c.relatedColumnName = "foo";
+        });
+        expect(true, false);
+      } on SchemaException catch (e) {
+        expect(e.message, contains("May not change"));
+      }
+
+      try {
+        builder.alterColumn("_LoadedItem", "someIndexedThing", (c) {
+          c.isNullable = true;
+        });
+        expect(true, false);
+      } on SchemaException catch (e) {
+        expect(e.message, contains("May not change"));
+      }
+
+      builder.alterColumn("_LoadedItem", "someIndexedThing", (c) {
+        c.isIndexed = false;
+        c.isNullable = true;
+        c.isUnique = true;
+        c.defaultValue = "'bar'";
+        c.deleteRule = RelationshipDeleteRule.setDefault;
+      }, unencodedInitialValue: "'foo'");
+
+      expect(builder.schema.tableForName("_LoadedItem").columnForName("someIndexedThing").isIndexed, false);
+      expect(builder.schema.tableForName("_LoadedItem").columnForName("someIndexedThing").isNullable, true);
+      expect(builder.schema.tableForName("_LoadedItem").columnForName("someIndexedThing").isUnique, true);
+      expect(builder.schema.tableForName("_LoadedItem").columnForName("someIndexedThing").defaultValue, "'bar'");
+      expect(builder.schema.tableForName("_LoadedItem").columnForName("someIndexedThing").deleteRule, RelationshipDeleteRule.setDefault);
     });
 
   });

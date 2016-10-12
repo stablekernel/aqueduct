@@ -420,12 +420,12 @@ void main() {
       column.defaultValue = captureValue;
       errors = <String>[];
 
-      captureValue = column.type;
-      column.type = "whatever";
+      var capType = column.type;
+      column.type = PropertyType.boolean;
       expect(newSchema.matches(baseSchema, errors), false);
       expect(errors.length, 1);
       expect(errors.first, contains("_DefaultItem.id does not have same type"));
-      column.type = captureValue;
+      column.type = capType;
       errors = <String>[];
 
       captureValue = column.relatedColumnName;
@@ -444,12 +444,12 @@ void main() {
       column.relatedTableName = captureValue;
       errors = <String>[];
 
-      captureValue = column.deleteRule;
-      column.deleteRule = "whatever";
+      var capDeleteRule = column.deleteRule;
+      column.deleteRule = RelationshipDeleteRule.setDefault;
       expect(newSchema.matches(baseSchema, errors), false);
       expect(errors.length, 1);
       expect(errors.first, contains("_DefaultItem.id does not have same deleteRule"));
-      column.deleteRule = captureValue;
+      column.deleteRule = capDeleteRule;
       errors = <String>[];
     });
 
