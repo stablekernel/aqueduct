@@ -1,11 +1,5 @@
 part of aqueduct;
 
-class MigrationConfiguration extends ConfigurationItem {
-  MigrationConfiguration(String filename) : super.fromFile(filename);
-
-  DatabaseConnectionConfiguration migration;
-}
-
 class MigrationRunner extends CLICommand {
   MigrationExecutor executor;
   ArgParser options = new ArgParser(allowTrailingOptions: false)
@@ -20,6 +14,11 @@ class MigrationRunner extends CLICommand {
     ..addCommand("list-versions")
     ..addCommand("version")
     ..addFlag("help", negatable: false, help: "Shows this documentation");
+
+
+  String get _dbConfigFormat {
+    return "username: username\npassword: password\nhost: host\nport: port\ndatabaseName: name\n";
+  }
 
 
   Future<int> handle(ArgResults argValues) async {
@@ -53,8 +52,15 @@ class MigrationRunner extends CLICommand {
 
     PersistentStore store = null;
     if (argValues["flavor"] == "postgres") {
-      if (new File.fromUri(dbConfigURI).existsSync()) {
-        var dbConfig = new MigrationConfiguration(dbConfigURI.path).migration;
+      var dbConfigFile = new File.fromUri(dbConfigURI);
+      if (dbConfigFile.existsSync()) {
+        var dbConfig = new DatabaseConnectionConfiguration();
+        try {
+          dbConfig.readFromMap(loadYaml(dbConfigFile.readAsStringSync()) as Map<String, dynamic>);
+        } catch (e) {
+          print("Invalid dbconfig. Expected $_dbConfigFormat\nat ${dbConfigURI}.");
+          rethrow;
+        }
         store = new PostgreSQLPersistentStore.fromConnectionInfo(dbConfig.username, dbConfig.password, dbConfig.host, dbConfig.port, dbConfig.databaseName);
       }
     } else {
@@ -107,6 +113,10 @@ class MigrationRunner extends CLICommand {
   }
 
   Future<int> printVersion() async {
+    if (executor.persistentStore == null) {
+      print("No database to connect to. Provide a dbconfig file in migrations/migration.yaml in the following format $_dbConfigFormat");
+      return -1;
+    }
     try {
       var current = await executor.persistentStore.schemaVersion;
       print("Current version: $current");
@@ -147,18 +157,9 @@ class MigrationRunner extends CLICommand {
 
   Future<int> generate() async {
     try {
-      var contents = await executor.generate();
-      var migrationFiles = executor.migrationFiles;
-      var versionString = "${"1".padLeft(8, "0")}_Initial.migration.dart";
-      if (!migrationFiles.isEmpty) {
-        var versionNumber = executor.migrationFiles.map((f) => executor._versionNumberFromFile(f)).last + 1;
-        versionString = "$versionNumber".padLeft(8, "0") + "_Name.migration.dart";
-      }
+      var file = await executor.generate();
 
-      var migrationFileURI = executor.migrationFileDirectory.resolve(versionString);
-      new File.fromUri(migrationFileURI).writeAsStringSync(contents);
-
-      print("Created new migration file $migrationFileURI.");
+      print("Created new migration file ${file.uri}.");
     } catch (e) {
       print("Could not generate migration file.\n$e");
       return -1;
@@ -168,9 +169,8 @@ class MigrationRunner extends CLICommand {
 
 
   Future cleanup() async {
-    await executor.persistentStore.close();
+    await executor.persistentStore?.close();
   }
-
 
   String _getPackageName(Uri projectURI) {
     var yamlContents = new File.fromUri(projectURI.resolve("pubspec.yaml")).readAsStringSync();
