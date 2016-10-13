@@ -97,21 +97,21 @@ For this, there is a class called `Application`. An application instance manages
 At the bottom of `quiz.dart`, create a `RequestSink` subclass:
 
 ```dart
-class QuizSink extends RequestSink {
-  QuizSink(Map<String, dynamic> options) : super (options);
+class QuizRequestSink extends RequestSink {
+  QuizRequestSink(Map<String, dynamic> options) : super (options);
 }
 ```
 
 A `RequestSink` subclass must have a constructor that takes a `Map<String, dynamic>` of options and forward it on to its superclass' constructor. These values are often provided by a configuration file and are used to configure a `RequestSink`'s properties - like database connection information. Since the `quiz` app doesn't do much right now, we simply forward the configuration options on to the `super`'s constructor as required.
 
-Both `RequestSink` and `HTTPController` are subclasses of `RequestController` - and therefore, both `QuizSink` and `QuestionController` are as well.
+Both `RequestSink` and `HTTPController` are subclasses of `RequestController` - and therefore, both `QuizRequestSink` and `QuestionController` are as well.
 A `RequestController` receives `Request`s from another `RequestController` and either responds to that request or passes it down the stream to the next `RequestController`. Thus, `RequestController`s are chained together to create a stream that a request travels in. A `RequestSink` is special in that it receives `Request`s from the `Application`, and is therefore the first controller in the stream.
 
-By default, a `RequestSink` subclass simply forwards `Request`s to its `initialController`. The default `initialController` is the `RequestSink`'s `router`, which is an instance of `Router`. A `Router` splits the stream of HTTP requests based on their path. Each of these splits is called a *route*. Subsequent `RequestController`s are chained to each route. The setup for each route and the stream of `RequestController`s is defined in a `RequestSink`'s `addRoutes` required method. In this application, we'd like all HTTP requests with the path `/questions` to go to our `QuestionController`. Implement this method in `QuizSink`:
+By default, a `RequestSink` subclass simply forwards `Request`s to its `initialController`. The default `initialController` is the `RequestSink`'s `router`, which is an instance of `Router`. A `Router` splits the stream of HTTP requests based on their path. Each of these splits is called a *route*. Subsequent `RequestController`s are chained to each route. The setup for each route and the stream of `RequestController`s is defined in a `RequestSink`'s `addRoutes` required method. In this application, we'd like all HTTP requests with the path `/questions` to go to our `QuestionController`. Implement this method in `QuizRequestSink`:
 
 ```dart
-class QuizSink extends RequestSink {
-  QuizSink(Map<String, dynamic> options) : super (options);
+class QuizRequestSink extends RequestSink {
+  QuizRequestSink(Map<String, dynamic> options) : super (options);
 
   @override
   void addRoutes() {
@@ -134,7 +134,7 @@ We'll get to the specifics of all of that in a moment, but we're almost to the p
 import 'package:aqueduct/aqueduct.dart';
 
 void main() {
-  var app = new Application<QuizSink>();
+  var app = new Application<QuizRequestSink>();
   app.start();
 }
 ```
@@ -154,13 +154,13 @@ Every Dart application starts in a `main` function. In most languages, the progr
 
 Your `main` function creates an instance of `Application`, which opens a specific kind of `Stream`, an `HttpServer`.
 
-When an application is started, it creates an instance of its `RequestSink`, which is defined by its type argument; in this case, `QuizSink`. As `Request`s come in, the `Application` forwards them to instances of its `RequestSink`. From there, your application-specific code takes over.
+When an application is started, it creates an instance of its `RequestSink`, which is defined by its type argument; in this case, `QuizRequestSink`. As `Request`s come in, the `Application` forwards them to instances of its `RequestSink`. From there, your application-specific code takes over.
 
 In the previous code, you set up a `Router` to pass `Request`s with the route `/questions` to a `QuestionController` generator. If you trace the lifetime of a `Request` with a path of `/questions` throughout this application, the following occurs:
 
 1. A standard library `HttpRequest` is added to the `HttpServer`'s stream.
-2. The `Application` instance listening on the `HttpServer`'s stream wraps the `HttpRequest` in an Aqueduct `Request` object and sends it to the `QuizSink`.
-3. The `QuizSink` immediately forwards the `Request` to its `Router`.
+2. The `Application` instance listening on the `HttpServer`'s stream wraps the `HttpRequest` in an Aqueduct `Request` object and sends it to the `QuizRequestSink`.
+3. The `QuizRequestSink` immediately forwards the `Request` to its `Router`.
 4. The `Router` matches the path of the `Request` to the `/questions` route, and forwards the `Request` to the associated `RouteController`.
 5. The `RouteController` immediately forwards the `Request` to the generator, which creates an instance of `QuestionController` to which the `Request` is delivered to.
 6. The `QuestionController` matches the HTTP method ('GET') to its responder method, `getAllQuestions`.
@@ -179,7 +179,7 @@ Routing and Another Route
 
 So far, we've added a route that matches the constant string `/questions`. Routers can do more than match a constant string, they can also include path variables, optional path components, regular expression matching and the wildcard character. We'll add to the existing `/questions` route by allowing requests to get a specific question.
 
-In `quiz.dart`, modify the code in the `QuizSink`'s `addRoutes` method by adding "/[:index]" to the route.
+In `quiz.dart`, modify the code in the `QuizRequestSink`'s `addRoutes` method by adding "/[:index]" to the route.
 
 ```dart
   @override

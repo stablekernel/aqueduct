@@ -242,6 +242,33 @@ void main() {
     var res = await req.update();
     expect(res.map((tm) => tm.name), everyElement("Fred"));
   });
+
+  test("Attempted update that will cause conflict throws appropriate QueryException", () async {
+    context = await contextWithModels([TestModel]);
+
+    var objects = [
+      new TestModel()
+        ..name = "Bob"
+        ..emailAddress = "1@a.com",
+      new TestModel()
+        ..name = "Fred"
+        ..emailAddress = "2@a.com"
+    ];
+    for (var o in objects) {
+      var req = new Query<TestModel>()..values = o;
+      await req.insert();
+    }
+
+    try {
+      var q = new Query<TestModel>()
+          ..matchOn.emailAddress = "2@a.com"
+          ..values.emailAddress = "1@a.com";
+      await q.updateOne();
+      expect(true, false);
+    } on QueryException catch (e) {
+      expect(e.event, QueryExceptionEvent.conflict);
+    }
+  });
 }
 
 class TestModel extends Model<_TestModel> implements _TestModel {}

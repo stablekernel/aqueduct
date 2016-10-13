@@ -45,10 +45,10 @@ import 'package:aqueduct/aqueduct.dart';
 export 'package:aqueduct/aqueduct.dart';
 
 part 'controller/question_controller.dart';
-part 'quiz_sink.dart';
+part 'quiz_request_sink.dart';
 ```
 
-You'll get some warnings because `controller/question_controller.dart` and `quiz_sink.dart` don't yet exist. Let's create those. Create a new directory at `quiz/lib/controller` and add the file `question_controller.dart` to that directory. At the top of this file, link this 'part' back to the library file and then copy and paste the `QuestionController` class from `bin/quiz.dart` into it:
+You'll get some warnings because `controller/question_controller.dart` and `quiz_request_sink.dart` don't yet exist. Let's create those. Create a new directory at `quiz/lib/controller` and add the file `question_controller.dart` to that directory. At the top of this file, link this 'part' back to the library file and then copy and paste the `QuestionController` class from `bin/quiz.dart` into it:
 
 ```dart
 part of quiz;
@@ -73,13 +73,13 @@ class QuestionController extends HTTPController {
 }
 ```
 
-Next, create a new file at `lib/quiz_sink.dart`, link this part back to the library, and copy and paste the `QuizSink` class into this file:
+Next, create a new file at `lib/quiz_request_sink.dart`, link this part back to the library, and copy and paste the `QuizRequestSink` class into this file:
 
 ```dart
 part of quiz;
 
-class QuizSink extends RequestSink {
-  QuizSink(Map<String, dynamic> options) : super(options);
+class QuizRequestSink extends RequestSink {
+  QuizRequestSink(Map<String, dynamic> options) : super(options);
 
   void addRoutes() {
     router
@@ -95,7 +95,7 @@ Now that you've split up the project across multiple files, we no longer need th
 import 'package:quiz/quiz.dart';
 
 void main() {
-  var app = new Application<QuizSink>();
+  var app = new Application<QuizRequestSink>();
 
   app.start();
 }
@@ -119,7 +119,7 @@ The way Aqueduct accomplishes testing is by starting an entire application, runn
 
 ```dart
 void main() {
-  var app = new Application<QuizSink>();
+  var app = new Application<QuizRequestSink>();
 
   setUpAll(() async {
     await app.start(runOnMainIsolate: true);
@@ -131,15 +131,15 @@ void main() {
 }
 ```
 
-Once we add tests and run this test file, an instance of a `QuizSink` driven `Application` will be started. Because starting an application takes a few milliseconds, we must make sure that we `await` its startup prior to moving on to the tests. Likewise, we may run multiple groups of tests or files with different tests in them, so we have to shut down the application when the tests are finished to free up the port the `Application` is listening on. (You really really shouldn't forget to shut it down, because if you don't, subsequent tests will start to fail because the application can't bind to the listening port.)
+Once we add tests and run this test file, an instance of a `QuizRequestSink` driven `Application` will be started. Because starting an application takes a few milliseconds, we must make sure that we `await` its startup prior to moving on to the tests. Likewise, we may run multiple groups of tests or files with different tests in them, so we have to shut down the application when the tests are finished to free up the port the `Application` is listening on. (You really really shouldn't forget to shut it down, because if you don't, subsequent tests will start to fail because the application can't bind to the listening port.)
 
-Notice also that `start` takes an optional argument, `runOnMainIsolate`. In the previous chapter, we talked about an application spreading across multiple isolates. All of that behavior is tested in Aqueduct, and so your tests should only test the logic of your `QuizSink` and its streams of `RequestController`s. Since isolates can't share memory, if you ever want to dig into your `QuizSink` and check things out or use some of its resources directly, you wouldn't be able to do that from the tests when running across multiple isolates - the test isolate is separate from the running `QuizSink` isolates. Therefore, when running tests, you should set this flag to true. (This flag is specifically meant for tests.)
+Notice also that `start` takes an optional argument, `runOnMainIsolate`. In the previous chapter, we talked about an application spreading across multiple isolates. All of that behavior is tested in Aqueduct, and so your tests should only test the logic of your `QuizRequestSink` and its streams of `RequestController`s. Since isolates can't share memory, if you ever want to dig into your `QuizRequestSink` and check things out or use some of its resources directly, you wouldn't be able to do that from the tests when running across multiple isolates - the test isolate is separate from the running `QuizRequestSink` isolates. Therefore, when running tests, you should set this flag to true. (This flag is specifically meant for tests.)
 
 Now, we need to add a test to verify that hitting the `/questions` endpoint does return our definition of 'questions'. In Aqueduct, there is a utility called a `TestClient` to make this a lot easier. At the top of your main function, but after we create the application instance, declare a new variable:
 
 ```dart
 void main() {
-  var app = new Application<QuizSink>();
+  var app = new Application<QuizRequestSink>();
   var client = new TestClient(app.configuration.port);
 ...
 ```

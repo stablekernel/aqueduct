@@ -81,15 +81,13 @@ class IsolateServer extends _Server {
 }
 
 void isolateServerEntryPoint(InitialServerMessage params) {
-  var streamSourceLibraryMirror = currentMirrorSystem().libraries[params.streamLibraryURI];
-  var streamTypeMirror = streamSourceLibraryMirror.declarations[new Symbol(params.streamTypeName)] as ClassMirror;
+  var sinkSourceLibraryMirror = currentMirrorSystem().libraries[params.streamLibraryURI];
+  var sinkTypeMirror = sinkSourceLibraryMirror.declarations[new Symbol(params.streamTypeName)] as ClassMirror;
 
-  var app = streamTypeMirror
+  var app = sinkTypeMirror
       .newInstance(new Symbol(""), [params.configuration.configurationOptions])
       .reflectee;
-  var server = new IsolateServer(
-      app, params.configuration, params.identifier,
-      params.parentMessagePort);
 
+  var server = new IsolateServer(app, params.configuration, params.identifier, params.parentMessagePort);
   server.start();
 }

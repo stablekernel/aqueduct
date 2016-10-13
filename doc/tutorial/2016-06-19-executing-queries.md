@@ -59,11 +59,11 @@ Why there is a persistent and instance type we'll dig into later, but it is impo
 Defining a Context
 ---
 
-In order for an application to work with a database, it needs a `ModelContext`. A `ModelContext` is the facilitator between your code, model objects and a database. It is made up of two components, a `DataModel` (the thing that keeps track of all of your model type) and `PersistentStore` (the thing that talks to the database). These objects are set up in a `RequestSink`. In `quiz_sink.dart`, add the following code to the constructor for `QuizSink` and define a new property:
+In order for an application to work with a database, it needs a `ModelContext`. A `ModelContext` is the facilitator between your code, model objects and a database. It is made up of two components, a `DataModel` (the thing that keeps track of all of your model types) and `PersistentStore` (the thing that talks to the database). These objects are set up in a `RequestSink`. In `quiz_request_sink.dart`, add the following code to the constructor for `QuizRequestSink` and define a new property:
 
 ```dart
-class QuizSink extends RequestSink {
-  QuizSink(Map<String, dynamic> options) : super(options) {
+class QuizRequestSink extends RequestSink {
+  QuizRequestSink(Map<String, dynamic> options) : super(options) {
     var dataModel = new DataModel([Question]);
     var persistentStore = new PostgreSQLPersistentStore.fromConnectionInfo("dart", "dart", "localhost", 5432, "dart_test");
     context = new ModelContext(dataModel, persistentStore);
@@ -136,7 +136,7 @@ setUpAll(() async {
 });
 ```
 
-After the application is started, we know that it creates a `ModelContext` in the constructor of `QuizSink`. The default context can be accessed through `ModelContext.defaultContext`. We also know that this context has a `DataModel` containing `Question`. The class `SchemaGenerator` will create a database-agnostic JSON schema file from the `DataModel`. Subclasses of `SchemaGeneratorBackend`, like `PostgreSQLSchemaGenerator`, can take that JSON and create SQL commands that create all of the tables, indices and constraints defined by the JSON schema. Each of those is executed on the context, creating the schema in the database. (Note that the `temporary` flag adds makes all of the tables temporary and therefore they disappear when the database connection in the context's persistent store closes.)
+After the application is started, we know that it creates a `ModelContext` in the constructor of `QuizRequestSink`. The default context can be accessed through `ModelContext.defaultContext`. We also know that this context has a `DataModel` containing `Question`. The class `SchemaGenerator` will create a database-agnostic JSON schema file from the `DataModel`. Subclasses of `SchemaGeneratorBackend`, like `PostgreSQLSchemaGenerator`, can take that JSON and create SQL commands that create all of the tables, indices and constraints defined by the JSON schema. Each of those is executed on the context, creating the schema in the database. (Note that the `temporary` flag adds makes all of the tables temporary and therefore they disappear when the database connection in the context's persistent store closes.)
 
 Because the `PostgreSQLPersistentStore`'s connection to the database is also a stream, it, too, must be closed to let the test's main function terminate. In `tearDownAll`, add this code before the app is terminated:
 

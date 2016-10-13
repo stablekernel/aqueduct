@@ -13,10 +13,7 @@ void main() {
   test("Fetching an object gets entire object", () async {
     context = await contextWithModels([TestModel]);
 
-    var m = new TestModel()
-      ..name = "Joe"
-      ..email = "a@a.com";
-
+    var m = new TestModel(name: "Joe", email: "a@a.com");
     var req = new Query<TestModel>()..values = m;
     var item = await req.insert();
 
@@ -28,12 +25,10 @@ void main() {
     expect(item.email, "a@a.com");
   });
 
-  test("Specifying resultKeys works", () async {
+  test("Specifying resultProperties works", () async {
     context = await contextWithModels([TestModel]);
 
-    var m = new TestModel()
-      ..name = "Joe"
-      ..email = "b@a.com";
+    var m = new TestModel(name: "Joe", email: "b@a.com");
     var req = new Query<TestModel>()..values = m;
 
     var item = await req.insert();
@@ -54,9 +49,7 @@ void main() {
     context = await contextWithModels([TestModel]);
 
     for (int i = 0; i < 10; i++) {
-      var m = new TestModel()
-        ..name = "Joe${i}"
-        ..email = "asc${i}@a.com";
+      var m = new TestModel(name: "Joe${i}", email: "asc${i}@a.com");
       var req = new Query<TestModel>()..values = m;
       await req.insert();
     }
@@ -91,9 +84,7 @@ void main() {
     context = await contextWithModels([TestModel]);
 
     for (int i = 0; i < 10; i++) {
-      var m = new TestModel()
-        ..name = "Joe${i}"
-        ..email = "desc${i}@a.com";
+      var m = new TestModel(name: "Joe${i}", email: "desc${i}@a.com");
 
       var req = new Query<TestModel>()..values = m;
 
@@ -117,9 +108,7 @@ void main() {
     context = await contextWithModels([TestModel]);
 
     for (int i = 0; i < 10; i++) {
-      var m = new TestModel()
-        ..name = "Joe${i%2}"
-        ..email = "multi${i}@a.com";
+      var m = new TestModel(name: "Joe${i%2}", email: "multi${i}@a.com");
 
       var req = new Query<TestModel>()..values = m;
 
@@ -169,9 +158,7 @@ void main() {
   test("Fetching an invalid key fails", () async {
     context = await contextWithModels([TestModel]);
 
-    var m = new TestModel()
-      ..name = "invkey"
-      ..email = "invkey@a.com";
+    var m = new TestModel(name: "invkey", email: "invkey@a.com");
 
     var req = new Query<TestModel>()..values = m;
     await req.insert();
@@ -184,7 +171,7 @@ void main() {
       await req.fetch();
       successful = true;
     } on QueryException catch (e) {
-      expect(e.toString(), "Property badkey in resultKeys does not exist on simple");
+      expect(e.toString(), "Property badkey does not exist on simple");
       expect(e.event, QueryExceptionEvent.internalFailure);
     }
     expect(successful, false);
@@ -240,8 +227,6 @@ void main() {
     expect(p1.owner, isNull);
   });
 
-
-
   test("Omits specific keys", () async {
     context = await contextWithModels([Omit]);
 
@@ -260,9 +245,88 @@ void main() {
     expect(fResult.backingMap["text"], isNull);
   });
 
+  test("Fetch one that returns more than one row (because of join) throws exception", () async {
+    context = await contextWithModels([GenUser, GenPost]);
+
+    var objects = [
+      new GenUser()
+        ..name = "Joe",
+      new GenUser()
+        ..name = "Bob"
+    ];
+
+    for (var o in objects) {
+      var req = new Query<GenUser>()..values = o;
+      await req.insert();
+    }
+
+    try {
+      var q = new Query<GenUser>()
+        ..matchOn.posts.includeInResultSet = true;
+      await q.fetchOne();
+
+      expect(true, false);
+    } on QueryException catch (e) {
+      expect(e.toString(), contains("Query expected to fetch one instance, but 2 instances were returned."));
+    }
+  });
+
+  test("Including RelationshipInverse property can only be done by using name of property", () async {
+    context = await contextWithModels([GenUser, GenPost]);
+
+    var u1 = await (new Query<GenUser>()
+      ..values.name = "Joe"
+    ).insert();
+
+    await (new Query<GenPost>()
+      ..values.text = "text"
+      ..values.owner = u1
+    ).insert();
+
+    var q = new Query<GenPost>()
+      ..resultProperties = ["id", "owner"];
+
+    var result = await q.fetchOne();
+    expect(result.owner.id, 1);
+    expect(result.owner.backingMap.length, 1);
+
+    q = new Query<GenPost>()
+      ..resultProperties = ["id", "owner_id"];
+    try {
+      await q.fetchOne();
+      expect(true, false);
+    } on QueryException catch (e) {
+      expect(e.toString(), contains("Property owner_id does not exist on _GenPost"));
+    }
+  });
+
+  test("Trying to manipulate RelationshipInverse matcher fails", () async {
+    context = await contextWithModels([GenUser, GenPost]);
+
+    try {
+      var _ = new Query<GenPost>()
+        ..matchOn.owner.id = 1;
+      expect(true, false);
+    } on QueryException catch (e) {
+      expect(e.toString(), contains("Attempting to access matcher on RelationshipInverse owner on _GenPost. Assign this value to whereRelatedByValue instead."));
+    }
+
+    try {
+      var _ = new Query<GenPost>()
+        ..matchOn.owner.includeInResultSet = true;
+      expect(true, false);
+    } on QueryException catch (e) {
+      expect(e.toString(), contains("Attempting to access matcher on RelationshipInverse owner on _GenPost. Assign this value to whereRelatedByValue instead."));
+    }
+  });
 }
 
-class TestModel extends Model<_TestModel> implements _TestModel {}
+class TestModel extends Model<_TestModel> implements _TestModel {
+  TestModel({String name: null, String email: null}) {
+    this.name = name;
+    this.email = email;
+  }
+}
 class _TestModel {
   @primaryKey
   int id;
