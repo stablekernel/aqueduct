@@ -12,7 +12,6 @@ void main() {
     });
 
     tearDown(() async {
-      await store.execute("DROP TABLE IF EXISTS _aqueduct_version_pgsql");
       await store.close();
     });
 
@@ -21,7 +20,7 @@ void main() {
     });
 
     test("Version table gets created on initiating upgrade if it doesn't exist", () async {
-      await store.upgrade(1, []);
+      await store.upgrade(1, [], temporary: true);
 
       var rows = await store.execute("SELECT versionNumber, dateOfUpgrade FROM _aqueduct_version_pgsql");
       expect(rows.length, 1);
@@ -29,8 +28,8 @@ void main() {
     });
 
     test("Subsequent upgrades do not fail because the verison table is already created", () async {
-      await store.upgrade(1, []);
-      await store.upgrade(2, []);
+      await store.upgrade(1, [], temporary: true);
+      await store.upgrade(2, [], temporary: true);
 
       var rows = await store.execute("SELECT versionNumber, dateOfUpgrade FROM _aqueduct_version_pgsql");
       expect(rows.length, 2);
@@ -39,9 +38,9 @@ void main() {
     });
 
     test("Trying to upgrade to version that already exists fails", () async {
-      await store.upgrade(1, []);
+      await store.upgrade(1, [], temporary: true);
       try {
-        await store.upgrade(1, []);
+        await store.upgrade(1, [], temporary: true);
         expect(true, false);
       } on MigrationException catch (e) {
         expect(e.message, contains("Trying to upgrade database"));
@@ -49,9 +48,9 @@ void main() {
     });
 
     test("Migration that fails a command does not update", () async {
-      await store.upgrade(1, []);
+      await store.upgrade(1, [], temporary: true);
       try {
-        await store.upgrade(2, ["CREATE TABLE t (id int)", "invalid command"]);
+        await store.upgrade(2, ["CREATE TABLE t (id int)", "invalid command"], temporary: true);
         expect(true, false);
       } on QueryException catch (e) {
         expect(e.underlyingException.code, "42601");
@@ -69,8 +68,8 @@ void main() {
 
     test("Version number is dictated by most recent dateOfUpgrade", () async {
       // These are intentionally reversed
-      await store.upgrade(2, []);
-      await store.upgrade(1, []);
+      await store.upgrade(2, [], temporary: true);
+      await store.upgrade(1, [], temporary: true);
 
       expect(await store.schemaVersion, 1);
     });

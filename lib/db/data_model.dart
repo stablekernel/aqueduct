@@ -56,7 +56,8 @@ class DataModel {
   List<Type> _modelTypesFromLibraryMirror(LibraryMirror libMirror) {
     var modelMirror = reflectClass(Model);
     Iterable<ClassMirror> allClasses = libMirror.declarations.values
-        .where((decl) => decl is ClassMirror);
+        .where((decl) => decl is ClassMirror)
+        .map((decl) => decl as ClassMirror);
 
     return allClasses
         .where((m) => m.isSubclassOf(modelMirror))

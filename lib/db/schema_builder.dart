@@ -211,17 +211,33 @@ class SchemaBuilder {
 
   static String _newColumnString(SchemaTable table, SchemaColumn column, String spaceOffset) {
     var builder = new StringBuffer();
-    builder.write('${spaceOffset}new SchemaColumn("${column.name}", ${SchemaColumn.typeFromTypeString(column._type)}');
-    if (column.isPrimaryKey) {
-      builder.write(", isPrimaryKey: true");
+    if (column.relatedTableName != null) {
+      builder.write('${spaceOffset}new SchemaColumn.relationship("${column.name}", ${SchemaColumn.typeFromTypeString(column._type)}');
+      builder.write(", relatedTableName: \"${column.relatedTableName}\"");
+      builder.write(", relatedColumnName: \"${column.relatedColumnName}\"");
+      builder.write(", rule: ${SchemaColumn.deleteRuleForDeleteRuleString(column._deleteRule)}");
     } else {
-      builder.write(", isPrimaryKey: false");
+      builder.write('${spaceOffset}new SchemaColumn("${column.name}", ${SchemaColumn.typeFromTypeString(column._type)}');
+      if (column.isPrimaryKey) {
+        builder.write(", isPrimaryKey: true");
+      } else {
+        builder.write(", isPrimaryKey: false");
+      }
+      if (column.autoincrement) {
+        builder.write(", autoincrement: true");
+      } else {
+        builder.write(", autoincrement: false");
+      }
+      if (column.defaultValue != null) {
+        builder.write(', defaultValue: "${column.defaultValue}"');
+      }
+      if (column.isIndexed) {
+        builder.write(", isIndexed: true");
+      } else {
+        builder.write(", isIndexed: false");
+      }
     }
-    if (column.isIndexed) {
-      builder.write(", isIndexed: true");
-    } else {
-      builder.write(", isIndexed: false");
-    }
+
     if (column.isNullable) {
       builder.write(", isNullable: true");
     } else {
@@ -231,14 +247,6 @@ class SchemaBuilder {
       builder.write(", isUnique: true");
     } else {
       builder.write(", isUnique: false");
-    }
-    if (column.autoincrement) {
-      builder.write(", autoincrement: true");
-    } else {
-      builder.write(", autoincrement: false");
-    }
-    if (column.defaultValue != null) {
-      builder.write(', defaultValue: "${column.defaultValue}"');
     }
 
     builder.write(")");

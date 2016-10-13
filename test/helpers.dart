@@ -224,6 +224,6 @@ class DefaultPersistentStore extends PersistentStore {
   List<String> deleteIndexFromColumn(SchemaTable table, SchemaColumn column) => [];
 
   Future<int> get schemaVersion async => 0;
-  Future upgrade(int versionNumber, List<String> commands) async => null;
+  Future upgrade(int versionNumber, List<String> commands, {bool temporary: false}) async => null;
 }
 

@@ -35,23 +35,32 @@ class MigrationExecutor {
         .where((fse) => fse.path.endsWith(".migration.dart"))
         .toList();
 
-    files.forEach((fse) {
+
+    Map<int, File> orderMap = files.fold({}, (m, fse) {
       var fileName = fse.uri.pathSegments.last;
       var migrationName = fileName.split(".").first;
-      var versionNumber = migrationName.split("_").first;
+      var versionNumberString = migrationName.split("_").first;
+
       try {
-        int.parse(versionNumber);
+        var versionNumber = int.parse(versionNumberString);
+        m[versionNumber] = fse;
+        return m;
       } catch (e) {
-        throw new MigrationException("Migration files must have the following format: Version_Name.migration.dart, where Version must be an integer (no longer than 8 characters, optionally prefixed with 0s, e.g. '00000002') and '_Name' is optional. Offender: ${fse.uri}");
+        throw new MigrationException("Migration files must have the following format: Version_Name.migration.dart, where Version must be an integer (optionally prefixed with 0s, e.g. '00000002') and '_Name' is optional. Offender: ${fse.uri}");
       }
     });
 
-    files.sort((fs1, fs2) => fs1.uri.pathSegments.last.padLeft(8, "0").compareTo(fs2.uri.pathSegments.last.padLeft(8, "0")));
-
-    return files;
+    var sortedKeys = (new List.from(orderMap.keys));
+    sortedKeys.sort((int a, int b) => a.compareTo(b));
+    return sortedKeys.map((v) => orderMap[v]).toList();
   }
 
-  Future validate() async {
+  Future<Schema> validate() async {
+    var directory = new Directory.fromUri(migrationFileDirectory);
+    if (!directory.existsSync()) {
+      throw new MigrationException("Migration directory doesn't exist, nothing to validate.");
+    }
+
     var generator = new _SourceGenerator((List<String> args, Map<String, dynamic> values) async {
       var dataModel = new DataModel.fromURI(new Uri(scheme: "package", path: args[0]));
       var schema = new Schema.fromDataModel(dataModel);
@@ -66,18 +75,30 @@ class MigrationExecutor {
     ]);
 
     var executor = new _IsolateExecutor(generator, [libraryName], packageConfigURI: projectDirectoryPath.resolve(".packages"));
-
-    var projectSchema = await executor.execute(workingDirectory: projectDirectoryPath);
+    var projectSchema = new Schema.fromMap(await executor.execute(workingDirectory: projectDirectoryPath) as Map<String, dynamic>);
 
     var schema = new Schema.empty();
     for (var migration in migrationFiles) {
       schema = await _executeUpgradeForFile(migration, schema, dryRun: true);
     }
 
+    print("${schema.asMap()}");
+    print("${projectSchema.asMap()}");
 
+    var errors = <String>[];
+    var matches = schema.matches(projectSchema, errors);
+
+    if (!matches) {
+      throw new MigrationException("Validation failed:\n\t${errors.join("\n\t")}");
+    }
+
+    return schema;
   }
 
-  Future<String> generate() async {
+  Future<File> generate() async {
+    _createMigrationDirectoryIfNecessary();
+    _ensurePackageResolutionAvailable();
+
     var files = migrationFiles;
     if (!files.isEmpty) {
       // For now, just make a new empty one...
@@ -96,9 +117,13 @@ class MigrationExecutor {
       "dart:async"
     ]);
 
-    var executor = new _IsolateExecutor(generator, [libraryName], packageConfigURI: projectDirectoryPath.resolve(".packages"));
 
-    return await executor.execute(workingDirectory: projectDirectoryPath);
+    var executor = new _IsolateExecutor(generator, [libraryName], packageConfigURI: projectDirectoryPath.resolve(".packages"));
+    var contents = await executor.execute(workingDirectory: projectDirectoryPath);
+    var file = new File.fromUri(migrationFileDirectory.resolve("00000001_Initial.migration.dart"));
+    file.writeAsStringSync(contents);
+
+    return file;
   }
 
   Future<Schema> upgrade() async {
@@ -157,7 +182,7 @@ class MigrationExecutor {
       var dryRun = values["dryRun"];
 
       PersistentStore store;
-      if (dbInfo["flavor"] == "postgres") {
+      if (dbInfo != null && dbInfo["flavor"] == "postgres") {
         store = new PostgreSQLPersistentStore.fromConnectionInfo(dbInfo["username"], dbInfo["password"], dbInfo["host"], dbInfo["port"], dbInfo["databaseName"], timeZone: dbInfo["timeZone"]);
       }
 
@@ -168,13 +193,14 @@ class MigrationExecutor {
       migrationInstance.database = new SchemaBuilder(store, inputSchema);
 
       await migrationInstance.upgrade();
+
       if (!dryRun && !migrationInstance.database.commands.isEmpty) {
         await migrationInstance.store.upgrade(versionNumber, migrationInstance.database.commands);
         await migrationInstance.database.store.close();
       }
 
       return migrationInstance.currentSchema.asMap();
-    }, imports: ["dart:isolate", "dart:mirrors"], additionalContents: file.readAsStringSync());
+    }, imports: ["dart:async", "package:aqueduct/aqueduct.dart", "dart:isolate", "dart:mirrors"], additionalContents: file.readAsStringSync());
 
     var executor = new _IsolateExecutor(generator, ["${_versionNumberFromFile(file)}"], message: {
       "dryRun" : dryRun,
@@ -200,5 +226,19 @@ class MigrationExecutor {
     }
 
     return null;
+  }
+
+  void _createMigrationDirectoryIfNecessary() {
+    var directory = new Directory.fromUri(migrationFileDirectory);
+    if (!directory.existsSync()) {
+      directory.createSync();
+    }
+  }
+
+  void _ensurePackageResolutionAvailable() {
+    var file = new File.fromUri(projectDirectoryPath.resolve(".packages"));
+    if (!file.existsSync()) {
+      throw new MigrationException("No .packages file. Run pub get.");
+    }
   }
 }

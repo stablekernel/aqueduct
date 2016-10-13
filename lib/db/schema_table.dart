@@ -90,7 +90,8 @@ class SchemaTable {
   }
 
   void removeColumn(SchemaColumn column) {
-    if (!columns.contains(column)) {
+    column = columnForName(column.name);
+    if (column == null) {
       throw new SchemaException("Column ${column.name} does not exist on ${name}.");
     }
 
@@ -98,7 +99,8 @@ class SchemaTable {
   }
 
   void _replaceColumn(SchemaColumn existingColumn, SchemaColumn newColumn) {
-    if (!columns.contains(existingColumn)) {
+    existingColumn = columnForName(existingColumn.name);
+    if (existingColumn == null) {
       throw new SchemaException("Column ${existingColumn.name} does not exist on ${name}.");
     }
 

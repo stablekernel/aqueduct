@@ -33,7 +33,6 @@ import 'package:args/args.dart';
 import 'package:safe_config/safe_config.dart';
 import 'package:yaml/yaml.dart';
 
-export 'package:args/args.dart';
 export 'package:logging/logging.dart';
 export 'package:safe_config/safe_config.dart';
 

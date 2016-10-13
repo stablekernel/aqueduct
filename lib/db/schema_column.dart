@@ -6,6 +6,7 @@ class SchemaColumn {
   }
 
   SchemaColumn.relationship(this.name, PropertyType t, {this.isNullable: true, this.isUnique: false, this.relatedTableName, this.relatedColumnName, RelationshipDeleteRule rule: RelationshipDeleteRule.nullify}) {
+    isIndexed = true;
     _deleteRule = deleteRuleStringForDeleteRule(rule);
   }
 

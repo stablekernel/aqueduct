@@ -30,7 +30,11 @@ class _SourceGenerator {
     builder.writeln("}");
 
     if (additionalContents != null) {
-      builder.writeln(additionalContents);
+      var strippedSource = additionalContents
+          .split("\n")
+          .where((l) => !l.startsWith("import '"))
+          .join("\n");
+      builder.writeln(strippedSource);
     }
 
     return builder.toString();
@@ -52,6 +56,10 @@ class _IsolateExecutor {
 
     var tempFile = new File.fromUri(workingDirectory.resolve("tmp_${randomStringOfLength(10)}.dart"));
     tempFile.writeAsStringSync(generator.source);
+
+    if (packageConfigURI != null && !(new File.fromUri(packageConfigURI).existsSync())) {
+      throw new Exception("packageConfigURI specified but does not exist (${packageConfigURI}).");
+    }
 
     var onErrorPort = new ReceivePort()
       ..listen((err) {

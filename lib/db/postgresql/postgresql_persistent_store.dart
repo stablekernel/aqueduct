@@ -110,8 +110,8 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
   }
 
   @override
-  Future upgrade(int versionNumber, List<String> commands) async {
-    await _createVersionTableIfNecessary();
+  Future upgrade(int versionNumber, List<String> commands, {bool temporary: false}) async {
+    await _createVersionTableIfNecessary(temporary);
 
     var connection = await getDatabaseConnection();
 
@@ -473,9 +473,9 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
       ];
   }
 
-  Future _createVersionTableIfNecessary() async {
+  Future _createVersionTableIfNecessary(bool temporary) async {
     var conn = await getDatabaseConnection();
-    var commands = createTable(_versionTable);
+    var commands = createTable(_versionTable, isTemporary: temporary);
     try {
       await conn.transaction((ctx) async {
         for (var cmd in commands) {

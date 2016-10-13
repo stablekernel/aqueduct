@@ -45,5 +45,5 @@ abstract class PersistentStore {
   List<String> deleteIndexFromColumn(SchemaTable table, SchemaColumn column);
 
   Future<int> get schemaVersion;
-  Future upgrade(int versionNumber, List<String> commands);
+  Future upgrade(int versionNumber, List<String> commands, {bool temporary: false});
 }
