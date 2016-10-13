@@ -194,7 +194,7 @@ List<String> commandsForModelInstanceTypes(List<Type> instanceTypes, {bool tempo
 }
 
 class DefaultPersistentStore extends PersistentStore {
-  Future<dynamic> execute(String sql) async => null;
+  Future<dynamic> execute(String sql, {Map<String, dynamic> substitutionValues}) async => null;
   Future close() async {}
   Future<List<MappingElement>> executeInsertQuery(PersistentStoreQuery q) async => null;
   Future<List<List<MappingElement>>> executeFetchQuery(PersistentStoreQuery q) async => null;

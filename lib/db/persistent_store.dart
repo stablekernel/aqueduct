@@ -5,7 +5,7 @@ part of aqueduct;
 /// Implementors of this class serve as the bridge between [Query]s and a specific database.
 abstract class PersistentStore {
   /// Executes an arbitrary command.
-  Future execute(String sql);
+  Future execute(String sql, {Map<String, dynamic> substitutionValues});
 
   /// Closes the underlying database connection.
   Future close();

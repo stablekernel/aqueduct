@@ -61,6 +61,11 @@ class MigrationExecutor {
       throw new MigrationException("Migration directory doesn't exist, nothing to validate.");
     }
 
+    var files = migrationFiles;
+    if (files.isEmpty) {
+      throw new MigrationException("Migration directory doesn't contain any migrations, nothing to validate.");
+    }
+
     var generator = new _SourceGenerator((List<String> args, Map<String, dynamic> values) async {
       var dataModel = new DataModel.fromURI(new Uri(scheme: "package", path: args[0]));
       var schema = new Schema.fromDataModel(dataModel);
@@ -82,9 +87,6 @@ class MigrationExecutor {
       schema = await _executeUpgradeForFile(migration, schema, dryRun: true);
     }
 
-    print("${schema.asMap()}");
-    print("${projectSchema.asMap()}");
-
     var errors = <String>[];
     var matches = schema.matches(projectSchema, errors);
 
@@ -102,6 +104,12 @@ class MigrationExecutor {
     var files = migrationFiles;
     if (!files.isEmpty) {
       // For now, just make a new empty one...
+      var newVersionNumber = _versionNumberFromFile(files.last) + 1;
+      var contents = SchemaBuilder.sourceForSchemaUpgrade(new Schema.empty(), new Schema.empty(), newVersionNumber);
+      var file = new File.fromUri(migrationFileDirectory.resolve("${"$newVersionNumber".padLeft(8, "0")}_Unnamed.migration.dart"));
+      file.writeAsStringSync(contents);
+
+      return file;
     }
 
     var generator = new _SourceGenerator((List<String> args, Map<String, dynamic> values) async {
@@ -117,7 +125,6 @@ class MigrationExecutor {
       "dart:async"
     ]);
 
-
     var executor = new _IsolateExecutor(generator, [libraryName], packageConfigURI: projectDirectoryPath.resolve(".packages"));
     var contents = await executor.execute(workingDirectory: projectDirectoryPath);
     var file = new File.fromUri(migrationFileDirectory.resolve("00000001_Initial.migration.dart"));
@@ -127,9 +134,14 @@ class MigrationExecutor {
   }
 
   Future<Schema> upgrade() async {
+    var directory = new Directory.fromUri(migrationFileDirectory);
+    if (!directory.existsSync()) {
+      throw new MigrationException("Migration directory doesn't exist, nothing to upgrade.");
+    }
+
     var files = migrationFiles;
     if (files.isEmpty) {
-      return null;
+      throw new MigrationException("Migration directory doesn't contain any migrations, nothing to upgrade.");
     }
 
     var currentVersion = await persistentStore.schemaVersion;
@@ -148,6 +160,8 @@ class MigrationExecutor {
 
     return schema;
   }
+
+  ///////
 
   int _versionNumberFromFile(File file) {
     var fileName = file.uri.pathSegments.last;

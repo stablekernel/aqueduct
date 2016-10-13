@@ -70,11 +70,11 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
   }
 
   @override
-  Future<dynamic> execute(String sql) async {
+  Future<dynamic> execute(String sql, {Map<String, dynamic> substitutionValues}) async {
     var now = new DateTime.now().toUtc();
     var dbConnection = await getDatabaseConnection();
     try {
-      var results = await dbConnection.query(sql);
+      var results = await dbConnection.query(sql, substitutionValues: substitutionValues);
       var rows = await results.toList();
 
       var mappedRows = rows.map((row) => row.toList()).toList();

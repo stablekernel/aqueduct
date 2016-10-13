@@ -179,9 +179,8 @@ class SchemaBuilder {
     builder.writeln("  Future upgrade() async {");
 
     var existingTableNames = existingSchema.tables.map((t) => t.name).toList();
-    var newTableNames = newSchema.tables.map((t) => t.name).toList();
 
-    newSchema.tables
+    newSchema.dependencyOrderedTables
         .where((t) => !existingTableNames.contains(t.name))
         .forEach((t) {
           builder.writeln(_createTableString(t, "    "));
