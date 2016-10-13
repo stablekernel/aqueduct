@@ -36,8 +36,6 @@ import 'package:yaml/yaml.dart';
 export 'package:args/args.dart';
 export 'package:logging/logging.dart';
 export 'package:safe_config/safe_config.dart';
-export 'dart:io';
-export 'dart:async';
 
 part 'auth/auth_code_controller.dart';
 part 'auth/auth_controller.dart';

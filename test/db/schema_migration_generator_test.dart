@@ -1,5 +1,6 @@
 import 'package:aqueduct/aqueduct.dart';
 import 'package:test/test.dart';
+import 'dart:io';
 
 void main() {
   PostgreSQLPersistentStore store;
