@@ -1,5 +1,15 @@
 part of aqueduct;
 
+Map<String, dynamic> _stripNull(Map<String, dynamic> m) {
+  var outMap = <String, dynamic>{};
+  m.forEach((k, v) {
+    if (v != null) {
+      outMap[k] = v;
+    }
+  });
+  return outMap;
+}
+
 class APIDocumentable {
   APIDocumentable get documentableChild => null;
 
@@ -7,6 +17,7 @@ class APIDocumentable {
   List<APIPath> documentPaths(PackagePathResolver resolver) => documentableChild?.documentPaths(resolver);
   List<APIOperation> documentOperations(PackagePathResolver resolver) => documentableChild?.documentOperations(resolver);
   List<APIResponse> documentResponsesForOperation(APIOperation operation) => documentableChild?.documentResponsesForOperation(operation);
+  APIRequestBody documentRequestBodyForOperation(APIOperation operation) => documentableChild?.documentRequestBodyForOperation(operation);
   Map<String, APISecurityScheme> documentSecuritySchemes(PackagePathResolver resolver) => documentableChild?.documentSecuritySchemes(resolver);
 }
 
@@ -19,12 +30,24 @@ class APIDocument {
   List<APISecurityRequirement> securityRequirements = [];
   Map<String, APISecurityScheme> securitySchemes = {};
 
-  Map<String, dynamic> asMap() {
+  Map<String, dynamic> asMap({String version: "2.0"}) {
     var m = <String, dynamic>{};
 
-    m["openapi"] = "3.0.*";
+    if (version.startsWith("2.")) {
+      m["swagger"] = version;
+    } else {
+      m["openapi"] = version;
+    }
     m["info"] = info.asMap();
-    m["hosts"] = hosts.map((host) => host.asMap()).toList();
+
+    if (version.startsWith("2.")) {
+      if (hosts.length > 0) {
+        m["host"] = hosts.first.host;
+      }
+    } else {
+      m["hosts"] = hosts.map((host) => host.asMap()).toList();
+    }
+
     m["consumes"] = consumes.map((ct) => ct.toString()).toList();
     m["produces"] = produces.map((ct) => ct.toString()).toList();
     m["security"] = securityRequirements.map((sec) => sec.name).toList();
@@ -45,25 +68,25 @@ class APIInfo {
   String description = "Description";
   String version = "1.0";
   String termsOfServiceURL = "";
-  APIContact contact;
-  APILicense license;
+  APIContact contact = new APIContact();
+  APILicense license = new APILicense();
 
   Map<String, dynamic> asMap() {
-    return {
+    return _stripNull({
       "title" : title,
       "description" : description,
       "version" : version,
       "termsOfService" : termsOfServiceURL,
-      "contact" : contact?.asMap(),
-      "license" : license?.asMap()
-    };
+      "contact" : contact.asMap(),
+      "license" : license.asMap()
+    });
   }
 }
 
 class APIContact {
-  String name;
-  String url;
-  String email;
+  String name = "default";
+  String url = "http://localhost";
+  String email = "default";
 
   Map<String, String> asMap() {
     return {
@@ -75,8 +98,8 @@ class APIContact {
 }
 
 class APILicense {
-  String name;
-  String url;
+  String name = "default";
+  String url = "http://localhost";
 
   Map<String, String> asMap() {
     return {
@@ -91,6 +114,10 @@ class APIHost {
   String basePath = "/";
   String scheme = "http";
 
+  Uri get uri {
+    return new Uri(scheme: scheme, host: host, path: basePath);
+  }
+
   Map<String, String> asMap() {
     return {
       "host" : host,
@@ -104,6 +131,12 @@ class APIHost {
 class APISecurityRequirement {
   String name;
   List<APISecurityScope> scopes;
+
+  Map<String, dynamic> asMap() {
+    return {
+      name : scopes
+    };
+  }
 }
 
 class APISecurityScope {
@@ -139,6 +172,7 @@ class APISecurityScheme {
     }
     return null;
   }
+
   APISecurityScheme.basic() {
     type = "basic";
   }
@@ -163,6 +197,10 @@ class APISecurityScheme {
   String authorizationURL;
   String tokenURL;
   List<APISecurityScope> scopes = [];
+
+  bool get isOAuth2 {
+    return type == "oauth2";
+  }
 
   Map<String, dynamic> asMap() {
     var m = <String, dynamic>{
@@ -193,21 +231,18 @@ class APISecurityScheme {
   }
 }
 
-
 class APIPath {
   String path;
 
   String summary = "";
   String description = "";
-  List<APIOperation> operations = [];
   List<APIParameter> parameters = [];
+  List<APIOperation> operations = [];
 
   Map<String, dynamic> asMap() {
     Map<String, dynamic> i = {};
-    i["description"] = description;
-    i["summary"] = summary;
-    i["parameters"] = parameters.map((p) => p.asMap()).toList();
 
+    i["parameters"] = parameters.map((api) => api.asMap()).toList();
     operations.forEach((op) {
       i[op.method] = op.asMap();
     });
@@ -231,6 +266,17 @@ class APIOperation {
   List<APISecurityRequirement> security = [];
   APIRequestBody requestBody;
   List<APIResponse> responses = [];
+
+  Map<String, dynamic> get _requestBodyParameterMap {
+    var param = new APIParameter();
+    param.schemaObject = requestBody.schema;
+    param.description = requestBody.description;
+    param.name = "Body";
+    param.deprecated = false;
+    param.parameterLocation = APIParameterLocation.body;
+    param.required = true;
+    return param.asMap();
+  }
 
   static String idForMethod(Object classInstance, Symbol methodSymbol) {
     return "${MirrorSystem.getName(reflect(classInstance).type.simpleName)}.${MirrorSystem.getName(methodSymbol)}";
@@ -256,22 +302,35 @@ class APIOperation {
     m["consumes"] = consumes.map((ct) => ct.toString()).toList();
     m["produces"] = produces.map((ct) => ct.toString()).toList();
     m["parameters"] = parameters.map((param) => param.asMap()).toList();
-    m["requestBody"] = requestBody?.asMap();
-    m["responses"] = new Map.fromIterable(responses, key: (APIResponse k) => k.key, value: (APIResponse v) => v.asMap());
-    m["security"] = new Map.fromIterable(security, key: (APISecurityRequirement k) => k.name, value: (APISecurityRequirement v) => v.scopes.map((scope) => scope.name).toList());
+    if (requestBody != null) {
+      m["parameters"].add(_requestBodyParameterMap);
+    }
 
-    return m;
+    m["responses"] = new Map.fromIterable(responses, key: (APIResponse k) => k.key, value: (APIResponse v) => v.asMap());
+    m["security"] = security.map((req) => req.asMap()).toList();
+
+    // m["requestBody"] = requestBody?.asMap();
+
+    return _stripNull(m);
   }
 }
 
 class APIResponse {
   String key;
-  String description;
+  String description = "";
   APISchemaObject schema;
   Map<String, APIHeader> headers = {};
-  set statusCode(int code) {
+
+  int get statusCode {
+    if (key == null || key == "default") {
+      return null;
+    }
+    return int.parse(key);
+  }
+  void set statusCode(int code) {
     key = "$code";
   }
+
 
   Map<String, dynamic> asMap() {
     var mappedHeaders = {};
@@ -279,11 +338,11 @@ class APIResponse {
       mappedHeaders[headerName] = headerObject.asMap();
     });
 
-    return {
+    return _stripNull({
       "description" : description,
       "schema" : schema?.asMap(),
       "headers" : mappedHeaders
-    };
+    });
   }
 }
 
@@ -314,26 +373,10 @@ class APIHeader {
 }
 
 enum APIParameterLocation {
-  query, header, path, formData, cookie
+  query, header, path, formData, cookie, body
 }
 
 class APIParameter {
-  static String typeStringForVariableMirror(VariableMirror m) {
-    return typeStringForTypeMirror(m.type);
-  }
-
-  static String typeStringForTypeMirror(TypeMirror m) {
-    if (m.isSubtypeOf(reflectType(int))) {
-      return APISchemaObjectFormatInt32;
-    } else if (m.isSubtypeOf(reflectType(double))) {
-      return APISchemaObjectFormatDouble;
-    } else if (m.isSubtypeOf(reflectType(DateTime))) {
-      return APISchemaObjectFormatDateTime;
-    }
-
-    return null;
-  }
-
   static APIParameterLocation _parameterLocationFromHTTPParameter(_HTTPParameter p) {
     if (p is HTTPPath) {
       return APIParameterLocation.path;
@@ -353,13 +396,13 @@ class APIParameter {
       case APIParameterLocation.path: return "path";
       case APIParameterLocation.formData: return "formData";
       case APIParameterLocation.cookie: return "cookie";
+      case APIParameterLocation.body: return "body";
     }
     return null;
   }
 
   String name;
-  String description;
-  String type;
+  String description = "";
   bool required = false;
   bool deprecated = false;
   APISchemaObject schemaObject;
@@ -372,17 +415,16 @@ class APIParameter {
     m["required"] = (parameterLocation == APIParameterLocation.path ? true : required);
     m["deprecated"] = deprecated;
     m["schema"] = schemaObject?.asMap();
-    m["type"] = type;
     m["in"] = parameterLocationStringForType(parameterLocation);
 
-    return m;
+    return _stripNull(m);
   }
 }
 
 class APIRequestBody {
   String description;
   APISchemaObject schema;
-  bool required;
+  bool required = true;
 
   Map<String, dynamic> asMap() {
     return {
@@ -393,59 +435,118 @@ class APIRequestBody {
   }
 }
 
-const String APISchemaObjectTypeString = "string";
-const String APISchemaObjectTypeArray = "array";
-const String APISchemaObjectTypeObject = "object";
-const String APISchemaObjectTypeNumber = "number";
-const String APISchemaObjectTypeInteger = "integer";
-const String APISchemaObjectTypeBoolean = "boolean";
-
-const String APISchemaObjectFormatInt32 = "int32";
-const String APISchemaObjectFormatInt64 = "int64";
-const String APISchemaObjectFormatDouble = "double";
-const String APISchemaObjectFormatBase64 = "byte";
-const String APISchemaObjectFormatBinary = "binary";
-const String APISchemaObjectFormatDate = "date";
-const String APISchemaObjectFormatDateTime = "date-time";
-const String APISchemaObjectFormatPassword = "password";
-const String APISchemaObjectFormatEmail = "email";
-
 class APISchemaObject {
+  static const String TypeString = "string";
+  static const String TypeArray = "array";
+  static const String TypeObject = "object";
+  static const String TypeNumber = "number";
+  static const String TypeInteger = "integer";
+  static const String TypeBoolean = "boolean";
+
+  static const String FormatInt32 = "int32";
+  static const String FormatInt64 = "int64";
+  static const String FormatDouble = "double";
+  static const String FormatBase64 = "byte";
+  static const String FormatBinary = "binary";
+  static const String FormatDate = "date";
+  static const String FormatDateTime = "date-time";
+  static const String FormatPassword = "password";
+  static const String FormatEmail = "email";
+
   String title;
   String type;
   String format;
   String description;
-  bool required;
-  bool readOnly = false;
   String example;
+  bool required = true;
+  bool readOnly = false;
   bool deprecated = false;
   APISchemaObject items;
-  Map<String, APISchemaObject> properties = {};
-  Map<String, APISchemaObject> additionalProperties = {};
+  Map<String, APISchemaObject> properties;
+  Map<String, APISchemaObject> additionalProperties;
 
-  APISchemaObject();
-  APISchemaObject.string() : type = APISchemaObjectTypeString;
-  APISchemaObject.int() : type = APISchemaObjectTypeInteger, format = APISchemaObjectFormatInt32;
+  APISchemaObject({this.properties, this.additionalProperties}) : type = APISchemaObject.TypeObject;
+  APISchemaObject.string() : type = APISchemaObject.TypeString;
+  APISchemaObject.int() : type = APISchemaObject.TypeInteger, format = APISchemaObject.FormatInt32;
+  APISchemaObject.fromTypeMirror(TypeMirror m) {
+    type = typeFromTypeMirror(m);
+    format = formatFromTypeMirror(m);
+
+    if (type == TypeArray) {
+      items = new APISchemaObject.fromTypeMirror(m.typeArguments.first);
+    } else if (type == TypeObject) {
+
+    }
+  }
+
+  static String typeFromTypeMirror(TypeMirror m) {
+    if (m.isSubtypeOf(reflectType(String))) {
+      return TypeString;
+    } else if (m.isSubtypeOf(reflectType(List))) {
+      return TypeArray;
+    } else if (m.isSubtypeOf(reflectType(Map))) {
+      return TypeObject;
+    } else if (m.isSubtypeOf(reflectType(int))) {
+      return TypeInteger;
+    } else if (m.isSubtypeOf(reflectType(num))) {
+      return TypeNumber;
+    } else if (m.isSubtypeOf(reflectType(bool))) {
+      return TypeBoolean;
+    } else if (m.isSubtypeOf(reflectType(DateTime))) {
+      return TypeString;
+    }
+
+    return null;
+  }
+
+  static String formatFromTypeMirror(TypeMirror m) {
+    if (m.isSubtypeOf(reflectType(int))) {
+      return FormatInt32;
+    } else if (m.isSubtypeOf(reflectType(double))) {
+      return FormatDouble;
+    }  else if (m.isSubtypeOf(reflectType(DateTime))) {
+      return FormatDateTime;
+    }
+
+    return null;
+  }
 
   Map<String, dynamic> asMap() {
     var m = <String, dynamic>{};
-    m["title"] = title;
+
     m["type"] = type;
-    m["format"] = format;
-    m["description"] = description;
     m["required"] = required;
     m["readOnly"] = readOnly;
-    m["example"] = example;
     m["deprecated"] = deprecated;
 
-    m["items"] = items?.asMap() ?? {};
-    m["properties"] = new Map.fromIterable(properties.keys, key: (key) => key, value: (key) => properties[key].asMap());
-    m["additionalProperties"] = new Map.fromIterable(additionalProperties.keys, key: (key) => key, value: (key) => additionalProperties[key].asMap());
+    if (title != null) {
+      m["title"] = title;
+    }
+    if (format != null) {
+      m["format"] = format;
+    }
+
+    if (description != null) {
+      m["description"] = description;
+    }
+
+    if (example != null) {
+      m["example"] = example;
+    }
+
+    if (items != null) {
+      m["items"] = items.asMap();
+    }
+    if (properties != null) {
+      m["properties"] = new Map.fromIterable(properties.keys, key: (key) => key, value: (key) => properties[key].asMap());
+    }
+    if (additionalProperties != null) {
+      m["additionalProperties"] = new Map.fromIterable(additionalProperties.keys, key: (key) => key, value: (key) => additionalProperties[key].asMap());
+    }
 
     return m;
   }
 }
-
 
 class PackagePathResolver {
   PackagePathResolver(String packageMapPath) {

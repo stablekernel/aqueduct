@@ -83,24 +83,18 @@ class AuthController extends HTTPController {
         new APIResponse()
           ..statusCode = HttpStatus.OK
           ..description = "Successfully exchanged credentials for credentials"
-          ..schema = (new APISchemaObject()
-            ..type = APISchemaObjectTypeObject
-            ..properties = {
+          ..schema = new APISchemaObject(properties: {
               "access_token" : new APISchemaObject.string(),
               "token_type" : new APISchemaObject.string(),
               "expires_in" : new APISchemaObject.int(),
               "refresh_token" : new APISchemaObject.string()
-            }
-          ),
+            }),
         new APIResponse()
           ..statusCode = HttpStatus.BAD_REQUEST
           ..description = "Missing one or more of: 'client_id', 'username', 'password'."
-          ..schema = (new APISchemaObject()
-            ..type = APISchemaObjectTypeObject
-            ..properties = {
-              "error" : new APISchemaObject.string()
-            }
-          ),
+          ..schema = new APISchemaObject(properties: {
+            "error" : new APISchemaObject.string()
+          }),
       ]);
     }
 

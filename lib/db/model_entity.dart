@@ -32,8 +32,16 @@ class ModelEntity {
   APISchemaObject get documentedResponseSchema {
     return new APISchemaObject()
       ..title = MirrorSystem.getName(instanceType.simpleName)
-      ..type = APISchemaObjectTypeObject
+      ..type = APISchemaObject.TypeObject
       ..properties = _propertiesForEntity(this);
+  }
+
+  /// Schema of the model as returned from a request
+  APISchemaObject get documentedRequestSchema {
+    return new APISchemaObject()
+      ..title = MirrorSystem.getName(instanceType.simpleName)
+      ..type = APISchemaObject.TypeObject
+      ..properties = _propertiesForEntity(this, asRequestObject: true);
   }
 
   /// All attribute values of this entity.
@@ -144,7 +152,7 @@ class ModelEntity {
     return instance;
   }
 
-  Map<String, APISchemaObject> _propertiesForEntity(ModelEntity me, {bool shallow: false}) {
+  Map<String, APISchemaObject> _propertiesForEntity(ModelEntity me, {bool shallow: false, bool asRequestObject: false}) {
     Map<String, APISchemaObject> schemaProperties = {};
 
     if (shallow) {
@@ -160,6 +168,7 @@ class ModelEntity {
 
     me.attributes.values
         .where((attribute) => attribute.isIncludedInDefaultResultSet || (attribute.transientStatus?.isAvailableAsOutput ?? false))
+        .where((attribute) => !asRequestObject || (asRequestObject && !attribute.autoincrement))
         .forEach((attribute) {
           schemaProperties[attribute.name] = new APISchemaObject()
             ..title = attribute.name
@@ -173,7 +182,7 @@ class ModelEntity {
         .forEach((relationship) {
           schemaProperties[relationship.name] = new APISchemaObject()
             ..title = relationship.name
-            ..type = APISchemaObjectTypeObject
+            ..type = APISchemaObject.TypeObject
             ..properties = _propertiesForEntity(relationship.destinationEntity, shallow: true);
         });
 
@@ -184,18 +193,18 @@ class ModelEntity {
     switch (pt) {
       case PropertyType.integer:
       case PropertyType.bigInteger:
-        return APISchemaObjectTypeInteger;
+        return APISchemaObject.TypeInteger;
       case PropertyType.string:
       case PropertyType.datetime:
-        return APISchemaObjectTypeString;
+        return APISchemaObject.TypeString;
       case PropertyType.boolean:
-        return APISchemaObjectTypeBoolean;
+        return APISchemaObject.TypeBoolean;
       case PropertyType.doublePrecision:
-        return APISchemaObjectTypeNumber;
+        return APISchemaObject.TypeNumber;
       case PropertyType.transientList:
-        return APISchemaObjectTypeArray;
+        return APISchemaObject.TypeArray;
       case PropertyType.transientMap:
-        return APISchemaObjectTypeObject;
+        return APISchemaObject.TypeObject;
       default:
         return null;
     }
@@ -204,13 +213,13 @@ class ModelEntity {
   String _schemaObjectFormatForPropertyType(PropertyType pt) {
     switch (pt) {
       case PropertyType.integer:
-        return APISchemaObjectFormatInt32;
+        return APISchemaObject.FormatInt32;
       case PropertyType.bigInteger:
-        return APISchemaObjectFormatInt64;
+        return APISchemaObject.FormatInt64;
       case PropertyType.datetime:
-        return APISchemaObjectFormatDateTime;
+        return APISchemaObject.FormatDateTime;
       case PropertyType.doublePrecision:
-        return APISchemaObjectFormatDouble;
+        return APISchemaObject.FormatDouble;
       default:
         return null;
     }

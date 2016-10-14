@@ -65,6 +65,9 @@ class AuthCodeController extends HTTPController {
         new APIResponse()
           ..statusCode = HttpStatus.BAD_REQUEST
           ..description = "Missing one or more of: 'client_id', 'username', 'password'.",
+        new APIResponse()
+          ..statusCode = HttpStatus.UNAUTHORIZED
+          ..description = "Not authorized",
       ]);
     }
 

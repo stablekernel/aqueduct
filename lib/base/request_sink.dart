@@ -88,9 +88,89 @@ abstract class RequestSink extends RequestController implements APIDocumentable 
     doc.paths = initialController().documentPaths(resolver);
     doc.securitySchemes = this.documentSecuritySchemes(resolver);
 
-    doc.consumes = new Set<ContentType>.from(doc.paths.expand((p) => p.operations.expand((op) => op.consumes))).toList();
-    doc.produces = new Set<ContentType>.from(doc.paths.expand((p) => p.operations.expand((op) => op.produces))).toList();
+    var host = new Uri(scheme: "http", host: "localhost");
+    if (doc.hosts.length > 0) {
+      host = doc.hosts.first.uri;
+    }
+
+    doc.securitySchemes?.values?.forEach((scheme) {
+      if (scheme.isOAuth2) {
+        if (scheme.oauthFlow == APISecuritySchemeFlow.implicit
+        || scheme.oauthFlow == APISecuritySchemeFlow.accessCode) {
+          var morePath = _authorizationPath(doc.paths);
+          if (morePath != null) {
+            scheme.authorizationURL = host.resolve(morePath).toString();
+          }
+        }
+
+        if (scheme.oauthFlow == APISecuritySchemeFlow.password
+        || scheme.oauthFlow == APISecuritySchemeFlow.accessCode
+        || scheme.oauthFlow == APISecuritySchemeFlow.application) {
+          var morePath = _authorizationTokenPath(doc.paths);
+          scheme.tokenURL = host.resolve(morePath).toString();
+        }
+      }
+    });
+
+    var distinct = (Iterable<ContentType> items) {
+      var retain = <ContentType>[];
+
+      return items.where((ct) {
+        if (!retain.any((retained) =>
+          ct.primaryType == retained.primaryType
+          && ct.subType == retained.subType
+          && ct.charset == retained.charset
+        )) {
+          retain.add(ct);
+          return true;
+        }
+
+        return false;
+      }).toList();
+    };
+    doc.consumes = distinct(doc.paths.expand((p) => p.operations.expand((op) => op.consumes)));
+    doc.produces = distinct(doc.paths.expand((p) => p.operations.expand((op) => op.produces)));
 
     return doc;
   }
+
+  String _authorizationPath(List<APIPath> paths) {
+    var op = paths
+        .expand((p) => p.operations)
+        .firstWhere((op) {
+          return op.method.toLowerCase() == "post"
+              && op.responses.any((resp) {
+                return resp.statusCode == HttpStatus.MOVED_TEMPORARILY
+                  && ["client_id", "username", "password", "state"].every((qp) {
+                    return op.parameters.map((apiParam) => apiParam.name).contains(qp);
+                  });
+              });
+        }, orElse: () => null);
+
+    if (op == null) {
+      return null;
+    }
+
+    var path = paths.firstWhere((p) => p.operations.contains(op));
+    return path.path;
+  }
+
+  String _authorizationTokenPath(List<APIPath> paths) {
+    var op = paths
+        .expand((p) => p.operations)
+        .firstWhere((op) {
+          return op.method.toLowerCase() == "post" && op.responses.any((resp) {
+            return ["access_token", "token_type", "expires_in", "refresh_token"]
+                .every((property) => resp.schema?.properties?.containsKey(property) ?? false);
+          });
+        }, orElse: () => null);
+
+    if (op == null) {
+      return null;
+    }
+
+    var path = paths.firstWhere((p) => p.operations.contains(op));
+    return path.path;
+  }
+
 }

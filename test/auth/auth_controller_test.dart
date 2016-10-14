@@ -142,11 +142,11 @@ void main() {
     List<APIResponse> responses = ac.documentResponsesForOperation(operations.first);
 
     APIResponse okResponse = responses.firstWhere((ar) => ar.key == "${HttpStatus.OK}");
-    expect(okResponse.schema.properties["access_token"].type, APISchemaObjectTypeString);
-    expect(okResponse.schema.properties["token_type"].type, APISchemaObjectTypeString);
-    expect(okResponse.schema.properties["expires_in"].type, APISchemaObjectTypeInteger);
-    expect(okResponse.schema.properties["expires_in"].format, APISchemaObjectFormatInt32);
-    expect(okResponse.schema.properties["refresh_token"].type, APISchemaObjectTypeString);
+    expect(okResponse.schema.properties["access_token"].type, APISchemaObject.TypeString);
+    expect(okResponse.schema.properties["token_type"].type, APISchemaObject.TypeString);
+    expect(okResponse.schema.properties["expires_in"].type, APISchemaObject.TypeInteger);
+    expect(okResponse.schema.properties["expires_in"].format, APISchemaObject.FormatInt32);
+    expect(okResponse.schema.properties["refresh_token"].type, APISchemaObject.TypeString);
 
     APIResponse badResponse = responses.firstWhere((ar) => ar.key == "${HttpStatus.BAD_REQUEST}");
     expect(badResponse.schema.properties["error"], isNotNull);

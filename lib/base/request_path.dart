@@ -147,7 +147,7 @@ class RoutePathSpecification extends Object with APIDocumentable {
       var typedPathParameters = op.parameters.where((pi) => pi.parameterLocation == APIParameterLocation.path).toList();
       p.parameters.forEach((p) {
         var matchingTypedPathParam = typedPathParameters.firstWhere((typedParam) => typedParam.name == p.name, orElse: () => null);
-        p.type = matchingTypedPathParam?.type;
+        p.schemaObject ??= matchingTypedPathParam?.schemaObject;
       });
 
       op.parameters = op.parameters.where((p) => p.parameterLocation != APIParameterLocation.path).toList();

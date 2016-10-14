@@ -152,13 +152,13 @@ abstract class HTTPController extends RequestController {
         .where((u) => u is ClassDeclaration)
         .map((cu) => cu as ClassDeclaration)
         .firstWhere((ClassDeclaration classDecl) {
-      return classDecl.name.token.lexeme == MirrorSystem.getName(reflectedType.simpleName);
-    });
+          return classDecl.name.token.lexeme == MirrorSystem.getName(reflectedType.simpleName);
+        });
 
-    Map<String, MethodDeclaration> methodMap = {};
+    Map<Symbol, MethodDeclaration> methodMap = {};
     classUnit.childEntities.forEach((child) {
       if (child is MethodDeclaration) {
-        methodMap[child.name.token.lexeme] = child;
+        methodMap[new Symbol(child.name.token.lexeme)] = child;
       }
     });
 
@@ -169,24 +169,27 @@ abstract class HTTPController extends RequestController {
       op.consumes = acceptedContentTypes;
       op.produces = [responseContentType];
       op.responses = documentResponsesForOperation(op);
+      op.requestBody = documentRequestBodyForOperation(op);
 
       // Add documentation comments
       var methodDeclaration = methodMap[cachedMethod.methodSymbol];
       if (methodDeclaration != null) {
+
         var comment = methodDeclaration.documentationComment;
         var tokens = comment?.tokens ?? [];
         var lines = tokens.map((t) => t.lexeme.trimLeft().substring(3).trim()).toList();
         if (lines.length > 0) {
           op.summary = lines.first;
         }
+
         if (lines.length > 1) {
           op.description = lines.sublist(1, lines.length).join("\n");
         }
       }
 
       bool usesFormEncodedData = op.method.toLowerCase() == "post"
-        && acceptedContentTypes.any((ct) => ct.primaryType == "application"
-        && ct.subType == "x-www-form-urlencoded");
+        && acceptedContentTypes.any((ct) => ct.primaryType == "application" && ct.subType == "x-www-form-urlencoded");
+
       op.parameters = [cachedMethod.positionalParameters, cachedMethod.optionalParameters.values, controllerCache.propertyCache.values]
           .expand((i) => i.toList())
           .map((param) {
@@ -197,9 +200,11 @@ abstract class HTTPController extends RequestController {
 
             return new APIParameter()
               ..name = param.name
-              ..type = APIParameter.typeStringForTypeMirror(param.typeMirror)
-              ..required = false
-              ..parameterLocation = paramLocation;
+              ..required = param.isRequired
+              ..parameterLocation = paramLocation
+              ..schemaObject = (
+                  new APISchemaObject.fromTypeMirror(param.typeMirror)
+              );
           })
           .toList();
 
@@ -211,14 +216,11 @@ abstract class HTTPController extends RequestController {
   List<APIResponse> documentResponsesForOperation(APIOperation operation) {
     List<APIResponse> responses = [
       new APIResponse()
-        ..key = "default"
+        ..statusCode = 500
         ..description = "Something went wrong"
-        ..schema = (new APISchemaObject()
-          ..type = APISchemaObjectTypeObject
-          ..properties = {
-            "error" : new APISchemaObject()..type = APISchemaObjectTypeString
-          }
-        ),
+        ..schema = new APISchemaObject(properties: {
+          "error" : new APISchemaObject.string()
+        })
     ];
 
     var symbol = APIOperation.symbolForID(operation.id, this);
@@ -230,13 +232,9 @@ abstract class HTTPController extends RequestController {
         responses.add(new APIResponse()
           ..statusCode = HttpStatus.BAD_REQUEST
           ..description = "Missing required query and/or header parameter(s)."
-          ..schema = (new APISchemaObject()
-            ..type = APISchemaObjectTypeObject
-            ..properties = {
-              "error" : new APISchemaObject()..type = APISchemaObjectTypeString
-            }
-          )
-        );
+          ..schema = new APISchemaObject(properties: {
+            "error" : new APISchemaObject.string()
+          }));
       }
     }
 

@@ -264,6 +264,25 @@ class ResourceController<InstanceType extends Model> extends HTTPController {
     return await didFindObjects(results);
   }
 
+
+  @override
+  APIRequestBody documentRequestBodyForOperation(APIOperation operation) {
+    var req = new APIRequestBody()
+        ..required = true
+        ..description = "Request Body"
+        ..schema = ModelContext.defaultContext.entityForType(InstanceType).documentedRequestSchema;
+
+    if (operation.id == APIOperation.idForMethod(this, #createObject)) {
+
+    } else if (operation.id == APIOperation.idForMethod(this, #updateObject)) {
+
+    } else {
+      return null;
+    }
+
+    return req;
+  }
+
   @override
   List<APIResponse> documentResponsesForOperation(APIOperation operation) {
     var responses = super.documentResponsesForOperation(operation);
@@ -276,21 +295,17 @@ class ResourceController<InstanceType extends Model> extends HTTPController {
         new APIResponse()
           ..statusCode = HttpStatus.NOT_FOUND
           ..description = ""
-          ..schema = (new APISchemaObject()
-            ..type = APISchemaObjectTypeObject
-            ..properties = {
-              "error" : new APISchemaObject.string()
-            }
-          ),
       ]);
     } else if (operation.id == APIOperation.idForMethod(this, #createObject)) {
       responses.addAll([
         new APIResponse()
           ..statusCode = HttpStatus.OK
           ..description = ""
-          ..schema = ModelContext.defaultContext
-              .entityForType(InstanceType)
-              .documentedResponseSchema,
+          ..schema = ModelContext.defaultContext.entityForType(InstanceType).documentedResponseSchema,
+        new APIResponse()
+          ..statusCode = HttpStatus.CONFLICT
+          ..description = "Object already exists"
+          ..schema = new APISchemaObject(properties: {"error" : new APISchemaObject.string()})
       ]);
     } else if (operation.id == APIOperation.idForMethod(this, #updateObject)) {
       responses.addAll([
@@ -300,29 +315,20 @@ class ResourceController<InstanceType extends Model> extends HTTPController {
           ..schema = ModelContext.defaultContext.entityForType(InstanceType).documentedResponseSchema,
         new APIResponse()
           ..statusCode = HttpStatus.NOT_FOUND
-          ..description = ""
-          ..schema = (new APISchemaObject()
-            ..type = APISchemaObjectTypeObject
-            ..properties = {
-              "error" : new APISchemaObject.string()
-            }
-          ),
+          ..description = "",
+        new APIResponse()
+          ..statusCode = HttpStatus.CONFLICT
+          ..description = "Object already exists"
+          ..schema = new APISchemaObject(properties: {"error" : new APISchemaObject.string()})
       ]);
     } else if (operation.id == APIOperation.idForMethod(this, #deleteObject)) {
       responses.addAll([
         new APIResponse()
           ..statusCode = HttpStatus.OK
-          ..description = ""
-          ..schema = ModelContext.defaultContext.entityForType(InstanceType).documentedResponseSchema,
+          ..description = "",
         new APIResponse()
           ..statusCode = HttpStatus.NOT_FOUND
           ..description = ""
-          ..schema = (new APISchemaObject()
-            ..type = APISchemaObjectTypeObject
-            ..properties = {
-              "error" : new APISchemaObject.string()
-            }
-          ),
       ]);
     } else if (operation.id == APIOperation.idForMethod(this, #getObjects)) {
       responses.addAll([
@@ -330,18 +336,12 @@ class ResourceController<InstanceType extends Model> extends HTTPController {
           ..statusCode = HttpStatus.OK
           ..description = ""
           ..schema = (new APISchemaObject()
-            ..type = APISchemaObjectTypeArray
+            ..type = APISchemaObject.TypeArray
             ..items = ModelContext.defaultContext.entityForType(InstanceType).documentedResponseSchema
           ),
         new APIResponse()
           ..statusCode = HttpStatus.NOT_FOUND
           ..description = ""
-          ..schema = (new APISchemaObject()
-            ..type = APISchemaObjectTypeObject
-            ..properties = {
-              "error" : new APISchemaObject.string()
-            }
-          ),
       ]);
     }
 
