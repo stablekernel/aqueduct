@@ -3,7 +3,6 @@ import 'package:aqueduct/aqueduct.dart';
 import 'dart:async';
 import 'dart:io';
 import '../helpers.dart';
-import 'dart:convert';
 
 main() {
   test("Package resolver", () {
@@ -430,9 +429,9 @@ class TestSink extends RequestSink implements AuthenticationServerDelegate<TestU
   AuthenticationServer<TestUser, Token, AuthCode> authServer;
 
   void addRoutes() {
-    router.route("/auth/code").pipe(authServer.newAuthenticator(strategy: AuthenticationStrategy.Client)).generate(() => new AuthCodeController(authServer));
-    router.route("/auth/token").pipe(authServer.newAuthenticator(strategy: AuthenticationStrategy.Client)).generate(() => new AuthController(authServer));
-    router.route("/t[/:id[/:notID]]").pipe(authServer.newAuthenticator()).generate(() => new TController());
+    router.route("/auth/code").pipe(new Authenticator(authServer, strategy: AuthenticationStrategy.client)).generate(() => new AuthCodeController(authServer));
+    router.route("/auth/token").pipe(new Authenticator(authServer, strategy: AuthenticationStrategy.client)).generate(() => new AuthController(authServer));
+    router.route("/t[/:id[/:notID]]").pipe(new Authenticator(authServer)).generate(() => new TController());
   }
 
   Future<Token> tokenForAccessToken(AuthenticationServer server, String accessToken) => null;

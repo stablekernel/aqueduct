@@ -15,16 +15,6 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
   AuthenticationServerDelegate<ResourceOwner, TokenType, AuthCodeType> delegate;
   Map<String, Client> _clientCache = {};
 
-  /// Returns a new instance of [Authenticator] for use in a [RequestController] chain.
-  ///
-  /// These instances will be used in a [RequestController] chain to authenticate an incoming [Request]
-  /// against this [AuthenticationServer]. The [strategy] indicates whether the [Request] is
-  /// evaluated for client credentials in a Basic Authorization scheme or for a token in a Bearer Authorization
-  /// scheme.
-  Authenticator newAuthenticator({AuthenticationStrategy strategy: AuthenticationStrategy.ResourceOwner}) {
-    return new Authenticator(this, strategy);
-  }
-
   /// Returns whether or not a token from this server has expired.
   bool isTokenExpired(TokenType t) {
     return t.expirationDate.difference(new DateTime.now().toUtc()).inSeconds <= 0;

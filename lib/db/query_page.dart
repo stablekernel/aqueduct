@@ -18,7 +18,7 @@ part of aqueduct;
 ///     var qp = new QueryPage(PageOrder.after, "dateCreated", items.last.dateCreated);
 ///
 /// This would identify the items in the data set after the last item the consumer has access to. Likewise,
-/// to traverse backward in the data set, a [QuerySet] would look like so:
+/// to traverse backward in the data set, a [QueryPage] would look like so:
 ///     var qp = new QueryPage(PageOrder.prior, "dateCreated", items.first.dateCreated);
 ///
 class QueryPage {
