@@ -17,24 +17,32 @@ part of aqueduct;
   limitations under the License.
  */
 
+
+/// Instances of this type perform one-way cryptographic hashing using the PBKDF2 algorithm.
 class PBKDF2 {
-  Hash hashFunction;
+  Hash hashAlgorithm;
   List<int> blockList = new List<int>(4);
 
-  PBKDF2({Hash this.hashFunction});
+  /// Creates instance capable of generating hash.
+  ///
+  /// [hashAlgorithm] defaults to [sha256].
+  PBKDF2({this.hashAlgorithm}) {
+    hashAlgorithm ??= sha256;
+  }
 
-  List<int> generateKey(String password, String salt, int c, int dkLen) {
-    var blockSize = hashFunction.convert([1, 2, 3]).bytes.length;
-    if (dkLen > (pow(2, 32) - 1) * blockSize) {
+  /// Hashes a password with a given salt.
+  List<int> generateKey(String password, String salt, int rounds, int length) {
+    var blockSize = hashAlgorithm.convert([1, 2, 3]).bytes.length;
+    if (length > (pow(2, 32) - 1) * blockSize) {
       throw new PBKDF2Exception("Derived key too long");
     }
 
-    var numberOfBlocks = (dkLen / blockSize).ceil();
-    var sizeOfLastBlock = dkLen - (numberOfBlocks - 1) * blockSize;
+    var numberOfBlocks = (length / blockSize).ceil();
+    var sizeOfLastBlock = length - (numberOfBlocks - 1) * blockSize;
 
     var key = <int>[];
     for (var i = 1; i <= numberOfBlocks; i++) {
-      var block = _computeBlock(password, salt, c, i);
+      var block = _computeBlock(password, salt, rounds, i);
       if (i < numberOfBlocks) {
         key.addAll(block);
       } else {
@@ -49,12 +57,12 @@ class PBKDF2 {
     input.addAll(salt.codeUnits);
     _writeBlockNumber(input, blockNumber);
 
-    var hmac = new Hmac(hashFunction, password.codeUnits);
+    var hmac = new Hmac(hashAlgorithm, password.codeUnits);
     var lastDigest = hmac.convert(input);
 
     var result = lastDigest.bytes;
     for (var i = 1; i < iterations; i++) {
-      hmac = new Hmac(hashFunction, password.codeUnits);
+      hmac = new Hmac(hashAlgorithm, password.codeUnits);
       var newDigest = hmac.convert(lastDigest.bytes);
       _xorLists(result, newDigest.bytes);
       lastDigest = newDigest;

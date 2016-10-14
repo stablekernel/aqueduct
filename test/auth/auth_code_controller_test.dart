@@ -5,7 +5,7 @@ import '../helpers.dart';
 
 void main() {
   Application<TestSink> application = new Application<TestSink>();
-  TestClient client = new TestClient(8080)
+  TestClient client = new TestClient.onPort(8080)
     ..clientID = "com.stablekernel.app3"
     ..clientSecret = "mckinley";
 

@@ -7,7 +7,7 @@ import '../helpers.dart';
 void main() {
   ModelContext context = null;
   HttpServer server;
-  TestClient client = new TestClient(8080)
+  TestClient client = new TestClient.onPort(8080)
     ..clientID = "com.stablekernel.app1"
     ..clientSecret = "kilimanjaro";
 

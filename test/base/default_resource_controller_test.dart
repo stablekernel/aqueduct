@@ -8,7 +8,7 @@ void main() {
   group("Standard operations", () {
     Application app = new Application<TestSink>();
     app.configuration.port = 8080;
-    var client = new TestClient(app.configuration.port);
+    var client = new TestClient.onPort(app.configuration.port);
     List<TestModel> allObjects = [];
 
     setUpAll(() async {
@@ -81,7 +81,7 @@ void main() {
   group("Standard operation failure cases", () {
     Application app = new Application<TestSink>();
     app.configuration.port = 8080;
-    var client = new TestClient(8080);
+    var client = new TestClient.onPort(8080);
 
     setUpAll(() async {
       await app.start(runOnMainIsolate: true);
@@ -111,7 +111,7 @@ void main() {
     Application app = null;
     app = new Application<TestSink>();
     app.configuration.port = 8080;
-    var client = new TestClient(8080);
+    var client = new TestClient.onPort(8080);
 
     setUpAll(() async {
       await app.start(runOnMainIsolate: true);
@@ -144,7 +144,7 @@ void main() {
     Application app = null;
     app = new Application<TestSink>();
     app.configuration.port = 8080;
-    var client = new TestClient(8080);
+    var client = new TestClient.onPort(8080);
     List<TestModel> allObjects = [];
 
     setUpAll(() async {

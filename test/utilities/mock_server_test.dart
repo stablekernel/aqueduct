@@ -7,7 +7,7 @@ import 'dart:async';
 void main() {
   group("Mock HTTP Tests", () {
     MockHTTPServer server = new MockHTTPServer(4000);
-    var testClient = new TestClient(4000);
+    var testClient = new TestClient.onPort(4000);
 
     test("Server opens", () async {
       var openFuture = server.open();
@@ -59,7 +59,7 @@ void main() {
 Future spawnFunc(List pair) async {
   var path = pair.first;
   var delay = pair.last;
-  var testClient = new TestClient(4000);
+  var testClient = new TestClient.onPort(4000);
   sleep(new Duration(seconds: delay));
   await testClient.request(path).get();
 }

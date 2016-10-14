@@ -30,7 +30,7 @@ class TestApplication {
     await createDatabaseSchema(stream.context, stream.logger);
     await addClientRecord();
 
-    client = new TestClient(application.configuration.port)
+    client = new TestClient(application)
       ..clientID = "com.aqueduct.test"
       ..clientSecret = "kilimanjaro";
   }

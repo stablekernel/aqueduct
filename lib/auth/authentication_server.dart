@@ -277,7 +277,7 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
 
   /// A utility method to generate a password hash using the PBKDF2 scheme.
   static String generatePasswordHash(String password, String salt, {int hashRounds: 1000, int hashLength: 32}) {
-    var generator = new PBKDF2(hashFunction: sha256);
+    var generator = new PBKDF2(hashAlgorithm: sha256);
     var key = generator.generateKey(password, salt, hashRounds, hashLength);
 
     return new Base64Encoder().convert(key);
