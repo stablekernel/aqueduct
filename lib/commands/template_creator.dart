@@ -2,7 +2,7 @@ part of aqueduct;
 
 class TemplateCreator extends CLICommand {
   ArgParser options = new ArgParser(allowTrailingOptions: false)
-    ..addOption("template", abbr: "t", defaultsTo: "default", help: "Name of the template. Defaults to default. Available options are: default")
+    ..addOption("template", abbr: "t", help: "Name of the template.", allowed: ["default"], defaultsTo: "default")
     ..addOption("name", abbr: "n", help: "Name of project in snake_case.")
     ..addOption("template-directory", hide: true)
     ..addOption("git-url", help: "Git url, will trigger generating the template from the specified git repository instead of pub.")
