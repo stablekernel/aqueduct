@@ -68,23 +68,6 @@ abstract class HTTPController extends RequestController {
     }, orElse: () => null) != null;
   }
 
-  dynamic _serializedResponseBody(dynamic initialResponseBody) {
-    var serializedBody = null;
-    if (initialResponseBody is Serializable) {
-      serializedBody = initialResponseBody.asSerializable();
-    } else if (initialResponseBody is List) {
-      serializedBody = initialResponseBody.map((value) {
-        if (value is Serializable) {
-          return value.asSerializable();
-        } else {
-          return value;
-        }
-      }).toList();
-    }
-
-    return serializedBody ?? initialResponseBody;
-  }
-
   Future<Response> _process() async {
     var controllerCache = _HTTPControllerCache.cacheForType(runtimeType);
     var mapper = controllerCache.mapperForRequest(request);
@@ -132,9 +115,8 @@ abstract class HTTPController extends RequestController {
     ).reflectee as Future<Response>;
 
     var response = await eventualResponse;
-    willSendResponse(response);
-    response.body = _serializedResponseBody(response.body);
     response.headers[HttpHeaders.CONTENT_TYPE] = responseContentType;
+    willSendResponse(response);
 
     return response;
   }

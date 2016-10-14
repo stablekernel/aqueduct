@@ -93,7 +93,7 @@ class ColumnAttributes {
       {bool primaryKey: false,
       PropertyType databaseType,
       bool nullable: false,
-      dynamic defaultValue,
+      String defaultValue,
       bool unique: false,
       bool indexed: false,
       bool omitByDefault: false,

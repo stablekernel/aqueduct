@@ -56,7 +56,7 @@ class WildfireSink extends RequestSink {
 
   ModelContext contextWithConnectionInfo(DatabaseConnectionConfiguration database) {
     var connectionInfo = configuration.database;
-    var dataModel = new DataModel(modelTypes());
+    var dataModel = new DataModel.fromPackageContainingType(this.runtimeType);
     var psc = new PostgreSQLPersistentStore.fromConnectionInfo(connectionInfo.username,
         connectionInfo.password, connectionInfo.host, connectionInfo.port, connectionInfo.databaseName);
 
@@ -64,18 +64,5 @@ class WildfireSink extends RequestSink {
     ModelContext.defaultContext = ctx;
 
     return ctx;
-  }
-
-  static List<Type> modelTypes() {
-    var modelMirror = reflectClass(Model);
-
-    LibraryMirror libMirror = reflectType(WildfireSink).owner;
-    Iterable<ClassMirror> allClasses = libMirror.declarations.values
-        .where((decl) => decl is ClassMirror);
-
-    return allClasses
-        .where((m) => m.isSubclassOf(modelMirror))
-        .map((m) => m.reflectedType)
-        .toList();
   }
 }
