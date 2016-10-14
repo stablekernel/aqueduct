@@ -96,7 +96,7 @@ Note that the specific database driver determines whether or not the table name 
 
 ### Instance Types
 
-In using model objects in your application code, you will always an entity's instance type. Model objects can be transferred to and from a database to insert or fetch data. Model objects can also read their properties from a `Map`, oftentimes from JSON data in an HTTP request body. Model objects also know how to serialize themselves back into a `Map`, so they can be used as an HTTP response body. Additionally, model objects are used to help build queries in a safe way. The following code snippet is a pretty common usage of a model object:
+In using model objects in your application code, you will always use an entity's instance type. Model objects can be transferred to and from a database to insert or fetch data. Model objects can also read their properties from a `Map`, oftentimes from JSON data in an HTTP request body. Model objects also know how to serialize themselves back into a `Map`, so they can be used as an HTTP response body. Additionally, model objects are used to help build queries in a safe way. The following code snippet is a pretty common usage of a model object:
 
 
 ```dart
