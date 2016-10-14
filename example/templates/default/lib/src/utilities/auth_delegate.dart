@@ -14,15 +14,17 @@ class WildfireAuthenticationDelegate implements AuthenticationServerDelegate<Use
   }
 
   Future deleteTokenForRefreshToken(AuthenticationServer server, String refreshToken) async {
-    var q = new Query<Token>();
-    q.predicate = new Predicate("refreshToken = @rf", {"rf" : refreshToken});
+    var q = new Query<Token>()
+      ..matchOn.refreshToken = refreshToken;
+
     await q.delete();
   }
 
   Future updateToken(AuthenticationServer server, Token t) async {
-    var tokenQ = new Query<Token>();
-    tokenQ.predicate = new Predicate("refreshToken = @refreshToken", {"refreshToken" : t.refreshToken});
-    tokenQ.values = t;
+    var tokenQ = new Query<Token>()
+      ..matchOn.refreshToken = t.refreshToken
+      ..values = t;
+
     return tokenQ.updateOne();
   }
 
@@ -43,7 +45,7 @@ class WildfireAuthenticationDelegate implements AuthenticationServerDelegate<Use
   Future<User> authenticatableForUsername(AuthenticationServer server, String username) async {
     var userQ = new Query<User>()
       ..matchOn.email = username
-      ..resultProperties= ["email", "hashedPassword", "salt", "id"];
+      ..resultProperties = ["email", "hashedPassword", "salt", "id"];
 
     return await userQ.fetchOne();
   }
@@ -83,21 +85,24 @@ class WildfireAuthenticationDelegate implements AuthenticationServerDelegate<Use
   }
 
   Future<AuthCode> authCodeForCode(AuthenticationServer server, String code) async {
-    var authCodeQ = new Query<AuthCode>();
-    authCodeQ.predicate = new Predicate("code = @code", {"code" : code});
+    var authCodeQ = new Query<AuthCode>()
+      ..matchOn.code = code;
+
     return authCodeQ.fetchOne();
   }
 
   Future updateAuthCode(AuthenticationServer server, AuthCode code) async {
-    var authCodeQ = new Query<AuthCode>();
-    authCodeQ.predicate = new Predicate("id = @id", {"id" : code.id});
-    authCodeQ.values = code;
+    var authCodeQ = new Query<AuthCode>()
+      ..matchOn.id = code.id
+      ..values = code;
+
     return authCodeQ.updateOne();
   }
 
   Future deleteAuthCode(AuthenticationServer server, AuthCode code) async {
-    var authCodeQ = new Query<AuthCode>();
-    authCodeQ.predicate = new Predicate("id = @id", {"id" : code.id});
+    var authCodeQ = new Query<AuthCode>()
+      ..matchOn.id = code.id;
+
     return authCodeQ.delete();
   }
 

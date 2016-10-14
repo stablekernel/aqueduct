@@ -9,7 +9,8 @@ enum AuthenticationStrategy {
   client
 }
 
-/// A [RequestController] that will authorize further passage in a [RequestController] chain via an [AuthenticationStrategy].
+/// A [RequestController] that will authorize further passage in a [RequestController] chain when appropriate credentials
+/// are provided in the request being handled.
 ///
 /// An instance of [Authenticator] will validate a [Request] given a [strategy] with its [server].
 /// If the [Request] is unauthorized, it will respond with the appropriate status code and prevent
@@ -17,6 +18,8 @@ enum AuthenticationStrategy {
 /// to the [Request] and deliver it to the next [RequestController].
 class Authenticator extends RequestController {
   /// Creates an instance of [Authenticator] with a reference back to its [server] and a [strategy].
+  ///
+  /// The default strategy is [AuthenticationStrategy.resourceOwner].
   Authenticator(this.server, {this.strategy: AuthenticationStrategy.resourceOwner}) {
     policy = null;
   }

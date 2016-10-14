@@ -1,16 +1,13 @@
 part of aqueduct;
 
+/// [RequestController] for issuing OAuth 2.0 authorization codes.
 class AuthCodeController extends HTTPController {
-
   /// Creates a new instance of an [AuthCodeController].
   ///
-  /// An [AuthCodeController] requires an [AuthenticationServer], with the specified [ResourceOwner] and [AuthCodeType] instance
-  /// types. These types will be used when communicating with the [AuthenticationServer] for creating and refreshing
-  /// authentication tokens.
+  /// An [AuthCodeController] requires an [AuthenticationServer] to carry out tasks.
   ///
   /// By default, an [AuthCodeController] has only one [acceptedContentTypes] - 'application/x-www-form-urlencoded'.
-  AuthCodeController(AuthenticationServer authServer) {
-    authenticationServer = authServer;
+  AuthCodeController(this.authenticationServer) {
     acceptedContentTypes = [new ContentType("application", "x-www-form-urlencoded")];
   }
 
@@ -19,8 +16,6 @@ class AuthCodeController extends HTTPController {
 
   /// Creates a one-time use authorization code.
   ///
-  /// Content-Type must be application/x-www-form-urlencoded. (Query string in the body, e.g. username=bob&password=password)
-  /// Values must be URL percent encoded by client.
   /// The authorization code is returned as a query parameter in the resulting 302 response.
   /// If [state] is supplied, it will be returned in the query as a way
   /// for the client to ensure it is receiving a response from the expected endpoint.

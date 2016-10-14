@@ -1,11 +1,11 @@
 part of aqueduct;
 
-/// An interface for implementing [TokenType] for an [AuthenticationServer].
+/// An interface to represent [AuthenticationServer.TokenType].
 ///
 /// In order to use authentication tokens, an [AuthenticationServer] requires
-/// that its [TokenType] implement this interface. You will likely use
-/// this interface in defining a [Model] that represents the concrete implementation of a authentication
-/// token in your application.
+/// that its [AuthenticationServer.TokenType] implement this interface. You will likely use
+/// this interface to define a [Model] that represents the concrete implementation of a authentication
+/// token in your application. All of these properties are expected to be persisted.
 abstract class Tokenizable<ResourceIdentifierType> {
   /// The value to be passed as a Bearer Authorization header.
   String accessToken;
@@ -33,12 +33,12 @@ abstract class Tokenizable<ResourceIdentifierType> {
   String clientID;
 }
 
-/// An interface for implementing [AuthCodeType] for an [AuthenticationServer].
+/// An interface for implementing [AuthenticationServer.AuthCodeType].
 ///
 /// In order to use authorization codes, an [AuthenticationServer] requires
-/// that its [AuthCodeType] implement this interface. You will likely use
-/// this interface in defining a [Model] that represents a concrete implementation
-/// of a authorization code in your application.
+/// that its [AuthenticationServer.AuthCodeType] implement this interface. You will likely use
+/// this interface to define a [Model] that represents a concrete implementation
+/// of a authorization code in your application. All of these properties are expected to be persisted.
 abstract class TokenExchangable<TokenType extends Tokenizable> {
   /// This is the URI that the response object will redirect to with the
   /// authorization code in the query.
@@ -67,11 +67,11 @@ abstract class TokenExchangable<TokenType extends Tokenizable> {
   TokenType token;
 }
 
-/// A representation of authentication information to be attached to a [Request].
+/// Authorization information to be attached to a [Request].
 ///
 /// When a [Request] passes through an [Authenticator] and is validated,
-/// the [Authenticator] attaches an instance of [Permission] to its [permission]
-/// property to carry the authentication information to the next [RequestController]s.
+/// the [Authenticator] attaches an instance of [Permission] to its [Request.permission].
+/// Subsequent [RequestController]s are able to use this information to determine access scope.
 class Permission {
   /// Creates an instance of a [Permission].
   Permission(this.clientID, this.resourceOwnerIdentifier, this.grantingServer);
@@ -88,18 +88,21 @@ class Permission {
 
   /// The [AuthenticationServer] that granted this permission.
   final AuthenticationServer grantingServer;
-
-  /// Container for any data a [RequestController] wants to attach to this permission for the purpose of being used by a later [RequestController].
-  ///
-  /// Use this property to attach data to a [Request] for use by later [RequestController]s.
-  Map<dynamic, dynamic> attachments = {};
 }
 
-/// An interface for implementing a resource owner.
+/// An interface for implementing a [AuthenticationServer.ResourceOwner].
 ///
-/// In order for an [AuthenticationServer] to authenticate a resource owner - like a User, Profile or Account in your application -
-/// that resource owner class must implement this interface. An [Authenticatable] doesn't necessarily have to have these properties explicitly.
-/// For example, if the 'username' of a user is their email, they may define the [username] property to access the email property.
+/// In order for an [AuthenticationServer] to authenticate a [AuthenticationServer.ResourceOwner] - like a User, Profile or Account in your application -
+/// that resource owner class must implement this interface. The concrete implementation of this class does not necessarily need to persist the required
+/// properties with the same name. For example, it is possible to implement [Authenticatable.username] with an 'email' property:
+///
+///       class User extends Model<_User> implements _User, Authenticatable {
+///         String get username => email;
+///         void set username(String un) { email = un; }
+///       }
+///       class _User {
+///          @primaryKey String email;
+///       }
 abstract class Authenticatable {
   /// The username of the authenticatable resource.
   ///
@@ -107,58 +110,58 @@ abstract class Authenticatable {
   /// and so the implementation may simply proxy property to the underlying identifying attribute - like email.
   String username;
 
-  /// The hashed password of the resource owner.
+  /// The hashed password of this instance.
   String hashedPassword;
 
   /// The salt the [hashedPassword] was hashed with.
   String salt;
 
-  /// The unique identifier of the [Authenticatable].
+  /// The unique identifier of this instance, typically the primary key of the concrete subclass.
   dynamic id;
 }
 
-/// An interface for implementing storage of an [AuthenticationServer].
+/// An interface for implementing storage behavior for an [AuthenticationServer].
 ///
-/// This interface is responsible for persisting information generated and requested by an [AuthenticationServer].
-/// The [ResourceOwner] often represents a user, and must implement [Authenticatable]. The [TokenType]
-/// is a concrete instance of [Tokenizable].
+/// This interface is responsible for persisting and retrieving information generated and requested by an [AuthenticationServer].
+/// The [ResourceOwner] often represents a user or an account in an application and must implement [Authenticatable]. The [TokenType]
+/// is a concrete instance of [Tokenizable] to represent a resource owner bearer token. The [AuthCodeType] represents an authorization code
+/// used in the authorization code grant type.
 abstract class AuthenticationServerDelegate<ResourceOwner extends Authenticatable, TokenType extends Tokenizable, AuthCodeType extends TokenExchangable<TokenType>> {
   /// Returns a [TokenType] for an [accessToken].
   ///
-  /// This method returns an instance of [TokenType] if one exists for [accessToken], and [null] otherwise.
+  /// This method returns an instance of [TokenType] if one exists for [accessToken]. Otherwise, it returns null.
   /// [server] is the [AuthenticationServer] requesting the [TokenType].
   Future<TokenType> tokenForAccessToken(AuthenticationServer server, String accessToken);
 
   /// Returns a [TokenType] for an [refreshToken].
   ///
-  /// This method returns an instance of [TokenType] if one exists for [refreshToken], and [null] otherwise.
+  /// This method returns an instance of [TokenType] if one exists for [refreshToken]. Otherwise, it returns null.
   /// [server] is the [AuthenticationServer] requesting the [TokenType].
   Future<TokenType> tokenForRefreshToken(AuthenticationServer server, String refreshToken);
 
   /// Returns a [ResourceOwner] for an [username].
   ///
-  /// This method returns an instance of [ResourceOwner] if one exists for [username], and [null] otherwise.
+  /// This method returns an instance of [ResourceOwner] if one exists for [username]. Otherwise, it returns null.
   /// [server] is the [AuthenticationServer] requesting the [ResourceOwner].
   Future<ResourceOwner> authenticatableForUsername(AuthenticationServer server, String username);
 
   /// Returns a [ResourceOwner] for an [username].
   ///
-  /// This method returns an instance of [ResourceOwner] if one exists for [id], and [null] otherwise.
+  /// This method returns an instance of [ResourceOwner] if one exists for [id]. Otherwise, it returns null.
   /// [server] is the [AuthenticationServer] requesting the [ResourceOwner].
   Future<ResourceOwner> authenticatableForID(AuthenticationServer server, dynamic id);
 
   /// Returns a [Client] for a client id.
   ///
-  /// This method returns an instance of [Client] if one exists for [id], and [null] otherwise.
+  /// This method returns an instance of [Client] if one exists for [id]. Otherwise, it returns null.
   /// [server] is the [AuthenticationServer] requesting the [Client].
   Future<Client> clientForID(AuthenticationServer server, String id);
 
   /// Deletes a [TokenType] for [refreshToken].
   ///
-  /// If the [server] wishes to delete an authentication token, given a [refreshToken],
-  /// it will invoke this method. The implementing class must delete that token
-  /// from its persistent storage. If the [refreshToken] was retrieved from an
-  /// authorization code, that corresponding authorization code must be deleted as well.
+  /// If the [server] wishes to delete an authentication token, it will invoke this method. The implementing class must delete the matching token
+  /// from its persistent storage. Note that the token is matched by its [Tokenizable.refreshToken], not by its access token.
+  /// If the matching [Tokenizable] was issued from an [TokenExchangable], that corresponding [TokenExchangable] must be deleted as well.
   Future deleteTokenForRefreshToken(AuthenticationServer server, String refreshToken);
 
   /// Asks this instance to store a [TokenType] for [server].
@@ -179,7 +182,7 @@ abstract class AuthenticationServerDelegate<ResourceOwner extends Authenticatabl
   /// Asks this instance to retrieve an auth code from provided code [code].
   ///
   /// This returns an instance of [AuthCodeType] if one exists for [code], and
-  /// [null] otherwise.
+  /// null otherwise.
   Future<AuthCodeType> authCodeForCode(AuthenticationServer server, String code);
 
   /// Asks this instance to update an existing [AuthCodeType] for [server].
