@@ -142,7 +142,7 @@ class MigrationRunner extends CLICommand {
 
     var currentVersion = await executor.persistentStore.schemaVersion;
     var versionsToApply = versionMap.keys.where((v) => v > currentVersion).toList();
-    if (versionsToApply == 0) {
+    if (versionsToApply.length == 0) {
       print("Database version is current (version: $currentVersion).");
       return 0;
     }

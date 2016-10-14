@@ -30,7 +30,6 @@ void main() {
       var commands = schema.tables.map((t) => psc.createTable(t)).expand((l) => l).toList();
 
       expect(commands[0], "CREATE TABLE _GeneratorModel2 (id INT PRIMARY KEY)");
-      expect(commands[1], "CREATE INDEX _GeneratorModel2_id_idx ON _GeneratorModel2 (id)");
     });
 
     test("Create multiple tables with trailing index", () {
@@ -40,7 +39,6 @@ void main() {
 
       expect(commands[0], "CREATE TABLE _GeneratorModel1 (id BIGSERIAL PRIMARY KEY,name TEXT NOT NULL,option BOOLEAN NOT NULL,points DOUBLE PRECISION NOT NULL UNIQUE,validDate TIMESTAMP NULL)");
       expect(commands[1], "CREATE TABLE _GeneratorModel2 (id INT PRIMARY KEY)");
-      expect(commands[2], "CREATE INDEX _GeneratorModel2_id_idx ON _GeneratorModel2 (id)");
     });
 
     test("Default values are properly serialized", () {
