@@ -11,14 +11,11 @@ abstract class CLICommand {
 
   Future<int> process(ArgResults results) async {
     try {
-      var returnValue = await handle(results);
-
-      await cleanup();
-
-      return returnValue;
+      return await handle(results);
     } catch (e) {
-      await cleanup();
       print("${e}");
+    } finally {
+      await cleanup();
     }
     return -1;
   }
