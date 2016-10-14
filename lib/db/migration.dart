@@ -29,26 +29,22 @@ class MigrationExecutor {
 
   List<File> get migrationFiles  {
     var dir = new Directory.fromUri(migrationFileDirectory);
-    var files = dir.listSync()
-        .where((fse) => fse is File)
-        .map((fse) => fse as File)
-        .where((fse) => fse.path.endsWith(".migration.dart"))
-        .toList();
 
+    Map<int, File> orderMap = dir.listSync()
+        .where((fse) => fse is File && fse.path.endsWith(".migration.dart"))
+        .fold({}, (m, fse) {
+          var fileName = fse.uri.pathSegments.last;
+          var migrationName = fileName.split(".").first;
+          var versionNumberString = migrationName.split("_").first;
 
-    Map<int, File> orderMap = files.fold({}, (m, fse) {
-      var fileName = fse.uri.pathSegments.last;
-      var migrationName = fileName.split(".").first;
-      var versionNumberString = migrationName.split("_").first;
-
-      try {
-        var versionNumber = int.parse(versionNumberString);
-        m[versionNumber] = fse;
-        return m;
-      } catch (e) {
-        throw new MigrationException("Migration files must have the following format: Version_Name.migration.dart, where Version must be an integer (optionally prefixed with 0s, e.g. '00000002') and '_Name' is optional. Offender: ${fse.uri}");
-      }
-    });
+          try {
+            var versionNumber = int.parse(versionNumberString);
+            m[versionNumber] = fse;
+            return m;
+          } catch (e) {
+            throw new MigrationException("Migration files must have the following format: Version_Name.migration.dart, where Version must be an integer (optionally prefixed with 0s, e.g. '00000002') and '_Name' is optional. Offender: ${fse.uri}");
+          }
+        });
 
     var sortedKeys = (new List.from(orderMap.keys));
     sortedKeys.sort((int a, int b) => a.compareTo(b));
