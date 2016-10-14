@@ -13,13 +13,12 @@ class MigrationRunner extends CLICommand {
     ..addCommand("generate")
     ..addCommand("list-versions")
     ..addCommand("version")
-    ..addFlag("help", negatable: false, help: "Shows this documentation");
+    ..addFlag("help", abbr: "h", negatable: false, help: "Shows this documentation");
 
 
   String get _dbConfigFormat {
-    return "username: username\npassword: password\nhost: host\nport: port\ndatabaseName: name\n";
+    return "\n\tusername: username\n\tpassword: password\n\thost: host\n\tport: port\n\tdatabaseName: name\n";
   }
-
 
   Future<int> handle(ArgResults argValues) async {
     if (argValues["help"] == true) {
@@ -114,9 +113,10 @@ class MigrationRunner extends CLICommand {
 
   Future<int> printVersion() async {
     if (executor.persistentStore == null) {
-      print("No database to connect to. Provide a dbconfig file in migrations/migration.yaml in the following format $_dbConfigFormat");
+      print("$_noDBConfigString");
       return -1;
     }
+
     try {
       var current = await executor.persistentStore.schemaVersion;
       print("Current version: $current");
@@ -129,6 +129,11 @@ class MigrationRunner extends CLICommand {
   }
 
   Future<int> upgrade() async {
+    if (executor.persistentStore == null) {
+      print("$_noDBConfigString");
+      return -1;
+    }
+
     Map<int, File> versionMap = executor.migrationFiles.fold({}, (map, file) {
       var versionNumber = executor._versionNumberFromFile(file);
       map[versionNumber] = file;
@@ -142,7 +147,7 @@ class MigrationRunner extends CLICommand {
       return 0;
     }
 
-    print("Applying migrations: ${versionsToApply.join(", ")}...");
+    print("Applying migration versions: ${versionsToApply.join(", ")}");
     try {
       await executor.upgrade();
     } catch (e) {
@@ -150,7 +155,7 @@ class MigrationRunner extends CLICommand {
       return -1;
     }
 
-    print("Upgrade successful. Version is now at  ${await executor.persistentStore.schemaVersion}.");
+    print("Upgrade successful. Version is now at ${await executor.persistentStore.schemaVersion}.");
 
     return 0;
   }
@@ -167,9 +172,13 @@ class MigrationRunner extends CLICommand {
     return 0;
   }
 
-
+  @override
   Future cleanup() async {
     await executor.persistentStore?.close();
+  }
+
+  String get _noDBConfigString {
+    return "No database configuration file found. This tool expects a file at migrations/migration.yaml in this project's directory. This file contains connection configuration information and has the following format: $_dbConfigFormat";
   }
 
   String _getPackageName(Uri projectURI) {

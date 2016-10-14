@@ -174,6 +174,7 @@ class SchemaBuilder {
   static String sourceForSchemaUpgrade(Schema existingSchema, Schema newSchema, int version) {
     var builder = new StringBuffer();
     builder.writeln("import 'package:aqueduct/aqueduct.dart';");
+    builder.writeln("import 'dart:async';");
     builder.writeln("");
     builder.writeln("class Migration$version extends Migration {");
     builder.writeln("  Future upgrade() async {");

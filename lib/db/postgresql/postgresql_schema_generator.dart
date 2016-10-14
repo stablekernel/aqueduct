@@ -6,7 +6,7 @@ class PostgreSQLSchemaGenerator {
     var tableCommand = "CREATE${isTemporary ? " TEMPORARY " : " "}TABLE ${table.name} (${columnString})";
 
     var indexCommands = table.columns
-        .where((col) => col.isIndexed)
+        .where((col) => col.isIndexed && !col.isPrimaryKey) // primary keys are auto-indexed
         .map((col) => addIndexToColumn(table, col))
         .expand((commands) => commands);
 

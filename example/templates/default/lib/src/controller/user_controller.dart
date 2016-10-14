@@ -1,7 +1,7 @@
 part of wildfire;
 
 class UserController extends ModelController<User> {
-  @httpGet getUser(int id) async {
+  @httpGet getUser(@HTTPPath("id") int id) async {
     var u = await query.fetchOne();
     if (u == null) {
       return new Response.notFound();
@@ -14,7 +14,7 @@ class UserController extends ModelController<User> {
     return new Response.ok(u);
   }
 
-  @httpPut updateUser(int id) async {
+  @httpPut updateUser(@HTTPPath("id") int id) async {
     if (request.permission.resourceOwnerIdentifier != id) {
       return new Response.unauthorized();
     }

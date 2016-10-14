@@ -291,4 +291,12 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
 
     return new Base64Encoder().convert(salt);
   }
+
+  /// A utility method to generate a ClientID and Client Secret Pair, where secret is hashed with a salt.
+  static Client generateAPICredentialPair(String clientID, String secret, {String redirectURI: null}) {
+    var salt = AuthenticationServer.generateRandomSalt();
+    var hashed = AuthenticationServer.generatePasswordHash(secret, salt);
+
+    return new Client.withRedirectURI(clientID, hashed, salt, redirectURI);
+  }
 }

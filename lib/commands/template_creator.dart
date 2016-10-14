@@ -9,7 +9,7 @@ class TemplateCreator extends CLICommand {
     ..addOption("git-ref", defaultsTo: "master", help: "Git reference (branch or commit), will trigger generating the template from the git repository instead of pub.")
     ..addOption("path-source", help: "Full path on filesystem, will trigger generating the template from the aqueduct source at path-source instead of pub.")
     ..addOption("version", defaultsTo: "any", help: "Version string for aqueduct on pub for template source.")
-    ..addFlag("help", negatable: false, help: "Shows this documentation");
+    ..addFlag("help", abbr: "h", negatable: false, help: "Shows this documentation");
 
   Future<int> handle(ArgResults argValues) async {
     if (argValues["help"] == true) {
@@ -50,7 +50,7 @@ class TemplateCreator extends CLICommand {
     await createProjectSpecificFiles(destDirectory.path, aqueductVersion);
 
     print("Fetching dependencies...");
-    Process.runSync("pub", ["get"], workingDirectory: destDirectory.path);
+    Process.runSync("pub", ["get", "--no-packages-dir"], workingDirectory: destDirectory.path);
 
     print("${argValues["name"]} created at ${destDirectory.path}");
     print("Make sure to follow the instructions in ${destDirectory.path}/README.md to be able to run your project!");
@@ -60,10 +60,11 @@ class TemplateCreator extends CLICommand {
 
 
   String determineAqueductPath(Directory projectDirectory, String aqueductVersion) {
+    print("Determining Aqueduct version...");
     var temporaryPubspec = generatingPubspec(aqueductVersion);
 
     new File(projectDirectory.path + "/pubspec.yaml").writeAsStringSync(temporaryPubspec);
-    var result = Process.runSync("pub", ["get"], workingDirectory: projectDirectory.path);
+    var result = Process.runSync("pub", ["get", "--no-packages-dir"], workingDirectory: projectDirectory.path);
     if (result.exitCode != 0) {
       throw new Exception("${result.stderr}");
     }
@@ -75,6 +76,7 @@ class TemplateCreator extends CLICommand {
     new File(projectDirectory.path + "/.packages").deleteSync();
 
     var lastLibIndex = resolvedURL.lastIndexOf("/lib");
+    print("Using source from: ${resolvedURL}");
     return resolvedURL.substring(0, lastLibIndex);
   }
 

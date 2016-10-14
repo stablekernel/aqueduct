@@ -210,7 +210,9 @@ class MigrationExecutor {
 
       if (!dryRun && !migrationInstance.database.commands.isEmpty) {
         await migrationInstance.store.upgrade(versionNumber, migrationInstance.database.commands);
+        await migrationInstance.seed();
         await migrationInstance.database.store.close();
+
       }
 
       return migrationInstance.currentSchema.asMap();
