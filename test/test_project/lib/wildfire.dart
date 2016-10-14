@@ -9,10 +9,8 @@ library wildfire;
 import 'dart:io';
 import 'dart:async';
 import 'package:aqueduct/aqueduct.dart';
-import 'package:scribe/scribe.dart';
 
 export 'package:aqueduct/aqueduct.dart';
-export 'package:scribe/scribe.dart';
 
 part 'src/model/token.dart';
 part 'src/model/user.dart';
