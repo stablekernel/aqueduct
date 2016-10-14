@@ -35,7 +35,7 @@ enum RelationshipType {
 
 /// Marks a property as a primary key, database type big integer, and autoincrementing. The corresponding property
 /// type must be [int].
-const ColumnAttributes primaryKey = const ColumnAttributes(primaryKey: true, databaseType: PropertyType.bigInteger, autoincrement: true, indexed: true);
+const ColumnAttributes primaryKey = const ColumnAttributes(primaryKey: true, databaseType: PropertyType.bigInteger, autoincrement: true);
 
 /// A declaration annotation for the options on a property in a entity class.
 ///

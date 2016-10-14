@@ -2,6 +2,7 @@ import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
 import 'dart:async';
 import 'dart:io';
+import 'dart:convert';
 
 void main() {
   group("Cooperation", () {
@@ -137,7 +138,7 @@ void main() {
     });
 
     test("Ensure migration directory will get created on generation", () async {
-      await Process.runSync("pub", ["get", "--no-packages-dir", "--offline"], workingDirectory: projectDirectory.path);
+      var _ = await Process.runSync("pub", ["get", "--no-packages-dir", "--offline"], workingDirectory: projectDirectory.path);
 
       expect(migrationDirectory.existsSync(), false);
       await executor.generate();
@@ -267,6 +268,7 @@ void main() {
 
       var nextGenFile = await executor.generate();
       addLinesToUpgradeFile(nextGenFile, ["database.deleteTable(\"foo\");"]);
+
       var outSchema = await executor.validate();
       expect(outSchema.matches(expectedSchema), true);
     });
@@ -334,9 +336,33 @@ void main() {
         "database.createTable(new SchemaTable(\"foo\", [new SchemaColumn.relationship(\"user\", PropertyType.bigInteger, relatedTableName: \"_user\", relatedColumnName: \"id\")]));",
         "database.deleteColumn(\"_user\", \"email\");"
       ]);
-
       await executor.upgrade();
 
+      try {
+        await executor.persistentStore.execute("INSERT INTO _User (email, hashedPassword, salt) VALUES (@a, 'foo', 'bar') RETURNING id, email", substitutionValues: {
+          "a" : "a@b.com"
+        });
+        expect(true, false);
+      } on QueryException catch (e) {
+        expect(e.toString(), contains("column \"email\" of relation \"_user\" does not exist"));
+      }
+      await executor.persistentStore.execute("INSERT INTO _User (hashedPassword, salt) VALUES ('foo', 'bar') RETURNING id");
+
+      var fooInsert = await executor.persistentStore.execute("INSERT INTO foo (user_id) VALUES (1) returning user_id");
+      expect(fooInsert, [[1]]);
+    });
+
+    test("Only later migration files are ran if already at a version", () async {
+      await executor.generate();
+      await executor.upgrade();
+
+      File nextGen = await executor.generate();
+      addLinesToUpgradeFile(nextGen, [
+        "database.createTable(new SchemaTable(\"foo\", [new SchemaColumn.relationship(\"user\", PropertyType.bigInteger, relatedTableName: \"_user\", relatedColumnName: \"id\")]));",
+        "database.deleteColumn(\"_user\", \"email\");"
+      ]);
+
+      await executor.upgrade();
       try {
         await executor.persistentStore.execute("INSERT INTO _User (email, hashedPassword, salt) VALUES (@a, 'foo', 'bar') RETURNING id, email", substitutionValues: {
           "a" : "a@b.com"

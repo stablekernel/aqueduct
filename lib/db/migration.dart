@@ -179,7 +179,7 @@ class MigrationExecutor {
     if (aroundVersion == 0) {
       migrationFilesToRun = files;
     } else if (latestMigrationVersionNumber > aroundVersion) {
-      var indexOfCurrent = files.indexOf(files.firstWhere((f) => _versionNumberFromFile(f) == latestMigrationVersionNumber));
+      var indexOfCurrent = files.indexOf(files.firstWhere((f) => _versionNumberFromFile(f) == aroundVersion));
       migrationFilesToGetToCurrent = files.sublist(0, indexOfCurrent + 1);
       migrationFilesToRun = files.sublist(indexOfCurrent + 1);
     } else {
