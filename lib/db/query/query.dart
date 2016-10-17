@@ -10,9 +10,9 @@ class Query<InstanceType extends ManagedObject> {
   ///
   /// By default, [context] is [ManagedContext.defaultContext]. The [entity] of this instance is found by
   /// evaluating [InstanceType] in [context].
-  Query({this.context}) {
-    context ??= ManagedContext.defaultContext;
-    entity = context.dataModel.entityForType(InstanceType);
+  Query([ManagedContext context]) {
+    this.context = context ?? ManagedContext.defaultContext;
+    entity = this.context.dataModel.entityForType(InstanceType);
   }
 
   /// The [ManagedEntity] of the [InstanceType].

@@ -1,8 +1,9 @@
 part of aqueduct;
 
-/// A router to split requests based on their URI.
+/// A router to split requests based on their URI path.
 ///
 /// Instances of this class maintain a collection of [RouteController]s for each route that has been registered with it.
+/// Routes are registered through the [route] method.
 /// [RouteController]s are subclasses of [RequestController] so that further [RequestController]s can be chained off of it.
 /// When a [Request] is delivered to the router, it will pass it on to the associated [RouteController] or respond to the
 /// [Request] with a 404 status code.
@@ -46,10 +47,11 @@ class Router extends RequestController {
   var _unhandledRequestController;
 
 
-  /// Adds a route to this router and provides a forwarding [RequestController] for all [Request]s that match that route to be delivered on.
+  /// Adds a route to this instnace and provides a forwarding [RouteController] for all [Request]s that match that route to be delivered on.
   ///
   /// This method will create an instance of a [RouteController] and attach it to this router, returning the [RouteController] instance
   /// to allow further [RequestController]s to be attached.
+  ///
   /// The [pattern] must follow the rules of route patterns (see the guide for more explanation).
   /// A pattern consists of one or more path segments. A path segment can be a constant string,
   /// a path variable (a word prefixed with the : character) or the wildcard character (the asterisk character *)
@@ -78,15 +80,17 @@ class Router extends RequestController {
     _rootRouteNode = new _RouteNode(_routeControllers.expand((rh) => rh.patterns).toList());
   }
 
-
+  /// Routers override this method to throw an exception. Use [route] instead.
   RequestController pipe(RequestController n) {
     throw new RouterException("Routers may not use pipe, use route instead.");
   }
 
+  /// Routers override this method to throw an exception. Use [route] instead.
   RequestController generate(RequestController generatorFunction()) {
     throw new RouterException("Routers may not use generate, use route instead.");
   }
 
+  /// Routers override this method to throw an exception. Use [route] instead.
   RequestController listen(Future<RequestControllerEvent> requestControllerFunction(Request request)) {
     throw new RouterException("Routers may not use listen, use route instead.");
   }
@@ -114,7 +118,7 @@ class Router extends RequestController {
 
     var node = _rootRouteNode.nodeForPathSegments(remainingSegments);
     if (node?.specification != null) {
-      var requestPath = new RequestPath(node.specification, remainingSegments);
+      var requestPath = new HTTPRequestPath(node.specification, remainingSegments);
       req.path = requestPath;
       node.controller.receive(req);
       return;
@@ -123,7 +127,6 @@ class Router extends RequestController {
     _unhandledRequestController(req);
   }
 
-  /// Returns a [List] of [APIPath]s configured in this router.
   @override
   List<APIPath> documentPaths(PackagePathResolver resolver) {
     return _routeControllers
@@ -140,13 +143,20 @@ class Router extends RequestController {
   }
 }
 
+/// A [RequestController] for routes in a [Router].
+///
+/// When adding a route to a [Router] ([Router.route]), an instance of this type is returned. Subsequent
+/// [RequestController]s can be chained off instances of this class and will only be reached when a reqeust
+/// matches this instance's pattern. Do not create instances of this class manually.
 class RouteController extends RequestController {
+  /// Do not create instances of this class manually.
   RouteController(this.patterns) {
     patterns.forEach((p) {
       p.controller = this;
     });
   }
 
+  /// Route specifications for this controller.
   final List<RouteSpecification> patterns;
 }
 

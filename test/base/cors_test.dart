@@ -208,7 +208,7 @@ class CORSSink extends RequestSink implements AuthServerDelegate<AuthImpl, Token
 
   AuthServer<AuthImpl, TokenImpl, AuthCodeImpl> authServer;
 
-  void addRoutes() {
+  void setupRouter(Router router) {
     router.route("/nopolicy").generate(() => new NoPolicyController());
     router.route("/defaultpolicy").generate(() => new DefaultPolicyController());
     router.route("/nopolicyauth")

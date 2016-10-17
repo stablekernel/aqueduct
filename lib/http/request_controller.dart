@@ -2,16 +2,24 @@ part of aqueduct;
 
 /// The unifying protocol for [Request] and [Response] classes.
 ///
-///
+/// A [RequestController] must return an instance of this type from its [RequestController.processRequest] method.
 abstract class RequestControllerEvent {}
 
-/// [RequestController]s respond to, modify or forward requests.
+/// [RequestController]s respond to, modify or forward HTTP requests.
 ///
 /// This class is intended to be extended. [RequestController]s are sent [Request]s through
 /// their [receive] method, which in turn invokes [processRequest]. Subclasses
 /// should implement [processRequest] to respond to, modify or forward requests.
 /// In some cases, subclasses may also override [receive].
+///
+/// A request controller wraps the processing of a request in a try-catch block. If a request controller finishes processing a request
+/// and does not respond to it, the [Request] is passed to the next [RequestController]. The next [RequestController] is defined
+/// by methods such as [pipe], [generate], and [listen].
 class RequestController extends Object with APIDocumentable {
+  /// Returns a stacktrace and additional details about how the request's processing in the HTTP response.
+  ///
+  /// By default, this is false. During debugging, setting this to true can help debug Aqueduct applications
+  /// from the HTTP client.
   static bool includeErrorDetailsInServerErrorResponses = false;
 
   Function _listener;
@@ -22,22 +30,23 @@ class RequestController extends Object with APIDocumentable {
 
   Logger get logger => new Logger("aqueduct");
 
+  /// The CORS policy of this controller.
   CORSPolicy get policy => _policy;
   CORSPolicy _policy = new CORSPolicy();
   void set policy(CORSPolicy p) {
     _policy = p;
   }
 
-  /// The next [RequestController] to run if this instance returns a [Request].
+  /// The next [RequestController] to pass a [Request] to if this instance returns a [Request] from [processRequest].
   ///
-  /// Controllers  may be chained together if they have the option not to respond to requests.
-  /// If this controller returns a [Request] from [processRequest], this [nextController]
-  /// will run. This method sets the [nextController] property] and returns [this]
-  /// to allow chaining. This parameter may be an instance of [RequestController] or a
-  /// function that takes no arguments and returns a [RequestController]. In the latter instance,
-  /// a new instance of the returned [RequestController] is created for each request. Otherwise,
-  /// the same instance is used for each request. All [HTTPController]s and subclasses should
-  /// be wrapped in a function that returns a new instance of the controller.
+  /// Request controllers are chained together to form a pipeline that a request travels through to be responded to.
+  /// This method adds an instance of some [RequestController] to a chain. A [RequestController] added to a chain
+  /// in this way must not have any properties that change depending on the request, as many [Request]s will
+  /// travel through the same instance in an asynchronous way.
+  ///
+  /// This method returns a [RequestController] that further [RequestController]s can be chained to.
+  ///
+  /// See also [generate] and [listen].
   RequestController pipe(RequestController n) {
     var typeMirror = reflect(n).type;
     if (_requestControllerTypeRequiresInstantion(typeMirror)) {
@@ -48,11 +57,33 @@ class RequestController extends Object with APIDocumentable {
     return this.nextController;
   }
 
+  /// A function that instantiates a [RequestController] to pass a [Request] to if this instance returns a [Request] from [processRequest].
+  ///
+  /// Request controllers are chained together to form a pipeline that a request travels through to be responded to.
+  /// When this instance returns a [Request] from [processRequest], [generatorFunction] is called to instantiate
+  /// a [RequestController]. The [Request] is then sent to the new [RequestController]. [RequestController]s
+  /// that have properties that change depending on the incoming [Request] - like [HTTPController] - must be [generate]d
+  /// for each [Request]. This avoids having a [RequestController]s properties change during the processing of a request due
+  /// to asynchronous behavior.
+  ///
+  /// This method returns a [RequestController] that further [RequestController]s can be chained to.
+  ///
+  /// See also [pipe] and [listen].
   RequestController generate(RequestController generatorFunction()) {
     this.nextController = new _RequestControllerGenerator(generatorFunction);
     return this.nextController;
   }
 
+  /// A closure that responds to or forwards a [Request].
+  ///
+  /// If this instance does not respond to a request, this closure is invoked, passing in the [Request] being processed.
+  /// This is the barebones handler for [RequestController].
+  ///
+  /// This closure must return a [Request] or [Response].
+  ///
+  /// This method returns a [RequestController] that further [RequestController]s can be chained to.
+  ///
+  /// See also [generate] and [pipe].
   RequestController listen(Future<RequestControllerEvent> requestControllerFunction(Request request)) {
     var controller = new RequestController()
         .._listener = requestControllerFunction;
@@ -74,7 +105,7 @@ class RequestController extends Object with APIDocumentable {
   ///
   /// This method is the entry point of a [Request] into this [RequestController].
   /// By default, it invokes this controller's [processRequest] method and, if that method
-  /// determines processing should continue with the [nextController] and a
+  /// determines processing should continue to the [nextController] and a
   /// [nextController] exists, the request will be delivered to [nextController].
   ///
   /// An [RequestSink] invokes this method on its initial controller
@@ -82,13 +113,13 @@ class RequestController extends Object with APIDocumentable {
   ///
   /// Some [RequestController]s may override this method if they do not wish to
   /// use simple chaining. For example, the [Router] class overrides this method
-  /// to deliver the [Request] to the appropriate route controller. If overriding this
+  /// to deliver the [Request] to the appropriate [RouteController]. If overriding this
   /// method, it is important that you always invoke subsequent controller's with [receive]
   /// and not [processRequest]. You must also ensure that CORS requests are handled properly,
   /// as this method does the heavy-lifting for handling CORS requests.
   Future receive(Request req) async {
     try {
-      if (isCORSRequest(req) && isPreflightRequest(req)) {
+      if (req.isCORSRequest && req.isPreflightRequest) {
         var controllerToDictatePolicy = _lastRequestController();
         if (controllerToDictatePolicy != this) {
           controllerToDictatePolicy.receive(req);
@@ -126,7 +157,8 @@ class RequestController extends Object with APIDocumentable {
   /// Overridden by subclasses to modify or respond to an incoming request.
   ///
   /// Subclasses override this method to provide their specific handling of a request. A [RequestController]
-  /// should either modify or respond to the request.
+  /// should either modify or respond to the request. For concrete subclasses of [RequestController] - like [HTTPController] -
+  /// this method has already been implemented.
   ///
   /// [RequestController]s should return a [Response] from this method if they responded to the request.
   /// If a [RequestController] does not respond to the request, but instead modifies it, this method must return the same [Request].
@@ -191,7 +223,7 @@ class RequestController extends Object with APIDocumentable {
   }
 
   void _applyCORSHeadersIfNecessary(Request req, Response resp) {
-    if (isCORSRequest(req)) {
+    if (req.isCORSRequest) {
       var lastPolicyController = _lastRequestController();
       var p = lastPolicyController.policy;
       if (p != null) {
@@ -200,14 +232,6 @@ class RequestController extends Object with APIDocumentable {
         }
       }
     }
-  }
-
-  bool isCORSRequest(Request req) {
-    return req.innerRequest.headers.value("origin") != null;
-  }
-
-  bool isPreflightRequest(Request req) {
-    return req.innerRequest.method == "OPTIONS" && req.innerRequest.headers.value("access-control-request-method") != null;
   }
 }
 

@@ -17,7 +17,7 @@ class TestSink extends RequestSink {
   TestSink(Map<String, dynamic> opts) : super (opts);
 
   @override
-  void addRoutes() {
+  void setupRouter(Router router) {
     router
         .route("/controller/[:id]")
         .pipe(new FailingController());

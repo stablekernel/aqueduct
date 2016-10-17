@@ -1,26 +1,26 @@
 part of aqueduct;
 
-/// 'GET' HttpMethod metadata.
+/// Indicates that an [HTTPController] method is triggered by an HTTP GET method.
 ///
 /// Controller methods on [HTTPController]s that handle GET requests must be marked with this.
 const HTTPMethod httpGet = const HTTPMethod("get");
 
-/// 'PUT' HttpMethod metadata.
+/// Indicates that an [HTTPController] method is triggered by an HTTP PUT method.
 ///
 /// Controller methods on [HTTPController]s that handle PUT requests must be marked with this.
 const HTTPMethod httpPut = const HTTPMethod("put");
 
-/// 'POST' HttpMethod metadata.
+/// Indicates that an [HTTPController] method is triggered by an HTTP POST method.
 ///
 /// Controller methods on [HTTPController]s that handle POST requests must be marked with this.
 const HTTPMethod httpPost = const HTTPMethod("post");
 
-/// 'DELETE' HttpMethod metadata.
+/// Indicates that an [HTTPController] method is triggered by an HTTP DELETE method.
 ///
 /// Controller methods on [HTTPController]s that handle DELETE requests must be marked with this.
 const HTTPMethod httpDelete = const HTTPMethod("delete");
 
-/// 'PATCH' HttpMethod metadata.
+/// Indicates that an [HTTPController] method is triggered by an HTTP PATCH method.
 ///
 /// Controller methods on [HTTPController]s that handle PATCH requests must be marked with this.
 const HTTPMethod httpPatch = const HTTPMethod("patch");

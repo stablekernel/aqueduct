@@ -1,8 +1,22 @@
 part of aqueduct;
 
-/// Base class for API web service controller.
+/// Base class for HTTP web service controller.
 ///
-/// Subclasses of this class can process and respond to an HTTP request.
+/// Subclasses of this class can process and respond to an HTTP request. A new instance of this type
+/// should be created for every request is processes. Subclasses of this type implement 'responder methods' to
+/// handle HTTP requests of a specified HTTP method and path. Responder methods must have [HTTPMethod] metadata and return
+/// a [Future] that completes with [Response]. Responder methods may also have [HTTPPath], [HTTPHeader], [HTTPQuery]
+/// parameters. An [HTTPController] evaluates a [Request] and finds a responder method that has a matching [HTTPMethod],
+/// [HTTPPath], [HTTPHeader], [HTTPQuery] values.
+///
+/// Instances of this class may also declare properties that are marked with [HTTPHeader] and [HTTPQuery], in which case
+/// all responder methods accept those header and query values.
+///
+///       class UserController extends RequestController {
+///         @httpGet getUser(@HTTPPath ("id") int userID) async {
+///           return new Response.ok(await _userWithID(userID));
+///         }
+///       }
 @cannotBeReused
 abstract class HTTPController extends RequestController {
   static ContentType _applicationWWWFormURLEncodedContentType = new ContentType("application", "x-www-form-urlencoded");
@@ -15,7 +29,7 @@ abstract class HTTPController extends RequestController {
 
   /// Parameters parsed from the URI of the request, if any exist.
   ///
-  /// These values are attached by a [Router] instance that precedes this [RequestController]. Is [null]
+  /// These values are attached by a [Router] instance that precedes this [RequestController]. Is null
   /// if no [Router] preceded the controller and is the empty map if there are no values. The keys
   /// are the case-sensitive name of the path variables as defined by the [route].
   Map<String, String> get pathVariables => request.path?.variables;
@@ -49,7 +63,7 @@ abstract class HTTPController extends RequestController {
     return req;
   }
 
-  /// Executed prior to request being handled, but after the body has been processed.
+  /// Executed prior to a responder method being executed, but after the body has been processed.
   ///
   /// This method is called after the body has been processed by the decoder, but prior to the request being
   /// handled by the appropriate responder method.

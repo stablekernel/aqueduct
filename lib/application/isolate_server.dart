@@ -14,9 +14,9 @@ class ApplicationServer {
 
   Future start() async {
     try {
-      sink.addRoutes();
+      sink.setupRouter(sink.router);
       sink.router?.finalize();
-      sink.nextController = sink.initialController();
+      sink.nextController = sink.initialController;
 
       if (configuration.securityContext != null) {
         server = await HttpServer.bindSecure(configuration.address, configuration.port, configuration.securityContext,

@@ -89,7 +89,7 @@ part 'http/cors_policy.dart';
 part 'http/documentable.dart';
 part 'http/http_controller.dart';
 part 'http/http_response_exception.dart';
-part 'http/model_controller.dart';
+part 'http/query_controller.dart';
 part 'http/parameter_matching.dart';
 part 'http/request.dart';
 part 'http/request_controller.dart';

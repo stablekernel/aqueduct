@@ -27,7 +27,7 @@ class WildfireSink extends RequestSink {
   WildfireConfiguration configuration;
 
   @override
-  void addRoutes() {
+  void setupRouter(Router router) {
     router
         .route("/auth/token")
         .pipe(new Authorizer(authenticationServer, strategy: AuthStrategy.client))

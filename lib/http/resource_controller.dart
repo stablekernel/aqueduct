@@ -3,14 +3,14 @@ part of aqueduct;
 /// A [RequestController] for performing CRUD operations on [ManagedObject] instances.
 ///
 /// Instances of this class create and execute [Query]s based on [Request]'s they receive. This instances of this class effectively map a REST API call
-/// directly to the database. For example, this [RequestController] handles an HTTP PUT request by executing an update [Query]; the path variable in the request
+/// directly to a database [Query]. For example, this [RequestController] handles an HTTP PUT request by executing an update [Query]; the path variable in the request
 /// indicates the value of the primary key for the updated row and the HTTP request body are the values updated.
 ///
 /// When routing to a [ManagedObjectController], you must provide the following route pattern, where <name> can be any string:
 ///
 ///       router.route("/<name>/[:id]")
 ///
-/// You may optionally use the static method [routePattern] to create this string for you.
+/// You may optionally use the static method [ManagedObjectController.routePattern] to create this string for you.
 ///
 /// The mapping for HTTP request to action is as follows:
 ///
@@ -20,20 +20,18 @@ part of aqueduct;
 ///       POST /<name> -> Create new Object, HTTP Request Body contains update values.
 ///       GET /<name> -> Fetch instances of Object
 ///
-/// You may use this class without subclassing, but you may also subclass it to modify the executed [Query] prior to its execution or the returned [Response] based
-/// on the [Query]'s results.
+/// You may use this class without subclassing, but you may also subclass it to modify the executed [Query] prior to its execution, or modify the returned [Response] after the query has been completed.
 ///
 /// The HTTP response body is encoded according to [responseContentType].
 ///
 /// GET requests with no path parameter can take extra query parameters to modify the request. The following are the available query parameters:
 ///
-///       count (integer): restricts the number of objects fetched to count. By default, this is null, which means no restrictions.
-///       offset (integer): offsets the fetch by offset amount of objects. By default, this is null, which means no offset.
-///       pageBy (string): indicates the key in which to page by. See [QueryPage] for more information on paging. If this value is passed as part of the query, either pageAfter or pagePrior must also be passed, but only one of those.
-///       pageAfter (string): indicates the page value and direction of the paging. pageBy must also be set. See [QueryPage] for more information.
-///       pagePrior (string): indicates the page value and direction of the paging. pageBy must also be set. See [QueryPage] for more information.
-///       sortBy (string): indicates the sort order. The syntax is 'sortBy=key,order' where key is a property of [InstanceType] and order is either 'asc' or 'desc'. You may specify multiple sortBy parameters.
-///
+/// count (integer): restricts the number of objects fetched to count. By default, this is null, which means no restrictions.
+/// offset (integer): offsets the fetch by offset amount of objects. By default, this is null, which means no offset.
+/// pageBy (string): indicates the key in which to page by. See [QueryPage] for more information on paging. If this value is passed as part of the query, either pageAfter or pagePrior must also be passed, but only one of those.
+/// pageAfter (string): indicates the page value and direction of the paging. pageBy must also be set. See [QueryPage] for more information.
+/// pagePrior (string): indicates the page value and direction of the paging. pageBy must also be set. See [QueryPage] for more information.
+/// sortBy (string): indicates the sort order. The syntax is 'sortBy=key,order' where key is a property of [InstanceType] and order is either 'asc' or 'desc'. You may specify multiple sortBy parameters.
 class ManagedObjectController<InstanceType extends ManagedObject> extends HTTPController {
   /// Returns a route pattern for using [ManagedObjectController]s.
   ///
@@ -44,9 +42,9 @@ class ManagedObjectController<InstanceType extends ManagedObject> extends HTTPCo
 
   /// Creates an instance of a [ManagedObjectController].
   ///
-  /// [context] defaults to [defaultContext].
+  /// [context] defaults to [ManagedContext.defaultContext].
   ManagedObjectController([ManagedContext context]) : super() {
-    _query = new Query<InstanceType>(context: context ?? ManagedContext.defaultContext);
+    _query = new Query<InstanceType>(context ?? ManagedContext.defaultContext);
   }
 
   Query<InstanceType> _query;

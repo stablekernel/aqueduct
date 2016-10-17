@@ -1,50 +1,25 @@
 part of aqueduct;
 
-/// Represents a single HTTP request.
+/// A single HTTP request.
 ///
-/// Contains a standard library [HttpRequest], along with other values
-/// to associate data with a request.
+/// Instances of this class travel through a [RequestController] chain to be responded to, sometimes acquiring new values
+/// as they go through controllers. Each instance of this class has a standard library [HttpRequest]. You should not respond
+/// directly to the [HttpRequest], as [RequestController]s take that responsibility.
 class Request implements RequestControllerEvent {
-  static Map<String, Map<String, Function>> _encoders = {
-    "application" : {
-      "json" : (v) => JSON.encode(v),
-    },
-    "text" : {
-      "plain" : (Object v) => v.toString()
-    }
-  };
-
-  /// Adds an HTTP Response Body encoder to list of available encoders for all [Request]s.
-  ///
-  /// By default, 'application/json' and 'text/plain' are implemented. If you wish to add another encoder
-  /// to your application, use this method. The [encoder] must take one argument of any type, and return a value
-  /// that will become the HTTP response body.
-  ///
-  /// The return value is written to the response with [IOSink.write] and so it must either be a [String] or its [toString]
-  /// must produce the desired value.
-  static void addEncoder(ContentType type, dynamic encoder(dynamic value)) {
-    var topLevel = _encoders[type.primaryType];
-    if (topLevel == null) {
-      topLevel = {};
-      _encoders[type.primaryType] = topLevel;
-    }
-
-    topLevel[type.subType] = encoder;
-  }
-
   /// Creates an instance of [Request], no need to do so manually.
   Request(this.innerRequest);
 
   /// The internal [HttpRequest] of this [Request].
   ///
   /// The standard library generated HTTP request object. This contains
-  /// all of the request information provided by the client.
+  /// all of the request information provided by the client. Do not respond
+  /// to this value directly.
   final HttpRequest innerRequest;
 
   /// The response object of this [Request].
   ///
-  /// To respond to a request, this object must be written to. It is the same
-  /// instance as the [innerRequest]'s response.
+  /// Do not write to this value manually. [RequestController]s are responsible for
+  /// using a [Response] instance to fill out this property.
   HttpResponse get response => innerRequest.response;
 
   /// The path and any extracted variable parameters from the URI of this request.
@@ -52,9 +27,9 @@ class Request implements RequestControllerEvent {
   /// Typically set by a [Router] instance when the request has been piped through one,
   /// this property will contain a list of each path segment, a map of matched variables,
   /// and any remaining wildcard path.
-  RequestPath path;
+  HTTPRequestPath path;
 
-  /// Permission information associated with this request.
+  /// Authorization information associated with this request.
   ///
   /// When this request goes through an [Authorizer], this value will be set with
   /// permission information from the authenticator. Use this to determine client, resource owner
@@ -69,6 +44,18 @@ class Request implements RequestControllerEvent {
   /// For example, if the request body was a JSON object and the decoder handled JSON, this value would be a [Map]
   /// representing the JSON object.
   dynamic requestBodyObject;
+
+  /// Whether or not this request is a CORS request.
+  ///
+  /// This is true if there is an Origin header.
+  bool get isCORSRequest => innerRequest.headers.value("origin") != null;
+
+  /// Whether or not this is a CORS preflight request.
+  ///
+  /// This is true if the request HTTP method is OPTIONS and the headers contains Access-Control-Request-Method.
+  bool get isPreflightRequest {
+    return innerRequest.method == "OPTIONS" && innerRequest.headers.value("access-control-request-method") != null;
+  }
 
   /// Container for any data a [RequestController] wants to attach to this request for the purpose of being used by a later [RequestController].
   ///
@@ -118,12 +105,14 @@ class Request implements RequestControllerEvent {
 
   /// Sends a [Response] to this [Request]'s client.
   ///
+  /// [RequestController]s invoke this method to respond to this request.
+  ///
   /// Once this method has executed, the [Request] is no longer valid. All headers from [responseObject] are
   /// added to the HTTP response. If [responseObject] has a [Response.body], this request will attempt to encode the body data according to the
   /// Content-Type in the [responseObject]'s [Response.headers].
   ///
   /// By default, 'application/json' and 'text/plain' are supported HTTP response body encoding types. If you wish to encode another
-  /// format, see [addEncoder].
+  /// format, see [Response.addEncoder].
   void respond(Response responseObject) {
     respondDate = new DateTime.now().toUtc();
 
@@ -156,7 +145,7 @@ class Request implements RequestControllerEvent {
     }
 
     ContentType contentType = contentTypeValue;
-    var topLevel = _encoders[contentType.primaryType];
+    var topLevel = Response._encoders[contentType.primaryType];
     if (topLevel == null) {
       throw new RequestException("No encoder for $contentTypeValue, add with Request.addEncoder().");
     }
@@ -174,6 +163,7 @@ class Request implements RequestControllerEvent {
     return "${innerRequest.method} ${this.innerRequest.uri} (${this.receivedDate.millisecondsSinceEpoch})";
   }
 
+  /// A string that represents more details about the request, typically used for logging.
   String toDebugString({bool includeElapsedTime: true, bool includeRequestIP: true, bool includeMethod: true, bool includeResource: true, bool includeStatusCode: true, bool includeContentSize: false, bool includeHeaders: false, bool includeBody: false}) {
     var builder = new StringBuffer();
     if (includeRequestIP) {

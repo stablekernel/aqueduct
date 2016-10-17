@@ -5,6 +5,32 @@ part of aqueduct;
 /// This object can be used to write an HTTP response and contains conveniences
 /// for creating these objects.
 class Response implements RequestControllerEvent {
+  /// Adds an HTTP Response Body encoder to list of available encoders for all [Request]s.
+  ///
+  /// By default, 'application/json' and 'text/plain' are implemented. If you wish to add another encoder
+  /// to your application, use this method. The [encoder] must take one argument of any type, and return a value
+  /// that will become the HTTP response body.
+  ///
+  /// The return value is written to the response with [IOSink.write] and so it must either be a [String] or its [toString]
+  /// must produce the desired value.
+  static void addEncoder(ContentType type, dynamic encoder(dynamic value)) {
+    var topLevel = _encoders[type.primaryType];
+    if (topLevel == null) {
+      topLevel = {};
+      _encoders[type.primaryType] = topLevel;
+    }
+
+    topLevel[type.subType] = encoder;
+  }
+  static Map<String, Map<String, Function>> _encoders = {
+    "application" : {
+      "json" : (v) => JSON.encode(v),
+    },
+    "text" : {
+      "plain" : (Object v) => v.toString()
+    }
+  };
+
   /// An object representing the body of the [Response], which will be encoded when used to [Request.respond].
   ///
   /// This is typically a map or list of maps that will be encoded to JSON. If the [body] was previously set with a [HTTPSerializable] object

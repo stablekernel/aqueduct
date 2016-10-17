@@ -2,14 +2,14 @@ part of aqueduct;
 
 /// Describes a CORS policy for a [RequestController].
 ///
-/// These instances can be set as a [RequestController]s [policy] property, which will
+/// These instances can be set as a [RequestController.policy], which will
 /// manage CORS requests according to the policy's properties.
 class CORSPolicy {
   /// The default CORS policy.
   ///
   /// You may modify this default policy. All instances of [CORSPolicy] are instantiated
-  /// using the values of this default policy.
-  ///
+  /// using the values of this default policy. Do not modify this property
+  /// unless you want the defaults to change application-wide.
   static CORSPolicy get defaultPolicy {
     if (_defaultPolicy == null) {
       _defaultPolicy = new CORSPolicy._defaults();

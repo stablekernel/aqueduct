@@ -1,12 +1,16 @@
 part of aqueduct;
 
-/// A representation of a Route match, containing the elements of the matched path.
+/// The HTTP request path decomposed into variables and segments based on a [RouteSpecification].
 ///
-/// Instances of this class can be used by controllers after the router to inspect
-/// specifics of the incoming path without having to dissect the path on their own.
-class RequestPath {
-  /// Default constructor for [RequestPath].
-  RequestPath(RouteSpecification specification, List<String> requestSegments) {
+/// After passing through a [Router], a [Request] will have an instance of [HTTPRequestPath] in [Request.path].
+/// Any variable path parameters will be available in [variables].
+///
+/// For each request passes through a router, a new instance of this type is created specific to that request.
+class HTTPRequestPath {
+  /// Default constructor for [HTTPRequestPath].
+  ///
+  /// There is no need to invoke this constructor manually.
+  HTTPRequestPath(RouteSpecification specification, List<String> requestSegments) {
     segments = requestSegments;
     orderedVariableNames = [];
 
@@ -31,14 +35,13 @@ class RequestPath {
     }
   }
 
-  /// A map of variable to values in this match.
+  /// A [Map] of path variables.
   ///
-  /// If a path has variables (indicated by the :name syntax) in the path,
-  /// the matching segments for the path will be stored in the map. The key
+  /// If a path has variables (indicated by the :variable syntax),
+  /// the matching segments for the path variables will be stored in the map. The key
   /// will be the variable name (without the colon) and the value will be the
   /// path segment as a string.
   ///
-  /// Example:
   /// Consider a match specification /users/:id. If the evaluated path is
   ///     /users/2
   /// This property will be {'id' : '2'}.
@@ -49,10 +52,10 @@ class RequestPath {
   ///
   /// This property will contain every segment of the matched path, including
   /// constant segments. It will not contain any part of the path caught by
-  /// the asterisk 'match all' token, however. Those are in [remainingPath].
+  /// the asterisk 'match all' token (*), however. Those are in [remainingPath].
   List<String> segments = [];
 
-  /// If a match specification uses the asterisk 'match all' token,
+  /// If a match specification uses the 'match all' token (*),
   /// the part of the path matched by that token will be stored in this property.
   ///
   /// The remaining path will will be a single string, including any path delimiters (/),
@@ -63,14 +66,14 @@ class RequestPath {
   ///
   /// If no path variables are present in the request, this list is empty. Only path variables that are
   /// available for the specific request are in this list. For example, if a route has two path variables,
-  /// but the incoming request this [RequestPath] represents only has one variable, only that one variable
+  /// but the incoming request this [HTTPRequestPath] represents only has one variable, only that one variable
   /// will appear in this property.
   List<String> orderedVariableNames = [];
 }
 
 /// Specifies a matchable route path.
 ///
-/// Contains [RouteSegment]s for each path segment.
+/// Contains [RouteSegment]s for each path segment. This class is used internally by [Router].
 class RouteSpecification extends Object with APIDocumentable {
   static List<RouteSpecification> specificationsForRoutePattern(String routePattern) {
     return _pathsFromRoutePattern(routePattern)
@@ -95,11 +98,6 @@ class RouteSpecification extends Object with APIDocumentable {
   /// A reference back to the [RequestController] to be used when this specification is matched.
   RequestController controller;
 
-  /// Returns a [List] one [APIPath].
-  ///
-  /// This method will create and return an [APIPath] for the path that it represents. It will
-  /// invoke the [documentOperations] on its [controller] to retrieve a list of [APIOperation]s. Those operations
-  /// will be filtered to only include those that have matching parameters.
   @override
   List<APIPath> documentPaths(PackagePathResolver resolver) {
     var p = new APIPath();
@@ -159,6 +157,7 @@ class RouteSpecification extends Object with APIDocumentable {
   String toString() => segments.join("/");
 }
 
+/// Used internally.
 class RouteSegment {
   RouteSegment(String segment) {
     if (segment == "*") {

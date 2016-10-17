@@ -86,7 +86,7 @@ class Application<RequestSinkType extends RequestSink> {
 
   APIDocument document(PackagePathResolver resolver) {
     RequestSink sink = reflectClass(RequestSinkType).newInstance(new Symbol(""), [configuration.configurationOptions]).reflectee;
-    sink.addRoutes();
+    sink.setupRouter(sink.router);
     sink.router.finalize();
 
     return sink.documentAPI(resolver);

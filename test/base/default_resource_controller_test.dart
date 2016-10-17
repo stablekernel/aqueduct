@@ -309,7 +309,7 @@ class TestSink extends RequestSink {
   }
 
   @override
-  void addRoutes() {
+  void setupRouter(Router router) {
     router
         .route("/controller/[:id]")
         .generate(() => new ManagedObjectController<TestModel>());

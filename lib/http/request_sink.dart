@@ -1,32 +1,36 @@
 part of aqueduct;
 
-/// A abstract class that concrete subclasses will implement to provide request handling behavior.
+/// Instances of this class are responsible for setting up routing and resources used by an [Application].
 ///
 /// [Application]s set up HTTP(S) listeners, but do not do anything with them. The behavior of how an application
 /// responds to requests is defined by its [RequestSink]. Must be subclassed.
+///
+/// A [RequestSink] must implement its constructor and [setupRouter]. HTTP requests to the [Application] are added to a [RequestSink]
+/// for processing. The path the HTTP request takes is determined by the [RequestController] chains in [setupRouter]. A [RequestSink]
+/// is also a [RequestController], but will always forward HTTP requests on to its [initialHandler].
 abstract class RequestSink extends RequestController implements APIDocumentable {
   /// Default constructor.
   ///
-  /// The default constructor takes a [Map] of configuration [options]. The constructor should initialize
-  /// properties that will be used throughout the callbacks executed during initialization. For any code that requires async initialization,
-  /// use [willOpen]. However, it is important to note that any properties that are used during initialization callbacks (like [addRoutes]) should be
+  /// The default constructor takes a [Map] of configuration [options]. This [Map] is the same [Map] in [ApplicationConfiguration.configurationOptions].
+  ///
+  /// For any code that requires async initialization, use [willOpen]. However, it is important to note that any properties that are used during initialization callbacks (like [setupRouter]) should be
   /// initialized in this constructor and not during [willOpen]. If properties that are needed during initialization callbacks
   /// must be initialized asynchronously, those properties should implement their own deferred initialization mechanism
   /// that can be triggered in [willOpen], but still must be initialized in this constructor.
   RequestSink(this.options);
 
-  /// Documentation info for this stream.
+  /// Documentation info for this instance.
   APIInfo apiInfo = new APIInfo();
 
-  /// This stream's owning server.
+  /// This instance's owning server.
   ///
-  /// Reference back to the owning server sending requests into this stream.
+  /// Reference back to the owning server that adds requests into this sink.
   ApplicationServer server;
 
-  /// This stream's router.
+  /// This instance's router.
   ///
-  /// The default router for a stream. Configure [router] by adding routes to it in [addRoutes].
-  /// Using a router other than this router will impede the stream's ability to generate documentation.
+  /// The default router for this instance. Configure [router] by adding routes to it in [setupRouter].
+  /// Using a router other than this router will impede the sink's ability to generate documentation.
   Router router = new Router();
 
   /// Configuration options from the application.
@@ -35,57 +39,50 @@ abstract class RequestSink extends RequestController implements APIDocumentable 
   /// from configuration data. This property is set in the constructor.
   Map<String, dynamic> options;
 
-  /// Returns the first controller in the responder stream.
+  /// Returns the first [RequestController] to handle HTTP requests added to this sink.
   ///
-  /// When a [Request] is delivered to the stream, this
+  /// When a [Request] is delivered to this instance, this
   /// controller will be the first to act on it.  By default, this is [router].
-  RequestController initialController() {
-    return router;
-  }
+  RequestController get initialController => router;
 
-  /// Callback for implementing this stream's routing table.
+  /// Callback for implementing this instances's routing table.
   ///
-  /// Routes should only be added in this method to this instance's [router]. This method will execute prior to [willOpen] being called,
-  /// so any properties this stream needs to handle route setup must be set in this instance's constructor.
-  void addRoutes();
+  /// Routes should only be added to [router] in this method. This method will execute prior to [willOpen] being called,
+  /// so any properties this instance needs to handle route setup must be set in this instance's constructor. The argument
+  /// to this method is the same instance as the property [RequestSink.router].
+  void setupRouter(Router router);
 
-  /// Callback executed prior to this stream receiving requests.
+  /// Callback executed prior to this instance receiving requests.
   ///
-  /// This method allows the stream to perform any asynchronous initialization prior to
-  /// receiving requests. The stream will not open until the [Future] returned from this method completes.
+  /// This method allows the instance to perform any asynchronous initialization prior to
+  /// receiving requests. The instance will not start accepting HTTP requests until the [Future] returned from this method completes.
   Future willOpen() async {
 
   }
 
-  /// Executed after the stream is attached to an [HttpServer].
+  /// Executed after the instance is is open to handle HTTP requests.
   ///
   /// This method is executed after the [HttpServer] is started and
   /// the [initialController] has been set to start receiving requests.
-  /// Because requests could potentially be queued prior to this stream
+  /// Because requests could potentially be queued prior to this instance
   /// being opened, a request could be received prior to this method being executed.
   void didOpen() {}
 
-  /// Executed for each [Request] that will be sent to this stream.
+  /// Executed for each [Request] that will be sent to this instance.
   ///
   /// This method will run prior to each request being [receive]ed to this
-  /// stream's [initialController]. Use this method to provide additional
+  /// instance's [initialController]. Use this method to provide additional
   /// context to the request prior to it being handled.
   Future willReceiveRequest(Request request) async {
 
   }
 
-  /// Document generator for stream.
-  ///
-  /// This method will return a new [APIDocument]. It will derive the [APIDocument.paths] from its [initialController],
-  /// which must return a [List] of [APIPath]s. By default, the [initialController] is a [Router], which
-  /// implements [Router.document] to return that list. However, if you change the [initialController], you
-  /// must override its [document] method to return the same.
   @override
   APIDocument documentAPI(PackagePathResolver resolver) {
     var doc = new APIDocument()
       ..info = apiInfo;
 
-    doc.paths = initialController().documentPaths(resolver);
+    doc.paths = initialController.documentPaths(resolver);
     doc.securitySchemes = this.documentSecuritySchemes(resolver);
 
     var host = new Uri(scheme: "http", host: "localhost");

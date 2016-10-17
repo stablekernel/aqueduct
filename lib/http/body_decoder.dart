@@ -1,22 +1,14 @@
 part of aqueduct;
 
-/// A decoding method for decoding a stream of bytes into a String based.
+/// A decoding method for decoding a stream of bytes from an HTTP request body into a String.
 ///
-/// Typically, this represents the function [Utf8Codec.decodeStream].
+/// This function is used as part of the [HTTPBodyDecoder] process. Typically, this represents the function [Utf8Codec.decodeStream].
 typedef Future<String> HTTPBodyStreamDecoder(Stream<List<int>> s);
 
+/// Instances of this class decode HTTP request bodies according to their content type.
+///
+/// Default decoders are available for 'application/json', 'application/x-www-form-urlencoded' and 'text/*'.
 class HTTPBodyDecoder {
-  /// The set of available decoders for HTTP request data.
-  ///
-  /// The HTTP header for Content-Type is broken into two pieces, primary type (e.g., 'application') and subtype (e.g., 'json').
-  /// The primary type is the first key in [_decoders], and then the subtype is used to return the specific encoding
-  /// function from this map. Decoders take a [HttpRequest] and return the decoded value of the request body based on the Content-Type pair.
-  /// The following decoders are supported by default (you may add extra decoders using [addDecoder], do not manipulate [_decoders] directly.)
-  ///
-  ///       application/json
-  ///       application/x-www-form-urlencoded
-  ///       text/*
-  ///
   static Map<String, Map<String, Function>> _decoders = {
     "application" : {
       "json" : _jsonDecoder,
