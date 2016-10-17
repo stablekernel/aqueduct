@@ -20,8 +20,7 @@ Future<List<TestUser>> createUsers(int count) async {
 
 class TestUser extends ManagedObject<_User> implements _User {}
 class _User implements Authenticatable {
-  @managedPrimaryKey
-  int id;
+  @managedPrimaryKey int id;
 
   String username;
   String hashedPassword;
@@ -59,6 +58,7 @@ class _AuthCode implements AuthTokenExchangable<Token> {
   @ManagedColumnAttributes(nullable: true)
   String redirectURI;
   String clientID;
+
   int resourceOwnerIdentifier;
   DateTime issueDate;
   DateTime expirationDate;

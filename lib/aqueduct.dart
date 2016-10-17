@@ -34,6 +34,7 @@ import 'dart:isolate';
 import 'dart:math';
 import 'dart:mirrors';
 
+import 'package:meta/meta.dart';
 import 'package:analyzer/analyzer.dart';
 import 'package:args/args.dart';
 import 'package:crypto/crypto.dart';

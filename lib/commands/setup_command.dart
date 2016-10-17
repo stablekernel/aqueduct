@@ -2,7 +2,7 @@ part of aqueduct;
 
 class CLISetup extends CLICommand {
   ArgParser options = new ArgParser(allowTrailingOptions: false)
-    ..addOption("granting-user", abbr: "u", defaultsTo: "postgres", help: "The username of the PostgreSQL user that can create new users and databases")
+    ..addOption("granting-user", abbr: "u", defaultsTo: "postgres", help: "The username of the PostgreSQL user that can create new users and databases.")
     ..addFlag("confirm", abbr: "c", negatable: false, help: "Confirms that you wish to carry out this setup.")
     ..addFlag("help", abbr: "h", negatable: false, help: "Shows this documentation");
 
