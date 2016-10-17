@@ -56,8 +56,16 @@ class CLISetup extends CLICommand {
         print("Database dart_test already exists, continuing.");
       } else if (result.stderr.contains("role \"dart\" already exists")) {
         print("User 'dart' already exists, continuing.");
+      } else if (result.stderr.contains("could not connect to server")) {
+        print("Database is not accepting connections. Ensure that PostgreSQL is running locally.");
+        return -1;
+      } else if (result.stderr.length > 0) {
+        print("Unknown error: ${result.stderr}");
+        return -1;
       }
     }
+
+    print("Congratulations! Aqueduct applications can now be tested locally.");
 
     return 0;
   }
