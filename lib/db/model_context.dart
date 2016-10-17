@@ -1,21 +1,25 @@
 part of aqueduct;
 
-/// Instances are responsible for coordinate with a [DataModel] and [PersistentStore] to execute queries and
+/// Coordinates with a [DataModel] and [PersistentStore] to execute queries and
 /// translate between [Model] objects and a database.
 ///
-/// A [Query] must have a valid [ModelContext] to execute.
+/// A [Query] must have a valid [ModelContext] to execute. Most applications only need one [ModelContext],
+/// so the first [ModelContext] instantiated becomes the [ModelContext.defaultContext]]
 class ModelContext {
-  /// The default context that all [Query]s run on.
+  /// The default context that a [Query] runs on.
   ///
-  /// By default, this will be the first [ModelContext] instantiated in an isolate. Most applications
-  /// will not use more than one [ModelContext]. For the purpose of testing, you should set
+  /// For classes that require a [ModelContext] - like [Query] - this is the default context when none
+  /// is specified.
+  ///
+  /// This value is set when the first [ModelContext] instantiated in an isolate. Most applications
+  /// will not use more than one [ModelContext]. When running tests, you should set
   /// this value each time you instantiate a [ModelContext] to ensure that a previous test isolate
-  /// state does not set this property.
+  /// state did not set this property.
   static ModelContext defaultContext = null;
 
   /// Creates an instance of [ModelContext] from a [DataModel] and [PersistentStore].
   ///
-  /// If this is the first [ModelContext] instantiated on an isolate, this instance will because the [defaultContext].
+  /// If this is the first [ModelContext] instantiated on an isolate, this instance will because the [ModelContext.defaultContext].
   ModelContext(this.dataModel, this.persistentStore) {
     if (defaultContext == null) {
       defaultContext = this;
@@ -28,6 +32,9 @@ class ModelContext {
   /// The data model containing the [ModelEntity]s for all types that are managed by this context.
   DataModel dataModel;
 
+  /// Returns an entity for a type from [dataModel].
+  ///
+  /// See [DataModel.entityForType].
   ModelEntity entityForType(Type type) {
     return dataModel.entityForType(type);
   }

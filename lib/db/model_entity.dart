@@ -1,12 +1,23 @@
 part of aqueduct;
 
-/// Instances are a representation of a table in a database.
+/// Mapping information between a table in a database and a [Model] object.
 ///
-/// A model entity describes all of the properties of a [Model] object. A property is either an attribute or
-/// a relationship. Attributes always map to a similarly named column in the persistent storage for a [Model].
-/// A relationship property represents a foreign key value in persistent storage in the case of a [belongsTo] relationship.
-/// For [hasOne] and [hasMany] relationships, the relationship property is not backed in persistent storage, but is still
-/// a property of the [Model] object.
+/// An entity defines the mapping between a database table and [Model] subclass. It is a necessary component of the overall ORM capabilities
+/// of Aqueduct. It may also be used at runtime to reflect on the database table and [Model] that represents that table in a more meaningful way.
+///
+/// Instances of this class are automatically created by [DataModel]. In general, you do not need to use instances
+/// of this class.
+///
+/// An entity describes the properties that a subclass of [Model] will have and their representation in the underlying database.
+/// Each of these properties are represented by an instance of a [PropertyDescription] subclass. A property is either an attribute or a relationship.
+///
+/// Attribute values are scalar (see [PropertyType]) - [int], [String], [DateTime], [double] and [bool].
+/// Attributes are typically backed by a column in the underlying database for a [Model], but may also represent transient values
+/// defined by the [instanceType].
+/// Attributes are represented by [AttributeDescription].
+///
+/// The value of a relationship property is a reference to another [Model]. If a relationship property has [RelationshipInverse] metadata,
+/// the property is backed be a foreign key column in the underlying database. Relationships are represented by [RelationshipDescription].
 class ModelEntity {
   /// Creates an instance of a ModelEntity.
   ///
@@ -16,19 +27,19 @@ class ModelEntity {
   /// The type of instances represented by this entity.
   ///
   /// Model objects are made up of two components, a persistent type and an instance type. Applications
-  /// use instance types. This value is the [ClassMirror] on that type.
+  /// use instances of the instance type to work with queries and data from the database table this entity represents. This value is the [ClassMirror] on that type.
   final ClassMirror instanceType;
 
   /// The type of persistent instances represented by this entity.
   ///
-  /// Model objects are made up of two components, a persistent type and an instance type. This value
-  /// is the [ClassMirror] on the persistent portion of a [Model] object.
+  /// Model objects are made up of two components, a persistent type and an instance type. The system uses this type to define
+  /// the mapping to the underlying database table. This value is the [ClassMirror] on the persistent portion of a [Model] object.
   final ClassMirror persistentType;
 
   /// The [DataModel] this instance belongs to.
   final DataModel dataModel;
 
-  /// Schema of the model as returned from a request
+  /// Schema of the model as returned in a response to use in generating documentation.
   APISchemaObject get documentedResponseSchema {
     return new APISchemaObject()
       ..title = MirrorSystem.getName(instanceType.simpleName)
@@ -36,7 +47,7 @@ class ModelEntity {
       ..properties = _propertiesForEntity(this);
   }
 
-  /// Schema of the model as returned from a request
+  /// Schema of the model as returned from a request to use in generating documentation.
   APISchemaObject get documentedRequestSchema {
     return new APISchemaObject()
       ..title = MirrorSystem.getName(instanceType.simpleName)
@@ -46,16 +57,19 @@ class ModelEntity {
 
   /// All attribute values of this entity.
   ///
-  /// An attribute maps to a single column or field in a database that is a single value, such as a string, integer, etc.
+  /// An attribute maps to a single column or field in a database that is a scalar value, such as a string, integer, etc. or a
+  /// transient property declared in the instance type.
   /// The keys are the case-sensitive name of the attribute. Values that represent a relationship to another object
   /// are not stored in [attributes].
   Map<String, AttributeDescription> attributes;
 
   /// All relationship values of this entity.
   ///
-  /// A relationship represents a value that is another [Model] or [List] of [Model]s. Not all relationships
-  /// correspond to a column or field in a database. In a relational database, if the [RelationshipDescription]
-  /// has a [relationshipType] of [RelationshipType.belongsTo], the relationship represents the foreign key column.
+  /// A relationship represents a value that is another [Model] or [OrderedSet] of [Model]s. Not all relationships
+  /// correspond to a column or field in a database, only those with [RelationshipInverse] metadata (see also [RelationshipType.belongsTo]). In
+  /// this case, the underlying database column is a foreign key reference. The underlying database does not have storage
+  /// for [RelationshipType.hasMany] or [RelationshipType.hasOne] properties, as those values are derived by the foreign key reference
+  /// on the inverse relationship property.
   /// Keys are the case-sensitive name of the relationship.
   Map<String, RelationshipDescription> relationships;
 
@@ -94,20 +108,24 @@ class ModelEntity {
   }
   List<String> _defaultProperties;
 
-  /// Name of primaryKey property.
+  /// Name of primary key property.
   ///
   /// If this has a primary key (as determined by the having an [ColumnAttributes] with [ColumnAttributes.primaryKey] set to true,
-  /// returns the name of that property. Otherwise, returns null.
+  /// returns the name of that property. Otherwise, returns null. Entities should always have a primary key.
   String get primaryKey {
     return _primaryKey;
   }
   String _primaryKey;
 
-  /// Name of table in database.
+  /// Name of table in database this entity maps to.
   ///
-  /// By default, the table will be named by the persistent type, e.g., a model class defined as class User extends Model<_User> implements _User has a persistent
-  /// type of _User. The table will be named _User. You may implement the static method [tableName] on the persistent type to return a [String] table
-  /// name override this behavior. If this method is implemented, this property will be the returned [String].
+  /// By default, the table will be named by the persistent type, e.g., a model declared as so will have a [tableName] of '_User'.
+  ///
+  ///       class User extends Model<_User> implements _User {}
+  ///       class _User { ... }
+  ///
+  /// You may implement the static method [tableName] on the persistent type to return a [String] table
+  /// name override this default.
   String get tableName {
     return _tableName;
   }
@@ -118,6 +136,7 @@ class ModelEntity {
     return tableName.hashCode;
   }
 
+  /// Creates a new instance of this entity's instance type.
   Model newInstance() {
     var model = instanceType.newInstance(new Symbol(""), []).reflectee as Model;
     model.entity = this;

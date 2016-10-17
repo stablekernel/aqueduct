@@ -1,26 +1,25 @@
 part of aqueduct;
 
-/// Order value for [SortDescriptor]s.
+/// Order value for [SortDescriptor]s and [QueryPage]s.
 enum SortOrder {
-  /// Ascending order; 1, 2, 3, 4, ...
+  /// Ascending order. Example: 1, 2, 3, 4, ...
   ascending,
 
-  /// Descending order, 4, 3, 2, 1, ...
+  /// Descending order. Example: 4, 3, 2, 1, ...
   descending
 }
 
-/// A key and order that defines the desired order of a collection of objects that contain key.
+/// The order in which a collection of objects should be sorted when returned from a database.
+///
+/// See [Query.sortDescriptors] and [Query.pageDescriptor] for more details.
 class SortDescriptor {
-  /// The name of a property on an object to be sorted.
-  ///
-  /// Consider an object having the DateTime property 'dateCreated'. To define
-  /// a [SortDescriptor] that sorts by that property, the key is simply the string 'dateCreated'.
+  SortDescriptor(this.key, this.order);
+
+  /// The name of a property to sort by.
   String key;
 
   /// The order in which values should be sorted.
   ///
   /// See [SortOrder] for possible values.
   SortOrder order;
-
-  SortDescriptor(this.key, this.order);
 }

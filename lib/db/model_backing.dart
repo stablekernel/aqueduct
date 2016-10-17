@@ -65,7 +65,7 @@ class _ModelMatcherBacking extends _ModelBacking {
       return;
     }
 
-    if (value is MatcherExpression) {
+    if (value is _MatcherExpression) {
       var relDesc = entity.relationships[propertyName];
 
       if (relDesc != null && relDesc.relationshipType != RelationshipType.belongsTo) {

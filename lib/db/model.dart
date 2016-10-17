@@ -1,34 +1,40 @@
 part of aqueduct;
 
-/// A database row represented as an object.
+/// Represents a row in a database.
 ///
-/// Provides storage, serialization and deserialization capabilities.
-/// Instance types in an application extend [Model<PersistentType>], where the instance type must also implement [PersistentType]. [PersistentType] holds properties
-/// that are persisted in a database. The subclass of [Model<PersistentType>]
-/// is known as the 'instance type'. Any properties in the instance type are not persisted, except those they inherit from [PersistentType].
-/// Model instances are used in an application. Example:
+/// Subclasses of [Model] represent a single row in a database. Model objects are also capable of serializing themselves into data
+/// that can be encoded (into a format like JSON) and can be deserialized from similar data structures. Subclasses of
+/// [Model] are called 'instance types'. These subclasses must also implement their [PersistentType]. The [PersistentType]
+/// is a one-to-one mapping to a database table. Each property in the [PersistentType] is a column in the database table it represents.
 ///
-/// class User extends Model<_User> implements _User {
-///   String name; // Not persisted
-/// }
-/// class _User {
-///   @primaryKey
-///   int id; // persisted
-/// }
+/// Model objects are also used in building queries. See [Query.matchOn] and [Query.values].
 ///
+///         class User extends Model<_User> implements _User {
+///           String name; // Not persisted
+///         }
+///         class _User {
+///           @primaryKey int id; // persisted
+///         }
 class Model<PersistentType> extends Object with _QueryMatchableExtension implements Serializable, QueryMatchable {
+  /// Used when building a [Query] to include instances of this type.
+  ///
+  /// A [Query] will, by default, fetch rows from a single table and return them as instances
+  /// of the corresponding [Model] subclass. Setting this property to true on a property
+  /// of the queried instance type will cause the [Query] to also fetch instances of this type
+  /// using a SQL join.
+  bool includeInResultSet = false;
+
   /// The [ModelEntity] this instance is described by.
   ModelEntity entity = ModelContext.defaultContext.dataModel.entityForType(PersistentType);
 
   _ModelBacking _backing = new _ModelValueBacking();
-
-  bool includeInResultSet = false;
   Map<String, dynamic> get _matcherMap => backingMap;
 
   /// The values available in this representation.
   ///
   /// Not all values are fetched or populated in a [Model] instance. This value contains
-  /// any key-value pairs for properties that are stored in this instance.
+  /// key-value pairs for the model object that have been set, either manually
+  /// or when fetched from a database. When [Model] is instantiated, this map is empty.
   Map<String, dynamic> get backingMap => _backing.valueMap;
 
   /// Retrieves a value by property name.
@@ -39,10 +45,14 @@ class Model<PersistentType> extends Object with _QueryMatchableExtension impleme
     _backing.setValueForProperty(entity, propertyName, value);
   }
 
+  /// Removes a property from the backing map.
+  ///
+  /// This will remove a value from the backing map.
   void removePropertyFromBackingMap(String propertyName) {
     _backing.removeProperty(propertyName);
   }
 
+  /// Checks whether or not a property has been set in this instance.
   bool hasValueForProperty(String propertyName) {
     return backingMap.containsKey(propertyName);
   }
@@ -65,6 +75,9 @@ class Model<PersistentType> extends Object with _QueryMatchableExtension impleme
   }
 
   /// Populates the properties of a Model object from a map.
+  ///
+  /// This method will thrown an exception if a key in the map does not
+  /// match a property of the receiver.
   ///
   /// Usage:
   ///     var values = JSON.decode(requestBody);
@@ -106,6 +119,9 @@ class Model<PersistentType> extends Object with _QueryMatchableExtension impleme
   ///
   /// This method returns a map of the key-values pairs represented by the model object, typically then converted into a transmission format like JSON.
   ///
+  /// Only properties present in [backingMap] are serialized, otherwise, they are omitted from the map. If a property is present in [backingMap] and the value is null,
+  /// the value null will be serialized for that property key.
+  ///
   /// Usage:
   ///     var json = JSON.encode(model.asMap());
   Map<String, dynamic> asMap() {
@@ -128,6 +144,7 @@ class Model<PersistentType> extends Object with _QueryMatchableExtension impleme
     return outputMap;
   }
 
+  /// Returns the output of [asMap].
   dynamic asSerializable() {
     return asMap();
   }

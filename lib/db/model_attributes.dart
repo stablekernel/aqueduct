@@ -1,36 +1,60 @@
 part of aqueduct;
 
-/// Possible values for a delete rule in a [Relationship]
-///
-/// * [restrict] will prevent a delete operation if there is a reference to the would-be deleted object.
-/// * [cascade] will delete all objects with references to this relationship.
-/// * [nullify] will nullify the relationship from the related object.
-/// * [setDefault] will set the relationship to its default value (if one exists) upon deletion.
+/// Possible values for a delete rule in a [RelationshipInverse].
 enum RelationshipDeleteRule {
+  /// Will prevent a delete operation if there is a reference to the would-be deleted object.
   restrict,
+  /// All objects with a foreign key reference to the deleted object will also be deleted.
   cascade,
+  /// All objects with a foreign key reference to the deleted object will have that reference nullified.
   nullify,
+  /// All objects with a foreign key reference to the deleted object will have that reference set to the column's default value.
   setDefault
 }
 
+foo
+
+/// A property with this metadata indicates that the entity
+///
+/// A property with this metadata will be an actual column in the database with a foreign key constraint. Adding this metadata
+/// to a property dictates ownership semantics of a relationship. The entity with a property marked with this metadata 'belongs to'
+/// the related entity.
 class RelationshipInverse {
   const RelationshipInverse(this.inverseKey, {this.onDelete: RelationshipDeleteRule.nullify, this.isRequired: false});
 
+  /// The symbol for the property in the related entity.
+  ///
+  /// For example, if a Parent entity has a property named 'children',
+  /// the Child entity must have a 'parent' property. The [RelationshipInverse] metadata for the 'parent' property should set
+  /// this value to 'children'.
   final Symbol inverseKey;
+
+  /// The delete rule to use when a related instance is deleted.
+  ///
+  /// For example, if a Parent entity has a property named 'children',
+  /// the Child entity must have a 'parent' property (with [RelationshipInverse] metadata). If the Parent is deleted, its 'children' will
+  /// be impacted according to this rule. See [RelationshipDeleteRule] for possible options.
+  ///
+  /// If [isRequired] is true, this value may not be [RelationshipDeleteRule.nullify]. This value defaults to [RelationshipDeleteRule.nullify].
   final RelationshipDeleteRule onDelete;
+
+  /// Whether or not this relationship is required.
+  ///
+  /// By default, [RelationshipInverse] properties are not required to support the default value of [onDelete].
+  /// By setting this value to true, an instance of this entity cannot be created without a valid value for the relationship property.
   final bool isRequired;
 }
 
 /// The different types of relationships.
-///
-/// In SQL terminology, the model with the [belongsTo] relationship will hold the foreign key to the inverse relationship.
-/// * [hasOne] prevents the relationship from having more than one foreign key reference.
-/// * [hasMany] establishes a to-many relationship to the related model.
-/// * [belongsTo] is the inverse of [hasOne] and [hasMany].
 enum RelationshipType {
+  ///
   hasOne,
   hasMany,
-  belongsTo // foreign key goes on this entity
+
+  /// A relationship property of this kind will be a foreign key reference to another entity.
+  ///
+  /// See [RelationshipInverse].
+  belongsTo
 }
 
 /// Marks a property as a primary key, database type big integer, and autoincrementing. The corresponding property

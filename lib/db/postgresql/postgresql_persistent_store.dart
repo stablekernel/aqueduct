@@ -2,7 +2,7 @@ part of aqueduct;
 
 typedef Future<PostgreSQLConnection> PostgreSQLConnectionFunction();
 
-class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGenerator {
+class PostgreSQLPersistentStore extends PersistentStore with _PostgreSQLSchemaGenerator {
   static Logger logger = new Logger("aqueduct");
   static Map<MatcherOperator, String> symbolTable = {
     MatcherOperator.lessThan : "<",
@@ -21,9 +21,7 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
     PropertyType.doublePrecision : PostgreSQLDataType.double
   };
 
-  PostgreSQLConnection _databaseConnection;
   PostgreSQLConnectionFunction connectFunction;
-  Completer<PostgreSQLConnection> _pendingConnectionCompleter;
   String username;
   String password;
   String host;
@@ -31,7 +29,8 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
   String databaseName;
   String timeZone = "UTC";
 
-  String get _versionTableName => "_aqueduct_version_pgsql";
+  PostgreSQLConnection _databaseConnection;
+  Completer<PostgreSQLConnection> _pendingConnectionCompleter;
 
   PostgreSQLPersistentStore(this.connectFunction) : super();
   PostgreSQLPersistentStore.fromConnectionInfo(this.username, this.password, this.host, this.port, this.databaseName, {this.timeZone: "UTC"}) {
@@ -43,6 +42,10 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
     };
   }
 
+  /// Retrieves a connection to the database this store manages.
+  ///
+  /// If no connection exists, one will be created. A store will have no more than one connection at a time.
+  /// You should rarely need to access this connection directly.
   Future<PostgreSQLConnection> getDatabaseConnection() async {
     if (_databaseConnection == null || _databaseConnection.isClosed) {
       if (connectFunction == null) {
@@ -464,15 +467,6 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
     return null;
   }
 
-  SchemaTable get _versionTable {
-    return new SchemaTable.empty()
-      ..name = _versionTableName
-      ..columns = [
-        (new SchemaColumn.empty()..name = "versionNumber".._type = SchemaColumn.typeStringForType(PropertyType.integer)),
-        (new SchemaColumn.empty()..name = "dateOfUpgrade".._type = SchemaColumn.typeStringForType(PropertyType.datetime)),
-      ];
-  }
-
   Future _createVersionTableIfNecessary(bool temporary) async {
     var conn = await getDatabaseConnection();
     var commands = createTable(_versionTable, isTemporary: temporary);
@@ -487,15 +481,6 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
         rethrow;
       }
     }
-  }
-}
-
-class PostgreSQLPersistentStoreException implements Exception {
-  PostgreSQLPersistentStoreException(this.message);
-  String message;
-
-  String toString() {
-    return "PostgreSQLPersistentStoreException: $message";
   }
 }
 
