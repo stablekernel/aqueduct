@@ -2,6 +2,7 @@ part of aqueduct;
 
 /// An interface for implementing persistent storage.
 ///
+/// You rarely need to use this class directly. See [Query] for how to interact with instances of this class.
 /// Implementors of this class serve as the bridge between [Query]s and a specific database.
 abstract class PersistentStore {
   /// Executes an arbitrary command.
@@ -10,14 +11,26 @@ abstract class PersistentStore {
   /// Closes the underlying database connection.
   Future close();
 
+  /// Inserts a row described by [q] into the database and returns a [List] of its column values.
+  ///
+  /// Each [PersistentColumnMapping] is a column-value pair from the database.
   Future<List<PersistentColumnMapping>> executeInsertQuery(PersistentStoreQuery q);
 
-  /// Return a list of rows, where each row is a list of MappingElements that correspond to columns.
+  /// Return a list of rows, where each row is a [List] of [PersistentColumnMapping]s.
   ///
+  /// Each [PersistentColumnMapping] is a column-value pair from the database.
   /// The [PersistentStoreQuery] will contain an ordered list of columns to include in the result.
   /// The return value from this method MUST match that same order.
   Future<List<List<PersistentColumnMapping>>> executeFetchQuery(PersistentStoreQuery q);
+
+  /// Deletes rows described by [q].
+  ///
+  /// Returns the number of rows deleted.
   Future<int> executeDeleteQuery(PersistentStoreQuery q);
+
+  /// Updates rows described by [q] and returns a [List] of rows that were altered.
+  ///
+  /// Each [PersistentColumnMapping] is a column-value pair from the database.
   Future<List<List<PersistentColumnMapping>>> executeUpdateQuery(PersistentStoreQuery q);
 
   QueryPredicate comparisonPredicate(ManagedPropertyDescription desc, MatcherOperator operator, dynamic value);

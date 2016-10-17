@@ -30,27 +30,27 @@ class WildfireSink extends RequestSink {
   void addRoutes() {
     router
         .route("/auth/token")
-        .pipe(new Authenticator(authenticationServer, strategy: AuthStrategy.client))
+        .pipe(new Authorizer(authenticationServer, strategy: AuthStrategy.client))
         .generate(() => new AuthController(authenticationServer));
 
     router
         .route("/auth/code")
-        .pipe(new Authenticator(authenticationServer, strategy: AuthStrategy.client))
+        .pipe(new Authorizer(authenticationServer, strategy: AuthStrategy.client))
         .generate(() => new AuthCodeController(authenticationServer));
 
     router
         .route("/identity")
-        .pipe(new Authenticator(authenticationServer))
+        .pipe(new Authorizer(authenticationServer))
         .generate(() => new IdentityController());
 
     router
         .route("/register")
-        .pipe(new Authenticator(authenticationServer, strategy: AuthStrategy.client))
+        .pipe(new Authorizer(authenticationServer, strategy: AuthStrategy.client))
         .generate(() => new RegisterController());
 
     router
         .route("/users/[:id]")
-        .pipe(new Authenticator(authenticationServer))
+        .pipe(new Authorizer(authenticationServer))
         .generate(() => new UserController());
   }
 

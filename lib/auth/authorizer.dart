@@ -1,6 +1,6 @@
 part of aqueduct;
 
-/// The type of authentication strategy to use for an [Authenticator].
+/// The type of authentication strategy to use for an [Authorizer].
 enum AuthStrategy {
   /// The resource owner strategy requires that a [Request] have a Bearer token.
   resourceOwner,
@@ -12,19 +12,19 @@ enum AuthStrategy {
 /// A [RequestController] that will authorize further passage in a [RequestController] chain when appropriate credentials
 /// are provided in the request being handled.
 ///
-/// An instance of [Authenticator] will validate a [Request] given a [strategy] with its [server].
+/// An instance of [Authorizer] will validate a [Request] given a [strategy] with its [server].
 /// If the [Request] is unauthorized, it will respond with the appropriate status code and prevent
 /// further request processing. If the [Request] is valid, it will attach a [Authorization]
 /// to the [Request] and deliver it to the next [RequestController].
-class Authenticator extends RequestController {
-  /// Creates an instance of [Authenticator] with a reference back to its [server] and a [strategy].
+class Authorizer extends RequestController {
+  /// Creates an instance of [Authorizer] with a reference back to its [server] and a [strategy].
   ///
   /// The default strategy is [AuthStrategy.resourceOwner].
-  Authenticator(this.server, {this.strategy: AuthStrategy.resourceOwner}) {
+  Authorizer(this.server, {this.strategy: AuthStrategy.resourceOwner}) {
     policy = null;
   }
 
-  /// A reference to the [AuthServer] for which this [Authenticator] belongs to.
+  /// A reference to the [AuthServer] for which this [Authorizer] belongs to.
   AuthServer server;
 
   /// The [AuthStrategy] for authenticating a request.

@@ -13,7 +13,17 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 /// A server-side framework built for productivity and testability.
 ///
-/// See http://stablekernel.github.io/aqueduct for more in-depth tutorials and guides.
+/// This library is made up of a handful of modules for common functionality needed in building a web server.
+///
+/// There are four primary modules in this library.
+///
+/// auth: Has classes for implementing OAuth 2.0 behavior. Classes in this module all begin with the word 'Auth'.
+///
+/// db: Exposes an ORM. Classes in this module begin with 'Managed', 'Schema', 'Query' and 'Persistent'.
+///
+/// http: Classes for building HTTP request and response logic. Classes in this module often begin with 'HTTP'.
+///
+/// application: Classes in this module begin with 'Application' and are responsible for starting and stopping web servers on a number of isolates.
 library aqueduct;
 
 import 'dart:async';
@@ -43,7 +53,7 @@ part 'application/isolate_supervisor.dart';
 part 'auth/auth_code_controller.dart';
 part 'auth/auth_controller.dart';
 part 'auth/authentication_server.dart';
-part 'auth/authenticator.dart';
+part 'auth/authorizer.dart';
 part 'auth/authorization_parser.dart';
 part 'auth/client.dart';
 part 'auth/protocols.dart';

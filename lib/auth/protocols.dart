@@ -69,8 +69,8 @@ abstract class AuthTokenExchangable<TokenType extends AuthTokenizable> {
 
 /// Authorization information to be attached to a [Request].
 ///
-/// When a [Request] passes through an [Authenticator] and is validated,
-/// the [Authenticator] attaches an instance of [Authorization] to its [Request.authorization].
+/// When a [Request] passes through an [Authorizer] and is validated,
+/// the [Authorizer] attaches an instance of [Authorization] to its [Request.authorization].
 /// Subsequent [RequestController]s are able to use this information to determine access scope.
 class Authorization {
   /// Creates an instance of a [Authorization].
@@ -96,12 +96,12 @@ class Authorization {
 /// that resource owner class must implement this interface. The concrete implementation of this class does not necessarily need to persist the required
 /// properties with the same name. For example, it is possible to implement [Authenticatable.username] with an 'email' property:
 ///
-///       class User extends Model<_User> implements _User, Authenticatable {
+///       class User extends ManagedObject<_User> implements _User, Authenticatable {
 ///         String get username => email;
 ///         void set username(String un) { email = un; }
 ///       }
 ///       class _User {
-///          @primaryKey String email;
+///          @managedPrimaryKey String email;
 ///       }
 abstract class Authenticatable {
   /// The username of the authenticatable resource.

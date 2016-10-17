@@ -21,7 +21,7 @@ abstract class RequestSink extends RequestController implements APIDocumentable 
   /// This stream's owning server.
   ///
   /// Reference back to the owning server sending requests into this stream.
-  _Server server;
+  ApplicationServer server;
 
   /// This stream's router.
   ///

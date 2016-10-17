@@ -429,9 +429,9 @@ class TestSink extends RequestSink implements AuthServerDelegate<TestUser, Token
   AuthServer<TestUser, Token, AuthCode> authServer;
 
   void addRoutes() {
-    router.route("/auth/code").pipe(new Authenticator(authServer, strategy: AuthStrategy.client)).generate(() => new AuthCodeController(authServer));
-    router.route("/auth/token").pipe(new Authenticator(authServer, strategy: AuthStrategy.client)).generate(() => new AuthController(authServer));
-    router.route("/t[/:id[/:notID]]").pipe(new Authenticator(authServer)).generate(() => new TController());
+    router.route("/auth/code").pipe(new Authorizer(authServer, strategy: AuthStrategy.client)).generate(() => new AuthCodeController(authServer));
+    router.route("/auth/token").pipe(new Authorizer(authServer, strategy: AuthStrategy.client)).generate(() => new AuthController(authServer));
+    router.route("/t[/:id[/:notID]]").pipe(new Authorizer(authServer)).generate(() => new TController());
   }
 
   Future<Token> tokenForAccessToken(AuthServer server, String accessToken) => null;

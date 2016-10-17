@@ -9,7 +9,7 @@ class TestApplication {
   }
 
   Application<WildfireSink> application;
-  WildfireSink get stream => application.server.stream;
+  WildfireSink get sink => application.mainIsolateSink;
   LoggingServer logger = new LoggingServer([]);
   TestClient client;
   WildfireConfiguration configuration;
@@ -25,9 +25,9 @@ class TestApplication {
 
     await application.start(runOnMainIsolate: true);
 
-    ManagedContext.defaultContext = stream.context;
+    ManagedContext.defaultContext = sink.context;
 
-    await createDatabaseSchema(stream.context, stream.logger);
+    await createDatabaseSchema(sink.context, sink.logger);
     await addClientRecord();
 
     client = new TestClient(application)
@@ -36,7 +36,7 @@ class TestApplication {
   }
 
   Future stop() async {
-    await stream.context.persistentStore?.close();
+    await sink.context.persistentStore?.close();
     await logger?.stop();
     await application?.stop();
   }

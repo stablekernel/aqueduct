@@ -5,7 +5,7 @@ part of aqueduct;
 /// An entity defines the mapping between a database table and [ManagedObject] subclass. It is a necessary component of the overall ORM capabilities
 /// of Aqueduct. It may also be used at runtime to reflect on the database table and [ManagedObject] that represents that table in a more meaningful way.
 ///
-/// Instances of this class are automatically created by [ManagedDataModel]. In general, you do not need to use instances
+/// Instances of this class are automatically created by [ManagedDataModel]. In general, you do not need to use or create instances
 /// of this class.
 ///
 /// An entity describes the properties that a subclass of [ManagedObject] will have and their representation in the underlying database.
@@ -19,27 +19,27 @@ part of aqueduct;
 /// The value of a relationship property is a reference to another [ManagedObject]. If a relationship property has [ManagedRelationship] metadata,
 /// the property is backed be a foreign key column in the underlying database. Relationships are represented by [ManagedRelationshipDescription].
 class ManagedEntity {
-  /// Creates an instance of a ModelEntity.
+  /// Creates an instance of this type..
   ///
   /// You should never call this method directly, it will be called by [ManagedDataModel].
   ManagedEntity(this.dataModel, this.instanceType, this.persistentType);
 
   /// The type of instances represented by this entity.
   ///
-  /// Model objects are made up of two components, a persistent type and an instance type. Applications
+  /// Managed objects are made up of two components, a persistent type and an instance type. Applications
   /// use instances of the instance type to work with queries and data from the database table this entity represents. This value is the [ClassMirror] on that type.
   final ClassMirror instanceType;
 
   /// The type of persistent instances represented by this entity.
   ///
-  /// Model objects are made up of two components, a persistent type and an instance type. The system uses this type to define
+  /// Managed objects are made up of two components, a persistent type and an instance type. The system uses this type to define
   /// the mapping to the underlying database table. This value is the [ClassMirror] on the persistent portion of a [ManagedObject] object.
   final ClassMirror persistentType;
 
   /// The [ManagedDataModel] this instance belongs to.
   final ManagedDataModel dataModel;
 
-  /// Schema of the model as returned in a response to use in generating documentation.
+  /// Schema of the managed object as returned in a response to use in generating documentation.
   APISchemaObject get documentedResponseSchema {
     return new APISchemaObject()
       ..title = MirrorSystem.getName(instanceType.simpleName)
@@ -47,7 +47,7 @@ class ManagedEntity {
       ..properties = _propertiesForEntity(this);
   }
 
-  /// Schema of the model as returned from a request to use in generating documentation.
+  /// Schema of the managed object as returned from a request to use in generating documentation.
   APISchemaObject get documentedRequestSchema {
     return new APISchemaObject()
       ..title = MirrorSystem.getName(instanceType.simpleName)
@@ -119,12 +119,12 @@ class ManagedEntity {
 
   /// Name of table in database this entity maps to.
   ///
-  /// By default, the table will be named by the persistent type, e.g., a model declared as so will have a [tableName] of '_User'.
+  /// By default, the table will be named by the persistent type, e.g., a managed object declared as so will have a [tableName] of '_User'.
   ///
-  ///       class User extends Model<_User> implements _User {}
+  ///       class User extends ManagedObject<_User> implements _User {}
   ///       class _User { ... }
   ///
-  /// You may implement the static method [tableName] on the persistent type to return a [String] table
+  /// You may implement the static method [tableName] on the persistent type of a [ManagedObject] to return a [String] table
   /// name override this default.
   String get tableName {
     return _tableName;
@@ -250,6 +250,6 @@ class ManagedEntity {
   }
 
   String toString() {
-    return "ModelEntity on $tableName";
+    return "ManagedEntity on $tableName";
   }
 }

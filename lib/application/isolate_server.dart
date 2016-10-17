@@ -1,21 +1,22 @@
 part of aqueduct;
 
-class _Server {
+/// Used internally.
+class ApplicationServer {
   ApplicationConfiguration configuration;
   HttpServer server;
-  RequestSink stream;
+  RequestSink sink;
   int identifier;
   Logger get logger => new Logger("aqueduct");
 
-  _Server(this.stream, this.configuration, this.identifier) {
-    stream.server = this;
+  ApplicationServer(this.sink, this.configuration, this.identifier) {
+    sink.server = this;
   }
 
   Future start() async {
     try {
-      stream.addRoutes();
-      stream.router?.finalize();
-      stream.nextController = stream.initialController();
+      sink.addRoutes();
+      sink.router?.finalize();
+      sink.nextController = sink.initialController();
 
       if (configuration.securityContext != null) {
         server = await HttpServer.bindSecure(configuration.address, configuration.port, configuration.securityContext,
@@ -41,23 +42,24 @@ class _Server {
 
     server.serverHeader = "aqueduct/${this.identifier}";
 
-    await stream.willOpen();
+    await sink.willOpen();
 
     server.map((baseReq) => new Request(baseReq)).listen((Request req) async {
       logger.fine("Request received $req.", req);
-      await stream.willReceiveRequest(req);
-      stream.receive(req);
+      await sink.willReceiveRequest(req);
+      sink.receive(req);
     });
 
-    stream.didOpen();
+    sink.didOpen();
   }
 }
 
-class _IsolateServer extends _Server {
+/// Used internally.
+class ApplicationIsolateServer extends ApplicationServer {
   SendPort supervisingApplicationPort;
   ReceivePort supervisingReceivePort;
 
-  _IsolateServer(RequestSink sink, ApplicationConfiguration configuration, int identifier, this.supervisingApplicationPort)
+  ApplicationIsolateServer(RequestSink sink, ApplicationConfiguration configuration, int identifier, this.supervisingApplicationPort)
     : super(sink, configuration, identifier) {
     sink.server = this;
     supervisingReceivePort = new ReceivePort();
@@ -81,7 +83,7 @@ class _IsolateServer extends _Server {
 }
 
 /// This method is used internally.
-void isolateServerEntryPoint(_InitialServerMessage params) {
+void isolateServerEntryPoint(ApplicationInitialServerMessage params) {
   var sinkSourceLibraryMirror = currentMirrorSystem().libraries[params.streamLibraryURI];
   var sinkTypeMirror = sinkSourceLibraryMirror.declarations[new Symbol(params.streamTypeName)] as ClassMirror;
 
@@ -89,6 +91,6 @@ void isolateServerEntryPoint(_InitialServerMessage params) {
       .newInstance(new Symbol(""), [params.configuration.configurationOptions])
       .reflectee;
 
-  var server = new _IsolateServer(app, params.configuration, params.identifier, params.parentMessagePort);
+  var server = new ApplicationIsolateServer(app, params.configuration, params.identifier, params.parentMessagePort);
   server.start();
 }

@@ -1,15 +1,24 @@
 part of aqueduct;
 
-/// Represents a row in a database.
+/// An object whose storage is managed by an underlying [Map].
 ///
-/// Subclasses of [ManagedObject] represent a single row in a database. Model objects are also capable of serializing themselves into data
-/// that can be encoded (into a format like JSON) and can be deserialized from similar data structures. Subclasses of
-/// [ManagedObject] are called 'instance types'. These subclasses must also implement their [PersistentType]. The [PersistentType]
-/// defines the columns in the corresponding database table.. Each property in the [PersistentType] is a column in the database table it represents.
+/// This class is meant to be subclassed.
 ///
-/// Model objects are also used in building queries. See [Query.matchOn] and [Query.values].
+/// Instances of this class may store values in a [backingMap] instead of directly in its properties. The properties managed by the [backingMap]
+/// are those declared in its [PersistentType] and those with [ManagedTransientAttribute] metadata in a subclass. The properties
+/// declared by the [PersistentType] describes the columns of a database table. Properties declared in a subclass of this type are not persisted
+/// in a database table, but are managed by the [backingMap] if and only if they are marked with [ManagedTransientAttribute]. Properties declared
+/// by the subclass that do not have this metadata are stored in an instance variable like any other Dart class.
 ///
-///         class User extends Model<_User> implements _User {
+/// A [ManagedObject] can be serialized into or deserialized from a [Map]. This allows a managed object to be encoded into or decoded from a format like JSON.
+/// Only properties in [backingMap] are serialized/deserialized.
+///
+/// Managed objects are compiled into a [ManagedDataModel], where each managed object's mapping to the database is represented by a [ManagedEntity].
+///
+/// Managed objects are also used in building queries. See [Query.matchOn] and [Query.values].
+///
+/// A managed object is declared in two parts:
+///         class User extends ManagedObject<_User> implements _User {
 ///           String name; // Not persisted
 ///         }
 ///         class _User {
@@ -19,44 +28,48 @@ class ManagedObject<PersistentType> extends Object with _QueryMatchableExtension
   /// Used when building a [Query] to include instances of this type.
   ///
   /// A [Query] will, by default, fetch rows from a single table and return them as instances
-  /// of the corresponding [ManagedObject] subclass. Setting this property to true on a property
-  /// of the queried instance type will cause the [Query] to also fetch instances of this type
-  /// using a SQL join.
+  /// of the appropriate [ManagedObject] subclass. A [Query] may join on multiple database tables
+  /// when setting this property to true in its [Query.matchOn] subproperties. For example, the following
+  /// query will fetch both 'Parent' and 'child' managed objects.
+  ///
+  ///         var query = new Query<Parent>()
+  ///           ..matchOn.child.includeInResultSet = true;
+  ///
+  ///
   bool includeInResultSet = false;
 
   /// The [ManagedEntity] this instance is described by.
   ManagedEntity entity = ManagedContext.defaultContext.dataModel.entityForType(PersistentType);
 
-  _ManagedBacking _backing = new _ManagedValueBacking();
-  Map<String, dynamic> get _matcherMap => backingMap;
-
-  /// The values available in this representation.
+  /// The managed values of this instance.
   ///
   /// Not all values are fetched or populated in a [ManagedObject] instance. This value contains
-  /// key-value pairs for the model object that have been set, either manually
+  /// key-value pairs for the managed object that have been set, either manually
   /// or when fetched from a database. When [ManagedObject] is instantiated, this map is empty.
   Map<String, dynamic> get backingMap => _backing.valueMap;
 
-  /// Retrieves a value by property name.
+  _ManagedBacking _backing = new _ManagedValueBacking();
+  Map<String, dynamic> get _matcherMap => backingMap;
+
+  /// Retrieves a value by property name from the [backingMap].
   dynamic operator [](String propertyName) => _backing.valueForProperty(entity, propertyName);
 
-  /// Sets a value by property name.
+  /// Sets a value by property name in the [backingMap].
   void operator []=(String propertyName, dynamic value) {
     _backing.setValueForProperty(entity, propertyName, value);
   }
 
-  /// Removes a property from the backing map.
+  /// Removes a property from the [backingMap].
   ///
   /// This will remove a value from the backing map.
   void removePropertyFromBackingMap(String propertyName) {
     _backing.removeProperty(propertyName);
   }
 
-  /// Checks whether or not a property has been set in this instance.
+  /// Checks whether or not a property has been set in this instances' [backingMap].
   bool hasValueForProperty(String propertyName) {
     return backingMap.containsKey(propertyName);
   }
-
 
   noSuchMethod(Invocation invocation) {
     if (invocation.isGetter) {
@@ -74,14 +87,14 @@ class ManagedObject<PersistentType> extends Object with _QueryMatchableExtension
     return super.noSuchMethod(invocation);
   }
 
-  /// Populates the properties of a Model object from a map.
+  /// Populates the properties of a this instance from a map.
   ///
   /// This method will thrown an exception if a key in the map does not
   /// match a property of the receiver.
   ///
   /// Usage:
   ///     var values = JSON.decode(requestBody);
-  ///     var model = new UserModel()
+  ///     var user = new User()
   ///       ..readFromMap(values);
   void readMap(Map<String, dynamic> keyValues) {
     var mirror = reflect(this);
@@ -115,9 +128,9 @@ class ManagedObject<PersistentType> extends Object with _QueryMatchableExtension
     });
   }
 
-  /// Converts a model object into a serializable map.
+  /// Converts this instance into a serializable map.
   ///
-  /// This method returns a map of the key-values pairs represented by the model object, typically then converted into a transmission format like JSON.
+  /// This method returns a map of the key-values pairs in this instance. This value is typically converted into a transmission format like JSON.
   ///
   /// Only properties present in [backingMap] are serialized, otherwise, they are omitted from the map. If a property is present in [backingMap] and the value is null,
   /// the value null will be serialized for that property key.

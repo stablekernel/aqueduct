@@ -67,16 +67,16 @@ abstract class ManagedPropertyDescription {
   /// Defaults to false.
   final bool isNullable;
 
-  /// Whether or not this property is returned in the default set of [resultProperties].
+  /// Whether or not this property is returned in the default set of [Query.resultProperties].
   ///
-  /// This defaults to true. If true, when executing a [Query] that does not explicitly specify [resultProperties],
-  /// this property will be returned. If false, you must explicitly specify this property in a [Query]'s [resultProperties] to retrieve it from persistent storage.
+  /// This defaults to true. If true, when executing a [Query] that does not explicitly specify [Query.resultProperties],
+  /// this property will be returned. If false, you must explicitly specify this property in [Query.resultProperties] to retrieve it from persistent storage.
   final bool isIncludedInDefaultResultSet;
 
   /// Whether or not this property should use an auto-incrementing scheme.
   ///
   /// By default, false. When true, it signals to the [PersistentStore] that this property should automatically be assigned a value
-  /// from an incrementer.
+  /// by the database.
   final bool autoincrement;
 
   /// Returns the corresponding [ManagedPropertyType] given a Dart type.
@@ -119,7 +119,9 @@ abstract class ManagedPropertyDescription {
 
 /// Contains information for an attribute of a [ManagedEntity].
 ///
-/// Each non-relationship property [ManagedObject] object persists is described by an instance of [ManagedAttributeDescription]. This class
+/// Attributes are the scalar values of a [ManagedObject] (as opposed to relationship values).
+///
+/// Each scalar property [ManagedObject] object persists is described by an instance of [ManagedAttributeDescription]. This class
 /// adds two properties to [ManagedPropertyDescription] that are only valid for non-relationship types, [isPrimaryKey] and [defaultValue].
 class ManagedAttributeDescription extends ManagedPropertyDescription {
   ManagedAttributeDescription.transient(ManagedEntity entity, String name, ManagedPropertyType type, this.transientStatus) :
@@ -168,7 +170,7 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
   }
 }
 
-/// Contains information for a relationship of a [ManagedEntity].
+/// Contains information for a relationship property of a [ManagedObject].
 class ManagedRelationshipDescription extends ManagedPropertyDescription {
   ManagedRelationshipDescription(ManagedEntity entity, String name, ManagedPropertyType type, this.destinationEntity, this.deleteRule, this.relationshipType, this.inverseKey, {bool unique: false, bool indexed: false, bool nullable: false, bool includedInDefaultResultSet: true})
     : super(entity, name, type, unique: unique, indexed: indexed, nullable: nullable, includedInDefaultResultSet: includedInDefaultResultSet) {

@@ -1,5 +1,6 @@
 part of aqueduct;
 
+/// Used internally.
 class CLIMigrationRunner extends CLICommand {
   MigrationExecutor executor;
   ArgParser options = new ArgParser(allowTrailingOptions: false)

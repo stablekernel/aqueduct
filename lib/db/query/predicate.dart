@@ -1,22 +1,24 @@
 part of aqueduct;
 
-/// A predicate contains instructions for identifying criteria of objects.
+/// A predicate contains instructions for filtering rows when performing a [Query].
 ///
-/// Predicates currently are simply the 'where' clause in a SQL statement and are used verbatim
-/// by the database adapter. THe format string should use model object property names. Values should be
-/// passed through the [parameters] map, not directly in the string. Values are interpolated
-/// in the format string by prefixing the @ in front of an identifier. Thus, to form the
-/// full predicate "where x = 5", the predicate object should be constructed like so:
+/// Predicates currently are the WHERE clause in a SQL statement and are used verbatim
+/// by the [PersistentStore]. In general, you should use [Query.matchOn] instead of using this class directly, as [Query.matchOn] will
+/// use the underlying [PersistentStore] to generate a [QueryPredicate] for you.
 ///
-///     new Predicate("x = @xValue", {"xValue" : 5});
+/// A predicate has a format and parameters. The format is the [String] that comes after WHERE in a SQL query. The format may
+/// have parameterized values, for which the corresponding value is in the [parameters] map. A parameter is prefixed with '@' in the format string. Currently,
+/// the format string's parameter syntax is defined by the [PersistentStore] it is used on. An example of that format:
+///
+///     var predicate = new QueryPredicate("x = @xValue", {"xValue" : 5});
 class QueryPredicate {
-  /// The string format of the predicate.
+  /// The string format of the this predicate.
   ///
-  /// This is the predicate text. Do not add values to the format string, instead, prefix an identifier with @
-  /// and add that identifier to the parameters map.
+  /// This is the predicate text. Do not write dynamic values directly to the format string, instead, prefix an identifier with @
+  /// and add that identifier to the [parameters] map.
   String format;
 
-  /// A map of values to interpolate into the format string at execution time.
+  /// A map of values to replace in the format string at execution time.
   ///
   /// Input values should not be in the format string, but instead provided in this map.
   /// Keys of this map will be searched for in the format string and be replaced by the value in this map.
@@ -89,6 +91,7 @@ class QueryPredicate {
   }
 }
 
+/// Thrown when a [QueryPredicate] is malformed.
 class QueryPredicateException implements Exception {
   final String message;
   QueryPredicateException(this.message);

@@ -35,13 +35,13 @@ void main() {
 
       expect(true, false);
     } on ManagedDataModelException catch (e) {
-      expect(e.message, "Type mismatch for property name on _User, expected assignable type matching PropertyType.string but got _Smi.");
+      expect(e.message, "Type mismatch for property name on _User, expected assignable type matching ManagedPropertyType.string but got _Smi.");
     }
 
     try {
       reflect(user).setField(#id, "foo");
     } on ManagedDataModelException catch (e) {
-      expect(e.message, "Type mismatch for property id on _User, expected assignable type matching PropertyType.integer but got _OneByteString.");
+      expect(e.message, "Type mismatch for property id on _User, expected assignable type matching ManagedPropertyType.integer but got _OneByteString.");
     }
   });
 

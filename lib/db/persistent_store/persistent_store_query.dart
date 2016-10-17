@@ -1,9 +1,11 @@
 part of aqueduct;
 
+/// This enumeration is used internaly.
 enum PersistentJoinType {
   leftOuter
 }
 
+/// This class is used internally to map [Query] to something a [PersistentStore] can execute.
 class PersistentStoreQuery {
   PersistentStoreQuery(this.rootEntity, PersistentStore store, Query q) {
     confirmQueryModifiesAllInstancesOnDeleteOrUpdate = q.confirmQueryModifiesAllInstancesOnDeleteOrUpdate;
@@ -140,6 +142,7 @@ class PersistentStoreQuery {
   }
 }
 
+/// This class is used internally.
 class PersistentColumnMapping {
   PersistentColumnMapping(this.property, this.value);
   PersistentColumnMapping.fromElement(PersistentColumnMapping original, this.value) {
@@ -154,7 +157,7 @@ class PersistentColumnMapping {
   }
 }
 
-
+/// This class is used internally.
 class PersistentJoinMapping extends PersistentColumnMapping {
   PersistentJoinMapping(this.type, ManagedPropertyDescription property, this.predicate, this.resultKeys)
       : super(property, null)

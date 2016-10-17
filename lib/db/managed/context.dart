@@ -1,10 +1,13 @@
 part of aqueduct;
 
 /// Coordinates with a [ManagedDataModel] and [PersistentStore] to execute queries and
-/// translate between [ManagedObject] objects and a database.
+/// translate between [ManagedObject] objects and database rows.
+///
+/// An application that uses Aqueduct's ORM functionality must create an instance of this type.
 ///
 /// A [Query] must have a valid [ManagedContext] to execute. Most applications only need one [ManagedContext],
-/// so the first [ManagedContext] instantiated becomes the [ManagedContext.defaultContext]]
+/// so the first [ManagedContext] instantiated becomes the [ManagedContext.defaultContext]. By default, [Query]s
+/// target the [ManagedContext.defaultContext].
 class ManagedContext {
   /// The default context that a [Query] runs on.
   ///
@@ -29,7 +32,7 @@ class ManagedContext {
   /// The persistent store that [Query]s on this context are executed on.
   PersistentStore persistentStore;
 
-  /// The data model containing the [ManagedEntity]s for all types that are managed by this context.
+  /// The data model containing the [ManagedEntity]s that describe the [ManagedObject]s this instance works with.
   ManagedDataModel dataModel;
 
   /// Returns an entity for a type from [dataModel].

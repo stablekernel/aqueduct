@@ -1,5 +1,6 @@
 part of aqueduct;
 
+/// Used internally.
 class CLITemplateCreator extends CLICommand {
   ArgParser options = new ArgParser(allowTrailingOptions: false)
     ..addOption("template", abbr: "t", help: "Name of the template.", allowed: ["default"], defaultsTo: "default")

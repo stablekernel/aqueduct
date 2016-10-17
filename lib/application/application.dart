@@ -3,37 +3,38 @@ part of aqueduct;
 /// A container for web server applications.
 ///
 /// Applications are responsible for managing starting and stopping of HTTP server instances across multiple isolates.
-/// Behavior specific to an application is implemented by setting the [Application]'s [configuration], and providing
-/// a [SinkType].
-class Application<SinkType extends RequestSink> {
-  /// A list of items identifying the Isolates running a HTTP(s) listener and response handlers.
-  ///
-  /// This list will be populated based on the [numberOfInstances] passed in [start]. If [runOnMainIsolate] is true
-  /// for [start], this list will be empty and [server] will be used instead.
+/// Behavior specific to an application is implemented by setting the [Application]'s [configuration] and providing
+/// a [RequestSinkType].
+class Application<RequestSinkType extends RequestSink> {
+  /// Used internally.
   List<ApplicationIsolateSupervisor> supervisors = [];
 
-  /// The server this application is running when started on the main isolate.
+  /// Used internally.
+  ApplicationServer server;
+
+  /// The [RequestSink] receiving requests on the main isolate.
   ///
-  /// This value will be available to [Application]s that are [start]ed with [runOnMainIsolate]
-  /// set to true and represents the only [_Server] this application is running.
-  _Server server;
+  /// Applications run during testing are run on the main isolate. When running in this way,
+  /// an application will only have one [RequestSinkType] receiving HTTP requests. This property is that instance.
+  /// If an application is running across multiple isolates, this property will be null. See [start] for more details.
+  RequestSinkType get mainIsolateSink => server?.sink as RequestSinkType;
 
   /// A reference to a logger.
   ///
-  /// This [Logger] will be named the same as the loggers used on each stream.
+  /// This [Logger] will be named the same as the loggers used on each request sink.
   Logger logger = new Logger("aqueduct");
 
-  /// The configuration for the HTTP(s) server this application is running.
+  /// The configuration for the HTTP server this application is running.
   ///
   /// This must be configured prior to [start]ing the [Application].
   ApplicationConfiguration configuration = new ApplicationConfiguration();
 
   /// Starts the application by spawning Isolates that listen for HTTP requests.
   ///
-  /// Returns a [Future] that completes when all Isolates have started listening for requests.
-  /// The [numberOfInstances] defines how many Isolates are spawned running this application's [configuration]
-  /// and [SinkType]. If [runOnMainIsolate] is true (it defaults to false), the application will
-  /// run a single instance of [SinkType] on the main isolate, ignoring [numberOfInstances].
+  /// Returns a [Future] that completes when all [Isolate]s have started listening for requests.
+  /// The [numberOfInstances] defines how many [Isolate]s are spawned running this application's [configuration]
+  /// and [RequestSinkType]. If [runOnMainIsolate] is true (it defaults to false), the application will
+  /// run a single instance of [RequestSinkType] on the main isolate, ignoring [numberOfInstances].
   /// You should only [runOnMainIsolate] for testing purposes.
   Future start({int numberOfInstances: 1, bool runOnMainIsolate: false}) async {
     if (configuration.address == null) {
@@ -49,8 +50,8 @@ class Application<SinkType extends RequestSink> {
         logger.info("runOnMainIsolate set to true, ignoring numberOfInstances (set to $numberOfInstances)");
       }
 
-      var stream = reflectClass(SinkType).newInstance(new Symbol(""), [configuration.configurationOptions]).reflectee;
-      server = new _Server(stream, configuration, 1);
+      var sink = reflectClass(RequestSinkType).newInstance(new Symbol(""), [configuration.configurationOptions]).reflectee;
+      server = new ApplicationServer(sink, configuration, 1);
 
       await server.start();
     } else {
@@ -75,8 +76,7 @@ class Application<SinkType extends RequestSink> {
 
   /// Stops the application from running.
   ///
-  /// Closes down every stream (or [server] if started with [runOnMainIsolate]) and the associated servers.
-  ///
+  /// Closes down every [RequestSinkType] and stops listening for HTTP requests.
   Future stop() async {
     await Future.wait(supervisors.map((s) => s.stop()));
     supervisors = [];
@@ -85,27 +85,28 @@ class Application<SinkType extends RequestSink> {
   }
 
   APIDocument document(PackagePathResolver resolver) {
-    RequestSink stream = reflectClass(SinkType).newInstance(new Symbol(""), [configuration.configurationOptions]).reflectee;
-    stream.addRoutes();
-    stream.router.finalize();
+    RequestSink sink = reflectClass(RequestSinkType).newInstance(new Symbol(""), [configuration.configurationOptions]).reflectee;
+    sink.addRoutes();
+    sink.router.finalize();
 
-    return stream.documentAPI(resolver);
+    return sink.documentAPI(resolver);
   }
 
   Future<ApplicationIsolateSupervisor> _spawn(ApplicationConfiguration config, int identifier) async {
     var receivePort = new ReceivePort();
 
-    var streamTypeMirror = reflectType(SinkType);
+    var streamTypeMirror = reflectType(RequestSinkType);
     var streamLibraryURI = (streamTypeMirror.owner as LibraryMirror).uri;
     var streamTypeName = MirrorSystem.getName(streamTypeMirror.simpleName);
 
-    var initialMessage = new _InitialServerMessage(streamTypeName, streamLibraryURI, config, identifier, receivePort.sendPort);
+    var initialMessage = new ApplicationInitialServerMessage(streamTypeName, streamLibraryURI, config, identifier, receivePort.sendPort);
     var isolate = await Isolate.spawn(isolateServerEntryPoint, initialMessage, paused: true);
     isolate.addErrorListener(receivePort.sendPort);
 
     return new ApplicationIsolateSupervisor(this, isolate, receivePort, identifier, logger);
   }
 
+  /// Used internally.
   Future isolateDidExitWithError(ApplicationIsolateSupervisor supervisor, String errorMessage, StackTrace stackTrace) async {
     logger.severe("Restarting terminated isolate. Exit reason $errorMessage", supervisor, stackTrace);
 
@@ -122,12 +123,13 @@ class Application<SinkType extends RequestSink> {
   }
 }
 
-class _InitialServerMessage {
+/// Used internally.
+class ApplicationInitialServerMessage {
   String streamTypeName;
   Uri streamLibraryURI;
   ApplicationConfiguration configuration;
   SendPort parentMessagePort;
   int identifier;
 
-  _InitialServerMessage(this.streamTypeName, this.streamLibraryURI, this.configuration, this.identifier, this.parentMessagePort);
+  ApplicationInitialServerMessage(this.streamTypeName, this.streamLibraryURI, this.configuration, this.identifier, this.parentMessagePort);
 }

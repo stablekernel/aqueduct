@@ -1,5 +1,8 @@
 part of aqueduct;
 
+/// Represents a database table for a [Schema].
+///
+/// Use this class during migration to add, delete and modify tables in a schema.
 class SchemaTable {
   SchemaTable(this.name, this.columns);
 

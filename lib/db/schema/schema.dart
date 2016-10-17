@@ -1,11 +1,15 @@
 part of aqueduct;
 
+/// Thrown when a [Schema] encounters an error.
 class SchemaException implements Exception {
   SchemaException(this.message);
 
   String message;
 }
 
+/// Represents a database and its tables.
+///
+/// This class is used internally and during [Migration].
 class Schema {
   Schema(this.tables);
 
@@ -26,11 +30,21 @@ class Schema {
     tables = [];
   }
 
+  /// The tables in this database.
   List<SchemaTable> tables;
+
+  /// A list of tables in this database that are ordered by dependencies.
+  ///
+  /// This ordering ensures that tables that depend on another table (like those that have a foreign key reference) come
+  /// after the tables they depend on.
   List<SchemaTable> get dependencyOrderedTables => _orderedTables([], tables);
 
+  /// Gets a table from [tables] by that table's name.
   operator [](String tableName) => tableForName(tableName);
 
+  /// Whether or not two schemas match.
+  ///
+  /// If passing [reasons], the reasons for a mismatch are included as strings.
   bool matches(Schema schema, [List<String> reasons]) {
     var matches = true;
 

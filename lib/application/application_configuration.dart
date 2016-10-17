@@ -1,11 +1,11 @@
 part of aqueduct;
 
-/// A set of values to configure an instance of a web server application.
+/// A set of values to configure an instance of [Application].
 class ApplicationConfiguration {
   /// The address to listen for HTTP requests on.
   ///
-  /// By default, this address will default to 'any' address. If [isIpv6Only] is true,
-  /// 'any' will be any IPv6 address, otherwise, it will be any IPv4 address (0.0.0.0).
+  /// By default, this address will default to 'any' address (0.0.0.0). If [isIpv6Only] is true,
+  /// 'any' will be any IPv6 address, otherwise, it will be any IPv4 or IPv6 address.
   ///
   /// This value may be an [InternetAddress] or a [String].
   dynamic address;
@@ -15,9 +15,9 @@ class ApplicationConfiguration {
   /// Defaults to 8080.
   int port = 8080;
 
-  /// Whether or not the application should only connections over IPv6.
+  /// Whether or not the application should only receive connections over IPv6.
   ///
-  /// Defaults to false. This flag impacts the [address] property if it has not been set.
+  /// Defaults to false. This flag impacts the default value of the [address] property.
   bool isIpv6Only = false;
 
   /// Whether or not the application's request controllers should use client-side HTTPS certificates.

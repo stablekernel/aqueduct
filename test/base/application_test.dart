@@ -13,6 +13,8 @@ main() {
 
     test("Application starts", () async {
       await app.start(runOnMainIsolate: true);
+      expect(app.mainIsolateSink, isNotNull);
+
       expect(app.supervisors.length, 0);
     });
 

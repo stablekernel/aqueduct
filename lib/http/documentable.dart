@@ -10,17 +10,49 @@ Map<String, dynamic> _stripNull(Map<String, dynamic> m) {
   return outMap;
 }
 
+/// An object that can be documented into a OpenAPI specification.
+///
+/// Classes that wish to participate in the documentation process should extend or mixin this class.
+///
+/// Documentation behavior starts at the root of an application (its [RequestSink]) by invoking [documentAPI].
+/// The [RequestSink] will invoke methods from this interface on its [RequestSink.initialHandler]. These methods
+/// travel down the object graph formed by a [RequestSink], its [Router], [RequestController]s, [AuthServer] and [ManagedObject]s.
+///
+/// Classes that extend this class will override methods such as [documentPaths] and [documentOperations] if they have the information
+/// available to complete those requests. Any method from this interface that a subclasses does not override will automatically
+/// be forwarded on to its [documentableChild]. Thus, subclasses should override [documentableChild] to return the 'next' documentable
+/// item in their logical flow. For [RequestController]s, this will be their 'next' handler.
 class APIDocumentable {
+  /// Returns the next documentable object in a chain of documentable objects.
+  ///
+  /// If this instance does not have the information to return a value from the other methods in this interface,
+  /// it will forward on that method to this property.
   APIDocumentable get documentableChild => null;
 
+  /// Returns an entire [APIDocument] describing an OpenAPI specification.
+  ///
+  /// This method is typically invoked on a [RequestSink]. This method is invoked on root of documentable chain, [RequestSink].
   APIDocument documentAPI(PackagePathResolver resolver) => documentableChild?.documentAPI(resolver);
+
+  /// Returns all [APIPath] objects this instance knows about.
+  ///
+  /// This method is implemented by [Router].
   List<APIPath> documentPaths(PackagePathResolver resolver) => documentableChild?.documentPaths(resolver);
+
+  /// Returns all [APIOperation]s this object knows about.
   List<APIOperation> documentOperations(PackagePathResolver resolver) => documentableChild?.documentOperations(resolver);
+
+  /// Returns all [APIResponse]s for [operation].
   List<APIResponse> documentResponsesForOperation(APIOperation operation) => documentableChild?.documentResponsesForOperation(operation);
+
+  /// Returns all [APIRequestBody]s for [operation].
   APIRequestBody documentRequestBodyForOperation(APIOperation operation) => documentableChild?.documentRequestBodyForOperation(operation);
+
+  /// Returns all [APISecurityScheme]s this instance knowsa bout.
   Map<String, APISecurityScheme> documentSecuritySchemes(PackagePathResolver resolver) => documentableChild?.documentSecuritySchemes(resolver);
 }
 
+/// Represents an OpenAPI specification.
 class APIDocument {
   APIInfo info = new APIInfo();
   List<APIHost> hosts = [];
@@ -63,6 +95,7 @@ class APIDocument {
   }
 }
 
+/// Represents a metadata for an API in the OpenAPI specification.
 class APIInfo {
   String title = "API";
   String description = "Description";
@@ -83,6 +116,7 @@ class APIInfo {
   }
 }
 
+/// Represents contact information in the OpenAPI specification.
 class APIContact {
   String name = "default";
   String url = "http://localhost";
@@ -97,6 +131,7 @@ class APIContact {
   }
 }
 
+/// Represents a copyright/open source license in the OpenAPI specification.
 class APILicense {
   String name = "default";
   String url = "http://localhost";
@@ -109,6 +144,7 @@ class APILicense {
   }
 }
 
+/// Represents a web server host in the OpenAPI specification.
 class APIHost {
   String host = "localhost:8000";
   String basePath = "/";
@@ -127,7 +163,7 @@ class APIHost {
   }
 }
 
-
+/// Represents a security requirement in the OpenAPI specification.
 class APISecurityRequirement {
   String name;
   List<APISecurityScope> scopes;
@@ -139,6 +175,7 @@ class APISecurityRequirement {
   }
 }
 
+/// Represents a security scope in the OpenAPI specification.
 class APISecurityScope {
   String name;
   String description;
@@ -150,6 +187,7 @@ class APISecurityScope {
   }
 }
 
+/// Represents a security definition in the OpenAPI specification.
 class APISecurityDefinition {
   String name;
   APISecurityScheme scheme;
@@ -157,11 +195,12 @@ class APISecurityDefinition {
   Map<String, dynamic> asMap() => scheme.asMap();
 }
 
-
+/// Represents a OAuth 2.0 security scheme flow in the OpenAPI specification.
 enum APISecuritySchemeFlow {
   implicit, password, application, accessCode
 }
 
+/// Represents a security scheme in the OpenAPI specification.
 class APISecurityScheme {
   static String stringForFlow(APISecuritySchemeFlow flow) {
     switch (flow) {
@@ -231,6 +270,7 @@ class APISecurityScheme {
   }
 }
 
+/// Represents a path (also known as a route) in the OpenAPI specification.
 class APIPath {
   String path;
 
@@ -251,6 +291,7 @@ class APIPath {
   }
 }
 
+/// Represents a HTTP operation (a path/method pair) in the OpenAPI specification.
 class APIOperation {
   String method;
 
@@ -315,6 +356,7 @@ class APIOperation {
   }
 }
 
+/// Represents an HTTP response in the OpenAPI specification.
 class APIResponse {
   String key;
   String description = "";
@@ -346,10 +388,12 @@ class APIResponse {
   }
 }
 
+/// Represents a header type in the OpenAPI specification.
 enum APIHeaderType {
   string, number, integer, boolean
 }
 
+/// Represents a header in the OpenAPI specification.
 class APIHeader {
   String description;
   APIHeaderType type;
@@ -372,10 +416,12 @@ class APIHeader {
   }
 }
 
+/// Represents a parameter location in the OpenAPI specification.
 enum APIParameterLocation {
   query, header, path, formData, cookie, body
 }
 
+/// Represents a parameter in the OpenAPI specification.
 class APIParameter {
   static APIParameterLocation _parameterLocationFromHTTPParameter(_HTTPParameter p) {
     if (p is HTTPPath) {
@@ -421,6 +467,7 @@ class APIParameter {
   }
 }
 
+/// Represents a request body in the OpenAPI specification.
 class APIRequestBody {
   String description;
   APISchemaObject schema;
@@ -435,6 +482,7 @@ class APIRequestBody {
   }
 }
 
+/// Represents a schema object in the OpenAPI specification.
 class APISchemaObject {
   static const String TypeString = "string";
   static const String TypeArray = "array";
@@ -548,6 +596,7 @@ class APISchemaObject {
   }
 }
 
+/// Utility to find source files.
 class PackagePathResolver {
   PackagePathResolver(String packageMapPath) {
     var contents = new File(packageMapPath).readAsStringSync();

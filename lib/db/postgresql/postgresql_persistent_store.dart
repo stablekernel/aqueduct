@@ -1,9 +1,18 @@
 part of aqueduct;
 
+/// A function that will create an opened instance of [PostgreSQLConnection] when executed.
 typedef Future<PostgreSQLConnection> PostgreSQLConnectionFunction();
 
+/// The database layer responsible for carrying out [Query]s against PostgreSQL databases.
+///
+/// To interact with a PostgreSQL database, a [ManagedContext] must have an instance of this class.
+/// Instances of this class are configured to connect to a particular PostgreSQL database.
 class PostgreSQLPersistentStore extends PersistentStore with _PostgreSQLSchemaGenerator {
+
+  /// The logger used by instances of this class.
   static Logger logger = new Logger("aqueduct");
+
+  /// Used internally to translate [Query]s into SQL.
   static Map<MatcherOperator, String> symbolTable = {
     MatcherOperator.lessThan : "<",
     MatcherOperator.greaterThan : ">",
@@ -12,6 +21,7 @@ class PostgreSQLPersistentStore extends PersistentStore with _PostgreSQLSchemaGe
     MatcherOperator.greaterThanEqualTo : ">=",
     MatcherOperator.equalTo : "="
   };
+
   static Map<ManagedPropertyType, PostgreSQLDataType> _typeMap = {
     ManagedPropertyType.integer : PostgreSQLDataType.integer,
     ManagedPropertyType.bigInteger : PostgreSQLDataType.bigInteger,
@@ -21,18 +31,34 @@ class PostgreSQLPersistentStore extends PersistentStore with _PostgreSQLSchemaGe
     ManagedPropertyType.doublePrecision : PostgreSQLDataType.double
   };
 
+  /// The function that will generate a [PostgreSQLConnection] when this instance does not have a valid one.
   PostgreSQLConnectionFunction connectFunction;
+
+  /// The username of the database user for the database this instance connects to.
   String username;
+
+  /// The password of the database user for the database this instance connects to.
   String password;
+
+  /// The host of the database this instance connects to.
   String host;
+
+  /// The port of the database this instance connects to.
   int port;
+
+  /// The name of the database this instance connects to.
   String databaseName;
+
+  /// The time zone of the connection to the database this instance connects to.
   String timeZone = "UTC";
 
   PostgreSQLConnection _databaseConnection;
   Completer<PostgreSQLConnection> _pendingConnectionCompleter;
 
+  /// Creates an instance of this type from a manual function.
   PostgreSQLPersistentStore(this.connectFunction) : super();
+
+  /// Creates an instance of this type from connection info.
   PostgreSQLPersistentStore.fromConnectionInfo(this.username, this.password, this.host, this.port, this.databaseName, {this.timeZone: "UTC"}) {
     this.connectFunction = () async {
       logger.info("PostgreSQL connecting, $username@$host:$port/$databaseName.");
@@ -42,7 +68,7 @@ class PostgreSQLPersistentStore extends PersistentStore with _PostgreSQLSchemaGe
     };
   }
 
-  /// Retrieves a connection to the database this store manages.
+  /// Retrieves a connection to the database this instance connects to.
   ///
   /// If no connection exists, one will be created. A store will have no more than one connection at a time.
   /// You should rarely need to access this connection directly.
@@ -484,6 +510,10 @@ class PostgreSQLPersistentStore extends PersistentStore with _PostgreSQLSchemaGe
   }
 }
 
+/// Commonly used error codes from PostgreSQL.
+///
+/// When a [QueryException.underlyingException] is a [PostgreSQLException], this [PostgreSQLException.code]
+/// value may be one of the static properties declared in this class.
 class PostgreSQLErrorCode {
   static const String duplicateTable = "42P07";
   static const String undefinedTable = "42P01";

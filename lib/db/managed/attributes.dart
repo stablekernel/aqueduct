@@ -2,7 +2,7 @@ part of aqueduct;
 
 /// Possible values for a delete rule in a [ManagedRelationship].
 enum ManagedRelationshipDeleteRule {
-  /// Will prevent a delete operation if there is a reference to the would-be deleted object.
+  /// Prevents a delete operation if the would-be deleted [ManagedObject] still has references to this relationship.
   restrict,
   /// All objects with a foreign key reference to the deleted object will also be deleted.
   cascade,
@@ -12,26 +12,25 @@ enum ManagedRelationshipDeleteRule {
   setDefault
 }
 
-/// A property with this metadata indicates that the entity
+/// Metadata for a [ManagedObject] property that requests the property be backed by a foreign key column in a database.
 ///
-/// A property with this metadata will be an actual column in the database with a foreign key constraint. Adding this metadata
-/// to a property dictates ownership semantics of a relationship. The entity with a property marked with this metadata 'belongs to'
-/// the related entity.
+/// A property in a [ManagedObject]'s [ManagedObject.PersistentType] with this metadata will map to a database column
+/// that has a foreign key reference to the related [ManagedObject]. Relationships are made up of two [ManagedObject]s, where each
+/// has a property that refers to the other. Only one of those properties may have this metadata. The property with this metadata
+/// resolves to a column in the database. The relationship property without this metadata resolves to a row or rows in the database.
 class ManagedRelationship {
+  /// Creates an instance of this type.
   const ManagedRelationship(this.inverseKey, {this.onDelete: ManagedRelationshipDeleteRule.nullify, this.isRequired: false});
 
-  /// The symbol for the property in the related entity.
+  /// The symbol for the property in the related [ManagedObject].
   ///
-  /// For example, if a Parent entity has a property named 'children',
-  /// the Child entity must have a 'parent' property. The [ManagedRelationship] metadata for the 'parent' property should set
-  /// this value to 'children'.
+  /// This value must be the symbol for the property in the related [ManagedObject]. This creates the link between
+  /// two sides of a relationship between a [ManagedObject].
   final Symbol inverseKey;
 
   /// The delete rule to use when a related instance is deleted.
   ///
-  /// For example, if a Parent entity has a property named 'children',
-  /// the Child entity must have a 'parent' property (with [ManagedRelationship] metadata). If the Parent is deleted, its 'children' will
-  /// be impacted according to this rule. See [ManagedRelationshipDeleteRule] for possible options.
+  /// This rule dictates how the database should handle deleting objects that have relationships. See [ManagedRelationshipDeleteRule] for possible options.
   ///
   /// If [isRequired] is true, this value may not be [ManagedRelationshipDeleteRule.nullify]. This value defaults to [ManagedRelationshipDeleteRule.nullify].
   final ManagedRelationshipDeleteRule onDelete;
@@ -45,8 +44,10 @@ class ManagedRelationship {
 
 /// The different types of relationships.
 enum ManagedRelationshipType {
-  ///
+  /// The relationship property is not backed by a database column, but instead represents a single row in the database.
   hasOne,
+
+  /// The relationship property is not backed by a database column, but instead represents many rows in the database.
   hasMany,
 
   /// A relationship property of this kind will be a foreign key reference to another entity.
@@ -56,14 +57,14 @@ enum ManagedRelationshipType {
 }
 
 /// Marks a property as a primary key, database type big integer, and autoincrementing. The corresponding property
-/// type must be [int].
+/// type must be [int]. It is assumed that the underlying database indexes and uniques the backing column.
 const ManagedColumnAttributes managedPrimaryKey = const ManagedColumnAttributes(primaryKey: true, databaseType: ManagedPropertyType.bigInteger, autoincrement: true);
 
-/// A declaration annotation for the options on a property in a entity class.
+/// Metadata to describe the behavior of the underlying database column of a managed property.
 ///
-/// By default, simply declaring a a property in a entity class will make it a database field
+/// By default, simply declaring a a property in a persistent type class will make it a database column
 /// and its persistence information will be derived from its type.
-/// If, however, the property needs any of the attributes defined by this class, it should be annotated.
+/// If, however, the property needs any of the attributes defined by this class, it should be annotated with an instance of this class.
 class ManagedColumnAttributes {
   /// When true, indicates that this model property is the primary key.
   ///
@@ -72,7 +73,7 @@ class ManagedColumnAttributes {
 
   /// The type of the field in the database.
   ///
-  /// By default, the adapter will use the appropriate type for Dart type, e.g. a Dart String is a PostgreSQL text type.
+  /// By default, the [PersistentStore] will use the appropriate type for Dart type, e.g. a Dart String is a PostgreSQL text type.
   /// This allows you to override the default type mapping for the annotated property.
   final ManagedPropertyType databaseType;
 
@@ -83,8 +84,8 @@ class ManagedColumnAttributes {
 
   /// The default value of the property.
   ///
-  /// By default, a property does not have a default property. This is a String to be interpreted by the adapter. Most
-  /// adapters will use this string to further define the type of the database column with a default value, thus it must
+  /// By default, a property does not have a default property. This is a String to be interpreted by the [PersistentStore]. Most
+  /// [PersistentStore]s will use this string to further define the type of the database column with a default value, thus it must
   /// be flexible.
   final String defaultValue;
 
@@ -100,8 +101,8 @@ class ManagedColumnAttributes {
 
   /// Whether or not fetching an instance of this type should include this property.
   ///
-  /// By default, all properties on a Model are returned if not specified (unless they are to-many relationship properties).
-  /// This flag will remove the associated property from the result set unless it is explicitly specified by [resultProperties].
+  /// By default, all properties on a [ManagedObject] are returned if not specified (unless they are to-many relationship properties).
+  /// This flag will remove the associated property from the result set unless it is explicitly specified by [Query.resultProperties].
   final bool shouldOmitByDefault;
 
   /// Indicate to the underlying database to use a serial counter when inserted an instance.
@@ -110,7 +111,7 @@ class ManagedColumnAttributes {
   /// will be represented by "bigserial".
   final bool autoincrement;
 
-  /// The metadata constructor.
+  /// Creates an instance of this type.
   const ManagedColumnAttributes(
       {bool primaryKey: false,
       ManagedPropertyType databaseType,
@@ -141,16 +142,16 @@ class ManagedColumnAttributes {
         this.autoincrement = source.autoincrement;
 }
 
-/// Metadata for a instance type property that indicates it can be used in [readMap] and [asMap], but is not persisted.
+/// Metadata for a subclass of [ManagedObject] that allows the property to be used in [ManagedObject.readMap] and [ManagedObject.asMap], but is not persisted in the underlying database.
 const ManagedTransientAttribute managedTransientAttribute = const ManagedTransientAttribute(availableAsInput: true, availableAsOutput: true);
 
-/// Metadata for a instance type property that indicates it can be used in [readMap], but is not persisted.
+/// Metadata for a subclass of [ManagedObject] that indicates it can be used in [ManagedObject.readMap], but is not persisted in the underlying database.
 const ManagedTransientAttribute managedTransientInputAttribute = const ManagedTransientAttribute(availableAsInput: true, availableAsOutput: false);
 
-/// Metadata for a instance type property that indicates it can be used in [asMap], but is not persisted.
+/// Metadata for a subclass of [ManagedObject] that indicates it can be used in [ManagedObject.asMap], but is not persisted in the underlying database.
 const ManagedTransientAttribute managedTransientOutputAttribute = const ManagedTransientAttribute(availableAsInput: false, availableAsOutput: true);
 
-/// Metadata to associate with a property to indicate it is not a column, but is part of the Model object.
+/// See [managedTransientAttribute], [managedTransientInputAttribute] and [managedTransientOutputAttribute].
 class ManagedTransientAttribute {
   final bool isAvailableAsInput;
   final bool isAvailableAsOutput;

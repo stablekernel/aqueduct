@@ -1,5 +1,8 @@
 part of aqueduct;
 
+/// Represents a database column for a [SchemaTable].
+///
+/// Use this class during migration to add, delete and modify columns.
 class SchemaColumn {
   SchemaColumn(this.name, ManagedPropertyType t, {this.isIndexed: false, this.isNullable: false, this.autoincrement: false, this.isUnique: false, this.defaultValue, this.isPrimaryKey: false}) {
     _type = typeStringForType(t);

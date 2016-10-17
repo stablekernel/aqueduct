@@ -2,7 +2,6 @@ import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
 import 'dart:async';
 import 'dart:io';
-import 'dart:convert';
 
 void main() {
   group("Cooperation", () {
@@ -333,7 +332,7 @@ void main() {
 
       File nextGen = await executor.generate();
       addLinesToUpgradeFile(nextGen, [
-        "database.createTable(new SchemaTable(\"foo\", [new SchemaColumn.relationship(\"user\", PropertyType.bigInteger, relatedTableName: \"_user\", relatedColumnName: \"id\")]));",
+        "database.createTable(new SchemaTable(\"foo\", [new SchemaColumn.relationship(\"user\", ManagedPropertyType.bigInteger, relatedTableName: \"_user\", relatedColumnName: \"id\")]));",
         "database.deleteColumn(\"_user\", \"email\");"
       ]);
       await executor.upgrade();
@@ -358,7 +357,7 @@ void main() {
 
       File nextGen = await executor.generate();
       addLinesToUpgradeFile(nextGen, [
-        "database.createTable(new SchemaTable(\"foo\", [new SchemaColumn.relationship(\"user\", PropertyType.bigInteger, relatedTableName: \"_user\", relatedColumnName: \"id\")]));",
+        "database.createTable(new SchemaTable(\"foo\", [new SchemaColumn.relationship(\"user\", ManagedPropertyType.bigInteger, relatedTableName: \"_user\", relatedColumnName: \"id\")]));",
         "database.deleteColumn(\"_user\", \"email\");"
       ]);
 
