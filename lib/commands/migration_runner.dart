@@ -1,6 +1,6 @@
 part of aqueduct;
 
-class MigrationRunner extends CLICommand {
+class CLIMigrationRunner extends CLICommand {
   MigrationExecutor executor;
   ArgParser options = new ArgParser(allowTrailingOptions: false)
     ..addOption("flavor", abbr: "f", help: "The database driver flavor to use.", defaultsTo: "postgres", allowed: ["postgres"])

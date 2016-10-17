@@ -1,6 +1,6 @@
 part of wildfire;
 
-class UserController extends ModelController<User> {
+class UserController extends QueryController<User> {
   @httpGet getUser(@HTTPPath("id") int id) async {
     var u = await query.fetchOne();
     if (u == null) {

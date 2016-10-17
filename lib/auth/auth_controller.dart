@@ -5,14 +5,14 @@ class AuthController extends HTTPController {
 
   /// Creates a new instance of an [AuthController].
   ///
-  /// An [AuthController] requires an [AuthenticationServer] to carry out tasks.
+  /// An [AuthController] requires an [AuthServer] to carry out tasks.
   /// By default, an [AuthController] has only one [acceptedContentTypes] - 'application/x-www-form-urlencoded'.
   AuthController(this.authenticationServer) {
     acceptedContentTypes = [new ContentType("application", "x-www-form-urlencoded")];
   }
 
-  /// A reference to the [AuthenticationServer] this controller uses to grant tokens.
-  AuthenticationServer authenticationServer;
+  /// A reference to the [AuthServer] this controller uses to grant tokens.
+  AuthServer authenticationServer;
 
   /// Required basic authorization header containing client ID and secret for the authenticating client.
   @requiredHTTPParameter @HTTPHeader(HttpHeaders.AUTHORIZATION) String authHeader;
@@ -61,9 +61,9 @@ class AuthController extends HTTPController {
     return new Response.badRequest(body: {"error": "invalid grant_type"});
   }
 
-  /// Transforms a [Tokenizable] into a [Response] object with an RFC6749 compliant JSON token
+  /// Transforms a [AuthTokenizable] into a [Response] object with an RFC6749 compliant JSON token
   /// as the HTTP response body.
-  static Response tokenResponse(Tokenizable token) {
+  static Response tokenResponse(AuthTokenizable token) {
     var jsonToken = {
       "access_token": token.accessToken,
       "token_type": token.type,

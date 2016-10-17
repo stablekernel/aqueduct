@@ -15,9 +15,9 @@ void main() {
 
     test("Host created correctly", () {
       var defaultTestClient = new TestClient.onPort(4040);
-      var portConfiguredClient = new TestClient.fromConfig(new ApplicationInstanceConfiguration()..port = 2121);
-      var hostPortConfiguredClient = new TestClient.fromConfig(new ApplicationInstanceConfiguration()..port = 2121..address = "foobar.com");
-      var hostPortSSLConfiguredClient = new TestClient.fromConfig(new ApplicationInstanceConfiguration()..port = 2121..address = "foobar.com"..securityContext = (new SecurityContext()));
+      var portConfiguredClient = new TestClient.fromConfig(new ApplicationConfiguration()..port = 2121);
+      var hostPortConfiguredClient = new TestClient.fromConfig(new ApplicationConfiguration()..port = 2121..address = "foobar.com");
+      var hostPortSSLConfiguredClient = new TestClient.fromConfig(new ApplicationConfiguration()..port = 2121..address = "foobar.com"..securityContext = (new SecurityContext()));
       expect(defaultTestClient.baseURL, "http://localhost:4040");
       expect(portConfiguredClient.baseURL, "http://localhost:2121");
       expect(hostPortConfiguredClient.baseURL, "http://foobar.com:2121");

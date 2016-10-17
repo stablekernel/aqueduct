@@ -206,8 +206,8 @@ class _PostgreSQLSchemaGenerator {
     return new SchemaTable.empty()
       ..name = _versionTableName
       ..columns = [
-        (new SchemaColumn.empty()..name = "versionNumber".._type = SchemaColumn.typeStringForType(PropertyType.integer)),
-        (new SchemaColumn.empty()..name = "dateOfUpgrade".._type = SchemaColumn.typeStringForType(PropertyType.datetime)),
+        (new SchemaColumn.empty()..name = "versionNumber".._type = SchemaColumn.typeStringForType(ManagedPropertyType.integer)),
+        (new SchemaColumn.empty()..name = "dateOfUpgrade".._type = SchemaColumn.typeStringForType(ManagedPropertyType.datetime)),
       ];
   }
 }

@@ -4,15 +4,15 @@ part of aqueduct;
 class AuthCodeController extends HTTPController {
   /// Creates a new instance of an [AuthCodeController].
   ///
-  /// An [AuthCodeController] requires an [AuthenticationServer] to carry out tasks.
+  /// An [AuthCodeController] requires an [AuthServer] to carry out tasks.
   ///
   /// By default, an [AuthCodeController] has only one [acceptedContentTypes] - 'application/x-www-form-urlencoded'.
   AuthCodeController(this.authenticationServer) {
     acceptedContentTypes = [new ContentType("application", "x-www-form-urlencoded")];
   }
 
-  /// A reference to the [AuthenticationServer] this controller uses to grant authorization codes.
-  AuthenticationServer authenticationServer;
+  /// A reference to the [AuthServer] this controller uses to grant authorization codes.
+  AuthServer authenticationServer;
 
   /// Creates a one-time use authorization code.
   ///
@@ -30,7 +30,7 @@ class AuthCodeController extends HTTPController {
     return AuthCodeController.authCodeResponse(authCode, state);
   }
 
-  static Response authCodeResponse(TokenExchangable authCode, String clientState) {
+  static Response authCodeResponse(AuthTokenExchangable authCode, String clientState) {
     var redirectURI = Uri.parse(authCode.redirectURI);
     Map<String, String> queryParameters = new Map.from(redirectURI.queryParameters);
     queryParameters["code"] = authCode.code;

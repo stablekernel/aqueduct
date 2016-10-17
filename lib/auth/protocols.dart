@@ -1,12 +1,12 @@
 part of aqueduct;
 
-/// An interface to represent [AuthenticationServer.TokenType].
+/// An interface to represent [AuthServer.TokenType].
 ///
-/// In order to use authentication tokens, an [AuthenticationServer] requires
-/// that its [AuthenticationServer.TokenType] implement this interface. You will likely use
-/// this interface to define a [Model] that represents the concrete implementation of a authentication
+/// In order to use authentication tokens, an [AuthServer] requires
+/// that its [AuthServer.TokenType] implement this interface. You will likely use
+/// this interface to define a [ManagedObject] that represents the concrete implementation of a authentication
 /// token in your application. All of these properties are expected to be persisted.
-abstract class Tokenizable<ResourceIdentifierType> {
+abstract class AuthTokenizable<ResourceIdentifierType> {
   /// The value to be passed as a Bearer Authorization header.
   String accessToken;
 
@@ -33,13 +33,13 @@ abstract class Tokenizable<ResourceIdentifierType> {
   String clientID;
 }
 
-/// An interface for implementing [AuthenticationServer.AuthCodeType].
+/// An interface for implementing [AuthServer.AuthCodeType].
 ///
-/// In order to use authorization codes, an [AuthenticationServer] requires
-/// that its [AuthenticationServer.AuthCodeType] implement this interface. You will likely use
-/// this interface to define a [Model] that represents a concrete implementation
+/// In order to use authorization codes, an [AuthServer] requires
+/// that its [AuthServer.AuthCodeType] implement this interface. You will likely use
+/// this interface to define a [ManagedObject] that represents a concrete implementation
 /// of a authorization code in your application. All of these properties are expected to be persisted.
-abstract class TokenExchangable<TokenType extends Tokenizable> {
+abstract class AuthTokenExchangable<TokenType extends AuthTokenizable> {
   /// This is the URI that the response object will redirect to with the
   /// authorization code in the query.
   String redirectURI;
@@ -70,29 +70,29 @@ abstract class TokenExchangable<TokenType extends Tokenizable> {
 /// Authorization information to be attached to a [Request].
 ///
 /// When a [Request] passes through an [Authenticator] and is validated,
-/// the [Authenticator] attaches an instance of [Permission] to its [Request.permission].
+/// the [Authenticator] attaches an instance of [Authorization] to its [Request.permission].
 /// Subsequent [RequestController]s are able to use this information to determine access scope.
-class Permission {
-  /// Creates an instance of a [Permission].
-  Permission(this.clientID, this.resourceOwnerIdentifier, this.grantingServer);
+class Authorization {
+  /// Creates an instance of a [Authorization].
+  Authorization(this.clientID, this.resourceOwnerIdentifier, this.grantingServer);
 
   /// The client ID the permission was granted under.
   final String clientID;
 
   /// The identifier for the owner of the resource.
   ///
-  /// If a [Request] has a Bearer token, this will be the primary key value of the [Model]
+  /// If a [Request] has a Bearer token, this will be the primary key value of the [ManagedObject]
   /// for which the Bearer token was associated with. If the [Request] was signed with
   /// a Client ID and secret, this value will be [null].
   final dynamic resourceOwnerIdentifier;
 
-  /// The [AuthenticationServer] that granted this permission.
-  final AuthenticationServer grantingServer;
+  /// The [AuthServer] that granted this permission.
+  final AuthServer grantingServer;
 }
 
-/// An interface for implementing a [AuthenticationServer.ResourceOwner].
+/// An interface for implementing a [AuthServer.ResourceOwner].
 ///
-/// In order for an [AuthenticationServer] to authenticate a [AuthenticationServer.ResourceOwner] - like a User, Profile or Account in your application -
+/// In order for an [AuthServer] to authenticate a [AuthServer.ResourceOwner] - like a User, Profile or Account in your application -
 /// that resource owner class must implement this interface. The concrete implementation of this class does not necessarily need to persist the required
 /// properties with the same name. For example, it is possible to implement [Authenticatable.username] with an 'email' property:
 ///
@@ -120,78 +120,78 @@ abstract class Authenticatable {
   dynamic id;
 }
 
-/// An interface for implementing storage behavior for an [AuthenticationServer].
+/// An interface for implementing storage behavior for an [AuthServer].
 ///
-/// This interface is responsible for persisting and retrieving information generated and requested by an [AuthenticationServer].
+/// This interface is responsible for persisting and retrieving information generated and requested by an [AuthServer].
 /// The [ResourceOwner] often represents a user or an account in an application and must implement [Authenticatable]. The [TokenType]
-/// is a concrete instance of [Tokenizable] to represent a resource owner bearer token. The [AuthCodeType] represents an authorization code
+/// is a concrete instance of [AuthTokenizable] to represent a resource owner bearer token. The [AuthCodeType] represents an authorization code
 /// used in the authorization code grant type.
-abstract class AuthenticationServerDelegate<ResourceOwner extends Authenticatable, TokenType extends Tokenizable, AuthCodeType extends TokenExchangable<TokenType>> {
+abstract class AuthServerDelegate<ResourceOwner extends Authenticatable, TokenType extends AuthTokenizable, AuthCodeType extends AuthTokenExchangable<TokenType>> {
   /// Returns a [TokenType] for an [accessToken].
   ///
   /// This method returns an instance of [TokenType] if one exists for [accessToken]. Otherwise, it returns null.
-  /// [server] is the [AuthenticationServer] requesting the [TokenType].
-  Future<TokenType> tokenForAccessToken(AuthenticationServer server, String accessToken);
+  /// [server] is the [AuthServer] requesting the [TokenType].
+  Future<TokenType> tokenForAccessToken(AuthServer server, String accessToken);
 
   /// Returns a [TokenType] for an [refreshToken].
   ///
   /// This method returns an instance of [TokenType] if one exists for [refreshToken]. Otherwise, it returns null.
-  /// [server] is the [AuthenticationServer] requesting the [TokenType].
-  Future<TokenType> tokenForRefreshToken(AuthenticationServer server, String refreshToken);
+  /// [server] is the [AuthServer] requesting the [TokenType].
+  Future<TokenType> tokenForRefreshToken(AuthServer server, String refreshToken);
 
   /// Returns a [ResourceOwner] for an [username].
   ///
   /// This method returns an instance of [ResourceOwner] if one exists for [username]. Otherwise, it returns null.
-  /// [server] is the [AuthenticationServer] requesting the [ResourceOwner].
-  Future<ResourceOwner> authenticatableForUsername(AuthenticationServer server, String username);
+  /// [server] is the [AuthServer] requesting the [ResourceOwner].
+  Future<ResourceOwner> authenticatableForUsername(AuthServer server, String username);
 
   /// Returns a [ResourceOwner] for an [username].
   ///
   /// This method returns an instance of [ResourceOwner] if one exists for [id]. Otherwise, it returns null.
-  /// [server] is the [AuthenticationServer] requesting the [ResourceOwner].
-  Future<ResourceOwner> authenticatableForID(AuthenticationServer server, dynamic id);
+  /// [server] is the [AuthServer] requesting the [ResourceOwner].
+  Future<ResourceOwner> authenticatableForID(AuthServer server, dynamic id);
 
-  /// Returns a [Client] for a client id.
+  /// Returns a [AuthClient] for a client id.
   ///
-  /// This method returns an instance of [Client] if one exists for [id]. Otherwise, it returns null.
-  /// [server] is the [AuthenticationServer] requesting the [Client].
-  Future<Client> clientForID(AuthenticationServer server, String id);
+  /// This method returns an instance of [AuthClient] if one exists for [id]. Otherwise, it returns null.
+  /// [server] is the [AuthServer] requesting the [AuthClient].
+  Future<AuthClient> clientForID(AuthServer server, String id);
 
   /// Deletes a [TokenType] for [refreshToken].
   ///
   /// If the [server] wishes to delete an authentication token, it will invoke this method. The implementing class must delete the matching token
-  /// from its persistent storage. Note that the token is matched by its [Tokenizable.refreshToken], not by its access token.
-  /// If the matching [Tokenizable] was issued from an [TokenExchangable], that corresponding [TokenExchangable] must be deleted as well.
-  Future deleteTokenForRefreshToken(AuthenticationServer server, String refreshToken);
+  /// from its persistent storage. Note that the token is matched by its [AuthTokenizable.refreshToken], not by its access token.
+  /// If the matching [AuthTokenizable] was issued from an [AuthTokenExchangable], that corresponding [AuthTokenExchangable] must be deleted as well.
+  Future deleteTokenForRefreshToken(AuthServer server, String refreshToken);
 
   /// Asks this instance to store a [TokenType] for [server].
   ///
   /// The implementing class must persist the token [t].
-  Future<TokenType> storeToken(AuthenticationServer server, TokenType t);
+  Future<TokenType> storeToken(AuthServer server, TokenType t);
 
   /// Asks this instance to update an existing [TokenType] for [server].
   ///
   /// The implementing class must persist the token [t].
-  Future updateToken(AuthenticationServer server, TokenType t);
+  Future updateToken(AuthServer server, TokenType t);
 
   /// Asks this instance to store a [AuthCodeType] for [server].
   ///
   /// The implementing class must persist the auth code [ac].
-  Future<AuthCodeType> storeAuthCode(AuthenticationServer server, AuthCodeType ac);
+  Future<AuthCodeType> storeAuthCode(AuthServer server, AuthCodeType ac);
 
   /// Asks this instance to retrieve an auth code from provided code [code].
   ///
   /// This returns an instance of [AuthCodeType] if one exists for [code], and
   /// null otherwise.
-  Future<AuthCodeType> authCodeForCode(AuthenticationServer server, String code);
+  Future<AuthCodeType> authCodeForCode(AuthServer server, String code);
 
   /// Asks this instance to update an existing [AuthCodeType] for [server].
   ///
   /// The implementing class must persist the auth code [ac].
-  Future updateAuthCode(AuthenticationServer server, AuthCodeType ac);
+  Future updateAuthCode(AuthServer server, AuthCodeType ac);
 
   /// Asks this instance to delete an existing [AuthCodeType] for [server].
   ///
   /// The implementing class must delete that auth code from its persistent storage.
-  Future deleteAuthCode(AuthenticationServer server, AuthCodeType ac);
+  Future deleteAuthCode(AuthServer server, AuthCodeType ac);
 }

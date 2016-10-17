@@ -25,7 +25,7 @@ class TestApplication {
 
     await application.start(runOnMainIsolate: true);
 
-    ModelContext.defaultContext = stream.context;
+    ManagedContext.defaultContext = stream.context;
 
     await createDatabaseSchema(stream.context, stream.logger);
     await addClientRecord();
@@ -42,8 +42,8 @@ class TestApplication {
   }
 
   static Future addClientRecord({String clientID: "com.aqueduct.test", String clientSecret: "kilimanjaro"}) async {
-    var salt = AuthenticationServer.generateRandomSalt();
-    var hashedPassword = AuthenticationServer.generatePasswordHash(clientSecret, salt);
+    var salt = AuthServer.generateRandomSalt();
+    var hashedPassword = AuthServer.generatePasswordHash(clientSecret, salt);
     var testClientRecord = new ClientRecord();
     testClientRecord.id = clientID;
     testClientRecord.salt = salt;
@@ -56,7 +56,7 @@ class TestApplication {
     await clientQ.insert();
   }
 
-  static Future createDatabaseSchema(ModelContext context, Logger logger) async {
+  static Future createDatabaseSchema(ManagedContext context, Logger logger) async {
     var builder = new SchemaBuilder.toSchema(context.persistentStore, new Schema.fromDataModel(context.dataModel), isTemporary: true);
 
     for (var cmd in builder.commands) {

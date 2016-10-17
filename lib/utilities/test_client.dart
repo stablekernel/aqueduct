@@ -20,8 +20,8 @@ class TestClient {
     baseURL = "http://localhost:$port";
   }
 
-  /// Creates an instance from an [ApplicationInstanceConfiguration].
-  TestClient.fromConfig(ApplicationInstanceConfiguration config) {
+  /// Creates an instance from an [ApplicationConfiguration].
+  TestClient.fromConfig(ApplicationConfiguration config) {
     var hostname = config.address;
     hostname ??= "localhost";
 

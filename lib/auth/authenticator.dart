@@ -14,7 +14,7 @@ enum AuthenticationStrategy {
 ///
 /// An instance of [Authenticator] will validate a [Request] given a [strategy] with its [server].
 /// If the [Request] is unauthorized, it will respond with the appropriate status code and prevent
-/// further request processing. If the [Request] is valid, it will attach a [Permission]
+/// further request processing. If the [Request] is valid, it will attach a [Authorization]
 /// to the [Request] and deliver it to the next [RequestController].
 class Authenticator extends RequestController {
   /// Creates an instance of [Authenticator] with a reference back to its [server] and a [strategy].
@@ -24,8 +24,8 @@ class Authenticator extends RequestController {
     policy = null;
   }
 
-  /// A reference to the [AuthenticationServer] for which this [Authenticator] belongs to.
-  AuthenticationServer server;
+  /// A reference to the [AuthServer] for which this [Authenticator] belongs to.
+  AuthServer server;
 
   /// The [AuthenticationStrategy] for authenticating a request.
   AuthenticationStrategy strategy;
@@ -73,11 +73,11 @@ class Authenticator extends RequestController {
       return new Response.unauthorized();
     }
 
-    if (client.hashedSecret != AuthenticationServer.generatePasswordHash(parser.password, client.salt)) {
+    if (client.hashedSecret != AuthServer.generatePasswordHash(parser.password, client.salt)) {
       return new Response.unauthorized();
     }
 
-    var perm = new Permission(client.id, null, server);
+    var perm = new Authorization(client.id, null, server);
     req.permission = perm;
 
     return req;

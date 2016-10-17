@@ -4,7 +4,7 @@ import 'package:test/test.dart';
 void main() {
   group("Generation", () {
     test("A single, simple model", () {
-      var dataModel = new DataModel([SimpleModel]);
+      var dataModel = new ManagedDataModel([SimpleModel]);
       var schema = new Schema.fromDataModel(dataModel);
       expect(schema.tables.length, 1);
       var t = schema.tables.first;
@@ -28,7 +28,7 @@ void main() {
     });
 
     test("An extensive model", () {
-      var dataModel = new DataModel([ExtensiveModel]);
+      var dataModel = new ManagedDataModel([ExtensiveModel]);
       var schema = new Schema.fromDataModel(dataModel);
       expect(schema.tables.length, 1);
 
@@ -153,7 +153,7 @@ void main() {
 
     test("A model graph", () {
       var intentionallyUnorderedModelTypes = [LoadedSingleItem, DefaultItem, LoadedItem, Container];
-      var dataModel = new DataModel(intentionallyUnorderedModelTypes);
+      var dataModel = new ManagedDataModel(intentionallyUnorderedModelTypes);
       var schema = new Schema.fromDataModel(dataModel);
 
       expect(schema.tables.length, 4);
@@ -289,7 +289,7 @@ void main() {
 
   group("Constructors work appropriately", () {
     test("Encoding/decoding is pristine", () {
-      var dataModel = new DataModel([LoadedSingleItem, DefaultItem, LoadedItem, Container]);
+      var dataModel = new ManagedDataModel([LoadedSingleItem, DefaultItem, LoadedItem, Container]);
       var baseSchema = new Schema.fromDataModel(dataModel);
       var newSchema = new Schema.fromMap(baseSchema.asMap());
       expect(newSchema.matches(baseSchema), true);
@@ -297,7 +297,7 @@ void main() {
     });
 
     test("Copying is pristine", () {
-      var dataModel = new DataModel([LoadedSingleItem, DefaultItem, LoadedItem, Container]);
+      var dataModel = new ManagedDataModel([LoadedSingleItem, DefaultItem, LoadedItem, Container]);
       var baseSchema = new Schema.fromDataModel(dataModel);
       var newSchema = new Schema.from(baseSchema);
       expect(newSchema.matches(baseSchema), true);
@@ -308,7 +308,7 @@ void main() {
   group("Matching", () {
     Schema baseSchema;
     setUp(() {
-      var dataModel = new DataModel([LoadedSingleItem, DefaultItem, LoadedItem, Container]);
+      var dataModel = new ManagedDataModel([LoadedSingleItem, DefaultItem, LoadedItem, Container]);
       baseSchema = new Schema.fromDataModel(dataModel);
     });
 
@@ -354,7 +354,7 @@ void main() {
 
     test("Additional column shows up as error", () {
       var newSchema = new Schema.from(baseSchema);
-      newSchema.tables.firstWhere((t) => t.name == "_DefaultItem").columns.add(new SchemaColumn("foo", PropertyType.integer));
+      newSchema.tables.firstWhere((t) => t.name == "_DefaultItem").columns.add(new SchemaColumn("foo", ManagedPropertyType.integer));
 
       var errors = <String>[];
       expect(newSchema.matches(baseSchema, errors), false);
@@ -421,7 +421,7 @@ void main() {
       errors = <String>[];
 
       var capType = column.type;
-      column.type = PropertyType.boolean;
+      column.type = ManagedPropertyType.boolean;
       expect(newSchema.matches(baseSchema, errors), false);
       expect(errors.length, 1);
       expect(errors.first, contains("_DefaultItem.id does not have same type"));
@@ -445,7 +445,7 @@ void main() {
       errors = <String>[];
 
       var capDeleteRule = column.deleteRule;
-      column.deleteRule = RelationshipDeleteRule.setDefault;
+      column.deleteRule = ManagedRelationshipDeleteRule.setDefault;
       expect(newSchema.matches(baseSchema, errors), false);
       expect(errors.length, 1);
       expect(errors.first, contains("_DefaultItem.id does not have same deleteRule"));
@@ -457,7 +457,7 @@ void main() {
       var newSchema = new Schema.from(baseSchema);
       newSchema.tables.add(new SchemaTable("foo", []));
       var df = newSchema.tables.firstWhere((t) => t.name == "_DefaultItem");
-      df.columns.add(new SchemaColumn("foobar", PropertyType.integer));
+      df.columns.add(new SchemaColumn("foobar", ManagedPropertyType.integer));
       df.columns.firstWhere((sc) => sc.name == "id").isPrimaryKey = false;
 
       var errors = <String>[];
@@ -470,78 +470,78 @@ void main() {
   });
 }
 
-class Container extends Model<_Container> implements _Container {}
+class Container extends ManagedObject<_Container> implements _Container {}
 class _Container {
-  @primaryKey
+  @managedPrimaryKey
   int id;
 
-  OrderedSet<DefaultItem> defaultItems;
-  OrderedSet<LoadedItem> loadedItems;
+  ManagedSet<DefaultItem> defaultItems;
+  ManagedSet<LoadedItem> loadedItems;
 }
 
-class DefaultItem extends Model<_DefaultItem> implements _DefaultItem {}
+class DefaultItem extends ManagedObject<_DefaultItem> implements _DefaultItem {}
 class _DefaultItem {
-  @primaryKey
+  @managedPrimaryKey
   int id;
 
-  @RelationshipInverse(#defaultItems)
+  @ManagedRelationship(#defaultItems)
   Container container;
 }
 
-class LoadedItem extends Model<_LoadedItem> {}
+class LoadedItem extends ManagedObject<_LoadedItem> {}
 class _LoadedItem {
-  @primaryKey
+  @managedPrimaryKey
   int id;
 
-  @ColumnAttributes(indexed: true)
+  @ManagedColumnAttributes(indexed: true)
   String someIndexedThing;
 
-  @RelationshipInverse(#loadedItems, onDelete: RelationshipDeleteRule.restrict, isRequired: false)
+  @ManagedRelationship(#loadedItems, onDelete: ManagedRelationshipDeleteRule.restrict, isRequired: false)
   Container container;
 
   LoadedSingleItem loadedSingleItem;
 }
 
-class LoadedSingleItem extends Model<_LoadedSingleItem> {}
+class LoadedSingleItem extends ManagedObject<_LoadedSingleItem> {}
 class _LoadedSingleItem {
-  @primaryKey
+  @managedPrimaryKey
   int id;
 
-  @RelationshipInverse(#loadedSingleItem, onDelete: RelationshipDeleteRule.cascade, isRequired: true)
+  @ManagedRelationship(#loadedSingleItem, onDelete: ManagedRelationshipDeleteRule.cascade, isRequired: true)
   LoadedItem loadedItem;
 }
 
-class SimpleModel extends Model<_SimpleModel> implements _SimpleModel {}
+class SimpleModel extends ManagedObject<_SimpleModel> implements _SimpleModel {}
 class _SimpleModel {
-  @primaryKey
+  @managedPrimaryKey
   int id;
 }
 
-class ExtensiveModel extends Model<_ExtensiveModel> implements _ExtensiveModel {
-  @transientAttribute
+class ExtensiveModel extends ManagedObject<_ExtensiveModel> implements _ExtensiveModel {
+  @managedTransientAttribute
   String transientProperty;
 }
 class _ExtensiveModel {
-  @ColumnAttributes(primaryKey: true, databaseType: PropertyType.string)
+  @ManagedColumnAttributes(primaryKey: true, databaseType: ManagedPropertyType.string)
   String id;
 
   DateTime startDate;
 
-  @ColumnAttributes(indexed: true)
+  @ManagedColumnAttributes(indexed: true)
   int indexedValue;
 
-  @ColumnAttributes(autoincrement: true)
+  @ManagedColumnAttributes(autoincrement: true)
   int autoincrementValue;
 
-  @ColumnAttributes(unique: true)
+  @ManagedColumnAttributes(unique: true)
   String uniqueValue;
 
-  @ColumnAttributes(defaultValue: "'foo'")
+  @ManagedColumnAttributes(defaultValue: "'foo'")
   String defaultItem;
 
-  @ColumnAttributes(nullable: true)
+  @ManagedColumnAttributes(nullable: true)
   bool nullableValue;
 
-  @ColumnAttributes(databaseType: PropertyType.bigInteger, nullable: true, defaultValue: "7", unique: true, indexed: true, autoincrement: true)
+  @ManagedColumnAttributes(databaseType: ManagedPropertyType.bigInteger, nullable: true, defaultValue: "7", unique: true, indexed: true, autoincrement: true)
   int loadedValue;
 }

@@ -1,13 +1,13 @@
 part of wildfire;
 
-class RegisterController extends ModelController<User> {
+class RegisterController extends QueryController<User> {
   @httpPost createUser() async {
     if (query.values.username == null || query.values.password == null) {
       return new Response.badRequest(body: {"error": "Username and password required."});
     }
 
-    var salt = AuthenticationServer.generateRandomSalt();
-    var hashedPassword = AuthenticationServer.generatePasswordHash(query.values.password, salt);
+    var salt = AuthServer.generateRandomSalt();
+    var hashedPassword = AuthServer.generatePasswordHash(query.values.password, salt);
     query.values.hashedPassword = hashedPassword;
     query.values.salt = salt;
 

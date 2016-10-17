@@ -222,7 +222,7 @@ void main() {
   });
 
   test("Response documentation", () {
-    AuthCodeController ac = new AuthCodeController(new AuthenticationServer(new AuthDelegate(ModelContext.defaultContext)));
+    AuthCodeController ac = new AuthCodeController(new AuthServer(new AuthDelegate(ManagedContext.defaultContext)));
     var resolver = new PackagePathResolver(new File(".packages").path);
     var operations = ac.documentOperations(resolver);
 
@@ -238,10 +238,10 @@ void main() {
 
 class TestSink extends RequestSink {
   TestSink(Map<String, dynamic> opts) : super(opts) {
-    authServer = new AuthenticationServer<TestUser, Token, AuthCode>(new AuthDelegate(ModelContext.defaultContext));
+    authServer = new AuthServer<TestUser, Token, AuthCode>(new AuthDelegate(ManagedContext.defaultContext));
   }
 
-  AuthenticationServer authServer;
+  AuthServer authServer;
 
   void addRoutes() {
     router

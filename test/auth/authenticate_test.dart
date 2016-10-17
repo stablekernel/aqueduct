@@ -4,7 +4,7 @@ import 'dart:io';
 import '../helpers.dart';
 
 void main() {
-  ModelContext context = null;
+  ManagedContext context = null;
   AuthDelegate delegate;
 
   setUp(() async {
@@ -18,7 +18,7 @@ void main() {
   });
 
   test("Generate and verify a auth code", () async {
-    var auth = new AuthenticationServer<TestUser, Token, AuthCode>(delegate);
+    var auth = new AuthServer<TestUser, Token, AuthCode>(delegate);
     TestUser createdUser = (await createUsers(1)).first;
 
     var authCode = await auth.createAuthCode("bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app3");
@@ -31,7 +31,7 @@ void main() {
   });
 
   test("Generate auth code with bad user data fails", () async {
-    var auth = new AuthenticationServer<TestUser, Token, AuthCode>(delegate);
+    var auth = new AuthServer<TestUser, Token, AuthCode>(delegate);
     await createUsers(1);
 
     var successful = false;
@@ -65,7 +65,7 @@ void main() {
   });
 
   test("Exchange auth code for token", () async {
-    var auth = new AuthenticationServer<TestUser, Token, AuthCode>(delegate);
+    var auth = new AuthServer<TestUser, Token, AuthCode>(delegate);
     TestUser createdUser = (await createUsers(1)).first;
 
     var authCode = await auth.createAuthCode("bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app3");
@@ -91,7 +91,7 @@ void main() {
 
   test("Auth code only usable once", () async {
     await createUsers(1);
-    var auth = new AuthenticationServer<TestUser, Token, AuthCode>(delegate);
+    var auth = new AuthServer<TestUser, Token, AuthCode>(delegate);
 
     var authCode = await auth.createAuthCode("bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app3");
     var token1 = await auth.exchange(authCode.code, "com.stablekernel.app3", "mckinley");
@@ -117,7 +117,7 @@ void main() {
 
   test("Auth code unusable after expiration", () async {
     await createUsers(1);
-    var auth = new AuthenticationServer<TestUser, Token, AuthCode>(delegate);
+    var auth = new AuthServer<TestUser, Token, AuthCode>(delegate);
 
     var authCode = await auth.createAuthCode("bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app3", expirationInSeconds: 1);
     sleep(new Duration(seconds: 2));
@@ -133,7 +133,7 @@ void main() {
 
   test("Auth code unusable by other client", () async {
     await createUsers(1);
-    var auth = new AuthenticationServer<TestUser, Token, AuthCode>(delegate);
+    var auth = new AuthServer<TestUser, Token, AuthCode>(delegate);
 
     var authCode = await auth.createAuthCode("bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app3");
 
@@ -148,7 +148,7 @@ void main() {
 
   test("Auth code generation fails when client has no redirect URI", () async {
     await createUsers(1);
-    var auth = new AuthenticationServer<TestUser, Token, AuthCode>(delegate);
+    var auth = new AuthServer<TestUser, Token, AuthCode>(delegate);
 
     var authCode = null;
     try {
@@ -160,7 +160,7 @@ void main() {
   });
 
   test("Generate and verify token", () async {
-    var auth = new AuthenticationServer<TestUser, Token, AuthCode>(delegate);
+    var auth = new AuthServer<TestUser, Token, AuthCode>(delegate);
     TestUser createdUser = (await createUsers(1)).first;
 
     var token = await auth.authenticate("bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app1", "kilimanjaro");
@@ -184,7 +184,7 @@ void main() {
   });
 
   test("Bad client ID and secret fails", () async {
-    var auth = new AuthenticationServer<TestUser, Token, AuthCode>(delegate);
+    var auth = new AuthServer<TestUser, Token, AuthCode>(delegate);
     await createUsers(1);
 
     var successful = false;
@@ -206,7 +206,7 @@ void main() {
   });
 
   test("Invalid username and password fails", () async {
-    var auth = new AuthenticationServer<TestUser, Token, AuthCode>(delegate);
+    var auth = new AuthServer<TestUser, Token, AuthCode>(delegate);
     await createUsers(1);
 
     var successful = false;
@@ -228,7 +228,7 @@ void main() {
   });
 
   test("Expiration date works correctly", () async {
-    var auth = new AuthenticationServer<TestUser, Token, AuthCode>(delegate);
+    var auth = new AuthServer<TestUser, Token, AuthCode>(delegate);
     await createUsers(1);
     var t = await auth.authenticate("bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app1", "kilimanjaro", expirationInSeconds: 5);
 
@@ -248,7 +248,7 @@ void main() {
   });
 
   test("Clients have separate tokens", () async {
-    var auth = new AuthenticationServer<TestUser, Token, AuthCode>(delegate);
+    var auth = new AuthServer<TestUser, Token, AuthCode>(delegate);
 
     TestUser createdUser = (await createUsers(1)).first;
 
@@ -268,7 +268,7 @@ void main() {
   });
 
   test("Ensure users aren't authenticated by other users", () async {
-    var auth = new AuthenticationServer<TestUser, Token, AuthCode>(delegate);
+    var auth = new AuthServer<TestUser, Token, AuthCode>(delegate);
     var users = await createUsers(10);
     var t1 = await auth.authenticate("bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app1", "kilimanjaro");
     var t2 = await auth.authenticate("bob+4@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app1", "kilimanjaro");
@@ -283,7 +283,7 @@ void main() {
   });
 
   test("Refresh token works correctly", () async {
-    var auth = new AuthenticationServer<TestUser, Token, AuthCode>(delegate);
+    var auth = new AuthServer<TestUser, Token, AuthCode>(delegate);
     TestUser user = (await createUsers(1)).first;
 
     var t1 = await auth.authenticate("bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app1", "kilimanjaro");
@@ -346,7 +346,7 @@ void main() {
   });
 
   test("Refresh token doesn't work on wrong client id", () async {
-    var auth = new AuthenticationServer<TestUser, Token, AuthCode>(delegate);
+    var auth = new AuthServer<TestUser, Token, AuthCode>(delegate);
     await createUsers(1);
 
     var t1 = await auth.authenticate("bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app1", "kilimanjaro");

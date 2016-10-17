@@ -6,7 +6,7 @@ import 'package:aqueduct/aqueduct.dart';
 import '../../helpers.dart';
 
 void main() {
-  ModelContext context = null;
+  ManagedContext context = null;
 
   tearDown(() async {
     await context?.persistentStore?.close();
@@ -93,7 +93,7 @@ void main() {
     var result = await insertReq.insert();
 
     var readReq = new Query<TestModel>()
-      ..predicate = new Predicate("emailAddress = @email", {"email": "2@a.com"});
+      ..predicate = new QueryPredicate("emailAddress = @email", {"email": "2@a.com"});
 
     result = await readReq.fetchOne();
     expect(result.name, "bob");
@@ -209,14 +209,14 @@ void main() {
   });
 }
 
-class TestModel extends Model<_TestModel> implements _TestModel {}
+class TestModel extends ManagedObject<_TestModel> implements _TestModel {}
 class _TestModel {
-  @primaryKey
+  @managedPrimaryKey
   int id;
 
   String name;
 
-  @ColumnAttributes(nullable: true, unique: true)
+  @ManagedColumnAttributes(nullable: true, unique: true)
   String emailAddress;
 
   static String tableName() {
@@ -224,44 +224,44 @@ class _TestModel {
   }
 }
 
-class GenUser extends Model<_GenUser> implements _GenUser {}
+class GenUser extends ManagedObject<_GenUser> implements _GenUser {}
 class _GenUser {
-  @primaryKey
+  @managedPrimaryKey
   int id;
   String name;
 
-  OrderedSet<GenPost> posts;
+  ManagedSet<GenPost> posts;
 }
 
-class GenPost extends Model<_GenPost> implements _GenPost {}
+class GenPost extends ManagedObject<_GenPost> implements _GenPost {}
 class _GenPost {
-  @primaryKey
+  @managedPrimaryKey
   int id;
   String text;
 
-  @RelationshipInverse(#posts)
+  @ManagedRelationship(#posts)
   GenUser owner;
 }
 
-class GenTime extends Model<_GenTime> implements _GenTime {}
+class GenTime extends ManagedObject<_GenTime> implements _GenTime {}
 
 class _GenTime {
-  @primaryKey
+  @managedPrimaryKey
   int id;
 
   String text;
 
-  @ColumnAttributes(defaultValue: "(now() at time zone 'utc')")
+  @ManagedColumnAttributes(defaultValue: "(now() at time zone 'utc')")
   DateTime dateCreated;
 }
 
-class TransientModel extends Model<_Transient> implements _Transient {
-  @transientAttribute
+class TransientModel extends ManagedObject<_Transient> implements _Transient {
+  @managedTransientAttribute
   String transientValue;
 }
 
 class _Transient {
-  @primaryKey
+  @managedPrimaryKey
   int id;
 
   String value;

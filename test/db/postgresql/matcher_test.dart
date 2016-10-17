@@ -3,7 +3,7 @@ import 'package:aqueduct/aqueduct.dart';
 import '../../helpers.dart';
 
 void main() {
-  ModelContext context = null;
+  ManagedContext context = null;
 
   setUpAll(() async {
     context = await contextWithModels([TestModel, InnerModel]);
@@ -193,26 +193,26 @@ void main() {
   });
 }
 
-class TestModel extends Model<_TestModel> implements _TestModel {}
+class TestModel extends ManagedObject<_TestModel> implements _TestModel {}
 class _TestModel {
-  @primaryKey
+  @managedPrimaryKey
   int id;
 
   String name;
 
-  @ColumnAttributes(nullable: true, unique: true)
+  @ManagedColumnAttributes(nullable: true, unique: true)
   String email;
 
   InnerModel inner;
 }
 
-class InnerModel extends Model<_InnerModel> implements _InnerModel {}
+class InnerModel extends ManagedObject<_InnerModel> implements _InnerModel {}
 class _InnerModel {
-  @primaryKey
+  @managedPrimaryKey
   int id;
 
   String name;
 
-  @RelationshipInverse(#inner)
+  @ManagedRelationship(#inner)
   TestModel owner;
 }

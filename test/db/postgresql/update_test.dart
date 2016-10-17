@@ -3,7 +3,7 @@ import 'package:aqueduct/aqueduct.dart';
 import '../../helpers.dart';
 
 void main() {
-  ModelContext context = null;
+  ManagedContext context = null;
 
   tearDown(() async {
     await context?.persistentStore?.close();
@@ -25,7 +25,7 @@ void main() {
       ..emailAddress = "2@a.com";
 
     req = new Query<TestModel>()
-      ..predicate = new Predicate("name = @name", {"name": "Bob"})
+      ..predicate = new QueryPredicate("name = @name", {"name": "Bob"})
       ..values = m;
 
     var response = await req.update();
@@ -74,7 +74,7 @@ void main() {
       ..emailAddress = "2@a.com";
 
     req = new Query<TestModel>()
-      ..predicate = new Predicate("name = @name", {"name": "John"})
+      ..predicate = new QueryPredicate("name = @name", {"name": "John"})
       ..values = m;
 
     var response = await req.update();
@@ -152,7 +152,7 @@ void main() {
     await req.insert();
 
     req = new Query<TestModel>()
-      ..predicate = new Predicate("name = @name", {"name": "Bob"})
+      ..predicate = new QueryPredicate("name = @name", {"name": "Bob"})
       ..values.name = "John";
 
     var response = await req.updateOne();
@@ -160,7 +160,7 @@ void main() {
     expect(response.emailAddress, "1@a.com");
 
     req = new Query<TestModel>()
-      ..predicate = new Predicate("name = @name", {"name": "Bob"})
+      ..predicate = new QueryPredicate("name = @name", {"name": "Bob"})
       ..values.name = "John";
 
     response = await req.updateOne();
@@ -183,7 +183,7 @@ void main() {
     await req.insert();
 
     req = new Query<TestModel>()
-      ..predicate = new Predicate("name is not null", {})
+      ..predicate = new QueryPredicate("name is not null", {})
       ..values.name = "Joe";
 
     try {
@@ -271,31 +271,31 @@ void main() {
   });
 }
 
-class TestModel extends Model<_TestModel> implements _TestModel {}
+class TestModel extends ManagedObject<_TestModel> implements _TestModel {}
 class _TestModel {
-  @primaryKey
+  @managedPrimaryKey
   int id;
 
   String name;
 
-  @ColumnAttributes(nullable: true, unique: true)
+  @ManagedColumnAttributes(nullable: true, unique: true)
   String emailAddress;
 }
 
-class Child extends Model<_Child> implements _Child {}
+class Child extends ManagedObject<_Child> implements _Child {}
 class _Child {
-  @primaryKey
+  @managedPrimaryKey
   int id;
 
   String name;
 
-  @RelationshipInverse(#child, isRequired: false, onDelete: RelationshipDeleteRule.cascade)
+  @ManagedRelationship(#child, isRequired: false, onDelete: ManagedRelationshipDeleteRule.cascade)
   Parent parent;
 }
 
-class Parent extends Model<_Parent> implements _Child {}
+class Parent extends ManagedObject<_Parent> implements _Child {}
 class _Parent {
-  @primaryKey
+  @managedPrimaryKey
   int id;
 
   String name;

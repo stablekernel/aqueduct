@@ -6,7 +6,7 @@ homepage: https://github.com/stablekernel/aqueduct
 documentation:
 
 environment:
-  sdk: ">=1.19.0 <2.0.0"
+  sdk: ">=1.18.0 <2.0.0"
 
 dependencies:
   safe_config: ">=1.1.0 <2.0.0"

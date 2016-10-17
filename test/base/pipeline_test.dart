@@ -7,7 +7,7 @@ void main() {
     try {
       await app.start();
       expect(true, false);
-    } on IsolateSupervisorException catch (e) {
+    } on ApplicationSupervisorException catch (e) {
       expect(e.message, "RequestController subclass FailingController instances cannot be reused. Rewrite as .generate(() => new FailingController())");
     }
   });

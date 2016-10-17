@@ -4,16 +4,16 @@ part of aqueduct;
 ///
 /// Instances of this type will carry out authentication and authorization tasks. This class shouldn't be subclassed. The storage required by tasks performed
 /// by instances of this class - such as storing an issued token - are facilitated through its [delegate], which is application-specific.
-class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType extends Tokenizable, AuthCodeType extends TokenExchangable<TokenType>> extends Object with APIDocumentable {
-  /// Creates a new instance of an [AuthenticationServer] with a [delegate].
-  AuthenticationServer(this.delegate);
+class AuthServer<ResourceOwner extends Authenticatable, TokenType extends AuthTokenizable, AuthCodeType extends AuthTokenExchangable<TokenType>> extends Object with APIDocumentable {
+  /// Creates a new instance of an [AuthServer] with a [delegate].
+  AuthServer(this.delegate);
 
   /// The object responsible for carrying out the storage mechanisms of this instance.
   ///
   /// This instance is responsible for storing, fetching and deleting instances of
-  /// [TokenType], [ResourceOwner] and [AuthCodeType] by implementing the [AuthenticationServerDelegate] interface.
-  AuthenticationServerDelegate<ResourceOwner, TokenType, AuthCodeType> delegate;
-  Map<String, Client> _clientCache = {};
+  /// [TokenType], [ResourceOwner] and [AuthCodeType] by implementing the [AuthServerDelegate] interface.
+  AuthServerDelegate<ResourceOwner, TokenType, AuthCodeType> delegate;
+  Map<String, AuthClient> _clientCache = {};
 
   /// Returns whether or not a token from this server has expired.
   bool isTokenExpired(TokenType t) {
@@ -25,39 +25,39 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
     return ac.expirationDate.difference(new DateTime.now().toUtc()).inSeconds <= 0;
   }
 
-  /// Returns a [Client] record for its [id].
+  /// Returns a [AuthClient] record for its [id].
   ///
-  /// A server keeps a cache of known [Client]s. If a client does not exist in the cache,
+  /// A server keeps a cache of known [AuthClient]s. If a client does not exist in the cache,
   /// it will ask its [delegate] via [clientForID].
-  Future<Client> clientForID(String id) async {
-    Client client = _clientCache[id] ?? (await delegate.clientForID(this, id));
+  Future<AuthClient> clientForID(String id) async {
+    AuthClient client = _clientCache[id] ?? (await delegate.clientForID(this, id));
 
     _clientCache[id] = client;
 
     return client;
   }
 
-  /// Revokes a [Client] record.
+  /// Revokes a [AuthClient] record.
   ///
-  /// NYI. Currently, just removes a [Client] from the cache.
+  /// NYI. Currently, just removes a [AuthClient] from the cache.
   void revokeClient(String clientID) {
     _clientCache.remove(clientID);
 
     // TODO: Call delegate method to revoke client from persistent storage.
   }
 
-  /// Returns a [Permission] for [accessToken].
+  /// Returns a [Authorization] for [accessToken].
   ///
   /// This method obtains a [TokenType] from its [delegate] and then verifies that the token is valid.
-  /// If the token is valid, a [Permission] object is returned. Otherwise, an [HTTPResponseException]
+  /// If the token is valid, a [Authorization] object is returned. Otherwise, an [HTTPResponseException]
   /// with status code 401 is returned.
-  Future<Permission> verify(String accessToken) async {
+  Future<Authorization> verify(String accessToken) async {
     TokenType t = await delegate.tokenForAccessToken(this, accessToken);
     if (t == null || isTokenExpired(t)) {
       throw new HTTPResponseException(HttpStatus.UNAUTHORIZED, "Expired token");
     }
 
-    var permission = new Permission(t.clientID, t.resourceOwnerIdentifier, this);
+    var permission = new Authorization(t.clientID, t.resourceOwnerIdentifier, this);
 
     return permission;
   }
@@ -89,25 +89,25 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
     return token;
   }
 
-  /// Returns a [Permission] for the specified [code].
+  /// Returns a [Authorization] for the specified [code].
   ///
   /// This method obtains a [AuthCodeType] from its [delegate] and then verifies
-  /// that the authorization code is valid. If the token is valid, a [Permission]
+  /// that the authorization code is valid. If the token is valid, a [Authorization]
   /// object is returned. Otherwise, an [HTTPResponseException] with status code 401 is returned.
-  Future<Permission> verifyCode(String code) async {
+  Future<Authorization> verifyCode(String code) async {
     AuthCodeType ac = await delegate.authCodeForCode(this, code);
     if (ac == null || isAuthCodeExpired(ac)) {
       throw new HTTPResponseException(HttpStatus.UNAUTHORIZED, "Expired authorization code");
     }
 
-    return new Permission(ac.clientID, ac.resourceOwnerIdentifier, this);
+    return new Authorization(ac.clientID, ac.resourceOwnerIdentifier, this);
   }
 
   /// Instantiates a [AuthCodeType] given the arguments.
   ///
   /// This method creates an instance of [AuthCodeType] given an [ownerID], [client], and [expirationInSeconds].
   /// The generated authorization code is not persisted by invoking this method.
-  AuthCodeType generateAuthCode(dynamic ownerID, Client client, int expirationInSeconds) {
+  AuthCodeType generateAuthCode(dynamic ownerID, AuthClient client, int expirationInSeconds) {
     AuthCodeType authCode = (reflectType(AuthCodeType) as ClassMirror).newInstance(new Symbol(""), []).reflectee as AuthCodeType;
 
     authCode.code = randomStringOfLength(32);
@@ -126,7 +126,7 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
   /// This method coordinates with this instance's [delegate] to update the old token with a new access token and issue/expiration dates if successful.
   /// If not successful, it will throw an [HTTPResponseException] with status code 401.
   Future<TokenType> refresh(String refreshToken, String clientID, String clientSecret) async {
-    Client client = await clientForID(clientID);
+    AuthClient client = await clientForID(clientID);
     if (client == null) {
       throw new HTTPResponseException(HttpStatus.UNAUTHORIZED, "Invalid client_id");
     }
@@ -154,7 +154,7 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
   ///
   /// [expirationInSeconds] is measured in seconds and defaults to one hour.
   Future<TokenType> authenticate(String username, String password, String clientID, String clientSecret, {int expirationInSeconds: 3600}) async {
-    Client client = await clientForID(clientID);
+    AuthClient client = await clientForID(clientID);
     if (client == null) {
       throw new HTTPResponseException(HttpStatus.UNAUTHORIZED, "Invalid client_id");
     }
@@ -169,7 +169,7 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
 
     var dbSalt = authenticatable.salt;
     var dbPassword = authenticatable.hashedPassword;
-    var hash = AuthenticationServer.generatePasswordHash(password, dbSalt);
+    var hash = AuthServer.generatePasswordHash(password, dbSalt);
     if (hash != dbPassword) {
       throw new HTTPResponseException(HttpStatus.UNAUTHORIZED, "Invalid password");
     }
@@ -186,7 +186,7 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
   /// if the credentials are correct. If they are not correct, it will throw the
   /// appropriate [HTTPResponseException].
   Future<AuthCodeType> createAuthCode(String username, String password, String clientID, {int expirationInSeconds: 600}) async {
-    Client client = await clientForID(clientID);
+    AuthClient client = await clientForID(clientID);
     if (client == null) {
       throw new HTTPResponseException(HttpStatus.UNAUTHORIZED, "Invalid client_id");
     }
@@ -202,7 +202,7 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
 
     var dbSalt = authenticatable.salt;
     var dbPassword = authenticatable.hashedPassword;
-    var hash = AuthenticationServer.generatePasswordHash(password, dbSalt);
+    var hash = AuthServer.generatePasswordHash(password, dbSalt);
     if (hash != dbPassword) {
       throw new HTTPResponseException(HttpStatus.UNAUTHORIZED, "Invalid password");
     }
@@ -217,7 +217,7 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
   /// and the client secret is correct, it will return a valid pair of tokens. Otherwise,
   /// it will throw an appropriate [HTTPResponseException].
   Future<TokenType> exchange(String authCodeString, String clientID, String clientSecret, {int expirationInSeconds: 3600}) async {
-    Client client = await clientForID(clientID);
+    AuthClient client = await clientForID(clientID);
     if (client == null) {
       throw new HTTPResponseException(HttpStatus.UNAUTHORIZED, "Invalid client_id");
     }
@@ -295,10 +295,10 @@ class AuthenticationServer<ResourceOwner extends Authenticatable, TokenType exte
   }
 
   /// A utility method to generate a ClientID and Client Secret Pair, where secret is hashed with a salt.
-  static Client generateAPICredentialPair(String clientID, String secret, {String redirectURI: null}) {
-    var salt = AuthenticationServer.generateRandomSalt();
-    var hashed = AuthenticationServer.generatePasswordHash(secret, salt);
+  static AuthClient generateAPICredentialPair(String clientID, String secret, {String redirectURI: null}) {
+    var salt = AuthServer.generateRandomSalt();
+    var hashed = AuthServer.generatePasswordHash(secret, salt);
 
-    return new Client.withRedirectURI(clientID, hashed, salt, redirectURI);
+    return new AuthClient.withRedirectURI(clientID, hashed, salt, redirectURI);
   }
 }

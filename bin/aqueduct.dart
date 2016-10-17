@@ -3,8 +3,8 @@ import 'package:args/args.dart';
 import 'package:aqueduct/aqueduct.dart';
 
 Future<int> main(List<String> args) async {
-  var templateCreator = new TemplateCreator();
-  var migrationRunner = new MigrationRunner();
+  var templateCreator = new CLITemplateCreator();
+  var migrationRunner = new CLIMigrationRunner();
   var totalParser = new ArgParser(allowTrailingOptions: true)
     ..addCommand("create", templateCreator.options)
     ..addCommand("db", migrationRunner.options)

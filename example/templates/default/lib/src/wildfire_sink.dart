@@ -19,11 +19,11 @@ class WildfireSink extends RequestSink {
 
     context = contextWithConnectionInfo(configuration.database);
 
-    authenticationServer = new AuthenticationServer<User, Token, AuthCode>(new WildfireAuthenticationDelegate());
+    authenticationServer = new AuthServer<User, Token, AuthCode>(new WildfireAuthenticationDelegate());
   }
 
-  ModelContext context;
-  AuthenticationServer<User, Token, AuthCode> authenticationServer;
+  ManagedContext context;
+  AuthServer<User, Token, AuthCode> authenticationServer;
   WildfireConfiguration configuration;
 
   @override
@@ -54,14 +54,14 @@ class WildfireSink extends RequestSink {
         .generate(() => new UserController());
   }
 
-  ModelContext contextWithConnectionInfo(DatabaseConnectionConfiguration database) {
+  ManagedContext contextWithConnectionInfo(DatabaseConnectionConfiguration database) {
     var connectionInfo = configuration.database;
-    var dataModel = new DataModel.fromPackageContainingType(this.runtimeType);
+    var dataModel = new ManagedDataModel.fromPackageContainingType(this.runtimeType);
     var psc = new PostgreSQLPersistentStore.fromConnectionInfo(connectionInfo.username,
         connectionInfo.password, connectionInfo.host, connectionInfo.port, connectionInfo.databaseName);
 
-    var ctx = new ModelContext(dataModel, psc);
-    ModelContext.defaultContext = ctx;
+    var ctx = new ManagedContext(dataModel, psc);
+    ManagedContext.defaultContext = ctx;
 
     return ctx;
   }

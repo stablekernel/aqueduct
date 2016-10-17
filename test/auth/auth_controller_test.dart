@@ -5,13 +5,13 @@ import 'dart:convert';
 import '../helpers.dart';
 
 void main() {
-  ModelContext context = null;
+  ManagedContext context = null;
   HttpServer server;
   TestClient client = new TestClient.onPort(8080)
     ..clientID = "com.stablekernel.app1"
     ..clientSecret = "kilimanjaro";
 
-  var authenticationServer = new AuthenticationServer<TestUser, Token, AuthCode>(new AuthDelegate(context));
+  var authenticationServer = new AuthServer<TestUser, Token, AuthCode>(new AuthDelegate(context));
   var router = new Router();
   router
       .route("/auth/token")
@@ -133,7 +133,7 @@ void main() {
   });
 
   test("Response documentation", () {
-    AuthController ac = new AuthController(new AuthenticationServer(new AuthDelegate(ModelContext.defaultContext)));
+    AuthController ac = new AuthController(new AuthServer(new AuthDelegate(ManagedContext.defaultContext)));
     var resolver = new PackagePathResolver(new File(".packages").path);
     var operations = ac.documentOperations(resolver);
 

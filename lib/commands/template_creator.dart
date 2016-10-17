@@ -1,6 +1,6 @@
 part of aqueduct;
 
-class TemplateCreator extends CLICommand {
+class CLITemplateCreator extends CLICommand {
   ArgParser options = new ArgParser(allowTrailingOptions: false)
     ..addOption("template", abbr: "t", help: "Name of the template.", allowed: ["default"], defaultsTo: "default")
     ..addOption("name", abbr: "n", help: "Name of project in snake_case.")

@@ -123,7 +123,7 @@ main() {
         await conflictingApp.start();
         successful = true;
       } catch (e) {
-        expect(e, new isInstanceOf<IsolateSupervisorException>());
+        expect(e, new isInstanceOf<ApplicationSupervisorException>());
       }
       expect(successful, false);
 
