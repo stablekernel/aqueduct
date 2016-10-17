@@ -1,7 +1,7 @@
 part of aqueduct;
 
 /// The type of authentication strategy to use for an [Authenticator].
-enum AuthenticationStrategy {
+enum AuthStrategy {
   /// The resource owner strategy requires that a [Request] have a Bearer token.
   resourceOwner,
 
@@ -19,28 +19,28 @@ enum AuthenticationStrategy {
 class Authenticator extends RequestController {
   /// Creates an instance of [Authenticator] with a reference back to its [server] and a [strategy].
   ///
-  /// The default strategy is [AuthenticationStrategy.resourceOwner].
-  Authenticator(this.server, {this.strategy: AuthenticationStrategy.resourceOwner}) {
+  /// The default strategy is [AuthStrategy.resourceOwner].
+  Authenticator(this.server, {this.strategy: AuthStrategy.resourceOwner}) {
     policy = null;
   }
 
   /// A reference to the [AuthServer] for which this [Authenticator] belongs to.
   AuthServer server;
 
-  /// The [AuthenticationStrategy] for authenticating a request.
-  AuthenticationStrategy strategy;
+  /// The [AuthStrategy] for authenticating a request.
+  AuthStrategy strategy;
 
   @override
   Future<RequestControllerEvent> processRequest(Request req) async {
     var errorResponse = null;
-    if (strategy == AuthenticationStrategy.resourceOwner) {
+    if (strategy == AuthStrategy.resourceOwner) {
       var result = _processResourceOwnerRequest(req);
       if (result is Request) {
         return result;
       }
 
       errorResponse = result;
-    } else if (strategy == AuthenticationStrategy.client) {
+    } else if (strategy == AuthStrategy.client) {
       var result = _processClientRequest(req);
       if (result is Request) {
         return result;
@@ -60,7 +60,7 @@ class Authenticator extends RequestController {
     var bearerToken = AuthorizationBearerParser.parse(req.innerRequest.headers.value(HttpHeaders.AUTHORIZATION));
     var permission = await server.verify(bearerToken);
 
-    req.permission = permission;
+    req.authorization = permission;
 
     return req;
   }
@@ -78,7 +78,7 @@ class Authenticator extends RequestController {
     }
 
     var perm = new Authorization(client.id, null, server);
-    req.permission = perm;
+    req.authorization = perm;
 
     return req;
   }
@@ -91,9 +91,9 @@ class Authenticator extends RequestController {
     var secReq= new APISecurityRequirement()
       ..scopes = [];
 
-    if (strategy == AuthenticationStrategy.client) {
+    if (strategy == AuthStrategy.client) {
       secReq.name = "oauth2.application";
-    } else if (strategy == AuthenticationStrategy.resourceOwner) {
+    } else if (strategy == AuthStrategy.resourceOwner) {
       secReq.name = "oauth2.password";
     }
 

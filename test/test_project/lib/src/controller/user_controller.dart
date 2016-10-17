@@ -7,7 +7,7 @@ class UserController extends QueryController<User> {
       return new Response.notFound();
     }
 
-    if (request.permission.resourceOwnerIdentifier != id) {
+    if (request.authorization.resourceOwnerIdentifier != id) {
       // Filter out stuff for non-owner of user
     }
 
@@ -15,7 +15,7 @@ class UserController extends QueryController<User> {
   }
 
   @httpPut updateUser(int id) async {
-    if (request.permission.resourceOwnerIdentifier != id) {
+    if (request.authorization.resourceOwnerIdentifier != id) {
       return new Response.unauthorized();
     }
 

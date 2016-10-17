@@ -460,9 +460,9 @@ class PostgreSQLPersistentStore extends PersistentStore with _PostgreSQLSchemaGe
     return "${_stringForJoinType(ji.type)} JOIN ${ji.joinProperty.entity.tableName} ON (${predicate.format})";
   }
 
-  String _stringForJoinType(JoinType t) {
+  String _stringForJoinType(PersistentJoinType t) {
     switch (t) {
-      case JoinType.leftOuter: return "LEFT OUTER";
+      case PersistentJoinType.leftOuter: return "LEFT OUTER";
     }
     return null;
   }

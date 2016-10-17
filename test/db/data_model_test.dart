@@ -169,7 +169,7 @@ void main() {
       var entity = dataModel.entityForType(User);
       User instance = entity.instanceFromMappingElements([
         new PersistentColumnMapping(entity.attributes["id"], 2),
-        new PersistentJoinMapping(JoinType.leftOuter, entity.attributes["items"], null, [
+        new PersistentJoinMapping(PersistentJoinType.leftOuter, entity.attributes["items"], null, [
           new PersistentColumnMapping(dataModel.entityForType(Item).attributes["name"], "foobar")
         ])
       ]);

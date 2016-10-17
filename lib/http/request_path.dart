@@ -73,7 +73,7 @@ class RequestPath {
 /// Contains [RouteSegment]s for each path segment.
 class RouteSpecification extends Object with APIDocumentable {
   static List<RouteSpecification> specificationsForRoutePattern(String routePattern) {
-    return pathsFromRoutePattern(routePattern)
+    return _pathsFromRoutePattern(routePattern)
         .map((path) => new RouteSpecification(path))
         .toList();
   }
@@ -249,7 +249,7 @@ class RouteSegment {
 ///
 /// This method strips away optionals in the route syntax, yielding an individual path for every combination of the route syntax.
 /// The returned [String]s no longer contain optional syntax.
-List<String> pathsFromRoutePattern(String routePattern) {
+List<String> _pathsFromRoutePattern(String routePattern) {
   var endingOptionalCloseCount = 0;
   while (routePattern.endsWith("]")) {
     routePattern = routePattern.substring(0, routePattern.length - 1);

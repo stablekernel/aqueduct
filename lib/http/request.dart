@@ -60,7 +60,7 @@ class Request implements RequestControllerEvent {
   /// permission information from the authenticator. Use this to determine client, resource owner
   /// or other properties of the authentication information in the request. This value will be
   /// null if no permission has been set.
-  Authorization permission;
+  Authorization authorization;
 
   /// The request body object, as determined by how it was decoded.
   ///

@@ -1,6 +1,6 @@
 part of aqueduct;
 
-enum JoinType {
+enum PersistentJoinType {
   leftOuter
 }
 
@@ -128,7 +128,7 @@ class PersistentStoreQuery {
       var propertiesToFetch = nestedProperties ?? inner.entity.defaultProperties;
 
       var joinElements = [
-        new PersistentJoinMapping(JoinType.leftOuter, relDesc, predicate, _mappingElementsForList(propertiesToFetch, inner.entity))
+        new PersistentJoinMapping(PersistentJoinType.leftOuter, relDesc, predicate, _mappingElementsForList(propertiesToFetch, inner.entity))
       ];
 
       if (inner._hasJoinElements) {
@@ -175,7 +175,7 @@ class PersistentJoinMapping extends PersistentColumnMapping {
     primaryKeyIndex = original.primaryKeyIndex;
   }
 
-  JoinType type;
+  PersistentJoinType type;
   ManagedPropertyDescription get joinProperty => (property as ManagedRelationshipDescription).inverseRelationship;
   QueryPredicate predicate;
   List<PersistentColumnMapping> resultKeys;

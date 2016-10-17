@@ -70,7 +70,7 @@ abstract class AuthTokenExchangable<TokenType extends AuthTokenizable> {
 /// Authorization information to be attached to a [Request].
 ///
 /// When a [Request] passes through an [Authenticator] and is validated,
-/// the [Authenticator] attaches an instance of [Authorization] to its [Request.permission].
+/// the [Authenticator] attaches an instance of [Authorization] to its [Request.authorization].
 /// Subsequent [RequestController]s are able to use this information to determine access scope.
 class Authorization {
   /// Creates an instance of a [Authorization].
