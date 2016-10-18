@@ -60,13 +60,13 @@ void main() {
       var resp = await (client.request("/controller")
           ..json = {
             "name" : "John",
-            "createdAt" : new DateTime(2000, 12, 12).toIso8601String()
+            "createdAt" : new DateTime(2000, 12, 12).toUtc().toIso8601String()
           }).post();
 
       var expectedMap = {
         "id" : allObjects.length + 1,
         "name" : "John",
-        "createdAt" : "2000-12-12T00:00:00.000Z"
+        "createdAt" : new DateTime(2000, 12, 12).toUtc().toIso8601String()
       };
       expect(resp, hasResponse(200, expectedMap));
       expect(await client.request("/controller/${expectedMap["id"]}").get(), hasResponse(200, expectedMap));
@@ -299,9 +299,11 @@ class TestSink extends RequestSink {
 
   @override
   Future willOpen() async {
-    var generator = new SchemaGenerator(context.dataModel);
-    var specificGenerator = new PostgreSQLSchemaGenerator(generator.serialized, temporary: true);
-    for (var cmd in specificGenerator.commands) {
+    var targetSchema = new Schema.fromDataModel(context.dataModel);
+    var schemaBuilder = new SchemaBuilder.toSchema(context.persistentStore, targetSchema, isTemporary: true);
+
+    var commands = schemaBuilder.commands;
+    for (var cmd in commands) {
       await context.persistentStore.execute(cmd);
     }
   }

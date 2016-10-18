@@ -1,6 +1,7 @@
 import 'package:wildfire/wildfire.dart';
 import 'dart:async';
 import 'dart:convert';
+import 'package:args/args.dart';
 
 Future main(List<String> args) async {
   var argParser = new ArgParser()

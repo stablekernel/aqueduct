@@ -14,9 +14,6 @@ class WildfireSink extends RequestSink {
   WildfireSink(Map<String, dynamic> opts) : super(opts) {
     configuration = opts[ConfigurationKey];
 
-    LoggingTarget target = opts[LoggingTargetKey];
-    target?.bind(logger);
-
     context = contextWithConnectionInfo(configuration.database);
 
     authenticationServer = new AuthenticationServer<User, Token, AuthCode>(new WildfireAuthenticationDelegate());

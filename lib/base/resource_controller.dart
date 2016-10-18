@@ -358,7 +358,6 @@ class ResourceController<InstanceType extends Model> extends HTTPController {
       return null;
     }
 
-    print("${desc.type} $value");
     try {
       switch (desc.type) {
         case PropertyType.string: return value;

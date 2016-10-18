@@ -29,7 +29,7 @@ class _DataModelBuilder {
   Map<Type, ModelEntity> persistentTypeToEntityMap = {};
 
   String tableNameForEntity(ModelEntity entity) {
-    var tableNameSymbol = new Symbol("tableName");
+    var tableNameSymbol = #tableName;
     if (entity.persistentType.staticMembers[tableNameSymbol] != null) {
       return entity.persistentType
           .invoke(tableNameSymbol, [])

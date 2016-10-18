@@ -171,41 +171,59 @@ Future<ModelContext> contextWithModels(List<Type> instanceTypes) async {
   });
 
   var dataModel = new DataModel(instanceTypes);
-  var generator = new SchemaGenerator(dataModel);
-  var json = generator.serialized;
-  var pGenerator = new PostgreSQLSchemaGenerator(json, temporary: true);
-
+  var commands = commandsFromDataModel(dataModel, temporary: true);
   var context = new ModelContext(dataModel, persistentStore);
   ModelContext.defaultContext = context;
 
-  for (var cmd in pGenerator.commandList.split(";\n")) {
+  for (var cmd in commands) {
     await persistentStore.execute(cmd);
   }
 
   return context;
 }
 
-String commandsForModelInstanceTypes(List<Type> instanceTypes, {bool temporary: false}) {
-  var dataModel = new DataModel(instanceTypes);
-  var generator = new SchemaGenerator(dataModel);
-  var json = generator.serialized;
-  var pGenerator = new PostgreSQLSchemaGenerator(json, temporary: temporary);
+List<String> commandsFromDataModel(DataModel dataModel, {bool temporary: false}) {
+  var targetSchema = new Schema.fromDataModel(dataModel);
+  var builder = new SchemaBuilder.toSchema(new PostgreSQLPersistentStore(() => null), targetSchema, isTemporary: temporary);
+  return builder.commands;
+}
 
-  return pGenerator.commandList;
+List<String> commandsForModelInstanceTypes(List<Type> instanceTypes, {bool temporary: false}) {
+  var dataModel = new DataModel(instanceTypes);
+  return commandsFromDataModel(dataModel, temporary: temporary);
 }
 
 class DefaultPersistentStore extends PersistentStore {
-  Future<dynamic> execute(String sql) async { return null; }
+  Future<dynamic> execute(String sql, {Map<String, dynamic> substitutionValues}) async => null;
   Future close() async {}
-  Future<List<MappingElement>> executeInsertQuery(PersistentStoreQuery q) async { return null; }
-  Future<List<List<MappingElement>>> executeFetchQuery(PersistentStoreQuery q) async { return null; }
-  Future<int> executeDeleteQuery(PersistentStoreQuery q) async { return null; }
-  Future<List<List<MappingElement>>> executeUpdateQuery(PersistentStoreQuery q) async { return null; }
+  Future<List<MappingElement>> executeInsertQuery(PersistentStoreQuery q) async => null;
+  Future<List<List<MappingElement>>> executeFetchQuery(PersistentStoreQuery q) async => null;
+  Future<int> executeDeleteQuery(PersistentStoreQuery q) async => null;
+  Future<List<List<MappingElement>>> executeUpdateQuery(PersistentStoreQuery q) async => null;
 
-  Predicate comparisonPredicate(PropertyDescription desc, MatcherOperator operator, dynamic value) { return null; }
-  Predicate containsPredicate(PropertyDescription desc, Iterable<dynamic> values) { return null; }
-  Predicate nullPredicate(PropertyDescription desc, bool isNull) { return null; }
-  Predicate rangePredicate(PropertyDescription desc, dynamic lhsValue, dynamic rhsValue, bool insideRange) { return null; }
-  Predicate stringPredicate(PropertyDescription desc, StringMatcherOperator operator, dynamic value) { return null; }
+  Predicate comparisonPredicate(PropertyDescription desc, MatcherOperator operator, dynamic value) => null;
+  Predicate containsPredicate(PropertyDescription desc, Iterable<dynamic> values) => null;
+  Predicate nullPredicate(PropertyDescription desc, bool isNull) => null;
+  Predicate rangePredicate(PropertyDescription desc, dynamic lhsValue, dynamic rhsValue, bool insideRange) => null;
+  Predicate stringPredicate(PropertyDescription desc, StringMatcherOperator operator, dynamic value) => null;
+
+  List<String> createTable(SchemaTable t, {bool isTemporary: false}) => [];
+  List<String> renameTable(SchemaTable table, String name) => [];
+  List<String> deleteTable(SchemaTable table) => [];
+
+  List<String> addColumn(SchemaTable table, SchemaColumn column) => [];
+  List<String> deleteColumn(SchemaTable table, SchemaColumn column) => [];
+  List<String> renameColumn(SchemaTable table, SchemaColumn column, String name) => [];
+  List<String> alterColumnNullability(SchemaTable table, SchemaColumn column, String unencodedInitialValue) => [];
+  List<String> alterColumnUniqueness(SchemaTable table, SchemaColumn column) => [];
+  List<String> alterColumnDefaultValue(SchemaTable table, SchemaColumn column) => [];
+  List<String> alterColumnDeleteRule(SchemaTable table, SchemaColumn column) => [];
+
+  List<String> addIndexToColumn(SchemaTable table, SchemaColumn column) => [];
+  List<String> renameIndex(SchemaTable table, SchemaColumn column, String newIndexName) => [];
+  List<String> deleteIndexFromColumn(SchemaTable table, SchemaColumn column) => [];
+
+  Future<int> get schemaVersion async => 0;
+  Future upgrade(int versionNumber, List<String> commands, {bool temporary: false}) async => null;
 }
 

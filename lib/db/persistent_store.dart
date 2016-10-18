@@ -5,7 +5,7 @@ part of aqueduct;
 /// Implementors of this class serve as the bridge between [Query]s and a specific database.
 abstract class PersistentStore {
   /// Executes an arbitrary command.
-  Future execute(String sql);
+  Future execute(String sql, {Map<String, dynamic> substitutionValues});
 
   /// Closes the underlying database connection.
   Future close();
@@ -25,4 +25,25 @@ abstract class PersistentStore {
   Predicate nullPredicate(PropertyDescription desc, bool isNull);
   Predicate rangePredicate(PropertyDescription desc, dynamic lhsValue, dynamic rhsValue, bool insideRange);
   Predicate stringPredicate(PropertyDescription desc, StringMatcherOperator operator, dynamic value);
+
+  // -- Schema Ops --
+
+  List<String> createTable(SchemaTable table, {bool isTemporary: false});
+  List<String> renameTable(SchemaTable table, String name);
+  List<String> deleteTable(SchemaTable table);
+
+  List<String> addColumn(SchemaTable table, SchemaColumn column);
+  List<String> deleteColumn(SchemaTable table, SchemaColumn column);
+  List<String> renameColumn(SchemaTable table, SchemaColumn column, String name);
+  List<String> alterColumnNullability(SchemaTable table, SchemaColumn column, String unencodedInitialValue);
+  List<String> alterColumnUniqueness(SchemaTable table, SchemaColumn column);
+  List<String> alterColumnDefaultValue(SchemaTable table, SchemaColumn column);
+  List<String> alterColumnDeleteRule(SchemaTable table, SchemaColumn column);
+
+  List<String> addIndexToColumn(SchemaTable table, SchemaColumn column);
+  List<String> renameIndex(SchemaTable table, SchemaColumn column, String newIndexName);
+  List<String> deleteIndexFromColumn(SchemaTable table, SchemaColumn column);
+
+  Future<int> get schemaVersion;
+  Future upgrade(int versionNumber, List<String> commands, {bool temporary: false});
 }

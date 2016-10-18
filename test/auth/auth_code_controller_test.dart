@@ -229,7 +229,6 @@ void main() {
     expect(operations.length, 1);
 
     List<APIResponse> responses = ac.documentResponsesForOperation(operations.first);
-    print("${responses.map((a) => a.statusCode)}");
     expect(responses.any((ar) => ar.key == "${HttpStatus.MOVED_TEMPORARILY}"), true);
     expect(responses.any((ar) => ar.key == "${HttpStatus.BAD_REQUEST}"), true);
     expect(responses.any((ar) => ar.key == "${HttpStatus.INTERNAL_SERVER_ERROR}"), true);

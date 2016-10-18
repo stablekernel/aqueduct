@@ -7,8 +7,8 @@ environment:
   sdk: '>=1.19.0 <2.0.0'
 
 dependencies:
-  scribe: any
-  aqueduct: ">=1.0.0 <1.1.0"
+  aqueduct:
+    path: ../../.
 
 dev_dependencies:
   test: '>=0.12.0 <0.13.0'
