@@ -71,7 +71,6 @@ class _PostgreSQLSchemaGenerator {
   }
 
   List<String> alterColumnUniqueness(SchemaTable table, SchemaColumn column) {
-    // TODO: require data validation
     if (column.isUnique) {
       return ["ALTER TABLE ${table.name} ADD UNIQUE (${column.name})"];
     } else {

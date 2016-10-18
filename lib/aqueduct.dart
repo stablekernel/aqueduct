@@ -34,6 +34,7 @@ import 'dart:isolate';
 import 'dart:math';
 import 'dart:mirrors';
 
+import 'package:meta/meta.dart';
 import 'package:analyzer/analyzer.dart';
 import 'package:args/args.dart';
 import 'package:crypto/crypto.dart';
@@ -59,6 +60,7 @@ part 'auth/client.dart';
 part 'auth/protocols.dart';
 part 'commands/cli_command.dart';
 part 'commands/migration_runner.dart';
+part 'commands/setup_command.dart';
 part 'commands/template_creator.dart';
 part 'db/managed/attributes.dart';
 part 'db/managed/backing.dart';

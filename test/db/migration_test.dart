@@ -234,10 +234,8 @@ void main() {
 
       var errors = <String>[];
       var ok = outSchema.matches(expectedSchema, errors);
-      if (errors.isNotEmpty) {
-        print("$errors");
-      }
       expect(ok, true);
+      expect(errors, []);
     });
 
     test("Validating different schemas fails", () async {

@@ -92,6 +92,9 @@ class SchemaColumn {
     return relatedTableName != null && relatedColumnName != null;
   }
 
+  /// Whether or not two columns match.
+  ///
+  /// If passing [reasons], the reasons for a mismatch are added to the passed in [List].
   bool matches(SchemaColumn otherColumn, [List<String> reasons]) {
     var matches = true;
 

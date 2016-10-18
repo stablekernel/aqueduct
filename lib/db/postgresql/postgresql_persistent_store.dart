@@ -63,7 +63,12 @@ class PostgreSQLPersistentStore extends PersistentStore with _PostgreSQLSchemaGe
     this.connectFunction = () async {
       logger.info("PostgreSQL connecting, $username@$host:$port/$databaseName.");
       var connection = new PostgreSQLConnection(host, port, databaseName, username: username, password: password, timeZone: timeZone);
-      await connection.open();
+      try {
+        await connection.open();
+      } catch (e) {
+        await connection?.close();
+        rethrow;
+      }
       return connection;
     };
   }
@@ -78,19 +83,18 @@ class PostgreSQLPersistentStore extends PersistentStore with _PostgreSQLSchemaGe
         throw new QueryException(QueryExceptionEvent.internalFailure, message: "Could not connect to database, no connect function.");
       }
 
-      if (_pendingConnectionCompleter != null) {
-        return _pendingConnectionCompleter.future;
-      }
-      _pendingConnectionCompleter = new Completer<PostgreSQLConnection>();
+      if (_pendingConnectionCompleter == null) {
+        _pendingConnectionCompleter = new Completer<PostgreSQLConnection>();
 
-      connectFunction().then((conn) {
-        _databaseConnection = conn;
-        _pendingConnectionCompleter.complete(_databaseConnection);
-        _pendingConnectionCompleter = null;
-      }).catchError((e) {
-        _pendingConnectionCompleter.completeError(new QueryException(QueryExceptionEvent.connectionFailure, underlyingException: e));
-        _pendingConnectionCompleter = null;
-      });
+        connectFunction().then((conn) {
+          _databaseConnection = conn;
+          _pendingConnectionCompleter.complete(_databaseConnection);
+          _pendingConnectionCompleter = null;
+        }).catchError((e) {
+          _pendingConnectionCompleter.completeError(new QueryException(QueryExceptionEvent.connectionFailure, underlyingException: e));
+          _pendingConnectionCompleter = null;
+        });
+      }
 
       return _pendingConnectionCompleter.future;
     }
@@ -255,7 +259,7 @@ class PostgreSQLPersistentStore extends PersistentStore with _PostgreSQLSchemaGe
       valueMap = q.predicate.parameters;
     }
 
-    var results = await _executeQuery(queryStringBuffer.toString(), valueMap, q.timeoutInSeconds, returnCount: true);
+    var results = await _executeQuery(queryStringBuffer.toString(), valueMap, q.timeoutInSeconds, shouldReturnCountOfRowsAffected: true);
 
     return results;
   }
@@ -377,13 +381,13 @@ class PostgreSQLPersistentStore extends PersistentStore with _PostgreSQLSchemaGe
     return "$name:$type";
   }
 
-  Future<dynamic> _executeQuery(String formatString, Map<String, dynamic> values, int timeoutInSeconds, {bool returnCount: false}) async {
+  Future<dynamic> _executeQuery(String formatString, Map<String, dynamic> values, int timeoutInSeconds, {bool shouldReturnCountOfRowsAffected: false}) async {
     var now = new DateTime.now().toUtc();
     try {
       var dbConnection = await getDatabaseConnection();
       var results = null;
 
-      if (!returnCount) {
+      if (!shouldReturnCountOfRowsAffected) {
         results = await dbConnection.query(formatString, substitutionValues: values).timeout(new Duration(seconds: timeoutInSeconds));
       } else {
         results = await dbConnection.execute(formatString, substitutionValues: values).timeout(new Duration(seconds: timeoutInSeconds));

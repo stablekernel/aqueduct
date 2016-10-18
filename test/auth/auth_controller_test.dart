@@ -120,7 +120,7 @@ void main() {
     var req = client.clientAuthenticatedRequest("/auth/token")
       ..formData = m;
     var json = JSON.decode((await req.post()).body);
-    m = {"grant_type" : "refresh_token", "refresh_token" : json["refresh_token"]};
+    m = {"grant_type" : "refresh_token", "refresh_token" : json["refresh_token"] as String};
 
     req = client.clientAuthenticatedRequest("/auth/token")
       ..formData = m;

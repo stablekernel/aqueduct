@@ -1,6 +1,7 @@
-import 'package:wildfire/wildfire.dart';
-import 'dart:io';
 import 'dart:async';
+import 'dart:io';
+
+import 'package:wildfire/wildfire.dart';
 
 main() async {
   try {

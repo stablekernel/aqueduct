@@ -110,7 +110,7 @@ class ManagedContext {
         });
 
     elements.forEach((row) {
-      var primaryTypeInstance = _createInstanceIfNecessary(entity, row, primaryKeyColumnIndex, joinElements, matchMap).first;
+      var primaryTypeInstance = _createInstanceIfNecessary(entity, row, primaryKeyColumnIndex, joinElements, matchMap).first as ManagedObject;
       Map<ManagedEntity, ManagedObject> instancesInThisRow = {entity : primaryTypeInstance};
 
       joinElementIndexes
@@ -144,7 +144,12 @@ class ManagedContext {
 
   // Returns a two element tuple, where the first element is the instance represented by mapping the columns across the mappingEntity. The second
   // element is a boolean indicating if the instance was newly created (true) or already existed in the result set (false).
-  List<dynamic> _createInstanceIfNecessary(ManagedEntity mappingEntity, List<PersistentColumnMapping> columns, int primaryKeyIndex, List<PersistentJoinMapping> joinElements, Map<String, Map<dynamic, ManagedObject>> matchMap) {
+  List<dynamic> _createInstanceIfNecessary(ManagedEntity mappingEntity,
+      List<PersistentColumnMapping> columns,
+      int primaryKeyIndex,
+      List<PersistentJoinMapping> joinElements,
+      Map<String, Map<dynamic, ManagedObject>> matchMap)
+  {
     var primaryKeyValue = columns[primaryKeyIndex].value;
     if (primaryKeyValue == null) {
       return null;
