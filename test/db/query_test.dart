@@ -1,10 +1,11 @@
 import 'package:aqueduct/aqueduct.dart';
 import 'package:test/test.dart';
+import '../helpers.dart';
 
 main() {
   var ps = new DefaultPersistentStore();
-  DataModel dm = new DataModel([TestModel]);
-  ModelContext _ = new ModelContext(dm, ps);
+  ManagedDataModel dm = new ManagedDataModel([TestModel]);
+  ManagedContext _ = new ManagedContext(dm, ps);
 
   test("Accessing valueObject of Query automatically creates an instance", () {
     var q = new Query<TestModel>()
@@ -14,9 +15,9 @@ main() {
   });
 }
 
-class TestModel extends Model<_TestModel> implements _TestModel {}
+class TestModel extends ManagedObject<_TestModel> implements _TestModel {}
 class _TestModel {
-  @primaryKey
+  @managedPrimaryKey
   int id;
 
   String name;

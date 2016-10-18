@@ -6,7 +6,7 @@ import 'dart:io';
 
 main() {
   group("Lifecycle", () {
-    var app = new Application<TPipeline>();
+    var app = new Application<TestSink>();
 
     tearDownAll(() async {
       await app?.stop();
@@ -36,7 +36,7 @@ main() {
     });
 
     test("Application handles a bunch of requests", () async {
-      var reqs = [];
+      var reqs = <Future>[];
       var responses = [];
       for (int i = 0; i < 100; i++) {
         var req = http.get("http://localhost:8080/t");
@@ -71,12 +71,12 @@ main() {
   });
 
   group("Failures", () {
-    test("Application start fails and logs appropriate message if pipeline doesn't open", () async {
-      var crashingApp = new Application<CrashPipeline>();
+    test("Application start fails and logs appropriate message if request stream doesn't open", () async {
+      var crashingApp = new Application<CrashSink>();
 
       var succeeded = false;
       try {
-        crashingApp.configuration.pipelineOptions = {"crashIn" : "constructor"};
+        crashingApp.configuration.configurationOptions = {"crashIn" : "constructor"};
         await crashingApp.start();
         succeeded = true;
       } catch (e) {
@@ -85,7 +85,7 @@ main() {
       expect(succeeded, false);
 
       try {
-        crashingApp.configuration.pipelineOptions = {"crashIn" : "addRoutes"};
+        crashingApp.configuration.configurationOptions = {"crashIn" : "addRoutes"};
         await crashingApp.start();
         succeeded = true;
       } catch (e) {
@@ -94,7 +94,7 @@ main() {
       expect(succeeded, false);
 
       try {
-        crashingApp.configuration.pipelineOptions = {"crashIn" : "willOpen"};
+        crashingApp.configuration.configurationOptions = {"crashIn" : "willOpen"};
         await crashingApp.start();
         succeeded = true;
       } catch (e) {
@@ -102,7 +102,7 @@ main() {
       }
       expect(succeeded, false);
 
-      crashingApp.configuration.pipelineOptions = {"crashIn" : "dontCrash"};
+      crashingApp.configuration.configurationOptions = {"crashIn" : "dontCrash"};
       await crashingApp.start();
       var response = await http.get("http://localhost:8080/t");
       expect(response.statusCode, 200);
@@ -115,7 +115,7 @@ main() {
 
       });
 
-      var conflictingApp = new Application<TPipeline>();
+      var conflictingApp = new Application<TestSink>();
       conflictingApp.configuration.port = 8080;
 
       var successful = false;
@@ -123,7 +123,7 @@ main() {
         await conflictingApp.start();
         successful = true;
       } catch (e) {
-        expect(e, new isInstanceOf<IsolateSupervisorException>());
+        expect(e, new isInstanceOf<ApplicationSupervisorException>());
       }
       expect(successful, false);
 
@@ -142,18 +142,18 @@ class TestException implements Exception {
   }
 }
 
-class CrashPipeline extends ApplicationPipeline {
-  CrashPipeline(Map opts) : super(opts) {
+class CrashSink extends RequestSink {
+  CrashSink(Map<String, dynamic> opts) : super(opts) {
     if (opts["crashIn"] == "constructor") {
       throw new TestException("constructor");
     }
   }
 
-  void addRoutes() {
+  void setupRouter(Router router) {
     if (options["crashIn"] == "addRoutes") {
       throw new TestException("addRoutes");
     }
-    router.route("/t").next(() => new TController());
+    router.route("/t").generate(() => new TController());
   }
 
   @override
@@ -164,12 +164,12 @@ class CrashPipeline extends ApplicationPipeline {
   }
 }
 
-class TPipeline extends ApplicationPipeline {
-  TPipeline(Map opts) : super(opts);
+class TestSink extends RequestSink {
+  TestSink(Map<String, dynamic> opts) : super(opts);
 
-  void addRoutes() {
-    router.route("/t").next(() => new TController());
-    router.route("/r").next(() => new RController());
+  void setupRouter(Router router) {
+    router.route("/t").generate(() => new TController());
+    router.route("/r").generate(() => new RController());
   }
 }
 

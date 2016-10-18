@@ -4,8 +4,8 @@ import 'package:aqueduct/aqueduct.dart';
 import '../helpers.dart';
 
 void main() {
-  Application<AuthPipeline> application = new Application<AuthPipeline>();
-  TestClient client = new TestClient(8080)
+  Application<TestSink> application = new Application<TestSink>();
+  TestClient client = new TestClient.onPort(8080)
     ..clientID = "com.stablekernel.app3"
     ..clientSecret = "mckinley";
 
@@ -222,7 +222,7 @@ void main() {
   });
 
   test("Response documentation", () {
-    AuthCodeController ac = new AuthCodeController(new AuthenticationServer(new AuthDelegate(ModelContext.defaultContext)));
+    AuthCodeController ac = new AuthCodeController(new AuthServer(new AuthDelegate(ManagedContext.defaultContext)));
     var resolver = new PackagePathResolver(new File(".packages").path);
     var operations = ac.documentOperations(resolver);
 
@@ -231,20 +231,25 @@ void main() {
     List<APIResponse> responses = ac.documentResponsesForOperation(operations.first);
     expect(responses.any((ar) => ar.key == "${HttpStatus.MOVED_TEMPORARILY}"), true);
     expect(responses.any((ar) => ar.key == "${HttpStatus.BAD_REQUEST}"), true);
-    expect(responses.any((ar) => ar.key == "default"), true);
+    expect(responses.any((ar) => ar.key == "${HttpStatus.INTERNAL_SERVER_ERROR}"), true);
+    expect(responses.any((ar) => ar.key == "${HttpStatus.UNAUTHORIZED}"), true);
   });
 }
 
-class AuthPipeline extends ApplicationPipeline {
-  AuthPipeline(Map opts) : super(opts) {
-    authServer = new AuthenticationServer<TestUser, Token, AuthCode>(new AuthDelegate(ModelContext.defaultContext));
+class TestSink extends RequestSink {
+  TestSink(Map<String, dynamic> opts) : super(opts) {
+    authServer = new AuthServer<TestUser, Token, AuthCode>(new AuthDelegate(ManagedContext.defaultContext));
   }
 
-  AuthenticationServer authServer;
+  AuthServer authServer;
 
-  void addRoutes() {
-    router.route("/auth/code").next(() => new AuthCodeController(authServer));
-    router.route("/auth/token").next(() => new AuthController(authServer));
+  void setupRouter(Router router) {
+    router
+        .route("/auth/code")
+        .generate(() => new AuthCodeController(authServer));
+    router
+        .route("/auth/token")
+        .generate(() => new AuthController(authServer));
   }
 }
 

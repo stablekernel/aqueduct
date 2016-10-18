@@ -14,18 +14,18 @@ void main() {
     });
 
     test("Host created correctly", () {
-      var defaultTestClient = new TestClient(4040);
-      var portConfiguredClient = new TestClient.fromConfig(new ApplicationInstanceConfiguration()..port = 2121);
-      var hostPortConfiguredClient = new TestClient.fromConfig(new ApplicationInstanceConfiguration()..port = 2121..address = "foobar.com");
-      var hostPortSSLConfiguredClient = new TestClient.fromConfig(new ApplicationInstanceConfiguration()..port = 2121..address = "foobar.com"..securityContext = (new SecurityContext()));
-      expect(defaultTestClient.host, "http://localhost:4040");
-      expect(portConfiguredClient.host, "http://localhost:2121");
-      expect(hostPortConfiguredClient.host, "http://foobar.com:2121");
-      expect(hostPortSSLConfiguredClient.host, "https://foobar.com:2121");
+      var defaultTestClient = new TestClient.onPort(4040);
+      var portConfiguredClient = new TestClient.fromConfig(new ApplicationConfiguration()..port = 2121);
+      var hostPortConfiguredClient = new TestClient.fromConfig(new ApplicationConfiguration()..port = 2121..address = "foobar.com");
+      var hostPortSSLConfiguredClient = new TestClient.fromConfig(new ApplicationConfiguration()..port = 2121..address = "foobar.com"..securityContext = (new SecurityContext()));
+      expect(defaultTestClient.baseURL, "http://localhost:4040");
+      expect(portConfiguredClient.baseURL, "http://localhost:2121");
+      expect(hostPortConfiguredClient.baseURL, "http://localhost:2121");
+      expect(hostPortSSLConfiguredClient.baseURL, "https://localhost:2121");
     });
 
     test("Request URLs are created correctly", () {
-      var defaultTestClient = new TestClient(4040);
+      var defaultTestClient = new TestClient.onPort(4040);
 
       expect(defaultTestClient.request("/foo").requestURL, "http://localhost:4040/foo");
       expect(defaultTestClient.request("foo").requestURL, "http://localhost:4040/foo");
@@ -39,7 +39,7 @@ void main() {
     });
 
     test("HTTP requests are issued", () async {
-      var defaultTestClient = new TestClient(4040);
+      var defaultTestClient = new TestClient.onPort(4040);
       expect((await defaultTestClient.request("/foo").get()) is TestResponse, true);
       var msg = await server.next();
       expect(msg.path, "/foo");
@@ -64,7 +64,7 @@ void main() {
     });
 
     test("Headers are added correctly", () async {
-      var defaultTestClient = new TestClient(4040);
+      var defaultTestClient = new TestClient.onPort(4040);
 
       await (defaultTestClient.request("/foo")
         ..headers = {"X-Content" : 1}).get();
@@ -96,7 +96,7 @@ void main() {
         resReq.respond(new Response.ok([{"a" : "b"}]));
       });
 
-      var defaultTestClient = new TestClient(4000);
+      var defaultTestClient = new TestClient.onPort(4000);
       var response = await defaultTestClient.request("/foo").get();
       expect(response.asList.length, 1);
       expect(response.asList.first["a"], "b");
@@ -109,7 +109,7 @@ void main() {
         req.response.close();
       });
 
-      var defaultTestClient = new TestClient(4000);
+      var defaultTestClient = new TestClient.onPort(4000);
       var response = await defaultTestClient.request("/foo").get();
       expect(response.body, isNull);
     });
@@ -138,13 +138,13 @@ void main() {
     });
 
     test("Status code matcher succeeds when correct", () async {
-      var defaultTestClient = new TestClient(4000);
+      var defaultTestClient = new TestClient.onPort(4000);
       var response = await defaultTestClient.request("/foo").get();
       expect(response, hasStatus(200));
     });
 
     test("Status code matcher fails with useful message when wrong", () async {
-      var defaultTestClient = new TestClient(4000);
+      var defaultTestClient = new TestClient.onPort(4000);
       var response = await defaultTestClient.request("/foo").get();
 
       try {
@@ -175,7 +175,7 @@ void main() {
     });
 
     test("Ensure existence of some headers", () async {
-      var defaultTestClient = new TestClient(4000);
+      var defaultTestClient = new TestClient.onPort(4000);
       var response = await defaultTestClient.request("/foo").get();
       expect(response, hasHeaders({
         "x-frame-options" : isNotNull,
@@ -196,7 +196,7 @@ void main() {
     });
 
     test("Ensure values of some headers w/ matcher", () async {
-      var defaultTestClient = new TestClient(4000);
+      var defaultTestClient = new TestClient.onPort(4000);
       var response = await defaultTestClient.request("/foo").get();
       expect(response, hasHeaders({
         "x-frame-options" : "SAMEORIGIN",
@@ -216,7 +216,7 @@ void main() {
     });
 
     test("Ensure non-existence of header", () async {
-      var defaultTestClient = new TestClient(4000);
+      var defaultTestClient = new TestClient.onPort(4000);
       var response = await defaultTestClient.request("/foo").get();
       expect(response, hasHeaders({
         "invalid" : isNotPresent
@@ -236,7 +236,7 @@ void main() {
     });
 
     test("Ensure any headers other than those specified", () async {
-      var defaultTestClient = new TestClient(4000);
+      var defaultTestClient = new TestClient.onPort(4000);
       var response = await defaultTestClient.request("/foo").get();
       expect(response, hasHeaders({
         "x-frame-options" : isNotNull,
@@ -272,7 +272,7 @@ void main() {
     });
 
     test("Can match empty body", () async {
-      var defaultTestClient = new TestClient(4000);
+      var defaultTestClient = new TestClient.onPort(4000);
       server.queueResponse(new Response.ok(null));
       var response = await defaultTestClient.request("/foo").get();
       expect(response, hasBody(isNull));
@@ -292,7 +292,7 @@ void main() {
     });
 
     test("Can match text object", () async {
-      var defaultTestClient = new TestClient(4000);
+      var defaultTestClient = new TestClient.onPort(4000);
       server.queueResponse(new Response.ok("text", headers: {"Content-Type" : "text/plain"}));
       var response = await defaultTestClient.request("/foo").get();
       expect(response, hasBody("text"));
@@ -309,7 +309,7 @@ void main() {
     });
 
     test("Can match JSON Object", () async {
-      var defaultTestClient = new TestClient(4000);
+      var defaultTestClient = new TestClient.onPort(4000);
 
       server.queueResponse(new Response.ok({"foo" : "bar"}, headers: {"Content-Type" : "application/json"}));
       var response = await defaultTestClient.request("/foo").get();
@@ -348,7 +348,7 @@ void main() {
     });
 
     test("List of terms", () async {
-      var defaultTestClient = new TestClient(4000);
+      var defaultTestClient = new TestClient.onPort(4000);
       server.queueResponse(new Response.ok([1, 2, 3]));
       var response = await defaultTestClient.request("/foo").get();
       expect(response, hasBody([1, 2, 3]));
@@ -374,7 +374,7 @@ void main() {
     });
 
     test("Exact map", () async {
-      var defaultTestClient = new TestClient(4000);
+      var defaultTestClient = new TestClient.onPort(4000);
       server.queueResponse(new Response.ok({"foo" : "bar", "x" : "y"}));
       var response = await defaultTestClient.request("/foo").get();
       expect(response, hasBody({"foo" : "bar", "x" : "y"}));
@@ -389,7 +389,7 @@ void main() {
     });
 
     test("Map with matchers", () async {
-      var defaultTestClient = new TestClient(4000);
+      var defaultTestClient = new TestClient.onPort(4000);
       server.queueResponse(new Response.ok({"foo" : "bar", "x" : 5}));
       var response = await defaultTestClient.request("/foo").get();
       expect(response, hasBody({"foo" : isString, "x" : greaterThan(0)}));
@@ -406,7 +406,7 @@ void main() {
     });
 
     test("Partial match, one level", () async {
-      var defaultTestClient = new TestClient(4000);
+      var defaultTestClient = new TestClient.onPort(4000);
       server.queueResponse(new Response.ok({"foo" : "bar", "x" : 5}));
       var response = await defaultTestClient.request("/foo").get();
       expect(response, hasBody(partial({"foo" : "bar"})));
@@ -440,7 +440,7 @@ void main() {
     });
 
     test("Omit status code ignores it", () async {
-      var defaultTestClient = new TestClient(4000);
+      var defaultTestClient = new TestClient.onPort(4000);
 
       server.queueResponse(new Response.ok({"foo" : "bar"}, headers: {"content-type" : "application/json"}));
       var response = await defaultTestClient.request("/foo").get();
@@ -448,7 +448,7 @@ void main() {
     });
 
     test("Omit headers ignores them", () async {
-      var defaultTestClient = new TestClient(4000);
+      var defaultTestClient = new TestClient.onPort(4000);
 
       server.queueResponse(new Response.ok({"foo" : "bar"}, headers: {"content-type" : "application/json; charset=utf-8"}));
       var response = await defaultTestClient.request("/foo").get();
@@ -457,7 +457,7 @@ void main() {
     });
 
     test("Omit body ignores them", () async {
-      var defaultTestClient = new TestClient(4000);
+      var defaultTestClient = new TestClient.onPort(4000);
 
       server.queueResponse(new Response.ok({"foo" : "bar"}, headers: {"content-type" : "application/json"}));
       var response = await defaultTestClient.request("/foo").get();

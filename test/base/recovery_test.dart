@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 
 main() {
   group("Recovers", () {
-    var app = new Application<Pipeline>();
+    var app = new Application<TestSink>();
     List<LogRecord> logQueue = [];
     app.logger.onRecord.listen((rec) => logQueue.add(rec));
 
@@ -79,12 +79,12 @@ main() {
   });
 }
 
-class Pipeline extends ApplicationPipeline {
-  Pipeline(dynamic any) : super(null);
+class TestSink extends RequestSink {
+  TestSink(dynamic any) : super(null);
 
   @override
-  void addRoutes() {
-    router.route("/[:id]").next(() => new UncaughtCrashController());
+  void setupRouter(Router router) {
+    router.route("/[:id]").generate(() => new UncaughtCrashController());
   }
 }
 
@@ -97,7 +97,7 @@ class UncaughtCrashController extends HTTPController {
     return new Response.ok(null);
   }
 
-  @httpGet dontCrash(int id) async {
+  @httpGet dontCrash(@HTTPPath("id") int id) async {
     return new Response.ok(null);
   }
 }

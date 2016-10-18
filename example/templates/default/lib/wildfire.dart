@@ -8,7 +8,6 @@ library wildfire;
 
 import 'dart:io';
 import 'dart:async';
-import 'dart:mirrors';
 import 'package:aqueduct/aqueduct.dart';
 import 'package:scribe/scribe.dart';
 
@@ -17,7 +16,7 @@ export 'package:scribe/scribe.dart';
 
 part 'src/model/token.dart';
 part 'src/model/user.dart';
-part 'src/pipeline.dart';
+part 'src/wildfire_sink.dart';
 part 'src/controller/user_controller.dart';
 part 'src/controller/identity_controller.dart';
 part 'src/controller/register_controller.dart';

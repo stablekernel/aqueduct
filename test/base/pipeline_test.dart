@@ -2,25 +2,25 @@ import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
 
 void main() {
-  test("RequestHandler requiring instantion throws exception when instantiated early", () async {
-    var app = new Application<TestPipeline>();
+  test("RequestController requiring instantion throws exception when instantiated early", () async {
+    var app = new Application<TestSink>();
     try {
       await app.start();
       expect(true, false);
-    } on IsolateSupervisorException catch (e) {
-      expect(e.message, "RequestHandler FailingController instances cannot be reused. Rewrite as .next(() => new FailingController())");
+    } on ApplicationSupervisorException catch (e) {
+      expect(e.message, "RequestController subclass FailingController instances cannot be reused. Rewrite as .generate(() => new FailingController())");
     }
   });
 }
 
-class TestPipeline extends ApplicationPipeline {
-  TestPipeline(dynamic opts) : super (opts);
+class TestSink extends RequestSink {
+  TestSink(Map<String, dynamic> opts) : super (opts);
 
   @override
-  void addRoutes() {
+  void setupRouter(Router router) {
     router
         .route("/controller/[:id]")
-        .next(new FailingController());
+        .pipe(new FailingController());
   }
 }
 class FailingController extends HTTPController {

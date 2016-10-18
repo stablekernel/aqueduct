@@ -7,12 +7,13 @@ import 'package:aqueduct/aqueduct.dart';
 import 'dart:convert';
 import 'dart:async';
 import 'dart:mirrors';
+import '../helpers.dart';
 
 void main() {
   HttpServer server;
 
-  DataModel dm = new DataModel([TestModel]);
-  ModelContext _ = new ModelContext(dm, new DefaultPersistentStore());
+  ManagedDataModel dm = new ManagedDataModel([TestModel]);
+  ManagedContext _ = new ManagedContext(dm, new DefaultPersistentStore());
 
   tearDown(() async {
     await server?.close(force: true);
@@ -26,7 +27,6 @@ void main() {
 
     expect(res.statusCode, 200);
     expect(JSON.decode(res.body), "getAll");
-
   });
 
   test("Get w/ 1 param", () async {
@@ -54,7 +54,7 @@ void main() {
     // expect headers to have Allow: GET, POST, PUT
   });
 
-  test("Crashing handler delivers 500", () async {
+  test("Crashing controller delivers 500", () async {
     server = await enableController("/a/:id", TController);
 
     var res = await http.put("http://localhost:4040/a/a");
@@ -330,6 +330,42 @@ void main() {
       expect(errorMessage, contains("'Cookie'"));
       expect(errorMessage, contains("'Table'"));
     });
+
+    test("Headers are case-INsensitive", () async {
+      server = await enableController("/a", HTTPParameterController);
+      var resp = await http.get("http://localhost:4040/a?number=3&Shaqs=1&Table=IKEA&table_legs=8", headers: {
+        "X-Request-ID" : "3423423adfea90",
+        "location" : "Nowhere",
+        "Cookie" : "Chips Ahoy",
+        "Milk" : "Publix",
+      });
+
+      expect(resp.statusCode, 200);
+      expect(JSON.decode(resp.body), {
+        "x-request-id" : "3423423adfea90",
+        "location" : "Nowhere",
+        "cookie" : "Chips Ahoy",
+        "milk" : "Publix",
+        "number" : 3,
+        "Shaqs" : 1,
+        "Table" : "IKEA",
+        "table_legs" : 8
+      });
+    });
+
+    test("Query parameters are case-SENSITIVE", () async {
+      server = await enableController("/a", HTTPParameterController);
+      var resp = await http.get("http://localhost:4040/a?SHAQS=1&table=IKEA", headers: {
+        "X-Request-ID" : "3423423adfea90",
+        "Cookie" : "Chips Ahoy",
+      });
+
+      expect(resp.statusCode, 400);
+
+      expect(JSON.decode(resp.body)["error"], contains("Missing query value"));
+      expect(JSON.decode(resp.body)["error"], contains("Table"));
+      expect(JSON.decode(resp.body)["error"], contains("Shaqs"));
+    });
   });
 }
 
@@ -339,7 +375,7 @@ class FilteringController extends HTTPController {
   }
 
   @override
-  Future<RequestHandlerResult> willProcessRequest(Request req) async {
+  Future<RequestControllerEvent> willProcessRequest(Request req) async {
     if (req.innerRequest.headers.value("ignore") != null) {
       return new Response.badRequest(body: "ignored");
     }
@@ -354,17 +390,17 @@ class TController extends HTTPController {
   }
 
   @httpGet
-  Future<Response> getOne(String id) async {
+  Future<Response> getOne(@HTTPPath("id") String id) async {
     return new Response.ok("${id}");
   }
 
   @httpGet
-  Future<Response> getBoth(String id, String flag) async {
+  Future<Response> getBoth(@HTTPPath("id") String id, @HTTPPath("flag") String flag) async {
     return new Response.ok("${id}${flag}");
   }
 
   @httpPut
-  Future<Response> putOne(String id) async {
+  Future<Response> putOne(@HTTPPath("id") String id) async {
     throw new Exception("Exception!");
   }
 
@@ -378,7 +414,7 @@ class TController extends HTTPController {
 
 class QController extends HTTPController {
   @httpGet
-  Future<Response> getAll({@HTTPQuery.optional("opt") String opt: null}) async {
+  Future<Response> getAll({@HTTPQuery("opt") String opt: null}) async {
     if (opt == null) {
       return new Response.ok("NOT");
     }
@@ -387,7 +423,7 @@ class QController extends HTTPController {
   }
 
   @httpGet
-  Future<Response> getOne(String id, {@HTTPQuery.optional("opt") String opt: null}) async {
+  Future<Response> getOne(@HTTPPath("id") String id, {@HTTPQuery("opt") String opt: null}) async {
     if (opt == null) {
       return new Response.ok("NOT");
     }
@@ -399,58 +435,58 @@ class QController extends HTTPController {
 class IntController extends HTTPController {
 
   @httpGet
-  Future<Response> getOne(int id) async {
+  Future<Response> getOne(@HTTPPath("id") int id) async {
     return new Response.ok("${id * 2}");
   }
 
   @httpGet
-  Future<Response> getAll({@HTTPQuery.optional("opt") int opt: null}) async {
+  Future<Response> getAll({@HTTPQuery("opt") int opt: null}) async {
     return new Response.ok("${opt}");
   }
 
   @httpPost
-  Future<Response> create({@HTTPQuery.optional("opt") int opt: null}) async {
+  Future<Response> create({@HTTPQuery("opt") int opt: null}) async {
     return new Response.ok("${opt}");
   }
 }
 
 class DateTimeController extends HTTPController {
   @httpGet
-  Future<Response> getOne(DateTime time) async {
+  Future<Response> getOne(@HTTPPath("time") DateTime time) async {
     return new Response.ok("${time.add(new Duration(seconds: 5))}");
   }
 
   @httpGet
-  Future<Response> getAll({@HTTPQuery.optional("opt") DateTime opt: null}) async {
+  Future<Response> getAll({@HTTPQuery("opt") DateTime opt: null}) async {
     return new Response.ok("${opt}");
   }
 }
 
 class MultiQueryParamController extends HTTPController {
   @httpGet
-  Future<Response> get({@HTTPQuery.optional("params") List<String> params: null}) async {
+  Future<Response> get({@HTTPQuery("params") List<String> params: null}) async {
     return new Response.ok(params.join(","));
   }
 }
 
 class BooleanQueryParamController extends HTTPController {
-  @httpGet get({@HTTPQuery.optional("param") bool param: false}) async {
+  @httpGet get({@HTTPQuery("param") bool param: false}) async {
     return new Response.ok(param ? "true" : "false");
   }
 }
 
 class HTTPParameterController extends HTTPController {
-  @HTTPHeader.optional("Location") String location;
-  @HTTPHeader.required("X-Request-id") String requestId;
-  @HTTPQuery.optional("number") int number;
-  @HTTPQuery.required("Shaqs") int numberOfShaqs;
+  @requiredHTTPParameter @HTTPHeader("X-Request-id") String requestId;
+  @requiredHTTPParameter @HTTPQuery("Shaqs") int numberOfShaqs;
+  @HTTPHeader("Location") String location;
+  @HTTPQuery("number") int number;
 
   @httpGet
-  Future<Response> get({
-    @HTTPHeader.required("Cookie") String cookieBrand,
-    @HTTPHeader.optional("Milk") String milkBrand,
-    @HTTPQuery.required("Table") String tableBrand,
-    @HTTPQuery.optional("table_legs") int numberOfTableLegs
+  Future<Response> get(
+    @HTTPHeader("Cookie") String cookieBrand,
+    @HTTPQuery("Table") String tableBrand, {
+      @HTTPHeader("Milk") String milkBrand,
+      @HTTPQuery("table_legs") int numberOfTableLegs
   }) async {
     return new Response.ok({
       "location" : location,
@@ -466,7 +502,7 @@ class HTTPParameterController extends HTTPController {
 }
 
 class ModelEncodeController extends HTTPController {
-  @httpGet getThings(String thing) async {
+  @httpGet getThings(@HTTPPath("thing") String thing) async {
     if (thing == "list") {
       return new Response.ok([{"id" : 1}, {"id" : 2}]);
     }
@@ -497,18 +533,18 @@ class ModelEncodeController extends HTTPController {
 
 Future<HttpServer> enableController(String pattern, Type controller) async {
   var router = new Router();
-  router.route(pattern).next(() => reflectClass(controller).newInstance(new Symbol(""), []).reflectee);
+  router.route(pattern).generate(() => reflectClass(controller).newInstance(new Symbol(""), []).reflectee);
   router.finalize();
 
   var server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 4040);
-  server.map((httpReq) => new Request(httpReq)).listen(router.deliver);
+  server.map((httpReq) => new Request(httpReq)).listen(router.receive);
 
   return server;
 }
 
-class TestModel extends Model<_TestModel> implements _TestModel {}
+class TestModel extends ManagedObject<_TestModel> implements _TestModel {}
 class _TestModel {
-  @primaryKey
+  @managedPrimaryKey
   int id;
   String name;
 }

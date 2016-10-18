@@ -1,10 +1,21 @@
 part of aqueduct;
 
+/// Validates that expected result is a [num].
 const Matcher isNumber = const isInstanceOf<num>();
+
+/// Validates that expected result is an [int].
 const Matcher isInteger = const isInstanceOf<int>();
+
+/// Validates that expected result is a [double].
 const Matcher isDouble = const isInstanceOf<double>();
+
+/// Validates that expected result is a [String].
 const Matcher isString = const isInstanceOf<String>();
+
+/// Validates that expected result is a [bool].
 const Matcher isBoolean = const isInstanceOf<bool>();
+
+/// Validates that expected result is a ISO8601 timestamp.
 Matcher isTimestamp = predicate((str) {
   try {
     var value = DateTime.parse(str);
@@ -14,13 +25,93 @@ Matcher isTimestamp = predicate((str) {
   }
 }, "is timestamp");
 
-HTTPResponseMatcher hasStatus(int v) => new HTTPResponseMatcher(v, null, null);
+/// A matcher that partially matches a [Map].
+///
+/// This matcher allows you to specify a subset of keys in a [Map] to be matched,
+/// without having to match every key in a [Map]. This is useful for specific conditions
+/// in an HTTP response without validating the entire data structure, especially when that
+/// data structure is large. See [hasResponse] for more details.
+_PartialMapMatcher partial(Map map) => new _PartialMapMatcher(map);
+
+/// This instance is used to validate that a header or key does not exist.
+///
+/// When using [hasResponse], [hasHeaders] or [partial], this instance can be used
+/// as a value to indicate that a particular key should not exist. For example, the following
+/// would ensure that the evaluated map does not have the key 'foo':
+///
+///         expect(map, partial(
+///           "id" : greaterThan(0),
+///           "foo" : isNotPresent
+///         });
+const isNotPresent = const _NotPresentMatcher();
+
+/// Converts a header value to an instance of [int] to be used inside a matcher.
+///
+/// See [hasResponse] for more details.
+_Converter asNumber(dynamic term) => new _Converter(_ConverterType.number, term);
+
+/// Converts a header value to an instance of [DateTime] to be used inside a matcher.
+///
+/// See [hasResponse] for more details.
+_Converter asDateTime(dynamic term) => new _Converter(_ConverterType.datetime, term);
+
+/// Validates that a [TestResponse] has the specified HTTP status code.
+///
+/// This matcher only validates the status code. See [hasResponse] for more details.
+HTTPResponseMatcher hasStatus(int statusCode) => new HTTPResponseMatcher(statusCode, null, null);
+
+/// Validates that a [TestResponse] has the specified HTTP response body.
+///
+/// This matcher only validates the HTTP response body. See [hasResponse] for more details.
+HTTPBodyMatcher hasBody(dynamic matchSpec) => new HTTPBodyMatcher(matchSpec);
+
+/// Validates that a [TestResponse] has the specified HTTP headers.
+///
+/// This matcher only validates the HTTP headers. See [hasResponse] for more details.
+HTTPHeaderMatcher hasHeaders(Map<String, dynamic> matchers, {bool failIfContainsUnmatchedHeader: false}) => new HTTPHeaderMatcher(matchers, failIfContainsUnmatchedHeader);
+
+/// Validates that a [TestResponse] has the specified status code, body and headers.
+///
+/// This matcher will validate the status code, body and headers of a [TestResponse].
+///
+/// If the status code of the response does not match the expected status code in this matcher, the matcher will fail.
+///
+/// [bodyMatcher] is used to evaluate the *decoded* value of the HTTP response body. In doing so, this method will implicitly
+/// ensure that the HTTP response body was decoded according to its Content-Type header. [bodyMatcher] may be a matcher or it may
+/// be [Map] or [List]. When [bodyMatcher] is a [Map] or [List], the value is compared for equality to the decoded HTTP response body. For example,
+/// the following would match on a response with Content-Type: application/json and a body of '{"key" : "value"}':
+///
+///         expect(response, hasResponse(200, {"key" : "value"});
+///
+/// When using a matcher, the matcher will use its own matching behavior. For example, if the response had a JSON list of strings, the following
+/// would expect that each object contains the substring 'foo':
+///
+///         expect(response, hasResponse(200, everyElement(contains("foo")));
+///
+/// For matching a subset of keys in a [Map], see [partial].
+///
+/// You may optionally validate HTTP headers as well. By default, only key-value pairs in [headers] are evaluated for matches. Headers
+/// that exist in the response but are not included in [headers] will not be evaluated and will not impact whether or not this matcher succeeds
+/// or fails. If you wish to match an exhaustive list of all headers in a request, pass [failIfContainsUnmatchedHeader] as true.
+///
+/// Header keys are case-insensitive strings. Header values are typically instances of [String] or instances of [Matcher]. If using a matcher,
+/// you may optionally wrap the matcher in [asNumber] or [asDateTime] to convert the header value in the response to an instance of [int] or [DateTime]
+/// prior to it being matched.
+///
+/// Example:
+///
+///      expect(response, hasResponse(200, [], headers: {
+///         "x-version" : asNumber(greaterThan(1))(
+///      });
 HTTPResponseMatcher hasResponse(int statusCode, dynamic bodyMatcher, {Map<String, dynamic> headers: null, bool failIfContainsUnmatchedHeader: false}) {
   return new HTTPResponseMatcher(statusCode,
       (headers != null ? new HTTPHeaderMatcher(headers, failIfContainsUnmatchedHeader) : null),
       (bodyMatcher != null ? new HTTPBodyMatcher(bodyMatcher) : null));
 }
 
+/// A test matcher that matches a response from an HTTP server.
+///
+/// See [hasStatus] or [hasResponse] for more details.
 class HTTPResponseMatcher extends Matcher {
   HTTPResponseMatcher(this.statusCode, this.headers, this.body);
 
@@ -85,8 +176,9 @@ class HTTPResponseMatcher extends Matcher {
   }
 }
 
-HTTPBodyMatcher hasBody(dynamic matchSpec) => new HTTPBodyMatcher(matchSpec);
-
+/// A test matcher that matches an HTTP response body.
+///
+/// See [hasBody] or [hasResponse] for more details.
 class HTTPBodyMatcher extends Matcher {
   HTTPBodyMatcher(dynamic matcher) {
     if (matcher is Matcher) {
@@ -146,8 +238,10 @@ class HTTPBodyMatcher extends Matcher {
   }
 }
 
-HTTPHeaderMatcher hasHeaders(Map<String, dynamic> matchers, {bool failIfContainsUnmatchedHeader: false}) => new HTTPHeaderMatcher(matchers, failIfContainsUnmatchedHeader);
 
+/// A test matcher that matches HTTP headers.
+///
+/// See [hasHeaders] or [hasResponse] for more details.
 class HTTPHeaderMatcher extends Matcher {
   HTTPHeaderMatcher(this.matchHeaders, this.shouldFailIfOthersPresent);
   Map<String, dynamic> matchHeaders;
@@ -245,12 +339,10 @@ class HTTPHeaderMatcher extends Matcher {
   }
 }
 
-_PartialMapMatcher partial(Map map) => new _PartialMapMatcher(map);
-
 class _PartialMapMatcher extends Matcher {
   _PartialMapMatcher(Map m) {
     m.forEach((key, val) {
-      if (val is Matcher) {
+      if (val is Matcher || val is _NotPresentMatcher) {
         map[key] = val;
       } else {
         map[key] = equals(val);
@@ -269,6 +361,16 @@ class _PartialMapMatcher extends Matcher {
     for (var matchKey in map.keys) {
       var matchValue = map[matchKey];
       var value = item[matchKey];
+
+      if (value != null && matchValue is _NotPresentMatcher) {
+        var extra = matchState["extra"];
+        if (extra == null) {
+          extra = [];
+          matchState["extra"] = extra;
+        }
+        extra = matchKey;
+        return false;
+      }
 
       if (value == null) {
         var missing = matchState["missing"];
@@ -312,6 +414,10 @@ class _PartialMapMatcher extends Matcher {
       mismatchDescription.add("Missing ${matchState["missing"].join(",")}");
     }
 
+    if (matchState["extra"] != null) {
+      mismatchDescription.add("Should not include ${matchState["extra"].join(",")}");
+    }
+
     if (matchState["key"] != null) {
       var key = matchState["key"];
       var element = matchState["element"];
@@ -336,13 +442,9 @@ class _PartialMapMatcher extends Matcher {
   }
 }
 
-const isNotPresent = const _NotPresentMatcher();
 class _NotPresentMatcher {
   const _NotPresentMatcher();
 }
-
-_Converter asNumber(dynamic term) => new _Converter(_ConverterType.number, term);
-_Converter asDateTime(dynamic term) => new _Converter(_ConverterType.datetime, term);
 
 enum _ConverterType {
   number,

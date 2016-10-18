@@ -5,15 +5,17 @@ import 'dart:convert';
 import '../helpers.dart';
 
 void main() {
-  ModelContext context = null;
+  ManagedContext context = null;
   HttpServer server;
-  TestClient client = new TestClient(8080)
+  TestClient client = new TestClient.onPort(8080)
     ..clientID = "com.stablekernel.app1"
     ..clientSecret = "kilimanjaro";
 
-  var authenticationServer = new AuthenticationServer<TestUser, Token, AuthCode>(new AuthDelegate(context));
+  var authenticationServer = new AuthServer<TestUser, Token, AuthCode>(new AuthDelegate(context));
   var router = new Router();
-  router.route("/auth/token").next(() => new AuthController(authenticationServer));
+  router
+      .route("/auth/token")
+      .generate(() => new AuthController(authenticationServer));
   router.finalize();
 
   tearDownAll(() async {
@@ -24,7 +26,7 @@ void main() {
     context = await contextWithModels([TestUser, Token, AuthCode]);
 
     server = await HttpServer.bind("localhost", 8080, v6Only: false, shared: false);
-    server.map((req) => new Request(req)).listen(router.deliver);
+    server.map((req) => new Request(req)).listen(router.receive);
 
   });
 
@@ -118,7 +120,7 @@ void main() {
     var req = client.clientAuthenticatedRequest("/auth/token")
       ..formData = m;
     var json = JSON.decode((await req.post()).body);
-    m = {"grant_type" : "refresh", "refresh_token" : json["refresh_token"]};
+    m = {"grant_type" : "refresh_token", "refresh_token" : json["refresh_token"] as String};
 
     req = client.clientAuthenticatedRequest("/auth/token")
       ..formData = m;
@@ -138,7 +140,7 @@ void main() {
     var req = client.clientAuthenticatedRequest("/auth/token")
       ..formData = m;
     var json = JSON.decode((await req.post()).body);
-    m = {"grant_type" : "refresh_token", "refresh_token" : json["refresh_token"]};
+    m = {"grant_type" : "refresh_token", "refresh_token" : json["refresh_token"] as String};
 
     req = client.clientAuthenticatedRequest("/auth/token")
       ..formData = m;
@@ -151,19 +153,20 @@ void main() {
   });
 
   test("Response documentation", () {
-    AuthController ac = new AuthController(new AuthenticationServer(new AuthDelegate(ModelContext.defaultContext)));
+    AuthController ac = new AuthController(new AuthServer(new AuthDelegate(ManagedContext.defaultContext)));
     var resolver = new PackagePathResolver(new File(".packages").path);
     var operations = ac.documentOperations(resolver);
 
     expect(operations.length, 1);
 
     List<APIResponse> responses = ac.documentResponsesForOperation(operations.first);
+
     APIResponse okResponse = responses.firstWhere((ar) => ar.key == "${HttpStatus.OK}");
-    expect(okResponse.schema.properties["access_token"].type, APISchemaObjectTypeString);
-    expect(okResponse.schema.properties["token_type"].type, APISchemaObjectTypeString);
-    expect(okResponse.schema.properties["expires_in"].type, APISchemaObjectTypeInteger);
-    expect(okResponse.schema.properties["expires_in"].format, APISchemaObjectFormatInt32);
-    expect(okResponse.schema.properties["refresh_token"].type, APISchemaObjectTypeString);
+    expect(okResponse.schema.properties["access_token"].type, APISchemaObject.TypeString);
+    expect(okResponse.schema.properties["token_type"].type, APISchemaObject.TypeString);
+    expect(okResponse.schema.properties["expires_in"].type, APISchemaObject.TypeInteger);
+    expect(okResponse.schema.properties["expires_in"].format, APISchemaObject.FormatInt32);
+    expect(okResponse.schema.properties["refresh_token"].type, APISchemaObject.TypeString);
 
     APIResponse badResponse = responses.firstWhere((ar) => ar.key == "${HttpStatus.BAD_REQUEST}");
     expect(badResponse.schema.properties["error"], isNotNull);

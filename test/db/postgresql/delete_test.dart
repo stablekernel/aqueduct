@@ -3,7 +3,7 @@ import 'package:aqueduct/aqueduct.dart';
 import '../../helpers.dart';
 
 void main() {
-  ModelContext context = null;
+  ManagedContext context = null;
 
   tearDown(() async {
     await context?.persistentStore?.close();
@@ -22,13 +22,13 @@ void main() {
     expect(inserted.id, greaterThan(0));
 
     req = new Query<TestModel>()
-      ..predicate = new Predicate("id = @id", {"id": inserted.id});
+      ..predicate = new QueryPredicate("id = @id", {"id": inserted.id});
 
     var count = await req.delete();
     expect(count, 1);
 
     req = new Query<TestModel>()
-      ..predicate = new Predicate("id = @id", {"id": inserted.id});
+      ..predicate = new QueryPredicate("id = @id", {"id": inserted.id});
 
     var result = await req.fetch();
 
@@ -52,7 +52,7 @@ void main() {
     var result = await req.fetch();
     expect(result.length, 10);
 
-    req = new Query<TestModel>()..predicate = new Predicate("id = @id", {"id" : 1});
+    req = new Query<TestModel>()..predicate = new QueryPredicate("id = @id", {"id" : 1});
     var count = await req.delete();
     expect(count, 1);
 
@@ -108,8 +108,8 @@ void main() {
     try {
       req = new Query<TestModel>();
       await req.delete();
-    } on HTTPResponseException catch (e) {
-      expect(e.statusCode, 500);
+    } on QueryException catch (e) {
+      expect(e.event, QueryExceptionEvent.internalFailure);
     }
 
     req = new Query<TestModel>();
@@ -120,44 +120,45 @@ void main() {
   test("Deleting a related object w/nullify sets property to null", () async {
     context = await contextWithModels([TestModel, RefModel]);
 
-    var obj = new TestModel()..name = "a";
-    var req = new Query<TestModel>()..values = obj;
-    var testObj = await req.insert();
 
-    obj = new RefModel()..test = testObj;
-    req = new Query<RefModel>()..values = obj;
-    var refObj = await req.insert();
+    var testModelObject = new TestModel()..name = "a";
+    var testModelReq = new Query<TestModel>()..values = testModelObject;
+    var testObj = await testModelReq.insert();
 
-    req = new Query<TestModel>()
+    var refModelObject = new RefModel()..test = testObj;
+    var refModelReq = new Query<RefModel>()..values = refModelObject;
+    var refObj = await refModelReq.insert();
+
+    testModelReq = new Query<TestModel>()
       ..confirmQueryModifiesAllInstancesOnDeleteOrUpdate = true;
-    var count = await req.delete();
+    var count = await testModelReq.delete();
     expect(count, 1);
 
-    req = new Query<RefModel>()..resultProperties = ["id", "test"];
-    refObj = await req.fetchOne();
+    refModelReq = new Query<RefModel>()..resultProperties = ["id", "test"];
+    refObj = await refModelReq.fetchOne();
     expect(refObj.test, null);
   });
 
   test("Deleting a related object w/restrict fails", () async {
     context = await contextWithModels([GRestrict, GRestrictInverse]);
 
-    var obj = new GRestrictInverse()..name = "a";
-    var req = new Query<GRestrictInverse>()..values = obj;
-    var testObj = await req.insert();
+    var griObject = new GRestrictInverse()..name = "a";
+    var griReq = new Query<GRestrictInverse>()..values = griObject;
+    var testObj = await griReq.insert();
 
-    obj = new GRestrict()..test = testObj;
-    req = new Query<GRestrict>()..values = obj;
-    await req.insert();
+    var grObject = new GRestrict()..test = testObj;
+    var grReq = new Query<GRestrict>()..values = grObject;
+    await grReq.insert();
 
     var successful = false;
     try {
-      req = new Query<GRestrictInverse>()
+      griReq = new Query<GRestrictInverse>()
         ..confirmQueryModifiesAllInstancesOnDeleteOrUpdate = true;
-      await req.delete();
+      await griReq.delete();
       successful = true;
-    } catch (e) {
-      expect(e.statusCode, 400);
-      expect(e.errorCode, 23503);
+    } on QueryException catch (e) {
+      expect(e.event, QueryExceptionEvent.requestFailure);
+      expect(e.underlyingException.code, "23503");
     }
     expect(successful, false);
   });
@@ -169,33 +170,32 @@ void main() {
     var req = new Query<GCascadeInverse>()..values = obj;
     var testObj = await req.insert();
 
-    obj = new GCascade()..test = testObj;
-    req = new Query<GCascade>()..values = obj;
-    await req.insert();
+    var cascadeObj = new GCascade()..test = testObj;
+    var cascadeReq = new Query<GCascade>()..values = cascadeObj;
+    await cascadeReq.insert();
 
     req = new Query<GCascadeInverse>()
       ..confirmQueryModifiesAllInstancesOnDeleteOrUpdate = true;
     var count = await req.delete();
     expect(count, 1);
 
-    req = new Query<GCascade>();
-    var res = await req.fetch();
+    cascadeReq = new Query<GCascade>();
+    var res = await cascadeReq.fetch();
     expect(res.length, 0);
   });
 }
 
-class TestModel extends Model<_TestModel> implements _TestModel {}
+class TestModel extends ManagedObject<_TestModel> implements _TestModel {}
 class _TestModel {
-  @primaryKey
+  @managedPrimaryKey
   int id;
 
   String name;
 
-  @Attributes(nullable: true, unique: true)
+  @ManagedColumnAttributes(nullable: true, unique: true)
   String email;
 
-  @Relationship(RelationshipType.hasMany, "test")
-  RefModel ref;
+  ManagedSet<RefModel> ref;
 
   static String tableName() {
     return "simple";
@@ -206,54 +206,52 @@ class _TestModel {
   }
 }
 
-class RefModel extends Model<_RefModel> implements _RefModel {}
+class RefModel extends ManagedObject<_RefModel> implements _RefModel {}
 class _RefModel {
-  @primaryKey
+  @managedPrimaryKey
   int id;
 
-  @Relationship(RelationshipType.belongsTo, "ref", required: false, deleteRule: RelationshipDeleteRule.nullify)
+  @ManagedRelationship(#ref, isRequired: false, onDelete: ManagedRelationshipDeleteRule.nullify)
   TestModel test;
 }
 
-class GRestrictInverse extends Model<_GRestrictInverse> implements _GRestrictInverse {}
+class GRestrictInverse extends ManagedObject<_GRestrictInverse> implements _GRestrictInverse {}
 class _GRestrictInverse {
-  @primaryKey
+  @managedPrimaryKey
   int id;
 
   String name;
 
-  @Relationship(RelationshipType.hasMany, "test")
-  GRestrict test;
+  ManagedSet<GRestrict> test;
 }
 
-class GRestrict extends Model<_GRestrict> implements _GRestrict {}
+class GRestrict extends ManagedObject<_GRestrict> implements _GRestrict {}
 
 class _GRestrict {
-  @primaryKey
+  @managedPrimaryKey
   int id;
 
-  @Relationship(RelationshipType.belongsTo, "test", required: false, deleteRule: RelationshipDeleteRule.restrict)
+  @ManagedRelationship(#test, isRequired: false, onDelete: ManagedRelationshipDeleteRule.restrict)
   GRestrictInverse test;
 }
 
-class GCascadeInverse extends Model<_GCascadeInverse> implements _GCascadeInverse {}
+class GCascadeInverse extends ManagedObject<_GCascadeInverse> implements _GCascadeInverse {}
 
 class _GCascadeInverse {
-  @primaryKey
+  @managedPrimaryKey
   int id;
 
   String name;
 
-  @Relationship(RelationshipType.hasMany, "test")
-  GCascade test;
+  ManagedSet<GCascade> test;
 }
 
-class GCascade extends Model<_GCascade> implements _GCascade {}
+class GCascade extends ManagedObject<_GCascade> implements _GCascade {}
 
 class _GCascade {
-  @primaryKey
+  @managedPrimaryKey
   int id;
 
-  @Relationship(RelationshipType.belongsTo, "test", required: false, deleteRule: RelationshipDeleteRule.cascade)
+  @ManagedRelationship(#test, isRequired: false, onDelete: ManagedRelationshipDeleteRule.cascade)
   GCascadeInverse test;
 }

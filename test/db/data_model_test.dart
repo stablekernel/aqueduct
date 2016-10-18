@@ -1,25 +1,26 @@
 import 'package:aqueduct/aqueduct.dart';
 import 'package:test/test.dart';
 import 'dart:mirrors';
+import '../helpers.dart';
 
 void main() {
   group("Valid data model", () {
-    var dataModel = new DataModel([User, Item, Manager]);
-    var context = new ModelContext(dataModel, new DefaultPersistentStore());
-    ModelContext.defaultContext = context;
+    var dataModel = new ManagedDataModel([User, Item, Manager]);
+    var context = new ManagedContext(dataModel, new DefaultPersistentStore());
+    ManagedContext.defaultContext = context;
 
     test("Entities have appropriate types", () {
       var entity = dataModel.entityForType(User);
-      expect(reflectClass(User) == entity.instanceTypeMirror, true);
-      expect(reflectClass(_User) == entity.persistentInstanceTypeMirror, true);
+      expect(reflectClass(User) == entity.instanceType, true);
+      expect(reflectClass(_User) == entity.persistentType, true);
 
       entity = dataModel.entityForType(Item);
-      expect(reflectClass(Item) == entity.instanceTypeMirror, true);
-      expect(reflectClass(_Item) == entity.persistentInstanceTypeMirror, true);
+      expect(reflectClass(Item) == entity.instanceType, true);
+      expect(reflectClass(_Item) == entity.persistentType, true);
 
       entity = dataModel.entityForType(Manager);
-      expect(reflectClass(Manager) == entity.instanceTypeMirror, true);
-      expect(reflectClass(_Manager) == entity.persistentInstanceTypeMirror, true);
+      expect(reflectClass(Manager) == entity.instanceType, true);
+      expect(reflectClass(_Manager) == entity.persistentType, true);
     });
 
     test("Non-existent entity is null", () {
@@ -73,14 +74,14 @@ void main() {
       var entity = dataModel.entityForType(User);
       var idAttr = entity.attributes[entity.primaryKey];
       expect(idAttr.isPrimaryKey, true);
-      expect(idAttr.type, PropertyType.bigInteger);
+      expect(idAttr.type, ManagedPropertyType.bigInteger);
       expect(idAttr.autoincrement, true);
       expect(idAttr.name, "id");
 
       entity = dataModel.entityForType(Item);
       idAttr = entity.attributes[entity.primaryKey];
       expect(idAttr.isPrimaryKey, true);
-      expect(idAttr.type, PropertyType.string);
+      expect(idAttr.type, ManagedPropertyType.string);
       expect(idAttr.autoincrement, false);
       expect(idAttr.name, "name");
     });
@@ -102,7 +103,7 @@ void main() {
       var entity = dataModel.entityForType(User);
       var loadedValue = entity.attributes["loadedTimestamp"];
       expect(loadedValue.isPrimaryKey, false);
-      expect(loadedValue.type, PropertyType.datetime);
+      expect(loadedValue.type, ManagedPropertyType.datetime);
       expect(loadedValue.autoincrement, false);
       expect(loadedValue.name, "loadedTimestamp");
       expect(loadedValue.defaultValue, "'now()'");
@@ -115,38 +116,38 @@ void main() {
     test("Relationships have appropriate values set", () {
       var entity = dataModel.entityForType(Item);
       var relDesc = entity.relationships["user"];
-      expect(relDesc is RelationshipDescription, true);
+      expect(relDesc is ManagedRelationshipDescription, true);
       expect(relDesc.isNullable, false);
-      expect(relDesc.inverseKey, "items");
-      expect(relDesc.inverseRelationship == dataModel.entityForType(User).relationships[relDesc.inverseKey], true);
-      expect(relDesc.deleteRule, RelationshipDeleteRule.cascade);
+      expect(relDesc.inverseKey, #items);
+      expect(relDesc.inverseRelationship == dataModel.entityForType(User).relationships[MirrorSystem.getName(relDesc.inverseKey)], true);
+      expect(relDesc.deleteRule, ManagedRelationshipDeleteRule.cascade);
       expect(relDesc.destinationEntity == dataModel.entityForType(User), true);
-      expect(relDesc.relationshipType, RelationshipType.belongsTo);
+      expect(relDesc.relationshipType, ManagedRelationshipType.belongsTo);
 
       entity = dataModel.entityForType(Manager);
       relDesc = entity.relationships["worker"];
-      expect(relDesc is RelationshipDescription, true);
+      expect(relDesc is ManagedRelationshipDescription, true);
       expect(relDesc.isNullable, true);
-      expect(relDesc.inverseKey, "manager");
-      expect(relDesc.inverseRelationship == dataModel.entityForType(User).relationships[relDesc.inverseKey], true);
-      expect(relDesc.deleteRule, RelationshipDeleteRule.nullify);
+      expect(relDesc.inverseKey, #manager);
+      expect(relDesc.inverseRelationship == dataModel.entityForType(User).relationships[MirrorSystem.getName(relDesc.inverseKey)], true);
+      expect(relDesc.deleteRule, ManagedRelationshipDeleteRule.nullify);
       expect(relDesc.destinationEntity == dataModel.entityForType(User), true);
-      expect(relDesc.relationshipType, RelationshipType.belongsTo);
+      expect(relDesc.relationshipType, ManagedRelationshipType.belongsTo);
 
       entity = dataModel.entityForType(User);
       relDesc = entity.relationships["manager"];
-      expect(relDesc is RelationshipDescription, true);
-      expect(relDesc.inverseKey, "worker");
-      expect(relDesc.inverseRelationship == dataModel.entityForType(Manager).relationships[relDesc.inverseKey], true);
+      expect(relDesc is ManagedRelationshipDescription, true);
+      expect(relDesc.inverseKey, #worker);
+      expect(relDesc.inverseRelationship == dataModel.entityForType(Manager).relationships[MirrorSystem.getName(relDesc.inverseKey)], true);
       expect(relDesc.destinationEntity == dataModel.entityForType(Manager), true);
-      expect(relDesc.relationshipType, RelationshipType.hasOne);
+      expect(relDesc.relationshipType, ManagedRelationshipType.hasOne);
 
-      expect(entity.relationships["items"].relationshipType, RelationshipType.hasMany);
+      expect(entity.relationships["items"].relationshipType, ManagedRelationshipType.hasMany);
     });
 
     test("Instances created from entity only have mapped elements", () {
       var entity = dataModel.entityForType(User);
-      User instance = entity.instanceFromMappingElements([new MappingElement(entity.attributes["id"], 2)]);
+      User instance = entity.instanceFromMappingElements([new PersistentColumnMapping(entity.attributes["id"], 2)]);
       expect(instance.id, 2);
       expect(instance.loadedTimestamp, isNull);
       expect(instance.manager, isNull);
@@ -156,8 +157,8 @@ void main() {
     test("Instances created from entity contain belongsTo relationships as model objects", () {
       var entity = dataModel.entityForType(Item);
       Item instance = entity.instanceFromMappingElements([
-        new MappingElement(entity.attributes["name"], "foo"),
-        new MappingElement(entity.relationships["user"], 1)
+        new PersistentColumnMapping(entity.attributes["name"], "foo"),
+        new PersistentColumnMapping(entity.relationships["user"], 1)
       ]);
       expect(instance.name, "foo");
       expect(instance.user is User, true);
@@ -167,9 +168,9 @@ void main() {
     test("Instances created from entity omit joined element", () {
       var entity = dataModel.entityForType(User);
       User instance = entity.instanceFromMappingElements([
-        new MappingElement(entity.attributes["id"], 2),
-        new JoinMappingElement(JoinType.leftOuter, entity.attributes["items"], null, [
-          new MappingElement(dataModel.entityForType(Item).attributes["name"], "foobar")
+        new PersistentColumnMapping(entity.attributes["id"], 2),
+        new PersistentJoinMapping(PersistentJoinType.leftOuter, entity.attributes["items"], null, [
+          new PersistentColumnMapping(dataModel.entityForType(Item).attributes["name"], "foobar")
         ])
       ]);
       expect(instance.id, 2);
@@ -178,33 +179,66 @@ void main() {
   });
 
   test("Delete rule of setNull throws exception if property is not nullable", () {
-    var successful = false;
     try {
-      var _ = new DataModel([Owner, FailingChild]);
-
-      successful = true;
-    } catch (e) {
+      new ManagedDataModel([Owner, FailingChild]);
+      expect(true, false);
+    } on ManagedDataModelException catch (e) {
       expect(e.message, "Relationship ref on _FailingChild set to nullify on delete, but is not nullable");
     }
-    expect(successful, false);
+  });
+
+  test("Entity without primary key fails", () {
+    try {
+      new ManagedDataModel([NoPrimaryKey]);
+      expect(true, false);
+    } on ManagedDataModelException catch (e) {
+      expect(e.message, "No primary key for entity _NoPrimaryKey");
+    }
+  });
+
+  test("Transient properties are appropriately added to entity", () {
+    var dm = new ManagedDataModel([TransientTest]);
+    var entity = dm.entityForType(TransientTest);
+
+    expect(entity.attributes["defaultedText"].isTransient, true);
+    expect(entity.attributes["inputOnly"].isTransient, true);
+    expect(entity.attributes["outputOnly"].isTransient, true);
+    expect(entity.attributes["bothButOnlyOnOne"].isTransient, true);
+    expect(entity.attributes["inputInt"].isTransient, true);
+    expect(entity.attributes["outputInt"].isTransient, true);
+    expect(entity.attributes["inOut"].isTransient, true);
+    expect(entity.attributes["bothOverQualified"].isTransient, true);
+
+    expect(entity.attributes["invalidInput"], isNull);
+    expect(entity.attributes["invalidOutput"], isNull);
+    expect(entity.attributes["notAnAttribute"], isNull);
+  });
+
+  test("Model with unsupported property type fails on compilation", () {
+    try {
+      new ManagedDataModel([InvalidModel]);
+      expect(true, false);
+    } on ManagedDataModelException catch (e) {
+      expect(e.message, contains("Property uri on _InvalidModel has invalid type"));
+    }
   });
 
   group("Schema generation", () {
-    var dataModel = new DataModel([User, Item, Manager]);
-    var context = new ModelContext(dataModel, new DefaultPersistentStore());
-    ModelContext.defaultContext = context;
+    var dataModel = new ManagedDataModel([User, Item, Manager]);
+    var context = new ManagedContext(dataModel, new DefaultPersistentStore());
+    ManagedContext.defaultContext = context;
 
     test("works for a data model", () {
       var entity = dataModel.entityForType(User);
 
       expect(entity.documentedResponseSchema.title, "User");
-      expect(entity.documentedResponseSchema.type, APISchemaObjectTypeObject);
+      expect(entity.documentedResponseSchema.type, APISchemaObject.TypeObject);
       expect(entity.documentedResponseSchema.properties.isNotEmpty, true);
     });
 
     test("includes transient properties", () {
       var entity = dataModel.entityForType(User);
-      expect(entity.documentedResponseSchema.properties["stringID"].type, APISchemaObjectTypeString);
+      expect(entity.documentedResponseSchema.properties["stringID"].type, APISchemaObject.TypeString);
     });
 
     test("does not include has(One|Many) relationships", () {
@@ -224,61 +258,125 @@ void main() {
   });
 }
 
-class User extends Model<_User> implements _User {
-  @mappable
+class User extends ManagedObject<_User> implements _User {
+  @managedTransientAttribute
   String stringID;
 }
 class _User {
-  @primaryKey
+  @managedPrimaryKey
   int id;
 
   String username;
   bool flag;
 
-  @Attributes(nullable: true, defaultValue: "'now()'", unique: true, indexed: true, omitByDefault: true)
+  @ManagedColumnAttributes(nullable: true, defaultValue: "'now()'", unique: true, indexed: true, omitByDefault: true)
   DateTime loadedTimestamp;
 
-  @Relationship.hasMany("user")
-  List<Item> items;
+  ManagedSet<Item> items;
 
-  @Relationship.hasOne("worker")
   Manager manager;
 }
 
-class Item extends Model<_Item> implements _Item {}
+class Item extends ManagedObject<_Item> implements _Item {}
 class _Item {
-  @Attributes(primaryKey: true)
+  @ManagedColumnAttributes(primaryKey: true)
   String name;
 
-  @Relationship.belongsTo("items", deleteRule: RelationshipDeleteRule.cascade, required: true)
+  @ManagedRelationship(#items, onDelete: ManagedRelationshipDeleteRule.cascade, isRequired: true)
   User user;
 }
 
-class Manager extends Model<_Manager> implements _Manager {}
+class Manager extends ManagedObject<_Manager> implements _Manager {}
 class _Manager {
-  @primaryKey
+  @managedPrimaryKey
   int id;
 
   String name;
 
-  @Relationship.belongsTo("manager")
+  @ManagedRelationship(#manager)
   User worker;
 }
 
-class Owner extends Model<_Owner> implements _Owner {}
+class Owner extends ManagedObject<_Owner> implements _Owner {}
 class _Owner {
-  @primaryKey
+  @managedPrimaryKey
   int id;
 
-  @Relationship(RelationshipType.hasOne, "ref")
   FailingChild gen;
 }
 
-class FailingChild extends Model<_FailingChild> implements _FailingChild {}
+class FailingChild extends ManagedObject<_FailingChild> implements _FailingChild {}
 class _FailingChild {
-  @primaryKey
+  @managedPrimaryKey
   int id;
 
-  @Relationship(RelationshipType.belongsTo, "gen", deleteRule: RelationshipDeleteRule.nullify, required: true)
+  @ManagedRelationship(#gen, onDelete: ManagedRelationshipDeleteRule.nullify, isRequired: true)
   Owner ref;
+}
+
+class TransientTest extends ManagedObject<_TransientTest> implements _TransientTest {
+  String notAnAttribute;
+
+  @managedTransientOutputAttribute
+  String get defaultedText => "Mr. $text";
+
+  @managedTransientInputAttribute
+  void set defaultedText(String str) {
+    text = str.split(" ").last;
+  }
+
+  @managedTransientInputAttribute
+  void set inputOnly(String s) {
+    text = s;
+  }
+
+  @managedTransientOutputAttribute String get outputOnly => text;
+  void set outputOnly(String s) {
+    text = s;
+  }
+
+  // This is intentionally invalid
+  @managedTransientInputAttribute String get invalidInput => text;
+
+  // This is intentionally invalid
+  @managedTransientOutputAttribute
+  void set invalidOutput(String s) {
+    text = s;
+  }
+
+  @managedTransientAttribute String get bothButOnlyOnOne => text;
+  void set bothButOnlyOnOne(String s) {
+    text = s;
+  }
+
+  @managedTransientInputAttribute int inputInt;
+
+  @managedTransientOutputAttribute int outputInt;
+
+  @managedTransientAttribute int inOut;
+
+  @managedTransientAttribute String get bothOverQualified => text;
+  @managedTransientAttribute
+  void set bothOverQualified(String s) {
+    text = s;
+  }
+}
+
+class _TransientTest {
+  @managedPrimaryKey int id;
+
+  String text;
+}
+
+class NoPrimaryKey extends ManagedObject<_NoPrimaryKey> implements _NoPrimaryKey {
+}
+class _NoPrimaryKey {
+  String foo;
+}
+
+class InvalidModel extends ManagedObject<_InvalidModel> implements _InvalidModel {}
+class _InvalidModel {
+  @managedPrimaryKey int id;
+
+  Uri uri;
 }

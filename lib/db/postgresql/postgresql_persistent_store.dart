@@ -1,7 +1,18 @@
 part of aqueduct;
 
-class PostgreSQLPersistentStore extends PersistentStore {
+/// A function that will create an opened instance of [PostgreSQLConnection] when executed.
+typedef Future<PostgreSQLConnection> PostgreSQLConnectionFunction();
+
+/// The database layer responsible for carrying out [Query]s against PostgreSQL databases.
+///
+/// To interact with a PostgreSQL database, a [ManagedContext] must have an instance of this class.
+/// Instances of this class are configured to connect to a particular PostgreSQL database.
+class PostgreSQLPersistentStore extends PersistentStore with _PostgreSQLSchemaGenerator {
+
+  /// The logger used by instances of this class.
   static Logger logger = new Logger("aqueduct");
+
+  /// Used internally to translate [Query]s into SQL.
   static Map<MatcherOperator, String> symbolTable = {
     MatcherOperator.lessThan : "<",
     MatcherOperator.greaterThan : ">",
@@ -11,59 +22,100 @@ class PostgreSQLPersistentStore extends PersistentStore {
     MatcherOperator.equalTo : "="
   };
 
-  Connection _databaseConnection;
-  Function connectFunction;
-  bool _isConnecting = false;
-  List<Completer<Connection>> _pendingConnectionCompleters = [];
+  static Map<ManagedPropertyType, PostgreSQLDataType> _typeMap = {
+    ManagedPropertyType.integer : PostgreSQLDataType.integer,
+    ManagedPropertyType.bigInteger : PostgreSQLDataType.bigInteger,
+    ManagedPropertyType.string : PostgreSQLDataType.text,
+    ManagedPropertyType.datetime : PostgreSQLDataType.timestampWithoutTimezone,
+    ManagedPropertyType.boolean : PostgreSQLDataType.boolean,
+    ManagedPropertyType.doublePrecision : PostgreSQLDataType.double
+  };
 
+  /// The function that will generate a [PostgreSQLConnection] when this instance does not have a valid one.
+  PostgreSQLConnectionFunction connectFunction;
+
+  /// The username of the database user for the database this instance connects to.
+  String username;
+
+  /// The password of the database user for the database this instance connects to.
+  String password;
+
+  /// The host of the database this instance connects to.
+  String host;
+
+  /// The port of the database this instance connects to.
+  int port;
+
+  /// The name of the database this instance connects to.
+  String databaseName;
+
+  /// The time zone of the connection to the database this instance connects to.
+  String timeZone = "UTC";
+
+  PostgreSQLConnection _databaseConnection;
+  Completer<PostgreSQLConnection> _pendingConnectionCompleter;
+
+  /// Creates an instance of this type from a manual function.
   PostgreSQLPersistentStore(this.connectFunction) : super();
-  PostgreSQLPersistentStore.fromConnectionInfo(String username, String password, String host, int port, String databaseName, {String timezone: "UTC"}) {
-    var uri = "postgres://$username:$password@$host:$port/$databaseName";
+
+  /// Creates an instance of this type from connection info.
+  PostgreSQLPersistentStore.fromConnectionInfo(this.username, this.password, this.host, this.port, this.databaseName, {this.timeZone: "UTC"}) {
     this.connectFunction = () async {
       logger.info("PostgreSQL connecting, $username@$host:$port/$databaseName.");
-      return await connect(uri, timeZone: timezone);
+      var connection = new PostgreSQLConnection(host, port, databaseName, username: username, password: password, timeZone: timeZone);
+      try {
+        await connection.open();
+      } catch (e) {
+        await connection?.close();
+        rethrow;
+      }
+      return connection;
     };
   }
 
-  Future<Connection> getDatabaseConnection() async {
-    if (_databaseConnection == null || _databaseConnection.state == ConnectionState.closed) {
+  /// Retrieves a connection to the database this instance connects to.
+  ///
+  /// If no connection exists, one will be created. A store will have no more than one connection at a time.
+  /// You should rarely need to access this connection directly.
+  Future<PostgreSQLConnection> getDatabaseConnection() async {
+    if (_databaseConnection == null || _databaseConnection.isClosed) {
       if (connectFunction == null) {
-        throw new QueryException(503, "Could not connect to database, no connect function.", 1);
+        throw new QueryException(QueryExceptionEvent.internalFailure, message: "Could not connect to database, no connect function.");
       }
 
-      if (_isConnecting) {
-        var completer = new Completer<Connection>();
-        _pendingConnectionCompleters.add(completer);
-        return completer.future;
-      }
+      if (_pendingConnectionCompleter == null) {
+        _pendingConnectionCompleter = new Completer<PostgreSQLConnection>();
 
-      _isConnecting = true;
-      try {
-        _databaseConnection = await connectFunction();
-        _isConnecting = false;
-        _informWaiters((completer) {
-          completer.complete(_databaseConnection);
+        connectFunction().then((conn) {
+          _databaseConnection = conn;
+          _pendingConnectionCompleter.complete(_databaseConnection);
+          _pendingConnectionCompleter = null;
+        }).catchError((e) {
+          _pendingConnectionCompleter.completeError(new QueryException(QueryExceptionEvent.connectionFailure, underlyingException: e));
+          _pendingConnectionCompleter = null;
         });
-      } catch (e) {
-        _isConnecting = false;
-        _informWaiters((completer) {
-          completer.completeError(new QueryException(503, "Could not connect to database ${e}", 1));
-        });
-
-        throw new QueryException(503, "Could not connect to database ${e}", 1);
       }
+
+      return _pendingConnectionCompleter.future;
     }
 
     return _databaseConnection;
   }
 
   @override
-  Future<dynamic> execute(String sql) async {
+  Future<dynamic> execute(String sql, {Map<String, dynamic> substitutionValues}) async {
+    var now = new DateTime.now().toUtc();
     var dbConnection = await getDatabaseConnection();
-    var results = await dbConnection.query(sql);
-    var rows = await results.toList();
+    try {
+      var results = await dbConnection.query(sql, substitutionValues: substitutionValues);
+      var rows = await results.toList();
 
-    return rows.map((row) => row.toList()).toList();
+      var mappedRows = rows.map((row) => row.toList()).toList();
+      logger.fine(() => "Query:execute (${(new DateTime.now().toUtc().difference(now).inMilliseconds)}ms) $sql -> $mappedRows");
+      return mappedRows;
+    } on PostgreSQLException catch (e) {
+      throw _interpretException(e);
+    }
   }
 
   @override
@@ -72,247 +124,306 @@ class PostgreSQLPersistentStore extends PersistentStore {
     _databaseConnection = null;
   }
 
-  void _informWaiters(void f(Completer c)) {
-    if (!_pendingConnectionCompleters.isEmpty) {
-      List<Completer<Connection>> copiedCompleters = new List.from(_pendingConnectionCompleters);
-      _pendingConnectionCompleters = [];
-      copiedCompleters.forEach((completer) {
-        scheduleMicrotask(() {
-          f(completer);
-        });
-      });
-    }
-  }
-
-  String _columnNameForProperty(PropertyDescription desc) {
-    if (desc is RelationshipDescription) {
-      return "${desc.name}_${desc.destinationEntity.primaryKey}";
-    }
-    return desc.name;
-  }
-
-  Future<dynamic> _executeQuery(String formatString, dynamic values, int timeoutInSeconds, {bool returnCount: false}) async {
+  @override
+  Future<int> get schemaVersion async {
     try {
-      var dbConnection = await getDatabaseConnection();
-      var results = null;
-
-      var now = new DateTime.now().toUtc();
-      if (!returnCount) {
-        results = (await dbConnection.query(formatString, values).toList().timeout(new Duration(seconds: timeoutInSeconds)));
-      } else {
-        results = (await dbConnection.execute(formatString, values).timeout(new Duration(seconds: timeoutInSeconds)));
+      var values = await execute("SELECT versionNumber, dateOfUpgrade FROM $_versionTableName ORDER BY dateOfUpgrade ASC") as List<List<dynamic>>;
+      if (values.length == 0) {
+        return 0;
       }
 
-      logger.fine(() => "Query (${(new DateTime.now().toUtc().difference(now).inMilliseconds)}ms) $formatString $values -> $results");
+      return values.last.first;
+    } on QueryException catch (e) {
+      if (e.underlyingException.code != PostgreSQLErrorCode.undefinedTable) {
+        throw _interpretException(e.underlyingException);
+      }
+    }
 
-      return results;
-    } on TimeoutException {
-      throw new QueryException(503, "Could not connect to database.", -1);
-    } on PostgresqlException catch (e, stackTrace) {
-      logger.severe("SQL Failed $formatString $values");
-      throw _interpretException(e, stackTrace);
-    } on QueryException {
-      logger.severe("Query Failed $formatString $values");
-      rethrow;
-    } catch (e, stackTrace) {
-      logger.severe("Unknown Failure $formatString $values");
-      throw new QueryException(500, e.toString(), -1, stackTrace: stackTrace);
+    return 0;
+  }
+
+  @override
+  Future upgrade(int versionNumber, List<String> commands, {bool temporary: false}) async {
+    await _createVersionTableIfNecessary(temporary);
+
+    var connection = await getDatabaseConnection();
+
+    try {
+      await connection.transaction((ctx) async {
+        var existingVersionRows = await ctx.query("SELECT versionNumber, dateOfUpgrade FROM $_versionTableName WHERE versionNumber=@v:int4", substitutionValues: {
+          "v" : versionNumber
+        });
+        if (existingVersionRows.length > 0) {
+          var date = existingVersionRows.first.last;
+          throw new MigrationException("Trying to upgrade database to version $versionNumber, but that migration has already been performed on ${date}.");
+        }
+
+        for (var cmd in commands) {
+          await ctx.execute(cmd);
+        }
+
+        await ctx.execute("INSERT INTO $_versionTableName (versionNumber, dateOfUpgrade) VALUES ($versionNumber, '${new DateTime.now().toUtc().toIso8601String()}')");
+      });
+    } on PostgreSQLException catch (e) {
+      throw _interpretException(e);
     }
   }
 
-  Future<List<MappingElement>> executeInsertQuery(PersistentStoreQuery q) async {
+  @override
+  Future<List<PersistentColumnMapping>> executeInsertQuery(PersistentStoreQuery q) async {
+    var columnsBeingInserted = q.values
+        .map((m) => _columnNameForProperty(m.property))
+        .join(",");
+    var valueKeysToBeInserted = q.values
+        .map((m) => "@${_typedColumnName(_columnNameForProperty(m.property), m.property)}")
+        .join(",");
+    var columnsToBeReturned = q.resultKeys
+        .map((m) => _columnNameForProperty(m.property))
+        .join(",");
+    var valueMap = new Map.fromIterable(q.values,
+        key: (PersistentColumnMapping m) => _columnNameForProperty(m.property),
+        value: (PersistentColumnMapping m) => m.value);
+
     var queryStringBuffer = new StringBuffer();
-    queryStringBuffer.write("insert into ${q.entity.tableName} ");
-    queryStringBuffer.write("(${q.values.map((m) => _columnNameForProperty(m.property)).join(",")}) ");
-    queryStringBuffer.write("values (${q.values.map((m) => "@${_columnNameForProperty(m.property)}").join(",")}) ");
+    queryStringBuffer.write("INSERT INTO ${q.rootEntity.tableName} ($columnsBeingInserted) ");
+    queryStringBuffer.write("VALUES (${valueKeysToBeInserted}) ");
 
     if (q.resultKeys != null && q.resultKeys.length > 0) {
-      queryStringBuffer.write("returning ${q.resultKeys.map((m) => _columnNameForProperty(m.property)).join(",")} ");
+      queryStringBuffer.write("RETURNING $columnsToBeReturned ");
     }
-    var valueMap = new Map.fromIterable(q.values,
-        key: (MappingElement m) => _columnNameForProperty(m.property),
-        value: (MappingElement m) => m.value);
-
     var results = await _executeQuery(queryStringBuffer.toString(), valueMap, q.timeoutInSeconds);
 
-    return _mappingElementsFromResults(results, q.resultKeys).first;
+    return _mappingElementsFromResults(results as List<List<dynamic>>, q.resultKeys).first;
   }
 
-  Future<List<List<MappingElement>>> executeFetchQuery(PersistentStoreQuery q) async {
-    var queryStringBuffer = new StringBuffer("select ");
+  @override
+  Future<List<List<PersistentColumnMapping>>> executeFetchQuery(PersistentStoreQuery q) async {
+    var predicateValueMap = <String, dynamic>{};
+    var mapElementToStringTransform = (PersistentColumnMapping e) => "${e.property.entity.tableName}.${_columnNameForProperty(e.property)}";
+    var joinElements = q.resultKeys.where((mapElement) => mapElement is PersistentJoinMapping);
+    var allPredicates = QueryPredicate.andPredicates([q.predicate, _pagePredicateForQuery(q)].where((p) => p != null).toList());
+    var orderingString = _orderByStringForQuery(q);
+    var columnsToFetch = q.resultKeys.map((mapElement) {
+      if (mapElement is PersistentJoinMapping) {
+        return mapElement.resultKeys.map(mapElementToStringTransform).join(",");
+      } else {
+        return mapElementToStringTransform(mapElement);
+      }
+    }).join(",");
 
-    var predicateValueMap = {};
-    var mapElementToString = (MappingElement e) => "${e.property.entity.tableName}.${_columnNameForProperty(e.property)}";
-    var selectColumns =  q.resultKeys
-        .map((mapElement) {
-          if (mapElement is JoinMappingElement) {
-            return mapElement.resultKeys.map(mapElementToString).join(",");
-          } else {
-            return mapElementToString(mapElement);
-          }
-        }).join(",");
-
-    queryStringBuffer.write("$selectColumns from ${q.entity.tableName} ");
-
-    q.resultKeys.where((mapElement) => mapElement is JoinMappingElement)
-        .forEach((JoinMappingElement joinElement) {
+    var queryStringBuffer = new StringBuffer("SELECT $columnsToFetch FROM ${q.rootEntity.tableName} ");
+    joinElements
+        .forEach((PersistentColumnMapping je) {
+          PersistentJoinMapping joinElement = je;
           queryStringBuffer.write("${_joinStringForJoin(joinElement)} ");
+
           if (joinElement.predicate != null) {
             predicateValueMap.addAll(joinElement.predicate.parameters);
           }
         });
 
-    var allPredicates = Predicate.andPredicates([q.predicate, _pagePredicateForQuery(q)].where((p) => p != null).toList());
     if (allPredicates != null) {
-      queryStringBuffer.write("where ${allPredicates.format} ");
+      queryStringBuffer.write("WHERE ${allPredicates.format} ");
       predicateValueMap.addAll(allPredicates.parameters);
     }
 
-    var orderingString = _orderByStringForQuery(q);
     if (orderingString != null) {
       queryStringBuffer.write("$orderingString ");
     }
 
     if (q.fetchLimit != 0) {
-      queryStringBuffer.write("limit ${q.fetchLimit} ");
+      queryStringBuffer.write("LIMIT ${q.fetchLimit} ");
     }
 
     if (q.offset != 0) {
-      queryStringBuffer.write("offset ${q.offset} ");
+      queryStringBuffer.write("OFFSET ${q.offset} ");
     }
 
     var results = await _executeQuery(queryStringBuffer.toString(), predicateValueMap, q.timeoutInSeconds);
 
-    return _mappingElementsFromResults(results, q.resultKeys);
+    return _mappingElementsFromResults(results as List<List<dynamic>>, q.resultKeys);
   }
 
+  @override
   Future<int> executeDeleteQuery(PersistentStoreQuery q) async {
     if (q.predicate == null && !q.confirmQueryModifiesAllInstancesOnDeleteOrUpdate) {
-      throw new HTTPResponseException(500, "Query would impact all records. This could be a destructive error. Set confirmQueryModifiesAllInstancesOnDeleteOrUpdate on the Query to execute anyway.");
+      throw new QueryException(QueryExceptionEvent.internalFailure, message: "Query would impact all records. This could be a destructive error. Set confirmQueryModifiesAllInstancesOnDeleteOrUpdate on the Query to execute anyway.");
     }
 
+    Map<String, dynamic> valueMap = null;
     var queryStringBuffer = new StringBuffer();
-    queryStringBuffer.write("delete from ${q.entity.tableName} ");
+    queryStringBuffer.write("DELETE FROM ${q.rootEntity.tableName} ");
 
-    var valueMap = null;
     if (q.predicate != null) {
       queryStringBuffer.write("where ${q.predicate.format} ");
       valueMap = q.predicate.parameters;
     }
 
-    var results = await _executeQuery(queryStringBuffer.toString(), valueMap, q.timeoutInSeconds, returnCount: true);
+    var results = await _executeQuery(queryStringBuffer.toString(), valueMap, q.timeoutInSeconds, shouldReturnCountOfRowsAffected: true);
 
     return results;
   }
 
-  Future<List<List<MappingElement>>> executeUpdateQuery(PersistentStoreQuery q) async {
+  @override
+  Future<List<List<PersistentColumnMapping>>> executeUpdateQuery(PersistentStoreQuery q) async {
     if (q.predicate == null && !q.confirmQueryModifiesAllInstancesOnDeleteOrUpdate) {
-      throw new HTTPResponseException(500, "Query would impact all records. This could be a destructive error. Set confirmQueryModifiesAllInstancesOnDeleteOrUpdate on the Query to execute anyway.");
+      throw new QueryException(QueryExceptionEvent.internalFailure, message: "Query would impact all records. This could be a destructive error. Set confirmQueryModifiesAllInstancesOnDeleteOrUpdate on the Query to execute anyway.");
     }
+
+    var resultColumnString = q.resultKeys.map((m) => _columnNameForProperty(m.property)).join(",");
+    var updateValueMap = new Map.fromIterable(q.values,
+        key: (PersistentColumnMapping elem) => "u_${_columnNameForProperty(elem.property)}",
+        value: (PersistentColumnMapping elem) => elem.value);
+    var setPairString = q.values.map((m) {
+      var name = _columnNameForProperty(m.property);
+      var typedName = _typedColumnName(name, m.property);
+      return "$name=@u_$typedName";
+    }).join(",");
 
     var queryStringBuffer = new StringBuffer();
-    queryStringBuffer.write("update ${q.entity.tableName} ");
-    queryStringBuffer.write("set ${q.values.map((m) => _columnNameForProperty(m.property)).map((keyName) => "$keyName=@u_$keyName").join(",")} ");
+    queryStringBuffer.write("UPDATE ${q.rootEntity.tableName} SET $setPairString ");
 
-    var predicateValueMap = {};
     if (q.predicate != null) {
       queryStringBuffer.write("where ${q.predicate.format} ");
-      predicateValueMap = q.predicate.parameters;
+      updateValueMap.addAll(q.predicate.parameters);
     }
-
     if (q.resultKeys != null && q.resultKeys.length > 0) {
-      queryStringBuffer.write("returning ${q.resultKeys.map((m) => _columnNameForProperty(m.property)).join(",")} ");
+      queryStringBuffer.write("RETURNING $resultColumnString ");
     }
-
-    var updateValueMap = new Map.fromIterable(q.values,
-        key: (MappingElement elem) => "u_${_columnNameForProperty(elem.property)}",
-        value: (MappingElement elem) => elem.value);
-    updateValueMap.addAll(predicateValueMap);
 
     var results = await _executeQuery(queryStringBuffer.toString(), updateValueMap, q.timeoutInSeconds);
 
-    return _mappingElementsFromResults(results, q.resultKeys);
+    return _mappingElementsFromResults(results as List<List<dynamic>>, q.resultKeys);
   }
 
   @override
-  Predicate comparisonPredicate(PropertyDescription desc, MatcherOperator operator, dynamic value) {
-    var prefix = desc.entity.tableName;
+  QueryPredicate comparisonPredicate(ManagedPropertyDescription desc, MatcherOperator operator, dynamic value) {
+    var tableName = desc.entity.tableName;
     var columnName = _columnNameForProperty(desc);
-    var formatSpecificationName = "$prefix${columnName}";
-    return new Predicate("$prefix.${columnName} ${symbolTable[operator]} @$formatSpecificationName",  {formatSpecificationName : value});
+    var typedColumnName = _typedColumnName(columnName, desc);
+
+    return new QueryPredicate("$tableName.$columnName ${symbolTable[operator]} @${tableName}_$typedColumnName", {
+      "${tableName}_$columnName" : value
+    });
   }
 
   @override
-  Predicate containsPredicate(PropertyDescription desc, Iterable<dynamic> values) {
+  QueryPredicate containsPredicate(ManagedPropertyDescription desc, Iterable<dynamic> values) {
+    var tableName = desc.entity.tableName;
     var tokenList = [];
-    var pairedMap = {};
-    var prefix = desc.entity.tableName;
-    var propertyName = _columnNameForProperty(desc);
+    var pairedMap = <String, dynamic>{};
 
     var counter = 0;
     values.forEach((value) {
-      var token = "wme$prefix${propertyName}_$counter";
-      tokenList.add("@$token");
-      pairedMap[token] = value;
+      var prefix = "ctns${tableName}_${counter}";
+      var columnName = _columnNameForProperty(desc);
+      var typedName = _typedColumnName(columnName, desc);
+      tokenList.add("@${prefix}_$typedName");
+      pairedMap["${prefix}_$columnName"] = value;
 
       counter ++;
     });
 
-    return new Predicate("$prefix.$propertyName in (${tokenList.join(",")})", pairedMap);
+    return new QueryPredicate("$tableName.${_columnNameForProperty(desc)} IN (${tokenList.join(",")})", pairedMap);
   }
 
   @override
-  Predicate nullPredicate(PropertyDescription desc, bool isNull) {
-    var prefix = desc.entity.tableName;
+  QueryPredicate nullPredicate(ManagedPropertyDescription desc, bool isNull) {
+    var tableName = desc.entity.tableName;
     var propertyName = _columnNameForProperty(desc);
-    return new Predicate("$prefix.$propertyName ${isNull ? "isnull" : "notnull"}", {});
+    return new QueryPredicate("$tableName.$propertyName ${isNull ? "isnull" : "notnull"}", {});
   }
 
   @override
-  Predicate rangePredicate(PropertyDescription desc, dynamic lhsValue, dynamic rhsValue, bool insideRange) {
+  QueryPredicate rangePredicate(ManagedPropertyDescription desc, dynamic lhsValue, dynamic rhsValue, bool insideRange) {
     var prefix = desc.entity.tableName;
     var propertyName = _columnNameForProperty(desc);
-    var lhsFormatSpecificationName = "$prefix${propertyName}_lhs";
-    var rhsRormatSpecificationName = "$prefix${propertyName}_rhs";
-    return new Predicate("$prefix.$propertyName ${insideRange ? "between" : "not between"} @$lhsFormatSpecificationName and @$rhsRormatSpecificationName",
-        {lhsFormatSpecificationName: lhsValue, rhsRormatSpecificationName : rhsValue});
+    var typedName = _typedColumnName(propertyName, desc);
+    var lhsFormatSpecificationName = "${prefix}_lhs_$typedName";
+    var rhsFormatSpecificationName = "${prefix}_rhs_$typedName";
+    var lhsKeyName = "${prefix}_lhs_$propertyName";
+    var rhsKeyName = "${prefix}_rhs_$propertyName";
+    var operation = insideRange ? "between" : "not between";
+
+    return new QueryPredicate("$prefix.$propertyName $operation @$lhsFormatSpecificationName AND @$rhsFormatSpecificationName", {
+      lhsKeyName: lhsValue, rhsKeyName : rhsValue
+    });
   }
 
   @override
-  Predicate stringPredicate(PropertyDescription desc, StringMatcherOperator operator, dynamic value) {
-    var prefix = desc.entity.tableName;
+  QueryPredicate stringPredicate(ManagedPropertyDescription desc, StringMatcherOperator operator, dynamic value) {
+    var tableName = desc.entity.tableName;
     var propertyName = _columnNameForProperty(desc);
-    var formatSpecificationName = "$prefix${propertyName}";
+    var formatSpecificationName = "${tableName}_${_typedColumnName(propertyName, desc)}";
+    var keyName = "${tableName}_$propertyName";
     var matchValue = value;
     switch(operator) {
-      case StringMatcherOperator.beginsWith: matchValue = "$matchValue%"; break;
-      case StringMatcherOperator.endsWith: matchValue = "%$matchValue"; break;
-      case StringMatcherOperator.contains: matchValue = "%$matchValue%"; break;
+      case StringMatcherOperator.beginsWith: matchValue = "$value%"; break;
+      case StringMatcherOperator.endsWith: matchValue = "%$value"; break;
+      case StringMatcherOperator.contains: matchValue = "%$value%"; break;
     }
 
-    return new Predicate("$prefix.$propertyName like @$formatSpecificationName", {formatSpecificationName : matchValue});
+    return new QueryPredicate("$tableName.$propertyName like @$formatSpecificationName", {keyName : matchValue});
   }
 
-  List<List<MappingElement>> _mappingElementsFromResults(List<Row> rows, List<MappingElement> columnDefinitions) {
+  String _columnNameForProperty(ManagedPropertyDescription desc) {
+    if (desc is ManagedRelationshipDescription) {
+      return "${desc.name}_${desc.destinationEntity.primaryKey}";
+    }
+    return desc.name;
+  }
+
+  String _typedColumnName(String name, ManagedPropertyDescription desc) {
+    var type = PostgreSQLFormat.dataTypeStringForDataType(_typeMap[desc.type]);
+    if (type == null) {
+      return name;
+    }
+    return "$name:$type";
+  }
+
+  Future<dynamic> _executeQuery(String formatString, Map<String, dynamic> values, int timeoutInSeconds, {bool shouldReturnCountOfRowsAffected: false}) async {
+    var now = new DateTime.now().toUtc();
+    try {
+      var dbConnection = await getDatabaseConnection();
+      var results = null;
+
+      if (!shouldReturnCountOfRowsAffected) {
+        results = await dbConnection.query(formatString, substitutionValues: values).timeout(new Duration(seconds: timeoutInSeconds));
+      } else {
+        results = await dbConnection.execute(formatString, substitutionValues: values).timeout(new Duration(seconds: timeoutInSeconds));
+      }
+
+      logger.fine(() => "Query (${(new DateTime.now().toUtc().difference(now).inMilliseconds)}ms) $formatString $values -> $results");
+
+      return results;
+    } on TimeoutException catch (e) {
+      throw new QueryException(QueryExceptionEvent.connectionFailure, underlyingException: e);
+    } on PostgreSQLException catch (e) {
+      logger.fine(() => "Query (${(new DateTime.now().toUtc().difference(now).inMilliseconds)}ms) $formatString $values");
+      throw _interpretException(e);
+    }
+  }
+
+  List<List<PersistentColumnMapping>> _mappingElementsFromResults(List<List<dynamic>> rows, List<PersistentColumnMapping> columnDefinitions) {
     return rows.map((row) {
       var columnDefinitionIterator = columnDefinitions.iterator;
-      var rowIterator = row.toList().iterator;
+      var rowValueIterator = row.toList().iterator;
       var resultColumns = [];
 
       while (columnDefinitionIterator.moveNext()) {
         var element = columnDefinitionIterator.current;
 
-        if (element is JoinMappingElement) {
+        if (element is PersistentJoinMapping) {
           var innerColumnIterator = element.resultKeys.iterator;
-          var innerResultColumns = [];
+          var innerResultColumns = <PersistentColumnMapping>[];
           while (innerColumnIterator.moveNext()) {
-            rowIterator.moveNext();
-            innerResultColumns.add(new MappingElement.fromElement(innerColumnIterator.current, rowIterator.current));
+            rowValueIterator.moveNext();
+            innerResultColumns.add(new PersistentColumnMapping.fromElement(innerColumnIterator.current, rowValueIterator.current));
           }
-          resultColumns.add(new JoinMappingElement.fromElement(element, innerResultColumns));
+          resultColumns.add(new PersistentJoinMapping.fromElement(element, innerResultColumns));
         } else {
-          rowIterator.moveNext();
-          resultColumns.add(new MappingElement.fromElement(element, rowIterator.current));
+          rowValueIterator.moveNext();
+          resultColumns.add(new PersistentColumnMapping.fromElement(element, rowValueIterator.current));
         }
       }
 
@@ -320,86 +431,98 @@ class PostgreSQLPersistentStore extends PersistentStore {
     }).toList();
   }
 
-  QueryException _interpretException(PostgresqlException exception, StackTrace stackTrace) {
-    ServerMessage msg = exception.serverMessage;
-    if (msg == null) {
-      return new QueryException(500, exception.message, 0, stackTrace: stackTrace);
+  QueryException _interpretException(PostgreSQLException exception) {
+    switch (exception.code) {
+      case PostgreSQLErrorCode.undefinedColumn:
+        return new QueryException(QueryExceptionEvent.requestFailure, underlyingException: exception);
+      case PostgreSQLErrorCode.uniqueViolation:
+        return new QueryException(QueryExceptionEvent.conflict, underlyingException: exception);
+      case PostgreSQLErrorCode.notNullViolation:
+        return new QueryException(QueryExceptionEvent.requestFailure, underlyingException: exception);
+      case PostgreSQLErrorCode.foreignKeyViolation:
+        return new QueryException(QueryExceptionEvent.requestFailure, underlyingException: exception);
     }
 
-    var totalMessage = "${exception.message}${msg.detail != null ? ": ${msg.detail}" : ""}";
-    switch (msg.code) {
-      case "42703":
-        return new QueryException(400, totalMessage, 42703, stackTrace: stackTrace);
-      case "23505":
-        return new QueryException(409, totalMessage, 23505, stackTrace: stackTrace);
-      case "23502":
-        return new QueryException(400, totalMessage, 23502, stackTrace: stackTrace);
-      case "23503":
-        return new QueryException(400, totalMessage, 23503, stackTrace: stackTrace);
-    }
-
-    return new QueryException(500, exception.message, 0, stackTrace: stackTrace);
+    return new QueryException(QueryExceptionEvent.internalFailure, underlyingException: exception);
   }
 
   String _orderByStringForQuery(PersistentStoreQuery q) {
-    List<SortDescriptor> sortDescs = q.sortDescriptors ?? [];
-
+    List<QuerySortDescriptor> sortDescs = q.sortDescriptors ?? [];
     if (q.pageDescriptor != null) {
-      var order = (q.pageDescriptor.direction == PageDirection.after
-          ? SortDescriptorOrder.ascending
-          : SortDescriptorOrder.descending);
-
-      sortDescs.insert(0, new SortDescriptor(q.pageDescriptor.referenceKey, order));
+      sortDescs.insert(0, new QuerySortDescriptor(q.pageDescriptor.propertyName, q.pageDescriptor.order));
     }
 
     if (sortDescs.length == 0) {
       return null;
     }
 
-    var transformFunc = (SortDescriptor sd) {
-      var property = q.entity.properties[sd.key];
+    var joinedSortDescriptors = sortDescs.map((QuerySortDescriptor sd) {
+      var property = q.rootEntity.properties[sd.key];
       var columnName = "${property.entity.tableName}.${_columnNameForProperty(property)}";
-      return "$columnName ${(sd.order == SortDescriptorOrder.ascending ? "asc" : "desc")}";
-    };
-    var joinedSortDescriptors = sortDescs.map(transformFunc).join(",");
+      var order = (sd.order == QuerySortOrder.ascending ? "ASC" : "DESC");
+      return "$columnName $order";
+    }).join(",");
 
-    return "order by $joinedSortDescriptors";
+    return "ORDER BY $joinedSortDescriptors";
   }
 
-  Predicate _pagePredicateForQuery(PersistentStoreQuery query) {
-    if(query.pageDescriptor?.referenceValue == null) {
+  QueryPredicate _pagePredicateForQuery(PersistentStoreQuery query) {
+    if(query.pageDescriptor?.boundingValue == null) {
       return null;
     }
 
-    var operator = (query.pageDescriptor.direction == PageDirection.after ? ">" : "<");
-    return new Predicate("${query.pageDescriptor.referenceKey} ${operator} @inq_page_value",
-        {"inq_page_value": query.pageDescriptor.referenceValue});
+    var operator = (query.pageDescriptor.order == QuerySortOrder.ascending ? ">" : "<");
+    var keyName = "aq_page_value";
+    var typedKeyName = _typedColumnName(keyName, query.rootEntity.properties[query.pageDescriptor.propertyName]);
+    return new QueryPredicate("${query.pageDescriptor.propertyName} ${operator} @$typedKeyName", {
+      "$keyName": query.pageDescriptor.boundingValue
+    });
   }
 
-  String _joinStringForJoin(JoinMappingElement ji) {
+  String _joinStringForJoin(PersistentJoinMapping ji) {
     var parentEntity = ji.property.entity;
     var childEntity = ji.joinProperty.entity;
-    var predicate = new Predicate("${parentEntity.tableName}.${_columnNameForProperty(parentEntity.properties[parentEntity.primaryKey])}=${childEntity.tableName}.${_columnNameForProperty(ji.joinProperty)}", {});
+    var predicate = new QueryPredicate("${parentEntity.tableName}.${_columnNameForProperty(parentEntity.properties[parentEntity.primaryKey])}=${childEntity.tableName}.${_columnNameForProperty(ji.joinProperty)}", {});
     if (ji.predicate != null) {
-      predicate = Predicate.andPredicates([predicate, ji.predicate]);
+      predicate = QueryPredicate.andPredicates([predicate, ji.predicate]);
     }
 
-    return "${_stringForJoinType(ji.type)} join ${ji.joinProperty.entity.tableName} on (${predicate.format})";
+    return "${_stringForJoinType(ji.type)} JOIN ${ji.joinProperty.entity.tableName} ON (${predicate.format})";
   }
 
-  String _stringForJoinType(JoinType t) {
+  String _stringForJoinType(PersistentJoinType t) {
     switch (t) {
-      case JoinType.leftOuter: return "left outer";
+      case PersistentJoinType.leftOuter: return "LEFT OUTER";
     }
     return null;
   }
+
+  Future _createVersionTableIfNecessary(bool temporary) async {
+    var conn = await getDatabaseConnection();
+    var commands = createTable(_versionTable, isTemporary: temporary);
+    try {
+      await conn.transaction((ctx) async {
+        for (var cmd in commands) {
+          await ctx.execute(cmd);
+        }
+      });
+    } on PostgreSQLException catch (e) {
+      if (e.code != PostgreSQLErrorCode.duplicateTable) {
+        rethrow;
+      }
+    }
+  }
 }
 
-class PostgreSQLPersistentStoreException implements Exception {
-  PostgreSQLPersistentStoreException(this.message);
-  String message;
-
-  String toString() {
-    return "PostgreSQLPersistentStoreException: $message";
-  }
+/// Commonly used error codes from PostgreSQL.
+///
+/// When a [QueryException.underlyingException] is a [PostgreSQLException], this [PostgreSQLException.code]
+/// value may be one of the static properties declared in this class.
+class PostgreSQLErrorCode {
+  static const String duplicateTable = "42P07";
+  static const String undefinedTable = "42P01";
+  static const String undefinedColumn = "42703";
+  static const String uniqueViolation = "23505";
+  static const String notNullViolation = "23502";
+  static const String foreignKeyViolation = "23503";
 }

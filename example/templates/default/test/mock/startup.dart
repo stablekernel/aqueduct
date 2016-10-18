@@ -8,8 +8,8 @@ class TestApplication {
     configuration.database.isTemporary = true;
   }
 
-  Application<WildfirePipeline> application;
-  WildfirePipeline get pipeline => application.server.pipeline;
+  Application<WildfireSink> application;
+  WildfireSink get sink => application.mainIsolateSink;
   LoggingServer logger = new LoggingServer([]);
   TestClient client;
   WildfireConfiguration configuration;
@@ -17,33 +17,33 @@ class TestApplication {
   Future start() async {
     await logger.start();
 
-    application = new Application<WildfirePipeline>();
-    application.configuration.pipelineOptions = {
-      WildfirePipeline.ConfigurationKey: configuration,
-      WildfirePipeline.LoggingTargetKey : logger.getNewTarget()
+    application = new Application<WildfireSink>();
+    application.configuration.configurationOptions = {
+      WildfireSink.ConfigurationKey: configuration,
+      WildfireSink.LoggingTargetKey : logger.getNewTarget()
     };
 
     await application.start(runOnMainIsolate: true);
 
-    ModelContext.defaultContext = pipeline.context;
+    ManagedContext.defaultContext = sink.context;
 
-    await createDatabaseSchema(pipeline.context, pipeline.logger);
+    await createDatabaseSchema(sink.context, sink.logger);
     await addClientRecord();
 
-    client = new TestClient(application.configuration.port)
+    client = new TestClient(application)
       ..clientID = "com.aqueduct.test"
       ..clientSecret = "kilimanjaro";
   }
 
   Future stop() async {
-    await pipeline.context.persistentStore?.close();
+    await sink.context.persistentStore?.close();
     await logger?.stop();
     await application?.stop();
   }
 
   static Future addClientRecord({String clientID: "com.aqueduct.test", String clientSecret: "kilimanjaro"}) async {
-    var salt = AuthenticationServer.generateRandomSalt();
-    var hashedPassword = AuthenticationServer.generatePasswordHash(clientSecret, salt);
+    var salt = AuthServer.generateRandomSalt();
+    var hashedPassword = AuthServer.generatePasswordHash(clientSecret, salt);
     var testClientRecord = new ClientRecord();
     testClientRecord.id = clientID;
     testClientRecord.salt = salt;
@@ -56,12 +56,10 @@ class TestApplication {
     await clientQ.insert();
   }
 
-  static Future createDatabaseSchema(ModelContext context, Logger logger) async {
-    var generator = new SchemaGenerator(context.dataModel);
-    var json = generator.serialized;
-    var pGenerator = new PostgreSQLSchemaGenerator(json, temporary: true);
+  static Future createDatabaseSchema(ManagedContext context, Logger logger) async {
+    var builder = new SchemaBuilder.toSchema(context.persistentStore, new Schema.fromDataModel(context.dataModel), isTemporary: true);
 
-    for (var cmd in pGenerator.commandList.split(";\n")) {
+    for (var cmd in builder.commands) {
       logger?.info("$cmd");
       await context.persistentStore.execute(cmd);
     }

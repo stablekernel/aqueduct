@@ -1,8 +1,7 @@
 part of aqueduct;
 
-/// Parses a Bearer token in an Authorization header.
+/// Parses a Bearer token from an Authorization header.
 class AuthorizationBearerParser {
-
   /// Parses a Bearer token from [authorizationHeader]. If the header is malformed or doesn't exist,
   /// throws an [HTTPResponseException]. Otherwise, returns the [String] representation of the bearer token.
   /// For example, if the input to this method is "Authorization: Bearer token" it would return 'token'.
@@ -34,7 +33,7 @@ class AuthorizationBasicElements {
 class AuthorizationBasicParser {
   /// Returns a [AuthorizationBasicElements] containing the username and password
   /// base64 encoded in [authorizationHeader]. For example, if the input to this method
-  /// was 'Authorization: Basic base64String' it would decode the base64String,
+  /// was 'Authorization: Basic base64String' it would decode the base64String
   /// and return the username and password by splitting that decoded string around the character ':'.
   static AuthorizationBasicElements parse(String authorizationHeader) {
     var matcher = new RegExp("Basic (.*)");

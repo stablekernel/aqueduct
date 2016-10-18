@@ -6,20 +6,20 @@ import 'dart:convert';
 import '../helpers.dart';
 
 main() {
-  ModelContext context = null;
+  ManagedContext context = null;
   HttpServer server = null;
 
   setUpAll(() async {
     context = await contextWithModels([TestModel]);
-    ModelContext.defaultContext = context;
+    ManagedContext.defaultContext = context;
 
     server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8080);
     var router = new Router();
-    router.route("/users/[:id]").next(() => new TestModelController());
+    router.route("/users/[:id]").generate(() => new TestModelController());
     router.finalize();
 
     server.listen((req) async {
-      router.deliver(new Request(req));
+      router.receive(new Request(req));
     });
   });
 
@@ -58,7 +58,7 @@ main() {
 
 }
 
-class TestModelController extends ModelController<TestModel> {
+class TestModelController extends QueryController<TestModel> {
   TestModelController() : super();
 
   @httpGet getAll() async {
@@ -68,33 +68,33 @@ class TestModelController extends ModelController<TestModel> {
       statusCode = 400;
     }
 
-    if (query.values.dynamicBacking.length != 0) {
+    if (query.values.backingMap.length != 0) {
       statusCode = 400;
     }
 
     return new Response(statusCode, {}, null);
   }
 
-  @httpGet getOne(int id) async {
+  @httpGet getOne(@HTTPPath("id") int id) async {
     int statusCode = 200;
 
     if (query == null) {
       statusCode = 400;
     }
 
-    var comparisonMatcher = query["id"];
+    var comparisonMatcher = query.matchOn["id"];
     if (comparisonMatcher.operator != MatcherOperator.equalTo || comparisonMatcher.value != id) {
       statusCode = 400;
     }
 
-    if (query.values.dynamicBacking.length != 0) {
+    if (query.values.backingMap.length != 0) {
       statusCode = 400;
     }
 
     return new Response(statusCode, {}, null);
   }
 
-  @httpPut putOne(int id) async {
+  @httpPut putOne(@HTTPPath("id") int id) async {
     int statusCode = 200;
 
     if (query.values == null) {
@@ -107,7 +107,7 @@ class TestModelController extends ModelController<TestModel> {
       statusCode = 400;
     }
 
-    var comparisonMatcher = query["id"];
+    var comparisonMatcher = query.matchOn["id"];
     if (comparisonMatcher.operator != MatcherOperator.equalTo || comparisonMatcher.value != id) {
       statusCode = 400;
     }
@@ -138,14 +138,14 @@ class TestModelController extends ModelController<TestModel> {
     return new Response(statusCode, {}, null);
   }
 
-  @httpPost crash(int id) async {
+  @httpPost crash(@HTTPPath("id") int id) async {
     return new Response.ok("");
   }
 }
 
-class TestModel extends Model<_TestModel> implements _TestModel {}
+class TestModel extends ManagedObject<_TestModel> implements _TestModel {}
 class _TestModel {
-  @Attributes(primaryKey: true)
+  @ManagedColumnAttributes(primaryKey: true)
   int id;
 
   String name;

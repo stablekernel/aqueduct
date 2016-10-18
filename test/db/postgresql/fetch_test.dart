@@ -3,8 +3,7 @@ import 'package:aqueduct/aqueduct.dart';
 import '../../helpers.dart';
 
 void main() {
-  ModelContext context = null;
-
+  ManagedContext context = null;
   tearDown(() async {
     await context?.persistentStore?.close();
     context = null;
@@ -13,34 +12,29 @@ void main() {
   test("Fetching an object gets entire object", () async {
     context = await contextWithModels([TestModel]);
 
-    var m = new TestModel()
-      ..name = "Joe"
-      ..email = "a@a.com";
-
+    var m = new TestModel(name: "Joe", email: "a@a.com");
     var req = new Query<TestModel>()..values = m;
     var item = await req.insert();
 
     req = new Query<TestModel>()
-      ..predicate = new Predicate("id = @id", {"id": item.id});
+      ..predicate = new QueryPredicate("id = @id", {"id": item.id});
     item = await req.fetchOne();
 
     expect(item.name, "Joe");
     expect(item.email, "a@a.com");
   });
 
-  test("Specifying resultKeys works", () async {
+  test("Specifying resultProperties works", () async {
     context = await contextWithModels([TestModel]);
 
-    var m = new TestModel()
-      ..name = "Joe"
-      ..email = "b@a.com";
+    var m = new TestModel(name: "Joe", email: "b@a.com");
     var req = new Query<TestModel>()..values = m;
 
     var item = await req.insert();
     var id = item.id;
 
     req = new Query<TestModel>()
-      ..predicate = new Predicate("id = @id", {"id": item.id})
+      ..predicate = new QueryPredicate("id = @id", {"id": item.id})
       ..resultProperties = ["id", "name"];
 
     item = await req.fetchOne();
@@ -54,18 +48,16 @@ void main() {
     context = await contextWithModels([TestModel]);
 
     for (int i = 0; i < 10; i++) {
-      var m = new TestModel()
-        ..name = "Joe${i}"
-        ..email = "asc${i}@a.com";
+      var m = new TestModel(name: "Joe${i}", email: "asc${i}@a.com");
       var req = new Query<TestModel>()..values = m;
       await req.insert();
     }
 
     var req = new Query<TestModel>()
       ..sortDescriptors = [
-        new SortDescriptor("email", SortDescriptorOrder.ascending)
+        new QuerySortDescriptor("email", QuerySortOrder.ascending)
       ]
-      ..predicate = new Predicate("email like @key", {"key": "asc%"});
+      ..predicate = new QueryPredicate("email like @key", {"key": "asc%"});
 
     var result = await req.fetch();
 
@@ -75,7 +67,7 @@ void main() {
 
     req = new Query<TestModel>()
       ..sortDescriptors = [
-        new SortDescriptor("id", SortDescriptorOrder.ascending)
+        new QuerySortDescriptor("id", QuerySortOrder.ascending)
       ];
     result = await req.fetch();
 
@@ -91,9 +83,7 @@ void main() {
     context = await contextWithModels([TestModel]);
 
     for (int i = 0; i < 10; i++) {
-      var m = new TestModel()
-        ..name = "Joe${i}"
-        ..email = "desc${i}@a.com";
+      var m = new TestModel(name: "Joe${i}", email: "desc${i}@a.com");
 
       var req = new Query<TestModel>()..values = m;
 
@@ -102,9 +92,9 @@ void main() {
 
     var req = new Query<TestModel>()
       ..sortDescriptors = [
-        new SortDescriptor("email", SortDescriptorOrder.descending)
+        new QuerySortDescriptor("email", QuerySortOrder.descending)
       ]
-      ..predicate = new Predicate("email like @key", {"key": "desc%"});
+      ..predicate = new QueryPredicate("email like @key", {"key": "desc%"});
     var result = await req.fetch();
 
     for (int i = 0; i < 10; i++) {
@@ -117,9 +107,7 @@ void main() {
     context = await contextWithModels([TestModel]);
 
     for (int i = 0; i < 10; i++) {
-      var m = new TestModel()
-        ..name = "Joe${i%2}"
-        ..email = "multi${i}@a.com";
+      var m = new TestModel(name: "Joe${i%2}", email: "multi${i}@a.com");
 
       var req = new Query<TestModel>()..values = m;
 
@@ -128,10 +116,10 @@ void main() {
 
     var req = new Query<TestModel>()
       ..sortDescriptors = [
-        new SortDescriptor("name", SortDescriptorOrder.ascending),
-        new SortDescriptor("email", SortDescriptorOrder.descending)
+        new QuerySortDescriptor("name", QuerySortOrder.ascending),
+        new QuerySortDescriptor("email", QuerySortOrder.descending)
       ]
-      ..predicate = new Predicate("email like @key", {"key": "multi%"});
+      ..predicate = new QueryPredicate("email like @key", {"key": "multi%"});
 
     var result = await req.fetch();
 
@@ -169,9 +157,7 @@ void main() {
   test("Fetching an invalid key fails", () async {
     context = await contextWithModels([TestModel]);
 
-    var m = new TestModel()
-      ..name = "invkey"
-      ..email = "invkey@a.com";
+    var m = new TestModel(name: "invkey", email: "invkey@a.com");
 
     var req = new Query<TestModel>()..values = m;
     await req.insert();
@@ -184,9 +170,8 @@ void main() {
       await req.fetch();
       successful = true;
     } on QueryException catch (e) {
-      expect(e.message, "Property badkey in resultKeys does not exist on simple");
-      expect(e.errorCode, -1);
-      expect(e.statusCode, 500);
+      expect(e.toString(), "Property badkey does not exist on simple");
+      expect(e.event, QueryExceptionEvent.internalFailure);
     }
     expect(successful, false);
   });
@@ -210,7 +195,7 @@ void main() {
     }
 
     var req = new Query<GenPost>()
-      ..predicate = new Predicate("owner_id = @id", {"id": u1.id});
+      ..predicate = new QueryPredicate("owner_id = @id", {"id": u1.id});
     var res = await req.fetch();
     expect(res.length, 5);
     expect(res.map((p) => p.text)
@@ -218,8 +203,8 @@ void main() {
             .toList()
             .length, 5);
 
-    var query = new ModelQuery<GenPost>();
-    query["owner"] = whereRelatedByValue(u1.id);
+    var query = new Query<GenPost>();
+    query.matchOn["owner"] = whereRelatedByValue(u1.id);
     res = await query.fetch();
 
     GenUser user = res.first.owner;
@@ -241,42 +226,6 @@ void main() {
     expect(p1.owner, isNull);
   });
 
-  test("Offset", () async {
-    context = await contextWithModels([PageableTestModel]);
-
-    for (int i = 0; i < 10; i++) {
-      var p = new PageableTestModel()..value = "${i}";
-      await (new Query<PageableTestModel>()..values = p).insert();
-    }
-
-    var q = new Query<PageableTestModel>()
-      ..fetchLimit = 1
-      ..offset = 2;
-
-    var results = await q.fetch();
-    expect(results.length, 1);
-    expect(results.first.value, "2");
-
-    q = new Query<PageableTestModel>()
-      ..fetchLimit = 1
-      ..offset = 10;
-
-    results = await q.fetch();
-    expect(results.length, 0);
-
-    q = new Query<PageableTestModel>()
-      ..sortDescriptors = [
-        new SortDescriptor("id", SortDescriptorOrder.descending)
-      ]
-      ..fetchLimit = 2
-      ..offset = 2;
-
-    results = await q.fetch();
-    expect(results.length, 2);
-    expect(results.first.value, "7");
-    expect(results[1].value, "6");
-  });
-
   test("Omits specific keys", () async {
     context = await contextWithModels([Omit]);
 
@@ -284,224 +233,106 @@ void main() {
 
     var result = await iq.insert();
     expect(result.id, greaterThan(0));
-    expect(result.dynamicBacking["text"], isNull);
+    expect(result.backingMap["text"], isNull);
 
-    var matcher = new ModelQuery<Omit>()
-      ..["id"] = whereEqualTo(result.id);
+    var matcher = new Query<Omit>()
+      ..matchOn["id"] = whereEqualTo(result.id);
     var fq = new Query<Omit>()..predicate = matcher.predicate;
 
     var fResult = await fq.fetchOne();
     expect(fResult.id, result.id);
-    expect(fResult.dynamicBacking["text"], isNull);
+    expect(fResult.backingMap["text"], isNull);
   });
 
-  test("Paging", () async {
-    context = await contextWithModels([PageableTestModel]);
+  test("Fetch one that returns more than one row (because of join) throws exception", () async {
+    context = await contextWithModels([GenUser, GenPost]);
 
-    /*
-     |1 2 3 4 5 6 7 8 9 0|
-     ---------------------
-    x|- - - - >          |
-     |x - - - - >        |
-    x|- - - - - - - - - -|>
-     |          x - - - >|
-     |          x - - - -|>
-     |                  x|>
-     |                   |x>
- nil |- - - - - - - - - -|>
- nil |- - - - >          |
-   <x|                   |
-    <|x                  |
-    <|- - - x            |
-     |< - - - x          |
-    <|- - - - - - - - - -|x
-     |        < - - - - x|
-     |          < - - - -|x
-    <|- - - - - - - - - -| nil
-     |          < - - - -| nil
-     ---------------------
-     */
+    var objects = [
+      new GenUser()
+        ..name = "Joe",
+      new GenUser()
+        ..name = "Bob"
+    ];
 
-    var check = (List checkIDs, List values) {
-      expect(checkIDs.length, values.length);
-      var ids = values.map((v) => v.id).toList();
-      for (int i = 0; i < ids.length; i++) {
-        expect(ids[i], checkIDs[i]);
-      }
-    };
-
-    for (int i = 0; i < 10; i++) {
-      var p = new PageableTestModel()..value = "${i}";
-
-      await (new Query<PageableTestModel>()..values = p).insert();
+    for (var o in objects) {
+      var req = new Query<GenUser>()..values = o;
+      await req.insert();
     }
 
-    // after
+    try {
+      var q = new Query<GenUser>()
+        ..matchOn.posts.includeInResultSet = true;
+      await q.fetchOne();
 
-    // select * from t where id > 0 order by id asc limit 5;
-    var pageObject = new QueryPage(PageDirection.after, "id", 0);
-    var req = new Query<PageableTestModel>()
-      ..pageDescriptor = pageObject
-      ..fetchLimit = 5;
-    var res = await req.fetch();
-    check([1, 2, 3, 4, 5], res);
+      expect(true, false);
+    } on QueryException catch (e) {
+      expect(e.toString(), contains("Query expected to fetch one instance, but 2 instances were returned."));
+    }
+  });
 
-    // select * from t where id > 1 order by id asc limit 5;
-    pageObject = new QueryPage(PageDirection.after, "id", 1);
-    req = new Query<PageableTestModel>()
-      ..pageDescriptor = pageObject
-      ..fetchLimit = 5;
-    res = await req.fetch();
-    check([2, 3, 4, 5, 6], res);
+  test("Including RelationshipInverse property can only be done by using name of property", () async {
+    context = await contextWithModels([GenUser, GenPost]);
 
-    // select * from t where id > 0 order by id asc limit 15;
-    pageObject = new QueryPage(PageDirection.after, "id", 0);
-    req = new Query<PageableTestModel>()
-      ..pageDescriptor = pageObject
-      ..fetchLimit = 15;
-    res = await req.fetch();
-    check([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], res);
+    var u1 = await (new Query<GenUser>()
+      ..values.name = "Joe"
+    ).insert();
 
-    // select * from t where id > 6 order by id asc limit 4;
-    pageObject = new QueryPage(PageDirection.after, "id", 6);
-    req = new Query<PageableTestModel>()
-      ..pageDescriptor = pageObject
-      ..fetchLimit = 4;
-    res = await req.fetch();
-    check([7, 8, 9, 10], res);
+    await (new Query<GenPost>()
+      ..values.text = "text"
+      ..values.owner = u1
+    ).insert();
 
-    // select * from t where id > 6 order by id asc limit 5
-    pageObject = new QueryPage(PageDirection.after, "id", 6);
-    req = new Query<PageableTestModel>()
-      ..pageDescriptor = pageObject
-      ..fetchLimit = 5;
-    res = await req.fetch();
-    check([7, 8, 9, 10], res);
+    var q = new Query<GenPost>()
+      ..resultProperties = ["id", "owner"];
 
-    // select * from t where id > 10 order by id asc limit 5
-    pageObject = new QueryPage(PageDirection.after, "id", 10);
-    req = new Query<PageableTestModel>()
-      ..pageDescriptor = pageObject
-      ..fetchLimit = 5;
-    res = await req.fetch();
-    expect(res.length, 0);
+    var result = await q.fetchOne();
+    expect(result.owner.id, 1);
+    expect(result.owner.backingMap.length, 1);
 
-    // select * from t where id > 11 order by id asc limit 10
-    pageObject = new QueryPage(PageDirection.after, "id", 11);
-    req = new Query<PageableTestModel>()
-      ..pageDescriptor = pageObject
-      ..fetchLimit = 10;
-    res = await req.fetch();
-    expect(res.length, 0);
+    q = new Query<GenPost>()
+      ..resultProperties = ["id", "owner_id"];
+    try {
+      await q.fetchOne();
+      expect(true, false);
+    } on QueryException catch (e) {
+      expect(e.toString(), contains("Property owner_id does not exist on _GenPost"));
+    }
+  });
 
-    // select * from t order by id asc limit 10
-    pageObject = new QueryPage(PageDirection.after, "id", null);
-    req = new Query<PageableTestModel>()
-      ..pageDescriptor = pageObject
-      ..fetchLimit = 15;
-    res = await req.fetch();
-    check([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], res);
+  test("Trying to manipulate RelationshipInverse matcher fails", () async {
+    context = await contextWithModels([GenUser, GenPost]);
 
-    // select * from t order by id asc limit 5;
-    pageObject = new QueryPage(PageDirection.after, "id", null);
-    req = new Query<PageableTestModel>()
-      ..pageDescriptor = pageObject
-      ..fetchLimit = 5;
-    res = await req.fetch();
-    check([1, 2, 3, 4, 5], res);
+    try {
+      var _ = new Query<GenPost>()
+        ..matchOn.owner.id = 1;
+      expect(true, false);
+    } on QueryException catch (e) {
+      expect(e.toString(), contains("Attempting to access matcher on RelationshipInverse owner on _GenPost. Assign this value to whereRelatedByValue instead."));
+    }
 
-    // prior
-
-    // select * from t where id < 0 order by id desc limit 10
-    pageObject = new QueryPage(PageDirection.prior, "id", 0);
-    req = new Query<PageableTestModel>()
-      ..pageDescriptor = pageObject
-      ..fetchLimit = 10;
-    res = await req.fetch();
-    expect(res.length, 0);
-
-    // select * from t where id < 1 order by id desc limit 10;
-    pageObject = new QueryPage(PageDirection.prior, "id", 1);
-    req = new Query<PageableTestModel>()
-      ..pageDescriptor = pageObject
-      ..fetchLimit = 10;
-    res = await req.fetch();
-    expect(res.length, 0);
-
-    // select * from t where id < 4 order by id desc limit 10;
-    pageObject = new QueryPage(PageDirection.prior, "id", 4);
-    req = new Query<PageableTestModel>()
-      ..pageDescriptor = pageObject
-      ..fetchLimit = 10;
-    res = await req.fetch();
-    check([3, 2, 1], res);
-
-    // select * from t where id < 5 order by id desc limit 4;
-    pageObject = new QueryPage(PageDirection.prior, "id", 5);
-    req = new Query<PageableTestModel>()
-      ..pageDescriptor = pageObject
-      ..fetchLimit = 4;
-    res = await req.fetch();
-    check([4, 3, 2, 1], res);
-
-    // select * from t where id < 11 order by id desc limit 10;
-    pageObject = new QueryPage(PageDirection.prior, "id", 11);
-    req = new Query<PageableTestModel>()
-      ..pageDescriptor = pageObject
-      ..fetchLimit = 10;
-    res = await req.fetch();
-    check([10, 9, 8, 7, 6, 5, 4, 3, 2, 1], res);
-
-    // select * from t where id < 10 order by id desc limit 5;
-    pageObject = new QueryPage(PageDirection.prior, "id", 10);
-    req = new Query<PageableTestModel>()
-      ..pageDescriptor = pageObject
-      ..fetchLimit = 5;
-    res = await req.fetch();
-    check([9, 8, 7, 6, 5], res);
-
-    // select * from t where id < 11 order by id desc limit 5
-    pageObject = new QueryPage(PageDirection.prior, "id", 11);
-    req = new Query<PageableTestModel>()
-      ..pageDescriptor = pageObject
-      ..fetchLimit = 5;
-    res = await req.fetch();
-    check([10, 9, 8, 7, 6], res);
-
-    // select * from t order by id desc limit 10
-    pageObject = new QueryPage(PageDirection.prior, "id", null);
-    req = new Query<PageableTestModel>()
-      ..pageDescriptor = pageObject
-      ..fetchLimit = 10;
-    res = await req.fetch();
-    check([10, 9, 8, 7, 6, 5, 4, 3, 2, 1], res);
-
-    // select * from t order by id desc limit 5
-    pageObject = new QueryPage(PageDirection.prior, "id", null);
-    req = new Query<PageableTestModel>()
-      ..pageDescriptor = pageObject
-      ..fetchLimit = 5;
-    res = await req.fetch();
-    check([10, 9, 8, 7, 6], res);
+    try {
+      var _ = new Query<GenPost>()
+        ..matchOn.owner.includeInResultSet = true;
+      expect(true, false);
+    } on QueryException catch (e) {
+      expect(e.toString(), contains("Attempting to access matcher on RelationshipInverse owner on _GenPost. Assign this value to whereRelatedByValue instead."));
+    }
   });
 }
 
-class PageableTestModel extends Model<_PageableTestModel> implements _PageableTestModel {}
-class _PageableTestModel {
-  @primaryKey
-  int id;
-
-  String value;
+class TestModel extends ManagedObject<_TestModel> implements _TestModel {
+  TestModel({String name: null, String email: null}) {
+    this.name = name;
+    this.email = email;
+  }
 }
-
-class TestModel extends Model<_TestModel> implements _TestModel {}
 class _TestModel {
-  @primaryKey
+  @managedPrimaryKey
   int id;
 
   String name;
 
-  @Attributes(nullable: true, unique: true)
+  @ManagedColumnAttributes(nullable: true, unique: true)
   String email;
 
   static String tableName() {
@@ -513,37 +344,36 @@ class _TestModel {
   }
 }
 
-class GenUser extends Model<_GenUser> implements _GenUser {}
+class GenUser extends ManagedObject<_GenUser> implements _GenUser {}
 class _GenUser {
-  @primaryKey
+  @managedPrimaryKey
   int id;
 
   String name;
 
-  @Relationship(RelationshipType.hasMany, "owner")
-  List<GenPost> posts;
+  ManagedSet<GenPost> posts;
 
   static String tableName() {
     return "GenUser";
   }
 }
 
-class GenPost extends Model<_GenPost> implements _GenPost {}
+class GenPost extends ManagedObject<_GenPost> implements _GenPost {}
 class _GenPost {
-  @primaryKey
+  @managedPrimaryKey
   int id;
 
   String text;
 
-  @Relationship(RelationshipType.belongsTo, "posts", deleteRule: RelationshipDeleteRule.cascade, required: false)
+  @ManagedRelationship(#posts, onDelete: ManagedRelationshipDeleteRule.cascade, isRequired: false)
   GenUser owner;
 }
 
-class Omit extends Model<_Omit> implements _Omit {}
+class Omit extends ManagedObject<_Omit> implements _Omit {}
 class _Omit {
-  @primaryKey
+  @managedPrimaryKey
   int id;
 
-  @Attributes(omitByDefault: true)
+  @ManagedColumnAttributes(omitByDefault: true)
   String text;
 }

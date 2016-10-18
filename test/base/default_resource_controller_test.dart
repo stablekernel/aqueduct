@@ -2,12 +2,13 @@ import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
 import 'dart:async';
 import 'dart:io';
+import '../helpers.dart';
 
 void main() {
   group("Standard operations", () {
-    Application app = new Application<TestPipeline>();
+    Application app = new Application<TestSink>();
     app.configuration.port = 8080;
-    var client = new TestClient(app.configuration.port);
+    var client = new TestClient.onPort(app.configuration.port);
     List<TestModel> allObjects = [];
 
     setUpAll(() async {
@@ -15,7 +16,7 @@ void main() {
 
       var now = new DateTime.now().toUtc();
       for (var i = 0; i < 5; i++) {
-        var q = new ModelQuery<TestModel>()
+        var q = new Query<TestModel>()
             ..values.createdAt = now
             ..values.name = "$i";
         allObjects.add(await q.insert());
@@ -59,13 +60,13 @@ void main() {
       var resp = await (client.request("/controller")
           ..json = {
             "name" : "John",
-            "createdAt" : new DateTime(2000, 12, 12).toIso8601String()
+            "createdAt" : new DateTime(2000, 12, 12).toUtc().toIso8601String()
           }).post();
 
       var expectedMap = {
         "id" : allObjects.length + 1,
         "name" : "John",
-        "createdAt" : "2000-12-12T00:00:00.000Z"
+        "createdAt" : new DateTime(2000, 12, 12).toUtc().toIso8601String()
       };
       expect(resp, hasResponse(200, expectedMap));
       expect(await client.request("/controller/${expectedMap["id"]}").get(), hasResponse(200, expectedMap));
@@ -78,9 +79,9 @@ void main() {
   });
 
   group("Standard operation failure cases", () {
-    Application app = new Application<TestPipeline>();
+    Application app = new Application<TestSink>();
     app.configuration.port = 8080;
-    var client = new TestClient(8080);
+    var client = new TestClient.onPort(8080);
 
     setUpAll(() async {
       await app.start(runOnMainIsolate: true);
@@ -108,9 +109,9 @@ void main() {
 
   group("Objects that don't exist", () {
     Application app = null;
-    app = new Application<TestPipeline>();
+    app = new Application<TestSink>();
     app.configuration.port = 8080;
-    var client = new TestClient(8080);
+    var client = new TestClient.onPort(8080);
 
     setUpAll(() async {
       await app.start(runOnMainIsolate: true);
@@ -141,9 +142,9 @@ void main() {
 
   group("Extended GET requests", () {
     Application app = null;
-    app = new Application<TestPipeline>();
+    app = new Application<TestSink>();
     app.configuration.port = 8080;
-    var client = new TestClient(8080);
+    var client = new TestClient.onPort(8080);
     List<TestModel> allObjects = [];
 
     setUpAll(() async {
@@ -151,7 +152,7 @@ void main() {
 
       var now = new DateTime.now().toUtc();
       for (var i = 0; i < 10; i++) {
-        var q = new ModelQuery<TestModel>()
+        var q = new Query<TestModel>()
           ..values.createdAt = now
           ..values.name = "${9 - i}";
         allObjects.add(await q.insert());
@@ -207,9 +208,9 @@ void main() {
   });
 
   group("Documentation", () {
-    var dataModel = new DataModel([TestModel]);
-    ModelContext.defaultContext = new ModelContext(dataModel, new DefaultPersistentStore());
-    ResourceController c = new ResourceController<TestModel>();
+    var dataModel = new ManagedDataModel([TestModel]);
+    ManagedContext.defaultContext = new ManagedContext(dataModel, new DefaultPersistentStore());
+    ManagedObjectController c = new ManagedObjectController<TestModel>();
     var resolver = new PackagePathResolver(new File(".packages").path);
     var operations = c.documentOperations(resolver);
 
@@ -227,21 +228,11 @@ void main() {
       expect(successResponse.schema.title, "TestModel");
 
       var errorResponse = getResponses.firstWhere((r) => r.key == "404");
-      expect(errorResponse.schema.properties["error"].type, APISchemaObjectTypeString);
+      expect(errorResponse.schema, isNull);
     });
 
     test("createObject", () {
       var op = operations.firstWhere((e) => e.id == APIOperation.idForMethod(c, #createObject));
-      List<APIResponse> getResponses = c.documentResponsesForOperation(op);
-
-      expect(getResponses.length, 2);
-
-      var successResponse = getResponses.firstWhere((r) => r.key == "200");
-      expect(successResponse.schema.title, "TestModel");
-    });
-
-    test("updateObject", () {
-      var op = operations.firstWhere((e) => e.id == APIOperation.idForMethod(c, #updateObject));
       List<APIResponse> getResponses = c.documentResponsesForOperation(op);
 
       expect(getResponses.length, 3);
@@ -249,8 +240,22 @@ void main() {
       var successResponse = getResponses.firstWhere((r) => r.key == "200");
       expect(successResponse.schema.title, "TestModel");
 
+      expect(getResponses.firstWhere((r) => r.key == "409"), isNotNull);
+    });
+
+    test("updateObject", () {
+      var op = operations.firstWhere((e) => e.id == APIOperation.idForMethod(c, #updateObject));
+      List<APIResponse> getResponses = c.documentResponsesForOperation(op);
+
+      expect(getResponses.length, 4);
+
+      var successResponse = getResponses.firstWhere((r) => r.key == "200");
+      expect(successResponse.schema.title, "TestModel");
+
       var errorResponse = getResponses.firstWhere((r) => r.key == "404");
-      expect(errorResponse.schema.properties["error"].type, APISchemaObjectTypeString);
+      expect(errorResponse.schema, isNull);
+
+      expect(getResponses.firstWhere((r) => r.key == "409"), isNotNull);
     });
 
     test("deleteObject", () {
@@ -260,10 +265,10 @@ void main() {
       expect(getResponses.length, 3);
 
       var successResponse = getResponses.firstWhere((r) => r.key == "200");
-      expect(successResponse.schema.title, "TestModel");
+      expect(successResponse.schema, isNull);
 
       var errorResponse = getResponses.firstWhere((r) => r.key == "404");
-      expect(errorResponse.schema.properties["error"].type, APISchemaObjectTypeString);
+      expect(errorResponse.schema, isNull);
     });
 
     test("getObjects", () {
@@ -273,45 +278,47 @@ void main() {
       expect(getResponses.length, 3);
 
       var successResponse = getResponses.firstWhere((r) => r.key == "200");
-      expect(successResponse.schema.type, APISchemaObjectTypeArray);
+      expect(successResponse.schema.type, APISchemaObject.TypeArray);
       expect(successResponse.schema.items.title, "TestModel");
 
       var errorResponse = getResponses.firstWhere((r) => r.key == "404");
-      expect(errorResponse.schema.properties["error"].type, APISchemaObjectTypeString);
+      expect(errorResponse.schema, isNull);
     });
   });
 }
 
-class TestPipeline extends ApplicationPipeline {
-  TestPipeline(dynamic opts) : super (opts) {
-    var dataModel = new DataModel([TestModel]);
+class TestSink extends RequestSink {
+  TestSink(Map<String, dynamic> opts) : super (opts) {
+    var dataModel = new ManagedDataModel([TestModel]);
     var persistentStore = new PostgreSQLPersistentStore.fromConnectionInfo("dart", "dart", "localhost", 5432, "dart_test");
-    context = new ModelContext(dataModel, persistentStore);
-    ModelContext.defaultContext = context;
+    context = new ManagedContext(dataModel, persistentStore);
+    ManagedContext.defaultContext = context;
   }
 
-  ModelContext context = null;
+  ManagedContext context = null;
 
   @override
   Future willOpen() async {
-    var generator = new SchemaGenerator(context.dataModel);
-    var specificGenerator = new PostgreSQLSchemaGenerator(generator.serialized, temporary: true);
-    for (var cmd in specificGenerator.commands) {
+    var targetSchema = new Schema.fromDataModel(context.dataModel);
+    var schemaBuilder = new SchemaBuilder.toSchema(context.persistentStore, targetSchema, isTemporary: true);
+
+    var commands = schemaBuilder.commands;
+    for (var cmd in commands) {
       await context.persistentStore.execute(cmd);
     }
   }
 
   @override
-  void addRoutes() {
+  void setupRouter(Router router) {
     router
         .route("/controller/[:id]")
-        .next(() => new ResourceController<TestModel>());
+        .generate(() => new ManagedObjectController<TestModel>());
   }
 }
 
-class TestModel extends Model<_TestModel> implements _TestModel {}
+class TestModel extends ManagedObject<_TestModel> implements _TestModel {}
 class _TestModel {
-  @primaryKey
+  @managedPrimaryKey
   int id;
 
   String name;

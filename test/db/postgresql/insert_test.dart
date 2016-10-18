@@ -6,7 +6,7 @@ import 'package:aqueduct/aqueduct.dart';
 import '../../helpers.dart';
 
 void main() {
-  ModelContext context = null;
+  ManagedContext context = null;
 
   tearDown(() async {
     await context?.persistentStore?.close();
@@ -28,9 +28,8 @@ void main() {
       await insertReq.insert();
       successful = true;
     } on QueryException catch (e) {
-      expect(e.message, "Property bad_key in values does not exist on simple");
-      expect(e.statusCode, 400);
-      expect(e.errorCode, -1);
+      expect(e.toString(), "Property bad_key in values does not exist on simple");
+      expect(e.event, QueryExceptionEvent.requestFailure);
     }
     expect(successful, false);
   });
@@ -51,9 +50,9 @@ void main() {
     try {
       await insertReqDup.insert();
       successful = true;
-    } catch (e) {
-      expect(e.statusCode, 409);
-      expect(e.errorCode, 23505);
+    } on QueryException catch (e) {
+      expect(e.event, QueryExceptionEvent.conflict);
+      expect(e.underlyingException.code, "23505");
     }
     expect(successful, false);
 
@@ -94,7 +93,7 @@ void main() {
     var result = await insertReq.insert();
 
     var readReq = new Query<TestModel>()
-      ..predicate = new Predicate("emailAddress = @email", {"email": "2@a.com"});
+      ..predicate = new QueryPredicate("emailAddress = @email", {"email": "2@a.com"});
 
     result = await readReq.fetchOne();
     expect(result.name, "bob");
@@ -111,9 +110,9 @@ void main() {
     try {
       await insertReq.insert();
       successful = true;
-    } catch (e) {
-      expect(e.statusCode, 400);
-      expect(e.errorCode, 23502);
+    } on QueryException catch (e) {
+      expect(e.event, QueryExceptionEvent.requestFailure);
+      expect(e.underlyingException.code, "23502");
     }
     expect(successful, false);
   });
@@ -153,9 +152,9 @@ void main() {
     var p = new GenPost()
       ..owner = u
       ..text = "1";
-    q = new Query<GenPost>()
+    var pq = new Query<GenPost>()
       ..values = p;
-    p = await q.insert();
+    p = await pq.insert();
 
     expect(p.id, greaterThan(0));
     expect(p.owner.id, greaterThan(0));
@@ -205,19 +204,19 @@ void main() {
     expect(result.name, "Bob");
     expect(result.posts, isNull);
 
-    q = new Query<GenPost>();
-    expect(await q.fetch(), hasLength(0));
+    var pq = new Query<GenPost>();
+    expect(await pq.fetch(), hasLength(0));
   });
 }
 
-class TestModel extends Model<_TestModel> implements _TestModel {}
+class TestModel extends ManagedObject<_TestModel> implements _TestModel {}
 class _TestModel {
-  @primaryKey
+  @managedPrimaryKey
   int id;
 
   String name;
 
-  @Attributes(nullable: true, unique: true)
+  @ManagedColumnAttributes(nullable: true, unique: true)
   String emailAddress;
 
   static String tableName() {
@@ -225,45 +224,44 @@ class _TestModel {
   }
 }
 
-class GenUser extends Model<_GenUser> implements _GenUser {}
+class GenUser extends ManagedObject<_GenUser> implements _GenUser {}
 class _GenUser {
-  @primaryKey
+  @managedPrimaryKey
   int id;
   String name;
 
-  @Relationship(RelationshipType.hasMany, "owner")
-  List<GenPost> posts;
+  ManagedSet<GenPost> posts;
 }
 
-class GenPost extends Model<_GenPost> implements _GenPost {}
+class GenPost extends ManagedObject<_GenPost> implements _GenPost {}
 class _GenPost {
-  @primaryKey
+  @managedPrimaryKey
   int id;
   String text;
 
-  @Relationship(RelationshipType.belongsTo, "posts")
+  @ManagedRelationship(#posts)
   GenUser owner;
 }
 
-class GenTime extends Model<_GenTime> implements _GenTime {}
+class GenTime extends ManagedObject<_GenTime> implements _GenTime {}
 
 class _GenTime {
-  @primaryKey
+  @managedPrimaryKey
   int id;
 
   String text;
 
-  @Attributes(defaultValue: "(now() at time zone 'utc')")
+  @ManagedColumnAttributes(defaultValue: "(now() at time zone 'utc')")
   DateTime dateCreated;
 }
 
-class TransientModel extends Model<_Transient> implements _Transient {
-  @mappable
+class TransientModel extends ManagedObject<_Transient> implements _Transient {
+  @managedTransientAttribute
   String transientValue;
 }
 
 class _Transient {
-  @primaryKey
+  @managedPrimaryKey
   int id;
 
   String value;

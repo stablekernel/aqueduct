@@ -3,7 +3,7 @@ import 'package:aqueduct/aqueduct.dart';
 import '../../helpers.dart';
 
 void main() {
-  ModelContext context = null;
+  ManagedContext context = null;
 
   tearDown(() async {
     await context?.persistentStore?.close();
@@ -25,7 +25,7 @@ void main() {
       ..emailAddress = "2@a.com";
 
     req = new Query<TestModel>()
-      ..predicate = new Predicate("name = @name", {"name": "Bob"})
+      ..predicate = new QueryPredicate("name = @name", {"name": "Bob"})
       ..values = m;
 
     var response = await req.update();
@@ -47,15 +47,15 @@ void main() {
     var child = new Child()
       ..name = "Fred"
       ..parent = parent;
-    q = new Query<Child>()
+    var childQuery = new Query<Child>()
       ..values = child;
-    child = await q.insert();
+    child = await childQuery.insert();
     expect(child.parent.id, parent.id);
 
-    q = new ModelQuery<Child>()
-      ..["id"] = whereEqualTo(child.id)
+    childQuery = new Query<Child>()
+      ..matchOn["id"] = whereEqualTo(child.id)
       ..values = (new Child()..parent = null);
-    child = (await q.update()).first;
+    child = (await childQuery.update()).first;
     expect(child.parent, isNull);
   });
 
@@ -74,16 +74,16 @@ void main() {
       ..emailAddress = "2@a.com";
 
     req = new Query<TestModel>()
-      ..predicate = new Predicate("name = @name", {"name": "John"})
+      ..predicate = new QueryPredicate("name = @name", {"name": "John"})
       ..values = m;
 
     var response = await req.update();
     expect(response.length, 0);
 
     req = new Query<TestModel>();
-    response = await req.fetchOne();
-    expect(response.name, "Bob");
-    expect(response.emailAddress, "1@a.com");
+    var fetchResponse = await req.fetchOne();
+    expect(fetchResponse.name, "Bob");
+    expect(fetchResponse.emailAddress, "1@a.com");
   });
 
   test("Update object with ModelQuery", () async {
@@ -103,8 +103,8 @@ void main() {
     req = new Query<TestModel>()..values = m2;
     await req.insert();
 
-    var q = new ModelQuery<TestModel>()
-      ..["name"] = "Bob"
+    var q = new Query<TestModel>()
+      ..matchOn["name"] = "Bob"
       ..values = (new TestModel()..emailAddress = "3@a.com");
 
     List<TestModel> results = await q.update();
@@ -128,8 +128,8 @@ void main() {
         ..name = "Fred"
         ..emailAddress = "2@a.com")).insert();
 
-    var updateQuery = new ModelQuery<TestModel>()
-      ..["emailAddress"] = "1@a.com"
+    var updateQuery = new Query<TestModel>()
+      ..matchOn["emailAddress"] = "1@a.com"
       ..values.emailAddress = "3@a.com";
     var updatedObject = (await updateQuery.update()).first;
 
@@ -152,7 +152,7 @@ void main() {
     await req.insert();
 
     req = new Query<TestModel>()
-      ..predicate = new Predicate("name = @name", {"name": "Bob"})
+      ..predicate = new QueryPredicate("name = @name", {"name": "Bob"})
       ..values.name = "John";
 
     var response = await req.updateOne();
@@ -160,7 +160,7 @@ void main() {
     expect(response.emailAddress, "1@a.com");
 
     req = new Query<TestModel>()
-      ..predicate = new Predicate("name = @name", {"name": "Bob"})
+      ..predicate = new QueryPredicate("name = @name", {"name": "Bob"})
       ..values.name = "John";
 
     response = await req.updateOne();
@@ -183,14 +183,14 @@ void main() {
     await req.insert();
 
     req = new Query<TestModel>()
-      ..predicate = new Predicate("name is not null", {})
+      ..predicate = new QueryPredicate("name is not null", {})
       ..values.name = "Joe";
 
     try {
       var _ = await req.updateOne();
       expect(true, false);
     } on QueryException catch (e) {
-      expect(e.message, "updateOne modified more than one row, this is a serious error.");
+      expect(e.toString(), "updateOne modified more than one row, this is a serious error.");
     }
   });
 
@@ -215,8 +215,8 @@ void main() {
     try {
       var _ = await req.update();
       expect(true, false);
-    } on HTTPResponseException catch (e) {
-      expect(e.statusCode, 500);
+    } on QueryException catch (e) {
+      expect(e.event, QueryExceptionEvent.internalFailure);
     }
   });
 
@@ -242,38 +242,64 @@ void main() {
     var res = await req.update();
     expect(res.map((tm) => tm.name), everyElement("Fred"));
   });
+
+  test("Attempted update that will cause conflict throws appropriate QueryException", () async {
+    context = await contextWithModels([TestModel]);
+
+    var objects = [
+      new TestModel()
+        ..name = "Bob"
+        ..emailAddress = "1@a.com",
+      new TestModel()
+        ..name = "Fred"
+        ..emailAddress = "2@a.com"
+    ];
+    for (var o in objects) {
+      var req = new Query<TestModel>()..values = o;
+      await req.insert();
+    }
+
+    try {
+      var q = new Query<TestModel>()
+          ..matchOn.emailAddress = "2@a.com"
+          ..values.emailAddress = "1@a.com";
+      await q.updateOne();
+      expect(true, false);
+    } on QueryException catch (e) {
+      expect(e.event, QueryExceptionEvent.conflict);
+    }
+  });
 }
 
-class TestModel extends Model<_TestModel> implements _TestModel {}
+class TestModel extends ManagedObject<_TestModel> implements _TestModel {}
 class _TestModel {
-  @primaryKey
+  @managedPrimaryKey
   int id;
 
   String name;
 
-  @Attributes(nullable: true, unique: true)
+  @ManagedColumnAttributes(nullable: true, unique: true)
   String emailAddress;
 }
 
-class Child extends Model<_Child> implements _Child {}
+class Child extends ManagedObject<_Child> implements _Child {}
 class _Child {
-  @primaryKey
+  @managedPrimaryKey
   int id;
 
   String name;
 
-  @Relationship(RelationshipType.belongsTo, "child", required: false, deleteRule: RelationshipDeleteRule.cascade)
+  @ManagedRelationship(#child, isRequired: false, onDelete: ManagedRelationshipDeleteRule.cascade)
   Parent parent;
 }
 
-class Parent extends Model<_Parent> implements _Child {}
+class Parent extends ManagedObject<_Parent> implements _Child {}
 class _Parent {
-  @primaryKey
+  @managedPrimaryKey
   int id;
 
   String name;
 
-  @Relationship(RelationshipType.hasOne, "parent")
   Child child;
 }
 

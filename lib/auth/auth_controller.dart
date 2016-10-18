@@ -1,40 +1,38 @@
 part of aqueduct;
 
+/// [RequestController] for issuing OAuth 2.0 authorization tokens.
 class AuthController extends HTTPController {
 
   /// Creates a new instance of an [AuthController].
   ///
-  /// An [AuthController] requires an [AuthenticationServer], with the specified [ResourceOwner] and [TokenType] instance
-  /// types. These types will be used when communicating with the [AuthenticationServer] for creating and refreshing
-  /// authentication tokens.
-  ///
+  /// An [AuthController] requires an [AuthServer] to carry out tasks.
   /// By default, an [AuthController] has only one [acceptedContentTypes] - 'application/x-www-form-urlencoded'.
-  AuthController(AuthenticationServer authServer) {
-    authenticationServer = authServer;
+  AuthController(this.authenticationServer) {
     acceptedContentTypes = [new ContentType("application", "x-www-form-urlencoded")];
   }
 
-  /// A reference to the [AuthenticationServer] this controller uses to grant tokens.
-  AuthenticationServer authenticationServer;
+  /// A reference to the [AuthServer] this controller uses to grant tokens.
+  AuthServer authenticationServer;
 
-  @HTTPHeader.required(HttpHeaders.AUTHORIZATION) String authHeader;
-  @HTTPQuery.required("grant_type") String grantType;
+  /// Required basic authorization header containing client ID and secret for the authenticating client.
+  @requiredHTTPParameter @HTTPHeader(HttpHeaders.AUTHORIZATION) String authHeader;
+
+  /// The type of token to request.
+  ///
+  /// Valid options are 'password', 'refresh_token' and 'authorization_code'.
+  @requiredHTTPParameter @HTTPQuery("grant_type") String grantType;
 
   /// Creates or refreshes an authentication token.
   ///
-  /// Authorization header must contain Basic authorization scheme where username is Client ID and password is Client Secret,
-  /// e.g. Authorization: Basic base64(ClientID:ClientSecret)
-  /// Content-Type must be application/x-www-form-urlencoded. (Query string in the body, e.g. username=bob&password=password)
-  /// Values must be URL percent encoded by client.
   /// When grant_type is 'password', there must be username and password values.
-  /// When grant_type is 'refresh' or 'refresh_token', there must be a refresh_token value.
+  /// When grant_type is 'refresh_token', there must be a refresh_token value.
   /// When grant_type is 'authorization_code', there must be a authorization_code value.
   @httpPost
   Future<Response> create({
-    @HTTPQuery.optional("username") String username,
-    @HTTPQuery.optional("password") String password,
-    @HTTPQuery.optional("refresh_token") String refreshToken,
-    @HTTPQuery.optional("authorization_code") String authCode
+    @HTTPQuery("username") String username,
+    @HTTPQuery("password") String password,
+    @HTTPQuery("refresh_token") String refreshToken,
+    @HTTPQuery("authorization_code") String authCode
   }) async {
     var basicRecord = AuthorizationBasicParser.parse(authHeader);
     if (grantType == "password") {
@@ -44,7 +42,7 @@ class AuthController extends HTTPController {
 
       var token = await authenticationServer.authenticate(username, password, basicRecord.username, basicRecord.password);
       return AuthController.tokenResponse(token);
-    } else if (grantType == "refresh" || grantType == "refresh_token") {
+    } else if (grantType == "refresh_token") {
       if (refreshToken == null) {
         return new Response.badRequest(body: {"error": "missing refresh_token"});
       }
@@ -63,9 +61,9 @@ class AuthController extends HTTPController {
     return new Response.badRequest(body: {"error": "invalid grant_type"});
   }
 
-  /// Transforms a [Tokenizable] into a [Response] object with an RFC6749 compliant JSON token
+  /// Transforms a [AuthTokenizable] into a [Response] object with an RFC6749 compliant JSON token
   /// as the HTTP response body.
-  static Response tokenResponse(Tokenizable token) {
+  static Response tokenResponse(AuthTokenizable token) {
     var jsonToken = {
       "access_token": token.accessToken,
       "token_type": token.type,
@@ -83,24 +81,18 @@ class AuthController extends HTTPController {
         new APIResponse()
           ..statusCode = HttpStatus.OK
           ..description = "Successfully exchanged credentials for credentials"
-          ..schema = (new APISchemaObject()
-            ..type = APISchemaObjectTypeObject
-            ..properties = {
+          ..schema = new APISchemaObject(properties: {
               "access_token" : new APISchemaObject.string(),
               "token_type" : new APISchemaObject.string(),
               "expires_in" : new APISchemaObject.int(),
               "refresh_token" : new APISchemaObject.string()
-            }
-          ),
+            }),
         new APIResponse()
           ..statusCode = HttpStatus.BAD_REQUEST
           ..description = "Missing one or more of: 'client_id', 'username', 'password'."
-          ..schema = (new APISchemaObject()
-            ..type = APISchemaObjectTypeObject
-            ..properties = {
-              "error" : new APISchemaObject.string()
-            }
-          ),
+          ..schema = new APISchemaObject(properties: {
+            "error" : new APISchemaObject.string()
+          }),
       ]);
     }
 
