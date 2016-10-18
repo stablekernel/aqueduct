@@ -20,8 +20,8 @@ void main() {
       var hostPortSSLConfiguredClient = new TestClient.fromConfig(new ApplicationConfiguration()..port = 2121..address = "foobar.com"..securityContext = (new SecurityContext()));
       expect(defaultTestClient.baseURL, "http://localhost:4040");
       expect(portConfiguredClient.baseURL, "http://localhost:2121");
-      expect(hostPortConfiguredClient.baseURL, "http://foobar.com:2121");
-      expect(hostPortSSLConfiguredClient.baseURL, "https://foobar.com:2121");
+      expect(hostPortConfiguredClient.baseURL, "http://localhost:2121");
+      expect(hostPortSSLConfiguredClient.baseURL, "https://localhost:2121");
     });
 
     test("Request URLs are created correctly", () {

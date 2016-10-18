@@ -8,12 +8,7 @@ part of aqueduct;
 /// test matchers.
 class TestClient {
   /// Creates an instance that targets the configured [app].
-  TestClient(Application app) {
-    var hostname = app.configuration.address;
-    hostname ??= "localhost";
-
-    baseURL = "${app.configuration.securityContext != null ? "https" : "http"}://$hostname:${app.configuration.port}";
-  }
+  TestClient(Application app) : this.fromConfig(app.configuration);
 
   /// Creates an instance that targets http://localhost:[port].
   TestClient.onPort(int port) {
@@ -22,10 +17,7 @@ class TestClient {
 
   /// Creates an instance from an [ApplicationConfiguration].
   TestClient.fromConfig(ApplicationConfiguration config) {
-    var hostname = config.address;
-    hostname ??= "localhost";
-
-    baseURL = "${config.securityContext != null ? "https" : "http"}://$hostname:${config.port}";
+    baseURL = "${config.securityContext != null ? "https" : "http"}://localhost:${config.port}";
   }
 
   /// The base URL that requests will be made against.

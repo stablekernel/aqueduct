@@ -34,14 +34,18 @@ class Application<RequestSinkType extends RequestSink> {
   /// Returns a [Future] that completes when all [Isolate]s have started listening for requests.
   /// The [numberOfInstances] defines how many [Isolate]s are spawned running this application's [configuration]
   /// and [RequestSinkType]. If [runOnMainIsolate] is true (it defaults to false), the application will
-  /// run a single instance of [RequestSinkType] on the main isolate, ignoring [numberOfInstances].
-  /// You should only [runOnMainIsolate] for testing purposes.
+  /// run a single instance of [RequestSinkType] on the main isolate, ignoring [numberOfInstances]. Additionally,
+  /// the server will only listen on localhost, regardless of any specified address. You should only [runOnMainIsolate] for testing purposes.
   Future start({int numberOfInstances: 1, bool runOnMainIsolate: false}) async {
     if (configuration.address == null) {
-      if (configuration.isIpv6Only) {
-        configuration.address = InternetAddress.ANY_IP_V6;
+      if (runOnMainIsolate) {
+        configuration.address = InternetAddress.LOOPBACK_IP_V4;
       } else {
-        configuration.address = InternetAddress.ANY_IP_V4;
+        if (configuration.isIpv6Only) {
+          configuration.address = InternetAddress.ANY_IP_V6;
+        } else {
+          configuration.address = InternetAddress.ANY_IP_V4;
+        }
       }
     }
 

@@ -137,7 +137,8 @@ void main() {
     });
 
     test("Ensure migration directory will get created on generation", () async {
-      var _ = await Process.runSync("pub", ["get", "--no-packages-dir", "--offline"], workingDirectory: projectDirectory.path);
+      var res = await Process.runSync("pub", ["get", "--no-packages-dir", "--offline"], workingDirectory: projectDirectory.path);
+      print("${res.stdout} ${res.stderr}");
 
       expect(migrationDirectory.existsSync(), false);
       await executor.generate();
@@ -407,7 +408,8 @@ void cleanTestProjectDirectory() {
   var pubDir = new Directory.fromUri(dir.uri.resolve(".pub"));
   var packagesDir = new Directory.fromUri(dir.uri.resolve("packages"));
   var migrationsDir = new Directory.fromUri(dir.uri.resolve("migrations"));
-  [packagesFile, pubDir, packagesDir, migrationsDir].forEach((f) {
+  var lockFile = new File.fromUri(dir.uri.resolve("pubspec.lock"));
+  [packagesFile, pubDir, packagesDir, migrationsDir, lockFile].forEach((f) {
     if (f.existsSync()) {
       f.deleteSync(recursive: true);
     }
