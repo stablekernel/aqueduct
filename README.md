@@ -34,6 +34,7 @@ Open the project directory in the editor of your choice. Our preferred editor is
 8. Template projects for quick starts.
 9. Integration with CI tools. (Supports TravisCI by default.)
 10. Integrated testing utilities for clean and productive tests.
+11. Logging
 
 ## Tutorials
 
