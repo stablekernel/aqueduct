@@ -8,10 +8,15 @@ Aqueduct is a server-side framework written in Dart.
 
 1. [Install Dart](https://www.dartlang.org/install).
 2. Activate Aqueduct
+
         pub global activate aqueduct
+
 3. Run first time setup.
+
         aqueduct setup
+
 4. Create a new project.
+
         aqueduct create -n my_project
 
 Open the project directory in the editor of your choice. Our preferred editor is [IntellIJ IDEA Community Edition](https://www.jetbrains.com/idea/download/) (with the [Dart Plugin](https://plugins.jetbrains.com/plugin/6351)). [Atom](https://atom.io) is also a good editor, but support for running Dart tests is lacking.
