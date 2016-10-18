@@ -44,7 +44,7 @@ class Schema {
 
   /// Whether or not two schemas match.
   ///
-  /// If passing [reasons], the reasons for a mismatch are included as strings.
+  /// If passing [reasons], the reasons for a mismatch are added to the passed in [List].
   bool matches(Schema schema, [List<String> reasons]) {
     var matches = true;
 

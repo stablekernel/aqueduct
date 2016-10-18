@@ -35,6 +35,9 @@ class SchemaTable {
 
   SchemaColumn operator [](String columnName) => columnForName(columnName);
 
+  /// Whether or not two tables match.
+  ///
+  /// If passing [reasons], the reasons for a mismatch are added to the passed in [List].
   bool matches(SchemaTable table, [List<String> reasons]) {
     var matches = true;
 

@@ -132,7 +132,6 @@ class SchemaBuilder {
     var newColumn = new SchemaColumn.from(existingColumn);
     modify(newColumn);
 
-    // TODO: change delete rule at same time nullability is changed hsould be ok
     if (existingColumn._type != newColumn._type) {
       throw new SchemaException("May not change column (${existingColumn.name}) type (${existingColumn._type} -> ${newColumn._type})");
     }
@@ -145,11 +144,11 @@ class SchemaBuilder {
       throw new SchemaException("May not change column (${existingColumn.name}) to/from primary key");
     }
 
-    if(existingColumn.relatedTableName != newColumn.relatedTableName) {
+    if (existingColumn.relatedTableName != newColumn.relatedTableName) {
       throw new SchemaException("May not change column (${existingColumn.name}) reference table (${existingColumn.relatedTableName} -> ${newColumn.relatedTableName})");
     }
 
-    if(existingColumn.relatedColumnName != newColumn.relatedColumnName) {
+    if (existingColumn.relatedColumnName != newColumn.relatedColumnName) {
       throw new SchemaException("May not change column (${existingColumn.name}) reference column (${existingColumn.relatedColumnName} -> ${newColumn.relatedColumnName})");
     }
 
