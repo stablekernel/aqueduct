@@ -6,66 +6,177 @@ date: 2016-06-23 13:27:59
 order: 5
 ---
 
-This chapter expands on the [previous](http://stablekernel.github.io/aqueduct/tut/model-relationships-and-joins.html).
+This chapter expands on the [previous](model-relationships-and-joins.html).
 
-We've only touched on a small part of `aqueduct`, but we've hit the fundamentals pretty well. The rest of the documentation should lead you towards more specific features, in a less hand-holding way. A lot of the code you have written throughout the tutorial is stuff that exists in the [wildfire](https://github.com/stablekernel/wildfire) template-generating package. So it's likely that this is the last time you'll write the 'setup code' you wrote throughout this tutorial.
+We've only touched on a small part of Aqueduct, but we've hit the fundamentals pretty well. The rest of the documentation should lead you towards more specific features, in a less hand-holding way. A lot of the code you have written throughout the tutorial is part of the templates that ship with Aqueduct. So it's likely that this is the last time you'll write the 'setup code' you wrote throughout this tutorial.
 
-Make sure you use and check out the instructions on the `wildfire` page when you start building your next project - it has helpful tools for everything we will discuss, takes care of boilerplate, and adds a helper for setting up tests in one line of code.
+There is one last thing we want to cover, though, and that is deployment. To begin, we need to get `quiz`'s schema into a real database. Aqueduct has tools for this. First, you must install Aqueduct as a global package:
 
-There is one last thing we want to cover, though, and that is deployment.
+```bash
+pub global activate aqueduct
+```
 
-We're not going to advocate a specific tool or process for deployment, but we can show you how `aqueduct` helps. First, we need to get `quiz`'s schema onto a real database. The following Dart script, available in `wildfire`, will generate a list of PostgreSQL commands to create the appropriate tables, indices and constraints on a PostgreSQL database. You can drop this in your `bin` directory and name it `generate_schema.dart`:
+Then, in your project's directory, run the following command:
+
+```bash
+aqueduct db generate
+```
+
+This command will create a migration file at `migrations/00000001_Initial.migration.dart`. The contents of that file will look like this:
 
 ```dart
-import 'package:quiz/quiz.dart';
-import 'dart:io';
+import 'package:aqueduct/aqueduct.dart';
+import 'dart:async';
 
-main() {
-  var dataModel = new DataModel([Question, Answer]);
-  var persistentStore = new PostgreSQLPersistentStore(() => null);
-  var ctx = new ModelContext(dataModel, persistentStore);
+class Migration1 extends Migration {
+  Future upgrade() async {
+    database.createTable(new SchemaTable("_Question", [
+      new SchemaColumn("index", ManagedPropertyType.bigInteger, isPrimaryKey: true, autoincrement: true, isIndexed: false, isNullable: false, isUnique: false),
+      new SchemaColumn("description", ManagedPropertyType.string, isPrimaryKey: false, autoincrement: false, isIndexed: false, isNullable: false, isUnique: false),
+    ]));
 
-  var generator = new SchemaGenerator(ctx.dataModel);
-  var json = generator.serialized;
-  var pGenerator = new PostgreSQLSchemaGenerator(json);
+    database.createTable(new SchemaTable("_Answer", [
+      new SchemaColumn("id", ManagedPropertyType.bigInteger, isPrimaryKey: true, autoincrement: true, isIndexed: false, isNullable: false, isUnique: false),
+      new SchemaColumn("description", ManagedPropertyType.string, isPrimaryKey: false, autoincrement: false, isIndexed: false, isNullable: false, isUnique: false),
+      new SchemaColumn.relationship("question", ManagedPropertyType.bigInteger, relatedTableName: "_Question", relatedColumnName: "index", rule: ManagedRelationshipDeleteRule.cascade, isNullable: false, isUnique: true),
+    ]));
 
-  var schemaFile = new File("schema.sql");
-  schemaFile.writeAsStringSync(pGenerator.commandList);
+  }
+
+  Future downgrade() async {
+  }
+  Future seed() async {
+  }
 }
 ```
 
-Running that script from the top-level directory of `quiz` like this:
+Notice that the `upgrade` method calls `database.createTable` to create the `_Question` and `_Answer` table. (Recall that table names match the persistent type name of a `ManagedObject` subclass.) Each column in the table is listed with the same `ColumnAttributes` values as declared in your code. As you continue to change your schema, you can create subsequent migration files with `aqueduct db generate`.
+
+This command prepares a migration file, but it does not alter a database in anyway. Before we run this migration, we should validate that the schema it creates matches the `ManagedDataModel` in `quiz`. Now, since this migration file was generated, you can safely bet that it is correct. But, you will have to modify migration files in the future if you make a change to your data model that is too ambiguous for the tools to make a decision on. Therefore, there is a tool to validate that, after running every migration file in `migrations/`, the schema matches the data model of an application.
+
+Let's make an intentional error in this migration that causes a conflict between the data model and generated schema. In `migrations/00000001_Initial.migration.dart`, add a new empty table to the end of `upgrade`:
+
+```dart
+Future upgrade() async {
+  database.createTable(new SchemaTable("_Question", [
+    new SchemaColumn("index", ManagedPropertyType.bigInteger, isPrimaryKey: true, autoincrement: true, isIndexed: false, isNullable: false, isUnique: false),
+    new SchemaColumn("description", ManagedPropertyType.string, isPrimaryKey: false, autoincrement: false, isIndexed: false, isNullable: false, isUnique: false),
+  ]));
+
+  database.createTable(new SchemaTable("_Answer", [
+    new SchemaColumn("id", ManagedPropertyType.bigInteger, isPrimaryKey: true, autoincrement: true, isIndexed: false, isNullable: false, isUnique: false),
+    new SchemaColumn("description", ManagedPropertyType.string, isPrimaryKey: false, autoincrement: false, isIndexed: false, isNullable: false, isUnique: false),
+    new SchemaColumn.relationship("question", ManagedPropertyType.bigInteger, relatedTableName: "_Question", relatedColumnName: "index", rule: ManagedRelationshipDeleteRule.cascade, isNullable: false, isUnique: true),
+  ]));
+
+  database.createTable(new SchemaTable("_Empty", []));
+}
+```
+
+Now, run the validate command:
+
+```bash
+aqueduct db validate
+```
+
+This command will fail with the following output:
 
 ```
-dart bin/generate_schema.dart
+Invalid migrations
+
+Validation failed:
+	Compared schema does not contain _Empty, but that table exists in receiver schema.
 ```
 
-will create a file named `schema.sql`. You can add that to a database via the command-line tool for PostgreSQL:
+The validation tool will tell you exactly which differences caused a mismatch. Go ahead and remove the line of code that added the table `_Empty` and run validate again. This time, you'll get a success message.
 
-```
-psql -h <DatabaseHost> -p <Port> -U <Username> -d <DatabaseName> -f schema.sql
+Before we apply this migration, we should provide some seed data - some initial questions and answers. Add the following code to the `seed` method in `migrations/00000001_Initial.migration.dart`:
+
+```dart
+Future seed() async {
+  var questions = [
+    "How much wood can a woodchuck chuck?",
+    "What's the tallest mountain in the world?"
+  ];
+  var answersIterator = [
+    "Depends on if they can",
+    "Mount Everest"
+  ].iterator;
+
+  for (var question in questions) {
+    var insertedQuestionRows = await store.execute("INSERT INTO _question (description) VALUES (@desc) RETURNING index", substitutionValues: {
+      "desc" : question
+    }) as List<List<int>>;
+
+    answersIterator.moveNext();
+    await store.execute("INSERT INTO _answer (description, question_index) VALUES (@desc, @idx)", substitutionValues: {
+      "desc" : answersIterator.current,
+      "idx" : insertedQuestionRows.first.first
+    });
+  }
+}
 ```
 
-(We're currently working on database migration tools, so if you are already thinking about 'OK, but what if I change this?' We're on it.) Next, we need to allow our `quiz` app to take database connection info from a configuration file. For that, we need the `safe_config` package (also by `stable|kernel`). Add it to `pubspec.yaml`:
+When this migration is executed, `upgrade` is called first, creating the tables. Then `seed` is called, adding rows to those tables. Now we can move on to executing this migration. Of course, we need a database first. We'll create this database on our local instance, and we'll also create admin and application-level users.
+
+First, open up a connection to your local database from the command line. (If you are using using `Postgres.app`, choose `Open psql` from its menu. Otherwise, execute the `psql` command line tool.) Within `psql`, run the following commands:
+
+```sql
+CREATE DATABASE quiz;
+
+CREATE USER quiz_admin;
+ALTER USER quiz_admin WITH PASSWORD 'quiz';
+GRANT ALL ON DATABASE quiz TO quiz_admin;
+
+CREATE USER quiz_app;
+ALTER USER quiz_app WITH PASSWORD 'quiz';
+GRANT CONNECT ON DATABASE quiz TO quiz_app;
+\c quiz
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO quiz_app;
+```
+
+Notice that we created two users, an admin user and a 'app' user. The admin user will have permission to modify the database's schema, so it will run migrations. The app user will be used by the `quiz` application's `PersistentStore` to make queries. This separation is for security reasons: the application shouldn't have the ability to mess with the schema.
+
+We must now give the `quiz_admin` connection info to the migration tool. This tool defaults to finding this information from a file at `migrations/migration.yaml`. Create this file with the following contents:
 
 ```yaml
-name: quiz
-description: A quiz web server
-version: 0.0.1
-author: Me
-
-environment:
-  sdk: '>=1.0.0 <2.0.0'
-
-dependencies:
-  aqueduct: any
-  safe_config: any
-
-dev_dependencies:
-  test: '>=0.12.0 <0.13.0'
+username: quiz_admin
+password: quiz
+host: localhost
+port: 5432
+databaseName: quiz
 ```
 
-Then run `pub get`. The `safe_config` package allows you to create subclasses of `ConfigurationItem` that match keys in a config file to prevent you from naming keys incorrectly and enforcing required configuration parameters. There is a built-in class in `safe_config` specifically for database connections, `DatabaseConnectionConfiguration` that we will use. In `pipeline.dart`, declare a new class at the bottom of the file that represents all of the configuration values you will have in `quiz`:
+Finally, we can run the database migration. From the project directory, run the following command:
+
+```bash
+aqueduct db upgrade
+```
+
+You'll get a success message that indicates the database is now at version 1. From within `psql`, you can run the command `\dt` while connected to `quiz` and see the tables that now exist:
+
+```
+List of relations
+Schema |          Name           | Type  |   Owner    
+--------+-------------------------+-------+------------
+public | _answer                 | table | quiz_admin
+public | _aqueduct_version_pgsql | table | quiz_admin
+public | _question               | table | quiz_admin
+```
+
+Notice that both `_answer` and `_question` exist, but there is also a `_aqueduct_version_pgsql` table that tracks schema versions. This is how the migration tool determines which migration files to run when upgrading. An entry will be created for each upgrade that is executed, so the current table looks like this:
+
+```
+versionnumber |       dateofupgrade        
+---------------+----------------------------
+            1 | 2016-10-18 16:06:20.235521
+```
+
+Also, notice that both `_question` and `_answer` have rows in them.
+
+We can now setup the `quiz` application to connect to this database using the less privileged user. We'll create a configuration file for the application to keep track of this information. The database connection information - as well as other information we might care to configure - can be loaded from a configuration file and passed to a `QuizRequestSink` when it starts up. The request sink will use information from the configuration file to configure its `PostgreSQLPersistentStore` connection, instead of hard-coded values.
+
+To make using configuration files simple, we'll add the `safe_config` package (also by `stable|kernel`) to `quiz`. This package is already included in `aqueduct`, so there is no need to add it as a dependency. The `safe_config` package gives you the ability to define classes in your application that read YAML configuration files. Instances of these classes will read the contents of a YAML file, but will also validate the expected key structure of the YAML file. In `quiz_request_sink.dart`, declare a new class at the bottom of the file for reading configuration files specific to `quiz`:
 
 ```dart
 class QuizConfiguration extends ConfigurationItem {
@@ -75,128 +186,127 @@ class QuizConfiguration extends ConfigurationItem {
 }
 ```
 
-Next, we will create a 'configuration source file'. This file gets checked into source control and is a template for environment-specific configuration files. On a particular instance, you will duplicate this configuration source file and change its values to the appropriate settings for the environment. In the top-level `quiz` directory, create `config.yaml.src` and add the following:
+Since we have a lot to do, we'll direct you to [safe_config on pub](https://pub.dartlang.org/packages/safe_config) if you want a better understanding of how it works. The basic gist is that there must be a key named `database` in any YAML file read with `QuizConfiguration`. The properties of `DatabaseConnectionConfiguration` (declared in `safe_config`) indicate that the `database` key must have `host`, `port`, `databaseName` and optionally `username` and `password` keys.
+
+In the project directory, add a new file `config.yaml` with the following contents:
 
 ```yaml
 database:
- username: dart
- password: dart
- host: localhost
- port: 5432
- databaseName: dart_test  
+  username: quiz_app
+  password: quiz
+  host: localhost
+  port: 5432
+  databaseName: quiz
 ```
 
-Now, we need to do two things to make this configuration file become a reality. First, whenever we start the `Application`, we need to pass this configuration information to each pipeline. Then, the pipeline must use this information to tell the persistent store of its `ModelContext` where to connect to. (Right now, we hardcoded it to our local database for testing.)
+Now, we need to do two things to make this configuration file drive the database connection in `quiz`. First, whenever we start the `Application`, we need to pass this configuration information to each `QuizRequestSink`. Then, the request sink must use this information to configure the `PostgreSQLPersistentStore`.
 
-Let's take care of the pipeline stuff first. Add a new static property in `pipeline.dart` and update the constructor:
+Add a new static property in `quiz_request_sink.dart` and update the constructor:
 
 ```dart
-class QuizPipeline extends ApplicationPipeline {
+class QuizRequestSink extends RequestSink {
+  static String ConfigurationKey = "QuizRequestSink.Configuration";
 
-  static String ConfigurationKey = "QuizPipeline.Configuration";
-
-  QuizPipeline(Map options) : super(options) {
-    var dataModel = new DataModel([Question, Answer]);
+  QuizRequestSink(Map<String, dynamic> options) : super(options) {
+    var dataModel = new ManagedDataModel.fromPackageContainingType(QuizRequestSink);
 
     var config = options[ConfigurationKey];
 
     var db = config.database;
     var persistentStore = new PostgreSQLPersistentStore.fromConnectionInfo(db.username, db.password, db.host, db.port, db.databaseName);
-    context = new ModelContext(dataModel, persistentStore);
+    context = new ManagedContext(dataModel, persistentStore);
   }
 
   ...
 ```
 
-Next, we'll need to read in the configuration file as an instance of `QuizConfiguration` and pass it to the startup options of an application. An application will automatically forward this configuration object on to pipelines in their `options` - which we utilize in the code we just wrote. First, let's do this in our tests. Near the top of main function in `question_controller_test.dart`, add configuration parameters to the `app`.
-
-```dart
-void main() {
-  var app = new Application<QuizPipeline>();
-  var client = new TestClient(app.configuration.port);
-
-  var config = new QuizConfiguration("config.yaml.src");
-  app.configuration.pipelineOptions = {
-    QuizPipeline.ConfigurationKey : config
-  };
-
-  setUpAll(() async {
-    ...
-```
-
-Notice here that we load the configuration values from the configuration *source* file. So, the source file serves two roles: it is the template for real instances of your web server, but it also holds the configuration values for testing. This is by convention, and it works itself out really well. Run your tests again - because the configuration source file has the same database connection parameters as your local test database, your tests will still run and pass.
-
-Now, you'll need to update the the `bin/quiz.dart` script that runs the server to also read in a real configuration file.
+Next, we'll need to read in the configuration file when the application starts and make sure it gets to `QuizRequestSink`. In `bin/start.dart`, add the following code to the top of `main`:
 
 ```dart
 import 'package:quiz/quiz.dart';
 
 void main() {
   var config = new QuizConfiguration("config.yaml");
-  var app = new Application<QuizPipeline>()
-    ..configuration.pipelineOptions = {
-      QuizPipeline.ConfigurationKey : config
+  var app = new Application<QuizRequestSink>()
+    ..configuration.configurationOptions = {
+      QuizRequestSink.ConfigurationKey : config
     };
 
   app.start();
 }
 ```
 
-To get your code onto a server, we recommend putting it in a GitHub repository, setting up an [access key](https://help.github.com/articles/generating-an-ssh-key/), and then cloning the repository onto your remote machine. Then, copy the configuration source file into a file named `config.yaml` (the one being referenced from `bin/quiz.dart`) with values pointing at your actual database. The database you are running won't have questions or answers, so if you wish to one-time seed the database, the following SQL will work (after creating the tables):
+Now, when `QuizRequestSink`'s constructor is called, an instance of `QuizConfiguration` with values from `config.yaml` will be available in `options`. We can now run this application. From the command line, run the following:
 
-```sql
-insert into _question (description) values ('How much wood would a woodchuck chuck?');
-insert into _question (description) values ('What is the tallest mountain?');
-insert into _answer (description, question_index) values ('Depends on if it can.', 1);
-insert into _answer (description, question_index) values ('Mount Everest.', 2);
+```bash
+dart bin/start.dart
 ```
 
-(Of course, there are much better ways of doing that than typing it out yourself, but that's a whole other topic.)
+Load up http://localhost:8080/questions and http://localhost:8080/question/1 to see the application in action.
 
-Finally, to run your application, you simply run the following command from the top-level of `quiz`:
+However, there is a small problem. The database connection information comes from `config.yaml` when running the application through `start.dart`, but what about when running tests? Right now, the no configuration file is read, and it also doesn't make sense to use the same database for testing as for running. Likewise, you don't want to check in files with sensitive information to source control. Also, as your application evolves, you'll add more keys to the configuration file. It makes sense to have a configuration file for both tests and running instances, and they should both stay in sync in terms of the keys they have.
+
+For this, we recommend creating (and checking in) a `config.yaml.src` file. The configuration source file contains test values for all of the keys your application expects. The tests run off of this configuration file, which in turn ensures that you are testing your configuration file key structure. When you get to a remote instance, you can simply copy the source file to `config.yaml` and you have a template for the configuration file to avoid error.
+
+Create a file in the project directory named `config.yaml.src` and enter the following:
+
+```yaml
+database:
+  username: dart
+  password: dart
+  host: localhost
+  port: 5432
+  databaseName: dart_test
+```
+
+Notice that these values are the 'test' database connection values. Your tests will still continue to run against temporary tables in this test database. Now, let's setup our tests to use this configuration file. In `question_controller_test.dart`, update the code near the top of `main`:
+
+```dart
+void main() {
+  var config = new QuizConfiguration("config.yaml.src");
+  var app = new Application<QuizRequestSink>()
+    ..configuration.configurationOptions = {
+      QuizRequestSink.ConfigurationKey : config
+    };
+
+  var client = new TestClient(app);
 
 ```
-nohup dart bin/start.dart > /dev/null 2>&1 &
+
+Run your tests and they should all pass.
+
+Deploying Remotely
+---
+
+Remote deploys will depend on where an application is deployed to. For services such as Heroku, see [this guide](link?). For services such as EC2 where you have ssh access to the box, we recommend using the script in the templates created by Aqueduct. This script will update from a git repository, fetch dependencies, and run your application detached from the shell. To create a project from an Aqueduct template, you can run the following:
+
+```bash
+aqueduct create -n my_project
 ```
 
-If you want to take down the server, you can run the kill command on the process. If you're running this on a server, you can just use the following command:
+Aqueduct needs to be installed globally for this utility to be available (`pub global activate aqueduct`).
 
-```
-pkill dart
-```
+The contents of the `README.md` in the generated project will contain instructions.
 
-However, if you are running it locally, don't use the trailing `&`, that way you can simply cancel the process from your command line with Ctrl-C.
-
-Lastly, remember, you'll have to install Dart on your target machine.
+To get your code onto a server, we recommend putting it in a GitHub repository, setting up an [access key](https://help.github.com/articles/generating-an-ssh-key/), and then cloning the repository onto your remote machine.
 
 Documentation
 ---
 
-`aqueduct` has a built-in Swagger spec documentation generator feature. Check out the [wildfire](https://github.com/stablekernel/wildfire) repository for the `bin/generate_api_docs.dart` script.
-
+If you use a template to create a project, you can also generate an OpenAPI specification of your application. The contents of the `README.md` in a Aqueduct generated project will contain instructions on how to perform this task.
 
 Automated Testing/CI
 ---
 
-Again, `wildfire` is your best bet here as this already exists in projects created with it. However, if you want to add support for running `aqueduct` tests as part of Travis-CI, the following .travis.yml file will do:
-
-```yaml
-language: dart
-sudo: required
-addons:
-  postgresql: "9.4"
-services:
-  - postgresql
-before_script:
-  - psql -c 'create database dart_test;' -U postgres
-  - psql -c 'create user dart with createdb;' -U postgres
-  - psql -c "alter user dart with password 'dart';" -U postgres
-  - psql -c 'grant all on database dart_test to dart;' -U postgres
-  - pub get
-script: pub run test -j 1 -r expanded
-```    
+If you use a template to create a project, a `.travis.yml` file is created that can be used to run your tests from Travis-CI.
 
 Logging
 ---
 
-`aqueduct` logs requests, the amount of information depending on the result of the request. These are logged at the 'info' level using the `logger` package. At more granular levels, `aqueduct` also logs database queries. `wildfire` templates incorporate the `scribe` package to manage logging to files and the console. See it for more examples.
+Aqueduct has behavior for logging HTTP requests. For simple console logging, you can simply add the following to the constructor for a `RequestSink` subclass:
+
+```dart
+logger.onRecord.listen((rec) => print("$rec"));
+```
+
+For more advanced logging, use the `scribe` package (also by `stable|kernel`). This package sets up an isolate specifically for logging that can have multiple logging backends. There are built-in logging backends for writing to a rotating file log or to stdout.
