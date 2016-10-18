@@ -1,7 +1,7 @@
 part of wildfire;
 
-class User extends Model<_User> implements _User, Authenticatable {
-  @transientInputAttribute
+class User extends ManagedObject<_User> implements _User, Authenticatable {
+  @managedTransientInputAttribute
   String password;
 
   String get username => email;
@@ -11,17 +11,17 @@ class User extends Model<_User> implements _User, Authenticatable {
 }
 
 class _User {
-  @primaryKey
+  @managedPrimaryKey
   int id;
 
-  @ColumnAttributes(unique: true, indexed: true)
+  @ManagedColumnAttributes(unique: true, indexed: true)
   String email;
 
-  @ColumnAttributes(omitByDefault: true)
+  @ManagedColumnAttributes(omitByDefault: true)
   String hashedPassword;
 
-  @ColumnAttributes(omitByDefault: true)
+  @ManagedColumnAttributes(omitByDefault: true)
   String salt;
 
-  OrderedSet<Token> tokens;
+  ManagedSet<Token> tokens;
 }

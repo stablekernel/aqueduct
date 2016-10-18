@@ -1,6 +1,8 @@
 part of aqueduct;
 
-class PostgreSQLSchemaGenerator {
+class _PostgreSQLSchemaGenerator {
+  String get _versionTableName => "_aqueduct_version_pgsql";
+
   List<String> createTable(SchemaTable table, {bool isTemporary: false}) {
     var columnString = table.columns.map((col) => _columnStringForColumn(col)).join(",");
     var tableCommand = "CREATE${isTemporary ? " TEMPORARY " : " "}TABLE ${table.name} (${columnString})";
@@ -198,5 +200,14 @@ class PostgreSQLSchemaGenerator {
     }
 
     return null;
+  }
+
+  SchemaTable get _versionTable {
+    return new SchemaTable.empty()
+      ..name = _versionTableName
+      ..columns = [
+        (new SchemaColumn.empty()..name = "versionNumber".._type = SchemaColumn.typeStringForType(ManagedPropertyType.integer)),
+        (new SchemaColumn.empty()..name = "dateOfUpgrade".._type = SchemaColumn.typeStringForType(ManagedPropertyType.datetime)),
+      ];
   }
 }

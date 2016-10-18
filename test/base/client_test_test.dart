@@ -5,7 +5,7 @@ import 'dart:async';
 
 Future main() async {
   test("Client can expect array of JSON", () async {
-    TestClient client = new TestClient(8080);
+    TestClient client = new TestClient.onPort(8080);
     HttpServer server = await HttpServer.bind("localhost", 8080, v6Only: false, shared: false);
     var router = new Router();
     router.route("/na").generate(() => new TestController());

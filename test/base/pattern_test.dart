@@ -151,5 +151,5 @@ void expectRouterException(void f(), {String exceptionMessage: null}) {
 }
 
 List<List<RouteSegment>> _segmentsForRoute(String route) {
-  return RoutePathSpecification.specificationsForRoutePattern(route).map((spec) => spec.segments).toList();
+  return RouteSpecification.specificationsForRoutePattern(route).map((spec) => spec.segments).toList();
 }

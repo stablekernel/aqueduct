@@ -1,9 +1,18 @@
 part of aqueduct;
 
+/// A function that will create an opened instance of [PostgreSQLConnection] when executed.
 typedef Future<PostgreSQLConnection> PostgreSQLConnectionFunction();
 
-class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGenerator {
+/// The database layer responsible for carrying out [Query]s against PostgreSQL databases.
+///
+/// To interact with a PostgreSQL database, a [ManagedContext] must have an instance of this class.
+/// Instances of this class are configured to connect to a particular PostgreSQL database.
+class PostgreSQLPersistentStore extends PersistentStore with _PostgreSQLSchemaGenerator {
+
+  /// The logger used by instances of this class.
   static Logger logger = new Logger("aqueduct");
+
+  /// Used internally to translate [Query]s into SQL.
   static Map<MatcherOperator, String> symbolTable = {
     MatcherOperator.lessThan : "<",
     MatcherOperator.greaterThan : ">",
@@ -12,28 +21,44 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
     MatcherOperator.greaterThanEqualTo : ">=",
     MatcherOperator.equalTo : "="
   };
-  static Map<PropertyType, PostgreSQLDataType> _typeMap = {
-    PropertyType.integer : PostgreSQLDataType.integer,
-    PropertyType.bigInteger : PostgreSQLDataType.bigInteger,
-    PropertyType.string : PostgreSQLDataType.text,
-    PropertyType.datetime : PostgreSQLDataType.timestampWithoutTimezone,
-    PropertyType.boolean : PostgreSQLDataType.boolean,
-    PropertyType.doublePrecision : PostgreSQLDataType.double
+
+  static Map<ManagedPropertyType, PostgreSQLDataType> _typeMap = {
+    ManagedPropertyType.integer : PostgreSQLDataType.integer,
+    ManagedPropertyType.bigInteger : PostgreSQLDataType.bigInteger,
+    ManagedPropertyType.string : PostgreSQLDataType.text,
+    ManagedPropertyType.datetime : PostgreSQLDataType.timestampWithoutTimezone,
+    ManagedPropertyType.boolean : PostgreSQLDataType.boolean,
+    ManagedPropertyType.doublePrecision : PostgreSQLDataType.double
   };
 
-  PostgreSQLConnection _databaseConnection;
+  /// The function that will generate a [PostgreSQLConnection] when this instance does not have a valid one.
   PostgreSQLConnectionFunction connectFunction;
-  Completer<PostgreSQLConnection> _pendingConnectionCompleter;
+
+  /// The username of the database user for the database this instance connects to.
   String username;
+
+  /// The password of the database user for the database this instance connects to.
   String password;
+
+  /// The host of the database this instance connects to.
   String host;
+
+  /// The port of the database this instance connects to.
   int port;
+
+  /// The name of the database this instance connects to.
   String databaseName;
+
+  /// The time zone of the connection to the database this instance connects to.
   String timeZone = "UTC";
 
-  String get _versionTableName => "_aqueduct_version_pgsql";
+  PostgreSQLConnection _databaseConnection;
+  Completer<PostgreSQLConnection> _pendingConnectionCompleter;
 
+  /// Creates an instance of this type from a manual function.
   PostgreSQLPersistentStore(this.connectFunction) : super();
+
+  /// Creates an instance of this type from connection info.
   PostgreSQLPersistentStore.fromConnectionInfo(this.username, this.password, this.host, this.port, this.databaseName, {this.timeZone: "UTC"}) {
     this.connectFunction = () async {
       logger.info("PostgreSQL connecting, $username@$host:$port/$databaseName.");
@@ -43,6 +68,10 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
     };
   }
 
+  /// Retrieves a connection to the database this instance connects to.
+  ///
+  /// If no connection exists, one will be created. A store will have no more than one connection at a time.
+  /// You should rarely need to access this connection directly.
   Future<PostgreSQLConnection> getDatabaseConnection() async {
     if (_databaseConnection == null || _databaseConnection.isClosed) {
       if (connectFunction == null) {
@@ -137,7 +166,7 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
   }
 
   @override
-  Future<List<MappingElement>> executeInsertQuery(PersistentStoreQuery q) async {
+  Future<List<PersistentColumnMapping>> executeInsertQuery(PersistentStoreQuery q) async {
     var columnsBeingInserted = q.values
         .map((m) => _columnNameForProperty(m.property))
         .join(",");
@@ -148,8 +177,8 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
         .map((m) => _columnNameForProperty(m.property))
         .join(",");
     var valueMap = new Map.fromIterable(q.values,
-        key: (MappingElement m) => _columnNameForProperty(m.property),
-        value: (MappingElement m) => m.value);
+        key: (PersistentColumnMapping m) => _columnNameForProperty(m.property),
+        value: (PersistentColumnMapping m) => m.value);
 
     var queryStringBuffer = new StringBuffer();
     queryStringBuffer.write("INSERT INTO ${q.rootEntity.tableName} ($columnsBeingInserted) ");
@@ -164,14 +193,14 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
   }
 
   @override
-  Future<List<List<MappingElement>>> executeFetchQuery(PersistentStoreQuery q) async {
+  Future<List<List<PersistentColumnMapping>>> executeFetchQuery(PersistentStoreQuery q) async {
     var predicateValueMap = <String, dynamic>{};
-    var mapElementToStringTransform = (MappingElement e) => "${e.property.entity.tableName}.${_columnNameForProperty(e.property)}";
-    var joinElements = q.resultKeys.where((mapElement) => mapElement is JoinMappingElement);
-    var allPredicates = Predicate.andPredicates([q.predicate, _pagePredicateForQuery(q)].where((p) => p != null).toList());
+    var mapElementToStringTransform = (PersistentColumnMapping e) => "${e.property.entity.tableName}.${_columnNameForProperty(e.property)}";
+    var joinElements = q.resultKeys.where((mapElement) => mapElement is PersistentJoinMapping);
+    var allPredicates = QueryPredicate.andPredicates([q.predicate, _pagePredicateForQuery(q)].where((p) => p != null).toList());
     var orderingString = _orderByStringForQuery(q);
     var columnsToFetch = q.resultKeys.map((mapElement) {
-      if (mapElement is JoinMappingElement) {
+      if (mapElement is PersistentJoinMapping) {
         return mapElement.resultKeys.map(mapElementToStringTransform).join(",");
       } else {
         return mapElementToStringTransform(mapElement);
@@ -180,8 +209,8 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
 
     var queryStringBuffer = new StringBuffer("SELECT $columnsToFetch FROM ${q.rootEntity.tableName} ");
     joinElements
-        .forEach((MappingElement je) {
-          JoinMappingElement joinElement = je;
+        .forEach((PersistentColumnMapping je) {
+          PersistentJoinMapping joinElement = je;
           queryStringBuffer.write("${_joinStringForJoin(joinElement)} ");
 
           if (joinElement.predicate != null) {
@@ -232,15 +261,15 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
   }
 
   @override
-  Future<List<List<MappingElement>>> executeUpdateQuery(PersistentStoreQuery q) async {
+  Future<List<List<PersistentColumnMapping>>> executeUpdateQuery(PersistentStoreQuery q) async {
     if (q.predicate == null && !q.confirmQueryModifiesAllInstancesOnDeleteOrUpdate) {
       throw new QueryException(QueryExceptionEvent.internalFailure, message: "Query would impact all records. This could be a destructive error. Set confirmQueryModifiesAllInstancesOnDeleteOrUpdate on the Query to execute anyway.");
     }
 
     var resultColumnString = q.resultKeys.map((m) => _columnNameForProperty(m.property)).join(",");
     var updateValueMap = new Map.fromIterable(q.values,
-        key: (MappingElement elem) => "u_${_columnNameForProperty(elem.property)}",
-        value: (MappingElement elem) => elem.value);
+        key: (PersistentColumnMapping elem) => "u_${_columnNameForProperty(elem.property)}",
+        value: (PersistentColumnMapping elem) => elem.value);
     var setPairString = q.values.map((m) {
       var name = _columnNameForProperty(m.property);
       var typedName = _typedColumnName(name, m.property);
@@ -264,18 +293,18 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
   }
 
   @override
-  Predicate comparisonPredicate(PropertyDescription desc, MatcherOperator operator, dynamic value) {
+  QueryPredicate comparisonPredicate(ManagedPropertyDescription desc, MatcherOperator operator, dynamic value) {
     var tableName = desc.entity.tableName;
     var columnName = _columnNameForProperty(desc);
     var typedColumnName = _typedColumnName(columnName, desc);
 
-    return new Predicate("$tableName.$columnName ${symbolTable[operator]} @${tableName}_$typedColumnName", {
+    return new QueryPredicate("$tableName.$columnName ${symbolTable[operator]} @${tableName}_$typedColumnName", {
       "${tableName}_$columnName" : value
     });
   }
 
   @override
-  Predicate containsPredicate(PropertyDescription desc, Iterable<dynamic> values) {
+  QueryPredicate containsPredicate(ManagedPropertyDescription desc, Iterable<dynamic> values) {
     var tableName = desc.entity.tableName;
     var tokenList = [];
     var pairedMap = <String, dynamic>{};
@@ -291,18 +320,18 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
       counter ++;
     });
 
-    return new Predicate("$tableName.${_columnNameForProperty(desc)} IN (${tokenList.join(",")})", pairedMap);
+    return new QueryPredicate("$tableName.${_columnNameForProperty(desc)} IN (${tokenList.join(",")})", pairedMap);
   }
 
   @override
-  Predicate nullPredicate(PropertyDescription desc, bool isNull) {
+  QueryPredicate nullPredicate(ManagedPropertyDescription desc, bool isNull) {
     var tableName = desc.entity.tableName;
     var propertyName = _columnNameForProperty(desc);
-    return new Predicate("$tableName.$propertyName ${isNull ? "isnull" : "notnull"}", {});
+    return new QueryPredicate("$tableName.$propertyName ${isNull ? "isnull" : "notnull"}", {});
   }
 
   @override
-  Predicate rangePredicate(PropertyDescription desc, dynamic lhsValue, dynamic rhsValue, bool insideRange) {
+  QueryPredicate rangePredicate(ManagedPropertyDescription desc, dynamic lhsValue, dynamic rhsValue, bool insideRange) {
     var prefix = desc.entity.tableName;
     var propertyName = _columnNameForProperty(desc);
     var typedName = _typedColumnName(propertyName, desc);
@@ -312,13 +341,13 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
     var rhsKeyName = "${prefix}_rhs_$propertyName";
     var operation = insideRange ? "between" : "not between";
 
-    return new Predicate("$prefix.$propertyName $operation @$lhsFormatSpecificationName AND @$rhsFormatSpecificationName", {
+    return new QueryPredicate("$prefix.$propertyName $operation @$lhsFormatSpecificationName AND @$rhsFormatSpecificationName", {
       lhsKeyName: lhsValue, rhsKeyName : rhsValue
     });
   }
 
   @override
-  Predicate stringPredicate(PropertyDescription desc, StringMatcherOperator operator, dynamic value) {
+  QueryPredicate stringPredicate(ManagedPropertyDescription desc, StringMatcherOperator operator, dynamic value) {
     var tableName = desc.entity.tableName;
     var propertyName = _columnNameForProperty(desc);
     var formatSpecificationName = "${tableName}_${_typedColumnName(propertyName, desc)}";
@@ -330,17 +359,17 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
       case StringMatcherOperator.contains: matchValue = "%$value%"; break;
     }
 
-    return new Predicate("$tableName.$propertyName like @$formatSpecificationName", {keyName : matchValue});
+    return new QueryPredicate("$tableName.$propertyName like @$formatSpecificationName", {keyName : matchValue});
   }
 
-  String _columnNameForProperty(PropertyDescription desc) {
-    if (desc is RelationshipDescription) {
+  String _columnNameForProperty(ManagedPropertyDescription desc) {
+    if (desc is ManagedRelationshipDescription) {
       return "${desc.name}_${desc.destinationEntity.primaryKey}";
     }
     return desc.name;
   }
 
-  String _typedColumnName(String name, PropertyDescription desc) {
+  String _typedColumnName(String name, ManagedPropertyDescription desc) {
     var type = PostgreSQLFormat.dataTypeStringForDataType(_typeMap[desc.type]);
     if (type == null) {
       return name;
@@ -371,7 +400,7 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
     }
   }
 
-  List<List<MappingElement>> _mappingElementsFromResults(List<List<dynamic>> rows, List<MappingElement> columnDefinitions) {
+  List<List<PersistentColumnMapping>> _mappingElementsFromResults(List<List<dynamic>> rows, List<PersistentColumnMapping> columnDefinitions) {
     return rows.map((row) {
       var columnDefinitionIterator = columnDefinitions.iterator;
       var rowValueIterator = row.toList().iterator;
@@ -380,17 +409,17 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
       while (columnDefinitionIterator.moveNext()) {
         var element = columnDefinitionIterator.current;
 
-        if (element is JoinMappingElement) {
+        if (element is PersistentJoinMapping) {
           var innerColumnIterator = element.resultKeys.iterator;
-          var innerResultColumns = <MappingElement>[];
+          var innerResultColumns = <PersistentColumnMapping>[];
           while (innerColumnIterator.moveNext()) {
             rowValueIterator.moveNext();
-            innerResultColumns.add(new MappingElement.fromElement(innerColumnIterator.current, rowValueIterator.current));
+            innerResultColumns.add(new PersistentColumnMapping.fromElement(innerColumnIterator.current, rowValueIterator.current));
           }
-          resultColumns.add(new JoinMappingElement.fromElement(element, innerResultColumns));
+          resultColumns.add(new PersistentJoinMapping.fromElement(element, innerResultColumns));
         } else {
           rowValueIterator.moveNext();
-          resultColumns.add(new MappingElement.fromElement(element, rowValueIterator.current));
+          resultColumns.add(new PersistentColumnMapping.fromElement(element, rowValueIterator.current));
         }
       }
 
@@ -414,63 +443,54 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
   }
 
   String _orderByStringForQuery(PersistentStoreQuery q) {
-    List<SortDescriptor> sortDescs = q.sortDescriptors ?? [];
+    List<QuerySortDescriptor> sortDescs = q.sortDescriptors ?? [];
     if (q.pageDescriptor != null) {
-      sortDescs.insert(0, new SortDescriptor(q.pageDescriptor.propertyName, q.pageDescriptor.order));
+      sortDescs.insert(0, new QuerySortDescriptor(q.pageDescriptor.propertyName, q.pageDescriptor.order));
     }
 
     if (sortDescs.length == 0) {
       return null;
     }
 
-    var joinedSortDescriptors = sortDescs.map((SortDescriptor sd) {
+    var joinedSortDescriptors = sortDescs.map((QuerySortDescriptor sd) {
       var property = q.rootEntity.properties[sd.key];
       var columnName = "${property.entity.tableName}.${_columnNameForProperty(property)}";
-      var order = (sd.order == SortOrder.ascending ? "ASC" : "DESC");
+      var order = (sd.order == QuerySortOrder.ascending ? "ASC" : "DESC");
       return "$columnName $order";
     }).join(",");
 
     return "ORDER BY $joinedSortDescriptors";
   }
 
-  Predicate _pagePredicateForQuery(PersistentStoreQuery query) {
+  QueryPredicate _pagePredicateForQuery(PersistentStoreQuery query) {
     if(query.pageDescriptor?.boundingValue == null) {
       return null;
     }
 
-    var operator = (query.pageDescriptor.order == SortOrder.ascending ? ">" : "<");
+    var operator = (query.pageDescriptor.order == QuerySortOrder.ascending ? ">" : "<");
     var keyName = "aq_page_value";
     var typedKeyName = _typedColumnName(keyName, query.rootEntity.properties[query.pageDescriptor.propertyName]);
-    return new Predicate("${query.pageDescriptor.propertyName} ${operator} @$typedKeyName", {
+    return new QueryPredicate("${query.pageDescriptor.propertyName} ${operator} @$typedKeyName", {
       "$keyName": query.pageDescriptor.boundingValue
     });
   }
 
-  String _joinStringForJoin(JoinMappingElement ji) {
+  String _joinStringForJoin(PersistentJoinMapping ji) {
     var parentEntity = ji.property.entity;
     var childEntity = ji.joinProperty.entity;
-    var predicate = new Predicate("${parentEntity.tableName}.${_columnNameForProperty(parentEntity.properties[parentEntity.primaryKey])}=${childEntity.tableName}.${_columnNameForProperty(ji.joinProperty)}", {});
+    var predicate = new QueryPredicate("${parentEntity.tableName}.${_columnNameForProperty(parentEntity.properties[parentEntity.primaryKey])}=${childEntity.tableName}.${_columnNameForProperty(ji.joinProperty)}", {});
     if (ji.predicate != null) {
-      predicate = Predicate.andPredicates([predicate, ji.predicate]);
+      predicate = QueryPredicate.andPredicates([predicate, ji.predicate]);
     }
 
     return "${_stringForJoinType(ji.type)} JOIN ${ji.joinProperty.entity.tableName} ON (${predicate.format})";
   }
 
-  String _stringForJoinType(JoinType t) {
+  String _stringForJoinType(PersistentJoinType t) {
     switch (t) {
-      case JoinType.leftOuter: return "LEFT OUTER";
+      case PersistentJoinType.leftOuter: return "LEFT OUTER";
     }
     return null;
-  }
-
-  SchemaTable get _versionTable {
-    return new SchemaTable.empty()
-      ..name = _versionTableName
-      ..columns = [
-        (new SchemaColumn.empty()..name = "versionNumber".._type = SchemaColumn.typeStringForType(PropertyType.integer)),
-        (new SchemaColumn.empty()..name = "dateOfUpgrade".._type = SchemaColumn.typeStringForType(PropertyType.datetime)),
-      ];
   }
 
   Future _createVersionTableIfNecessary(bool temporary) async {
@@ -490,15 +510,10 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
   }
 }
 
-class PostgreSQLPersistentStoreException implements Exception {
-  PostgreSQLPersistentStoreException(this.message);
-  String message;
-
-  String toString() {
-    return "PostgreSQLPersistentStoreException: $message";
-  }
-}
-
+/// Commonly used error codes from PostgreSQL.
+///
+/// When a [QueryException.underlyingException] is a [PostgreSQLException], this [PostgreSQLException.code]
+/// value may be one of the static properties declared in this class.
 class PostgreSQLErrorCode {
   static const String duplicateTable = "42P07";
   static const String undefinedTable = "42P01";

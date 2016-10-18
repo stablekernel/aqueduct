@@ -1,7 +1,5 @@
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
-import 'dart:async';
-import 'dart:io';
 
 void main() {
   group("Metadata", () {

@@ -9,7 +9,7 @@ class TestApplication {
   }
 
   Application<WildfireSink> application;
-  WildfireSink get stream => application.server.stream;
+  WildfireSink get sink => application.mainIsolateSink;
   LoggingServer logger = new LoggingServer([]);
   TestClient client;
   WildfireConfiguration configuration;
@@ -25,25 +25,25 @@ class TestApplication {
 
     await application.start(runOnMainIsolate: true);
 
-    ModelContext.defaultContext = stream.context;
+    ManagedContext.defaultContext = sink.context;
 
-    await createDatabaseSchema(stream.context, stream.logger);
+    await createDatabaseSchema(sink.context, sink.logger);
     await addClientRecord();
 
-    client = new TestClient(application.configuration.port)
+    client = new TestClient(application)
       ..clientID = "com.aqueduct.test"
       ..clientSecret = "kilimanjaro";
   }
 
   Future stop() async {
-    await stream.context.persistentStore?.close();
+    await sink.context.persistentStore?.close();
     await logger?.stop();
     await application?.stop();
   }
 
   static Future addClientRecord({String clientID: "com.aqueduct.test", String clientSecret: "kilimanjaro"}) async {
-    var salt = AuthenticationServer.generateRandomSalt();
-    var hashedPassword = AuthenticationServer.generatePasswordHash(clientSecret, salt);
+    var salt = AuthServer.generateRandomSalt();
+    var hashedPassword = AuthServer.generatePasswordHash(clientSecret, salt);
     var testClientRecord = new ClientRecord();
     testClientRecord.id = clientID;
     testClientRecord.salt = salt;
@@ -56,7 +56,7 @@ class TestApplication {
     await clientQ.insert();
   }
 
-  static Future createDatabaseSchema(ModelContext context, Logger logger) async {
+  static Future createDatabaseSchema(ManagedContext context, Logger logger) async {
     var builder = new SchemaBuilder.toSchema(context.persistentStore, new Schema.fromDataModel(context.dataModel), isTemporary: true);
 
     for (var cmd in builder.commands) {

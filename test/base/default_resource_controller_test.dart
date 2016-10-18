@@ -8,7 +8,7 @@ void main() {
   group("Standard operations", () {
     Application app = new Application<TestSink>();
     app.configuration.port = 8080;
-    var client = new TestClient(app.configuration.port);
+    var client = new TestClient.onPort(app.configuration.port);
     List<TestModel> allObjects = [];
 
     setUpAll(() async {
@@ -81,7 +81,7 @@ void main() {
   group("Standard operation failure cases", () {
     Application app = new Application<TestSink>();
     app.configuration.port = 8080;
-    var client = new TestClient(8080);
+    var client = new TestClient.onPort(8080);
 
     setUpAll(() async {
       await app.start(runOnMainIsolate: true);
@@ -111,7 +111,7 @@ void main() {
     Application app = null;
     app = new Application<TestSink>();
     app.configuration.port = 8080;
-    var client = new TestClient(8080);
+    var client = new TestClient.onPort(8080);
 
     setUpAll(() async {
       await app.start(runOnMainIsolate: true);
@@ -144,7 +144,7 @@ void main() {
     Application app = null;
     app = new Application<TestSink>();
     app.configuration.port = 8080;
-    var client = new TestClient(8080);
+    var client = new TestClient.onPort(8080);
     List<TestModel> allObjects = [];
 
     setUpAll(() async {
@@ -208,9 +208,9 @@ void main() {
   });
 
   group("Documentation", () {
-    var dataModel = new DataModel([TestModel]);
-    ModelContext.defaultContext = new ModelContext(dataModel, new DefaultPersistentStore());
-    ResourceController c = new ResourceController<TestModel>();
+    var dataModel = new ManagedDataModel([TestModel]);
+    ManagedContext.defaultContext = new ManagedContext(dataModel, new DefaultPersistentStore());
+    ManagedObjectController c = new ManagedObjectController<TestModel>();
     var resolver = new PackagePathResolver(new File(".packages").path);
     var operations = c.documentOperations(resolver);
 
@@ -289,13 +289,13 @@ void main() {
 
 class TestSink extends RequestSink {
   TestSink(Map<String, dynamic> opts) : super (opts) {
-    var dataModel = new DataModel([TestModel]);
+    var dataModel = new ManagedDataModel([TestModel]);
     var persistentStore = new PostgreSQLPersistentStore.fromConnectionInfo("dart", "dart", "localhost", 5432, "dart_test");
-    context = new ModelContext(dataModel, persistentStore);
-    ModelContext.defaultContext = context;
+    context = new ManagedContext(dataModel, persistentStore);
+    ManagedContext.defaultContext = context;
   }
 
-  ModelContext context = null;
+  ManagedContext context = null;
 
   @override
   Future willOpen() async {
@@ -309,16 +309,16 @@ class TestSink extends RequestSink {
   }
 
   @override
-  void addRoutes() {
+  void setupRouter(Router router) {
     router
         .route("/controller/[:id]")
-        .generate(() => new ResourceController<TestModel>());
+        .generate(() => new ManagedObjectController<TestModel>());
   }
 }
 
-class TestModel extends Model<_TestModel> implements _TestModel {}
+class TestModel extends ManagedObject<_TestModel> implements _TestModel {}
 class _TestModel {
-  @primaryKey
+  @managedPrimaryKey
   int id;
 
   String name;

@@ -3,7 +3,7 @@ import 'package:aqueduct/aqueduct.dart';
 import '../../helpers.dart';
 
 void main() {
-  ModelContext context = null;
+  ManagedContext context = null;
 
   tearDown(() async {
     await context?.persistentStore?.close();
@@ -22,13 +22,13 @@ void main() {
     expect(inserted.id, greaterThan(0));
 
     req = new Query<TestModel>()
-      ..predicate = new Predicate("id = @id", {"id": inserted.id});
+      ..predicate = new QueryPredicate("id = @id", {"id": inserted.id});
 
     var count = await req.delete();
     expect(count, 1);
 
     req = new Query<TestModel>()
-      ..predicate = new Predicate("id = @id", {"id": inserted.id});
+      ..predicate = new QueryPredicate("id = @id", {"id": inserted.id});
 
     var result = await req.fetch();
 
@@ -52,7 +52,7 @@ void main() {
     var result = await req.fetch();
     expect(result.length, 10);
 
-    req = new Query<TestModel>()..predicate = new Predicate("id = @id", {"id" : 1});
+    req = new Query<TestModel>()..predicate = new QueryPredicate("id = @id", {"id" : 1});
     var count = await req.delete();
     expect(count, 1);
 
@@ -185,17 +185,17 @@ void main() {
   });
 }
 
-class TestModel extends Model<_TestModel> implements _TestModel {}
+class TestModel extends ManagedObject<_TestModel> implements _TestModel {}
 class _TestModel {
-  @primaryKey
+  @managedPrimaryKey
   int id;
 
   String name;
 
-  @ColumnAttributes(nullable: true, unique: true)
+  @ManagedColumnAttributes(nullable: true, unique: true)
   String email;
 
-  OrderedSet<RefModel> ref;
+  ManagedSet<RefModel> ref;
 
   static String tableName() {
     return "simple";
@@ -206,52 +206,52 @@ class _TestModel {
   }
 }
 
-class RefModel extends Model<_RefModel> implements _RefModel {}
+class RefModel extends ManagedObject<_RefModel> implements _RefModel {}
 class _RefModel {
-  @primaryKey
+  @managedPrimaryKey
   int id;
 
-  @RelationshipInverse(#ref, isRequired: false, onDelete: RelationshipDeleteRule.nullify)
+  @ManagedRelationship(#ref, isRequired: false, onDelete: ManagedRelationshipDeleteRule.nullify)
   TestModel test;
 }
 
-class GRestrictInverse extends Model<_GRestrictInverse> implements _GRestrictInverse {}
+class GRestrictInverse extends ManagedObject<_GRestrictInverse> implements _GRestrictInverse {}
 class _GRestrictInverse {
-  @primaryKey
+  @managedPrimaryKey
   int id;
 
   String name;
 
-  OrderedSet<GRestrict> test;
+  ManagedSet<GRestrict> test;
 }
 
-class GRestrict extends Model<_GRestrict> implements _GRestrict {}
+class GRestrict extends ManagedObject<_GRestrict> implements _GRestrict {}
 
 class _GRestrict {
-  @primaryKey
+  @managedPrimaryKey
   int id;
 
-  @RelationshipInverse(#test, isRequired: false, onDelete: RelationshipDeleteRule.restrict)
+  @ManagedRelationship(#test, isRequired: false, onDelete: ManagedRelationshipDeleteRule.restrict)
   GRestrictInverse test;
 }
 
-class GCascadeInverse extends Model<_GCascadeInverse> implements _GCascadeInverse {}
+class GCascadeInverse extends ManagedObject<_GCascadeInverse> implements _GCascadeInverse {}
 
 class _GCascadeInverse {
-  @primaryKey
+  @managedPrimaryKey
   int id;
 
   String name;
 
-  OrderedSet<GCascade> test;
+  ManagedSet<GCascade> test;
 }
 
-class GCascade extends Model<_GCascade> implements _GCascade {}
+class GCascade extends ManagedObject<_GCascade> implements _GCascade {}
 
 class _GCascade {
-  @primaryKey
+  @managedPrimaryKey
   int id;
 
-  @RelationshipInverse(#test, isRequired: false, onDelete: RelationshipDeleteRule.cascade)
+  @ManagedRelationship(#test, isRequired: false, onDelete: ManagedRelationshipDeleteRule.cascade)
   GCascadeInverse test;
 }

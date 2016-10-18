@@ -7,7 +7,7 @@ void main() {
     try {
       await app.start();
       expect(true, false);
-    } on IsolateSupervisorException catch (e) {
+    } on ApplicationSupervisorException catch (e) {
       expect(e.message, "RequestController subclass FailingController instances cannot be reused. Rewrite as .generate(() => new FailingController())");
     }
   });
@@ -17,7 +17,7 @@ class TestSink extends RequestSink {
   TestSink(Map<String, dynamic> opts) : super (opts);
 
   @override
-  void addRoutes() {
+  void setupRouter(Router router) {
     router
         .route("/controller/[:id]")
         .pipe(new FailingController());

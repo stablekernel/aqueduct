@@ -16,7 +16,7 @@ import '../../helpers.dart';
 
 void main() {
   group("Happy path", () {
-    ModelContext context = null;
+    ManagedContext context = null;
     List<Parent> truth;
     setUpAll(() async {
       context = await contextWithModels([Child, Parent, Toy, Vaccine]);
@@ -165,7 +165,7 @@ void main() {
   });
 
   group("Happy path with predicates", () {
-    ModelContext context = null;
+    ManagedContext context = null;
 
     setUpAll(() async {
       context = await contextWithModels([Child, Parent, Toy, Vaccine]);
@@ -261,7 +261,7 @@ void main() {
   });
 
   group("Result keys", () {
-    ModelContext context = null;
+    ManagedContext context = null;
 
     setUpAll(() async {
       context = await contextWithModels([Child, Parent, Toy, Vaccine]);
@@ -326,7 +326,7 @@ void main() {
   });
 
   group("Offhand assumptions about data", () {
-    ModelContext context = null;
+    ManagedContext context = null;
 
     setUpAll(() async {
       context = await contextWithModels([Child, Parent, Toy, Vaccine]);
@@ -348,7 +348,7 @@ void main() {
   });
 
   group("Bad usage cases", () {
-    ModelContext context = null;
+    ManagedContext context = null;
 
     setUpAll(() async {
       context = await contextWithModels([Child, Parent, Toy, Vaccine]);
@@ -396,7 +396,7 @@ void main() {
     test("Including paging on a join fails", () async {
       var q = new Query<Parent>()
         ..matchOn.child.includeInResultSet = true
-        ..pageDescriptor = new QueryPage(SortOrder.ascending, "id");
+        ..pageDescriptor = new QueryPage(QuerySortOrder.ascending, "id");
 
       try {
         await q.fetchOne();
@@ -408,43 +408,43 @@ void main() {
   });
 }
 
-class Parent extends Model<_Parent> implements _Parent {}
+class Parent extends ManagedObject<_Parent> implements _Parent {}
 class _Parent {
-  @primaryKey int id;
+  @managedPrimaryKey int id;
   String name;
 
   Child child;
 }
 
-class Child extends Model<_Child> implements _Child {}
+class Child extends ManagedObject<_Child> implements _Child {}
 class _Child {
-  @primaryKey int id;
+  @managedPrimaryKey int id;
   String name;
 
-  @RelationshipInverse(#child)
+  @ManagedRelationship(#child)
   Parent parent;
 
   Toy toy;
 
-  OrderedSet<Vaccine> vaccinations;
+  ManagedSet<Vaccine> vaccinations;
 }
 
-class Toy extends Model<_Toy> implements _Toy {}
+class Toy extends ManagedObject<_Toy> implements _Toy {}
 class _Toy {
-  @primaryKey int id;
+  @managedPrimaryKey int id;
 
   String name;
 
-  @RelationshipInverse(#toy)
+  @ManagedRelationship(#toy)
   Child child;
 }
 
-class Vaccine extends Model<_Vaccine> implements _Vaccine {}
+class Vaccine extends ManagedObject<_Vaccine> implements _Vaccine {}
 class _Vaccine {
-  @primaryKey int id;
+  @managedPrimaryKey int id;
   String kind;
 
-  @RelationshipInverse(#vaccinations)
+  @ManagedRelationship(#vaccinations)
   Child child;
 }
 
@@ -456,7 +456,7 @@ Future<List<Parent>> populate() async {
       ..child = (new Child()
         ..name = "C1"
         ..toy = (new Toy()..name = "T1")
-        ..vaccinations = (new OrderedSet<Vaccine>.from([
+        ..vaccinations = (new ManagedSet<Vaccine>.from([
           new Vaccine()..kind = "V1",
           new Vaccine()..kind = "V2",
         ]))),
@@ -465,7 +465,7 @@ Future<List<Parent>> populate() async {
       ..name = "B"
       ..child = (new Child()
         ..name = "C2"
-        ..vaccinations = (new OrderedSet<Vaccine>.from([
+        ..vaccinations = (new ManagedSet<Vaccine>.from([
           new Vaccine()..kind = "V3"
         ]))),
 
@@ -497,7 +497,7 @@ Future<List<Parent>> populate() async {
       }
 
       if (p.child.vaccinations != null) {
-        insertedParent.child.vaccinations = new OrderedSet<Vaccine>.from(await Future.wait(p.child.vaccinations.map((v) {
+        insertedParent.child.vaccinations = new ManagedSet<Vaccine>.from(await Future.wait(p.child.vaccinations.map((v) {
           var vQ = new Query<Vaccine>()
             ..values.kind = v.kind
             ..values.child = insertedParent.child;

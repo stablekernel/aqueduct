@@ -2,7 +2,6 @@ import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
 import 'dart:async';
 import 'dart:io';
-import 'dart:convert';
 
 void main() {
   group("Cooperation", () {
@@ -20,14 +19,14 @@ void main() {
       // executing a migration/upgrade all work together.
       var schema = new Schema([
         new SchemaTable("tableToKeep", [
-          new SchemaColumn("columnToEdit", PropertyType.string),
-          new SchemaColumn("columnToDelete", PropertyType.integer)
+          new SchemaColumn("columnToEdit", ManagedPropertyType.string),
+          new SchemaColumn("columnToDelete", ManagedPropertyType.integer)
         ]),
         new SchemaTable("tableToDelete", [
-          new SchemaColumn("whocares", PropertyType.integer)
+          new SchemaColumn("whocares", ManagedPropertyType.integer)
         ]),
         new SchemaTable("tableToRename", [
-          new SchemaColumn("whocares", PropertyType.integer)
+          new SchemaColumn("whocares", ManagedPropertyType.integer)
         ])
       ]);
 
@@ -43,14 +42,14 @@ void main() {
       await store.upgrade(1, db.commands, temporary: true);
 
       // 'Sync up' that schema to compare it
-      schema.tableForName("tableToKeep").addColumn(new SchemaColumn("addedColumn", PropertyType.integer, defaultValue: "2"));
-      schema.tableForName("tableToKeep").removeColumn(new SchemaColumn("columnToDelete", PropertyType.integer));
+      schema.tableForName("tableToKeep").addColumn(new SchemaColumn("addedColumn", ManagedPropertyType.integer, defaultValue: "2"));
+      schema.tableForName("tableToKeep").removeColumn(new SchemaColumn("columnToDelete", ManagedPropertyType.integer));
       schema.tableForName("tableToKeep").columnForName("columnToEdit").defaultValue = "'foo'";
 
       schema.removeTable(schema.tableForName("tableToDelete"));
 
       schema.tables.add(new SchemaTable("foo", [
-        new SchemaColumn("foobar", PropertyType.integer, isIndexed: true)
+        new SchemaColumn("foobar", ManagedPropertyType.integer, isIndexed: true)
       ]));
 
       expect(db.schema.matches(schema), true);
@@ -179,34 +178,34 @@ void main() {
 
     var expectedSchema = new Schema([
       new SchemaTable("_User", [
-        new SchemaColumn("id", PropertyType.bigInteger, isPrimaryKey: true, autoincrement: true),
-        new SchemaColumn("email", PropertyType.string, isUnique: true, isIndexed: true),
-        new SchemaColumn("hashedPassword", PropertyType.string),
-        new SchemaColumn("salt", PropertyType.string)
+        new SchemaColumn("id", ManagedPropertyType.bigInteger, isPrimaryKey: true, autoincrement: true),
+        new SchemaColumn("email", ManagedPropertyType.string, isUnique: true, isIndexed: true),
+        new SchemaColumn("hashedPassword", ManagedPropertyType.string),
+        new SchemaColumn("salt", ManagedPropertyType.string)
       ]),
       new SchemaTable("_AuthCode", [
-        new SchemaColumn("id", PropertyType.bigInteger, isPrimaryKey: true, autoincrement: true),
-        new SchemaColumn("code", PropertyType.string, isIndexed: true),
-        new SchemaColumn("redirectURI", PropertyType.string, isNullable: true),
-        new SchemaColumn("clientID", PropertyType.string),
-        new SchemaColumn("resourceOwnerIdentifier", PropertyType.integer),
-        new SchemaColumn("issueDate", PropertyType.datetime),
-        new SchemaColumn("expirationDate", PropertyType.datetime),
-        new SchemaColumn.relationship("token", PropertyType.string, isNullable: true, isUnique: true, relatedTableName: "_Token", relatedColumnName: "accessToken", rule: RelationshipDeleteRule.cascade)
+        new SchemaColumn("id", ManagedPropertyType.bigInteger, isPrimaryKey: true, autoincrement: true),
+        new SchemaColumn("code", ManagedPropertyType.string, isIndexed: true),
+        new SchemaColumn("redirectURI", ManagedPropertyType.string, isNullable: true),
+        new SchemaColumn("clientID", ManagedPropertyType.string),
+        new SchemaColumn("resourceOwnerIdentifier", ManagedPropertyType.integer),
+        new SchemaColumn("issueDate", ManagedPropertyType.datetime),
+        new SchemaColumn("expirationDate", ManagedPropertyType.datetime),
+        new SchemaColumn.relationship("token", ManagedPropertyType.string, isNullable: true, isUnique: true, relatedTableName: "_Token", relatedColumnName: "accessToken", rule: ManagedRelationshipDeleteRule.cascade)
       ]),
       new SchemaTable("_Token", [
-        new SchemaColumn("accessToken", PropertyType.string, isPrimaryKey: true),
-        new SchemaColumn("refreshToken", PropertyType.string, isIndexed: true),
-        new SchemaColumn.relationship("client", PropertyType.string, relatedTableName: "_Client", relatedColumnName: "id", rule: RelationshipDeleteRule.cascade),
-        new SchemaColumn.relationship("owner", PropertyType.bigInteger, relatedTableName: "_User", relatedColumnName: "id", rule: RelationshipDeleteRule.cascade),
-        new SchemaColumn("issueDate", PropertyType.datetime),
-        new SchemaColumn("expirationDate", PropertyType.datetime),
-        new SchemaColumn("type", PropertyType.string)
+        new SchemaColumn("accessToken", ManagedPropertyType.string, isPrimaryKey: true),
+        new SchemaColumn("refreshToken", ManagedPropertyType.string, isIndexed: true),
+        new SchemaColumn.relationship("client", ManagedPropertyType.string, relatedTableName: "_Client", relatedColumnName: "id", rule: ManagedRelationshipDeleteRule.cascade),
+        new SchemaColumn.relationship("owner", ManagedPropertyType.bigInteger, relatedTableName: "_User", relatedColumnName: "id", rule: ManagedRelationshipDeleteRule.cascade),
+        new SchemaColumn("issueDate", ManagedPropertyType.datetime),
+        new SchemaColumn("expirationDate", ManagedPropertyType.datetime),
+        new SchemaColumn("type", ManagedPropertyType.string)
       ]),
       new SchemaTable("_Client", [
-        new SchemaColumn("id", PropertyType.string, isPrimaryKey: true),
-        new SchemaColumn("hashedPassword", PropertyType.string),
-        new SchemaColumn("salt", PropertyType.string),
+        new SchemaColumn("id", ManagedPropertyType.string, isPrimaryKey: true),
+        new SchemaColumn("hashedPassword", ManagedPropertyType.string),
+        new SchemaColumn("salt", ManagedPropertyType.string),
       ]),
     ]);
 
@@ -333,7 +332,7 @@ void main() {
 
       File nextGen = await executor.generate();
       addLinesToUpgradeFile(nextGen, [
-        "database.createTable(new SchemaTable(\"foo\", [new SchemaColumn.relationship(\"user\", PropertyType.bigInteger, relatedTableName: \"_user\", relatedColumnName: \"id\")]));",
+        "database.createTable(new SchemaTable(\"foo\", [new SchemaColumn.relationship(\"user\", ManagedPropertyType.bigInteger, relatedTableName: \"_user\", relatedColumnName: \"id\")]));",
         "database.deleteColumn(\"_user\", \"email\");"
       ]);
       await executor.upgrade();
@@ -358,7 +357,7 @@ void main() {
 
       File nextGen = await executor.generate();
       addLinesToUpgradeFile(nextGen, [
-        "database.createTable(new SchemaTable(\"foo\", [new SchemaColumn.relationship(\"user\", PropertyType.bigInteger, relatedTableName: \"_user\", relatedColumnName: \"id\")]));",
+        "database.createTable(new SchemaTable(\"foo\", [new SchemaColumn.relationship(\"user\", ManagedPropertyType.bigInteger, relatedTableName: \"_user\", relatedColumnName: \"id\")]));",
         "database.deleteColumn(\"_user\", \"email\");"
       ]);
 
@@ -382,13 +381,13 @@ void main() {
 class Migration1 extends Migration {
   Future upgrade() async {
     database.createTable(new SchemaTable("foo", [
-      new SchemaColumn("foobar", PropertyType.integer, isIndexed: true)
+      new SchemaColumn("foobar", ManagedPropertyType.integer, isIndexed: true)
     ]));
 
     //database.renameTable(currentSchema["tableToRename"], "renamedTable");
     database.deleteTable("tableToDelete");
 
-    database.addColumn("tableToKeep", new SchemaColumn("addedColumn", PropertyType.integer, defaultValue: "2"));
+    database.addColumn("tableToKeep", new SchemaColumn("addedColumn", ManagedPropertyType.integer, defaultValue: "2"));
     database.deleteColumn("tableToKeep", "columnToDelete");
     //database.renameColumn()
     database.alterColumn("tableToKeep", "columnToEdit", (col) {

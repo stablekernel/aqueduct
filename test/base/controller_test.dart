@@ -12,8 +12,8 @@ import '../helpers.dart';
 void main() {
   HttpServer server;
 
-  DataModel dm = new DataModel([TestModel]);
-  ModelContext _ = new ModelContext(dm, new DefaultPersistentStore());
+  ManagedDataModel dm = new ManagedDataModel([TestModel]);
+  ManagedContext _ = new ManagedContext(dm, new DefaultPersistentStore());
 
   tearDown(() async {
     await server?.close(force: true);
@@ -542,9 +542,9 @@ Future<HttpServer> enableController(String pattern, Type controller) async {
   return server;
 }
 
-class TestModel extends Model<_TestModel> implements _TestModel {}
+class TestModel extends ManagedObject<_TestModel> implements _TestModel {}
 class _TestModel {
-  @primaryKey
+  @managedPrimaryKey
   int id;
   String name;
 }

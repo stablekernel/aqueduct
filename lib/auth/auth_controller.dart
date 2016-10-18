@@ -1,31 +1,29 @@
 part of aqueduct;
 
+/// [RequestController] for issuing OAuth 2.0 authorization tokens.
 class AuthController extends HTTPController {
 
   /// Creates a new instance of an [AuthController].
   ///
-  /// An [AuthController] requires an [AuthenticationServer], with the specified [ResourceOwner] and [TokenType] instance
-  /// types. These types will be used when communicating with the [AuthenticationServer] for creating and refreshing
-  /// authentication tokens.
-  ///
+  /// An [AuthController] requires an [AuthServer] to carry out tasks.
   /// By default, an [AuthController] has only one [acceptedContentTypes] - 'application/x-www-form-urlencoded'.
-  AuthController(AuthenticationServer authServer) {
-    authenticationServer = authServer;
+  AuthController(this.authenticationServer) {
     acceptedContentTypes = [new ContentType("application", "x-www-form-urlencoded")];
   }
 
-  /// A reference to the [AuthenticationServer] this controller uses to grant tokens.
-  AuthenticationServer authenticationServer;
+  /// A reference to the [AuthServer] this controller uses to grant tokens.
+  AuthServer authenticationServer;
 
+  /// Required basic authorization header containing client ID and secret for the authenticating client.
   @requiredHTTPParameter @HTTPHeader(HttpHeaders.AUTHORIZATION) String authHeader;
+
+  /// The type of token to request.
+  ///
+  /// Valid options are 'password', 'refresh_token' and 'authorization_code'.
   @requiredHTTPParameter @HTTPQuery("grant_type") String grantType;
 
   /// Creates or refreshes an authentication token.
   ///
-  /// Authorization header must contain Basic authorization scheme where username is Client ID and password is Client Secret,
-  /// e.g. Authorization: Basic base64(ClientID:ClientSecret)
-  /// Content-Type must be application/x-www-form-urlencoded. (Query string in the body, e.g. username=bob&password=password)
-  /// Values must be URL percent encoded by client.
   /// When grant_type is 'password', there must be username and password values.
   /// When grant_type is 'refresh_token', there must be a refresh_token value.
   /// When grant_type is 'authorization_code', there must be a authorization_code value.
@@ -63,9 +61,9 @@ class AuthController extends HTTPController {
     return new Response.badRequest(body: {"error": "invalid grant_type"});
   }
 
-  /// Transforms a [Tokenizable] into a [Response] object with an RFC6749 compliant JSON token
+  /// Transforms a [AuthTokenizable] into a [Response] object with an RFC6749 compliant JSON token
   /// as the HTTP response body.
-  static Response tokenResponse(Tokenizable token) {
+  static Response tokenResponse(AuthTokenizable token) {
     var jsonToken = {
       "access_token": token.accessToken,
       "token_type": token.type,

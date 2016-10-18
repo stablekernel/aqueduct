@@ -123,7 +123,7 @@ main() {
         await conflictingApp.start();
         successful = true;
       } catch (e) {
-        expect(e, new isInstanceOf<IsolateSupervisorException>());
+        expect(e, new isInstanceOf<ApplicationSupervisorException>());
       }
       expect(successful, false);
 
@@ -149,7 +149,7 @@ class CrashSink extends RequestSink {
     }
   }
 
-  void addRoutes() {
+  void setupRouter(Router router) {
     if (options["crashIn"] == "addRoutes") {
       throw new TestException("addRoutes");
     }
@@ -167,7 +167,7 @@ class CrashSink extends RequestSink {
 class TestSink extends RequestSink {
   TestSink(Map<String, dynamic> opts) : super(opts);
 
-  void addRoutes() {
+  void setupRouter(Router router) {
     router.route("/t").generate(() => new TController());
     router.route("/r").generate(() => new RController());
   }

@@ -13,7 +13,17 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 /// A server-side framework built for productivity and testability.
 ///
-/// See http://stablekernel.github.io/aqueduct for more in-depth tutorials and guides.
+/// This library is made up of a handful of modules for common functionality needed in building a web server.
+///
+/// There are four primary modules in this library.
+///
+/// auth: Has classes for implementing OAuth 2.0 behavior. Classes in this module all begin with the word 'Auth'.
+///
+/// db: Exposes an ORM. Classes in this module begin with 'Managed', 'Schema', 'Query' and 'Persistent'.
+///
+/// http: Classes for building HTTP request and response logic. Classes in this module often begin with 'HTTP'.
+///
+/// application: Classes in this module begin with 'Application' and are responsible for starting and stopping web servers on a number of isolates.
 library aqueduct;
 
 import 'dart:async';
@@ -25,75 +35,75 @@ import 'dart:math';
 import 'dart:mirrors';
 
 import 'package:analyzer/analyzer.dart';
+import 'package:args/args.dart';
 import 'package:crypto/crypto.dart';
 import 'package:logging/logging.dart';
 import 'package:matcher/matcher.dart';
 import 'package:postgres/postgres.dart';
-import 'package:args/args.dart';
 import 'package:safe_config/safe_config.dart';
 import 'package:yaml/yaml.dart';
 
 export 'package:logging/logging.dart';
 export 'package:safe_config/safe_config.dart';
 
+part 'application/application.dart';
+part 'application/application_configuration.dart';
+part 'application/isolate_server.dart';
+part 'application/isolate_supervisor.dart';
 part 'auth/auth_code_controller.dart';
 part 'auth/auth_controller.dart';
 part 'auth/authentication_server.dart';
-part 'auth/authenticator.dart';
+part 'auth/authorizer.dart';
 part 'auth/authorization_parser.dart';
 part 'auth/client.dart';
 part 'auth/protocols.dart';
-part 'auth/token_generator.dart';
-part 'base/application.dart';
-part 'base/application_configuration.dart';
-part 'base/body_decoder.dart';
-part 'base/controller_routing.dart';
-part 'base/cors_policy.dart';
-part 'base/documentable.dart';
-part 'base/http_controller.dart';
-part 'base/http_response_exception.dart';
-part 'base/isolate_server.dart';
-part 'base/isolate_supervisor.dart';
-part 'base/model_controller.dart';
-part 'base/parameter_matching.dart';
-part 'base/request.dart';
-part 'base/request_controller.dart';
-part 'base/request_path.dart';
-part 'base/request_sink.dart';
-part 'base/resource_controller.dart';
-part 'base/response.dart';
-part 'base/route_node.dart';
-part 'base/router.dart';
-part 'base/serializable.dart';
-part 'commands/template_creator.dart';
 part 'commands/cli_command.dart';
 part 'commands/migration_runner.dart';
-part 'db/data_model.dart';
-part 'db/data_model_builder.dart';
-part 'db/matcher_expression.dart';
-part 'db/migration.dart';
-part 'db/model.dart';
-part 'db/model_attributes.dart';
-part 'db/model_backing.dart';
-part 'db/model_context.dart';
-part 'db/model_entity.dart';
-part 'db/model_entity_property.dart';
-part 'db/ordered_set.dart';
-part 'db/persistent_store.dart';
-part 'db/persistent_store_query.dart';
+part 'commands/template_creator.dart';
+part 'db/managed/attributes.dart';
+part 'db/managed/backing.dart';
+part 'db/managed/context.dart';
+part 'db/managed/data_model.dart';
+part 'db/managed/data_model_builder.dart';
+part 'db/managed/entity.dart';
+part 'db/managed/object.dart';
+part 'db/managed/property_description.dart';
+part 'db/managed/set.dart';
+part 'db/persistent_store/persistent_store.dart';
+part 'db/persistent_store/persistent_store_query.dart';
 part 'db/postgresql/postgresql_persistent_store.dart';
 part 'db/postgresql/postgresql_schema_generator.dart';
-part 'db/predicate.dart';
-part 'db/query.dart';
-part 'db/query_page.dart';
-part 'db/schema.dart';
-part 'db/schema_table.dart';
-part 'db/schema_column.dart';
-part 'db/schema_builder.dart';
-part 'db/sort_descriptor.dart';
+part 'db/query/matcher_expression.dart';
+part 'db/query/page.dart';
+part 'db/query/predicate.dart';
+part 'db/query/query.dart';
+part 'db/query/sort_descriptor.dart';
+part 'db/schema/migration.dart';
+part 'db/schema/schema.dart';
+part 'db/schema/schema_builder.dart';
+part 'db/schema/schema_column.dart';
+part 'db/schema/schema_table.dart';
+part 'http/body_decoder.dart';
+part 'http/controller_routing.dart';
+part 'http/cors_policy.dart';
+part 'http/documentable.dart';
+part 'http/http_controller.dart';
+part 'http/http_response_exception.dart';
+part 'http/query_controller.dart';
+part 'http/parameter_matching.dart';
+part 'http/request.dart';
+part 'http/request_controller.dart';
+part 'http/request_path.dart';
+part 'http/request_sink.dart';
+part 'http/resource_controller.dart';
+part 'http/response.dart';
+part 'http/route_node.dart';
+part 'http/router.dart';
+part 'http/serializable.dart';
 part 'utilities/mirror_helpers.dart';
 part 'utilities/mock_server.dart';
 part 'utilities/pbkdf2.dart';
+part 'utilities/source_generator.dart';
 part 'utilities/test_client.dart';
 part 'utilities/test_matchers.dart';
-part 'utilities/source_generator.dart';
+part 'utilities/token_generator.dart';

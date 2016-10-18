@@ -3,7 +3,7 @@ import 'package:aqueduct/aqueduct.dart';
 import '../../helpers.dart';
 
 void main() {
-  ModelContext context = null;
+  ManagedContext context = null;
   tearDown(() async {
     await context?.persistentStore?.close();
     context = null;
@@ -17,7 +17,7 @@ void main() {
     var item = await req.insert();
 
     req = new Query<TestModel>()
-      ..predicate = new Predicate("id = @id", {"id": item.id});
+      ..predicate = new QueryPredicate("id = @id", {"id": item.id});
     item = await req.fetchOne();
 
     expect(item.name, "Joe");
@@ -34,7 +34,7 @@ void main() {
     var id = item.id;
 
     req = new Query<TestModel>()
-      ..predicate = new Predicate("id = @id", {"id": item.id})
+      ..predicate = new QueryPredicate("id = @id", {"id": item.id})
       ..resultProperties = ["id", "name"];
 
     item = await req.fetchOne();
@@ -55,9 +55,9 @@ void main() {
 
     var req = new Query<TestModel>()
       ..sortDescriptors = [
-        new SortDescriptor("email", SortOrder.ascending)
+        new QuerySortDescriptor("email", QuerySortOrder.ascending)
       ]
-      ..predicate = new Predicate("email like @key", {"key": "asc%"});
+      ..predicate = new QueryPredicate("email like @key", {"key": "asc%"});
 
     var result = await req.fetch();
 
@@ -67,7 +67,7 @@ void main() {
 
     req = new Query<TestModel>()
       ..sortDescriptors = [
-        new SortDescriptor("id", SortOrder.ascending)
+        new QuerySortDescriptor("id", QuerySortOrder.ascending)
       ];
     result = await req.fetch();
 
@@ -92,9 +92,9 @@ void main() {
 
     var req = new Query<TestModel>()
       ..sortDescriptors = [
-        new SortDescriptor("email", SortOrder.descending)
+        new QuerySortDescriptor("email", QuerySortOrder.descending)
       ]
-      ..predicate = new Predicate("email like @key", {"key": "desc%"});
+      ..predicate = new QueryPredicate("email like @key", {"key": "desc%"});
     var result = await req.fetch();
 
     for (int i = 0; i < 10; i++) {
@@ -116,10 +116,10 @@ void main() {
 
     var req = new Query<TestModel>()
       ..sortDescriptors = [
-        new SortDescriptor("name", SortOrder.ascending),
-        new SortDescriptor("email", SortOrder.descending)
+        new QuerySortDescriptor("name", QuerySortOrder.ascending),
+        new QuerySortDescriptor("email", QuerySortOrder.descending)
       ]
-      ..predicate = new Predicate("email like @key", {"key": "multi%"});
+      ..predicate = new QueryPredicate("email like @key", {"key": "multi%"});
 
     var result = await req.fetch();
 
@@ -195,7 +195,7 @@ void main() {
     }
 
     var req = new Query<GenPost>()
-      ..predicate = new Predicate("owner_id = @id", {"id": u1.id});
+      ..predicate = new QueryPredicate("owner_id = @id", {"id": u1.id});
     var res = await req.fetch();
     expect(res.length, 5);
     expect(res.map((p) => p.text)
@@ -320,19 +320,19 @@ void main() {
   });
 }
 
-class TestModel extends Model<_TestModel> implements _TestModel {
+class TestModel extends ManagedObject<_TestModel> implements _TestModel {
   TestModel({String name: null, String email: null}) {
     this.name = name;
     this.email = email;
   }
 }
 class _TestModel {
-  @primaryKey
+  @managedPrimaryKey
   int id;
 
   String name;
 
-  @ColumnAttributes(nullable: true, unique: true)
+  @ManagedColumnAttributes(nullable: true, unique: true)
   String email;
 
   static String tableName() {
@@ -344,36 +344,36 @@ class _TestModel {
   }
 }
 
-class GenUser extends Model<_GenUser> implements _GenUser {}
+class GenUser extends ManagedObject<_GenUser> implements _GenUser {}
 class _GenUser {
-  @primaryKey
+  @managedPrimaryKey
   int id;
 
   String name;
 
-  OrderedSet<GenPost> posts;
+  ManagedSet<GenPost> posts;
 
   static String tableName() {
     return "GenUser";
   }
 }
 
-class GenPost extends Model<_GenPost> implements _GenPost {}
+class GenPost extends ManagedObject<_GenPost> implements _GenPost {}
 class _GenPost {
-  @primaryKey
+  @managedPrimaryKey
   int id;
 
   String text;
 
-  @RelationshipInverse(#posts, onDelete: RelationshipDeleteRule.cascade, isRequired: false)
+  @ManagedRelationship(#posts, onDelete: ManagedRelationshipDeleteRule.cascade, isRequired: false)
   GenUser owner;
 }
 
-class Omit extends Model<_Omit> implements _Omit {}
+class Omit extends ManagedObject<_Omit> implements _Omit {}
 class _Omit {
-  @primaryKey
+  @managedPrimaryKey
   int id;
 
-  @ColumnAttributes(omitByDefault: true)
+  @ManagedColumnAttributes(omitByDefault: true)
   String text;
 }

@@ -83,7 +83,7 @@ class TestSink extends RequestSink {
   TestSink(dynamic any) : super(null);
 
   @override
-  void addRoutes() {
+  void setupRouter(Router router) {
     router.route("/[:id]").generate(() => new UncaughtCrashController());
   }
 }

@@ -15,7 +15,7 @@ import '../../helpers.dart';
 
 void main() {
   group("Happy path", () {
-    ModelContext context = null;
+    ManagedContext context = null;
     List<Parent> truth;
     setUpAll(() async {
       context = await contextWithModels([Child, Parent, Toy, Vaccine]);
@@ -203,7 +203,7 @@ void main() {
   });
 
   group("Happy path with predicates", () {
-    ModelContext context = null;
+    ManagedContext context = null;
 
     setUpAll(() async {
       context = await contextWithModels([Child, Parent, Toy, Vaccine]);
@@ -314,7 +314,7 @@ void main() {
   });
 
   group("Sort descriptor impact", () {
-    ModelContext context = null;
+    ManagedContext context = null;
     List<Parent> truth;
 
     setUpAll(() async {
@@ -331,7 +331,7 @@ void main() {
           ..matchOn.children.includeInResultSet = true
           ..matchOn.children.matchOn.toy.includeInResultSet = true
           ..matchOn.children.matchOn.vaccinations.includeInResultSet = true
-          ..sortDescriptors = [new SortDescriptor("name", SortOrder.descending)];
+          ..sortDescriptors = [new QuerySortDescriptor("name", QuerySortOrder.descending)];
       var results = await q.fetch();
 
       var originalIterator = truth.reversed.iterator;
@@ -362,7 +362,7 @@ void main() {
   });
 
   group("Offhand assumptions about data", () {
-    ModelContext context = null;
+    ManagedContext context = null;
 
     setUpAll(() async {
       context = await contextWithModels([Child, Parent, Toy, Vaccine]);
@@ -386,7 +386,7 @@ void main() {
   });
 
   group("Bad usage cases", () {
-    ModelContext context = null;
+    ManagedContext context = null;
 
     setUpAll(() async {
       context = await contextWithModels([Child, Parent, Toy, Vaccine]);
@@ -456,43 +456,43 @@ void main() {
   });
 }
 
-class Parent extends Model<_Parent> implements _Parent {}
+class Parent extends ManagedObject<_Parent> implements _Parent {}
 class _Parent {
-  @primaryKey int id;
+  @managedPrimaryKey int id;
   String name;
 
-  OrderedSet<Child> children;
+  ManagedSet<Child> children;
 }
 
-class Child extends Model<_Child> implements _Child {}
+class Child extends ManagedObject<_Child> implements _Child {}
 class _Child {
-  @primaryKey int id;
+  @managedPrimaryKey int id;
   String name;
 
-  @RelationshipInverse(#children)
+  @ManagedRelationship(#children)
   Parent parent;
 
   Toy toy;
 
-  OrderedSet<Vaccine> vaccinations;
+  ManagedSet<Vaccine> vaccinations;
 }
 
-class Toy extends Model<_Toy> implements _Toy {}
+class Toy extends ManagedObject<_Toy> implements _Toy {}
 class _Toy {
-  @primaryKey int id;
+  @managedPrimaryKey int id;
 
   String name;
 
-  @RelationshipInverse(#toy)
+  @ManagedRelationship(#toy)
   Child child;
 }
 
-class Vaccine extends Model<_Vaccine> implements _Vaccine {}
+class Vaccine extends ManagedObject<_Vaccine> implements _Vaccine {}
 class _Vaccine {
-  @primaryKey int id;
+  @managedPrimaryKey int id;
   String kind;
 
-  @RelationshipInverse(#vaccinations)
+  @ManagedRelationship(#vaccinations)
   Child child;
 }
 
@@ -501,11 +501,11 @@ Future<List<Parent>> populate() async {
   var parents = [
     new Parent()
       ..name = "A"
-      ..children = new OrderedSet<Child>.from([
+      ..children = new ManagedSet<Child>.from([
         new Child()
           ..name = "C1"
           ..toy = (new Toy()..name = "T1")
-          ..vaccinations = (new OrderedSet<Vaccine>.from([
+          ..vaccinations = (new ManagedSet<Vaccine>.from([
             new Vaccine()..kind = "V1",
             new Vaccine()..kind = "V2",
           ])),
@@ -515,10 +515,10 @@ Future<List<Parent>> populate() async {
       ]),
     new Parent()
       ..name = "B"
-      ..children = new OrderedSet<Child>.from([
+      ..children = new ManagedSet<Child>.from([
         new Child()
           ..name = "C3"
-          ..vaccinations = (new OrderedSet<Vaccine>.from([
+          ..vaccinations = (new ManagedSet<Vaccine>.from([
             new Vaccine()..kind = "V3"
           ])),
         new Child()
@@ -527,7 +527,7 @@ Future<List<Parent>> populate() async {
 
     new Parent()
       ..name = "C"
-      ..children = new OrderedSet<Child>.from([
+      ..children = new ManagedSet<Child>.from([
         new Child()..name = "C5"
       ]),
 
@@ -541,7 +541,7 @@ Future<List<Parent>> populate() async {
     var insertedParent = await q.insert();
     modelGraph.add(insertedParent);
 
-    insertedParent.children = new OrderedSet<Child>();
+    insertedParent.children = new ManagedSet<Child>();
     for (var child in p.children ?? <Child>[]) {
       var childQ = new Query<Child>()
         ..values.name = child.name
@@ -556,7 +556,7 @@ Future<List<Parent>> populate() async {
       }
 
       if (child.vaccinations != null) {
-        insertedParent.children.last.vaccinations = new OrderedSet<Vaccine>.from(await Future.wait(child.vaccinations.map((v) {
+        insertedParent.children.last.vaccinations = new ManagedSet<Vaccine>.from(await Future.wait(child.vaccinations.map((v) {
           var vQ = new Query<Vaccine>()
             ..values.kind = v.kind
             ..values.child = insertedParent.children.last;

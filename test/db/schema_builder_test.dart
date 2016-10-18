@@ -5,7 +5,7 @@ void main() {
   group("Alterations", () {
     SchemaBuilder builder;
     setUp(() {
-      var dataModel = new DataModel([LoadedSingleItem, DefaultItem, LoadedItem, Container]);
+      var dataModel = new ManagedDataModel([LoadedSingleItem, DefaultItem, LoadedItem, Container]);
       Schema baseSchema = new Schema.fromDataModel(dataModel);
       builder = new SchemaBuilder(null, baseSchema);
     });
@@ -45,20 +45,20 @@ void main() {
     });
 
     test("Adding column", () {
-      builder.addColumn("_DefaultItem", new SchemaColumn("col1", PropertyType.integer));
-      builder.addColumn("_defaultITEM", new SchemaColumn("col2", PropertyType.integer));
+      builder.addColumn("_DefaultItem", new SchemaColumn("col1", ManagedPropertyType.integer));
+      builder.addColumn("_defaultITEM", new SchemaColumn("col2", ManagedPropertyType.integer));
       expect(builder.schema.tableForName("_DefaultItem").columns.firstWhere((sc) => sc.name == "col1"), isNotNull);
       expect(builder.schema.tableForName("_DefaultItem").columns.firstWhere((sc) => sc.name == "col2"), isNotNull);
 
       try {
-        builder.addColumn("_DefaultItem", new SchemaColumn("col1", PropertyType.integer));
+        builder.addColumn("_DefaultItem", new SchemaColumn("col1", ManagedPropertyType.integer));
         expect(true, false);
       } on SchemaException catch (e) {
         expect(e.message, contains("already exists"));
       }
 
       try {
-        builder.addColumn("foobar", new SchemaColumn("col3", PropertyType.integer));
+        builder.addColumn("foobar", new SchemaColumn("col3", ManagedPropertyType.integer));
         expect(true, false);
       } on SchemaException catch (e) {
         expect(e.message, contains("does not exist"));
@@ -109,7 +109,7 @@ void main() {
       // This also tests case sensitivity
       try {
         builder.alterColumn("_defaultITEM", "id", (c) {
-          c.type = PropertyType.boolean;
+          c.type = ManagedPropertyType.boolean;
         });
         expect(true, false);
       } on SchemaException catch (e) {
@@ -157,90 +157,90 @@ void main() {
         c.isNullable = true;
         c.isUnique = true;
         c.defaultValue = "'bar'";
-        c.deleteRule = RelationshipDeleteRule.setDefault;
+        c.deleteRule = ManagedRelationshipDeleteRule.setDefault;
       }, unencodedInitialValue: "'foo'");
 
       expect(builder.schema.tableForName("_LoadedItem").columnForName("someIndexedThing").isIndexed, false);
       expect(builder.schema.tableForName("_LoadedItem").columnForName("someIndexedThing").isNullable, true);
       expect(builder.schema.tableForName("_LoadedItem").columnForName("someIndexedThing").isUnique, true);
       expect(builder.schema.tableForName("_LoadedItem").columnForName("someIndexedThing").defaultValue, "'bar'");
-      expect(builder.schema.tableForName("_LoadedItem").columnForName("someIndexedThing").deleteRule, RelationshipDeleteRule.setDefault);
+      expect(builder.schema.tableForName("_LoadedItem").columnForName("someIndexedThing").deleteRule, ManagedRelationshipDeleteRule.setDefault);
     });
   });
 }
 
-class Container extends Model<_Container> implements _Container {}
+class Container extends ManagedObject<_Container> implements _Container {}
 class _Container {
-  @primaryKey
+  @managedPrimaryKey
   int id;
 
-  OrderedSet<DefaultItem> defaultItems;
-  OrderedSet<LoadedItem> loadedItems;
+  ManagedSet<DefaultItem> defaultItems;
+  ManagedSet<LoadedItem> loadedItems;
 }
 
-class DefaultItem extends Model<_DefaultItem> implements _DefaultItem {}
+class DefaultItem extends ManagedObject<_DefaultItem> implements _DefaultItem {}
 class _DefaultItem {
-  @primaryKey
+  @managedPrimaryKey
   int id;
 
-  @RelationshipInverse(#defaultItems)
+  @ManagedRelationship(#defaultItems)
   Container container;
 }
 
-class LoadedItem extends Model<_LoadedItem> {}
+class LoadedItem extends ManagedObject<_LoadedItem> {}
 class _LoadedItem {
-  @primaryKey
+  @managedPrimaryKey
   int id;
 
-  @ColumnAttributes(indexed: true)
+  @ManagedColumnAttributes(indexed: true)
   String someIndexedThing;
 
-  @RelationshipInverse(#loadedItems, onDelete: RelationshipDeleteRule.restrict, isRequired: false)
+  @ManagedRelationship(#loadedItems, onDelete: ManagedRelationshipDeleteRule.restrict, isRequired: false)
   Container container;
 
   LoadedSingleItem loadedSingleItem;
 }
 
-class LoadedSingleItem extends Model<_LoadedSingleItem> {}
+class LoadedSingleItem extends ManagedObject<_LoadedSingleItem> {}
 class _LoadedSingleItem {
-  @primaryKey
+  @managedPrimaryKey
   int id;
 
-  @RelationshipInverse(#loadedSingleItem, onDelete: RelationshipDeleteRule.cascade, isRequired: true)
+  @ManagedRelationship(#loadedSingleItem, onDelete: ManagedRelationshipDeleteRule.cascade, isRequired: true)
   LoadedItem loadedItem;
 }
 
-class SimpleModel extends Model<_SimpleModel> implements _SimpleModel {}
+class SimpleModel extends ManagedObject<_SimpleModel> implements _SimpleModel {}
 class _SimpleModel {
-  @primaryKey
+  @managedPrimaryKey
   int id;
 }
 
-class ExtensiveModel extends Model<_ExtensiveModel> implements _ExtensiveModel {
-  @transientAttribute
+class ExtensiveModel extends ManagedObject<_ExtensiveModel> implements _ExtensiveModel {
+  @managedTransientAttribute
   String transientProperty;
 }
 class _ExtensiveModel {
-  @ColumnAttributes(primaryKey: true, databaseType: PropertyType.string)
+  @ManagedColumnAttributes(primaryKey: true, databaseType: ManagedPropertyType.string)
   String id;
 
   DateTime startDate;
 
-  @ColumnAttributes(indexed: true)
+  @ManagedColumnAttributes(indexed: true)
   int indexedValue;
 
-  @ColumnAttributes(autoincrement: true)
+  @ManagedColumnAttributes(autoincrement: true)
   int autoincrementValue;
 
-  @ColumnAttributes(unique: true)
+  @ManagedColumnAttributes(unique: true)
   String uniqueValue;
 
-  @ColumnAttributes(defaultValue: "'foo'")
+  @ManagedColumnAttributes(defaultValue: "'foo'")
   String defaultItem;
 
-  @ColumnAttributes(nullable: true)
+  @ManagedColumnAttributes(nullable: true)
   bool nullableValue;
 
-  @ColumnAttributes(databaseType: PropertyType.bigInteger, nullable: true, defaultValue: "7", unique: true, indexed: true, autoincrement: true)
+  @ManagedColumnAttributes(databaseType: ManagedPropertyType.bigInteger, nullable: true, defaultValue: "7", unique: true, indexed: true, autoincrement: true)
   int loadedValue;
 }

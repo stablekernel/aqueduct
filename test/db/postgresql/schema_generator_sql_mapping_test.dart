@@ -9,7 +9,7 @@ void main() {
     });
 
     test("Property tables generate appropriate postgresql commands", () {
-      var dm = new DataModel([GeneratorModel1]);
+      var dm = new ManagedDataModel([GeneratorModel1]);
       var schema = new Schema.fromDataModel(dm);
       var commands = schema.tables.map((t) => psc.createTable(t)).expand((l) => l).toList();
 
@@ -17,7 +17,7 @@ void main() {
     });
 
     test("Create temporary table", () {
-      var dm = new DataModel([GeneratorModel1]);
+      var dm = new ManagedDataModel([GeneratorModel1]);
       var schema = new Schema.fromDataModel(dm);
       var commands = schema.tables.map((t) => psc.createTable(t, isTemporary: true)).expand((l) => l).toList();
 
@@ -25,7 +25,7 @@ void main() {
     });
 
     test("Create table with indices", () {
-      var dm = new DataModel([GeneratorModel2]);
+      var dm = new ManagedDataModel([GeneratorModel2]);
       var schema = new Schema.fromDataModel(dm);
       var commands = schema.tables.map((t) => psc.createTable(t)).expand((l) => l).toList();
 
@@ -33,7 +33,7 @@ void main() {
     });
 
     test("Create multiple tables with trailing index", () {
-      var dm = new DataModel([GeneratorModel1, GeneratorModel2]);
+      var dm = new ManagedDataModel([GeneratorModel1, GeneratorModel2]);
       var schema = new Schema.fromDataModel(dm);
       var commands = schema.tables.map((t) => psc.createTable(t)).expand((l) => l).toList();
 
@@ -42,7 +42,7 @@ void main() {
     });
 
     test("Default values are properly serialized", () {
-      var dm = new DataModel([GeneratorModel3]);
+      var dm = new ManagedDataModel([GeneratorModel3]);
       var schema = new Schema.fromDataModel(dm);
       var commands = schema.tables.map((t) => psc.createTable(t)).expand((l) => l).toList();
 
@@ -50,7 +50,7 @@ void main() {
     });
 
     test("Table with tableName() overrides class name", () {
-      var dm = new DataModel([GenNamed]);
+      var dm = new ManagedDataModel([GenNamed]);
       var schema = new Schema.fromDataModel(dm);
       var commands = schema.tables.map((t) => psc.createTable(t)).expand((l) => l).toList();
 
@@ -58,7 +58,7 @@ void main() {
     });
 
     test("One-to-one relationships are generated", () {
-      var dm = new DataModel([GenOwner, GenAuth]);
+      var dm = new ManagedDataModel([GenOwner, GenAuth]);
       var schema = new Schema.fromDataModel(dm);
       var cmds = schema.tables.map((t) => psc.createTable(t)).expand((l) => l).toList();
 
@@ -70,7 +70,7 @@ void main() {
     });
 
     test("One-to-many relationships are generated", () {
-      var dm = new DataModel([GenUser, GenPost]);
+      var dm = new ManagedDataModel([GenUser, GenPost]);
       var schema = new Schema.fromDataModel(dm);
       var cmds = schema.tables.map((t) => psc.createTable(t)).expand((l) => l).toList();
 
@@ -82,7 +82,7 @@ void main() {
     });
 
     test("Many-to-many relationships are generated", () {
-      var dm = new DataModel([GenLeft, GenRight, GenJoin]);
+      var dm = new ManagedDataModel([GenLeft, GenRight, GenJoin]);
       var schema = new Schema.fromDataModel(dm);
       var cmds = schema.tables.map((t) => psc.createTable(t)).expand((l) => l).toList();
 
@@ -97,7 +97,7 @@ void main() {
     });
 
     test("Serial types in relationships are properly inversed", () {
-      var dm = new DataModel([GenOwner, GenAuth]);
+      var dm = new ManagedDataModel([GenOwner, GenAuth]);
       var schema = new Schema.fromDataModel(dm);
       var cmds = schema.tables.map((t) => psc.createTable(t)).expand((l) => l).toList();
 
@@ -112,37 +112,37 @@ void main() {
     });
 
     test("Delete table", () {
-      var dm = new DataModel([GeneratorModel1]);
+      var dm = new ManagedDataModel([GeneratorModel1]);
       var schema = new Schema.fromDataModel(dm);
       var cmds = psc.deleteTable(schema.tableForName("_GeneratorModel1"));
       expect(cmds, ["DROP TABLE _GeneratorModel1"]);
     });
 
     test("Add simple column", () {
-      var dm = new DataModel([GeneratorModel1]);
+      var dm = new ManagedDataModel([GeneratorModel1]);
       var schema = new Schema.fromDataModel(dm);
 
-      var propDesc = new AttributeDescription(dm.entityForType(GeneratorModel1), "foobar", PropertyType.integer);
+      var propDesc = new ManagedAttributeDescription(dm.entityForType(GeneratorModel1), "foobar", ManagedPropertyType.integer);
       var cmds = psc.addColumn(schema.tables.first, new SchemaColumn.fromEntity(dm.entityForType(GeneratorModel1), propDesc));
       expect(cmds, ["ALTER TABLE _GeneratorModel1 ADD COLUMN foobar INT NOT NULL"]);
     });
 
     test("Add column with index", () {
-      var dm = new DataModel([GeneratorModel1]);
+      var dm = new ManagedDataModel([GeneratorModel1]);
       var schema = new Schema.fromDataModel(dm);
 
-      var propDesc = new AttributeDescription(dm.entityForType(GeneratorModel1), "foobar", PropertyType.integer, defaultValue: "4", unique: true, indexed: true, nullable: true, autoincrement: true);
+      var propDesc = new ManagedAttributeDescription(dm.entityForType(GeneratorModel1), "foobar", ManagedPropertyType.integer, defaultValue: "4", unique: true, indexed: true, nullable: true, autoincrement: true);
       var cmds = psc.addColumn(schema.tables.first, new SchemaColumn.fromEntity(dm.entityForType(GeneratorModel1), propDesc));
       expect(cmds.first, "ALTER TABLE _GeneratorModel1 ADD COLUMN foobar SERIAL NULL DEFAULT 4 UNIQUE");
       expect(cmds.last, "CREATE INDEX _GeneratorModel1_foobar_idx ON _GeneratorModel1 (foobar)");
     });
 
     test("Add foreign key column (index + constraint)", () {
-      var dm = new DataModel([GeneratorModel1, GeneratorModel2]);
+      var dm = new ManagedDataModel([GeneratorModel1, GeneratorModel2]);
       var schema = new Schema.fromDataModel(dm);
 
-      var propDesc = new RelationshipDescription(dm.entityForType(GeneratorModel1), "foobar", PropertyType.string, dm.entityForType(GeneratorModel2),
-        RelationshipDeleteRule.cascade, RelationshipType.belongsTo, new Symbol(dm.entityForType(GeneratorModel2).primaryKey), indexed: true);
+      var propDesc = new ManagedRelationshipDescription(dm.entityForType(GeneratorModel1), "foobar", ManagedPropertyType.string, dm.entityForType(GeneratorModel2),
+        ManagedRelationshipDeleteRule.cascade, ManagedRelationshipType.belongsTo, new Symbol(dm.entityForType(GeneratorModel2).primaryKey), indexed: true);
       var cmds = psc.addColumn(schema.tables.first, new SchemaColumn.fromEntity(dm.entityForType(GeneratorModel1), propDesc));
       expect(cmds[0], "ALTER TABLE _GeneratorModel1 ADD COLUMN foobar_id TEXT NOT NULL");
       expect(cmds[1], "CREATE INDEX _GeneratorModel1_foobar_id_idx ON _GeneratorModel1 (foobar_id)");
@@ -150,35 +150,35 @@ void main() {
     });
 
     test("Delete column", () {
-      var dm = new DataModel([GeneratorModel1]);
+      var dm = new ManagedDataModel([GeneratorModel1]);
       var schema = new Schema.fromDataModel(dm);
       var cmds = psc.deleteColumn(schema.tables.first, schema.tables.first.columns.last);
       expect(cmds.first, "ALTER TABLE _GeneratorModel1 DROP COLUMN validDate RESTRICT");
     });
 
     test("Delete foreign key column", () {
-      var dm = new DataModel([GenUser, GenPost]);
+      var dm = new ManagedDataModel([GenUser, GenPost]);
       var schema = new Schema.fromDataModel(dm);
       var cmds = psc.deleteColumn(schema.tables.last, schema.tables.last.columns.firstWhere((c) => c.name == "owner"));
       expect(cmds.first, "ALTER TABLE _GenPost DROP COLUMN owner_id CASCADE");
     });
 
     test("Add index to column", () {
-      var dm = new DataModel([GeneratorModel1]);
+      var dm = new ManagedDataModel([GeneratorModel1]);
       var schema = new Schema.fromDataModel(dm);
       var cmds = psc.addIndexToColumn(schema.tables.first, schema.tables.first.columns.last);
       expect(cmds.first, "CREATE INDEX _GeneratorModel1_validDate_idx ON _GeneratorModel1 (validDate)");
     });
 
     test("Remove index from column", () {
-      var dm = new DataModel([GeneratorModel1]);
+      var dm = new ManagedDataModel([GeneratorModel1]);
       var schema = new Schema.fromDataModel(dm);
       var cmds = psc.deleteIndexFromColumn(schema.tables.first, schema.tables.first.columns.last);
       expect(cmds.first, "DROP INDEX _GeneratorModel1_validDate_idx");
     });
 
     test("Alter column change nullabiity", () {
-      var dm = new DataModel([GeneratorModel1]);
+      var dm = new ManagedDataModel([GeneratorModel1]);
       var schema = new Schema.fromDataModel(dm);
       var originalColumn = schema.tables.first.columns.firstWhere((sc) => sc.name == "name");
       expect(originalColumn.isNullable, false);
@@ -203,7 +203,7 @@ void main() {
     });
 
     test("Alter column change uniqueness", () {
-      var dm = new DataModel([GeneratorModel1]);
+      var dm = new ManagedDataModel([GeneratorModel1]);
       var schema = new Schema.fromDataModel(dm);
       var originalColumn = schema.tables.first.columns.firstWhere((sc) => sc.name == "name");
       expect(originalColumn.isUnique, false);
@@ -222,7 +222,7 @@ void main() {
     });
 
     test("Alter column change default value", () {
-      var dm = new DataModel([GeneratorModel1]);
+      var dm = new ManagedDataModel([GeneratorModel1]);
       var schema = new Schema.fromDataModel(dm);
       var originalColumn = schema.tables.first.columns.firstWhere((sc) => sc.name == "name");
       expect(originalColumn.defaultValue, isNull);
@@ -241,16 +241,16 @@ void main() {
     });
 
     test("Alter column change delete rule", () {
-      var dm = new DataModel([GenUser, GenPost]);
+      var dm = new ManagedDataModel([GenUser, GenPost]);
       var schema = new Schema.fromDataModel(dm);
       var postTable = schema.tables.firstWhere((t) => t.name == "_GenPost");
       var originalColumn = postTable.columns.firstWhere((sc) => sc.name == "owner");
-      expect(originalColumn.deleteRule, RelationshipDeleteRule.restrict);
+      expect(originalColumn.deleteRule, ManagedRelationshipDeleteRule.restrict);
 
       var col = new SchemaColumn.from(originalColumn);
 
       // Change delete rule
-      col.deleteRule = RelationshipDeleteRule.nullify;
+      col.deleteRule = ManagedRelationshipDeleteRule.nullify;
       var cmds = psc.alterColumnDeleteRule(postTable, col);
       expect(cmds.first, "ALTER TABLE ONLY _GenPost DROP CONSTRAINT _GenPost_owner_id_fkey");
       expect(cmds.last, "ALTER TABLE ONLY _GenPost ADD FOREIGN KEY (owner_id) REFERENCES _GenUser (id) ON DELETE SET NULL");
@@ -258,79 +258,79 @@ void main() {
   });
 }
 
-class GeneratorModel1 extends Model<_GeneratorModel1> implements _GeneratorModel1 {
-  @transientAttribute
+class GeneratorModel1 extends ManagedObject<_GeneratorModel1> implements _GeneratorModel1 {
+  @managedTransientAttribute
   String foo;
 }
 
 class _GeneratorModel1 {
-  @primaryKey
+  @managedPrimaryKey
   int id;
 
   String name;
 
   bool option;
 
-  @ColumnAttributes(unique: true)
+  @ManagedColumnAttributes(unique: true)
   double points;
 
-  @ColumnAttributes(nullable: true)
+  @ManagedColumnAttributes(nullable: true)
   DateTime validDate;
 }
 
-class GeneratorModel2 extends Model<_GeneratorModel2> implements _GeneratorModel2 {}
+class GeneratorModel2 extends ManagedObject<_GeneratorModel2> implements _GeneratorModel2 {}
 class _GeneratorModel2 {
-  @ColumnAttributes(primaryKey: true, indexed: true)
+  @ManagedColumnAttributes(primaryKey: true, indexed: true)
   int id;
 }
 
-class GeneratorModel3 extends Model<_GeneratorModel3> implements _GeneratorModel3 {}
+class GeneratorModel3 extends ManagedObject<_GeneratorModel3> implements _GeneratorModel3 {}
 class _GeneratorModel3 {
-  @ColumnAttributes(defaultValue: "(now() at time zone 'utc')")
+  @ManagedColumnAttributes(defaultValue: "(now() at time zone 'utc')")
   DateTime creationDate;
 
-  @ColumnAttributes(primaryKey: true, defaultValue: "18")
+  @ManagedColumnAttributes(primaryKey: true, defaultValue: "18")
   int id;
 
-  @ColumnAttributes(defaultValue: "\$\$dflt\$\$")
+  @ManagedColumnAttributes(defaultValue: "\$\$dflt\$\$")
   String textValue;
 
-  @ColumnAttributes(defaultValue: "true")
+  @ManagedColumnAttributes(defaultValue: "true")
   bool option;
 
-  @ColumnAttributes(defaultValue: "'1900-01-01T00:00:00.000Z'")
+  @ManagedColumnAttributes(defaultValue: "'1900-01-01T00:00:00.000Z'")
   DateTime otherTime;
 
-  @ColumnAttributes(defaultValue: "20.0")
+  @ManagedColumnAttributes(defaultValue: "20.0")
   double value;
 }
 
-class GenUser extends Model<_GenUser> implements _GenUser {}
+class GenUser extends ManagedObject<_GenUser> implements _GenUser {}
 
 class _GenUser {
-  @ColumnAttributes(primaryKey: true)
+  @ManagedColumnAttributes(primaryKey: true)
   int id;
 
   String name;
 
-  OrderedSet<GenPost> posts;
+  ManagedSet<GenPost> posts;
 }
 
-class GenPost extends Model<_GenPost> implements _GenPost {}
+class GenPost extends ManagedObject<_GenPost> implements _GenPost {}
 class _GenPost {
-  @ColumnAttributes(primaryKey: true)
+  @ManagedColumnAttributes(primaryKey: true)
   int id;
 
   String text;
 
-  @RelationshipInverse(#posts, isRequired: false, onDelete: RelationshipDeleteRule.restrict)
+  @ManagedRelationship(#posts, isRequired: false, onDelete: ManagedRelationshipDeleteRule.restrict)
   GenUser owner;
 }
 
-class GenNamed extends Model<_GenNamed> implements _GenNamed {}
+class GenNamed extends ManagedObject<_GenNamed> implements _GenNamed {}
 
 class _GenNamed {
-  @ColumnAttributes(primaryKey: true)
+  @ManagedColumnAttributes(primaryKey: true)
   int id;
 
   static String tableName() {
@@ -338,64 +338,64 @@ class _GenNamed {
   }
 }
 
-class GenOwner extends Model<_GenOwner> implements _GenOwner {}
+class GenOwner extends ManagedObject<_GenOwner> implements _GenOwner {}
 class _GenOwner {
-  @primaryKey
+  @managedPrimaryKey
   int id;
 
   GenAuth auth;
 }
 
-class GenAuth extends Model<_GenAuth> implements _GenAuth {}
+class GenAuth extends ManagedObject<_GenAuth> implements _GenAuth {}
 class _GenAuth {
-  @ColumnAttributes(primaryKey: true)
+  @ManagedColumnAttributes(primaryKey: true)
   int id;
 
-  @RelationshipInverse(#auth, isRequired: false, onDelete: RelationshipDeleteRule.cascade)
+  @ManagedRelationship(#auth, isRequired: false, onDelete: ManagedRelationshipDeleteRule.cascade)
   GenOwner owner;
 }
 
-class GenLeft extends Model<_GenLeft> implements _GenLeft {}
+class GenLeft extends ManagedObject<_GenLeft> implements _GenLeft {}
 class _GenLeft {
-  @ColumnAttributes(primaryKey: true)
+  @ManagedColumnAttributes(primaryKey: true)
   int id;
 
-  OrderedSet<GenJoin> join;
+  ManagedSet<GenJoin> join;
 }
 
-class GenRight extends Model<_GenRight> implements _GenRight {}
+class GenRight extends ManagedObject<_GenRight> implements _GenRight {}
 class _GenRight {
-  @ColumnAttributes(primaryKey: true)
+  @ManagedColumnAttributes(primaryKey: true)
   int id;
 
-  OrderedSet<GenJoin> join;
+  ManagedSet<GenJoin> join;
 }
 
-class GenJoin extends Model<_GenJoin> implements _GenJoin {}
+class GenJoin extends ManagedObject<_GenJoin> implements _GenJoin {}
 class _GenJoin {
-  @primaryKey
+  @managedPrimaryKey
   int id;
 
-  @RelationshipInverse(#join)
+  @ManagedRelationship(#join)
   GenLeft left;
 
-  @RelationshipInverse(#join)
+  @ManagedRelationship(#join)
   GenRight right;
 }
 
-class GenObj extends Model<_GenObj> implements _GenObj {}
+class GenObj extends ManagedObject<_GenObj> implements _GenObj {}
 class _GenObj {
-  @primaryKey
+  @managedPrimaryKey
   int id;
 
   GenNotNullable gen;
 }
 
-class GenNotNullable extends Model<_GenNotNullable> implements _GenNotNullable {}
+class GenNotNullable extends ManagedObject<_GenNotNullable> implements _GenNotNullable {}
 class _GenNotNullable {
-  @primaryKey
+  @managedPrimaryKey
   int id;
 
-  @RelationshipInverse(#gen, onDelete: RelationshipDeleteRule.nullify, isRequired: false)
+  @ManagedRelationship(#gen, onDelete: ManagedRelationshipDeleteRule.nullify, isRequired: false)
   GenObj ref;
 }

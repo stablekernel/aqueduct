@@ -1,14 +1,14 @@
 part of wildfire;
 
-class AuthCode extends Model<_AuthCode> implements _AuthCode {}
-class _AuthCode implements TokenExchangable<Token> {
-  @primaryKey
+class AuthCode extends ManagedObject<_AuthCode> implements _AuthCode {}
+class _AuthCode implements AuthTokenExchangable<Token> {
+  @managedPrimaryKey
   int id;
 
-  @ColumnAttributes(indexed: true)
+  @ManagedColumnAttributes(indexed: true)
   String code;
 
-  @ColumnAttributes(nullable: true)
+  @ManagedColumnAttributes(nullable: true)
   String redirectURI;
 
   String clientID;
@@ -16,11 +16,11 @@ class _AuthCode implements TokenExchangable<Token> {
   DateTime issueDate;
   DateTime expirationDate;
 
-  @RelationshipInverse(#code, isRequired: false, onDelete: RelationshipDeleteRule.cascade)
+  @ManagedRelationship(#code, isRequired: false, onDelete: ManagedRelationshipDeleteRule.cascade)
   Token token;
 }
 
-class Token extends Model<_Token> implements _Token, Tokenizable<int> {
+class Token extends ManagedObject<_Token> implements _Token, AuthTokenizable<int> {
   String get clientID => client.id;
   void set clientID(cid) {
     client = new ClientRecord()..id = cid;
@@ -32,16 +32,16 @@ class Token extends Model<_Token> implements _Token, Tokenizable<int> {
   }
 }
 class _Token {
-  @ColumnAttributes(primaryKey: true)
+  @ManagedColumnAttributes(primaryKey: true)
   String accessToken;
 
-  @ColumnAttributes(indexed: true)
+  @ManagedColumnAttributes(indexed: true)
   String refreshToken;
 
-  @RelationshipInverse(#tokens, onDelete: RelationshipDeleteRule.cascade)
+  @ManagedRelationship(#tokens, onDelete: ManagedRelationshipDeleteRule.cascade)
   ClientRecord client;
 
-  @RelationshipInverse(#tokens, onDelete: RelationshipDeleteRule.cascade)
+  @ManagedRelationship(#tokens, onDelete: ManagedRelationshipDeleteRule.cascade)
   User owner;
 
   AuthCode code;
@@ -51,12 +51,12 @@ class _Token {
   String type;
 }
 
-class ClientRecord extends Model<_Client> implements _Client {}
+class ClientRecord extends ManagedObject<_Client> implements _Client {}
 class _Client {
-  @ColumnAttributes(primaryKey: true)
+  @ManagedColumnAttributes(primaryKey: true)
   String id;
 
-  OrderedSet<Token> tokens;
+  ManagedSet<Token> tokens;
 
   String hashedPassword;
   String salt;

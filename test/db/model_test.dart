@@ -5,8 +5,8 @@ import '../helpers.dart';
 
 void main() {
   var ps = new DefaultPersistentStore();
-  DataModel dm = new DataModel([TransientTest, User, Post]);
-  ModelContext _ = new ModelContext(dm, ps);
+  ManagedDataModel dm = new ManagedDataModel([TransientTest, User, Post]);
+  ManagedContext _ = new ManagedContext(dm, ps);
 
   test("NoSuchMethod still throws", () {
     var user = new User();
@@ -34,14 +34,14 @@ void main() {
       reflect(user).setField(#name, 1);
 
       expect(true, false);
-    } on DataModelException catch (e) {
-      expect(e.message, "Type mismatch for property name on _User, expected assignable type matching PropertyType.string but got _Smi.");
+    } on ManagedDataModelException catch (e) {
+      expect(e.message, "Type mismatch for property name on _User, expected assignable type matching ManagedPropertyType.string but got _Smi.");
     }
 
     try {
       reflect(user).setField(#id, "foo");
-    } on DataModelException catch (e) {
-      expect(e.message, "Type mismatch for property id on _User, expected assignable type matching PropertyType.integer but got _OneByteString.");
+    } on ManagedDataModelException catch (e) {
+      expect(e.message, "Type mismatch for property id on _User, expected assignable type matching ManagedPropertyType.integer but got _OneByteString.");
     }
   });
 
@@ -56,14 +56,14 @@ void main() {
     try {
       reflect(user).getField(#foo);
       expect(true, false);
-    } on DataModelException catch (e) {
+    } on ManagedDataModelException catch (e) {
       expect(e.message, "Model type User has no property foo.");
     }
 
     try {
       reflect(user).setField(#foo, "hey");
       expect(true, false);
-    } on DataModelException catch (e) {
+    } on ManagedDataModelException catch (e) {
       expect(e.message, "Model type User has no property foo.");
     }
   });
@@ -87,7 +87,7 @@ void main() {
         ..owner = user,
     ];
 
-    user.posts = new OrderedSet.from(posts);
+    user.posts = new ManagedSet.from(posts);
 
     expect(user.posts.length, 3);
     expect(user.posts.first.owner, user);
@@ -112,7 +112,7 @@ void main() {
         ..text = "C"
         ..id = 3,
     ];
-    user.posts = new OrderedSet.from(posts);
+    user.posts = new ManagedSet.from(posts);
 
     var m = user.asMap();
     expect(m is Map, true);
@@ -396,91 +396,91 @@ void main() {
   });
 }
 
-class User extends Model<_User> implements _User {
-  @transientAttribute
+class User extends ManagedObject<_User> implements _User {
+  @managedTransientAttribute
   String value;
 }
 
 class _User {
-  @ColumnAttributes(nullable: true)
+  @ManagedColumnAttributes(nullable: true)
   String name;
 
-  @ColumnAttributes(primaryKey: true)
+  @ManagedColumnAttributes(primaryKey: true)
   int id;
 
   DateTime dateCreated;
 
-  OrderedSet<Post> posts;
+  ManagedSet<Post> posts;
 }
 
-class Post extends Model<_Post> implements _Post {}
+class Post extends ManagedObject<_Post> implements _Post {}
 class _Post {
-  @primaryKey
+  @managedPrimaryKey
   int id;
 
   String text;
 
-  @RelationshipInverse(#posts)
+  @ManagedRelationship(#posts)
   User owner;
 }
 
-class TransientTest extends Model<_TransientTest> implements _TransientTest {
+class TransientTest extends ManagedObject<_TransientTest> implements _TransientTest {
   String notAnAttribute;
 
-  @transientOutputAttribute
+  @managedTransientOutputAttribute
   String get defaultedText => "Mr. $text";
 
-  @transientInputAttribute
+  @managedTransientInputAttribute
   void set defaultedText(String str) {
     text = str.split(" ").last;
   }
 
-  @transientInputAttribute
+  @managedTransientInputAttribute
   void set inputOnly(String s) {
     text = s;
   }
 
-  @transientOutputAttribute
+  @managedTransientOutputAttribute
   String get outputOnly => text;
   void set outputOnly(String s) {
     text = s;
   }
 
   // This is intentionally invalid
-  @transientInputAttribute
+  @managedTransientInputAttribute
   String get invalidInput => text;
 
   // This is intentionally invalid
-  @transientOutputAttribute
+  @managedTransientOutputAttribute
   void set invalidOutput(String s) {
     text = s;
   }
 
-  @transientAttribute
+  @managedTransientAttribute
   String get bothButOnlyOnOne => text;
   void set bothButOnlyOnOne(String s) {
     text = s;
   }
 
-  @transientInputAttribute
+  @managedTransientInputAttribute
   int inputInt;
 
-  @transientOutputAttribute
+  @managedTransientOutputAttribute
   int outputInt;
 
-  @transientAttribute
+  @managedTransientAttribute
   int inOut;
 
-  @transientAttribute
+  @managedTransientAttribute
   String get bothOverQualified => text;
-  @transientAttribute
+  @managedTransientAttribute
   void set bothOverQualified(String s) {
     text = s;
   }
 }
 
 class _TransientTest {
-  @primaryKey
+  @managedPrimaryKey
   int id;
 
   String text;

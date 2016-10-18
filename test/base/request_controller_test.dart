@@ -142,7 +142,7 @@ void main() {
   });
 }
 
-class SomeObject implements Serializable {
+class SomeObject implements HTTPSerializable {
   String name;
 
   Map<String, dynamic> asSerializable() {

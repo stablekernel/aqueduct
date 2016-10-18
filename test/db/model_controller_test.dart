@@ -6,12 +6,12 @@ import 'dart:convert';
 import '../helpers.dart';
 
 main() {
-  ModelContext context = null;
+  ManagedContext context = null;
   HttpServer server = null;
 
   setUpAll(() async {
     context = await contextWithModels([TestModel]);
-    ModelContext.defaultContext = context;
+    ManagedContext.defaultContext = context;
 
     server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8080);
     var router = new Router();
@@ -58,7 +58,7 @@ main() {
 
 }
 
-class TestModelController extends ModelController<TestModel> {
+class TestModelController extends QueryController<TestModel> {
   TestModelController() : super();
 
   @httpGet getAll() async {
@@ -143,9 +143,9 @@ class TestModelController extends ModelController<TestModel> {
   }
 }
 
-class TestModel extends Model<_TestModel> implements _TestModel {}
+class TestModel extends ManagedObject<_TestModel> implements _TestModel {}
 class _TestModel {
-  @ColumnAttributes(primaryKey: true)
+  @ManagedColumnAttributes(primaryKey: true)
   int id;
 
   String name;

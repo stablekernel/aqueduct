@@ -421,31 +421,31 @@ main() {
 
 }
 
-class TestSink extends RequestSink implements AuthenticationServerDelegate<TestUser, Token, AuthCode> {
+class TestSink extends RequestSink implements AuthServerDelegate<TestUser, Token, AuthCode> {
   TestSink(Map<String, dynamic> opts) : super(opts) {
-    authServer = new AuthenticationServer<TestUser, Token, AuthCode>(this);
+    authServer = new AuthServer<TestUser, Token, AuthCode>(this);
   }
 
-  AuthenticationServer<TestUser, Token, AuthCode> authServer;
+  AuthServer<TestUser, Token, AuthCode> authServer;
 
-  void addRoutes() {
-    router.route("/auth/code").pipe(new Authenticator(authServer, strategy: AuthenticationStrategy.client)).generate(() => new AuthCodeController(authServer));
-    router.route("/auth/token").pipe(new Authenticator(authServer, strategy: AuthenticationStrategy.client)).generate(() => new AuthController(authServer));
-    router.route("/t[/:id[/:notID]]").pipe(new Authenticator(authServer)).generate(() => new TController());
+  void setupRouter(Router router) {
+    router.route("/auth/code").pipe(new Authorizer(authServer, strategy: AuthStrategy.client)).generate(() => new AuthCodeController(authServer));
+    router.route("/auth/token").pipe(new Authorizer(authServer, strategy: AuthStrategy.client)).generate(() => new AuthController(authServer));
+    router.route("/t[/:id[/:notID]]").pipe(new Authorizer(authServer)).generate(() => new TController());
   }
 
-  Future<Token> tokenForAccessToken(AuthenticationServer server, String accessToken) => null;
-  Future<Token> tokenForRefreshToken(AuthenticationServer server, String refreshToken) => null;
-  Future<TestUser> authenticatableForUsername(AuthenticationServer server, String username) => null;
-  Future<TestUser> authenticatableForID(AuthenticationServer server, dynamic id) => null;
-  Future<Client> clientForID(AuthenticationServer server, String id) => null;
-  Future deleteTokenForRefreshToken(AuthenticationServer server, String refreshToken) => null;
-  Future<Token> storeToken(AuthenticationServer server, dynamic t) => null;
-  Future updateToken(AuthenticationServer server, dynamic t) => null;
-  Future<AuthCode> storeAuthCode(AuthenticationServer server, dynamic ac) => null;
-  Future updateAuthCode(AuthenticationServer server, dynamic ac) => null;
-  Future deleteAuthCode(AuthenticationServer server, dynamic ac) => null;
-  Future<AuthCode> authCodeForCode(AuthenticationServer server, String code) => null;
+  Future<Token> tokenForAccessToken(AuthServer server, String accessToken) => null;
+  Future<Token> tokenForRefreshToken(AuthServer server, String refreshToken) => null;
+  Future<TestUser> authenticatableForUsername(AuthServer server, String username) => null;
+  Future<TestUser> authenticatableForID(AuthServer server, dynamic id) => null;
+  Future<AuthClient> clientForID(AuthServer server, String id) => null;
+  Future deleteTokenForRefreshToken(AuthServer server, String refreshToken) => null;
+  Future<Token> storeToken(AuthServer server, dynamic t) => null;
+  Future updateToken(AuthServer server, dynamic t) => null;
+  Future<AuthCode> storeAuthCode(AuthServer server, dynamic ac) => null;
+  Future updateAuthCode(AuthServer server, dynamic ac) => null;
+  Future deleteAuthCode(AuthServer server, dynamic ac) => null;
+  Future<AuthCode> authCodeForCode(AuthServer server, String code) => null;
 
   Map<String, APISecurityScheme> documentSecuritySchemes(PackagePathResolver resolver) {
     return authServer.documentSecuritySchemes(resolver);

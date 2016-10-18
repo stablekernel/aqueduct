@@ -3,7 +3,7 @@ part of wildfire;
 class IdentityController extends HTTPController {
   @httpGet getIdentity() async {
     var q = new Query<User>()
-      ..matchOn.id = request.permission.resourceOwnerIdentifier;
+      ..matchOn.id = request.authorization.resourceOwnerIdentifier;
     
     var u = await q.fetchOne();
     if (u == null) {

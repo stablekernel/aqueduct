@@ -201,25 +201,25 @@ void main() {
   });
 }
 
-class CORSSink extends RequestSink implements AuthenticationServerDelegate<AuthImpl, TokenImpl, AuthCodeImpl> {
+class CORSSink extends RequestSink implements AuthServerDelegate<AuthImpl, TokenImpl, AuthCodeImpl> {
   CORSSink(Map<String, dynamic> opts) : super(opts) {
-    authServer = new AuthenticationServer<AuthImpl, TokenImpl, AuthCodeImpl>(this);
+    authServer = new AuthServer<AuthImpl, TokenImpl, AuthCodeImpl>(this);
   }
 
-  AuthenticationServer<AuthImpl, TokenImpl, AuthCodeImpl> authServer;
+  AuthServer<AuthImpl, TokenImpl, AuthCodeImpl> authServer;
 
-  void addRoutes() {
+  void setupRouter(Router router) {
     router.route("/nopolicy").generate(() => new NoPolicyController());
     router.route("/defaultpolicy").generate(() => new DefaultPolicyController());
     router.route("/nopolicyauth")
-        .pipe(new Authenticator(authServer))
+        .pipe(new Authorizer(authServer))
         .generate(() => new NoPolicyController());
     router.route("/defaultpolicyauth")
-        .pipe(new Authenticator(authServer))
+        .pipe(new Authorizer(authServer))
         .generate(() => new DefaultPolicyController());
   }
 
-  Future<TokenImpl> tokenForAccessToken(AuthenticationServer server, String accessToken) async {
+  Future<TokenImpl> tokenForAccessToken(AuthServer server, String accessToken) async {
     if (accessToken == "noauth") {
       return null;
     }
@@ -233,7 +233,7 @@ class CORSSink extends RequestSink implements AuthenticationServerDelegate<AuthI
       ..expirationDate = new DateTime(10000)
       ..type = "password";
   }
-  Future<TokenImpl> tokenForRefreshToken(AuthenticationServer server, String refreshToken) async {
+  Future<TokenImpl> tokenForRefreshToken(AuthServer server, String refreshToken) async {
     if (refreshToken == "noauth") {
       return null;
     }
@@ -245,35 +245,35 @@ class CORSSink extends RequestSink implements AuthenticationServerDelegate<AuthI
       ..resourceOwnerIdentifier = "access"
       ..type = "password";
   }
-  Future<AuthImpl> authenticatableForUsername(AuthenticationServer server, String username) async {
+  Future<AuthImpl> authenticatableForUsername(AuthServer server, String username) async {
     return new AuthImpl()
       ..username = "access"
       ..id = "access";
   }
-  Future<AuthImpl> authenticatableForID(AuthenticationServer server, dynamic id) async {
+  Future<AuthImpl> authenticatableForID(AuthServer server, dynamic id) async {
     return new AuthImpl()
       ..username = "access"
       ..id = "access";
   }
 
-  Future<Client> clientForID(AuthenticationServer server, String id) async {
+  Future<AuthClient> clientForID(AuthServer server, String id) async {
     if (id == "noauth") {
       return null;
     }
 
-    var salt = AuthenticationServer.generateRandomSalt();
-    var password = AuthenticationServer.generatePasswordHash("access", salt);
+    var salt = AuthServer.generateRandomSalt();
+    var password = AuthServer.generatePasswordHash("access", salt);
 
-    return new Client("access", password, salt);
+    return new AuthClient("access", password, salt);
   }
 
-  Future deleteTokenForRefreshToken(AuthenticationServer server, String refreshToken) async {}
-  Future<TokenImpl> storeToken(AuthenticationServer server, TokenImpl t) async => null;
-  Future updateToken(AuthenticationServer server, TokenImpl t) async {}
-  Future<AuthCodeImpl> storeAuthCode(AuthenticationServer server, AuthCodeImpl ac) async => null;
-  Future updateAuthCode(AuthenticationServer server, AuthCodeImpl ac) async {}
-  Future deleteAuthCode(AuthenticationServer server, AuthCodeImpl ac) async {}
-  Future<AuthCodeImpl> authCodeForCode(AuthenticationServer server, String authCode) async {
+  Future deleteTokenForRefreshToken(AuthServer server, String refreshToken) async {}
+  Future<TokenImpl> storeToken(AuthServer server, TokenImpl t) async => null;
+  Future updateToken(AuthServer server, TokenImpl t) async {}
+  Future<AuthCodeImpl> storeAuthCode(AuthServer server, AuthCodeImpl ac) async => null;
+  Future updateAuthCode(AuthServer server, AuthCodeImpl ac) async {}
+  Future deleteAuthCode(AuthServer server, AuthCodeImpl ac) async {}
+  Future<AuthCodeImpl> authCodeForCode(AuthServer server, String authCode) async {
     return new AuthCodeImpl()
         ..code = authCode
         ..expirationDate = new DateTime.now().add(new Duration(minutes: 10));
@@ -286,7 +286,7 @@ class AuthImpl implements Authenticatable {
   dynamic id;
 }
 
-class TokenImpl implements Tokenizable {
+class TokenImpl implements AuthTokenizable {
   String accessToken;
   String refreshToken;
   DateTime issueDate;
@@ -296,7 +296,7 @@ class TokenImpl implements Tokenizable {
   String clientID;
 }
 
-class AuthCodeImpl implements TokenExchangable<TokenImpl> {
+class AuthCodeImpl implements AuthTokenExchangable<TokenImpl> {
   String redirectURI;
   String code;
   String clientID;
