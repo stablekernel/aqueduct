@@ -63,7 +63,12 @@ class PostgreSQLPersistentStore extends PersistentStore with _PostgreSQLSchemaGe
     this.connectFunction = () async {
       logger.info("PostgreSQL connecting, $username@$host:$port/$databaseName.");
       var connection = new PostgreSQLConnection(host, port, databaseName, username: username, password: password, timeZone: timeZone);
-      await connection.open();
+      try {
+        await connection.open();
+      } catch (e) {
+        await connection?.close();
+        rethrow;
+      }
       return connection;
     };
   }

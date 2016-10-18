@@ -6,6 +6,7 @@ Future<int> main(List<String> args) async {
   var templateCreator = new CLITemplateCreator();
   var migrationRunner = new CLIMigrationRunner();
   var setupCommand = new CLISetup();
+
   var totalParser = new ArgParser(allowTrailingOptions: true)
     ..addCommand("create", templateCreator.options)
     ..addCommand("db", migrationRunner.options)

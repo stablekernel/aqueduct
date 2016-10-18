@@ -18,21 +18,26 @@ class CLITemplateCreator extends CLICommand {
       return 0;
     }
 
+    if (argValues["name"] == null) {
+      print("No project name specified.\n\n${options.usage}");
+      return -1;
+    }
+
     if (argValues["name"] == null || !isSnakeCase(argValues["name"])) {
-      print("Invalid project name\n\n${options.usage}");
+      print("Invalid project name ${argValues["name"]} is not snake_case).\n\n${options.usage}");
       return -1;
     }
 
     var destDirectory = destinationDirectoryFromPath(argValues["name"]);
     if (destDirectory.existsSync()) {
-      print("${destDirectory.path} already exists.");
+      print("${destDirectory.path} already exists, stopping.");
       return -1;
     }
     destDirectory.createSync();
 
     var aqueductVersion = aqueductDependencyString(versionString: argValues["version"], gitHost: argValues["git-url"], gitRef: argValues["git-ref"], path: argValues["path-source"]);
 
-    print("Fetching template source...");
+    print("Fetching Aqueduct as:\n  $aqueductVersion");
     var aqueductPath = await determineAqueductPath(destDirectory, aqueductVersion);
     var sourceDirectory = new Directory("${aqueductPath}/example/templates/${argValues["template"]}");
 
@@ -44,24 +49,26 @@ class CLITemplateCreator extends CLICommand {
       return -1;
     }
 
-    print("Copying project files...");
+    print("");
+    print("Copying template files...");
     await copyProjectFiles(destDirectory, sourceDirectory, argValues["name"]);
 
     print("Generating project files...");
     await createProjectSpecificFiles(destDirectory.path, aqueductVersion);
 
-    print("Fetching dependencies...");
+    print("Fetching project dependencies...");
     Process.runSync("pub", ["get", "--no-packages-dir"], workingDirectory: destDirectory.path);
 
-    print("${argValues["name"]} created at ${destDirectory.path}");
-    print("Make sure to follow the instructions in ${destDirectory.path}/README.md to be able to run your project!");
+    print("");
+    print("New project ${argValues["name"]} created at ${destDirectory.path}");
+    print("See ${destDirectory.path}/README.md.");
 
     return 0;
   }
 
 
   String determineAqueductPath(Directory projectDirectory, String aqueductVersion) {
-    print("Determining Aqueduct version...");
+    print("Determining Aqueduct template source...");
     var temporaryPubspec = generatingPubspec(aqueductVersion);
 
     new File(projectDirectory.path + "/pubspec.yaml").writeAsStringSync(temporaryPubspec);
@@ -77,8 +84,9 @@ class CLITemplateCreator extends CLICommand {
     new File(projectDirectory.path + "/.packages").deleteSync();
 
     var lastLibIndex = resolvedURL.lastIndexOf("/lib");
-    print("Using source from: ${resolvedURL}");
-    return resolvedURL.substring(0, lastLibIndex);
+    var path = resolvedURL.substring(0, lastLibIndex);
+    print("\tUsing template source from: ${path}.");
+    return path;
   }
 
   bool shouldIncludeItem(FileSystemEntity entity) {
@@ -181,10 +189,6 @@ class CLITemplateCreator extends CLICommand {
   Future createProjectSpecificFiles(String directoryPath, String aqueductVersion) async {
     var configSrcPath = new File(directoryPath + "/config.yaml.src");
     configSrcPath.copySync(new File(directoryPath + "/config.yaml").path);
-
-    var pubspecContents = new File(directoryPath + "/pubspec.yaml").readAsStringSync();
-    pubspecContents = pubspecContents.replaceFirst("aqueduct: any", aqueductVersion);
-    new File(directoryPath + "/pubspec.yaml").writeAsStringSync(pubspecContents);
   }
 
   void copyProjectFiles(Directory destinationDirectory, Directory sourceDirectory, String projectName) {
