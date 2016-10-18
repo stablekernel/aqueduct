@@ -190,12 +190,12 @@ So far, we've added a route that matches the constant string `/questions`. Route
 In `quiz.dart`, modify the code in the `QuizRequestSink.setupRouter` by adding "/[:index]" to the route.
 
 ```dart
-@override
-void setupRouter(Router router) {
-   router
-	   .route("/questions/[:index]")
-	   .generate(() => new QuestionController());
-}
+  @override
+  void setupRouter(Router router) {
+    router
+        .route("/questions/[:index]")
+        .generate(() => new QuestionController());
+  }
 ```
 
 The square brackets indicate that part of the path is optional, and the colon indicates that it is a path variable. A path variable matches anything. Therefore, this route will match if the path is `/questions` or `/questions/2` or `/questions/foo`.
@@ -204,11 +204,11 @@ When using path variables, you may optionally restrict which values they match w
 
 ```dart
   @override
-  void addRoutes() {
-	   router
-		   .route("/questions/[:index(\\d+)]")
-		   .next(() => new QuestionController());
-	...
+  void setupRouter(Router router) {
+    router
+        .route("/questions/[:index(\\d+)]")
+        .generate(() => new QuestionController());
+  }
 ```
 
 Now, there are two types of requests that will get forwarded to a `QuestionController` - a request for all questions (`/questions`) and and a request for a specific question at some index (`/questions/1`). We need to add a new responder method to `QuestionController` that gets called when the latter request is made:
@@ -234,13 +234,13 @@ class QuestionController extends HTTPController {
 }
 ```
 
-Make sure you've stopped the application from running, and then run the application again. In your browser, enter http://localhost:8080/questions and you'll get the list of questions. Then, enter http://localhost:8080/questions/0 and you'll get the first question. If you enter an index not within the list of questions or something other than an integer, you'll get a 404.
+Make sure you've stopped the application from running, and then run the application again. In your browser, enter `http://localhost:8080/questions` and you'll get the list of questions. Then, enter `http://localhost:8080/questions/0` and you'll get the first question. If you enter an index not within the list of questions or something other than an integer, you'll get a 404.
 
 When a `Request` is sent to an `HTTPController`, it evaluates the HTTP method of the request and matches it against every declared responder method. In this case, the `HTTPController` will have two possible choices: `getQuestions` and `getQuestionAtIndex`. From here, it looks at the parameters for each of the methods and the path variables in the `Request`.
 
 Parameters with `HTTPPath` metadata are used to match path variables from the `Request`. If there are no path variables, the no-argument `getAllQuestions` is invoked. If there is one `HTTPPath` argument *and* the name of the path variable is named `index` (the `String` argument to `HTTPPath`), then `getQuestionAtIndex` is called. The name of the path variable is defined by the name of the variable declared in `Router`'s `route` method.
 
-If neither of those scenarios are true, the `HTTPController` responds with 404 and doesn't call any of your responder methods. Because the route is declared to also evaluate a regular expression that restricts `index` to only numeric values, non-numeric values in the `index` portion of the route will also yield a 404. You can try that be hitting http://localhost:8080/questions/foo from your browser.
+If neither of those scenarios are true, the `HTTPController` responds with 404 and doesn't call any of your responder methods. Because the route is declared to also evaluate a regular expression that restricts `index` to only numeric values, non-numeric values in the `index` portion of the route will also yield a 404. You can try that be hitting `http://localhost:8080/questions/foo` from your browser.
 
 This HTTP method and path variable matching behavior is specific to `HTTPController`.
 

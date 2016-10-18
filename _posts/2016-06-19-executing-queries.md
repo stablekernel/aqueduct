@@ -28,7 +28,8 @@ class _Question {
 ```
 
 Now, link this file to the rest of your project in `lib/quiz.dart` by adding this part at the end of the file:
-```
+
+```dart
 part 'model/question.dart';
 ```
 
@@ -122,16 +123,16 @@ OK, great, you're done. (You'll want to add Postgres.app to your Startup Items o
 You'll notice in your `RequestSink`, the configuration parameters for the `PostgreSQLPersistentStore` match those that you have just added to your local instance of Postgres, so your application will run against that instance. However, if you were to run your code now, the table backing `Question`s would not exist. When running tests, we need to create a temporary table for `Question`s before the tests start. Go to the `setUpAll` method in `question_controller_test.dart`, and enter the following code after the application is started:
 
 ```dart
-setUpAll(() async {
-  await app.start(runOnMainIsolate: true);
+  setUpAll(() async {
+    await app.start(runOnMainIsolate: true);
 
-  var ctx = ManagedContext.defaultContext;
-  var builder = new SchemaBuilder.toSchema(ctx.persistentStore, new Schema.fromDataModel(ctx.dataModel), isTemporary: true);
+    var ctx = ManagedContext.defaultContext;
+    var builder = new SchemaBuilder.toSchema(ctx.persistentStore, new Schema.fromDataModel(ctx.dataModel), isTemporary: true);
 
-  for (var cmd in builder.commands) {
-    await ctx.persistentStore.execute(cmd);
-  }
-});
+    for (var cmd in builder.commands) {
+      await ctx.persistentStore.execute(cmd);
+    }
+  });
 ```
 
 After the application is started, we know that it creates a `ManagedContext` in the constructor of `QuizRequestSink`. The default context can be accessed through `ManagedContext.defaultContext`. We also know that this context has a `ManagedDataModel` containing `Question`. The class `SchemaBuilder` will create a series of SQL commands from the `ManagedDataModel`, translated by the `PostgreSQLPersistentStore`. (Note that the `isTemporary` parameter makes all of the tables temporary and therefore they disappear when the database connection in the context's persistent store closes. This prevents changes to the database from leaking into subsequent tests.)
@@ -139,46 +140,45 @@ After the application is started, we know that it creates a `ManagedContext` in 
 Because the `PostgreSQLPersistentStore`'s connection to the database is also a stream, it, too, must be closed to let the test's main function terminate. In `tearDownAll`, add this code before the app is terminated:
 
 ```dart
-tearDownAll(() async {
-  await ManagedContext.defaultContext.persistentStore.close();
-  await app.stop();
-});
-
+  tearDownAll(() async {
+    await ManagedContext.defaultContext.persistentStore.close();
+    await app.stop();
+  });
 ```
 
 We now need questions in that database. You might expect that the tests will fail, and two of them do - but, surprisingly, one of the tests will currently succeed even though there will be no questions in the database. The test that makes sure `/questions` returns a list of strings ending in `?` will succeed because the `everyElement` matcher will check its inner matcher (`endsWith("?")`) will only fail if the inner matcher fails. Since there are no questions returned, the inner matcher never runs. Here's a good opportunity to improve our tests a bit by adding the expectation that there is at least one question. Update the test in `question_controller_test.dart`:
 
 ```dart
-test("/questions returns list of questions", () async {
-  var response = await client.request("/questions").get();
-  expect(response, hasResponse(200, everyElement(endsWith("?"))));
-  expect(response.decodedBody, hasLength(greaterThan(0)));
-});
+  test("/questions returns list of questions", () async {
+    var response = await client.request("/questions").get();
+    expect(response, hasResponse(200, everyElement(endsWith("?"))));
+    expect(response.decodedBody, hasLength(greaterThan(0)));
+  });
 ```
 
 Ok, good, back to all tests failing - as they should, because there are no `Question`s in the database and the old `getQuestionAtIndex` doesn't yet use a database query. Let's first seed the database with some questions using an insert query at the end of `setUpAll`.
 
 ```dart
-setUpAll(() async {
-  await app.start(runOnMainIsolate: true);
-  var ctx = ManagedContext.defaultContext;
-  var builder = new SchemaBuilder.toSchema(ctx.persistentStore, new Schema.fromDataModel(ctx.dataModel), isTemporary: true);
+  setUpAll(() async {
+    await app.start(runOnMainIsolate: true);
+    var ctx = ManagedContext.defaultContext;
+    var builder = new SchemaBuilder.toSchema(ctx.persistentStore, new Schema.fromDataModel(ctx.dataModel), isTemporary: true);
 
-  for (var cmd in builder.commands) {
-    await ctx.persistentStore.execute(cmd);
-  }
+    for (var cmd in builder.commands) {
+      await ctx.persistentStore.execute(cmd);
+    }
 
-  var questions = [
-    "How much wood can a woodchuck chuck?",
-    "What's the tallest mountain in the world?"
-  ];
+    var questions = [
+      "How much wood can a woodchuck chuck?",
+      "What's the tallest mountain in the world?"
+    ];
 
-  for (var question in questions) {
-    var insertQuery = new Query<Question>()
-      ..values.description = question;
-    await insertQuery.insert();
-  }
-});
+    for (var question in questions) {
+      var insertQuery = new Query<Question>()
+        ..values.description = question;
+      await insertQuery.insert();
+    }
+  });
 ```
 
 Now, this is also a lesson in insert queries. `Query` has a property named `values`, which will be an instance of the type argument of the `Query` - in this case, a `Question`. When the `Query` is inserted, all of the values that have been set on `values` property are inserted into the database. (If you don't set a value, it isn't sent in the insert query at all. A `Query` does not send `null` unless you explicitly set a value to `null`.)
@@ -206,14 +206,14 @@ When a `hasResponse` matcher fails, it prints out what you expected and what the
 A `ManagedObject` is serialized into a `Map<String, dynamic>`, where each key is a property of the managed object. Since `Question` declares two properties - `index` and `description` - each question in the response body JSON is a map of those two values. Let's update this test to reflect that change:
 
 ```dart
-test("/questions returns list of questions", () async {
-  var response = await client.request("/questions").get();
-  expect(response, hasResponse(200, everyElement({
-      "index" : greaterThan(0),
-      "description" : endsWith("?")
-  })));
-  expect(response.decodedBody, hasLength(greaterThan(0)));
-});
+  test("/questions returns list of questions", () async {
+    var response = await client.request("/questions").get();
+    expect(response, hasResponse(200, everyElement({
+        "index" : greaterThan(0),
+        "description" : endsWith("?")
+    })));
+    expect(response.decodedBody, hasLength(greaterThan(0)));
+  });
 ```
 
 Now, the expectation is that every element in the response body is a `Map`, for which it has an `index` greater than or equal to `0` and and a `description` that ends with `?`. Run these tests again, and that first one will now pass.
@@ -221,29 +221,29 @@ Now, the expectation is that every element in the response body is a `Map`, for 
 Go ahead and update the second test for a single question to match this same map. Even though the code to get a question by index does not yet have this update.
 
 ```dart
-test("/questions/index returns a single question", () async {
-  var response = await client.request("/questions/1").get();
-  expect(response, hasResponse(200, {
-      "index" : greaterThanOrEqualTo(0),
-      "description" : endsWith("?")
-  }));
-});
+  test("/questions/index returns a single question", () async {
+    var response = await client.request("/questions/1").get();
+    expect(response, hasResponse(200, {
+        "index" : greaterThanOrEqualTo(0),
+        "description" : endsWith("?")
+    }));
+  });
 ```
 
 This test should now fail, but it tests what we want. Update the `getQuestionAtIndex` method to use a query, but apply a matcher to the `Question.index`. In `question_controller.dart`, replace the `getQuestionAtIndex` method.
 
 ```dart
-@httpGet getQuestionAtIndex(@HTTPPath("index") int index) async {
-  var questionQuery = new Query<Question>()
-    ..matchOn.index = whereEqualTo(index);    
+  @httpGet getQuestionAtIndex(@HTTPPath("index") int index) async {
+    var questionQuery = new Query<Question>()
+      ..matchOn.index = whereEqualTo(index);    
 
-  var question = await questionQuery.fetchOne();
+    var question = await questionQuery.fetchOne();
 
-  if (question == null) {
-    return new Response.notFound();
+    if (question == null) {
+      return new Response.notFound();
+    }
+    return new Response.ok(question);
   }
-  return new Response.ok(question);
-}
 ```
 
 This will create a query that matches on a `Question` whose `index` is equal to value of the `index` local variable. All matchers for `Query`s begin with the word `where`, and there are plenty of them. Check the [Aqueduct API reference](https://www.dartdocs.org/documentation/aqueduct/latest) to see them all.
@@ -257,14 +257,14 @@ The more you know: Query Parameters and HTTP Headers
 You can specify that a `HTTPController` responder method extract HTTP query parameters and headers and supply them as arguments to the method. We'll allow the `getAllQuestions` method to take a query parameter named `contains`. If this query parameter is part of the request, we'll filter the questions on whether or not that question contains some substring. In `question_controller.dart`, update this method:
 
 ```dart
-@httpGet getAllQuestions({@HTTPQuery("contains") String containsSubstring: null}) async {
-  var questionQuery = new Query<Question>();
-  if (containsSubstring != null) {
-    questionQuery.matchOn.description = whereContains(containsSubstring);
+  @httpGet getAllQuestions({@HTTPQuery("contains") String containsSubstring: null}) async {
+    var questionQuery = new Query<Question>();
+    if (containsSubstring != null) {
+      questionQuery.matchOn.description = whereContains(containsSubstring);
+    }
+    var questions = await questionQuery.fetch();
+    return new Response.ok(questions);
   }
-  var questions = await questionQuery.fetch();
-  return new Response.ok(questions);
-}
 ```
 
 If an HTTP request has a `contains` query parameter, that value will be passed as the `containsSubstring` parameter. As you can see, you may name the parameter whatever you like, it doesn't have to match the name of query parameter. Also, note that we first check `containsSubstring` to make sure it is not-null. If we simply assigned `null` to `description`, we'd be creating a matcher that checked to see if the `description` *contained* `null`.
@@ -274,32 +274,35 @@ Using HTTP header values as parameters is accomplished in the same way, except u
 Then, add a new test in `question_controller_test.dart`:
 
 ```dart
-test("/questions returns list of questions filtered by contains", () async {
-  var response = await client.request("/questions?contains=mountain").get();
-  expect(response, hasResponse(200, [{
-      "index" : greaterThanOrEqualTo(0),
-      "description" : "What's the tallest mountain in the world?"
-  }]));
-  expect(response.decodedBody, hasLength(1));
-});
+  test("/questions returns list of questions filtered by contains", () async {
+    var response = await client.request("/questions?contains=mountain").get();
+    expect(response, hasResponse(200, [{
+        "index" : greaterThanOrEqualTo(0),
+        "description" : "What's the tallest mountain in the world?"
+    }]));
+    expect(response.decodedBody, hasLength(1));
+  });
 ```
 
 This test will pass, along with the rest of them. It's important to note that GET `/questions` without a `contains` query still yields the correct results. That is because the `HTTPQuery` argument was declared in the optional parameters portion of the responder method. If the parameter were in the required, positional set of parameters and the query string was not included, this request would respond with a 400. (The same positional vs. optional behavior is true of `HTTPHeader`s as well.) For example, if we wanted to make a 'X-Client-ID' header that had to be included on this request, we'd do the following:
 
 ```dart
-@httpGet getAllQuestions(@HTTPHeader("X-Client-ID") int clientID, {@HTTPQuery("contains") String containsSubstring: null}) async {
-  if (clientID != 12345) {
-    return new Response.unauthorized();
-  }
+  @httpGet getAllQuestions(
+    @HTTPHeader("X-Client-ID") int clientID,
+    {@HTTPQuery("contains") String containsSubstring: null}
+  ) async {
+    if (clientID != 12345) {
+      return new Response.unauthorized();
+    }
 
-  var questionQuery = new Query<Question>();
-  if (containsSubstring != null) {
-    questionQuery.matchOn.description = whereContains(containsSubstring);
-  }
+    var questionQuery = new Query<Question>();
+    if (containsSubstring != null) {
+      questionQuery.matchOn.description = whereContains(containsSubstring);
+    }
 
-  var questions = await questionQuery.fetch();
-  return new Response.ok(questions);
-}
+    var questions = await questionQuery.fetch();
+    return new Response.ok(questions);
+  }
 ```
 
 Note that in this case, the `clientID` will be parsed as an integer before being sent as an argument to `getAllQuestions`. If the value cannot be parsed as an integer or is omitted, a 400 status code will be returned before your responder method gets called.
