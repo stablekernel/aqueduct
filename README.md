@@ -2,42 +2,44 @@
 
 [![Build Status](https://travis-ci.org/stablekernel/aqueduct.svg?branch=master)](https://travis-ci.org/stablekernel/aqueduct)
 
-`aqueduct` is a server-side framework written in Dart, focusing on productivity and testability.
+Aqueduct is a server-side framework written in Dart.
 
-There are three ways to get started, depending on your style of learning.
+## Getting Started
 
-## The quick and dirty way for Dart developers
-
-Just want to grab aqueduct and try it out? Just add the following to your pubspec.yaml:
-
-```
-aqueduct: any
-```
-
-## The best way
-
-Need a walkthrough? Read the [tutorials](http://stablekernel.github.io/aqueduct/). They take you through the baby-steps of understanding how aqueduct is used to build web servers.
-
-Installing Dart and `aqueduct` is covered in the [first chapter](http://stablekernel.github.io/aqueduct/tut/getting-started.html) and it's very quick.
-
-If you don't yet know Dart, don't worry - it's easy to learn, especially if you come from Java, Objective-C, Swift and other C-like languages. We suggest the [language tour](https://www.dartlang.org/docs/dart-up-and-running/ch02.html) to get caught up to speed. You'll feel comfortable going through the `aqueduct` tutorials and cross-referencing the language tour at the same time.
-
-## The up-and-running way
-
-More of a learn as you go type? Install `aqueduct` as a global package:
-
+1. [Install Dart](https://www.dartlang.org/install).
+2. Activate Aqueduct
 ```
 pub global activate aqueduct
 ```
-
-Then, create a new project (project names must be snake_case):
-
+3. Run first time setup.
 ```
-pub global run aqueduct:create -n my_project
+aqueduct setup
+```
+4. Create a new project.
+```
+aqueduct create -n my_project
 ```
 
-This will create a new project complete with authentication, test harness, database schema generation and documentation generation. Make sure to see the `README.md` file in the new project for further instructions.
+Open the project directory in the editor of your choice. Our preferred editor is [IntellIJ IDEA Community Edition](https://www.jetbrains.com/idea/download/) (with the [Dart Plugin](https://plugins.jetbrains.com/plugin/6351)). [Atom](https://atom.io) is also a good editor, but support for running Dart tests is lacking.
+
+## Major Features
+
+1. HTTP Request Routing.
+2. Multiple CPU support, without adding complicated multi-threading logic.
+3. CORS Support.
+4. Automatic OpenAPI specification/documentation generation.
+5. OAuth 2.0 implementation.
+6. Fully-featured ORM, with clear, type- and name-safe syntax, and SQL Join support. (Supports PostgreSQL by default.)
+7. Database migration tooling.
+8. Template projects for quick starts.
+9. Integration with CI tools. (Supports TravisCI by default.)
+10. Integrated testing utilities for clean and productive tests.
+
+## Tutorials
+
+Need a walkthrough? Read the [tutorials](http://stablekernel.github.io/aqueduct/). They take you through the steps of building an Aqueduct application.
 
 ## Documentation
 
 You can find the API reference [here](https://www.dartdocs.org/documentation/aqueduct/latest).
+You can find in-depth guides and tutorials [here](http://stablekernel.github.io/aqueduct/).
