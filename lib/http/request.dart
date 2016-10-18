@@ -7,7 +7,9 @@ part of aqueduct;
 /// directly to the [HttpRequest], as [RequestController]s take that responsibility.
 class Request implements RequestControllerEvent {
   /// Creates an instance of [Request], no need to do so manually.
-  Request(this.innerRequest);
+  Request(this.innerRequest) {
+    connectionInfo = innerRequest.connectionInfo;
+  }
 
   /// The internal [HttpRequest] of this [Request].
   ///
@@ -15,6 +17,9 @@ class Request implements RequestControllerEvent {
   /// all of the request information provided by the client. Do not respond
   /// to this value directly.
   final HttpRequest innerRequest;
+
+  /// Information about the client connection.
+  HttpConnectionInfo connectionInfo;
 
   /// The response object of this [Request].
   ///
@@ -75,10 +80,12 @@ class Request implements RequestControllerEvent {
 
   String get _sanitizedHeaders {
     StringBuffer buf = new StringBuffer("{");
-    innerRequest.headers.forEach((k, v) {
+
+    innerRequest?.headers?.forEach((k, v) {
       buf.write("${_truncatedString(k)} : ${_truncatedString(v.join(","))}\\n");
     });
     buf.write("}");
+
     return buf.toString();
   }
 
