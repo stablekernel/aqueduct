@@ -65,5 +65,5 @@ chmod a+x wildfire
 Then, start the server:
 
 ```
-./aqueduct start
+./wildfire start
 ```
