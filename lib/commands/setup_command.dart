@@ -27,7 +27,7 @@ class CLISetup extends CLICommand {
       "create database dart_test;",
       "create user dart with createdb;",
       "alter user dart with password 'dart';",
-      "grant all on database dart_test to dart"
+      "grant all on database dart_test to dart;"
     ];
 
     if (argValues["confirm"] != true) {
