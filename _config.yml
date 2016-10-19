@@ -1,6 +1,5 @@
 # Site title and subtitle. This is used in _includes/header.html
-title: 'Aqueduct Guide'
-subtitle: 'The definitive guide to building web servers in Aqueduct with Dart'
+title: 'Aqueduct'
 
 # if you wish to integrate disqus on pages set your shortname here
 disqus_shortname: ''
@@ -19,8 +18,8 @@ codeurl: 'https://github.com/stablekernel/aqueduct.git'
 
 # Default categories (in order) to appear in the navigation
 sections: [
-    ['doc', 'Documentation'],
-    ['tut', 'Tutorial'],
+    #['tut', 'Tutorial'],
+    ['db', 'Guide: Database'],
     ['ref', 'Reference'],
     ['dev', 'Developers'],
     ['post', 'Posts']

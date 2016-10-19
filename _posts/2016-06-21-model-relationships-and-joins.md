@@ -220,3 +220,5 @@ var query = new Query<Question>()
 This would fetch all `Question`s and all of their correct answers. Note that if `includeInResultSet` was not set to `true`, this `Query` would not filter answers because it wouldn't fetch them at all!
 
 An `ManagedSet` is serialized into a `List` of `Map`s, and therefore the encoded JSON will be an array of objects.
+
+## [Next: Deployment](deploying-and-other-fun-things.html)

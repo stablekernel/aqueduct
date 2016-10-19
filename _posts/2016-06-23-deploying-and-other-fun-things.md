@@ -313,3 +313,20 @@ logger.onRecord.listen((rec) => print("$rec"));
 ```
 
 For more advanced logging, use the `scribe` package (also by `stable|kernel`). This package sets up an isolate specifically for logging that can have multiple logging backends. There are built-in logging backends for writing to a rotating file log or to stdout.
+
+## Creating an Application
+
+Once you are familiar with the fundamentals of the framework, you can get started fast on a new project using templates.
+
+1. [Install Dart](https://www.dartlang.org/install).
+2. Activate Aqueduct
+
+        pub global activate aqueduct
+
+3. Run first time setup.
+
+        aqueduct setup
+
+4. Create a new project.
+
+        aqueduct create -n my_project

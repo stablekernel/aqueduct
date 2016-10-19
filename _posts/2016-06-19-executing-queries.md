@@ -308,3 +308,5 @@ This test will pass, along with the rest of them. It's important to note that GE
 Note that in this case, the `clientID` will be parsed as an integer before being sent as an argument to `getAllQuestions`. If the value cannot be parsed as an integer or is omitted, a 400 status code will be returned before your responder method gets called.
 
 Specifying query and header parameters in a responder method is a good way to make your code more intentional and avoid boilerplate parsing code. Additionally, Aqueduct is able to generate documentation from method signatures - by specifying these types of parameters, the documentation generator can add that information to the documentation.
+
+## [Next: Relationships and Joins](model-relationships-and-joins.html)
