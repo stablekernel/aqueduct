@@ -6,75 +6,52 @@ import 'package:http/http.dart' as http;
 main() {
   group("Recovers", () {
     var app = new Application<TestSink>();
-    List<LogRecord> logQueue = [];
-    app.logger.onRecord.listen((rec) => logQueue.add(rec));
 
     tearDown(() async {
       await app?.stop();
-      logQueue = [];
     });
 
     test("Application reports uncaught error, recovers", () async {
       await app.start(numberOfInstances: 1);
 
-      // This request will crash the app
-      await http.get("http://localhost:8080/");
+      // This request will generate an uncaught exception
+      var failFuture = http.get("http://localhost:8080/");
 
-      // This request should timeout and fail, because there was one isolate and it just died.
-      bool succeeded = false;
-      try {
-        await http.get("http://localhost:8080/1");
-        succeeded = true;
-      } catch (e) {}
+      // This request will come in right after the failure but should succeed
+      var successFuture = http.get("http://localhost:8080/1");
 
-      expect(succeeded, false);
+      // Ensure both requests respond with 200, since the failure occurs asynchronously AFTER the response has been generated
+      // for the failure case.
+      var successResponse = await successFuture;
+      var failResponse = await failFuture;
+      expect(successResponse.statusCode, 200);
+      expect(failResponse.statusCode, 200);
 
-      await new Future.delayed(new Duration(seconds: 3));
+      var errorMessage = await app.logger.onRecord.first;
+      expect(errorMessage.message, contains("Uncaught exception"));
+      expect(errorMessage.error.toString(), contains("method not found: 'foo'"));
+      expect(errorMessage.stackTrace, isNotNull);
 
-      // After restart, this should succeeded.
-      var response = await http.get("http://localhost:8080/1");
-      expect(response.statusCode, 200);
-
-      expect(logQueue.length, 1);
-      expect(logQueue.first.message, startsWith("Restarting terminated isolate. Exit reason"));
+      // And then we should make sure everything is working just fine.
+      expect((await http.get("http://localhost:8080/1")).statusCode, 200);
     });
 
-    test("Application with multiple isolates where one dies recovers", () async {
+    test("Application with multiple isolates reports uncaught error, recovers", () async {
       await app.start(numberOfInstances: 2);
 
-      // This is the crasher
-      await http.get("http://localhost:8080/");
+      // Throw some deferred crashers then some success messages at the server
+      var failFutures = new Iterable.generate(5).map((_) => http.get("http://localhost:8080"));
+      var successResponse = await http.get("http://localhost:8080/1");
+      expect(successResponse.statusCode, 200);
 
-      // This request should succeed, the other isolate will pick it up.
-      var response = await http.get("http://localhost:8080/1");
-      expect(response.statusCode, 200);
+      var logMessages = await app.logger.onRecord.take(5);
+      logMessages.forEach((errorMessage) {
+        expect(errorMessage.message, contains("Uncaught exception"));
+        expect(errorMessage.error.toString(), contains("method not found: 'foo'"));
+        expect(errorMessage.stackTrace, isNotNull);
+      });
 
-      expect(logQueue.length, 1);
-      expect(logQueue.first.message, startsWith("Restarting terminated isolate. Exit reason"));
-
-      // Wait for new isolate to pick back up...
-      await new Future.delayed(new Duration(seconds: 3));
-
-      var startTime = new DateTime.now();
-
-      bool foundFirstServer = false;
-      bool foundSecondServer = false;
-      while (!foundFirstServer && !foundSecondServer) {
-        response = await http.get("http://localhost:8080/1");
-        expect(response.statusCode, 200);
-
-        var serverIdentifier = response.headers["server"].split("/").last;
-
-        if (serverIdentifier == "1") {
-          foundFirstServer = true;
-        } else if (serverIdentifier == "2") {
-          foundSecondServer = true;
-        }
-
-        if (new DateTime.now().difference(startTime).abs().inSeconds > 20) {
-          fail("Could not get response.");
-        }
-      }
+      expect((await Future.wait(failFutures)).map((r) => r.statusCode), everyElement(200));
     });
   });
 }
