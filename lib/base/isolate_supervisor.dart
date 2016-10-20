@@ -43,10 +43,12 @@ class IsolateSupervisor {
       _stopCompleter?.complete();
       _stopCompleter = null;
     } else if (message is List) {
+      var exception = new IsolateSupervisorException(message.first);
+      var stacktrace = new StackTrace.fromString(message.last);
       if (_launchCompleter != null) {
-        _launchCompleter.completeError(new IsolateSupervisorException(message.first), new StackTrace.fromString(message.last));
+        _launchCompleter.completeError(exception, stacktrace);
       } else {
-        _tearDownWithError(message.first, message.last);
+        logger.severe("Uncaught exception in isolate.", exception, stacktrace);
       }
     }
   }
