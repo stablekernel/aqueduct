@@ -96,7 +96,7 @@ Now that we have defined this relationship, we can associate answers with questi
 }
 ```
 
-Yeah, that was it. The SQL that gets built for this `Query` will join on the underlying `_Answer` table. Therefore, each `answer` property of every `Question` returned will have a valid `Answer` instance from the database. Managed objects also know how to serialize their relationship properties, so you'll get the following JSON when fetching a question that has been joined with its answer:
+Yeah, that was it. The SQL that gets built for this `Query<T>` will join on the underlying `_Answer` table. Therefore, each `answer` property of every `Question` returned will have a valid `Answer` instance from the database. Managed objects also know how to serialize their relationship properties, so you'll get the following JSON when fetching a question that has been joined with its answer:
 
 ```json
 {
@@ -202,7 +202,7 @@ class _Answer {
 }
 ```
 
-The type of has-many relationships is an instance of `ManagedSet<T>`, where `T` is the related type. An `ManagedSet` acts just like a `List` - it has methods like `map` and `where` - but also has special behavior that allows it to be used in building `Query`s. When including a has-many relationship, you set the `includeInResultSet` property of the `ManagedSet` to true:
+The type of has-many relationships is an instance of `ManagedSet<T>`, where `T` is the related type. An `ManagedSet` acts just like a `List` - it has methods like `map` and `where` - but also has special behavior that allows it to be used in building `Query<T>`s. When including a has-many relationship, you set the `includeInResultSet` property of the `ManagedSet` to true:
 
 ```dart
 var query = new Query<Question>()
@@ -217,7 +217,7 @@ var query = new Query<Question>()
   ..matchOn.answers.matchOn.isCorrect = whereEqualTo(true);
 ```
 
-This would fetch all `Question`s and all of their correct answers. Note that if `includeInResultSet` was not set to `true`, this `Query` would not filter answers because it wouldn't fetch them at all!
+This would fetch all `Question`s and all of their correct answers. Note that if `includeInResultSet` was not set to `true`, this `Query<T>` would not filter answers because it wouldn't fetch them at all!
 
 An `ManagedSet` is serialized into a `List` of `Map`s, and therefore the encoded JSON will be an array of objects.
 

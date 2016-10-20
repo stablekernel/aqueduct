@@ -98,7 +98,7 @@ class QuestionController extends HttpController {
 ...
 ```
 
-When this responder method is executed, it'll create a new `Query` for `Question` (as indicated by the type parameter). A query has a handful of execution methods on it - `fetch`, `fetchOne`, `insert`, `update`, `updateOne` and `delete`. By executing a `fetch` on a vanilla `Query<Question>`, this will return a list of `Question`s, one for each row in the database's question table. Since `ManagedObject`s - which is what `Question`s are - implement the `Serializable` protocol, we can drop them in as the response body object in `Response` and they will be encoded to JSON.
+When this responder method is executed, it'll create a new `Query<T>` for `Question` (as indicated by the type parameter). A query has a handful of execution methods on it - `fetch`, `fetchOne`, `insert`, `update`, `updateOne` and `delete`. By executing a `fetch` on a vanilla `Query<Question>`, this will return a list of `Question`s, one for each row in the database's question table. Since `ManagedObject`s - which is what `Question`s are - implement the `Serializable` protocol, we can drop them in as the response body object in `Response` and they will be encoded to JSON.
 
 The only problem? We don't have a database yet.
 
@@ -181,7 +181,7 @@ Ok, good, back to all tests failing - as they should, because there are no `Ques
   });
 ```
 
-Now, this is also a lesson in insert queries. `Query` has a property named `values`, which will be an instance of the type argument of the `Query` - in this case, a `Question`. When the `Query` is inserted, all of the values that have been set on `values` property are inserted into the database. (If you don't set a value, it isn't sent in the insert query at all. A `Query` does not send `null` unless you explicitly set a value to `null`.)
+Now, this is also a lesson in insert queries. `Query<T>` has a property named `values`, which will be an instance of the type argument of the `Query<T>` - in this case, a `Question`. When the `Query<T>` is inserted, all of the values that have been set on `values` property are inserted into the database. (If you don't set a value, it isn't sent in the insert query at all. A `Query<T>` does not send `null` unless you explicitly set a value to `null`.)
 
 In our seeded test database, there will be two questions. If you re-run the tests, the first one should pa... wait, no it fails. The test results says this:
 
@@ -246,7 +246,7 @@ This test should now fail, but it tests what we want. Update the `getQuestionAtI
   }
 ```
 
-This will create a query that matches on a `Question` whose `index` is equal to value of the `index` local variable. All matchers for `Query`s begin with the word `where`, and there are plenty of them. Check the [Aqueduct API reference](https://www.dartdocs.org/documentation/aqueduct/latest) to see them all.
+This will create a query that matches on a `Question` whose `index` is equal to value of the `index` local variable. All matchers for `Query<T>`s begin with the word `where`, and there are plenty of them. Check the [Aqueduct API reference](https://www.dartdocs.org/documentation/aqueduct/latest) to see them all.
 
 Run the tests again, good to go!
 
