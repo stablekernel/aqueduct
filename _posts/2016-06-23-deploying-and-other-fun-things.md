@@ -281,7 +281,7 @@ Run your tests and they should all pass.
 Deploying Remotely
 ---
 
-Remote deploys will depend on where an application is deployed to. For services such as EC2 where you have ssh access to the box, we recommend using the script in the templates created by Aqueduct. This script will update from a git repository, fetch dependencies, and run your application detached from the shell. To create a project from an Aqueduct template, you can run the following:
+Remote deploys will depend on where an application is deployed to. For services such as Heroku, see [this guide](https://github.com/igrigorik/heroku-buildpack-dart). For services such as EC2 where you have ssh access to the box, we recommend using the script in the templates created by Aqueduct. This script will update from a git repository, fetch dependencies, and run your application detached from the shell. To create a project from an Aqueduct template, you can run the following:
 
 ```bash
 aqueduct create -n my_project
