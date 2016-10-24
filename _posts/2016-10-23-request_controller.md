@@ -84,7 +84,7 @@ Exceptions are always logged along with some details of the request that spawned
 
 The root of a request controller stream in an Aqueduct application is typically a `Router`. A router is a `RequestController`, but it behaves slightly differently - it does not pass requests along a linear stream, but instead, splits the stream based on the path of the HTTP request.
 
-This topic is covered in [routing.html].
+This topic is covered in [Routing](routing.html).
 
 ## CORS Support
 
