@@ -20,6 +20,7 @@ codeurl: 'https://github.com/stablekernel/aqueduct.git'
 sections: [
     #['tut', 'Tutorial'],
     ['db', 'Guide: Database'],
+    ['http', 'Guide: HTTP'],
     ['ref', 'Reference'],
     ['dev', 'Developers'],
     ['post', 'Posts']
