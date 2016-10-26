@@ -1,4 +1,4 @@
-![Aqueduct](images/aqueduct.png)
+![Aqueduct](https://raw.githubusercontent.com/stablekernel/aqueduct/master/images/aqueduct.png)
 
 [![Build Status](https://travis-ci.org/stablekernel/aqueduct.svg?branch=master)](https://travis-ci.org/stablekernel/aqueduct)
 
