@@ -81,21 +81,25 @@ abstract class ManagedPropertyDescription {
 
   /// Returns the corresponding [ManagedPropertyType] given a Dart type.
   static ManagedPropertyType propertyTypeForDartType(Type t) {
-    switch (t) {
-      case int:
-        return ManagedPropertyType.integer;
-      case String:
-        return ManagedPropertyType.string;
-      case DateTime:
-        return ManagedPropertyType.datetime;
-      case bool:
-        return ManagedPropertyType.boolean;
-      case double:
-        return ManagedPropertyType.doublePrecision;
-      case Map:
-        return ManagedPropertyType.transientMap;
-      case List:
-        return ManagedPropertyType.transientList;
+
+    if (t == int) {
+      return ManagedPropertyType.integer;
+    } else if (t == String) {
+      return ManagedPropertyType.string;
+    } else if (t == DateTime) {
+      return ManagedPropertyType.datetime;
+    } else if (t == bool) {
+      return ManagedPropertyType.boolean;
+    } else if (t == double) {
+      return ManagedPropertyType.doublePrecision;
+    }
+
+    var mirror = reflectType(t);
+
+    if (mirror.isSubtypeOf(reflectType(Map))) {
+      return ManagedPropertyType.transientMap;
+    } else if (mirror.isSubtypeOf(reflectType(List))) {
+      return ManagedPropertyType.transientList;
     }
 
     return null;
