@@ -580,7 +580,7 @@ class TransientTypeTest extends ManagedObject<_TransientTypeTest> implements _Tr
 
   @managedTransientInputAttribute
   void set transientMap(Map<String, String> m) {
-    List<String> pairStrings = m.keys.map((key) {
+    var pairStrings = m.keys.map((key) {
       String value = m[key];
       return "$key:$value";
     });
@@ -590,14 +590,13 @@ class TransientTypeTest extends ManagedObject<_TransientTypeTest> implements _Tr
 
   @managedTransientOutputAttribute
   List<int> get transientList {
-    return backingListString.split(",").map((s) => int.parse(s));
+    return backingListString.split(",").map((s) => int.parse(s)).toList();
   }
 
   @managedTransientInputAttribute
   void set transientList(List<int> l) {
     backingListString = l.map((i) => i.toString()).join(",");
   }
-
 }
 
 class _TransientTypeTest {
