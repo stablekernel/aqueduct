@@ -34,6 +34,12 @@ This will print a JSON OpenAPI specification to stdout.
 
 Configure the connection information for the database in `migrations/migration.yaml`. The specified username must have the privileges to create tables.
 
+Copy the migration default file:
+
+```
+cp migrations/migration.default.yaml migrations/migration.yaml
+```
+
 Run the migration generation tool:
 
 ```
@@ -50,6 +56,12 @@ You may create subsequent migration files with `aqueduct db generate`. Note that
 
 ```
 aqueduct db validate
+```
+
+Copy and edit config default file:
+
+```
+cp config.yaml.src config.yaml
 ```
 
 ## Running wildfire
