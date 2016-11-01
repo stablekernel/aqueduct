@@ -34,6 +34,12 @@ This will print a JSON OpenAPI specification to stdout.
 
 Configure the connection information for the database in `migrations/migration.yaml`. The specified username must have the privileges to create tables.
 
+Copy the migration default file:
+
+```
+cp migrations/migration.default.yaml migrations/migration.yaml
+```
+
 Run the migration generation tool:
 
 ```
