@@ -12,3 +12,6 @@ workspace.xml
 Dart_Packages.xml
 .DS_Store
 .idea/dictionaries
+migrations/*
+!migrations/migration.yaml
+error.log
