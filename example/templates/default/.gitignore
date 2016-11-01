@@ -12,3 +12,8 @@ workspace.xml
 Dart_Packages.xml
 .DS_Store
 .idea/dictionaries
+migrations/migration.yaml
+error.log
+.aqueductpid
+.aqueductsignal
+api.log*
