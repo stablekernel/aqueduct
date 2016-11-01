@@ -33,6 +33,13 @@ This will print a JSON OpenAPI specification to stdout.
 ## Generating the Database Schema
 
 Configure the connection information for the database in `migrations/migration.yaml`. The specified username must have the privileges to create tables.
+(The file `migrations/migration.yaml.src` is a template for `migrations/migration.yaml`.)
+
+You may copy and edit the migration template file:
+
+```
+cp migrations/migration.yaml.src migrations/migration.yaml
+```
 
 Run the migration generation tool:
 
@@ -55,6 +62,12 @@ aqueduct db validate
 ## Running wildfire
 
 Ensure that a `config.yaml` file exists in this directory. (The file `config.yaml.src` is a template for `config.yaml`.)
+
+You may copy and edit config template file:
+
+```
+cp config.yaml.src config.yaml
+```
 
 Give executable permissions for the application script:
 
