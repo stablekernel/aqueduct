@@ -5,7 +5,7 @@ import '../helpers.dart';
 
 void main() {
   var ps = new DefaultPersistentStore();
-  ManagedDataModel dm = new ManagedDataModel([TransientTest, User, Post]);
+  ManagedDataModel dm = new ManagedDataModel([TransientTest, TransientTypeTest, User, Post]);
   ManagedContext _ = new ManagedContext(dm, ps);
 
   test("NoSuchMethod still throws", () {
@@ -368,6 +368,35 @@ void main() {
     expect(m["bothOverQualified"], "foo");
   });
 
+  test("Transient Properties of all types can be read and returned", () {
+
+    var dateString = "2016-10-31T15:40:45+00:00";
+
+    var m = (new TransientTypeTest()..readMap({
+      "transientInt": 5,
+      "transientBigInt": 123456789,
+      "transientString": "lowercase string",
+      "transientDate": dateString,
+      "transientBool": true,
+      "transientDouble": 30.5,
+      "transientMap": {"key": "value", "anotherKey": "anotherValue"},
+      "transientList": [1,2,3,4,5]
+    })).asMap();
+
+    expect(m["transientInt"], 5);
+    expect(m["transientBigInt"], 123456789);
+    expect(m["transientString"], "lowercase string");
+    expect(m["transientDate"].difference(DateTime.parse(dateString)), Duration.ZERO);
+    expect(m["transientBool"], true);
+    expect(m["transientDouble"], 30.5);
+    expect(m["transientList"], [1,2,3,4,5]);
+
+    var tm = m["transientMap"];
+    expect(tm is Map, true);
+    expect(tm["key"], "value");
+    expect(tm["anotherKey"], "anotherValue");
+  });
+
   test("Reading hasMany relationship from JSON succeeds", () {
     var u = new User();
     u.readMap({
@@ -484,4 +513,111 @@ class _TransientTest {
   int id;
 
   String text;
+}
+
+class TransientTypeTest extends ManagedObject<_TransientTypeTest> implements _TransientTypeTest {
+  @managedTransientOutputAttribute
+  int get transientInt => backingInt + 1;
+
+  @managedTransientInputAttribute
+  void set transientInt(int i) {
+    backingInt = i - 1;
+  }
+
+  @managedTransientOutputAttribute
+  int get transientBigInt => backingBigInt ~/ 2;
+
+  @managedTransientInputAttribute
+  void set transientBigInt(int i) {
+    backingBigInt = i * 2;
+  }
+
+  @managedTransientOutputAttribute
+  String get transientString => backingString.toLowerCase();
+
+  @managedTransientInputAttribute
+  void set transientString(String s) {
+    backingString = s.toUpperCase();
+  }
+
+  @managedTransientOutputAttribute
+  DateTime get transientDate => backingDateTime.add(new Duration(days: 1));
+
+  @managedTransientInputAttribute
+  void set transientDate(DateTime d) {
+    backingDateTime = d.subtract(new Duration(days: 1));
+  }
+
+  @managedTransientOutputAttribute
+  bool get transientBool => !backingBool;
+
+  @managedTransientInputAttribute
+  void set transientBool(bool b) {
+    backingBool = !b;
+  }
+
+  @managedTransientOutputAttribute
+  double get transientDouble => backingDouble / 5;
+
+  @managedTransientInputAttribute
+  void set transientDouble(double d) {
+    backingDouble = d * 5;
+  }
+
+  @managedTransientOutputAttribute
+  Map<String, String> get transientMap {
+    List<String> pairs = backingMapString.split(",");
+
+    var returnMap = new Map<String, String>();
+
+    pairs.forEach((String pair) {
+      List<String> pairList = pair.split(":");
+      returnMap[pairList[0]] = pairList[1];
+    });
+
+    return returnMap;
+  }
+
+  @managedTransientInputAttribute
+  void set transientMap(Map<String, String> m) {
+    var pairStrings = m.keys.map((key) {
+      String value = m[key];
+      return "$key:$value";
+    });
+
+    backingMapString = pairStrings.join(",");
+  }
+
+  @managedTransientOutputAttribute
+  List<int> get transientList {
+    return backingListString.split(",").map((s) => int.parse(s)).toList();
+  }
+
+  @managedTransientInputAttribute
+  void set transientList(List<int> l) {
+    backingListString = l.map((i) => i.toString()).join(",");
+  }
+}
+
+class _TransientTypeTest {
+  // All of the types - ManagedPropertyType
+  @managedPrimaryKey
+  int id;
+
+  int backingInt;
+
+  @ManagedColumnAttributes(databaseType: ManagedPropertyType.bigInteger)
+  int backingBigInt;
+
+  String backingString;
+
+  DateTime backingDateTime;
+
+  bool backingBool;
+
+  double backingDouble;
+
+  String backingMapString;
+
+  String backingListString;
 }

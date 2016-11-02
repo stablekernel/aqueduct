@@ -223,6 +223,15 @@ void main() {
     }
   });
 
+  test("Model with unsupported transient property type fails on compilation", () {
+    try {
+      new ManagedDataModel([InvalidTransientModel]);
+      expect(true, false);
+    } on ManagedDataModelException catch (e) {
+      expect(e.message, contains("Property uri on InvalidTransientModel has invalid type"));
+    }
+  });
+
   group("Schema generation", () {
     var dataModel = new ManagedDataModel([User, Item, Manager]);
     var context = new ManagedContext(dataModel, new DefaultPersistentStore());
@@ -379,4 +388,12 @@ class _InvalidModel {
   @managedPrimaryKey int id;
 
   Uri uri;
+}
+
+class InvalidTransientModel extends ManagedObject<_InvalidTransientModel> implements _InvalidTransientModel {
+  @managedTransientAttribute
+  Uri uri;
+}
+class _InvalidTransientModel {
+  @managedPrimaryKey int id;
 }
