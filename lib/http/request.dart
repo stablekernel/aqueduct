@@ -78,6 +78,22 @@ class Request implements RequestControllerEvent {
   /// Access to logger directly from this instance.
   Logger get logger => new Logger("aqueduct");
 
+  /// Decodes the body of this request according to its Content-Type.
+  ///
+  /// This method initiates the decoding of this request's body according to its Content-Type, returning a [Future] that completes
+  /// with the decoded object when decoding has finished. The decoded body is also available in [requestBodyObject] once decoding has completed.
+  /// This method may be called multiple times; decoding will only occur once. If there is no request body, this method will return a [Future] that completes
+  /// with the null value.
+  ///
+  /// [HTTPController]s invoke this method prior to invoking their responder method, so there is no need to call this method in a [HTTPController].
+  Future decodeBody() async {
+    if (innerRequest.contentLength > 0) {
+      requestBodyObject ??= await HTTPBodyDecoder.decode(innerRequest);
+    }
+
+    return requestBodyObject;
+  }
+
   String get _sanitizedHeaders {
     StringBuffer buf = new StringBuffer("{");
 
@@ -104,11 +120,6 @@ class Request implements RequestControllerEvent {
     return originalString.substring(0, charSize);
   }
 
-  Future decodeBody() async {
-    if (innerRequest.contentLength > 0) {
-      requestBodyObject = await HTTPBodyDecoder.decode(innerRequest);
-    }
-  }
 
   /// Sends a [Response] to this [Request]'s client.
   ///
