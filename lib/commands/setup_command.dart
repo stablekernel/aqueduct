@@ -41,7 +41,7 @@ class CLISetup extends CLICommand {
     }
 
     for (var cmd in commands) {
-      var result = await Process.runSync("psql", ["-c", cmd]);
+      var result = await Process.runSync("psql", ["-c", cmd], runInShell: true);
       if (result.stdout.contains("CREATE DATABASE")) {
         print("Successfully created database dart_test.");
       } else if (result.stdout.contains("CREATE ROLE")) {
@@ -71,7 +71,7 @@ class CLISetup extends CLICommand {
   }
 
   Future<bool> get hasPSQLCLI async {
-    var results = Process.runSync("which", ["psql"]);
+    var results = Process.runSync("which", ["psql"], runInShell: true);
 
     String out = results.stdout;
     if (out.startsWith("/")) {

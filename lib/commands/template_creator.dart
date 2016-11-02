@@ -57,7 +57,7 @@ class CLITemplateCreator extends CLICommand {
     await createProjectSpecificFiles(destDirectory.path, aqueductVersion);
 
     print("Fetching project dependencies...");
-    Process.runSync("pub", ["get", "--no-packages-dir"], workingDirectory: destDirectory.path);
+    Process.runSync("pub", ["get", "--no-packages-dir"], workingDirectory: destDirectory.path, runInShell: true);
 
     print("");
     print("New project ${argValues["name"]} created at ${destDirectory.path}");
@@ -72,7 +72,7 @@ class CLITemplateCreator extends CLICommand {
     var temporaryPubspec = generatingPubspec(aqueductVersion);
 
     new File(projectDirectory.path + "/pubspec.yaml").writeAsStringSync(temporaryPubspec);
-    var result = Process.runSync("pub", ["get", "--no-packages-dir"], workingDirectory: projectDirectory.path);
+    var result = Process.runSync("pub", ["get", "--no-packages-dir"], workingDirectory: projectDirectory.path, runInShell: true);
     if (result.exitCode != 0) {
       throw new Exception("${result.stderr}");
     }
@@ -201,7 +201,7 @@ class CLITemplateCreator extends CLICommand {
             interpretContentFile(projectName, destinationDirectory, f);
           });
     } catch (e) {
-      Process.runSync("rm", ["-rf", destinationDirectory.path]);
+      Process.runSync("rm", ["-rf", destinationDirectory.path], runInShell: true);
       print("${e}");
     }
   }
