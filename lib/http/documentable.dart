@@ -606,7 +606,7 @@ class PackagePathResolver {
         .map((l) {
           var firstColonIdx = l.indexOf(":");
           var packageName = l.substring(0, firstColonIdx);
-          var packagePath = l.substring(firstColonIdx + 1, l.length).replaceFirst(r"file://", "");
+          var packagePath = pathLib.fromUri(l.substring(firstColonIdx + 1, l.length));
           return [packageName, packagePath];
         });
     _map = new Map.fromIterable(lines, key: (k) => k.first, value: (v) => v.last);
