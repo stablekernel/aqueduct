@@ -19,6 +19,7 @@ Aqueduct responds to HTTP requests. The primary components of handling HTTP requ
 
 ## Guides
 
+- [Request and Response Objects](request_and_response.html)
 - [Handling Requests](request_controller.html)
-- [Application and RequestSink](app_request_sink.html)
+- [Application and RequestSink](request_sink.html)
 - [Routing](routing.html)
