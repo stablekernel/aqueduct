@@ -7,12 +7,6 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-.language-bash, .language-yaml, .language-dart {
-  border-left-color: #ff0000;
-  border-left-style: 2px;
-  border-left-style: solid;
-}
-
 pre, code, pre code {
     text-shadow: none;
     border: none;
