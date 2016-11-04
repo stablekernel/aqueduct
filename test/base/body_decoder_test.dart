@@ -124,4 +124,31 @@ void main() {
 
     });
   });
+
+  group("Request decoding behavior", () {
+    HttpServer server;
+
+    setUp(() async {
+      server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 8123);
+    });
+
+    tearDown(() async {
+      await server?.close();
+    });
+
+    test("Subsequent decodes do not re-process body", () async {
+      http.post("http://localhost:8123", headers: {"Content-Type" : "application/json"}, body: JSON.encode({"a" : "val"}));
+      var request = new Request(await server.first);
+
+      var b1 = await request.decodeBody();
+      var b2 = request.requestBodyObject;
+      var b3 = await request.decodeBody();
+      var b4 = request.requestBodyObject;
+
+      expect(b1, isNotNull);
+      expect(identical(b1, b2), true);
+      expect(identical(b1, b3), true);
+      expect(identical(b1, b4), true);
+    });
+  });
 }
