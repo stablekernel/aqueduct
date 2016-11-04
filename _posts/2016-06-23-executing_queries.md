@@ -6,7 +6,7 @@ date: 2016-06-20 10:35:56
 order: 5
 ---
 
-## `Query<T>` Instances Send Commands to a Database
+## Query<T> Instances Send Commands to a Database
 
 To send commands to a database - whether to fetch, insert, delete or update objects - you will create, configure and execute instances of `Query<T>`. A `Query<T>` allows you to create database operations in Dart code in the domain of your application, as opposed to writing SQL. `Query<T>`s are executed against a `ManagedContext`. By default, every `Query<T>` uses `ManagedContext.defaultContext`, but this can be changed during the instantiation of a `Query<T>`.
 
