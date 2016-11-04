@@ -83,7 +83,7 @@ class CLITemplateCreator extends CLICommand {
     new File(projectDirectory.path + "/pubspec.yaml").deleteSync();
     new File(projectDirectory.path + "/.packages").deleteSync();
 
-    var path = pathLib.normalize(resolvedURL + "..");
+    var path = path_lib.normalize(resolvedURL + "..");
     print("\tUsing template source from: ${path}.");
     return path;
   }
