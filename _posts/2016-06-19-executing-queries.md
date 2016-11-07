@@ -85,7 +85,7 @@ When a `ManagedContext` is created, it becomes the *default context* of your app
 Executing Queries
 ---
 
-Now that we have a context - which can establish a connection to a database, talk to the database and map rows to managed objects objects - we can execute queries in our `RequestController`s. In `question_controller.dart`, replace the code for `getAllQuestions` (we'll work on `getQuestionAtIndex` soon):
+Now that we have a context - which can establish a connection to a database, talk to the database and map rows to managed objects - we can execute queries in our `RequestController`s. In `question_controller.dart`, replace the code for `getAllQuestions` (we'll work on `getQuestionAtIndex` soon):
 
 ```dart
 class QuestionController extends HttpController {

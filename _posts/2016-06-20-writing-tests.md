@@ -104,7 +104,7 @@ void main() {
 
 Note that we import `quiz.dart` and since the `quiz` library defined in this file exports Aqueduct, any file that imports `package:quiz/quiz.dart` will also import Aqueduct. Finally, get your dependencies again to get your project to recognize that `quiz` is now a library package. You can ensure that everything still works by running `bin/start.dart` again and typing a URL into your browser.
 
-Writings Tests
+Writing Tests
 ---
 
 We'd like to ensure that when we hit the `/questions` endpoint, we get a response with questions. What does that mean? Well, that is up to us. But, let's say that 'questions' means 'a list of strings that all end in a question mark'.

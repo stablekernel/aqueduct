@@ -179,7 +179,7 @@ Also, notice that both `_question` and `_answer` have rows in them.
 
 We can now setup the `quiz` application to connect to this database using the less privileged user. We'll create a configuration file for the application to keep track of this information. The database connection information - as well as other information we might care to configure - can be loaded from a configuration file and passed to a `QuizRequestSink` when it starts up. The request sink will use information from the configuration file to configure its `PostgreSQLPersistentStore` connection, instead of hard-coded values.
 
-To make using configuration files simple, we'll add the `safe_config` package (also by `stable|kernel`) to `quiz`. This package is already included in `aqueduct`, so there is no need to add it as a dependency. The `safe_config` package gives you the ability to define classes in your application that read YAML configuration files. Instances of these classes will read the contents of a YAML file, but will also validate the expected key structure of the YAML file. In `quiz_request_sink.dart`, declare a new class at the bottom of the file for reading configuration files specific to `quiz`:
+To make using configuration files simple, we'll use the `safe_config` package (also by `stable|kernel`) to `quiz`. This package is already included in `aqueduct`, so there is no need to add it as a dependency. The `safe_config` package gives you the ability to define classes in your application that read YAML configuration files. Instances of these classes will read the contents of a YAML file, but will also validate the expected key structure of the YAML file. In `quiz_request_sink.dart`, declare a new class at the bottom of the file for reading configuration files specific to `quiz`:
 
 ```dart
 class QuizConfiguration extends ConfigurationItem {
@@ -245,7 +245,7 @@ Now, when `QuizRequestSink`'s constructor is called, an instance of `QuizConfigu
 dart bin/start.dart
 ```
 
-Load up http://localhost:8080/questions and http://localhost:8080/question/1 to see the application in action.
+Load up http://localhost:8080/questions and http://localhost:8080/questions/1 to see the application in action.
 
 However, there is a small problem. The database connection information comes from `config.yaml` when running the application through `start.dart`, but what about when running tests? Right now, the no configuration file is read, and it also doesn't make sense to use the same database for testing as for running. Likewise, you don't want to check in files with sensitive information to source control. Also, as your application evolves, you'll add more keys to the configuration file. It makes sense to have a configuration file for both tests and running instances, and they should both stay in sync in terms of the keys they have.
 

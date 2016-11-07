@@ -53,7 +53,7 @@ Notice that we added `ManagedRelationship` metadata to `question`. All relations
 
 Notice the first argument to `ManagedRelationship` - it is the name of the relationship property on `_Question`. This allows the data model to understand which two properties link a managed object's relationships together.
 
-`ManagedRelationship` also allows you to specify a delete rule and whether or not the property is required, i.e., not nullable. By default, the delete rule is `ManagedRelationshipDeleteRule.nullify` and are not required - this is the least destructive action. But, in this case, we want the every question to always have an answer and if we delete the question, the answer gets deleted along with it:
+`ManagedRelationship` also allows you to specify a delete rule and whether or not the property is required, i.e., not nullable. By default, the delete rule is `ManagedRelationshipDeleteRule.nullify` and are not required - this is the least destructive action. But, in this case, we want every question to always have an answer and if we delete the question, the answer gets deleted along with it:
 
 ```dart
 class _Answer {
@@ -80,7 +80,7 @@ class QuizRequestSink extends RequestSink {
 
 The constructor `ManagedDataModel.fromPackageContainingType` will reflect on the package that `QuizRequestSink` comes from and find all subclasses of `ManagedObject` for you.
 
-Now that we have defined this relationship, we can associate answers with questions and return them in our `/questions` endpoint. In `question_controller.dart`, let's update the queries also fetch the `Answer` for each `Question` and include it in the response JSON. First, for `getAllQuestions`, set `includeInResultSet` to `true` for `matchOn`'s `answer`:
+Now that we have defined this relationship, we can associate answers with questions and return them in our `/questions` endpoint. In `question_controller.dart`, let's update the queries to fetch the `Answer` for each `Question` and include it in the response JSON. First, for `getAllQuestions`, set `includeInResultSet` to `true` for `matchOn`'s `answer`:
 
 ```dart
 @httpGet getAllQuestions({@HTTPQuery("contains") String containsSubstring: null}) async {
@@ -209,7 +209,7 @@ var query = new Query<Question>()
   ..matchOn.answers.includeInResultSet = true;
 ```
 
-Each returned `Question` would also have a `ManagedSet` of `Answers`s in its `answers` property. You may also filter which answers are returned for each `Question` by nesting `matchOn` properties.
+Each returned `Question` would also have a `ManagedSet` of `Answer`s in its `answers` property. You may also filter which answers are returned for each `Question` by nesting `matchOn` properties.
 
 ```dart
 var query = new Query<Question>()

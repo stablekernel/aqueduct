@@ -84,7 +84,7 @@ The `QuestionController` class defines a property named `questions` that has a l
 
 A responder method must return an instance of `Future<Response>`. A `Response` always has a status code. There are built-in convenience constructors for common status codes. In this example, `Response.ok` creates a `Response` with status code 200. Depending on the convenience constructor used, the argument may mean something different. In the case of `Response.ok`, the argument is an object that will be encoded as the HTTP response body.
 
-When an HTTP GET gets routed to a `QuestionController`, a response with status code 200 and body containing a list of questions will be sent. By default, the response object - here, `questions` - gets encoded as JSON before being sent. (We'll see how that customize that much later.)
+When an HTTP GET gets routed to a `QuestionController`, a response with status code 200 and body containing a list of questions will be sent. By default, the response object - here, `questions` - gets encoded as JSON before being sent. (We'll see how to customize that much later.)
 
 Because responder methods in `HTTPController` must always return a `Response` and must always have `HTTPMethod` metadata, its acceptable to omit the return type to make the method signature more readable:
 
@@ -180,7 +180,7 @@ This is the life of most `Request`s in an Aqueduct application. The stream of `R
 
 All `RequestController`s have three variants for how `Request` events are passed on to the next `RequestController`. In this example, you used `generate` - which creates a new instance of a `RequestController` for each request. Other options are `listen` and `pipe`, and `Router`s have a special chaining method `route`. Each one of these has a different reason to be used, but that discussion is contained in the guide for `RequestController`s. For now, note that subclasses of `HTTPController` must be generated.
 
-The setup of these streams must be created in a `RequestSink`s `setupRouter` method. Once routes are added, the `Router` gets 'compiled' for optimization purposes. Adding more routes to a `Router` after it has been finalized will yield an exception.
+The setup of these streams must be created in a `RequestSink`'s `setupRouter` method. Once routes are added, the `Router` gets 'compiled' for optimization purposes. Adding more routes to a `Router` after it has been finalized will yield an exception.
 
 Routing and Another Route
 ---
