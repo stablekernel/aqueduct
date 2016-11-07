@@ -142,7 +142,6 @@ class CLITemplateCreator extends CLICommand {
   }
 
   void copyFile(String projectName, Directory destinationDirectory, File sourceFile) {
-    path_lib.joinAll([]);
     var path = path_lib.join(destinationDirectory.path, fileNameForFile(projectName, sourceFile));
     var contents = sourceFile.readAsStringSync();
 
