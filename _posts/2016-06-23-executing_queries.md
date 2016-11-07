@@ -83,7 +83,7 @@ If an insert query fails because of a conflict - a unique constraint is violated
 
 ### Updating Data with a Query
 
-Updating data with a `Query<T>` is similar to inserting data in that the data you set the `values` of a `Query<T>` for data you want to change. The type parameter for the `Query<T>` indicates which entity - and therefore which database table - will get updated when the query is executed.
+Updating data with a `Query<T>` is similar to inserting data, in that you set the `values` of a `Query<T>` for data you want to change. The type parameter for the `Query<T>` indicates which entity - and therefore which database table - will get updated when the query is executed.
 
 An update query can - and likely should - be restricted to a single row or subset of rows. This is done by using the `matchOn` property of a `Query<T>` - which gets translated into the *where clause* of the underlying SQL statement.
 
@@ -100,7 +100,7 @@ var query = new Query<User>()
 List<User> bobsThatAreNowFreds = await query.update();
 ```
 
-An update query returns every modified row as a result, returning them as instances the appropriate `ManagedObject<T>` subclass. Only rows that were updated will be returned and they will be returned as instances of the appropriate `ManagedObject<T>` subclass. There is a variant to `Query<T>.update` named `updateOne`. The `updateOne` method will build and execute a SQL query in the same way a normal `update` does, however, it will return you a single instance that was updated instead of a list. This is convenience method for the caller to get back a single instance instead of a list:
+An update query returns every modified row as a result, returning them as instances of the appropriate `ManagedObject<T>` subclass. There is a variant to `Query<T>.update` named `updateOne`. The `updateOne` method will build and execute a SQL query in the same way a normal `update` does, however, it will return you a single instance that was updated instead of a list. This is convenience method for the caller to get back a single instance instead of a list:
 
 ```dart
 // Update user with id = 1 to have the name 'Fred'
@@ -273,9 +273,9 @@ var predicate = new Predicate("id < @id", {"id" : 2});
 
 The text following the `@` token may contain `[A-Za-z0-9_]`. The resulting where clause will be formed by replacing each token with the matching key in the parameters map. The value is not transformed in any way, so it must be the appropriate type for the property it is filtering by. If a key is not present in the `Map`, an exception will be thrown. Extra keys will be ignored.
 
-A raw `Predicate` like this one suffers from a few issues. First, predicates are *database specific* that is, after the values from the `parameters` are added to the `format` string, the resulting `String` is evaluated as-is by the underlying database. Perhaps more importantly, there is nothing to verify that the `Predicate` refers to the appropriate column names or that the data in the `parameters` is the right type. This can cause chaos when refactoring code, where a simple name change to a property would break a query. This option is primarily intended to be used as a fallback if `Query<T>.matchOn`is incapable of expressing the desired SQL.
+A raw `Predicate` like this one suffers from a few issues. First, predicates are *database specific* that is, after the values from the `parameters` are added to the `format` string, the resulting `String` is evaluated as-is by the underlying database. Perhaps more importantly, there is nothing to verify that the `Predicate` refers to the appropriate column names or that the data in the `parameters` is the right type. This can cause chaos when refactoring code, where a simple name change to a property would break a query. This option is primarily intended to be used as a fallback if `Query<T>.matchOn` is incapable of expressing the desired SQL.
 
-The `matchOn` property of a `Query<T>` is a much safer and elegant way to built a query. The `matchOn` property allows you to assign *matchers* to the properties a `ManagedObject<T>`. A `MatcherExpression` applies a condition - like equal to or less than - to the property it is assigned to. (This follows the same Hamcrest matcher style that the Dart test framework uses.)
+The `matchOn` property of a `Query<T>` is a much safer and more elegant way to build a query. The `matchOn` property allows you to assign *matchers* to the properties of a `ManagedObject<T>`. A `MatcherExpression` applies a condition - like equal to or less than - to the property it is assigned to. (This follows the same Hamcrest matcher style that the Dart test framework uses.)
 
 The `matchOn` property of a `Query<T>` has the same properties as the managed object being fetched. For each property of `matchOn` that is assigned a matcher, the resulting condition will be built into a generated `Predicate`. Here's an example of a query that finds a `User` with an `id` equal to 1:
 
@@ -294,7 +294,7 @@ var query = new Query<User>()
   ..matchOn.email = whereNotNull;
 ```
 
-Matcher methods all have a `dynamic` return type, the actual object type is opaque. The `matchOn` property it actually an instance of `ManagedObject<T>`, just like other managed objects you may use in your application. However, it has a special `backingMap` with different behavior than a managed object used to represent a database row.
+Matcher methods all have a `dynamic` return type, the actual object type is opaque. The `matchOn` property is actually an instance of `ManagedObject<T>`, just like other managed objects you may use in your application. However, it has a special `backingMap` with different behavior than a managed object used to represent a database row.
 
 Relationship properties may also be matched, but there are important nuances to understand. When matching on `ManagedRelationship` properties - the properties that represent foreign key columns - you must use the `whereRelatedByValue` matcher. For example, the following `Query<T>` would fetch all tasks that belong to `User` with `id` equal to 1:
 
@@ -353,7 +353,7 @@ user.tasks.every((Task t) =>
 ) == true;
 ```
 
-As shown, you may still apply matchers to the query. You may also apply matchers to the relationship property. In the case of has-one relationships, this doesn't make much sense - once you've included the only possible related object, filtering doesn't do anything useful. Thus, when fetching has-one properties, you need only set the relationships `includeInResultSet` property.
+As shown, you may still apply matchers to the query. You may also apply matchers to the relationship property. In the case of has-one relationships, this doesn't make much sense - once you've included the only possible related object, filtering doesn't do anything useful. Thus, when fetching has-one properties, you need only set the relationship's `includeInResultSet` property.
 
 However, in the case of has-many, it often makes sense to further filter the result set - e.g. fetching a user and their pending tasks, instead of a user and all their entire task history. `ManagedSet`s - the type of has-many relationship properties - *also* have a `matchOn` property to filter which managed objects are returned.
 
@@ -431,7 +431,7 @@ Note that a query will always fetch the primary key of a nested object, even if 
 
 An error encountered in preparing or executing a query will throw a `QueryException`. `PersistentStore` subclasses generate instances of `QueryException` and specify the type of event that caused the exception - a value in `QueryExceptionEvent`.
 
-`RequestController`s, by default, will interpret the event of a `QueryException` to return a `Response` to an HTTP client. For common scenarios - like a unique violation generating an exception with suggested status code of `409` - Aqueduct will return a reasonable status code to the requesting HTTP client. Therefore, you do not have to catch query executions unless you wish to override the returned status code.
+`RequestController`s, by default, will interpret the event of a `QueryException` to return a `Response` to an HTTP client. For common scenarios - like a unique violation generating an exception with suggested status code of `409` - Aqueduct will return a reasonable status code to the requesting HTTP client. Therefore, you do not have to catch query exceptions unless you wish to override the returned status code.
 
 ### Statement Reuse
 
