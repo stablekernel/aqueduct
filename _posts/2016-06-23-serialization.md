@@ -38,7 +38,7 @@ map == {
 
 user.name = null;
 map = user.asMap();
-map = {
+map == {
   'id' : 2,
   'name' : null
 };
@@ -46,7 +46,7 @@ map = {
 
 The inverse is true when deserializing: any keys not present in the `Map` will not be set in the managed object's backing, but explicitly `null` values will be.
 
-If you ever need to check whether or not a value has been set on a `ManagedObject<T>`, you may access use the method `hasValueForProperty` or access its `backingMap` directly:
+If you ever need to check whether or not a value has been set on a `ManagedObject<T>`, you may use the method `hasValueForProperty` or access its `backingMap` directly:
 
 ```dart
 var user = new User()..id = 2;
@@ -215,10 +215,9 @@ user.profile.user.id == user.id;
 user.posts.first.user.id == user.id
 ```
 
-While managed objects from a database will not have cyclic references, managed objects you instantiate yourself can (if you mistakenly do so). While these cyclic object graphs can be used build `Query<T>`s, they cannot be serialized. You'll get a stack overflow error. It's best to avoid creating cyclic graphs altogether. For example:
+While managed objects from a database will not have cyclic references, managed objects you instantiate yourself can (if you mistakenly do so). While these cyclic object graphs can be used to build `Query<T>`s, they cannot be serialized. You'll get a stack overflow error. It's best to avoid creating cyclic graphs altogether. For example:
 
 ```dart
-
 // do:
 var user = new User();
 posts.forEach((p) {
