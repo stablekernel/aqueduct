@@ -12,7 +12,7 @@ There are many subclasses of `RequestController` that perform different processi
 
 ## Request Streams and RequestController Listeners
 
-Aqueduct applications use a reactive programming model to respond to HTTP requests. A reactive model mirrors a real life assembly line. In a assembly line of cars, the body of a car gets put on a conveyor belt. The first worker puts on a steering wheel, the next puts on tires and the last one paints the car a color. The car is then removed from the conveyor belt and sold. Each worker has a specific job in a specific order - they rely on the rest of the assembly line to complete the car, but their job is isolated. If a worker notices a defect in their area of expertise, they remove the car from the assembly line before it is finished and discard it.
+Aqueduct applications use a reactive programming model to respond to HTTP requests. A reactive model mirrors a real life assembly line. In an assembly line of cars, the body of a car gets put on a conveyor belt. The first worker puts on a steering wheel, the next puts on tires and the last one paints the car a color. The car is then removed from the conveyor belt and sold. Each worker has a specific job in a specific order - they rely on the rest of the assembly line to complete the car, but their job is isolated. If a worker notices a defect in their area of expertise, they remove the car from the assembly line before it is finished and discard it.
 
 A reactive application works the same way. An *event* is added to a *stream*, just like the body of the car gets put on a conveyor belt. A series of *event listeners* process the event by taking a specific operation in isolation. If an event listener rejects the event, the event is discarded and no more listeners receive it. Information can be added to the event as it passes through listeners. When the last listener finishes its job, the event is completed.
 
@@ -109,7 +109,7 @@ Classes like `Router`, which have more than one "next controller", override `rec
 
 ## Exception Handling
 
-If an exception is thrown while a processing a request, it will be caught by the `RequestController` doing the processing. The controller will respond to the HTTP request with an appropriate status code and no subsequent controllers will receive the request.
+If an exception is thrown while processing a request, it will be caught by the `RequestController` doing the processing. The controller will respond to the HTTP request with an appropriate status code and no subsequent controllers will receive the request.
 
 There are two types of exceptions that a `RequestController` will interpret to return a meaningful status code: `HTTPResponseException` and `QueryException`. Any other uncaught exceptions will result in a 500 status code error.
 

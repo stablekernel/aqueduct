@@ -52,7 +52,7 @@ Persistent types define the mapping between your managed objects and a database 
 * DateTime
 * bool
 
-Properties that are one of these types are more specifically referred to the *attributes* of an entity. (Properties that are references to other model objects are called *relationships*. Collectively, attributes and relationships are called properties.)
+Properties that are one of these types are more specifically referred to as the *attributes* of an entity. (Properties that are references to other model objects are called *relationships*. Collectively, attributes and relationships are called properties.)
 
 In addition to a type and name, each property can also have `ManagedColumnAttributes` that further specifies the corresponding column. `ManagedColumnAttributes` is added as metadata to a property. For example, the following change to the `_User` persistent type adds a `String` `email` property which must be unique across all users:
 
@@ -74,7 +74,7 @@ There are eight configurable items available in the `ManagedColumnAttributes` cl
 * `defaultValue` - A default value for this property when inserted into a database without an explicit value.
 * `unique` - Toggles whether or not this property must be unique across all instances of this type.
 * `indexed` - Toggles whether or not this property's database column should be indexed for faster searching.
-* `omitByDefault` - Toggles whether or not this property should be fetched from the database by default. Useful for properties like hashed passwords, where you don't want to return that information when fetching an account unless you explicitly want the check the password.
+* `omitByDefault` - Toggles whether or not this property should be fetched from the database by default. Useful for properties like hashed passwords, where you don't want to return that information when fetching an account unless you explicitly want to check the password.
 * `autoincrement` - Toggles whether or not the underlying database should generate a new value from a serial generator each time a new instance is inserted into the database.
 
 By not specifying `ManagedColumnAttributes`, the default values for each of these possible configurations is used and the database type is inferred from the type of the property.
@@ -146,7 +146,7 @@ var users = [
 
 Managed objects may also define properties and methods on top of those it implements from its persistent type. Because these properties and methods are not part of the persistent type, they are *transient* - that is, they are not stored in the database. Any method or property defined in a subclass of `ManagedObject<T>` is ignored when used in a `Query<T>`. This is in contrast to a persistent type, where every property explicitly maps to a database column.
 
-It is often the case that you have a method or property on the instance type that makes some operation more convenient. For example, consider an entity that represented a video on a video sharing site. Each video has a persistent property that indicates when the video was uploaded. As a convenience, you'd like to be able to determine if a video instance is "recent" - that is, it has been uploaded in the last week. Adding a `isRecent` property to the persistent type doesn't make any sense, because that information can be derived from the existing upload date property. Thus, its a good use of a transient property:
+It is often the case that you have a method or property on the instance type that makes some operation more convenient. For example, consider an entity that represented a video on a video sharing site. Each video has a persistent property that indicates when the video was uploaded. As a convenience, you'd like to be able to determine if a video instance is "recent" - that is, it has been uploaded in the last week. Adding an `isRecent` property to the persistent type doesn't make any sense, because that information can be derived from the existing upload date property. Thus, it is a good use of a transient property:
 
 ```dart
 class Video extends ManagedObject<_Video> implements _Video {
@@ -181,7 +181,7 @@ class _User {
 }
 ```
 
-An `ManagedSet` is what indicates that the relationship is has-many. An `ManagedSet` is a glorified `List` - it can do everything a `List` can do - but has some additional behavior to help manage relationships and build queries.
+A `ManagedSet` is what indicates that the relationship is has-many. A `ManagedSet` is a glorified `List` - it can do everything a `List` can do - but has some additional behavior to help manage relationships and build queries.
 
 Relationship properties do *not* map to columns in the database, but actually map to entire rows in some other table in a database. The type of a relationship property must be a subclass of `ManagedObject<T>` (as opposed to the persistent type).
 
@@ -213,7 +213,7 @@ Additionally, the first argument to `ManagedRelationship` specifies the relation
 
 During `ManagedDataModel` compilation, relationships are checked for integrity by ensuring that they are two-sided and only one property has `ManagedRelationship` metadata. If they do not, an exception will be thrown.
 
-`ManagedRelationship` properties are always indexed; although this may change in the future to be configurable, but it will always be the default. Additionally, `ManagedRelationship` properties are unique if the other side is a 'has-one' relationship. Because the `ManagedRelationship` property is actually a foreign key column, it may also define some extra configuration parameters: a delete rule and whether and whether or not it is required.
+`ManagedRelationship` properties are always indexed; although this may change in the future to be configurable, but it will always be the default. Additionally, `ManagedRelationship` properties are unique if the other side is a 'has-one' relationship. Because the `ManagedRelationship` property is actually a foreign key column, it may also define some extra configuration parameters: a delete rule and whether or not it is required.
 
 By making the `Post.user` required, we will require that every `Post` must have a user in order to be inserted into the database. This means that a `Post` cannot exist without a user (i.e., the foreign key may not be null),
 
@@ -226,7 +226,8 @@ class _Post {
 ```
 
 By changing the `Profile.user` delete rule to `RelationshipDeleteRule.cascade`, deleting a `User` will also delete its `Profile`:
-```
+
+```dart
 class _Profile {
   ...
   @ManagedRelationship(#profile, onDelete: ManagedRelationshipDeleteRule.cascade)

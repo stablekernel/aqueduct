@@ -30,17 +30,17 @@ request.requestBodyObject == body;
 
 The actual decoding behavior is performed by the class `HTTPBodyDecoder`. This class has a `Map` of decoders, where the key is a `ContentType` and the value is a function that transforms the body into Dart objects. By default, `HTTPBodyDecoder` knows how to decode `application/json`, `application/x-www-form-urlencoded` and `text/*` bodies. You may add additional decoders with `HTTPBodyDecoder.addDecoder` to support more content types.
 
-A `Request` also has *attachments* that get added to it as it travels through a series of `RequestController`s. This allow requests to accumulate information as they pass validating phases. Subsequent `RequestController`s can use this information to make decisions about handling the request, without having to duplicate the work of deriving that information.
+A `Request` also has *attachments* that get added to it as it travels through a series of `RequestController`s. This allows requests to accumulate information as they pass validation phases. Subsequent `RequestController`s can use this information to make decisions about handling the request, without having to duplicate the work of deriving that information.
 
 For example, a request that must be authorized to reach an endpoint must pass through an `Authorizer`. An `Authorizer` will evaluate the Authorization header of the request and determine what user the credentials refer to, attaching this user information to `Request.authorization` property. Subsequent `RequestController`s can access this information to scope the resources the client has access to.
 
 Custom `RequestController` subclasses can add their own values to `Request.attachments`, which is a `Map<String, dynamic>`.
 
-`Request`s are responded to by invoking `Request.respond`. However, you do not invoke this method directly. Instead, instances of `RequestController` invoke it on your behalf (see [RequestControllers](request_controller.html)). Once a request has been responded to, it *cannot* be responded to again. Because `RequestController`s invoke `respond` on your behalf, it is important that you never invoke `respond` explicitly - otherwise a request controller will try and respond to an already responded to request.
+`Request`s are responded to by invoking `Request.respond`. However, you do not invoke this method directly. Instead, instances of `RequestController` invoke it on your behalf (see [RequestControllers](request_controller.html)). Once a request has been responded to, it *cannot* be responded to again. Because `RequestController`s invoke `respond` on your behalf, it is important that you never invoke `respond` explicitly - otherwise a request controller will try responding to an already responded to request.
 
 ## Response Objects and HTTP Body Encoding
 
-An instance of `Response` represents all of the information needed to send a response to a client for a `Request`: a status code, HTTP headers and an HTTP body. There are a number of convenience constructors for `Response` for commonly used status codes. For example, `Response.ok` created a 200 OK status code response.
+An instance of `Response` represents all of the information needed to send a response to a client for a `Request`: a status code, HTTP headers and an HTTP body. There are a number of convenience constructors for `Response` for commonly used status codes. For example, `Response.ok` creates a 200 OK status code response.
 
 A `Response` will serialize its `body` property if it implements `HTTPSerializable` or is a `List<HTTPSerializable>`. Serializing will transform these objects into encodable, primitive values - `String`, `int`, `double`, `bool`, or `Map`s and `List`s containing those types. The `body` may also be made up of those types to begin with. This serialization process occurs as soon as the `Response` object is created.
 
@@ -55,7 +55,7 @@ var response = new Response.ok(complexObject);
 response.body is Map == true;
 ```
 
-Prior to sending a response, the body of a `Response` is encoded according to its Content-Type header. If no Content-Type header has been set for a `Response`, the default is "application/json". There are encoders for "application/json" and "plain/text" available in Aqueduct. New encoders can be added with `Response.addEncoder`. The map of encoders behaves the same way as `HTTPBodyDecoder` - the key is a `ContentType` and the value is a function that takes Dart objects and encoders them into a value that be represented in an HTTP response body.
+Prior to sending a response, the body of a `Response` is encoded according to its Content-Type header. If no Content-Type header has been set for a `Response`, the default is "application/json". There are encoders for "application/json" and "plain/text" available in Aqueduct. New encoders can be added with `Response.addEncoder`. The map of encoders behaves the same way as `HTTPBodyDecoder` - the key is a `ContentType` and the value is a function that takes Dart objects and encodes them into a value that can be represented in an HTTP response body.
 
 ```dart
 // The following three responses will all encode their body as JSON.

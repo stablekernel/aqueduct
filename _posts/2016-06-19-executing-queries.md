@@ -33,13 +33,13 @@ Now, link this file to the rest of your project in `lib/quiz.dart` by adding thi
 part 'model/question.dart';
 ```
 
-Each property in a persistent type can be marked with `ColumnAttributes` metadata that defines how the underlying database column is defined. The `@managedPrimaryKey` metadata is shorthand for the following:
+Each property in a persistent type can be marked with `ManagedColumnAttributes` metadata that defines how the underlying database column is defined. The `@managedPrimaryKey` metadata is shorthand for the following:
 
 ```dart
-@ColumnAttributes(primaryKey: true, databaseType: PropertyType.bigInteger, autoincrement: true)
+@ManagedColumnAttributes(primaryKey: true, databaseType: PropertyType.bigInteger, autoincrement: true)
 ```
 
-*All managed objects must have a primary key.* Other interesting flags are `indexed`, `nullable` and `defaultValue`. If a property does not have a `ColumnAttributes`, it is still a persistent property, it's just a normal column and its database type is derived from its Dart type. Supported Dart types are `int`, `double`, `String`, `DateTime` and `bool`.
+*All managed objects must have a primary key.* Other interesting flags are `indexed`, `nullable` and `defaultValue`. If a property does not have a `ManagedColumnAttributes`, it is still a persistent property, it's just a normal column and its database type is derived from its Dart type. Supported Dart types are `int`, `double`, `String`, `DateTime` and `bool`.
 
 Once a persistent type has been defined, you must declare a subclass of `ManagedObject`. At the top of `question.dart`, but underneath the part of directive, add the following:
 
