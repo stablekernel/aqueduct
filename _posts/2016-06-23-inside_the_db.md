@@ -34,7 +34,7 @@ A `ManagedDataModel` will also validate all entities and their relationships. If
 
 `Query<T>`s created in an Aqueduct application are database-agnostic. They are defined in the domain of your `ManagedDataModel` and its `ManagedEntity`s. A `PersistentStore` is responsible for translating a `Query<T>` into a specific flavor of SQL and execute that query against a remote database. A `ManagedContext` uses a `PersistentStore` to carry out data transmission.
 
-`PersistentStore` is an abstract class. To connect to and interact with a specific flavor of SQL - like PostgreSQL o'r MySQL - a flavor-specific implementation of `PersistentStore` must exist. By default, Aqueduct ships with a `PostgreSQLPersistentStore`. A persistent store implementation does the actual translation from Aqueduct `Query<T>`s to a SQL query. It also manages a database connection and the transmission of data between your application and a database instance.
+`PersistentStore` is an abstract class. To connect to and interact with a specific flavor of SQL - like PostgreSQL or MySQL - a flavor-specific implementation of `PersistentStore` must exist. By default, Aqueduct ships with a `PostgreSQLPersistentStore`. A persistent store implementation does the actual translation from Aqueduct `Query<T>`s to a SQL query. It also manages a database connection and the transmission of data between your application and a database instance.
 
 There is nothing that prevents a `PersistentStore` implementation from connecting to and working with a NoSQL database, but the interface is certainly more geared towards SQL databases.
 
