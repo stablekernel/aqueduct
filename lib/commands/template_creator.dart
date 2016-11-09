@@ -39,10 +39,10 @@ class CLITemplateCreator extends CLICommand {
 
     print("Fetching Aqueduct as:\n  $aqueductVersion");
     var aqueductPath = await determineAqueductPath(destDirectory, aqueductVersion);
-    var sourceDirectory = new Directory("${aqueductPath}/example/templates/${argValues["template"]}");
+    var sourceDirectory = new Directory(path_lib.join(aqueductPath, "example", "templates", argValues["template"]));
 
     if (argValues["template-directory"] != null) {
-      sourceDirectory = new Directory("${argValues["template-directory"]}/${argValues["template"]}");
+      sourceDirectory = new Directory(path_lib.join(argValues["template-directory"], argValues["template"]));
     }
     if (!sourceDirectory.existsSync()) {
       print("Error: no template named ${argValues["template"]}");
@@ -61,7 +61,7 @@ class CLITemplateCreator extends CLICommand {
 
     print("");
     print("New project ${argValues["name"]} created at ${destDirectory.path}");
-    print("See ${destDirectory.path}/README.md.");
+    print("See ${destDirectory.path}${path_lib.separator}README.md.");
 
     return 0;
   }
@@ -71,17 +71,17 @@ class CLITemplateCreator extends CLICommand {
     print("Determining Aqueduct template source...");
     var temporaryPubspec = generatingPubspec(aqueductVersion);
 
-    new File(projectDirectory.path + "/pubspec.yaml").writeAsStringSync(temporaryPubspec);
+    new File(path_lib.join(projectDirectory.path, "pubspec.yaml")).writeAsStringSync(temporaryPubspec);
     var result = Process.runSync("pub", ["get", "--no-packages-dir"], workingDirectory: projectDirectory.path, runInShell: true);
     if (result.exitCode != 0) {
       throw new Exception("${result.stderr}");
     }
 
-    var resolver = new PackagePathResolver(projectDirectory.path + "/.packages");
+    var resolver = new PackagePathResolver(path_lib.join(projectDirectory.path, ".packages"));
     var resolvedURL = resolver.resolve(new Uri(scheme: "package", path: "aqueduct"));
 
-    new File(projectDirectory.path + "/pubspec.yaml").deleteSync();
-    new File(projectDirectory.path + "/.packages").deleteSync();
+    new File(path_lib.join(projectDirectory.path, "pubspec.yaml")).deleteSync();
+    new File(path_lib.join(projectDirectory.path, ".packages")).deleteSync();
 
     var path = path_lib.normalize(resolvedURL + "..");
     print("\tUsing template source from: ${path}.");
@@ -132,7 +132,7 @@ class CLITemplateCreator extends CLICommand {
 
   void copyDirectory(String projectName, Directory destinationParentDirectory, Directory sourceDirectory) {
     var sourceDirectoryName = sourceDirectory.uri.pathSegments[sourceDirectory.uri.pathSegments.length - 2];
-    var destDir = new Directory(destinationParentDirectory.path + "/" + sourceDirectoryName);
+    var destDir = new Directory(path_lib.join(destinationParentDirectory.path, sourceDirectoryName));
 
     destDir.createSync();
 
@@ -142,7 +142,7 @@ class CLITemplateCreator extends CLICommand {
   }
 
   void copyFile(String projectName, Directory destinationDirectory, File sourceFile) {
-    var path = destinationDirectory.path + "/" + fileNameForFile(projectName, sourceFile);
+    var path = path_lib.join(destinationDirectory.path, fileNameForFile(projectName, sourceFile));
     var contents = sourceFile.readAsStringSync();
 
     contents = contents.replaceAll("wildfire", projectName);
@@ -166,8 +166,8 @@ class CLITemplateCreator extends CLICommand {
       return new Directory(pathString);
     }
     var currentDirPath = Directory.current.uri.toFilePath();
-    if (!currentDirPath.endsWith("/")) {
-      currentDirPath += "/";
+    if (!currentDirPath.endsWith(path_lib.separator)) {
+      currentDirPath += path_lib.separator;
     }
     currentDirPath += pathString;
 
@@ -175,7 +175,7 @@ class CLITemplateCreator extends CLICommand {
   }
 
   String projectNameFromPath(String pathString) {
-    var lastPathComponentIndex = pathString.lastIndexOf("/");
+    var lastPathComponentIndex = pathString.lastIndexOf(path_lib.separator);
     var parentPath = pathString.substring(0, lastPathComponentIndex);
     var parentDirectory = new Directory(parentPath);
     if (!parentDirectory.existsSync()) {
@@ -186,8 +186,8 @@ class CLITemplateCreator extends CLICommand {
   }
 
   Future createProjectSpecificFiles(String directoryPath, String aqueductVersion) async {
-    var configSrcPath = new File(directoryPath + "/config.yaml.src");
-    configSrcPath.copySync(new File(directoryPath + "/config.yaml").path);
+    var configSrcPath = new File(path_lib.join(directoryPath, "config.yaml.src"));
+    configSrcPath.copySync(new File(path_lib.join(directoryPath, "config.yaml")).path);
   }
 
   void copyProjectFiles(Directory destinationDirectory, Directory sourceDirectory, String projectName) {
@@ -200,7 +200,7 @@ class CLITemplateCreator extends CLICommand {
             interpretContentFile(projectName, destinationDirectory, f);
           });
     } catch (e) {
-      Process.runSync("rm", ["-rf", destinationDirectory.path], runInShell: true);
+      destinationDirectory.deleteSync(recursive: true);
       print("${e}");
     }
   }

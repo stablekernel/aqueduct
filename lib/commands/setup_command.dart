@@ -22,7 +22,7 @@ class CLISetup extends CLICommand {
       return -1;
     }
 
-    var username = argValues["granting-user"];
+    String username = argValues["granting-user"];
     var commands = [
       "create database dart_test;",
       "create user dart with createdb;",
@@ -41,7 +41,8 @@ class CLISetup extends CLICommand {
     }
 
     for (var cmd in commands) {
-      var result = await Process.runSync("psql", ["-c", cmd], runInShell: true);
+      List<String> args = ["-c", cmd, "-U", username];
+      var result = await Process.runSync("psql", args, runInShell: true);
       if (result.stdout.contains("CREATE DATABASE")) {
         print("Successfully created database dart_test.");
       } else if (result.stdout.contains("CREATE ROLE")) {
@@ -71,12 +72,9 @@ class CLISetup extends CLICommand {
   }
 
   Future<bool> get hasPSQLCLI async {
-    var results = Process.runSync("which", ["psql"], runInShell: true);
+    String locator = Platform.isWindows ? "where" : "which";
+    ProcessResult results = Process.runSync(locator, ["psql"], runInShell: true);
 
-    String out = results.stdout;
-    if (out.startsWith("/")) {
-      return true;
-    }
-    return false;
+    return results.exitCode == 0;
   }
 }
