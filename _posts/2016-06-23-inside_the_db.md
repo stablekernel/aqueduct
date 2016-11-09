@@ -26,7 +26,7 @@ Instances of `ManagedDataModel` are one of the two components of a `ManagedConte
 
 `ManagedEntity`s are the description of a database table in your application.  A `ManagedEntity` contains references to the two types that make up a fully formed entity - the subclass of `ManagedObject<T>` and its persistent type. They also contain the information derived from these types - the attributes and relationships - into a more readily available format.
 
-`ManagedEntity`s store relationship and attribute information in instances of `ManagedRelationshipDescription` and `ManagedAttributeDescription`, both of which extend `ManagedPropertyDescription`. This information is used by the rest of Aqueduct to determine how database rows and model objects are translated back and forth. This information is derived from the class declarations, and `ColumnAttributes` and `ManagedRelationship` metadata that is used when defining your managed object classes.
+`ManagedEntity`s store relationship and attribute information in instances of `ManagedRelationshipDescription` and `ManagedAttributeDescription`, both of which extend `ManagedPropertyDescription`. This information is used by the rest of Aqueduct to determine how database rows and model objects are translated back and forth. This information is derived from the class declarations, and `ManagedColumnAttributes` and `ManagedRelationship` metadata that is used when defining your managed object classes.
 
 A `ManagedDataModel` will also validate all entities and their relationships. If validation fails, an exception will be thrown. As `ManagedDataModel`s are created at the beginning of the application's startup, this behavior will stop your application from running if there are data model errors.
 

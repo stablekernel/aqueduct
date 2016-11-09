@@ -58,7 +58,7 @@ class Migration1 extends Migration {
 }
 ```
 
-Notice that the `upgrade` method calls `database.createTable` to create the `_Question` and `_Answer` table. (Recall that table names match the persistent type name of a `ManagedObject` subclass.) Each column in the table is listed with the same `ColumnAttributes` values as declared in your code. As you continue to change your schema, you can create subsequent migration files with `aqueduct db generate`.
+Notice that the `upgrade` method calls `database.createTable` to create the `_Question` and `_Answer` table. (Recall that table names match the persistent type name of a `ManagedObject` subclass.) Each column in the table is listed with the same `ManagedColumnAttributes` values as declared in your code. As you continue to change your schema, you can create subsequent migration files with `aqueduct db generate`.
 
 This command prepares a migration file, but it does not alter a database in anyway. Before we run this migration, we should validate that the schema it creates matches the `ManagedDataModel` in `quiz`. Now, since this migration file was generated, you can safely bet that it is correct. But, you will have to modify migration files in the future if you make a change to your data model that is too ambiguous for the tools to make a decision on. Therefore, there is a tool to validate that, after running every migration file in `migrations/`, the schema matches the data model of an application.
 
