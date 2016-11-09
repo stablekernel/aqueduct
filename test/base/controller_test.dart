@@ -46,12 +46,18 @@ void main() {
     expect(JSON.decode(res.body), "123active");
   });
 
-  test("Unsupported method", () async {
-    server = await enableController("/a", TController);
+  group("Unsupported method", () {
+    test("Returns status code 405 with Allow response header", () async {
+      server = await enableController("/a", TController);
 
-    var res = await http.delete("http://localhost:4040/a");
-    expect(res.statusCode, 404);
-    // expect headers to have Allow: GET, POST, PUT
+      var res = await http.delete("http://localhost:4040/a");
+      expect(res.statusCode, 405);
+      expect(res.headers["allow"], "GET, POST, PUT");
+    });
+
+    test("Only returns allow for specific resource within controller", () async {
+      fail("NYI");
+    });
   });
 
   test("Crashing controller delivers 500", () async {

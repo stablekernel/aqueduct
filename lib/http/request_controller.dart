@@ -119,13 +119,14 @@ class RequestController extends Object with APIDocumentable {
   /// as this method does the heavy-lifting for handling CORS requests.
   Future receive(Request req) async {
     try {
-      if (req.isCORSRequest && req.isPreflightRequest) {
+      if (req.isPreflightRequest) {
         var controllerToDictatePolicy = _lastRequestController();
         if (controllerToDictatePolicy != this) {
           controllerToDictatePolicy.receive(req);
           return;
         }
 
+        logger.info("${req.innerRequest.headers}");
         if (policy != null) {
           if (!policy.validatePreflightRequest(req.innerRequest)) {
             req.respond(new Response.forbidden());
@@ -135,8 +136,12 @@ class RequestController extends Object with APIDocumentable {
             logger.info(req.toDebugString());
           }
           return;
+        } else {
+          // If we don't have a policy, then a preflight request makes no sense.
+          req.respond(new Response.forbidden());
+          logger.info(req.toDebugString(includeHeaders: true));
+          return;
         }
-        // If we have no policy, then it isn't really a preflight request because we don't support CORS so let it fall thru.
       }
 
       var result = await processRequest(req);
@@ -223,7 +228,7 @@ class RequestController extends Object with APIDocumentable {
   }
 
   void _applyCORSHeadersIfNecessary(Request req, Response resp) {
-    if (req.isCORSRequest) {
+    if (req.isCORSRequest && !req.isPreflightRequest) {
       var lastPolicyController = _lastRequestController();
       var p = lastPolicyController.policy;
       if (p != null) {

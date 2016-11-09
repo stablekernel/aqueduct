@@ -59,7 +59,7 @@ class Request implements RequestControllerEvent {
   ///
   /// This is true if the request HTTP method is OPTIONS and the headers contains Access-Control-Request-Method.
   bool get isPreflightRequest {
-    return innerRequest.method == "OPTIONS" && innerRequest.headers.value("access-control-request-method") != null;
+    return isCORSRequest && innerRequest.method == "OPTIONS" && innerRequest.headers.value("access-control-request-method") != null;
   }
 
   /// Container for any data a [RequestController] wants to attach to this request for the purpose of being used by a later [RequestController].

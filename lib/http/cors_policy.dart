@@ -20,9 +20,13 @@ class CORSPolicy {
 
   /// List of 'Simple' CORS headers.
   ///
-  /// These are headers that are considered acceptable as part of any CORS request. They are cache-control, content-language, content-type, expires, last-modified,
-  /// pragma, accept, accept-language and origin.
-  static List<String> simpleHeaders = ["cache-control", "content-language", "content-type", "expires", "last-modified", "pragma", "accept", "accept-language", "origin"];
+  /// These are headers that are considered acceptable as part of any CORS request.
+  static List<String> simpleHeaders = ["accept", "accept-language", "content-language", "content-type"];
+
+  /// List of 'Simple' CORS Response headers.
+  ///
+  /// These headers can be returned in a response without explicitly exposing them.
+  static List<String> simpleResponseHeaders = ["cache-control", "content-language", "content-type", "content-type", "expires", "last-modified", "pragma"];
 
   /// Create a new instance of [CORSPolicy].
   ///
@@ -42,34 +46,34 @@ class CORSPolicy {
     allowCredentials = true;
     exposedResponseHeaders = [];
     allowedMethods = ["POST", "PUT", "DELETE", "GET"];
-    allowedRequestHeaders = ["authorization", "x-requested-with", "x-forwarded-for"];
+    allowedRequestHeaders = ["authorization", "x-requested-with", "x-forwarded-for", "content-type"];
     cacheInSeconds = 86400;
   }
 
   /// The list of case-sensitive allowed origins.
   ///
-  /// Defaults to '*'. Case-sensitive.
+  /// Defaults to '*'. Case-sensitive. In the specification (http://www.w3.org/TR/cors/), this is 'list of origins'.
   List<String> allowedOrigins;
 
   /// Whether or not to allow use of credentials, including Authorization and cookies.
   ///
-  /// Defaults to true.
+  /// Defaults to true. In the specification (http://www.w3.org/TR/cors/), this is 'supports credentials'.
   bool allowCredentials;
 
   /// Which response headers to expose to the client.
   ///
-  /// Defaults to empty.
+  /// Defaults to empty. In the specification (http://www.w3.org/TR/cors/), this is 'list of exposed headers'.
   List<String> exposedResponseHeaders;
 
   /// Which HTTP methods are allowed.
   ///
-  /// Defaults to POST, PUT, DELETE, and GET. Case-sensitive.
+  /// Defaults to POST, PUT, DELETE, and GET. Case-sensitive. In the specification (http://www.w3.org/TR/cors/), this is 'list of methods'.
   List<String> allowedMethods;
 
   /// The allowed request headers.
   ///
   /// Defaults to authorization, x-requested-with, x-forwarded-for. Must be lowercase.
-  /// Use in conjunction with [simpleHeaders].
+  /// Use in conjunction with [simpleHeaders]. In the specification (http://www.w3.org/TR/cors/), this is 'list of headers'.
   List<String> allowedRequestHeaders;
 
   /// The number of seconds to cache a pre-flight request for a requesting client.
@@ -89,7 +93,9 @@ class CORSPolicy {
       headers["Access-Control-Expose-Headers"] = exposedResponseHeaders.join(", ");
     }
 
-    headers["Access-Control-Allow-Credentials"] = allowCredentials ? "true" : "false";
+    if (allowCredentials) {
+      headers["Access-Control-Allow-Credentials"] = "true";
+    }
 
     return headers;
   }
@@ -99,24 +105,33 @@ class CORSPolicy {
   /// Will return true if [allowedOrigins] contains the case-sensitive Origin of the [request],
   /// or that [allowedOrigins] contains *.
   bool isRequestOriginAllowed(HttpRequest request) {
-    var origin = request.headers.value("origin");
-    if (!allowedOrigins.contains("*") && !allowedOrigins.contains(origin)) {
-      return false;
+    if (allowedOrigins.contains("*")) {
+      return true;
     }
-    return true;
+
+    var origin = request.headers.value("origin");
+    if (allowedOrigins.contains(origin)) {
+      return true;
+    }
+
+    return false;
   }
 
   /// Validates whether or not a preflight request matches this policy.
   ///
   /// Will return true if the policy agrees with the Access-Control-Request-* headers of the request, otherwise, false.
   bool validatePreflightRequest(HttpRequest request) {
+    if (!isRequestOriginAllowed(request)) {
+      return false;
+    }
+
     var method = request.headers.value("access-control-request-method");
     if (!allowedMethods.contains(method)) {
       return false;
     }
 
-    var requestedHeaders = request.headers.value("access-control-request-headers").split(",").map((str) => str.trim()).toList();
-    if (requestedHeaders != null) {
+    var requestedHeaders = request.headers.value("access-control-request-headers")?.split(",")?.map((str) => str.trim())?.toList();
+    if (requestedHeaders?.isNotEmpty ?? false) {
       var nonSimpleHeaders = requestedHeaders.where((str) => !simpleHeaders.contains(str));
       if (nonSimpleHeaders.any((h) => !allowedRequestHeaders.contains(h))) {
         return false;

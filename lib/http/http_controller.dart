@@ -86,7 +86,7 @@ abstract class HTTPController extends RequestController {
     var controllerCache = _HTTPControllerCache.cacheForType(runtimeType);
     var mapper = controllerCache.mapperForRequest(request);
     if (mapper == null) {
-      return new Response.notFound();
+      return new Response(405, null, null);
     }
 
     if (request.innerRequest.contentLength > 0) {
