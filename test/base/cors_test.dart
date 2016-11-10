@@ -310,6 +310,21 @@ void main() {
       expect(resp.headers.value("access-control-allow-credentials"), "true");
     });
 
+    test("Just one allowed method returns that", () async {
+      var req = await (new HttpClient().open("OPTIONS", "localhost", 8000, "single_method"));
+      req.headers.set("Origin", "http://foobar.com");
+      req.headers.set("Access-Control-Request-Method", "GET");
+      var resp = await req.close();
+
+      expect(resp.statusCode, 200);
+      expect(resp.headers.value("access-control-allow-origin"), "http://foobar.com");
+      expect(resp.headers.value("access-control-allow-headers"), "authorization, x-requested-with, x-forwarded-for, content-type");
+      expect(resp.headers.value("access-control-allow-methods"), "GET");
+      expect(resp.headers.value("access-control-expose-headers"), isNull);
+      expect(resp.headers.value("access-control-allow-credentials"), "true");
+      expect(resp.headers.value("access-control-max-age"), "86400");
+    });
+
     test("If one allow header is available", () async {
       var req = await (new HttpClient().open("OPTIONS", "localhost", 8000, "defaultpolicy"));
       req.headers.set("Origin", "http://foobar.com");
@@ -403,18 +418,53 @@ void main() {
 
   group("Preflight: Add Access-Control-Allow-Origin and Access-Control-Allow-Credentials", () {
     // This group ensures that if we have a valid origin, we add the allow-origin and optionally allow-credentials
+    test("If valid origin and endpoint allows credentials, add allow origin/creds", () async {
+      var req = await (new HttpClient().open("OPTIONS", "localhost", 8000, "defaultpolicy"));
+      req.headers.set("Origin", "http://foobar.com");
+      req.headers.set("Access-Control-Request-Method", "POST");
+      req.headers.set("Access-Control-Request-Headers", "accept, authorization");
+      var resp = await req.close();
+
+      expect(resp.statusCode, 200);
+      expect(resp.headers.value("access-control-allow-origin"), "http://foobar.com");
+      expect(resp.headers.value("access-control-allow-headers"), "authorization, x-requested-with, x-forwarded-for, content-type");
+      expect(resp.headers.value("access-control-allow-methods"), "POST, PUT, DELETE, GET");
+      expect(resp.headers.value("access-control-expose-headers"), isNull);
+      expect(resp.headers.value("access-control-allow-credentials"), "true");
+    });
+
+    test("If valid origin and endpoint do not allow credentials, add allow origin but not creds", () async {
+      var req = await (new HttpClient().open("OPTIONS", "localhost", 8000, "restrictive_nocreds"));
+      req.headers.set("Origin", "http://exclusive.com");
+      req.headers.set("Access-Control-Request-Method", "POST");
+      var resp = await req.close();
+
+      expect(resp.statusCode, 200);
+      expect(resp.headers.value("access-control-allow-origin"), "http://exclusive.com");
+      expect(resp.headers.value("access-control-allow-headers"), "authorization, x-requested-with, x-forwarded-for, content-type");
+      expect(resp.headers.value("access-control-allow-methods"), "POST, PUT, DELETE, GET");
+      expect(resp.headers.value("access-control-expose-headers"), isNull);
+      expect(resp.headers.value("access-control-allow-credentials"), isNull);
+    });
   });
 
   group("Preflight: Optionally add a single Acces-Control-Max-Age header", () {
     // This group ensures that we add Access-Control-Max-Age if defined and everything else is valid
-  });
+    test("If valid origin and endpoint allows credentials, add allow origin/creds", () async {
+      var req = await (new HttpClient().open("OPTIONS", "localhost", 8000, "defaultpolicy"));
+      req.headers.set("Origin", "http://foobar.com");
+      req.headers.set("Access-Control-Request-Method", "POST");
+      req.headers.set("Access-Control-Request-Headers", "accept, authorization");
+      var resp = await req.close();
 
-  group("Preflight: Add one or more Access-Control-Allow-Methods", () {
-    // This group ensures that the appropriate allowed methods are returned if everything else is valid.
-  });
-
-  group("Preflight: Add one or more Access-Control-Allow-Headers", () {
-    // This group ensures that allowed headers (other than simple headers) are added if everything else is valid.
+      expect(resp.statusCode, 200);
+      expect(resp.headers.value("access-control-allow-origin"), "http://foobar.com");
+      expect(resp.headers.value("access-control-allow-headers"), "authorization, x-requested-with, x-forwarded-for, content-type");
+      expect(resp.headers.value("access-control-allow-methods"), "POST, PUT, DELETE, GET");
+      expect(resp.headers.value("access-control-expose-headers"), isNull);
+      expect(resp.headers.value("access-control-allow-credentials"), "true");
+      expect(resp.headers.value("access-control-max-age"), "86400");
+    });
   });
 }
 
@@ -436,16 +486,13 @@ class CORSSink extends RequestSink implements AuthServerDelegate<AuthImpl, Token
   void setupRouter(Router router) {
     router.route("/opts").pipe(new Authorizer(authServer)).generate(() => new OptionsController());
     router.route("/restrictive").generate(() => new RestrictiveOriginController());
+    router.route("/single_method").generate(() => new SingleMethodController());
     router.route("/restrictive_auth").pipe(new Authorizer(authServer)).generate(() => new RestrictiveOriginController());
     router.route("/restrictive_nocreds").generate(() => new RestrictiveNoCredsOriginController());
     router.route("/nopolicy").generate(() => new NoPolicyController());
     router.route("/defaultpolicy").generate(() => new DefaultPolicyController());
-    router.route("/nopolicyauth")
-        .pipe(new Authorizer(authServer))
-        .generate(() => new NoPolicyController());
-    router.route("/defaultpolicyauth")
-        .pipe(new Authorizer(authServer))
-        .generate(() => new DefaultPolicyController());
+    router.route("/nopolicyauth").pipe(new Authorizer(authServer)).generate(() => new NoPolicyController());
+    router.route("/defaultpolicyauth").pipe(new Authorizer(authServer)).generate(() => new DefaultPolicyController());
   }
 
   Future<TokenImpl> tokenForAccessToken(AuthServer server, String accessToken) async {
@@ -594,5 +641,11 @@ class OptionsController extends HTTPController {
 
   @HTTPMethod("options") getThing() async {
     return new Response.ok("getThing");
+  }
+}
+
+class SingleMethodController extends HTTPController {
+  SingleMethodController() {
+    policy.allowedMethods = ["GET"];
   }
 }

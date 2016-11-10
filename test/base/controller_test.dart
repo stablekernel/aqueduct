@@ -52,11 +52,23 @@ void main() {
 
       var res = await http.delete("http://localhost:4040/a");
       expect(res.statusCode, 405);
-      expect(res.headers["allow"], "GET, POST, PUT");
+      expect(res.headers["allow"], "GET, POST");
     });
 
     test("Only returns allow for specific resource within controller", () async {
-      fail("NYI");
+      server = await enableController("/a/[:id/[:flag]]", TController);
+
+      var res = await http.delete("http://localhost:4040/a");
+      expect(res.statusCode, 405);
+      expect(res.headers["allow"], "GET, POST");
+
+      res = await http.delete("http://localhost:4040/a/1");
+      expect(res.statusCode, 405);
+      expect(res.headers["allow"], "GET, PUT");
+
+      res = await http.delete("http://localhost:4040/a/1/foo");
+      expect(res.statusCode, 405);
+      expect(res.headers["allow"], "GET");
     });
   });
 

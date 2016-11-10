@@ -103,6 +103,13 @@ class _HTTPControllerCache {
   Map<Symbol, dynamic> propertiesFromRequest(HttpHeaders headers, Map<String, List<String>> queryParameters) {
     return _parseParametersFromRequest(propertyCache, headers, queryParameters);
   }
+
+  List<String> allowedMethodsForArity(int arity) {
+    return methodCache.values
+        .where((m) => m.pathParameters.length == arity)
+        .map((m) => m.httpMethod.method.toUpperCase())
+        .toList();
+  }
 }
 
 class _HTTPControllerCachedMethod {
