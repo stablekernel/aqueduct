@@ -19,6 +19,7 @@ class Router extends RequestController {
   /// Creates a new [Router].
   Router() {
     unhandledRequestController = _handleUnhandledRequest;
+    policy.allowCredentials = false;
   }
 
   List<RouteController> _routeControllers = [];

@@ -2,6 +2,8 @@
 
 ## 1.0.3
 - Fix to allow Windows user to use `aqueduct setup`.
+- Fix to CORS processing.
+- HTTPControllers now return 405 if there is no responder method match for a request.
 
 ## 1.0.2
 - Fix type checking for transient map and list properties of ManagedObject.
