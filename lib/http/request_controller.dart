@@ -126,7 +126,6 @@ class RequestController extends Object with APIDocumentable {
           return;
         }
 
-        logger.info("${req.innerRequest.headers}");
         if (policy != null) {
           if (!policy.validatePreflightRequest(req.innerRequest)) {
             req.respond(new Response.forbidden());
