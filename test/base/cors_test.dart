@@ -24,25 +24,25 @@ void main() {
     test("Controller with no policy returns correctly", () async {
       var resp = await http.get("http://localhost:8000/nopolicy");
       expect(resp.statusCode, 200);
-      expectThatNoCORSProcessingOccured(resp);
+      expectThatNoCORSProcessingOccurred(resp);
     });
 
     test("Controller with permissive default policy returns correctly", () async {
       var resp = await http.get("http://localhost:8000/defaultpolicy");
       expect(resp.statusCode, 200);
-      expectThatNoCORSProcessingOccured(resp);
+      expectThatNoCORSProcessingOccurred(resp);
     });
 
     test("Controller with restrict policy returns correctly", () async {
       var resp = await http.get("http://localhost:8000/restrictive");
       expect(resp.statusCode, 200);
-      expectThatNoCORSProcessingOccured(resp);
+      expectThatNoCORSProcessingOccurred(resp);
     });
 
     test("Invalid resource 404s", () async {
       var resp = await http.get("http://localhost:8000/foobar");
       expect(resp.statusCode, 404);
-      expectThatNoCORSProcessingOccured(resp);
+      expectThatNoCORSProcessingOccurred(resp);
     });
   });
 
@@ -53,7 +53,7 @@ void main() {
         "Origin" : "not this"
       });
       expect(resp.statusCode, 200);
-      expectThatNoCORSProcessingOccured(resp);
+      expectThatNoCORSProcessingOccurred(resp);
     });
 
     test("Valid endpoint, case match failure", () async {
@@ -61,7 +61,7 @@ void main() {
         "Origin" : "http://Exclusive.com"
       });
       expect(resp.statusCode, 200);
-      expectThatNoCORSProcessingOccured(resp);
+      expectThatNoCORSProcessingOccurred(resp);
     });
 
     test("Invalid resource gets CORS headers to expose 404 to calling client", () async {
@@ -83,7 +83,7 @@ void main() {
         "Authorization" : "Bearer noauth"
       });
       expect(resp.statusCode, 401);
-      expectThatNoCORSProcessingOccured(resp);
+      expectThatNoCORSProcessingOccurred(resp);
     });
   });
 
@@ -176,11 +176,7 @@ void main() {
       var resp = await req.close();
 
       expect(resp.statusCode, 200);
-      expect(resp.headers["access-control-allow-origin"], isNull);
-      expect(resp.headers["access-control-allow-headers"], isNull);
-      expect(resp.headers["access-control-allow-methods"], isNull);
-      expect(resp.headers["access-control-expose-headers"], isNull);
-      expect(resp.headers["access-control-allow-credentials"], isNull);
+      expectThatNoCORSProcessingOccurred(resp);
     });
 
     test("Return 401 if there is an actual endpoint for OPTIONS and request is unauthorized (No CORS Headers)", () async {
@@ -188,11 +184,7 @@ void main() {
       var resp = await req.close();
 
       expect(resp.statusCode, 401);
-      expect(resp.headers["access-control-allow-origin"], isNull);
-      expect(resp.headers["access-control-allow-headers"], isNull);
-      expect(resp.headers["access-control-allow-methods"], isNull);
-      expect(resp.headers["access-control-expose-headers"], isNull);
-      expect(resp.headers["access-control-allow-credentials"], isNull);
+      expectThatNoCORSProcessingOccurred(resp);
     });
 
     test("Return 404 if there is no endpoint for OPTIONS (No CORS Headers)", () async {
@@ -200,11 +192,7 @@ void main() {
       var resp = await req.close();
 
       expect(resp.statusCode, 404);
-      expect(resp.headers["access-control-allow-origin"], isNull);
-      expect(resp.headers["access-control-allow-headers"], isNull);
-      expect(resp.headers["access-control-allow-methods"], isNull);
-      expect(resp.headers["access-control-expose-headers"], isNull);
-      expect(resp.headers["access-control-allow-credentials"], isNull);
+      expectThatNoCORSProcessingOccurred(resp);
     });
 
     test("Return 405 if there is an endpoint, but OPTIONS not supported (No CORS Headers)", () async {
@@ -212,11 +200,7 @@ void main() {
       var resp = await req.close();
 
       expect(resp.statusCode, 405);
-      expect(resp.headers["access-control-allow-origin"], isNull);
-      expect(resp.headers["access-control-allow-headers"], isNull);
-      expect(resp.headers["access-control-allow-methods"], isNull);
-      expect(resp.headers["access-control-expose-headers"], isNull);
-      expect(resp.headers["access-control-allow-credentials"], isNull);
+      expectThatNoCORSProcessingOccurred(resp);
     });
   });
 
@@ -244,11 +228,7 @@ void main() {
       var resp = await req.close();
 
       expect(resp.statusCode, 403);
-      expect(resp.headers["access-control-allow-origin"], isNull);
-      expect(resp.headers["access-control-allow-headers"], isNull);
-      expect(resp.headers["access-control-allow-methods"], isNull);
-      expect(resp.headers["access-control-expose-headers"], isNull);
-      expect(resp.headers["access-control-allow-credentials"], isNull);
+      expectThatNoCORSProcessingOccurred(resp);
     });
 
     test("If origin is invalid, get 403 from OPTIONS", () async {
@@ -258,11 +238,7 @@ void main() {
       var resp = await req.close();
 
       expect(resp.statusCode, 403);
-      expect(resp.headers["access-control-allow-origin"], isNull);
-      expect(resp.headers["access-control-allow-headers"], isNull);
-      expect(resp.headers["access-control-allow-methods"], isNull);
-      expect(resp.headers["access-control-expose-headers"], isNull);
-      expect(resp.headers["access-control-allow-credentials"], isNull);
+      expectThatNoCORSProcessingOccurred(resp);
     });
 
     test("If no policy defined, return 403", () async {
@@ -272,11 +248,7 @@ void main() {
       var resp = await req.close();
 
       expect(resp.statusCode, 403);
-      expect(resp.headers["access-control-allow-origin"], isNull);
-      expect(resp.headers["access-control-allow-headers"], isNull);
-      expect(resp.headers["access-control-allow-methods"], isNull);
-      expect(resp.headers["access-control-expose-headers"], isNull);
-      expect(resp.headers["access-control-allow-credentials"], isNull);
+      expectThatNoCORSProcessingOccurred(resp);
     });
   });
 
@@ -289,11 +261,7 @@ void main() {
       var resp = await req.close();
 
       expect(resp.statusCode, 403);
-      expect(resp.headers["access-control-allow-origin"], isNull);
-      expect(resp.headers["access-control-allow-headers"], isNull);
-      expect(resp.headers["access-control-allow-methods"], isNull);
-      expect(resp.headers["access-control-expose-headers"], isNull);
-      expect(resp.headers["access-control-allow-credentials"], isNull);
+      expectThatNoCORSProcessingOccurred(resp);
     });
 
     test("If allow method is available", () async {
@@ -378,11 +346,7 @@ void main() {
       var resp = await req.close();
 
       expect(resp.statusCode, 403);
-      expect(resp.headers.value("access-control-allow-origin"), isNull);
-      expect(resp.headers.value("access-control-allow-headers"), isNull);
-      expect(resp.headers.value("access-control-allow-methods"), isNull);
-      expect(resp.headers.value("access-control-expose-headers"), isNull);
-      expect(resp.headers.value("access-control-allow-credentials"), isNull);
+      expectThatNoCORSProcessingOccurred(resp);
     });
 
     test("If one specified allow headers are not available, get a 403", () async {
@@ -393,11 +357,7 @@ void main() {
       var resp = await req.close();
 
       expect(resp.statusCode, 403);
-      expect(resp.headers.value("access-control-allow-origin"), isNull);
-      expect(resp.headers.value("access-control-allow-headers"), isNull);
-      expect(resp.headers.value("access-control-allow-methods"), isNull);
-      expect(resp.headers.value("access-control-expose-headers"), isNull);
-      expect(resp.headers.value("access-control-allow-credentials"), isNull);
+      expectThatNoCORSProcessingOccurred(resp);
     });
 
     test("If all specified allow headers are not available, get a 403", () async {
@@ -408,11 +368,7 @@ void main() {
       var resp = await req.close();
 
       expect(resp.statusCode, 403);
-      expect(resp.headers.value("access-control-allow-origin"), isNull);
-      expect(resp.headers.value("access-control-allow-headers"), isNull);
-      expect(resp.headers.value("access-control-allow-methods"), isNull);
-      expect(resp.headers.value("access-control-expose-headers"), isNull);
-      expect(resp.headers.value("access-control-allow-credentials"), isNull);
+      expectThatNoCORSProcessingOccurred(resp);
     });
   });
 
@@ -468,12 +424,20 @@ void main() {
   });
 }
 
-expectThatNoCORSProcessingOccured(http.Response resp) {
-  expect(resp.headers["access-control-allow-origin"], isNull);
-  expect(resp.headers["access-control-allow-headers"], isNull);
-  expect(resp.headers["access-control-allow-methods"], isNull);
-  expect(resp.headers["access-control-expose-headers"], isNull);
-  expect(resp.headers["access-control-allow-credentials"], isNull);
+expectThatNoCORSProcessingOccurred(dynamic resp) {
+  if (resp is http.Response) {
+    expect(resp.headers["access-control-allow-origin"], isNull);
+    expect(resp.headers["access-control-allow-headers"], isNull);
+    expect(resp.headers["access-control-allow-methods"], isNull);
+    expect(resp.headers["access-control-expose-headers"], isNull);
+    expect(resp.headers["access-control-allow-credentials"], isNull);
+  } else if (resp is HttpClientResponse) {
+    expect(resp.headers.value("access-control-allow-origin"), isNull);
+    expect(resp.headers.value("access-control-allow-headers"), isNull);
+    expect(resp.headers.value("access-control-allow-methods"), isNull);
+    expect(resp.headers.value("access-control-expose-headers"), isNull);
+    expect(resp.headers.value("access-control-allow-credentials"), isNull);
+  }
 }
 
 class CORSSink extends RequestSink implements AuthServerDelegate<AuthImpl, TokenImpl, AuthCodeImpl> {
