@@ -6,6 +6,8 @@ date: 2016-06-20 10:35:56
 order: 1
 ---
 
+Getting Started | [Writing Tests](writing-tests.html) | [Executing Queries](executing-queries.html) | [ManagedObject Relationships and Joins](model-relationships-and-joins.html) | [Deployment](deploying-and-other-fun-things.html)
+
 Purpose
 ---
 

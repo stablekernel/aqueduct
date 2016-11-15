@@ -6,7 +6,7 @@ date: 2016-06-20 09:38:12
 order: 2
 ---
 
-This chapter expands on the [previous](getting-started.html).
+[Getting Started](getting-started.html) | Writing Tests | [Executing Queries](executing-queries.html) | [ManagedObject Relationships and Joins](model-relationships-and-joins.html) | [Deployment](deploying-and-other-fun-things.html)
 
 One of the core principles of Aqueduct is efficient testing. While opening up your browser and typing in a URL can verify the code you just wrote succeeds, it's not a very reliable way of testing software. We'll also run into some dead-ends when we test HTTP requests that use an HTTP method other than GET. Therefore, there are some helpful utilities for writing tests built into Aqueduct.
 

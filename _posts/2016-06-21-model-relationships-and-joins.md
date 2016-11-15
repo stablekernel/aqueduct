@@ -6,7 +6,7 @@ date: 2016-06-21 12:38:44
 order: 4
 ---
 
-This chapter expands on the [previous](executing-queries.html).
+[Getting Started](getting-started.html) | [Writing Tests](writing-tests.html) | [Executing Queries](executing-queries.html) | ManagedObject Relationships and Joins | [Deployment](deploying-and-other-fun-things.html)
 
 Managed objects can also have relationships to other managed objects. There are two types of relationships: to-one and to-many. Let's add an answer for each `Question` in the form of a to-one relationship. First, create a new file `lib/model/answer.dart` and define a new managed object to represent an answer:
 

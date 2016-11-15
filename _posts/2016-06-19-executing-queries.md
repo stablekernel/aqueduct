@@ -6,7 +6,7 @@ date: 2016-06-19 21:22:35
 order: 3
 ---
 
-This chapter expands on the [previous](writing-tests.html).
+[Getting Started](getting-started.html) | [Writing Tests](writing-tests.html) | Executing Queries | [ManagedObject Relationships and Joins](model-relationships-and-joins.html) | [Deployment](deploying-and-other-fun-things.html)
 
 Now that you've seen how to route HTTP requests and respond to them, we'll do something useful with those requests: interact with a database. We will continue to build on the last chapter project, `quiz`, by storing the questions in a database and retrieving them from the database.
 
