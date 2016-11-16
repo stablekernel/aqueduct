@@ -135,49 +135,22 @@ class Request implements RequestControllerEvent {
   void respond(Response responseObject) {
     respondDate = new DateTime.now().toUtc();
 
+    var encodedBody = responseObject.encodedBody;
+
     response.statusCode = responseObject.statusCode;
 
     if (responseObject.headers != null) {
       responseObject.headers.forEach((k, v) {
-        if (v is ContentType) {
-          response.headers.add(HttpHeaders.CONTENT_TYPE, v.toString());
-        } else {
-          response.headers.add(k, v);
-        }
+        response.headers.add(k, v);
       });
     }
 
-    if (responseObject.body != null) {
-      _encodeBody(responseObject);
+    if (encodedBody != null) {
+      response.headers.add(HttpHeaders.CONTENT_TYPE, responseObject.contentType.toString());
+      response.write(encodedBody);
     }
 
     response.close();
-  }
-
-  void _encodeBody(Response respObj) {
-    var contentTypeValue = respObj.headers["Content-Type"];
-    if (contentTypeValue == null) {
-      contentTypeValue = ContentType.JSON;
-      response.headers.contentType = ContentType.JSON;
-    } else if (contentTypeValue is String) {
-      contentTypeValue = ContentType.parse(contentTypeValue);
-    }
-
-    ContentType contentType = contentTypeValue;
-    var topLevel = Response._encoders[contentType.primaryType];
-    if (topLevel == null) {
-      throw new RequestException(
-          "No encoder for $contentTypeValue, add with Request.addEncoder().");
-    }
-
-    var encoder = topLevel[contentType.subType];
-    if (encoder == null) {
-      throw new RequestException(
-          "No encoder for $contentTypeValue, add with Request.addEncoder().");
-    }
-
-    var encodedValue = encoder(respObj.body);
-    response.write(encodedValue);
   }
 
   String toString() {
