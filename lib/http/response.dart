@@ -59,13 +59,46 @@ class Response implements RequestControllerEvent {
 
   dynamic _body;
 
+  /// Returns the encoded [body] according to [contentType].
+  ///
+  /// If there is no [body] present, this property is null. This property will use the encoders available through [addEncoder]. If
+  /// no encoder is found, [toString] is called on the body.
+  dynamic get encodedBody {
+    if (_body == null) {
+      return null;
+    }
+
+    var encoder = null;
+    var topLevel = _encoders[contentType.primaryType];
+    if (topLevel != null) {
+      encoder = topLevel[contentType.subType];
+    }
+
+    encoder ??= (Object value) => value.toString();
+
+    return encoder(_body);
+  }
+
   /// Map of headers to send in this response.
   ///
-  /// Where the key is the Header name and value is the Header value.
+  /// Where the key is the Header name and value is the Header value. Values may be any type and by default will have [toString] invoked
+  /// on them. For [DateTime] values, the value will be converted into an HTTP date format. For [List] values, each value will be
+  /// have [toString] invoked on it and the resulting outputs will be joined together with the "," character.
+  ///
+  /// Adding a Content-Type header through this property has no effect. Use [contentType] instead.
   Map<String, dynamic> headers;
 
   /// The HTTP status code of this response.
   int statusCode;
+
+  /// The content type of the body of this response.
+  ///
+  /// Defaults to [ContentType.JSON]. This response's will be encoded according to this value prior to the response being sent.
+  ContentType get contentType => _contentType ?? ContentType.JSON;
+  void set contentType(ContentType t) {
+    _contentType = t;
+  }
+  ContentType _contentType;
 
   /// The default constructor.
   ///

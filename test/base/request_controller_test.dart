@@ -147,7 +147,112 @@ void main() {
     expect(resp.headers["content-type"], startsWith("application/json"));
     expect(JSON.decode(resp.body), {"name": "Bob"});
   });
+
+  test("Responding to request with no content-type, but does have a body, defaults to application/json", () async {
+    server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8080);
+    server
+        .map((req) => new Request(req))
+        .listen((req) async {
+          var next = new RequestController();
+          next.listen((req) async {
+            return new Response.ok({"a" : "b"});
+          });
+          await next.receive(req);
+        });
+
+    var resp = await http.get("http://localhost:8080");
+    expect(resp.headers["content-type"], startsWith("application/json"));
+    expect(JSON.decode(resp.body), {"a" : "b"});
+  });
+
+  test("Responding to a request with no explicit content-type and has a body that cannot be encoded to JSON will throw 500", () async {
+    server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8080);
+    server
+        .map((req) => new Request(req))
+        .listen((req) async {
+          var next = new RequestController();
+          next.listen((req) async {
+            return new Response.ok(new DateTime.now());
+          });
+          await next.receive(req);
+        });
+
+    var resp = await http.get("http://localhost:8080");
+    expect(resp.statusCode, 500);
+    expect(resp.headers["content-type"], "text/plain; charset=utf-8");
+    expect(resp.body, "");
+  });
+
+  test("Responding to request with no explicit content-type, but does not have a body, defaults to plaintext Content-Type header", () async {
+    server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8080);
+    server
+        .map((req) => new Request(req))
+        .listen((req) async {
+          var next = new RequestController();
+          next.listen((req) async {
+            return new Response.ok(null);
+          });
+          await next.receive(req);
+        });
+    var resp = await http.get("http://localhost:8080");
+    expect(resp.statusCode, 200);
+    expect(resp.headers["content-length"], "0");
+    expect(resp.headers["content-type"], "text/plain; charset=utf-8");
+    expect(resp.body, "");
+  });
+
+  test("Using an encoder that doesn't exist, but for a known type, will yield the result of toString() instead of failing", () async {
+    server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8080);
+    server
+        .map((req) => new Request(req))
+        .listen((req) async {
+          var next = new RequestController();
+          next.listen((req) async {
+            return new Response.ok("<html></html>")..contentType = new ContentType("text", "html", charset: "utf-8");
+          });
+          await next.receive(req);
+        });
+    var resp = await http.get("http://localhost:8080");
+    expect(resp.statusCode, 200);
+    expect(resp.headers["content-type"], "text/html; charset=utf-8");
+    expect(resp.body, "<html></html>");
+  });
+
+  test("Using an encoder that doesn't exist, for an unknown type, will yield the result of toString() instead of failing", () async {
+    server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8080);
+    server
+        .map((req) => new Request(req))
+        .listen((req) async {
+      var next = new RequestController();
+      next.listen((req) async {
+        return new Response.ok(1234)..contentType = new ContentType("foo", "bar", charset: "utf-8");
+      });
+      await next.receive(req);
+    });
+    var resp = await http.get("http://localhost:8080");
+    expect(resp.statusCode, 200);
+    expect(resp.headers["content-type"], "foo/bar; charset=utf-8");
+    expect(resp.body, "1234");
+  });
+
+  test("Using an encoder other than the default correctly encodes and sets content-type", () async {
+    server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8080);
+    server
+        .map((req) => new Request(req))
+        .listen((req) async {
+          var next = new RequestController();
+          next.listen((req) async {
+            return new Response.ok(1234)..contentType = new ContentType("text", "plain");
+          });
+          await next.receive(req);
+        });
+    var resp = await http.get("http://localhost:8080");
+    expect(resp.statusCode, 200);
+    expect(resp.headers["content-type"], "text/plain");
+    expect(resp.body, "1234");
+  });
 }
+
 
 class SomeObject implements HTTPSerializable {
   String name;
