@@ -5,6 +5,12 @@ part of aqueduct;
 /// This object can be used to write an HTTP response and contains conveniences
 /// for creating these objects.
 class Response implements RequestControllerEvent {
+  /// The default value of a [contentType].
+  ///
+  /// If no [contentType] is set for an instance, this is the value used. By default, this value is
+  /// [ContentType.JSON].
+  static ContentType defaultContentType = ContentType.JSON;
+
   /// Adds an HTTP Response Body encoder to list of available encoders for all [Request]s.
   ///
   /// By default, 'application/json' and 'text/plain' are implemented. If you wish to add another encoder
@@ -27,7 +33,9 @@ class Response implements RequestControllerEvent {
     "application": {
       "json": (v) => JSON.encode(v),
     },
-    "text": {"plain": (Object v) => v.toString()}
+    "text" : {
+      "*" : (Object v) => v.toString()
+    }
   };
 
   /// An object representing the body of the [Response], which will be encoded when used to [Request.respond].
@@ -71,10 +79,12 @@ class Response implements RequestControllerEvent {
     var encoder = null;
     var topLevel = _encoders[contentType.primaryType];
     if (topLevel != null) {
-      encoder = topLevel[contentType.subType];
+      encoder = topLevel[contentType.subType] ?? topLevel["*"];
     }
 
-    encoder ??= (Object value) => value.toString();
+    if (encoder == null) {
+      throw new HTTPResponseException(500, "Could not encode body as ${contentType.toString()}.");
+    }
 
     return encoder(_body);
   }
@@ -93,12 +103,21 @@ class Response implements RequestControllerEvent {
 
   /// The content type of the body of this response.
   ///
-  /// Defaults to [ContentType.JSON]. This response's will be encoded according to this value prior to the response being sent.
-  ContentType get contentType => _contentType ?? ContentType.JSON;
+  /// Defaults to [defaultContentType]. This response's body will be encoded according to this value.
+  /// The Content-Type header of the HTTP response will always be set according to this value.
+  ContentType get contentType => _contentType ?? defaultContentType;
   void set contentType(ContentType t) {
     _contentType = t;
   }
   ContentType _contentType;
+
+  /// Whether or nor this instance has explicitly has its [contentType] property.
+  ///
+  /// This value indicates whether or not [contentType] has been set, or is still using its default value.
+  ///
+  /// Some [RequestController]s might provide a value for this instance's Content-Type. For example,
+  /// an [HTTPController] has a [HTTPController.responseContentType] that it applies
+  bool get hasExplicitlySetContentType => _contentType != null;
 
   /// The default constructor.
   ///
