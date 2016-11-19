@@ -201,38 +201,23 @@ void main() {
     expect(resp.body, "");
   });
 
-  test("Using an encoder that doesn't exist, but for a known type, will yield the result of toString() instead of failing", () async {
+  test("Using an encoder that doesn't exist returns a 500", () async {
     server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8080);
     server
         .map((req) => new Request(req))
         .listen((req) async {
           var next = new RequestController();
           next.listen((req) async {
-            return new Response.ok("<html></html>")..contentType = new ContentType("text", "html", charset: "utf-8");
+            return new Response.ok(1234)..contentType = new ContentType("foo", "bar", charset: "utf-8");
           });
           await next.receive(req);
         });
     var resp = await http.get("http://localhost:8080");
-    expect(resp.statusCode, 200);
-    expect(resp.headers["content-type"], "text/html; charset=utf-8");
-    expect(resp.body, "<html></html>");
-  });
-
-  test("Using an encoder that doesn't exist, for an unknown type, will yield the result of toString() instead of failing", () async {
-    server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8080);
-    server
-        .map((req) => new Request(req))
-        .listen((req) async {
-      var next = new RequestController();
-      next.listen((req) async {
-        return new Response.ok(1234)..contentType = new ContentType("foo", "bar", charset: "utf-8");
-      });
-      await next.receive(req);
-    });
-    var resp = await http.get("http://localhost:8080");
-    expect(resp.statusCode, 200);
-    expect(resp.headers["content-type"], "foo/bar; charset=utf-8");
-    expect(resp.body, "1234");
+    var contentType = ContentType.parse(resp.headers["content-type"]);
+    expect(resp.statusCode, 500);
+    expect(contentType.primaryType, "application");
+    expect(contentType.subType, "json");
+    expect(JSON.decode(resp.body), {"error" : "Could not encode body as foo/bar; charset=utf-8."});
   });
 
   test("Using an encoder other than the default correctly encodes and sets content-type", () async {
@@ -250,6 +235,63 @@ void main() {
     expect(resp.statusCode, 200);
     expect(resp.headers["content-type"], "text/plain");
     expect(resp.body, "1234");
+  });
+
+  test("A decoder with a match-all subtype will be used when matching", () async {
+    Response.addEncoder(new ContentType("b", "*"), (s) => s);
+    server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8080);
+    server
+        .map((req) => new Request(req))
+        .listen((req) async {
+          var next = new RequestController();
+          next.listen((req) async {
+            return new Response.ok("hello")..contentType = new ContentType("b", "bar", charset: "utf-8");
+          });
+          await next.receive(req);
+        });
+    var resp = await http.get("http://localhost:8080");
+    expect(resp.statusCode, 200);
+    expect(resp.headers["content-type"], "b/bar; charset=utf-8");
+    expect(resp.body, "hello");
+  });
+
+  test("A decoder with a subtype always trumps a decoder that matches any subtype", () async {
+    Response.addEncoder(new ContentType("a", "*"), (s) => s);
+    Response.addEncoder(new ContentType("a", "html"), (s) {
+      return "<html>$s</html>";
+    });
+    server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8080);
+    server
+        .map((req) => new Request(req))
+        .listen((req) async {
+          var next = new RequestController();
+          next.listen((req) async {
+            return new Response.ok("hello")..contentType = new ContentType("a", "html", charset: "utf-8");
+          });
+          await next.receive(req);
+        });
+    var resp = await http.get("http://localhost:8080");
+    expect(resp.statusCode, 200);
+    expect(resp.headers["content-type"], "a/html; charset=utf-8");
+    expect(resp.body, "<html>hello</html>");
+  });
+
+  test("Using an encoder that blows up during encoded returns 500 safely", () async {
+    Response.addEncoder(new ContentType("foo", "bar"), (s) {
+      throw new Exception("uhoh");
+    });
+    server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8080);
+    server
+        .map((req) => new Request(req))
+        .listen((req) async {
+          var next = new RequestController();
+          next.listen((req) async {
+            return new Response.ok("hello")..contentType = new ContentType("foo", "bar", charset: "utf-8");
+          });
+          await next.receive(req);
+        });
+    var resp = await http.get("http://localhost:8080");
+    expect(resp.statusCode, 500);
   });
 }
 

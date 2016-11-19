@@ -258,11 +258,19 @@ void main() {
     expect(resp.body, '"false"');
   });
 
+  test("Content-Type defaults to application/json", () async {
+    server = await enableController("/a", TController);
+    var resp = await http.get("http://localhost:4040/a?param");
+    expect(resp.statusCode, 200);
+    expect(ContentType.parse(resp.headers["content-type"]).primaryType, "application");
+    expect(ContentType.parse(resp.headers["content-type"]).subType, "json");
+  });
+
   test("Content-Type can be set adjusting responseContentType", () async {
     server = await enableController("/a", ContentTypeController);
     var resp = await http.get("http://localhost:4040/a?opt=responseContentType");
     expect(resp.statusCode, 200);
-    expect(resp.headers["content-type"], "foo/bar");
+    expect(resp.headers["content-type"], "text/plain");
     expect(resp.body, "body");
   });
 
@@ -270,7 +278,7 @@ void main() {
     server = await enableController("/a", ContentTypeController);
     var resp = await http.get("http://localhost:4040/a?opt=direct");
     expect(resp.statusCode, 200);
-    expect(resp.headers["content-type"], "a/b");
+    expect(resp.headers["content-type"], "text/plain");
     expect(resp.body, "body");
   });
 
@@ -599,11 +607,11 @@ class ModelEncodeController extends HTTPController {
 class ContentTypeController extends HTTPController {
   @httpGet getThing(@HTTPQuery("opt") String opt) async {
     if (opt == "responseContentType") {
-      responseContentType = new ContentType("foo", "bar");
+      responseContentType = new ContentType("text", "plain");
       return new Response.ok("body");
     } else if (opt == "direct") {
       return new Response.ok("body")
-        ..contentType = new ContentType("a", "b");
+        ..contentType = new ContentType("text", "plain");
     }
   }
 }
