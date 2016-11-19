@@ -13,8 +13,16 @@ class Response implements RequestControllerEvent {
 
   /// Adds an HTTP Response Body encoder to list of available encoders for all [Request]s.
   ///
-  /// By default, 'application/json' and 'text/plain' are implemented. If you wish to add another encoder
-  /// to your application, use this method. The [encoder] must take one argument of any type, and return a value
+  /// When the [contentType] of an instance is set, an encoder function is applied to the data. This method
+  /// adds an encoder function for [type].
+  ///
+  /// By default, 'application/json' and 'text/*' are available. A [Response] with "application/json" [contentType]
+  /// will be encoded by invoking [JSON.decode] on the instance's [body]. The default encoder for [ContentType]s whose primary type is "text" will invoke [toString]
+  /// on the instance's [body].
+  ///
+  /// [type] can have a '*' [ContentType.subType] that matches all subtypes for a primary type.
+  ///
+  /// An [encoder] must take one argument of any type, and return a value
   /// that will become the HTTP response body.
   ///
   /// The return value is written to the response with [IOSink.write] and so it must either be a [String] or its [toString]
