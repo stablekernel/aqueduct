@@ -122,9 +122,6 @@ class Response implements RequestControllerEvent {
   /// Whether or nor this instance has explicitly has its [contentType] property.
   ///
   /// This value indicates whether or not [contentType] has been set, or is still using its default value.
-  ///
-  /// Some [RequestController]s might provide a value for this instance's Content-Type. For example,
-  /// an [HTTPController] has a [HTTPController.responseContentType] that it applies
   bool get hasExplicitlySetContentType => _contentType != null;
 
   /// The default constructor.
