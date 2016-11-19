@@ -149,7 +149,7 @@ abstract class HTTPController extends RequestController {
         .reflectee as Future<Response>;
 
     var response = await eventualResponse;
-    if (response._contentType == null) {
+    if (!response.hasExplicitlySetContentType) {
       response.contentType = responseContentType;
     }
 
