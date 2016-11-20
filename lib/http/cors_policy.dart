@@ -22,7 +22,7 @@ class CORSPolicy {
   /// List of 'Simple' CORS headers.
   ///
   /// These are headers that are considered acceptable as part of any CORS request.
-  static List<String> simpleHeaders = [
+  static List<String> simpleHeaders = const [
     "accept",
     "accept-language",
     "content-language",
@@ -32,7 +32,7 @@ class CORSPolicy {
   /// List of 'Simple' CORS Response headers.
   ///
   /// These headers can be returned in a response without explicitly exposing them.
-  static List<String> simpleResponseHeaders = [
+  static List<String> simpleResponseHeaders = const [
     "cache-control",
     "content-language",
     "content-type",

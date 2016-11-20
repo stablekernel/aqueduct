@@ -114,5 +114,5 @@ class HTTPBodyDecoder {
 class HTTPBodyDecoderException implements Exception {
   HTTPBodyDecoderException(this.message);
 
-  String message;
+  final String message;
 }
