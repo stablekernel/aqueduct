@@ -1,6 +1,8 @@
-part of aqueduct;
+import 'dart:mirrors';
 
-bool _doesVariableMirrorRepresentRelationship(VariableMirror mirror) {
+import '../aqueduct.dart';
+
+bool doesVariableMirrorRepresentRelationship(VariableMirror mirror) {
   var modelMirror = reflectType(ManagedObject);
   var orderedSetMirror = reflectType(ManagedSet);
 
@@ -13,15 +15,15 @@ bool _doesVariableMirrorRepresentRelationship(VariableMirror mirror) {
   return false;
 }
 
-ManagedTransientAttribute _transientFromDeclaration(DeclarationMirror dm) =>
-    _metadataFromDeclaration(ManagedTransientAttribute, dm);
-ManagedColumnAttributes _attributeMetadataFromDeclaration(
+ManagedTransientAttribute transientFromDeclaration(DeclarationMirror dm) =>
+    metadataFromDeclaration(ManagedTransientAttribute, dm);
+ManagedColumnAttributes attributeMetadataFromDeclaration(
         DeclarationMirror dm) =>
-    _metadataFromDeclaration(ManagedColumnAttributes, dm);
-ManagedRelationship _belongsToMetadataFromDeclaration(DeclarationMirror dm) =>
-    _metadataFromDeclaration(ManagedRelationship, dm);
+    metadataFromDeclaration(ManagedColumnAttributes, dm);
+ManagedRelationship belongsToMetadataFromDeclaration(DeclarationMirror dm) =>
+    metadataFromDeclaration(ManagedRelationship, dm);
 
-dynamic _metadataFromDeclaration(Type t, DeclarationMirror dm) {
+dynamic metadataFromDeclaration(Type t, DeclarationMirror dm) {
   var tMirror = reflectType(t);
   return dm.metadata
       .firstWhere((im) => im.type.isSubtypeOf(tMirror), orElse: () => null)

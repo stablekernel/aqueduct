@@ -45,6 +45,9 @@ import 'package:safe_config/safe_config.dart';
 import 'package:yaml/yaml.dart';
 import 'package:path/path.dart' as path_lib;
 
+import 'utilities/mirror_helpers.dart';
+import 'utilities/token_generator.dart';
+
 export 'package:logging/logging.dart';
 export 'package:safe_config/safe_config.dart';
 
@@ -103,10 +106,8 @@ part 'http/response.dart';
 part 'http/route_node.dart';
 part 'http/router.dart';
 part 'http/serializable.dart';
-part 'utilities/mirror_helpers.dart';
 part 'utilities/mock_server.dart';
 part 'utilities/pbkdf2.dart';
 part 'utilities/source_generator.dart';
 part 'utilities/test_client.dart';
 part 'utilities/test_matchers.dart';
-part 'utilities/token_generator.dart';

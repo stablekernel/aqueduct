@@ -1,4 +1,4 @@
-part of aqueduct;
+import 'dart:math';
 
 /// A utility to generate a random string of [length].
 ///

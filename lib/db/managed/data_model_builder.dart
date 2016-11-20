@@ -46,7 +46,7 @@ class _DataModelBuilder {
     // Grab actual properties from instance type
     entity.instanceType.declarations.values
         .where((declMir) => declMir is VariableMirror && !declMir.isStatic)
-        .where((declMir) => _transientFromDeclaration(declMir) != null)
+        .where((declMir) => transientFromDeclaration(declMir) != null)
         .forEach((declMir) {
       var key = MirrorSystem.getName(declMir.simpleName);
       map[key] = attributeFromVariableMirror(entity, declMir);
@@ -60,7 +60,7 @@ class _DataModelBuilder {
             (declMir.isSetter || declMir.isGetter) &&
             !declMir.isSynthetic)
         .where((declMir) {
-          var mapMetadata = _transientFromDeclaration(declMir);
+          var mapMetadata = transientFromDeclaration(declMir);
           if (mapMetadata == null) {
             return false;
           }
@@ -90,7 +90,7 @@ class _DataModelBuilder {
     // Grab persistent values, which must be properties (not relationships)
     entity.persistentType.declarations.values
         .where((declMir) => declMir is VariableMirror && !declMir.isStatic)
-        .where((declMir) => !_doesVariableMirrorRepresentRelationship(declMir))
+        .where((declMir) => !doesVariableMirrorRepresentRelationship(declMir))
         .where((declMir) =>
             !map.containsKey(MirrorSystem.getName(declMir.simpleName)))
         .forEach((declMir) {
@@ -135,10 +135,10 @@ class _DataModelBuilder {
             "Property $name on ${MirrorSystem.getName(entity.instanceType.simpleName)} has invalid type");
       }
       return new ManagedAttributeDescription.transient(
-          entity, name, type, _transientFromDeclaration(mirror));
+          entity, name, type, transientFromDeclaration(mirror));
     } else {
       // Persistent
-      var attrs = _attributeMetadataFromDeclaration(mirror);
+      var attrs = attributeMetadataFromDeclaration(mirror);
 
       var type = attrs?.databaseType ??
           ManagedPropertyDescription
@@ -167,7 +167,7 @@ class _DataModelBuilder {
     entity.persistentType.declarations.forEach((sym, declMir) {
       if (declMir is VariableMirror &&
           !declMir.isStatic &&
-          _doesVariableMirrorRepresentRelationship(declMir)) {
+          doesVariableMirrorRepresentRelationship(declMir)) {
         var key = MirrorSystem.getName(sym);
         map[key] = relationshipFromVariableMirror(entity, declMir);
       }
@@ -178,13 +178,13 @@ class _DataModelBuilder {
 
   ManagedRelationshipDescription relationshipFromVariableMirror(
       ManagedEntity entity, VariableMirror mirror) {
-    if (_attributeMetadataFromDeclaration(mirror) != null) {
+    if (attributeMetadataFromDeclaration(mirror) != null) {
       throw new ManagedDataModelException(
           "Relationship ${MirrorSystem.getName(mirror.simpleName)} on ${MirrorSystem.getName(entity.persistentType.simpleName)} must not define additional Attributes");
     }
 
     var destinationEntity = destinationEntityForVariableMirror(entity, mirror);
-    var belongsToAttr = _belongsToMetadataFromDeclaration(mirror);
+    var belongsToAttr = belongsToMetadataFromDeclaration(mirror);
     var referenceProperty =
         destinationEntity.attributes[destinationEntity.primaryKey];
 
@@ -204,8 +204,7 @@ class _DataModelBuilder {
             "Relationship ${MirrorSystem.getName(mirror.simpleName)} on ${entity.tableName} set to nullify on delete, but is not nullable");
       }
 
-      if (_belongsToMetadataFromDeclaration(destinationVariableMirror) !=
-          null) {
+      if (belongsToMetadataFromDeclaration(destinationVariableMirror) != null) {
         throw new ManagedDataModelException(
             "Relationship ${MirrorSystem.getName(mirror.simpleName)} on ${entity.tableName} and ${MirrorSystem.getName(destinationVariableMirror.simpleName)} on ${destinationEntity.tableName} have BelongsTo metadata, only one may belong to the other.");
       }
@@ -231,7 +230,7 @@ class _DataModelBuilder {
         .firstWhere((DeclarationMirror destinationDeclarationMirror) {
       if (destinationDeclarationMirror is VariableMirror) {
         var inverseBelongsToAttr =
-            _belongsToMetadataFromDeclaration(destinationDeclarationMirror);
+            belongsToMetadataFromDeclaration(destinationDeclarationMirror);
         var matchesInverseKey =
             inverseBelongsToAttr?.inverseKey == mirror.simpleName;
         var isBelongsToVarMirrorSubtypeRightType =
