@@ -14,7 +14,8 @@ part of aqueduct;
 /// 2. If the request contains a path variable that matches the name of the primary key of [InstanceType], the [Query] will set
 /// its [Query.matchOn] to match on the [ManagedObject] whose primary key is that value of the path parameter.
 /// 3. If the [Request] contains a body, it will be decoded per the [acceptedContentTypes] and deserialized into the [query]'s [values] property via [readMap].
-abstract class QueryController<InstanceType extends ManagedObject> extends HTTPController {
+abstract class QueryController<InstanceType extends ManagedObject>
+    extends HTTPController {
   /// Create an instance of [QueryController]. By default, [context] is the [ManagedContext.defaultContext].
   QueryController([ManagedContext context]) : super() {
     query = new Query<InstanceType>(context ?? ManagedContext.defaultContext);
@@ -40,18 +41,21 @@ abstract class QueryController<InstanceType extends ManagedObject> extends HTTPC
         var primaryKeyDesc = query.entity.attributes[query.entity.primaryKey];
         if (primaryKeyDesc.isAssignableWith(idValue)) {
           query.matchOn[query.entity.primaryKey] = idValue;
-        } else if (primaryKeyDesc.type == ManagedPropertyType.bigInteger || primaryKeyDesc.type == ManagedPropertyType.integer) {
+        } else if (primaryKeyDesc.type == ManagedPropertyType.bigInteger ||
+            primaryKeyDesc.type == ManagedPropertyType.integer) {
           try {
             query.matchOn[query.entity.primaryKey] = int.parse(idValue);
           } on FormatException {
-            var errorMessage = "Expected integer value for QueryController on ${query.entity}, but $idValue was not able to be parsed to an integer.";
+            var errorMessage =
+                "Expected integer value for QueryController on ${query.entity}, but $idValue was not able to be parsed to an integer.";
 
-            return new Response.notFound(body: {"error" : errorMessage});
+            return new Response.notFound(body: {"error": errorMessage});
           }
         } else {
-          var errorMessage = "ID Value $idValue is not assignable for QueryController on ${query.entity}, expected value of type ${primaryKeyDesc.type}";
+          var errorMessage =
+              "ID Value $idValue is not assignable for QueryController on ${query.entity}, expected value of type ${primaryKeyDesc.type}";
 
-          return new Response.notFound(body: {"error" : errorMessage});
+          return new Response.notFound(body: {"error": errorMessage});
         }
       }
     }
@@ -62,7 +66,8 @@ abstract class QueryController<InstanceType extends ManagedObject> extends HTTPC
   @override
   void didDecodeRequestBody(dynamic body) {
     var bodyMap = body as Map<String, dynamic>;
-    var reflectedModel = reflectClass(InstanceType).newInstance(new Symbol(""), []);
+    var reflectedModel =
+        reflectClass(InstanceType).newInstance(new Symbol(""), []);
     query.values = reflectedModel.reflectee as InstanceType;
     query.values.readMap(bodyMap);
 

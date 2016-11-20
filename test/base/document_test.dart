@@ -6,17 +6,23 @@ import '../helpers.dart';
 
 main() {
   test("Package resolver", () {
-    String homeDir = Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'];
+    String homeDir =
+        Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'];
     var p = new PackagePathResolver(new File(".packages").path);
-    var resolvedPath = p.resolve(new Uri(scheme: "package", path: "analyzer/file_system/file_system.dart"));
+    var resolvedPath = p.resolve(new Uri(
+        scheme: "package", path: "analyzer/file_system/file_system.dart"));
 
     expect(resolvedPath.endsWith("file_system/file_system.dart"), true);
-    expect(resolvedPath.startsWith("$homeDir/.pub-cache/hosted/pub.dartlang.org"), true);
+    expect(
+        resolvedPath.startsWith("$homeDir/.pub-cache/hosted/pub.dartlang.org"),
+        true);
   });
 
   group("Happy path", () {
     var app = new Application<TestSink>();
-    var apiDocs = app.document(new PackagePathResolver(new File(".packages").path)).asMap();
+    var apiDocs = app
+        .document(new PackagePathResolver(new File(".packages").path))
+        .asMap();
 
     test("Document has appropriate metadata", () {
       expect(apiDocs["swagger"], contains("2.0"));
@@ -32,37 +38,39 @@ main() {
 
     test("Document has appropriate content types at top-level", () {
       expect(apiDocs["consumes"], contains("application/json; charset=utf-8"));
-      expect(apiDocs["consumes"], contains("application/x-www-form-urlencoded"));
+      expect(
+          apiDocs["consumes"], contains("application/x-www-form-urlencoded"));
       expect(apiDocs["produces"], contains("application/json; charset=utf-8"));
     });
 
     test("Document provides all security schemes", () {
-      var secDefs = apiDocs["securityDefinitions"] as Map<String, Map<String, dynamic>>;
+      var secDefs =
+          apiDocs["securityDefinitions"] as Map<String, Map<String, dynamic>>;
       expect(secDefs.length, 3);
 
       expect(secDefs["oauth2.application"], {
-        "type" : "oauth2",
-        "description" : isNotNull,
-        "flow" : "application",
-        "tokenUrl" : "http://localhost/auth/token",
-        "scopes" : isNotNull
+        "type": "oauth2",
+        "description": isNotNull,
+        "flow": "application",
+        "tokenUrl": "http://localhost/auth/token",
+        "scopes": isNotNull
       });
 
       expect(secDefs["oauth2.password"], {
-        "type" : "oauth2",
-        "description" : isNotNull,
-        "flow" : "password",
-        "tokenUrl" : "http://localhost/auth/token",
-        "scopes" : isNotNull
+        "type": "oauth2",
+        "description": isNotNull,
+        "flow": "password",
+        "tokenUrl": "http://localhost/auth/token",
+        "scopes": isNotNull
       });
 
       expect(secDefs["oauth2.accessCode"], {
-        "type" : "oauth2",
-        "description" : isNotNull,
-        "flow" : "accessCode",
-        "authorizationUrl" : "http://localhost/auth/code",
-        "tokenUrl" : "http://localhost/auth/token",
-        "scopes" : isNotNull
+        "type": "oauth2",
+        "description": isNotNull,
+        "flow": "accessCode",
+        "authorizationUrl": "http://localhost/auth/code",
+        "tokenUrl": "http://localhost/auth/token",
+        "scopes": isNotNull
       });
     });
 
@@ -90,9 +98,7 @@ main() {
           "application/json; charset=utf-8",
           "application/x-www-form-urlencoded"
         ],
-        "produces": [
-          "application/json; charset=utf-8"
-        ],
+        "produces": ["application/json; charset=utf-8"],
         "parameters": [
           {
             "name": "param",
@@ -129,9 +135,7 @@ main() {
           }
         },
         "security": [
-          {
-            "oauth2.password": []
-          }
+          {"oauth2.password": []}
         ]
       });
 
@@ -145,35 +149,36 @@ main() {
           "application/json; charset=utf-8",
           "application/x-www-form-urlencoded"
         ],
-        "produces": [
-          "application/json; charset=utf-8"
-        ],
-        "parameters": [{
-          "name": "X-Date",
-          "description": "",
-          "required": true,
-          "deprecated": false,
-          "schema": {
-            "type": "string",
+        "produces": ["application/json; charset=utf-8"],
+        "parameters": [
+          {
+            "name": "X-Date",
+            "description": "",
             "required": true,
-            "readOnly": false,
             "deprecated": false,
-            "format" : "date-time"
+            "schema": {
+              "type": "string",
+              "required": true,
+              "readOnly": false,
+              "deprecated": false,
+              "format": "date-time"
+            },
+            "in": "header"
           },
-          "in": "header"
-        },{
-          "name": "foo",
-          "description": "",
-          "required": true,
-          "deprecated": false,
-          "schema": {
-            "type": "string",
+          {
+            "name": "foo",
+            "description": "",
             "required": true,
-            "readOnly": false,
-            "deprecated": false
-          },
-          "in": "formData"
-        }],
+            "deprecated": false,
+            "schema": {
+              "type": "string",
+              "required": true,
+              "readOnly": false,
+              "deprecated": false
+            },
+            "in": "formData"
+          }
+        ],
         "responses": {
           "500": {
             "description": "Something went wrong",
@@ -213,9 +218,7 @@ main() {
           }
         },
         "security": [
-          {
-            "oauth2.password": []
-          }
+          {"oauth2.password": []}
         ]
       });
     });
@@ -223,20 +226,22 @@ main() {
     test("Operations /t/:id", () {
       var ops = apiDocs["paths"]["/t/{id}"] as Map<String, dynamic>;
       expect(ops, {
-        "parameters" : [{
-          'name': 'id',
-          'description': '',
-          'required': true,
-          'deprecated': false,
-          'schema': {
-            'type': 'integer',
+        "parameters": [
+          {
+            'name': 'id',
+            'description': '',
             'required': true,
-            'readOnly': false,
             'deprecated': false,
-            'format': 'int32'
-          },
-          'in': 'path'
-        }],
+            'schema': {
+              'type': 'integer',
+              'required': true,
+              'readOnly': false,
+              'deprecated': false,
+              'format': 'int32'
+            },
+            'in': 'path'
+          }
+        ],
         "put": {
           "summary": "ABCD",
           "description": "",
@@ -247,9 +252,7 @@ main() {
             "application/json; charset=utf-8",
             "application/x-www-form-urlencoded"
           ],
-          "produces": [
-            "application/json; charset=utf-8"
-          ],
+          "produces": ["application/json; charset=utf-8"],
           "parameters": [
             {
               "name": "p1",
@@ -301,9 +304,7 @@ main() {
             }
           },
           "security": [
-            {
-              "oauth2.password": []
-            }
+            {"oauth2.password": []}
           ]
         },
         "get": {
@@ -316,9 +317,7 @@ main() {
             "application/json; charset=utf-8",
             "application/x-www-form-urlencoded"
           ],
-          "produces": [
-            "application/json; charset=utf-8"
-          ],
+          "produces": ["application/json; charset=utf-8"],
           "parameters": [],
           "responses": {
             "500": {
@@ -341,27 +340,29 @@ main() {
             }
           },
           "security": [
-            {
-              "oauth2.password": []
-            }
+            {"oauth2.password": []}
           ]
         }
       });
     });
 
     test("Operation t/:id/:notID", () {
-      expect(apiDocs["paths"]["/t/{id}/{notID}"]["parameters"], [{
-        "name": "id",
-        "description": "",
-        "required": true,
-        "deprecated": false,
-        "schema": {
-          "type": "integer",
+      expect(apiDocs["paths"]["/t/{id}/{notID}"]["parameters"], [
+        {
+          "name": "id",
+          "description": "",
           "required": true,
-          "readOnly": false,
-          "deprecated": false, "format": "int32"
+          "deprecated": false,
+          "schema": {
+            "type": "integer",
+            "required": true,
+            "readOnly": false,
+            "deprecated": false,
+            "format": "int32"
+          },
+          "in": "path"
         },
-        "in": "path"}, {
+        {
           "name": "notID",
           "description": "",
           "required": true,
@@ -373,8 +374,9 @@ main() {
             "deprecated": false,
             "format": "int32"
           },
-        "in": "path"
-      }]);
+          "in": "path"
+        }
+      ]);
 
       expect(apiDocs["paths"]["/t/{id}/{notID}"]["get"], {
         "summary": "MNOP",
@@ -386,9 +388,7 @@ main() {
           "application/json; charset=utf-8",
           "application/x-www-form-urlencoded"
         ],
-        "produces": [
-          "application/json; charset=utf-8"
-        ],
+        "produces": ["application/json; charset=utf-8"],
         "parameters": [],
         "responses": {
           "500": {
@@ -411,17 +411,15 @@ main() {
           }
         },
         "security": [
-          {
-            "oauth2.password": []
-          }
+          {"oauth2.password": []}
         ]
       });
     });
   });
-
 }
 
-class TestSink extends RequestSink implements AuthServerDelegate<TestUser, Token, AuthCode> {
+class TestSink extends RequestSink
+    implements AuthServerDelegate<TestUser, Token, AuthCode> {
   TestSink(Map<String, dynamic> opts) : super(opts) {
     authServer = new AuthServer<TestUser, Token, AuthCode>(this);
   }
@@ -429,17 +427,31 @@ class TestSink extends RequestSink implements AuthServerDelegate<TestUser, Token
   AuthServer<TestUser, Token, AuthCode> authServer;
 
   void setupRouter(Router router) {
-    router.route("/auth/code").pipe(new Authorizer(authServer, strategy: AuthStrategy.client)).generate(() => new AuthCodeController(authServer));
-    router.route("/auth/token").pipe(new Authorizer(authServer, strategy: AuthStrategy.client)).generate(() => new AuthController(authServer));
-    router.route("/t[/:id[/:notID]]").pipe(new Authorizer(authServer)).generate(() => new TController());
+    router
+        .route("/auth/code")
+        .pipe(new Authorizer(authServer, strategy: AuthStrategy.client))
+        .generate(() => new AuthCodeController(authServer));
+    router
+        .route("/auth/token")
+        .pipe(new Authorizer(authServer, strategy: AuthStrategy.client))
+        .generate(() => new AuthController(authServer));
+    router
+        .route("/t[/:id[/:notID]]")
+        .pipe(new Authorizer(authServer))
+        .generate(() => new TController());
   }
 
-  Future<Token> tokenForAccessToken(AuthServer server, String accessToken) => null;
-  Future<Token> tokenForRefreshToken(AuthServer server, String refreshToken) => null;
-  Future<TestUser> authenticatableForUsername(AuthServer server, String username) => null;
+  Future<Token> tokenForAccessToken(AuthServer server, String accessToken) =>
+      null;
+  Future<Token> tokenForRefreshToken(AuthServer server, String refreshToken) =>
+      null;
+  Future<TestUser> authenticatableForUsername(
+          AuthServer server, String username) =>
+      null;
   Future<TestUser> authenticatableForID(AuthServer server, dynamic id) => null;
   Future<AuthClient> clientForID(AuthServer server, String id) => null;
-  Future deleteTokenForRefreshToken(AuthServer server, String refreshToken) => null;
+  Future deleteTokenForRefreshToken(AuthServer server, String refreshToken) =>
+      null;
   Future<Token> storeToken(AuthServer server, dynamic t) => null;
   Future updateToken(AuthServer server, dynamic t) => null;
   Future<AuthCode> storeAuthCode(AuthServer server, dynamic ac) => null;
@@ -447,7 +459,8 @@ class TestSink extends RequestSink implements AuthServerDelegate<TestUser, Token
   Future deleteAuthCode(AuthServer server, dynamic ac) => null;
   Future<AuthCode> authCodeForCode(AuthServer server, String code) => null;
 
-  Map<String, APISecurityScheme> documentSecuritySchemes(PackagePathResolver resolver) {
+  Map<String, APISecurityScheme> documentSecuritySchemes(
+      PackagePathResolver resolver) {
     return authServer.documentSecuritySchemes(resolver);
   }
 }
@@ -461,28 +474,36 @@ class TController extends HTTPController {
   /// ABCD
   /// EFGH
   /// IJKL
-  @httpGet getAll({@HTTPQuery("param") String param: null}) async {
+  @httpGet
+  getAll({@HTTPQuery("param") String param: null}) async {
     return new Response.ok("");
   }
+
   /// ABCD
-  @httpPut putOne(@HTTPPath("id") int id, {@HTTPQuery("p1") int p1: null, @HTTPHeader("X-P2") int p2: null}) async {
+  @httpPut
+  putOne(@HTTPPath("id") int id,
+      {@HTTPQuery("p1") int p1: null, @HTTPHeader("X-P2") int p2: null}) async {
     return new Response.ok("");
   }
-  @httpGet getOne(@HTTPPath("id") int id) async {
+
+  @httpGet
+  getOne(@HTTPPath("id") int id) async {
     return new Response.ok("");
   }
 
   /// MNOP
   /// QRST
 
-  @httpGet getTwo(@HTTPPath("id") int id, @HTTPPath("notID") int notID) async {
+  @httpGet
+  getTwo(@HTTPPath("id") int id, @HTTPPath("notID") int notID) async {
     return new Response.ok("");
   }
+
   /// EFGH
   /// IJKL
   @httpPost
-
-  Future<Response> createOne(@HTTPHeader("X-Date") DateTime date, @HTTPQuery("foo") String foo) async {
+  Future<Response> createOne(
+      @HTTPHeader("X-Date") DateTime date, @HTTPQuery("foo") String foo) async {
     return new Response.ok("");
   }
 }

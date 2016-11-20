@@ -7,7 +7,6 @@ import 'package:aqueduct/aqueduct.dart';
 
 // Add to make sure variables and remaining path get stuffed into PathRequest
 
-
 void main() {
   group("Router basics", () {
     HttpServer server = null;
@@ -126,19 +125,24 @@ void main() {
         req.respond(new Response(200, null, "/"));
       });
       router.route("/users/[:id]").listen((req) async {
-        req.respond(new Response(200, null, "/users/${req.path.variables["id"]}"));
+        req.respond(
+            new Response(200, null, "/users/${req.path.variables["id"]}"));
       });
       router.route("/locations[/:id]").listen((req) async {
-        req.respond(new Response(200, null, "/locations/${req.path.variables["id"]}"));
+        req.respond(
+            new Response(200, null, "/locations/${req.path.variables["id"]}"));
       });
       router.route("/locations/:id/vacation").listen((req) async {
-        req.respond(new Response(200, null, "/locations/${req.path.variables["id"]}/vacation"));
+        req.respond(new Response(
+            200, null, "/locations/${req.path.variables["id"]}/vacation"));
       });
       router.route("/locations/:id/alarms[/*]").listen((req) async {
-        req.respond(new Response(200, null, "/locations/${req.path.variables["id"]}/alarms/${req.path.remainingPath}"));
+        req.respond(new Response(200, null,
+            "/locations/${req.path.variables["id"]}/alarms/${req.path.remainingPath}"));
       });
       router.route("/equipment/[:id[/:property]]").listen((req) async {
-        req.respond(new Response(200, null, "/equipment/${req.path.variables["id"]}/${req.path.variables["property"]}"));
+        req.respond(new Response(200, null,
+            "/equipment/${req.path.variables["id"]}/${req.path.variables["property"]}"));
       });
       router.route("/file/*").listen((req) async {
         req.respond(new Response(200, null, "/file/${req.path.remainingPath}"));
@@ -198,7 +202,8 @@ void main() {
       response = await http.get("http://localhost:4040/locations/1/alarms");
       expect(response.body, '"/locations/1/alarms/null"');
 
-      response = await http.get("http://localhost:4040/locations/1/alarms/code");
+      response =
+          await http.get("http://localhost:4040/locations/1/alarms/code");
       expect(response.body, '"/locations/1/alarms/code"');
 
       response = await http.get("http://localhost:4040/equipment/1/code");
@@ -206,7 +211,6 @@ void main() {
     });
   });
 }
-
 
 Future<HttpServer> enableRouter(Router router) async {
   router.finalize();
@@ -219,7 +223,7 @@ class Handler extends RequestController {
   static int counter = 0;
 
   Handler() {
-    counter ++;
+    counter++;
   }
 
   @override

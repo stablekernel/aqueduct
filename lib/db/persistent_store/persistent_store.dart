@@ -14,14 +14,16 @@ abstract class PersistentStore {
   /// Inserts a row described by [q] into the database and returns a [List] of its column values.
   ///
   /// Each [PersistentColumnMapping] is a column-value pair from the database.
-  Future<List<PersistentColumnMapping>> executeInsertQuery(PersistentStoreQuery q);
+  Future<List<PersistentColumnMapping>> executeInsertQuery(
+      PersistentStoreQuery q);
 
   /// Return a list of rows, where each row is a [List] of [PersistentColumnMapping]s.
   ///
   /// Each [PersistentColumnMapping] is a column-value pair from the database.
   /// The [PersistentStoreQuery] will contain an ordered list of columns to include in the result.
   /// The return value from this method MUST match that same order.
-  Future<List<List<PersistentColumnMapping>>> executeFetchQuery(PersistentStoreQuery q);
+  Future<List<List<PersistentColumnMapping>>> executeFetchQuery(
+      PersistentStoreQuery q);
 
   /// Deletes rows described by [q].
   ///
@@ -31,13 +33,18 @@ abstract class PersistentStore {
   /// Updates rows described by [q] and returns a [List] of rows that were altered.
   ///
   /// Each [PersistentColumnMapping] is a column-value pair from the database.
-  Future<List<List<PersistentColumnMapping>>> executeUpdateQuery(PersistentStoreQuery q);
+  Future<List<List<PersistentColumnMapping>>> executeUpdateQuery(
+      PersistentStoreQuery q);
 
-  QueryPredicate comparisonPredicate(ManagedPropertyDescription desc, MatcherOperator operator, dynamic value);
-  QueryPredicate containsPredicate(ManagedPropertyDescription desc, Iterable<dynamic> values);
+  QueryPredicate comparisonPredicate(
+      ManagedPropertyDescription desc, MatcherOperator operator, dynamic value);
+  QueryPredicate containsPredicate(
+      ManagedPropertyDescription desc, Iterable<dynamic> values);
   QueryPredicate nullPredicate(ManagedPropertyDescription desc, bool isNull);
-  QueryPredicate rangePredicate(ManagedPropertyDescription desc, dynamic lhsValue, dynamic rhsValue, bool insideRange);
-  QueryPredicate stringPredicate(ManagedPropertyDescription desc, StringMatcherOperator operator, dynamic value);
+  QueryPredicate rangePredicate(ManagedPropertyDescription desc,
+      dynamic lhsValue, dynamic rhsValue, bool insideRange);
+  QueryPredicate stringPredicate(ManagedPropertyDescription desc,
+      StringMatcherOperator operator, dynamic value);
 
   // -- Schema Ops --
 
@@ -47,16 +54,20 @@ abstract class PersistentStore {
 
   List<String> addColumn(SchemaTable table, SchemaColumn column);
   List<String> deleteColumn(SchemaTable table, SchemaColumn column);
-  List<String> renameColumn(SchemaTable table, SchemaColumn column, String name);
-  List<String> alterColumnNullability(SchemaTable table, SchemaColumn column, String unencodedInitialValue);
+  List<String> renameColumn(
+      SchemaTable table, SchemaColumn column, String name);
+  List<String> alterColumnNullability(
+      SchemaTable table, SchemaColumn column, String unencodedInitialValue);
   List<String> alterColumnUniqueness(SchemaTable table, SchemaColumn column);
   List<String> alterColumnDefaultValue(SchemaTable table, SchemaColumn column);
   List<String> alterColumnDeleteRule(SchemaTable table, SchemaColumn column);
 
   List<String> addIndexToColumn(SchemaTable table, SchemaColumn column);
-  List<String> renameIndex(SchemaTable table, SchemaColumn column, String newIndexName);
+  List<String> renameIndex(
+      SchemaTable table, SchemaColumn column, String newIndexName);
   List<String> deleteIndexFromColumn(SchemaTable table, SchemaColumn column);
 
   Future<int> get schemaVersion;
-  Future upgrade(int versionNumber, List<String> commands, {bool temporary: false});
+  Future upgrade(int versionNumber, List<String> commands,
+      {bool temporary: false});
 }

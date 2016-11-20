@@ -10,15 +10,12 @@ typedef Future<String> HTTPBodyStreamDecoder(Stream<List<int>> s);
 /// Default decoders are available for 'application/json', 'application/x-www-form-urlencoded' and 'text/*'.
 class HTTPBodyDecoder {
   static Map<String, Map<String, Function>> _decoders = {
-    "application" : {
-      "json" : _jsonDecoder,
-      "x-www-form-urlencoded" : _wwwFormURLEncodedDecoder
+    "application": {
+      "json": _jsonDecoder,
+      "x-www-form-urlencoded": _wwwFormURLEncodedDecoder
     },
-    "text" : {
-      "*" : _textDecoder
-    }
+    "text": {"*": _textDecoder}
   };
-
 
   /// Adds a decoder for HTTP Request Bodies.
   ///
@@ -36,7 +33,8 @@ class HTTPBodyDecoder {
   ///       Future<dynamic> jsonDecoder(HttpRequest req) async {
   ///         return JSON.decode(await UTF8.decodeStream(req));
   ///       }
-  static void addDecoder(ContentType type, Future<dynamic> decoder(HttpRequest req)) {
+  static void addDecoder(
+      ContentType type, Future<dynamic> decoder(HttpRequest req)) {
     var innerMap = _decoders[type.primaryType];
     if (innerMap == null) {
       innerMap = {};
@@ -47,21 +45,26 @@ class HTTPBodyDecoder {
   }
 
   static Future<dynamic> _jsonDecoder(HttpRequest req) async {
-    var bodyAsString = await streamDecoderForCharset(req.headers.contentType.charset)(req);
+    var bodyAsString =
+        await streamDecoderForCharset(req.headers.contentType.charset)(req);
     return JSON.decode(bodyAsString);
   }
 
   static Future<dynamic> _wwwFormURLEncodedDecoder(HttpRequest req) async {
-    var bodyAsString = await streamDecoderForCharset(req.headers.contentType.charset, defaultEncoding: ASCII)(req);
+    var bodyAsString = await streamDecoderForCharset(
+        req.headers.contentType.charset,
+        defaultEncoding: ASCII)(req);
     return new Uri(query: bodyAsString).queryParametersAll;
   }
 
   static Future<dynamic> _textDecoder(HttpRequest req) async {
-    return streamDecoderForCharset(req.headers.contentType.charset, defaultEncoding: ASCII)(req);
+    return streamDecoderForCharset(req.headers.contentType.charset,
+        defaultEncoding: ASCII)(req);
   }
 
   static Future<dynamic> _binaryDecoder(HttpRequest req) async {
-    BytesBuilder aggregatedBytes = await req.fold(new BytesBuilder(), (BytesBuilder builder, data) => builder..add(data));
+    BytesBuilder aggregatedBytes = await req.fold(
+        new BytesBuilder(), (BytesBuilder builder, data) => builder..add(data));
 
     return aggregatedBytes.takeBytes();
   }
@@ -78,7 +81,6 @@ class HTTPBodyDecoder {
     var primaryType = request.headers.contentType.primaryType;
     var subType = request.headers.contentType.subType;
 
-
     var outerMap = _decoders[primaryType];
     if (outerMap == null) {
       return _binaryDecoder(request);
@@ -94,14 +96,16 @@ class HTTPBodyDecoder {
       return decoder(request);
     }
 
-    throw new HTTPBodyDecoderException("No decoder for ${request.headers.contentType}");
+    throw new HTTPBodyDecoderException(
+        "No decoder for ${request.headers.contentType}");
   }
 
   /// Returns a stream decoder for a character set.
   ///
   /// By default, this method will return the function [Utf8Codec.decodeStream]. This is a convenience
   /// method for decoding bytes in the specified charset.
-  static HTTPBodyStreamDecoder streamDecoderForCharset(String charset, {Encoding defaultEncoding: UTF8}) {
+  static HTTPBodyStreamDecoder streamDecoderForCharset(String charset,
+      {Encoding defaultEncoding: UTF8}) {
     return (Encoding.getByName(charset) ?? defaultEncoding).decodeStream;
   }
 }

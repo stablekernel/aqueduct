@@ -27,7 +27,8 @@ class ManagedDataModel {
   ManagedDataModel.fromPackageContainingType(Type type) {
     LibraryMirror libMirror = reflectType(type).owner;
 
-    var builder = new _DataModelBuilder(this, _modelTypesFromLibraryMirror(libMirror));
+    var builder =
+        new _DataModelBuilder(this, _modelTypesFromLibraryMirror(libMirror));
     _entities = builder.entities;
     _persistentTypeToEntityMap = builder.persistentTypeToEntityMap;
   }
@@ -40,7 +41,8 @@ class ManagedDataModel {
       libraryURI = new Uri.file(libraryURI.path);
     }
     var libMirror = currentMirrorSystem().libraries[libraryURI];
-    var builder = new _DataModelBuilder(this, _modelTypesFromLibraryMirror(libMirror));
+    var builder =
+        new _DataModelBuilder(this, _modelTypesFromLibraryMirror(libMirror));
     _entities = builder.entities;
   }
 

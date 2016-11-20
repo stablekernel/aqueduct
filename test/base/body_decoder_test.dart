@@ -16,28 +16,32 @@ void main() {
     });
 
     test("application/json decoder works on valid json", () async {
-      http.post("http://localhost:8123", headers: {"Content-Type" : "application/json"}, body: JSON.encode({"a" : "val"}));
+      http.post("http://localhost:8123",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.encode({"a": "val"}));
       var request = await server.first;
 
       var body = await HTTPBodyDecoder.decode(request);
-      expect(body, {
-        "a" : "val"
-      });
+      expect(body, {"a": "val"});
     });
 
-    test("application/x-form-url-encoded decoder works on valid form", () async {
-      http.post("http://localhost:8123", headers: {"Content-Type" : "application/x-www-form-urlencoded"}, body: "a=b&c=2");
+    test("application/x-form-url-encoded decoder works on valid form",
+        () async {
+      http.post("http://localhost:8123",
+          headers: {"Content-Type": "application/x-www-form-urlencoded"},
+          body: "a=b&c=2");
       var request = await server.first;
 
       var body = await HTTPBodyDecoder.decode(request);
       expect(body, {
-        "a" : ["b"],
-        "c" : ["2"]
+        "a": ["b"],
+        "c": ["2"]
       });
     });
 
     test("Any text decoder works on text", () async {
-      http.post("http://localhost:8123", headers: {"Content-Type" : "text/plain"}, body: "foobar");
+      http.post("http://localhost:8123",
+          headers: {"Content-Type": "text/plain"}, body: "foobar");
       var request = await server.first;
 
       var body = await HTTPBodyDecoder.decode(request);
@@ -45,7 +49,8 @@ void main() {
     });
 
     test("No found decoder for primary type returns binary", () async {
-      http.post("http://localhost:8123", headers: {"Content-Type" : "notarealthing/nothing"}, body: "foobar");
+      http.post("http://localhost:8123",
+          headers: {"Content-Type": "notarealthing/nothing"}, body: "foobar");
       var request = await server.first;
 
       var body = await HTTPBodyDecoder.decode(request);
@@ -53,7 +58,8 @@ void main() {
     });
 
     test("No content-type returns binary", () async {
-      var req = await new HttpClient().openUrl("POST", Uri.parse("http://localhost:8123"));
+      var req = await new HttpClient()
+          .openUrl("POST", Uri.parse("http://localhost:8123"));
       req.add("foobar".codeUnits);
       req.close();
       var request = await server.first;
@@ -65,7 +71,9 @@ void main() {
     });
 
     test("Decoder that matches primary type but not subtype fails", () async {
-      http.post("http://localhost:8123", headers: {"Content-Type" : "application/notarealthing"}, body: "a=b&c=2");
+      http.post("http://localhost:8123",
+          headers: {"Content-Type": "application/notarealthing"},
+          body: "a=b&c=2");
       var request = await server.first;
 
       try {
@@ -76,7 +84,8 @@ void main() {
     });
 
     test("Failed decoding throws exception", () async {
-      http.post("http://localhost:8123", headers: {"Content-Type" : "application/json"}, body: "{a=b&c=2");
+      http.post("http://localhost:8123",
+          headers: {"Content-Type": "application/json"}, body: "{a=b&c=2");
       var request = await server.first;
 
       try {
@@ -91,10 +100,12 @@ void main() {
     HttpServer server;
 
     setUpAll(() {
-      HTTPBodyDecoder.addDecoder(new ContentType("application", "thingy"), (req) async {
+      HTTPBodyDecoder.addDecoder(new ContentType("application", "thingy"),
+          (req) async {
         return "application/thingy";
       });
-      HTTPBodyDecoder.addDecoder(new ContentType("somethingelse", "*"), (req) async {
+      HTTPBodyDecoder.addDecoder(new ContentType("somethingelse", "*"),
+          (req) async {
         return "somethingelse/*";
       });
     });
@@ -108,7 +119,9 @@ void main() {
     });
 
     test("Added decoder works when content-type matches", () async {
-      http.post("http://localhost:8123", headers: {"Content-Type" : "application/thingy"}, body: "this doesn't matter");
+      http.post("http://localhost:8123",
+          headers: {"Content-Type": "application/thingy"},
+          body: "this doesn't matter");
       var request = await server.first;
 
       var body = await HTTPBodyDecoder.decode(request);
@@ -116,12 +129,13 @@ void main() {
     });
 
     test("Added decoder that matches any subtype works", () async {
-      http.post("http://localhost:8123", headers: {"Content-Type" : "somethingelse/whatever"}, body: "this doesn't matter");
+      http.post("http://localhost:8123",
+          headers: {"Content-Type": "somethingelse/whatever"},
+          body: "this doesn't matter");
       var request = await server.first;
 
       var body = await HTTPBodyDecoder.decode(request);
       expect(body, "somethingelse/*");
-
     });
   });
 
@@ -137,7 +151,9 @@ void main() {
     });
 
     test("Subsequent decodes do not re-process body", () async {
-      http.post("http://localhost:8123", headers: {"Content-Type" : "application/json"}, body: JSON.encode({"a" : "val"}));
+      http.post("http://localhost:8123",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.encode({"a": "val"}));
       var request = new Request(await server.first);
 
       var b1 = await request.decodeBody();

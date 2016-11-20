@@ -24,7 +24,9 @@ part of aqueduct;
 ///         class _User {
 ///           @primaryKey int id; // Persisted
 ///         }
-class ManagedObject<PersistentType> extends Object with _QueryMatchableExtension implements HTTPSerializable, QueryMatchable {
+class ManagedObject<PersistentType> extends Object
+    with _QueryMatchableExtension
+    implements HTTPSerializable, QueryMatchable {
   /// Used when building a [Query] to include instances of this type.
   ///
   /// A [Query] will, by default, fetch rows from a single table and return them as instances
@@ -39,7 +41,8 @@ class ManagedObject<PersistentType> extends Object with _QueryMatchableExtension
   bool includeInResultSet = false;
 
   /// The [ManagedEntity] this instance is described by.
-  ManagedEntity entity = ManagedContext.defaultContext.dataModel.entityForType(PersistentType);
+  ManagedEntity entity =
+      ManagedContext.defaultContext.dataModel.entityForType(PersistentType);
 
   /// The managed values of this instance.
   ///
@@ -52,7 +55,8 @@ class ManagedObject<PersistentType> extends Object with _QueryMatchableExtension
   Map<String, dynamic> get _matcherMap => backingMap;
 
   /// Retrieves a value by property name from the [backingMap].
-  dynamic operator [](String propertyName) => _backing.valueForProperty(entity, propertyName);
+  dynamic operator [](String propertyName) =>
+      _backing.valueForProperty(entity, propertyName);
 
   /// Sets a value by property name in the [backingMap].
   void operator []=(String propertyName, dynamic value) {
@@ -103,7 +107,9 @@ class ManagedObject<PersistentType> extends Object with _QueryMatchableExtension
       var property = entity.properties[k];
 
       if (property == null) {
-        throw new QueryException(QueryExceptionEvent.requestFailure, message: "Key $k does not exist for ${MirrorSystem.getName(mirror.type.simpleName)}");
+        throw new QueryException(QueryExceptionEvent.requestFailure,
+            message:
+                "Key $k does not exist for ${MirrorSystem.getName(mirror.type.simpleName)}");
       }
 
       if (property is ManagedAttributeDescription) {
@@ -111,13 +117,18 @@ class ManagedObject<PersistentType> extends Object with _QueryMatchableExtension
           _backing.setValueForProperty(entity, k, _valueDecoder(property, v));
         } else {
           if (!property.transientStatus.isAvailableAsInput) {
-            throw new QueryException(QueryExceptionEvent.requestFailure, message: "Key $k does not exist for ${MirrorSystem.getName(mirror.type.simpleName)}");
+            throw new QueryException(QueryExceptionEvent.requestFailure,
+                message:
+                    "Key $k does not exist for ${MirrorSystem.getName(mirror.type.simpleName)}");
           }
 
           var decodedValue = _valueDecoder(property, v);
           if (!property.isAssignableWith(decodedValue)) {
-            var valueTypeName = MirrorSystem.getName(reflect(decodedValue).type.simpleName);
-            throw new QueryException(QueryExceptionEvent.requestFailure, message: "Type mismatch for property ${property.name} on ${MirrorSystem.getName(entity.persistentType.simpleName)}, expected assignable type matching ${property.type} but got $valueTypeName.");
+            var valueTypeName =
+                MirrorSystem.getName(reflect(decodedValue).type.simpleName);
+            throw new QueryException(QueryExceptionEvent.requestFailure,
+                message:
+                    "Type mismatch for property ${property.name} on ${MirrorSystem.getName(entity.persistentType.simpleName)}, expected assignable type matching ${property.type} but got $valueTypeName.");
           }
 
           mirror.setField(new Symbol(k), decodedValue);
@@ -148,11 +159,11 @@ class ManagedObject<PersistentType> extends Object with _QueryMatchableExtension
     entity.attributes.values
         .where((attr) => attr.transientStatus?.isAvailableAsOutput ?? false)
         .forEach((attr) {
-          var value = reflectedThis.getField(new Symbol(attr.name)).reflectee;
-          if (value != null) {
-            outputMap[attr.name] = value;
-          }
-        });
+      var value = reflectedThis.getField(new Symbol(attr.name)).reflectee;
+      if (value != null) {
+        outputMap[attr.name] = value;
+      }
+    });
 
     return outputMap;
   }
@@ -178,7 +189,8 @@ class ManagedObject<PersistentType> extends Object with _QueryMatchableExtension
     return value;
   }
 
-  static dynamic _valueDecoder(ManagedPropertyDescription propertyDescription, dynamic value) {
+  static dynamic _valueDecoder(
+      ManagedPropertyDescription propertyDescription, dynamic value) {
     if (propertyDescription is ManagedAttributeDescription) {
       if (propertyDescription.type == ManagedPropertyType.datetime) {
         value = DateTime.parse(value);
@@ -188,28 +200,42 @@ class ManagedObject<PersistentType> extends Object with _QueryMatchableExtension
         return value;
       }
     } else if (propertyDescription is ManagedRelationshipDescription) {
-      ManagedRelationshipDescription relationshipDescription = propertyDescription;
+      ManagedRelationshipDescription relationshipDescription =
+          propertyDescription;
       var destinationEntity = relationshipDescription.destinationEntity;
-      if (relationshipDescription.relationshipType == ManagedRelationshipType.belongsTo || relationshipDescription.relationshipType == ManagedRelationshipType.hasOne) {
+      if (relationshipDescription.relationshipType ==
+              ManagedRelationshipType.belongsTo ||
+          relationshipDescription.relationshipType ==
+              ManagedRelationshipType.hasOne) {
         if (value is! Map<String, dynamic>) {
-          throw new QueryException(QueryExceptionEvent.requestFailure, message: "Expecting a Map for ${MirrorSystem.getName(destinationEntity.instanceType.simpleName)} in the ${relationshipDescription.name} field, got $value instead.");
+          throw new QueryException(QueryExceptionEvent.requestFailure,
+              message:
+                  "Expecting a Map for ${MirrorSystem.getName(destinationEntity.instanceType.simpleName)} in the ${relationshipDescription.name} field, got $value instead.");
         }
 
-        ManagedObject instance = destinationEntity.instanceType.newInstance(new Symbol(""), []).reflectee;
+        ManagedObject instance = destinationEntity.instanceType
+            .newInstance(new Symbol(""), []).reflectee;
         instance.readMap(value as Map<String, dynamic>);
 
         return instance;
-      } else if (relationshipDescription.relationshipType == ManagedRelationshipType.hasMany) {
+      } else if (relationshipDescription.relationshipType ==
+          ManagedRelationshipType.hasMany) {
         if (value is! List<Map<String, dynamic>>) {
-          throw new QueryException(QueryExceptionEvent.requestFailure, message: "Expecting a List for ${MirrorSystem.getName(destinationEntity.instanceType.simpleName)} in the ${relationshipDescription.name} field, got $value instead.");
+          throw new QueryException(QueryExceptionEvent.requestFailure,
+              message:
+                  "Expecting a List for ${MirrorSystem.getName(destinationEntity.instanceType.simpleName)} in the ${relationshipDescription.name} field, got $value instead.");
         }
 
         if (value.length > 0 && value.first is! Map) {
-          throw new QueryException(QueryExceptionEvent.requestFailure, message: "Expecting a List<Map> for ${MirrorSystem.getName(destinationEntity.instanceType.simpleName)} in the ${relationshipDescription.name} field, got $value instead.");
+          throw new QueryException(QueryExceptionEvent.requestFailure,
+              message:
+                  "Expecting a List<Map> for ${MirrorSystem.getName(destinationEntity.instanceType.simpleName)} in the ${relationshipDescription.name} field, got $value instead.");
         }
 
-        return new ManagedSet.from((value as List<Map<String, dynamic>>).map((v) {
-          ManagedObject instance = destinationEntity.instanceType.newInstance(new Symbol(""), []).reflectee;
+        return new ManagedSet.from(
+            (value as List<Map<String, dynamic>>).map((v) {
+          ManagedObject instance = destinationEntity.instanceType
+              .newInstance(new Symbol(""), []).reflectee;
           instance.readMap(v);
           return instance;
         }));

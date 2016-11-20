@@ -17,17 +17,21 @@ part of aqueduct;
 ///          @ManagedRelationship(#posts)
 ///          User user;
 ///        }
-class ManagedSet<InstanceType extends ManagedObject> extends Object with ListMixin<InstanceType>, _QueryMatchableExtension implements QueryMatchable, HTTPSerializable  {
+class ManagedSet<InstanceType extends ManagedObject> extends Object
+    with ListMixin<InstanceType>, _QueryMatchableExtension
+    implements QueryMatchable, HTTPSerializable {
   /// Creates an empty [ManagedSet].
   ManagedSet() {
     _innerValues = [];
-    entity = ManagedContext.defaultContext.dataModel.entityForType(InstanceType);
+    entity =
+        ManagedContext.defaultContext.dataModel.entityForType(InstanceType);
   }
 
   /// Creates a [ManagedSet] from an [Iterable] of [InstanceType]s.
   ManagedSet.from(Iterable<InstanceType> items) {
     _innerValues = items.toList();
-    entity = ManagedContext.defaultContext.dataModel.entityForType(InstanceType);
+    entity =
+        ManagedContext.defaultContext.dataModel.entityForType(InstanceType);
   }
 
   /// The [ManagedEntity] that represents the [InstanceType].

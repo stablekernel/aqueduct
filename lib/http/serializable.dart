@@ -4,7 +4,6 @@ part of aqueduct;
 ///
 /// Implementers of this interface may be the 'body' argument in a [Response].
 abstract class HTTPSerializable {
-
   /// Returns a serialized version of an object.
   ///
   /// Must return a data type that is encodable using the encoder of the [RequestController]. By default,

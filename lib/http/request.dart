@@ -59,7 +59,9 @@ class Request implements RequestControllerEvent {
   ///
   /// This is true if the request HTTP method is OPTIONS and the headers contains Access-Control-Request-Method.
   bool get isPreflightRequest {
-    return isCORSRequest && innerRequest.method == "OPTIONS" && innerRequest.headers.value("access-control-request-method") != null;
+    return isCORSRequest &&
+        innerRequest.method == "OPTIONS" &&
+        innerRequest.headers.value("access-control-request-method") != null;
   }
 
   /// Container for any data a [RequestController] wants to attach to this request for the purpose of being used by a later [RequestController].
@@ -120,7 +122,6 @@ class Request implements RequestControllerEvent {
     return originalString.substring(0, charSize);
   }
 
-
   /// Sends a [Response] to this [Request]'s client.
   ///
   /// [RequestController]s invoke this method to respond to this request.
@@ -165,12 +166,14 @@ class Request implements RequestControllerEvent {
     ContentType contentType = contentTypeValue;
     var topLevel = Response._encoders[contentType.primaryType];
     if (topLevel == null) {
-      throw new RequestException("No encoder for $contentTypeValue, add with Request.addEncoder().");
+      throw new RequestException(
+          "No encoder for $contentTypeValue, add with Request.addEncoder().");
     }
 
     var encoder = topLevel[contentType.subType];
     if (encoder == null) {
-      throw new RequestException("No encoder for $contentTypeValue, add with Request.addEncoder().");
+      throw new RequestException(
+          "No encoder for $contentTypeValue, add with Request.addEncoder().");
     }
 
     var encodedValue = encoder(respObj.body);
@@ -182,7 +185,15 @@ class Request implements RequestControllerEvent {
   }
 
   /// A string that represents more details about the request, typically used for logging.
-  String toDebugString({bool includeElapsedTime: true, bool includeRequestIP: true, bool includeMethod: true, bool includeResource: true, bool includeStatusCode: true, bool includeContentSize: false, bool includeHeaders: false, bool includeBody: false}) {
+  String toDebugString(
+      {bool includeElapsedTime: true,
+      bool includeRequestIP: true,
+      bool includeMethod: true,
+      bool includeResource: true,
+      bool includeStatusCode: true,
+      bool includeContentSize: false,
+      bool includeHeaders: false,
+      bool includeBody: false}) {
     var builder = new StringBuffer();
     if (includeRequestIP) {
       builder.write("${innerRequest.connectionInfo?.remoteAddress?.address} ");
@@ -194,7 +205,8 @@ class Request implements RequestControllerEvent {
       builder.write("${innerRequest.uri} ");
     }
     if (includeElapsedTime && respondDate != null) {
-      builder.write("${respondDate.difference(receivedDate).inMilliseconds}ms ");
+      builder
+          .write("${respondDate.difference(receivedDate).inMilliseconds}ms ");
     }
     if (includeStatusCode) {
       builder.write("${innerRequest.response.statusCode} ");

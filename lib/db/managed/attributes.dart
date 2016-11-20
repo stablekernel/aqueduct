@@ -4,10 +4,13 @@ part of aqueduct;
 enum ManagedRelationshipDeleteRule {
   /// Prevents a delete operation if the would-be deleted [ManagedObject] still has references to this relationship.
   restrict,
+
   /// All objects with a foreign key reference to the deleted object will also be deleted.
   cascade,
+
   /// All objects with a foreign key reference to the deleted object will have that reference nullified.
   nullify,
+
   /// All objects with a foreign key reference to the deleted object will have that reference set to the column's default value.
   setDefault
 }
@@ -20,7 +23,9 @@ enum ManagedRelationshipDeleteRule {
 /// resolves to a column in the database. The relationship property without this metadata resolves to a row or rows in the database.
 class ManagedRelationship {
   /// Creates an instance of this type.
-  const ManagedRelationship(this.inverseKey, {this.onDelete: ManagedRelationshipDeleteRule.nullify, this.isRequired: false});
+  const ManagedRelationship(this.inverseKey,
+      {this.onDelete: ManagedRelationshipDeleteRule.nullify,
+      this.isRequired: false});
 
   /// The symbol for the property in the related [ManagedObject].
   ///
@@ -58,7 +63,10 @@ enum ManagedRelationshipType {
 
 /// Marks a property as a primary key, database type big integer, and autoincrementing. The corresponding property
 /// type must be [int]. It is assumed that the underlying database indexes and uniques the backing column.
-const ManagedColumnAttributes managedPrimaryKey = const ManagedColumnAttributes(primaryKey: true, databaseType: ManagedPropertyType.bigInteger, autoincrement: true);
+const ManagedColumnAttributes managedPrimaryKey = const ManagedColumnAttributes(
+    primaryKey: true,
+    databaseType: ManagedPropertyType.bigInteger,
+    autoincrement: true);
 
 /// Metadata to describe the behavior of the underlying database column of a managed property.
 ///
@@ -131,7 +139,8 @@ class ManagedColumnAttributes {
         this.autoincrement = autoincrement;
 
   /// A supporting constructor to support modifying Attributes.
-  ManagedColumnAttributes.fromAttributes(ManagedColumnAttributes source, ManagedPropertyType databaseType)
+  ManagedColumnAttributes.fromAttributes(
+      ManagedColumnAttributes source, ManagedPropertyType databaseType)
       : this.databaseType = databaseType,
         this.isPrimaryKey = source.isPrimaryKey,
         this.isNullable = source.isNullable,
@@ -143,18 +152,26 @@ class ManagedColumnAttributes {
 }
 
 /// Metadata for a subclass of [ManagedObject] that allows the property to be used in [ManagedObject.readMap] and [ManagedObject.asMap], but is not persisted in the underlying database.
-const ManagedTransientAttribute managedTransientAttribute = const ManagedTransientAttribute(availableAsInput: true, availableAsOutput: true);
+const ManagedTransientAttribute managedTransientAttribute =
+    const ManagedTransientAttribute(
+        availableAsInput: true, availableAsOutput: true);
 
 /// Metadata for a subclass of [ManagedObject] that indicates it can be used in [ManagedObject.readMap], but is not persisted in the underlying database.
-const ManagedTransientAttribute managedTransientInputAttribute = const ManagedTransientAttribute(availableAsInput: true, availableAsOutput: false);
+const ManagedTransientAttribute managedTransientInputAttribute =
+    const ManagedTransientAttribute(
+        availableAsInput: true, availableAsOutput: false);
 
 /// Metadata for a subclass of [ManagedObject] that indicates it can be used in [ManagedObject.asMap], but is not persisted in the underlying database.
-const ManagedTransientAttribute managedTransientOutputAttribute = const ManagedTransientAttribute(availableAsInput: false, availableAsOutput: true);
+const ManagedTransientAttribute managedTransientOutputAttribute =
+    const ManagedTransientAttribute(
+        availableAsInput: false, availableAsOutput: true);
 
 /// See [managedTransientAttribute], [managedTransientInputAttribute] and [managedTransientOutputAttribute].
 class ManagedTransientAttribute {
   final bool isAvailableAsInput;
   final bool isAvailableAsOutput;
-  const ManagedTransientAttribute({bool availableAsInput: true, bool availableAsOutput: true}) :
-        isAvailableAsInput = availableAsInput, isAvailableAsOutput = availableAsOutput;
+  const ManagedTransientAttribute(
+      {bool availableAsInput: true, bool availableAsOutput: true})
+      : isAvailableAsInput = availableAsInput,
+        isAvailableAsOutput = availableAsOutput;
 }

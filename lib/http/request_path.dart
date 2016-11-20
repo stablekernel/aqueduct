@@ -10,7 +10,8 @@ class HTTPRequestPath {
   /// Default constructor for [HTTPRequestPath].
   ///
   /// There is no need to invoke this constructor manually.
-  HTTPRequestPath(RouteSpecification specification, List<String> requestSegments) {
+  HTTPRequestPath(
+      RouteSpecification specification, List<String> requestSegments) {
     segments = requestSegments;
     orderedVariableNames = [];
 
@@ -25,7 +26,7 @@ class HTTPRequestPath {
       } else if (segment.isRemainingMatcher) {
         var remaining = [];
         remaining.add(requestIterator.current);
-        while(requestIterator.moveNext()) {
+        while (requestIterator.moveNext()) {
           remaining.add(requestIterator.current);
         }
         remainingPath = remaining.join("/");
@@ -75,7 +76,8 @@ class HTTPRequestPath {
 ///
 /// Contains [RouteSegment]s for each path segment. This class is used internally by [Router].
 class RouteSpecification extends Object with APIDocumentable {
-  static List<RouteSpecification> specificationsForRoutePattern(String routePattern) {
+  static List<RouteSpecification> specificationsForRoutePattern(
+      String routePattern) {
     return _pathsFromRoutePattern(routePattern)
         .map((path) => new RouteSpecification(path))
         .toList();
@@ -86,7 +88,8 @@ class RouteSpecification extends Object with APIDocumentable {
   /// The [patternString] must be stripped of any optionals.
   RouteSpecification(String patternString) {
     segments = _splitPathSegments(patternString);
-    variableNames = segments.where((e) => e.isVariable).map((e) => e.variableName).toList();
+    variableNames =
+        segments.where((e) => e.isVariable).map((e) => e.variableName).toList();
   }
 
   /// A list of this specification's [RouteSegment]s.
@@ -101,54 +104,58 @@ class RouteSpecification extends Object with APIDocumentable {
   @override
   List<APIPath> documentPaths(PackagePathResolver resolver) {
     var p = new APIPath();
-    p.path = "/" + segments.map((rs) {
-      if (rs.isLiteralMatcher) {
-        return rs.literal;
-      } else if (rs.isVariable) {
-        return "{${rs.variableName}}";
-      } else if (rs.isRemainingMatcher) {
-        return "*";
-      }
-    }).join("/");
+    p.path = "/" +
+        segments.map((rs) {
+          if (rs.isLiteralMatcher) {
+            return rs.literal;
+          } else if (rs.isVariable) {
+            return "{${rs.variableName}}";
+          } else if (rs.isRemainingMatcher) {
+            return "*";
+          }
+        }).join("/");
 
-    p.parameters = segments
-        .where((seg) => seg.isVariable)
-        .map((seg) {
-          var param = new APIParameter()
-              ..name = seg.variableName
-              ..parameterLocation = APIParameterLocation.path;
+    p.parameters = segments.where((seg) => seg.isVariable).map((seg) {
+      var param = new APIParameter()
+        ..name = seg.variableName
+        ..parameterLocation = APIParameterLocation.path;
 
-          return param;
-        }).toList();
+      return param;
+    }).toList();
 
     List<APIOperation> allOperations = controller.documentOperations(resolver);
-    p.operations = allOperations
-        .where((op) {
-          var opPathParamNames = op.parameters
-              .where((p) => p.parameterLocation == APIParameterLocation.path)
-              .map((p) => p.name)
-              .toList();
-          var pathParamNames = p.parameters
-            .where((p) => p.parameterLocation == APIParameterLocation.path)
-            .toList();
+    p.operations = allOperations.where((op) {
+      var opPathParamNames = op.parameters
+          .where((p) => p.parameterLocation == APIParameterLocation.path)
+          .map((p) => p.name)
+          .toList();
+      var pathParamNames = p.parameters
+          .where((p) => p.parameterLocation == APIParameterLocation.path)
+          .toList();
 
-          if (pathParamNames.length != opPathParamNames.length) {
-            return false;
-          }
+      if (pathParamNames.length != opPathParamNames.length) {
+        return false;
+      }
 
-          return pathParamNames.every((p) => opPathParamNames.contains(p.name));
-        }).toList();
+      return pathParamNames.every((p) => opPathParamNames.contains(p.name));
+    }).toList();
 
     // Strip operation parameters that are already in the path, but move their type into
     // the path's path parameters
     p.operations.forEach((op) {
-      var typedPathParameters = op.parameters.where((pi) => pi.parameterLocation == APIParameterLocation.path).toList();
+      var typedPathParameters = op.parameters
+          .where((pi) => pi.parameterLocation == APIParameterLocation.path)
+          .toList();
       p.parameters.forEach((p) {
-        var matchingTypedPathParam = typedPathParameters.firstWhere((typedParam) => typedParam.name == p.name, orElse: () => null);
+        var matchingTypedPathParam = typedPathParameters.firstWhere(
+            (typedParam) => typedParam.name == p.name,
+            orElse: () => null);
         p.schemaObject ??= matchingTypedPathParam?.schemaObject;
       });
 
-      op.parameters = op.parameters.where((p) => p.parameterLocation != APIParameterLocation.path).toList();
+      op.parameters = op.parameters
+          .where((p) => p.parameterLocation != APIParameterLocation.path)
+          .toList();
     });
 
     return [p];
@@ -180,7 +187,11 @@ class RouteSegment {
     }
   }
 
-  RouteSegment.direct({String literal: null, String variableName: null, String expression: null, bool matchesAnything: false}) {
+  RouteSegment.direct(
+      {String literal: null,
+      String variableName: null,
+      String expression: null,
+      bool matchesAnything: false}) {
     this.literal = literal;
     this.variableName = variableName;
     this.isRemainingMatcher = matchesAnything;
@@ -193,7 +204,8 @@ class RouteSegment {
   String variableName;
   RegExp matcher;
 
-  bool get isLiteralMatcher => !isRemainingMatcher && !isVariable && !hasRegularExpression;
+  bool get isLiteralMatcher =>
+      !isRemainingMatcher && !isVariable && !hasRegularExpression;
   bool get hasRegularExpression => matcher != null;
   bool get isVariable => variableName != null;
   bool isRemainingMatcher = false;
@@ -221,10 +233,10 @@ class RouteSegment {
       return false;
     }
 
-    return literal == other.literal
-        && variableName == other.variableName
-        && isRemainingMatcher == other.isRemainingMatcher
-        && matcher?.pattern == other.matcher?.pattern;
+    return literal == other.literal &&
+        variableName == other.variableName &&
+        isRemainingMatcher == other.isRemainingMatcher &&
+        matcher?.pattern == other.matcher?.pattern;
   }
 
   String toString() {
@@ -252,7 +264,7 @@ List<String> _pathsFromRoutePattern(String routePattern) {
   var endingOptionalCloseCount = 0;
   while (routePattern.endsWith("]")) {
     routePattern = routePattern.substring(0, routePattern.length - 1);
-    endingOptionalCloseCount ++;
+    endingOptionalCloseCount++;
   }
 
   var chars = routePattern.codeUnits;
@@ -268,7 +280,8 @@ List<String> _pathsFromRoutePattern(String routePattern) {
 
     if (code == openExpression) {
       if (insideExpression) {
-        throw new RouterException("Invalid route $routePattern, cannot use expression that contains '(' or ')'");
+        throw new RouterException(
+            "Invalid route $routePattern, cannot use expression that contains '(' or ')'");
       } else {
         buffer.writeCharCode(code);
         insideExpression = true;
@@ -278,7 +291,8 @@ List<String> _pathsFromRoutePattern(String routePattern) {
         buffer.writeCharCode(code);
         insideExpression = false;
       } else {
-        throw new RouterException("Invalid route $routePattern, cannot use expression that contains '(' or ')'");
+        throw new RouterException(
+            "Invalid route $routePattern, cannot use expression that contains '(' or ')'");
       }
     } else if (code == openOptional) {
       if (insideExpression) {
@@ -292,11 +306,13 @@ List<String> _pathsFromRoutePattern(String routePattern) {
   }
 
   if (insideExpression) {
-    throw new RouterException("Invalid route $routePattern, unterminated regular expression");
+    throw new RouterException(
+        "Invalid route $routePattern, unterminated regular expression");
   }
 
   if (endingOptionalCloseCount != patterns.length) {
-    throw new RouterException("Invalid pattern specifiation, $routePattern, does not close all optionals");
+    throw new RouterException(
+        "Invalid pattern specifiation, $routePattern, does not close all optionals");
   }
 
   // Add the final pattern - if no optionals, this is the only pattern.
@@ -312,7 +328,7 @@ List<RouteSegment> _splitPathSegments(String path) {
   while (path.startsWith("/")) {
     path = path.substring(1, path.length);
   }
-  while(path.endsWith("/")) {
+  while (path.endsWith("/")) {
     path = path.substring(0, path.length - 1);
   }
 
@@ -347,7 +363,8 @@ List<RouteSegment> _splitPathSegments(String path) {
   }
 
   if (segments.any((seg) => seg == "")) {
-    throw new RouterException("Invalid route path $path, contains an empty path segment");
+    throw new RouterException(
+        "Invalid route path $path, contains an empty path segment");
   }
 
   // Add final

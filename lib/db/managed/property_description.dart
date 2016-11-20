@@ -33,13 +33,18 @@ enum ManagedPropertyType {
 /// about the property such as its name and type. Those properties are represented by concrete subclasses of this class, [ManagedRelationshipDescription]
 /// and [ManagedAttributeDescription].
 abstract class ManagedPropertyDescription {
-  ManagedPropertyDescription(this.entity, this.name, this.type, {String explicitDatabaseType: null, bool unique: false, bool indexed: false, bool nullable: false, bool includedInDefaultResultSet: true, bool autoincrement: false})
+  ManagedPropertyDescription(this.entity, this.name, this.type,
+      {String explicitDatabaseType: null,
+      bool unique: false,
+      bool indexed: false,
+      bool nullable: false,
+      bool includedInDefaultResultSet: true,
+      bool autoincrement: false})
       : isUnique = unique,
         isIndexed = indexed,
         isNullable = nullable,
         isIncludedInDefaultResultSet = includedInDefaultResultSet,
-        this.autoincrement = autoincrement {
-  }
+        this.autoincrement = autoincrement {}
 
   /// A reference to the [ManagedEntity] that contains this property.
   final ManagedEntity entity;
@@ -81,7 +86,6 @@ abstract class ManagedPropertyDescription {
 
   /// Returns the corresponding [ManagedPropertyType] given a Dart type.
   static ManagedPropertyType propertyTypeForDartType(Type t) {
-
     if (t == int) {
       return ManagedPropertyType.integer;
     } else if (t == String) {
@@ -107,15 +111,23 @@ abstract class ManagedPropertyDescription {
 
   /// Whether or not a the argument can be assigned to this property.
   bool isAssignableWith(dynamic dartValue) {
-    switch(type) {
-      case ManagedPropertyType.integer: return dartValue is int;
-      case ManagedPropertyType.bigInteger: return dartValue is int;
-      case ManagedPropertyType.boolean: return dartValue is bool;
-      case ManagedPropertyType.datetime: return dartValue is DateTime;
-      case ManagedPropertyType.doublePrecision: return dartValue is double;
-      case ManagedPropertyType.string: return dartValue is String;
-      case ManagedPropertyType.transientMap: return dartValue is Map;
-      case ManagedPropertyType.transientList: return dartValue is List;
+    switch (type) {
+      case ManagedPropertyType.integer:
+        return dartValue is int;
+      case ManagedPropertyType.bigInteger:
+        return dartValue is int;
+      case ManagedPropertyType.boolean:
+        return dartValue is bool;
+      case ManagedPropertyType.datetime:
+        return dartValue is DateTime;
+      case ManagedPropertyType.doublePrecision:
+        return dartValue is double;
+      case ManagedPropertyType.string:
+        return dartValue is String;
+      case ManagedPropertyType.transientMap:
+        return dartValue is Map;
+      case ManagedPropertyType.transientList:
+        return dartValue is List;
     }
     return false;
   }
@@ -128,25 +140,36 @@ abstract class ManagedPropertyDescription {
 /// Each scalar property [ManagedObject] object persists is described by an instance of [ManagedAttributeDescription]. This class
 /// adds two properties to [ManagedPropertyDescription] that are only valid for non-relationship types, [isPrimaryKey] and [defaultValue].
 class ManagedAttributeDescription extends ManagedPropertyDescription {
-  ManagedAttributeDescription.transient(ManagedEntity entity, String name, ManagedPropertyType type, this.transientStatus) :
-      isPrimaryKey = false,
-      this.defaultValue = null,
-      super(entity, name, type, unique: false,
-          indexed: false,
-          nullable: false,
-          includedInDefaultResultSet: false,
-          autoincrement: false);
+  ManagedAttributeDescription.transient(ManagedEntity entity, String name,
+      ManagedPropertyType type, this.transientStatus)
+      : isPrimaryKey = false,
+        this.defaultValue = null,
+        super(entity, name, type,
+            unique: false,
+            indexed: false,
+            nullable: false,
+            includedInDefaultResultSet: false,
+            autoincrement: false);
 
-  ManagedAttributeDescription(ManagedEntity entity, String name, ManagedPropertyType type, {ManagedTransientAttribute transientStatus: null, bool primaryKey: false, String defaultValue: null, bool unique: false, bool indexed: false, bool nullable: false, bool includedInDefaultResultSet: true, bool autoincrement: false}) :
-        isPrimaryKey = primaryKey,
+  ManagedAttributeDescription(
+      ManagedEntity entity, String name, ManagedPropertyType type,
+      {ManagedTransientAttribute transientStatus: null,
+      bool primaryKey: false,
+      String defaultValue: null,
+      bool unique: false,
+      bool indexed: false,
+      bool nullable: false,
+      bool includedInDefaultResultSet: true,
+      bool autoincrement: false})
+      : isPrimaryKey = primaryKey,
         this.defaultValue = defaultValue,
         this.transientStatus = transientStatus,
         super(entity, name, type,
-          unique: unique,
-          indexed: indexed,
-          nullable: nullable,
-          includedInDefaultResultSet: includedInDefaultResultSet,
-          autoincrement: autoincrement);
+            unique: unique,
+            indexed: indexed,
+            nullable: nullable,
+            includedInDefaultResultSet: includedInDefaultResultSet,
+            autoincrement: autoincrement);
 
   /// Whether or not this attribute is the primary key for its [ManagedEntity].
   ///
@@ -176,9 +199,23 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
 
 /// Contains information for a relationship property of a [ManagedObject].
 class ManagedRelationshipDescription extends ManagedPropertyDescription {
-  ManagedRelationshipDescription(ManagedEntity entity, String name, ManagedPropertyType type, this.destinationEntity, this.deleteRule, this.relationshipType, this.inverseKey, {bool unique: false, bool indexed: false, bool nullable: false, bool includedInDefaultResultSet: true})
-    : super(entity, name, type, unique: unique, indexed: indexed, nullable: nullable, includedInDefaultResultSet: includedInDefaultResultSet) {
-  }
+  ManagedRelationshipDescription(
+      ManagedEntity entity,
+      String name,
+      ManagedPropertyType type,
+      this.destinationEntity,
+      this.deleteRule,
+      this.relationshipType,
+      this.inverseKey,
+      {bool unique: false,
+      bool indexed: false,
+      bool nullable: false,
+      bool includedInDefaultResultSet: true})
+      : super(entity, name, type,
+            unique: unique,
+            indexed: indexed,
+            nullable: nullable,
+            includedInDefaultResultSet: includedInDefaultResultSet) {}
 
   /// The entity that this relationship's instances are represented by.
   final ManagedEntity destinationEntity;
@@ -193,7 +230,8 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
   final Symbol inverseKey;
 
   /// The [ManagedRelationshipDescription] on [destinationEntity] that represents the inverse of this relationship.
-  ManagedRelationshipDescription get inverseRelationship => destinationEntity.relationships[MirrorSystem.getName(inverseKey)];
+  ManagedRelationshipDescription get inverseRelationship =>
+      destinationEntity.relationships[MirrorSystem.getName(inverseKey)];
 
   /// Whether or not a the argument can be assigned to this property.
   bool isAssignableWith(dynamic dartValue) {
@@ -201,7 +239,8 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
 
     if (type.isSubtypeOf(reflectType(List))) {
       if (relationshipType != ManagedRelationshipType.hasMany) {
-        throw new ManagedDataModelException("Trying to assign List to relationship that isn't hasMany for ${MirrorSystem.getName(entity.persistentType.simpleName)} $name");
+        throw new ManagedDataModelException(
+            "Trying to assign List to relationship that isn't hasMany for ${MirrorSystem.getName(entity.persistentType.simpleName)} $name");
       }
 
       type = type.typeArguments.first;

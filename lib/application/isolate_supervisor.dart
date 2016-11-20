@@ -7,7 +7,8 @@ class ApplicationIsolateSupervisor {
   static String _MessageStop = "_MessageStop";
 
   /// Create an isntance of [ApplicationIsolateSupervisor].
-  ApplicationIsolateSupervisor(this.supervisingApplication, this.isolate, this.receivePort, this.identifier, this.logger);
+  ApplicationIsolateSupervisor(this.supervisingApplication, this.isolate,
+      this.receivePort, this.identifier, this.logger);
 
   /// The [Isolate] being supervised.
   final Isolate isolate;
@@ -77,7 +78,8 @@ class ApplicationIsolateSupervisor {
     stop().then((_) {
       _launchCompleter = null;
       _stopCompleter = null;
-      supervisingApplication.isolateDidExitWithError(this, errorMessage, new StackTrace.fromString(stackTrace));
+      supervisingApplication.isolateDidExitWithError(
+          this, errorMessage, new StackTrace.fromString(stackTrace));
     });
   }
 }

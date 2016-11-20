@@ -48,17 +48,20 @@ const isNotPresent = const _NotPresentMatcher();
 /// Converts a header value to an instance of [int] to be used inside a matcher.
 ///
 /// See [hasResponse] for more details.
-_Converter asNumber(dynamic term) => new _Converter(_ConverterType.number, term);
+_Converter asNumber(dynamic term) =>
+    new _Converter(_ConverterType.number, term);
 
 /// Converts a header value to an instance of [DateTime] to be used inside a matcher.
 ///
 /// See [hasResponse] for more details.
-_Converter asDateTime(dynamic term) => new _Converter(_ConverterType.datetime, term);
+_Converter asDateTime(dynamic term) =>
+    new _Converter(_ConverterType.datetime, term);
 
 /// Validates that a [TestResponse] has the specified HTTP status code.
 ///
 /// This matcher only validates the status code. See [hasResponse] for more details.
-HTTPResponseMatcher hasStatus(int statusCode) => new HTTPResponseMatcher(statusCode, null, null);
+HTTPResponseMatcher hasStatus(int statusCode) =>
+    new HTTPResponseMatcher(statusCode, null, null);
 
 /// Validates that a [TestResponse] has the specified HTTP response body.
 ///
@@ -68,7 +71,9 @@ HTTPBodyMatcher hasBody(dynamic matchSpec) => new HTTPBodyMatcher(matchSpec);
 /// Validates that a [TestResponse] has the specified HTTP headers.
 ///
 /// This matcher only validates the HTTP headers. See [hasResponse] for more details.
-HTTPHeaderMatcher hasHeaders(Map<String, dynamic> matchers, {bool failIfContainsUnmatchedHeader: false}) => new HTTPHeaderMatcher(matchers, failIfContainsUnmatchedHeader);
+HTTPHeaderMatcher hasHeaders(Map<String, dynamic> matchers,
+        {bool failIfContainsUnmatchedHeader: false}) =>
+    new HTTPHeaderMatcher(matchers, failIfContainsUnmatchedHeader);
 
 /// Validates that a [TestResponse] has the specified status code, body and headers.
 ///
@@ -103,9 +108,14 @@ HTTPHeaderMatcher hasHeaders(Map<String, dynamic> matchers, {bool failIfContains
 ///      expect(response, hasResponse(200, [], headers: {
 ///         "x-version" : asNumber(greaterThan(1))(
 ///      });
-HTTPResponseMatcher hasResponse(int statusCode, dynamic bodyMatcher, {Map<String, dynamic> headers: null, bool failIfContainsUnmatchedHeader: false}) {
-  return new HTTPResponseMatcher(statusCode,
-      (headers != null ? new HTTPHeaderMatcher(headers, failIfContainsUnmatchedHeader) : null),
+HTTPResponseMatcher hasResponse(int statusCode, dynamic bodyMatcher,
+    {Map<String, dynamic> headers: null,
+    bool failIfContainsUnmatchedHeader: false}) {
+  return new HTTPResponseMatcher(
+      statusCode,
+      (headers != null
+          ? new HTTPHeaderMatcher(headers, failIfContainsUnmatchedHeader)
+          : null),
       (bodyMatcher != null ? new HTTPBodyMatcher(bodyMatcher) : null));
 }
 
@@ -161,15 +171,17 @@ class HTTPResponseMatcher extends Matcher {
     return description;
   }
 
-  Description describeMismatch(item, Description mismatchDescription, Map matchState, bool verbose) {
+  Description describeMismatch(
+      item, Description mismatchDescription, Map matchState, bool verbose) {
     var responseTypeMismatch = matchState["Response Type"];
     if (responseTypeMismatch != null) {
-      mismatchDescription.add("Actual value is not a TestResponse, but instead $responseTypeMismatch.");
+      mismatchDescription.add(
+          "Actual value is not a TestResponse, but instead $responseTypeMismatch.");
     }
 
     var statusMismatch = matchState["Status Code"];
     if (statusMismatch != null) {
-       mismatchDescription.add("Status Code $statusCode != $statusMismatch");
+      mismatchDescription.add("Status Code $statusCode != $statusMismatch");
     }
 
     return mismatchDescription;
@@ -211,10 +223,12 @@ class HTTPBodyMatcher extends Matcher {
     return description;
   }
 
-  Description describeMismatch(item, Description mismatchDescription, Map matchState, bool verbose) {
+  Description describeMismatch(
+      item, Description mismatchDescription, Map matchState, bool verbose) {
     var responseTypeMismatch = matchState["Response Type"];
     if (responseTypeMismatch != null) {
-      mismatchDescription.add("Actual value is not a TestResponse, but instead $responseTypeMismatch.");
+      mismatchDescription.add(
+          "Actual value is not a TestResponse, but instead $responseTypeMismatch.");
     }
 
     mismatchDescription
@@ -237,7 +251,6 @@ class HTTPBodyMatcher extends Matcher {
     return mismatchDescription;
   }
 }
-
 
 /// A test matcher that matches HTTP headers.
 ///
@@ -276,7 +289,8 @@ class HTTPHeaderMatcher extends Matcher {
         }
       } else {
         if (headerValue != valueMatcher) {
-          matchState[headerKey] = "must equal to $valueMatcher, but was $headerValue";
+          matchState[headerKey] =
+              "must equal to $valueMatcher, but was $headerValue";
           failedToMatch = true;
         }
       }
@@ -290,7 +304,8 @@ class HTTPHeaderMatcher extends Matcher {
       item.headers.forEach((key, _) {
         if (!matchHeaders.containsKey(key)) {
           failedToMatch = true;
-          matchState["Header $key"] = "was in response headers, but not part of the match set and failIfContainsUnmatchedHeader was true.";
+          matchState["Header $key"] =
+              "was in response headers, but not part of the match set and failIfContainsUnmatchedHeader was true.";
         }
       });
 
@@ -323,10 +338,12 @@ class HTTPHeaderMatcher extends Matcher {
     return description;
   }
 
-  Description describeMismatch(item, Description mismatchDescription, Map matchState, bool verbose) {
+  Description describeMismatch(
+      item, Description mismatchDescription, Map matchState, bool verbose) {
     var responseTypeMismatch = matchState["Response Type"];
     if (responseTypeMismatch != null) {
-      mismatchDescription.add("Actual value is not a TestResponse, but instead $responseTypeMismatch.");
+      mismatchDescription.add(
+          "Actual value is not a TestResponse, but instead $responseTypeMismatch.");
     }
 
     var errors = matchState.keys.map((k) {
@@ -384,7 +401,7 @@ class _PartialMapMatcher extends Matcher {
 
       if (matchValue is Matcher) {
         if (!matchValue.matches(value, matchState)) {
-          addStateInfo(matchState, {"key" : matchKey, "element" : value});
+          addStateInfo(matchState, {"key": matchKey, "element": value});
           return false;
         }
       }
@@ -405,17 +422,19 @@ class _PartialMapMatcher extends Matcher {
     return description;
   }
 
-  Description describeMismatch(item, Description mismatchDescription, Map matchState, bool verbose) {
+  Description describeMismatch(
+      item, Description mismatchDescription, Map matchState, bool verbose) {
     if (matchState["Not Map"] != null) {
       mismatchDescription.add("${matchState["Not Map"]} is not a map");
     }
 
-    if(matchState["missing"] != null) {
+    if (matchState["missing"] != null) {
       mismatchDescription.add("Missing ${matchState["missing"].join(",")}");
     }
 
     if (matchState["extra"] != null) {
-      mismatchDescription.add("Should not include ${matchState["extra"].join(",")}");
+      mismatchDescription
+          .add("Should not include ${matchState["extra"].join(",")}");
     }
 
     if (matchState["key"] != null) {
@@ -428,7 +447,8 @@ class _PartialMapMatcher extends Matcher {
 
       var subMatcher = map[key];
       var subDescription = new StringDescription();
-      subMatcher.describeMismatch(element, subDescription, matchState['state'], verbose);
+      subMatcher.describeMismatch(
+          element, subDescription, matchState['state'], verbose);
       if (subDescription.length > 0) {
         mismatchDescription.add(subDescription.toString());
       } else {
@@ -446,10 +466,8 @@ class _NotPresentMatcher {
   const _NotPresentMatcher();
 }
 
-enum _ConverterType {
-  number,
-  datetime
-}
+enum _ConverterType { number, datetime }
+
 class _Converter {
   _Converter(this.type, this.term);
   final _ConverterType type;
@@ -457,8 +475,10 @@ class _Converter {
 
   dynamic convertValue(dynamic value) {
     switch (type) {
-      case _ConverterType.number: return num.parse(value);
-      case _ConverterType.datetime: return DateTime.parse(value);
+      case _ConverterType.number:
+        return num.parse(value);
+      case _ConverterType.datetime:
+        return DateTime.parse(value);
     }
     return value;
   }

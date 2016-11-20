@@ -19,9 +19,8 @@ void main() {
     });
 
     test("Request is enqueued and immediately available", () async {
-      var response = (testClient.request("/hello?foo=bar")..headers = {
-        "X" : "Y"
-      }).get();
+      var response =
+          (testClient.request("/hello?foo=bar")..headers = {"X": "Y"}).get();
       expect(response, completes);
 
       var serverRequest = await server.next();
@@ -32,9 +31,7 @@ void main() {
     });
 
     test("Request body is captured", () async {
-      var req = testClient.request("/foo")..json = {
-        "a" : "b"
-      };
+      var req = testClient.request("/foo")..json = {"a": "b"};
       await req.put();
 
       var serverRequest = await server.next();
@@ -52,7 +49,6 @@ void main() {
       serverRequest = await server.next();
       expect(serverRequest.path, "/bar");
     });
-
   });
 }
 

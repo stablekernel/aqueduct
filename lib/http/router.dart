@@ -34,6 +34,7 @@ class Router extends RequestController {
   set basePath(String bp) {
     _basePathSegments = bp.split("/").where((str) => !str.isEmpty).toList();
   }
+
   List<String> _basePathSegments = [];
 
   /// How this router handles [Request]s that don't match its routes.
@@ -45,8 +46,8 @@ class Router extends RequestController {
   void set unhandledRequestController(void listener(Request req)) {
     _unhandledRequestController = listener;
   }
-  var _unhandledRequestController;
 
+  var _unhandledRequestController;
 
   /// Adds a route to this instnace and provides a forwarding [RouteController] for all [Request]s that match that route to be delivered on.
   ///
@@ -68,7 +69,8 @@ class Router extends RequestController {
   /// Routes may also contain multiple path segments in the same optional grouping.
   ///       /constantString/[segment1/segment2]
   RequestController route(String pattern) {
-    var routeController = new RouteController(RouteSpecification.specificationsForRoutePattern(pattern));
+    var routeController = new RouteController(
+        RouteSpecification.specificationsForRoutePattern(pattern));
     _routeControllers.add(routeController);
     return routeController;
   }
@@ -78,7 +80,8 @@ class Router extends RequestController {
   /// If you are using the default router from [RequestSink], this method is called for you. Otherwise,
   /// you must call this method after all routes have been added to build a tree of routes for optimized route finding.
   void finalize() {
-    _rootRouteNode = new _RouteNode(_routeControllers.expand((rh) => rh.patterns).toList());
+    _rootRouteNode =
+        new _RouteNode(_routeControllers.expand((rh) => rh.patterns).toList());
   }
 
   /// Routers override this method to throw an exception. Use [route] instead.
@@ -88,11 +91,14 @@ class Router extends RequestController {
 
   /// Routers override this method to throw an exception. Use [route] instead.
   RequestController generate(RequestController generatorFunction()) {
-    throw new RouterException("Routers may not use generate, use route instead.");
+    throw new RouterException(
+        "Routers may not use generate, use route instead.");
   }
 
   /// Routers override this method to throw an exception. Use [route] instead.
-  RequestController listen(Future<RequestControllerEvent> requestControllerFunction(Request request)) {
+  RequestController listen(
+      Future<RequestControllerEvent> requestControllerFunction(
+          Request request)) {
     throw new RouterException("Routers may not use listen, use route instead.");
   }
 
@@ -119,7 +125,8 @@ class Router extends RequestController {
 
     var node = _rootRouteNode.nodeForPathSegments(remainingSegments);
     if (node?.specification != null) {
-      var requestPath = new HTTPRequestPath(node.specification, remainingSegments);
+      var requestPath =
+          new HTTPRequestPath(node.specification, remainingSegments);
       req.path = requestPath;
       node.controller.receive(req);
       return;
@@ -132,7 +139,8 @@ class Router extends RequestController {
   List<APIPath> documentPaths(PackagePathResolver resolver) {
     return _routeControllers
         .expand((rh) => rh.patterns)
-        .map((RouteSpecification routeSpec) => routeSpec.documentPaths(resolver).first)
+        .map((RouteSpecification routeSpec) =>
+            routeSpec.documentPaths(resolver).first)
         .toList();
   }
 

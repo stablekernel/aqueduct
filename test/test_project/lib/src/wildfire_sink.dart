@@ -16,7 +16,8 @@ class WildfireSink extends RequestSink {
 
     context = contextWithConnectionInfo(configuration.database);
 
-    authenticationServer = new AuthServer<User, Token, AuthCode>(new WildfireAuthenticationDelegate());
+    authenticationServer = new AuthServer<User, Token, AuthCode>(
+        new WildfireAuthenticationDelegate());
   }
 
   ManagedContext context;
@@ -27,12 +28,14 @@ class WildfireSink extends RequestSink {
   void setupRouter(Router router) {
     router
         .route("/auth/token")
-        .pipe(new Authorizer(authenticationServer, strategy: AuthStrategy.client))
+        .pipe(
+            new Authorizer(authenticationServer, strategy: AuthStrategy.client))
         .generate(() => new AuthController(authenticationServer));
 
     router
         .route("/auth/code")
-        .pipe(new Authorizer(authenticationServer, strategy: AuthStrategy.client))
+        .pipe(
+            new Authorizer(authenticationServer, strategy: AuthStrategy.client))
         .generate(() => new AuthCodeController(authenticationServer));
 
     router
@@ -42,7 +45,8 @@ class WildfireSink extends RequestSink {
 
     router
         .route("/register")
-        .pipe(new Authorizer(authenticationServer, strategy: AuthStrategy.client))
+        .pipe(
+            new Authorizer(authenticationServer, strategy: AuthStrategy.client))
         .generate(() => new RegisterController());
 
     router
@@ -51,11 +55,17 @@ class WildfireSink extends RequestSink {
         .generate(() => new UserController());
   }
 
-  ManagedContext contextWithConnectionInfo(DatabaseConnectionConfiguration database) {
+  ManagedContext contextWithConnectionInfo(
+      DatabaseConnectionConfiguration database) {
     var connectionInfo = configuration.database;
-    var dataModel = new ManagedDataModel.fromPackageContainingType(this.runtimeType);
-    var psc = new PostgreSQLPersistentStore.fromConnectionInfo(connectionInfo.username,
-        connectionInfo.password, connectionInfo.host, connectionInfo.port, connectionInfo.databaseName);
+    var dataModel =
+        new ManagedDataModel.fromPackageContainingType(this.runtimeType);
+    var psc = new PostgreSQLPersistentStore.fromConnectionInfo(
+        connectionInfo.username,
+        connectionInfo.password,
+        connectionInfo.host,
+        connectionInfo.port,
+        connectionInfo.databaseName);
 
     var ctx = new ManagedContext(dataModel, psc);
     ManagedContext.defaultContext = ctx;
@@ -64,8 +74,8 @@ class WildfireSink extends RequestSink {
   }
 
   @override
-  Map<String, APISecurityScheme> documentSecuritySchemes(PackagePathResolver resolver) {
+  Map<String, APISecurityScheme> documentSecuritySchemes(
+      PackagePathResolver resolver) {
     return authenticationServer.documentSecuritySchemes(resolver);
   }
-
 }

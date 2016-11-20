@@ -52,6 +52,7 @@ class Query<InstanceType extends ManagedObject> {
     }
     return _matchOn;
   }
+
   InstanceType _matchOn;
 
   /// Confirms that a query has no predicate before executing it.
@@ -117,9 +118,11 @@ class Query<InstanceType extends ManagedObject> {
     }
     return _valueObject;
   }
+
   void set values(InstanceType obj) {
     _valueObject = obj;
   }
+
   InstanceType _valueObject;
 
   /// A list of properties to be fetched by this query.
@@ -179,7 +182,9 @@ class Query<InstanceType extends ManagedObject> {
       return null;
     }
 
-    throw new QueryException(QueryExceptionEvent.internalFailure, message: "updateOne modified more than one row, this is a serious error.");
+    throw new QueryException(QueryExceptionEvent.internalFailure,
+        message:
+            "updateOne modified more than one row, this is a serious error.");
   }
 
   /// Fetches [InstanceType]s from the database.
@@ -203,7 +208,9 @@ class Query<InstanceType extends ManagedObject> {
     if (results.length == 1) {
       return results.first;
     } else if (results.length > 1) {
-      throw new QueryException(QueryExceptionEvent.requestFailure, message: "Query expected to fetch one instance, but ${results.length} instances were returned.");
+      throw new QueryException(QueryExceptionEvent.requestFailure,
+          message:
+              "Query expected to fetch one instance, but ${results.length} instances were returned.");
     }
     return null;
   }
@@ -229,8 +236,9 @@ class Query<InstanceType extends ManagedObject> {
 ///
 /// A suggested HTTP status code based on the type of exception will always be available.
 class QueryException implements Exception {
-  QueryException(this.event, {String message: null, this.underlyingException: null}) :
-      this._message = message;
+  QueryException(this.event,
+      {String message: null, this.underlyingException: null})
+      : this._message = message;
 
   final String _message;
 
@@ -288,9 +296,10 @@ abstract class _QueryMatchableExtension implements QueryMatchable {
       var val = _matcherMap[propertyName];
       var relDesc = entity.relationships[propertyName];
 
-      return val is QueryMatchable
-          && val.includeInResultSet
-          && (relDesc?.relationshipType == ManagedRelationshipType.hasMany || relDesc?.relationshipType == ManagedRelationshipType.hasOne);
+      return val is QueryMatchable &&
+          val.includeInResultSet &&
+          (relDesc?.relationshipType == ManagedRelationshipType.hasMany ||
+              relDesc?.relationshipType == ManagedRelationshipType.hasOne);
     }).toList();
   }
 }

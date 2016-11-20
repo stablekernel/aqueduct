@@ -66,10 +66,12 @@ class ManagedContext {
   }
 
   Future<int> _executeDeleteQuery(Query query) async {
-    return await persistentStore.executeDeleteQuery(new PersistentStoreQuery(query.entity, persistentStore, query));
+    return await persistentStore.executeDeleteQuery(
+        new PersistentStoreQuery(query.entity, persistentStore, query));
   }
 
-  List<ManagedObject> _coalesceAndMapRows(List<List<PersistentColumnMapping>> elements, ManagedEntity entity) {
+  List<ManagedObject> _coalesceAndMapRows(
+      List<List<PersistentColumnMapping>> elements, ManagedEntity entity) {
     if (elements.length == 0) {
       return [];
     }
@@ -82,13 +84,11 @@ class ManagedContext {
     }
 
     // There needs to be tests to ensure that the order of JoinElements is dependent.
-    List<PersistentJoinMapping> joinElements = elements.first
-        .where((e) => e is PersistentJoinMapping)
-        .toList();
+    List<PersistentJoinMapping> joinElements =
+        elements.first.where((e) => e is PersistentJoinMapping).toList();
 
-    var joinElementIndexes = joinElements
-        .map((e) => elements.first.indexOf(e))
-        .toList();
+    var joinElementIndexes =
+        joinElements.map((e) => elements.first.indexOf(e)).toList();
 
     var primaryKeyColumn = elements.first.firstWhere((e) {
       var eProp = e.property;
@@ -106,37 +106,49 @@ class ManagedContext {
     joinElements
         .map((PersistentJoinMapping e) => e.joinProperty.entity.tableName)
         .forEach((name) {
-          matchMap[name] = {};
-        });
+      matchMap[name] = {};
+    });
 
     elements.forEach((row) {
-      var primaryTypeInstance = _createInstanceIfNecessary(entity, row, primaryKeyColumnIndex, joinElements, matchMap).first as ManagedObject;
-      Map<ManagedEntity, ManagedObject> instancesInThisRow = {entity : primaryTypeInstance};
+      var primaryTypeInstance = _createInstanceIfNecessary(
+              entity, row, primaryKeyColumnIndex, joinElements, matchMap)
+          .first as ManagedObject;
+      Map<ManagedEntity, ManagedObject> instancesInThisRow = {
+        entity: primaryTypeInstance
+      };
 
       joinElementIndexes
           .map((joinIndex) => row[joinIndex])
           .forEach((PersistentColumnMapping element) {
-            PersistentJoinMapping joinElement = element;
+        PersistentJoinMapping joinElement = element;
 
-            var subInstanceTuple = _createInstanceIfNecessary(joinElement.joinProperty.entity, joinElement.values, joinElement.primaryKeyIndex, joinElements, matchMap);
-            if (subInstanceTuple == null) {
-              return;
-            }
+        var subInstanceTuple = _createInstanceIfNecessary(
+            joinElement.joinProperty.entity,
+            joinElement.values,
+            joinElement.primaryKeyIndex,
+            joinElements,
+            matchMap);
+        if (subInstanceTuple == null) {
+          return;
+        }
 
-            ManagedObject subInstance = subInstanceTuple.first;
-            instancesInThisRow[joinElement.joinProperty.entity] = subInstance;
-            if (subInstanceTuple.last) {
-              ManagedRelationshipDescription owningModelPropertyDesc = joinElement.property;
-              ManagedObject owningInstance = instancesInThisRow[owningModelPropertyDesc.entity];
+        ManagedObject subInstance = subInstanceTuple.first;
+        instancesInThisRow[joinElement.joinProperty.entity] = subInstance;
+        if (subInstanceTuple.last) {
+          ManagedRelationshipDescription owningModelPropertyDesc =
+              joinElement.property;
+          ManagedObject owningInstance =
+              instancesInThisRow[owningModelPropertyDesc.entity];
 
-              var inversePropertyName = owningModelPropertyDesc.name;
-              if (owningModelPropertyDesc.relationshipType == ManagedRelationshipType.hasMany) {
-                owningInstance[inversePropertyName].add(subInstance);
-              } else {
-                owningInstance[inversePropertyName] = subInstance;
-              }
-            }
-          });
+          var inversePropertyName = owningModelPropertyDesc.name;
+          if (owningModelPropertyDesc.relationshipType ==
+              ManagedRelationshipType.hasMany) {
+            owningInstance[inversePropertyName].add(subInstance);
+          } else {
+            owningInstance[inversePropertyName] = subInstance;
+          }
+        }
+      });
     });
 
     return matchMap[primaryTypeString].values.toList();
@@ -144,12 +156,12 @@ class ManagedContext {
 
   // Returns a two element tuple, where the first element is the instance represented by mapping the columns across the mappingEntity. The second
   // element is a boolean indicating if the instance was newly created (true) or already existed in the result set (false).
-  List<dynamic> _createInstanceIfNecessary(ManagedEntity mappingEntity,
+  List<dynamic> _createInstanceIfNecessary(
+      ManagedEntity mappingEntity,
       List<PersistentColumnMapping> columns,
       int primaryKeyIndex,
       List<PersistentJoinMapping> joinElements,
-      Map<String, Map<dynamic, ManagedObject>> matchMap)
-  {
+      Map<String, Map<dynamic, ManagedObject>> matchMap) {
     var primaryKeyValue = columns[primaryKeyIndex].value;
     if (primaryKeyValue == null) {
       return null;
@@ -165,18 +177,17 @@ class ManagedContext {
       joinElements
           .where((je) => je.property.entity == mappingEntity)
           .forEach((je) {
-            ManagedRelationshipDescription relDesc = je.property;
+        ManagedRelationshipDescription relDesc = je.property;
 
-            if (relDesc.relationshipType == ManagedRelationshipType.hasMany) {
-              existingInstance[je.property.name] = new ManagedSet();
-            } else {
-              existingInstance[je.property.name] = null;
-            }
-          });
+        if (relDesc.relationshipType == ManagedRelationshipType.hasMany) {
+          existingInstance[je.property.name] = new ManagedSet();
+        } else {
+          existingInstance[je.property.name] = null;
+        }
+      });
 
       matchMap[mappingEntity.tableName][primaryKeyValue] = existingInstance;
     }
     return [existingInstance, isNewInstance];
   }
 }
-

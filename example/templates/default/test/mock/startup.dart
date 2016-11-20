@@ -20,7 +20,7 @@ class TestApplication {
     application = new Application<WildfireSink>();
     application.configuration.configurationOptions = {
       WildfireSink.ConfigurationKey: configuration,
-      WildfireSink.LoggingTargetKey : logger.getNewTarget()
+      WildfireSink.LoggingTargetKey: logger.getNewTarget()
     };
 
     await application.start(runOnMainIsolate: true);
@@ -41,7 +41,9 @@ class TestApplication {
     await application?.stop();
   }
 
-  static Future addClientRecord({String clientID: "com.aqueduct.test", String clientSecret: "kilimanjaro"}) async {
+  static Future addClientRecord(
+      {String clientID: "com.aqueduct.test",
+      String clientSecret: "kilimanjaro"}) async {
     var salt = AuthServer.generateRandomSalt();
     var hashedPassword = AuthServer.generatePasswordHash(clientSecret, salt);
     var testClientRecord = new ClientRecord();
@@ -56,8 +58,11 @@ class TestApplication {
     await clientQ.insert();
   }
 
-  static Future createDatabaseSchema(ManagedContext context, Logger logger) async {
-    var builder = new SchemaBuilder.toSchema(context.persistentStore, new Schema.fromDataModel(context.dataModel), isTemporary: true);
+  static Future createDatabaseSchema(
+      ManagedContext context, Logger logger) async {
+    var builder = new SchemaBuilder.toSchema(
+        context.persistentStore, new Schema.fromDataModel(context.dataModel),
+        isTemporary: true);
 
     for (var cmd in builder.commands) {
       logger?.info("$cmd");

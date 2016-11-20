@@ -51,10 +51,12 @@ class Application<RequestSinkType extends RequestSink> {
 
     if (runOnMainIsolate) {
       if (numberOfInstances > 1) {
-        logger.info("runOnMainIsolate set to true, ignoring numberOfInstances (set to $numberOfInstances)");
+        logger.info(
+            "runOnMainIsolate set to true, ignoring numberOfInstances (set to $numberOfInstances)");
       }
 
-      var sink = reflectClass(RequestSinkType).newInstance(new Symbol(""), [configuration.configurationOptions]).reflectee;
+      var sink = reflectClass(RequestSinkType).newInstance(
+          new Symbol(""), [configuration.configurationOptions]).reflectee;
       server = new ApplicationServer(sink, configuration, 1);
 
       await server.start();
@@ -63,7 +65,7 @@ class Application<RequestSinkType extends RequestSink> {
 
       supervisors = [];
       try {
-        for (int i = 0; i < numberOfInstances; i ++) {
+        for (int i = 0; i < numberOfInstances; i++) {
           var supervisor = await _spawn(configuration, i + 1);
 
           await supervisor.resume();
@@ -89,30 +91,37 @@ class Application<RequestSinkType extends RequestSink> {
   }
 
   APIDocument document(PackagePathResolver resolver) {
-    RequestSink sink = reflectClass(RequestSinkType).newInstance(new Symbol(""), [configuration.configurationOptions]).reflectee;
+    RequestSink sink = reflectClass(RequestSinkType).newInstance(
+        new Symbol(""), [configuration.configurationOptions]).reflectee;
     sink.setupRouter(sink.router);
     sink.router.finalize();
 
     return sink.documentAPI(resolver);
   }
 
-  Future<ApplicationIsolateSupervisor> _spawn(ApplicationConfiguration config, int identifier) async {
+  Future<ApplicationIsolateSupervisor> _spawn(
+      ApplicationConfiguration config, int identifier) async {
     var receivePort = new ReceivePort();
 
     var streamTypeMirror = reflectType(RequestSinkType);
     var streamLibraryURI = (streamTypeMirror.owner as LibraryMirror).uri;
     var streamTypeName = MirrorSystem.getName(streamTypeMirror.simpleName);
 
-    var initialMessage = new ApplicationInitialServerMessage(streamTypeName, streamLibraryURI, config, identifier, receivePort.sendPort);
-    var isolate = await Isolate.spawn(isolateServerEntryPoint, initialMessage, paused: true);
+    var initialMessage = new ApplicationInitialServerMessage(streamTypeName,
+        streamLibraryURI, config, identifier, receivePort.sendPort);
+    var isolate = await Isolate.spawn(isolateServerEntryPoint, initialMessage,
+        paused: true);
     isolate.addErrorListener(receivePort.sendPort);
 
-    return new ApplicationIsolateSupervisor(this, isolate, receivePort, identifier, logger);
+    return new ApplicationIsolateSupervisor(
+        this, isolate, receivePort, identifier, logger);
   }
 
   /// Used internally.
-  Future isolateDidExitWithError(ApplicationIsolateSupervisor supervisor, String errorMessage, StackTrace stackTrace) async {
-    logger.severe("Restarting terminated isolate. Exit reason $errorMessage", supervisor, stackTrace);
+  Future isolateDidExitWithError(ApplicationIsolateSupervisor supervisor,
+      String errorMessage, StackTrace stackTrace) async {
+    logger.severe("Restarting terminated isolate. Exit reason $errorMessage",
+        supervisor, stackTrace);
 
     var identifier = supervisor.identifier;
     supervisors.remove(supervisor);
@@ -135,5 +144,6 @@ class ApplicationInitialServerMessage {
   SendPort parentMessagePort;
   int identifier;
 
-  ApplicationInitialServerMessage(this.streamTypeName, this.streamLibraryURI, this.configuration, this.identifier, this.parentMessagePort);
+  ApplicationInitialServerMessage(this.streamTypeName, this.streamLibraryURI,
+      this.configuration, this.identifier, this.parentMessagePort);
 }

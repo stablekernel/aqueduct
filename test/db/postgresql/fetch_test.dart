@@ -198,10 +198,13 @@ void main() {
       ..predicate = new QueryPredicate("owner_id = @id", {"id": u1.id});
     var res = await req.fetch();
     expect(res.length, 5);
-    expect(res.map((p) => p.text)
+    expect(
+        res
+            .map((p) => p.text)
             .where((text) => num.parse(text) % 2 == 0)
             .toList()
-            .length, 5);
+            .length,
+        5);
 
     var query = new Query<GenPost>();
     query.matchOn["owner"] = whereRelatedByValue(u1.id);
@@ -210,15 +213,19 @@ void main() {
     GenUser user = res.first.owner;
     expect(user, isNotNull);
     expect(res.length, 5);
-    expect(res.map((p) => p.text)
+    expect(
+        res
+            .map((p) => p.text)
             .where((text) => num.parse(text) % 2 == 0)
             .toList()
-            .length, 5);
+            .length,
+        5);
   });
 
   test("Fetch object with null reference", () async {
     context = await contextWithModels([GenUser, GenPost]);
-    var p1 = await (new Query<GenPost>()..values = (new GenPost()..text = "1")).insert();
+    var p1 = await (new Query<GenPost>()..values = (new GenPost()..text = "1"))
+        .insert();
 
     var req = new Query<GenPost>();
     p1 = await req.fetchOne();
@@ -235,8 +242,7 @@ void main() {
     expect(result.id, greaterThan(0));
     expect(result.backingMap["text"], isNull);
 
-    var matcher = new Query<Omit>()
-      ..matchOn["id"] = whereEqualTo(result.id);
+    var matcher = new Query<Omit>()..matchOn["id"] = whereEqualTo(result.id);
     var fq = new Query<Omit>()..predicate = matcher.predicate;
 
     var fResult = await fq.fetchOne();
@@ -244,15 +250,12 @@ void main() {
     expect(fResult.backingMap["text"], isNull);
   });
 
-  test("Fetch one that returns more than one row (because of join) throws exception", () async {
+  test(
+      "Fetch one that returns more than one row (because of join) throws exception",
+      () async {
     context = await contextWithModels([GenUser, GenPost]);
 
-    var objects = [
-      new GenUser()
-        ..name = "Joe",
-      new GenUser()
-        ..name = "Bob"
-    ];
+    var objects = [new GenUser()..name = "Joe", new GenUser()..name = "Bob"];
 
     for (var o in objects) {
       var req = new Query<GenUser>()..values = o;
@@ -260,42 +263,43 @@ void main() {
     }
 
     try {
-      var q = new Query<GenUser>()
-        ..matchOn.posts.includeInResultSet = true;
+      var q = new Query<GenUser>()..matchOn.posts.includeInResultSet = true;
       await q.fetchOne();
 
       expect(true, false);
     } on QueryException catch (e) {
-      expect(e.toString(), contains("Query expected to fetch one instance, but 2 instances were returned."));
+      expect(
+          e.toString(),
+          contains(
+              "Query expected to fetch one instance, but 2 instances were returned."));
     }
   });
 
-  test("Including RelationshipInverse property can only be done by using name of property", () async {
+  test(
+      "Including RelationshipInverse property can only be done by using name of property",
+      () async {
     context = await contextWithModels([GenUser, GenPost]);
 
-    var u1 = await (new Query<GenUser>()
-      ..values.name = "Joe"
-    ).insert();
+    var u1 = await (new Query<GenUser>()..values.name = "Joe").insert();
 
     await (new Query<GenPost>()
-      ..values.text = "text"
-      ..values.owner = u1
-    ).insert();
+          ..values.text = "text"
+          ..values.owner = u1)
+        .insert();
 
-    var q = new Query<GenPost>()
-      ..resultProperties = ["id", "owner"];
+    var q = new Query<GenPost>()..resultProperties = ["id", "owner"];
 
     var result = await q.fetchOne();
     expect(result.owner.id, 1);
     expect(result.owner.backingMap.length, 1);
 
-    q = new Query<GenPost>()
-      ..resultProperties = ["id", "owner_id"];
+    q = new Query<GenPost>()..resultProperties = ["id", "owner_id"];
     try {
       await q.fetchOne();
       expect(true, false);
     } on QueryException catch (e) {
-      expect(e.toString(), contains("Property owner_id does not exist on _GenPost"));
+      expect(e.toString(),
+          contains("Property owner_id does not exist on _GenPost"));
     }
   });
 
@@ -303,19 +307,23 @@ void main() {
     context = await contextWithModels([GenUser, GenPost]);
 
     try {
-      var _ = new Query<GenPost>()
-        ..matchOn.owner.id = 1;
+      var _ = new Query<GenPost>()..matchOn.owner.id = 1;
       expect(true, false);
     } on QueryException catch (e) {
-      expect(e.toString(), contains("Attempting to access matcher on RelationshipInverse owner on _GenPost. Assign this value to whereRelatedByValue instead."));
+      expect(
+          e.toString(),
+          contains(
+              "Attempting to access matcher on RelationshipInverse owner on _GenPost. Assign this value to whereRelatedByValue instead."));
     }
 
     try {
-      var _ = new Query<GenPost>()
-        ..matchOn.owner.includeInResultSet = true;
+      var _ = new Query<GenPost>()..matchOn.owner.includeInResultSet = true;
       expect(true, false);
     } on QueryException catch (e) {
-      expect(e.toString(), contains("Attempting to access matcher on RelationshipInverse owner on _GenPost. Assign this value to whereRelatedByValue instead."));
+      expect(
+          e.toString(),
+          contains(
+              "Attempting to access matcher on RelationshipInverse owner on _GenPost. Assign this value to whereRelatedByValue instead."));
     }
   });
 }
@@ -326,6 +334,7 @@ class TestModel extends ManagedObject<_TestModel> implements _TestModel {
     this.email = email;
   }
 }
+
 class _TestModel {
   @managedPrimaryKey
   int id;
@@ -345,6 +354,7 @@ class _TestModel {
 }
 
 class GenUser extends ManagedObject<_GenUser> implements _GenUser {}
+
 class _GenUser {
   @managedPrimaryKey
   int id;
@@ -359,17 +369,20 @@ class _GenUser {
 }
 
 class GenPost extends ManagedObject<_GenPost> implements _GenPost {}
+
 class _GenPost {
   @managedPrimaryKey
   int id;
 
   String text;
 
-  @ManagedRelationship(#posts, onDelete: ManagedRelationshipDeleteRule.cascade, isRequired: false)
+  @ManagedRelationship(#posts,
+      onDelete: ManagedRelationshipDeleteRule.cascade, isRequired: false)
   GenUser owner;
 }
 
 class Omit extends ManagedObject<_Omit> implements _Omit {}
+
 class _Omit {
   @managedPrimaryKey
   int id;

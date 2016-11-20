@@ -119,7 +119,8 @@ class MockHTTPServer extends MockServer {
   /// Pass this value to [queueResponse] to simulate a 'no response' failure on the next request made to this instance.
   /// The next request made to this instance will simply not be responded to.
   /// This is useful in debugging for determining how your code responds to not being able to reach a third party server.
-  static final Response mockConnectionFailureResponse = new Response(_mockConnectionFailureStatusCode , {}, null);
+  static final Response mockConnectionFailureResponse =
+      new Response(_mockConnectionFailureStatusCode, {}, null);
 
   MockHTTPServer(this.port) : super();
 

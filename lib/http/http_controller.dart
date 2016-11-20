@@ -19,7 +19,8 @@ part of aqueduct;
 ///       }
 @cannotBeReused
 abstract class HTTPController extends RequestController {
-  static ContentType _applicationWWWFormURLEncodedContentType = new ContentType("application", "x-www-form-urlencoded");
+  static ContentType _applicationWWWFormURLEncodedContentType =
+      new ContentType("application", "x-www-form-urlencoded");
 
   /// The request being processed by this [HTTPController].
   ///
@@ -40,7 +41,10 @@ abstract class HTTPController extends RequestController {
   /// If a request is sent to an instance of [HTTPController] and has an HTTP request body,
   /// but the Content-Type of the request isn't within this list, the [HTTPController]
   /// will automatically respond with an Unsupported Media Type response.
-  List<ContentType> acceptedContentTypes = [ContentType.JSON, _applicationWWWFormURLEncodedContentType];
+  List<ContentType> acceptedContentTypes = [
+    ContentType.JSON,
+    _applicationWWWFormURLEncodedContentType
+  ];
 
   /// The content type of responses from this [HTTPController].
   ///
@@ -78,17 +82,23 @@ abstract class HTTPController extends RequestController {
   bool _requestContentTypeIsSupported(Request req) {
     var incomingContentType = request.innerRequest.headers.contentType;
     return acceptedContentTypes.firstWhere((ct) {
-      return ct.primaryType == incomingContentType.primaryType && ct.subType == incomingContentType.subType;
-    }, orElse: () => null) != null;
+          return ct.primaryType == incomingContentType.primaryType &&
+              ct.subType == incomingContentType.subType;
+        }, orElse: () => null) !=
+        null;
   }
 
   Future<Response> _process() async {
     var controllerCache = _HTTPControllerCache.cacheForType(runtimeType);
     var mapper = controllerCache.mapperForRequest(request);
     if (mapper == null) {
-      return new Response(405, {
-        "Allow" : controllerCache.allowedMethodsForArity(pathVariables?.length ?? 0)
-      }, null);
+      return new Response(
+          405,
+          {
+            "Allow": controllerCache
+                .allowedMethodsForArity(pathVariables?.length ?? 0)
+          },
+          null);
     }
 
     if (request.innerRequest.contentLength > 0) {
@@ -105,14 +115,19 @@ abstract class HTTPController extends RequestController {
 
     var queryParameters = request.innerRequest.uri.queryParametersAll;
     var contentType = request.innerRequest.headers.contentType;
-    if (contentType != null
-    &&  contentType.primaryType == HTTPController._applicationWWWFormURLEncodedContentType .primaryType
-    &&  contentType.subType == HTTPController._applicationWWWFormURLEncodedContentType.subType) {
+    if (contentType != null &&
+        contentType.primaryType ==
+            HTTPController
+                ._applicationWWWFormURLEncodedContentType.primaryType &&
+        contentType.subType ==
+            HTTPController._applicationWWWFormURLEncodedContentType.subType) {
       queryParameters = requestBody as Map<String, List<String>> ?? {};
     }
 
-    var orderedParameters = mapper.positionalParametersFromRequest(request, queryParameters);
-    var controllerProperties = controllerCache.propertiesFromRequest(request.innerRequest.headers, queryParameters);
+    var orderedParameters =
+        mapper.positionalParametersFromRequest(request, queryParameters);
+    var controllerProperties = controllerCache.propertiesFromRequest(
+        request.innerRequest.headers, queryParameters);
     var missingParameters = [orderedParameters, controllerProperties.values]
         .expand((p) => p)
         .where((p) => p is _HTTPControllerMissingParameter)
@@ -122,13 +137,16 @@ abstract class HTTPController extends RequestController {
       return _missingRequiredParameterResponseIfNecessary(missingParameters);
     }
 
-    controllerProperties.forEach((sym, value) => reflect(this).setField(sym, value));
+    controllerProperties
+        .forEach((sym, value) => reflect(this).setField(sym, value));
 
-    Future<Response> eventualResponse = reflect(this).invoke(
-        mapper.methodSymbol,
-        orderedParameters,
-        mapper.optionalParametersFromRequest(request.innerRequest.headers, queryParameters)
-    ).reflectee as Future<Response>;
+    Future<Response> eventualResponse = reflect(this)
+        .invoke(
+            mapper.methodSymbol,
+            orderedParameters,
+            mapper.optionalParametersFromRequest(
+                request.innerRequest.headers, queryParameters))
+        .reflectee as Future<Response>;
 
     var response = await eventualResponse;
     response.headers[HttpHeaders.CONTENT_TYPE] = responseContentType;
@@ -149,7 +167,8 @@ abstract class HTTPController extends RequestController {
       } else if (preprocessedResult is Response) {
         response = preprocessedResult;
       } else {
-        response = new Response.serverError(body: {"error" : "Preprocessing request did not yield result"});
+        response = new Response.serverError(
+            body: {"error": "Preprocessing request did not yield result"});
       }
 
       return response;
@@ -168,8 +187,9 @@ abstract class HTTPController extends RequestController {
         .where((u) => u is ClassDeclaration)
         .map((cu) => cu as ClassDeclaration)
         .firstWhere((ClassDeclaration classDecl) {
-          return classDecl.name.token.lexeme == MirrorSystem.getName(reflectedType.simpleName);
-        });
+      return classDecl.name.token.lexeme ==
+          MirrorSystem.getName(reflectedType.simpleName);
+    });
 
     Map<Symbol, MethodDeclaration> methodMap = {};
     classUnit.childEntities.forEach((child) {
@@ -190,10 +210,10 @@ abstract class HTTPController extends RequestController {
       // Add documentation comments
       var methodDeclaration = methodMap[cachedMethod.methodSymbol];
       if (methodDeclaration != null) {
-
         var comment = methodDeclaration.documentationComment;
         var tokens = comment?.tokens ?? [];
-        var lines = tokens.map((t) => t.lexeme.trimLeft().substring(3).trim()).toList();
+        var lines =
+            tokens.map((t) => t.lexeme.trimLeft().substring(3).trim()).toList();
         if (lines.length > 0) {
           op.summary = lines.first;
         }
@@ -203,26 +223,30 @@ abstract class HTTPController extends RequestController {
         }
       }
 
-      bool usesFormEncodedData = op.method.toLowerCase() == "post"
-        && acceptedContentTypes.any((ct) => ct.primaryType == "application" && ct.subType == "x-www-form-urlencoded");
+      bool usesFormEncodedData = op.method.toLowerCase() == "post" &&
+          acceptedContentTypes.any((ct) =>
+              ct.primaryType == "application" &&
+              ct.subType == "x-www-form-urlencoded");
 
-      op.parameters = [cachedMethod.positionalParameters, cachedMethod.optionalParameters.values, controllerCache.propertyCache.values]
-          .expand((i) => i.toList())
-          .map((param) {
-            var paramLocation = APIParameter._parameterLocationFromHTTPParameter(param.httpParameter);
-            if (usesFormEncodedData && paramLocation == APIParameterLocation.query) {
-              paramLocation = APIParameterLocation.formData;
-            }
+      op.parameters = [
+        cachedMethod.positionalParameters,
+        cachedMethod.optionalParameters.values,
+        controllerCache.propertyCache.values
+      ].expand((i) => i.toList()).map((param) {
+        var paramLocation = APIParameter
+            ._parameterLocationFromHTTPParameter(param.httpParameter);
+        if (usesFormEncodedData &&
+            paramLocation == APIParameterLocation.query) {
+          paramLocation = APIParameterLocation.formData;
+        }
 
-            return new APIParameter()
-              ..name = param.name
-              ..required = param.isRequired
-              ..parameterLocation = paramLocation
-              ..schemaObject = (
-                  new APISchemaObject.fromTypeMirror(param.typeMirror)
-              );
-          })
-          .toList();
+        return new APIParameter()
+          ..name = param.name
+          ..required = param.isRequired
+          ..parameterLocation = paramLocation
+          ..schemaObject =
+              (new APISchemaObject.fromTypeMirror(param.typeMirror));
+      }).toList();
 
       return op;
     }).toList();
@@ -234,9 +258,8 @@ abstract class HTTPController extends RequestController {
       new APIResponse()
         ..statusCode = 500
         ..description = "Something went wrong"
-        ..schema = new APISchemaObject(properties: {
-          "error" : new APISchemaObject.string()
-        })
+        ..schema = new APISchemaObject(
+            properties: {"error": new APISchemaObject.string()})
     ];
 
     var symbol = APIOperation.symbolForID(operation.id, this);
@@ -248,9 +271,8 @@ abstract class HTTPController extends RequestController {
         responses.add(new APIResponse()
           ..statusCode = HttpStatus.BAD_REQUEST
           ..description = "Missing required query and/or header parameter(s)."
-          ..schema = new APISchemaObject(properties: {
-            "error" : new APISchemaObject.string()
-          }));
+          ..schema = new APISchemaObject(
+              properties: {"error": new APISchemaObject.string()}));
       }
     }
 
@@ -264,7 +286,8 @@ class _InternalControllerException implements Exception {
   final HttpHeaders additionalHeaders;
   final String responseMessage;
 
-  _InternalControllerException(this.message, this.statusCode, {HttpHeaders additionalHeaders: null, String responseMessage: null})
+  _InternalControllerException(this.message, this.statusCode,
+      {HttpHeaders additionalHeaders: null, String responseMessage: null})
       : this.additionalHeaders = additionalHeaders,
         this.responseMessage = responseMessage;
 
@@ -276,32 +299,36 @@ class _InternalControllerException implements Exception {
 
     var bodyMap = null;
     if (responseMessage != null) {
-      bodyMap = {"error" : responseMessage};
+      bodyMap = {"error": responseMessage};
     }
     return new Response(statusCode, headerMap, bodyMap);
   }
 }
 
-Response _missingRequiredParameterResponseIfNecessary(List<_HTTPControllerMissingParameter> params) {
-  var missingHeaders = params.where((p) => p.type == _HTTPControllerMissingParameterType.header).map((p) => p.externalName).toList();
-  var missingQueryParameters = params.where((p) => p.type == _HTTPControllerMissingParameterType.query).map((p) => p.externalName).toList();
+Response _missingRequiredParameterResponseIfNecessary(
+    List<_HTTPControllerMissingParameter> params) {
+  var missingHeaders = params
+      .where((p) => p.type == _HTTPControllerMissingParameterType.header)
+      .map((p) => p.externalName)
+      .toList();
+  var missingQueryParameters = params
+      .where((p) => p.type == _HTTPControllerMissingParameterType.query)
+      .map((p) => p.externalName)
+      .toList();
 
   StringBuffer missings = new StringBuffer();
   if (missingQueryParameters.isNotEmpty) {
-    var missingQueriesString = missingQueryParameters
-        .map((p) => "'${p}'")
-        .join(", ");
+    var missingQueriesString =
+        missingQueryParameters.map((p) => "'${p}'").join(", ");
     missings.write("Missing query value(s): ${missingQueriesString}.");
   }
   if (missingQueryParameters.isNotEmpty && missingHeaders.isNotEmpty) {
     missings.write(" ");
   }
   if (missingHeaders.isNotEmpty) {
-    var missingHeadersString = missingHeaders
-        .map((p) => "'${p}'")
-        .join(", ");
+    var missingHeadersString = missingHeaders.map((p) => "'${p}'").join(", ");
     missings.write("Missing header(s): ${missingHeadersString}.");
   }
 
-  return new Response.badRequest(body: {"error" : missings.toString()});
+  return new Response.badRequest(body: {"error": missings.toString()});
 }

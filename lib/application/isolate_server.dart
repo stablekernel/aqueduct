@@ -19,14 +19,15 @@ class ApplicationServer {
       sink.nextController = sink.initialController;
 
       if (configuration.securityContext != null) {
-        server = await HttpServer.bindSecure(configuration.address, configuration.port, configuration.securityContext,
+        server = await HttpServer.bindSecure(configuration.address,
+            configuration.port, configuration.securityContext,
             requestClientCertificate: configuration.isUsingClientCertificate,
             v6Only: configuration.isIpv6Only,
             shared: configuration._shared);
       } else {
-        server = await HttpServer.bind(configuration.address, configuration.port,
-            v6Only: configuration.isIpv6Only,
-            shared: configuration._shared);
+        server = await HttpServer.bind(
+            configuration.address, configuration.port,
+            v6Only: configuration.isIpv6Only, shared: configuration._shared);
       }
 
       server.autoCompress = true;
@@ -59,8 +60,12 @@ class ApplicationIsolateServer extends ApplicationServer {
   SendPort supervisingApplicationPort;
   ReceivePort supervisingReceivePort;
 
-  ApplicationIsolateServer(RequestSink sink, ApplicationConfiguration configuration, int identifier, this.supervisingApplicationPort)
-    : super(sink, configuration, identifier) {
+  ApplicationIsolateServer(
+      RequestSink sink,
+      ApplicationConfiguration configuration,
+      int identifier,
+      this.supervisingApplicationPort)
+      : super(sink, configuration, identifier) {
     sink.server = this;
     supervisingReceivePort = new ReceivePort();
     supervisingReceivePort.listen(listener);
@@ -76,7 +81,8 @@ class ApplicationIsolateServer extends ApplicationServer {
   void listener(dynamic message) {
     if (message == ApplicationIsolateSupervisor._MessageStop) {
       server.close(force: true).then((s) {
-        supervisingApplicationPort.send(ApplicationIsolateSupervisor._MessageStop);
+        supervisingApplicationPort
+            .send(ApplicationIsolateSupervisor._MessageStop);
       });
     }
   }
@@ -84,13 +90,15 @@ class ApplicationIsolateServer extends ApplicationServer {
 
 /// This method is used internally.
 void isolateServerEntryPoint(ApplicationInitialServerMessage params) {
-  var sinkSourceLibraryMirror = currentMirrorSystem().libraries[params.streamLibraryURI];
-  var sinkTypeMirror = sinkSourceLibraryMirror.declarations[new Symbol(params.streamTypeName)] as ClassMirror;
+  var sinkSourceLibraryMirror =
+      currentMirrorSystem().libraries[params.streamLibraryURI];
+  var sinkTypeMirror = sinkSourceLibraryMirror.declarations[
+      new Symbol(params.streamTypeName)] as ClassMirror;
 
-  var app = sinkTypeMirror
-      .newInstance(new Symbol(""), [params.configuration.configurationOptions])
-      .reflectee;
+  var app = sinkTypeMirror.newInstance(
+      new Symbol(""), [params.configuration.configurationOptions]).reflectee;
 
-  var server = new ApplicationIsolateServer(app, params.configuration, params.identifier, params.parentMessagePort);
+  var server = new ApplicationIsolateServer(
+      app, params.configuration, params.identifier, params.parentMessagePort);
   server.start();
 }

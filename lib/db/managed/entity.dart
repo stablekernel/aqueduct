@@ -78,7 +78,8 @@ class ManagedEntity {
   /// The string key is the name of the property, case-sensitive. Values will be instances of either [ManagedAttributeDescription]
   /// or [ManagedRelationshipDescription]. This is the concatenation of [attributes] and [relationships].
   Map<String, ManagedPropertyDescription> get properties {
-    var all = new Map.from(attributes) as Map<String, ManagedPropertyDescription>;
+    var all =
+        new Map.from(attributes) as Map<String, ManagedPropertyDescription>;
     if (relationships != null) {
       all.addAll(relationships);
     }
@@ -100,12 +101,15 @@ class ManagedEntity {
           .toList();
 
       _defaultProperties.addAll(relationships.values
-          .where((prop) => prop.isIncludedInDefaultResultSet && prop.relationshipType == ManagedRelationshipType.belongsTo)
+          .where((prop) =>
+              prop.isIncludedInDefaultResultSet &&
+              prop.relationshipType == ManagedRelationshipType.belongsTo)
           .map((prop) => prop.name)
           .toList());
     }
     return _defaultProperties;
   }
+
   List<String> _defaultProperties;
 
   /// Name of primary key property.
@@ -115,6 +119,7 @@ class ManagedEntity {
   String get primaryKey {
     return _primaryKey;
   }
+
   String _primaryKey;
 
   /// Name of table in database this entity maps to.
@@ -129,6 +134,7 @@ class ManagedEntity {
   String get tableName {
     return _tableName;
   }
+
   String _tableName;
 
   /// Derived from this' [tableName].
@@ -138,7 +144,8 @@ class ManagedEntity {
 
   /// Creates a new instance of this entity's instance type.
   ManagedObject newInstance() {
-    var model = instanceType.newInstance(new Symbol(""), []).reflectee as ManagedObject;
+    var model =
+        instanceType.newInstance(new Symbol(""), []).reflectee as ManagedObject;
     model.entity = this;
     return model;
   }
@@ -149,7 +156,8 @@ class ManagedEntity {
   /// returned from a database. It will initialize all column values, including belongsTo
   /// relationships. It will not populate data from hasMany or hasOne relationships
   /// that were populated in a join query, as this is the responsibility of the context.
-  ManagedObject instanceFromMappingElements(List<PersistentColumnMapping> elements) {
+  ManagedObject instanceFromMappingElements(
+      List<PersistentColumnMapping> elements) {
     ManagedObject instance = newInstance();
 
     elements.forEach((e) {
@@ -158,7 +166,8 @@ class ManagedEntity {
           // A belongsTo relationship, keep the foreign key.
           if (e.value != null) {
             ManagedRelationshipDescription relDesc = e.property;
-            ManagedObject innerInstance = relDesc.destinationEntity.newInstance();
+            ManagedObject innerInstance =
+                relDesc.destinationEntity.newInstance();
             innerInstance[relDesc.destinationEntity.primaryKey] = e.value;
             instance[e.property.name] = innerInstance;
           }
@@ -171,7 +180,8 @@ class ManagedEntity {
     return instance;
   }
 
-  Map<String, APISchemaObject> _propertiesForEntity(ManagedEntity me, {bool shallow: false, bool asRequestObject: false}) {
+  Map<String, APISchemaObject> _propertiesForEntity(ManagedEntity me,
+      {bool shallow: false, bool asRequestObject: false}) {
     Map<String, APISchemaObject> schemaProperties = {};
 
     if (shallow) {
@@ -186,24 +196,29 @@ class ManagedEntity {
     }
 
     me.attributes.values
-        .where((attribute) => attribute.isIncludedInDefaultResultSet || (attribute.transientStatus?.isAvailableAsOutput ?? false))
-        .where((attribute) => !asRequestObject || (asRequestObject && !attribute.autoincrement))
+        .where((attribute) =>
+            attribute.isIncludedInDefaultResultSet ||
+            (attribute.transientStatus?.isAvailableAsOutput ?? false))
+        .where((attribute) =>
+            !asRequestObject || (asRequestObject && !attribute.autoincrement))
         .forEach((attribute) {
-          schemaProperties[attribute.name] = new APISchemaObject()
-            ..title = attribute.name
-            ..type = _schemaObjectTypeForPropertyType(attribute.type)
-            ..format = _schemaObjectFormatForPropertyType(attribute.type);
-        });
+      schemaProperties[attribute.name] = new APISchemaObject()
+        ..title = attribute.name
+        ..type = _schemaObjectTypeForPropertyType(attribute.type)
+        ..format = _schemaObjectFormatForPropertyType(attribute.type);
+    });
 
     me.relationships.values
         .where((relationship) => relationship.isIncludedInDefaultResultSet)
-        .where((relationship) => relationship.relationshipType == ManagedRelationshipType.belongsTo)
+        .where((relationship) =>
+            relationship.relationshipType == ManagedRelationshipType.belongsTo)
         .forEach((relationship) {
-          schemaProperties[relationship.name] = new APISchemaObject()
-            ..title = relationship.name
-            ..type = APISchemaObject.TypeObject
-            ..properties = _propertiesForEntity(relationship.destinationEntity, shallow: true);
-        });
+      schemaProperties[relationship.name] = new APISchemaObject()
+        ..title = relationship.name
+        ..type = APISchemaObject.TypeObject
+        ..properties =
+            _propertiesForEntity(relationship.destinationEntity, shallow: true);
+    });
 
     return schemaProperties;
   }

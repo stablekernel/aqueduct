@@ -29,29 +29,34 @@ main() {
 
       var errorMessage = await app.logger.onRecord.first;
       expect(errorMessage.message, contains("Uncaught exception"));
-      expect(errorMessage.error.toString(), contains("method not found: 'foo'"));
+      expect(
+          errorMessage.error.toString(), contains("method not found: 'foo'"));
       expect(errorMessage.stackTrace, isNotNull);
 
       // And then we should make sure everything is working just fine.
       expect((await http.get("http://localhost:8080/1")).statusCode, 200);
     });
 
-    test("Application with multiple isolates reports uncaught error, recovers", () async {
+    test("Application with multiple isolates reports uncaught error, recovers",
+        () async {
       await app.start(numberOfInstances: 2);
 
       // Throw some deferred crashers then some success messages at the server
-      var failFutures = new Iterable.generate(5).map((_) => http.get("http://localhost:8080"));
+      var failFutures = new Iterable.generate(5)
+          .map((_) => http.get("http://localhost:8080"));
       var successResponse = await http.get("http://localhost:8080/1");
       expect(successResponse.statusCode, 200);
 
       var logMessages = await app.logger.onRecord.take(5);
       logMessages.forEach((errorMessage) {
         expect(errorMessage.message, contains("Uncaught exception"));
-        expect(errorMessage.error.toString(), contains("method not found: 'foo'"));
+        expect(
+            errorMessage.error.toString(), contains("method not found: 'foo'"));
         expect(errorMessage.stackTrace, isNotNull);
       });
 
-      expect((await Future.wait(failFutures)).map((r) => r.statusCode), everyElement(200));
+      expect((await Future.wait(failFutures)).map((r) => r.statusCode),
+          everyElement(200));
     });
   });
 }
@@ -66,7 +71,8 @@ class TestSink extends RequestSink {
 }
 
 class UncaughtCrashController extends HTTPController {
-  @httpGet crashUncaught() async {
+  @httpGet
+  crashUncaught() async {
     new Future(() {
       var x = null;
       x.foo();
@@ -74,7 +80,8 @@ class UncaughtCrashController extends HTTPController {
     return new Response.ok(null);
   }
 
-  @httpGet dontCrash(@HTTPPath("id") int id) async {
+  @httpGet
+  dontCrash(@HTTPPath("id") int id) async {
     return new Response.ok(null);
   }
 }

@@ -32,24 +32,31 @@ class APIDocumentable {
   /// Returns an entire [APIDocument] describing an OpenAPI specification.
   ///
   /// This method is typically invoked on a [RequestSink]. This method is invoked on root of documentable chain, [RequestSink].
-  APIDocument documentAPI(PackagePathResolver resolver) => documentableChild?.documentAPI(resolver);
+  APIDocument documentAPI(PackagePathResolver resolver) =>
+      documentableChild?.documentAPI(resolver);
 
   /// Returns all [APIPath] objects this instance knows about.
   ///
   /// This method is implemented by [Router].
-  List<APIPath> documentPaths(PackagePathResolver resolver) => documentableChild?.documentPaths(resolver);
+  List<APIPath> documentPaths(PackagePathResolver resolver) =>
+      documentableChild?.documentPaths(resolver);
 
   /// Returns all [APIOperation]s this object knows about.
-  List<APIOperation> documentOperations(PackagePathResolver resolver) => documentableChild?.documentOperations(resolver);
+  List<APIOperation> documentOperations(PackagePathResolver resolver) =>
+      documentableChild?.documentOperations(resolver);
 
   /// Returns all [APIResponse]s for [operation].
-  List<APIResponse> documentResponsesForOperation(APIOperation operation) => documentableChild?.documentResponsesForOperation(operation);
+  List<APIResponse> documentResponsesForOperation(APIOperation operation) =>
+      documentableChild?.documentResponsesForOperation(operation);
 
   /// Returns all [APIRequestBody]s for [operation].
-  APIRequestBody documentRequestBodyForOperation(APIOperation operation) => documentableChild?.documentRequestBodyForOperation(operation);
+  APIRequestBody documentRequestBodyForOperation(APIOperation operation) =>
+      documentableChild?.documentRequestBodyForOperation(operation);
 
   /// Returns all [APISecurityScheme]s this instance knowsa bout.
-  Map<String, APISecurityScheme> documentSecuritySchemes(PackagePathResolver resolver) => documentableChild?.documentSecuritySchemes(resolver);
+  Map<String, APISecurityScheme> documentSecuritySchemes(
+          PackagePathResolver resolver) =>
+      documentableChild?.documentSecuritySchemes(resolver);
 }
 
 /// Represents an OpenAPI specification.
@@ -83,7 +90,8 @@ class APIDocument {
     m["consumes"] = consumes.map((ct) => ct.toString()).toList();
     m["produces"] = produces.map((ct) => ct.toString()).toList();
     m["security"] = securityRequirements.map((sec) => sec.name).toList();
-    m["paths"] = new Map.fromIterable(paths, key: (APIPath k) => k.path, value: (APIPath v) => v.asMap());
+    m["paths"] = new Map.fromIterable(paths,
+        key: (APIPath k) => k.path, value: (APIPath v) => v.asMap());
 
     var mappedSchemes = {};
     securitySchemes?.forEach((k, scheme) {
@@ -106,12 +114,12 @@ class APIInfo {
 
   Map<String, dynamic> asMap() {
     return _stripNull({
-      "title" : title,
-      "description" : description,
-      "version" : version,
-      "termsOfService" : termsOfServiceURL,
-      "contact" : contact.asMap(),
-      "license" : license.asMap()
+      "title": title,
+      "description": description,
+      "version": version,
+      "termsOfService": termsOfServiceURL,
+      "contact": contact.asMap(),
+      "license": license.asMap()
     });
   }
 }
@@ -123,11 +131,7 @@ class APIContact {
   String email = "default";
 
   Map<String, String> asMap() {
-    return {
-      "name" : name,
-      "url" : url,
-      "email" : email
-    };
+    return {"name": name, "url": url, "email": email};
   }
 }
 
@@ -137,10 +141,7 @@ class APILicense {
   String url = "http://localhost";
 
   Map<String, String> asMap() {
-    return {
-      "name" : name,
-      "url" : url
-    };
+    return {"name": name, "url": url};
   }
 }
 
@@ -155,11 +156,7 @@ class APIHost {
   }
 
   Map<String, String> asMap() {
-    return {
-      "host" : host,
-      "basePath" : basePath,
-      "scheme" : scheme
-    };
+    return {"host": host, "basePath": basePath, "scheme": scheme};
   }
 }
 
@@ -169,9 +166,7 @@ class APISecurityRequirement {
   List<APISecurityScope> scopes;
 
   Map<String, dynamic> asMap() {
-    return {
-      name : scopes
-    };
+    return {name: scopes};
   }
 }
 
@@ -181,9 +176,7 @@ class APISecurityScope {
   String description;
 
   Map<String, String> asMap() {
-    return {
-      name : description
-    };
+    return {name: description};
   }
 }
 
@@ -196,18 +189,20 @@ class APISecurityDefinition {
 }
 
 /// Represents a OAuth 2.0 security scheme flow in the OpenAPI specification.
-enum APISecuritySchemeFlow {
-  implicit, password, application, accessCode
-}
+enum APISecuritySchemeFlow { implicit, password, application, accessCode }
 
 /// Represents a security scheme in the OpenAPI specification.
 class APISecurityScheme {
   static String stringForFlow(APISecuritySchemeFlow flow) {
     switch (flow) {
-      case APISecuritySchemeFlow.accessCode: return "accessCode";
-      case APISecuritySchemeFlow.password: return "password";
-      case APISecuritySchemeFlow.implicit: return "implicit";
-      case APISecuritySchemeFlow.application: return "application";
+      case APISecuritySchemeFlow.accessCode:
+        return "accessCode";
+      case APISecuritySchemeFlow.password:
+        return "password";
+      case APISecuritySchemeFlow.implicit:
+        return "implicit";
+      case APISecuritySchemeFlow.application:
+        return "application";
     }
     return null;
   }
@@ -242,10 +237,7 @@ class APISecurityScheme {
   }
 
   Map<String, dynamic> asMap() {
-    var m = <String, dynamic>{
-      "type" : type,
-      "description" : description
-    };
+    var m = <String, dynamic>{"type": type, "description": description};
 
     if (type == "basic") {
       /* nothing to do */
@@ -255,7 +247,8 @@ class APISecurityScheme {
     } else if (type == "oauth2") {
       m["flow"] = stringForFlow(oauthFlow);
 
-      if (oauthFlow == APISecuritySchemeFlow.implicit || oauthFlow == APISecuritySchemeFlow.accessCode) {
+      if (oauthFlow == APISecuritySchemeFlow.implicit ||
+          oauthFlow == APISecuritySchemeFlow.accessCode) {
         m["authorizationUrl"] = authorizationURL;
       }
 
@@ -263,7 +256,9 @@ class APISecurityScheme {
         m["tokenUrl"] = tokenURL;
       }
 
-      m["scopes"] = new Map.fromIterable(scopes, key: (APISecurityScope k) => k.name, value: (APISecurityScope v) => v.description);
+      m["scopes"] = new Map.fromIterable(scopes,
+          key: (APISecurityScope k) => k.name,
+          value: (APISecurityScope v) => v.description);
     }
 
     return m;
@@ -325,7 +320,9 @@ class APIOperation {
 
   static Symbol symbolForID(String operationId, Object classInstance) {
     var components = operationId.split(".");
-    if (components.length != 2 || components.first != MirrorSystem.getName(reflect(classInstance).type.simpleName)) {
+    if (components.length != 2 ||
+        components.first !=
+            MirrorSystem.getName(reflect(classInstance).type.simpleName)) {
       return null;
     }
 
@@ -347,7 +344,8 @@ class APIOperation {
       m["parameters"].add(_requestBodyParameterMap);
     }
 
-    m["responses"] = new Map.fromIterable(responses, key: (APIResponse k) => k.key, value: (APIResponse v) => v.asMap());
+    m["responses"] = new Map.fromIterable(responses,
+        key: (APIResponse k) => k.key, value: (APIResponse v) => v.asMap());
     m["security"] = security.map((req) => req.asMap()).toList();
 
     // m["requestBody"] = requestBody?.asMap();
@@ -369,10 +367,10 @@ class APIResponse {
     }
     return int.parse(key);
   }
+
   void set statusCode(int code) {
     key = "$code";
   }
-
 
   Map<String, dynamic> asMap() {
     var mappedHeaders = {};
@@ -381,17 +379,15 @@ class APIResponse {
     });
 
     return _stripNull({
-      "description" : description,
-      "schema" : schema?.asMap(),
-      "headers" : mappedHeaders
+      "description": description,
+      "schema": schema?.asMap(),
+      "headers": mappedHeaders
     });
   }
 }
 
 /// Represents a header type in the OpenAPI specification.
-enum APIHeaderType {
-  string, number, integer, boolean
-}
+enum APIHeaderType { string, number, integer, boolean }
 
 /// Represents a header in the OpenAPI specification.
 class APIHeader {
@@ -400,30 +396,30 @@ class APIHeader {
 
   static String headerTypeStringForType(APIHeaderType type) {
     switch (type) {
-      case APIHeaderType.string: return "string";
-      case APIHeaderType.number: return "number";
-      case APIHeaderType.integer: return "integer";
-      case APIHeaderType.boolean: return "boolean";
+      case APIHeaderType.string:
+        return "string";
+      case APIHeaderType.number:
+        return "number";
+      case APIHeaderType.integer:
+        return "integer";
+      case APIHeaderType.boolean:
+        return "boolean";
     }
     return null;
   }
 
   Map<String, dynamic> asMap() {
-    return {
-      "description" : description,
-      "type" : headerTypeStringForType(type)
-    };
+    return {"description": description, "type": headerTypeStringForType(type)};
   }
 }
 
 /// Represents a parameter location in the OpenAPI specification.
-enum APIParameterLocation {
-  query, header, path, formData, cookie, body
-}
+enum APIParameterLocation { query, header, path, formData, cookie, body }
 
 /// Represents a parameter in the OpenAPI specification.
 class APIParameter {
-  static APIParameterLocation _parameterLocationFromHTTPParameter(_HTTPParameter p) {
+  static APIParameterLocation _parameterLocationFromHTTPParameter(
+      _HTTPParameter p) {
     if (p is HTTPPath) {
       return APIParameterLocation.path;
     } else if (p is HTTPQuery) {
@@ -435,14 +431,21 @@ class APIParameter {
     return null;
   }
 
-  static String parameterLocationStringForType(APIParameterLocation parameterLocation) {
+  static String parameterLocationStringForType(
+      APIParameterLocation parameterLocation) {
     switch (parameterLocation) {
-      case APIParameterLocation.query: return "query";
-      case APIParameterLocation.header: return "header";
-      case APIParameterLocation.path: return "path";
-      case APIParameterLocation.formData: return "formData";
-      case APIParameterLocation.cookie: return "cookie";
-      case APIParameterLocation.body: return "body";
+      case APIParameterLocation.query:
+        return "query";
+      case APIParameterLocation.header:
+        return "header";
+      case APIParameterLocation.path:
+        return "path";
+      case APIParameterLocation.formData:
+        return "formData";
+      case APIParameterLocation.cookie:
+        return "cookie";
+      case APIParameterLocation.body:
+        return "body";
     }
     return null;
   }
@@ -458,7 +461,8 @@ class APIParameter {
     var m = <String, dynamic>{};
     m["name"] = name;
     m["description"] = description;
-    m["required"] = (parameterLocation == APIParameterLocation.path ? true : required);
+    m["required"] =
+        (parameterLocation == APIParameterLocation.path ? true : required);
     m["deprecated"] = deprecated;
     m["schema"] = schemaObject?.asMap();
     m["in"] = parameterLocationStringForType(parameterLocation);
@@ -475,9 +479,9 @@ class APIRequestBody {
 
   Map<String, dynamic> asMap() {
     return {
-      "description" : description,
-      "schema" : schema.asMap(),
-      "required" : required
+      "description": description,
+      "schema": schema.asMap(),
+      "required": required
     };
   }
 }
@@ -513,18 +517,19 @@ class APISchemaObject {
   Map<String, APISchemaObject> properties;
   Map<String, APISchemaObject> additionalProperties;
 
-  APISchemaObject({this.properties, this.additionalProperties}) : type = APISchemaObject.TypeObject;
+  APISchemaObject({this.properties, this.additionalProperties})
+      : type = APISchemaObject.TypeObject;
   APISchemaObject.string() : type = APISchemaObject.TypeString;
-  APISchemaObject.int() : type = APISchemaObject.TypeInteger, format = APISchemaObject.FormatInt32;
+  APISchemaObject.int()
+      : type = APISchemaObject.TypeInteger,
+        format = APISchemaObject.FormatInt32;
   APISchemaObject.fromTypeMirror(TypeMirror m) {
     type = typeFromTypeMirror(m);
     format = formatFromTypeMirror(m);
 
     if (type == TypeArray) {
       items = new APISchemaObject.fromTypeMirror(m.typeArguments.first);
-    } else if (type == TypeObject) {
-
-    }
+    } else if (type == TypeObject) {}
   }
 
   static String typeFromTypeMirror(TypeMirror m) {
@@ -552,7 +557,7 @@ class APISchemaObject {
       return FormatInt32;
     } else if (m.isSubtypeOf(reflectType(double))) {
       return FormatDouble;
-    }  else if (m.isSubtypeOf(reflectType(DateTime))) {
+    } else if (m.isSubtypeOf(reflectType(DateTime))) {
       return FormatDateTime;
     }
 
@@ -586,10 +591,14 @@ class APISchemaObject {
       m["items"] = items.asMap();
     }
     if (properties != null) {
-      m["properties"] = new Map.fromIterable(properties.keys, key: (key) => key, value: (key) => properties[key].asMap());
+      m["properties"] = new Map.fromIterable(properties.keys,
+          key: (key) => key, value: (key) => properties[key].asMap());
     }
     if (additionalProperties != null) {
-      m["additionalProperties"] = new Map.fromIterable(additionalProperties.keys, key: (key) => key, value: (key) => additionalProperties[key].asMap());
+      m["additionalProperties"] = new Map.fromIterable(
+          additionalProperties.keys,
+          key: (key) => key,
+          value: (key) => additionalProperties[key].asMap());
     }
 
     return m;
@@ -604,12 +613,14 @@ class PackagePathResolver {
         .split("\n")
         .where((l) => !l.startsWith("#") && l.indexOf(":") != -1)
         .map((l) {
-          var firstColonIdx = l.indexOf(":");
-          var packageName = l.substring(0, firstColonIdx);
-          var packagePath = path_lib.fromUri(l.substring(firstColonIdx + 1, l.length));
-          return [packageName, packagePath];
-        });
-    _map = new Map.fromIterable(lines, key: (k) => k.first, value: (v) => v.last);
+      var firstColonIdx = l.indexOf(":");
+      var packageName = l.substring(0, firstColonIdx);
+      var packagePath =
+          path_lib.fromUri(l.substring(firstColonIdx + 1, l.length));
+      return [packageName, packagePath];
+    });
+    _map =
+        new Map.fromIterable(lines, key: (k) => k.first, value: (v) => v.last);
   }
 
   Map<String, String> _map;

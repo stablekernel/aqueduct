@@ -3,33 +3,39 @@ import 'package:aqueduct/aqueduct.dart';
 
 void main() {
   group("Metadata", () {
-    var store = new PostgreSQLPersistentStore.fromConnectionInfo("dart", "dart", "localhost", 5432, "dart_test");
+    var store = new PostgreSQLPersistentStore.fromConnectionInfo(
+        "dart", "dart", "localhost", 5432, "dart_test");
 
-    setUp(() async {
-
-    });
+    setUp(() async {});
 
     tearDown(() async {
       await store.close();
     });
 
-    test("Getting version number with 'blank' database (aka no version table yet) returns 0", () async {
+    test(
+        "Getting version number with 'blank' database (aka no version table yet) returns 0",
+        () async {
       expect(await store.schemaVersion, 0);
     });
 
-    test("Version table gets created on initiating upgrade if it doesn't exist", () async {
+    test("Version table gets created on initiating upgrade if it doesn't exist",
+        () async {
       await store.upgrade(1, [], temporary: true);
 
-      var rows = await store.execute("SELECT versionNumber, dateOfUpgrade FROM _aqueduct_version_pgsql");
+      var rows = await store.execute(
+          "SELECT versionNumber, dateOfUpgrade FROM _aqueduct_version_pgsql");
       expect(rows.length, 1);
       expect(rows.first.first, 1);
     });
 
-    test("Subsequent upgrades do not fail because the verison table is already created", () async {
+    test(
+        "Subsequent upgrades do not fail because the verison table is already created",
+        () async {
       await store.upgrade(1, [], temporary: true);
       await store.upgrade(2, [], temporary: true);
 
-      var rows = await store.execute("SELECT versionNumber, dateOfUpgrade FROM _aqueduct_version_pgsql");
+      var rows = await store.execute(
+          "SELECT versionNumber, dateOfUpgrade FROM _aqueduct_version_pgsql");
       expect(rows.length, 2);
       expect(rows.first.first, 1);
       expect(rows.last.first, 2);
@@ -48,7 +54,8 @@ void main() {
     test("Migration that fails a command does not update", () async {
       await store.upgrade(1, [], temporary: true);
       try {
-        await store.upgrade(2, ["CREATE TABLE t (id int)", "invalid command"], temporary: true);
+        await store.upgrade(2, ["CREATE TABLE t (id int)", "invalid command"],
+            temporary: true);
         expect(true, false);
       } on QueryException catch (e) {
         expect(e.underlyingException.code, "42601");
