@@ -61,6 +61,14 @@ aqueduct db validate
 
 ## Running wildfire
 
+#### ...locally
+
+```
+  dart bin/start.dart 
+```
+
+#### ...on a server
+
 Ensure that a `config.yaml` file exists in this directory. (The file `config.yaml.src` is a template for `config.yaml`.)
 
 You may copy and edit config template file:
@@ -80,3 +88,5 @@ Then, start the server:
 ```
 ./wildfire start
 ```
+
+> It's important to note that running this will wipe any changes not on your 'master' branch.
