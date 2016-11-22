@@ -61,14 +61,6 @@ aqueduct db validate
 
 ## Running wildfire
 
-#### ...locally
-
-```
-  dart bin/start.dart 
-```
-
-#### ...on a server
-
 Ensure that a `config.yaml` file exists in this directory. (The file `config.yaml.src` is a template for `config.yaml`.)
 
 You may copy and edit config template file:
@@ -76,6 +68,16 @@ You may copy and edit config template file:
 ```
 cp config.yaml.src config.yaml
 ```
+
+#### ...locally
+
+From your project's directory, run:
+
+```
+  dart bin/start.dart 
+```
+
+#### ...on a server
 
 Give executable permissions for the application script:
 
