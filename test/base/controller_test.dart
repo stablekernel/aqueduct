@@ -260,7 +260,7 @@ void main() {
 
   test("Content-Type defaults to application/json", () async {
     server = await enableController("/a", TController);
-    var resp = await http.get("http://localhost:4040/a?param");
+    var resp = await http.get("http://localhost:4040/a");
     expect(resp.statusCode, 200);
     expect(ContentType.parse(resp.headers["content-type"]).primaryType, "application");
     expect(ContentType.parse(resp.headers["content-type"]).subType, "json");

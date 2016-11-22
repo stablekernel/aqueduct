@@ -1,5 +1,8 @@
 # aqueduct changelog
 
+## 1.0.4
+- Added new `Response.contentType` property. Adding "Content-Type" to the headers of a `Response` no longer has any effect; use this property instead.
+
 ## 1.0.3
 - Fix to allow Windows user to use `aqueduct setup`.
 - Fix to CORS processing.
