@@ -146,7 +146,8 @@ class Request implements RequestControllerEvent {
     }
 
     if (encodedBody != null) {
-      response.headers.add(HttpHeaders.CONTENT_TYPE, responseObject.contentType.toString());
+      response.headers
+          .add(HttpHeaders.CONTENT_TYPE, responseObject.contentType.toString());
       response.write(encodedBody);
     }
 
