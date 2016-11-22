@@ -41,9 +41,7 @@ class Response implements RequestControllerEvent {
     "application": {
       "json": (v) => JSON.encode(v),
     },
-    "text" : {
-      "*" : (Object v) => v.toString()
-    }
+    "text": {"*": (Object v) => v.toString()}
   };
 
   /// An object representing the body of the [Response], which will be encoded when used to [Request.respond].
@@ -91,7 +89,8 @@ class Response implements RequestControllerEvent {
     }
 
     if (encoder == null) {
-      throw new HTTPResponseException(500, "Could not encode body as ${contentType.toString()}.");
+      throw new HTTPResponseException(
+          500, "Could not encode body as ${contentType.toString()}.");
     }
 
     return encoder(_body);
@@ -117,6 +116,7 @@ class Response implements RequestControllerEvent {
   void set contentType(ContentType t) {
     _contentType = t;
   }
+
   ContentType _contentType;
 
   /// Whether or nor this instance has explicitly has its [contentType] property.
