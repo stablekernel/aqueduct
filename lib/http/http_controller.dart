@@ -46,11 +46,10 @@ abstract class HTTPController extends RequestController {
     _applicationWWWFormURLEncodedContentType
   ];
 
-  /// The content type of responses from this [HTTPController].
+  /// The default content type of responses from this [HTTPController].
   ///
-  /// This type will automatically be written to this response's
-  /// HTTP header. Defaults to "application/json". This value determines how the body data returned from this controller
-  /// in a [Response] is encoded.
+  /// If the [Response.contentType] has not explicitly been set by a responder method in this controller, the controller will set
+  /// that property with this value. Defaults to "application/json".
   ContentType responseContentType = ContentType.JSON;
 
   /// The HTTP request body object, after being decoded.
