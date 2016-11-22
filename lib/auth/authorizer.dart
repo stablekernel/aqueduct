@@ -52,12 +52,14 @@ class Authorizer extends RequestController {
     if (errorResponse == null) {
       errorResponse = new Response.serverError();
     }
-    
+
     return errorResponse;
   }
 
-  Future<RequestControllerEvent> _processResourceOwnerRequest(Request req) async {
-    var bearerToken = AuthorizationBearerParser.parse(req.innerRequest.headers.value(HttpHeaders.AUTHORIZATION));
+  Future<RequestControllerEvent> _processResourceOwnerRequest(
+      Request req) async {
+    var bearerToken = AuthorizationBearerParser
+        .parse(req.innerRequest.headers.value(HttpHeaders.AUTHORIZATION));
     var permission = await server.verify(bearerToken);
 
     req.authorization = permission;
@@ -66,14 +68,16 @@ class Authorizer extends RequestController {
   }
 
   Future<RequestControllerEvent> _processClientRequest(Request req) async {
-    var parser = AuthorizationBasicParser.parse(req.innerRequest.headers.value(HttpHeaders.AUTHORIZATION));
+    var parser = AuthorizationBasicParser
+        .parse(req.innerRequest.headers.value(HttpHeaders.AUTHORIZATION));
     var client = await server.clientForID(parser.username);
 
     if (client == null) {
       return new Response.unauthorized();
     }
 
-    if (client.hashedSecret != AuthServer.generatePasswordHash(parser.password, client.salt)) {
+    if (client.hashedSecret !=
+        AuthServer.generatePasswordHash(parser.password, client.salt)) {
       return new Response.unauthorized();
     }
 
@@ -83,13 +87,11 @@ class Authorizer extends RequestController {
     return req;
   }
 
-
   @override
   List<APIOperation> documentOperations(PackagePathResolver resolver) {
     List<APIOperation> items = nextController.documentOperations(resolver);
 
-    var secReq= new APISecurityRequirement()
-      ..scopes = [];
+    var secReq = new APISecurityRequirement()..scopes = [];
 
     if (strategy == AuthStrategy.client) {
       secReq.name = "oauth2.application";

@@ -17,7 +17,8 @@ class TestClient {
 
   /// Creates an instance from an [ApplicationConfiguration].
   TestClient.fromConfig(ApplicationConfiguration config) {
-    baseURL = "${config.securityContext != null ? "https" : "http"}://localhost:${config.port}";
+    baseURL =
+        "${config.securityContext != null ? "https" : "http"}://localhost:${config.port}";
   }
 
   /// The base URL that requests will be made against.
@@ -71,12 +72,12 @@ class TestClient {
   ///
   /// If you do not provide a [clientID] or [clientSecret], the values of [TestClient.clientID] and [TestClient.clientSecret]
   /// will be used.
-  TestRequest clientAuthenticatedRequest(String path, {String clientID: null, String clientSecret: null}) {
+  TestRequest clientAuthenticatedRequest(String path,
+      {String clientID: null, String clientSecret: null}) {
     clientID ??= this.clientID;
     clientSecret ??= this.clientSecret;
 
-    var req = request(path)
-      ..setBasicAuthorization(clientID, clientSecret);
+    var req = request(path)..setBasicAuthorization(clientID, clientSecret);
 
     return req;
   }
@@ -91,8 +92,7 @@ class TestClient {
   TestRequest authenticatedRequest(String path, {String accessToken: null}) {
     accessToken ??= defaultAccessToken;
 
-    var req = request(path)
-      ..bearerAuthorization = accessToken;
+    var req = request(path)..bearerAuthorization = accessToken;
     return req;
   }
 
@@ -147,10 +147,12 @@ class TestRequest {
   Map<String, dynamic> get headers => _headers;
   void set headers(Map<String, dynamic> h) {
     if (!_headers.isEmpty) {
-      print("WARNING: Setting TestRequest headers, but headers already have values.");
+      print(
+          "WARNING: Setting TestRequest headers, but headers already have values.");
     }
     _headers = h;
   }
+
   Map<String, dynamic> _headers = {};
 
   /// The full URL of this request.
@@ -186,7 +188,8 @@ class TestRequest {
   ///
   ///         Authorization: Basic Base64(username:password)
   void setBasicAuthorization(String username, String password) {
-    addHeader(HttpHeaders.AUTHORIZATION, "Basic ${new Base64Encoder().convert("$username:$password".codeUnits)}");
+    addHeader(HttpHeaders.AUTHORIZATION,
+        "Basic ${new Base64Encoder().convert("$username:$password".codeUnits)}");
   }
 
   /// Sets the Authorization header of this request.
@@ -200,7 +203,8 @@ class TestRequest {
 
   /// Sets the Accept header of this request.
   void set accept(List<ContentType> contentTypes) {
-    addHeader(HttpHeaders.ACCEPT, contentTypes.map((ct) => ct.toString()).join(","));
+    addHeader(
+        HttpHeaders.ACCEPT, contentTypes.map((ct) => ct.toString()).join(","));
   }
 
   /// JSON encodes a serialized value into [body] and sets [contentType].
@@ -218,7 +222,9 @@ class TestRequest {
   /// This method will encode [v] as x-www-form-urlencoded data and set it as the [body] of this request. [v] must be
   /// a [Map<String, String>] . The [contentType] will be set to "application/x-www-form-urlencoded".
   void set formData(Map<String, String> args) {
-    body = args.keys.map((key) => "$key=${Uri.encodeQueryComponent(args[key])}").join("&");
+    body = args.keys
+        .map((key) => "$key=${Uri.encodeQueryComponent(args[key])}")
+        .join("&");
     contentType = new ContentType("application", "x-www-form-urlencoded");
   }
 
@@ -327,9 +333,11 @@ class TestResponse {
 
       if (body != null) {
         var contentType = this._innerResponse.headers.contentType;
-        if (contentType.primaryType == "application" && contentType.subType == "json") {
+        if (contentType.primaryType == "application" &&
+            contentType.subType == "json") {
           decodedBody = JSON.decode(body);
-        } else if (contentType.primaryType == "application" && contentType.subType == "x-www-form-urlencoded") {
+        } else if (contentType.primaryType == "application" &&
+            contentType.subType == "x-www-form-urlencoded") {
           var split = body.split("&");
           var map = {};
           split.forEach((str) {
@@ -345,7 +353,6 @@ class TestResponse {
           decodedBody = body;
         }
       }
-
     }).onDone(() {
       completer.complete();
     });

@@ -13,7 +13,6 @@ import '../../helpers.dart';
   T1 V1 V2            V3
  */
 
-
 void main() {
   group("Happy path", () {
     ManagedContext context = null;
@@ -27,10 +26,11 @@ void main() {
       await context?.persistentStore?.close();
     });
 
-    test("Fetch has-one relationship that is null returns null for property", () async {
+    test("Fetch has-one relationship that is null returns null for property",
+        () async {
       var q = new Query<Parent>()
-          ..matchOn.child.includeInResultSet = true
-          ..matchOn.name = "D";
+        ..matchOn.child.includeInResultSet = true
+        ..matchOn.name = "D";
 
       var verifier = (Parent p) {
         expect(p.name, "D");
@@ -42,7 +42,9 @@ void main() {
       verifier((await q.fetch()).first);
     });
 
-    test("Fetch has-one relationship that is null returns null for property, and more nested has relationships are ignored", () async {
+    test(
+        "Fetch has-one relationship that is null returns null for property, and more nested has relationships are ignored",
+        () async {
       var q = new Query<Parent>()
         ..matchOn.child.includeInResultSet = true
         ..matchOn.child.toy.includeInResultSet = true
@@ -59,7 +61,9 @@ void main() {
       verifier((await q.fetch()).first);
     });
 
-    test("Fetch has-one relationship that is non-null returns value for property with scalar values only", () async {
+    test(
+        "Fetch has-one relationship that is non-null returns value for property with scalar values only",
+        () async {
       var q = new Query<Parent>()
         ..matchOn.child.includeInResultSet = true
         ..matchOn.name = "C";
@@ -76,7 +80,9 @@ void main() {
       verifier((await q.fetch()).first);
     });
 
-    test("Fetch has-one relationship, include has-one and has-many in that has-one, where bottom of graph has valid object for hasmany but not for hasone", () async {
+    test(
+        "Fetch has-one relationship, include has-one and has-many in that has-one, where bottom of graph has valid object for hasmany but not for hasone",
+        () async {
       var q = new Query<Parent>()
         ..matchOn.child.includeInResultSet = true
         ..matchOn.child.toy.includeInResultSet = true
@@ -99,7 +105,9 @@ void main() {
       verifier((await q.fetch()).first);
     });
 
-    test("Fetch has-one relationship, include has-one and has-many in that has-one, where bottom of graph is all null/empty", () async {
+    test(
+        "Fetch has-one relationship, include has-one and has-many in that has-one, where bottom of graph is all null/empty",
+        () async {
       var q = new Query<Parent>()
         ..matchOn.child.includeInResultSet = true
         ..matchOn.child.toy.includeInResultSet = true
@@ -120,7 +128,9 @@ void main() {
       verifier((await q.fetch()).first);
     });
 
-    test("Fetching multiple top-level instances and including next-level hasOne", () async {
+    test(
+        "Fetching multiple top-level instances and including next-level hasOne",
+        () async {
       var q = new Query<Parent>()
         ..matchOn.child.includeInResultSet = true
         ..matchOn.name = whereIn(["C", "D"]);
@@ -152,7 +162,8 @@ void main() {
         expect(p.child?.toy?.id, originalIterator.current.child?.toy?.id);
         expect(p.child?.toy?.name, originalIterator.current.child?.toy?.name);
 
-        var vacIter = originalIterator.current.child?.vaccinations?.iterator ?? <Vaccine>[].iterator;
+        var vacIter = originalIterator.current.child?.vaccinations?.iterator ??
+            <Vaccine>[].iterator;
         p?.child?.vaccinations?.forEach((v) {
           vacIter.moveNext();
           expect(v.id, vacIter.current.id);
@@ -176,7 +187,8 @@ void main() {
       context?.persistentStore?.close();
     });
 
-    test("Predicate impacts top-level objects when fetching object graph", () async {
+    test("Predicate impacts top-level objects when fetching object graph",
+        () async {
       var q = new Query<Parent>()
         ..matchOn.child.includeInResultSet = true
         ..matchOn.child.toy.includeInResultSet = true
@@ -198,7 +210,8 @@ void main() {
       expect(p.child.vaccinations.last.kind, "V2");
     });
 
-    test("Predicate impacts 2nd level objects when fetching object graph", () async {
+    test("Predicate impacts 2nd level objects when fetching object graph",
+        () async {
       var q = new Query<Parent>()
         ..matchOn.child.includeInResultSet = true
         ..matchOn.child.toy.includeInResultSet = true
@@ -225,7 +238,8 @@ void main() {
       }
     });
 
-    test("Predicate impacts 3rd level objects when fetching object graph", () async {
+    test("Predicate impacts 3rd level objects when fetching object graph",
+        () async {
       var q = new Query<Parent>()
         ..matchOn.child.includeInResultSet = true
         ..matchOn.child.toy.includeInResultSet = true
@@ -247,7 +261,9 @@ void main() {
       }
     });
 
-    test("Predicate that omits top-level objects but would include lower level object return no results", () async {
+    test(
+        "Predicate that omits top-level objects but would include lower level object return no results",
+        () async {
       var q = new Query<Parent>()
         ..matchOn.child.includeInResultSet = true
         ..matchOn.child.toy.includeInResultSet = true
@@ -272,7 +288,8 @@ void main() {
       await context?.persistentStore?.close();
     });
 
-    test("Can fetch graph when omitting foreign or primary keys from query", () async {
+    test("Can fetch graph when omitting foreign or primary keys from query",
+        () async {
       var q = new Query<Parent>()
         ..resultProperties = ["name"]
         ..nestedResultProperties[Child] = ["name"]
@@ -359,7 +376,8 @@ void main() {
       context?.persistentStore?.close();
     });
 
-    test("Predicate that impacts unincluded subobject is still ignored", () async {
+    test("Predicate that impacts unincluded subobject is still ignored",
+        () async {
       var q = new Query<Parent>()
         ..matchOn.child.includeInResultSet = true
         ..matchOn.child.toy.includeInResultSet = true
@@ -368,18 +386,22 @@ void main() {
       var results = await q.fetch();
       for (var p in results) {
         expect(p.child?.backingMap?.containsKey("toy") ?? true, true);
-        expect(p.child?.backingMap?.containsKey("vaccinations") ?? false, false);
+        expect(
+            p.child?.backingMap?.containsKey("vaccinations") ?? false, false);
       }
     });
 
-    test("Trying to fetch hasOne relationship through resultProperties fails", () async {
-      var q = new Query<Parent>()
-          ..resultProperties = ["id", "child"];
+    test("Trying to fetch hasOne relationship through resultProperties fails",
+        () async {
+      var q = new Query<Parent>()..resultProperties = ["id", "child"];
       try {
         await q.fetchOne();
         expect(true, false);
       } on QueryException catch (e) {
-        expect(e.toString(), contains("Property child is a hasMany or hasOne relationship and is invalid as a result property of _Parent, use matchOn.child.includeInResultSet = true instead"));
+        expect(
+            e.toString(),
+            contains(
+                "Property child is a hasMany or hasOne relationship and is invalid as a result property of _Parent, use matchOn.child.includeInResultSet = true instead"));
       }
 
       q = new Query<Parent>()
@@ -389,7 +411,10 @@ void main() {
         await q.fetchOne();
         expect(true, false);
       } on QueryException catch (e) {
-        expect(e.toString(), contains("Property toy is a hasMany or hasOne relationship and is invalid as a result property of _Child, use matchOn.toy.includeInResultSet = true instead"));
+        expect(
+            e.toString(),
+            contains(
+                "Property toy is a hasMany or hasOne relationship and is invalid as a result property of _Child, use matchOn.toy.includeInResultSet = true instead"));
       }
     });
 
@@ -402,23 +427,30 @@ void main() {
         await q.fetchOne();
         expect(true, false);
       } on QueryException catch (e) {
-        expect(e.toString(), contains("Query cannot have properties that are includeInResultSet and also have a pageDescriptor"));
+        expect(
+            e.toString(),
+            contains(
+                "Query cannot have properties that are includeInResultSet and also have a pageDescriptor"));
       }
     });
   });
 }
 
 class Parent extends ManagedObject<_Parent> implements _Parent {}
+
 class _Parent {
-  @managedPrimaryKey int id;
+  @managedPrimaryKey
+  int id;
   String name;
 
   Child child;
 }
 
 class Child extends ManagedObject<_Child> implements _Child {}
+
 class _Child {
-  @managedPrimaryKey int id;
+  @managedPrimaryKey
+  int id;
   String name;
 
   @ManagedRelationship(#child)
@@ -430,8 +462,10 @@ class _Child {
 }
 
 class Toy extends ManagedObject<_Toy> implements _Toy {}
+
 class _Toy {
-  @managedPrimaryKey int id;
+  @managedPrimaryKey
+  int id;
 
   String name;
 
@@ -440,8 +474,10 @@ class _Toy {
 }
 
 class Vaccine extends ManagedObject<_Vaccine> implements _Vaccine {}
+
 class _Vaccine {
-  @managedPrimaryKey int id;
+  @managedPrimaryKey
+  int id;
   String kind;
 
   @ManagedRelationship(#vaccinations)
@@ -460,26 +496,20 @@ Future<List<Parent>> populate() async {
           new Vaccine()..kind = "V1",
           new Vaccine()..kind = "V2",
         ]))),
-
     new Parent()
       ..name = "B"
       ..child = (new Child()
         ..name = "C2"
-        ..vaccinations = (new ManagedSet<Vaccine>.from([
-          new Vaccine()..kind = "V3"
-        ]))),
-
+        ..vaccinations =
+            (new ManagedSet<Vaccine>.from([new Vaccine()..kind = "V3"]))),
     new Parent()
       ..name = "C"
       ..child = (new Child()..name = "C3"),
-
-    new Parent()
-      ..name = "D"
+    new Parent()..name = "D"
   ];
 
   for (var p in parents) {
-    var q = new Query<Parent>()
-      ..values.name = p.name;
+    var q = new Query<Parent>()..values.name = p.name;
     var insertedParent = await q.insert();
     modelGraph.add(insertedParent);
 
@@ -497,7 +527,8 @@ Future<List<Parent>> populate() async {
       }
 
       if (p.child.vaccinations != null) {
-        insertedParent.child.vaccinations = new ManagedSet<Vaccine>.from(await Future.wait(p.child.vaccinations.map((v) {
+        insertedParent.child.vaccinations = new ManagedSet<Vaccine>.from(
+            await Future.wait(p.child.vaccinations.map((v) {
           var vQ = new Query<Vaccine>()
             ..values.kind = v.kind
             ..values.child = insertedParent.child;

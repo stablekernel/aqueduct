@@ -5,14 +5,16 @@ void main() {
   group("Alterations", () {
     SchemaBuilder builder;
     setUp(() {
-      var dataModel = new ManagedDataModel([LoadedSingleItem, DefaultItem, LoadedItem, Container]);
+      var dataModel = new ManagedDataModel(
+          [LoadedSingleItem, DefaultItem, LoadedItem, Container]);
       Schema baseSchema = new Schema.fromDataModel(dataModel);
       builder = new SchemaBuilder(null, baseSchema);
     });
 
     test("Adding a table", () {
       builder.createTable(new SchemaTable("foobar", []));
-      expect(builder.schema.tables.firstWhere((st) => st.name == "foobar"), isNotNull);
+      expect(builder.schema.tables.firstWhere((st) => st.name == "foobar"),
+          isNotNull);
 
       try {
         builder.createTable(new SchemaTable("foobar", []));
@@ -38,27 +40,47 @@ void main() {
       }
 
       builder.deleteTable("_DefaultItem");
-      expect(builder.schema.tables.firstWhere((st) => st.name == "_DefaultItem", orElse: () => null), isNull);
+      expect(
+          builder.schema.tables.firstWhere((st) => st.name == "_DefaultItem",
+              orElse: () => null),
+          isNull);
 
       builder.deleteTable("_cONTAINER");
-      expect(builder.schema.tables.firstWhere((st) => st.name == "_Container", orElse: () => null), isNull);
+      expect(
+          builder.schema.tables
+              .firstWhere((st) => st.name == "_Container", orElse: () => null),
+          isNull);
     });
 
     test("Adding column", () {
-      builder.addColumn("_DefaultItem", new SchemaColumn("col1", ManagedPropertyType.integer));
-      builder.addColumn("_defaultITEM", new SchemaColumn("col2", ManagedPropertyType.integer));
-      expect(builder.schema.tableForName("_DefaultItem").columns.firstWhere((sc) => sc.name == "col1"), isNotNull);
-      expect(builder.schema.tableForName("_DefaultItem").columns.firstWhere((sc) => sc.name == "col2"), isNotNull);
+      builder.addColumn("_DefaultItem",
+          new SchemaColumn("col1", ManagedPropertyType.integer));
+      builder.addColumn("_defaultITEM",
+          new SchemaColumn("col2", ManagedPropertyType.integer));
+      expect(
+          builder.schema
+              .tableForName("_DefaultItem")
+              .columns
+              .firstWhere((sc) => sc.name == "col1"),
+          isNotNull);
+      expect(
+          builder.schema
+              .tableForName("_DefaultItem")
+              .columns
+              .firstWhere((sc) => sc.name == "col2"),
+          isNotNull);
 
       try {
-        builder.addColumn("_DefaultItem", new SchemaColumn("col1", ManagedPropertyType.integer));
+        builder.addColumn("_DefaultItem",
+            new SchemaColumn("col1", ManagedPropertyType.integer));
         expect(true, false);
       } on SchemaException catch (e) {
         expect(e.message, contains("already exists"));
       }
 
       try {
-        builder.addColumn("foobar", new SchemaColumn("col3", ManagedPropertyType.integer));
+        builder.addColumn(
+            "foobar", new SchemaColumn("col3", ManagedPropertyType.integer));
         expect(true, false);
       } on SchemaException catch (e) {
         expect(e.message, contains("does not exist"));
@@ -67,7 +89,12 @@ void main() {
 
     test("Deleting column", () {
       builder.deleteColumn("_DefaultItem", "id");
-      expect(builder.schema.tableForName("_DefaultItem").columns.firstWhere((sc) => sc.name == "id", orElse: () => null), isNull);
+      expect(
+          builder.schema
+              .tableForName("_DefaultItem")
+              .columns
+              .firstWhere((sc) => sc.name == "id", orElse: () => null),
+          isNull);
 
       try {
         builder.deleteColumn("_DefaultItem", "col1");
@@ -160,16 +187,42 @@ void main() {
         c.deleteRule = ManagedRelationshipDeleteRule.setDefault;
       }, unencodedInitialValue: "'foo'");
 
-      expect(builder.schema.tableForName("_LoadedItem").columnForName("someIndexedThing").isIndexed, false);
-      expect(builder.schema.tableForName("_LoadedItem").columnForName("someIndexedThing").isNullable, true);
-      expect(builder.schema.tableForName("_LoadedItem").columnForName("someIndexedThing").isUnique, true);
-      expect(builder.schema.tableForName("_LoadedItem").columnForName("someIndexedThing").defaultValue, "'bar'");
-      expect(builder.schema.tableForName("_LoadedItem").columnForName("someIndexedThing").deleteRule, ManagedRelationshipDeleteRule.setDefault);
+      expect(
+          builder.schema
+              .tableForName("_LoadedItem")
+              .columnForName("someIndexedThing")
+              .isIndexed,
+          false);
+      expect(
+          builder.schema
+              .tableForName("_LoadedItem")
+              .columnForName("someIndexedThing")
+              .isNullable,
+          true);
+      expect(
+          builder.schema
+              .tableForName("_LoadedItem")
+              .columnForName("someIndexedThing")
+              .isUnique,
+          true);
+      expect(
+          builder.schema
+              .tableForName("_LoadedItem")
+              .columnForName("someIndexedThing")
+              .defaultValue,
+          "'bar'");
+      expect(
+          builder.schema
+              .tableForName("_LoadedItem")
+              .columnForName("someIndexedThing")
+              .deleteRule,
+          ManagedRelationshipDeleteRule.setDefault);
     });
   });
 }
 
 class Container extends ManagedObject<_Container> implements _Container {}
+
 class _Container {
   @managedPrimaryKey
   int id;
@@ -179,6 +232,7 @@ class _Container {
 }
 
 class DefaultItem extends ManagedObject<_DefaultItem> implements _DefaultItem {}
+
 class _DefaultItem {
   @managedPrimaryKey
   int id;
@@ -188,6 +242,7 @@ class _DefaultItem {
 }
 
 class LoadedItem extends ManagedObject<_LoadedItem> {}
+
 class _LoadedItem {
   @managedPrimaryKey
   int id;
@@ -195,33 +250,40 @@ class _LoadedItem {
   @ManagedColumnAttributes(indexed: true)
   String someIndexedThing;
 
-  @ManagedRelationship(#loadedItems, onDelete: ManagedRelationshipDeleteRule.restrict, isRequired: false)
+  @ManagedRelationship(#loadedItems,
+      onDelete: ManagedRelationshipDeleteRule.restrict, isRequired: false)
   Container container;
 
   LoadedSingleItem loadedSingleItem;
 }
 
 class LoadedSingleItem extends ManagedObject<_LoadedSingleItem> {}
+
 class _LoadedSingleItem {
   @managedPrimaryKey
   int id;
 
-  @ManagedRelationship(#loadedSingleItem, onDelete: ManagedRelationshipDeleteRule.cascade, isRequired: true)
+  @ManagedRelationship(#loadedSingleItem,
+      onDelete: ManagedRelationshipDeleteRule.cascade, isRequired: true)
   LoadedItem loadedItem;
 }
 
 class SimpleModel extends ManagedObject<_SimpleModel> implements _SimpleModel {}
+
 class _SimpleModel {
   @managedPrimaryKey
   int id;
 }
 
-class ExtensiveModel extends ManagedObject<_ExtensiveModel> implements _ExtensiveModel {
+class ExtensiveModel extends ManagedObject<_ExtensiveModel>
+    implements _ExtensiveModel {
   @managedTransientAttribute
   String transientProperty;
 }
+
 class _ExtensiveModel {
-  @ManagedColumnAttributes(primaryKey: true, databaseType: ManagedPropertyType.string)
+  @ManagedColumnAttributes(
+      primaryKey: true, databaseType: ManagedPropertyType.string)
   String id;
 
   DateTime startDate;
@@ -241,6 +303,12 @@ class _ExtensiveModel {
   @ManagedColumnAttributes(nullable: true)
   bool nullableValue;
 
-  @ManagedColumnAttributes(databaseType: ManagedPropertyType.bigInteger, nullable: true, defaultValue: "7", unique: true, indexed: true, autoincrement: true)
+  @ManagedColumnAttributes(
+      databaseType: ManagedPropertyType.bigInteger,
+      nullable: true,
+      defaultValue: "7",
+      unique: true,
+      indexed: true,
+      autoincrement: true)
   int loadedValue;
 }

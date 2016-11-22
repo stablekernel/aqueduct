@@ -11,12 +11,14 @@ Future<int> main(List<String> args) async {
     ..addCommand("create", templateCreator.options)
     ..addCommand("db", migrationRunner.options)
     ..addCommand("setup", setupCommand.options)
-    ..addFlag("help", abbr: "h", negatable: false, help: "Shows this documentation");
+    ..addFlag("help",
+        abbr: "h", negatable: false, help: "Shows this documentation");
 
   var values = totalParser.parse(args);
 
   if (values.command == null) {
-    print("Invalid command, options are: ${totalParser.commands.keys.join(", ")}");
+    print(
+        "Invalid command, options are: ${totalParser.commands.keys.join(", ")}");
     return -1;
   } else if (values.command.name == "create") {
     return await templateCreator.process(values.command);
@@ -26,6 +28,7 @@ Future<int> main(List<String> args) async {
     return await setupCommand.process(values.command);
   }
 
-  print("Invalid command, options are: ${totalParser.commands.keys.join(", ")}");
+  print(
+      "Invalid command, options are: ${totalParser.commands.keys.join(", ")}");
   return -1;
 }

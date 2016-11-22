@@ -15,9 +15,7 @@ abstract class CLICommand {
   /// Cleans up any resources used during this command.
   ///
   /// Delete temporary files or close down any [Stream]s.
-  Future cleanup() async {
-
-  }
+  Future cleanup() async {}
 
   /// Invoked on this instance when this command is executed from the command line.
   ///

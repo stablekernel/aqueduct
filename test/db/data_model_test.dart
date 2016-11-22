@@ -55,7 +55,8 @@ void main() {
       expect(dataModel.entityForType(User).relationships["manager"], isNotNull);
 
       expect(dataModel.entityForType(Manager).attributes["worker"], isNull);
-      expect(dataModel.entityForType(Manager).relationships["worker"], isNotNull);
+      expect(
+          dataModel.entityForType(Manager).relationships["worker"], isNotNull);
     });
 
     test("Entities have appropriate metadata", () {
@@ -86,7 +87,8 @@ void main() {
       expect(idAttr.name, "name");
     });
 
-    test("Default properties omit omitted attributes and has* relationships", () {
+    test("Default properties omit omitted attributes and has* relationships",
+        () {
       var entity = dataModel.entityForType(User);
       expect(entity.defaultProperties, ["id", "username", "flag"]);
       expect(entity.properties["loadedTimestamp"], isNotNull);
@@ -119,7 +121,11 @@ void main() {
       expect(relDesc is ManagedRelationshipDescription, true);
       expect(relDesc.isNullable, false);
       expect(relDesc.inverseKey, #items);
-      expect(relDesc.inverseRelationship == dataModel.entityForType(User).relationships[MirrorSystem.getName(relDesc.inverseKey)], true);
+      expect(
+          relDesc.inverseRelationship ==
+              dataModel.entityForType(User).relationships[
+                  MirrorSystem.getName(relDesc.inverseKey)],
+          true);
       expect(relDesc.deleteRule, ManagedRelationshipDeleteRule.cascade);
       expect(relDesc.destinationEntity == dataModel.entityForType(User), true);
       expect(relDesc.relationshipType, ManagedRelationshipType.belongsTo);
@@ -129,7 +135,11 @@ void main() {
       expect(relDesc is ManagedRelationshipDescription, true);
       expect(relDesc.isNullable, true);
       expect(relDesc.inverseKey, #manager);
-      expect(relDesc.inverseRelationship == dataModel.entityForType(User).relationships[MirrorSystem.getName(relDesc.inverseKey)], true);
+      expect(
+          relDesc.inverseRelationship ==
+              dataModel.entityForType(User).relationships[
+                  MirrorSystem.getName(relDesc.inverseKey)],
+          true);
       expect(relDesc.deleteRule, ManagedRelationshipDeleteRule.nullify);
       expect(relDesc.destinationEntity == dataModel.entityForType(User), true);
       expect(relDesc.relationshipType, ManagedRelationshipType.belongsTo);
@@ -138,23 +148,32 @@ void main() {
       relDesc = entity.relationships["manager"];
       expect(relDesc is ManagedRelationshipDescription, true);
       expect(relDesc.inverseKey, #worker);
-      expect(relDesc.inverseRelationship == dataModel.entityForType(Manager).relationships[MirrorSystem.getName(relDesc.inverseKey)], true);
-      expect(relDesc.destinationEntity == dataModel.entityForType(Manager), true);
+      expect(
+          relDesc.inverseRelationship ==
+              dataModel.entityForType(Manager).relationships[
+                  MirrorSystem.getName(relDesc.inverseKey)],
+          true);
+      expect(
+          relDesc.destinationEntity == dataModel.entityForType(Manager), true);
       expect(relDesc.relationshipType, ManagedRelationshipType.hasOne);
 
-      expect(entity.relationships["items"].relationshipType, ManagedRelationshipType.hasMany);
+      expect(entity.relationships["items"].relationshipType,
+          ManagedRelationshipType.hasMany);
     });
 
     test("Instances created from entity only have mapped elements", () {
       var entity = dataModel.entityForType(User);
-      User instance = entity.instanceFromMappingElements([new PersistentColumnMapping(entity.attributes["id"], 2)]);
+      User instance = entity.instanceFromMappingElements(
+          [new PersistentColumnMapping(entity.attributes["id"], 2)]);
       expect(instance.id, 2);
       expect(instance.loadedTimestamp, isNull);
       expect(instance.manager, isNull);
       expect(instance.items, isNull);
     });
 
-    test("Instances created from entity contain belongsTo relationships as model objects", () {
+    test(
+        "Instances created from entity contain belongsTo relationships as model objects",
+        () {
       var entity = dataModel.entityForType(Item);
       Item instance = entity.instanceFromMappingElements([
         new PersistentColumnMapping(entity.attributes["name"], "foo"),
@@ -169,8 +188,10 @@ void main() {
       var entity = dataModel.entityForType(User);
       User instance = entity.instanceFromMappingElements([
         new PersistentColumnMapping(entity.attributes["id"], 2),
-        new PersistentJoinMapping(PersistentJoinType.leftOuter, entity.attributes["items"], null, [
-          new PersistentColumnMapping(dataModel.entityForType(Item).attributes["name"], "foobar")
+        new PersistentJoinMapping(
+            PersistentJoinType.leftOuter, entity.attributes["items"], null, [
+          new PersistentColumnMapping(
+              dataModel.entityForType(Item).attributes["name"], "foobar")
         ])
       ]);
       expect(instance.id, 2);
@@ -178,12 +199,14 @@ void main() {
     });
   });
 
-  test("Delete rule of setNull throws exception if property is not nullable", () {
+  test("Delete rule of setNull throws exception if property is not nullable",
+      () {
     try {
       new ManagedDataModel([Owner, FailingChild]);
       expect(true, false);
     } on ManagedDataModelException catch (e) {
-      expect(e.message, "Relationship ref on _FailingChild set to nullify on delete, but is not nullable");
+      expect(e.message,
+          "Relationship ref on _FailingChild set to nullify on delete, but is not nullable");
     }
   });
 
@@ -219,16 +242,19 @@ void main() {
       new ManagedDataModel([InvalidModel]);
       expect(true, false);
     } on ManagedDataModelException catch (e) {
-      expect(e.message, contains("Property uri on _InvalidModel has invalid type"));
+      expect(e.message,
+          contains("Property uri on _InvalidModel has invalid type"));
     }
   });
 
-  test("Model with unsupported transient property type fails on compilation", () {
+  test("Model with unsupported transient property type fails on compilation",
+      () {
     try {
       new ManagedDataModel([InvalidTransientModel]);
       expect(true, false);
     } on ManagedDataModelException catch (e) {
-      expect(e.message, contains("Property uri on InvalidTransientModel has invalid type"));
+      expect(e.message,
+          contains("Property uri on InvalidTransientModel has invalid type"));
     }
   });
 
@@ -247,13 +273,16 @@ void main() {
 
     test("includes transient properties", () {
       var entity = dataModel.entityForType(User);
-      expect(entity.documentedResponseSchema.properties["stringID"].type, APISchemaObject.TypeString);
+      expect(entity.documentedResponseSchema.properties["stringID"].type,
+          APISchemaObject.TypeString);
     });
 
     test("does not include has(One|Many) relationships", () {
       var entity = dataModel.entityForType(User);
-      expect(entity.documentedResponseSchema.properties.containsKey("items"), false);
-      expect(entity.documentedResponseSchema.properties.containsKey("manager"), false);
+      expect(entity.documentedResponseSchema.properties.containsKey("items"),
+          false);
+      expect(entity.documentedResponseSchema.properties.containsKey("manager"),
+          false);
     });
 
     test("includes belongsTo relationships", () {
@@ -261,8 +290,13 @@ void main() {
       expect(entity.documentedResponseSchema.properties["user"], isNotNull);
 
       // Make sure that only primary key is included
-      expect(entity.documentedResponseSchema.properties["user"].properties["id"], isNotNull);
-      expect(entity.documentedResponseSchema.properties["user"].properties.containsKey("username"), false);
+      expect(
+          entity.documentedResponseSchema.properties["user"].properties["id"],
+          isNotNull);
+      expect(
+          entity.documentedResponseSchema.properties["user"].properties
+              .containsKey("username"),
+          false);
     });
   });
 }
@@ -271,6 +305,7 @@ class User extends ManagedObject<_User> implements _User {
   @managedTransientAttribute
   String stringID;
 }
+
 class _User {
   @managedPrimaryKey
   int id;
@@ -278,7 +313,12 @@ class _User {
   String username;
   bool flag;
 
-  @ManagedColumnAttributes(nullable: true, defaultValue: "'now()'", unique: true, indexed: true, omitByDefault: true)
+  @ManagedColumnAttributes(
+      nullable: true,
+      defaultValue: "'now()'",
+      unique: true,
+      indexed: true,
+      omitByDefault: true)
   DateTime loadedTimestamp;
 
   ManagedSet<Item> items;
@@ -287,15 +327,18 @@ class _User {
 }
 
 class Item extends ManagedObject<_Item> implements _Item {}
+
 class _Item {
   @ManagedColumnAttributes(primaryKey: true)
   String name;
 
-  @ManagedRelationship(#items, onDelete: ManagedRelationshipDeleteRule.cascade, isRequired: true)
+  @ManagedRelationship(#items,
+      onDelete: ManagedRelationshipDeleteRule.cascade, isRequired: true)
   User user;
 }
 
 class Manager extends ManagedObject<_Manager> implements _Manager {}
+
 class _Manager {
   @managedPrimaryKey
   int id;
@@ -307,6 +350,7 @@ class _Manager {
 }
 
 class Owner extends ManagedObject<_Owner> implements _Owner {}
+
 class _Owner {
   @managedPrimaryKey
   int id;
@@ -314,16 +358,20 @@ class _Owner {
   FailingChild gen;
 }
 
-class FailingChild extends ManagedObject<_FailingChild> implements _FailingChild {}
+class FailingChild extends ManagedObject<_FailingChild>
+    implements _FailingChild {}
+
 class _FailingChild {
   @managedPrimaryKey
   int id;
 
-  @ManagedRelationship(#gen, onDelete: ManagedRelationshipDeleteRule.nullify, isRequired: true)
+  @ManagedRelationship(#gen,
+      onDelete: ManagedRelationshipDeleteRule.nullify, isRequired: true)
   Owner ref;
 }
 
-class TransientTest extends ManagedObject<_TransientTest> implements _TransientTest {
+class TransientTest extends ManagedObject<_TransientTest>
+    implements _TransientTest {
   String notAnAttribute;
 
   @managedTransientOutputAttribute
@@ -339,13 +387,15 @@ class TransientTest extends ManagedObject<_TransientTest> implements _TransientT
     text = s;
   }
 
-  @managedTransientOutputAttribute String get outputOnly => text;
+  @managedTransientOutputAttribute
+  String get outputOnly => text;
   void set outputOnly(String s) {
     text = s;
   }
 
   // This is intentionally invalid
-  @managedTransientInputAttribute String get invalidInput => text;
+  @managedTransientInputAttribute
+  String get invalidInput => text;
 
   // This is intentionally invalid
   @managedTransientOutputAttribute
@@ -353,18 +403,23 @@ class TransientTest extends ManagedObject<_TransientTest> implements _TransientT
     text = s;
   }
 
-  @managedTransientAttribute String get bothButOnlyOnOne => text;
+  @managedTransientAttribute
+  String get bothButOnlyOnOne => text;
   void set bothButOnlyOnOne(String s) {
     text = s;
   }
 
-  @managedTransientInputAttribute int inputInt;
+  @managedTransientInputAttribute
+  int inputInt;
 
-  @managedTransientOutputAttribute int outputInt;
+  @managedTransientOutputAttribute
+  int outputInt;
 
-  @managedTransientAttribute int inOut;
+  @managedTransientAttribute
+  int inOut;
 
-  @managedTransientAttribute String get bothOverQualified => text;
+  @managedTransientAttribute
+  String get bothOverQualified => text;
   @managedTransientAttribute
   void set bothOverQualified(String s) {
     text = s;
@@ -372,28 +427,36 @@ class TransientTest extends ManagedObject<_TransientTest> implements _TransientT
 }
 
 class _TransientTest {
-  @managedPrimaryKey int id;
+  @managedPrimaryKey
+  int id;
 
   String text;
 }
 
-class NoPrimaryKey extends ManagedObject<_NoPrimaryKey> implements _NoPrimaryKey {
-}
+class NoPrimaryKey extends ManagedObject<_NoPrimaryKey>
+    implements _NoPrimaryKey {}
+
 class _NoPrimaryKey {
   String foo;
 }
 
-class InvalidModel extends ManagedObject<_InvalidModel> implements _InvalidModel {}
+class InvalidModel extends ManagedObject<_InvalidModel>
+    implements _InvalidModel {}
+
 class _InvalidModel {
-  @managedPrimaryKey int id;
+  @managedPrimaryKey
+  int id;
 
   Uri uri;
 }
 
-class InvalidTransientModel extends ManagedObject<_InvalidTransientModel> implements _InvalidTransientModel {
+class InvalidTransientModel extends ManagedObject<_InvalidTransientModel>
+    implements _InvalidTransientModel {
   @managedTransientAttribute
   Uri uri;
 }
+
 class _InvalidTransientModel {
-  @managedPrimaryKey int id;
+  @managedPrimaryKey
+  int id;
 }

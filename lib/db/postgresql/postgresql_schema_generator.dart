@@ -4,11 +4,14 @@ class _PostgreSQLSchemaGenerator {
   String get _versionTableName => "_aqueduct_version_pgsql";
 
   List<String> createTable(SchemaTable table, {bool isTemporary: false}) {
-    var columnString = table.columns.map((col) => _columnStringForColumn(col)).join(",");
-    var tableCommand = "CREATE${isTemporary ? " TEMPORARY " : " "}TABLE ${table.name} (${columnString})";
+    var columnString =
+        table.columns.map((col) => _columnStringForColumn(col)).join(",");
+    var tableCommand =
+        "CREATE${isTemporary ? " TEMPORARY " : " "}TABLE ${table.name} (${columnString})";
 
     var indexCommands = table.columns
-        .where((col) => col.isIndexed && !col.isPrimaryKey) // primary keys are auto-indexed
+        .where((col) =>
+            col.isIndexed && !col.isPrimaryKey) // primary keys are auto-indexed
         .map((col) => addIndexToColumn(table, col))
         .expand((commands) => commands);
 
@@ -17,7 +20,11 @@ class _PostgreSQLSchemaGenerator {
         .map((col) => _addConstraintsForColumn(table.name, col))
         .expand((commands) => commands);
 
-    return [[tableCommand], indexCommands, constraintCommands].expand((cmds) => cmds).toList();
+    return [
+      [tableCommand],
+      indexCommands,
+      constraintCommands
+    ].expand((cmds) => cmds).toList();
   }
 
   List<String> renameTable(SchemaTable table, String name) {
@@ -51,17 +58,22 @@ class _PostgreSQLSchemaGenerator {
     ];
   }
 
-  List<String> renameColumn(SchemaTable table, SchemaColumn column, String name) {
+  List<String> renameColumn(
+      SchemaTable table, SchemaColumn column, String name) {
     // Must rename indices, constraints, etc.
     throw new UnsupportedError("renameColumn is not yet supported.");
   }
 
-  List<String> alterColumnNullability(SchemaTable table, SchemaColumn column, String unencodedInitialValue) {
+  List<String> alterColumnNullability(
+      SchemaTable table, SchemaColumn column, String unencodedInitialValue) {
     if (column.isNullable) {
-      return ["ALTER TABLE ${table.name} ALTER COLUMN ${_columnNameForColumn(column)} DROP NOT NULL"];
+      return [
+        "ALTER TABLE ${table.name} ALTER COLUMN ${_columnNameForColumn(column)} DROP NOT NULL"
+      ];
     } else {
       if (unencodedInitialValue == null) {
-        throw new SchemaException("Attempting to change column ${column.name} to 'not nullable', but no value specified to set values that are currently null in the database to avoid violating that constraint change.");
+        throw new SchemaException(
+            "Attempting to change column ${column.name} to 'not nullable', but no value specified to set values that are currently null in the database to avoid violating that constraint change.");
       }
       return [
         "UPDATE ${table.name} SET ${_columnNameForColumn(column)}=${unencodedInitialValue} WHERE ${_columnNameForColumn(column)} IS NULL",
@@ -74,21 +86,28 @@ class _PostgreSQLSchemaGenerator {
     if (column.isUnique) {
       return ["ALTER TABLE ${table.name} ADD UNIQUE (${column.name})"];
     } else {
-      return ["ALTER TABLE ${table.name} DROP CONSTRAINT ${_uniqueKeyName(table.name, column)}"];
+      return [
+        "ALTER TABLE ${table.name} DROP CONSTRAINT ${_uniqueKeyName(table.name, column)}"
+      ];
     }
   }
 
   List<String> alterColumnDefaultValue(SchemaTable table, SchemaColumn column) {
     if (column.defaultValue != null) {
-      return ["ALTER TABLE ${table.name} ALTER COLUMN ${_columnNameForColumn(column)} SET DEFAULT ${column.defaultValue}"];
+      return [
+        "ALTER TABLE ${table.name} ALTER COLUMN ${_columnNameForColumn(column)} SET DEFAULT ${column.defaultValue}"
+      ];
     } else {
-      return ["ALTER TABLE ${table.name} ALTER COLUMN ${_columnNameForColumn(column)} DROP DEFAULT"];
+      return [
+        "ALTER TABLE ${table.name} ALTER COLUMN ${_columnNameForColumn(column)} DROP DEFAULT"
+      ];
     }
   }
 
   List<String> alterColumnDeleteRule(SchemaTable table, SchemaColumn column) {
     var allCommands = <String>[];
-    allCommands.add("ALTER TABLE ONLY ${table.name} DROP CONSTRAINT ${_foreignKeyName(table.name, column)}");
+    allCommands.add(
+        "ALTER TABLE ONLY ${table.name} DROP CONSTRAINT ${_foreignKeyName(table.name, column)}");
     allCommands.addAll(_addConstraintsForColumn(table.name, column));
     return allCommands;
   }
@@ -99,17 +118,14 @@ class _PostgreSQLSchemaGenerator {
     ];
   }
 
-  List<String> renameIndex(SchemaTable table, SchemaColumn column, String newIndexName) {
+  List<String> renameIndex(
+      SchemaTable table, SchemaColumn column, String newIndexName) {
     var existingIndexName = _indexNameForColumn(table.name, column);
-    return [
-      "ALTER INDEX $existingIndexName RENAME TO $newIndexName"
-    ];
+    return ["ALTER INDEX $existingIndexName RENAME TO $newIndexName"];
   }
 
   List<String> deleteIndexFromColumn(SchemaTable table, SchemaColumn column) {
-    return [
-      "DROP INDEX ${_indexNameForColumn(table.name, column)}"
-    ];
+    return ["DROP INDEX ${_indexNameForColumn(table.name, column)}"];
   }
 
   ////
@@ -176,18 +192,22 @@ class _PostgreSQLSchemaGenerator {
 
   String _postgreSQLTypeForColumn(SchemaColumn t) {
     switch (t._type) {
-      case "integer": {
-        if (t.autoincrement) {
-          return "SERIAL";
+      case "integer":
+        {
+          if (t.autoincrement) {
+            return "SERIAL";
+          }
+          return "INT";
         }
-        return "INT";
-      } break;
-      case "bigInteger": {
-        if (t.autoincrement) {
-          return "BIGSERIAL";
+        break;
+      case "bigInteger":
+        {
+          if (t.autoincrement) {
+            return "BIGSERIAL";
+          }
+          return "BIGINT";
         }
-        return "BIGINT";
-      } break;
+        break;
       case "string":
         return "TEXT";
       case "datetime":
@@ -205,8 +225,14 @@ class _PostgreSQLSchemaGenerator {
     return new SchemaTable.empty()
       ..name = _versionTableName
       ..columns = [
-        (new SchemaColumn.empty()..name = "versionNumber".._type = SchemaColumn.typeStringForType(ManagedPropertyType.integer)),
-        (new SchemaColumn.empty()..name = "dateOfUpgrade".._type = SchemaColumn.typeStringForType(ManagedPropertyType.datetime)),
+        (new SchemaColumn.empty()
+          ..name = "versionNumber"
+          .._type =
+              SchemaColumn.typeStringForType(ManagedPropertyType.integer)),
+        (new SchemaColumn.empty()
+          ..name = "dateOfUpgrade"
+          .._type =
+              SchemaColumn.typeStringForType(ManagedPropertyType.datetime)),
       ];
   }
 }

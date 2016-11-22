@@ -10,7 +10,10 @@ class SchemaTable {
     name = entity.tableName;
 
     var validProperties = entity.properties.values
-        .where((p) => (p is ManagedAttributeDescription && !p.isTransient) || (p is ManagedRelationshipDescription && p.relationshipType == ManagedRelationshipType.belongsTo))
+        .where((p) =>
+            (p is ManagedAttributeDescription && !p.isTransient) ||
+            (p is ManagedRelationshipDescription &&
+                p.relationshipType == ManagedRelationshipType.belongsTo))
         .toList();
 
     columns = validProperties
@@ -20,14 +23,17 @@ class SchemaTable {
 
   SchemaTable.from(SchemaTable otherTable) {
     name = otherTable.name;
-    columns = otherTable.columns.map((col) => new SchemaColumn.from(col)).toList();
+    columns =
+        otherTable.columns.map((col) => new SchemaColumn.from(col)).toList();
   }
 
   SchemaTable.empty();
 
   SchemaTable.fromMap(Map<String, dynamic> map) {
     name = map["name"];
-    columns = (map["columns"] as List<Map<String, dynamic>>).map((c) => new SchemaColumn.fromMap(c)).toList();
+    columns = (map["columns"] as List<Map<String, dynamic>>)
+        .map((c) => new SchemaColumn.fromMap(c))
+        .toList();
   }
 
   String name;
@@ -42,14 +48,18 @@ class SchemaTable {
     var matches = true;
 
     for (var receiverColumn in columns) {
-      var matchingArgColumn = table.columns.firstWhere((st) => st.name == receiverColumn.name, orElse: () => null);
+      var matchingArgColumn = table.columns.firstWhere(
+          (st) => st.name == receiverColumn.name,
+          orElse: () => null);
       if (matchingArgColumn == null) {
         matches = false;
-        reasons?.add("Compared table ${table.name} does not contain ${receiverColumn.name}, but that column exists in receiver schema.");
+        reasons?.add(
+            "Compared table ${table.name} does not contain ${receiverColumn.name}, but that column exists in receiver schema.");
       } else {
         var columnReasons = <String>[];
         if (!receiverColumn.matches(matchingArgColumn, columnReasons)) {
-          reasons?.addAll(columnReasons.map((reason) => reason.replaceAll("\$table", table.name)));
+          reasons?.addAll(columnReasons
+              .map((reason) => reason.replaceAll("\$table", table.name)));
           matches = false;
         }
       }
@@ -61,7 +71,8 @@ class SchemaTable {
       table.columns
           .where((st) => !receiverColumnNames.contains(st.name))
           .forEach((st) {
-        reasons?.add("Receiver table ${table.name} does not contain ${st.name}, but that column exists in compared table.");
+        reasons?.add(
+            "Receiver table ${table.name} does not contain ${st.name}, but that column exists in compared table.");
       });
     }
 
@@ -98,7 +109,8 @@ class SchemaTable {
   void removeColumn(SchemaColumn column) {
     column = columnForName(column.name);
     if (column == null) {
-      throw new SchemaException("Column ${column.name} does not exist on ${name}.");
+      throw new SchemaException(
+          "Column ${column.name} does not exist on ${name}.");
     }
 
     columns.remove(column);
@@ -107,7 +119,8 @@ class SchemaTable {
   void _replaceColumn(SchemaColumn existingColumn, SchemaColumn newColumn) {
     existingColumn = columnForName(existingColumn.name);
     if (existingColumn == null) {
-      throw new SchemaException("Column ${existingColumn.name} does not exist on ${name}.");
+      throw new SchemaException(
+          "Column ${existingColumn.name} does not exist on ${name}.");
     }
 
     var index = columns.indexOf(existingColumn);
@@ -116,14 +129,12 @@ class SchemaTable {
 
   SchemaColumn columnForName(String name) {
     var lowercaseName = name.toLowerCase();
-    return columns.firstWhere((col) => col.name.toLowerCase() == lowercaseName, orElse: () => null);
+    return columns.firstWhere((col) => col.name.toLowerCase() == lowercaseName,
+        orElse: () => null);
   }
 
   Map<String, dynamic> asMap() {
-    return {
-      "name" : name,
-      "columns" : columns.map((c) => c.asMap()).toList()
-    };
+    return {"name": name, "columns": columns.map((c) => c.asMap()).toList()};
   }
 
   String toString() => name;

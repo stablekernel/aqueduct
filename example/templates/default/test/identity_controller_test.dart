@@ -12,7 +12,10 @@ Future main() async {
       await app.start();
 
       var req = app.client.clientAuthenticatedRequest("/register")
-        ..json = {"email": "bob@stablekernel.com", "password": "foobaraxegrind12%"};
+        ..json = {
+          "email": "bob@stablekernel.com",
+          "password": "foobaraxegrind12%"
+        };
       app.client.defaultAccessToken = (await req.post()).asMap["access_token"];
     });
 
@@ -28,9 +31,7 @@ Future main() async {
       var req = app.client.authenticatedRequest("/identity");
       var result = await req.get();
 
-      expect(result, hasResponse(200, partial({
-        "id": greaterThan(0)
-      })));
+      expect(result, hasResponse(200, partial({"id": greaterThan(0)})));
     });
   });
 }

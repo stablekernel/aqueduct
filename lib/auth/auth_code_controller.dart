@@ -8,7 +8,9 @@ class AuthCodeController extends HTTPController {
   ///
   /// By default, an [AuthCodeController] has only one [acceptedContentTypes] - 'application/x-www-form-urlencoded'.
   AuthCodeController(this.authenticationServer) {
-    acceptedContentTypes = [new ContentType("application", "x-www-form-urlencoded")];
+    acceptedContentTypes = [
+      new ContentType("application", "x-www-form-urlencoded")
+    ];
   }
 
   /// A reference to the [AuthServer] this controller uses to grant authorization codes.
@@ -21,18 +23,20 @@ class AuthCodeController extends HTTPController {
   /// for the client to ensure it is receiving a response from the expected endpoint.
   @httpPost
   Future<Response> authorize(
-    @HTTPQuery("client_id") String clientID,
-    @HTTPQuery("username") String username,
-    @HTTPQuery("password") String password, {
-      @HTTPQuery("state") String state
-    }) async {
-    var authCode = await authenticationServer.createAuthCode(username, password, clientID);
+      @HTTPQuery("client_id") String clientID,
+      @HTTPQuery("username") String username,
+      @HTTPQuery("password") String password,
+      {@HTTPQuery("state") String state}) async {
+    var authCode =
+        await authenticationServer.createAuthCode(username, password, clientID);
     return AuthCodeController.authCodeResponse(authCode, state);
   }
 
-  static Response authCodeResponse(AuthTokenExchangable authCode, String clientState) {
+  static Response authCodeResponse(
+      AuthTokenExchangable authCode, String clientState) {
     var redirectURI = Uri.parse(authCode.redirectURI);
-    Map<String, String> queryParameters = new Map.from(redirectURI.queryParameters);
+    Map<String, String> queryParameters =
+        new Map.from(redirectURI.queryParameters);
     queryParameters["code"] = authCode.code;
     if (clientState != null) {
       queryParameters["state"] = clientState;
@@ -44,9 +48,15 @@ class AuthCodeController extends HTTPController {
         host: redirectURI.host,
         port: redirectURI.port,
         path: redirectURI.path,
-        queryParameters: queryParameters
-    );
-    return new Response(HttpStatus.MOVED_TEMPORARILY, {"Location": responseURI.toString(), "Cache-Control": "no-store", "Pragma": "no-cache"}, null);
+        queryParameters: queryParameters);
+    return new Response(
+        HttpStatus.MOVED_TEMPORARILY,
+        {
+          "Location": responseURI.toString(),
+          "Cache-Control": "no-store",
+          "Pragma": "no-cache"
+        },
+        null);
   }
 
   @override
@@ -59,7 +69,8 @@ class AuthCodeController extends HTTPController {
           ..description = "Successfully issued an authorization code.",
         new APIResponse()
           ..statusCode = HttpStatus.BAD_REQUEST
-          ..description = "Missing one or more of: 'client_id', 'username', 'password'.",
+          ..description =
+              "Missing one or more of: 'client_id', 'username', 'password'.",
         new APIResponse()
           ..statusCode = HttpStatus.UNAUTHORIZED
           ..description = "Not authorized",

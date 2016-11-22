@@ -17,7 +17,6 @@ part of aqueduct;
   limitations under the License.
  */
 
-
 /// Instances of this type perform one-way cryptographic hashing using the PBKDF2 algorithm.
 class PBKDF2 {
   Hash hashAlgorithm;
@@ -52,7 +51,8 @@ class PBKDF2 {
     return key;
   }
 
-  List<int> _computeBlock(String password, String salt, int iterations, int blockNumber) {
+  List<int> _computeBlock(
+      String password, String salt, int iterations, int blockNumber) {
     var input = <int>[];
     input.addAll(salt.codeUnits);
     _writeBlockNumber(input, blockNumber);

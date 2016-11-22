@@ -32,7 +32,8 @@ main() {
     });
 
     test("Application gzips content", () async {
-      var resp = await http.get("http://localhost:8080/t", headers: {"Accept-Encoding" : "gzip"});
+      var resp = await http
+          .get("http://localhost:8080/t", headers: {"Accept-Encoding": "gzip"});
       expect(resp.headers["content-encoding"], "gzip");
     });
 
@@ -55,31 +56,39 @@ main() {
   });
 
   group("Failure", () {
-    test("Application (on main thread) start fails and logs appropriate message if request stream doesn't open", () async {
+    test(
+        "Application (on main thread) start fails and logs appropriate message if request stream doesn't open",
+        () async {
       var crashingApp = new Application<CrashingTestSink>();
 
       try {
-        crashingApp.configuration.configurationOptions = {"crashIn" : "constructor"};
+        crashingApp.configuration.configurationOptions = {
+          "crashIn": "constructor"
+        };
         await crashingApp.start(runOnMainIsolate: true);
       } catch (e) {
         expect(e.message, "constructor");
       }
 
       try {
-        crashingApp.configuration.configurationOptions = {"crashIn" : "addRoutes"};
+        crashingApp.configuration.configurationOptions = {
+          "crashIn": "addRoutes"
+        };
         await crashingApp.start(runOnMainIsolate: true);
       } catch (e) {
         expect(e.message, "addRoutes");
       }
 
       try {
-        crashingApp.configuration.configurationOptions = {"crashIn" : "willOpen"};
+        crashingApp.configuration.configurationOptions = {
+          "crashIn": "willOpen"
+        };
         await crashingApp.start(runOnMainIsolate: true);
       } catch (e) {
         expect(e.message, "willOpen");
       }
 
-      crashingApp.configuration.configurationOptions = {"crashIn" : "dontCrash"};
+      crashingApp.configuration.configurationOptions = {"crashIn": "dontCrash"};
       await crashingApp.start(runOnMainIsolate: true);
       var response = await http.get("http://localhost:8080/t");
       expect(response.statusCode, 200);
@@ -132,7 +141,6 @@ class TestSink extends RequestSink {
   void setupRouter(Router router) {
     router.route("/t").generate(() => new TController());
     router.route("/r").generate(() => new RController());
-
   }
 }
 

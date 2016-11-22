@@ -50,7 +50,8 @@ class RequestController extends Object with APIDocumentable {
   RequestController pipe(RequestController n) {
     var typeMirror = reflect(n).type;
     if (_requestControllerTypeRequiresInstantion(typeMirror)) {
-      throw new ApplicationSupervisorException("RequestController subclass ${typeMirror.reflectedType} instances cannot be reused. Rewrite as .generate(() => new ${typeMirror.reflectedType}())");
+      throw new ApplicationSupervisorException(
+          "RequestController subclass ${typeMirror.reflectedType} instances cannot be reused. Rewrite as .generate(() => new ${typeMirror.reflectedType}())");
     }
     this.nextController = n;
 
@@ -84,15 +85,19 @@ class RequestController extends Object with APIDocumentable {
   /// This method returns a [RequestController] that further [RequestController]s can be chained to.
   ///
   /// See also [generate] and [pipe].
-  RequestController listen(Future<RequestControllerEvent> requestControllerFunction(Request request)) {
+  RequestController listen(
+      Future<RequestControllerEvent> requestControllerFunction(
+          Request request)) {
     var controller = new RequestController()
-        .._listener = requestControllerFunction;
+      .._listener = requestControllerFunction;
     this.nextController = controller;
     return controller;
   }
 
   bool _requestControllerTypeRequiresInstantion(ClassMirror mirror) {
-    if (mirror.metadata.firstWhere((im) => im.reflectee is _RequiresInstantion, orElse: () => null) != null) {
+    if (mirror.metadata.firstWhere((im) => im.reflectee is _RequiresInstantion,
+            orElse: () => null) !=
+        null) {
       return true;
     }
     if (mirror.isSubtypeOf(reflectType(RequestController))) {
@@ -181,22 +186,34 @@ class RequestController extends Object with APIDocumentable {
         _applyCORSHeadersIfNecessary(request, response);
         request.respond(response);
 
-        logger.info("${request.toDebugString(includeHeaders: true, includeBody: true)}");
-      } else if (caughtValue is QueryException && caughtValue.event != QueryExceptionEvent.internalFailure) {
+        logger.info(
+            "${request.toDebugString(includeHeaders: true, includeBody: true)}");
+      } else if (caughtValue is QueryException &&
+          caughtValue.event != QueryExceptionEvent.internalFailure) {
         // Note that if the event is an internal failure, this code is skipped and the 500 handler is executed.
         var statusCode = 500;
-        switch(caughtValue.event) {
-          case QueryExceptionEvent.requestFailure: statusCode = 400; break;
-          case QueryExceptionEvent.internalFailure: statusCode = 500; break;
-          case QueryExceptionEvent.connectionFailure: statusCode = 503; break;
-          case QueryExceptionEvent.conflict: statusCode = 409; break;
+        switch (caughtValue.event) {
+          case QueryExceptionEvent.requestFailure:
+            statusCode = 400;
+            break;
+          case QueryExceptionEvent.internalFailure:
+            statusCode = 500;
+            break;
+          case QueryExceptionEvent.connectionFailure:
+            statusCode = 503;
+            break;
+          case QueryExceptionEvent.conflict:
+            statusCode = 409;
+            break;
         }
 
-        var response = new Response(statusCode, null, {"error" : caughtValue.toString()});
+        var response =
+            new Response(statusCode, null, {"error": caughtValue.toString()});
         _applyCORSHeadersIfNecessary(request, response);
         request.respond(response);
 
-        logger.info("${request.toDebugString(includeHeaders: true, includeBody: true)}");
+        logger.info(
+            "${request.toDebugString(includeHeaders: true, includeBody: true)}");
       } else {
         var body = null;
         if (includeErrorDetailsInServerErrorResponses) {
@@ -206,15 +223,17 @@ class RequestController extends Object with APIDocumentable {
           };
         }
 
-        var response = new Response.serverError(headers: {
-          HttpHeaders.CONTENT_TYPE : ContentType.JSON
-        }, body: body);
+        var response = new Response.serverError(
+            headers: {HttpHeaders.CONTENT_TYPE: ContentType.JSON}, body: body);
 
         _applyCORSHeadersIfNecessary(request, response);
         request.respond(response);
 
-        logger.severe("${request.toDebugString(includeHeaders: true, includeBody: true)}", caughtValue, trace);
-        }
+        logger.severe(
+            "${request.toDebugString(includeHeaders: true, includeBody: true)}",
+            caughtValue,
+            trace);
+      }
     } catch (_) {}
   }
 
@@ -249,6 +268,7 @@ class RequestController extends Object with APIDocumentable {
 ///
 ///       router.route("/path").generate(() => new RequestControllerSubclass());
 const _RequiresInstantion cannotBeReused = const _RequiresInstantion();
+
 class _RequiresInstantion {
   const _RequiresInstantion();
 }
@@ -273,6 +293,7 @@ class _RequestControllerGenerator extends RequestController {
   CORSPolicy get policy {
     return instantiate().policy;
   }
+
   void set policy(CORSPolicy p) {
     _policyOverride = p;
   }
@@ -283,14 +304,19 @@ class _RequestControllerGenerator extends RequestController {
   }
 
   @override
-  APIDocument documentAPI(PackagePathResolver resolver) => instantiate().documentAPI(resolver);
+  APIDocument documentAPI(PackagePathResolver resolver) =>
+      instantiate().documentAPI(resolver);
 
   @override
-  List<APIPath> documentPaths(PackagePathResolver resolver) => instantiate().documentPaths(resolver);
+  List<APIPath> documentPaths(PackagePathResolver resolver) =>
+      instantiate().documentPaths(resolver);
 
   @override
-  List<APIOperation> documentOperations(PackagePathResolver resolver) => instantiate().documentOperations(resolver);
+  List<APIOperation> documentOperations(PackagePathResolver resolver) =>
+      instantiate().documentOperations(resolver);
 
   @override
-  Map<String, APISecurityScheme> documentSecuritySchemes(PackagePathResolver resolver) => instantiate().documentSecuritySchemes(resolver);
+  Map<String, APISecurityScheme> documentSecuritySchemes(
+          PackagePathResolver resolver) =>
+      instantiate().documentSecuritySchemes(resolver);
 }

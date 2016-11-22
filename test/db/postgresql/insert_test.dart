@@ -28,7 +28,8 @@ void main() {
       await insertReq.insert();
       successful = true;
     } on QueryException catch (e) {
-      expect(e.toString(), "Property bad_key in values does not exist on simple");
+      expect(
+          e.toString(), "Property bad_key in values does not exist on simple");
       expect(e.event, QueryExceptionEvent.requestFailure);
     }
     expect(successful, false);
@@ -93,7 +94,8 @@ void main() {
     var result = await insertReq.insert();
 
     var readReq = new Query<TestModel>()
-      ..predicate = new QueryPredicate("emailAddress = @email", {"email": "2@a.com"});
+      ..predicate =
+          new QueryPredicate("emailAddress = @email", {"email": "2@a.com"});
 
     result = await readReq.fetchOne();
     expect(result.name, "bob");
@@ -117,7 +119,9 @@ void main() {
     expect(successful, false);
   });
 
-  test("Inserting an object via a values map works and returns appropriate object", () async {
+  test(
+      "Inserting an object via a values map works and returns appropriate object",
+      () async {
     context = await contextWithModels([TestModel]);
 
     var insertReq = new Query<TestModel>()
@@ -145,15 +149,13 @@ void main() {
     context = await contextWithModels([GenUser, GenPost]);
 
     var u = new GenUser()..name = "Joe";
-    var q = new Query<GenUser>()
-      ..values = u;
+    var q = new Query<GenUser>()..values = u;
     u = await q.insert();
 
     var p = new GenPost()
       ..owner = u
       ..text = "1";
-    var pq = new Query<GenPost>()
-      ..values = p;
+    var pq = new Query<GenPost>()..values = p;
     p = await pq.insert();
 
     expect(p.id, greaterThan(0));
@@ -170,7 +172,8 @@ void main() {
     var result = await q.insert();
 
     expect(result.dateCreated is DateTime, true);
-    expect(result.dateCreated.difference(new DateTime.now()).inSeconds <= 0, true);
+    expect(
+        result.dateCreated.difference(new DateTime.now()).inSeconds <= 0, true);
   });
 
   test("Transient values work correctly", () async {
@@ -187,17 +190,15 @@ void main() {
     context = await contextWithModels([GenUser, GenPost]);
 
     var json = {
-      "name" : "Bob",
-      "posts" : [
-        {"text" : "Post"}
+      "name": "Bob",
+      "posts": [
+        {"text": "Post"}
       ]
     };
 
-    var u = new GenUser()
-      ..readMap(json);
+    var u = new GenUser()..readMap(json);
 
-    var q = new Query<GenUser>()
-      ..values = u;
+    var q = new Query<GenUser>()..values = u;
 
     var result = await q.insert();
     expect(result.id, greaterThan(0));
@@ -210,6 +211,7 @@ void main() {
 }
 
 class TestModel extends ManagedObject<_TestModel> implements _TestModel {}
+
 class _TestModel {
   @managedPrimaryKey
   int id;
@@ -225,6 +227,7 @@ class _TestModel {
 }
 
 class GenUser extends ManagedObject<_GenUser> implements _GenUser {}
+
 class _GenUser {
   @managedPrimaryKey
   int id;
@@ -234,6 +237,7 @@ class _GenUser {
 }
 
 class GenPost extends ManagedObject<_GenPost> implements _GenPost {}
+
 class _GenPost {
   @managedPrimaryKey
   int id;

@@ -32,7 +32,8 @@ part of aqueduct;
 /// pageAfter (string): indicates the page value and direction of the paging. pageBy must also be set. See [QueryPage] for more information.
 /// pagePrior (string): indicates the page value and direction of the paging. pageBy must also be set. See [QueryPage] for more information.
 /// sortBy (string): indicates the sort order. The syntax is 'sortBy=key,order' where key is a property of [InstanceType] and order is either 'asc' or 'desc'. You may specify multiple sortBy parameters.
-class ManagedObjectController<InstanceType extends ManagedObject> extends HTTPController {
+class ManagedObjectController<InstanceType extends ManagedObject>
+    extends HTTPController {
   /// Returns a route pattern for using [ManagedObjectController]s.
   ///
   /// Returns the string "/$name/[:id]", to be used as a route pattern in a [Router] for instances of [ResourceController] and subclasses.
@@ -55,7 +56,8 @@ class ManagedObjectController<InstanceType extends ManagedObject> extends HTTPCo
   /// is equal to the first path argument in the [Request]. You may also return a new [Query],
   /// but it must have the same [InstanceType] as this controller. If you return null from this method, no [Query] will be executed
   /// and [didNotFindObject] will immediately be called.
-  Future<Query<InstanceType>> willFindObjectWithQuery(Query<InstanceType> query) async {
+  Future<Query<InstanceType>> willFindObjectWithQuery(
+      Query<InstanceType> query) async {
     return query;
   }
 
@@ -74,9 +76,11 @@ class ManagedObjectController<InstanceType extends ManagedObject> extends HTTPCo
     return new Response.notFound();
   }
 
-  @httpGet getObject(@HTTPPath("id") String id) async {
+  @httpGet
+  getObject(@HTTPPath("id") String id) async {
     var primaryKey = _query.entity.primaryKey;
-    _query.matchOn[primaryKey] = whereEqualTo(_parseValueForProperty(id, _query.entity.properties[primaryKey]));
+    _query.matchOn[primaryKey] = whereEqualTo(
+        _parseValueForProperty(id, _query.entity.properties[primaryKey]));
 
     _query = await willFindObjectWithQuery(_query);
 
@@ -94,7 +98,8 @@ class ManagedObjectController<InstanceType extends ManagedObject> extends HTTPCo
   /// You may modify the [query] prior to its execution in this method. You may also return a new [Query],
   /// but it must have the same type argument as this controller. If you return null from this method,
   /// no values will be inserted and [didInsertObject] will immediately be called with the value null.
-  Future<Query<InstanceType>> willInsertObjectWithQuery(Query<InstanceType> query) async {
+  Future<Query<InstanceType>> willInsertObjectWithQuery(
+      Query<InstanceType> query) async {
     return query;
   }
 
@@ -105,8 +110,10 @@ class ManagedObjectController<InstanceType extends ManagedObject> extends HTTPCo
     return new Response.ok(object);
   }
 
-  @httpPost createObject() async {
-    InstanceType instance = _query.entity.instanceType.newInstance(new Symbol(""), []).reflectee as InstanceType;
+  @httpPost
+  createObject() async {
+    InstanceType instance = _query.entity.instanceType
+        .newInstance(new Symbol(""), []).reflectee as InstanceType;
     instance.readMap(requestBody as Map<String, dynamic>);
     _query.values = instance;
 
@@ -121,7 +128,8 @@ class ManagedObjectController<InstanceType extends ManagedObject> extends HTTPCo
   /// You may modify the [query] prior to its execution in this method. You may also return a new [Query],
   /// but it must have the same type argument as this controller. If you return null from this method,
   /// no delete operation will be performed and [didNotFindObjectToDeleteWithID] will immediately be called with the value null.
-  Future<Query<InstanceType>> willDeleteObjectWithQuery(Query<InstanceType> query) async {
+  Future<Query<InstanceType>> willDeleteObjectWithQuery(
+      Query<InstanceType> query) async {
     return query;
   }
 
@@ -139,9 +147,11 @@ class ManagedObjectController<InstanceType extends ManagedObject> extends HTTPCo
     return new Response.notFound();
   }
 
-  @httpDelete deleteObject(@HTTPPath("id") String id) async {
+  @httpDelete
+  deleteObject(@HTTPPath("id") String id) async {
     var primaryKey = _query.entity.primaryKey;
-    _query.matchOn[primaryKey] = whereEqualTo(_parseValueForProperty(id, _query.entity.properties[primaryKey]));
+    _query.matchOn[primaryKey] = whereEqualTo(
+        _parseValueForProperty(id, _query.entity.properties[primaryKey]));
 
     _query = await willDeleteObjectWithQuery(_query);
 
@@ -159,7 +169,8 @@ class ManagedObjectController<InstanceType extends ManagedObject> extends HTTPCo
   /// You may modify the [query] prior to its execution in this method. You may also return a new [Query],
   /// but it must have the same type argument as this controller. If you return null from this method,
   /// no values will be inserted and [didNotFindObjectToUpdateWithID] will immediately be called with the value null.
-  Future<Query<InstanceType>> willUpdateObjectWithQuery(Query<InstanceType> query) async {
+  Future<Query<InstanceType>> willUpdateObjectWithQuery(
+      Query<InstanceType> query) async {
     return query;
   }
 
@@ -177,11 +188,14 @@ class ManagedObjectController<InstanceType extends ManagedObject> extends HTTPCo
     return new Response.notFound();
   }
 
-  @httpPut updateObject(@HTTPPath("id") String id) async {
+  @httpPut
+  updateObject(@HTTPPath("id") String id) async {
     var primaryKey = _query.entity.primaryKey;
-    _query.matchOn[primaryKey] = whereEqualTo(_parseValueForProperty(id, _query.entity.properties[primaryKey]));
+    _query.matchOn[primaryKey] = whereEqualTo(
+        _parseValueForProperty(id, _query.entity.properties[primaryKey]));
 
-    InstanceType instance = _query.entity.instanceType.newInstance(new Symbol(""), []).reflectee as InstanceType;
+    InstanceType instance = _query.entity.instanceType
+        .newInstance(new Symbol(""), []).reflectee as InstanceType;
     instance.readMap(requestBody as Map<String, dynamic>);
     _query.values = instance;
 
@@ -200,7 +214,8 @@ class ManagedObjectController<InstanceType extends ManagedObject> extends HTTPCo
   /// You may modify the [query] prior to its execution in this method. You may also return a new [Query],
   /// but it must have the same type argument as this controller. If you return null from this method,
   /// no objects will be fetched and [didFindObjects] will immediately be called with the value null.
-  Future<Query<InstanceType>> willFindObjectsWithQuery(Query<InstanceType> query) async {
+  Future<Query<InstanceType>> willFindObjectsWithQuery(
+      Query<InstanceType> query) async {
     return query;
   }
 
@@ -211,14 +226,14 @@ class ManagedObjectController<InstanceType extends ManagedObject> extends HTTPCo
     return new Response.ok(objects);
   }
 
-  @httpGet getObjects({
-    @HTTPQuery("count") int count: 0,
-    @HTTPQuery("offset") int offset: 0,
-    @HTTPQuery("pageBy") String pageBy: null,
-    @HTTPQuery("pageAfter") String pageAfter: null,
-    @HTTPQuery("pagePrior") String pagePrior: null,
-    @HTTPQuery("sortBy") List<String> sortBy: null
-  }) async {
+  @httpGet
+  getObjects(
+      {@HTTPQuery("count") int count: 0,
+      @HTTPQuery("offset") int offset: 0,
+      @HTTPQuery("pageBy") String pageBy: null,
+      @HTTPQuery("pageAfter") String pageAfter: null,
+      @HTTPQuery("pagePrior") String pagePrior: null,
+      @HTTPQuery("sortBy") List<String> sortBy: null}) async {
     _query.fetchLimit = count;
     _query.offset = offset;
 
@@ -232,31 +247,43 @@ class ManagedObjectController<InstanceType extends ManagedObject> extends HTTPCo
         direction = QuerySortOrder.descending;
         pageValue = pagePrior;
       } else {
-        return new Response.badRequest(body: {"error" : "If defining pageBy, either pageAfter or pagePrior must be defined. 'null' is a valid value"});
+        return new Response.badRequest(body: {
+          "error":
+              "If defining pageBy, either pageAfter or pagePrior must be defined. 'null' is a valid value"
+        });
       }
 
       var pageByProperty = _query.entity.properties[pageBy];
       if (pageByProperty == null) {
-        throw new HTTPResponseException(400, "pageBy key ${pageBy} does not exist for ${_query.entity.tableName}");
+        throw new HTTPResponseException(400,
+            "pageBy key ${pageBy} does not exist for ${_query.entity.tableName}");
       }
 
       pageValue = _parseValueForProperty(pageValue, pageByProperty);
-      _query.pageDescriptor = new QueryPage(direction, pageBy, boundingValue: pageValue == "null" ? null : pageValue);
+      _query.pageDescriptor = new QueryPage(direction, pageBy,
+          boundingValue: pageValue == "null" ? null : pageValue);
     }
 
     if (sortBy != null) {
       _query.sortDescriptors = sortBy.map((sort) {
         var split = sort.split(",").map((str) => str.trim()).toList();
         if (split.length != 2) {
-          throw new HTTPResponseException(500, "sortBy keys must be string pairs delimited by a comma: key,asc or key,desc");
+          throw new HTTPResponseException(500,
+              "sortBy keys must be string pairs delimited by a comma: key,asc or key,desc");
         }
         if (_query.entity.properties[split.first] == null) {
-          throw new HTTPResponseException(400, "sortBy key ${split.first} does not exist for ${_query.entity.tableName}");
+          throw new HTTPResponseException(400,
+              "sortBy key ${split.first} does not exist for ${_query.entity.tableName}");
         }
         if (split.last != "asc" && split.last != "desc") {
-          throw new HTTPResponseException(400, "sortBy order must be either asc or desc, not ${split.last}");
+          throw new HTTPResponseException(400,
+              "sortBy order must be either asc or desc, not ${split.last}");
         }
-        return new QuerySortDescriptor(split.first, split.last == "asc" ? QuerySortOrder.ascending : QuerySortOrder.descending);
+        return new QuerySortDescriptor(
+            split.first,
+            split.last == "asc"
+                ? QuerySortOrder.ascending
+                : QuerySortOrder.descending);
       }).toList();
     }
 
@@ -267,19 +294,19 @@ class ManagedObjectController<InstanceType extends ManagedObject> extends HTTPCo
     return await didFindObjects(results);
   }
 
-
   @override
   APIRequestBody documentRequestBodyForOperation(APIOperation operation) {
     var req = new APIRequestBody()
-        ..required = true
-        ..description = "Request Body"
-        ..schema = ManagedContext.defaultContext.entityForType(InstanceType).documentedRequestSchema;
+      ..required = true
+      ..description = "Request Body"
+      ..schema = ManagedContext.defaultContext
+          .entityForType(InstanceType)
+          .documentedRequestSchema;
 
-    if (operation.id == APIOperation.idForMethod(this, #createObject)) {
-
-    } else if (operation.id == APIOperation.idForMethod(this, #updateObject)) {
-
-    } else {
+    if (operation.id ==
+        APIOperation.idForMethod(this, #createObject)) {} else if (operation
+            .id ==
+        APIOperation.idForMethod(this, #updateObject)) {} else {
       return null;
     }
 
@@ -289,12 +316,14 @@ class ManagedObjectController<InstanceType extends ManagedObject> extends HTTPCo
   @override
   List<APIResponse> documentResponsesForOperation(APIOperation operation) {
     var responses = super.documentResponsesForOperation(operation);
-    if(operation.id == APIOperation.idForMethod(this, #getObject)) {
+    if (operation.id == APIOperation.idForMethod(this, #getObject)) {
       responses.addAll([
         new APIResponse()
           ..statusCode = HttpStatus.OK
           ..description = ""
-          ..schema = ManagedContext.defaultContext.entityForType(InstanceType).documentedResponseSchema,
+          ..schema = ManagedContext.defaultContext
+              .entityForType(InstanceType)
+              .documentedResponseSchema,
         new APIResponse()
           ..statusCode = HttpStatus.NOT_FOUND
           ..description = ""
@@ -304,25 +333,31 @@ class ManagedObjectController<InstanceType extends ManagedObject> extends HTTPCo
         new APIResponse()
           ..statusCode = HttpStatus.OK
           ..description = ""
-          ..schema = ManagedContext.defaultContext.entityForType(InstanceType).documentedResponseSchema,
+          ..schema = ManagedContext.defaultContext
+              .entityForType(InstanceType)
+              .documentedResponseSchema,
         new APIResponse()
           ..statusCode = HttpStatus.CONFLICT
           ..description = "Object already exists"
-          ..schema = new APISchemaObject(properties: {"error" : new APISchemaObject.string()})
+          ..schema = new APISchemaObject(
+              properties: {"error": new APISchemaObject.string()})
       ]);
     } else if (operation.id == APIOperation.idForMethod(this, #updateObject)) {
       responses.addAll([
         new APIResponse()
           ..statusCode = HttpStatus.OK
           ..description = ""
-          ..schema = ManagedContext.defaultContext.entityForType(InstanceType).documentedResponseSchema,
+          ..schema = ManagedContext.defaultContext
+              .entityForType(InstanceType)
+              .documentedResponseSchema,
         new APIResponse()
           ..statusCode = HttpStatus.NOT_FOUND
           ..description = "",
         new APIResponse()
           ..statusCode = HttpStatus.CONFLICT
           ..description = "Object already exists"
-          ..schema = new APISchemaObject(properties: {"error" : new APISchemaObject.string()})
+          ..schema = new APISchemaObject(
+              properties: {"error": new APISchemaObject.string()})
       ]);
     } else if (operation.id == APIOperation.idForMethod(this, #deleteObject)) {
       responses.addAll([
@@ -340,8 +375,9 @@ class ManagedObjectController<InstanceType extends ManagedObject> extends HTTPCo
           ..description = ""
           ..schema = (new APISchemaObject()
             ..type = APISchemaObject.TypeArray
-            ..items = ManagedContext.defaultContext.entityForType(InstanceType).documentedResponseSchema
-          ),
+            ..items = ManagedContext.defaultContext
+                .entityForType(InstanceType)
+                .documentedResponseSchema),
         new APIResponse()
           ..statusCode = HttpStatus.NOT_FOUND
           ..description = ""
@@ -351,21 +387,30 @@ class ManagedObjectController<InstanceType extends ManagedObject> extends HTTPCo
     return responses;
   }
 
-  dynamic _parseValueForProperty(String value, ManagedPropertyDescription desc) {
+  dynamic _parseValueForProperty(
+      String value, ManagedPropertyDescription desc) {
     if (value == "null") {
       return null;
     }
 
     try {
       switch (desc.type) {
-        case ManagedPropertyType.string: return value;
-        case ManagedPropertyType.bigInteger: return int.parse(value);
-        case ManagedPropertyType.integer: return int.parse(value);
-        case ManagedPropertyType.datetime: return DateTime.parse(value);
-        case ManagedPropertyType.doublePrecision: return double.parse(value);
-        case ManagedPropertyType.boolean: return value == "true";
-        case ManagedPropertyType.transientList: return null;
-        case ManagedPropertyType.transientMap: return null;
+        case ManagedPropertyType.string:
+          return value;
+        case ManagedPropertyType.bigInteger:
+          return int.parse(value);
+        case ManagedPropertyType.integer:
+          return int.parse(value);
+        case ManagedPropertyType.datetime:
+          return DateTime.parse(value);
+        case ManagedPropertyType.doublePrecision:
+          return double.parse(value);
+        case ManagedPropertyType.boolean:
+          return value == "true";
+        case ManagedPropertyType.transientList:
+          return null;
+        case ManagedPropertyType.transientMap:
+          return null;
       }
     } on FormatException {
       throw new HTTPResponseException(404, "Unknown primary key");

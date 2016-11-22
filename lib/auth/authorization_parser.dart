@@ -21,7 +21,6 @@ class AuthorizationBearerParser {
 
 /// A container for Basic authorization elements.
 class AuthorizationBasicElements {
-
   /// The username of a Basic Authorization header.
   String username;
 
@@ -45,7 +44,8 @@ class AuthorizationBasicParser {
     var base64String = match[1];
     var decodedCredentials = null;
     try {
-      decodedCredentials = new String.fromCharCodes(new Base64Decoder().convert(base64String));
+      decodedCredentials =
+          new String.fromCharCodes(new Base64Decoder().convert(base64String));
     } catch (e) {
       throw new HTTPResponseException(400, "Improper authorization header.");
     }
@@ -56,7 +56,7 @@ class AuthorizationBasicParser {
     }
 
     return new AuthorizationBasicElements()
-        ..username = splitCredentials.first
-        ..password = splitCredentials.last;
+      ..username = splitCredentials.first
+      ..password = splitCredentials.last;
   }
 }

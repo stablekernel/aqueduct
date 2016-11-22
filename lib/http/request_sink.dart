@@ -8,7 +8,8 @@ part of aqueduct;
 /// A [RequestSink] must implement its constructor and [setupRouter]. HTTP requests to the [Application] are added to a [RequestSink]
 /// for processing. The path the HTTP request takes is determined by the [RequestController] chains in [setupRouter]. A [RequestSink]
 /// is also a [RequestController], but will always forward HTTP requests on to its [initialHandler].
-abstract class RequestSink extends RequestController implements APIDocumentable {
+abstract class RequestSink extends RequestController
+    implements APIDocumentable {
   /// Default constructor.
   ///
   /// The default constructor takes a [Map] of configuration [options]. This [Map] is the same [Map] in [ApplicationConfiguration.configurationOptions].
@@ -56,9 +57,7 @@ abstract class RequestSink extends RequestController implements APIDocumentable 
   ///
   /// This method allows the instance to perform any asynchronous initialization prior to
   /// receiving requests. The instance will not start accepting HTTP requests until the [Future] returned from this method completes.
-  Future willOpen() async {
-
-  }
+  Future willOpen() async {}
 
   /// Executed after the instance is is open to handle HTTP requests.
   ///
@@ -73,14 +72,11 @@ abstract class RequestSink extends RequestController implements APIDocumentable 
   /// This method will run prior to each request being [receive]ed to this
   /// instance's [initialController]. Use this method to provide additional
   /// context to the request prior to it being handled.
-  Future willReceiveRequest(Request request) async {
-
-  }
+  Future willReceiveRequest(Request request) async {}
 
   @override
   APIDocument documentAPI(PackagePathResolver resolver) {
-    var doc = new APIDocument()
-      ..info = apiInfo;
+    var doc = new APIDocument()..info = apiInfo;
 
     doc.paths = initialController.documentPaths(resolver);
     doc.securitySchemes = this.documentSecuritySchemes(resolver);
@@ -92,17 +88,17 @@ abstract class RequestSink extends RequestController implements APIDocumentable 
 
     doc.securitySchemes?.values?.forEach((scheme) {
       if (scheme.isOAuth2) {
-        if (scheme.oauthFlow == APISecuritySchemeFlow.implicit
-        || scheme.oauthFlow == APISecuritySchemeFlow.accessCode) {
+        if (scheme.oauthFlow == APISecuritySchemeFlow.implicit ||
+            scheme.oauthFlow == APISecuritySchemeFlow.accessCode) {
           var morePath = _authorizationPath(doc.paths);
           if (morePath != null) {
             scheme.authorizationURL = host.resolve(morePath).toString();
           }
         }
 
-        if (scheme.oauthFlow == APISecuritySchemeFlow.password
-        || scheme.oauthFlow == APISecuritySchemeFlow.accessCode
-        || scheme.oauthFlow == APISecuritySchemeFlow.application) {
+        if (scheme.oauthFlow == APISecuritySchemeFlow.password ||
+            scheme.oauthFlow == APISecuritySchemeFlow.accessCode ||
+            scheme.oauthFlow == APISecuritySchemeFlow.application) {
           var morePath = _authorizationTokenPath(doc.paths);
           scheme.tokenURL = host.resolve(morePath).toString();
         }
@@ -114,10 +110,9 @@ abstract class RequestSink extends RequestController implements APIDocumentable 
 
       return items.where((ct) {
         if (!retain.any((retained) =>
-          ct.primaryType == retained.primaryType
-          && ct.subType == retained.subType
-          && ct.charset == retained.charset
-        )) {
+            ct.primaryType == retained.primaryType &&
+            ct.subType == retained.subType &&
+            ct.charset == retained.charset)) {
           retain.add(ct);
           return true;
         }
@@ -125,24 +120,26 @@ abstract class RequestSink extends RequestController implements APIDocumentable 
         return false;
       }).toList();
     };
-    doc.consumes = distinct(doc.paths.expand((p) => p.operations.expand((op) => op.consumes)));
-    doc.produces = distinct(doc.paths.expand((p) => p.operations.expand((op) => op.produces)));
+    doc.consumes = distinct(
+        doc.paths.expand((p) => p.operations.expand((op) => op.consumes)));
+    doc.produces = distinct(
+        doc.paths.expand((p) => p.operations.expand((op) => op.produces)));
 
     return doc;
   }
 
   String _authorizationPath(List<APIPath> paths) {
-    var op = paths
-        .expand((p) => p.operations)
-        .firstWhere((op) {
-          return op.method.toLowerCase() == "post"
-              && op.responses.any((resp) {
-                return resp.statusCode == HttpStatus.MOVED_TEMPORARILY
-                  && ["client_id", "username", "password", "state"].every((qp) {
-                    return op.parameters.map((apiParam) => apiParam.name).contains(qp);
-                  });
-              });
-        }, orElse: () => null);
+    var op = paths.expand((p) => p.operations).firstWhere((op) {
+      return op.method.toLowerCase() == "post" &&
+          op.responses.any((resp) {
+            return resp.statusCode == HttpStatus.MOVED_TEMPORARILY &&
+                ["client_id", "username", "password", "state"].every((qp) {
+                  return op.parameters
+                      .map((apiParam) => apiParam.name)
+                      .contains(qp);
+                });
+          });
+    }, orElse: () => null);
 
     if (op == null) {
       return null;
@@ -153,14 +150,14 @@ abstract class RequestSink extends RequestController implements APIDocumentable 
   }
 
   String _authorizationTokenPath(List<APIPath> paths) {
-    var op = paths
-        .expand((p) => p.operations)
-        .firstWhere((op) {
-          return op.method.toLowerCase() == "post" && op.responses.any((resp) {
+    var op = paths.expand((p) => p.operations).firstWhere((op) {
+      return op.method.toLowerCase() == "post" &&
+          op.responses.any((resp) {
             return ["access_token", "token_type", "expires_in", "refresh_token"]
-                .every((property) => resp.schema?.properties?.containsKey(property) ?? false);
+                .every((property) =>
+                    resp.schema?.properties?.containsKey(property) ?? false);
           });
-        }, orElse: () => null);
+    }, orElse: () => null);
 
     if (op == null) {
       return null;
@@ -169,5 +166,4 @@ abstract class RequestSink extends RequestController implements APIDocumentable 
     var path = paths.firstWhere((p) => p.operations.contains(op));
     return path.path;
   }
-
 }

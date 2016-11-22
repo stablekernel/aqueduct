@@ -11,9 +11,7 @@ enum MatcherOperator {
 }
 
 /// The operator in a string matcher.
-enum StringMatcherOperator {
-  beginsWith, contains, endsWith
-}
+enum StringMatcherOperator { beginsWith, contains, endsWith }
 
 /// Matcher for exactly matching a column value in a [Query].
 ///
@@ -42,7 +40,8 @@ dynamic whereGreaterThan(dynamic value) {
 ///       var query = new Query<Employee>()
 ///         ..matchOn.salary = whereGreaterThanEqualTo(60000);
 dynamic whereGreaterThanEqualTo(dynamic value) {
-  return new _ComparisonMatcherExpression(value, MatcherOperator.greaterThanEqualTo);
+  return new _ComparisonMatcherExpression(
+      value, MatcherOperator.greaterThanEqualTo);
 }
 
 /// Matcher for matching a column value less than the argument in a [Query].
@@ -62,7 +61,8 @@ dynamic whereLessThan(dynamic value) {
 ///       var query = new Query<Employee>()
 ///         ..matchOn.salary = whereLessThanEqualTo(60000);
 dynamic whereLessThanEqualTo(dynamic value) {
-  return new _ComparisonMatcherExpression(value, MatcherOperator.lessThanEqualTo);
+  return new _ComparisonMatcherExpression(
+      value, MatcherOperator.lessThanEqualTo);
 }
 
 /// Matcher for matching all column values other than argument in a [Query].
@@ -146,7 +146,8 @@ dynamic whereOutsideOf(dynamic lhs, dynamic rhs) {
 ///       var q = new Query<SomethingUserHas>()
 ///         ..matchOn.user = whereRelatedByValue(userPrimaryKey);
 dynamic whereRelatedByValue(dynamic foreignKeyValue) {
-  return new _ComparisonMatcherExpression(foreignKeyValue, MatcherOperator.equalTo);
+  return new _ComparisonMatcherExpression(
+      foreignKeyValue, MatcherOperator.equalTo);
 }
 
 /// Matcher for matching null in a [Query].

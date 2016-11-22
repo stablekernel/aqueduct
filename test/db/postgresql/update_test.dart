@@ -38,17 +38,14 @@ void main() {
   test("Setting relationship to null succeeds", () async {
     context = await contextWithModels([Child, Parent]);
 
-    var parent = new Parent()
-      ..name = "Bob";
-    var q = new Query<Parent>()
-      ..values = parent;
+    var parent = new Parent()..name = "Bob";
+    var q = new Query<Parent>()..values = parent;
     parent = await q.insert();
 
     var child = new Child()
       ..name = "Fred"
       ..parent = parent;
-    var childQuery = new Query<Child>()
-      ..values = child;
+    var childQuery = new Query<Child>()..values = child;
     child = await childQuery.insert();
     expect(child.parent.id, parent.id);
 
@@ -112,7 +109,6 @@ void main() {
     expect(results.first.id, m1.id);
     expect(results.first.emailAddress, "3@a.com");
     expect(results.first.name, "Bob");
-
   });
 
   test("Update object with new value for column in predicate", () async {
@@ -124,9 +120,10 @@ void main() {
     m1 = await (new Query<TestModel>()..values = m1).insert();
 
     await (new Query<TestModel>()
-      ..values = (new TestModel()
-        ..name = "Fred"
-        ..emailAddress = "2@a.com")).insert();
+          ..values = (new TestModel()
+            ..name = "Fred"
+            ..emailAddress = "2@a.com"))
+        .insert();
 
     var updateQuery = new Query<TestModel>()
       ..matchOn["emailAddress"] = "1@a.com"
@@ -167,7 +164,8 @@ void main() {
     expect(response, isNull);
   });
 
-  test("updateOne throws exception if it updated more than one object", () async {
+  test("updateOne throws exception if it updated more than one object",
+      () async {
     context = await contextWithModels([TestModel]);
 
     var m = new TestModel()
@@ -190,7 +188,8 @@ void main() {
       var _ = await req.updateOne();
       expect(true, false);
     } on QueryException catch (e) {
-      expect(e.toString(), "updateOne modified more than one row, this is a serious error.");
+      expect(e.toString(),
+          "updateOne modified more than one row, this is a serious error.");
     }
   });
 
@@ -209,8 +208,7 @@ void main() {
     req = new Query<TestModel>()..values = fred;
     await req.insert();
 
-    req = new Query<TestModel>()
-      ..values.name = "Joe";
+    req = new Query<TestModel>()..values.name = "Joe";
 
     try {
       var _ = await req.update();
@@ -243,7 +241,9 @@ void main() {
     expect(res.map((tm) => tm.name), everyElement("Fred"));
   });
 
-  test("Attempted update that will cause conflict throws appropriate QueryException", () async {
+  test(
+      "Attempted update that will cause conflict throws appropriate QueryException",
+      () async {
     context = await contextWithModels([TestModel]);
 
     var objects = [
@@ -261,8 +261,8 @@ void main() {
 
     try {
       var q = new Query<TestModel>()
-          ..matchOn.emailAddress = "2@a.com"
-          ..values.emailAddress = "1@a.com";
+        ..matchOn.emailAddress = "2@a.com"
+        ..values.emailAddress = "1@a.com";
       await q.updateOne();
       expect(true, false);
     } on QueryException catch (e) {
@@ -272,6 +272,7 @@ void main() {
 }
 
 class TestModel extends ManagedObject<_TestModel> implements _TestModel {}
+
 class _TestModel {
   @managedPrimaryKey
   int id;
@@ -283,17 +284,20 @@ class _TestModel {
 }
 
 class Child extends ManagedObject<_Child> implements _Child {}
+
 class _Child {
   @managedPrimaryKey
   int id;
 
   String name;
 
-  @ManagedRelationship(#child, isRequired: false, onDelete: ManagedRelationshipDeleteRule.cascade)
+  @ManagedRelationship(#child,
+      isRequired: false, onDelete: ManagedRelationshipDeleteRule.cascade)
   Parent parent;
 }
 
 class Parent extends ManagedObject<_Parent> implements _Child {}
+
 class _Parent {
   @managedPrimaryKey
   int id;
@@ -302,4 +306,3 @@ class _Parent {
 
   Child child;
 }
-

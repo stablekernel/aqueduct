@@ -43,25 +43,25 @@ main() {
   });
 
   test("Request with path parameter and body", () async {
-    var response = await http.put("http://localhost:8080/users/2", headers: {
-      "Content-Type" : "application/json;charset=utf-8"
-    }, body: JSON.encode({"name" : "joe"}));
+    var response = await http.put("http://localhost:8080/users/2",
+        headers: {"Content-Type": "application/json;charset=utf-8"},
+        body: JSON.encode({"name": "joe"}));
     expect(response.statusCode, 200);
   });
 
   test("Request without path parameter and body", () async {
-    var response = await http.post("http://localhost:8080/users", headers: {
-      "Content-Type" : "application/json;charset=utf-8"
-    }, body: JSON.encode({"name" : "joe"}));
+    var response = await http.post("http://localhost:8080/users",
+        headers: {"Content-Type": "application/json;charset=utf-8"},
+        body: JSON.encode({"name": "joe"}));
     expect(response.statusCode, 200);
   });
-
 }
 
 class TestModelController extends QueryController<TestModel> {
   TestModelController() : super();
 
-  @httpGet getAll() async {
+  @httpGet
+  getAll() async {
     int statusCode = 200;
 
     if (query == null) {
@@ -75,7 +75,8 @@ class TestModelController extends QueryController<TestModel> {
     return new Response(statusCode, {}, null);
   }
 
-  @httpGet getOne(@HTTPPath("id") int id) async {
+  @httpGet
+  getOne(@HTTPPath("id") int id) async {
     int statusCode = 200;
 
     if (query == null) {
@@ -83,7 +84,8 @@ class TestModelController extends QueryController<TestModel> {
     }
 
     var comparisonMatcher = query.matchOn["id"];
-    if (comparisonMatcher.operator != MatcherOperator.equalTo || comparisonMatcher.value != id) {
+    if (comparisonMatcher.operator != MatcherOperator.equalTo ||
+        comparisonMatcher.value != id) {
       statusCode = 400;
     }
 
@@ -94,7 +96,8 @@ class TestModelController extends QueryController<TestModel> {
     return new Response(statusCode, {}, null);
   }
 
-  @httpPut putOne(@HTTPPath("id") int id) async {
+  @httpPut
+  putOne(@HTTPPath("id") int id) async {
     int statusCode = 200;
 
     if (query.values == null) {
@@ -108,7 +111,8 @@ class TestModelController extends QueryController<TestModel> {
     }
 
     var comparisonMatcher = query.matchOn["id"];
-    if (comparisonMatcher.operator != MatcherOperator.equalTo || comparisonMatcher.value != id) {
+    if (comparisonMatcher.operator != MatcherOperator.equalTo ||
+        comparisonMatcher.value != id) {
       statusCode = 400;
     }
 
@@ -123,7 +127,8 @@ class TestModelController extends QueryController<TestModel> {
     return new Response(statusCode, {}, null);
   }
 
-  @httpPost create() async {
+  @httpPost
+  create() async {
     int statusCode = 200;
     if (query.values == null) {
       statusCode = 400;
@@ -138,12 +143,14 @@ class TestModelController extends QueryController<TestModel> {
     return new Response(statusCode, {}, null);
   }
 
-  @httpPost crash(@HTTPPath("id") int id) async {
+  @httpPost
+  crash(@HTTPPath("id") int id) async {
     return new Response.ok("");
   }
 }
 
 class TestModel extends ManagedObject<_TestModel> implements _TestModel {}
+
 class _TestModel {
   @ManagedColumnAttributes(primaryKey: true)
   int id;

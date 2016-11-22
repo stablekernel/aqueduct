@@ -29,7 +29,8 @@ class QueryPredicate {
   /// The [format] and [parameters] of this predicate.
   QueryPredicate(this.format, this.parameters);
 
-  factory QueryPredicate._fromQueryIncludable(QueryMatchable obj, PersistentStore persistentStore) {
+  factory QueryPredicate._fromQueryIncludable(
+      QueryMatchable obj, PersistentStore persistentStore) {
     var entity = obj.entity;
     var attributeKeys = obj._matcherMap.keys.where((propertyName) {
       var desc = entity.properties[propertyName];
@@ -45,18 +46,22 @@ class QueryPredicate {
       var matcher = obj._matcherMap[queryKey];
 
       if (matcher is _ComparisonMatcherExpression) {
-        return persistentStore.comparisonPredicate(desc, matcher.operator, matcher.value);
+        return persistentStore.comparisonPredicate(
+            desc, matcher.operator, matcher.value);
       } else if (matcher is _RangeMatcherExpression) {
-        return persistentStore.rangePredicate(desc, matcher.lhs, matcher.rhs, matcher.within);
+        return persistentStore.rangePredicate(
+            desc, matcher.lhs, matcher.rhs, matcher.within);
       } else if (matcher is _NullMatcherExpression) {
         return persistentStore.nullPredicate(desc, matcher.shouldBeNull);
       } else if (matcher is _WithinMatcherExpression) {
         return persistentStore.containsPredicate(desc, matcher.values);
       } else if (matcher is _StringMatcherExpression) {
-        return persistentStore.stringPredicate(desc, matcher.operator, matcher.value);
+        return persistentStore.stringPredicate(
+            desc, matcher.operator, matcher.value);
       }
 
-      throw new QueryPredicateException("Unknown MatcherExpression ${matcher.runtimeType}");
+      throw new QueryPredicateException(
+          "Unknown MatcherExpression ${matcher.runtimeType}");
     }).toList());
   }
 
@@ -72,7 +77,8 @@ class QueryPredicate {
       return null;
     }
 
-    var predicateFormat = predicates.map((pred) => "${pred.format}").join(" and ");
+    var predicateFormat =
+        predicates.map((pred) => "${pred.format}").join(" and ");
 
     var valueMap = <String, dynamic>{};
     predicates.forEach((p) {
@@ -80,7 +86,8 @@ class QueryPredicate {
 
       pValueMap.keys.forEach((k) {
         if (valueMap.containsKey(k)) {
-          throw new QueryPredicateException("Duplicate keys in and predicate, ${k} appears in multiple predicates. Make keys more specific.");
+          throw new QueryPredicateException(
+              "Duplicate keys in and predicate, ${k} appears in multiple predicates. Make keys more specific.");
         }
       });
 

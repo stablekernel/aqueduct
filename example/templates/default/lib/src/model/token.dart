@@ -1,6 +1,7 @@
 part of wildfire;
 
 class AuthCode extends ManagedObject<_AuthCode> implements _AuthCode {}
+
 class _AuthCode implements AuthTokenExchangable<Token> {
   @managedPrimaryKey
   int id;
@@ -16,11 +17,13 @@ class _AuthCode implements AuthTokenExchangable<Token> {
   DateTime issueDate;
   DateTime expirationDate;
 
-  @ManagedRelationship(#code, isRequired: false, onDelete: ManagedRelationshipDeleteRule.cascade)
+  @ManagedRelationship(#code,
+      isRequired: false, onDelete: ManagedRelationshipDeleteRule.cascade)
   Token token;
 }
 
-class Token extends ManagedObject<_Token> implements _Token, AuthTokenizable<int> {
+class Token extends ManagedObject<_Token>
+    implements _Token, AuthTokenizable<int> {
   String get clientID => client.id;
   void set clientID(cid) {
     client = new ClientRecord()..id = cid;
@@ -31,6 +34,7 @@ class Token extends ManagedObject<_Token> implements _Token, AuthTokenizable<int
     owner = new User()..id = roid;
   }
 }
+
 class _Token {
   @ManagedColumnAttributes(primaryKey: true)
   String accessToken;
@@ -52,6 +56,7 @@ class _Token {
 }
 
 class ClientRecord extends ManagedObject<_Client> implements _Client {}
+
 class _Client {
   @ManagedColumnAttributes(primaryKey: true)
   String id;

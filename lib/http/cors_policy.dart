@@ -16,17 +16,31 @@ class CORSPolicy {
     }
     return _defaultPolicy;
   }
+
   static CORSPolicy _defaultPolicy;
 
   /// List of 'Simple' CORS headers.
   ///
   /// These are headers that are considered acceptable as part of any CORS request.
-  static List<String> simpleHeaders = ["accept", "accept-language", "content-language", "content-type"];
+  static List<String> simpleHeaders = const [
+    "accept",
+    "accept-language",
+    "content-language",
+    "content-type"
+  ];
 
   /// List of 'Simple' CORS Response headers.
   ///
   /// These headers can be returned in a response without explicitly exposing them.
-  static List<String> simpleResponseHeaders = ["cache-control", "content-language", "content-type", "content-type", "expires", "last-modified", "pragma"];
+  static List<String> simpleResponseHeaders = const [
+    "cache-control",
+    "content-language",
+    "content-type",
+    "content-type",
+    "expires",
+    "last-modified",
+    "pragma"
+  ];
 
   /// Create a new instance of [CORSPolicy].
   ///
@@ -46,7 +60,12 @@ class CORSPolicy {
     allowCredentials = true;
     exposedResponseHeaders = [];
     allowedMethods = ["POST", "PUT", "DELETE", "GET"];
-    allowedRequestHeaders = ["authorization", "x-requested-with", "x-forwarded-for", "content-type"];
+    allowedRequestHeaders = [
+      "authorization",
+      "x-requested-with",
+      "x-forwarded-for",
+      "content-type"
+    ];
     cacheInSeconds = 86400;
   }
 
@@ -90,7 +109,8 @@ class CORSPolicy {
     headers["Access-Control-Allow-Origin"] = origin;
 
     if (exposedResponseHeaders.length > 0) {
-      headers["Access-Control-Expose-Headers"] = exposedResponseHeaders.join(", ");
+      headers["Access-Control-Expose-Headers"] =
+          exposedResponseHeaders.join(", ");
     }
 
     if (allowCredentials) {
@@ -130,9 +150,14 @@ class CORSPolicy {
       return false;
     }
 
-    var requestedHeaders = request.headers.value("access-control-request-headers")?.split(",")?.map((str) => str.trim())?.toList();
+    var requestedHeaders = request.headers
+        .value("access-control-request-headers")
+        ?.split(",")
+        ?.map((str) => str.trim())
+        ?.toList();
     if (requestedHeaders?.isNotEmpty ?? false) {
-      var nonSimpleHeaders = requestedHeaders.where((str) => !simpleHeaders.contains(str));
+      var nonSimpleHeaders =
+          requestedHeaders.where((str) => !simpleHeaders.contains(str));
       if (nonSimpleHeaders.any((h) => !allowedRequestHeaders.contains(h))) {
         return false;
       }
@@ -147,9 +172,9 @@ class CORSPolicy {
   /// to this policy.
   Response preflightResponse(Request req) {
     var headers = {
-      "Access-Control-Allow-Origin" : req.innerRequest.headers.value("origin"),
-      "Access-Control-Allow-Methods" : allowedMethods.join(", "),
-      "Access-Control-Allow-Headers" : allowedRequestHeaders.join(", ")
+      "Access-Control-Allow-Origin": req.innerRequest.headers.value("origin"),
+      "Access-Control-Allow-Methods": allowedMethods.join(", "),
+      "Access-Control-Allow-Headers": allowedRequestHeaders.join(", ")
     };
 
     if (allowCredentials) {

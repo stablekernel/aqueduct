@@ -35,7 +35,8 @@ void main() {
     expect(result.length, 0);
   });
 
-  test("Deleting an object when there are many only deletes that object", () async {
+  test("Deleting an object when there are many only deletes that object",
+      () async {
     context = await contextWithModels([TestModel, RefModel]);
 
     for (int i = 0; i < 10; i++) {
@@ -52,7 +53,8 @@ void main() {
     var result = await req.fetch();
     expect(result.length, 10);
 
-    req = new Query<TestModel>()..predicate = new QueryPredicate("id = @id", {"id" : 1});
+    req = new Query<TestModel>()
+      ..predicate = new QueryPredicate("id = @id", {"id": 1});
     var count = await req.delete();
     expect(count, 1);
 
@@ -61,7 +63,8 @@ void main() {
     expect(result.length, 9);
   });
 
-  test("Deleting all objects works, as long as you specify the magic", () async {
+  test("Deleting all objects works, as long as you specify the magic",
+      () async {
     context = await contextWithModels([TestModel, RefModel]);
 
     for (int i = 0; i < 10; i++) {
@@ -88,7 +91,8 @@ void main() {
     expect(result.length, 0);
   });
 
-  test("Trying to delete all objects without specifying the magic fails", () async {
+  test("Trying to delete all objects without specifying the magic fails",
+      () async {
     context = await contextWithModels([TestModel, RefModel]);
 
     for (int i = 0; i < 10; i++) {
@@ -119,7 +123,6 @@ void main() {
 
   test("Deleting a related object w/nullify sets property to null", () async {
     context = await contextWithModels([TestModel, RefModel]);
-
 
     var testModelObject = new TestModel()..name = "a";
     var testModelReq = new Query<TestModel>()..values = testModelObject;
@@ -186,6 +189,7 @@ void main() {
 }
 
 class TestModel extends ManagedObject<_TestModel> implements _TestModel {}
+
 class _TestModel {
   @managedPrimaryKey
   int id;
@@ -207,15 +211,19 @@ class _TestModel {
 }
 
 class RefModel extends ManagedObject<_RefModel> implements _RefModel {}
+
 class _RefModel {
   @managedPrimaryKey
   int id;
 
-  @ManagedRelationship(#ref, isRequired: false, onDelete: ManagedRelationshipDeleteRule.nullify)
+  @ManagedRelationship(#ref,
+      isRequired: false, onDelete: ManagedRelationshipDeleteRule.nullify)
   TestModel test;
 }
 
-class GRestrictInverse extends ManagedObject<_GRestrictInverse> implements _GRestrictInverse {}
+class GRestrictInverse extends ManagedObject<_GRestrictInverse>
+    implements _GRestrictInverse {}
+
 class _GRestrictInverse {
   @managedPrimaryKey
   int id;
@@ -231,11 +239,13 @@ class _GRestrict {
   @managedPrimaryKey
   int id;
 
-  @ManagedRelationship(#test, isRequired: false, onDelete: ManagedRelationshipDeleteRule.restrict)
+  @ManagedRelationship(#test,
+      isRequired: false, onDelete: ManagedRelationshipDeleteRule.restrict)
   GRestrictInverse test;
 }
 
-class GCascadeInverse extends ManagedObject<_GCascadeInverse> implements _GCascadeInverse {}
+class GCascadeInverse extends ManagedObject<_GCascadeInverse>
+    implements _GCascadeInverse {}
 
 class _GCascadeInverse {
   @managedPrimaryKey
@@ -252,6 +262,7 @@ class _GCascade {
   @managedPrimaryKey
   int id;
 
-  @ManagedRelationship(#test, isRequired: false, onDelete: ManagedRelationshipDeleteRule.cascade)
+  @ManagedRelationship(#test,
+      isRequired: false, onDelete: ManagedRelationshipDeleteRule.cascade)
   GCascadeInverse test;
 }

@@ -55,7 +55,8 @@ abstract class AuthTokenExchangable<TokenType extends AuthTokenizable> {
   /// Authorization codes are owned by a resource owner, typically a User, Profile or Account
   /// in an application. This value is the primary key or identifying value of those
   /// instances.
-  @checked dynamic resourceOwnerIdentifier;
+  @checked
+  dynamic resourceOwnerIdentifier;
 
   /// The timestamp this authorization code was issued on.
   DateTime issueDate;
@@ -74,7 +75,8 @@ abstract class AuthTokenExchangable<TokenType extends AuthTokenizable> {
 /// Subsequent [RequestController]s are able to use this information to determine access scope.
 class Authorization {
   /// Creates an instance of a [Authorization].
-  Authorization(this.clientID, this.resourceOwnerIdentifier, this.grantingServer);
+  Authorization(
+      this.clientID, this.resourceOwnerIdentifier, this.grantingServer);
 
   /// The client ID the permission was granted under.
   final String clientID;
@@ -117,7 +119,8 @@ abstract class Authenticatable {
   String salt;
 
   /// The unique identifier of this instance, typically the primary key of the concrete subclass.
-  @checked dynamic id;
+  @checked
+  dynamic id;
 }
 
 /// An interface for implementing storage behavior for an [AuthServer].
@@ -126,7 +129,10 @@ abstract class Authenticatable {
 /// The [ResourceOwner] often represents a user or an account in an application and must implement [Authenticatable]. The [TokenType]
 /// is a concrete instance of [AuthTokenizable] to represent a resource owner bearer token. The [AuthCodeType] represents an authorization code
 /// used in the authorization code grant type.
-abstract class AuthServerDelegate<ResourceOwner extends Authenticatable, TokenType extends AuthTokenizable, AuthCodeType extends AuthTokenExchangable<TokenType>> {
+abstract class AuthServerDelegate<
+    ResourceOwner extends Authenticatable,
+    TokenType extends AuthTokenizable,
+    AuthCodeType extends AuthTokenExchangable<TokenType>> {
   /// Returns a [TokenType] for an [accessToken].
   ///
   /// This method returns an instance of [TokenType] if one exists for [accessToken]. Otherwise, it returns null.
@@ -137,13 +143,15 @@ abstract class AuthServerDelegate<ResourceOwner extends Authenticatable, TokenTy
   ///
   /// This method returns an instance of [TokenType] if one exists for [refreshToken]. Otherwise, it returns null.
   /// [server] is the [AuthServer] requesting the [TokenType].
-  Future<TokenType> tokenForRefreshToken(AuthServer server, String refreshToken);
+  Future<TokenType> tokenForRefreshToken(
+      AuthServer server, String refreshToken);
 
   /// Returns a [ResourceOwner] for an [username].
   ///
   /// This method returns an instance of [ResourceOwner] if one exists for [username]. Otherwise, it returns null.
   /// [server] is the [AuthServer] requesting the [ResourceOwner].
-  Future<ResourceOwner> authenticatableForUsername(AuthServer server, String username);
+  Future<ResourceOwner> authenticatableForUsername(
+      AuthServer server, String username);
 
   /// Returns a [ResourceOwner] for an [username].
   ///
