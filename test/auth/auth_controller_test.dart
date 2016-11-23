@@ -5,6 +5,8 @@ import 'dart:convert';
 import '../helpers.dart';
 
 void main() {
+  RequestController.includeErrorDetailsInServerErrorResponses = true;
+
   ManagedContext context = null;
   HttpServer server;
   TestClient client = new TestClient.onPort(8080)
