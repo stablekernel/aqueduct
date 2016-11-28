@@ -1,4 +1,4 @@
-import '../../wildfire.dart';
+import '../wildfire.dart';
 
 class UserController extends QueryController<User> {
   @httpGet

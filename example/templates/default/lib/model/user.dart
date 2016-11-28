@@ -1,4 +1,4 @@
-import '../../wildfire.dart';
+import '../wildfire.dart';
 
 class User extends ManagedObject<_User> implements _User, Authenticatable {
   @managedTransientInputAttribute

@@ -1,4 +1,4 @@
-import '../../wildfire.dart';
+import '../wildfire.dart';
 
 class AuthCode extends ManagedObject<_AuthCode> implements _AuthCode {}
 

@@ -12,9 +12,11 @@ export 'dart:io';
 export 'package:aqueduct/aqueduct.dart';
 export 'package:scribe/scribe.dart';
 
-export 'src/model/token.dart';
-export 'src/model/user.dart';
-export 'src/controller/user_controller.dart';
-export 'src/controller/identity_controller.dart';
-export 'src/controller/register_controller.dart';
-export 'src/utilities/auth_delegate.dart';
+export 'wildfire_sink.dart';
+export 'model/token.dart';
+export 'model/user.dart';
+export 'controller/user_controller.dart';
+export 'controller/identity_controller.dart';
+export 'controller/register_controller.dart';
+export 'utilities/auth_delegate.dart';
+

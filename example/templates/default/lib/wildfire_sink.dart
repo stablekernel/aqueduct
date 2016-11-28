@@ -1,16 +1,24 @@
-import '../wildfire.dart';
+import 'wildfire.dart';
 
-class WildfireConfiguration extends ConfigurationItem {
-  WildfireConfiguration(String fileName) : super.fromFile(fileName);
-
-  DatabaseConnectionConfiguration database;
-  int port;
-}
-
+/// This class handles setting up this application.
+///
+/// Override methods from [RequestSink] to set up the resources your
+/// application uses and the routes it exposes.
+///
+/// Instances of this class are the type argument to [Application].
+/// See http://stablekernel.github.io/aqueduct/http/request_sink.html
+/// for more details.
+///
+/// See bin/start.dart for usage.
 class WildfireSink extends RequestSink {
   static const String ConfigurationKey = "ConfigurationKey";
   static const String LoggingTargetKey = "LoggingTargetKey";
 
+  /// [Application] creates instances of this type with this constructor.
+  ///
+  /// The options will be the values set in the spawning [Application]'s
+  /// [Application.configuration] [ApplicationConfiguration.configurationOptions].
+  /// See bin/start.dart.
   WildfireSink(Map<String, dynamic> opts) : super(opts) {
     configuration = opts[ConfigurationKey];
 
@@ -27,6 +35,7 @@ class WildfireSink extends RequestSink {
   AuthServer<User, Token, AuthCode> authenticationServer;
   WildfireConfiguration configuration;
 
+  /// All routes must be configured in this method.
   @override
   void setupRouter(Router router) {
     router
@@ -81,4 +90,17 @@ class WildfireSink extends RequestSink {
       PackagePathResolver resolver) {
     return authenticationServer.documentSecuritySchemes(resolver);
   }
+}
+
+/// An instance of this class represents values from a configuration
+/// file specific to this application.
+///
+/// Configuration files must have key-value for the properties in this class.
+/// For more documentation on configuration files, see
+/// https://pub.dartlang.org/packages/safe_config.
+class WildfireConfiguration extends ConfigurationItem {
+  WildfireConfiguration(String fileName) : super.fromFile(fileName);
+
+  DatabaseConnectionConfiguration database;
+  int port;
 }
