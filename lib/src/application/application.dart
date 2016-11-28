@@ -7,12 +7,12 @@ import 'package:logging/logging.dart';
 
 import '../http/http.dart';
 import 'application_configuration.dart';
-import 'isolate_server.dart';
+import 'application_server.dart';
+import 'isolate_application_server.dart';
 import 'isolate_supervisor.dart';
 
 export 'application_configuration.dart';
-export 'isolate_server.dart';
-export 'isolate_supervisor.dart';
+export 'application_server.dart';
 
 /// A container for web server applications.
 ///
@@ -23,14 +23,17 @@ class Application<RequestSinkType extends RequestSink> {
   /// Used internally.
   List<ApplicationIsolateSupervisor> supervisors = [];
 
-  /// Used internally.
+  /// The [ApplicationServer] managing delivering HTTP requests into this application.
+  ///
+  /// This property is only valid if this application is started with runOnMainIsolate set to true in [start].
+  /// Tests may access this property to examine or directly use resources of a [RequestSink].
   ApplicationServer server;
 
   /// The [RequestSink] receiving requests on the main isolate.
   ///
   /// Applications run during testing are run on the main isolate. When running in this way,
   /// an application will only have one [RequestSinkType] receiving HTTP requests. This property is that instance.
-  /// If an application is running across multiple isolates, this property will be null. See [start] for more details.
+  /// If an application is running across multiple isolates, this property is null. See [start] for more details.
   RequestSinkType get mainIsolateSink => server?.sink as RequestSinkType;
 
   /// A reference to a logger.
@@ -148,14 +151,13 @@ class Application<RequestSinkType extends RequestSink> {
   }
 }
 
-/// Used internally.
-class ApplicationInitialServerMessage {
-  String streamTypeName;
-  Uri streamLibraryURI;
-  ApplicationConfiguration configuration;
-  SendPort parentMessagePort;
-  int identifier;
+/// Thrown when an application encounters an exception during startup.
+///
+/// Contains the original exception that halted startup.
+class ApplicationStartupException implements Exception {
+  ApplicationStartupException(this.originalException);
 
-  ApplicationInitialServerMessage(this.streamTypeName, this.streamLibraryURI,
-      this.configuration, this.identifier, this.parentMessagePort);
+  dynamic originalException;
+
+  String toString() => originalException.toString();
 }

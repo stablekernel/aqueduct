@@ -90,7 +90,7 @@ main() {
         await crashingApp.start();
         succeeded = true;
       } catch (e) {
-        expect(e.message, "TestException: constructor");
+        expect(e.toString(), contains("TestException: constructor"));
       }
       expect(succeeded, false);
 
@@ -101,7 +101,7 @@ main() {
         await crashingApp.start();
         succeeded = true;
       } catch (e) {
-        expect(e.message, "TestException: addRoutes");
+        expect(e.toString(), contains("TestException: addRoutes"));
       }
       expect(succeeded, false);
 
@@ -112,7 +112,7 @@ main() {
         await crashingApp.start();
         succeeded = true;
       } catch (e) {
-        expect(e.message, "TestException: willOpen");
+        expect(e.toString(), contains("TestException: willOpen"));
       }
       expect(succeeded, false);
 
@@ -137,7 +137,7 @@ main() {
         await conflictingApp.start();
         successful = true;
       } catch (e) {
-        expect(e, new isInstanceOf<ApplicationSupervisorException>());
+        expect(e, new isInstanceOf<ApplicationStartupException>());
       }
       expect(successful, false);
 

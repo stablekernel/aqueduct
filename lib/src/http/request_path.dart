@@ -1,4 +1,6 @@
 import 'http.dart';
+import 'route_node.dart';
+
 
 /// The HTTP request path decomposed into variables and segments based on a [RouteSpecification].
 ///
@@ -164,97 +166,6 @@ class RouteSpecification extends Object with APIDocumentable {
   String toString() => segments.join("/");
 }
 
-/// Used internally.
-class RouteSegment {
-  RouteSegment(String segment) {
-    if (segment == "*") {
-      isRemainingMatcher = true;
-      return;
-    }
-
-    var regexIndex = segment.indexOf("(");
-    if (regexIndex != -1) {
-      var regexText = segment.substring(regexIndex + 1, segment.length - 1);
-      matcher = new RegExp(regexText);
-
-      segment = segment.substring(0, regexIndex);
-    }
-
-    if (segment.startsWith(":")) {
-      variableName = segment.substring(1, segment.length);
-    } else if (regexIndex == -1) {
-      literal = segment;
-    }
-  }
-
-  RouteSegment.direct(
-      {String literal: null,
-      String variableName: null,
-      String expression: null,
-      bool matchesAnything: false}) {
-    this.literal = literal;
-    this.variableName = variableName;
-    this.isRemainingMatcher = matchesAnything;
-    if (expression != null) {
-      this.matcher = new RegExp(expression);
-    }
-  }
-
-  String literal;
-  String variableName;
-  RegExp matcher;
-
-  bool get isLiteralMatcher =>
-      !isRemainingMatcher && !isVariable && !hasRegularExpression;
-  bool get hasRegularExpression => matcher != null;
-  bool get isVariable => variableName != null;
-  bool isRemainingMatcher = false;
-
-  bool matches(String pathSegment) {
-    if (isLiteralMatcher) {
-      return pathSegment == literal;
-    }
-
-    if (hasRegularExpression) {
-      if (matcher.firstMatch(pathSegment) == null) {
-        return false;
-      }
-    }
-
-    if (isVariable) {
-      return true;
-    }
-
-    return false;
-  }
-
-  operator ==(dynamic other) {
-    if (other is! RouteSegment) {
-      return false;
-    }
-
-    return literal == other.literal &&
-        variableName == other.variableName &&
-        isRemainingMatcher == other.isRemainingMatcher &&
-        matcher?.pattern == other.matcher?.pattern;
-  }
-
-  String toString() {
-    if (isLiteralMatcher) {
-      return literal;
-    }
-
-    if (isVariable) {
-      return variableName;
-    }
-
-    if (hasRegularExpression) {
-      return "(${matcher.pattern})";
-    }
-
-    return "*";
-  }
-}
 
 /// Utility method to take Route syntax into one or more full paths.
 ///

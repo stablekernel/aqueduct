@@ -5,14 +5,36 @@ import 'managed.dart';
 import 'query_matchable.dart';
 import 'backing.dart';
 
+/// Instances of this class provide storage for [ManagedObject]s.
+///
+/// A [ManagedObject] stores properties declared by its type argument in instances of this type.
+/// Values are validated against the [ManagedObject.entity].
+///
+/// Instances of this type only store properties for which a value has been explicitly set. This allows
+/// serialization classes to omit unset values from the serialized values. Therefore, instances of this class
+/// provide behavior that can differentiate between a property being the null value and a property simply not being
+/// set. (Therefore, you must use [removeProperty] instead of setting a value to null to really remove it from instances
+/// of this type.)
+///
+/// Aqueduct implements concrete subclasses of this class to provide behavior for property storage
+/// and query-building.
 abstract class ManagedBacking {
+
+  /// Retrieve a property by its entity and name.
   dynamic valueForProperty(ManagedEntity entity, String propertyName);
+
+  /// Sets a property by its entity and name.
   void setValueForProperty(
       ManagedEntity entity, String propertyName, dynamic value);
+
+  /// Removes a property from this instance.
+  ///
+  /// Use this method to use any reference of a property from this instance.
   void removeProperty(String propertyName) {
     valueMap.remove(propertyName);
   }
 
+  /// A map of all set values of this instance.
   Map<String, dynamic> get valueMap;
 }
 

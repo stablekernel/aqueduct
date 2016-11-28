@@ -1,9 +1,5 @@
 import 'dart:math';
 
-/// A utility to generate a random string of [length].
-///
-/// Will use characters A-Za-z0-9.
-///
 String randomStringOfLength(int length) {
   var possibleCharacters =
       "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
