@@ -1,4 +1,4 @@
-import '../../wildfire.dart';
+import '../wildfire.dart';
 
 class IdentityController extends HTTPController {
   @httpGet

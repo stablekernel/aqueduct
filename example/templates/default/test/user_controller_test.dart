@@ -1,9 +1,5 @@
-import 'dart:async';
-
-import 'package:test/test.dart';
-import 'package:wildfire/wildfire.dart';
+import 'harness/app.dart';
 import 'dart:convert';
-import 'mock/startup.dart';
 
 Future main() async {
   group("Success cases", () {
