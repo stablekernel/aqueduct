@@ -38,7 +38,7 @@ Open the project directory in the editor of your choice. Our preferred editor is
 3. CORS Support.
 
         ThingController() {
-          policy.allowedOrigins = ["http://aqueduct.com"];          
+          policy.allowedOrigins = ["http://aqueduct.io"];          
         }
 
 4. Automatic OpenAPI specification/documentation generation.
