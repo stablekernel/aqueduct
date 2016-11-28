@@ -209,8 +209,8 @@ class PostgreSQLPersistentStore extends PersistentStore
         value: (PersistentColumnMapping m) => m.value);
 
     var queryStringBuffer = new StringBuffer();
-    queryStringBuffer.write(
-        "INSERT INTO ${q.entity.tableName} ($columnsBeingInserted) ");
+    queryStringBuffer
+        .write("INSERT INTO ${q.entity.tableName} ($columnsBeingInserted) ");
     queryStringBuffer.write("VALUES (${valueKeysToBeInserted}) ");
 
     if (q.resultKeys != null && q.resultKeys.length > 0) {
@@ -245,8 +245,8 @@ class PostgreSQLPersistentStore extends PersistentStore
       }
     }).join(",");
 
-    var queryStringBuffer = new StringBuffer(
-        "SELECT $columnsToFetch FROM ${q.entity.tableName} ");
+    var queryStringBuffer =
+        new StringBuffer("SELECT $columnsToFetch FROM ${q.entity.tableName} ");
     joinElements.forEach((PersistentColumnMapping je) {
       PersistentJoinMapping joinElement = je;
       queryStringBuffer.write("${_joinStringForJoin(joinElement)} ");
@@ -328,8 +328,7 @@ class PostgreSQLPersistentStore extends PersistentStore
     }).join(",");
 
     var queryStringBuffer = new StringBuffer();
-    queryStringBuffer
-        .write("UPDATE ${q.entity.tableName} SET $setPairString ");
+    queryStringBuffer.write("UPDATE ${q.entity.tableName} SET $setPairString ");
 
     if (q.predicate != null) {
       queryStringBuffer.write("where ${q.predicate.format} ");
@@ -563,8 +562,8 @@ class PostgreSQLPersistentStore extends PersistentStore
     var operator =
         (query.pageDescriptor.order == QuerySortOrder.ascending ? ">" : "<");
     var keyName = "aq_page_value";
-    var typedKeyName = _typedColumnName(keyName,
-        query.entity.properties[query.pageDescriptor.propertyName]);
+    var typedKeyName = _typedColumnName(
+        keyName, query.entity.properties[query.pageDescriptor.propertyName]);
     return new QueryPredicate(
         "${query.pageDescriptor.propertyName} ${operator} @$typedKeyName",
         {"$keyName": query.pageDescriptor.boundingValue});

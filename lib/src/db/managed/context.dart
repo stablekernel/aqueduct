@@ -71,8 +71,8 @@ class ManagedContext {
   }
 
   Future<int> executeDeleteQuery(Query query) async {
-    return await persistentStore.executeDeleteQuery(
-        query.persistentQueryForStore(persistentStore));
+    return await persistentStore
+        .executeDeleteQuery(query.persistentQueryForStore(persistentStore));
   }
 
   List<ManagedObject> _coalesceAndMapRows(

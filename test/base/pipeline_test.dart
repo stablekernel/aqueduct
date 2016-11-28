@@ -10,8 +10,10 @@ void main() {
       await app.start();
       expect(true, false);
     } on ApplicationStartupException catch (e) {
-      expect(e.toString(),
-          contains("RequestController subclass FailingController instances cannot be reused. Rewrite as .generate(() => new FailingController())"));
+      expect(
+          e.toString(),
+          contains(
+              "RequestController subclass FailingController instances cannot be reused. Rewrite as .generate(() => new FailingController())"));
     }
   });
 }

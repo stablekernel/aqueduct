@@ -34,4 +34,3 @@ class StringMatcherExpression implements MatcherExpression {
   StringMatcherOperator operator;
   String value;
 }
-

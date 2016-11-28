@@ -252,8 +252,7 @@ class SchemaBuilder {
           '${spaceOffset}new SchemaColumn.relationship("${column.name}", ${column.type}');
       builder.write(", relatedTableName: \"${column.relatedTableName}\"");
       builder.write(", relatedColumnName: \"${column.relatedColumnName}\"");
-      builder.write(
-          ", rule: ${column.deleteRule}");
+      builder.write(", rule: ${column.deleteRule}");
     } else {
       builder.write(
           '${spaceOffset}new SchemaColumn("${column.name}", ${column.type}');

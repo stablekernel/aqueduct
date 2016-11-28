@@ -5,7 +5,6 @@ import '../../http/serializable.dart';
 import 'managed.dart';
 import 'query_matchable.dart';
 
-
 /// Instances of this type contain zero or more instances of [ManagedObject].
 ///
 /// 'Has many' relationship properties in [ManagedObject]s are represented by this type. [ManagedSet]s properties may only be declared in the persistent

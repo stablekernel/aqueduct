@@ -1,7 +1,6 @@
 import 'http.dart';
 import 'route_node.dart';
 
-
 /// The HTTP request path decomposed into variables and segments based on a [RouteSpecification].
 ///
 /// After passing through a [Router], a [Request] will have an instance of [HTTPRequestPath] in [Request.path].
@@ -165,7 +164,6 @@ class RouteSpecification extends Object with APIDocumentable {
 
   String toString() => segments.join("/");
 }
-
 
 /// Utility method to take Route syntax into one or more full paths.
 ///

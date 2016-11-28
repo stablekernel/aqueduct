@@ -4,7 +4,6 @@ import 'dart:convert';
 import '../application/application.dart';
 import '../application/application_configuration.dart';
 
-
 /// Instances of this class are used during testing to make testing an HTTP server more convenient.
 ///
 /// A [TestClient] is used to execute HTTP requests during tests. The client is configured to target

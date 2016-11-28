@@ -42,7 +42,7 @@ class HTTPMethod {
 
 /// Marks a controller HTTPHeader or HTTPQuery property as required.
 const HTTPRequiredParameter requiredHTTPParameter =
-const HTTPRequiredParameter();
+    const HTTPRequiredParameter();
 
 class HTTPRequiredParameter {
   const HTTPRequiredParameter();

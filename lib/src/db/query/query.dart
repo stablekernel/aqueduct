@@ -141,11 +141,13 @@ class Query<InstanceType extends ManagedObject> {
 
   PersistentStoreQuery persistentQueryForStore(PersistentStore store) {
     var psq = new PersistentStoreQuery()
-        ..confirmQueryModifiesAllInstancesOnDeleteOrUpdate = confirmQueryModifiesAllInstancesOnDeleteOrUpdate
-        ..entity = entity
-        ..timeoutInSeconds = timeoutInSeconds
-        ..sortDescriptors = sortDescriptors
-        ..resultKeys = mappingElementsForList((resultProperties ?? entity.defaultProperties), entity);
+      ..confirmQueryModifiesAllInstancesOnDeleteOrUpdate =
+          confirmQueryModifiesAllInstancesOnDeleteOrUpdate
+      ..entity = entity
+      ..timeoutInSeconds = timeoutInSeconds
+      ..sortDescriptors = sortDescriptors
+      ..resultKeys = mappingElementsForList(
+          (resultProperties ?? entity.defaultProperties), entity);
 
     if (_matchOn != null) {
       psq.predicate = new QueryPredicate.fromQueryIncludable(_matchOn, store);
@@ -157,7 +159,7 @@ class Query<InstanceType extends ManagedObject> {
       if (pageDescriptor != null) {
         throw new QueryException(QueryExceptionEvent.requestFailure,
             message:
-            "Query cannot have properties that are includeInResultSet and also have a pageDescriptor.");
+                "Query cannot have properties that are includeInResultSet and also have a pageDescriptor.");
       }
 
       var joinElements = joinElementsFromQueryMatchable(
@@ -169,8 +171,8 @@ class Query<InstanceType extends ManagedObject> {
 
       psq.pageDescriptor = validatePageDescriptor(entity, pageDescriptor);
 
-      psq.values = mappingElementsForMap(
-          (valueMap ?? values?.backingMap), entity);
+      psq.values =
+          mappingElementsForMap((valueMap ?? values?.backingMap), entity);
     }
 
     return psq;

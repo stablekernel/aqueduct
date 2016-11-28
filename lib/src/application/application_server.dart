@@ -13,7 +13,6 @@ import 'application_configuration.dart';
 /// An Aqueduct application creates instances of this type to pair an HTTP server and an
 /// instance of an application-specific [RequestSink].
 class ApplicationServer {
-
   /// The configuration this instance used to start its [sink].
   ApplicationConfiguration configuration;
 

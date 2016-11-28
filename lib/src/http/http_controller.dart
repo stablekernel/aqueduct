@@ -27,7 +27,7 @@ import 'http_controller_internal.dart';
 @cannotBeReused
 abstract class HTTPController extends RequestController {
   static ContentType _applicationWWWFormURLEncodedContentType =
-  new ContentType("application", "x-www-form-urlencoded");
+      new ContentType("application", "x-www-form-urlencoded");
 
   /// The request being processed by this [HTTPController].
   ///
@@ -88,9 +88,9 @@ abstract class HTTPController extends RequestController {
   bool _requestContentTypeIsSupported(Request req) {
     var incomingContentType = request.innerRequest.headers.contentType;
     return acceptedContentTypes.firstWhere((ct) {
-      return ct.primaryType == incomingContentType.primaryType &&
-          ct.subType == incomingContentType.subType;
-    }, orElse: () => null) !=
+          return ct.primaryType == incomingContentType.primaryType &&
+              ct.subType == incomingContentType.subType;
+        }, orElse: () => null) !=
         null;
   }
 
@@ -131,7 +131,7 @@ abstract class HTTPController extends RequestController {
     }
 
     var orderedParameters =
-    mapper.positionalParametersFromRequest(request, queryParameters);
+        mapper.positionalParametersFromRequest(request, queryParameters);
     var controllerProperties = controllerCache.propertiesFromRequest(
         request.innerRequest.headers, queryParameters);
     var missingParameters = [orderedParameters, controllerProperties.values]
@@ -148,10 +148,10 @@ abstract class HTTPController extends RequestController {
 
     Future<Response> eventualResponse = reflect(this)
         .invoke(
-        mapper.methodSymbol,
-        orderedParameters,
-        mapper.optionalParametersFromRequest(
-            request.innerRequest.headers, queryParameters))
+            mapper.methodSymbol,
+            orderedParameters,
+            mapper.optionalParametersFromRequest(
+                request.innerRequest.headers, queryParameters))
         .reflectee as Future<Response>;
 
     var response = await eventualResponse;
@@ -222,7 +222,7 @@ abstract class HTTPController extends RequestController {
         var comment = methodDeclaration.documentationComment;
         var tokens = comment?.tokens ?? [];
         var lines =
-        tokens.map((t) => t.lexeme.trimLeft().substring(3).trim()).toList();
+            tokens.map((t) => t.lexeme.trimLeft().substring(3).trim()).toList();
         if (lines.length > 0) {
           op.summary = lines.first;
         }
@@ -234,7 +234,7 @@ abstract class HTTPController extends RequestController {
 
       bool usesFormEncodedData = op.method.toLowerCase() == "post" &&
           acceptedContentTypes.any((ct) =>
-          ct.primaryType == "application" &&
+              ct.primaryType == "application" &&
               ct.subType == "x-www-form-urlencoded");
 
       op.parameters = [
@@ -242,7 +242,8 @@ abstract class HTTPController extends RequestController {
         cachedMethod.optionalParameters.values,
         controllerCache.propertyCache.values
       ].expand((i) => i.toList()).map((param) {
-        var paramLocation = _parameterLocationFromHTTPParameter(param.httpParameter);
+        var paramLocation =
+            _parameterLocationFromHTTPParameter(param.httpParameter);
         if (usesFormEncodedData &&
             paramLocation == APIParameterLocation.query) {
           paramLocation = APIParameterLocation.formData;
@@ -253,7 +254,7 @@ abstract class HTTPController extends RequestController {
           ..required = param.isRequired
           ..parameterLocation = paramLocation
           ..schemaObject =
-          (new APISchemaObject.fromTypeMirror(param.typeMirror));
+              (new APISchemaObject.fromTypeMirror(param.typeMirror));
       }).toList();
 
       return op;
@@ -288,7 +289,8 @@ abstract class HTTPController extends RequestController {
   }
 }
 
-Response _missingRequiredParameterResponseIfNecessary(List<HTTPControllerMissingParameter> params) {
+Response _missingRequiredParameterResponseIfNecessary(
+    List<HTTPControllerMissingParameter> params) {
   var missingHeaders = params
       .where((p) => p.type == HTTPControllerMissingParameterType.header)
       .map((p) => p.externalName)
@@ -301,7 +303,7 @@ Response _missingRequiredParameterResponseIfNecessary(List<HTTPControllerMissing
   StringBuffer missings = new StringBuffer();
   if (missingQueryParameters.isNotEmpty) {
     var missingQueriesString =
-    missingQueryParameters.map((p) => "'${p}'").join(", ");
+        missingQueryParameters.map((p) => "'${p}'").join(", ");
     missings.write("Missing query value(s): ${missingQueriesString}.");
   }
   if (missingQueryParameters.isNotEmpty && missingHeaders.isNotEmpty) {
