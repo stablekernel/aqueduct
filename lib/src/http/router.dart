@@ -172,9 +172,11 @@ class RouteController extends RequestController {
   final List<RouteSpecification> patterns;
 }
 
+/// Thrown when a [Router] encounters an exception.
 class RouterException implements Exception {
-  final String message;
   RouterException(this.message);
+
+  final String message;
 
   String toString() {
     return "RouterException: $message";

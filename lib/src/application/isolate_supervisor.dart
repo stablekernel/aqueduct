@@ -64,12 +64,13 @@ class ApplicationIsolateSupervisor {
       _stopCompleter?.complete();
       _stopCompleter = null;
     } else if (message is List) {
-      var exception = new ApplicationSupervisorException(message.first);
       var stacktrace = new StackTrace.fromString(message.last);
 
       if (_launchCompleter != null) {
-        _launchCompleter.completeError(exception, stacktrace);
+        var appException = new ApplicationStartupException(message.first);
+        _launchCompleter.completeError(appException, stacktrace);
       } else {
+        var exception = new ApplicationSupervisorException(message.first);
         logger.severe("Uncaught exception in isolate.", exception, stacktrace);
       }
     }

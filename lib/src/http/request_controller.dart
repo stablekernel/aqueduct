@@ -5,7 +5,6 @@ import 'dart:io';
 import 'package:logging/logging.dart';
 
 import 'http.dart';
-import '../application/application.dart';
 import '../db/db.dart';
 
 /// The unifying protocol for [Request] and [Response] classes.
@@ -58,7 +57,7 @@ class RequestController extends Object with APIDocumentable {
   RequestController pipe(RequestController n) {
     var typeMirror = reflect(n).type;
     if (_requestControllerTypeRequiresInstantion(typeMirror)) {
-      throw new ApplicationSupervisorException(
+      throw new RequestControllerException(
           "RequestController subclass ${typeMirror.reflectedType} instances cannot be reused. Rewrite as .generate(() => new ${typeMirror.reflectedType}())");
     }
     this.nextController = n;
@@ -327,4 +326,15 @@ class _RequestControllerGenerator extends RequestController {
   Map<String, APISecurityScheme> documentSecuritySchemes(
           PackagePathResolver resolver) =>
       instantiate().documentSecuritySchemes(resolver);
+}
+
+/// Thrown when [RequestController] throws an exception.
+///
+///
+class RequestControllerException {
+  RequestControllerException(this.message);
+
+  String message;
+
+  String toString() => "RequestControllerException: $message";
 }

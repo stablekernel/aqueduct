@@ -349,7 +349,7 @@ class AuthServer<
 
   /// A utility method to generate a random base64 salt.
   static String generateRandomSalt({int hashLength: 32}) {
-    var random = new Random(new DateTime.now().millisecondsSinceEpoch);
+    var random = new Random.secure();
     List<int> salt = [];
     for (var i = 0; i < hashLength; i++) {
       salt.add(random.nextInt(256));
