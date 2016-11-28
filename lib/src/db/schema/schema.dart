@@ -21,9 +21,8 @@ class Schema {
   Schema(this.tables);
 
   Schema.fromDataModel(ManagedDataModel dataModel) {
-    tables = dataModel.entities
-        .map((e) => new SchemaTable.fromEntity(e))
-        .toList();
+    tables =
+        dataModel.entities.map((e) => new SchemaTable.fromEntity(e)).toList();
   }
 
   Schema.from(Schema otherSchema) {

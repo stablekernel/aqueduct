@@ -7,8 +7,10 @@ class DataModelBuilder {
     instanceTypes.forEach((type) {
       var backingMirror = backingMirrorForType(type);
       var entity = new ManagedEntity(
-          dataModel, tableNameForPersistentTypeMirror(backingMirror),
-          reflectClass(type), backingMirror);
+          dataModel,
+          tableNameForPersistentTypeMirror(backingMirror),
+          reflectClass(type),
+          backingMirror);
       entities[type] = entity;
       persistentTypeToEntityMap[entity.persistentType.reflectedType] = entity;
 

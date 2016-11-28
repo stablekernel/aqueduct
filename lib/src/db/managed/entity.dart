@@ -26,7 +26,8 @@ class ManagedEntity {
   /// Creates an instance of this type..
   ///
   /// You should never call this method directly, it will be called by [ManagedDataModel].
-  ManagedEntity(this.dataModel, this._tableName, this.instanceType, this.persistentType);
+  ManagedEntity(
+      this.dataModel, this._tableName, this.instanceType, this.persistentType);
 
   /// The type of instances represented by this entity.
   ///

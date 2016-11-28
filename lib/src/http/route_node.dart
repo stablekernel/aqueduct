@@ -110,9 +110,8 @@ class RouteNode {
       var literalMatcher = (RouteSpecification spec) =>
           spec.segments[level].literal == segmentLiteral;
 
-      literalChildren[segmentLiteral] = new RouteNode(
-          specs.where(literalMatcher).toList(),
-          level: level + 1);
+      literalChildren[segmentLiteral] =
+          new RouteNode(specs.where(literalMatcher).toList(), level: level + 1);
       specs.removeWhere(literalMatcher);
     });
 

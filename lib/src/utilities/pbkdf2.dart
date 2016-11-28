@@ -1,5 +1,3 @@
-
-
 /*
   Based on implementation found here: https://github.com/jamesots/pbkdf2, which contains the following license:
   Copyright 2014 James Ots

@@ -38,7 +38,6 @@ abstract class HTTPParameter {
   final String externalName;
 }
 
-
 class HTTPControllerCache {
   static Map<Type, HTTPControllerCache> controllerCache = {};
   static HTTPControllerCache cacheForType(Type t) {
@@ -57,7 +56,7 @@ class HTTPControllerCache {
     allDeclarations.values
         .where((decl) => decl is VariableMirror)
         .where(
-        (decl) => decl.metadata.any((im) => im.reflectee is HTTPParameter))
+            (decl) => decl.metadata.any((im) => im.reflectee is HTTPParameter))
         .forEach((decl) {
       HTTPControllerCachedParameter param;
       var isRequired = allDeclarations[decl.simpleName]
@@ -163,12 +162,12 @@ class HTTPControllerCachedMethod {
             req.path.variables[param.name], param.typeMirror);
       } else if (param.httpParameter is HTTPQuery) {
         return convertParameterListWithMirror(
-            queryParameters[param.name], param.typeMirror) ??
+                queryParameters[param.name], param.typeMirror) ??
             new HTTPControllerMissingParameter(
                 HTTPControllerMissingParameterType.query, param.name);
       } else if (param.httpParameter is HTTPHeader) {
         return convertParameterListWithMirror(
-            req.innerRequest.headers[param.name], param.typeMirror) ??
+                req.innerRequest.headers[param.name], param.typeMirror) ??
             new HTTPControllerMissingParameter(
                 HTTPControllerMissingParameterType.header, param.name);
       }
@@ -245,7 +244,7 @@ dynamic convertParameterListWithMirror(
   if (typeMirror.isSubtypeOf(reflectType(List))) {
     return parameterValues
         .map((str) =>
-        convertParameterWithMirror(str, typeMirror.typeArguments.first))
+            convertParameterWithMirror(str, typeMirror.typeArguments.first))
         .toList();
   } else {
     return convertParameterWithMirror(parameterValues.first, typeMirror);
@@ -271,7 +270,7 @@ dynamic convertParameterWithMirror(
     if (parseDecl != null) {
       try {
         var reflValue =
-        typeMirror.invoke(parseDecl.simpleName, [parameterValue]);
+            typeMirror.invoke(parseDecl.simpleName, [parameterValue]);
         return reflValue.reflectee;
       } catch (e) {
         throw new InternalControllerException(
@@ -287,4 +286,3 @@ dynamic convertParameterWithMirror(
       HttpStatus.INTERNAL_SERVER_ERROR,
       responseMessage: "URI parameter is wrong type");
 }
-

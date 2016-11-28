@@ -262,19 +262,22 @@ void main() {
     server = await enableController("/a", TController);
     var resp = await http.get("http://localhost:4040/a");
     expect(resp.statusCode, 200);
-    expect(ContentType.parse(resp.headers["content-type"]).primaryType, "application");
+    expect(ContentType.parse(resp.headers["content-type"]).primaryType,
+        "application");
     expect(ContentType.parse(resp.headers["content-type"]).subType, "json");
   });
 
   test("Content-Type can be set adjusting responseContentType", () async {
     server = await enableController("/a", ContentTypeController);
-    var resp = await http.get("http://localhost:4040/a?opt=responseContentType");
+    var resp =
+        await http.get("http://localhost:4040/a?opt=responseContentType");
     expect(resp.statusCode, 200);
     expect(resp.headers["content-type"], "text/plain");
     expect(resp.body, "body");
   });
 
-  test("Content-Type set directly on Response overrides responseContentType", () async {
+  test("Content-Type set directly on Response overrides responseContentType",
+      () async {
     server = await enableController("/a", ContentTypeController);
     var resp = await http.get("http://localhost:4040/a?opt=direct");
     expect(resp.statusCode, 200);
@@ -444,9 +447,7 @@ class FilteringController extends HTTPController {
 }
 
 class TController extends HTTPController {
-  TController() {
-
-  }
+  TController() {}
   @httpGet
   Future<Response> getAll() async {
     return new Response.ok("getAll");
@@ -605,7 +606,8 @@ class ModelEncodeController extends HTTPController {
 }
 
 class ContentTypeController extends HTTPController {
-  @httpGet getThing(@HTTPQuery("opt") String opt) async {
+  @httpGet
+  getThing(@HTTPQuery("opt") String opt) async {
     if (opt == "responseContentType") {
       responseContentType = new ContentType("text", "plain");
       return new Response.ok("body");

@@ -1,5 +1,3 @@
-
-
 /// Order value for [QuerySortDescriptor]s and [QueryPage]s.
 enum QuerySortOrder {
   /// Ascending order. Example: 1, 2, 3, 4, ...

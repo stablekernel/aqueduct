@@ -19,7 +19,6 @@ import 'backing.dart';
 /// Aqueduct implements concrete subclasses of this class to provide behavior for property storage
 /// and query-building.
 abstract class ManagedBacking {
-
   /// Retrieve a property by its entity and name.
   dynamic valueForProperty(ManagedEntity entity, String propertyName);
 

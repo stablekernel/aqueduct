@@ -85,10 +85,9 @@ class MigrationExecutor {
         return m;
       } catch (e) {
         throw new MigrationException(
-          "Migration files must have the following format: Version_Name.migration.dart,"
-          "where Version must be an integer (optionally prefixed with 0s, e.g. '00000002')"
-          " and '_Name' is optional. Offender: ${fse.uri}"
-        );
+            "Migration files must have the following format: Version_Name.migration.dart,"
+            "where Version must be an integer (optionally prefixed with 0s, e.g. '00000002')"
+            " and '_Name' is optional. Offender: ${fse.uri}");
       }
     });
 

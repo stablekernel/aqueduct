@@ -1,5 +1,3 @@
-
-
 /// Represents a Client ID and secret pair.
 class AuthClient {
   /// Creates an instance of [AuthClient].

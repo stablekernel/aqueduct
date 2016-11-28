@@ -163,7 +163,8 @@ class ApplicationStartupException implements Exception {
 }
 
 /// An exception originating from an [Isolate] within an [Application].
-@Deprecated("This class will become private in 1.1. Use ApplicationStartupException in its place.")
+@Deprecated(
+    "This class will become private in 1.1. Use ApplicationStartupException in its place.")
 class ApplicationSupervisorException implements Exception {
   ApplicationSupervisorException(this.message);
 

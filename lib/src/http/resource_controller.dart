@@ -4,7 +4,6 @@ import 'dart:io';
 import '../db/db.dart';
 import 'http.dart';
 
-
 /// A [RequestController] for performing CRUD operations on [ManagedObject] instances.
 ///
 /// Instances of this class create and execute [Query]s based on [Request]'s they receive. This instances of this class effectively map a REST API call

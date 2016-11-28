@@ -11,7 +11,6 @@ import '../utilities/pbkdf2.dart';
 import '../utilities/token_generator.dart';
 import 'auth.dart';
 
-
 /// A storage-agnostic authorization 'server'.
 ///
 /// Instances of this type will carry out authentication and authorization tasks. This class shouldn't be subclassed. The storage required by tasks performed
