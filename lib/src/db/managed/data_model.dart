@@ -67,8 +67,15 @@ class ManagedDataModel {
   }
 
   List<Type> _modelTypesFromLibraryMirror(LibraryMirror libMirror) {
+    var allLibraries = libMirror.libraryDependencies
+        .where((dep) => dep.isExport)
+        .map((dep) => dep.targetLibrary)
+        .toList();
+    allLibraries.add(libMirror);
+
     var modelMirror = reflectClass(ManagedObject);
-    Iterable<ClassMirror> allClasses = libMirror.declarations.values
+    Iterable<ClassMirror> allClasses = allLibraries
+        .expand((lm) => lm.declarations.values)
         .where((decl) => decl is ClassMirror)
         .map((decl) => decl as ClassMirror);
 

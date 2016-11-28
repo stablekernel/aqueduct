@@ -1,4 +1,4 @@
-part of wildfire;
+import '../wildfire.dart';
 
 class WildfireConfiguration extends ConfigurationItem {
   WildfireConfiguration(String fileName) : super.fromFile(fileName);
