@@ -89,14 +89,3 @@ class ApplicationIsolateSupervisor {
     });
   }
 }
-
-/// An exception originating from an [Isolate] within an [Application].
-class ApplicationSupervisorException implements Exception {
-  ApplicationSupervisorException(this.message);
-
-  final String message;
-
-  String toString() {
-    return "$message";
-  }
-}
