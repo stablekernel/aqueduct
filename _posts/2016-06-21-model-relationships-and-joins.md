@@ -11,7 +11,7 @@ order: 4
 Managed objects can also have relationships to other managed objects. There are two types of relationships: to-one and to-many. Let's add an answer for each `Question` in the form of a to-one relationship. First, create a new file `lib/model/answer.dart` and define a new managed object to represent an answer:
 
 ```dart
-part of quiz;
+import '../quiz.dart';
 
 class Answer extends ManagedObject<_Answer> implements _Answer {}
 class _Answer {
@@ -21,10 +21,10 @@ class _Answer {
 
 ```
 
-Notice we created the persistent type and subclass of `ManagedObject`. Link this file back to the library in `lib/quiz.dart`.
+Notice we created the persistent type and subclass of `ManagedObject`. Add this file to the library in `lib/quiz.dart`.
 
 ```dart
-part 'model/answer.dart';
+export 'model/answer.dart';
 ```
 
 Now that we have a managed object that represents both a question and answer, we will set up a relationship between them. It logically makes sense that a 'question *has a* answer', so let's add that property to `_Question`, the persistent type of `Question`:

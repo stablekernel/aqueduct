@@ -76,7 +76,8 @@ class QuestionController extends HTTPController {
     "What's the tallest mountain in the world?"
   ];
 
-  @httpGet Future<Response> getAllQuestions() async {
+  @httpGet
+  Future<Response> getAllQuestions() async {
     return new Response.ok(questions);
   }
 }
@@ -88,7 +89,7 @@ A responder method must return an instance of `Future<Response>`. A `Response` a
 
 When an HTTP GET gets routed to a `QuestionController`, a response with status code 200 and body containing a list of questions will be sent. By default, the response object - here, `questions` - gets encoded as JSON before being sent. (We'll see how to customize that much later.)
 
-Because responder methods in `HTTPController` must always return a `Response` and must always have `HTTPMethod` metadata, its acceptable to omit the return type to make the method signature more readable:
+Because responder methods in `HTTPController` must always return a `Response` and must always have `HTTPMethod` metadata, its acceptable to omit the return type to make the method signature more easily discernible as a responder method:
 
 ```dart
 @httpGet getAllQuestions() async {

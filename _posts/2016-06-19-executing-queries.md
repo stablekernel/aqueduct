@@ -18,7 +18,7 @@ Aqueduct has a built-in ORM (some of which is modeled after the iOS/macOS Core D
 A managed object is a subclass of `ManagedObject<T>`, where `T` is a *persistent type*. A persistent type is a simple Dart class that maps to a database table. Each of its properties maps to a column in that table. By convention, but not required, persistent types are prefixed with '\_'. In `question.dart`, let's define a persistent type for a question:
 
 ```dart
-part of quiz;
+import '../quiz.dart';
 
 class _Question {
   @managedPrimaryKey int index;
@@ -27,10 +27,10 @@ class _Question {
 }
 ```
 
-Now, link this file to the rest of your project in `lib/quiz.dart` by adding this part at the end of the file:
+Now, make this file available to the rest of your project in `lib/quiz.dart` by adding the following at the end of the file:
 
 ```dart
-part 'model/question.dart';
+export 'model/question.dart';
 ```
 
 Each property in a persistent type can be marked with `ManagedColumnAttributes` metadata that defines how the underlying database column is defined. The `@managedPrimaryKey` metadata is shorthand for the following:
@@ -41,10 +41,10 @@ Each property in a persistent type can be marked with `ManagedColumnAttributes` 
 
 *All managed objects must have a primary key.* Other interesting flags are `indexed`, `nullable` and `defaultValue`. If a property does not have a `ManagedColumnAttributes`, it is still a persistent property, it's just a normal column and its database type is derived from its Dart type. Supported Dart types are `int`, `double`, `String`, `DateTime` and `bool`.
 
-Once a persistent type has been defined, you must declare a subclass of `ManagedObject`. At the top of `question.dart`, but underneath the part of directive, add the following:
+Once a persistent type has been defined, you must declare a subclass of `ManagedObject`. At the top of `question.dart`, but underneath the import, add the following:
 
 ```dart
-part of quiz;
+import '../quiz.dart';
 
 class Question extends ManagedObject<_Question> implements _Question {}
 class _Question {
@@ -81,6 +81,8 @@ A `ManagedDataModel` is initialized with a list of all instance types in your ap
 (By the way, the interface for `PersistentStore` can be implemented for different flavors of SQL and even non-SQL databases. We just so happen to prefer PostgreSQL, so we've already built that one.)
 
 When a `ManagedContext` is created, it becomes the *default context* of your application. When we execute database queries, they run on the default context (by default). If we have multiple databases, we can create more `ManagedContext`s and pass them around to make sure we hit the right database. For now, we can ignore this, just know that it exists.
+
+It is important that all `ManagedObject<T>` subclasses are exported in your library file; otherwise, the mechanism that searches your application to create a `ManagedDataModel` won't be able to find them.
 
 Executing Queries
 ---

@@ -36,22 +36,21 @@ Now, get the dependencies again by right-clicking on any project file and select
 Restructuring quiz
 ---
 
-Last chapter, we just threw everything in a single file to get started. To test, we really need to add some structure to our project. In the top-level directory `quiz`, create a new directory named `lib`. In this directory, create a new file named `quiz.dart`. This is your library file and it will contain references to every file in your project and packages you wish to import. Add the following:
+Last chapter, we just threw everything in a single file to get started. To test, we really need to add some structure to our project. In the top-level directory `quiz`, create a new directory named `lib`. In this directory, create a new file named `quiz.dart`. This is your library file. It will export all of the files in your application and libraries from dependencies that are used across your application. All of the files in your project will import this library file.
 
 ```dart
 library quiz;
 
-import 'package:aqueduct/aqueduct.dart';
 export 'package:aqueduct/aqueduct.dart';
 
-part 'controller/question_controller.dart';
-part 'quiz_request_sink.dart';
+export 'controller/question_controller.dart';
+export 'quiz_request_sink.dart';
 ```
 
-You'll get some warnings because `controller/question_controller.dart` and `quiz_request_sink.dart` don't yet exist. Let's create those. Create a new directory at `quiz/lib/controller` and add the file `question_controller.dart` to that directory. At the top of this file, link this 'part' back to the library file and then copy and paste the `QuestionController` class from `bin/quiz.dart` into it:
+You'll get some warnings because `controller/question_controller.dart` and `quiz_request_sink.dart` don't yet exist. Let's create those. Create a new directory at `quiz/lib/controller` and add the file `question_controller.dart` to that directory. At the top of this file, import the application library file and then copy and paste the `QuestionController` class from `bin/quiz.dart` into it:
 
 ```dart
-part of quiz;
+import '../quiz.dart';
 
 class QuestionController extends HTTPController {
   var questions = [
@@ -73,10 +72,10 @@ class QuestionController extends HTTPController {
 }
 ```
 
-Next, create a new file at `lib/quiz_request_sink.dart`, link this part back to the library, and copy and paste the `QuizRequestSink` class into this file:
+Next, create a new file at `lib/quiz_request_sink.dart`, import the application library, and copy and paste the `QuizRequestSink` class into this file:
 
 ```dart
-part of quiz;
+import 'quiz.dart';
 
 class QuizRequestSink extends RequestSink {
   QuizRequestSink(Map<String, dynamic> options) : super(options);
@@ -90,7 +89,7 @@ class QuizRequestSink extends RequestSink {
 }
 ```
 
-Now that you've split up the project across multiple files, we no longer need the `quiz.dart` file in `bin/`, so delete it. (Don't delete the `quiz.dart` file in `lib/`!) Create a new file in `bin/` named `start.dart` Add the startup `main` function to that file:
+Now that you've split up the project across multiple files, we no longer need the `quiz.dart` file in `bin/`, so delete it. (Don't delete the `quiz.dart` file in `lib/`!) Create a new file at `bin/start.dart` Add the startup `main` function to that file:
 
 ```dart
 import 'package:quiz/quiz.dart';
