@@ -91,4 +91,4 @@ Then, start the server:
 ./wildfire start
 ```
 
-> It's important to note that running this will wipe any changes not on your 'master' branch.
+> It's important to note that running this will wipe any changes not on your 'master' branch. This happens because the `start` script allows you to choose a git branch to run from and uses 'master' by default if it detects a `.git` repository. It then checks out master and does a hard reset then pulls down any changes.   
