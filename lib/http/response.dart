@@ -5,10 +5,24 @@ part of aqueduct;
 /// This object can be used to write an HTTP response and contains conveniences
 /// for creating these objects.
 class Response implements RequestControllerEvent {
+  /// The default value of a [contentType].
+  ///
+  /// If no [contentType] is set for an instance, this is the value used. By default, this value is
+  /// [ContentType.JSON].
+  static ContentType defaultContentType = ContentType.JSON;
+
   /// Adds an HTTP Response Body encoder to list of available encoders for all [Request]s.
   ///
-  /// By default, 'application/json' and 'text/plain' are implemented. If you wish to add another encoder
-  /// to your application, use this method. The [encoder] must take one argument of any type, and return a value
+  /// When the [contentType] of an instance is set, an encoder function is applied to the data. This method
+  /// adds an encoder function for [type].
+  ///
+  /// By default, 'application/json' and 'text/*' are available. A [Response] with "application/json" [contentType]
+  /// will be encoded by invoking [JSON.decode] on the instance's [body]. The default encoder for [ContentType]s whose primary type is "text" will invoke [toString]
+  /// on the instance's [body].
+  ///
+  /// [type] can have a '*' [ContentType.subType] that matches all subtypes for a primary type.
+  ///
+  /// An [encoder] must take one argument of any type, and return a value
   /// that will become the HTTP response body.
   ///
   /// The return value is written to the response with [IOSink.write] and so it must either be a [String] or its [toString]
@@ -27,7 +41,7 @@ class Response implements RequestControllerEvent {
     "application": {
       "json": (v) => JSON.encode(v),
     },
-    "text": {"plain": (Object v) => v.toString()}
+    "text": {"*": (Object v) => v.toString()}
   };
 
   /// An object representing the body of the [Response], which will be encoded when used to [Request.respond].
@@ -59,13 +73,56 @@ class Response implements RequestControllerEvent {
 
   dynamic _body;
 
+  /// Returns the encoded [body] according to [contentType].
+  ///
+  /// If there is no [body] present, this property is null. This property will use the encoders available through [addEncoder]. If
+  /// no encoder is found, [toString] is called on the body.
+  dynamic get encodedBody {
+    if (_body == null) {
+      return null;
+    }
+
+    var encoder = null;
+    var topLevel = _encoders[contentType.primaryType];
+    if (topLevel != null) {
+      encoder = topLevel[contentType.subType] ?? topLevel["*"];
+    }
+
+    if (encoder == null) {
+      throw new HTTPResponseException(
+          500, "Could not encode body as ${contentType.toString()}.");
+    }
+
+    return encoder(_body);
+  }
+
   /// Map of headers to send in this response.
   ///
-  /// Where the key is the Header name and value is the Header value.
+  /// Where the key is the Header name and value is the Header value. Values may be any type and by default will have [toString] invoked
+  /// on them. For [DateTime] values, the value will be converted into an HTTP date format. For [List] values, each value will be
+  /// have [toString] invoked on it and the resulting outputs will be joined together with the "," character.
+  ///
+  /// Adding a Content-Type header through this property has no effect. Use [contentType] instead.
   Map<String, dynamic> headers;
 
   /// The HTTP status code of this response.
   int statusCode;
+
+  /// The content type of the body of this response.
+  ///
+  /// Defaults to [defaultContentType]. This response's body will be encoded according to this value.
+  /// The Content-Type header of the HTTP response will always be set according to this value.
+  ContentType get contentType => _contentType ?? defaultContentType;
+  void set contentType(ContentType t) {
+    _contentType = t;
+  }
+
+  ContentType _contentType;
+
+  /// Whether or nor this instance has explicitly has its [contentType] property.
+  ///
+  /// This value indicates whether or not [contentType] has been set, or is still using its default value.
+  bool get hasExplicitlySetContentType => _contentType != null;
 
   /// The default constructor.
   ///

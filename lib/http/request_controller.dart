@@ -223,8 +223,8 @@ class RequestController extends Object with APIDocumentable {
           };
         }
 
-        var response = new Response.serverError(
-            headers: {HttpHeaders.CONTENT_TYPE: ContentType.JSON}, body: body);
+        var response = new Response.serverError(body: body)
+          ..contentType = ContentType.JSON;
 
         _applyCORSHeadersIfNecessary(request, response);
         request.respond(response);
