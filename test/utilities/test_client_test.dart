@@ -356,12 +356,13 @@ void main() {
     test("Can match text object", () async {
       var defaultTestClient = new TestClient.onPort(4000);
 
-      server.queueResponse(new Response.ok("text")..contentType = ContentType.TEXT);
+      server.queueResponse(
+          new Response.ok("text")..contentType = ContentType.TEXT);
       var response = await defaultTestClient.request("/foo").get();
       expect(response, hasBody("text"));
 
-      server.queueResponse(new Response.ok("text")..contentType = ContentType.TEXT);
-
+      server.queueResponse(
+          new Response.ok("text")..contentType = ContentType.TEXT);
 
       response = await defaultTestClient.request("/foo").get();
       try {
@@ -376,12 +377,13 @@ void main() {
     test("Can match JSON Object", () async {
       var defaultTestClient = new TestClient.onPort(4000);
 
-
-      server.queueResponse(new Response.ok({"foo" : "bar"})..contentType = ContentType.JSON);
+      server.queueResponse(
+          new Response.ok({"foo": "bar"})..contentType = ContentType.JSON);
       var response = await defaultTestClient.request("/foo").get();
       expect(response, hasBody(isNotNull));
 
-      server.queueResponse(new Response.ok({"foo" : "bar"})..contentType = ContentType.JSON);
+      server.queueResponse(
+          new Response.ok({"foo": "bar"})..contentType = ContentType.JSON);
       response = await defaultTestClient.request("/foo").get();
       try {
         expect(response, hasBody({"foo": "notbar"}));
@@ -391,7 +393,9 @@ void main() {
         expect(e.toString(), contains('Body: {"foo":"bar"}'));
       }
 
-      server.queueResponse(new Response.ok({"nocontenttype" : "thatsaysthisisjson"})..contentType = ContentType.TEXT);
+      server.queueResponse(
+          new Response.ok({"nocontenttype": "thatsaysthisisjson"})
+            ..contentType = ContentType.TEXT);
 
       response = await defaultTestClient.request("/foo").get();
       try {
@@ -523,7 +527,8 @@ void main() {
     test("Omit status code ignores it", () async {
       var defaultTestClient = new TestClient.onPort(4000);
 
-      server.queueResponse(new Response.ok({"foo" : "bar"})..contentType = ContentType.JSON);
+      server.queueResponse(
+          new Response.ok({"foo": "bar"})..contentType = ContentType.JSON);
 
       var response = await defaultTestClient.request("/foo").get();
       expect(

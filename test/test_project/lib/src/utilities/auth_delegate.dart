@@ -1,4 +1,4 @@
-part of wildfire;
+import '../../wildfire.dart';
 
 class WildfireAuthenticationDelegate
     implements AuthServerDelegate<User, Token, AuthCode> {

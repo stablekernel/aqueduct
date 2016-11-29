@@ -6,18 +6,17 @@
 /// A web server.
 library wildfire;
 
-import 'dart:io';
-import 'dart:async';
-import 'package:aqueduct/aqueduct.dart';
-import 'package:scribe/scribe.dart';
+export 'dart:async';
+export 'dart:io';
 
 export 'package:aqueduct/aqueduct.dart';
 export 'package:scribe/scribe.dart';
 
-part 'src/model/token.dart';
-part 'src/model/user.dart';
-part 'src/wildfire_sink.dart';
-part 'src/controller/user_controller.dart';
-part 'src/controller/identity_controller.dart';
-part 'src/controller/register_controller.dart';
-part 'src/utilities/auth_delegate.dart';
+export 'wildfire_sink.dart';
+export 'model/token.dart';
+export 'model/user.dart';
+export 'controller/user_controller.dart';
+export 'controller/identity_controller.dart';
+export 'controller/register_controller.dart';
+export 'utilities/auth_delegate.dart';
+

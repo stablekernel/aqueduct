@@ -9,9 +9,11 @@ void main() {
     try {
       await app.start();
       expect(true, false);
-    } on ApplicationSupervisorException catch (e) {
-      expect(e.message,
-          "RequestController subclass FailingController instances cannot be reused. Rewrite as .generate(() => new FailingController())");
+    } on ApplicationStartupException catch (e) {
+      expect(
+          e.toString(),
+          contains(
+              "RequestController subclass FailingController instances cannot be reused. Rewrite as .generate(() => new FailingController())"));
     }
   });
 }

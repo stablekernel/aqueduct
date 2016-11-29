@@ -1,6 +1,4 @@
-import 'package:test/test.dart';
-import 'package:wildfire/wildfire.dart';
-import 'mock/startup.dart';
+import 'harness/app.dart';
 
 main() {
   group("Success cases", () {

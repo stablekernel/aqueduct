@@ -1,4 +1,4 @@
-part of wildfire;
+import '../../wildfire.dart';
 
 class RegisterController extends QueryController<User> {
   @httpPost
