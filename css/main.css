@@ -116,6 +116,15 @@ h2 {
   padding-top: 20px;
 }
 
+h3 {
+  font-family: 'Helvetica Neue', Helvetica, Arial;
+  color: rgb(51, 51, 51);
+  font-weight: 300;
+  font-size: 24px;
+  font-style: normal;
+  padding-top: 20px;
+}
+
 h1, h2, h3, h4, a {
 
 }
