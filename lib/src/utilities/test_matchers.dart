@@ -379,18 +379,17 @@ class _PartialMapMatcher extends Matcher {
     for (var matchKey in map.keys) {
       var matchValue = map[matchKey];
       var value = item[matchKey];
-
-      if (value != null && matchValue is _NotPresentMatcher) {
-        var extra = matchState["extra"];
-        if (extra == null) {
-          extra = [];
-          matchState["extra"] = extra;
+      if (matchValue is _NotPresentMatcher) {
+        if (value != null) {
+          var extra = matchState["extra"];
+          if (extra == null) {
+            extra = [];
+            matchState["extra"] = extra;
+          }
+          extra = matchKey;
+          return false;
         }
-        extra = matchKey;
-        return false;
-      }
-
-      if (value == null) {
+      } else if (value == null) {
         var missing = matchState["missing"];
         if (missing == null) {
           missing = [];
