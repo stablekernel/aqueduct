@@ -69,26 +69,24 @@ You may copy and edit config template file:
 cp config.yaml.src config.yaml
 ```
 
-#### ...locally
-
-From your project's directory, run:
+Now, you can run your server locally:
 
 ```
   dart bin/start.dart 
 ```
-
-#### ...on a server
-
+ 
 Give executable permissions for the application script:
 
 ```
 chmod a+x wildfire
 ```
 
-Then, start the server:
+Then, start the server on a specific branch in your local git repository:
 
 ```
-./wildfire start
+./wildfire start <optional_git_branch_name>
 ```
 
-> It's important to note that running this will wipe any changes not on your 'master' branch. This happens because the `start` script allows you to choose a git branch to run from and uses 'master' by default if it detects a `.git` repository. It then checks out master and does a hard reset then pulls down any changes.   
+Deployment environments such as `staging` or `development` maintained on seperate can be easily used in your deployment pipeline for your project. 
+
+> It is important to note that this application script downloads remote references and does a hard reset on that branch and is not suitable for your local environment. Instead just point use `dart bin\start.dart` locally
