@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'application.dart';
+import '../http/request_sink.dart';
 
 /// A set of values to configure an instance of [Application].
 class ApplicationConfiguration {
@@ -36,5 +37,5 @@ class ApplicationConfiguration {
   ///
   /// Allows delivery of custom configuration parameters to [RequestSink] instances
   /// that are attached to this application.
-  Map<dynamic, dynamic> configurationOptions;
+  Map<String, dynamic> configurationOptions;
 }
