@@ -9,7 +9,7 @@ import 'application.dart';
 ///
 /// You should not use this class directly.
 class ApplicationIsolateSupervisor {
-  static String MessageStop = "_MessageStop";
+  static const String MessageStop = "_MessageStop";
 
   /// Create an isntance of [ApplicationIsolateSupervisor].
   ApplicationIsolateSupervisor(this.supervisingApplication, this.isolate,
