@@ -20,7 +20,7 @@ class WildfireSink extends RequestSink {
   /// [Application.configuration] [ApplicationConfiguration.configurationOptions].
   /// See bin/start.dart.
   WildfireSink(Map<String, dynamic> opts) : super(opts) {
-    configuration = opts[ConfigurationKey];
+    WildfireConfiguration configuration = opts[ConfigurationKey];
 
     LoggingTarget target = opts[LoggingTargetKey];
     target?.bind(logger);
@@ -33,7 +33,6 @@ class WildfireSink extends RequestSink {
 
   ManagedContext context;
   AuthServer<User, Token, AuthCode> authenticationServer;
-  WildfireConfiguration configuration;
 
   /// All routes must be configured in this method.
   @override
@@ -68,8 +67,7 @@ class WildfireSink extends RequestSink {
   }
 
   ManagedContext contextWithConnectionInfo(
-      DatabaseConnectionConfiguration database) {
-    var connectionInfo = configuration.database;
+      DatabaseConnectionConfiguration connectionInfo) {
     var dataModel =
         new ManagedDataModel.fromPackageContainingType(this.runtimeType);
     var psc = new PostgreSQLPersistentStore.fromConnectionInfo(
