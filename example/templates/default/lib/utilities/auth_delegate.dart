@@ -1,6 +1,6 @@
 import '../wildfire.dart';
 
-class WildfireAuthenticationDelegate
+class WildfireAuthDelegate
     implements AuthServerDelegate<User, Token, AuthCode> {
   Future<AuthClient> clientForID(AuthServer server, String id) async {
     var clientQ = new Query<ClientRecord>()..matchOn.id = id;

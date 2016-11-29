@@ -27,12 +27,12 @@ class WildfireSink extends RequestSink {
 
     context = contextWithConnectionInfo(configuration.database);
 
-    authenticationServer = new AuthServer<User, Token, AuthCode>(
-        new WildfireAuthenticationDelegate());
+    authServer = new AuthServer<User, Token, AuthCode>(
+        new WildfireAuthDelegate());
   }
 
   ManagedContext context;
-  AuthServer<User, Token, AuthCode> authenticationServer;
+  AuthServer<User, Token, AuthCode> authServer;
 
   /// All routes must be configured in this method.
   @override
@@ -40,29 +40,29 @@ class WildfireSink extends RequestSink {
     router
         .route("/auth/token")
         .pipe(
-            new Authorizer(authenticationServer, strategy: AuthStrategy.client))
-        .generate(() => new AuthController(authenticationServer));
+            new Authorizer(authServer, strategy: AuthStrategy.client))
+        .generate(() => new AuthController(authServer));
 
     router
         .route("/auth/code")
         .pipe(
-            new Authorizer(authenticationServer, strategy: AuthStrategy.client))
-        .generate(() => new AuthCodeController(authenticationServer));
+            new Authorizer(authServer, strategy: AuthStrategy.client))
+        .generate(() => new AuthCodeController(authServer));
 
     router
         .route("/identity")
-        .pipe(new Authorizer(authenticationServer))
+        .pipe(new Authorizer(authServer))
         .generate(() => new IdentityController());
 
     router
         .route("/register")
         .pipe(
-            new Authorizer(authenticationServer, strategy: AuthStrategy.client))
+            new Authorizer(authServer, strategy: AuthStrategy.client))
         .generate(() => new RegisterController());
 
     router
         .route("/users/[:id]")
-        .pipe(new Authorizer(authenticationServer))
+        .pipe(new Authorizer(authServer))
         .generate(() => new UserController());
   }
 
@@ -86,7 +86,7 @@ class WildfireSink extends RequestSink {
   @override
   Map<String, APISecurityScheme> documentSecuritySchemes(
       PackagePathResolver resolver) {
-    return authenticationServer.documentSecuritySchemes(resolver);
+    return authServer.documentSecuritySchemes(resolver);
   }
 }
 
