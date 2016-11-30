@@ -4,10 +4,12 @@ import 'dart:mirrors';
 import '../helpers.dart';
 
 void main() {
-  var ps = new DefaultPersistentStore();
-  ManagedDataModel dm =
-      new ManagedDataModel([TransientTest, TransientTypeTest, User, Post]);
-  ManagedContext _ = new ManagedContext(dm, ps);
+  setUpAll(() {
+    var ps = new DefaultPersistentStore();
+    ManagedDataModel dm =
+    new ManagedDataModel([TransientTest, TransientTypeTest, User, Post]);
+    var _ = new ManagedContext(dm, ps);
+  });
 
   test("NoSuchMethod still throws", () {
     var user = new User();
