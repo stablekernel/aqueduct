@@ -39,7 +39,7 @@ class _Token {
   @ManagedColumnAttributes(primaryKey: true)
   String accessToken;
 
-  @ManagedColumnAttributes(indexed: true)
+  @ManagedColumnAttributes(indexed: true, nullable: true)
   String refreshToken;
 
   @ManagedRelationship(#tokens, onDelete: ManagedRelationshipDeleteRule.cascade)

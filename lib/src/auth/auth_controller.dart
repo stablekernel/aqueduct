@@ -42,7 +42,14 @@ class AuthController extends HTTPController {
       @HTTPQuery("password") String password,
       @HTTPQuery("refresh_token") String refreshToken,
       @HTTPQuery("authorization_code") String authCode}) async {
-    var basicRecord = AuthorizationBasicParser.parse(authHeader);
+    AuthorizationBasicElements basicRecord;
+
+    try {
+      basicRecord = AuthorizationBasicParser.parse(authHeader);
+    } on AuthorizationParserException catch (e) {
+      return new Response.serverError();
+    }
+
     if (grantType == "password") {
       if (username == null || password == null) {
         return new Response.badRequest(
@@ -51,6 +58,7 @@ class AuthController extends HTTPController {
 
       var token = await authenticationServer.authenticate(
           username, password, basicRecord.username, basicRecord.password);
+
       return AuthController.tokenResponse(token);
     } else if (grantType == "refresh_token") {
       if (refreshToken == null) {
@@ -83,8 +91,12 @@ class AuthController extends HTTPController {
       "token_type": token.type,
       "expires_in":
           token.expirationDate.difference(new DateTime.now().toUtc()).inSeconds,
-      "refresh_token": token.refreshToken
     };
+
+    if (token.refreshToken != null) {
+      jsonToken["refresh_token"] = token.refreshToken;
+    }
+
     return new Response(
         200, {"Cache-Control": "no-store", "Pragma": "no-cache"}, jsonToken);
   }

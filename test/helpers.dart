@@ -39,7 +39,7 @@ class _Token implements AuthTokenizable<int> {
   @ManagedColumnAttributes(indexed: true)
   String accessToken;
 
-  @ManagedColumnAttributes(indexed: true)
+  @ManagedColumnAttributes(indexed: true, nullable: true)
   String refreshToken;
 
   DateTime issueDate;
@@ -167,6 +167,9 @@ class AuthDelegate implements AuthServerDelegate<TestUser, Token, AuthCode> {
           AuthServer.generatePasswordHash("mckinley", salt),
           salt,
           "http://stablekernel.com/auth/redirect");
+    }
+    if (id == "com.stablekernel.public") {
+      return new AuthClient("com.stablekernel.public", null, salt);
     }
 
     return null;
