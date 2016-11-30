@@ -519,6 +519,7 @@ void main() {
       var response = await defaultTestClient.request("/foo").get();
       expect(response, hasBody(partial({"bar": "boo"})));
       expect(response, hasBody(partial({"foo": isNull})));
+      expect(response, hasBody(partial({"baz": isNotPresent})));
 
       try {
         expect(response, hasBody(partial({"foo": isNotPresent})));
