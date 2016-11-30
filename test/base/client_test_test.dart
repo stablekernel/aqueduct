@@ -1,7 +1,6 @@
 import 'package:aqueduct/aqueduct.dart';
 import 'package:test/test.dart';
 import 'dart:io';
-import 'dart:async';
 
 main() {
   test("Client can expect array of JSON", () async {

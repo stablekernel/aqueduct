@@ -41,16 +41,23 @@ class ApplicationIsolateServer extends ApplicationServer {
 
 /// This method is used internally.
 void isolateServerEntryPoint(ApplicationInitialServerMessage params) {
-  var sinkSourceLibraryMirror =
-      currentMirrorSystem().libraries[params.streamLibraryURI];
-  var sinkTypeMirror = sinkSourceLibraryMirror.declarations[
-      new Symbol(params.streamTypeName)] as ClassMirror;
+  RequestSink sink;
+  try {
+    var sinkSourceLibraryMirror =
+        currentMirrorSystem().libraries[params.streamLibraryURI];
+    var sinkTypeMirror = sinkSourceLibraryMirror.declarations[
+        new Symbol(params.streamTypeName)] as ClassMirror;
 
-  var app = sinkTypeMirror.newInstance(
-      new Symbol(""), [params.configuration.configurationOptions]).reflectee;
+    sink = sinkTypeMirror.newInstance(
+        new Symbol(""), [params.configuration.configurationOptions]).reflectee;
+  } catch (e, st) {
+    params.parentMessagePort.send([e, st.toString()]);
+
+    return;
+  }
 
   var server = new ApplicationIsolateServer(
-      app, params.configuration, params.identifier, params.parentMessagePort);
+      sink, params.configuration, params.identifier, params.parentMessagePort);
   server.start(shareHttpServer: true);
 }
 
