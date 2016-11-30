@@ -5,6 +5,22 @@ import '../http/http.dart';
 import 'auth.dart';
 
 /// [RequestController] for issuing OAuth 2.0 authorization codes.
+///
+/// Requests to this controller should come from a login form hosted by the authorization server.
+/// A client will navigate to a page that hosts the login form, including a client_id, response_type and state
+/// in the query string. (The query string may optionally contain a scope parameter, where each requested scope
+/// is separated by a URL percent encoded space.)
+///
+/// The form submission should combine the parameters from the query string
+/// and the submitted username and password into a single query string. This controller responds to
+/// the form submission request, which must be a POST.
+///
+/// The implementation of this form page is up to the discretion of the developer. This controller
+/// provides no mechanism for providing the page.
+///
+/// The request handled by this controller will redirect the client back to its registered redirection URI, including the initial state query
+/// parameter and an authorization code. The authorization code can be exchanged for an access token with a request to a
+/// [AuthController].
 class AuthCodeController extends HTTPController {
   /// Creates a new instance of an [AuthCodeController].
   ///

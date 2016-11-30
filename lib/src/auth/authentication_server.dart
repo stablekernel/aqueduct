@@ -97,17 +97,20 @@ class AuthServer<
   /// This method creates an instance of a [TokenType] given an [ownerID], [clientID] and [expirationInSeconds].
   /// The generated token is not persisted by invoking this method.
   TokenType generateToken(
-      dynamic ownerID, String clientID, int expirationInSeconds) {
+      dynamic ownerID, String clientID, int expirationInSeconds, {bool allowRefresh: true}) {
     TokenType token = (reflectType(TokenType) as ClassMirror)
         .newInstance(new Symbol(""), []).reflectee as TokenType;
     token.accessToken = randomStringOfLength(32);
-    token.refreshToken = randomStringOfLength(32);
     token.issueDate = new DateTime.now().toUtc();
     token.expirationDate =
         token.issueDate.add(new Duration(seconds: expirationInSeconds)).toUtc();
     token.type = "bearer";
     token.resourceOwnerIdentifier = ownerID;
     token.clientID = clientID;
+
+    if (allowRefresh) {
+      token.refreshToken = randomStringOfLength(32);
+    }
 
     return token;
   }
@@ -195,11 +198,26 @@ class AuthServer<
       throw new HTTPResponseException(
           HttpStatus.UNAUTHORIZED, "Invalid client_id");
     }
-    if (client.hashedSecret !=
-        generatePasswordHash(clientSecret, client.salt)) {
-      throw new HTTPResponseException(
-          HttpStatus.UNAUTHORIZED, "Invalid client_secret");
+
+    var isClientPublic = false;
+
+    if (client.hashedSecret == null) {
+      isClientPublic = true;
+
+      if (!(clientSecret == null || clientSecret == "")) {
+        throw new HTTPResponseException(
+            HttpStatus.UNAUTHORIZED, "Invalid client_secret");
+      }
+    } else {
+      isClientPublic = false;
+
+      if (client.hashedSecret !=
+          generatePasswordHash(clientSecret, client.salt)) {
+        throw new HTTPResponseException(
+            HttpStatus.UNAUTHORIZED, "Invalid client_secret");
+      }
     }
+
 
     var authenticatable =
         await delegate.authenticatableForUsername(this, username);
@@ -217,7 +235,7 @@ class AuthServer<
     }
 
     TokenType token =
-        generateToken(authenticatable.id, client.id, expirationInSeconds);
+        generateToken(authenticatable.id, client.id, expirationInSeconds, allowRefresh: !isClientPublic);
     await delegate.storeToken(this, token);
 
     return token;
@@ -359,8 +377,14 @@ class AuthServer<
   }
 
   /// A utility method to generate a ClientID and Client Secret Pair, where secret is hashed with a salt.
+  ///
+  /// Secret may be null for public clients.
   static AuthClient generateAPICredentialPair(String clientID, String secret,
       {String redirectURI: null}) {
+    if (secret == null) {
+      return new AuthClient.withRedirectURI(clientID, null, null, redirectURI);
+    }
+
     var salt = AuthServer.generateRandomSalt();
     var hashed = AuthServer.generatePasswordHash(secret, salt);
 
@@ -387,4 +411,86 @@ class AuthServer<
   Future<Authorization> fromBearerToken(String bearerToken, List<String> scopesRequired) async {
     return await verify(bearerToken);
   }
+
+  /// Returns a string suitable to be included in a query string or JSON response body
+  /// to indicate the error during processing an OAuth 2.0 request.
+  static String errorStringFromRequestError(AuthRequestError error) {
+    switch (error) {
+      case AuthRequestError.invalidRequest: return "invalid_request";
+      case AuthRequestError.invalidClient: return "invalid_client";
+      case AuthRequestError.invalidGrant: return "invalid_grant";
+      case AuthRequestError.invalidScope: return "invalid_scope";
+
+      case AuthRequestError.unsupportedGrantType: return "unsupported_grant_type";
+      case AuthRequestError.unsupportedResponseType: return "unsupported_response_type";
+
+      case AuthRequestError.unauthorizedClient: return "unauthorized_client";
+      case AuthRequestError.accessDenied: return "access_denied";
+
+      case AuthRequestError.serverError: return "server_error";
+      case AuthRequestError.temporarilyUnavailable: return "temporarily_unavailable";
+
+    }
+    return null;
+  }
 }
+
+/// The possible errors as defined by the OAuth 2.0 specification.
+///
+/// Auth endpoints will use this list of values to determine the response sent back
+/// to a client upon a failed request.
+enum AuthRequestError {
+  /// The request was invalid...
+  ///
+  /// The request is missing a required parameter, includes an
+  /// unsupported parameter value (other than grant type),
+  /// repeats a parameter, includes multiple credentials,
+  /// utilizes more than one mechanism for authenticating the
+  /// client, or is otherwise malformed.
+  invalidRequest,
+
+  /// The client was invalid...
+  ///
+  /// Client authentication failed (e.g., unknown client, no
+  /// client authentication included, or unsupported
+  /// authentication method).  The authorization server MAY
+  /// return an HTTP 401 (Unauthorized) status code to indicate
+  /// which HTTP authentication schemes are supported.  If the
+  /// client attempted to authenticate via the "Authorization"
+  /// request header field, the authorization server MUST
+  /// respond with an HTTP 401 (Unauthorized) status code and
+  /// include the "WWW-Authenticate" response header field
+  /// matching the authentication scheme used by the client.
+  invalidClient,
+
+  /// The grant was invalid...
+  ///
+  /// The provided authorization grant (e.g., authorization
+  /// code, resource owner credentials) or refresh token is
+  /// invalid, expired, revoked, does not match the redirection
+  /// URI used in the authorization request, or was issued to
+  /// another client.
+  invalidGrant,
+
+  /// The requested scope is invalid, unknown, malformed, or exceeds the scope granted by the resource owner.
+  invalidScope,
+
+  /// The authorization grant type is not supported by the authorization server.
+  unsupportedGrantType,
+
+  /// The authorization server does not support obtaining an authorization code using this method.
+  unsupportedResponseType,
+
+  /// The authenticated client is not authorized to use this authorization grant type.
+  unauthorizedClient,
+
+  /// The resource owner or authorization server denied the request.
+  accessDenied,
+
+  /// The server encountered an error during processing the request.
+  serverError,
+
+  /// The server is temporarily unable to fulfill the request.
+  temporarilyUnavailable
+}
+
