@@ -45,24 +45,6 @@ class RouteSegment {
   bool get isVariable => variableName != null;
   bool isRemainingMatcher = false;
 
-  bool matches(String pathSegment) {
-    if (isLiteralMatcher) {
-      return pathSegment == literal;
-    }
-
-    if (hasRegularExpression) {
-      if (matcher.firstMatch(pathSegment) == null) {
-        return false;
-      }
-    }
-
-    if (isVariable) {
-      return true;
-    }
-
-    return false;
-  }
-
   bool operator ==(dynamic other) {
     return literal == other.literal &&
         variableName == other.variableName &&
