@@ -35,15 +35,20 @@ enum AuthStrategy {
 /// further request processing. If the [Request] is valid, this instance will attach a [Authorization]
 /// to the [Request] and deliver it to this instance's [nextController].
 class Authorizer extends RequestController {
-  /// Creates an instance of [Authorizer] with a reference back to its [server] and a [strategy].
+  /// Creates an instance of [Authorizer].
   ///
   /// The default strategy is [AuthStrategy.bearer].
   Authorizer(this.validator, {this.strategy: AuthStrategy.bearer, this.scopes}) {
     policy = null;
   }
 
+  /// Creates an instance of [Authorizer] using [AuthStrategy.basic].
   Authorizer.basic(AuthValidator validator)
       : this(validator, strategy: AuthStrategy.basic);
+
+  /// Creates an instance of [Authorizer] using [AuthStrategy.bearer].
+  ///
+  /// Optionally allows the setting of [Authorizer.scopes].
   Authorizer.bearer(AuthValidator validator, {List<String> scopes})
       : this(validator, strategy: AuthStrategy.bearer, scopes: scopes);
 
