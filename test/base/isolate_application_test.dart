@@ -82,39 +82,35 @@ main() {
         () async {
       var crashingApp = new Application<CrashSink>();
 
-      var succeeded = false;
       try {
         crashingApp.configuration.configurationOptions = {
           "crashIn": "constructor"
         };
         await crashingApp.start();
-        succeeded = true;
-      } catch (e) {
+        expect(true, false);
+      } on ApplicationStartupException catch (e) {
         expect(e.toString(), contains("TestException: constructor"));
       }
-      expect(succeeded, false);
 
       try {
         crashingApp.configuration.configurationOptions = {
           "crashIn": "addRoutes"
         };
         await crashingApp.start();
-        succeeded = true;
-      } catch (e) {
+        expect(true, false);
+      } on ApplicationStartupException catch (e) {
         expect(e.toString(), contains("TestException: addRoutes"));
       }
-      expect(succeeded, false);
 
       try {
         crashingApp.configuration.configurationOptions = {
           "crashIn": "willOpen"
         };
         await crashingApp.start();
-        succeeded = true;
-      } catch (e) {
+        expect(true, false);
+      } on ApplicationStartupException catch (e) {
         expect(e.toString(), contains("TestException: willOpen"));
       }
-      expect(succeeded, false);
 
       crashingApp.configuration.configurationOptions = {"crashIn": "dontCrash"};
       await crashingApp.start();
@@ -132,14 +128,12 @@ main() {
       var conflictingApp = new Application<TestSink>();
       conflictingApp.configuration.port = 8080;
 
-      var successful = false;
       try {
         await conflictingApp.start();
-        successful = true;
-      } catch (e) {
+        expect(true, false);
+      } on ApplicationStartupException catch (e) {
         expect(e, new isInstanceOf<ApplicationStartupException>());
       }
-      expect(successful, false);
 
       await server.close(force: true);
       await conflictingApp.stop();
