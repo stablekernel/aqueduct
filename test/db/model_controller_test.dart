@@ -24,6 +24,7 @@ main() {
   });
 
   tearDownAll(() async {
+    await context.persistentStore.close();
     await server?.close(force: true);
   });
 

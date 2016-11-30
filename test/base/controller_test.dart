@@ -11,8 +11,11 @@ import '../helpers.dart';
 
 void main() {
   HttpServer server;
-  ManagedDataModel dm = new ManagedDataModel([TestModel]);
-  ManagedContext _ = new ManagedContext(dm, new DefaultPersistentStore());
+
+  setUpAll(() {
+    new ManagedContext(new ManagedDataModel([TestModel]),
+        new DefaultPersistentStore());
+  });
 
   tearDown(() async {
     await server?.close(force: true);

@@ -19,7 +19,8 @@ class ManagedContext {
   /// For classes that require a [ManagedContext] - like [Query] - this is the default context when none
   /// is specified.
   ///
-  /// This value is set when the first [ManagedContext] instantiated in an isolate. Most applications
+  /// This value is set when a [ManagedContext] instantiated in an isolate; the last context created
+  /// is the default context. Most applications
   /// will not use more than one [ManagedContext]. When running tests, you should set
   /// this value each time you instantiate a [ManagedContext] to ensure that a previous test isolate
   /// state did not set this property.
@@ -27,12 +28,17 @@ class ManagedContext {
 
   /// Creates an instance of [ManagedContext] from a [ManagedDataModel] and [PersistentStore].
   ///
-  /// If this is the first [ManagedContext] instantiated on an isolate, this instance will because the [ManagedContext.defaultContext].
+  /// This instance will become the [ManagedContext.defaultContext], unless another [ManagedContext]
+  /// is created, in which the new context becomes the default context.
   ManagedContext(this.dataModel, this.persistentStore) {
-    if (defaultContext == null) {
-      defaultContext = this;
-    }
+    defaultContext = this;
   }
+
+  /// Creates an instance of [ManagedContext] from a [ManagedDataModel] and [PersistentStore].
+  ///
+  /// This constructor creates an instance in the same way the default constructor does,
+  /// but does not set it to be the [defaultContext].
+  ManagedContext.standalone(this.dataModel, this.persistentStore);
 
   /// The persistent store that [Query]s on this context are executed on.
   PersistentStore persistentStore;
