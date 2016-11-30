@@ -5,16 +5,18 @@ import '../helpers.dart';
 
 void main() {
   Application<TestSink> application = new Application<TestSink>();
+  ManagedContext ctx = null;
   TestClient client = new TestClient.onPort(8080)
     ..clientID = "com.stablekernel.app3"
     ..clientSecret = "mckinley";
 
   tearDownAll(() async {
     await application?.stop();
+    await ctx?.persistentStore?.close();
   });
 
   setUpAll(() async {
-    await contextWithModels([TestUser, Token, AuthCode]);
+    ctx = await contextWithModels([TestUser, Token, AuthCode]);
     await application.start(runOnMainIsolate: true);
 
     await createUsers(2);
