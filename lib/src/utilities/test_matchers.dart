@@ -380,7 +380,7 @@ class _PartialMapMatcher extends Matcher {
       var matchValue = map[matchKey];
       var value = item[matchKey];
       if (matchValue is _NotPresentMatcher) {
-        if (value != null) {
+        if (item.containsKey(matchKey)) {
           var extra = matchState["extra"];
           if (extra == null) {
             extra = [];
@@ -389,7 +389,7 @@ class _PartialMapMatcher extends Matcher {
           extra = matchKey;
           return false;
         }
-      } else if (value == null) {
+      } else if (value == null && !matchValue.matches(value, matchState)) {
         var missing = matchState["missing"];
         if (missing == null) {
           missing = [];
