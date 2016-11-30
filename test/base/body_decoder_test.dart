@@ -7,18 +7,21 @@ import 'dart:convert';
 void main() {
   group("Default decoders", () {
     HttpServer server;
+
     setUp(() async {
       server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 8123);
     });
 
     tearDown(() async {
-      await server?.close();
+      await server?.close(force: true);
     });
 
     test("application/json decoder works on valid json", () async {
-      http.post("http://localhost:8123",
-          headers: {"Content-Type": "application/json"},
-          body: JSON.encode({"a": "val"}));
+      http
+          .post("http://localhost:8123",
+              headers: {"Content-Type": "application/json"},
+              body: JSON.encode({"a": "val"}))
+          .catchError((err) => null);
       var request = await server.first;
 
       var body = await HTTPBodyDecoder.decode(request);
@@ -27,9 +30,11 @@ void main() {
 
     test("application/x-form-url-encoded decoder works on valid form",
         () async {
-      http.post("http://localhost:8123",
-          headers: {"Content-Type": "application/x-www-form-urlencoded"},
-          body: "a=b&c=2");
+      http
+          .post("http://localhost:8123",
+              headers: {"Content-Type": "application/x-www-form-urlencoded"},
+              body: "a=b&c=2")
+          .catchError((err) => null);
       var request = await server.first;
 
       var body = await HTTPBodyDecoder.decode(request);
@@ -40,8 +45,11 @@ void main() {
     });
 
     test("Any text decoder works on text", () async {
-      http.post("http://localhost:8123",
-          headers: {"Content-Type": "text/plain"}, body: "foobar");
+      http
+          .post("http://localhost:8123",
+              headers: {"Content-Type": "text/plain"}, body: "foobar")
+          .catchError((err) => null);
+
       var request = await server.first;
 
       var body = await HTTPBodyDecoder.decode(request);
@@ -49,8 +57,12 @@ void main() {
     });
 
     test("No found decoder for primary type returns binary", () async {
-      http.post("http://localhost:8123",
-          headers: {"Content-Type": "notarealthing/nothing"}, body: "foobar");
+      http
+          .post("http://localhost:8123",
+              headers: {"Content-Type": "notarealthing/nothing"},
+              body: "foobar")
+          .catchError((err) => null);
+      ;
       var request = await server.first;
 
       var body = await HTTPBodyDecoder.decode(request);
@@ -61,7 +73,8 @@ void main() {
       var req = await new HttpClient()
           .openUrl("POST", Uri.parse("http://localhost:8123"));
       req.add("foobar".codeUnits);
-      req.close();
+      req.close().catchError((err) => null);
+
       var request = await server.first;
 
       expect(request.headers.contentType, isNull);
@@ -71,9 +84,11 @@ void main() {
     });
 
     test("Decoder that matches primary type but not subtype fails", () async {
-      http.post("http://localhost:8123",
-          headers: {"Content-Type": "application/notarealthing"},
-          body: "a=b&c=2");
+      http
+          .post("http://localhost:8123",
+              headers: {"Content-Type": "application/notarealthing"},
+              body: "a=b&c=2")
+          .catchError((err) => null);
       var request = await server.first;
 
       try {
@@ -84,8 +99,10 @@ void main() {
     });
 
     test("Failed decoding throws exception", () async {
-      http.post("http://localhost:8123",
-          headers: {"Content-Type": "application/json"}, body: "{a=b&c=2");
+      http
+          .post("http://localhost:8123",
+              headers: {"Content-Type": "application/json"}, body: "{a=b&c=2")
+          .catchError((err) => null);
       var request = await server.first;
 
       try {
@@ -115,13 +132,15 @@ void main() {
     });
 
     tearDown(() async {
-      await server?.close();
+      await server?.close(force: true);
     });
 
     test("Added decoder works when content-type matches", () async {
-      http.post("http://localhost:8123",
-          headers: {"Content-Type": "application/thingy"},
-          body: "this doesn't matter");
+      http
+          .post("http://localhost:8123",
+              headers: {"Content-Type": "application/thingy"},
+              body: "this doesn't matter")
+          .catchError((err) => null);
       var request = await server.first;
 
       var body = await HTTPBodyDecoder.decode(request);
@@ -129,9 +148,12 @@ void main() {
     });
 
     test("Added decoder that matches any subtype works", () async {
-      http.post("http://localhost:8123",
-          headers: {"Content-Type": "somethingelse/whatever"},
-          body: "this doesn't matter");
+      http
+          .post("http://localhost:8123",
+              headers: {"Content-Type": "somethingelse/whatever"},
+              body: "this doesn't matter")
+          .catchError((err) => null);
+      ;
       var request = await server.first;
 
       var body = await HTTPBodyDecoder.decode(request);
@@ -147,13 +169,16 @@ void main() {
     });
 
     tearDown(() async {
-      await server?.close();
+      await server?.close(force: true);
     });
 
     test("Subsequent decodes do not re-process body", () async {
-      http.post("http://localhost:8123",
-          headers: {"Content-Type": "application/json"},
-          body: JSON.encode({"a": "val"}));
+      http
+          .post("http://localhost:8123",
+              headers: {"Content-Type": "application/json"},
+              body: JSON.encode({"a": "val"}))
+          .catchError((err) => null);
+
       var request = new Request(await server.first);
 
       var b1 = await request.decodeBody();

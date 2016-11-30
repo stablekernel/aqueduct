@@ -23,6 +23,7 @@ void main() {
 
   tearDownAll(() async {
     await server?.close(force: true);
+    await context?.persistentStore?.close();
   });
 
   setUp(() async {
