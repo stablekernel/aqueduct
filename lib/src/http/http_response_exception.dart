@@ -13,6 +13,9 @@ class HTTPResponseException implements Exception {
   /// Creates an instance of a [HTTPResponseException].
   HTTPResponseException(this.statusCode, this.message);
 
+  /// Creates an instance of [HTTPResponseException] without an error body.
+  HTTPResponseException.withoutBody(this.statusCode) : this.message = null;
+
   /// The message to return to the client.
   ///
   /// This message will be JSON encoded in a Map for the key 'error'.
@@ -22,6 +25,12 @@ class HTTPResponseException implements Exception {
   final int statusCode;
 
   /// A [Response] object derived from this exception.
-  Response get response => new Response(statusCode, null, {"error": message})
-    ..contentType = ContentType.JSON;
+  Response get response {
+    if (message == null) {
+      return new Response(statusCode, null, null);
+    }
+
+    return new Response(statusCode, null, {"error": message})
+      ..contentType = ContentType.JSON;
+  }
 }

@@ -19,7 +19,8 @@ class AuthServer<
         ResourceOwner extends Authenticatable,
         TokenType extends AuthTokenizable,
         AuthCodeType extends AuthTokenExchangable<TokenType>> extends Object
-    with APIDocumentable {
+    with APIDocumentable
+    implements AuthValidator {
   /// Creates a new instance of an [AuthServer] with a [delegate].
   AuthServer(this.delegate);
 
@@ -364,5 +365,26 @@ class AuthServer<
     var hashed = AuthServer.generatePasswordHash(secret, salt);
 
     return new AuthClient.withRedirectURI(clientID, hashed, salt, redirectURI);
+  }
+
+  @override
+  Future<Authorization> fromBasicCredentials(String username, String password) async {
+    var client = await clientForID(username);
+
+    if (client == null) {
+      throw new HTTPResponseException.withoutBody(401);
+    }
+
+    if (client.hashedSecret !=
+        AuthServer.generatePasswordHash(password, client.salt)) {
+      throw new HTTPResponseException.withoutBody(401);
+    }
+
+    return new Authorization(client.id, null, this);
+  }
+
+  @override
+  Future<Authorization> fromBearerToken(String bearerToken, List<String> scopesRequired) async {
+    return await verify(bearerToken);
   }
 }
