@@ -188,7 +188,7 @@ From the perspective of a `RequestController`, it doesn't care about the underly
 
 Aqueduct applications can - and should - be spread across a number of threads. This allows an application to take advantage of multiple CPUs and serve requests faster. In Dart, threads are called *isolates* (and have some slight nuances to them that makes the different than a traditional thread). Spreading requests across isolates is baked into the structure of Aqueduct applications.
 
-When an application is started, it has an optional `numberOfIsolates` parameter. An application will spawn `numberOfIsolates` isolates and create an instance of `RequestSink` for each. When an HTTP request is received, one of the isolates - and its `RequestSink` - will receive the request while the others will never see it. Each isolate works independently of each other, running as their own "web server" within a web server. Because a `RequestSink` initializes itself in the exact same way on each isolate, each isolate behaves exactly the same way.
+When an application is started, it has an optional `numberOfInstances` parameter. An application will spawn `numberOfInstances` isolates and create an instance of `RequestSink` for each. When an HTTP request is received, one of the isolates - and its `RequestSink` - will receive the request while the others will never see it. Each isolate works independently of each other, running as their own "web server" within a web server. Because a `RequestSink` initializes itself in the exact same way on each isolate, each isolate behaves exactly the same way.
 
 An isolate can't share memory with another isolate. Therefore, each `RequestSink` instance has its own set of resources, like database connections. This behavior also makes connection pooling a non-issue - the connections are effectively pooled by the fact that there is a pool of `RequestSink`s. If a `RequestSink` creates a database connection and an application is started with four isolates, there will be four database connections total.
 
@@ -196,7 +196,7 @@ However, there are times where you want your own pool or you want to share a sin
 
 This is all still possible in Aqueduct.
 
-The Dart script that starts an Aqueduct application is running on the main isolate. When the application is started, it creates a new isolate and `RequestSink` for each `numberOfIsolates` parameter. Therefore, there are N + 1 isolates in the application: the main isolate and each `RequestSink` isolate.
+The Dart script that starts an Aqueduct application is running on the main isolate. When the application is started, it creates a new isolate and `RequestSink` for each `numberOfInstances` parameter. Therefore, there are N + 1 isolates in the application: the main isolate and each `RequestSink` isolate.
 
 Now, let's say that this application needs a single connection to Nest. The start script should create an isolate that will maintain a connection to Nest. The `SendPort` of the isolate is sent in the `configurationOptions` so that each `RequestSink` has it.
 
@@ -235,6 +235,6 @@ The Nest connection isolate will receive the `SendPort` of the `RequestSink` iso
 
 ## Preprocessing Requests and initialHandler
 
-By default, when a `RequestSink` receives an HTTP request, it immediately forwards it to its `router`. However, if an application wishes to insert middleware prior to routing, use another router or forego routing altogether, the `Router` can be skipped. Every `RequestSink` has an `initialHandler` property that it forwards all requests to. This property defaults to the request sink's `router`, but can be overridden to return something else. 
+By default, when a `RequestSink` receives an HTTP request, it immediately forwards it to its `router`. However, if an application wishes to insert middleware prior to routing, use another router or forego routing altogether, the `Router` can be skipped. Every `RequestSink` has an `initialHandler` property that it forwards all requests to. This property defaults to the request sink's `router`, but can be overridden to return something else.
 
 If you only wish to preprocess a request, you may instead override `RequestSink.willReceiveRequest`. This asynchronous method takes the incoming `Request` as an argument, but can't respond to it.
