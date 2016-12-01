@@ -96,7 +96,7 @@ name: app
 dependencies:
   aqueduct: any
 ```
-Create a table in `postgres://dart:dart@localhost:5432/dart_test` with the following:
+Connect to `postgres://dart:dart@localhost:5432/dart_test` and create a table (with this exact name) just like this:
 
 ```sql
 create table _note (id bigserial primary key, contents text);
