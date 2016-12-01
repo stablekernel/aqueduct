@@ -105,6 +105,7 @@ create table _note (id bigserial primary key, contents text);
 Now, run it:
 
 ```sh
+pub get
 dart main.dart
 ```
 
