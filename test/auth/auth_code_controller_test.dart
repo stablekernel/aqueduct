@@ -7,7 +7,7 @@ void main() {
   Application<TestSink> application = new Application<TestSink>();
   ManagedContext ctx = null;
   TestClient client = new TestClient.onPort(8080)
-    ..clientID = "com.stablekernel.app3"
+    ..clientID = "com.stablekernel.redirect"
     ..clientSecret = "mckinley";
 
   tearDownAll(() async {
@@ -25,7 +25,7 @@ void main() {
   test("POST code responds with auth code on correct input", () async {
     var req = client.clientAuthenticatedRequest("/auth/code")
       ..formData = {
-        "client_id": "com.stablekernel.app3",
+        "client_id": "com.stablekernel.redirect",
         "username": "bob+0@stablekernel.com",
         "password": "foobaraxegrind21%"
       };
@@ -45,7 +45,7 @@ void main() {
   test("POST code responds with auth code and state", () async {
     var req = client.clientAuthenticatedRequest("/auth/code")
       ..formData = {
-        "client_id": "com.stablekernel.app3",
+        "client_id": "com.stablekernel.redirect",
         "username": "bob+0@stablekernel.com",
         "password": "foobaraxegrind21%",
         "state": "Alaska"
@@ -84,7 +84,7 @@ void main() {
     // Omit username
     req = client.request("/auth/code")
       ..formData = {
-        "client_id": "com.stablekernel.app3",
+        "client_id": "com.stablekernel.redirect",
         "password": "foobaraxegrind21%"
       };
     expect(await req.post(), hasStatus(400));
@@ -92,7 +92,7 @@ void main() {
     // Bad username
     req = client.request("/auth/code")
       ..formData = {
-        "client_id": "com.stablekernel.app3",
+        "client_id": "com.stablekernel.redirect",
         "username": "bob+0@stcom",
         "password": "foobaraxegrind21%"
       };
@@ -101,7 +101,7 @@ void main() {
     // Omit password
     req = client.request("/auth/code")
       ..formData = {
-        "client_id": "com.stablekernel.app3",
+        "client_id": "com.stablekernel.redirect",
         "username": "bob+0@stablekernel.com",
       };
     expect(await req.post(), hasStatus(400));
@@ -109,7 +109,7 @@ void main() {
     // Bad password
     req = client.request("/auth/code")
       ..formData = {
-        "client_id": "com.stablekernel.app3",
+        "client_id": "com.stablekernel.redirect",
         "username": "bob+0@stablekernel.com",
         "password": "fooba%"
       };
@@ -119,7 +119,7 @@ void main() {
   test("POST exchange auth code for token", () async {
     var codeRequest = client.clientAuthenticatedRequest("/auth/code")
       ..formData = {
-        "client_id": "com.stablekernel.app3",
+        "client_id": "com.stablekernel.redirect",
         "username": "bob+0@stablekernel.com",
         "password": "foobaraxegrind21%"
       };
@@ -148,7 +148,7 @@ void main() {
   test("POST exchange with bad header fails", () async {
     var codeRequest = client.clientAuthenticatedRequest("/auth/code")
       ..formData = {
-        "client_id": "com.stablekernel.app3",
+        "client_id": "com.stablekernel.redirect",
         "username": "bob+0@stablekernel.com",
         "password": "foobaraxegrind21%"
       };
@@ -185,7 +185,7 @@ void main() {
   test("POST exchange with bad body fails", () async {
     var codeRequest = client.clientAuthenticatedRequest("/auth/code")
       ..formData = {
-        "client_id": "com.stablekernel.app3",
+        "client_id": "com.stablekernel.redirect",
         "username": "bob+0@stablekernel.com",
         "password": "foobaraxegrind21%"
       };

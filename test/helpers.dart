@@ -156,20 +156,23 @@ class AuthDelegate implements AuthServerDelegate<TestUser, Token, AuthCode> {
     if (id == "com.stablekernel.app1") {
       return new AuthClient("com.stablekernel.app1",
           AuthServer.generatePasswordHash("kilimanjaro", salt), salt);
-    }
-    if (id == "com.stablekernel.app2") {
+    } else if (id == "com.stablekernel.app2") {
       return new AuthClient("com.stablekernel.app2",
           AuthServer.generatePasswordHash("fuji", salt), salt);
-    }
-    if (id == "com.stablekernel.app3") {
+    } else if (id == "com.stablekernel.redirect") {
       return new AuthClient.withRedirectURI(
-          "com.stablekernel.app3",
+          "com.stablekernel.redirect",
           AuthServer.generatePasswordHash("mckinley", salt),
           salt,
           "http://stablekernel.com/auth/redirect");
-    }
-    if (id == "com.stablekernel.public") {
+    } else if (id == "com.stablekernel.public") {
       return new AuthClient("com.stablekernel.public", null, salt);
+    } else if (id == "com.stablekernel.redirect2") {
+      return new AuthClient.withRedirectURI(
+          "com.stablekernel.redirect2",
+          AuthServer.generatePasswordHash("gibraltar", salt),
+          salt,
+          "http://stablekernel.com/auth/redirect2");
     }
 
     return null;
@@ -178,12 +181,8 @@ class AuthDelegate implements AuthServerDelegate<TestUser, Token, AuthCode> {
   Future<Token> _tokenForPredicate(QueryPredicate p) async {
     var tokenQ = new Query<Token>();
     tokenQ.predicate = p;
-    var result = await tokenQ.fetchOne();
-    if (result == null) {
-      throw new HTTPResponseException(401, "Invalid Token");
-    }
 
-    return result;
+    return tokenQ.fetchOne();
   }
 }
 
@@ -227,6 +226,7 @@ class DefaultPersistentStore extends PersistentStore {
           {Map<String, dynamic> substitutionValues}) async =>
       null;
   Future close() async {}
+
   Future<List<PersistentColumnMapping>> executeInsertQuery(
           PersistentStoreQuery q) async =>
       null;
