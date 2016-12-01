@@ -102,11 +102,15 @@ Create a table in `postgres://dart:dart@localhost:5432/dart_test` with the follo
 create table _note (id bigserial primary key, contents text);
 ```
 
-Now, run it and hit some routes:
+Now, run it:
 
 ```sh
 dart main.dart
+```
 
+And now you can make requests:
+
+```sh
 # Create a new note: POST /notes
 curl -X POST http://localhost:8080/notes -H "Content-Type: application/json" -d '{"contents" : "a note"}'
 
