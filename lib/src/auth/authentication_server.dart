@@ -171,8 +171,7 @@ class AuthServer<
 
     TokenType t = await delegate.tokenForRefreshToken(this, refreshToken);
     if (t == null || t.clientID != clientID) {
-      throw new HTTPResponseException(
-          HttpStatus.UNAUTHORIZED, "Invalid client_id for token");
+      throw new HTTPResponseException(HttpStatus.BAD_REQUEST, "invalid_grant");
     }
 
     var diff = t.expirationDate.difference(t.issueDate);
@@ -196,17 +195,16 @@ class AuthServer<
     AuthClient client = await clientForID(clientID);
     if (client == null) {
       throw new HTTPResponseException(
-          HttpStatus.UNAUTHORIZED, "Invalid client_id");
+          HttpStatus.BAD_REQUEST, "invalid_client");
     }
 
     var isClientPublic = false;
-
     if (client.hashedSecret == null) {
       isClientPublic = true;
 
       if (!(clientSecret == null || clientSecret == "")) {
         throw new HTTPResponseException(
-            HttpStatus.UNAUTHORIZED, "Invalid client_secret");
+            HttpStatus.BAD_REQUEST, "invalid_client");
       }
     } else {
       isClientPublic = false;
@@ -214,16 +212,15 @@ class AuthServer<
       if (client.hashedSecret !=
           generatePasswordHash(clientSecret, client.salt)) {
         throw new HTTPResponseException(
-            HttpStatus.UNAUTHORIZED, "Invalid client_secret");
+            HttpStatus.BAD_REQUEST, "invalid_client");
       }
     }
-
 
     var authenticatable =
         await delegate.authenticatableForUsername(this, username);
     if (authenticatable == null) {
       throw new HTTPResponseException(
-          HttpStatus.BAD_REQUEST, "Invalid username");
+          HttpStatus.BAD_REQUEST, "invalid_grant");
     }
 
     var dbSalt = authenticatable.salt;
@@ -231,7 +228,7 @@ class AuthServer<
     var hash = AuthServer.generatePasswordHash(password, dbSalt);
     if (hash != dbPassword) {
       throw new HTTPResponseException(
-          HttpStatus.UNAUTHORIZED, "Invalid password");
+          HttpStatus.BAD_REQUEST, "invalid_grant");
     }
 
     TokenType token =
@@ -302,19 +299,19 @@ class AuthServer<
     AuthCodeType authCode =
         await delegate.authCodeForCode(this, authCodeString);
     if (authCode == null) {
-      throw new HTTPResponseException(HttpStatus.UNAUTHORIZED, "Invalid code");
+      throw new HTTPResponseException(HttpStatus.BAD_REQUEST, "invalid_grant");
     }
 
     // check if valid still
     if (authCode.expirationDate.difference(new DateTime.now()).inSeconds <= 0) {
       throw new HTTPResponseException(
-          HttpStatus.UNAUTHORIZED, "Authorization code has expired");
+          HttpStatus.BAD_REQUEST, "invalid_grant");
     }
 
     // check that client ids match
     if (authCode.clientID != client.id) {
       throw new HTTPResponseException(
-          HttpStatus.UNAUTHORIZED, "Invalid client_id for authorization code");
+          HttpStatus.BAD_REQUEST, "invalid_grant");
     }
 
     // check to see if has already been used
@@ -323,7 +320,7 @@ class AuthServer<
           this, authCode.token.refreshToken);
 
       throw new HTTPResponseException(
-          HttpStatus.UNAUTHORIZED, "Authorization code has already been used");
+          HttpStatus.BAD_REQUEST, "invalid_grant");
     }
 
     TokenType token = generateToken(
@@ -396,12 +393,12 @@ class AuthServer<
     var client = await clientForID(username);
 
     if (client == null) {
-      throw new HTTPResponseException.withoutBody(401);
+      throw new HTTPResponseException.withoutBody(HttpStatus.UNAUTHORIZED);
     }
 
     if (client.hashedSecret !=
         AuthServer.generatePasswordHash(password, client.salt)) {
-      throw new HTTPResponseException.withoutBody(401);
+      throw new HTTPResponseException.withoutBody(HttpStatus.UNAUTHORIZED);
     }
 
     return new Authorization(client.id, null, this);

@@ -22,12 +22,12 @@ void main() {
     TestUser createdUser = (await createUsers(1)).first;
 
     var authCode = await auth.createAuthCode(
-        "bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app3");
+        "bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.redirect");
 
     expect(authCode.code.length, greaterThan(0));
 
     var permission = await auth.verifyCode(authCode.code);
-    expect(permission.clientID, "com.stablekernel.app3");
+    expect(permission.clientID, "com.stablekernel.redirect");
     expect(permission.resourceOwnerIdentifier, createdUser.id);
   });
 
@@ -39,7 +39,7 @@ void main() {
     try {
       // Bad username
       await auth.createAuthCode(
-          "bob+0@stable", "foobaraxegrind21%", "com.stablekernel.app3");
+          "bob+0@stable", "foobaraxegrind21%", "com.stablekernel.redirect");
       successful = true;
     } catch (e) {
       expect(e.statusCode, HttpStatus.BAD_REQUEST);
@@ -49,7 +49,7 @@ void main() {
     try {
       // Bad password
       await auth.createAuthCode(
-          "bob+0@stablekernel.com", "foobaraxegri%", "com.stablekernel.app3");
+          "bob+0@stablekernel.com", "foobaraxegri%", "com.stablekernel.redirect");
       successful = true;
     } catch (e) {
       expect(e.statusCode, HttpStatus.UNAUTHORIZED);
@@ -72,16 +72,16 @@ void main() {
     TestUser createdUser = (await createUsers(1)).first;
 
     var authCode = await auth.createAuthCode(
-        "bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app3");
+        "bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.redirect");
     var token =
-        await auth.exchange(authCode.code, "com.stablekernel.app3", "mckinley");
+        await auth.exchange(authCode.code, "com.stablekernel.redirect", "mckinley");
 
     expect(token.accessToken.length, greaterThan(0));
     expect(token.refreshToken.length, greaterThan(0));
     expect(token.type, "bearer");
 
     var permission = await auth.verify(token.accessToken);
-    expect(permission.clientID, "com.stablekernel.app3");
+    expect(permission.clientID, "com.stablekernel.redirect");
     expect(permission.resourceOwnerIdentifier, createdUser.id);
 
     var successful = false;
@@ -99,15 +99,15 @@ void main() {
     var auth = new AuthServer<TestUser, Token, AuthCode>(delegate);
 
     var authCode = await auth.createAuthCode(
-        "bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app3");
+        "bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.redirect");
     var token1 =
-        await auth.exchange(authCode.code, "com.stablekernel.app3", "mckinley");
+        await auth.exchange(authCode.code, "com.stablekernel.redirect", "mckinley");
 
     expect(token1, isNotNull);
     var token2 = null;
     try {
       token2 = await auth.exchange(
-          authCode.code, "com.stablekernel.app3", "mckinley");
+          authCode.code, "com.stablekernel.redirect", "mckinley");
     } catch (e) {
       expect(e.statusCode, HttpStatus.UNAUTHORIZED);
     }
@@ -128,13 +128,13 @@ void main() {
     var auth = new AuthServer<TestUser, Token, AuthCode>(delegate);
 
     var authCode = await auth.createAuthCode(
-        "bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app3",
+        "bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.redirect",
         expirationInSeconds: 1);
     sleep(new Duration(seconds: 2));
 
     var token = null;
     try {
-      await auth.exchange(authCode.code, "com.stablekernel.app3", "mckinley");
+      await auth.exchange(authCode.code, "com.stablekernel.redirect", "mckinley");
     } catch (e) {
       expect(e.statusCode, HttpStatus.UNAUTHORIZED);
     }
@@ -146,7 +146,7 @@ void main() {
     var auth = new AuthServer<TestUser, Token, AuthCode>(delegate);
 
     var authCode = await auth.createAuthCode(
-        "bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app3");
+        "bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.redirect");
 
     var token = null;
     try {
@@ -389,7 +389,10 @@ void main() {
     expect(successful, false);
   });
 
-  test("Malformed header fails", () async {});
+  test("Tokens get pruned", () async {fail("NYI");});
 
-  test("Tokens get pruned", () async {});
+  test(
+      "Multiple clients can authenticate with same resource owner at same time",
+          () async {});
+
 }

@@ -20,16 +20,8 @@ class AuthController extends HTTPController {
   AuthServer authenticationServer;
 
   /// Required basic authorization header containing client ID and secret for the authenticating client.
-  @requiredHTTPParameter
   @HTTPHeader(HttpHeaders.AUTHORIZATION)
   String authHeader;
-
-  /// The type of token to request.
-  ///
-  /// Valid options are 'password', 'refresh_token' and 'authorization_code'.
-  @requiredHTTPParameter
-  @HTTPQuery("grant_type")
-  String grantType;
 
   /// Creates or refreshes an authentication token.
   ///
@@ -38,49 +30,42 @@ class AuthController extends HTTPController {
   /// When grant_type is 'authorization_code', there must be a authorization_code value.
   @httpPost
   Future<Response> create(
-      {@HTTPQuery("username") String username,
-      @HTTPQuery("password") String password,
-      @HTTPQuery("refresh_token") String refreshToken,
-      @HTTPQuery("authorization_code") String authCode}) async {
+      {@HTTPQuery("username") List<String> usernames,
+      @HTTPQuery("password") List<String> passwords,
+      @HTTPQuery("refresh_token") List<String> refreshTokens,
+      @HTTPQuery("code") List<String> authCodes,
+      @HTTPQuery("grant_type") List<String> grantTypes}) async {
     AuthorizationBasicElements basicRecord;
-
     try {
       basicRecord = AuthorizationBasicParser.parse(authHeader);
     } on AuthorizationParserException catch (e) {
-      return new Response.serverError();
+      return new Response.badRequest(body: {"error": "invalid_client"});
     }
 
-    if (grantType == "password") {
-      if (username == null || password == null) {
-        return new Response.badRequest(
-            body: {"error": "username and password required"});
-      }
+    var grantType = _ensureOneAndReturnElseThrow(grantTypes);
 
+    if (grantType == "password") {
       var token = await authenticationServer.authenticate(
-          username, password, basicRecord.username, basicRecord.password);
+          _ensureOneAndReturnElseThrow(usernames),
+          _ensureOneAndReturnElseThrow(passwords),
+          basicRecord.username, basicRecord.password);
 
       return AuthController.tokenResponse(token);
     } else if (grantType == "refresh_token") {
-      if (refreshToken == null) {
-        return new Response.badRequest(
-            body: {"error": "missing refresh_token"});
-      }
-
       var token = await authenticationServer.refresh(
-          refreshToken, basicRecord.username, basicRecord.password);
+          _ensureOneAndReturnElseThrow(refreshTokens),
+          basicRecord.username, basicRecord.password);
+
       return AuthController.tokenResponse(token);
     } else if (grantType == "authorization_code") {
-      if (authCode == null) {
-        return new Response.badRequest(
-            body: {"error": "missing authorization_code"});
-      }
-
       var token = await authenticationServer.exchange(
-          authCode, basicRecord.username, basicRecord.password);
+          _ensureOneAndReturnElseThrow(authCodes),
+          basicRecord.username, basicRecord.password);
+
       return AuthController.tokenResponse(token);
     }
 
-    return new Response.badRequest(body: {"error": "invalid grant_type"});
+    return new Response.badRequest(body: {"error": "unsupported_grant_type"});
   }
 
   /// Transforms a [AuthTokenizable] into a [Response] object with an RFC6749 compliant JSON token
@@ -98,7 +83,20 @@ class AuthController extends HTTPController {
     }
 
     return new Response(
-        200, {"Cache-Control": "no-store", "Pragma": "no-cache"}, jsonToken);
+        HttpStatus.OK, {"Cache-Control": "no-store", "Pragma": "no-cache"}, jsonToken);
+  }
+
+  String _ensureOneAndReturnElseThrow(List<String> items) {
+    if (items == null || items.length > 1 || items.isEmpty) {
+      throw new HTTPResponseException(HttpStatus.BAD_REQUEST, "invalid_request");
+    }
+
+    var first = items.first;
+    if (first == "") {
+      throw new HTTPResponseException(HttpStatus.BAD_REQUEST, "invalid_request");
+    }
+
+    return first;
   }
 
   @override
