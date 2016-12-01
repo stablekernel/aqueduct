@@ -19,7 +19,7 @@ class ManagedContext {
   /// For classes that require a [ManagedContext] - like [Query] - this is the default context when none
   /// is specified.
   ///
-  /// This value is set when a [ManagedContext] instantiated in an isolate; the last context created
+  /// This value is set when a [ManagedContext] is instantiated in an isolate; the last context created
   /// is the default context. Most applications
   /// will not use more than one [ManagedContext]. When running tests, you should set
   /// this value each time you instantiate a [ManagedContext] to ensure that a previous test isolate
