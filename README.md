@@ -23,64 +23,18 @@ Open the project directory in the editor of your choice. Our preferred editor is
 
 ## Major Features
 
-1. HTTP Request Routing and Middleware
-
-        router
-          .route("/things/[:id]")
-          .pipe(new Authorizer(...))
-          .generate(() => new ThingController());
-          
+1. HTTP Request Routing and Middleware          
 2. Multiple CPU support, without adding complicated multi-threading logic.
-
-        var app = new Application<MyAppSink>();
-        app.start(numberOfIsolates: 3);
-        
 3. CORS Support.
-
-        ThingController() {
-          policy.allowedOrigins = ["http://aqueduct.io"];          
-        }
-
 4. Automatic OpenAPI specification/documentation generation.
-
-        dart bin/document.dart > api.json
-      
 5. OAuth 2.0 implementation.
-6. Fully-featured ORM, with clear, type- and name-safe syntax, and SQL Join support. (Supports PostgreSQL by default.)
-
-        var query = new Query<Thing>()
-          ..matchOn.id = whereEqualTo(1)
-          ..matchOn.subThings.includeInResultSet = true;
-          
+6. Fully-featured ORM, with clear, type- and name-safe syntax, and SQL Join support. (Supports PostgreSQL by default.)          
 7. Database migration tooling.
-
-        aqueduct db generate
-        aqueduct db validate
-        aqueduct db upgrade
-        
 8. Template projects for quick starts.
-
-        aqueduct create -n my_app
-        
-9. Integration with CI tools. (Supports TravisCI by default.)
-        
+9. Integration with CI tools. (Supports TravisCI by default.)        
 10. Integrated testing utilities for clean and productive tests.
-
-        test("GET /things/1 returns a thing", () async {
-          var response = await app.client.authenticatedRequest("/things/1").get();
-          expect(response, hasResponse(200, {
-            "id" : greaterThan(0),
-            "name" : isString,
-            "subthings" : everyElement({
-              "id" : greaterThan(0)
-            })
-          }));
-        });
-      
 11. Logging to Rotating Files or Console
 
-        [INFO] 2016-11-20 21:01:12.973570 aqueduct: 127.0.0.1 GET /page 5ms 200
-    
 ## Tutorials
 
 Need a walkthrough? Read the [tutorials](http://stablekernel.github.io/aqueduct/). They take you through the steps of building an Aqueduct application.
@@ -93,3 +47,63 @@ You can find in-depth guides and tutorials [here](http://stablekernel.github.io/
 ## Roadmap
 
 [Here's where we are headed.](ROADMAP.md)
+
+## An Example
+
+The following is a complete application, with endpoints to create, get, update and delete 'Notes' that are stored in a PostgreSQL database.
+
+```dart
+import 'package:aqueduct/aqueduct.dart';
+
+void main() {
+  var app = new Application<AppRequestSink>();
+  app.start(numberOfInstances: 3);
+}
+
+class AppRequestSink extends RequestSink {
+  AppRequestSink(Map<String, dynamic> opts) : super(opts) {
+    logger.onRecord.listen((p) => print("$p"));
+
+    var dataModel =
+        new ManagedDataModel.fromPackageContainingType(this.runtimeType);
+    var psc = new PostgreSQLPersistentStore.fromConnectionInfo(
+        "dart", "dart", "localhost", 5432, "dart_test");
+
+    ManagedContext.defaultContext = new ManagedContext(dataModel, psc);
+  }
+
+  @override
+  void setupRouter(Router router) {
+    router
+      .route("/notes[/:id]")
+      .generate(() => new ManagedObjectController<Note>());
+  }
+}
+
+class Note extends ManagedObject<_Note> implements _Note {}
+class _Note {
+  @managedPrimaryKey
+  int id;
+  String contents;
+}
+```
+
+Want to try this out? Save this code in a file named `main.dart`. In the same directory, create a `pubspec.yaml` file with the following contents:
+
+```yaml
+name: app
+
+dependencies:
+  aqueduct: any
+```
+Create a table in `postgres://dart:dart@localhost:5432/dart_test` with the following:
+
+```sql
+create table _note (id serial primary key, contents text);
+```
+
+Now, run it:
+
+```sh
+dart main.dart
+```
