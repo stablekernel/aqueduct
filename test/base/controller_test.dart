@@ -431,6 +431,52 @@ void main() {
       expect(JSON.decode(resp.body)["error"], contains("Table"));
       expect(JSON.decode(resp.body)["error"], contains("Shaqs"));
     });
+
+    test("May only be one query parameter if arg type is not List<T>", () async {
+      server = await enableController("/a", DuplicateParamController);
+      var resp = await http
+          .get("http://localhost:4040/a?list=a&list=b&single=x&single=y");
+
+      expect(resp.statusCode, 400);
+
+      expect(JSON.decode(resp.body)["error"], "Duplicate parameter for non-List parameter type");
+    });
+
+    test("Can be more than one query parameters for arg type that is List<T>", () async {
+      server = await enableController("/a", DuplicateParamController);
+      var resp = await http
+          .get("http://localhost:4040/a?list=a&list=b&single=x");
+
+      expect(resp.statusCode, 200);
+
+      expect(JSON.decode(resp.body), {
+        "list" : ["a", "b"],
+        "single" : "x"
+      });
+    });
+
+    test("Can be exactly one query parameter for arg type that is List<T>", () async {
+      server = await enableController("/a", DuplicateParamController);
+      var resp = await http
+          .get("http://localhost:4040/a?list=a&single=x");
+
+      expect(resp.statusCode, 200);
+
+      expect(JSON.decode(resp.body), {
+        "list" : ["a"],
+        "single" : "x"
+      });
+    });
+
+    test("Missing required List<T> query parameter still returns 400", () async {
+      server = await enableController("/a", DuplicateParamController);
+      var resp = await http
+          .get("http://localhost:4040/a?single=x");
+
+      expect(resp.statusCode, 400);
+
+      expect(JSON.decode(resp.body)["error"], contains("list"));
+    });
   });
 }
 
@@ -618,6 +664,18 @@ class ContentTypeController extends HTTPController {
       return new Response.ok("body")
         ..contentType = new ContentType("text", "plain");
     }
+  }
+}
+
+class DuplicateParamController extends HTTPController {
+  @httpGet
+  Future<Response> getThing(
+      @HTTPQuery("list") List<String> list,
+      @HTTPQuery("single") String single) async {
+    return new Response.ok({
+      "list" : list,
+      "single" : single
+    });
   }
 }
 

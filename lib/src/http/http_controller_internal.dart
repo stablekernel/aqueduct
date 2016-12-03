@@ -247,6 +247,11 @@ dynamic convertParameterListWithMirror(
             convertParameterWithMirror(str, typeMirror.typeArguments.first))
         .toList();
   } else {
+    if (parameterValues.length > 1) {
+      throw new InternalControllerException(
+          "Duplicate value for parameter", HttpStatus.BAD_REQUEST,
+          responseMessage: "Duplicate parameter for non-List parameter type");
+    }
     return convertParameterWithMirror(parameterValues.first, typeMirror);
   }
 }
