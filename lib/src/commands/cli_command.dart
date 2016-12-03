@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:args/args.dart';
 
@@ -29,12 +30,14 @@ abstract class CLICommand {
   /// and will invoke [cleanup] when complete.
   Future<int> process(ArgResults results) async {
     try {
-      return await handle(results);
+      exitCode = await handle(results);
+      return 0;
     } catch (e) {
       print("${e}");
     } finally {
       await cleanup();
     }
-    return -1;
+    exitCode = 1;
+    return 1;
   }
 }
