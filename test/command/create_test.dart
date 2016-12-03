@@ -1,5 +1,6 @@
 import 'package:test/test.dart';
 import 'dart:io';
+
 import 'package:path/path.dart' as path_lib;
 
 Directory testTemplateDirectory = new Directory("tmp_templates");
@@ -101,6 +102,7 @@ ProcessResult runWith(List<String> args) {
 
   var allArgs = ["create", "--path-source", "$aqueductDirectory"];
   allArgs.addAll(args);
+
   return Process.runSync("aqueduct", allArgs,
       runInShell: true, workingDirectory: testTemplateDirectory.path);
 }
