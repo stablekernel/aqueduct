@@ -1,6 +1,5 @@
 import 'package:test/test.dart';
 import 'dart:io';
-import 'package:yaml/yaml.dart';
 import 'package:path/path.dart' as path_lib;
 
 Directory testTemplateDirectory = new Directory("tmp_templates");
