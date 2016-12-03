@@ -36,7 +36,7 @@ class CLITemplateCreator extends CLICommand {
   Future<int> handle(ArgResults argValues) async {
     if (argValues["help"] == true) {
       print("${options.usage}");
-      return 0;
+      return 1;
     }
 
     if (argValues["name"] == null) {
