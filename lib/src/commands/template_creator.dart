@@ -226,7 +226,6 @@ class CLITemplateCreator extends CLICommand {
     return pathString.substring(lastPathComponentIndex + 1);
   }
 
-
   Future createProjectSpecificFiles(
       String directoryPath, String aqueductVersion) async {
     var configSrcPath =
@@ -235,8 +234,10 @@ class CLITemplateCreator extends CLICommand {
         .copySync(new File(path_lib.join(directoryPath, "config.yaml")).path);
   }
 
-  Future replaceAqueductDependencyString(String destDirectoryPath, String aqueductVersion) async {
-    var pubspecFile = new File(path_lib.join(destDirectoryPath, "pubspec.yaml"));
+  Future replaceAqueductDependencyString(
+      String destDirectoryPath, String aqueductVersion) async {
+    var pubspecFile =
+        new File(path_lib.join(destDirectoryPath, "pubspec.yaml"));
     var contents = pubspecFile.readAsStringSync();
 
     contents = contents.replaceFirst("aqueduct: \"^1.0.0\"", aqueductVersion);

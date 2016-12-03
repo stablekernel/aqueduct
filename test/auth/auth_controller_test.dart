@@ -14,7 +14,8 @@ void main() {
   Router router;
 
   setUpAll(() {
-    authenticationServer = new AuthServer<TestUser, Token, AuthCode>(new AuthDelegate(context));
+    authenticationServer =
+        new AuthServer<TestUser, Token, AuthCode>(new AuthDelegate(context));
 
     router = new Router();
     router

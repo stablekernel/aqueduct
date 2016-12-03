@@ -19,7 +19,11 @@ void main() {
       var res = runWith(["-n", "test_project"]);
       expect(res.exitCode, 0);
 
-      expect(new Directory(path_lib.join(testTemplateDirectory.path, "test_project")).existsSync(), true);
+      expect(
+          new Directory(
+                  path_lib.join(testTemplateDirectory.path, "test_project"))
+              .existsSync(),
+          true);
     });
 
     test("Project name with bad characters fails immediately", () {
@@ -63,12 +67,13 @@ void main() {
       var res = runWith(["-n", "test_project"]);
       expect(res.exitCode, 0);
 
-      var aqueductLocationString = new File(projectPath("test_project", file: ".packages"))
-          .readAsStringSync()
-          .split("\n")
-          .firstWhere((p) => p.startsWith("aqueduct:"))
-          .split("aqueduct:")
-          .last;
+      var aqueductLocationString =
+          new File(projectPath("test_project", file: ".packages"))
+              .readAsStringSync()
+              .split("\n")
+              .firstWhere((p) => p.startsWith("aqueduct:"))
+              .split("aqueduct:")
+              .last;
 
       var path = path_lib.normalize(path_lib.fromUri(aqueductLocationString));
       expect(path, path_lib.join(Directory.current.path, "lib"));
@@ -79,7 +84,9 @@ void main() {
       expect(res.exitCode, 0);
 
       res = Process.runSync("pub", ["run", "test", "-j", "1"],
-          runInShell: true, workingDirectory: path_lib.join(testTemplateDirectory.path, "test_project"));
+          runInShell: true,
+          workingDirectory:
+              path_lib.join(testTemplateDirectory.path, "test_project"));
       expect(res.exitCode, 0);
       expect(res.stdout, contains("All tests passed"));
     });
@@ -88,12 +95,15 @@ void main() {
 
 ProcessResult runWith(List<String> args) {
   var aqueductDirectory = Directory.current.path;
-  var result = Process.runSync("pub", ["global", "activate", "-spath", "$aqueductDirectory"], runInShell: true);
+  var result = Process.runSync(
+      "pub", ["global", "activate", "-spath", "$aqueductDirectory"],
+      runInShell: true);
   expect(result.exitCode, 0);
 
   var allArgs = ["create", "--path-source", "$aqueductDirectory"];
   allArgs.addAll(args);
-  return Process.runSync("aqueduct", allArgs, runInShell: true, workingDirectory: testTemplateDirectory.path);
+  return Process.runSync("aqueduct", allArgs,
+      runInShell: true, workingDirectory: testTemplateDirectory.path);
 }
 
 String projectPath(String projectName, {String file}) {

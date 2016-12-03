@@ -515,7 +515,7 @@ void main() {
 
     test("Partial match, null and not present", () async {
       var defaultTestClient = new TestClient.onPort(4000);
-      server.queueResponse(new Response.ok({"foo": null, "bar" : "boo"}));
+      server.queueResponse(new Response.ok({"foo": null, "bar": "boo"}));
       var response = await defaultTestClient.request("/foo").get();
       expect(response, hasBody(partial({"bar": "boo"})));
       expect(response, hasBody(partial({"foo": isNull})));
@@ -525,8 +525,10 @@ void main() {
         expect(response, hasBody(partial({"foo": isNotPresent})));
         expect(true, false);
       } on TestFailure catch (e) {
-        expect(e.toString(),
-            contains("Expected: Body: Partially matches: {foo: <Instance of '_NotPresentMatcher'>,}"));
+        expect(
+            e.toString(),
+            contains(
+                "Expected: Body: Partially matches: {foo: <Instance of '_NotPresentMatcher'>,}"));
         expect(e.toString(), contains('Body: {"foo":null,"bar":"boo"}'));
       }
       try {
