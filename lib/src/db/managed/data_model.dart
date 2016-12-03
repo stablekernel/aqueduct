@@ -38,11 +38,15 @@ class ManagedDataModel {
         .values
         .where((lib) => lib.uri.scheme == "package" || lib.uri.scheme == "file")
         .expand((lib) => lib.declarations.values)
-        .where((decl) => decl is ClassMirror && decl.isSubclassOf(managedObjectMirror) && decl != managedObjectMirror)
+        .where((decl) =>
+            decl is ClassMirror &&
+            decl.isSubclassOf(managedObjectMirror) &&
+            decl != managedObjectMirror)
         .map((decl) => decl as ClassMirror)
         .toList();
 
-    var builder = new DataModelBuilder(this, classes.map((cm) => cm.reflectedType).toList());
+    var builder = new DataModelBuilder(
+        this, classes.map((cm) => cm.reflectedType).toList());
     _entities = builder.entities;
     _persistentTypeToEntityMap = builder.persistentTypeToEntityMap;
   }

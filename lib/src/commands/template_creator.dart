@@ -226,7 +226,6 @@ class CLITemplateCreator extends CLICommand {
     return pathString.substring(lastPathComponentIndex + 1);
   }
 
-
   Future createProjectSpecificFiles(
       String directoryPath, String aqueductVersion) async {
     var configSrcPath =
