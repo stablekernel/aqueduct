@@ -3,6 +3,9 @@ import 'dart:io';
 
 import '../http/http.dart';
 import 'auth.dart';
+import 'package:path/path.dart' as path_lib;
+
+typedef Future<String> _RenderAuthorizationPageFunction(String path, String clientID, String state);
 
 /// [RequestController] for issuing OAuth 2.0 authorization codes.
 ///
@@ -27,14 +30,39 @@ class AuthCodeController extends HTTPController {
   /// An [AuthCodeController] requires an [AuthServer] to carry out tasks.
   ///
   /// By default, an [AuthCodeController] has only one [acceptedContentTypes] - 'application/x-www-form-urlencoded'.
-  AuthCodeController(this.authenticationServer) {
+  AuthCodeController(this.authenticationServer, {Future<String> renderAuthorizationPage(String path, String clientID, String state)}) {
     acceptedContentTypes = [
       new ContentType("application", "x-www-form-urlencoded")
     ];
+
+    _renderFunction = renderAuthorizationPage ?? _defaultRenderFunction;
   }
 
   /// A reference to the [AuthServer] this controller uses to grant authorization codes.
   AuthServer authenticationServer;
+
+  _RenderAuthorizationPageFunction _renderFunction;
+  String _defaultRenderTemplate;
+
+  @httpGet
+  Future<Response> getAuthorization(
+      // Should just make this si HTTPQuery fails if String and have multiple
+      @HTTPQuery("response_type") List<String> responseTypes,
+      @HTTPQuery("client_id") List<String> clientIDs,
+      {@HTTPQuery("state") List<String> states}) async {
+    var clientID = _ensureOneAndReturnElseThrow(clientIDs);
+
+    var state = null;
+    if (states != null) {
+      state = _ensureOneAndReturnElseThrow(states);
+    }
+
+    var path = "/" + request.path.segments.join("/");
+    var renderedPage = await _renderFunction(path, clientID, state);
+
+    return new Response.ok(renderedPage)
+        ..contentType = ContentType.HTML;
+  }
 
   /// Creates a one-time use authorization code.
   ///
@@ -98,5 +126,40 @@ class AuthCodeController extends HTTPController {
     }
 
     return responses;
+  }
+
+  String _ensureOneAndReturnElseThrow(List<String> items) {
+    if (items == null || items.length > 1 || items.isEmpty) {
+      throw new HTTPResponseException(HttpStatus.BAD_REQUEST, "invalid_request");
+    }
+
+    var first = items.first;
+    if (first == "") {
+      throw new HTTPResponseException(HttpStatus.BAD_REQUEST, "invalid_request");
+    }
+
+    return first;
+  }
+
+  Future<String> _defaultRenderFunction(String path, String clientID, String state) async {
+    if (_defaultRenderTemplate == null) {
+      try {
+        var file = new File(path_lib.join("web", "login.html"));
+        _defaultRenderTemplate = file.readAsStringSync();
+      } catch (e) {
+        logger.warning("Could not find authorization HTML template web/login.html.");
+        _defaultRenderTemplate = "";
+      }
+    }
+
+    var substituted = _defaultRenderTemplate.replaceFirst("{{client_id}}", clientID);
+    substituted = substituted.replaceFirst("{{path}}", path);
+    if (state != null) {
+      substituted = substituted.replaceFirst("{{state}}", state);
+    } else {
+      substituted = substituted.replaceFirst('<input type="hidden" name="state" value="{{state}}">', "");
+    }
+
+    return substituted;
   }
 }

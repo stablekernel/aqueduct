@@ -4,42 +4,46 @@ import 'package:aqueduct/aqueduct.dart';
 import '../helpers.dart';
 
 void main() {
-  Application<TestSink> application = new Application<TestSink>();
+  Application<TestSink> application;
   ManagedContext ctx = null;
   TestClient client = new TestClient.onPort(8080)
     ..clientID = "com.stablekernel.redirect"
     ..clientSecret = "mckinley";
 
-  tearDownAll(() async {
-    await application?.stop();
-    await ctx?.persistentStore?.close();
-  });
 
-  setUpAll(() async {
+  setUp(() async {
+    application = new Application<TestSink>();
     ctx = await contextWithModels([TestUser, Token, AuthCode]);
     await application.start(runOnMainIsolate: true);
 
     await createUsers(2);
   });
 
-  test("POST code responds with auth code on correct input", () async {
-    var req = client.clientAuthenticatedRequest("/auth/code")
-      ..formData = {
-        "client_id": "com.stablekernel.redirect",
-        "username": "bob+0@stablekernel.com",
-        "password": "foobaraxegrind21%"
-      };
-    var res = await req.post();
+  tearDown(() async {
+    await application?.stop();
+    await ctx?.persistentStore?.close();
+  });
 
-    expect(res, hasStatus(HttpStatus.MOVED_TEMPORARILY));
+  group("Success cases", () {
+    test("POST code responds with auth code on correct input", () async {
+      var req = client.clientAuthenticatedRequest("/auth/code")
+        ..formData = {
+          "client_id": "com.stablekernel.redirect",
+          "username": "bob+0@stablekernel.com",
+          "password": "foobaraxegrind21%"
+        };
+      var res = await req.post();
 
-    var location = res.headers.value(HttpHeaders.LOCATION);
-    var uri = Uri.parse(location);
+      expect(res, hasStatus(HttpStatus.MOVED_TEMPORARILY));
 
-    expect(uri.queryParameters["code"], hasLength(greaterThan(0)));
-    expect(uri.queryParameters["state"], isNull);
-    expect(uri.host, equals("stablekernel.com"));
-    expect(uri.path, equals("/auth/redirect"));
+      var location = res.headers.value(HttpHeaders.LOCATION);
+      var uri = Uri.parse(location);
+
+      expect(uri.queryParameters["code"], hasLength(greaterThan(0)));
+      expect(uri.queryParameters["state"], isNull);
+      expect(uri.host, equals("stablekernel.com"));
+      expect(uri.path, equals("/auth/redirect"));
+    });
   });
 
   test("POST code responds with auth code and state", () async {
@@ -250,6 +254,8 @@ class TestSink extends RequestSink {
     router
         .route("/auth/code")
         .generate(() => new AuthCodeController(authServer));
-    router.route("/auth/token").generate(() => new AuthController(authServer));
+    router
+        .route("/auth/token")
+        .generate(() => new AuthController(authServer));
   }
 }
