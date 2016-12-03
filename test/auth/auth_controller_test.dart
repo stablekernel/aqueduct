@@ -10,7 +10,7 @@ void main() {
   TestClient client = new TestClient.onPort(8080)
     ..clientID = "com.stablekernel.app1"
     ..clientSecret = "kilimanjaro";
-  AuthServer authenticationServer;
+  AuthServer<TestUser, Token, AuthCode> authenticationServer;
   Router router;
 
   var tokenResponse =

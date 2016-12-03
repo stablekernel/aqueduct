@@ -28,6 +28,12 @@ class AuthController extends HTTPController {
   /// When grant_type is 'password', there must be username and password values.
   /// When grant_type is 'refresh_token', there must be a refresh_token value.
   /// When grant_type is 'authorization_code', there must be a authorization_code value.
+  ///
+  /// This endpoint requires client authentication. The Authorization header must
+  /// include a valid Client ID and Secret in the Basic authorization scheme format.
+  ///
+  /// Do not put an [Authorizer] in front of this endpoint, as it will not allow
+  /// authorization of public clients.
   @httpPost
   Future<Response> create(
       {@HTTPQuery("username") List<String> usernames,
@@ -38,7 +44,7 @@ class AuthController extends HTTPController {
     AuthorizationBasicElements basicRecord;
     try {
       basicRecord = AuthorizationBasicParser.parse(authHeader);
-    } on AuthorizationParserException catch (e) {
+    } on AuthorizationParserException catch (_) {
       return new Response.badRequest(body: {"error": "invalid_client"});
     }
 
