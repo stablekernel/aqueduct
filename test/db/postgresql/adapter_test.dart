@@ -4,12 +4,14 @@ import 'package:postgres/postgres.dart';
 import 'dart:async';
 
 void main() {
-  PostgreSQLPersistentStore persistentStore = new PostgreSQLPersistentStore(() async {
+  PostgreSQLPersistentStore persistentStore =
+      new PostgreSQLPersistentStore(() async {
     var connection = new PostgreSQLConnection("localhost", 5432, "dart_test",
         username: "dart", password: "dart");
     await connection.open();
     return connection;
-  });;
+  });
+  ;
 
   tearDown(() async {
     await persistentStore.close();

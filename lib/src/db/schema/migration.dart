@@ -111,8 +111,7 @@ class MigrationExecutor {
 
     var generator = new SourceGenerator(
         (List<String> args, Map<String, dynamic> values) async {
-      var dataModel = new ManagedDataModel.fromURI(
-          new Uri(scheme: "package", path: args[0]));
+      var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
       var schema = new Schema.fromDataModel(dataModel);
 
       return schema.asMap();
@@ -164,8 +163,7 @@ class MigrationExecutor {
 
     var generator = new SourceGenerator(
         (List<String> args, Map<String, dynamic> values) async {
-      var dataModel = new ManagedDataModel.fromURI(
-          new Uri(scheme: "package", path: args[0]));
+      var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
       var schema = new Schema.fromDataModel(dataModel);
 
       return SchemaBuilder.sourceForSchemaUpgrade(

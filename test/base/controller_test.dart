@@ -13,8 +13,8 @@ void main() {
   HttpServer server;
 
   setUpAll(() {
-    new ManagedContext(new ManagedDataModel([TestModel]),
-        new DefaultPersistentStore());
+    new ManagedContext(
+        new ManagedDataModel([TestModel]), new DefaultPersistentStore());
   });
 
   tearDown(() async {

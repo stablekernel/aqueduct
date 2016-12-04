@@ -36,24 +36,24 @@ class CLITemplateCreator extends CLICommand {
   Future<int> handle(ArgResults argValues) async {
     if (argValues["help"] == true) {
       print("${options.usage}");
-      return 0;
+      return 1;
     }
 
     if (argValues["name"] == null) {
       print("No project name specified.\n\n${options.usage}");
-      return -1;
+      return 1;
     }
 
     if (argValues["name"] == null || !isSnakeCase(argValues["name"])) {
       print(
           "Invalid project name ${argValues["name"]} is not snake_case).\n\n${options.usage}");
-      return -1;
+      return 1;
     }
 
     var destDirectory = destinationDirectoryFromPath(argValues["name"]);
     if (destDirectory.existsSync()) {
       print("${destDirectory.path} already exists, stopping.");
-      return -1;
+      return 1;
     }
     destDirectory.createSync();
 
@@ -75,7 +75,7 @@ class CLITemplateCreator extends CLICommand {
     }
     if (!sourceDirectory.existsSync()) {
       print("Error: no template named ${argValues["template"]}");
-      return -1;
+      return 1;
     }
 
     print("");
@@ -84,6 +84,8 @@ class CLITemplateCreator extends CLICommand {
 
     print("Generating project files...");
     await createProjectSpecificFiles(destDirectory.path, aqueductVersion);
+
+    await replaceAqueductDependencyString(destDirectory.path, aqueductVersion);
 
     print("Fetching project dependencies...");
     Process.runSync("pub", ["get", "--no-packages-dir"],
@@ -230,6 +232,17 @@ class CLITemplateCreator extends CLICommand {
         new File(path_lib.join(directoryPath, "config.yaml.src"));
     configSrcPath
         .copySync(new File(path_lib.join(directoryPath, "config.yaml")).path);
+  }
+
+  Future replaceAqueductDependencyString(
+      String destDirectoryPath, String aqueductVersion) async {
+    var pubspecFile =
+        new File(path_lib.join(destDirectoryPath, "pubspec.yaml"));
+    var contents = pubspecFile.readAsStringSync();
+
+    contents = contents.replaceFirst("aqueduct: \"^1.0.0\"", aqueductVersion);
+
+    pubspecFile.writeAsStringSync(contents);
   }
 
   void copyProjectFiles(Directory destinationDirectory,

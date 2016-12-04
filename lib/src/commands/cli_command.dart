@@ -35,6 +35,7 @@ abstract class CLICommand {
     } finally {
       await cleanup();
     }
-    return -1;
+
+    return 1;
   }
 }

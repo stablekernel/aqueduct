@@ -11,7 +11,7 @@ import 'data_model_builder.dart';
 /// types that extend [ManagedObject].
 class ManagedDataModel {
   /// Creates an instance of [ManagedDataModel] from a list of types that extend [ManagedObject]. It is preferable
-  /// to use [ManagedDataModel.fromPackageContainingType] over this method.
+  /// to use [ManagedDataModel.fromCurrentMirrorSystem] over this method.
   ///
   /// To register a class as a managed object within this data model, you must include its type in the list. Example:
   ///
@@ -22,30 +22,49 @@ class ManagedDataModel {
     _persistentTypeToEntityMap = builder.persistentTypeToEntityMap;
   }
 
-  /// Creates an instance on [ManagedDataModel] from all of the declared [ManagedObject] subclasses declared in the same package as [type].
+  /// Creates an instance of a [ManagedDataModel] from all subclasses of [ManagedObject] in all libraries visible to the calling library.
   ///
-  /// This is a convenience constructor for creating a [ManagedDataModel] from an application package. It will find all subclasses of [ManagedObject]
-  /// in the package that [type] belongs to. Typically, you pass the [Type] of an application's [RequestSink] subclass.
-  ManagedDataModel.fromPackageContainingType(Type type) {
-    LibraryMirror libMirror = reflectType(type).owner;
+  /// This constructor will search every available package and file library that is visible to the library
+  /// that runs this constructor for subclasses of [ManagedObject]. A [ManagedEntity] will be created
+  /// and stored in this instance for every such class found.
+  ///
+  /// Standard Dart libraries (prefixed with 'dart:') and URL-encoded libraries (prefixed with 'data:') are not searched.
+  ///
+  /// This is the preferred method of instantiating this type.
+  ManagedDataModel.fromCurrentMirrorSystem() {
+    var managedObjectMirror = reflectClass(ManagedObject);
+    var classes = currentMirrorSystem()
+        .libraries
+        .values
+        .where((lib) => lib.uri.scheme == "package" || lib.uri.scheme == "file")
+        .expand((lib) => lib.declarations.values)
+        .where((decl) =>
+            decl is ClassMirror &&
+            decl.isSubclassOf(managedObjectMirror) &&
+            decl != managedObjectMirror)
+        .map((decl) => decl as ClassMirror)
+        .toList();
 
-    var builder =
-        new DataModelBuilder(this, _modelTypesFromLibraryMirror(libMirror));
+    var builder = new DataModelBuilder(
+        this, classes.map((cm) => cm.reflectedType).toList());
     _entities = builder.entities;
     _persistentTypeToEntityMap = builder.persistentTypeToEntityMap;
   }
 
+  /// Creates an instance on [ManagedDataModel] from all of the declared [ManagedObject] subclasses declared in the same package as [type].
+  ///
+  /// This method now simply calls [ManagedDataModel.fromCurrentMirrorSystem].
+  @deprecated
+  factory ManagedDataModel.fromPackageContainingType(Type type) {
+    return new ManagedDataModel.fromCurrentMirrorSystem();
+  }
+
   /// Creates an instance of a [ManagedDataModel] from a package on the filesystem.
   ///
-  /// This method is used by database migration tools.
-  ManagedDataModel.fromURI(Uri libraryURI) {
-    if (!libraryURI.isAbsolute) {
-      libraryURI = new Uri.file(libraryURI.path);
-    }
-    var libMirror = currentMirrorSystem().libraries[libraryURI];
-    var builder =
-        new DataModelBuilder(this, _modelTypesFromLibraryMirror(libMirror));
-    _entities = builder.entities;
+  /// This method now simply calls [ManagedDataModel.fromCurrentMirrorSystem].
+  @deprecated
+  factory ManagedDataModel.fromURI(Uri libraryURI) {
+    return new ManagedDataModel.fromCurrentMirrorSystem();
   }
 
   Iterable<ManagedEntity> get entities => _entities.values;
@@ -64,25 +83,6 @@ class ManagedDataModel {
   ///         }
   ManagedEntity entityForType(Type type) {
     return _entities[type] ?? _persistentTypeToEntityMap[type];
-  }
-
-  List<Type> _modelTypesFromLibraryMirror(LibraryMirror libMirror) {
-    var allLibraries = libMirror.libraryDependencies
-        .where((dep) => dep.isExport)
-        .map((dep) => dep.targetLibrary)
-        .toList();
-    allLibraries.add(libMirror);
-
-    var modelMirror = reflectClass(ManagedObject);
-    Iterable<ClassMirror> allClasses = allLibraries
-        .expand((lm) => lm.declarations.values)
-        .where((decl) => decl is ClassMirror)
-        .map((decl) => decl as ClassMirror);
-
-    return allClasses
-        .where((m) => m.isSubclassOf(modelMirror))
-        .map((m) => m.reflectedType)
-        .toList();
   }
 }
 

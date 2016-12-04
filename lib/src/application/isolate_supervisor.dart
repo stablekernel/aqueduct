@@ -43,7 +43,8 @@ class ApplicationIsolateSupervisor {
     isolate.setErrorsFatal(false);
     isolate.resume(isolate.pauseCapability);
 
-    return _launchCompleter.future.timeout(new Duration(seconds: 30), onTimeout: () {
+    return _launchCompleter.future.timeout(new Duration(seconds: 30),
+        onTimeout: () {
       receivePort.close();
       throw new TimeoutException("Isolate failed to launch in 30 seconds.");
     });

@@ -2,7 +2,7 @@
 
 ## 1.0.4
 - BREAKING CHANGE: Added new `Response.contentType` property. Adding "Content-Type" to the headers of a `Response` no longer has any effect; use this property instead.
-- `ManagedDataModel`s now scan library dependencies for `ManagedObject<T>` subclasses to generate a data model.
+- `ManagedDataModel`s now scan all libraries for `ManagedObject<T>` subclasses to generate a data model. Use `ManagedDataModel.fromCurrentMirrorSystem` to create instances of `ManagedDataModel`.
 - The *last* instantiated `ManagedContext` now becomes the `ManagedContext.defaultContext`; prior to this change, it was the first instantiated context. Added `ManagedContext.standalone` to opt out of setting the default context.
 
 ## 1.0.3

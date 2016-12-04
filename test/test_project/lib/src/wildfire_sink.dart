@@ -58,8 +58,7 @@ class WildfireSink extends RequestSink {
   ManagedContext contextWithConnectionInfo(
       DatabaseConnectionConfiguration database) {
     var connectionInfo = configuration.database;
-    var dataModel =
-        new ManagedDataModel.fromPackageContainingType(this.runtimeType);
+    var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
     var psc = new PostgreSQLPersistentStore.fromConnectionInfo(
         connectionInfo.username,
         connectionInfo.password,

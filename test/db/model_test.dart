@@ -7,7 +7,7 @@ void main() {
   setUpAll(() {
     var ps = new DefaultPersistentStore();
     ManagedDataModel dm =
-    new ManagedDataModel([TransientTest, TransientTypeTest, User, Post]);
+        new ManagedDataModel([TransientTest, TransientTypeTest, User, Post]);
     var _ = new ManagedContext(dm, ps);
   });
 
