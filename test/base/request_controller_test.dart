@@ -37,7 +37,7 @@ void main() {
 
       await next.receive(req);
 
-      // We'll get here only if delivery succeeds, evne tho the response must be an error
+      // We'll get here only if delivery succeeds, even tho the response must be an error
       ensureExceptionIsCapturedByDeliver.complete(true);
     });
 
@@ -295,6 +295,67 @@ void main() {
     var resp = await http.get("http://localhost:8080");
     expect(resp.statusCode, 500);
   });
+
+  test("willSendResponse is always called prior to Response being sent for preflight requests", () async {
+    server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8080);
+    server.map((req) => new Request(req)).listen((req) async {
+      var next = new RequestController();
+      next.generate(() => new Always200Controller());
+      await next.receive(req);
+    });
+
+    // Invalid preflight
+    var req = await (new HttpClient().open("OPTIONS", "localhost", 8080, ""));
+    req.headers.set("Origin", "http://foobar.com");
+    req.headers.set("Access-Control-Request-Method", "POST");
+    req.headers
+        .set("Access-Control-Request-Headers", "accept, authorization");
+    var resp = await req.close();
+
+    expect(resp.statusCode, 200);
+    expect(JSON.decode((new String.fromCharCodes(await resp.first))), {"statusCode" : 403});
+
+    // valid preflight
+    req = await (new HttpClient().open("OPTIONS", "localhost", 8080, ""));
+    req.headers.set("Origin", "http://somewhere.com");
+    req.headers.set("Access-Control-Request-Method", "POST");
+    req.headers
+        .set("Access-Control-Request-Headers", "accept, authorization");
+    resp = await req.close();
+
+    expect(resp.statusCode, 200);
+    expect(resp.headers.value("access-control-allow-methods"), "POST, PUT, DELETE, GET");
+    expect(JSON.decode((new String.fromCharCodes(await resp.first))), {"statusCode" : 200});
+  });
+
+  test("willSendResponse is always called prior to Response being sent for normal requests", () async {
+    server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8080);
+    server.map((req) => new Request(req)).listen((req) async {
+      var next = new RequestController();
+      next.generate(() => new Always200Controller());
+      await next.receive(req);
+    });
+
+    // normal response
+    var resp = await http.get("http://localhost:8080");
+    expect(resp.statusCode, 200);
+    expect(JSON.decode(resp.body), {"statusCode" : 100});
+
+    // httpresponseexception
+    resp = await http.get("http://localhost:8080?q=http_response_exception");
+    expect(resp.statusCode, 200);
+    expect(JSON.decode(resp.body), {"statusCode" : 400});
+
+    // query exception
+    resp = await http.get("http://localhost:8080?q=query_exception");
+    expect(resp.statusCode, 200);
+    expect(JSON.decode(resp.body), {"statusCode" : 503});
+
+    // any other exception (500)
+    resp = await http.get("http://localhost:8080?q=server_error");
+    expect(resp.statusCode, 200);
+    expect(JSON.decode(resp.body), {"statusCode" : 500});
+  });
 }
 
 class SomeObject implements HTTPSerializable {
@@ -302,5 +363,33 @@ class SomeObject implements HTTPSerializable {
 
   Map<String, dynamic> asSerializable() {
     return {"name": name};
+  }
+}
+
+class Always200Controller extends RequestController {
+  Always200Controller() {
+    policy.allowedOrigins = ["http://somewhere.com"];
+  }
+  @override
+  Future<RequestControllerEvent> processRequest(Request req) async {
+    var q = req.innerRequest.uri.queryParameters["q"];
+    if (q == "http_response_exception") {
+      throw new HTTPResponseException(400, "ok");
+    } else if (q == "query_exception") {
+      throw new QueryException(QueryExceptionEvent.connectionFailure);
+    } else if (q == "server_error") {
+      throw new FormatException("whocares");
+    }
+    return new Response(100, null, null);
+  }
+
+  @override
+  void willSendResponse(Response resp) {
+    var originalMap = {
+      "statusCode" : resp.statusCode
+    };
+    resp.statusCode = 200;
+    resp.body = originalMap;
+    resp.contentType = ContentType.JSON;
   }
 }
