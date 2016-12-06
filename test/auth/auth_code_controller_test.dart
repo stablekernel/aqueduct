@@ -148,7 +148,9 @@ void main() {
       expectErrorRedirect(res, new Uri.http("stablekernel.com", "/auth/redirect"), "invalid_request");
     });
 
-    test("Username is repeated returns 302 with error", () async {
+    test("Username is repeated returns 400", () async {
+      // This isn't precisely to the OAuth 2.0 spec, but doing otherwise
+      // would get a bit ugly.
       var encodedUsername = Uri.encodeQueryComponent(user1["username"]);
       var encodedPassword = Uri.encodeQueryComponent(user1["password"]);
       var encodedWrongUsername = Uri.encodeQueryComponent("!@#kjasd");
@@ -157,13 +159,13 @@ void main() {
         ..body = "username=$encodedUsername&username=$encodedWrongUsername&password=$encodedPassword&response_type=code&client_id=com.stablekernel.redirect"
         ..contentType = new ContentType("application", "x-www-form-urlencoded");
       var resp = await req.post();
-      expectErrorRedirect(resp, new Uri.http("stablekernel.com", "/auth/redirect"), "invalid_request");
+      expect(resp, hasStatus(400));
 
       req = client.request("/auth/code")
         ..body = "username=$encodedWrongUsername&username=$encodedUsername&password=$encodedPassword&response_type=code&client_id=com.stablekernel.redirect"
         ..contentType = new ContentType("application", "x-www-form-urlencoded");
       resp = await req.post();
-      expectErrorRedirect(resp, new Uri.http("stablekernel.com", "/auth/redirect"), "invalid_request");
+      expect(resp, hasStatus(400));
     });
   });
 
@@ -195,6 +197,9 @@ void main() {
     });
 
     test("password is repeated returns 302 with error", () async {
+      // This isn't precisely to the OAuth 2.0 spec, but doing otherwise
+      // would get a bit ugly.
+
       var encodedUsername = Uri.encodeQueryComponent(user1["username"]);
       var encodedPassword = Uri.encodeQueryComponent(user1["password"]);
       var encodedWrongPassword = Uri.encodeQueryComponent("!@#kjasd");
@@ -203,13 +208,13 @@ void main() {
         ..body = "username=$encodedUsername&password=$encodedWrongPassword&password=$encodedPassword&response_type=code&client_id=com.stablekernel.redirect"
         ..contentType = new ContentType("application", "x-www-form-urlencoded");
       var resp = await req.post();
-      expectErrorRedirect(resp, new Uri.http("stablekernel.com", "/auth/redirect"), "invalid_request");
+      expect(resp, hasStatus(400));
 
       req = client.request("/auth/code")
         ..body = "username=$encodedUsername&password=$encodedPassword&password=$encodedWrongPassword&response_type=code&client_id=com.stablekernel.redirect"
         ..contentType = new ContentType("application", "x-www-form-urlencoded");
       resp = await req.post();
-      expectErrorRedirect(resp, new Uri.http("stablekernel.com", "/auth/redirect"), "invalid_request");
+      expect(resp, hasStatus(400));
     });
   });
 
@@ -226,6 +231,8 @@ void main() {
     });
 
     test("response_type is duplicated returns 302 with error", () async {
+      // This isn't precisely to the OAuth 2.0 spec, but doing otherwise
+      // would get a bit ugly.
       var encodedUsername = Uri.encodeQueryComponent(user1["username"]);
       var encodedPassword = Uri.encodeQueryComponent(user1["password"]);
 
@@ -233,13 +240,13 @@ void main() {
       req.body = "username=$encodedUsername&password=$encodedPassword&response_type=notcode&response_type=code&client_id=com.stablekernel.redirect";
       req.contentType = new ContentType("application", "x-www-form-urlencoded");
       var resp = await req.post();
-      expectErrorRedirect(resp, new Uri.http("stablekernel.com", "/auth/redirect"), "invalid_request");
+      expect(resp, hasStatus(400));
 
       req = client.request("/auth/code");
       req.body = "username=$encodedUsername&password=$encodedPassword&response_type=code&response_type=notcode&client_id=com.stablekernel.redirect";
       req.contentType = new ContentType("application", "x-www-form-urlencoded");
       resp = await req.post();
-      expectErrorRedirect(resp, new Uri.http("stablekernel.com", "/auth/redirect"), "invalid_request");
+      expect(resp, hasStatus(400));
     });
   });
 
