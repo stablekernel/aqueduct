@@ -79,12 +79,6 @@ abstract class HTTPController extends RequestController {
   /// handled by the appropriate responder method.
   void didDecodeRequestBody(dynamic decodedObject) {}
 
-  /// Executed prior to [Response] being sent, but after the responder method has been executed.
-  ///
-  /// This method is used to post-process a response before it is finally sent. By default, does nothing.
-  /// This method will have no impact on when or how the [Response] is sent, is is simply informative.
-  void willSendResponse(Response response) {}
-
   bool _requestContentTypeIsSupported(Request req) {
     var incomingContentType = request.innerRequest.headers.contentType;
     return acceptedContentTypes.firstWhere((ct) {
@@ -159,8 +153,6 @@ abstract class HTTPController extends RequestController {
       response.contentType = responseContentType;
     }
 
-    willSendResponse(response);
-
     return response;
   }
 
@@ -182,7 +174,8 @@ abstract class HTTPController extends RequestController {
 
       return response;
     } on InternalControllerException catch (e) {
-      return e.response;
+      var response = e.response;
+      return response;
     }
   }
 

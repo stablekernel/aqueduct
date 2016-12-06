@@ -101,6 +101,7 @@ ProcessResult runWith(List<String> args) {
 
   var allArgs = ["create", "--path-source", "$aqueductDirectory"];
   allArgs.addAll(args);
+
   return Process.runSync("aqueduct", allArgs,
       runInShell: true, workingDirectory: testTemplateDirectory.path);
 }

@@ -140,16 +140,19 @@ class RequestController extends Object with APIDocumentable {
 
         if (policy != null) {
           if (!policy.validatePreflightRequest(req.innerRequest)) {
-            req.respond(new Response.forbidden());
+            var response = new Response.forbidden();
+            _sendResponse(req, response);
             logger.info(req.toDebugString(includeHeaders: true));
           } else {
-            req.respond(policy.preflightResponse(req));
+            var response = policy.preflightResponse(req);
+            _sendResponse(req, response);
             logger.info(req.toDebugString());
           }
           return;
         } else {
           // If we don't have a policy, then a preflight request makes no sense.
-          req.respond(new Response.forbidden());
+          var response = new Response.forbidden();
+          _sendResponse(req, response);
           logger.info(req.toDebugString(includeHeaders: true));
           return;
         }
@@ -160,13 +163,14 @@ class RequestController extends Object with APIDocumentable {
       if (result is Request && nextController != null) {
         nextController.receive(req);
       } else if (result is Response) {
-        applyCORSHeadersIfNecessary(req, result);
-        req.respond(result);
+        _sendResponse(req, result, includeCORSHeaders: true);
 
         logger.info(req.toDebugString());
       }
     } catch (any, stacktrace) {
-      _handleError(req, any, stacktrace);
+      try {
+        _handleError(req, any, stacktrace);
+      } catch (_) {}
     }
   }
 
@@ -186,62 +190,72 @@ class RequestController extends Object with APIDocumentable {
     return req;
   }
 
+  /// Executed prior to [Response] being sent.
+  ///
+  /// This method is used to post-process [response] just before it is sent. By default, does nothing.
+  /// The [response] may be altered prior to being sent. This method will be executed for all requests,
+  /// including server errors.
+  void willSendResponse(Response response) {}
+
+  void _sendResponse(Request request, Response response, {bool includeCORSHeaders: false}) {
+    if (includeCORSHeaders) {
+      applyCORSHeadersIfNecessary(request, response);
+    }
+    willSendResponse(response);
+    request.respond(response);
+  }
+
   void _handleError(Request request, dynamic caughtValue, StackTrace trace) {
-    try {
-      if (caughtValue is HTTPResponseException) {
-        var response = caughtValue.response;
-        applyCORSHeadersIfNecessary(request, response);
-        request.respond(response);
+    if (caughtValue is HTTPResponseException) {
+      var response = caughtValue.response;
+      _sendResponse(request, response, includeCORSHeaders: true);
 
-        logger.info(
-            "${request.toDebugString(includeHeaders: true, includeBody: true)}");
-      } else if (caughtValue is QueryException &&
-          caughtValue.event != QueryExceptionEvent.internalFailure) {
-        // Note that if the event is an internal failure, this code is skipped and the 500 handler is executed.
-        var statusCode = 500;
-        switch (caughtValue.event) {
-          case QueryExceptionEvent.requestFailure:
-            statusCode = 400;
-            break;
-          case QueryExceptionEvent.internalFailure:
-            statusCode = 500;
-            break;
-          case QueryExceptionEvent.connectionFailure:
-            statusCode = 503;
-            break;
-          case QueryExceptionEvent.conflict:
-            statusCode = 409;
-            break;
-        }
-
-        var response =
-            new Response(statusCode, null, {"error": caughtValue.toString()});
-        applyCORSHeadersIfNecessary(request, response);
-        request.respond(response);
-
-        logger.info(
-            "${request.toDebugString(includeHeaders: true, includeBody: true)}");
-      } else {
-        var body = null;
-        if (includeErrorDetailsInServerErrorResponses) {
-          body = {
-            "error": "${this.runtimeType}: $caughtValue.",
-            "stacktrace": trace.toString()
-          };
-        }
-
-        var response = new Response.serverError(body: body)
-          ..contentType = ContentType.JSON;
-
-        applyCORSHeadersIfNecessary(request, response);
-        request.respond(response);
-
-        logger.severe(
-            "${request.toDebugString(includeHeaders: true, includeBody: true)}",
-            caughtValue,
-            trace);
+      logger.info(
+          "${request.toDebugString(includeHeaders: true, includeBody: true)}");
+    } else if (caughtValue is QueryException &&
+        caughtValue.event != QueryExceptionEvent.internalFailure) {
+      // Note that if the event is an internal failure, this code is skipped and the 500 handler is executed.
+      var statusCode = 500;
+      switch (caughtValue.event) {
+        case QueryExceptionEvent.requestFailure:
+          statusCode = 400;
+          break;
+        case QueryExceptionEvent.internalFailure:
+          statusCode = 500;
+          break;
+        case QueryExceptionEvent.connectionFailure:
+          statusCode = 503;
+          break;
+        case QueryExceptionEvent.conflict:
+          statusCode = 409;
+          break;
       }
-    } catch (_) {}
+
+      var response =
+          new Response(statusCode, null, {"error": caughtValue.toString()});
+      _sendResponse(request, response, includeCORSHeaders: true);
+
+      logger.info(
+          "${request.toDebugString(includeHeaders: true, includeBody: true)}");
+    } else {
+      var body = null;
+      if (includeErrorDetailsInServerErrorResponses) {
+        body = {
+          "error": "${this.runtimeType}: $caughtValue.",
+          "stacktrace": trace.toString()
+        };
+      }
+
+      var response = new Response.serverError(body: body)
+        ..contentType = ContentType.JSON;
+
+      _sendResponse(request, response, includeCORSHeaders: true);
+
+      logger.severe(
+          "${request.toDebugString(includeHeaders: true, includeBody: true)}",
+          caughtValue,
+          trace);
+    }
   }
 
   RequestController _lastRequestController() {
