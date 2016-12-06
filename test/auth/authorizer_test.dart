@@ -65,7 +65,6 @@ void main() {
 
       var res = await http.get("http://localhost:8000", headers: {"Authorization" : "Bearer 1234567890asdfghjkl"});
       expect(res.statusCode, 401);
-      expect(JSON.decode(res.body), {"error" : "Invalid Token"});
     });
 
     test("Expired bearer token returns 401", () async {
@@ -74,7 +73,6 @@ void main() {
 
       var res = await http.get("http://localhost:8000", headers: {"Authorization" : "Bearer $expiredErrorToken"});
       expect(res.statusCode, 401);
-      expect(JSON.decode(res.body), {"error" : "Expired token"});
     });
 
     test("Valid bearer token returns authorization object", () async {

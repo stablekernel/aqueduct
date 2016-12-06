@@ -50,28 +50,16 @@ class AuthController extends HTTPController {
 
     try {
       if (grantType == "password") {
-        if (username == null || password == null) {
-          return AuthServerException.responseForError(AuthRequestError.invalidRequest);
-        }
-
         var token = await authenticationServer.authenticate(
             username, password, basicRecord.username, basicRecord.password);
 
         return AuthController.tokenResponse(token);
       } else if (grantType == "refresh_token") {
-        if (refreshToken == null) {
-          return AuthServerException.responseForError(AuthRequestError.invalidRequest);
-        }
-
         var token = await authenticationServer.refresh(
             refreshToken, basicRecord.username, basicRecord.password);
 
         return AuthController.tokenResponse(token);
       } else if (grantType == "authorization_code") {
-        if (authCode == null) {
-          return AuthServerException.responseForError(AuthRequestError.invalidRequest);
-        }
-
         var token = await authenticationServer.exchange(
             authCode, basicRecord.username, basicRecord.password);
 

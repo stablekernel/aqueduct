@@ -22,7 +22,7 @@ typedef Future<String> _RenderAuthorizationPageFunction(
 /// the form submission request, which must be a POST.
 ///
 /// The implementation of this form page is up to the discretion of the developer. This controller
-/// provides no mechanism for providing the page.
+/// allows the developer to provide a page rendering anonymous function in the constructor.
 ///
 /// The request handled by this controller will redirect the client back to its registered redirection URI, including the initial state query
 /// parameter and an authorization code. The authorization code can be exchanged for an access token with a request to a
@@ -75,14 +75,33 @@ class AuthCodeController extends HTTPController {
   /// for the client to ensure it is receiving a response from the expected endpoint.
   @httpPost
   Future<Response> authorize(
-      @HTTPQuery("client_id") String clientID,
+      {@HTTPQuery("client_id") String clientID,
       @HTTPQuery("response_type") String responseType,
       @HTTPQuery("username") String username,
       @HTTPQuery("password") String password,
-      {@HTTPQuery("state") String state}) async {
-    var authCode =
-        await authenticationServer.createAuthCode(username, password, clientID);
-    return AuthCodeController.authCodeResponse(authCode, state);
+      @HTTPQuery("state") String state}) async {
+
+    if (responseType != "code") {
+      if (clientID == null) {
+        return new Response.badRequest();
+      }
+
+      var client = await authenticationServer.clientForID(clientID);
+      if (client.redirectURI == null) {
+        return new Response.badRequest();
+      }
+
+      var exception = new AuthServerException(AuthRequestError.invalidRequest, client);
+      return exception.redirectResponse;
+    }
+
+    try {
+      var authCode =
+          await authenticationServer.createAuthCode(username, password, clientID);
+      return AuthCodeController.authCodeResponse(authCode, state);
+    } on AuthServerException catch (e) {
+      return e.redirectResponse;
+    }
   }
 
   static Response authCodeResponse(
@@ -110,11 +129,6 @@ class AuthCodeController extends HTTPController {
           "Pragma": "no-cache"
         },
         null);
-  }
-
-  @override
-  void willSendResponse(Response response) {
-
   }
 
   @override

@@ -68,18 +68,15 @@ class AuthServer<
   /// Returns a [Authorization] for [accessToken].
   ///
   /// This method obtains a [TokenType] from its [delegate] and then verifies that the token is valid.
-  /// If the token is valid, a [Authorization] object is returned. Otherwise, an [HTTPResponseException]
-  /// with status code 401 is returned.
+  /// If the token is valid, a [Authorization] object is returned. Otherwise, an [AuthServerException]
+  /// with [AuthRequestError.invalidToken].
   Future<Authorization> verify(String accessToken) async {
     TokenType t = await delegate.tokenForAccessToken(this, accessToken);
     if (t == null || isTokenExpired(t)) {
-      throw new HTTPResponseException(HttpStatus.UNAUTHORIZED, "expired_token");
+      throw new AuthServerException(AuthRequestError.invalidToken, null);
     }
 
-    var permission =
-        new Authorization(t.clientID, t.resourceOwnerIdentifier, this);
-
-    return permission;
+    return new Authorization(t.clientID, t.resourceOwnerIdentifier, this);
   }
 
   /// Instantiates a [TokenType].
@@ -110,12 +107,11 @@ class AuthServer<
   ///
   /// This method obtains a [AuthCodeType] from its [delegate] and then verifies
   /// that the authorization code is valid. If the token is valid, a [Authorization]
-  /// object is returned. Otherwise, an [HTTPResponseException] with status code 401 is returned.
+  /// object is returned. Otherwise, an [AuthServerException] is thrown.
   Future<Authorization> verifyCode(String code) async {
     AuthCodeType ac = await delegate.authCodeForCode(this, code);
     if (ac == null || isAuthCodeExpired(ac)) {
-      throw new HTTPResponseException(
-          HttpStatus.UNAUTHORIZED, "Expired authorization code");
+      throw new AuthServerException(AuthRequestError.invalidGrant, null);
     }
 
     return new Authorization(ac.clientID, ac.resourceOwnerIdentifier, this);
@@ -146,13 +142,17 @@ class AuthServer<
   ///
   /// This method will refresh a [TokenType] given the [TokenType]'s [refreshToken] for a given client ID.
   /// This method coordinates with this instance's [delegate] to update the old token with a new access token and issue/expiration dates if successful.
-  /// If not successful, it will throw an [HTTPResponseException] with status code 401.
+  /// If not successful, it will throw an [AuthRequestError].
   Future<TokenType> refresh(
       String refreshToken, String clientID, String clientSecret) async {
-    AuthClient client = await clientForID(clientID);
 
+    AuthClient client = await clientForID(clientID);
     if (client == null) {
       throw new AuthServerException(AuthRequestError.invalidClient, null);
+    }
+
+    if (refreshToken == null) {
+      throw new AuthServerException(AuthRequestError.invalidRequest, client);
     }
 
     var t = await delegate.tokenForRefreshToken(this, refreshToken);
@@ -177,7 +177,7 @@ class AuthServer<
   /// Authenticates a [ResourceOwner] for a given client ID.
   ///
   /// This method works with this instance's [delegate] to generate and store a new token if all credentials are correct.
-  /// If credentials are not correct, it will throw the appropriate [HTTPResponseException] - either a 400 or a 401, depending on the failure reason.
+  /// If credentials are not correct, it will throw the appropriate [AuthRequestError].
   ///
   /// [expirationInSeconds] is measured in seconds and defaults to one hour.
   Future<TokenType> authenticate(
@@ -186,6 +186,10 @@ class AuthServer<
     AuthClient client = await clientForID(clientID);
     if (client == null) {
       throw new AuthServerException(AuthRequestError.invalidClient, null);
+    }
+
+    if (username == null || password == null) {
+      throw new AuthServerException(AuthRequestError.invalidRequest, client);
     }
 
     var isClientPublic = false;
@@ -229,13 +233,17 @@ class AuthServer<
   ///
   /// This methods works with this instance's [delegate] to generate and store the authorization code
   /// if the credentials are correct. If they are not correct, it will throw the
-  /// appropriate [HTTPResponseException].
+  /// appropriate [AuthRequestError].
   Future<AuthCodeType> createAuthCode(
       String username, String password, String clientID,
       {int expirationInSeconds: 600}) async {
     AuthClient client = await clientForID(clientID);
     if (client == null) {
       throw new AuthServerException(AuthRequestError.invalidClient, null);
+    }
+
+    if (username == null || password == null) {
+      throw new AuthServerException(AuthRequestError.invalidRequest, client);
     }
 
     if (client.redirectURI == null) {
@@ -264,13 +272,17 @@ class AuthServer<
   ///
   /// If the authorization code has not expired, has not been used, matches the client ID,
   /// and the client secret is correct, it will return a valid pair of tokens. Otherwise,
-  /// it will throw an appropriate [HTTPResponseException].
+  /// it will throw an appropriate [AuthRequestError].
   Future<TokenType> exchange(
       String authCodeString, String clientID, String clientSecret,
       {int expirationInSeconds: 3600}) async {
     AuthClient client = await clientForID(clientID);
     if (client == null) {
       throw new AuthServerException(AuthRequestError.invalidClient, null);
+    }
+
+    if (authCodeString == null) {
+      throw new AuthServerException(AuthRequestError.invalidRequest, null);
     }
 
     if (client.hashedSecret !=
@@ -387,12 +399,11 @@ class AuthServer<
   @override
   Future<Authorization> fromBearerToken(
       String bearerToken, List<String> scopesRequired) async {
-    TokenType t = await delegate.tokenForAccessToken(this, bearerToken);
-    if (t == null || isTokenExpired(t)) {
+    try {
+      return await verify(bearerToken);
+    } on AuthServerException catch (e) {
       return null;
     }
-
-    return new Authorization(t.clientID, t.resourceOwnerIdentifier, this);
   }
 }
 
@@ -455,6 +466,8 @@ class AuthServerException implements Exception {
         return "invalid_grant";
       case AuthRequestError.invalidScope:
         return "invalid_scope";
+      case AuthRequestError.invalidToken:
+        return "invalid_token";
 
       case AuthRequestError.unsupportedGrantType:
         return "unsupported_grant_type";
@@ -470,6 +483,7 @@ class AuthServerException implements Exception {
         return "server_error";
       case AuthRequestError.temporarilyUnavailable:
         return "temporarily_unavailable";
+
     }
     return null;
   }
@@ -531,5 +545,10 @@ enum AuthRequestError {
   serverError,
 
   /// The server is temporarily unable to fulfill the request.
-  temporarilyUnavailable
+  temporarilyUnavailable,
+
+  /// Indicates that the token is invalid.
+  ///
+  /// This particular error reason is not part of the OAuth 2.0 spec.
+  invalidToken
 }
