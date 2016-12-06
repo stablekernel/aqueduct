@@ -351,17 +351,40 @@ void main() {
     var resolver = new PackagePathResolver(new File(".packages").path);
     var operations = ac.documentOperations(resolver);
 
-    expect(operations.length, 1);
+    expect(operations.length, 2);
 
-    List<APIResponse> responses =
-        ac.documentResponsesForOperation(operations.first);
-    expect(responses.any((ar) => ar.key == "${HttpStatus.MOVED_TEMPORARILY}"),
+    var getOp = operations.firstWhere((op) => op.method.toLowerCase() == "get");
+    var scopeGet = getOp.parameters.firstWhere((p) => p.name == "scope");
+    var clientIDGet = getOp.parameters.firstWhere((p) => p.name == "client_id");
+    var stateGet = getOp.parameters.firstWhere((p) => p.name == "state");
+    var responseTypeGet = getOp.parameters.firstWhere((p) => p.name == "response_type");
+    expect(getOp.parameters.every((p) => p.parameterLocation == APIParameterLocation.query), true);
+    expect(getOp.parameters.every((p) => p.schemaObject.type == "string"), true);
+    expect([clientIDGet, responseTypeGet].every((p) => p.required == true), true);
+    expect([scopeGet, stateGet].every((p) => p.required == false), true);
+    expect(getOp.produces.length, 1);
+    expect(getOp.produces.first, ContentType.HTML);
+    expect(getOp.security, []);
+
+    var postOperation = operations.firstWhere((op) => op.method.toLowerCase() == "post");
+    var scopePost = postOperation.parameters.firstWhere((p) => p.name == "scope");
+    var clientIDPost = postOperation.parameters.firstWhere((p) => p.name == "client_id");
+    var statePost = postOperation.parameters.firstWhere((p) => p.name == "state");
+    var responseTypePost = postOperation.parameters.firstWhere((p) => p.name == "response_type");
+    var usernamePost = postOperation.parameters.firstWhere((p) => p.name == "username");
+    var passwordPost  = postOperation.parameters.firstWhere((p) => p.name == "password");
+    expect(postOperation.parameters.every((p) => p.parameterLocation == APIParameterLocation.formData), true);
+    expect(postOperation.parameters.every((p) => p.schemaObject.type == "string"), true);
+    expect([clientIDPost, responseTypePost, usernamePost, passwordPost].every((p) => p.required == true), true);
+    expect([statePost, scopePost].every((p) => p.required == false), true);
+    expect(postOperation.security, []);
+
+    expect(postOperation.responses.any((ar) => ar.key == "${HttpStatus.MOVED_TEMPORARILY}"),
         true);
-    expect(responses.any((ar) => ar.key == "${HttpStatus.BAD_REQUEST}"), true);
+    expect(postOperation.responses.any((ar) => ar.key == "${HttpStatus.BAD_REQUEST}"), true);
     expect(
-        responses.any((ar) => ar.key == "${HttpStatus.INTERNAL_SERVER_ERROR}"),
+        postOperation.responses.any((ar) => ar.key == "${HttpStatus.INTERNAL_SERVER_ERROR}"),
         true);
-    expect(responses.any((ar) => ar.key == "${HttpStatus.UNAUTHORIZED}"), true);
   });
 }
 
