@@ -408,11 +408,10 @@ class AuthServer<
 }
 
 class AuthServerException implements Exception {
-  AuthServerException(this.reason, this.client, {this.state});
+  AuthServerException(this.reason, this.client);
 
   AuthRequestError reason;
   AuthClient client;
-  String state;
 
   static Response responseForError(AuthRequestError error) {
     return new Response.badRequest(body: {"error" : errorStringFromRequestError(error)});
@@ -430,10 +429,6 @@ class AuthServerException implements Exception {
     var redirectURI = Uri.parse(client.redirectURI);
     Map<String, String> queryParameters = new Map.from(redirectURI.queryParameters);
 
-    if (state != null) {
-      queryParameters["state"] = state;
-    }
-
     queryParameters["error"] = errorStringFromRequestError(reason);
 
     var responseURI = new Uri(
@@ -447,9 +442,9 @@ class AuthServerException implements Exception {
     return new Response(
         HttpStatus.MOVED_TEMPORARILY,
         {
-          "Location": responseURI.toString(),
-          "Cache-Control": "no-store",
-          "Pragma": "no-cache"
+          HttpHeaders.LOCATION: responseURI.toString(),
+          HttpHeaders.CACHE_CONTROL: "no-store",
+          HttpHeaders.PRAGMA: "no-cache"
         },
         null);
   }

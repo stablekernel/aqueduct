@@ -104,6 +104,8 @@ class Response implements RequestControllerEvent {
   /// on them. For [DateTime] values, the value will be converted into an HTTP date format. For [List] values, each value will be
   /// have [toString] invoked on it and the resulting outputs will be joined together with the "," character.
   ///
+  /// You should always use lowercase keys.
+  ///
   /// Adding a Content-Type header through this property has no effect. Use [contentType] instead.
   Map<String, dynamic> headers;
 
@@ -129,7 +131,7 @@ class Response implements RequestControllerEvent {
   /// The default constructor.
   ///
   /// There exist convenience constructors for common response status codes
-  /// and you should prefer to use those.
+  /// and you should prefer to use those. Always use lowercase keys for headers.
   Response(int statusCode, Map<String, dynamic> headers, dynamic body) {
     this.body = body;
     this.headers = headers;
@@ -141,12 +143,16 @@ class Response implements RequestControllerEvent {
   }
 
   /// Represents a 200 response.
+  ///
+  /// Always use lowercase keys for headers.
   Response.ok(dynamic body, {Map<String, dynamic> headers})
       : this(HttpStatus.OK, headers, body);
 
   /// Represents a 201 response.
   ///
   /// The [location] is a URI that is added as the Location header.
+  ///
+  /// Always use lowercase keys for headers.
   Response.created(String location,
       {dynamic body, Map<String, dynamic> headers}) {
     this.headers = headers;
@@ -161,34 +167,50 @@ class Response implements RequestControllerEvent {
   }
 
   /// Represents a 202 response.
+  ///
+  /// Always use lowercase keys for headers.
   Response.accepted({Map<String, dynamic> headers})
       : this(HttpStatus.ACCEPTED, headers, null);
 
   /// Represents a 400 response.
+  ///
+  /// Always use lowercase keys for headers.
   Response.badRequest({Map<String, dynamic> headers, dynamic body})
       : this(HttpStatus.BAD_REQUEST, headers, body);
 
   /// Represents a 401 response.
+  ///
+  /// Always use lowercase keys for headers.
   Response.unauthorized({Map<String, dynamic> headers, dynamic body})
       : this(HttpStatus.UNAUTHORIZED, headers, body);
 
   /// Represents a 403 response.
+  ///
+  /// Always use lowercase keys for headers.
   Response.forbidden({Map<String, dynamic> headers, dynamic body})
       : this(HttpStatus.FORBIDDEN, headers, body);
 
   /// Represents a 404 response.
+  ///
+  /// Always use lowercase keys for headers.
   Response.notFound({Map<String, dynamic> headers, dynamic body})
       : this(HttpStatus.NOT_FOUND, headers, body);
 
   /// Represents a 409 response.
+  ///
+  /// Always use lowercase keys for headers.
   Response.conflict({Map<String, dynamic> headers, dynamic body})
       : this(HttpStatus.CONFLICT, headers, body);
 
   /// Represents a 410 response.
+  ///
+  /// Always use lowercase keys for headers.
   Response.gone({Map<String, dynamic> headers, dynamic body})
       : this(HttpStatus.GONE, headers, body);
 
   /// Represents a 500 response.
+  ///
+  /// Always use lowercase keys for headers.
   Response.serverError({Map<String, dynamic> headers, dynamic body})
       : this(HttpStatus.INTERNAL_SERVER_ERROR, headers, body);
 
