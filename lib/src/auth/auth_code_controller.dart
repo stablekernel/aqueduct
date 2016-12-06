@@ -48,11 +48,12 @@ class AuthCodeController extends HTTPController {
 
   _RenderAuthorizationPageFunction _renderFunction;
 
+  @HTTPQuery("state") String state;
+
   @httpGet
   Future<Response> getAuthorizationPage(
       {@HTTPQuery("response_type") String responseType,
       @HTTPQuery("client_id") String clientID,
-      @HTTPQuery("state") String state,
       @HTTPQuery("scope") String scope}) async {
     if (_renderFunction == null) {
       return new Response(405, {}, null);
@@ -78,8 +79,7 @@ class AuthCodeController extends HTTPController {
       {@HTTPQuery("client_id") String clientID,
       @HTTPQuery("response_type") String responseType,
       @HTTPQuery("username") String username,
-      @HTTPQuery("password") String password,
-      @HTTPQuery("state") String state}) async {
+      @HTTPQuery("password") String password}) async {
 
     if (responseType != "code") {
       if (clientID == null) {
@@ -124,9 +124,9 @@ class AuthCodeController extends HTTPController {
     return new Response(
         HttpStatus.MOVED_TEMPORARILY,
         {
-          "Location": responseURI.toString(),
-          "Cache-Control": "no-store",
-          "Pragma": "no-cache"
+          HttpHeaders.LOCATION: responseURI.toString(),
+          HttpHeaders.CACHE_CONTROL: "no-store",
+          HttpHeaders.PRAGMA: "no-cache"
         },
         null);
   }
@@ -150,6 +150,17 @@ class AuthCodeController extends HTTPController {
     }
 
     return responses;
+  }
+
+  @override
+  void willSendResponse(Response resp) {
+    if (resp.statusCode == 302) {
+      var locationHeader = resp.headers[HttpHeaders.LOCATION];
+      if (locationHeader != null && state != null) {
+        locationHeader += "&state=${Uri.encodeQueryComponent(state)}";
+        resp.headers[HttpHeaders.LOCATION] = locationHeader;
+      }
+    }
   }
 
 //  Future<String> _defaultRenderFunction(String path, String clientID, String state) async {
