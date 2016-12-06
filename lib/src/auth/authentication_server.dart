@@ -73,7 +73,7 @@ class AuthServer<
   Future<Authorization> verify(String accessToken) async {
     TokenType t = await delegate.tokenForAccessToken(this, accessToken);
     if (t == null || isTokenExpired(t)) {
-      throw new HTTPResponseException(HttpStatus.UNAUTHORIZED, "Expired token");
+      throw new HTTPResponseException(HttpStatus.UNAUTHORIZED, "expired_token");
     }
 
     var permission =
@@ -82,22 +82,13 @@ class AuthServer<
     return permission;
   }
 
-  /// Returns a [ResourceOwner] for [accessToken].
-  ///
-  /// This method will verify that the access token is valid, and return the [ResourceOwner]
-  /// that owns the token.
-  Future<ResourceOwner> resourceOwnerForAccessToken(String accessToken) async {
-    var p = await verify(accessToken);
-
-    return await delegate.authenticatableForID(this, p.resourceOwnerIdentifier);
-  }
-
   /// Instantiates a [TokenType].
   ///
   /// This method creates an instance of a [TokenType] given an [ownerID], [clientID] and [expirationInSeconds].
   /// The generated token is not persisted by invoking this method.
   TokenType generateToken(
-      dynamic ownerID, String clientID, int expirationInSeconds, {bool allowRefresh: true}) {
+      dynamic ownerID, String clientID, int expirationInSeconds,
+      {bool allowRefresh: true}) {
     TokenType token = (reflectType(TokenType) as ClassMirror)
         .newInstance(new Symbol(""), []).reflectee as TokenType;
     token.accessToken = randomStringOfLength(32);
@@ -159,19 +150,19 @@ class AuthServer<
   Future<TokenType> refresh(
       String refreshToken, String clientID, String clientSecret) async {
     AuthClient client = await clientForID(clientID);
+
     if (client == null) {
-      throw new HTTPResponseException(
-          HttpStatus.UNAUTHORIZED, "Invalid client_id");
-    }
-    if (client.hashedSecret !=
-        generatePasswordHash(clientSecret, client.salt)) {
-      throw new HTTPResponseException(
-          HttpStatus.UNAUTHORIZED, "Invalid client_secret");
+      throw new AuthServerException(AuthRequestError.invalidClient, null);
     }
 
-    TokenType t = await delegate.tokenForRefreshToken(this, refreshToken);
+    var t = await delegate.tokenForRefreshToken(this, refreshToken);
     if (t == null || t.clientID != clientID) {
-      throw new HTTPResponseException(HttpStatus.BAD_REQUEST, "invalid_grant");
+      throw new AuthServerException(AuthRequestError.invalidGrant, client);
+    }
+
+    if (client.hashedSecret !=
+        generatePasswordHash(clientSecret, client.salt)) {
+      throw new AuthServerException(AuthRequestError.invalidClient, client);
     }
 
     var diff = t.expirationDate.difference(t.issueDate);
@@ -194,8 +185,7 @@ class AuthServer<
       {int expirationInSeconds: 3600}) async {
     AuthClient client = await clientForID(clientID);
     if (client == null) {
-      throw new HTTPResponseException(
-          HttpStatus.BAD_REQUEST, "invalid_client");
+      throw new AuthServerException(AuthRequestError.invalidClient, null);
     }
 
     var isClientPublic = false;
@@ -203,36 +193,33 @@ class AuthServer<
       isClientPublic = true;
 
       if (!(clientSecret == null || clientSecret == "")) {
-        throw new HTTPResponseException(
-            HttpStatus.BAD_REQUEST, "invalid_client");
+        throw new AuthServerException(AuthRequestError.invalidClient, client);
       }
     } else {
       isClientPublic = false;
 
       if (client.hashedSecret !=
           generatePasswordHash(clientSecret, client.salt)) {
-        throw new HTTPResponseException(
-            HttpStatus.BAD_REQUEST, "invalid_client");
+        throw new AuthServerException(AuthRequestError.invalidClient, client);
       }
     }
 
     var authenticatable =
         await delegate.authenticatableForUsername(this, username);
     if (authenticatable == null) {
-      throw new HTTPResponseException(
-          HttpStatus.BAD_REQUEST, "invalid_grant");
+      throw new AuthServerException(AuthRequestError.invalidGrant, client);
     }
 
     var dbSalt = authenticatable.salt;
     var dbPassword = authenticatable.hashedPassword;
     var hash = AuthServer.generatePasswordHash(password, dbSalt);
     if (hash != dbPassword) {
-      throw new HTTPResponseException(
-          HttpStatus.BAD_REQUEST, "invalid_grant");
+      throw new AuthServerException(AuthRequestError.invalidGrant, client);
     }
 
-    TokenType token =
-        generateToken(authenticatable.id, client.id, expirationInSeconds, allowRefresh: !isClientPublic);
+    TokenType token = generateToken(
+        authenticatable.id, client.id, expirationInSeconds,
+        allowRefresh: !isClientPublic);
     await delegate.storeToken(this, token);
 
     return token;
@@ -248,28 +235,24 @@ class AuthServer<
       {int expirationInSeconds: 600}) async {
     AuthClient client = await clientForID(clientID);
     if (client == null) {
-      throw new HTTPResponseException(
-          HttpStatus.UNAUTHORIZED, "Invalid client_id");
+      throw new AuthServerException(AuthRequestError.invalidClient, null);
     }
 
     if (client.redirectURI == null) {
-      throw new HTTPResponseException(HttpStatus.INTERNAL_SERVER_ERROR,
-          "Client does not have a redirect URI");
+      throw new AuthServerException(AuthRequestError.unauthorizedClient, client);
     }
 
     var authenticatable =
         await delegate.authenticatableForUsername(this, username);
     if (authenticatable == null) {
-      throw new HTTPResponseException(
-          HttpStatus.BAD_REQUEST, "Invalid username");
+      throw new AuthServerException(AuthRequestError.accessDenied, client);
     }
 
     var dbSalt = authenticatable.salt;
     var dbPassword = authenticatable.hashedPassword;
     var hash = AuthServer.generatePasswordHash(password, dbSalt);
     if (hash != dbPassword) {
-      throw new HTTPResponseException(
-          HttpStatus.UNAUTHORIZED, "Invalid password");
+      throw new AuthServerException(AuthRequestError.accessDenied, client);
     }
 
     AuthCodeType authCode =
@@ -287,31 +270,28 @@ class AuthServer<
       {int expirationInSeconds: 3600}) async {
     AuthClient client = await clientForID(clientID);
     if (client == null) {
-      throw new HTTPResponseException(
-          HttpStatus.UNAUTHORIZED, "Invalid client_id");
+      throw new AuthServerException(AuthRequestError.invalidClient, null);
     }
+
     if (client.hashedSecret !=
         generatePasswordHash(clientSecret, client.salt)) {
-      throw new HTTPResponseException(
-          HttpStatus.UNAUTHORIZED, "Invalid client_secret");
+      throw new AuthServerException(AuthRequestError.invalidClient, client);
     }
 
     AuthCodeType authCode =
         await delegate.authCodeForCode(this, authCodeString);
     if (authCode == null) {
-      throw new HTTPResponseException(HttpStatus.BAD_REQUEST, "invalid_grant");
+      throw new AuthServerException(AuthRequestError.invalidGrant, client);
     }
 
     // check if valid still
     if (authCode.expirationDate.difference(new DateTime.now()).inSeconds <= 0) {
-      throw new HTTPResponseException(
-          HttpStatus.BAD_REQUEST, "invalid_grant");
+      throw new AuthServerException(AuthRequestError.invalidGrant, client);
     }
 
     // check that client ids match
     if (authCode.clientID != client.id) {
-      throw new HTTPResponseException(
-          HttpStatus.BAD_REQUEST, "invalid_grant");
+      throw new AuthServerException(AuthRequestError.invalidGrant, client);
     }
 
     // check to see if has already been used
@@ -319,8 +299,7 @@ class AuthServer<
       await delegate.deleteTokenForRefreshToken(
           this, authCode.token.refreshToken);
 
-      throw new HTTPResponseException(
-          HttpStatus.BAD_REQUEST, "invalid_grant");
+      throw new AuthServerException(AuthRequestError.invalidGrant, client);
     }
 
     TokenType token = generateToken(
@@ -389,44 +368,108 @@ class AuthServer<
   }
 
   @override
-  Future<Authorization> fromBasicCredentials(String username, String password) async {
+  Future<Authorization> fromBasicCredentials(
+      String username, String password) async {
     var client = await clientForID(username);
 
     if (client == null) {
-      throw new HTTPResponseException.withoutBody(HttpStatus.UNAUTHORIZED);
+      return null;
     }
 
     if (client.hashedSecret !=
         AuthServer.generatePasswordHash(password, client.salt)) {
-      throw new HTTPResponseException.withoutBody(HttpStatus.UNAUTHORIZED);
+      return null;
     }
 
     return new Authorization(client.id, null, this);
   }
 
   @override
-  Future<Authorization> fromBearerToken(String bearerToken, List<String> scopesRequired) async {
-    return await verify(bearerToken);
+  Future<Authorization> fromBearerToken(
+      String bearerToken, List<String> scopesRequired) async {
+    TokenType t = await delegate.tokenForAccessToken(this, bearerToken);
+    if (t == null || isTokenExpired(t)) {
+      return null;
+    }
+
+    return new Authorization(t.clientID, t.resourceOwnerIdentifier, this);
+  }
+}
+
+class AuthServerException implements Exception {
+  AuthServerException(this.reason, this.client, {this.state});
+
+  AuthRequestError reason;
+  AuthClient client;
+  String state;
+
+  static Response responseForError(AuthRequestError error) {
+    return new Response.badRequest(body: {"error" : errorStringFromRequestError(error)});
+  }
+
+  Response get directResponse {
+    return responseForError(reason);
+  }
+
+  Response get redirectResponse {
+    if (client?.redirectURI == null) {
+      return directResponse;
+    }
+
+    var redirectURI = Uri.parse(client.redirectURI);
+    Map<String, String> queryParameters = new Map.from(redirectURI.queryParameters);
+
+    if (state != null) {
+      queryParameters["state"] = state;
+    }
+
+    queryParameters["error"] = errorStringFromRequestError(reason);
+
+    var responseURI = new Uri(
+        scheme: redirectURI.scheme,
+        userInfo: redirectURI.userInfo,
+        host: redirectURI.host,
+        port: redirectURI.port,
+        path: redirectURI.path,
+        queryParameters: queryParameters);
+
+    return new Response(
+        HttpStatus.MOVED_TEMPORARILY,
+        {
+          "Location": responseURI.toString(),
+          "Cache-Control": "no-store",
+          "Pragma": "no-cache"
+        },
+        null);
   }
 
   /// Returns a string suitable to be included in a query string or JSON response body
   /// to indicate the error during processing an OAuth 2.0 request.
   static String errorStringFromRequestError(AuthRequestError error) {
     switch (error) {
-      case AuthRequestError.invalidRequest: return "invalid_request";
-      case AuthRequestError.invalidClient: return "invalid_client";
-      case AuthRequestError.invalidGrant: return "invalid_grant";
-      case AuthRequestError.invalidScope: return "invalid_scope";
+      case AuthRequestError.invalidRequest:
+        return "invalid_request";
+      case AuthRequestError.invalidClient:
+        return "invalid_client";
+      case AuthRequestError.invalidGrant:
+        return "invalid_grant";
+      case AuthRequestError.invalidScope:
+        return "invalid_scope";
 
-      case AuthRequestError.unsupportedGrantType: return "unsupported_grant_type";
-      case AuthRequestError.unsupportedResponseType: return "unsupported_response_type";
+      case AuthRequestError.unsupportedGrantType:
+        return "unsupported_grant_type";
+      case AuthRequestError.unsupportedResponseType:
+        return "unsupported_response_type";
 
-      case AuthRequestError.unauthorizedClient: return "unauthorized_client";
-      case AuthRequestError.accessDenied: return "access_denied";
+      case AuthRequestError.unauthorizedClient:
+        return "unauthorized_client";
+      case AuthRequestError.accessDenied:
+        return "access_denied";
 
-      case AuthRequestError.serverError: return "server_error";
-      case AuthRequestError.temporarilyUnavailable: return "temporarily_unavailable";
-
+      case AuthRequestError.serverError:
+        return "server_error";
+      case AuthRequestError.temporarilyUnavailable:
+        return "temporarily_unavailable";
     }
     return null;
   }
@@ -490,4 +533,3 @@ enum AuthRequestError {
   /// The server is temporarily unable to fulfill the request.
   temporarilyUnavailable
 }
-

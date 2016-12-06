@@ -2,6 +2,13 @@ import 'dart:async';
 import 'package:aqueduct/aqueduct.dart';
 import 'package:postgres/postgres.dart';
 
+justLogEverything() {
+  hierarchicalLoggingEnabled = true;
+  new Logger("")
+    ..level = Level.ALL
+    ..onRecord.listen((p) => print("${p} ${p.object} ${p.stackTrace}"));
+}
+
 Future<List<TestUser>> createUsers(int count) async {
   var users = new List<TestUser>();
   for (int i = 0; i < count; i++) {

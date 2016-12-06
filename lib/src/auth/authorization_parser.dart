@@ -9,13 +9,15 @@ class AuthorizationBearerParser {
   /// For example, if the input to this method is "Authorization: Bearer token" it would return 'token'.
   static String parse(String authorizationHeader) {
     if (authorizationHeader == null) {
-      throw new AuthorizationParserException(AuthorizationParserExceptionReason.missing);
+      throw new AuthorizationParserException(
+          AuthorizationParserExceptionReason.missing);
     }
 
     var matcher = new RegExp("Bearer (.+)");
     var match = matcher.firstMatch(authorizationHeader);
     if (match == null) {
-      throw new AuthorizationParserException(AuthorizationParserExceptionReason.malformed);
+      throw new AuthorizationParserException(
+          AuthorizationParserExceptionReason.malformed);
     }
     return match[1];
   }
@@ -38,13 +40,15 @@ class AuthorizationBasicParser {
   /// and return the username and password by splitting that decoded string around the character ':'.
   static AuthorizationBasicElements parse(String authorizationHeader) {
     if (authorizationHeader == null) {
-      throw new AuthorizationParserException(AuthorizationParserExceptionReason.missing);
+      throw new AuthorizationParserException(
+          AuthorizationParserExceptionReason.missing);
     }
 
     var matcher = new RegExp("Basic (.+)");
     var match = matcher.firstMatch(authorizationHeader);
     if (match == null) {
-      throw new AuthorizationParserException(AuthorizationParserExceptionReason.malformed);
+      throw new AuthorizationParserException(
+          AuthorizationParserExceptionReason.malformed);
     }
 
     var base64String = match[1];
@@ -53,12 +57,14 @@ class AuthorizationBasicParser {
       decodedCredentials =
           new String.fromCharCodes(new Base64Decoder().convert(base64String));
     } catch (e) {
-      throw new AuthorizationParserException(AuthorizationParserExceptionReason.malformed);
+      throw new AuthorizationParserException(
+          AuthorizationParserExceptionReason.malformed);
     }
 
     var splitCredentials = decodedCredentials.split(":");
     if (splitCredentials.length != 2) {
-      throw new AuthorizationParserException(AuthorizationParserExceptionReason.malformed);
+      throw new AuthorizationParserException(
+          AuthorizationParserExceptionReason.malformed);
     }
 
     return new AuthorizationBasicElements()
@@ -67,10 +73,7 @@ class AuthorizationBasicParser {
   }
 }
 
-enum AuthorizationParserExceptionReason {
-  missing,
-  malformed
-}
+enum AuthorizationParserExceptionReason { missing, malformed }
 
 class AuthorizationParserException implements Exception {
   AuthorizationParserException(this.reason);
