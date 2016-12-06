@@ -39,6 +39,7 @@ class AuthCodeController extends HTTPController {
     acceptedContentTypes = [
       new ContentType("application", "x-www-form-urlencoded")
     ];
+    responseContentType = ContentType.HTML;
 
     _renderFunction = renderAuthorizationPageHTML;
   }
@@ -66,7 +67,7 @@ class AuthCodeController extends HTTPController {
       "scope": scope
     });
 
-    return new Response.ok(renderedPage)..contentType = ContentType.HTML;
+    return new Response.ok(renderedPage);
   }
 
   /// Creates a one-time use authorization code.
@@ -79,7 +80,8 @@ class AuthCodeController extends HTTPController {
       {@HTTPQuery("client_id") String clientID,
       @HTTPQuery("response_type") String responseType,
       @HTTPQuery("username") String username,
-      @HTTPQuery("password") String password}) async {
+      @HTTPQuery("password") String password,
+      @HTTPQuery("scope") String scope}) async {
 
     if (responseType != "code") {
       if (clientID == null) {
@@ -129,6 +131,25 @@ class AuthCodeController extends HTTPController {
           HttpHeaders.PRAGMA: "no-cache"
         },
         null);
+  }
+
+  @override
+  List<APIOperation> documentOperations(PackagePathResolver resolver) {
+    var ops = super.documentOperations(resolver);
+    ops.forEach((op) {
+      op.parameters.forEach((param) {
+        if (param.name == "username"
+        || param.name == "password"
+        || param.name == "client_id"
+        || param.name == "response_type") {
+          param.required = true;
+        } else {
+          param.required = false;
+        }
+      });
+    });
+
+    return ops;
   }
 
   @override

@@ -21,6 +21,43 @@ class AuthServer<
         AuthCodeType extends AuthTokenExchangable<TokenType>> extends Object
     with APIDocumentable
     implements AuthValidator {
+  /// A utility method to generate a password hash using the PBKDF2 scheme.
+  ///
+  static String generatePasswordHash(String password, String salt,
+      {int hashRounds: 1000, int hashLength: 32}) {
+    var generator = new PBKDF2(hashAlgorithm: sha256);
+    var key = generator.generateKey(password, salt, hashRounds, hashLength);
+
+    return new Base64Encoder().convert(key);
+  }
+
+  /// A utility method to generate a random base64 salt.
+  ///
+  static String generateRandomSalt({int hashLength: 32}) {
+    var random = new Random.secure();
+    List<int> salt = [];
+    for (var i = 0; i < hashLength; i++) {
+      salt.add(random.nextInt(256));
+    }
+
+    return new Base64Encoder().convert(salt);
+  }
+
+  /// A utility method to generate a ClientID and Client Secret Pair, where secret is hashed with a salt.
+  ///
+  /// Secret may be null for public clients.
+  static AuthClient generateAPICredentialPair(String clientID, String secret,
+      {String redirectURI: null}) {
+    if (secret == null) {
+      return new AuthClient.withRedirectURI(clientID, null, null, redirectURI);
+    }
+
+    var salt = AuthServer.generateRandomSalt();
+    var hashed = AuthServer.generatePasswordHash(secret, salt);
+
+    return new AuthClient.withRedirectURI(clientID, hashed, salt, redirectURI);
+  }
+
   /// Creates a new instance of an [AuthServer] with a [delegate].
   AuthServer(this.delegate);
 
@@ -32,12 +69,16 @@ class AuthServer<
   Map<String, AuthClient> _clientCache = {};
 
   /// Returns whether or not a token from this server has expired.
+  ///
+  /// Checks the expiration date of a token.
   bool isTokenExpired(TokenType t) {
     return t.expirationDate.difference(new DateTime.now().toUtc()).inSeconds <=
         0;
   }
 
   /// Returns whether or not an authorization code from this server has expired.
+  ///
+  ///
   bool isAuthCodeExpired(AuthCodeType ac) {
     return ac.expirationDate.difference(new DateTime.now().toUtc()).inSeconds <=
         0;
@@ -79,30 +120,6 @@ class AuthServer<
     return new Authorization(t.clientID, t.resourceOwnerIdentifier, this);
   }
 
-  /// Instantiates a [TokenType].
-  ///
-  /// This method creates an instance of a [TokenType] given an [ownerID], [clientID] and [expirationInSeconds].
-  /// The generated token is not persisted by invoking this method.
-  TokenType generateToken(
-      dynamic ownerID, String clientID, int expirationInSeconds,
-      {bool allowRefresh: true}) {
-    TokenType token = (reflectType(TokenType) as ClassMirror)
-        .newInstance(new Symbol(""), []).reflectee as TokenType;
-    token.accessToken = randomStringOfLength(32);
-    token.issueDate = new DateTime.now().toUtc();
-    token.expirationDate =
-        token.issueDate.add(new Duration(seconds: expirationInSeconds)).toUtc();
-    token.type = "bearer";
-    token.resourceOwnerIdentifier = ownerID;
-    token.clientID = clientID;
-
-    if (allowRefresh) {
-      token.refreshToken = randomStringOfLength(32);
-    }
-
-    return token;
-  }
-
   /// Returns a [Authorization] for the specified [code].
   ///
   /// This method obtains a [AuthCodeType] from its [delegate] and then verifies
@@ -115,27 +132,6 @@ class AuthServer<
     }
 
     return new Authorization(ac.clientID, ac.resourceOwnerIdentifier, this);
-  }
-
-  /// Instantiates a [AuthCodeType] given the arguments.
-  ///
-  /// This method creates an instance of [AuthCodeType] given an [ownerID], [client], and [expirationInSeconds].
-  /// The generated authorization code is not persisted by invoking this method.
-  AuthCodeType generateAuthCode(
-      dynamic ownerID, AuthClient client, int expirationInSeconds) {
-    AuthCodeType authCode = (reflectType(AuthCodeType) as ClassMirror)
-        .newInstance(new Symbol(""), []).reflectee as AuthCodeType;
-
-    authCode.code = randomStringOfLength(32);
-    authCode.clientID = client.id;
-    authCode.resourceOwnerIdentifier = ownerID;
-    authCode.issueDate = new DateTime.now().toUtc();
-    authCode.expirationDate = authCode.issueDate
-        .add(new Duration(seconds: expirationInSeconds))
-        .toUtc();
-    authCode.redirectURI = client.redirectURI;
-
-    return authCode;
   }
 
   /// Refreshes a valid [TokenType] instance.
@@ -221,7 +217,7 @@ class AuthServer<
       throw new AuthServerException(AuthRequestError.invalidGrant, client);
     }
 
-    TokenType token = generateToken(
+    TokenType token = _generateToken(
         authenticatable.id, client.id, expirationInSeconds,
         allowRefresh: !isClientPublic);
     await delegate.storeToken(this, token);
@@ -264,7 +260,7 @@ class AuthServer<
     }
 
     AuthCodeType authCode =
-        generateAuthCode(authenticatable.id, client, expirationInSeconds);
+        _generateAuthCode(authenticatable.id, client, expirationInSeconds);
     return await delegate.storeAuthCode(this, authCode);
   }
 
@@ -314,7 +310,7 @@ class AuthServer<
       throw new AuthServerException(AuthRequestError.invalidGrant, client);
     }
 
-    TokenType token = generateToken(
+    TokenType token = _generateToken(
         authCode.resourceOwnerIdentifier, client.id, expirationInSeconds);
     token = await delegate.storeToken(this, token);
 
@@ -323,6 +319,8 @@ class AuthServer<
 
     return token;
   }
+
+  // APIDocumentable overrides
 
   @override
   Map<String, APISecurityScheme> documentSecuritySchemes(
@@ -344,40 +342,7 @@ class AuthServer<
     };
   }
 
-  /// A utility method to generate a password hash using the PBKDF2 scheme.
-  static String generatePasswordHash(String password, String salt,
-      {int hashRounds: 1000, int hashLength: 32}) {
-    var generator = new PBKDF2(hashAlgorithm: sha256);
-    var key = generator.generateKey(password, salt, hashRounds, hashLength);
-
-    return new Base64Encoder().convert(key);
-  }
-
-  /// A utility method to generate a random base64 salt.
-  static String generateRandomSalt({int hashLength: 32}) {
-    var random = new Random.secure();
-    List<int> salt = [];
-    for (var i = 0; i < hashLength; i++) {
-      salt.add(random.nextInt(256));
-    }
-
-    return new Base64Encoder().convert(salt);
-  }
-
-  /// A utility method to generate a ClientID and Client Secret Pair, where secret is hashed with a salt.
-  ///
-  /// Secret may be null for public clients.
-  static AuthClient generateAPICredentialPair(String clientID, String secret,
-      {String redirectURI: null}) {
-    if (secret == null) {
-      return new AuthClient.withRedirectURI(clientID, null, null, redirectURI);
-    }
-
-    var salt = AuthServer.generateRandomSalt();
-    var hashed = AuthServer.generatePasswordHash(secret, salt);
-
-    return new AuthClient.withRedirectURI(clientID, hashed, salt, redirectURI);
-  }
+  // AuthValidator overrides
 
   @override
   Future<Authorization> fromBasicCredentials(
@@ -401,52 +366,52 @@ class AuthServer<
       String bearerToken, List<String> scopesRequired) async {
     try {
       return await verify(bearerToken);
-    } on AuthServerException catch (e) {
+    } on AuthServerException {
       return null;
     }
+  }
+
+  TokenType _generateToken(
+      dynamic ownerID, String clientID, int expirationInSeconds,
+      {bool allowRefresh: true}) {
+    TokenType token = (reflectType(TokenType) as ClassMirror)
+        .newInstance(new Symbol(""), []).reflectee as TokenType;
+    token.accessToken = randomStringOfLength(32);
+    token.issueDate = new DateTime.now().toUtc();
+    token.expirationDate =
+        token.issueDate.add(new Duration(seconds: expirationInSeconds)).toUtc();
+    token.type = "bearer";
+    token.resourceOwnerIdentifier = ownerID;
+    token.clientID = clientID;
+
+    if (allowRefresh) {
+      token.refreshToken = randomStringOfLength(32);
+    }
+
+    return token;
+  }
+
+  AuthCodeType _generateAuthCode(
+      dynamic ownerID, AuthClient client, int expirationInSeconds) {
+    AuthCodeType authCode = (reflectType(AuthCodeType) as ClassMirror)
+        .newInstance(new Symbol(""), []).reflectee as AuthCodeType;
+
+    authCode.code = randomStringOfLength(32);
+    authCode.clientID = client.id;
+    authCode.resourceOwnerIdentifier = ownerID;
+    authCode.issueDate = new DateTime.now().toUtc();
+    authCode.expirationDate = authCode.issueDate
+        .add(new Duration(seconds: expirationInSeconds))
+        .toUtc();
+    authCode.redirectURI = client.redirectURI;
+
+    return authCode;
   }
 }
 
 class AuthServerException implements Exception {
-  AuthServerException(this.reason, this.client);
-
-  AuthRequestError reason;
-  AuthClient client;
-
   static Response responseForError(AuthRequestError error) {
     return new Response.badRequest(body: {"error" : errorStringFromRequestError(error)});
-  }
-
-  Response get directResponse {
-    return responseForError(reason);
-  }
-
-  Response get redirectResponse {
-    if (client?.redirectURI == null) {
-      return directResponse;
-    }
-
-    var redirectURI = Uri.parse(client.redirectURI);
-    Map<String, String> queryParameters = new Map.from(redirectURI.queryParameters);
-
-    queryParameters["error"] = errorStringFromRequestError(reason);
-
-    var responseURI = new Uri(
-        scheme: redirectURI.scheme,
-        userInfo: redirectURI.userInfo,
-        host: redirectURI.host,
-        port: redirectURI.port,
-        path: redirectURI.path,
-        queryParameters: queryParameters);
-
-    return new Response(
-        HttpStatus.MOVED_TEMPORARILY,
-        {
-          HttpHeaders.LOCATION: responseURI.toString(),
-          HttpHeaders.CACHE_CONTROL: "no-store",
-          HttpHeaders.PRAGMA: "no-cache"
-        },
-        null);
   }
 
   /// Returns a string suitable to be included in a query string or JSON response body
@@ -481,6 +446,43 @@ class AuthServerException implements Exception {
 
     }
     return null;
+  }
+
+  AuthServerException(this.reason, this.client);
+
+  AuthRequestError reason;
+  AuthClient client;
+
+  Response get directResponse {
+    return responseForError(reason);
+  }
+
+  Response get redirectResponse {
+    if (client?.redirectURI == null) {
+      return directResponse;
+    }
+
+    var redirectURI = Uri.parse(client.redirectURI);
+    Map<String, String> queryParameters = new Map.from(redirectURI.queryParameters);
+
+    queryParameters["error"] = errorStringFromRequestError(reason);
+
+    var responseURI = new Uri(
+        scheme: redirectURI.scheme,
+        userInfo: redirectURI.userInfo,
+        host: redirectURI.host,
+        port: redirectURI.port,
+        path: redirectURI.path,
+        queryParameters: queryParameters);
+
+    return new Response(
+        HttpStatus.MOVED_TEMPORARILY,
+        {
+          HttpHeaders.LOCATION: responseURI.toString(),
+          HttpHeaders.CACHE_CONTROL: "no-store",
+          HttpHeaders.PRAGMA: "no-cache"
+        },
+        null);
   }
 }
 
@@ -522,24 +524,31 @@ enum AuthRequestError {
   invalidGrant,
 
   /// The requested scope is invalid, unknown, malformed, or exceeds the scope granted by the resource owner.
+  ///
   invalidScope,
 
   /// The authorization grant type is not supported by the authorization server.
+  ///
   unsupportedGrantType,
 
   /// The authorization server does not support obtaining an authorization code using this method.
+  ///
   unsupportedResponseType,
 
   /// The authenticated client is not authorized to use this authorization grant type.
+  ///
   unauthorizedClient,
 
   /// The resource owner or authorization server denied the request.
+  ///
   accessDenied,
 
   /// The server encountered an error during processing the request.
+  ///
   serverError,
 
   /// The server is temporarily unable to fulfill the request.
+  ///
   temporarilyUnavailable,
 
   /// Indicates that the token is invalid.

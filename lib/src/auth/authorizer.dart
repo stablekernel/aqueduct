@@ -69,23 +69,28 @@ class Authorizer extends RequestController {
   /// The [AuthStrategy] for authorizing a request.
   AuthStrategy strategy;
 
-  @override
-  Future<RequestControllerEvent> processRequest(Request req) async {
-    // This is temporary while resourceOwner/client deprecate.
+  // This is temporary while resourceOwner/client deprecate
+  AuthStrategy get _actualStrategy {
     if (strategy == AuthStrategy.resourceOwner) {
-      strategy = AuthStrategy.bearer;
+      return AuthStrategy.bearer;
     } else if (strategy == AuthStrategy.client) {
-      strategy = AuthStrategy.basic;
+      return AuthStrategy.basic;
     }
 
+    return strategy;
+  }
+
+  @override
+  Future<RequestControllerEvent> processRequest(Request req) async {
     var header = req.innerRequest.headers.value(HttpHeaders.AUTHORIZATION);
     if (header == null) {
       return new Response.unauthorized();
     }
 
-    if (strategy == AuthStrategy.bearer) {
+    var s = _actualStrategy;
+    if (s == AuthStrategy.bearer) {
       return await _processBearerHeader(req, header);
-    } else if (strategy == AuthStrategy.basic) {
+    } else if (s == AuthStrategy.basic) {
       return await _processBasicHeader(req, header);
     }
 
@@ -142,8 +147,8 @@ class Authorizer extends RequestController {
 
   @override
   List<APIOperation> documentOperations(PackagePathResolver resolver) {
-    throw new Exception("NYI");
     List<APIOperation> items = nextController.documentOperations(resolver);
+
 
     var secReq = new APISecurityRequirement()..scopes = [];
 
@@ -195,4 +200,6 @@ abstract class AuthValidator {
   /// will allow access, assuming that 'null scope' means 'any scope'.
   Future<Authorization> fromBearerToken(
       String bearerToken, List<String> scopesRequired);
+
+
 }

@@ -156,6 +156,9 @@ void main() {
     });
   });
 
+  group("Documentation behavior", () {
+
+  });
 }
 
 Future<HttpServer> enableAuthorizer(Authorizer authorizer) async {
