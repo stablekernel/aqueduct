@@ -38,7 +38,8 @@ class Authorizer extends RequestController {
   /// Creates an instance of [Authorizer].
   ///
   /// The default strategy is [AuthStrategy.bearer].
-  Authorizer(this.validator, {this.strategy: AuthStrategy.bearer, this.scopes}) {
+  Authorizer(this.validator,
+      {this.strategy: AuthStrategy.bearer, this.scopes}) {
     policy = null;
   }
 
@@ -91,7 +92,8 @@ class Authorizer extends RequestController {
     return new Response.serverError();
   }
 
-  Future<RequestControllerEvent> _processBearerHeader(Request request, String headerValue) async {
+  Future<RequestControllerEvent> _processBearerHeader(
+      Request request, String headerValue) async {
     String bearerToken;
     try {
       bearerToken = AuthorizationBearerParser.parse(headerValue);
@@ -99,11 +101,17 @@ class Authorizer extends RequestController {
       return _responseFromParseException(e);
     }
 
-    request.authorization = await validator.fromBearerToken(bearerToken, scopes);
+    var authorization = await validator.fromBearerToken(bearerToken, scopes);
+    if (authorization == null) {
+      return new Response.unauthorized();
+    }
+
+    request.authorization = authorization;
     return request;
   }
 
-  Future<RequestControllerEvent> _processBasicHeader(Request request, String headerValue) async {
+  Future<RequestControllerEvent> _processBasicHeader(
+      Request request, String headerValue) async {
     AuthorizationBasicElements elements;
     try {
       elements = AuthorizationBasicParser.parse(headerValue);
@@ -111,13 +119,20 @@ class Authorizer extends RequestController {
       return _responseFromParseException(e);
     }
 
-    request.authorization = await validator.fromBasicCredentials(elements.username, elements.password);
+    var authorization = await validator.fromBasicCredentials(
+        elements.username, elements.password);
+    if (authorization == null) {
+      return new Response.unauthorized();
+    }
+
+    request.authorization = authorization;
     return request;
   }
 
   Response _responseFromParseException(AuthorizationParserException e) {
     if (e.reason == AuthorizationParserExceptionReason.malformed) {
-      return new Response.badRequest(body: {"error" : "invalid_authorization_header"});
+      return new Response.badRequest(
+          body: {"error": "invalid_authorization_header"});
     } else if (e.reason == AuthorizationParserExceptionReason.missing) {
       return new Response.unauthorized();
     }
@@ -130,8 +145,7 @@ class Authorizer extends RequestController {
     throw new Exception("NYI");
     List<APIOperation> items = nextController.documentOperations(resolver);
 
-    var secReq = new APISecurityRequirement()
-      ..scopes = [];
+    var secReq = new APISecurityRequirement()..scopes = [];
 
     if (strategy == AuthStrategy.client) {
       strategy = AuthStrategy.basic;
@@ -158,18 +172,27 @@ class Authorizer extends RequestController {
 abstract class AuthValidator {
   /// Returns an [Authorization] from basic credentials.
   ///
-  /// This method must either return a [Future] that yields an [Authorization] or throw
-  /// an [HTTPResponseException. It may not return null.
+  /// This method must either return a [Future] that yields an [Authorization] or return null.
+  /// If this method returns null, the invoking [Authorizer] will disallow further
+  /// request handling and immediately return a 401 status code. If this method returns an
+  /// [Authorization], it will be set as the [Request.authorization] and request handling
+  /// will continue to the [Authorizer.nextController].
   Future<Authorization> fromBasicCredentials(String username, String password);
 
   /// Returns an [Authorization] from a bearer token.
   ///
-  /// This method must either return a [Future] that yields an [Authorization] or throw
-  /// an [HTTPResponseException. It may not return null. [scopesRequired] is the list of scopes established when the calling [Authorizer]
+  /// This method must either return a [Future] that yields an [Authorization] or return null.
+  /// If this method returns null, the invoking [Authorizer] will disallow further
+  /// request handling and immediately return a 401 status code. If this method returns an
+  /// [Authorization], it will be set as the [Request.authorization] and request handling
+  /// will continue to the [Authorizer.nextController].
+  ///
+  /// [scopesRequired] is the list of scopes established when the calling [Authorizer]
   /// is created. Implementors of this method must verify the bearer token access to [scopesRequired].
   ///
   /// If [scopesRequired] is null, an implementor may make its own determination about whether
   /// the token results in an [Authorization]. By default, [AuthServer] - the primary implementor of this type -
-  /// will allow access, assuming that 'null scopes' means 'any scope'.
-  Future<Authorization> fromBearerToken(String bearerToken, List<String> scopesRequired);
+  /// will allow access, assuming that 'null scope' means 'any scope'.
+  Future<Authorization> fromBearerToken(
+      String bearerToken, List<String> scopesRequired);
 }

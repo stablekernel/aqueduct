@@ -5,7 +5,10 @@ import '../http/http.dart';
 import 'auth.dart';
 import 'package:path/path.dart' as path_lib;
 
-typedef Future<String> _RenderAuthorizationPageFunction(String path, String clientID, String state);
+typedef Future<String> _RenderAuthorizationPageFunction(
+    AuthCodeController controller,
+    Uri requestURI,
+    Map<String, String> queryParameters);
 
 /// [RequestController] for issuing OAuth 2.0 authorization codes.
 ///
@@ -30,38 +33,39 @@ class AuthCodeController extends HTTPController {
   /// An [AuthCodeController] requires an [AuthServer] to carry out tasks.
   ///
   /// By default, an [AuthCodeController] has only one [acceptedContentTypes] - 'application/x-www-form-urlencoded'.
-  AuthCodeController(this.authenticationServer, {Future<String> renderAuthorizationPage(String path, String clientID, String state)}) {
+  AuthCodeController(this.authenticationServer,
+      {Future<String> renderAuthorizationPageHTML(AuthCodeController controller,
+          Uri requestURI, Map<String, String> queryParameters)}) {
     acceptedContentTypes = [
       new ContentType("application", "x-www-form-urlencoded")
     ];
 
-    _renderFunction = renderAuthorizationPage ?? _defaultRenderFunction;
+    _renderFunction = renderAuthorizationPageHTML;
   }
 
   /// A reference to the [AuthServer] this controller uses to grant authorization codes.
   AuthServer authenticationServer;
 
   _RenderAuthorizationPageFunction _renderFunction;
-  String _defaultRenderTemplate;
 
   @httpGet
-  Future<Response> getAuthorization(
-      // Should just make this si HTTPQuery fails if String and have multiple
-      @HTTPQuery("response_type") List<String> responseTypes,
-      @HTTPQuery("client_id") List<String> clientIDs,
-      {@HTTPQuery("state") List<String> states}) async {
-    var clientID = _ensureOneAndReturnElseThrow(clientIDs);
-
-    var state = null;
-    if (states != null) {
-      state = _ensureOneAndReturnElseThrow(states);
+  Future<Response> getAuthorizationPage(
+      {@HTTPQuery("response_type") String responseType,
+      @HTTPQuery("client_id") String clientID,
+      @HTTPQuery("state") String state,
+      @HTTPQuery("scope") String scope}) async {
+    if (_renderFunction == null) {
+      return new Response(405, {}, null);
     }
 
-    var path = "/" + request.path.segments.join("/");
-    var renderedPage = await _renderFunction(path, clientID, state);
+    var renderedPage = await _renderFunction(this, request.innerRequest.uri, {
+      "response_type": responseType,
+      "client_id": clientID,
+      "state": state,
+      "scope": scope
+    });
 
-    return new Response.ok(renderedPage)
-        ..contentType = ContentType.HTML;
+    return new Response.ok(renderedPage)..contentType = ContentType.HTML;
   }
 
   /// Creates a one-time use authorization code.
@@ -72,6 +76,7 @@ class AuthCodeController extends HTTPController {
   @httpPost
   Future<Response> authorize(
       @HTTPQuery("client_id") String clientID,
+      @HTTPQuery("response_type") String responseType,
       @HTTPQuery("username") String username,
       @HTTPQuery("password") String password,
       {@HTTPQuery("state") String state}) async {
@@ -81,11 +86,11 @@ class AuthCodeController extends HTTPController {
   }
 
   static Response authCodeResponse(
-      AuthTokenExchangable authCode, String clientState) {
-    var redirectURI = Uri.parse(authCode.redirectURI);
+      AuthTokenExchangable code, String clientState) {
+    var redirectURI = Uri.parse(code.redirectURI);
     Map<String, String> queryParameters =
         new Map.from(redirectURI.queryParameters);
-    queryParameters["code"] = authCode.code;
+    queryParameters["code"] = code.code;
     if (clientState != null) {
       queryParameters["state"] = clientState;
     }
@@ -105,6 +110,11 @@ class AuthCodeController extends HTTPController {
           "Pragma": "no-cache"
         },
         null);
+  }
+
+  @override
+  void willSendResponse(Response response) {
+
   }
 
   @override
@@ -128,38 +138,25 @@ class AuthCodeController extends HTTPController {
     return responses;
   }
 
-  String _ensureOneAndReturnElseThrow(List<String> items) {
-    if (items == null || items.length > 1 || items.isEmpty) {
-      throw new HTTPResponseException(HttpStatus.BAD_REQUEST, "invalid_request");
-    }
-
-    var first = items.first;
-    if (first == "") {
-      throw new HTTPResponseException(HttpStatus.BAD_REQUEST, "invalid_request");
-    }
-
-    return first;
-  }
-
-  Future<String> _defaultRenderFunction(String path, String clientID, String state) async {
-    if (_defaultRenderTemplate == null) {
-      try {
-        var file = new File(path_lib.join("web", "login.html"));
-        _defaultRenderTemplate = file.readAsStringSync();
-      } catch (e) {
-        logger.warning("Could not find authorization HTML template web/login.html.");
-        _defaultRenderTemplate = "";
-      }
-    }
-
-    var substituted = _defaultRenderTemplate.replaceFirst("{{client_id}}", clientID);
-    substituted = substituted.replaceFirst("{{path}}", path);
-    if (state != null) {
-      substituted = substituted.replaceFirst("{{state}}", state);
-    } else {
-      substituted = substituted.replaceFirst('<input type="hidden" name="state" value="{{state}}">', "");
-    }
-
-    return substituted;
-  }
+//  Future<String> _defaultRenderFunction(String path, String clientID, String state) async {
+//    if (_defaultRenderTemplate == null) {
+//      try {
+//        var file = new File(path_lib.join("web", "login.html"));
+//        _defaultRenderTemplate = file.readAsStringSync();
+//      } catch (e) {
+//        logger.warning("Could not find authorization HTML template web/login.html.");
+//        _defaultRenderTemplate = "";
+//      }
+//    }
+//
+//    var substituted = _defaultRenderTemplate.replaceFirst("{{client_id}}", clientID);
+//    substituted = substituted.replaceFirst("{{path}}", path);
+//    if (state != null) {
+//      substituted = substituted.replaceFirst("{{state}}", state);
+//    } else {
+//      substituted = substituted.replaceFirst('<input type="hidden" name="state" value="{{state}}">', "");
+//    }
+//
+//    return substituted;
+//  }
 }
