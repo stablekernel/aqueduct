@@ -74,9 +74,9 @@ class AuthController extends HTTPController {
     return AuthServerException.responseForError(AuthRequestError.unsupportedGrantType);
   }
 
-  /// Transforms a [AuthTokenizable] into a [Response] object with an RFC6749 compliant JSON token
+  /// Transforms a [AuthToken] into a [Response] object with an RFC6749 compliant JSON token
   /// as the HTTP response body.
-  static Response tokenResponse(AuthTokenizable token) {
+  static Response tokenResponse(AuthToken token) {
     var jsonToken = {
       "access_token": token.accessToken,
       "token_type": token.type,

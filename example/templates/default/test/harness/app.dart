@@ -77,8 +77,8 @@ class TestApplication {
   static Future<ClientRecord> addClientRecord(
       {String clientID: "com.aqueduct.test",
       String clientSecret: "kilimanjaro"}) async {
-    var salt = AuthServer.generateRandomSalt();
-    var hashedPassword = AuthServer.generatePasswordHash(clientSecret, salt);
+    var salt = AuthUtility.generateRandomSalt();
+    var hashedPassword = AuthUtility.generatePasswordHash(clientSecret, salt);
     var testClientRecord = new ClientRecord();
     testClientRecord.id = clientID;
     testClientRecord.salt = salt;

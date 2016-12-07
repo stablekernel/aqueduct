@@ -7,27 +7,23 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 void main() {
-  ManagedContext context = null;
-  AuthDelegate delegate;
+  InMemoryAuthStorage delegate;
   AuthServer authServer;
   HttpServer server;
   String accessToken;
   String expiredErrorToken;
 
   setUp(() async {
-    context = await contextWithModels([TestUser, Token, AuthCode]);
-    delegate = new AuthDelegate(context);
-    authServer = new AuthServer<TestUser, Token, AuthCode>(delegate);
-    var _ = (await createUsers(1)).first;
+    delegate = new InMemoryAuthStorage();
+    delegate.createUsers(1);
 
-    accessToken = (await authServer.authenticate("bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app1", "kilimanjaro")).accessToken;
-    expiredErrorToken = (await authServer.authenticate("bob+0@stablekernel.com", "foobaraxegrind21%", "com.stablekernel.app1", "kilimanjaro", expirationInSeconds: 0)).accessToken;
+    authServer = new AuthServer(delegate);
+
+    accessToken = (await authServer.authenticate(delegate.users[1].username, InMemoryAuthStorage.DefaultPassword, "com.stablekernel.app1", "kilimanjaro")).accessToken;
+    expiredErrorToken = (await authServer.authenticate(delegate.users[1].username, InMemoryAuthStorage.DefaultPassword, "com.stablekernel.app1", "kilimanjaro", expirationInSeconds: 0)).accessToken;
   });
 
   tearDown(() async {
-    await context?.persistentStore?.close();
-    context = null;
-
     await server?.close();
   });
 

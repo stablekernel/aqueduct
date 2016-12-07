@@ -10,9 +10,9 @@ class RegisterController extends QueryController<User> {
     var credentials = AuthorizationBasicParser
         .parse(request.innerRequest.headers.value(HttpHeaders.AUTHORIZATION));
 
-    var salt = AuthServer.generateRandomSalt();
+    var salt = AuthUtility.generateRandomSalt();
     var hashedPassword =
-        AuthServer.generatePasswordHash(query.values.password, salt);
+      AuthUtility.generatePasswordHash(query.values.password, salt);
     query.values.hashedPassword = hashedPassword;
     query.values.salt = salt;
 

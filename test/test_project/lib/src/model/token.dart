@@ -2,7 +2,7 @@ import '../../wildfire.dart';
 
 class AuthCode extends ManagedObject<_AuthCode> implements _AuthCode {}
 
-class _AuthCode implements AuthTokenExchangable<Token> {
+class _AuthCode implements AuthCode<Token> {
   @managedPrimaryKey
   int id;
 
@@ -23,7 +23,7 @@ class _AuthCode implements AuthTokenExchangable<Token> {
 }
 
 class Token extends ManagedObject<_Token>
-    implements _Token, AuthTokenizable<int> {
+    implements _Token, AuthToken<int> {
   String get clientID => client.id;
   void set clientID(cid) {
     client = new ClientRecord()..id = cid;

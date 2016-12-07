@@ -4,12 +4,11 @@ import 'package:aqueduct/aqueduct.dart';
 import '../helpers.dart';
 
 void main() {
-  ManagedContext context = null;
   HttpServer server;
   TestClient client = new TestClient.onPort(8080)
     ..clientID = "com.stablekernel.app1"
     ..clientSecret = "kilimanjaro";
-  AuthServer<TestUser, Token, AuthCode> authenticationServer;
+  AuthServer authenticationServer;
   Router router;
 
   var tokenResponse =
@@ -56,11 +55,9 @@ void main() {
   ////////////
 
   setUp(() async {
-    context = await contextWithModels([TestUser, Token, AuthCode]);
-    authenticationServer =
-    new AuthServer<TestUser, Token, AuthCode>(new AuthDelegate(context));
-
-    await createUsers(3);
+    var storage = new InMemoryAuthStorage();
+    storage.createUsers(3);
+    authenticationServer = new AuthServer(storage);
 
     router = new Router();
     router
@@ -75,8 +72,6 @@ void main() {
 
   tearDown(() async {
     await server?.close(force: true);
-    await context?.persistentStore?.close();
-    context = null;
     server = null;
   });
 
@@ -150,7 +145,7 @@ void main() {
 
   group("Success Cases: authorization_code", () {
     test("Exchange valid code gets new access token with refresh token", () async {
-      var code = await authenticationServer.createAuthCode(user1["username"], user1["password"], "com.stablekernel.redirect");
+      var code = await authenticationServer.authenticateForCode(user1["username"], user1["password"], "com.stablekernel.redirect");
       var res = await exchangeResponse("com.stablekernel.redirect", "mckinley", code.code);
       expect(res, hasAuthResponse(200, bearerTokenMatcher));
     });
@@ -248,7 +243,7 @@ void main() {
 
   group("code Failure Cases", () {
     test("code is invalid (not issued)", () async {
-      var code = await authenticationServer.createAuthCode(user1["username"], user1["password"], "com.stablekernel.redirect");
+      var code = await authenticationServer.authenticateForCode(user1["username"], user1["password"], "com.stablekernel.redirect");
       var res = await exchangeResponse("com.stablekernel.redirect", "mckinley", "a" + code.code);
       expect(res, hasResponse(400, {"error": "invalid_grant"}));
     });
@@ -264,7 +259,7 @@ void main() {
     });
 
     test("code is duplicated", () async {
-      var code = await authenticationServer.createAuthCode(user1["username"], user1["password"], "com.stablekernel.redirect");
+      var code = await authenticationServer.authenticateForCode(user1["username"], user1["password"], "com.stablekernel.redirect");
       var encodedCode = Uri.encodeQueryComponent(code.code);
 
       var req = client.clientAuthenticatedRequest("/auth/token",
@@ -283,7 +278,7 @@ void main() {
     });
 
     test("code is from a different client", () async {
-      var code = await authenticationServer.createAuthCode(user1["username"], user1["password"], "com.stablekernel.redirect");
+      var code = await authenticationServer.authenticateForCode(user1["username"], user1["password"], "com.stablekernel.redirect");
       var res = await exchangeResponse("com.stablekernel.redirect2", "gibraltar", code.code);
       expect(res, hasResponse(400, {"error": "invalid_grant"}));
     });
@@ -475,7 +470,6 @@ void main() {
     });
 
     test("Client omits authorization header", () async {
-      var m = {};
       var req = client.request("/auth/token")
         ..formData = {
           "refresh_token": refreshTokenString,
@@ -531,7 +525,7 @@ void main() {
     String code;
 
     setUp(() async {
-      code = (await authenticationServer.createAuthCode(
+      code = (await authenticationServer.authenticateForCode(
           user1["username"], user1["password"], "com.stablekernel.redirect"))
           .code;
     });
@@ -584,7 +578,7 @@ void main() {
 
   test("Response documentation", () {
     AuthController ac = new AuthController(
-        new AuthServer(new AuthDelegate(ManagedContext.defaultContext)));
+        new AuthServer(new InMemoryAuthStorage()));
     var resolver = new PackagePathResolver(new File(".packages").path);
     var operations = ac.documentOperations(resolver);
 
@@ -633,19 +627,19 @@ Map<String, String> refreshTokenMapFromTokenResponse(TestResponse resp) {
 Map<String, String> get user1 =>
     const {
       "username": "bob+0@stablekernel.com",
-      "password": "foobaraxegrind21%"
+      "password": InMemoryAuthStorage.DefaultPassword
     };
 
 Map<String, String> get user2 =>
     const {
       "username": "bob+1@stablekernel.com",
-      "password": "foobaraxegrind21%"
+      "password": InMemoryAuthStorage.DefaultPassword
     };
 
 Map<String, String> get user3 =>
     const {
       "username": "bob+2@stablekernel.com",
-      "password": "foobaraxegrind21%"
+      "password": InMemoryAuthStorage.DefaultPassword
     };
 
 dynamic get bearerTokenMatcher =>

@@ -3,7 +3,6 @@ import 'dart:io';
 
 import '../http/http.dart';
 import 'auth.dart';
-import 'package:path/path.dart' as path_lib;
 
 typedef Future<String> _RenderAuthorizationPageFunction(
     AuthCodeController controller,
@@ -99,7 +98,7 @@ class AuthCodeController extends HTTPController {
 
     try {
       var authCode =
-          await authenticationServer.createAuthCode(username, password, clientID);
+          await authenticationServer.authenticateForCode(username, password, clientID);
       return AuthCodeController.authCodeResponse(authCode, state);
     } on AuthServerException catch (e) {
       return e.redirectResponse;
@@ -107,7 +106,7 @@ class AuthCodeController extends HTTPController {
   }
 
   static Response authCodeResponse(
-      AuthTokenExchangable code, String clientState) {
+      AuthCode code, String clientState) {
     var redirectURI = Uri.parse(code.redirectURI);
     Map<String, String> queryParameters =
         new Map.from(redirectURI.queryParameters);
