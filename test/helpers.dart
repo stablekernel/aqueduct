@@ -15,8 +15,6 @@ class TestUser extends Authenticatable {
 }
 
 class InMemoryAuthStorage implements AuthStorage {
-  ManagedContext context;
-
   static const String DefaultPassword = "foobaraxegrind21%";
 
   InMemoryAuthStorage() {
