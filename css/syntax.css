@@ -6,7 +6,7 @@
   border-left-style: solid;
 }
 .highlight .c { color: #888888 } /* Comment */
-.highlight .err { color: #a61717; background-color: #2E2E31 } /* Error */
+.highlight .err { color: #a61717;} /* Error */
 .highlight .k { color: #2f849a; } /* Keyword */
 .highlight .cm { color: #888888 } /* Comment.Multiline */
 .highlight .cp { color: #cc0000;} /* Comment.Preproc */
