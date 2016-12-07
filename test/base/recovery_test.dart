@@ -30,7 +30,7 @@ main() {
       var errorMessage = await app.logger.onRecord.first;
       expect(errorMessage.message, contains("Uncaught exception"));
       expect(
-          errorMessage.error.toString(), contains("method not found: 'foo'"));
+          errorMessage.error.toString(), contains("foo"));
       expect(errorMessage.stackTrace, isNotNull);
 
       // And then we should make sure everything is working just fine.
@@ -51,7 +51,7 @@ main() {
       logMessages.forEach((errorMessage) {
         expect(errorMessage.message, contains("Uncaught exception"));
         expect(
-            errorMessage.error.toString(), contains("method not found: 'foo'"));
+            errorMessage.error.toString(), contains("foo"));
         expect(errorMessage.stackTrace, isNotNull);
       });
 
