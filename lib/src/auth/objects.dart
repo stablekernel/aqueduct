@@ -31,6 +31,8 @@ class AuthClient {
 
 /// An interface to represent [AuthServer.TokenType].
 ///
+/// Requires that all fields be set... except refreshToken which may be null. And scopes
+/// which may be null if scopes are unsupported.
 /// In order to use authentication tokens, an [AuthServer] requires
 /// that its [AuthServer.TokenType] implement this interface. You will likely use
 /// this interface to define a [ManagedObject] that represents the concrete implementation of a authentication
@@ -61,7 +63,7 @@ class AuthToken {
   /// The clientID this token was issued under.
   String clientID;
 
-  List<String> scope;
+  List<AuthScope> scope;
 
   bool get isExpired {
     return expirationDate.difference(new DateTime.now().toUtc()).inSeconds <= 0;

@@ -82,12 +82,12 @@ abstract class AuthStorage {
   /// Asks this instance to store a [TokenType] for [server].
   ///
   /// The implementing class must persist the token [t].
-  Future<AuthToken> storeToken(AuthServer server, AuthToken t);
+  Future storeToken(AuthServer server, AuthToken t);
 
   /// Asks this instance to update an existing [TokenType] for [server].
   ///
   /// The implementing class must persist the token [t].
-  Future<AuthToken> updateTokenWithAccessToken(AuthServer server, String accessToken, AuthToken t);
+  Future updateTokenWithAccessToken(AuthServer server, String accessToken, AuthToken t);
 
   /// Asks this instance to store a [AuthCodeType] for [server].
   ///
