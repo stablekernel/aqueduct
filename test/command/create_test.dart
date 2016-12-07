@@ -86,6 +86,7 @@ void main() {
           runInShell: true,
           workingDirectory:
               path_lib.join(testTemplateDirectory.path, "test_project"));
+      print("${res.stdout} ${res.stderr}");
       expect(res.exitCode, 0);
       expect(res.stdout, contains("All tests passed"));
     });
