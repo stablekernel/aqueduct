@@ -121,6 +121,7 @@ class AuthDelegate implements AuthServerDelegate<TestUser, Token, AuthCode> {
     tokenQ.predicate = new QueryPredicate(
         "refreshToken = @refreshToken", {"refreshToken": t.refreshToken});
     tokenQ.values = t;
+
     return tokenQ.updateOne();
   }
 
@@ -146,6 +147,7 @@ class AuthDelegate implements AuthServerDelegate<TestUser, Token, AuthCode> {
   Future deleteAuthCode(AuthServer server, AuthCode code) async {
     var authCodeQ = new Query<AuthCode>();
     authCodeQ.predicate = new QueryPredicate("id = @id", {"id": code.id});
+
     return authCodeQ.delete();
   }
 

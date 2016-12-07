@@ -10,17 +10,23 @@ void main() {
   TestClient client = new TestClient.onPort(8080)
     ..clientID = "com.stablekernel.app1"
     ..clientSecret = "kilimanjaro";
+  AuthServer authenticationServer;
+  Router router;
 
-  var authenticationServer =
-      new AuthServer<TestUser, Token, AuthCode>(new AuthDelegate(context));
-  var router = new Router();
-  router
-      .route("/auth/token")
-      .generate(() => new AuthController(authenticationServer));
-  router.finalize();
+  setUpAll(() {
+    authenticationServer =
+        new AuthServer<TestUser, Token, AuthCode>(new AuthDelegate(context));
+
+    router = new Router();
+    router
+        .route("/auth/token")
+        .generate(() => new AuthController(authenticationServer));
+    router.finalize();
+  });
 
   tearDownAll(() async {
     await server?.close(force: true);
+    await context?.persistentStore?.close();
   });
 
   setUp(() async {

@@ -6,7 +6,7 @@ import '../helpers.dart';
 
 void main() {
   group("Standard operations", () {
-    Application app = new Application<TestSink>();
+    var app = new Application<TestSink>();
     app.configuration.port = 8080;
     var client = new TestClient.onPort(app.configuration.port);
     List<TestModel> allObjects = [];
@@ -26,6 +26,7 @@ void main() {
     });
 
     tearDownAll(() async {
+      await app.mainIsolateSink.context.persistentStore.close();
       await app.stop();
     });
 
@@ -82,7 +83,7 @@ void main() {
   });
 
   group("Standard operation failure cases", () {
-    Application app = new Application<TestSink>();
+    var app = new Application<TestSink>();
     app.configuration.port = 8080;
     var client = new TestClient.onPort(8080);
 
@@ -91,6 +92,7 @@ void main() {
     });
 
     tearDownAll(() async {
+      await app.mainIsolateSink.context.persistentStore.close();
       await app.stop();
     });
 
@@ -114,8 +116,7 @@ void main() {
   });
 
   group("Objects that don't exist", () {
-    Application app = null;
-    app = new Application<TestSink>();
+    var app = new Application<TestSink>();
     app.configuration.port = 8080;
     var client = new TestClient.onPort(8080);
 
@@ -124,6 +125,7 @@ void main() {
     });
 
     tearDownAll(() async {
+      await app.mainIsolateSink.context.persistentStore.close();
       await app.stop();
     });
 
@@ -150,8 +152,7 @@ void main() {
   });
 
   group("Extended GET requests", () {
-    Application app = null;
-    app = new Application<TestSink>();
+    var app = new Application<TestSink>();
     app.configuration.port = 8080;
     var client = new TestClient.onPort(8080);
     List<TestModel> allObjects = [];
@@ -171,6 +172,7 @@ void main() {
     });
 
     tearDownAll(() async {
+      await app.mainIsolateSink.context.persistentStore.close();
       await app.stop();
     });
 

@@ -4,16 +4,14 @@ import 'package:postgres/postgres.dart';
 import 'dart:async';
 
 void main() {
-  PostgreSQLPersistentStore persistentStore = null;
-
-  setUp(() {
-    persistentStore = new PostgreSQLPersistentStore(() async {
-      var connection = new PostgreSQLConnection("localhost", 5432, "dart_test",
-          username: "dart", password: "dart");
-      await connection.open();
-      return connection;
-    });
+  PostgreSQLPersistentStore persistentStore =
+      new PostgreSQLPersistentStore(() async {
+    var connection = new PostgreSQLConnection("localhost", 5432, "dart_test",
+        username: "dart", password: "dart");
+    await connection.open();
+    return connection;
   });
+  ;
 
   tearDown(() async {
     await persistentStore.close();
@@ -62,7 +60,11 @@ void main() {
       var connection = new PostgreSQLConnection(
           "localhost", 5432, "xyzxyznotadb",
           username: "dart", password: "dart");
-      await connection.open();
+      try {
+        await connection.open();
+      } catch (e) {
+        await connection.close();
+      }
       return connection;
     });
     var expectedValues = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
@@ -76,14 +78,19 @@ void main() {
       () async {
     var counter = 0;
     persistentStore = new PostgreSQLPersistentStore(() async {
-      var conn = (counter == 0
+      var connection = (counter == 0
           ? new PostgreSQLConnection("localhost", 5432, "xyzxyznotadb",
               username: "dart", password: "dart")
           : new PostgreSQLConnection("localhost", 5432, "dart_test",
               username: "dart", password: "dart"));
       counter++;
-      await conn.open();
-      return conn;
+      try {
+        await connection.open();
+      } catch (e) {
+        await connection.close();
+      }
+
+      return connection;
     });
     var expectedValues = [1, 2, 3, 4, 5];
     var values = await Future.wait(expectedValues

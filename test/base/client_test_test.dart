@@ -1,9 +1,8 @@
 import 'package:aqueduct/aqueduct.dart';
 import 'package:test/test.dart';
 import 'dart:io';
-import 'dart:async';
 
-Future main() async {
+main() {
   test("Client can expect array of JSON", () async {
     TestClient client = new TestClient.onPort(8080);
     HttpServer server =

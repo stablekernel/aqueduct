@@ -1,5 +1,5 @@
 name: aqueduct
-version: 1.0.3
+version: 1.0.4
 description: A fully featured server-side framework built for productivity and testability.
 author: stable|kernel <http://stablekernel.com>
 homepage: https://github.com/stablekernel/aqueduct
@@ -21,6 +21,7 @@ dependencies:
 dev_dependencies:
   test: any
   http: ">=0.11.3+7 <0.12.0"
+  coverage: any
 
 executables:
   aqueduct: aqueduct

@@ -23,9 +23,6 @@ main() async {
 
     var signalPath = new File(".aqueductsignal");
     await signalPath.writeAsString("ok");
-  } on ApplicationSupervisorException catch (e, st) {
-    await writeError(
-        "IsolateSupervisorException, server failed to start: ${e.message} $st");
   } catch (e, st) {
     await writeError("Server failed to start: $e $st");
   }

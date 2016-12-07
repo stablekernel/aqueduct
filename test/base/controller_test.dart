@@ -12,8 +12,10 @@ import '../helpers.dart';
 void main() {
   HttpServer server;
 
-  ManagedDataModel dm = new ManagedDataModel([TestModel]);
-  ManagedContext _ = new ManagedContext(dm, new DefaultPersistentStore());
+  setUpAll(() {
+    new ManagedContext(
+        new ManagedDataModel([TestModel]), new DefaultPersistentStore());
+  });
 
   tearDown(() async {
     await server?.close(force: true);
@@ -259,6 +261,33 @@ void main() {
     expect(resp.body, '"false"');
   });
 
+  test("Content-Type defaults to application/json", () async {
+    server = await enableController("/a", TController);
+    var resp = await http.get("http://localhost:4040/a");
+    expect(resp.statusCode, 200);
+    expect(ContentType.parse(resp.headers["content-type"]).primaryType,
+        "application");
+    expect(ContentType.parse(resp.headers["content-type"]).subType, "json");
+  });
+
+  test("Content-Type can be set adjusting responseContentType", () async {
+    server = await enableController("/a", ContentTypeController);
+    var resp =
+        await http.get("http://localhost:4040/a?opt=responseContentType");
+    expect(resp.statusCode, 200);
+    expect(resp.headers["content-type"], "text/plain");
+    expect(resp.body, "body");
+  });
+
+  test("Content-Type set directly on Response overrides responseContentType",
+      () async {
+    server = await enableController("/a", ContentTypeController);
+    var resp = await http.get("http://localhost:4040/a?opt=direct");
+    expect(resp.statusCode, 200);
+    expect(resp.headers["content-type"], "text/plain");
+    expect(resp.body, "body");
+  });
+
   group("Annotated HTTP parameters", () {
     test("are supplied correctly", () async {
       server = await enableController("/a", HTTPParameterController);
@@ -402,6 +431,55 @@ void main() {
       expect(JSON.decode(resp.body)["error"], contains("Table"));
       expect(JSON.decode(resp.body)["error"], contains("Shaqs"));
     });
+
+    test("May only be one query parameter if arg type is not List<T>",
+        () async {
+      server = await enableController("/a", DuplicateParamController);
+      var resp = await http
+          .get("http://localhost:4040/a?list=a&list=b&single=x&single=y");
+
+      expect(resp.statusCode, 400);
+
+      expect(JSON.decode(resp.body)["error"],
+          "Duplicate parameter for non-List parameter type");
+    });
+
+    test("Can be more than one query parameters for arg type that is List<T>",
+        () async {
+      server = await enableController("/a", DuplicateParamController);
+      var resp =
+          await http.get("http://localhost:4040/a?list=a&list=b&single=x");
+
+      expect(resp.statusCode, 200);
+
+      expect(JSON.decode(resp.body), {
+        "list": ["a", "b"],
+        "single": "x"
+      });
+    });
+
+    test("Can be exactly one query parameter for arg type that is List<T>",
+        () async {
+      server = await enableController("/a", DuplicateParamController);
+      var resp = await http.get("http://localhost:4040/a?list=a&single=x");
+
+      expect(resp.statusCode, 200);
+
+      expect(JSON.decode(resp.body), {
+        "list": ["a"],
+        "single": "x"
+      });
+    });
+
+    test("Missing required List<T> query parameter still returns 400",
+        () async {
+      server = await enableController("/a", DuplicateParamController);
+      var resp = await http.get("http://localhost:4040/a?single=x");
+
+      expect(resp.statusCode, 400);
+
+      expect(JSON.decode(resp.body)["error"], contains("list"));
+    });
   });
 }
 
@@ -421,6 +499,7 @@ class FilteringController extends HTTPController {
 }
 
 class TController extends HTTPController {
+  TController() {}
   @httpGet
   Future<Response> getAll() async {
     return new Response.ok("getAll");
@@ -575,6 +654,27 @@ class ModelEncodeController extends HTTPController {
     if (thing == "null") {
       return new Response.ok(null);
     }
+  }
+}
+
+class ContentTypeController extends HTTPController {
+  @httpGet
+  getThing(@HTTPQuery("opt") String opt) async {
+    if (opt == "responseContentType") {
+      responseContentType = new ContentType("text", "plain");
+      return new Response.ok("body");
+    } else if (opt == "direct") {
+      return new Response.ok("body")
+        ..contentType = new ContentType("text", "plain");
+    }
+  }
+}
+
+class DuplicateParamController extends HTTPController {
+  @httpGet
+  Future<Response> getThing(@HTTPQuery("list") List<String> list,
+      @HTTPQuery("single") String single) async {
+    return new Response.ok({"list": list, "single": single});
   }
 }
 

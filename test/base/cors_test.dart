@@ -192,6 +192,7 @@ void main() {
           await (new HttpClient().open("OPTIONS", "localhost", 8000, "opts"));
       req.headers.set("Authorization", "Bearer auth");
       var resp = await req.close();
+      await resp.drain();
 
       expect(resp.statusCode, 200);
       expectThatNoCORSProcessingOccurred(resp);
@@ -203,6 +204,7 @@ void main() {
       var req =
           await (new HttpClient().open("OPTIONS", "localhost", 8000, "opts"));
       var resp = await req.close();
+      await resp.drain();
 
       expect(resp.statusCode, 401);
       expectThatNoCORSProcessingOccurred(resp);
@@ -213,6 +215,7 @@ void main() {
       var req =
           await (new HttpClient().open("OPTIONS", "localhost", 8000, "foobar"));
       var resp = await req.close();
+      await resp.drain();
 
       expect(resp.statusCode, 404);
       expectThatNoCORSProcessingOccurred(resp);
@@ -224,6 +227,7 @@ void main() {
       var req = await (new HttpClient()
           .open("OPTIONS", "localhost", 8000, "nopolicy"));
       var resp = await req.close();
+      await resp.drain();
 
       expect(resp.statusCode, 405);
       expectThatNoCORSProcessingOccurred(resp);
