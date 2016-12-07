@@ -136,7 +136,8 @@ CREATE USER quiz_app;
 ALTER USER quiz_app WITH PASSWORD 'quiz';
 GRANT CONNECT ON DATABASE quiz TO quiz_app;
 \c quiz
-GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO quiz_app;
+ALTER DEFAULT PRIVILEGES FOR ROLE quiz_admin GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE ON TABLES TO quiz_app;
+ALTER DEFAULT PRIVILEGES FOR ROLE quiz_admin GRANT USAGE, SELECT, UPDATE ON SEQUENCES TO quiz_app;
 ```
 
 Notice that we created two users, an admin user and a 'app' user. The admin user will have permission to modify the database's schema, so it will run migrations. The app user will be used by the `quiz` application's `PersistentStore` to make queries. This separation is for security reasons: the application shouldn't have the ability to mess with the schema.
