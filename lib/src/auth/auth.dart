@@ -4,14 +4,14 @@ import 'dart:math';
 import 'package:crypto/crypto.dart';
 
 import '../utilities/pbkdf2.dart';
-import 'client.dart';
+import 'objects.dart';
 
 export 'auth_code_controller.dart';
 export 'auth_controller.dart';
 export 'authorization_server.dart';
 export 'authorization_parser.dart';
 export 'authorizer.dart';
-export 'client.dart';
+export 'objects.dart';
 export 'protocols.dart';
 
 /// Exposes static utility methods for password, salt and API credential generation.

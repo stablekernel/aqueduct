@@ -336,6 +336,40 @@ void main() {
     });
   });
 
+  group("Scoping cases", () {
+    test("Ask for valid scope in code request, get it back in exchange", () async {
+      var res = await codeResponse({
+        "client_id": "com.stablekernel.redirect",
+        "state" : "Wisconsin@&",
+        "username": "bob+0@stablekernel.com",
+        "password": InMemoryAuthStorage.DefaultPassword,
+        "scope" : "default"
+      });
+
+      expectRedirect(res, new Uri.http("stablekernel.com", "/auth/redirect"), state: "Wisconsin@&");
+
+      var parsedURI = Uri.parse(res.headers.value(HttpHeaders.LOCATION));
+
+      var token = await application.mainIsolateSink.authServer.exchange(parsedURI.queryParameters["code"], "com.stablekernel.redirect", "mckinley");
+      expect(token.scope.first, "default");
+      expect(token.scope.length, 1);
+    });
+
+    test("Asking for unknown scope gets redirect error with invalid_scope", () async {
+      fail("NYI");
+    });
+
+    test("Asking for scope that contains bad characters gets redirect error with invalid_scope", () async {
+      // Test null character, ", and \
+      // Actual values must be 33 (!), 35-91 and 93-176 (inclusive on ranges)
+      fail("NYI");
+    });
+
+    test("Asking for scope for a client that doesn't have that scope available returns invalid_client?", () async {
+
+    });
+  });
+
   ///////
   /// Doc gen
   ///////
@@ -400,11 +434,11 @@ class TestSink extends RequestSink {
             "path" : uri.path
           });
           return JSON.encode(queryParams);
-        }));;
+        }));
+
     router
         .route("/nopage")
         .generate(() => new AuthCodeController(authServer));
-
   }
 }
 
