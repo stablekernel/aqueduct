@@ -159,7 +159,9 @@ class AuthServer extends Object
       ..resourceOwnerIdentifier = t.resourceOwnerIdentifier
       ..clientID = t.clientID;
 
-    return storage.updateTokenWithAccessToken(this, t.accessToken, newToken);
+    await storage.updateTokenWithAccessToken(this, t.accessToken, newToken);
+
+    return newToken;
   }
 
   /// Creates a one-time use authorization code for a given client ID and user credentials.
