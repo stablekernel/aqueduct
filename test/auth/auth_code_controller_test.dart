@@ -6,9 +6,7 @@ import 'dart:convert';
 
 void main() {
   Application<TestSink> application;
-  ManagedContext ctx = null;
   TestClient client = new TestClient.onPort(8080);
-
 
   var codeResponse =
       (Map<String, String> form) {
@@ -22,15 +20,12 @@ void main() {
 
   setUp(() async {
     application = new Application<TestSink>();
-    ctx = await contextWithModels([TestUser, Token, AuthCode]);
-    await application.start(runOnMainIsolate: true);
 
-    await createUsers(2);
+    await application.start(runOnMainIsolate: true);
   });
 
   tearDown(() async {
     await application?.stop();
-    await ctx?.persistentStore?.close();
   });
 
   /////////
@@ -104,7 +99,7 @@ void main() {
       var res = await codeResponse({
         "client_id": "com.stablekernel.redirect",
         "username": "bob+0@stablekernel.com",
-        "password": "foobaraxegrind21%"
+        "password": InMemoryAuthStorage.DefaultPassword
       });
       expectRedirect(res, new Uri.http("stablekernel.com", "/auth/redirect"));
     });
@@ -114,7 +109,7 @@ void main() {
         "client_id": "com.stablekernel.redirect",
         "state" : "Wisconsin@&",
         "username": "bob+0@stablekernel.com",
-        "password": "foobaraxegrind21%"
+        "password": InMemoryAuthStorage.DefaultPassword
       });
 
       expectRedirect(res, new Uri.http("stablekernel.com", "/auth/redirect"), state: "Wisconsin@&");
@@ -126,7 +121,7 @@ void main() {
       var res = await codeResponse({
         "client_id": "com.stablekernel.redirect",
         "username": "FOOBAR",
-        "password": "foobaraxegrind21%"
+        "password": InMemoryAuthStorage.DefaultPassword
       });
       expectErrorRedirect(res, new Uri.http("stablekernel.com", "/auth/redirect"), "access_denied");
     });
@@ -135,7 +130,7 @@ void main() {
       var res = await codeResponse({
         "client_id": "com.stablekernel.redirect",
         "username": "",
-        "password": "foobaraxegrind21%"
+        "password": InMemoryAuthStorage.DefaultPassword
       });
       expectErrorRedirect(res, new Uri.http("stablekernel.com", "/auth/redirect"), "access_denied");
     });
@@ -143,7 +138,7 @@ void main() {
     test("Username is missing returns 302 with error", () async {
       var res = await codeResponse({
         "client_id": "com.stablekernel.redirect",
-        "password": "foobaraxegrind21%"
+        "password": InMemoryAuthStorage.DefaultPassword
       });
       expectErrorRedirect(res, new Uri.http("stablekernel.com", "/auth/redirect"), "invalid_request");
     });
@@ -309,7 +304,7 @@ void main() {
       var res = await codeResponse({
         "client_id": "com.stablekernel.redirect",
         "username": "FOOBAR",
-        "password": "foobaraxegrind21%",
+        "password": InMemoryAuthStorage.DefaultPassword,
         "state": "xyz"
       });
       expectErrorRedirect(res, new Uri.http("stablekernel.com", "/auth/redirect"),
@@ -347,7 +342,7 @@ void main() {
 
   test("Response documentation", () {
     AuthCodeController ac = new AuthCodeController(
-        new AuthServer(new AuthDelegate(ManagedContext.defaultContext)));
+        new AuthServer(new InMemoryAuthStorage()));
     var resolver = new PackagePathResolver(new File(".packages").path);
     var operations = ac.documentOperations(resolver);
 
@@ -390,8 +385,9 @@ void main() {
 
 class TestSink extends RequestSink {
   TestSink(Map<String, dynamic> opts) : super(opts) {
-    authServer = new AuthServer<TestUser, Token, AuthCode>(
-        new AuthDelegate(ManagedContext.defaultContext));
+    var storage = new InMemoryAuthStorage();
+    storage.createUsers(2);
+    authServer = new AuthServer(storage);
   }
 
   AuthServer authServer;
@@ -442,15 +438,15 @@ expectErrorRedirect(TestResponse resp, Uri requestURI, String errorReason, {Stri
 
 Map<String, String> get user1 => const {
   "username": "bob+0@stablekernel.com",
-  "password": "foobaraxegrind21%"
+  "password": InMemoryAuthStorage.DefaultPassword
 };
 
 Map<String, String> get user2 => const {
   "username": "bob+1@stablekernel.com",
-  "password": "foobaraxegrind21%"
+  "password": InMemoryAuthStorage.DefaultPassword
 };
 
 Map<String, String> get user3 => const {
   "username": "bob+2@stablekernel.com",
-  "password": "foobaraxegrind21%"
+  "password": InMemoryAuthStorage.DefaultPassword
 };

@@ -9,187 +9,156 @@ justLogEverything() {
     ..onRecord.listen((p) => print("${p} ${p.object} ${p.stackTrace}"));
 }
 
-Future<List<TestUser>> createUsers(int count) async {
-  var users = new List<TestUser>();
-  for (int i = 0; i < count; i++) {
-    var salt = AuthServer.generateRandomSalt();
-    var u = new TestUser()
-      ..username = "bob+$i@stablekernel.com"
-      ..salt = salt
-      ..hashedPassword =
-          AuthServer.generatePasswordHash("foobaraxegrind21%", salt);
-
-    var q = new Query<TestUser>()..values = u;
-    var insertedUser = await q.insert();
-    users.add(insertedUser);
-  }
-  return users;
-}
-
-class TestUser extends ManagedObject<_User> implements _User {}
-
-class _User implements Authenticatable {
-  @managedPrimaryKey
+class TestUser extends Authenticatable {
+  int get uniqueIdentifier => id;
   int id;
-
-  String username;
-  String hashedPassword;
-  String salt;
 }
 
-class Token extends ManagedObject<_Token> implements _Token {}
-
-class _Token implements AuthTokenizable<int> {
-  @managedPrimaryKey
-  int id;
-
-  @ManagedColumnAttributes(indexed: true)
-  String accessToken;
-
-  @ManagedColumnAttributes(indexed: true, nullable: true)
-  String refreshToken;
-
-  DateTime issueDate;
-  DateTime expirationDate;
-  int resourceOwnerIdentifier;
-  String type;
-  String clientID;
-
-  AuthCode code;
-}
-
-class AuthCode extends ManagedObject<_AuthCode> implements _AuthCode {}
-
-class _AuthCode implements AuthTokenExchangable<Token> {
-  @managedPrimaryKey
-  int id;
-
-  @ManagedColumnAttributes(indexed: true)
-  String code;
-
-  @ManagedColumnAttributes(nullable: true)
-  String redirectURI;
-  String clientID;
-
-  int resourceOwnerIdentifier;
-  DateTime issueDate;
-  DateTime expirationDate;
-
-  @ManagedRelationship(#code,
-      isRequired: false, onDelete: ManagedRelationshipDeleteRule.cascade)
-  Token token;
-}
-
-class AuthDelegate implements AuthServerDelegate<TestUser, Token, AuthCode> {
+class InMemoryAuthStorage implements AuthStorage {
   ManagedContext context;
 
-  AuthDelegate(this.context);
+  static const String DefaultPassword = "foobaraxegrind21%";
 
-  Future<Token> tokenForAccessToken(AuthServer server, String accessToken) {
-    return _tokenForPredicate(new QueryPredicate(
-        "accessToken = @accessToken", {"accessToken": accessToken}));
+  InMemoryAuthStorage() {
+    var salt = "ABCDEFGHIJKLMNOPQRSTUVWXYZ012345";
+
+    clients = {
+      "com.stablekernel.app1": new AuthClient("com.stablekernel.app1",
+          AuthUtility.generatePasswordHash("kilimanjaro", salt), salt),
+      "com.stablekernel.app2": new AuthClient("com.stablekernel.app2",
+          AuthUtility.generatePasswordHash("fuji", salt), salt),
+      "com.stablekernel.redirect": new AuthClient.withRedirectURI(
+          "com.stablekernel.redirect",
+          AuthUtility.generatePasswordHash("mckinley", salt),
+          salt,
+          "http://stablekernel.com/auth/redirect"),
+      "com.stablekernel.public": new AuthClient("com.stablekernel.public", null, salt),
+      "com.stablekernel.redirect2": new AuthClient.withRedirectURI(
+          "com.stablekernel.redirect2",
+          AuthUtility.generatePasswordHash("gibraltar", salt),
+          salt,
+          "http://stablekernel.com/auth/redirect2")
+    };
   }
 
-  Future<Token> tokenForRefreshToken(AuthServer server, String refreshToken) {
-    return _tokenForPredicate(new QueryPredicate(
-        "refreshToken = @refreshToken", {"refreshToken": refreshToken}));
+  Map<String, AuthClient> clients;
+  Map<int, TestUser> users = {};
+  List<AuthToken> tokens = [];
+  List<AuthCode> codes = [];
+
+  _copyToken(AuthToken t) {
+    if (t == null) {
+      return null;
+    }
+    return new AuthToken()
+        ..accessToken = t.accessToken
+        ..refreshToken = t.refreshToken
+        ..type = t.type
+        ..resourceOwnerIdentifier = t.resourceOwnerIdentifier
+        ..clientID = t.clientID
+        ..issueDate = t.issueDate
+        ..expirationDate = t.expirationDate;
   }
 
-  Future<TestUser> authenticatableForUsername(
-      AuthServer server, String username) {
-    var userQ = new Query<TestUser>();
-    userQ.predicate =
-        new QueryPredicate("username = @username", {"username": username});
-    return userQ.fetchOne();
+  _copyCode(AuthCode c) {
+    if (c == null) {
+      return null;
+    }
+    return new AuthCode()
+        ..redirectURI = c.redirectURI
+        ..code = c.code
+        ..clientID = c.clientID
+        ..resourceOwnerIdentifier = c.resourceOwnerIdentifier
+        ..issueDate = c.issueDate
+        ..expirationDate = c.expirationDate
+        ..token = _copyToken(c.token);
   }
 
-  Future<TestUser> authenticatableForID(AuthServer server, dynamic id) {
-    var userQ = new Query<TestUser>();
-    userQ.predicate = new QueryPredicate("username = @username", {"id": id});
-    return userQ.fetchOne();
+  void createUsers(int count) {
+    for (int i = 0; i < count; i++) {
+      var salt = AuthUtility.generateRandomSalt();
+      var u = new TestUser()
+        ..id = i + 1
+        ..username = "bob+$i@stablekernel.com"
+        ..salt = salt
+        ..hashedPassword =
+        AuthUtility.generatePasswordHash(DefaultPassword, salt);
+
+      users[i + 1] = u;
+    }
   }
 
-  Future deleteTokenForRefreshToken(
-      AuthServer server, String refreshToken) async {
-    var q = new Query<Token>();
-    q.predicate =
-        new QueryPredicate("refreshToken = @rf", {"rf": refreshToken});
-    await q.delete();
+  Future<AuthToken> fetchTokenWithAccessToken(AuthServer server, String accessToken) async {
+    return _copyToken(tokens.firstWhere((t) => t.accessToken == accessToken,
+        orElse: () => null));
   }
 
-  Future<Token> storeToken(AuthServer server, Token t) async {
-    var tokenQ = new Query<Token>();
-    tokenQ.values = t;
-    return await tokenQ.insert();
+  Future<AuthToken> fetchTokenWithRefreshToken(AuthServer server, String refreshToken) async {
+    return _copyToken(tokens.firstWhere((t) => t.refreshToken == refreshToken,
+        orElse: () => null));
   }
 
-  Future updateToken(AuthServer server, Token t) async {
-    var tokenQ = new Query<Token>();
-    tokenQ.predicate = new QueryPredicate(
-        "refreshToken = @refreshToken", {"refreshToken": t.refreshToken});
-    tokenQ.values = t;
+  Future<TestUser> fetchResourceOwnerWithUsername(
+      AuthServer server, String username) async {
+    return users.values.firstWhere((t) => t.username == username,
+        orElse: () => null);
+  }
 
-    return tokenQ.updateOne();
+  Future revokeTokenWithAccessToken(AuthServer server, String accessToken) async {
+    tokens.removeWhere((t) => t.accessToken == accessToken);
+  }
+
+  Future<AuthToken> storeToken(AuthServer server, AuthToken t) async {
+    var c = _copyToken(t);
+    tokens.add(c);
+    return c;
+  }
+
+  Future<AuthToken> updateTokenWithAccessToken(AuthServer server, String accessToken, AuthToken t) async {
+    var existing = tokens.firstWhere((e) => e.accessToken == accessToken, orElse: () => null);
+    tokens.remove(existing);
+
+    var codeIfExists = codes.firstWhere((c) => c.token.accessToken == accessToken, orElse: () => null);
+    var copy = _copyToken(t);
+    codeIfExists?.token = copy;
+
+    tokens.add(copy);
+
+    return copy;
   }
 
   Future<AuthCode> storeAuthCode(AuthServer server, AuthCode code) async {
-    var authCodeQ = new Query<AuthCode>();
-    authCodeQ.values = code;
-    return authCodeQ.insert();
+    var copy = _copyCode(code);
+    codes.add(copy);
+    return copy;
   }
 
-  Future<AuthCode> authCodeForCode(AuthServer server, String code) async {
-    var authCodeQ = new Query<AuthCode>();
-    authCodeQ.predicate = new QueryPredicate("code = @code", {"code": code});
-    return authCodeQ.fetchOne();
+  Future<AuthCode> fetchAuthCodeWithCode(AuthServer server, String code) async {
+    return _copyCode(codes.firstWhere((c) => c.code == code, orElse: () => null));
   }
 
-  Future updateAuthCode(AuthServer server, AuthCode code) async {
-    var authCodeQ = new Query<AuthCode>();
-    authCodeQ.predicate = new QueryPredicate("id = @id", {"id": code.id});
-    authCodeQ.values = code;
-    return authCodeQ.updateOne();
+  Future updateAuthCodeWithCode(AuthServer server, String code, AuthCode ac) async {
+    var existing = codes.firstWhere((e) => e.code == code, orElse: () => null);
+
+    existing?.issueDate = ac.issueDate;
+    existing?.expirationDate = ac.expirationDate;
+    existing?.redirectURI = ac.redirectURI;
+    existing?.clientID = ac.clientID;
+    existing?.code = ac.code;
+    existing?.resourceOwnerIdentifier = ac.resourceOwnerIdentifier;
+    existing?.token = _copyToken(ac.token);
   }
 
-  Future deleteAuthCode(AuthServer server, AuthCode code) async {
-    var authCodeQ = new Query<AuthCode>();
-    authCodeQ.predicate = new QueryPredicate("id = @id", {"id": code.id});
-
-    return authCodeQ.delete();
+  Future revokeAuthCodeWithCode(AuthServer server, String code) async {
+    codes.removeWhere((c) => c.code == code);
   }
 
-  Future<AuthClient> clientForID(AuthServer server, String id) async {
-    var salt = "ABCDEFGHIJKLMNOPQRSTUVWXYZ012345";
-    if (id == "com.stablekernel.app1") {
-      return new AuthClient("com.stablekernel.app1",
-          AuthServer.generatePasswordHash("kilimanjaro", salt), salt);
-    } else if (id == "com.stablekernel.app2") {
-      return new AuthClient("com.stablekernel.app2",
-          AuthServer.generatePasswordHash("fuji", salt), salt);
-    } else if (id == "com.stablekernel.redirect") {
-      return new AuthClient.withRedirectURI(
-          "com.stablekernel.redirect",
-          AuthServer.generatePasswordHash("mckinley", salt),
-          salt,
-          "http://stablekernel.com/auth/redirect");
-    } else if (id == "com.stablekernel.public") {
-      return new AuthClient("com.stablekernel.public", null, salt);
-    } else if (id == "com.stablekernel.redirect2") {
-      return new AuthClient.withRedirectURI(
-          "com.stablekernel.redirect2",
-          AuthServer.generatePasswordHash("gibraltar", salt),
-          salt,
-          "http://stablekernel.com/auth/redirect2");
-    }
-
-    return null;
+  Future<AuthClient> fetchClientWithID(AuthServer server, String id) async {
+    return clients[id];
   }
 
-  Future<Token> _tokenForPredicate(QueryPredicate p) async {
-    var tokenQ = new Query<Token>();
-    tokenQ.predicate = p;
-
-    return tokenQ.fetchOne();
+  Future revokeClientWithID(AuthServer server, String id) async {
+    clients.remove(id);
   }
 }
 

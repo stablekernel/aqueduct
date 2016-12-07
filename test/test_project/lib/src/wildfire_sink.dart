@@ -16,12 +16,11 @@ class WildfireSink extends RequestSink {
 
     context = contextWithConnectionInfo(configuration.database);
 
-    authenticationServer = new AuthServer<User, Token, AuthCode>(
-        new WildfireAuthenticationDelegate());
+    authenticationServer = new AuthServer(new WildfireAuthenticationDelegate());
   }
 
   ManagedContext context;
-  AuthServer<User, Token, AuthCode> authenticationServer;
+  AuthServer authenticationServer;
   WildfireConfiguration configuration;
 
   @override

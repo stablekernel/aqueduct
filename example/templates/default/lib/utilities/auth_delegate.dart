@@ -1,8 +1,8 @@
 import '../wildfire.dart';
 
 class WildfireAuthDelegate
-    implements AuthServerDelegate<User, Token, AuthCode> {
-  Future<AuthClient> clientForID(AuthServer server, String id) async {
+    implements AuthStorage<User, Token, AuthCode> {
+  Future<AuthClient> fetchClientWithID(AuthServer server, String id) async {
     var clientQ = new Query<ClientRecord>()..matchOn.id = id;
 
     var clientRecord = await clientQ.fetchOne();
@@ -14,7 +14,7 @@ class WildfireAuthDelegate
         clientRecord.id, clientRecord.hashedPassword, clientRecord.salt);
   }
 
-  Future deleteTokenForRefreshToken(
+  Future revokeToken(
       AuthServer server, String refreshToken) async {
     var q = new Query<Token>()..matchOn.refreshToken = refreshToken;
 
@@ -29,30 +29,22 @@ class WildfireAuthDelegate
     return tokenQ.updateOne();
   }
 
-  Future<Token> tokenForAccessToken(AuthServer server, String accessToken) {
+  Future<Token> fetchTokenWithAccessToken(AuthServer server, String accessToken) {
     var tokenQ = new Query<Token>()..matchOn.accessToken = accessToken;
 
     return tokenQ.fetchOne();
   }
 
-  Future<Token> tokenForRefreshToken(AuthServer server, String refreshToken) {
+  Future<Token> fetchTokenWithRefreshToken(AuthServer server, String refreshToken) {
     var tokenQ = new Query<Token>()..matchOn.refreshToken = refreshToken;
 
     return tokenQ.fetchOne();
   }
 
-  Future<User> authenticatableForUsername(
+  Future<User> fetchResourceOwnerWithUsername(
       AuthServer server, String username) async {
     var userQ = new Query<User>()
       ..matchOn.email = username
-      ..resultProperties = ["email", "hashedPassword", "salt", "id"];
-
-    return await userQ.fetchOne();
-  }
-
-  Future<User> authenticatableForID(AuthServer server, dynamic id) async {
-    var userQ = new Query<User>()
-      ..matchOn.id = id
       ..resultProperties = ["email", "hashedPassword", "salt", "id"];
 
     return await userQ.fetchOne();
@@ -84,7 +76,7 @@ class WildfireAuthDelegate
     return authCodeQ.insert();
   }
 
-  Future<AuthCode> authCodeForCode(AuthServer server, String code) async {
+  Future<AuthCode> fetchAuthCodeWithCode(AuthServer server, String code) async {
     var authCodeQ = new Query<AuthCode>()..matchOn.code = code;
 
     return authCodeQ.fetchOne();
@@ -98,7 +90,7 @@ class WildfireAuthDelegate
     return authCodeQ.updateOne();
   }
 
-  Future deleteAuthCode(AuthServer server, AuthCode code) async {
+  Future revokeAuthCode(AuthServer server, AuthCode code) async {
     var authCodeQ = new Query<AuthCode>()..matchOn.id = code.id;
 
     return authCodeQ.delete();

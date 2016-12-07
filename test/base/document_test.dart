@@ -418,13 +418,12 @@ main() {
   });
 }
 
-class TestSink extends RequestSink
-    implements AuthServerDelegate<TestUser, Token, AuthCode> {
+class TestSink extends RequestSink {
   TestSink(Map<String, dynamic> opts) : super(opts) {
-    authServer = new AuthServer<TestUser, Token, AuthCode>(this);
+    authServer = new AuthServer(new InMemoryAuthStorage());
   }
 
-  AuthServer<TestUser, Token, AuthCode> authServer;
+  AuthServer authServer;
 
   void setupRouter(Router router) {
     router
@@ -440,24 +439,6 @@ class TestSink extends RequestSink
         .pipe(new Authorizer(authServer))
         .generate(() => new TController());
   }
-
-  Future<Token> tokenForAccessToken(AuthServer server, String accessToken) =>
-      null;
-  Future<Token> tokenForRefreshToken(AuthServer server, String refreshToken) =>
-      null;
-  Future<TestUser> authenticatableForUsername(
-          AuthServer server, String username) =>
-      null;
-  Future<TestUser> authenticatableForID(AuthServer server, dynamic id) => null;
-  Future<AuthClient> clientForID(AuthServer server, String id) => null;
-  Future deleteTokenForRefreshToken(AuthServer server, String refreshToken) =>
-      null;
-  Future<Token> storeToken(AuthServer server, dynamic t) => null;
-  Future updateToken(AuthServer server, dynamic t) => null;
-  Future<AuthCode> storeAuthCode(AuthServer server, dynamic ac) => null;
-  Future updateAuthCode(AuthServer server, dynamic ac) => null;
-  Future deleteAuthCode(AuthServer server, dynamic ac) => null;
-  Future<AuthCode> authCodeForCode(AuthServer server, String code) => null;
 
   Map<String, APISecurityScheme> documentSecuritySchemes(
       PackagePathResolver resolver) {
