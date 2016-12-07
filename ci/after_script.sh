@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
 if [ "$TRAVIS_BRANCH" == "master" ]; then
-  bash <(curl -s https://codecov.io/bash)
+  curl -s https://codecov.io/bash > .codecov
+  chmod +x .codecov
+  ./.codecov -f lcov.info -X xcode
 fi
