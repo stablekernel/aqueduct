@@ -69,14 +69,24 @@ You may copy and edit config template file:
 cp config.yaml.src config.yaml
 ```
 
+Now, you can run your server locally:
+
+```
+  dart bin/start.dart 
+```
+ 
 Give executable permissions for the application script:
 
 ```
 chmod a+x wildfire
 ```
 
-Then, start the server:
+Then, start the server on a specific branch in your local git repository:
 
 ```
-./wildfire start
+./wildfire start <optional_git_branch_name>
 ```
+
+Deployment environments such as `staging` or `development` maintained on seperate can be easily used in your deployment pipeline for your project. 
+
+> It is important to note that this application script downloads remote references and does a hard reset on that branch and is not suitable for your local environment. Instead just point use `dart bin\start.dart` locally
