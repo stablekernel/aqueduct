@@ -10,8 +10,8 @@ before_script:
   - psql -c "alter user dart with password 'dart';" -U postgres
   - psql -c 'grant all on database dart_test to dart;' -U postgres
   - pub get
-script: ci/script.sh
-after_success: ci/after_script.sh
+script: sh ci/script.sh
+after_success: sh ci/after_script.sh
 branches:
   only:
     - master
