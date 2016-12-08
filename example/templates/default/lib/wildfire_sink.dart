@@ -27,12 +27,11 @@ class WildfireSink extends RequestSink {
 
     context = contextWithConnectionInfo(configuration.database);
 
-    authServer = new AuthServer<User, Token, AuthCode>(
-        new WildfireAuthDelegate());
+    authServer = new AuthServer(new ManagedAuthStorage<User>(context));
   }
 
   ManagedContext context;
-  AuthServer<User, Token, AuthCode> authServer;
+  AuthServer authServer;
 
   /// All routes must be configured in this method.
   @override
@@ -53,12 +52,12 @@ class WildfireSink extends RequestSink {
     router
         .route("/register")
         .pipe(new Authorizer.basic(authServer))
-        .generate(() => new RegisterController());
+        .generate(() => new RegisterController(authServer));
 
     router
         .route("/users/[:id]")
         .pipe(new Authorizer.bearer(authServer))
-        .generate(() => new UserController());
+        .generate(() => new UserController(authServer));
   }
 
   ManagedContext contextWithConnectionInfo(
