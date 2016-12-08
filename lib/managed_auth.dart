@@ -221,7 +221,7 @@ class ManagedAuthStorage<T extends AuthenticatableManagedObject> implements Auth
         ..matchOn.resourceOwnerIdentifier = t.resourceOwnerIdentifier
         ..matchOn.expirationDate = whereLessThanEqualTo(results.first.expirationDate);
 
-      var count = await deleteQ.delete();
+      await deleteQ.delete();
     }
 
     return inserted.id;

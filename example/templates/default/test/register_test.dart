@@ -1,6 +1,8 @@
 import 'harness/app.dart';
 
 main() {
+  RequestController.includeErrorDetailsInServerErrorResponses = true;
+
   group("Success cases", () {
     TestApplication app = new TestApplication();
 

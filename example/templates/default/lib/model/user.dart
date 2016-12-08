@@ -1,6 +1,6 @@
 import '../wildfire.dart';
 
-class User extends ManagedObject<_User> implements _User, Authenticatable {
+class User extends ManagedObject<_User> implements _User, AuthenticatableManagedObject {
   @managedTransientInputAttribute
   String password;
 
@@ -22,6 +22,4 @@ class _User {
 
   @ManagedColumnAttributes(omitByDefault: true)
   String salt;
-
-  ManagedSet<Token> tokens;
 }

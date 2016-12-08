@@ -1,6 +1,10 @@
 import '../wildfire.dart';
 
 class RegisterController extends QueryController<User> {
+  RegisterController(this.authServer);
+
+  AuthServer authServer;
+
   @httpPost
   createUser() async {
     if (query.values.email == null || query.values.password == null) {
@@ -17,10 +21,10 @@ class RegisterController extends QueryController<User> {
     query.values.salt = salt;
 
     var u = await query.insert();
-    var token = await request.authorization.grantingServer.authenticate(
+    var token = await authServer.authenticate(
         u.username,
         query.values.password,
-        request.authorization.clientID,
+        credentials.username,
         credentials.password);
 
     return AuthController.tokenResponse(token);
