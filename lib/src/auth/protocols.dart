@@ -86,7 +86,7 @@ abstract class AuthStorage {
   /// Asks this instance to update an existing [TokenType] for [server].
   ///
   /// The implementing class must persist the token [t].
-  Future updateTokenWithIdentifier(AuthServer server, dynamic identifier, AuthToken t);
+  Future refreshTokenWithIdentifier(AuthServer server, dynamic identifier, String newAccessToken, DateTime newIssueDate, DateTime newExpirationDate);
 
   /// Asks this instance to store a [AuthCodeType] for [server].
   ///

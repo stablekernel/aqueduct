@@ -11,9 +11,10 @@ import '../context_helpers.dart';
 // to manage long-term storage/cleanup of tokens and related items.
 void main() {
   ManagedAuthStorage<User> storage;
+  ManagedContext context;
 
   setUp(() async {
-    var context = await contextWithModels([User, ManagedClient, ManagedAuthCode, ManagedToken]);
+    context = await contextWithModels([User, ManagedClient, ManagedAuthCode, ManagedToken]);
 
     var salt = "ABCDEFGHIJKLMNOPQRSTUVWXYZ012345";
     var clients = [
@@ -49,6 +50,11 @@ void main() {
     storage = new ManagedAuthStorage<User>(context);
   });
 
+  tearDown(() async {
+    await context?.persistentStore?.close();
+    context = null;
+  });
+
   group("Client behavior", () {
     AuthServer auth;
 
@@ -65,6 +71,22 @@ void main() {
       expect((await auth.clientForID("com.stablekernel.app1")) is AuthClient, true);
       await auth.revokeClientID("com.stablekernel.app1");
       expect(await auth.clientForID("com.stablekernel.app1"), isNull);
+    });
+
+    test("Cannot revoke null client", () async {
+      try {
+        await auth.revokeClientID(null);
+        expect(true, false);
+      } on AuthServerException {}
+
+      var q = new Query<ManagedClient>();
+      expect(await q.fetch(), hasLength(5));
+    });
+
+    test("Revoking unknown client has no impact", () async {
+      await auth.revokeClientID("nonsense");
+      var q = new Query<ManagedClient>();
+      expect(await q.fetch(), hasLength(5));
     });
   });
 
@@ -239,11 +261,18 @@ void main() {
       var authorization = await auth.verify(token.accessToken);
       expect(authorization.clientID, "com.stablekernel.app1");
       expect(authorization.resourceOwnerIdentifier, initialToken.resourceOwnerIdentifier);
+    });
 
+    test("After refresh, the previous token cannot be used", () async {
+      await auth.refresh(initialToken.refreshToken, "com.stablekernel.app1", "kilimanjaro");
       try {
         await auth.verify(initialToken.accessToken);
         expect(true, false);
       } on AuthServerException {}
+
+      // Make sure we don't have duplicates in the db
+      var q = new Query<ManagedToken>();
+      expect(await q.fetch(), hasLength(1));
     });
 
     test("Cannot refresh token that has not been issued", () async {
@@ -432,7 +461,6 @@ void main() {
     });
 
     test("Code that has been exchanged already fails, issued token is revoked", () async {
-      justLogEverything();
       var issuedToken = await auth.exchange(code.code, "com.stablekernel.redirect", "mckinley");
 
       try {
@@ -446,9 +474,13 @@ void main() {
         await auth.verify(issuedToken.accessToken);
         expect(true, false);
       } on AuthServerException {}
+
+      // Ensure that the associated auth code is also destroyed
+      var authCodeQuery = new Query<ManagedAuthCode>();
+      expect(await authCodeQuery.fetch(), isEmpty);
     });
 
-    test("Code that has been exchanged already fails, issued and refreshed token is revoked", () async {
+    test("Code that has been exchanged already fails, issued and refreshed tokens are revoked", () async {
       var issuedToken = await auth.exchange(code.code, "com.stablekernel.redirect", "mckinley");
       var refreshedToken = await auth.refresh(issuedToken.refreshToken, "com.stablekernel.redirect", "mckinley");
 
@@ -464,10 +496,15 @@ void main() {
         expect(true, false);
       } on AuthServerException {}
 
+      // Can no longer use refreshed token
       try {
         await auth.verify(refreshedToken.accessToken);
         expect(true, false);
       } on AuthServerException {}
+
+      // Ensure that the associated auth code is also destroyed
+      var authCodeQuery = new Query<ManagedAuthCode>();
+      expect(await authCodeQuery.fetch(), isEmpty);
     });
 
     test("Null client ID fails", () async {
@@ -511,33 +548,6 @@ void main() {
     });
   });
 
-  group("Scoping use cases", () {
-
-
-  });
-
-  test("Clients have separate tokens", () async {
-    var auth = new AuthServer(storage);
-
-    var createdUser = (await createUsers(1)).first;
-
-    var token = await auth.authenticate("bob+0@stablekernel.com",
-        User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
-    var p1 = await auth.verify(token.accessToken);
-    expect(p1.clientID, "com.stablekernel.app1");
-    expect(p1.resourceOwnerIdentifier, createdUser.id);
-
-    var token2 = await auth.authenticate("bob+0@stablekernel.com",
-        User.DefaultPassword, "com.stablekernel.app2", "fuji");
-    var p2 = await auth.verify(token2.accessToken);
-    expect(p2.clientID, "com.stablekernel.app2");
-    expect(p2.resourceOwnerIdentifier, createdUser.id);
-
-    p1 = await auth.verify(token.accessToken);
-    expect(p1.clientID, "com.stablekernel.app1");
-    expect(p1.resourceOwnerIdentifier, createdUser.id);
-  });
-
   test("Ensure users aren't authenticated by other users", () async {
     var auth = new AuthServer(storage);
     var users = await createUsers(10);
@@ -555,7 +565,139 @@ void main() {
     expect(permission.resourceOwnerIdentifier, users[4].id);
   });
 
+  group("Cleanup/friendly fire scenarios from client", () {
+    List<User> createdUsers;
+
+    AuthServer auth;
+
+    setUp(() async {
+      auth = new AuthServer(storage);
+      createdUsers = await createUsers(3);
+    });
+
+    test("Revoking a client revokes all of its tokens and auth codes", () async {
+      var unusedCode = await auth.authenticateForCode(createdUsers.first.username, User.DefaultPassword, "com.stablekernel.redirect");
+      var exchangedCode = await auth.authenticateForCode(createdUsers.first.username, User.DefaultPassword, "com.stablekernel.redirect");
+      var exchangedToken = await auth.exchange(exchangedCode.code, "com.stablekernel.redirect", "mckinley");
+      var issuedToken = await auth.authenticate(createdUsers.first.username, User.DefaultPassword, "com.stablekernel.redirect", "mckinley");
+
+      expect(await auth.verify(issuedToken.accessToken), isNotNull);
+
+      await auth.revokeClientID("com.stablekernel.redirect");
+      try {
+        await auth.exchange(unusedCode.code, "com.stablekernel.redirect", "mckinley");
+        expect(true, false);
+      } on AuthServerException {}
+      try {
+        await auth.verify(exchangedToken.accessToken);
+        expect(true, false);
+      } on AuthServerException {}
+      try {
+        await auth.verify(issuedToken.accessToken);
+        expect(true, false);
+      } on AuthServerException {}
+
+      var codeQuery = new Query<ManagedAuthCode>();
+      var tokenQuery = new Query<ManagedToken>();
+      expect(await codeQuery.fetch(), isEmpty);
+      expect(await tokenQuery.fetch(), isEmpty);
+    });
+
+    test("Revoking a client does not invalidate tokens or codes issued by other clients", () async {
+      var exchangedCodeRevoke = await auth.authenticateForCode(createdUsers.first.username, User.DefaultPassword, "com.stablekernel.redirect");
+      await auth.authenticateForCode(createdUsers.first.username, User.DefaultPassword, "com.stablekernel.redirect");
+      await auth.exchange(exchangedCodeRevoke.code, "com.stablekernel.redirect", "mckinley");
+      await auth.authenticate(createdUsers.first.username, User.DefaultPassword, "com.stablekernel.redirect", "mckinley");
+
+      var unusedCodeKeep = await auth.authenticateForCode(createdUsers.first.username, User.DefaultPassword, "com.stablekernel.redirect2");
+      var exchangedCodeKeep = await auth.authenticateForCode(createdUsers.first.username, User.DefaultPassword, "com.stablekernel.redirect2");
+      var exchangedTokenKeep = await auth.exchange(exchangedCodeKeep.code, "com.stablekernel.redirect2", "gibraltar");
+      var issuedTokenKeep = await auth.authenticate(createdUsers.first.username, User.DefaultPassword, "com.stablekernel.redirect2", "gibraltar");
+
+      await auth.revokeClientID("com.stablekernel.redirect");
+
+      var exchangedLater = await auth.exchange(unusedCodeKeep.code, "com.stablekernel.redirect2", "gibraltar");
+      expect(await auth.verify(exchangedLater.accessToken), new isInstanceOf<Authorization>());
+      expect(await auth.verify(exchangedTokenKeep.accessToken), new isInstanceOf<Authorization>());
+      expect(await auth.verify(issuedTokenKeep.accessToken), new isInstanceOf<Authorization>());
+
+      var codeQuery = new Query<ManagedAuthCode>();
+      var tokenQuery = new Query<ManagedToken>();
+      expect(await codeQuery.fetch(), hasLength(2));
+      expect(await tokenQuery.fetch(), hasLength(3));
+    });
+
+    test("Clients retain their token ownership", () async {
+      var createdUser = createdUsers.first;
+
+      var token = await auth.authenticate(createdUser.username,
+          User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
+      var p1 = await auth.verify(token.accessToken);
+      expect(p1.clientID, "com.stablekernel.app1");
+      expect(p1.resourceOwnerIdentifier, createdUser.id);
+
+      var code = await auth.authenticateForCode(
+          createdUser.username, User.DefaultPassword, "com.stablekernel.redirect");
+      var token2 = await auth.exchange(
+          code.code, "com.stablekernel.redirect", "mckinley");
+
+      p1 = await auth.verify(token.accessToken);
+      expect(p1.clientID, "com.stablekernel.app1");
+      expect(p1.resourceOwnerIdentifier, createdUser.id);
+
+      var p2 = await auth.verify(token2.accessToken);
+      expect(p2.clientID, "com.stablekernel.redirect");
+      expect(p2.resourceOwnerIdentifier, createdUser.id);
+    });
+  });
+
+  group("Cleanup/friendly fire on Authenticatable", () {
+    List<User> createdUsers;
+
+    AuthServer auth;
+
+    setUp(() async {
+      auth = new AuthServer(storage);
+      createdUsers = await createUsers(3);
+    });
+
+    test("After explicitly invoking didDelete* all tokens and codes are no longer in db", () async {
+      var unusedCode = await auth.authenticateForCode(createdUsers.first.username, User.DefaultPassword, "com.stablekernel.redirect");
+      var exchangedCode = await auth.authenticateForCode(createdUsers.first.username, User.DefaultPassword, "com.stablekernel.redirect");
+      var exchangedToken = await auth.exchange(exchangedCode.code, "com.stablekernel.redirect", "mckinley");
+      var issuedToken = await auth.authenticate(createdUsers.first.username, User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
+
+      expect(await auth.verify(issuedToken.accessToken), isNotNull);
+
+      await (auth.storage as ManagedAuthStorage).didDeleteAuthenticatableWithIdentifier(createdUsers.first.id);
+
+      try {
+        await auth.exchange(unusedCode.code, "com.stablekernel.redirect", "mckinley");
+        expect(true, false);
+      } on AuthServerException {}
+      try {
+        await auth.verify(exchangedToken.accessToken);
+        expect(true, false);
+      } on AuthServerException {}
+      try {
+        await auth.verify(issuedToken.accessToken);
+        expect(true, false);
+      } on AuthServerException {}
+
+      var codeQuery = new Query<ManagedAuthCode>();
+      var tokenQuery = new Query<ManagedToken>();
+      expect(await codeQuery.fetch(), isEmpty);
+      expect(await tokenQuery.fetch(), isEmpty);
+    });
+  });
+
+
+  group("Scoping use cases", () {
+
+  });
+
   // Delete user wipes tokens?
+
 }
 
 class User extends ManagedObject<_User> implements _User, AuthenticatableManagedObject {

@@ -115,18 +115,18 @@ class InMemoryAuthStorage implements AuthStorage {
     return t.uniqueIdentifier;
   }
 
-  Future updateTokenWithIdentifier(AuthServer server, dynamic identifier, AuthToken t) async {
+  Future refreshTokenWithIdentifier(AuthServer server, dynamic identifier, String newAccessToken, DateTime newIssueDate, DateTime newExpirationDate) async {
     var existing = tokens.firstWhere((e) => e.uniqueIdentifier == identifier, orElse: () => null);
     if (existing != null) {
       var replacement = new AuthToken()
-        ..uniqueIdentifier = t.uniqueIdentifier
-        ..expirationDate = t.expirationDate
-        ..issueDate = t.issueDate
-        ..clientID = t.clientID
-        ..accessToken = t.accessToken
-        ..refreshToken = t.refreshToken
-        ..resourceOwnerIdentifier = t.resourceOwnerIdentifier
-        ..type = t.type;
+        ..expirationDate = newExpirationDate
+        ..issueDate = newIssueDate
+        ..accessToken = newAccessToken
+        ..uniqueIdentifier = existing.uniqueIdentifier
+        ..clientID = existing.clientID
+        ..refreshToken = existing.refreshToken
+        ..resourceOwnerIdentifier = existing.resourceOwnerIdentifier
+        ..type = existing.type;
 
       tokens.remove(existing);
       tokens.add(replacement);
@@ -141,16 +141,10 @@ class InMemoryAuthStorage implements AuthStorage {
     return _copyCode(codes.firstWhere((c) => c.code == code, orElse: () => null));
   }
 
-  Future updateAuthCodeWithCode(AuthServer server, String code, AuthCode ac) async {
+  Future associateAuthCodeWithTokenIdentifier(AuthServer server, String code, dynamic tokenIdentifier) async {
     var existing = codes.firstWhere((e) => e.code == code, orElse: () => null);
 
-    existing?.issueDate = ac.issueDate;
-    existing?.expirationDate = ac.expirationDate;
-    existing?.redirectURI = ac.redirectURI;
-    existing?.clientID = ac.clientID;
-    existing?.code = ac.code;
-    existing?.resourceOwnerIdentifier = ac.resourceOwnerIdentifier;
-    existing?.tokenIdentifier = ac.tokenIdentifier;
+    existing?.tokenIdentifier = tokenIdentifier;
   }
 
   Future revokeAuthCodeWithCode(AuthServer server, String code) async {

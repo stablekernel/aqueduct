@@ -74,7 +74,20 @@ class AuthToken {
     return expirationDate.difference(new DateTime.now().toUtc()).inSeconds <= 0;
   }
 
-  // TODO: implement asMap
+  Map<String, dynamic> asMap() {
+    var map = {
+      "access_token": accessToken,
+      "token_type": type,
+      "expires_in": expirationDate.difference(new DateTime.now().toUtc()).inSeconds,
+    };
+
+    if (refreshToken != null) {
+      map["refresh_token"] = refreshToken;
+    }
+
+    //if (scope...)
+    return map;
+  }
 }
 
 /// An interface for implementing [AuthServer.AuthCodeType].
