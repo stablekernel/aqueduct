@@ -447,7 +447,7 @@ void main() {
       } on AuthServerException {}
     });
 
-    test("Expired code fails", () async {
+    test("Expired code fails and it gets deleted", () async {
       code = await auth.authenticateForCode(
           createdUser.username, User.DefaultPassword, "com.stablekernel.redirect", expirationInSeconds: 1);
 
@@ -458,6 +458,10 @@ void main() {
 
         expect(true, false);
       } on AuthServerException {}
+
+      var q = new Query<ManagedAuthCode>()
+        ..matchOn.code = code.code;
+      expect(await q.fetch(), isEmpty);
     });
 
     test("Code that has been exchanged already fails, issued token is revoked", () async {
@@ -691,13 +695,114 @@ void main() {
     });
   });
 
+  group("Code friendly fire/cleanup", () {
+    List<User> createdUsers;
+
+    AuthServer auth;
+
+    setUp(() async {
+      auth = new AuthServer(storage);
+      createdUsers = await createUsers(3);
+    });
+
+    test("Revoking a token automatically deletes the code that generated it", () async {
+      var exchangedCode = await auth.authenticateForCode(createdUsers.first.username, User.DefaultPassword, "com.stablekernel.redirect");
+      var exchangedToken = await auth.exchange(exchangedCode.code, "com.stablekernel.redirect", "mckinley");
+
+      var codeQuery = new Query<ManagedAuthCode>()
+        ..matchOn.code = exchangedCode.code;
+      expect(await codeQuery.fetch(), hasLength(1));
+
+      var tokenQuery = new Query<ManagedToken>()
+        ..matchOn.accessToken = exchangedToken.accessToken;
+      await tokenQuery.delete();
+
+      expect(await codeQuery.fetch(), isEmpty);
+    });
+
+    test("Simply deleting a code does not revoke its associated token", () async {
+      var exchangedCode = await auth.authenticateForCode(createdUsers.first.username, User.DefaultPassword, "com.stablekernel.redirect");
+      var exchangedToken = await auth.exchange(exchangedCode.code, "com.stablekernel.redirect", "mckinley");
+
+      var codeQuery = new Query<ManagedAuthCode>()
+        ..matchOn.code = exchangedCode.code;
+      await codeQuery.delete();
+
+      expect(await auth.verify(exchangedToken.accessToken), isNotNull);
+    });
+
+    test("Oldest codes gets pruned after reaching codeLimit, but only for that user", () async {
+      (auth.storage as ManagedAuthStorage).codeLimit = 3;
+      // Ensure tokenLimit doesn't impact codeLimit
+      (auth.storage as ManagedAuthStorage).tokenLimit = 1;
+
+      // Insert a code manually to simulate a race condition, but insert it after the others have been
+      // so they don't strip it when inserted.
+      var manualCode = new ManagedAuthCode()
+        ..code = "ASDFGHJ"
+        ..issueDate = new DateTime.now().toUtc()
+        ..expirationDate = new DateTime.now().add(new Duration(seconds: 60)).toUtc()
+        ..client = (new ManagedClient()..id = "com.stablekernel.redirect")
+        ..resourceOwnerIdentifier = createdUsers.first.id;
+
+      // Insert a code for a different user to make sure it doesn't get pruned.
+      var otherUserCode = await auth.authenticateForCode(createdUsers[1].username, User.DefaultPassword, "com.stablekernel.redirect");
+
+      // Insert the max number of codes
+      var codes = <AuthCode>[];
+      for (var i = 0; i < 3; i++) {
+        var c = await auth.authenticateForCode(createdUsers.first.username, User.DefaultPassword, "com.stablekernel.redirect");
+        codes.add(c);
+      }
+
+      // Insert the 'race condition' code
+      var manualInsertQuery = new Query<ManagedAuthCode>()
+        ..values = manualCode;
+      manualCode = await manualInsertQuery.insert();
+
+      // Make a new code, should kill the race condition code and the first generated code in the loop.
+      // Other user codes remain
+      var newCode = await auth.authenticateForCode(createdUsers.first.username, User.DefaultPassword, "com.stablekernel.redirect");
+      var codeQuery = new Query<ManagedAuthCode>();
+      var codesInDB = (await codeQuery.fetch()).map((ac) => ac.code).toList();
+
+      // These codes are in chronological order
+      expect(codesInDB.contains(otherUserCode.code), true);
+
+      expect(codesInDB.contains(manualCode.code), false);
+      expect(codesInDB.contains(codes.first.code), false);
+      expect(codesInDB.contains(codes[1].code), true);
+      expect(codesInDB.contains(codes.last.code), true);
+      expect(codesInDB.contains(newCode.code), true);
+
+      // Make a new code, but with a different client, should still kill off the oldest expiring code.
+      var lastCode = await auth.authenticateForCode(createdUsers.first.username, User.DefaultPassword, "com.stablekernel.redirect2");
+      codesInDB = (await codeQuery.fetch()).map((ac) => ac.code).toList();
+
+      // These codes are in chronological order
+      expect(codesInDB.contains(otherUserCode.code), true);
+
+      expect(codesInDB.contains(codes[1].code), false);
+      expect(codesInDB.contains(codes.last.code), true);
+      expect(codesInDB.contains(newCode.code), true);
+      expect(codesInDB.contains(lastCode.code), true);
+    });
+  });
+
+  group("Token friendly fire/cleanup", () {
+    List<User> createdUsers;
+
+    AuthServer auth;
+
+    setUp(() async {
+      auth = new AuthServer(storage);
+      createdUsers = await createUsers(3);
+    });
+  });
 
   group("Scoping use cases", () {
 
   });
-
-  // Delete user wipes tokens?
-
 }
 
 class User extends ManagedObject<_User> implements _User, AuthenticatableManagedObject {
