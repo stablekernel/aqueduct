@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:meta/meta.dart';
 import 'auth.dart';
 
 /// An interface for implementing a [AuthServer.ResourceOwner].
@@ -77,22 +76,22 @@ abstract class AuthStorage {
   /// If the [server] wishes to delete an authentication token, it will invoke this method. The implementing class must delete the matching token
   /// from its persistent storage. Note that the token is matched by its [AuthToken.refreshToken], not by its access token.
   /// If the matching [AuthToken] was issued from an [AuthCode], that corresponding [AuthCode] must be deleted as well.
-  Future revokeTokenWithAccessToken(AuthServer server, String accessToken);
+  Future revokeTokenWithIdentifier(AuthServer server, dynamic identifier);
 
   /// Asks this instance to store a [TokenType] for [server].
   ///
   /// The implementing class must persist the token [t].
-  Future storeToken(AuthServer server, AuthToken t);
+  Future<dynamic> storeTokenAndReturnUniqueIdentifier(AuthServer server, AuthToken t);
 
   /// Asks this instance to update an existing [TokenType] for [server].
   ///
   /// The implementing class must persist the token [t].
-  Future updateTokenWithAccessToken(AuthServer server, String accessToken, AuthToken t);
+  Future updateTokenWithIdentifier(AuthServer server, dynamic identifier, AuthToken t);
 
   /// Asks this instance to store a [AuthCodeType] for [server].
   ///
   /// The implementing class must persist the auth code [ac].
-  Future<AuthCode> storeAuthCode(AuthServer server, AuthCode ac);
+  Future storeAuthCode(AuthServer server, AuthCode ac);
 
   /// Asks this instance to retrieve an auth code from provided code [code].
   ///
@@ -103,7 +102,7 @@ abstract class AuthStorage {
   /// Asks this instance to update an existing [AuthCodeType] for [server].
   ///
   /// The implementing class must persist the auth code [ac].
-  Future updateAuthCodeWithCode(AuthServer server, String code, AuthCode ac);
+  Future associateAuthCodeWithTokenIdentifier(AuthServer server, String code, dynamic tokenIdentifier);
 
   /// Asks this instance to delete an existing [AuthCodeType] for [server].
   ///

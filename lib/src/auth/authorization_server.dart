@@ -53,6 +53,10 @@ class AuthServer extends Object
   Future<AuthToken> authenticate(
       String username, String password, String clientID, String clientSecret,
       {int expirationInSeconds: 3600}) async {
+    if (clientID == null) {
+      throw new AuthServerException(AuthRequestError.invalidClient, null);
+    }
+
     AuthClient client = await clientForID(clientID);
     if (client == null) {
       throw new AuthServerException(AuthRequestError.invalidClient, null);
@@ -62,16 +66,11 @@ class AuthServer extends Object
       throw new AuthServerException(AuthRequestError.invalidRequest, client);
     }
 
-    var isClientPublic = false;
-    if (client.hashedSecret == null) {
-      isClientPublic = true;
-
+    if (client.isPublic) {
       if (!(clientSecret == null || clientSecret == "")) {
         throw new AuthServerException(AuthRequestError.invalidClient, client);
       }
     } else {
-      isClientPublic = false;
-
       if (clientSecret == null) {
         throw new AuthServerException(AuthRequestError.invalidClient, client);
       }
@@ -97,8 +96,8 @@ class AuthServer extends Object
 
     AuthToken token = _generateToken(
         authenticatable.uniqueIdentifier, client.id, expirationInSeconds,
-        allowRefresh: !isClientPublic);
-    await storage.storeToken(this, token);
+        allowRefresh: !client.isPublic);
+    await storage.storeTokenAndReturnUniqueIdentifier(this, token);
 
     return token;
   }
@@ -124,6 +123,9 @@ class AuthServer extends Object
   /// If not successful, it will throw an [AuthRequestError].
   Future<AuthToken> refresh(
       String refreshToken, String clientID, String clientSecret) async {
+    if (clientID == null) {
+      throw new AuthServerException(AuthRequestError.invalidClient, null);
+    }
 
     AuthClient client = await clientForID(clientID);
     if (client == null) {
@@ -151,6 +153,7 @@ class AuthServer extends Object
     var diff = t.expirationDate.difference(t.issueDate);
     var now = new DateTime.now().toUtc();
     var newToken = new AuthToken()
+      ..uniqueIdentifier = t.uniqueIdentifier
       ..accessToken = randomStringOfLength(32)
       ..refreshToken = t.refreshToken
       ..issueDate = now
@@ -159,7 +162,7 @@ class AuthServer extends Object
       ..resourceOwnerIdentifier = t.resourceOwnerIdentifier
       ..clientID = t.clientID;
 
-    await storage.updateTokenWithAccessToken(this, t.accessToken, newToken);
+    await storage.updateTokenWithIdentifier(this, t.uniqueIdentifier, newToken);
 
     return newToken;
   }
@@ -172,6 +175,10 @@ class AuthServer extends Object
   Future<AuthCode> authenticateForCode(
       String username, String password, String clientID,
       {int expirationInSeconds: 600}) async {
+    if (clientID == null) {
+      throw new AuthServerException(AuthRequestError.invalidClient, null);
+    }
+
     AuthClient client = await clientForID(clientID);
     if (client == null) {
       throw new AuthServerException(AuthRequestError.invalidClient, null);
@@ -200,7 +207,8 @@ class AuthServer extends Object
 
     AuthCode authCode =
         _generateAuthCode(authenticatable.uniqueIdentifier, client, expirationInSeconds);
-    return await storage.storeAuthCode(this, authCode);
+    await storage.storeAuthCode(this, authCode);
+    return authCode;
   }
 
   /// Exchanges a valid authorization code for a pair of refresh and access tokens.
@@ -211,6 +219,10 @@ class AuthServer extends Object
   Future<AuthToken> exchange(
       String authCodeString, String clientID, String clientSecret,
       {int expirationInSeconds: 3600}) async {
+    if (clientID == null) {
+      throw new AuthServerException(AuthRequestError.invalidClient, null);
+    }
+
     AuthClient client = await clientForID(clientID);
     if (client == null) {
       throw new AuthServerException(AuthRequestError.invalidClient, null);
@@ -246,18 +258,18 @@ class AuthServer extends Object
     }
 
     // check to see if has already been used
-    if (authCode.token != null) {
-      await storage.revokeTokenWithAccessToken(this, authCode.token.accessToken);
+    if (authCode.tokenIdentifier != null) {
+      await storage.revokeTokenWithIdentifier(this, authCode.tokenIdentifier);
 
       throw new AuthServerException(AuthRequestError.invalidGrant, client);
     }
 
     AuthToken token = _generateToken(
         authCode.resourceOwnerIdentifier, client.id, expirationInSeconds);
-    token = await storage.storeToken(this, token);
+    var uniqueIdentifier = await storage.storeTokenAndReturnUniqueIdentifier(this, token);
 
-    authCode.token = token;
-    await storage.updateAuthCodeWithCode(this, authCode.code, authCode);
+    authCode.tokenIdentifier = uniqueIdentifier;
+    await storage.associateAuthCodeWithTokenIdentifier(this, authCode.code, uniqueIdentifier);
 
     return token;
   }
