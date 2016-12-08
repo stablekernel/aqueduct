@@ -74,9 +74,13 @@ void main() {
       expect(token.refreshToken, isString);
       expect(token.clientID, "com.stablekernel.app1");
       expect(token.resourceOwnerIdentifier, createdUser.id);
+      expect(token.issueDate.difference(new DateTime.now().toUtc()).inSeconds.abs(), lessThan(5));
       expect(token.issueDate.isBefore(new DateTime.now().toUtc()), true);
       expect(token.expirationDate.isAfter(new DateTime.now().toUtc()), true);
       expect(token.type, "bearer");
+
+      expect(token.issueDate.difference(token.expirationDate).inSeconds.abs(), greaterThan(3599));
+      expect(token.issueDate.difference(token.expirationDate).inSeconds.abs(), lessThan(3601));
     });
 
     test("Can create token with all information minus refresh token if client is public", () async {
@@ -220,6 +224,7 @@ void main() {
       expect(token.refreshToken, isString);
       expect(token.clientID, "com.stablekernel.app1");
       expect(token.resourceOwnerIdentifier, createdUser.id);
+      expect(token.issueDate.difference(new DateTime.now().toUtc()).inSeconds.abs(), lessThan(5));
       expect(token.issueDate.isBefore(new DateTime.now().toUtc()), true);
       expect(token.expirationDate.isAfter(new DateTime.now().toUtc()), true);
       expect(token.type, "bearer");
@@ -299,11 +304,14 @@ void main() {
           createdUser.username,  InMemoryAuthStorage.DefaultPassword, "com.stablekernel.redirect");
 
       expect(authCode.code.length, greaterThan(0));
+      expect(authCode.issueDate.difference(new DateTime.now().toUtc()).inSeconds.abs(), lessThan(5));
       expect(authCode.issueDate.isBefore(new DateTime.now().toUtc()), true);
       expect(authCode.resourceOwnerIdentifier, createdUser.id);
       expect(authCode.clientID, "com.stablekernel.redirect");
       expect(authCode.expirationDate.isAfter(new DateTime.now().toUtc()), true);
       expect(authCode.tokenIdentifier, isNull);
+      expect(authCode.issueDate.difference(authCode.expirationDate).inSeconds.abs(), greaterThan(599));
+      expect(authCode.issueDate.difference(authCode.expirationDate).inSeconds.abs(), lessThan(601));
 
       var redirectURI = (await auth.clientForID("com.stablekernel.redirect")).redirectURI;
       expect(authCode.redirectURI, redirectURI);

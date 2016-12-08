@@ -2,7 +2,13 @@ import 'dart:async';
 
 import 'package:aqueduct/aqueduct.dart';
 
-class ManagedToken extends ManagedObject<_ManagedToken> implements _ManagedToken {
+abstract class _Expirable implements ManagedObject {
+  DateTime expirationDate;
+  DateTime issueDate;
+  dynamic resourceOwnerIdentifier;
+}
+
+class ManagedToken extends ManagedObject<_ManagedToken> implements _ManagedToken, _Expirable {
   ManagedToken() : super();
   ManagedToken.fromToken(AuthToken t) : super() {
     this
@@ -93,7 +99,7 @@ class _ManagedClient {
   ManagedSet<ManagedAuthCode> authCodes;
 }
 
-class ManagedAuthCode extends ManagedObject<_ManagedAuthCode> implements _ManagedAuthCode {
+class ManagedAuthCode extends ManagedObject<_ManagedAuthCode> implements _ManagedAuthCode, _Expirable {
   ManagedAuthCode() : super();
   ManagedAuthCode.fromCode(AuthCode code) : super() {
     this
@@ -123,7 +129,10 @@ class _ManagedAuthCode {
 
   @ManagedColumnAttributes(indexed: true)
   int resourceOwnerIdentifier;
+
   DateTime issueDate;
+
+  @ManagedColumnAttributes(indexed: true)
   DateTime expirationDate;
 
   @ManagedRelationship(#issuingAuthCode, onDelete: ManagedRelationshipDeleteRule.cascade)
@@ -138,9 +147,11 @@ class _ManagedAuthCode {
 abstract class AuthenticatableManagedObject implements Authenticatable, ManagedObject {}
 
 class ManagedAuthStorage<T extends AuthenticatableManagedObject> implements AuthStorage {
-  ManagedAuthStorage(this.context);
+  ManagedAuthStorage(this.context, {this.codeLimit: 10, this.tokenLimit: 40});
 
   ManagedContext context;
+  int tokenLimit;
+  int codeLimit;
 
   Future didDeleteAuthenticatableWithIdentifier(dynamic identifier) async {
     if (identifier == null) {
@@ -198,6 +209,25 @@ class ManagedAuthStorage<T extends AuthenticatableManagedObject> implements Auth
       ..values = storage;
     var inserted = await query.insert();
 
+    var oldTokenQuery = new Query<ManagedToken>()
+      ..matchOn.resourceOwnerIdentifier = whereRelatedByValue(t.resourceOwnerIdentifier)
+      ..sortDescriptors = [
+        new QuerySortDescriptor("expirationDate", QuerySortOrder.descending)
+      ]
+      ..offset = codeLimit
+      ..fetchLimit = 1
+      ..resultProperties = ["expirationDate"];
+
+
+    var results = await oldTokenQuery.fetch();
+    if (results.length == 1) {
+      var deleteQ = new Query<ManagedToken>()
+        ..matchOn.resourceOwnerIdentifier = whereRelatedByValue(t.resourceOwnerIdentifier)
+        ..matchOn.expirationDate = whereLessThanEqualTo(results.first.expirationDate);
+
+      await deleteQ.delete();
+    }
+
     return inserted.id;
   }
 
@@ -218,6 +248,25 @@ class ManagedAuthStorage<T extends AuthenticatableManagedObject> implements Auth
     var query = new Query<ManagedAuthCode>(context)
       ..values = storage;
     await query.insert();
+
+    var oldCodeQuery = new Query<ManagedAuthCode>()
+      ..matchOn.resourceOwnerIdentifier = whereRelatedByValue(code.resourceOwnerIdentifier)
+      ..sortDescriptors = [
+        new QuerySortDescriptor("expirationDate", QuerySortOrder.descending)
+      ]
+      ..offset = codeLimit
+      ..fetchLimit = 1
+      ..resultProperties = ["expirationDate"];
+
+
+    var results = await oldCodeQuery.fetch();
+    if (results.length == 1) {
+      var deleteQ = new Query<ManagedAuthCode>()
+        ..matchOn.resourceOwnerIdentifier = whereRelatedByValue(code.resourceOwnerIdentifier)
+        ..matchOn.expirationDate = whereLessThanEqualTo(results.first.expirationDate);
+
+      await deleteQ.delete();
+    }
   }
 
   @override

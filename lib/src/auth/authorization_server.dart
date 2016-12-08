@@ -20,6 +20,9 @@ class AuthServer extends Object
   /// This instance is responsible for storing, fetching and deleting instances of
   /// [TokenType], [ResourceOwner] and [AuthCodeType] by implementing the [AuthStorage] interface.
   AuthStorage storage;
+
+  // todo: add token lifetime variables, confidential, public, code,
+
   Map<String, AuthClient> _clientCache = {};
 
   /// Returns a [AuthClient] record for its [id].
@@ -253,6 +256,7 @@ class AuthServer extends Object
 
     // check if valid still
     if (authCode.isExpired) {
+      await storage.revokeAuthCodeWithCode(this, authCode.code);
       throw new AuthServerException(AuthRequestError.invalidGrant, client);
     }
 
@@ -337,7 +341,7 @@ class AuthServer extends Object
       ..accessToken = randomStringOfLength(32)
       ..issueDate = now
       ..expirationDate =
-          now.add(new Duration(seconds: expirationInSeconds)).toUtc()
+          now.add(new Duration(seconds: expirationInSeconds))
       ..type = "bearer"
       ..resourceOwnerIdentifier = ownerID
       ..clientID = clientID;
@@ -359,7 +363,6 @@ class AuthServer extends Object
       ..issueDate = now
       ..expirationDate = now
           .add(new Duration(seconds: expirationInSeconds))
-          .toUtc()
       ..redirectURI = client.redirectURI;
   }
 }
