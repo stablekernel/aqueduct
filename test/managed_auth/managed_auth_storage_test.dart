@@ -1,41 +1,59 @@
-import 'package:test/test.dart';
-import 'package:aqueduct/aqueduct.dart';
+import 'dart:async';
 import 'dart:io';
-import '../helpers.dart';
 
+import 'package:aqueduct/aqueduct.dart';
+import 'package:aqueduct/managed_auth.dart';
+import 'package:test/test.dart';
+
+import '../context_helpers.dart';
+
+// These tests mostly duplicate authenticate_test.dart, but also add a few more
+// to manage long-term storage/cleanup of tokens and related items.
 void main() {
-  InMemoryAuthStorage delegate;
+  ManagedAuthStorage<User> storage;
 
   setUp(() async {
-    delegate = new InMemoryAuthStorage();
-  });
+    var context = await contextWithModels([User, ManagedClient, ManagedAuthCode, ManagedToken]);
 
+    var salt = "ABCDEFGHIJKLMNOPQRSTUVWXYZ012345";
+    var clients = [
+      new AuthClient("com.stablekernel.app1",
+          AuthUtility.generatePasswordHash("kilimanjaro", salt), salt),
+      new AuthClient("com.stablekernel.app2",
+          AuthUtility.generatePasswordHash("fuji", salt), salt),
+      new AuthClient.withRedirectURI(
+          "com.stablekernel.redirect",
+          AuthUtility.generatePasswordHash("mckinley", salt),
+          salt,
+          "http://stablekernel.com/auth/redirect"),
+      new AuthClient("com.stablekernel.public", null, salt),
+      new AuthClient.withRedirectURI(
+          "com.stablekernel.redirect2",
+          AuthUtility.generatePasswordHash("gibraltar", salt),
+          salt,
+          "http://stablekernel.com/auth/redirect2")
+      ];
 
-  test("isTokenExpired works correctly", () {
-    var oldToken = new AuthToken()
-        ..expirationDate = new DateTime.now().toUtc().subtract(new Duration(seconds: 1));
-    var futureToken = new AuthToken()
-      ..expirationDate = new DateTime.now().toUtc().add(new Duration(seconds: 10));
+    await Future.wait(clients
+      .map((ac) => new ManagedClient()
+        ..id = ac.id
+        ..salt = ac.salt
+        ..hashedSecret = ac.hashedSecret
+        ..redirectURI = ac.redirectURI)
+      .map((mc) {
+        var q = new Query<ManagedClient>()
+          ..values = mc;
+        return q.insert();
+      }));
 
-    expect(oldToken.isExpired, true);
-    expect(futureToken.isExpired, false);
-  });
-
-  test("isAuthCodeExpired works correctly", () {
-    var oldCode = new AuthCode()
-      ..expirationDate = new DateTime.now().toUtc().subtract(new Duration(seconds: 1));
-    var futureCode = new AuthCode()
-      ..expirationDate = new DateTime.now().toUtc().add(new Duration(seconds: 10));
-
-    expect(oldCode.isExpired, true);
-    expect(futureCode.isExpired, false);
+    storage = new ManagedAuthStorage<User>(context);
   });
 
   group("Client behavior", () {
     AuthServer auth;
 
     setUp(() async {
-      auth = new AuthServer(delegate);
+      auth = new AuthServer(storage);
     });
 
     test("Get client for ID", () async {
@@ -52,16 +70,15 @@ void main() {
 
   group("Token behavior via authenticate", () {
     AuthServer auth;
-    TestUser createdUser;
+    User createdUser;
     setUp(() async {
-      auth = new AuthServer(delegate);
-      delegate.createUsers(1);
-      createdUser = delegate.users[1];
+      auth = new AuthServer(storage);
+      createdUser = (await createUsers(1)).first;
     });
 
     test("Can create token with all information + refresh token if client is confidential", () async {
       var token = await auth.authenticate(
-          createdUser.username, InMemoryAuthStorage.DefaultPassword,
+          createdUser.username, User.DefaultPassword,
           "com.stablekernel.app1", "kilimanjaro");
       expect(token.accessToken, isString);
       expect(token.refreshToken, isString);
@@ -74,7 +91,7 @@ void main() {
 
     test("Can create token with all information minus refresh token if client is public", () async {
       var token = await auth.authenticate(
-          createdUser.username, InMemoryAuthStorage.DefaultPassword,
+          createdUser.username, User.DefaultPassword,
           "com.stablekernel.public", "");
       expect(token.accessToken, isString);
       expect(token.refreshToken, isNull);
@@ -85,7 +102,7 @@ void main() {
       expect(token.type, "bearer");
 
       token = await auth.authenticate(
-          createdUser.username, InMemoryAuthStorage.DefaultPassword,
+          createdUser.username, User.DefaultPassword,
           "com.stablekernel.public", null);
       expect(token.accessToken, isString);
       expect(token.refreshToken, isNull);
@@ -99,8 +116,8 @@ void main() {
     test("Create token fails if username is incorrect", () async {
       try {
         await auth.authenticate(
-          "nonsense", InMemoryAuthStorage.DefaultPassword,
-          "com.stablekernel.app1", "kilimanjaro");
+            "nonsense", User.DefaultPassword,
+            "com.stablekernel.app1", "kilimanjaro");
         expect(true, false);
       } on AuthServerException {}
     });
@@ -117,7 +134,7 @@ void main() {
     test("Create token fails if client ID doesn't exist", () async {
       try {
         await auth.authenticate(
-            createdUser.username, InMemoryAuthStorage.DefaultPassword,
+            createdUser.username, User.DefaultPassword,
             "nonsense", "kilimanjaro");
         expect(true, false);
       } on AuthServerException {}
@@ -126,7 +143,7 @@ void main() {
     test("Create token fails if client secret doesn't match", () async {
       try {
         await auth.authenticate(
-            createdUser.username, InMemoryAuthStorage.DefaultPassword,
+            createdUser.username, User.DefaultPassword,
             "com.stablekernel.app1", "nonsense");
         expect(true, false);
       } on AuthServerException {}
@@ -135,14 +152,14 @@ void main() {
     test("Create token fails if client ID is confidential and secret is omitted", () async {
       try {
         await auth.authenticate(
-            createdUser.username, InMemoryAuthStorage.DefaultPassword,
+            createdUser.username, User.DefaultPassword,
             "com.stablekernel.app1", null);
         expect(true, false);
       } on AuthServerException {}
 
       try {
         await auth.authenticate(
-            createdUser.username, InMemoryAuthStorage.DefaultPassword,
+            createdUser.username, User.DefaultPassword,
             "com.stablekernel.app1", "");
         expect(true, false);
       } on AuthServerException {}
@@ -151,7 +168,7 @@ void main() {
     test("Create token fails if client secret provided for public client", () async {
       try {
         await auth.authenticate(
-            createdUser.username, InMemoryAuthStorage.DefaultPassword,
+            createdUser.username, User.DefaultPassword,
             "com.stablekernel.public", "nonsense");
         expect(true, false);
       } on AuthServerException {}
@@ -159,7 +176,7 @@ void main() {
 
     test("Can create token that is verifiable", () async {
       var token = await auth.authenticate(
-          createdUser.username, InMemoryAuthStorage.DefaultPassword,
+          createdUser.username, User.DefaultPassword,
           "com.stablekernel.app1", "kilimanjaro");
       expect((await auth.verify(token.accessToken)) is Authorization, true);
     });
@@ -176,7 +193,7 @@ void main() {
 
     test("Expired token cannot be verified", () async {
       var token = await auth.authenticate(
-          createdUser.username, InMemoryAuthStorage.DefaultPassword,
+          createdUser.username, User.DefaultPassword,
           "com.stablekernel.app1", "kilimanjaro",
           expirationInSeconds: 1);
 
@@ -193,15 +210,14 @@ void main() {
 
   group("Refreshing token", () {
     AuthServer auth;
-    TestUser createdUser;
+    User createdUser;
     AuthToken initialToken;
 
     setUp(() async {
-      auth = new AuthServer(delegate);
-      delegate.createUsers(1);
-      createdUser = delegate.users[1];
+      auth = new AuthServer(storage);
+      createdUser = (await createUsers(1)).first;
       initialToken = await auth.authenticate(
-          createdUser.username, InMemoryAuthStorage.DefaultPassword,
+          createdUser.username, User.DefaultPassword,
           "com.stablekernel.app1", "kilimanjaro");
     });
 
@@ -276,17 +292,16 @@ void main() {
 
   group("Generating auth code", () {
     AuthServer auth;
-    TestUser createdUser;
+    User createdUser;
 
     setUp(() async {
-      auth = new AuthServer(delegate);
-      delegate.createUsers(1);
-      createdUser = delegate.users[1];
+      auth = new AuthServer(storage);
+      createdUser = (await createUsers(1)).first;
     });
 
     test("Can create an auth code that can be exchanged for a token", () async {
       var authCode = await auth.authenticateForCode(
-          createdUser.username,  InMemoryAuthStorage.DefaultPassword, "com.stablekernel.redirect");
+          createdUser.username,  User.DefaultPassword, "com.stablekernel.redirect");
 
       expect(authCode.code.length, greaterThan(0));
       expect(authCode.issueDate.isBefore(new DateTime.now().toUtc()), true);
@@ -299,13 +314,19 @@ void main() {
       expect(authCode.redirectURI, redirectURI);
 
       var token = await auth.exchange(authCode.code, "com.stablekernel.redirect", "mckinley");
-      expect(token, isNotNull);
+      expect(token.accessToken, isString);
+      expect(token.clientID, "com.stablekernel.redirect");
+      expect(token.refreshToken, isString);
+      expect(token.resourceOwnerIdentifier, createdUser.id);
+      expect(token.type, "bearer");
+      expect(token.expirationDate.difference(new DateTime.now().toUtc()).inSeconds, greaterThan(3500));
+      expect(token.issueDate.difference(new DateTime.now().toUtc()).inSeconds.abs(), lessThan(2));
     });
 
     test("Generate auth code with bad username fails", () async {
       try {
         await auth.authenticateForCode(
-            "bob+0@stable", InMemoryAuthStorage.DefaultPassword, "com.stablekernel.redirect");
+            "bob+0@stable", User.DefaultPassword, "com.stablekernel.redirect");
         expect(true, false);
       } on AuthServerException catch (e) {
         expect(e.client.id, "com.stablekernel.redirect");
@@ -327,7 +348,7 @@ void main() {
     test("Generate auth code with unknown client id fails", () async {
       try {
         await auth.authenticateForCode(
-            createdUser.username, InMemoryAuthStorage.DefaultPassword, "com.stabl");
+            createdUser.username, User.DefaultPassword, "com.stabl");
         expect(true, false);
       } on AuthServerException catch (e) {
         expect(e.client, isNull);
@@ -338,7 +359,7 @@ void main() {
     test("Generate auth code with no redirect uri fails", () async {
       try {
         await auth.authenticateForCode(
-            createdUser.username, InMemoryAuthStorage.DefaultPassword, "com.stablekernel.app1");
+            createdUser.username, User.DefaultPassword, "com.stablekernel.app1");
         expect(true, false);
       } on AuthServerException catch (e) {
         expect(e.client.id, "com.stablekernel.app1");
@@ -349,7 +370,7 @@ void main() {
     test("Generate auth code with no client id", () async {
       try {
         await auth.authenticateForCode(
-            createdUser.username, InMemoryAuthStorage.DefaultPassword, null);
+            createdUser.username, User.DefaultPassword, null);
         expect(true, false);
       } on AuthServerException catch (e) {
         expect(e.client, isNull);
@@ -360,15 +381,14 @@ void main() {
 
   group("Exchanging auth code", () {
     AuthServer auth;
-    TestUser createdUser;
+    User createdUser;
     AuthCode code;
 
     setUp(() async {
-      auth = new AuthServer(delegate);
-      delegate.createUsers(1);
-      createdUser = delegate.users[1];
+      auth = new AuthServer(storage);
+      createdUser = (await createUsers(1)).first;
       code = await auth.authenticateForCode(
-          createdUser.username, InMemoryAuthStorage.DefaultPassword, "com.stablekernel.redirect");;
+          createdUser.username, User.DefaultPassword, "com.stablekernel.redirect");;
     });
 
     test("Can create an auth code that can be exchanged for a token", () async {
@@ -400,7 +420,7 @@ void main() {
 
     test("Expired code fails", () async {
       code = await auth.authenticateForCode(
-          createdUser.username, InMemoryAuthStorage.DefaultPassword, "com.stablekernel.redirect", expirationInSeconds: 1);
+          createdUser.username, User.DefaultPassword, "com.stablekernel.redirect", expirationInSeconds: 1);
 
       sleep(new Duration(seconds: 1));
 
@@ -412,6 +432,7 @@ void main() {
     });
 
     test("Code that has been exchanged already fails, issued token is revoked", () async {
+      justLogEverything();
       var issuedToken = await auth.exchange(code.code, "com.stablekernel.redirect", "mckinley");
 
       try {
@@ -496,19 +517,18 @@ void main() {
   });
 
   test("Clients have separate tokens", () async {
-    var auth = new AuthServer(delegate);
+    var auth = new AuthServer(storage);
 
-    delegate.createUsers(1);
-    TestUser createdUser = delegate.users[1];
+    var createdUser = (await createUsers(1)).first;
 
     var token = await auth.authenticate("bob+0@stablekernel.com",
-        InMemoryAuthStorage.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
+        User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
     var p1 = await auth.verify(token.accessToken);
     expect(p1.clientID, "com.stablekernel.app1");
     expect(p1.resourceOwnerIdentifier, createdUser.id);
 
     var token2 = await auth.authenticate("bob+0@stablekernel.com",
-        InMemoryAuthStorage.DefaultPassword, "com.stablekernel.app2", "fuji");
+        User.DefaultPassword, "com.stablekernel.app2", "fuji");
     var p2 = await auth.verify(token2.accessToken);
     expect(p2.clientID, "com.stablekernel.app2");
     expect(p2.resourceOwnerIdentifier, createdUser.id);
@@ -519,13 +539,12 @@ void main() {
   });
 
   test("Ensure users aren't authenticated by other users", () async {
-    var auth = new AuthServer(delegate);
-    delegate.createUsers(10);
-    var users = delegate.users.values.toList();
+    var auth = new AuthServer(storage);
+    var users = await createUsers(10);
     var t1 = await auth.authenticate("bob+0@stablekernel.com",
-        InMemoryAuthStorage.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
+        User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
     var t2 = await auth.authenticate("bob+4@stablekernel.com",
-        InMemoryAuthStorage.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
+        User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
 
     var permission = await auth.verify(t1.accessToken);
     expect(permission.clientID, "com.stablekernel.app1");
@@ -535,4 +554,52 @@ void main() {
     expect(permission.clientID, "com.stablekernel.app1");
     expect(permission.resourceOwnerIdentifier, users[4].id);
   });
+
+  // Delete user wipes tokens?
+}
+
+class User extends ManagedObject<_User> implements _User, AuthenticatableManagedObject {
+  static const String DefaultPassword = "foobaraxegrind!%12";
+
+  @override
+  dynamic get uniqueIdentifier => id;
+
+  String get username => email;
+  set username(String un) {
+    email = un;
+  }
+}
+
+class _User {
+  @managedPrimaryKey
+  int id;
+
+  String hashedPassword;
+  String salt;
+
+  String email;
+}
+
+Future<List<User>> createUsers(int count) async {
+  var list = <User>[];
+  for (int i = 0; i < count; i++) {
+    var salt = AuthUtility.generateRandomSalt();
+    var u = new User()
+      ..email = "bob+$i@stablekernel.com"
+      ..salt = salt
+      ..hashedPassword = AuthUtility.generatePasswordHash(User.DefaultPassword, salt);
+
+    var q = new Query<User>()
+      ..values = u;
+
+    list.add(await q.insert());
+  }
+  return list;
+}
+
+justLogEverything() {
+  hierarchicalLoggingEnabled = true;
+  new Logger("")
+    ..level = Level.ALL
+    ..onRecord.listen((p) => print("${p} ${p.object} ${p.stackTrace}"));
 }

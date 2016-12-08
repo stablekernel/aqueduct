@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:aqueduct/aqueduct.dart';
-import 'package:postgres/postgres.dart';
+import 'package:aqueduct/src/utilities/token_generator.dart';
+export 'context_helpers.dart';
+
 
 justLogEverything() {
   hierarchicalLoggingEnabled = true;
@@ -44,11 +46,12 @@ class InMemoryAuthStorage implements AuthStorage {
   List<AuthToken> tokens = [];
   List<AuthCode> codes = [];
 
-  _copyToken(AuthToken t) {
+  AuthToken _copyToken(AuthToken t) {
     if (t == null) {
       return null;
     }
     return new AuthToken()
+        ..uniqueIdentifier = t.uniqueIdentifier
         ..accessToken = t.accessToken
         ..refreshToken = t.refreshToken
         ..type = t.type
@@ -58,7 +61,7 @@ class InMemoryAuthStorage implements AuthStorage {
         ..expirationDate = t.expirationDate;
   }
 
-  _copyCode(AuthCode c) {
+  AuthCode _copyCode(AuthCode c) {
     if (c == null) {
       return null;
     }
@@ -69,7 +72,7 @@ class InMemoryAuthStorage implements AuthStorage {
         ..resourceOwnerIdentifier = c.resourceOwnerIdentifier
         ..issueDate = c.issueDate
         ..expirationDate = c.expirationDate
-        ..token = _copyToken(c.token);
+        ..tokenIdentifier = c.tokenIdentifier;
   }
 
   void createUsers(int count) {
@@ -102,33 +105,36 @@ class InMemoryAuthStorage implements AuthStorage {
         orElse: () => null);
   }
 
-  Future revokeTokenWithAccessToken(AuthServer server, String accessToken) async {
-    tokens.removeWhere((t) => t.accessToken == accessToken);
+  Future revokeTokenWithIdentifier(AuthServer server, dynamic identifier) async {
+    tokens.removeWhere((t) => t.uniqueIdentifier == identifier);
   }
 
-  Future<AuthToken> storeToken(AuthServer server, AuthToken t) async {
-    var c = _copyToken(t);
-    tokens.add(c);
-    return c;
+  Future<dynamic> storeTokenAndReturnUniqueIdentifier(AuthServer server, AuthToken t) async {
+    t.uniqueIdentifier = randomStringOfLength(32);
+    tokens.add(t);
+    return t.uniqueIdentifier;
   }
 
-  Future<AuthToken> updateTokenWithAccessToken(AuthServer server, String accessToken, AuthToken t) async {
-    var existing = tokens.firstWhere((e) => e.accessToken == accessToken, orElse: () => null);
-    tokens.remove(existing);
+  Future updateTokenWithIdentifier(AuthServer server, dynamic identifier, AuthToken t) async {
+    var existing = tokens.firstWhere((e) => e.uniqueIdentifier == identifier, orElse: () => null);
+    if (existing != null) {
+      var replacement = new AuthToken()
+        ..uniqueIdentifier = t.uniqueIdentifier
+        ..expirationDate = t.expirationDate
+        ..issueDate = t.issueDate
+        ..clientID = t.clientID
+        ..accessToken = t.accessToken
+        ..refreshToken = t.refreshToken
+        ..resourceOwnerIdentifier = t.resourceOwnerIdentifier
+        ..type = t.type;
 
-    var codeIfExists = codes.firstWhere((c) => c.token.accessToken == accessToken, orElse: () => null);
-    var copy = _copyToken(t);
-    codeIfExists?.token = copy;
-
-    tokens.add(copy);
-
-    return copy;
+      tokens.remove(existing);
+      tokens.add(replacement);
+    }
   }
 
-  Future<AuthCode> storeAuthCode(AuthServer server, AuthCode code) async {
-    var copy = _copyCode(code);
-    codes.add(copy);
-    return copy;
+  Future storeAuthCode(AuthServer server, AuthCode code) async {
+    codes.add(code);
   }
 
   Future<AuthCode> fetchAuthCodeWithCode(AuthServer server, String code) async {
@@ -144,7 +150,7 @@ class InMemoryAuthStorage implements AuthStorage {
     existing?.clientID = ac.clientID;
     existing?.code = ac.code;
     existing?.resourceOwnerIdentifier = ac.resourceOwnerIdentifier;
-    existing?.token = _copyToken(ac.token);
+    existing?.tokenIdentifier = ac.tokenIdentifier;
   }
 
   Future revokeAuthCodeWithCode(AuthServer server, String code) async {
@@ -158,41 +164,6 @@ class InMemoryAuthStorage implements AuthStorage {
   Future revokeClientWithID(AuthServer server, String id) async {
     clients.remove(id);
   }
-}
-
-Future<ManagedContext> contextWithModels(List<Type> instanceTypes) async {
-  var persistentStore = new PostgreSQLPersistentStore(() async {
-    var conn = new PostgreSQLConnection("localhost", 5432, "dart_test",
-        username: "dart", password: "dart");
-    await conn.open();
-    return conn;
-  });
-
-  var dataModel = new ManagedDataModel(instanceTypes);
-  var commands = commandsFromDataModel(dataModel, temporary: true);
-  var context = new ManagedContext(dataModel, persistentStore);
-  ManagedContext.defaultContext = context;
-
-  for (var cmd in commands) {
-    await persistentStore.execute(cmd);
-  }
-
-  return context;
-}
-
-List<String> commandsFromDataModel(ManagedDataModel dataModel,
-    {bool temporary: false}) {
-  var targetSchema = new Schema.fromDataModel(dataModel);
-  var builder = new SchemaBuilder.toSchema(
-      new PostgreSQLPersistentStore(() => null), targetSchema,
-      isTemporary: temporary);
-  return builder.commands;
-}
-
-List<String> commandsForModelInstanceTypes(List<Type> instanceTypes,
-    {bool temporary: false}) {
-  var dataModel = new ManagedDataModel(instanceTypes);
-  return commandsFromDataModel(dataModel, temporary: temporary);
 }
 
 class DefaultPersistentStore extends PersistentStore {

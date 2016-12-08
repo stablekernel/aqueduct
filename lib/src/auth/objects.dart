@@ -21,10 +21,13 @@ class AuthClient {
   /// The redirection URI for authorization codes and/or tokens.
   String redirectURI;
 
-  List<String> allowedScopes;
+//  List<String> allowedScopes;
+
+  bool get isPublic => hashedSecret == null;
+  bool get isConfidential => hashedSecret != null;
 
   String toString() {
-    return "AuthClient $id ${hashedSecret == null ? "public" : "confidental"} $redirectURI";
+    return "AuthClient $id ${isPublic ? "public" : "confidental"} $redirectURI";
   }
 }
 
@@ -38,6 +41,8 @@ class AuthClient {
 /// this interface to define a [ManagedObject] that represents the concrete implementation of a authentication
 /// token in your application. All of these properties are expected to be persisted.
 class AuthToken {
+  dynamic uniqueIdentifier;
+
   /// The value to be passed as a Bearer Authorization header.
   String accessToken;
 
@@ -63,11 +68,13 @@ class AuthToken {
   /// The clientID this token was issued under.
   String clientID;
 
-  List<AuthScope> scope;
+//  List<AuthScope> scope;
 
   bool get isExpired {
     return expirationDate.difference(new DateTime.now().toUtc()).inSeconds <= 0;
   }
+
+  // TODO: implement asMap
 }
 
 /// An interface for implementing [AuthServer.AuthCodeType].
@@ -101,7 +108,7 @@ class AuthCode {
   DateTime expirationDate;
 
   /// The token vended for this authorization code
-  AuthToken token;
+  dynamic tokenIdentifier;
 
   bool get isExpired {
     return expirationDate.difference(new DateTime.now().toUtc()).inSeconds <= 0;
