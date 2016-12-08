@@ -48,6 +48,13 @@ void main() {
       await auth.revokeClientID("com.stablekernel.app1");
       expect(await auth.clientForID("com.stablekernel.app1"), isNull);
     });
+
+    test("Cannot revoke null client", () async {
+      try {
+        await auth.revokeClientID(null);
+        expect(true, false);
+      } on AuthServerException {}
+    });
   });
 
   group("Token behavior via authenticate", () {
@@ -223,7 +230,10 @@ void main() {
       var authorization = await auth.verify(token.accessToken);
       expect(authorization.clientID, "com.stablekernel.app1");
       expect(authorization.resourceOwnerIdentifier, initialToken.resourceOwnerIdentifier);
+    });
 
+    test("After refresh, the previous token cannot be used", () async {
+      await auth.refresh(initialToken.refreshToken, "com.stablekernel.app1", "kilimanjaro");
       try {
         await auth.verify(initialToken.accessToken);
         expect(true, false);

@@ -77,19 +77,8 @@ class AuthController extends HTTPController {
   /// Transforms a [AuthToken] into a [Response] object with an RFC6749 compliant JSON token
   /// as the HTTP response body.
   static Response tokenResponse(AuthToken token) {
-    var jsonToken = {
-      "access_token": token.accessToken,
-      "token_type": token.type,
-      "expires_in":
-          token.expirationDate.difference(new DateTime.now().toUtc()).inSeconds,
-    };
-
-    if (token.refreshToken != null) {
-      jsonToken["refresh_token"] = token.refreshToken;
-    }
-
     return new Response(HttpStatus.OK,
-        {"Cache-Control": "no-store", "Pragma": "no-cache"}, jsonToken);
+        {"Cache-Control": "no-store", "Pragma": "no-cache"}, token.asMap());
   }
 
   @override

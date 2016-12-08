@@ -39,6 +39,10 @@ class AuthServer extends Object
   ///
   /// Asks [storage] to remove an [AuthClient] by its ID via [AuthStorage.revokeClientWithID].
   Future revokeClientID(String clientID) async {
+    if (clientID == null) {
+      throw new AuthServerException(AuthRequestError.invalidClient, null);
+    }
+
     await storage.revokeClientWithID(this, clientID);
 
     _clientCache.remove(clientID);
@@ -153,16 +157,16 @@ class AuthServer extends Object
     var diff = t.expirationDate.difference(t.issueDate);
     var now = new DateTime.now().toUtc();
     var newToken = new AuthToken()
-      ..uniqueIdentifier = t.uniqueIdentifier
       ..accessToken = randomStringOfLength(32)
-      ..refreshToken = t.refreshToken
       ..issueDate = now
       ..expirationDate = now.add(new Duration(seconds: diff.inSeconds)).toUtc()
+      ..uniqueIdentifier = t.uniqueIdentifier
+      ..refreshToken = t.refreshToken
       ..type = t.type
       ..resourceOwnerIdentifier = t.resourceOwnerIdentifier
       ..clientID = t.clientID;
 
-    await storage.updateTokenWithIdentifier(this, t.uniqueIdentifier, newToken);
+    await storage.refreshTokenWithIdentifier(this, t.uniqueIdentifier, newToken.accessToken, newToken.issueDate, newToken.expirationDate);
 
     return newToken;
   }
