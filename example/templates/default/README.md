@@ -41,6 +41,12 @@ You may copy and edit the migration template file:
 cp migrations/migration.yaml.src migrations/migration.yaml
 ```
 
+Copy the migration default file:
+
+```
+cp migrations/migration.default.yaml migrations/migration.yaml
+```
+
 Run the migration generation tool:
 
 ```
@@ -57,6 +63,12 @@ You may create subsequent migration files with `aqueduct db generate`. Note that
 
 ```
 aqueduct db validate
+```
+
+Copy and edit config default file:
+
+```
+cp config.yaml.src config.yaml
 ```
 
 ## Running wildfire
