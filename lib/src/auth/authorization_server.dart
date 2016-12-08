@@ -51,6 +51,14 @@ class AuthServer extends Object
     _clientCache.remove(clientID);
   }
 
+  Future revokeAuthenticatableAccessForIdentifier(dynamic identifier) async {
+    if (identifier == null) {
+      return;
+    }
+
+    await storage.revokeAuthenticatableAccessForIdentifier(this, identifier);
+  }
+
   /// Authenticates a [ResourceOwner] for a given client ID.
   ///
   /// This method works with this instance's [storage] to generate and store a new token if all credentials are correct.

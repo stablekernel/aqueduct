@@ -89,6 +89,11 @@ class InMemoryAuthStorage implements AuthStorage {
     }
   }
 
+  Future revokeAuthenticatableAccessForIdentifier(AuthServer server, dynamic identifier) async {
+    tokens.removeWhere((t) => t.resourceOwnerIdentifier == identifier);
+    codes.removeWhere((t) => t.resourceOwnerIdentifier == identifier);
+  }
+
   Future<AuthToken> fetchTokenWithAccessToken(AuthServer server, String accessToken) async {
     return _copyToken(tokens.firstWhere((t) => t.accessToken == accessToken,
         orElse: () => null));

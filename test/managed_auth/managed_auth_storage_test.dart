@@ -135,6 +135,15 @@ void main() {
       expect(token.type, "bearer");
     });
 
+    test("Can create token if client has redirect uri", () async {
+      var token = await auth.authenticate(
+          createdUser.username, User.DefaultPassword,
+          "com.stablekernel.redirect", "mckinley");
+      expect(token.accessToken, isString);
+      expect(token.refreshToken, isString);
+      expect(token.clientID, "com.stablekernel.redirect");
+    });
+
     test("Create token fails if username is incorrect", () async {
       try {
         await auth.authenticate(
@@ -228,6 +237,17 @@ void main() {
         expect(e.reason, AuthRequestError.invalidToken);
       }
     });
+
+    test("Cannot verify token if owner authentcatable is 'revoked'", () async {
+      var token = await auth.authenticate(
+          createdUser.username,  User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
+      await auth.revokeAuthenticatableAccessForIdentifier(createdUser.id);
+
+      try {
+        await auth.verify(token.accessToken);
+        expect(true, false);
+      } on AuthServerException {}
+    });
   });
 
   group("Refreshing token", () {
@@ -261,6 +281,17 @@ void main() {
       var authorization = await auth.verify(token.accessToken);
       expect(authorization.clientID, "com.stablekernel.app1");
       expect(authorization.resourceOwnerIdentifier, initialToken.resourceOwnerIdentifier);
+    });
+
+    test("Can refresh token if client has redirect uri", () async {
+      var token = await auth.authenticate(
+          createdUser.username, User.DefaultPassword,
+          "com.stablekernel.redirect", "mckinley");
+
+      var refreshToken = await auth.refresh(token.refreshToken, "com.stablekernel.redirect", "mckinley");
+      expect(refreshToken.accessToken, isString);
+      expect(refreshToken.refreshToken, isString);
+      expect(refreshToken.clientID, "com.stablekernel.redirect");
     });
 
     test("After refresh, the previous token cannot be used", () async {
@@ -313,6 +344,17 @@ void main() {
     test("Cannot refresh token if client secret is incorrect", () async {
       try {
         await auth.refresh(initialToken.refreshToken, "com.stablekernel.app1", "nonsense");
+        expect(true, false);
+      } on AuthServerException {}
+    });
+
+    test("Cannot refresh token if owner authentcatable is 'revoked'", () async {
+      var token = await auth.authenticate(
+          createdUser.username,  User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
+      await auth.revokeAuthenticatableAccessForIdentifier(createdUser.id);
+
+      try {
+        await auth.refresh(token.accessToken, "com.stablekernel.redirect", "mckinley");
         expect(true, false);
       } on AuthServerException {}
     });
@@ -405,6 +447,17 @@ void main() {
         expect(e.client, isNull);
         expect(e.reason, AuthRequestError.invalidClient);
       }
+    });
+
+    test("Code no longer available if owner authentcatable is 'revoked'", () async {
+      var authCode = await auth.authenticateForCode(
+          createdUser.username,  User.DefaultPassword, "com.stablekernel.redirect");
+      await auth.revokeAuthenticatableAccessForIdentifier(createdUser.id);
+
+      try {
+        await auth.exchange(authCode.code, "com.stablekernel.redirect", "mckinley");
+        expect(true, false);
+      } on AuthServerException {}
     });
   });
 
@@ -552,23 +605,6 @@ void main() {
     });
   });
 
-  test("Ensure users aren't authenticated by other users", () async {
-    var auth = new AuthServer(storage);
-    var users = await createUsers(10);
-    var t1 = await auth.authenticate("bob+0@stablekernel.com",
-        User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
-    var t2 = await auth.authenticate("bob+4@stablekernel.com",
-        User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
-
-    var permission = await auth.verify(t1.accessToken);
-    expect(permission.clientID, "com.stablekernel.app1");
-    expect(permission.resourceOwnerIdentifier, users[0].id);
-
-    permission = await auth.verify(t2.accessToken);
-    expect(permission.clientID, "com.stablekernel.app1");
-    expect(permission.resourceOwnerIdentifier, users[4].id);
-  });
-
   group("Cleanup/friendly fire scenarios from client", () {
     List<User> createdUsers;
 
@@ -665,7 +701,7 @@ void main() {
       createdUsers = await createUsers(3);
     });
 
-    test("After explicitly invoking didDelete* all tokens and codes are no longer in db", () async {
+    test("After explicitly invoking 'invalidate resource owner' method, all tokens and codes for that resource owner are no longer in db", () async {
       var unusedCode = await auth.authenticateForCode(createdUsers.first.username, User.DefaultPassword, "com.stablekernel.redirect");
       var exchangedCode = await auth.authenticateForCode(createdUsers.first.username, User.DefaultPassword, "com.stablekernel.redirect");
       var exchangedToken = await auth.exchange(exchangedCode.code, "com.stablekernel.redirect", "mckinley");
@@ -673,7 +709,7 @@ void main() {
 
       expect(await auth.verify(issuedToken.accessToken), isNotNull);
 
-      await (auth.storage as ManagedAuthStorage).didDeleteAuthenticatableWithIdentifier(createdUsers.first.id);
+      await auth.revokeAuthenticatableAccessForIdentifier(createdUsers.first.id);
 
       try {
         await auth.exchange(unusedCode.code, "com.stablekernel.redirect", "mckinley");
@@ -796,7 +832,95 @@ void main() {
 
     setUp(() async {
       auth = new AuthServer(storage);
-      createdUsers = await createUsers(3);
+      createdUsers = await createUsers(10);
+    });
+
+    test("Oldest tokens gets pruned after reaching tokenLimit, but only for that user", () async {
+      (auth.storage as ManagedAuthStorage).tokenLimit = 3;
+      // Ensure codeLimit doesn't impact tokenLimit
+      (auth.storage as ManagedAuthStorage).codeLimit = 1;
+
+      // Insert a token manually to simulate a race condition, but insert it after the others have been
+      // so they don't strip it when inserted.
+      var manualToken = new ManagedToken()
+        ..accessToken = "ASDFGHJ"
+        ..refreshToken = "ABCHASDS"
+        ..issueDate = new DateTime.now().toUtc()
+        ..expirationDate = new DateTime.now().add(new Duration(seconds: 60)).toUtc()
+        ..client = (new ManagedClient()..id = "com.stablekernel.app1")
+        ..resourceOwnerIdentifier = createdUsers.first.id;
+
+      // Insert a token for a different user to make sure it doesn't get pruned.
+      var otherUserToken = await auth.authenticate(createdUsers[1].username, User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
+
+      // Insert the max number of token
+      var tokens = <AuthToken>[];
+      for (var i = 0; i < 3; i++) {
+        var c = await auth.authenticate(createdUsers.first.username, User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
+        tokens.add(c);
+      }
+
+      // Insert the 'race condition' token
+      var manualInsertQuery = new Query<ManagedToken>()
+        ..values = manualToken;
+      manualToken = await manualInsertQuery.insert();
+
+      // Make a new token, should kill the race condition token and the first generated token in the loop.
+      // Other user token remain
+      var newToken = await auth.authenticate(createdUsers.first.username, User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
+      var tokenQuery = new Query<ManagedToken>();
+      var tokensInDB = (await tokenQuery.fetch()).map((ac) => ac.accessToken).toList();
+
+      // These token are in chronological order
+      expect(tokensInDB.contains(otherUserToken.accessToken), true);
+
+      expect(tokensInDB.contains(manualToken.accessToken), false);
+      expect(tokensInDB.contains(tokens.first.accessToken), false);
+      expect(tokensInDB.contains(tokens[1].accessToken), true);
+      expect(tokensInDB.contains(tokens.last.accessToken), true);
+      expect(tokensInDB.contains(newToken.accessToken), true);
+
+      // Make a new token, but with a different client, should still kill off the oldest token code.
+      var lastToken = await auth.authenticate(createdUsers.first.username, User.DefaultPassword, "com.stablekernel.app2", "fuji");
+      tokensInDB = (await tokenQuery.fetch()).map((ac) => ac.accessToken).toList();
+
+      // These token are in chronological order
+      expect(tokensInDB.contains(otherUserToken.accessToken), true);
+
+      expect(tokensInDB.contains(tokens[1].accessToken), false);
+      expect(tokensInDB.contains(tokens.last.accessToken), true);
+      expect(tokensInDB.contains(newToken.accessToken), true);
+      expect(tokensInDB.contains(lastToken.accessToken), true);
+    });
+
+    test("Ensure users aren't authenticated by other users", () async {
+      var t1 = await auth.authenticate(createdUsers[0].username,
+          User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
+      var t2 = await auth.authenticate(createdUsers[4].username,
+          User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
+
+      var permission = await auth.verify(t1.accessToken);
+      expect(permission.clientID, "com.stablekernel.app1");
+      expect(permission.resourceOwnerIdentifier, createdUsers[0].id);
+
+      permission = await auth.verify(t2.accessToken);
+      expect(permission.clientID, "com.stablekernel.app1");
+      expect(permission.resourceOwnerIdentifier, createdUsers[4].id);
+    });
+
+    test("Revoking tokens/codes for Authenticatable does not impact other Authenticatables", () async {
+      var t1 = await auth.authenticate(createdUsers[0].username,
+          User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
+      var t2 = await auth.authenticate(createdUsers[4].username,
+          User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
+
+      await auth.revokeAuthenticatableAccessForIdentifier(createdUsers[0].id);
+      expect(await auth.verify(t2.accessToken), isNotNull);
+
+      try {
+        await auth.verify(t1.accessToken);
+        expect(true, false);
+      } on AuthServerException {}
     });
   });
 

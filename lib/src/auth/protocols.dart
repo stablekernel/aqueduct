@@ -38,6 +38,8 @@ abstract class Authenticatable {
 /// is a concrete instance of [AuthToken] to represent a resource owner bearer token. The [AuthCodeType] represents an authorization code
 /// used in the authorization code grant type.
 abstract class AuthStorage {
+  Future revokeAuthenticatableAccessForIdentifier(AuthServer server, dynamic identifier);
+
   /// Returns a [ResourceOwner] for an [username].
   ///
   /// This method returns an instance of [ResourceOwner] if one exists for [username]. Otherwise, it returns null.
