@@ -153,11 +153,7 @@ class ManagedAuthStorage<T extends AuthenticatableManagedObject> implements Auth
   int tokenLimit;
   int codeLimit;
 
-  Future didDeleteAuthenticatableWithIdentifier(dynamic identifier) async {
-    if (identifier == null) {
-      return;
-    }
-
+  Future revokeAuthenticatableAccessForIdentifier(AuthServer server, dynamic identifier) async {
     var tokenQuery = new Query<ManagedToken>()
       ..matchOn.resourceOwnerIdentifier = identifier;
     await tokenQuery.delete();
@@ -210,11 +206,11 @@ class ManagedAuthStorage<T extends AuthenticatableManagedObject> implements Auth
     var inserted = await query.insert();
 
     var oldTokenQuery = new Query<ManagedToken>()
-      ..matchOn.resourceOwnerIdentifier = whereRelatedByValue(t.resourceOwnerIdentifier)
+      ..matchOn.resourceOwnerIdentifier = t.resourceOwnerIdentifier
       ..sortDescriptors = [
         new QuerySortDescriptor("expirationDate", QuerySortOrder.descending)
       ]
-      ..offset = codeLimit
+      ..offset = tokenLimit
       ..fetchLimit = 1
       ..resultProperties = ["expirationDate"];
 
@@ -222,10 +218,10 @@ class ManagedAuthStorage<T extends AuthenticatableManagedObject> implements Auth
     var results = await oldTokenQuery.fetch();
     if (results.length == 1) {
       var deleteQ = new Query<ManagedToken>()
-        ..matchOn.resourceOwnerIdentifier = whereRelatedByValue(t.resourceOwnerIdentifier)
+        ..matchOn.resourceOwnerIdentifier = t.resourceOwnerIdentifier
         ..matchOn.expirationDate = whereLessThanEqualTo(results.first.expirationDate);
 
-      await deleteQ.delete();
+      var count = await deleteQ.delete();
     }
 
     return inserted.id;
@@ -250,7 +246,7 @@ class ManagedAuthStorage<T extends AuthenticatableManagedObject> implements Auth
     await query.insert();
 
     var oldCodeQuery = new Query<ManagedAuthCode>()
-      ..matchOn.resourceOwnerIdentifier = whereRelatedByValue(code.resourceOwnerIdentifier)
+      ..matchOn.resourceOwnerIdentifier = code.resourceOwnerIdentifier
       ..sortDescriptors = [
         new QuerySortDescriptor("expirationDate", QuerySortOrder.descending)
       ]
@@ -262,7 +258,7 @@ class ManagedAuthStorage<T extends AuthenticatableManagedObject> implements Auth
     var results = await oldCodeQuery.fetch();
     if (results.length == 1) {
       var deleteQ = new Query<ManagedAuthCode>()
-        ..matchOn.resourceOwnerIdentifier = whereRelatedByValue(code.resourceOwnerIdentifier)
+        ..matchOn.resourceOwnerIdentifier = code.resourceOwnerIdentifier
         ..matchOn.expirationDate = whereLessThanEqualTo(results.first.expirationDate);
 
       await deleteQ.delete();
