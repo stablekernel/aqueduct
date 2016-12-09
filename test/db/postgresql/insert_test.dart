@@ -208,10 +208,6 @@ void main() {
     var pq = new Query<GenPost>();
     expect(await pq.fetch(), hasLength(0));
   });
-
-  test("Can insert partial managed object", () {
-    fail("NYI");
-  });
 }
 
 class TestModel extends ManagedObject<_TestModel> implements _TestModel {}
