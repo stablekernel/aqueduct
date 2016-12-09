@@ -71,6 +71,8 @@ class _ManagedToken {
   ManagedAuthCode issuingAuthCode;
 
 //  String scopeStorage;
+
+  static String tableName() => "_authtoken";
 }
 
 class ManagedClient extends ManagedObject<_ManagedClient> implements _ManagedClient {
@@ -94,6 +96,8 @@ class _ManagedClient {
 
   ManagedSet<ManagedToken> tokens;
   ManagedSet<ManagedAuthCode> authCodes;
+
+  static String tableName() => "_authclient";
 }
 
 class ManagedAuthCode extends ManagedObject<_ManagedAuthCode> implements _ManagedAuthCode {
@@ -143,6 +147,8 @@ class _ManagedAuthCode {
   ManagedClient client;
 
   // String requestedScopeStorage;
+
+  static String tableName() => "_authcode";
 }
 
 class ManagedAuthenticatable implements Authenticatable {
