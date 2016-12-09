@@ -7,9 +7,9 @@ class RegisterController extends QueryController<User> {
 
   @httpPost
   createUser() async {
-    if (query.values.email == null || query.values.password == null) {
+    if (query.values.username == null || query.values.password == null) {
       return new Response.badRequest(
-          body: {"error": "email and password required."});
+          body: {"error": "username and password required."});
     }
     var credentials = AuthorizationBasicParser
         .parse(request.innerRequest.headers.value(HttpHeaders.AUTHORIZATION));

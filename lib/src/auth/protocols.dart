@@ -28,7 +28,7 @@ abstract class Authenticatable {
   String salt;
 
   /// The unique identifier of this instance, typically the primary key of the concrete subclass.
-  dynamic get uniqueIdentifier;
+  dynamic get id;
 }
 
 /// An interface for implementing storage behavior for an [AuthServer].
