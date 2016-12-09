@@ -2,3 +2,4 @@ analyzer:
   strong-mode: true
   exclude:
     - tmp_templates/**
+    - test/test_project/**
