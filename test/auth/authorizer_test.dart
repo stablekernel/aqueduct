@@ -146,14 +146,8 @@ void main() {
     });
   });
 
-  group("Scoping", () {
-    test("nyi", () async {
-      fail("NYI");
-    });
-  });
-
   group("Documentation behavior", () {
-
+test("fail", () {fail("nyi");});
   });
 }
 

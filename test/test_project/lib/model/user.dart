@@ -6,6 +6,7 @@ class User extends ManagedObject<_User> implements _User, ManagedAuthResourceOwn
 }
 
 class _User extends ManagedAuthenticatable {
+  @ManagedColumnAttributes(unique: true)
   String email;
 
 /* This class inherits the following from ManagedAuthenticatable:

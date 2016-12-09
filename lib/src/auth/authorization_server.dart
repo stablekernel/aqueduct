@@ -21,8 +21,6 @@ class AuthServer extends Object
   /// [TokenType], [ResourceOwner] and [AuthCodeType] by implementing the [AuthStorage] interface.
   AuthStorage storage;
 
-  // todo: add token lifetime variables, confidential, public, code,
-
   Map<String, AuthClient> _clientCache = {};
 
   /// Returns a [AuthClient] record for its [id].

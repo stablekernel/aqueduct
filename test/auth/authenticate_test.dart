@@ -508,11 +508,6 @@ void main() {
     });
   });
 
-  group("Scoping use cases", () {
-
-
-  });
-
   test("Clients have separate tokens", () async {
     var auth = new AuthServer(delegate);
 

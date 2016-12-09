@@ -101,12 +101,6 @@ void main() {
         });
   });
 
-  group("Success Cases: password with scope", () {
-    test("", () {
-      fail("NYI");
-    });
-  });
-
   group("Success Cases: refresh_token", () {
     test(
         "Confidental Client gets a new access token, retains same access token",
@@ -135,25 +129,11 @@ void main() {
         });
   });
 
-  group("Success Cases: refresh_token with scope", () {
-    test(
-        "Confidental Client gets a new access token, retains same access token",
-            () async {
-          fail("NYI");
-        });
-  });
-
   group("Success Cases: authorization_code", () {
     test("Exchange valid code gets new access token with refresh token", () async {
       var code = await authenticationServer.authenticateForCode(user1["username"], user1["password"], "com.stablekernel.redirect");
       var res = await exchangeResponse("com.stablekernel.redirect", "mckinley", code.code);
       expect(res, hasAuthResponse(200, bearerTokenMatcher));
-    });
-  });
-
-  group("Success Cases: authorization_code with scope", () {
-    test("", () {
-      fail("NYI");
     });
   });
 
@@ -281,12 +261,6 @@ void main() {
       var code = await authenticationServer.authenticateForCode(user1["username"], user1["password"], "com.stablekernel.redirect");
       var res = await exchangeResponse("com.stablekernel.redirect2", "gibraltar", code.code);
       expect(res, hasResponse(400, {"error": "invalid_grant"}));
-    });
-  });
-
-  group("scope Failure Cases", () {
-    test("fail", () {
-      fail("NYI");
     });
   });
 

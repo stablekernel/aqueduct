@@ -230,49 +230,34 @@ void main() {
         new SchemaColumn("id", ManagedPropertyType.bigInteger,
             isPrimaryKey: true, autoincrement: true),
         new SchemaColumn("email", ManagedPropertyType.string,
+            isUnique: true),
+        new SchemaColumn("username", ManagedPropertyType.string,
             isUnique: true, isIndexed: true),
         new SchemaColumn("hashedPassword", ManagedPropertyType.string),
         new SchemaColumn("salt", ManagedPropertyType.string)
       ]),
       new SchemaTable("_AuthCode", [
-        new SchemaColumn("id", ManagedPropertyType.bigInteger,
-            isPrimaryKey: true, autoincrement: true),
-        new SchemaColumn("code", ManagedPropertyType.string, isIndexed: true),
-        new SchemaColumn("redirectURI", ManagedPropertyType.string,
-            isNullable: true),
-        new SchemaColumn("clientID", ManagedPropertyType.string),
-        new SchemaColumn(
-            "resourceOwnerIdentifier", ManagedPropertyType.integer),
-        new SchemaColumn("issueDate", ManagedPropertyType.datetime),
-        new SchemaColumn("expirationDate", ManagedPropertyType.datetime),
-        new SchemaColumn.relationship("token", ManagedPropertyType.string,
-            isNullable: true,
-            isUnique: true,
-            relatedTableName: "_Token",
-            relatedColumnName: "accessToken",
-            rule: ManagedRelationshipDeleteRule.cascade)
+        new SchemaColumn("code", ManagedPropertyType.string, isPrimaryKey: true, autoincrement: false, isIndexed: false, isNullable: false, isUnique: false),
+        new SchemaColumn("issueDate", ManagedPropertyType.datetime, isPrimaryKey: false, autoincrement: false, isIndexed: false, isNullable: false, isUnique: false),
+        new SchemaColumn("expirationDate", ManagedPropertyType.datetime, isPrimaryKey: false, autoincrement: false, isIndexed: true, isNullable: false, isUnique: false),
+        new SchemaColumn.relationship("resourceOwner", ManagedPropertyType.bigInteger, relatedTableName: "_User", relatedColumnName: "id", rule: ManagedRelationshipDeleteRule.cascade, isNullable: false, isUnique: false),
+        new SchemaColumn.relationship("token", ManagedPropertyType.bigInteger, relatedTableName: "_authtoken", relatedColumnName: "id", rule: ManagedRelationshipDeleteRule.cascade, isNullable: true, isUnique: true),
+        new SchemaColumn.relationship("client", ManagedPropertyType.string, relatedTableName: "_authclient", relatedColumnName: "id", rule: ManagedRelationshipDeleteRule.cascade, isNullable: false, isUnique: false),
       ]),
-      new SchemaTable("_Token", [
-        new SchemaColumn("accessToken", ManagedPropertyType.string,
-            isPrimaryKey: true),
-        new SchemaColumn("refreshToken", ManagedPropertyType.string,
-            isIndexed: true),
-        new SchemaColumn.relationship("client", ManagedPropertyType.string,
-            relatedTableName: "_Client",
-            relatedColumnName: "id",
-            rule: ManagedRelationshipDeleteRule.cascade),
-        new SchemaColumn.relationship("owner", ManagedPropertyType.bigInteger,
-            relatedTableName: "_User",
-            relatedColumnName: "id",
-            rule: ManagedRelationshipDeleteRule.cascade),
-        new SchemaColumn("issueDate", ManagedPropertyType.datetime),
-        new SchemaColumn("expirationDate", ManagedPropertyType.datetime),
-        new SchemaColumn("type", ManagedPropertyType.string)
+      new SchemaTable("_authToken", [
+        new SchemaColumn("id", ManagedPropertyType.bigInteger, isPrimaryKey: true, autoincrement: true, isIndexed: false, isNullable: false, isUnique: false),
+        new SchemaColumn("accessToken", ManagedPropertyType.string, isPrimaryKey: false, autoincrement: false, isIndexed: true, isNullable: false, isUnique: true),
+        new SchemaColumn("refreshToken", ManagedPropertyType.string, isPrimaryKey: false, autoincrement: false, isIndexed: true, isNullable: true, isUnique: true),
+        new SchemaColumn("issueDate", ManagedPropertyType.datetime, isPrimaryKey: false, autoincrement: false, isIndexed: false, isNullable: false, isUnique: false),
+        new SchemaColumn("expirationDate", ManagedPropertyType.datetime, isPrimaryKey: false, autoincrement: false, isIndexed: true, isNullable: false, isUnique: false),
+        new SchemaColumn.relationship("resourceOwner", ManagedPropertyType.bigInteger, relatedTableName: "_User", relatedColumnName: "id", rule: ManagedRelationshipDeleteRule.cascade, isNullable: false, isUnique: false),
+        new SchemaColumn.relationship("client", ManagedPropertyType.string, relatedTableName: "_authclient", relatedColumnName: "id", rule: ManagedRelationshipDeleteRule.cascade, isNullable: false, isUnique: false),
       ]),
-      new SchemaTable("_Client", [
+      new SchemaTable("_authclient", [
         new SchemaColumn("id", ManagedPropertyType.string, isPrimaryKey: true),
-        new SchemaColumn("hashedPassword", ManagedPropertyType.string),
-        new SchemaColumn("salt", ManagedPropertyType.string),
+        new SchemaColumn("hashedSecret", ManagedPropertyType.string, isNullable: true),
+        new SchemaColumn("salt", ManagedPropertyType.string, isNullable: true),
+        new SchemaColumn("redirectURI", ManagedPropertyType.string, isUnique: true, isNullable: true),
       ]),
     ]);
 
@@ -303,6 +288,7 @@ void main() {
 
       var errors = <String>[];
       var ok = outSchema.matches(expectedSchema, errors);
+      print("$errors");
       expect(ok, true);
       expect(errors, []);
     });
