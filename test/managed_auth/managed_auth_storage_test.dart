@@ -99,7 +99,6 @@ void main() {
     });
 
     test("Can create token with all information + refresh token if client is confidential", () async {
-      justLogEverything();
       var token = await auth.authenticate(
           createdUser.username, User.DefaultPassword,
           "com.stablekernel.app1", "kilimanjaro");
@@ -780,7 +779,7 @@ void main() {
         ..issueDate = new DateTime.now().toUtc()
         ..expirationDate = new DateTime.now().add(new Duration(seconds: 60)).toUtc()
         ..client = (new ManagedClient()..id = "com.stablekernel.redirect")
-        ..resourceOwner.id= createdUsers.first.id;
+        ..resourceOwner = (new User()..id = createdUsers.first.id);
 
       // Insert a code for a different user to make sure it doesn't get pruned.
       var otherUserCode = await auth.authenticateForCode(createdUsers[1].username, User.DefaultPassword, "com.stablekernel.redirect");
@@ -849,7 +848,7 @@ void main() {
         ..issueDate = new DateTime.now().toUtc()
         ..expirationDate = new DateTime.now().add(new Duration(seconds: 60)).toUtc()
         ..client = (new ManagedClient()..id = "com.stablekernel.app1")
-        ..resourceOwner.id = createdUsers.first.id;
+        ..resourceOwner = (new User()..id = createdUsers.first.id);
 
       // Insert a token for a different user to make sure it doesn't get pruned.
       var otherUserToken = await auth.authenticate(createdUsers[1].username, User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
@@ -930,7 +929,7 @@ void main() {
   });
 }
 
-class User extends ManagedObject<_User> implements _User, ManagedAuthResourceOwnerType {
+class User extends ManagedObject<_User> implements _User, ManagedAuthResourceOwner {
   static const String DefaultPassword = "foobaraxegrind!%12";
 }
 

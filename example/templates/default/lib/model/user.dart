@@ -1,6 +1,6 @@
 import '../wildfire.dart';
 
-class User extends ManagedObject<_User> implements _User, ManagedAuthResourceOwnerType {
+class User extends ManagedObject<_User> implements _User, ManagedAuthResourceOwner {
   @managedTransientInputAttribute
   String password;
 }
