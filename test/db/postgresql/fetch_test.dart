@@ -326,6 +326,10 @@ void main() {
               "Attempting to access matcher on RelationshipInverse owner on _GenPost. Assign this value to whereRelatedByValue instead."));
     }
   });
+
+  test("Can fetch partial managed object", () {
+    fail("NYI");
+  });
 }
 
 class TestModel extends ManagedObject<_TestModel> implements _TestModel {
