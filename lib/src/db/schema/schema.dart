@@ -61,13 +61,11 @@ class Schema {
     var matches = true;
 
     for (var receiverTable in tables) {
-      var matchingArgTable = schema.tables.firstWhere(
-          (st) => st.name == receiverTable.name,
-          orElse: () => null);
+      var matchingArgTable = schema.tableForName(receiverTable.name);
       if (matchingArgTable == null) {
         matches = false;
         reasons?.add(
-            "Compared schema does not contain ${receiverTable.name}, but that table exists in receiver schema.");
+            "Compared schema does not contain '${receiverTable.name}', but that table exists in receiver schema.");
       } else {
         if (!receiverTable.matches(matchingArgTable, reasons)) {
           matches = false;
@@ -77,12 +75,12 @@ class Schema {
 
     if (schema.tables.length > tables.length) {
       matches = false;
-      var receiverTableNames = tables.map((st) => st.name).toList();
+      var receiverTableNames = tables.map((st) => st.name.toLowerCase()).toList();
       schema.tables
-          .where((st) => !receiverTableNames.contains(st.name))
+          .where((st) => !receiverTableNames.contains(st.name.toLowerCase()))
           .forEach((st) {
         reasons?.add(
-            "Receiver schema does not contain ${st.name}, but that table exists in compared schema.");
+            "Receiver schema does not contain '${st.name}', but that table exists in compared schema.");
       });
     }
 
