@@ -176,7 +176,53 @@ class ManagedTransientAttribute {
         isAvailableAsOutput = availableAsOutput;
 }
 
-const ManagedPartialObject managedPartialObject = const ManagedPartialObject();
-class ManagedPartialObject {
-  const ManagedPartialObject();
+
+/// Metadata that allows a relationship to be declared in another package.
+///
+/// Relationship properties declared in a [ManagedObject]'s persistent type can have this metadata.
+/// When a relationship property has this metadata, the type of that property must be a plain Dart class
+/// that serves as a placeholder for the related [ManagedObject]. The related [ManagedObject]'s
+/// persistent type *must extend* the placeholder's type and therefore acquire all of its persistent
+/// properties.
+///
+/// This behavior is useful when declaring a [ManagedObject] in a dependency package,
+/// but you wish to retain referential integrity with a [ManagedObject] in the importing package. For example,
+/// a package named 'geography' declares a 'Location' managed object with a partial relationship and
+/// what a 'LocationOwner' must be:
+///
+///         class Location extends ManagedObject<_Location> implements _Location {}
+///         class _Location {
+///           @managedPrimaryKey
+///           int id;
+///
+///           double lat;
+///           double lon;
+///
+///           @managedPartialObject
+///           @ManagedRelationship(#locations)
+///           LocationOwner owner;
+///         }
+///
+///         // This is a 'partial' managed object
+///         class LocationOwner {
+///           @managedPrimaryKey
+///           int id;
+///
+///           ManagedSet<Location> locations;
+///         }
+///
+///
+/// A package importing the 'geography' package can set up a relationship with a 'Location' by subclassing
+/// LocationOwner.
+///
+///         class User extends ManagedObject<_User> implements _User {}
+///         class _User extends LocationOwner {
+///           String phoneNumber;
+///         }
+///
+/// The concrete [ManagedObject] will inherit all of the properties of the partial managed object
+/// and those properties will be persistent.
+const _ManagedPartialObject managedPartialObject = const _ManagedPartialObject();
+class _ManagedPartialObject {
+  const _ManagedPartialObject();
 }

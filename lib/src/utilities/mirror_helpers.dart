@@ -21,7 +21,7 @@ bool doesVariableMirrorRepresentRelationship(VariableMirror mirror) {
 
 bool doesVariableMirrorReferencePartialManagedObject(VariableMirror mirror) {
   return mirror.metadata
-      .firstWhere((im) => im.type.isSubclassOf(reflectClass(ManagedPartialObject)),
+      .firstWhere((im) => im.reflectee == managedPartialObject,
       orElse: () => null) != null;
 }
 
