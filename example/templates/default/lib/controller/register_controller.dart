@@ -6,7 +6,7 @@ class RegisterController extends QueryController<User> {
   AuthServer authServer;
 
   @httpPost
-  createUser() async {
+  Future<Response> createUser() async {
     if (query.values.username == null || query.values.password == null) {
       return new Response.badRequest(
           body: {"error": "username and password required."});
@@ -17,8 +17,10 @@ class RegisterController extends QueryController<User> {
     var salt = AuthUtility.generateRandomSalt();
     var hashedPassword =
       AuthUtility.generatePasswordHash(query.values.password, salt);
+
     query.values.hashedPassword = hashedPassword;
     query.values.salt = salt;
+    query.values.email = query.values.username;
 
     var u = await query.insert();
     var token = await authServer.authenticate(
