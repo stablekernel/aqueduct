@@ -28,8 +28,12 @@ class DataModelBuilder {
   String tableNameForPersistentTypeMirror(ClassMirror typeMirror) {
     var tableNameSymbol = #tableName;
 
-    if (typeMirror.staticMembers[tableNameSymbol] != null) {
-      return typeMirror.invoke(tableNameSymbol, []).reflectee;
+    var ptr = typeMirror;
+    while (ptr.superclass != null) {
+      if (ptr.staticMembers[tableNameSymbol] != null) {
+        return ptr.invoke(tableNameSymbol, []).reflectee;
+      }
+      ptr = ptr.superclass;
     }
 
     return MirrorSystem.getName(typeMirror.simpleName);
@@ -339,7 +343,7 @@ bool isTransientAccessorMethod(DeclarationMirror declMir) {
     return false;
   }
 
-  if ((methodMirror.isSetter || methodMirror.isGetter) && !methodMirror.isSynthetic) {
+  if (!(methodMirror.isSetter || methodMirror.isGetter) || methodMirror.isSynthetic) {
     return false;
   }
 

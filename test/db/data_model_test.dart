@@ -230,16 +230,13 @@ void main() {
       expect(dataModel.entityForType(TotalModel).tableName, "predefined");
     });
 
-    test("Will use tableName of subclass if declared", () {
-
-    });
-
-
-    test("Order of partial data model doesn't matter", () {
-      var dataModel1 = new ManagedDataModel([TotalModel, PartialReferenceModel]);
-      var dataModel2 = new ManagedDataModel([PartialReferenceModel, TotalModel]);
-      expect(dataModel1.entities.map((e) => e.tableName).toList(), ["predefined", "_PartialReferenceModel"]);
-      expect(dataModel2.entities.map((e) => e.tableName).toList(), ["predefined", "_PartialReferenceModel"]);
+    test("Order of partial data model doesn't matter when related", () {
+      var dm1 = new ManagedDataModel([TotalModel, PartialReferenceModel]);
+      var dm2 = new ManagedDataModel([PartialReferenceModel, TotalModel]);
+      expect(dm1.entities.map((e) => e.tableName).contains("predefined"), true);
+      expect(dm1.entities.map((e) => e.tableName).contains("_PartialReferenceModel"), true);
+      expect(dm2.entities.map((e) => e.tableName).contains("predefined"), true);
+      expect(dm2.entities.map((e) => e.tableName).contains("_PartialReferenceModel"), true);
     });
   });
 
@@ -250,7 +247,7 @@ void main() {
       expect(true, false);
     } on ManagedDataModelException catch (e) {
       expect(e.message,
-          "Relationship ref on _FailingChild set to nullify on delete, but is not nullable");
+          "Relationship 'ref' on '_FailingChild' set to nullify on delete, but is not nullable");
     }
   });
 
@@ -286,8 +283,7 @@ void main() {
       new ManagedDataModel([InvalidModel]);
       expect(true, false);
     } on ManagedDataModelException catch (e) {
-      expect(e.message,
-          contains("Property uri on _InvalidModel has invalid type"));
+      expect(e.message, "Property 'uri' on '_InvalidModel' has no type information");
     }
   });
 
@@ -297,15 +293,8 @@ void main() {
       new ManagedDataModel([InvalidTransientModel]);
       expect(true, false);
     } on ManagedDataModelException catch (e) {
-      expect(e.message,
-          contains("Property uri on InvalidTransientModel has invalid type"));
+      expect(e.message, "Property 'uri' on 'InvalidTransientModel' has invalid type");
     }
-  });
-
-  group("Generated from libraries", () {
-    test("", () {
-      fail("NYI");
-    });
   });
 
   group("Schema generation", () {
