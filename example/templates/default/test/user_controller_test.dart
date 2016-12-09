@@ -6,13 +6,13 @@ Future main() async {
     TestApplication app = new TestApplication();
     var tokens;
 
-    setUpAll(() async {
+    setUp(() async {
       await app.start();
 
       var responses = await Future.wait([0, 1, 2, 3, 4, 5].map((i) {
         return (app.client.clientAuthenticatedRequest("/register")
               ..json = {
-                "email": "bob+$i@stablekernel.com",
+                "username": "bob+$i@stablekernel.com",
                 "password": "foobaraxegrind$i%"
               })
             .post();
@@ -23,7 +23,7 @@ Future main() async {
           .toList();
     });
 
-    tearDownAll(() async {
+    tearDown(() async {
       await app.stop();
     });
 
@@ -33,16 +33,7 @@ Future main() async {
           .get());
 
       expect(response,
-          hasResponse(200, partial({"email": "bob+0@stablekernel.com"})));
-    });
-
-    test("Updating user can update email", () async {
-      var response = await (app.client.authenticatedRequest("/users/1",
-              accessToken: tokens[0])..json = {"email": "a@a.com"})
-          .put();
-
-      expect(
-          response, hasResponse(200, partial({"email": "a@a.com", "id": 1})));
+          hasResponse(200, partial({"username": "bob+0@stablekernel.com"})));
     });
   });
 
@@ -50,13 +41,13 @@ Future main() async {
     TestApplication app = new TestApplication();
     var tokens;
 
-    setUpAll(() async {
+    setUp(() async {
       await app.start();
 
       var responses = await Future.wait([0, 1, 2, 3, 4, 5].map((i) {
         return (app.client.clientAuthenticatedRequest("/register")
               ..json = {
-                "email": "bob+$i@stablekernel.com",
+                "username": "bob+$i@stablekernel.com",
                 "password": "foobaraxegrind$i%"
               })
             .post();
@@ -67,7 +58,7 @@ Future main() async {
           .toList();
     });
 
-    tearDownAll(() async {
+    tearDown(() async {
       await app.stop();
     });
 

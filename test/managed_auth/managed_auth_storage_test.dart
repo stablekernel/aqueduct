@@ -951,10 +951,3 @@ Future<List<User>> createUsers(int count) async {
   }
   return list;
 }
-
-justLogEverything() {
-  hierarchicalLoggingEnabled = true;
-  new Logger("")
-    ..level = Level.ALL
-    ..onRecord.listen((p) => print("${p} ${p.object} ${p.stackTrace}"));
-}

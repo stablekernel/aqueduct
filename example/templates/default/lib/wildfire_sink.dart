@@ -26,6 +26,7 @@ class WildfireSink extends RequestSink {
     target?.bind(logger);
 
     context = contextWithConnectionInfo(configuration.database);
+    ManagedContext.defaultContext = context;
 
     authServer = new AuthServer(new ManagedAuthStorage<User>(context));
   }
@@ -45,14 +46,13 @@ class WildfireSink extends RequestSink {
         .generate(() => new AuthCodeController(authServer));
 
     router
-        .route("/identity")
-        .pipe(new Authorizer.bearer(authServer))
-        .generate(() => new IdentityController());
+        .route("/register")
+        .generate(() => new RegisterController(authServer));
 
     router
-        .route("/register")
-        .pipe(new Authorizer.basic(authServer))
-        .generate(() => new RegisterController(authServer));
+        .route("/me")
+        .pipe(new Authorizer.bearer(authServer))
+        .generate(() => new IdentityController());
 
     router
         .route("/users/[:id]")
@@ -71,10 +71,7 @@ class WildfireSink extends RequestSink {
         connectionInfo.port,
         connectionInfo.databaseName);
 
-    var ctx = new ManagedContext(dataModel, psc);
-    ManagedContext.defaultContext = ctx;
-
-    return ctx;
+    return new ManagedContext(dataModel, psc);
   }
 
   @override
