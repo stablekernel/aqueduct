@@ -2,7 +2,7 @@ import '../wildfire.dart';
 
 class IdentityController extends HTTPController {
   @httpGet
-  getIdentity() async {
+  Future<Response> getIdentity() async {
     var q = new Query<User>()
       ..matchOn.id = request.authorization.resourceOwnerIdentifier;
 
