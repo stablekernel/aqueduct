@@ -10,7 +10,6 @@ void main() {
       dataModel = new ManagedDataModel([User, Item, Manager]);
       ManagedContext.defaultContext =
           new ManagedContext(dataModel, new DefaultPersistentStore());
-      ;
     });
 
     test("Entities have appropriate types", () {
@@ -204,6 +203,48 @@ void main() {
       expect(instance.id, 2);
       expect(instance.items, isNull);
     });
+
+  });
+
+  group("Valid data model with partials", () {
+    test("Entities have correct properties and relationships", () {
+      var dataModel = new ManagedDataModel([TotalModel, PartialReferenceModel]);
+      ManagedContext.defaultContext = new ManagedContext(dataModel, new DefaultPersistentStore());
+
+      expect(dataModel.entities.length, 2);
+
+      var totalEntity = dataModel.entityForType(TotalModel);
+      var referenceEntity = dataModel.entityForType(PartialReferenceModel);
+
+      expect(totalEntity.properties.length, 5);
+      expect(totalEntity.primaryKey, "id");
+      expect(totalEntity.attributes["transient"].isTransient, true);
+      expect(totalEntity.attributes["addedField"].name, isNotNull);
+      expect(totalEntity.attributes["id"].isPrimaryKey, true);
+      expect(totalEntity.attributes["field"].isIndexed, true);
+      expect(totalEntity.relationships["relationship"].destinationEntity.tableName, referenceEntity.tableName);
+      expect(totalEntity.relationships["relationship"].relationshipType, ManagedRelationshipType.hasMany);
+
+      expect(referenceEntity.relationships["relationship"].destinationEntity.tableName, totalEntity.tableName);
+    });
+
+    test("Will use tableName of base class if not declared in subclass", () {
+      var dataModel = new ManagedDataModel([TotalModel, PartialReferenceModel]);
+      ManagedContext.defaultContext = new ManagedContext(dataModel, new DefaultPersistentStore());
+      expect(dataModel.entityForType(TotalModel).tableName, "predefined");
+    });
+
+    test("Will use tableName of subclass if declared", () {
+
+    });
+
+
+    test("Order of partial data model doesn't matter", () {
+      var dataModel1 = new ManagedDataModel([TotalModel, PartialReferenceModel]);
+      var dataModel2 = new ManagedDataModel([PartialReferenceModel, TotalModel]);
+      expect(dataModel1.entities.map((e) => e.tableName).toList(), ["predefined", "_PartialReferenceModel"]);
+      expect(dataModel2.entities.map((e) => e.tableName).toList(), ["predefined", "_PartialReferenceModel"]);
+    });
   });
 
   group("Edge cases", () {
@@ -373,6 +414,12 @@ void main() {
     }
   });
 
+  group("Generated from libraries", () {
+    test("", () {
+      fail("NYI");
+    });
+  });
+
   group("Schema generation", () {
     ManagedDataModel dataModel;
 
@@ -380,7 +427,6 @@ void main() {
       dataModel = new ManagedDataModel([User, Item, Manager]);
       ManagedContext.defaultContext =
           new ManagedContext(dataModel, new DefaultPersistentStore());
-      ;
     });
 
     test("works for a data model", () {
@@ -606,7 +652,6 @@ class PartialModel {
 
 class PartialReferenceModel extends ManagedObject<_PartialReferenceModel>
     implements _PartialReferenceModel {}
-
 class _PartialReferenceModel {
   @managedPrimaryKey
   int id;

@@ -185,3 +185,8 @@ class ManagedTransientAttribute {
       : isAvailableAsInput = availableAsInput,
         isAvailableAsOutput = availableAsOutput;
 }
+
+const ManagedPartialObject managedPartialObject = const ManagedPartialObject();
+class ManagedPartialObject {
+  const ManagedPartialObject();
+}

@@ -369,3 +369,62 @@ class DataModelBuilder {
     }
   }
 }
+
+List<VariableMirror> instanceVariableMirrorsFromClass(ClassMirror classMirror) {
+  var list = <VariableMirror>[];
+  var persistentTypePtr = classMirror;
+  while (persistentTypePtr.superclass != null) {
+    var varMirrorsForThisType = persistentTypePtr.declarations.values
+        .where(isInstanceVariableMirror)
+        .map((declMir) => declMir as VariableMirror);
+
+    list.addAll(varMirrorsForThisType);
+
+    persistentTypePtr = persistentTypePtr.superclass;
+  }
+
+  return list;
+}
+
+VariableMirror variableMirrorFromClass(ClassMirror classMirror, Symbol name) {
+  var persistentTypePtr = classMirror;
+  while (persistentTypePtr.superclass != null) {
+    var declaration = persistentTypePtr.declarations[name];
+    if (declaration != null) {
+      return declaration;
+    }
+    persistentTypePtr = persistentTypePtr.superclass;
+  }
+
+  return null;
+}
+
+bool isInstanceVariableMirror(DeclarationMirror mirror) =>
+  mirror is VariableMirror && !mirror.isStatic;
+
+bool hasTransientMetadata(DeclarationMirror mirror) =>
+  transientFromDeclaration(mirror) != null;
+
+bool isTransientAccessorMethod(DeclarationMirror declMir) {
+  if (declMir is! MethodMirror) {
+    return false;
+  }
+
+  var methodMirror = declMir as MethodMirror;
+  if (methodMirror.isStatic) {
+    return false;
+  }
+
+  if ((methodMirror.isSetter || methodMirror.isGetter) && !methodMirror.isSynthetic) {
+    return false;
+  }
+
+  var mapMetadata = transientFromDeclaration(declMir);
+  if (mapMetadata == null) {
+    return false;
+  }
+
+  // A setter must be available as an input ONLY, a getter must be available as an output. This is confusing.
+  return (methodMirror.isSetter && mapMetadata.isAvailableAsInput)
+      || (methodMirror.isGetter && mapMetadata.isAvailableAsOutput);
+}
