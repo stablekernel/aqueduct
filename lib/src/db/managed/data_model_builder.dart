@@ -415,7 +415,7 @@ bool isTransientAccessorMethod(DeclarationMirror declMir) {
     return false;
   }
 
-  if ((methodMirror.isSetter || methodMirror.isGetter) && !methodMirror.isSynthetic) {
+  if (!(methodMirror.isSetter || methodMirror.isGetter) || methodMirror.isSynthetic) {
     return false;
   }
 

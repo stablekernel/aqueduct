@@ -234,16 +234,13 @@ void main() {
       expect(dataModel.entityForType(TotalModel).tableName, "predefined");
     });
 
-    test("Will use tableName of subclass if declared", () {
-
-    });
-
-
-    test("Order of partial data model doesn't matter", () {
-      var dataModel1 = new ManagedDataModel([TotalModel, PartialReferenceModel]);
-      var dataModel2 = new ManagedDataModel([PartialReferenceModel, TotalModel]);
-      expect(dataModel1.entities.map((e) => e.tableName).toList(), ["predefined", "_PartialReferenceModel"]);
-      expect(dataModel2.entities.map((e) => e.tableName).toList(), ["predefined", "_PartialReferenceModel"]);
+    test("Order of partial data model doesn't matter when related", () {
+      var dm1 = new ManagedDataModel([TotalModel, PartialReferenceModel]);
+      var dm2 = new ManagedDataModel([PartialReferenceModel, TotalModel]);
+      expect(dm1.entities.map((e) => e.tableName).contains("predefined"), true);
+      expect(dm1.entities.map((e) => e.tableName).contains("_PartialReferenceModel"), true);
+      expect(dm2.entities.map((e) => e.tableName).contains("predefined"), true);
+      expect(dm2.entities.map((e) => e.tableName).contains("_PartialReferenceModel"), true);
     });
   });
 
@@ -412,12 +409,6 @@ void main() {
           startsWith(
               "Property 'uri' on '_InvalidTransientModel' has an unsupported type"));
     }
-  });
-
-  group("Generated from libraries", () {
-    test("", () {
-      fail("NYI");
-    });
   });
 
   group("Schema generation", () {
