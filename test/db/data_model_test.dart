@@ -5,9 +5,11 @@ import '../helpers.dart';
 
 void main() {
   group("Valid data model", () {
-    var dataModel = new ManagedDataModel([User, Item, Manager]);
-    var context = new ManagedContext(dataModel, new DefaultPersistentStore());
-    ManagedContext.defaultContext = context;
+    ManagedDataModel dataModel;
+    setUp(() {
+      dataModel = new ManagedDataModel([User, Item, Manager]);
+      ManagedContext.defaultContext = new ManagedContext(dataModel, new DefaultPersistentStore());;
+    });
 
     test("Entities have appropriate types", () {
       var entity = dataModel.entityForType(User);
@@ -197,9 +199,51 @@ void main() {
       expect(instance.id, 2);
       expect(instance.items, isNull);
     });
+
   });
 
-  test("Delete rule of setNull throws exception if property is not nullable",
+  group("Valid data model with partials", () {
+    test("Entities have correct properties and relationships", () {
+      var dataModel = new ManagedDataModel([TotalModel, PartialReferenceModel]);
+      ManagedContext.defaultContext = new ManagedContext(dataModel, new DefaultPersistentStore());
+
+      expect(dataModel.entities.length, 2);
+
+      var totalEntity = dataModel.entityForType(TotalModel);
+      var referenceEntity = dataModel.entityForType(PartialReferenceModel);
+
+      expect(totalEntity.properties.length, 5);
+      expect(totalEntity.primaryKey, "id");
+      expect(totalEntity.attributes["transient"].isTransient, true);
+      expect(totalEntity.attributes["addedField"].name, isNotNull);
+      expect(totalEntity.attributes["id"].isPrimaryKey, true);
+      expect(totalEntity.attributes["field"].isIndexed, true);
+      expect(totalEntity.relationships["relationship"].destinationEntity.tableName, referenceEntity.tableName);
+      expect(totalEntity.relationships["relationship"].relationshipType, ManagedRelationshipType.hasMany);
+
+      expect(referenceEntity.relationships["relationship"].destinationEntity.tableName, totalEntity.tableName);
+    });
+
+    test("Will use tableName of base class if not declared in subclass", () {
+      var dataModel = new ManagedDataModel([TotalModel, PartialReferenceModel]);
+      ManagedContext.defaultContext = new ManagedContext(dataModel, new DefaultPersistentStore());
+      expect(dataModel.entityForType(TotalModel).tableName, "predefined");
+    });
+
+    test("Will use tableName of subclass if declared", () {
+
+    });
+
+
+    test("Order of partial data model doesn't matter", () {
+      var dataModel1 = new ManagedDataModel([TotalModel, PartialReferenceModel]);
+      var dataModel2 = new ManagedDataModel([PartialReferenceModel, TotalModel]);
+      expect(dataModel1.entities.map((e) => e.tableName).toList(), ["predefined", "_PartialReferenceModel"]);
+      expect(dataModel2.entities.map((e) => e.tableName).toList(), ["predefined", "_PartialReferenceModel"]);
+    });
+  });
+
+    test("Delete rule of setNull throws exception if property is not nullable",
       () {
     try {
       new ManagedDataModel([Owner, FailingChild]);
@@ -258,10 +302,19 @@ void main() {
     }
   });
 
+  group("Generated from libraries", () {
+    test("", () {
+      fail("NYI");
+    });
+  });
+
   group("Schema generation", () {
-    var dataModel = new ManagedDataModel([User, Item, Manager]);
-    var context = new ManagedContext(dataModel, new DefaultPersistentStore());
-    ManagedContext.defaultContext = context;
+    ManagedDataModel dataModel;
+
+    setUp(() {
+      dataModel = new ManagedDataModel([User, Item, Manager]);
+      ManagedContext.defaultContext = new ManagedContext(dataModel, new DefaultPersistentStore());;
+    });
 
     test("works for a data model", () {
       var entity = dataModel.entityForType(User);
@@ -459,4 +512,38 @@ class InvalidTransientModel extends ManagedObject<_InvalidTransientModel>
 class _InvalidTransientModel {
   @managedPrimaryKey
   int id;
+}
+
+class TotalModel extends ManagedObject<_TotalModel> implements _TotalModel {
+  @managedTransientAttribute
+  int transient;
+}
+class _TotalModel extends PartialModel {
+  String addedField;
+}
+
+class PartialModel {
+  @managedPrimaryKey
+  int id;
+
+  @ManagedColumnAttributes(indexed: true)
+  String field;
+
+  ManagedSet<PartialReferenceModel> relationship;
+
+  static String tableName() {
+    return "predefined";
+  }
+}
+
+class PartialReferenceModel extends ManagedObject<_PartialReferenceModel> implements _PartialReferenceModel {}
+class _PartialReferenceModel {
+  @managedPrimaryKey
+  int id;
+
+  String field;
+
+  @managedPartialObject
+  @ManagedRelationship(#relationship, onDelete: ManagedRelationshipDeleteRule.cascade, isRequired: true)
+  PartialModel relationship;
 }

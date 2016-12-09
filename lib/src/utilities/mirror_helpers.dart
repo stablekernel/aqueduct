@@ -12,9 +12,17 @@ bool doesVariableMirrorRepresentRelationship(VariableMirror mirror) {
     return true;
   } else if (mirror.type.isSubtypeOf(orderedSetMirror)) {
     return mirror.type.typeArguments.any((tm) => tm.isSubtypeOf(modelMirror));
+  } else if (doesVariableMirrorReferencePartialManagedObject(mirror)) {
+    return true;
   }
 
   return false;
+}
+
+bool doesVariableMirrorReferencePartialManagedObject(VariableMirror mirror) {
+  return mirror.metadata
+      .firstWhere((im) => im.type.isSubclassOf(reflectClass(ManagedPartialObject)),
+      orElse: () => null) != null;
 }
 
 ManagedTransientAttribute transientFromDeclaration(DeclarationMirror dm) =>
@@ -22,7 +30,7 @@ ManagedTransientAttribute transientFromDeclaration(DeclarationMirror dm) =>
 ManagedColumnAttributes attributeMetadataFromDeclaration(
         DeclarationMirror dm) =>
     metadataFromDeclaration(ManagedColumnAttributes, dm);
-ManagedRelationship belongsToMetadataFromDeclaration(DeclarationMirror dm) =>
+ManagedRelationship managedRelationshipMetadataFromDeclaration(DeclarationMirror dm) =>
     metadataFromDeclaration(ManagedRelationship, dm);
 
 dynamic metadataFromDeclaration(Type t, DeclarationMirror dm) {
