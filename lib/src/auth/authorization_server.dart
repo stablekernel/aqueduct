@@ -110,7 +110,7 @@ class AuthServer extends Object
     }
 
     AuthToken token = _generateToken(
-        authenticatable.uniqueIdentifier, client.id, expirationInSeconds,
+        authenticatable.id, client.id, expirationInSeconds,
         allowRefresh: !client.isPublic);
     await storage.storeTokenAndReturnUniqueIdentifier(this, token);
 
@@ -221,7 +221,7 @@ class AuthServer extends Object
     }
 
     AuthCode authCode =
-        _generateAuthCode(authenticatable.uniqueIdentifier, client, expirationInSeconds);
+        _generateAuthCode(authenticatable.id, client, expirationInSeconds);
     await storage.storeAuthCode(this, authCode);
     return authCode;
   }
