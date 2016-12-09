@@ -6,7 +6,7 @@ class UserController extends QueryController<User> {
   AuthServer authServer;
 
   @httpGet
-  getUser(@HTTPPath("id") int id) async {
+  Future<Response> getUser(@HTTPPath("id") int id) async {
     var u = await query.fetchOne();
     if (u == null) {
       return new Response.notFound();
@@ -20,7 +20,7 @@ class UserController extends QueryController<User> {
   }
 
   @httpPut
-  updateUser(@HTTPPath("id") int id) async {
+  Future<Response> updateUser(@HTTPPath("id") int id) async {
     if (request.authorization.resourceOwnerIdentifier != id) {
       return new Response.unauthorized();
     }
