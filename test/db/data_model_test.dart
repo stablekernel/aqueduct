@@ -238,6 +238,16 @@ void main() {
       expect(dm2.entities.map((e) => e.tableName).contains("predefined"), true);
       expect(dm2.entities.map((e) => e.tableName).contains("_PartialReferenceModel"), true);
     });
+
+    test("Partials have defaultProperties from persistent type superclasses", () {
+      var dataModel = new ManagedDataModel([TotalModel, PartialReferenceModel]);
+      var defaultProperties = dataModel.entityForType(TotalModel).defaultProperties;
+      expect(defaultProperties.contains("id"), true);
+      expect(defaultProperties.contains("field"), true);
+      expect(defaultProperties.contains("addedField"), true);
+
+      expect(dataModel.entityForType(PartialReferenceModel).defaultProperties.contains("relationship"), true);
+    });
   });
 
     test("Delete rule of setNull throws exception if property is not nullable",
