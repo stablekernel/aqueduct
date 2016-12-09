@@ -5,12 +5,14 @@ import 'package:aqueduct/aqueduct.dart';
 class ManagedToken extends ManagedObject<_ManagedToken> implements _ManagedToken {
   ManagedToken() : super();
   ManagedToken.fromToken(AuthToken t) : super() {
+    var tokenResourceOwner = this.entity.relationships["resourceOwner"].destinationEntity.newInstance();
+    tokenResourceOwner["id"] = t.resourceOwnerIdentifier;
     this
         ..accessToken = t.accessToken
         ..refreshToken = t.refreshToken
         ..issueDate = t.issueDate
         ..expirationDate = t.expirationDate
-        ..resourceOwner = (new ManagedAuthenticatable()..id = t.resourceOwnerIdentifier)
+        ..resourceOwner = tokenResourceOwner as dynamic
         ..client = (new ManagedClient()..id = t.clientID);
 //        ..scopes = t.scope;
   }
@@ -97,9 +99,12 @@ class _ManagedClient {
 class ManagedAuthCode extends ManagedObject<_ManagedAuthCode> implements _ManagedAuthCode {
   ManagedAuthCode() : super();
   ManagedAuthCode.fromCode(AuthCode code) : super() {
+    var tokenResourceOwner = this.entity.relationships["resourceOwner"].destinationEntity.newInstance();
+    tokenResourceOwner["id"] = code.resourceOwnerIdentifier;
+
     this
         ..code = code.code
-        ..resourceOwner = (new ManagedAuthenticatable()..id = code.resourceOwnerIdentifier)
+        ..resourceOwner = tokenResourceOwner as dynamic
         ..issueDate = code.issueDate
         ..expirationDate = code.expirationDate
         ..client = (new ManagedClient()
@@ -157,9 +162,9 @@ class ManagedAuthenticatable implements Authenticatable {
   ManagedSet<ManagedToken> tokens;
 }
 
-abstract class ManagedAuthResourceOwnerType implements ManagedAuthenticatable, ManagedObject {}
+abstract class ManagedAuthResourceOwner implements ManagedAuthenticatable, ManagedObject {}
 
-class ManagedAuthStorage<T extends ManagedAuthResourceOwnerType> implements AuthStorage {
+class ManagedAuthStorage<T extends ManagedAuthResourceOwner> implements AuthStorage {
   ManagedAuthStorage(this.context, {this.codeLimit: 10, this.tokenLimit: 40});
 
   ManagedContext context;
