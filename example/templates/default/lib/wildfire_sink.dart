@@ -31,20 +31,13 @@ class WildfireSink extends RequestSink {
     authServer = new AuthServer(new ManagedAuthStorage<User>(context));
   }
 
+  HTMLRenderer htmlRenderer = new HTMLRenderer();
   ManagedContext context;
   AuthServer authServer;
 
   /// All routes must be configured in this method.
   @override
   void setupRouter(Router router) {
-    router
-        .route("/auth/token")
-        .generate(() => new AuthController(authServer));
-
-    router
-        .route("/auth/code")
-        .generate(() => new AuthCodeController(authServer));
-
     router
         .route("/register")
         .generate(() => new RegisterController(authServer));
@@ -58,6 +51,15 @@ class WildfireSink extends RequestSink {
         .route("/users/[:id]")
         .pipe(new Authorizer.bearer(authServer))
         .generate(() => new UserController(authServer));
+
+    router
+        .route("/auth/token")
+        .generate(() => new AuthController(authServer));
+
+    router
+        .route("/auth/code")
+        .generate(() => new AuthCodeController(authServer,
+        renderAuthorizationPageHTML: renderLoginPage));
   }
 
   ManagedContext contextWithConnectionInfo(
@@ -78,6 +80,17 @@ class WildfireSink extends RequestSink {
   Map<String, APISecurityScheme> documentSecuritySchemes(
       PackagePathResolver resolver) {
     return authServer.documentSecuritySchemes(resolver);
+  }
+
+  Future<String> renderLoginPage(
+      AuthCodeController controller,
+      Uri requestURI,
+      Map<String, String> queryParameters) async {
+    var path = requestURI.path;
+    var map = new Map<String, String>.from(queryParameters);
+    map["path"] = path;
+
+    return htmlRenderer.renderHTML("web/login.html", map);
   }
 }
 

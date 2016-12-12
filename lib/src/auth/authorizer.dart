@@ -6,16 +6,6 @@ import 'auth.dart';
 
 /// The type of authorization strategy to use for an [Authorizer].
 enum AuthStrategy {
-  /// The resource owner strategy requires that a [Request] have a Bearer token.
-  ///
-  /// This value is deprecated. Use [AuthStrategy.bearer] instead.
-  resourceOwner,
-
-  /// The client strategy requires that the [Request] have a Basic Authorization Client ID and Client secret.
-  ///
-  /// This value is deprecated. Use [AuthStrategy.basic] instead.
-  client,
-
   /// This strategy will parse the Authorization header using the Basic Authorization scheme.
   ///
   /// The resulting username/password will be passed to [AuthValidator.fromBasicCredentials].
@@ -69,17 +59,6 @@ class Authorizer extends RequestController {
   /// The [AuthStrategy] for authorizing a request.
   AuthStrategy strategy;
 
-  // This is temporary while resourceOwner/client deprecate
-  AuthStrategy get _actualStrategy {
-    if (strategy == AuthStrategy.resourceOwner) {
-      return AuthStrategy.bearer;
-    } else if (strategy == AuthStrategy.client) {
-      return AuthStrategy.basic;
-    }
-
-    return strategy;
-  }
-
   @override
   Future<RequestControllerEvent> processRequest(Request req) async {
     var header = req.innerRequest.headers.value(HttpHeaders.AUTHORIZATION);
@@ -87,10 +66,9 @@ class Authorizer extends RequestController {
       return new Response.unauthorized();
     }
 
-    var s = _actualStrategy;
-    if (s == AuthStrategy.bearer) {
+    if (strategy == AuthStrategy.bearer) {
       return await _processBearerHeader(req, header);
-    } else if (s == AuthStrategy.basic) {
+    } else if (strategy == AuthStrategy.basic) {
       return await _processBasicHeader(req, header);
     }
 
@@ -147,26 +125,16 @@ class Authorizer extends RequestController {
 
   @override
   List<APIOperation> documentOperations(PackagePathResolver resolver) {
-    List<APIOperation> items = nextController.documentOperations(resolver);
+    List<APIOperation> operations =
+      nextController.documentOperations(resolver);
+    var securityRequirement =
+      validator.requirementForStrategy(strategy);
 
-
-    var secReq = new APISecurityRequirement()..scopes = [];
-
-    if (strategy == AuthStrategy.client) {
-      strategy = AuthStrategy.basic;
-      secReq.name = "oauth2.application";
-    } else if (strategy == AuthStrategy.resourceOwner) {
-      strategy = AuthStrategy.bearer;
-      secReq.name = "oauth2.password";
-    }
-
-    //TODO: put this in validator
-
-    items.forEach((i) {
-      i.security = [secReq];
+    operations.forEach((i) {
+      i.security = [securityRequirement ];
     });
 
-    return items;
+    return operations;
   }
 }
 
@@ -201,5 +169,5 @@ abstract class AuthValidator {
   Future<Authorization> fromBearerToken(
       String bearerToken, List<String> scopesRequired);
 
-
+  APISecurityRequirement requirementForStrategy(AuthStrategy strategy);
 }

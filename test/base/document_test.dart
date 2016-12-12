@@ -428,15 +428,15 @@ class TestSink extends RequestSink {
   void setupRouter(Router router) {
     router
         .route("/auth/code")
-        .pipe(new Authorizer(authServer, strategy: AuthStrategy.client))
+        .pipe(new Authorizer.basic(authServer))
         .generate(() => new AuthCodeController(authServer));
     router
         .route("/auth/token")
-        .pipe(new Authorizer(authServer, strategy: AuthStrategy.client))
+        .pipe(new Authorizer.basic(authServer))
         .generate(() => new AuthController(authServer));
     router
         .route("/t[/:id[/:notID]]")
-        .pipe(new Authorizer(authServer))
+        .pipe(new Authorizer.bearer(authServer))
         .generate(() => new TController());
   }
 
