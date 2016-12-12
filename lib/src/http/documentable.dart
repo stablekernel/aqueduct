@@ -166,7 +166,7 @@ class APIHost {
 /// Represents a security requirement in the OpenAPI specification.
 class APISecurityRequirement {
   String name;
-  List<APISecurityScope> scopes;
+  List<APISecurityScope> scopes = [];
 
   Map<String, dynamic> asMap() {
     return {name: scopes};
@@ -192,13 +192,13 @@ class APISecurityDefinition {
 }
 
 /// Represents a OAuth 2.0 security scheme flow in the OpenAPI specification.
-enum APISecuritySchemeFlow { implicit, password, application, accessCode }
+enum APISecuritySchemeFlow { implicit, password, application, authorizationCode }
 
 /// Represents a security scheme in the OpenAPI specification.
 class APISecurityScheme {
   static String stringForFlow(APISecuritySchemeFlow flow) {
     switch (flow) {
-      case APISecuritySchemeFlow.accessCode:
+      case APISecuritySchemeFlow.authorizationCode:
         return "accessCode";
       case APISecuritySchemeFlow.password:
         return "password";
@@ -251,7 +251,7 @@ class APISecurityScheme {
       m["flow"] = stringForFlow(oauthFlow);
 
       if (oauthFlow == APISecuritySchemeFlow.implicit ||
-          oauthFlow == APISecuritySchemeFlow.accessCode) {
+          oauthFlow == APISecuritySchemeFlow.authorizationCode) {
         m["authorizationUrl"] = authorizationURL;
       }
 

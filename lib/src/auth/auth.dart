@@ -11,6 +11,7 @@ export 'auth_controller.dart';
 export 'authorization_server.dart';
 export 'authorization_parser.dart';
 export 'authorizer.dart';
+export 'exceptions.dart';
 export 'objects.dart';
 export 'protocols.dart';
 

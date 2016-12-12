@@ -45,7 +45,7 @@ class AuthController extends HTTPController {
     try {
       basicRecord = AuthorizationBasicParser.parse(authHeader);
     } on AuthorizationParserException catch (_) {
-      return AuthServerException.responseForError(AuthRequestError.invalidClient);
+      return _responseForError(AuthRequestError.invalidClient);
     }
 
     try {
@@ -65,13 +65,13 @@ class AuthController extends HTTPController {
 
         return AuthController.tokenResponse(token);
       } else if (grantType == null) {
-        return AuthServerException.responseForError(AuthRequestError.invalidRequest);
+        return _responseForError(AuthRequestError.invalidRequest);
       }
     } on AuthServerException catch (e) {
-      return e.directResponse;
+      return _responseForError(e.reason);
     }
 
-    return AuthServerException.responseForError(AuthRequestError.unsupportedGrantType);
+    return _responseForError(AuthRequestError.unsupportedGrantType);
   }
 
   /// Transforms a [AuthToken] into a [Response] object with an RFC6749 compliant JSON token
@@ -90,7 +90,9 @@ class AuthController extends HTTPController {
         // This post-processes the response in the case that duplicate parameters
         // were in the request, which violates oauth2 spec. It just adjusts the error message.
         // This could be hardened some.
-        response.body = {"error": AuthServerException.errorStringFromRequestError(AuthRequestError.invalidRequest)};
+        response.body = {
+          "error": AuthServerException.errorString(AuthRequestError.invalidRequest)
+        };
       }
     }
   }
@@ -119,5 +121,10 @@ class AuthController extends HTTPController {
     }
 
     return responses;
+  }
+
+  Response _responseForError(AuthRequestError error) {
+    var errorString = AuthServerException.errorString(error);
+    return new Response.badRequest(body: {"error" : errorString});
   }
 }

@@ -96,7 +96,7 @@ abstract class RequestSink extends RequestController
     doc.securitySchemes?.values?.forEach((scheme) {
       if (scheme.isOAuth2) {
         if (scheme.oauthFlow == APISecuritySchemeFlow.implicit ||
-            scheme.oauthFlow == APISecuritySchemeFlow.accessCode) {
+            scheme.oauthFlow == APISecuritySchemeFlow.authorizationCode) {
           var morePath = _authorizationPath(doc.paths);
           if (morePath != null) {
             scheme.authorizationURL = host.resolve(morePath).toString();
@@ -104,7 +104,7 @@ abstract class RequestSink extends RequestController
         }
 
         if (scheme.oauthFlow == APISecuritySchemeFlow.password ||
-            scheme.oauthFlow == APISecuritySchemeFlow.accessCode ||
+            scheme.oauthFlow == APISecuritySchemeFlow.authorizationCode ||
             scheme.oauthFlow == APISecuritySchemeFlow.application) {
           var morePath = _authorizationTokenPath(doc.paths);
           scheme.tokenURL = host.resolve(morePath).toString();

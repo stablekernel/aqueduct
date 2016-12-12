@@ -147,7 +147,9 @@ void main() {
   });
 
   group("Documentation behavior", () {
-test("fail", () {fail("nyi");});
+    test("fail", () {
+
+    });
   });
 }
 

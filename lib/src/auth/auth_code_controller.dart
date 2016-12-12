@@ -93,7 +93,7 @@ class AuthCodeController extends HTTPController {
       }
 
       var exception = new AuthServerException(AuthRequestError.invalidRequest, client);
-      return exception.redirectResponse;
+      return _redirectResponse(exception);
     }
 
     try {
@@ -101,7 +101,7 @@ class AuthCodeController extends HTTPController {
           await authenticationServer.authenticateForCode(username, password, clientID);
       return AuthCodeController.authCodeResponse(authCode, state);
     } on AuthServerException catch (e) {
-      return e.redirectResponse;
+      return _redirectResponse(e);
     }
   }
 
@@ -183,25 +183,34 @@ class AuthCodeController extends HTTPController {
     }
   }
 
-//  Future<String> _defaultRenderFunction(String path, String clientID, String state) async {
-//    if (_defaultRenderTemplate == null) {
-//      try {
-//        var file = new File(path_lib.join("web", "login.html"));
-//        _defaultRenderTemplate = file.readAsStringSync();
-//      } catch (e) {
-//        logger.warning("Could not find authorization HTML template web/login.html.");
-//        _defaultRenderTemplate = "";
-//      }
-//    }
-//
-//    var substituted = _defaultRenderTemplate.replaceFirst("{{client_id}}", clientID);
-//    substituted = substituted.replaceFirst("{{path}}", path);
-//    if (state != null) {
-//      substituted = substituted.replaceFirst("{{state}}", state);
-//    } else {
-//      substituted = substituted.replaceFirst('<input type="hidden" name="state" value="{{state}}">', "");
-//    }
-//
-//    return substituted;
-//  }
+  Response _redirectResponse(AuthServerException exception) {
+    if (exception.client?.redirectURI == null) {
+      return new Response.badRequest(
+          body: {"error" : exception.reasonString});
+    }
+
+    var redirectURI = Uri.parse(exception.client.redirectURI);
+    Map<String, String> queryParameters =
+      new Map.from(redirectURI.queryParameters);
+
+    queryParameters["error"] = exception.reasonString;
+
+    var responseURI = new Uri(
+        scheme: redirectURI.scheme,
+        userInfo: redirectURI.userInfo,
+        host: redirectURI.host,
+        port: redirectURI.port,
+        path: redirectURI.path,
+        queryParameters: queryParameters);
+
+    return new Response(
+        HttpStatus.MOVED_TEMPORARILY,
+        {
+          HttpHeaders.LOCATION: responseURI.toString(),
+          HttpHeaders.CACHE_CONTROL: "no-store",
+          HttpHeaders.PRAGMA: "no-cache"
+        },
+        null);
+  }
+
 }
