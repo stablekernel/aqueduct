@@ -38,6 +38,8 @@ class TestApplication {
   ///
   /// You must call [stop] on this instance when tearing down your tests.
   Future start() async {
+    RequestController.letUncaughtExceptionsEscape = true;
+
     await logger.start();
 
     application = new Application<WildfireSink>();

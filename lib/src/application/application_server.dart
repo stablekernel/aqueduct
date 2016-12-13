@@ -82,11 +82,13 @@ class ApplicationServer {
 
     await sink.willOpen();
 
-    server.map((baseReq) => new Request(baseReq)).listen((Request req) async {
-      logger.fine("Request received $req.", req);
-      await sink.willReceiveRequest(req);
-      sink.receive(req);
-    });
+    server
+        .map((baseReq) => new Request(baseReq))
+        .listen((Request req) async {
+          logger.fine("Request received $req.", req);
+          await sink.willReceiveRequest(req);
+          sink.receive(req);
+        });
 
     sink.didOpen();
   }
