@@ -22,10 +22,16 @@ enum ManagedRelationshipDeleteRule {
 /// has a property that refers to the other. Only one of those properties may have this metadata. The property with this metadata
 /// resolves to a column in the database. The relationship property without this metadata resolves to a row or rows in the database.
 class ManagedRelationship {
+  static const Symbol _deferredSymbol = #mdrDeferred;
+
   /// Creates an instance of this type.
   const ManagedRelationship(this.inverseKey,
       {this.onDelete: ManagedRelationshipDeleteRule.nullify,
       this.isRequired: false});
+
+  const ManagedRelationship.deferred(
+      ManagedRelationshipDeleteRule onDelete, {bool isRequired: false}) :
+        this(_deferredSymbol, onDelete: onDelete, isRequired: isRequired);
 
   /// The symbol for the property in the related [ManagedObject].
   ///
@@ -45,6 +51,10 @@ class ManagedRelationship {
   /// By default, [ManagedRelationship] properties are not required to support the default value of [onDelete].
   /// By setting this value to true, an instance of this entity cannot be created without a valid value for the relationship property.
   final bool isRequired;
+
+  bool get isDeferred {
+    return inverseKey == _deferredSymbol;
+  }
 }
 
 /// The different types of relationships.
@@ -174,55 +184,4 @@ class ManagedTransientAttribute {
       {bool availableAsInput: true, bool availableAsOutput: true})
       : isAvailableAsInput = availableAsInput,
         isAvailableAsOutput = availableAsOutput;
-}
-
-
-/// Metadata that allows a relationship to be declared in another package.
-///
-/// Relationship properties declared in a [ManagedObject]'s persistent type can have this metadata.
-/// When a relationship property has this metadata, the type of that property must be a plain Dart class
-/// that serves as a placeholder for the related [ManagedObject]. The related [ManagedObject]'s
-/// persistent type *must extend* the placeholder's type and therefore acquire all of its persistent
-/// properties.
-///
-/// This behavior is useful when declaring a [ManagedObject] in a dependency package,
-/// but you wish to retain referential integrity with a [ManagedObject] in the importing package. For example,
-/// a package named 'geography' declares a 'Location' managed object with a partial relationship and
-/// what a 'LocationOwner' must be:
-///
-///         class Location extends ManagedObject<_Location> implements _Location {}
-///         class _Location {
-///           @managedPrimaryKey
-///           int id;
-///
-///           double lat;
-///           double lon;
-///
-///           @managedPartialObject
-///           @ManagedRelationship(#locations)
-///           LocationOwner owner;
-///         }
-///
-///         // This is a 'partial' managed object
-///         class LocationOwner {
-///           @managedPrimaryKey
-///           int id;
-///
-///           ManagedSet<Location> locations;
-///         }
-///
-///
-/// A package importing the 'geography' package can set up a relationship with a 'Location' by subclassing
-/// LocationOwner.
-///
-///         class User extends ManagedObject<_User> implements _User {}
-///         class _User extends LocationOwner {
-///           String phoneNumber;
-///         }
-///
-/// The concrete [ManagedObject] will inherit all of the properties of the partial managed object
-/// and those properties will be persistent.
-const _ManagedPartialObject managedPartialObject = const _ManagedPartialObject();
-class _ManagedPartialObject {
-  const _ManagedPartialObject();
 }
