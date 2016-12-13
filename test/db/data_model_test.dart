@@ -202,7 +202,7 @@ void main() {
 
   });
 
-  group("Valid data model with partials", () {
+  group("Valid data model with deferred types", () {
     test("Entities have correct properties and relationships", () {
       var dataModel = new ManagedDataModel([TotalModel, PartialReferenceModel]);
       ManagedContext.defaultContext = new ManagedContext(dataModel, new DefaultPersistentStore());
@@ -257,7 +257,7 @@ void main() {
       expect(true, false);
     } on ManagedDataModelException catch (e) {
       expect(e.message,
-          "Relationship 'ref' on '_FailingChild' set to nullify on delete, but is not nullable");
+          contains("Relationship 'ref' on '_FailingChild' has both"));
     }
   });
 
@@ -266,7 +266,7 @@ void main() {
       new ManagedDataModel([NoPrimaryKey]);
       expect(true, false);
     } on ManagedDataModelException catch (e) {
-      expect(e.message, "No primary key for entity _NoPrimaryKey");
+      expect(e.message, contains("Class '_NoPrimaryKey' doesn't declare a primary key property"));
     }
   });
 
@@ -293,7 +293,7 @@ void main() {
       new ManagedDataModel([InvalidModel]);
       expect(true, false);
     } on ManagedDataModelException catch (e) {
-      expect(e.message, "Property 'uri' on '_InvalidModel' has no type information");
+      expect(e.message, contains("Property 'uri' on '_InvalidModel' has an unsupported type"));
     }
   });
 
@@ -303,7 +303,7 @@ void main() {
       new ManagedDataModel([InvalidTransientModel]);
       expect(true, false);
     } on ManagedDataModelException catch (e) {
-      expect(e.message, "Property 'uri' on 'InvalidTransientModel' has invalid type");
+      expect(e.message, startsWith("Property 'uri' on '_InvalidTransientModel' has an unsupported type"));
     }
   });
 
@@ -542,7 +542,6 @@ class _PartialReferenceModel {
 
   String field;
 
-  @managedPartialObject
-  @ManagedRelationship(#relationship, onDelete: ManagedRelationshipDeleteRule.cascade, isRequired: true)
+  @ManagedRelationship.deferred(ManagedRelationshipDeleteRule.cascade, isRequired: true)
   PartialModel relationship;
 }

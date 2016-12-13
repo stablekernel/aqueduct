@@ -74,11 +74,6 @@ class ManagedEntity {
     _primaryKey = m.values
         .firstWhere((attrDesc) => attrDesc.isPrimaryKey, orElse: () => null)
         ?.name;
-
-    if (_primaryKey == null) {
-      throw new ManagedDataModelException(
-          "No primary key for entity ${MirrorSystem.getName(persistentType.simpleName)}");
-    }
   }
 
   /// All relationship values of this entity.
