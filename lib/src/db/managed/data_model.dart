@@ -39,9 +39,9 @@ class ManagedDataModel {
         .where((lib) => lib.uri.scheme == "package" || lib.uri.scheme == "file")
         .expand((lib) => lib.declarations.values)
         .where((decl) =>
-            decl is ClassMirror &&
-            decl.isSubclassOf(managedObjectMirror) &&
-            decl != managedObjectMirror)
+    decl is ClassMirror &&
+        decl.isSubclassOf(managedObjectMirror) &&
+        decl != managedObjectMirror)
         .map((decl) => decl as ClassMirror)
         .toList();
 

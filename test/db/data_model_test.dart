@@ -206,7 +206,7 @@ void main() {
 
   });
 
-  group("Valid data model with partials", () {
+  group("Valid data model with deferred types", () {
     test("Entities have correct properties and relationships", () {
       var dataModel = new ManagedDataModel([TotalModel, PartialReferenceModel]);
       ManagedContext.defaultContext = new ManagedContext(dataModel, new DefaultPersistentStore());
@@ -401,10 +401,14 @@ void main() {
       new ManagedDataModel([InvalidModel]);
       expect(true, false);
     } on ManagedDataModelException catch (e) {
+<<<<<<< bf4808126a941e1485ab17a51639afb5eb4ba042
       expect(
           e.message,
           contains(
               "Property 'uri' on '_InvalidModel' has an unsupported type"));
+=======
+      expect(e.message, contains("Property 'uri' on '_InvalidModel' has an unsupported type"));
+>>>>>>> wip
     }
   });
 
@@ -414,10 +418,14 @@ void main() {
       new ManagedDataModel([InvalidTransientModel]);
       expect(true, false);
     } on ManagedDataModelException catch (e) {
+<<<<<<< bf4808126a941e1485ab17a51639afb5eb4ba042
       expect(
           e.message,
           startsWith(
               "Property 'uri' on '_InvalidTransientModel' has an unsupported type"));
+=======
+      expect(e.message, startsWith("Property 'uri' on '_InvalidTransientModel' has an unsupported type"));
+>>>>>>> wip
     }
   });
 
