@@ -57,6 +57,25 @@ String propertyNameFromDeclaration(DeclarationMirror declaration) {
       "as this method shouldn't be invoked on non-property or non-accessors.");
 }
 
+String propertyNameFromDeclaration(DeclarationMirror declaration) {
+  if (declaration is MethodMirror) {
+    if (declaration.isGetter) {
+      return MirrorSystem.getName(declaration.simpleName);
+    } else if (declaration.isSetter) {
+      var name = MirrorSystem.getName(declaration.simpleName);
+      return name.substring(0, name.length - 1);
+    }
+  } else if (declaration is VariableMirror) {
+    return MirrorSystem.getName(declaration.simpleName);
+  }
+
+  throw new ManagedDataModelException(
+      "Tried getting property type description from non-property. This is an internal error, "
+          "as this method shouldn't be invoked on non-property or non-accessors.");
+}
+
+
+
 bool isInstanceVariableMirror(DeclarationMirror mirror) =>
     mirror is VariableMirror && !mirror.isStatic;
 
@@ -96,6 +115,11 @@ bool isTransientAccessorMethod(DeclarationMirror declMir) {
 bool isTransientPropertyOrAccessor(DeclarationMirror declaration) {
   return isTransientAccessorMethod(declaration) ||
       isTransientProperty(declaration);
+}
+
+bool isTransientPropertyOrAccessor(DeclarationMirror declaration) {
+  return isTransientAccessorMethod(declaration)
+      || isTransientProperty(declaration);
 }
 
 bool doesVariableMirrorRepresentRelationship(VariableMirror mirror) {

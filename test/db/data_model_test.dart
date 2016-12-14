@@ -203,7 +203,22 @@ void main() {
       expect(instance.id, 2);
       expect(instance.items, isNull);
     });
+  });
 
+  group("Edge cases", () {
+    test("Instances with two foreign keys to same object are distinct", () {
+      var model = new ManagedDataModel([DoubleRelationshipForeignKeyModel, DoubleRelationshipHasModel]);
+
+      var isManyOf = model.entityForType(DoubleRelationshipForeignKeyModel).relationships["isManyOf"];
+      expect(isManyOf.inverseRelationship.name, "hasManyOf");
+      expect(isManyOf.destinationEntity.tableName,
+          model.entityForType(DoubleRelationshipHasModel).tableName);
+
+      var isOneOf = model.entityForType(DoubleRelationshipForeignKeyModel).relationships["isOneOf"];
+      expect(isOneOf.inverseRelationship.name, "hasOneOf");
+      expect(isOneOf.destinationEntity.tableName,
+          model.entityForType(DoubleRelationshipHasModel).tableName);
+    });
   });
 
   group("Valid data model with deferred types", () {
@@ -222,10 +237,10 @@ void main() {
       expect(totalEntity.attributes["addedField"].name, isNotNull);
       expect(totalEntity.attributes["id"].isPrimaryKey, true);
       expect(totalEntity.attributes["field"].isIndexed, true);
-      expect(totalEntity.relationships["relationship"].destinationEntity.tableName, referenceEntity.tableName);
-      expect(totalEntity.relationships["relationship"].relationshipType, ManagedRelationshipType.hasMany);
+      expect(totalEntity.relationships["hasManyRelationship"].destinationEntity.tableName, referenceEntity.tableName);
+      expect(totalEntity.relationships["hasManyRelationship"].relationshipType, ManagedRelationshipType.hasMany);
 
-      expect(referenceEntity.relationships["relationship"].destinationEntity.tableName, totalEntity.tableName);
+      expect(referenceEntity.relationships["foreignKeyColumn"].destinationEntity.tableName, totalEntity.tableName);
     });
 
     test("Will use tableName of base class if not declared in subclass", () {
@@ -250,7 +265,7 @@ void main() {
       expect(defaultProperties.contains("field"), true);
       expect(defaultProperties.contains("addedField"), true);
 
-      expect(dataModel.entityForType(PartialReferenceModel).defaultProperties.contains("relationship"), true);
+      expect(dataModel.entityForType(PartialReferenceModel).defaultProperties.contains("foreignKeyColumn"), true);
     });
   });
 
@@ -401,14 +416,10 @@ void main() {
       new ManagedDataModel([InvalidModel]);
       expect(true, false);
     } on ManagedDataModelException catch (e) {
-<<<<<<< bf4808126a941e1485ab17a51639afb5eb4ba042
       expect(
           e.message,
           contains(
               "Property 'uri' on '_InvalidModel' has an unsupported type"));
-=======
-      expect(e.message, contains("Property 'uri' on '_InvalidModel' has an unsupported type"));
->>>>>>> wip
     }
   });
 
@@ -418,14 +429,10 @@ void main() {
       new ManagedDataModel([InvalidTransientModel]);
       expect(true, false);
     } on ManagedDataModelException catch (e) {
-<<<<<<< bf4808126a941e1485ab17a51639afb5eb4ba042
       expect(
           e.message,
           startsWith(
               "Property 'uri' on '_InvalidTransientModel' has an unsupported type"));
-=======
-      expect(e.message, startsWith("Property 'uri' on '_InvalidTransientModel' has an unsupported type"));
->>>>>>> wip
     }
   });
 

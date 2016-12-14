@@ -190,6 +190,7 @@ class ManagedDataModelException implements Exception {
 
   factory ManagedDataModelException.noDestinationEntity(
       ManagedEntity entity, Symbol property) {
+
     var typeMirror = entity.persistentType.instanceMembers[property].returnType;
     return new ManagedDataModelException(
         "Relationship '${_getName(property)}' on "

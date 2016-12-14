@@ -8,6 +8,7 @@ class DataModelBuilder {
       var backingMirror = persistentTypeOfInstanceType(type);
       var entity = new ManagedEntity(dataModel,
           tableNameFromClass(backingMirror), reflectClass(type), backingMirror);
+
       entities[type] = entity;
       persistentTypeToEntityMap[entity.persistentType.reflectedType] = entity;
 
@@ -49,6 +50,7 @@ class DataModelBuilder {
         .typeArguments
         .first;
   }
+
 
   Map<String, ManagedAttributeDescription> attributesForEntity(
       ManagedEntity entity) {
@@ -333,7 +335,6 @@ class DataModelBuilder {
           instanceVariablesFromClass(destinationEntity.persistentType)
               .where((p) => relationshipMetadataFromProperty(p) != null)
               .toList();
-
       if (candidates.length == 0) {
         throw new ManagedDataModelException.missingInverse(
             owningEntity, property.simpleName, destinationEntity, null);
@@ -343,6 +344,7 @@ class DataModelBuilder {
           (p) =>
               relationshipMetadataFromProperty(p).inversePropertyName ==
               property.simpleName,
+
           orElse: () => null);
       if (specificInverse != null) {
         return specificInverse;
