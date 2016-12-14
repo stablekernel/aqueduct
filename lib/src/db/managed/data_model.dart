@@ -137,7 +137,7 @@ class ManagedDataModelException implements Exception {
             "no inverse property. Every relationship must have an inverse. "
             "${_getName(expectedProperty) ?? "Some property"} on "
             "'${_getPersistentClassName(destinationEntity)}'"
-            "is supposed to be declared, and it should be either a "
+            "is supposed to exist, and it should be either a "
             "'${_getInstanceClassName(destinationEntity)}' or"
             "'ManagedSet<${_getInstanceClassName(destinationEntity)} >'.");
   }
@@ -173,6 +173,18 @@ class ManagedDataModelException implements Exception {
             "otherwise, delete that metadata.");
   }
 
+  factory ManagedDataModelException.duplicateInverse(ManagedEntity entity,
+      Symbol property, ManagedEntity destinationEntity,
+      List<Symbol> inversePropertyCandidates) {
+    return new ManagedDataModelException(
+          "Relationship '${_getName(property)}' "
+              "on '${_getPersistentClassName(entity)}' "
+              "has more than one inverse property declared in "
+              "${_getPersistentClassName(destinationEntity)}, but can only"
+              "have one. The properties that claim to be an inverse "
+              "are ${inversePropertyCandidates.join(",")}.");
+  }
+
   factory ManagedDataModelException.noDestinationEntity(ManagedEntity entity,
       Symbol property) {
     var typeMirror = entity.persistentType.instanceMembers[property].returnType;
@@ -196,6 +208,16 @@ class ManagedDataModelException implements Exception {
             "'${_getName(destType)}. But the following implementations were found: "
             "${possibleEntities.map((e) => _getInstanceClassName(e))}. That's just "
             "how it is for now.");
+  }
+
+  factory ManagedDataModelException.invalidTransient(
+    ManagedEntity entity, Symbol property) {
+    return new ManagedDataModelException(
+        "Transient property '${_getName(property)}' on "
+            "'${_getInstanceClassName(entity)}' declares that"
+            "it is transient, but it it has a mismatch. A transient "
+            "getter method must have 'isAvailableAsOutput' and a transient "
+            "setter method must have 'isAvailableAsInput'.");
   }
 
   static String _getPersistentClassName(ManagedEntity entity) =>

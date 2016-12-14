@@ -25,7 +25,7 @@ class ManagedRelationship {
   static const Symbol _deferredSymbol = #mdrDeferred;
 
   /// Creates an instance of this type.
-  const ManagedRelationship(this.inverseKey,
+  const ManagedRelationship(this.inversePropertyName,
       {this.onDelete: ManagedRelationshipDeleteRule.nullify,
       this.isRequired: false});
 
@@ -37,7 +37,7 @@ class ManagedRelationship {
   ///
   /// This value must be the symbol for the property in the related [ManagedObject]. This creates the link between
   /// two sides of a relationship between a [ManagedObject].
-  final Symbol inverseKey;
+  final Symbol inversePropertyName;
 
   /// The delete rule to use when a related instance is deleted.
   ///
@@ -53,7 +53,7 @@ class ManagedRelationship {
   final bool isRequired;
 
   bool get isDeferred {
-    return inverseKey == _deferredSymbol;
+    return inversePropertyName == _deferredSymbol;
   }
 }
 
