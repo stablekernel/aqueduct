@@ -270,7 +270,7 @@ class DataModelBuilder {
     return destinationEntity;
   }
 
-  List<VariableMirror> entityRelationshipsWithType(
+  List<VariableMirror> propertiesFromEntityWithType(
       ManagedEntity entity, TypeMirror type) {
     return instanceVariablesFromClass(entity.persistentType).where((p) {
       if (p.type.isSubtypeOf(type)) {
@@ -290,7 +290,7 @@ class DataModelBuilder {
       ManagedEntity destinationEntity, VariableMirror property) {
     var metadata = relationshipMetadataFromProperty(property);
     if (metadata != null) {
-      // Looking for the has-a side, which has an explicit inverse.
+      // This is the belongs to side. Looking for the has-a side, which has an explicit inverse.
       if (!metadata.isDeferred) {
         var destinationProperty = instanceVariableFromClass(
             destinationEntity.persistentType, metadata.inversePropertyName);
@@ -309,8 +309,8 @@ class DataModelBuilder {
 
         return destinationProperty;
       } else {
-        // Looking for the has-a side, but it is deferred.
-        var candidates = entityRelationshipsWithType(
+        // This is the belongs to side. Looking for the has-a side, but it is deferred.
+        var candidates = propertiesFromEntityWithType(
             destinationEntity, owningEntity.instanceType);
         if (candidates.length == 0) {
           throw new ManagedDataModelException.missingInverse(
@@ -326,9 +326,8 @@ class DataModelBuilder {
         return candidates.first;
       }
     } else {
-      // Looking for the belongs to side, which might be deferred on the other side
+      // This is the has-a side. Looking for the belongs to side, which might be deferred on the other side
       // If we have an explicit inverse, look for that first.
-
       var candidates =
           instanceVariablesFromClass(destinationEntity.persistentType)
               .where((p) => relationshipMetadataFromProperty(p) != null)
@@ -348,7 +347,17 @@ class DataModelBuilder {
         return specificInverse;
       }
 
-      if (candidates.length > 1) {
+      // We may be deferring, so check for those and make sure the types match up.
+      var deferredCandidates = candidates
+        .where((p) => relationshipMetadataFromProperty(p).isDeferred)
+        .where((p) => owningEntity.persistentType.isSubtypeOf(p.type))
+        .toList();
+      if (deferredCandidates.length == 0) {
+        throw new ManagedDataModelException.missingInverse(
+            owningEntity, property.simpleName, destinationEntity, null);
+      }
+
+      if (deferredCandidates.length > 1) {
         throw new ManagedDataModelException.duplicateInverse(
             owningEntity,
             property.simpleName,
@@ -356,7 +365,7 @@ class DataModelBuilder {
             candidates.map((v) => v.simpleName).toList());
       }
 
-      return candidates.first;
+      return deferredCandidates.first;
     }
   }
 }
