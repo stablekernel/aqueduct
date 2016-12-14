@@ -335,6 +335,7 @@ class DataModelBuilder {
           instanceVariablesFromClass(destinationEntity.persistentType)
               .where((p) => relationshipMetadataFromProperty(p) != null)
               .toList();
+
       if (candidates.length == 0) {
         throw new ManagedDataModelException.missingInverse(
             owningEntity, property.simpleName, destinationEntity, null);
@@ -372,4 +373,3 @@ class DataModelBuilder {
     }
   }
 }
-
