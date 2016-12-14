@@ -29,6 +29,19 @@ class RequestController extends Object with APIDocumentable {
   /// from the HTTP client.
   static bool includeErrorDetailsInServerErrorResponses = false;
 
+  /// Whether or not to allow uncaught exceptions escape request controllers.
+  ///
+  /// When this value is false - the default - all [RequestController] instances handle
+  /// unexpected exceptions by catching and logging them, and then returning a 500 error.
+  ///
+  /// While running tests, it is useful to know where unexpected exceptions come from because
+  /// they are an error in your code. By setting this value to true, all [RequestController]s
+  /// will rethrow unexpected exceptions in addition to the base behavior. This allows the stack
+  /// trace of the unexpected exception to appear in test results and halt the tests with failure.
+  ///
+  /// By default, this value is false. Do not set this value to true outside of tests.
+  static bool letUncaughtExceptionsEscape = false;
+
   Function _listener;
   RequestController nextController;
 
@@ -168,9 +181,16 @@ class RequestController extends Object with APIDocumentable {
         logger.info(req.toDebugString());
       }
     } catch (any, stacktrace) {
-      try {
-        _handleError(req, any, stacktrace);
-      } catch (_) {}
+      if (letUncaughtExceptionsEscape) {
+        var shouldRethrow = _handleError(req, any, stacktrace);
+        if (shouldRethrow) {
+          rethrow;
+        }
+      } else {
+        try {
+          _handleError(req, any, stacktrace);
+        } catch (_) {}
+      }
     }
   }
 
@@ -205,7 +225,7 @@ class RequestController extends Object with APIDocumentable {
     request.respond(response);
   }
 
-  void _handleError(Request request, dynamic caughtValue, StackTrace trace) {
+  bool _handleError(Request request, dynamic caughtValue, StackTrace trace) {
     if (caughtValue is HTTPResponseException) {
       var response = caughtValue.response;
       _sendResponse(request, response, includeCORSHeaders: true);
@@ -255,7 +275,11 @@ class RequestController extends Object with APIDocumentable {
           "${request.toDebugString(includeHeaders: true, includeBody: true)}",
           caughtValue,
           trace);
+
+      return true;
     }
+
+    return false;
   }
 
   RequestController _lastRequestController() {
