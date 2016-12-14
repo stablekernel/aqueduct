@@ -206,9 +206,9 @@ void main() {
   });
 
   group("Edge cases", () {
-    test("Instances with two foreign keys to same object are distinct", () {
+    test("ManagedObject with two foreign keys to same object are distinct", () {
       var model = new ManagedDataModel(
-          [DoubleRelationshipForeignKeyModel, DoubleRelationshipHasModel]);
+          [DoubleRelationshipForeignKeyModel, DoubleRelationshipHasModel, SomeOtherRelationshipModel]);
 
       var isManyOf = model
           .entityForType(DoubleRelationshipForeignKeyModel)
@@ -223,6 +223,14 @@ void main() {
       expect(isOneOf.inverseRelationship.name, "hasOneOf");
       expect(isOneOf.destinationEntity.tableName,
           model.entityForType(DoubleRelationshipHasModel).tableName);
+    });
+
+    test("ManagedObject with multiple relationships where one is deferred succeeds in finding relationship", () {
+      var model = new ManagedDataModel(
+          [DoubleRelationshipForeignKeyModel, DoubleRelationshipHasModel, SomeOtherRelationshipModel]);
+
+      var partial = model.entityForType(DoubleRelationshipForeignKeyModel).relationships["partial"];
+      expect(partial.destinationEntity.tableName, model.entityForType(SomeOtherRelationshipModel).tableName);
     });
   });
 
@@ -741,6 +749,7 @@ class _DoubleRelationshipHasModel {
   ManagedSet<DoubleRelationshipForeignKeyModel> hasManyOf;
   DoubleRelationshipForeignKeyModel hasOneOf;
 }
+
 class SomeOtherRelationshipModel extends ManagedObject<_SomeOtherRelationshipModel> {}
 class _SomeOtherRelationshipModel extends SomeOtherPartialModel {
   @managedPrimaryKey
