@@ -5,7 +5,7 @@ import 'managed.dart';
 class DataModelBuilder {
   DataModelBuilder(ManagedDataModel dataModel, List<Type> instanceTypes) {
     instanceTypes.forEach((type) {
-      var backingMirror = backingMirrorForType(type);
+      var backingMirror = persistentTypeOfInstanceType(type);
       var entity = new ManagedEntity(
           dataModel,
           tableNameFromClass(backingMirror),
@@ -14,14 +14,14 @@ class DataModelBuilder {
       entities[type] = entity;
       persistentTypeToEntityMap[entity.persistentType.reflectedType] = entity;
 
-      entity.attributes = attributeMapForEntity(entity);
+      entity.attributes = attributesForEntity(entity);
       if (entity.primaryKey == null) {
         throw new ManagedDataModelException.noPrimaryKey(entity);
       }
     });
 
     entities.forEach((_, entity) {
-      entity.relationships = relationshipMapForEntity(entity);
+      entity.relationships = relationshipsForEntity(entity);
     });
   }
 
@@ -41,23 +41,25 @@ class DataModelBuilder {
         .reflectee;
   }
 
-  Map<String, ManagedAttributeDescription> attributeMapForEntity(
+  ClassMirror persistentTypeOfInstanceType(Type instanceType) {
+    var ifNotFoundException = new ManagedDataModelException(
+        "Invalid instance type '$instanceType' '${reflectClass(instanceType)
+            .simpleName}' is not subclass of 'ManagedObject'.");
+
+    return classHierarchyForClass(reflectClass(instanceType))
+        .firstWhere((cm) =>
+            !cm.superclass.isSubtypeOf(reflectType(ManagedObject)),
+          orElse: () => throw ifNotFoundException)
+        .typeArguments
+        .first;
+  }
+
+  Map<String, ManagedAttributeDescription> attributesForEntity(
       ManagedEntity entity) {
-    var transientProperties = entity.instanceType.declarations.values
-        .where(isInstanceVariableMirror)
-        .where(hasTransientMetadata)
-        .map((dm) => attributeFromVariableMirror(entity, dm));
+    var transientProperties = transientAttributesForEntity(entity);
+    var persistentProperties = persistentAttributesForEntity(entity);
 
-    var transientAccessors = entity.instanceType.declarations.values
-        .where(isTransientAccessorMethod)
-        .map((declMir) => attributeFromMethodMirror(entity, declMir));
-
-    var persistentProperties = instanceVariableMirrorsFromClass(
-        entity.persistentType)
-        .where((declMir) => !doesVariableMirrorRepresentRelationship(declMir))
-        .map((declMir) => attributeFromVariableMirror(entity, declMir));
-
-    return [transientProperties, transientAccessors, persistentProperties]
+    return [transientProperties, persistentProperties]
         .expand((l) => l)
         .fold({}, (map, attribute) {
       if (map.containsKey(attribute.name)) {
@@ -72,204 +74,181 @@ class DataModelBuilder {
     });
   }
 
-  ManagedAttributeDescription attributeFromMethodMirror(ManagedEntity entity,
-      MethodMirror methodMirror) {
-    var name = MirrorSystem.getName(methodMirror.simpleName);
-    var dartTypeMirror = methodMirror.returnType;
-    if (methodMirror.isSetter) {
-      name = name.substring(0, name.length - 1);
-      dartTypeMirror = methodMirror.parameters.first.type;
-    }
+  Iterable<ManagedAttributeDescription> persistentAttributesForEntity(ManagedEntity entity) {
+    return instanceVariablesFromClass(entity.persistentType)
+        .where((declaration) => !doesVariableMirrorRepresentRelationship(declaration))
+        .map((declaration) {
+          var type = propertyTypeFromDeclaration(declaration);
+          if (type == null) {
+            throw new ManagedDataModelException.invalidType(entity, declaration.simpleName);
+          }
 
-    // We don't care about the mappable on the declaration when we specify it to the AttributeDescription,
-    // only whether or not it is a getter/setter.
-    return new ManagedAttributeDescription.transient(
-        entity,
-        name,
-        ManagedPropertyDescription
-            .propertyTypeForDartType(dartTypeMirror.reflectedType),
-        new ManagedTransientAttribute(
-            availableAsInput: methodMirror.isSetter,
-            availableAsOutput: methodMirror.isGetter));
+          var attributes = attributeMetadataFromDeclaration(declaration);
+          var name = propertyNameFromDeclaration(declaration);
+          return new ManagedAttributeDescription(
+              entity, name, type,
+              primaryKey: attributes?.isPrimaryKey ?? false,
+              defaultValue: attributes?.defaultValue ?? null,
+              unique: attributes?.isUnique ?? false,
+              indexed: attributes?.isIndexed ?? false,
+              nullable: attributes?.isNullable ?? false,
+              includedInDefaultResultSet: !(attributes?.shouldOmitByDefault ??
+                  false),
+              autoincrement: attributes?.autoincrement ?? false);
+        });
   }
 
-  ManagedAttributeDescription attributeFromVariableMirror(ManagedEntity entity,
-      VariableMirror mirror) {
-    var name = MirrorSystem.getName(mirror.simpleName);
+  Iterable<ManagedAttributeDescription> transientAttributesForEntity(ManagedEntity entity) {
+    return entity.instanceType.declarations.values
+        .where(isTransientPropertyOrAccessor)
+        .map((declaration) {
+          var type = propertyTypeFromDeclaration(declaration);
+          if (type == null) {
+            throw new ManagedDataModelException.invalidType(entity, declaration.simpleName);
+          }
 
-    if (entity.instanceType == mirror.owner) {
-      // This attribute is declared in the instance type.
-      var type = ManagedPropertyDescription
-          .propertyTypeForDartType(mirror.type.reflectedType);
+          var name = propertyNameFromDeclaration(declaration);
+          var transience = transienceForProperty(declaration);
+          if (transience == null) {
+            throw new ManagedDataModelException.invalidTransient(entity, declaration.simpleName);
+          }
 
-      if (type == null) {
-        throw new ManagedDataModelException.invalidType(
-            entity, mirror.simpleName);
-      }
-
-      return new ManagedAttributeDescription.transient(
-          entity, name, type, transientFromDeclaration(mirror));
-    } else {
-      // This attribute is declared in the persistent type.
-      var attributes = attributeMetadataFromDeclaration(mirror);
-      var type = attributes?.databaseType ??
-          ManagedPropertyDescription
-              .propertyTypeForDartType(mirror.type.reflectedType);
-
-      if (type == null) {
-        throw new ManagedDataModelException.invalidType(
-            entity, mirror.simpleName);
-      }
-
-      return new ManagedAttributeDescription(
-          entity, MirrorSystem.getName(mirror.simpleName), type,
-          primaryKey: attributes?.isPrimaryKey ?? false,
-          defaultValue: attributes?.defaultValue ?? null,
-          unique: attributes?.isUnique ?? false,
-          indexed: attributes?.isIndexed ?? false,
-          nullable: attributes?.isNullable ?? false,
-          includedInDefaultResultSet: !(attributes?.shouldOmitByDefault ??
-              false),
-          autoincrement: attributes?.autoincrement ?? false);
-    }
+          return new ManagedAttributeDescription.transient(
+              entity,
+              name,
+              type,
+              transience);
+        });
   }
 
-  Map<String, ManagedRelationshipDescription> relationshipMapForEntity(
+  ManagedTransientAttribute transienceForProperty(DeclarationMirror property) {
+    if (property is VariableMirror) {
+      return transientMetadataFromDeclaration(property);
+    }
+
+    var metadata = transientMetadataFromDeclaration(property);
+    MethodMirror m = property as MethodMirror;
+    if (m.isGetter && metadata.isAvailableAsOutput) {
+      return new ManagedTransientAttribute(availableAsOutput: true, availableAsInput: false);
+    } else if (m.isSetter && metadata.isAvailableAsInput) {
+      return new ManagedTransientAttribute(availableAsInput: true, availableAsOutput: false);
+    }
+
+    return null;
+  }
+
+  Map<String, ManagedRelationshipDescription> relationshipsForEntity(
       ManagedEntity entity) {
-    return instanceVariableMirrorsFromClass(entity.persistentType)
+    return instanceVariablesFromClass(entity.persistentType)
         .where(doesVariableMirrorRepresentRelationship)
-        .fold({}, (map, declMirror) {
-      map[MirrorSystem.getName(declMirror.simpleName)] =
-          relationshipFromVariableMirror(entity, declMirror);
-      return map;
-    });
+        .fold({}, (map, declaration) {
+          var key = MirrorSystem.getName(declaration.simpleName);
+          map[key] = relationshipFromProperty(entity, declaration);
+
+          return map;
+        });
   }
 
-  ManagedRelationshipDescription relationshipFromVariableMirror(
-      ManagedEntity entity, VariableMirror mirror) {
-    var destinationEntity = destinationEntityForVariableMirror(entity, mirror);
+  ManagedRelationshipDescription relationshipFromProperty(
+      ManagedEntity owningEntity, VariableMirror property) {
+    var destinationEntity = matchingEntityForProperty(owningEntity, property);
 
-    if (attributeMetadataFromDeclaration(mirror) != null) {
+    if (attributeMetadataFromDeclaration(property) != null) {
       throw new ManagedDataModelException.invalidMetadata(
-          entity, mirror.simpleName, destinationEntity);
+          owningEntity, property.simpleName, destinationEntity);
     }
 
-    if (managedRelationshipMetadataFromDeclaration(mirror) != null) {
-      return relationshipDescriptionForForeignKeyProperty(
-          entity, destinationEntity, mirror);
+    if (relationshipMetadataFromProperty(property) != null) {
+      return relationshipForForeignKeyProperty(
+          owningEntity, destinationEntity, property);
     }
 
     return relationshipDescriptionForHasManyOrOneProperty(
-        entity, destinationEntity, mirror);
+        owningEntity, destinationEntity, property);
   }
 
-  ManagedRelationshipDescription relationshipDescriptionForForeignKeyProperty(
-      ManagedEntity entity, ManagedEntity destinationEntity,
-      VariableMirror mirror) {
-    var managedRelationship = managedRelationshipMetadataFromDeclaration(
-        mirror);
-    var referenceProperty =
-    destinationEntity.attributes[destinationEntity.primaryKey];
+  ManagedRelationshipDescription relationshipForForeignKeyProperty(
+      ManagedEntity owningEntity, ManagedEntity destinationEntity,
+      VariableMirror property) {
+    var relationship = relationshipMetadataFromProperty(
+        property);
 
-    var inverseKey = managedRelationship.inverseKey;
-    var destinationVariableMirror = variableMirrorFromClass(
-        destinationEntity.persistentType, inverseKey);
-    if (destinationVariableMirror == null) {
-      throw new ManagedDataModelException.missingInverse(
-          entity, mirror.simpleName, destinationEntity, inverseKey);
-    }
-
-    if (managedRelationship.onDelete == ManagedRelationshipDeleteRule.nullify &&
-        managedRelationship.isRequired) {
+    // Make sure the relationship parameters are valid
+    if (relationship.onDelete == ManagedRelationshipDeleteRule.nullify &&
+        relationship.isRequired) {
       throw new ManagedDataModelException.incompatibleDeleteRule(
-          entity, mirror.simpleName);
+          owningEntity, property.simpleName);
     }
 
-    if (managedRelationshipMetadataFromDeclaration(destinationVariableMirror) !=
+    var inverseProperty = inverseRelationshipProperty(owningEntity, destinationEntity, property);
+
+    // Make sure we didn't annotate both sides
+    if (relationshipMetadataFromProperty(inverseProperty) !=
         null) {
       throw new ManagedDataModelException.dualMetadata(
-          entity, mirror.simpleName, destinationEntity,
-          destinationVariableMirror.simpleName);
+          owningEntity, property.simpleName, destinationEntity,
+          inverseProperty.simpleName);
     }
 
+    var columnType =
+      destinationEntity.attributes[destinationEntity.primaryKey].type;
+
     return new ManagedRelationshipDescription(
-        entity,
-        MirrorSystem.getName(mirror.simpleName),
-        referenceProperty.type,
+        owningEntity,
+        MirrorSystem.getName(property.simpleName),
+        columnType,
         destinationEntity,
-        managedRelationship.onDelete,
+        relationship.onDelete,
         ManagedRelationshipType.belongsTo,
-        inverseKey,
-        unique: !destinationVariableMirror.type.isSubtypeOf(
+        inverseProperty.simpleName,
+        unique: !inverseProperty.type.isSubtypeOf(
             reflectType(ManagedSet)),
         indexed: true,
-        nullable: !managedRelationship.isRequired,
+        nullable: !relationship.isRequired,
         includedInDefaultResultSet: true);
   }
 
   ManagedRelationshipDescription relationshipDescriptionForHasManyOrOneProperty(
-      ManagedEntity entity, ManagedEntity destinationEntity,
-      VariableMirror mirror) {
-    var managedRelationship = managedRelationshipMetadataFromDeclaration(
-        mirror);
-    var referenceProperty = destinationEntity.attributes[destinationEntity
-        .primaryKey];
-    VariableMirror inversePropertyMirror =
-    instanceVariableMirrorsFromClass(destinationEntity.persistentType)
-        .firstWhere((DeclarationMirror destinationDeclarationMirror) {
-      if (destinationDeclarationMirror is VariableMirror) {
-        var inverseBelongsToAttr =
-        managedRelationshipMetadataFromDeclaration(
-            destinationDeclarationMirror);
-        var matchesInverseKey =
-            inverseBelongsToAttr?.inverseKey == mirror.simpleName;
+      ManagedEntity owningEntity, ManagedEntity destinationEntity,
+      VariableMirror property) {
+    var managedRelationship = relationshipMetadataFromProperty(
+        property);
 
-        var hasRightType = entity
-            .instanceType.isSubtypeOf(destinationDeclarationMirror.type);
-
-        if (matchesInverseKey && hasRightType) {
-          return true;
-        }
-      }
-
-      return false;
-    }, orElse: () => null);
-
-    if (inversePropertyMirror == null) {
-      throw new ManagedDataModelException.missingInverse(
-          entity, mirror.simpleName, destinationEntity, null);
-    }
+    var inverseProperty = inverseRelationshipProperty(owningEntity, destinationEntity, property);
 
     var relType = ManagedRelationshipType.hasOne;
-    if (mirror.type.isSubtypeOf(reflectType(ManagedSet))) {
+    if (property.type.isSubtypeOf(reflectType(ManagedSet))) {
       relType = ManagedRelationshipType.hasMany;
     }
 
+    var columnType =
+        destinationEntity.attributes[destinationEntity.primaryKey].type;
+
     return new ManagedRelationshipDescription(
-        entity,
-        MirrorSystem.getName(mirror.simpleName),
-        referenceProperty.type,
+        owningEntity,
+        MirrorSystem.getName(property.simpleName),
+        columnType,
         destinationEntity,
         managedRelationship?.onDelete,
         relType,
-        inversePropertyMirror.simpleName,
+        inverseProperty.simpleName,
         unique: false,
         indexed: true,
         nullable: false,
         includedInDefaultResultSet: false);
   }
 
-  ManagedEntity destinationEntityForVariableMirror(ManagedEntity entity,
-      VariableMirror mirror) {
-    var typeMirror = mirror.type;
-    if (mirror.type.isSubtypeOf(reflectType(ManagedSet))) {
+  ManagedEntity matchingEntityForProperty(ManagedEntity owningEntity,
+      VariableMirror property) {
+    var typeMirror = property.type;
+    if (property.type.isSubtypeOf(reflectType(ManagedSet))) {
       typeMirror = typeMirror.typeArguments.first;
     }
 
     var destinationEntity = entities[typeMirror.reflectedType];
     if (destinationEntity == null) {
-      var relationshipMetadata = managedRelationshipMetadataFromDeclaration(
-          mirror);
+      var relationshipMetadata = relationshipMetadataFromProperty(
+          property);
       if (relationshipMetadata.isDeferred) {
         // Then we can scan for a list of possible entities that extend
         // the interface.
@@ -279,33 +258,101 @@ class DataModelBuilder {
 
         if (possibleEntities.length == 0) {
           throw new ManagedDataModelException.noDestinationEntity(
-              entity, mirror.simpleName);
+              owningEntity, property.simpleName);
         } else if (possibleEntities.length > 1) {
           throw new ManagedDataModelException.multipleDestinationEntities(
-              entity, mirror.simpleName, possibleEntities);
+              owningEntity, property.simpleName, possibleEntities);
         }
 
         destinationEntity = possibleEntities.first;
       } else {
         throw new ManagedDataModelException.noDestinationEntity(
-            entity, mirror.simpleName);
+            owningEntity, property.simpleName);
       }
     }
 
     return destinationEntity;
   }
 
-  ClassMirror backingMirrorForType(Type instanceType) {
-    var ifNotFoundException = new ManagedDataModelException(
-        "Invalid instance type '$instanceType' '${reflectClass(instanceType)
-            .simpleName}'");
+  List<VariableMirror> entityRelationshipsWithType(ManagedEntity entity, TypeMirror type) {
+    return instanceVariablesFromClass(entity.persistentType)
+        .where((p) {
+          if (p.type.isSubtypeOf(type)) {
+            return true;
+          }
 
-    return classHierarchyForClass(reflectClass(instanceType))
-        .firstWhere((cm) =>
-    !cm.superclass.isSubtypeOf(reflectType(ManagedObject)),
-        orElse: () => throw ifNotFoundException)
-        .typeArguments
-        .first;
+          if (p.type.isSubtypeOf(reflectType(ManagedSet))
+          && p.type.typeArguments.first.isSubtypeOf(type)) {
+            return true;
+          }
+
+          return false;
+        })
+        .toList();
+  }
+
+  VariableMirror inverseRelationshipProperty(ManagedEntity owningEntity, ManagedEntity destinationEntity, VariableMirror property) {
+    var metadata = relationshipMetadataFromProperty(property);
+    if (metadata != null) {
+      // Looking for the has-a side, which has an explicit inverse.
+      if (!metadata.isDeferred) {
+        var destinationProperty = instanceVariableFromClass(
+            destinationEntity.persistentType, metadata.inversePropertyName);
+        if (destinationProperty == null) {
+          throw new ManagedDataModelException.missingInverse(
+              owningEntity, property.simpleName, destinationEntity, null);
+        }
+
+        if (relationshipMetadataFromProperty(destinationProperty) != null) {
+          throw new ManagedDataModelException.dualMetadata(
+              owningEntity, property.simpleName, destinationEntity, destinationProperty.simpleName);
+        }
+
+        return destinationProperty;
+      } else {
+        // Looking for the has-a side, but it is deferred.
+        var candidates = entityRelationshipsWithType(destinationEntity, owningEntity.instanceType);
+        if (candidates.length == 0) {
+          throw new ManagedDataModelException.missingInverse(
+              owningEntity, property.simpleName, destinationEntity, null);
+        } else if (candidates.length > 1) {
+          throw new ManagedDataModelException.duplicateInverse(
+              owningEntity, property.simpleName,
+              destinationEntity, candidates.map((v) => v.simpleName).toList());
+        }
+
+        return candidates.first;
+      }
+    } else {
+      // Looking for the belongs to side, which might be deferred on the other side
+      // If we have an explicit inverse, look for that first.
+
+      var candidates =
+        instanceVariablesFromClass(destinationEntity.persistentType)
+          .where((p) => relationshipMetadataFromProperty(p) != null)
+          .toList();
+
+      if (candidates.length == 0) {
+        throw new ManagedDataModelException.missingInverse(
+            owningEntity, property.simpleName, destinationEntity, null);
+      }
+
+      var specificInverse = candidates
+          .firstWhere((p) =>
+            relationshipMetadataFromProperty(p).inversePropertyName == property.simpleName,
+          orElse: () => null);
+      if (specificInverse != null) {
+        return specificInverse;
+      }
+
+      if (candidates.length > 1) {
+        throw new ManagedDataModelException.duplicateInverse(
+            owningEntity, property.simpleName,
+            destinationEntity, candidates.map((v) => v.simpleName).toList());
+      }
+
+      return candidates.first;
+    }
   }
 }
 
