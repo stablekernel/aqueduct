@@ -29,9 +29,9 @@ class ManagedRelationship {
       {this.onDelete: ManagedRelationshipDeleteRule.nullify,
       this.isRequired: false});
 
-  const ManagedRelationship.deferred(
-      ManagedRelationshipDeleteRule onDelete, {bool isRequired: false}) :
-        this(_deferredSymbol, onDelete: onDelete, isRequired: isRequired);
+  const ManagedRelationship.deferred(ManagedRelationshipDeleteRule onDelete,
+      {bool isRequired: false})
+      : this(_deferredSymbol, onDelete: onDelete, isRequired: isRequired);
 
   /// The symbol for the property in the related [ManagedObject].
   ///

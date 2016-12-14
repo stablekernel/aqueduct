@@ -4,17 +4,15 @@ import '../../utilities/mirror_helpers.dart';
 
 List<VariableMirror> instanceVariablesFromClass(ClassMirror classMirror) {
   return classHierarchyForClass(classMirror)
-      .expand((cm) => cm.declarations
-        .values
-        .where(isInstanceVariableMirror)
-        .map((d) => d as VariableMirror))
+      .expand((cm) => cm.declarations.values
+          .where(isInstanceVariableMirror)
+          .map((d) => d as VariableMirror))
       .toList();
 }
 
 VariableMirror instanceVariableFromClass(ClassMirror classMirror, Symbol name) {
   return instanceVariablesFromClass(classMirror)
-      .firstWhere((dm) => dm.simpleName == name,
-        orElse: () => null);
+      .firstWhere((dm) => dm.simpleName == name, orElse: () => null);
 }
 
 ManagedPropertyType propertyTypeFromDeclaration(DeclarationMirror declaration) {
@@ -39,7 +37,7 @@ ManagedPropertyType propertyTypeFromDeclaration(DeclarationMirror declaration) {
 
   throw new ManagedDataModelException(
       "Tried getting property type description from non-property. This is an internal error, "
-          "as this method shouldn't be invoked on non-property or non-accessors.");
+      "as this method shouldn't be invoked on non-property or non-accessors.");
 }
 
 String propertyNameFromDeclaration(DeclarationMirror declaration) {
@@ -56,10 +54,8 @@ String propertyNameFromDeclaration(DeclarationMirror declaration) {
 
   throw new ManagedDataModelException(
       "Tried getting property type description from non-property. This is an internal error, "
-          "as this method shouldn't be invoked on non-property or non-accessors.");
+      "as this method shouldn't be invoked on non-property or non-accessors.");
 }
-
-
 
 bool isInstanceVariableMirror(DeclarationMirror mirror) =>
     mirror is VariableMirror && !mirror.isStatic;
@@ -68,7 +64,8 @@ bool hasTransientMetadata(DeclarationMirror mirror) =>
     transientMetadataFromDeclaration(mirror) != null;
 
 bool isTransientProperty(DeclarationMirror declaration) {
-  return isInstanceVariableMirror(declaration) && hasTransientMetadata(declaration);
+  return isInstanceVariableMirror(declaration) &&
+      hasTransientMetadata(declaration);
 }
 
 bool isTransientAccessorMethod(DeclarationMirror declMir) {
@@ -81,7 +78,8 @@ bool isTransientAccessorMethod(DeclarationMirror declMir) {
     return false;
   }
 
-  if (!(methodMirror.isSetter || methodMirror.isGetter) || methodMirror.isSynthetic) {
+  if (!(methodMirror.isSetter || methodMirror.isGetter) ||
+      methodMirror.isSynthetic) {
     return false;
   }
 
@@ -91,13 +89,13 @@ bool isTransientAccessorMethod(DeclarationMirror declMir) {
   }
 
   // A setter must be available as an input ONLY, a getter must be available as an output. This is confusing.
-  return (methodMirror.isSetter && mapMetadata.isAvailableAsInput)
-      || (methodMirror.isGetter && mapMetadata.isAvailableAsOutput);
+  return (methodMirror.isSetter && mapMetadata.isAvailableAsInput) ||
+      (methodMirror.isGetter && mapMetadata.isAvailableAsOutput);
 }
 
 bool isTransientPropertyOrAccessor(DeclarationMirror declaration) {
-  return isTransientAccessorMethod(declaration)
-      || isTransientProperty(declaration);
+  return isTransientAccessorMethod(declaration) ||
+      isTransientProperty(declaration);
 }
 
 bool doesVariableMirrorRepresentRelationship(VariableMirror mirror) {
@@ -115,10 +113,11 @@ bool doesVariableMirrorRepresentRelationship(VariableMirror mirror) {
   return false;
 }
 
-ManagedTransientAttribute transientMetadataFromDeclaration(DeclarationMirror dm) =>
+ManagedTransientAttribute transientMetadataFromDeclaration(
+        DeclarationMirror dm) =>
     metadataFromDeclaration(ManagedTransientAttribute, dm);
 ManagedColumnAttributes attributeMetadataFromDeclaration(
-    DeclarationMirror dm) =>
+        DeclarationMirror dm) =>
     metadataFromDeclaration(ManagedColumnAttributes, dm);
 ManagedRelationship relationshipMetadataFromProperty(DeclarationMirror dm) =>
     metadataFromDeclaration(ManagedRelationship, dm);
