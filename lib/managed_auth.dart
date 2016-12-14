@@ -59,8 +59,7 @@ class _ManagedToken {
   @ManagedColumnAttributes(indexed: true)
   DateTime expirationDate;
 
-  @managedPartialObject
-  @ManagedRelationship(#tokens, onDelete: ManagedRelationshipDeleteRule.cascade, isRequired: true)
+  @ManagedRelationship.deferred(ManagedRelationshipDeleteRule.cascade, isRequired: true)
   ManagedAuthenticatable resourceOwner;
 
   @ManagedRelationship(#tokens,
@@ -131,8 +130,7 @@ class _ManagedAuthCode {
   @ManagedColumnAttributes(primaryKey: true)
   String code;
 
-  @managedPartialObject
-  @ManagedRelationship(#authorizationCodes, onDelete: ManagedRelationshipDeleteRule.cascade, isRequired: true)
+  @ManagedRelationship.deferred(ManagedRelationshipDeleteRule.cascade, isRequired: true)
   ManagedAuthenticatable resourceOwner;
 
   DateTime issueDate;

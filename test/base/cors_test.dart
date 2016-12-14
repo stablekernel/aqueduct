@@ -578,6 +578,7 @@ class CORSSink extends RequestSink implements AuthValidator {
     return new Authorization("a", 1, this);
   }
 
+  APISecurityRequirement requirementForStrategy(AuthStrategy strategy) => null;
 }
 
 class NoPolicyController extends HTTPController {
