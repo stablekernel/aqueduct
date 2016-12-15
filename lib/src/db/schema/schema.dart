@@ -75,7 +75,8 @@ class Schema {
 
     if (schema.tables.length > tables.length) {
       matches = false;
-      var receiverTableNames = tables.map((st) => st.name.toLowerCase()).toList();
+      var receiverTableNames =
+          tables.map((st) => st.name.toLowerCase()).toList();
       schema.tables
           .where((st) => !receiverTableNames.contains(st.name.toLowerCase()))
           .forEach((st) {

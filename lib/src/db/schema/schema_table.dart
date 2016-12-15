@@ -49,7 +49,6 @@ class SchemaTable {
     var matches = true;
 
     for (var receiverColumn in columns) {
-
       var matchingArgColumn = table.columnForName(receiverColumn.name);
       if (matchingArgColumn == null) {
         matches = false;
@@ -67,7 +66,8 @@ class SchemaTable {
 
     if (table.columns.length > columns.length) {
       matches = false;
-      var receiverColumnNames = columns.map((st) => st.name.toLowerCase()).toList();
+      var receiverColumnNames =
+          columns.map((st) => st.name.toLowerCase()).toList();
       table.columns
           .where((st) => !receiverColumnNames.contains(st.name.toLowerCase()))
           .forEach((st) {

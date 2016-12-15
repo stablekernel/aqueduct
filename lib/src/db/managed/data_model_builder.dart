@@ -349,9 +349,9 @@ class DataModelBuilder {
 
       // We may be deferring, so check for those and make sure the types match up.
       var deferredCandidates = candidates
-        .where((p) => relationshipMetadataFromProperty(p).isDeferred)
-        .where((p) => owningEntity.persistentType.isSubtypeOf(p.type))
-        .toList();
+          .where((p) => relationshipMetadataFromProperty(p).isDeferred)
+          .where((p) => owningEntity.persistentType.isSubtypeOf(p.type))
+          .toList();
       if (deferredCandidates.length == 0) {
         throw new ManagedDataModelException.missingInverse(
             owningEntity, property.simpleName, destinationEntity, null);
