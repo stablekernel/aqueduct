@@ -49,7 +49,7 @@ class SchemaTable {
     var matches = true;
 
     for (var receiverColumn in columns) {
-      var matchingArgColumn = table.columnForName(receiverColumn.name);
+      var matchingArgColumn = table[receiverColumn.name];
       if (matchingArgColumn == null) {
         matches = false;
         reasons?.add(
@@ -66,10 +66,8 @@ class SchemaTable {
 
     if (table.columns.length > columns.length) {
       matches = false;
-      var receiverColumnNames =
-          columns.map((st) => st.name.toLowerCase()).toList();
       table.columns
-          .where((st) => !receiverColumnNames.contains(st.name.toLowerCase()))
+          .where((st) => this[st.name] == null)
           .forEach((st) {
         reasons?.add(
             "Receiver table '${table.name}' does not contain '${st.name}', but that column exists in compared table.");
@@ -80,7 +78,7 @@ class SchemaTable {
   }
 
   void addColumn(SchemaColumn column) {
-    if (columnForName(column.name) != null) {
+    if (this[column.name] != null) {
       throw new SchemaException("Column ${column.name} already exists.");
     }
 
@@ -107,7 +105,7 @@ class SchemaTable {
   }
 
   void removeColumn(SchemaColumn column) {
-    column = columnForName(column.name);
+    column = this[column.name];
     if (column == null) {
       throw new SchemaException(
           "Column ${column.name} does not exist on ${name}.");
@@ -117,7 +115,7 @@ class SchemaTable {
   }
 
   void replaceColumn(SchemaColumn existingColumn, SchemaColumn newColumn) {
-    existingColumn = columnForName(existingColumn.name);
+    existingColumn = this[existingColumn.name];
     if (existingColumn == null) {
       throw new SchemaException(
           "Column ${existingColumn.name} does not exist on ${name}.");
