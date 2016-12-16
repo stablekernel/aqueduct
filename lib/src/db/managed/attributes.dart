@@ -22,16 +22,22 @@ enum ManagedRelationshipDeleteRule {
 /// has a property that refers to the other. Only one of those properties may have this metadata. The property with this metadata
 /// resolves to a column in the database. The relationship property without this metadata resolves to a row or rows in the database.
 class ManagedRelationship {
+  static const Symbol _deferredSymbol = #mdrDeferred;
+
   /// Creates an instance of this type.
-  const ManagedRelationship(this.inverseKey,
+  const ManagedRelationship(this.inversePropertyName,
       {this.onDelete: ManagedRelationshipDeleteRule.nullify,
       this.isRequired: false});
+
+  const ManagedRelationship.deferred(ManagedRelationshipDeleteRule onDelete,
+      {bool isRequired: false})
+      : this(_deferredSymbol, onDelete: onDelete, isRequired: isRequired);
 
   /// The symbol for the property in the related [ManagedObject].
   ///
   /// This value must be the symbol for the property in the related [ManagedObject]. This creates the link between
   /// two sides of a relationship between a [ManagedObject].
-  final Symbol inverseKey;
+  final Symbol inversePropertyName;
 
   /// The delete rule to use when a related instance is deleted.
   ///
@@ -45,6 +51,10 @@ class ManagedRelationship {
   /// By default, [ManagedRelationship] properties are not required to support the default value of [onDelete].
   /// By setting this value to true, an instance of this entity cannot be created without a valid value for the relationship property.
   final bool isRequired;
+
+  bool get isDeferred {
+    return inversePropertyName == _deferredSymbol;
+  }
 }
 
 /// The different types of relationships.

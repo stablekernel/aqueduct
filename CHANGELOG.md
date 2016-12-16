@@ -1,5 +1,9 @@
 # aqueduct changelog
 
+## 1.0.5
+- Persistent types for `ManagedObject`s can now be subclasses of some other type, and inherited properties are also persistent properties.
+- `ManagedRelationship`s now have a `.deferred()` constructor. This allows `ManagedObject` subclasses to be declared in an imported package and still have relationships with `ManagedObject`s in the importing package.
+
 ## 1.0.4
 - BREAKING CHANGE: Added new `Response.contentType` property. Adding "Content-Type" to the headers of a `Response` no longer has any effect; use this property instead.
 - `ManagedDataModel`s now scan all libraries for `ManagedObject<T>` subclasses to generate a data model. Use `ManagedDataModel.fromCurrentMirrorSystem` to create instances of `ManagedDataModel`.

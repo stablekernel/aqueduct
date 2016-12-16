@@ -45,8 +45,8 @@ void isolateServerEntryPoint(ApplicationInitialServerMessage params) {
   try {
     var sinkSourceLibraryMirror =
         currentMirrorSystem().libraries[params.streamLibraryURI];
-    var sinkTypeMirror = sinkSourceLibraryMirror.declarations[
-        new Symbol(params.streamTypeName)] as ClassMirror;
+    var sinkTypeMirror = sinkSourceLibraryMirror
+        .declarations[new Symbol(params.streamTypeName)] as ClassMirror;
 
     sink = sinkTypeMirror.newInstance(
         new Symbol(""), [params.configuration.configurationOptions]).reflectee;

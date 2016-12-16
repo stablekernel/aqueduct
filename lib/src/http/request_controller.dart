@@ -217,7 +217,8 @@ class RequestController extends Object with APIDocumentable {
   /// including server errors.
   void willSendResponse(Response response) {}
 
-  void _sendResponse(Request request, Response response, {bool includeCORSHeaders: false}) {
+  void _sendResponse(Request request, Response response,
+      {bool includeCORSHeaders: false}) {
     if (includeCORSHeaders) {
       applyCORSHeadersIfNecessary(request, response);
     }

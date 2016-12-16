@@ -110,6 +110,10 @@ abstract class ManagedPropertyDescription {
     return null;
   }
 
+  static List<Type> get supportedDartTypes {
+    return [String, DateTime, bool, int, double];
+  }
+
   /// Whether or not a the argument can be assigned to this property.
   bool isAssignableWith(dynamic dartValue) {
     switch (type) {

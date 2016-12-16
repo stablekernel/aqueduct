@@ -167,8 +167,8 @@ class CLITemplateCreator extends CLICommand {
 
   void copyDirectory(String projectName, Directory destinationParentDirectory,
       Directory sourceDirectory) {
-    var sourceDirectoryName = sourceDirectory.uri.pathSegments[
-        sourceDirectory.uri.pathSegments.length - 2];
+    var sourceDirectoryName = sourceDirectory
+        .uri.pathSegments[sourceDirectory.uri.pathSegments.length - 2];
     var destDir = new Directory(
         path_lib.join(destinationParentDirectory.path, sourceDirectoryName));
 
