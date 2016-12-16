@@ -331,7 +331,7 @@ void main() {
       var errors = <String>[];
       expect(newSchema.matches(baseSchema, errors), false);
       expect(errors.length, 1);
-      expect(errors.first, contains("does not contain foo"));
+      expect(errors.first, contains("does not contain 'foo'"));
     });
 
     test("Missing table show up as error", () {
@@ -341,7 +341,7 @@ void main() {
       var errors = <String>[];
       expect(newSchema.matches(baseSchema, errors), false);
       expect(errors.length, 1);
-      expect(errors.first, contains("does not contain _DefaultItem"));
+      expect(errors.first, contains("does not contain '_DefaultItem'"));
     });
 
     test("Same table but renamed shows up as error", () {
@@ -352,7 +352,7 @@ void main() {
       var errors = <String>[];
       expect(newSchema.matches(baseSchema, errors), false);
       expect(errors.length, 1);
-      expect(errors.first, contains("does not contain DefaultItem"));
+      expect(errors.first, contains("does not contain 'DefaultItem'"));
     });
 
     test("Missing column shows up as error", () {
@@ -365,7 +365,7 @@ void main() {
       var errors = <String>[];
       expect(newSchema.matches(baseSchema, errors), false);
       expect(errors.length, 1);
-      expect(errors.first, contains("_DefaultItem does not contain id"));
+      expect(errors.first, contains("'_DefaultItem' does not contain 'id'"));
     });
 
     test("Additional column shows up as error", () {
@@ -378,7 +378,7 @@ void main() {
       var errors = <String>[];
       expect(newSchema.matches(baseSchema, errors), false);
       expect(errors.length, 1);
-      expect(errors.first, contains("_DefaultItem does not contain foo"));
+      expect(errors.first, contains("'_DefaultItem' does not contain 'foo'"));
     });
 
     test("Same column but with wrong name shows up as error", () {
@@ -392,7 +392,7 @@ void main() {
       var errors = <String>[];
       expect(newSchema.matches(baseSchema, errors), false);
       expect(errors.length, 1);
-      expect(errors.first, contains("_DefaultItem does not contain id"));
+      expect(errors.first, contains("'_DefaultItem' does not contain 'idd'"));
     });
 
     test("Column differences show up as errors", () {
@@ -407,7 +407,7 @@ void main() {
       expect(newSchema.matches(baseSchema, errors), false);
       expect(errors.length, 1);
       expect(errors.first,
-          contains("_DefaultItem.id does not have same isPrimaryKey"));
+          contains("'_DefaultItem.id' does not have same value for 'isPrimaryKey'"));
       column.isPrimaryKey = !column.isPrimaryKey;
       errors = <String>[];
 
@@ -415,7 +415,7 @@ void main() {
       expect(newSchema.matches(baseSchema, errors), false);
       expect(errors.length, 1);
       expect(errors.first,
-          contains("_DefaultItem.id does not have same isIndexed"));
+          contains("'_DefaultItem.id' does not have same value for 'isIndexed'"));
       column.isIndexed = !column.isIndexed;
       errors = <String>[];
 
@@ -423,7 +423,7 @@ void main() {
       expect(newSchema.matches(baseSchema, errors), false);
       expect(errors.length, 1);
       expect(errors.first,
-          contains("_DefaultItem.id does not have same isNullable"));
+          contains("'_DefaultItem.id' does not have same value for 'isNullable'"));
       column.isNullable = !column.isNullable;
       errors = <String>[];
 
@@ -431,7 +431,7 @@ void main() {
       expect(newSchema.matches(baseSchema, errors), false);
       expect(errors.length, 1);
       expect(errors.first,
-          contains("_DefaultItem.id does not have same autoincrement"));
+          contains("'_DefaultItem.id' does not have same value for 'autoincrement'"));
       column.autoincrement = !column.autoincrement;
       errors = <String>[];
 
@@ -439,7 +439,7 @@ void main() {
       expect(newSchema.matches(baseSchema, errors), false);
       expect(errors.length, 1);
       expect(errors.first,
-          contains("_DefaultItem.id does not have same isUnique"));
+          contains("'_DefaultItem.id' does not have same value for 'isUnique'"));
       column.isUnique = !column.isUnique;
       errors = <String>[];
 
@@ -448,7 +448,7 @@ void main() {
       expect(newSchema.matches(baseSchema, errors), false);
       expect(errors.length, 1);
       expect(errors.first,
-          contains("_DefaultItem.id does not have same defaultValue"));
+          contains("'_DefaultItem.id' does not have same value for 'defaultValue'"));
       column.defaultValue = captureValue;
       errors = <String>[];
 
@@ -456,7 +456,7 @@ void main() {
       column.type = ManagedPropertyType.boolean;
       expect(newSchema.matches(baseSchema, errors), false);
       expect(errors.length, 1);
-      expect(errors.first, contains("_DefaultItem.id does not have same type"));
+      expect(errors.first, contains("'_DefaultItem.id' does not have same value for 'type'"));
       column.type = capType;
       errors = <String>[];
 
@@ -465,7 +465,7 @@ void main() {
       expect(newSchema.matches(baseSchema, errors), false);
       expect(errors.length, 1);
       expect(errors.first,
-          contains("_DefaultItem.id does not have same relatedColumnName"));
+          contains("'_DefaultItem.id' does not have same value for 'relatedColumnName'"));
       column.relatedColumnName = captureValue;
       errors = <String>[];
 
@@ -474,7 +474,7 @@ void main() {
       expect(newSchema.matches(baseSchema, errors), false);
       expect(errors.length, 1);
       expect(errors.first,
-          contains("_DefaultItem.id does not have same relatedTableName"));
+          contains("'_DefaultItem.id' does not have same value for 'relatedTableName'"));
       column.relatedTableName = captureValue;
       errors = <String>[];
 
@@ -483,7 +483,7 @@ void main() {
       expect(newSchema.matches(baseSchema, errors), false);
       expect(errors.length, 1);
       expect(errors.first,
-          contains("_DefaultItem.id does not have same deleteRule"));
+          contains("'_DefaultItem.id' does not have same value for 'deleteRule'"));
       column.deleteRule = capDeleteRule;
       errors = <String>[];
     });
@@ -498,13 +498,29 @@ void main() {
       var errors = <String>[];
       expect(newSchema.matches(baseSchema, errors), false);
       expect(errors.length, 3);
-      expect(errors, contains(contains("does not contain foo")));
+      expect(errors, contains(contains("does not contain 'foo'")));
       expect(
-          errors, contains(contains("_DefaultItem does not contain foobar")));
+          errors, contains(contains("'_DefaultItem' does not contain 'foobar'")));
       expect(
           errors,
           contains(
-              contains("_DefaultItem.id does not have same isPrimaryKey")));
+              contains("'_DefaultItem.id' does not have same value for 'isPrimaryKey'")));
+    });
+
+    test("Tables and columns are case-insensitive", () {
+      var lowercaseSchema = new Schema([
+        new SchemaTable("table", [
+          new SchemaColumn("column", ManagedPropertyType.bigInteger)
+        ])
+      ]);
+
+      var uppercaseSchema = new Schema([
+        new SchemaTable("TABLE", [
+          new SchemaColumn("COLUMN", ManagedPropertyType.bigInteger)
+        ])
+      ]);
+
+      expect(lowercaseSchema.matches(uppercaseSchema), true);
     });
   });
 }

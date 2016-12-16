@@ -10,7 +10,6 @@ void main() {
       dataModel = new ManagedDataModel([User, Item, Manager]);
       ManagedContext.defaultContext =
           new ManagedContext(dataModel, new DefaultPersistentStore());
-      ;
     });
 
     test("Entities have appropriate types", () {
@@ -307,6 +306,107 @@ void main() {
     });
   });
 
+  group("Edge cases", () {
+    test("ManagedObject with two foreign keys to same object are distinct", () {
+      var model = new ManagedDataModel(
+          [DoubleRelationshipForeignKeyModel, DoubleRelationshipHasModel, SomeOtherRelationshipModel]);
+
+      var isManyOf = model
+          .entityForType(DoubleRelationshipForeignKeyModel)
+          .relationships["isManyOf"];
+      expect(isManyOf.inverseRelationship.name, "hasManyOf");
+      expect(isManyOf.destinationEntity.tableName,
+          model.entityForType(DoubleRelationshipHasModel).tableName);
+
+      var isOneOf = model
+          .entityForType(DoubleRelationshipForeignKeyModel)
+          .relationships["isOneOf"];
+      expect(isOneOf.inverseRelationship.name, "hasOneOf");
+      expect(isOneOf.destinationEntity.tableName,
+          model.entityForType(DoubleRelationshipHasModel).tableName);
+    });
+
+    test("ManagedObject with multiple relationships where one is deferred succeeds in finding relationship", () {
+      var model = new ManagedDataModel(
+          [DoubleRelationshipForeignKeyModel, DoubleRelationshipHasModel, SomeOtherRelationshipModel]);
+
+      var partial = model.entityForType(DoubleRelationshipForeignKeyModel).relationships["partial"];
+      expect(partial.destinationEntity.tableName, model.entityForType(SomeOtherRelationshipModel).tableName);
+    });
+  });
+
+  group("Valid data model with deferred types", () {
+    test("Entities have correct properties and relationships", () {
+      var dataModel = new ManagedDataModel([TotalModel, PartialReferenceModel]);
+      ManagedContext.defaultContext =
+          new ManagedContext(dataModel, new DefaultPersistentStore());
+
+      expect(dataModel.entities.length, 2);
+
+      var totalEntity = dataModel.entityForType(TotalModel);
+      var referenceEntity = dataModel.entityForType(PartialReferenceModel);
+
+      expect(totalEntity.properties.length, 5);
+      expect(totalEntity.primaryKey, "id");
+      expect(totalEntity.attributes["transient"].isTransient, true);
+      expect(totalEntity.attributes["addedField"].name, isNotNull);
+      expect(totalEntity.attributes["id"].isPrimaryKey, true);
+      expect(totalEntity.attributes["field"].isIndexed, true);
+      expect(
+          totalEntity
+              .relationships["hasManyRelationship"].destinationEntity.tableName,
+          referenceEntity.tableName);
+      expect(totalEntity.relationships["hasManyRelationship"].relationshipType,
+          ManagedRelationshipType.hasMany);
+
+      expect(
+          referenceEntity
+              .relationships["foreignKeyColumn"].destinationEntity.tableName,
+          totalEntity.tableName);
+    });
+
+    test("Will use tableName of base class if not declared in subclass", () {
+      var dataModel = new ManagedDataModel([TotalModel, PartialReferenceModel]);
+      ManagedContext.defaultContext =
+          new ManagedContext(dataModel, new DefaultPersistentStore());
+      expect(dataModel.entityForType(TotalModel).tableName, "predefined");
+    });
+
+    test("Order of partial data model doesn't matter when related", () {
+      var dm1 = new ManagedDataModel([TotalModel, PartialReferenceModel]);
+      var dm2 = new ManagedDataModel([PartialReferenceModel, TotalModel]);
+      expect(dm1.entities.map((e) => e.tableName).contains("predefined"), true);
+      expect(
+          dm1.entities
+              .map((e) => e.tableName)
+              .contains("_PartialReferenceModel"),
+          true);
+      expect(dm2.entities.map((e) => e.tableName).contains("predefined"), true);
+      expect(
+          dm2.entities
+              .map((e) => e.tableName)
+              .contains("_PartialReferenceModel"),
+          true);
+    });
+
+    test("Partials have defaultProperties from persistent type superclasses",
+        () {
+      var dataModel = new ManagedDataModel([TotalModel, PartialReferenceModel]);
+      var defaultProperties =
+          dataModel.entityForType(TotalModel).defaultProperties;
+      expect(defaultProperties.contains("id"), true);
+      expect(defaultProperties.contains("field"), true);
+      expect(defaultProperties.contains("addedField"), true);
+
+      expect(
+          dataModel
+              .entityForType(PartialReferenceModel)
+              .defaultProperties
+              .contains("foreignKeyColumn"),
+          true);
+    });
+  });
+
   test("Delete rule of setNull throws exception if property is not nullable",
       () {
     try {
@@ -380,7 +480,6 @@ void main() {
       dataModel = new ManagedDataModel([User, Item, Manager]);
       ManagedContext.defaultContext =
           new ManagedContext(dataModel, new DefaultPersistentStore());
-      ;
     });
 
     test("works for a data model", () {
@@ -606,7 +705,10 @@ class PartialModel {
 
 class PartialReferenceModel extends ManagedObject<_PartialReferenceModel>
     implements _PartialReferenceModel {}
+<<<<<<< b97126ead2520514632fc76b6588b4b9459a762f
+=======
 
+>>>>>>> update changelog and dartfmt
 class _PartialReferenceModel {
   @managedPrimaryKey
   int id;

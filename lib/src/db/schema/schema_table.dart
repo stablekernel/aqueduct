@@ -49,13 +49,12 @@ class SchemaTable {
     var matches = true;
 
     for (var receiverColumn in columns) {
-      var matchingArgColumn = table.columns.firstWhere(
-          (st) => st.name == receiverColumn.name,
-          orElse: () => null);
+
+      var matchingArgColumn = table.columnForName(receiverColumn.name);
       if (matchingArgColumn == null) {
         matches = false;
         reasons?.add(
-            "Compared table ${table.name} does not contain ${receiverColumn.name}, but that column exists in receiver schema.");
+            "Compared table '${table.name}' does not contain '${receiverColumn.name}', but that column exists in receiver schema.");
       } else {
         var columnReasons = <String>[];
         if (!receiverColumn.matches(matchingArgColumn, columnReasons)) {
@@ -68,12 +67,12 @@ class SchemaTable {
 
     if (table.columns.length > columns.length) {
       matches = false;
-      var receiverColumnNames = columns.map((st) => st.name).toList();
+      var receiverColumnNames = columns.map((st) => st.name.toLowerCase()).toList();
       table.columns
-          .where((st) => !receiverColumnNames.contains(st.name))
+          .where((st) => !receiverColumnNames.contains(st.name.toLowerCase()))
           .forEach((st) {
         reasons?.add(
-            "Receiver table ${table.name} does not contain ${st.name}, but that column exists in compared table.");
+            "Receiver table '${table.name}' does not contain '${st.name}', but that column exists in compared table.");
       });
     }
 
