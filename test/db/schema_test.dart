@@ -406,40 +406,50 @@ void main() {
       column.isPrimaryKey = !column.isPrimaryKey;
       expect(newSchema.matches(baseSchema, errors), false);
       expect(errors.length, 1);
-      expect(errors.first,
-          contains("'_DefaultItem.id' does not have same value for 'isPrimaryKey'"));
+      expect(
+          errors.first,
+          contains(
+              "'_DefaultItem.id' does not have same value for 'isPrimaryKey'"));
       column.isPrimaryKey = !column.isPrimaryKey;
       errors = <String>[];
 
       column.isIndexed = !column.isIndexed;
       expect(newSchema.matches(baseSchema, errors), false);
       expect(errors.length, 1);
-      expect(errors.first,
-          contains("'_DefaultItem.id' does not have same value for 'isIndexed'"));
+      expect(
+          errors.first,
+          contains(
+              "'_DefaultItem.id' does not have same value for 'isIndexed'"));
       column.isIndexed = !column.isIndexed;
       errors = <String>[];
 
       column.isNullable = !column.isNullable;
       expect(newSchema.matches(baseSchema, errors), false);
       expect(errors.length, 1);
-      expect(errors.first,
-          contains("'_DefaultItem.id' does not have same value for 'isNullable'"));
+      expect(
+          errors.first,
+          contains(
+              "'_DefaultItem.id' does not have same value for 'isNullable'"));
       column.isNullable = !column.isNullable;
       errors = <String>[];
 
       column.autoincrement = !column.autoincrement;
       expect(newSchema.matches(baseSchema, errors), false);
       expect(errors.length, 1);
-      expect(errors.first,
-          contains("'_DefaultItem.id' does not have same value for 'autoincrement'"));
+      expect(
+          errors.first,
+          contains(
+              "'_DefaultItem.id' does not have same value for 'autoincrement'"));
       column.autoincrement = !column.autoincrement;
       errors = <String>[];
 
       column.isUnique = !column.isUnique;
       expect(newSchema.matches(baseSchema, errors), false);
       expect(errors.length, 1);
-      expect(errors.first,
-          contains("'_DefaultItem.id' does not have same value for 'isUnique'"));
+      expect(
+          errors.first,
+          contains(
+              "'_DefaultItem.id' does not have same value for 'isUnique'"));
       column.isUnique = !column.isUnique;
       errors = <String>[];
 
@@ -447,8 +457,10 @@ void main() {
       column.defaultValue = "foobar";
       expect(newSchema.matches(baseSchema, errors), false);
       expect(errors.length, 1);
-      expect(errors.first,
-          contains("'_DefaultItem.id' does not have same value for 'defaultValue'"));
+      expect(
+          errors.first,
+          contains(
+              "'_DefaultItem.id' does not have same value for 'defaultValue'"));
       column.defaultValue = captureValue;
       errors = <String>[];
 
@@ -456,7 +468,8 @@ void main() {
       column.type = ManagedPropertyType.boolean;
       expect(newSchema.matches(baseSchema, errors), false);
       expect(errors.length, 1);
-      expect(errors.first, contains("'_DefaultItem.id' does not have same value for 'type'"));
+      expect(errors.first,
+          contains("'_DefaultItem.id' does not have same value for 'type'"));
       column.type = capType;
       errors = <String>[];
 
@@ -464,8 +477,10 @@ void main() {
       column.relatedColumnName = "whatever";
       expect(newSchema.matches(baseSchema, errors), false);
       expect(errors.length, 1);
-      expect(errors.first,
-          contains("'_DefaultItem.id' does not have same value for 'relatedColumnName'"));
+      expect(
+          errors.first,
+          contains(
+              "'_DefaultItem.id' does not have same value for 'relatedColumnName'"));
       column.relatedColumnName = captureValue;
       errors = <String>[];
 
@@ -473,8 +488,10 @@ void main() {
       column.relatedTableName = "whatever";
       expect(newSchema.matches(baseSchema, errors), false);
       expect(errors.length, 1);
-      expect(errors.first,
-          contains("'_DefaultItem.id' does not have same value for 'relatedTableName'"));
+      expect(
+          errors.first,
+          contains(
+              "'_DefaultItem.id' does not have same value for 'relatedTableName'"));
       column.relatedTableName = captureValue;
       errors = <String>[];
 
@@ -482,8 +499,10 @@ void main() {
       column.deleteRule = ManagedRelationshipDeleteRule.setDefault;
       expect(newSchema.matches(baseSchema, errors), false);
       expect(errors.length, 1);
-      expect(errors.first,
-          contains("'_DefaultItem.id' does not have same value for 'deleteRule'"));
+      expect(
+          errors.first,
+          contains(
+              "'_DefaultItem.id' does not have same value for 'deleteRule'"));
       column.deleteRule = capDeleteRule;
       errors = <String>[];
     });
@@ -499,25 +518,23 @@ void main() {
       expect(newSchema.matches(baseSchema, errors), false);
       expect(errors.length, 3);
       expect(errors, contains(contains("does not contain 'foo'")));
-      expect(
-          errors, contains(contains("'_DefaultItem' does not contain 'foobar'")));
+      expect(errors,
+          contains(contains("'_DefaultItem' does not contain 'foobar'")));
       expect(
           errors,
-          contains(
-              contains("'_DefaultItem.id' does not have same value for 'isPrimaryKey'")));
+          contains(contains(
+              "'_DefaultItem.id' does not have same value for 'isPrimaryKey'")));
     });
 
     test("Tables and columns are case-insensitive", () {
       var lowercaseSchema = new Schema([
-        new SchemaTable("table", [
-          new SchemaColumn("column", ManagedPropertyType.bigInteger)
-        ])
+        new SchemaTable("table",
+            [new SchemaColumn("column", ManagedPropertyType.bigInteger)])
       ]);
 
       var uppercaseSchema = new Schema([
-        new SchemaTable("TABLE", [
-          new SchemaColumn("COLUMN", ManagedPropertyType.bigInteger)
-        ])
+        new SchemaTable("TABLE",
+            [new SchemaColumn("COLUMN", ManagedPropertyType.bigInteger)])
       ]);
 
       expect(lowercaseSchema.matches(uppercaseSchema), true);

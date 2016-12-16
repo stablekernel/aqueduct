@@ -66,9 +66,7 @@ class SchemaTable {
 
     if (table.columns.length > columns.length) {
       matches = false;
-      table.columns
-          .where((st) => this[st.name] == null)
-          .forEach((st) {
+      table.columns.where((st) => this[st.name] == null).forEach((st) {
         reasons?.add(
             "Receiver table '${table.name}' does not contain '${st.name}', but that column exists in compared table.");
       });

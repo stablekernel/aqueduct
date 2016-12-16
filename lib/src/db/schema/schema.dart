@@ -75,9 +75,7 @@ class Schema {
 
     if (schema.tables.length > tables.length) {
       matches = false;
-      schema.tables
-          .where((st) => this[st.name] == null)
-          .forEach((st) {
+      schema.tables.where((st) => this[st.name] == null).forEach((st) {
         reasons?.add(
             "Receiver schema does not contain '${st.name}', but that table exists in compared schema.");
       });
