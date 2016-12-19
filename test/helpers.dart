@@ -51,7 +51,6 @@ class InMemoryAuthStorage implements AuthStorage {
       return null;
     }
     return new AuthToken()
-        ..uniqueIdentifier = t.uniqueIdentifier
         ..accessToken = t.accessToken
         ..refreshToken = t.refreshToken
         ..type = t.type
@@ -66,13 +65,11 @@ class InMemoryAuthStorage implements AuthStorage {
       return null;
     }
     return new AuthCode()
-        ..redirectURI = c.redirectURI
         ..code = c.code
         ..clientID = c.clientID
         ..resourceOwnerIdentifier = c.resourceOwnerIdentifier
         ..issueDate = c.issueDate
-        ..expirationDate = c.expirationDate
-        ..tokenIdentifier = c.tokenIdentifier;
+        ..expirationDate = c.expirationDate;
   }
 
   void createUsers(int count) {
@@ -89,45 +86,49 @@ class InMemoryAuthStorage implements AuthStorage {
     }
   }
 
-  Future revokeAuthenticatableAccessForIdentifier(AuthServer server, dynamic identifier) async {
+  @override
+  Future revokeAuthenticatableWithIdentifier(AuthServer server, dynamic identifier) async {
     tokens.removeWhere((t) => t.resourceOwnerIdentifier == identifier);
     codes.removeWhere((t) => t.resourceOwnerIdentifier == identifier);
   }
 
-  Future<AuthToken> fetchTokenWithAccessToken(AuthServer server, String accessToken) async {
+  @override
+  Future<AuthToken> fetchTokenByAccessToken(AuthServer server, String accessToken) async {
     return _copyToken(tokens.firstWhere((t) => t.accessToken == accessToken,
         orElse: () => null));
   }
 
-  Future<AuthToken> fetchTokenWithRefreshToken(AuthServer server, String refreshToken) async {
+  @override
+  Future<AuthToken> fetchTokenByRefreshToken(AuthServer server, String refreshToken) async {
     return _copyToken(tokens.firstWhere((t) => t.refreshToken == refreshToken,
         orElse: () => null));
   }
 
-  Future<TestUser> fetchResourceOwnerWithUsername(
+  @override
+  Future<TestUser> fetchAuthenticatableByUsername(
       AuthServer server, String username) async {
     return users.values.firstWhere((t) => t.username == username,
         orElse: () => null);
   }
 
-  Future revokeTokenWithIdentifier(AuthServer server, dynamic identifier) async {
+  @override
+  Future revokeTokenIssuedFromCode(AuthServer server, AuthCode code) async {
     tokens.removeWhere((t) => t.uniqueIdentifier == identifier);
   }
 
-  Future<dynamic> storeTokenAndReturnUniqueIdentifier(AuthServer server, AuthToken t) async {
-    t.uniqueIdentifier = randomStringOfLength(32);
+  @override
+  Future storeToken(AuthServer server, AuthToken t, {AuthCode issuedFrom}) async {
     tokens.add(t);
-    return t.uniqueIdentifier;
   }
 
-  Future refreshTokenWithIdentifier(AuthServer server, dynamic identifier, String newAccessToken, DateTime newIssueDate, DateTime newExpirationDate) async {
-    var existing = tokens.firstWhere((e) => e.uniqueIdentifier == identifier, orElse: () => null);
+  @override
+  Future refreshTokenWithAccessToken(AuthServer server, String accessToken, String newAccessToken, DateTime newIssueDate, DateTime newExpirationDate) async {
+    var existing = tokens.firstWhere((e) => e.accessToken == accessToken, orElse: () => null);
     if (existing != null) {
       var replacement = new AuthToken()
         ..expirationDate = newExpirationDate
         ..issueDate = newIssueDate
         ..accessToken = newAccessToken
-        ..uniqueIdentifier = existing.uniqueIdentifier
         ..clientID = existing.clientID
         ..refreshToken = existing.refreshToken
         ..resourceOwnerIdentifier = existing.resourceOwnerIdentifier
@@ -138,28 +139,27 @@ class InMemoryAuthStorage implements AuthStorage {
     }
   }
 
+  @override
   Future storeAuthCode(AuthServer server, AuthCode code) async {
     codes.add(code);
   }
 
-  Future<AuthCode> fetchAuthCodeWithCode(AuthServer server, String code) async {
+  @override
+  Future<AuthCode> fetchAuthCodeByCode(AuthServer server, String code) async {
     return _copyCode(codes.firstWhere((c) => c.code == code, orElse: () => null));
   }
 
-  Future associateAuthCodeWithTokenIdentifier(AuthServer server, String code, dynamic tokenIdentifier) async {
-    var existing = codes.firstWhere((e) => e.code == code, orElse: () => null);
-
-    existing?.tokenIdentifier = tokenIdentifier;
-  }
-
+  @override
   Future revokeAuthCodeWithCode(AuthServer server, String code) async {
     codes.removeWhere((c) => c.code == code);
   }
 
-  Future<AuthClient> fetchClientWithID(AuthServer server, String id) async {
+  @override
+  Future<AuthClient> fetchClientByID(AuthServer server, String id) async {
     return clients[id];
   }
 
+  @override
   Future revokeClientWithID(AuthServer server, String id) async {
     clients.remove(id);
   }

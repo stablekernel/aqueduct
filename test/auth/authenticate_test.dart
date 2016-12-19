@@ -309,12 +309,8 @@ void main() {
       expect(authCode.resourceOwnerIdentifier, createdUser.id);
       expect(authCode.clientID, "com.stablekernel.redirect");
       expect(authCode.expirationDate.isAfter(new DateTime.now().toUtc()), true);
-      expect(authCode.tokenIdentifier, isNull);
       expect(authCode.issueDate.difference(authCode.expirationDate).inSeconds.abs(), greaterThan(599));
       expect(authCode.issueDate.difference(authCode.expirationDate).inSeconds.abs(), lessThan(601));
-
-      var redirectURI = (await auth.clientForID("com.stablekernel.redirect")).redirectURI;
-      expect(authCode.redirectURI, redirectURI);
 
       var token = await auth.exchange(authCode.code, "com.stablekernel.redirect", "mckinley");
       expect(token, isNotNull);

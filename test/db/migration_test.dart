@@ -288,7 +288,6 @@ void main() {
 
       var errors = <String>[];
       var ok = outSchema.matches(expectedSchema, errors);
-      print("$errors");
       expect(ok, true);
       expect(errors, []);
     });

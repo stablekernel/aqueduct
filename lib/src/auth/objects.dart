@@ -21,16 +21,13 @@ class AuthClient {
   /// The redirection URI for authorization codes and/or tokens.
   String redirectURI;
 
-//  List<String> allowedScopes;
-
   bool get isPublic => hashedSecret == null;
   bool get isConfidential => hashedSecret != null;
 
   String toString() {
-    return "AuthClient $id ${isPublic ? "public" : "confidental"} $redirectURI";
+    return "AuthClient (${isPublic ? "public" : "confidental"}): $id $redirectURI";
   }
 }
-
 
 /// An interface to represent [AuthServer.TokenType].
 ///
@@ -41,8 +38,6 @@ class AuthClient {
 /// this interface to define a [ManagedObject] that represents the concrete implementation of a authentication
 /// token in your application. All of these properties are expected to be persisted.
 class AuthToken {
-  dynamic uniqueIdentifier;
-
   /// The value to be passed as a Bearer Authorization header.
   String accessToken;
 
@@ -85,7 +80,6 @@ class AuthToken {
       map["refresh_token"] = refreshToken;
     }
 
-    //if (scope...)
     return map;
   }
 }
@@ -97,10 +91,6 @@ class AuthToken {
 /// this interface to define a [ManagedObject] that represents a concrete implementation
 /// of a authorization code in your application. All of these properties are expected to be persisted.
 class AuthCode {
-  /// This is the URI that the response object will redirect to with the
-  /// authorization code in the query.
-  String redirectURI;
-
   /// The actual one-time code used to exchange for tokens.
   String code;
 
@@ -120,8 +110,7 @@ class AuthCode {
   /// When this authorization code expires, recommended for 10 minutes after issue date.
   DateTime expirationDate;
 
-  /// The token vended for this authorization code
-  dynamic tokenIdentifier;
+  bool hasBeenExchanged;
 
   bool get isExpired {
     return expirationDate.difference(new DateTime.now().toUtc()).inSeconds <= 0;
