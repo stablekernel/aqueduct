@@ -3,9 +3,6 @@ import 'dart:async';
 import 'package:aqueduct/aqueduct.dart';
 
 class ManagedToken extends ManagedObject<_ManagedToken> implements _ManagedToken {
-  static const String TypeBearer = "bearer";
-  static const String TypeCode = "code";
-
   ManagedToken() : super();
   ManagedToken.fromToken(AuthToken t) : super() {
     var tokenResourceOwner = this.entity.relationships["resourceOwner"].destinationEntity.newInstance();
@@ -80,7 +77,7 @@ class _ManagedToken {
       isRequired: true)
   ManagedClient client;
 
-  @ManagedColumnAttributes(indexed: true)
+  @ManagedColumnAttributes(indexed: true, nullable: true)
   String type;
 
   static String tableName() => "_authtoken";
@@ -193,7 +190,7 @@ class ManagedAuthStorage<T extends ManagedAuthResourceOwner> implements AuthStor
       await query.insert();
     }
 
-    await pruneTokens(t.resourceOwnerIdentifier, t.type);
+    await pruneTokens(t.resourceOwnerIdentifier);
   }
 
   @override
@@ -211,11 +208,10 @@ class ManagedAuthStorage<T extends ManagedAuthResourceOwner> implements AuthStor
   Future storeAuthCode(AuthServer server, AuthCode code) async {
     var storage = new ManagedToken.fromCode(code);
     var query = new Query<ManagedToken>(context)
-      ..values = storage
-      ..values.type = ManagedToken.TypeCode;
+      ..values = storage;
     await query.insert();
 
-    await pruneTokens(code.resourceOwnerIdentifier, ManagedToken.TypeCode);
+    await pruneTokens(code.resourceOwnerIdentifier);
   }
 
   @override
@@ -253,10 +249,9 @@ class ManagedAuthStorage<T extends ManagedAuthResourceOwner> implements AuthStor
     await query.delete();
   }
 
-  Future pruneTokens(dynamic resourceOwnerIdentifier, String type) async {
+  Future pruneTokens(dynamic resourceOwnerIdentifier) async {
     var oldTokenQuery = new Query<ManagedToken>(context)
       ..matchOn.resourceOwner = whereRelatedByValue(resourceOwnerIdentifier)
-      ..matchOn.type = type
       ..sortDescriptors = [
         new QuerySortDescriptor("expirationDate", QuerySortOrder.descending)
       ]
@@ -264,11 +259,9 @@ class ManagedAuthStorage<T extends ManagedAuthResourceOwner> implements AuthStor
       ..fetchLimit = 1
       ..resultProperties = ["expirationDate"];
 
-
     var results = await oldTokenQuery.fetch();
     if (results.length == 1) {
       var deleteQ = new Query<ManagedToken>()
-        ..matchOn.type = type
         ..matchOn.resourceOwner = whereRelatedByValue(resourceOwnerIdentifier)
         ..matchOn.expirationDate = whereLessThanEqualTo(results.first.expirationDate);
 

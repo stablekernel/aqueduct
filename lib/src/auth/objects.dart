@@ -63,8 +63,6 @@ class AuthToken {
   /// The clientID this token was issued under.
   String clientID;
 
-//  List<AuthScope> scope;
-
   bool get isExpired {
     return expirationDate.difference(new DateTime.now().toUtc()).inSeconds <= 0;
   }
