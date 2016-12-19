@@ -81,55 +81,28 @@ class AuthCodeController extends HTTPController {
       @HTTPQuery("username") String username,
       @HTTPQuery("password") String password,
       @HTTPQuery("scope") String scope}) async {
+    var client = await authenticationServer.clientForID(clientID);
 
     if (responseType != "code") {
       if (clientID == null) {
         return new Response.badRequest();
       }
 
-      var client = await authenticationServer.clientForID(clientID);
       if (client.redirectURI == null) {
         return new Response.badRequest();
       }
 
       var exception = new AuthServerException(AuthRequestError.invalidRequest, client);
-      return _redirectResponse(exception);
+      return _redirectResponse(null, state, error: exception);
     }
 
     try {
       var authCode =
           await authenticationServer.authenticateForCode(username, password, clientID);
-      return AuthCodeController.authCodeResponse(authCode, state);
+      return _redirectResponse(client.redirectURI, state, code: authCode.code);
     } on AuthServerException catch (e) {
-      return _redirectResponse(e);
+      return _redirectResponse(null, state, error: e);
     }
-  }
-
-  static Response authCodeResponse(
-      AuthCode code, String clientState) {
-    var redirectURI = Uri.parse(code.redirectURI);
-    Map<String, String> queryParameters =
-        new Map.from(redirectURI.queryParameters);
-    queryParameters["code"] = code.code;
-    if (clientState != null) {
-      queryParameters["state"] = clientState;
-    }
-
-    var responseURI = new Uri(
-        scheme: redirectURI.scheme,
-        userInfo: redirectURI.userInfo,
-        host: redirectURI.host,
-        port: redirectURI.port,
-        path: redirectURI.path,
-        queryParameters: queryParameters);
-    return new Response(
-        HttpStatus.MOVED_TEMPORARILY,
-        {
-          HttpHeaders.LOCATION: responseURI.toString(),
-          HttpHeaders.CACHE_CONTROL: "no-store",
-          HttpHeaders.PRAGMA: "no-cache"
-        },
-        null);
   }
 
   @override
@@ -183,17 +156,26 @@ class AuthCodeController extends HTTPController {
     }
   }
 
-  Response _redirectResponse(AuthServerException exception) {
-    if (exception.client?.redirectURI == null) {
+  static Response _redirectResponse(String uriString, String clientStateOrNull, {String code, AuthServerException error}) {
+    uriString ??= error.client?.redirectURI;
+    if (uriString == null) {
       return new Response.badRequest(
-          body: {"error" : exception.reasonString});
+          body: {"error" : error.reasonString});
     }
 
-    var redirectURI = Uri.parse(exception.client.redirectURI);
+    var redirectURI = Uri.parse(uriString);
     Map<String, String> queryParameters =
       new Map.from(redirectURI.queryParameters);
 
-    queryParameters["error"] = exception.reasonString;
+    if (code != null) {
+      queryParameters["code"] = code;
+    }
+    if (clientStateOrNull != null) {
+      queryParameters["state"] = clientStateOrNull;
+    }
+    if (error != null) {
+      queryParameters["error"] = error.reasonString;
+    }
 
     var responseURI = new Uri(
         scheme: redirectURI.scheme,
@@ -202,7 +184,6 @@ class AuthCodeController extends HTTPController {
         port: redirectURI.port,
         path: redirectURI.path,
         queryParameters: queryParameters);
-
     return new Response(
         HttpStatus.MOVED_TEMPORARILY,
         {
@@ -212,5 +193,4 @@ class AuthCodeController extends HTTPController {
         },
         null);
   }
-
 }

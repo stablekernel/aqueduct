@@ -14,7 +14,7 @@ void main() {
   ManagedContext context;
 
   setUp(() async {
-    context = await contextWithModels([User, ManagedClient, ManagedAuthCode, ManagedToken]);
+    context = await contextWithModels([User, ManagedClient, ManagedToken]);
 
     var salt = "ABCDEFGHIJKLMNOPQRSTUVWXYZ012345";
     var clients = [
@@ -379,10 +379,6 @@ void main() {
       expect(authCode.resourceOwnerIdentifier, createdUser.id);
       expect(authCode.clientID, "com.stablekernel.redirect");
       expect(authCode.expirationDate.isAfter(new DateTime.now().toUtc()), true);
-      expect(authCode.tokenIdentifier, isNull);
-
-      var redirectURI = (await auth.clientForID("com.stablekernel.redirect")).redirectURI;
-      expect(authCode.redirectURI, redirectURI);
 
       var token = await auth.exchange(authCode.code, "com.stablekernel.redirect", "mckinley");
       expect(token.accessToken, isString);
@@ -512,7 +508,7 @@ void main() {
         expect(true, false);
       } on AuthServerException {}
 
-      var q = new Query<ManagedAuthCode>()
+      var q = new Query<ManagedToken>()
         ..matchOn.code = code.code;
       expect(await q.fetch(), isEmpty);
     });
@@ -533,7 +529,7 @@ void main() {
       } on AuthServerException {}
 
       // Ensure that the associated auth code is also destroyed
-      var authCodeQuery = new Query<ManagedAuthCode>();
+      var authCodeQuery = new Query<ManagedToken>();
       expect(await authCodeQuery.fetch(), isEmpty);
     });
 
@@ -560,7 +556,7 @@ void main() {
       } on AuthServerException {}
 
       // Ensure that the associated auth code is also destroyed
-      var authCodeQuery = new Query<ManagedAuthCode>();
+      var authCodeQuery = new Query<ManagedToken>();
       expect(await authCodeQuery.fetch(), isEmpty);
     });
 
@@ -637,9 +633,7 @@ void main() {
         expect(true, false);
       } on AuthServerException {}
 
-      var codeQuery = new Query<ManagedAuthCode>();
       var tokenQuery = new Query<ManagedToken>();
-      expect(await codeQuery.fetch(), isEmpty);
       expect(await tokenQuery.fetch(), isEmpty);
     });
 
@@ -661,9 +655,7 @@ void main() {
       expect(await auth.verify(exchangedTokenKeep.accessToken), new isInstanceOf<Authorization>());
       expect(await auth.verify(issuedTokenKeep.accessToken), new isInstanceOf<Authorization>());
 
-      var codeQuery = new Query<ManagedAuthCode>();
       var tokenQuery = new Query<ManagedToken>();
-      expect(await codeQuery.fetch(), hasLength(2));
       expect(await tokenQuery.fetch(), hasLength(3));
     });
 
@@ -724,9 +716,7 @@ void main() {
         expect(true, false);
       } on AuthServerException {}
 
-      var codeQuery = new Query<ManagedAuthCode>();
       var tokenQuery = new Query<ManagedToken>();
-      expect(await codeQuery.fetch(), isEmpty);
       expect(await tokenQuery.fetch(), isEmpty);
     });
   });
@@ -745,7 +735,7 @@ void main() {
       var exchangedCode = await auth.authenticateForCode(createdUsers.first.username, User.DefaultPassword, "com.stablekernel.redirect");
       var exchangedToken = await auth.exchange(exchangedCode.code, "com.stablekernel.redirect", "mckinley");
 
-      var codeQuery = new Query<ManagedAuthCode>()
+      var codeQuery = new Query<ManagedToken>()
         ..matchOn.code = exchangedCode.code;
       expect(await codeQuery.fetch(), hasLength(1));
 
@@ -756,29 +746,17 @@ void main() {
       expect(await codeQuery.fetch(), isEmpty);
     });
 
-    test("Simply deleting a code does not revoke its associated token", () async {
-      var exchangedCode = await auth.authenticateForCode(createdUsers.first.username, User.DefaultPassword, "com.stablekernel.redirect");
-      var exchangedToken = await auth.exchange(exchangedCode.code, "com.stablekernel.redirect", "mckinley");
-
-      var codeQuery = new Query<ManagedAuthCode>()
-        ..matchOn.code = exchangedCode.code;
-      await codeQuery.delete();
-
-      expect(await auth.verify(exchangedToken.accessToken), isNotNull);
-    });
-
-    test("Oldest codes gets pruned after reaching codeLimit, but only for that user", () async {
-      (auth.storage as ManagedAuthStorage).codeLimit = 3;
-      // Ensure tokenLimit doesn't impact codeLimit
-      (auth.storage as ManagedAuthStorage).tokenLimit = 1;
+    test("Oldest codes gets pruned after reaching limit, but only for that user", () async {
+      (auth.storage as ManagedAuthStorage).tokenLimit = 3;
 
       // Insert a code manually to simulate a race condition, but insert it after the others have been
       // so they don't strip it when inserted.
-      var manualCode = new ManagedAuthCode()
+      var manualCode = new ManagedToken()
         ..code = "ASDFGHJ"
         ..issueDate = new DateTime.now().toUtc()
         ..expirationDate = new DateTime.now().add(new Duration(seconds: 60)).toUtc()
         ..client = (new ManagedClient()..id = "com.stablekernel.redirect")
+        ..type = ManagedToken.TypeBearer
         ..resourceOwner = (new User()..id = createdUsers.first.id);
 
       // Insert a code for a different user to make sure it doesn't get pruned.
@@ -792,14 +770,14 @@ void main() {
       }
 
       // Insert the 'race condition' code
-      var manualInsertQuery = new Query<ManagedAuthCode>()
+      var manualInsertQuery = new Query<ManagedToken>()
         ..values = manualCode;
       manualCode = await manualInsertQuery.insert();
 
       // Make a new code, should kill the race condition code and the first generated code in the loop.
       // Other user codes remain
       var newCode = await auth.authenticateForCode(createdUsers.first.username, User.DefaultPassword, "com.stablekernel.redirect");
-      var codeQuery = new Query<ManagedAuthCode>();
+      var codeQuery = new Query<ManagedToken>();
       var codesInDB = (await codeQuery.fetch()).map((ac) => ac.code).toList();
 
       // These codes are in chronological order

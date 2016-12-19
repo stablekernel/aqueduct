@@ -39,7 +39,7 @@ class UserController extends QueryController<User> {
       return new Response.unauthorized();
     }
 
-    await authServer.revokeAuthenticatableAccessForIdentifier(id);
+    await authServer.revokeAuthenticatableWithIdentifier(id);
     var q = new Query<User>()
       ..matchOn.id = id;
     await q.delete();
