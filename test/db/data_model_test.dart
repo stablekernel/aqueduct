@@ -208,8 +208,11 @@ void main() {
 
   group("Edge cases", () {
     test("ManagedObject with two foreign keys to same object are distinct", () {
-      var model = new ManagedDataModel(
-          [DoubleRelationshipForeignKeyModel, DoubleRelationshipHasModel, SomeOtherRelationshipModel]);
+      var model = new ManagedDataModel([
+        DoubleRelationshipForeignKeyModel,
+        DoubleRelationshipHasModel,
+        SomeOtherRelationshipModel
+      ]);
 
       var isManyOf = model
           .entityForType(DoubleRelationshipForeignKeyModel)
@@ -226,12 +229,20 @@ void main() {
           model.entityForType(DoubleRelationshipHasModel).tableName);
     });
 
-    test("ManagedObject with multiple relationships where one is deferred succeeds in finding relationship", () {
-      var model = new ManagedDataModel(
-          [DoubleRelationshipForeignKeyModel, DoubleRelationshipHasModel, SomeOtherRelationshipModel]);
+    test(
+        "ManagedObject with multiple relationships where one is deferred succeeds in finding relationship",
+        () {
+      var model = new ManagedDataModel([
+        DoubleRelationshipForeignKeyModel,
+        DoubleRelationshipHasModel,
+        SomeOtherRelationshipModel
+      ]);
 
-      var partial = model.entityForType(DoubleRelationshipForeignKeyModel).relationships["partial"];
-      expect(partial.destinationEntity.tableName, model.entityForType(SomeOtherRelationshipModel).tableName);
+      var partial = model
+          .entityForType(DoubleRelationshipForeignKeyModel)
+          .relationships["partial"];
+      expect(partial.destinationEntity.tableName,
+          model.entityForType(SomeOtherRelationshipModel).tableName);
     });
   });
 
@@ -648,11 +659,14 @@ class _DoubleRelationshipHasModel {
   DoubleRelationshipForeignKeyModel hasOneOf;
 }
 
-class SomeOtherRelationshipModel extends ManagedObject<_SomeOtherRelationshipModel> {}
+class SomeOtherRelationshipModel
+    extends ManagedObject<_SomeOtherRelationshipModel> {}
+
 class _SomeOtherRelationshipModel extends SomeOtherPartialModel {
   @managedPrimaryKey
   int id;
 }
+
 class SomeOtherPartialModel {
   DoubleRelationshipForeignKeyModel deferredRelationship;
 }

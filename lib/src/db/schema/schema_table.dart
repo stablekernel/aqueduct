@@ -49,13 +49,11 @@ class SchemaTable {
     var matches = true;
 
     for (var receiverColumn in columns) {
-      var matchingArgColumn = table.columns.firstWhere(
-          (st) => st.name == receiverColumn.name,
-          orElse: () => null);
+      var matchingArgColumn = table[receiverColumn.name];
       if (matchingArgColumn == null) {
         matches = false;
         reasons?.add(
-            "Compared table ${table.name} does not contain ${receiverColumn.name}, but that column exists in receiver schema.");
+            "Compared table '${table.name}' does not contain '${receiverColumn.name}', but that column exists in receiver schema.");
       } else {
         var columnReasons = <String>[];
         if (!receiverColumn.matches(matchingArgColumn, columnReasons)) {
@@ -68,12 +66,9 @@ class SchemaTable {
 
     if (table.columns.length > columns.length) {
       matches = false;
-      var receiverColumnNames = columns.map((st) => st.name).toList();
-      table.columns
-          .where((st) => !receiverColumnNames.contains(st.name))
-          .forEach((st) {
+      table.columns.where((st) => this[st.name] == null).forEach((st) {
         reasons?.add(
-            "Receiver table ${table.name} does not contain ${st.name}, but that column exists in compared table.");
+            "Receiver table '${table.name}' does not contain '${st.name}', but that column exists in compared table.");
       });
     }
 
@@ -81,7 +76,7 @@ class SchemaTable {
   }
 
   void addColumn(SchemaColumn column) {
-    if (columnForName(column.name) != null) {
+    if (this[column.name] != null) {
       throw new SchemaException("Column ${column.name} already exists.");
     }
 
@@ -108,7 +103,7 @@ class SchemaTable {
   }
 
   void removeColumn(SchemaColumn column) {
-    column = columnForName(column.name);
+    column = this[column.name];
     if (column == null) {
       throw new SchemaException(
           "Column ${column.name} does not exist on ${name}.");
@@ -118,7 +113,7 @@ class SchemaTable {
   }
 
   void replaceColumn(SchemaColumn existingColumn, SchemaColumn newColumn) {
-    existingColumn = columnForName(existingColumn.name);
+    existingColumn = this[existingColumn.name];
     if (existingColumn == null) {
       throw new SchemaException(
           "Column ${existingColumn.name} does not exist on ${name}.");

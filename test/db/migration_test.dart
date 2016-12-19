@@ -295,7 +295,7 @@ void main() {
         expect(true, false);
       } on MigrationException catch (e) {
         expect(e.toString(), contains("Validation failed"));
-        expect(e.toString(), contains("does not contain foo"));
+        expect(e.toString(), contains("does not contain 'foo'"));
       }
     });
 
@@ -311,7 +311,7 @@ void main() {
         expect(true, false);
       } on MigrationException catch (e) {
         expect(e.toString(), contains("Validation failed"));
-        expect(e.toString(), contains("does not contain foo"));
+        expect(e.toString(), contains("does not contain 'foo'"));
       }
 
       var nextGenFile = await executor.generate();

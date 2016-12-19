@@ -61,13 +61,11 @@ class Schema {
     var matches = true;
 
     for (var receiverTable in tables) {
-      var matchingArgTable = schema.tables.firstWhere(
-          (st) => st.name == receiverTable.name,
-          orElse: () => null);
+      var matchingArgTable = schema[receiverTable.name];
       if (matchingArgTable == null) {
         matches = false;
         reasons?.add(
-            "Compared schema does not contain ${receiverTable.name}, but that table exists in receiver schema.");
+            "Compared schema does not contain '${receiverTable.name}', but that table exists in receiver schema.");
       } else {
         if (!receiverTable.matches(matchingArgTable, reasons)) {
           matches = false;
@@ -77,12 +75,9 @@ class Schema {
 
     if (schema.tables.length > tables.length) {
       matches = false;
-      var receiverTableNames = tables.map((st) => st.name).toList();
-      schema.tables
-          .where((st) => !receiverTableNames.contains(st.name))
-          .forEach((st) {
+      schema.tables.where((st) => this[st.name] == null).forEach((st) {
         reasons?.add(
-            "Receiver schema does not contain ${st.name}, but that table exists in compared schema.");
+            "Receiver schema does not contain '${st.name}', but that table exists in compared schema.");
       });
     }
 
@@ -90,7 +85,7 @@ class Schema {
   }
 
   void addTable(SchemaTable table) {
-    if (tableForName(table.name) != null) {
+    if (this[table.name] != null) {
       throw new SchemaException("Table ${table.name} already exists.");
     }
 
@@ -113,9 +108,7 @@ class Schema {
   }
 
   void removeTable(SchemaTable table) {
-    if (!tables
-        .map((st) => st.name.toLowerCase())
-        .contains(table.name.toLowerCase())) {
+    if (this[table.name] == null) {
       throw new SchemaException(
           "Table ${table.name} does not exist in schema.");
     }
