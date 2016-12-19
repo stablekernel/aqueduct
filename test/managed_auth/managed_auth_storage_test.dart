@@ -756,7 +756,6 @@ void main() {
         ..issueDate = new DateTime.now().toUtc()
         ..expirationDate = new DateTime.now().add(new Duration(seconds: 60)).toUtc()
         ..client = (new ManagedClient()..id = "com.stablekernel.redirect")
-        ..type = ManagedToken.TypeBearer
         ..resourceOwner = (new User()..id = createdUsers.first.id);
 
       // Insert a code for a different user to make sure it doesn't get pruned.
@@ -815,8 +814,6 @@ void main() {
 
     test("Oldest tokens gets pruned after reaching tokenLimit, but only for that user", () async {
       (auth.storage as ManagedAuthStorage).tokenLimit = 3;
-      // Ensure codeLimit doesn't impact tokenLimit
-      (auth.storage as ManagedAuthStorage).codeLimit = 1;
 
       // Insert a token manually to simulate a race condition, but insert it after the others have been
       // so they don't strip it when inserted.
@@ -900,10 +897,6 @@ void main() {
         expect(true, false);
       } on AuthServerException {}
     });
-  });
-
-  group("Scoping use cases", () {
-
   });
 }
 

@@ -11,6 +11,8 @@ import 'auth.dart';
 class AuthServer extends Object
     with APIDocumentable
     implements AuthValidator {
+  static const String TokenTypeBearer = "bearer";
+
   /// Creates a new instance of an [AuthServer] with a [storage].
   AuthServer(this.storage);
 
@@ -275,7 +277,6 @@ class AuthServer extends Object
 
       throw new AuthServerException(AuthRequestError.invalidGrant, client);
     }
-
     AuthToken token = _generateToken(
         authCode.resourceOwnerIdentifier, client.id, expirationInSeconds);
     await storage.storeToken(this, token, issuedFrom: authCode);
@@ -361,7 +362,7 @@ class AuthServer extends Object
       ..issueDate = now
       ..expirationDate =
           now.add(new Duration(seconds: expirationInSeconds))
-      ..type = "bearer"
+      ..type = TokenTypeBearer
       ..resourceOwnerIdentifier = ownerID
       ..clientID = clientID;
 

@@ -10,7 +10,6 @@ void main() {
     delegate = new InMemoryAuthStorage();
   });
 
-
   test("isTokenExpired works correctly", () {
     var oldToken = new AuthToken()
         ..expirationDate = new DateTime.now().toUtc().subtract(new Duration(seconds: 1));

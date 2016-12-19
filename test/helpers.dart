@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:aqueduct/aqueduct.dart';
-import 'package:aqueduct/src/utilities/token_generator.dart';
 export 'context_helpers.dart';
 
 
@@ -14,6 +13,67 @@ justLogEverything() {
 class TestUser extends Authenticatable {
   int get uniqueIdentifier => id;
   int id;
+}
+
+class TestToken implements AuthToken, AuthCode {
+  TestToken();
+  TestToken.from(dynamic t) {
+    if (t is TestToken) {
+      this
+          ..issueDate = t.issueDate
+          ..expirationDate = t.expirationDate
+          ..resourceOwnerIdentifier = t.resourceOwnerIdentifier
+          ..clientID = t.clientID
+          ..type = t.type
+          ..accessToken = t.accessToken
+          ..refreshToken = t.refreshToken
+          ..code = t.code;
+    } else if (t is AuthToken) {
+      this
+        ..issueDate = t.issueDate
+        ..expirationDate = t.expirationDate
+        ..resourceOwnerIdentifier = t.resourceOwnerIdentifier
+        ..clientID = t.clientID
+        ..type = t.type
+        ..accessToken = t.accessToken
+        ..refreshToken = t.refreshToken;
+    } else if (t is AuthCode) {
+      this
+        ..issueDate = t.issueDate
+        ..expirationDate = t.expirationDate
+        ..resourceOwnerIdentifier = t.resourceOwnerIdentifier
+        ..clientID = t.clientID
+        ..code = t.code;
+    }
+  }
+  String accessToken;
+  String refreshToken;
+  DateTime issueDate;
+  DateTime expirationDate;
+  String type;
+  dynamic resourceOwnerIdentifier;
+  String clientID;
+  String code;
+  bool get hasBeenExchanged => accessToken != null;
+  void set hasBeenExchanged(bool s) {}
+
+  bool get isExpired {
+    return expirationDate.difference(new DateTime.now().toUtc()).inSeconds <= 0;
+  }
+
+  Map<String, dynamic> asMap() {
+    var map = {
+      "access_token": accessToken,
+      "token_type": type,
+      "expires_in": expirationDate.difference(new DateTime.now().toUtc()).inSeconds,
+    };
+
+    if (refreshToken != null) {
+      map["refresh_token"] = refreshToken;
+    }
+
+    return map;
+  }
 }
 
 class InMemoryAuthStorage implements AuthStorage {
@@ -43,34 +103,7 @@ class InMemoryAuthStorage implements AuthStorage {
 
   Map<String, AuthClient> clients;
   Map<int, TestUser> users = {};
-  List<AuthToken> tokens = [];
-  List<AuthCode> codes = [];
-
-  AuthToken _copyToken(AuthToken t) {
-    if (t == null) {
-      return null;
-    }
-    return new AuthToken()
-        ..accessToken = t.accessToken
-        ..refreshToken = t.refreshToken
-        ..type = t.type
-        ..resourceOwnerIdentifier = t.resourceOwnerIdentifier
-        ..clientID = t.clientID
-        ..issueDate = t.issueDate
-        ..expirationDate = t.expirationDate;
-  }
-
-  AuthCode _copyCode(AuthCode c) {
-    if (c == null) {
-      return null;
-    }
-    return new AuthCode()
-        ..code = c.code
-        ..clientID = c.clientID
-        ..resourceOwnerIdentifier = c.resourceOwnerIdentifier
-        ..issueDate = c.issueDate
-        ..expirationDate = c.expirationDate;
-  }
+  List<TestToken> tokens = [];
 
   void createUsers(int count) {
     for (int i = 0; i < count; i++) {
@@ -89,19 +122,24 @@ class InMemoryAuthStorage implements AuthStorage {
   @override
   Future revokeAuthenticatableWithIdentifier(AuthServer server, dynamic identifier) async {
     tokens.removeWhere((t) => t.resourceOwnerIdentifier == identifier);
-    codes.removeWhere((t) => t.resourceOwnerIdentifier == identifier);
   }
 
   @override
   Future<AuthToken> fetchTokenByAccessToken(AuthServer server, String accessToken) async {
-    return _copyToken(tokens.firstWhere((t) => t.accessToken == accessToken,
-        orElse: () => null));
+    var existing = tokens.firstWhere((t) => t.accessToken == accessToken, orElse: () => null);
+    if (existing == null) {
+      return null;
+    }
+    return new TestToken.from(existing);
   }
 
   @override
   Future<AuthToken> fetchTokenByRefreshToken(AuthServer server, String refreshToken) async {
-    return _copyToken(tokens.firstWhere((t) => t.refreshToken == refreshToken,
-        orElse: () => null));
+    var existing = tokens.firstWhere((t) => t.refreshToken == refreshToken, orElse: () => null);
+    if (existing == null) {
+      return null;
+    }
+    return new TestToken.from(existing);
   }
 
   @override
@@ -113,19 +151,27 @@ class InMemoryAuthStorage implements AuthStorage {
 
   @override
   Future revokeTokenIssuedFromCode(AuthServer server, AuthCode code) async {
-    tokens.removeWhere((t) => t.uniqueIdentifier == identifier);
+    tokens.removeWhere((t) => t.code == code.code);
   }
 
   @override
   Future storeToken(AuthServer server, AuthToken t, {AuthCode issuedFrom}) async {
-    tokens.add(t);
+    if (issuedFrom != null) {
+      var existingIssued = tokens.firstWhere((token) => token.code == issuedFrom?.code, orElse: () => null);
+      var replacement = new TestToken.from(t);
+      replacement.code = issuedFrom.code;
+      tokens.remove(existingIssued);
+      tokens.add(replacement);
+    } else {
+      tokens.add(new TestToken.from(t));
+    }
   }
 
   @override
   Future refreshTokenWithAccessToken(AuthServer server, String accessToken, String newAccessToken, DateTime newIssueDate, DateTime newExpirationDate) async {
     var existing = tokens.firstWhere((e) => e.accessToken == accessToken, orElse: () => null);
     if (existing != null) {
-      var replacement = new AuthToken()
+      var replacement = new TestToken.from(existing)
         ..expirationDate = newExpirationDate
         ..issueDate = newIssueDate
         ..accessToken = newAccessToken
@@ -141,17 +187,21 @@ class InMemoryAuthStorage implements AuthStorage {
 
   @override
   Future storeAuthCode(AuthServer server, AuthCode code) async {
-    codes.add(code);
+    tokens.add(new TestToken.from(code));
   }
 
   @override
   Future<AuthCode> fetchAuthCodeByCode(AuthServer server, String code) async {
-    return _copyCode(codes.firstWhere((c) => c.code == code, orElse: () => null));
+    var existing = tokens.firstWhere((t) => t.code == code, orElse: () => null);
+    if (existing == null) {
+      return null;
+    }
+    return new TestToken.from(existing);
   }
 
   @override
   Future revokeAuthCodeWithCode(AuthServer server, String code) async {
-    codes.removeWhere((c) => c.code == code);
+    tokens.removeWhere((c) => c.code == code);
   }
 
   @override
