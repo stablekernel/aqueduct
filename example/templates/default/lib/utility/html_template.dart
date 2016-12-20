@@ -10,7 +10,7 @@ class HTMLRenderer {
       String path, Map<String, dynamic> templateVariables) async {
     var template = await _loadHTMLTemplate(path);
 
-    return template.replaceAllMapped("\\{\\{(a-zA-Z_)+\\}\\}", (match) {
+    return template.replaceAllMapped(new RegExp("{{([a-zA-Z_]+)}}"), (match) {
       var key = match.group(1);
       return templateVariables[key] ?? "null";
     });
@@ -23,11 +23,9 @@ class HTMLRenderer {
         var file = new File(path);
         contents = file.readAsStringSync();
         _cache[path] = contents;
-      } catch (e) {
-        logger.warning("Could not read HTML template at '$path'.");
-      }
+      } catch (_) {}
     }
 
-    return contents ?? "";
+    return contents;
   }
 }

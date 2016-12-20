@@ -1,19 +1,10 @@
 import 'dart:async';
 import 'auth.dart';
 
-/// An interface for implementing a [AuthServer.ResourceOwner].
+/// An interface for implementing an OAuth 2.0 "resource owner".
 ///
-/// In order for an [AuthServer] to authenticate a [AuthServer.ResourceOwner] - like a User, Profile or Account in your application -
-/// that resource owner class must implement this interface. The concrete implementation of this class does not necessarily need to persist the required
-/// properties with the same name. For example, it is possible to implement [Authenticatable.username] with an 'email' property:
-///
-///       class User extends ManagedObject<_User> implements _User, Authenticatable {
-///         String get username => email;
-///         void set username(String un) { email = un; }
-///       }
-///       class _User {
-///          @managedPrimaryKey String email;
-///       }
+/// In order for an [AuthServer] to authenticate a resource owner - like a User, Profile or Account in your application -
+/// that resource owner class must implement this interface.
 abstract class Authenticatable {
   /// The username of the authenticatable resource.
   ///
@@ -27,85 +18,95 @@ abstract class Authenticatable {
   /// The salt the [hashedPassword] was hashed with.
   String salt;
 
-  /// The unique identifier of this instance, typically the primary key of the concrete subclass.
+  /// The unique identifier of this instance, typically the primary key of a database entity representing
+  /// the authenticatable instance.
   dynamic get id;
 }
 
 /// An interface for implementing storage behavior for an [AuthServer].
 ///
 /// This interface is responsible for persisting and retrieving information generated and requested by an [AuthServer].
-/// The [ResourceOwner] often represents a user or an account in an application and must implement [Authenticatable]. The [TokenType]
-/// is a concrete instance of [AuthToken] to represent a resource owner bearer token. The [AuthCodeType] represents an authorization code
-/// used in the authorization code grant type.
+/// For a concrete, tested implementation of this class, see 'package:aqueduct/managed_auth.dart'.
+///
+/// An [AuthServer] does not dictate how information is stored and therefore can't dictate how information is disposed of.
+/// It is up to implementors of this class to discard of any information it no longer wants to keep.
 abstract class AuthStorage {
+
+  /// This method must revoke all [AuthToken] and [AuthCode]s for an [Authenticatable].
+  ///
+  /// [server] is the requesting [AuthServer]. [identifier] is the [Authenticatable.id].
   Future revokeAuthenticatableWithIdentifier(
       AuthServer server, dynamic identifier);
 
-  /// Returns a [ResourceOwner] for an [username].
+  /// Returns an [Authenticatable] for an [username].
   ///
-  /// This method returns an instance of [ResourceOwner] if one exists for [username]. Otherwise, it returns null.
+  /// This method must return an instance of [Authenticatable] if one exists for [username]. Otherwise, it must return null.
   /// [server] is the [AuthServer] requesting the [ResourceOwner].
   Future<Authenticatable> fetchAuthenticatableByUsername(
       AuthServer server, String username);
 
   /// Returns an [AuthClient] for a client ID.
   ///
-  /// This method returns an instance of [AuthClient] if one exists for [id]. Otherwise, it returns null.
+  /// This method must return an instance of [AuthClient] if one exists for [clientID]. Otherwise, it must return null.
   /// [server] is the [AuthServer] requesting the [AuthClient].
   Future<AuthClient> fetchClientByID(AuthServer server, String clientID);
 
   /// Revokes an [AuthClient] for a client ID.
   ///
-  /// This method must delete the [clientID]. Subsequent requests to this
+  /// This method must delete the [AuthClient] for [clientID]. Subsequent requests to this
   /// instance for [fetchClientByID] must return null after this method completes.
   /// [server] is the [AuthServer] requesting the [AuthClient].
   Future revokeClientWithID(AuthServer server, String clientID);
 
-  /// Returns a [TokenType] for an [accessToken].
+  /// Returns a [AuthToken] for an [accessToken].
   ///
-  /// This method returns an instance of [TokenType] if one exists for [accessToken]. Otherwise, it returns null.
-  /// [server] is the [AuthServer] requesting the [TokenType].
+  /// This method must return an instance of [AuthToken] if one exists for [accessToken]. Otherwise, it must return null.
+  /// [server] is the [AuthServer] requesting the [AuthToken].
   Future<AuthToken> fetchTokenByAccessToken(
       AuthServer server, String accessToken);
 
-  /// Returns a [TokenType] for an [refreshToken].
+  /// Returns a [AuthToken] for an [refreshToken].
   ///
-  /// This method returns an instance of [TokenType] if one exists for [refreshToken]. Otherwise, it returns null.
-  /// [server] is the [AuthServer] requesting the [TokenType].
+  /// This method must return an instance of [AuthToken] if one exists for [refreshToken]. Otherwise, it must return null.
+  /// [server] is the [AuthServer] requesting the [AuthToken].
   Future<AuthToken> fetchTokenByRefreshToken(
       AuthServer server, String refreshToken);
 
-  /// Deletes a [TokenType] for [refreshToken].
+  /// Deletes a [AuthToken] by its issuing [AuthCode].
   ///
-  /// If the [server] wishes to delete an authentication token, it will invoke this method. The implementing class must delete the matching token
-  /// from its persistent storage. Note that the token is matched by its [AuthToken.refreshToken], not by its access token.
-  /// If the matching [AuthToken] was issued from an [AuthCode], that corresponding [AuthCode] must be deleted as well.
+  /// The [server] will call this method when a request tries to exchange an already exchanged [AuthCode].
+  /// This method must delete the [AuthToken] that was previously acquired by exchanging [authCode] - this means
+  /// that the storage performed by this type must track the issuing [AuthCode] for an [AuthToken] if there was one.
+  /// Any storage for [authCode] can also be removed as well.
   Future revokeTokenIssuedFromCode(AuthServer server, AuthCode authCode);
 
-  /// Asks this instance to store a [TokenType] for [server].
+  /// Asks this instance to store a [AuthToken] for [server].
   ///
-  /// The implementing class must persist the token [t].
+  /// This method must persist the token [t]. If [issuedFrom] is not null, it must associate
+  /// the [issuedFrom] [AuthCode] with [t] in storage, such that [t] can be found again
+  /// by [issuedFrom]'s [AuthCode.code], even if [t] has been refreshed later.
   Future storeToken(AuthServer server, AuthToken t, {AuthCode issuedFrom});
 
-  /// Asks this instance to update an existing [TokenType] for [server].
+  /// Asks this instance to update an existing [AuthToken] for [server].
   ///
-  /// The implementing class must persist the token [t].
+  /// This method must must update an existing [AuthToken], found by [oldAccessToken],
+  /// with the values [newAccessToken], [newIssueDate] and [newExpirationDate].
   Future refreshTokenWithAccessToken(AuthServer server, String oldAccessToken,
       String newAccessToken, DateTime newIssueDate, DateTime newExpirationDate);
 
-  /// Asks this instance to store a [AuthCodeType] for [server].
+  /// Asks this instance to store a [AuthCode] for [server].
   ///
   /// The implementing class must persist the auth code [ac].
   Future storeAuthCode(AuthServer server, AuthCode ac);
 
-  /// Asks this instance to retrieve an auth code from provided code [code].
+  /// Asks this instance to retrieve an auth code from provided [code].
   ///
-  /// This returns an instance of [AuthCodeType] if one exists for [code], and
+  /// This must return an instance of [AuthCode] if one exists for [code], and
   /// null otherwise.
   Future<AuthCode> fetchAuthCodeByCode(AuthServer server, String code);
 
-  /// Asks this instance to delete an existing [AuthCodeType] for [server].
+  /// Asks this instance to delete an existing [AuthCode] for [server].
   ///
-  /// The implementing class must delete that auth code from its persistent storage.
+  /// The implementing class must delete the [AuthCode] for [code] from its persistent storage.
   Future revokeAuthCodeWithCode(AuthServer server, String code);
 }

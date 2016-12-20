@@ -1,11 +1,14 @@
 import 'auth.dart';
 
-/// Represents a Client ID and secret pair.
+/// Represents an OAuth 2.0 client ID and secret pair.
 class AuthClient {
   /// Creates an instance of [AuthClient].
   AuthClient(this.id, this.hashedSecret, this.salt);
 
-  // Creates an instance of [Client] that uses the authorization code grant flow.
+  /// Creates an instance of a public [AuthClient].
+  AuthClient.public(this.id);
+
+  /// Creates an instance of [AuthClient] that uses the authorization code grant flow.
   AuthClient.withRedirectURI(
       this.id, this.hashedSecret, this.salt, this.redirectURI);
 
@@ -13,15 +16,31 @@ class AuthClient {
   String id;
 
   /// The hashed secret of the client.
+  ///
+  /// This value may be null if the client is public. See [isPublic].
   String hashedSecret;
 
-  /// The salt the hashed secret was hashed with.
+  /// The salt [hashedSecret] was hashed with.
+  ///
+  /// This value may be null if the client is public. See [isPublic].
   String salt;
 
   /// The redirection URI for authorization codes and/or tokens.
+  ///
+  /// This value may be null if the client doesn't support the authorization code flow.
   String redirectURI;
 
+  /// Whether or not this is a public or confidential client.
+  ///
+  /// Public clients do not have a client secret and are used for clients that can't store
+  /// their secret confidentially, i.e. JavaScript browser applications.
   bool get isPublic => hashedSecret == null;
+
+  /// Whether or not this is a public or confidential client.
+  ///
+  /// Confidential clients have a client secret that must be used when authenticating with
+  /// a client-authenticated request. Confidential clients are used when you can
+  /// be sure that the client secret cannot be viewed by anyone outside of the developer.
   bool get isConfidential => hashedSecret != null;
 
   String toString() {
@@ -29,25 +48,21 @@ class AuthClient {
   }
 }
 
-/// An interface to represent [AuthServer.TokenType].
+/// Represents an OAuth 2.0 token.
 ///
-/// Requires that all fields be set... except refreshToken which may be null. And scopes
-/// which may be null if scopes are unsupported.
-/// In order to use authentication tokens, an [AuthServer] requires
-/// that its [AuthServer.TokenType] implement this interface. You will likely use
-/// this interface to define a [ManagedObject] that represents the concrete implementation of a authentication
-/// token in your application. All of these properties are expected to be persisted.
+/// [AuthStorage] and [AuthServer] will exchange OAuth 2.0
+/// tokens through instances of this type.
 class AuthToken {
   /// The value to be passed as a Bearer Authorization header.
   String accessToken;
 
-  /// The value to be passed for refreshing an expired (or not yet expired) token.
+  /// The value to be passed for refreshing a token.
   String refreshToken;
 
-  /// The timestamp this token was issued on.
+  /// The time this token was issued on.
   DateTime issueDate;
 
-  /// When this token expires.
+  /// The time when this token expires.
   DateTime expirationDate;
 
   /// The type of token, currently only 'bearer' is valid.
@@ -60,13 +75,15 @@ class AuthToken {
   /// instances.
   dynamic resourceOwnerIdentifier;
 
-  /// The clientID this token was issued under.
+  /// The client ID this token was issued from.
   String clientID;
 
+  /// Whether or not this token is expired by evaluated [expirationDate].
   bool get isExpired {
     return expirationDate.difference(new DateTime.now().toUtc()).inSeconds <= 0;
   }
 
+  /// Emits this instance as a [Map] according to the OAuth 2.0 specification.
   Map<String, dynamic> asMap() {
     var map = {
       "access_token": accessToken,
@@ -83,17 +100,15 @@ class AuthToken {
   }
 }
 
-/// An interface for implementing [AuthServer.AuthCodeType].
+/// Represents an OAuth 2.0 authorization code.
 ///
-/// In order to use authorization codes, an [AuthServer] requires
-/// that its [AuthServer.AuthCodeType] implement this interface. You will likely use
-/// this interface to define a [ManagedObject] that represents a concrete implementation
-/// of a authorization code in your application. All of these properties are expected to be persisted.
+/// [AuthStorage] and [AuthServer] will exchange OAuth 2.0
+/// authorization codes through instances of this type.
 class AuthCode {
   /// The actual one-time code used to exchange for tokens.
   String code;
 
-  /// The clientID the authorization code was issued under.
+  /// The client ID the authorization code was issued under.
   String clientID;
 
   /// The identifier of the resource owner.
@@ -109,34 +124,45 @@ class AuthCode {
   /// When this authorization code expires, recommended for 10 minutes after issue date.
   DateTime expirationDate;
 
+  /// Whether or not this authorization code has already been exchanged for a token.
   bool hasBeenExchanged;
 
+  /// Whether or not this code has expired yet, according to its [expirationDate].
   bool get isExpired {
     return expirationDate.difference(new DateTime.now().toUtc()).inSeconds <= 0;
   }
 }
 
-/// Authorization information to be attached to a [Request].
+/// Information about an authorized request.
 ///
-/// When a [Request] passes through an [Authorizer] and is validated,
-/// the [Authorizer] attaches an instance of [Authorization] to its [Request.authorization].
-/// Subsequent [RequestController]s are able to use this information to determine access scope.
+/// After a request has passed through an [Authorizer], an instance of this type
+/// is created and attached to the request. Instances of this type contain the information
+/// that the [Authorizer] obtained from an [AuthValidator] (typically an [AuthServer])
+/// about the validity of the credentials in a request.
 class Authorization {
   /// Creates an instance of a [Authorization].
-  Authorization(this.clientID, this.resourceOwnerIdentifier, this.validator);
+  Authorization(this.clientID, this.resourceOwnerIdentifier, this.validator, {this.credentials});
 
   /// The client ID the permission was granted under.
   final String clientID;
 
-  /// The identifier for the owner of the resource.
+  /// The identifier for the owner of the resource, if provided.
   ///
-  /// If a [Request] has a Bearer token, this will be the primary key value of the [ManagedObject]
-  /// for which the Bearer token was associated with. If the [Request] was signed with
-  /// a Client ID and secret, this value will be [null].
+  /// If this instance refers to the authorization of a resource owner, this value will
+  /// be its identifying value. For example, in an application where a 'User' is stored in a database,
+  /// this value would be the primary key of that user.
+  ///
+  /// If this authorization does not refer to a specific resource owner, this value will be null.
   final dynamic resourceOwnerIdentifier;
 
   /// The [AuthValidator] that granted this permission.
   final AuthValidator validator;
+
+  /// Basic authorization credentials, if provided.
+  ///
+  /// If this instance represents the authorization header of a request with basic authorization credentials,
+  /// the parsed credentials will be available in this property. Otherwise, this value is null.
+  final AuthBasicCredentials credentials;
 }
 
 class AuthScope {

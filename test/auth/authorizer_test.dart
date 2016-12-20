@@ -30,7 +30,7 @@ void main() {
             InMemoryAuthStorage.DefaultPassword,
             "com.stablekernel.app1",
             "kilimanjaro",
-            expirationInSeconds: 0))
+            expiration: new Duration(seconds: 0)))
         .accessToken;
   });
 
@@ -180,10 +180,44 @@ void main() {
         "resourceOwnerIdentifier": null
       });
     });
-  });
 
-  group("Documentation behavior", () {
-    test("fail", () {});
+    test("Public client can only be authorized with no password", () async {
+      var authorizer = new Authorizer.basic(authServer);
+      server = await enableAuthorizer(authorizer);
+
+      var res = await http.get("http://localhost:8000", headers: {
+        HttpHeaders.AUTHORIZATION:
+        "Basic ${new Base64Encoder().convert("com.stablekernel.public:".codeUnits)}"
+      });
+      expect(res.statusCode, 200);
+      expect(JSON.decode(res.body), {
+        "clientID": "com.stablekernel.public",
+        "resourceOwnerIdentifier": null
+      });
+
+      res = await http.get("http://localhost:8000", headers: {
+        HttpHeaders.AUTHORIZATION:
+        "Basic ${new Base64Encoder().convert("com.stablekernel.public:password".codeUnits)}"
+      });
+      expect(res.statusCode, 401);
+    });
+
+    test("Confidential client can never be authorized with no password", () async {
+      var authorizer = new Authorizer.basic(authServer);
+      server = await enableAuthorizer(authorizer);
+
+      var res = await http.get("http://localhost:8000", headers: {
+        HttpHeaders.AUTHORIZATION:
+        "Basic ${new Base64Encoder().convert("com.stablekernel.app1:".codeUnits)}"
+      });
+      expect(res.statusCode, 401);
+
+      res = await http.get("http://localhost:8000", headers: {
+        HttpHeaders.AUTHORIZATION:
+        "Basic ${new Base64Encoder().convert("com.stablekernel.app1".codeUnits)}"
+      });
+      expect(res.statusCode, 400);
+    });
   });
 }
 

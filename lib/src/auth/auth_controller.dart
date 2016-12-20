@@ -4,22 +4,36 @@ import 'dart:io';
 import '../http/http.dart';
 import 'auth.dart';
 
-/// [RequestController] for issuing OAuth 2.0 authorization tokens.
+/// [RequestController] for issuing OAuth 2.0 access tokens.
+///
+/// Instances of this class allow for the issuing and refreshing of access tokens and exchanging
+/// authorization codes (from a [AuthCodeController]) for access tokens.
 class AuthController extends HTTPController {
   /// Creates a new instance of an [AuthController].
   ///
   /// An [AuthController] requires an [AuthServer] to carry out tasks.
   /// By default, an [AuthController] has only one [acceptedContentTypes] - 'application/x-www-form-urlencoded'.
-  AuthController(this.authenticationServer) {
+  AuthController(this.authServer) {
     acceptedContentTypes = [
       new ContentType("application", "x-www-form-urlencoded")
     ];
   }
 
   /// A reference to the [AuthServer] this controller uses to grant tokens.
-  AuthServer authenticationServer;
+  AuthServer authServer;
 
   /// Required basic authorization header containing client ID and secret for the authenticating client.
+  ///
+  /// Requests must contain the client ID and client secret in the authorization header,
+  /// using the basic authentication scheme. If the client is a public client - i.e., no client secret -
+  /// the client secret is omitted from the Authorization header.
+  ///
+  /// Example: com.stablekernel.public is a public client. The Authorization header should be constructed
+  /// as so:
+  ///
+  ///         Authorization: Basic base64("com.stablekernel.public:")
+  ///
+  /// Notice the trailing colon indicates that the client secret is the empty string.
   @HTTPHeader(HttpHeaders.AUTHORIZATION)
   String authHeader;
 
@@ -31,9 +45,6 @@ class AuthController extends HTTPController {
   ///
   /// This endpoint requires client authentication. The Authorization header must
   /// include a valid Client ID and Secret in the Basic authorization scheme format.
-  ///
-  /// Do not put an [Authorizer] in front of this endpoint, as it will not allow
-  /// authorization of public clients.
   @httpPost
   Future<Response> create(
       {@HTTPQuery("username") String username,
@@ -41,7 +52,7 @@ class AuthController extends HTTPController {
       @HTTPQuery("refresh_token") String refreshToken,
       @HTTPQuery("code") String authCode,
       @HTTPQuery("grant_type") String grantType}) async {
-    AuthorizationBasicElements basicRecord;
+    AuthBasicCredentials basicRecord;
     try {
       basicRecord = AuthorizationBasicParser.parse(authHeader);
     } on AuthorizationParserException catch (_) {
@@ -50,17 +61,17 @@ class AuthController extends HTTPController {
 
     try {
       if (grantType == "password") {
-        var token = await authenticationServer.authenticate(
+        var token = await authServer.authenticate(
             username, password, basicRecord.username, basicRecord.password);
 
         return AuthController.tokenResponse(token);
       } else if (grantType == "refresh_token") {
-        var token = await authenticationServer.refresh(
+        var token = await authServer.refresh(
             refreshToken, basicRecord.username, basicRecord.password);
 
         return AuthController.tokenResponse(token);
       } else if (grantType == "authorization_code") {
-        var token = await authenticationServer.exchange(
+        var token = await authServer.exchange(
             authCode, basicRecord.username, basicRecord.password);
 
         return AuthController.tokenResponse(token);
@@ -96,6 +107,15 @@ class AuthController extends HTTPController {
         };
       }
     }
+  }
+
+  @override
+  List<APIOperation> documentOperations(PackagePathResolver resolver) {
+    var ops = super.documentOperations(resolver);
+    ops.forEach((op) {
+      op.security = authServer.requirementsForStrategy(AuthStrategy.basic);
+    });
+    return ops;
   }
 
   @override

@@ -1,13 +1,27 @@
 import 'dart:async';
 
-import '../http/http.dart';
+import '../http/documentable.dart';
 import '../utilities/token_generator.dart';
 import 'auth.dart';
 
-/// A storage-agnostic authorization 'server'.
+/// A storage-agnostic OAuth 2.0 authorization 'server'.
 ///
-/// Instances of this type will carry out authentication and authorization tasks. This class shouldn't be subclassed. The storage required by tasks performed
-/// by instances of this class - such as storing an issued token - are facilitated through its [storage], which is application-specific.
+/// Instances of this type will carry out authentication and authorization tasks. This class shouldn't be subclassed.
+///
+/// Instances of this type don't store data - like an issued token - but instead, rely on their [storage] property.
+/// This property implements the [AuthStorage] interface, which allows the developer to define how information used
+/// during authorization is stored and fetched. However, it is rare that you would implement your own storage
+/// mechanism and it is better to use the [AuthStorage] implementation included in 'package:aqueduct/managed_auth.dart'.
+/// Example:
+///
+///         import 'package:aqueduct/aqueduct.dart';
+///         import 'package:aqueduct/managed_auth.dart';
+///
+///         var storage = new ManagedAuthStorage<User>();
+///         var server = new AuthServer(storage);
+///
+///         class User extends ManagedObject<_User> implements _User {}
+///         class _User extends Authenticatable {}
 class AuthServer extends Object with APIDocumentable implements AuthValidator {
   static const String TokenTypeBearer = "bearer";
 
@@ -17,26 +31,30 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
   /// The object responsible for carrying out the storage mechanisms of this instance.
   ///
   /// This instance is responsible for storing, fetching and deleting instances of
-  /// [TokenType], [ResourceOwner] and [AuthCodeType] by implementing the [AuthStorage] interface.
+  /// [AuthToken], [AuthCode] and [AuthClient] by implementing the [AuthStorage] interface.
+  ///
+  /// It is preferable to use the implementation of [AuthStorage] from 'package:aqueduct/managed_auth.dart'. See
+  /// [AuthServer] for more details.
   AuthStorage storage;
 
   Map<String, AuthClient> _clientCache = {};
 
-  /// Returns a [AuthClient] record for its [id].
+  /// Returns a [AuthClient] record for its [clientID].
   ///
   /// A server keeps a cache of known [AuthClient]s. If a client does not exist in the cache,
   /// it will ask its [storage] via [AuthStorage.fetchClientByID].
-  Future<AuthClient> clientForID(String id) async {
+  Future<AuthClient> clientForID(String clientID) async {
     AuthClient client =
-        _clientCache[id] ?? (await storage.fetchClientByID(this, id));
+        _clientCache[clientID] ?? (await storage.fetchClientByID(this, clientID));
 
-    _clientCache[id] = client;
+    _clientCache[clientID] = client;
 
     return client;
   }
 
   /// Revokes a [AuthClient] record.
   ///
+  /// Removes cached occurrences of [AuthClient] for [clientID].
   /// Asks [storage] to remove an [AuthClient] by its ID via [AuthStorage.revokeClientWithID].
   Future revokeClientID(String clientID) async {
     if (clientID == null) {
@@ -48,6 +66,10 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
     _clientCache.remove(clientID);
   }
 
+  /// Revokes access for an [Authenticatable].
+  ///
+  /// This method will ask its [storage] to revoke all tokens and authorization codes
+  /// for a specific [Authenticatable] via [AuthStorage.revokeAuthenticatableWithIdentifier].
   Future revokeAuthenticatableAccessForIdentifier(dynamic identifier) async {
     if (identifier == null) {
       return;
@@ -56,15 +78,15 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
     await storage.revokeAuthenticatableWithIdentifier(this, identifier);
   }
 
-  /// Authenticates a [ResourceOwner] for a given client ID.
+  /// Authenticates a username and password of an [Authenticatable] and returns an [AuthToken] upon success.
   ///
   /// This method works with this instance's [storage] to generate and store a new token if all credentials are correct.
   /// If credentials are not correct, it will throw the appropriate [AuthRequestError].
   ///
-  /// [expirationInSeconds] is measured in seconds and defaults to one hour.
+  /// After [expiration], this token will no longer be valid.
   Future<AuthToken> authenticate(
       String username, String password, String clientID, String clientSecret,
-      {int expirationInSeconds: 3600}) async {
+      {Duration expiration: const Duration(hours: 1)}) async {
     if (clientID == null) {
       throw new AuthServerException(AuthRequestError.invalidClient, null);
     }
@@ -107,7 +129,7 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
     }
 
     AuthToken token = _generateToken(
-        authenticatable.id, client.id, expirationInSeconds,
+        authenticatable.id, client.id, expiration.inSeconds,
         allowRefresh: !client.isPublic);
     await storage.storeToken(this, token);
 
@@ -116,10 +138,14 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
 
   /// Returns a [Authorization] for [accessToken].
   ///
-  /// This method obtains a [TokenType] from its [storage] and then verifies that the token is valid.
-  /// If the token is valid, a [Authorization] object is returned. Otherwise, an [AuthServerException]
-  /// with [AuthRequestError.invalidToken].
+  /// This method obtains an [AuthToken] for [accessToken] from [storage] and then verifies that the token is valid.
+  /// If the token is valid, an [Authorization] object is returned. Otherwise, an [AuthServerException]
+  /// with [AuthRequestError.invalidToken] is thrown.
   Future<Authorization> verify(String accessToken) async {
+    if (accessToken == null) {
+      throw new AuthServerException(AuthRequestError.invalidToken, null);
+    }
+
     AuthToken t = await storage.fetchTokenByAccessToken(this, accessToken);
     if (t == null || t.isExpired) {
       throw new AuthServerException(AuthRequestError.invalidToken, null);
@@ -128,9 +154,9 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
     return new Authorization(t.clientID, t.resourceOwnerIdentifier, this);
   }
 
-  /// Refreshes a valid [TokenType] instance.
+  /// Refreshes a valid [AuthToken] instance.
   ///
-  /// This method will refresh a [TokenType] given the [TokenType]'s [refreshToken] for a given client ID.
+  /// This method will refresh a [AuthToken] given the [AuthToken]'s [refreshToken] for a given client ID.
   /// This method coordinates with this instance's [storage] to update the old token with a new access token and issue/expiration dates if successful.
   /// If not successful, it will throw an [AuthRequestError].
   Future<AuthToken> refresh(
@@ -224,10 +250,10 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
     return authCode;
   }
 
-  /// Exchanges a valid authorization code for a pair of refresh and access tokens.
+  /// Exchanges a valid authorization code for an [AuthToken].
   ///
   /// If the authorization code has not expired, has not been used, matches the client ID,
-  /// and the client secret is correct, it will return a valid pair of tokens. Otherwise,
+  /// and the client secret is correct, it will return a valid [AuthToken]. Otherwise,
   /// it will throw an appropriate [AuthRequestError].
   Future<AuthToken> exchange(
       String authCodeString, String clientID, String clientSecret,
@@ -316,10 +342,21 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
 
   @override
   Future<Authorization> fromBasicCredentials(
-      String username, String password) async {
+      AuthBasicCredentials credentials) async {
+    var username = credentials.username;
+    var password = credentials.password;
+
     var client = await clientForID(username);
 
     if (client == null) {
+      return null;
+    }
+
+    if (client.hashedSecret == null) {
+      if (password == "") {
+        return new Authorization(client.id, null, this);
+      }
+
       return null;
     }
 
@@ -328,7 +365,7 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
       return null;
     }
 
-    return new Authorization(client.id, null, this);
+    return new Authorization(client.id, null, this, credentials: credentials);
   }
 
   @override

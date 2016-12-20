@@ -40,6 +40,7 @@ class WildfireSink extends RequestSink {
   void setupRouter(Router router) {
     router
         .route("/register")
+        .pipe(new Authorizer.basic(authServer))
         .generate(() => new RegisterController(authServer));
 
     router

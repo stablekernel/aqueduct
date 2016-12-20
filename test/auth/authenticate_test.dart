@@ -210,7 +210,7 @@ void main() {
           InMemoryAuthStorage.DefaultPassword,
           "com.stablekernel.app1",
           "kilimanjaro",
-          expirationInSeconds: 1);
+          expiration: new Duration(seconds: 1));
 
       sleep(new Duration(seconds: 1));
 

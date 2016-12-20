@@ -43,9 +43,17 @@ class AuthUtility {
     return new Base64Encoder().convert(salt);
   }
 
-  /// A utility method to generate a ClientID and Client Secret Pair, where secret is hashed with a salt.
+  /// A utility method to generate a ClientID and Client Secret Pair.
   ///
-  /// Secret may be null for public clients.
+  /// [secret] may be null. If secret is null, the return value is a 'public' client. Otherwise, the
+  /// client is 'confidential'. Public clients must not include a client secret when sent to the
+  /// authorization server. Confidential clients must include the secret in all requests. Use public clients when
+  /// the source code of the client application is visible, i.e. a JavaScript browser application.
+  ///
+  /// Any client that allows the authorization code flow must include [redirectURI].
+  ///
+  /// Note that [secret] is hashed with a randomly generated salt, and therefore cannot be retrieved
+  /// later. The plain-text secret must be stored securely elsewhere.
   static AuthClient generateAPICredentialPair(String clientID, String secret,
       {String redirectURI: null}) {
     if (secret == null) {

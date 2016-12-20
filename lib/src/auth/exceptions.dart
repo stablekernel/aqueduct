@@ -1,5 +1,6 @@
 import 'auth.dart';
 
+/// An exception thrown by [AuthServer].
 class AuthServerException implements Exception {
   /// Returns a string suitable to be included in a query string or JSON response body
   /// to indicate the error during processing an OAuth 2.0 request.

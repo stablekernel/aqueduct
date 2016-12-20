@@ -11,28 +11,18 @@ typedef Future<String> _RenderAuthorizationPageFunction(
 
 /// [RequestController] for issuing OAuth 2.0 authorization codes.
 ///
-/// Requests to this controller should come from a login form hosted by the authorization server.
-/// A client will navigate to a page that hosts the login form, including a client_id, response_type and state
-/// in the query string. (The query string may optionally contain a scope parameter, where each requested scope
-/// is separated by a URL percent encoded space.)
+/// This controller provides the necessary methods for issuing OAuth 2.0 authorization codes: returning
+/// a HTML login form and issuing a request for an authorization code. The login form's submit
+/// button should initiate the request for the authorization code.
 ///
-/// The form submission should combine the parameters from the query string
-/// and the submitted username and password into a single query string. This controller responds to
-/// the form submission request, which must be a POST.
-///
-/// The implementation of this form page is up to the discretion of the developer. This controller
-/// allows the developer to provide a page rendering anonymous function in the constructor.
-///
-/// The request handled by this controller will redirect the client back to its registered redirection URI, including the initial state query
-/// parameter and an authorization code. The authorization code can be exchanged for an access token with a request to a
-/// [AuthController].
+/// See [getAuthorizationPage] and [authorize] for more details.
 class AuthCodeController extends HTTPController {
   /// Creates a new instance of an [AuthCodeController].
   ///
   /// An [AuthCodeController] requires an [AuthServer] to carry out tasks.
   ///
   /// By default, an [AuthCodeController] has only one [acceptedContentTypes] - 'application/x-www-form-urlencoded'.
-  AuthCodeController(this.authenticationServer,
+  AuthCodeController(this.authServer,
       {Future<String> renderAuthorizationPageHTML(AuthCodeController controller,
           Uri requestURI, Map<String, String> queryParameters)}) {
     acceptedContentTypes = [
@@ -44,18 +34,41 @@ class AuthCodeController extends HTTPController {
   }
 
   /// A reference to the [AuthServer] this controller uses to grant authorization codes.
-  AuthServer authenticationServer;
+  AuthServer authServer;
 
-  _RenderAuthorizationPageFunction _renderFunction;
-
+  /// The state parameter a client uses to verify the origin of a redirect when receiving an authorization redirect.
+  ///
+  /// Clients must include this query parameter and verify that any redirects from this
+  /// server have the same value for 'state' as passed in. This value is usually a randomly generated
+  /// session identifier.
   @HTTPQuery("state")
   String state;
 
+  /// The desired response type; must be 'code'.
+  @HTTPQuery("response_type")
+  String responseType;
+
+  /// The client ID of the authenticating client.
+  ///
+  /// This must be a valid client ID according to [authServer].
+  @HTTPQuery("client_id")
+  String clientID;
+
+  _RenderAuthorizationPageFunction _renderFunction;
+
+  /// Returns an HTML login form.
+  ///
+  /// A client that wishes to authenticate with this server should direct the user
+  /// to this page. The user will enter their username and password, and upon successful
+  /// authentication, the returned page will redirect the user back to the initial application.
+  /// The redirect URL will contain a 'code' query parameter that the application can intercept
+  /// and send to the route that exchanges authorization codes for tokens.
+  ///
+  /// The 'client_id' must be a registered, valid client of this server. The client must also provide
+  /// a [state] to this request and verify that the redirect contains the same value in its query string.
   @httpGet
   Future<Response> getAuthorizationPage(
-      {@HTTPQuery("response_type") String responseType,
-      @HTTPQuery("client_id") String clientID,
-      @HTTPQuery("scope") String scope}) async {
+      {@HTTPQuery("scope") String scope}) async {
     if (_renderFunction == null) {
       return new Response(405, {}, null);
     }
@@ -66,23 +79,26 @@ class AuthCodeController extends HTTPController {
       "state": state,
       "scope": scope
     });
+    if (renderedPage == null) {
+      return new Response.notFound();
+    }
 
     return new Response.ok(renderedPage);
   }
 
   /// Creates a one-time use authorization code.
   ///
-  /// The authorization code is returned as a query parameter in the resulting 302 response.
-  /// If [state] is supplied, it will be returned in the query as a way
-  /// for the client to ensure it is receiving a response from the expected endpoint.
+  /// This method will respond with a redirect that contains an authorization code ('code')
+  /// and the passed in 'state'. If this request fails, the redirect URL
+  /// will contain an 'error' key instead of the authorization code.
+  ///
+  /// This method is typically invoked by the login form returned from the GET to this path.
   @httpPost
   Future<Response> authorize(
-      {@HTTPQuery("client_id") String clientID,
-      @HTTPQuery("response_type") String responseType,
-      @HTTPQuery("username") String username,
+      {@HTTPQuery("username") String username,
       @HTTPQuery("password") String password,
       @HTTPQuery("scope") String scope}) async {
-    var client = await authenticationServer.clientForID(clientID);
+    var client = await authServer.clientForID(clientID);
 
     if (responseType != "code") {
       if (clientID == null) {
@@ -99,7 +115,7 @@ class AuthCodeController extends HTTPController {
     }
 
     try {
-      var authCode = await authenticationServer.authenticateForCode(
+      var authCode = await authServer.authenticateForCode(
           username, password, clientID);
       return _redirectResponse(client.redirectURI, state, code: authCode.code);
     } on AuthServerException catch (e) {

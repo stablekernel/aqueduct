@@ -220,7 +220,7 @@ void main() {
     test("Expired token cannot be verified", () async {
       var token = await auth.authenticate(createdUser.username,
           User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro",
-          expirationInSeconds: 1);
+          expiration: new Duration(seconds: 1));
 
       sleep(new Duration(seconds: 1));
 
