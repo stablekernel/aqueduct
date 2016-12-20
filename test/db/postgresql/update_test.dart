@@ -38,8 +38,7 @@ void main() {
   test("Setting relationship to a new value succeeds", () async {
     context = await contextWithModels([Child, Parent]);
 
-    var q = new Query<Parent>()
-      ..values.name = "Bob";
+    var q = new Query<Parent>()..values.name = "Bob";
     var parent = await q.insert();
 
     var childQuery = new Query<Child>()
@@ -49,8 +48,7 @@ void main() {
     var child = await childQuery.insert();
     expect(child.parent.id, parent.id);
 
-    q = new Query<Parent>()
-      ..values.name = "Sally";
+    q = new Query<Parent>()..values.name = "Sally";
     var newParent = await q.insert();
 
     childQuery = new Query<Child>()

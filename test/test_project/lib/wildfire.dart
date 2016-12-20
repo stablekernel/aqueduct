@@ -18,4 +18,3 @@ export 'model/user.dart';
 export 'controller/user_controller.dart';
 export 'controller/identity_controller.dart';
 export 'controller/register_controller.dart';
-

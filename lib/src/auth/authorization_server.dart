@@ -8,9 +8,7 @@ import 'auth.dart';
 ///
 /// Instances of this type will carry out authentication and authorization tasks. This class shouldn't be subclassed. The storage required by tasks performed
 /// by instances of this class - such as storing an issued token - are facilitated through its [storage], which is application-specific.
-class AuthServer extends Object
-    with APIDocumentable
-    implements AuthValidator {
+class AuthServer extends Object with APIDocumentable implements AuthValidator {
   static const String TokenTypeBearer = "bearer";
 
   /// Creates a new instance of an [AuthServer] with a [storage].
@@ -175,7 +173,8 @@ class AuthServer extends Object
       ..resourceOwnerIdentifier = t.resourceOwnerIdentifier
       ..clientID = t.clientID;
 
-    await storage.refreshTokenWithAccessToken(this, t.accessToken, newToken.accessToken, newToken.issueDate, newToken.expirationDate);
+    await storage.refreshTokenWithAccessToken(this, t.accessToken,
+        newToken.accessToken, newToken.issueDate, newToken.expirationDate);
 
     return newToken;
   }
@@ -202,7 +201,8 @@ class AuthServer extends Object
     }
 
     if (client.redirectURI == null) {
-      throw new AuthServerException(AuthRequestError.unauthorizedClient, client);
+      throw new AuthServerException(
+          AuthRequestError.unauthorizedClient, client);
     }
 
     var authenticatable =
@@ -254,8 +254,7 @@ class AuthServer extends Object
       throw new AuthServerException(AuthRequestError.invalidClient, client);
     }
 
-    AuthCode authCode =
-        await storage.fetchAuthCodeByCode(this, authCodeString);
+    AuthCode authCode = await storage.fetchAuthCodeByCode(this, authCodeString);
     if (authCode == null) {
       throw new AuthServerException(AuthRequestError.invalidGrant, client);
     }
@@ -295,10 +294,12 @@ class AuthServer extends Object
   @override
   Map<String, APISecurityScheme> documentSecuritySchemes(
       PackagePathResolver resolver) {
-    var secPassword = new APISecurityScheme.oauth2(APISecuritySchemeFlow.password)
-      ..description = "OAuth 2.0 Resource Owner Flow";
-    var secAccess = new APISecurityScheme.oauth2(APISecuritySchemeFlow.authorizationCode)
-      ..description = "OAuth 2.0 Authorization Code Flow";
+    var secPassword =
+        new APISecurityScheme.oauth2(APISecuritySchemeFlow.password)
+          ..description = "OAuth 2.0 Resource Owner Flow";
+    var secAccess =
+        new APISecurityScheme.oauth2(APISecuritySchemeFlow.authorizationCode)
+          ..description = "OAuth 2.0 Authorization Code Flow";
     var basicAccess = new APISecurityScheme.basic()
       ..description = "Client Authentication";
 
@@ -343,14 +344,11 @@ class AuthServer extends Object
   @override
   List<APISecurityRequirement> requirementsForStrategy(AuthStrategy strategy) {
     if (strategy == AuthStrategy.basic) {
-      return [new APISecurityRequirement()
-        ..name = _SecuritySchemeClientAuth];
+      return [new APISecurityRequirement()..name = _SecuritySchemeClientAuth];
     } else if (strategy == AuthStrategy.bearer) {
       return [
-        new APISecurityRequirement()
-          ..name = _SecuritySchemeAuthorizationCode,
-        new APISecurityRequirement()
-          ..name = _SecuritySchemePassword
+        new APISecurityRequirement()..name = _SecuritySchemeAuthorizationCode,
+        new APISecurityRequirement()..name = _SecuritySchemePassword
       ];
     }
 
@@ -364,8 +362,7 @@ class AuthServer extends Object
     AuthToken token = new AuthToken()
       ..accessToken = randomStringOfLength(32)
       ..issueDate = now
-      ..expirationDate =
-          now.add(new Duration(seconds: expirationInSeconds))
+      ..expirationDate = now.add(new Duration(seconds: expirationInSeconds))
       ..type = TokenTypeBearer
       ..resourceOwnerIdentifier = ownerID
       ..clientID = clientID;
@@ -385,7 +382,6 @@ class AuthServer extends Object
       ..clientID = client.id
       ..resourceOwnerIdentifier = ownerID
       ..issueDate = now
-      ..expirationDate = now
-          .add(new Duration(seconds: expirationInSeconds));
+      ..expirationDate = now.add(new Duration(seconds: expirationInSeconds));
   }
 }

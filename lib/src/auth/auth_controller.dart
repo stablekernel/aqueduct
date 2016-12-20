@@ -91,7 +91,8 @@ class AuthController extends HTTPController {
         // were in the request, which violates oauth2 spec. It just adjusts the error message.
         // This could be hardened some.
         response.body = {
-          "error": AuthServerException.errorString(AuthRequestError.invalidRequest)
+          "error":
+              AuthServerException.errorString(AuthRequestError.invalidRequest)
         };
       }
     }
@@ -125,6 +126,6 @@ class AuthController extends HTTPController {
 
   Response _responseForError(AuthRequestError error) {
     var errorString = AuthServerException.errorString(error);
-    return new Response.badRequest(body: {"error" : errorString});
+    return new Response.badRequest(body: {"error": errorString});
   }
 }

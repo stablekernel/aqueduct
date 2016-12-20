@@ -32,15 +32,16 @@ main() {
         "password": "foobaraxegrind12%"
       };
 
-      var registerResponse = await
-        (app.client.clientAuthenticatedRequest("/register")..json = json).post();
+      var registerResponse = await (app.client
+              .clientAuthenticatedRequest("/register")..json = json)
+          .post();
 
       var identityResponse = await (app.client.authenticatedRequest("/me",
-          accessToken: registerResponse.asMap["access_token"])).get();
+              accessToken: registerResponse.asMap["access_token"]))
+          .get();
 
-      expect(identityResponse, hasResponse(200, partial({
-        "email" : json["username"]
-      })));
+      expect(identityResponse,
+          hasResponse(200, partial({"email": json["username"]})));
     });
   });
 

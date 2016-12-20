@@ -52,20 +52,15 @@ class WildfireSink extends RequestSink {
         .pipe(new Authorizer.bearer(authServer))
         .generate(() => new UserController(authServer));
 
-    router
-        .route("/auth/token")
-        .generate(() => new AuthController(authServer));
+    router.route("/auth/token").generate(() => new AuthController(authServer));
 
-    router
-        .route("/auth/code")
-        .generate(() => new AuthCodeController(authServer,
+    router.route("/auth/code").generate(() => new AuthCodeController(authServer,
         renderAuthorizationPageHTML: renderLoginPage));
   }
 
   ManagedContext contextWithConnectionInfo(
       DatabaseConnectionConfiguration connectionInfo) {
-    var dataModel =
-        new ManagedDataModel.fromCurrentMirrorSystem();
+    var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
     var psc = new PostgreSQLPersistentStore.fromConnectionInfo(
         connectionInfo.username,
         connectionInfo.password,
@@ -82,9 +77,7 @@ class WildfireSink extends RequestSink {
     return authServer.documentSecuritySchemes(resolver);
   }
 
-  Future<String> renderLoginPage(
-      AuthCodeController controller,
-      Uri requestURI,
+  Future<String> renderLoginPage(AuthCodeController controller, Uri requestURI,
       Map<String, String> queryParameters) async {
     var path = requestURI.path;
     var map = new Map<String, String>.from(queryParameters);

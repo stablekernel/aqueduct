@@ -192,7 +192,12 @@ class APISecurityDefinition {
 }
 
 /// Represents a OAuth 2.0 security scheme flow in the OpenAPI specification.
-enum APISecuritySchemeFlow { implicit, password, application, authorizationCode }
+enum APISecuritySchemeFlow {
+  implicit,
+  password,
+  application,
+  authorizationCode
+}
 
 /// Represents a security scheme in the OpenAPI specification.
 class APISecurityScheme {
@@ -218,7 +223,8 @@ class APISecurityScheme {
     type = "apiKey";
   }
 
-  APISecurityScheme.oauth2(this.oauthFlow, {this.authorizationURL, this.tokenURL, this.scopes: const []}) {
+  APISecurityScheme.oauth2(this.oauthFlow,
+      {this.authorizationURL, this.tokenURL, this.scopes: const []}) {
     type = "oauth2";
   }
 
@@ -240,10 +246,7 @@ class APISecurityScheme {
   }
 
   Map<String, dynamic> asMap() {
-    var m = <String, dynamic>{
-      "type": type,
-      "description": description
-    };
+    var m = <String, dynamic>{"type": type, "description": description};
 
     if (type == "basic") {
       /* nothing to do */

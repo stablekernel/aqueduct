@@ -165,8 +165,7 @@ void main() {
     });
 
     test("Ensure migration directory will get created on generation", () async {
-      await Process.runSync(
-          "pub", ["get", "--no-packages-dir", "--offline"],
+      await Process.runSync("pub", ["get", "--no-packages-dir", "--offline"],
           workingDirectory: projectDirectory.path);
 
       expect(migrationDirectory.existsSync(), false);
@@ -228,29 +227,76 @@ void main() {
       new SchemaTable("_User", [
         new SchemaColumn("id", ManagedPropertyType.bigInteger,
             isPrimaryKey: true, autoincrement: true),
-        new SchemaColumn("email", ManagedPropertyType.string,
-            isUnique: true),
+        new SchemaColumn("email", ManagedPropertyType.string, isUnique: true),
         new SchemaColumn("username", ManagedPropertyType.string,
             isUnique: true, isIndexed: true),
         new SchemaColumn("hashedPassword", ManagedPropertyType.string),
         new SchemaColumn("salt", ManagedPropertyType.string)
       ]),
       new SchemaTable("_authToken", [
-        new SchemaColumn("id", ManagedPropertyType.bigInteger, isPrimaryKey: true, autoincrement: true, isIndexed: false, isNullable: false, isUnique: false),
-        new SchemaColumn("accessToken", ManagedPropertyType.string, isPrimaryKey: false, autoincrement: false, isIndexed: true, isNullable: true, isUnique: true),
-        new SchemaColumn("refreshToken", ManagedPropertyType.string, isPrimaryKey: false, autoincrement: false, isIndexed: true, isNullable: true, isUnique: true),
-        new SchemaColumn("code", ManagedPropertyType.string, isPrimaryKey: false, autoincrement: false, isIndexed: true, isNullable: true, isUnique: true),
-        new SchemaColumn("type", ManagedPropertyType.string, isPrimaryKey: false, autoincrement: false, isIndexed: true, isNullable: true, isUnique: false),
-        new SchemaColumn("issueDate", ManagedPropertyType.datetime, isPrimaryKey: false, autoincrement: false, isIndexed: false, isNullable: false, isUnique: false),
-        new SchemaColumn("expirationDate", ManagedPropertyType.datetime, isPrimaryKey: false, autoincrement: false, isIndexed: true, isNullable: false, isUnique: false),
-        new SchemaColumn.relationship("resourceOwner", ManagedPropertyType.bigInteger, relatedTableName: "_User", relatedColumnName: "id", rule: ManagedRelationshipDeleteRule.cascade, isNullable: false, isUnique: false),
-        new SchemaColumn.relationship("client", ManagedPropertyType.string, relatedTableName: "_authclient", relatedColumnName: "id", rule: ManagedRelationshipDeleteRule.cascade, isNullable: false, isUnique: false),
+        new SchemaColumn("id", ManagedPropertyType.bigInteger,
+            isPrimaryKey: true,
+            autoincrement: true,
+            isIndexed: false,
+            isNullable: false,
+            isUnique: false),
+        new SchemaColumn("accessToken", ManagedPropertyType.string,
+            isPrimaryKey: false,
+            autoincrement: false,
+            isIndexed: true,
+            isNullable: true,
+            isUnique: true),
+        new SchemaColumn("refreshToken", ManagedPropertyType.string,
+            isPrimaryKey: false,
+            autoincrement: false,
+            isIndexed: true,
+            isNullable: true,
+            isUnique: true),
+        new SchemaColumn("code", ManagedPropertyType.string,
+            isPrimaryKey: false,
+            autoincrement: false,
+            isIndexed: true,
+            isNullable: true,
+            isUnique: true),
+        new SchemaColumn("type", ManagedPropertyType.string,
+            isPrimaryKey: false,
+            autoincrement: false,
+            isIndexed: true,
+            isNullable: true,
+            isUnique: false),
+        new SchemaColumn("issueDate", ManagedPropertyType.datetime,
+            isPrimaryKey: false,
+            autoincrement: false,
+            isIndexed: false,
+            isNullable: false,
+            isUnique: false),
+        new SchemaColumn("expirationDate", ManagedPropertyType.datetime,
+            isPrimaryKey: false,
+            autoincrement: false,
+            isIndexed: true,
+            isNullable: false,
+            isUnique: false),
+        new SchemaColumn.relationship(
+            "resourceOwner", ManagedPropertyType.bigInteger,
+            relatedTableName: "_User",
+            relatedColumnName: "id",
+            rule: ManagedRelationshipDeleteRule.cascade,
+            isNullable: false,
+            isUnique: false),
+        new SchemaColumn.relationship("client", ManagedPropertyType.string,
+            relatedTableName: "_authclient",
+            relatedColumnName: "id",
+            rule: ManagedRelationshipDeleteRule.cascade,
+            isNullable: false,
+            isUnique: false),
       ]),
       new SchemaTable("_authclient", [
         new SchemaColumn("id", ManagedPropertyType.string, isPrimaryKey: true),
-        new SchemaColumn("hashedSecret", ManagedPropertyType.string, isNullable: true),
+        new SchemaColumn("hashedSecret", ManagedPropertyType.string,
+            isNullable: true),
         new SchemaColumn("salt", ManagedPropertyType.string, isNullable: true),
-        new SchemaColumn("redirectURI", ManagedPropertyType.string, isUnique: true, isNullable: true),
+        new SchemaColumn("redirectURI", ManagedPropertyType.string,
+            isUnique: true, isNullable: true),
       ]),
     ]);
 
@@ -342,8 +388,13 @@ void main() {
     tearDown(() async {
       cleanTestProjectDirectory();
       var tables = [
-        "_aqueduct_version_pgsql", "foo", "_authcode",
-        "_authtoken", "_user", "_authclient"];
+        "_aqueduct_version_pgsql",
+        "foo",
+        "_authcode",
+        "_authtoken",
+        "_user",
+        "_authclient"
+      ];
       await Future.wait(tables.map((t) {
         return executor.persistentStore.execute("DROP TABLE IF EXISTS $t");
       }));
@@ -355,12 +406,22 @@ void main() {
 
       var version = await executor.persistentStore
           .execute("SELECT versionNumber FROM _aqueduct_version_pgsql");
-      expect(version, [[1]]);
+      expect(version, [
+        [1]
+      ]);
       expect(await columnsOfTable(executor, "_user"),
           ["email", "id", "username", "hashedpassword", "salt"]);
-      expect(await columnsOfTable(executor, "_authtoken"),
-          ["id", "code", "accesstoken", "refreshtoken", "issuedate",
-          "expirationdate", "type", "resourceowner_id", "client_id"]);
+      expect(await columnsOfTable(executor, "_authtoken"), [
+        "id",
+        "code",
+        "accesstoken",
+        "refreshtoken",
+        "issuedate",
+        "expirationdate",
+        "type",
+        "resourceowner_id",
+        "client_id"
+      ]);
     });
 
     test("Multiple migration files are ran", () async {
@@ -375,7 +436,10 @@ void main() {
 
       var version = await executor.persistentStore
           .execute("SELECT versionNumber FROM _aqueduct_version_pgsql");
-      expect(version, [[1], [2]]);
+      expect(version, [
+        [1],
+        [2]
+      ]);
       expect(await columnsOfTable(executor, "_user"),
           ["email", "id", "hashedpassword", "salt"]);
       expect(await columnsOfTable(executor, "foo"), ["user_id"]);
@@ -463,8 +527,10 @@ void addLinesToUpgradeFile(File upgradeFile, List<String> extraLines) {
   upgradeFile.writeAsStringSync(lines);
 }
 
-Future<List<String>> columnsOfTable(MigrationExecutor executor, String tableName) async {
-  List<List<String>> results = await executor.persistentStore.execute("select column_name from information_schema.columns where "
-      "table_name='$tableName'");
+Future<List<String>> columnsOfTable(
+    MigrationExecutor executor, String tableName) async {
+  List<List<String>> results = await executor.persistentStore
+      .execute("select column_name from information_schema.columns where "
+          "table_name='$tableName'");
   return results.map((rows) => rows.first).toList();
 }

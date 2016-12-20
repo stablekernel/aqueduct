@@ -71,7 +71,8 @@ class AuthToken {
     var map = {
       "access_token": accessToken,
       "token_type": type,
-      "expires_in": expirationDate.difference(new DateTime.now().toUtc()).inSeconds,
+      "expires_in":
+          expirationDate.difference(new DateTime.now().toUtc()).inSeconds,
     };
 
     if (refreshToken != null) {
@@ -122,8 +123,7 @@ class AuthCode {
 /// Subsequent [RequestController]s are able to use this information to determine access scope.
 class Authorization {
   /// Creates an instance of a [Authorization].
-  Authorization(
-      this.clientID, this.resourceOwnerIdentifier, this.validator);
+  Authorization(this.clientID, this.resourceOwnerIdentifier, this.validator);
 
   /// The client ID the permission was granted under.
   final String clientID;
@@ -150,29 +150,39 @@ class AuthScope {
 
   List<_AuthScopeSegment> _parse(String scopeString) {
     if (scopeString == null || scopeString == "") {
-      throw new FormatException("Invalid AuthScope. May not be null or empty string.", scopeString);
+      throw new FormatException(
+          "Invalid AuthScope. May not be null or empty string.", scopeString);
     }
 
     var elements = scopeString
-       .split(":")
-       .map((seg) => new _AuthScopeSegment(seg))
-       .toList();
+        .split(":")
+        .map((seg) => new _AuthScopeSegment(seg))
+        .toList();
 
     var scannedOffset = 0;
     for (var i = 0; i < elements.length - 1; i++) {
       if (elements[i].modifier != null) {
-        throw new FormatException("Invalid AuthScope. May only contain modifiers on the last segment.", scopeString, scannedOffset);
+        throw new FormatException(
+            "Invalid AuthScope. May only contain modifiers on the last segment.",
+            scopeString,
+            scannedOffset);
       }
 
       if (elements[i].name == "") {
-        throw new FormatException("Invalid AuthScope. May not contain empty segments or, leading or trailing colons.", scopeString, scannedOffset);
+        throw new FormatException(
+            "Invalid AuthScope. May not contain empty segments or, leading or trailing colons.",
+            scopeString,
+            scannedOffset);
       }
 
       scannedOffset += elements[i].toString().length + 1;
     }
 
     if (elements.last.name == "") {
-      throw new FormatException("Invalid AuthScope. May not contain empty segments.", scopeString, scannedOffset);
+      throw new FormatException(
+          "Invalid AuthScope. May not contain empty segments.",
+          scopeString,
+          scannedOffset);
     }
 
     return elements;
@@ -228,8 +238,8 @@ class AuthScope {
         return false;
       }
 
-      if (incomingSegment.name != segment.name
-      || incomingSegment.modifier != segment.modifier) {
+      if (incomingSegment.name != segment.name ||
+          incomingSegment.modifier != segment.modifier) {
         return false;
       }
     }

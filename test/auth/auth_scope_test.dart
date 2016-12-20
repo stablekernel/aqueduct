@@ -98,27 +98,37 @@ void main() {
     expect(scope.allows("user.readonly"), false);
   });
 
-  test("Single element scope does not allow more restrictive multiple element scope", () {
+  test(
+      "Single element scope does not allow more restrictive multiple element scope",
+      () {
     var scope = new AuthScope("user");
     expect(scope.allows("user:location"), false);
   });
 
-  test("Single element scope with modifier does not allow more restrictive multiple element scope even though it has same modifier", () {
+  test(
+      "Single element scope with modifier does not allow more restrictive multiple element scope even though it has same modifier",
+      () {
     var scope = new AuthScope("user.readonly");
     expect(scope.allows("user:location.readonly"), false);
   });
 
-  test("Multiple element scope does not allow multiple element, even if root is same", () {
+  test(
+      "Multiple element scope does not allow multiple element, even if root is same",
+      () {
     var scope = new AuthScope("user:location");
     expect(scope.allows("user:posts"), false);
   });
 
-  test("Multiple element scope does not allow modifier restricted, even though elements are the same", () {
+  test(
+      "Multiple element scope does not allow modifier restricted, even though elements are the same",
+      () {
     var scope = new AuthScope("user:location");
     expect(scope.allows("user:location.readonly"), false);
   });
 
-  test("Multiple element scope does not allow different modifier, even though elements are the same", () {
+  test(
+      "Multiple element scope does not allow different modifier, even though elements are the same",
+      () {
     var scope = new AuthScope("user:location.something");
     expect(scope.allows("user:location.readonly"), false);
   });

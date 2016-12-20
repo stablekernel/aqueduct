@@ -24,11 +24,15 @@ Future main() async {
       var req = app.client.authenticatedRequest("/me");
       var result = await req.get();
 
-      expect(result, hasResponse(200, partial({
-        "id": greaterThan(0),
-        "email" : "bob@stablekernel.com",
-        "username" : "bob@stablekernel.com"
-      })));
+      expect(
+          result,
+          hasResponse(
+              200,
+              partial({
+                "id": greaterThan(0),
+                "email": "bob@stablekernel.com",
+                "username": "bob@stablekernel.com"
+              })));
     });
   });
 }

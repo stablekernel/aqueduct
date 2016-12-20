@@ -37,9 +37,7 @@ class WildfireSink extends RequestSink {
   /// All routes must be configured in this method.
   @override
   void setupRouter(Router router) {
-    router
-        .route("/auth/token")
-        .generate(() => new AuthController(authServer));
+    router.route("/auth/token").generate(() => new AuthController(authServer));
 
     router
         .route("/auth/code")
@@ -62,8 +60,7 @@ class WildfireSink extends RequestSink {
 
   ManagedContext contextWithConnectionInfo(
       DatabaseConnectionConfiguration connectionInfo) {
-    var dataModel =
-        new ManagedDataModel.fromCurrentMirrorSystem();
+    var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
     var psc = new PostgreSQLPersistentStore.fromConnectionInfo(
         connectionInfo.username,
         connectionInfo.password,
