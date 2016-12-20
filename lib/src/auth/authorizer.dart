@@ -127,11 +127,11 @@ class Authorizer extends RequestController {
   List<APIOperation> documentOperations(PackagePathResolver resolver) {
     List<APIOperation> operations =
       nextController.documentOperations(resolver);
-    var securityRequirement =
-      validator.requirementForStrategy(strategy);
+    var requirements =
+      validator.requirementsForStrategy(strategy);
 
     operations.forEach((i) {
-      i.security = [securityRequirement ];
+      i.security = requirements;
     });
 
     return operations;
@@ -169,5 +169,5 @@ abstract class AuthValidator {
   Future<Authorization> fromBearerToken(
       String bearerToken, List<String> scopesRequired);
 
-  APISecurityRequirement requirementForStrategy(AuthStrategy strategy);
+  List<APISecurityRequirement> requirementsForStrategy(AuthStrategy strategy);
 }
