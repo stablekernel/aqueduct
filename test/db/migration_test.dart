@@ -165,10 +165,9 @@ void main() {
     });
 
     test("Ensure migration directory will get created on generation", () async {
-      var res = await Process.runSync(
+      await Process.runSync(
           "pub", ["get", "--no-packages-dir", "--offline"],
           workingDirectory: projectDirectory.path);
-      print("${res.stdout} ${res.stderr}");
 
       expect(migrationDirectory.existsSync(), false);
       await executor.generate();
@@ -238,8 +237,10 @@ void main() {
       ]),
       new SchemaTable("_authToken", [
         new SchemaColumn("id", ManagedPropertyType.bigInteger, isPrimaryKey: true, autoincrement: true, isIndexed: false, isNullable: false, isUnique: false),
-        new SchemaColumn("accessToken", ManagedPropertyType.string, isPrimaryKey: false, autoincrement: false, isIndexed: true, isNullable: false, isUnique: true),
+        new SchemaColumn("accessToken", ManagedPropertyType.string, isPrimaryKey: false, autoincrement: false, isIndexed: true, isNullable: true, isUnique: true),
         new SchemaColumn("refreshToken", ManagedPropertyType.string, isPrimaryKey: false, autoincrement: false, isIndexed: true, isNullable: true, isUnique: true),
+        new SchemaColumn("code", ManagedPropertyType.string, isPrimaryKey: false, autoincrement: false, isIndexed: true, isNullable: true, isUnique: true),
+        new SchemaColumn("type", ManagedPropertyType.string, isPrimaryKey: false, autoincrement: false, isIndexed: true, isNullable: true, isUnique: false),
         new SchemaColumn("issueDate", ManagedPropertyType.datetime, isPrimaryKey: false, autoincrement: false, isIndexed: false, isNullable: false, isUnique: false),
         new SchemaColumn("expirationDate", ManagedPropertyType.datetime, isPrimaryKey: false, autoincrement: false, isIndexed: true, isNullable: false, isUnique: false),
         new SchemaColumn.relationship("resourceOwner", ManagedPropertyType.bigInteger, relatedTableName: "_User", relatedColumnName: "id", rule: ManagedRelationshipDeleteRule.cascade, isNullable: false, isUnique: false),
@@ -280,7 +281,6 @@ void main() {
 
       var errors = <String>[];
       var ok = outSchema.matches(expectedSchema, errors);
-      print("$errors");
       expect(ok, true);
       expect(errors, []);
     });
@@ -359,8 +359,8 @@ void main() {
       expect(await columnsOfTable(executor, "_user"),
           ["email", "id", "username", "hashedpassword", "salt"]);
       expect(await columnsOfTable(executor, "_authtoken"),
-          ["id", "accesstoken", "refreshtoken", "issuedate",
-          "expirationdate", "resourceowner_id", "client_id"]);
+          ["id", "code", "accesstoken", "refreshtoken", "issuedate",
+          "expirationdate", "type", "resourceowner_id", "client_id"]);
     });
 
     test("Multiple migration files are ran", () async {

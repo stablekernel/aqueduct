@@ -64,6 +64,7 @@ void main() {
   group("Templates from path", () {
     test("Template gets generated from local path, project points to it", () {
       var res = runWith(["-n", "test_project"]);
+      print("${res.stdout} ${res.stderr}");
       expect(res.exitCode, 0);
 
       var aqueductLocationString =

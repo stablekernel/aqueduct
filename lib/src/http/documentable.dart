@@ -56,7 +56,7 @@ class APIDocumentable {
   APIRequestBody documentRequestBodyForOperation(APIOperation operation) =>
       documentableChild?.documentRequestBodyForOperation(operation);
 
-  /// Returns all [APISecurityScheme]s this instance knowsa bout.
+  /// Returns all [APISecurityScheme]s this instance knows about.
   Map<String, APISecurityScheme> documentSecuritySchemes(
           PackagePathResolver resolver) =>
       documentableChild?.documentSecuritySchemes(resolver);
@@ -214,11 +214,11 @@ class APISecurityScheme {
     type = "basic";
   }
 
-  APISecurityScheme.apiKey() {
+  APISecurityScheme.apiKey(this.apiKeyName, this.apiKeyLocation) {
     type = "apiKey";
   }
 
-  APISecurityScheme.oauth2() {
+  APISecurityScheme.oauth2(this.oauthFlow, {this.authorizationURL, this.tokenURL, this.scopes: const []}) {
     type = "oauth2";
   }
 
@@ -233,14 +233,17 @@ class APISecurityScheme {
   APISecuritySchemeFlow oauthFlow;
   String authorizationURL;
   String tokenURL;
-  List<APISecurityScope> scopes = [];
+  List<APISecurityScope> scopes;
 
   bool get isOAuth2 {
     return type == "oauth2";
   }
 
   Map<String, dynamic> asMap() {
-    var m = <String, dynamic>{"type": type, "description": description};
+    var m = <String, dynamic>{
+      "type": type,
+      "description": description
+    };
 
     if (type == "basic") {
       /* nothing to do */

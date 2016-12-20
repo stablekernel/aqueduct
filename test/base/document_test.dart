@@ -48,12 +48,9 @@ main() {
           apiDocs["securityDefinitions"] as Map<String, Map<String, dynamic>>;
       expect(secDefs.length, 3);
 
-      expect(secDefs["oauth2.application"], {
-        "type": "oauth2",
+      expect(secDefs["basic.clientAuth"], {
+        "type": "basic",
         "description": isNotNull,
-        "flow": "application",
-        "tokenUrl": "http://localhost/auth/token",
-        "scopes": isNotNull
       });
 
       expect(secDefs["oauth2.password"], {
@@ -135,6 +132,7 @@ main() {
           }
         },
         "security": [
+          {"oauth2.accessCode": []},
           {"oauth2.password": []}
         ]
       });
@@ -218,6 +216,7 @@ main() {
           }
         },
         "security": [
+          {"oauth2.accessCode": []},
           {"oauth2.password": []}
         ]
       });
@@ -304,6 +303,7 @@ main() {
             }
           },
           "security": [
+            {"oauth2.accessCode": []},
             {"oauth2.password": []}
           ]
         },
@@ -340,6 +340,7 @@ main() {
             }
           },
           "security": [
+            {"oauth2.accessCode": []},
             {"oauth2.password": []}
           ]
         }
@@ -411,6 +412,7 @@ main() {
           }
         },
         "security": [
+          {"oauth2.accessCode": []},
           {"oauth2.password": []}
         ]
       });

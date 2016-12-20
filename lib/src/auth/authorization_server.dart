@@ -290,17 +290,15 @@ class AuthServer extends Object
 
   static const String _SecuritySchemeClientAuth = "basic.clientAuth";
   static const String _SecuritySchemePassword = "oauth2.password";
-  static const String _SecuritySchemeAuthorizationCode = "oauth2.authCode";
+  static const String _SecuritySchemeAuthorizationCode = "oauth2.accessCode";
 
   @override
   Map<String, APISecurityScheme> documentSecuritySchemes(
       PackagePathResolver resolver) {
-    var secPassword = new APISecurityScheme.oauth2()
-      ..description = "OAuth 2.0 Resource Owner Flow"
-      ..oauthFlow = APISecuritySchemeFlow.password;
-    var secAccess = new APISecurityScheme.oauth2()
-      ..description = "OAuth 2.0 Authorization Code Flow"
-      ..oauthFlow = APISecuritySchemeFlow.authorizationCode;
+    var secPassword = new APISecurityScheme.oauth2(APISecuritySchemeFlow.password)
+      ..description = "OAuth 2.0 Resource Owner Flow";
+    var secAccess = new APISecurityScheme.oauth2(APISecuritySchemeFlow.authorizationCode)
+      ..description = "OAuth 2.0 Authorization Code Flow";
     var basicAccess = new APISecurityScheme.basic()
       ..description = "Client Authentication";
 
@@ -343,14 +341,20 @@ class AuthServer extends Object
   }
 
   @override
-  APISecurityRequirement requirementForStrategy(AuthStrategy strategy) {
-    var requirement = new APISecurityRequirement();
+  List<APISecurityRequirement> requirementsForStrategy(AuthStrategy strategy) {
     if (strategy == AuthStrategy.basic) {
-      requirement.name = _SecuritySchemeClientAuth;
+      return [new APISecurityRequirement()
+        ..name = _SecuritySchemeClientAuth];
     } else if (strategy == AuthStrategy.bearer) {
-
+      return [
+        new APISecurityRequirement()
+          ..name = _SecuritySchemeAuthorizationCode,
+        new APISecurityRequirement()
+          ..name = _SecuritySchemePassword
+      ];
     }
-    return requirement;
+
+    return [];
   }
 
   AuthToken _generateToken(
