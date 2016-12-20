@@ -2,10 +2,15 @@ import 'dart:async';
 
 import 'package:aqueduct/aqueduct.dart';
 
-class ManagedToken extends ManagedObject<_ManagedToken> implements _ManagedToken {
+class ManagedToken extends ManagedObject<_ManagedToken>
+    implements _ManagedToken {
   ManagedToken() : super();
   ManagedToken.fromToken(AuthToken t) : super() {
-    var tokenResourceOwner = this.entity.relationships["resourceOwner"].destinationEntity.newInstance();
+    var tokenResourceOwner = this
+        .entity
+        .relationships["resourceOwner"]
+        .destinationEntity
+        .newInstance();
     tokenResourceOwner["id"] = t.resourceOwnerIdentifier;
     this
       ..accessToken = t.accessToken
@@ -18,7 +23,11 @@ class ManagedToken extends ManagedObject<_ManagedToken> implements _ManagedToken
   }
 
   ManagedToken.fromCode(AuthCode code) : super() {
-    var tokenResourceOwner = this.entity.relationships["resourceOwner"].destinationEntity.newInstance();
+    var tokenResourceOwner = this
+        .entity
+        .relationships["resourceOwner"]
+        .destinationEntity
+        .newInstance();
     tokenResourceOwner["id"] = code.resourceOwnerIdentifier;
 
     this
@@ -26,8 +35,7 @@ class ManagedToken extends ManagedObject<_ManagedToken> implements _ManagedToken
       ..resourceOwner = tokenResourceOwner as dynamic
       ..issueDate = code.issueDate
       ..expirationDate = code.expirationDate
-      ..client = (new ManagedClient()
-        ..id = code.clientID);
+      ..client = (new ManagedClient()..id = code.clientID);
   }
 
   AuthToken asToken() {
@@ -51,6 +59,7 @@ class ManagedToken extends ManagedObject<_ManagedToken> implements _ManagedToken
       ..clientID = client.id;
   }
 }
+
 class _ManagedToken {
   @managedPrimaryKey
   int id;
@@ -69,12 +78,12 @@ class _ManagedToken {
   @ManagedColumnAttributes(indexed: true)
   DateTime expirationDate;
 
-  @ManagedRelationship.deferred(ManagedRelationshipDeleteRule.cascade, isRequired: true)
+  @ManagedRelationship.deferred(ManagedRelationshipDeleteRule.cascade,
+      isRequired: true)
   ManagedAuthenticatable resourceOwner;
 
   @ManagedRelationship(#tokens,
-      onDelete: ManagedRelationshipDeleteRule.cascade,
-      isRequired: true)
+      onDelete: ManagedRelationshipDeleteRule.cascade, isRequired: true)
   ManagedClient client;
 
   @ManagedColumnAttributes(indexed: true, nullable: true)
@@ -83,7 +92,8 @@ class _ManagedToken {
   static String tableName() => "_authtoken";
 }
 
-class ManagedClient extends ManagedObject<_ManagedClient> implements _ManagedClient {
+class ManagedClient extends ManagedObject<_ManagedClient>
+    implements _ManagedClient {
   AuthClient asClient() {
     return new AuthClient.withRedirectURI(id, hashedSecret, salt, redirectURI);
   }
@@ -123,31 +133,36 @@ class ManagedAuthenticatable implements Authenticatable {
   ManagedSet<ManagedToken> tokens;
 }
 
-abstract class ManagedAuthResourceOwner implements ManagedAuthenticatable, ManagedObject {}
+abstract class ManagedAuthResourceOwner
+    implements ManagedAuthenticatable, ManagedObject {}
 
-class ManagedAuthStorage<T extends ManagedAuthResourceOwner> implements AuthStorage {
+class ManagedAuthStorage<T extends ManagedAuthResourceOwner>
+    implements AuthStorage {
   ManagedAuthStorage(this.context, {this.tokenLimit: 40});
 
   ManagedContext context;
   int tokenLimit;
 
-  Future revokeAuthenticatableWithIdentifier(AuthServer server, dynamic identifier) async {
+  Future revokeAuthenticatableWithIdentifier(
+      AuthServer server, dynamic identifier) async {
     var tokenQuery = new Query<ManagedToken>(context)
       ..matchOn.resourceOwner = whereRelatedByValue(identifier);
     await tokenQuery.delete();
   }
 
   @override
-  Future<AuthToken> fetchTokenByAccessToken(AuthServer server, String accessToken) async {
+  Future<AuthToken> fetchTokenByAccessToken(
+      AuthServer server, String accessToken) async {
     var query = new Query<ManagedToken>(context)
-        ..matchOn.accessToken = accessToken;
+      ..matchOn.accessToken = accessToken;
     var token = await query.fetchOne();
 
     return token?.asToken();
   }
 
   @override
-  Future<AuthToken> fetchTokenByRefreshToken(AuthServer server, String refreshToken) async {
+  Future<AuthToken> fetchTokenByRefreshToken(
+      AuthServer server, String refreshToken) async {
     var query = new Query<ManagedToken>(context)
       ..matchOn.refreshToken = refreshToken;
     var token = await query.fetchOne();
@@ -159,32 +174,32 @@ class ManagedAuthStorage<T extends ManagedAuthResourceOwner> implements AuthStor
   Future<T> fetchAuthenticatableByUsername(
       AuthServer server, String username) async {
     var query = new Query<T>(context)
-        ..matchOn.username = username
-        ..resultProperties = ["id", "hashedPassword", "salt"];
+      ..matchOn.username = username
+      ..resultProperties = ["id", "hashedPassword", "salt"];
 
     return query.fetchOne();
   }
 
   @override
   Future revokeTokenIssuedFromCode(AuthServer server, AuthCode code) async {
-    var query = new Query<ManagedToken>(context)
-      ..matchOn.code = code.code;
+    var query = new Query<ManagedToken>(context)..matchOn.code = code.code;
 
     await query.delete();
   }
 
   @override
-  Future storeToken(AuthServer server, AuthToken t, {AuthCode issuedFrom}) async {
+  Future storeToken(AuthServer server, AuthToken t,
+      {AuthCode issuedFrom}) async {
     var storage = new ManagedToken.fromToken(t);
-    var query = new Query<ManagedToken>(context)
-      ..values = storage;
+    var query = new Query<ManagedToken>(context)..values = storage;
 
     if (issuedFrom != null) {
       query.matchOn.code = whereEqualTo(issuedFrom.code);
       query.values.code = issuedFrom.code;
       var outToken = await query.updateOne();
       if (outToken == null) {
-        throw new AuthServerException(AuthRequestError.invalidGrant, new AuthClient(t.clientID, null, null));
+        throw new AuthServerException(AuthRequestError.invalidGrant,
+            new AuthClient(t.clientID, null, null));
       }
     } else {
       await query.insert();
@@ -194,7 +209,12 @@ class ManagedAuthStorage<T extends ManagedAuthResourceOwner> implements AuthStor
   }
 
   @override
-  Future refreshTokenWithAccessToken(AuthServer server, String oldAccessToken, String newAccessToken, DateTime newIssueDate, DateTime newExpirationDate) async {
+  Future refreshTokenWithAccessToken(
+      AuthServer server,
+      String oldAccessToken,
+      String newAccessToken,
+      DateTime newIssueDate,
+      DateTime newExpirationDate) async {
     var query = new Query<ManagedToken>(context)
       ..matchOn.accessToken = oldAccessToken
       ..values.accessToken = newAccessToken
@@ -207,8 +227,7 @@ class ManagedAuthStorage<T extends ManagedAuthResourceOwner> implements AuthStor
   @override
   Future storeAuthCode(AuthServer server, AuthCode code) async {
     var storage = new ManagedToken.fromCode(code);
-    var query = new Query<ManagedToken>(context)
-      ..values = storage;
+    var query = new Query<ManagedToken>(context)..values = storage;
     await query.insert();
 
     await pruneTokens(code.resourceOwnerIdentifier);
@@ -216,8 +235,7 @@ class ManagedAuthStorage<T extends ManagedAuthResourceOwner> implements AuthStor
 
   @override
   Future<AuthCode> fetchAuthCodeByCode(AuthServer server, String code) async {
-    var query = new Query<ManagedToken>(context)
-        ..matchOn.code = code;
+    var query = new Query<ManagedToken>(context)..matchOn.code = code;
 
     var storage = await query.fetchOne();
     return storage?.asAuthCode();
@@ -225,16 +243,14 @@ class ManagedAuthStorage<T extends ManagedAuthResourceOwner> implements AuthStor
 
   @override
   Future revokeAuthCodeWithCode(AuthServer server, String code) async {
-    var query = new Query<ManagedToken>(context)
-      ..matchOn.code = code;
+    var query = new Query<ManagedToken>(context)..matchOn.code = code;
 
     await query.delete();
   }
 
   @override
   Future<AuthClient> fetchClientByID(AuthServer server, String id) async {
-    var query = new Query<ManagedClient>(context)
-      ..matchOn.id = id;
+    var query = new Query<ManagedClient>(context)..matchOn.id = id;
 
     var storage = await query.fetchOne();
 
@@ -243,8 +259,7 @@ class ManagedAuthStorage<T extends ManagedAuthResourceOwner> implements AuthStor
 
   @override
   Future revokeClientWithID(AuthServer server, String id) async {
-    var query = new Query<ManagedClient>(context)
-      ..matchOn.id = id;
+    var query = new Query<ManagedClient>(context)..matchOn.id = id;
 
     await query.delete();
   }
@@ -263,7 +278,8 @@ class ManagedAuthStorage<T extends ManagedAuthResourceOwner> implements AuthStor
     if (results.length == 1) {
       var deleteQ = new Query<ManagedToken>()
         ..matchOn.resourceOwner = whereRelatedByValue(resourceOwnerIdentifier)
-        ..matchOn.expirationDate = whereLessThanEqualTo(results.first.expirationDate);
+        ..matchOn.expirationDate =
+            whereLessThanEqualTo(results.first.expirationDate);
 
       await deleteQ.delete();
     }

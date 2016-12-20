@@ -33,19 +33,18 @@ void main() {
           AuthUtility.generatePasswordHash("gibraltar", salt),
           salt,
           "http://stablekernel.com/auth/redirect2")
-      ];
+    ];
 
     await Future.wait(clients
-      .map((ac) => new ManagedClient()
-        ..id = ac.id
-        ..salt = ac.salt
-        ..hashedSecret = ac.hashedSecret
-        ..redirectURI = ac.redirectURI)
-      .map((mc) {
-        var q = new Query<ManagedClient>()
-          ..values = mc;
-        return q.insert();
-      }));
+        .map((ac) => new ManagedClient()
+          ..id = ac.id
+          ..salt = ac.salt
+          ..hashedSecret = ac.hashedSecret
+          ..redirectURI = ac.redirectURI)
+        .map((mc) {
+      var q = new Query<ManagedClient>()..values = mc;
+      return q.insert();
+    }));
 
     storage = new ManagedAuthStorage<User>(context);
   });
@@ -68,7 +67,8 @@ void main() {
     });
 
     test("Revoked client can no longer be accessed", () async {
-      expect((await auth.clientForID("com.stablekernel.app1")) is AuthClient, true);
+      expect((await auth.clientForID("com.stablekernel.app1")) is AuthClient,
+          true);
       await auth.revokeClientID("com.stablekernel.app1");
       expect(await auth.clientForID("com.stablekernel.app1"), isNull);
     });
@@ -98,10 +98,11 @@ void main() {
       createdUser = (await createUsers(1)).first;
     });
 
-    test("Can create token with all information + refresh token if client is confidential", () async {
-      var token = await auth.authenticate(
-          createdUser.username, User.DefaultPassword,
-          "com.stablekernel.app1", "kilimanjaro");
+    test(
+        "Can create token with all information + refresh token if client is confidential",
+        () async {
+      var token = await auth.authenticate(createdUser.username,
+          User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
       expect(token.accessToken, isString);
       expect(token.refreshToken, isString);
       expect(token.clientID, "com.stablekernel.app1");
@@ -111,10 +112,11 @@ void main() {
       expect(token.type, "bearer");
     });
 
-    test("Can create token with all information minus refresh token if client is public", () async {
-      var token = await auth.authenticate(
-          createdUser.username, User.DefaultPassword,
-          "com.stablekernel.public", "");
+    test(
+        "Can create token with all information minus refresh token if client is public",
+        () async {
+      var token = await auth.authenticate(createdUser.username,
+          User.DefaultPassword, "com.stablekernel.public", "");
       expect(token.accessToken, isString);
       expect(token.refreshToken, isNull);
       expect(token.clientID, "com.stablekernel.public");
@@ -123,9 +125,8 @@ void main() {
       expect(token.expirationDate.isAfter(new DateTime.now().toUtc()), true);
       expect(token.type, "bearer");
 
-      token = await auth.authenticate(
-          createdUser.username, User.DefaultPassword,
-          "com.stablekernel.public", null);
+      token = await auth.authenticate(createdUser.username,
+          User.DefaultPassword, "com.stablekernel.public", null);
       expect(token.accessToken, isString);
       expect(token.refreshToken, isNull);
       expect(token.clientID, "com.stablekernel.public");
@@ -136,9 +137,8 @@ void main() {
     });
 
     test("Can create token if client has redirect uri", () async {
-      var token = await auth.authenticate(
-          createdUser.username, User.DefaultPassword,
-          "com.stablekernel.redirect", "mckinley");
+      var token = await auth.authenticate(createdUser.username,
+          User.DefaultPassword, "com.stablekernel.redirect", "mckinley");
       expect(token.accessToken, isString);
       expect(token.refreshToken, isString);
       expect(token.clientID, "com.stablekernel.redirect");
@@ -146,8 +146,7 @@ void main() {
 
     test("Create token fails if username is incorrect", () async {
       try {
-        await auth.authenticate(
-            "nonsense", User.DefaultPassword,
+        await auth.authenticate("nonsense", User.DefaultPassword,
             "com.stablekernel.app1", "kilimanjaro");
         expect(true, false);
       } on AuthServerException {}
@@ -155,8 +154,7 @@ void main() {
 
     test("Create token fails if password is incorrect", () async {
       try {
-        await auth.authenticate(
-            createdUser.username, "nonsense",
+        await auth.authenticate(createdUser.username, "nonsense",
             "com.stablekernel.app1", "kilimanjaro");
         expect(true, false);
       } on AuthServerException {}
@@ -164,8 +162,7 @@ void main() {
 
     test("Create token fails if client ID doesn't exist", () async {
       try {
-        await auth.authenticate(
-            createdUser.username, User.DefaultPassword,
+        await auth.authenticate(createdUser.username, User.DefaultPassword,
             "nonsense", "kilimanjaro");
         expect(true, false);
       } on AuthServerException {}
@@ -173,42 +170,40 @@ void main() {
 
     test("Create token fails if client secret doesn't match", () async {
       try {
-        await auth.authenticate(
-            createdUser.username, User.DefaultPassword,
+        await auth.authenticate(createdUser.username, User.DefaultPassword,
             "com.stablekernel.app1", "nonsense");
         expect(true, false);
       } on AuthServerException {}
     });
 
-    test("Create token fails if client ID is confidential and secret is omitted", () async {
+    test(
+        "Create token fails if client ID is confidential and secret is omitted",
+        () async {
       try {
-        await auth.authenticate(
-            createdUser.username, User.DefaultPassword,
+        await auth.authenticate(createdUser.username, User.DefaultPassword,
             "com.stablekernel.app1", null);
         expect(true, false);
       } on AuthServerException {}
 
       try {
-        await auth.authenticate(
-            createdUser.username, User.DefaultPassword,
+        await auth.authenticate(createdUser.username, User.DefaultPassword,
             "com.stablekernel.app1", "");
         expect(true, false);
       } on AuthServerException {}
     });
 
-    test("Create token fails if client secret provided for public client", () async {
+    test("Create token fails if client secret provided for public client",
+        () async {
       try {
-        await auth.authenticate(
-            createdUser.username, User.DefaultPassword,
+        await auth.authenticate(createdUser.username, User.DefaultPassword,
             "com.stablekernel.public", "nonsense");
         expect(true, false);
       } on AuthServerException {}
     });
 
     test("Can create token that is verifiable", () async {
-      var token = await auth.authenticate(
-          createdUser.username, User.DefaultPassword,
-          "com.stablekernel.app1", "kilimanjaro");
+      var token = await auth.authenticate(createdUser.username,
+          User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
       expect((await auth.verify(token.accessToken)) is Authorization, true);
     });
 
@@ -223,9 +218,8 @@ void main() {
     });
 
     test("Expired token cannot be verified", () async {
-      var token = await auth.authenticate(
-          createdUser.username, User.DefaultPassword,
-          "com.stablekernel.app1", "kilimanjaro",
+      var token = await auth.authenticate(createdUser.username,
+          User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro",
           expirationInSeconds: 1);
 
       sleep(new Duration(seconds: 1));
@@ -239,8 +233,8 @@ void main() {
     });
 
     test("Cannot verify token if owner authentcatable is 'revoked'", () async {
-      var token = await auth.authenticate(
-          createdUser.username,  User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
+      var token = await auth.authenticate(createdUser.username,
+          User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
       await auth.revokeAuthenticatableAccessForIdentifier(createdUser.id);
 
       try {
@@ -258,13 +252,15 @@ void main() {
     setUp(() async {
       auth = new AuthServer(storage);
       createdUser = (await createUsers(1)).first;
-      initialToken = await auth.authenticate(
-          createdUser.username, User.DefaultPassword,
-          "com.stablekernel.app1", "kilimanjaro");
+      initialToken = await auth.authenticate(createdUser.username,
+          User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
     });
 
-    test("Can refresh token with all information + refresh token if token had refresh token", () async {
-      var token = await auth.refresh(initialToken.refreshToken, "com.stablekernel.app1", "kilimanjaro");
+    test(
+        "Can refresh token with all information + refresh token if token had refresh token",
+        () async {
+      var token = await auth.refresh(
+          initialToken.refreshToken, "com.stablekernel.app1", "kilimanjaro");
       expect(token.accessToken, isNot(initialToken.accessToken));
       expect(token.refreshToken, initialToken.refreshToken);
       expect(token.accessToken, isString);
@@ -276,26 +272,29 @@ void main() {
       expect(token.type, "bearer");
 
       expect(token.issueDate.isAfter(initialToken.issueDate), true);
-      expect(token.issueDate.difference(token.expirationDate), initialToken.issueDate.difference(initialToken.expirationDate));
+      expect(token.issueDate.difference(token.expirationDate),
+          initialToken.issueDate.difference(initialToken.expirationDate));
 
       var authorization = await auth.verify(token.accessToken);
       expect(authorization.clientID, "com.stablekernel.app1");
-      expect(authorization.resourceOwnerIdentifier, initialToken.resourceOwnerIdentifier);
+      expect(authorization.resourceOwnerIdentifier,
+          initialToken.resourceOwnerIdentifier);
     });
 
     test("Can refresh token if client has redirect uri", () async {
-      var token = await auth.authenticate(
-          createdUser.username, User.DefaultPassword,
-          "com.stablekernel.redirect", "mckinley");
+      var token = await auth.authenticate(createdUser.username,
+          User.DefaultPassword, "com.stablekernel.redirect", "mckinley");
 
-      var refreshToken = await auth.refresh(token.refreshToken, "com.stablekernel.redirect", "mckinley");
+      var refreshToken = await auth.refresh(
+          token.refreshToken, "com.stablekernel.redirect", "mckinley");
       expect(refreshToken.accessToken, isString);
       expect(refreshToken.refreshToken, isString);
       expect(refreshToken.clientID, "com.stablekernel.redirect");
     });
 
     test("After refresh, the previous token cannot be used", () async {
-      await auth.refresh(initialToken.refreshToken, "com.stablekernel.app1", "kilimanjaro");
+      await auth.refresh(
+          initialToken.refreshToken, "com.stablekernel.app1", "kilimanjaro");
       try {
         await auth.verify(initialToken.accessToken);
         expect(true, false);
@@ -327,39 +326,43 @@ void main() {
       } on AuthServerException {}
     });
 
-    test("Cannot refresh token if client id does not match issuing client", () async {
+    test("Cannot refresh token if client id does not match issuing client",
+        () async {
       try {
-        await auth.refresh(initialToken.refreshToken, "com.stablekernel.app2", "fuji");
+        await auth.refresh(
+            initialToken.refreshToken, "com.stablekernel.app2", "fuji");
         expect(true, false);
       } on AuthServerException {}
     });
 
     test("Cannot refresh token if client secret is missing", () async {
       try {
-        await auth.refresh(initialToken.refreshToken, "com.stablekernel.app1", null);
+        await auth.refresh(
+            initialToken.refreshToken, "com.stablekernel.app1", null);
         expect(true, false);
       } on AuthServerException {}
     });
 
     test("Cannot refresh token if client secret is incorrect", () async {
       try {
-        await auth.refresh(initialToken.refreshToken, "com.stablekernel.app1", "nonsense");
+        await auth.refresh(
+            initialToken.refreshToken, "com.stablekernel.app1", "nonsense");
         expect(true, false);
       } on AuthServerException {}
     });
 
     test("Cannot refresh token if owner authentcatable is 'revoked'", () async {
-      var token = await auth.authenticate(
-          createdUser.username,  User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
+      var token = await auth.authenticate(createdUser.username,
+          User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
       await auth.revokeAuthenticatableAccessForIdentifier(createdUser.id);
 
       try {
-        await auth.refresh(token.accessToken, "com.stablekernel.redirect", "mckinley");
+        await auth.refresh(
+            token.accessToken, "com.stablekernel.redirect", "mckinley");
         expect(true, false);
       } on AuthServerException {}
     });
   });
-
 
   group("Generating auth code", () {
     AuthServer auth;
@@ -371,8 +374,8 @@ void main() {
     });
 
     test("Can create an auth code that can be exchanged for a token", () async {
-      var authCode = await auth.authenticateForCode(
-          createdUser.username,  User.DefaultPassword, "com.stablekernel.redirect");
+      var authCode = await auth.authenticateForCode(createdUser.username,
+          User.DefaultPassword, "com.stablekernel.redirect");
 
       expect(authCode.code.length, greaterThan(0));
       expect(authCode.issueDate.isBefore(new DateTime.now().toUtc()), true);
@@ -380,14 +383,22 @@ void main() {
       expect(authCode.clientID, "com.stablekernel.redirect");
       expect(authCode.expirationDate.isAfter(new DateTime.now().toUtc()), true);
 
-      var token = await auth.exchange(authCode.code, "com.stablekernel.redirect", "mckinley");
+      var token = await auth.exchange(
+          authCode.code, "com.stablekernel.redirect", "mckinley");
       expect(token.accessToken, isString);
       expect(token.clientID, "com.stablekernel.redirect");
       expect(token.refreshToken, isString);
       expect(token.resourceOwnerIdentifier, createdUser.id);
       expect(token.type, "bearer");
-      expect(token.expirationDate.difference(new DateTime.now().toUtc()).inSeconds, greaterThan(3500));
-      expect(token.issueDate.difference(new DateTime.now().toUtc()).inSeconds.abs(), lessThan(2));
+      expect(
+          token.expirationDate.difference(new DateTime.now().toUtc()).inSeconds,
+          greaterThan(3500));
+      expect(
+          token.issueDate
+              .difference(new DateTime.now().toUtc())
+              .inSeconds
+              .abs(),
+          lessThan(2));
     });
 
     test("Generate auth code with bad username fails", () async {
@@ -425,8 +436,8 @@ void main() {
 
     test("Generate auth code with no redirect uri fails", () async {
       try {
-        await auth.authenticateForCode(
-            createdUser.username, User.DefaultPassword, "com.stablekernel.app1");
+        await auth.authenticateForCode(createdUser.username,
+            User.DefaultPassword, "com.stablekernel.app1");
         expect(true, false);
       } on AuthServerException catch (e) {
         expect(e.client.id, "com.stablekernel.app1");
@@ -445,13 +456,15 @@ void main() {
       }
     });
 
-    test("Code no longer available if owner authentcatable is 'revoked'", () async {
-      var authCode = await auth.authenticateForCode(
-          createdUser.username,  User.DefaultPassword, "com.stablekernel.redirect");
+    test("Code no longer available if owner authentcatable is 'revoked'",
+        () async {
+      var authCode = await auth.authenticateForCode(createdUser.username,
+          User.DefaultPassword, "com.stablekernel.redirect");
       await auth.revokeAuthenticatableAccessForIdentifier(createdUser.id);
 
       try {
-        await auth.exchange(authCode.code, "com.stablekernel.redirect", "mckinley");
+        await auth.exchange(
+            authCode.code, "com.stablekernel.redirect", "mckinley");
         expect(true, false);
       } on AuthServerException {}
     });
@@ -465,12 +478,14 @@ void main() {
     setUp(() async {
       auth = new AuthServer(storage);
       createdUser = (await createUsers(1)).first;
-      code = await auth.authenticateForCode(
-          createdUser.username, User.DefaultPassword, "com.stablekernel.redirect");;
+      code = await auth.authenticateForCode(createdUser.username,
+          User.DefaultPassword, "com.stablekernel.redirect");
+      ;
     });
 
     test("Can create an auth code that can be exchanged for a token", () async {
-      var token = await auth.exchange(code.code, "com.stablekernel.redirect", "mckinley");
+      var token = await auth.exchange(
+          code.code, "com.stablekernel.redirect", "mckinley");
       expect(token.accessToken, isString);
       expect(token.refreshToken, isString);
       expect(token.clientID, "com.stablekernel.redirect");
@@ -497,8 +512,9 @@ void main() {
     });
 
     test("Expired code fails and it gets deleted", () async {
-      code = await auth.authenticateForCode(
-          createdUser.username, User.DefaultPassword, "com.stablekernel.redirect", expirationInSeconds: 1);
+      code = await auth.authenticateForCode(createdUser.username,
+          User.DefaultPassword, "com.stablekernel.redirect",
+          expirationInSeconds: 1);
 
       sleep(new Duration(seconds: 1));
 
@@ -508,13 +524,14 @@ void main() {
         expect(true, false);
       } on AuthServerException {}
 
-      var q = new Query<ManagedToken>()
-        ..matchOn.code = code.code;
+      var q = new Query<ManagedToken>()..matchOn.code = code.code;
       expect(await q.fetch(), isEmpty);
     });
 
-    test("Code that has been exchanged already fails, issued token is revoked", () async {
-      var issuedToken = await auth.exchange(code.code, "com.stablekernel.redirect", "mckinley");
+    test("Code that has been exchanged already fails, issued token is revoked",
+        () async {
+      var issuedToken = await auth.exchange(
+          code.code, "com.stablekernel.redirect", "mckinley");
 
       try {
         await auth.exchange(code.code, "com.stablekernel.redirect", "mckinley");
@@ -533,9 +550,13 @@ void main() {
       expect(await authCodeQuery.fetch(), isEmpty);
     });
 
-    test("Code that has been exchanged already fails, issued and refreshed tokens are revoked", () async {
-      var issuedToken = await auth.exchange(code.code, "com.stablekernel.redirect", "mckinley");
-      var refreshedToken = await auth.refresh(issuedToken.refreshToken, "com.stablekernel.redirect", "mckinley");
+    test(
+        "Code that has been exchanged already fails, issued and refreshed tokens are revoked",
+        () async {
+      var issuedToken = await auth.exchange(
+          code.code, "com.stablekernel.redirect", "mckinley");
+      var refreshedToken = await auth.refresh(
+          issuedToken.refreshToken, "com.stablekernel.redirect", "mckinley");
 
       try {
         await auth.exchange(code.code, "com.stablekernel.redirect", "mckinley");
@@ -576,9 +597,11 @@ void main() {
       } on AuthServerException {}
     });
 
-    test("Different client ID than the one that generated code fials", () async {
+    test("Different client ID than the one that generated code fials",
+        () async {
       try {
-        await auth.exchange(code.code, "com.stablekernel.redirect2", "gibraltar");
+        await auth.exchange(
+            code.code, "com.stablekernel.redirect2", "gibraltar");
 
         expect(true, false);
       } on AuthServerException {}
@@ -611,17 +634,27 @@ void main() {
       createdUsers = await createUsers(3);
     });
 
-    test("Revoking a client revokes all of its tokens and auth codes", () async {
-      var unusedCode = await auth.authenticateForCode(createdUsers.first.username, User.DefaultPassword, "com.stablekernel.redirect");
-      var exchangedCode = await auth.authenticateForCode(createdUsers.first.username, User.DefaultPassword, "com.stablekernel.redirect");
-      var exchangedToken = await auth.exchange(exchangedCode.code, "com.stablekernel.redirect", "mckinley");
-      var issuedToken = await auth.authenticate(createdUsers.first.username, User.DefaultPassword, "com.stablekernel.redirect", "mckinley");
+    test("Revoking a client revokes all of its tokens and auth codes",
+        () async {
+      var unusedCode = await auth.authenticateForCode(
+          createdUsers.first.username,
+          User.DefaultPassword,
+          "com.stablekernel.redirect");
+      var exchangedCode = await auth.authenticateForCode(
+          createdUsers.first.username,
+          User.DefaultPassword,
+          "com.stablekernel.redirect");
+      var exchangedToken = await auth.exchange(
+          exchangedCode.code, "com.stablekernel.redirect", "mckinley");
+      var issuedToken = await auth.authenticate(createdUsers.first.username,
+          User.DefaultPassword, "com.stablekernel.redirect", "mckinley");
 
       expect(await auth.verify(issuedToken.accessToken), isNotNull);
 
       await auth.revokeClientID("com.stablekernel.redirect");
       try {
-        await auth.exchange(unusedCode.code, "com.stablekernel.redirect", "mckinley");
+        await auth.exchange(
+            unusedCode.code, "com.stablekernel.redirect", "mckinley");
         expect(true, false);
       } on AuthServerException {}
       try {
@@ -637,23 +670,43 @@ void main() {
       expect(await tokenQuery.fetch(), isEmpty);
     });
 
-    test("Revoking a client does not invalidate tokens or codes issued by other clients", () async {
-      var exchangedCodeRevoke = await auth.authenticateForCode(createdUsers.first.username, User.DefaultPassword, "com.stablekernel.redirect");
-      await auth.authenticateForCode(createdUsers.first.username, User.DefaultPassword, "com.stablekernel.redirect");
-      await auth.exchange(exchangedCodeRevoke.code, "com.stablekernel.redirect", "mckinley");
-      await auth.authenticate(createdUsers.first.username, User.DefaultPassword, "com.stablekernel.redirect", "mckinley");
+    test(
+        "Revoking a client does not invalidate tokens or codes issued by other clients",
+        () async {
+      var exchangedCodeRevoke = await auth.authenticateForCode(
+          createdUsers.first.username,
+          User.DefaultPassword,
+          "com.stablekernel.redirect");
+      await auth.authenticateForCode(createdUsers.first.username,
+          User.DefaultPassword, "com.stablekernel.redirect");
+      await auth.exchange(
+          exchangedCodeRevoke.code, "com.stablekernel.redirect", "mckinley");
+      await auth.authenticate(createdUsers.first.username, User.DefaultPassword,
+          "com.stablekernel.redirect", "mckinley");
 
-      var unusedCodeKeep = await auth.authenticateForCode(createdUsers.first.username, User.DefaultPassword, "com.stablekernel.redirect2");
-      var exchangedCodeKeep = await auth.authenticateForCode(createdUsers.first.username, User.DefaultPassword, "com.stablekernel.redirect2");
-      var exchangedTokenKeep = await auth.exchange(exchangedCodeKeep.code, "com.stablekernel.redirect2", "gibraltar");
-      var issuedTokenKeep = await auth.authenticate(createdUsers.first.username, User.DefaultPassword, "com.stablekernel.redirect2", "gibraltar");
+      var unusedCodeKeep = await auth.authenticateForCode(
+          createdUsers.first.username,
+          User.DefaultPassword,
+          "com.stablekernel.redirect2");
+      var exchangedCodeKeep = await auth.authenticateForCode(
+          createdUsers.first.username,
+          User.DefaultPassword,
+          "com.stablekernel.redirect2");
+      var exchangedTokenKeep = await auth.exchange(
+          exchangedCodeKeep.code, "com.stablekernel.redirect2", "gibraltar");
+      var issuedTokenKeep = await auth.authenticate(createdUsers.first.username,
+          User.DefaultPassword, "com.stablekernel.redirect2", "gibraltar");
 
       await auth.revokeClientID("com.stablekernel.redirect");
 
-      var exchangedLater = await auth.exchange(unusedCodeKeep.code, "com.stablekernel.redirect2", "gibraltar");
-      expect(await auth.verify(exchangedLater.accessToken), new isInstanceOf<Authorization>());
-      expect(await auth.verify(exchangedTokenKeep.accessToken), new isInstanceOf<Authorization>());
-      expect(await auth.verify(issuedTokenKeep.accessToken), new isInstanceOf<Authorization>());
+      var exchangedLater = await auth.exchange(
+          unusedCodeKeep.code, "com.stablekernel.redirect2", "gibraltar");
+      expect(await auth.verify(exchangedLater.accessToken),
+          new isInstanceOf<Authorization>());
+      expect(await auth.verify(exchangedTokenKeep.accessToken),
+          new isInstanceOf<Authorization>());
+      expect(await auth.verify(issuedTokenKeep.accessToken),
+          new isInstanceOf<Authorization>());
 
       var tokenQuery = new Query<ManagedToken>();
       expect(await tokenQuery.fetch(), hasLength(3));
@@ -668,8 +721,8 @@ void main() {
       expect(p1.clientID, "com.stablekernel.app1");
       expect(p1.resourceOwnerIdentifier, createdUser.id);
 
-      var code = await auth.authenticateForCode(
-          createdUser.username, User.DefaultPassword, "com.stablekernel.redirect");
+      var code = await auth.authenticateForCode(createdUser.username,
+          User.DefaultPassword, "com.stablekernel.redirect");
       var token2 = await auth.exchange(
           code.code, "com.stablekernel.redirect", "mckinley");
 
@@ -693,18 +746,30 @@ void main() {
       createdUsers = await createUsers(3);
     });
 
-    test("After explicitly invoking 'invalidate resource owner' method, all tokens and codes for that resource owner are no longer in db", () async {
-      var unusedCode = await auth.authenticateForCode(createdUsers.first.username, User.DefaultPassword, "com.stablekernel.redirect");
-      var exchangedCode = await auth.authenticateForCode(createdUsers.first.username, User.DefaultPassword, "com.stablekernel.redirect");
-      var exchangedToken = await auth.exchange(exchangedCode.code, "com.stablekernel.redirect", "mckinley");
-      var issuedToken = await auth.authenticate(createdUsers.first.username, User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
+    test(
+        "After explicitly invoking 'invalidate resource owner' method, all tokens and codes for that resource owner are no longer in db",
+        () async {
+      var unusedCode = await auth.authenticateForCode(
+          createdUsers.first.username,
+          User.DefaultPassword,
+          "com.stablekernel.redirect");
+      var exchangedCode = await auth.authenticateForCode(
+          createdUsers.first.username,
+          User.DefaultPassword,
+          "com.stablekernel.redirect");
+      var exchangedToken = await auth.exchange(
+          exchangedCode.code, "com.stablekernel.redirect", "mckinley");
+      var issuedToken = await auth.authenticate(createdUsers.first.username,
+          User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
 
       expect(await auth.verify(issuedToken.accessToken), isNotNull);
 
-      await auth.revokeAuthenticatableAccessForIdentifier(createdUsers.first.id);
+      await auth
+          .revokeAuthenticatableAccessForIdentifier(createdUsers.first.id);
 
       try {
-        await auth.exchange(unusedCode.code, "com.stablekernel.redirect", "mckinley");
+        await auth.exchange(
+            unusedCode.code, "com.stablekernel.redirect", "mckinley");
         expect(true, false);
       } on AuthServerException {}
       try {
@@ -731,9 +796,14 @@ void main() {
       createdUsers = await createUsers(3);
     });
 
-    test("Revoking a token automatically deletes the code that generated it", () async {
-      var exchangedCode = await auth.authenticateForCode(createdUsers.first.username, User.DefaultPassword, "com.stablekernel.redirect");
-      var exchangedToken = await auth.exchange(exchangedCode.code, "com.stablekernel.redirect", "mckinley");
+    test("Revoking a token automatically deletes the code that generated it",
+        () async {
+      var exchangedCode = await auth.authenticateForCode(
+          createdUsers.first.username,
+          User.DefaultPassword,
+          "com.stablekernel.redirect");
+      var exchangedToken = await auth.exchange(
+          exchangedCode.code, "com.stablekernel.redirect", "mckinley");
 
       var codeQuery = new Query<ManagedToken>()
         ..matchOn.code = exchangedCode.code;
@@ -746,7 +816,9 @@ void main() {
       expect(await codeQuery.fetch(), isEmpty);
     });
 
-    test("Oldest codes gets pruned after reaching limit, but only for that user", () async {
+    test(
+        "Oldest codes gets pruned after reaching limit, but only for that user",
+        () async {
       (auth.storage as ManagedAuthStorage).tokenLimit = 3;
 
       // Insert a code manually to simulate a race condition, but insert it after the others have been
@@ -754,28 +826,33 @@ void main() {
       var manualCode = new ManagedToken()
         ..code = "ASDFGHJ"
         ..issueDate = new DateTime.now().toUtc()
-        ..expirationDate = new DateTime.now().add(new Duration(seconds: 60)).toUtc()
+        ..expirationDate =
+            new DateTime.now().add(new Duration(seconds: 60)).toUtc()
         ..client = (new ManagedClient()..id = "com.stablekernel.redirect")
         ..resourceOwner = (new User()..id = createdUsers.first.id);
 
       // Insert a code for a different user to make sure it doesn't get pruned.
-      var otherUserCode = await auth.authenticateForCode(createdUsers[1].username, User.DefaultPassword, "com.stablekernel.redirect");
+      var otherUserCode = await auth.authenticateForCode(
+          createdUsers[1].username,
+          User.DefaultPassword,
+          "com.stablekernel.redirect");
 
       // Insert the max number of codes
       var codes = <AuthCode>[];
       for (var i = 0; i < 3; i++) {
-        var c = await auth.authenticateForCode(createdUsers.first.username, User.DefaultPassword, "com.stablekernel.redirect");
+        var c = await auth.authenticateForCode(createdUsers.first.username,
+            User.DefaultPassword, "com.stablekernel.redirect");
         codes.add(c);
       }
 
       // Insert the 'race condition' code
-      var manualInsertQuery = new Query<ManagedToken>()
-        ..values = manualCode;
+      var manualInsertQuery = new Query<ManagedToken>()..values = manualCode;
       manualCode = await manualInsertQuery.insert();
 
       // Make a new code, should kill the race condition code and the first generated code in the loop.
       // Other user codes remain
-      var newCode = await auth.authenticateForCode(createdUsers.first.username, User.DefaultPassword, "com.stablekernel.redirect");
+      var newCode = await auth.authenticateForCode(createdUsers.first.username,
+          User.DefaultPassword, "com.stablekernel.redirect");
       var codeQuery = new Query<ManagedToken>();
       var codesInDB = (await codeQuery.fetch()).map((ac) => ac.code).toList();
 
@@ -789,7 +866,8 @@ void main() {
       expect(codesInDB.contains(newCode.code), true);
 
       // Make a new code, but with a different client, should still kill off the oldest expiring code.
-      var lastCode = await auth.authenticateForCode(createdUsers.first.username, User.DefaultPassword, "com.stablekernel.redirect2");
+      var lastCode = await auth.authenticateForCode(createdUsers.first.username,
+          User.DefaultPassword, "com.stablekernel.redirect2");
       codesInDB = (await codeQuery.fetch()).map((ac) => ac.code).toList();
 
       // These codes are in chronological order
@@ -812,7 +890,9 @@ void main() {
       createdUsers = await createUsers(10);
     });
 
-    test("Oldest tokens gets pruned after reaching tokenLimit, but only for that user", () async {
+    test(
+        "Oldest tokens gets pruned after reaching tokenLimit, but only for that user",
+        () async {
       (auth.storage as ManagedAuthStorage).tokenLimit = 3;
 
       // Insert a token manually to simulate a race condition, but insert it after the others have been
@@ -821,30 +901,34 @@ void main() {
         ..accessToken = "ASDFGHJ"
         ..refreshToken = "ABCHASDS"
         ..issueDate = new DateTime.now().toUtc()
-        ..expirationDate = new DateTime.now().add(new Duration(seconds: 60)).toUtc()
+        ..expirationDate =
+            new DateTime.now().add(new Duration(seconds: 60)).toUtc()
         ..client = (new ManagedClient()..id = "com.stablekernel.app1")
         ..resourceOwner = (new User()..id = createdUsers.first.id);
 
       // Insert a token for a different user to make sure it doesn't get pruned.
-      var otherUserToken = await auth.authenticate(createdUsers[1].username, User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
+      var otherUserToken = await auth.authenticate(createdUsers[1].username,
+          User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
 
       // Insert the max number of token
       var tokens = <AuthToken>[];
       for (var i = 0; i < 3; i++) {
-        var c = await auth.authenticate(createdUsers.first.username, User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
+        var c = await auth.authenticate(createdUsers.first.username,
+            User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
         tokens.add(c);
       }
 
       // Insert the 'race condition' token
-      var manualInsertQuery = new Query<ManagedToken>()
-        ..values = manualToken;
+      var manualInsertQuery = new Query<ManagedToken>()..values = manualToken;
       manualToken = await manualInsertQuery.insert();
 
       // Make a new token, should kill the race condition token and the first generated token in the loop.
       // Other user token remain
-      var newToken = await auth.authenticate(createdUsers.first.username, User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
+      var newToken = await auth.authenticate(createdUsers.first.username,
+          User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
       var tokenQuery = new Query<ManagedToken>();
-      var tokensInDB = (await tokenQuery.fetch()).map((ac) => ac.accessToken).toList();
+      var tokensInDB =
+          (await tokenQuery.fetch()).map((ac) => ac.accessToken).toList();
 
       // These token are in chronological order
       expect(tokensInDB.contains(otherUserToken.accessToken), true);
@@ -856,8 +940,10 @@ void main() {
       expect(tokensInDB.contains(newToken.accessToken), true);
 
       // Make a new token, but with a different client, should still kill off the oldest token code.
-      var lastToken = await auth.authenticate(createdUsers.first.username, User.DefaultPassword, "com.stablekernel.app2", "fuji");
-      tokensInDB = (await tokenQuery.fetch()).map((ac) => ac.accessToken).toList();
+      var lastToken = await auth.authenticate(createdUsers.first.username,
+          User.DefaultPassword, "com.stablekernel.app2", "fuji");
+      tokensInDB =
+          (await tokenQuery.fetch()).map((ac) => ac.accessToken).toList();
 
       // These token are in chronological order
       expect(tokensInDB.contains(otherUserToken.accessToken), true);
@@ -883,7 +969,9 @@ void main() {
       expect(permission.resourceOwnerIdentifier, createdUsers[4].id);
     });
 
-    test("Revoking tokens/codes for Authenticatable does not impact other Authenticatables", () async {
+    test(
+        "Revoking tokens/codes for Authenticatable does not impact other Authenticatables",
+        () async {
       var t1 = await auth.authenticate(createdUsers[0].username,
           User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
       var t2 = await auth.authenticate(createdUsers[4].username,
@@ -900,7 +988,8 @@ void main() {
   });
 }
 
-class User extends ManagedObject<_User> implements _User, ManagedAuthResourceOwner {
+class User extends ManagedObject<_User>
+    implements _User, ManagedAuthResourceOwner {
   static const String DefaultPassword = "foobaraxegrind!%12";
 }
 
@@ -913,10 +1002,10 @@ Future<List<User>> createUsers(int count) async {
     var u = new User()
       ..username = "bob+$i@stablekernel.com"
       ..salt = salt
-      ..hashedPassword = AuthUtility.generatePasswordHash(User.DefaultPassword, salt);
+      ..hashedPassword =
+          AuthUtility.generatePasswordHash(User.DefaultPassword, salt);
 
-    var q = new Query<User>()
-      ..values = u;
+    var q = new Query<User>()..values = u;
 
     list.add(await q.insert());
   }

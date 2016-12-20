@@ -30,7 +30,6 @@ class AuthServerException implements Exception {
         return "server_error";
       case AuthRequestError.temporarilyUnavailable:
         return "temporarily_unavailable";
-
     }
     return null;
   }

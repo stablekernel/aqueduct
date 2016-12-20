@@ -6,7 +6,8 @@ class HTMLRenderer {
   Logger logger = new Logger("wildfire");
   Map<String, String> _cache = {};
 
-  Future<String> renderHTML(String path, Map<String, dynamic> templateVariables) async {
+  Future<String> renderHTML(
+      String path, Map<String, dynamic> templateVariables) async {
     var template = await _loadHTMLTemplate(path);
 
     return template.replaceAllMapped("\\{\\{(a-zA-Z_)+\\}\\}", (match) {

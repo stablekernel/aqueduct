@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:aqueduct/aqueduct.dart';
 export 'context_helpers.dart';
 
-
 justLogEverything() {
   hierarchicalLoggingEnabled = true;
   new Logger("")
@@ -20,14 +19,14 @@ class TestToken implements AuthToken, AuthCode {
   TestToken.from(dynamic t) {
     if (t is TestToken) {
       this
-          ..issueDate = t.issueDate
-          ..expirationDate = t.expirationDate
-          ..resourceOwnerIdentifier = t.resourceOwnerIdentifier
-          ..clientID = t.clientID
-          ..type = t.type
-          ..accessToken = t.accessToken
-          ..refreshToken = t.refreshToken
-          ..code = t.code;
+        ..issueDate = t.issueDate
+        ..expirationDate = t.expirationDate
+        ..resourceOwnerIdentifier = t.resourceOwnerIdentifier
+        ..clientID = t.clientID
+        ..type = t.type
+        ..accessToken = t.accessToken
+        ..refreshToken = t.refreshToken
+        ..code = t.code;
     } else if (t is AuthToken) {
       this
         ..issueDate = t.issueDate
@@ -65,7 +64,8 @@ class TestToken implements AuthToken, AuthCode {
     var map = {
       "access_token": accessToken,
       "token_type": type,
-      "expires_in": expirationDate.difference(new DateTime.now().toUtc()).inSeconds,
+      "expires_in":
+          expirationDate.difference(new DateTime.now().toUtc()).inSeconds,
     };
 
     if (refreshToken != null) {
@@ -92,7 +92,8 @@ class InMemoryAuthStorage implements AuthStorage {
           AuthUtility.generatePasswordHash("mckinley", salt),
           salt,
           "http://stablekernel.com/auth/redirect"),
-      "com.stablekernel.public": new AuthClient("com.stablekernel.public", null, salt),
+      "com.stablekernel.public":
+          new AuthClient("com.stablekernel.public", null, salt),
       "com.stablekernel.redirect2": new AuthClient.withRedirectURI(
           "com.stablekernel.redirect2",
           AuthUtility.generatePasswordHash("gibraltar", salt),
@@ -113,20 +114,23 @@ class InMemoryAuthStorage implements AuthStorage {
         ..username = "bob+$i@stablekernel.com"
         ..salt = salt
         ..hashedPassword =
-        AuthUtility.generatePasswordHash(DefaultPassword, salt);
+            AuthUtility.generatePasswordHash(DefaultPassword, salt);
 
       users[i + 1] = u;
     }
   }
 
   @override
-  Future revokeAuthenticatableWithIdentifier(AuthServer server, dynamic identifier) async {
+  Future revokeAuthenticatableWithIdentifier(
+      AuthServer server, dynamic identifier) async {
     tokens.removeWhere((t) => t.resourceOwnerIdentifier == identifier);
   }
 
   @override
-  Future<AuthToken> fetchTokenByAccessToken(AuthServer server, String accessToken) async {
-    var existing = tokens.firstWhere((t) => t.accessToken == accessToken, orElse: () => null);
+  Future<AuthToken> fetchTokenByAccessToken(
+      AuthServer server, String accessToken) async {
+    var existing = tokens.firstWhere((t) => t.accessToken == accessToken,
+        orElse: () => null);
     if (existing == null) {
       return null;
     }
@@ -134,8 +138,10 @@ class InMemoryAuthStorage implements AuthStorage {
   }
 
   @override
-  Future<AuthToken> fetchTokenByRefreshToken(AuthServer server, String refreshToken) async {
-    var existing = tokens.firstWhere((t) => t.refreshToken == refreshToken, orElse: () => null);
+  Future<AuthToken> fetchTokenByRefreshToken(
+      AuthServer server, String refreshToken) async {
+    var existing = tokens.firstWhere((t) => t.refreshToken == refreshToken,
+        orElse: () => null);
     if (existing == null) {
       return null;
     }
@@ -145,8 +151,8 @@ class InMemoryAuthStorage implements AuthStorage {
   @override
   Future<TestUser> fetchAuthenticatableByUsername(
       AuthServer server, String username) async {
-    return users.values.firstWhere((t) => t.username == username,
-        orElse: () => null);
+    return users.values
+        .firstWhere((t) => t.username == username, orElse: () => null);
   }
 
   @override
@@ -155,9 +161,12 @@ class InMemoryAuthStorage implements AuthStorage {
   }
 
   @override
-  Future storeToken(AuthServer server, AuthToken t, {AuthCode issuedFrom}) async {
+  Future storeToken(AuthServer server, AuthToken t,
+      {AuthCode issuedFrom}) async {
     if (issuedFrom != null) {
-      var existingIssued = tokens.firstWhere((token) => token.code == issuedFrom?.code, orElse: () => null);
+      var existingIssued = tokens.firstWhere(
+          (token) => token.code == issuedFrom?.code,
+          orElse: () => null);
       var replacement = new TestToken.from(t);
       replacement.code = issuedFrom.code;
       tokens.remove(existingIssued);
@@ -168,8 +177,14 @@ class InMemoryAuthStorage implements AuthStorage {
   }
 
   @override
-  Future refreshTokenWithAccessToken(AuthServer server, String accessToken, String newAccessToken, DateTime newIssueDate, DateTime newExpirationDate) async {
-    var existing = tokens.firstWhere((e) => e.accessToken == accessToken, orElse: () => null);
+  Future refreshTokenWithAccessToken(
+      AuthServer server,
+      String accessToken,
+      String newAccessToken,
+      DateTime newIssueDate,
+      DateTime newExpirationDate) async {
+    var existing = tokens.firstWhere((e) => e.accessToken == accessToken,
+        orElse: () => null);
     if (existing != null) {
       var replacement = new TestToken.from(existing)
         ..expirationDate = newExpirationDate

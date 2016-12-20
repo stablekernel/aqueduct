@@ -48,7 +48,8 @@ class AuthCodeController extends HTTPController {
 
   _RenderAuthorizationPageFunction _renderFunction;
 
-  @HTTPQuery("state") String state;
+  @HTTPQuery("state")
+  String state;
 
   @httpGet
   Future<Response> getAuthorizationPage(
@@ -92,13 +93,14 @@ class AuthCodeController extends HTTPController {
         return new Response.badRequest();
       }
 
-      var exception = new AuthServerException(AuthRequestError.invalidRequest, client);
+      var exception =
+          new AuthServerException(AuthRequestError.invalidRequest, client);
       return _redirectResponse(null, state, error: exception);
     }
 
     try {
-      var authCode =
-          await authenticationServer.authenticateForCode(username, password, clientID);
+      var authCode = await authenticationServer.authenticateForCode(
+          username, password, clientID);
       return _redirectResponse(client.redirectURI, state, code: authCode.code);
     } on AuthServerException catch (e) {
       return _redirectResponse(null, state, error: e);
@@ -110,10 +112,10 @@ class AuthCodeController extends HTTPController {
     var ops = super.documentOperations(resolver);
     ops.forEach((op) {
       op.parameters.forEach((param) {
-        if (param.name == "username"
-        || param.name == "password"
-        || param.name == "client_id"
-        || param.name == "response_type") {
+        if (param.name == "username" ||
+            param.name == "password" ||
+            param.name == "client_id" ||
+            param.name == "response_type") {
           param.required = true;
         } else {
           param.required = false;
@@ -156,16 +158,16 @@ class AuthCodeController extends HTTPController {
     }
   }
 
-  static Response _redirectResponse(String uriString, String clientStateOrNull, {String code, AuthServerException error}) {
+  static Response _redirectResponse(String uriString, String clientStateOrNull,
+      {String code, AuthServerException error}) {
     uriString ??= error.client?.redirectURI;
     if (uriString == null) {
-      return new Response.badRequest(
-          body: {"error" : error.reasonString});
+      return new Response.badRequest(body: {"error": error.reasonString});
     }
 
     var redirectURI = Uri.parse(uriString);
     Map<String, String> queryParameters =
-      new Map.from(redirectURI.queryParameters);
+        new Map.from(redirectURI.queryParameters);
 
     if (code != null) {
       queryParameters["code"] = code;

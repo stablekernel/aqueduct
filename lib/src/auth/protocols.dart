@@ -38,7 +38,8 @@ abstract class Authenticatable {
 /// is a concrete instance of [AuthToken] to represent a resource owner bearer token. The [AuthCodeType] represents an authorization code
 /// used in the authorization code grant type.
 abstract class AuthStorage {
-  Future revokeAuthenticatableWithIdentifier(AuthServer server, dynamic identifier);
+  Future revokeAuthenticatableWithIdentifier(
+      AuthServer server, dynamic identifier);
 
   /// Returns a [ResourceOwner] for an [username].
   ///
@@ -64,7 +65,8 @@ abstract class AuthStorage {
   ///
   /// This method returns an instance of [TokenType] if one exists for [accessToken]. Otherwise, it returns null.
   /// [server] is the [AuthServer] requesting the [TokenType].
-  Future<AuthToken> fetchTokenByAccessToken(AuthServer server, String accessToken);
+  Future<AuthToken> fetchTokenByAccessToken(
+      AuthServer server, String accessToken);
 
   /// Returns a [TokenType] for an [refreshToken].
   ///
@@ -88,7 +90,8 @@ abstract class AuthStorage {
   /// Asks this instance to update an existing [TokenType] for [server].
   ///
   /// The implementing class must persist the token [t].
-  Future refreshTokenWithAccessToken(AuthServer server, String oldAccessToken, String newAccessToken, DateTime newIssueDate, DateTime newExpirationDate);
+  Future refreshTokenWithAccessToken(AuthServer server, String oldAccessToken,
+      String newAccessToken, DateTime newIssueDate, DateTime newExpirationDate);
 
   /// Asks this instance to store a [AuthCodeType] for [server].
   ///

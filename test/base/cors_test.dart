@@ -566,7 +566,8 @@ class CORSSink extends RequestSink implements AuthValidator {
         .generate(() => new DefaultPolicyController());
   }
 
-  Future<Authorization> fromBasicCredentials(String username, String password) async {
+  Future<Authorization> fromBasicCredentials(
+      String username, String password) async {
     return new Authorization("a", 1, this);
   }
 

@@ -50,7 +50,8 @@ class AuthUtility {
       {String redirectURI: null}) {
     if (secret == null) {
       if (redirectURI != null) {
-        throw new AuthUtilityException("Public API Clients cannot have a redirect URL");
+        throw new AuthUtilityException(
+            "Public API Clients cannot have a redirect URL");
       }
       return new AuthClient.withRedirectURI(clientID, null, null, redirectURI);
     }

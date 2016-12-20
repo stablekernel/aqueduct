@@ -3,16 +3,20 @@ import 'package:aqueduct/aqueduct.dart';
 
 void main() {
   test("Generated confidential, redirectable API client has valid values", () {
-    var client = AuthUtility.generateAPICredentialPair("a", "b", redirectURI: "http://a.com");
+    var client = AuthUtility.generateAPICredentialPair("a", "b",
+        redirectURI: "http://a.com");
     expect(client.id, "a");
-    expect(client.hashedSecret, AuthUtility.generatePasswordHash("b", client.salt));
+    expect(client.hashedSecret,
+        AuthUtility.generatePasswordHash("b", client.salt));
     expect(client.redirectURI, "http://a.com");
   });
 
-  test("Generated confidential, non-redirectable API client has valid values", () {
+  test("Generated confidential, non-redirectable API client has valid values",
+      () {
     var client = AuthUtility.generateAPICredentialPair("a", "b");
     expect(client.id, "a");
-    expect(client.hashedSecret, AuthUtility.generatePasswordHash("b", client.salt));
+    expect(client.hashedSecret,
+        AuthUtility.generatePasswordHash("b", client.salt));
     expect(client.redirectURI, isNull);
   });
 
@@ -26,7 +30,8 @@ void main() {
 
   test("Trying to generate public API that has redirect URL yields error", () {
     try {
-      AuthUtility.generateAPICredentialPair("a", null, redirectURI: "http://a.com");
+      AuthUtility.generateAPICredentialPair("a", null,
+          redirectURI: "http://a.com");
       expect(true, false);
     } on AuthUtilityException {}
   });
