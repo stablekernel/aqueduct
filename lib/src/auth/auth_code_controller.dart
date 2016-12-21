@@ -100,6 +100,12 @@ class AuthCodeController extends HTTPController {
       @HTTPQuery("scope") String scope}) async {
     var client = await authServer.clientForID(clientID);
 
+    if (state == null) {
+      var exception =
+        new AuthServerException(AuthRequestError.invalidRequest, client);
+      return _redirectResponse(null, null, error: exception);
+    }
+
     if (responseType != "code") {
       if (clientID == null) {
         return new Response.badRequest();
@@ -131,7 +137,8 @@ class AuthCodeController extends HTTPController {
         if (param.name == "username" ||
             param.name == "password" ||
             param.name == "client_id" ||
-            param.name == "response_type") {
+            param.name == "response_type" ||
+            param.name == "state") {
           param.required = true;
         } else {
           param.required = false;

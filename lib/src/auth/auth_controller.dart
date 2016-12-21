@@ -130,7 +130,7 @@ class AuthController extends HTTPController {
             "access_token": new APISchemaObject.string(),
             "token_type": new APISchemaObject.string(),
             "expires_in": new APISchemaObject.int(),
-            "refresh_token": new APISchemaObject.string()
+            "refresh_token": new APISchemaObject.string()..required = false
           }),
         new APIResponse()
           ..statusCode = HttpStatus.BAD_REQUEST

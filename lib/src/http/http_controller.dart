@@ -79,6 +79,44 @@ abstract class HTTPController extends RequestController {
   /// handled by the appropriate responder method.
   void didDecodeRequestBody(dynamic decodedObject) {}
 
+  /// Returns a [Response] for missing [HTTPParameter]s.
+  ///
+  /// This method is invoked by this instance when [HTTPParameter]s (like [HTTPQuery] or [HTTPHeader]s)
+  /// are required, but not included in a request. The return value of this method will
+  /// be sent back to the requesting client to signify the missing parameters.
+  ///
+  /// By default, this method returns a response with status code 400 and each missing header
+  /// or query parameter is listed under the key "error" in a JSON object.
+  ///
+  /// This method can be overridden by subclasses to provide a different response.
+  Response responseForMissingParameters(
+      List<HTTPControllerMissingParameter> params) {
+    var missingHeaders = params
+        .where((p) => p.type == HTTPControllerMissingParameterType.header)
+        .map((p) => p.externalName)
+        .toList();
+    var missingQueryParameters = params
+        .where((p) => p.type == HTTPControllerMissingParameterType.query)
+        .map((p) => p.externalName)
+        .toList();
+
+    StringBuffer missings = new StringBuffer();
+    if (missingQueryParameters.isNotEmpty) {
+      var missingQueriesString =
+      missingQueryParameters.map((p) => "'${p}'").join(", ");
+      missings.write("Missing query value(s): ${missingQueriesString}.");
+    }
+    if (missingQueryParameters.isNotEmpty && missingHeaders.isNotEmpty) {
+      missings.write(" ");
+    }
+    if (missingHeaders.isNotEmpty) {
+      var missingHeadersString = missingHeaders.map((p) => "'${p}'").join(", ");
+      missings.write("Missing header(s): ${missingHeadersString}.");
+    }
+
+    return new Response.badRequest(body: {"error": missings.toString()});
+  }
+
   bool _requestContentTypeIsSupported(Request req) {
     var incomingContentType = request.innerRequest.headers.contentType;
     return acceptedContentTypes.firstWhere((ct) {
@@ -134,7 +172,7 @@ abstract class HTTPController extends RequestController {
         .map((p) => p as HTTPControllerMissingParameter)
         .toList();
     if (missingParameters.length > 0) {
-      return _missingRequiredParameterResponseIfNecessary(missingParameters);
+      return responseForMissingParameters(missingParameters);
     }
 
     controllerProperties
@@ -280,34 +318,6 @@ abstract class HTTPController extends RequestController {
 
     return responses;
   }
-}
-
-Response _missingRequiredParameterResponseIfNecessary(
-    List<HTTPControllerMissingParameter> params) {
-  var missingHeaders = params
-      .where((p) => p.type == HTTPControllerMissingParameterType.header)
-      .map((p) => p.externalName)
-      .toList();
-  var missingQueryParameters = params
-      .where((p) => p.type == HTTPControllerMissingParameterType.query)
-      .map((p) => p.externalName)
-      .toList();
-
-  StringBuffer missings = new StringBuffer();
-  if (missingQueryParameters.isNotEmpty) {
-    var missingQueriesString =
-        missingQueryParameters.map((p) => "'${p}'").join(", ");
-    missings.write("Missing query value(s): ${missingQueriesString}.");
-  }
-  if (missingQueryParameters.isNotEmpty && missingHeaders.isNotEmpty) {
-    missings.write(" ");
-  }
-  if (missingHeaders.isNotEmpty) {
-    var missingHeadersString = missingHeaders.map((p) => "'${p}'").join(", ");
-    missings.write("Missing header(s): ${missingHeadersString}.");
-  }
-
-  return new Response.badRequest(body: {"error": missings.toString()});
 }
 
 APIParameterLocation _parameterLocationFromHTTPParameter(HTTPParameter p) {
