@@ -30,86 +30,84 @@ class CLITemplateCreator extends CLICommand {
     ..addOption("version",
         defaultsTo: "any",
         help: "Version string for aqueduct on pub for template source.")
+    ..addFlag("offline", negatable: false, help: "Will fetch dependencies from a local cache if they exist.")
     ..addFlag("help",
         abbr: "h", negatable: false, help: "Shows this documentation");
 
-  Future<int> handle(ArgResults argValues) async {
-    if (argValues["help"] == true) {
-      print("${options.usage}");
+  String get templateName => values["template"];
+  String get templateDirectory => values["template-directory"];
+  String get projectName => values["name"];
+  String get gitURL => values["git-url"];
+  String get gitRef => values["git-ref"];
+  String get pathSource => values["path-source"];
+  String get version => values["version"];
+  bool get offline => values["offline"];
+
+  Future<int> handle() async {
+    if (projectName == null) {
+      displayError("No project name specified.");
       return 1;
     }
 
-    if (argValues["name"] == null) {
-      print("No project name specified.\n\n${options.usage}");
+    if (!isSnakeCase(projectName)) {
+      displayError(
+          "Invalid project name (${projectName} is not snake_case).");
       return 1;
     }
 
-    if (argValues["name"] == null || !isSnakeCase(argValues["name"])) {
-      print(
-          "Invalid project name ${argValues["name"]} is not snake_case).\n\n${options.usage}");
-      return 1;
-    }
-
-    var destDirectory = destinationDirectoryFromPath(argValues["name"]);
+    var destDirectory = destinationDirectoryFromPath(projectName);
     if (destDirectory.existsSync()) {
-      print("${destDirectory.path} already exists, stopping.");
+      displayError("${destDirectory.path} already exists, stopping.");
       return 1;
     }
+
     destDirectory.createSync();
 
-    var aqueductVersion = aqueductDependencyString(
-        versionString: argValues["version"],
-        gitHost: argValues["git-url"],
-        gitRef: argValues["git-ref"],
-        path: argValues["path-source"]);
-
-    print("Fetching Aqueduct as:\n  $aqueductVersion");
     var aqueductPath =
-        await determineAqueductPath(destDirectory, aqueductVersion);
+        await determineAqueductPath(destDirectory, aqueductDependencyString, offline: offline);
     var sourceDirectory = new Directory(path_lib.join(
-        aqueductPath, "example", "templates", argValues["template"]));
+        aqueductPath, "example", "templates", templateName));
 
-    if (argValues["template-directory"] != null) {
+    if (templateDirectory != null) {
       sourceDirectory = new Directory(path_lib.join(
-          argValues["template-directory"], argValues["template"]));
+          templateDirectory, templateName));
     }
+
     if (!sourceDirectory.existsSync()) {
-      print("Error: no template named ${argValues["template"]}");
+      displayError("No template at ${sourceDirectory.path}.");
       return 1;
     }
 
-    print("");
-    print("Copying template files...");
-    await copyProjectFiles(destDirectory, sourceDirectory, argValues["name"]);
+    displayProgress("Template source is: ${sourceDirectory.path}.");
+    await copyProjectFiles(destDirectory, sourceDirectory, projectName);
 
-    print("Generating project files...");
-    await createProjectSpecificFiles(destDirectory.path, aqueductVersion);
+    await createProjectSpecificFiles(destDirectory.path, aqueductDependencyString);
 
-    await replaceAqueductDependencyString(destDirectory.path, aqueductVersion);
+    await replaceAqueductDependencyString(destDirectory.path, aqueductDependencyString);
 
-    print("Fetching project dependencies...");
-    Process.runSync("pub", ["get", "--no-packages-dir"],
-        workingDirectory: destDirectory.path, runInShell: true);
+    displayInfo("Fetching project dependencies (pub get --no-packages-dir ${offline ? "--offline" : ""})...");
+    await runPubGet(destDirectory, offline: offline);
 
-    print("");
-    print("New project ${argValues["name"]} created at ${destDirectory.path}");
-    print("See ${destDirectory.path}${path_lib.separator}README.md.");
+    displayProgress("Success.");
+    displayInfo("New project '${projectName}' successfully created.");
+    displayProgress("Project is located at ${destDirectory.path}");
+    displayProgress("Open this directory in IntelliJ IDEA, Atom or VS Code.");
+    displayProgress("See ${destDirectory.path}${path_lib.separator}README.md for more information.");
 
     return 0;
   }
 
-  String determineAqueductPath(
-      Directory projectDirectory, String aqueductVersion) {
-    print("Determining Aqueduct template source...");
+  Future<String> determineAqueductPath(
+      Directory projectDirectory, String aqueductVersion, {bool offline: false}) async {
+    var split = aqueductVersion.split("aqueduct:").last.trim();
+
+    displayInfo("Fetching Aqueduct templates ($split)...");
     var temporaryPubspec = generatingPubspec(aqueductVersion);
 
     new File(path_lib.join(projectDirectory.path, "pubspec.yaml"))
         .writeAsStringSync(temporaryPubspec);
-    var result = Process.runSync("pub", ["get", "--no-packages-dir"],
-        workingDirectory: projectDirectory.path, runInShell: true);
-    if (result.exitCode != 0) {
-      throw new Exception("${result.stderr}");
-    }
+
+    await runPubGet(projectDirectory, offline: offline);
 
     var resolver = new PackagePathResolver(
         path_lib.join(projectDirectory.path, ".packages"));
@@ -120,7 +118,8 @@ class CLITemplateCreator extends CLICommand {
     new File(path_lib.join(projectDirectory.path, ".packages")).deleteSync();
 
     var path = path_lib.normalize(resolvedURL + "..");
-    print("\tUsing template source from: ${path}.");
+    displayProgress("Aqueduct directory is: ${path}");
+
     return path;
   }
 
@@ -220,7 +219,7 @@ class CLITemplateCreator extends CLICommand {
     var parentPath = pathString.substring(0, lastPathComponentIndex);
     var parentDirectory = new Directory(parentPath);
     if (!parentDirectory.existsSync()) {
-      throw new Exception("Error: path $parentPath does not exist.");
+      throw new CLIException("Path $parentPath does not exist.");
     }
 
     return pathString.substring(lastPathComponentIndex + 1);
@@ -228,6 +227,7 @@ class CLITemplateCreator extends CLICommand {
 
   Future createProjectSpecificFiles(
       String directoryPath, String aqueductVersion) async {
+    displayProgress("Generating config.yaml from config.yaml.src.");
     var configSrcPath =
         new File(path_lib.join(directoryPath, "config.yaml.src"));
     configSrcPath
@@ -247,34 +247,36 @@ class CLITemplateCreator extends CLICommand {
 
   void copyProjectFiles(Directory destinationDirectory,
       Directory sourceDirectory, String projectName) {
+    displayInfo("Copying template files to new project directory (${destinationDirectory.path})...");
     try {
       destinationDirectory.createSync();
 
       new Directory(sourceDirectory.path).listSync().forEach((f) {
+        displayProgress("Copying contents of ${f.path}");
         interpretContentFile(projectName, destinationDirectory, f);
       });
     } catch (e) {
       destinationDirectory.deleteSync(recursive: true);
-      print("${e}");
+      displayError("$e");
     }
   }
 
-  String aqueductDependencyString(
-      {String versionString: "any",
-      String gitHost: null,
-      String gitRef: "master",
-      String path: null}) {
+  String get aqueductDependencyString {
     var str = "aqueduct: ";
-    if (gitHost != null) {
+    if (gitURL != null) {
       str += "\n";
       str += "    git:\n";
-      str += '      url: "$gitHost"\n';
+      str += '      url: "$gitURL"\n';
       str += '      ref: "$gitRef"';
-    } else if (path != null) {
+    } else if (pathSource != null) {
       str += "\n";
-      str += "    path: $path";
+      str += "    path: $pathSource";
     } else {
-      str += '"$versionString"';
+      if (version == null) {
+        str += "any";
+      } else {
+        str += '"$version"';
+      }
     }
     return str;
   }
@@ -295,5 +297,27 @@ class CLITemplateCreator extends CLICommand {
       var remainingString = str.substring(1, str.length);
       return firstChar.toUpperCase() + remainingString;
     }).join("");
+  }
+
+  Future<ProcessResult> runPubGet(Directory workingDirectory, {bool offline: false}) async {
+    var args = ["get", "--no-packages-dir"];
+    if (offline) {
+      args.add("--offline");
+    }
+
+    try {
+      var result = await Process.run(
+            "pub", args, workingDirectory: workingDirectory.absolute.path, runInShell: true)
+          .timeout(new Duration(seconds: 20));
+
+      if (result.exitCode != 0) {
+        throw new CLIException("${result.stderr}\n\nIf you are offline, try using --offline.");
+      }
+
+      return result;
+    } on TimeoutException {
+      displayError("Timed out fetching dependencies. Reconnect to the internet or use --offline.");
+      rethrow;
+    }
   }
 }

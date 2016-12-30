@@ -45,8 +45,8 @@ class TestApplication {
     await logger.start();
 
     application = new Application<WildfireSink>();
-    application.configuration.configurationOptions = {
-      WildfireSink.ConfigurationKey: configuration,
+    application.configuration.options = {
+      WildfireSink.ConfigurationValuesKey: configuration,
       WildfireSink.LoggingTargetKey: logger.getNewTarget()
     };
 

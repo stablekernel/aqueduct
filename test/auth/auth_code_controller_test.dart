@@ -450,7 +450,7 @@ void main() {
 }
 
 class TestSink extends RequestSink {
-  TestSink(Map<String, dynamic> opts) : super(opts) {
+  TestSink(ApplicationConfiguration opts) : super(opts) {
     var storage = new InMemoryAuthStorage();
     storage.createUsers(2);
     authServer = new AuthServer(storage);

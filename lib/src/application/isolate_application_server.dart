@@ -49,7 +49,7 @@ void isolateServerEntryPoint(ApplicationInitialServerMessage params) {
         .declarations[new Symbol(params.streamTypeName)] as ClassMirror;
 
     sink = sinkTypeMirror.newInstance(
-        new Symbol(""), [params.configuration.configurationOptions]).reflectee;
+        new Symbol(""), [params.configuration]).reflectee;
   } catch (e, st) {
     params.parentMessagePort.send([e, st.toString()]);
 

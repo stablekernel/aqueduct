@@ -345,7 +345,7 @@ void main() {
 }
 
 class TestSink extends RequestSink {
-  TestSink(Map<String, dynamic> opts) : super(opts) {
+  TestSink(ApplicationConfiguration opts) : super(opts) {
     var dataModel = new ManagedDataModel([TestModel]);
     var persistentStore = new PostgreSQLPersistentStore.fromConnectionInfo(
         "dart", "dart", "localhost", 5432, "dart_test");

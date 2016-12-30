@@ -19,14 +19,13 @@ class CLISetup extends CLICommand {
     ..addFlag("help",
         abbr: "h", negatable: false, help: "Shows this documentation");
 
-  Future<int> handle(ArgResults argValues) async {
-    if (argValues["help"] == true) {
-      print("${options.usage}");
-      return 0;
-    }
+  bool get helpMeItsScary => values["help"];
+  bool get confirm => values["confirm"];
+  String get grantingUser => values["granting-user"];
 
+  Future<int> handle() async {
     if (!(await hasPSQLCLI)) {
-      print(
+      displayError(
           "No psql found in PATH.\n\nIf you do not have PostgreSQL installed locally, you must do so to run tests in an Aqueduct application. For macOS users, "
           "download Postgres.app from http://postgresapp.com. Once installed, open the application at least once and add the following line to ~/.bash_profile:\n\n"
           "\texport PATH=\$PATH:/Applications/Postgres.app/Contents/Versions/latest/bin\n\n"
@@ -36,7 +35,6 @@ class CLISetup extends CLICommand {
       return -1;
     }
 
-    String username = argValues["granting-user"];
     var commands = [
       "create database dart_test;",
       "create user dart with createdb;",
@@ -44,46 +42,47 @@ class CLISetup extends CLICommand {
       "grant all on database dart_test to dart;"
     ];
 
-    if (argValues["confirm"] != true) {
-      print(
+    if (!confirm) {
+      displayError(
           "This command will execute commands with the 'psql' application in your PATH to create a new user and database used for testing. "
           "As a security measure, you must add --confirm (or -c) to this command line tool to ensure this script doesn't do something you don't want it to do. "
           "The script will run the following commands:\n\n");
       commands.forEach((cmd) {
-        print("\tpsql -c '$cmd' -U $username");
+        displayProgress("\tpsql -c '$cmd' -U $grantingUser");
       });
       return -1;
     }
 
     for (var cmd in commands) {
-      List<String> args = ["-c", cmd, "-U", username];
+      List<String> args = ["-c", cmd, "-U", grantingUser];
+
       var result = await Process.runSync("psql", args, runInShell: true);
       if (result.stdout.contains("CREATE DATABASE")) {
-        print("Successfully created database dart_test.");
+        displayProgress("Successfully created database dart_test.");
       } else if (result.stdout.contains("CREATE ROLE")) {
-        print("Successfully created role 'dart' with createdb permissions.");
+        displayProgress("Successfully created role 'dart' with createdb permissions.");
       } else if (result.stdout.contains("ALTER ROLE")) {
-        print("Successfully set user 'dart' password to 'dart'.");
+        displayProgress("Successfully set user 'dart' password to 'dart'.");
       } else if (result.stdout.contains("GRANT")) {
-        print(
+        displayProgress(
             "Successfully granted all privileges to database dart_test to user 'dart'.");
       }
 
       if (result.stderr.contains("database \"dart_test\" already exists")) {
-        print("Database dart_test already exists, continuing.");
+        displayProgress("Database dart_test already exists, continuing.");
       } else if (result.stderr.contains("role \"dart\" already exists")) {
-        print("User 'dart' already exists, continuing.");
+        displayProgress("User 'dart' already exists, continuing.");
       } else if (result.stderr.contains("could not connect to server")) {
-        print(
+        displayError(
             "Database is not accepting connections. Ensure that PostgreSQL is running locally.");
         return -1;
       } else if (result.stderr.length > 0) {
-        print("Unknown error: ${result.stderr}");
+        displayError("Unknown error: ${result.stderr}");
         return -1;
       }
     }
 
-    print("Congratulations! Aqueduct applications can now be tested locally.");
+    displayInfo("Congratulations! Aqueduct applications can now be tested locally.");
 
     return 0;
   }

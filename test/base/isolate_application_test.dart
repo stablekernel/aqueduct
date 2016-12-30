@@ -3,17 +3,22 @@ import 'package:aqueduct/aqueduct.dart';
 import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'dart:io';
+import 'dart:convert';
 
 main() {
   group("Lifecycle", () {
-    var app = new Application<TestSink>();
+    Application<TestSink> app;
 
-    tearDownAll(() async {
+    setUp(() async {
+      app = new Application<TestSink>();
+      await app.start(numberOfInstances: 3);
+    });
+
+    tearDown(() async {
       await app?.stop();
     });
 
     test("Application starts", () async {
-      await app.start(numberOfInstances: 3);
       expect(app.supervisors.length, 3);
     });
 
@@ -74,6 +79,15 @@ main() {
       var resp = await http.get("http://localhost:8080/t");
       expect(resp.statusCode, 200);
     });
+
+    test("Application runs app startup function once, regardless of isolate count", () async {
+      var sum = 0;
+      for (var i = 0; i < 10; i++) {
+        var result = await http.get("http://localhost:8080/startup");
+        sum += int.parse(JSON.decode(result.body));
+      }
+      expect(sum, 10);
+    });
   });
 
   group("Failures", () {
@@ -83,7 +97,7 @@ main() {
       var crashingApp = new Application<CrashSink>();
 
       try {
-        crashingApp.configuration.configurationOptions = {
+        crashingApp.configuration.options = {
           "crashIn": "constructor"
         };
         await crashingApp.start();
@@ -93,7 +107,7 @@ main() {
       }
 
       try {
-        crashingApp.configuration.configurationOptions = {
+        crashingApp.configuration.options = {
           "crashIn": "addRoutes"
         };
         await crashingApp.start();
@@ -103,7 +117,7 @@ main() {
       }
 
       try {
-        crashingApp.configuration.configurationOptions = {
+        crashingApp.configuration.options = {
           "crashIn": "willOpen"
         };
         await crashingApp.start();
@@ -112,7 +126,7 @@ main() {
         expect(e.toString(), contains("TestException: willOpen"));
       }
 
-      crashingApp.configuration.configurationOptions = {"crashIn": "dontCrash"};
+      crashingApp.configuration.options = {"crashIn": "dontCrash"};
       await crashingApp.start();
       var response = await http.get("http://localhost:8080/t");
       expect(response.statusCode, 200);
@@ -151,14 +165,14 @@ class TestException implements Exception {
 }
 
 class CrashSink extends RequestSink {
-  CrashSink(Map<String, dynamic> opts) : super(opts) {
-    if (opts["crashIn"] == "constructor") {
+  CrashSink(ApplicationConfiguration opts) : super(opts) {
+    if (opts.options["crashIn"] == "constructor") {
       throw new TestException("constructor");
     }
   }
 
   void setupRouter(Router router) {
-    if (options["crashIn"] == "addRoutes") {
+    if (configuration.options["crashIn"] == "addRoutes") {
       throw new TestException("addRoutes");
     }
     router.route("/t").generate(() => new TController());
@@ -166,18 +180,28 @@ class CrashSink extends RequestSink {
 
   @override
   Future willOpen() async {
-    if (options["crashIn"] == "willOpen") {
+    if (configuration.options["crashIn"] == "willOpen") {
       throw new TestException("willOpen");
     }
   }
 }
 
 class TestSink extends RequestSink {
-  TestSink(Map<String, dynamic> opts) : super(opts);
+  static Future initializeApplication(ApplicationConfiguration config) async {
+    List<int> v = config.options["startup"] ?? [];
+    v.add(1);
+    config.options["startup"] = v;
+  }
+
+  TestSink(ApplicationConfiguration opts) : super(opts);
 
   void setupRouter(Router router) {
     router.route("/t").generate(() => new TController());
     router.route("/r").generate(() => new RController());
+    router.route("startup").listen((r) async {
+      var total = configuration.options["startup"].fold(0, (a, b) => a + b);
+      return new Response.ok("$total");
+    });
   }
 }
 

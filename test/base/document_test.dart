@@ -421,7 +421,7 @@ main() {
 }
 
 class TestSink extends RequestSink {
-  TestSink(Map<String, dynamic> opts) : super(opts) {
+  TestSink(ApplicationConfiguration opts) : super(opts) {
     authServer = new AuthServer(new InMemoryAuthStorage());
   }
 

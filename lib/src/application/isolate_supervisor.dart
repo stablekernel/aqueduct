@@ -82,8 +82,7 @@ class ApplicationIsolateSupervisor {
       var appException = new ApplicationStartupException(error);
       _launchCompleter.completeError(appException, stacktrace);
     } else {
-      var exception = new ApplicationSupervisorException(error);
-      logger.severe("Uncaught exception in isolate.", exception, stacktrace);
+      logger.severe("Uncaught exception in isolate.", error, stacktrace);
     }
   }
 

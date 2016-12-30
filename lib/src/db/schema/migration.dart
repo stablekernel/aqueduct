@@ -61,17 +61,22 @@ abstract class Migration {
 /// This class is used by the migration process and shouldn't be used directly.
 class MigrationExecutor {
   MigrationExecutor(this.persistentStore, this.projectDirectoryPath,
-      this.libraryName, this.migrationFileDirectory);
+      this.libraryName, this.migrationFileDirectoryURI);
 
   PersistentStore persistentStore;
-  Uri migrationFileDirectory;
+  Uri migrationFileDirectoryURI;
   Uri projectDirectoryPath;
   String libraryName;
+  Directory get migrationDirectory {
+    var directory = new Directory.fromUri(migrationFileDirectoryURI);
+    if (!directory.existsSync()) {
+      directory.createSync();
+    }
+    return directory;
+  }
 
   List<File> get migrationFiles {
-    var dir = new Directory.fromUri(migrationFileDirectory);
-
-    Map<int, File> orderMap = dir
+    Map<int, File> orderMap = migrationDirectory
         .listSync()
         .where((fse) => fse is File && fse.path.endsWith(".migration.dart"))
         .fold({}, (m, fse) {
@@ -97,12 +102,6 @@ class MigrationExecutor {
   }
 
   Future<Schema> validate() async {
-    var directory = new Directory.fromUri(migrationFileDirectory);
-    if (!directory.existsSync()) {
-      throw new MigrationException(
-          "Migration directory doesn't exist, nothing to validate.");
-    }
-
     var files = migrationFiles;
     if (files.isEmpty) {
       throw new MigrationException(
@@ -145,7 +144,6 @@ class MigrationExecutor {
   }
 
   Future<File> generate() async {
-    _createMigrationDirectoryIfNecessary();
     _ensurePackageResolutionAvailable();
 
     var files = migrationFiles;
@@ -154,7 +152,7 @@ class MigrationExecutor {
       var newVersionNumber = versionNumberFromFile(files.last) + 1;
       var contents = SchemaBuilder.sourceForSchemaUpgrade(
           new Schema.empty(), new Schema.empty(), newVersionNumber);
-      var file = new File.fromUri(migrationFileDirectory.resolve(
+      var file = new File.fromUri(migrationFileDirectoryURI.resolve(
           "${"$newVersionNumber".padLeft(8, "0")}_Unnamed.migration.dart"));
       file.writeAsStringSync(contents);
 
@@ -182,19 +180,13 @@ class MigrationExecutor {
         await executor.execute(workingDirectory: projectDirectoryPath);
 
     var file = new File.fromUri(
-        migrationFileDirectory.resolve("00000001_Initial.migration.dart"));
+        migrationFileDirectoryURI.resolve("00000001_Initial.migration.dart"));
     file.writeAsStringSync(contents);
 
     return file;
   }
 
   Future<Schema> upgrade() async {
-    var directory = new Directory.fromUri(migrationFileDirectory);
-    if (!directory.existsSync()) {
-      throw new MigrationException(
-          "Migration directory doesn't exist, nothing to upgrade.");
-    }
-
     var files = migrationFiles;
     if (files.isEmpty) {
       throw new MigrationException(
@@ -324,13 +316,6 @@ class MigrationExecutor {
     }
 
     return null;
-  }
-
-  void _createMigrationDirectoryIfNecessary() {
-    var directory = new Directory.fromUri(migrationFileDirectory);
-    if (!directory.existsSync()) {
-      directory.createSync();
-    }
   }
 
   void _ensurePackageResolutionAvailable() {

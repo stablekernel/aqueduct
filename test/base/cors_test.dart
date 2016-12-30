@@ -534,7 +534,7 @@ expectThatNoCORSProcessingOccurred(dynamic resp) {
 }
 
 class CORSSink extends RequestSink implements AuthValidator {
-  CORSSink(Map<String, dynamic> opts) : super(opts);
+  CORSSink(ApplicationConfiguration opts) : super(opts);
 
   void setupRouter(Router router) {
     router

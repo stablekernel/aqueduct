@@ -9,7 +9,9 @@ import 'cli_command.dart';
 import '../db/db.dart';
 
 /// Used internally.
-class CLIMigrationRunner extends CLICommand {
+class CLIDatabase extends CLICommand {
+  static const String FlavorPostgreSQL = "postgres";
+
   MigrationExecutor executor;
   ArgParser options = new ArgParser(allowTrailingOptions: false)
     ..addOption("flavor",
@@ -17,10 +19,11 @@ class CLIMigrationRunner extends CLICommand {
         help: "The database driver flavor to use.",
         defaultsTo: "postgres",
         allowed: ["postgres"])
+    ..addOption("connect", abbr: "c", help: "A database connection URI string, without the protocol/scheme. If this option is set, dbconfig is ignored.", valueHelp: "user:password@localhost:port/databaseName")
     ..addOption("dbconfig",
         abbr: "d",
         help:
-            "A configuration file that provides connection information for the database that the migration will be executed on. Relative paths are relative to the migration-directory.",
+            "A configuration file that provides connection information for the database. Paths are relative to migration-directory. If the connect option is set, this value is ignored.",
         defaultsTo: "migration.yaml")
     ..addOption("migration-directory",
         abbr: "m",
@@ -32,6 +35,8 @@ class CLIMigrationRunner extends CLICommand {
         help:
             "An Aqueduct application project directory. This directory must contain a pubspec.yaml file. Relative paths are relative to the current working directory.",
         defaultsTo: Directory.current.path)
+    ..addFlag("use-ssl",
+        help: "Whether or not the database connection should use SSL", defaultsTo: false)
     ..addOption("library-name",
         abbr: "l",
         help:
@@ -48,23 +53,27 @@ class CLIMigrationRunner extends CLICommand {
     return "\n\tusername: username\n\tpassword: password\n\thost: host\n\tport: port\n\tdatabaseName: name\n";
   }
 
-  Future<int> handle(ArgResults argValues) async {
-    if (argValues["help"] == true) {
-      print("${options.usage}");
-      return 0;
-    }
+  bool get useSSL => values["use-ssl"];
+  String get databaseConnectionString => values["connect"];
+  String get databaseFlavor => values["flavor"];
+  String get databaseConfig => values["dbconfig"];
+  String get migrationDirectory => values["migration-directory"];
+  String get applicationDirectory => values["application-directory"];
+  String get libraryName => values["library-name"];
+  bool get helpMeItsScary => values["help"];
+  ArgResults get command => values.command;
 
-    var projectURI = new Uri.directory(argValues["application-directory"]);
+  Future<int> handle() async {
+    var projectURI = new Uri.directory(applicationDirectory);
     if (!projectURI.isAbsolute) {
       projectURI = Directory.current.uri.resolveUri(projectURI);
     }
 
-    var packageName = _getPackageName(projectURI);
-    var libraryPath =
-        "$packageName/${argValues["library-name"] ?? packageName}.dart";
+    var packageName = getPackageNameFromDirectoryURI(projectURI);
+    var libraryPath = "$packageName/${libraryName ?? packageName}.dart";
 
     Uri migrationDirectoryURI =
-        new Uri.directory(argValues["migration-directory"]);
+        new Uri.directory(migrationDirectory);
     if (!migrationDirectoryURI.isAbsolute) {
       migrationDirectoryURI = projectURI.resolveUri(migrationDirectoryURI);
 
@@ -74,52 +83,59 @@ class CLIMigrationRunner extends CLICommand {
       }
     }
 
-    Uri dbConfigURI = new Uri.file(argValues["dbconfig"]);
+    Uri dbConfigURI = new Uri.file(databaseConfig);
     if (!dbConfigURI.isAbsolute) {
       dbConfigURI = migrationDirectoryURI.resolveUri(dbConfigURI);
     }
 
     PersistentStore store = null;
-    if (argValues["flavor"] == "postgres") {
+    if (databaseFlavor == FlavorPostgreSQL) {
       var dbConfigFile = new File.fromUri(dbConfigURI);
       if (dbConfigFile.existsSync()) {
         var dbConfig = new DatabaseConnectionConfiguration();
         try {
-          dbConfig.readFromMap(loadYaml(dbConfigFile.readAsStringSync())
-              as Map<String, dynamic>);
+          if (databaseConnectionString != null) {
+            dbConfig.decode(databaseConnectionString);
+          } else {
+            var contents = dbConfigFile.readAsStringSync();
+            var yaml = loadYaml(contents);
+            dbConfig.readFromMap(yaml);
+          }
         } catch (e) {
-          print(
+          displayError(
               "Invalid dbconfig. Expected $_dbConfigFormat\nat ${dbConfigURI}.");
           rethrow;
         }
+
         store = new PostgreSQLPersistentStore.fromConnectionInfo(
             dbConfig.username,
             dbConfig.password,
             dbConfig.host,
             dbConfig.port,
-            dbConfig.databaseName);
+            dbConfig.databaseName,
+            useSSL: useSSL);
       }
     } else {
-      print("Invalid flavor ${argValues["flavor"]}\n\n${options.usage}");
+      displayError("Invalid flavor ${databaseFlavor}\n\n${options.usage}");
       return -1;
     }
 
     executor = new MigrationExecutor(
         store, projectURI, libraryPath, migrationDirectoryURI);
 
-    if (argValues.command?.name == "validate") {
+    if (command?.name == "validate") {
       return await validate();
-    } else if (argValues.command?.name == "list-versions") {
+    } else if (command?.name == "list-versions") {
       return await listVersions();
-    } else if (argValues.command?.name == "version") {
+    } else if (command?.name == "version") {
       return await printVersion();
-    } else if (argValues.command?.name == "upgrade") {
+    } else if (command?.name == "upgrade") {
       return await upgrade();
-    } else if (argValues.command?.name == "generate") {
+    } else if (command?.name == "generate") {
       return await generate();
     }
 
-    print(
+    displayError(
         "Invalid command, options for db are: ${options.commands.keys.join(", ")}");
     return -1;
   }
@@ -127,13 +143,12 @@ class CLIMigrationRunner extends CLICommand {
   Future<int> validate() async {
     try {
       await executor.validate();
-      print(
-          "Success! The migration files in ${executor.migrationFileDirectory} will create a schema that matches the data model in ${executor.projectDirectoryPath}.");
+      displayInfo(
+          "Success! The migration files in ${executor.migrationFileDirectoryURI} will create a schema that matches the data model in ${executor.projectDirectoryPath}.");
 
       return 0;
     } catch (e) {
-      print("Invalid migrations\n");
-      print("$e");
+      displayError("Invalid migrations\n$e");
       return -1;
     }
   }
@@ -154,15 +169,15 @@ class CLIMigrationRunner extends CLICommand {
 
   Future<int> printVersion() async {
     if (executor.persistentStore == null) {
-      print("$_noDBConfigString");
+      displayError(_noDBConfigString);
       return -1;
     }
 
     try {
       var current = await executor.persistentStore.schemaVersion;
-      print("Current version: $current");
+      displayInfo("Current version: $current");
     } catch (e) {
-      print(
+      displayError(
           "Could not determine schema version. Does database exist (with a version table) and can it be connected to?\n$e");
       return -1;
     }
@@ -172,7 +187,7 @@ class CLIMigrationRunner extends CLICommand {
 
   Future<int> upgrade() async {
     if (executor.persistentStore == null) {
-      print("$_noDBConfigString");
+      displayError(_noDBConfigString);
       return -1;
     }
 
@@ -186,20 +201,20 @@ class CLIMigrationRunner extends CLICommand {
     var versionsToApply =
         versionMap.keys.where((v) => v > currentVersion).toList();
     if (versionsToApply.length == 0) {
-      print("Database version is current (version: $currentVersion).");
+      displayInfo("Database version is current (version: $currentVersion).");
       return 0;
     }
 
-    print("Applying migration versions: ${versionsToApply.join(", ")}");
+    displayInfo("Applying migration versions: ${versionsToApply.join(", ")}");
     try {
       await executor.upgrade();
     } catch (e) {
-      print(
+      displayError(
           "Upgrade failed. Version is now at ${await executor.persistentStore.schemaVersion}.\n$e");
       return -1;
     }
 
-    print(
+    displayError(
         "Upgrade successful. Version is now at ${await executor.persistentStore.schemaVersion}.");
 
     return 0;
@@ -209,9 +224,9 @@ class CLIMigrationRunner extends CLICommand {
     try {
       var file = await executor.generate();
 
-      print("Created new migration file ${file.uri}.");
+      displayInfo("Created new migration file ${file.uri}.");
     } catch (e) {
-      print("Could not generate migration file.\n$e");
+      displayError("Could not generate migration file.\n$e");
       return -1;
     }
     return 0;
@@ -219,18 +234,10 @@ class CLIMigrationRunner extends CLICommand {
 
   @override
   Future cleanup() async {
-    await executor.persistentStore?.close();
+    await executor?.persistentStore?.close();
   }
 
   String get _noDBConfigString {
     return "No database configuration file found. This tool expects a file at migrations/migration.yaml in this project's directory. This file contains connection configuration information and has the following format: $_dbConfigFormat";
-  }
-
-  String _getPackageName(Uri projectURI) {
-    var yamlContents =
-        new File.fromUri(projectURI.resolve("pubspec.yaml")).readAsStringSync();
-    var pubspec = loadYaml(yamlContents);
-
-    return pubspec["name"];
   }
 }

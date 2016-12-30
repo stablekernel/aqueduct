@@ -5,13 +5,15 @@ import 'package:args/args.dart';
 
 main(List<String> args) async {
   var templateCreator = new CLITemplateCreator();
-  var migrationRunner = new CLIMigrationRunner();
+  var migrationRunner = new CLIDatabase();
   var setupCommand = new CLISetup();
+  var serveCommand = new CLIServer();
 
   var totalParser = new ArgParser(allowTrailingOptions: true)
     ..addCommand("create", templateCreator.options)
     ..addCommand("db", migrationRunner.options)
     ..addCommand("setup", setupCommand.options)
+    ..addCommand("serve", serveCommand.options)
     ..addFlag("help",
         abbr: "h", negatable: false, help: "Shows this documentation");
 
@@ -30,6 +32,9 @@ main(List<String> args) async {
     return;
   } else if (values.command.name == "setup") {
     exitCode = await setupCommand.process(values.command);
+    return;
+  } else if (values.command.name == "serve") {
+    exitCode = await serveCommand.process(values.command);
     return;
   }
 
