@@ -146,24 +146,6 @@ class Application<RequestSinkType extends RequestSink> {
     return new ApplicationIsolateSupervisor(
         this, isolate, receivePort, identifier, logger);
   }
-
-  /// Used internally.
-  Future isolateDidExitWithError(ApplicationIsolateSupervisor supervisor,
-      String errorMessage, StackTrace stackTrace) async {
-    logger.severe("Restarting terminated isolate. Exit reason $errorMessage",
-        supervisor, stackTrace);
-
-    var identifier = supervisor.identifier;
-    supervisors.remove(supervisor);
-    try {
-      var supervisor = await _spawn(configuration, identifier);
-      await supervisor.resume();
-      supervisors.add(supervisor);
-    } catch (e, st) {
-      await stop();
-      logger.severe("$e", supervisor, st);
-    }
-  }
 }
 
 /// Thrown when an application encounters an exception during startup.

@@ -340,19 +340,6 @@ class TestResponse {
         if (contentType.primaryType == "application" &&
             contentType.subType == "json") {
           decodedBody = JSON.decode(body);
-        } else if (contentType.primaryType == "application" &&
-            contentType.subType == "x-www-form-urlencoded") {
-          var split = body.split("&");
-          var map = {};
-          split.forEach((str) {
-            var innerSplit = str.split("=");
-            if (innerSplit.length == 2) {
-              map[innerSplit[0]] = innerSplit[1];
-            } else {
-              map[innerSplit[0]] = true;
-            }
-          });
-          decodedBody = map;
         } else {
           decodedBody = body;
         }

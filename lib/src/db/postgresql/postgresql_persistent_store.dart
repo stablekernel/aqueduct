@@ -70,7 +70,7 @@ class PostgreSQLPersistentStore extends PersistentStore
   /// Creates an instance of this type from connection info.
   PostgreSQLPersistentStore.fromConnectionInfo(
       this.username, this.password, this.host, this.port, this.databaseName,
-      {this.timeZone: "UTC", bool useSSL}) {
+      {this.timeZone: "UTC", bool useSSL: false}) {
     this.connectFunction = () async {
       logger
           .info("PostgreSQL connecting, $username@$host:$port/$databaseName.");

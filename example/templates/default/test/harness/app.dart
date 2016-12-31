@@ -22,15 +22,13 @@ class TestApplication {
 
   Application<WildfireSink> application;
   WildfireSink get sink => application.mainIsolateSink;
-  LoggingServer logger = new LoggingServer([]);
   TestClient client;
   WildfireConfiguration configuration;
 
   /// Starts running this test harness.
   ///
-  /// This method will start a [LoggingServer] and an [Application] with [WildfireSink].
-  /// It will also setup a temporary database connection to the database described in
-  /// config.yaml.src. The current declared [ManagedObject]s in this application will be
+  /// This method will start an [Application] with [WildfireSink].
+  /// The declared [ManagedObject]s in this application will be
   /// used to generate a temporary database schema. The [WildfireSink] instance will use
   /// this temporary database. Stopping this application will remove the data from the
   /// temporary database.
@@ -41,15 +39,8 @@ class TestApplication {
   /// You must call [stop] on this instance when tearing down your tests.
   Future start() async {
     RequestController.letUncaughtExceptionsEscape = true;
-
-    await logger.start();
-
     application = new Application<WildfireSink>();
-    application.configuration.options = {
-      WildfireSink.ConfigurationValuesKey: configuration,
-      WildfireSink.LoggingTargetKey: logger.getNewTarget()
-    };
-
+    application.configuration.configurationFilePath = "config.yaml.src";
     await application.start(runOnMainIsolate: true);
 
     ManagedContext.defaultContext = sink.context;
@@ -66,8 +57,6 @@ class TestApplication {
   ///
   /// This method must be called during test tearDown.
   Future stop() async {
-    await sink.context.persistentStore?.close();
-    await logger?.stop();
     await application?.stop();
   }
 

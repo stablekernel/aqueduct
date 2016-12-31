@@ -19,6 +19,10 @@ class WildfireSink extends RequestSink {
   ManagedContext context;
   AuthServer authServer;
 
+
+  /**
+   * Initialization methods
+   */
   /// Do one-time application setup in this method.
   ///
   /// This method is executed before any instances of this type are created and is the first step in the initialization process.
@@ -30,9 +34,8 @@ class WildfireSink extends RequestSink {
     config.options[ConfigurationValuesKey] = configFileValues;
 
     var loggingServer = configFileValues.logging.loggingServer;
-    config.options[LoggingTargetKey] = loggingServer?.getNewTarget();
-
     await loggingServer?.start();
+    config.options[LoggingTargetKey] = loggingServer?.getNewTarget();
   }
 
   /// Constructor called for each isolate run by an [Application].
@@ -58,10 +61,6 @@ class WildfireSink extends RequestSink {
 
     authServer = new AuthServer(new ManagedAuthStorage<User>(context));
   }
-
-  HTMLRenderer htmlRenderer = new HTMLRenderer();
-  ManagedContext context;
-  AuthServer authServer;
 
   /// All routes must be configured in this method.
   ///
@@ -99,6 +98,10 @@ class WildfireSink extends RequestSink {
 
   }
 
+  /**
+   * Helper methods
+   */
+
   ManagedContext contextWithConnectionInfo(
       DatabaseConnectionConfiguration connectionInfo) {
     var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
@@ -120,6 +123,10 @@ class WildfireSink extends RequestSink {
 
     return htmlRenderer.renderHTML("web/login.html", map);
   }
+
+  /**
+   * Overrides
+   */
 
   @override
   Map<String, APISecurityScheme> documentSecuritySchemes(
@@ -144,7 +151,6 @@ class WildfireConfiguration extends ConfigurationItem {
 class LoggingConfiguration extends ConfigurationItem {
   static const String TypeConsole = "console";
   static const String TypeFile = "file";
-
   String type;
 
   @optionalConfiguration

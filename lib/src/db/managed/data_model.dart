@@ -51,22 +51,6 @@ class ManagedDataModel {
     _persistentTypeToEntityMap = builder.persistentTypeToEntityMap;
   }
 
-  /// Creates an instance on [ManagedDataModel] from all of the declared [ManagedObject] subclasses declared in the same package as [type].
-  ///
-  /// This method now simply calls [ManagedDataModel.fromCurrentMirrorSystem].
-  @deprecated
-  factory ManagedDataModel.fromPackageContainingType(Type type) {
-    return new ManagedDataModel.fromCurrentMirrorSystem();
-  }
-
-  /// Creates an instance of a [ManagedDataModel] from a package on the filesystem.
-  ///
-  /// This method now simply calls [ManagedDataModel.fromCurrentMirrorSystem].
-  @deprecated
-  factory ManagedDataModel.fromURI(Uri libraryURI) {
-    return new ManagedDataModel.fromCurrentMirrorSystem();
-  }
-
   Iterable<ManagedEntity> get entities => _entities.values;
   Map<Type, ManagedEntity> _entities = {};
   Map<Type, ManagedEntity> _persistentTypeToEntityMap = {};
