@@ -59,6 +59,10 @@ class WildfireSink extends RequestSink {
     authServer = new AuthServer(new ManagedAuthStorage<User>(context));
   }
 
+  HTMLRenderer htmlRenderer = new HTMLRenderer();
+  ManagedContext context;
+  AuthServer authServer;
+
   /// All routes must be configured in this method.
   ///
   /// This method is invoked after the constructor and before [willOpen] Routes must be set up in this method, as

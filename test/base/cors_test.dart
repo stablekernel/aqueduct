@@ -535,7 +535,6 @@ expectThatNoCORSProcessingOccurred(dynamic resp) {
 
 class CORSSink extends RequestSink implements AuthValidator {
   CORSSink(ApplicationConfiguration opts) : super(opts);
-
   void setupRouter(Router router) {
     router
         .route("/opts")
