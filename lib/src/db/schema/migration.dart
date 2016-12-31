@@ -180,6 +180,7 @@ class MigrationExecutor {
         packageConfigURI: projectDirectoryPath.resolve(".packages"));
     var contents =
         await executor.execute(workingDirectory: projectDirectoryPath);
+
     var file = new File.fromUri(
         migrationFileDirectory.resolve("00000001_Initial.migration.dart"));
     file.writeAsStringSync(contents);

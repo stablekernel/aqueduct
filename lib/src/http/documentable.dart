@@ -56,7 +56,7 @@ class APIDocumentable {
   APIRequestBody documentRequestBodyForOperation(APIOperation operation) =>
       documentableChild?.documentRequestBodyForOperation(operation);
 
-  /// Returns all [APISecurityScheme]s this instance knowsa bout.
+  /// Returns all [APISecurityScheme]s this instance knows about.
   Map<String, APISecurityScheme> documentSecuritySchemes(
           PackagePathResolver resolver) =>
       documentableChild?.documentSecuritySchemes(resolver);
@@ -166,7 +166,7 @@ class APIHost {
 /// Represents a security requirement in the OpenAPI specification.
 class APISecurityRequirement {
   String name;
-  List<APISecurityScope> scopes;
+  List<APISecurityScope> scopes = [];
 
   Map<String, dynamic> asMap() {
     return {name: scopes};
@@ -192,13 +192,18 @@ class APISecurityDefinition {
 }
 
 /// Represents a OAuth 2.0 security scheme flow in the OpenAPI specification.
-enum APISecuritySchemeFlow { implicit, password, application, accessCode }
+enum APISecuritySchemeFlow {
+  implicit,
+  password,
+  application,
+  authorizationCode
+}
 
 /// Represents a security scheme in the OpenAPI specification.
 class APISecurityScheme {
   static String stringForFlow(APISecuritySchemeFlow flow) {
     switch (flow) {
-      case APISecuritySchemeFlow.accessCode:
+      case APISecuritySchemeFlow.authorizationCode:
         return "accessCode";
       case APISecuritySchemeFlow.password:
         return "password";
@@ -214,11 +219,12 @@ class APISecurityScheme {
     type = "basic";
   }
 
-  APISecurityScheme.apiKey() {
+  APISecurityScheme.apiKey(this.apiKeyName, this.apiKeyLocation) {
     type = "apiKey";
   }
 
-  APISecurityScheme.oauth2() {
+  APISecurityScheme.oauth2(this.oauthFlow,
+      {this.authorizationURL, this.tokenURL, this.scopes: const []}) {
     type = "oauth2";
   }
 
@@ -233,7 +239,7 @@ class APISecurityScheme {
   APISecuritySchemeFlow oauthFlow;
   String authorizationURL;
   String tokenURL;
-  List<APISecurityScope> scopes = [];
+  List<APISecurityScope> scopes;
 
   bool get isOAuth2 {
     return type == "oauth2";
@@ -251,7 +257,7 @@ class APISecurityScheme {
       m["flow"] = stringForFlow(oauthFlow);
 
       if (oauthFlow == APISecuritySchemeFlow.implicit ||
-          oauthFlow == APISecuritySchemeFlow.accessCode) {
+          oauthFlow == APISecuritySchemeFlow.authorizationCode) {
         m["authorizationUrl"] = authorizationURL;
       }
 

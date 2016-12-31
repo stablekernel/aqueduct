@@ -11,6 +11,8 @@ class RegisterController extends QueryController<User> {
       return new Response.badRequest(
           body: {"error": "username and password required."});
     }
+    var credentials = AuthorizationBasicParser
+        .parse(request.innerRequest.headers.value(HttpHeaders.AUTHORIZATION));
 
     var salt = AuthUtility.generateRandomSalt();
     var hashedPassword =
@@ -22,8 +24,7 @@ class RegisterController extends QueryController<User> {
 
     var u = await query.insert();
     var token = await authServer.authenticate(u.username, query.values.password,
-        request.authorization.credentials.username,
-        request.authorization.credentials.password);
+        credentials.username, credentials.password);
 
     return AuthController.tokenResponse(token);
   }

@@ -165,10 +165,8 @@ void main() {
     });
 
     test("Ensure migration directory will get created on generation", () async {
-      var res = await Process.runSync(
-          "pub", ["get", "--no-packages-dir", "--offline"],
+      await Process.runSync("pub", ["get", "--no-packages-dir", "--offline"],
           workingDirectory: projectDirectory.path);
-      print("${res.stdout} ${res.stderr}");
 
       expect(migrationDirectory.existsSync(), false);
       await executor.generate();
@@ -229,50 +227,76 @@ void main() {
       new SchemaTable("_User", [
         new SchemaColumn("id", ManagedPropertyType.bigInteger,
             isPrimaryKey: true, autoincrement: true),
-        new SchemaColumn("email", ManagedPropertyType.string,
+        new SchemaColumn("email", ManagedPropertyType.string, isUnique: true),
+        new SchemaColumn("username", ManagedPropertyType.string,
             isUnique: true, isIndexed: true),
         new SchemaColumn("hashedPassword", ManagedPropertyType.string),
         new SchemaColumn("salt", ManagedPropertyType.string)
       ]),
-      new SchemaTable("_AuthCode", [
+      new SchemaTable("_authToken", [
         new SchemaColumn("id", ManagedPropertyType.bigInteger,
-            isPrimaryKey: true, autoincrement: true),
-        new SchemaColumn("code", ManagedPropertyType.string, isIndexed: true),
-        new SchemaColumn("redirectURI", ManagedPropertyType.string,
-            isNullable: true),
-        new SchemaColumn("clientID", ManagedPropertyType.string),
-        new SchemaColumn(
-            "resourceOwnerIdentifier", ManagedPropertyType.integer),
-        new SchemaColumn("issueDate", ManagedPropertyType.datetime),
-        new SchemaColumn("expirationDate", ManagedPropertyType.datetime),
-        new SchemaColumn.relationship("token", ManagedPropertyType.string,
-            isNullable: true,
-            isUnique: true,
-            relatedTableName: "_Token",
-            relatedColumnName: "accessToken",
-            rule: ManagedRelationshipDeleteRule.cascade)
-      ]),
-      new SchemaTable("_Token", [
+            isPrimaryKey: true,
+            autoincrement: true,
+            isIndexed: false,
+            isNullable: false,
+            isUnique: false),
         new SchemaColumn("accessToken", ManagedPropertyType.string,
-            isPrimaryKey: true),
+            isPrimaryKey: false,
+            autoincrement: false,
+            isIndexed: true,
+            isNullable: true,
+            isUnique: true),
         new SchemaColumn("refreshToken", ManagedPropertyType.string,
-            isIndexed: true),
-        new SchemaColumn.relationship("client", ManagedPropertyType.string,
-            relatedTableName: "_Client",
-            relatedColumnName: "id",
-            rule: ManagedRelationshipDeleteRule.cascade),
-        new SchemaColumn.relationship("owner", ManagedPropertyType.bigInteger,
+            isPrimaryKey: false,
+            autoincrement: false,
+            isIndexed: true,
+            isNullable: true,
+            isUnique: true),
+        new SchemaColumn("code", ManagedPropertyType.string,
+            isPrimaryKey: false,
+            autoincrement: false,
+            isIndexed: true,
+            isNullable: true,
+            isUnique: true),
+        new SchemaColumn("type", ManagedPropertyType.string,
+            isPrimaryKey: false,
+            autoincrement: false,
+            isIndexed: true,
+            isNullable: true,
+            isUnique: false),
+        new SchemaColumn("issueDate", ManagedPropertyType.datetime,
+            isPrimaryKey: false,
+            autoincrement: false,
+            isIndexed: false,
+            isNullable: false,
+            isUnique: false),
+        new SchemaColumn("expirationDate", ManagedPropertyType.datetime,
+            isPrimaryKey: false,
+            autoincrement: false,
+            isIndexed: true,
+            isNullable: false,
+            isUnique: false),
+        new SchemaColumn.relationship(
+            "resourceOwner", ManagedPropertyType.bigInteger,
             relatedTableName: "_User",
             relatedColumnName: "id",
-            rule: ManagedRelationshipDeleteRule.cascade),
-        new SchemaColumn("issueDate", ManagedPropertyType.datetime),
-        new SchemaColumn("expirationDate", ManagedPropertyType.datetime),
-        new SchemaColumn("type", ManagedPropertyType.string)
+            rule: ManagedRelationshipDeleteRule.cascade,
+            isNullable: false,
+            isUnique: false),
+        new SchemaColumn.relationship("client", ManagedPropertyType.string,
+            relatedTableName: "_authclient",
+            relatedColumnName: "id",
+            rule: ManagedRelationshipDeleteRule.cascade,
+            isNullable: false,
+            isUnique: false),
       ]),
-      new SchemaTable("_Client", [
+      new SchemaTable("_authclient", [
         new SchemaColumn("id", ManagedPropertyType.string, isPrimaryKey: true),
-        new SchemaColumn("hashedPassword", ManagedPropertyType.string),
-        new SchemaColumn("salt", ManagedPropertyType.string),
+        new SchemaColumn("hashedSecret", ManagedPropertyType.string,
+            isNullable: true),
+        new SchemaColumn("salt", ManagedPropertyType.string, isNullable: true),
+        new SchemaColumn("redirectURI", ManagedPropertyType.string,
+            isUnique: true, isNullable: true),
       ]),
     ]);
 
@@ -363,55 +387,40 @@ void main() {
 
     tearDown(() async {
       cleanTestProjectDirectory();
-      await executor.persistentStore
-          .execute("DROP TABLE IF EXISTS _aqueduct_version_pgsql");
-      await executor.persistentStore.execute("DROP TABLE IF EXISTS foo");
-      await executor.persistentStore.execute("DROP TABLE IF EXISTS _AuthCode");
-      await executor.persistentStore.execute("DROP TABLE IF EXISTS _Token");
-      await executor.persistentStore.execute("DROP TABLE IF EXISTS _User");
-      await executor.persistentStore.execute("DROP TABLE IF EXISTS _Client");
-      await executor.persistentStore.close();
+      var tables = [
+        "_aqueduct_version_pgsql",
+        "foo",
+        "_authcode",
+        "_authtoken",
+        "_user",
+        "_authclient"
+      ];
+      await Future.wait(tables.map((t) {
+        return executor.persistentStore.execute("DROP TABLE IF EXISTS $t");
+      }));
     });
 
     test("Generate and execute initial schema makes workable DB", () async {
       await executor.generate();
       await executor.upgrade();
 
-      var insertUser = await executor.persistentStore.execute(
-          "INSERT INTO _User (email, hashedPassword, salt) VALUES (@a, 'foo', 'bar') RETURNING id, email",
-          substitutionValues: {"a": "a@b.com"});
-      expect(insertUser, [
-        [1, "a@b.com"]
+      var version = await executor.persistentStore
+          .execute("SELECT versionNumber FROM _aqueduct_version_pgsql");
+      expect(version, [
+        [1]
       ]);
-      expect(
-          await executor.persistentStore
-              .execute("SELECT versionNumber FROM _aqueduct_version_pgsql"),
-          [
-            [1]
-          ]);
-      try {
-        await executor.persistentStore.execute(
-            "INSERT INTO _Token (accessToken, refreshToken, client_id, owner_id, issueDate, expirationDate, type)"
-            "VALUES ('a', 'b', 'foo', 1, '1990-11-01', '1990-11-01', 'grant')",
-            substitutionValues: {"a": "a@b.com"});
-        expect(true, false);
-      } on QueryException catch (e) {
-        expect(
-            e.toString(),
-            contains(
-                'Key (client_id)=(foo) is not present in table "_client"'));
-      }
-      await executor.persistentStore.execute(
-          "INSERT INTO _Client (id, hashedPassword, salt) VALUES ('foo', 'a', 'b')");
-      await executor.persistentStore.execute(
-          "INSERT INTO _Token (accessToken, refreshToken, client_id, owner_id, issueDate, expirationDate, type)"
-          "VALUES ('a', 'b', 'foo', 1, '1990-11-01', '1990-11-01', 'grant')",
-          substitutionValues: {"a": "a@b.com"});
-
-      var token = await executor.persistentStore
-          .execute("SELECT accessToken FROM _Token WHERE owner_id = 1");
-      expect(token, [
-        ['a']
+      expect(await columnsOfTable(executor, "_user"),
+          ["email", "id", "username", "hashedpassword", "salt"]);
+      expect(await columnsOfTable(executor, "_authtoken"), [
+        "id",
+        "code",
+        "accesstoken",
+        "refreshtoken",
+        "issuedate",
+        "expirationdate",
+        "type",
+        "resourceowner_id",
+        "client_id"
       ]);
     });
 
@@ -421,27 +430,19 @@ void main() {
       File nextGen = await executor.generate();
       addLinesToUpgradeFile(nextGen, [
         "database.createTable(new SchemaTable(\"foo\", [new SchemaColumn.relationship(\"user\", ManagedPropertyType.bigInteger, relatedTableName: \"_user\", relatedColumnName: \"id\")]));",
-        "database.deleteColumn(\"_user\", \"email\");"
+        "database.deleteColumn(\"_user\", \"username\");"
       ]);
       await executor.upgrade();
 
-      try {
-        await executor.persistentStore.execute(
-            "INSERT INTO _User (email, hashedPassword, salt) VALUES (@a, 'foo', 'bar') RETURNING id, email",
-            substitutionValues: {"a": "a@b.com"});
-        expect(true, false);
-      } on QueryException catch (e) {
-        expect(e.toString(),
-            contains("column \"email\" of relation \"_user\" does not exist"));
-      }
-      await executor.persistentStore.execute(
-          "INSERT INTO _User (hashedPassword, salt) VALUES ('foo', 'bar') RETURNING id");
-
-      var fooInsert = await executor.persistentStore
-          .execute("INSERT INTO foo (user_id) VALUES (1) returning user_id");
-      expect(fooInsert, [
-        [1]
+      var version = await executor.persistentStore
+          .execute("SELECT versionNumber FROM _aqueduct_version_pgsql");
+      expect(version, [
+        [1],
+        [2]
       ]);
+      expect(await columnsOfTable(executor, "_user"),
+          ["email", "id", "hashedpassword", "salt"]);
+      expect(await columnsOfTable(executor, "foo"), ["user_id"]);
     });
 
     test("Only later migration files are ran if already at a version",
@@ -452,27 +453,14 @@ void main() {
       File nextGen = await executor.generate();
       addLinesToUpgradeFile(nextGen, [
         "database.createTable(new SchemaTable(\"foo\", [new SchemaColumn.relationship(\"user\", ManagedPropertyType.bigInteger, relatedTableName: \"_user\", relatedColumnName: \"id\")]));",
-        "database.deleteColumn(\"_user\", \"email\");"
+        "database.deleteColumn(\"_user\", \"username\");"
       ]);
 
       await executor.upgrade();
-      try {
-        await executor.persistentStore.execute(
-            "INSERT INTO _User (email, hashedPassword, salt) VALUES (@a, 'foo', 'bar') RETURNING id, email",
-            substitutionValues: {"a": "a@b.com"});
-        expect(true, false);
-      } on QueryException catch (e) {
-        expect(e.toString(),
-            contains("column \"email\" of relation \"_user\" does not exist"));
-      }
-      await executor.persistentStore.execute(
-          "INSERT INTO _User (hashedPassword, salt) VALUES ('foo', 'bar') RETURNING id");
 
-      var fooInsert = await executor.persistentStore
-          .execute("INSERT INTO foo (user_id) VALUES (1) returning user_id");
-      expect(fooInsert, [
-        [1]
-      ]);
+      expect(await columnsOfTable(executor, "_user"),
+          ["email", "id", "hashedpassword", "salt"]);
+      expect(await columnsOfTable(executor, "foo"), ["user_id"]);
     });
   });
 }
@@ -537,4 +525,12 @@ void addLinesToUpgradeFile(File upgradeFile, List<String> extraLines) {
       .join("\n");
 
   upgradeFile.writeAsStringSync(lines);
+}
+
+Future<List<String>> columnsOfTable(
+    MigrationExecutor executor, String tableName) async {
+  List<List<String>> results = await executor.persistentStore
+      .execute("select column_name from information_schema.columns where "
+          "table_name='$tableName'");
+  return results.map((rows) => rows.first).toList();
 }
