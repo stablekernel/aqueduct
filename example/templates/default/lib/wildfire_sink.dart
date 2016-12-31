@@ -19,7 +19,6 @@ class WildfireSink extends RequestSink {
   ManagedContext context;
   AuthServer authServer;
 
-
   /**
    * Initialization methods
    */
@@ -30,7 +29,8 @@ class WildfireSink extends RequestSink {
   /// Values can be added to [config]'s [ApplicationConfiguration.options] and will be available in each instance of this class
   /// in the constructor. The values added to the configuration's options are often from a configuration file that this method reads.
   static Future initializeApplication(ApplicationConfiguration config) async {
-    var configFileValues = new WildfireConfiguration(config.configurationFilePath);
+    var configFileValues =
+        new WildfireConfiguration(config.configurationFilePath);
     config.options[ConfigurationValuesKey] = configFileValues;
 
     var loggingServer = configFileValues.logging.loggingServer;
@@ -51,7 +51,8 @@ class WildfireSink extends RequestSink {
   /// Resources that require asynchronous initialization, such as database connections, should be instantiated in this
   /// method but should be opened in [willOpen].
   WildfireSink(ApplicationConfiguration options) : super(options) {
-    WildfireConfiguration configuration = options.options[ConfigurationValuesKey];
+    WildfireConfiguration configuration =
+        options.options[ConfigurationValuesKey];
 
     LoggingTarget target = options.options[LoggingTargetKey];
     target?.bind(logger);
@@ -94,9 +95,7 @@ class WildfireSink extends RequestSink {
   /// This method allows any resources that require asynchronous initialization to complete their
   /// initialization process. This method is invoked after [setupRouter] and prior to this
   /// instance receiving any requests.
-  Future willOpen() async {
-
-  }
+  Future willOpen() async {}
 
   /**
    * Helper methods
@@ -163,7 +162,8 @@ class LoggingConfiguration extends ConfigurationItem {
         _loggingServer = new LoggingServer([new ConsoleBackend()]);
       } else if (type == LoggingConfiguration.TypeFile) {
         var logPath = filename ?? "api.log";
-        _loggingServer = new LoggingServer([new RotatingLoggingBackend(logPath)]);
+        _loggingServer =
+            new LoggingServer([new RotatingLoggingBackend(logPath)]);
       }
     }
     return _loggingServer;
