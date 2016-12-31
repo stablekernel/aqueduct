@@ -102,7 +102,7 @@ class AuthCodeController extends HTTPController {
 
     if (state == null) {
       var exception =
-        new AuthServerException(AuthRequestError.invalidRequest, client);
+          new AuthServerException(AuthRequestError.invalidRequest, client);
       return _redirectResponse(null, null, error: exception);
     }
 
@@ -121,8 +121,8 @@ class AuthCodeController extends HTTPController {
     }
 
     try {
-      var authCode = await authServer.authenticateForCode(
-          username, password, clientID);
+      var authCode =
+          await authServer.authenticateForCode(username, password, clientID);
       return _redirectResponse(client.redirectURI, state, code: authCode.code);
     } on AuthServerException catch (e) {
       return _redirectResponse(null, state, error: e);

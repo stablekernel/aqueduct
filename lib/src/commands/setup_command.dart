@@ -7,14 +7,14 @@ class CLISetup extends CLICommand {
   CLISetup() {
     options
       ..addOption("granting-user",
-        abbr: "u",
-        defaultsTo: "postgres",
-        help:
-            "The username of the PostgreSQL user that can create new users and databases.")
-    ..addFlag("confirm",
-        abbr: "c",
-        negatable: false,
-        help: "Confirms that you wish to carry out this setup.");
+          abbr: "u",
+          defaultsTo: "postgres",
+          help:
+              "The username of the PostgreSQL user that can create new users and databases.")
+      ..addFlag("confirm",
+          abbr: "c",
+          negatable: false,
+          help: "Confirms that you wish to carry out this setup.");
   }
 
   bool get confirm => values["confirm"];
@@ -41,8 +41,10 @@ class CLISetup extends CLICommand {
 
     if (!confirm) {
       displayInfo("Confirmation Needed");
-      displayProgress("This command will execute SQL to create a test database.");
-      displayProgress("As a security measure, you must add --confirm (or -c) to this command.");
+      displayProgress(
+          "This command will execute SQL to create a test database.");
+      displayProgress(
+          "As a security measure, you must add --confirm (or -c) to this command.");
       displayProgress("The commands that will be run upon confirmation:");
       commands.forEach((cmd) {
         displayProgress("\t* psql -c '$cmd' -U $grantingUser");
@@ -58,7 +60,8 @@ class CLISetup extends CLICommand {
       if (result.stdout.contains("CREATE DATABASE")) {
         displayProgress("Successfully created database dart_test.");
       } else if (result.stdout.contains("CREATE ROLE")) {
-        displayProgress("Successfully created role 'dart' with createdb permissions.");
+        displayProgress(
+            "Successfully created role 'dart' with createdb permissions.");
       } else if (result.stdout.contains("ALTER ROLE")) {
         displayProgress("Successfully set user 'dart' password to 'dart'.");
       } else if (result.stdout.contains("GRANT")) {
@@ -80,7 +83,8 @@ class CLISetup extends CLICommand {
       }
     }
 
-    displayInfo("Congratulations! Aqueduct applications can now be tested locally.");
+    displayInfo(
+        "Congratulations! Aqueduct applications can now be tested locally.");
 
     return 0;
   }

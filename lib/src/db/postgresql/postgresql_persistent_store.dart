@@ -75,7 +75,10 @@ class PostgreSQLPersistentStore extends PersistentStore
       logger
           .info("PostgreSQL connecting, $username@$host:$port/$databaseName.");
       var connection = new PostgreSQLConnection(host, port, databaseName,
-          username: username, password: password, timeZone: timeZone, useSSL: useSSL);
+          username: username,
+          password: password,
+          timeZone: timeZone,
+          useSSL: useSSL);
       try {
         await connection.open();
       } catch (e) {

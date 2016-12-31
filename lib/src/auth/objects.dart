@@ -141,7 +141,8 @@ class AuthCode {
 /// about the validity of the credentials in a request.
 class Authorization {
   /// Creates an instance of a [Authorization].
-  Authorization(this.clientID, this.resourceOwnerIdentifier, this.validator, {this.credentials});
+  Authorization(this.clientID, this.resourceOwnerIdentifier, this.validator,
+      {this.credentials});
 
   /// The client ID the permission was granted under.
   final String clientID;

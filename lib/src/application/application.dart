@@ -78,8 +78,8 @@ class Application<RequestSinkType extends RequestSink> {
             "runOnMainIsolate set to true, ignoring numberOfInstances (set to $numberOfInstances)");
       }
 
-      var sink = requestSinkType.newInstance(
-          new Symbol(""), [configuration]).reflectee;
+      var sink = requestSinkType
+          .newInstance(new Symbol(""), [configuration]).reflectee;
       server = new ApplicationServer(sink, configuration, 1);
 
       await server.start();
@@ -112,15 +112,16 @@ class Application<RequestSinkType extends RequestSink> {
   }
 
   APIDocument document(PackagePathResolver resolver) {
-    RequestSink sink = reflectClass(RequestSinkType).newInstance(
-        new Symbol(""), [configuration]).reflectee;
+    RequestSink sink = reflectClass(RequestSinkType)
+        .newInstance(new Symbol(""), [configuration]).reflectee;
     sink.setupRouter(sink.router);
     sink.router.finalize();
 
     return sink.documentAPI(resolver);
   }
 
-  Future<Map<String, dynamic>> _globalStart(ClassMirror sinkType, ApplicationConfiguration config) async {
+  Future<Map<String, dynamic>> _globalStart(
+      ClassMirror sinkType, ApplicationConfiguration config) async {
     var globalStartSymbol = #initializeApplication;
     if (sinkType.staticMembers[globalStartSymbol] != null) {
       return sinkType.invoke(globalStartSymbol, [config]).reflectee;

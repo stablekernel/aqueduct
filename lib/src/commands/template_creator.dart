@@ -9,27 +9,30 @@ import 'cli_command.dart';
 /// Used internally.
 class CLITemplateCreator extends CLICommand {
   CLITemplateCreator() {
-    options..addOption("template",
-        abbr: "t",
-        help: "Name of the template.",
-        allowed: ["default"],
-        defaultsTo: "default")
-    ..addOption("name", abbr: "n", help: "Name of project in snake_case.")
-    ..addOption("template-directory", hide: true)
-    ..addOption("git-url",
-        help:
-            "Git url, will trigger generating the template from the specified git repository instead of pub.")
-    ..addOption("git-ref",
-        defaultsTo: "master",
-        help:
-            "Git reference (branch or commit), will trigger generating the template from the git repository instead of pub.")
-    ..addOption("path-source",
-        help:
-            "Full path on filesystem, will trigger generating the template from the aqueduct source at path-source instead of pub.")
-    ..addOption("version",
-        defaultsTo: "any",
-        help: "Version string for aqueduct on pub for template source.")
-    ..addFlag("offline", negatable: false, help: "Will fetch dependencies from a local cache if they exist.");
+    options
+      ..addOption("template",
+          abbr: "t",
+          help: "Name of the template.",
+          allowed: ["default"],
+          defaultsTo: "default")
+      ..addOption("name", abbr: "n", help: "Name of project in snake_case.")
+      ..addOption("template-directory", hide: true)
+      ..addOption("git-url",
+          help:
+              "Git url, will trigger generating the template from the specified git repository instead of pub.")
+      ..addOption("git-ref",
+          defaultsTo: "master",
+          help:
+              "Git reference (branch or commit), will trigger generating the template from the git repository instead of pub.")
+      ..addOption("path-source",
+          help:
+              "Full path on filesystem, will trigger generating the template from the aqueduct source at path-source instead of pub.")
+      ..addOption("version",
+          defaultsTo: "any",
+          help: "Version string for aqueduct on pub for template source.")
+      ..addFlag("offline",
+          negatable: false,
+          help: "Will fetch dependencies from a local cache if they exist.");
   }
 
   String get templateName => values["template"];
@@ -48,8 +51,7 @@ class CLITemplateCreator extends CLICommand {
     }
 
     if (!isSnakeCase(projectName)) {
-      displayError(
-          "Invalid project name (${projectName} is not snake_case).");
+      displayError("Invalid project name (${projectName} is not snake_case).");
       return 1;
     }
 
@@ -61,14 +63,15 @@ class CLITemplateCreator extends CLICommand {
 
     destDirectory.createSync();
 
-    var aqueductPath =
-        await determineAqueductPath(destDirectory, aqueductDependencyString, offline: offline);
-    var sourceDirectory = new Directory(path_lib.join(
-        aqueductPath, "example", "templates", templateName));
+    var aqueductPath = await determineAqueductPath(
+        destDirectory, aqueductDependencyString,
+        offline: offline);
+    var sourceDirectory = new Directory(
+        path_lib.join(aqueductPath, "example", "templates", templateName));
 
     if (templateDirectory != null) {
-      sourceDirectory = new Directory(path_lib.join(
-          templateDirectory, templateName));
+      sourceDirectory =
+          new Directory(path_lib.join(templateDirectory, templateName));
     }
 
     if (!sourceDirectory.existsSync()) {
@@ -79,24 +82,29 @@ class CLITemplateCreator extends CLICommand {
     displayProgress("Template source is: ${sourceDirectory.path}.");
     await copyProjectFiles(destDirectory, sourceDirectory, projectName);
 
-    await createProjectSpecificFiles(destDirectory.path, aqueductDependencyString);
+    await createProjectSpecificFiles(
+        destDirectory.path, aqueductDependencyString);
 
-    await replaceAqueductDependencyString(destDirectory.path, aqueductDependencyString);
+    await replaceAqueductDependencyString(
+        destDirectory.path, aqueductDependencyString);
 
-    displayInfo("Fetching project dependencies (pub get --no-packages-dir ${offline ? "--offline" : ""})...");
+    displayInfo(
+        "Fetching project dependencies (pub get --no-packages-dir ${offline ? "--offline" : ""})...");
     await runPubGet(destDirectory, offline: offline);
 
     displayProgress("Success.");
     displayInfo("New project '${projectName}' successfully created.");
     displayProgress("Project is located at ${destDirectory.path}");
     displayProgress("Open this directory in IntelliJ IDEA, Atom or VS Code.");
-    displayProgress("See ${destDirectory.path}${path_lib.separator}README.md for more information.");
+    displayProgress(
+        "See ${destDirectory.path}${path_lib.separator}README.md for more information.");
 
     return 0;
   }
 
   Future<String> determineAqueductPath(
-      Directory projectDirectory, String aqueductVersion, {bool offline: false}) async {
+      Directory projectDirectory, String aqueductVersion,
+      {bool offline: false}) async {
     var split = aqueductVersion.split("aqueduct:").last.trim();
 
     displayInfo("Fetching Aqueduct templates ($split)...");
@@ -245,7 +253,8 @@ class CLITemplateCreator extends CLICommand {
 
   void copyProjectFiles(Directory destinationDirectory,
       Directory sourceDirectory, String projectName) {
-    displayInfo("Copying template files to new project directory (${destinationDirectory.path})...");
+    displayInfo(
+        "Copying template files to new project directory (${destinationDirectory.path})...");
     try {
       destinationDirectory.createSync();
 
@@ -297,24 +306,29 @@ class CLITemplateCreator extends CLICommand {
     }).join("");
   }
 
-  Future<ProcessResult> runPubGet(Directory workingDirectory, {bool offline: false}) async {
+  Future<ProcessResult> runPubGet(Directory workingDirectory,
+      {bool offline: false}) async {
     var args = ["get", "--no-packages-dir"];
     if (offline) {
       args.add("--offline");
     }
 
     try {
-      var result = await Process.run(
-            "pub", args, workingDirectory: workingDirectory.absolute.path, runInShell: true)
+      var result = await Process
+          .run("pub", args,
+              workingDirectory: workingDirectory.absolute.path,
+              runInShell: true)
           .timeout(new Duration(seconds: 20));
 
       if (result.exitCode != 0) {
-        throw new CLIException("${result.stderr}\n\nIf you are offline, try using --offline.");
+        throw new CLIException(
+            "${result.stderr}\n\nIf you are offline, try using --offline.");
       }
 
       return result;
     } on TimeoutException {
-      displayError("Timed out fetching dependencies. Reconnect to the internet or use --offline.");
+      displayError(
+          "Timed out fetching dependencies. Reconnect to the internet or use --offline.");
       rethrow;
     }
   }

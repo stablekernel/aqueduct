@@ -14,27 +14,53 @@ import 'cli_command.dart';
 class CLIServer extends CLICommand {
   CLIServer() {
     options
-        ..addCommand("stop")
-        ..addOption("sink", abbr: "s", help: "The name of the RequestSink subclass to be instantiated to serve requests. "
-            "By default, this subclass is determined by reflecting on the application library in the [directory] being served.")
-        ..addOption("directory", abbr: "d", help: "The directory that contains the application library to be served. "
-            "Defaults to current working directory.")
-        ..addOption("port", abbr: "p", help: "The port number to listen for HTTP requests on.", defaultsTo: "8080")
-        ..addOption("address", abbr: "a",
-            help: "The address to listen on. See HttpServer.bind for more details; this value is used as the String passed to InternetAddress.lookup."
-                " Using the default will listen on any address.")
-        ..addOption("config-path", abbr: "c", help: "The path to a configuration file. This File is available in the ApplicationConfiguration "
-            "for a RequestSink to use to read application-specific configuration values. Relative paths are relative to [directory].",
-            defaultsTo: "config.yaml")
-        ..addOption("isolates", abbr: "n", help: "Number of isolates processing requests", defaultsTo: "3")
-        ..addFlag("local", abbr: "l", help: "Overrides [address] to only accept connectiosn from local addresses.",
-            negatable: false, defaultsTo: false)
-        ..addFlag("ipv6-only", help: "Limits listening to IPv6 connections only.",
-            negatable: false, defaultsTo: false)
-        ..addFlag("observe", help: "Enables Dart Observatory", defaultsTo: false, negatable: false)
-        ..addFlag("detached",
-            help: "Runs the application detached from this script. This script will terminate and the application will continue executing",
-            defaultsTo: false, negatable: false);
+      ..addCommand("stop")
+      ..addOption("sink",
+          abbr: "s",
+          help:
+              "The name of the RequestSink subclass to be instantiated to serve requests. "
+              "By default, this subclass is determined by reflecting on the application library in the [directory] being served.")
+      ..addOption("directory",
+          abbr: "d",
+          help:
+              "The directory that contains the application library to be served. "
+              "Defaults to current working directory.")
+      ..addOption("port",
+          abbr: "p",
+          help: "The port number to listen for HTTP requests on.",
+          defaultsTo: "8080")
+      ..addOption("address",
+          abbr: "a",
+          help:
+              "The address to listen on. See HttpServer.bind for more details; this value is used as the String passed to InternetAddress.lookup."
+              " Using the default will listen on any address.")
+      ..addOption("config-path",
+          abbr: "c",
+          help:
+              "The path to a configuration file. This File is available in the ApplicationConfiguration "
+              "for a RequestSink to use to read application-specific configuration values. Relative paths are relative to [directory].",
+          defaultsTo: "config.yaml")
+      ..addOption("isolates",
+          abbr: "n",
+          help: "Number of isolates processing requests",
+          defaultsTo: "3")
+      ..addFlag("local",
+          abbr: "l",
+          help:
+              "Overrides [address] to only accept connectiosn from local addresses.",
+          negatable: false,
+          defaultsTo: false)
+      ..addFlag("ipv6-only",
+          help: "Limits listening to IPv6 connections only.",
+          negatable: false,
+          defaultsTo: false)
+      ..addFlag("observe",
+          help: "Enables Dart Observatory", defaultsTo: false, negatable: false)
+      ..addFlag("detached",
+          help:
+              "Runs the application detached from this script. This script will terminate and the application will continue executing",
+          defaultsTo: false,
+          negatable: false);
   }
 
   String packageName;
@@ -58,6 +84,7 @@ class CLIServer extends CLICommand {
 
     return new File(path);
   }
+
   Directory get directory {
     if (values["directory"] == null) {
       return Directory.current;
@@ -65,6 +92,7 @@ class CLIServer extends CLICommand {
 
     return new Directory(values["directory"]);
   }
+
   Directory get binDirectory => _subdirectoryInProjectDirectory("bin");
   List<FileSystemEntity> _registeredLaunchArtifacts = [];
 
@@ -93,7 +121,7 @@ class CLIServer extends CLICommand {
     }
 
     var replacements = {
-      "PACKAGE_NAME" : packageName,
+      "PACKAGE_NAME": packageName,
       "LIBRARY_NAME": libraryName,
       "SINK_TYPE": requestSinkType,
       "PORT": port,
@@ -121,8 +149,10 @@ class CLIServer extends CLICommand {
     var now = new DateTime.now();
     var diff = now.difference(startupTime);
     displayInfo("Success!", color: CLIColor.boldGreen);
-    displayProgress("Startup Time: ${diff.inSeconds}.${"${diff.inMilliseconds}".padLeft(4, "0")}s");
-    displayProgress("Application '$packageName/$libraryName' now running on port $port. (PID: ${serverProcess.pid})");
+    displayProgress(
+        "Startup Time: ${diff.inSeconds}.${"${diff.inMilliseconds}".padLeft(4, "0")}s");
+    displayProgress(
+        "Application '$packageName/$libraryName' now running on port $port. (PID: ${serverProcess.pid})");
     if (!shouldRunDetached) {
       displayProgress("Use Ctrl-C (SIGINT) to stop running the application.");
       displayInfo("Starting Application Log --");
@@ -138,7 +168,8 @@ class CLIServer extends CLICommand {
       };
       ProcessSignal.SIGINT.watch().listen(cleanupFile);
     } else {
-      displayProgress("Use 'aqueduct serve stop' in '${directory.path}' to stop running the application.");
+      displayProgress(
+          "Use 'aqueduct serve stop' in '${directory.path}' to stop running the application.");
     }
 
     return 0;
@@ -146,12 +177,11 @@ class CLIServer extends CLICommand {
 
   Future<int> stop() async {
     displayInfo("Stopping application.");
-    _pidFilesInDirectory(directory)
-        .forEach((file) {
-          var pidString = path_lib.relative(file.path, from: directory.path)
-              .split(".")[1];
-          _stopPidAndDelete(int.parse(pidString));
-        });
+    _pidFilesInDirectory(directory).forEach((file) {
+      var pidString =
+          path_lib.relative(file.path, from: directory.path).split(".")[1];
+      _stopPidAndDelete(int.parse(pidString));
+    });
 
     displayInfo("Application stopped.");
     return 0;
@@ -190,7 +220,8 @@ class CLIServer extends CLICommand {
     displayError("Application failed to start: \n\n$reason");
     Process.killPid(processPid);
 
-    var processFile = new File.fromUri(directory.uri.resolve(_pidPathForPid(processPid)));
+    var processFile =
+        new File.fromUri(directory.uri.resolve(_pidPathForPid(processPid)));
     try {
       processFile.deleteSync();
     } catch (_) {}
@@ -213,7 +244,8 @@ class CLIServer extends CLICommand {
 
       if (accumulated >= timeoutInMilliseconds) {
         t.cancel();
-        completer.completeError(new CLIException("Timed out waiting for application start."));
+        completer.completeError(
+            new CLIException("Timed out waiting for application start."));
       }
     });
 
@@ -234,33 +266,31 @@ class CLIServer extends CLICommand {
   Future _deriveApplicationLibraryDetails() async {
     // Find packageName, libraryName and _derivedRequestSinkType
     var pubspecFile = _fileInProjectDirectory("pubspec.yaml");
-    if (!pubspecFile .existsSync()) {
+    if (!pubspecFile.existsSync()) {
       throw new CLIException("$pubspecFile  does not exist.");
     }
 
-    var pubspecContents = loadYaml(pubspecFile .readAsStringSync());
+    var pubspecContents = loadYaml(pubspecFile.readAsStringSync());
     var name = pubspecContents["name"];
 
     packageName = name;
     libraryName = name;
 
     var generator = new SourceGenerator(
-            (List<String> args, Map<String, dynamic> values) async {
-              var sinkType = reflectClass(RequestSink);
-              var classes = currentMirrorSystem()
-                  .libraries
-                  .values
-                  .where((lib) => lib.uri.scheme == "package" || lib.uri.scheme == "file")
-                  .expand((lib) => lib.declarations.values)
-                  .where((decl) =>
-                    decl is ClassMirror && decl.isSubclassOf(sinkType))
-                  .map((decl) => decl as ClassMirror)
-                  .toList();
+        (List<String> args, Map<String, dynamic> values) async {
+      var sinkType = reflectClass(RequestSink);
+      var classes = currentMirrorSystem()
+          .libraries
+          .values
+          .where(
+              (lib) => lib.uri.scheme == "package" || lib.uri.scheme == "file")
+          .expand((lib) => lib.declarations.values)
+          .where((decl) => decl is ClassMirror && decl.isSubclassOf(sinkType))
+          .map((decl) => decl as ClassMirror)
+          .toList();
 
-            return classes
-                .map((cm) => MirrorSystem.getName(cm.simpleName))
-                .first;
-        }, imports: [
+      return classes.map((cm) => MirrorSystem.getName(cm.simpleName)).first;
+    }, imports: [
       "package:aqueduct/aqueduct.dart",
       "package:$packageName/$libraryName.dart",
       "dart:isolate",
@@ -270,29 +300,26 @@ class CLIServer extends CLICommand {
 
     var executor = new IsolateExecutor(generator, [libraryName],
         packageConfigURI: directory.uri.resolve(".packages"));
-    _derivedRequestSinkType = await executor.execute(workingDirectory: directory.uri);
+    _derivedRequestSinkType =
+        await executor.execute(workingDirectory: directory.uri);
   }
 
   Future _prepare() async {
     displayInfo("Preparing...");
-    await Future.wait(_pidFilesInDirectory(directory)
-        .map((FileSystemEntity f) {
-          var pidString = path_lib.relative(f.path, from: directory.path)
-            .split(".")[1];
+    await Future.wait(_pidFilesInDirectory(directory).map((FileSystemEntity f) {
+      var pidString =
+          path_lib.relative(f.path, from: directory.path).split(".")[1];
 
-          displayProgress("Stopping currently running server (PID: $pidString)");
+      displayProgress("Stopping currently running server (PID: $pidString)");
 
-          return _stopPidAndDelete(int.parse(pidString));
-        }));
+      return _stopPidAndDelete(int.parse(pidString));
+    }));
   }
 
   List<File> _pidFilesInDirectory(Directory directory) {
-    return directory
-        .listSync()
-        .where((fse) {
+    return directory.listSync().where((fse) {
       return fse is File && fse.path.endsWith(_pidSuffix);
-    })
-        .toList();
+    }).toList();
   }
 
   String _createScriptSource(Map<String, dynamic> values) {
@@ -334,7 +361,8 @@ Future writeError(String error) async {
 }
     """;
 
-    return contents.replaceAllMapped(new RegExp("___([A-Za-z0-9_-]+)___"), (match) {
+    return contents.replaceAllMapped(new RegExp("___([A-Za-z0-9_-]+)___"),
+        (match) {
       return values[match.group(1)];
     });
   }
@@ -349,7 +377,8 @@ Future writeError(String error) async {
     return new File.fromUri(directory.uri.resolve(name));
   }
 
-  Directory _subdirectoryInProjectDirectory(String name, {bool createIfDoesNotExist: true}) {
+  Directory _subdirectoryInProjectDirectory(String name,
+      {bool createIfDoesNotExist: true}) {
     var dir = new Directory.fromUri(directory.uri.resolve(name));
     if (createIfDoesNotExist && !dir.existsSync()) {
       dir.createSync();

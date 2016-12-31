@@ -18,12 +18,7 @@ class CLIException {
   String toString() => message;
 }
 
-enum CLIColor {
-  red, green, blue,
-  boldRed, boldGreen, boldBlue,
-  boldNone,
-  none
-}
+enum CLIColor { red, green, blue, boldRed, boldGreen, boldBlue, boldNone, none }
 
 /// A command line interface command.
 abstract class CLICommand {
@@ -34,7 +29,8 @@ abstract class CLICommand {
   /// Options for this command.
   ArgParser options = new ArgParser()
     ..addFlag("help", abbr: "h", help: "Shows this", negatable: false)
-    ..addFlag("color", help: "Toggles ANSI color", negatable: true, defaultsTo: true);
+    ..addFlag("color",
+        help: "Toggles ANSI color", negatable: true, defaultsTo: true);
 
   ArgResults values;
   bool get showColors => values["color"] ?? true;
@@ -44,7 +40,6 @@ abstract class CLICommand {
     }
     return false;
   }
-
 
   /// Handles the command input.
   ///
@@ -81,8 +76,10 @@ abstract class CLICommand {
     return 1;
   }
 
-  void displayError(String errorMessage, {bool showUsage: false, CLIColor color: CLIColor.boldRed}) {
-    print("${colorSymbol(color)}${_ErrorDelimiter}$errorMessage$defaultColorSymbol");
+  void displayError(String errorMessage,
+      {bool showUsage: false, CLIColor color: CLIColor.boldRed}) {
+    print(
+        "${colorSymbol(color)}${_ErrorDelimiter}$errorMessage$defaultColorSymbol");
     if (showUsage) {
       print("\n${options.usage}");
     }
@@ -92,7 +89,8 @@ abstract class CLICommand {
     print("${colorSymbol(color)}${_Delimiter}$infoMessage$defaultColorSymbol");
   }
 
-  void displayProgress(String progressMessage, {CLIColor color: CLIColor.none}) {
+  void displayProgress(String progressMessage,
+      {CLIColor color: CLIColor.none}) {
     print("${colorSymbol(color)}${_Tabs}$progressMessage$defaultColorSymbol");
   }
 
@@ -110,6 +108,7 @@ abstract class CLICommand {
     }
     return _lookupTable[color];
   }
+
   String get defaultColorSymbol {
     if (!showColors) {
       return "";

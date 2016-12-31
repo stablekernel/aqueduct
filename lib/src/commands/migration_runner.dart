@@ -19,28 +19,33 @@ class CLIDatabase extends CLICommand {
           help: "The database driver flavor to use.",
           defaultsTo: "postgres",
           allowed: ["postgres"])
-      ..addOption("connect", abbr: "c", help: "A database connection URI string, without the protocol/scheme. If this option is set, dbconfig is ignored.", valueHelp: "user:password@localhost:port/databaseName")
+      ..addOption("connect",
+          abbr: "c",
+          help:
+              "A database connection URI string, without the protocol/scheme. If this option is set, dbconfig is ignored.",
+          valueHelp: "user:password@localhost:port/databaseName")
       ..addOption("dbconfig",
           abbr: "d",
           help:
-          "A configuration file that provides connection information for the database. Paths are relative to migration-directory. If the connect option is set, this value is ignored.",
+              "A configuration file that provides connection information for the database. Paths are relative to migration-directory. If the connect option is set, this value is ignored.",
           defaultsTo: "migration.yaml")
       ..addOption("migration-directory",
           abbr: "m",
           help:
-          "The directory where migration files are stored. Relative paths are relative to the application-directory.",
+              "The directory where migration files are stored. Relative paths are relative to the application-directory.",
           defaultsTo: "migrations")
       ..addOption("application-directory",
           abbr: "a",
           help:
-          "An Aqueduct application project directory. This directory must contain a pubspec.yaml file. Relative paths are relative to the current working directory.",
+              "An Aqueduct application project directory. This directory must contain a pubspec.yaml file. Relative paths are relative to the current working directory.",
           defaultsTo: Directory.current.path)
       ..addFlag("use-ssl",
-          help: "Whether or not the database connection should use SSL", defaultsTo: false)
+          help: "Whether or not the database connection should use SSL",
+          defaultsTo: false)
       ..addOption("library-name",
           abbr: "l",
           help:
-          "The name of the application library file in the package, without the .dart suffix. This name is resolved according to the .packages mapping in the application-directory. By default, this value will be the name of the application package defined in pubspec.yaml. Thus, a package with the name 'foobar' will default to 'foobar', and the library file is then 'package:foobar/foobar.dart'.")
+              "The name of the application library file in the package, without the .dart suffix. This name is resolved according to the .packages mapping in the application-directory. By default, this value will be the name of the application package defined in pubspec.yaml. Thus, a package with the name 'foobar' will default to 'foobar', and the library file is then 'package:foobar/foobar.dart'.")
       ..addCommand("validate")
       ..addCommand("upgrade")
       ..addCommand("generate")
@@ -72,8 +77,7 @@ class CLIDatabase extends CLICommand {
     var packageName = getPackageNameFromDirectoryURI(projectURI);
     var libraryPath = "$packageName/${libraryName ?? packageName}.dart";
 
-    Uri migrationDirectoryURI =
-        new Uri.directory(migrationDirectory);
+    Uri migrationDirectoryURI = new Uri.directory(migrationDirectory);
     if (!migrationDirectoryURI.isAbsolute) {
       migrationDirectoryURI = projectURI.resolveUri(migrationDirectoryURI);
 

@@ -149,7 +149,8 @@ abstract class AuthValidator {
   /// request handling and immediately return a 401 status code. If this method returns an
   /// [Authorization], it will be set as the [Request.authorization] and request handling
   /// will continue to the [Authorizer.nextController].
-  Future<Authorization> fromBasicCredentials(AuthBasicCredentials usernameAndPassword);
+  Future<Authorization> fromBasicCredentials(
+      AuthBasicCredentials usernameAndPassword);
 
   /// Returns an [Authorization] from a bearer token.
   ///
