@@ -1,13 +1,12 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:args/args.dart';
-
 import 'cli_command.dart';
 
 class CLISetup extends CLICommand {
-  ArgParser options = new ArgParser(allowTrailingOptions: false)
-    ..addOption("granting-user",
+  CLISetup() {
+    options
+      ..addOption("granting-user",
         abbr: "u",
         defaultsTo: "postgres",
         help:
@@ -15,11 +14,9 @@ class CLISetup extends CLICommand {
     ..addFlag("confirm",
         abbr: "c",
         negatable: false,
-        help: "Confirms that you wish to carry out this setup.")
-    ..addFlag("help",
-        abbr: "h", negatable: false, help: "Shows this documentation");
+        help: "Confirms that you wish to carry out this setup.");
+  }
 
-  bool get helpMeItsScary => values["help"];
   bool get confirm => values["confirm"];
   String get grantingUser => values["granting-user"];
 
@@ -43,16 +40,17 @@ class CLISetup extends CLICommand {
     ];
 
     if (!confirm) {
-      displayError(
-          "This command will execute commands with the 'psql' application in your PATH to create a new user and database used for testing. "
-          "As a security measure, you must add --confirm (or -c) to this command line tool to ensure this script doesn't do something you don't want it to do. "
-          "The script will run the following commands:\n\n");
+      displayInfo("Confirmation Needed");
+      displayProgress("This command will execute SQL to create a test database.");
+      displayProgress("As a security measure, you must add --confirm (or -c) to this command.");
+      displayProgress("The commands that will be run upon confirmation:");
       commands.forEach((cmd) {
-        displayProgress("\tpsql -c '$cmd' -U $grantingUser");
+        displayProgress("\t* psql -c '$cmd' -U $grantingUser");
       });
       return -1;
     }
 
+    displayInfo("Connecting to database...");
     for (var cmd in commands) {
       List<String> args = ["-c", cmd, "-U", grantingUser];
 

@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:args/args.dart';
 import 'package:path/path.dart' as path_lib;
 
 import '../http/documentable.dart';
@@ -9,8 +8,8 @@ import 'cli_command.dart';
 
 /// Used internally.
 class CLITemplateCreator extends CLICommand {
-  ArgParser options = new ArgParser(allowTrailingOptions: false)
-    ..addOption("template",
+  CLITemplateCreator() {
+    options..addOption("template",
         abbr: "t",
         help: "Name of the template.",
         allowed: ["default"],
@@ -30,9 +29,8 @@ class CLITemplateCreator extends CLICommand {
     ..addOption("version",
         defaultsTo: "any",
         help: "Version string for aqueduct on pub for template source.")
-    ..addFlag("offline", negatable: false, help: "Will fetch dependencies from a local cache if they exist.")
-    ..addFlag("help",
-        abbr: "h", negatable: false, help: "Shows this documentation");
+    ..addFlag("offline", negatable: false, help: "Will fetch dependencies from a local cache if they exist.");
+  }
 
   String get templateName => values["template"];
   String get templateDirectory => values["template-directory"];

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:mirrors';
+import 'dart:isolate';
 
 import 'package:yaml/yaml.dart';
 import 'package:args/args.dart';
@@ -13,8 +14,9 @@ import 'cli_command.dart';
 // nohup dart bin/start.dart > /dev/null 2>&1 &
 
 class CLIServer extends CLICommand {
-  ArgParser get options {
-    return new ArgParser()
+  CLIServer() {
+    options
+        ..addCommand("stop")
         ..addOption("sink", abbr: "s", help: "The name of the RequestSink subclass to be instantiated to serve requests. "
             "By default, this subclass is determined by reflecting on the application library in the [directory] being served.")
         ..addOption("directory", abbr: "d", help: "The directory that contains the application library to be served. "
@@ -24,17 +26,26 @@ class CLIServer extends CLICommand {
             help: "The address to listen on. See HttpServer.bind for more details; this value is used as the String passed to InternetAddress.lookup."
                 " Using the default will listen on any address.")
         ..addOption("config-path", abbr: "c", help: "The path to a configuration file. This File is available in the ApplicationConfiguration "
-            "for a RequestSink to use to read application-specific configuration values. Relative paths are relative to [directory].", defaultsTo: "config.yaml")
+            "for a RequestSink to use to read application-specific configuration values. Relative paths are relative to [directory].",
+            defaultsTo: "config.yaml")
         ..addOption("isolates", abbr: "n", help: "Number of isolates processing requests", defaultsTo: "3")
-        ..addFlag("local", abbr: "l", help: "Overrides [address] to only accept connectiosn from local addresses.", negatable: false, defaultsTo: false)
-        ..addFlag("ipv6-only", help: "Limits listening to IPv6 connections only.", negatable: false, defaultsTo: false)
-        ..addFlag("help", help: "Shows this", negatable: false);
+        ..addFlag("local", abbr: "l", help: "Overrides [address] to only accept connectiosn from local addresses.",
+            negatable: false, defaultsTo: false)
+        ..addFlag("ipv6-only", help: "Limits listening to IPv6 connections only.",
+            negatable: false, defaultsTo: false)
+        ..addFlag("observe", help: "Enables Dart Observatory", defaultsTo: false, negatable: false)
+        ..addFlag("detached",
+            help: "Runs the application detached from this script. This script will terminate and the application will continue executing",
+            defaultsTo: false, negatable: false);
   }
 
   String packageName;
   String libraryName;
   String _derivedRequestSinkType;
 
+  ArgResults get command => values.command;
+  bool get shouldRunDetached => values["detached"];
+  bool get shouldRunObservatory => values["observe"];
   bool get ipv6Only => values["ipv6-only"];
   bool get localOnly => values["local"];
   int get port => int.parse(values["port"]);
@@ -62,6 +73,10 @@ class CLIServer extends CLICommand {
   Future<int> handle() async {
     await _deriveApplicationLibraryDetails();
 
+    if (command?.name == "stop") {
+      return stop();
+    }
+
     return start();
   }
 
@@ -74,6 +89,11 @@ class CLIServer extends CLICommand {
   Future<int> start() async {
     await _prepare();
 
+    if (!configurationFile.existsSync()) {
+      displayError("Configuration file not found : ${configurationFile.path}");
+      return 1;
+    }
+
     var replacements = {
       "PACKAGE_NAME" : packageName,
       "LIBRARY_NAME": libraryName,
@@ -85,6 +105,11 @@ class CLIServer extends CLICommand {
       "CONFIGURATION_FILE_PATH": configurationFile.path
     };
 
+    displayInfo("Starting application '$packageName/$libraryName'");
+    displayProgress("Sink Type: $requestSinkType");
+    displayProgress("Config: ${configurationFile.path}");
+
+    var startupTime = new DateTime.now();
     var generatedStartScript = _createScriptSource(replacements);
     var startScriptFile = _createStartScript(generatedStartScript);
     var serverProcess = await _executeStartScript(startScriptFile);
@@ -95,16 +120,70 @@ class CLIServer extends CLICommand {
       return 1;
     }
 
-    displayInfo("$packageName/$libraryName now running on $port. (PID: ${serverProcess.pid})");
-    displayProgress("Stop with 'aqueduct serve stop' in $directory.");
+    var now = new DateTime.now();
+    var diff = now.difference(startupTime);
+    displayInfo("Success!", color: CLIColor.boldGreen);
+    displayProgress("Startup Time: ${diff.inSeconds}.${"${diff.inMilliseconds}".padLeft(4, "0")}s");
+    displayProgress("Application '$packageName/$libraryName' now running on port $port. (PID: ${serverProcess.pid})");
+    if (!shouldRunDetached) {
+      displayProgress("Use Ctrl-C (SIGINT) to stop running the application.");
+      displayInfo("Starting Application Log --");
+      stdout.addStream(serverProcess.stdout);
+
+      var cleanupFile = (ProcessSignal s) {
+        var f = new File(_pidPathForPid(serverProcess.pid));
+        if (f.existsSync()) {
+          f.deleteSync();
+        }
+
+        Isolate.current.kill();
+      };
+      ProcessSignal.SIGINT.watch().listen(cleanupFile);
+    } else {
+      displayProgress("Use 'aqueduct serve stop' in '${directory.path}' to stop running the application.");
+    }
+
+    return 0;
+  }
+
+  Future<int> stop() async {
+    displayInfo("Stopping application.");
+    _pidFilesInDirectory(directory)
+        .forEach((file) {
+          var pidString = path_lib.relative(file.path, from: directory.path)
+              .split(".")[1];
+          _stopPidAndDelete(int.parse(pidString));
+        });
+
+    displayInfo("Application stopped.");
     return 0;
   }
 
   Future<Process> _executeStartScript(File startScriptFile) async {
-    var process = await Process.start("dart", [startScriptFile.path],
+    var args = <String>[];
+    if (shouldRunObservatory) {
+      args.add("--observe");
+    }
+    args.add(startScriptFile.absolute.path);
+
+    var startMode = ProcessStartMode.NORMAL;
+    if (shouldRunDetached) {
+      startMode = ProcessStartMode.DETACHED;
+    }
+
+    displayProgress("Starting process...");
+    var process = await Process.start("dart", args,
         workingDirectory: directory.absolute.path,
         runInShell: true,
-        mode: ProcessStartMode.DETACHED);
+        mode: startMode);
+
+    if (!shouldRunDetached) {
+      stderr.addStream(process.stderr);
+      process.exitCode.then((code) {
+        displayError("Server terminated (Exit Code: $code)");
+        exit(0);
+      });
+    }
 
     return process;
   }
@@ -113,19 +192,21 @@ class CLIServer extends CLICommand {
     displayError("Application failed to start: \n\n$reason");
     Process.killPid(processPid);
 
-    var processFile = new File.fromUri(directory.uri.resolve(".$processPid.pid"));
+    var processFile = new File.fromUri(directory.uri.resolve(_pidPathForPid(processPid)));
     try {
       processFile.deleteSync();
     } catch (_) {}
   }
 
   Future<String> _checkForStartError(Process process) async {
+    displayProgress("Verifying launch...");
+
     int timeoutInMilliseconds = 20 * 1000;
     var completer = new Completer<String>();
     var accumulated = 0;
 
     new Timer.periodic(new Duration(milliseconds: 100), (t) {
-      var signalFile = _fileInProjectDirectory(".${process.pid}.pid");
+      var signalFile = _fileInProjectDirectory(_pidPathForPid(process.pid));
       if (signalFile.existsSync()) {
         t.cancel();
         completer.complete(signalFile.readAsStringSync());
@@ -195,10 +276,33 @@ class CLIServer extends CLICommand {
   }
 
   Future _prepare() async {
+    displayInfo("Preparing...");
+    await Future.wait(_pidFilesInDirectory(directory)
+        .map((FileSystemEntity f) {
+          var pidString = path_lib.relative(f.path, from: directory.path)
+            .split(".")[1];
 
+          displayProgress("Stopping currently running server (PID: $pidString)");
+
+          return _stopPidAndDelete(int.parse(pidString));
+        }));
+  }
+
+  List<File> _pidFilesInDirectory(Directory directory) {
+    return directory
+        .listSync()
+        .where((fse) {
+      return fse is File && fse.path.endsWith(_pidSuffix);
+    })
+        .toList();
   }
 
   String _createScriptSource(Map<String, dynamic> values) {
+    var addressString = "..address = \"___ADDRESS___\"";
+    if (values["ADDRESS"] == null) {
+      addressString = "";
+    }
+
     var contents = """
 import 'dart:async';
 import 'dart:io';
@@ -211,7 +315,7 @@ main() async {
     var app = new Application<___SINK_TYPE___>();
     var config = new ApplicationConfiguration()
       ..port = ___PORT___
-      ..address = \"___ADDRESS___\"
+      $addressString
       ..configurationFilePath = \"___CONFIGURATION_FILE_PATH___\"
       ..isIpv6Only = ___IPV6_ONLY___;
 
@@ -219,7 +323,7 @@ main() async {
 
     await app.start(numberOfInstances: ___NUMBER_OF_ISOLATES___);
 
-    var signalFile = new File(".\${pid}.pid");
+    var signalFile = new File(".\${pid}.$_pidSuffix");
     await signalFile.writeAsString("ok");
   } catch (e, st) {
     await writeError("\$e\\n \$st");
@@ -227,7 +331,7 @@ main() async {
 }
 
 Future writeError(String error) async {
-  var signalFile = new File(".\${pid}.pid");
+  var signalFile = new File(".\${pid}.$_pidSuffix");
   await signalFile.writeAsString(error);
 }
     """;
@@ -254,5 +358,18 @@ Future writeError(String error) async {
     }
 
     return dir;
+  }
+
+  Future _stopPidAndDelete(int pid) async {
+    var file = _fileInProjectDirectory(_pidPathForPid(pid));
+    Process.killPid(pid);
+    file.deleteSync();
+
+    displayProgress("Stopped PID $pid.");
+  }
+
+  static const String _pidSuffix = "aqueduct.pid";
+  String _pidPathForPid(int pid) {
+    return ".$pid.$_pidSuffix";
   }
 }
