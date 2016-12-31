@@ -80,7 +80,9 @@ main() {
       expect(resp.statusCode, 200);
     });
 
-    test("Application runs app startup function once, regardless of isolate count", () async {
+    test(
+        "Application runs app startup function once, regardless of isolate count",
+        () async {
       var sum = 0;
       for (var i = 0; i < 10; i++) {
         var result = await http.get("http://localhost:8080/startup");
@@ -97,9 +99,7 @@ main() {
       var crashingApp = new Application<CrashSink>();
 
       try {
-        crashingApp.configuration.options = {
-          "crashIn": "constructor"
-        };
+        crashingApp.configuration.options = {"crashIn": "constructor"};
         await crashingApp.start();
         expect(true, false);
       } on ApplicationStartupException catch (e) {
@@ -107,9 +107,7 @@ main() {
       }
 
       try {
-        crashingApp.configuration.options = {
-          "crashIn": "addRoutes"
-        };
+        crashingApp.configuration.options = {"crashIn": "addRoutes"};
         await crashingApp.start();
         expect(true, false);
       } on ApplicationStartupException catch (e) {
@@ -117,9 +115,7 @@ main() {
       }
 
       try {
-        crashingApp.configuration.options = {
-          "crashIn": "willOpen"
-        };
+        crashingApp.configuration.options = {"crashIn": "willOpen"};
         await crashingApp.start();
         expect(true, false);
       } on ApplicationStartupException catch (e) {

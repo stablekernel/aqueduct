@@ -187,7 +187,7 @@ void main() {
 
       var res = await http.get("http://localhost:8000", headers: {
         HttpHeaders.AUTHORIZATION:
-        "Basic ${new Base64Encoder().convert("com.stablekernel.public:".codeUnits)}"
+            "Basic ${new Base64Encoder().convert("com.stablekernel.public:".codeUnits)}"
       });
       expect(res.statusCode, 200);
       expect(JSON.decode(res.body), {
@@ -197,24 +197,25 @@ void main() {
 
       res = await http.get("http://localhost:8000", headers: {
         HttpHeaders.AUTHORIZATION:
-        "Basic ${new Base64Encoder().convert("com.stablekernel.public:password".codeUnits)}"
+            "Basic ${new Base64Encoder().convert("com.stablekernel.public:password".codeUnits)}"
       });
       expect(res.statusCode, 401);
     });
 
-    test("Confidential client can never be authorized with no password", () async {
+    test("Confidential client can never be authorized with no password",
+        () async {
       var authorizer = new Authorizer.basic(authServer);
       server = await enableAuthorizer(authorizer);
 
       var res = await http.get("http://localhost:8000", headers: {
         HttpHeaders.AUTHORIZATION:
-        "Basic ${new Base64Encoder().convert("com.stablekernel.app1:".codeUnits)}"
+            "Basic ${new Base64Encoder().convert("com.stablekernel.app1:".codeUnits)}"
       });
       expect(res.statusCode, 401);
 
       res = await http.get("http://localhost:8000", headers: {
         HttpHeaders.AUTHORIZATION:
-        "Basic ${new Base64Encoder().convert("com.stablekernel.app1".codeUnits)}"
+            "Basic ${new Base64Encoder().convert("com.stablekernel.app1".codeUnits)}"
       });
       expect(res.statusCode, 400);
     });

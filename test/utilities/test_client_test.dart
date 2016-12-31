@@ -103,7 +103,9 @@ void main() {
       var defaultTestClient = new TestClient.onPort(4040)
         ..clientID = "a"
         ..clientSecret = "b";
-      expect((await defaultTestClient.clientAuthenticatedRequest("/foo").get()) is TestResponse,
+      expect(
+          (await defaultTestClient.clientAuthenticatedRequest("/foo").get())
+              is TestResponse,
           true);
       var msg = await server.next();
       expect(msg.path, "/foo");
@@ -116,7 +118,9 @@ void main() {
     test("Bearer requests add credentials", () async {
       var defaultTestClient = new TestClient.onPort(4040)
         ..defaultAccessToken = "abc";
-      expect((await defaultTestClient.authenticatedRequest("/foo").get()) is TestResponse,
+      expect(
+          (await defaultTestClient.authenticatedRequest("/foo").get())
+              is TestResponse,
           true);
       var msg = await server.next();
       expect(msg.path, "/foo");

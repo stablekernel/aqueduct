@@ -565,7 +565,8 @@ class CORSSink extends RequestSink implements AuthValidator {
         .generate(() => new DefaultPolicyController());
   }
 
-  Future<Authorization> fromBasicCredentials(AuthBasicCredentials credentials) async {
+  Future<Authorization> fromBasicCredentials(
+      AuthBasicCredentials credentials) async {
     return new Authorization("a", 1, this);
   }
 
@@ -577,7 +578,8 @@ class CORSSink extends RequestSink implements AuthValidator {
     return new Authorization("a", 1, this);
   }
 
-  List<APISecurityRequirement> requirementsForStrategy(AuthStrategy strategy) => null;
+  List<APISecurityRequirement> requirementsForStrategy(AuthStrategy strategy) =>
+      null;
 }
 
 class NoPolicyController extends HTTPController {
