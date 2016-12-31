@@ -11,8 +11,6 @@ import '../http/http.dart';
 import '../utilities/source_generator.dart';
 import 'cli_command.dart';
 
-// nohup dart bin/start.dart > /dev/null 2>&1 &
-
 class CLIServer extends CLICommand {
   CLIServer() {
     options
