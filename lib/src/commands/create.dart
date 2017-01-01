@@ -4,18 +4,13 @@ import 'dart:io';
 import 'package:path/path.dart' as path_lib;
 
 import '../http/documentable.dart';
-import 'cli_command.dart';
+import 'base.dart';
 
 /// Used internally.
 class CLITemplateCreator extends CLICommand {
   CLITemplateCreator() {
     options
-      ..addOption("template",
-          abbr: "t",
-          help: "Name of the template.",
-          allowed: ["default"],
-          defaultsTo: "default")
-      ..addOption("name", abbr: "n", help: "Name of project in snake_case.")
+      ..addOption("template", abbr: "t", help: "Name of the template to use", defaultsTo: "default")
       ..addOption("template-directory", hide: true)
       ..addOption("git-url",
           help:
@@ -37,7 +32,7 @@ class CLITemplateCreator extends CLICommand {
 
   String get templateName => values["template"];
   String get templateDirectory => values["template-directory"];
-  String get projectName => values["name"];
+  String get projectName => values.rest.first;
   String get gitURL => values["git-url"];
   String get gitRef => values["git-ref"];
   String get pathSource => values["path-source"];
@@ -332,4 +327,23 @@ class CLITemplateCreator extends CLICommand {
       rethrow;
     }
   }
+
+  String get usage {
+    return super.usage + " <project_name>";
+  }
+
+  String get name {
+    return "create";
+  }
+
+  String get detailedDescription {
+    return "This command will use a template from the aqueduct package determined by either "
+        "git-url (and git-ref), path-source or version. If none of these "
+        "are specified, the most recent version on pub.dartlang.org is used.";
+  }
+
+  String get description {
+    return "Creates Aqueduct applications from templates.";
+  }
+
 }

@@ -50,6 +50,17 @@ class SourceGenerator {
 }
 
 class IsolateExecutor {
+  static Future<dynamic> executeSource(
+      SourceGenerator source,
+      List<String> arguments,
+      {Map<String, dynamic> message,
+      Uri packageConfigURI,
+      Uri workingDirectory}) async {
+    var executor = new IsolateExecutor(source, arguments, message: message, packageConfigURI: packageConfigURI);
+
+    return executor.execute(workingDirectory: workingDirectory);
+  }
+
   IsolateExecutor(this.generator, this.arguments,
       {this.message, this.packageConfigURI});
 
@@ -69,8 +80,8 @@ class IsolateExecutor {
 
     if (packageConfigURI != null &&
         !(new File.fromUri(packageConfigURI).existsSync())) {
-      throw new Exception(
-          "packageConfigURI specified but does not exist (${packageConfigURI}).");
+      throw new IsolateExecutorException(
+          "packageConfigURI specified but does not exist '${packageConfigURI.path}'.");
     }
 
     var onErrorPort = new ReceivePort()
@@ -105,4 +116,12 @@ class IsolateExecutor {
       controlPort.close();
     }
   }
+}
+
+class IsolateExecutorException implements Exception {
+  IsolateExecutorException(this.message);
+
+  final String message;
+
+  String toString() => "IsolateExecutorException: $message";
 }

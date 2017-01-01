@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'cli_command.dart';
+import 'base.dart';
 
 class CLISetup extends CLICommand {
   CLISetup() {
@@ -10,7 +10,7 @@ class CLISetup extends CLICommand {
           abbr: "u",
           defaultsTo: "postgres",
           help:
-              "The username of the PostgreSQL user that can create new users and databases.")
+              "The username of the PostgreSQL user that has privileges to create a new test user and test database.")
       ..addFlag("confirm",
           abbr: "c",
           negatable: false,
@@ -23,11 +23,14 @@ class CLISetup extends CLICommand {
   Future<int> handle() async {
     if (!(await hasPSQLCLI)) {
       displayError(
-          "No psql found in PATH.\n\nIf you do not have PostgreSQL installed locally, you must do so to run tests in an Aqueduct application. For macOS users, "
-          "download Postgres.app from http://postgresapp.com. Once installed, open the application at least once and add the following line to ~/.bash_profile:\n\n"
-          "\texport PATH=\$PATH:/Applications/Postgres.app/Contents/Versions/latest/bin\n\n"
-          "You may have to reload the shell you ran this command from after installation. For non-macOS users, you must install a local version of PostgreSQL"
-          "and ensure the command line executable 'psql' is in your PATH.");
+          "No psql found in PATH.\n\nIf you do not have PostgreSQL installed locally, "
+              "you must do so to run tests in an Aqueduct application. For macOS users, "
+              "download Postgres.app from http://postgresapp.com. Once installed, open the "
+              "application at least once and add the following line to ~/.bash_profile:\n\n"
+              "\texport PATH=\$PATH:/Applications/Postgres.app/Contents/Versions/latest/bin\n\n"
+              "You may have to reload the shell you ran this command from after installation. "
+              "For non-macOS users, you must install a local version of PostgreSQL"
+              "and ensure the command line executable 'psql' is in your PATH.");
 
       return -1;
     }
@@ -76,6 +79,7 @@ class CLISetup extends CLICommand {
       } else if (result.stderr.contains("could not connect to server")) {
         displayError(
             "Database is not accepting connections. Ensure that PostgreSQL is running locally.");
+
         return -1;
       } else if (result.stderr.length > 0) {
         displayError("Unknown error: ${result.stderr}");
@@ -95,5 +99,13 @@ class CLISetup extends CLICommand {
         Process.runSync(locator, ["psql"], runInShell: true);
 
     return results.exitCode == 0;
+  }
+
+  String get name {
+    return "setup";
+  }
+
+  String get description {
+    return "A one-time setup command for your development environment.";
   }
 }

@@ -1,44 +1,32 @@
 import 'dart:io';
+import 'dart:async';
 
-import 'package:aqueduct/aqueduct.dart';
-import 'package:args/args.dart';
+import 'package:aqueduct/executable.dart';
 
 main(List<String> args) async {
-  var templateCreator = new CLITemplateCreator();
-  var migrationRunner = new CLIDatabase();
-  var setupCommand = new CLISetup();
-  var serveCommand = new CLIServer();
+  var runner = new Runner();
+  var values = runner.options.parse(args);
+  exitCode = await runner.process(values);
+}
 
-  var totalParser = new ArgParser(allowTrailingOptions: true)
-    ..addCommand("create", templateCreator.options)
-    ..addCommand("db", migrationRunner.options)
-    ..addCommand("setup", setupCommand.options)
-    ..addCommand("serve", serveCommand.options)
-    ..addFlag("help",
-        abbr: "h", negatable: false, help: "Shows this documentation");
-
-  var values = totalParser.parse(args);
-
-  if (values.command == null) {
-    print(
-        "Invalid command, options are: ${totalParser.commands.keys.join(", ")}");
-    exitCode = 1;
-    return;
-  } else if (values.command.name == "create") {
-    exitCode = await templateCreator.process(values.command);
-    return;
-  } else if (values.command.name == "db") {
-    exitCode = await migrationRunner.process(values.command);
-    return;
-  } else if (values.command.name == "setup") {
-    exitCode = await setupCommand.process(values.command);
-    return;
-  } else if (values.command.name == "serve") {
-    exitCode = await serveCommand.process(values.command);
-    return;
+class Runner extends CLICommand {
+  Runner() {
+    registerCommand(new CLITemplateCreator());
+    registerCommand(new CLIDatabase());
+    registerCommand(new CLIServer());
+    registerCommand(new CLISetup());
   }
 
-  print(
-      "Invalid command, options are: ${totalParser.commands.keys.join(", ")}");
-  exitCode = 1;
+  Future<int> handle() async {
+    printHelp();
+    return 0;
+  }
+
+  String get name {
+    return "aqueduct";
+  }
+
+  String get description {
+    return "Aqueduct is a tool for managing Aqueduct applications.";
+  }
 }

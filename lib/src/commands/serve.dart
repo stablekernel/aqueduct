@@ -1,17 +1,16 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:mirrors';
 import 'dart:isolate';
+import 'dart:mirrors';
 
-import 'package:yaml/yaml.dart';
 import 'package:args/args.dart';
 import 'package:path/path.dart' as path_lib;
 
 import '../http/http.dart';
 import '../utilities/source_generator.dart';
-import 'cli_command.dart';
+import 'base.dart';
 
-class CLIServer extends CLICommand {
+class CLIServer extends CLICommand with CLIProject {
   CLIServer() {
     options
       ..addCommand("stop")
@@ -20,11 +19,6 @@ class CLIServer extends CLICommand {
           help:
               "The name of the RequestSink subclass to be instantiated to serve requests. "
               "By default, this subclass is determined by reflecting on the application library in the [directory] being served.")
-      ..addOption("directory",
-          abbr: "d",
-          help:
-              "The directory that contains the application library to be served. "
-              "Defaults to current working directory.")
       ..addOption("port",
           abbr: "p",
           help: "The port number to listen for HTTP requests on.",
@@ -63,8 +57,6 @@ class CLIServer extends CLICommand {
           negatable: false);
   }
 
-  String packageName;
-  String libraryName;
   String _derivedRequestSinkType;
 
   ArgResults get command => values.command;
@@ -79,21 +71,13 @@ class CLIServer extends CLICommand {
   File get configurationFile {
     String path = values["config-path"];
     if (path_lib.isRelative(path)) {
-      return _fileInProjectDirectory(path);
+      return fileInProjectDirectory(path);
     }
 
     return new File(path);
   }
 
-  Directory get directory {
-    if (values["directory"] == null) {
-      return Directory.current;
-    }
-
-    return new Directory(values["directory"]);
-  }
-
-  Directory get binDirectory => _subdirectoryInProjectDirectory("bin");
+  Directory get binDirectory => subdirectoryInProjectDirectory("bin");
   List<FileSystemEntity> _registeredLaunchArtifacts = [];
 
   Future<int> handle() async {
@@ -169,7 +153,7 @@ class CLIServer extends CLICommand {
       ProcessSignal.SIGINT.watch().listen(cleanupFile);
     } else {
       displayProgress(
-          "Use 'aqueduct serve stop' in '${directory.path}' to stop running the application.");
+          "Use 'aqueduct serve stop' in '${projectDirectory.path}' to stop running the application.");
     }
 
     return 0;
@@ -177,9 +161,9 @@ class CLIServer extends CLICommand {
 
   Future<int> stop() async {
     displayInfo("Stopping application.");
-    _pidFilesInDirectory(directory).forEach((file) {
+    _pidFilesInDirectory(projectDirectory).forEach((file) {
       var pidString =
-          path_lib.relative(file.path, from: directory.path).split(".")[1];
+          path_lib.relative(file.path, from: projectDirectory.path).split(".")[1];
       _stopPidAndDelete(int.parse(pidString));
     });
 
@@ -201,7 +185,7 @@ class CLIServer extends CLICommand {
 
     displayProgress("Starting process...");
     var process = await Process.start("dart", args,
-        workingDirectory: directory.absolute.path,
+        workingDirectory: projectDirectory.absolute.path,
         runInShell: true,
         mode: startMode);
 
@@ -221,7 +205,7 @@ class CLIServer extends CLICommand {
     Process.killPid(processPid);
 
     var processFile =
-        new File.fromUri(directory.uri.resolve(_pidPathForPid(processPid)));
+        new File.fromUri(projectDirectory.uri.resolve(_pidPathForPid(processPid)));
     try {
       processFile.deleteSync();
     } catch (_) {}
@@ -235,7 +219,7 @@ class CLIServer extends CLICommand {
     var accumulated = 0;
 
     new Timer.periodic(new Duration(milliseconds: 100), (t) {
-      var signalFile = _fileInProjectDirectory(_pidPathForPid(process.pid));
+      var signalFile = fileInProjectDirectory(_pidPathForPid(process.pid));
       if (signalFile.existsSync()) {
         t.cancel();
         completer.complete(signalFile.readAsStringSync());
@@ -264,18 +248,7 @@ class CLIServer extends CLICommand {
   }
 
   Future _deriveApplicationLibraryDetails() async {
-    // Find packageName, libraryName and _derivedRequestSinkType
-    var pubspecFile = _fileInProjectDirectory("pubspec.yaml");
-    if (!pubspecFile.existsSync()) {
-      throw new CLIException("$pubspecFile  does not exist.");
-    }
-
-    var pubspecContents = loadYaml(pubspecFile.readAsStringSync());
-    var name = pubspecContents["name"];
-
-    packageName = name;
-    libraryName = name;
-
+    // Find request sink type
     var generator = new SourceGenerator(
         (List<String> args, Map<String, dynamic> values) async {
       var sinkType = reflectClass(RequestSink);
@@ -299,16 +272,16 @@ class CLIServer extends CLICommand {
     ]);
 
     var executor = new IsolateExecutor(generator, [libraryName],
-        packageConfigURI: directory.uri.resolve(".packages"));
+        packageConfigURI: projectDirectory.uri.resolve(".packages"));
     _derivedRequestSinkType =
-        await executor.execute(workingDirectory: directory.uri);
+        await executor.execute(workingDirectory: projectDirectory.uri);
   }
 
   Future _prepare() async {
     displayInfo("Preparing...");
-    await Future.wait(_pidFilesInDirectory(directory).map((FileSystemEntity f) {
+    await Future.wait(_pidFilesInDirectory(projectDirectory).map((FileSystemEntity f) {
       var pidString =
-          path_lib.relative(f.path, from: directory.path).split(".")[1];
+          path_lib.relative(f.path, from: projectDirectory.path).split(".")[1];
 
       displayProgress("Stopping currently running server (PID: $pidString)");
 
@@ -373,22 +346,8 @@ Future writeError(String error) async {
     });
   }
 
-  File _fileInProjectDirectory(String name) {
-    return new File.fromUri(directory.uri.resolve(name));
-  }
-
-  Directory _subdirectoryInProjectDirectory(String name,
-      {bool createIfDoesNotExist: true}) {
-    var dir = new Directory.fromUri(directory.uri.resolve(name));
-    if (createIfDoesNotExist && !dir.existsSync()) {
-      dir.createSync();
-    }
-
-    return dir;
-  }
-
   Future _stopPidAndDelete(int pid) async {
-    var file = _fileInProjectDirectory(_pidPathForPid(pid));
+    var file = fileInProjectDirectory(_pidPathForPid(pid));
     Process.killPid(pid);
     file.deleteSync();
 
@@ -398,5 +357,13 @@ Future writeError(String error) async {
   static const String _pidSuffix = "aqueduct.pid";
   String _pidPathForPid(int pid) {
     return ".$pid.$_pidSuffix";
+  }
+
+  String get name {
+    return "serve";
+  }
+
+  String get description {
+    return "Runs Aqueduct applications.";
   }
 }

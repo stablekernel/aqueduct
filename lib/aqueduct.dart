@@ -31,7 +31,6 @@ export 'package:safe_config/safe_config.dart';
 
 export 'src/application/application.dart';
 export 'src/auth/auth.dart';
-export 'src/commands/cli_command.dart';
 export 'src/db/db.dart';
 export 'src/http/http.dart';
 export 'src/utilities/mock_server.dart';

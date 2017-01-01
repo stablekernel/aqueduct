@@ -132,7 +132,7 @@ class PostgreSQLPersistentStore extends PersistentStore
       var rows = await results.toList();
 
       var mappedRows = rows.map((row) => row.toList()).toList();
-      logger.fine(() =>
+      logger.finest(() =>
           "Query:execute (${(new DateTime.now().toUtc().difference(now).inMilliseconds)}ms) $sql -> $mappedRows");
       return mappedRows;
     } on PostgreSQLException catch (e) {
@@ -158,8 +158,13 @@ class PostgreSQLPersistentStore extends PersistentStore
 
       return values.last.first;
     } on QueryException catch (e) {
-      if (e.underlyingException.code != PostgreSQLErrorCode.undefinedTable) {
-        throw _interpretException(e.underlyingException);
+      var underlying = e.underlyingException;
+      if (underlying is PostgreSQLException) {
+        if (underlying.code != PostgreSQLErrorCode.undefinedTable) {
+          throw _interpretException(e.underlyingException);
+        }
+      } else {
+        throw underlying;
       }
     }
 
@@ -185,6 +190,7 @@ class PostgreSQLPersistentStore extends PersistentStore
         }
 
         for (var cmd in commands) {
+          logger.info("$cmd");
           await ctx.execute(cmd);
         }
 
@@ -609,6 +615,7 @@ class PostgreSQLPersistentStore extends PersistentStore
     }
   }
 }
+
 
 /// Commonly used error codes from PostgreSQL.
 ///
