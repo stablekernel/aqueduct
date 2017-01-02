@@ -1,8 +1,9 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:isolate';
 import 'dart:mirrors';
+import 'dart:isolate';
 
+import 'package:yaml/yaml.dart';
 import 'package:args/args.dart';
 import 'package:path/path.dart' as path_lib;
 
@@ -274,7 +275,7 @@ class CLIServer extends CLICommand with CLIProject {
     var executor = new IsolateExecutor(generator, [libraryName],
         packageConfigURI: projectDirectory.uri.resolve(".packages"));
     _derivedRequestSinkType =
-        await executor.execute(workingDirectory: projectDirectory.uri);
+        await executor.execute(projectDirectory.uri);
   }
 
   Future _prepare() async {

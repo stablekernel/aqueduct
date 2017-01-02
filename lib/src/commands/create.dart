@@ -32,7 +32,7 @@ class CLITemplateCreator extends CLICommand {
 
   String get templateName => values["template"];
   String get templateDirectory => values["template-directory"];
-  String get projectName => values.rest.first;
+  String get projectName => values.rest.length > 0 ? values.rest.first : null;
   String get gitURL => values["git-url"];
   String get gitRef => values["git-ref"];
   String get pathSource => values["path-source"];
@@ -41,7 +41,7 @@ class CLITemplateCreator extends CLICommand {
 
   Future<int> handle() async {
     if (projectName == null) {
-      displayError("No project name specified.");
+      printHelp(parentCommandName: "aqueduct");
       return 1;
     }
 

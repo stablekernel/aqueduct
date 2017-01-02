@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'base.dart';
+import 'db.dart';
 
 /// Used internally.
 class CLIDatabaseVersion extends CLIDatabaseConnectingCommand {

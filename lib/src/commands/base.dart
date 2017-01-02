@@ -7,6 +7,12 @@ import 'package:yaml/yaml.dart';
 
 import '../utilities/source_generator.dart';
 
+import 'db.dart';
+import 'setup.dart';
+import 'create.dart';
+import 'serve.dart';
+import 'auth.dart';
+
 export 'db.dart';
 export 'setup.dart';
 export 'create.dart';
@@ -43,7 +49,6 @@ abstract class CLICommand implements CLIResultHandler {
         help: "Toggles ANSI color", negatable: true, defaultsTo: true);
 
   ArgResults values;
-  ArgResults get command => values.command;
   bool get showColors => values["color"] ?? true;
   bool get helpMeItsScary => values["help"] ?? false;
 
@@ -199,7 +204,7 @@ abstract class CLICommand implements CLIResultHandler {
 abstract class CLIProject implements CLIResultHandler {
   String _packageName;
 
-  Directory get projectDirectory => new Directory(values["directory"]);
+  Directory get projectDirectory => new Directory(values["directory"]).absolute;
   String get libraryName => packageName;
   String get packageName {
     if (_packageName == null) {
@@ -237,5 +242,27 @@ abstract class CLIProject implements CLIResultHandler {
     }
 
     return dir;
+  }
+}
+
+class Runner extends CLICommand {
+  Runner() {
+    registerCommand(new CLITemplateCreator());
+    registerCommand(new CLIDatabase());
+    registerCommand(new CLIServer());
+    registerCommand(new CLISetup());
+  }
+
+  Future<int> handle() async {
+    printHelp();
+    return 0;
+  }
+
+  String get name {
+    return "aqueduct";
+  }
+
+  String get description {
+    return "Aqueduct is a tool for managing Aqueduct applications.";
   }
 }

@@ -5,15 +5,14 @@ import 'dart:mirrors';
 import '../db/db.dart';
 import '../utilities/source_generator.dart';
 import 'base.dart';
+import 'db.dart';
 
-/// Used internally.
 class CLIDatabaseValidate extends CLICommand with CLIDatabaseMigratable, CLIProject {
   Future<int> handle() async {
     var files = migrationFiles;
     if (files.isEmpty) {
-      displayInfo(
-          "Migration directory doesn't contain any migrations, nothing to validate.");
-      return 0;
+      displayError("No migration files found in ${migrationDirectory.path}.");
+      return 1;
     }
 
     var currentSchemaGenerator = new SourceGenerator(
@@ -32,8 +31,8 @@ class CLIDatabaseValidate extends CLICommand with CLIDatabaseMigratable, CLIProj
 
     var currentSchemaExecutor = new IsolateExecutor(currentSchemaGenerator, [libraryName],
         packageConfigURI: projectDirectory.uri.resolve(".packages"));
-    var currentSchema = new Schema.fromMap(await currentSchemaExecutor.execute(
-        workingDirectory: projectDirectory.uri) as Map<String, dynamic>);
+    var result = await currentSchemaExecutor.execute(projectDirectory.uri);
+    var currentSchema = new Schema.fromMap(result as Map<String, dynamic>);
 
     var baseSchema = new Schema.empty();
     for (var migrationFile in migrationFiles) {
@@ -89,7 +88,7 @@ class CLIDatabaseValidate extends CLICommand with CLIDatabaseMigratable, CLIProj
 
     var schemaMap = await IsolateExecutor.executeSource(generator, [
       "${versionNumberFromFile(migrationFile)}"
-    ], message: {
+    ], projectDirectory.uri, message: {
       "schema": baseSchema.asMap()
     });
 

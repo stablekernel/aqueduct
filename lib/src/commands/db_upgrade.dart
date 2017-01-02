@@ -6,6 +6,7 @@ import 'package:logging/logging.dart';
 
 import '../utilities/source_generator.dart';
 import 'base.dart';
+import 'db.dart';
 import '../db/db.dart';
 
 /// Used internally.
@@ -143,7 +144,7 @@ class CLIDatabaseUpgrade extends CLIDatabaseConnectingCommand {
       "dbInfo": _storeConnectionMap,
     });
 
-    var schemaMap = await executor.execute();
+    var schemaMap = await executor.execute(projectDirectory.uri);
     return new Schema.fromMap(schemaMap as Map<String, dynamic>);
   }
 

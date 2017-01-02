@@ -1,14 +1,14 @@
 import 'dart:async';
 
 import 'base.dart';
+import 'db.dart';
 
-/// Used internally.
 class CLIDatabaseShowMigrations extends CLICommand with CLIDatabaseMigratable, CLIProject {
   Future<int> handle() async {
     var files = migrationFiles.map((f) {
       var versionString =
       "${versionNumberFromFile(f)}".padLeft(8, "0");
-      return " $versionString | ${f.path}";
+      return " $versionString | ${f.uri.pathSegments.last}";
     }).join("\n");
 
     print(" Version  | Path");

@@ -53,12 +53,12 @@ class IsolateExecutor {
   static Future<dynamic> executeSource(
       SourceGenerator source,
       List<String> arguments,
+      Uri workingDirectory,
       {Map<String, dynamic> message,
-      Uri packageConfigURI,
-      Uri workingDirectory}) async {
+      Uri packageConfigURI}) async {
     var executor = new IsolateExecutor(source, arguments, message: message, packageConfigURI: packageConfigURI);
 
-    return executor.execute(workingDirectory: workingDirectory);
+    return executor.execute(workingDirectory);
   }
 
   IsolateExecutor(this.generator, this.arguments,
@@ -70,8 +70,7 @@ class IsolateExecutor {
   Uri packageConfigURI;
   Completer completer = new Completer();
 
-  Future<dynamic> execute({Uri workingDirectory}) async {
-    workingDirectory ??= Directory.current.uri;
+  Future<dynamic> execute(Uri workingDirectory) async {
     message ??= {};
 
     var tempFile = new File.fromUri(
@@ -98,7 +97,7 @@ class IsolateExecutor {
       message["_sendPort"] = controlPort.sendPort;
 
       if (packageConfigURI != null) {
-        await Isolate.spawnUri(tempFile.uri, arguments, message,
+        await Isolate.spawnUri(tempFile.absolute.uri, arguments, message,
             errorsAreFatal: true,
             onError: onErrorPort.sendPort,
             packageConfig: packageConfigURI);

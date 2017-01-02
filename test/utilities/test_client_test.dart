@@ -111,7 +111,7 @@ void main() {
       expect(msg.path, "/foo");
       expect(msg.method, "GET");
 
-      var auth = new String.fromCharCodes(new Base64Decoder().convert("a:b"));
+      var auth = new Base64Encoder().convert("a:b".codeUnits);
       expect(msg.headers["authorization"], "Basic $auth");
     });
 

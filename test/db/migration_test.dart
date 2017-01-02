@@ -1,11 +1,15 @@
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
+import 'package:aqueduct/executable.dart';
 import 'dart:async';
 import 'dart:io';
+import 'dart:convert';
+import 'package:args/args.dart';
 
 void main() {
   group("Cooperation", () {
     PersistentStore store;
+
     setUp(() {
       store = new PostgreSQLPersistentStore.fromConnectionInfo(
           "dart", "dart", "localhost", 5432, "dart_test");
@@ -70,26 +74,29 @@ void main() {
   });
 
   group("Scanning for migration files", () {
-    var migrationDirectory = new Directory("migration_tmp");
+    var temporaryDirectory = new Directory("migration_tmp");
+    var migrationsDirectory = new Directory.fromUri(temporaryDirectory.uri.resolve("migrations"));
     var addFiles = (List<String> filenames) {
       filenames.forEach((name) {
-        new File.fromUri(migrationDirectory.uri.resolve(name))
+        new File.fromUri(migrationsDirectory.uri.resolve(name))
             .writeAsStringSync(" ");
       });
     };
-    MigrationExecutor executor;
+
+    PersistentStore store;
 
     setUp(() {
-      migrationDirectory.createSync();
-      executor =
-          new MigrationExecutor(null, null, null, migrationDirectory.uri);
+      temporaryDirectory.createSync();
+      migrationsDirectory.createSync();
+      store = new PostgreSQLPersistentStore.fromConnectionInfo(
+          "dart", "dart", "localhost", 5432, "dart_test");
     });
 
     tearDown(() {
-      migrationDirectory.deleteSync(recursive: true);
+      temporaryDirectory.deleteSync(recursive: true);
     });
 
-    test("Ignores not .migration.dart files", () {
+    test("Ignores not .migration.dart files", () async {
       addFiles([
         "00000001.migration.dart",
         "foobar.txt",
@@ -97,12 +104,15 @@ void main() {
         "a.dart",
         "migration.dart"
       ]);
-      expect(migrationDirectory.listSync().length, 5);
-      expect(executor.migrationFiles.map((f) => f.uri).toList(),
-          [migrationDirectory.uri.resolve("00000001.migration.dart")]);
+      expect(migrationsDirectory.listSync().length, 5);
+
+      var mock = new MockMigratable(temporaryDirectory);
+      var files = await mock.migrationFiles;
+      expect(files.length, 1);
+      expect(files.first.uri.pathSegments.last, "00000001.migration.dart");
     });
 
-    test("Migration files are ordered correctly", () {
+    test("Migration files are ordered correctly", () async {
       addFiles([
         "00000001.migration.dart",
         "2.migration.dart",
@@ -110,92 +120,83 @@ void main() {
         "10001_.migration.dart",
         "000001001.migration.dart"
       ]);
-      expect(executor.migrationFiles.map((f) => f.uri).toList(), [
-        migrationDirectory.uri.resolve("00000001.migration.dart"),
-        migrationDirectory.uri.resolve("2.migration.dart"),
-        migrationDirectory.uri.resolve("03_Foo.migration.dart"),
-        migrationDirectory.uri.resolve("000001001.migration.dart"),
-        migrationDirectory.uri.resolve("10001_.migration.dart")
-      ]);
+      expect(migrationsDirectory.listSync().length, 5);
+
+      var mock = new MockMigratable(temporaryDirectory);
+      var files = await mock.migrationFiles;
+      expect(files.length, 5);
+      expect(files[0].uri.pathSegments.last, "00000001.migration.dart");
+      expect(files[1].uri.pathSegments.last, "2.migration.dart");
+      expect(files[2].uri.pathSegments.last, "03_Foo.migration.dart");
+      expect(files[3].uri.pathSegments.last, "000001001.migration.dart");
+      expect(files[4].uri.pathSegments.last, "10001_.migration.dart");
     });
 
-    test("Migration files with invalid form throw error", () {
+    test("Migration files with invalid form throw error", () async {
       addFiles(["a_foo.migration.dart"]);
+      var mock = new MockMigratable(temporaryDirectory);
       try {
-        executor.migrationFiles;
+        await mock.migrationFiles;
         expect(true, false);
-      } on MigrationException catch (e) {
-        expect(e.message,
-            contains("Migration files must have the following format"));
+      } on CLIException catch (e) {
+        expect(e.message, contains("Migration files must have the following format"));
       }
     });
   });
 
   group("Generating migration files", () {
-    var projectDirectory = getTestProjectDirectory();
-    var libraryName = "wildfire/wildfire.dart";
-    var migrationDirectory =
-        new Directory.fromUri(projectDirectory.uri.resolve("migrations"));
+    var projectSourceDirectory = getTestProjectDirectory("initial");
+    Directory projectDirectory = new Directory("test_project");
+    var migrationDirectory = new Directory.fromUri(projectDirectory.uri.resolve("migrations"));
     var addFiles = (List<String> filenames) {
       filenames.forEach((name) {
         new File.fromUri(migrationDirectory.uri.resolve(name))
             .writeAsStringSync(" ");
       });
     };
-    MigrationExecutor executor;
 
     setUp(() async {
-      cleanTestProjectDirectory();
-      executor = new MigrationExecutor(
-          null, projectDirectory.uri, libraryName, migrationDirectory.uri);
+      createTestProject(projectSourceDirectory, projectDirectory);
     });
 
     tearDown(() {
-      cleanTestProjectDirectory();
+      projectDirectory.deleteSync(recursive: true);
     });
 
-    test("Ensure that running without getting dependencies throws error",
-        () async {
-      try {
-        await executor.generate();
-        expect(true, false);
-      } on MigrationException catch (e) {
-        expect(e.message, contains("Run pub get"));
-      }
+    test("Run without pub get yields error", () async {
+      var out = await runAqueductProcess(["db", "generate"], projectDirectory);
+      expect(out != 0, true);
     });
 
     test("Ensure migration directory will get created on generation", () async {
-      await Process.runSync("pub", ["get", "--no-packages-dir", "--offline"],
-          workingDirectory: projectDirectory.path);
-
+      await runPubGet(projectDirectory);
       expect(migrationDirectory.existsSync(), false);
-      await executor.generate();
+      var out = await runAqueductProcess(["db", "generate"], projectDirectory);
+      expect(out, 0);
       expect(migrationDirectory.existsSync(), true);
     });
 
     test(
         "If there are no migration files, create an initial one that validates to schema",
         () async {
-      await Process.runSync("pub", ["get", "--no-packages-dir", "--offline"],
-          workingDirectory: projectDirectory.path);
+      await runPubGet(projectDirectory);
 
-      // Just to put something else in there that shouldn't flag it as an 'upgrade'
+      // Putting a non-migration file in there to ensure that this doesn't prevent from being ugpraded
       migrationDirectory.createSync();
-
       addFiles(["notmigration.dart"]);
-      await executor.generate();
 
-      // Verify that this at least validates the schema.
-      await executor.validate();
+      await runAqueductProcess(["db", "generate"], projectDirectory);
+      var out = await runAqueductProcess(["db", "validate"], projectDirectory);
+      expect(out, 0);
     });
 
     test("If there is already a migration file, create an upgrade file",
         () async {
-      await Process.runSync("pub", ["get", "--no-packages-dir", "--offline"],
-          workingDirectory: projectDirectory.path);
+      await runPubGet(projectDirectory);
 
-      await executor.generate();
-      await executor.generate();
+      await runAqueductProcess(["db", "generate"], projectDirectory);
+      await runAqueductProcess(["db", "generate"], projectDirectory);
+
       expect(
           migrationDirectory
               .listSync()
@@ -212,255 +213,155 @@ void main() {
               .existsSync(),
           true);
 
-      await executor.validate();
+      var out = await runAqueductProcess(["db", "validate"], projectDirectory);
+      expect(out, 0);
     });
   });
 
   group("Validating", () {
-    var projectDirectory = getTestProjectDirectory();
-    var libraryName = "wildfire/wildfire.dart";
-    var migrationDirectory =
-        new Directory.fromUri(projectDirectory.uri.resolve("migrations"));
-    MigrationExecutor executor;
-
-    var expectedSchema = new Schema([
-      new SchemaTable("_User", [
-        new SchemaColumn("id", ManagedPropertyType.bigInteger,
-            isPrimaryKey: true, autoincrement: true),
-        new SchemaColumn("email", ManagedPropertyType.string, isUnique: true),
-        new SchemaColumn("username", ManagedPropertyType.string,
-            isUnique: true, isIndexed: true),
-        new SchemaColumn("hashedPassword", ManagedPropertyType.string),
-        new SchemaColumn("salt", ManagedPropertyType.string)
-      ]),
-      new SchemaTable("_authToken", [
-        new SchemaColumn("id", ManagedPropertyType.bigInteger,
-            isPrimaryKey: true,
-            autoincrement: true,
-            isIndexed: false,
-            isNullable: false,
-            isUnique: false),
-        new SchemaColumn("accessToken", ManagedPropertyType.string,
-            isPrimaryKey: false,
-            autoincrement: false,
-            isIndexed: true,
-            isNullable: true,
-            isUnique: true),
-        new SchemaColumn("refreshToken", ManagedPropertyType.string,
-            isPrimaryKey: false,
-            autoincrement: false,
-            isIndexed: true,
-            isNullable: true,
-            isUnique: true),
-        new SchemaColumn("code", ManagedPropertyType.string,
-            isPrimaryKey: false,
-            autoincrement: false,
-            isIndexed: true,
-            isNullable: true,
-            isUnique: true),
-        new SchemaColumn("type", ManagedPropertyType.string,
-            isPrimaryKey: false,
-            autoincrement: false,
-            isIndexed: true,
-            isNullable: true,
-            isUnique: false),
-        new SchemaColumn("issueDate", ManagedPropertyType.datetime,
-            isPrimaryKey: false,
-            autoincrement: false,
-            isIndexed: false,
-            isNullable: false,
-            isUnique: false),
-        new SchemaColumn("expirationDate", ManagedPropertyType.datetime,
-            isPrimaryKey: false,
-            autoincrement: false,
-            isIndexed: true,
-            isNullable: false,
-            isUnique: false),
-        new SchemaColumn.relationship(
-            "resourceOwner", ManagedPropertyType.bigInteger,
-            relatedTableName: "_User",
-            relatedColumnName: "id",
-            rule: ManagedRelationshipDeleteRule.cascade,
-            isNullable: false,
-            isUnique: false),
-        new SchemaColumn.relationship("client", ManagedPropertyType.string,
-            relatedTableName: "_authclient",
-            relatedColumnName: "id",
-            rule: ManagedRelationshipDeleteRule.cascade,
-            isNullable: false,
-            isUnique: false),
-      ]),
-      new SchemaTable("_authclient", [
-        new SchemaColumn("id", ManagedPropertyType.string, isPrimaryKey: true),
-        new SchemaColumn("hashedSecret", ManagedPropertyType.string,
-            isNullable: true),
-        new SchemaColumn("salt", ManagedPropertyType.string, isNullable: true),
-        new SchemaColumn("redirectURI", ManagedPropertyType.string,
-            isUnique: true, isNullable: true),
-      ]),
-    ]);
+    var projectSourceDirectory = getTestProjectDirectory("initial");
+    Directory projectDirectory = new Directory("test_project");
+    var migrationDirectory = new Directory.fromUri(projectDirectory.uri.resolve("migrations"));
 
     setUp(() async {
-      cleanTestProjectDirectory();
-      await Process.runSync("pub", ["get", "--no-packages-dir", "--offline"],
-          workingDirectory: projectDirectory.path);
-      executor = new MigrationExecutor(
-          null, projectDirectory.uri, libraryName, migrationDirectory.uri);
+      createTestProject(projectSourceDirectory, projectDirectory);
+      await runPubGet(projectDirectory);
     });
 
     tearDown(() {
-      cleanTestProjectDirectory();
+      projectDirectory.deleteSync(recursive: true);
     });
 
     test("If validating with no migration dir, get error", () async {
-      try {
-        await executor.validate();
-        expect(true, false);
-      } on MigrationException catch (e) {
-        expect(e.message, contains("nothing to validate"));
-      }
+      expect(await runAqueductProcess(["db", "validate"], projectDirectory) != 0, true);
     });
 
     test("Validating two equal schemas succeeds", () async {
-      await executor.generate();
-      var outSchema = await executor.validate();
-
-      var errors = <String>[];
-      var ok = outSchema.matches(expectedSchema, errors);
-      expect(ok, true);
-      expect(errors, []);
+      await runAqueductProcess(["db", "generate"], projectDirectory);
+      expect(await runAqueductProcess(["db", "validate"], projectDirectory), 0);
     });
 
     test("Validating different schemas fails", () async {
-      var file = await executor.generate();
+      await runAqueductProcess(["db", "generate"], projectDirectory);
       addLinesToUpgradeFile(
-          file, ["database.createTable(new SchemaTable(\"foo\", []));"]);
+          new File.fromUri(migrationDirectory.uri.resolve("00000001_Initial.migration.dart")),
+          ["database.createTable(new SchemaTable(\"foo\", []));"]);
 
-      try {
-        await executor.validate();
-        expect(true, false);
-      } on MigrationException catch (e) {
-        expect(e.toString(), contains("Validation failed"));
-        expect(e.toString(), contains("does not contain 'foo'"));
-      }
+      expect(await runAqueductProcess(["db", "validate"], projectDirectory) != 0, true);
     });
 
     test(
         "Validating runs all migrations in directory and checks the total product",
         () async {
-      var firstFile = await executor.generate();
+      await runAqueductProcess(["db", "generate"], projectDirectory);
       addLinesToUpgradeFile(
-          firstFile, ["database.createTable(new SchemaTable(\"foo\", []));"]);
+          new File.fromUri(migrationDirectory.uri.resolve("00000001_Initial.migration.dart")),
+          ["database.createTable(new SchemaTable(\"foo\", []));"]);
 
-      try {
-        await executor.validate();
-        expect(true, false);
-      } on MigrationException catch (e) {
-        expect(e.toString(), contains("Validation failed"));
-        expect(e.toString(), contains("does not contain 'foo'"));
-      }
+      expect(await runAqueductProcess(["db", "validate"], projectDirectory) != 0, true);
 
-      var nextGenFile = await executor.generate();
-      addLinesToUpgradeFile(nextGenFile, ["database.deleteTable(\"foo\");"]);
+      await runAqueductProcess(["db", "generate"], projectDirectory);
+      addLinesToUpgradeFile(
+          new File.fromUri(migrationDirectory.uri.resolve("00000002_Unnamed.migration.dart")),
+          ["database.deleteTable(\"foo\");"]);
 
-      var outSchema = await executor.validate();
-      expect(outSchema.matches(expectedSchema), true);
+      expect(await runAqueductProcess(["db", "validate"], projectDirectory), 0);
     });
   });
 
   group("Execution", () {
-    var projectDirectory = getTestProjectDirectory();
-    var libraryName = "wildfire/wildfire.dart";
-    var migrationDirectory =
-        new Directory.fromUri(projectDirectory.uri.resolve("migrations"));
-    MigrationExecutor executor;
+    var projectSourceDirectory = getTestProjectDirectory("initial");
+    Directory projectDirectory = new Directory("test_project");
+    var migrationDirectory = new Directory.fromUri(projectDirectory.uri.resolve("migrations"));
+    var connectInfo = new DatabaseConnectionConfiguration.withConnectionInfo("dart", "dart", "localhost", 5432, "dart_test");
+    var connectString = "postgres://${connectInfo.username}:${connectInfo.password}@${connectInfo.host}:${connectInfo.port}/${connectInfo.databaseName}";
+    PostgreSQLPersistentStore store;
 
     setUp(() async {
-      cleanTestProjectDirectory();
-      await Process.runSync("pub", ["get", "--no-packages-dir", "--offline"],
-          workingDirectory: projectDirectory.path);
-      var store = new PostgreSQLPersistentStore.fromConnectionInfo(
-          "dart", "dart", "localhost", 5432, "dart_test");
-      executor = new MigrationExecutor(
-          store, projectDirectory.uri, libraryName, migrationDirectory.uri);
+      store = new PostgreSQLPersistentStore.fromConnectionInfo(
+          connectInfo.username,
+          connectInfo.password,
+          connectInfo.host,
+          connectInfo.port,
+          connectInfo.databaseName);
+      createTestProject(projectSourceDirectory, projectDirectory);
+      await runPubGet(projectDirectory);
+    });
+
+    tearDown(() {
+      projectDirectory.deleteSync(recursive: true);
     });
 
     tearDown(() async {
-      cleanTestProjectDirectory();
       var tables = [
         "_aqueduct_version_pgsql",
         "foo",
-        "_authcode",
-        "_authtoken",
-        "_user",
-        "_authclient"
+        "_testobject",
       ];
+
       await Future.wait(tables.map((t) {
-        return executor.persistentStore.execute("DROP TABLE IF EXISTS $t");
+        return store.execute("DROP TABLE IF EXISTS $t");
       }));
+      await store?.close();
     });
 
     test("Generate and execute initial schema makes workable DB", () async {
-      await executor.generate();
-      await executor.upgrade();
+      await runAqueductProcess(["db", "generate"], projectDirectory);
+      await runAqueductProcess(["db", "upgrade", "--connect", connectString], projectDirectory);
 
-      var version = await executor.persistentStore
+      var version = await store
           .execute("SELECT versionNumber FROM _aqueduct_version_pgsql");
       expect(version, [
         [1]
       ]);
-      expect(await columnsOfTable(executor, "_user"),
-          ["email", "id", "username", "hashedpassword", "salt"]);
-      expect(await columnsOfTable(executor, "_authtoken"), [
-        "id",
-        "code",
-        "accesstoken",
-        "refreshtoken",
-        "issuedate",
-        "expirationdate",
-        "type",
-        "resourceowner_id",
-        "client_id"
-      ]);
+      expect(await columnsOfTable(store, "_testobject"),
+          ["id", "foo"]);
     });
 
     test("Multiple migration files are ran", () async {
-      await executor.generate();
+      await runAqueductProcess(["db", "generate"], projectDirectory);
+      await runAqueductProcess(["db", "generate"], projectDirectory);
 
-      File nextGen = await executor.generate();
-      addLinesToUpgradeFile(nextGen, [
-        "database.createTable(new SchemaTable(\"foo\", [new SchemaColumn.relationship(\"user\", ManagedPropertyType.bigInteger, relatedTableName: \"_user\", relatedColumnName: \"id\")]));",
-        "database.deleteColumn(\"_user\", \"username\");"
-      ]);
-      await executor.upgrade();
+      addLinesToUpgradeFile(
+          new File.fromUri(migrationDirectory.uri.resolve("00000002_Unnamed.migration.dart")), [
+            "database.createTable(new SchemaTable(\"foo\", [new SchemaColumn.relationship(\"testobject\", ManagedPropertyType.bigInteger, relatedTableName: \"_testobject\", relatedColumnName: \"id\")]));",
+            "database.deleteColumn(\"_testobject\", \"foo\");"
+          ]);
 
-      var version = await executor.persistentStore
-          .execute("SELECT versionNumber FROM _aqueduct_version_pgsql");
+      await runAqueductProcess(["db", "upgrade", "--connect", connectString], projectDirectory);
+
+      var version = await store.execute("SELECT versionNumber FROM _aqueduct_version_pgsql");
       expect(version, [
         [1],
         [2]
       ]);
-      expect(await columnsOfTable(executor, "_user"),
-          ["email", "id", "hashedpassword", "salt"]);
-      expect(await columnsOfTable(executor, "foo"), ["user_id"]);
+      expect(await columnsOfTable(store, "_testobject"),
+          ["id"]);
+      expect(await columnsOfTable(store, "foo"), ["testobject_id"]);
     });
 
     test("Only later migration files are ran if already at a version",
         () async {
-      await executor.generate();
-      await executor.upgrade();
+      await runAqueductProcess(["db", "generate"], projectDirectory);
+      await runAqueductProcess(["db", "upgrade", "--connect", connectString], projectDirectory);
 
-      File nextGen = await executor.generate();
-      addLinesToUpgradeFile(nextGen, [
-        "database.createTable(new SchemaTable(\"foo\", [new SchemaColumn.relationship(\"user\", ManagedPropertyType.bigInteger, relatedTableName: \"_user\", relatedColumnName: \"id\")]));",
-        "database.deleteColumn(\"_user\", \"username\");"
+      await runAqueductProcess(["db", "generate"], projectDirectory);
+      addLinesToUpgradeFile(
+        new File.fromUri(migrationDirectory.uri.resolve("00000002_Unnamed.migration.dart")), [
+        "database.createTable(new SchemaTable(\"foo\", [new SchemaColumn.relationship(\"testobject\", ManagedPropertyType.bigInteger, relatedTableName: \"_testobject\", relatedColumnName: \"id\")]));",
+        "database.deleteColumn(\"_testobject\", \"foo\");"
+      ]);;
+
+      await runAqueductProcess(["db", "upgrade", "--connect", connectString], projectDirectory);
+
+      var version = await store.execute("SELECT versionNumber FROM _aqueduct_version_pgsql");
+      expect(version, [
+        [1],
+        [2]
       ]);
-
-      await executor.upgrade();
-
-      expect(await columnsOfTable(executor, "_user"),
-          ["email", "id", "hashedpassword", "salt"]);
-      expect(await columnsOfTable(executor, "foo"), ["user_id"]);
+      expect(await columnsOfTable(store, "_testobject"),
+          ["id"]);
+      expect(await columnsOfTable(store, "foo"), ["testobject_id"]);
     });
   });
 }
@@ -489,24 +390,13 @@ class Migration1 extends Migration {
   Future seed() async {}
 }
 
-Directory getTestProjectDirectory() {
+Directory getTestProjectDirectory(String name) {
   return new Directory.fromUri(
-      Directory.current.uri.resolve("test/test_project"));
+      Directory.current.uri.resolve("test/db/migration_test_projects/$name"));
 }
 
-void cleanTestProjectDirectory() {
-  var dir = getTestProjectDirectory();
-
-  var packagesFile = new File.fromUri(dir.uri.resolve(".packages"));
-  var pubDir = new Directory.fromUri(dir.uri.resolve(".pub"));
-  var packagesDir = new Directory.fromUri(dir.uri.resolve("packages"));
-  var migrationsDir = new Directory.fromUri(dir.uri.resolve("migrations"));
-  var lockFile = new File.fromUri(dir.uri.resolve("pubspec.lock"));
-  [packagesFile, pubDir, packagesDir, migrationsDir, lockFile].forEach((f) {
-    if (f.existsSync()) {
-      f.deleteSync(recursive: true);
-    }
-  });
+void createTestProject(Directory source, Directory dest) {
+  Process.runSync("cp", ["-r", "${source.path}", "${dest.path}"]);
 }
 
 void addLinesToUpgradeFile(File upgradeFile, List<String> extraLines) {
@@ -528,9 +418,46 @@ void addLinesToUpgradeFile(File upgradeFile, List<String> extraLines) {
 }
 
 Future<List<String>> columnsOfTable(
-    MigrationExecutor executor, String tableName) async {
-  List<List<String>> results = await executor.persistentStore
+    PersistentStore persistentStore, String tableName) async {
+  List<List<String>> results = await persistentStore
       .execute("select column_name from information_schema.columns where "
           "table_name='$tableName'");
   return results.map((rows) => rows.first).toList();
+}
+
+Future<int> runAqueductProcess(List<String> commands, Directory workingDirectory) async {
+  commands.add("--directory");
+  commands.add("${workingDirectory.path}");
+
+  var cmd = new Runner();
+  var results = cmd.options.parse(commands);
+
+  return cmd.process(results);
+}
+
+class MockMigratable extends CLIDatabaseMigratable {
+  MockMigratable(this.projectDirectory);
+  Directory projectDirectory;
+  ArgResults values;
+}
+
+Future<ProcessResult> runPubGet(Directory workingDirectory,
+    {bool offline: true}) async {
+  var args = ["get", "--no-packages-dir"];
+  if (offline) {
+    args.add("--offline");
+  }
+
+  var result = await Process
+      .run("pub", args,
+      workingDirectory: workingDirectory.absolute.path,
+      runInShell: true)
+      .timeout(new Duration(seconds: 20));
+
+  if (result.exitCode != 0) {
+    throw new CLIException(
+        "${result.stderr}\n\nIf you are offline, try using --offline.");
+  }
+
+  return result;
 }

@@ -4,8 +4,8 @@ import 'dart:io';
 import '../db/db.dart';
 import '../utilities/source_generator.dart';
 import 'base.dart';
+import 'db.dart';
 
-/// Used internally.
 class CLIDatabaseGenerate extends CLICommand with CLIDatabaseMigratable, CLIProject {
   Future<int> handle() async {
     var files = migrationFiles;
@@ -52,7 +52,7 @@ class CLIDatabaseGenerate extends CLICommand with CLIDatabaseMigratable, CLIProj
     var executor = new IsolateExecutor(generator, [libraryName],
         packageConfigURI: projectDirectory.uri.resolve(".packages"));
     var contents =
-      await executor.execute(workingDirectory: projectDirectory.uri);
+      await executor.execute(projectDirectory.uri);
 
     return contents;
   }
