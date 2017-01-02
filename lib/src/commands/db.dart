@@ -34,6 +34,19 @@ class CLIDatabase extends CLICommand {
   String get description {
     return "Modifies, verifies and generates database schemas.";
   }
+  String get detailedDescription {
+    return "Some commands require connecting to a database to perform their action. These commands will "
+        "have options for --connect and --database-config in their usage instructions."
+        "You may either use a connection string (--connect) or a database configuration (--database-config) to provide "
+        "connection details. The format of a connection string is: \n\n"
+        "\tpostgres://username:password@host:port/databaseName\n\n"
+        "A database configuration file is a YAML file with the following format:\n\n"
+        "\tusername: \"user\"\n"
+        "\tpassword: \"password\"\n"
+        "\thost: \"host\"\n"
+        "\tport: port\n"
+        "\tdatabaseName: \"database\"";
+  }
 
   Future<int> handle() async {
     printHelp();
@@ -58,8 +71,10 @@ abstract class CLIDatabaseConnectingCommand extends CLICommand with CLIDatabaseM
           valueHelp: "postgres://user:password@localhost:port/databaseName")
       ..addOption("database-config",
           help:
-          "A configuration file that provides connection information for the database. Paths are relative to migration-directory. If the connect option is set, this value is ignored.",
-          defaultsTo: "migration.yaml")
+          "A configuration file that provides connection information for the database. "
+              "Paths are relative to project directory. If the connect option is set, this value is ignored. "
+              "See 'aqueduct db -h' for details.",
+          defaultsTo: "database.yaml")
       ..addFlag("use-ssl",
           help: "Whether or not the database connection should use SSL",
           defaultsTo: false);
@@ -69,7 +84,7 @@ abstract class CLIDatabaseConnectingCommand extends CLICommand with CLIDatabaseM
   bool get useSSL => values["use-ssl"];
   String get databaseConnectionString => values["connect"];
   String get databaseFlavor => values["flavor"];
-  File get databaseConfigurationFile => CLIProject.fileInDirectory(migrationDirectory, values["database-config"]);
+  File get databaseConfigurationFile => fileInProjectDirectory(values["database-config"]);
 
   PersistentStore _persistentStore;
   PersistentStore get persistentStore {

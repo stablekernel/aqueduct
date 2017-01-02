@@ -122,6 +122,14 @@ class CLIServer extends CLIServeBase {
       return 1;
     }
 
+    if (!shouldRunDetached) {
+      stderr.addStream(serverProcess.stderr);
+      serverProcess.exitCode.then((code) {
+        displayError("Server terminated (Exit Code: $code)");
+        exit(0);
+      });
+    }
+
     var now = new DateTime.now();
     var diff = now.difference(startupTime);
     displayInfo("Success!", color: CLIColor.boldGreen);
@@ -169,14 +177,6 @@ class CLIServer extends CLIServeBase {
         workingDirectory: projectDirectory.absolute.path,
         runInShell: true,
         mode: startMode);
-
-    if (!shouldRunDetached) {
-      stderr.addStream(process.stderr);
-      process.exitCode.then((code) {
-        displayError("Server terminated (Exit Code: $code)");
-        exit(0);
-      });
-    }
 
     return process;
   }

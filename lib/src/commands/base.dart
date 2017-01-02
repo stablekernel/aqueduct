@@ -45,13 +45,14 @@ abstract class CLICommand implements CLIResultHandler {
   ArgParser options = new ArgParser(allowTrailingOptions: true)
     ..addOption("directory", abbr: "d", help: "Project directory to execute command in", defaultsTo: Directory.current.path)
     ..addFlag("help", abbr: "h", help: "Shows this", negatable: false)
+    ..addFlag("stacktrace", help: "Shows the stacktrace if an error occurs", defaultsTo: false)
     ..addFlag("color",
         help: "Toggles ANSI color", negatable: true, defaultsTo: true);
 
   ArgResults values;
-  bool get showColors => values["color"] ?? true;
-  bool get helpMeItsScary => values["help"] ?? false;
-
+  bool get showColors => values["color"];
+  bool get helpMeItsScary => values["help"];
+  bool get showStacktrace => values["stacktrace"];
   Map<String, CLICommand> _commandMap = {};
 
   void registerCommand(CLICommand cmd) {
@@ -100,19 +101,26 @@ abstract class CLICommand implements CLIResultHandler {
         displayProgress(instruction);
       });
       print("");
-      displayError("Offending Stacktrace ***", color: CLIColor.red);
-      print("$st");
+      if (showStacktrace) {
+        displayError("Offending Stacktrace ***", color: CLIColor.red);
+        print("$st");
+      }
     } on IsolateExecutorException catch (e, st) {
       displayError(e.message);
       displayProgress("Try running 'pub get' first.");
       print("");
-      displayError("Offending Stacktrace ***", color: CLIColor.red);
-      print("$st");
+
+      if (showStacktrace) {
+        displayError("Offending Stacktrace ***", color: CLIColor.red);
+        print("$st");
+      }
     } catch (e, st) {
       displayError("$e");
       print("");
-      displayError("Offending Stacktrace ***", color: CLIColor.red);
-      print("$st");
+      if (showStacktrace) {
+        displayError("Offending Stacktrace ***", color: CLIColor.red);
+        print("$st");
+      }
     } finally {
       await cleanup();
     }
@@ -251,6 +259,7 @@ class Runner extends CLICommand {
     registerCommand(new CLIDatabase());
     registerCommand(new CLIServer());
     registerCommand(new CLISetup());
+    registerCommand(new CLIAuth());
   }
 
   Future<int> handle() async {
