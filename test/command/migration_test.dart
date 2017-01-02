@@ -3,8 +3,8 @@ import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/executable.dart';
 import 'dart:async';
 import 'dart:io';
-import 'dart:convert';
 import 'package:args/args.dart';
+import '../helpers.dart';
 
 void main() {
   group("Cooperation", () {
@@ -169,7 +169,7 @@ void main() {
     });
 
     test("Ensure migration directory will get created on generation", () async {
-      await runPubGet(projectDirectory);
+      await runPubGet(projectDirectory, offline: true);
       expect(migrationDirectory.existsSync(), false);
       var out = await runAqueductProcess(["db", "generate"], projectDirectory);
       expect(out, 0);
@@ -179,7 +179,7 @@ void main() {
     test(
         "If there are no migration files, create an initial one that validates to schema",
         () async {
-      await runPubGet(projectDirectory);
+      await runPubGet(projectDirectory, offline: true);
 
       // Putting a non-migration file in there to ensure that this doesn't prevent from being ugpraded
       migrationDirectory.createSync();
@@ -192,7 +192,7 @@ void main() {
 
     test("If there is already a migration file, create an upgrade file",
         () async {
-      await runPubGet(projectDirectory);
+      await runPubGet(projectDirectory, offline: true);
 
       await runAqueductProcess(["db", "generate"], projectDirectory);
       await runAqueductProcess(["db", "generate"], projectDirectory);
@@ -225,7 +225,7 @@ void main() {
 
     setUp(() async {
       createTestProject(projectSourceDirectory, projectDirectory);
-      await runPubGet(projectDirectory);
+      await runPubGet(projectDirectory, offline: true);
     });
 
     tearDown(() {
@@ -285,7 +285,7 @@ void main() {
           connectInfo.port,
           connectInfo.databaseName);
       createTestProject(projectSourceDirectory, projectDirectory);
-      await runPubGet(projectDirectory);
+      await runPubGet(projectDirectory, offline: true);
     });
 
     tearDown(() {
@@ -392,11 +392,7 @@ class Migration1 extends Migration {
 
 Directory getTestProjectDirectory(String name) {
   return new Directory.fromUri(
-      Directory.current.uri.resolve("test/db/migration_test_projects/$name"));
-}
-
-void createTestProject(Directory source, Directory dest) {
-  Process.runSync("cp", ["-r", "${source.path}", "${dest.path}"]);
+      Directory.current.uri.resolve("test/command/migration_test_projects/$name"));
 }
 
 void addLinesToUpgradeFile(File upgradeFile, List<String> extraLines) {
@@ -439,25 +435,4 @@ class MockMigratable extends CLIDatabaseMigratable {
   MockMigratable(this.projectDirectory);
   Directory projectDirectory;
   ArgResults values;
-}
-
-Future<ProcessResult> runPubGet(Directory workingDirectory,
-    {bool offline: true}) async {
-  var args = ["get", "--no-packages-dir"];
-  if (offline) {
-    args.add("--offline");
-  }
-
-  var result = await Process
-      .run("pub", args,
-      workingDirectory: workingDirectory.absolute.path,
-      runInShell: true)
-      .timeout(new Duration(seconds: 20));
-
-  if (result.exitCode != 0) {
-    throw new CLIException(
-        "${result.stderr}\n\nIf you are offline, try using --offline.");
-  }
-
-  return result;
 }

@@ -194,7 +194,7 @@ abstract class CLICommand implements CLIResultHandler {
       commandNames.sort((a, b) => b.length.compareTo(a.length));
       var length = commandNames.first.length + 3;
       commandNames.forEach((command) {
-        var desc = _commandMap[command].description;
+        var desc = _commandMap[command]?.description;
         print("  ${command.padRight(length, " ")}$desc");
       });
     }

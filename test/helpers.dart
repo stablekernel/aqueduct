@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:aqueduct/aqueduct.dart';
 export 'context_helpers.dart';
+import 'dart:io';
 
 justLogEverything() {
   hierarchicalLoggingEnabled = true;
@@ -293,4 +294,29 @@ class DefaultPersistentStore extends PersistentStore {
   Future upgrade(int versionNumber, List<String> commands,
           {bool temporary: false}) async =>
       null;
+}
+
+
+Future<ProcessResult> runPubGet(Directory workingDirectory,
+    {bool offline: true}) async {
+  var args = ["get", "--no-packages-dir"];
+  if (offline) {
+    args.add("--offline");
+  }
+
+  var result = await Process
+      .run("pub", args,
+      workingDirectory: workingDirectory.absolute.path,
+      runInShell: true)
+      .timeout(new Duration(seconds: 20));
+
+  if (result.exitCode != 0) {
+    throw new Exception("${result.stderr}");
+  }
+
+  return result;
+}
+
+void createTestProject(Directory source, Directory dest) {
+  Process.runSync("cp", ["-r", "${source.path}", "${dest.path}"]);
 }

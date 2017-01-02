@@ -83,16 +83,6 @@ void main() {
   });
 }
 
-Future<int> runAqueductProcess(List<String> commands, Directory workingDirectory) async {
-  commands.add("--directory");
-  commands.add("${workingDirectory.path}");
-
-  var cmd = new Runner();
-  var results = cmd.options.parse(commands);
-
-  return cmd.process(results);
-}
-
 Future<int> runWith(List<String> args) {
   var aqueductDirectory = Directory.current.path;
   var allArgs = ["create", "--path-source", "$aqueductDirectory"];

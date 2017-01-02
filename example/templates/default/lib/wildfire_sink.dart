@@ -29,6 +29,10 @@ class WildfireSink extends RequestSink {
   /// Values can be added to [config]'s [ApplicationConfiguration.options] and will be available in each instance of this class
   /// in the constructor. The values added to the configuration's options are often from a configuration file that this method reads.
   static Future initializeApplication(ApplicationConfiguration config) async {
+    if (config.configurationFilePath == null) {
+      throw new ApplicationStartupException("No configuration file found. See README.md.");
+    }
+
     var configFileValues =
         new WildfireConfiguration(config.configurationFilePath);
     config.options[ConfigurationValuesKey] = configFileValues;

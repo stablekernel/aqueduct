@@ -11,10 +11,9 @@ import '../http/http.dart';
 import '../utilities/source_generator.dart';
 import 'base.dart';
 
-class CLIServer extends CLICommand with CLIProject {
+class CLIServer extends CLIServeBase {
   CLIServer() {
     options
-      ..addCommand("stop")
       ..addOption("sink",
           abbr: "s",
           help:
@@ -56,10 +55,11 @@ class CLIServer extends CLICommand with CLIProject {
               "Runs the application detached from this script. This script will terminate and the application will continue executing",
           defaultsTo: false,
           negatable: false);
+
+    registerCommand(new CLIServeStop());
   }
 
-  String _derivedRequestSinkType;
-
+  String derivedRequestSinkType;
   ArgResults get command => values.command;
   bool get shouldRunDetached => values["detached"];
   bool get shouldRunObservatory => values["observe"];
@@ -68,7 +68,7 @@ class CLIServer extends CLICommand with CLIProject {
   int get port => int.parse(values["port"]);
   int get numberOfIsolates => int.parse(values["isolates"]);
   String get address => values["address"];
-  String get requestSinkType => values["sink"] ?? _derivedRequestSinkType;
+  String get requestSinkType => values["sink"] ?? derivedRequestSinkType;
   File get configurationFile {
     String path = values["config-path"];
     if (path_lib.isRelative(path)) {
@@ -79,31 +79,22 @@ class CLIServer extends CLICommand with CLIProject {
   }
 
   Directory get binDirectory => subdirectoryInProjectDirectory("bin");
-  List<FileSystemEntity> _registeredLaunchArtifacts = [];
+  List<FileSystemEntity> registeredLaunchArtifacts = [];
 
   Future<int> handle() async {
-    await _deriveApplicationLibraryDetails();
-
-    if (command?.name == "stop") {
-      return stop();
-    }
+    await deriveApplicationLibraryDetails();
 
     return start();
   }
 
   Future cleanup() async {
-    _deleteLaunchArtifacts();
+    deleteLaunchArtifacts();
   }
 
   /////
 
   Future<int> start() async {
-    await _prepare();
-
-    if (!configurationFile.existsSync()) {
-      displayError("Configuration file not found : ${configurationFile.path}");
-      return 1;
-    }
+    await prepare();
 
     var replacements = {
       "PACKAGE_NAME": packageName,
@@ -118,16 +109,16 @@ class CLIServer extends CLICommand with CLIProject {
 
     displayInfo("Starting application '$packageName/$libraryName'");
     displayProgress("Sink Type: $requestSinkType");
-    displayProgress("Config: ${configurationFile.path}");
+    displayProgress("Config: ${configurationFile?.path}");
 
     var startupTime = new DateTime.now();
-    var generatedStartScript = _createScriptSource(replacements);
-    var startScriptFile = _createStartScript(generatedStartScript);
-    var serverProcess = await _executeStartScript(startScriptFile);
-    var startFailureReason = await _checkForStartError(serverProcess);
+    var generatedStartScript = createScriptSource(replacements);
+    var startScriptFile = createStartScript(generatedStartScript);
+    var serverProcess = await executeStartScript(startScriptFile);
+    var startFailureReason = await checkForStartError(serverProcess);
 
     if (startFailureReason != "ok") {
-      _failWithError(serverProcess.pid, startFailureReason);
+      failWithError(serverProcess.pid, startFailureReason);
       return 1;
     }
 
@@ -144,7 +135,7 @@ class CLIServer extends CLICommand with CLIProject {
       stdout.addStream(serverProcess.stdout);
 
       var cleanupFile = (ProcessSignal s) {
-        var f = new File(_pidPathForPid(serverProcess.pid));
+        var f = new File(pidPathForPid(serverProcess.pid));
         if (f.existsSync()) {
           f.deleteSync();
         }
@@ -160,19 +151,8 @@ class CLIServer extends CLICommand with CLIProject {
     return 0;
   }
 
-  Future<int> stop() async {
-    displayInfo("Stopping application.");
-    _pidFilesInDirectory(projectDirectory).forEach((file) {
-      var pidString =
-          path_lib.relative(file.path, from: projectDirectory.path).split(".")[1];
-      _stopPidAndDelete(int.parse(pidString));
-    });
 
-    displayInfo("Application stopped.");
-    return 0;
-  }
-
-  Future<Process> _executeStartScript(File startScriptFile) async {
+  Future<Process> executeStartScript(File startScriptFile) async {
     var args = <String>[];
     if (shouldRunObservatory) {
       args.add("--observe");
@@ -201,18 +181,18 @@ class CLIServer extends CLICommand with CLIProject {
     return process;
   }
 
-  void _failWithError(int processPid, String reason) {
+  void failWithError(int processPid, String reason) {
     displayError("Application failed to start: \n\n$reason");
     Process.killPid(processPid);
 
     var processFile =
-        new File.fromUri(projectDirectory.uri.resolve(_pidPathForPid(processPid)));
+        new File.fromUri(projectDirectory.uri.resolve(pidPathForPid(processPid)));
     try {
       processFile.deleteSync();
     } catch (_) {}
   }
 
-  Future<String> _checkForStartError(Process process) async {
+  Future<String> checkForStartError(Process process) async {
     displayProgress("Verifying launch...");
 
     int timeoutInMilliseconds = 20 * 1000;
@@ -220,7 +200,7 @@ class CLIServer extends CLICommand with CLIProject {
     var accumulated = 0;
 
     new Timer.periodic(new Duration(milliseconds: 100), (t) {
-      var signalFile = fileInProjectDirectory(_pidPathForPid(process.pid));
+      var signalFile = fileInProjectDirectory(pidPathForPid(process.pid));
       if (signalFile.existsSync()) {
         t.cancel();
         completer.complete(signalFile.readAsStringSync());
@@ -237,18 +217,18 @@ class CLIServer extends CLICommand with CLIProject {
     return completer.future;
   }
 
-  File _createStartScript(String contents) {
+  File createStartScript(String contents) {
     var filename = ".tmp_aqueduct_serve_start.dart";
     var file = new File.fromUri(binDirectory.uri.resolve(filename));
 
     file.writeAsStringSync(contents);
 
-    _registeredLaunchArtifacts.add(file);
+    registeredLaunchArtifacts.add(file);
 
     return file;
   }
 
-  Future _deriveApplicationLibraryDetails() async {
+  Future deriveApplicationLibraryDetails() async {
     // Find request sink type
     var generator = new SourceGenerator(
         (List<String> args, Map<String, dynamic> values) async {
@@ -274,32 +254,30 @@ class CLIServer extends CLICommand with CLIProject {
 
     var executor = new IsolateExecutor(generator, [libraryName],
         packageConfigURI: projectDirectory.uri.resolve(".packages"));
-    _derivedRequestSinkType =
+    derivedRequestSinkType =
         await executor.execute(projectDirectory.uri);
   }
 
-  Future _prepare() async {
+  Future prepare() async {
     displayInfo("Preparing...");
-    await Future.wait(_pidFilesInDirectory(projectDirectory).map((FileSystemEntity f) {
+    await Future.wait(pidFilesInDirectory(projectDirectory).map((FileSystemEntity f) {
       var pidString =
           path_lib.relative(f.path, from: projectDirectory.path).split(".")[1];
 
       displayProgress("Stopping currently running server (PID: $pidString)");
 
-      return _stopPidAndDelete(int.parse(pidString));
+      return stopPidAndDelete(int.parse(pidString));
     }));
   }
 
-  List<File> _pidFilesInDirectory(Directory directory) {
-    return directory.listSync().where((fse) {
-      return fse is File && fse.path.endsWith(_pidSuffix);
-    }).toList();
-  }
-
-  String _createScriptSource(Map<String, dynamic> values) {
+  String createScriptSource(Map<String, dynamic> values) {
     var addressString = "..address = \"___ADDRESS___\"";
     if (values["ADDRESS"] == null) {
       addressString = "";
+    }
+    var configString = "..configurationFilePath = \"___CONFIGURATION_FILE_PATH___\"";
+    if (values["CONFIGURATION_FILE_PATH"] == null) {
+      configString = "";
     }
 
     var contents = """
@@ -315,14 +293,14 @@ main() async {
     var config = new ApplicationConfiguration()
       ..port = ___PORT___
       $addressString
-      ..configurationFilePath = \"___CONFIGURATION_FILE_PATH___\"
+      $configString
       ..isIpv6Only = ___IPV6_ONLY___;
 
     app.configuration = config;
 
     await app.start(numberOfInstances: ___NUMBER_OF_ISOLATES___);
 
-    var signalFile = new File(".\${pid}.$_pidSuffix");
+    var signalFile = new File(".\${pid}.$pidSuffix");
     await signalFile.writeAsString("ok");
   } catch (e, st) {
     await writeError("\$e\\n \$st");
@@ -330,7 +308,7 @@ main() async {
 }
 
 Future writeError(String error) async {
-  var signalFile = new File(".\${pid}.$_pidSuffix");
+  var signalFile = new File(".\${pid}.$pidSuffix");
   await signalFile.writeAsString(error);
 }
     """;
@@ -341,23 +319,10 @@ Future writeError(String error) async {
     });
   }
 
-  void _deleteLaunchArtifacts() {
-    _registeredLaunchArtifacts.forEach((e) {
+  void deleteLaunchArtifacts() {
+    registeredLaunchArtifacts.forEach((e) {
       e.deleteSync();
     });
-  }
-
-  Future _stopPidAndDelete(int pid) async {
-    var file = fileInProjectDirectory(_pidPathForPid(pid));
-    Process.killPid(pid);
-    file.deleteSync();
-
-    displayProgress("Stopped PID $pid.");
-  }
-
-  static const String _pidSuffix = "aqueduct.pid";
-  String _pidPathForPid(int pid) {
-    return ".$pid.$_pidSuffix";
   }
 
   String get name {
@@ -366,5 +331,53 @@ Future writeError(String error) async {
 
   String get description {
     return "Runs Aqueduct applications.";
+  }
+}
+
+class CLIServeStop extends CLIServeBase {
+  Future<int> handle() async {
+    var pidFiles = pidFilesInDirectory(projectDirectory);
+    if (pidFiles.isEmpty) {
+      displayInfo("No server running.");
+      return 0;
+    }
+
+    displayInfo("Stopping application.");
+    pidFiles.forEach((file) {
+      var pidString =
+        path_lib.relative(file.path, from: projectDirectory.path).split(".")[1];
+      stopPidAndDelete(int.parse(pidString));
+    });
+
+    displayInfo("Application stopped.");
+    return 0;
+  }
+
+
+  String get description => "Stops an application in the current directory from running.";
+  String get name => "stop";
+}
+
+abstract class CLIServeBase extends CLICommand with CLIProject {
+  Future stopPidAndDelete(int pid) async {
+    var file = fileInProjectDirectory(pidPathForPid(pid));
+    Process.killPid(pid);
+    file.deleteSync();
+
+    displayProgress("Stopped PID $pid.");
+  }
+
+  String get pidSuffix => "aqueduct.pid";
+  String pidPathForPid(int pid) {
+    return ".$pid.$pidSuffix";
+  }
+
+  List<File> pidFilesInDirectory(Directory directory) {
+    return directory.listSync()
+        .where((fse) {
+          return fse is File && fse.path.endsWith(pidSuffix);
+        })
+        .map((fse) => fse as File)
+        .toList();
   }
 }
