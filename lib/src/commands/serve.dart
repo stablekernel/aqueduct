@@ -130,6 +130,10 @@ class CLIServer extends CLIServeBase {
       });
     }
 
+    if (shouldRunObservatory && await supportsLaunchObservatory()) {
+      await launchObservatory("http://localhost:8181");
+    }
+
     var now = new DateTime.now();
     var diff = now.difference(startupTime);
     displayInfo("Success!", color: CLIColor.boldGreen);
@@ -162,7 +166,7 @@ class CLIServer extends CLIServeBase {
   Future<Process> executeStartScript(File startScriptFile) async {
     var args = <String>[];
     if (shouldRunObservatory) {
-      args.add("--observe");
+      args.add("--observe=8181");
     }
     args.add(startScriptFile.absolute.path);
 
@@ -382,4 +386,15 @@ abstract class CLIServeBase extends CLICommand with CLIProject {
         .map((fse) => fse as File)
         .toList();
   }
+}
+
+Future<bool> supportsLaunchObservatory() async {
+  String locator = Platform.isWindows ? "where" : "which";
+  var result = await Process.run(locator, ["open"]);
+
+  return result.exitCode == 0;
+}
+
+Future launchObservatory(String url) async {
+  return Process.run("open", [url]);
 }
