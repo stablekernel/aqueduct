@@ -146,15 +146,14 @@ class CLIServer extends CLIServeBase {
       displayInfo("Starting Application Log --");
       stdout.addStream(serverProcess.stdout);
 
-      var cleanupFile = (ProcessSignal s) {
+      ProcessSignal.SIGINT.watch().listen((ProcessSignal s) {
         var f = new File(pidPathForPid(serverProcess.pid));
         if (f.existsSync()) {
           f.deleteSync();
         }
 
         Isolate.current.kill();
-      };
-      ProcessSignal.SIGINT.watch().listen(cleanupFile);
+      });
     } else {
       displayProgress(
           "Use 'aqueduct serve stop' in '${projectDirectory.path}' to stop running the application.");
