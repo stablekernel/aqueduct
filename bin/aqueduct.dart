@@ -8,4 +8,3 @@ main(List<String> args) async {
   var values = runner.options.parse(args);
   exitCode = await runner.process(values);
 }
-

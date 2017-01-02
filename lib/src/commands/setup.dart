@@ -24,13 +24,13 @@ class CLISetup extends CLICommand {
     if (!(await hasPSQLCLI)) {
       displayError(
           "No psql found in PATH.\n\nIf you do not have PostgreSQL installed locally, "
-              "you must do so to run tests in an Aqueduct application. For macOS users, "
-              "download Postgres.app from http://postgresapp.com. Once installed, open the "
-              "application at least once and add the following line to ~/.bash_profile:\n\n"
-              "\texport PATH=\$PATH:/Applications/Postgres.app/Contents/Versions/latest/bin\n\n"
-              "You may have to reload the shell you ran this command from after installation. "
-              "For non-macOS users, you must install a local version of PostgreSQL"
-              "and ensure the command line executable 'psql' is in your PATH.");
+          "you must do so to run tests in an Aqueduct application. For macOS users, "
+          "download Postgres.app from http://postgresapp.com. Once installed, open the "
+          "application at least once and add the following line to ~/.bash_profile:\n\n"
+          "\texport PATH=\$PATH:/Applications/Postgres.app/Contents/Versions/latest/bin\n\n"
+          "You may have to reload the shell you ran this command from after installation. "
+          "For non-macOS users, you must install a local version of PostgreSQL"
+          "and ensure the command line executable 'psql' is in your PATH.");
 
       return -1;
     }

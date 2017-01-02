@@ -616,7 +616,6 @@ class PostgreSQLPersistentStore extends PersistentStore
   }
 }
 
-
 /// Commonly used error codes from PostgreSQL.
 ///
 /// When a [QueryException.underlyingException] is a [PostgreSQLException], this [PostgreSQLException.code]

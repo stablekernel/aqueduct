@@ -159,7 +159,6 @@ class CLIServer extends CLIServeBase {
     return 0;
   }
 
-
   Future<Process> executeStartScript(File startScriptFile) async {
     var args = <String>[];
     if (shouldRunObservatory) {
@@ -185,8 +184,8 @@ class CLIServer extends CLIServeBase {
     displayError("Application failed to start: \n\n$reason");
     Process.killPid(processPid);
 
-    var processFile =
-        new File.fromUri(projectDirectory.uri.resolve(pidPathForPid(processPid)));
+    var processFile = new File.fromUri(
+        projectDirectory.uri.resolve(pidPathForPid(processPid)));
     try {
       processFile.deleteSync();
     } catch (_) {}
@@ -254,13 +253,13 @@ class CLIServer extends CLIServeBase {
 
     var executor = new IsolateExecutor(generator, [libraryName],
         packageConfigURI: projectDirectory.uri.resolve(".packages"));
-    derivedRequestSinkType =
-        await executor.execute(projectDirectory.uri);
+    derivedRequestSinkType = await executor.execute(projectDirectory.uri);
   }
 
   Future prepare() async {
     displayInfo("Preparing...");
-    await Future.wait(pidFilesInDirectory(projectDirectory).map((FileSystemEntity f) {
+    await Future
+        .wait(pidFilesInDirectory(projectDirectory).map((FileSystemEntity f) {
       var pidString =
           path_lib.relative(f.path, from: projectDirectory.path).split(".")[1];
 
@@ -275,7 +274,8 @@ class CLIServer extends CLIServeBase {
     if (values["ADDRESS"] == null) {
       addressString = "";
     }
-    var configString = "..configurationFilePath = \"___CONFIGURATION_FILE_PATH___\"";
+    var configString =
+        "..configurationFilePath = \"___CONFIGURATION_FILE_PATH___\"";
     if (values["CONFIGURATION_FILE_PATH"] == null) {
       configString = "";
     }
@@ -344,8 +344,9 @@ class CLIServeStop extends CLIServeBase {
 
     displayInfo("Stopping application.");
     pidFiles.forEach((file) {
-      var pidString =
-        path_lib.relative(file.path, from: projectDirectory.path).split(".")[1];
+      var pidString = path_lib
+          .relative(file.path, from: projectDirectory.path)
+          .split(".")[1];
       stopPidAndDelete(int.parse(pidString));
     });
 
@@ -353,8 +354,8 @@ class CLIServeStop extends CLIServeBase {
     return 0;
   }
 
-
-  String get description => "Stops an application in the current directory from running.";
+  String get description =>
+      "Stops an application in the current directory from running.";
   String get name => "stop";
 }
 
@@ -373,7 +374,8 @@ abstract class CLIServeBase extends CLICommand with CLIProject {
   }
 
   List<File> pidFilesInDirectory(Directory directory) {
-    return directory.listSync()
+    return directory
+        .listSync()
         .where((fse) {
           return fse is File && fse.path.endsWith(pidSuffix);
         })

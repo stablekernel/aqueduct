@@ -3,11 +3,11 @@ import 'dart:async';
 import 'base.dart';
 import 'db.dart';
 
-class CLIDatabaseShowMigrations extends CLICommand with CLIDatabaseMigratable, CLIProject {
+class CLIDatabaseShowMigrations extends CLICommand
+    with CLIDatabaseMigratable, CLIProject {
   Future<int> handle() async {
     var files = migrationFiles.map((f) {
-      var versionString =
-      "${versionNumberFromFile(f)}".padLeft(8, "0");
+      var versionString = "${versionNumberFromFile(f)}".padLeft(8, "0");
       return " $versionString | ${f.uri.pathSegments.last}";
     }).join("\n");
 
@@ -21,6 +21,7 @@ class CLIDatabaseShowMigrations extends CLICommand with CLIDatabaseMigratable, C
   String get name {
     return "list";
   }
+
   String get description {
     return "Show the path and version all migration files for this project.";
   }

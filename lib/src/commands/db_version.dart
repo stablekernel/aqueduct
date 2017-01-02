@@ -31,6 +31,7 @@ class CLIDatabaseVersion extends CLIDatabaseConnectingCommand {
   String get name {
     return "get-version";
   }
+
   String get description {
     return "Shows the schema version of a database.";
   }

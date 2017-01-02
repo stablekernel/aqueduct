@@ -30,7 +30,8 @@ class WildfireSink extends RequestSink {
   /// in the constructor. The values added to the configuration's options are often from a configuration file that this method reads.
   static Future initializeApplication(ApplicationConfiguration config) async {
     if (config.configurationFilePath == null) {
-      throw new ApplicationStartupException("No configuration file found. See README.md.");
+      throw new ApplicationStartupException(
+          "No configuration file found. See README.md.");
     }
 
     var configFileValues =

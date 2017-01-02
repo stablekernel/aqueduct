@@ -43,9 +43,13 @@ abstract class CLICommand implements CLIResultHandler {
 
   /// Options for this command.
   ArgParser options = new ArgParser(allowTrailingOptions: true)
-    ..addOption("directory", abbr: "d", help: "Project directory to execute command in", defaultsTo: Directory.current.path)
+    ..addOption("directory",
+        abbr: "d",
+        help: "Project directory to execute command in",
+        defaultsTo: Directory.current.path)
     ..addFlag("help", abbr: "h", help: "Shows this", negatable: false)
-    ..addFlag("stacktrace", help: "Shows the stacktrace if an error occurs", defaultsTo: false)
+    ..addFlag("stacktrace",
+        help: "Shows the stacktrace if an error occurs", defaultsTo: false)
     ..addFlag("color",
         help: "Toggles ANSI color", negatable: true, defaultsTo: true);
 
@@ -76,7 +80,8 @@ abstract class CLICommand implements CLIResultHandler {
   ///
   /// Do not override this method. This method invokes [handle] within a try-catch block
   /// and will invoke [cleanup] when complete.
-  Future<int> process(ArgResults results, {List<String> parentCommandNames}) async {
+  Future<int> process(ArgResults results,
+      {List<String> parentCommandNames}) async {
     if (results.command != null) {
       if (parentCommandNames == null) {
         parentCommandNames = [name];
@@ -162,6 +167,7 @@ abstract class CLICommand implements CLIResultHandler {
     buf.write(" [arguments]");
     return buf.toString();
   }
+
   String get description;
 
   String get defaultColorSymbol {

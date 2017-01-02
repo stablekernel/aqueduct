@@ -17,9 +17,7 @@ class CLIAuth extends CLICommand {
     return 0;
   }
 
-  Future cleanup() async {
-
-  }
+  Future cleanup() async {}
 
   String get name {
     return "auth";
@@ -41,16 +39,21 @@ class CLIAuth extends CLICommand {
         "\thost: \"host\"\n"
         "\tport: port\n"
         "\tdatabaseName: \"database\"";
-
   }
 }
 
 class CLIAuthAddClient extends CLIDatabaseConnectingCommand {
   CLIAuthAddClient() {
     options
-        ..addOption("id", abbr: "i", help: "The client ID to insert.")
-        ..addOption("secret", abbr: "s", help: "The client secret. This secret will be hashed on insertion, so you *must* store it somewhere. For public clients, this option may be omitted.")
-        ..addOption("redirect-uri", abbr: "r", help: "The redirect URI of the client if it supports the authorization code flow. May be omitted.");
+      ..addOption("id", abbr: "i", help: "The client ID to insert.")
+      ..addOption("secret",
+          abbr: "s",
+          help:
+              "The client secret. This secret will be hashed on insertion, so you *must* store it somewhere. For public clients, this option may be omitted.")
+      ..addOption("redirect-uri",
+          abbr: "r",
+          help:
+              "The redirect URI of the client if it supports the authorization code flow. May be omitted.");
   }
 
   String get clientID => values["id"];
@@ -64,38 +67,41 @@ class CLIAuthAddClient extends CLIDatabaseConnectingCommand {
     }
 
     if (secret == null && redirectUri != null) {
-      displayError("A client that supports the authorization code flow must be a confidential client");
-      displayProgress("Using option --redirect-uri creates a client that supports the authorization code flow. Either provide --secret or remove --redirect-uri.");
+      displayError(
+          "A client that supports the authorization code flow must be a confidential client");
+      displayProgress(
+          "Using option --redirect-uri creates a client that supports the authorization code flow. Either provide --secret or remove --redirect-uri.");
       return 1;
     }
 
     var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
     var context = new ManagedContext(dataModel, persistentStore);
 
-    var credentials = AuthUtility.generateAPICredentialPair(clientID, secret, redirectURI: redirectUri);
+    var credentials = AuthUtility.generateAPICredentialPair(clientID, secret,
+        redirectURI: redirectUri);
     var managedCredentials = new ManagedClient()
       ..id = credentials.id
       ..hashedSecret = credentials.hashedSecret
       ..salt = credentials.salt
       ..redirectURI = credentials.redirectURI;
 
-
-    var query = new Query<ManagedClient>(context)
-      ..values = managedCredentials;
+    var query = new Query<ManagedClient>(context)..values = managedCredentials;
 
     try {
       await query.insert();
 
       displayInfo("Success", color: CLIColor.green);
       displayProgress("Client with ID '$clientID' has been added.");
-      displayProgress("The client secret has been hashed. You must store it elsewhere, as it cannot be retrieved.");
+      displayProgress(
+          "The client secret has been hashed. You must store it elsewhere, as it cannot be retrieved.");
       return 0;
     } on QueryException catch (e) {
       displayError("Adding Client Failed");
       if (e.event == QueryExceptionEvent.conflict) {
         PostgreSQLException underlying = e.underlyingException;
         if (underlying.constraintName == "_authclient_redirecturi_key") {
-          displayProgress("Redirect URI '${redirectUri}' already exists for another client.");
+          displayProgress(
+              "Redirect URI '${redirectUri}' already exists for another client.");
         } else {
           displayProgress("Client ID '${clientID}' already exists.");
         }
@@ -106,7 +112,8 @@ class CLIAuthAddClient extends CLIDatabaseConnectingCommand {
       var underlying = e.underlyingException;
       if (underlying is PostgreSQLException) {
         if (underlying.code == PostgreSQLErrorCode.undefinedTable) {
-          displayProgress("No table to store OAuth 2.0 client exists. Have you run 'aqueduct db upgrade'?");
+          displayProgress(
+              "No table to store OAuth 2.0 client exists. Have you run 'aqueduct db upgrade'?");
         }
       }
     }
@@ -124,4 +131,5 @@ class CLIAuthAddClient extends CLIDatabaseConnectingCommand {
 }
 
 class FauxAuthenticatable extends ManagedObject<_FauxAuthenticatable> {}
+
 class _FauxAuthenticatable extends ManagedAuthenticatable {}

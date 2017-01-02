@@ -9,10 +9,12 @@ import '../helpers.dart';
 
 void main() {
   var temporaryDirectory = new Directory("test_project");
-  var testDirectory = new Directory.fromUri(Directory.current.uri.resolve("test"));
-  var commandDirectory = new Directory.fromUri(testDirectory.uri.resolve("command"));
-  var sourceDirectory = new Directory.fromUri(commandDirectory.uri.resolve("serve_test_project"));
-
+  var testDirectory =
+      new Directory.fromUri(Directory.current.uri.resolve("test"));
+  var commandDirectory =
+      new Directory.fromUri(testDirectory.uri.resolve("command"));
+  var sourceDirectory =
+      new Directory.fromUri(commandDirectory.uri.resolve("serve_test_project"));
 
   tearDown(() async {
     await runAqueductProcess(["serve", "stop"], temporaryDirectory);
@@ -35,7 +37,8 @@ void main() {
   });
 }
 
-Future<int> runAqueductProcess(List<String> commands, Directory workingDirectory) async {
+Future<int> runAqueductProcess(
+    List<String> commands, Directory workingDirectory) async {
   commands.add("--directory");
   commands.add("${workingDirectory.path}");
 

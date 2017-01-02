@@ -6,7 +6,8 @@ import '../utilities/source_generator.dart';
 import 'base.dart';
 import 'db.dart';
 
-class CLIDatabaseGenerate extends CLICommand with CLIDatabaseMigratable, CLIProject {
+class CLIDatabaseGenerate extends CLICommand
+    with CLIDatabaseMigratable, CLIProject {
   Future<int> handle() async {
     var files = migrationFiles;
 
@@ -27,7 +28,9 @@ class CLIDatabaseGenerate extends CLICommand with CLIDatabaseMigratable, CLIProj
         migrationDirectory.uri.resolve("00000001_Initial.migration.dart"));
     file.writeAsStringSync(await generateMigrationSource());
 
-    displayInfo("Created new migration file (version ${versionNumberFromFile(file)}).", color: CLIColor.boldGreen);
+    displayInfo(
+        "Created new migration file (version ${versionNumberFromFile(file)}).",
+        color: CLIColor.boldGreen);
     displayProgress("New file is located at ${file.path}");
 
     return 0;
@@ -35,13 +38,13 @@ class CLIDatabaseGenerate extends CLICommand with CLIDatabaseMigratable, CLIProj
 
   Future<String> generateMigrationSource() async {
     var generator = new SourceGenerator(
-            (List<String> args, Map<String, dynamic> values) async {
-          var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
-          var schema = new Schema.fromDataModel(dataModel);
+        (List<String> args, Map<String, dynamic> values) async {
+      var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
+      var schema = new Schema.fromDataModel(dataModel);
 
-          return SchemaBuilder.sourceForSchemaUpgrade(
-              new Schema.empty(), schema, 1);
-        }, imports: [
+      return SchemaBuilder.sourceForSchemaUpgrade(
+          new Schema.empty(), schema, 1);
+    }, imports: [
       "package:aqueduct/aqueduct.dart",
       "package:$libraryName/$libraryName.dart",
       "dart:isolate",
@@ -51,8 +54,7 @@ class CLIDatabaseGenerate extends CLICommand with CLIDatabaseMigratable, CLIProj
 
     var executor = new IsolateExecutor(generator, [libraryName],
         packageConfigURI: projectDirectory.uri.resolve(".packages"));
-    var contents =
-      await executor.execute(projectDirectory.uri);
+    var contents = await executor.execute(projectDirectory.uri);
 
     return contents;
   }

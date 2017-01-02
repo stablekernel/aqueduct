@@ -28,7 +28,8 @@ class CLIDatabaseUpgrade extends CLIDatabaseConnectingCommand {
     var versionsToApply =
         versionMap.keys.where((v) => v > currentVersion).toList();
     if (versionsToApply.length == 0) {
-      displayInfo("Database version is already current (version: $currentVersion).");
+      displayInfo(
+          "Database version is already current (version: $currentVersion).");
       return 0;
     }
 
@@ -47,7 +48,9 @@ class CLIDatabaseUpgrade extends CLIDatabaseConnectingCommand {
     for (var migration in migrationFilesToRun) {
       displayInfo("Applying version ${versionNumberFromFile(migration)}...");
       schema = await executeUpgradeForFile(migration, schema, dryRun: false);
-      displayProgress("Applied version ${versionNumberFromFile(migration)} successfully.", color: CLIColor.green);
+      displayProgress(
+          "Applied version ${versionNumberFromFile(migration)} successfully.",
+          color: CLIColor.green);
     }
 
     return 0;
@@ -56,6 +59,7 @@ class CLIDatabaseUpgrade extends CLIDatabaseConnectingCommand {
   String get name {
     return "upgrade";
   }
+
   String get description {
     return "Executes migration files against a database.";
   }
@@ -64,7 +68,7 @@ class CLIDatabaseUpgrade extends CLIDatabaseConnectingCommand {
     var files = migrationFiles;
     var latestMigrationFile = files.last;
     var latestMigrationVersionNumber =
-    versionNumberFromFile(latestMigrationFile);
+        versionNumberFromFile(latestMigrationFile);
 
     List<File> migrationFilesToRun = [];
     List<File> migrationFilesToGetToCurrent = [];
@@ -85,50 +89,52 @@ class CLIDatabaseUpgrade extends CLIDatabaseConnectingCommand {
   Future<Schema> executeUpgradeForFile(File file, Schema schema,
       {bool dryRun: false}) async {
     var generator = new SourceGenerator(
-            (List<String> args, Map<String, dynamic> values) async {
-          hierarchicalLoggingEnabled = true;
-          PostgreSQLPersistentStore.logger.level = Level.ALL;
-          PostgreSQLPersistentStore.logger.onRecord.listen((r) => print("\t${r.message}"));
+        (List<String> args, Map<String, dynamic> values) async {
+      hierarchicalLoggingEnabled = true;
+      PostgreSQLPersistentStore.logger.level = Level.ALL;
+      PostgreSQLPersistentStore.logger.onRecord
+          .listen((r) => print("\t${r.message}"));
 
-          var inputSchema =
+      var inputSchema =
           new Schema.fromMap(values["schema"] as Map<String, dynamic>);
-          var dbInfo = values["dbInfo"];
-          var dryRun = values["dryRun"];
+      var dbInfo = values["dbInfo"];
+      var dryRun = values["dryRun"];
 
-          PersistentStore store;
-          if (dbInfo != null && dbInfo["flavor"] == "postgres") {
-            store = new PostgreSQLPersistentStore.fromConnectionInfo(
-                dbInfo["username"],
-                dbInfo["password"],
-                dbInfo["host"],
-                dbInfo["port"],
-                dbInfo["databaseName"],
-                timeZone: dbInfo["timeZone"]);
-          }
+      PersistentStore store;
+      if (dbInfo != null && dbInfo["flavor"] == "postgres") {
+        store = new PostgreSQLPersistentStore.fromConnectionInfo(
+            dbInfo["username"],
+            dbInfo["password"],
+            dbInfo["host"],
+            dbInfo["port"],
+            dbInfo["databaseName"],
+            timeZone: dbInfo["timeZone"]);
+      }
 
-          var versionNumber = int.parse(args.first);
-          var migrationClassMirror = currentMirrorSystem()
+      var versionNumber = int.parse(args.first);
+      var migrationClassMirror = currentMirrorSystem()
               .isolate
               .rootLibrary
               .declarations
               .values
               .firstWhere((dm) =>
-                dm is ClassMirror && dm.isSubclassOf(reflectClass(Migration))) as ClassMirror;
-          var migrationInstance = migrationClassMirror
-              .newInstance(new Symbol(''), []).reflectee as Migration;
-          migrationInstance.database = new SchemaBuilder(store, inputSchema);
+                  dm is ClassMirror && dm.isSubclassOf(reflectClass(Migration)))
+          as ClassMirror;
+      var migrationInstance = migrationClassMirror
+          .newInstance(new Symbol(''), []).reflectee as Migration;
+      migrationInstance.database = new SchemaBuilder(store, inputSchema);
 
-          await migrationInstance.upgrade();
+      await migrationInstance.upgrade();
 
-          if (!dryRun) {
-            await migrationInstance.store
-                .upgrade(versionNumber, migrationInstance.database.commands);
-            await migrationInstance.seed();
-            await migrationInstance.database.store.close();
-          }
+      if (!dryRun) {
+        await migrationInstance.store
+            .upgrade(versionNumber, migrationInstance.database.commands);
+        await migrationInstance.seed();
+        await migrationInstance.database.store.close();
+      }
 
-          return migrationInstance.currentSchema.asMap();
-        }, imports: [
+      return migrationInstance.currentSchema.asMap();
+    }, imports: [
       "dart:async",
       "package:aqueduct/aqueduct.dart",
       "package:logging/logging.dart",

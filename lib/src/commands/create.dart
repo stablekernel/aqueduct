@@ -10,7 +10,8 @@ import 'base.dart';
 class CLITemplateCreator extends CLICommand {
   CLITemplateCreator() {
     options
-      ..addOption("template", abbr: "t", help: "Name of the template to use", defaultsTo: "default")
+      ..addOption("template",
+          abbr: "t", help: "Name of the template to use", defaultsTo: "default")
       ..addOption("template-directory", hide: true)
       ..addOption("git-url",
           help:
@@ -345,5 +346,4 @@ class CLITemplateCreator extends CLICommand {
   String get description {
     return "Creates Aqueduct applications from templates.";
   }
-
 }

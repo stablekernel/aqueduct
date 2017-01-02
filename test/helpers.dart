@@ -296,7 +296,6 @@ class DefaultPersistentStore extends PersistentStore {
       null;
 }
 
-
 Future<ProcessResult> runPubGet(Directory workingDirectory,
     {bool offline: true}) async {
   var args = ["get", "--no-packages-dir"];
@@ -306,8 +305,7 @@ Future<ProcessResult> runPubGet(Directory workingDirectory,
 
   var result = await Process
       .run("pub", args,
-      workingDirectory: workingDirectory.absolute.path,
-      runInShell: true)
+          workingDirectory: workingDirectory.absolute.path, runInShell: true)
       .timeout(new Duration(seconds: 20));
 
   if (result.exitCode != 0) {

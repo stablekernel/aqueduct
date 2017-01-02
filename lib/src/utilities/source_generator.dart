@@ -51,12 +51,10 @@ class SourceGenerator {
 
 class IsolateExecutor {
   static Future<dynamic> executeSource(
-      SourceGenerator source,
-      List<String> arguments,
-      Uri workingDirectory,
-      {Map<String, dynamic> message,
-      Uri packageConfigURI}) async {
-    var executor = new IsolateExecutor(source, arguments, message: message, packageConfigURI: packageConfigURI);
+      SourceGenerator source, List<String> arguments, Uri workingDirectory,
+      {Map<String, dynamic> message, Uri packageConfigURI}) async {
+    var executor = new IsolateExecutor(source, arguments,
+        message: message, packageConfigURI: packageConfigURI);
 
     return executor.execute(workingDirectory);
   }

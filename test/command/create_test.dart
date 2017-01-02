@@ -5,12 +5,11 @@ import 'package:test/test.dart';
 import 'package:aqueduct/executable.dart';
 import 'package:path/path.dart' as path_lib;
 
-var temporaryDirectory = new Directory.fromUri(Directory.current.uri.resolve("test_project"));
+var temporaryDirectory =
+    new Directory.fromUri(Directory.current.uri.resolve("test_project"));
 
 void main() {
-  setUp(() {
-
-  });
+  setUp(() {});
 
   tearDown(() {
     if (temporaryDirectory.existsSync()) {
@@ -23,9 +22,7 @@ void main() {
       var res = await runWith(["test_project"]);
       expect(res, 0);
 
-      expect(
-          new Directory(path_lib.join(temporaryDirectory.path))
-              .existsSync(),
+      expect(new Directory(path_lib.join(temporaryDirectory.path)).existsSync(),
           true);
     });
 
@@ -55,7 +52,8 @@ void main() {
   });
 
   group("Templates from path", () {
-    test("Template gets generated from local path, project points to it", () async {
+    test("Template gets generated from local path, project points to it",
+        () async {
       expect(await runWith(["test_project"]), 0);
 
       var aqueductLocationString =
@@ -74,8 +72,7 @@ void main() {
       expect(await runWith(["test_project"]), 0);
 
       var res = Process.runSync("pub", ["run", "test", "-j", "1"],
-          runInShell: true,
-          workingDirectory: temporaryDirectory.path);
+          runInShell: true, workingDirectory: temporaryDirectory.path);
 
       expect(res.exitCode, 0);
       expect(res.stdout, contains("All tests passed"));
