@@ -261,7 +261,7 @@ class CLIServer extends CLIServeBase {
           .where(
               (lib) => lib.uri.scheme == "package" || lib.uri.scheme == "file")
           .expand((lib) => lib.declarations.values)
-          .where((decl) => decl is ClassMirror && decl.isSubclassOf(sinkType))
+          .where((decl) => decl is ClassMirror && decl.isSubclassOf(sinkType) && decl.reflectedType != RequestSink)
           .map((decl) => decl as ClassMirror)
           .toList();
 
