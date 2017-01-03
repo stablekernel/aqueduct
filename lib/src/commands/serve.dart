@@ -34,6 +34,7 @@ class CLIServer extends CLIServeBase {
               "The path to a configuration file. This File is available in the ApplicationConfiguration "
               "for a RequestSink to use to read application-specific configuration values. Relative paths are relative to [directory].",
           defaultsTo: "config.yaml")
+      ..addOption("timeout", help: "Number of seconds to wait to ensure startup succeeded.", defaultsTo: "20")
       ..addOption("isolates",
           abbr: "n",
           help: "Number of isolates processing requests",
@@ -62,6 +63,7 @@ class CLIServer extends CLIServeBase {
 
   String derivedRequestSinkType;
   ArgResults get command => values.command;
+  int get startupTimeout => int.parse(values["timeout"]);
   bool get monitorStartup => values["monitor"];
   bool get shouldRunDetached => values["detached"];
   bool get shouldRunObservatory => values["observe"];
@@ -112,6 +114,7 @@ class CLIServer extends CLIServeBase {
     displayInfo("Starting application '$packageName/$libraryName'");
     displayProgress("Sink Type: $requestSinkType");
     displayProgress("Config: ${configurationFile?.path}");
+    displayProgress("Port: $port");
 
     var generatedStartScript = createScriptSource(replacements);
     if (monitorStartup) {
@@ -121,7 +124,7 @@ class CLIServer extends CLIServeBase {
       var completer = new Completer<int>();
       var receivePort = new ReceivePort();
       receivePort.listen((_) {
-        completer.complete();
+        completer.complete(0);
       });
       await Isolate.spawnUri(dataUri, [], null, onExit: receivePort.sendPort, packageConfig: fileInProjectDirectory(".packages").uri);
 
@@ -214,7 +217,7 @@ class CLIServer extends CLIServeBase {
   Future<String> checkForStartError(Process process) async {
     displayProgress("Verifying launch...");
 
-    int timeoutInMilliseconds = 20 * 1000;
+    int timeoutInMilliseconds = startupTimeout * 1000;
     var completer = new Completer<String>();
     var accumulated = 0;
 
