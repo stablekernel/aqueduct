@@ -16,6 +16,7 @@ void main() {
   var sourceDirectory =
       new Directory.fromUri(commandDirectory.uri.resolve("serve_test_project"));
 
+
   tearDown(() async {
     await runAqueductProcess(["serve", "stop"], temporaryDirectory);
     if (temporaryDirectory.existsSync()) {
@@ -34,6 +35,15 @@ void main() {
 
     var result = await http.get("http://localhost:8080/endpoint");
     expect(result.statusCode, 200);
+  });
+
+  test("Ensure we don't find the base RequestSink class", () async {
+    var libDir = new Directory.fromUri(temporaryDirectory.uri.resolve("lib"));
+    var libFile = new File.fromUri(libDir.uri.resolve("wildfire.dart"));
+    libFile.writeAsStringSync("import 'package:aqueduct/aqueduct.dart';");
+
+    var res = await runAqueductProcess(["serve"], temporaryDirectory);
+    expect(res != 0, true);
   });
 }
 

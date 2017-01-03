@@ -265,6 +265,9 @@ class CLIServer extends CLIServeBase {
           .map((decl) => decl as ClassMirror)
           .toList();
 
+      if (classes.length == 0) {
+        return "null";
+      }
       return classes.map((cm) => MirrorSystem.getName(cm.simpleName)).first;
     }, imports: [
       "package:aqueduct/aqueduct.dart",
@@ -276,7 +279,11 @@ class CLIServer extends CLIServeBase {
 
     var executor = new IsolateExecutor(generator, [libraryName],
         packageConfigURI: projectDirectory.uri.resolve(".packages"));
-    derivedRequestSinkType = await executor.execute(projectDirectory.uri);
+    var result =  await executor.execute(projectDirectory.uri);
+    if (result == "null") {
+      throw new CLIException("No RequestSink subclass found in $packageName/$libraryName");
+    }
+    derivedRequestSinkType = result;
   }
 
   Future prepare() async {
