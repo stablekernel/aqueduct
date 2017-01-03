@@ -50,6 +50,7 @@ class CLIServer extends CLIServeBase {
           defaultsTo: false)
       ..addFlag("observe",
           help: "Enables Dart Observatory", defaultsTo: false, negatable: false)
+      ..addFlag("monitor", help: "Monitors the application during startup to report errors. Turn this off if startup monitoring is done by another or service or if writing to the filesystem isn't available on the deployment platform.", defaultsTo: true)
       ..addFlag("detached",
           help:
               "Runs the application detached from this script. This script will terminate and the application will continue executing",
@@ -61,6 +62,7 @@ class CLIServer extends CLIServeBase {
 
   String derivedRequestSinkType;
   ArgResults get command => values.command;
+  bool get monitorStartup => values["monitor"];
   bool get shouldRunDetached => values["detached"];
   bool get shouldRunObservatory => values["observe"];
   bool get ipv6Only => values["ipv6-only"];
@@ -111,8 +113,25 @@ class CLIServer extends CLIServeBase {
     displayProgress("Sink Type: $requestSinkType");
     displayProgress("Config: ${configurationFile?.path}");
 
-    var startupTime = new DateTime.now();
     var generatedStartScript = createScriptSource(replacements);
+    if (monitorStartup) {
+      return startWithMonitor(generatedStartScript);
+    } else {
+      var dataUri = Uri.parse("data:application/dart;charset=utf-8,${Uri.encodeComponent(generatedStartScript)}");
+      var completer = new Completer<int>();
+      var receivePort = new ReceivePort();
+      receivePort.listen((_) {
+        completer.complete();
+      });
+      await Isolate.spawnUri(dataUri, [], null, onExit: receivePort.sendPort, packageConfig: fileInProjectDirectory(".packages").uri);
+
+      return completer.future;
+    }
+
+  }
+
+  Future<int> startWithMonitor(String generatedStartScript) async {
+    var startupTime = new DateTime.now();
     var startScriptFile = createStartScript(generatedStartScript);
     var serverProcess = await executeStartScript(startScriptFile);
     if (shouldRunObservatory && await supportsLaunchObservatory()) {
@@ -120,12 +139,10 @@ class CLIServer extends CLIServeBase {
     }
 
     var startFailureReason = await checkForStartError(serverProcess);
-
     if (startFailureReason != "ok") {
       failWithError(serverProcess.pid, startFailureReason);
       return 1;
     }
-
     if (!shouldRunDetached) {
       stderr.addStream(serverProcess.stderr);
       serverProcess.exitCode.then((code) {
@@ -133,8 +150,6 @@ class CLIServer extends CLIServeBase {
         exit(0);
       });
     }
-
-
 
     var now = new DateTime.now();
     var diff = now.difference(startupTime);
@@ -285,6 +300,15 @@ class CLIServer extends CLIServeBase {
       configString = "";
     }
 
+    var onCompleteString = "var signalFile = new File(\".\${pid}.$pidSuffix\");\n"
+                            "\t\tawait signalFile.writeAsString(\"ok\");";
+    var onErrorString = "\tvar signalFile = new File(\".\${pid}.$pidSuffix\");\n"
+    "\tawait signalFile.writeAsString(error);";
+    if (!monitorStartup) {
+      onCompleteString = "";
+      onErrorString = "\tprint(error);";
+    }
+
     var contents = """
 import 'dart:async';
 import 'dart:io';
@@ -305,16 +329,14 @@ main() async {
 
     await app.start(numberOfInstances: ___NUMBER_OF_ISOLATES___);
 
-    var signalFile = new File(".\${pid}.$pidSuffix");
-    await signalFile.writeAsString("ok");
+    $onCompleteString
   } catch (e, st) {
     await writeError("\$e\\n \$st");
   }
 }
 
 Future writeError(String error) async {
-  var signalFile = new File(".\${pid}.$pidSuffix");
-  await signalFile.writeAsString(error);
+  $onErrorString
 }
     """;
 
