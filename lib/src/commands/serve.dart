@@ -115,6 +115,10 @@ class CLIServer extends CLIServeBase {
     var generatedStartScript = createScriptSource(replacements);
     var startScriptFile = createStartScript(generatedStartScript);
     var serverProcess = await executeStartScript(startScriptFile);
+    if (shouldRunObservatory && await supportsLaunchObservatory()) {
+      await launchObservatory("http://localhost:8181");
+    }
+
     var startFailureReason = await checkForStartError(serverProcess);
 
     if (startFailureReason != "ok") {
@@ -130,9 +134,7 @@ class CLIServer extends CLIServeBase {
       });
     }
 
-    if (shouldRunObservatory && await supportsLaunchObservatory()) {
-      await launchObservatory("http://localhost:8181");
-    }
+
 
     var now = new DateTime.now();
     var diff = now.difference(startupTime);
