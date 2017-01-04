@@ -13,11 +13,11 @@ To run a production Aqueduct application on Heroku. Make sure to also read [Test
 
 ### Prerequisites
 
-0. Dart has been installed.
-1. ['git' has been installed.](https://git-scm.com/downloads)
-1. ['heroku' has been installed.](https://devcenter.heroku.com/articles/heroku-cli))
-2. Aqueduct has been activated (run `pub global activate aqueduct` anywhere on your local machine).
-
+1. Dart has been installed.
+2. [A Heroku account.](https://signup.heroku.com)
+2. [`git` has been installed.](https://git-scm.com/downloads)
+3. [`heroku` has been installed.](https://devcenter.heroku.com/articles/heroku-cli))
+4. Aqueduct has been activated (run `pub global activate aqueduct` anywhere on your local machine).
 
 ### Overview
 
