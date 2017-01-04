@@ -215,7 +215,7 @@ class CLIServer extends CLIServeBase {
   }
 
   Future<String> checkForStartError(Process process) async {
-    displayProgress("Verifying launch...");
+    displayProgress("Verifying launch (PID ${process.pid})...");
 
     int timeoutInMilliseconds = startupTimeout * 1000;
     var completer = new Completer<String>();
@@ -226,6 +226,7 @@ class CLIServer extends CLIServeBase {
       if (signalFile.existsSync()) {
         t.cancel();
         completer.complete(signalFile.readAsStringSync());
+        return;
       }
       accumulated += 100;
 

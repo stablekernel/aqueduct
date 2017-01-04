@@ -73,7 +73,7 @@ class CLISetup extends CLICommand with CLIProject {
     var gitIgnore = fileInProjectDirectory(".gitignore");
     var contents = gitIgnore
         .readAsStringSync()
-        .replaceAll(new RegExp("^config.yaml\\n"), "");
+        .replaceAll(new RegExp("config.yaml\\n"), "");
     gitIgnore.writeAsStringSync(contents);
 
     var procFile = fileInProjectDirectory("Procfile");

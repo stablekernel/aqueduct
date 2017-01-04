@@ -8,8 +8,6 @@ import 'base.dart';
 class CLIAuth extends CLICommand {
   CLIAuth() {
     registerCommand(new CLIAuthAddClient());
-//    options
-//      ..addCommand("add-client",)
   }
 
   Future<int> handle() async {
