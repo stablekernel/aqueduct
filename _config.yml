@@ -21,6 +21,7 @@ sections: [
     #['tut', 'Tutorial'],
     ['db', 'Guide: Database'],
     ['http', 'Guide: HTTP'],
+    ['auth', 'Guide: Authentication'],
     ['ref', 'Reference'],
     ['dev', 'Developers'],
     ['post', 'Posts']
