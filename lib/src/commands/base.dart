@@ -213,6 +213,14 @@ abstract class CLICommand implements CLIResultHandler {
       });
     }
   }
+
+  bool isExecutableInShellPath(String name) {
+    String locator = Platform.isWindows ? "where" : "which";
+    ProcessResult results =
+    Process.runSync(locator, [name], runInShell: true);
+
+    return results.exitCode == 0;
+  }
 }
 
 abstract class CLIProject implements CLIResultHandler {

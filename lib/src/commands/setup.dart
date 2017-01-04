@@ -3,9 +3,12 @@ import 'dart:io';
 
 import 'base.dart';
 
-class CLISetup extends CLICommand {
+class CLISetup extends CLICommand with CLIProject {
   CLISetup() {
     options
+      ..addFlag("tests", help: "Sets up a local database to run application tests. If no other option is on, the command defaults to this flag.")
+      ..addOption("heroku", help: "Sets up the project in the current directory for deplying to Heroku.",
+          valueHelp: "The name of the Heroku application.")
       ..addOption("granting-user",
           abbr: "u",
           defaultsTo: "postgres",
@@ -17,20 +20,82 @@ class CLISetup extends CLICommand {
           help: "Confirms that you wish to carry out this setup.");
   }
 
+  bool get shouldSetupHeroku => herokuName != null;
+  String get herokuName => values["heroku"];
+  bool get shouldSetupTests => values["tests"];
   bool get confirm => values["confirm"];
   String get grantingUser => values["granting-user"];
 
   Future<int> handle() async {
+    if (shouldSetupHeroku) {
+      return setupHerokuProject();
+    } else /*if (shouldSetupTests*/ {
+      return setupTestEnvironment();
+    }
+  }
+
+  Future<bool> get hasGitCLI async => isExecutableInShellPath("git");
+  Future<bool> get hasPSQLCLI async => isExecutableInShellPath("psql");
+  Future<bool> get hasHerokuCLI async => isExecutableInShellPath("heroku");
+
+  Future<int> setupHerokuProject() async {
+    if (!(await hasHerokuCLI)) {
+      displayError("The application 'heroku' was not found in \$PATH.");
+      displayProgress("Install 'heroku' from https://devcenter.heroku.com/articles/heroku-cli.");
+      return -1;
+    }
+
+    if (!(await hasGitCLI)) {
+      displayError("The application 'git' was not found in \$PATH.");
+      displayProgress("Install 'git' from https://git-scm.com/downloads.");
+    }
+
+    displayInfo("Setting up Heroku for $herokuName");
+
+    var commands = [
+      ["git:remote","-a", herokuName],
+      ["config:set", "DART_SDK_URL=https://storage.googleapis.com/dart-archive/channels/stable/release/latest/sdk/dartsdk-linux-x64-release.zip"],
+      ["config:add", "BUILDPACK_URL=https://github.com/stablekernel/heroku-buildpack-dart.git"],
+      ["config:set", "PATH=/app/bin:/usr/local/bin:/usr/bin:/bin:/app/.pub-cache/bin:/app/dart-sdk/bin"],
+      ["config:set", "PUB_CACHE=/app/pub-cache"],
+    ];
+
+    for (var cmd in commands) {
+      displayProgress("Running heroku ${cmd.join(" ")} in ${projectDirectory.path}");
+      var result = await Process.run("heroku", cmd, workingDirectory: projectDirectory.path);
+      if (result.exitCode != 0) {
+        throw new CLIException("Heroku command failed", instructions: [
+          "${result.stdout} ${result.stderr}"]);
+      }
+    }
+
+    displayProgress("Removing config.yaml from .gitignore");
+    var gitIgnore = fileInProjectDirectory(".gitignore");
+    var contents = gitIgnore
+        .readAsStringSync()
+        .replaceAll(new RegExp("^config.yaml\\n"), "");
+    gitIgnore.writeAsStringSync(contents);
+
+    var procFile = fileInProjectDirectory("Procfile");
+    procFile.writeAsStringSync("""
+release: /app/dart-sdk/bin/pub global run aqueduct:aqueduct db upgrade --connect \$DATABASE_URL
+web: /app/dart-sdk/bin/pub global run aqueduct:aqueduct serve --port \$PORT --no-monitor
+    """);
+
+    return 0;
+  }
+
+  Future<int> setupTestEnvironment() async {
     if (!(await hasPSQLCLI)) {
       displayError(
-          "No psql found in PATH.\n\nIf you do not have PostgreSQL installed locally, "
-          "you must do so to run tests in an Aqueduct application. For macOS users, "
-          "download Postgres.app from http://postgresapp.com. Once installed, open the "
-          "application at least once and add the following line to ~/.bash_profile:\n\n"
-          "\texport PATH=\$PATH:/Applications/Postgres.app/Contents/Versions/latest/bin\n\n"
-          "You may have to reload the shell you ran this command from after installation. "
-          "For non-macOS users, you must install a local version of PostgreSQL"
-          "and ensure the command line executable 'psql' is in your PATH.");
+          "The application 'psql' was not found in \$PATH.\n\nIf you do not have PostgreSQL installed locally, "
+              "you must do so to run tests in an Aqueduct application. For macOS users, "
+              "download Postgres.app from http://postgresapp.com. Once installed, open the "
+              "application at least once and add the following line to ~/.bash_profile:\n\n"
+              "\texport PATH=\$PATH:/Applications/Postgres.app/Contents/Versions/latest/bin\n\n"
+              "You may have to reload the shell you ran this command from after installation. "
+              "For non-macOS users, you must install a local version of PostgreSQL"
+              "and ensure the command line executable 'psql' is in your PATH.");
 
       return -1;
     }
@@ -91,14 +156,6 @@ class CLISetup extends CLICommand {
         "Congratulations! Aqueduct applications can now be tested locally.");
 
     return 0;
-  }
-
-  Future<bool> get hasPSQLCLI async {
-    String locator = Platform.isWindows ? "where" : "which";
-    ProcessResult results =
-        Process.runSync(locator, ["psql"], runInShell: true);
-
-    return results.exitCode == 0;
   }
 
   String get name {
