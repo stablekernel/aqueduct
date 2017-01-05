@@ -17,7 +17,7 @@ Aqueduct is a server-side framework written in Dart.
 
 4. Create a new project.
 
-        aqueduct create -n my_project
+        aqueduct create my_project
 
 Open the project directory in the editor of your choice. Our preferred editor is [IntellIJ IDEA Community Edition](https://www.jetbrains.com/idea/download/) (with the [Dart Plugin](https://plugins.jetbrains.com/plugin/6351)). [Atom](https://atom.io) is also a good editor, but support for running Dart tests is lacking.
 
@@ -34,6 +34,7 @@ Open the project directory in the editor of your choice. Our preferred editor is
 9. Integration with CI tools. (Supports TravisCI by default.)        
 10. Integrated testing utilities for clean and productive tests.
 11. Logging to Rotating Files or Console
+12. Out of the box tools for deploying to Heroku, AWS and locally
 
 ## Tutorials
 
