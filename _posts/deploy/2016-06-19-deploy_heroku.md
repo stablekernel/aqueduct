@@ -3,21 +3,22 @@ layout: page
 title: "Deploying an Aqueduct Application on Heroku"
 category: deploy
 date: 2016-06-19 21:22:35
+order: 4
 ---
 
-For other deployment options, see [Deploying Aqueduct Applications](guides/deployment.html).
+For other deployment options, see [Deploying Aqueduct Applications](overview.html).
 
 ### Purpose
 
-To run a production Aqueduct application on Heroku. Make sure to also read [Testing Aqueduct Applications](guides/testing.html).
+To run a production Aqueduct application on Heroku. Make sure to also read [Testing Aqueduct Applications](testing/overview.html).
 
 ### Prerequisites
 
-1. Dart has been installed.
+1. [Dart has been installed.](https://www.dartlang.org/install)
 2. [A Heroku account.](https://signup.heroku.com)
-2. [`git` has been installed.](https://git-scm.com/downloads)
-3. [`heroku` has been installed.](https://devcenter.heroku.com/articles/heroku-cli))
-4. Aqueduct has been activated (run `pub global activate aqueduct` anywhere on your local machine).
+3. [`git` has been installed.](https://git-scm.com/downloads)
+4. [`heroku` has been installed.](https://devcenter.heroku.com/articles/heroku-cli))
+5. [Aqueduct has been activated.](getting_started.html)
 
 ### Overview
 

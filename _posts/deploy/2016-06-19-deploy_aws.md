@@ -3,21 +3,22 @@ layout: page
 title: "Deploying an Aqueduct Application on Amazon Web Services (AWS)"
 category: deploy
 date: 2016-06-19 21:22:35
+order: 5
 ---
 
-For other deployment options, see [Deploying Aqueduct Applications](guides/deployment.html).
+For other deployment options, see [Deploying Aqueduct Applications](overview.html).
 
 ### Purpose
 
-To run a production Aqueduct application on Amazon Web Services. Make sure to also read [Testing Aqueduct Applications](guides/testing.html).
+To run a production Aqueduct application on Amazon Web Services. Make sure to also read [Testing Aqueduct Applications](testing/overview.html).
 
 ### Prerequisites
 
-1. Dart has been installed on your local machine.
+1. [Dart has been installed on your local machine.](https://www.dartlang.org/install)
 2. [An AWS Account](https://aws.amazon.com)
 3. [A GitHub Account*](https://github.com)
 4. [`git` has been installed](https://git-scm.com/downloads) on your local machine.
-5. Aqueduct has been activated (by running `pub global activate aqueduct` anywhere on your local machine).
+5. [Aqueduct has been activated on your local machine.](getting_started.html)
 
 \* GitHub will be used for transferring code to the remote machine. You could use `ftp`, `scp`, `rsync`, another Git provider, another VCS system, AWS's CodeDeploy, etc.
 

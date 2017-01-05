@@ -3,23 +3,24 @@ layout: page
 title: "Deploying an Aqueduct Application on a Local Machine"
 category: deploy
 date: 2016-06-19 21:22:35
+order: 3
 ---
 
-For other deployment options, see [Deploying Aqueduct Applications](guides/deployment.html).
+For other deployment options, see [Deploying Aqueduct Applications](overview.html).
 
 ### Purpose
 
-To run a local development version of an Aqueduct application with persistent storage. This is useful in developing client applications against an Aqueduct application. Make sure to also read [Testing Aqueduct Applications](guides/testing.html).
+To run a local development version of an Aqueduct application with persistent storage. This is useful in developing client applications against an Aqueduct application. Make sure to also read [Testing Aqueduct Applications](testing/overview.html).
 
 
 ### Prerequisites
 
-0. Dart has been installed.
-1. PostgreSQL has been installed locally.
-2. Aqueduct has been activated globally.
-3. An application has been created with `aqueduct create`.
+1. [Dart has been installed.](https://www.dartlang.org/install)
+2. [PostgreSQL has been installed locally.](getting_started.html)
+2. [Aqueduct has been activated globally.](getting_started.html)
+3. [An application has been created with `aqueduct create`.](getting_started.html)
 
-If one or more of these is not true, see [Creating an Aqueduct Application](guides/creating.html).
+If one or more of these is not true, see [Getting Started](getting_started.html).
 
 ### Overview
 
