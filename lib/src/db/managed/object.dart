@@ -232,6 +232,10 @@ class ManagedObject<PersistentType> extends Object
         value = DateTime.parse(value);
       }
 
+      if (propertyDescription.type == ManagedPropertyType.doublePrecision && value is num) {
+        value = value.toDouble();
+      }
+
       if (propertyDescription.isAssignableWith(value)) {
         return value;
       }
