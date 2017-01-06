@@ -177,10 +177,10 @@ void main() {
   });
 
   test("Handles input of type num for double precision float properties of the model", () {
-    var m = (new TransientTypeTest()
+    var m = new TransientTypeTest()
       ..readMap({
         "transientDouble": 30,
-      }));
+      });
 
     expect(m.transientDouble, 30.0);
   });
