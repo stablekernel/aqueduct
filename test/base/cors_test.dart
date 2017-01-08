@@ -534,8 +534,7 @@ expectThatNoCORSProcessingOccurred(dynamic resp) {
 }
 
 class CORSSink extends RequestSink implements AuthValidator {
-  CORSSink(Map<String, dynamic> opts) : super(opts);
-
+  CORSSink(ApplicationConfiguration opts) : super(opts);
   void setupRouter(Router router) {
     router
         .route("/opts")
@@ -566,7 +565,8 @@ class CORSSink extends RequestSink implements AuthValidator {
         .generate(() => new DefaultPolicyController());
   }
 
-  Future<Authorization> fromBasicCredentials(AuthBasicCredentials credentials) async {
+  Future<Authorization> fromBasicCredentials(
+      AuthBasicCredentials credentials) async {
     return new Authorization("a", 1, this);
   }
 
@@ -578,7 +578,8 @@ class CORSSink extends RequestSink implements AuthValidator {
     return new Authorization("a", 1, this);
   }
 
-  List<APISecurityRequirement> requirementsForStrategy(AuthStrategy strategy) => null;
+  List<APISecurityRequirement> requirementsForStrategy(AuthStrategy strategy) =>
+      null;
 }
 
 class NoPolicyController extends HTTPController {

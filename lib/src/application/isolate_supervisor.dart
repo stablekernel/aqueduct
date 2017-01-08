@@ -82,21 +82,7 @@ class ApplicationIsolateSupervisor {
       var appException = new ApplicationStartupException(error);
       _launchCompleter.completeError(appException, stacktrace);
     } else {
-      var exception = new ApplicationSupervisorException(error);
-      logger.severe("Uncaught exception in isolate.", exception, stacktrace);
+      logger.severe("Uncaught exception in isolate.", error, stacktrace);
     }
-  }
-
-  /// This method will terminate the isolate.
-  ///
-  /// This method terminates an isolate which triggers an error message to be sent to the [supervisingApplication]. An application
-  /// will restart a terminated isolate.
-  void terminateWithError(String errorMessage, String stackTrace) {
-    stop().then((_) {
-      _launchCompleter = null;
-      _stopCompleter = null;
-      supervisingApplication.isolateDidExitWithError(
-          this, errorMessage, new StackTrace.fromString(stackTrace));
-    });
   }
 }

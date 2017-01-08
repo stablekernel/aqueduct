@@ -1,8 +1,9 @@
-import 'package:test/test.dart';
 import 'dart:io';
+
 import 'package:aqueduct/aqueduct.dart';
+import 'package:test/test.dart';
+
 import '../helpers.dart';
-import 'dart:convert';
 
 void main() {
   HttpServer server;
@@ -92,7 +93,6 @@ void main() {
         () async {
       var res =
           await tokenResponse("com.stablekernel.redirect", "mckinley", user1);
-
       expect(res, hasAuthResponse(200, bearerTokenMatcher));
     });
   });

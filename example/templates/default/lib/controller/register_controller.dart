@@ -21,7 +21,9 @@ class RegisterController extends QueryController<User> {
     query.values.email = query.values.username;
 
     var u = await query.insert();
-    var token = await authServer.authenticate(u.username, query.values.password,
+    var token = await authServer.authenticate(
+        u.username,
+        query.values.password,
         request.authorization.credentials.username,
         request.authorization.credentials.password);
 

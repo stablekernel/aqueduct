@@ -28,8 +28,8 @@ Future main(List<String> args) async {
 
   var configuration = new WildfireConfiguration("config.yaml.src");
   var app = new Application<WildfireSink>()
-    ..configuration.configurationOptions = {
-      WildfireSink.ConfigurationKey: configuration
+    ..configuration.options = {
+      WildfireSink.ConfigurationValuesKey: configuration
     };
 
   var resolver = new PackagePathResolver(".packages");

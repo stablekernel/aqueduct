@@ -53,6 +53,9 @@ class Application<RequestSinkType extends RequestSink> {
   /// and [RequestSinkType]. If [runOnMainIsolate] is true (it defaults to false), the application will
   /// run a single instance of [RequestSinkType] on the main isolate, ignoring [numberOfInstances]. Additionally,
   /// the server will only listen on localhost, regardless of any specified address. You should only [runOnMainIsolate] for testing purposes.
+  ///
+  /// If this instances [RequestSinkType] implements `initializeApplication` (see [RequestSink] for more details),
+  /// that one-time initialization method will be executed prior to the spawning of isolates and instantiations of [RequestSink].
   Future start({int numberOfInstances: 1, bool runOnMainIsolate: false}) async {
     if (configuration.address == null) {
       if (runOnMainIsolate) {
@@ -66,14 +69,17 @@ class Application<RequestSinkType extends RequestSink> {
       }
     }
 
+    var requestSinkType = reflectClass(RequestSinkType);
+    await _globalStart(requestSinkType, configuration);
+
     if (runOnMainIsolate) {
       if (numberOfInstances > 1) {
         logger.info(
             "runOnMainIsolate set to true, ignoring numberOfInstances (set to $numberOfInstances)");
       }
 
-      var sink = reflectClass(RequestSinkType).newInstance(
-          new Symbol(""), [configuration.configurationOptions]).reflectee;
+      var sink = requestSinkType
+          .newInstance(new Symbol(""), [configuration]).reflectee;
       server = new ApplicationServer(sink, configuration, 1);
 
       await server.start();
@@ -106,12 +112,22 @@ class Application<RequestSinkType extends RequestSink> {
   }
 
   APIDocument document(PackagePathResolver resolver) {
-    RequestSink sink = reflectClass(RequestSinkType).newInstance(
-        new Symbol(""), [configuration.configurationOptions]).reflectee;
+    RequestSink sink = reflectClass(RequestSinkType)
+        .newInstance(new Symbol(""), [configuration]).reflectee;
     sink.setupRouter(sink.router);
     sink.router.finalize();
 
     return sink.documentAPI(resolver);
+  }
+
+  Future<Map<String, dynamic>> _globalStart(
+      ClassMirror sinkType, ApplicationConfiguration config) async {
+    var globalStartSymbol = #initializeApplication;
+    if (sinkType.staticMembers[globalStartSymbol] != null) {
+      return sinkType.invoke(globalStartSymbol, [config]).reflectee;
+    }
+
+    return null;
   }
 
   Future<ApplicationIsolateSupervisor> _spawn(
@@ -131,24 +147,6 @@ class Application<RequestSinkType extends RequestSink> {
     return new ApplicationIsolateSupervisor(
         this, isolate, receivePort, identifier, logger);
   }
-
-  /// Used internally.
-  Future isolateDidExitWithError(ApplicationIsolateSupervisor supervisor,
-      String errorMessage, StackTrace stackTrace) async {
-    logger.severe("Restarting terminated isolate. Exit reason $errorMessage",
-        supervisor, stackTrace);
-
-    var identifier = supervisor.identifier;
-    supervisors.remove(supervisor);
-    try {
-      var supervisor = await _spawn(configuration, identifier);
-      await supervisor.resume();
-      supervisors.add(supervisor);
-    } catch (e, st) {
-      await stop();
-      logger.severe("$e", supervisor, st);
-    }
-  }
 }
 
 /// Thrown when an application encounters an exception during startup.
@@ -160,17 +158,4 @@ class ApplicationStartupException implements Exception {
   dynamic originalException;
 
   String toString() => originalException.toString();
-}
-
-/// An exception originating from an [Isolate] within an [Application].
-@Deprecated(
-    "This class will become private in 1.1. Use ApplicationStartupException in its place.")
-class ApplicationSupervisorException implements Exception {
-  ApplicationSupervisorException(this.message);
-
-  final String message;
-
-  String toString() {
-    return "$message";
-  }
 }

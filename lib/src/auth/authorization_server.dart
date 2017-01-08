@@ -44,8 +44,8 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
   /// A server keeps a cache of known [AuthClient]s. If a client does not exist in the cache,
   /// it will ask its [storage] via [AuthStorage.fetchClientByID].
   Future<AuthClient> clientForID(String clientID) async {
-    AuthClient client =
-        _clientCache[clientID] ?? (await storage.fetchClientByID(this, clientID));
+    AuthClient client = _clientCache[clientID] ??
+        (await storage.fetchClientByID(this, clientID));
 
     _clientCache[clientID] = client;
 

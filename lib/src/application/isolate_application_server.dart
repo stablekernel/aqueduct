@@ -48,8 +48,12 @@ void isolateServerEntryPoint(ApplicationInitialServerMessage params) {
     var sinkTypeMirror = sinkSourceLibraryMirror
         .declarations[new Symbol(params.streamTypeName)] as ClassMirror;
 
-    sink = sinkTypeMirror.newInstance(
-        new Symbol(""), [params.configuration.configurationOptions]).reflectee;
+    sink = sinkTypeMirror
+        .newInstance(new Symbol(""), [params.configuration]).reflectee;
+  } on Error catch (e, st) {
+    params.parentMessagePort.send([e.toString(), st.toString()]);
+
+    return;
   } catch (e, st) {
     params.parentMessagePort.send([e, st.toString()]);
 

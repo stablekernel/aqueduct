@@ -1,6 +1,7 @@
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
 import 'dart:io';
+import 'dart:convert';
 
 void main() {
   group("Test Client/Request", () {
@@ -96,6 +97,35 @@ void main() {
       expect(msg.path, "/foo");
       expect(msg.method, "PUT");
       expect(msg.body, '{"foo":"bar"}');
+    });
+
+    test("Client authenticated requests add credentials", () async {
+      var defaultTestClient = new TestClient.onPort(4040)
+        ..clientID = "a"
+        ..clientSecret = "b";
+      expect(
+          (await defaultTestClient.clientAuthenticatedRequest("/foo").get())
+              is TestResponse,
+          true);
+      var msg = await server.next();
+      expect(msg.path, "/foo");
+      expect(msg.method, "GET");
+
+      var auth = new Base64Encoder().convert("a:b".codeUnits);
+      expect(msg.headers["authorization"], "Basic $auth");
+    });
+
+    test("Bearer requests add credentials", () async {
+      var defaultTestClient = new TestClient.onPort(4040)
+        ..defaultAccessToken = "abc";
+      expect(
+          (await defaultTestClient.authenticatedRequest("/foo").get())
+              is TestResponse,
+          true);
+      var msg = await server.next();
+      expect(msg.path, "/foo");
+      expect(msg.method, "GET");
+      expect(msg.headers["authorization"], "Bearer abc");
     });
 
     test("Headers are added correctly", () async {

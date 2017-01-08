@@ -3,7 +3,13 @@ import 'application.dart';
 import '../http/request_sink.dart';
 
 /// A set of values to configure an instance of [Application].
+///
+/// Instances of this type are configured by the command-line arguments for `aqueduct serve` and passed to [RequestSink] instances in their constructor.
+/// Instances of this type are also passed to to a [RequestSink] subclass's `initializeApplication` method before it is instantiated. This allows
+/// values to be modified prior to starting the server.
 class ApplicationConfiguration {
+  String configurationFilePath;
+
   /// The address to listen for HTTP requests on.
   ///
   /// By default, this address will default to 'any' address (0.0.0.0). If [isIpv6Only] is true,
@@ -37,5 +43,5 @@ class ApplicationConfiguration {
   ///
   /// Allows delivery of custom configuration parameters to [RequestSink] instances
   /// that are attached to this application.
-  Map<String, dynamic> configurationOptions;
+  Map<String, dynamic> options = {};
 }

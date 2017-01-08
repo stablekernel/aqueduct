@@ -116,10 +116,11 @@ void main() {
         "client_id": "com.stablekernel.redirect",
         "username": "FOOBAR",
         "password": InMemoryAuthStorage.DefaultPassword,
-        "state" : "a"
+        "state": "a"
       });
       expectErrorRedirect(res,
-          new Uri.http("stablekernel.com", "/auth/redirect"), "access_denied", state: "a");
+          new Uri.http("stablekernel.com", "/auth/redirect"), "access_denied",
+          state: "a");
     });
 
     test("Username is empty returns 302 with error", () async {
@@ -130,19 +131,19 @@ void main() {
         "state": "a"
       });
       expectErrorRedirect(res,
-          new Uri.http("stablekernel.com", "/auth/redirect"), "access_denied", state: "a");
+          new Uri.http("stablekernel.com", "/auth/redirect"), "access_denied",
+          state: "a");
     });
 
     test("Username is missing returns 302 with error", () async {
       var res = await codeResponse({
         "client_id": "com.stablekernel.redirect",
         "password": InMemoryAuthStorage.DefaultPassword,
-        "state" : "a"
+        "state": "a"
       });
-      expectErrorRedirect(
-          res,
-          new Uri.http("stablekernel.com", "/auth/redirect"),
-          "invalid_request", state: "a");
+      expectErrorRedirect(res,
+          new Uri.http("stablekernel.com", "/auth/redirect"), "invalid_request",
+          state: "a");
     });
 
     test("Username is repeated returns 400", () async {
@@ -177,7 +178,8 @@ void main() {
         "state": "a"
       });
       expectErrorRedirect(resp,
-          new Uri.http("stablekernel.com", "/auth/redirect"), "access_denied", state: "a");
+          new Uri.http("stablekernel.com", "/auth/redirect"), "access_denied",
+          state: "a");
     });
 
     test("password is empty returns 302 with error", () async {
@@ -188,19 +190,19 @@ void main() {
         "state": "a"
       });
       expectErrorRedirect(resp,
-          new Uri.http("stablekernel.com", "/auth/redirect"), "access_denied", state: "a");
+          new Uri.http("stablekernel.com", "/auth/redirect"), "access_denied",
+          state: "a");
     });
 
     test("password is missing returns 302 with error", () async {
       var resp = await codeResponse({
         "client_id": "com.stablekernel.redirect",
         "username": user1["username"],
-      "state": "a"
+        "state": "a"
       });
-      expectErrorRedirect(
-          resp,
-          new Uri.http("stablekernel.com", "/auth/redirect"),
-          "invalid_request", state: "a");
+      expectErrorRedirect(resp,
+          new Uri.http("stablekernel.com", "/auth/redirect"), "invalid_request",
+          state: "a");
     });
 
     test("password is repeated returns 302 with error", () async {
@@ -237,10 +239,9 @@ void main() {
             "username=$encodedUsername&password=$encodedPassword&response_type=notcode&client_id=com.stablekernel.redirect&state=a"
         ..contentType = new ContentType("application", "x-www-form-urlencoded");
       var resp = await req.post();
-      expectErrorRedirect(
-          resp,
-          new Uri.http("stablekernel.com", "/auth/redirect"),
-          "invalid_request", state: "a");
+      expectErrorRedirect(resp,
+          new Uri.http("stablekernel.com", "/auth/redirect"), "invalid_request",
+          state: "a");
     });
 
     test("response_type is duplicated returns 302 with error", () async {
@@ -332,8 +333,10 @@ void main() {
         "username": user1["username"],
         "password": InMemoryAuthStorage.DefaultPassword
       });
-      expectErrorRedirect(res,
-          new Uri.http("stablekernel.com", "/auth/redirect"), "invalid_request");
+      expectErrorRedirect(
+          res,
+          new Uri.http("stablekernel.com", "/auth/redirect"),
+          "invalid_request");
     });
 
     test("Failed username + state still returns state in error", () async {
@@ -400,7 +403,9 @@ void main() {
     expect(
         getOp.parameters.every((p) => p.schemaObject.type == "string"), true);
     expect(
-        [clientIDGet, responseTypeGet, stateGet].every((p) => p.required == true), true);
+        [clientIDGet, responseTypeGet, stateGet]
+            .every((p) => p.required == true),
+        true);
     expect([scopeGet].every((p) => p.required == false), true);
     expect(getOp.produces.length, 1);
     expect(getOp.produces.first, ContentType.HTML);
@@ -450,7 +455,7 @@ void main() {
 }
 
 class TestSink extends RequestSink {
-  TestSink(Map<String, dynamic> opts) : super(opts) {
+  TestSink(ApplicationConfiguration opts) : super(opts) {
     var storage = new InMemoryAuthStorage();
     storage.createUsers(2);
     authServer = new AuthServer(storage);

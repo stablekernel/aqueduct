@@ -19,7 +19,7 @@ void main() {
 }
 
 class TestSink extends RequestSink {
-  TestSink(Map<String, dynamic> opts) : super(opts);
+  TestSink(ApplicationConfiguration opts) : super(opts);
 
   @override
   void setupRouter(Router router) {
