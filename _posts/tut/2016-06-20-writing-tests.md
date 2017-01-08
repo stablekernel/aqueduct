@@ -12,7 +12,7 @@ One of the core principles of Aqueduct is efficient testing. While opening up yo
 
 (As a note, testing Dart in Atom is not well supported - yet. Once you get past this tutorial, it is highly recommended you download IntelliJ IDEA Community Edition for better test support. Most importantly, Aqueduct's style of testing requires that test files are not run in parallel - and Atom only runs them in parallel. In the meantime, you can use the command line and run the tests serially using the command `pub run test -j 1`.)
 
-In general, testing in Dart is simple: you write a `main` function and use the `test` function register a test. Each test is a closure that runs some code and has expectations. For example, this code would test that 1 + 1 = 2:
+In general, testing in Dart is simple: in a file that ends with `_test.dart`, you write a `main` function and use the `test` function register a test. Each test is a closure that runs some code and has expectations. For example, this code would test that 1 + 1 = 2:
 
 ```dart
 import 'package:test/test.dart';
@@ -36,21 +36,23 @@ Now, get the dependencies again by right-clicking on any project file and select
 Restructuring quiz
 ---
 
-Last chapter, we just threw everything in a single file to get started. To test, we really need to add some structure to our project. In the top-level directory `quiz`, create a new directory named `lib`. In this directory, create a new file named `quiz.dart`. This is your library file. It will export all of the files in your application and libraries from dependencies that are used across your application. All of the files in your project will import this library file.
+Last chapter, we just threw everything in a single file to get started. We should really get things structured a bit more. The suggested approach is to separate `RequestController`s into their own files. These files should live in `lib/controller`. The `RequestSink` subclass should be in its own file, too, but directly under `lib`.
+
+Create a new directory, `lib/controller` and add a new file `question_controller.dart` to it. Create a new file in `lib` named `sink.dart`.
+
+Now, we'll move some code around. The full contents of each file will be listed here to make sure nothing gets lost. There are three total source files in the project. Change the file `quiz.dart` to only contain:
 
 ```dart
-library quiz;
-
+export 'dart:async';
 export 'package:aqueduct/aqueduct.dart';
 
-export 'controller/question_controller.dart';
-export 'quiz_request_sink.dart';
+export 'sink.dart';
 ```
 
-You'll get some warnings because `controller/question_controller.dart` and `quiz_request_sink.dart` don't yet exist. Let's create those. Create a new directory at `quiz/lib/controller` and add the file `question_controller.dart` to that directory. At the top of this file, import the application library file and then copy and paste the `QuestionController` class from `bin/quiz.dart` into it:
+Move the implementation of `QuestionController` to `controller/question_controller.dart` and import the top-level file:
 
 ```dart
-import '../quiz.dart';
+import 'package:quiz/quiz.dart';
 
 class QuestionController extends HTTPController {
   var questions = [
@@ -58,11 +60,13 @@ class QuestionController extends HTTPController {
     "What's the tallest mountain in the world?"
   ];
 
-  @httpGet getAllQuestions() async {
+  @httpGet
+  Future<Response> getAllQuestions() async {
     return new Response.ok(questions);
   }
 
-  @httpGet getQuestionAtIndex(@HTTPPath("index") int index) async {
+  @httpGet
+  Future<Response> getQuestionAtIndex(@HTTPPath("index") int index) async {
     if (index < 0 || index >= questions.length) {
       return new Response.notFound();
     }
@@ -70,15 +74,16 @@ class QuestionController extends HTTPController {
     return new Response.ok(questions[index]);
   }
 }
-```
+```  
 
-Next, create a new file at `lib/quiz_request_sink.dart`, import the application library, and copy and paste the `QuizRequestSink` class into this file:
+Move `QuizRequestSink` to `sink.dart`:
 
 ```dart
-import 'quiz.dart';
+import 'package:quiz/quiz.dart';
+import 'controller/question_controller.dart';
 
 class QuizRequestSink extends RequestSink {
-  QuizRequestSink(Map<String, dynamic> options) : super(options);
+  QuizRequestSink(ApplicationConfiguration options) : super (options);
 
   @override
   void setupRouter(Router router) {
@@ -89,19 +94,20 @@ class QuizRequestSink extends RequestSink {
 }
 ```
 
-Now that you've split up the project across multiple files, we no longer need the `quiz.dart` file in `bin/`, so delete it. (Don't delete the `quiz.dart` file in `lib/`!) Create a new file at `bin/start.dart` Add the startup `main` function to that file:
+It is important that there is a top-level library file (`quiz.dart`) that exports the file that contains the `RequestSink` subclass, otherwise, the `aqueduct` executable won't be able to find it and start your application. Files with `RequestController`s should be imported in `sink.dart`, since that's the only place they'll get used.
 
-```dart
-import 'package:quiz/quiz.dart';
+Additionally, the top-level library file *must* be named the same as the project - here, `quiz.dart`. The name of the project is is `name` key in `pubspec.yaml`.
 
-void main() {
-  var app = new Application<QuizRequestSink>();
+You can double-check that your changes worked by running `aqueduct serve` from the project directory. The full project structure should be:
 
-  app.start();
-}
 ```
-
-Note that we import `quiz.dart` and since the `quiz` library defined in this file exports Aqueduct, any file that imports `package:quiz/quiz.dart` will also import Aqueduct. Finally, get your dependencies again to get your project to recognize that `quiz` is now a library package. You can ensure that everything still works by running `bin/start.dart` again and typing a URL into your browser.
+pubspec.yaml
+lib/
+  quiz.dart
+  sink.dart
+  controller/
+    question_controller.darttest
+```  
 
 Writing Tests
 ---
@@ -115,25 +121,27 @@ import 'package:test/test.dart';
 import 'package:quiz/quiz.dart';
 ```
 
-The way Aqueduct accomplishes testing is by starting an entire application, running the tests, then stopping the application. To accomplish this, declare a `setUpAll` and `tearDownAll` method to run before and after all tests. After the import statements, add a `main` function with the appropriate setup and teardown code:
+The way Aqueduct accomplishes testing is by starting an entire application, running the tests, then stopping the application. To accomplish this, declare a `setUp` and `tearDown` method to run before and after each test. After the import statements, add a `main` function with the appropriate setup and teardown code:
 
 ```dart
 void main() {
   var app = new Application<QuizRequestSink>();
 
-  setUpAll(() async {
+  setUp(() async {
     await app.start(runOnMainIsolate: true);
   });
 
-  tearDownAll(() async {
+  tearDown(() async {
     await app.stop();
   });
 }
 ```
 
-Once we add tests and run this test file, an instance of a `QuizRequestSink`-driven `Application` will be started. Because starting an application takes a few milliseconds, we must make sure that we `await` its startup prior to moving on to the tests. Likewise, we may run multiple groups of tests or files with different tests in them, so we have to shut down the application when the tests are finished to free up the port the `Application` is listening on. (You really really shouldn't forget to shut it down, because if you don't, subsequent tests will start to fail because the application can't bind to the listening port.)
+The `Application` type has a type argument that must be a subclass of `RequestSink` - specifically, the `RequestSink` of your project. When running the application through `aqueduct serve`, an instance of `Application<T>` is created for you. Running tests, you create it and start it yourself in `setup` and stop it `tearDown`. (In order for your tests to shut down properly, the application must be stopped in `tearDown`.)
 
-Notice also that `start` takes an optional argument, `runOnMainIsolate`. In the previous chapter, we talked about an application spreading across multiple isolates. All of that behavior is tested in Aqueduct, and so your tests should only test the logic of your `QuizRequestSink` and its streams of `RequestController`s. Since isolates can't share memory, if you ever want to dig into your `QuizRequestSink` and check things out or use some of its resources directly, you wouldn't be able to do that from the tests when running across multiple isolates - the test isolate is separate from the running `QuizRequestSink` isolates. Therefore, when running tests, you should set this flag to true. (This flag is specifically meant for tests.)
+Notice also that `start` takes an optional argument, `runOnMainIsolate`. When this argument is true, an instance of your `RequestSink` is created on the main isolate and requests are received on the same isolate running the tests. This behavior is different than when using `aqueduct serve`, where one or more additional isolates are created and each has an instance of the `RequestSink` that is accepting requests.
+
+During testing, running the application on the main isolate is very important. We'll see why a bit later, but the general idea is that your tests have access to the properties of a `RequestSink` if and only if it is running on the main isolate.
 
 Now, we need to add a test to verify that hitting the `/questions` endpoint does return our definition of 'questions'. In Aqueduct, there is a utility called a `TestClient` to make this a lot easier. At the top of your main function, but after we create the application instance, declare a new variable:
 
@@ -173,10 +181,20 @@ test("/questions returns list of questions", () async {
 });
 ```
 
-Now, make sure you shut down your application if you were running it from a previous chapter. To run a test file in Atom, you can do two things: manually hit Cmd-Shift-P and type in run test or use the keyboard shortcut, Cmd-Option-Ctrl-T. The test results will appear in a panel. (Make sure you save your test file first! Oh, and you can also run the tests just by running the test file in the same way you ran the `quiz.dart` file. Atom currently isn't great at displaying test results. A more powerful option is IntelliJ IDEA Community Edition, but Atom is a lot friendlier for a tutorial.)
+Now, make sure you shut down your application if you were running it from a previous chapter. To run a test file in Atom, you can do two things: manually hit Cmd-Shift-P and type in run test or use the keyboard shortcut, Cmd-Option-Ctrl-T. The test results will appear in a panel. (Make sure you save your test file first!  Atom currently isn't great at displaying test results. A more powerful option is IntelliJ IDEA Community Edition, but Atom is a lot friendlier for a tutorial.)
 
 You should see the string 'All tests passed!' in your test results panel.
 
+There's one little issue here: the `everyElement` matcher ensures each element passes the inner matcher (`endsWith`). However, if this response returned an empty list of questions, the inner matcher would never run and the test would pass. Let's also verify that there is at least one question, too:
+
+```dart
+test("/questions returns list of questions", () async {
+  var response = await client.request("/questions").get();
+  expect(response, hasResponse(200, everyElement(endsWith("?"))));
+  expect(response.decodedBody, hasLength(greaterThan(0)));
+});
+
+```
 What sort of wizardry is this?
 ---
 

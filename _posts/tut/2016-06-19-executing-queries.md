@@ -8,17 +8,17 @@ order: 3
 
 [Getting Started](getting-started.html) | [Writing Tests](writing-tests.html) | Executing Queries | [ManagedObject Relationships and Joins](model-relationships-and-joins.html) | [Deployment](deploying-and-other-fun-things.html)
 
-Now that you've seen how to route HTTP requests and respond to them, we'll do something useful with those requests: interact with a database. We will continue to build on the last chapter project, `quiz`, by storing the questions in a database and retrieving them from the database.
+Now that you've seen how to route HTTP requests and respond to them, we'll do something useful with those requests: like interacting with a database. We will continue to build on the last chapter project, `quiz`, by storing the questions in a database and retrieving them from the database.
 
 Building Models
 ---
 
-Aqueduct has a built-in ORM (some of which is modeled after the iOS/macOS Core Data framework). Like all ORMs, rows of a database are mapped to objects. In Aqueduct, these instances are of type `ManagedObject<T>`. Let's define a managed object that represents a 'question'. Create a new directory in `lib` named `model`, and then add a new file to it named `question.dart` (thus, `quiz/lib/model/question.dart`).
+Aqueduct has a built-in ORM (some of which is modeled after the iOS/macOS Core Data framework). Like all ORMs, rows of a database are mapped to objects. In Aqueduct, these objects are of type `ManagedObject<T>`. Let's define a managed object that represents a 'question'. Create a new directory in `lib` named `model`, and then add a new file to it named `question.dart` (thus, `lib/model/question.dart`).
 
 A managed object is a subclass of `ManagedObject<T>`, where `T` is a *persistent type*. A persistent type is a simple Dart class that maps to a database table. Each of its properties maps to a column in that table. By convention, but not required, persistent types are prefixed with '\_'. In `question.dart`, let's define a persistent type for a question:
 
 ```dart
-import '../quiz.dart';
+import 'package:quiz/quiz.dart';
 
 class _Question {
   @managedPrimaryKey int index;
@@ -27,24 +27,18 @@ class _Question {
 }
 ```
 
-Now, make this file available to the rest of your project in `lib/quiz.dart` by adding the following at the end of the file:
-
-```dart
-export 'model/question.dart';
-```
-
 Each property in a persistent type can be marked with `ManagedColumnAttributes` metadata that defines how the underlying database column is defined. The `@managedPrimaryKey` metadata is shorthand for the following:
 
 ```dart
 @ManagedColumnAttributes(primaryKey: true, databaseType: PropertyType.bigInteger, autoincrement: true)
 ```
 
-*All managed objects must have a primary key.* Other interesting flags are `indexed`, `nullable` and `defaultValue`. If a property does not have a `ManagedColumnAttributes`, it is still a persistent property, it's just a normal column and its database type is derived from its Dart type. Supported Dart types are `int`, `double`, `String`, `DateTime` and `bool`.
+*All managed objects must have one property with `primaryKey` set to true.* Other interesting flags for `ManagedColumnAttributes` are `indexed`, `nullable` and `defaultValue`. If a property does not have a `ManagedColumnAttributes`, it is still a persistent property, it's just a normal column and its database type is inferred from its Dart type. Supported Dart types are `int`, `double`, `String`, `DateTime` and `bool`.
 
 Once a persistent type has been defined, you must declare a subclass of `ManagedObject`. At the top of `question.dart`, but underneath the import, add the following:
 
 ```dart
-import '../quiz.dart';
+import 'package:quiz/quiz.dart';
 
 class Question extends ManagedObject<_Question> implements _Question {}
 class _Question {
@@ -54,7 +48,26 @@ class _Question {
 }
 ```
 
-When writing code that works with `Question`s, we use the `Question` type. The `_Question` persistent type just provides the database mapping information. A managed object has some special behavior that makes working with database rows as objects more palatable. A subclass of `ManagedObject<T>` should always implement its persistent type (`T`). This allows the Dart analyzer to see that `Question` has all of the properties of `_Question`, but the behavior of `ManagedObject<T>` is responsible for providing storage for those properties.
+When writing code that works with `Question`s, we use the `Question` type. The `_Question` persistent type provides the database mapping information, and your code never works with it directly. A managed object has some special behavior that makes working with database rows as objects more palatable. A subclass of `ManagedObject<T>` should always implement its persistent type (`T`) - here, `Question` implements `_Question`. This allows the Dart analyzer to see that `Question` has all of the properties of `_Question`, but the behavior of `ManagedObject<T>` is responsible for providing storage for those properties.
+
+Importing ManagedObjects
+---
+
+As your code progresses, those `ManagedObject<T>`s will have relationships with other `ManagedObject<T>`s and be used across many different `RequestController`s. Additionally, the tools that generate database schemas and 'compile' the declarations of `ManagedObject<T>` so that your application can use them also need to see the definitions. Therefore, it is best to declare each `ManagedObject<T>` in its own file, but declare a library file that exports all `ManagedObject<T>`s, which is also exported from your top-level application library file. Every `ManagedObject<T>` should be visible by importing the top-level application library file.
+
+Therefore, create a new file in `lib` named `model.dart`. In this file, export `model/question.dart`:
+
+```dart
+export 'model/question.dart';
+```
+
+In `quiz.dart`, export `model.dart`:
+
+```dart
+export 'model.dart';
+```
+
+Now, every file in your application that import the application package will see the managed object declarations - and more importantly, the tools will see those declarations, too.
 
 Defining a Context
 ---
@@ -64,8 +77,9 @@ In order for an application to work with a database, it needs a `ManagedContext`
 ```dart
 class QuizRequestSink extends RequestSink {
   QuizRequestSink(Map<String, dynamic> options) : super(options) {
-    var dataModel = new ManagedDataModel([Question]);
-    var persistentStore = new PostgreSQLPersistentStore.fromConnectionInfo("dart", "dart", "localhost", 5432, "dart_test");
+    var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
+    var persistentStore = new PostgreSQLPersistentStore.fromConnectionInfo(
+      "dart", "dart", "localhost", 5432, "dart_test");
     context = new ManagedContext(dataModel, persistentStore);
   }
 
@@ -76,13 +90,13 @@ class QuizRequestSink extends RequestSink {
 
 (In the future, we'll allow this information to be passed from a configuration file. But for now, we'll do it manually.)
 
-A `ManagedDataModel` is initialized with a list of all instance types in your application. The persistent store is a specific implementation of a persistent store, `PostgreSQLPersistentStore`. It is initialized with information necessary to connect to a database. A `ManagedContext` simply ties those two things together.
+A `ManagedDataModel` is initialized with its named constructor `fromCurrentMirrorSystem`. This constructor uses reflection to find every `ManagedObject<T>` subclass in your application and compile a data model from them. (This is why it is important to export managed objects the way it was done in the previous section.)
+
+The persistent store is a specific implementation of a persistent store, `PostgreSQLPersistentStore`. It is initialized with information necessary to connect to a database. A `ManagedContext` simply ties those two things together.
 
 (By the way, the interface for `PersistentStore` can be implemented for different flavors of SQL and even non-SQL databases. We just so happen to prefer PostgreSQL, so we've already built that one.)
 
 When a `ManagedContext` is created, it becomes the *default context* of your application. When we execute database queries, they run on the default context (by default). If we have multiple databases, we can create more `ManagedContext`s and pass them around to make sure we hit the right database. For now, we can ignore this, just know that it exists.
-
-It is important that all `ManagedObject<T>` subclasses are exported in your library file; otherwise, the mechanism that searches your application to create a `ManagedDataModel` won't be able to find them.
 
 Executing Queries
 ---
@@ -91,10 +105,15 @@ Now that we have a context - which can establish a connection to a database, tal
 
 ```dart
 class QuestionController extends HttpController {
+  var questions = [
+    "How much wood can a woodchuck chuck?",
+    "What's the tallest mountain in the world?"
+  ];
+
   @httpGet getAllQuestions() async {
     var questionQuery = new Query<Question>();
-    var questions = await questionQuery.fetch();
-    return new Response.ok(questions);
+    var databaseQuestions = await questionQuery.fetch();
+    return new Response.ok(databaseQuestions);
   }
 
 ...
@@ -107,11 +126,11 @@ The only problem? We don't have a database yet.
 Configuring a Database
 ---
 
-As we've mentioned a few times, a key facet to Aqueduct is efficient automated testing. The scheme for testing is to create a 'test' database that all of your Aqueduct projects run against. When you run tests against that database, the tests create *temporary* tables prior to executing. The good news is that the `ManagedDataModel` in your application can drive this table creation, so you don't need to do anything special. The tests are run against the current version of the schema, as defined by your code.
+As we've mentioned a few times, a key facet to Aqueduct is efficient automated testing. The scheme for testing is to create a 'test' database that all of your Aqueduct projects run against. When you run tests against that database, the tests create *temporary* tables prior to executing. The good news is that the `ManagedDataModel` in your application can drive this table creation, so you don't need to do anything special. The tests are run against the current version of the schema defined by your code.
 
-Therefore, on any machine you're going to test on, you need a database (so, your local machine and your CI platform) that has been configured to have an Aqueduct development database with a specific user. (So, you'll only need to set this up once.) On macOS, the best way to do this locally is download [Postgres.app](http://postgresapp.com). This has a self-contained instance of Postgres that you start by opening up the application itself. Download this application and run it.
+Therefore, on any machine you're going to test on, you need a database (so, your local machine and your CI platform) that has been configured to have an Aqueduct development database with a specific user. (You'll only need to set this up once.) On macOS, the best way to do this locally is download [Postgres.app](http://postgresapp.com). This has a self-contained instance of Postgres that you start by opening up the application itself. Download this application and run it.
 
-Once it starts running, its icon (an elephant) will appear in your menu bar. Select 'Open psql' from its menu, and a command line prompt will appear, connected to the local database. (If you are using a different installation of PostgreSQL, run the command line tool `psql` instead.) To set up PostgreSQL once and for all for testing, run the following commands in psql:
+Once running, run the command `aqueduct setup` from anywhere. It will give you some additional instructions to follow to make sure everything is OK. It just runs the following SQL:
 
 ```sql
 create database dart_test;
@@ -122,14 +141,15 @@ grant all on database dart_test to dart;
 
 OK, great, you're done. (You'll want to add Postgres.app to your Startup Items or at least remember to open it before you start development work. It only runs on localhost, so it doesn't open up connections to the outside world.)
 
-You'll notice in your `RequestSink`, the configuration parameters for the `PostgreSQLPersistentStore` match those that you have just added to your local instance of Postgres, so your application will run against that instance. However, if you were to run your code now, the table backing `Question`s would not exist. When running tests, we need to create a temporary table for `Question`s before the tests start. Go to the `setUpAll` method in `question_controller_test.dart`, and enter the following code after the application is started:
+You'll notice in your `RequestSink`, the configuration parameters for the `PostgreSQLPersistentStore` match those that you have just added to your local instance of Postgres, so your application will run against that instance. However, if you were to run your code now, the table backing `Question`s would not exist. When running tests, we need to create a temporary table for `Question`s before the tests start. Go to the `setUp` method in `question_controller_test.dart`, and enter the following code after the application is started:
 
 ```dart
-  setUpAll(() async {
+  setUp(() async {
     await app.start(runOnMainIsolate: true);
 
     var ctx = ManagedContext.defaultContext;
-    var builder = new SchemaBuilder.toSchema(ctx.persistentStore, new Schema.fromDataModel(ctx.dataModel), isTemporary: true);
+    var builder = new SchemaBuilder.toSchema(
+      ctx.persistentStore, new Schema.fromDataModel(ctx.dataModel), isTemporary: true);
 
     for (var cmd in builder.commands) {
       await ctx.persistentStore.execute(cmd);
@@ -148,17 +168,7 @@ Because the `PostgreSQLPersistentStore`'s connection to the database is also a s
   });
 ```
 
-We now need questions in that database. You might expect that the tests will fail, and two of them do - but, surprisingly, one of the tests will currently succeed even though there will be no questions in the database. The test that makes sure `/questions` returns a list of strings ending in `?` will succeed because the `everyElement` matcher will check its inner matcher (`endsWith("?")`) will only fail if the inner matcher fails. Since there are no questions returned, the inner matcher never runs. Here's a good opportunity to improve our tests a bit by adding the expectation that there is at least one question. Update the test in `question_controller_test.dart`:
-
-```dart
-  test("/questions returns list of questions", () async {
-    var response = await client.request("/questions").get();
-    expect(response, hasResponse(200, everyElement(endsWith("?"))));
-    expect(response.decodedBody, hasLength(greaterThan(0)));
-  });
-```
-
-Ok, good, back to all tests failing - as they should, because there are no `Question`s in the database and the old `getQuestionAtIndex` doesn't yet use a database query. Let's first seed the database with some questions using an insert query at the end of `setUpAll`.
+We now need questions in the database (you can run your tests and see the they fail because there are no questions). Let's first seed the database with some questions using an insert query at the end of `setUp`.
 
 ```dart
   setUpAll(() async {
@@ -232,7 +242,7 @@ Go ahead and update the second test for a single question to match this same map
   });
 ```
 
-This test should now fail, but it tests what we want. Update the `getQuestionAtIndex` method to use a query, but apply a matcher to the `Question.index`. In `question_controller.dart`, replace the `getQuestionAtIndex` method.
+This test should now fail, but it tests what we want. Update the `getQuestionAtIndex` method to use a query, but apply a *matcher* to the `Question.index`. In `question_controller.dart`, replace the `getQuestionAtIndex` method.
 
 ```dart
   @httpGet getQuestionAtIndex(@HTTPPath("index") int index) async {
@@ -248,9 +258,33 @@ This test should now fail, but it tests what we want. Update the `getQuestionAtI
   }
 ```
 
-This will create a query that matches on a `Question` whose `index` is equal to value of the `index` local variable. All matchers for `Query<T>`s begin with the word `where`, and there are plenty of them. Check the [Aqueduct API reference](https://www.dartdocs.org/documentation/aqueduct/latest) to see them all.
+Matchers are constants and functions that get assigned to properties of a query's `matchOn` property. They modify the query to include a `where` clause, which filters the result set. This particular query will create a query that matches on a `Question` whose `index` is equal to value of the `index` local variable. There are many matchers available, and all matchers for `Query<T>`s begin with the word `where`. Check the [Aqueduct API reference](https://www.dartdocs.org/documentation/aqueduct/latest) to see them all.
 
-Run the tests again, good to go!
+Run the tests again, good to go! Now go ahead and delete the property `questions` for `QuestionController`, so the final class looks like this:
+
+```dart
+class QuestionController extends HTTPController {
+  @httpGet getAllQuestions() async {
+    var questionQuery = new Query<Question>();
+    var questions = await questionQuery.fetch();
+    return new Response.ok(questions);
+  }
+
+
+  @httpGet
+  Future<Response> getQuestionAtIndex(@HTTPPath("index") int index) async {
+    var questionQuery = new Query<Question>()
+      ..matchOn.index = whereEqualTo(index);    
+
+    var question = await questionQuery.fetchOne();
+
+    if (question == null) {
+      return new Response.notFound();
+    }
+    return new Response.ok(question);
+  }
+}
+```
 
 That's fetch and insert. Delete works the same way - you specify `matchOn` values and invoke `delete` on the query. If you want to update database rows, you specify both `values` and `matchOn`.
 
