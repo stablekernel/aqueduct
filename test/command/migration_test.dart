@@ -84,13 +84,9 @@ void main() {
       });
     };
 
-    PersistentStore store;
-
     setUp(() {
       temporaryDirectory.createSync();
       migrationsDirectory.createSync();
-      store = new PostgreSQLPersistentStore.fromConnectionInfo(
-          "dart", "dart", "localhost", 5432, "dart_test");
     });
 
     tearDown(() {

@@ -1,5 +1,10 @@
 import 'wildfire.dart';
 
+import 'controller/identity_controller.dart';
+import 'controller/register_controller.dart';
+import 'controller/user_controller.dart';
+import 'utility/html_template.dart';
+
 /// This class handles setting up this application.
 ///
 /// Override methods from [RequestSink] to set up the resources your
