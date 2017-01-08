@@ -12,9 +12,13 @@ aqueduct setup
 
 See [Getting Started](https://stablekernel.github.io/aqueduct/deploy/getting_started.html)
 
-## Routes
+## Notes
+
+Files declaring an instance of `ManagedObject` must be exported from `lib/wildfire_model.dart`.
 
 See configured routes in `lib/wildfire_sink.dart`.
+
+To disable logging during tests, set `logging:type:` to `off` in `config.yaml.src`. To re-enable, set to `console`.
 
 ## Authentication/Authorization
 
@@ -38,7 +42,15 @@ See [Getting Started](https://stablekernel.github.io/aqueduct/deploy/getting_sta
 
 ## Deployment and Database Provisioning
 
-See the [Deployment Guides](http://stablekernel.github.io/aqueduct/deploy/overview.html)
+Run Aqueduct applications with `aqueduct serve`. This application connects to a database and requires a configuration file. See the [Deployment Guides](http://stablekernel.github.io/aqueduct/deploy/overview.html) for configuring databases.
+
+## Logging and Configuration
+
+The configuration file currently requires an entry for `database:` and `logging:`.
+
+Logs can be sent to stdout or to a rotating file. See the behavior of `LoggingConfiguration` and `WildfireSink.initializeApplication` in `lib/wildfire_sink.dart` for possible configuration values.
+
+See [safe_config](https://pub.dartlang.org/packages/safe_config) for more details on configuration.
 
 ## Creating API Documentation
 
