@@ -20,8 +20,16 @@ export 'application_server.dart';
 /// Behavior specific to an application is implemented by setting the [Application]'s [configuration] and providing
 /// a [RequestSinkType].
 class Application<RequestSinkType extends RequestSink> {
+  Application();
+
+  Application.withRequestSink(Type t) {
+    _sinkType = reflectClass(t);
+  }
+
   /// Used internally.
   List<ApplicationIsolateSupervisor> supervisors = [];
+
+  ClassMirror _sinkType;
 
   /// The [ApplicationServer] managing delivering HTTP requests into this application.
   ///
@@ -69,7 +77,7 @@ class Application<RequestSinkType extends RequestSink> {
       }
     }
 
-    var requestSinkType = reflectClass(RequestSinkType);
+    var requestSinkType = _sinkType ?? reflectClass(RequestSinkType);
     await _globalStart(requestSinkType, configuration);
 
     if (runOnMainIsolate) {
