@@ -107,7 +107,14 @@ class Response implements RequestControllerEvent {
   /// You should always use lowercase keys.
   ///
   /// Adding a Content-Type header through this property has no effect. Use [contentType] instead.
-  Map<String, dynamic> headers;
+  void set headers(Map<String, dynamic> h) {
+    _headers = {};
+    h.forEach((k, v) {
+      _headers[k.toLowerCase()] = v;
+    });
+  }
+  Map<String, dynamic> get headers => new Map.from(_headers);
+  Map<String, dynamic> _headers;
 
   /// The HTTP status code of this response.
   int statusCode;
@@ -155,15 +162,11 @@ class Response implements RequestControllerEvent {
   /// Always use lowercase keys for headers.
   Response.created(String location,
       {dynamic body, Map<String, dynamic> headers}) {
-    this.headers = headers;
+    var allHeaders = headers ?? {};
+    allHeaders[HttpHeaders.LOCATION] = location;
+    this.headers = allHeaders;
     this.body = body;
     this.statusCode = HttpStatus.CREATED;
-
-    if (this.headers == null) {
-      this.headers = {HttpHeaders.LOCATION: location};
-    } else {
-      this.headers[HttpHeaders.LOCATION] = location;
-    }
   }
 
   /// Represents a 202 response.
@@ -213,6 +216,13 @@ class Response implements RequestControllerEvent {
   /// Always use lowercase keys for headers.
   Response.serverError({Map<String, dynamic> headers, dynamic body})
       : this(HttpStatus.INTERNAL_SERVER_ERROR, headers, body);
+
+  void addHeader(String header, dynamic value) {
+    if (_headers == null) {
+      _headers = {};
+    }
+    _headers[header.toLowerCase()] = value.toString();
+  }
 
   String toString() {
     return "$statusCode $headers";
