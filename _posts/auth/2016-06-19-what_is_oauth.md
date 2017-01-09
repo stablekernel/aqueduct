@@ -1,49 +1,67 @@
 ---
 layout: page
-title: "Overview"
+title: "What is OAuth 2.0?"
 category: auth
 date: 2016-06-19 21:22:35
 order: 6
 ---
 
-OAuth 2.0 is a way to make sure the information and actions your application has can only be seen and used by the people it supposed to be seen and used by. This means two things:
+Most applications have a user. To prevent just anyone from saying they are this user, the user has a password. When a user wants to use your application, they send their username and password to the server so it can ensure they are who they say they are.
 
-  1. Making sure every time someone interacts your application, they aren't pretending to be someone else.
-  2. Making sure that someone only has access to what you've allowed them to have access to.
+The simple way to do this is to send the username and password in an `Authorization` header for every request. Two reasons this is bad: first, every time the user wants to do something, their password is sent in every request and that can be unsafe. Second, any application that wants to keep the user logged in has to store that password - and that is unsafe.
 
-It's best to picture how OAuth 2.0 works by pretending to be a drug dealer. So, let's say you were a small-time drug dealer.
+In OAuth 2.0, the user gives their username and password to an application once. The application sends those credentials to a server, and the server gives the application back an access token. A access token is a long, random string that no one can guess. When the user wants to do more stuff, the application sends the token with every request, instead of the user's password. The server checks the token, makes sure its not expired, and then lets the application's request go through. This means the application doesn't store the password, but doesn't have to ask the user for their password again.
 
-You need to get some drugs to sell. You don't have drugs, nor can you create them, so you have to get a supplier. A supplier doesn't just sell drugs at volume to anyone off the street, that's how you get caught by undercover agents. So instead, the supplier makes you fill out a form and does a background check first. Once you are approved, you get a cell phone number that you can call.
+This credential-for-token exchange happens by sending a POST request to some endpoint, where the username and password are sent in the request body. By default, an Aqueduct application's route for this is `/auth/token`.
 
-However, you can't just call this number and place an order - the supplier has a lot of heat on them and someone could be listening in. (Also, this isn't the supplier's only number - they've got different numbers depending on the caller. East-siders call one number, west-siders call another, their distributor has a direct line, etc.) When you call, you have to say your full name and answer a question that was asked of you in the initial form that only you would know.
+OAuth 2.0 makes a subtle distinction: a user and the application they are using are not the same thing. It's intuitive to think of a user as "making a request to the server", but in reality, the user makes a request to an application. The application makes the request to the server. The server *grants* the application access on behalf of the user. In other words, when a user enters their credentials into an application, the application goes to the server and says "Hey, this user said I can do stuff for them. Look, this is there secret password!"
 
-After being verified, you get a text message with an image of a bar code. You can take this bar code to a number of warehouses across the city, where a guard scans it and lets you in to pick up a shipment.
+This is an important distinction, because an OAuth 2.0 server doesn't just verify users: it also verifies applications. An application has a identifier that has been registered with the server. So, for an ecosystem that has a web client, an Android and an iOS app there would likely be three identifiers - one for each. The application usually stores that identifier in its code or a configuration file that it ships with. This identifier is called a *client identifier*. Client identifiers are added to Aqueduct applications with the `aqueduct auth` tool.
 
-As a drug dealer, you are a user of a service that requires authentication and authorization. Once you have that authorization, you can access the contents of that service - in this case, order fulfillment warehouses. And that's what OAuth 2.0 does.
+When the user is logging in through an application, they submit their username and password. The user doesn't provide the client identifier - in fact, the user doesn't know it. The application creates a request with the username and password in the body and the client identifier in the `Authorization` header. All three have to check out for the server to give the application back a token. The full request in pseudo-code looks something like:
 
-In this scenario, your drug-dealing alter ego is called a *resource owner*. It's a fancy word for 'user', but intentionally abstract enough that someone can make it super confusing on Wikipedia. (For example, read the [Wikipedia page on the number zero](https://en.wikipedia.org/wiki/0).) Is there more to a resource owner than just being a "user"? Yeah, but who cares? If you already know that, you aren't reading this, and you have to understand this before you can know that.
+```dart
+var request = new HTTPRequest("/auth/token");
+request.method = "POST";
+request.contentType = "application/x-www-form-urlencoded";
+request.authorization = Base64.encode("$clientID:");
+request.body = {
+  "username" : "<UserName>",
+  "password" : "<Password>",
+  "grant_type" : "password"
+};
+```
 
-So, the resource owner is a person that is sitting at a computer or on their phone and using an application. They click some buttons and the application sends a request to a server to fulfill the user's command. This is where OAuth 2.0 creates a nuanced distinction: it treats the client application and the resource owner as different entities. We naturally think of the resource owner talking directly with the server, but in reality, the client application does the talking on the resource owner's behalf. It's the same difference between you and their cell phone: you punched the buttons to make the call, but the cell phone actually does the calling and exchanging of data.
+An access token can expire. How long it takes to expire is up to the server - Aqueduct defaults to an hour. At first glance, this means that the application would have to ask the user for a password again. But, tokens can also be refreshed. Refreshing a token grants a brand new access token, but without having to ask for the password. This is possible because an access token comes with a *refresh token*. The refresh token is another long, random string. So, the JSON the server sends back when granting a token looks like this:
 
-This is a useful distinction. Let's say heat picks up on the eastside, the supplier might limit the number of warehouses a dealer might have access to if they are calling the eastside number. 
+```json
+{
+  "access_token" : "Abca09zzzza2o2kelmzlli3ijlka",
+  "token_type" : "bearer",
+  "refresh_token" : "lkmLIAmooa898nm20jannnnnxaww",
+  "expire_in" : 3600
+}
+```
 
- When a resource owner enters their username and password, its the client application that
+The application hangs on to both an access token and a refresh token. When it decides that the token is expired, it will send the refresh token back to the server to get a replacement access token. This is done through the same route that the access token came from - `/auth/token` - except the parameters are a bit different:
 
-A resource owner sits at a computer and clicks things in a client application, because they want to see or do something. Your application server is
+```dart
+var request = new HTTPRequest("/auth/token");
+request.method = "POST";
+request.contentType = "application/x-www-form-urlencoded";
+request.authorization = Base64.encode("$clientID:");
+request.body = {
+  "refresh_token" : "<RefreshToken>",
+  "grant_type" : "refresh_token"
+};
+```
 
+Exchanging a refresh token has the same response as the initial exchange for username and password - except a few values will have changed.
 
-The client application is registered with your server, and your server gave the application developers a secret.
-The user submits their username and password in the application login page. The application makes a request to the server with the username and password.
+### Other Methods for Obtaining Authorization
 
-They have to know a client ID and client secret, which have to be registered with the application. They enter their username and password in a client application, and the application sends its
-They send a request to your server - with the client ID and client secret in a header - plus their username and password. If that all checks out, they get back an access token. When they send a request for some resource on your server, they attach the bearer token
+The method of getting a token above - sending a username and password to `/auth/token` - is just one of four possible methods OAuth 2.0 uses to authenticate a user. This particular one is called the *resource owner password credentials grant*. A resource owner is a fancy word for a 'user'. We can shorten it up to just the 'password flow'. It's probably the most common flow - mobiles applications and front-end web applications often use this flow. When you enter your credentials, the client application sends them directly to the server.
 
-In order to pick up a shipment, you have to call the supplier from the
+The other commonly used flow prevents the client application from ever seeing the user's credentials. For example, you might sign into Pivotal Tracker with your Google account. Your account on Pivotal Tracker doesn't have a password. Instead, it is linked to your Google account - which does. Pivotal Tracker never sees your Google password. When you login to Pivotal Tracker in this way, it takes you to Google's authentication page - owned and operated by Google. When you login successfully, Google gives Pivotal Tracker your token. Pivotal Tracker is now an application that can do things on your behalf.
 
-1. Register a Client ID/Secret
-2. Have a 'Resource Owner'
-3. Have Resource Owner ask for Access to Things, providing their client id/secret
-4. Give Resource Owner a Token that represents their access
-5. Allow Resource Owner to access Things with their token
-
-6. Refresh their token
+This is called the *authorization code grant* - or just 'auth code flow'.
