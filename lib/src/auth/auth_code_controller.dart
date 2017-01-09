@@ -190,7 +190,6 @@ class AuthCodeController extends HTTPController {
     var redirectURI = Uri.parse(uriString);
     Map<String, String> queryParameters =
         new Map.from(redirectURI.queryParameters);
-    print("${queryParameters}");
 
     if (code != null) {
       queryParameters["code"] = code;
