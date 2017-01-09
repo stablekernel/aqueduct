@@ -175,7 +175,6 @@ class AuthCodeController extends HTTPController {
     if (resp.statusCode == 302) {
       var locationHeader = resp.headers[HttpHeaders.LOCATION];
       if (locationHeader != null && state != null) {
-        locationHeader += "&state=${Uri.encodeQueryComponent(state)}";
         resp.headers[HttpHeaders.LOCATION] = locationHeader;
       }
     }

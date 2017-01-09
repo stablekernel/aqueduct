@@ -328,15 +328,22 @@ void main() {
 
   group("Invalid requests and state", () {
     test("Omit state is error", () async {
-      var res = await codeResponse({
+      var resp = await codeResponse({
         "client_id": "com.stablekernel.redirect",
         "username": user1["username"],
         "password": InMemoryAuthStorage.DefaultPassword
       });
-      expectErrorRedirect(
-          res,
-          new Uri.http("stablekernel.com", "/auth/redirect"),
-          "invalid_request");
+
+      expect(resp, hasStatus(HttpStatus.MOVED_TEMPORARILY));
+
+      var location = resp.headers.value(HttpHeaders.LOCATION);
+      var uri = Uri.parse(location);
+      var requestURI = new Uri.http("stablekernel.com", "/auth/redirect");
+      expect(uri.queryParameters["error"], "invalid_request");
+      expect(uri.queryParameters["state"], isNull);
+      expect(uri.authority, equals(requestURI.authority));
+      expect(uri.path, equals(requestURI.path));
+      expect(uri.queryParametersAll["error"].length, 1);
     });
 
     test("Failed username + state still returns state in error", () async {
@@ -485,6 +492,9 @@ expectRedirect(TestResponse resp, Uri requestURI, {String state}) {
   expect(uri.queryParameters["state"], state);
   expect(uri.authority, equals(requestURI.authority));
   expect(uri.path, equals(requestURI.path));
+
+  expect(uri.queryParametersAll["state"].length, 1);
+  expect(uri.queryParametersAll["code"].length, 1);
 }
 
 expectErrorRedirect(TestResponse resp, Uri requestURI, String errorReason,
@@ -497,11 +507,8 @@ expectErrorRedirect(TestResponse resp, Uri requestURI, String errorReason,
   expect(uri.path, requestURI.path);
   expect(uri.queryParameters["error"], errorReason);
   expect(uri.queryParameters["state"], state);
-  if (state != null) {
-    expect(uri.queryParameters.length, 2);
-  } else {
-    expect(uri.queryParameters.length, 1);
-  }
+  expect(uri.queryParametersAll["state"].length, 1);
+  expect(uri.queryParametersAll["error"].length, 1);
 }
 
 Map<String, String> get user1 => const {
