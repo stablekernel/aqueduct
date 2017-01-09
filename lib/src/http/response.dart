@@ -101,13 +101,12 @@ class Response implements RequestControllerEvent {
 
   /// Map of headers to send in this response.
   ///
-  /// Where the key is the Header name and value is the Header value. Values may be any type and by default will have [toString] invoked
-  /// on them. For [DateTime] values, the value will be converted into an HTTP date format. For [List] values, each value will be
-  /// have [toString] invoked on it and the resulting outputs will be joined together with the "," character.
+  /// Where the key is the Header name and value is the Header value. Values are added to the Response body
+  /// according to [HttpHeaders.add].
   ///
-  /// You should always use lowercase keys.
+  /// The keys of this map are case-insensitive - they will always be lowercased.
   ///
-  /// Adding a Content-Type header through this property has no effect. Use [contentType] instead.
+  /// See [contentType] for behavior when setting 'content-type' in this property.
   Map<String, dynamic> get headers => _headers;
   void set headers(Map<String, dynamic> h) {
     _headers = new LowercaseMap.fromMap(h);
@@ -121,7 +120,29 @@ class Response implements RequestControllerEvent {
   ///
   /// Defaults to [defaultContentType]. This response's body will be encoded according to this value.
   /// The Content-Type header of the HTTP response will always be set according to this value.
-  ContentType get contentType => _contentType ?? defaultContentType;
+  ///
+  /// If this value is set directly, then this instance's Content-Type will be that value.
+  /// If this value is not set, then the [headers] property is checked for the key 'content-type'.
+  /// If the key is not present in [headers], this property's value is [defaultContentType].
+  ///
+  /// If the key is present and the value is a [String], this value is the result of passing the value to [ContentType.parse].
+  /// If the key is present and the value is a [ContentType], this property is equal to that value.
+  ContentType get contentType {
+    if (_contentType != null) {
+      return _contentType;
+    }
+
+    var inHeaders = _headers[HttpHeaders.CONTENT_TYPE];
+    if (inHeaders == null) {
+      return defaultContentType;
+    }
+
+    if (inHeaders is ContentType) {
+      return inHeaders;
+    }
+
+    return ContentType.parse(inHeaders);
+  }
   void set contentType(ContentType t) {
     _contentType = t;
   }
@@ -139,7 +160,7 @@ class Response implements RequestControllerEvent {
   /// and you should prefer to use those. Always use lowercase keys for headers.
   Response(int statusCode, Map<String, dynamic> headers, dynamic body) {
     this.body = body;
-    this.headers = new LowercaseMap.fromMap(headers);
+    this.headers = new LowercaseMap.fromMap(headers ?? {});
     this.statusCode = statusCode;
   }
 

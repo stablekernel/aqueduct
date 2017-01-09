@@ -1,5 +1,6 @@
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
+import 'dart:io';
 
 void main() {
   test("Modifying return value from Response.headers changes actual headers", () {
@@ -48,4 +49,38 @@ void main() {
     expect(response.headers["xyz"], "c");
     expect(response.headers.length, 2);
   });
+
+  test("contentType defaults to json", () {
+    var response = new Response.ok(null);
+    expect(response.contentType, ContentType.JSON);
+  });
+
+  test("contentType property overrides any headers", () {
+    var response = new Response.ok(null, headers: {
+      HttpHeaders.CONTENT_TYPE : "application/xml"
+    });
+    response.contentType = ContentType.JSON;
+
+    expect(response.contentType, ContentType.JSON);
+    response.headers[HttpHeaders.CONTENT_TYPE] = "application/foo";
+    expect(response.contentType, ContentType.JSON);
+  });
+
+  test("Setting content type as String through headers returns same type from contentType", () {
+    var response = new Response.ok(null, headers: {
+      HttpHeaders.CONTENT_TYPE : "application/xml"
+    });
+    expect(response.contentType.primaryType, "application");
+    expect(response.contentType.subType, "xml");
+  });
+
+  test("Setting content type as ContentType through headers returns same type from contentType", () {
+    var response = new Response.ok(null, headers: {
+      HttpHeaders.CONTENT_TYPE : new ContentType("application", "xml")
+    });
+    expect(response.contentType.primaryType, "application");
+    expect(response.contentType.subType, "xml");
+
+  });
+
 }

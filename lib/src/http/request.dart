@@ -152,6 +152,20 @@ class Request implements RequestControllerEvent {
     }
 
     if (encodedBody != null) {
+//      ContentType type;
+//
+//      if (!responseObject.hasExplicitlySetContentType) {
+//        var contentTypeHeader = responseObject.headers[HttpHeaders.CONTENT_TYPE];
+//
+//        if (contentTypeHeader is ContentType) {
+//          type = contentTypeHeader;
+//        } else if (contentTypeHeader is String) {
+//          type = ContentType.parse(contentTypeHeader);
+//        }
+//      } else {
+//        type = responseObject.contentType;
+//      }
+
       response.headers
           .add(HttpHeaders.CONTENT_TYPE, responseObject.contentType.toString());
       response.write(encodedBody);
