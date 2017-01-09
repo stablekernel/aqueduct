@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:convert';
 import 'http.dart';
+import '../utilities/lowercasing_map.dart';
 
 /// Represents the information in an HTTP response.
 ///
@@ -107,14 +108,11 @@ class Response implements RequestControllerEvent {
   /// You should always use lowercase keys.
   ///
   /// Adding a Content-Type header through this property has no effect. Use [contentType] instead.
+  Map<String, dynamic> get headers => _headers;
   void set headers(Map<String, dynamic> h) {
-    _headers = {};
-    h.forEach((k, v) {
-      _headers[k.toLowerCase()] = v;
-    });
+    _headers = new LowercaseMap.fromMap(h);
   }
-  Map<String, dynamic> get headers => new Map.from(_headers);
-  Map<String, dynamic> _headers;
+  Map<String, dynamic> _headers = new LowercaseMap();
 
   /// The HTTP status code of this response.
   int statusCode;
@@ -141,12 +139,8 @@ class Response implements RequestControllerEvent {
   /// and you should prefer to use those. Always use lowercase keys for headers.
   Response(int statusCode, Map<String, dynamic> headers, dynamic body) {
     this.body = body;
-    this.headers = headers;
+    this.headers = new LowercaseMap.fromMap(headers);
     this.statusCode = statusCode;
-
-    if (this.headers == null) {
-      this.headers = {};
-    }
   }
 
   /// Represents a 200 response.
@@ -161,13 +155,8 @@ class Response implements RequestControllerEvent {
   ///
   /// Always use lowercase keys for headers.
   Response.created(String location,
-      {dynamic body, Map<String, dynamic> headers}) {
-    var allHeaders = headers ?? {};
-    allHeaders[HttpHeaders.LOCATION] = location;
-    this.headers = allHeaders;
-    this.body = body;
-    this.statusCode = HttpStatus.CREATED;
-  }
+      {dynamic body, Map<String, dynamic> headers}) :
+        this(HttpStatus.CREATED, _headersWith(headers, {HttpHeaders.LOCATION : location}), body);
 
   /// Represents a 202 response.
   ///
@@ -217,14 +206,13 @@ class Response implements RequestControllerEvent {
   Response.serverError({Map<String, dynamic> headers, dynamic body})
       : this(HttpStatus.INTERNAL_SERVER_ERROR, headers, body);
 
-  void addHeader(String header, dynamic value) {
-    if (_headers == null) {
-      _headers = {};
-    }
-    _headers[header.toLowerCase()] = value.toString();
-  }
-
   String toString() {
     return "$statusCode $headers";
+  }
+
+  static Map<String, dynamic> _headersWith(Map<String, dynamic> inputHeaders, Map<String, dynamic> otherHeaders) {
+    var m = new LowercaseMap.fromMap(inputHeaders ?? {});
+    m.addAll(otherHeaders);
+    return m;
   }
 }

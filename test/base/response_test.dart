@@ -2,15 +2,15 @@ import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
 
 void main() {
-  test("Modifying return alue from Response.headers does not impact actual headers", () {
+  test("Modifying return value from Response.headers changes actual headers", () {
     var response = new Response(0, {}, null);
-    response.addHeader("a", "b");
+    response.headers["a"] = "b";
 
     var headers = response.headers;
     headers["b"] = "c";
     expect(response.headers["a"], "b");
-    expect(response.headers["b"], isNull);
-    expect(response.headers.length, 1);
+    expect(response.headers["b"], "c");
+    expect(response.headers.length, 2);
   });
 
   test("Headers get lowercased when set in default constructor", () {
@@ -32,7 +32,7 @@ void main() {
 
   test("Headers get lowercased when set manually", () {
     var response = new Response(0, {"AbCe" : "b", "XYZ" : "c"}, null);
-    response.addHeader("ABCe", "b");
+    response.headers["ABCe"] = "b";
     expect(response.headers["abce"], "b");
     expect(response.headers["xyz"], "c");
     expect(response.headers.length, 2);
