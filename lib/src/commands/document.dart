@@ -13,10 +13,17 @@ class CLIDocument extends CLICommand with CLIProject {
     options
       ..addOption("config-path",
           abbr: "c",
-          help:
-          "The path to a configuration file. This file is available in the ApplicationConfiguration "
-              "for a RequestSink to use to read application-specific configuration values. Relative paths are relative to [directory].",
+          help: "The path to a configuration file that this application needs to initialize resources for the purpose of documenting its API.",
           defaultsTo: "config.yaml.src")
+      ..addOption("title", help: "API Docs: Title", defaultsTo: "Aqueduct App")
+      ..addOption("description", help: "API Docs: Description", defaultsTo: "An Aqueduct App")
+      ..addOption("version", help: "API Docs: Version", defaultsTo: "1.0")
+      ..addOption("tos", help: "API Docs: Terms of Service URL", defaultsTo: "")
+      ..addOption("contact-email", help: "API Docs: Contact Email", defaultsTo: "")
+      ..addOption("contact-name", help: "API Docs: Contact Name", defaultsTo: "")
+      ..addOption("contact-url", help: "API Docs: Contact URL", defaultsTo: "")
+      ..addOption("license-url", help: "API Docs: License URL", defaultsTo: "")
+      ..addOption("license-name", help: "API Docs: License Name", defaultsTo: "")
       ..addOption("host", allowMultiple: true,
           help: "Scheme, host and port for available instances.",
           valueHelp: "https://api.myapp.com:8000");
@@ -36,6 +43,16 @@ class CLIDocument extends CLICommand with CLIProject {
     }).toList();
   }
 
+  String get title => values["title"];
+  String get apiDescription => values["description"];
+  String get version => values["version"];
+  String get termsOfServiceURL => values["tos"];
+  String get contactEmail => values["contact-email"];
+  String get contactName => values["contact-name"];
+  String get contactURL => values["contact-url"];
+  String get licenseURL => values["license-url"];
+  String get licenseName => values["license-name"];
+
   Future<int> handle() async {
     print("${await documentProject()}");
     return 0;
@@ -52,16 +69,15 @@ class CLIDocument extends CLICommand with CLIProject {
               ?.map((hostString) => new APIHost.fromURI(Uri.parse((hostString))))
               ?.toList();
 
-          document.info.title = values["title"] ?? "Aqueduct App";
-          document.info.description = values["description"] ?? "An Aqueduct App";
-          document.info.version = values["version"] ?? "1.0";
-          document.info.termsOfServiceURL = values["termsOfServiceURL"] ?? "";
+          document.info.title = values["title"];
+          document.info.description = values["apiDescription"];
+          document.info.version = values["version"];
+          document.info.termsOfServiceURL = values["termsOfServiceURL"];
           document.info.contact.email = values["contactEmail"];
           document.info.contact.name = values["contactName"];
           document.info.contact.url = values["contactURL"];
           document.info.license.url = values["licenseURL"];
           document.info.license.name = values["licenseName"];
-
 
           return JSON.encode(document.asMap());
         }, imports: [
@@ -73,8 +89,17 @@ class CLIDocument extends CLICommand with CLIProject {
       "dart:convert"
     ]);
 
-    var executor = new IsolateExecutor(generator, [libraryName],
-        packageConfigURI: projectDirectory.uri.resolve(".packages"));
+    var executor = new IsolateExecutor(generator, [libraryName], message: {
+      "title" : title,
+      "apiDescription" : apiDescription,
+      "version" : version,
+      "termsOfServiceURL" : termsOfServiceURL,
+      "contactEmail" : contactEmail,
+      "contactName" : contactName,
+      "contactURL" : contactURL,
+      "licenseURL" : licenseURL,
+      "licenseName" : licenseName
+    },packageConfigURI: projectDirectory.uri.resolve(".packages"));
     var contents = await executor.execute(projectDirectory.uri);
 
     return contents;
@@ -86,5 +111,18 @@ class CLIDocument extends CLICommand with CLIProject {
 
   String get description {
     return "Generates an OpenAPI specification of an application.";
+  }
+
+  String get detailedDescription {
+    return "This tool will generate an OpenAPI specification of an Aqueduct application. It operates by invoking Application.document. "
+        "This method locates an application's RequestSink and invokes the first three phases of initialization:\n\n"
+        "\tRequestSink.initializeApplication\n"
+        "\tRequestSink's constructor\n"
+        "\tRequestSink.setupRouter\n\n"
+        "After these initialization methods are called, RequestSink.document is invoked. Note that the full initialization process does not"
+        " occur: RequestSink.willOpen and RequestSink.didOpen are not called because no web server is started. However, it is important that"
+        " the first three steps of initialization can occur without error when generating documentation. This often requires having a"
+        " valid configuration file (--config-path) when running this tool. The suggested approach is to use config.yaml.src as the configuration"
+        " file for the document tool. The flag 'isDocumenting' will be set to true in ApplicationConfiguration.";
   }
 }

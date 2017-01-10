@@ -116,6 +116,7 @@ class Application<RequestSinkType extends RequestSink> {
   static Future<APIDocument> document(Type sinkType, ApplicationConfiguration config, PackagePathResolver resolver) async {
     var sinkMirror = reflectClass(sinkType);
 
+    config.isDocumenting = true;
     await _globalStart(sinkMirror, config);
 
     RequestSink sink = sinkMirror
@@ -126,7 +127,7 @@ class Application<RequestSinkType extends RequestSink> {
     return sink.documentAPI(resolver);
   }
 
-  static Future<Map<String, dynamic>> _globalStart(
+  static Future _globalStart(
       ClassMirror sinkType, ApplicationConfiguration config) async {
     var globalStartSymbol = #initializeApplication;
     if (sinkType.staticMembers[globalStartSymbol] != null) {
