@@ -54,7 +54,15 @@ class CLIDocument extends CLICommand with CLIProject {
   String get licenseName => values["license-name"];
 
   Future<int> handle() async {
-    print("${await documentProject()}");
+    try {
+      print("${await documentProject()}");
+    } catch (e, st) {
+      displayError("Failed to generate documentation");
+      displayProgress("$e");
+      if (showStacktrace) {
+        displayProgress("$st");
+      }
+    }
     return 0;
   }
 
