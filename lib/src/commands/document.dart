@@ -52,6 +52,7 @@ class CLIDocument extends CLICommand with CLIProject {
   String get contactURL => values["contact-url"];
   String get licenseURL => values["license-url"];
   String get licenseName => values["license-name"];
+  String get configurationPath => values["config-path"];
 
   Future<int> handle() async {
     try {
@@ -70,8 +71,11 @@ class CLIDocument extends CLICommand with CLIProject {
     var generator = new SourceGenerator(
         (List<String> args, Map<String, dynamic> values) async {
           var resolver = new PackagePathResolver(".packages");
+          var config = new ApplicationConfiguration()
+            ..configurationFilePath = values["configPath"];
+
           var document = await Application.document(
-              RequestSink.defaultSinkType, new ApplicationConfiguration(), resolver);
+              RequestSink.defaultSinkType, config, resolver);
 
           document.hosts = (values["hosts"] as List<String>)
               ?.map((hostString) => new APIHost.fromURI(Uri.parse((hostString))))
@@ -98,6 +102,7 @@ class CLIDocument extends CLICommand with CLIProject {
     ]);
 
     var executor = new IsolateExecutor(generator, [libraryName], message: {
+      "configPath" : configurationPath,
       "title" : title,
       "apiDescription" : apiDescription,
       "version" : version,
