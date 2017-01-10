@@ -44,17 +44,24 @@ class CLIDocument extends CLICommand with CLIProject {
   Future<String> documentProject() async {
     var generator = new SourceGenerator(
         (List<String> args, Map<String, dynamic> values) async {
-          var app = new Application.withRequestSink(RequestSink.defaultSinkType)
-            ..configuration = (new ApplicationConfiguration()
-              ..configurationFilePath = values["config-path"]);
-
           var resolver = new PackagePathResolver(".packages");
-          var document = app.document(resolver);
-//          document.hosts = hosts.map((uri) {
-//            return new APIHost()
-//              ..host = "${uri.host}:${uri.port}"
-//              ..scheme = uri.scheme;
-//          }).toList();
+          var document = await Application.document(
+              RequestSink.defaultSinkType, new ApplicationConfiguration(), resolver);
+
+          document.hosts = (values["hosts"] as List<String>)
+              ?.map((hostString) => new APIHost.fromURI(Uri.parse((hostString))))
+              ?.toList();
+
+          document.info.title = values["title"] ?? "Aqueduct App";
+          document.info.description = values["description"] ?? "An Aqueduct App";
+          document.info.version = values["version"] ?? "1.0";
+          document.info.termsOfServiceURL = values["termsOfServiceURL"] ?? "";
+          document.info.contact.email = values["contactEmail"];
+          document.info.contact.name = values["contactName"];
+          document.info.contact.url = values["contactURL"];
+          document.info.license.url = values["licenseURL"];
+          document.info.license.name = values["licenseName"];
+
 
           return JSON.encode(document.asMap());
         }, imports: [

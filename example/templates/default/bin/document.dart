@@ -33,7 +33,7 @@ Future main(List<String> args) async {
     };
 
   var resolver = new PackagePathResolver(".packages");
-  var document = app.document(resolver);
+  var document = await Application.document(WildfireSink, null, resolver);
   document.hosts = hosts.map((uri) {
     return new APIHost()
       ..host = "${uri.host}:${uri.port}"
