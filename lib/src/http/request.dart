@@ -145,11 +145,9 @@ class Request implements RequestControllerEvent {
 
     response.statusCode = responseObject.statusCode;
 
-    if (responseObject.headers != null) {
-      responseObject.headers.forEach((k, v) {
-        response.headers.add(k, v);
-      });
-    }
+    responseObject.headers?.forEach((k, v) {
+      response.headers.add(k, v);
+    });
 
     if (encodedBody != null) {
       response.headers
