@@ -132,26 +132,29 @@ class Request implements RequestControllerEvent {
   ///
   /// [RequestController]s invoke this method to respond to this request.
   ///
-  /// Once this method has executed, the [Request] is no longer valid. All headers from [responseObject] are
-  /// added to the HTTP response. If [responseObject] has a [Response.body], this request will attempt to encode the body data according to the
-  /// Content-Type in the [responseObject]'s [Response.headers].
+  /// Once this method has executed, the [Request] is no longer valid. All headers from [aqueductResponse] are
+  /// added to the HTTP response. If [aqueductResponse] has a [Response.body], this request will attempt to encode the body data according to the
+  /// Content-Type in the [aqueductResponse]'s [Response.headers].
   ///
   /// By default, 'application/json' and 'text/plain' are supported HTTP response body encoding types. If you wish to encode another
   /// format, see [Response.addEncoder].
-  void respond(Response responseObject) {
+  void respond(Response aqueductResponse) {
     respondDate = new DateTime.now().toUtc();
 
-    var encodedBody = responseObject.encodedBody;
+    // Note: this line's placement is intentional. If encoding the body fails and this throws an exception,
+    // and the status code has already been written too, then we can't change the status code to send
+    // back an error response.
+    var encodedBody = aqueductResponse.encodedBody;
 
-    response.statusCode = responseObject.statusCode;
+    response.statusCode = aqueductResponse.statusCode;
 
-    responseObject.headers?.forEach((k, v) {
+    aqueductResponse.headers?.forEach((k, v) {
       response.headers.add(k, v);
     });
 
     if (encodedBody != null) {
       response.headers
-          .add(HttpHeaders.CONTENT_TYPE, responseObject.contentType.toString());
+          .add(HttpHeaders.CONTENT_TYPE, aqueductResponse.contentType.toString());
       response.write(encodedBody);
     }
 
