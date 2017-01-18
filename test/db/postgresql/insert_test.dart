@@ -13,6 +13,14 @@ void main() {
     context = null;
   });
 
+  test("Accessing valueObject of Query automatically creates an instance", () async {
+    context = await contextWithModels([TestModel]);
+
+    var q = new Query<TestModel>()..values.id = 1;
+
+    expect(q.values.id, 1);
+  });
+
   test("Insert Bad Key", () async {
     context = await contextWithModels([TestModel]);
 

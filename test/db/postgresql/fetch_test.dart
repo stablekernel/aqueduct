@@ -251,7 +251,7 @@ void main() {
   });
 
   test(
-      "Fetch one that returns more than one row (because of join) throws exception",
+      "Throw exception when fetchOne returns more than one because the fetchLimit can't be applied to joins",
       () async {
     context = await contextWithModels([GenUser, GenPost]);
 

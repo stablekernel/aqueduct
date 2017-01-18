@@ -156,6 +156,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
     var primaryKey = _query.entity.primaryKey;
     _query.matchOn[primaryKey] = whereEqualTo(
         _parseValueForProperty(id, _query.entity.properties[primaryKey]));
+    logger.info("${_query.matchOn.backingMap}");
 
     _query = await willDeleteObjectWithQuery(_query);
 

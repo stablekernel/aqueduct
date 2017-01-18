@@ -1,6 +1,8 @@
+import 'dart:io';
+
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
-import 'dart:io';
+import 'package:http/http.dart' as http;
 
 void main() {
   test("Modifying return value from Response.headers changes actual headers", () {
@@ -80,7 +82,5 @@ void main() {
     });
     expect(response.contentType.primaryType, "application");
     expect(response.contentType.subType, "xml");
-
   });
-
 }

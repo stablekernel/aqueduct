@@ -584,7 +584,7 @@ void main() {
       await server?.close();
     });
 
-    test("Omit status code ignores it", () async {
+    test("Omit status code from matcher, matching ignores it", () async {
       var defaultTestClient = new TestClient.onPort(4000);
 
       server.queueResponse(
@@ -597,7 +597,7 @@ void main() {
               headers: {"content-type": "application/json; charset=utf-8"}));
     });
 
-    test("Omit headers ignores them", () async {
+    test("Omit headers from matcher, matching ignores them", () async {
       var defaultTestClient = new TestClient.onPort(4000);
 
       server.queueResponse(new Response.ok({"foo": "bar"},
@@ -610,8 +610,7 @@ void main() {
     test("Omit body ignores them", () async {
       var defaultTestClient = new TestClient.onPort(4000);
 
-      server.queueResponse(new Response.ok({"foo": "bar"},
-          headers: {"content-type": "application/json"}));
+      server.queueResponse(new Response.ok({"foo": "bar"})..contentType = ContentType.JSON);
       var response = await defaultTestClient.request("/foo").get();
       expect(
           response,

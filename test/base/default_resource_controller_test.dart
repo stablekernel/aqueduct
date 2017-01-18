@@ -7,6 +7,7 @@ import '../helpers.dart';
 void main() {
   group("Standard operations", () {
     var app = new Application<TestSink>();
+    RequestController.letUncaughtExceptionsEscape = true;
     app.configuration.port = 8080;
     var client = new TestClient.onPort(app.configuration.port);
     List<TestModel> allObjects = [];
