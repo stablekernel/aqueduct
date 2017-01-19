@@ -100,7 +100,7 @@ class ManagedInstantiator {
     }
   }
 
-  void applyRowValuesToProperty(ManagedObject instance,
+  void applyRowValuesToInstance(ManagedObject instance,
       PropertyToRowMapper mapper, Iterator<dynamic> rowIterator) {
     var innerInstanceWrapper = instanceFromRow(
         rowIterator, mapper.orderedMappingElements.iterator,
@@ -162,7 +162,7 @@ class ManagedInstantiator {
         rowIterator.moveNext();
         applyColumnValueToProperty(instance, mapper, rowIterator.current);
       } else if (mapper is PropertyToRowMapper) {
-        applyRowValuesToProperty(instance, mapper, rowIterator);
+        applyRowValuesToInstance(instance, mapper, rowIterator);
       }
     }
 
