@@ -253,14 +253,14 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
     if (prop == null) {
       throw new QueryException(QueryExceptionEvent.requestFailure,
           message:
-              "Property ${pageDescriptor.propertyName} in pageDescriptor does not exist on ${entity.tableName}.");
+              "Property '${pageDescriptor.propertyName}' in pageDescriptor does not exist on '${entity.tableName}'.");
     }
 
     if (pageDescriptor.boundingValue != null &&
         !prop.isAssignableWith(pageDescriptor.boundingValue)) {
       throw new QueryException(QueryExceptionEvent.requestFailure,
           message:
-              "Property ${pageDescriptor.propertyName} in pageDescriptor has invalid type (${pageDescriptor.boundingValue.runtimeType}).");
+              "Property '${pageDescriptor.propertyName}' in pageDescriptor has invalid type (Expected: '${prop.type}' Got: ${pageDescriptor.boundingValue.runtimeType}').");
     }
   }
 
