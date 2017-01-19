@@ -326,7 +326,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
           PersistentJoinType.leftOuter,
           relDesc,
           predicate,
-          PropertyToColumnMapper.mappersForKeys(
+          mappersForKeys(
               inner.entity, propertiesToFetch));
       if (inner.hasJoinElements) {
         joinElement.orderedMappingElements

@@ -11,8 +11,7 @@ class ManagedInstantiator {
   ManagedEntity rootEntity;
 
   void set properties(List<String> props) {
-    orderedMappingElements =
-        PropertyToColumnMapper.mappersForKeys(rootEntity, props);
+    orderedMappingElements = mappersForKeys(rootEntity, props);
   }
 
   List<PropertyToColumnMapper> get flattenedMappingElements {
