@@ -2,10 +2,8 @@
 
 pub run test -j 1 -r expanded
 
-if [ $? -eq 0 ]
+if [ $? -ne 0 ]
 then
-    exit 0
-else
     exit 1
 fi
 
