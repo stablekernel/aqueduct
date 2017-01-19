@@ -162,7 +162,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
     var rowMapper = new ManagedInstantiator(entity);
     rowMapper.properties = resultProperties;
 
-    if (hasMatcher) {
+    if (hasMatchOnObject) {
       if (matchOn.hasJoinElements) {
         if (pageDescriptor != null) {
           throw new QueryException(QueryExceptionEvent.requestFailure,

@@ -14,13 +14,14 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
   int offset = 0;
   QueryPage pageDescriptor;
   List<QuerySortDescriptor> sortDescriptors;
-  QueryPredicate _predicate;
   Map<String, dynamic> valueMap;
-  List<String> _resultProperties;
   Map<Type, List<String>> nestedResultProperties = {};
+  bool get hasMatchOnObject => _matchOn != null;
+
+  QueryPredicate _predicate;
+  List<String> _resultProperties;
   InstanceType _matchOn;
   InstanceType _valueObject;
-  bool get hasMatcher => _matchOn != null;
 
   QueryPredicate get predicate {
     if (_matchOn != null) {
