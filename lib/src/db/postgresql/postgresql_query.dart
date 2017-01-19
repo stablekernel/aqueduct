@@ -312,7 +312,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
   }
 
   // todo: this sucks
-  static List<PropertyToRowMapper> joinElementsFromQueryMatchable(
+  List<PropertyToRowMapper> joinElementsFromQueryMatchable(
       QueryMatchableExtension matcherBackedObject) {
     var entity = matcherBackedObject.entity;
     var propertiesToJoin = matcherBackedObject.joinPropertyKeys;
@@ -340,7 +340,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
   }
 
   // todo: this all sucks
-  static String joinStringForJoin(PropertyToRowMapper ji) {
+  String joinStringForJoin(PropertyToRowMapper ji) {
     var parentEntity = ji.property.entity;
     var parentProperty = parentEntity.properties[parentEntity.primaryKey];
     var parentColumnName =
