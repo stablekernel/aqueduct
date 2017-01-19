@@ -6,7 +6,7 @@ import '../query/mapper.dart';
 class ManagedInstantiator {
   ManagedInstantiator(this.rootEntity);
 
-  Map<String, Map<dynamic, ManagedObject>> trackedObjects = {};
+  Map<String, Map<dynamic, ManagedObject>> distinctObjects = {};
   List<PropertyToColumnMapper> orderedMappingElements;
   ManagedEntity rootEntity;
 
@@ -130,7 +130,14 @@ class ManagedInstantiator {
     var instance = entity.newInstance();
 
     instance[entity.primaryKey] = primaryKeyValue;
-    trackInstance(instance);
+
+    var typeMap = distinctObjects[instance.entity.tableName];
+    if (typeMap == null) {
+      typeMap = {};
+      distinctObjects[instance.entity.tableName] = typeMap;
+    }
+
+    typeMap[instance[instance.entity.primaryKey]] = instance;
 
     return instance;
   }
@@ -179,19 +186,9 @@ class ManagedInstantiator {
         .toList();
   }
 
-  void trackInstance(ManagedObject instance) {
-    var typeMap = trackedObjects[instance.entity.tableName];
-    if (typeMap == null) {
-      typeMap = {};
-      trackedObjects[instance.entity.tableName] = typeMap;
-    }
-
-    typeMap[instance[instance.entity.primaryKey]] = instance;
-  }
-
   ManagedObject getExistingInstance(
       ManagedEntity entity, dynamic primaryKeyValue) {
-    var byType = trackedObjects[entity.tableName];
+    var byType = distinctObjects[entity.tableName];
     if (byType == null) {
       return null;
     }
