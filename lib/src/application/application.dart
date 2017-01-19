@@ -20,6 +20,8 @@ export 'application_server.dart';
 /// Behavior specific to an application is implemented by setting the [Application]'s [configuration] and providing
 /// a [RequestSinkType].
 class Application<RequestSinkType extends RequestSink> {
+  Application();
+
   /// Used internally.
   List<ApplicationIsolateSupervisor> supervisors = [];
 
@@ -111,16 +113,21 @@ class Application<RequestSinkType extends RequestSink> {
     await server?.server?.close(force: true);
   }
 
-  APIDocument document(PackagePathResolver resolver) {
-    RequestSink sink = reflectClass(RequestSinkType)
-        .newInstance(new Symbol(""), [configuration]).reflectee;
+  static Future<APIDocument> document(Type sinkType, ApplicationConfiguration config, PackagePathResolver resolver) async {
+    var sinkMirror = reflectClass(sinkType);
+
+    config.isDocumenting = true;
+    await _globalStart(sinkMirror, config);
+
+    RequestSink sink = sinkMirror
+        .newInstance(new Symbol(""), [config]).reflectee;
     sink.setupRouter(sink.router);
     sink.router.finalize();
 
     return sink.documentAPI(resolver);
   }
 
-  Future<Map<String, dynamic>> _globalStart(
+  static Future _globalStart(
       ClassMirror sinkType, ApplicationConfiguration config) async {
     var globalStartSymbol = #initializeApplication;
     if (sinkType.staticMembers[globalStartSymbol] != null) {

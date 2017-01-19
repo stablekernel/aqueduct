@@ -16,6 +16,10 @@ void main() {
               "RequestController subclass FailingController instances cannot be reused. Rewrite as .generate(() => new FailingController())"));
     }
   });
+
+  test("Find default RequestSink", () {
+    expect(RequestSink.defaultSinkType, equals(TestSink));
+  });
 }
 
 class TestSink extends RequestSink {

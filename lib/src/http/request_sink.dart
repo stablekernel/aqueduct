@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:async';
+import 'dart:mirrors';
 
 import 'request.dart';
 import 'request_controller.dart';
@@ -152,6 +153,25 @@ abstract class RequestSink extends RequestController
         doc.paths.expand((p) => p.operations.expand((op) => op.produces)));
 
     return doc;
+  }
+
+  static Type get defaultSinkType {
+    var sinkType = reflectClass(RequestSink);
+    var classes = currentMirrorSystem()
+        .libraries
+        .values
+        .where(
+            (lib) => lib.uri.scheme == "package" || lib.uri.scheme == "file")
+        .expand((lib) => lib.declarations.values)
+        .where((decl) => decl is ClassMirror && decl.isSubclassOf(sinkType) && decl.reflectedType != RequestSink)
+        .map((decl) => decl as ClassMirror)
+        .toList();
+
+    if (classes.length == 0) {
+      return null;
+    }
+
+    return classes.first.reflectedType;
   }
 
   String _authorizationPath(List<APIPath> paths) {

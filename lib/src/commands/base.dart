@@ -12,12 +12,15 @@ import 'setup.dart';
 import 'create.dart';
 import 'serve.dart';
 import 'auth.dart';
+import 'document.dart';
 
 export 'db.dart';
 export 'setup.dart';
 export 'create.dart';
 export 'serve.dart';
 export 'auth.dart';
+export 'document.dart';
+
 
 /// Exceptions thrown by command line interfaces.
 class CLIException {
@@ -273,6 +276,7 @@ class Runner extends CLICommand {
     registerCommand(new CLIServer());
     registerCommand(new CLISetup());
     registerCommand(new CLIAuth());
+    registerCommand(new CLIDocument());
   }
 
   Future<int> handle() async {
