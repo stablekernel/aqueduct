@@ -52,10 +52,8 @@ class PostgresMapper implements QueryMatcherTranslator {
 
     if (includeTableName) {
       return "${desc.entity.tableName}.$name";
-    }
-
-    if (prefix != null) {
-      name = "$prefix$name";
+    } else if (prefix != null) {
+      return "$prefix$name";
     }
 
     return name;
