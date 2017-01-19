@@ -183,7 +183,8 @@ class PostgreSQLPersistentStore extends PersistentStore
 
   Future<dynamic> executeQuery(
       String formatString, Map<String, dynamic> values, int timeoutInSeconds,
-      {PersistentStoreQueryReturnType returnType: PersistentStoreQueryReturnType.rows}) async {
+      {PersistentStoreQueryReturnType returnType:
+          PersistentStoreQueryReturnType.rows}) async {
     var now = new DateTime.now().toUtc();
     try {
       var dbConnection = await getDatabaseConnection();
@@ -232,7 +233,6 @@ class PostgreSQLPersistentStore extends PersistentStore
     return new QueryException(QueryExceptionEvent.internalFailure,
         underlyingException: exception);
   }
-
 
   Future _createVersionTableIfNecessary(bool temporary) async {
     var conn = await getDatabaseConnection();

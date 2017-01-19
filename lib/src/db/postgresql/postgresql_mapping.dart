@@ -63,15 +63,10 @@ class PostgresMapper implements QueryMatcherTranslator {
   String columnListString(Iterable<ManagedPropertyDescription> columnMappings,
       {bool typed: false, bool includeTableName: false, String prefix: null}) {
     return columnMappings
-        .map((c) =>
-        columnNameForProperty(c, typed: typed,
-            includeTableName: includeTableName,
-            prefix: prefix))
+        .map((c) => columnNameForProperty(c,
+            typed: typed, includeTableName: includeTableName, prefix: prefix))
         .join(",");
   }
-
-
-
 
   @override
   QueryPredicate comparisonPredicate(ManagedPropertyDescription desc,
@@ -80,9 +75,9 @@ class PostgresMapper implements QueryMatcherTranslator {
     var columnName = columnNameForProperty(desc, includeTableName: true);
     var variableName = columnNameForProperty(desc, prefix: prefix);
 
-    return new QueryPredicate("$columnName ${symbolTable[operator]} @$variableName${typeSuffix(desc)}", {
-      variableName: value
-    });
+    return new QueryPredicate(
+        "$columnName ${symbolTable[operator]} @$variableName${typeSuffix(desc)}",
+        {variableName: value});
   }
 
   @override
@@ -104,8 +99,8 @@ class PostgresMapper implements QueryMatcherTranslator {
     });
 
     var columnName = columnNameForProperty(desc, includeTableName: true);
-    return new QueryPredicate("$columnName IN (${tokenList.join(",")})",
-        pairedMap);
+    return new QueryPredicate(
+        "$columnName IN (${tokenList.join(",")})", pairedMap);
   }
 
   @override
@@ -119,14 +114,15 @@ class PostgresMapper implements QueryMatcherTranslator {
   QueryPredicate rangePredicate(ManagedPropertyDescription desc,
       dynamic lhsValue, dynamic rhsValue, bool insideRange) {
     var columnName = columnNameForProperty(desc, includeTableName: true);
-    var lhsName = columnNameForProperty(desc, prefix: "${desc.entity.tableName}_lhs_");
-    var rhsName = columnNameForProperty(desc, prefix: "${desc.entity.tableName}_rhs_");
+    var lhsName =
+        columnNameForProperty(desc, prefix: "${desc.entity.tableName}_lhs_");
+    var rhsName =
+        columnNameForProperty(desc, prefix: "${desc.entity.tableName}_rhs_");
     var operation = insideRange ? "BETWEEN" : "NOT BETWEEN";
 
     return new QueryPredicate(
-        "$columnName $operation @$lhsName${typeSuffix(desc)} AND @$rhsName${typeSuffix(desc)}", {
-      lhsName: lhsValue, rhsName: rhsValue
-    });
+        "$columnName $operation @$lhsName${typeSuffix(desc)} AND @$rhsName${typeSuffix(desc)}",
+        {lhsName: lhsValue, rhsName: rhsValue});
   }
 
   @override
@@ -149,9 +145,8 @@ class PostgresMapper implements QueryMatcherTranslator {
         break;
     }
 
-    return new QueryPredicate("$columnName LIKE @$variableName${typeSuffix(desc)}", {
-      variableName: matchValue
-    });
+    return new QueryPredicate(
+        "$columnName LIKE @$variableName${typeSuffix(desc)}",
+        {variableName: matchValue});
   }
 }
-

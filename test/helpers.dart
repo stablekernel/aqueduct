@@ -235,9 +235,9 @@ class DefaultPersistentStore extends PersistentStore {
   Future<dynamic> execute(String sql,
           {Map<String, dynamic> substitutionValues}) async =>
       null;
-  Future<dynamic> executeQuery(
-      String formatString, Map<String, dynamic> values, int timeoutInSeconds,
-      {PersistentStoreQueryReturnType returnType}) async =>
+  Future<dynamic> executeQuery(String formatString, Map<String, dynamic> values,
+          int timeoutInSeconds,
+          {PersistentStoreQueryReturnType returnType}) async =>
       null;
 
   Future close() async {}

@@ -176,7 +176,9 @@ void main() {
     expect(remap["dateCreated"], dateString);
   });
 
-  test("Handles input of type num for double precision float properties of the model", () {
+  test(
+      "Handles input of type num for double precision float properties of the model",
+      () {
     var m = new TransientTypeTest()
       ..readMap({
         "transientDouble": 30,

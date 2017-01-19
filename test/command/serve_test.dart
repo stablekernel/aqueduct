@@ -16,7 +16,6 @@ void main() {
   var sourceDirectory =
       new Directory.fromUri(commandDirectory.uri.resolve("serve_test_project"));
 
-
   tearDown(() async {
     await runAqueductProcess(["serve", "stop"], temporaryDirectory);
     if (temporaryDirectory.existsSync()) {
@@ -30,7 +29,8 @@ void main() {
   });
 
   test("Served application starts and responds to route", () async {
-    var res = await runAqueductProcess(["serve", "--detached"], temporaryDirectory);
+    var res =
+        await runAqueductProcess(["serve", "--detached"], temporaryDirectory);
     expect(res, 0);
 
     var result = await http.get("http://localhost:8080/endpoint");

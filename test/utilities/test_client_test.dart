@@ -610,7 +610,8 @@ void main() {
     test("Omit body ignores them", () async {
       var defaultTestClient = new TestClient.onPort(4000);
 
-      server.queueResponse(new Response.ok({"foo": "bar"})..contentType = ContentType.JSON);
+      server.queueResponse(
+          new Response.ok({"foo": "bar"})..contentType = ContentType.JSON);
       var response = await defaultTestClient.request("/foo").get();
       expect(
           response,

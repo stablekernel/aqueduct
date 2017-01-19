@@ -33,7 +33,9 @@ class CLIServer extends CLIServeBase {
               "The path to a configuration file. This File is available in the ApplicationConfiguration "
               "for a RequestSink to use to read application-specific configuration values. Relative paths are relative to [directory].",
           defaultsTo: "config.yaml")
-      ..addOption("timeout", help: "Number of seconds to wait to ensure startup succeeded.", defaultsTo: "20")
+      ..addOption("timeout",
+          help: "Number of seconds to wait to ensure startup succeeded.",
+          defaultsTo: "20")
       ..addOption("isolates",
           abbr: "n",
           help: "Number of isolates processing requests",
@@ -50,7 +52,10 @@ class CLIServer extends CLIServeBase {
           defaultsTo: false)
       ..addFlag("observe",
           help: "Enables Dart Observatory", defaultsTo: false, negatable: false)
-      ..addFlag("monitor", help: "Monitors the application during startup to report errors. Turn this off if startup monitoring is done by another or service or if writing to the filesystem isn't available on the deployment platform.", defaultsTo: true)
+      ..addFlag("monitor",
+          help:
+              "Monitors the application during startup to report errors. Turn this off if startup monitoring is done by another or service or if writing to the filesystem isn't available on the deployment platform.",
+          defaultsTo: true)
       ..addFlag("detached",
           help:
               "Runs the application detached from this script. This script will terminate and the application will continue executing",
@@ -119,17 +124,19 @@ class CLIServer extends CLIServeBase {
     if (monitorStartup) {
       return startWithMonitor(generatedStartScript);
     } else {
-      var dataUri = Uri.parse("data:application/dart;charset=utf-8,${Uri.encodeComponent(generatedStartScript)}");
+      var dataUri = Uri.parse(
+          "data:application/dart;charset=utf-8,${Uri.encodeComponent(generatedStartScript)}");
       var completer = new Completer<int>();
       var receivePort = new ReceivePort();
       receivePort.listen((_) {
         completer.complete(0);
       });
-      await Isolate.spawnUri(dataUri, [], null, onExit: receivePort.sendPort, packageConfig: fileInProjectDirectory(".packages").uri);
+      await Isolate.spawnUri(dataUri, [], null,
+          onExit: receivePort.sendPort,
+          packageConfig: fileInProjectDirectory(".packages").uri);
 
       return completer.future;
     }
-
   }
 
   Future<int> startWithMonitor(String generatedStartScript) async {
@@ -261,7 +268,10 @@ class CLIServer extends CLIServeBase {
           .where(
               (lib) => lib.uri.scheme == "package" || lib.uri.scheme == "file")
           .expand((lib) => lib.declarations.values)
-          .where((decl) => decl is ClassMirror && decl.isSubclassOf(sinkType) && decl.reflectedType != RequestSink)
+          .where((decl) =>
+              decl is ClassMirror &&
+              decl.isSubclassOf(sinkType) &&
+              decl.reflectedType != RequestSink)
           .map((decl) => decl as ClassMirror)
           .toList();
 
@@ -279,9 +289,10 @@ class CLIServer extends CLIServeBase {
 
     var executor = new IsolateExecutor(generator, [libraryName],
         packageConfigURI: projectDirectory.uri.resolve(".packages"));
-    var result =  await executor.execute(projectDirectory.uri);
+    var result = await executor.execute(projectDirectory.uri);
     if (result == "null") {
-      throw new CLIException("No RequestSink subclass found in $packageName/$libraryName");
+      throw new CLIException(
+          "No RequestSink subclass found in $packageName/$libraryName");
     }
     derivedRequestSinkType = result;
   }
@@ -310,10 +321,12 @@ class CLIServer extends CLIServeBase {
       configString = "";
     }
 
-    var onCompleteString = "var signalFile = new File(\".\${pid}.$pidSuffix\");\n"
-                            "\t\tawait signalFile.writeAsString(\"ok\");";
-    var onErrorString = "\tvar signalFile = new File(\".\${pid}.$pidSuffix\");\n"
-    "\tawait signalFile.writeAsString(error);";
+    var onCompleteString =
+        "var signalFile = new File(\".\${pid}.$pidSuffix\");\n"
+        "\t\tawait signalFile.writeAsString(\"ok\");";
+    var onErrorString =
+        "\tvar signalFile = new File(\".\${pid}.$pidSuffix\");\n"
+        "\tawait signalFile.writeAsString(error);";
     if (!monitorStartup) {
       onCompleteString = "";
       onErrorString = "\tprint(error);";

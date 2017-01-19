@@ -13,7 +13,8 @@ void main() {
     context = null;
   });
 
-  test("Accessing valueObject of Query automatically creates an instance", () async {
+  test("Accessing valueObject of Query automatically creates an instance",
+      () async {
     context = await contextWithModels([TestModel]);
 
     var q = new Query<TestModel>()..values.id = 1;

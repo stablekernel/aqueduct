@@ -8,7 +8,9 @@ import 'postgresql_mapping.dart';
 import '../managed/query_matchable.dart';
 import '../managed/instantiator.dart';
 
-class PostgresQuery<InstanceType extends ManagedObject> extends Object with QueryMixin<InstanceType>, PostgresMapper implements Query<InstanceType> {
+class PostgresQuery<InstanceType extends ManagedObject> extends Object
+    with QueryMixin<InstanceType>, PostgresMapper
+    implements Query<InstanceType> {
   PostgresQuery(this.context);
 
   ManagedContext context;
@@ -17,16 +19,19 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object with Quer
   Future<InstanceType> insert() async {
     var rowMapper = createMapper();
 
-    var propertyValueMap = rowMapper.propertyValueMap((valueMap ?? values?.backingMap));
+    var propertyValueMap =
+        rowMapper.propertyValueMap((valueMap ?? values?.backingMap));
     var propertyValueKeys = propertyValueMap.keys;
 
     var buffer = new StringBuffer();
     buffer.write("INSERT INTO ${entity.tableName} ");
     buffer.write("(${columnListString(propertyValueKeys)}) ");
-    buffer.write("VALUES (${columnListString(propertyValueKeys, typed: true, prefix: "@")}) ");
+    buffer.write(
+        "VALUES (${columnListString(propertyValueKeys, typed: true, prefix: "@")}) ");
 
     if ((rowMapper.orderedMappingElements?.length ?? 0) > 0) {
-      buffer.write("RETURNING ${columnListString(rowMapper.orderedMappingElements.map((c) => c.property))}");
+      buffer.write(
+          "RETURNING ${columnListString(rowMapper.orderedMappingElements.map((c) => c.property))}");
     }
 
     var substitutionValues = <String, dynamic>{};
@@ -34,8 +39,8 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object with Quer
       substitutionValues[columnNameForProperty(k)] = v;
     });
 
-    var results = await context.persistentStore.executeQuery(
-        buffer.toString(), substitutionValues, timeoutInSeconds);
+    var results = await context.persistentStore
+        .executeQuery(buffer.toString(), substitutionValues, timeoutInSeconds);
 
     return rowMapper.instancesForRows(results).first;
   }
@@ -48,11 +53,12 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object with Quer
         !confirmQueryModifiesAllInstancesOnDeleteOrUpdate) {
       throw new QueryException(QueryExceptionEvent.internalFailure,
           message:
-          "Query would impact all records. This could be a destructive error. Set confirmQueryModifiesAllInstancesOnDeleteOrUpdate on the Query to execute anyway.");
+              "Query would impact all records. This could be a destructive error. Set confirmQueryModifiesAllInstancesOnDeleteOrUpdate on the Query to execute anyway.");
     }
 
     var prefix = "u_";
-    var propertyValueMap = rowMapper.propertyValueMap((valueMap ?? values?.backingMap));
+    var propertyValueMap =
+        rowMapper.propertyValueMap((valueMap ?? values?.backingMap));
     var propertyValueKeys = propertyValueMap.keys;
 
     var updateValueMap = <String, dynamic>{};
@@ -77,11 +83,12 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object with Quer
     }
 
     if ((rowMapper.orderedMappingElements?.length ?? 0) > 0) {
-      buffer.write("RETURNING ${columnListString(rowMapper.orderedMappingElements.map((c) => c.property))}");
+      buffer.write(
+          "RETURNING ${columnListString(rowMapper.orderedMappingElements.map((c) => c.property))}");
     }
 
-    var results = await context.persistentStore.executeQuery(
-        buffer.toString(), updateValueMap, timeoutInSeconds);
+    var results = await context.persistentStore
+        .executeQuery(buffer.toString(), updateValueMap, timeoutInSeconds);
 
     return rowMapper.instancesForRows(results);
   }
@@ -97,15 +104,16 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object with Quer
 
     throw new QueryException(QueryExceptionEvent.internalFailure,
         message:
-        "updateOne modified more than one row, this is a serious error.");
+            "updateOne modified more than one row, this is a serious error.");
   }
 
   @override
   Future<int> delete() async {
-    if (predicate == null && !confirmQueryModifiesAllInstancesOnDeleteOrUpdate) {
+    if (predicate == null &&
+        !confirmQueryModifiesAllInstancesOnDeleteOrUpdate) {
       throw new QueryException(QueryExceptionEvent.internalFailure,
           message:
-          "Query would impact all records. This could be a destructive error. Set confirmQueryModifiesAllInstancesOnDeleteOrUpdate on the Query to execute anyway.");
+              "Query would impact all records. This could be a destructive error. Set confirmQueryModifiesAllInstancesOnDeleteOrUpdate on the Query to execute anyway.");
     }
 
     var buffer = new StringBuffer();
@@ -124,7 +132,8 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object with Quer
   Future<InstanceType> fetchOne() async {
     var rowMapper = createMapper();
 
-    if (!rowMapper.orderedMappingElements.any((c) => c is PropertyToRowMapping)) {
+    if (!rowMapper.orderedMappingElements
+        .any((c) => c is PropertyToRowMapping)) {
       fetchLimit = 1;
     }
 
@@ -134,7 +143,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object with Quer
     } else if (results.length > 1) {
       throw new QueryException(QueryExceptionEvent.requestFailure,
           message:
-          "Query expected to fetch one instance, but ${results.length} instances were returned.");
+              "Query expected to fetch one instance, but ${results.length} instances were returned.");
     }
     return null;
   }
@@ -157,7 +166,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object with Quer
         if (pageDescriptor != null) {
           throw new QueryException(QueryExceptionEvent.requestFailure,
               message:
-              "Query cannot have properties that are includeInResultSet and also have a pageDescriptor.");
+                  "Query cannot have properties that are includeInResultSet and also have a pageDescriptor.");
         }
 
         var joinElements = joinElementsFromQueryMatchable(matchOn);
@@ -176,12 +185,12 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object with Quer
     var hasJoins = joinElements.isNotEmpty;
 
     var columnsToFetch = rowMapper.flattenedMappingElements.map((mapElement) {
-      return columnNameForProperty(mapElement.property, includeTableName: hasJoins);
+      return columnNameForProperty(mapElement.property,
+          includeTableName: hasJoins);
     }).join(",");
 
-    var combinedPredicates = [predicate, pagingPredicate]
-        .where((p) => p != null)
-        .toList();
+    var combinedPredicates =
+        [predicate, pagingPredicate].where((p) => p != null).toList();
     var allPredicates = QueryPredicate.andPredicates(combinedPredicates);
 
     var buffer = new StringBuffer();
@@ -224,8 +233,8 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object with Quer
       variables.addAll(joinVariables);
     }
 
-    var results = await context.persistentStore.executeQuery(
-        buffer.toString(), variables, timeoutInSeconds);
+    var results = await context.persistentStore
+        .executeQuery(buffer.toString(), variables, timeoutInSeconds);
 
     return rowMapper.instancesForRows(results);
   }
@@ -239,14 +248,14 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object with Quer
     if (prop == null) {
       throw new QueryException(QueryExceptionEvent.requestFailure,
           message:
-          "Property ${pageDescriptor.propertyName} in pageDescriptor does not exist on ${entity.tableName}.");
+              "Property ${pageDescriptor.propertyName} in pageDescriptor does not exist on ${entity.tableName}.");
     }
 
     if (pageDescriptor.boundingValue != null &&
         !prop.isAssignableWith(pageDescriptor.boundingValue)) {
       throw new QueryException(QueryExceptionEvent.requestFailure,
           message:
-          "Property ${pageDescriptor.propertyName} in pageDescriptor has invalid type (${pageDescriptor.boundingValue.runtimeType}).");
+              "Property ${pageDescriptor.propertyName} in pageDescriptor has invalid type (${pageDescriptor.boundingValue.runtimeType}).");
     }
   }
 
@@ -282,58 +291,62 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object with Quer
     }
 
     var pagingProperty = entity.properties[pageDescriptor.propertyName];
-    var operator = (pageDescriptor.order == QuerySortOrder.ascending ? ">" : "<");
+    var operator =
+        (pageDescriptor.order == QuerySortOrder.ascending ? ">" : "<");
     var prefix = "aq_page_";
 
-    var columnName = columnNameForProperty(pagingProperty, includeTableName: true);
+    var columnName =
+        columnNameForProperty(pagingProperty, includeTableName: true);
     var variableName = columnNameForProperty(pagingProperty, prefix: prefix);
 
-    return new QueryPredicate("$columnName ${operator} @$variableName${typeSuffix(pagingProperty)}", {
-      variableName: pageDescriptor.boundingValue
-    });
+    return new QueryPredicate(
+        "$columnName ${operator} @$variableName${typeSuffix(pagingProperty)}",
+        {variableName: pageDescriptor.boundingValue});
   }
 
   // todo: this sucks
   List<PropertyToRowMapping> joinElementsFromQueryMatchable(
       QueryMatchableExtension matcherBackedObject) {
-        var entity = matcherBackedObject.entity;
-        var propertiesToJoin = matcherBackedObject.joinPropertyKeys;
+    var entity = matcherBackedObject.entity;
+    var propertiesToJoin = matcherBackedObject.joinPropertyKeys;
 
-        return propertiesToJoin
-            .map((propertyName) {
-              QueryMatchableExtension inner =
-              matcherBackedObject.backingMap[propertyName];
+    return propertiesToJoin.map((propertyName) {
+      QueryMatchableExtension inner =
+          matcherBackedObject.backingMap[propertyName];
 
-              var relDesc = entity.relationships[propertyName];
-              var predicate = predicateFromMatcherBackedObject(inner);
-              var nestedProperties =
-              nestedResultProperties[inner.entity.instanceType.reflectedType];
-              var propertiesToFetch =
-                  nestedProperties ?? inner.entity.defaultProperties;
+      var relDesc = entity.relationships[propertyName];
+      var predicate = predicateFromMatcherBackedObject(inner);
+      var nestedProperties =
+          nestedResultProperties[inner.entity.instanceType.reflectedType];
+      var propertiesToFetch =
+          nestedProperties ?? inner.entity.defaultProperties;
 
-              var joinElement = new PropertyToRowMapping(
-                  PersistentJoinType.leftOuter,
-                  relDesc,
-                  predicate,
-                  PropertyToColumnMapper.mappersForKeys(inner.entity, propertiesToFetch));
-              if (inner.hasJoinElements) {
-                joinElement.orderedMappingElements.addAll(joinElementsFromQueryMatchable(
-                    inner));
-              }
+      var joinElement = new PropertyToRowMapping(
+          PersistentJoinType.leftOuter,
+          relDesc,
+          predicate,
+          PropertyToColumnMapper.mappersForKeys(
+              inner.entity, propertiesToFetch));
+      if (inner.hasJoinElements) {
+        joinElement.orderedMappingElements
+            .addAll(joinElementsFromQueryMatchable(inner));
+      }
 
-              return joinElement;
-            })
-            .toList();
+      return joinElement;
+    }).toList();
   }
 
   // todo: this all sucks
   String joinStringForJoin(PropertyToRowMapping ji) {
     var parentEntity = ji.property.entity;
     var parentProperty = parentEntity.properties[parentEntity.primaryKey];
-    var parentColumnName = columnNameForProperty(parentProperty, includeTableName: true);
-    var childColumnName = columnNameForProperty(ji.joinProperty, includeTableName: true);
+    var parentColumnName =
+        columnNameForProperty(parentProperty, includeTableName: true);
+    var childColumnName =
+        columnNameForProperty(ji.joinProperty, includeTableName: true);
 
-    var predicate = new QueryPredicate("$parentColumnName=$childColumnName", null);
+    var predicate =
+        new QueryPredicate("$parentColumnName=$childColumnName", null);
 
     if (ji.predicate != null) {
       predicate = QueryPredicate.andPredicates([predicate, ji.predicate]);

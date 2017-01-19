@@ -4,7 +4,8 @@ import '../managed/backing.dart';
 import 'query.dart';
 import 'matcher_internal.dart';
 
-abstract class QueryMixin<InstanceType extends ManagedObject> implements Query<InstanceType>, QueryMatcherTranslator {
+abstract class QueryMixin<InstanceType extends ManagedObject>
+    implements Query<InstanceType>, QueryMatcherTranslator {
   ManagedEntity get entity => context.dataModel.entityForType(InstanceType);
 
   bool confirmQueryModifiesAllInstancesOnDeleteOrUpdate = false;
@@ -21,7 +22,6 @@ abstract class QueryMixin<InstanceType extends ManagedObject> implements Query<I
   InstanceType _valueObject;
   bool get hasMatcher => _matchOn != null;
 
-
   QueryPredicate get predicate {
     if (_matchOn != null) {
       _predicate = predicateFromMatcherBackedObject(matchOn);
@@ -29,6 +29,7 @@ abstract class QueryMixin<InstanceType extends ManagedObject> implements Query<I
 
     return _predicate;
   }
+
   void set predicate(QueryPredicate p) {
     _predicate = p;
   }
@@ -36,6 +37,7 @@ abstract class QueryMixin<InstanceType extends ManagedObject> implements Query<I
   List<String> get resultProperties {
     return _resultProperties ?? entity.defaultProperties;
   }
+
   void set resultProperties(List<String> props) {
     _resultProperties = props;
   }
@@ -46,6 +48,7 @@ abstract class QueryMixin<InstanceType extends ManagedObject> implements Query<I
     }
     return _valueObject;
   }
+
   void set values(InstanceType obj) {
     _valueObject = obj;
   }
@@ -78,18 +81,15 @@ abstract class QueryMixin<InstanceType extends ManagedObject> implements Query<I
       var matcher = obj.backingMap[queryKey];
 
       if (matcher is ComparisonMatcherExpression) {
-        return comparisonPredicate(
-            desc, matcher.operator, matcher.value);
+        return comparisonPredicate(desc, matcher.operator, matcher.value);
       } else if (matcher is RangeMatcherExpression) {
-        return rangePredicate(
-            desc, matcher.lhs, matcher.rhs, matcher.within);
+        return rangePredicate(desc, matcher.lhs, matcher.rhs, matcher.within);
       } else if (matcher is NullMatcherExpression) {
         return nullPredicate(desc, matcher.shouldBeNull);
       } else if (matcher is WithinMatcherExpression) {
         return containsPredicate(desc, matcher.values);
       } else if (matcher is StringMatcherExpression) {
-        return stringPredicate(
-            desc, matcher.operator, matcher.value);
+        return stringPredicate(desc, matcher.operator, matcher.value);
       }
 
       throw new QueryPredicateException(

@@ -5,10 +5,10 @@ import '../managed/query_matchable.dart';
 /// This enumeration is used internaly.
 enum PersistentJoinType { leftOuter }
 
-
 /// This class is used internally.
 class PropertyToColumnMapper {
-  static List<PropertyToColumnMapper> mappersForKeys(ManagedEntity entity, List<String> keys) {
+  static List<PropertyToColumnMapper> mappersForKeys(
+      ManagedEntity entity, List<String> keys) {
     var primaryKeyIndex = keys.indexOf(entity.primaryKey);
     if (primaryKeyIndex == -1) {
       keys.insert(0, entity.primaryKey);
@@ -29,13 +29,13 @@ class PropertyToColumnMapper {
     if (property == null) {
       throw new QueryException(QueryExceptionEvent.internalFailure,
           message:
-          "Property $propertyName does not exist on ${entity.tableName}");
+              "Property $propertyName does not exist on ${entity.tableName}");
     }
     if (property is ManagedRelationshipDescription &&
         property.relationshipType != ManagedRelationshipType.belongsTo) {
       throw new QueryException(QueryExceptionEvent.internalFailure,
           message:
-          "Property $propertyName is a hasMany or hasOne relationship and is invalid as a result property of ${entity
+              "Property $propertyName is a hasMany or hasOne relationship and is invalid as a result property of ${entity
               .tableName}, use matchOn.$propertyName.includeInResultSet = true instead.");
     }
 
@@ -56,8 +56,7 @@ class PropertyToColumnMapper {
 class PropertyToRowMapping extends PropertyToColumnMapper {
   PropertyToRowMapping(this.type, ManagedPropertyDescription property,
       this.predicate, this.orderedMappingElements)
-      : super(property) {
-  }
+      : super(property) {}
 
   PersistentJoinType type;
 
@@ -84,11 +83,10 @@ class PropertyToRowMapping extends PropertyToColumnMapper {
     return orderedMappingElements
         .where((e) => e is PropertyToRowMapping)
         .expand((e) {
-            var a = [e];
-            a.addAll((e as PropertyToRowMapping).orderedNestedRowMappings);
-            return a;
-        })
-        .toList();
+      var a = [e];
+      a.addAll((e as PropertyToRowMapping).orderedNestedRowMappings);
+      return a;
+    }).toList();
   }
 
   bool get isToMany {

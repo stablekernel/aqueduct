@@ -3,10 +3,7 @@ import '../query/query.dart';
 import '../schema/schema.dart';
 export 'persistent_store_query.dart';
 
-enum PersistentStoreQueryReturnType {
-  rowCount,
-  rows
-}
+enum PersistentStoreQueryReturnType { rowCount, rows }
 
 /// An interface for implementing persistent storage.
 ///

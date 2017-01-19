@@ -12,7 +12,7 @@ class LowercaseMap<V> extends Object with MapMixin<String, V> {
 
   Iterable<String> get keys => _inner.keys;
 
-  V operator[](Object key) => _inner[key];
+  V operator [](Object key) => _inner[key];
 
   operator []=(String key, V value) {
     _inner[key.toLowerCase()] = value;

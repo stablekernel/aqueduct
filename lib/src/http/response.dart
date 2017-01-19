@@ -111,6 +111,7 @@ class Response implements RequestControllerEvent {
   void set headers(Map<String, dynamic> h) {
     _headers = new LowercaseMap.fromMap(h);
   }
+
   Map<String, dynamic> _headers = new LowercaseMap();
 
   /// The HTTP status code of this response.
@@ -143,6 +144,7 @@ class Response implements RequestControllerEvent {
 
     return ContentType.parse(inHeaders);
   }
+
   void set contentType(ContentType t) {
     _contentType = t;
   }
@@ -176,8 +178,9 @@ class Response implements RequestControllerEvent {
   ///
   /// Always use lowercase keys for headers.
   Response.created(String location,
-      {dynamic body, Map<String, dynamic> headers}) :
-        this(HttpStatus.CREATED, _headersWith(headers, {HttpHeaders.LOCATION : location}), body);
+      {dynamic body, Map<String, dynamic> headers})
+      : this(HttpStatus.CREATED,
+            _headersWith(headers, {HttpHeaders.LOCATION: location}), body);
 
   /// Represents a 202 response.
   ///
@@ -231,7 +234,8 @@ class Response implements RequestControllerEvent {
     return "$statusCode $headers";
   }
 
-  static Map<String, dynamic> _headersWith(Map<String, dynamic> inputHeaders, Map<String, dynamic> otherHeaders) {
+  static Map<String, dynamic> _headersWith(
+      Map<String, dynamic> inputHeaders, Map<String, dynamic> otherHeaders) {
     var m = new LowercaseMap.fromMap(inputHeaders ?? {});
     m.addAll(otherHeaders);
     return m;

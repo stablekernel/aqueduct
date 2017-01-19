@@ -6,8 +6,12 @@ import 'base.dart';
 class CLISetup extends CLICommand with CLIProject {
   CLISetup() {
     options
-      ..addFlag("tests", help: "Sets up a local database to run application tests. If no other option is on, the command defaults to this flag.")
-      ..addOption("heroku", help: "Sets up the project in the current directory for deplying to Heroku.",
+      ..addFlag("tests",
+          help:
+              "Sets up a local database to run application tests. If no other option is on, the command defaults to this flag.")
+      ..addOption("heroku",
+          help:
+              "Sets up the project in the current directory for deplying to Heroku.",
           valueHelp: "The name of the Heroku application.")
       ..addOption("granting-user",
           abbr: "u",
@@ -41,7 +45,8 @@ class CLISetup extends CLICommand with CLIProject {
   Future<int> setupHerokuProject() async {
     if (!(await hasHerokuCLI)) {
       displayError("The application 'heroku' was not found in \$PATH.");
-      displayProgress("Install 'heroku' from https://devcenter.heroku.com/articles/heroku-cli.");
+      displayProgress(
+          "Install 'heroku' from https://devcenter.heroku.com/articles/heroku-cli.");
       return -1;
     }
 
@@ -53,19 +58,30 @@ class CLISetup extends CLICommand with CLIProject {
     displayInfo("Setting up Heroku for $herokuName");
 
     var commands = [
-      ["git:remote","-a", herokuName],
-      ["config:set", "DART_SDK_URL=https://storage.googleapis.com/dart-archive/channels/stable/release/latest/sdk/dartsdk-linux-x64-release.zip"],
-      ["config:add", "BUILDPACK_URL=https://github.com/stablekernel/heroku-buildpack-dart.git"],
-      ["config:set", "PATH=/app/bin:/usr/local/bin:/usr/bin:/bin:/app/.pub-cache/bin:/app/dart-sdk/bin"],
+      ["git:remote", "-a", herokuName],
+      [
+        "config:set",
+        "DART_SDK_URL=https://storage.googleapis.com/dart-archive/channels/stable/release/latest/sdk/dartsdk-linux-x64-release.zip"
+      ],
+      [
+        "config:add",
+        "BUILDPACK_URL=https://github.com/stablekernel/heroku-buildpack-dart.git"
+      ],
+      [
+        "config:set",
+        "PATH=/app/bin:/usr/local/bin:/usr/bin:/bin:/app/.pub-cache/bin:/app/dart-sdk/bin"
+      ],
       ["config:set", "PUB_CACHE=/app/pub-cache"],
     ];
 
     for (var cmd in commands) {
-      displayProgress("Running heroku ${cmd.join(" ")} in ${projectDirectory.path}");
-      var result = await Process.run("heroku", cmd, workingDirectory: projectDirectory.path);
+      displayProgress(
+          "Running heroku ${cmd.join(" ")} in ${projectDirectory.path}");
+      var result = await Process.run("heroku", cmd,
+          workingDirectory: projectDirectory.path);
       if (result.exitCode != 0) {
-        throw new CLIException("Heroku command failed", instructions: [
-          "${result.stdout} ${result.stderr}"]);
+        throw new CLIException("Heroku command failed",
+            instructions: ["${result.stdout} ${result.stderr}"]);
       }
     }
 
@@ -89,13 +105,13 @@ web: /app/dart-sdk/bin/pub global run aqueduct:aqueduct serve --port \$PORT --no
     if (!(await hasPSQLCLI)) {
       displayError(
           "The application 'psql' was not found in \$PATH.\n\nIf you do not have PostgreSQL installed locally, "
-              "you must do so to run tests in an Aqueduct application. For macOS users, "
-              "download Postgres.app from http://postgresapp.com. Once installed, open the "
-              "application at least once and add the following line to ~/.bash_profile:\n\n"
-              "\texport PATH=\$PATH:/Applications/Postgres.app/Contents/Versions/latest/bin\n\n"
-              "You may have to reload the shell you ran this command from after installation. "
-              "For non-macOS users, you must install a local version of PostgreSQL"
-              "and ensure the command line executable 'psql' is in your PATH.");
+          "you must do so to run tests in an Aqueduct application. For macOS users, "
+          "download Postgres.app from http://postgresapp.com. Once installed, open the "
+          "application at least once and add the following line to ~/.bash_profile:\n\n"
+          "\texport PATH=\$PATH:/Applications/Postgres.app/Contents/Versions/latest/bin\n\n"
+          "You may have to reload the shell you ran this command from after installation. "
+          "For non-macOS users, you must install a local version of PostgreSQL"
+          "and ensure the command line executable 'psql' is in your PATH.");
 
       return -1;
     }

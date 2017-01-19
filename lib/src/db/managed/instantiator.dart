@@ -9,7 +9,8 @@ class ManagedInstantiator {
   ManagedEntity rootEntity;
 
   void set properties(List<String> props) {
-    orderedMappingElements = PropertyToColumnMapper.mappersForKeys(rootEntity, props);
+    orderedMappingElements =
+        PropertyToColumnMapper.mappersForKeys(rootEntity, props);
   }
 
   List<PropertyToColumnMapper> get flattenedMappingElements {
@@ -25,7 +26,8 @@ class ManagedInstantiator {
     orderedMappingElements.addAll(elements);
   }
 
-  Map<ManagedPropertyDescription, dynamic> propertyValueMap(Map<String, dynamic> valueMap) {
+  Map<ManagedPropertyDescription, dynamic> propertyValueMap(
+      Map<String, dynamic> valueMap) {
     if (valueMap == null) {
       return null;
     }
@@ -36,7 +38,7 @@ class ManagedInstantiator {
       if (property == null) {
         throw new QueryException(QueryExceptionEvent.requestFailure,
             message:
-            "Property $key in values does not exist on ${rootEntity.tableName}");
+                "Property $key in values does not exist on ${rootEntity.tableName}");
       }
 
       var value = valueMap[key];
@@ -53,7 +55,7 @@ class ManagedInstantiator {
           } else {
             throw new QueryException(QueryExceptionEvent.internalFailure,
                 message:
-                "Property $key on ${rootEntity.tableName} in Query values must be a Map or ${MirrorSystem.getName(
+                    "Property $key on ${rootEntity.tableName} in Query values must be a Map or ${MirrorSystem.getName(
                     property.destinationEntity.instanceType.simpleName)} ");
           }
         }
@@ -65,7 +67,9 @@ class ManagedInstantiator {
     return returnMap;
   }
 
-  ManagedInstanceWrapper instanceFromRow(Iterator<dynamic> rowIterator, Iterator<PropertyToColumnMapper> mappingIterator, {ManagedEntity entity}) {
+  ManagedInstanceWrapper instanceFromRow(Iterator<dynamic> rowIterator,
+      Iterator<PropertyToColumnMapper> mappingIterator,
+      {ManagedEntity entity}) {
     entity ??= rootEntity;
 
     // Inspect the primary key first.  We are guaranteed to have the primary key come first in any rowIterator.
@@ -77,7 +81,9 @@ class ManagedInstantiator {
       while (mappingIterator.moveNext()) {
         var mapper = mappingIterator.current;
         if (mapper is PropertyToRowMapping) {
-          var _ = instanceFromRow(rowIterator, mapper.orderedMappingElements.iterator, entity: entity);
+          var _ = instanceFromRow(
+              rowIterator, mapper.orderedMappingElements.iterator,
+              entity: entity);
         } else {
           rowIterator.moveNext();
         }
@@ -103,8 +109,10 @@ class ManagedInstantiator {
           // A belongsTo relationship, keep the foreign key.
           if (rowIterator.current != null) {
             ManagedRelationshipDescription relDesc = mapper.property;
-            ManagedObject innerInstance = relDesc.destinationEntity.newInstance();
-            innerInstance[relDesc.destinationEntity.primaryKey] = rowIterator.current;
+            ManagedObject innerInstance =
+                relDesc.destinationEntity.newInstance();
+            innerInstance[relDesc.destinationEntity.primaryKey] =
+                rowIterator.current;
             instance[mapper.property.name] = innerInstance;
           } else {
             instance[mapper.property.name] = null;
@@ -114,8 +122,8 @@ class ManagedInstantiator {
         }
       } else if (mapper is PropertyToRowMapping) {
         var innerInstanceWrapper = instanceFromRow(
-            rowIterator, mapper.orderedMappingElements.iterator, entity: mapper.joinProperty.entity);
-
+            rowIterator, mapper.orderedMappingElements.iterator,
+            entity: mapper.joinProperty.entity);
 
         if (mapper.isToMany) {
           ManagedSet list = instance[mapper.property.name] ?? new ManagedSet();
@@ -138,10 +146,11 @@ class ManagedInstantiator {
 
   List<ManagedObject> instancesForRows(List<List<dynamic>> rows) {
     return rows
-      .map((row) => instanceFromRow(row.iterator, orderedMappingElements.iterator))
-      .where((wrapper) => wrapper.isNew)
-      .map((wrapper) => wrapper.instance)
-      .toList();
+        .map((row) =>
+            instanceFromRow(row.iterator, orderedMappingElements.iterator))
+        .where((wrapper) => wrapper.isNew)
+        .map((wrapper) => wrapper.instance)
+        .toList();
   }
 
   void trackInstance(ManagedObject instance) {
@@ -154,7 +163,8 @@ class ManagedInstantiator {
     typeMap[instance[instance.entity.primaryKey]] = instance;
   }
 
-  ManagedObject existingInstance(ManagedEntity entity, dynamic primaryKeyValue) {
+  ManagedObject existingInstance(
+      ManagedEntity entity, dynamic primaryKeyValue) {
     var byType = matchMap[entity.tableName];
     if (byType == null) {
       return null;
