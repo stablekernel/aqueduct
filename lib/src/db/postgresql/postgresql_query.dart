@@ -50,8 +50,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
   Future<List<InstanceType>> update() async {
     var rowMapper = createMapper();
 
-    if (predicate == null &&
-        !canModifyAllInstances) {
+    if (predicate == null && !canModifyAllInstances) {
       throw new QueryException(QueryExceptionEvent.internalFailure,
           message:
               "Query would impact all records. This could be a destructive error. Set canModifyAllInstances on the Query to execute anyway.");
@@ -69,7 +68,8 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
 
     var assignments = propertyValueKeys.map((m) {
       var name = columnNameForProperty(m);
-      var typedName = columnNameForProperty(m, withTypeSuffix: true, withPrefix: "$prefix");
+      var typedName =
+          columnNameForProperty(m, withTypeSuffix: true, withPrefix: "$prefix");
       return "$name=@$typedName";
     }).join(",");
 
@@ -110,8 +110,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
 
   @override
   Future<int> delete() async {
-    if (predicate == null &&
-        !canModifyAllInstances) {
+    if (predicate == null && !canModifyAllInstances) {
       throw new QueryException(QueryExceptionEvent.internalFailure,
           message:
               "Query would impact all records. This could be a destructive error. Set canModifyAllInstances on the Query to execute anyway.");
@@ -275,7 +274,8 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
 
     var joinedSortDescriptors = sortDescs.map((QuerySortDescriptor sd) {
       var property = entity.properties[sd.key];
-      var columnName = columnNameForProperty(property, withTableNamespace: true);
+      var columnName =
+          columnNameForProperty(property, withTableNamespace: true);
       var order = (sd.order == QuerySortOrder.ascending ? "ASC" : "DESC");
 
       return "$columnName $order";
@@ -298,7 +298,8 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
 
     var columnName =
         columnNameForProperty(pagingProperty, withTableNamespace: true);
-    var variableName = columnNameForProperty(pagingProperty, withPrefix: prefix);
+    var variableName =
+        columnNameForProperty(pagingProperty, withPrefix: prefix);
 
     return new QueryPredicate(
         "$columnName ${operator} @$variableName${typeSuffix(pagingProperty)}",
@@ -322,12 +323,8 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
       var propertiesToFetch =
           nestedProperties ?? inner.entity.defaultProperties;
 
-      var joinElement = new PropertyToRowMapper(
-          PersistentJoinType.leftOuter,
-          relDesc,
-          predicate,
-          mappersForKeys(
-              inner.entity, propertiesToFetch));
+      var joinElement = new PropertyToRowMapper(PersistentJoinType.leftOuter,
+          relDesc, predicate, mappersForKeys(inner.entity, propertiesToFetch));
       if (inner.hasJoinElements) {
         joinElement.orderedMappingElements
             .addAll(joinElementsFromQueryMatchable(inner));

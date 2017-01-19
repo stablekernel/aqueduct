@@ -11,14 +11,14 @@ ManagedPropertyDescription propertyForName(
   if (property == null) {
     throw new QueryException(QueryExceptionEvent.internalFailure,
         message:
-        "Property $propertyName does not exist on ${entity.tableName}");
+            "Property $propertyName does not exist on ${entity.tableName}");
   }
 
   if (property is ManagedRelationshipDescription &&
       property.relationshipType != ManagedRelationshipType.belongsTo) {
     throw new QueryException(QueryExceptionEvent.internalFailure,
         message:
-        "Property $propertyName is a hasMany or hasOne relationship and is invalid as a result property of "
+            "Property $propertyName is a hasMany or hasOne relationship and is invalid as a result property of "
             "${entity.tableName}, use matchOn.$propertyName.includeInResultSet = true instead.");
   }
 

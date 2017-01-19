@@ -40,7 +40,9 @@ class PostgresMapper implements QueryMatcherTranslator {
   }
 
   String columnNameForProperty(ManagedPropertyDescription desc,
-      {bool withTypeSuffix: false, bool withTableNamespace: false, String withPrefix: null}) {
+      {bool withTypeSuffix: false,
+      bool withTableNamespace: false,
+      String withPrefix: null}) {
     var name = desc.name;
     if (desc is ManagedRelationshipDescription) {
       name = "${name}_${desc.destinationEntity.primaryKey}";
@@ -60,10 +62,14 @@ class PostgresMapper implements QueryMatcherTranslator {
   }
 
   String columnListString(Iterable<ManagedPropertyDescription> columnMappings,
-      {bool withTypeSuffix: false, bool withTableNamespace: false, String withPrefix: null}) {
+      {bool withTypeSuffix: false,
+      bool withTableNamespace: false,
+      String withPrefix: null}) {
     return columnMappings
         .map((c) => columnNameForProperty(c,
-            withTypeSuffix: withTypeSuffix, withTableNamespace: withTableNamespace, withPrefix: withPrefix))
+            withTypeSuffix: withTypeSuffix,
+            withTableNamespace: withTableNamespace,
+            withPrefix: withPrefix))
         .join(",");
   }
 
@@ -113,10 +119,10 @@ class PostgresMapper implements QueryMatcherTranslator {
   QueryPredicate rangePredicate(ManagedPropertyDescription desc,
       dynamic lhsValue, dynamic rhsValue, bool insideRange) {
     var columnName = columnNameForProperty(desc, withTableNamespace: true);
-    var lhsName =
-        columnNameForProperty(desc, withPrefix: "${desc.entity.tableName}_lhs_");
-    var rhsName =
-        columnNameForProperty(desc, withPrefix: "${desc.entity.tableName}_rhs_");
+    var lhsName = columnNameForProperty(desc,
+        withPrefix: "${desc.entity.tableName}_lhs_");
+    var rhsName = columnNameForProperty(desc,
+        withPrefix: "${desc.entity.tableName}_rhs_");
     var operation = insideRange ? "BETWEEN" : "NOT BETWEEN";
 
     return new QueryPredicate(
