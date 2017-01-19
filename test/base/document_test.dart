@@ -18,11 +18,15 @@ main() {
         true);
   });
 
-  group("Happy path", () async {
+  group("Happy path", () {
     var resolver = new PackagePathResolver(new File(".packages").path);
-    var apiDocs = (await Application.document(
+    Map<String, dynamic> apiDocs;
+
+    setUp(() async {
+      apiDocs = (await Application.document(
           TestSink, new ApplicationConfiguration(), resolver))
-        .asMap();
+          .asMap();
+    });
 
 
     test("Document has appropriate metadata", () {
