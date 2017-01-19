@@ -18,11 +18,12 @@ main() {
         true);
   });
 
-  group("Happy path", () {
-    var app = new Application<TestSink>();
-    var apiDocs = app
-        .document(new PackagePathResolver(new File(".packages").path))
+  group("Happy path", () async {
+    var resolver = new PackagePathResolver(new File(".packages").path);
+    var apiDocs = (await Application.document(
+          TestSink, new ApplicationConfiguration(), resolver))
         .asMap();
+
 
     test("Document has appropriate metadata", () {
       expect(apiDocs["swagger"], contains("2.0"));
