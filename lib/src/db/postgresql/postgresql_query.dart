@@ -1,38 +1,19 @@
 import 'dart:async';
 
 import '../db.dart';
+import '../query/mixin.dart';
+import 'postgresql_column.dart';
+
 // todo: wow get rid of this
 import '../managed/query_matchable.dart';
 import '../managed/instantiator.dart';
-import 'postgresql_column.dart';
 
 class PostgresQuery<InstanceType extends ManagedObject> extends Object with QueryMixin<InstanceType> implements Query<InstanceType> {
-
   PostgresQuery(this.context);
 
   ManagedContext context;
 
-  ManagedInstantiator createMapper() {
-    var rowMapper = new ManagedInstantiator(entity);
-    rowMapper.properties = resultProperties;
-
-    if (hasMatcher) {
-      if (matchOn.hasJoinElements) {
-        if (pageDescriptor != null) {
-          throw new QueryException(QueryExceptionEvent.requestFailure,
-              message:
-              "Query cannot have properties that are includeInResultSet and also have a pageDescriptor.");
-        }
-
-        var joinElements = joinElementsFromQueryMatchable(
-            matchOn, context.persistentStore, nestedResultProperties);
-        rowMapper.addJoinElements(joinElements);
-      }
-    }
-
-    return rowMapper;
-  }
-
+  @override
   Future<InstanceType> insert() async {
     var rowMapper = createMapper();
 
@@ -59,6 +40,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object with Quer
     return rowMapper.instancesForRows(results).first;
   }
 
+  @override
   Future<List<InstanceType>> update() async {
     var rowMapper = createMapper();
 
@@ -99,8 +81,10 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object with Quer
     var results = await context.persistentStore.executeQuery(
         queryStringBuffer.toString(), updateValueMap, timeoutInSeconds);
 
-    return rowMapper.instancesForRows(results);  }
+    return rowMapper.instancesForRows(results);
+  }
 
+  @override
   Future<InstanceType> updateOne() async {
     var results = await update();
     if (results.length == 1) {
@@ -114,6 +98,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object with Quer
         "updateOne modified more than one row, this is a serious error.");
   }
 
+  @override
   Future<int> delete() async {
     if (predicate == null && !confirmQueryModifiesAllInstancesOnDeleteOrUpdate) {
       throw new QueryException(QueryExceptionEvent.internalFailure,
@@ -133,15 +118,55 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object with Quer
         shouldReturnCountOfRowsAffected: true);
   }
 
+  @override
+  Future<InstanceType> fetchOne() async {
+    var rowMapper = createMapper();
+
+    if (!rowMapper.orderedMappingElements.any((c) => c is PropertyToRowMapping)) {
+      fetchLimit = 1;
+    }
+
+    var results = await _fetch(rowMapper);
+    if (results.length == 1) {
+      return results.first;
+    } else if (results.length > 1) {
+      throw new QueryException(QueryExceptionEvent.requestFailure,
+          message:
+          "Query expected to fetch one instance, but ${results.length} instances were returned.");
+    }
+    return null;
+  }
+
+  @override
   Future<List<InstanceType>> fetch() async {
     var rowMapper = createMapper();
 
     return _fetch(rowMapper);
   }
 
+  //////
 
   // todo: remove duplicates from joinedFetch
+  ManagedInstantiator createMapper() {
+    var rowMapper = new ManagedInstantiator(entity);
+    rowMapper.properties = resultProperties;
 
+    if (hasMatcher) {
+      if (matchOn.hasJoinElements) {
+        if (pageDescriptor != null) {
+          throw new QueryException(QueryExceptionEvent.requestFailure,
+              message:
+              "Query cannot have properties that are includeInResultSet and also have a pageDescriptor.");
+        }
+
+        var joinElements = joinElementsFromQueryMatchable(
+            matchOn, context.persistentStore, nestedResultProperties);
+        rowMapper.addJoinElements(joinElements);
+      }
+    }
+
+    return rowMapper;
+  }
   Future<List<InstanceType>> _fetch(ManagedInstantiator rowMapper) async {
     if (rowMapper.orderedMappingElements.any((c) => c is PropertyToRowMapping)) {
       return joinedFetch(rowMapper);
@@ -183,7 +208,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object with Quer
         .map((mapElement) => mapElement as PropertyToRowMapping);
 
     var columnsToFetch = rowMapper.flattenedMappingElements.map((mapElement) {
-        return columnNameForProperty(mapElement.property, includeTableName: true);
+      return columnNameForProperty(mapElement.property, includeTableName: true);
     }).join(",");
 
     var buffer = new StringBuffer("SELECT $columnsToFetch FROM ${entity.tableName} ");
@@ -220,24 +245,6 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object with Quer
         buffer.toString(), predicateValueMap, timeoutInSeconds);
 
     return rowMapper.instancesForRows(results);
-  }
-
-  Future<InstanceType> fetchOne() async {
-    var rowMapper = createMapper();
-
-    if (!rowMapper.orderedMappingElements.any((c) => c is PropertyToRowMapping)) {
-      fetchLimit = 1;
-    }
-
-    var results = await _fetch(rowMapper);
-    if (results.length == 1) {
-      return results.first;
-    } else if (results.length > 1) {
-      throw new QueryException(QueryExceptionEvent.requestFailure,
-          message:
-          "Query expected to fetch one instance, but ${results.length} instances were returned.");
-    }
-    return null;
   }
 
   void validatePageDescriptor() {
