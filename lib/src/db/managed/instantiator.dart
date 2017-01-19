@@ -1,18 +1,17 @@
 import 'dart:mirrors';
 import '../db.dart';
 
-
 class ManagedInstantiator {
   ManagedInstantiator(this.rootEntity);
+
+  Map<String, Map<dynamic, ManagedObject>> matchMap = {};
+  List<PropertyToColumnMapper> orderedMappingElements;
+  ManagedEntity rootEntity;
 
   void set properties(List<String> props) {
     orderedMappingElements = PropertyToColumnMapper.mappersForKeys(rootEntity, props);
   }
 
-  ManagedEntity rootEntity;
-
-  // Note: this class ensures that the primary key is always the first element of any list of mapping elements
-  List<PropertyToColumnMapper> orderedMappingElements;
   List<PropertyToColumnMapper> get flattenedMappingElements {
     return orderedMappingElements.expand((c) {
       if (c is PropertyToRowMapping) {
@@ -21,8 +20,6 @@ class ManagedInstantiator {
       return [c];
     }).toList();
   }
-
-  Map<String, Map<dynamic, ManagedObject>> matchMap = {};
 
   void addJoinElements(List<PropertyToRowMapping> elements) {
     orderedMappingElements.addAll(elements);
@@ -68,7 +65,7 @@ class ManagedInstantiator {
     return returnMap;
   }
 
-  _InstanceWrapper instanceFromRow(Iterator<dynamic> rowIterator, Iterator<PropertyToColumnMapper> mappingIterator, {ManagedEntity entity}) {
+  ManagedInstanceWrapper instanceFromRow(Iterator<dynamic> rowIterator, Iterator<PropertyToColumnMapper> mappingIterator, {ManagedEntity entity}) {
     entity ??= rootEntity;
 
     // Inspect the primary key first.  We are guaranteed to have the primary key come first in any rowIterator.
@@ -136,7 +133,7 @@ class ManagedInstantiator {
       }
     }
 
-    return new _InstanceWrapper(instance, !alreadyExists);
+    return new ManagedInstanceWrapper(instance, !alreadyExists);
   }
 
   List<ManagedObject> instancesForRows(List<List<dynamic>> rows) {
@@ -167,8 +164,8 @@ class ManagedInstantiator {
   }
 }
 
-class _InstanceWrapper {
-  _InstanceWrapper(this.instance, this.isNew);
+class ManagedInstanceWrapper {
+  ManagedInstanceWrapper(this.instance, this.isNew);
 
   bool isNew;
   ManagedObject instance;
