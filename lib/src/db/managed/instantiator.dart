@@ -1,5 +1,7 @@
 import 'dart:mirrors';
+
 import '../db.dart';
+import '../query/mapper.dart';
 
 class ManagedInstantiator {
   ManagedInstantiator(this.rootEntity);

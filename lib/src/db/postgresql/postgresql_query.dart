@@ -2,6 +2,7 @@ import 'dart:async';
 
 import '../db.dart';
 import '../query/mixin.dart';
+import '../query/mapper.dart';
 import 'postgresql_mapping.dart';
 
 // todo: wow get rid of this

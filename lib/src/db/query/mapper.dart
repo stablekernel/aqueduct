@@ -44,7 +44,7 @@ class PropertyToColumnMapper {
   PropertyToColumnMapper(this.property);
 
   ManagedPropertyDescription property;
-  String get columnName => property.name;
+  String get name => property.name;
 
   String toString() {
     return "Mapper on $property";
@@ -60,7 +60,7 @@ class PropertyToRowMapper extends PropertyToColumnMapper {
   QueryPredicate predicate;
   List<PropertyToColumnMapper> orderedMappingElements;
 
-  String get columnName {
+  String get name {
     ManagedRelationshipDescription p = property;
     return "${p.name}_${p.destinationEntity.primaryKey}";
   }

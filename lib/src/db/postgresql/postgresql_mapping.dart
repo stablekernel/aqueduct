@@ -1,6 +1,7 @@
 import 'package:postgres/postgres.dart';
 import '../db.dart';
 import '../query/mixin.dart';
+import '../query/mapper.dart';
 
 class PostgresMapper implements QueryMatcherTranslator {
   Map<MatcherOperator, String> symbolTable = {

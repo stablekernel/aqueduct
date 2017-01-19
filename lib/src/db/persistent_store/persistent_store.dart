@@ -1,7 +1,6 @@
 import 'dart:async';
 import '../query/query.dart';
 import '../schema/schema.dart';
-export 'persistent_store_query.dart';
 
 enum PersistentStoreQueryReturnType { rowCount, rows }
 
