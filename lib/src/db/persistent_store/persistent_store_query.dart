@@ -2,10 +2,8 @@ import '../query/query.dart';
 import '../managed/managed.dart';
 import '../managed/query_matchable.dart';
 
-/// This enumeration is used internaly.
 enum PersistentJoinType { leftOuter }
 
-/// This class is used internally.
 class PropertyToColumnMapper {
   static List<PropertyToColumnMapper> mappersForKeys(
       ManagedEntity entity, List<String> keys) {
@@ -17,26 +15,27 @@ class PropertyToColumnMapper {
       keys.insert(0, entity.primaryKey);
     }
 
-    return keys.map((key) {
-      var property = propertyForName(entity, key);
-      return new PropertyToColumnMapper(property);
-    }).toList();
+    return keys
+        .map((key) => new PropertyToColumnMapper(propertyForName(entity, key)))
+        .toList();
   }
 
   static ManagedPropertyDescription propertyForName(
       ManagedEntity entity, String propertyName) {
     var property = entity.properties[propertyName];
+
     if (property == null) {
       throw new QueryException(QueryExceptionEvent.internalFailure,
           message:
               "Property $propertyName does not exist on ${entity.tableName}");
     }
+
     if (property is ManagedRelationshipDescription &&
         property.relationshipType != ManagedRelationshipType.belongsTo) {
       throw new QueryException(QueryExceptionEvent.internalFailure,
           message:
-              "Property $propertyName is a hasMany or hasOne relationship and is invalid as a result property of ${entity
-              .tableName}, use matchOn.$propertyName.includeInResultSet = true instead.");
+              "Property $propertyName is a hasMany or hasOne relationship and is invalid as a result property of "
+              "${entity.tableName}, use matchOn.$propertyName.includeInResultSet = true instead.");
     }
 
     return property;
@@ -52,13 +51,14 @@ class PropertyToColumnMapper {
   }
 }
 
-/// This class is used internally.
 class PropertyToRowMapping extends PropertyToColumnMapper {
   PropertyToRowMapping(this.type, ManagedPropertyDescription property,
       this.predicate, this.orderedMappingElements)
       : super(property) {}
 
   PersistentJoinType type;
+  QueryPredicate predicate;
+  List<PropertyToColumnMapper> orderedMappingElements;
 
   String get columnName {
     ManagedRelationshipDescription p = property;
@@ -67,8 +67,6 @@ class PropertyToRowMapping extends PropertyToColumnMapper {
 
   ManagedPropertyDescription get joinProperty =>
       (property as ManagedRelationshipDescription).inverseRelationship;
-  QueryPredicate predicate;
-  List<PropertyToColumnMapper> orderedMappingElements;
 
   List<PropertyToColumnMapper> get flattened {
     return orderedMappingElements.expand((c) {
