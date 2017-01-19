@@ -59,6 +59,10 @@ abstract class QueryMixin<InstanceType extends ManagedObject> implements Query<I
   }
 
   QueryPredicate predicateFromMatcherBackedObject(QueryMatchable obj) {
+    if (obj == null) {
+      return null;
+    }
+
     var entity = obj.entity;
     var attributeKeys = obj.backingMap.keys.where((propertyName) {
       var desc = entity.properties[propertyName];

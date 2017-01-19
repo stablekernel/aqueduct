@@ -71,7 +71,9 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object with Quer
 
     if (predicate != null) {
       buffer.write("WHERE ${predicate.format} ");
-      updateValueMap.addAll(predicate.parameters);
+      if (predicate.parameters != null) {
+        updateValueMap.addAll(predicate.parameters);
+      }
     }
 
     if ((rowMapper.orderedMappingElements?.length ?? 0) > 0) {
@@ -158,8 +160,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object with Quer
               "Query cannot have properties that are includeInResultSet and also have a pageDescriptor.");
         }
 
-        var joinElements = joinElementsFromQueryMatchable(
-            matchOn, context.persistentStore, nestedResultProperties);
+        var joinElements = joinElementsFromQueryMatchable(matchOn);
         rowMapper.addJoinElements(joinElements);
       }
     }
@@ -191,7 +192,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object with Quer
     if (hasJoins) {
       var joinWriter = (PropertyToRowMapping j) {
         buffer.write("${joinStringForJoin(j)} ");
-        if (j.predicate != null) {
+        if (j.predicate?.parameters != null) {
           joinVariables.addAll(j.predicate.parameters);
         }
       };
@@ -294,9 +295,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object with Quer
 
   // todo: this sucks
   List<PropertyToRowMapping> joinElementsFromQueryMatchable(
-      QueryMatchableExtension matcherBackedObject,
-      PersistentStore store,
-      Map<Type, List<String>> nestedResultProperties) {
+      QueryMatchableExtension matcherBackedObject) {
         var entity = matcherBackedObject.entity;
         var propertiesToJoin = matcherBackedObject.joinPropertyKeys;
 
@@ -319,7 +318,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object with Quer
                   PropertyToColumnMapper.mappersForKeys(inner.entity, propertiesToFetch));
               if (inner.hasJoinElements) {
                 joinElement.orderedMappingElements.addAll(joinElementsFromQueryMatchable(
-                    inner, store, nestedResultProperties));
+                    inner));
               }
 
               return joinElement;
@@ -331,10 +330,10 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object with Quer
   String joinStringForJoin(PropertyToRowMapping ji) {
     var parentEntity = ji.property.entity;
     var parentProperty = parentEntity.properties[parentEntity.primaryKey];
+    var parentColumnName = columnNameForProperty(parentProperty, includeTableName: true);
+    var childColumnName = columnNameForProperty(ji.joinProperty, includeTableName: true);
 
-    var predicate = new QueryPredicate(
-        "${columnNameForProperty(parentProperty, includeTableName: true)}=${columnNameForProperty(ji.joinProperty, includeTableName: true)}",
-        {});
+    var predicate = new QueryPredicate("$parentColumnName=$childColumnName", null);
 
     if (ji.predicate != null) {
       predicate = QueryPredicate.andPredicates([predicate, ji.predicate]);

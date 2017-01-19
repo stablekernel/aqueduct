@@ -27,7 +27,7 @@ class QueryPredicate {
 
   /// Default constructor
   ///
-  /// The [format] and [parameters] of this predicate.
+  /// The [format] and [parameters] of this predicate. [parameters] may be null.
   QueryPredicate(this.format, this.parameters);
 
   /// Joins together a list of predicates by the 'and' token.
@@ -47,16 +47,13 @@ class QueryPredicate {
 
     var valueMap = <String, dynamic>{};
     predicates.forEach((p) {
-      var pValueMap = p.parameters;
-
-      pValueMap.keys.forEach((k) {
+      p.parameters?.forEach((k, v) {
         if (valueMap.containsKey(k)) {
           throw new QueryPredicateException(
               "Duplicate keys in and predicate, ${k} appears in multiple predicates. Make keys more specific.");
         }
+        valueMap[k] = v;
       });
-
-      valueMap.addAll(pValueMap);
     });
 
     return new QueryPredicate(predicateFormat, valueMap);
