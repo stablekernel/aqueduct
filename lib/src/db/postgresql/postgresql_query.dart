@@ -51,7 +51,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
     var rowMapper = createMapper();
 
     if (predicate == null &&
-        !confirmQueryModifiesAllInstancesOnDeleteOrUpdate) {
+        !modifiesAllInstancesOnDeleteOrUpdate) {
       throw new QueryException(QueryExceptionEvent.internalFailure,
           message:
               "Query would impact all records. This could be a destructive error. Set confirmQueryModifiesAllInstancesOnDeleteOrUpdate on the Query to execute anyway.");
@@ -111,7 +111,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
   @override
   Future<int> delete() async {
     if (predicate == null &&
-        !confirmQueryModifiesAllInstancesOnDeleteOrUpdate) {
+        !modifiesAllInstancesOnDeleteOrUpdate) {
       throw new QueryException(QueryExceptionEvent.internalFailure,
           message:
               "Query would impact all records. This could be a destructive error. Set confirmQueryModifiesAllInstancesOnDeleteOrUpdate on the Query to execute anyway.");

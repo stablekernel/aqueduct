@@ -257,7 +257,7 @@ void main() {
     await req.insert();
 
     req = new Query<TestModel>()
-      ..confirmQueryModifiesAllInstancesOnDeleteOrUpdate = true
+      ..modifiesAllInstancesOnDeleteOrUpdate = true
       ..values.name = "Fred";
 
     var res = await req.update();

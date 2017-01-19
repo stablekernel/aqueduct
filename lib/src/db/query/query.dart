@@ -77,7 +77,7 @@ abstract class Query<InstanceType extends ManagedObject> {
   /// This is a safety measure for update and delete queries to prevent accidentally updating or deleting every row.
   /// This flag defaults to false, meaning that if this query is either an update or a delete, but contains no predicate,
   /// it will fail. If a query is meant to update or delete every row on a table, you may set this to true to allow this query to proceed.
-  bool confirmQueryModifiesAllInstancesOnDeleteOrUpdate;
+  bool modifiesAllInstancesOnDeleteOrUpdate;
 
   /// Number of seconds before a Query times out.
   ///
@@ -163,7 +163,7 @@ abstract class Query<InstanceType extends ManagedObject> {
   /// The [Query] must have its [values] or [valueMap] property set and should likely have its [predicate] or [matchOn] set as well. This operation will
   /// update each row that matches the conditions in [predicate]/[matchOn] with the values from [values] or [valueMap]. If no [matchOn] or [predicate] is set,
   /// this method will throw an exception by default, assuming that you don't typically want to update every row in a database table. To specify otherwise,
-  /// set [confirmQueryModifiesAllInstancesOnDeleteOrUpdate] to true.
+  /// set [modifiesAllInstancesOnDeleteOrUpdate] to true.
   /// The return value is a [Future] that completes with the any updated [InstanceType]s. Example:
   ///
   ///       var q = new Query<User>()
@@ -196,7 +196,7 @@ abstract class Query<InstanceType extends ManagedObject> {
   ///
   /// This method will delete rows identified by [predicate]/[matchOn]. If no [matchOn] or [predicate] is set,
   /// this method will throw an exception by default, assuming that you don't typically want to delete every row in a database table. To specify otherwise,
-  /// set [confirmQueryModifiesAllInstancesOnDeleteOrUpdate] to true.
+  /// set [modifiesAllInstancesOnDeleteOrUpdate] to true.
   ///
   /// This method will return the number of rows deleted.
   /// Example:
