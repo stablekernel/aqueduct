@@ -54,10 +54,10 @@ See [safe_config](https://pub.dartlang.org/packages/safe_config) for more detail
 
 ## Creating API Documentation
 
-Run the following script from this directory to generate an OpenAPI 2.0 JSON specification file for your web server:
+In the project directory, run:
 
-```
-dart bin/document.dart
+```bash
+aqueduct document
 ```
 
 This will print a JSON OpenAPI specification to stdout.

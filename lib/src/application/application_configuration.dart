@@ -8,6 +8,17 @@ import '../http/request_sink.dart';
 /// Instances of this type are also passed to to a [RequestSink] subclass's `initializeApplication` method before it is instantiated. This allows
 /// values to be modified prior to starting the server.
 class ApplicationConfiguration {
+  /// Whether or not this application is being used to document an API.
+  ///
+  /// Defaults to false. If the application is being instantiated for the purpose of documenting the API,
+  /// this flag will be true. This allows [RequestSink] subclasses to take a different initialization path
+  /// when documenting vs. running the application.
+  bool isDocumenting = false;
+
+  /// The absolute path of the configuration file for this application.
+  ///
+  /// This value is used by [RequestSink] subclasses to read a configuration file. This value is set automatically
+  /// when using `aqueduct serve`.
   String configurationFilePath;
 
   /// The address to listen for HTTP requests on.

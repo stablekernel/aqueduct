@@ -3,10 +3,15 @@ import 'dart:mirrors';
 
 import 'package:path/path.dart' as path_lib;
 
-Map<String, dynamic> _stripNull(Map<String, dynamic> m) {
+Map<String, dynamic> _stripNullAndEmpty(Map<String, dynamic> m) {
   var outMap = <String, dynamic>{};
   m.forEach((k, v) {
-    if (v != null) {
+    if (v is Map) {
+      var stripped = _stripNullAndEmpty(v as Map<String, dynamic>);
+      if (stripped.isNotEmpty) {
+        outMap[k] = stripped;
+      }
+    } else if (v != null) {
       outMap[k] = v;
     }
   });
@@ -83,11 +88,11 @@ class APIDocument {
     m["info"] = info.asMap();
 
     if (version.startsWith("2.")) {
-      if (hosts.length > 0) {
+      if ((hosts?.length ?? 0) > 0) {
         m["host"] = hosts.first.host;
       }
     } else {
-      m["hosts"] = hosts.map((host) => host.asMap()).toList();
+      m["hosts"] = hosts?.map((host) => host.asMap())?.toList();
     }
 
     m["consumes"] = consumes.map((ct) => ct.toString()).toList();
@@ -102,7 +107,7 @@ class APIDocument {
     });
     m["securityDefinitions"] = mappedSchemes;
 
-    return m;
+    return _stripNullAndEmpty(m);
   }
 }
 
@@ -116,14 +121,14 @@ class APIInfo {
   APILicense license = new APILicense();
 
   Map<String, dynamic> asMap() {
-    return _stripNull({
+    return {
       "title": title,
       "description": description,
       "version": version,
       "termsOfService": termsOfServiceURL,
       "contact": contact.asMap(),
       "license": license.asMap()
-    });
+    };
   }
 }
 
@@ -153,13 +158,34 @@ class APIHost {
   String host = "localhost:8000";
   String basePath = "/";
   String scheme = "http";
+  int port;
+
+  APIHost();
+  APIHost.fromURI(Uri uri) {
+    host = uri.host;
+    basePath = uri.path ?? "/";
+
+    if (uri.hasScheme) {
+      scheme = uri.scheme;
+    } else {
+      scheme = "http";
+    }
+
+    if (uri.hasPort) {
+      port = uri.port;
+    }
+  }
 
   Uri get uri {
     return new Uri(scheme: scheme, host: host, path: basePath);
   }
 
   Map<String, String> asMap() {
-    return {"host": host, "basePath": basePath, "scheme": scheme};
+    var hostWithPort = host;
+    if (port != null) {
+      hostWithPort = "$host:$port";
+    }
+    return {"host": hostWithPort, "basePath": basePath, "scheme": scheme};
   }
 }
 
@@ -359,7 +385,7 @@ class APIOperation {
 
     // m["requestBody"] = requestBody?.asMap();
 
-    return _stripNull(m);
+    return _stripNullAndEmpty(m);
   }
 }
 
@@ -387,11 +413,11 @@ class APIResponse {
       mappedHeaders[headerName] = headerObject.asMap();
     });
 
-    return _stripNull({
+    return {
       "description": description,
       "schema": schema?.asMap(),
       "headers": mappedHeaders
-    });
+    };
   }
 }
 
@@ -463,7 +489,7 @@ class APIParameter {
     m["schema"] = schemaObject?.asMap();
     m["in"] = parameterLocationStringForType(parameterLocation);
 
-    return _stripNull(m);
+    return _stripNullAndEmpty(m);
   }
 }
 

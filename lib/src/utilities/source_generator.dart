@@ -83,7 +83,11 @@ class IsolateExecutor {
 
     var onErrorPort = new ReceivePort()
       ..listen((err) {
-        completer.completeError(err);
+        if (err is List) {
+          completer.completeError(err.first, err.last);
+        } else {
+          completer.completeError(err);
+        }
       });
 
     var controlPort = new ReceivePort()
