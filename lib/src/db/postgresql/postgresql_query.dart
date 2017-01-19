@@ -28,7 +28,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
     buffer.write("INSERT INTO ${entity.tableName} ");
     buffer.write("(${columnListString(propertyValueKeys)}) ");
     buffer.write(
-        "VALUES (${columnListString(propertyValueKeys, typed: true, prefix: "@")}) ");
+        "VALUES (${columnListString(propertyValueKeys, withTypeSuffix: true, withPrefix: "@")}) ");
 
     if ((rowMapper.orderedMappingElements?.length ?? 0) > 0) {
       buffer.write(
@@ -64,12 +64,12 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
 
     var updateValueMap = <String, dynamic>{};
     propertyValueMap.forEach((k, v) {
-      updateValueMap[columnNameForProperty(k, prefix: prefix)] = v;
+      updateValueMap[columnNameForProperty(k, withPrefix: prefix)] = v;
     });
 
     var assignments = propertyValueKeys.map((m) {
       var name = columnNameForProperty(m);
-      var typedName = columnNameForProperty(m, typed: true, prefix: "$prefix");
+      var typedName = columnNameForProperty(m, withTypeSuffix: true, withPrefix: "$prefix");
       return "$name=@$typedName";
     }).join(",");
 
@@ -187,7 +187,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
 
     var columnsToFetch = rowMapper.flattenedMappingElements.map((mapElement) {
       return columnNameForProperty(mapElement.property,
-          includeTableName: hasJoins);
+          withTableNamespace: hasJoins);
     }).join(",");
 
     var combinedPredicates =
@@ -275,7 +275,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
 
     var joinedSortDescriptors = sortDescs.map((QuerySortDescriptor sd) {
       var property = entity.properties[sd.key];
-      var columnName = columnNameForProperty(property, includeTableName: true);
+      var columnName = columnNameForProperty(property, withTableNamespace: true);
       var order = (sd.order == QuerySortOrder.ascending ? "ASC" : "DESC");
 
       return "$columnName $order";
@@ -297,8 +297,8 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
     var prefix = "aq_page_";
 
     var columnName =
-        columnNameForProperty(pagingProperty, includeTableName: true);
-    var variableName = columnNameForProperty(pagingProperty, prefix: prefix);
+        columnNameForProperty(pagingProperty, withTableNamespace: true);
+    var variableName = columnNameForProperty(pagingProperty, withPrefix: prefix);
 
     return new QueryPredicate(
         "$columnName ${operator} @$variableName${typeSuffix(pagingProperty)}",
@@ -342,9 +342,9 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
     var parentEntity = ji.property.entity;
     var parentProperty = parentEntity.properties[parentEntity.primaryKey];
     var parentColumnName =
-        columnNameForProperty(parentProperty, includeTableName: true);
+        columnNameForProperty(parentProperty, withTableNamespace: true);
     var childColumnName =
-        columnNameForProperty(ji.joinProperty, includeTableName: true);
+        columnNameForProperty(ji.joinProperty, withTableNamespace: true);
 
     var predicate =
         new QueryPredicate("$parentColumnName=$childColumnName", null);

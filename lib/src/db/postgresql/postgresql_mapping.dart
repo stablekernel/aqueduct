@@ -40,30 +40,30 @@ class PostgresMapper implements QueryMatcherTranslator {
   }
 
   String columnNameForProperty(ManagedPropertyDescription desc,
-      {bool typed: false, bool includeTableName: false, String prefix: null}) {
+      {bool withTypeSuffix: false, bool withTableNamespace: false, String withPrefix: null}) {
     var name = desc.name;
     if (desc is ManagedRelationshipDescription) {
       name = "${name}_${desc.destinationEntity.primaryKey}";
     }
 
-    if (typed) {
+    if (withTypeSuffix) {
       name = "$name${typeSuffix(desc)}";
     }
 
-    if (includeTableName) {
+    if (withTableNamespace) {
       return "${desc.entity.tableName}.$name";
-    } else if (prefix != null) {
-      return "$prefix$name";
+    } else if (withPrefix != null) {
+      return "$withPrefix$name";
     }
 
     return name;
   }
 
   String columnListString(Iterable<ManagedPropertyDescription> columnMappings,
-      {bool typed: false, bool includeTableName: false, String prefix: null}) {
+      {bool withTypeSuffix: false, bool withTableNamespace: false, String withPrefix: null}) {
     return columnMappings
         .map((c) => columnNameForProperty(c,
-            typed: typed, includeTableName: includeTableName, prefix: prefix))
+            withTypeSuffix: withTypeSuffix, withTableNamespace: withTableNamespace, withPrefix: withPrefix))
         .join(",");
   }
 
@@ -71,8 +71,8 @@ class PostgresMapper implements QueryMatcherTranslator {
   QueryPredicate comparisonPredicate(ManagedPropertyDescription desc,
       MatcherOperator operator, dynamic value) {
     var prefix = "${desc.entity.tableName}_";
-    var columnName = columnNameForProperty(desc, includeTableName: true);
-    var variableName = columnNameForProperty(desc, prefix: prefix);
+    var columnName = columnNameForProperty(desc, withTableNamespace: true);
+    var variableName = columnNameForProperty(desc, withPrefix: prefix);
 
     return new QueryPredicate(
         "$columnName ${symbolTable[operator]} @$variableName${typeSuffix(desc)}",
@@ -90,21 +90,21 @@ class PostgresMapper implements QueryMatcherTranslator {
     values.forEach((value) {
       var prefix = "ctns${tableName}_${counter}_";
 
-      var variableName = columnNameForProperty(desc, prefix: prefix);
+      var variableName = columnNameForProperty(desc, withPrefix: prefix);
       tokenList.add("@$variableName${typeSuffix(desc)}");
       pairedMap[variableName] = value;
 
       counter++;
     });
 
-    var columnName = columnNameForProperty(desc, includeTableName: true);
+    var columnName = columnNameForProperty(desc, withTableNamespace: true);
     return new QueryPredicate(
         "$columnName IN (${tokenList.join(",")})", pairedMap);
   }
 
   @override
   QueryPredicate nullPredicate(ManagedPropertyDescription desc, bool isNull) {
-    var columnName = columnNameForProperty(desc, includeTableName: true);
+    var columnName = columnNameForProperty(desc, withTableNamespace: true);
     return new QueryPredicate(
         "$columnName ${isNull ? "ISNULL" : "NOTNULL"}", {});
   }
@@ -112,11 +112,11 @@ class PostgresMapper implements QueryMatcherTranslator {
   @override
   QueryPredicate rangePredicate(ManagedPropertyDescription desc,
       dynamic lhsValue, dynamic rhsValue, bool insideRange) {
-    var columnName = columnNameForProperty(desc, includeTableName: true);
+    var columnName = columnNameForProperty(desc, withTableNamespace: true);
     var lhsName =
-        columnNameForProperty(desc, prefix: "${desc.entity.tableName}_lhs_");
+        columnNameForProperty(desc, withPrefix: "${desc.entity.tableName}_lhs_");
     var rhsName =
-        columnNameForProperty(desc, prefix: "${desc.entity.tableName}_rhs_");
+        columnNameForProperty(desc, withPrefix: "${desc.entity.tableName}_rhs_");
     var operation = insideRange ? "BETWEEN" : "NOT BETWEEN";
 
     return new QueryPredicate(
@@ -128,8 +128,8 @@ class PostgresMapper implements QueryMatcherTranslator {
   QueryPredicate stringPredicate(ManagedPropertyDescription desc,
       StringMatcherOperator operator, dynamic value) {
     var prefix = "${desc.entity.tableName}_";
-    var columnName = columnNameForProperty(desc, includeTableName: true);
-    var variableName = columnNameForProperty(desc, prefix: prefix);
+    var columnName = columnNameForProperty(desc, withTableNamespace: true);
+    var variableName = columnNameForProperty(desc, withPrefix: prefix);
 
     var matchValue = value;
     switch (operator) {
