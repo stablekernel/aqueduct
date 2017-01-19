@@ -4,7 +4,7 @@ import '../db.dart';
 class ManagedInstantiator {
   ManagedInstantiator(this.rootEntity);
 
-  Map<String, Map<dynamic, ManagedObject>> matchMap = {};
+  Map<String, Map<dynamic, ManagedObject>> trackedObjects = {};
   List<PropertyToColumnMapper> orderedMappingElements;
   ManagedEntity rootEntity;
 
@@ -15,18 +15,18 @@ class ManagedInstantiator {
 
   List<PropertyToColumnMapper> get flattenedMappingElements {
     return orderedMappingElements.expand((c) {
-      if (c is PropertyToRowMapping) {
+      if (c is PropertyToRowMapper) {
         return c.flattened;
       }
       return [c];
     }).toList();
   }
 
-  void addJoinElements(List<PropertyToRowMapping> elements) {
+  void addJoinElements(List<PropertyToRowMapper> elements) {
     orderedMappingElements.addAll(elements);
   }
 
-  Map<ManagedPropertyDescription, dynamic> propertyValueMap(
+  Map<ManagedPropertyDescription, dynamic> translateValueMap(
       Map<String, dynamic> valueMap) {
     if (valueMap == null) {
       return null;
@@ -35,6 +35,7 @@ class ManagedInstantiator {
     var returnMap = <ManagedPropertyDescription, dynamic>{};
     valueMap.forEach((key, value) {
       var property = rootEntity.properties[key];
+
       if (property == null) {
         throw new QueryException(QueryExceptionEvent.requestFailure,
             message:
@@ -55,7 +56,7 @@ class ManagedInstantiator {
           } else {
             throw new QueryException(QueryExceptionEvent.internalFailure,
                 message:
-                    "Property $key on ${rootEntity.tableName} in Query values must be a Map or ${MirrorSystem.getName(
+                    "Property $key on ${rootEntity.tableName} in 'Query.values' must be a 'Map' or ${MirrorSystem.getName(
                     property.destinationEntity.instanceType.simpleName)} ");
           }
         }
@@ -65,6 +66,72 @@ class ManagedInstantiator {
     });
 
     return returnMap;
+  }
+
+  void exhaustNullInstanceIterator(Iterator<dynamic> rowIterator,
+      Iterator<PropertyToColumnMapper> mappingIterator) {
+    while (mappingIterator.moveNext()) {
+      var mapper = mappingIterator.current;
+      if (mapper is PropertyToRowMapper) {
+        var _ = instanceFromRow(
+            rowIterator, mapper.orderedMappingElements.iterator);
+      } else {
+        rowIterator.moveNext();
+      }
+    }
+  }
+
+  void applyColumnValueToProperty(
+      ManagedObject instance, PropertyToColumnMapper mapper, dynamic value) {
+    if (mapper.property is ManagedRelationshipDescription) {
+      // A belongsTo relationship, keep the foreign key.
+      if (value != null) {
+        ManagedRelationshipDescription relDesc = mapper.property;
+
+        var innerInstance = relDesc.destinationEntity.newInstance();
+        innerInstance[relDesc.destinationEntity.primaryKey] = value;
+        instance[mapper.property.name] = innerInstance;
+      } else {
+        // If null, explicitly add null to map so the value is populated.
+        instance[mapper.property.name] = null;
+      }
+    } else {
+      instance[mapper.property.name] = value;
+    }
+  }
+
+  void applyRowValuesToProperty(ManagedObject instance,
+      PropertyToRowMapper mapper, Iterator<dynamic> rowIterator) {
+    var innerInstanceWrapper = instanceFromRow(
+        rowIterator, mapper.orderedMappingElements.iterator,
+        entity: mapper.joinProperty.entity);
+
+    if (mapper.isToMany) {
+      // If to many, put in a managed set.
+      ManagedSet list = instance[mapper.property.name] ?? new ManagedSet();
+      if (innerInstanceWrapper != null && innerInstanceWrapper.isNew) {
+        list.add(innerInstanceWrapper.instance);
+      }
+      instance[mapper.property.name] = list;
+    } else {
+      var existingInnerInstance = instance[mapper.property.name];
+
+      // If not assigned yet, assign this value (which may be null). If assigned,
+      // don't overwrite with a null row that may come after. Once we have it, we have it.
+      if (existingInnerInstance == null) {
+        instance[mapper.property.name] = innerInstanceWrapper?.instance;
+      }
+    }
+  }
+
+  ManagedObject createInstanceWithPrimaryKeyValue(
+      ManagedEntity entity, dynamic primaryKeyValue) {
+    var instance = entity.newInstance();
+
+    instance[entity.primaryKey] = primaryKeyValue;
+    trackInstance(instance);
+
+    return instance;
   }
 
   ManagedInstanceWrapper instanceFromRow(Iterator<dynamic> rowIterator,
@@ -78,66 +145,24 @@ class ManagedInstantiator {
 
     var primaryKeyValue = rowIterator.current;
     if (primaryKeyValue == null) {
-      while (mappingIterator.moveNext()) {
-        var mapper = mappingIterator.current;
-        if (mapper is PropertyToRowMapping) {
-          var _ = instanceFromRow(
-              rowIterator, mapper.orderedMappingElements.iterator,
-              entity: entity);
-        } else {
-          rowIterator.moveNext();
-        }
-      }
+      exhaustNullInstanceIterator(rowIterator, mappingIterator);
       return null;
     }
 
     var alreadyExists = true;
-    var instance = existingInstance(entity, primaryKeyValue);
+    var instance = getExistingInstance(entity, primaryKeyValue);
     if (instance == null) {
       alreadyExists = false;
-      instance = entity.newInstance();
-      instance[entity.primaryKey] = primaryKeyValue;
-      trackInstance(instance);
+      instance = createInstanceWithPrimaryKeyValue(entity, primaryKeyValue);
     }
 
     while (mappingIterator.moveNext()) {
       var mapper = mappingIterator.current;
-      if (mapper is! PropertyToRowMapping) {
+      if (mapper is! PropertyToRowMapper) {
         rowIterator.moveNext();
-
-        if (mapper.property is ManagedRelationshipDescription) {
-          // A belongsTo relationship, keep the foreign key.
-          if (rowIterator.current != null) {
-            ManagedRelationshipDescription relDesc = mapper.property;
-            ManagedObject innerInstance =
-                relDesc.destinationEntity.newInstance();
-            innerInstance[relDesc.destinationEntity.primaryKey] =
-                rowIterator.current;
-            instance[mapper.property.name] = innerInstance;
-          } else {
-            instance[mapper.property.name] = null;
-          }
-        } else {
-          instance[mapper.property.name] = rowIterator.current;
-        }
-      } else if (mapper is PropertyToRowMapping) {
-        var innerInstanceWrapper = instanceFromRow(
-            rowIterator, mapper.orderedMappingElements.iterator,
-            entity: mapper.joinProperty.entity);
-
-        if (mapper.isToMany) {
-          ManagedSet list = instance[mapper.property.name] ?? new ManagedSet();
-          if (innerInstanceWrapper != null && innerInstanceWrapper.isNew) {
-            list.add(innerInstanceWrapper.instance);
-          }
-          instance[mapper.property.name] = list;
-        } else {
-          var existingInnerInstance = instance[mapper.property.name];
-
-          if (existingInnerInstance == null) {
-            instance[mapper.property.name] = innerInstanceWrapper?.instance;
-          }
-        }
+        applyColumnValueToProperty(instance, mapper, rowIterator.current);
+      } else if (mapper is PropertyToRowMapper) {
+        applyRowValuesToProperty(instance, mapper, rowIterator);
       }
     }
 
@@ -154,18 +179,18 @@ class ManagedInstantiator {
   }
 
   void trackInstance(ManagedObject instance) {
-    var typeMap = matchMap[instance.entity.tableName];
+    var typeMap = trackedObjects[instance.entity.tableName];
     if (typeMap == null) {
       typeMap = {};
-      matchMap[instance.entity.tableName] = typeMap;
+      trackedObjects[instance.entity.tableName] = typeMap;
     }
 
     typeMap[instance[instance.entity.primaryKey]] = instance;
   }
 
-  ManagedObject existingInstance(
+  ManagedObject getExistingInstance(
       ManagedEntity entity, dynamic primaryKeyValue) {
-    var byType = matchMap[entity.tableName];
+    var byType = trackedObjects[entity.tableName];
     if (byType == null) {
       return null;
     }

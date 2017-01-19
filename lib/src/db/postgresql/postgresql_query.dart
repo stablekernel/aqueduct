@@ -20,7 +20,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
     var rowMapper = createMapper();
 
     var propertyValueMap =
-        rowMapper.propertyValueMap((valueMap ?? values?.backingMap));
+        rowMapper.translateValueMap((valueMap ?? values?.backingMap));
     var propertyValueKeys = propertyValueMap.keys;
 
     var buffer = new StringBuffer();
@@ -58,7 +58,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
 
     var prefix = "u_";
     var propertyValueMap =
-        rowMapper.propertyValueMap((valueMap ?? values?.backingMap));
+        rowMapper.translateValueMap((valueMap ?? values?.backingMap));
     var propertyValueKeys = propertyValueMap.keys;
 
     var updateValueMap = <String, dynamic>{};
@@ -133,7 +133,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
     var rowMapper = createMapper();
 
     if (!rowMapper.orderedMappingElements
-        .any((c) => c is PropertyToRowMapping)) {
+        .any((c) => c is PropertyToRowMapper)) {
       fetchLimit = 1;
     }
 
@@ -179,8 +179,8 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
 
   Future<List<InstanceType>> _fetch(ManagedInstantiator rowMapper) async {
     var joinElements = rowMapper.orderedMappingElements
-        .where((mapElement) => mapElement is PropertyToRowMapping)
-        .map((mapElement) => mapElement as PropertyToRowMapping)
+        .where((mapElement) => mapElement is PropertyToRowMapper)
+        .map((mapElement) => mapElement as PropertyToRowMapper)
         .toList();
     var hasJoins = joinElements.isNotEmpty;
 
@@ -199,7 +199,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
 
     Map<String, dynamic> joinVariables = {};
     if (hasJoins) {
-      var joinWriter = (PropertyToRowMapping j) {
+      var joinWriter = (PropertyToRowMapper j) {
         buffer.write("${joinStringForJoin(j)} ");
         if (j.predicate?.parameters != null) {
           joinVariables.addAll(j.predicate.parameters);
@@ -305,7 +305,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
   }
 
   // todo: this sucks
-  List<PropertyToRowMapping> joinElementsFromQueryMatchable(
+  List<PropertyToRowMapper> joinElementsFromQueryMatchable(
       QueryMatchableExtension matcherBackedObject) {
     var entity = matcherBackedObject.entity;
     var propertiesToJoin = matcherBackedObject.joinPropertyKeys;
@@ -321,7 +321,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
       var propertiesToFetch =
           nestedProperties ?? inner.entity.defaultProperties;
 
-      var joinElement = new PropertyToRowMapping(
+      var joinElement = new PropertyToRowMapper(
           PersistentJoinType.leftOuter,
           relDesc,
           predicate,
@@ -337,7 +337,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
   }
 
   // todo: this all sucks
-  String joinStringForJoin(PropertyToRowMapping ji) {
+  String joinStringForJoin(PropertyToRowMapper ji) {
     var parentEntity = ji.property.entity;
     var parentProperty = parentEntity.properties[parentEntity.primaryKey];
     var parentColumnName =

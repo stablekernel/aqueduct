@@ -51,8 +51,8 @@ class PropertyToColumnMapper {
   }
 }
 
-class PropertyToRowMapping extends PropertyToColumnMapper {
-  PropertyToRowMapping(this.type, ManagedPropertyDescription property,
+class PropertyToRowMapper extends PropertyToColumnMapper {
+  PropertyToRowMapper(this.type, ManagedPropertyDescription property,
       this.predicate, this.orderedMappingElements)
       : super(property) {}
 
@@ -70,19 +70,19 @@ class PropertyToRowMapping extends PropertyToColumnMapper {
 
   List<PropertyToColumnMapper> get flattened {
     return orderedMappingElements.expand((c) {
-      if (c is PropertyToRowMapping) {
+      if (c is PropertyToRowMapper) {
         return c.flattened;
       }
       return [c];
     }).toList();
   }
 
-  List<PropertyToRowMapping> get orderedNestedRowMappings {
+  List<PropertyToRowMapper> get orderedNestedRowMappings {
     return orderedMappingElements
-        .where((e) => e is PropertyToRowMapping)
+        .where((e) => e is PropertyToRowMapper)
         .expand((e) {
       var a = [e];
-      a.addAll((e as PropertyToRowMapping).orderedNestedRowMappings);
+      a.addAll((e as PropertyToRowMapper).orderedNestedRowMappings);
       return a;
     }).toList();
   }
