@@ -237,7 +237,7 @@ class DefaultPersistentStore extends PersistentStore {
       null;
   Future<dynamic> executeQuery(
       String formatString, Map<String, dynamic> values, int timeoutInSeconds,
-      {bool shouldReturnCountOfRowsAffected: false}) async =>
+      {PersistentStoreQueryReturnType returnType}) async =>
       null;
 
   Future close() async {}

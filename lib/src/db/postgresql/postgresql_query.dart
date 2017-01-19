@@ -2,13 +2,13 @@ import 'dart:async';
 
 import '../db.dart';
 import '../query/mixin.dart';
-import 'postgresql_column.dart';
+import 'postgresql_mapping.dart';
 
 // todo: wow get rid of this
 import '../managed/query_matchable.dart';
 import '../managed/instantiator.dart';
 
-class PostgresQuery<InstanceType extends ManagedObject> extends Object with QueryMixin<InstanceType> implements Query<InstanceType> {
+class PostgresQuery<InstanceType extends ManagedObject> extends Object with QueryMixin<InstanceType>, PostgresMapper implements Query<InstanceType> {
   PostgresQuery(this.context);
 
   ManagedContext context;
@@ -60,26 +60,26 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object with Quer
       updateValueMap[columnNameForProperty(k, prefix: prefix)] = v;
     });
 
-    var setPairString = propertyValueKeys.map((m) {
+    var assignments = propertyValueKeys.map((m) {
       var name = columnNameForProperty(m);
       var typedName = columnNameForProperty(m, typed: true, prefix: "$prefix");
       return "$name=@$typedName";
     }).join(",");
 
-    var queryStringBuffer = new StringBuffer();
-    queryStringBuffer.write("UPDATE ${entity.tableName} SET $setPairString ");
+    var buffer = new StringBuffer();
+    buffer.write("UPDATE ${entity.tableName} SET $assignments ");
 
     if (predicate != null) {
-      queryStringBuffer.write("WHERE ${predicate.format} ");
+      buffer.write("WHERE ${predicate.format} ");
       updateValueMap.addAll(predicate.parameters);
     }
 
     if ((rowMapper.orderedMappingElements?.length ?? 0) > 0) {
-      queryStringBuffer.write("RETURNING ${columnListString(rowMapper.orderedMappingElements.map((c) => c.property))}");
+      buffer.write("RETURNING ${columnListString(rowMapper.orderedMappingElements.map((c) => c.property))}");
     }
 
     var results = await context.persistentStore.executeQuery(
-        queryStringBuffer.toString(), updateValueMap, timeoutInSeconds);
+        buffer.toString(), updateValueMap, timeoutInSeconds);
 
     return rowMapper.instancesForRows(results);
   }
@@ -115,7 +115,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object with Quer
 
     return context.persistentStore.executeQuery(
         buffer.toString(), predicate?.parameters, timeoutInSeconds,
-        shouldReturnCountOfRowsAffected: true);
+        returnType: PersistentStoreQueryReturnType.rowCount);
   }
 
   @override
@@ -146,7 +146,6 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object with Quer
 
   //////
 
-  // todo: remove duplicates from joinedFetch
   ManagedInstantiator createMapper() {
     var rowMapper = new ManagedInstantiator(entity);
     rowMapper.properties = resultProperties;
@@ -167,25 +166,49 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object with Quer
 
     return rowMapper;
   }
-  Future<List<InstanceType>> _fetch(ManagedInstantiator rowMapper) async {
-    if (rowMapper.orderedMappingElements.any((c) => c is PropertyToRowMapping)) {
-      return joinedFetch(rowMapper);
-    }
 
-    var combinedPredicates = [predicate, _pagePredicateForQuery]
+  Future<List<InstanceType>> _fetch(ManagedInstantiator rowMapper) async {
+    var joinElements = rowMapper.orderedMappingElements
+        .where((mapElement) => mapElement is PropertyToRowMapping)
+        .map((mapElement) => mapElement as PropertyToRowMapping)
+        .toList();
+    var hasJoins = joinElements.isNotEmpty;
+
+    var columnsToFetch = rowMapper.flattenedMappingElements.map((mapElement) {
+      return columnNameForProperty(mapElement.property, includeTableName: hasJoins);
+    }).join(",");
+
+    var combinedPredicates = [predicate, pagingPredicate]
         .where((p) => p != null)
         .toList();
     var allPredicates = QueryPredicate.andPredicates(combinedPredicates);
 
     var buffer = new StringBuffer();
-    buffer.write("SELECT ${columnListString(rowMapper.orderedMappingElements.map((c) => c.property))} ");
+    buffer.write("SELECT $columnsToFetch ");
     buffer.write("FROM ${entity.tableName} ");
+
+    Map<String, dynamic> joinVariables = {};
+    if (hasJoins) {
+      var joinWriter = (PropertyToRowMapping j) {
+        buffer.write("${joinStringForJoin(j)} ");
+        if (j.predicate != null) {
+          joinVariables.addAll(j.predicate.parameters);
+        }
+      };
+
+      joinElements.forEach((joinElement) {
+        joinWriter(joinElement);
+        joinElement.orderedNestedRowMappings.forEach((j) {
+          joinWriter(j);
+        });
+      });
+    }
 
     if (allPredicates != null) {
       buffer.write("WHERE ${allPredicates.format} ");
     }
 
-    buffer.write("$_orderByStringForQuery ");
+    buffer.write("$orderByString ");
 
     if (fetchLimit != 0) {
       buffer.write("LIMIT ${fetchLimit} ");
@@ -195,61 +218,20 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object with Quer
       buffer.write("OFFSET ${offset} ");
     }
 
-    var results = await context.persistentStore.executeQuery(
-        buffer.toString(), allPredicates?.parameters, timeoutInSeconds);
-
-    return rowMapper.instancesForRows(results);
-  }
-
-  Future<List<InstanceType>> joinedFetch(ManagedInstantiator rowMapper) async {
-    var predicateValueMap = <String, dynamic>{};
-    var joinElements = rowMapper.orderedMappingElements
-        .where((mapElement) => mapElement is PropertyToRowMapping)
-        .map((mapElement) => mapElement as PropertyToRowMapping);
-
-    var columnsToFetch = rowMapper.flattenedMappingElements.map((mapElement) {
-      return columnNameForProperty(mapElement.property, includeTableName: true);
-    }).join(",");
-
-    var buffer = new StringBuffer("SELECT $columnsToFetch FROM ${entity.tableName} ");
-
-    var joinWriter = (PropertyToRowMapping j) {
-      buffer.write("${_joinStringForJoin(j)} ");
-      if (j.predicate != null) {
-        predicateValueMap.addAll(j.predicate.parameters);
-      }
-    };
-    joinElements.forEach((joinElement) {
-      joinWriter(joinElement);
-      joinElement.orderedNestedRowMappings.forEach((j) {
-        joinWriter(j);
-      });
-    });
-
-    if (predicate != null) {
-      buffer.write("WHERE ${predicate.format} ");
-      predicateValueMap.addAll(predicate.parameters);
-    }
-
-    buffer.write("$_orderByStringForQuery ");
-
-    if (fetchLimit != 0) {
-      buffer.write("LIMIT ${fetchLimit} ");
-    }
-
-    if (offset != 0) {
-      buffer.write("OFFSET ${offset} ");
+    var variables = allPredicates?.parameters ?? {};
+    if (hasJoins) {
+      variables.addAll(joinVariables);
     }
 
     var results = await context.persistentStore.executeQuery(
-        buffer.toString(), predicateValueMap, timeoutInSeconds);
+        buffer.toString(), variables, timeoutInSeconds);
 
     return rowMapper.instancesForRows(results);
   }
 
   void validatePageDescriptor() {
     if (pageDescriptor == null) {
-      return null;
+      return;
     }
 
     var prop = entity.attributes[pageDescriptor.propertyName];
@@ -267,7 +249,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object with Quer
     }
   }
 
-  String get _orderByStringForQuery {
+  String get orderByString {
     List<QuerySortDescriptor> sortDescs = sortDescriptors ?? [];
 
     if (pageDescriptor != null) {
@@ -291,9 +273,9 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object with Quer
     return "ORDER BY $joinedSortDescriptors";
   }
 
-  // todo: this sucks
-  QueryPredicate get _pagePredicateForQuery {
+  QueryPredicate get pagingPredicate {
     validatePageDescriptor();
+
     if (pageDescriptor?.boundingValue == null) {
       return null;
     }
@@ -345,9 +327,8 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object with Quer
             .toList();
   }
 
-
-  // this all sucks
-  String _joinStringForJoin(PropertyToRowMapping ji) {
+  // todo: this all sucks
+  String joinStringForJoin(PropertyToRowMapping ji) {
     var parentEntity = ji.property.entity;
     var parentProperty = parentEntity.properties[parentEntity.primaryKey];
 
@@ -359,95 +340,6 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object with Quer
       predicate = QueryPredicate.andPredicates([predicate, ji.predicate]);
     }
 
-    return "${_stringForJoinType(ji.type)} JOIN ${ji.joinProperty.entity.tableName} ON ${predicate.format}";
-  }
-
-  String _stringForJoinType(PersistentJoinType t) {
-    switch (t) {
-      case PersistentJoinType.leftOuter:
-        return "LEFT OUTER";
-    }
-    return null;
-  }
-
-  @override
-  QueryPredicate comparisonPredicate(ManagedPropertyDescription desc,
-      MatcherOperator operator, dynamic value) {
-    var prefix = "${desc.entity.tableName}_";
-    var columnName = columnNameForProperty(desc, includeTableName: true);
-    var variableName = columnNameForProperty(desc, prefix: prefix);
-
-    return new QueryPredicate("$columnName ${symbolTable[operator]} @$variableName${typeSuffix(desc)}", {
-      variableName: value
-    });
-  }
-
-  @override
-  QueryPredicate containsPredicate(
-      ManagedPropertyDescription desc, Iterable<dynamic> values) {
-    var tableName = desc.entity.tableName;
-    var tokenList = [];
-    var pairedMap = <String, dynamic>{};
-
-    var counter = 0;
-    values.forEach((value) {
-      var prefix = "ctns${tableName}_${counter}_";
-
-      var variableName = columnNameForProperty(desc, prefix: prefix);
-      tokenList.add("@$variableName${typeSuffix(desc)}");
-      pairedMap[variableName] = value;
-
-      counter++;
-    });
-
-    var columnName = columnNameForProperty(desc, includeTableName: true);
-    return new QueryPredicate("$columnName IN (${tokenList.join(",")})",
-        pairedMap);
-  }
-
-  @override
-  QueryPredicate nullPredicate(ManagedPropertyDescription desc, bool isNull) {
-    var columnName = columnNameForProperty(desc, includeTableName: true);
-    return new QueryPredicate(
-        "$columnName ${isNull ? "ISNULL" : "NOTNULL"}", {});
-  }
-
-  @override
-  QueryPredicate rangePredicate(ManagedPropertyDescription desc,
-      dynamic lhsValue, dynamic rhsValue, bool insideRange) {
-    var columnName = columnNameForProperty(desc, includeTableName: true);
-    var lhsName = columnNameForProperty(desc, prefix: "${desc.entity.tableName}_lhs_");
-    var rhsName = columnNameForProperty(desc, prefix: "${desc.entity.tableName}_rhs_");
-    var operation = insideRange ? "BETWEEN" : "NOT BETWEEN";
-
-    return new QueryPredicate(
-        "$columnName $operation @$lhsName${typeSuffix(desc)} AND @$rhsName${typeSuffix(desc)}", {
-      lhsName: lhsValue, rhsName: rhsValue
-    });
-  }
-
-  @override
-  QueryPredicate stringPredicate(ManagedPropertyDescription desc,
-      StringMatcherOperator operator, dynamic value) {
-    var prefix = "${desc.entity.tableName}_";
-    var columnName = columnNameForProperty(desc, includeTableName: true);
-    var variableName = columnNameForProperty(desc, prefix: prefix);
-
-    var matchValue = value;
-    switch (operator) {
-      case StringMatcherOperator.beginsWith:
-        matchValue = "$value%";
-        break;
-      case StringMatcherOperator.endsWith:
-        matchValue = "%$value";
-        break;
-      case StringMatcherOperator.contains:
-        matchValue = "%$value%";
-        break;
-    }
-
-    return new QueryPredicate("$columnName LIKE @$variableName${typeSuffix(desc)}", {
-      variableName: matchValue
-    });
+    return "${stringForJoinType(ji.type)} JOIN ${ji.joinProperty.entity.tableName} ON ${predicate.format}";
   }
 }

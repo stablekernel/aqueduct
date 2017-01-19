@@ -3,6 +3,11 @@ import '../query/query.dart';
 import '../schema/schema.dart';
 export 'persistent_store_query.dart';
 
+enum PersistentStoreQueryReturnType {
+  rowCount,
+  rows
+}
+
 /// An interface for implementing persistent storage.
 ///
 /// You rarely need to use this class directly. See [Query] for how to interact with instances of this class.
@@ -13,7 +18,7 @@ abstract class PersistentStore {
 
   Future<dynamic> executeQuery(
       String formatString, Map<String, dynamic> values, int timeoutInSeconds,
-      {bool shouldReturnCountOfRowsAffected: false});
+      {PersistentStoreQueryReturnType returnType});
 
   /// Closes the underlying database connection.
   Future close();

@@ -183,13 +183,13 @@ class PostgreSQLPersistentStore extends PersistentStore
 
   Future<dynamic> executeQuery(
       String formatString, Map<String, dynamic> values, int timeoutInSeconds,
-      {bool shouldReturnCountOfRowsAffected: false}) async {
+      {PersistentStoreQueryReturnType returnType: PersistentStoreQueryReturnType.rows}) async {
     var now = new DateTime.now().toUtc();
     try {
       var dbConnection = await getDatabaseConnection();
       var results = null;
 
-      if (!shouldReturnCountOfRowsAffected) {
+      if (returnType == PersistentStoreQueryReturnType.rows) {
         results = await dbConnection
             .query(formatString, substitutionValues: values)
             .timeout(new Duration(seconds: timeoutInSeconds));
