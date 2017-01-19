@@ -200,8 +200,10 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
     buffer.write("SELECT $columnsToFetch ");
     buffer.write("FROM ${entity.tableName} ");
 
-    Map<String, dynamic> joinVariables = {};
+    Map<String, dynamic> joinVariables;
     if (hasJoins) {
+      joinVariables = {};
+
       var joinWriter = (PropertyToRowMapper j) {
         buffer.write("${joinStringForJoin(j)} ");
         if (j.predicate?.parameters != null) {
