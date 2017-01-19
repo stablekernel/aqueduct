@@ -50,7 +50,8 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
   Future<List<InstanceType>> update() async {
     var rowMapper = createMapper();
 
-    if (predicate == null && !canModifyAllInstances) {
+    var p = predicate;
+    if (p == null && !canModifyAllInstances) {
       throw new QueryException(QueryExceptionEvent.internalFailure,
           message:
               "Query would impact all records. This could be a destructive error. Set canModifyAllInstances on the Query to execute anyway.");
@@ -76,10 +77,10 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
     var buffer = new StringBuffer();
     buffer.write("UPDATE ${entity.tableName} SET $assignments ");
 
-    if (predicate != null) {
-      buffer.write("WHERE ${predicate.format} ");
-      if (predicate.parameters != null) {
-        updateValueMap.addAll(predicate.parameters);
+    if (p != null) {
+      buffer.write("WHERE ${p.format} ");
+      if (p.parameters != null) {
+        updateValueMap.addAll(p.parameters);
       }
     }
 
@@ -110,7 +111,9 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
 
   @override
   Future<int> delete() async {
-    if (predicate == null && !canModifyAllInstances) {
+    var p = predicate;
+
+    if (p == null && !canModifyAllInstances) {
       throw new QueryException(QueryExceptionEvent.internalFailure,
           message:
               "Query would impact all records. This could be a destructive error. Set canModifyAllInstances on the Query to execute anyway.");
@@ -119,12 +122,12 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
     var buffer = new StringBuffer();
     buffer.write("DELETE FROM ${entity.tableName} ");
 
-    if (predicate != null) {
-      buffer.write("WHERE ${predicate.format} ");
+    if (p != null) {
+      buffer.write("WHERE ${p.format} ");
     }
 
     return context.persistentStore.executeQuery(
-        buffer.toString(), predicate?.parameters, timeoutInSeconds,
+        buffer.toString(), p?.parameters, timeoutInSeconds,
         returnType: PersistentStoreQueryReturnType.rowCount);
   }
 
@@ -307,7 +310,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
   }
 
   // todo: this sucks
-  List<PropertyToRowMapper> joinElementsFromQueryMatchable(
+  static List<PropertyToRowMapper> joinElementsFromQueryMatchable(
       QueryMatchableExtension matcherBackedObject) {
     var entity = matcherBackedObject.entity;
     var propertiesToJoin = matcherBackedObject.joinPropertyKeys;
@@ -335,7 +338,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
   }
 
   // todo: this all sucks
-  String joinStringForJoin(PropertyToRowMapper ji) {
+  static String joinStringForJoin(PropertyToRowMapper ji) {
     var parentEntity = ji.property.entity;
     var parentProperty = parentEntity.properties[parentEntity.primaryKey];
     var parentColumnName =
