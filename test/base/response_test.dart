@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
-import 'package:http/http.dart' as http;
 
 void main() {
   test("Modifying return value from Response.headers changes actual headers", () {

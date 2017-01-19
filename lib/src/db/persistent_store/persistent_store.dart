@@ -1,7 +1,6 @@
 import 'dart:async';
 import '../query/query.dart';
 import '../schema/schema.dart';
-import '../managed/managed.dart';
 export 'persistent_store_query.dart';
 
 /// An interface for implementing persistent storage.
@@ -18,16 +17,6 @@ abstract class PersistentStore {
 
   /// Closes the underlying database connection.
   Future close();
-
-  QueryPredicate comparisonPredicate(
-      ManagedPropertyDescription desc, MatcherOperator operator, dynamic value);
-  QueryPredicate containsPredicate(
-      ManagedPropertyDescription desc, Iterable<dynamic> values);
-  QueryPredicate nullPredicate(ManagedPropertyDescription desc, bool isNull);
-  QueryPredicate rangePredicate(ManagedPropertyDescription desc,
-      dynamic lhsValue, dynamic rhsValue, bool insideRange);
-  QueryPredicate stringPredicate(ManagedPropertyDescription desc,
-      StringMatcherOperator operator, dynamic value);
 
   // -- Schema Ops --
 

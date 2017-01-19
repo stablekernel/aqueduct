@@ -5,7 +5,9 @@ import '../managed/backing.dart';
 import 'page.dart';
 import 'predicate.dart';
 import 'sort_descriptor.dart';
+import 'matcher_expression.dart';
 import '../persistent_store/persistent_store.dart';
+
 export 'matcher_expression.dart';
 export 'page.dart';
 export 'predicate.dart';
@@ -15,6 +17,7 @@ export 'sort_descriptor.dart';
 // See factory constructor.
 import '../postgresql/postgresql_query.dart';
 import '../postgresql/postgresql_persistent_store.dart';
+import '../query/matcher_internal.dart';
 
 /// Contains information for building and executing a database operation.
 ///
@@ -206,7 +209,19 @@ abstract class Query<InstanceType extends ManagedObject> {
   Future<int> delete();
 }
 
-abstract class QueryMixin<InstanceType extends ManagedObject> implements Query<InstanceType> {
+abstract class QueryMatcherTranslator {
+  QueryPredicate comparisonPredicate(
+      ManagedPropertyDescription desc, MatcherOperator operator, dynamic value);
+  QueryPredicate containsPredicate(
+      ManagedPropertyDescription desc, Iterable<dynamic> values);
+  QueryPredicate nullPredicate(ManagedPropertyDescription desc, bool isNull);
+  QueryPredicate rangePredicate(ManagedPropertyDescription desc,
+      dynamic lhsValue, dynamic rhsValue, bool insideRange);
+  QueryPredicate stringPredicate(ManagedPropertyDescription desc,
+      StringMatcherOperator operator, dynamic value);
+}
+
+abstract class QueryMixin<InstanceType extends ManagedObject> implements Query<InstanceType>, QueryMatcherTranslator {
   ManagedEntity get entity => context.dataModel.entityForType(InstanceType);
 
   bool confirmQueryModifiesAllInstancesOnDeleteOrUpdate = false;
@@ -219,8 +234,7 @@ abstract class QueryMixin<InstanceType extends ManagedObject> implements Query<I
   QueryPredicate _predicate;
   QueryPredicate get predicate {
     if (_matchOn != null) {
-      // todo: decouple querypredicate entirely
-      return new QueryPredicate.fromQueryIncludable(_matchOn, context.persistentStore);
+      _predicate = predicateFromMatcherBackedObject(matchOn);
     }
 
     return _predicate;
@@ -262,6 +276,41 @@ abstract class QueryMixin<InstanceType extends ManagedObject> implements Query<I
       _matchOn.backing = new ManagedMatcherBacking();
     }
     return _matchOn;
+  }
+
+  QueryPredicate predicateFromMatcherBackedObject(QueryMatchable obj) {
+    var entity = obj.entity;
+    var attributeKeys = obj.backingMap.keys.where((propertyName) {
+      var desc = entity.properties[propertyName];
+      if (desc is ManagedRelationshipDescription) {
+        return desc.relationshipType == ManagedRelationshipType.belongsTo;
+      }
+
+      return true;
+    });
+
+    return QueryPredicate.andPredicates(attributeKeys.map((queryKey) {
+      var desc = entity.properties[queryKey];
+      var matcher = obj.backingMap[queryKey];
+
+      if (matcher is ComparisonMatcherExpression) {
+        return comparisonPredicate(
+            desc, matcher.operator, matcher.value);
+      } else if (matcher is RangeMatcherExpression) {
+        return rangePredicate(
+            desc, matcher.lhs, matcher.rhs, matcher.within);
+      } else if (matcher is NullMatcherExpression) {
+        return nullPredicate(desc, matcher.shouldBeNull);
+      } else if (matcher is WithinMatcherExpression) {
+        return containsPredicate(desc, matcher.values);
+      } else if (matcher is StringMatcherExpression) {
+        return stringPredicate(
+            desc, matcher.operator, matcher.value);
+      }
+
+      throw new QueryPredicateException(
+          "Unknown MatcherExpression ${matcher.runtimeType}");
+    }).toList());
   }
 }
 

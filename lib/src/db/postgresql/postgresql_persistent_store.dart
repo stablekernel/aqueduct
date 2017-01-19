@@ -5,7 +5,6 @@ import '../managed/managed.dart';
 import '../query/query.dart';
 import '../persistent_store/persistent_store.dart';
 import '../schema/schema.dart';
-import 'postgresql_query.dart';
 import 'postgresql_schema_generator.dart';
 
 /// A function that will create an opened instance of [PostgreSQLConnection] when executed.
@@ -19,25 +18,6 @@ class PostgreSQLPersistentStore extends PersistentStore
     with PostgreSQLSchemaGenerator {
   /// The logger used by instances of this class.
   static Logger logger = new Logger("aqueduct");
-
-  /// Used internally to translate [Query]s into SQL.
-  static Map<MatcherOperator, String> symbolTable = {
-    MatcherOperator.lessThan: "<",
-    MatcherOperator.greaterThan: ">",
-    MatcherOperator.notEqual: "!=",
-    MatcherOperator.lessThanEqualTo: "<=",
-    MatcherOperator.greaterThanEqualTo: ">=",
-    MatcherOperator.equalTo: "="
-  };
-
-  static Map<ManagedPropertyType, PostgreSQLDataType> _typeMap = {
-    ManagedPropertyType.integer: PostgreSQLDataType.integer,
-    ManagedPropertyType.bigInteger: PostgreSQLDataType.bigInteger,
-    ManagedPropertyType.string: PostgreSQLDataType.text,
-    ManagedPropertyType.datetime: PostgreSQLDataType.timestampWithoutTimezone,
-    ManagedPropertyType.boolean: PostgreSQLDataType.boolean,
-    ManagedPropertyType.doublePrecision: PostgreSQLDataType.double
-  };
 
   /// The function that will generate a [PostgreSQLConnection] when this instance does not have a valid one.
   PostgreSQLConnectionFunction connectFunction;
@@ -86,11 +66,6 @@ class PostgreSQLPersistentStore extends PersistentStore
       }
       return connection;
     };
-  }
-
-  Query<T> newQuery<T extends ManagedObject>(ManagedContext context) {
-    print("inside neqQuery; $T");
-    return new PostgresQuery<T>(context);
   }
 
   /// Retrieves a connection to the database this instance connects to.
@@ -204,108 +179,6 @@ class PostgreSQLPersistentStore extends PersistentStore
     } on PostgreSQLException catch (e) {
       throw _interpretException(e);
     }
-  }
-
-
-  @override
-  QueryPredicate comparisonPredicate(ManagedPropertyDescription desc,
-      MatcherOperator operator, dynamic value) {
-    var tableName = desc.entity.tableName;
-    var columnName = _columnNameForProperty(desc);
-    var typedColumnName = _typedColumnName(columnName, desc);
-
-    return new QueryPredicate(
-        "$tableName.$columnName ${symbolTable[operator]} @${tableName}_$typedColumnName",
-        {"${tableName}_$columnName": value});
-  }
-
-  @override
-  QueryPredicate containsPredicate(
-      ManagedPropertyDescription desc, Iterable<dynamic> values) {
-    var tableName = desc.entity.tableName;
-    var tokenList = [];
-    var pairedMap = <String, dynamic>{};
-
-    var counter = 0;
-    values.forEach((value) {
-      var prefix = "ctns${tableName}_${counter}";
-      var columnName = _columnNameForProperty(desc);
-      var typedName = _typedColumnName(columnName, desc);
-      tokenList.add("@${prefix}_$typedName");
-      pairedMap["${prefix}_$columnName"] = value;
-
-      counter++;
-    });
-
-    return new QueryPredicate(
-        "$tableName.${_columnNameForProperty(desc)} IN (${tokenList.join(",")})",
-        pairedMap);
-  }
-
-  @override
-  QueryPredicate nullPredicate(ManagedPropertyDescription desc, bool isNull) {
-    var tableName = desc.entity.tableName;
-    var propertyName = _columnNameForProperty(desc);
-    return new QueryPredicate(
-        "$tableName.$propertyName ${isNull ? "isnull" : "notnull"}", {});
-  }
-
-  @override
-  QueryPredicate rangePredicate(ManagedPropertyDescription desc,
-      dynamic lhsValue, dynamic rhsValue, bool insideRange) {
-    var prefix = desc.entity.tableName;
-    var propertyName = _columnNameForProperty(desc);
-    var typedName = _typedColumnName(propertyName, desc);
-    var lhsFormatSpecificationName = "${prefix}_lhs_$typedName";
-    var rhsFormatSpecificationName = "${prefix}_rhs_$typedName";
-    var lhsKeyName = "${prefix}_lhs_$propertyName";
-    var rhsKeyName = "${prefix}_rhs_$propertyName";
-    var operation = insideRange ? "between" : "not between";
-
-    return new QueryPredicate(
-        "$prefix.$propertyName $operation @$lhsFormatSpecificationName AND @$rhsFormatSpecificationName",
-        {lhsKeyName: lhsValue, rhsKeyName: rhsValue});
-  }
-
-  @override
-  QueryPredicate stringPredicate(ManagedPropertyDescription desc,
-      StringMatcherOperator operator, dynamic value) {
-    var tableName = desc.entity.tableName;
-    var propertyName = _columnNameForProperty(desc);
-    var formatSpecificationName =
-        "${tableName}_${_typedColumnName(propertyName, desc)}";
-    var keyName = "${tableName}_$propertyName";
-    var matchValue = value;
-    switch (operator) {
-      case StringMatcherOperator.beginsWith:
-        matchValue = "$value%";
-        break;
-      case StringMatcherOperator.endsWith:
-        matchValue = "%$value";
-        break;
-      case StringMatcherOperator.contains:
-        matchValue = "%$value%";
-        break;
-    }
-
-    return new QueryPredicate(
-        "$tableName.$propertyName like @$formatSpecificationName",
-        {keyName: matchValue});
-  }
-
-  String _columnNameForProperty(ManagedPropertyDescription desc) {
-    if (desc is ManagedRelationshipDescription) {
-      return "${desc.name}_${desc.destinationEntity.primaryKey}";
-    }
-    return desc.name;
-  }
-
-  String _typedColumnName(String name, ManagedPropertyDescription desc) {
-    var type = PostgreSQLFormat.dataTypeStringForDataType(_typeMap[desc.type]);
-    if (type == null) {
-      return name;
-    }
-    return "$name:$type";
   }
 
   Future<dynamic> executeQuery(

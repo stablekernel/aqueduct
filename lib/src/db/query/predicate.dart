@@ -1,7 +1,5 @@
 import 'query.dart';
-import '../managed/managed.dart';
 import '../persistent_store/persistent_store.dart';
-import '../query/matcher_internal.dart';
 
 /// A predicate contains instructions for filtering rows when performing a [Query].
 ///
@@ -31,42 +29,6 @@ class QueryPredicate {
   ///
   /// The [format] and [parameters] of this predicate.
   QueryPredicate(this.format, this.parameters);
-
-  factory QueryPredicate.fromQueryIncludable(
-      QueryMatchable obj, PersistentStore persistentStore) {
-    var entity = obj.entity;
-    var attributeKeys = obj.backingMap.keys.where((propertyName) {
-      var desc = entity.properties[propertyName];
-      if (desc is ManagedRelationshipDescription) {
-        return desc.relationshipType == ManagedRelationshipType.belongsTo;
-      }
-
-      return true;
-    });
-
-    return QueryPredicate.andPredicates(attributeKeys.map((queryKey) {
-      var desc = entity.properties[queryKey];
-      var matcher = obj.backingMap[queryKey];
-
-      if (matcher is ComparisonMatcherExpression) {
-        return persistentStore.comparisonPredicate(
-            desc, matcher.operator, matcher.value);
-      } else if (matcher is RangeMatcherExpression) {
-        return persistentStore.rangePredicate(
-            desc, matcher.lhs, matcher.rhs, matcher.within);
-      } else if (matcher is NullMatcherExpression) {
-        return persistentStore.nullPredicate(desc, matcher.shouldBeNull);
-      } else if (matcher is WithinMatcherExpression) {
-        return persistentStore.containsPredicate(desc, matcher.values);
-      } else if (matcher is StringMatcherExpression) {
-        return persistentStore.stringPredicate(
-            desc, matcher.operator, matcher.value);
-      }
-
-      throw new QueryPredicateException(
-          "Unknown MatcherExpression ${matcher.runtimeType}");
-    }).toList());
-  }
 
   /// Joins together a list of predicates by the 'and' token.
   ///

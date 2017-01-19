@@ -1,21 +1,12 @@
 import 'dart:async';
 
-import 'package:postgres/postgres.dart';
-
 import '../db.dart';
-// wow get rid of this
+// todo: wow get rid of this
 import '../managed/query_matchable.dart';
 import '../managed/instantiator.dart';
+import 'postgresql_column.dart';
 
 class PostgresQuery<InstanceType extends ManagedObject> extends Object with QueryMixin<InstanceType> implements Query<InstanceType> {
-  static Map<ManagedPropertyType, PostgreSQLDataType> _typeMap = {
-    ManagedPropertyType.integer: PostgreSQLDataType.integer,
-    ManagedPropertyType.bigInteger: PostgreSQLDataType.bigInteger,
-    ManagedPropertyType.string: PostgreSQLDataType.text,
-    ManagedPropertyType.datetime: PostgreSQLDataType.timestampWithoutTimezone,
-    ManagedPropertyType.boolean: PostgreSQLDataType.boolean,
-    ManagedPropertyType.doublePrecision: PostgreSQLDataType.double
-  };
 
   PostgresQuery(this.context);
 
@@ -40,35 +31,6 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object with Quer
     }
 
     return rowMapper;
-  }
-
-  String columnNameForProperty(ManagedPropertyDescription desc, {bool typed: false, bool includeTableName: false, String prefix: null}) {
-    var name = desc.name;
-    if (desc is ManagedRelationshipDescription) {
-      name = "${name}_${desc.destinationEntity.primaryKey}";
-    }
-
-    if (typed) {
-      var type = PostgreSQLFormat.dataTypeStringForDataType(_typeMap[desc.type]);
-      if (type != null) {
-        name = "$name:$type";
-      }
-    }
-
-    if (includeTableName) {
-      return "${desc.entity.tableName}.$name";
-    }
-
-    if (prefix != null) {
-      return "$prefix$name";
-    }
-    return name;
-  }
-
-  String columnListString(Iterable<ManagedPropertyDescription> columnMappings, {bool typed: false, bool includeTableName: false, String prefix: null}) {
-    return columnMappings
-        .map((c) => columnNameForProperty(c, typed: typed, includeTableName: includeTableName, prefix: prefix))
-        .join(",");
   }
 
   Future<InstanceType> insert() async {
@@ -118,8 +80,8 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object with Quer
 
     var setPairString = propertyValueKeys.map((m) {
       var name = columnNameForProperty(m);
-      var typedName = columnNameForProperty(m, typed: true, prefix: "@$prefix");
-      return "$name=$typedName";
+      var typedName = columnNameForProperty(m, typed: true, prefix: "$prefix");
+      return "$name=@$typedName";
     }).join(",");
 
     var queryStringBuffer = new StringBuffer();
@@ -323,7 +285,6 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object with Quer
   }
 
   // todo: this sucks
-  // todo: have @ sign be a parameter to columnNameFOrProperty
   QueryPredicate get _pagePredicateForQuery {
     validatePageDescriptor();
     if (pageDescriptor?.boundingValue == null) {
@@ -335,11 +296,10 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object with Quer
     var prefix = "aq_page_";
 
     var columnName = columnNameForProperty(pagingProperty, includeTableName: true);
-    var typedVariable = columnNameForProperty(pagingProperty, typed: true, prefix: "@$prefix");
-    var mapVariable = columnNameForProperty(pagingProperty, prefix: prefix);
+    var variableName = columnNameForProperty(pagingProperty, prefix: prefix);
 
-    return new QueryPredicate("$columnName ${operator} $typedVariable", {
-      mapVariable: pageDescriptor.boundingValue
+    return new QueryPredicate("$columnName ${operator} @$variableName${typeSuffix(pagingProperty)}", {
+      variableName: pageDescriptor.boundingValue
     });
   }
 
@@ -357,7 +317,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object with Quer
               matcherBackedObject.backingMap[propertyName];
 
               var relDesc = entity.relationships[propertyName];
-              var predicate = new QueryPredicate.fromQueryIncludable(inner, store);
+              var predicate = predicateFromMatcherBackedObject(inner);
               var nestedProperties =
               nestedResultProperties[inner.entity.instanceType.reflectedType];
               var propertiesToFetch =
@@ -402,45 +362,85 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object with Quer
     }
     return null;
   }
-}
 
-/*
-//  PersistentStoreQuery persistentQueryForStore(PersistentStore store) {
-//    var psq = new PersistentStoreQuery()
-//      ..confirmQueryModifiesAllInstancesOnDeleteOrUpdate =
-//          confirmQueryModifiesAllInstancesOnDeleteOrUpdate
-//      ..entity = entity
-//      ..timeoutInSeconds = timeoutInSeconds
-//      ..sortDescriptors = sortDescriptors
-//      ..resultKeys = mappingElementsForList(
-//          (resultProperties ?? entity.defaultProperties), entity);
-//
-//    if (_matchOn != null) {
-//      psq.predicate = new QueryPredicate.fromQueryIncludable(_matchOn, store);
-//    } else {
-//      psq.predicate = predicate;
-//    }
-//
-//    if (_matchOn?.hasJoinElements ?? false) {
-//      if (pageDescriptor != null) {
-//        throw new QueryException(QueryExceptionEvent.requestFailure,
-//            message:
-//                "Query cannot have properties that are includeInResultSet and also have a pageDescriptor.");
-//      }
-//
-//      var joinElements = joinElementsFromQueryMatchable(
-//          matchOn, store, nestedResultProperties);
-//      psq.resultKeys.addAll(joinElements);
-//    } else {
-//      psq.fetchLimit = fetchLimit;
-//      psq.offset = offset;
-//
-//      psq.pageDescriptor = validatePageDescriptor(entity, pageDescriptor);
-//
-//      psq.values =
-//          mappingElementsForMap((valueMap ?? values?.backingMap), entity);
-//    }
-//
-//    return psq;
-//  }
- */
+  @override
+  QueryPredicate comparisonPredicate(ManagedPropertyDescription desc,
+      MatcherOperator operator, dynamic value) {
+    var prefix = "${desc.entity.tableName}_";
+    var columnName = columnNameForProperty(desc, includeTableName: true);
+    var variableName = columnNameForProperty(desc, prefix: prefix);
+
+    return new QueryPredicate("$columnName ${symbolTable[operator]} @$variableName${typeSuffix(desc)}", {
+      variableName: value
+    });
+  }
+
+  @override
+  QueryPredicate containsPredicate(
+      ManagedPropertyDescription desc, Iterable<dynamic> values) {
+    var tableName = desc.entity.tableName;
+    var tokenList = [];
+    var pairedMap = <String, dynamic>{};
+
+    var counter = 0;
+    values.forEach((value) {
+      var prefix = "ctns${tableName}_${counter}_";
+
+      var variableName = columnNameForProperty(desc, prefix: prefix);
+      tokenList.add("@$variableName${typeSuffix(desc)}");
+      pairedMap[variableName] = value;
+
+      counter++;
+    });
+
+    var columnName = columnNameForProperty(desc, includeTableName: true);
+    return new QueryPredicate("$columnName IN (${tokenList.join(",")})",
+        pairedMap);
+  }
+
+  @override
+  QueryPredicate nullPredicate(ManagedPropertyDescription desc, bool isNull) {
+    var columnName = columnNameForProperty(desc, includeTableName: true);
+    return new QueryPredicate(
+        "$columnName ${isNull ? "ISNULL" : "NOTNULL"}", {});
+  }
+
+  @override
+  QueryPredicate rangePredicate(ManagedPropertyDescription desc,
+      dynamic lhsValue, dynamic rhsValue, bool insideRange) {
+    var columnName = columnNameForProperty(desc, includeTableName: true);
+    var lhsName = columnNameForProperty(desc, prefix: "${desc.entity.tableName}_lhs_");
+    var rhsName = columnNameForProperty(desc, prefix: "${desc.entity.tableName}_rhs_");
+    var operation = insideRange ? "BETWEEN" : "NOT BETWEEN";
+
+    return new QueryPredicate(
+        "$columnName $operation @$lhsName${typeSuffix(desc)} AND @$rhsName${typeSuffix(desc)}", {
+      lhsName: lhsValue, rhsName: rhsValue
+    });
+  }
+
+  @override
+  QueryPredicate stringPredicate(ManagedPropertyDescription desc,
+      StringMatcherOperator operator, dynamic value) {
+    var prefix = "${desc.entity.tableName}_";
+    var columnName = columnNameForProperty(desc, includeTableName: true);
+    var variableName = columnNameForProperty(desc, prefix: prefix);
+
+    var matchValue = value;
+    switch (operator) {
+      case StringMatcherOperator.beginsWith:
+        matchValue = "$value%";
+        break;
+      case StringMatcherOperator.endsWith:
+        matchValue = "%$value";
+        break;
+      case StringMatcherOperator.contains:
+        matchValue = "%$value%";
+        break;
+    }
+
+    return new QueryPredicate("$columnName LIKE @$variableName${typeSuffix(desc)}", {
+      variableName: matchValue
+    });
+  }
+}
