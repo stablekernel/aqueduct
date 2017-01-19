@@ -51,10 +51,10 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
     var rowMapper = createMapper();
 
     if (predicate == null &&
-        !modifiesAllInstancesOnDeleteOrUpdate) {
+        !canModifyAllInstances) {
       throw new QueryException(QueryExceptionEvent.internalFailure,
           message:
-              "Query would impact all records. This could be a destructive error. Set confirmQueryModifiesAllInstancesOnDeleteOrUpdate on the Query to execute anyway.");
+              "Query would impact all records. This could be a destructive error. Set canModifyAllInstances on the Query to execute anyway.");
     }
 
     var prefix = "u_";
@@ -111,10 +111,10 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
   @override
   Future<int> delete() async {
     if (predicate == null &&
-        !modifiesAllInstancesOnDeleteOrUpdate) {
+        !canModifyAllInstances) {
       throw new QueryException(QueryExceptionEvent.internalFailure,
           message:
-              "Query would impact all records. This could be a destructive error. Set confirmQueryModifiesAllInstancesOnDeleteOrUpdate on the Query to execute anyway.");
+              "Query would impact all records. This could be a destructive error. Set canModifyAllInstances on the Query to execute anyway.");
     }
 
     var buffer = new StringBuffer();

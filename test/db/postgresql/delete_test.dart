@@ -82,7 +82,7 @@ void main() {
     expect(result.length, 10);
 
     req = new Query<TestModel>()
-      ..modifiesAllInstancesOnDeleteOrUpdate = true;
+      ..canModifyAllInstances = true;
     var count = await req.delete();
     expect(count, 10);
 
@@ -133,7 +133,7 @@ void main() {
     var refObj = await refModelReq.insert();
 
     testModelReq = new Query<TestModel>()
-      ..modifiesAllInstancesOnDeleteOrUpdate = true;
+      ..canModifyAllInstances = true;
     var count = await testModelReq.delete();
     expect(count, 1);
 
@@ -156,7 +156,7 @@ void main() {
     var successful = false;
     try {
       griReq = new Query<GRestrictInverse>()
-        ..modifiesAllInstancesOnDeleteOrUpdate = true;
+        ..canModifyAllInstances = true;
       await griReq.delete();
       successful = true;
     } on QueryException catch (e) {
@@ -178,7 +178,7 @@ void main() {
     await cascadeReq.insert();
 
     req = new Query<GCascadeInverse>()
-      ..modifiesAllInstancesOnDeleteOrUpdate = true;
+      ..canModifyAllInstances = true;
     var count = await req.delete();
     expect(count, 1);
 

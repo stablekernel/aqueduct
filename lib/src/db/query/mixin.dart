@@ -8,7 +8,7 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
     implements Query<InstanceType>, QueryMatcherTranslator {
   ManagedEntity get entity => context.dataModel.entityForType(InstanceType);
 
-  bool modifiesAllInstancesOnDeleteOrUpdate = false;
+  bool canModifyAllInstances = false;
   int timeoutInSeconds = 30;
   int fetchLimit = 0;
   int offset = 0;
