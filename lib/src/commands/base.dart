@@ -21,7 +21,6 @@ export 'serve.dart';
 export 'auth.dart';
 export 'document.dart';
 
-
 /// Exceptions thrown by command line interfaces.
 class CLIException {
   CLIException(this.message, {this.instructions});

@@ -160,10 +160,12 @@ abstract class RequestSink extends RequestController
     var classes = currentMirrorSystem()
         .libraries
         .values
-        .where(
-            (lib) => lib.uri.scheme == "package" || lib.uri.scheme == "file")
+        .where((lib) => lib.uri.scheme == "package" || lib.uri.scheme == "file")
         .expand((lib) => lib.declarations.values)
-        .where((decl) => decl is ClassMirror && decl.isSubclassOf(sinkType) && decl.reflectedType != RequestSink)
+        .where((decl) =>
+            decl is ClassMirror &&
+            decl.isSubclassOf(sinkType) &&
+            decl.reflectedType != RequestSink)
         .map((decl) => decl as ClassMirror)
         .toList();
 

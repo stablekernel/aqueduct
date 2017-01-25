@@ -12,18 +12,24 @@ class CLIDocument extends CLICommand with CLIProject {
     options
       ..addOption("config-path",
           abbr: "c",
-          help: "The path to a configuration file that this application needs to initialize resources for the purpose of documenting its API.",
+          help:
+              "The path to a configuration file that this application needs to initialize resources for the purpose of documenting its API.",
           defaultsTo: "config.yaml.src")
       ..addOption("title", help: "API Docs: Title", defaultsTo: "Aqueduct App")
-      ..addOption("description", help: "API Docs: Description", defaultsTo: "An Aqueduct App")
+      ..addOption("description",
+          help: "API Docs: Description", defaultsTo: "An Aqueduct App")
       ..addOption("version", help: "API Docs: Version", defaultsTo: "1.0")
       ..addOption("tos", help: "API Docs: Terms of Service URL", defaultsTo: "")
-      ..addOption("contact-email", help: "API Docs: Contact Email", defaultsTo: "")
-      ..addOption("contact-name", help: "API Docs: Contact Name", defaultsTo: "")
+      ..addOption("contact-email",
+          help: "API Docs: Contact Email", defaultsTo: "")
+      ..addOption("contact-name",
+          help: "API Docs: Contact Name", defaultsTo: "")
       ..addOption("contact-url", help: "API Docs: Contact URL", defaultsTo: "")
       ..addOption("license-url", help: "API Docs: License URL", defaultsTo: "")
-      ..addOption("license-name", help: "API Docs: License Name", defaultsTo: "")
-      ..addOption("host", allowMultiple: true,
+      ..addOption("license-name",
+          help: "API Docs: License Name", defaultsTo: "")
+      ..addOption("host",
+          allowMultiple: true,
           help: "Scheme, host and port for available instances.",
           valueHelp: "https://api.myapp.com:8000");
   }
@@ -69,29 +75,29 @@ class CLIDocument extends CLICommand with CLIProject {
   Future<String> documentProject() async {
     var generator = new SourceGenerator(
         (List<String> args, Map<String, dynamic> values) async {
-          var resolver = new PackagePathResolver(".packages");
-          var config = new ApplicationConfiguration()
-            ..configurationFilePath = values["configPath"];
+      var resolver = new PackagePathResolver(".packages");
+      var config = new ApplicationConfiguration()
+        ..configurationFilePath = values["configPath"];
 
-          var document = await Application.document(
-              RequestSink.defaultSinkType, config, resolver);
+      var document = await Application.document(
+          RequestSink.defaultSinkType, config, resolver);
 
-          document.hosts = (values["hosts"] as List<String>)
-              ?.map((hostString) => new APIHost.fromURI(Uri.parse((hostString))))
-              ?.toList();
+      document.hosts = (values["hosts"] as List<String>)
+          ?.map((hostString) => new APIHost.fromURI(Uri.parse((hostString))))
+          ?.toList();
 
-          document.info.title = values["title"];
-          document.info.description = values["apiDescription"];
-          document.info.version = values["version"];
-          document.info.termsOfServiceURL = values["termsOfServiceURL"];
-          document.info.contact.email = values["contactEmail"];
-          document.info.contact.name = values["contactName"];
-          document.info.contact.url = values["contactURL"];
-          document.info.license.url = values["licenseURL"];
-          document.info.license.name = values["licenseName"];
+      document.info.title = values["title"];
+      document.info.description = values["apiDescription"];
+      document.info.version = values["version"];
+      document.info.termsOfServiceURL = values["termsOfServiceURL"];
+      document.info.contact.email = values["contactEmail"];
+      document.info.contact.name = values["contactName"];
+      document.info.contact.url = values["contactURL"];
+      document.info.license.url = values["licenseURL"];
+      document.info.license.name = values["licenseName"];
 
-          return JSON.encode(document.asMap());
-        }, imports: [
+      return JSON.encode(document.asMap());
+    }, imports: [
       "package:aqueduct/aqueduct.dart",
       "package:$libraryName/$libraryName.dart",
       "dart:isolate",
@@ -100,18 +106,20 @@ class CLIDocument extends CLICommand with CLIProject {
       "dart:convert"
     ]);
 
-    var executor = new IsolateExecutor(generator, [libraryName], message: {
-      "configPath" : configurationPath,
-      "title" : title,
-      "apiDescription" : apiDescription,
-      "version" : version,
-      "termsOfServiceURL" : termsOfServiceURL,
-      "contactEmail" : contactEmail,
-      "contactName" : contactName,
-      "contactURL" : contactURL,
-      "licenseURL" : licenseURL,
-      "licenseName" : licenseName
-    },packageConfigURI: projectDirectory.uri.resolve(".packages"));
+    var executor = new IsolateExecutor(generator, [libraryName],
+        message: {
+          "configPath": configurationPath,
+          "title": title,
+          "apiDescription": apiDescription,
+          "version": version,
+          "termsOfServiceURL": termsOfServiceURL,
+          "contactEmail": contactEmail,
+          "contactName": contactName,
+          "contactURL": contactURL,
+          "licenseURL": licenseURL,
+          "licenseName": licenseName
+        },
+        packageConfigURI: projectDirectory.uri.resolve(".packages"));
     var contents = await executor.execute(projectDirectory.uri);
 
     return contents;
