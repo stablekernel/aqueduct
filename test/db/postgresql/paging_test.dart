@@ -338,7 +338,7 @@ void main() {
         expect(
             e.toString(),
             contains(
-                "Property value in pageDescriptor has invalid type (int)."));
+                "Property 'value' in pageDescriptor has invalid type"));
       }
     });
 
@@ -352,7 +352,7 @@ void main() {
         expect(true, false);
       } on QueryException catch (e) {
         expect(e.toString(),
-            contains("Property foobar in pageDescriptor does not exist"));
+            contains("Property 'foobar' in pageDescriptor does not exist"));
       }
     });
 

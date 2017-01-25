@@ -153,8 +153,8 @@ class Request implements RequestControllerEvent {
     });
 
     if (encodedBody != null) {
-      response.headers
-          .add(HttpHeaders.CONTENT_TYPE, aqueductResponse.contentType.toString());
+      response.headers.add(
+          HttpHeaders.CONTENT_TYPE, aqueductResponse.contentType.toString());
       response.write(encodedBody);
     }
 

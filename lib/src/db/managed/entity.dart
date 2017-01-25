@@ -2,7 +2,6 @@ import 'dart:mirrors';
 import 'managed.dart';
 import '../../http/documentable.dart';
 import '../query/query.dart';
-import '../persistent_store/persistent_store_query.dart';
 
 /// Mapping information between a table in a database and a [ManagedObject] object.
 ///
@@ -161,36 +160,6 @@ class ManagedEntity {
         instanceType.newInstance(new Symbol(""), []).reflectee as ManagedObject;
     model.entity = this;
     return model;
-  }
-
-  /// Creates an instance of this entity from a list of [PersistentColumnMapping]s.
-  ///
-  /// This method is used by a [ManagedContext] to instantiate entities from a row
-  /// returned from a database. It will initialize all column values, including belongsTo
-  /// relationships. It will not populate data from hasMany or hasOne relationships
-  /// that were populated in a join query, as this is the responsibility of the context.
-  ManagedObject instanceFromMappingElements(
-      List<PersistentColumnMapping> elements) {
-    ManagedObject instance = newInstance();
-
-    elements.forEach((e) {
-      if (e is! PersistentJoinMapping) {
-        if (e.property is ManagedRelationshipDescription) {
-          // A belongsTo relationship, keep the foreign key.
-          if (e.value != null) {
-            ManagedRelationshipDescription relDesc = e.property;
-            ManagedObject innerInstance =
-                relDesc.destinationEntity.newInstance();
-            innerInstance[relDesc.destinationEntity.primaryKey] = e.value;
-            instance[e.property.name] = innerInstance;
-          }
-        } else {
-          instance[e.property.name] = e.value;
-        }
-      }
-    });
-
-    return instance;
   }
 
   Map<String, APISchemaObject> _propertiesForEntity(ManagedEntity me,

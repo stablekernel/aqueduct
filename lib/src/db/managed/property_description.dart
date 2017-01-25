@@ -198,7 +198,7 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
   final ManagedTransientAttribute transientStatus;
 
   String toString() {
-    return "AttributeDescription on ${entity.tableName}.$name Type: $type";
+    return "[Attribute]    ${entity.tableName}.$name ($type)";
   }
 }
 
@@ -259,10 +259,6 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
   }
 
   String toString() {
-    if (relationshipType == ManagedRelationshipType.belongsTo) {
-      return "RelationshipDescription on ${entity.tableName}.$name Type: ${relationshipType} ($type)";
-    }
-
-    return "RelationshipDescription on ${entity.tableName}.$name Type: ${relationshipType}";
+    return "[Relationship] ${entity.tableName}.$name ${relationshipType} ${destinationEntity.tableName}.${MirrorSystem.getName(inverseKey)}";
   }
 }

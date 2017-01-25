@@ -235,18 +235,12 @@ class DefaultPersistentStore extends PersistentStore {
   Future<dynamic> execute(String sql,
           {Map<String, dynamic> substitutionValues}) async =>
       null;
-  Future close() async {}
+  Future<dynamic> executeQuery(String formatString, Map<String, dynamic> values,
+          int timeoutInSeconds,
+          {PersistentStoreQueryReturnType returnType}) async =>
+      null;
 
-  Future<List<PersistentColumnMapping>> executeInsertQuery(
-          PersistentStoreQuery q) async =>
-      null;
-  Future<List<List<PersistentColumnMapping>>> executeFetchQuery(
-          PersistentStoreQuery q) async =>
-      null;
-  Future<int> executeDeleteQuery(PersistentStoreQuery q) async => null;
-  Future<List<List<PersistentColumnMapping>>> executeUpdateQuery(
-          PersistentStoreQuery q) async =>
-      null;
+  Future close() async {}
 
   QueryPredicate comparisonPredicate(ManagedPropertyDescription desc,
           MatcherOperator operator, dynamic value) =>

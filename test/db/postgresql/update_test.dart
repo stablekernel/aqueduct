@@ -204,7 +204,7 @@ void main() {
     await req.insert();
 
     req = new Query<TestModel>()
-      ..predicate = new QueryPredicate("name is not null", {})
+      ..predicate = new QueryPredicate("name is not null", null)
       ..values.name = "Joe";
 
     try {
@@ -257,7 +257,7 @@ void main() {
     await req.insert();
 
     req = new Query<TestModel>()
-      ..confirmQueryModifiesAllInstancesOnDeleteOrUpdate = true
+      ..canModifyAllInstances = true
       ..values.name = "Fred";
 
     var res = await req.update();

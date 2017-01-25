@@ -1,39 +1,50 @@
 import 'dart:async';
 
 import '../managed/managed.dart';
-import '../managed/backing.dart';
 import 'page.dart';
 import 'predicate.dart';
 import 'sort_descriptor.dart';
-import '../persistent_store/persistent_store.dart';
-import '../persistent_store/persistent_store_query.dart';
-import 'query_mapping.dart';
+import 'matcher_expression.dart';
 
 export 'matcher_expression.dart';
 export 'page.dart';
 export 'predicate.dart';
 export 'sort_descriptor.dart';
+export 'error.dart';
+
+// This is an unfortunate need because of lack of reified generics
+// See factory constructor.
+import '../postgresql/postgresql_query.dart';
+import '../postgresql/postgresql_persistent_store.dart';
 
 /// Contains information for building and executing a database operation.
 ///
 /// Queries are used to fetch, update, insert, delete and count objects in a database. A query's [InstanceType] indicates
 /// the type of [ManagedObject] subclass' that this query will return as well. The [InstanceType]'s corresponding [ManagedEntity] determines
 /// the database table and columns to work with.
-class Query<InstanceType extends ManagedObject> {
+abstract class Query<InstanceType extends ManagedObject> {
   /// Creates a new [Query].
   ///
   /// By default, [context] is [ManagedContext.defaultContext]. The [entity] of this instance is found by
   /// evaluating [InstanceType] in [context].
-  Query([ManagedContext context]) {
-    this.context = context ?? ManagedContext.defaultContext;
-    entity = this.context.dataModel.entityForType(InstanceType);
+  factory Query([ManagedContext context]) {
+    var ctx = context ?? ManagedContext.defaultContext;
+
+    // This is an unfortunate need because of lack of reified generics.
+    // Would be better if persistent stores had a method to return a Query<T> subclass
+    // where T was not stripped.
+    if (ctx.persistentStore is PostgreSQLPersistentStore) {
+      return new PostgresQuery<InstanceType>(ctx);
+    }
+
+    return null;
   }
 
   /// The [ManagedEntity] of the [InstanceType].
-  ManagedEntity entity;
+  ManagedEntity get entity;
 
   /// The [ManagedContext] this query will be exeuted on.
-  ManagedContext context;
+  ManagedContext get context;
 
   /// A convenience for building [predicate]s in a safe way.
   ///
@@ -59,39 +70,31 @@ class Query<InstanceType extends ManagedObject> {
   ///       var q = new Query<Employee>()
   ///           ..matchOn.tasks.includeInResultSet = true
   ///           ..matchOn.tasks.matchOn.status = whereEqualTo("Complete");
-  InstanceType get matchOn {
-    if (_matchOn == null) {
-      _matchOn = entity.newInstance() as InstanceType;
-      _matchOn.backing = new ManagedMatcherBacking();
-    }
-    return _matchOn;
-  }
-
-  InstanceType _matchOn;
+  InstanceType get matchOn;
 
   /// Confirms that a query has no predicate before executing it.
   ///
   /// This is a safety measure for update and delete queries to prevent accidentally updating or deleting every row.
   /// This flag defaults to false, meaning that if this query is either an update or a delete, but contains no predicate,
   /// it will fail. If a query is meant to update or delete every row on a table, you may set this to true to allow this query to proceed.
-  bool confirmQueryModifiesAllInstancesOnDeleteOrUpdate = false;
+  bool canModifyAllInstances;
 
   /// Number of seconds before a Query times out.
   ///
   /// A Query will fail and throw a [QueryException] if [timeoutInSeconds] seconds elapse before the query completes.
-  int timeoutInSeconds = 30;
+  int timeoutInSeconds;
 
   /// Limits the number of objects returned from the Query.
   ///
   /// Defaults to 0. When zero, there is no limit to the number of objects returned from the Query.
   /// This value should be set when using [pageDescriptor] to limit the page size.
-  int fetchLimit = 0;
+  int fetchLimit;
 
   /// Offsets the rows returned.
   ///
   /// The set of rows returned will exclude the first [offset] number of rows selected in the query. Do not
   /// set this property when using [pageDescriptor].
-  int offset = 0;
+  int offset;
 
   /// A specifier for a page of results.
   ///
@@ -126,57 +129,7 @@ class Query<InstanceType extends ManagedObject> {
   ///       ..values.name = 'Joe
   ///       ..values.job = 'programmer';
   ///
-  InstanceType get values {
-    if (_valueObject == null) {
-      _valueObject = entity.newInstance() as InstanceType;
-    }
-    return _valueObject;
-  }
-
-  void set values(InstanceType obj) {
-    _valueObject = obj;
-  }
-
-  InstanceType _valueObject;
-
-  PersistentStoreQuery persistentQueryForStore(PersistentStore store) {
-    var psq = new PersistentStoreQuery()
-      ..confirmQueryModifiesAllInstancesOnDeleteOrUpdate =
-          confirmQueryModifiesAllInstancesOnDeleteOrUpdate
-      ..entity = entity
-      ..timeoutInSeconds = timeoutInSeconds
-      ..sortDescriptors = sortDescriptors
-      ..resultKeys = mappingElementsForList(
-          (resultProperties ?? entity.defaultProperties), entity);
-
-    if (_matchOn != null) {
-      psq.predicate = new QueryPredicate.fromQueryIncludable(_matchOn, store);
-    } else {
-      psq.predicate = predicate;
-    }
-
-    if (_matchOn?.hasJoinElements ?? false) {
-      if (pageDescriptor != null) {
-        throw new QueryException(QueryExceptionEvent.requestFailure,
-            message:
-                "Query cannot have properties that are includeInResultSet and also have a pageDescriptor.");
-      }
-
-      var joinElements = joinElementsFromQueryMatchable(
-          matchOn, store, nestedResultProperties);
-      psq.resultKeys.addAll(joinElements);
-    } else {
-      psq.fetchLimit = fetchLimit;
-      psq.offset = offset;
-
-      psq.pageDescriptor = validatePageDescriptor(entity, pageDescriptor);
-
-      psq.values =
-          mappingElementsForMap((valueMap ?? values?.backingMap), entity);
-    }
-
-    return psq;
-  }
+  InstanceType values;
 
   /// A list of properties to be fetched by this query.
   ///
@@ -192,7 +145,7 @@ class Query<InstanceType extends ManagedObject> {
   /// When executing a query that includes relationship properties (see [matchOn]), this value indicates which properties of those related [ManagedObject]s
   /// are fetched. By default, a related object's default properties are fetched (see [ManagedEntity.defaultProperties]). To specify otherwise,
   /// set the list of desired property names in this [Map]. The key is the [ManagedObject] type of the related object.
-  Map<Type, List<String>> nestedResultProperties = {};
+  Map<Type, List<String>> nestedResultProperties;
 
   /// Inserts an [InstanceType] into the underlying database.
   ///
@@ -203,42 +156,27 @@ class Query<InstanceType extends ManagedObject> {
   ///       var q = new Query<User>()
   ///         ..values.name = "Joe";
   ///       var newUser = await q.insert();
-  Future<InstanceType> insert() async {
-    return await context.executeInsertQuery(this);
-  }
+  Future<InstanceType> insert();
 
   /// Updates [InstanceType]s in the underlying database.
   ///
   /// The [Query] must have its [values] or [valueMap] property set and should likely have its [predicate] or [matchOn] set as well. This operation will
   /// update each row that matches the conditions in [predicate]/[matchOn] with the values from [values] or [valueMap]. If no [matchOn] or [predicate] is set,
   /// this method will throw an exception by default, assuming that you don't typically want to update every row in a database table. To specify otherwise,
-  /// set [confirmQueryModifiesAllInstancesOnDeleteOrUpdate] to true.
+  /// set [canModifyAllInstances] to true.
   /// The return value is a [Future] that completes with the any updated [InstanceType]s. Example:
   ///
   ///       var q = new Query<User>()
   ///         ..matchOn.name = "Fred"
   ///         ..values.name = "Joe";
   ///       var usersNamedFredNowNamedJoe = await q.update();
-  Future<List<InstanceType>> update() async {
-    return await context.executeUpdateQuery(this);
-  }
+  Future<List<InstanceType>> update();
 
   /// Updates an [InstanceType] in the underlying database.
   ///
   /// This method works the same as [update], except it may only update one row in the underlying database. If this method
   /// ends up modifying multiple rows, an exception is thrown.
-  Future<InstanceType> updateOne() async {
-    var results = await context.executeUpdateQuery(this);
-    if (results.length == 1) {
-      return results.first;
-    } else if (results.length == 0) {
-      return null;
-    }
-
-    throw new QueryException(QueryExceptionEvent.internalFailure,
-        message:
-            "updateOne modified more than one row, this is a serious error.");
-  }
+  Future<InstanceType> updateOne();
 
   /// Fetches [InstanceType]s from the database.
   ///
@@ -247,32 +185,18 @@ class Query<InstanceType extends ManagedObject> {
   ///       var q = new Query<User>();
   ///       var allUsers = q.fetch();
   ///
-  Future<List<InstanceType>> fetch() async {
-    return await context.executeFetchQuery(this);
-  }
+  Future<List<InstanceType>> fetch();
 
   /// Fetches a single [InstanceType] from the database.
   ///
   /// This method behaves the same as [fetch], but limits the results to a single object.
-  Future<InstanceType> fetchOne() async {
-    fetchLimit = 1;
-
-    var results = await context.executeFetchQuery(this);
-    if (results.length == 1) {
-      return results.first;
-    } else if (results.length > 1) {
-      throw new QueryException(QueryExceptionEvent.requestFailure,
-          message:
-              "Query expected to fetch one instance, but ${results.length} instances were returned.");
-    }
-    return null;
-  }
+  Future<InstanceType> fetchOne();
 
   /// Deletes [InstanceType]s from the underlying database.
   ///
   /// This method will delete rows identified by [predicate]/[matchOn]. If no [matchOn] or [predicate] is set,
   /// this method will throw an exception by default, assuming that you don't typically want to delete every row in a database table. To specify otherwise,
-  /// set [confirmQueryModifiesAllInstancesOnDeleteOrUpdate] to true.
+  /// set [canModifyAllInstances] to true.
   ///
   /// This method will return the number of rows deleted.
   /// Example:
@@ -280,52 +204,7 @@ class Query<InstanceType extends ManagedObject> {
   ///       var q = new Query<User>()
   ///           ..matchOn.id = whereEqualTo(1);
   ///       var deletedCount = await q.delete();
-  Future<int> delete() async {
-    return await context.executeDeleteQuery(this);
-  }
-}
-
-/// An exception describing an issue with a query.
-///
-/// A suggested HTTP status code based on the type of exception will always be available.
-class QueryException implements Exception {
-  QueryException(this.event,
-      {String message: null, this.underlyingException: null})
-      : this._message = message;
-
-  final String _message;
-
-  /// The exception generated by the [PersistentStore] or other mechanism that caused [Query] to fail.
-  final dynamic underlyingException;
-
-  /// The type of event that caused this exception.
-  final QueryExceptionEvent event;
-
-  String toString() => _message ?? underlyingException.toString();
-}
-
-/// Categorizations of query failures for [QueryException].
-enum QueryExceptionEvent {
-  /// This event is used when the underlying [PersistentStore] reports that a unique constraint was violated.
-  ///
-  /// [RequestController]s interpret this exception to return a status code 409 by default.
-  conflict,
-
-  /// This event is used when the underlying [PersistentStore] reports an issue with the form of a [Query].
-  ///
-  /// [RequestController]s interpret this exception to return a status code 500 by default. This indicates
-  /// to the programmer that the issue is with their code.
-  internalFailure,
-
-  /// This event is used when the underlying [PersistentStore] cannot reach its database.
-  ///
-  /// [RequestController]s interpret this exception to return a status code 503 by default.
-  connectionFailure,
-
-  /// This event is used when the underlying [PersistentStore] reports an issue with the data used in a [Query].
-  ///
-  /// [RequestController]s interpret this exception to return a status code 400 by default.
-  requestFailure
+  Future<int> delete();
 }
 
 abstract class QueryMatchable {

@@ -18,11 +18,15 @@ main() {
         true);
   });
 
-  group("Happy path", () async {
+  group("Happy path", () {
     var resolver = new PackagePathResolver(new File(".packages").path);
-    var apiDocs = (await Application.document(
+    Map<String, dynamic> apiDocs;
+
+    setUp(() async {
+      apiDocs = (await Application.document(
           TestSink, new ApplicationConfiguration(), resolver))
-        .asMap();
+          .asMap();
+    });
 
 
     test("Document has appropriate metadata", () {
@@ -58,8 +62,7 @@ main() {
         "type": "oauth2",
         "description": isNotNull,
         "flow": "password",
-        "tokenUrl": "http://localhost/auth/token",
-        "scopes": isNotNull
+        "tokenUrl": "http://localhost/auth/token"
       });
 
       expect(secDefs["oauth2.accessCode"], {
@@ -67,8 +70,7 @@ main() {
         "description": isNotNull,
         "flow": "accessCode",
         "authorizationUrl": "http://localhost/auth/code",
-        "tokenUrl": "http://localhost/auth/token",
-        "scopes": isNotNull
+        "tokenUrl": "http://localhost/auth/token"
       });
     });
 
@@ -128,8 +130,7 @@ main() {
                   "deprecated": false
                 }
               }
-            },
-            "headers": {}
+            }
           }
         },
         "security": [
@@ -194,8 +195,7 @@ main() {
                   "deprecated": false
                 }
               }
-            },
-            "headers": {}
+            }
           },
           "400": {
             "description": "Missing required query and/or header parameter(s).",
@@ -212,8 +212,7 @@ main() {
                   "deprecated": false
                 }
               }
-            },
-            "headers": {}
+            }
           }
         },
         "security": [
@@ -299,8 +298,7 @@ main() {
                     "deprecated": false
                   }
                 }
-              },
-              "headers": {}
+              }
             }
           },
           "security": [
@@ -336,8 +334,7 @@ main() {
                     "deprecated": false
                   }
                 }
-              },
-              "headers": {}
+              }
             }
           },
           "security": [
@@ -408,8 +405,7 @@ main() {
                   "deprecated": false
                 }
               }
-            },
-            "headers": {}
+            }
           }
         },
         "security": [

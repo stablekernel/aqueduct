@@ -167,43 +167,6 @@ void main() {
       expect(entity.relationships["items"].relationshipType,
           ManagedRelationshipType.hasMany);
     });
-
-    test("Instances created from entity only have mapped elements", () {
-      var entity = dataModel.entityForType(User);
-      User instance = entity.instanceFromMappingElements(
-          [new PersistentColumnMapping(entity.attributes["id"], 2)]);
-      expect(instance.id, 2);
-      expect(instance.loadedTimestamp, isNull);
-      expect(instance.manager, isNull);
-      expect(instance.items, isNull);
-    });
-
-    test(
-        "Instances created from entity contain belongsTo relationships as model objects",
-        () {
-      var entity = dataModel.entityForType(Item);
-      Item instance = entity.instanceFromMappingElements([
-        new PersistentColumnMapping(entity.attributes["name"], "foo"),
-        new PersistentColumnMapping(entity.relationships["user"], 1)
-      ]);
-      expect(instance.name, "foo");
-      expect(instance.user is User, true);
-      expect(instance.user.id, 1);
-    });
-
-    test("Instances created from entity omit joined element", () {
-      var entity = dataModel.entityForType(User);
-      User instance = entity.instanceFromMappingElements([
-        new PersistentColumnMapping(entity.attributes["id"], 2),
-        new PersistentJoinMapping(
-            PersistentJoinType.leftOuter, entity.attributes["items"], null, [
-          new PersistentColumnMapping(
-              dataModel.entityForType(Item).attributes["name"], "foobar")
-        ])
-      ]);
-      expect(instance.id, 2);
-      expect(instance.items, isNull);
-    });
   });
 
   group("Edge cases", () {
