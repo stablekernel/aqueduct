@@ -55,21 +55,21 @@ abstract class Query<InstanceType extends ManagedObject> {
   /// where 'id' is greater than 1:
   ///
   ///       var q = new Query<Employee>()
-  ///           ..matchOn.employeeID = greaterThan(1);
+  ///           ..where.employeeID = greaterThan(1);
   ///
   /// This property is also used to fetch relationship properties. When [InstanceType] has a has-one or has-many relationship, setting the relationship
   /// property's [ManagedObject.includeInResultSet] will cause this [Query] to also fetch objects of that [ManagedObject]'s type. For example,
   /// the following query will fetch 'Employee's and their 'Task's.
   ///
   ///       var q = new Query<Employee>()
-  ///           ..matchOn.tasks.includeInResultSet = true;
+  ///           ..where.tasks.includeInResultSet = true;
   ///
   /// Any relationship property that is included in the result set in this way may have further constraints by setting properties
   /// in its [where].
   ///
   ///       var q = new Query<Employee>()
-  ///           ..matchOn.tasks.includeInResultSet = true
-  ///           ..matchOn.tasks.matchOn.status = whereEqualTo("Complete");
+  ///           ..where.tasks.includeInResultSet = true
+  ///           ..where.tasks.matchOn.status = whereEqualTo("Complete");
   InstanceType get where;
 
   /// Confirms that a query has no predicate before executing it.
@@ -167,7 +167,7 @@ abstract class Query<InstanceType extends ManagedObject> {
   /// The return value is a [Future] that completes with the any updated [InstanceType]s. Example:
   ///
   ///       var q = new Query<User>()
-  ///         ..matchOn.name = "Fred"
+  ///         ..where.name = "Fred"
   ///         ..values.name = "Joe";
   ///       var usersNamedFredNowNamedJoe = await q.update();
   Future<List<InstanceType>> update();
@@ -202,7 +202,7 @@ abstract class Query<InstanceType extends ManagedObject> {
   /// Example:
   ///
   ///       var q = new Query<User>()
-  ///           ..matchOn.id = whereEqualTo(1);
+  ///           ..where.id = whereEqualTo(1);
   ///       var deletedCount = await q.delete();
   Future<int> delete();
 }

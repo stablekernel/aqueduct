@@ -50,7 +50,7 @@ class ManagedSet<InstanceType extends ManagedObject> extends Object
   /// query will fetch both 'Parent' and 'children' managed objects, where 'children' is a [ManagedSet].
   ///
   ///         var query = new Query<Parent>()
-  ///           ..matchOn.children.includeInResultSet = true;
+  ///           ..where.children.includeInResultSet = true;
   ///
   ///
   bool includeInResultSet = false;

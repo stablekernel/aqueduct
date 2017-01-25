@@ -72,7 +72,7 @@ class ManagedObject<PersistentType> extends Object
   /// query will fetch both 'Parent' and 'child' managed objects.
   ///
   ///         var query = new Query<Parent>()
-  ///           ..matchOn.child.includeInResultSet = true;
+  ///           ..where.child.includeInResultSet = true;
   ///
   ///
   bool includeInResultSet = false;

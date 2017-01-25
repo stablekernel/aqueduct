@@ -19,7 +19,7 @@ enum StringMatcherOperator { beginsWith, contains, endsWith }
 /// See [Query.where]. Example:
 ///
 ///       var query = new Query<User>()
-///         ..matchOn.id = whereEqualTo(1);
+///         ..where.id = whereEqualTo(1);
 dynamic whereEqualTo(dynamic value) {
   return new ComparisonMatcherExpression(value, MatcherOperator.equalTo);
 }
@@ -29,7 +29,7 @@ dynamic whereEqualTo(dynamic value) {
 /// See [Query.where]. Example:
 ///
 ///       var query = new Query<Employee>()
-///         ..matchOn.salary = whereGreaterThan(60000);
+///         ..where.salary = whereGreaterThan(60000);
 dynamic whereGreaterThan(dynamic value) {
   return new ComparisonMatcherExpression(value, MatcherOperator.greaterThan);
 }
@@ -39,7 +39,7 @@ dynamic whereGreaterThan(dynamic value) {
 /// See [Query.where].  Example:
 ///
 ///       var query = new Query<Employee>()
-///         ..matchOn.salary = whereGreaterThanEqualTo(60000);
+///         ..where.salary = whereGreaterThanEqualTo(60000);
 dynamic whereGreaterThanEqualTo(dynamic value) {
   return new ComparisonMatcherExpression(
       value, MatcherOperator.greaterThanEqualTo);
@@ -50,7 +50,7 @@ dynamic whereGreaterThanEqualTo(dynamic value) {
 /// See [Query.where].  Example:
 ///
 ///       var query = new Query<Employee>()
-///         ..matchOn.salary = whereLessThan(60000);
+///         ..where.salary = whereLessThan(60000);
 dynamic whereLessThan(dynamic value) {
   return new ComparisonMatcherExpression(value, MatcherOperator.lessThan);
 }
@@ -60,7 +60,7 @@ dynamic whereLessThan(dynamic value) {
 /// See [Query.where].  Example:
 ///
 ///       var query = new Query<Employee>()
-///         ..matchOn.salary = whereLessThanEqualTo(60000);
+///         ..where.salary = whereLessThanEqualTo(60000);
 dynamic whereLessThanEqualTo(dynamic value) {
   return new ComparisonMatcherExpression(
       value, MatcherOperator.lessThanEqualTo);
@@ -71,7 +71,7 @@ dynamic whereLessThanEqualTo(dynamic value) {
 /// See [Query.where].  Example:
 ///
 ///       var query = new Query<Employee>()
-///         ..matchOn.id = whereNotEqual(60000);
+///         ..where.id = whereNotEqual(60000);
 dynamic whereNotEqual(dynamic value) {
   return new ComparisonMatcherExpression(value, MatcherOperator.notEqual);
 }
@@ -81,7 +81,7 @@ dynamic whereNotEqual(dynamic value) {
 /// See [Query.where].  Example:
 ///
 ///       var query = new Query<Employee>()
-///         ..matchOn.title = whereContains("Director");
+///         ..where.title = whereContains("Director");
 dynamic whereContains(String value) {
   return new StringMatcherExpression(value, StringMatcherOperator.contains);
 }
@@ -91,7 +91,7 @@ dynamic whereContains(String value) {
 /// See [Query.where].  Example:
 ///
 ///       var query = new Query<Employee>()
-///         ..matchOn.name = whereBeginsWith("B");
+///         ..where.name = whereBeginsWith("B");
 dynamic whereBeginsWith(String value) {
   return new StringMatcherExpression(value, StringMatcherOperator.beginsWith);
 }
@@ -101,7 +101,7 @@ dynamic whereBeginsWith(String value) {
 /// See [Query.where].  Example:
 ///
 ///       var query = new Query<Employee>()
-///         ..matchOn.name = whereEndsWith("son");
+///         ..where.name = whereEndsWith("son");
 dynamic whereEndsWith(String value) {
   return new StringMatcherExpression(value, StringMatcherOperator.endsWith);
 }
@@ -111,7 +111,7 @@ dynamic whereEndsWith(String value) {
 /// See [Query.where].  Example:
 ///
 ///       var query = new Query<Employee>()
-///         ..matchOn.department = whereIn(["Engineering", "HR"]);
+///         ..where.department = whereIn(["Engineering", "HR"]);
 dynamic whereIn(Iterable<dynamic> values) {
   return new WithinMatcherExpression(values.toList());
 }
@@ -121,7 +121,7 @@ dynamic whereIn(Iterable<dynamic> values) {
 /// See [Query.where].  Example:
 ///
 ///       var query = new Query<Employee>()
-///         ..matchOn.salary = whereBetween(80000, 100000);
+///         ..where.salary = whereBetween(80000, 100000);
 dynamic whereBetween(dynamic lhs, dynamic rhs) {
   return new RangeMatcherExpression(lhs, rhs, true);
 }
@@ -131,7 +131,7 @@ dynamic whereBetween(dynamic lhs, dynamic rhs) {
 /// See [Query.where].  Example:
 ///
 ///       var query = new Query<Employee>()
-///         ..matchOn.salary = whereOutsideOf(80000, 100000);
+///         ..where.salary = whereOutsideOf(80000, 100000);
 dynamic whereOutsideOf(dynamic lhs, dynamic rhs) {
   return new RangeMatcherExpression(lhs, rhs, false);
 }
@@ -145,7 +145,7 @@ dynamic whereOutsideOf(dynamic lhs, dynamic rhs) {
 /// Example:
 ///
 ///       var q = new Query<SomethingUserHas>()
-///         ..matchOn.user = whereRelatedByValue(userPrimaryKey);
+///         ..where.user = whereRelatedByValue(userPrimaryKey);
 dynamic whereRelatedByValue(dynamic foreignKeyValue) {
   return new ComparisonMatcherExpression(
       foreignKeyValue, MatcherOperator.equalTo);
@@ -156,7 +156,7 @@ dynamic whereRelatedByValue(dynamic foreignKeyValue) {
 /// See [Query.where]. Example:
 ///
 ///       var q = new Query<Employee>()
-///         ..matchOn.manager = whereNull;
+///         ..where.manager = whereNull;
 const dynamic whereNull = const NullMatcherExpression(true);
 
 /// Matcher for matching everything but null in a [Query].
@@ -164,7 +164,7 @@ const dynamic whereNull = const NullMatcherExpression(true);
 /// See [Query.where]. Example:
 ///
 ///       var q = new Query<Employee>()
-///         ..matchOn.manager = whereNotNull;
+///         ..where.manager = whereNotNull;
 const dynamic whereNotNull = const NullMatcherExpression(false);
 
 /// Thrown when a [Query] matcher is invalid.
