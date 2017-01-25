@@ -16,16 +16,16 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
   List<QuerySortDescriptor> sortDescriptors;
   Map<String, dynamic> valueMap;
   Map<Type, List<String>> nestedResultProperties = {};
-  bool get hasMatchOnObject => _matchOn != null;
+  bool get hasWhereBuilder => _whereBuilder != null;
 
   QueryPredicate _predicate;
   List<String> _resultProperties;
-  InstanceType _matchOn;
+  InstanceType _whereBuilder;
   InstanceType _valueObject;
 
   QueryPredicate get predicate {
-    if (_matchOn != null) {
-      _predicate = predicateFromMatcherBackedObject(matchOn);
+    if (_whereBuilder != null) {
+      _predicate = predicateFromMatcherBackedObject(where);
     }
 
     return _predicate;
@@ -54,12 +54,12 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
     _valueObject = obj;
   }
 
-  InstanceType get matchOn {
-    if (_matchOn == null) {
-      _matchOn = entity.newInstance() as InstanceType;
-      _matchOn.backing = new ManagedMatcherBacking();
+  InstanceType get where {
+    if (_whereBuilder == null) {
+      _whereBuilder = entity.newInstance() as InstanceType;
+      _whereBuilder.backing = new ManagedMatcherBacking();
     }
-    return _matchOn;
+    return _whereBuilder;
   }
 
   QueryPredicate predicateFromMatcherBackedObject(QueryMatchable obj) {

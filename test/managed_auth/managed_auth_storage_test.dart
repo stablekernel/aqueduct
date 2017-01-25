@@ -524,7 +524,7 @@ void main() {
         expect(true, false);
       } on AuthServerException {}
 
-      var q = new Query<ManagedToken>()..matchOn.code = code.code;
+      var q = new Query<ManagedToken>()..where.code = code.code;
       expect(await q.fetch(), isEmpty);
     });
 
@@ -806,11 +806,11 @@ void main() {
           exchangedCode.code, "com.stablekernel.redirect", "mckinley");
 
       var codeQuery = new Query<ManagedToken>()
-        ..matchOn.code = exchangedCode.code;
+        ..where.code = exchangedCode.code;
       expect(await codeQuery.fetch(), hasLength(1));
 
       var tokenQuery = new Query<ManagedToken>()
-        ..matchOn.accessToken = exchangedToken.accessToken;
+        ..where.accessToken = exchangedToken.accessToken;
       await tokenQuery.delete();
 
       expect(await codeQuery.fetch(), isEmpty);

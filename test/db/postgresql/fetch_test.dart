@@ -207,7 +207,7 @@ void main() {
         5);
 
     var query = new Query<GenPost>();
-    query.matchOn["owner"] = whereRelatedByValue(u1.id);
+    query.where["owner"] = whereRelatedByValue(u1.id);
     res = await query.fetch();
 
     GenUser user = res.first.owner;
@@ -242,7 +242,7 @@ void main() {
     expect(result.id, greaterThan(0));
     expect(result.backingMap["text"], isNull);
 
-    var matcher = new Query<Omit>()..matchOn["id"] = whereEqualTo(result.id);
+    var matcher = new Query<Omit>()..where["id"] = whereEqualTo(result.id);
     var fq = new Query<Omit>()..predicate = matcher.predicate;
 
     var fResult = await fq.fetchOne();
@@ -263,7 +263,7 @@ void main() {
     }
 
     try {
-      var q = new Query<GenUser>()..matchOn.posts.includeInResultSet = true;
+      var q = new Query<GenUser>()..where.posts.includeInResultSet = true;
       await q.fetchOne();
 
       expect(true, false);
@@ -307,7 +307,7 @@ void main() {
     context = await contextWithModels([GenUser, GenPost]);
 
     try {
-      var _ = new Query<GenPost>()..matchOn.owner.id = 1;
+      var _ = new Query<GenPost>()..where.owner.id = 1;
       expect(true, false);
     } on QueryException catch (e) {
       expect(
@@ -317,7 +317,7 @@ void main() {
     }
 
     try {
-      var _ = new Query<GenPost>()..matchOn.owner.includeInResultSet = true;
+      var _ = new Query<GenPost>()..where.owner.includeInResultSet = true;
       expect(true, false);
     } on QueryException catch (e) {
       expect(

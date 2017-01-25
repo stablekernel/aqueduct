@@ -16,7 +16,7 @@ import 'http.dart';
 ///
 /// 1. The [Query] will always have a type argument that matches [InstanceType].
 /// 2. If the request contains a path variable that matches the name of the primary key of [InstanceType], the [Query] will set
-/// its [Query.matchOn] to match on the [ManagedObject] whose primary key is that value of the path parameter.
+/// its [Query.where] to match on the [ManagedObject] whose primary key is that value of the path parameter.
 /// 3. If the [Request] contains a body, it will be decoded per the [acceptedContentTypes] and deserialized into the [query]'s [values] property via [readMap].
 abstract class QueryController<InstanceType extends ManagedObject>
     extends HTTPController {
@@ -31,7 +31,7 @@ abstract class QueryController<InstanceType extends ManagedObject>
   ///
   /// 1. The [Query] will always have a type argument that matches [InstanceType].
   /// 2. If the request contains a path variable that matches the name of the primary key of [InstanceType], the [Query] will set
-  /// its [Query.matchOn] to match on the [ManagedObject] whose primary key is that value of the path parameter.
+  /// its [Query.where] to match on the [ManagedObject] whose primary key is that value of the path parameter.
   /// 3. If the [Request] contains a body, it will be decoded per the [acceptedContentTypes] and deserialized into the [query]'s [values] property via [readMap].
   Query<InstanceType> query;
 
@@ -44,11 +44,11 @@ abstract class QueryController<InstanceType extends ManagedObject>
       if (idValue != null) {
         var primaryKeyDesc = query.entity.attributes[query.entity.primaryKey];
         if (primaryKeyDesc.isAssignableWith(idValue)) {
-          query.matchOn[query.entity.primaryKey] = idValue;
+          query.where[query.entity.primaryKey] = idValue;
         } else if (primaryKeyDesc.type == ManagedPropertyType.bigInteger ||
             primaryKeyDesc.type == ManagedPropertyType.integer) {
           try {
-            query.matchOn[query.entity.primaryKey] = int.parse(idValue);
+            query.where[query.entity.primaryKey] = int.parse(idValue);
           } on FormatException {
             var errorMessage =
                 "Expected integer value for QueryController on ${query.entity}, but $idValue was not able to be parsed to an integer.";
