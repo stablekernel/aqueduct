@@ -16,6 +16,7 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
   List<QuerySortDescriptor> sortDescriptors;
   Map<String, dynamic> valueMap;
   Map<Type, List<String>> nestedResultProperties = {};
+
   bool get hasWhereBuilder => _whereBuilder != null;
 
   QueryPredicate _predicate;
