@@ -87,7 +87,7 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
 
     var property = m(where);
     var matchingKey = entity.relationships.keys.firstWhere((key) {
-      return where.backingMap[key] == property;
+      return identical(where.backingMap[key], property);
     });
 
     var attr = entity.relationships[matchingKey];
