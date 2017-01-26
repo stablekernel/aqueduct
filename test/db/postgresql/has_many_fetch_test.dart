@@ -444,8 +444,7 @@ void main() {
 
     test("Predicate that impacts unincluded subobject is still ignored",
         () async {
-      var q = new Query<Parent>()
-        ..where.children.matchOn.vaccinations.matchOn.kind = "V1";
+      var q = new Query<Parent>();
 
       var childJoin = q.joinMany((p) => p.children)
         ..joinOn((c) => c.toy);
