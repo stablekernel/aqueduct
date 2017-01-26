@@ -14,6 +14,7 @@ import '../../helpers.dart';
  */
 
 void main() {
+  justLogEverything();
   group("Happy path", () {
     ManagedContext context = null;
     List<Parent> truth;
@@ -29,7 +30,7 @@ void main() {
     test("Fetch has-many relationship that has none returns empty OrderedSet",
         () async {
       var q = new Query<Parent>()
-        ..where.children.includeInResultSet = true
+        ..joinMany((p) => p.children)
         ..where.name = "D";
 
       var verifier = (Parent p) {
@@ -45,10 +46,11 @@ void main() {
         "Fetch has-many relationship that is empty returns empty, and deeper nested relationships are ignored even when included",
         () async {
       var q = new Query<Parent>()
-        ..where.children.includeInResultSet = true
-        ..where.children.matchOn.toy.includeInResultSet = true
-        ..where.children.matchOn.vaccinations.includeInResultSet = true
         ..where.name = "D";
+
+      q.joinMany((p) => p.children)
+        ..joinOn((c) => c.toy)
+        ..joinMany((c) => c.vaccinations);
 
       var verifier = (Parent p) {
         expect(p.name, "D");
@@ -63,7 +65,7 @@ void main() {
         "Fetch has-many relationship that is non-empty returns values for scalar properties in subobjects only",
         () async {
       var q = new Query<Parent>()
-        ..where.children.includeInResultSet = true
+        ..joinMany((p) => p.children)
         ..where.name = "C";
 
       var verifier = (Parent p) {
@@ -82,10 +84,11 @@ void main() {
         "Fetch has-many relationship, include has-one and has-many in that has-many, where bottom of graph has valid object for hasmany but not for hasone",
         () async {
       var q = new Query<Parent>()
-        ..where.children.includeInResultSet = true
-        ..where.children.matchOn.toy.includeInResultSet = true
-        ..where.children.matchOn.vaccinations.includeInResultSet = true
         ..where.name = "B";
+
+      q.joinMany((p) => p.children)
+        ..joinOn((c) => c.toy)
+        ..joinMany((c) => c.vaccinations);
 
       var verifier = (Parent p) {
         p.children.sort((c1, c2) => c1.id.compareTo(c2.id));
@@ -115,10 +118,11 @@ void main() {
         "Fetch has-many relationship, include has-one and has-many in that has-many, where bottom of graph has valid object for hasone but not for hasmany",
         () async {
       var q = new Query<Parent>()
-        ..where.children.includeInResultSet = true
-        ..where.children.matchOn.toy.includeInResultSet = true
-        ..where.children.matchOn.vaccinations.includeInResultSet = true
         ..where.name = "A";
+
+      q.joinMany((p) => p.children)
+        ..joinOn((c) => c.toy)
+        ..joinMany((c) => c.vaccinations);
 
       var verifier = (Parent p) {
         p.children.sort((c1, c2) => c1.id.compareTo(c2.id));
@@ -151,8 +155,9 @@ void main() {
         "Fetching multiple top-level instances and including one level of subobjects",
         () async {
       var q = new Query<Parent>()
-        ..where.children.includeInResultSet = true
+        ..joinMany((p) => p.children)
         ..where.name = whereIn(["A", "C", "D"]);
+
       var results = await q.fetch();
       expect(results.length, 3);
       results.sort((p1, p2) => p1.id.compareTo(p2.id));
@@ -184,10 +189,11 @@ void main() {
     });
 
     test("Fetch entire graph", () async {
-      var q = new Query<Parent>()
-        ..where.children.includeInResultSet = true
-        ..where.children.matchOn.toy.includeInResultSet = true
-        ..where.children.matchOn.vaccinations.includeInResultSet = true;
+      var q = new Query<Parent>();
+      q.joinMany((p) => p.children)
+        ..joinOn((c) => c.toy)
+        ..joinMany((c) => c.vaccinations);
+
       var all = await q.fetch();
 
       var originalIterator = truth.iterator;
@@ -236,10 +242,12 @@ void main() {
     test("Predicate impacts top-level objects when fetching object graph",
         () async {
       var q = new Query<Parent>()
-        ..where.children.includeInResultSet = true
-        ..where.children.matchOn.toy.includeInResultSet = true
-        ..where.children.matchOn.vaccinations.includeInResultSet = true
         ..where.name = "A";
+
+      q.joinMany((p) => p.children)
+        ..joinOn((c) => c.toy)
+        ..joinMany((c) => c.vaccinations);
+
       var results = await q.fetch();
 
       expect(results.length, 1);
@@ -259,13 +267,16 @@ void main() {
       expect(p.children.last.vaccinations, []);
     });
 
+    // todo: pick back up here
     test("Predicate impacts 2nd level objects when fetching object graph",
         () async {
-      var q = new Query<Parent>()
-        ..where.children.includeInResultSet = true
-        ..where.children.matchOn.toy.includeInResultSet = true
-        ..where.children.matchOn.vaccinations.includeInResultSet = true
-        ..where.children.matchOn.name = "C1";
+      var q = new Query<Parent>();
+
+      q.joinMany((p) => p.children)
+        ..where.name = "C1"
+        ..joinMany((c) => c.vaccinations)
+        ..joinOn((c) => c.toy);
+
       var results = await q.fetch();
 
       expect(results.length, 4);
@@ -288,11 +299,13 @@ void main() {
 
     test("Predicate impacts 3rd level objects when fetching object graph",
         () async {
-      var q = new Query<Parent>()
-        ..where.children.includeInResultSet = true
-        ..where.children.matchOn.toy.includeInResultSet = true
-        ..where.children.matchOn.vaccinations.includeInResultSet = true
-        ..where.children.matchOn.vaccinations.matchOn.kind = "V1";
+      var q = new Query<Parent>();
+
+      var childJoin = q.joinMany((p) => p.children)
+        ..joinOn((c) => c.toy);
+      childJoin.joinMany((c) => c.vaccinations)
+        ..where.kind = "V1";
+
       var results = await q.fetch();
 
       expect(results.length, 4);
@@ -434,6 +447,7 @@ void main() {
         ..where.children.includeInResultSet = true
         ..where.children.matchOn.toy.includeInResultSet = true
         ..where.children.matchOn.vaccinations.matchOn.kind = "V1";
+
 
       var results = await q.fetch();
       for (var p in results) {

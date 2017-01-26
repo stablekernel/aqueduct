@@ -164,17 +164,18 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
     var rowMapper = new ManagedInstantiator(entity);
     rowMapper.properties = resultProperties;
 
-    if (hasWhereBuilder) {
-      if (where.hasJoinElements) {
-        if (pageDescriptor != null) {
-          throw new QueryException(QueryExceptionEvent.requestFailure,
-              message:
-                  "Query cannot have properties that are includeInResultSet and also have a pageDescriptor.");
-        }
-
-        var joinElements = joinElementsFromQueryMatchable(where);
-        rowMapper.addJoinElements(joinElements);
+    // todo: create joins if the whereMatcher is filtering on
+    // related tables even if we don't explicitly join.
+    // explicit joins actually include the values of the joined tables
+    if (subQueries?.isNotEmpty ?? false) {
+      if (pageDescriptor != null) {
+        throw new QueryException(QueryExceptionEvent.requestFailure,
+            message:
+                "Cannot use 'Query<T>' with both 'pageDescriptor' and joins currently.");
       }
+
+      var joinElements = joinElementsFromQuery(this);
+      rowMapper.addJoinElements(joinElements);
     }
 
     return rowMapper;
@@ -309,6 +310,28 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
     return new QueryPredicate(
         "$columnName ${operator} @$variableName${typeSuffix(pagingProperty)}",
         {variableName: pageDescriptor.boundingValue});
+  }
+
+  List<PropertyToRowMapper> joinElementsFromQuery(PostgresQuery q) {
+    if (q?.subQueries?.isEmpty ?? true) {
+      return [];
+    }
+
+    return q.subQueries.keys.map((relationshipDesc) {
+      var subQuery = q.subQueries[relationshipDesc] as PostgresQuery;
+      var innerWhere = subQuery.where;
+      var predicate = predicateFromMatcherBackedObject(innerWhere);
+      var nestedProperties =
+      nestedResultProperties[innerWhere.entity.instanceType.reflectedType];
+      var propertiesToFetch =
+          nestedProperties ?? innerWhere.entity.defaultProperties;
+      var joinElement = new PropertyToRowMapper(PersistentJoinType.leftOuter,
+          relationshipDesc, predicate, mappersForKeys(innerWhere.entity, propertiesToFetch));
+
+      joinElement.orderedMappingElements.addAll(joinElementsFromQuery(subQuery));
+
+      return joinElement;
+    }).toList();
   }
 
   // todo: this sucks

@@ -40,6 +40,9 @@ abstract class Query<InstanceType extends ManagedObject> {
     return null;
   }
 
+  Query<T> joinOn<T extends ManagedObject>(T m(InstanceType x));
+  Query<T> joinMany<T extends ManagedObject>(ManagedSet<T> m(InstanceType x));
+
   /// The [ManagedEntity] of the [InstanceType].
   ManagedEntity get entity;
 

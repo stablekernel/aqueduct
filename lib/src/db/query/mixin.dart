@@ -6,7 +6,8 @@ import 'matcher_internal.dart';
 
 abstract class QueryMixin<InstanceType extends ManagedObject>
     implements Query<InstanceType>, QueryMatcherTranslator {
-  ManagedEntity get entity => context.dataModel.entityForType(InstanceType);
+  ManagedEntity _entity;
+  ManagedEntity get entity => _entity ?? context.dataModel.entityForType(InstanceType);
 
   bool canModifyAllInstances = false;
   int timeoutInSeconds = 30;
@@ -18,6 +19,7 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
   Map<Type, List<String>> nestedResultProperties = {};
 
   bool get hasWhereBuilder => _whereBuilder != null;
+  Map<ManagedRelationshipDescription, Query> subQueries;
 
   QueryPredicate _predicate;
   List<String> _resultProperties;
@@ -61,6 +63,38 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
       _whereBuilder.backing = new ManagedMatcherBacking();
     }
     return _whereBuilder;
+  }
+
+  Query<T> joinOn<T extends ManagedObject>(T m(InstanceType x)) {
+    subQueries ??= {};
+
+    var property = m(where);
+    var matchingKey = entity.relationships.keys.firstWhere((key) {
+      return where.backingMap[key] == property;
+    });
+
+    var attr = entity.relationships[matchingKey];
+    var subquery = new Query<T>(context);
+    (subquery as QueryMixin)._entity = attr.destinationEntity;
+    subQueries[attr] = subquery;
+
+    return subquery;
+  }
+
+  Query<T> joinMany<T extends ManagedObject>(ManagedSet<T> m(InstanceType x)) {
+    subQueries ??= {};
+
+    var property = m(where);
+    var matchingKey = entity.relationships.keys.firstWhere((key) {
+      return where.backingMap[key] == property;
+    });
+
+    var attr = entity.relationships[matchingKey];
+    var subquery = new Query<T>(context);
+    (subquery as QueryMixin)._entity = attr.destinationEntity;
+    subQueries[attr] = subquery;
+
+    return subquery;
   }
 
   QueryPredicate predicateFromMatcherBackedObject(QueryMatchable obj) {

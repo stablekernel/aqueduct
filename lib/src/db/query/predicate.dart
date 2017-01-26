@@ -43,7 +43,7 @@ class QueryPredicate {
     }
 
     var predicateFormat =
-        predicates.map((pred) => "(${pred.format})").join(" and ");
+        "(" + predicates.map((pred) => "${pred.format}").join(" AND ") + ")";
 
     var valueMap = <String, dynamic>{};
     predicates.forEach((p) {
