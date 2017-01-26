@@ -12,10 +12,11 @@ Future main() async {
       tokens = [];
       for (var i = 0; i < 6; i++) {
         var response = await (app.client.clientAuthenticatedRequest("/register")
-          ..json = {
-            "username": "bob+$i@stablekernel.com",
-            "password": "foobaraxegrind$i%"
-          }).post();
+              ..json = {
+                "username": "bob+$i@stablekernel.com",
+                "password": "foobaraxegrind$i%"
+              })
+            .post();
         tokens.add(JSON.decode(response.body)["access_token"]);
       }
     });
