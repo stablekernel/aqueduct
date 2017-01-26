@@ -408,7 +408,7 @@ void main() {
         expect(
             e.toString(),
             contains(
-                "Property child is a hasMany or hasOne relationship and is invalid as a result property of _Parent, use matchOn.child.includeInResultSet = true instead"));
+                "Property 'child' is a hasMany or hasOne relationship and is invalid as a result property of '_Parent'"));
       }
 
       q = new Query<Parent>()
@@ -421,7 +421,7 @@ void main() {
         expect(
             e.toString(),
             contains(
-                "Property toy is a hasMany or hasOne relationship and is invalid as a result property of _Child, use matchOn.toy.includeInResultSet = true instead"));
+                "Property 'toy' is a hasMany or hasOne relationship and is invalid as a result property of '_Child'"));
       }
     });
 
