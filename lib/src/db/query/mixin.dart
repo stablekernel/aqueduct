@@ -17,7 +17,6 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
   QueryPage pageDescriptor;
   List<QuerySortDescriptor> sortDescriptors;
   Map<String, dynamic> valueMap;
-  Map<Type, List<String>> nestedResultProperties = {};
 
   bool get hasWhereBuilder => _whereBuilder != null;
   Map<ManagedRelationshipDescription, Query> subQueries;

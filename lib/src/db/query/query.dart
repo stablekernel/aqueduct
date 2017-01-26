@@ -129,13 +129,6 @@ abstract class Query<InstanceType extends ManagedObject> {
   /// See [ManagedEntity.defaultProperties] for more details.
   List<String> resultProperties;
 
-  /// The properties to be fetched for any nested [ManagedObject]s.
-  ///
-  /// When executing a query that includes relationship properties (see [where]), this value indicates which properties of those related [ManagedObject]s
-  /// are fetched. By default, a related object's default properties are fetched (see [ManagedEntity.defaultProperties]). To specify otherwise,
-  /// set the list of desired property names in this [Map]. The key is the [ManagedObject] type of the related object.
-  Map<Type, List<String>> nestedResultProperties;
-
   /// Inserts an [InstanceType] into the underlying database.
   ///
   /// The [Query] must have its [values] or [valueMap] property set. This operation will
