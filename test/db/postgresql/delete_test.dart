@@ -81,8 +81,7 @@ void main() {
     var result = await req.fetch();
     expect(result.length, 10);
 
-    req = new Query<TestModel>()
-      ..canModifyAllInstances = true;
+    req = new Query<TestModel>()..canModifyAllInstances = true;
     var count = await req.delete();
     expect(count, 10);
 
@@ -132,8 +131,7 @@ void main() {
     var refModelReq = new Query<RefModel>()..values = refModelObject;
     var refObj = await refModelReq.insert();
 
-    testModelReq = new Query<TestModel>()
-      ..canModifyAllInstances = true;
+    testModelReq = new Query<TestModel>()..canModifyAllInstances = true;
     var count = await testModelReq.delete();
     expect(count, 1);
 
@@ -155,8 +153,7 @@ void main() {
 
     var successful = false;
     try {
-      griReq = new Query<GRestrictInverse>()
-        ..canModifyAllInstances = true;
+      griReq = new Query<GRestrictInverse>()..canModifyAllInstances = true;
       await griReq.delete();
       successful = true;
     } on QueryException catch (e) {
@@ -177,8 +174,7 @@ void main() {
     var cascadeReq = new Query<GCascade>()..values = cascadeObj;
     await cascadeReq.insert();
 
-    req = new Query<GCascadeInverse>()
-      ..canModifyAllInstances = true;
+    req = new Query<GCascadeInverse>()..canModifyAllInstances = true;
     var count = await req.delete();
     expect(count, 1);
 

@@ -4,7 +4,7 @@ import '../persistent_store/persistent_store.dart';
 /// A predicate contains instructions for filtering rows when performing a [Query].
 ///
 /// Predicates currently are the WHERE clause in a SQL statement and are used verbatim
-/// by the [PersistentStore]. In general, you should use [Query.matchOn] instead of using this class directly, as [Query.matchOn] will
+/// by the [PersistentStore]. In general, you should use [Query.where] instead of using this class directly, as [Query.where] will
 /// use the underlying [PersistentStore] to generate a [QueryPredicate] for you.
 ///
 /// A predicate has a format and parameters. The format is the [String] that comes after WHERE in a SQL query. The format may

@@ -24,10 +24,9 @@ main() {
 
     setUp(() async {
       apiDocs = (await Application.document(
-          TestSink, new ApplicationConfiguration(), resolver))
+              TestSink, new ApplicationConfiguration(), resolver))
           .asMap();
     });
-
 
     test("Document has appropriate metadata", () {
       expect(apiDocs["swagger"], contains("2.0"));

@@ -113,14 +113,15 @@ class Application<RequestSinkType extends RequestSink> {
     await server?.server?.close(force: true);
   }
 
-  static Future<APIDocument> document(Type sinkType, ApplicationConfiguration config, PackagePathResolver resolver) async {
+  static Future<APIDocument> document(Type sinkType,
+      ApplicationConfiguration config, PackagePathResolver resolver) async {
     var sinkMirror = reflectClass(sinkType);
 
     config.isDocumenting = true;
     await _globalStart(sinkMirror, config);
 
-    RequestSink sink = sinkMirror
-        .newInstance(new Symbol(""), [config]).reflectee;
+    RequestSink sink =
+        sinkMirror.newInstance(new Symbol(""), [config]).reflectee;
     sink.setupRouter(sink.router);
     sink.router.finalize();
 

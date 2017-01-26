@@ -164,15 +164,15 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
     var rowMapper = new ManagedInstantiator(entity);
     rowMapper.properties = resultProperties;
 
-    if (hasMatchOnObject) {
-      if (matchOn.hasJoinElements) {
+    if (hasWhereBuilder) {
+      if (where.hasJoinElements) {
         if (pageDescriptor != null) {
           throw new QueryException(QueryExceptionEvent.requestFailure,
               message:
                   "Query cannot have properties that are includeInResultSet and also have a pageDescriptor.");
         }
 
-        var joinElements = joinElementsFromQueryMatchable(matchOn);
+        var joinElements = joinElementsFromQueryMatchable(where);
         rowMapper.addJoinElements(joinElements);
       }
     }

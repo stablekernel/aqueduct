@@ -43,7 +43,7 @@ abstract class Query<InstanceType extends ManagedObject> {
   /// The [ManagedEntity] of the [InstanceType].
   ManagedEntity get entity;
 
-  /// The [ManagedContext] this query will be exeuted on.
+  /// The [ManagedContext] this query will be executed on.
   ManagedContext get context;
 
   /// A convenience for building [predicate]s in a safe way.
@@ -55,22 +55,22 @@ abstract class Query<InstanceType extends ManagedObject> {
   /// where 'id' is greater than 1:
   ///
   ///       var q = new Query<Employee>()
-  ///           ..matchOn.employeeID = greaterThan(1);
+  ///           ..where.employeeID = greaterThan(1);
   ///
   /// This property is also used to fetch relationship properties. When [InstanceType] has a has-one or has-many relationship, setting the relationship
   /// property's [ManagedObject.includeInResultSet] will cause this [Query] to also fetch objects of that [ManagedObject]'s type. For example,
   /// the following query will fetch 'Employee's and their 'Task's.
   ///
   ///       var q = new Query<Employee>()
-  ///           ..matchOn.tasks.includeInResultSet = true;
+  ///           ..where.tasks.includeInResultSet = true;
   ///
   /// Any relationship property that is included in the result set in this way may have further constraints by setting properties
-  /// in its [matchOn].
+  /// in its [where].
   ///
   ///       var q = new Query<Employee>()
-  ///           ..matchOn.tasks.includeInResultSet = true
-  ///           ..matchOn.tasks.matchOn.status = whereEqualTo("Complete");
-  InstanceType get matchOn;
+  ///           ..where.tasks.includeInResultSet = true
+  ///           ..where.tasks.matchOn.status = whereEqualTo("Complete");
+  InstanceType get where;
 
   /// Confirms that a query has no predicate before executing it.
   ///
@@ -110,7 +110,7 @@ abstract class Query<InstanceType extends ManagedObject> {
   /// A predicate for filtering the result or operation set.
   ///
   /// A predicate will identify the rows being accessed, see [QueryPredicate] for more details. Prefer to use
-  /// [matchOn] instead of this property directly.
+  /// [where] instead of this property directly.
   QueryPredicate predicate;
 
   /// Values to be used when inserting or updating an object.
@@ -142,7 +142,7 @@ abstract class Query<InstanceType extends ManagedObject> {
 
   /// The properties to be fetched for any nested [ManagedObject]s.
   ///
-  /// When executing a query that includes relationship properties (see [matchOn]), this value indicates which properties of those related [ManagedObject]s
+  /// When executing a query that includes relationship properties (see [where]), this value indicates which properties of those related [ManagedObject]s
   /// are fetched. By default, a related object's default properties are fetched (see [ManagedEntity.defaultProperties]). To specify otherwise,
   /// set the list of desired property names in this [Map]. The key is the [ManagedObject] type of the related object.
   Map<Type, List<String>> nestedResultProperties;
@@ -160,14 +160,14 @@ abstract class Query<InstanceType extends ManagedObject> {
 
   /// Updates [InstanceType]s in the underlying database.
   ///
-  /// The [Query] must have its [values] or [valueMap] property set and should likely have its [predicate] or [matchOn] set as well. This operation will
-  /// update each row that matches the conditions in [predicate]/[matchOn] with the values from [values] or [valueMap]. If no [matchOn] or [predicate] is set,
+  /// The [Query] must have its [values] or [valueMap] property set and should likely have its [predicate] or [where] set as well. This operation will
+  /// update each row that matches the conditions in [predicate]/[where] with the values from [values] or [valueMap]. If no [where] or [predicate] is set,
   /// this method will throw an exception by default, assuming that you don't typically want to update every row in a database table. To specify otherwise,
   /// set [canModifyAllInstances] to true.
   /// The return value is a [Future] that completes with the any updated [InstanceType]s. Example:
   ///
   ///       var q = new Query<User>()
-  ///         ..matchOn.name = "Fred"
+  ///         ..where.name = "Fred"
   ///         ..values.name = "Joe";
   ///       var usersNamedFredNowNamedJoe = await q.update();
   Future<List<InstanceType>> update();
@@ -180,7 +180,7 @@ abstract class Query<InstanceType extends ManagedObject> {
 
   /// Fetches [InstanceType]s from the database.
   ///
-  /// This operation will return all [InstanceType]s from the database, filtered by [predicate]/[matchOn]. Example:
+  /// This operation will return all [InstanceType]s from the database, filtered by [predicate]/[where]. Example:
   ///
   ///       var q = new Query<User>();
   ///       var allUsers = q.fetch();
@@ -194,7 +194,7 @@ abstract class Query<InstanceType extends ManagedObject> {
 
   /// Deletes [InstanceType]s from the underlying database.
   ///
-  /// This method will delete rows identified by [predicate]/[matchOn]. If no [matchOn] or [predicate] is set,
+  /// This method will delete rows identified by [predicate]/[where]. If no [where] or [predicate] is set,
   /// this method will throw an exception by default, assuming that you don't typically want to delete every row in a database table. To specify otherwise,
   /// set [canModifyAllInstances] to true.
   ///
@@ -202,7 +202,7 @@ abstract class Query<InstanceType extends ManagedObject> {
   /// Example:
   ///
   ///       var q = new Query<User>()
-  ///           ..matchOn.id = whereEqualTo(1);
+  ///           ..where.id = whereEqualTo(1);
   ///       var deletedCount = await q.delete();
   Future<int> delete();
 }

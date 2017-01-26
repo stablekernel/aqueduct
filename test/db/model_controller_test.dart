@@ -84,7 +84,7 @@ class TestModelController extends QueryController<TestModel> {
       statusCode = 400;
     }
 
-    var comparisonMatcher = query.matchOn["id"];
+    var comparisonMatcher = query.where["id"];
     if (comparisonMatcher.operator != MatcherOperator.equalTo ||
         comparisonMatcher.value != id) {
       statusCode = 400;
@@ -111,7 +111,7 @@ class TestModelController extends QueryController<TestModel> {
       statusCode = 400;
     }
 
-    var comparisonMatcher = query.matchOn["id"];
+    var comparisonMatcher = query.where["id"];
     if (comparisonMatcher.operator != MatcherOperator.equalTo ||
         comparisonMatcher.value != id) {
       statusCode = 400;

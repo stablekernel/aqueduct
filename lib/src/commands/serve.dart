@@ -261,12 +261,12 @@ class CLIServer extends CLIServeBase {
     // Find request sink type
     var generator = new SourceGenerator(
         (List<String> args, Map<String, dynamic> values) async {
-          var sinkType = RequestSink.defaultSinkType;
+      var sinkType = RequestSink.defaultSinkType;
 
-          if (sinkType == null) {
-            return "null";
-          }
-          return MirrorSystem.getName(reflectClass(sinkType).simpleName);
+      if (sinkType == null) {
+        return "null";
+      }
+      return MirrorSystem.getName(reflectClass(sinkType).simpleName);
     }, imports: [
       "package:aqueduct/aqueduct.dart",
       "package:$packageName/$libraryName.dart",

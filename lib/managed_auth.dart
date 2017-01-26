@@ -146,7 +146,7 @@ class ManagedAuthStorage<T extends ManagedAuthResourceOwner>
   Future revokeAuthenticatableWithIdentifier(
       AuthServer server, dynamic identifier) async {
     var tokenQuery = new Query<ManagedToken>(context)
-      ..matchOn.resourceOwner = whereRelatedByValue(identifier);
+      ..where.resourceOwner = whereRelatedByValue(identifier);
     await tokenQuery.delete();
   }
 
@@ -154,7 +154,7 @@ class ManagedAuthStorage<T extends ManagedAuthResourceOwner>
   Future<AuthToken> fetchTokenByAccessToken(
       AuthServer server, String accessToken) async {
     var query = new Query<ManagedToken>(context)
-      ..matchOn.accessToken = accessToken;
+      ..where.accessToken = accessToken;
     var token = await query.fetchOne();
 
     return token?.asToken();
@@ -164,7 +164,7 @@ class ManagedAuthStorage<T extends ManagedAuthResourceOwner>
   Future<AuthToken> fetchTokenByRefreshToken(
       AuthServer server, String refreshToken) async {
     var query = new Query<ManagedToken>(context)
-      ..matchOn.refreshToken = refreshToken;
+      ..where.refreshToken = refreshToken;
     var token = await query.fetchOne();
 
     return token?.asToken();
@@ -174,7 +174,7 @@ class ManagedAuthStorage<T extends ManagedAuthResourceOwner>
   Future<T> fetchAuthenticatableByUsername(
       AuthServer server, String username) async {
     var query = new Query<T>(context)
-      ..matchOn.username = username
+      ..where.username = username
       ..resultProperties = ["id", "hashedPassword", "salt"];
 
     return query.fetchOne();
@@ -182,7 +182,7 @@ class ManagedAuthStorage<T extends ManagedAuthResourceOwner>
 
   @override
   Future revokeTokenIssuedFromCode(AuthServer server, AuthCode code) async {
-    var query = new Query<ManagedToken>(context)..matchOn.code = code.code;
+    var query = new Query<ManagedToken>(context)..where.code = code.code;
 
     await query.delete();
   }
@@ -194,7 +194,7 @@ class ManagedAuthStorage<T extends ManagedAuthResourceOwner>
     var query = new Query<ManagedToken>(context)..values = storage;
 
     if (issuedFrom != null) {
-      query.matchOn.code = whereEqualTo(issuedFrom.code);
+      query.where.code = whereEqualTo(issuedFrom.code);
       query.values.code = issuedFrom.code;
       var outToken = await query.updateOne();
       if (outToken == null) {
@@ -216,7 +216,7 @@ class ManagedAuthStorage<T extends ManagedAuthResourceOwner>
       DateTime newIssueDate,
       DateTime newExpirationDate) async {
     var query = new Query<ManagedToken>(context)
-      ..matchOn.accessToken = oldAccessToken
+      ..where.accessToken = oldAccessToken
       ..values.accessToken = newAccessToken
       ..values.issueDate = newIssueDate
       ..values.expirationDate = newExpirationDate;
@@ -235,7 +235,7 @@ class ManagedAuthStorage<T extends ManagedAuthResourceOwner>
 
   @override
   Future<AuthCode> fetchAuthCodeByCode(AuthServer server, String code) async {
-    var query = new Query<ManagedToken>(context)..matchOn.code = code;
+    var query = new Query<ManagedToken>(context)..where.code = code;
 
     var storage = await query.fetchOne();
     return storage?.asAuthCode();
@@ -243,14 +243,14 @@ class ManagedAuthStorage<T extends ManagedAuthResourceOwner>
 
   @override
   Future revokeAuthCodeWithCode(AuthServer server, String code) async {
-    var query = new Query<ManagedToken>(context)..matchOn.code = code;
+    var query = new Query<ManagedToken>(context)..where.code = code;
 
     await query.delete();
   }
 
   @override
   Future<AuthClient> fetchClientByID(AuthServer server, String id) async {
-    var query = new Query<ManagedClient>(context)..matchOn.id = id;
+    var query = new Query<ManagedClient>(context)..where.id = id;
 
     var storage = await query.fetchOne();
 
@@ -259,14 +259,14 @@ class ManagedAuthStorage<T extends ManagedAuthResourceOwner>
 
   @override
   Future revokeClientWithID(AuthServer server, String id) async {
-    var query = new Query<ManagedClient>(context)..matchOn.id = id;
+    var query = new Query<ManagedClient>(context)..where.id = id;
 
     await query.delete();
   }
 
   Future pruneTokens(dynamic resourceOwnerIdentifier) async {
     var oldTokenQuery = new Query<ManagedToken>(context)
-      ..matchOn.resourceOwner = whereRelatedByValue(resourceOwnerIdentifier)
+      ..where.resourceOwner = whereRelatedByValue(resourceOwnerIdentifier)
       ..sortDescriptors = [
         new QuerySortDescriptor("expirationDate", QuerySortOrder.descending)
       ]
@@ -277,8 +277,8 @@ class ManagedAuthStorage<T extends ManagedAuthResourceOwner>
     var results = await oldTokenQuery.fetch();
     if (results.length == 1) {
       var deleteQ = new Query<ManagedToken>()
-        ..matchOn.resourceOwner = whereRelatedByValue(resourceOwnerIdentifier)
-        ..matchOn.expirationDate =
+        ..where.resourceOwner = whereRelatedByValue(resourceOwnerIdentifier)
+        ..where.expirationDate =
             whereLessThanEqualTo(results.first.expirationDate);
 
       await deleteQ.delete();

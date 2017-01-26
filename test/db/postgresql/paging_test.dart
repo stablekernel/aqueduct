@@ -335,10 +335,8 @@ void main() {
         var _ = await req.fetch();
         expect(true, false);
       } on QueryException catch (e) {
-        expect(
-            e.toString(),
-            contains(
-                "Property 'value' in pageDescriptor has invalid type"));
+        expect(e.toString(),
+            contains("Property 'value' in pageDescriptor has invalid type"));
       }
     });
 

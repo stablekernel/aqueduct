@@ -46,18 +46,18 @@ class ManagedSet<InstanceType extends ManagedObject> extends Object
   ///
   /// A [Query] will, by default, fetch rows from a single table and return them as instances
   /// of the appropriate [ManagedObject] subclass. A [Query] may join on multiple database tables
-  /// when setting this property to true in its [Query.matchOn] subproperties. For example, the following
+  /// when setting this property to true in its [Query.where] subproperties. For example, the following
   /// query will fetch both 'Parent' and 'children' managed objects, where 'children' is a [ManagedSet].
   ///
   ///         var query = new Query<Parent>()
-  ///           ..matchOn.children.includeInResultSet = true;
+  ///           ..where.children.includeInResultSet = true;
   ///
   ///
   bool includeInResultSet = false;
 
   /// Used by [Query] to apply constraints to fetching instances from this [ManagedSet].
   ///
-  /// See [Query.matchOn] for more details. When constructing a [Query.matchOn] that includes
+  /// See [Query.where] for more details. When constructing a [Query.where] that includes
   /// instances from this [ManagedSet], you may add matchers (such as [whereEqualTo]) to this property's properties to further
   /// constrain the values returned from the [Query].
   InstanceType get matchOn {

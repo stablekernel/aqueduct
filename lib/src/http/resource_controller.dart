@@ -83,7 +83,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
   @httpGet
   getObject(@HTTPPath("id") String id) async {
     var primaryKey = _query.entity.primaryKey;
-    _query.matchOn[primaryKey] = whereEqualTo(
+    _query.where[primaryKey] = whereEqualTo(
         _parseValueForProperty(id, _query.entity.properties[primaryKey]));
 
     _query = await willFindObjectWithQuery(_query);
@@ -154,7 +154,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
   @httpDelete
   deleteObject(@HTTPPath("id") String id) async {
     var primaryKey = _query.entity.primaryKey;
-    _query.matchOn[primaryKey] = whereEqualTo(
+    _query.where[primaryKey] = whereEqualTo(
         _parseValueForProperty(id, _query.entity.properties[primaryKey]));
 
     _query = await willDeleteObjectWithQuery(_query);
@@ -195,7 +195,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
   @httpPut
   updateObject(@HTTPPath("id") String id) async {
     var primaryKey = _query.entity.primaryKey;
-    _query.matchOn[primaryKey] = whereEqualTo(
+    _query.where[primaryKey] = whereEqualTo(
         _parseValueForProperty(id, _query.entity.properties[primaryKey]));
 
     InstanceType instance = _query.entity.instanceType

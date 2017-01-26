@@ -49,7 +49,10 @@ void main() {
   test("Exception throw during initializeApplication halts startup", () async {
     var libDir = new Directory.fromUri(temporaryDirectory.uri.resolve("lib"));
     var libFile = new File.fromUri(libDir.uri.resolve("wildfire.dart"));
-    addLinesToFile(libFile, "class WildfireSink extends RequestSink {", """
+    addLinesToFile(
+        libFile,
+        "class WildfireSink extends RequestSink {",
+        """
     static Future initializeApplication(ApplicationConfiguration x) async { throw new Exception("error"); }
     """);
 
@@ -69,9 +72,11 @@ Future<int> runAqueductProcess(
   return cmd.process(results);
 }
 
-void addLinesToFile(File file, String afterFindingThisString, String insertThisString) {
+void addLinesToFile(
+    File file, String afterFindingThisString, String insertThisString) {
   var contents = file.readAsStringSync();
-  var indexOf = contents.indexOf(afterFindingThisString) + afterFindingThisString.length;
+  var indexOf =
+      contents.indexOf(afterFindingThisString) + afterFindingThisString.length;
   var newContents = contents.replaceRange(indexOf, indexOf, insertThisString);
   file.writeAsStringSync(newContents);
 }

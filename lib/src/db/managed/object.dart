@@ -52,7 +52,7 @@ abstract class ManagedBacking {
 ///
 /// Managed objects are compiled into a [ManagedDataModel], where each managed object's mapping to the database is represented by a [ManagedEntity].
 ///
-/// Managed objects are also used in building queries. See [Query.matchOn] and [Query.values].
+/// Managed objects are also used in building queries. See [Query.where] and [Query.values].
 ///
 /// A managed object is declared in two parts:
 ///         class User extends ManagedObject<_User> implements _User {
@@ -68,11 +68,11 @@ class ManagedObject<PersistentType> extends Object
   ///
   /// A [Query] will, by default, fetch rows from a single table and return them as instances
   /// of the appropriate [ManagedObject] subclass. A [Query] may join on multiple database tables
-  /// when setting this property to true in its [Query.matchOn] subproperties. For example, the following
+  /// when setting this property to true in its [Query.where] subproperties. For example, the following
   /// query will fetch both 'Parent' and 'child' managed objects.
   ///
   ///         var query = new Query<Parent>()
-  ///           ..matchOn.child.includeInResultSet = true;
+  ///           ..where.child.includeInResultSet = true;
   ///
   ///
   bool includeInResultSet = false;
