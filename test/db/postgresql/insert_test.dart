@@ -135,7 +135,7 @@ void main() {
 
     var insertReq = new Query<TestModel>()
       ..valueMap = {"id": 20, "name": "Bob"}
-      ..resultProperties = ["id", "name"];
+      ..propertiesToFetch = ["id", "name"];
 
     var value = await insertReq.insert();
     expect(value.id, 20);
@@ -144,7 +144,7 @@ void main() {
 
     insertReq = new Query<TestModel>()
       ..valueMap = {"id": 21, "name": "Bob"}
-      ..resultProperties = ["id", "name", "emailAddress"];
+      ..propertiesToFetch = ["id", "name", "emailAddress"];
 
     value = await insertReq.insert();
     expect(value.id, 21);

@@ -135,7 +135,7 @@ void main() {
     var count = await testModelReq.delete();
     expect(count, 1);
 
-    refModelReq = new Query<RefModel>()..resultProperties = ["id", "test"];
+    refModelReq = new Query<RefModel>()..propertiesToFetch = ["id", "test"];
     refObj = await refModelReq.fetchOne();
     expect(refObj.test, null);
   });

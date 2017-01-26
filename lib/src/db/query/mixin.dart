@@ -38,11 +38,11 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
     _predicate = p;
   }
 
-  List<String> get resultProperties {
+  List<String> get propertiesToFetch {
     return _resultProperties ?? entity.defaultProperties;
   }
 
-  void set resultProperties(List<String> props) {
+  void set propertiesToFetch(List<String> props) {
     _resultProperties = props;
   }
 

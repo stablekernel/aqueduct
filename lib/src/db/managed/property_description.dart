@@ -73,10 +73,10 @@ abstract class ManagedPropertyDescription {
   /// Defaults to false.
   final bool isNullable;
 
-  /// Whether or not this property is returned in the default set of [Query.resultProperties].
+  /// Whether or not this property is returned in the default set of [Query.propertiesToFetch].
   ///
-  /// This defaults to true. If true, when executing a [Query] that does not explicitly specify [Query.resultProperties],
-  /// this property will be returned. If false, you must explicitly specify this property in [Query.resultProperties] to retrieve it from persistent storage.
+  /// This defaults to true. If true, when executing a [Query] that does not explicitly specify [Query.propertiesToFetch],
+  /// this property will be returned. If false, you must explicitly specify this property in [Query.propertiesToFetch] to retrieve it from persistent storage.
   final bool isIncludedInDefaultResultSet;
 
   /// Whether or not this property should use an auto-incrementing scheme.

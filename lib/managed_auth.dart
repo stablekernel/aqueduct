@@ -175,7 +175,7 @@ class ManagedAuthStorage<T extends ManagedAuthResourceOwner>
       AuthServer server, String username) async {
     var query = new Query<T>(context)
       ..where.username = username
-      ..resultProperties = ["id", "hashedPassword", "salt"];
+      ..propertiesToFetch = ["id", "hashedPassword", "salt"];
 
     return query.fetchOne();
   }
@@ -272,7 +272,7 @@ class ManagedAuthStorage<T extends ManagedAuthResourceOwner>
       ]
       ..offset = tokenLimit
       ..fetchLimit = 1
-      ..resultProperties = ["expirationDate"];
+      ..propertiesToFetch = ["expirationDate"];
 
     var results = await oldTokenQuery.fetch();
     if (results.length == 1) {

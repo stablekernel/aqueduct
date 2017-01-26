@@ -127,7 +127,7 @@ abstract class Query<InstanceType extends ManagedObject> {
   ///
   /// By default, this property is null, which indicates that the default properties of [InstanceType] should be fetched.
   /// See [ManagedEntity.defaultProperties] for more details.
-  List<String> resultProperties;
+  List<String> propertiesToFetch;
 
   /// Inserts an [InstanceType] into the underlying database.
   ///

@@ -101,7 +101,7 @@ class ManagedEntity {
   /// The list of default properties returned when querying an instance of this type.
   ///
   /// By default, a [Query] will return all the properties named in this list. You may specify
-  /// a different set of properties by setting the [Query]'s [resultProperties] value. The default
+  /// a different set of properties by setting the [Query.propertiesToFetch] value. The default
   /// set of properties is a list of all attributes that do not have the [omitByDefault] flag
   /// set in their [ManagedColumnAttributes] and all [ManagedRelationshipType.belongsTo] relationships.
   List<String> get defaultProperties {
