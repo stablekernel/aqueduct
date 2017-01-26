@@ -5,7 +5,6 @@ import 'managed.dart';
 import 'backing.dart';
 import '../query/query.dart';
 
-
 /// Instances of this class provide storage for [ManagedObject]s.
 ///
 /// A [ManagedObject] stores properties declared by its type argument in instances of this type.
@@ -62,8 +61,7 @@ abstract class ManagedBacking {
 ///         class _User {
 ///           @primaryKey int id; // Persisted
 ///         }
-class ManagedObject<PersistentType> extends Object
-    implements HTTPSerializable {
+class ManagedObject<PersistentType> extends Object implements HTTPSerializable {
   /// The [ManagedEntity] this instance is described by.
   ManagedEntity entity =
       ManagedContext.defaultContext.dataModel.entityForType(PersistentType);

@@ -195,9 +195,3 @@ abstract class Query<InstanceType extends ManagedObject> {
   ///       var deletedCount = await q.delete();
   Future<int> delete();
 }
-
-abstract class QueryMatchable {
-  ManagedEntity entity;
-
-  Map<String, dynamic> get backingMap;
-}

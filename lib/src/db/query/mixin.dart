@@ -7,7 +7,8 @@ import 'matcher_internal.dart';
 abstract class QueryMixin<InstanceType extends ManagedObject>
     implements Query<InstanceType>, QueryMatcherTranslator {
   ManagedEntity _entity;
-  ManagedEntity get entity => _entity ?? context.dataModel.entityForType(InstanceType);
+  ManagedEntity get entity =>
+      _entity ?? context.dataModel.entityForType(InstanceType);
 
   bool canModifyAllInstances = false;
   int timeoutInSeconds = 30;

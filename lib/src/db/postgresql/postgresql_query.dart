@@ -321,13 +321,17 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
       var innerWhere = subQuery.where;
       var predicate = predicateFromMatcherBackedObject(innerWhere);
       var nestedProperties =
-      nestedResultProperties[innerWhere.entity.instanceType.reflectedType];
+          nestedResultProperties[innerWhere.entity.instanceType.reflectedType];
       var propertiesToFetch =
           nestedProperties ?? innerWhere.entity.defaultProperties;
-      var joinElement = new PropertyToRowMapper(PersistentJoinType.leftOuter,
-          relationshipDesc, predicate, mappersForKeys(innerWhere.entity, propertiesToFetch));
+      var joinElement = new PropertyToRowMapper(
+          PersistentJoinType.leftOuter,
+          relationshipDesc,
+          predicate,
+          mappersForKeys(innerWhere.entity, propertiesToFetch));
 
-      joinElement.orderedMappingElements.addAll(joinElementsFromQuery(subQuery));
+      joinElement.orderedMappingElements
+          .addAll(joinElementsFromQuery(subQuery));
 
       return joinElement;
     }).toList();
