@@ -14,7 +14,6 @@ import '../../helpers.dart';
  */
 
 void main() {
-  justLogEverything();
   group("Happy path", () {
     ManagedContext context = null;
     List<Parent> truth;
@@ -340,11 +339,12 @@ void main() {
         "Predicate that omits top-level objects but would include lower level object return no results",
         () async {
       var q = new Query<Parent>()
-        ..where.children.includeInResultSet = true
-        ..where.children.matchOn.toy.includeInResultSet = true
-        ..where.children.matchOn.vaccinations.includeInResultSet = true
-        ..where.id = 5
-        ..where.children.matchOn.vaccinations.matchOn.kind = "V1";
+        ..where.id = 5;
+
+      var childJoin = q.joinMany((p) => p.children)
+        ..joinOn((c) => c.toy);
+      childJoin.joinMany((c) => c.vaccinations)
+        ..where.kind = "V1";
 
       var results = await q.fetch();
       expect(results.length, 0);
@@ -368,12 +368,14 @@ void main() {
         "Sort descriptor on top-level object doesn't impact lower level objects",
         () async {
       var q = new Query<Parent>()
-        ..where.children.includeInResultSet = true
-        ..where.children.matchOn.toy.includeInResultSet = true
-        ..where.children.matchOn.vaccinations.includeInResultSet = true
         ..sortDescriptors = [
           new QuerySortDescriptor("name", QuerySortOrder.descending)
         ];
+
+      q.joinMany((p) => p.children)
+        ..joinOn((c) => c.toy)
+        ..joinMany((c) => c.vaccinations);
+
       var results = await q.fetch();
 
       var originalIterator = truth.reversed.iterator;
@@ -420,7 +422,7 @@ void main() {
     test("Objects returned in join are not the same instance", () async {
       var q = new Query<Parent>()
         ..where.id = 1
-        ..where.children.includeInResultSet = true;
+        ..joinMany((p) => p.children);
 
       var o = await q.fetchOne();
       for (var c in o.children) {
@@ -444,10 +446,11 @@ void main() {
     test("Predicate that impacts unincluded subobject is still ignored",
         () async {
       var q = new Query<Parent>()
-        ..where.children.includeInResultSet = true
-        ..where.children.matchOn.toy.includeInResultSet = true
         ..where.children.matchOn.vaccinations.matchOn.kind = "V1";
 
+      var childJoin = q.joinMany((p) => p.children)
+        ..joinOn((c) => c.toy);
+      childJoin.where.vaccinations.matchOn.kind = "V1";
 
       var results = await q.fetch();
       for (var p in results) {
@@ -467,7 +470,7 @@ void main() {
         expect(
             e.toString(),
             contains(
-                "Property children is a hasMany or hasOne relationship and is invalid as a result property of _Parent, use matchOn.children.includeInResultSet = true instead"));
+                "Property 'children' is a hasMany or hasOne relationship and is invalid as a result property of '_Parent'"));
       }
     });
 
@@ -481,11 +484,11 @@ void main() {
         expect(
             e.toString(),
             contains(
-                "Property children is a hasMany or hasOne relationship and is invalid as a result property of _Parent, use matchOn.children.includeInResultSet = true instead"));
+                "Property 'children' is a hasMany or hasOne relationship and is invalid as a result property of '_Parent'"));
       }
 
       q = new Query<Parent>()
-        ..where.children.includeInResultSet = true
+        ..joinMany((p) => p.children)
         ..nestedResultProperties[Child] = ["id", "vaccinations"];
       try {
         await q.fetchOne();
@@ -494,14 +497,15 @@ void main() {
         expect(
             e.toString(),
             contains(
-                "Property vaccinations is a hasMany or hasOne relationship and is invalid as a result property of _Child, use matchOn.vaccinations.includeInResultSet = true instead"));
+                "Property 'vaccinations' is a hasMany or hasOne relationship and is invalid as a result property of '_Child'"));
       }
     });
 
     test("Trying to include hasMany RelationshipInverse in result set fails",
         () async {
       try {
-        var _ = new Query<Child>()..where.parent.includeInResultSet = true;
+        var _ = new Query<Child>()
+          ..joinOn((c) => c.parent);
 
         expect(true, false);
       } on QueryException catch (e) {

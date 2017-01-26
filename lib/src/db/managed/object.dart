@@ -2,8 +2,9 @@ import 'dart:mirrors';
 
 import '../../http/serializable.dart';
 import 'managed.dart';
-import 'query_matchable.dart';
 import 'backing.dart';
+import '../query/query.dart';
+
 
 /// Instances of this class provide storage for [ManagedObject]s.
 ///
@@ -62,21 +63,7 @@ abstract class ManagedBacking {
 ///           @primaryKey int id; // Persisted
 ///         }
 class ManagedObject<PersistentType> extends Object
-    with QueryMatchableExtension
-    implements HTTPSerializable, QueryMatchable {
-  /// Used when building a [Query] to include instances of this type.
-  ///
-  /// A [Query] will, by default, fetch rows from a single table and return them as instances
-  /// of the appropriate [ManagedObject] subclass. A [Query] may join on multiple database tables
-  /// when setting this property to true in its [Query.where] subproperties. For example, the following
-  /// query will fetch both 'Parent' and 'child' managed objects.
-  ///
-  ///         var query = new Query<Parent>()
-  ///           ..where.child.includeInResultSet = true;
-  ///
-  ///
-  bool includeInResultSet = false;
-
+    implements HTTPSerializable {
   /// The [ManagedEntity] this instance is described by.
   ManagedEntity entity =
       ManagedContext.defaultContext.dataModel.entityForType(PersistentType);

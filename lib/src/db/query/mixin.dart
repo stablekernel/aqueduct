@@ -97,7 +97,7 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
     return subquery;
   }
 
-  QueryPredicate predicateFromMatcherBackedObject(QueryMatchable obj) {
+  QueryPredicate predicateFromMatcherBackedObject(ManagedObject obj) {
     if (obj == null) {
       return null;
     }

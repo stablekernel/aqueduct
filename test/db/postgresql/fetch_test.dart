@@ -263,7 +263,8 @@ void main() {
     }
 
     try {
-      var q = new Query<GenUser>()..where.posts.includeInResultSet = true;
+      var q = new Query<GenUser>()
+        .joinMany((u) => u.posts);
       await q.fetchOne();
 
       expect(true, false);
@@ -317,7 +318,8 @@ void main() {
     }
 
     try {
-      var _ = new Query<GenPost>()..where.owner.includeInResultSet = true;
+      var _ = new Query<GenPost>()
+        ..joinOn((u) => u.owner);
       expect(true, false);
     } on QueryException catch (e) {
       expect(

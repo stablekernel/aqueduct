@@ -3,7 +3,6 @@ import 'dart:collection';
 import 'backing.dart';
 import '../../http/serializable.dart';
 import 'managed.dart';
-import 'query_matchable.dart';
 
 /// Instances of this type contain zero or more instances of [ManagedObject].
 ///
@@ -23,8 +22,8 @@ import 'query_matchable.dart';
 ///          User user;
 ///        }
 class ManagedSet<InstanceType extends ManagedObject> extends Object
-    with ListMixin<InstanceType>, QueryMatchableExtension
-    implements QueryMatchable, HTTPSerializable {
+    with ListMixin<InstanceType>
+    implements HTTPSerializable {
   /// Creates an empty [ManagedSet].
   ManagedSet() {
     _innerValues = [];
@@ -41,19 +40,6 @@ class ManagedSet<InstanceType extends ManagedObject> extends Object
 
   /// The [ManagedEntity] that represents the [InstanceType].
   ManagedEntity entity;
-
-  /// Used when building a [Query] to include instances of this type.
-  ///
-  /// A [Query] will, by default, fetch rows from a single table and return them as instances
-  /// of the appropriate [ManagedObject] subclass. A [Query] may join on multiple database tables
-  /// when setting this property to true in its [Query.where] subproperties. For example, the following
-  /// query will fetch both 'Parent' and 'children' managed objects, where 'children' is a [ManagedSet].
-  ///
-  ///         var query = new Query<Parent>()
-  ///           ..where.children.includeInResultSet = true;
-  ///
-  ///
-  bool includeInResultSet = false;
 
   /// Used by [Query] to apply constraints to fetching instances from this [ManagedSet].
   ///

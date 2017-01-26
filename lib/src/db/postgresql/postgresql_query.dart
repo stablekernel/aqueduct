@@ -6,7 +6,6 @@ import '../query/mapper.dart';
 import 'postgresql_mapping.dart';
 
 // todo: wow get rid of this
-import '../managed/query_matchable.dart';
 import '../managed/instantiator.dart';
 
 class PostgresQuery<InstanceType extends ManagedObject> extends Object
@@ -329,34 +328,6 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
           relationshipDesc, predicate, mappersForKeys(innerWhere.entity, propertiesToFetch));
 
       joinElement.orderedMappingElements.addAll(joinElementsFromQuery(subQuery));
-
-      return joinElement;
-    }).toList();
-  }
-
-  // todo: this sucks
-  List<PropertyToRowMapper> joinElementsFromQueryMatchable(
-      QueryMatchableExtension matcherBackedObject) {
-    var entity = matcherBackedObject.entity;
-    var propertiesToJoin = matcherBackedObject.joinPropertyKeys;
-
-    return propertiesToJoin.map((propertyName) {
-      QueryMatchableExtension inner =
-          matcherBackedObject.backingMap[propertyName];
-
-      var relDesc = entity.relationships[propertyName];
-      var predicate = predicateFromMatcherBackedObject(inner);
-      var nestedProperties =
-          nestedResultProperties[inner.entity.instanceType.reflectedType];
-      var propertiesToFetch =
-          nestedProperties ?? inner.entity.defaultProperties;
-
-      var joinElement = new PropertyToRowMapper(PersistentJoinType.leftOuter,
-          relDesc, predicate, mappersForKeys(inner.entity, propertiesToFetch));
-      if (inner.hasJoinElements) {
-        joinElement.orderedMappingElements
-            .addAll(joinElementsFromQueryMatchable(inner));
-      }
 
       return joinElement;
     }).toList();
