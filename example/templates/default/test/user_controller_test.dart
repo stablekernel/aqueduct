@@ -4,23 +4,20 @@ import 'dart:convert';
 Future main() async {
   group("Success cases", () {
     TestApplication app = new TestApplication();
-    var tokens;
+    List<String> tokens;
 
     setUp(() async {
       await app.start();
 
-      var responses = await Future.wait([0, 1, 2, 3, 4, 5].map((i) {
-        return (app.client.clientAuthenticatedRequest("/register")
-              ..json = {
-                "username": "bob+$i@stablekernel.com",
-                "password": "foobaraxegrind$i%"
-              })
-            .post();
-      }));
-
-      tokens = responses
-          .map((resp) => JSON.decode(resp.body)["access_token"])
-          .toList();
+      tokens = [];
+      for (var i = 0; i < 6; i++) {
+        var response = await (app.client.clientAuthenticatedRequest("/register")
+          ..json = {
+            "username": "bob+$i@stablekernel.com",
+            "password": "foobaraxegrind$i%"
+          }).post();
+        tokens.add(JSON.decode(response.body)["access_token"]);
+      }
     });
 
     tearDown(() async {
