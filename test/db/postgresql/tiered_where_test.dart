@@ -343,35 +343,4 @@ void main() {
     // where.child.grandchild = whereNull
     // where.child.grandchild = whereNotNull
   });
-
-  test("Apply where to top-level Query type only includes those objects and their joined values", () async {
-    var q = new Query<RootObject>()
-        ..joinOn((r) => r.child)
-        ..where.id = whereLessThan(3);
-
-    var results = await q.fetch();
-    expect(results.length, 2);
-
-    expect(results[0].id, rootObjects[0].id);
-    expect(results[0].child.id, rootObjects[0].child.id);
-    expect(results[0].children, isNull);
-    expect(results[1].id, rootObjects[1].id);
-    expect(results[1].child.id, rootObjects[1].child.id);
-    expect(results[1].children, isNull);
-  });
-
-  test("Apply where on child object to top-level Query will filter top-level object and not include child objects", () async {
-    var q = new Query<RootObject>()
-      ..where.child.id = whereLessThanEqualTo(rootObjects[1].child.id);
-
-    var results = await q.fetch();
-    expect(results.length, 2);
-
-    expect(results[0].id, rootObjects[0].id);
-    expect(results[0].child.id, rootObjects[0].child.id);
-    expect(results[0].children, isNull);
-    expect(results[1].id, rootObjects[1].id);
-    expect(results[1].child.id, rootObjects[1].child.id);
-    expect(results[1].children, isNull);
-  });
 }
