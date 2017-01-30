@@ -163,18 +163,13 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
     var rowMapper = new ManagedInstantiator(entity);
     rowMapper.properties = propertiesToFetch;
 
-    // todo: create joins if the whereMatcher is filtering on
-    // related tables even if we don't explicitly join.
-    // explicit joins actually include the values of the joined tables
-    if (subQueries?.isNotEmpty ?? false) {
-      if (pageDescriptor != null) {
-        throw new QueryException(QueryExceptionEvent.requestFailure,
-            message:
-                "Cannot use 'Query<T>' with both 'pageDescriptor' and joins currently.");
-      }
+    var joinElements = joinElementsFromQuery(this);
+    rowMapper.addJoinElements(joinElements);
 
-      var joinElements = joinElementsFromQuery(this);
-      rowMapper.addJoinElements(joinElements);
+    if (pageDescriptor != null && rowMapper.orderedMappingElements.any((m) => m is PropertyToRowMapper)) {
+      throw new QueryException(QueryExceptionEvent.requestFailure,
+          message:
+          "Cannot use 'Query<T>' with both 'pageDescriptor' and joins currently.");
     }
 
     return rowMapper;
@@ -312,11 +307,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
   }
 
   List<PropertyToRowMapper> joinElementsFromQuery(PostgresQuery q) {
-    if (q?.subQueries?.isEmpty ?? true) {
-      return [];
-    }
-
-    return q.subQueries.keys.map((relationshipDesc) {
+    var explicitJoins = q.subQueries?.keys?.map((relationshipDesc) {
       var subQuery = q.subQueries[relationshipDesc] as PostgresQuery;
       var innerWhere = subQuery.where;
       var predicate = predicateFromMatcherBackedObject(innerWhere);
@@ -328,6 +319,52 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
 
       joinElement.orderedMappingElements
           .addAll(joinElementsFromQuery(subQuery));
+
+      return joinElement;
+    })?.toList() ?? [];
+
+
+    var implicitJoins = joinElementsFromMatcherBackedObject(q.where);
+
+    // If any of these properties are already being joined, add the predicate/where of
+    // the implicit join to the explicit join and move on
+    explicitJoins.addAll(implicitJoins);
+
+    return explicitJoins;
+  }
+
+  List<PropertyToRowMapper> joinElementsFromMatcherBackedObject(dynamic objectOrSet) {
+    ManagedObject object;
+    if (objectOrSet is ManagedSet) {
+      object = objectOrSet.matchOn;
+    } else {
+      object = objectOrSet;
+    }
+    var whereRelationshipKeys = object.backingMap.keys
+        .where((key) {
+          if (object.entity.relationships.containsKey(key)) {
+            var value = object.backingMap[key];
+            if (value is ManagedObject) {
+               return value.backingMap.isNotEmpty;
+            } else if (value is ManagedSet) {
+              if (value.hasMatchOn) {
+                return value.matchOn.backingMap.isNotEmpty;
+              }
+
+              return false;
+            }
+            return false;
+          }
+
+          return false;
+        });
+
+    return whereRelationshipKeys.map((key) {
+      var joinElement = new PropertyToRowMapper(
+          PersistentJoinType.leftOuter, object.entity.relationships[key], null, []);
+
+      joinElement.orderedMappingElements
+          .addAll(joinElementsFromMatcherBackedObject(object.backingMap[key]));
 
       return joinElement;
     }).toList();

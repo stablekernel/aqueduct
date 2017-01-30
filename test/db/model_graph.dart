@@ -3,7 +3,8 @@ import 'package:aqueduct/aqueduct.dart';
 
 class RootObject extends ManagedObject<_RootObject> implements _RootObject {
   static int counter = 1;
-  RootObject() {
+  RootObject();
+  RootObject.withCounter() {
     this.value1 = counter;
     this.value2 = counter;
     counter++;
@@ -29,7 +30,8 @@ class _RootObject {
 
 class ChildObject extends ManagedObject<_ChildObject> implements _ChildObject {
   static int counter = 1;
-  ChildObject() {
+  ChildObject();
+  ChildObject.withCounter() {
     this.value1 = counter;
     this.value2 = counter;
     counter++;
@@ -60,7 +62,8 @@ class _ChildObject {
 class GrandChildObject extends ManagedObject<_GrandChildObject>
     implements _GrandChildObject {
   static int counter = 1;
-  GrandChildObject() {
+  GrandChildObject();
+  GrandChildObject.withCounter() {
     this.value1 = counter;
     this.value2 = counter;
     counter++;
@@ -88,7 +91,8 @@ class _GrandChildObject {
 class OtherRootObject extends ManagedObject<_OtherRootObject>
     implements _OtherRootObject {
   static int counter = 1;
-  OtherRootObject() {
+  OtherRootObject();
+  OtherRootObject.withCounter() {
     this.value1 = counter;
     this.value2 = counter;
     counter++;
@@ -129,51 +133,51 @@ class _RootJoinObject {
 
 Future<List<RootObject>> populateModelGraph(ManagedContext ctx) async {
   var rootObjects = <RootObject>[
-    new RootObject() // 1
+    new RootObject.withCounter() // 1
       ..join = new ManagedSet.from([
         new RootJoinObject() // 1
-          ..other = new OtherRootObject(), // 1
+          ..other = new OtherRootObject.withCounter(), // 1
         new RootJoinObject() // 2
-          ..other = new OtherRootObject() // 2
+          ..other = new OtherRootObject.withCounter() // 2
       ])
-      ..child = (new ChildObject() // 1
-        ..grandChild = new GrandChildObject() // 1
+      ..child = (new ChildObject.withCounter() // 1
+        ..grandChild = new GrandChildObject.withCounter() // 1
         ..grandChildren = new ManagedSet.from([
-          new GrandChildObject(), // 2
-          new GrandChildObject() // 3
+          new GrandChildObject.withCounter(), // 2
+          new GrandChildObject.withCounter() // 3
         ]))
       ..children = new ManagedSet.from([
-        (new ChildObject() // 2
-          ..grandChild = new GrandChildObject() // 4
+        (new ChildObject.withCounter() // 2
+          ..grandChild = new GrandChildObject.withCounter() // 4
           ..grandChildren = new ManagedSet.from([
-            new GrandChildObject(), // 5
-            new GrandChildObject() // 6
+            new GrandChildObject.withCounter(), // 5
+            new GrandChildObject.withCounter() // 6
           ])),
-        (new ChildObject() // 3
-              ..grandChild = new GrandChildObject() // 7
+        (new ChildObject.withCounter() // 3
+              ..grandChild = new GrandChildObject.withCounter() // 7
             ),
-        (new ChildObject() // 4
+        (new ChildObject.withCounter() // 4
           ..grandChildren = new ManagedSet.from([
-            new GrandChildObject() // 8
+            new GrandChildObject.withCounter() // 8
           ])),
-        new ChildObject() // 5
+        new ChildObject.withCounter() // 5
       ]),
-    new RootObject() // 2
+    new RootObject.withCounter() // 2
       ..join = new ManagedSet.from([
         new RootJoinObject() // 3
-          ..other = new OtherRootObject(), // 3
+          ..other = new OtherRootObject.withCounter(), // 3
       ])
-      ..child = new ChildObject() // 6
+      ..child = new ChildObject.withCounter() // 6
       ..children = new ManagedSet.from([
-        new ChildObject() // 7
+        new ChildObject.withCounter() // 7
       ]),
-    new RootObject() // 3
-      ..child = new ChildObject(), // 8
-    new RootObject()
+    new RootObject.withCounter() // 3
+      ..child = new ChildObject.withCounter(), // 8
+    new RootObject.withCounter() // 4
       ..children = new ManagedSet.from([
-        new ChildObject() // 9
+        new ChildObject.withCounter() // 9
       ]),
-    new RootObject() // 4
+    new RootObject.withCounter() // 5
   ];
 
   for (var root in rootObjects) {
