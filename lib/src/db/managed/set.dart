@@ -45,9 +45,8 @@ class ManagedSet<InstanceType extends ManagedObject> extends Object
   /// The [ManagedEntity] that represents the [InstanceType].
   ManagedEntity entity;
 
-  bool get hasMatchOn => _matchOn != null;
-
   // todo: haveAtLeastOneWhere?
+  bool get hasMatchOn => _matchOn != null;
 
   /// Used by [Query] to apply constraints to fetching instances from this [ManagedSet].
   ///

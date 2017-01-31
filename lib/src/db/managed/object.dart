@@ -61,7 +61,7 @@ abstract class ManagedBacking {
 ///         class _User {
 ///           @primaryKey int id; // Persisted
 ///         }
-class ManagedObject<PersistentType> extends Object implements HTTPSerializable {
+class ManagedObject<PersistentType> implements HTTPSerializable {
   /// The [ManagedEntity] this instance is described by.
   ManagedEntity entity =
       ManagedContext.defaultContext.dataModel.entityForType(PersistentType);
