@@ -1,6 +1,5 @@
 import '../query/query.dart';
 import '../managed/managed.dart';
-import '../managed/query_matchable.dart';
 
 enum PersistentJoinType { leftOuter }
 
@@ -18,8 +17,8 @@ ManagedPropertyDescription propertyForName(
       property.relationshipType != ManagedRelationshipType.belongsTo) {
     throw new QueryException(QueryExceptionEvent.internalFailure,
         message:
-            "Property $propertyName is a hasMany or hasOne relationship and is invalid as a result property of "
-            "${entity.tableName}, use matchOn.$propertyName.includeInResultSet = true instead.");
+            "Property '$propertyName' is a hasMany or hasOne relationship and is invalid as a result property of "
+            "'${entity.tableName}', use one of the join methods in 'Query<T>' instead.");
   }
 
   return property;

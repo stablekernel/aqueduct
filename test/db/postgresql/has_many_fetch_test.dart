@@ -29,7 +29,7 @@ void main() {
     test("Fetch has-many relationship that has none returns empty OrderedSet",
         () async {
       var q = new Query<Parent>()
-        ..where.children.includeInResultSet = true
+        ..joinMany((p) => p.children)
         ..where.name = "D";
 
       var verifier = (Parent p) {
@@ -45,10 +45,11 @@ void main() {
         "Fetch has-many relationship that is empty returns empty, and deeper nested relationships are ignored even when included",
         () async {
       var q = new Query<Parent>()
-        ..where.children.includeInResultSet = true
-        ..where.children.matchOn.toy.includeInResultSet = true
-        ..where.children.matchOn.vaccinations.includeInResultSet = true
         ..where.name = "D";
+
+      q.joinMany((p) => p.children)
+        ..joinOn((c) => c.toy)
+        ..joinMany((c) => c.vaccinations);
 
       var verifier = (Parent p) {
         expect(p.name, "D");
@@ -63,7 +64,7 @@ void main() {
         "Fetch has-many relationship that is non-empty returns values for scalar properties in subobjects only",
         () async {
       var q = new Query<Parent>()
-        ..where.children.includeInResultSet = true
+        ..joinMany((p) => p.children)
         ..where.name = "C";
 
       var verifier = (Parent p) {
@@ -82,10 +83,11 @@ void main() {
         "Fetch has-many relationship, include has-one and has-many in that has-many, where bottom of graph has valid object for hasmany but not for hasone",
         () async {
       var q = new Query<Parent>()
-        ..where.children.includeInResultSet = true
-        ..where.children.matchOn.toy.includeInResultSet = true
-        ..where.children.matchOn.vaccinations.includeInResultSet = true
         ..where.name = "B";
+
+      q.joinMany((p) => p.children)
+        ..joinOn((c) => c.toy)
+        ..joinMany((c) => c.vaccinations);
 
       var verifier = (Parent p) {
         p.children.sort((c1, c2) => c1.id.compareTo(c2.id));
@@ -115,10 +117,11 @@ void main() {
         "Fetch has-many relationship, include has-one and has-many in that has-many, where bottom of graph has valid object for hasone but not for hasmany",
         () async {
       var q = new Query<Parent>()
-        ..where.children.includeInResultSet = true
-        ..where.children.matchOn.toy.includeInResultSet = true
-        ..where.children.matchOn.vaccinations.includeInResultSet = true
         ..where.name = "A";
+
+      q.joinMany((p) => p.children)
+        ..joinOn((c) => c.toy)
+        ..joinMany((c) => c.vaccinations);
 
       var verifier = (Parent p) {
         p.children.sort((c1, c2) => c1.id.compareTo(c2.id));
@@ -151,7 +154,7 @@ void main() {
         "Fetching multiple top-level instances and including one level of subobjects",
         () async {
       var q = new Query<Parent>()
-        ..where.children.includeInResultSet = true
+        ..joinMany((p) => p.children)
         ..where.name = whereIn(["A", "C", "D"]);
       var results = await q.fetch();
       expect(results.length, 3);
@@ -184,10 +187,11 @@ void main() {
     });
 
     test("Fetch entire graph", () async {
-      var q = new Query<Parent>()
-        ..where.children.includeInResultSet = true
-        ..where.children.matchOn.toy.includeInResultSet = true
-        ..where.children.matchOn.vaccinations.includeInResultSet = true;
+      var q = new Query<Parent>();
+      q.joinMany((p) => p.children)
+        ..joinOn((c) => c.toy)
+        ..joinMany((c) => c.vaccinations);
+
       var all = await q.fetch();
 
       var originalIterator = truth.iterator;
@@ -236,10 +240,12 @@ void main() {
     test("Predicate impacts top-level objects when fetching object graph",
         () async {
       var q = new Query<Parent>()
-        ..where.children.includeInResultSet = true
-        ..where.children.matchOn.toy.includeInResultSet = true
-        ..where.children.matchOn.vaccinations.includeInResultSet = true
         ..where.name = "A";
+
+      q.joinMany((p) => p.children)
+        ..joinOn((c) => c.toy)
+        ..joinMany((c) => c.vaccinations);
+
       var results = await q.fetch();
 
       expect(results.length, 1);
@@ -259,13 +265,16 @@ void main() {
       expect(p.children.last.vaccinations, []);
     });
 
+    // todo: pick back up here
     test("Predicate impacts 2nd level objects when fetching object graph",
         () async {
-      var q = new Query<Parent>()
-        ..where.children.includeInResultSet = true
-        ..where.children.matchOn.toy.includeInResultSet = true
-        ..where.children.matchOn.vaccinations.includeInResultSet = true
-        ..where.children.matchOn.name = "C1";
+      var q = new Query<Parent>();
+
+      q.joinMany((p) => p.children)
+        ..where.name = "C1"
+        ..joinMany((c) => c.vaccinations)
+        ..joinOn((c) => c.toy);
+
       var results = await q.fetch();
 
       expect(results.length, 4);
@@ -288,11 +297,13 @@ void main() {
 
     test("Predicate impacts 3rd level objects when fetching object graph",
         () async {
-      var q = new Query<Parent>()
-        ..where.children.includeInResultSet = true
-        ..where.children.matchOn.toy.includeInResultSet = true
-        ..where.children.matchOn.vaccinations.includeInResultSet = true
-        ..where.children.matchOn.vaccinations.matchOn.kind = "V1";
+      var q = new Query<Parent>();
+
+      var childJoin = q.joinMany((p) => p.children)
+        ..joinOn((c) => c.toy);
+      childJoin.joinMany((c) => c.vaccinations)
+        ..where.kind = "V1";
+
       var results = await q.fetch();
 
       expect(results.length, 4);
@@ -327,11 +338,12 @@ void main() {
         "Predicate that omits top-level objects but would include lower level object return no results",
         () async {
       var q = new Query<Parent>()
-        ..where.children.includeInResultSet = true
-        ..where.children.matchOn.toy.includeInResultSet = true
-        ..where.children.matchOn.vaccinations.includeInResultSet = true
-        ..where.id = 5
-        ..where.children.matchOn.vaccinations.matchOn.kind = "V1";
+        ..where.id = 5;
+
+      var childJoin = q.joinMany((p) => p.children)
+        ..joinOn((c) => c.toy);
+      childJoin.joinMany((c) => c.vaccinations)
+        ..where.kind = "V1";
 
       var results = await q.fetch();
       expect(results.length, 0);
@@ -355,12 +367,14 @@ void main() {
         "Sort descriptor on top-level object doesn't impact lower level objects",
         () async {
       var q = new Query<Parent>()
-        ..where.children.includeInResultSet = true
-        ..where.children.matchOn.toy.includeInResultSet = true
-        ..where.children.matchOn.vaccinations.includeInResultSet = true
         ..sortDescriptors = [
           new QuerySortDescriptor("name", QuerySortOrder.descending)
         ];
+
+      q.joinMany((p) => p.children)
+        ..joinOn((c) => c.toy)
+        ..joinMany((c) => c.vaccinations);
+
       var results = await q.fetch();
 
       var originalIterator = truth.reversed.iterator;
@@ -407,7 +421,7 @@ void main() {
     test("Objects returned in join are not the same instance", () async {
       var q = new Query<Parent>()
         ..where.id = 1
-        ..where.children.includeInResultSet = true;
+        ..joinMany((p) => p.children);
 
       var o = await q.fetchOne();
       for (var c in o.children) {
@@ -431,9 +445,11 @@ void main() {
     test("Predicate that impacts unincluded subobject is still ignored",
         () async {
       var q = new Query<Parent>()
-        ..where.children.includeInResultSet = true
-        ..where.children.matchOn.toy.includeInResultSet = true
         ..where.children.matchOn.vaccinations.matchOn.kind = "V1";
+
+      var childJoin = q.joinMany((p) => p.children)
+        ..joinOn((c) => c.toy);
+      childJoin.where.vaccinations.matchOn.kind = "V1";
 
       var results = await q.fetch();
       for (var p in results) {
@@ -453,7 +469,7 @@ void main() {
         expect(
             e.toString(),
             contains(
-                "Property children is a hasMany or hasOne relationship and is invalid as a result property of _Parent, use matchOn.children.includeInResultSet = true instead"));
+                "Property 'children' is a hasMany or hasOne relationship and is invalid as a result property of '_Parent'"));
       }
     });
 
@@ -467,11 +483,11 @@ void main() {
         expect(
             e.toString(),
             contains(
-                "Property children is a hasMany or hasOne relationship and is invalid as a result property of _Parent, use matchOn.children.includeInResultSet = true instead"));
+                "Property 'children' is a hasMany or hasOne relationship and is invalid as a result property of '_Parent'"));
       }
 
       q = new Query<Parent>()
-        ..where.children.includeInResultSet = true
+        ..joinMany((p) => p.children)
         ..nestedResultProperties[Child] = ["id", "vaccinations"];
       try {
         await q.fetchOne();
@@ -480,14 +496,15 @@ void main() {
         expect(
             e.toString(),
             contains(
-                "Property vaccinations is a hasMany or hasOne relationship and is invalid as a result property of _Child, use matchOn.vaccinations.includeInResultSet = true instead"));
+                "Property 'vaccinations' is a hasMany or hasOne relationship and is invalid as a result property of '_Child'"));
       }
     });
 
     test("Trying to include hasMany RelationshipInverse in result set fails",
         () async {
       try {
-        var _ = new Query<Child>()..where.parent.includeInResultSet = true;
+        var _ = new Query<Child>()
+          ..joinOn((c) => c.parent);
 
         expect(true, false);
       } on QueryException catch (e) {

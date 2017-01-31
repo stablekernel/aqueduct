@@ -6,7 +6,6 @@ import '../query/mapper.dart';
 import 'postgresql_mapping.dart';
 
 // todo: wow get rid of this
-import '../managed/query_matchable.dart';
 import '../managed/instantiator.dart';
 
 class PostgresQuery<InstanceType extends ManagedObject> extends Object
@@ -164,17 +163,18 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
     var rowMapper = new ManagedInstantiator(entity);
     rowMapper.properties = resultProperties;
 
-    if (hasWhereBuilder) {
-      if (where.hasJoinElements) {
-        if (pageDescriptor != null) {
-          throw new QueryException(QueryExceptionEvent.requestFailure,
-              message:
-                  "Query cannot have properties that are includeInResultSet and also have a pageDescriptor.");
-        }
-
-        var joinElements = joinElementsFromQueryMatchable(where);
-        rowMapper.addJoinElements(joinElements);
+    // todo: create joins if the whereMatcher is filtering on
+    // related tables even if we don't explicitly join.
+    // explicit joins actually include the values of the joined tables
+    if (subQueries?.isNotEmpty ?? false) {
+      if (pageDescriptor != null) {
+        throw new QueryException(QueryExceptionEvent.requestFailure,
+            message:
+                "Cannot use 'Query<T>' with both 'pageDescriptor' and joins currently.");
       }
+
+      var joinElements = joinElementsFromQuery(this);
+      rowMapper.addJoinElements(joinElements);
     }
 
     return rowMapper;
@@ -311,29 +311,27 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
         {variableName: pageDescriptor.boundingValue});
   }
 
-  // todo: this sucks
-  List<PropertyToRowMapper> joinElementsFromQueryMatchable(
-      QueryMatchableExtension matcherBackedObject) {
-    var entity = matcherBackedObject.entity;
-    var propertiesToJoin = matcherBackedObject.joinPropertyKeys;
+  List<PropertyToRowMapper> joinElementsFromQuery(PostgresQuery q) {
+    if (q?.subQueries?.isEmpty ?? true) {
+      return [];
+    }
 
-    return propertiesToJoin.map((propertyName) {
-      QueryMatchableExtension inner =
-          matcherBackedObject.backingMap[propertyName];
-
-      var relDesc = entity.relationships[propertyName];
-      var predicate = predicateFromMatcherBackedObject(inner);
+    return q.subQueries.keys.map((relationshipDesc) {
+      var subQuery = q.subQueries[relationshipDesc] as PostgresQuery;
+      var innerWhere = subQuery.where;
+      var predicate = predicateFromMatcherBackedObject(innerWhere);
       var nestedProperties =
-          nestedResultProperties[inner.entity.instanceType.reflectedType];
+          nestedResultProperties[innerWhere.entity.instanceType.reflectedType];
       var propertiesToFetch =
-          nestedProperties ?? inner.entity.defaultProperties;
+          nestedProperties ?? innerWhere.entity.defaultProperties;
+      var joinElement = new PropertyToRowMapper(
+          PersistentJoinType.leftOuter,
+          relationshipDesc,
+          predicate,
+          mappersForKeys(innerWhere.entity, propertiesToFetch));
 
-      var joinElement = new PropertyToRowMapper(PersistentJoinType.leftOuter,
-          relDesc, predicate, mappersForKeys(inner.entity, propertiesToFetch));
-      if (inner.hasJoinElements) {
-        joinElement.orderedMappingElements
-            .addAll(joinElementsFromQueryMatchable(inner));
-      }
+      joinElement.orderedMappingElements
+          .addAll(joinElementsFromQuery(subQuery));
 
       return joinElement;
     }).toList();

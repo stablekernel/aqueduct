@@ -40,6 +40,9 @@ abstract class Query<InstanceType extends ManagedObject> {
     return null;
   }
 
+  Query<T> joinOn<T extends ManagedObject>(T m(InstanceType x));
+  Query<T> joinMany<T extends ManagedObject>(ManagedSet<T> m(InstanceType x));
+
   /// The [ManagedEntity] of the [InstanceType].
   ManagedEntity get entity;
 
@@ -56,20 +59,6 @@ abstract class Query<InstanceType extends ManagedObject> {
   ///
   ///       var q = new Query<Employee>()
   ///           ..where.employeeID = greaterThan(1);
-  ///
-  /// This property is also used to fetch relationship properties. When [InstanceType] has a has-one or has-many relationship, setting the relationship
-  /// property's [ManagedObject.includeInResultSet] will cause this [Query] to also fetch objects of that [ManagedObject]'s type. For example,
-  /// the following query will fetch 'Employee's and their 'Task's.
-  ///
-  ///       var q = new Query<Employee>()
-  ///           ..where.tasks.includeInResultSet = true;
-  ///
-  /// Any relationship property that is included in the result set in this way may have further constraints by setting properties
-  /// in its [where].
-  ///
-  ///       var q = new Query<Employee>()
-  ///           ..where.tasks.includeInResultSet = true
-  ///           ..where.tasks.matchOn.status = whereEqualTo("Complete");
   InstanceType get where;
 
   /// Confirms that a query has no predicate before executing it.
@@ -205,12 +194,4 @@ abstract class Query<InstanceType extends ManagedObject> {
   ///           ..where.id = whereEqualTo(1);
   ///       var deletedCount = await q.delete();
   Future<int> delete();
-}
-
-abstract class QueryMatchable {
-  ManagedEntity entity;
-
-  bool includeInResultSet;
-
-  Map<String, dynamic> get backingMap;
 }
