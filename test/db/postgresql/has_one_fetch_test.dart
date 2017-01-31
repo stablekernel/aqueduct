@@ -386,21 +386,6 @@ void main() {
       context?.persistentStore?.close();
     });
 
-    test("Predicate that impacts unincluded subobject is still ignored",
-        () async {
-      var q = new Query<Parent>()
-        ..where.child.vaccinations.matchOn.kind = "V1";
-      q.joinOn((p) => p.child)
-        ..joinOn((c) => c.toy);
-
-      var results = await q.fetch();
-      for (var p in results) {
-        expect(p.child?.backingMap?.containsKey("toy") ?? true, true);
-        expect(
-            p.child?.backingMap?.containsKey("vaccinations") ?? false, false);
-      }
-    });
-
     test("Trying to fetch hasOne relationship through resultProperties fails",
         () async {
       var q = new Query<Parent>()..propertiesToFetch = ["id", "child"];

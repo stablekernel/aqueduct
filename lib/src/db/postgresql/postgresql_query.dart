@@ -172,6 +172,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
           "Cannot use 'Query<T>' with both 'pageDescriptor' and joins currently.");
     }
 
+
     return rowMapper;
   }
 
@@ -323,12 +324,16 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
       return joinElement;
     })?.toList() ?? [];
 
+    if (q.hasWhereBuilder) {
+      var implicitJoins = joinElementsFromMatcherBackedObject(q.where);
+      for (var implicit in implicitJoins) {
+        if (explicitJoins.any((explicit) => explicit.representsSameJoinAs(implicit))) {
 
-    var implicitJoins = joinElementsFromMatcherBackedObject(q.where);
-
-    // If any of these properties are already being joined, add the predicate/where of
-    // the implicit join to the explicit join and move on
-    explicitJoins.addAll(implicitJoins);
+        } else {
+          explicitJoins.add(implicit);
+        }
+      }
+    }
 
     return explicitJoins;
   }
@@ -340,6 +345,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
     } else {
       object = objectOrSet;
     }
+
     var whereRelationshipKeys = object.backingMap.keys
         .where((key) {
           if (object.entity.relationships.containsKey(key)) {
