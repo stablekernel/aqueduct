@@ -204,7 +204,7 @@ class RequestController extends Object with APIDocumentable {
   /// If a [RequestController] does not respond to the request, but instead modifies it, this method must return the same [Request].
   Future<RequestControllerEvent> processRequest(Request req) async {
     if (_listener != null) {
-      return await _listener(req);
+      return _listener(req);
     }
 
     return req;
@@ -346,7 +346,7 @@ class _RequestControllerGenerator extends RequestController {
 
   @override
   Future receive(Request req) async {
-    await instantiate().receive(req);
+    return instantiate().receive(req);
   }
 
   @override

@@ -72,10 +72,10 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
   /// for a specific [Authenticatable] via [AuthStorage.revokeAuthenticatableWithIdentifier].
   Future revokeAuthenticatableAccessForIdentifier(dynamic identifier) async {
     if (identifier == null) {
-      return;
+      return null;
     }
 
-    await storage.revokeAuthenticatableWithIdentifier(this, identifier);
+    return storage.revokeAuthenticatableWithIdentifier(this, identifier);
   }
 
   /// Authenticates a username and password of an [Authenticatable] and returns an [AuthToken] upon success.

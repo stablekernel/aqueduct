@@ -54,9 +54,8 @@ class CLIDatabaseGenerate extends CLICommand
 
     var executor = new IsolateExecutor(generator, [libraryName],
         packageConfigURI: projectDirectory.uri.resolve(".packages"));
-    var contents = await executor.execute(projectDirectory.uri);
 
-    return contents;
+    return executor.execute(projectDirectory.uri);
   }
 
   String get name {

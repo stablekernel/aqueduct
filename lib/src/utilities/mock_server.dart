@@ -197,6 +197,6 @@ class MockHTTPServer extends MockServer {
 
   /// Shuts down the server listening for HTTP requests.
   Future close() async {
-    await server?.close();
+    return server?.close();
   }
 }

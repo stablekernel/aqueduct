@@ -102,7 +102,7 @@ class TestClient {
 
   /// Closes this instances underlying HTTP client.
   Future close() async {
-    await _client.close(force: true);
+    return _client.close(force: true);
   }
 }
 
@@ -348,7 +348,7 @@ class TestResponse {
       completer.complete();
     });
 
-    await completer.future;
+    return completer.future;
   }
 
   String toString() {

@@ -147,7 +147,8 @@ class ManagedAuthStorage<T extends ManagedAuthResourceOwner>
       AuthServer server, dynamic identifier) async {
     var tokenQuery = new Query<ManagedToken>(context)
       ..where.resourceOwner = whereRelatedByValue(identifier);
-    await tokenQuery.delete();
+
+    return tokenQuery.delete();
   }
 
   @override
@@ -184,7 +185,7 @@ class ManagedAuthStorage<T extends ManagedAuthResourceOwner>
   Future revokeTokenIssuedFromCode(AuthServer server, AuthCode code) async {
     var query = new Query<ManagedToken>(context)..where.code = code.code;
 
-    await query.delete();
+    return query.delete();
   }
 
   @override
@@ -205,7 +206,7 @@ class ManagedAuthStorage<T extends ManagedAuthResourceOwner>
       await query.insert();
     }
 
-    await pruneTokens(t.resourceOwnerIdentifier);
+    return pruneTokens(t.resourceOwnerIdentifier);
   }
 
   @override
@@ -221,7 +222,7 @@ class ManagedAuthStorage<T extends ManagedAuthResourceOwner>
       ..values.issueDate = newIssueDate
       ..values.expirationDate = newExpirationDate;
 
-    await query.updateOne();
+    return query.updateOne();
   }
 
   @override
@@ -230,7 +231,7 @@ class ManagedAuthStorage<T extends ManagedAuthResourceOwner>
     var query = new Query<ManagedToken>(context)..values = storage;
     await query.insert();
 
-    await pruneTokens(code.resourceOwnerIdentifier);
+    return pruneTokens(code.resourceOwnerIdentifier);
   }
 
   @override
@@ -245,7 +246,7 @@ class ManagedAuthStorage<T extends ManagedAuthResourceOwner>
   Future revokeAuthCodeWithCode(AuthServer server, String code) async {
     var query = new Query<ManagedToken>(context)..where.code = code;
 
-    await query.delete();
+    return query.delete();
   }
 
   @override
@@ -261,7 +262,7 @@ class ManagedAuthStorage<T extends ManagedAuthResourceOwner>
   Future revokeClientWithID(AuthServer server, String id) async {
     var query = new Query<ManagedClient>(context)..where.id = id;
 
-    await query.delete();
+    return query.delete();
   }
 
   Future pruneTokens(dynamic resourceOwnerIdentifier) async {
@@ -281,7 +282,7 @@ class ManagedAuthStorage<T extends ManagedAuthResourceOwner>
         ..where.expirationDate =
             whereLessThanEqualTo(results.first.expirationDate);
 
-      await deleteQ.delete();
+      return deleteQ.delete();
     }
   }
 }

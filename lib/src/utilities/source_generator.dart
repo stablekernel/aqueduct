@@ -99,12 +99,12 @@ class IsolateExecutor {
       message["_sendPort"] = controlPort.sendPort;
 
       if (packageConfigURI != null) {
-        await Isolate.spawnUri(tempFile.absolute.uri, arguments, message,
+        Isolate.spawnUri(tempFile.absolute.uri, arguments, message,
             errorsAreFatal: true,
             onError: onErrorPort.sendPort,
             packageConfig: packageConfigURI);
       } else {
-        await Isolate.spawnUri(tempFile.uri, arguments, message,
+        Isolate.spawnUri(tempFile.uri, arguments, message,
             errorsAreFatal: true,
             onError: onErrorPort.sendPort,
             automaticPackageResolution: true);
