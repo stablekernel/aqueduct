@@ -161,7 +161,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
 
   ManagedInstantiator createMapper() {
     var rowMapper = new ManagedInstantiator(entity);
-    rowMapper.properties = resultProperties;
+    rowMapper.properties = propertiesToFetch;
 
     // todo: create joins if the whereMatcher is filtering on
     // related tables even if we don't explicitly join.
@@ -320,15 +320,11 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
       var subQuery = q.subQueries[relationshipDesc] as PostgresQuery;
       var innerWhere = subQuery.where;
       var predicate = predicateFromMatcherBackedObject(innerWhere);
-      var nestedProperties =
-          nestedResultProperties[innerWhere.entity.instanceType.reflectedType];
-      var propertiesToFetch =
-          nestedProperties ?? innerWhere.entity.defaultProperties;
       var joinElement = new PropertyToRowMapper(
           PersistentJoinType.leftOuter,
           relationshipDesc,
           predicate,
-          mappersForKeys(innerWhere.entity, propertiesToFetch));
+          mappersForKeys(innerWhere.entity, subQuery.propertiesToFetch));
 
       joinElement.orderedMappingElements
           .addAll(joinElementsFromQuery(subQuery));

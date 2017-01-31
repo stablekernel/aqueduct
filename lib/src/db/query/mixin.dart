@@ -17,7 +17,6 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
   QueryPage pageDescriptor;
   List<QuerySortDescriptor> sortDescriptors;
   Map<String, dynamic> valueMap;
-  Map<Type, List<String>> nestedResultProperties = {};
 
   bool get hasWhereBuilder => _whereBuilder != null;
   Map<ManagedRelationshipDescription, Query> subQueries;
@@ -39,11 +38,11 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
     _predicate = p;
   }
 
-  List<String> get resultProperties {
+  List<String> get propertiesToFetch {
     return _resultProperties ?? entity.defaultProperties;
   }
 
-  void set resultProperties(List<String> props) {
+  void set propertiesToFetch(List<String> props) {
     _resultProperties = props;
   }
 

@@ -298,12 +298,12 @@ void main() {
     test("Can fetch graph when omitting foreign or primary keys from query",
         () async {
       var q = new Query<Parent>()
-        ..resultProperties = ["name"]
-        ..nestedResultProperties[Child] = ["name"]
-        ..nestedResultProperties[Vaccine] = ["kind"];
+        ..propertiesToFetch = ["name"];
 
-      q.joinOn((p) => p.child)
-        ..joinMany((c) => c.vaccinations);
+      var childQuery = q.joinOn((p) => p.child)
+        ..propertiesToFetch = ["name"];
+      childQuery.joinMany((c) => c.vaccinations)
+        ..propertiesToFetch = ["kind"];
 
       var parents = await q.fetch();
       for (var p in parents) {
@@ -326,12 +326,13 @@ void main() {
 
     test("Can specify result keys for all joined objects", () async {
       var q = new Query<Parent>()
-        ..resultProperties = ["id"]
-        ..nestedResultProperties[Child] = ["id"]
-        ..nestedResultProperties[Vaccine] = ["id"];
+        ..propertiesToFetch = ["id"];
 
-      q.joinOn((p) => p.child)
-        ..joinMany((c) => c.vaccinations);
+      var childQuery = q.joinOn((p) => p.child)
+        ..propertiesToFetch = ["id"];
+
+      childQuery.joinMany((c) => c.vaccinations)
+        ..propertiesToFetch = ["id"];
 
       var parents = await q.fetch();
       for (var p in parents) {
@@ -402,7 +403,7 @@ void main() {
 
     test("Trying to fetch hasOne relationship through resultProperties fails",
         () async {
-      var q = new Query<Parent>()..resultProperties = ["id", "child"];
+      var q = new Query<Parent>()..propertiesToFetch = ["id", "child"];
       try {
         await q.fetchOne();
         expect(true, false);
@@ -413,9 +414,10 @@ void main() {
                 "Property 'child' is a hasMany or hasOne relationship and is invalid as a result property of '_Parent'"));
       }
 
-      q = new Query<Parent>()
-        ..joinOn((p) => p.child)
-        ..nestedResultProperties[Child] = ["id", "toy"];
+      q = new Query<Parent>();
+      q.joinOn((p) => p.child)
+        ..propertiesToFetch = ["id", "toy"];
+
       try {
         await q.fetchOne();
         expect(true, false);

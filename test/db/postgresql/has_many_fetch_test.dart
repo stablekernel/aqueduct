@@ -462,7 +462,7 @@ void main() {
 
     test("Trying to fetch hasMany relationship through resultProperties fails",
         () async {
-      var q = new Query<Parent>()..resultProperties = ["id", "children"];
+      var q = new Query<Parent>()..propertiesToFetch = ["id", "children"];
       try {
         await q.fetchOne();
       } on QueryException catch (e) {
@@ -475,7 +475,7 @@ void main() {
 
     test("Trying to fetch hasMany relationship through resultProperties fails",
         () async {
-      var q = new Query<Parent>()..resultProperties = ["id", "children"];
+      var q = new Query<Parent>()..propertiesToFetch = ["id", "children"];
       try {
         await q.fetchOne();
         expect(true, false);
@@ -486,9 +486,10 @@ void main() {
                 "Property 'children' is a hasMany or hasOne relationship and is invalid as a result property of '_Parent'"));
       }
 
-      q = new Query<Parent>()
-        ..joinMany((p) => p.children)
-        ..nestedResultProperties[Child] = ["id", "vaccinations"];
+      q = new Query<Parent>();
+      q.joinMany((p) => p.children)
+        ..propertiesToFetch = ["id", "vaccinations"];
+
       try {
         await q.fetchOne();
         expect(true, false);

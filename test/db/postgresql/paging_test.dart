@@ -359,7 +359,7 @@ void main() {
           new QueryPage(QuerySortOrder.ascending, "value", boundingValue: "0");
       var req = new Query<PageableTestModel>()
         ..pageDescriptor = pageObject
-        ..resultProperties = ["id"]
+        ..propertiesToFetch = ["id"]
         ..fetchLimit = 5;
       var res = await req.fetch();
       check([2, 3, 4, 5, 6], res);
