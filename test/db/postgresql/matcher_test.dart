@@ -140,8 +140,7 @@ void main() {
   });
 
   test("whereAnyMatch matcher", () async {
-    var q = new Query<TestModel>()
-      ..joinOn((t) => t.inner);
+    var q = new Query<TestModel>()..joinOn((t) => t.inner);
     var results = await q.fetch();
     expect(results.length, 6);
 

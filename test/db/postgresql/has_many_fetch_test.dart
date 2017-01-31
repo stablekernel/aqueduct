@@ -44,8 +44,7 @@ void main() {
     test(
         "Fetch has-many relationship that is empty returns empty, and deeper nested relationships are ignored even when included",
         () async {
-      var q = new Query<Parent>()
-        ..where.name = "D";
+      var q = new Query<Parent>()..where.name = "D";
 
       q.joinMany((p) => p.children)
         ..joinOn((c) => c.toy)
@@ -82,8 +81,7 @@ void main() {
     test(
         "Fetch has-many relationship, include has-one and has-many in that has-many, where bottom of graph has valid object for hasmany but not for hasone",
         () async {
-      var q = new Query<Parent>()
-        ..where.name = "B";
+      var q = new Query<Parent>()..where.name = "B";
 
       q.joinMany((p) => p.children)
         ..joinOn((c) => c.toy)
@@ -116,8 +114,7 @@ void main() {
     test(
         "Fetch has-many relationship, include has-one and has-many in that has-many, where bottom of graph has valid object for hasone but not for hasmany",
         () async {
-      var q = new Query<Parent>()
-        ..where.name = "A";
+      var q = new Query<Parent>()..where.name = "A";
 
       q.joinMany((p) => p.children)
         ..joinOn((c) => c.toy)
@@ -239,8 +236,7 @@ void main() {
 
     test("Predicate impacts top-level objects when fetching object graph",
         () async {
-      var q = new Query<Parent>()
-        ..where.name = "A";
+      var q = new Query<Parent>()..where.name = "A";
 
       q.joinMany((p) => p.children)
         ..joinOn((c) => c.toy)
@@ -299,10 +295,8 @@ void main() {
         () async {
       var q = new Query<Parent>();
 
-      var childJoin = q.joinMany((p) => p.children)
-        ..joinOn((c) => c.toy);
-      childJoin.joinMany((c) => c.vaccinations)
-        ..where.kind = "V1";
+      var childJoin = q.joinMany((p) => p.children)..joinOn((c) => c.toy);
+      childJoin.joinMany((c) => c.vaccinations)..where.kind = "V1";
 
       var results = await q.fetch();
 
@@ -337,13 +331,10 @@ void main() {
     test(
         "Predicate that omits top-level objects but would include lower level object return no results",
         () async {
-      var q = new Query<Parent>()
-        ..where.id = 5;
+      var q = new Query<Parent>()..where.id = 5;
 
-      var childJoin = q.joinMany((p) => p.children)
-        ..joinOn((c) => c.toy);
-      childJoin.joinMany((c) => c.vaccinations)
-        ..where.kind = "V1";
+      var childJoin = q.joinMany((p) => p.children)..joinOn((c) => c.toy);
+      childJoin.joinMany((c) => c.vaccinations)..where.kind = "V1";
 
       var results = await q.fetch();
       expect(results.length, 0);
@@ -469,8 +460,7 @@ void main() {
       }
 
       q = new Query<Parent>();
-      q.joinMany((p) => p.children)
-        ..propertiesToFetch = ["id", "vaccinations"];
+      q.joinMany((p) => p.children)..propertiesToFetch = ["id", "vaccinations"];
 
       try {
         await q.fetchOne();
@@ -486,8 +476,7 @@ void main() {
     test("Trying to include hasMany RelationshipInverse in result set fails",
         () async {
       try {
-        var _ = new Query<Child>()
-          ..joinOn((c) => c.parent);
+        var _ = new Query<Child>()..joinOn((c) => c.parent);
 
         expect(true, false);
       } on QueryException catch (e) {

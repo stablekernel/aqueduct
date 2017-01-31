@@ -166,12 +166,12 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
     var joinElements = joinElementsFromQuery(this);
     rowMapper.addJoinElements(joinElements);
 
-    if (pageDescriptor != null && rowMapper.orderedMappingElements.any((m) => m is PropertyToRowMapper)) {
+    if (pageDescriptor != null &&
+        rowMapper.orderedMappingElements.any((m) => m is PropertyToRowMapper)) {
       throw new QueryException(QueryExceptionEvent.requestFailure,
           message:
-          "Cannot use 'Query<T>' with both 'pageDescriptor' and joins currently.");
+              "Cannot use 'Query<T>' with both 'pageDescriptor' and joins currently.");
     }
-
 
     return rowMapper;
   }
@@ -309,27 +309,27 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
 
   List<PropertyToRowMapper> joinElementsFromQuery(PostgresQuery q) {
     var explicitJoins = q.subQueries?.keys?.map((relationshipDesc) {
-      var subQuery = q.subQueries[relationshipDesc] as PostgresQuery;
-      var innerWhere = subQuery.where;
-      var predicate = predicateFromMatcherBackedObject(innerWhere);
-      var joinElement = new PropertyToRowMapper(
-          PersistentJoinType.leftOuter,
-          relationshipDesc,
-          predicate,
-          mappersForKeys(innerWhere.entity, subQuery.propertiesToFetch));
+          var subQuery = q.subQueries[relationshipDesc] as PostgresQuery;
+          var innerWhere = subQuery.where;
+          var predicate = predicateFromMatcherBackedObject(innerWhere);
+          var joinElement = new PropertyToRowMapper(
+              PersistentJoinType.leftOuter,
+              relationshipDesc,
+              predicate,
+              mappersForKeys(innerWhere.entity, subQuery.propertiesToFetch));
 
-      joinElement.orderedMappingElements
-          .addAll(joinElementsFromQuery(subQuery));
+          joinElement.orderedMappingElements
+              .addAll(joinElementsFromQuery(subQuery));
 
-      return joinElement;
-    })?.toList() ?? [];
+          return joinElement;
+        })?.toList() ??
+        [];
 
     if (q.hasWhereBuilder) {
       var implicitJoins = joinElementsFromMatcherBackedObject(q.where);
       for (var implicit in implicitJoins) {
-        if (explicitJoins.any((explicit) => explicit.representsSameJoinAs(implicit))) {
-
-        } else {
+        if (explicitJoins.any(
+            (explicit) => explicit.representsSameJoinAs(implicit))) {} else {
           explicitJoins.add(implicit);
         }
       }
@@ -338,7 +338,8 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
     return explicitJoins;
   }
 
-  List<PropertyToRowMapper> joinElementsFromMatcherBackedObject(dynamic objectOrSet) {
+  List<PropertyToRowMapper> joinElementsFromMatcherBackedObject(
+      dynamic objectOrSet) {
     ManagedObject object;
     if (objectOrSet is ManagedSet) {
       object = objectOrSet.matchOn;
@@ -346,28 +347,27 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
       object = objectOrSet;
     }
 
-    var whereRelationshipKeys = object.backingMap.keys
-        .where((key) {
-          if (object.entity.relationships.containsKey(key)) {
-            var value = object.backingMap[key];
-            if (value is ManagedObject) {
-               return value.backingMap.isNotEmpty;
-            } else if (value is ManagedSet) {
-              if (value.hasMatchOn) {
-                return value.matchOn.backingMap.isNotEmpty;
-              }
-
-              return false;
-            }
-            return false;
+    var whereRelationshipKeys = object.backingMap.keys.where((key) {
+      if (object.entity.relationships.containsKey(key)) {
+        var value = object.backingMap[key];
+        if (value is ManagedObject) {
+          return value.backingMap.isNotEmpty;
+        } else if (value is ManagedSet) {
+          if (value.hasMatchOn) {
+            return value.matchOn.backingMap.isNotEmpty;
           }
 
           return false;
-        });
+        }
+        return false;
+      }
+
+      return false;
+    });
 
     return whereRelationshipKeys.map((key) {
-      var joinElement = new PropertyToRowMapper(
-          PersistentJoinType.leftOuter, object.entity.relationships[key], null, []);
+      var joinElement = new PropertyToRowMapper(PersistentJoinType.leftOuter,
+          object.entity.relationships[key], null, []);
 
       joinElement.orderedMappingElements
           .addAll(joinElementsFromMatcherBackedObject(object.backingMap[key]));

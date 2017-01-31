@@ -33,9 +33,7 @@ void main() {
   group("Joins return appropriate properties", () {
     // This group ensures that the right fields are returned and turned into objects,
     // not whether or not the right objects are returned.
-    test(
-        "Values are not returned from implicitly joined tables",
-        () async {
+    test("Values are not returned from implicitly joined tables", () async {
       var q = new Query<RootObject>()..where.child.id = whereGreaterThan(1);
       var results = await q.fetch();
 
@@ -103,8 +101,7 @@ void main() {
       }
     });
 
-    test("Nested explicit joins return values for all tables",
-        () async {
+    test("Nested explicit joins return values for all tables", () async {
       var q = new Query<RootObject>();
 
       q.joinOn((r) => r.child)..joinOn((c) => c.grandChild);
@@ -143,8 +140,7 @@ void main() {
       expect(results.any((r) => r.child?.grandChild != null), true);
     });
 
-    test(
-        "Query can specify resultProperties values when explicitly joined",
+    test("Query can specify resultProperties values when explicitly joined",
         () async {
       var q = new Query<RootObject>()..propertiesToFetch = ["id"];
 
@@ -194,8 +190,7 @@ void main() {
   });
 
   group("With where clauses on root object", () {
-    test("Implicity joining related object",
-        () async {
+    test("Implicity joining related object", () async {
       var q = new Query<RootObject>()..where.child.id = whereEqualTo(1);
       var results = await q.fetch();
 
@@ -204,9 +199,7 @@ void main() {
       expect(results.first.id, inMemoryMatch.id);
     });
 
-    test(
-        "Explicitly joining related object",
-        () async {
+    test("Explicitly joining related object", () async {
       var q = new Query<RootObject>()..where.id = whereGreaterThan(1);
 
       q.joinMany((r) => r.children)..where.id = whereGreaterThan(5);
@@ -224,8 +217,7 @@ void main() {
       expect(results.firstWhere((r) => r.id == 4).children.length, 1);
     });
 
-    test("Explicitly joining related objects, nested implicit join",
-        () async {
+    test("Explicitly joining related objects, nested implicit join", () async {
       var q = new Query<RootObject>()..where.id = whereEqualTo(1);
       q.joinMany((r) => r.children)
         ..where.grandChildren.matchOn.id = whereEqualTo(5);
@@ -282,9 +274,7 @@ void main() {
   });
 
   group("With where clauses on child object", () {
-    test(
-        "Explicit joins do not impact returned root objects",
-        () async {
+    test("Explicit joins do not impact returned root objects", () async {
       var q = new Query<RootObject>();
       q.joinOn((r) => r.child)..where.id = whereEqualTo(1);
       var results = await q.fetch();
@@ -376,11 +366,36 @@ void main() {
       var results = await q.fetch();
 
       expect(results.length, rootObjects.length);
-      expect(results.firstWhere((r) => r.id == 1).children.firstWhere((c) => c.id == 2).grandChildren.length, 1);
-      expect(results.firstWhere((r) => r.id == 1).children.firstWhere((c) => c.id == 2).grandChildren.first.id, 5);
-      expect(results.firstWhere((r) => r.id == 1).children.where((c) => c.id != 2).every((c) => c.grandChildren.length == 0), true);
+      expect(
+          results
+              .firstWhere((r) => r.id == 1)
+              .children
+              .firstWhere((c) => c.id == 2)
+              .grandChildren
+              .length,
+          1);
+      expect(
+          results
+              .firstWhere((r) => r.id == 1)
+              .children
+              .firstWhere((c) => c.id == 2)
+              .grandChildren
+              .first
+              .id,
+          5);
+      expect(
+          results
+              .firstWhere((r) => r.id == 1)
+              .children
+              .where((c) => c.id != 2)
+              .every((c) => c.grandChildren.length == 0),
+          true);
 
-      expect(results.where((r) => r.id != 1).every((r) => r.children.every((c) => c.grandChildren.isEmpty)), true);
+      expect(
+          results
+              .where((r) => r.id != 1)
+              .every((r) => r.children.every((c) => c.grandChildren.isEmpty)),
+          true);
     });
   });
 
@@ -390,8 +405,7 @@ void main() {
         () async {
       var q = new Query<RootObject>()..where.child.value1 = whereGreaterThan(0);
 
-      q.joinOn((r) => r.child)
-        ..propertiesToFetch = ["id"];
+      q.joinOn((r) => r.child)..propertiesToFetch = ["id"];
 
       var results = await q.fetch();
       for (var r in results) {
@@ -405,28 +419,33 @@ void main() {
       }
     });
 
-    test("An explicit and implicit join on same table combine predicates and have appropriate impact on root objects",
+    test(
+        "An explicit and implicit join on same table combine predicates and have appropriate impact on root objects",
         () async {
       var q = new Query<RootObject>()..where.child.id = whereLessThan(3);
 
-      q.joinOn((r) => r.child)
-        ..where.id = whereLessThan(8);
+      q.joinOn((r) => r.child)..where.id = whereLessThan(8);
 
       var results = await q.fetch();
 
       expect(results.length, 2);
       expect(results.firstWhere((r) => r.id == 1).children.length, 2);
-      expect(results.firstWhere((r) => r.id == 1).children.any((c) => c.id == 4), true);
-      expect(results.firstWhere((r) => r.id == 1).children.any((c) => c.id == 5), true);
+      expect(
+          results.firstWhere((r) => r.id == 1).children.any((c) => c.id == 4),
+          true);
+      expect(
+          results.firstWhere((r) => r.id == 1).children.any((c) => c.id == 5),
+          true);
       expect(results.firstWhere((r) => r.id == 2).children.length, 1);
-      expect(results.firstWhere((r) => r.id == 2).children.any((c) => c.id == 7), true);
+      expect(
+          results.firstWhere((r) => r.id == 2).children.any((c) => c.id == 7),
+          true);
     });
   });
 
   group("Filtering by existence", () {
     test("WhereNotNull on hasMany", () async {
-      var q = new Query<RootObject>()
-          ..where.children = whereNotNull;
+      var q = new Query<RootObject>()..where.children = whereNotNull;
       var results = await q.fetch();
 
       expect(results.length, 3);
@@ -437,8 +456,7 @@ void main() {
     });
 
     test("WhereNull on hasMany", () async {
-      var q = new Query<RootObject>()
-        ..where.children = whereNull;
+      var q = new Query<RootObject>()..where.children = whereNull;
       var results = await q.fetch();
 
       expect(results.length, 2);
@@ -448,8 +466,7 @@ void main() {
     });
 
     test("WhereNotNull on hasOne", () async {
-      var q = new Query<RootObject>()
-        ..where.child = whereNotNull;
+      var q = new Query<RootObject>()..where.child = whereNotNull;
       var results = await q.fetch();
 
       expect(results.length, 3);
@@ -460,8 +477,7 @@ void main() {
     });
 
     test("WhereNull on hasOne", () async {
-      var q = new Query<RootObject>()
-        ..where.child = whereNull;
+      var q = new Query<RootObject>()..where.child = whereNull;
       var results = await q.fetch();
 
       expect(results.length, 2);

@@ -45,8 +45,7 @@ void main() {
     test(
         "Fetch has-one relationship that is null returns null for property, and more nested has relationships are ignored",
         () async {
-      var q = new Query<Parent>()
-        ..where.name = "D";
+      var q = new Query<Parent>()..where.name = "D";
 
       q.joinOn((p) => p.child)
         ..joinOn((c) => c.toy)
@@ -84,8 +83,7 @@ void main() {
     test(
         "Fetch has-one relationship, include has-one and has-many in that has-one, where bottom of graph has valid object for hasmany but not for hasone",
         () async {
-      var q = new Query<Parent>()
-        ..where.name = "B";
+      var q = new Query<Parent>()..where.name = "B";
 
       q.joinOn((p) => p.child)
         ..joinOn((c) => c.toy)
@@ -110,8 +108,7 @@ void main() {
     test(
         "Fetch has-one relationship, include has-one and has-many in that has-one, where bottom of graph is all null/empty",
         () async {
-      var q = new Query<Parent>()
-        ..where.name = "C";
+      var q = new Query<Parent>()..where.name = "C";
 
       q.joinOn((p) => p.child)
         ..joinOn((c) => c.toy)
@@ -194,8 +191,7 @@ void main() {
 
     test("Predicate impacts top-level objects when fetching object graph",
         () async {
-      var q = new Query<Parent>()
-        ..where.name = "A";
+      var q = new Query<Parent>()..where.name = "A";
       q.joinOn((p) => p.child)
         ..joinOn((c) => c.toy)
         ..joinMany((c) => c.vaccinations);
@@ -248,8 +244,7 @@ void main() {
     test("Predicate impacts 3rd level objects when fetching object graph",
         () async {
       var q = new Query<Parent>();
-      var childJoin = q.joinOn((p) => p.child)
-        ..joinOn((c) => c.toy);
+      var childJoin = q.joinOn((p) => p.child)..joinOn((c) => c.toy);
       childJoin.joinMany((c) => c.vaccinations)..where.kind = "V1";
 
       var results = await q.fetch();
@@ -271,13 +266,10 @@ void main() {
     test(
         "Predicate that omits top-level objects but would include lower level object return no results",
         () async {
-      var q = new Query<Parent>()
-        ..where.id = 5;
+      var q = new Query<Parent>()..where.id = 5;
 
-      var childJoin = q.joinOn((p) => p.child)
-        ..joinOn((c) => c.toy);
-      childJoin.joinMany((c) => c.vaccinations)
-        ..where.kind = "V1";
+      var childJoin = q.joinOn((p) => p.child)..joinOn((c) => c.toy);
+      childJoin.joinMany((c) => c.vaccinations)..where.kind = "V1";
       var results = await q.fetch();
       expect(results.length, 0);
     });
@@ -297,13 +289,10 @@ void main() {
 
     test("Can fetch graph when omitting foreign or primary keys from query",
         () async {
-      var q = new Query<Parent>()
-        ..propertiesToFetch = ["name"];
+      var q = new Query<Parent>()..propertiesToFetch = ["name"];
 
-      var childQuery = q.joinOn((p) => p.child)
-        ..propertiesToFetch = ["name"];
-      childQuery.joinMany((c) => c.vaccinations)
-        ..propertiesToFetch = ["kind"];
+      var childQuery = q.joinOn((p) => p.child)..propertiesToFetch = ["name"];
+      childQuery.joinMany((c) => c.vaccinations)..propertiesToFetch = ["kind"];
 
       var parents = await q.fetch();
       for (var p in parents) {
@@ -325,14 +314,11 @@ void main() {
     });
 
     test("Can specify result keys for all joined objects", () async {
-      var q = new Query<Parent>()
-        ..propertiesToFetch = ["id"];
+      var q = new Query<Parent>()..propertiesToFetch = ["id"];
 
-      var childQuery = q.joinOn((p) => p.child)
-        ..propertiesToFetch = ["id"];
+      var childQuery = q.joinOn((p) => p.child)..propertiesToFetch = ["id"];
 
-      childQuery.joinMany((c) => c.vaccinations)
-        ..propertiesToFetch = ["id"];
+      childQuery.joinMany((c) => c.vaccinations)..propertiesToFetch = ["id"];
 
       var parents = await q.fetch();
       for (var p in parents) {
@@ -400,8 +386,7 @@ void main() {
       }
 
       q = new Query<Parent>();
-      q.joinOn((p) => p.child)
-        ..propertiesToFetch = ["id", "toy"];
+      q.joinOn((p) => p.child)..propertiesToFetch = ["id", "toy"];
 
       try {
         await q.fetchOne();

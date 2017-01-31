@@ -80,10 +80,10 @@ class PropertyToRowMapper extends PropertyToColumnMapper {
     return orderedMappingElements
         .where((e) => e is PropertyToRowMapper)
         .expand((e) {
-          var a = [e];
-          a.addAll((e as PropertyToRowMapper).orderedNestedRowMappings);
-          return a;
-        }).toList();
+      var a = [e];
+      a.addAll((e as PropertyToRowMapper).orderedNestedRowMappings);
+      return a;
+    }).toList();
   }
 
   bool get isToMany {
@@ -96,8 +96,8 @@ class PropertyToRowMapper extends PropertyToColumnMapper {
     ManagedRelationshipDescription thisProperty = property;
     ManagedRelationshipDescription otherProperty = other.property;
 
-    return thisProperty.destinationEntity == otherProperty.destinationEntity
-        && thisProperty.entity == otherProperty.entity
-        && thisProperty.name == otherProperty.name;
+    return thisProperty.destinationEntity == otherProperty.destinationEntity &&
+        thisProperty.entity == otherProperty.entity &&
+        thisProperty.name == otherProperty.name;
   }
 }
