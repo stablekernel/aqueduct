@@ -101,7 +101,7 @@ class TestClient {
   }
 
   /// Closes this instances underlying HTTP client.
-  Future close() async {
+  Future close() {
     return _client.close(force: true);
   }
 }
@@ -330,7 +330,7 @@ class TestResponse {
   /// This is a convenience for casting [decodedBody] to an expected type as well as type-checking the decoded body.
   Map<dynamic, dynamic> get asMap => decodedBody as Map;
 
-  Future _decodeBody() async {
+  Future _decodeBody() {
     var completer = new Completer();
     _innerResponse.transform(UTF8.decoder).listen((contents) {
       body = contents;

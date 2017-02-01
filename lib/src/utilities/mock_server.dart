@@ -9,9 +9,9 @@ import '../http/response.dart';
 ///
 /// Concrete implementations - like [MockHTTPServer] - are used to validate messages send to remote servers during testing. This allows
 /// your tests to verify any messages sent as a side-effect of an endpoint. You should be sure to close instances of this class during tearDown functions.
-abstract class MockServer {
+abstract class MockServer<T> {
   List _queue = [];
-  List<Completer> _completerQueue = [];
+  List<Completer<T>> _completerQueue = [];
 
   /// Whether or not there are any messages that have been sent to this instance but have yet to be read.
   bool get isEmpty => _queue.isEmpty;
@@ -23,7 +23,7 @@ abstract class MockServer {
   Future close();
 
   /// Adds an event to this server.
-  void add(dynamic value) {
+  void add(T value) {
     if (_completerQueue.length > 0) {
       var nextEventCompleter = _completerQueue.removeAt(0);
       nextEventCompleter.complete(value);
@@ -42,9 +42,9 @@ abstract class MockServer {
   /// This method will return the first element in the first-in-first-out queue of events
   /// that have been added to this instance. If no events are available, this [Future] will
   /// complete when the next event is added.
-  Future next() {
+  Future<T> next() {
     if (_queue.isEmpty) {
-      var c = new Completer();
+      var c = new Completer<T>();
       _completerQueue.add(c);
       return c.future;
     }
@@ -116,7 +116,7 @@ class MockHTTPRequest {
 ///
 ///           await nestMockServer.close();
 ///         });
-class MockHTTPServer extends MockServer {
+class MockHTTPServer extends MockServer<MockHTTPRequest> {
   static const int _mockConnectionFailureStatusCode = -1;
 
   /// Used to simulate a failed request.
@@ -146,14 +146,6 @@ class MockHTTPServer extends MockServer {
   /// You may queue up as many responses as you like and they will be returned in order.
   void queueResponse(Response resp) {
     responseQueue.add(resp);
-  }
-
-  /// Retrieves the least recent, unread [MockHTTPRequest] from this instance.
-  ///
-  /// If no more requests are sent to this instance, the returned [Future] will not be completed.
-  @override
-  Future<MockHTTPRequest> next() async {
-    return super.next();
   }
 
   /// Begins listening for HTTP requests on [port].
@@ -196,7 +188,7 @@ class MockHTTPServer extends MockServer {
   }
 
   /// Shuts down the server listening for HTTP requests.
-  Future close() async {
+  Future close() {
     return server?.close();
   }
 }

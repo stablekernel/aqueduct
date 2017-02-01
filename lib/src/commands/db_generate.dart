@@ -36,7 +36,7 @@ class CLIDatabaseGenerate extends CLICommand
     return 0;
   }
 
-  Future<String> generateMigrationSource() async {
+  Future<String> generateMigrationSource() {
     var generator = new SourceGenerator(
         (List<String> args, Map<String, dynamic> values) async {
       var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
@@ -55,7 +55,7 @@ class CLIDatabaseGenerate extends CLICommand
     var executor = new IsolateExecutor(generator, [libraryName],
         packageConfigURI: projectDirectory.uri.resolve(".packages"));
 
-    return executor.execute(projectDirectory.uri);
+    return executor.execute(projectDirectory.uri) as Future<String>;
   }
 
   String get name {

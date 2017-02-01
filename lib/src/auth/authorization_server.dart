@@ -70,7 +70,7 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
   ///
   /// This method will ask its [storage] to revoke all tokens and authorization codes
   /// for a specific [Authenticatable] via [AuthStorage.revokeAuthenticatableWithIdentifier].
-  Future revokeAuthenticatableAccessForIdentifier(dynamic identifier) async {
+  Future revokeAuthenticatableAccessForIdentifier(dynamic identifier) {
     if (identifier == null) {
       return null;
     }
@@ -370,12 +370,9 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
 
   @override
   Future<Authorization> fromBearerToken(
-      String bearerToken, List<String> scopesRequired) async {
-    try {
-      return await verify(bearerToken);
-    } on AuthServerException {
-      return null;
-    }
+      String bearerToken, List<String> scopesRequired) {
+    return verify(bearerToken)
+        .catchError((_) => null);
   }
 
   @override

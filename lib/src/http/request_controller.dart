@@ -202,12 +202,12 @@ class RequestController extends Object with APIDocumentable {
   ///
   /// [RequestController]s should return a [Response] from this method if they responded to the request.
   /// If a [RequestController] does not respond to the request, but instead modifies it, this method must return the same [Request].
-  Future<RequestControllerEvent> processRequest(Request req) async {
+  Future<RequestControllerEvent> processRequest(Request req) {
     if (_listener != null) {
       return _listener(req);
     }
 
-    return req;
+    return new Future.microtask(() => req);
   }
 
   /// Executed prior to [Response] being sent.
@@ -345,7 +345,7 @@ class _RequestControllerGenerator extends RequestController {
   }
 
   @override
-  Future receive(Request req) async {
+  Future receive(Request req) {
     return instantiate().receive(req);
   }
 
