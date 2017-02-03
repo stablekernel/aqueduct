@@ -112,7 +112,7 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
       return true;
     });
 
-    return QueryPredicate.andPredicates(attributeKeys.map((queryKey) {
+    var predicate = QueryPredicate.andPredicates(attributeKeys.map((queryKey) {
       var desc = entity.properties[queryKey];
       var matcher = obj.backingMap[queryKey];
 
@@ -131,6 +131,30 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
       throw new QueryPredicateException(
           "Unknown MatcherExpression ${matcher.runtimeType}");
     }).toList());
+
+    var relationshipPredicates = obj.backingMap.keys.where((propertyName) {
+      var desc = entity.properties[propertyName];
+      if (desc is ManagedRelationshipDescription) {
+        return desc.relationshipType != ManagedRelationshipType.belongsTo;
+      }
+
+      return false;
+    }).map((propertyName) {
+      var innerObject = obj.backingMap[propertyName];
+      if (innerObject is ManagedSet) {
+        return predicateFromMatcherBackedObject(innerObject.matchOn);
+      }
+      return predicateFromMatcherBackedObject(innerObject);
+    }).toList();
+
+    if (relationshipPredicates.isEmpty) {
+      return predicate;
+    }
+
+    var total = [predicate];
+    total.addAll(relationshipPredicates);
+
+    return QueryPredicate.andPredicates(total.where((q) => q != null).toList());
   }
 }
 

@@ -103,6 +103,10 @@ class ManagedInstantiator {
 
   void applyRowValuesToInstance(ManagedObject instance,
       PropertyToRowMapper mapper, Iterator<dynamic> rowIterator) {
+    if (mapper.flattened.isEmpty) {
+      return;
+    }
+
     var innerInstanceWrapper = instanceFromRow(
         rowIterator, mapper.orderedMappingElements.iterator,
         entity: mapper.joinProperty.entity);

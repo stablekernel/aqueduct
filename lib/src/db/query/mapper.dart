@@ -91,4 +91,13 @@ class PropertyToRowMapper extends PropertyToColumnMapper {
 
     return rel.relationshipType == ManagedRelationshipType.hasMany;
   }
+
+  bool representsSameJoinAs(PropertyToRowMapper other) {
+    ManagedRelationshipDescription thisProperty = property;
+    ManagedRelationshipDescription otherProperty = other.property;
+
+    return thisProperty.destinationEntity == otherProperty.destinationEntity &&
+        thisProperty.entity == otherProperty.entity &&
+        thisProperty.name == otherProperty.name;
+  }
 }

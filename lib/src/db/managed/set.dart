@@ -3,6 +3,7 @@ import 'dart:collection';
 import 'backing.dart';
 import '../../http/serializable.dart';
 import 'managed.dart';
+import '../query/query.dart';
 
 /// Instances of this type contain zero or more instances of [ManagedObject].
 ///
@@ -38,8 +39,14 @@ class ManagedSet<InstanceType extends ManagedObject> extends Object
         ManagedContext.defaultContext.dataModel.entityForType(InstanceType);
   }
 
+  List<InstanceType> _innerValues;
+  InstanceType _matchOn;
+
   /// The [ManagedEntity] that represents the [InstanceType].
   ManagedEntity entity;
+
+  // todo: haveAtLeastOneWhere?
+  bool get hasMatchOn => _matchOn != null;
 
   /// Used by [Query] to apply constraints to fetching instances from this [ManagedSet].
   ///
@@ -61,8 +68,6 @@ class ManagedSet<InstanceType extends ManagedObject> extends Object
   }
 
   Map<String, dynamic> get backingMap => matchOn.backingMap;
-  List<InstanceType> _innerValues;
-  InstanceType _matchOn;
 
   /// Adds an [InstanceType] to this set.
   void add(InstanceType item) {
