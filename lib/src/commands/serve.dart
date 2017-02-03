@@ -102,7 +102,7 @@ class CLIServer extends CLIServeBase {
   /////
 
   Future<int> start() async {
-    await prepare();
+    prepare();
 
     var replacements = {
       "PACKAGE_NAME": packageName,
@@ -188,7 +188,7 @@ class CLIServer extends CLIServeBase {
     return 0;
   }
 
-  Future<Process> executeStartScript(File startScriptFile) async {
+  Future<Process> executeStartScript(File startScriptFile) {
     var args = <String>[];
     if (shouldRunObservatory) {
       args.add("--observe=8181");
@@ -201,12 +201,10 @@ class CLIServer extends CLIServeBase {
     }
 
     displayProgress("Starting process...");
-    var process = await Process.start("dart", args,
+    return Process.start("dart", args,
         workingDirectory: projectDirectory.absolute.path,
         runInShell: Platform.isWindows,
         mode: startMode);
-
-    return process;
   }
 
   void failWithError(int processPid, String reason) {
@@ -220,7 +218,7 @@ class CLIServer extends CLIServeBase {
     } catch (_) {}
   }
 
-  Future<String> checkForStartError(Process process) async {
+  Future<String> checkForStartError(Process process) {
     displayProgress("Verifying launch (PID ${process.pid})...");
 
     int timeoutInMilliseconds = startupTimeout * 1000;
@@ -285,17 +283,16 @@ class CLIServer extends CLIServeBase {
     derivedRequestSinkType = result;
   }
 
-  Future prepare() async {
+  void prepare() {
     displayInfo("Preparing...");
-    await Future
-        .wait(pidFilesInDirectory(projectDirectory).map((FileSystemEntity f) {
+    pidFilesInDirectory(projectDirectory).forEach((FileSystemEntity f) {
       var pidString =
           path_lib.relative(f.path, from: projectDirectory.path).split(".")[1];
 
       displayProgress("Stopping currently running server (PID: $pidString)");
 
-      return stopPidAndDelete(int.parse(pidString));
-    }));
+      stopPidAndDelete(int.parse(pidString));
+    });
   }
 
   String createScriptSource(Map<String, dynamic> values) {
@@ -398,7 +395,7 @@ class CLIServeStop extends CLIServeBase {
 }
 
 abstract class CLIServeBase extends CLICommand with CLIProject {
-  Future stopPidAndDelete(int pid) async {
+  void stopPidAndDelete(int pid) {
     var file = fileInProjectDirectory(pidPathForPid(pid));
     Process.killPid(pid);
     file.deleteSync();
@@ -429,6 +426,6 @@ Future<bool> supportsLaunchObservatory() async {
   return result.exitCode == 0;
 }
 
-Future launchObservatory(String url) async {
+Future launchObservatory(String url) {
   return Process.run("open", [url]);
 }

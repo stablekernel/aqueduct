@@ -91,9 +91,9 @@ class ManagedObjectController<InstanceType extends ManagedObject>
     var result = await _query?.fetchOne();
 
     if (result == null) {
-      return await didNotFindObject();
+      return didNotFindObject();
     } else {
-      return await didFindObject(result);
+      return didFindObject(result);
     }
   }
 
@@ -124,7 +124,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
     _query = await willInsertObjectWithQuery(_query);
     var result = await _query?.insert();
 
-    return await didInsertObject(result);
+    return didInsertObject(result);
   }
 
   /// Executed prior to a delete query being executed.
@@ -162,9 +162,9 @@ class ManagedObjectController<InstanceType extends ManagedObject>
     var result = await _query?.delete();
 
     if (result == 0) {
-      return await didNotFindObjectToDeleteWithID(id);
+      return didNotFindObjectToDeleteWithID(id);
     } else {
-      return await didDeleteObjectWithID(id);
+      return didDeleteObjectWithID(id);
     }
   }
 
@@ -207,7 +207,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
 
     var results = await _query?.updateOne();
     if (results == null) {
-      return await didNotFindObjectToDeleteWithID(id);
+      return didNotFindObjectToDeleteWithID(id);
     } else {
       return didUpdateObject(results);
     }
@@ -295,7 +295,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
 
     var results = await _query?.fetch();
 
-    return await didFindObjects(results);
+    return didFindObjects(results);
   }
 
   @override

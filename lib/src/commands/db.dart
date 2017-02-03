@@ -151,7 +151,7 @@ abstract class CLIDatabaseConnectingCommand extends CLICommand
 
   @override
   Future cleanup() async {
-    await _persistentStore?.close();
+    return _persistentStore?.close();
   }
 
   String get _dbConfigFormat {

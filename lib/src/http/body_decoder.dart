@@ -46,20 +46,19 @@ class HTTPBodyDecoder {
     innerMap[type.subType] = decoder;
   }
 
-  static Future<dynamic> _jsonDecoder(HttpRequest req) async {
-    var bodyAsString =
-        await streamDecoderForCharset(req.headers.contentType.charset)(req);
-    return JSON.decode(bodyAsString);
+  static Future<dynamic> _jsonDecoder(HttpRequest req) {
+    return streamDecoderForCharset(req.headers.contentType.charset)(req)
+        .then((str) => JSON.decode(str));
   }
 
-  static Future<dynamic> _wwwFormURLEncodedDecoder(HttpRequest req) async {
-    var bodyAsString = await streamDecoderForCharset(
+  static Future<dynamic> _wwwFormURLEncodedDecoder(HttpRequest req) {
+    return streamDecoderForCharset(
         req.headers.contentType.charset,
-        defaultEncoding: ASCII)(req);
-    return new Uri(query: bodyAsString).queryParametersAll;
+        defaultEncoding: ASCII)(req)
+    .then((bodyAsString) => new Uri(query: bodyAsString).queryParametersAll);
   }
 
-  static Future<dynamic> _textDecoder(HttpRequest req) async {
+  static Future<dynamic> _textDecoder(HttpRequest req) {
     return streamDecoderForCharset(req.headers.contentType.charset,
         defaultEncoding: ASCII)(req);
   }
@@ -75,7 +74,7 @@ class HTTPBodyDecoder {
   ///
   /// This method will return the decoded object as a [Future]. The [HttpRequest]'s Content-Type is evaluated
   /// for a matching decoding function in [_decoders]. If no such decoder is found, the body is returned as a [List] of bytes, where each byte is an [int].
-  static Future<dynamic> decode(HttpRequest request) async {
+  static Future<dynamic> decode(HttpRequest request) {
     if (request.headers.contentType == null) {
       return _binaryDecoder(request);
     }
