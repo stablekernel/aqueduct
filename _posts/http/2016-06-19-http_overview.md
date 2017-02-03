@@ -9,7 +9,7 @@ order: 1
 Aqueduct responds to HTTP requests. The primary components of handling HTTP requests are as follows:
 
 - Routing HTTP Requests by their path
-- Managing a stream of `Request`s that `RequestController`s listen to, which respond to requests passed to them downstream
+- Managing a stream of `Request`s that `RequestController`s either respond to or pass to another controller
 - Subclassing `RequestSink` to provide initialization and an entry point for HTTP requests into an application
 - Creating `Application` instances and spreading them across isolates (threads)
 - Using `HTTPController`s to respond to requests

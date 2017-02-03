@@ -20,12 +20,12 @@ A `Request` knows how to decode its HTTP request body into Dart objects. Request
 Request request = ...;
 
 // The body object is null initially
-request.requestBodyObject == null;
+request.requestBodyObject == null; // true
 
 // After decode, the body object is non-null (if there was an HTTP body), and
 // requestBodyObject is set.
 var body = await request.decodeBody();
-request.requestBodyObject == body;
+request.requestBodyObject == body; // true
 ```
 
 The actual decoding behavior is performed by the class `HTTPBodyDecoder`. This class has a `Map` of decoders, where the key is a `ContentType` and the value is a function that transforms the body into Dart objects. By default, `HTTPBodyDecoder` knows how to decode `application/json`, `application/x-www-form-urlencoded` and `text/*` bodies. You may add additional decoders with `HTTPBodyDecoder.addDecoder` to support more content types.
