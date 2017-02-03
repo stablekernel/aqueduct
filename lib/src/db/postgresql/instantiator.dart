@@ -1,7 +1,7 @@
 import 'dart:mirrors';
 
 import '../db.dart';
-import '../query/mapper.dart';
+import 'postgresql_mapping.dart';
 
 class ManagedInstantiator {
   ManagedInstantiator(this.rootEntity);
@@ -12,6 +12,17 @@ class ManagedInstantiator {
 
   void set properties(List<String> props) {
     orderedMappingElements = mappersForKeys(rootEntity, props);
+  }
+
+  List<PropertyToRowMapper> get joinMappers {
+    return orderedMappingElements.expand((c) {
+      if (c is PropertyToRowMapper) {
+        var total = [c];
+        total.addAll(c.orderedNestedRowMappings);
+        return total;
+      }
+      return <PropertyToRowMapper>[];
+    }).toList();
   }
 
   List<PropertyToColumnMapper> get flattenedMappingElements {
@@ -25,48 +36,6 @@ class ManagedInstantiator {
 
   void addJoinElements(List<PropertyToRowMapper> elements) {
     orderedMappingElements.addAll(elements);
-  }
-
-  Map<ManagedPropertyDescription, dynamic> translateValueMap(
-      Map<String, dynamic> valueMap) {
-    if (valueMap == null) {
-      return null;
-    }
-
-    var returnMap = <ManagedPropertyDescription, dynamic>{};
-    valueMap.forEach((key, value) {
-      var property = rootEntity.properties[key];
-
-      if (property == null) {
-        throw new QueryException(QueryExceptionEvent.requestFailure,
-            message:
-                "Property $key in values does not exist on ${rootEntity.tableName}");
-      }
-
-      var value = valueMap[key];
-      if (property is ManagedRelationshipDescription) {
-        if (property.relationshipType != ManagedRelationshipType.belongsTo) {
-          return;
-        }
-
-        if (value != null) {
-          if (value is ManagedObject) {
-            value = value[property.destinationEntity.primaryKey];
-          } else if (value is Map) {
-            value = value[property.destinationEntity.primaryKey];
-          } else {
-            throw new QueryException(QueryExceptionEvent.internalFailure,
-                message:
-                    "Property $key on ${rootEntity.tableName} in 'Query.values' must be a 'Map' or ${MirrorSystem.getName(
-                    property.destinationEntity.instanceType.simpleName)} ");
-          }
-        }
-      }
-
-      returnMap[property] = value;
-    });
-
-    return returnMap;
   }
 
   void exhaustNullInstanceIterator(Iterator<dynamic> rowIterator,

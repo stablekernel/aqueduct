@@ -49,9 +49,9 @@ abstract class Query<InstanceType extends ManagedObject> {
   /// The [ManagedContext] this query will be executed on.
   ManagedContext get context;
 
-  /// A convenience for building [predicate]s in a safe way.
+  /// A convenience for building [resolvedPredicate]s in a safe way.
   ///
-  /// Use this property instead of providing a [predicate] to filter the rows this query manipulates or fetches. This property
+  /// Use this property instead of providing a [resolvedPredicate] to filter the rows this query manipulates or fetches. This property
   /// is an instance of [InstanceType] with special [ManagedObject.backingMap] behavior. When you set properties of this property using
   /// matchers (see examples such as [whereEqualTo] and [whereContains]), the underlying database will generate a [QueryPredicate] to
   /// match the behavior of these matches. For example, the following query will generate a predicate that only operates on rows
@@ -142,8 +142,8 @@ abstract class Query<InstanceType extends ManagedObject> {
 
   /// Updates [InstanceType]s in the underlying database.
   ///
-  /// The [Query] must have its [values] or [valueMap] property set and should likely have its [predicate] or [where] set as well. This operation will
-  /// update each row that matches the conditions in [predicate]/[where] with the values from [values] or [valueMap]. If no [where] or [predicate] is set,
+  /// The [Query] must have its [values] or [valueMap] property set and should likely have its [resolvedPredicate] or [where] set as well. This operation will
+  /// update each row that matches the conditions in [resolvedPredicate]/[where] with the values from [values] or [valueMap]. If no [where] or [resolvedPredicate] is set,
   /// this method will throw an exception by default, assuming that you don't typically want to update every row in a database table. To specify otherwise,
   /// set [canModifyAllInstances] to true.
   /// The return value is a [Future] that completes with the any updated [InstanceType]s. Example:
@@ -162,7 +162,7 @@ abstract class Query<InstanceType extends ManagedObject> {
 
   /// Fetches [InstanceType]s from the database.
   ///
-  /// This operation will return all [InstanceType]s from the database, filtered by [predicate]/[where]. Example:
+  /// This operation will return all [InstanceType]s from the database, filtered by [resolvedPredicate]/[where]. Example:
   ///
   ///       var q = new Query<User>();
   ///       var allUsers = q.fetch();
@@ -176,7 +176,7 @@ abstract class Query<InstanceType extends ManagedObject> {
 
   /// Deletes [InstanceType]s from the underlying database.
   ///
-  /// This method will delete rows identified by [predicate]/[where]. If no [where] or [predicate] is set,
+  /// This method will delete rows identified by [resolvedPredicate]/[where]. If no [where] or [resolvedPredicate] is set,
   /// this method will throw an exception by default, assuming that you don't typically want to delete every row in a database table. To specify otherwise,
   /// set [canModifyAllInstances] to true.
   ///

@@ -5,7 +5,7 @@ import 'query.dart';
 import 'matcher_internal.dart';
 
 abstract class QueryMixin<InstanceType extends ManagedObject>
-    implements Query<InstanceType>, QueryMatcherTranslator {
+    implements Query<InstanceType> {
   ManagedEntity _entity;
   ManagedEntity get entity =>
       _entity ?? context.dataModel.entityForType(InstanceType);
@@ -18,25 +18,14 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
   List<QuerySortDescriptor> sortDescriptors;
   Map<String, dynamic> valueMap;
 
-  bool get hasWhereBuilder => _whereBuilder != null;
+  bool get hasWhereBuilder => _whereBuilder?.backingMap?.isNotEmpty ?? false;
   Map<ManagedRelationshipDescription, Query> subQueries;
 
-  QueryPredicate _predicate;
+  QueryPredicate predicate;
+
   List<String> _resultProperties;
   InstanceType _whereBuilder;
   InstanceType _valueObject;
-
-  QueryPredicate get predicate {
-    if (_whereBuilder != null) {
-      _predicate = predicateFromMatcherBackedObject(where);
-    }
-
-    return _predicate;
-  }
-
-  void set predicate(QueryPredicate p) {
-    _predicate = p;
-  }
 
   List<String> get propertiesToFetch {
     return _resultProperties ?? entity.defaultProperties;
@@ -70,7 +59,7 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
 
     var property = m(where);
     var matchingKey = entity.relationships.keys.firstWhere((key) {
-      return where.backingMap[key] == property;
+      return identical(where.backingMap[key], property);
     });
 
     var attr = entity.relationships[matchingKey];
@@ -97,7 +86,7 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
     return subquery;
   }
 
-  QueryPredicate predicateFromMatcherBackedObject(ManagedObject obj) {
+  QueryPredicate predicateFromMatcherBackedObject(ManagedObject obj, QueryMatcherTranslator translator) {
     if (obj == null) {
       return null;
     }
@@ -117,15 +106,15 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
       var matcher = obj.backingMap[queryKey];
 
       if (matcher is ComparisonMatcherExpression) {
-        return comparisonPredicate(desc, matcher.operator, matcher.value);
+        return translator.comparisonPredicate(desc, matcher.operator, matcher.value);
       } else if (matcher is RangeMatcherExpression) {
-        return rangePredicate(desc, matcher.lhs, matcher.rhs, matcher.within);
+        return translator.rangePredicate(desc, matcher.lhs, matcher.rhs, matcher.within);
       } else if (matcher is NullMatcherExpression) {
-        return nullPredicate(desc, matcher.shouldBeNull);
+        return translator.nullPredicate(desc, matcher.shouldBeNull);
       } else if (matcher is WithinMatcherExpression) {
-        return containsPredicate(desc, matcher.values);
+        return translator.containsPredicate(desc, matcher.values);
       } else if (matcher is StringMatcherExpression) {
-        return stringPredicate(desc, matcher.operator, matcher.value);
+        return translator.stringPredicate(desc, matcher.operator, matcher.value);
       }
 
       throw new QueryPredicateException(
@@ -142,9 +131,9 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
     }).map((propertyName) {
       var innerObject = obj.backingMap[propertyName];
       if (innerObject is ManagedSet) {
-        return predicateFromMatcherBackedObject(innerObject.matchOn);
+        return predicateFromMatcherBackedObject(innerObject.matchOn, translator);
       }
-      return predicateFromMatcherBackedObject(innerObject);
+      return predicateFromMatcherBackedObject(innerObject, translator);
     }).toList();
 
     if (relationshipPredicates.isEmpty) {

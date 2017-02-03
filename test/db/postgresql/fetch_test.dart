@@ -57,7 +57,7 @@ void main() {
       ..sortDescriptors = [
         new QuerySortDescriptor("email", QuerySortOrder.ascending)
       ]
-      ..predicate = new QueryPredicate("email like @key", {"key": "asc%"});
+      ..predicate= new QueryPredicate("email like @key", {"key": "asc%"});
 
     var result = await req.fetch();
 
@@ -242,8 +242,8 @@ void main() {
     expect(result.id, greaterThan(0));
     expect(result.backingMap["text"], isNull);
 
-    var matcher = new Query<Omit>()..where["id"] = whereEqualTo(result.id);
-    var fq = new Query<Omit>()..predicate = matcher.predicate;
+//    var matcher = new Query<Omit>()..where["id"] = whereEqualTo(result.id);
+    var fq = new Query<Omit>()..predicate = new QueryPredicate("id=@id", {"id" : result.id});
 
     var fResult = await fq.fetchOne();
     expect(fResult.id, result.id);
