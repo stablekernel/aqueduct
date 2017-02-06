@@ -1,6 +1,7 @@
 import 'package:postgres/postgres.dart';
 import '../db.dart';
 import '../query/mixin.dart';
+import 'dart:mirrors';
 
 class PostgresNamer implements QueryMatcherTranslator {
   Map<ManagedEntity, Map<ManagedPropertyDescription, String>> tableAliases = {};
@@ -206,25 +207,30 @@ ManagedPropertyDescription propertyForName(
   return property;
 }
 
-List<PropertyToColumnMapper> mappersForKeys(
-    ManagedEntity entity, List<String> keys) {
-  var primaryKeyIndex = keys.indexOf(entity.primaryKey);
-  if (primaryKeyIndex == -1) {
-    keys.insert(0, entity.primaryKey);
-  } else if (primaryKeyIndex > 0) {
-    keys.removeAt(primaryKeyIndex);
-    keys.insert(0, entity.primaryKey);
-  }
+abstract class PropertyMapper {
+  PropertyMapper(this.property);
 
-  return keys
-      .map((key) => new PropertyToColumnMapper(propertyForName(entity, key)))
-      .toList();
+  String get name;
+  ManagedPropertyDescription property;
 }
 
-class PropertyToColumnMapper {
-  PropertyToColumnMapper(this.property);
+class PropertyToColumnMapper extends PropertyMapper {
+  static List<PropertyToColumnMapper> fromKeys(ManagedEntity entity, List<String> keys) {
+    var primaryKeyIndex = keys.indexOf(entity.primaryKey);
+    if (primaryKeyIndex == -1) {
+      keys.insert(0, entity.primaryKey);
+    } else if (primaryKeyIndex > 0) {
+      keys.removeAt(primaryKeyIndex);
+      keys.insert(0, entity.primaryKey);
+    }
 
-  ManagedPropertyDescription property;
+    return keys
+        .map((key) => new PropertyToColumnMapper(propertyForName(entity, key)))
+        .toList();
+  }
+
+  PropertyToColumnMapper(ManagedPropertyDescription property) : super(property);
+
   String get name => property.name;
 
   String toString() {
@@ -232,14 +238,21 @@ class PropertyToColumnMapper {
   }
 }
 
-class PropertyToRowMapper extends PropertyToColumnMapper {
+class PropertyToColumnValue extends PropertyMapper {
+  PropertyToColumnValue(ManagedPropertyDescription property, this.value) : super(property);
+
+  String get name => property.name;
+  dynamic value;
+}
+
+class PropertyToRowMapper extends PropertyMapper {
   PropertyToRowMapper(this.type, ManagedPropertyDescription property, this.orderedMappingElements, {this.explicitPredicate, this.where})
       : super(property) {}
 
   PersistentJoinType type;
   ManagedObject where;
   QueryPredicate explicitPredicate;
-  List<PropertyToColumnMapper> orderedMappingElements;
+  List<PropertyMapper> orderedMappingElements;
 
   String get name {
     ManagedRelationshipDescription p = property;
@@ -249,7 +262,7 @@ class PropertyToRowMapper extends PropertyToColumnMapper {
   ManagedPropertyDescription get joinProperty =>
       (property as ManagedRelationshipDescription).inverseRelationship;
 
-  List<PropertyToColumnMapper> get flattened {
+  List<PropertyMapper> get flattened {
     return orderedMappingElements.expand((c) {
       if (c is PropertyToRowMapper) {
         return c.flattened;

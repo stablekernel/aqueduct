@@ -25,65 +25,39 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
 
   @override
   Future<InstanceType> insert() async {
-    var rowMapper = new ManagedInstantiator(entity)
-      ..properties = propertiesToFetch;
-    var namer = new PostgresNamer();
-
-    var propertyValues = validatedPropertyValueMap((valueMap ?? values?.backingMap));
-    var propertyValueKeys = propertyValues.keys;
+    var rowMapper = new ManagedInstantiator(entity,
+        returningProperties: propertiesToFetch,
+        values: valueMap ?? values?.backingMap);
 
     var buffer = new StringBuffer();
-    buffer.write("INSERT INTO ${namer.tableDefinitionForEntity(entity)} ");
-    buffer.write("(${namer.columnNamesForProperties(propertyValueKeys)}) ");
-    buffer.write(
-        "VALUES (${namer.columnNamesForProperties(propertyValueKeys, withTypeSuffix: true, withPrefix: "@")}) ");
+    buffer.write("INSERT INTO ${rowMapper.tableDefinition} ");
+    buffer.write("(${rowMapper.valuesColumnString}) ");
+    buffer.write("VALUES (${rowMapper.insertionValueString}) ");
 
     if ((rowMapper.orderedMappingElements?.length ?? 0) > 0) {
-      buffer.write(
-          "RETURNING ${namer.columnNamesForProperties(rowMapper.orderedMappingElements.map((c) => c.property))}");
+      buffer.write("RETURNING ${rowMapper.returningColumnString}");
     }
 
-    var substitutionValues = <String, dynamic>{};
-    propertyValues.forEach((k, v) {
-      substitutionValues[namer.columnNameForProperty(k)] = v;
-    });
-
     var results = await context.persistentStore
-        .executeQuery(buffer.toString(), substitutionValues, timeoutInSeconds);
+        .executeQuery(buffer.toString(), rowMapper.insertionValueMap, timeoutInSeconds);
 
     return rowMapper.instancesForRows(results).first;
   }
 
   @override
   Future<List<InstanceType>> update() async {
-    var rowMapper = new ManagedInstantiator(entity)
-      ..properties = propertiesToFetch;
-    var namer = new PostgresNamer();
-    var prefix = "u_";
-    var propertyValues = validatedPropertyValueMap((valueMap ?? values?.backingMap));
-    var propertyValueKeys = propertyValues.keys;
-    var updateValueMap = <String, dynamic>{};
-
-    propertyValues.forEach((k, v) {
-      updateValueMap[namer.columnNameForProperty(k, withPrefix: prefix)] = v;
-    });
-
-    var assignments = propertyValueKeys.map((m) {
-      var name = namer.columnNameForProperty(m);
-      var typedName =
-        namer.columnNameForProperty(m, withTypeSuffix: true, withPrefix: "$prefix");
-      return "$name=@$typedName";
-    }).join(",");
+    var rowMapper = new ManagedInstantiator(entity,
+        returningProperties: propertiesToFetch,
+        values: valueMap ?? values?.backingMap,
+        whereBuilder: (hasWhereBuilder ? where : null),
+        predicate: predicate);
 
     var buffer = new StringBuffer();
-    buffer.write("UPDATE ${namer.tableDefinitionForEntity(entity)} SET $assignments ");
+    buffer.write("UPDATE ${rowMapper.tableDefinition} ");
+    buffer.write("SET ${rowMapper.updateValueString} ");
 
-    var p = hasWhereBuilder ? predicateFromMatcherBackedObject(where, namer) : predicate;
-    if (p != null) {
-      buffer.write("WHERE ${p.format} ");
-      if (p.parameters != null) {
-        updateValueMap.addAll(p.parameters);
-      }
+    if (rowMapper.whereClause != null) {
+      buffer.write("WHERE ${rowMapper.whereClause} ");
     } else if (!canModifyAllInstances) {
       throw new QueryException(QueryExceptionEvent.internalFailure,
           message:
@@ -92,11 +66,11 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
 
     if ((rowMapper.orderedMappingElements?.length ?? 0) > 0) {
       buffer.write(
-          "RETURNING ${namer.columnNamesForProperties(rowMapper.orderedMappingElements.map((c) => c.property))}");
+          "RETURNING ${rowMapper.returningColumnString}");
     }
 
     var results = await context.persistentStore
-        .executeQuery(buffer.toString(), updateValueMap, timeoutInSeconds);
+        .executeQuery(buffer.toString(), rowMapper.updateValueMap, timeoutInSeconds);
 
     return rowMapper.instancesForRows(results);
   }
@@ -117,13 +91,14 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
 
   @override
   Future<int> delete() async {
-    var namer = new PostgresNamer();
-    var buffer = new StringBuffer();
-    buffer.write("DELETE FROM ${namer.tableDefinitionForEntity(entity)} ");
+    var rowMapper = new ManagedInstantiator(entity,
+        predicate: predicate,
+        whereBuilder: hasWhereBuilder ? where : null);
 
-    var p = hasWhereBuilder ? predicateFromMatcherBackedObject(where, namer) : predicate;
-    if (p != null) {
-      buffer.write("WHERE ${p.format} ");
+    var buffer = new StringBuffer();
+    buffer.write("DELETE FROM ${rowMapper.tableDefinition} ");
+    if (rowMapper.whereClause != null) {
+      buffer.write("WHERE ${rowMapper.whereClause} ");
     } else if (!canModifyAllInstances) {
       throw new QueryException(QueryExceptionEvent.internalFailure,
           message:
@@ -131,7 +106,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
     }
 
     return context.persistentStore.executeQuery(
-        buffer.toString(), p?.parameters, timeoutInSeconds,
+        buffer.toString(), rowMapper.predicateValueMap, timeoutInSeconds,
         returnType: PersistentStoreQueryReturnType.rowCount);
   }
 
@@ -164,23 +139,40 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
   //////
 
   ManagedInstantiator createFetchMapper() {
-    // Let's build all predicates in here, and do all aliasing in here, do away with lazy building
-    // because the namer is such a core component.
-    // Primarily predicate naming is the issue. Only this instance needs to know about naming, and only
-    // in building the query does this matter. After that, it doesn't matter.. so do we need
-    // a namer up front? Don't store as ivar, keep as local var to actual execute method.
+    if (pageDescriptor != null) {
+      validatePageDescriptor();
+      if (pageDescriptor.boundingValue != null)
+//      if (pageDescriptor?.boundingValue == null) {
+//        return null;
+//      }
+//
+//      var pagingProperty = entity.properties[pageDescriptor.propertyName];
+//      var operator =
+//      (pageDescriptor.order == QuerySortOrder.ascending ? ">" : "<");
+//      var prefix = "aq_page_";
+//
+//      var columnName =
+//      namer.columnNameForProperty(pagingProperty, withTableNamespace: true);
+//      var variableName =
+//      namer.columnNameForProperty(pagingProperty, withPrefix: prefix);
+//
+//      return new QueryPredicate(
+//          "$columnName ${operator} @$variableName${namer.typeSuffixForProperty(pagingProperty)}",
+//          {variableName: pageDescriptor.boundingValue});
+    }
 
     var rowMapper = new ManagedInstantiator(entity)
       ..properties = propertiesToFetch
-      ..addJoinElements(joinElementsFromQuery(this));
+      ..addJoinElements(joinElementsFromQuery(this))
+      ..queryPredicate = predicate
+      ..queryPredicateObject = hasWhereBuilder ? where : null;
 
-    bool hasJoins = rowMapper.orderedMappingElements.any((m) => m is PropertyToRowMapper);
-    if (hasJoins) {
-      if (pageDescriptor != null) {
-        throw new QueryException(QueryExceptionEvent.requestFailure,
-            message:
-            "Cannot use 'Query<T>' with both 'pageDescriptor' and joins currently.");
-      }
+    // Have to also add pagingPredicate if it exists...
+
+    if (rowMapper.containsJoins && pageDescriptor != null) {
+      throw new QueryException(QueryExceptionEvent.requestFailure,
+          message:
+          "Cannot use 'Query<T>' with both 'pageDescriptor' and joins currently.");
     }
 
     return rowMapper;
@@ -189,51 +181,20 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
   Future<List<InstanceType>> _fetch(ManagedInstantiator rowMapper) async {
     var namer = new PostgresNamer();
 
-    var joinElements = rowMapper.orderedMappingElements
-        .where((mapElement) => mapElement is PropertyToRowMapper)
-        .map((mapElement) => mapElement as PropertyToRowMapper)
-        .toList();
-    var hasJoins = joinElements.isNotEmpty;
-    Map<String, dynamic> joinVariables;
-    var joinBuffer = new StringBuffer();
-    if (hasJoins) {
-      namer.addAliasForEntity(entity);
-      joinVariables = {};
-
-      var joinWriter = (PropertyToRowMapper j) {
-        namer.addAliasForEntity(j.joinProperty.entity);
-        var p = j.where == null ? j.explicitPredicate : predicateFromMatcherBackedObject(j.where, namer);
-        joinBuffer.write("${joinStringForJoin(j, p, namer)} ");
-        if (p?.parameters != null) {
-          joinVariables.addAll(p.parameters);
-        }
-      };
-
-      joinElements.forEach((joinElement) {
-        joinWriter(joinElement);
-        joinElement.orderedNestedRowMappings.forEach(joinWriter);
-      });
-    }
-
-    var columnsToFetch = rowMapper.flattenedMappingElements.map((mapElement) {
-      return namer.columnNameForProperty(mapElement.property,
-          withTableNamespace: hasJoins);
-    }).join(",");
-
     var p = hasWhereBuilder ? predicateFromMatcherBackedObject(where, namer) : predicate;
     var allPredicates = QueryPredicate.andPredicates(
         [p, pagingPredicate(namer)].where((p) => p != null));
 
     var buffer = new StringBuffer();
-    buffer.write("SELECT $columnsToFetch ");
-    buffer.write("FROM ${namer.tableDefinitionForEntity(entity)} ");
+    buffer.write("SELECT ${rowMapper.namespacedReturningColumnString} ");
+    buffer.write("FROM ${rowMapper.tableDefinition} ");
 
-    if (hasJoins) {
-      buffer.write("${joinBuffer.toString()}");
+    if (rowMapper.containsJoins) {
+      buffer.write("${rowMapper.joinString} ");
     }
 
-    if (allPredicates != null) {
-      buffer.write("WHERE ${allPredicates.format} ");
+    if (rowMapper.whereClause != null) {
+      buffer.write("WHERE ${rowMapper.whereClause} ");
     }
 
     buffer.write("${orderByString(namer)} ");
@@ -246,13 +207,8 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
       buffer.write("OFFSET ${offset} ");
     }
 
-    var variables = allPredicates?.parameters ?? {};
-    if (hasJoins) {
-      variables.addAll(joinVariables);
-    }
-
     var results = await context.persistentStore
-        .executeQuery(buffer.toString(), variables, timeoutInSeconds);
+        .executeQuery(buffer.toString(), rowMapper.predicateValueMap, timeoutInSeconds);
 
     return rowMapper.instancesForRows(results);
   }
@@ -330,7 +286,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
           var joinElement = new PropertyToRowMapper(
               PersistentJoinType.leftOuter,
               relationshipDesc,
-              mappersForKeys(subQuery.entity, subQuery.propertiesToFetch),
+              PropertyToColumnMapper.fromKeys(subQuery.entity, subQuery.propertiesToFetch),
               explicitPredicate: subQuery.predicate,
               where: subQuery.hasWhereBuilder ? subQuery.where : null);
 
@@ -413,47 +369,5 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
     }
 
     return "${namer.stringForJoinType(ji.type)} JOIN ${namer.tableDefinitionForEntity(ji.joinProperty.entity)} ON ${predicate.format}";
-  }
-
-  Map<ManagedPropertyDescription, dynamic> validatedPropertyValueMap(
-      Map<String, dynamic> valueMap) {
-    if (valueMap == null) {
-      return null;
-    }
-
-    var returnMap = <ManagedPropertyDescription, dynamic>{};
-    valueMap.forEach((key, value) {
-      var property = entity.properties[key];
-
-      if (property == null) {
-        throw new QueryException(QueryExceptionEvent.requestFailure,
-            message:
-            "Property $key in values does not exist on ${entity.tableName}");
-      }
-
-      var value = valueMap[key];
-      if (property is ManagedRelationshipDescription) {
-        if (property.relationshipType != ManagedRelationshipType.belongsTo) {
-          return;
-        }
-
-        if (value != null) {
-          if (value is ManagedObject) {
-            value = value[property.destinationEntity.primaryKey];
-          } else if (value is Map) {
-            value = value[property.destinationEntity.primaryKey];
-          } else {
-            throw new QueryException(QueryExceptionEvent.internalFailure,
-                message:
-                "Property $key on ${entity.tableName} in 'Query.values' must be a 'Map' or ${MirrorSystem.getName(
-                    property.destinationEntity.instanceType.simpleName)} ");
-          }
-        }
-      }
-
-      returnMap[property] = value;
-    });
-
-    return returnMap;
   }
 }

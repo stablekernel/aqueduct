@@ -151,6 +151,7 @@ dynamic whereRelatedByValue(dynamic foreignKeyValue) {
       foreignKeyValue, MatcherOperator.equalTo);
 }
 
+
 /// Matcher for matching null in a [Query].
 ///
 /// See [Query.where]. Example:
@@ -166,6 +167,7 @@ const dynamic whereNull = const NullMatcherExpression(true);
 ///       var q = new Query<Employee>()
 ///         ..where.manager = whereNotNull;
 const dynamic whereNotNull = const NullMatcherExpression(false);
+
 
 /// Thrown when a [Query] matcher is invalid.
 class PredicateMatcherException implements Exception {
