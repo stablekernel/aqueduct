@@ -1,8 +1,9 @@
 import 'property_mapper.dart';
 import '../db.dart';
+import 'entity_table.dart';
 
 class PropertyToColumnMapper extends PropertyMapper {
-  static List<PropertyToColumnMapper> fromKeys(
+  static List<PropertyToColumnMapper> fromKeys(EntityTableMapper table,
       ManagedEntity entity, List<String> keys) {
     var primaryKeyIndex = keys.indexOf(entity.primaryKey);
     if (primaryKeyIndex == -1) {
@@ -13,7 +14,7 @@ class PropertyToColumnMapper extends PropertyMapper {
     }
 
     return keys
-        .map((key) => new PropertyToColumnMapper(propertyForName(entity, key)))
+        .map((key) => new PropertyToColumnMapper(table, propertyForName(entity, key)))
         .toList();
   }
 
@@ -38,9 +39,7 @@ class PropertyToColumnMapper extends PropertyMapper {
     return property;
   }
 
-  PropertyToColumnMapper(ManagedPropertyDescription property) : super(property);
-
-  String get name => property.name;
+  PropertyToColumnMapper(EntityTableMapper table, ManagedPropertyDescription property) : super(table, property);
 
   String toString() {
     return "Mapper on $property";
@@ -48,9 +47,8 @@ class PropertyToColumnMapper extends PropertyMapper {
 }
 
 class PropertyToColumnValue extends PropertyMapper {
-  PropertyToColumnValue(ManagedPropertyDescription property, this.value)
-      : super(property);
+  PropertyToColumnValue(EntityTableMapper table, ManagedPropertyDescription property, this.value)
+      : super(table, property);
 
-  String get name => property.name;
   dynamic value;
 }

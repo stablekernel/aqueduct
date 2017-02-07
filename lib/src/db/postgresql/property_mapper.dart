@@ -2,6 +2,8 @@ import 'package:postgres/postgres.dart';
 import '../db.dart';
 
 import 'property_expression.dart';
+import 'entity_table.dart';
+import 'query_builder.dart';
 
 export 'property_expression.dart';
 export 'property_column.dart';
@@ -9,7 +11,7 @@ export 'property_row.dart';
 
 enum PersistentJoinType { leftOuter }
 
-abstract class PropertyMapper {
+abstract class PropertyMapper extends PostgresMapper {
   static Map<ManagedPropertyType, PostgreSQLDataType> typeMap = {
     ManagedPropertyType.integer: PostgreSQLDataType.integer,
     ManagedPropertyType.bigInteger: PostgreSQLDataType.bigInteger,
@@ -37,11 +39,10 @@ abstract class PropertyMapper {
     return "";
   }
 
-  PropertyMapper(this.property);
+  PropertyMapper(this.table, this.property);
 
-  String get name;
   ManagedPropertyDescription property;
-  String tableAlias;
+  EntityTableMapper table;
 
   String columnName({bool withTypeSuffix: false, bool withTableNamespace: false, String withPrefix: null}) {
     var name = property.name;
@@ -54,8 +55,7 @@ abstract class PropertyMapper {
     }
 
     if (withTableNamespace) {
-      var resolvedTableName = tableAlias ?? property.entity.tableName;
-      return "$resolvedTableName.$name";
+      return "${table.tableReference}.$name";
     } else if (withPrefix != null) {
       return "$withPrefix$name";
     }
@@ -64,7 +64,7 @@ abstract class PropertyMapper {
   }
 }
 
-abstract class PredicateBuilder {
+abstract class PredicateBuilder implements EntityTableMapper {
   ManagedEntity get entity;
 
   QueryPredicate predicateFrom(ManagedObject matcherObject, List<QueryPredicate> predicates) {
@@ -89,7 +89,7 @@ abstract class PredicateBuilder {
       return true;
     })
     .map((propertyName) {
-      return new PropertyExpression(entity.properties[propertyName], obj.backingMap[propertyName]);
+      return new PropertyExpression(this, entity.properties[propertyName], obj.backingMap[propertyName]);
     })
     .toList();
 

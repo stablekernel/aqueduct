@@ -4,9 +4,12 @@ import 'package:postgres/postgres.dart';
 
 import '../db.dart';
 import 'property_mapper.dart';
+import 'entity_table.dart';
 import 'row_instantiator.dart';
 
-class PostgresQueryBuilder extends Object with PredicateBuilder, RowInstantiator {
+abstract class PostgresMapper {}
+
+class PostgresQueryBuilder extends Object with PredicateBuilder, RowInstantiator, EntityTableMapper {
   static const String valueKeyPrefixWhenUsingPredicate = "u_";
 
   PostgresQueryBuilder(this.entity,
@@ -15,17 +18,19 @@ class PostgresQueryBuilder extends Object with PredicateBuilder, RowInstantiator
       ManagedObject whereBuilder,
       QueryPredicate predicate,
       List<RowMapper> nestedRowMappers,
-      this.sortDescriptors}) {
+      List<QuerySortDescriptor> sortDescriptors}) {
+
     this.properties = returningProperties;
+    this.sortMappers = sortDescriptors
+        ?.map((sd) => new PropertySortMapper(this, entity.properties[sd.key], sd.order))
+        ?.toList();
     substitutionValueMap = <String, dynamic>{};
 
     if (nestedRowMappers != null) {
-      orderedMappers.addAll(nestedRowMappers);
+      returningOrderedMappers.addAll(nestedRowMappers);
       nestedRowMappers.forEach((rm) {
-        rm.build();
-        substitutionValueMap.addAll(rm.substitutionVariables);
+        rm.parentTable = this;
       });
-      // alias them, build them
     }
 
     this.predicate = predicateFrom(whereBuilder, [predicate]);
@@ -44,17 +49,20 @@ class PostgresQueryBuilder extends Object with PredicateBuilder, RowInstantiator
       };
     }
     columnValues.forEach(valueKeyMapper);
+
+    nestedRowMappers?.forEach((rm) {
+      substitutionValueMap.addAll(rm.substitutionVariables);
+    });
   }
 
   List<PropertyToColumnValue> columnValues;
   QueryPredicate predicate;
-  List<QuerySortDescriptor> sortDescriptors;
-  List<PropertyMapper> orderedMappers;
+  List<PropertySortMapper> sortMappers;
   Map<String, dynamic> substitutionValueMap;
   ManagedEntity entity;
 
-  List<PropertyMapper> get flattenedMappingElements {
-    return orderedMappers.expand((c) {
+  List<PropertyToColumnMapper> get flattenedMappingElements {
+    return returningOrderedMappers.expand((c) {
       if (c is RowMapper) {
         return c.flattened;
       }
@@ -62,12 +70,11 @@ class PostgresQueryBuilder extends Object with PredicateBuilder, RowInstantiator
     }).toList();
   }
 
-  String get primaryTableDefinition {
-    return entity.tableName;
-  }
+  String get primaryTableDefinition => tableDefinition;
 
+  // todo: optimize this
   bool get containsJoins {
-    return orderedMappers.reversed.any((m) => m is RowMapper);
+    return returningOrderedMappers.reversed.any((m) => m is RowMapper);
   }
 
   String get whereClause {
@@ -97,7 +104,7 @@ class PostgresQueryBuilder extends Object with PredicateBuilder, RowInstantiator
   }
 
   String get joinString {
-    return orderedMappers
+    return returningOrderedMappers
         .where((e) => e is RowMapper)
         .map((e) => (e as RowMapper).joinString)
         .join(" ");
@@ -110,26 +117,19 @@ class PostgresQueryBuilder extends Object with PredicateBuilder, RowInstantiator
   }
 
   String get orderByString {
-    if (sortDescriptors.length == 0) {
+    if ((sortMappers?.length ?? 0) == 0) {
       return "";
     }
 
-    var joinedSortDescriptors = sortDescriptors.map((QuerySortDescriptor sd) {
-      var property = entity.properties[sd.key];
-      var order = (sd.order == QuerySortOrder.ascending ? "ASC" : "DESC");
-
-      return "${property.name} $order";
-    }).join(",");
-
-    return "ORDER BY $joinedSortDescriptors";
+    return "ORDER BY ${sortMappers.map((s) => s.orderByString).join(",")}";
   }
 
   void set properties(List<String> props) {
     if (props != null) {
-      orderedMappers =
-          PropertyToColumnMapper.fromKeys(entity, props);
+      returningOrderedMappers =
+          PropertyToColumnMapper.fromKeys(this, entity, props);
     } else {
-      orderedMappers = null;
+      returningOrderedMappers = null;
     }
   }
 
@@ -174,7 +174,6 @@ class PostgresQueryBuilder extends Object with PredicateBuilder, RowInstantiator
       }
     }
 
-    return new PropertyToColumnValue(property, value);
+    return new PropertyToColumnValue(this, property, value);
   }
 }
-

@@ -1,12 +1,12 @@
 import 'property_mapper.dart';
 import '../query/matcher_internal.dart';
 import '../db.dart';
+import 'entity_table.dart';
 
 class PropertyExpression extends PropertyMapper {
-  PropertyExpression(ManagedPropertyDescription property, this.expression)
-      : super(property);
+  PropertyExpression(EntityTableMapper table, ManagedPropertyDescription property, this.expression)
+      : super(table, property);
 
-  String get name => property.name;
   MatcherExpression expression;
 
   QueryPredicate get predicate {
@@ -97,4 +97,16 @@ class PropertyExpression extends PropertyMapper {
         "$n LIKE @$variableName${PropertyMapper.typeSuffixForProperty(property)}",
         {variableName: matchValue});
   }
+}
+
+class PropertySortMapper extends PropertyMapper {
+  PropertySortMapper(EntityTableMapper table, ManagedPropertyDescription property, QuerySortOrder order)
+      : super(table, property) {
+    this.order = (order == QuerySortOrder.ascending ? "ASC" : "DESC");
+  }
+
+  String order;
+
+  String get orderByString =>
+    "${columnName(withTableNamespace: true)} $order";
 }

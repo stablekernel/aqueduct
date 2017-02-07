@@ -2,10 +2,10 @@ import 'package:postgres/postgres.dart';
 
 import '../db.dart';
 import 'property_mapper.dart';
-
+import 'query_builder.dart';
 
 abstract class RowInstantiator {
-  List<PropertyMapper> get orderedMappers;
+  List<PostgresMapper> get returningOrderedMappers;
   Map<String, Map<dynamic, ManagedObject>> distinctObjects = {};
   ManagedEntity get entity;
 
@@ -15,7 +15,7 @@ abstract class RowInstantiator {
       var mapper = mappingIterator.current;
       if (mapper is RowMapper) {
         var _ = instanceFromRow(
-            rowIterator, mapper.orderedMappers.iterator);
+            rowIterator, (mapper as RowMapper).returningOrderedMappers.iterator);
       } else {
         rowIterator.moveNext();
       }
@@ -48,23 +48,23 @@ abstract class RowInstantiator {
     }
 
     var innerInstanceWrapper = instanceFromRow(
-        rowIterator, mapper.orderedMappers.iterator,
+        rowIterator, mapper.returningOrderedMappers.iterator,
         incomingEntity: mapper.joinProperty.entity);
 
     if (mapper.isToMany) {
       // If to many, put in a managed set.
-      ManagedSet list = instance[mapper.property.name] ?? new ManagedSet();
+      ManagedSet list = instance[mapper.parentProperty.name] ?? new ManagedSet();
       if (innerInstanceWrapper != null && innerInstanceWrapper.isNew) {
         list.add(innerInstanceWrapper.instance);
       }
-      instance[mapper.property.name] = list;
+      instance[mapper.parentProperty.name] = list;
     } else {
-      var existingInnerInstance = instance[mapper.property.name];
+      var existingInnerInstance = instance[mapper.parentProperty.name];
 
       // If not assigned yet, assign this value (which may be null). If assigned,
       // don't overwrite with a null row that may come after. Once we have it, we have it.
       if (existingInnerInstance == null) {
-        instance[mapper.property.name] = innerInstanceWrapper?.instance;
+        instance[mapper.parentProperty.name] = innerInstanceWrapper?.instance;
       }
     }
   }
@@ -114,7 +114,7 @@ abstract class RowInstantiator {
         rowIterator.moveNext();
         applyColumnValueToProperty(instance, mapper, rowIterator.current);
       } else if (mapper is RowMapper) {
-        applyRowValuesToInstance(instance, mapper, rowIterator);
+        applyRowValuesToInstance(instance, mapper as RowMapper, rowIterator);
       }
     }
 
@@ -124,7 +124,7 @@ abstract class RowInstantiator {
   List<ManagedObject> instancesForRows(List<List<dynamic>> rows) {
     return rows
         .map((row) =>
-        instanceFromRow(row.iterator, orderedMappers.iterator))
+        instanceFromRow(row.iterator, returningOrderedMappers.iterator))
         .where((wrapper) => wrapper.isNew)
         .map((wrapper) => wrapper.instance)
         .toList();

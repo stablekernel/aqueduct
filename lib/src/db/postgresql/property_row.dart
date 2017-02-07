@@ -1,29 +1,37 @@
 import 'property_mapper.dart';
 import '../db.dart';
+import 'entity_table.dart';
+import 'query_builder.dart';
 
-class RowMapper extends PropertyMapper with PredicateBuilder {
-  RowMapper(this.type, ManagedPropertyDescription property,
-      this.orderedMappers,
-      {this.predicate, this.where})
-      : super(property) {}
+class RowMapper extends PostgresMapper with PredicateBuilder, EntityTableMapper {
+  RowMapper(this.type, this.parentProperty,
+      List<String> propertiesToFetch,
+      {this.predicate, this.where}) {
+    returningOrderedMappers = PropertyToColumnMapper.fromKeys(this, joinProperty.entity, propertiesToFetch);
+  }
 
+  ManagedRelationshipDescription parentProperty;
+  EntityTableMapper parentTable;
   ManagedEntity get entity => joinProperty.entity;
   PersistentJoinType type;
   ManagedObject where;
   QueryPredicate predicate;
-  List<PropertyMapper> orderedMappers;
-  Map<String, dynamic> substitutionVariables;
+  QueryPredicate _joinCondition;
 
-  String get name {
-    ManagedRelationshipDescription p = property;
-    return "${p.name}_${p.destinationEntity.primaryKey}";
+  Map<String, dynamic> get substitutionVariables {
+    var variables = joinCondition.parameters ?? {};
+    returningOrderedMappers
+        .where((p) => p is RowMapper)
+        .forEach((p) {
+          variables.addAll((p as RowMapper).substitutionVariables);
+        });
+    return variables;
   }
 
-  ManagedPropertyDescription get joinProperty =>
-      (property as ManagedRelationshipDescription).inverseRelationship;
+  ManagedPropertyDescription get joinProperty => parentProperty.inverseRelationship;
 
-  List<PropertyMapper> get flattened {
-    return orderedMappers.expand((c) {
+  List<PropertyToColumnMapper> get flattened {
+    return returningOrderedMappers.expand((c) {
       if (c is RowMapper) {
         return c.flattened;
       }
@@ -31,57 +39,52 @@ class RowMapper extends PropertyMapper with PredicateBuilder {
     }).toList();
   }
 
-  String joinString;
+  QueryPredicate get joinCondition {
+    if (_joinCondition == null) {
+      var parentEntity = parentProperty.entity;
+      var parentPrimaryKeyProperty = parentEntity.properties[parentEntity.primaryKey];
+      var temporaryLeftElement = new PropertyToColumnMapper(parentTable, parentPrimaryKeyProperty);
+      var parentColumnName = temporaryLeftElement.columnName(withTableNamespace: true);
+      var temporaryRightElement = new PropertyToColumnMapper(this, joinProperty);
+      var childColumnName = temporaryRightElement.columnName(withTableNamespace: true);
 
-  bool get isToMany {
-    var rel = property as ManagedRelationshipDescription;
+      var joinPredicate = new QueryPredicate("$parentColumnName=$childColumnName", null);
+      _joinCondition = predicateFrom(where, [joinPredicate, predicate]);
+    }
 
-    return rel.relationshipType == ManagedRelationshipType.hasMany;
+    return _joinCondition;
   }
 
-  bool representsSameJoinAs(RowMapper other) {
-    ManagedRelationshipDescription thisProperty = property;
-    ManagedRelationshipDescription otherProperty = other.property;
-
-    return thisProperty.destinationEntity == otherProperty.destinationEntity &&
-        thisProperty.entity == otherProperty.entity &&
-        thisProperty.name == otherProperty.name;
+  void addRowMappers(List<RowMapper> rowMappers) {
+    rowMappers.forEach((r) => r.parentTable = this);
+    returningOrderedMappers
+        .addAll(rowMappers);
   }
 
-  void build() {
-    orderedMappers
-        .where((p) => p is RowMapper)
-        .forEach((p) => (p as RowMapper).build());
+  String get joinString {
+    var thisJoin = "LEFT OUTER JOIN ${tableReference} ON ${joinCondition.format}";
 
-    var parentEntity = property.entity;
-    var parentProperty = parentEntity.properties[parentEntity.primaryKey];
-    var temporaryLeftElement = new PropertyToColumnMapper(parentProperty);
-
-    var parentColumnName = temporaryLeftElement.columnName(withTableNamespace: true);
-
-    // May need to make this less temporary - get it from another row mapper?
-    var temporaryRightElement = new PropertyToColumnMapper(joinProperty);
-    var childColumnName = temporaryRightElement.columnName(withTableNamespace: true);
-
-    var joinPredicate = new QueryPredicate("$parentColumnName=$childColumnName", null);
-    var finalPredicate = predicateFrom(where, [joinPredicate, predicate]);
-    substitutionVariables = finalPredicate.parameters ?? {};
-
-    // todo: incorporate alias!
-    var thisJoin = "LEFT OUTER JOIN ${temporaryRightElement.property.entity.tableName} ON ${finalPredicate.format}";
-
-    if (orderedMappers.any((p) => p is RowMapper)) {
-      var nestedJoins = orderedMappers
+    if (returningOrderedMappers.any((p) => p is RowMapper)) {
+      var nestedJoins = returningOrderedMappers
           .where((p) => p is RowMapper)
           .map((p) {
-            substitutionVariables.addAll((p as RowMapper).substitutionVariables);
             return (p as RowMapper).joinString;
           })
           .toList();
       nestedJoins.insert(0, thisJoin);
-      joinString = nestedJoins.join(" ");
-    } else {
-      joinString = thisJoin;
+      return nestedJoins.join(" ");
     }
+
+    return thisJoin;
+  }
+
+  bool get isToMany {
+    return parentProperty.relationshipType == ManagedRelationshipType.hasMany;
+  }
+
+  bool representsSameJoinAs(RowMapper other) {
+    return parentProperty.destinationEntity == other.parentProperty.destinationEntity &&
+        parentProperty.entity == other.parentProperty.entity &&
+        parentProperty.name == other.parentProperty.name;
   }
 }

@@ -23,7 +23,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
     buffer.write("(${builder.valuesColumnString}) ");
     buffer.write("VALUES (${builder.insertionValueString}) ");
 
-    if ((builder.orderedMappers?.length ?? 0) > 0) {
+    if ((builder.returningOrderedMappers?.length ?? 0) > 0) {
       buffer.write("RETURNING ${builder.returningColumnString}");
     }
 
@@ -51,7 +51,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
       throw canModifyAllInstancesError;
     }
 
-    if ((builder.orderedMappers?.length ?? 0) > 0) {
+    if ((builder.returningOrderedMappers?.length ?? 0) > 0) {
       buffer.write("RETURNING ${builder.returningColumnString}");
     }
 
@@ -146,7 +146,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
         returningProperties: propertiesToFetch,
         predicate: predicate,
         whereBuilder: hasWhereBuilder ? where : null,
-        nestedRowMappers: rowMappersFromSubqueries(this),
+        nestedRowMappers: rowMappersFromSubqueries,
         sortDescriptors: allSortDescriptors);
 
     if (builder.containsJoins && pageDescriptor != null) {
@@ -203,19 +203,17 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
     }
   }
 
-  List<RowMapper> rowMappersFromSubqueries(PostgresQuery q) {
-    return q.subQueries?.keys?.map((relationshipDesc) {
-      var subQuery = q.subQueries[relationshipDesc] as PostgresQuery;
+  List<RowMapper> get rowMappersFromSubqueries {
+    return subQueries?.keys?.map((relationshipDesc) {
+      var subQuery = subQueries[relationshipDesc] as PostgresQuery;
       var joinElement = new RowMapper(
           PersistentJoinType.leftOuter,
           relationshipDesc,
-          PropertyToColumnMapper.fromKeys(
-              subQuery.entity, subQuery.propertiesToFetch),
+          subQuery.propertiesToFetch,
           predicate: subQuery.predicate,
           where: subQuery.hasWhereBuilder ? subQuery.where : null);
 
-      joinElement.orderedMappers
-          .addAll(rowMappersFromSubqueries(subQuery));
+      joinElement.addRowMappers(subQuery.rowMappersFromSubqueries);
 
       return joinElement;
     })?.toList() ??
