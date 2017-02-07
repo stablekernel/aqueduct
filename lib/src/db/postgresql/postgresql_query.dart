@@ -1,10 +1,9 @@
 import 'dart:async';
-import 'dart:mirrors';
 
 import '../db.dart';
 import '../query/mixin.dart';
-import 'postgresql_mapping.dart';
-import 'instantiator.dart';
+import 'property_mapper.dart';
+import 'query_builder.dart';
 
 class PostgresQuery<InstanceType extends ManagedObject> extends Object
     with QueryMixin<InstanceType>
@@ -13,66 +12,53 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
 
   ManagedContext context;
 
-  bool get whereBuilderHasImplicitJoins {
-    if (!hasWhereBuilder) {
-      return false;
-    }
-
-    return where.backingMap.keys.any((key) {
-      return whereBuilderHasImplicitJoinsForProperty(where, key);
-    });
-  }
-
   @override
   Future<InstanceType> insert() async {
-    var rowMapper = new ManagedInstantiator(entity,
+    var builder = new PostgresQueryBuilder(entity,
         returningProperties: propertiesToFetch,
         values: valueMap ?? values?.backingMap);
 
     var buffer = new StringBuffer();
-    buffer.write("INSERT INTO ${rowMapper.tableDefinition} ");
-    buffer.write("(${rowMapper.valuesColumnString}) ");
-    buffer.write("VALUES (${rowMapper.insertionValueString}) ");
+    buffer.write("INSERT INTO ${builder.primaryTableDefinition} ");
+    buffer.write("(${builder.valuesColumnString}) ");
+    buffer.write("VALUES (${builder.insertionValueString}) ");
 
-    if ((rowMapper.orderedMappingElements?.length ?? 0) > 0) {
-      buffer.write("RETURNING ${rowMapper.returningColumnString}");
+    if ((builder.orderedMappers?.length ?? 0) > 0) {
+      buffer.write("RETURNING ${builder.returningColumnString}");
     }
 
-    var results = await context.persistentStore
-        .executeQuery(buffer.toString(), rowMapper.insertionValueMap, timeoutInSeconds);
+    var results = await context.persistentStore.executeQuery(
+        buffer.toString(), builder.substitutionValueMap, timeoutInSeconds);
 
-    return rowMapper.instancesForRows(results).first;
+    return builder.instancesForRows(results).first;
   }
 
   @override
   Future<List<InstanceType>> update() async {
-    var rowMapper = new ManagedInstantiator(entity,
+    var builder = new PostgresQueryBuilder(entity,
         returningProperties: propertiesToFetch,
         values: valueMap ?? values?.backingMap,
         whereBuilder: (hasWhereBuilder ? where : null),
         predicate: predicate);
 
     var buffer = new StringBuffer();
-    buffer.write("UPDATE ${rowMapper.tableDefinition} ");
-    buffer.write("SET ${rowMapper.updateValueString} ");
+    buffer.write("UPDATE ${builder.primaryTableDefinition} ");
+    buffer.write("SET ${builder.updateValueString} ");
 
-    if (rowMapper.whereClause != null) {
-      buffer.write("WHERE ${rowMapper.whereClause} ");
+    if (builder.whereClause != null) {
+      buffer.write("WHERE ${builder.whereClause} ");
     } else if (!canModifyAllInstances) {
-      throw new QueryException(QueryExceptionEvent.internalFailure,
-          message:
-          "Query would impact all records. This could be a destructive error. Set canModifyAllInstances on the Query to execute anyway.");
+      throw canModifyAllInstancesError;
     }
 
-    if ((rowMapper.orderedMappingElements?.length ?? 0) > 0) {
-      buffer.write(
-          "RETURNING ${rowMapper.returningColumnString}");
+    if ((builder.orderedMappers?.length ?? 0) > 0) {
+      buffer.write("RETURNING ${builder.returningColumnString}");
     }
 
-    var results = await context.persistentStore
-        .executeQuery(buffer.toString(), rowMapper.updateValueMap, timeoutInSeconds);
+    var results = await context.persistentStore.executeQuery(
+        buffer.toString(), builder.substitutionValueMap, timeoutInSeconds);
 
-    return rowMapper.instancesForRows(results);
+    return builder.instancesForRows(results);
   }
 
   @override
@@ -91,22 +77,22 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
 
   @override
   Future<int> delete() async {
-    var rowMapper = new ManagedInstantiator(entity,
+    var builder = new PostgresQueryBuilder(
+        entity,
         predicate: predicate,
         whereBuilder: hasWhereBuilder ? where : null);
 
     var buffer = new StringBuffer();
-    buffer.write("DELETE FROM ${rowMapper.tableDefinition} ");
-    if (rowMapper.whereClause != null) {
-      buffer.write("WHERE ${rowMapper.whereClause} ");
+    buffer.write("DELETE FROM ${builder.primaryTableDefinition} ");
+
+    if (builder.whereClause != null) {
+      buffer.write("WHERE ${builder.whereClause} ");
     } else if (!canModifyAllInstances) {
-      throw new QueryException(QueryExceptionEvent.internalFailure,
-          message:
-          "Query would impact all records. This could be a destructive error. Set canModifyAllInstances on the Query to execute anyway.");
+      throw canModifyAllInstancesError;
     }
 
     return context.persistentStore.executeQuery(
-        buffer.toString(), rowMapper.predicateValueMap, timeoutInSeconds,
+        buffer.toString(), builder.substitutionValueMap, timeoutInSeconds,
         returnType: PersistentStoreQueryReturnType.rowCount);
   }
 
@@ -114,8 +100,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
   Future<InstanceType> fetchOne() async {
     var rowMapper = createFetchMapper();
 
-    if (!rowMapper.orderedMappingElements
-        .any((c) => c is PropertyToRowMapper)) {
+    if (!rowMapper.containsJoins) {
       fetchLimit = 1;
     }
 
@@ -138,66 +123,55 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
 
   //////
 
-  ManagedInstantiator createFetchMapper() {
+  PostgresQueryBuilder createFetchMapper() {
+    var allSortDescriptors = new List<QuerySortDescriptor>.from(sortDescriptors ?? []);
     if (pageDescriptor != null) {
       validatePageDescriptor();
-      if (pageDescriptor.boundingValue != null)
-//      if (pageDescriptor?.boundingValue == null) {
-//        return null;
-//      }
-//
-//      var pagingProperty = entity.properties[pageDescriptor.propertyName];
-//      var operator =
-//      (pageDescriptor.order == QuerySortOrder.ascending ? ">" : "<");
-//      var prefix = "aq_page_";
-//
-//      var columnName =
-//      namer.columnNameForProperty(pagingProperty, withTableNamespace: true);
-//      var variableName =
-//      namer.columnNameForProperty(pagingProperty, withPrefix: prefix);
-//
-//      return new QueryPredicate(
-//          "$columnName ${operator} @$variableName${namer.typeSuffixForProperty(pagingProperty)}",
-//          {variableName: pageDescriptor.boundingValue});
+      var pageSortDescriptor = new QuerySortDescriptor(
+          pageDescriptor.propertyName, pageDescriptor.order);
+      allSortDescriptors.insert(0, pageSortDescriptor);
+
+      if (pageDescriptor.boundingValue != null) {
+        if (pageDescriptor.order == QuerySortOrder.ascending) {
+          where[pageDescriptor.propertyName] =
+              whereGreaterThan(pageDescriptor.boundingValue);
+        } else {
+          where[pageDescriptor.propertyName] =
+              whereLessThan(pageDescriptor.boundingValue);
+        }
+      }
     }
 
-    var rowMapper = new ManagedInstantiator(entity)
-      ..properties = propertiesToFetch
-      ..addJoinElements(joinElementsFromQuery(this))
-      ..queryPredicate = predicate
-      ..queryPredicateObject = hasWhereBuilder ? where : null;
+    var builder = new PostgresQueryBuilder(entity,
+        returningProperties: propertiesToFetch,
+        predicate: predicate,
+        whereBuilder: hasWhereBuilder ? where : null,
+        nestedRowMappers: rowMappersFromSubqueries(this),
+        sortDescriptors: allSortDescriptors);
 
-    // Have to also add pagingPredicate if it exists...
-
-    if (rowMapper.containsJoins && pageDescriptor != null) {
+    if (builder.containsJoins && pageDescriptor != null) {
       throw new QueryException(QueryExceptionEvent.requestFailure,
           message:
-          "Cannot use 'Query<T>' with both 'pageDescriptor' and joins currently.");
+              "Cannot use 'Query<T>' with both 'pageDescriptor' and joins currently.");
     }
 
-    return rowMapper;
+    return builder;
   }
 
-  Future<List<InstanceType>> _fetch(ManagedInstantiator rowMapper) async {
-    var namer = new PostgresNamer();
-
-    var p = hasWhereBuilder ? predicateFromMatcherBackedObject(where, namer) : predicate;
-    var allPredicates = QueryPredicate.andPredicates(
-        [p, pagingPredicate(namer)].where((p) => p != null));
-
+  Future<List<InstanceType>> _fetch(PostgresQueryBuilder builder) async {
     var buffer = new StringBuffer();
-    buffer.write("SELECT ${rowMapper.namespacedReturningColumnString} ");
-    buffer.write("FROM ${rowMapper.tableDefinition} ");
+    buffer.write("SELECT ${builder.returningColumnString} ");
+    buffer.write("FROM ${builder.primaryTableDefinition} ");
 
-    if (rowMapper.containsJoins) {
-      buffer.write("${rowMapper.joinString} ");
+    if (builder.containsJoins) {
+      buffer.write("${builder.joinString} ");
     }
 
-    if (rowMapper.whereClause != null) {
-      buffer.write("WHERE ${rowMapper.whereClause} ");
+    if (builder.whereClause != null) {
+      buffer.write("WHERE ${builder.whereClause} ");
     }
 
-    buffer.write("${orderByString(namer)} ");
+    buffer.write("${builder.orderByString} ");
 
     if (fetchLimit != 0) {
       buffer.write("LIMIT ${fetchLimit} ");
@@ -207,17 +181,13 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
       buffer.write("OFFSET ${offset} ");
     }
 
-    var results = await context.persistentStore
-        .executeQuery(buffer.toString(), rowMapper.predicateValueMap, timeoutInSeconds);
+    var results = await context.persistentStore.executeQuery(
+        buffer.toString(), builder.substitutionValueMap, timeoutInSeconds);
 
-    return rowMapper.instancesForRows(results);
+    return builder.instancesForRows(results);
   }
 
   void validatePageDescriptor() {
-    if (pageDescriptor == null) {
-      return;
-    }
-
     var prop = entity.attributes[pageDescriptor.propertyName];
     if (prop == null) {
       throw new QueryException(QueryExceptionEvent.requestFailure,
@@ -233,141 +203,70 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
     }
   }
 
-  String orderByString(PostgresNamer namer) {
-    List<QuerySortDescriptor> sortDescs = sortDescriptors ?? [];
+  List<RowMapper> rowMappersFromSubqueries(PostgresQuery q) {
+    return q.subQueries?.keys?.map((relationshipDesc) {
+      var subQuery = q.subQueries[relationshipDesc] as PostgresQuery;
+      var joinElement = new RowMapper(
+          PersistentJoinType.leftOuter,
+          relationshipDesc,
+          PropertyToColumnMapper.fromKeys(
+              subQuery.entity, subQuery.propertiesToFetch),
+          predicate: subQuery.predicate,
+          where: subQuery.hasWhereBuilder ? subQuery.where : null);
 
-    if (pageDescriptor != null) {
-      var pageSortDescriptor = new QuerySortDescriptor(
-          pageDescriptor.propertyName, pageDescriptor.order);
-      sortDescs.insert(0, pageSortDescriptor);
-    }
-
-    if (sortDescs.length == 0) {
-      return "";
-    }
-
-    var joinedSortDescriptors = sortDescs.map((QuerySortDescriptor sd) {
-      var property = entity.properties[sd.key];
-      var columnName =
-        namer.columnNameForProperty(property, withTableNamespace: true);
-      var order = (sd.order == QuerySortOrder.ascending ? "ASC" : "DESC");
-
-      return "$columnName $order";
-    }).join(",");
-
-    return "ORDER BY $joinedSortDescriptors";
-  }
-
-  QueryPredicate pagingPredicate(PostgresNamer namer) {
-    validatePageDescriptor();
-
-    if (pageDescriptor?.boundingValue == null) {
-      return null;
-    }
-
-    var pagingProperty = entity.properties[pageDescriptor.propertyName];
-    var operator =
-        (pageDescriptor.order == QuerySortOrder.ascending ? ">" : "<");
-    var prefix = "aq_page_";
-
-    var columnName =
-      namer.columnNameForProperty(pagingProperty, withTableNamespace: true);
-    var variableName =
-      namer.columnNameForProperty(pagingProperty, withPrefix: prefix);
-
-    return new QueryPredicate(
-        "$columnName ${operator} @$variableName${namer.typeSuffixForProperty(pagingProperty)}",
-        {variableName: pageDescriptor.boundingValue});
-  }
-
-  List<PropertyToRowMapper> joinElementsFromQuery(PostgresQuery q) {
-    var explicitJoins = q.subQueries?.keys?.map((relationshipDesc) {
-          var subQuery = q.subQueries[relationshipDesc] as PostgresQuery;
-          var joinElement = new PropertyToRowMapper(
-              PersistentJoinType.leftOuter,
-              relationshipDesc,
-              PropertyToColumnMapper.fromKeys(subQuery.entity, subQuery.propertiesToFetch),
-              explicitPredicate: subQuery.predicate,
-              where: subQuery.hasWhereBuilder ? subQuery.where : null);
-
-          joinElement.orderedMappingElements
-              .addAll(joinElementsFromQuery(subQuery));
-
-          return joinElement;
-        })?.toList() ??
-        [];
-
-    if (q.hasWhereBuilder) {
-      var implicitJoins = joinElementsFromMatcherBackedObject(q.where);
-      for (var implicit in implicitJoins) {
-        if (!explicitJoins.any(
-            (explicit) => explicit.representsSameJoinAs(implicit))) {
-
-          explicitJoins.add(implicit);
-        }
-      }
-    }
-
-    return explicitJoins;
-  }
-
-  List<PropertyToRowMapper> joinElementsFromMatcherBackedObject(
-      ManagedObject object) {
-    var whereRelationshipKeys = object.backingMap.keys.where((key) {
-      return whereBuilderHasImplicitJoinsForProperty(object, key);
-    });
-
-    return whereRelationshipKeys.map((key) {
-      var joinElement = new PropertyToRowMapper(PersistentJoinType.leftOuter,
-          object.entity.relationships[key], []);
-
-      var value = object.backingMap[key];
-      if (value is ManagedSet) {
-        joinElement.orderedMappingElements
-            .addAll(joinElementsFromMatcherBackedObject(value.matchOn));
-      } else {
-        joinElement.orderedMappingElements
-            .addAll(joinElementsFromMatcherBackedObject(value));
-      }
+      joinElement.orderedMappers
+          .addAll(rowMappersFromSubqueries(subQuery));
 
       return joinElement;
-    }).toList();
+    })?.toList() ??
+    [];
   }
 
-  bool whereBuilderHasImplicitJoinsForProperty(ManagedObject object, String propertyName) {
-    if (object.entity.relationships.containsKey(propertyName)) {
-      var value = object.backingMap[propertyName];
-      if (value is ManagedObject) {
-        return value.backingMap.isNotEmpty;
-      } else if (value is ManagedSet) {
-        if (value.hasMatchOn) {
-          return value.matchOn.backingMap.isNotEmpty;
-        }
+  static QueryException canModifyAllInstancesError =
+    new QueryException(QueryExceptionEvent.internalFailure, message: "Query would "
+      "impact all records. This could be a destructive error. Set "
+      "canModifyAllInstances on the Query to execute anyway.");
 
-        return false;
-      }
-      return false;
-    }
 
-    return false;
-  }
-
-  // todo: this all sucks
-  String joinStringForJoin(PropertyToRowMapper ji, QueryPredicate additionalPredicate, PostgresNamer namer) {
-    var parentEntity = ji.property.entity;
-    var parentProperty = parentEntity.properties[parentEntity.primaryKey];
-    var parentColumnName =
-    namer.columnNameForProperty(parentProperty, withTableNamespace: true);
-    var childColumnName =
-    namer.columnNameForProperty(ji.joinProperty, withTableNamespace: true);
-
-    var predicate =
-        new QueryPredicate("$parentColumnName=$childColumnName", null);
-
-    if (additionalPredicate != null) {
-      predicate = QueryPredicate.andPredicates([predicate, additionalPredicate]);
-    }
-
-    return "${namer.stringForJoinType(ji.type)} JOIN ${namer.tableDefinitionForEntity(ji.joinProperty.entity)} ON ${predicate.format}";
-  }
+//  List<RowMapper> joinElementsFromMatcherBackedObject(
+//      ManagedObject object) {
+//    var whereRelationshipKeys = object.backingMap.keys.where((key) {
+//      return whereBuilderHasImplicitJoinsForProperty(object, key);
+//    });
+//
+//    return whereRelationshipKeys.map((key) {
+//      var joinElement = new RowMapper(
+//          PersistentJoinType.leftOuter, object.entity.relationships[key], []);
+//
+//      var value = object.backingMap[key];
+//      if (value is ManagedSet) {
+//        joinElement.orderedMappingElements
+//            .addAll(joinElementsFromMatcherBackedObject(value.matchOn));
+//      } else {
+//        joinElement.orderedMappingElements
+//            .addAll(joinElementsFromMatcherBackedObject(value));
+//      }
+//
+//      return joinElement;
+//    }).toList();
+//  }
+//
+//  bool whereBuilderHasImplicitJoinsForProperty(
+//      ManagedObject object, String propertyName) {
+//    if (object.entity.relationships.containsKey(propertyName)) {
+//      var value = object.backingMap[propertyName];
+//      if (value is ManagedObject) {
+//        return value.backingMap.isNotEmpty;
+//      } else if (value is ManagedSet) {
+//        if (value.hasMatchOn) {
+//          return value.matchOn.backingMap.isNotEmpty;
+//        }
+//
+//        return false;
+//      }
+//      return false;
+//    }
+//
+//    return false;
+//  }
 }
