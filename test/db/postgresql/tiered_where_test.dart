@@ -424,23 +424,20 @@ void main() {
     test(
         "An explicit and implicit join on same table combine predicates and have appropriate impact on root objects",
         () async {
-      var q = new Query<RootObject>()..where.child.id = whereLessThan(3);
+      var q = new Query<RootObject>()..where.children.matchOn.id = whereGreaterThan(5);
 
-      q.joinOn((r) => r.child)..where.id = whereLessThan(8);
+      q.joinMany((r) => r.children)..where.id = whereLessThan(10);
 
       var results = await q.fetch();
 
       expect(results.length, 2);
-      expect(results.firstWhere((r) => r.id == 1).children.length, 2);
-      expect(
-          results.firstWhere((r) => r.id == 1).children.any((c) => c.id == 4),
-          true);
-      expect(
-          results.firstWhere((r) => r.id == 1).children.any((c) => c.id == 5),
-          true);
       expect(results.firstWhere((r) => r.id == 2).children.length, 1);
       expect(
           results.firstWhere((r) => r.id == 2).children.any((c) => c.id == 7),
+          true);
+      expect(results.firstWhere((r) => r.id == 4).children.length, 1);
+      expect(
+          results.firstWhere((r) => r.id == 4).children.any((c) => c.id == 9),
           true);
     });
   });

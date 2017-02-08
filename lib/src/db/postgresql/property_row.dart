@@ -2,6 +2,7 @@ import 'property_mapper.dart';
 import '../db.dart';
 import 'entity_table.dart';
 import 'query_builder.dart';
+import 'predicate_builder.dart';
 
 class RowMapper extends PostgresMapper with PredicateBuilder, EntityTableMapper {
   RowMapper(this.type, this.parentProperty,

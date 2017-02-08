@@ -1,11 +1,10 @@
 import 'dart:mirrors';
 
-import 'package:postgres/postgres.dart';
-
 import '../db.dart';
 import 'property_mapper.dart';
 import 'entity_table.dart';
 import 'row_instantiator.dart';
+import 'predicate_builder.dart';
 
 abstract class PostgresMapper {}
 

@@ -4,9 +4,10 @@ import '../db.dart';
 import 'entity_table.dart';
 
 class PropertyExpression extends PropertyMapper {
-  PropertyExpression(EntityTableMapper table, ManagedPropertyDescription property, this.expression)
+  PropertyExpression(EntityTableMapper table, ManagedPropertyDescription property, this.expression, {this.additionalVariablePrefix: ""})
       : super(table, property);
 
+  String additionalVariablePrefix;
   MatcherExpression expression;
 
   QueryPredicate get predicate {
@@ -29,7 +30,7 @@ class PropertyExpression extends PropertyMapper {
 
   QueryPredicate comparisonPredicate(MatcherOperator operator, dynamic value) {
     var n = columnName(withTableNamespace: true);
-    var variableName = columnName(withPrefix: "${table.tableReference}_");
+    var variableName = columnName(withPrefix: "$additionalVariablePrefix${table.tableReference}_");
 
     return new QueryPredicate(
         "$n ${PropertyMapper.symbolTable[operator]} @$variableName${PropertyMapper.typeSuffixForProperty(property)}",
@@ -37,7 +38,7 @@ class PropertyExpression extends PropertyMapper {
   }
 
   QueryPredicate containsPredicate(Iterable<dynamic> values) {
-    var globalNamespacePrefix = table.tableReference;
+    var globalNamespacePrefix = "$additionalVariablePrefix${table.tableReference}";
     var tokenList = [];
     var pairedMap = <String, dynamic>{};
 
@@ -64,7 +65,7 @@ class PropertyExpression extends PropertyMapper {
   }
 
   QueryPredicate rangePredicate(dynamic lhsValue, dynamic rhsValue, bool insideRange) {
-    var globalNamespacePrefix = table.tableReference;
+    var globalNamespacePrefix = "$additionalVariablePrefix${table.tableReference}";
 
     var n = columnName(withTableNamespace: true);
     var lhsName = columnName(withPrefix: "${globalNamespacePrefix}_lhs_");
@@ -78,7 +79,7 @@ class PropertyExpression extends PropertyMapper {
 
   QueryPredicate stringPredicate(StringMatcherOperator operator, dynamic value) {
     var n = columnName(withTableNamespace: true);
-    var variableName = columnName(withPrefix: "${table.tableReference}_");
+    var variableName = columnName(withPrefix: "$additionalVariablePrefix${table.tableReference}_");
 
     var matchValue = value;
     switch (operator) {
