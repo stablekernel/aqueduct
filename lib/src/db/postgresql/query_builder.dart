@@ -18,7 +18,6 @@ class PostgresQueryBuilder extends Object
       List<RowMapper> nestedRowMappers,
       List<QuerySortDescriptor> sortDescriptors,
       bool aliasTables: false}) {
-
     if (aliasTables) {
       shouldAliasTables = true;
       tableAlias = "t0";
@@ -171,7 +170,7 @@ class PostgresQueryBuilder extends Object
       List<QueryPredicate> predicates,
       List<RowMapper> createdImplicitRowMappers) {
     var matchers =
-    propertyExpressionsFromObject(matcherObject, createdImplicitRowMappers);
+        propertyExpressionsFromObject(matcherObject, createdImplicitRowMappers);
     var allPredicates = matchers.expand((p) => [p.predicate]).toList();
     allPredicates.addAll(predicates.where((p) => p != null));
     return QueryPredicate.andPredicates(allPredicates);

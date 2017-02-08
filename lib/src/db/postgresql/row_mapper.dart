@@ -34,10 +34,10 @@ class RowMapper extends PostgresMapper
     matcherExpressions
         .where((expr) => !identical(expr.table, this))
         .forEach((expr) {
-          if (expr.predicate?.parameters != null) {
-              variables.addAll(expr.predicate.parameters);
-          }
-        });
+      if (expr.predicate?.parameters != null) {
+        variables.addAll(expr.predicate.parameters);
+      }
+    });
 
     return variables;
   }
@@ -55,7 +55,8 @@ class RowMapper extends PostgresMapper
 
   void _buildMatcher() {
     _implicitRowMappers = <RowMapper>[];
-    _matcherExpressions = propertyExpressionsFromObject(whereBuilder, _implicitRowMappers);
+    _matcherExpressions =
+        propertyExpressionsFromObject(whereBuilder, _implicitRowMappers);
     addRowMappers(_implicitRowMappers);
   }
 
@@ -96,9 +97,9 @@ class RowMapper extends PostgresMapper
           new QueryPredicate("$parentColumnName=$childColumnName", null);
 
       var filterPredicates = matcherExpressions
-        .where((expr) => identical(expr.table, this))
-        .map((expr) => expr.predicate)
-        .toList();
+          .where((expr) => identical(expr.table, this))
+          .map((expr) => expr.predicate)
+          .toList();
       filterPredicates.add(joinPredicate);
       if (predicate != null) {
         filterPredicates.add(predicate);
@@ -124,19 +125,19 @@ class RowMapper extends PostgresMapper
     var columnsWithNamespace = flattenedColumns
         .map((p) => p.columnName(withTableNamespace: true))
         .join(",");
-    var columnsWithoutNamespace = flattenedColumns
-        .map((p) => p.columnName())
-        .join(",");
+    var columnsWithoutNamespace =
+        flattenedColumns.map((p) => p.columnName()).join(",");
 
     var outerWhere = QueryPredicate.andPredicates(matcherExpressions
-      .where((expr) => !identical(expr.table, this))
-      .map((expr) => expr.predicate));
+        .where((expr) => !identical(expr.table, this))
+        .map((expr) => expr.predicate));
     var outerWhereString = "";
     if (outerWhere != null) {
       outerWhereString = " WHERE ${outerWhere.format}";
     }
 
-    var selectString = "SELECT $columnsWithNamespace FROM $tableDefinition $nestedJoins";
+    var selectString =
+        "SELECT $columnsWithNamespace FROM $tableDefinition $nestedJoins";
     var alias = "${tableReference}(${columnsWithoutNamespace})";
     return "LEFT OUTER JOIN ($selectString$outerWhereString) $alias ON ${joinCondition.format}";
   }
