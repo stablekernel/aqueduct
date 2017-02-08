@@ -63,9 +63,9 @@ abstract class PredicateBuilder implements EntityTableMapper {
             var innerMatcher = obj.backingMap[propertyName];
             if (innerMatcher is NullMatcherExpression) {
               innerMatcher = new ManagedObject()
-                  ..entity = desc.inverseRelationship.entity
-                  ..backing = new ManagedMatcherBacking()
-                  ..[desc.inverseRelationship.name] = innerMatcher;
+                ..entity = desc.inverseRelationship.entity
+                ..backing = new ManagedMatcherBacking()
+                ..[desc.inverseRelationship.name] = innerMatcher;
             }
 
             if (innerMatcher is ManagedSet) {

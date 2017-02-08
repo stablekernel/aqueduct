@@ -76,7 +76,9 @@ class ManagedMatcherBacking extends ManagedBacking {
         } else {
           throw new QueryException(QueryExceptionEvent.internalFailure,
               message:
-                  "Attempting to set matcher on hasOne or hasMany relationship. Use includeInResultSet.");
+                  "Attempting to set matcher on hasOne or hasMany relationship property "
+                  "'${entity.tableName}.${property.name}'. Matchers for these "
+                  "properties may only be 'whereNull' or 'whereNotNull'.");
         }
       } else {
         valueMap[propertyName] = value;
@@ -86,7 +88,9 @@ class ManagedMatcherBacking extends ManagedBacking {
       if (entity.relationships.containsKey(propertyName)) {
         throw new QueryException(QueryExceptionEvent.internalFailure,
             message:
-                "Attempting to set simple value matcher for property $propertyName on ${entity.tableName}, but that property is a relationship.");
+                "Attempting to set a value for property '${entity.tableName}.$propertyName' "
+                "on, but that property is a relationship. Valid values for relationship "
+                "properties are whereRelatedByValue, whereNull, or whereNotNull.");
       }
 
       valueMap[propertyName] =
