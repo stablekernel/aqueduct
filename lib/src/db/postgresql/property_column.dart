@@ -3,8 +3,8 @@ import '../db.dart';
 import 'entity_table.dart';
 
 class PropertyToColumnMapper extends PropertyMapper {
-  static List<PropertyToColumnMapper> fromKeys(EntityTableMapper table,
-      ManagedEntity entity, List<String> keys) {
+  static List<PropertyToColumnMapper> fromKeys(
+      EntityTableMapper table, ManagedEntity entity, List<String> keys) {
     var primaryKeyIndex = keys.indexOf(entity.primaryKey);
     if (primaryKeyIndex == -1) {
       keys.insert(0, entity.primaryKey);
@@ -14,7 +14,8 @@ class PropertyToColumnMapper extends PropertyMapper {
     }
 
     return keys
-        .map((key) => new PropertyToColumnMapper(table, propertyForName(entity, key)))
+        .map((key) =>
+            new PropertyToColumnMapper(table, propertyForName(entity, key)))
         .toList();
   }
 
@@ -25,21 +26,23 @@ class PropertyToColumnMapper extends PropertyMapper {
     if (property == null) {
       throw new QueryException(QueryExceptionEvent.internalFailure,
           message:
-          "Property $propertyName does not exist on ${entity.tableName}");
+              "Property $propertyName does not exist on ${entity.tableName}");
     }
 
     if (property is ManagedRelationshipDescription &&
         property.relationshipType != ManagedRelationshipType.belongsTo) {
       throw new QueryException(QueryExceptionEvent.internalFailure,
           message:
-          "Property '$propertyName' is a hasMany or hasOne relationship and is invalid as a result property of "
+              "Property '$propertyName' is a hasMany or hasOne relationship and is invalid as a result property of "
               "'${entity.tableName}', use one of the join methods in 'Query<T>' instead.");
     }
 
     return property;
   }
 
-  PropertyToColumnMapper(EntityTableMapper table, ManagedPropertyDescription property) : super(table, property);
+  PropertyToColumnMapper(
+      EntityTableMapper table, ManagedPropertyDescription property)
+      : super(table, property);
 
   String toString() {
     return "Mapper on $property";
@@ -47,7 +50,8 @@ class PropertyToColumnMapper extends PropertyMapper {
 }
 
 class PropertyToColumnValue extends PropertyMapper {
-  PropertyToColumnValue(EntityTableMapper table, ManagedPropertyDescription property, this.value)
+  PropertyToColumnValue(
+      EntityTableMapper table, ManagedPropertyDescription property, this.value)
       : super(table, property);
 
   dynamic value;

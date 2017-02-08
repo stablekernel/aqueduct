@@ -14,8 +14,8 @@ abstract class RowInstantiator {
     while (mappingIterator.moveNext()) {
       var mapper = mappingIterator.current;
       if (mapper is RowMapper) {
-        var _ = instanceFromRow(
-            rowIterator, (mapper as RowMapper).returningOrderedMappers.iterator);
+        var _ = instanceFromRow(rowIterator,
+            (mapper as RowMapper).returningOrderedMappers.iterator);
       } else {
         rowIterator.moveNext();
       }
@@ -41,8 +41,8 @@ abstract class RowInstantiator {
     }
   }
 
-  void applyRowValuesToInstance(ManagedObject instance,
-      RowMapper mapper, Iterator<dynamic> rowIterator) {
+  void applyRowValuesToInstance(
+      ManagedObject instance, RowMapper mapper, Iterator<dynamic> rowIterator) {
     if (mapper.flattened.isEmpty) {
       return;
     }
@@ -53,7 +53,8 @@ abstract class RowInstantiator {
 
     if (mapper.isToMany) {
       // If to many, put in a managed set.
-      ManagedSet list = instance[mapper.parentProperty.name] ?? new ManagedSet();
+      ManagedSet list =
+          instance[mapper.parentProperty.name] ?? new ManagedSet();
       if (innerInstanceWrapper != null && innerInstanceWrapper.isNew) {
         list.add(innerInstanceWrapper.instance);
       }
@@ -105,7 +106,8 @@ abstract class RowInstantiator {
     var instance = getExistingInstance(incomingEntity, primaryKeyValue);
     if (instance == null) {
       alreadyExists = false;
-      instance = createInstanceWithPrimaryKeyValue(incomingEntity, primaryKeyValue);
+      instance =
+          createInstanceWithPrimaryKeyValue(incomingEntity, primaryKeyValue);
     }
 
     while (mappingIterator.moveNext()) {
@@ -124,7 +126,7 @@ abstract class RowInstantiator {
   List<ManagedObject> instancesForRows(List<List<dynamic>> rows) {
     return rows
         .map((row) =>
-        instanceFromRow(row.iterator, returningOrderedMappers.iterator))
+            instanceFromRow(row.iterator, returningOrderedMappers.iterator))
         .where((wrapper) => wrapper.isNew)
         .map((wrapper) => wrapper.instance)
         .toList();

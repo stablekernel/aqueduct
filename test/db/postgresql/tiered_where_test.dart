@@ -422,7 +422,8 @@ void main() {
     test(
         "An explicit and implicit join on same table combine predicates and have appropriate impact on root objects",
         () async {
-      var q = new Query<RootObject>()..where.children.matchOn.id = whereGreaterThan(5);
+      var q = new Query<RootObject>()
+        ..where.children.matchOn.id = whereGreaterThan(5);
 
       q.joinMany((r) => r.children)..where.id = whereLessThan(10);
 
@@ -485,10 +486,11 @@ void main() {
   });
 
   group("Same entity, different relationship property", () {
-    test("Where clause on root object for two properties with same entity type", () async {
+    test("Where clause on root object for two properties with same entity type",
+        () async {
       var q = new Query<RootObject>()
-          ..where.children.matchOn.id = whereGreaterThan(3)
-          ..where.child.id = whereEqualTo(1);
+        ..where.children.matchOn.id = whereGreaterThan(3)
+        ..where.child.id = whereEqualTo(1);
       var results = await q.fetch();
 
       expect(results.length, 1);
@@ -507,11 +509,9 @@ void main() {
     test("Join on on two properties with same entity type", () async {
       var q = new Query<RootObject>();
 
-      q.joinMany((r) => r.children)
-        ..where.id = whereGreaterThan(3);
+      q.joinMany((r) => r.children)..where.id = whereGreaterThan(3);
 
-      q.joinOn((r) => r.child)
-        ..where.id = whereEqualTo(1);
+      q.joinOn((r) => r.child)..where.id = whereEqualTo(1);
 
       var results = await q.fetch();
 
@@ -521,7 +521,8 @@ void main() {
       expect(results.firstWhere((r) => r.id == 2).children.length, 1);
       expect(results.firstWhere((r) => r.id == 4).children.length, 1);
 
-      expect(results.where((r) => r.id != 1).every((r) => r.child == null), true);
+      expect(
+          results.where((r) => r.id != 1).every((r) => r.child == null), true);
     });
   });
 }

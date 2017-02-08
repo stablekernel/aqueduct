@@ -4,7 +4,9 @@ import '../db.dart';
 import 'entity_table.dart';
 
 class PropertyExpression extends PropertyMapper {
-  PropertyExpression(EntityTableMapper table, ManagedPropertyDescription property, this.expression, {this.additionalVariablePrefix: ""})
+  PropertyExpression(EntityTableMapper table,
+      ManagedPropertyDescription property, this.expression,
+      {this.additionalVariablePrefix: ""})
       : super(table, property);
 
   String additionalVariablePrefix;
@@ -30,7 +32,8 @@ class PropertyExpression extends PropertyMapper {
 
   QueryPredicate comparisonPredicate(MatcherOperator operator, dynamic value) {
     var n = columnName(withTableNamespace: true);
-    var variableName = columnName(withPrefix: "$additionalVariablePrefix${table.tableReference}_");
+    var variableName = columnName(
+        withPrefix: "$additionalVariablePrefix${table.tableReference}_");
 
     return new QueryPredicate(
         "$n ${PropertyMapper.symbolTable[operator]} @$variableName${PropertyMapper.typeSuffixForProperty(property)}",
@@ -38,7 +41,8 @@ class PropertyExpression extends PropertyMapper {
   }
 
   QueryPredicate containsPredicate(Iterable<dynamic> values) {
-    var globalNamespacePrefix = "$additionalVariablePrefix${table.tableReference}";
+    var globalNamespacePrefix =
+        "$additionalVariablePrefix${table.tableReference}";
     var tokenList = [];
     var pairedMap = <String, dynamic>{};
 
@@ -47,25 +51,26 @@ class PropertyExpression extends PropertyMapper {
       var prefix = "${globalNamespacePrefix}_${counter}_";
 
       var variableName = columnName(withPrefix: prefix);
-      tokenList.add("@$variableName${PropertyMapper.typeSuffixForProperty(property)}");
+      tokenList.add(
+          "@$variableName${PropertyMapper.typeSuffixForProperty(property)}");
       pairedMap[variableName] = value;
 
       counter++;
     });
 
     var n = columnName(withTableNamespace: true);
-    return new QueryPredicate(
-        "$n IN (${tokenList.join(",")})", pairedMap);
+    return new QueryPredicate("$n IN (${tokenList.join(",")})", pairedMap);
   }
 
   QueryPredicate nullPredicate(bool isNull) {
     var n = columnName(withTableNamespace: true);
-    return new QueryPredicate(
-        "$n ${isNull ? "ISNULL" : "NOTNULL"}", {});
+    return new QueryPredicate("$n ${isNull ? "ISNULL" : "NOTNULL"}", {});
   }
 
-  QueryPredicate rangePredicate(dynamic lhsValue, dynamic rhsValue, bool insideRange) {
-    var globalNamespacePrefix = "$additionalVariablePrefix${table.tableReference}";
+  QueryPredicate rangePredicate(
+      dynamic lhsValue, dynamic rhsValue, bool insideRange) {
+    var globalNamespacePrefix =
+        "$additionalVariablePrefix${table.tableReference}";
 
     var n = columnName(withTableNamespace: true);
     var lhsName = columnName(withPrefix: "${globalNamespacePrefix}_lhs_");
@@ -77,9 +82,11 @@ class PropertyExpression extends PropertyMapper {
         {lhsName: lhsValue, rhsName: rhsValue});
   }
 
-  QueryPredicate stringPredicate(StringMatcherOperator operator, dynamic value) {
+  QueryPredicate stringPredicate(
+      StringMatcherOperator operator, dynamic value) {
     var n = columnName(withTableNamespace: true);
-    var variableName = columnName(withPrefix: "$additionalVariablePrefix${table.tableReference}_");
+    var variableName = columnName(
+        withPrefix: "$additionalVariablePrefix${table.tableReference}_");
 
     var matchValue = value;
     switch (operator) {
@@ -101,13 +108,13 @@ class PropertyExpression extends PropertyMapper {
 }
 
 class PropertySortMapper extends PropertyMapper {
-  PropertySortMapper(EntityTableMapper table, ManagedPropertyDescription property, QuerySortOrder order)
+  PropertySortMapper(EntityTableMapper table,
+      ManagedPropertyDescription property, QuerySortOrder order)
       : super(table, property) {
     this.order = (order == QuerySortOrder.ascending ? "ASC" : "DESC");
   }
 
   String order;
 
-  String get orderByString =>
-    "${columnName(withTableNamespace: true)} $order";
+  String get orderByString => "${columnName(withTableNamespace: true)} $order";
 }

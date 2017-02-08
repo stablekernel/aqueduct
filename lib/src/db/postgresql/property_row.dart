@@ -4,11 +4,12 @@ import 'entity_table.dart';
 import 'query_builder.dart';
 import 'predicate_builder.dart';
 
-class RowMapper extends PostgresMapper with PredicateBuilder, EntityTableMapper {
-  RowMapper(this.type, this.parentProperty,
-      List<String> propertiesToFetch,
+class RowMapper extends PostgresMapper
+    with PredicateBuilder, EntityTableMapper {
+  RowMapper(this.type, this.parentProperty, List<String> propertiesToFetch,
       {this.predicate, this.where}) {
-    returningOrderedMappers = PropertyToColumnMapper.fromKeys(this, joinProperty.entity, propertiesToFetch);
+    returningOrderedMappers = PropertyToColumnMapper.fromKeys(
+        this, joinProperty.entity, propertiesToFetch);
   }
 
   RowMapper.implicit(this.type, this.parentProperty) {
@@ -25,15 +26,14 @@ class RowMapper extends PostgresMapper with PredicateBuilder, EntityTableMapper 
 
   Map<String, dynamic> get substitutionVariables {
     var variables = joinCondition.parameters ?? {};
-    returningOrderedMappers
-        .where((p) => p is RowMapper)
-        .forEach((p) {
-          variables.addAll((p as RowMapper).substitutionVariables);
-        });
+    returningOrderedMappers.where((p) => p is RowMapper).forEach((p) {
+      variables.addAll((p as RowMapper).substitutionVariables);
+    });
     return variables;
   }
 
-  ManagedPropertyDescription get joinProperty => parentProperty.inverseRelationship;
+  ManagedPropertyDescription get joinProperty =>
+      parentProperty.inverseRelationship;
 
   List<PropertyToColumnMapper> get flattened {
     return returningOrderedMappers.expand((c) {
@@ -47,15 +47,22 @@ class RowMapper extends PostgresMapper with PredicateBuilder, EntityTableMapper 
   QueryPredicate get joinCondition {
     if (_joinCondition == null) {
       var parentEntity = parentProperty.entity;
-      var parentPrimaryKeyProperty = parentEntity.properties[parentEntity.primaryKey];
-      var temporaryLeftElement = new PropertyToColumnMapper(parentTable, parentPrimaryKeyProperty);
-      var parentColumnName = temporaryLeftElement.columnName(withTableNamespace: true);
-      var temporaryRightElement = new PropertyToColumnMapper(this, joinProperty);
-      var childColumnName = temporaryRightElement.columnName(withTableNamespace: true);
+      var parentPrimaryKeyProperty =
+          parentEntity.properties[parentEntity.primaryKey];
+      var temporaryLeftElement =
+          new PropertyToColumnMapper(parentTable, parentPrimaryKeyProperty);
+      var parentColumnName =
+          temporaryLeftElement.columnName(withTableNamespace: true);
+      var temporaryRightElement =
+          new PropertyToColumnMapper(this, joinProperty);
+      var childColumnName =
+          temporaryRightElement.columnName(withTableNamespace: true);
 
-      var joinPredicate = new QueryPredicate("$parentColumnName=$childColumnName", null);
+      var joinPredicate =
+          new QueryPredicate("$parentColumnName=$childColumnName", null);
       var implicitJoins = <RowMapper>[];
-      _joinCondition = predicateFrom(where, [joinPredicate, predicate], implicitJoins);
+      _joinCondition =
+          predicateFrom(where, [joinPredicate, predicate], implicitJoins);
       addRowMappers(implicitJoins);
     }
 
@@ -64,20 +71,18 @@ class RowMapper extends PostgresMapper with PredicateBuilder, EntityTableMapper 
 
   void addRowMappers(List<RowMapper> rowMappers) {
     rowMappers.forEach((r) => r.parentTable = this);
-    returningOrderedMappers
-        .addAll(rowMappers);
+    returningOrderedMappers.addAll(rowMappers);
   }
 
   String get joinString {
-    var thisJoin = "LEFT OUTER JOIN ${tableDefinition} ON ${joinCondition.format}";
+    var thisJoin =
+        "LEFT OUTER JOIN ${tableDefinition} ON ${joinCondition.format}";
 
     if (returningOrderedMappers.any((p) => p is RowMapper)) {
-      var nestedJoins = returningOrderedMappers
-          .where((p) => p is RowMapper)
-          .map((p) {
-            return (p as RowMapper).joinString;
-          })
-          .toList();
+      var nestedJoins =
+          returningOrderedMappers.where((p) => p is RowMapper).map((p) {
+        return (p as RowMapper).joinString;
+      }).toList();
       nestedJoins.insert(0, thisJoin);
       return nestedJoins.join(" ");
     }

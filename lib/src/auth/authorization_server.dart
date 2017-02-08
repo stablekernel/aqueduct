@@ -371,8 +371,7 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
   @override
   Future<Authorization> fromBearerToken(
       String bearerToken, List<String> scopesRequired) {
-    return verify(bearerToken)
-        .catchError((_) => null);
+    return verify(bearerToken).catchError((_) => null);
   }
 
   @override

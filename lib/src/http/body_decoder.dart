@@ -52,10 +52,10 @@ class HTTPBodyDecoder {
   }
 
   static Future<dynamic> _wwwFormURLEncodedDecoder(HttpRequest req) {
-    return streamDecoderForCharset(
-        req.headers.contentType.charset,
-        defaultEncoding: ASCII)(req)
-    .then((bodyAsString) => new Uri(query: bodyAsString).queryParametersAll);
+    return streamDecoderForCharset(req.headers.contentType.charset,
+            defaultEncoding: ASCII)(req)
+        .then(
+            (bodyAsString) => new Uri(query: bodyAsString).queryParametersAll);
   }
 
   static Future<dynamic> _textDecoder(HttpRequest req) {

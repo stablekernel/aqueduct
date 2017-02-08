@@ -172,8 +172,7 @@ class ManagedAuthStorage<T extends ManagedAuthResourceOwner>
   }
 
   @override
-  Future<T> fetchAuthenticatableByUsername(
-      AuthServer server, String username) {
+  Future<T> fetchAuthenticatableByUsername(AuthServer server, String username) {
     var query = new Query<T>(context)
       ..where.username = username
       ..propertiesToFetch = ["id", "hashedPassword", "salt"];

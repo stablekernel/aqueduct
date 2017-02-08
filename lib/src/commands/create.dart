@@ -79,7 +79,8 @@ class CLITemplateCreator extends CLICommand {
     await copyProjectFiles(destDirectory, sourceDirectory, projectName);
 
     createProjectSpecificFiles(destDirectory.path, aqueductDependencyString);
-    replaceAqueductDependencyString(destDirectory.path, aqueductDependencyString);
+    replaceAqueductDependencyString(
+        destDirectory.path, aqueductDependencyString);
 
     displayInfo(
         "Fetching project dependencies (pub get --no-packages-dir ${offline ? "--offline" : ""})...");

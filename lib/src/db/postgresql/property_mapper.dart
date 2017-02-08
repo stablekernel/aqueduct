@@ -42,10 +42,14 @@ abstract class PropertyMapper extends PostgresMapper {
   ManagedPropertyDescription property;
   EntityTableMapper table;
 
-  String columnName({bool withTypeSuffix: false, bool withTableNamespace: false, String withPrefix: null}) {
+  String columnName(
+      {bool withTypeSuffix: false,
+      bool withTableNamespace: false,
+      String withPrefix: null}) {
     var name = property.name;
     if (property is ManagedRelationshipDescription) {
-      name = "${name}_${(property as ManagedRelationshipDescription).destinationEntity.primaryKey}";
+      name =
+          "${name}_${(property as ManagedRelationshipDescription).destinationEntity.primaryKey}";
     }
 
     if (withTypeSuffix) {
@@ -61,4 +65,3 @@ abstract class PropertyMapper extends PostgresMapper {
     return name;
   }
 }
-

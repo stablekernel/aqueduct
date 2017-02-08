@@ -27,5 +27,6 @@ abstract class EntityTableMapper {
     _tableAlias = generateTableAlias();
     return _tableAlias;
   }
+
   String generateTableAlias();
 }

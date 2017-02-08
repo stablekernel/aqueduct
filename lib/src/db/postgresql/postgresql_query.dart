@@ -77,10 +77,8 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
 
   @override
   Future<int> delete() async {
-    var builder = new PostgresQueryBuilder(
-        entity,
-        predicate: predicate,
-        whereBuilder: hasWhereBuilder ? where : null);
+    var builder = new PostgresQueryBuilder(entity,
+        predicate: predicate, whereBuilder: hasWhereBuilder ? where : null);
 
     var buffer = new StringBuffer();
     buffer.write("DELETE FROM ${builder.primaryTableDefinition} ");
@@ -124,7 +122,8 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
   //////
 
   PostgresQueryBuilder createFetchMapper() {
-    var allSortDescriptors = new List<QuerySortDescriptor>.from(sortDescriptors ?? []);
+    var allSortDescriptors =
+        new List<QuerySortDescriptor>.from(sortDescriptors ?? []);
     if (pageDescriptor != null) {
       validatePageDescriptor();
       var pageSortDescriptor = new QuerySortDescriptor(
@@ -205,22 +204,21 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
 
   List<RowMapper> get rowMappersFromSubqueries {
     return subQueries?.keys?.map((relationshipDesc) {
-      var subQuery = subQueries[relationshipDesc] as PostgresQuery;
-      var joinElement = new RowMapper(
-          PersistentJoinType.leftOuter,
-          relationshipDesc,
-          subQuery.propertiesToFetch,
-          predicate: subQuery.predicate,
-          where: subQuery.hasWhereBuilder ? subQuery.where : null);
-      joinElement.addRowMappers(subQuery.rowMappersFromSubqueries);
+          var subQuery = subQueries[relationshipDesc] as PostgresQuery;
+          var joinElement = new RowMapper(PersistentJoinType.leftOuter,
+              relationshipDesc, subQuery.propertiesToFetch,
+              predicate: subQuery.predicate,
+              where: subQuery.hasWhereBuilder ? subQuery.where : null);
+          joinElement.addRowMappers(subQuery.rowMappersFromSubqueries);
 
-      return joinElement;
-    })?.toList() ??
-    [];
+          return joinElement;
+        })?.toList() ??
+        [];
   }
 
   static QueryException canModifyAllInstancesError =
-    new QueryException(QueryExceptionEvent.internalFailure, message: "Query would "
-      "impact all records. This could be a destructive error. Set "
-      "canModifyAllInstances on the Query to execute anyway.");
+      new QueryException(QueryExceptionEvent.internalFailure,
+          message: "Query would "
+              "impact all records. This could be a destructive error. Set "
+              "canModifyAllInstances on the Query to execute anyway.");
 }
