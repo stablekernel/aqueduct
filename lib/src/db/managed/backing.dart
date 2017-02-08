@@ -67,16 +67,20 @@ class ManagedMatcherBacking extends ManagedBacking {
     }
 
     if (value is MatcherExpression) {
-      var relDesc = entity.relationships[propertyName];
+      var property = entity.properties[propertyName];
 
-      if (relDesc != null &&
-          relDesc.relationshipType != ManagedRelationshipType.belongsTo) {
-        throw new QueryException(QueryExceptionEvent.internalFailure,
-            message:
-                "Attempting to set matcher on hasOne or hasMany relationship. Use includeInResultSet.");
+      if (property is ManagedRelationshipDescription) {
+        if (property.relationshipType == ManagedRelationshipType.belongsTo ||
+            value is NullMatcherExpression) {
+          valueMap[propertyName] = value;
+        } else {
+          throw new QueryException(QueryExceptionEvent.internalFailure,
+              message:
+                  "Attempting to set matcher on hasOne or hasMany relationship. Use includeInResultSet.");
+        }
+      } else {
+        valueMap[propertyName] = value;
       }
-
-      valueMap[propertyName] = value;
     } else {
       // Setting simply a value, wrap it with an AssignmentMatcher if applicable.
       if (entity.relationships.containsKey(propertyName)) {
