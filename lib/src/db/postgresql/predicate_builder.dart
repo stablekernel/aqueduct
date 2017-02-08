@@ -1,10 +1,10 @@
 import '../db.dart';
+import '../managed/backing.dart';
+import '../query/matcher_internal.dart';
 import 'entity_table.dart';
 import 'property_expression.dart';
 import 'property_mapper.dart';
 import 'row_mapper.dart';
-import '../query/matcher_internal.dart';
-import '../managed/backing.dart';
 
 abstract class PredicateBuilder implements EntityTableMapper {
   ManagedEntity get entity;
