@@ -28,9 +28,8 @@ class PropertyExpression extends PropertyMapper {
   }
 
   QueryPredicate comparisonPredicate(MatcherOperator operator, dynamic value) {
-    var prefix = "${property.entity.tableName}_";
     var n = columnName(withTableNamespace: true);
-    var variableName = columnName(withPrefix: prefix);
+    var variableName = columnName(withPrefix: "${table.tableReference}_");
 
     return new QueryPredicate(
         "$n ${PropertyMapper.symbolTable[operator]} @$variableName${PropertyMapper.typeSuffixForProperty(property)}",
@@ -38,13 +37,13 @@ class PropertyExpression extends PropertyMapper {
   }
 
   QueryPredicate containsPredicate(Iterable<dynamic> values) {
-    var tableName = property.entity.tableName;
+    var globalNamespacePrefix = table.tableReference;
     var tokenList = [];
     var pairedMap = <String, dynamic>{};
 
     var counter = 0;
     values.forEach((value) {
-      var prefix = "ctns${tableName}_${counter}_";
+      var prefix = "${globalNamespacePrefix}_${counter}_";
 
       var variableName = columnName(withPrefix: prefix);
       tokenList.add("@$variableName${PropertyMapper.typeSuffixForProperty(property)}");
@@ -65,9 +64,11 @@ class PropertyExpression extends PropertyMapper {
   }
 
   QueryPredicate rangePredicate(dynamic lhsValue, dynamic rhsValue, bool insideRange) {
+    var globalNamespacePrefix = table.tableReference;
+
     var n = columnName(withTableNamespace: true);
-    var lhsName = columnName(withPrefix: "${property.entity.tableName}_lhs_");
-    var rhsName = columnName(withPrefix: "${property.entity.tableName}_rhs_");
+    var lhsName = columnName(withPrefix: "${globalNamespacePrefix}_lhs_");
+    var rhsName = columnName(withPrefix: "${globalNamespacePrefix}_rhs_");
     var operation = insideRange ? "BETWEEN" : "NOT BETWEEN";
 
     return new QueryPredicate(
@@ -76,9 +77,8 @@ class PropertyExpression extends PropertyMapper {
   }
 
   QueryPredicate stringPredicate(StringMatcherOperator operator, dynamic value) {
-    var prefix = "${property.entity.tableName}_";
     var n = columnName(withTableNamespace: true);
-    var variableName = columnName(withPrefix: prefix);
+    var variableName = columnName(withPrefix: "${table.tableReference}_");
 
     var matchValue = value;
     switch (operator) {

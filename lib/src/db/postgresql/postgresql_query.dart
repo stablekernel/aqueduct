@@ -212,7 +212,6 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
           subQuery.propertiesToFetch,
           predicate: subQuery.predicate,
           where: subQuery.hasWhereBuilder ? subQuery.where : null);
-
       joinElement.addRowMappers(subQuery.rowMappersFromSubqueries);
 
       return joinElement;
@@ -224,47 +223,4 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
     new QueryException(QueryExceptionEvent.internalFailure, message: "Query would "
       "impact all records. This could be a destructive error. Set "
       "canModifyAllInstances on the Query to execute anyway.");
-
-
-//  List<RowMapper> joinElementsFromMatcherBackedObject(
-//      ManagedObject object) {
-//    var whereRelationshipKeys = object.backingMap.keys.where((key) {
-//      return whereBuilderHasImplicitJoinsForProperty(object, key);
-//    });
-//
-//    return whereRelationshipKeys.map((key) {
-//      var joinElement = new RowMapper(
-//          PersistentJoinType.leftOuter, object.entity.relationships[key], []);
-//
-//      var value = object.backingMap[key];
-//      if (value is ManagedSet) {
-//        joinElement.orderedMappingElements
-//            .addAll(joinElementsFromMatcherBackedObject(value.matchOn));
-//      } else {
-//        joinElement.orderedMappingElements
-//            .addAll(joinElementsFromMatcherBackedObject(value));
-//      }
-//
-//      return joinElement;
-//    }).toList();
-//  }
-//
-//  bool whereBuilderHasImplicitJoinsForProperty(
-//      ManagedObject object, String propertyName) {
-//    if (object.entity.relationships.containsKey(propertyName)) {
-//      var value = object.backingMap[propertyName];
-//      if (value is ManagedObject) {
-//        return value.backingMap.isNotEmpty;
-//      } else if (value is ManagedSet) {
-//        if (value.hasMatchOn) {
-//          return value.matchOn.backingMap.isNotEmpty;
-//        }
-//
-//        return false;
-//      }
-//      return false;
-//    }
-//
-//    return false;
-//  }
 }

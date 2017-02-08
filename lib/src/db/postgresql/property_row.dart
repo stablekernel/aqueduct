@@ -10,6 +10,10 @@ class RowMapper extends PostgresMapper with PredicateBuilder, EntityTableMapper 
     returningOrderedMappers = PropertyToColumnMapper.fromKeys(this, joinProperty.entity, propertiesToFetch);
   }
 
+  RowMapper.implicit(this.type, this.parentProperty) {
+    returningOrderedMappers = [];
+  }
+
   ManagedRelationshipDescription parentProperty;
   EntityTableMapper parentTable;
   ManagedEntity get entity => joinProperty.entity;
@@ -49,7 +53,9 @@ class RowMapper extends PostgresMapper with PredicateBuilder, EntityTableMapper 
       var childColumnName = temporaryRightElement.columnName(withTableNamespace: true);
 
       var joinPredicate = new QueryPredicate("$parentColumnName=$childColumnName", null);
-      _joinCondition = predicateFrom(where, [joinPredicate, predicate]);
+      var implicitJoins = <RowMapper>[];
+      _joinCondition = predicateFrom(where, [joinPredicate, predicate], implicitJoins);
+      addRowMappers(implicitJoins);
     }
 
     return _joinCondition;
@@ -62,7 +68,7 @@ class RowMapper extends PostgresMapper with PredicateBuilder, EntityTableMapper 
   }
 
   String get joinString {
-    var thisJoin = "LEFT OUTER JOIN ${tableReference} ON ${joinCondition.format}";
+    var thisJoin = "LEFT OUTER JOIN ${tableDefinition} ON ${joinCondition.format}";
 
     if (returningOrderedMappers.any((p) => p is RowMapper)) {
       var nestedJoins = returningOrderedMappers
@@ -82,9 +88,13 @@ class RowMapper extends PostgresMapper with PredicateBuilder, EntityTableMapper 
     return parentProperty.relationshipType == ManagedRelationshipType.hasMany;
   }
 
-  bool representsSameJoinAs(RowMapper other) {
-    return parentProperty.destinationEntity == other.parentProperty.destinationEntity &&
-        parentProperty.entity == other.parentProperty.entity &&
-        parentProperty.name == other.parentProperty.name;
+  bool representsRelationship(ManagedRelationshipDescription relationship) {
+    return parentProperty.destinationEntity == relationship.destinationEntity &&
+        parentProperty.entity == relationship.entity &&
+        parentProperty.name == relationship.name;
+  }
+
+  String generateTableAlias() {
+    return parentTable.generateTableAlias();
   }
 }

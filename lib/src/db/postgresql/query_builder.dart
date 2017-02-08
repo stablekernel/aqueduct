@@ -10,7 +10,7 @@ import 'row_instantiator.dart';
 abstract class PostgresMapper {}
 
 class PostgresQueryBuilder extends Object with PredicateBuilder, RowInstantiator, EntityTableMapper {
-  static const String valueKeyPrefixWhenUsingPredicate = "u_";
+  static const String valueKeyPrefix = "v_";
 
   PostgresQueryBuilder(this.entity,
       {List<String> returningProperties,
@@ -20,11 +20,11 @@ class PostgresQueryBuilder extends Object with PredicateBuilder, RowInstantiator
       List<RowMapper> nestedRowMappers,
       List<QuerySortDescriptor> sortDescriptors}) {
 
-    this.properties = returningProperties;
+    returningOrderedMappers = returningProperties == null ? [] :
+        PropertyToColumnMapper.fromKeys(this, entity, returningProperties);
     this.sortMappers = sortDescriptors
         ?.map((sd) => new PropertySortMapper(this, entity.properties[sd.key], sd.order))
         ?.toList();
-    substitutionValueMap = <String, dynamic>{};
 
     if (nestedRowMappers != null) {
       returningOrderedMappers.addAll(nestedRowMappers);
@@ -32,34 +32,49 @@ class PostgresQueryBuilder extends Object with PredicateBuilder, RowInstantiator
         rm.parentTable = this;
       });
     }
+    columnValues = values?.keys
+        ?.map((key) => validatedColumnValueMapper(values, key))
+        ?.where((v) => v != null)
+        ?.toList() ?? [];
 
-    this.predicate = predicateFrom(whereBuilder, [predicate]);
 
-    if (this.predicate?.parameters != null) {
-      substitutionValueMap.addAll(this.predicate.parameters);
+    if (containsJoins) {
+      tableAlias = "t0";
     }
 
-    this.values = values;
-    var valueKeyMapper = (PropertyToColumnValue c) {
-      substitutionValueMap[c.columnName()] = c.value;
-    };
-    if (this.predicate != null) {
-      valueKeyMapper = (PropertyToColumnValue c) {
-        substitutionValueMap[c.columnName(withPrefix: valueKeyPrefixWhenUsingPredicate)] = c.value;
-      };
-    }
-    columnValues.forEach(valueKeyMapper);
-
-    nestedRowMappers?.forEach((rm) {
-      substitutionValueMap.addAll(rm.substitutionVariables);
-    });
+    var implicitJoins = <RowMapper>[];
+    this.predicate = predicateFrom(whereBuilder, [predicate], implicitJoins);
+    returningOrderedMappers.addAll(implicitJoins);
   }
 
   List<PropertyToColumnValue> columnValues;
   QueryPredicate predicate;
   List<PropertySortMapper> sortMappers;
-  Map<String, dynamic> substitutionValueMap;
   ManagedEntity entity;
+  String tableAlias;
+
+  String get primaryTableDefinition => tableDefinition;
+  bool get containsJoins => returningOrderedMappers.reversed.any((p) => p is RowMapper);
+  String get whereClause => predicate?.format;
+
+  Map<String, dynamic> get substitutionValueMap {
+    var m = <String, dynamic>{};
+    if (predicate?.parameters != null) {
+      m.addAll(this.predicate.parameters);
+    }
+
+    columnValues.forEach((PropertyToColumnValue c) {
+      m[c.columnName(withPrefix: valueKeyPrefix)] = c.value;
+    });
+
+    returningOrderedMappers
+        .where((rm) => rm is RowMapper)
+        .forEach((rm) {
+          m.addAll((rm as RowMapper).substitutionVariables);
+        });
+
+    return m;
+  }
 
   List<PropertyToColumnMapper> get flattenedMappingElements {
     return returningOrderedMappers.expand((c) {
@@ -70,25 +85,10 @@ class PostgresQueryBuilder extends Object with PredicateBuilder, RowInstantiator
     }).toList();
   }
 
-  String get primaryTableDefinition => tableDefinition;
-
-  // todo: optimize this
-  bool get containsJoins {
-    return returningOrderedMappers.reversed.any((m) => m is RowMapper);
-  }
-
-  String get whereClause {
-    return predicate?.format;
-  }
-
   String get updateValueString {
-    var prefix = "@$valueKeyPrefixWhenUsingPredicate";
-    if (this.predicate == null) {
-      prefix = "@";
-    }
     return columnValues.map((m) {
       var columnName = m.columnName();
-      var variableName = m.columnName(withPrefix: prefix, withTypeSuffix: true);
+      var variableName = m.columnName(withPrefix: "@$valueKeyPrefix", withTypeSuffix: true);
       return "$columnName=$variableName";
     }).join(",");
   }
@@ -99,7 +99,7 @@ class PostgresQueryBuilder extends Object with PredicateBuilder, RowInstantiator
 
   String get insertionValueString {
     return columnValues
-        .map((c) => c.columnName(withTypeSuffix: true, withPrefix: "@"))
+        .map((c) => c.columnName(withTypeSuffix: true, withPrefix: "@$valueKeyPrefix"))
         .join(",");
   }
 
@@ -122,27 +122,6 @@ class PostgresQueryBuilder extends Object with PredicateBuilder, RowInstantiator
     }
 
     return "ORDER BY ${sortMappers.map((s) => s.orderByString).join(",")}";
-  }
-
-  void set properties(List<String> props) {
-    if (props != null) {
-      returningOrderedMappers =
-          PropertyToColumnMapper.fromKeys(this, entity, props);
-    } else {
-      returningOrderedMappers = null;
-    }
-  }
-
-  void set values(Map<String, dynamic> valueMap) {
-    if (valueMap == null) {
-      columnValues = [];
-      return;
-    }
-
-    columnValues = valueMap.keys
-        .map((key) => validatedColumnValueMapper(valueMap, key))
-        .where((v) => v != null)
-        .toList();
   }
 
   PropertyToColumnValue validatedColumnValueMapper(Map<String, dynamic> valueMap, String key) {
@@ -175,5 +154,12 @@ class PostgresQueryBuilder extends Object with PredicateBuilder, RowInstantiator
     }
 
     return new PropertyToColumnValue(this, property, value);
+  }
+
+  int aliasCounter = 0;
+  String generateTableAlias() {
+    tableAlias ??= "t0";
+    aliasCounter ++;
+    return "t$aliasCounter";
   }
 }

@@ -4,7 +4,7 @@ import '../db.dart';
 import 'property_expression.dart';
 import 'entity_table.dart';
 import 'query_builder.dart';
-
+import 'property_row.dart';
 export 'property_expression.dart';
 export 'property_column.dart';
 export 'property_row.dart';
@@ -67,53 +67,49 @@ abstract class PropertyMapper extends PostgresMapper {
 abstract class PredicateBuilder implements EntityTableMapper {
   ManagedEntity get entity;
 
-  QueryPredicate predicateFrom(ManagedObject matcherObject, List<QueryPredicate> predicates) {
-    var matchers = propertyExpressionsFromObject(matcherObject);
+  QueryPredicate predicateFrom(ManagedObject matcherObject, List<QueryPredicate> predicates, List<RowMapper> createdImplicitRowMappers) {
+    var matchers = propertyExpressionsFromObject(matcherObject, createdImplicitRowMappers);
     var allPredicates = matchers.expand((p) => [p.predicate]).toList();
     allPredicates.addAll(predicates.where((p) => p != null));
     return QueryPredicate.andPredicates(allPredicates);
   }
 
-  List<PropertyExpression> propertyExpressionsFromObject(ManagedObject obj) {
+  List<PropertyExpression> propertyExpressionsFromObject(
+      ManagedObject obj, List<RowMapper> createdImplicitRowMappers) {
     if (obj == null) {
       return [];
     }
 
-    var entity = obj.entity;
-    return obj.backingMap.keys.where((propertyName) {
-      var desc = entity.properties[propertyName];
+    return obj.backingMap.keys.map((propertyName) {
+      var desc = obj.entity.properties[propertyName];
       if (desc is ManagedRelationshipDescription) {
-        return desc.relationshipType == ManagedRelationshipType.belongsTo;
+        if (desc.relationshipType == ManagedRelationshipType.belongsTo) {
+          return [new PropertyExpression(this, obj.entity.properties[propertyName], obj.backingMap[propertyName])];
+        }
+
+        // Otherwise, this is an implicit join...
+        // Do we have an existing guy?
+        RowMapper innerRowMapper = returningOrderedMappers
+            .where((m) => m is RowMapper)
+            .firstWhere((m) => (m as RowMapper).representsRelationship(desc),
+              orElse: () => null);
+        if (innerRowMapper == null) {
+          innerRowMapper = new RowMapper.implicit(PersistentJoinType.leftOuter, desc);
+          innerRowMapper.parentTable = this;
+          createdImplicitRowMappers.add(innerRowMapper);
+        }
+
+        var innerMatcher = obj.backingMap[propertyName];
+        if (innerMatcher is ManagedSet) {
+          return innerRowMapper.propertyExpressionsFromObject(innerMatcher.matchOn, createdImplicitRowMappers);
+        }
+
+        return innerRowMapper.propertyExpressionsFromObject(innerMatcher, createdImplicitRowMappers);
       }
 
-      return true;
+      return [new PropertyExpression(this, obj.entity.properties[propertyName], obj.backingMap[propertyName])];
     })
-    .map((propertyName) {
-      return new PropertyExpression(this, entity.properties[propertyName], obj.backingMap[propertyName]);
-    })
+    .expand((expressions) => expressions)
     .toList();
-
-//    var relationshipPredicates = obj.backingMap.keys.where((propertyName) {
-//      var desc = entity.properties[propertyName];
-//      if (desc is ManagedRelationshipDescription) {
-//        return desc.relationshipType != ManagedRelationshipType.belongsTo;
-//      }
-//
-//      return false;
-//    }).map((propertyName) {
-//      var innerObject = obj.backingMap[propertyName];
-//      if (innerObject is ManagedSet) {
-//        return predicateFromMatcherBackedObject(innerObject.matchOn);
-//      }
-//      return predicateFromMatcherBackedObject(innerObject);
-//    }).toList();
-//
-//    if (relationshipPredicates.isEmpty) {
-//      return predicate;
-//    }
-//
-//    var total = [predicate];
-//    total.addAll(relationshipPredicates);
-//
-//    return QueryPredicate.andPredicates(total.where((q) => q != null).toList());
-  }}
+  }
+}

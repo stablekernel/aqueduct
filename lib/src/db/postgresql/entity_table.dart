@@ -19,5 +19,13 @@ abstract class EntityTableMapper {
     return tableAlias ?? entity.tableName;
   }
 
-  String tableAlias;
+  String _tableAlias;
+  String get tableAlias {
+    if (_tableAlias != null) {
+      return _tableAlias;
+    }
+    _tableAlias = generateTableAlias();
+    return _tableAlias;
+  }
+  String generateTableAlias();
 }
