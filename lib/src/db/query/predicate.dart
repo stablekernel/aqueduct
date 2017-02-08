@@ -33,20 +33,25 @@ class QueryPredicate {
   /// Joins together a list of predicates by the 'and' token.
   ///
   /// For combining multiple predicate together.
-  static QueryPredicate andPredicates(List<QueryPredicate> predicates) {
-    if (predicates == null) {
+  static QueryPredicate andPredicates(Iterable<QueryPredicate> predicates) {
+    var predicateList = predicates.toList();
+    if (predicateList == null) {
       return null;
     }
 
-    if (predicates.length == 0) {
+    if (predicateList.length == 0) {
       return null;
+    }
+
+    if (predicateList.length == 1) {
+      return predicateList.first;
     }
 
     var predicateFormat =
-        "(" + predicates.map((pred) => "${pred.format}").join(" AND ") + ")";
+        "(" + predicateList.map((pred) => "${pred.format}").join(" AND ") + ")";
 
     var valueMap = <String, dynamic>{};
-    predicates.forEach((p) {
+    predicateList.forEach((p) {
       p.parameters?.forEach((k, v) {
         if (valueMap.containsKey(k)) {
           throw new QueryPredicateException(

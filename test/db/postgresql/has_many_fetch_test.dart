@@ -261,7 +261,6 @@ void main() {
       expect(p.children.last.vaccinations, []);
     });
 
-    // todo: pick back up here
     test("Predicate impacts 2nd level objects when fetching object graph",
         () async {
       var q = new Query<Parent>();

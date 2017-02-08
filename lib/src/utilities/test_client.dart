@@ -101,8 +101,8 @@ class TestClient {
   }
 
   /// Closes this instances underlying HTTP client.
-  Future close() {
-    return _client.close(force: true);
+  void close() {
+    _client.close(force: true);
   }
 }
 

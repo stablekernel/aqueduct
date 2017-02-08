@@ -49,7 +49,7 @@ abstract class Query<InstanceType extends ManagedObject> {
   /// The [ManagedContext] this query will be executed on.
   ManagedContext get context;
 
-  /// A convenience for building [predicate]s in a safe way.
+  /// A convenience for building [predicate] in a safe way.
   ///
   /// Use this property instead of providing a [predicate] to filter the rows this query manipulates or fetches. This property
   /// is an instance of [InstanceType] with special [ManagedObject.backingMap] behavior. When you set properties of this property using
