@@ -94,6 +94,7 @@ class RowMapper extends PostgresMapper
 
       var joinPredicate =
           new QueryPredicate("$parentColumnName=$childColumnName", null);
+
       var filterPredicates = matcherExpressions
         .where((expr) => identical(expr.table, this))
         .map((expr) => expr.predicate)
@@ -154,7 +155,6 @@ class RowMapper extends PostgresMapper
         return (p as RowMapper).joinString;
       }).toList();
       nestedJoins.insert(0, thisJoin);
-
       return nestedJoins.join(" ");
     }
 
