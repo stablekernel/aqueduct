@@ -16,7 +16,14 @@ class PostgresQueryBuilder extends Object
       ManagedObject whereBuilder,
       QueryPredicate predicate,
       List<RowMapper> nestedRowMappers,
-      List<QuerySortDescriptor> sortDescriptors}) {
+      List<QuerySortDescriptor> sortDescriptors,
+      bool aliasTables: false}) {
+
+    if (aliasTables) {
+      shouldAliasTables = true;
+      tableAlias = "t0";
+    }
+
     if (returningProperties == null) {
       returningOrderedMappers = [];
     } else {
@@ -47,9 +54,6 @@ class PostgresQueryBuilder extends Object
     // the combining of those predicates triggers building the text format string of the predicate created by the whereBuilder -
     // because all tables have to be aliased prior to that point. But the predicate has to be built prior to asking
     // for returningOrderedMappers, otherwise implicit joins would not be added in time.
-    if (containsJoins) {
-      tableAlias = "t0";
-    }
 
     var implicitJoins = <RowMapper>[];
     finalizedPredicate =
@@ -57,6 +61,7 @@ class PostgresQueryBuilder extends Object
     returningOrderedMappers.addAll(implicitJoins);
   }
 
+  bool shouldAliasTables = false;
   List<PropertyToColumnValue> columnValueMappers;
   QueryPredicate finalizedPredicate;
   List<PropertySortMapper> sortMappers;
@@ -123,7 +128,7 @@ class PostgresQueryBuilder extends Object
 
   String get returningColumnString {
     return flattenedMappingElements
-        .map((p) => p.columnName(withTableNamespace: containsJoins))
+        .map((p) => p.columnName(withTableNamespace: shouldAliasTables))
         .join(",");
   }
 
@@ -165,6 +170,18 @@ class PostgresQueryBuilder extends Object
 
     return new PropertyToColumnValue(this, property, valueMap[key]);
   }
+
+  QueryPredicate predicateFrom(
+      ManagedObject matcherObject,
+      List<QueryPredicate> predicates,
+      List<RowMapper> createdImplicitRowMappers) {
+    var matchers =
+    propertyExpressionsFromObject(matcherObject, createdImplicitRowMappers);
+    var allPredicates = matchers.expand((p) => [p.predicate]).toList();
+    allPredicates.addAll(predicates.where((p) => p != null));
+    return QueryPredicate.andPredicates(allPredicates);
+  }
+
 
   int aliasCounter = 0;
   String generateTableAlias() {

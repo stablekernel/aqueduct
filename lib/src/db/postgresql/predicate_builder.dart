@@ -9,17 +9,6 @@ import '../managed/backing.dart';
 abstract class PredicateBuilder implements EntityTableMapper {
   ManagedEntity get entity;
 
-  QueryPredicate predicateFrom(
-      ManagedObject matcherObject,
-      List<QueryPredicate> predicates,
-      List<RowMapper> createdImplicitRowMappers) {
-    var matchers =
-        propertyExpressionsFromObject(matcherObject, createdImplicitRowMappers);
-    var allPredicates = matchers.expand((p) => [p.predicate]).toList();
-    allPredicates.addAll(predicates.where((p) => p != null));
-    return QueryPredicate.andPredicates(allPredicates);
-  }
-
   List<PropertyExpression> propertyExpressionsFromObject(
       ManagedObject obj, List<RowMapper> createdImplicitRowMappers,
       {bool disambiguateVariableNames: false}) {

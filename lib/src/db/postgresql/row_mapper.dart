@@ -31,16 +31,50 @@ class RowMapper extends PostgresMapper
     returningOrderedMappers.where((p) => p is RowMapper).forEach((p) {
       variables.addAll((p as RowMapper).substitutionVariables);
     });
+    matcherExpressions
+        .where((expr) => !identical(expr.table, this))
+        .forEach((expr) {
+          if (expr.predicate?.parameters != null) {
+              variables.addAll(expr.predicate.parameters);
+          }
+        });
+
     return variables;
   }
 
   List<PropertyToColumnMapper> get flattened {
-    return returningOrderedMappers.expand((c) {
+    return returningOrderedMappers.fold([], (prev, c) {
       if (c is RowMapper) {
-        return c.flattened;
+        prev.addAll(c.flattened);
+      } else {
+        prev.add(c);
       }
-      return [c];
-    }).toList();
+      return prev;
+    });
+  }
+
+  void _buildMatcher() {
+    _implicitRowMappers = <RowMapper>[];
+    _matcherExpressions = propertyExpressionsFromObject(whereBuilder, _implicitRowMappers);
+    addRowMappers(_implicitRowMappers);
+  }
+
+  List<RowMapper> _implicitRowMappers;
+  List<RowMapper> get implicitRowMappers {
+    if (_implicitRowMappers == null) {
+      _buildMatcher();
+    }
+
+    return _implicitRowMappers;
+  }
+
+  List<PropertyExpression> _matcherExpressions;
+  List<PropertyExpression> get matcherExpressions {
+    if (_matcherExpressions == null) {
+      _buildMatcher();
+    }
+
+    return _matcherExpressions;
   }
 
   QueryPredicate get joinCondition {
@@ -60,10 +94,15 @@ class RowMapper extends PostgresMapper
 
       var joinPredicate =
           new QueryPredicate("$parentColumnName=$childColumnName", null);
-      var implicitJoins = <RowMapper>[];
-      _joinCondition = predicateFrom(
-          whereBuilder, [joinPredicate, predicate], implicitJoins);
-      addRowMappers(implicitJoins);
+      var filterPredicates = matcherExpressions
+        .where((expr) => identical(expr.table, this))
+        .map((expr) => expr.predicate)
+        .toList();
+      filterPredicates.add(joinPredicate);
+      if (predicate != null) {
+        filterPredicates.add(predicate);
+      }
+      _joinCondition = QueryPredicate.andPredicates(filterPredicates);
     }
 
     return _joinCondition;
@@ -74,7 +113,38 @@ class RowMapper extends PostgresMapper
     returningOrderedMappers.addAll(rowMappers);
   }
 
+  String get innerSelectString {
+    var nestedJoins = returningOrderedMappers
+        .where((m) => m is RowMapper)
+        .map((rm) => (rm as RowMapper).joinString)
+        .join(" ");
+
+    var flattenedColumns = flattened;
+    var columnsWithNamespace = flattenedColumns
+        .map((p) => p.columnName(withTableNamespace: true))
+        .join(",");
+    var columnsWithoutNamespace = flattenedColumns
+        .map((p) => p.columnName())
+        .join(",");
+
+    var outerWhere = QueryPredicate.andPredicates(matcherExpressions
+      .where((expr) => !identical(expr.table, this))
+      .map((expr) => expr.predicate));
+    var outerWhereString = "";
+    if (outerWhere != null) {
+      outerWhereString = " WHERE ${outerWhere.format}";
+    }
+
+    var selectString = "SELECT $columnsWithNamespace FROM $tableDefinition $nestedJoins";
+    var alias = "${tableReference}(${columnsWithoutNamespace})";
+    return "LEFT OUTER JOIN ($selectString$outerWhereString) $alias ON ${joinCondition.format}";
+  }
+
   String get joinString {
+    if (implicitRowMappers.length > 0) {
+      return innerSelectString;
+    }
+
     var thisJoin =
         "LEFT OUTER JOIN ${tableDefinition} ON ${joinCondition.format}";
 
@@ -84,6 +154,7 @@ class RowMapper extends PostgresMapper
         return (p as RowMapper).joinString;
       }).toList();
       nestedJoins.insert(0, thisJoin);
+
       return nestedJoins.join(" ");
     }
 

@@ -13,6 +13,7 @@ import '../../helpers.dart';
  */
 
 void main() {
+  justLogEverything();
   List<RootObject> rootObjects;
   ManagedContext ctx;
   setUpAll(() async {
@@ -226,7 +227,7 @@ void main() {
       expect(results.length, 1);
       expect(results.first.id, 1);
       expect(results.first.children.length, 1);
-      expect(results.first.children.first.grandChildren.length, 1);
+      expect(results.first.children.first.grandChildren, isNull);
     });
 
     test("Explicitly joining related objects and nested related objects",
@@ -274,9 +275,6 @@ void main() {
   });
 
   group("With where clauses on child object", () {
-    /*
-    select p.id, r.cid, r.cpid, r.gid, r.gpid from _rootobject p left outer join (select c.id, c.parents_id, g.id, g.parents_id from _childobject c left outer join _grandchildobject g on g.parents_id = c.id where g.id > 5) r(cid, cpid, gid, gpid) on r.cpid = p.id;
-     */
     test("Explicit joins do not impact returned root objects", () async {
       var q = new Query<RootObject>();
       q.joinOn((r) => r.child)..where.id = whereEqualTo(1);
