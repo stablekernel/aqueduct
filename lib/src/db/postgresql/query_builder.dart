@@ -17,12 +17,16 @@ class PostgresQueryBuilder extends Object
       QueryPredicate predicate,
       List<RowMapper> nestedRowMappers,
       List<QuerySortDescriptor> sortDescriptors}) {
-    returningOrderedMappers = returningProperties == null
-        ? []
-        : PropertyToColumnMapper.fromKeys(this, entity, returningProperties);
+    if (returningProperties == null) {
+      returningOrderedMappers = [];
+    } else {
+      returningOrderedMappers =
+          PropertyToColumnMapper.fromKeys(this, entity, returningProperties);
+    }
+
     this.sortMappers = sortDescriptors
-        ?.map((sd) =>
-            new PropertySortMapper(this, entity.properties[sd.key], sd.order))
+        ?.map((s) =>
+            new PropertySortMapper(this, entity.properties[s.key], s.order))
         ?.toList();
 
     if (nestedRowMappers != null) {
@@ -31,23 +35,30 @@ class PostgresQueryBuilder extends Object
         rm.parentTable = this;
       });
     }
-    columnValues = values?.keys
+
+    columnValueMappers = values?.keys
             ?.map((key) => validatedColumnValueMapper(values, key))
             ?.where((v) => v != null)
             ?.toList() ??
         [];
 
+    // Things past here will start trigger table aliasing and actual query string elements to begin being built.
+    // It's technically possible to clean this up - because the final predicate is built by combining whereBuilder/predicate,
+    // the combining of those predicates triggers building the text format string of the predicate created by the whereBuilder -
+    // because all tables have to be aliased prior to that point. But the predicate has to be built prior to asking
+    // for returningOrderedMappers, otherwise implicit joins would not be added in time.
     if (containsJoins) {
       tableAlias = "t0";
     }
 
     var implicitJoins = <RowMapper>[];
-    this.predicate = predicateFrom(whereBuilder, [predicate], implicitJoins);
+    finalizedPredicate =
+        predicateFrom(whereBuilder, [predicate], implicitJoins);
     returningOrderedMappers.addAll(implicitJoins);
   }
 
-  List<PropertyToColumnValue> columnValues;
-  QueryPredicate predicate;
+  List<PropertyToColumnValue> columnValueMappers;
+  QueryPredicate finalizedPredicate;
   List<PropertySortMapper> sortMappers;
   ManagedEntity entity;
   String tableAlias;
@@ -55,15 +66,15 @@ class PostgresQueryBuilder extends Object
   String get primaryTableDefinition => tableDefinition;
   bool get containsJoins =>
       returningOrderedMappers.reversed.any((p) => p is RowMapper);
-  String get whereClause => predicate?.format;
+  String get whereClause => finalizedPredicate?.format;
 
   Map<String, dynamic> get substitutionValueMap {
     var m = <String, dynamic>{};
-    if (predicate?.parameters != null) {
-      m.addAll(this.predicate.parameters);
+    if (finalizedPredicate?.parameters != null) {
+      m.addAll(finalizedPredicate.parameters);
     }
 
-    columnValues.forEach((PropertyToColumnValue c) {
+    columnValueMappers.forEach((PropertyToColumnValue c) {
       m[c.columnName(withPrefix: valueKeyPrefix)] = c.value;
     });
 
@@ -84,7 +95,7 @@ class PostgresQueryBuilder extends Object
   }
 
   String get updateValueString {
-    return columnValues.map((m) {
+    return columnValueMappers.map((m) {
       var columnName = m.columnName();
       var variableName =
           m.columnName(withPrefix: "@$valueKeyPrefix", withTypeSuffix: true);
@@ -93,11 +104,11 @@ class PostgresQueryBuilder extends Object
   }
 
   String get valuesColumnString {
-    return columnValues.map((c) => c.columnName()).join(",");
+    return columnValueMappers.map((c) => c.columnName()).join(",");
   }
 
   String get insertionValueString {
-    return columnValues
+    return columnValueMappers
         .map((c) =>
             c.columnName(withTypeSuffix: true, withPrefix: "@$valueKeyPrefix"))
         .join(",");
@@ -126,7 +137,6 @@ class PostgresQueryBuilder extends Object
 
   PropertyToColumnValue validatedColumnValueMapper(
       Map<String, dynamic> valueMap, String key) {
-    var value = valueMap[key];
     var property = entity.properties[key];
     if (property == null) {
       throw new QueryException(QueryExceptionEvent.requestFailure,
@@ -139,21 +149,21 @@ class PostgresQueryBuilder extends Object
         return null;
       }
 
+      var value = valueMap[key];
       if (value != null) {
-        if (value is ManagedObject) {
-          value = value[property.destinationEntity.primaryKey];
-        } else if (value is Map) {
-          value = value[property.destinationEntity.primaryKey];
-        } else {
-          throw new QueryException(QueryExceptionEvent.internalFailure,
-              message:
-                  "Property $key on ${entity.tableName} in 'Query.values' must be a 'Map' or ${MirrorSystem.getName(
-                  property.destinationEntity.instanceType.simpleName)} ");
+        if (value is ManagedObject || value is Map) {
+          return new PropertyToColumnValue(
+              this, property, value[property.destinationEntity.primaryKey]);
         }
+
+        throw new QueryException(QueryExceptionEvent.internalFailure,
+            message:
+                "Property $key on ${entity.tableName} in 'Query.values' must be a 'Map' or ${MirrorSystem.getName(
+                property.destinationEntity.instanceType.simpleName)} ");
       }
     }
 
-    return new PropertyToColumnValue(this, property, value);
+    return new PropertyToColumnValue(this, property, valueMap[key]);
   }
 
   int aliasCounter = 0;

@@ -14,7 +14,6 @@ import '../../helpers.dart';
  */
 
 void main() {
-  justLogEverything();
   group("Happy path", () {
     ManagedContext context = null;
     List<Parent> truth;
