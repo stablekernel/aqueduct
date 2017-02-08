@@ -1,15 +1,14 @@
-import 'property_mapper.dart';
 import '../db.dart';
 import 'entity_table.dart';
-import 'query_builder.dart';
 import 'predicate_builder.dart';
+import 'property_mapper.dart';
 
 class RowMapper extends PostgresMapper
     with PredicateBuilder, EntityTableMapper {
   RowMapper(this.type, this.parentProperty, List<String> propertiesToFetch,
-      {this.predicate, this.where}) {
-    returningOrderedMappers = PropertyToColumnMapper.fromKeys(
-        this, joinProperty.entity, propertiesToFetch);
+      {this.predicate, this.whereBuilder}) {
+    returningOrderedMappers =
+        PropertyToColumnMapper.fromKeys(this, entity, propertiesToFetch);
   }
 
   RowMapper.implicit(this.type, this.parentProperty) {
@@ -18,11 +17,14 @@ class RowMapper extends PostgresMapper
 
   ManagedRelationshipDescription parentProperty;
   EntityTableMapper parentTable;
-  ManagedEntity get entity => joinProperty.entity;
   PersistentJoinType type;
-  ManagedObject where;
+  ManagedObject whereBuilder;
   QueryPredicate predicate;
   QueryPredicate _joinCondition;
+
+  ManagedEntity get entity => inverseProperty.entity;
+  ManagedPropertyDescription get inverseProperty =>
+      parentProperty.inverseRelationship;
 
   Map<String, dynamic> get substitutionVariables {
     var variables = joinCondition.parameters ?? {};
@@ -31,9 +33,6 @@ class RowMapper extends PostgresMapper
     });
     return variables;
   }
-
-  ManagedPropertyDescription get joinProperty =>
-      parentProperty.inverseRelationship;
 
   List<PropertyToColumnMapper> get flattened {
     return returningOrderedMappers.expand((c) {
@@ -53,16 +52,17 @@ class RowMapper extends PostgresMapper
           new PropertyToColumnMapper(parentTable, parentPrimaryKeyProperty);
       var parentColumnName =
           temporaryLeftElement.columnName(withTableNamespace: true);
+
       var temporaryRightElement =
-          new PropertyToColumnMapper(this, joinProperty);
+          new PropertyToColumnMapper(this, inverseProperty);
       var childColumnName =
           temporaryRightElement.columnName(withTableNamespace: true);
 
       var joinPredicate =
           new QueryPredicate("$parentColumnName=$childColumnName", null);
       var implicitJoins = <RowMapper>[];
-      _joinCondition =
-          predicateFrom(where, [joinPredicate, predicate], implicitJoins);
+      _joinCondition = predicateFrom(
+          whereBuilder, [joinPredicate, predicate], implicitJoins);
       addRowMappers(implicitJoins);
     }
 

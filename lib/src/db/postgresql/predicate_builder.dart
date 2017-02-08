@@ -1,9 +1,8 @@
 import '../db.dart';
-
-import 'property_mapper.dart';
-import 'property_expression.dart';
 import 'entity_table.dart';
-import 'property_row.dart';
+import 'property_expression.dart';
+import 'property_mapper.dart';
+import 'row_mapper.dart';
 
 abstract class PredicateBuilder implements EntityTableMapper {
   ManagedEntity get entity;

@@ -1,8 +1,5 @@
-import 'package:postgres/postgres.dart';
-
 import '../db.dart';
 import 'property_mapper.dart';
-import 'query_builder.dart';
 
 abstract class RowInstantiator {
   List<PostgresMapper> get returningOrderedMappers;
@@ -49,7 +46,7 @@ abstract class RowInstantiator {
 
     var innerInstanceWrapper = instanceFromRow(
         rowIterator, mapper.returningOrderedMappers.iterator,
-        incomingEntity: mapper.joinProperty.entity);
+        incomingEntity: mapper.inverseProperty.entity);
 
     if (mapper.isToMany) {
       // If to many, put in a managed set.

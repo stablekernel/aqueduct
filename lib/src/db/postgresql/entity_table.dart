@@ -1,6 +1,5 @@
 import '../db.dart';
 import 'property_mapper.dart';
-import 'query_builder.dart';
 
 abstract class EntityTableMapper {
   ManagedEntity get entity;

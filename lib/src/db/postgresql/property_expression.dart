@@ -1,7 +1,7 @@
-import 'property_mapper.dart';
-import '../query/matcher_internal.dart';
 import '../db.dart';
+import '../query/matcher_internal.dart';
 import 'entity_table.dart';
+import 'property_mapper.dart';
 
 class PropertyExpression extends PropertyMapper {
   PropertyExpression(EntityTableMapper table,
@@ -13,7 +13,6 @@ class PropertyExpression extends PropertyMapper {
   MatcherExpression expression;
   String get defaultVariablePrefix =>
       "$additionalVariablePrefix${table.tableReference}_";
-  String get typeSuffix => PropertyMapper.typeSuffixForProperty(property);
 
   QueryPredicate get predicate {
     var expr = expression;

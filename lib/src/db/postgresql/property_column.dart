@@ -1,6 +1,6 @@
-import 'property_mapper.dart';
 import '../db.dart';
 import 'entity_table.dart';
+import 'property_mapper.dart';
 
 class PropertyToColumnMapper extends PropertyMapper {
   static List<PropertyToColumnMapper> fromKeys(

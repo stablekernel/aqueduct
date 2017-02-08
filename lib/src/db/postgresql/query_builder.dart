@@ -1,12 +1,10 @@
 import 'dart:mirrors';
 
 import '../db.dart';
-import 'property_mapper.dart';
 import 'entity_table.dart';
-import 'row_instantiator.dart';
 import 'predicate_builder.dart';
-
-abstract class PostgresMapper {}
+import 'property_mapper.dart';
+import 'row_instantiator.dart';
 
 class PostgresQueryBuilder extends Object
     with PredicateBuilder, RowInstantiator, EntityTableMapper {

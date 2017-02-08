@@ -1,13 +1,15 @@
 import 'package:postgres/postgres.dart';
-import '../db.dart';
 
+import '../db.dart';
 import 'entity_table.dart';
-import 'query_builder.dart';
-export 'property_expression.dart';
+
 export 'property_column.dart';
-export 'property_row.dart';
+export 'property_expression.dart';
+export 'row_mapper.dart';
 
 enum PersistentJoinType { leftOuter }
+
+abstract class PostgresMapper {}
 
 abstract class PropertyMapper extends PostgresMapper {
   static Map<ManagedPropertyType, PostgreSQLDataType> typeMap = {
@@ -28,8 +30,13 @@ abstract class PropertyMapper extends PostgresMapper {
     MatcherOperator.equalTo: "="
   };
 
-  static String typeSuffixForProperty(ManagedPropertyDescription desc) {
-    var type = PostgreSQLFormat.dataTypeStringForDataType(typeMap[desc.type]);
+  PropertyMapper(this.table, this.property);
+
+  ManagedPropertyDescription property;
+  EntityTableMapper table;
+  String get typeSuffix {
+    var type =
+        PostgreSQLFormat.dataTypeStringForDataType(typeMap[property.type]);
     if (type != null) {
       return ":$type";
     }
@@ -37,23 +44,20 @@ abstract class PropertyMapper extends PostgresMapper {
     return "";
   }
 
-  PropertyMapper(this.table, this.property);
-
-  ManagedPropertyDescription property;
-  EntityTableMapper table;
-
   String columnName(
       {bool withTypeSuffix: false,
       bool withTableNamespace: false,
       String withPrefix: null}) {
     var name = property.name;
     if (property is ManagedRelationshipDescription) {
-      name =
-          "${name}_${(property as ManagedRelationshipDescription).destinationEntity.primaryKey}";
+      var relatedPrimaryKey = (property as ManagedRelationshipDescription)
+          .destinationEntity
+          .primaryKey;
+      name = "${name}_$relatedPrimaryKey";
     }
 
     if (withTypeSuffix) {
-      name = "$name${typeSuffixForProperty(property)}";
+      name = "$name$typeSuffix";
     }
 
     if (withTableNamespace) {

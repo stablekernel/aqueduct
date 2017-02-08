@@ -208,7 +208,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
           var joinElement = new RowMapper(PersistentJoinType.leftOuter,
               relationshipDesc, subQuery.propertiesToFetch,
               predicate: subQuery.predicate,
-              where: subQuery.hasWhereBuilder ? subQuery.where : null);
+              whereBuilder: subQuery.hasWhereBuilder ? subQuery.where : null);
           joinElement.addRowMappers(subQuery.rowMappersFromSubqueries);
 
           return joinElement;
