@@ -274,9 +274,6 @@ void main() {
   });
 
   group("With where clauses on child object", () {
-    /*
-    select p.id, r.cid, r.cpid, r.gid, r.gpid from _rootobject p left outer join (select c.id, c.parents_id, g.id, g.parents_id from _childobject c left outer join _grandchildobject g on g.parents_id = c.id where g.id > 5) r(cid, cpid, gid, gpid) on r.cpid = p.id;
-     */
     test("Explicit joins do not impact returned root objects", () async {
       var q = new Query<RootObject>();
       q.joinOn((r) => r.child)..where.id = whereEqualTo(1);
