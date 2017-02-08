@@ -62,6 +62,7 @@ class CORSPolicy {
     exposedResponseHeaders = [];
     allowedMethods = ["POST", "PUT", "DELETE", "GET"];
     allowedRequestHeaders = [
+      "origin",
       "authorization",
       "x-requested-with",
       "x-forwarded-for",
