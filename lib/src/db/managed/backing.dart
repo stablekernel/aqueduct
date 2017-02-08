@@ -67,22 +67,30 @@ class ManagedMatcherBacking extends ManagedBacking {
     }
 
     if (value is MatcherExpression) {
-      var relDesc = entity.relationships[propertyName];
+      var property = entity.properties[propertyName];
 
-      if (relDesc != null &&
-          relDesc.relationshipType != ManagedRelationshipType.belongsTo) {
-        throw new QueryException(QueryExceptionEvent.internalFailure,
-            message:
-                "Attempting to set matcher on hasOne or hasMany relationship. Use includeInResultSet.");
+      if (property is ManagedRelationshipDescription) {
+        if (property.relationshipType == ManagedRelationshipType.belongsTo ||
+            value is NullMatcherExpression) {
+          valueMap[propertyName] = value;
+        } else {
+          throw new QueryException(QueryExceptionEvent.internalFailure,
+              message:
+                  "Attempting to set matcher on hasOne or hasMany relationship property "
+                  "'${entity.tableName}.${property.name}'. Matchers for these "
+                  "properties may only be 'whereNull' or 'whereNotNull'.");
+        }
+      } else {
+        valueMap[propertyName] = value;
       }
-
-      valueMap[propertyName] = value;
     } else {
       // Setting simply a value, wrap it with an AssignmentMatcher if applicable.
       if (entity.relationships.containsKey(propertyName)) {
         throw new QueryException(QueryExceptionEvent.internalFailure,
             message:
-                "Attempting to set simple value matcher for property $propertyName on ${entity.tableName}, but that property is a relationship.");
+                "Attempting to set a value for property '${entity.tableName}.$propertyName' "
+                "on, but that property is a relationship. Valid values for relationship "
+                "properties are whereRelatedByValue, whereNull, or whereNotNull.");
       }
 
       valueMap[propertyName] =
