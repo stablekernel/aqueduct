@@ -251,7 +251,7 @@ void main() {
       expect(resp.headers.value("access-control-allow-origin"),
           "http://exclusive.com");
       expect(resp.headers.value("access-control-allow-headers"),
-          "authorization, x-requested-with, x-forwarded-for, content-type");
+          "origin, authorization, x-requested-with, x-forwarded-for, content-type");
       expect(resp.headers.value("access-control-allow-methods"),
           "POST, PUT, DELETE, GET");
       expect(resp.headers.value("access-control-expose-headers"), isNull);
@@ -318,7 +318,7 @@ void main() {
       expect(resp.headers.value("access-control-allow-origin"),
           "http://foobar.com");
       expect(resp.headers.value("access-control-allow-headers"),
-          "authorization, x-requested-with, x-forwarded-for, content-type");
+          "origin, authorization, x-requested-with, x-forwarded-for, content-type");
       expect(resp.headers.value("access-control-allow-methods"),
           "POST, PUT, DELETE, GET");
       expect(resp.headers.value("access-control-expose-headers"), isNull);
@@ -336,7 +336,7 @@ void main() {
       expect(resp.headers.value("access-control-allow-origin"),
           "http://foobar.com");
       expect(resp.headers.value("access-control-allow-headers"),
-          "authorization, x-requested-with, x-forwarded-for, content-type");
+          "origin, authorization, x-requested-with, x-forwarded-for, content-type");
       expect(resp.headers.value("access-control-allow-methods"), "GET");
       expect(resp.headers.value("access-control-expose-headers"), isNull);
       expect(resp.headers.value("access-control-allow-credentials"), "true");
@@ -355,7 +355,7 @@ void main() {
       expect(resp.headers.value("access-control-allow-origin"),
           "http://foobar.com");
       expect(resp.headers.value("access-control-allow-headers"),
-          "authorization, x-requested-with, x-forwarded-for, content-type");
+          "origin, authorization, x-requested-with, x-forwarded-for, content-type");
       expect(resp.headers.value("access-control-allow-methods"),
           "POST, PUT, DELETE, GET");
       expect(resp.headers.value("access-control-expose-headers"), isNull);
@@ -375,7 +375,7 @@ void main() {
       expect(resp.headers.value("access-control-allow-origin"),
           "http://foobar.com");
       expect(resp.headers.value("access-control-allow-headers"),
-          "authorization, x-requested-with, x-forwarded-for, content-type");
+          "origin, authorization, x-requested-with, x-forwarded-for, content-type");
       expect(resp.headers.value("access-control-allow-methods"),
           "POST, PUT, DELETE, GET");
       expect(resp.headers.value("access-control-expose-headers"), isNull);
@@ -395,7 +395,7 @@ void main() {
       expect(resp.headers.value("access-control-allow-origin"),
           "http://foobar.com");
       expect(resp.headers.value("access-control-allow-headers"),
-          "authorization, x-requested-with, x-forwarded-for, content-type");
+          "origin, authorization, x-requested-with, x-forwarded-for, content-type");
       expect(resp.headers.value("access-control-allow-methods"),
           "POST, PUT, DELETE, GET");
       expect(resp.headers.value("access-control-expose-headers"), isNull);
@@ -462,7 +462,7 @@ void main() {
       expect(resp.headers.value("access-control-allow-origin"),
           "http://foobar.com");
       expect(resp.headers.value("access-control-allow-headers"),
-          "authorization, x-requested-with, x-forwarded-for, content-type");
+          "origin, authorization, x-requested-with, x-forwarded-for, content-type");
       expect(resp.headers.value("access-control-allow-methods"),
           "POST, PUT, DELETE, GET");
       expect(resp.headers.value("access-control-expose-headers"), isNull);
@@ -482,7 +482,7 @@ void main() {
       expect(resp.headers.value("access-control-allow-origin"),
           "http://exclusive.com");
       expect(resp.headers.value("access-control-allow-headers"),
-          "authorization, x-requested-with, x-forwarded-for, content-type");
+          "origin, authorization, x-requested-with, x-forwarded-for, content-type");
       expect(resp.headers.value("access-control-allow-methods"),
           "POST, PUT, DELETE, GET");
       expect(resp.headers.value("access-control-expose-headers"), isNull);
@@ -507,7 +507,7 @@ void main() {
       expect(resp.headers.value("access-control-allow-origin"),
           "http://foobar.com");
       expect(resp.headers.value("access-control-allow-headers"),
-          "authorization, x-requested-with, x-forwarded-for, content-type");
+          "origin, authorization, x-requested-with, x-forwarded-for, content-type");
       expect(resp.headers.value("access-control-allow-methods"),
           "POST, PUT, DELETE, GET");
       expect(resp.headers.value("access-control-expose-headers"), isNull);
