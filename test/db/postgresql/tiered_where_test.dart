@@ -13,7 +13,6 @@ import '../../helpers.dart';
  */
 
 void main() {
-  justLogEverything();
   List<RootObject> rootObjects;
   ManagedContext ctx;
   setUpAll(() async {
@@ -297,7 +296,7 @@ void main() {
 
       expect(results.length, rootObjects.length);
       expect(results.firstWhere((r) => r.id == 1).children.length, 1);
-      expect(results.firstWhere((r) => r.id == 1).children.first.id, 4);
+      expect(results.firstWhere((r) => r.id == 1).children.first.id, 2);
       expect(results.where((r) => r.id != 1).every((r) => r.children.isEmpty),
           true);
     });
