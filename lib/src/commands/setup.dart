@@ -38,19 +38,19 @@ class CLISetup extends CLICommand with CLIProject {
     }
   }
 
-  Future<bool> get hasGitCLI async => isExecutableInShellPath("git");
-  Future<bool> get hasPSQLCLI async => isExecutableInShellPath("psql");
-  Future<bool> get hasHerokuCLI async => isExecutableInShellPath("heroku");
+  bool get hasGitCLI => isExecutableInShellPath("git");
+  bool get hasPSQLCLI => isExecutableInShellPath("psql");
+  bool get hasHerokuCLI => isExecutableInShellPath("heroku");
 
   Future<int> setupHerokuProject() async {
-    if (!(await hasHerokuCLI)) {
+    if (!hasHerokuCLI) {
       displayError("The application 'heroku' was not found in \$PATH.");
       displayProgress(
           "Install 'heroku' from https://devcenter.heroku.com/articles/heroku-cli.");
       return -1;
     }
 
-    if (!(await hasGitCLI)) {
+    if (!hasGitCLI) {
       displayError("The application 'git' was not found in \$PATH.");
       displayProgress("Install 'git' from https://git-scm.com/downloads.");
     }
@@ -102,7 +102,7 @@ web: /app/dart-sdk/bin/pub global run aqueduct:aqueduct serve --port \$PORT --no
   }
 
   Future<int> setupTestEnvironment() async {
-    if (!(await hasPSQLCLI)) {
+    if (!hasPSQLCLI) {
       displayError(
           "The application 'psql' was not found in \$PATH.\n\nIf you do not have PostgreSQL installed locally, "
           "you must do so to run tests in an Aqueduct application. For macOS users, "

@@ -1,8 +1,30 @@
 # aqueduct changelog
 
-## 1.0.5
-- Persistent types for `ManagedObject`s can now be subclasses of some other type, and inherited properties are also persistent properties.
-- `ManagedRelationship`s now have a `.deferred()` constructor. This allows `ManagedObject` subclasses to be declared in an imported package and still have relationships with `ManagedObject`s in the importing package.
+## 2.0.0
+
+- Added `RequestController.letUncaughtExceptionsEscape` for better debugging during tests.
+- Persistent types for `ManagedObject`s can now have superclasses.
+- `ManagedRelationship`s now have a `.deferred()` constructor. This allows `ManagedObject`s to have relationships to `ManagedObject`s in other packages.
+- Added `RequestSink.initializeApplication` method to do one-time startup tasks that were previously done in a start script.
+- `RequestSink` constructor now takes `ApplicationConfiguration`, instead of `Map`.
+- Added `configurationFilePath` to `ApplicationConfiguration`.
+- Improved error reporting from failed application startups.
+- Automatically lowercase headers in `Response` objects so that other parts of an application can accurately read their values during processing.
+- Renamed `Query.matchOn` to `Query.where`.
+- Removed `includeInResultSet` for `Query`'s, instead, added `joinOn` and `joinMany` which create subqueries that can be configured further.
+- Allow `Query.where` to reference properties in related objects without including related objects in results, i.e. can fetch `Parent` objects and filter them by values in their `Child` relationships.
+
+- Auth: Added `aqueduct/managed_auth` library. Implements storage of OAuth 2.0 tokens using `ManagedObject`s. See API reference for more details.
+- Auth: Improved error and response messaging to better align with the OAuth 2.0 spec, especially with regards to the authorization code flow.
+- Auth: Added distinction between public and confidential clients, as defined by OAuth 2.0 spec.
+- Auth: Improved class and property naming.
+
+- Tooling: Added `aqueduct auth` tool to create client ID and secrets and add them to a database for applications using the `aqueduct/managed_auth` package.
+- Tooling: Added more user-friendly configuration options for `aqueduct db` tool.
+- Tooling: Added `aqueduct setup --heroku` for setting up projects to be deployed to Heroku.
+- Tooling: Added `aqueduct serve` command for running Aqueduct applications without having to write a start script.
+- Tooling: Added `aqueduct document` command to generate OpenAPI specification for Aqueduct applications, instead of relying on a script that came with the template.
+
 
 ## 1.0.4
 - BREAKING CHANGE: Added new `Response.contentType` property. Adding "Content-Type" to the headers of a `Response` no longer has any effect; use this property instead.

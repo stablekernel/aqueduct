@@ -13,8 +13,6 @@ import '../../helpers.dart';
  */
 
 void main() {
-  justLogEverything();
-
   List<RootObject> rootObjects;
   ManagedContext ctx;
   setUpAll(() async {

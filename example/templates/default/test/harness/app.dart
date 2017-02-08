@@ -75,7 +75,7 @@ class TestApplication {
       ..values.id = clientID
       ..values.salt = salt
       ..values.hashedSecret = hashedPassword;
-    return await clientQ.insert();
+    return clientQ.insert();
   }
 
   /// Adds database tables to the temporary test database based on the declared [ManagedObject]s in this application.

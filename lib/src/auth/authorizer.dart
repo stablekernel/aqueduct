@@ -69,9 +69,9 @@ class Authorizer extends RequestController {
     }
 
     if (strategy == AuthStrategy.bearer) {
-      return await _processBearerHeader(req, header);
+      return _processBearerHeader(req, header);
     } else if (strategy == AuthStrategy.basic) {
-      return await _processBasicHeader(req, header);
+      return _processBasicHeader(req, header);
     }
 
     return new Response.serverError();

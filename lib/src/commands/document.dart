@@ -72,7 +72,7 @@ class CLIDocument extends CLICommand with CLIProject {
     return 0;
   }
 
-  Future<String> documentProject() async {
+  Future<String> documentProject() {
     var generator = new SourceGenerator(
         (List<String> args, Map<String, dynamic> values) async {
       var resolver = new PackagePathResolver(".packages");
@@ -120,9 +120,8 @@ class CLIDocument extends CLICommand with CLIProject {
           "licenseName": licenseName
         },
         packageConfigURI: projectDirectory.uri.resolve(".packages"));
-    var contents = await executor.execute(projectDirectory.uri);
 
-    return contents;
+    return executor.execute(projectDirectory.uri) as Future<String>;
   }
 
   String get name {

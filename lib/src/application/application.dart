@@ -129,7 +129,7 @@ class Application<RequestSinkType extends RequestSink> {
   }
 
   static Future _globalStart(
-      ClassMirror sinkType, ApplicationConfiguration config) async {
+      ClassMirror sinkType, ApplicationConfiguration config) {
     var globalStartSymbol = #initializeApplication;
     if (sinkType.staticMembers[globalStartSymbol] != null) {
       return sinkType.invoke(globalStartSymbol, [config]).reflectee;

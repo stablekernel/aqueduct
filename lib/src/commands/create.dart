@@ -78,11 +78,8 @@ class CLITemplateCreator extends CLICommand {
     displayProgress("Template source is: ${sourceDirectory.path}.");
     await copyProjectFiles(destDirectory, sourceDirectory, projectName);
 
-    await createProjectSpecificFiles(
-        destDirectory.path, aqueductDependencyString);
-
-    await replaceAqueductDependencyString(
-        destDirectory.path, aqueductDependencyString);
+    createProjectSpecificFiles(destDirectory.path, aqueductDependencyString);
+    replaceAqueductDependencyString(destDirectory.path, aqueductDependencyString);
 
     displayInfo(
         "Fetching project dependencies (pub get --no-packages-dir ${offline ? "--offline" : ""})...");
@@ -227,8 +224,8 @@ class CLITemplateCreator extends CLICommand {
     return pathString.substring(lastPathComponentIndex + 1);
   }
 
-  Future createProjectSpecificFiles(
-      String directoryPath, String aqueductVersion) async {
+  void createProjectSpecificFiles(
+      String directoryPath, String aqueductVersion) {
     displayProgress("Generating config.yaml from config.yaml.src.");
     var configSrcPath =
         new File(path_lib.join(directoryPath, "config.yaml.src"));
@@ -236,8 +233,8 @@ class CLITemplateCreator extends CLICommand {
         .copySync(new File(path_lib.join(directoryPath, "config.yaml")).path);
   }
 
-  Future replaceAqueductDependencyString(
-      String destDirectoryPath, String aqueductVersion) async {
+  void replaceAqueductDependencyString(
+      String destDirectoryPath, String aqueductVersion) {
     var pubspecFile =
         new File(path_lib.join(destDirectoryPath, "pubspec.yaml"));
     var contents = pubspecFile.readAsStringSync();
