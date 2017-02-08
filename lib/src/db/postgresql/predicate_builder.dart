@@ -1,4 +1,6 @@
 import '../db.dart';
+import '../managed/backing.dart';
+import '../query/matcher_internal.dart';
 import 'entity_table.dart';
 import 'property_expression.dart';
 import 'property_mapper.dart';
@@ -6,17 +8,6 @@ import 'row_mapper.dart';
 
 abstract class PredicateBuilder implements EntityTableMapper {
   ManagedEntity get entity;
-
-  QueryPredicate predicateFrom(
-      ManagedObject matcherObject,
-      List<QueryPredicate> predicates,
-      List<RowMapper> createdImplicitRowMappers) {
-    var matchers =
-        propertyExpressionsFromObject(matcherObject, createdImplicitRowMappers);
-    var allPredicates = matchers.expand((p) => [p.predicate]).toList();
-    allPredicates.addAll(predicates.where((p) => p != null));
-    return QueryPredicate.andPredicates(allPredicates);
-  }
 
   List<PropertyExpression> propertyExpressionsFromObject(
       ManagedObject obj, List<RowMapper> createdImplicitRowMappers,
@@ -59,6 +50,13 @@ abstract class PredicateBuilder implements EntityTableMapper {
             }
 
             var innerMatcher = obj.backingMap[propertyName];
+            if (innerMatcher is NullMatcherExpression) {
+              innerMatcher = new ManagedObject()
+                ..entity = desc.inverseRelationship.entity
+                ..backing = new ManagedMatcherBacking()
+                ..[desc.inverseRelationship.name] = innerMatcher;
+            }
+
             if (innerMatcher is ManagedSet) {
               innerMatcher = (innerMatcher as ManagedSet).matchOn;
             }

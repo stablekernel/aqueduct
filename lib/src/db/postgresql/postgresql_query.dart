@@ -146,7 +146,8 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
         predicate: predicate,
         whereBuilder: hasWhereBuilder ? where : null,
         nestedRowMappers: rowMappersFromSubqueries,
-        sortDescriptors: allSortDescriptors);
+        sortDescriptors: allSortDescriptors,
+        aliasTables: true);
 
     if (builder.containsJoins && pageDescriptor != null) {
       throw new QueryException(QueryExceptionEvent.requestFailure,
