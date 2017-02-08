@@ -21,10 +21,10 @@ abstract class EntityTableMapper {
 
   String _tableAlias;
   String get tableAlias {
-    if (_tableAlias != null) {
-      return _tableAlias;
+    if (_tableAlias == null) {
+      _tableAlias = generateTableAlias();
     }
-    _tableAlias = generateTableAlias();
+
     return _tableAlias;
   }
 

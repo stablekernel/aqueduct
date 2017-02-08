@@ -5,6 +5,7 @@ import 'entity_table.dart';
 class PropertyToColumnMapper extends PropertyMapper {
   static List<PropertyToColumnMapper> fromKeys(
       EntityTableMapper table, ManagedEntity entity, List<String> keys) {
+    // Ensure the primary key is always available and at 0th index.
     var primaryKeyIndex = keys.indexOf(entity.primaryKey);
     if (primaryKeyIndex == -1) {
       keys.insert(0, entity.primaryKey);

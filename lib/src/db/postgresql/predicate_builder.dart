@@ -44,12 +44,13 @@ abstract class PredicateBuilder implements EntityTableMapper {
 
             // Otherwise, this is an implicit join...
             // Do we have an existing guy?
+            bool disambiguate = true;
             RowMapper innerRowMapper = returningOrderedMappers
                 .where((m) => m is RowMapper)
                 .firstWhere(
                     (m) => (m as RowMapper).representsRelationship(desc),
                     orElse: () => null);
-            bool disambiguate = true;
+
             if (innerRowMapper == null) {
               innerRowMapper =
                   new RowMapper.implicit(PersistentJoinType.leftOuter, desc);
@@ -60,9 +61,7 @@ abstract class PredicateBuilder implements EntityTableMapper {
 
             var innerMatcher = obj.backingMap[propertyName];
             if (innerMatcher is ManagedSet) {
-              return innerRowMapper.propertyExpressionsFromObject(
-                  innerMatcher.matchOn, createdImplicitRowMappers,
-                  disambiguateVariableNames: disambiguate);
+              innerMatcher = (innerMatcher as ManagedSet).matchOn;
             }
 
             return innerRowMapper.propertyExpressionsFromObject(
