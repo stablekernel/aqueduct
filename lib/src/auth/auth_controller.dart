@@ -20,73 +20,82 @@ class AuthController extends HTTPController {
   AuthServer authenticationServer;
 
   /// Required basic authorization header containing client ID and secret for the authenticating client.
-  @requiredHTTPParameter
   @HTTPHeader(HttpHeaders.AUTHORIZATION)
   String authHeader;
-
-  /// The type of token to request.
-  ///
-  /// Valid options are 'password', 'refresh_token' and 'authorization_code'.
-  @requiredHTTPParameter
-  @HTTPQuery("grant_type")
-  String grantType;
 
   /// Creates or refreshes an authentication token.
   ///
   /// When grant_type is 'password', there must be username and password values.
   /// When grant_type is 'refresh_token', there must be a refresh_token value.
   /// When grant_type is 'authorization_code', there must be a authorization_code value.
+  ///
+  /// This endpoint requires client authentication. The Authorization header must
+  /// include a valid Client ID and Secret in the Basic authorization scheme format.
+  ///
+  /// Do not put an [Authorizer] in front of this endpoint, as it will not allow
+  /// authorization of public clients.
   @httpPost
   Future<Response> create(
       {@HTTPQuery("username") String username,
       @HTTPQuery("password") String password,
       @HTTPQuery("refresh_token") String refreshToken,
-      @HTTPQuery("authorization_code") String authCode}) async {
-    var basicRecord = AuthorizationBasicParser.parse(authHeader);
-    if (grantType == "password") {
-      if (username == null || password == null) {
-        return new Response.badRequest(
-            body: {"error": "username and password required"});
-      }
-
-      var token = await authenticationServer.authenticate(
-          username, password, basicRecord.username, basicRecord.password);
-      return AuthController.tokenResponse(token);
-    } else if (grantType == "refresh_token") {
-      if (refreshToken == null) {
-        return new Response.badRequest(
-            body: {"error": "missing refresh_token"});
-      }
-
-      var token = await authenticationServer.refresh(
-          refreshToken, basicRecord.username, basicRecord.password);
-      return AuthController.tokenResponse(token);
-    } else if (grantType == "authorization_code") {
-      if (authCode == null) {
-        return new Response.badRequest(
-            body: {"error": "missing authorization_code"});
-      }
-
-      var token = await authenticationServer.exchange(
-          authCode, basicRecord.username, basicRecord.password);
-      return AuthController.tokenResponse(token);
+      @HTTPQuery("code") String authCode,
+      @HTTPQuery("grant_type") String grantType}) async {
+    AuthorizationBasicElements basicRecord;
+    try {
+      basicRecord = AuthorizationBasicParser.parse(authHeader);
+    } on AuthorizationParserException catch (_) {
+      return _responseForError(AuthRequestError.invalidClient);
     }
 
-    return new Response.badRequest(body: {"error": "invalid grant_type"});
+    try {
+      if (grantType == "password") {
+        var token = await authenticationServer.authenticate(
+            username, password, basicRecord.username, basicRecord.password);
+
+        return AuthController.tokenResponse(token);
+      } else if (grantType == "refresh_token") {
+        var token = await authenticationServer.refresh(
+            refreshToken, basicRecord.username, basicRecord.password);
+
+        return AuthController.tokenResponse(token);
+      } else if (grantType == "authorization_code") {
+        var token = await authenticationServer.exchange(
+            authCode, basicRecord.username, basicRecord.password);
+
+        return AuthController.tokenResponse(token);
+      } else if (grantType == null) {
+        return _responseForError(AuthRequestError.invalidRequest);
+      }
+    } on AuthServerException catch (e) {
+      return _responseForError(e.reason);
+    }
+
+    return _responseForError(AuthRequestError.unsupportedGrantType);
   }
 
-  /// Transforms a [AuthTokenizable] into a [Response] object with an RFC6749 compliant JSON token
+  /// Transforms a [AuthToken] into a [Response] object with an RFC6749 compliant JSON token
   /// as the HTTP response body.
-  static Response tokenResponse(AuthTokenizable token) {
-    var jsonToken = {
-      "access_token": token.accessToken,
-      "token_type": token.type,
-      "expires_in":
-          token.expirationDate.difference(new DateTime.now().toUtc()).inSeconds,
-      "refresh_token": token.refreshToken
-    };
-    return new Response(
-        200, {"Cache-Control": "no-store", "Pragma": "no-cache"}, jsonToken);
+  static Response tokenResponse(AuthToken token) {
+    return new Response(HttpStatus.OK,
+        {"Cache-Control": "no-store", "Pragma": "no-cache"}, token.asMap());
+  }
+
+  @override
+  void willSendResponse(Response response) {
+    if (response.statusCode == 400) {
+      if (response.body != null &&
+          response.body["error"] ==
+              "Duplicate parameter for non-List parameter type") {
+        // This post-processes the response in the case that duplicate parameters
+        // were in the request, which violates oauth2 spec. It just adjusts the error message.
+        // This could be hardened some.
+        response.body = {
+          "error":
+              AuthServerException.errorString(AuthRequestError.invalidRequest)
+        };
+      }
+    }
   }
 
   @override
@@ -113,5 +122,10 @@ class AuthController extends HTTPController {
     }
 
     return responses;
+  }
+
+  Response _responseForError(AuthRequestError error) {
+    var errorString = AuthServerException.errorString(error);
+    return new Response.badRequest(body: {"error": errorString});
   }
 }

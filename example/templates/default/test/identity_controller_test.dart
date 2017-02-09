@@ -4,30 +4,35 @@ Future main() async {
   group("Success cases", () {
     TestApplication app = new TestApplication();
 
-    setUpAll(() async {
+    setUp(() async {
       await app.start();
 
       var req = app.client.clientAuthenticatedRequest("/register")
         ..json = {
-          "email": "bob@stablekernel.com",
+          "username": "bob@stablekernel.com",
           "password": "foobaraxegrind12%"
         };
+
       app.client.defaultAccessToken = (await req.post()).asMap["access_token"];
     });
 
-    tearDownAll(() async {
-      try {
-        await app.stop();
-      } catch (e) {
-        print("$e");
-      }
+    tearDown(() async {
+      await app.stop();
     });
 
-    test("Identity returns user with valid token", () async {
-      var req = app.client.authenticatedRequest("/identity");
+    test("Identity returns user associated with bearer token", () async {
+      var req = app.client.authenticatedRequest("/me");
       var result = await req.get();
 
-      expect(result, hasResponse(200, partial({"id": greaterThan(0)})));
+      expect(
+          result,
+          hasResponse(
+              200,
+              partial({
+                "id": greaterThan(0),
+                "email": "bob@stablekernel.com",
+                "username": "bob@stablekernel.com"
+              })));
     });
   });
 }

@@ -9,6 +9,8 @@ export 'package:test/test.dart';
 /// code's current database schema during startup. This instance will use configuration values
 /// from config.yaml.src.
 class TestApplication {
+  static const DefaultClientID = "com.aqueduct.test";
+  static const DefaultClientSecret = "kilimanjaro";
 
   /// Creates an instance of this class.
   ///
@@ -56,8 +58,8 @@ class TestApplication {
     await addClientRecord();
 
     client = new TestClient(application)
-      ..clientID = "com.aqueduct.test"
-      ..clientSecret = "kilimanjaro";
+      ..clientID = DefaultClientID
+      ..clientSecret = DefaultClientSecret;
   }
 
   /// Stops running this application harness.
@@ -74,20 +76,16 @@ class TestApplication {
   /// [start] must have already been called prior to executing this method. By default,
   /// every application harness inserts a default client record during [start]. See [start]
   /// for more details.
-  static Future<ClientRecord> addClientRecord(
-      {String clientID: "com.aqueduct.test",
-      String clientSecret: "kilimanjaro"}) async {
-    var salt = AuthServer.generateRandomSalt();
-    var hashedPassword = AuthServer.generatePasswordHash(clientSecret, salt);
-    var testClientRecord = new ClientRecord();
-    testClientRecord.id = clientID;
-    testClientRecord.salt = salt;
-    testClientRecord.hashedPassword = hashedPassword;
+  static Future<ManagedClient> addClientRecord(
+      {String clientID: DefaultClientID,
+      String clientSecret: DefaultClientSecret}) async {
+    var salt = AuthUtility.generateRandomSalt();
+    var hashedPassword = AuthUtility.generatePasswordHash(clientSecret, salt);
 
-    var clientQ = new Query<ClientRecord>()
+    var clientQ = new Query<ManagedClient>()
       ..values.id = clientID
       ..values.salt = salt
-      ..values.hashedPassword = hashedPassword;
+      ..values.hashedSecret = hashedPassword;
     return await clientQ.insert();
   }
 

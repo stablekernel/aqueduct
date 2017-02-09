@@ -9,13 +9,15 @@ class AuthorizationBearerParser {
   /// For example, if the input to this method is "Authorization: Bearer token" it would return 'token'.
   static String parse(String authorizationHeader) {
     if (authorizationHeader == null) {
-      throw new HTTPResponseException(401, "No authorization header.");
+      throw new AuthorizationParserException(
+          AuthorizationParserExceptionReason.missing);
     }
 
-    var matcher = new RegExp("Bearer (.*)");
+    var matcher = new RegExp("Bearer (.+)");
     var match = matcher.firstMatch(authorizationHeader);
     if (match == null) {
-      throw new HTTPResponseException(400, "Improper authorization header.");
+      throw new AuthorizationParserException(
+          AuthorizationParserExceptionReason.malformed);
     }
     return match[1];
   }
@@ -37,10 +39,16 @@ class AuthorizationBasicParser {
   /// was 'Authorization: Basic base64String' it would decode the base64String
   /// and return the username and password by splitting that decoded string around the character ':'.
   static AuthorizationBasicElements parse(String authorizationHeader) {
-    var matcher = new RegExp("Basic (.*)");
+    if (authorizationHeader == null) {
+      throw new AuthorizationParserException(
+          AuthorizationParserExceptionReason.missing);
+    }
+
+    var matcher = new RegExp("Basic (.+)");
     var match = matcher.firstMatch(authorizationHeader);
     if (match == null) {
-      throw new HTTPResponseException(400, "Improper authorization header.");
+      throw new AuthorizationParserException(
+          AuthorizationParserExceptionReason.malformed);
     }
 
     var base64String = match[1];
@@ -49,16 +57,26 @@ class AuthorizationBasicParser {
       decodedCredentials =
           new String.fromCharCodes(new Base64Decoder().convert(base64String));
     } catch (e) {
-      throw new HTTPResponseException(400, "Improper authorization header.");
+      throw new AuthorizationParserException(
+          AuthorizationParserExceptionReason.malformed);
     }
 
     var splitCredentials = decodedCredentials.split(":");
     if (splitCredentials.length != 2) {
-      throw new HTTPResponseException(400, "Improper client credentials.");
+      throw new AuthorizationParserException(
+          AuthorizationParserExceptionReason.malformed);
     }
 
     return new AuthorizationBasicElements()
       ..username = splitCredentials.first
       ..password = splitCredentials.last;
   }
+}
+
+enum AuthorizationParserExceptionReason { missing, malformed }
+
+class AuthorizationParserException implements Exception {
+  AuthorizationParserException(this.reason);
+
+  AuthorizationParserExceptionReason reason;
 }

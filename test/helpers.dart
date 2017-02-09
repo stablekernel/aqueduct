@@ -1,222 +1,233 @@
 import 'dart:async';
 import 'package:aqueduct/aqueduct.dart';
-import 'package:postgres/postgres.dart';
+export 'context_helpers.dart';
 
-Future<List<TestUser>> createUsers(int count) async {
-  var users = new List<TestUser>();
-  for (int i = 0; i < count; i++) {
-    var salt = AuthServer.generateRandomSalt();
-    var u = new TestUser()
-      ..username = "bob+$i@stablekernel.com"
-      ..salt = salt
-      ..hashedPassword =
-          AuthServer.generatePasswordHash("foobaraxegrind21%", salt);
+justLogEverything() {
+  hierarchicalLoggingEnabled = true;
+  new Logger("")
+    ..level = Level.ALL
+    ..onRecord.listen((p) => print("${p} ${p.object} ${p.stackTrace}"));
+}
 
-    var q = new Query<TestUser>()..values = u;
-    var insertedUser = await q.insert();
-    users.add(insertedUser);
+class TestUser extends Authenticatable {
+  int get uniqueIdentifier => id;
+  int id;
+}
+
+class TestToken implements AuthToken, AuthCode {
+  TestToken();
+  TestToken.from(dynamic t) {
+    if (t is TestToken) {
+      this
+        ..issueDate = t.issueDate
+        ..expirationDate = t.expirationDate
+        ..resourceOwnerIdentifier = t.resourceOwnerIdentifier
+        ..clientID = t.clientID
+        ..type = t.type
+        ..accessToken = t.accessToken
+        ..refreshToken = t.refreshToken
+        ..code = t.code;
+    } else if (t is AuthToken) {
+      this
+        ..issueDate = t.issueDate
+        ..expirationDate = t.expirationDate
+        ..resourceOwnerIdentifier = t.resourceOwnerIdentifier
+        ..clientID = t.clientID
+        ..type = t.type
+        ..accessToken = t.accessToken
+        ..refreshToken = t.refreshToken;
+    } else if (t is AuthCode) {
+      this
+        ..issueDate = t.issueDate
+        ..expirationDate = t.expirationDate
+        ..resourceOwnerIdentifier = t.resourceOwnerIdentifier
+        ..clientID = t.clientID
+        ..code = t.code;
+    }
   }
-  return users;
-}
-
-class TestUser extends ManagedObject<_User> implements _User {}
-
-class _User implements Authenticatable {
-  @managedPrimaryKey
-  int id;
-
-  String username;
-  String hashedPassword;
-  String salt;
-}
-
-class Token extends ManagedObject<_Token> implements _Token {}
-
-class _Token implements AuthTokenizable<int> {
-  @managedPrimaryKey
-  int id;
-
-  @ManagedColumnAttributes(indexed: true)
   String accessToken;
-
-  @ManagedColumnAttributes(indexed: true)
   String refreshToken;
-
   DateTime issueDate;
   DateTime expirationDate;
-  int resourceOwnerIdentifier;
   String type;
+  dynamic resourceOwnerIdentifier;
   String clientID;
-
-  AuthCode code;
-}
-
-class AuthCode extends ManagedObject<_AuthCode> implements _AuthCode {}
-
-class _AuthCode implements AuthTokenExchangable<Token> {
-  @managedPrimaryKey
-  int id;
-
-  @ManagedColumnAttributes(indexed: true)
   String code;
+  bool get hasBeenExchanged => accessToken != null;
+  void set hasBeenExchanged(bool s) {}
 
-  @ManagedColumnAttributes(nullable: true)
-  String redirectURI;
-  String clientID;
+  bool get isExpired {
+    return expirationDate.difference(new DateTime.now().toUtc()).inSeconds <= 0;
+  }
 
-  int resourceOwnerIdentifier;
-  DateTime issueDate;
-  DateTime expirationDate;
+  Map<String, dynamic> asMap() {
+    var map = {
+      "access_token": accessToken,
+      "token_type": type,
+      "expires_in":
+          expirationDate.difference(new DateTime.now().toUtc()).inSeconds,
+    };
 
-  @ManagedRelationship(#code,
-      isRequired: false, onDelete: ManagedRelationshipDeleteRule.cascade)
-  Token token;
+    if (refreshToken != null) {
+      map["refresh_token"] = refreshToken;
+    }
+
+    return map;
+  }
 }
 
-class AuthDelegate implements AuthServerDelegate<TestUser, Token, AuthCode> {
-  ManagedContext context;
+class InMemoryAuthStorage implements AuthStorage {
+  static const String DefaultPassword = "foobaraxegrind21%";
 
-  AuthDelegate(this.context);
-
-  Future<Token> tokenForAccessToken(AuthServer server, String accessToken) {
-    return _tokenForPredicate(new QueryPredicate(
-        "accessToken = @accessToken", {"accessToken": accessToken}));
-  }
-
-  Future<Token> tokenForRefreshToken(AuthServer server, String refreshToken) {
-    return _tokenForPredicate(new QueryPredicate(
-        "refreshToken = @refreshToken", {"refreshToken": refreshToken}));
-  }
-
-  Future<TestUser> authenticatableForUsername(
-      AuthServer server, String username) {
-    var userQ = new Query<TestUser>();
-    userQ.predicate =
-        new QueryPredicate("username = @username", {"username": username});
-    return userQ.fetchOne();
-  }
-
-  Future<TestUser> authenticatableForID(AuthServer server, dynamic id) {
-    var userQ = new Query<TestUser>();
-    userQ.predicate = new QueryPredicate("username = @username", {"id": id});
-    return userQ.fetchOne();
-  }
-
-  Future deleteTokenForRefreshToken(
-      AuthServer server, String refreshToken) async {
-    var q = new Query<Token>();
-    q.predicate =
-        new QueryPredicate("refreshToken = @rf", {"rf": refreshToken});
-    await q.delete();
-  }
-
-  Future<Token> storeToken(AuthServer server, Token t) async {
-    var tokenQ = new Query<Token>();
-    tokenQ.values = t;
-    return await tokenQ.insert();
-  }
-
-  Future updateToken(AuthServer server, Token t) async {
-    var tokenQ = new Query<Token>();
-    tokenQ.predicate = new QueryPredicate(
-        "refreshToken = @refreshToken", {"refreshToken": t.refreshToken});
-    tokenQ.values = t;
-
-    return tokenQ.updateOne();
-  }
-
-  Future<AuthCode> storeAuthCode(AuthServer server, AuthCode code) async {
-    var authCodeQ = new Query<AuthCode>();
-    authCodeQ.values = code;
-    return authCodeQ.insert();
-  }
-
-  Future<AuthCode> authCodeForCode(AuthServer server, String code) async {
-    var authCodeQ = new Query<AuthCode>();
-    authCodeQ.predicate = new QueryPredicate("code = @code", {"code": code});
-    return authCodeQ.fetchOne();
-  }
-
-  Future updateAuthCode(AuthServer server, AuthCode code) async {
-    var authCodeQ = new Query<AuthCode>();
-    authCodeQ.predicate = new QueryPredicate("id = @id", {"id": code.id});
-    authCodeQ.values = code;
-    return authCodeQ.updateOne();
-  }
-
-  Future deleteAuthCode(AuthServer server, AuthCode code) async {
-    var authCodeQ = new Query<AuthCode>();
-    authCodeQ.predicate = new QueryPredicate("id = @id", {"id": code.id});
-
-    return authCodeQ.delete();
-  }
-
-  Future<AuthClient> clientForID(AuthServer server, String id) async {
+  InMemoryAuthStorage() {
     var salt = "ABCDEFGHIJKLMNOPQRSTUVWXYZ012345";
-    if (id == "com.stablekernel.app1") {
-      return new AuthClient("com.stablekernel.app1",
-          AuthServer.generatePasswordHash("kilimanjaro", salt), salt);
-    }
-    if (id == "com.stablekernel.app2") {
-      return new AuthClient("com.stablekernel.app2",
-          AuthServer.generatePasswordHash("fuji", salt), salt);
-    }
-    if (id == "com.stablekernel.app3") {
-      return new AuthClient.withRedirectURI(
-          "com.stablekernel.app3",
-          AuthServer.generatePasswordHash("mckinley", salt),
+
+    clients = {
+      "com.stablekernel.app1": new AuthClient("com.stablekernel.app1",
+          AuthUtility.generatePasswordHash("kilimanjaro", salt), salt),
+      "com.stablekernel.app2": new AuthClient("com.stablekernel.app2",
+          AuthUtility.generatePasswordHash("fuji", salt), salt),
+      "com.stablekernel.redirect": new AuthClient.withRedirectURI(
+          "com.stablekernel.redirect",
+          AuthUtility.generatePasswordHash("mckinley", salt),
           salt,
-          "http://stablekernel.com/auth/redirect");
+          "http://stablekernel.com/auth/redirect"),
+      "com.stablekernel.public":
+          new AuthClient("com.stablekernel.public", null, salt),
+      "com.stablekernel.redirect2": new AuthClient.withRedirectURI(
+          "com.stablekernel.redirect2",
+          AuthUtility.generatePasswordHash("gibraltar", salt),
+          salt,
+          "http://stablekernel.com/auth/redirect2")
+    };
+  }
+
+  Map<String, AuthClient> clients;
+  Map<int, TestUser> users = {};
+  List<TestToken> tokens = [];
+
+  void createUsers(int count) {
+    for (int i = 0; i < count; i++) {
+      var salt = AuthUtility.generateRandomSalt();
+      var u = new TestUser()
+        ..id = i + 1
+        ..username = "bob+$i@stablekernel.com"
+        ..salt = salt
+        ..hashedPassword =
+            AuthUtility.generatePasswordHash(DefaultPassword, salt);
+
+      users[i + 1] = u;
     }
-
-    return null;
   }
 
-  Future<Token> _tokenForPredicate(QueryPredicate p) async {
-    var tokenQ = new Query<Token>();
-    tokenQ.predicate = p;
-    var result = await tokenQ.fetchOne();
-    if (result == null) {
-      throw new HTTPResponseException(401, "Invalid Token");
+  @override
+  Future revokeAuthenticatableWithIdentifier(
+      AuthServer server, dynamic identifier) async {
+    tokens.removeWhere((t) => t.resourceOwnerIdentifier == identifier);
+  }
+
+  @override
+  Future<AuthToken> fetchTokenByAccessToken(
+      AuthServer server, String accessToken) async {
+    var existing = tokens.firstWhere((t) => t.accessToken == accessToken,
+        orElse: () => null);
+    if (existing == null) {
+      return null;
     }
-
-    return result;
-  }
-}
-
-Future<ManagedContext> contextWithModels(List<Type> instanceTypes) async {
-  var persistentStore = new PostgreSQLPersistentStore(() async {
-    var conn = new PostgreSQLConnection("localhost", 5432, "dart_test",
-        username: "dart", password: "dart");
-    await conn.open();
-    return conn;
-  });
-
-  var dataModel = new ManagedDataModel(instanceTypes);
-  var commands = commandsFromDataModel(dataModel, temporary: true);
-  var context = new ManagedContext(dataModel, persistentStore);
-  ManagedContext.defaultContext = context;
-
-  for (var cmd in commands) {
-    await persistentStore.execute(cmd);
+    return new TestToken.from(existing);
   }
 
-  return context;
-}
+  @override
+  Future<AuthToken> fetchTokenByRefreshToken(
+      AuthServer server, String refreshToken) async {
+    var existing = tokens.firstWhere((t) => t.refreshToken == refreshToken,
+        orElse: () => null);
+    if (existing == null) {
+      return null;
+    }
+    return new TestToken.from(existing);
+  }
 
-List<String> commandsFromDataModel(ManagedDataModel dataModel,
-    {bool temporary: false}) {
-  var targetSchema = new Schema.fromDataModel(dataModel);
-  var builder = new SchemaBuilder.toSchema(
-      new PostgreSQLPersistentStore(() => null), targetSchema,
-      isTemporary: temporary);
-  return builder.commands;
-}
+  @override
+  Future<TestUser> fetchAuthenticatableByUsername(
+      AuthServer server, String username) async {
+    return users.values
+        .firstWhere((t) => t.username == username, orElse: () => null);
+  }
 
-List<String> commandsForModelInstanceTypes(List<Type> instanceTypes,
-    {bool temporary: false}) {
-  var dataModel = new ManagedDataModel(instanceTypes);
-  return commandsFromDataModel(dataModel, temporary: temporary);
+  @override
+  Future revokeTokenIssuedFromCode(AuthServer server, AuthCode code) async {
+    tokens.removeWhere((t) => t.code == code.code);
+  }
+
+  @override
+  Future storeToken(AuthServer server, AuthToken t,
+      {AuthCode issuedFrom}) async {
+    if (issuedFrom != null) {
+      var existingIssued = tokens.firstWhere(
+          (token) => token.code == issuedFrom?.code,
+          orElse: () => null);
+      var replacement = new TestToken.from(t);
+      replacement.code = issuedFrom.code;
+      tokens.remove(existingIssued);
+      tokens.add(replacement);
+    } else {
+      tokens.add(new TestToken.from(t));
+    }
+  }
+
+  @override
+  Future refreshTokenWithAccessToken(
+      AuthServer server,
+      String accessToken,
+      String newAccessToken,
+      DateTime newIssueDate,
+      DateTime newExpirationDate) async {
+    var existing = tokens.firstWhere((e) => e.accessToken == accessToken,
+        orElse: () => null);
+    if (existing != null) {
+      var replacement = new TestToken.from(existing)
+        ..expirationDate = newExpirationDate
+        ..issueDate = newIssueDate
+        ..accessToken = newAccessToken
+        ..clientID = existing.clientID
+        ..refreshToken = existing.refreshToken
+        ..resourceOwnerIdentifier = existing.resourceOwnerIdentifier
+        ..type = existing.type;
+
+      tokens.remove(existing);
+      tokens.add(replacement);
+    }
+  }
+
+  @override
+  Future storeAuthCode(AuthServer server, AuthCode code) async {
+    tokens.add(new TestToken.from(code));
+  }
+
+  @override
+  Future<AuthCode> fetchAuthCodeByCode(AuthServer server, String code) async {
+    var existing = tokens.firstWhere((t) => t.code == code, orElse: () => null);
+    if (existing == null) {
+      return null;
+    }
+    return new TestToken.from(existing);
+  }
+
+  @override
+  Future revokeAuthCodeWithCode(AuthServer server, String code) async {
+    tokens.removeWhere((c) => c.code == code);
+  }
+
+  @override
+  Future<AuthClient> fetchClientByID(AuthServer server, String id) async {
+    return clients[id];
+  }
+
+  @override
+  Future revokeClientWithID(AuthServer server, String id) async {
+    clients.remove(id);
+  }
 }
 
 class DefaultPersistentStore extends PersistentStore {
@@ -224,6 +235,7 @@ class DefaultPersistentStore extends PersistentStore {
           {Map<String, dynamic> substitutionValues}) async =>
       null;
   Future close() async {}
+
   Future<List<PersistentColumnMapping>> executeInsertQuery(
           PersistentStoreQuery q) async =>
       null;
