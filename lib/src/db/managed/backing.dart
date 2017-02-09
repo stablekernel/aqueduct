@@ -45,14 +45,10 @@ class ManagedMatcherBacking extends ManagedBacking {
       if (relDesc?.relationshipType == ManagedRelationshipType.hasMany) {
         valueMap[propertyName] = new ManagedSet()
           ..entity = relDesc.destinationEntity;
-      } else if (relDesc?.relationshipType == ManagedRelationshipType.hasOne) {
+      } else if (relDesc?.relationshipType == ManagedRelationshipType.hasOne
+      || relDesc?.relationshipType == ManagedRelationshipType.belongsTo) {
         valueMap[propertyName] = relDesc.destinationEntity.newInstance()
           ..backing = new ManagedMatcherBacking();
-      } else if (relDesc?.relationshipType ==
-          ManagedRelationshipType.belongsTo) {
-        throw new QueryException(QueryExceptionEvent.requestFailure,
-            message:
-                "Attempting to access matcher on RelationshipInverse $propertyName on ${entity.tableName}. Assign this value to whereRelatedByValue instead.");
       }
     }
 

@@ -22,12 +22,16 @@ abstract class PredicateBuilder implements EntityTableMapper {
         .map((propertyName) {
           var desc = obj.entity.properties[propertyName];
           if (desc is ManagedRelationshipDescription) {
+            var innerMatcher = obj.backingMap[propertyName];
             if (desc.relationshipType == ManagedRelationshipType.belongsTo) {
+              if (innerMatcher is NullMatcherExpression) {
+
+              }
               return [
                 new PropertyExpression(
                     this,
                     obj.entity.properties[propertyName],
-                    obj.backingMap[propertyName],
+                    innerMatcher,
                     additionalVariablePrefix: prefix)
               ];
             }
@@ -49,7 +53,6 @@ abstract class PredicateBuilder implements EntityTableMapper {
               disambiguate = false;
             }
 
-            var innerMatcher = obj.backingMap[propertyName];
             if (innerMatcher is NullMatcherExpression) {
               innerMatcher = new ManagedObject()
                 ..entity = desc.inverseRelationship.entity
