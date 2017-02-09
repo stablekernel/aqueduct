@@ -415,6 +415,27 @@ void main() {
       expectThatNoCORSProcessingOccurred(resp);
     });
 
+    test("Headers are case insensitive",
+            () async {
+          var req = await (new HttpClient()
+              .open("OPTIONS", "localhost", 8000, "defaultpolicy"));
+          req.headers.set("Origin", "http://foobar.com");
+          req.headers.set("Access-Control-Request-Method", "POST");
+          req.headers.set("Access-Control-Request-Headers",
+              "Authorization, X-Requested-With, X-Forwarded-For, Content-Type");
+          var resp = await req.close();
+
+          expect(resp.statusCode, 200);
+          expect(resp.headers.value("access-control-allow-origin"),
+              "http://foobar.com");
+          expect(resp.headers.value("access-control-allow-headers"),
+              "origin, authorization, x-requested-with, x-forwarded-for, content-type");
+          expect(resp.headers.value("access-control-allow-methods"),
+              "POST, PUT, DELETE, GET");
+          expect(resp.headers.value("access-control-expose-headers"), isNull);
+          expect(resp.headers.value("access-control-allow-credentials"), "true");
+        });
+
     test("If one specified allow headers are not available, get a 403",
         () async {
       var req = await (new HttpClient()

@@ -155,7 +155,7 @@ class CORSPolicy {
     var requestedHeaders = request.headers
         .value("access-control-request-headers")
         ?.split(",")
-        ?.map((str) => str.trim())
+        ?.map((str) => str.trim().toLowerCase())
         ?.toList();
     if (requestedHeaders?.isNotEmpty ?? false) {
       var nonSimpleHeaders =
