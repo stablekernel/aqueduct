@@ -116,6 +116,26 @@ void main() {
     });
   });
 
+  test("Multiple joins from same table", () async {
+    var q = new Query<ChildObject>()
+      ..sortDescriptors = [new QuerySortDescriptor("id", QuerySortOrder.ascending)]
+      ..joinOn((c) => c.parent)
+      ..joinOn((c) => c.parents);
+    var results = await q.fetch();
+
+    expect(results.map((c) => c.asMap()).toList(), equals([
+      fullObjectMap(1, and: {"parents": null, "parent": fullObjectMap(1)}),
+      fullObjectMap(2, and: {"parents": fullObjectMap(1), "parent": null}),
+      fullObjectMap(3, and: {"parents": fullObjectMap(1), "parent": null}),
+      fullObjectMap(4, and: {"parents": fullObjectMap(1), "parent": null}),
+      fullObjectMap(5, and: {"parents": fullObjectMap(1), "parent": null}),
+      fullObjectMap(6, and: {"parents": null, "parent": fullObjectMap(2)}),
+      fullObjectMap(7, and: {"parents": fullObjectMap(2), "parent": null}),
+      fullObjectMap(8, and: {"parents": null, "parent": fullObjectMap(3)}),
+      fullObjectMap(9, and: {"parents": fullObjectMap(4), "parent": null})
+    ]));
+  });
+
   group("Join on parent of hasMany relationship", () {
     test("Standard join", () async {
       var q = new Query<ChildObject>()
@@ -158,12 +178,78 @@ void main() {
       ]));
     });
 
-    // nested, double nested
+    test("Bidirectional join", () async {
+      var q = new Query<ChildObject>()
+        ..sortDescriptors = [new QuerySortDescriptor("id", QuerySortOrder.ascending)]
+        ..joinMany((c) => c.grandChildren)
+        ..joinOn((c) => c.parents);
 
+      var results = await q.fetch();
+      expect(results.map((c) => c.asMap()).toList(), equals([
+        fullObjectMap(1, and: {"parents": null, "parent": {"id" : 1},
+          "grandChildren": [
+            fullObjectMap(2, and: {"parents": {"id": 1}, "parent": null}),
+            fullObjectMap(3, and: {"parents": {"id": 1}, "parent": null})
+          ]}),
+        fullObjectMap(2, and: {"parents": fullObjectMap(1), "parent": null,
+          "grandChildren": [
+            fullObjectMap(5, and: {"parents": {"id": 2}, "parent": null}),
+            fullObjectMap(6, and: {"parents": {"id": 2}, "parent": null})
+          ]}),
+        fullObjectMap(3, and: {"parents": fullObjectMap(1), "parent": null, "grandChildren": []}),
+        fullObjectMap(4, and: {"parents": fullObjectMap(1), "parent": null,
+          "grandChildren": [
+            fullObjectMap(8, and: {"parents": {"id": 4}, "parent": null}),
+          ]}),
+        fullObjectMap(5, and: {"parents": fullObjectMap(1), "parent": null, "grandChildren": []}),
+        fullObjectMap(6, and: {"parents": null, "parent": {"id": 2}, "grandChildren": []}),
+        fullObjectMap(7, and: {"parents": fullObjectMap(2), "parent": null, "grandChildren": []}),
+        fullObjectMap(8, and: {"parents": null, "parent": {"id": 3}, "grandChildren": []}),
+        fullObjectMap(9, and: {"parents": fullObjectMap(4), "parent": null, "grandChildren": []})
+      ]));
+    });
   });
 
   group("Join on parent of hasOne relationship", () {
-    // nested, double nested
+    test("Standard join", () async {
+      var q = new Query<ChildObject>()
+        ..sortDescriptors = [new QuerySortDescriptor("id", QuerySortOrder.ascending)]
+        ..joinOn((c) => c.parent);
+      var results = await q.fetch();
+
+      expect(results.map((c) => c.asMap()).toList(), equals([
+        fullObjectMap(1, and: {"parents": null, "parent": fullObjectMap(1)}),
+        fullObjectMap(2, and: {"parents": {"id": 1}, "parent": null}),
+        fullObjectMap(3, and: {"parents": {"id": 1}, "parent": null}),
+        fullObjectMap(4, and: {"parents": {"id": 1}, "parent": null}),
+        fullObjectMap(5, and: {"parents": {"id": 1}, "parent": null}),
+        fullObjectMap(6, and: {"parents": null, "parent": fullObjectMap(2)}),
+        fullObjectMap(7, and: {"parents": {"id": 2}, "parent": null}),
+        fullObjectMap(8, and: {"parents": null, "parent": fullObjectMap(3)}),
+        fullObjectMap(9, and: {"parents": {"id": 4}, "parent": null})
+      ]));
+    });
+
+    test("Nested join", () async {
+      var q = new Query<GrandChildObject>()
+        ..sortDescriptors = [new QuerySortDescriptor("id", QuerySortOrder.ascending)];
+
+      q.joinOn((c) => c.parent)
+        ..joinOn((c) => c.parent);
+
+      var results = await q.fetch();
+
+      expect(results.map((g) => g.asMap()).toList(), equals([
+        fullObjectMap(1, and: {"parents": null, "parent": fullObjectMap(1, and: {"parents": null, "parent": fullObjectMap(1)})}),
+        fullObjectMap(2, and: {"parent": null, "parents": {"id": 1}}),
+        fullObjectMap(3, and: {"parent": null, "parents": {"id": 1}}),
+        fullObjectMap(4, and: {"parents": null, "parent": fullObjectMap(2, and: {"parents": {"id": 1}, "parent": null})}),
+        fullObjectMap(5, and: {"parent": null, "parents": {"id": 2}}),
+        fullObjectMap(6, and: {"parent": null, "parents": {"id": 2}}),
+        fullObjectMap(7, and: {"parents": null, "parent": fullObjectMap(3, and: {"parents": {"id": 1}, "parent": null})}),
+        fullObjectMap(8, and: {"parent": null, "parents": {"id": 4}})
+      ]));
+    });
   });
 
   group("Fetch parent and grandchild from child", () {
