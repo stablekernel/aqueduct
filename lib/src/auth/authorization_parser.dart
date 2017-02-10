@@ -37,6 +37,10 @@ class AuthorizationBasicParser {
   /// was 'Authorization: Basic base64String' it would decode the base64String
   /// and return the username and password by splitting that decoded string around the character ':'.
   static AuthorizationBasicElements parse(String authorizationHeader) {
+    if (authorizationHeader == null) {
+      throw new HTTPResponseException(401, "No authorization header.");
+    }
+
     var matcher = new RegExp("Basic (.*)");
     var match = matcher.firstMatch(authorizationHeader);
     if (match == null) {
