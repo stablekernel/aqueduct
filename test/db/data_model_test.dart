@@ -126,7 +126,7 @@ void main() {
       expect(relDesc.isNullable, false);
       expect(relDesc.inverseKey, #items);
       expect(
-          relDesc.inverseRelationship ==
+          relDesc.inverse ==
               dataModel
                   .entityForType(User)
                   .relationships[MirrorSystem.getName(relDesc.inverseKey)],
@@ -141,7 +141,7 @@ void main() {
       expect(relDesc.isNullable, true);
       expect(relDesc.inverseKey, #manager);
       expect(
-          relDesc.inverseRelationship ==
+          relDesc.inverse ==
               dataModel
                   .entityForType(User)
                   .relationships[MirrorSystem.getName(relDesc.inverseKey)],
@@ -155,7 +155,7 @@ void main() {
       expect(relDesc is ManagedRelationshipDescription, true);
       expect(relDesc.inverseKey, #worker);
       expect(
-          relDesc.inverseRelationship ==
+          relDesc.inverse ==
               dataModel
                   .entityForType(Manager)
                   .relationships[MirrorSystem.getName(relDesc.inverseKey)],
@@ -180,14 +180,14 @@ void main() {
       var isManyOf = model
           .entityForType(DoubleRelationshipForeignKeyModel)
           .relationships["isManyOf"];
-      expect(isManyOf.inverseRelationship.name, "hasManyOf");
+      expect(isManyOf.inverse.name, "hasManyOf");
       expect(isManyOf.destinationEntity.tableName,
           model.entityForType(DoubleRelationshipHasModel).tableName);
 
       var isOneOf = model
           .entityForType(DoubleRelationshipForeignKeyModel)
           .relationships["isOneOf"];
-      expect(isOneOf.inverseRelationship.name, "hasOneOf");
+      expect(isOneOf.inverse.name, "hasOneOf");
       expect(isOneOf.destinationEntity.tableName,
           model.entityForType(DoubleRelationshipHasModel).tableName);
     });

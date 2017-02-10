@@ -3,7 +3,13 @@ import 'package:aqueduct/aqueduct.dart';
 import '../model_graph.dart';
 import '../../helpers.dart';
 
+/*
+  The more rigid tests on joining are covered by tiered_where, has_many and has_one tests.
+  These just check to ensure that belongsTo joins are going to net out the same.
+ */
+
 void main() {
+  justLogEverything();
   List<RootObject> rootObjects;
   ManagedContext ctx;
   setUpAll(() async {
@@ -38,7 +44,7 @@ void main() {
       }
     });
 
-    test("Can match on foreign key, does not cause join", () async {
+    test("Can match on belongsTo relationship's primary key, does not cause join", () async {
       var q = new Query<ChildObject>()
         ..where.parents.id = whereEqualTo(1);
       var results = await q.fetch();
@@ -57,7 +63,28 @@ void main() {
         ..where.parents = whereNull;
       var results = await q.fetch();
 
-      expect(results.length, 0);
+      var childNotChildren = rootObjects
+          .expand((r) => [r.child])
+          .where((c) => c != null)
+          .toList();
+
+      expect(results.length, childNotChildren.length);
+      childNotChildren.forEach((c) {
+        expect(results.firstWhere((resultChild) => c.id == resultChild.id), isNotNull);
+      });
+
+      q = new Query<ChildObject>()
+        ..where.parent = whereNull;
+      results = await q.fetch();
+
+      var childrenNotChild = rootObjects
+          .expand((r) => r.children ?? [])
+          .toList();
+
+      expect(results.length, childrenNotChild.length);
+      childrenNotChild.forEach((c) {
+        expect(results.firstWhere((resultChild) => c.id == resultChild.id), isNotNull);
+      });
     });
 
     test("Can use whereNotNull", () async {
@@ -65,13 +92,27 @@ void main() {
         ..where.parents = whereNull;
       var results = await q.fetch();
 
-      expect(results.length, rootObjects.firstWhere((r) => r.id == 1).children.length);
-      for (var child in rootObjects.first.children) {
-        var matching = results.firstWhere((c) => c.id == child.id);
-        expect(child.value1, matching.value1);
-        expect(child.value2, matching.value2);
-        expect(child.parents.id, 1);
-      }
+      var childNotChildren = rootObjects
+          .expand((r) => [r.child])
+          .where((c) => c != null)
+          .toList();
+
+      expect(results.length, childNotChildren.length);
+      childNotChildren.forEach((c) {
+        expect(results.firstWhere((resultChild) => c.id == resultChild.id), isNotNull);
+      });
+
+      q = new Query<ChildObject>()
+        ..where.parent = whereNull;
+      results = await q.fetch();
+      var childrenNotChild = rootObjects
+          .expand((r) => r.children ?? [])
+          .toList();
+
+      expect(results.length, childrenNotChild.length);
+      childrenNotChild.forEach((c) {
+        expect(results.firstWhere((resultChild) => c.id == resultChild.id), isNotNull);
+      });
     });
   });
 
@@ -81,19 +122,40 @@ void main() {
           ..joinOn((c) => c.parents);
       var results = await q.fetch();
 
-      for (var root in rootObjects) {
-        for (var child in root.children) {
-          var matchingChild = results.firstWhere((c) => c.id == child.id);
-          expect(matchingChild.value1, child.value1);
-          expect(matchingChild.value2, child.value2);
+      expect(results.map((c) => c.asMap()).toList(), equals([
+        fullObjectMap(1, and: {"parents": null, "parent": {"id" : 1}}),
+        fullObjectMap(2, and: {"parents": fullObjectMap(1), "parent": null}),
+        fullObjectMap(3, and: {"parents": fullObjectMap(1), "parent": null}),
+        fullObjectMap(4, and: {"parents": fullObjectMap(1), "parent": null}),
+        fullObjectMap(5, and: {"parents": fullObjectMap(1), "parent": null}),
+        fullObjectMap(6, and: {"parents": null, "parent": {"id": 2}}),
+        fullObjectMap(7, and: {"parents": fullObjectMap(2), "parent": null}),
+        fullObjectMap(8, and: {"parents": null, "parent": {"id": 3}}),
+        fullObjectMap(9, and: {"parents": fullObjectMap(4), "parent": null})
+      ]));
+    });
 
-          expect(matchingChild.parents.id, child.parents.id);
-          expect(matchingChild.parents.value1, child.parents.value1);
-          expect(matchingChild.parents.value2, child.parents.value2);
-          expect(matchingChild.parents.backingMap["children"], isNull);
-          expect(matchingChild.parents.backingMap["child"], isNull);
-        }
-      }
+    test("Nested join", () async {
+      var q = new Query<GrandChildObject>();
+      q.joinOn((c) => c.parents)
+        ..joinOn((c) => c.parents);
+      var results = await q.fetch();
+
+      expect(results.map((g) => g.asMap()).toList(), equals([
+        fullObjectMap(1, and: {"parents": null, "parent": {"id": 1}}),
+        fullObjectMap(2, and: {"parent": null,
+          "parents": fullObjectMap(1, and: {"parents": null, "parent": {"id": 1}})}),
+        fullObjectMap(3, and: {"parent": null,
+          "parents": fullObjectMap(1, and: {"parents": null, "parent": {"id": 1}})}),
+        fullObjectMap(4, and: {"parents": null, "parent": {"id": 2}}),
+        fullObjectMap(5, and: {"parent": null,
+          "parents": fullObjectMap(2, and: {"parents": fullObjectMap(1), "parent": null})}),
+        fullObjectMap(6, and: {"parent": null,
+          "parents": fullObjectMap(2, and: {"parents": fullObjectMap(1), "parent": null})}),
+        fullObjectMap(7, and: {"parents": null, "parent": {"id": 3}}),
+        fullObjectMap(8, and: {"parent": null,
+          "parents": fullObjectMap(4, and: {"parents": fullObjectMap(1), "parent": null})}),
+      ]));
     });
 
     // nested, double nested
@@ -104,7 +166,14 @@ void main() {
     // nested, double nested
   });
 
+  group("Fetch parent and grandchild from child", () {
+
+  });
+
   group("Implicit joins", () {
 
   });
+
+
 }
+

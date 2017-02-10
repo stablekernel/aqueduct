@@ -38,7 +38,18 @@ class PostgresQueryBuilder extends Object
     if (nestedRowMappers != null) {
       returningOrderedMappers.addAll(nestedRowMappers);
       nestedRowMappers.forEach((rm) {
-        rm.parentTable = this;
+        rm.originatingTable = this;
+
+        // If we're joining on belongsTo relationship, ensure
+        // that foreign key column is not also being fetched. We get it
+        // anyway, and it makes the instantiating logic better.
+        returningOrderedMappers.removeWhere((m) {
+          if (m is PropertyToColumnMapper) {
+            return identical(m.property, rm.joiningProperty);
+          }
+
+          return false;
+        });
       });
     }
 
@@ -47,6 +58,7 @@ class PostgresQueryBuilder extends Object
             ?.where((v) => v != null)
             ?.toList() ??
         [];
+
 
     var implicitJoins = <RowMapper>[];
     finalizedPredicate =

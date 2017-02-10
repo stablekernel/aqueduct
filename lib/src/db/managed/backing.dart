@@ -68,12 +68,17 @@ class ManagedMatcherBacking extends ManagedBacking {
       if (property is ManagedRelationshipDescription) {
         if (property.relationshipType == ManagedRelationshipType.belongsTo ||
             value is NullMatcherExpression) {
-          valueMap[propertyName] = value;
+          var innerObject = valueForProperty(entity, propertyName);
+          if (innerObject is ManagedObject) {
+            innerObject[innerObject.entity.primaryKey] = value;
+          } else if (innerObject is ManagedSet) {
+            innerObject.matchOn[innerObject.entity.primaryKey] = value;
+          }
         } else {
           throw new QueryException(QueryExceptionEvent.internalFailure,
               message:
-                  "Attempting to set matcher on hasOne or hasMany relationship property "
-                  "'${entity.tableName}.${property.name}'. Matchers for these "
+                  "Attempting to set matcher relationship property "
+                  "'${entity.tableName}.${property.name}'. Matchers for this property "
                   "properties may only be 'whereNull' or 'whereNotNull'.");
         }
       } else {
