@@ -34,10 +34,10 @@ abstract class PredicateBuilder implements EntityTableMapper {
           // But if it is a relationship and only the primary key value is set, then we can do t
           // this without the join.. its just the foreign key column
           var relationshipDesc = desc as ManagedRelationshipDescription;
-          if (relationshipDesc.relationshipType == ManagedRelationshipType.belongsTo
-              && innerMatcher is ManagedObject) {
-            var nestedMatcherPrimaryKeyMatcher = innerMatcher.backingMap[innerMatcher.entity.primaryKey];
-            if (innerMatcher.backingMap.length == 1 && nestedMatcherPrimaryKeyMatcher != null) {
+          if (relationshipDesc.relationshipType == ManagedRelationshipType.belongsTo) {
+            var innerMatcherObject = innerMatcher as ManagedObject;
+            var nestedMatcherPrimaryKeyMatcher = innerMatcherObject.backingMap[innerMatcherObject.entity.primaryKey];
+            if (innerMatcherObject.backingMap.length == 1 && nestedMatcherPrimaryKeyMatcher != null) {
               return [
                 new PropertyExpression(this, desc, nestedMatcherPrimaryKeyMatcher,
                     additionalVariablePrefix: prefix)
@@ -58,13 +58,6 @@ abstract class PredicateBuilder implements EntityTableMapper {
             innerRowMapper.originatingTable = this;
             createdImplicitRowMappers.add(innerRowMapper);
             disambiguate = false;
-          }
-
-          if (innerMatcher is NullMatcherExpression) {
-            innerMatcher = new ManagedObject()
-              ..entity = relationshipDesc.inverse.entity
-              ..backing = new ManagedMatcherBacking()
-              ..[relationshipDesc.inverse.name] = innerMatcher;
           }
 
           if (innerMatcher is ManagedSet) {

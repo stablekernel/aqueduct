@@ -148,7 +148,7 @@ class _RootJoinObject {
       {"id": 2, "value1": 2, "value2": 2,
         "grandChild": {"id": 4, "value1": 4, "value2": 4},
         "grandChildren": [
-          {"id": 5, "value1": 5, "value2": 5}, {"value1": 6, "value2": 6}
+          {"id": 5, "value1": 5, "value2": 5}, {"id": 6, "value1": 6, "value2": 6}
       ]},
       {"id": 3, "value1": 3, "value2": 3,
         "grandChild": {"id": 7, "value1": 7, "value2": 7}

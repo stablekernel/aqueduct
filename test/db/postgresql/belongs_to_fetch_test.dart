@@ -9,7 +9,6 @@ import '../../helpers.dart';
  */
 
 void main() {
-  justLogEverything();
   List<RootObject> rootObjects;
   ManagedContext ctx;
   setUpAll(() async {
@@ -252,12 +251,54 @@ void main() {
     });
   });
 
-  group("Fetch parent and grandchild from child", () {
-
-  });
-
   group("Implicit joins", () {
+    test("Standard implicit join", () async {
+      var q = new Query<ChildObject>()
+          ..where.parents.value1 = whereEqualTo(1);
+      var results = await q.fetch();
 
+      expect(results.map((c) => c.asMap()).toList(), equals([
+        fullObjectMap(2, and: {"parent": null, "parents": {"id": 1}}),
+        fullObjectMap(3, and: {"parent": null, "parents": {"id": 1}}),
+        fullObjectMap(4, and: {"parent": null, "parents": {"id": 1}}),
+        fullObjectMap(5, and: {"parent": null, "parents": {"id": 1}}),
+      ]));
+    });
+
+    test("Nested implicit joins", () async {
+      var q = new Query<GrandChildObject>()
+        ..where.parents.parents.value1 = whereEqualTo(1)
+        ..sortDescriptors = [new QuerySortDescriptor("id", QuerySortOrder.ascending)];
+      var results = await q.fetch();
+
+      expect(results.map((c) => c.asMap()).toList(), equals([
+        fullObjectMap(5, and: {"parent": null, "parents": {"id": 2}}),
+        fullObjectMap(6, and: {"parent": null, "parents": {"id": 2}}),
+        fullObjectMap(8, and: {"parent": null, "parents": {"id": 4}}),
+      ]));
+
+      q = new Query<GrandChildObject>()
+        ..where.parents.parents = whereRelatedByValue(1)
+        ..sortDescriptors = [new QuerySortDescriptor("id", QuerySortOrder.ascending)];
+      results = await q.fetch();
+
+      expect(results.map((c) => c.asMap()).toList(), equals([
+        fullObjectMap(5, and: {"parent": null, "parents": {"id": 2}}),
+        fullObjectMap(6, and: {"parent": null, "parents": {"id": 2}}),
+        fullObjectMap(8, and: {"parent": null, "parents": {"id": 4}}),
+      ]));
+    });
+
+    test("Bidirectional implicit join", () async {
+      var q = new Query<ChildObject>()
+          ..where.parents.id = whereEqualTo(1)
+          ..where.grandChild = whereNotNull;
+      var results = await q.fetch();
+      expect(results.map((c) => c.asMap()).toList(), equals([
+        fullObjectMap(2, and: {"parent": null, "parents": {"id": 1}}),
+        fullObjectMap(3, and: {"parent": null, "parents": {"id": 1}}),
+      ]));
+    });
   });
 
 
