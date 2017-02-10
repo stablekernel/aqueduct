@@ -59,7 +59,6 @@ class PostgresQueryBuilder extends Object
             ?.toList() ??
         [];
 
-
     var implicitJoins = <RowMapper>[];
     finalizedPredicate =
         predicateFrom(whereBuilder, [predicate], implicitJoins);

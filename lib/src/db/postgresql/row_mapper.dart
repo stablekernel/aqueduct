@@ -103,7 +103,6 @@ class RowMapper extends PostgresMapper
       var leftColumn = leftMapper.columnName(withTableNamespace: true);
       var rightColumn = rightMapper.columnName(withTableNamespace: true);
       var joinPredicate = new QueryPredicate("$leftColumn=$rightColumn", null);
-
       var filterPredicates = matcherExpressions
           .where((expr) => identical(expr.table, this))
           .map((expr) => expr.predicate)
