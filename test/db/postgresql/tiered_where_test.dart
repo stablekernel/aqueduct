@@ -226,7 +226,7 @@ void main() {
       expect(results.length, 1);
       expect(results.first.id, 1);
       expect(results.first.children.length, 1);
-      expect(results.first.children.first.grandChildren.length, 1);
+      expect(results.first.children.first.grandChildren, isNull);
     });
 
     test("Explicitly joining related objects and nested related objects",
@@ -296,7 +296,7 @@ void main() {
 
       expect(results.length, rootObjects.length);
       expect(results.firstWhere((r) => r.id == 1).children.length, 1);
-      expect(results.firstWhere((r) => r.id == 1).children.first.id, 4);
+      expect(results.firstWhere((r) => r.id == 1).children.first.id, 2);
       expect(results.where((r) => r.id != 1).every((r) => r.children.isEmpty),
           true);
     });
