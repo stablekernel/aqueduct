@@ -62,6 +62,7 @@ class CORSPolicy {
     exposedResponseHeaders = [];
     allowedMethods = ["POST", "PUT", "DELETE", "GET"];
     allowedRequestHeaders = [
+      "origin",
       "authorization",
       "x-requested-with",
       "x-forwarded-for",
@@ -154,7 +155,7 @@ class CORSPolicy {
     var requestedHeaders = request.headers
         .value("access-control-request-headers")
         ?.split(",")
-        ?.map((str) => str.trim())
+        ?.map((str) => str.trim().toLowerCase())
         ?.toList();
     if (requestedHeaders?.isNotEmpty ?? false) {
       var nonSimpleHeaders =
