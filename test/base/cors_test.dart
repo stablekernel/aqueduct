@@ -4,6 +4,7 @@ import "dart:io";
 import 'package:http/http.dart' as http;
 import 'package:aqueduct/aqueduct.dart';
 import 'dart:async';
+import '../helpers.dart';
 
 // These tests are based on the specification found at http://www.w3.org/TR/cors/.
 void main() {
@@ -374,7 +375,7 @@ void main() {
       expect(resp.headers.value("access-control-allow-origin"),
           "http://foobar.com");
       expect(resp.headers.value("access-control-allow-headers"),
-          "authorization, x-requested-with, x-forwarded-for, content-type");
+          "origin, authorization, x-requested-with, x-forwarded-for, content-type");
       expect(resp.headers.value("access-control-allow-methods"),
           "POST, PUT, DELETE, GET");
       expect(resp.headers.value("access-control-expose-headers"), isNull);
@@ -535,6 +536,21 @@ void main() {
       expect(resp.headers.value("access-control-max-age"), "86400");
     });
   });
+
+  group("Generators and policies", () {
+    test("Headers don't continue to pile up when using a generator", () async {
+      http.Response lastResponse;
+
+      for (var i = 0; i < 10; i++) {
+        lastResponse = await http.get("http://localhost:8000/add",
+            headers: {"Origin": "http://abc.com"});
+        expect(lastResponse.statusCode, 200);
+      }
+
+      expect(lastResponse.headers["access-control-expose-headers"].indexOf("X-Header"),
+          lastResponse.headers["access-control-expose-headers"].lastIndexOf("X-Header"));
+    });
+  });
 }
 
 expectThatNoCORSProcessingOccurred(dynamic resp) {
@@ -562,6 +578,9 @@ class CORSSink extends RequestSink
   AuthServer<AuthImpl, TokenImpl, AuthCodeImpl> authServer;
 
   void setupRouter(Router router) {
+    router
+        .route("/add")
+        .generate(() => new AdditiveController());
     router
         .route("/opts")
         .pipe(new Authorizer(authServer))
@@ -766,5 +785,16 @@ class OptionsController extends HTTPController {
 class SingleMethodController extends HTTPController {
   SingleMethodController() {
     policy.allowedMethods = ["GET"];
+  }
+}
+
+class AdditiveController extends HTTPController {
+  AdditiveController() {
+    policy.exposedResponseHeaders.add("X-Header");
+  }
+
+  @httpGet
+  Future<Response> getThing() async {
+    return new Response.ok(null);
   }
 }
