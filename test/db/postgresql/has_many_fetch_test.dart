@@ -471,20 +471,6 @@ void main() {
                 "Property 'vaccinations' is a hasMany or hasOne relationship and is invalid as a result property of '_Child'"));
       }
     });
-
-    test("Trying to include hasMany RelationshipInverse in result set fails",
-        () async {
-      try {
-        var _ = new Query<Child>()..joinOn((c) => c.parent);
-
-        expect(true, false);
-      } on QueryException catch (e) {
-        expect(
-            e.toString(),
-            contains(
-                "Attempting to access matcher on RelationshipInverse parent on _Child. Assign this value to whereRelatedByValue instead."));
-      }
-    });
   });
 }
 

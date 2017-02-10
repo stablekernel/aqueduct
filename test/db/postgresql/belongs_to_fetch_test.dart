@@ -26,8 +26,6 @@ void main() {
     await ctx.persistentStore.close();
   });
 
-  // Matching on a belongsTo property for a foreign key doesn't need join, but anything else does
-
   group("Assign non-join matchers to belongsToProperty", () {
     test("Can use whereRelatedByValue", () async {
       var q = new Query<ChildObject>()

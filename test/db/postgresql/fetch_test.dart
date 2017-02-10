@@ -302,30 +302,6 @@ void main() {
           contains("Property owner_id does not exist on _GenPost"));
     }
   });
-
-  test("Trying to manipulate RelationshipInverse matcher fails", () async {
-    context = await contextWithModels([GenUser, GenPost]);
-
-    try {
-      var _ = new Query<GenPost>()..where.owner.id = 1;
-      expect(true, false);
-    } on QueryException catch (e) {
-      expect(
-          e.toString(),
-          contains(
-              "Attempting to access matcher on RelationshipInverse owner on _GenPost. Assign this value to whereRelatedByValue instead."));
-    }
-
-    try {
-      var _ = new Query<GenPost>()..joinOn((u) => u.owner);
-      expect(true, false);
-    } on QueryException catch (e) {
-      expect(
-          e.toString(),
-          contains(
-              "Attempting to access matcher on RelationshipInverse owner on _GenPost. Assign this value to whereRelatedByValue instead."));
-    }
-  });
 }
 
 class TestModel extends ManagedObject<_TestModel> implements _TestModel {
