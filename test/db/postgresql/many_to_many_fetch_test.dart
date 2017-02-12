@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
 import '../model_graph.dart';
@@ -5,7 +7,7 @@ import '../../helpers.dart';
 
 /*
   many to many should just be an extension of tests in belongs_to_fetch, tiered_where, has_many and has_one tests
-  so primary goal of these tests is to test edge cases specific to many to many fetching
+  so primary goal of these tests is to make sure there are no edge cases in many to many queries
  */
 
 void main() {
@@ -18,16 +20,19 @@ void main() {
       RootJoinObject,
       OtherRootObject,
       ChildObject,
-      GrandChildObject
+      GrandChildObject,
+      Team,
+      Game
     ]);
     rootObjects = await populateModelGraph(ctx);
+    await populateGameSchedule();
   });
 
   tearDownAll(() async {
     await ctx.persistentStore.close();
   });
 
-  group("Standard joins", () {
+  group("Explicit joins", () {
     test("Can join across many to many relationship, from one side", () async {
       var q = new Query<RootObject>()
         ..sortDescriptors = [new QuerySortDescriptor("id", QuerySortOrder.ascending)];
@@ -100,5 +105,215 @@ void main() {
             }]}),
           ]));
     });
+
+    test("Can join from join table", () async {
+      var q = new Query<RootJoinObject>()
+          ..sortDescriptors = [new QuerySortDescriptor("id", QuerySortOrder.ascending)]
+          ..joinOn((r) => r.other)
+          ..joinOn((r) => r.root);
+
+      var results = await q.fetch();
+      expect(results.map((r) => r.asMap()).toList(), equals([
+        {"id": 1, "other": fullObjectMap(1), "root": fullObjectMap(1)},
+        {"id": 2, "other": fullObjectMap(2), "root": fullObjectMap(1)},
+        {"id": 3, "other": fullObjectMap(3), "root": fullObjectMap(2)},
+      ]));
+    });
   });
+
+  group("Implicit joins", () {
+    test("Can use implicit matcher across many to many table", () async {
+      var q = new Query<RootObject>()
+        ..sortDescriptors = [new QuerySortDescriptor("id", QuerySortOrder.ascending)]
+        ..where.join.matchOn.other.value1 = whereLessThan(4);
+
+      var results = await q.fetch();
+      expect(results.map((r) => r.asMap()).toList(), equals([
+        fullObjectMap(1),
+        fullObjectMap(2)
+      ]));
+
+      q.where.join.matchOn.other.value1 = whereEqualTo(3);
+      results = await q.fetch();
+      expect(results.map((r) => r.asMap()).toList(), equals([
+        fullObjectMap(2)
+      ]));
+    });
+
+    test("Can use implicit join with join table to one side", () async {
+      var q = new Query<RootJoinObject>()
+          ..where.root.value1 = whereEqualTo(1);
+      var results = await q.fetch();
+      expect(results.map((r) => r.asMap()).toList(), equals([
+        {"id": 1, "other": {"id": 1}, "root": {"id": 1}},
+        {"id": 2, "other": {"id": 2}, "root": {"id": 1}},
+      ]));
+    });
+
+    test("Can use implicit join with join table to both sides", () async {
+      var q = new Query<RootJoinObject>()
+        ..where.root.value1 = whereEqualTo(1)
+        ..where.other.value1 = whereEqualTo(1);
+      var results = await q.fetch();
+      expect(results.map((r) => r.asMap()).toList(), equals([
+        {"id": 1, "other": {"id": 1}, "root": {"id": 1}},
+      ]));
+
+      q = new Query<RootJoinObject>()
+        ..where.root.value1 = whereEqualTo(1)
+        ..where.other.value1 = whereEqualTo(2);
+      results = await q.fetch();
+      expect(results.map((r) => r.asMap()).toList(), equals([
+        {"id": 2, "other": {"id": 2}, "root": {"id": 1}},
+      ]));
+
+      q = new Query<RootJoinObject>()
+        ..where.root.value1 = whereEqualTo(2)
+        ..where.other.value1 = whereEqualTo(2);
+      results = await q.fetch();
+      expect(results.map((r) => r.asMap()).toList(), equals([]));
+    });
+  });
+
+  group("Self joins - standard", () {
+    test("Can join by one relationship", () async {
+      var q = new Query<Team>()
+        ..sortDescriptors = [new QuerySortDescriptor("id", QuerySortOrder.ascending)];
+
+      q.joinMany((t) => t.awayGames)
+        ..joinOn((g) => g.homeTeam);
+
+      var results = await q.fetch();
+      expect(results.map((r) => r.asMap()).toList(), equals([
+        {"id": 1, "name": "Wisconsin", "awayGames": []},
+        {"id": 2, "name": "Minnesota", "awayGames": [
+          {"id": 1, "homeScore": 45, "awayScore": 0, "homeTeam": {"id": 1, "name": "Wisconsin"}, "awayTeam": {"id": 2}}
+        ]},
+        {"id": 3, "name": "Iowa", "awayGames": [
+          {"id": 2, "homeScore": 35, "awayScore": 3, "homeTeam": {"id": 1, "name": "Wisconsin"}, "awayTeam": {"id": 3}},
+          {"id": 3, "homeScore": 0, "awayScore": 3, "homeTeam": {"id": 2, "name": "Minnesota"}, "awayTeam": {"id": 3}}
+        ]},
+      ]));
+
+    });
+
+    test("Can join by other relationship", () async {
+      var q = new Query<Team>()
+        ..sortDescriptors = [new QuerySortDescriptor("id", QuerySortOrder.ascending)];
+
+      q.joinMany((t) => t.homeGames)
+        ..joinOn((g) => g.awayTeam);
+      var results = await q.fetch();
+
+    });
+
+    test("Can join from join table", () async {
+      var q = new Query<Game>()
+          ..joinOn((g) => g.awayTeam)
+          ..joinOn((g) => g.homeTeam)
+          ..sortDescriptors = [new QuerySortDescriptor("id", QuerySortOrder.ascending)];
+      var results = await q.fetch();
+
+    });
+
+    test("Attempt to join many to many relationship on the same property throws an exception before executing", () async {
+      var q = new Query<Team>();
+
+      try {
+        q.joinMany((t) => t.homeGames)
+          ..joinOn((g) => g.homeTeam);
+        expect(true, false);
+      } on QueryException catch (e) {
+        // This should be something useful
+        expect(true, false);
+      }
+    });
+  });
+
+  group("Self joins - implicit", () {
+    test("Can implicit join through join table", () async {
+
+    });
+    test("Can implicit join from join table - one side", () async {
+
+    });
+
+    test("Can implicit join from join table - both sides", () async {
+
+    });
+  });
+
+  group("Self joins - standard + filter", () {
+    test("Can filter returned nested objects by their values", () async {
+
+    });
+  });
+}
+
+
+class Game extends ManagedObject<_Game> implements _Game {}
+class _Game {
+  @managedPrimaryKey
+  int id;
+
+  int homeScore;
+  int awayScore;
+
+  @ManagedRelationship(#homeGames)
+  Team homeTeam;
+
+  @ManagedRelationship(#awayGames)
+  Team awayTeam;
+}
+
+class Team extends ManagedObject<_Team> implements _Team {}
+class _Team {
+  @managedPrimaryKey
+  int id;
+
+  String name;
+
+  ManagedSet<Game> homeGames;
+  ManagedSet<Game> awayGames;
+}
+
+Future populateGameSchedule() async {
+  var teams = [
+    new Team()
+      ..name = "Wisconsin",
+    new Team()
+      ..name = "Minnesota",
+    new Team()
+      ..name = "Iowa",
+  ];
+
+  for (var t in teams) {
+    var q = new Query<Team>()
+        ..values = t;
+    t.id = (await q.insert()).id;
+  }
+
+  var games = [
+    new Game()
+      ..homeTeam = teams[0]
+      ..awayTeam = teams[1]
+      ..homeScore = 45
+      ..awayScore = 0,
+    new Game()
+      ..homeTeam = teams[0]
+      ..awayTeam = teams[2]
+      ..homeScore = 35
+      ..awayScore = 3,
+    new Game()
+      ..homeTeam = teams[1]
+      ..awayTeam = teams[2]
+      ..homeScore = 0
+      ..awayScore = 3,
+  ];
+
+  for (var g in games) {
+    var q = new Query<Game>()
+        ..values = g;
+    await q.insert();
+  }
 }

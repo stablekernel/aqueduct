@@ -73,6 +73,7 @@ class PostgresQueryBuilder extends Object
   ManagedEntity entity;
   String tableAlias;
 
+  EntityTableMapper get rootTableMapper => this;
   String get primaryTableDefinition => tableDefinition;
   bool get containsJoins =>
       returningOrderedMappers.reversed.any((p) => p is RowMapper);

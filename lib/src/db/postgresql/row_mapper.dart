@@ -131,6 +131,7 @@ class RowMapper extends PostgresMapper
     returningOrderedMappers.addAll(rowMappers);
   }
 
+
   String get innerSelectString {
     var nestedJoins = returningOrderedMappers
         .where((m) => m is RowMapper)
@@ -190,5 +191,9 @@ class RowMapper extends PostgresMapper
 
   String generateTableAlias() {
     return originatingTable.generateTableAlias();
+  }
+
+  String toString() {
+    return "RowMapper on $joiningProperty: $returningOrderedMappers";
   }
 }
