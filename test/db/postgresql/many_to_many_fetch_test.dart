@@ -9,7 +9,7 @@ import '../../helpers.dart';
  */
 
 void main() {
-//  justLogEverything();
+  justLogEverything();
   List<RootObject> rootObjects;
   ManagedContext ctx;
   setUpAll(() async {
@@ -63,6 +63,41 @@ void main() {
             fullObjectMap(3, and: {"join": []}),
             fullObjectMap(4, and: {"join": []}),
             fullObjectMap(5, and: {"join": []}),
+          ]));
+    });
+
+    test("Can join across many to many relationship, from other side", () async {
+      var q = new Query<OtherRootObject>()
+        ..sortDescriptors = [new QuerySortDescriptor("id", QuerySortOrder.ascending)];
+
+      q.joinMany((r) => r.join)..joinOn((r) => r.root);
+      var results = await q.fetch();
+      expect(
+          results.map((r) => r.asMap()).toList(),
+          equals([
+            fullObjectMap(1, and: {
+              "join": [
+                {
+                  "id": 1,
+                  "root": fullObjectMap(1),
+                  "other": {"id": 1},
+                }
+              ]
+            }),
+            fullObjectMap(2, and: {
+              "join": [
+                {
+                  "id": 2,
+                  "root": fullObjectMap(1),
+                  "other": {"id": 2},
+                },
+              ]
+            }),
+            fullObjectMap(3, and: {"join": [{
+              "id": 3,
+              "root": fullObjectMap(2),
+              "other": {"id": 3},
+            }]}),
           ]));
     });
   });
