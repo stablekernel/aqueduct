@@ -182,6 +182,12 @@ void main() {
         ..joinOn((c) => c.parents);
 
       var results = await q.fetch();
+
+      //todo: revisit with nested sort. this sort should happen in DB, not software
+      results.forEach((c) {
+        c.grandChildren.sort((g1, g2) => g1.id.compareTo(g2.id));
+      });
+
       expect(results.map((c) => c.asMap()).toList(), equals([
         fullObjectMap(1, and: {"parents": null, "parent": {"id" : 1},
           "grandChildren": [
