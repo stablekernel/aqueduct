@@ -29,7 +29,9 @@ void main() {
 
   group("Standard joins", () {
     test("Can join across many to many relationship, from one side", () async {
-      var q = new Query<RootObject>();
+      var q = new Query<RootObject>()
+        ..sortDescriptors = [new QuerySortDescriptor("id", QuerySortOrder.ascending)];
+
       q.joinMany((r) => r.join)..joinOn((r) => r.other);
       var results = await q.fetch();
       expect(
@@ -53,7 +55,7 @@ void main() {
               "join": [
                 {
                   "id": 3,
-                  "root": {"id": 3},
+                  "root": {"id": 2},
                   "other": fullObjectMap(3)
                 },
               ]
