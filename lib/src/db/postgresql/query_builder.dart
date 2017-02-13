@@ -50,8 +50,8 @@ class PostgresQueryBuilder extends Object
 
           return false;
         }).forEach((m) {
-          (m as PropertyToColumnMapper).isForeignKeyColumnAndWillBePopulatedByJoin =
-              true;
+          (m as PropertyToColumnMapper)
+              .isForeignKeyColumnAndWillBePopulatedByJoin = true;
         });
       });
     }

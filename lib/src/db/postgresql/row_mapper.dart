@@ -123,8 +123,8 @@ class RowMapper extends PostgresMapper
 
           return false;
         }).forEach((m) {
-          (m as PropertyToColumnMapper).isForeignKeyColumnAndWillBePopulatedByJoin =
-              true;
+          (m as PropertyToColumnMapper)
+              .isForeignKeyColumnAndWillBePopulatedByJoin = true;
         });
       } else {
         _implicitRowMappers ??= <RowMapper>[];
@@ -144,14 +144,14 @@ class RowMapper extends PostgresMapper
       var inverseMapper = parentTable.returningOrderedMappers.reversed
           .where((pm) => pm is RowMapper)
           .firstWhere((pm) {
-            return identical(rowMapper.joiningProperty.inverse,
-                (pm as RowMapper).joiningProperty);
-          }, orElse: () => null);
+        return identical(rowMapper.joiningProperty.inverse,
+            (pm as RowMapper).joiningProperty);
+      }, orElse: () => null);
 
       if (inverseMapper != null) {
         throw new QueryException(QueryExceptionEvent.internalFailure,
             message:
-            "Invalid cyclic 'Query'. This query would join on the same table and foreign key twice. "
+                "Invalid cyclic 'Query'. This query would join on the same table and foreign key twice. "
                 "The offending query has a 'where' matcher on '${rowMapper.entity.tableName}.${rowMapper.joiningProperty.name}'"
                 ", but this matcher should be on a parent 'Query' Move the matcher earlier in the 'Query'.");
       }
