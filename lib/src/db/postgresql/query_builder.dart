@@ -43,7 +43,6 @@ class PostgresQueryBuilder extends Object
         // If we're joining on belongsTo relationship, ensure
         // that foreign key column gets ignored during instantiation.
         // It'll get populated by the joined table.
-        //todo: Ensure this doesn't happen when doing implicit joins!
         returningOrderedMappers.where((m) {
           if (m is PropertyToColumnMapper) {
             return identical(m.property, rm.joiningProperty);
@@ -51,7 +50,7 @@ class PostgresQueryBuilder extends Object
 
           return false;
         }).forEach((m) {
-          (m as PropertyToColumnMapper).foreignKeyColumnWillBePopulatedByJoin =
+          (m as PropertyToColumnMapper).isForeignKeyColumnAndWillBePopulatedByJoin =
               true;
         });
       });

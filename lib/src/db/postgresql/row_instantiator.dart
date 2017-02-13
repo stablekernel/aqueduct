@@ -117,7 +117,7 @@ abstract class RowInstantiator {
       // This is a belongsTo relationship (otherwise it wouldn't be a column), keep the foreign key.
       // However, if we are later going to get these values and more from a join,
       // we need ignore it here.
-      if (!mapper.foreignKeyColumnWillBePopulatedByJoin) {
+      if (!mapper.isForeignKeyColumnAndWillBePopulatedByJoin) {
         if (value != null) {
           ManagedRelationshipDescription relDesc = mapper.property;
 
