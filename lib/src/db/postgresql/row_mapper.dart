@@ -28,15 +28,6 @@ class RowMapper extends PostgresMapper
       joiningProperty.relationshipType == ManagedRelationshipType.belongsTo
         ? joiningProperty : joiningProperty.inverse;
 
-  ManagedRelationshipDescription get primaryKeyProperty {
-    if (identical(foreignKeyProperty, joiningProperty)) {
-      var parentEntity = joiningProperty.inverse.entity;
-      return parentEntity.properties[parentEntity.primaryKey];
-    }
-
-    return joiningProperty;
-  }
-
   Map<String, dynamic> get substitutionVariables {
     var variables = joinCondition.parameters ?? {};
     returningOrderedMappers.where((p) => p is RowMapper).forEach((p) {
