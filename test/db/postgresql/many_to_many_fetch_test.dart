@@ -11,7 +11,6 @@ import '../../helpers.dart';
  */
 
 void main() {
-  justLogEverything();
   List<RootObject> rootObjects;
   ManagedContext ctx;
   setUpAll(() async {
@@ -238,27 +237,81 @@ void main() {
           ..joinOn((g) => g.homeTeam);
         expect(true, false);
       } on QueryException catch (e) {
-        expect(e.toString(), contains("Invalid cyclical"));
+        expect(e.toString(), contains("Invalid cyclic"));
       }
     });
   });
 
   group("Self joins - implicit", () {
     test("Can implicit join through join table", () async {
+      // 'Teams that have played at Minnesota'
+      var q = new Query<Team>()
+          ..sortDescriptors = [new QuerySortDescriptor("id", QuerySortOrder.ascending)]
+          ..where.awayGames.matchOn.homeTeam.name = whereContains("Minn");
+      var results = await q.fetch();
+      expect(results.map((t) => t.asMap()).toList(), equals([
+        {"id": 3, "name": "Iowa"}
+      ]));
 
+      // 'Teams that have played at Iowa'
+      q = new Query<Team>()
+        ..sortDescriptors = [new QuerySortDescriptor("id", QuerySortOrder.ascending)]
+        ..where.awayGames.matchOn.homeTeam.name = whereContains("Iowa");
+      results = await q.fetch();
+      expect(results.map((t) => t.asMap()).toList(), equals([]));
     });
-    test("Can implicit join from join table - one side", () async {
 
+    test("Can implicit join from join table - one side", () async {
+      // 'Games where Iowa was away'
+      var q = new Query<Game>()
+          ..where.awayTeam.name = whereContains("Iowa");
+      var results = await q.fetch();
+      expect(results.map((g) => g.asMap()).toList(), equals([
+        {"id": 2, "homeScore": 35, "awayScore": 3, "awayTeam": {"id": 3}, "homeTeam": {"id": 1}},
+        {"id": 3, "homeScore": 0, "awayScore": 3, "awayTeam": {"id": 3}, "homeTeam": {"id": 2}}
+      ]));
     });
 
     test("Can implicit join from join table - both sides", () async {
+      // 'Games where Iowa played Wisconsin at home'
+      var q = new Query<Game>()
+        ..where.homeTeam.name = whereContains("Wisco")
+        ..where.awayTeam.name = whereContains("Iowa");
+      var results = await q.fetch();
+      expect(results.map((g) => g.asMap()).toList(), equals([
+        {"id": 2, "homeScore": 35, "awayScore": 3, "awayTeam": {"id": 3}, "homeTeam": {"id": 1}}
+      ]));
+    });
 
+    test("Attempt to implicitly join many to many relationships on the same property throws an exception when executing", () async {
+      try {
+        var q = new Query<Team>();
+        q.joinMany((t) => t.awayGames)
+          ..where.awayTeam.name = whereContains("Minn");
+        await q.fetch();
+
+        expect(true, false);
+      } on QueryException catch (e) {
+        expect(e.toString(), contains("Invalid cyclic"));
+      }
     });
   });
 
   group("Self joins - standard + filter", () {
     test("Can filter returned nested objects by their values", () async {
+      // 'All teams and the games they've played at Minnesota'
+      var q = new Query<Team>();
+      q.joinMany((t) => t.awayGames)
+        ..where.homeTeam.name = whereContains("Minn");
+      var results = await q.fetch();
 
+      expect(results.map((r) => r.asMap()).toList(), equals([
+        {"id": 1, "name": "Wisconsin", "awayGames": []},
+        {"id": 2, "name": "Minnesota", "awayGames": []},
+        {"id": 3, "name": "Iowa", "awayGames": [
+          {"id": 3, "homeScore": 0, "awayScore": 3, "awayTeam": {"id": 3}, "homeTeam": {"id": 2}}
+        ]},
+      ]));
     });
   });
 }

@@ -75,14 +75,13 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
     // Ensure we don't cyclically join
     var parent = _parentQuery;
     while (parent != null) {
-
       if (parent.subQueries.containsKey(fromRelationship.inverse)) {
         var validJoins = fromRelationship.entity.relationships.values
             .where((r) => !identical(r, fromRelationship))
             .map((r) => "'${r.name}'").join(", ");
 
         throw new QueryException(QueryExceptionEvent.internalFailure,
-            message: "Invalid cyclical 'Query'. This query joins '${fromRelationship.entity.tableName}' "
+            message: "Invalid cyclic 'Query'. This query joins '${fromRelationship.entity.tableName}' "
                 "with '${fromRelationship.inverse.entity.tableName}' on property '${fromRelationship.name}'. "
                 "However, '${fromRelationship.inverse.entity.tableName}' "
                 "has also joined '${fromRelationship.entity.tableName}' on this property's inverse "

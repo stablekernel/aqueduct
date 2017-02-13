@@ -68,7 +68,33 @@ class RowMapper extends PostgresMapper
     _implicitRowMappers = <RowMapper>[];
     _matcherExpressions =
         propertyExpressionsFromObject(whereBuilder, _implicitRowMappers);
-    addRowMappers(_implicitRowMappers);
+
+    // Check implicit row mappers for cycles
+    for (var implicitRowMapper in _implicitRowMappers) {
+      var parentTable = originatingTable;
+      while (parentTable != null) {
+        var inverseMapper = parentTable.returningOrderedMappers.reversed
+            .where((pm) => pm is RowMapper)
+            .firstWhere((pm) {
+              return identical(implicitRowMapper.joiningProperty.inverse, (pm as RowMapper).joiningProperty);
+            }, orElse: () => null);
+
+        if (inverseMapper != null) {
+          throw new QueryException(QueryExceptionEvent.internalFailure, message:
+            "Invalid cyclic 'Query'. This query would join on the same table and foreign key twice. "
+                "The offending query has a 'where' matcher on '${implicitRowMapper.entity.tableName}.${implicitRowMapper.joiningProperty.name}'"
+                ", but this matcher should be on a parent 'Query' Move the matcher earlier in the 'Query'.");
+        }
+
+        if (parentTable is RowMapper) {
+          parentTable = (parentTable as RowMapper).originatingTable;
+        } else {
+          parentTable = null;
+        }
+      }
+    }
+
+    addRowMappers(_implicitRowMappers, areImplicit: true);
   }
 
   List<RowMapper> _implicitRowMappers;
@@ -117,16 +143,21 @@ class RowMapper extends PostgresMapper
     return _joinCondition;
   }
 
-  void addRowMappers(List<RowMapper> rowMappers) {
+  void addRowMappers(List<RowMapper> rowMappers, {bool areImplicit: false}) {
     rowMappers.forEach((r) {
       r.originatingTable = this;
-      returningOrderedMappers.removeWhere((m) {
-        if (m is PropertyToColumnMapper) {
-          return identical(m.property, r.joiningProperty);
-        }
 
-        return false;
-      });
+      if (!areImplicit) {
+        returningOrderedMappers.where((m) {
+          if (m is PropertyToColumnMapper) {
+            return identical(m.property, r.joiningProperty);
+          }
+
+          return false;
+        }).forEach((m) {
+          (m as PropertyToColumnMapper).foreignKeyColumnWillBePopulatedByJoin = true;
+        });
+      }
     });
     returningOrderedMappers.addAll(rowMappers);
   }

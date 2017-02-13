@@ -102,9 +102,6 @@ abstract class RowInstantiator {
 
       // If not assigned yet, assign this value (which may be null). If assigned,
       // don't overwrite with a null row that may come after. Once we have it, we have it.
-
-      // Now if it is belongsTo, we may have already populated it with the foreign key object.
-      // In this case, we do need to override it
       if (existingInnerInstance == null) {
         instance[mapper.joiningProperty.name] = innerInstanceWrapper?.instance;
       }
@@ -114,16 +111,20 @@ abstract class RowInstantiator {
   void applyColumnValueToProperty(
       ManagedObject instance, PropertyToColumnMapper mapper, dynamic value) {
     if (mapper.property is ManagedRelationshipDescription) {
-      // A belongsTo relationship, keep the foreign key.
-      if (value != null) {
-        ManagedRelationshipDescription relDesc = mapper.property;
+      // This is a belongsTo relationship (otherwise it wouldn't be a column), keep the foreign key.
+      // However, if we are later going to get these values and more from a join,
+      // we need ignore it here.
+      if (!mapper.foreignKeyColumnWillBePopulatedByJoin) {
+        if (value != null) {
+          ManagedRelationshipDescription relDesc = mapper.property;
 
-        var innerInstance = relDesc.destinationEntity.newInstance();
-        innerInstance[relDesc.destinationEntity.primaryKey] = value;
-        instance[mapper.property.name] = innerInstance;
-      } else {
-        // If null, explicitly add null to map so the value is populated.
-        instance[mapper.property.name] = null;
+          var innerInstance = relDesc.destinationEntity.newInstance();
+          innerInstance[relDesc.destinationEntity.primaryKey] = value;
+          instance[mapper.property.name] = innerInstance;
+        } else {
+          // If null, explicitly add null to map so the value is populated.
+          instance[mapper.property.name] = null;
+        }
       }
     } else {
       instance[mapper.property.name] = value;
