@@ -1,5 +1,6 @@
 import 'matcher_internal.dart';
 import 'query.dart';
+import '../managed/managed.dart';
 
 /// The operator in a comparison matcher.
 enum MatcherOperator {
@@ -20,8 +21,8 @@ enum StringMatcherOperator { beginsWith, contains, endsWith }
 ///
 ///       var query = new Query<User>()
 ///         ..where.id = whereEqualTo(1);
-dynamic whereEqualTo(dynamic value) {
-  return new ComparisonMatcherExpression(value, MatcherOperator.equalTo);
+T whereEqualTo<T>(T value) {
+  return new ComparisonMatcherExpression(value, MatcherOperator.equalTo) as dynamic;
 }
 
 /// Matcher for matching a column value greater than the argument in a [Query].
@@ -30,8 +31,8 @@ dynamic whereEqualTo(dynamic value) {
 ///
 ///       var query = new Query<Employee>()
 ///         ..where.salary = whereGreaterThan(60000);
-dynamic whereGreaterThan(dynamic value) {
-  return new ComparisonMatcherExpression(value, MatcherOperator.greaterThan);
+T whereGreaterThan<T>(T value) {
+  return new ComparisonMatcherExpression(value, MatcherOperator.greaterThan) as dynamic;
 }
 
 /// Matcher for matching a column value greater than or equal to the argument in a [Query].
@@ -40,9 +41,9 @@ dynamic whereGreaterThan(dynamic value) {
 ///
 ///       var query = new Query<Employee>()
 ///         ..where.salary = whereGreaterThanEqualTo(60000);
-dynamic whereGreaterThanEqualTo(dynamic value) {
+T whereGreaterThanEqualTo<T>(dynamic value) {
   return new ComparisonMatcherExpression(
-      value, MatcherOperator.greaterThanEqualTo);
+      value, MatcherOperator.greaterThanEqualTo) as dynamic;
 }
 
 /// Matcher for matching a column value less than the argument in a [Query].
@@ -51,8 +52,8 @@ dynamic whereGreaterThanEqualTo(dynamic value) {
 ///
 ///       var query = new Query<Employee>()
 ///         ..where.salary = whereLessThan(60000);
-dynamic whereLessThan(dynamic value) {
-  return new ComparisonMatcherExpression(value, MatcherOperator.lessThan);
+T whereLessThan<T>(T value) {
+  return new ComparisonMatcherExpression(value, MatcherOperator.lessThan) as dynamic;
 }
 
 /// Matcher for matching a column value less than or equal to the argument in a [Query].
@@ -61,9 +62,9 @@ dynamic whereLessThan(dynamic value) {
 ///
 ///       var query = new Query<Employee>()
 ///         ..where.salary = whereLessThanEqualTo(60000);
-dynamic whereLessThanEqualTo(dynamic value) {
+T whereLessThanEqualTo<T>(T value) {
   return new ComparisonMatcherExpression(
-      value, MatcherOperator.lessThanEqualTo);
+      value, MatcherOperator.lessThanEqualTo) as dynamic;
 }
 
 /// Matcher for matching all column values other than argument in a [Query].
@@ -72,8 +73,8 @@ dynamic whereLessThanEqualTo(dynamic value) {
 ///
 ///       var query = new Query<Employee>()
 ///         ..where.id = whereNotEqual(60000);
-dynamic whereNotEqual(dynamic value) {
-  return new ComparisonMatcherExpression(value, MatcherOperator.notEqual);
+T whereNotEqual<T>(T value) {
+  return new ComparisonMatcherExpression(value, MatcherOperator.notEqual) as dynamic;
 }
 
 /// Matcher for matching string properties that contain [value] in a [Query].
@@ -82,8 +83,8 @@ dynamic whereNotEqual(dynamic value) {
 ///
 ///       var query = new Query<Employee>()
 ///         ..where.title = whereContains("Director");
-dynamic whereContains(String value) {
-  return new StringMatcherExpression(value, StringMatcherOperator.contains);
+T whereContains<T extends String>(T value) {
+  return new StringMatcherExpression(value, StringMatcherOperator.contains) as dynamic;
 }
 
 /// Matcher for matching string properties that start with [value] in a [Query].
@@ -92,8 +93,8 @@ dynamic whereContains(String value) {
 ///
 ///       var query = new Query<Employee>()
 ///         ..where.name = whereBeginsWith("B");
-dynamic whereBeginsWith(String value) {
-  return new StringMatcherExpression(value, StringMatcherOperator.beginsWith);
+T whereBeginsWith<T extends String>(T value) {
+  return new StringMatcherExpression(value, StringMatcherOperator.beginsWith) as dynamic;
 }
 
 /// Matcher for matching string properties that end with [value] in a [Query].
@@ -102,8 +103,8 @@ dynamic whereBeginsWith(String value) {
 ///
 ///       var query = new Query<Employee>()
 ///         ..where.name = whereEndsWith("son");
-dynamic whereEndsWith(String value) {
-  return new StringMatcherExpression(value, StringMatcherOperator.endsWith);
+T whereEndsWith<T extends String>(T value) {
+  return new StringMatcherExpression(value, StringMatcherOperator.endsWith) as dynamic;
 }
 
 /// Matcher for matching values that are within the list of [values] in a [Query].
@@ -112,8 +113,8 @@ dynamic whereEndsWith(String value) {
 ///
 ///       var query = new Query<Employee>()
 ///         ..where.department = whereIn(["Engineering", "HR"]);
-dynamic whereIn(Iterable<dynamic> values) {
-  return new WithinMatcherExpression(values.toList());
+T whereIn<T>(Iterable<T> values) {
+  return new WithinMatcherExpression(values.toList()) as dynamic;
 }
 
 /// Matcher for matching column values where [lhs] <= value <= [rhs] in a [Query].
@@ -122,8 +123,8 @@ dynamic whereIn(Iterable<dynamic> values) {
 ///
 ///       var query = new Query<Employee>()
 ///         ..where.salary = whereBetween(80000, 100000);
-dynamic whereBetween(dynamic lhs, dynamic rhs) {
-  return new RangeMatcherExpression(lhs, rhs, true);
+T whereBetween<T>(T lhs, T rhs) {
+  return new RangeMatcherExpression(lhs, rhs, true) as dynamic;
 }
 
 /// Matcher for matching column values where matched value is less than [lhs] or greater than [rhs] in a [Query].
@@ -132,8 +133,8 @@ dynamic whereBetween(dynamic lhs, dynamic rhs) {
 ///
 ///       var query = new Query<Employee>()
 ///         ..where.salary = whereOutsideOf(80000, 100000);
-dynamic whereOutsideOf(dynamic lhs, dynamic rhs) {
-  return new RangeMatcherExpression(lhs, rhs, false);
+T whereOutsideOf<T>(T lhs, T rhs) {
+  return new RangeMatcherExpression(lhs, rhs, false) as dynamic;
 }
 
 /// Matcher for matching [ManagedRelationship] property in a [Query].
