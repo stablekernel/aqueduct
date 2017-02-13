@@ -90,3 +90,18 @@ class ManagedMatcherBacking extends ManagedBacking {
     }
   }
 }
+
+class ManagedAccessTrackingBacking extends ManagedBacking {
+  Map<String, dynamic> get valueMap => null;
+  String accessedProperty;
+
+  dynamic valueForProperty(ManagedEntity entity, String propertyName) {
+    accessedProperty = propertyName;
+    return null;
+  }
+
+  void setValueForProperty(
+      ManagedEntity entity, String propertyName, dynamic value) {
+    // no-op
+  }
+}
