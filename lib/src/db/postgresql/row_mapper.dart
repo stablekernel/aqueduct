@@ -229,6 +229,7 @@ class RowMapper extends PostgresMapper
 
   String generateTableAlias() {
     return originatingTable.generateTableAlias();
+  }
 
   String toString() {
     return "RowMapper on $joiningProperty: $returningOrderedMappers";
