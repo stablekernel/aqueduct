@@ -86,23 +86,26 @@ abstract class RowInstantiator {
 
     var innerInstanceWrapper = instanceFromRow(
         rowIterator, mapper.returningOrderedMappers.iterator,
-        incomingEntity: mapper.inverseProperty.entity);
+        incomingEntity: mapper.joiningProperty.inverse.entity);
 
     if (mapper.isToMany) {
       // If to many, put in a managed set.
       ManagedSet list =
-          instance[mapper.parentProperty.name] ?? new ManagedSet();
+          instance[mapper.joiningProperty.name] ?? new ManagedSet();
       if (innerInstanceWrapper != null && innerInstanceWrapper.isNew) {
         list.add(innerInstanceWrapper.instance);
       }
-      instance[mapper.parentProperty.name] = list;
+      instance[mapper.joiningProperty.name] = list;
     } else {
-      var existingInnerInstance = instance[mapper.parentProperty.name];
+      var existingInnerInstance = instance[mapper.joiningProperty.name];
 
       // If not assigned yet, assign this value (which may be null). If assigned,
       // don't overwrite with a null row that may come after. Once we have it, we have it.
+
+      // Now if it is belongsTo, we may have already populated it with the foreign key object.
+      // In this case, we do need to override it
       if (existingInnerInstance == null) {
-        instance[mapper.parentProperty.name] = innerInstanceWrapper?.instance;
+        instance[mapper.joiningProperty.name] = innerInstanceWrapper?.instance;
       }
     }
   }

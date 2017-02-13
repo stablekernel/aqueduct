@@ -45,14 +45,10 @@ class ManagedMatcherBacking extends ManagedBacking {
       if (relDesc?.relationshipType == ManagedRelationshipType.hasMany) {
         valueMap[propertyName] = new ManagedSet()
           ..entity = relDesc.destinationEntity;
-      } else if (relDesc?.relationshipType == ManagedRelationshipType.hasOne) {
+      } else if (relDesc?.relationshipType == ManagedRelationshipType.hasOne
+      || relDesc?.relationshipType == ManagedRelationshipType.belongsTo) {
         valueMap[propertyName] = relDesc.destinationEntity.newInstance()
           ..backing = new ManagedMatcherBacking();
-      } else if (relDesc?.relationshipType ==
-          ManagedRelationshipType.belongsTo) {
-        throw new QueryException(QueryExceptionEvent.requestFailure,
-            message:
-                "Attempting to access matcher on RelationshipInverse $propertyName on ${entity.tableName}. Assign this value to whereRelatedByValue instead.");
       }
     }
 
@@ -70,15 +66,11 @@ class ManagedMatcherBacking extends ManagedBacking {
       var property = entity.properties[propertyName];
 
       if (property is ManagedRelationshipDescription) {
-        if (property.relationshipType == ManagedRelationshipType.belongsTo ||
-            value is NullMatcherExpression) {
-          valueMap[propertyName] = value;
-        } else {
-          throw new QueryException(QueryExceptionEvent.internalFailure,
-              message:
-                  "Attempting to set matcher on hasOne or hasMany relationship property "
-                  "'${entity.tableName}.${property.name}'. Matchers for these "
-                  "properties may only be 'whereNull' or 'whereNotNull'.");
+        var innerObject = valueForProperty(entity, propertyName);
+        if (innerObject is ManagedObject) {
+          innerObject[innerObject.entity.primaryKey] = value;
+        } else if (innerObject is ManagedSet) {
+          innerObject.matchOn[innerObject.entity.primaryKey] = value;
         }
       } else {
         valueMap[propertyName] = value;

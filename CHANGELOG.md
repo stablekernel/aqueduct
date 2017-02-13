@@ -10,9 +10,12 @@
 - Added `configurationFilePath` to `ApplicationConfiguration`.
 - Improved error reporting from failed application startups.
 - Automatically lowercase headers in `Response` objects so that other parts of an application can accurately read their values during processing.
-- Renamed `Query.matchOn` to `Query.where`.
-- Removed `includeInResultSet` for `Query`'s, instead, added `joinOn` and `joinMany` which create subqueries that can be configured further.
-- Allow `Query.where` to reference properties in related objects without including related objects in results, i.e. can fetch `Parent` objects and filter them by values in their `Child` relationships.
+
+- ORM: Renamed `Query.matchOn` to `Query.where`.
+- ORM: Removed `includeInResultSet` for `Query`'s, instead, added `joinOn` and `joinMany` which create subqueries that can be configured further.
+- ORM: Allow `Query.where` to reference properties in related objects without including related objects in results, i.e. can fetch `Parent` objects and filter them by values in their `Child` relationships.
+- ORM: Joins can now be applied to belongsTo relationship properties.
+- ORM: Matchers such as `whereNull` and `whereNotNull` can be applied to a relationship property in `Query.where`.
 
 - Auth: Added `aqueduct/managed_auth` library. Implements storage of OAuth 2.0 tokens using `ManagedObject`s. See API reference for more details.
 - Auth: Improved error and response messaging to better align with the OAuth 2.0 spec, especially with regards to the authorization code flow.

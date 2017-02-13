@@ -235,7 +235,7 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
   final Symbol inverseKey;
 
   /// The [ManagedRelationshipDescription] on [destinationEntity] that represents the inverse of this relationship.
-  ManagedRelationshipDescription get inverseRelationship =>
+  ManagedRelationshipDescription get inverse =>
       destinationEntity.relationships[MirrorSystem.getName(inverseKey)];
 
   /// Whether or not a the argument can be assigned to this property.

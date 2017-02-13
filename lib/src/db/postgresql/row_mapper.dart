@@ -5,26 +5,28 @@ import 'property_mapper.dart';
 
 class RowMapper extends PostgresMapper
     with PredicateBuilder, EntityTableMapper {
-  RowMapper(this.type, this.parentProperty, List<String> propertiesToFetch,
+  RowMapper(this.type, this.joiningProperty, List<String> propertiesToFetch,
       {this.predicate, this.whereBuilder}) {
     returningOrderedMappers =
         PropertyToColumnMapper.fromKeys(this, entity, propertiesToFetch);
   }
 
-  RowMapper.implicit(this.type, this.parentProperty) {
+  RowMapper.implicit(this.type, this.joiningProperty) {
     returningOrderedMappers = [];
   }
 
-  ManagedRelationshipDescription parentProperty;
-  EntityTableMapper parentTable;
+  ManagedRelationshipDescription joiningProperty;
+  EntityTableMapper originatingTable;
   PersistentJoinType type;
   ManagedObject whereBuilder;
   QueryPredicate predicate;
   QueryPredicate _joinCondition;
 
-  ManagedEntity get entity => inverseProperty.entity;
-  ManagedPropertyDescription get inverseProperty =>
-      parentProperty.inverseRelationship;
+  ManagedEntity get entity => joiningProperty.inverse.entity;
+
+  ManagedRelationshipDescription get foreignKeyProperty =>
+      joiningProperty.relationshipType == ManagedRelationshipType.belongsTo
+        ? joiningProperty : joiningProperty.inverse;
 
   Map<String, dynamic> get substitutionVariables {
     var variables = joinCondition.parameters ?? {};
@@ -80,22 +82,18 @@ class RowMapper extends PostgresMapper
 
   QueryPredicate get joinCondition {
     if (_joinCondition == null) {
-      var parentEntity = parentProperty.entity;
-      var parentPrimaryKeyProperty =
-          parentEntity.properties[parentEntity.primaryKey];
-      var temporaryLeftElement =
-          new PropertyToColumnMapper(parentTable, parentPrimaryKeyProperty);
-      var parentColumnName =
-          temporaryLeftElement.columnName(withTableNamespace: true);
+      PropertyToColumnMapper leftMapper, rightMapper;
+      if (identical(foreignKeyProperty, joiningProperty)) {
+        leftMapper = new PropertyToColumnMapper(originatingTable, joiningProperty);
+        rightMapper = new PropertyToColumnMapper(this, joiningProperty.entity.primaryKeyAttribute);
+      } else {
+        leftMapper = new PropertyToColumnMapper(originatingTable, originatingTable.entity.primaryKeyAttribute);
+        rightMapper = new PropertyToColumnMapper(this, joiningProperty.inverse);
+      }
 
-      var temporaryRightElement =
-          new PropertyToColumnMapper(this, inverseProperty);
-      var childColumnName =
-          temporaryRightElement.columnName(withTableNamespace: true);
-
-      var joinPredicate =
-          new QueryPredicate("$parentColumnName=$childColumnName", null);
-
+      var leftColumn = leftMapper.columnName(withTableNamespace: true);
+      var rightColumn = rightMapper.columnName(withTableNamespace: true);
+      var joinPredicate = new QueryPredicate("$leftColumn=$rightColumn", null);
       var filterPredicates = matcherExpressions
           .where((expr) => identical(expr.table, this))
           .map((expr) => expr.predicate)
@@ -111,7 +109,16 @@ class RowMapper extends PostgresMapper
   }
 
   void addRowMappers(List<RowMapper> rowMappers) {
-    rowMappers.forEach((r) => r.parentTable = this);
+    rowMappers.forEach((r) {
+      r.originatingTable = this;
+      returningOrderedMappers.removeWhere((m) {
+        if (m is PropertyToColumnMapper) {
+          return identical(m.property, r.joiningProperty);
+        }
+
+        return false;
+      });
+    });
     returningOrderedMappers.addAll(rowMappers);
   }
 
@@ -163,16 +170,16 @@ class RowMapper extends PostgresMapper
   }
 
   bool get isToMany {
-    return parentProperty.relationshipType == ManagedRelationshipType.hasMany;
+    return joiningProperty.relationshipType == ManagedRelationshipType.hasMany;
   }
 
   bool representsRelationship(ManagedRelationshipDescription relationship) {
-    return parentProperty.destinationEntity == relationship.destinationEntity &&
-        parentProperty.entity == relationship.entity &&
-        parentProperty.name == relationship.name;
+    return joiningProperty.destinationEntity == relationship.destinationEntity &&
+        joiningProperty.entity == relationship.entity &&
+        joiningProperty.name == relationship.name;
   }
 
   String generateTableAlias() {
-    return parentTable.generateTableAlias();
+    return originatingTable.generateTableAlias();
   }
 }

@@ -131,8 +131,11 @@ class ManagedEntity {
   String get primaryKey {
     return _primaryKey;
   }
-
   String _primaryKey;
+
+  ManagedAttributeDescription get primaryKeyAttribute {
+    return properties[primaryKey];
+  }
 
   /// Name of table in database this entity maps to.
   ///

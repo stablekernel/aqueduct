@@ -131,6 +131,46 @@ class _RootJoinObject {
   RootObject root;
 }
 
+/*
+[
+  {"id": 1, "value1": 1, "value2": 1,
+    "join": [{
+        other: {"id": 1, "value1": 1, "value2": 1}
+      }, {
+        other: {"id": 2, "value1": 2, "value2": 2}
+      }],
+    child: {"id": 1, "value1": 1, "value2": 1,
+      "grandChild": {"id": 1, "value1": 1, "value2": 1},
+      "grandChildren": [
+        {"id": 2, "value1": 2, "value2": 2}, {"id": 3, "value1": 3, "value2": 3}
+      ]},
+    "children": [
+      {"id": 2, "value1": 2, "value2": 2,
+        "grandChild": {"id": 4, "value1": 4, "value2": 4},
+        "grandChildren": [
+          {"id": 5, "value1": 5, "value2": 5}, {"id": 6, "value1": 6, "value2": 6}
+      ]},
+      {"id": 3, "value1": 3, "value2": 3,
+        "grandChild": {"id": 7, "value1": 7, "value2": 7}
+      },
+      {"id": 4, "value1": 4, "value2": 4,
+        "grandChildren": [{"id": 8, "value1": 8, "value2": 8}]},
+      {"id": 5, "value1": 5, "value2": 5}
+    ]},
+  {"id": 2, "value1": 2, "value2": 2,
+    "join": [{
+      other: {"id": 3, "value1": 3, "value2": 3}
+    }],
+    child: {"id": 6, "value1": 6, "value2": 6},
+    "children": [{"id": 7, "value1": 7, "value2": 7}]},
+  {"id": 3, "value1": 3, "value2": 3,
+    child: {"id": 8, "value1": 8, "value2": 8}},
+  {"id": 4, "value1": 4, "value2": 4,
+    "children": [{"id": 9, "value1": 9, "value2": 9}]},
+  {"id": 5, "value1": 5, "value2": 5}
+]
+ */
+
 Future<List<RootObject>> populateModelGraph(ManagedContext ctx) async {
   var rootObjects = <RootObject>[
     new RootObject.withCounter() // 1
@@ -244,4 +284,12 @@ Future<List<RootObject>> populateModelGraph(ManagedContext ctx) async {
   }
 
   return rootObjects;
+}
+
+Map fullObjectMap(v, {and}) {
+  var m = {"id": v, "value1": v, "value2": v};
+  if (and != null) {
+    m.addAll(and);
+  }
+  return m;
 }
