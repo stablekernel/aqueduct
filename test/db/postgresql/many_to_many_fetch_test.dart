@@ -194,7 +194,6 @@ void main() {
           {"id": 3, "homeScore": 0, "awayScore": 3, "homeTeam": {"id": 2, "name": "Minnesota"}, "awayTeam": {"id": 3}}
         ]},
       ]));
-
     });
 
     test("Can join by other relationship", () async {
@@ -205,6 +204,16 @@ void main() {
         ..joinOn((g) => g.awayTeam);
       var results = await q.fetch();
 
+      expect(results.map((r) => r.asMap()).toList(), equals([
+        {"id": 1, "name": "Wisconsin", "homeGames": [
+          {"id": 1, "homeScore": 45, "awayScore": 0, "homeTeam": {"id": 1}, "awayTeam": {"id": 2, "name": "Minnesota"}},
+          {"id": 2, "homeScore": 35, "awayScore": 3, "homeTeam": {"id": 1}, "awayTeam": {"id": 3, "name": "Iowa"}},
+        ]},
+        {"id": 2, "name": "Minnesota", "homeGames": [
+          {"id": 3, "homeScore": 0, "awayScore": 3, "homeTeam": {"id": 2}, "awayTeam": {"id": 3, "name": "Iowa"}}
+        ]},
+        {"id": 3, "name": "Iowa", "homeGames": []},
+      ]));
     });
 
     test("Can join from join table", () async {
@@ -214,18 +223,22 @@ void main() {
           ..sortDescriptors = [new QuerySortDescriptor("id", QuerySortOrder.ascending)];
       var results = await q.fetch();
 
+      expect(results.map((r) => r.asMap()).toList(), equals([
+        {"id": 1, "homeScore": 45, "awayScore": 0, "homeTeam": {"id": 1, "name": "Wisconsin"}, "awayTeam": {"id": 2, "name": "Minnesota"}},
+        {"id": 2, "homeScore": 35, "awayScore": 3, "homeTeam": {"id": 1, "name": "Wisconsin"}, "awayTeam": {"id": 3, "name": "Iowa"}},
+        {"id": 3, "homeScore": 0, "awayScore": 3, "homeTeam": {"id": 2, "name": "Minnesota"}, "awayTeam": {"id": 3, "name": "Iowa"}},
+      ]));;
     });
 
     test("Attempt to join many to many relationship on the same property throws an exception before executing", () async {
-      var q = new Query<Team>();
-
       try {
+        var q = new Query<Team>();
+
         q.joinMany((t) => t.homeGames)
           ..joinOn((g) => g.homeTeam);
         expect(true, false);
       } on QueryException catch (e) {
-        // This should be something useful
-        expect(true, false);
+        expect(e.toString(), contains("Invalid cyclical"));
       }
     });
   });
