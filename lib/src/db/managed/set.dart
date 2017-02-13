@@ -40,7 +40,7 @@ class ManagedSet<InstanceType extends ManagedObject> extends Object
   }
 
   List<InstanceType> _innerValues;
-  InstanceType _matchOn;
+  InstanceType _whereBuider;
 
   /// The [ManagedEntity] that represents the [InstanceType].
   ManagedEntity entity;
@@ -49,7 +49,7 @@ class ManagedSet<InstanceType extends ManagedObject> extends Object
   ///
   /// This flag is used internally to determine whether or not a [Query] should
   /// be built using the values in [haveAtLeastOneWhere].
-  bool get hasWhereBuilder => _matchOn != null;
+  bool get hasWhereBuilder => _whereBuider != null;
 
   /// When building a [Query], apply filters to a property of this type.
   ///
@@ -57,11 +57,11 @@ class ManagedSet<InstanceType extends ManagedObject> extends Object
   /// instances from this [ManagedSet], you may add matchers (such as [whereEqualTo]) to this property's properties to further
   /// constrain the values returned from the [Query].
   InstanceType get haveAtLeastOneWhere {
-    if (_matchOn == null) {
-      _matchOn = entity.newInstance() as InstanceType;
-      _matchOn.backing = new ManagedMatcherBacking();
+    if (_whereBuider == null) {
+      _whereBuider = entity.newInstance() as InstanceType;
+      _whereBuider.backing = new ManagedMatcherBacking();
     }
-    return _matchOn;
+    return _whereBuider;
   }
 
   /// The number of elements in this set.
