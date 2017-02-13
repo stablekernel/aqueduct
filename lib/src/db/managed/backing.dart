@@ -45,8 +45,8 @@ class ManagedMatcherBacking extends ManagedBacking {
       if (relDesc?.relationshipType == ManagedRelationshipType.hasMany) {
         valueMap[propertyName] = new ManagedSet()
           ..entity = relDesc.destinationEntity;
-      } else if (relDesc?.relationshipType == ManagedRelationshipType.hasOne
-      || relDesc?.relationshipType == ManagedRelationshipType.belongsTo) {
+      } else if (relDesc?.relationshipType == ManagedRelationshipType.hasOne ||
+          relDesc?.relationshipType == ManagedRelationshipType.belongsTo) {
         valueMap[propertyName] = relDesc.destinationEntity.newInstance()
           ..backing = new ManagedMatcherBacking();
       }

@@ -63,7 +63,8 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
     return _createSubquery(attr);
   }
 
-  ManagedRelationshipDescription _relationshipPropertyForProperty(dynamic property) {
+  ManagedRelationshipDescription _relationshipPropertyForProperty(
+      dynamic property) {
     var matchingKey = entity.relationships.keys.firstWhere((key) {
       return identical(where.backingMap[key], property);
     });
@@ -78,10 +79,12 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
       if (parent.subQueries.containsKey(fromRelationship.inverse)) {
         var validJoins = fromRelationship.entity.relationships.values
             .where((r) => !identical(r, fromRelationship))
-            .map((r) => "'${r.name}'").join(", ");
+            .map((r) => "'${r.name}'")
+            .join(", ");
 
         throw new QueryException(QueryExceptionEvent.internalFailure,
-            message: "Invalid cyclic 'Query'. This query joins '${fromRelationship.entity.tableName}' "
+            message:
+                "Invalid cyclic 'Query'. This query joins '${fromRelationship.entity.tableName}' "
                 "with '${fromRelationship.inverse.entity.tableName}' on property '${fromRelationship.name}'. "
                 "However, '${fromRelationship.inverse.entity.tableName}' "
                 "has also joined '${fromRelationship.entity.tableName}' on this property's inverse "
