@@ -131,6 +131,7 @@ class ManagedEntity {
   String get primaryKey {
     return _primaryKey;
   }
+
   String _primaryKey;
 
   ManagedAttributeDescription get primaryKeyAttribute {
