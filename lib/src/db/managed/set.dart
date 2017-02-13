@@ -45,15 +45,18 @@ class ManagedSet<InstanceType extends ManagedObject> extends Object
   /// The [ManagedEntity] that represents the [InstanceType].
   ManagedEntity entity;
 
-  // todo: haveAtLeastOneWhere?
-  bool get hasMatchOn => _matchOn != null;
+  /// Whether or not [haveAtLeastOneWhere] has been accessed.
+  ///
+  /// This flag is used internally to determine whether or not a [Query] should
+  /// be built using the values in [haveAtLeastOneWhere].
+  bool get hasWhereBuilder => _matchOn != null;
 
-  /// Used by [Query] to apply constraints to fetching instances from this [ManagedSet].
+  /// When building a [Query], apply filters to a property of this type.
   ///
   /// See [Query.where] for more details. When constructing a [Query.where] that includes
   /// instances from this [ManagedSet], you may add matchers (such as [whereEqualTo]) to this property's properties to further
   /// constrain the values returned from the [Query].
-  InstanceType get matchOn {
+  InstanceType get haveAtLeastOneWhere {
     if (_matchOn == null) {
       _matchOn = entity.newInstance() as InstanceType;
       _matchOn.backing = new ManagedMatcherBacking();
@@ -67,7 +70,7 @@ class ManagedSet<InstanceType extends ManagedObject> extends Object
     _innerValues.length = newLength;
   }
 
-  Map<String, dynamic> get backingMap => matchOn.backingMap;
+  Map<String, dynamic> get backingMap => haveAtLeastOneWhere.backingMap;
 
   /// Adds an [InstanceType] to this set.
   void add(InstanceType item) {

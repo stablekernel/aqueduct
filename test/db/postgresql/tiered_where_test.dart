@@ -220,7 +220,7 @@ void main() {
     test("Explicitly joining related objects, nested implicit join", () async {
       var q = new Query<RootObject>()..where.id = whereEqualTo(1);
       q.joinMany((r) => r.children)
-        ..where.grandChildren.matchOn.id = whereEqualTo(5);
+        ..where.grandChildren.haveAtLeastOneWhere.id = whereEqualTo(5);
 
       var results = await q.fetch();
       expect(results.length, 1);
@@ -257,8 +257,13 @@ void main() {
 
     test("Nested implicit joins are combined", () async {
       var q = new Query<RootObject>()
-        ..where.children.matchOn.id = whereEqualTo(2)
-        ..where.children.matchOn.grandChildren.matchOn.id = whereLessThan(8);
+        ..where.children.haveAtLeastOneWhere.id = whereEqualTo(2)
+        ..where
+            .children
+            .haveAtLeastOneWhere
+            .grandChildren
+            .haveAtLeastOneWhere
+            .id = whereLessThan(8);
       var results = await q.fetch();
 
       expect(results.length, 1);
@@ -266,8 +271,13 @@ void main() {
       expect(results.first.backingMap.containsKey("children"), false);
 
       q = new Query<RootObject>()
-        ..where.children.matchOn.id = whereEqualTo(2)
-        ..where.children.matchOn.grandChildren.matchOn.id = whereGreaterThan(8);
+        ..where.children.haveAtLeastOneWhere.id = whereEqualTo(2)
+        ..where
+            .children
+            .haveAtLeastOneWhere
+            .grandChildren
+            .haveAtLeastOneWhere
+            .id = whereGreaterThan(8);
       results = await q.fetch();
       expect(results.length, 0);
     });
@@ -308,7 +318,7 @@ void main() {
       var q = new Query<RootObject>();
       q.joinMany((r) => r.children)
         ..where.id = whereEqualTo(2)
-        ..where.grandChildren.matchOn.id = whereEqualTo(6);
+        ..where.grandChildren.haveAtLeastOneWhere.id = whereEqualTo(6);
       var results = await q.fetch();
 
       expect(results.length, rootObjects.length);
@@ -326,7 +336,7 @@ void main() {
       var q = new Query<RootObject>();
       q.joinMany((r) => r.children)
         ..where.id = whereEqualTo(4)
-        ..where.grandChildren.matchOn.id = whereEqualTo(6);
+        ..where.grandChildren.haveAtLeastOneWhere.id = whereEqualTo(6);
       var results = await q.fetch();
 
       expect(results.length, rootObjects.length);
@@ -339,7 +349,7 @@ void main() {
       var q = new Query<RootObject>();
       q.joinMany((r) => r.children)
         ..where.id = whereLessThanEqualTo(5)
-        ..where.grandChildren.matchOn.id = whereGreaterThan(5);
+        ..where.grandChildren.haveAtLeastOneWhere.id = whereGreaterThan(5);
       var results = await q.fetch();
 
       expect(results.length, rootObjects.length);
@@ -423,7 +433,7 @@ void main() {
         "An explicit and implicit join on same table combine predicates and have appropriate impact on root objects",
         () async {
       var q = new Query<RootObject>()
-        ..where.children.matchOn.id = whereGreaterThan(5);
+        ..where.children.haveAtLeastOneWhere.id = whereGreaterThan(5);
 
       q.joinMany((r) => r.children)..where.id = whereLessThan(10);
 
@@ -489,7 +499,7 @@ void main() {
     test("Where clause on root object for two properties with same entity type",
         () async {
       var q = new Query<RootObject>()
-        ..where.children.matchOn.id = whereGreaterThan(3)
+        ..where.children.haveAtLeastOneWhere.id = whereGreaterThan(3)
         ..where.child.id = whereEqualTo(1);
       var results = await q.fetch();
 
@@ -499,7 +509,7 @@ void main() {
       expect(results.first.children, isNull);
 
       q = new Query<RootObject>()
-        ..where.children.matchOn.id = whereGreaterThan(10)
+        ..where.children.haveAtLeastOneWhere.id = whereGreaterThan(10)
         ..where.child.id = whereEqualTo(1);
       results = await q.fetch();
 

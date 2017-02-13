@@ -139,13 +139,13 @@ void main() {
         ..sortDescriptors = [
           new QuerySortDescriptor("id", QuerySortOrder.ascending)
         ]
-        ..where.join.matchOn.other.value1 = whereLessThan(4);
+        ..where.join.haveAtLeastOneWhere.other.value1 = whereLessThan(4);
 
       var results = await q.fetch();
       expect(results.map((r) => r.asMap()).toList(),
           equals([fullObjectMap(1), fullObjectMap(2)]));
 
-      q.where.join.matchOn.other.value1 = whereEqualTo(3);
+      q.where.join.haveAtLeastOneWhere.other.value1 = whereEqualTo(3);
       results = await q.fetch();
       expect(
           results.map((r) => r.asMap()).toList(), equals([fullObjectMap(2)]));
@@ -364,7 +364,8 @@ void main() {
         ..sortDescriptors = [
           new QuerySortDescriptor("id", QuerySortOrder.ascending)
         ]
-        ..where.awayGames.matchOn.homeTeam.name = whereContains("Minn");
+        ..where.awayGames.haveAtLeastOneWhere.homeTeam.name =
+            whereContains("Minn");
       var results = await q.fetch();
       expect(
           results.map((t) => t.asMap()).toList(),
@@ -377,7 +378,8 @@ void main() {
         ..sortDescriptors = [
           new QuerySortDescriptor("id", QuerySortOrder.ascending)
         ]
-        ..where.awayGames.matchOn.homeTeam.name = whereContains("Iowa");
+        ..where.awayGames.haveAtLeastOneWhere.homeTeam.name =
+            whereContains("Iowa");
       results = await q.fetch();
       expect(results.map((t) => t.asMap()).toList(), equals([]));
     });
