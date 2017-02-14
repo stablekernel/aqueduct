@@ -35,7 +35,7 @@ void main() {
 
     req = new Query<TestModel>()
       ..predicate = new QueryPredicate("id = @id", {"id": item.id})
-      ..propertiesToFetch = ["id", "name"];
+      ..returningProperties((t) => [t.id, t.name]);
 
     item = await req.fetchOne();
 
@@ -153,8 +153,8 @@ void main() {
     var req = new Query<TestModel>()..values = m;
     await req.insert();
 
-    req = new Query<TestModel>();
-    req.propertiesToFetch = ["id", "badkey"];
+    req = new Query<TestModel>()
+      ..returningProperties((t) => [t.id, t["badkey"]]);
 
     var successful = false;
     try {
@@ -278,13 +278,15 @@ void main() {
           ..values.owner = u1)
         .insert();
 
-    var q = new Query<GenPost>()..propertiesToFetch = ["id", "owner"];
+    var q = new Query<GenPost>()
+      ..returningProperties((p) => [p.id, p.owner]);
 
     var result = await q.fetchOne();
     expect(result.owner.id, 1);
     expect(result.owner.backingMap.length, 1);
 
-    q = new Query<GenPost>()..propertiesToFetch = ["id", "owner_id"];
+    q = new Query<GenPost>()
+      ..returningProperties((p) => [p.id, p["owner_id"]]);
     try {
       await q.fetchOne();
       expect(true, false);

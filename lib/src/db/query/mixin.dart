@@ -21,18 +21,14 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
   Map<ManagedRelationshipDescription, Query> subQueries;
   QueryPredicate predicate;
 
-  List<String> _resultProperties;
   InstanceType _whereBuilder;
   InstanceType _valueObject;
 
   bool get hasWhereBuilder => _whereBuilder?.backingMap?.isNotEmpty ?? false;
 
+  List<String> _propertiesToFetch;
   List<String> get propertiesToFetch =>
-      _resultProperties ?? entity.defaultProperties;
-
-  void set propertiesToFetch(List<String> props) {
-    _resultProperties = props;
-  }
+      _propertiesToFetch ?? entity.defaultProperties;
 
   InstanceType get values {
     if (_valueObject == null) {
@@ -89,8 +85,7 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
       {T boundingValue}) {
     var tracker = new ManagedAccessTrackingBacking();
     var obj = entity.newInstance()..backing = tracker;
-    propertyIdentifier(obj as InstanceType);
-    var propertyName = tracker.accessedProperty;
+    var propertyName = propertyIdentifier(obj as InstanceType) as String;
 
     var attribute = entity.attributes[propertyName];
     if (attribute == null) {
@@ -114,8 +109,7 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
   void sortBy<T>(T propertyIdentifier(InstanceType x), QuerySortOrder order) {
     var tracker = new ManagedAccessTrackingBacking();
     var obj = entity.newInstance()..backing = tracker;
-    propertyIdentifier(obj as InstanceType);
-    var propertyName = tracker.accessedProperty;
+    var propertyName = propertyIdentifier(obj as InstanceType) as String;
 
     var attribute = entity.attributes[propertyName];
     if (attribute == null) {
@@ -135,4 +129,13 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
     sortDescriptors ??= <QuerySortDescriptor>[];
     sortDescriptors.add(new QuerySortDescriptor(propertyName, order));
   }
+
+  void returningProperties(List<dynamic> propertyIdentifiers(InstanceType x)) {
+    var tracker = new ManagedAccessTrackingBacking();
+    var obj = entity.newInstance()..backing = tracker;
+    var propertyNames = propertyIdentifiers(obj as InstanceType) as List<String>;
+
+    _propertiesToFetch = propertyNames;
+  }
+
 }

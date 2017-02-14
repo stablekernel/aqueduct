@@ -432,7 +432,7 @@ void main() {
 
     test("Trying to fetch hasMany relationship through resultProperties fails",
         () async {
-      var q = new Query<Parent>()..propertiesToFetch = ["id", "children"];
+      var q = new Query<Parent>()..returningProperties((p) => [p.id, p.children]);
       try {
         await q.fetchOne();
       } on QueryException catch (e) {
@@ -445,7 +445,7 @@ void main() {
 
     test("Trying to fetch hasMany relationship through resultProperties fails",
         () async {
-      var q = new Query<Parent>()..propertiesToFetch = ["id", "children"];
+      var q = new Query<Parent>()..returningProperties((p) => [p.id, p.children]);
       try {
         await q.fetchOne();
         expect(true, false);
@@ -457,7 +457,7 @@ void main() {
       }
 
       q = new Query<Parent>();
-      q.joinMany((p) => p.children)..propertiesToFetch = ["id", "vaccinations"];
+      q.joinMany((p) => p.children)..returningProperties((p) => [p.id, p.vaccinations]);
 
       try {
         await q.fetchOne();

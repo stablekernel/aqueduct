@@ -289,10 +289,10 @@ void main() {
 
     test("Can fetch graph when omitting foreign or primary keys from query",
         () async {
-      var q = new Query<Parent>()..propertiesToFetch = ["name"];
+      var q = new Query<Parent>()..returningProperties((p) => [p.name]);
 
-      var childQuery = q.joinOn((p) => p.child)..propertiesToFetch = ["name"];
-      childQuery.joinMany((c) => c.vaccinations)..propertiesToFetch = ["kind"];
+      var childQuery = q.joinOn((p) => p.child)..returningProperties((c) => [c.name]);
+      childQuery.joinMany((c) => c.vaccinations)..returningProperties((v) => [v.kind]);
 
       var parents = await q.fetch();
       for (var p in parents) {
@@ -314,11 +314,11 @@ void main() {
     });
 
     test("Can specify result keys for all joined objects", () async {
-      var q = new Query<Parent>()..propertiesToFetch = ["id"];
+      var q = new Query<Parent>()..returningProperties((p) => [p.id]);
 
-      var childQuery = q.joinOn((p) => p.child)..propertiesToFetch = ["id"];
+      var childQuery = q.joinOn((p) => p.child)..returningProperties((c) => [c.id]);
 
-      childQuery.joinMany((c) => c.vaccinations)..propertiesToFetch = ["id"];
+      childQuery.joinMany((c) => c.vaccinations)..returningProperties((v) => [v.id]);
 
       var parents = await q.fetch();
       for (var p in parents) {
@@ -374,7 +374,7 @@ void main() {
 
     test("Trying to fetch hasOne relationship through resultProperties fails",
         () async {
-      var q = new Query<Parent>()..propertiesToFetch = ["id", "child"];
+      var q = new Query<Parent>()..returningProperties((p) => [p.id, p.child]);
       try {
         await q.fetchOne();
         expect(true, false);
@@ -386,7 +386,7 @@ void main() {
       }
 
       q = new Query<Parent>();
-      q.joinOn((p) => p.child)..propertiesToFetch = ["id", "toy"];
+      q.joinOn((p) => p.child)..returningProperties((c) => [c.id, c.toy]);
 
       try {
         await q.fetchOne();
