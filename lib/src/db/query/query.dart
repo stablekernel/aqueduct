@@ -7,7 +7,6 @@ import 'matcher_expression.dart';
 
 export 'matcher_expression.dart';
 export 'predicate.dart';
-export 'sort_descriptor.dart';
 export 'error.dart';
 
 // This is an unfortunate need because of lack of reified generics
@@ -41,6 +40,7 @@ abstract class Query<InstanceType extends ManagedObject> {
   Query<T> joinOn<T extends ManagedObject>(T propertyIdentifier(InstanceType x));
   Query<T> joinMany<T extends ManagedObject>(ManagedSet<T> propertyIdentifier(InstanceType x));
   void pageBy<T>(T propertyIdentifier(InstanceType x), QuerySortOrder order, {T boundingValue});
+  void sortBy<T>(T propertyIdentifier(InstanceType x), QuerySortOrder order);
 
   /// The [ManagedEntity] of the [InstanceType].
   ManagedEntity get entity;
@@ -59,7 +59,6 @@ abstract class Query<InstanceType extends ManagedObject> {
   ///       var q = new Query<Employee>()
   ///           ..where.employeeID = greaterThan(1);
   InstanceType get where;
-
 
   /// Confirms that a query has no predicate before executing it.
   ///
@@ -84,12 +83,6 @@ abstract class Query<InstanceType extends ManagedObject> {
   /// The set of rows returned will exclude the first [offset] number of rows selected in the query. Do not
   /// set this property when using [pageDescriptor].
   int offset;
-
-  /// The order in which rows should be returned.
-  ///
-  /// By default, results are not sorted. Sort descriptors are evaluated in order, thus the first sort descriptor
-  /// is applies first, the second to break ties, and so on.
-  List<QuerySortDescriptor> sortDescriptors;
 
   /// A predicate for filtering the result or operation set.
   ///

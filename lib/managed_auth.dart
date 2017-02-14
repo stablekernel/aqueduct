@@ -267,9 +267,7 @@ class ManagedAuthStorage<T extends ManagedAuthResourceOwner>
   Future pruneTokens(dynamic resourceOwnerIdentifier) async {
     var oldTokenQuery = new Query<ManagedToken>(context)
       ..where.resourceOwner = whereRelatedByValue(resourceOwnerIdentifier)
-      ..sortDescriptors = [
-        new QuerySortDescriptor("expirationDate", QuerySortOrder.descending)
-      ]
+      ..sortBy((t) => t.expirationDate, QuerySortOrder.descending)
       ..offset = tokenLimit
       ..fetchLimit = 1
       ..propertiesToFetch = ["expirationDate"];

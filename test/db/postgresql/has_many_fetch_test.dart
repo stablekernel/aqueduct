@@ -357,9 +357,7 @@ void main() {
         "Sort descriptor on top-level object doesn't impact lower level objects",
         () async {
       var q = new Query<Parent>()
-        ..sortDescriptors = [
-          new QuerySortDescriptor("name", QuerySortOrder.descending)
-        ];
+        ..sortBy((p) => p.name, QuerySortOrder.descending);
 
       q.joinMany((p) => p.children)
         ..joinOn((c) => c.toy)

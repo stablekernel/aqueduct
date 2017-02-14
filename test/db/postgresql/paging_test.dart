@@ -42,9 +42,7 @@ void main() {
       var q = new Query<PageableTestModel>()
         ..fetchLimit = 2
         ..offset = 2
-        ..sortDescriptors = [
-          new QuerySortDescriptor("id", QuerySortOrder.descending)
-        ];
+        ..sortBy((p) => p.id, QuerySortOrder.descending);
 
       var results = await q.fetch();
       expect(results.length, 2);
