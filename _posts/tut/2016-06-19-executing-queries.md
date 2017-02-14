@@ -53,7 +53,7 @@ When writing code that works with `Question`s, we use the `Question` type. The `
 Importing ManagedObjects
 ---
 
-As your code progresses, those `ManagedObject<T>`s will have relationships with other `ManagedObject<T>`s and be used across many different `RequestController`s. Additionally, the tools that generate database schemas and 'compile' the declarations of `ManagedObject<T>` so that your application can use them also need to see the definitions. Therefore, it is best to declare each `ManagedObject<T>` in its own file, but declare a library file that exports all `ManagedObject<T>`s, which is also exported from your top-level application library file. Every `ManagedObject<T>` should be visible by importing the top-level application library file.
+As your code progresses, those `ManagedObject<T>`s will have relationships with other `ManagedObject<T>`s and be used across many different `RequestController`s. Additionally, the tools that generate database schemas and 'compile' the declarations of `ManagedObject<T>` also need to see the definitions. Therefore, it is best to declare each `ManagedObject<T>` in its own file, but declare a library file that exports all `ManagedObject<T>`s, which is also exported from your top-level application library file. Every `ManagedObject<T>` should be visible by importing the top-level application library file.
 
 Therefore, create a new file in `lib` named `model.dart`. In this file, export `model/question.dart`:
 
@@ -159,10 +159,10 @@ You'll notice in your `RequestSink`, the configuration parameters for the `Postg
 
 After the application is started, we know that it creates a `ManagedContext` in the constructor of `QuizRequestSink`. The default context can be accessed through `ManagedContext.defaultContext`. We also know that this context has a `ManagedDataModel` containing `Question`. The class `SchemaBuilder` will create a series of SQL commands from the `ManagedDataModel`, translated by the `PostgreSQLPersistentStore`. (Note that the `isTemporary` parameter makes all of the tables temporary and therefore they disappear when the database connection in the context's persistent store closes. This prevents changes to the database from leaking into subsequent tests.)
 
-Because the `PostgreSQLPersistentStore`'s connection to the database is also a stream, it, too, must be closed to let the test's main function terminate. In `tearDownAll`, add this code before the app is terminated:
+Because the `PostgreSQLPersistentStore`'s connection to the database is also a stream, it, too, must be closed to let the test's main function terminate. In `tearDown`, add this code before the app is terminated:
 
 ```dart
-  tearDownAll(() async {
+  tearDown(() async {
     await ManagedContext.defaultContext.persistentStore.close();
     await app.stop();
   });
@@ -171,7 +171,7 @@ Because the `PostgreSQLPersistentStore`'s connection to the database is also a s
 We now need questions in the database (you can run your tests and see the they fail because there are no questions). Let's first seed the database with some questions using an insert query at the end of `setUp`.
 
 ```dart
-  setUpAll(() async {
+  setUp(() async {
     await app.start(runOnMainIsolate: true);
     var ctx = ManagedContext.defaultContext;
     var builder = new SchemaBuilder.toSchema(ctx.persistentStore, new Schema.fromDataModel(ctx.dataModel), isTemporary: true);

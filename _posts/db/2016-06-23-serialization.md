@@ -1,14 +1,12 @@
 ---
 layout: page
-title: "Serialization and Deserialization"
+title: "Storage, Serialization and Deserialization"
 category: db
 date: 2016-06-20 10:35:56
 order: 3
 ---
 
-While managed objects are responsible for representing database rows, they are also responsible for serializing and deserializing data. Serialization converts a managed object to a `Map<String, dynamic>` where each property on the managed object is a key-value pair in the map. Each key is the exact name of the property. This is done by the `asMap` method.
-
-Deserialization ingests key-value pairs from a `Map<String, dynamic>` and assigns it to the properties of a managed object, where each value in the map is assigned to the property whose key matches exactly the name of the property. This is done by the `readMap` method. The following code demonstrates this behavior:
+In the previous chapter, you have seen that `ManagedObject<T>`s are responsible for representing database rows. This allows Aqueduct applications to take data from an HTTP request and store it in a database or return data from a database in an HTTP response. Instances of `ManagedObject<T>` are an intermediary in that process. `ManagedObject<T>`s and `ManagedSet<T>`s can be transformed into a `Map`s and `List<Map>` which can then be serialized into a format like JSON. Likewise, `Map`s and `List<Map>`s can be deserialized into `ManagedObject<T>`s and `ManagedSet<T>`s. The following code demonstrates this behavior:
 
 ```dart
 var userMap = {
@@ -23,9 +21,13 @@ var outUserMap = user.asMap();
 // userMap == outUserMap
 ```
 
-Note that serialization and deserialization are encoding agnostic. Data typically enters an application as JSON in an HTTP request body. From there, it is decoded into Dart objects like `Map`, `String` and `List`. It is only once the data is in this format that it can be deserialized into a managed object. Thus, managed objects don't understand what an intermediary format like JSON is. Likewise, serializing a managed object produces data that can be encoded into JSON, but it does not create the JSON itself. It is up to the mechanism that is generating the HTTP response to determine the encoding format; thus, it is possible to encode managed objects into another format like protocol buffers if the application calls for it.
+Both `readMap` and `asMap` are methods that all `ManagedObject<T>`s implement. It is important to note that `ManagedObject<T>` has no concept of data formats like JSON and XML - it only deals in `Map`s. Classes like `RequestController` and `Response` are responsible for encoding and decoding of data, not `ManagedObject<T>`. This allows the representation of `ManagedObject<T>`s to be transmitted in whatever format your application chooses to transmit them in - they aren't strongly tied to a format like JSON.
 
-When serializing and deserializing a managed object, it is important to understand the nuances of the `null` value. As indicated earlier, a `ManagedObject<T>` object is a glorified `Map`. When a row is fetched from a database and decoded into a `ManagedObject<T>` object, every column/value pair is set in a `ManagedObject<T>`'s `backingMap`. If a property is not fetched from the database, its key is not present in the backing map. (Likewise, if you create an instance of `ManagedObject<T>`, its backing map contains no key-value pairs and only contains those that you explicitly set.) Therefore, when accessing the property of a `ManagedObject<T>` object that was not previously set, you will get the value `null`.
+It is also important to understand the nuances of `null` when converting between `ManagedObject<T>`s and `Map`s. As indicated earlier, a `ManagedObject<T>` object is a wrapper around a `Map` named `backingMap`. When a row is fetched from a database and transformed into a `ManagedObject<T>`, each column value is assigned to a key-value pair in the `backingMap`. For example, if a database query fetches columns `a`, `b` and `c`, the object's `backingMap` will have keys `a`, `b` and `c`. The `ManagedObject<T>` will have properties `a`, `b` and `c` that correspond to these key-value pairs in `backingMap`.
+
+But what happens if the `ManagedObject<T>` has a property `d` that wasn't fetched in the database query?
+
+every column/value pair is set in a `ManagedObject<T>`'s `backingMap`. If a property is not fetched from the database, its key is not present in the backing map. (Likewise, if you create an instance of `ManagedObject<T>`, its backing map contains no key-value pairs and only contains those that you explicitly set.) Therefore, when accessing the property of a `ManagedObject<T>` object that was not previously set, you will get the value `null`.
 
 However, it is also possible that a property's value is actually the `null` value and it is important to understand how this distinction impacts serialization. During serialization, if a key is not present in the backing of a `ManagedObject<T>`, it is omitted from the serialized object. If the value of a property has been explicitly set to `null`, the key will be present and the value will be `null`. Therefore, consider the following two scenarios:
 
