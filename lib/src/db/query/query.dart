@@ -1,18 +1,16 @@
 import 'dart:async';
 
 import '../managed/managed.dart';
-import 'predicate.dart';
-import 'sort_descriptor.dart';
+import '../postgresql/postgresql_persistent_store.dart';
+import '../postgresql/postgresql_query.dart';
 import 'matcher_expression.dart';
+import 'predicate.dart';
 
+export 'error.dart';
 export 'matcher_expression.dart';
 export 'predicate.dart';
-export 'error.dart';
-
 // This is an unfortunate need because of lack of reified generics
 // See factory constructor.
-import '../postgresql/postgresql_query.dart';
-import '../postgresql/postgresql_persistent_store.dart';
 
 /// Contains information for building and executing a database operation.
 ///
@@ -37,9 +35,12 @@ abstract class Query<InstanceType extends ManagedObject> {
     return null;
   }
 
-  Query<T> joinOn<T extends ManagedObject>(T propertyIdentifier(InstanceType x));
-  Query<T> joinMany<T extends ManagedObject>(ManagedSet<T> propertyIdentifier(InstanceType x));
-  void pageBy<T>(T propertyIdentifier(InstanceType x), QuerySortOrder order, {T boundingValue});
+  Query<T> joinOn<T extends ManagedObject>(
+      T propertyIdentifier(InstanceType x));
+  Query<T> joinMany<T extends ManagedObject>(
+      ManagedSet<T> propertyIdentifier(InstanceType x));
+  void pageBy<T>(T propertyIdentifier(InstanceType x), QuerySortOrder order,
+      {T boundingValue});
   void sortBy<T>(T propertyIdentifier(InstanceType x), QuerySortOrder order);
 
   /// The [ManagedEntity] of the [InstanceType].

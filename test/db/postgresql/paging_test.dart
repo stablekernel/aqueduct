@@ -309,12 +309,12 @@ void main() {
     test("Page property doesn't exist throws error", () async {
       try {
         var _ = new Query<PageableTestModel>()
-          ..pageBy((p) => p["foobar"], QuerySortOrder.ascending, boundingValue: "0");
+          ..pageBy((p) => p["foobar"], QuerySortOrder.ascending,
+              boundingValue: "0");
 
         expect(true, false);
       } on QueryException catch (e) {
-        expect(e.toString(),
-            contains("Property 'foobar'"));
+        expect(e.toString(), contains("Property 'foobar'"));
       }
     });
 

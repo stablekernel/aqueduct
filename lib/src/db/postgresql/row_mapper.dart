@@ -26,7 +26,8 @@ class RowMapper extends PostgresMapper
 
   ManagedRelationshipDescription get foreignKeyProperty =>
       joiningProperty.relationshipType == ManagedRelationshipType.belongsTo
-        ? joiningProperty : joiningProperty.inverse;
+          ? joiningProperty
+          : joiningProperty.inverse;
 
   Map<String, dynamic> get substitutionVariables {
     var variables = joinCondition.parameters ?? {};
@@ -84,10 +85,13 @@ class RowMapper extends PostgresMapper
     if (_joinCondition == null) {
       PropertyToColumnMapper leftMapper, rightMapper;
       if (identical(foreignKeyProperty, joiningProperty)) {
-        leftMapper = new PropertyToColumnMapper(originatingTable, joiningProperty);
-        rightMapper = new PropertyToColumnMapper(this, joiningProperty.entity.primaryKeyAttribute);
+        leftMapper =
+            new PropertyToColumnMapper(originatingTable, joiningProperty);
+        rightMapper = new PropertyToColumnMapper(
+            this, joiningProperty.entity.primaryKeyAttribute);
       } else {
-        leftMapper = new PropertyToColumnMapper(originatingTable, originatingTable.entity.primaryKeyAttribute);
+        leftMapper = new PropertyToColumnMapper(
+            originatingTable, originatingTable.entity.primaryKeyAttribute);
         rightMapper = new PropertyToColumnMapper(this, joiningProperty.inverse);
       }
 
@@ -174,7 +178,8 @@ class RowMapper extends PostgresMapper
   }
 
   bool representsRelationship(ManagedRelationshipDescription relationship) {
-    return joiningProperty.destinationEntity == relationship.destinationEntity &&
+    return joiningProperty.destinationEntity ==
+            relationship.destinationEntity &&
         joiningProperty.entity == relationship.entity &&
         joiningProperty.name == relationship.name;
   }

@@ -63,8 +63,7 @@ void main() {
       expect(result[i].email, "asc${i}@a.com");
     }
 
-    req = new Query<TestModel>()
-      ..sortBy((t) => t.id, QuerySortOrder.ascending);
+    req = new Query<TestModel>()..sortBy((t) => t.id, QuerySortOrder.ascending);
     result = await req.fetch();
 
     int idIndex = 0;

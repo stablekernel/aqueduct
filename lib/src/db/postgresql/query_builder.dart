@@ -1,6 +1,7 @@
 import 'dart:mirrors';
 
 import '../db.dart';
+import '../query/sort_descriptor.dart';
 import 'entity_table.dart';
 import 'predicate_builder.dart';
 import 'property_mapper.dart';

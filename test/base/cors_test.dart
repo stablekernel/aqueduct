@@ -546,11 +546,15 @@ void main() {
         expect(lastResponse.statusCode, 200);
       }
 
-      expect(lastResponse.headers["access-control-expose-headers"].indexOf("X-Header"),
+      expect(
+          lastResponse.headers["access-control-expose-headers"]
+              .indexOf("X-Header"),
           greaterThanOrEqualTo(0));
-      expect(lastResponse.headers["access-control-expose-headers"].indexOf("X-Header"),
-          lastResponse.headers["access-control-expose-headers"].lastIndexOf("X-Header"));
-
+      expect(
+          lastResponse.headers["access-control-expose-headers"]
+              .indexOf("X-Header"),
+          lastResponse.headers["access-control-expose-headers"]
+              .lastIndexOf("X-Header"));
     });
   });
 }
@@ -574,9 +578,7 @@ expectThatNoCORSProcessingOccurred(dynamic resp) {
 class CORSSink extends RequestSink implements AuthValidator {
   CORSSink(ApplicationConfiguration opts) : super(opts);
   void setupRouter(Router router) {
-    router
-        .route("/add")
-        .generate(() => new AdditiveController());
+    router.route("/add").generate(() => new AdditiveController());
 
     router
         .route("/opts")
