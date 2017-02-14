@@ -52,10 +52,9 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
   Query<T> joinOn<T extends ManagedObject>(T m(InstanceType x)) {
     subQueries ??= {};
 
-    var property = m(where);
-    var matchingKey = entity.relationships.keys.firstWhere((key) {
-      return identical(where.backingMap[key], property);
-    });
+    var tracker = new ManagedAccessTrackingBacking();
+    var obj = entity.newInstance()..backing = tracker;
+    var matchingKey = m(obj as InstanceType) as String;
 
     var attr = entity.relationships[matchingKey];
     var subquery = new Query<T>(context);
@@ -68,10 +67,9 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
   Query<T> joinMany<T extends ManagedObject>(ManagedSet<T> m(InstanceType x)) {
     subQueries ??= {};
 
-    var property = m(where);
-    var matchingKey = entity.relationships.keys.firstWhere((key) {
-      return identical(where.backingMap[key], property);
-    });
+    var tracker = new ManagedAccessTrackingBacking();
+    var obj = entity.newInstance()..backing = tracker;
+    var matchingKey = m(obj as InstanceType) as String;
 
     var attr = entity.relationships[matchingKey];
     var subquery = new Query<T>(context);
