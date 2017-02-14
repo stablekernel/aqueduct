@@ -3,7 +3,7 @@ layout: page
 title: "Executing Queries"
 category: db
 date: 2016-06-20 10:35:56
-order: 5
+order: 4
 ---
 
 ## Query<T> Instances Send Commands to a Database
