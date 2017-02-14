@@ -176,3 +176,12 @@ abstract class Query<InstanceType extends ManagedObject> {
   ///       var deletedCount = await q.delete();
   Future<int> delete();
 }
+
+/// Order value for [Query.pageBy] and [Query.sortBy].
+enum QuerySortOrder {
+  /// Ascending order. Example: 1, 2, 3, 4, ...
+  ascending,
+
+  /// Descending order. Example: 4, 3, 2, 1, ...
+  descending
+}
