@@ -48,11 +48,11 @@ class CORSPolicy {
   /// Values are set to match [defaultPolicy].
   CORSPolicy() {
     var def = defaultPolicy;
-    allowedOrigins = def.allowedOrigins;
+    allowedOrigins = new List.from(def.allowedOrigins);
     allowCredentials = def.allowCredentials;
-    exposedResponseHeaders = def.exposedResponseHeaders;
-    allowedMethods = def.allowedMethods;
-    allowedRequestHeaders = def.allowedRequestHeaders;
+    exposedResponseHeaders = new List.from(def.exposedResponseHeaders);
+    allowedMethods = new List.from(def.allowedMethods);
+    allowedRequestHeaders = new List.from(def.allowedRequestHeaders);
     cacheInSeconds = def.cacheInSeconds;
   }
 

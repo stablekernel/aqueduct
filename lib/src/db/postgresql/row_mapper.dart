@@ -29,15 +29,6 @@ class RowMapper extends PostgresMapper
           ? joiningProperty
           : joiningProperty.inverse;
 
-  ManagedRelationshipDescription get primaryKeyProperty {
-    if (identical(foreignKeyProperty, joiningProperty)) {
-      var parentEntity = joiningProperty.inverse.entity;
-      return parentEntity.properties[parentEntity.primaryKey];
-    }
-
-    return joiningProperty;
-  }
-
   Map<String, dynamic> get substitutionVariables {
     var variables = joinCondition.parameters ?? {};
     returningOrderedMappers.where((p) => p is RowMapper).forEach((p) {
@@ -66,38 +57,11 @@ class RowMapper extends PostgresMapper
   }
 
   void _buildMatcher() {
-    _implicitRowMappers = <RowMapper>[];
+    var rowMappers = <RowMapper>[];
     _matcherExpressions =
-        propertyExpressionsFromObject(whereBuilder, _implicitRowMappers);
+        propertyExpressionsFromObject(whereBuilder, rowMappers);
 
-    // Check implicit row mappers for cycles
-    for (var implicitRowMapper in _implicitRowMappers) {
-      var parentTable = originatingTable;
-      while (parentTable != null) {
-        var inverseMapper = parentTable.returningOrderedMappers.reversed
-            .where((pm) => pm is RowMapper)
-            .firstWhere((pm) {
-          return identical(implicitRowMapper.joiningProperty.inverse,
-              (pm as RowMapper).joiningProperty);
-        }, orElse: () => null);
-
-        if (inverseMapper != null) {
-          throw new QueryException(QueryExceptionEvent.internalFailure,
-              message:
-                  "Invalid cyclic 'Query'. This query would join on the same table and foreign key twice. "
-                  "The offending query has a 'where' matcher on '${implicitRowMapper.entity.tableName}.${implicitRowMapper.joiningProperty.name}'"
-                  ", but this matcher should be on a parent 'Query' Move the matcher earlier in the 'Query'.");
-        }
-
-        if (parentTable is RowMapper) {
-          parentTable = (parentTable as RowMapper).originatingTable;
-        } else {
-          parentTable = null;
-        }
-      }
-    }
-
-    addRowMappers(_implicitRowMappers, areImplicit: true);
+    addRowMappers(rowMappers, areImplicit: true);
   }
 
   List<RowMapper> _implicitRowMappers;
@@ -151,8 +115,6 @@ class RowMapper extends PostgresMapper
 
   void addRowMappers(List<RowMapper> rowMappers, {bool areImplicit: false}) {
     rowMappers.forEach((r) {
-      r.originatingTable = this;
-
       if (!areImplicit) {
         returningOrderedMappers.where((m) {
           if (m is PropertyToColumnMapper) {
@@ -161,12 +123,45 @@ class RowMapper extends PostgresMapper
 
           return false;
         }).forEach((m) {
-          (m as PropertyToColumnMapper).foreignKeyColumnWillBePopulatedByJoin =
-              true;
+          (m as PropertyToColumnMapper)
+              .isForeignKeyColumnAndWillBePopulatedByJoin = true;
         });
+      } else {
+        _implicitRowMappers ??= <RowMapper>[];
+        validateImplicitRowMapper(r);
+        _implicitRowMappers.add(r);
       }
+
+      r.originatingTable = this;
     });
     returningOrderedMappers.addAll(rowMappers);
+  }
+
+  void validateImplicitRowMapper(RowMapper rowMapper) {
+    // Check implicit row mappers for cycles
+    var parentTable = originatingTable;
+    while (parentTable != null) {
+      var inverseMapper = parentTable.returningOrderedMappers.reversed
+          .where((pm) => pm is RowMapper)
+          .firstWhere((pm) {
+        return identical(rowMapper.joiningProperty.inverse,
+            (pm as RowMapper).joiningProperty);
+      }, orElse: () => null);
+
+      if (inverseMapper != null) {
+        throw new QueryException(QueryExceptionEvent.internalFailure,
+            message:
+                "Invalid cyclic 'Query'. This query would join on the same table and foreign key twice. "
+                "The offending query has a 'where' matcher on '${rowMapper.entity.tableName}.${rowMapper.joiningProperty.name}'"
+                ", but this matcher should be on a parent 'Query' Move the matcher earlier in the 'Query'.");
+      }
+
+      if (parentTable is RowMapper) {
+        parentTable = (parentTable as RowMapper).originatingTable;
+      } else {
+        parentTable = null;
+      }
+    }
   }
 
   String get innerSelectString {
@@ -197,7 +192,7 @@ class RowMapper extends PostgresMapper
   }
 
   String get joinString {
-    if (implicitRowMappers.length > 0) {
+    if ((implicitRowMappers?.length ?? 0) > 0) {
       return innerSelectString;
     }
 

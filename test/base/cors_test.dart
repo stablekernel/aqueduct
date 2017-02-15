@@ -535,6 +535,28 @@ void main() {
       expect(resp.headers.value("access-control-max-age"), "86400");
     });
   });
+
+  group("Generators and policies", () {
+    test("Headers don't continue to pile up when using a generator", () async {
+      http.Response lastResponse;
+
+      for (var i = 0; i < 10; i++) {
+        lastResponse = await http.get("http://localhost:8000/add",
+            headers: {"Origin": "http://www.a.com"});
+        expect(lastResponse.statusCode, 200);
+      }
+
+      expect(
+          lastResponse.headers["access-control-expose-headers"]
+              .indexOf("X-Header"),
+          greaterThanOrEqualTo(0));
+      expect(
+          lastResponse.headers["access-control-expose-headers"]
+              .indexOf("X-Header"),
+          lastResponse.headers["access-control-expose-headers"]
+              .lastIndexOf("X-Header"));
+    });
+  });
 }
 
 expectThatNoCORSProcessingOccurred(dynamic resp) {
@@ -556,6 +578,8 @@ expectThatNoCORSProcessingOccurred(dynamic resp) {
 class CORSSink extends RequestSink implements AuthValidator {
   CORSSink(ApplicationConfiguration opts) : super(opts);
   void setupRouter(Router router) {
+    router.route("/add").generate(() => new AdditiveController());
+
     router
         .route("/opts")
         .pipe(new Authorizer(this))
@@ -678,5 +702,16 @@ class OptionsController extends HTTPController {
 class SingleMethodController extends HTTPController {
   SingleMethodController() {
     policy.allowedMethods = ["GET"];
+  }
+}
+
+class AdditiveController extends HTTPController {
+  AdditiveController() {
+    policy.exposedResponseHeaders.add("X-Header");
+  }
+
+  @httpGet
+  Future<Response> getThing() async {
+    return new Response.ok(null);
   }
 }
