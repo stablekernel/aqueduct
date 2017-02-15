@@ -54,9 +54,7 @@ void main() {
     }
 
     var req = new Query<TestModel>()
-      ..sortDescriptors = [
-        new QuerySortDescriptor("email", QuerySortOrder.ascending)
-      ]
+      ..sortBy((t) => t.email, QuerySortOrder.ascending)
       ..predicate = new QueryPredicate("email like @key", {"key": "asc%"});
 
     var result = await req.fetch();
@@ -65,10 +63,7 @@ void main() {
       expect(result[i].email, "asc${i}@a.com");
     }
 
-    req = new Query<TestModel>()
-      ..sortDescriptors = [
-        new QuerySortDescriptor("id", QuerySortOrder.ascending)
-      ];
+    req = new Query<TestModel>()..sortBy((t) => t.id, QuerySortOrder.ascending);
     result = await req.fetch();
 
     int idIndex = 0;
@@ -91,9 +86,7 @@ void main() {
     }
 
     var req = new Query<TestModel>()
-      ..sortDescriptors = [
-        new QuerySortDescriptor("email", QuerySortOrder.descending)
-      ]
+      ..sortBy((t) => t.email, QuerySortOrder.descending)
       ..predicate = new QueryPredicate("email like @key", {"key": "desc%"});
     var result = await req.fetch();
 
@@ -115,10 +108,8 @@ void main() {
     }
 
     var req = new Query<TestModel>()
-      ..sortDescriptors = [
-        new QuerySortDescriptor("name", QuerySortOrder.ascending),
-        new QuerySortDescriptor("email", QuerySortOrder.descending)
-      ]
+      ..sortBy((t) => t.name, QuerySortOrder.ascending)
+      ..sortBy((t) => t.email, QuerySortOrder.descending)
       ..predicate = new QueryPredicate("email like @key", {"key": "multi%"});
 
     var result = await req.fetch();

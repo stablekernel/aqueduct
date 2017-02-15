@@ -111,9 +111,7 @@ void main() {
 
   test("Multiple joins from same table", () async {
     var q = new Query<ChildObject>()
-      ..sortDescriptors = [
-        new QuerySortDescriptor("id", QuerySortOrder.ascending)
-      ]
+      ..sortBy((c) => c.id, QuerySortOrder.ascending)
       ..joinOn((c) => c.parent)
       ..joinOn((c) => c.parents);
     var results = await q.fetch();
@@ -221,9 +219,7 @@ void main() {
 
     test("Bidirectional join", () async {
       var q = new Query<ChildObject>()
-        ..sortDescriptors = [
-          new QuerySortDescriptor("id", QuerySortOrder.ascending)
-        ]
+        ..sortBy((c) => c.id, QuerySortOrder.ascending)
         ..joinMany((c) => c.grandChildren)
         ..joinOn((c) => c.parents);
 
@@ -312,9 +308,7 @@ void main() {
   group("Join on parent of hasOne relationship", () {
     test("Standard join", () async {
       var q = new Query<ChildObject>()
-        ..sortDescriptors = [
-          new QuerySortDescriptor("id", QuerySortOrder.ascending)
-        ]
+        ..sortBy((c) => c.id, QuerySortOrder.ascending)
         ..joinOn((c) => c.parent);
       var results = await q.fetch();
 
@@ -356,9 +350,7 @@ void main() {
 
     test("Nested join", () async {
       var q = new Query<GrandChildObject>()
-        ..sortDescriptors = [
-          new QuerySortDescriptor("id", QuerySortOrder.ascending)
-        ];
+        ..sortBy((g) => g.id, QuerySortOrder.ascending);
 
       q.joinOn((c) => c.parent)..joinOn((c) => c.parent);
 
@@ -440,9 +432,8 @@ void main() {
     test("Nested implicit joins", () async {
       var q = new Query<GrandChildObject>()
         ..where.parents.parents.value1 = whereEqualTo(1)
-        ..sortDescriptors = [
-          new QuerySortDescriptor("id", QuerySortOrder.ascending)
-        ];
+        ..sortBy((g) => g.id, QuerySortOrder.ascending);
+
       var results = await q.fetch();
 
       expect(
@@ -464,9 +455,7 @@ void main() {
 
       q = new Query<GrandChildObject>()
         ..where.parents.parents = whereRelatedByValue(1)
-        ..sortDescriptors = [
-          new QuerySortDescriptor("id", QuerySortOrder.ascending)
-        ];
+        ..sortBy((g) => g.id, QuerySortOrder.ascending);
       results = await q.fetch();
 
       expect(

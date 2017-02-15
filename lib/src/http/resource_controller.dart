@@ -269,7 +269,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
     }
 
     if (sortBy != null) {
-      _query.sortDescriptors = sortBy.map((sort) {
+      sortBy.forEach((sort) {
         var split = sort.split(",").map((str) => str.trim()).toList();
         if (split.length != 2) {
           throw new HTTPResponseException(500,
@@ -283,12 +283,11 @@ class ManagedObjectController<InstanceType extends ManagedObject>
           throw new HTTPResponseException(400,
               "sortBy order must be either asc or desc, not ${split.last}");
         }
-        return new QuerySortDescriptor(
-            split.first,
-            split.last == "asc"
-                ? QuerySortOrder.ascending
-                : QuerySortOrder.descending);
-      }).toList();
+        var sortOrder = split.last == "asc"
+            ? QuerySortOrder.ascending
+            : QuerySortOrder.descending;
+        _query.sortBy((t) => t[split.first], sortOrder);
+      });
     }
 
     _query = await willFindObjectsWithQuery(_query);

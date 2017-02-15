@@ -42,9 +42,7 @@ void main() {
       var q = new Query<PageableTestModel>()
         ..fetchLimit = 2
         ..offset = 2
-        ..sortDescriptors = [
-          new QuerySortDescriptor("id", QuerySortOrder.descending)
-        ];
+        ..sortBy((p) => p.id, QuerySortOrder.descending);
 
       var results = await q.fetch();
       expect(results.length, 2);
@@ -311,12 +309,12 @@ void main() {
     test("Page property doesn't exist throws error", () async {
       try {
         var _ = new Query<PageableTestModel>()
-          ..pageBy((p) => p["foobar"], QuerySortOrder.ascending, boundingValue: "0");
+          ..pageBy((p) => p["foobar"], QuerySortOrder.ascending,
+              boundingValue: "0");
 
         expect(true, false);
       } on QueryException catch (e) {
-        expect(e.toString(),
-            contains("Property 'foobar'"));
+        expect(e.toString(), contains("Property 'foobar'"));
       }
     });
 
