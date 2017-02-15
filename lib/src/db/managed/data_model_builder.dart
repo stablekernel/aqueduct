@@ -341,7 +341,8 @@ class DataModelBuilder {
       var specificInverse = candidates.firstWhere(
           (p) =>
               relationshipMetadataFromProperty(p).inversePropertyName ==
-              property.simpleName,
+                  property.simpleName &&
+              owningEntity.instanceType.isSubtypeOf(p.type),
           orElse: () => null);
       if (specificInverse != null) {
         return specificInverse;

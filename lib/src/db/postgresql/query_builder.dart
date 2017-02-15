@@ -41,14 +41,17 @@ class PostgresQueryBuilder extends Object
         rm.originatingTable = this;
 
         // If we're joining on belongsTo relationship, ensure
-        // that foreign key column is not also being fetched. We get it
-        // anyway, and it makes the instantiating logic better.
-        returningOrderedMappers.removeWhere((m) {
+        // that foreign key column gets ignored during instantiation.
+        // It'll get populated by the joined table.
+        returningOrderedMappers.where((m) {
           if (m is PropertyToColumnMapper) {
             return identical(m.property, rm.joiningProperty);
           }
 
           return false;
+        }).forEach((m) {
+          (m as PropertyToColumnMapper)
+              .isForeignKeyColumnAndWillBePopulatedByJoin = true;
         });
       });
     }
@@ -73,6 +76,7 @@ class PostgresQueryBuilder extends Object
   ManagedEntity entity;
   String tableAlias;
 
+  EntityTableMapper get rootTableMapper => this;
   String get primaryTableDefinition => tableDefinition;
   bool get containsJoins =>
       returningOrderedMappers.reversed.any((p) => p is RowMapper);
