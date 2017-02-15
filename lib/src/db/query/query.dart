@@ -1,13 +1,11 @@
 import 'dart:async';
 
 import '../managed/managed.dart';
-import 'page.dart';
 import 'predicate.dart';
 import 'sort_descriptor.dart';
 import 'matcher_expression.dart';
 
 export 'matcher_expression.dart';
-export 'page.dart';
 export 'predicate.dart';
 export 'sort_descriptor.dart';
 export 'error.dart';
@@ -40,8 +38,9 @@ abstract class Query<InstanceType extends ManagedObject> {
     return null;
   }
 
-  Query<T> joinOn<T extends ManagedObject>(T m(InstanceType x));
-  Query<T> joinMany<T extends ManagedObject>(ManagedSet<T> m(InstanceType x));
+  Query<T> joinOn<T extends ManagedObject>(T propertyIdentifier(InstanceType x));
+  Query<T> joinMany<T extends ManagedObject>(ManagedSet<T> propertyIdentifier(InstanceType x));
+  void pageBy<T>(T propertyIdentifier(InstanceType x), QuerySortOrder order, {T boundingValue});
 
   /// The [ManagedEntity] of the [InstanceType].
   ManagedEntity get entity;
@@ -60,6 +59,7 @@ abstract class Query<InstanceType extends ManagedObject> {
   ///       var q = new Query<Employee>()
   ///           ..where.employeeID = greaterThan(1);
   InstanceType get where;
+
 
   /// Confirms that a query has no predicate before executing it.
   ///
@@ -84,11 +84,6 @@ abstract class Query<InstanceType extends ManagedObject> {
   /// The set of rows returned will exclude the first [offset] number of rows selected in the query. Do not
   /// set this property when using [pageDescriptor].
   int offset;
-
-  /// A specifier for a page of results.
-  ///
-  /// Defaults to null. Use a [QueryPage] along with [fetchLimit] when fetching a subset of rows from a large data set.
-  QueryPage pageDescriptor;
 
   /// The order in which rows should be returned.
   ///

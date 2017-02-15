@@ -264,7 +264,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
       }
 
       pageValue = _parseValueForProperty(pageValue, pageByProperty);
-      _query.pageDescriptor = new QueryPage(direction, pageBy,
+      _query.pageBy((t) => t[pageBy], direction,
           boundingValue: pageValue == "null" ? null : pageValue);
     }
 

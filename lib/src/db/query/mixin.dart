@@ -1,6 +1,6 @@
-import '../managed/managed.dart';
 import '../managed/backing.dart';
-
+import '../managed/managed.dart';
+import 'page.dart';
 import 'query.dart';
 
 abstract class QueryMixin<InstanceType extends ManagedObject>
@@ -104,5 +104,27 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
     subQueries[fromRelationship] = subquery;
 
     return subquery;
+  }
+
+  void pageBy<T>(T propertyIdentifier(InstanceType x), QuerySortOrder order, {T boundingValue}) {
+    var tracker = new ManagedAccessTrackingBacking();
+    var obj = entity.newInstance()..backing = tracker;
+    propertyIdentifier(obj as InstanceType);
+    var propertyName = tracker.accessedProperty;
+
+    var attribute = entity.attributes[propertyName];
+    if (attribute == null) {
+      if (entity.relationships[propertyName] != null) {
+        throw new QueryException(QueryExceptionEvent.internalFailure, message:
+          "Property '${propertyName}' cannot be paged on for ${entity.tableName}. "
+              "Reason: relationship properties cannot be paged on.");
+      } else {
+        throw new QueryException(QueryExceptionEvent.internalFailure, message:
+          "Property '${propertyName}' cannot be paged on for ${entity.tableName}. "
+            "Reason: property does not exist for entity.");
+      }
+
+    }
+    pageDescriptor = new QueryPage(order, propertyName, boundingValue: boundingValue);
   }
 }

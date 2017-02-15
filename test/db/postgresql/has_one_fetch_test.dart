@@ -402,7 +402,7 @@ void main() {
     test("Including paging on a join fails", () async {
       var q = new Query<Parent>()
         ..joinOn((p) => p.child)
-        ..pageDescriptor = new QueryPage(QuerySortOrder.ascending, "id");
+        ..pageBy((p) => p.id, QuerySortOrder.ascending);
 
       try {
         await q.fetchOne();
