@@ -21,6 +21,7 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
   Map<ManagedRelationshipDescription, Query> subQueries;
   QueryPredicate predicate;
 
+  QueryMixin _parentQuery;
   InstanceType _whereBuilder;
   InstanceType _valueObject;
 
@@ -50,31 +51,63 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
   }
 
   Query<T> joinOn<T extends ManagedObject>(T m(InstanceType x)) {
-    subQueries ??= {};
-
     var tracker = new ManagedAccessTrackingBacking();
     var obj = entity.newInstance()..backing = tracker;
     var matchingKey = m(obj as InstanceType) as String;
 
     var attr = entity.relationships[matchingKey];
-    var subquery = new Query<T>(context);
-    (subquery as QueryMixin)._entity = attr.destinationEntity;
-    subQueries[attr] = subquery;
+    if (attr == null) {
+      throw new QueryException(QueryExceptionEvent.internalFailure, message:
+        "Property '${matchingKey}' is not a relationship or does not exist for ${entity.tableName} in 'joinMany'.");
+    }
 
-    return subquery;
+    return _createSubquery(attr);
   }
 
   Query<T> joinMany<T extends ManagedObject>(ManagedSet<T> m(InstanceType x)) {
-    subQueries ??= {};
-
     var tracker = new ManagedAccessTrackingBacking();
     var obj = entity.newInstance()..backing = tracker;
     var matchingKey = m(obj as InstanceType) as String;
 
     var attr = entity.relationships[matchingKey];
-    var subquery = new Query<T>(context);
-    (subquery as QueryMixin)._entity = attr.destinationEntity;
-    subQueries[attr] = subquery;
+    if (attr == null) {
+      throw new QueryException(QueryExceptionEvent.internalFailure, message:
+        "Property '${matchingKey}' is not a relationship or does not exist for ${entity.tableName} in 'joinMany'.");
+    }
+
+    return _createSubquery(attr);
+  }
+
+  Query _createSubquery(ManagedRelationshipDescription fromRelationship) {
+    // Ensure we don't cyclically join
+    var parent = _parentQuery;
+    while (parent != null) {
+      if (parent.subQueries.containsKey(fromRelationship.inverse)) {
+        var validJoins = fromRelationship.entity.relationships.values
+            .where((r) => !identical(r, fromRelationship))
+            .map((r) => "'${r.name}'")
+            .join(", ");
+
+        throw new QueryException(QueryExceptionEvent.internalFailure,
+            message:
+                "Invalid cyclic 'Query'. This query joins '${fromRelationship.entity.tableName}' "
+                "with '${fromRelationship.inverse.entity.tableName}' on property '${fromRelationship.name}'. "
+                "However, '${fromRelationship.inverse.entity.tableName}' "
+                "has also joined '${fromRelationship.entity.tableName}' on this property's inverse "
+                "'${fromRelationship.inverse.name}' earlier in the 'Query'. "
+                "Perhaps you meant to join on another property, such as: ${validJoins}?");
+      }
+
+      parent = parent._parentQuery;
+    }
+
+    subQueries ??= {};
+
+    var subquery = new Query(context);
+    (subquery as QueryMixin)
+      .._entity = fromRelationship.destinationEntity
+      .._parentQuery = this;
+    subQueries[fromRelationship] = subquery;
 
     return subquery;
   }

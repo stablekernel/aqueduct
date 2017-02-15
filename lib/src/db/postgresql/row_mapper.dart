@@ -57,10 +57,11 @@ class RowMapper extends PostgresMapper
   }
 
   void _buildMatcher() {
-    _implicitRowMappers = <RowMapper>[];
+    var rowMappers = <RowMapper>[];
     _matcherExpressions =
-        propertyExpressionsFromObject(whereBuilder, _implicitRowMappers);
-    addRowMappers(_implicitRowMappers);
+        propertyExpressionsFromObject(whereBuilder, rowMappers);
+
+    addRowMappers(rowMappers, areImplicit: true);
   }
 
   List<RowMapper> _implicitRowMappers;
@@ -112,18 +113,55 @@ class RowMapper extends PostgresMapper
     return _joinCondition;
   }
 
-  void addRowMappers(List<RowMapper> rowMappers) {
+  void addRowMappers(List<RowMapper> rowMappers, {bool areImplicit: false}) {
     rowMappers.forEach((r) {
-      r.originatingTable = this;
-      returningOrderedMappers.removeWhere((m) {
-        if (m is PropertyToColumnMapper) {
-          return identical(m.property, r.joiningProperty);
-        }
+      if (!areImplicit) {
+        returningOrderedMappers.where((m) {
+          if (m is PropertyToColumnMapper) {
+            return identical(m.property, r.joiningProperty);
+          }
 
-        return false;
-      });
+          return false;
+        }).forEach((m) {
+          (m as PropertyToColumnMapper)
+              .isForeignKeyColumnAndWillBePopulatedByJoin = true;
+        });
+      } else {
+        _implicitRowMappers ??= <RowMapper>[];
+        validateImplicitRowMapper(r);
+        _implicitRowMappers.add(r);
+      }
+
+      r.originatingTable = this;
     });
     returningOrderedMappers.addAll(rowMappers);
+  }
+
+  void validateImplicitRowMapper(RowMapper rowMapper) {
+    // Check implicit row mappers for cycles
+    var parentTable = originatingTable;
+    while (parentTable != null) {
+      var inverseMapper = parentTable.returningOrderedMappers.reversed
+          .where((pm) => pm is RowMapper)
+          .firstWhere((pm) {
+        return identical(rowMapper.joiningProperty.inverse,
+            (pm as RowMapper).joiningProperty);
+      }, orElse: () => null);
+
+      if (inverseMapper != null) {
+        throw new QueryException(QueryExceptionEvent.internalFailure,
+            message:
+                "Invalid cyclic 'Query'. This query would join on the same table and foreign key twice. "
+                "The offending query has a 'where' matcher on '${rowMapper.entity.tableName}.${rowMapper.joiningProperty.name}'"
+                ", but this matcher should be on a parent 'Query' Move the matcher earlier in the 'Query'.");
+      }
+
+      if (parentTable is RowMapper) {
+        parentTable = (parentTable as RowMapper).originatingTable;
+      } else {
+        parentTable = null;
+      }
+    }
   }
 
   String get innerSelectString {
@@ -154,7 +192,7 @@ class RowMapper extends PostgresMapper
   }
 
   String get joinString {
-    if (implicitRowMappers.length > 0) {
+    if ((implicitRowMappers?.length ?? 0) > 0) {
       return innerSelectString;
     }
 
@@ -186,5 +224,9 @@ class RowMapper extends PostgresMapper
 
   String generateTableAlias() {
     return originatingTable.generateTableAlias();
+  }
+
+  String toString() {
+    return "RowMapper on $joiningProperty: $returningOrderedMappers";
   }
 }

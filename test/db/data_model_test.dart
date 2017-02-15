@@ -347,6 +347,22 @@ void main() {
     }
   });
 
+  test(
+      "Types with same inverse name for two relationships use type as tie-breaker to determine inverse",
+      () {
+    var model = new ManagedDataModel([LeftMany, JoinMany, RightMany]);
+
+    var joinEntity = model.entityForType(JoinMany);
+    expect(
+        joinEntity.relationships["left"].destinationEntity.instanceType
+            .isSubtypeOf(reflectType(LeftMany)),
+        true);
+    expect(
+        joinEntity.relationships["right"].destinationEntity.instanceType
+            .isSubtypeOf(reflectType(RightMany)),
+        true);
+  });
+
   group("Schema generation", () {
     ManagedDataModel dataModel;
 
@@ -632,4 +648,35 @@ class _SomeOtherRelationshipModel extends SomeOtherPartialModel {
 
 class SomeOtherPartialModel {
   DoubleRelationshipForeignKeyModel deferredRelationship;
+}
+
+class LeftMany extends ManagedObject<_LeftMany> implements _LeftMany {}
+
+class _LeftMany {
+  @managedPrimaryKey
+  int id;
+
+  ManagedSet<JoinMany> join;
+}
+
+class RightMany extends ManagedObject<_RightMany> implements _RightMany {}
+
+class _RightMany {
+  @managedPrimaryKey
+  int id;
+
+  ManagedSet<JoinMany> join;
+}
+
+class JoinMany extends ManagedObject<_JoinMany> implements _JoinMany {}
+
+class _JoinMany {
+  @managedPrimaryKey
+  int id;
+
+  @ManagedRelationship(#join)
+  LeftMany left;
+
+  @ManagedRelationship(#join)
+  RightMany right;
 }

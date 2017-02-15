@@ -433,6 +433,7 @@ void main() {
       var q = new Query<GrandChildObject>()
         ..where.parents.parents.value1 = whereEqualTo(1)
         ..sortBy((g) => g.id, QuerySortOrder.ascending);
+
       var results = await q.fetch();
 
       expect(

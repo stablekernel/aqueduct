@@ -64,7 +64,7 @@ abstract class PredicateBuilder implements EntityTableMapper {
           }
 
           if (innerMatcher is ManagedSet) {
-            innerMatcher = (innerMatcher as ManagedSet).matchOn;
+            innerMatcher = (innerMatcher as ManagedSet).haveAtLeastOneWhere;
           }
 
           return innerRowMapper.propertyExpressionsFromObject(
