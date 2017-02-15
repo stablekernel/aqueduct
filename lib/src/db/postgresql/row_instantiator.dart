@@ -102,6 +102,9 @@ abstract class RowInstantiator {
 
       // If not assigned yet, assign this value (which may be null). If assigned,
       // don't overwrite with a null row that may come after. Once we have it, we have it.
+
+      // Now if it is belongsTo, we may have already populated it with the foreign key object.
+      // In this case, we do need to override it
       if (existingInnerInstance == null) {
         instance[mapper.joiningProperty.name] = innerInstanceWrapper?.instance;
       }
@@ -114,7 +117,7 @@ abstract class RowInstantiator {
       // This is a belongsTo relationship (otherwise it wouldn't be a column), keep the foreign key.
       // However, if we are later going to get these values and more from a join,
       // we need ignore it here.
-      if (!mapper.foreignKeyColumnWillBePopulatedByJoin) {
+      if (!mapper.isForeignKeyColumnAndWillBePopulatedByJoin) {
         if (value != null) {
           ManagedRelationshipDescription relDesc = mapper.property;
 
