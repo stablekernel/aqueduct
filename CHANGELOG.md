@@ -16,6 +16,7 @@
 - ORM: Allow `Query.where` to reference properties in related objects without including related objects in results, i.e. can fetch `Parent` objects and filter them by values in their `Child` relationships.
 - ORM: Joins can now be applied to belongsTo relationship properties.
 - ORM: Matchers such as `whereNull` and `whereNotNull` can be applied to a relationship property in `Query.where`.
+- ORM: Renamed `ManagedSet.matchOn` to `ManagedSet.haveAtLeastOneWhere`.
 
 - Auth: Added `aqueduct/managed_auth` library. Implements storage of OAuth 2.0 tokens using `ManagedObject`s. See API reference for more details.
 - Auth: Improved error and response messaging to better align with the OAuth 2.0 spec, especially with regards to the authorization code flow.
