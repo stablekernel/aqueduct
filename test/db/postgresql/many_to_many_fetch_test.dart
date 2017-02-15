@@ -34,9 +34,7 @@ void main() {
   group("Explicit joins", () {
     test("Can join across many to many relationship, from one side", () async {
       var q = new Query<RootObject>()
-        ..sortDescriptors = [
-          new QuerySortDescriptor("id", QuerySortOrder.ascending)
-        ];
+        ..sortBy((r) => r.id, QuerySortOrder.ascending);
 
       q.joinMany((r) => r.join)..joinOn((r) => r.other);
       var results = await q.fetch();
@@ -75,9 +73,7 @@ void main() {
     test("Can join across many to many relationship, from other side",
         () async {
       var q = new Query<OtherRootObject>()
-        ..sortDescriptors = [
-          new QuerySortDescriptor("id", QuerySortOrder.ascending)
-        ];
+        ..sortBy((o) => o.id, QuerySortOrder.ascending);
 
       q.joinMany((r) => r.join)..joinOn((r) => r.root);
       var results = await q.fetch();
@@ -116,9 +112,7 @@ void main() {
 
     test("Can join from join table", () async {
       var q = new Query<RootJoinObject>()
-        ..sortDescriptors = [
-          new QuerySortDescriptor("id", QuerySortOrder.ascending)
-        ]
+        ..sortBy((r) => r.id, QuerySortOrder.ascending)
         ..joinOn((r) => r.other)
         ..joinOn((r) => r.root);
 
@@ -136,9 +130,7 @@ void main() {
   group("Implicit joins", () {
     test("Can use implicit matcher across many to many table", () async {
       var q = new Query<RootObject>()
-        ..sortDescriptors = [
-          new QuerySortDescriptor("id", QuerySortOrder.ascending)
-        ]
+        ..sortBy((r) => r.id, QuerySortOrder.ascending)
         ..where.join.haveAtLeastOneWhere.other.value1 = whereLessThan(4);
 
       var results = await q.fetch();
@@ -210,9 +202,7 @@ void main() {
   group("Self joins - standard", () {
     test("Can join by one relationship", () async {
       var q = new Query<Team>()
-        ..sortDescriptors = [
-          new QuerySortDescriptor("id", QuerySortOrder.ascending)
-        ];
+        ..sortBy((t) => t.id, QuerySortOrder.ascending);
 
       q.joinMany((t) => t.awayGames)..joinOn((g) => g.homeTeam);
 
@@ -259,9 +249,7 @@ void main() {
 
     test("Can join by other relationship", () async {
       var q = new Query<Team>()
-        ..sortDescriptors = [
-          new QuerySortDescriptor("id", QuerySortOrder.ascending)
-        ];
+        ..sortBy((t) => t.id, QuerySortOrder.ascending);
 
       q.joinMany((t) => t.homeGames)..joinOn((g) => g.awayTeam);
       var results = await q.fetch();
@@ -310,9 +298,7 @@ void main() {
       var q = new Query<Game>()
         ..joinOn((g) => g.awayTeam)
         ..joinOn((g) => g.homeTeam)
-        ..sortDescriptors = [
-          new QuerySortDescriptor("id", QuerySortOrder.ascending)
-        ];
+        ..sortBy((g) => g.id, QuerySortOrder.ascending);
       var results = await q.fetch();
 
       expect(
@@ -361,9 +347,7 @@ void main() {
     test("Can implicit join through join table", () async {
       // 'Teams that have played at Minnesota'
       var q = new Query<Team>()
-        ..sortDescriptors = [
-          new QuerySortDescriptor("id", QuerySortOrder.ascending)
-        ]
+        ..sortBy((t) => t.id, QuerySortOrder.ascending)
         ..where.awayGames.haveAtLeastOneWhere.homeTeam.name =
             whereContains("Minn");
       var results = await q.fetch();
@@ -375,9 +359,7 @@ void main() {
 
       // 'Teams that have played at Iowa'
       q = new Query<Team>()
-        ..sortDescriptors = [
-          new QuerySortDescriptor("id", QuerySortOrder.ascending)
-        ]
+        ..sortBy((t) => t.id, QuerySortOrder.ascending)
         ..where.awayGames.haveAtLeastOneWhere.homeTeam.name =
             whereContains("Iowa");
       results = await q.fetch();
