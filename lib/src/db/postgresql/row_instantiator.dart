@@ -1,10 +1,11 @@
 import '../db.dart';
 import 'property_mapper.dart';
+import 'entity_table.dart';
 
 abstract class RowInstantiator {
   List<PostgresMapper> get returningOrderedMappers;
-  Map<String, Map<dynamic, ManagedObject>> distinctObjects = {};
-  ManagedEntity get entity;
+  Map<EntityTableMapper, Map<dynamic, ManagedObject>> distinctObjects = {};
+  EntityTableMapper get rootTableMapper;
 
   List<ManagedObject> instancesForRows(List<List<dynamic>> rows) {
     return rows
@@ -17,8 +18,8 @@ abstract class RowInstantiator {
 
   InstanceWrapper instanceFromRow(
       Iterator<dynamic> rowIterator, Iterator<PropertyMapper> mappingIterator,
-      {ManagedEntity incomingEntity}) {
-    incomingEntity ??= entity;
+      {EntityTableMapper forTableMapper}) {
+    forTableMapper ??= rootTableMapper;
 
     // Inspect the primary key first.  We are guaranteed to have the primary key come first in any rowIterator.
     rowIterator.moveNext();
@@ -31,11 +32,11 @@ abstract class RowInstantiator {
     }
 
     var alreadyExists = true;
-    var instance = getExistingInstance(incomingEntity, primaryKeyValue);
+    var instance = getExistingInstance(forTableMapper, primaryKeyValue);
     if (instance == null) {
       alreadyExists = false;
       instance =
-          createInstanceWithPrimaryKeyValue(incomingEntity, primaryKeyValue);
+          createInstanceWithPrimaryKeyValue(forTableMapper, primaryKeyValue);
     }
 
     while (mappingIterator.moveNext()) {
@@ -52,15 +53,15 @@ abstract class RowInstantiator {
   }
 
   ManagedObject createInstanceWithPrimaryKeyValue(
-      ManagedEntity entity, dynamic primaryKeyValue) {
-    var instance = entity.newInstance();
+      EntityTableMapper tableMapper, dynamic primaryKeyValue) {
+    var instance = tableMapper.entity.newInstance();
 
-    instance[entity.primaryKey] = primaryKeyValue;
+    instance[tableMapper.entity.primaryKey] = primaryKeyValue;
 
-    var typeMap = distinctObjects[instance.entity.tableName];
+    var typeMap = distinctObjects[tableMapper];
     if (typeMap == null) {
       typeMap = {};
-      distinctObjects[instance.entity.tableName] = typeMap;
+      distinctObjects[tableMapper] = typeMap;
     }
 
     typeMap[instance[instance.entity.primaryKey]] = instance;
@@ -69,8 +70,8 @@ abstract class RowInstantiator {
   }
 
   ManagedObject getExistingInstance(
-      ManagedEntity incomingEntity, dynamic primaryKeyValue) {
-    var byType = distinctObjects[incomingEntity.tableName];
+      EntityTableMapper tableMapper, dynamic primaryKeyValue) {
+    var byType = distinctObjects[tableMapper];
     if (byType == null) {
       return null;
     }
@@ -86,7 +87,7 @@ abstract class RowInstantiator {
 
     var innerInstanceWrapper = instanceFromRow(
         rowIterator, mapper.returningOrderedMappers.iterator,
-        incomingEntity: mapper.joiningProperty.inverse.entity);
+        forTableMapper: mapper);
 
     if (mapper.isToMany) {
       // If to many, put in a managed set.
@@ -113,16 +114,20 @@ abstract class RowInstantiator {
   void applyColumnValueToProperty(
       ManagedObject instance, PropertyToColumnMapper mapper, dynamic value) {
     if (mapper.property is ManagedRelationshipDescription) {
-      // A belongsTo relationship, keep the foreign key.
-      if (value != null) {
-        ManagedRelationshipDescription relDesc = mapper.property;
+      // This is a belongsTo relationship (otherwise it wouldn't be a column), keep the foreign key.
+      // However, if we are later going to get these values and more from a join,
+      // we need ignore it here.
+      if (!mapper.isForeignKeyColumnAndWillBePopulatedByJoin) {
+        if (value != null) {
+          ManagedRelationshipDescription relDesc = mapper.property;
 
-        var innerInstance = relDesc.destinationEntity.newInstance();
-        innerInstance[relDesc.destinationEntity.primaryKey] = value;
-        instance[mapper.property.name] = innerInstance;
-      } else {
-        // If null, explicitly add null to map so the value is populated.
-        instance[mapper.property.name] = null;
+          var innerInstance = relDesc.destinationEntity.newInstance();
+          innerInstance[relDesc.destinationEntity.primaryKey] = value;
+          instance[mapper.property.name] = innerInstance;
+        } else {
+          // If null, explicitly add null to map so the value is populated.
+          instance[mapper.property.name] = null;
+        }
       }
     } else {
       instance[mapper.property.name] = value;

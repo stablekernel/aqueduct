@@ -45,6 +45,8 @@ class PropertyToColumnMapper extends PropertyMapper {
       EntityTableMapper table, ManagedPropertyDescription property)
       : super(table, property);
 
+  bool isForeignKeyColumnAndWillBePopulatedByJoin = false;
+
   String toString() {
     return "Mapper on $property";
   }

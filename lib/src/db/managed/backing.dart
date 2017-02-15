@@ -70,7 +70,8 @@ class ManagedMatcherBacking extends ManagedBacking {
         if (innerObject is ManagedObject) {
           innerObject[innerObject.entity.primaryKey] = value;
         } else if (innerObject is ManagedSet) {
-          innerObject.matchOn[innerObject.entity.primaryKey] = value;
+          innerObject.haveAtLeastOneWhere[innerObject.entity.primaryKey] =
+              value;
         }
       } else {
         valueMap[propertyName] = value;
