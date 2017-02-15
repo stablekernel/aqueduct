@@ -175,7 +175,7 @@ class ManagedAuthStorage<T extends ManagedAuthResourceOwner>
   Future<T> fetchAuthenticatableByUsername(AuthServer server, String username) {
     var query = new Query<T>(context)
       ..where.username = username
-      ..propertiesToFetch = ["id", "hashedPassword", "salt"];
+      ..returningProperties((t) => [t.id, t.hashedPassword, t.salt]);
 
     return query.fetchOne();
   }
@@ -270,7 +270,7 @@ class ManagedAuthStorage<T extends ManagedAuthResourceOwner>
       ..sortBy((t) => t.expirationDate, QuerySortOrder.descending)
       ..offset = tokenLimit
       ..fetchLimit = 1
-      ..propertiesToFetch = ["expirationDate"];
+      ..returningProperties((t) => [t.expirationDate]);
 
     var results = await oldTokenQuery.fetch();
     if (results.length == 1) {

@@ -120,7 +120,7 @@ class ManagedColumnAttributes {
   /// Whether or not fetching an instance of this type should include this property.
   ///
   /// By default, all properties on a [ManagedObject] are returned if not specified (unless they are to-many relationship properties).
-  /// This flag will remove the associated property from the result set unless it is explicitly specified by [Query.propertiesToFetch].
+  /// This flag will remove the associated property from the result set unless it is explicitly specified by [Query.returningProperties].
   final bool shouldOmitByDefault;
 
   /// Indicate to the underlying database to use a serial counter when inserted an instance.

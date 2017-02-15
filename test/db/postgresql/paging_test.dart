@@ -321,7 +321,7 @@ void main() {
     test("Query when not fetching paging property still succeeds", () async {
       var req = new Query<PageableTestModel>()
         ..pageBy((p) => p.value, QuerySortOrder.ascending, boundingValue: "0")
-        ..propertiesToFetch = ["id"]
+        ..returningProperties((p) => [p.id])
         ..fetchLimit = 5;
       var res = await req.fetch();
       check([2, 3, 4, 5, 6], res);

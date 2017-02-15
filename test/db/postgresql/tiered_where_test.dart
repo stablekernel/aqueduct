@@ -142,9 +142,9 @@ void main() {
 
     test("Query can specify resultProperties values when explicitly joined",
         () async {
-      var q = new Query<RootObject>()..propertiesToFetch = ["id"];
+      var q = new Query<RootObject>()..returningProperties((r) => [r.id]);
 
-      q.joinOn((r) => r.child)..propertiesToFetch = ["id"];
+      q.joinOn((r) => r.child)..returningProperties((c) => [c.id]);
 
       var results = await q.fetch();
       for (var r in results) {
@@ -162,11 +162,11 @@ void main() {
     test(
         "Query with nested explicit joins can specify resultProperties for all objects",
         () async {
-      var q = new Query<RootObject>()..propertiesToFetch = ["id"];
+      var q = new Query<RootObject>()..returningProperties((r) => [r.id]);
 
-      var cq = q.joinOn((r) => r.child)..propertiesToFetch = ["id"];
+      var cq = q.joinOn((r) => r.child)..returningProperties((c) => [c.id]);
 
-      cq.joinOn((c) => c.grandChild)..propertiesToFetch = ["id"];
+      cq.joinOn((c) => c.grandChild)..returningProperties((g) => [g.id]);
 
       var results = await q.fetch();
       for (var r in results) {
@@ -415,7 +415,7 @@ void main() {
         () async {
       var q = new Query<RootObject>()..where.child.value1 = whereGreaterThan(0);
 
-      q.joinOn((r) => r.child)..propertiesToFetch = ["id"];
+      q.joinOn((r) => r.child)..returningProperties((c) => [c.id]);
 
       var results = await q.fetch();
       for (var r in results) {

@@ -22,18 +22,14 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
   QueryPredicate predicate;
 
   QueryMixin _parentQuery;
-  List<String> _resultProperties;
   InstanceType _whereBuilder;
   InstanceType _valueObject;
 
   bool get hasWhereBuilder => _whereBuilder?.backingMap?.isNotEmpty ?? false;
 
+  List<String> _propertiesToFetch;
   List<String> get propertiesToFetch =>
-      _resultProperties ?? entity.defaultProperties;
-
-  void set propertiesToFetch(List<String> props) {
-    _resultProperties = props;
-  }
+      _propertiesToFetch ?? entity.defaultProperties;
 
   InstanceType get values {
     if (_valueObject == null) {
@@ -55,22 +51,31 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
   }
 
   Query<T> joinOn<T extends ManagedObject>(T m(InstanceType x)) {
-    var attr = _relationshipPropertyForProperty(m(where));
+    var tracker = new ManagedAccessTrackingBacking();
+    var obj = entity.newInstance()..backing = tracker;
+    var matchingKey = m(obj as InstanceType) as String;
+
+    var attr = entity.relationships[matchingKey];
+    if (attr == null) {
+      throw new QueryException(QueryExceptionEvent.internalFailure, message:
+        "Property '${matchingKey}' is not a relationship or does not exist for ${entity.tableName} in 'joinMany'.");
+    }
+
     return _createSubquery(attr);
   }
 
   Query<T> joinMany<T extends ManagedObject>(ManagedSet<T> m(InstanceType x)) {
-    var attr = _relationshipPropertyForProperty(m(where));
+    var tracker = new ManagedAccessTrackingBacking();
+    var obj = entity.newInstance()..backing = tracker;
+    var matchingKey = m(obj as InstanceType) as String;
+
+    var attr = entity.relationships[matchingKey];
+    if (attr == null) {
+      throw new QueryException(QueryExceptionEvent.internalFailure, message:
+        "Property '${matchingKey}' is not a relationship or does not exist for ${entity.tableName} in 'joinMany'.");
+    }
+
     return _createSubquery(attr);
-  }
-
-  ManagedRelationshipDescription _relationshipPropertyForProperty(
-      dynamic property) {
-    var matchingKey = entity.relationships.keys.firstWhere((key) {
-      return identical(where.backingMap[key], property);
-    });
-
-    return entity.relationships[matchingKey];
   }
 
   Query _createSubquery(ManagedRelationshipDescription fromRelationship) {
@@ -111,8 +116,7 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
       {T boundingValue}) {
     var tracker = new ManagedAccessTrackingBacking();
     var obj = entity.newInstance()..backing = tracker;
-    propertyIdentifier(obj as InstanceType);
-    var propertyName = tracker.accessedProperty;
+    var propertyName = propertyIdentifier(obj as InstanceType) as String;
 
     var attribute = entity.attributes[propertyName];
     if (attribute == null) {
@@ -136,8 +140,7 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
   void sortBy<T>(T propertyIdentifier(InstanceType x), QuerySortOrder order) {
     var tracker = new ManagedAccessTrackingBacking();
     var obj = entity.newInstance()..backing = tracker;
-    propertyIdentifier(obj as InstanceType);
-    var propertyName = tracker.accessedProperty;
+    var propertyName = propertyIdentifier(obj as InstanceType) as String;
 
     var attribute = entity.attributes[propertyName];
     if (attribute == null) {
@@ -157,4 +160,13 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
     sortDescriptors ??= <QuerySortDescriptor>[];
     sortDescriptors.add(new QuerySortDescriptor(propertyName, order));
   }
+
+  void returningProperties(List<dynamic> propertyIdentifiers(InstanceType x)) {
+    var tracker = new ManagedAccessTrackingBacking();
+    var obj = entity.newInstance()..backing = tracker;
+    var propertyNames = propertyIdentifiers(obj as InstanceType) as List<String>;
+
+    _propertiesToFetch = propertyNames;
+  }
+
 }
