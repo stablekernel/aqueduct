@@ -6,15 +6,15 @@ date: 2016-06-19 21:22:35
 order: 2
 ---
 
-In Aqueduct, HTTP requests and responses are represented as instances of `Request` and `Response`, respectively. For every HTTP request an application receives, an instance of `Request` is created. These requests are passed through a series of [RequestControllers](request_controller.html), whose job is to create a `Response` for the request.
+In Aqueduct, HTTP requests and responses are instances of `Request` and `Response`, respectively. For every HTTP request an application receives, an instance of `Request` is created. These requests are passed through a series of [RequestControllers](request_controller.html), whose job is to create a `Response` for the request.
 
 ## The Request Object
 
-An instance of `Request` contains the information from an HTTP request. It also has helpful methods for accessing that information in more productive ways and storage to gather extra, application-specific information as it passes through processing steps.
-
-The actual request information is stored in `Request.innerRequest`, an instance of the Dart standard library `HttpRequest`. For accessing simple values like headers or the query string, use this property. It is important that the `response` of `innerRequest` is not written to - Aqueduct will handle responding to requests.
+An instance of `Request` has the information in an HTTP request. It also has helpful methods for accessing that information in more productive ways and storage to gather extra information as it passes through processing steps. It's really a wrapper around the Dart standard library `HttpRequest` and those values can always be accessed through `Request.innerRequest`. (Just don't write to its `Response` - Aqueduct does that.)
 
 A `Request` knows how to decode its HTTP request body into Dart objects. Requests do not immediately decode their body when they are received, they wait until something invokes their `decodeBody` method. (Note: `HTTPController` will invoke this automatically on a request prior to calling a responder method.) This prevents wasting precious CPU cycles on decoding if the request isn't going to be processed because it gets rejected in an early validation step. Once a `Request` has been decoded, the Dart object that represents the body will be available in its `requestBodyObject` property. For example, if request body is a JSON object, `requestBodyObject` is an instance of `Map<String, dynamic>` after decoding.
+
+^^^^ change that name.. make body object. asMap(). asList(). asListOf<T>. asMapOf<K, V>() asBytes(). asString(). cache decoded objects
 
 ```dart
 Request request = ...;

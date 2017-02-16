@@ -161,6 +161,18 @@ Each video has a persistent property that indicates when the video was uploaded.
 
 By default, transient properties are not included when a `ManagedObject<T>` is written into or read from a `Map`. So when a `Video` is returned as JSON in an HTTP response - `isRecent` won't be in the HTTP body. However, this is just the default behavior and can easily be changed, though - see [Storage, Serialization and Deserialization](serialization.html) for more details.
 
+You may also override a `ManagedObject<T>`s `asMap()` method to get to similar behavior:
+
+```dart
+class Video extends ManagedObject<_Video> implements _Video {
+  Map<String, dynamic> asMap() {
+    var m = super.asMap();
+    m["isRecent"] = new DateTime.now().difference(uploadDate).inDays < 7;
+    return m;
+  }
+}
+```
+
 ### Modeling Managed Object Relationships
 
 In addition to attributes, managed objects may also have properties that are other managed objects or collections of managed objects. These types of properties are called *relationships*. For example, in a social network application, a user may have many posts that they have created. A user, then, should have a property that is a list of posts. This is called a 'has-many' relationship, because a user can have many posts.

@@ -151,17 +151,17 @@ The name here is important. The filter is applied to the returned `Parent`s - if
 
 ### Including Relationships in a Fetch (aka, Joins)
 
-A `Query<T>` can fetch objects that include instances of their has-many or has-one relationships alongside their attributes. This allows queries to fetch entire model graphs and reduces the number of round-trip queries to a database. (This type of fetch will execute a SQL LEFT OUTER JOIN.)
+A `Query<T>` can also fetch relationship properties. This allows queries to fetch entire model graphs and reduces the number of round-trips to a database. (This type of fetch will execute a SQL LEFT OUTER JOIN.)
 
-To include related objects, you set the `includeInResultSet` to `true` on relationship properties in `Query<T>.matchOn`. The returned managed objects will be the type determined by the `Query<T>` type with values for each of the fetched relationship properties.
+By default, relationship properties are not fetched in a query and therefore aren't included in an object's `asMap()`. For example, consider the following two `ManagedObject<T>`s, where a `User` has-many `Task`s:
 
 ```dart
 class User extends ManagedObject<_User> implements _User {}
 class _User {
   @managedPrimaryKey int id;
 
-  ManagedSet<Task> tasks;
-  ...
+  String name;
+  ManagedSet<Task> tasks;  
 }
 
 class Task extends ManagedObject<_Task> implements _Task {}
@@ -170,93 +170,119 @@ class _Task {
 
   @ManagedColumnAttributes(#tasks)
   User user;
-  ...
+
+  String contents;
 }
-
-var q = new Query<User>()
-  ..matchOn.id = whereEqualTo(2)
-  ..matchOn.tasks.includeInResultSet = true;
-
-var user = await q.fetchOne();
-
-user.id == 2;
-user.tasks.every((Task t) =>
-  t.id is int &&
-  t.user.id == 2 &&
-  t.text is String
-) == true;
 ```
 
-As shown, you may still apply matchers to the query. You may also apply matchers to the relationship property. In the case of has-one relationships, this doesn't make much sense - once you've included the only possible related object, filtering doesn't do anything useful. Thus, when fetching has-one properties, you need only set the relationship's `includeInResultSet` property.
+A `Query<User>` will fetch the `name` and `id` of each `User`. A `User`'s `tasks` are not fetched, so the data returned looks like this:
 
-However, in the case of has-many, it often makes sense to further filter the result set - e.g. fetching a user and their pending tasks, instead of a user and all their entire task history. `ManagedSet`s - the type of has-many relationship properties - *also* have a `matchOn` property to filter which managed objects are returned.
+```dart
+var q = new Query<User>();
+var users = await q.fetch();
+
+users.first.asMap() == {
+  "id": 1,
+  "name": "Bob"
+}; // yup
+```
+
+The method `joinMany()` will tell a `Query<T>` to also include a particular has-many relationship, here, a user's `tasks`:
 
 ```dart
 var q = new Query<User>()
-  ..matchOn.id = whereEqualTo(2)
-  ..matchOn.tasks.includeInResultSet = true
-  ..matchOn.tasks.matchOn.status = whereIn([Status.Pending, Status.RecentlyCompleted]);
+  ..joinMany((u) => u.tasks);
+var users = await q.fetch();
 
-var user = await q.fetchOne();
-
-user.id == 2;
-user.tasks.every((Task t) =>
-  t.id == 1 &&
-  t.user.id == 2 &&
-  (t.status == Status.Pending || t.status == Status.RecentlyCompleted)
-) == true;  
+users.first.asMap() == {
+  "id": 1,
+  "name": "Bob",
+  "tasks": [
+      {"id": 1, "contents": "Take out trash", "user" : {"id": 1}},
+      ...
+  ]
+}; // yup
 ```
 
-There are two important things to note here. First, if `includeInResultSet` is false (the default value), the nested `matchOn` will have no impact on the query (and no instances will be returned for the relationship; adding a matcher does not change this property's behavior).
+Notice that the `tasks` are in fact included in this query. The argument to `joinMany` is a closure that must return a `ManagedSet<T>` property of the object being queried. The values for each task is the default set of properties as though a `Query<Task>` was executed. However, this can be modified.
 
-Second, it is important to understand how nested matchers impact the objects returned. In this previous example, the entity of the `Query<T>` - `User` - has been filtered to only include one user with `id` equal to `2`. Thus, the matcher on `tasks` will only be applied to the tasks for to that user. If the `Users`' `id` matcher expression was removed, every single user and every single one of their tasks that meets the condition would be fetched. This operation, depending on how many users your application had, could be a very expensive query for the underlying database:
+The method `joinMany()` actually returns a new `Query<T>`, where `T` is the type of object in the relationship property. That is, the above code could also be written as such:
+
+```dart
+var q = new Query<User>();
+
+// type annotation added for clarity
+Query<Task> taskSubQuery = q.joinMany((u) => u.tasks);
+```
+
+Just like any other `Query<T>`, the set of returning properties can be modified through `returningProperties`:
 
 ```dart
 var q = new Query<User>()
-  ..matchOn.tasks.includeInResultSet = true
-  ..matchOn.tasks.matchOn.status = whereIn([Status.Pending, Status.RecentlyCompleted]);
+  ..returningProperties((u) => [u.id, u.name]);
 
-var usersAndTheirTasks = await q.fetch(); // Probably slow.
+q.joinMany((u) => u.tasks)  
+  ..returningProperties((t) => [t.id, t.contents]);
 ```
 
-You may fetch multiple relationship properties on the same managed object, and you may fetch nested relationship properties as well. This is perfectly valid:
+When joining on a has-one or a belongs-to relationship, use `joinOne()` instead of `joinMany()`:
 
 ```dart
-var q = new Query<User>()
-  ..matchOn.id = whereEqualTo(2)
-  ..matchOn.notes.includeInResultSet = true
-  ..matchOn.tasks.includeInResultSet = true
-  ..matchOn.tasks.matchOn.status = whereIn([Status.Pending, Status.RecentlyCompleted])
-  ..matchOn.tasks.matchOn.locations.includeInResultSet = true;
-```
-
-This query would return a single `User` instance, for which it would have notes and tasks, and every task would have locations. Each of these could have additional matchers to further filter the result set. Also note that in this example, the `locations` of `tasks` would already be filtered to only refer to tasks that were `Status.Pending` or `Status.RecentlyCompleted` *and* belong to user with `id` equal to `2`.
-
-While `ManagedRelationship` properties cannot be included using `includeInResultSet`, the functionality is possible by changing the type the `Query<T>` fetches to the related object type.
-
-```dart
-// DO NOT includeInResultSet for RelationshipInverse properties:
 var q = new Query<Task>()
-  ..matchOn.user = whereRelatedByValue(1)
-  ..matchOn.user.includeInResultSet = true;
+  ..joinOne((t) => t.user);
+var results = await q.fetch();
 
-var tasks = await q.fetch(); // This will not include any information about the user other than its id.
-
-// DO go a level higher in the entity hierarchy and filter by the primary key
-var q = new Query<User>()
-  ..matchOn.id = 1
-  ..matchOn.tasks.includeInResultSet = true;
-
-var tasks = await q.fetchOne(); // This will return a user and all tasks in the tasks property.
+results.first.asMap() == {
+  "id": 1,
+  "contents": "Take out trash",
+  "user": {
+    "id": 1,
+    "name": "Bob"
+  }
+}; // yup
 ```
 
-By default, the `defaultProperties` of the included nested relationship objects are fetched. You may set the fetched properties for the instances fetched in a relationship property with `Query<T>.nestedResultProperties`. This `Map<Type, List<String>>`'s values indicate the properties to fetch for the `Type` key. The following example will fetch `id` and `text` when a `Task` is fetched.
+Notice that the results of this query include all of the details for a `Task`'s `user` - not just its `id`.
+
+A subquery created through `joinOne` or `joinMany` can also be filtered through its `where`. For example, the following query would return user's named 'Bob' and their overdue tasks only:
 
 ```dart
 var q = new Query<User>()
-  ..nestedResultProperties[Task] = ["id", "text"]
-  ..matchOn.id = 1
-  ..matchOn.tasks.includeInResultSet = true;
+  ..where.name = whereEquals("Bob");
+
+q.joinMany((u) => u.tasks)  
+  ..where.overdue = whereEqualTo(true);
 ```
 
-Note that a query will always fetch the primary key of a nested object, even if it is omitted in `nestedResultProperties`. (It will not automatically add the foreign key used to join the related object.)
+Note that the `where` property on the subquery is an instance of `Task`, whereas `where` on the `User` query is `User`.
+
+More than one join can be applied to a query, and subqueries can be nested. So, this is all valid, assuming the relationship properties exist:
+
+```dart
+var q = new Query<User>()
+  ..joinOne((u) => u.address);
+
+q.joinMany((u) => u.tasks)
+  ..joinOne((u) => u.location);
+```
+
+This would fetch all users, their addresses, all of their tasks, and the location for each of their tasks. You'd get a nice sized tree of objects here.
+
+It's important to understand how objects are filtered when using `where` and subqueries. Matchers applied to the top-level query will filter out those types of objects. A `where` on a subquery has no impact on the number of objects returned at the top-level. Let's say there were 10 total users, each with 10 total tasks. The following query would always return 10 user objects, but each user's `tasks` wouldn't necessarily contain all 10:
+
+```dart
+var q = new Query<User>();
+
+q.joinMany((u) => u.tasks)
+  ..where.overdue = whereEqualTo(true);
+```
+
+However, the following query would return less than 10 users, but for each user returned, they would have all 10 of their tasks:
+
+```dart
+var q = new Query<User>()
+  ..where.name = whereEqualTo("Bob")
+  ..joinMany((u) => u.tasks);
+```
+
+Note that a query will always fetch the primary key of all objects, even if it is omitted in `returningProperties`. 
