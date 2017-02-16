@@ -55,7 +55,7 @@ id | dateCreated
 3 | Jan 3 -- Next Query Starts here
 4 | Jan 4
 
-In practice, this means passing the property value for the last object in the previous set. This is often accomplished by adding a query parameter to an endpoint that takes in a bounding value. (See `ResourceController<T>` as an example.)
+In practice, this means passing the property value for the last object in the previous set. This is often accomplished by adding a query parameter to an endpoint that takes in a bounding value. (See `ManagedObjectController<T>` as an example.)
 
 A `pageBy` query will return an empty list of objects when no more values are left. If the number of objects remaining in the last page are less than the `fetchLimit`, only those objects will be returned. For example, if there four more objects left and the `fetchLimit` is 10, the number of objects returned will be four.
 
