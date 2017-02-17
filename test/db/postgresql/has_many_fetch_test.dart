@@ -47,7 +47,7 @@ void main() {
       var q = new Query<Parent>()..where.name = "D";
 
       q.joinMany((p) => p.children)
-        ..joinOn((c) => c.toy)
+        ..joinOne((c) => c.toy)
         ..joinMany((c) => c.vaccinations);
 
       var verifier = (Parent p) {
@@ -84,7 +84,7 @@ void main() {
       var q = new Query<Parent>()..where.name = "B";
 
       q.joinMany((p) => p.children)
-        ..joinOn((c) => c.toy)
+        ..joinOne((c) => c.toy)
         ..joinMany((c) => c.vaccinations);
 
       var verifier = (Parent p) {
@@ -117,7 +117,7 @@ void main() {
       var q = new Query<Parent>()..where.name = "A";
 
       q.joinMany((p) => p.children)
-        ..joinOn((c) => c.toy)
+        ..joinOne((c) => c.toy)
         ..joinMany((c) => c.vaccinations);
 
       var verifier = (Parent p) {
@@ -186,7 +186,7 @@ void main() {
     test("Fetch entire graph", () async {
       var q = new Query<Parent>();
       q.joinMany((p) => p.children)
-        ..joinOn((c) => c.toy)
+        ..joinOne((c) => c.toy)
         ..joinMany((c) => c.vaccinations);
 
       var all = await q.fetch();
@@ -239,7 +239,7 @@ void main() {
       var q = new Query<Parent>()..where.name = "A";
 
       q.joinMany((p) => p.children)
-        ..joinOn((c) => c.toy)
+        ..joinOne((c) => c.toy)
         ..joinMany((c) => c.vaccinations);
 
       var results = await q.fetch();
@@ -268,7 +268,7 @@ void main() {
       q.joinMany((p) => p.children)
         ..where.name = "C1"
         ..joinMany((c) => c.vaccinations)
-        ..joinOn((c) => c.toy);
+        ..joinOne((c) => c.toy);
 
       var results = await q.fetch();
 
@@ -294,7 +294,7 @@ void main() {
         () async {
       var q = new Query<Parent>();
 
-      var childJoin = q.joinMany((p) => p.children)..joinOn((c) => c.toy);
+      var childJoin = q.joinMany((p) => p.children)..joinOne((c) => c.toy);
       childJoin.joinMany((c) => c.vaccinations)..where.kind = "V1";
 
       var results = await q.fetch();
@@ -332,7 +332,7 @@ void main() {
         () async {
       var q = new Query<Parent>()..where.id = 5;
 
-      var childJoin = q.joinMany((p) => p.children)..joinOn((c) => c.toy);
+      var childJoin = q.joinMany((p) => p.children)..joinOne((c) => c.toy);
       childJoin.joinMany((c) => c.vaccinations)..where.kind = "V1";
 
       var results = await q.fetch();
@@ -360,7 +360,7 @@ void main() {
         ..sortBy((p) => p.name, QuerySortOrder.descending);
 
       q.joinMany((p) => p.children)
-        ..joinOn((c) => c.toy)
+        ..joinOne((c) => c.toy)
         ..joinMany((c) => c.vaccinations);
 
       var results = await q.fetch();

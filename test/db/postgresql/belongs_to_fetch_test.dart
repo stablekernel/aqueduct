@@ -112,8 +112,8 @@ void main() {
   test("Multiple joins from same table", () async {
     var q = new Query<ChildObject>()
       ..sortBy((c) => c.id, QuerySortOrder.ascending)
-      ..joinOn((c) => c.parent)
-      ..joinOn((c) => c.parents);
+      ..joinOne((c) => c.parent)
+      ..joinOne((c) => c.parents);
     var results = await q.fetch();
 
     expect(
@@ -133,7 +133,7 @@ void main() {
 
   group("Join on parent of hasMany relationship", () {
     test("Standard join", () async {
-      var q = new Query<ChildObject>()..joinOn((c) => c.parents);
+      var q = new Query<ChildObject>()..joinOne((c) => c.parents);
       var results = await q.fetch();
 
       expect(
@@ -167,7 +167,7 @@ void main() {
 
     test("Nested join", () async {
       var q = new Query<GrandChildObject>();
-      q.joinOn((c) => c.parents)..joinOn((c) => c.parents);
+      q.joinOne((c) => c.parents)..joinOne((c) => c.parents);
       var results = await q.fetch();
 
       expect(
@@ -221,7 +221,7 @@ void main() {
       var q = new Query<ChildObject>()
         ..sortBy((c) => c.id, QuerySortOrder.ascending)
         ..joinMany((c) => c.grandChildren)
-        ..joinOn((c) => c.parents);
+        ..joinOne((c) => c.parents);
 
       var results = await q.fetch();
 
@@ -309,7 +309,7 @@ void main() {
     test("Standard join", () async {
       var q = new Query<ChildObject>()
         ..sortBy((c) => c.id, QuerySortOrder.ascending)
-        ..joinOn((c) => c.parent);
+        ..joinOne((c) => c.parent);
       var results = await q.fetch();
 
       expect(
@@ -352,7 +352,7 @@ void main() {
       var q = new Query<GrandChildObject>()
         ..sortBy((g) => g.id, QuerySortOrder.ascending);
 
-      q.joinOn((c) => c.parent)..joinOn((c) => c.parent);
+      q.joinOne((c) => c.parent)..joinOne((c) => c.parent);
 
       var results = await q.fetch();
 

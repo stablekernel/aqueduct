@@ -47,7 +47,7 @@ void main() {
     });
 
     test("Objects have default values when explicitly joined", () async {
-      var q = new Query<RootObject>()..joinOn((r) => r.child);
+      var q = new Query<RootObject>()..joinOne((r) => r.child);
       var results = await q.fetch();
 
       for (var r in results) {
@@ -76,7 +76,7 @@ void main() {
         () async {
       var q = new Query<RootObject>();
 
-      q.joinOn((r) => r.child)..where.grandChild.id = whereGreaterThan(1);
+      q.joinOne((r) => r.child)..where.grandChild.id = whereGreaterThan(1);
       var results = await q.fetch();
 
       for (var r in results) {
@@ -104,7 +104,7 @@ void main() {
     test("Nested explicit joins return values for all tables", () async {
       var q = new Query<RootObject>();
 
-      q.joinOn((r) => r.child)..joinOn((c) => c.grandChild);
+      q.joinOne((r) => r.child)..joinOne((c) => c.grandChild);
 
       var results = await q.fetch();
       for (var r in results) {
@@ -144,7 +144,7 @@ void main() {
         () async {
       var q = new Query<RootObject>()..returningProperties((r) => [r.id]);
 
-      q.joinOn((r) => r.child)..returningProperties((c) => [c.id]);
+      q.joinOne((r) => r.child)..returningProperties((c) => [c.id]);
 
       var results = await q.fetch();
       for (var r in results) {
@@ -164,9 +164,9 @@ void main() {
         () async {
       var q = new Query<RootObject>()..returningProperties((r) => [r.id]);
 
-      var cq = q.joinOn((r) => r.child)..returningProperties((c) => [c.id]);
+      var cq = q.joinOne((r) => r.child)..returningProperties((c) => [c.id]);
 
-      cq.joinOn((c) => c.grandChild)..returningProperties((g) => [g.id]);
+      cq.joinOne((c) => c.grandChild)..returningProperties((g) => [g.id]);
 
       var results = await q.fetch();
       for (var r in results) {
@@ -286,7 +286,7 @@ void main() {
   group("With where clauses on child object", () {
     test("Explicit joins do not impact returned root objects", () async {
       var q = new Query<RootObject>();
-      q.joinOn((r) => r.child)..where.id = whereEqualTo(1);
+      q.joinOne((r) => r.child)..where.id = whereEqualTo(1);
       var results = await q.fetch();
 
       expect(results.length, rootObjects.length);
@@ -415,7 +415,7 @@ void main() {
         () async {
       var q = new Query<RootObject>()..where.child.value1 = whereGreaterThan(0);
 
-      q.joinOn((r) => r.child)..returningProperties((c) => [c.id]);
+      q.joinOne((r) => r.child)..returningProperties((c) => [c.id]);
 
       var results = await q.fetch();
       for (var r in results) {
@@ -521,7 +521,7 @@ void main() {
 
       q.joinMany((r) => r.children)..where.id = whereGreaterThan(3);
 
-      q.joinOn((r) => r.child)..where.id = whereEqualTo(1);
+      q.joinOne((r) => r.child)..where.id = whereEqualTo(1);
 
       var results = await q.fetch();
 
