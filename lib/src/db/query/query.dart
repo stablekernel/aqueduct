@@ -117,7 +117,10 @@ abstract class Query<InstanceType extends ManagedObject> {
   /// This method will have the database perform a sort by some property identified by [propertyIdentifier].
   /// [propertyIdentifier] must return a scalar property of [InstanceType] that can be compared. The [order]
   /// indicates the order the returned rows will be in. Multiple [sortBy]s may be invoked on an instance;
-  /// the order in which they are added indicates sort precedence.
+  /// the order in which they are added indicates sort precedence. Example:
+  ///
+  ///         var query = new Query<Employee>()
+  ///           ..sortBy((e) => e.name, QuerySortOrder.ascending);
   void sortBy<T>(T propertyIdentifier(InstanceType x), QuerySortOrder order);
 
   /// The [ManagedEntity] of the [InstanceType].
@@ -186,13 +189,21 @@ abstract class Query<InstanceType extends ManagedObject> {
   ///
   InstanceType values;
 
-  /// A list of properties to be fetched by this query.
+  /// Configures the list of properties to be fetched for [InstanceType].
   ///
-  /// Each [InstanceType] will have these properties set when this query is executed. Each property must be
-  /// a column-backed property of [InstanceType].
+  /// This method configures which properties will be populated for [InstanceType] when returned
+  /// from this query. This impacts all query execution methods that return [InstanceType] or [List] of [InstanceType].
   ///
-  /// By default, this property is null, which indicates that the default properties of [InstanceType] should be fetched.
-  /// See [ManagedEntity.defaultProperties] for more details.
+  /// The following example would configure this instance to fetch the 'id' and 'name' for each returned 'Employee':
+  ///
+  ///         var q = new Query<Employee>()
+  ///           ..returningProperties((employee) => [employee.id, employee.name]);
+  ///
+  /// Note that if the primary key property of an object is omitted from this list, it will be added when this
+  /// instance executes. If the primary key value should not be sent back as part of an API response,
+  /// it can be stripped from the returned object(s) with [ManagedObject.removePropertyFromBackingMap].
+  ///
+  /// If this method is not invoked, the properties defined by [ManagedEntity.defaultProperties] are returned.
   void returningProperties(List<dynamic> propertyIdentifiers(InstanceType x));
 
   /// Inserts an [InstanceType] into the underlying database.
