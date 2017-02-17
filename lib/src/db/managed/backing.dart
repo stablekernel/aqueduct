@@ -95,7 +95,8 @@ class ManagedMatcherBacking extends ManagedBacking {
 class ManagedAccessTrackingBacking extends ManagedBacking {
   Map<String, dynamic> get valueMap => null;
 
-  dynamic valueForProperty(ManagedEntity entity, String propertyName) => propertyName;
+  dynamic valueForProperty(ManagedEntity entity, String propertyName) =>
+      propertyName;
 
   void setValueForProperty(
       ManagedEntity entity, String propertyName, dynamic value) {

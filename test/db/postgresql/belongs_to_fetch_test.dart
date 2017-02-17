@@ -221,7 +221,8 @@ void main() {
     test("Bidirectional join", () async {
       var q = new Query<ChildObject>()
         ..sortBy((c) => c.id, QuerySortOrder.ascending)
-        ..joinMany((c) => c.grandChildren).sortBy((g) => g.id, QuerySortOrder.descending)
+        ..joinMany((c) => c.grandChildren)
+            .sortBy((g) => g.id, QuerySortOrder.descending)
         ..joinOn((c) => c.parents);
 
       var results = await q.fetch();

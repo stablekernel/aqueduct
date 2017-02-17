@@ -7,13 +7,16 @@ import '../query/sort_descriptor.dart';
 class RowMapper extends PostgresMapper
     with PredicateBuilder, EntityTableMapper {
   RowMapper(this.type, this.joiningProperty, List<String> propertiesToFetch,
-      {this.predicate, this.whereBuilder, List<QuerySortDescriptor> sortDescriptors}) {
+      {this.predicate,
+      this.whereBuilder,
+      List<QuerySortDescriptor> sortDescriptors}) {
     returningOrderedMappers =
         PropertyToColumnMapper.fromKeys(this, entity, propertiesToFetch);
     _sortMappers = sortDescriptors
-        ?.map((s) =>
-    new PropertySortMapper(this, entity.properties[s.key], s.order))
-        ?.toList() ?? <PropertySortMapper>[];
+            ?.map((s) =>
+                new PropertySortMapper(this, entity.properties[s.key], s.order))
+            ?.toList() ??
+        <PropertySortMapper>[];
   }
 
   RowMapper.implicit(this.type, this.joiningProperty) {

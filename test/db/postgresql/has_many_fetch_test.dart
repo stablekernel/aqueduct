@@ -118,7 +118,8 @@ void main() {
       q.joinMany((p) => p.children)
         ..sortBy((c) => c.id, QuerySortOrder.ascending)
         ..joinOn((c) => c.toy)
-        ..joinMany((c) => c.vaccinations).sortBy((v) => v.id, QuerySortOrder.ascending);
+        ..joinMany((c) => c.vaccinations)
+            .sortBy((v) => v.id, QuerySortOrder.ascending);
 
       var verifier = (Parent p) {
         expect(p.name, "A");
@@ -238,7 +239,8 @@ void main() {
       q.joinMany((p) => p.children)
         ..sortBy((c) => c.id, QuerySortOrder.ascending)
         ..joinOn((c) => c.toy)
-        ..joinMany((c) => c.vaccinations).sortBy((v) => v.id, QuerySortOrder.ascending);
+        ..joinMany((c) => c.vaccinations)
+            .sortBy((v) => v.id, QuerySortOrder.ascending);
 
       var results = await q.fetch();
 
@@ -263,7 +265,8 @@ void main() {
       q.joinMany((p) => p.children)
         ..where.name = "C1"
         ..sortBy((c) => c.id, QuerySortOrder.ascending)
-        ..joinMany((c) => c.vaccinations).sortBy((v) => v.id, QuerySortOrder.ascending)
+        ..joinMany((c) => c.vaccinations)
+            .sortBy((v) => v.id, QuerySortOrder.ascending)
         ..joinOn((c) => c.toy);
 
       var results = await q.fetch();
@@ -424,7 +427,8 @@ void main() {
 
     test("Trying to fetch hasMany relationship through resultProperties fails",
         () async {
-      var q = new Query<Parent>()..returningProperties((p) => [p.id, p.children]);
+      var q = new Query<Parent>()
+        ..returningProperties((p) => [p.id, p.children]);
       try {
         await q.fetchOne();
       } on QueryException catch (e) {
@@ -437,7 +441,8 @@ void main() {
 
     test("Trying to fetch hasMany relationship through resultProperties fails",
         () async {
-      var q = new Query<Parent>()..returningProperties((p) => [p.id, p.children]);
+      var q = new Query<Parent>()
+        ..returningProperties((p) => [p.id, p.children]);
       try {
         await q.fetchOne();
         expect(true, false);
@@ -449,7 +454,8 @@ void main() {
       }
 
       q = new Query<Parent>();
-      q.joinMany((p) => p.children)..returningProperties((p) => [p.id, p.vaccinations]);
+      q.joinMany((p) => p.children)
+        ..returningProperties((p) => [p.id, p.vaccinations]);
 
       try {
         await q.fetchOne();

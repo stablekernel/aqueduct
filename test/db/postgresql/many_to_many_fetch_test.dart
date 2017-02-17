@@ -201,8 +201,7 @@ void main() {
 
   group("Self joins - standard", () {
     test("Can join by one relationship", () async {
-      var q = new Query<Team>()
-        ..sortBy((t) => t.id, QuerySortOrder.ascending);
+      var q = new Query<Team>()..sortBy((t) => t.id, QuerySortOrder.ascending);
 
       q.joinMany((t) => t.awayGames)..joinOn((g) => g.homeTeam);
 
@@ -248,8 +247,7 @@ void main() {
     });
 
     test("Can join by other relationship", () async {
-      var q = new Query<Team>()
-        ..sortBy((t) => t.id, QuerySortOrder.ascending);
+      var q = new Query<Team>()..sortBy((t) => t.id, QuerySortOrder.ascending);
 
       q.joinMany((t) => t.homeGames)..joinOn((g) => g.awayTeam);
       var results = await q.fetch();

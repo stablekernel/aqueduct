@@ -278,15 +278,13 @@ void main() {
           ..values.owner = u1)
         .insert();
 
-    var q = new Query<GenPost>()
-      ..returningProperties((p) => [p.id, p.owner]);
+    var q = new Query<GenPost>()..returningProperties((p) => [p.id, p.owner]);
 
     var result = await q.fetchOne();
     expect(result.owner.id, 1);
     expect(result.owner.backingMap.length, 1);
 
-    q = new Query<GenPost>()
-      ..returningProperties((p) => [p.id, p["owner_id"]]);
+    q = new Query<GenPost>()..returningProperties((p) => [p.id, p["owner_id"]]);
     try {
       await q.fetchOne();
       expect(true, false);
