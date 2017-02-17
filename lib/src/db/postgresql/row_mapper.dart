@@ -39,7 +39,7 @@ class RowMapper extends PostgresMapper
           : joiningProperty.inverse;
 
   List<PropertySortMapper> get sortMappers {
-    var allSortMappers = _sortMappers;
+    var allSortMappers = _sortMappers ?? <PropertySortMapper>[];
     returningOrderedMappers.where((p) => p is RowMapper).forEach((p) {
       allSortMappers.addAll((p as RowMapper).sortMappers);
     });
