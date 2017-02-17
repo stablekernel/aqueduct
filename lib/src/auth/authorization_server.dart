@@ -139,16 +139,15 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
   /// Returns a [Authorization] for [accessToken].
   ///
   /// This method obtains an [AuthToken] for [accessToken] from [storage] and then verifies that the token is valid.
-  /// If the token is valid, an [Authorization] object is returned. Otherwise, an [AuthServerException]
-  /// with [AuthRequestError.invalidToken] is thrown.
+  /// If the token is valid, an [Authorization] object is returned. Otherwise, [null] is returned.
   Future<Authorization> verify(String accessToken) async {
     if (accessToken == null) {
-      throw new AuthServerException(AuthRequestError.invalidToken, null);
+      return null;
     }
 
     AuthToken t = await storage.fetchTokenByAccessToken(this, accessToken);
     if (t == null || t.isExpired) {
-      throw new AuthServerException(AuthRequestError.invalidToken, null);
+      return null;
     }
 
     return new Authorization(t.clientID, t.resourceOwnerIdentifier, this);
@@ -371,7 +370,7 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
   @override
   Future<Authorization> fromBearerToken(
       String bearerToken, List<String> scopesRequired) {
-    return verify(bearerToken).catchError((_) => null);
+    return verify(bearerToken);
   }
 
   @override
