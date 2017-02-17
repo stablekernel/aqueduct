@@ -150,12 +150,6 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
         sortDescriptors: allSortDescriptors,
         aliasTables: true);
 
-    if (builder.containsJoins && pageDescriptor != null) {
-      throw new QueryException(QueryExceptionEvent.requestFailure,
-          message:
-              "Cannot use 'Query<T>' with both 'pageDescriptor' and joins currently.");
-    }
-
     return builder;
   }
 

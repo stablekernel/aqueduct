@@ -1,6 +1,7 @@
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
 import '../../helpers.dart';
+import '../model_graph.dart';
 
 void main() {
   group("Offset/limit", () {
@@ -325,6 +326,80 @@ void main() {
         ..fetchLimit = 5;
       var res = await req.fetch();
       check([2, 3, 4, 5, 6], res);
+    });
+  });
+
+  group("Paging + Join", () {
+    ManagedContext context = null;
+
+    setUpAll(() async {
+      context = await contextWithModels([
+        RootObject,
+        RootJoinObject,
+        OtherRootObject,
+        ChildObject,
+        GrandChildObject,
+      ]);
+      await populateModelGraph(context);
+    });
+
+    tearDownAll(() async {
+      await context?.persistentStore?.close();
+      context = null;
+    });
+
+    test("Single level join on has one relationship returns valid objects", () async {
+      var q = new Query<RootObject>()
+          ..pageBy((r) => r.value1, QuerySortOrder.descending)
+          ..fetchLimit = 3
+          ..joinOne((r) => r.child);
+      var results = await q.fetch();
+      expect(results.map((r) => r.asMap()).toList(), equals([
+        fullObjectMap(5, and: {"child": null}),
+        fullObjectMap(4, and: {"child": null}),
+        fullObjectMap(3, and: {"child": fullObjectMap(8, and: {"parents": null, "parent": {"id": 3}})}),
+      ]));
+
+      q = new Query<RootObject>()
+        ..pageBy((r) => r.value1, QuerySortOrder.descending, boundingValue: results.last.value1)
+        ..fetchLimit = 3
+        ..joinOne((r) => r.child);
+      results = await q.fetch();
+      expect(results.map((r) => r.asMap()).toList(), equals([
+        fullObjectMap(2, and: {"child": fullObjectMap(6, and: {"parents": null, "parent": {"id": 2}})}),
+        fullObjectMap(1, and: {"child": fullObjectMap(1, and: {"parents": null, "parent": {"id": 1}})}),
+      ]));
+    });
+
+    test("Single level join on has many relationship returns valid objects", () async {
+      var q = new Query<RootObject>()
+        ..pageBy((r) => r.value1, QuerySortOrder.descending)
+        ..fetchLimit = 3
+        ..joinMany((r) => r.children);
+      var results = await q.fetch();
+      expect(results.map((r) => r.asMap()).toList(), equals([
+        fullObjectMap(5, and: {"children": []}),
+        fullObjectMap(4, and: {"children": [fullObjectMap(9, and: {"parents": {"id": 4}, "parent": null})]}),
+        fullObjectMap(3, and: {"children": []}),
+      ]));
+
+      q = new Query<RootObject>()
+        ..pageBy((r) => r.value1, QuerySortOrder.descending, boundingValue: results.last.value1)
+        ..fetchLimit = 3;
+
+      q.joinMany((r) => r.children)
+        ..sortBy((c) => c.id, QuerySortOrder.descending);
+
+      results = await q.fetch();
+      expect(results.map((r) => r.asMap()).toList(), equals([
+        fullObjectMap(2, and: {"children": [fullObjectMap(7, and: {"parents": {"id": 2}, "parent": null})]}),
+        fullObjectMap(1, and: {"children": [
+          fullObjectMap(5, and: {"parents": {"id": 1}, "parent": null}),
+          fullObjectMap(4, and: {"parents": {"id": 1}, "parent": null}),
+          fullObjectMap(3, and: {"parents": {"id": 1}, "parent": null}),
+          fullObjectMap(2, and: {"parents": {"id": 1}, "parent": null}),
+        ]}),
+      ]));
     });
   });
 }
