@@ -84,12 +84,11 @@ void main() {
       var q = new Query<Parent>()..where.name = "B";
 
       q.joinMany((p) => p.children)
+        ..sortBy((c) => c.id, QuerySortOrder.ascending)
         ..joinOn((c) => c.toy)
         ..joinMany((c) => c.vaccinations);
 
       var verifier = (Parent p) {
-        p.children.sort((c1, c2) => c1.id.compareTo(c2.id));
-
         expect(p.name, "B");
         expect(p.id, isNotNull);
         expect(p.children.first.id, isNotNull);
@@ -117,13 +116,11 @@ void main() {
       var q = new Query<Parent>()..where.name = "A";
 
       q.joinMany((p) => p.children)
+        ..sortBy((c) => c.id, QuerySortOrder.ascending)
         ..joinOn((c) => c.toy)
-        ..joinMany((c) => c.vaccinations);
+        ..joinMany((c) => c.vaccinations).sortBy((v) => v.id, QuerySortOrder.ascending);
 
       var verifier = (Parent p) {
-        p.children.sort((c1, c2) => c1.id.compareTo(c2.id));
-        p.children.first.vaccinations.sort((v1, v2) => v1.id.compareTo(v2.id));
-
         expect(p.name, "A");
         expect(p.id, isNotNull);
         expect(p.children.first.id, isNotNull);
@@ -151,11 +148,11 @@ void main() {
         "Fetching multiple top-level instances and including one level of subobjects",
         () async {
       var q = new Query<Parent>()
+        ..sortBy((p) => p.id, QuerySortOrder.ascending)
         ..joinMany((p) => p.children)
         ..where.name = whereIn(["A", "C", "D"]);
       var results = await q.fetch();
       expect(results.length, 3);
-      results.sort((p1, p2) => p1.id.compareTo(p2.id));
 
       expect(results.first.id, isNotNull);
       expect(results.first.name, "A");
@@ -239,17 +236,15 @@ void main() {
       var q = new Query<Parent>()..where.name = "A";
 
       q.joinMany((p) => p.children)
+        ..sortBy((c) => c.id, QuerySortOrder.ascending)
         ..joinOn((c) => c.toy)
-        ..joinMany((c) => c.vaccinations);
+        ..joinMany((c) => c.vaccinations).sortBy((v) => v.id, QuerySortOrder.ascending);
 
       var results = await q.fetch();
 
       expect(results.length, 1);
 
       var p = results.first;
-      p.children.sort((c1, c2) => c1.id.compareTo(c2.id));
-      p.children
-          .forEach((c) => c.vaccinations?.sort((a, b) => a.id.compareTo(b.id)));
 
       expect(p.name, "A");
       expect(p.children.first.name, "C1");
@@ -267,14 +262,13 @@ void main() {
 
       q.joinMany((p) => p.children)
         ..where.name = "C1"
-        ..joinMany((c) => c.vaccinations)
+        ..sortBy((c) => c.id, QuerySortOrder.ascending)
+        ..joinMany((c) => c.vaccinations).sortBy((v) => v.id, QuerySortOrder.ascending)
         ..joinOn((c) => c.toy);
 
       var results = await q.fetch();
 
       expect(results.length, 4);
-
-      results.sort((p1, p2) => p1.id.compareTo(p2.id));
 
       for (var p in results.sublist(1)) {
         expect(p.children, []);
@@ -284,8 +278,6 @@ void main() {
       expect(p.children.length, 1);
       expect(p.children.first.name, "C1");
       expect(p.children.first.toy.name, "T1");
-
-      p.children.first.vaccinations.sort((v1, v2) => v1.id.compareTo(v2.id));
       expect(p.children.first.vaccinations.first.kind, "V1");
       expect(p.children.first.vaccinations.last.kind, "V2");
     });

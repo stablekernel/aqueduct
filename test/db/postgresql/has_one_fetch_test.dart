@@ -194,15 +194,11 @@ void main() {
       var q = new Query<Parent>()..where.name = "A";
       q.joinOn((p) => p.child)
         ..joinOn((c) => c.toy)
-        ..joinMany((c) => c.vaccinations);
+        ..joinMany((c) => c.vaccinations).sortBy((v) => v.id, QuerySortOrder.ascending);
 
       var results = await q.fetch();
 
       expect(results.length, 1);
-
-      results.forEach((p) {
-        p.child?.vaccinations?.sort((a, b) => a.id.compareTo(b.id));
-      });
 
       var p = results.first;
       expect(p.name, "A");
@@ -218,15 +214,11 @@ void main() {
       q.joinOn((p) => p.child)
         ..where.name = "C1"
         ..joinOn((c) => c.toy)
-        ..joinMany((c) => c.vaccinations);
+        ..joinMany((c) => c.vaccinations).sortBy((v) => v.id, QuerySortOrder.ascending);
 
       var results = await q.fetch();
 
       expect(results.length, 4);
-
-      results.forEach((p) {
-        p.child?.vaccinations?.sort((a, b) => a.id.compareTo(b.id));
-      });
 
       var p = results.first;
       expect(p.name, "A");

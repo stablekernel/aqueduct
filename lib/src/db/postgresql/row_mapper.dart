@@ -2,13 +2,18 @@ import '../db.dart';
 import 'entity_table.dart';
 import 'predicate_builder.dart';
 import 'property_mapper.dart';
+import '../query/sort_descriptor.dart';
 
 class RowMapper extends PostgresMapper
     with PredicateBuilder, EntityTableMapper {
   RowMapper(this.type, this.joiningProperty, List<String> propertiesToFetch,
-      {this.predicate, this.whereBuilder}) {
+      {this.predicate, this.whereBuilder, List<QuerySortDescriptor> sortDescriptors}) {
     returningOrderedMappers =
         PropertyToColumnMapper.fromKeys(this, entity, propertiesToFetch);
+    _sortMappers = sortDescriptors
+        ?.map((s) =>
+    new PropertySortMapper(this, entity.properties[s.key], s.order))
+        ?.toList() ?? <PropertySortMapper>[];
   }
 
   RowMapper.implicit(this.type, this.joiningProperty) {
@@ -21,6 +26,7 @@ class RowMapper extends PostgresMapper
   ManagedObject whereBuilder;
   QueryPredicate predicate;
   QueryPredicate _joinCondition;
+  List<PropertySortMapper> _sortMappers;
 
   ManagedEntity get entity => joiningProperty.inverse.entity;
 
@@ -28,6 +34,14 @@ class RowMapper extends PostgresMapper
       joiningProperty.relationshipType == ManagedRelationshipType.belongsTo
           ? joiningProperty
           : joiningProperty.inverse;
+
+  List<PropertySortMapper> get sortMappers {
+    var allSortMappers = _sortMappers;
+    returningOrderedMappers.where((p) => p is RowMapper).forEach((p) {
+      allSortMappers.addAll((p as RowMapper).sortMappers);
+    });
+    return allSortMappers;
+  }
 
   Map<String, dynamic> get substitutionVariables {
     var variables = joinCondition.parameters ?? {};
