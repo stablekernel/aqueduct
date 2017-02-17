@@ -264,13 +264,7 @@ Future<RequestControllerEvent> respond(Request req) async {
 }
 
 
-class CrashingStorage implements AuthStorage {
-  @override
-  Future revokeAuthenticatableWithIdentifier(
-      AuthServer server, dynamic identifier) async {
-    throw new HTTPResponseException(504, "ok");
-  }
-
+class CrashingStorage extends InMemoryAuthStorage {
   @override
   Future<AuthToken> fetchTokenByAccessToken(
       AuthServer server, String accessToken) async {
@@ -278,59 +272,7 @@ class CrashingStorage implements AuthStorage {
   }
 
   @override
-  Future<AuthToken> fetchTokenByRefreshToken(
-      AuthServer server, String refreshToken) async {
-    throw new HTTPResponseException(504, "ok");  }
-
-  @override
-  Future<TestUser> fetchAuthenticatableByUsername(
-      AuthServer server, String username) async {
-    throw new HTTPResponseException(504, "ok");
-  }
-
-  @override
-  Future revokeTokenIssuedFromCode(AuthServer server, AuthCode code) async {
-    throw new HTTPResponseException(504, "ok");
-  }
-
-  @override
-  Future storeToken(AuthServer server, AuthToken t,
-      {AuthCode issuedFrom}) async {
-    throw new HTTPResponseException(504, "ok");
-  }
-
-  @override
-  Future refreshTokenWithAccessToken(
-      AuthServer server,
-      String accessToken,
-      String newAccessToken,
-      DateTime newIssueDate,
-      DateTime newExpirationDate) async {
-    throw new HTTPResponseException(504, "ok");
-  }
-
-  @override
-  Future storeAuthCode(AuthServer server, AuthCode code) async {
-    throw new HTTPResponseException(504, "ok");
-  }
-
-  @override
-  Future<AuthCode> fetchAuthCodeByCode(AuthServer server, String code) async {
-    throw new HTTPResponseException(504, "ok");
-  }
-
-  @override
-  Future revokeAuthCodeWithCode(AuthServer server, String code) async {
-    throw new HTTPResponseException(504, "ok");
-  }
-
-  @override
   Future<AuthClient> fetchClientByID(AuthServer server, String id) async {
-    throw new HTTPResponseException(504, "ok");
-  }
-
-  @override
-  Future revokeClientWithID(AuthServer server, String id) async {
     throw new HTTPResponseException(504, "ok");
   }
 }
