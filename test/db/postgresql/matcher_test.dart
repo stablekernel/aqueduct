@@ -3,6 +3,7 @@ import 'package:aqueduct/aqueduct.dart';
 import '../../helpers.dart';
 
 void main() {
+  justLogEverything();
   ManagedContext context = null;
 
   setUpAll(() async {
@@ -160,8 +161,23 @@ void main() {
     expect(results.last.name, "Kanye");
   });
 
+  test("whereContains insensitive matcher", () async {
+    var q = new Query<TestModel>()..where["name"] = whereContains("Y", caseSensitive: false);
+    var results = await q.fetch();
+    expect(results.length, 2);
+    expect(results.first.name, "Sally");
+    expect(results.last.name, "Kanye");
+  });
+
   test("whereBeginsWith matcher", () async {
     var q = new Query<TestModel>()..where["name"] = whereBeginsWith("B");
+    var results = await q.fetch();
+    expect(results.length, 1);
+    expect(results.first.name, "Bob");
+  });
+
+  test("whereBeginsWith insensitive matcher", () async {
+    var q = new Query<TestModel>()..where["name"] = whereBeginsWith("b", caseSensitive: false);
     var results = await q.fetch();
     expect(results.length, 1);
     expect(results.first.name, "Bob");
@@ -172,6 +188,20 @@ void main() {
     var results = await q.fetch();
     expect(results.length, 1);
     expect(results.first.name, "Tim");
+  });
+
+  test("whereEndsWith insensitive matcher", () async {
+    var q = new Query<TestModel>()..where["name"] = whereEndsWith("M", caseSensitive: false);
+    var results = await q.fetch();
+    expect(results.length, 1);
+    expect(results.first.name, "Tim");
+  });
+
+  test("whereCaseInsensitivelyEqualTo matcher", () async {
+    var q = new Query<TestModel>()..where["name"] = whereCaseInsensitivelyEqualTo("SALlY");
+    var results = await q.fetch();
+    expect(results.length, 1);
+    expect(results.first.name, "Sally");
   });
 }
 

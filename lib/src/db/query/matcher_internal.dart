@@ -29,8 +29,9 @@ class WithinMatcherExpression implements MatcherExpression {
 }
 
 class StringMatcherExpression implements MatcherExpression {
-  StringMatcherExpression(this.value, this.operator);
+  StringMatcherExpression(this.value, this.operator, {this.caseSensitive});
 
   StringMatcherOperator operator;
+  bool caseSensitive;
   String value;
 }

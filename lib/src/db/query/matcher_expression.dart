@@ -12,7 +12,7 @@ enum MatcherOperator {
 }
 
 /// The operator in a string matcher.
-enum StringMatcherOperator { beginsWith, contains, endsWith }
+enum StringMatcherOperator { beginsWith, contains, endsWith, equals }
 
 /// Matcher for exactly matching a column value in a [Query].
 ///
@@ -82,8 +82,8 @@ dynamic whereNotEqual(dynamic value) {
 ///
 ///       var query = new Query<Employee>()
 ///         ..where.title = whereContains("Director");
-dynamic whereContains(String value) {
-  return new StringMatcherExpression(value, StringMatcherOperator.contains);
+dynamic whereContains(String value, {bool caseSensitive: true}) {
+  return new StringMatcherExpression(value, StringMatcherOperator.contains, caseSensitive: caseSensitive);
 }
 
 /// Matcher for matching string properties that start with [value] in a [Query].
@@ -92,8 +92,8 @@ dynamic whereContains(String value) {
 ///
 ///       var query = new Query<Employee>()
 ///         ..where.name = whereBeginsWith("B");
-dynamic whereBeginsWith(String value) {
-  return new StringMatcherExpression(value, StringMatcherOperator.beginsWith);
+dynamic whereBeginsWith(String value, {bool caseSensitive: true}) {
+  return new StringMatcherExpression(value, StringMatcherOperator.beginsWith, caseSensitive: caseSensitive);
 }
 
 /// Matcher for matching string properties that end with [value] in a [Query].
@@ -102,8 +102,18 @@ dynamic whereBeginsWith(String value) {
 ///
 ///       var query = new Query<Employee>()
 ///         ..where.name = whereEndsWith("son");
-dynamic whereEndsWith(String value) {
-  return new StringMatcherExpression(value, StringMatcherOperator.endsWith);
+dynamic whereEndsWith(String value, {bool caseSensitive: true}) {
+  return new StringMatcherExpression(value, StringMatcherOperator.endsWith, caseSensitive: caseSensitive);
+}
+
+/// Matcher for matching string properties that case insensitively equal[value] in a [Query].
+///
+/// See [Query.where].  Example:
+///
+///       var query = new Query<Employee>()
+///         ..where.name = whereCaseInsensitivelyEqualTo("fredrick");
+dynamic whereCaseInsensitivelyEqualTo(String value) {
+  return new StringMatcherExpression(value, StringMatcherOperator.equals, caseSensitive: false);
 }
 
 /// Matcher for matching values that are within the list of [values] in a [Query].
