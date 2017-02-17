@@ -72,7 +72,7 @@ dynamic whereLessThanEqualTo(dynamic value) {
 ///
 ///       var query = new Query<Employee>()
 ///         ..where.id = whereNotEqual(60000);
-dynamic whereNotEqual(dynamic value) {
+dynamic whereNotEqual(dynamic value, {bool caseSensitive}) {
   return new ComparisonMatcherExpression(value, MatcherOperator.notEqual);
 }
 
@@ -104,16 +104,6 @@ dynamic whereBeginsWith(String value, {bool caseSensitive: true}) {
 ///         ..where.name = whereEndsWith("son");
 dynamic whereEndsWith(String value, {bool caseSensitive: true}) {
   return new StringMatcherExpression(value, StringMatcherOperator.endsWith, caseSensitive: caseSensitive);
-}
-
-/// Matcher for matching string properties that case insensitively equal[value] in a [Query].
-///
-/// See [Query.where].  Example:
-///
-///       var query = new Query<Employee>()
-///         ..where.name = whereCaseInsensitivelyEqualTo("fredrick");
-dynamic whereCaseInsensitivelyEqualTo(String value) {
-  return new StringMatcherExpression(value, StringMatcherOperator.equals, caseSensitive: false);
 }
 
 /// Matcher for matching values that are within the list of [values] in a [Query].
