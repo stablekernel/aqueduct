@@ -9,10 +9,13 @@ import 'http_controller_internal.dart';
 
 /// Base class for HTTP web service controller.
 ///
-/// Subclasses of this class can process and respond to an HTTP request. A new instance of this type
-/// should be created for every request is processes. Subclasses of this type implement 'responder methods' to
-/// handle HTTP requests of a specified HTTP method and path. Responder methods must have [HTTPMethod] metadata and return
-/// a [Future] that completes with [Response]. Responder methods may also have [HTTPPath], [HTTPHeader], [HTTPQuery]
+/// Subclasses of this class respond to HTTP requests. Instances of this type should only ever respond to one [Request];
+/// use [RequestController.generate].
+///
+/// Subclasses of this type implement 'responder methods'. Responder methods must return [Future] that completes with [Response] and
+/// have [HTTPMethod] metadata (.e.g, [httpGet]).
+///
+/// Responder methods may also have [HTTPPath], [HTTPHeader], [HTTPQuery]
 /// parameters. An [HTTPController] evaluates a [Request] and finds a responder method that has a matching [HTTPMethod],
 /// [HTTPPath], [HTTPHeader], [HTTPQuery] values.
 ///
@@ -21,9 +24,14 @@ import 'http_controller_internal.dart';
 ///
 ///       class UserController extends RequestController {
 ///         @httpGet getUser(@HTTPPath ("id") int userID) async {
-///           return new Response.ok(await _userWithID(userID));
+///           return new Response.ok(await userWithID(userID));
 ///         }
 ///       }
+///
+/// Instances of this type will decode a request's body prior to invoking the responder method.
+///
+/// See further documentation on https://stablekernel.github.io/aqueduct under HTTP guides.
+///
 @cannotBeReused
 abstract class HTTPController extends RequestController {
   static ContentType _applicationWWWFormURLEncodedContentType =
@@ -71,7 +79,8 @@ abstract class HTTPController extends RequestController {
   /// Executed prior to a responder method being executed, but after the body has been processed.
   ///
   /// This method is called after the body has been processed by the decoder, but prior to the request being
-  /// handled by the appropriate responder method.
+  /// handled by the selected responder method. If there is no HTTP body in the request,
+  /// this method is not called.
   void didDecodeRequestBody(HTTPBody decodedObject) {}
 
   /// Returns a [Response] for missing [HTTPParameter]s.

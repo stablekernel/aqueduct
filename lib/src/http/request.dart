@@ -101,7 +101,7 @@ class Request implements RequestControllerEvent {
 
   String get _sanitizedBody {
     if (body.hasBeenDecoded) {
-      return _truncatedString("${body.asDynamic().toString()}", charSize: 512);
+      return _truncatedString(body.asDynamic().toString(), charSize: 512);
     }
 
     return "-";
