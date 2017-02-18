@@ -15,6 +15,7 @@ class Request implements RequestControllerEvent {
   /// Creates an instance of [Request], no need to do so manually.
   Request(this.innerRequest) {
     connectionInfo = innerRequest.connectionInfo;
+    _body = new HTTPBody(this.innerRequest);
   }
 
   /// The internal [HttpRequest] of this [Request].
@@ -54,7 +55,8 @@ class Request implements RequestControllerEvent {
   /// Once decoded, this value will be an object that is determined by the decoder passed to [decodeBody].
   /// For example, if the request body was a JSON object and the decoder handled JSON, this value would be a [Map]
   /// representing the JSON object.
-  dynamic requestBodyObject;
+  HTTPBody get body => _body;
+  HTTPBody _body;
 
   /// Whether or not this request is a CORS request.
   ///
@@ -86,22 +88,6 @@ class Request implements RequestControllerEvent {
   /// Access to logger directly from this instance.
   Logger get logger => new Logger("aqueduct");
 
-  /// Decodes the body of this request according to its Content-Type.
-  ///
-  /// This method initiates the decoding of this request's body according to its Content-Type, returning a [Future] that completes
-  /// with the decoded object when decoding has finished. The decoded body is also available in [requestBodyObject] once decoding has completed.
-  /// This method may be called multiple times; decoding will only occur once. If there is no request body, this method will return a [Future] that completes
-  /// with the null value.
-  ///
-  /// [HTTPController]s invoke this method prior to invoking their responder method, so there is no need to call this method in a [HTTPController].
-  Future decodeBody() async {
-    if (innerRequest.contentLength > 0) {
-      requestBodyObject ??= await HTTPBodyDecoder.decode(innerRequest);
-    }
-
-    return requestBodyObject;
-  }
-
   String get _sanitizedHeaders {
     StringBuffer buf = new StringBuffer("{");
 
@@ -114,8 +100,8 @@ class Request implements RequestControllerEvent {
   }
 
   String get _sanitizedBody {
-    if (requestBodyObject != null) {
-      return _truncatedString("$requestBodyObject", charSize: 512);
+    if (body.hasBeenDecoded) {
+      return _truncatedString("${body.asDynamic().toString()}", charSize: 512);
     }
 
     return "-";

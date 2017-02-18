@@ -361,6 +361,25 @@ void main() {
     expect(resp.statusCode, 200);
     expect(JSON.decode(resp.body), {"statusCode": 500});
   });
+
+  test("Failure to decode request body as appropriate type is 400", () async {
+    // do both asMap and decodeAsMap to make sure both future behaviors are correct
+    server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8080);
+    server.map((req) => new Request(req)).listen((req) async {
+      var next = new RequestController();
+      next.listen((r) async {
+        await r.body.decodeAsMap();
+        return new Response.ok(null);
+      });
+      await next.receive(req);
+    });
+
+    var resp = await http.post("http://localhost:8080", headers: {
+      "content-type": "application/json"
+    }, body: JSON.encode(["a"]));
+
+    expect(resp.statusCode, 400);
+  });
 }
 
 class SomeObject implements HTTPSerializable {

@@ -59,11 +59,6 @@ abstract class HTTPController extends RequestController {
   /// that property with this value. Defaults to "application/json".
   ContentType responseContentType = ContentType.JSON;
 
-  /// The HTTP request body object, after being decoded.
-  ///
-  /// This object will be decoded according to the this request's content type. If there was no body, this value will be null.
-  dynamic get requestBody => request.requestBodyObject;
-
   /// Executed prior to handling a request, but after the [request] has been set.
   ///
   /// This method is used to do pre-process setup and filtering. The [request] will be set, but its body will not be decoded
@@ -77,7 +72,7 @@ abstract class HTTPController extends RequestController {
   ///
   /// This method is called after the body has been processed by the decoder, but prior to the request being
   /// handled by the appropriate responder method.
-  void didDecodeRequestBody(dynamic decodedObject) {}
+  void didDecodeRequestBody(HTTPBody decodedObject) {}
 
   /// Returns a [Response] for missing [HTTPParameter]s.
   ///
@@ -141,14 +136,14 @@ abstract class HTTPController extends RequestController {
 
     if (request.innerRequest.contentLength > 0) {
       if (_requestContentTypeIsSupported(request)) {
-        await request.decodeBody();
+        await request.body.decodedData;
       } else {
         return new Response(HttpStatus.UNSUPPORTED_MEDIA_TYPE, null, null);
       }
     }
 
-    if (requestBody != null) {
-      didDecodeRequestBody(requestBody);
+    if (request.body.hasContent != null) {
+      didDecodeRequestBody(request.body);
     }
 
     var queryParameters = request.innerRequest.uri.queryParametersAll;
@@ -159,7 +154,7 @@ abstract class HTTPController extends RequestController {
                 ._applicationWWWFormURLEncodedContentType.primaryType &&
         contentType.subType ==
             HTTPController._applicationWWWFormURLEncodedContentType.subType) {
-      queryParameters = requestBody as Map<String, List<String>> ?? {};
+      queryParameters = request.body.asMap() as Map<String, List<String>> ?? {};
     }
 
     var orderedParameters =

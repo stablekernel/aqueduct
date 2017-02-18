@@ -523,7 +523,7 @@ class TController extends HTTPController {
 
   @httpPost
   Future<Response> post() async {
-    var body = this.requestBody;
+    var body = this.request.body.asMap();
 
     return new Response.ok(body);
   }
