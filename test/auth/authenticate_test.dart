@@ -195,13 +195,7 @@ void main() {
     });
 
     test("Cannot verify token that doesn't exist", () async {
-      try {
-        await auth.verify("nonsense");
-        expect(true, false);
-      } on AuthServerException catch (e) {
-        expect(e.client, isNull);
-        expect(e.reason, AuthRequestError.invalidToken);
-      }
+      expect(await auth.verify("nonsense"), isNull);
     });
 
     test("Expired token cannot be verified", () async {
@@ -214,12 +208,7 @@ void main() {
 
       sleep(new Duration(seconds: 1));
 
-      try {
-        await auth.verify(token.accessToken);
-        expect(true, false);
-      } on AuthServerException catch (e) {
-        expect(e.reason, AuthRequestError.invalidToken);
-      }
+      expect(await auth.verify(token.accessToken), isNull);
     });
   });
 
@@ -273,10 +262,7 @@ void main() {
     test("After refresh, the previous token cannot be used", () async {
       await auth.refresh(
           initialToken.refreshToken, "com.stablekernel.app1", "kilimanjaro");
-      try {
-        await auth.verify(initialToken.accessToken);
-        expect(true, false);
-      } on AuthServerException {}
+      expect(await auth.verify(initialToken.accessToken), isNull);
     });
 
     test("Cannot refresh token that has not been issued", () async {
@@ -493,10 +479,7 @@ void main() {
       } on AuthServerException {}
 
       // Can no longer use issued token
-      try {
-        await auth.verify(issuedToken.accessToken);
-        expect(true, false);
-      } on AuthServerException {}
+      expect(await auth.verify(issuedToken.accessToken), isNull);
     });
 
     test(
@@ -514,15 +497,8 @@ void main() {
       } on AuthServerException {}
 
       // Can no longer use issued token
-      try {
-        await auth.verify(issuedToken.accessToken);
-        expect(true, false);
-      } on AuthServerException {}
-
-      try {
-        await auth.verify(refreshedToken.accessToken);
-        expect(true, false);
-      } on AuthServerException {}
+      expect(await auth.verify(issuedToken.accessToken), null);
+      expect(await auth.verify(refreshedToken.accessToken), null);
     });
 
     test("Null client ID fails", () async {

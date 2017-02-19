@@ -208,13 +208,7 @@ void main() {
     });
 
     test("Cannot verify token that doesn't exist", () async {
-      try {
-        await auth.verify("nonsense");
-        expect(true, false);
-      } on AuthServerException catch (e) {
-        expect(e.client, isNull);
-        expect(e.reason, AuthRequestError.invalidToken);
-      }
+      expect(await auth.verify("nonsense"), isNull);
     });
 
     test("Expired token cannot be verified", () async {
@@ -224,12 +218,7 @@ void main() {
 
       sleep(new Duration(seconds: 1));
 
-      try {
-        await auth.verify(token.accessToken);
-        expect(true, false);
-      } on AuthServerException catch (e) {
-        expect(e.reason, AuthRequestError.invalidToken);
-      }
+      expect(await auth.verify(token.accessToken), isNull);
     });
 
     test("Cannot verify token if owner authentcatable is 'revoked'", () async {
@@ -237,10 +226,7 @@ void main() {
           User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
       await auth.revokeAuthenticatableAccessForIdentifier(createdUser.id);
 
-      try {
-        await auth.verify(token.accessToken);
-        expect(true, false);
-      } on AuthServerException {}
+      expect(await auth.verify(token.accessToken), isNull);
     });
   });
 
@@ -295,10 +281,7 @@ void main() {
     test("After refresh, the previous token cannot be used", () async {
       await auth.refresh(
           initialToken.refreshToken, "com.stablekernel.app1", "kilimanjaro");
-      try {
-        await auth.verify(initialToken.accessToken);
-        expect(true, false);
-      } on AuthServerException {}
+      expect(await auth.verify(initialToken.accessToken), isNull);
 
       // Make sure we don't have duplicates in the db
       var q = new Query<ManagedToken>();
@@ -540,10 +523,7 @@ void main() {
       } on AuthServerException {}
 
       // Can no longer use issued token
-      try {
-        await auth.verify(issuedToken.accessToken);
-        expect(true, false);
-      } on AuthServerException {}
+      expect(await auth.verify(issuedToken.accessToken), isNull);
 
       // Ensure that the associated auth code is also destroyed
       var authCodeQuery = new Query<ManagedToken>();
@@ -565,16 +545,10 @@ void main() {
       } on AuthServerException {}
 
       // Can no longer use issued token
-      try {
-        await auth.verify(issuedToken.accessToken);
-        expect(true, false);
-      } on AuthServerException {}
+      expect(await auth.verify(issuedToken.accessToken), isNull);
 
       // Can no longer use refreshed token
-      try {
-        await auth.verify(refreshedToken.accessToken);
-        expect(true, false);
-      } on AuthServerException {}
+      expect(await auth.verify(refreshedToken.accessToken), isNull);
 
       // Ensure that the associated auth code is also destroyed
       var authCodeQuery = new Query<ManagedToken>();
@@ -657,14 +631,9 @@ void main() {
             unusedCode.code, "com.stablekernel.redirect", "mckinley");
         expect(true, false);
       } on AuthServerException {}
-      try {
-        await auth.verify(exchangedToken.accessToken);
-        expect(true, false);
-      } on AuthServerException {}
-      try {
-        await auth.verify(issuedToken.accessToken);
-        expect(true, false);
-      } on AuthServerException {}
+
+      expect(await auth.verify(exchangedToken.accessToken), isNull);
+      expect(await auth.verify(issuedToken.accessToken), isNull);
 
       var tokenQuery = new Query<ManagedToken>();
       expect(await tokenQuery.fetch(), isEmpty);
@@ -772,14 +741,9 @@ void main() {
             unusedCode.code, "com.stablekernel.redirect", "mckinley");
         expect(true, false);
       } on AuthServerException {}
-      try {
-        await auth.verify(exchangedToken.accessToken);
-        expect(true, false);
-      } on AuthServerException {}
-      try {
-        await auth.verify(issuedToken.accessToken);
-        expect(true, false);
-      } on AuthServerException {}
+
+      expect(await auth.verify(exchangedToken.accessToken), isNull);
+      expect(await auth.verify(issuedToken.accessToken), isNull);
 
       var tokenQuery = new Query<ManagedToken>();
       expect(await tokenQuery.fetch(), isEmpty);
@@ -980,10 +944,7 @@ void main() {
       await auth.revokeAuthenticatableAccessForIdentifier(createdUsers[0].id);
       expect(await auth.verify(t2.accessToken), isNotNull);
 
-      try {
-        await auth.verify(t1.accessToken);
-        expect(true, false);
-      } on AuthServerException {}
+      expect(await auth.verify(t1.accessToken), isNull);
     });
   });
 }

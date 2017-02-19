@@ -47,7 +47,7 @@ void main() {
       var q = new Query<Parent>()..where.name = "D";
 
       q.joinMany((p) => p.children)
-        ..joinOn((c) => c.toy)
+        ..joinOne((c) => c.toy)
         ..joinMany((c) => c.vaccinations);
 
       var verifier = (Parent p) {
@@ -84,12 +84,11 @@ void main() {
       var q = new Query<Parent>()..where.name = "B";
 
       q.joinMany((p) => p.children)
-        ..joinOn((c) => c.toy)
+        ..sortBy((c) => c.id, QuerySortOrder.ascending)
+        ..joinOne((c) => c.toy)
         ..joinMany((c) => c.vaccinations);
 
       var verifier = (Parent p) {
-        p.children.sort((c1, c2) => c1.id.compareTo(c2.id));
-
         expect(p.name, "B");
         expect(p.id, isNotNull);
         expect(p.children.first.id, isNotNull);
@@ -117,13 +116,12 @@ void main() {
       var q = new Query<Parent>()..where.name = "A";
 
       q.joinMany((p) => p.children)
-        ..joinOn((c) => c.toy)
-        ..joinMany((c) => c.vaccinations);
+        ..sortBy((c) => c.id, QuerySortOrder.ascending)
+        ..joinOne((c) => c.toy)
+        ..joinMany((c) => c.vaccinations)
+            .sortBy((v) => v.id, QuerySortOrder.ascending);
 
       var verifier = (Parent p) {
-        p.children.sort((c1, c2) => c1.id.compareTo(c2.id));
-        p.children.first.vaccinations.sort((v1, v2) => v1.id.compareTo(v2.id));
-
         expect(p.name, "A");
         expect(p.id, isNotNull);
         expect(p.children.first.id, isNotNull);
@@ -151,11 +149,11 @@ void main() {
         "Fetching multiple top-level instances and including one level of subobjects",
         () async {
       var q = new Query<Parent>()
+        ..sortBy((p) => p.id, QuerySortOrder.ascending)
         ..joinMany((p) => p.children)
         ..where.name = whereIn(["A", "C", "D"]);
       var results = await q.fetch();
       expect(results.length, 3);
-      results.sort((p1, p2) => p1.id.compareTo(p2.id));
 
       expect(results.first.id, isNotNull);
       expect(results.first.name, "A");
@@ -186,7 +184,7 @@ void main() {
     test("Fetch entire graph", () async {
       var q = new Query<Parent>();
       q.joinMany((p) => p.children)
-        ..joinOn((c) => c.toy)
+        ..joinOne((c) => c.toy)
         ..joinMany((c) => c.vaccinations);
 
       var all = await q.fetch();
@@ -239,17 +237,16 @@ void main() {
       var q = new Query<Parent>()..where.name = "A";
 
       q.joinMany((p) => p.children)
-        ..joinOn((c) => c.toy)
-        ..joinMany((c) => c.vaccinations);
+        ..sortBy((c) => c.id, QuerySortOrder.ascending)
+        ..joinOne((c) => c.toy)
+        ..joinMany((c) => c.vaccinations)
+            .sortBy((v) => v.id, QuerySortOrder.ascending);
 
       var results = await q.fetch();
 
       expect(results.length, 1);
 
       var p = results.first;
-      p.children.sort((c1, c2) => c1.id.compareTo(c2.id));
-      p.children
-          .forEach((c) => c.vaccinations?.sort((a, b) => a.id.compareTo(b.id)));
 
       expect(p.name, "A");
       expect(p.children.first.name, "C1");
@@ -267,14 +264,14 @@ void main() {
 
       q.joinMany((p) => p.children)
         ..where.name = "C1"
+        ..sortBy((c) => c.id, QuerySortOrder.ascending)
         ..joinMany((c) => c.vaccinations)
-        ..joinOn((c) => c.toy);
+            .sortBy((v) => v.id, QuerySortOrder.ascending)
+        ..joinOne((c) => c.toy);
 
       var results = await q.fetch();
 
       expect(results.length, 4);
-
-      results.sort((p1, p2) => p1.id.compareTo(p2.id));
 
       for (var p in results.sublist(1)) {
         expect(p.children, []);
@@ -284,8 +281,6 @@ void main() {
       expect(p.children.length, 1);
       expect(p.children.first.name, "C1");
       expect(p.children.first.toy.name, "T1");
-
-      p.children.first.vaccinations.sort((v1, v2) => v1.id.compareTo(v2.id));
       expect(p.children.first.vaccinations.first.kind, "V1");
       expect(p.children.first.vaccinations.last.kind, "V2");
     });
@@ -294,7 +289,7 @@ void main() {
         () async {
       var q = new Query<Parent>();
 
-      var childJoin = q.joinMany((p) => p.children)..joinOn((c) => c.toy);
+      var childJoin = q.joinMany((p) => p.children)..joinOne((c) => c.toy);
       childJoin.joinMany((c) => c.vaccinations)..where.kind = "V1";
 
       var results = await q.fetch();
@@ -332,7 +327,7 @@ void main() {
         () async {
       var q = new Query<Parent>()..where.id = 5;
 
-      var childJoin = q.joinMany((p) => p.children)..joinOn((c) => c.toy);
+      var childJoin = q.joinMany((p) => p.children)..joinOne((c) => c.toy);
       childJoin.joinMany((c) => c.vaccinations)..where.kind = "V1";
 
       var results = await q.fetch();
@@ -360,7 +355,7 @@ void main() {
         ..sortBy((p) => p.name, QuerySortOrder.descending);
 
       q.joinMany((p) => p.children)
-        ..joinOn((c) => c.toy)
+        ..joinOne((c) => c.toy)
         ..joinMany((c) => c.vaccinations);
 
       var results = await q.fetch();
@@ -432,7 +427,8 @@ void main() {
 
     test("Trying to fetch hasMany relationship through resultProperties fails",
         () async {
-      var q = new Query<Parent>()..returningProperties((p) => [p.id, p.children]);
+      var q = new Query<Parent>()
+        ..returningProperties((p) => [p.id, p.children]);
       try {
         await q.fetchOne();
       } on QueryException catch (e) {
@@ -445,7 +441,8 @@ void main() {
 
     test("Trying to fetch hasMany relationship through resultProperties fails",
         () async {
-      var q = new Query<Parent>()..returningProperties((p) => [p.id, p.children]);
+      var q = new Query<Parent>()
+        ..returningProperties((p) => [p.id, p.children]);
       try {
         await q.fetchOne();
         expect(true, false);
@@ -457,7 +454,8 @@ void main() {
       }
 
       q = new Query<Parent>();
-      q.joinMany((p) => p.children)..returningProperties((p) => [p.id, p.vaccinations]);
+      q.joinMany((p) => p.children)
+        ..returningProperties((p) => [p.id, p.vaccinations]);
 
       try {
         await q.fetchOne();

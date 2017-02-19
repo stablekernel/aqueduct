@@ -35,12 +35,92 @@ abstract class Query<InstanceType extends ManagedObject> {
     return null;
   }
 
-  Query<T> joinOn<T extends ManagedObject>(
+  /// Configures this instance to also include has-one relationship properties for returned objects.
+  ///
+  /// This method configures this instance to also include values for the relationship property identified
+  /// by [propertyIdentifier]. [propertyIdentifier] must return a has-one relationship property of [InstanceType].
+  /// i.e., the returned value from this closure must be a [ManagedObject] subclass.
+  ///
+  ///         var query = new Query<AccountHolder>()
+  ///           ..joinOne((accountHolder) => accountHolder.primaryAccount);
+  ///
+  /// Instances returned from this query when executing [fetch] or [fetchOne]
+  /// will include values for that relationship property if a value exists. If the value does not exist,
+  /// i.e. the value is null, the returned object will contain the null value for its relationship property.
+  ///
+  /// This method returns another instance of [Query] with a parametrized type of the related object. The
+  /// return query is a subquery of this instance. A subquery may be configured just like any other query,
+  /// e.g. configuring properties like [returningProperties] and [where].
+  ///
+  /// More than one [joinOne] (or [joinMany]) can be used on a single query and subqueries can also have [joinOne]
+  /// and [joinMany] nested configurations. Keep in mind, each additional join configuration does have an impact on
+  /// query performance.
+  ///
+  /// This configuration is only valid when executing [fetch] or [fetchOne].
+  Query<T> joinOne<T extends ManagedObject>(
       T propertyIdentifier(InstanceType x));
+
+  /// Configures this instance to also include has-many relationship properties for returned objects.
+  ///
+  /// This method configures this instance to also include values for the relationship property identified
+  /// by [propertyIdentifier]. [propertyIdentifier] must return a has-many relationship property of [InstanceType].
+  /// i.e., the returned value from this closure must be a [ManagedSet].
+  ///
+  ///         var query = new Query<AccountHolder>()
+  ///           ..joinMany((accountHolder) => accountHolder.accounts);
+  ///
+  /// Instances returned from this query when executing [fetch] or [fetchOne]
+  /// will include values for that relationship property if a value exists. If the value does not exist,
+  /// i.e. the value is null, the returned object will contain the null value for its relationship property.
+  ///
+  /// This method returns another instance of [Query] with a parametrized type of the related object. The
+  /// return query is a subquery of this instance. A subquery may be configured just like any other query,
+  /// e.g. configuring properties like [returningProperties] and [where].
+  ///
+  /// More than one [joinOne] (or [joinMany]) can be used on a single query and subqueries can also have [joinOne]
+  /// and [joinMany] nested configurations. Keep in mind, each additional join configuration does have an impact on
+  /// query performance.
+  ///
+  /// This configuration is only valid when executing [fetch] or [fetchOne].
   Query<T> joinMany<T extends ManagedObject>(
       ManagedSet<T> propertyIdentifier(InstanceType x));
+
+
+  /// Configures this instance to fetch a section of a larger result set.
+  ///
+  /// This method provides an effective mechanism for paging a result set by ordering rows
+  /// by some property, offsetting into that ordered set and returning rows starting from that offset.
+  /// The [fetchLimit] of this instance must also be configured to limit the size of the page.
+  ///
+  /// The property that determines order is identified by [propertyIdentifier]. This closure must
+  /// return a property of of [InstanceType]. The order is determined by [order]. When fetching
+  /// the 'first' page of results, no value is passed for [boundingValue]. As later pages are fetched,
+  /// the value of the paging property for the last returned object in the previous result set is used
+  /// as [boundingValue]. For example:
+  ///
+  ///         var recentHireQuery = new Query<Employee>()
+  ///           ..pageBy((e) => e.hireDate, QuerySortOrder.descending);
+  ///         var recentHires = await recentHireQuery.fetch();
+  ///
+  ///         var nextRecentHireQuery = new Query<Employee>()
+  ///           ..pageBy((e) => e.hireDate, QuerySortOrder.descending,
+  ///             boundingValue: recentHires.last.hireDate);
+  ///
+  /// Note that internally, [pageBy] adds a matcher to [where] and adds a high-priority [sortBy].
+  /// Adding multiple [pageBy]s to an instance has undefined behavior.
   void pageBy<T>(T propertyIdentifier(InstanceType x), QuerySortOrder order,
       {T boundingValue});
+
+
+  /// Configures this instance to sort its results by some property and order.
+  ///
+  /// This method will have the database perform a sort by some property identified by [propertyIdentifier].
+  /// [propertyIdentifier] must return a scalar property of [InstanceType] that can be compared. The [order]
+  /// indicates the order the returned rows will be in. Multiple [sortBy]s may be invoked on an instance;
+  /// the order in which they are added indicates sort precedence. Example:
+  ///
+  ///         var query = new Query<Employee>()
+  ///           ..sortBy((e) => e.name, QuerySortOrder.ascending);
   void sortBy<T>(T propertyIdentifier(InstanceType x), QuerySortOrder order);
 
   /// The [ManagedEntity] of the [InstanceType].
@@ -109,13 +189,21 @@ abstract class Query<InstanceType extends ManagedObject> {
   ///
   InstanceType values;
 
-  /// A list of properties to be fetched by this query.
+  /// Configures the list of properties to be fetched for [InstanceType].
   ///
-  /// Each [InstanceType] will have these properties set when this query is executed. Each property must be
-  /// a column-backed property of [InstanceType].
+  /// This method configures which properties will be populated for [InstanceType] when returned
+  /// from this query. This impacts all query execution methods that return [InstanceType] or [List] of [InstanceType].
   ///
-  /// By default, this property is null, which indicates that the default properties of [InstanceType] should be fetched.
-  /// See [ManagedEntity.defaultProperties] for more details.
+  /// The following example would configure this instance to fetch the 'id' and 'name' for each returned 'Employee':
+  ///
+  ///         var q = new Query<Employee>()
+  ///           ..returningProperties((employee) => [employee.id, employee.name]);
+  ///
+  /// Note that if the primary key property of an object is omitted from this list, it will be added when this
+  /// instance executes. If the primary key value should not be sent back as part of an API response,
+  /// it can be stripped from the returned object(s) with [ManagedObject.removePropertyFromBackingMap].
+  ///
+  /// If this method is not invoked, the properties defined by [ManagedEntity.defaultProperties] are returned.
   void returningProperties(List<dynamic> propertyIdentifiers(InstanceType x));
 
   /// Inserts an [InstanceType] into the underlying database.

@@ -50,15 +50,16 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
     return _whereBuilder;
   }
 
-  Query<T> joinOn<T extends ManagedObject>(T m(InstanceType x)) {
+  Query<T> joinOne<T extends ManagedObject>(T m(InstanceType x)) {
     var tracker = new ManagedAccessTrackingBacking();
     var obj = entity.newInstance()..backing = tracker;
     var matchingKey = m(obj as InstanceType) as String;
 
     var attr = entity.relationships[matchingKey];
     if (attr == null) {
-      throw new QueryException(QueryExceptionEvent.internalFailure, message:
-        "Property '${matchingKey}' is not a relationship or does not exist for ${entity.tableName} in 'joinMany'.");
+      throw new QueryException(QueryExceptionEvent.internalFailure,
+          message:
+              "Property '${matchingKey}' is not a relationship or does not exist for ${entity.tableName} in 'joinMany'.");
     }
 
     return _createSubquery(attr);
@@ -71,8 +72,9 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
 
     var attr = entity.relationships[matchingKey];
     if (attr == null) {
-      throw new QueryException(QueryExceptionEvent.internalFailure, message:
-        "Property '${matchingKey}' is not a relationship or does not exist for ${entity.tableName} in 'joinMany'.");
+      throw new QueryException(QueryExceptionEvent.internalFailure,
+          message:
+              "Property '${matchingKey}' is not a relationship or does not exist for ${entity.tableName} in 'joinMany'.");
     }
 
     return _createSubquery(attr);
@@ -164,9 +166,9 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
   void returningProperties(List<dynamic> propertyIdentifiers(InstanceType x)) {
     var tracker = new ManagedAccessTrackingBacking();
     var obj = entity.newInstance()..backing = tracker;
-    var propertyNames = propertyIdentifiers(obj as InstanceType) as List<String>;
+    var propertyNames =
+        propertyIdentifiers(obj as InstanceType) as List<String>;
 
     _propertiesToFetch = propertyNames;
   }
-
 }
