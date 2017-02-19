@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 void main() {
+  RequestController.letUncaughtExceptionsEscape = true;
   InMemoryAuthStorage delegate;
   AuthServer authServer;
   HttpServer server;
@@ -220,6 +221,28 @@ void main() {
       expect(res.statusCode, 400);
     });
   });
+
+  group("Exceptions", () {
+    test("Actual status code returned for exception in basic authorizer", () async {
+      var anotherAuthServer = new AuthServer(new CrashingStorage());
+      server = await enableAuthorizer(new Authorizer.basic(anotherAuthServer));
+      var res = await http.get("http://localhost:8000", headers: {
+        HttpHeaders.AUTHORIZATION:
+        "Basic ${new Base64Encoder().convert("a:".codeUnits)}"
+      });
+      expect(res.statusCode, 504);
+    });
+
+    test("Actual status code returned for exception in bearer authorizer", () async {
+      var anotherAuthServer = new AuthServer(new CrashingStorage());
+      server = await enableAuthorizer(new Authorizer.bearer(anotherAuthServer));
+      var res = await http.get("http://localhost:8000", headers: {
+        HttpHeaders.AUTHORIZATION:
+        "Bearer axy"
+      });
+      expect(res.statusCode, 504);
+    });
+  });
 }
 
 Future<HttpServer> enableAuthorizer(Authorizer authorizer) async {
@@ -238,4 +261,18 @@ Future<RequestControllerEvent> respond(Request req) async {
     "clientID": req.authorization.clientID,
     "resourceOwnerIdentifier": req.authorization.resourceOwnerIdentifier
   });
+}
+
+
+class CrashingStorage extends InMemoryAuthStorage {
+  @override
+  Future<AuthToken> fetchTokenByAccessToken(
+      AuthServer server, String accessToken) async {
+    throw new HTTPResponseException(504, "ok");
+  }
+
+  @override
+  Future<AuthClient> fetchClientByID(AuthServer server, String id) async {
+    throw new HTTPResponseException(504, "ok");
+  }
 }
