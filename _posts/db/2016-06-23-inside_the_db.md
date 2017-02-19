@@ -3,7 +3,7 @@ layout: page
 title: "Inside Aqueduct's ORM"
 category: db
 date: 2016-06-20 10:35:56
-order: 6
+order: 7
 ---
 
 Aqueduct applications use a number of objects to manage its relationship to a database. A `Query<T>` is an interface to a concrete class that translates it into flavor-specific SQL. `Query<T>`s are executed in a `ManagedContext`, which has two important properties: a `PersistentStore` and a `ManagedDataModel`. A `PersistentStore` is also an interface to a concrete class that manages flavor-specific SQL connections. A `ManagedDataModel` keeps all of the information about the `ManagedObject<T>`s in your application. This data model contains an instance of `ManagedEntity` for each `ManagedObject<T>` declared.

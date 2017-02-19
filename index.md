@@ -44,4 +44,4 @@ Once you are familiar with the fundamentals of the framework, you can get starte
 
 4. Create a new project.
 
-        aqueduct create -n my_project
+        aqueduct create my_project
