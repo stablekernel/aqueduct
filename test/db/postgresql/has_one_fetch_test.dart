@@ -194,15 +194,12 @@ void main() {
       var q = new Query<Parent>()..where.name = "A";
       q.joinOne((p) => p.child)
         ..joinOne((c) => c.toy)
-        ..joinMany((c) => c.vaccinations);
+        ..joinMany((c) => c.vaccinations)
+            .sortBy((v) => v.id, QuerySortOrder.ascending);
 
       var results = await q.fetch();
 
       expect(results.length, 1);
-
-      results.forEach((p) {
-        p.child?.vaccinations?.sort((a, b) => a.id.compareTo(b.id));
-      });
 
       var p = results.first;
       expect(p.name, "A");
@@ -218,15 +215,12 @@ void main() {
       q.joinOne((p) => p.child)
         ..where.name = "C1"
         ..joinOne((c) => c.toy)
-        ..joinMany((c) => c.vaccinations);
+        ..joinMany((c) => c.vaccinations)
+            .sortBy((v) => v.id, QuerySortOrder.ascending);
 
       var results = await q.fetch();
 
       expect(results.length, 4);
-
-      results.forEach((p) {
-        p.child?.vaccinations?.sort((a, b) => a.id.compareTo(b.id));
-      });
 
       var p = results.first;
       expect(p.name, "A");
@@ -291,8 +285,10 @@ void main() {
         () async {
       var q = new Query<Parent>()..returningProperties((p) => [p.name]);
 
-      var childQuery = q.joinOne((p) => p.child)..returningProperties((c) => [c.name]);
-      childQuery.joinMany((c) => c.vaccinations)..returningProperties((v) => [v.kind]);
+      var childQuery = q.joinOne((p) => p.child)
+        ..returningProperties((c) => [c.name]);
+      childQuery.joinMany((c) => c.vaccinations)
+        ..returningProperties((v) => [v.kind]);
 
       var parents = await q.fetch();
       for (var p in parents) {
@@ -316,9 +312,11 @@ void main() {
     test("Can specify result keys for all joined objects", () async {
       var q = new Query<Parent>()..returningProperties((p) => [p.id]);
 
-      var childQuery = q.joinOne((p) => p.child)..returningProperties((c) => [c.id]);
+      var childQuery = q.joinOne((p) => p.child)
+        ..returningProperties((c) => [c.id]);
 
-      childQuery.joinMany((c) => c.vaccinations)..returningProperties((v) => [v.id]);
+      childQuery.joinMany((c) => c.vaccinations)
+        ..returningProperties((v) => [v.id]);
 
       var parents = await q.fetch();
       for (var p in parents) {

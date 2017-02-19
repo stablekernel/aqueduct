@@ -143,11 +143,18 @@ class PostgresQueryBuilder extends Object
   }
 
   String get orderByString {
-    if ((sortMappers?.length ?? 0) == 0) {
+    var allSortMappers = new List<PropertySortMapper>.from(sortMappers);
+
+    var nestedSorts = returningOrderedMappers
+        .where((m) => m is RowMapper)
+        .expand((m) => (m as RowMapper).sortMappers);
+    allSortMappers.addAll(nestedSorts);
+
+    if (allSortMappers.length == 0) {
       return "";
     }
 
-    return "ORDER BY ${sortMappers.map((s) => s.orderByString).join(",")}";
+    return "ORDER BY ${allSortMappers.map((s) => s.orderByString).join(",")}";
   }
 
   PropertyToColumnValue validatedColumnValueMapper(
