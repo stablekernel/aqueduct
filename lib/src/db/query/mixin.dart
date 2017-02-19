@@ -50,7 +50,7 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
     return _whereBuilder;
   }
 
-  Query<T> joinOn<T extends ManagedObject>(T m(InstanceType x)) {
+  Query<T> joinOne<T extends ManagedObject>(T m(InstanceType x)) {
     var tracker = new ManagedAccessTrackingBacking();
     var obj = entity.newInstance()..backing = tracker;
     var matchingKey = m(obj as InstanceType) as String;
