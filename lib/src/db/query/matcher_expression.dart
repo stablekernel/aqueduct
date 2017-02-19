@@ -20,9 +20,24 @@ enum StringMatcherOperator { beginsWith, contains, endsWith, equals }
 ///
 ///       var query = new Query<User>()
 ///         ..where.id = whereEqualTo(1);
-dynamic whereEqualTo(dynamic value) {
+///
+/// If matching a [String] value, [caseSensitive] is evaluated. Otherwise, ignored.
+dynamic whereEqualTo(dynamic value, {bool caseSensitive: true}) {
   return new ComparisonMatcherExpression(value, MatcherOperator.equalTo);
 }
+
+/// Matcher for matching all column values other than argument in a [Query].
+///
+/// See [Query.where].  Example:
+///
+///       var query = new Query<Employee>()
+///         ..where.id = whereNotEqual(60000);
+///
+/// If matching a [String] value, [caseSensitive] is evaluated. Otherwise, ignored.
+dynamic whereNotEqual(dynamic value, {bool caseSensitive: true}) {
+  return new ComparisonMatcherExpression(value, MatcherOperator.notEqual);
+}
+
 
 /// Matcher for matching a column value greater than the argument in a [Query].
 ///
@@ -66,16 +81,6 @@ dynamic whereLessThanEqualTo(dynamic value) {
       value, MatcherOperator.lessThanEqualTo);
 }
 
-/// Matcher for matching all column values other than argument in a [Query].
-///
-/// See [Query.where].  Example:
-///
-///       var query = new Query<Employee>()
-///         ..where.id = whereNotEqual(60000);
-dynamic whereNotEqual(dynamic value, {bool caseSensitive}) {
-  return new ComparisonMatcherExpression(value, MatcherOperator.notEqual);
-}
-
 /// Matcher for matching string properties that contain [value] in a [Query].
 ///
 /// See [Query.where].  Example:
@@ -104,6 +109,18 @@ dynamic whereBeginsWith(String value, {bool caseSensitive: true}) {
 ///         ..where.name = whereEndsWith("son");
 dynamic whereEndsWith(String value, {bool caseSensitive: true}) {
   return new StringMatcherExpression(value, StringMatcherOperator.endsWith, caseSensitive: caseSensitive);
+}
+
+dynamic whereDoesNotContain(String value, {bool caseSensitive: true}) {
+
+}
+
+dynamic whereDoesNotBeginWith(String value, {bool caseSensitive: true}) {
+
+}
+
+dynamic whereDoesNotEndWith(String value, {bool caseSensitive: true}) {
+
 }
 
 /// Matcher for matching values that are within the list of [values] in a [Query].
