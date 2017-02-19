@@ -15,8 +15,7 @@ class RowMapper extends PostgresMapper
     _sortMappers = sortDescriptors
             ?.map((s) =>
                 new PropertySortMapper(this, entity.properties[s.key], s.order))
-            ?.toList() ??
-        <PropertySortMapper>[];
+            ?.toList();
   }
 
   RowMapper.implicit(this.type, this.joiningProperty) {
