@@ -147,10 +147,10 @@ class PostgresQueryBuilder extends Object
 
     var nestedSorts = returningOrderedMappers
         .where((m) => m is RowMapper)
-        .expand((m) => (m as RowMapper).sortMappers ?? <PropertySortMapper>[]);
+        .expand((m) => (m as RowMapper).sortMappers);
     allSortMappers.addAll(nestedSorts);
 
-    if ((allSortMappers?.length ?? 0) == 0) {
+    if (allSortMappers.length == 0) {
       return "";
     }
 
