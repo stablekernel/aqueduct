@@ -347,7 +347,7 @@ void main() {
       var q = new Query<Team>()
         ..sortBy((t) => t.id, QuerySortOrder.ascending)
         ..where.awayGames.haveAtLeastOneWhere.homeTeam.name =
-            whereContains("Minn");
+            whereContainsString("Minn");
       var results = await q.fetch();
       expect(
           results.map((t) => t.asMap()).toList(),
@@ -359,14 +359,14 @@ void main() {
       q = new Query<Team>()
         ..sortBy((t) => t.id, QuerySortOrder.ascending)
         ..where.awayGames.haveAtLeastOneWhere.homeTeam.name =
-            whereContains("Iowa");
+            whereContainsString("Iowa");
       results = await q.fetch();
       expect(results.map((t) => t.asMap()).toList(), equals([]));
     });
 
     test("Can implicit join from join table - one side", () async {
       // 'Games where Iowa was away'
-      var q = new Query<Game>()..where.awayTeam.name = whereContains("Iowa");
+      var q = new Query<Game>()..where.awayTeam.name = whereContainsString("Iowa");
       var results = await q.fetch();
       expect(
           results.map((g) => g.asMap()).toList(),
@@ -391,8 +391,8 @@ void main() {
     test("Can implicit join from join table - both sides", () async {
       // 'Games where Iowa played Wisconsin at home'
       var q = new Query<Game>()
-        ..where.homeTeam.name = whereContains("Wisco")
-        ..where.awayTeam.name = whereContains("Iowa");
+        ..where.homeTeam.name = whereContainsString("Wisco")
+        ..where.awayTeam.name = whereContainsString("Iowa");
       var results = await q.fetch();
       expect(
           results.map((g) => g.asMap()).toList(),
@@ -413,7 +413,7 @@ void main() {
       try {
         var q = new Query<Team>();
         q.joinMany((t) => t.awayGames)
-          ..where.awayTeam.name = whereContains("Minn");
+          ..where.awayTeam.name = whereContainsString("Minn");
         await q.fetch();
 
         expect(true, false);
@@ -428,7 +428,7 @@ void main() {
       // 'All teams and the games they've played at Minnesota'
       var q = new Query<Team>();
       q.joinMany((t) => t.awayGames)
-        ..where.homeTeam.name = whereContains("Minn");
+        ..where.homeTeam.name = whereContainsString("Minn");
       var results = await q.fetch();
 
       expect(
