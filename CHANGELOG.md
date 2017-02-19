@@ -17,6 +17,7 @@
 - ORM: Joins can now be applied to belongsTo relationship properties.
 - ORM: Matchers such as `whereNull` and `whereNotNull` can be applied to a relationship property in `Query.where`.
 - ORM: Renamed `ManagedSet.matchOn` to `ManagedSet.haveAtLeastOneWhere`.
+- ORM: Added matchers for case-insensitive string matching, and added case-insensitive option to `whereEquals` and `whereNotEquals`.
 
 - Auth: Added `aqueduct/managed_auth` library. Implements storage of OAuth 2.0 tokens using `ManagedObject`s. See API reference for more details.
 - Auth: Improved error and response messaging to better align with the OAuth 2.0 spec, especially with regards to the authorization code flow.
