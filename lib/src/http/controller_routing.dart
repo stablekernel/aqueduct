@@ -50,9 +50,9 @@ const HTTPMethod httpPost = const HTTPMethod("post");
 ///         }
 const HTTPMethod httpDelete = const HTTPMethod("delete");
 
-/// [HTTPController] method metadata for indicating the HTTP method the controller method corresponds to.
+/// Metadata for indicating the HTTP Method a responder method in an [HTTPController] will respond to.
 ///
-/// Each [HTTPController] 'responder' method for an HTTP request must be marked with an instance
+/// Each [HTTPController] responder method for an HTTP request must be marked with an instance
 /// of [HTTPMethod]. See [httpGet], [httpPut], [httpPost] and [httpDelete] for concrete examples.
 class HTTPMethod {
   /// Creates an instance of [HTTPMethod] that will case-insensitively match the [String] argument of an HTTP request.

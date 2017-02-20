@@ -7,6 +7,8 @@ import '../query/query.dart';
 
 /// Instances of this class provide storage for [ManagedObject]s.
 ///
+/// This class is primarily used internally.
+///
 /// A [ManagedObject] stores properties declared by its type argument in instances of this type.
 /// Values are validated against the [ManagedObject.entity].
 ///

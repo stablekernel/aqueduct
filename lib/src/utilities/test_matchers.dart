@@ -120,8 +120,8 @@ _Converter asDateTime(dynamic term) =>
 ///
 ///         var response = await client.request("/foo").get();
 ///         expect(response, hasStatus(404));
-HTTPResponseMatcher hasStatus(int statusCode) =>
-    new HTTPResponseMatcher(statusCode, null, null);
+_HTTPResponseMatcher hasStatus(int statusCode) =>
+    new _HTTPResponseMatcher(statusCode, null, null);
 
 /// Validates that a [TestResponse] has the specified HTTP response body.
 ///
@@ -129,7 +129,7 @@ HTTPResponseMatcher hasStatus(int statusCode) =>
 ///
 ///       var response = await client.request("/foo").get();
 ///       expect(response, hasBody("string body"));
-HTTPBodyMatcher hasBody(dynamic matchSpec) => new HTTPBodyMatcher(matchSpec);
+_HTTPBodyMatcher hasBody(dynamic matchSpec) => new _HTTPBodyMatcher(matchSpec);
 
 /// Validates that a [TestResponse] has the specified HTTP headers.
 ///
@@ -137,9 +137,9 @@ HTTPBodyMatcher hasBody(dynamic matchSpec) => new HTTPBodyMatcher(matchSpec);
 ///
 ///       var response = await client.request("/foo").get();
 ///       expect(response, hasHeaders(partial({"x-request-id": 4})));
-HTTPHeaderMatcher hasHeaders(Map<String, dynamic> matchers,
+_HTTPHeaderMatcher hasHeaders(Map<String, dynamic> matchers,
         {bool failIfContainsUnmatchedHeader: false}) =>
-    new HTTPHeaderMatcher(matchers, failIfContainsUnmatchedHeader);
+    new _HTTPHeaderMatcher(matchers, failIfContainsUnmatchedHeader);
 
 /// Validates that a [TestResponse] has the specified status code, body and headers.
 ///
@@ -177,26 +177,26 @@ HTTPHeaderMatcher hasHeaders(Map<String, dynamic> matchers,
 ///      expect(response, hasResponse(200, [], headers: {
 ///         "x-version" : asNumber(greaterThan(1))(
 ///      });
-HTTPResponseMatcher hasResponse(int statusCode, dynamic bodyMatcher,
+_HTTPResponseMatcher hasResponse(int statusCode, dynamic bodyMatcher,
     {Map<String, dynamic> headers: null,
     bool failIfContainsUnmatchedHeader: false}) {
-  return new HTTPResponseMatcher(
+  return new _HTTPResponseMatcher(
       statusCode,
       (headers != null
-          ? new HTTPHeaderMatcher(headers, failIfContainsUnmatchedHeader)
+          ? new _HTTPHeaderMatcher(headers, failIfContainsUnmatchedHeader)
           : null),
-      (bodyMatcher != null ? new HTTPBodyMatcher(bodyMatcher) : null));
+      (bodyMatcher != null ? new _HTTPBodyMatcher(bodyMatcher) : null));
 }
 
 /// A test matcher that matches a response from an HTTP server.
 ///
 /// See [hasStatus] or [hasResponse] for more details. Use [hasResponse] to create instances of this type.
-class HTTPResponseMatcher extends Matcher {
-  HTTPResponseMatcher(this.statusCode, this.headers, this.body);
+class _HTTPResponseMatcher extends Matcher {
+  _HTTPResponseMatcher(this.statusCode, this.headers, this.body);
 
   int statusCode = null;
-  HTTPHeaderMatcher headers = null;
-  HTTPBodyMatcher body = null;
+  _HTTPHeaderMatcher headers = null;
+  _HTTPBodyMatcher body = null;
 
   bool matches(item, Map matchState) {
     if (item is! TestResponse) {
@@ -260,8 +260,8 @@ class HTTPResponseMatcher extends Matcher {
 /// A test matcher that matches an HTTP response body.
 ///
 /// See [hasBody] or [hasResponse] for more details.
-class HTTPBodyMatcher extends Matcher {
-  HTTPBodyMatcher(dynamic matcher) {
+class _HTTPBodyMatcher extends Matcher {
+  _HTTPBodyMatcher(dynamic matcher) {
     if (matcher is Matcher) {
       contentMatcher = matcher;
     } else {
@@ -324,8 +324,8 @@ class HTTPBodyMatcher extends Matcher {
 /// A test matcher that matches HTTP headers.
 ///
 /// See [hasHeaders] or [hasResponse] for more details. Use [hasHeaders] to create instances of this type.
-class HTTPHeaderMatcher extends Matcher {
-  HTTPHeaderMatcher(this.matchHeaders, this.shouldFailIfOthersPresent);
+class _HTTPHeaderMatcher extends Matcher {
+  _HTTPHeaderMatcher(this.matchHeaders, this.shouldFailIfOthersPresent);
   Map<String, dynamic> matchHeaders;
   bool shouldFailIfOthersPresent;
 
