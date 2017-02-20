@@ -1,7 +1,18 @@
+/// Library for implementing OAuth 2.0 storage using [ManagedObject]s.
+///
+/// This library contains [ManagedObject] subclasses to represent OAuth 2.0 artifacts
+/// and implements [AuthStorage] for use by an [AuthServer]. Usage of this library
+/// requires defining a class that implements [ManagedAuthenticatable] in your application
+/// and ensuring the contents of this library file are visible from your application's
+/// library file. (i.e., import this file in your application's library file.)
+library aqueduct.managed_auth;
+
 import 'dart:async';
 
 import 'package:aqueduct/aqueduct.dart';
 
+
+///
 class ManagedToken extends ManagedObject<_ManagedToken>
     implements _ManagedToken {
   ManagedToken() : super();
