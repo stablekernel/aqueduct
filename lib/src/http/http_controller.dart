@@ -9,10 +9,13 @@ import 'http_controller_internal.dart';
 
 /// Base class for HTTP web service controller.
 ///
-/// Subclasses of this class can process and respond to an HTTP request. A new instance of this type
-/// should be created for every request is processes. Subclasses of this type implement 'responder methods' to
-/// handle HTTP requests of a specified HTTP method and path. Responder methods must have [HTTPMethod] metadata and return
-/// a [Future] that completes with [Response]. Responder methods may also have [HTTPPath], [HTTPHeader], [HTTPQuery]
+/// Subclasses of this class respond to HTTP requests. Instances of this type should only ever respond to one [Request];
+/// use [RequestController.generate].
+///
+/// Subclasses of this type implement 'responder methods'. Responder methods must return [Future] that completes with [Response] and
+/// have [HTTPMethod] metadata (.e.g, [httpGet]).
+///
+/// Responder methods may also have [HTTPPath], [HTTPHeader], [HTTPQuery]
 /// parameters. An [HTTPController] evaluates a [Request] and finds a responder method that has a matching [HTTPMethod],
 /// [HTTPPath], [HTTPHeader], [HTTPQuery] values.
 ///
@@ -21,9 +24,14 @@ import 'http_controller_internal.dart';
 ///
 ///       class UserController extends RequestController {
 ///         @httpGet getUser(@HTTPPath ("id") int userID) async {
-///           return new Response.ok(await _userWithID(userID));
+///           return new Response.ok(await userWithID(userID));
 ///         }
 ///       }
+///
+/// Instances of this type will decode a request's body prior to invoking the responder method.
+///
+/// See further documentation on https://stablekernel.github.io/aqueduct under HTTP guides.
+///
 @cannotBeReused
 abstract class HTTPController extends RequestController {
   static ContentType _applicationWWWFormURLEncodedContentType =
@@ -59,11 +67,6 @@ abstract class HTTPController extends RequestController {
   /// that property with this value. Defaults to "application/json".
   ContentType responseContentType = ContentType.JSON;
 
-  /// The HTTP request body object, after being decoded.
-  ///
-  /// This object will be decoded according to the this request's content type. If there was no body, this value will be null.
-  dynamic get requestBody => request.requestBodyObject;
-
   /// Executed prior to handling a request, but after the [request] has been set.
   ///
   /// This method is used to do pre-process setup and filtering. The [request] will be set, but its body will not be decoded
@@ -76,8 +79,9 @@ abstract class HTTPController extends RequestController {
   /// Executed prior to a responder method being executed, but after the body has been processed.
   ///
   /// This method is called after the body has been processed by the decoder, but prior to the request being
-  /// handled by the appropriate responder method.
-  void didDecodeRequestBody(dynamic decodedObject) {}
+  /// handled by the selected responder method. If there is no HTTP body in the request,
+  /// this method is not called.
+  void didDecodeRequestBody(HTTPBody decodedObject) {}
 
   /// Returns a [Response] for missing [HTTPParameter]s.
   ///
@@ -141,14 +145,14 @@ abstract class HTTPController extends RequestController {
 
     if (request.innerRequest.contentLength > 0) {
       if (_requestContentTypeIsSupported(request)) {
-        await request.decodeBody();
+        await request.body.decodedData;
       } else {
         return new Response(HttpStatus.UNSUPPORTED_MEDIA_TYPE, null, null);
       }
     }
 
-    if (requestBody != null) {
-      didDecodeRequestBody(requestBody);
+    if (request.body.hasContent != null) {
+      didDecodeRequestBody(request.body);
     }
 
     var queryParameters = request.innerRequest.uri.queryParametersAll;
@@ -159,7 +163,7 @@ abstract class HTTPController extends RequestController {
                 ._applicationWWWFormURLEncodedContentType.primaryType &&
         contentType.subType ==
             HTTPController._applicationWWWFormURLEncodedContentType.subType) {
-      queryParameters = requestBody as Map<String, List<String>> ?? {};
+      queryParameters = request.body.asMap() as Map<String, List<String>> ?? {};
     }
 
     var orderedParameters =

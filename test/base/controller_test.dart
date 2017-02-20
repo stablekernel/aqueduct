@@ -221,11 +221,11 @@ void main() {
     expect(res.statusCode, 200);
   });
 
-  test("Sending bad JSON returns 500", () async {
+  test("Sending bad JSON returns 400", () async {
     server = await enableController("/a", TController);
     var res = await http.post("http://localhost:4040/a",
         body: "{`foobar' : 2}", headers: {"Content-Type": "application/json"});
-    expect(res.statusCode, 500);
+    expect(res.statusCode, 400);
 
     res = await http.get("http://localhost:4040/a");
     expect(res.statusCode, 200);
@@ -523,7 +523,7 @@ class TController extends HTTPController {
 
   @httpPost
   Future<Response> post() async {
-    var body = this.requestBody;
+    var body = this.request.body.asMap();
 
     return new Response.ok(body);
   }
