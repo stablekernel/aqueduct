@@ -10,6 +10,8 @@
 - Added `configurationFilePath` to `ApplicationConfiguration`.
 - Improved error reporting from failed application startups.
 - Automatically lowercase headers in `Response` objects so that other parts of an application can accurately read their values during processing.
+- Added `HTTPBody` object to represent HTTP request bodies in `Request`. Decoders are now added to this type.
+
 
 - ORM: Renamed `Query.matchOn` to `Query.where`.
 - ORM: Removed `includeInResultSet` for `Query`'s, instead, added `joinOn` and `joinMany` which create subqueries that can be configured further.
