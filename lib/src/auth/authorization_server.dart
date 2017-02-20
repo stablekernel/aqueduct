@@ -6,22 +6,41 @@ import 'auth.dart';
 
 /// A storage-agnostic OAuth 2.0 authorization 'server'.
 ///
-/// Instances of this type will carry out authentication and authorization tasks. This class shouldn't be subclassed.
+/// Instances of this type will carry out authentication and authorization tasks. They are created
+/// during a [RequestSink]'s initialization process and injected in [Authorizer]s, [AuthCodeController] and [AuthController] instances.
 ///
-/// Instances of this type don't store data - like an issued token - but instead, rely on their [storage] property.
-/// This property implements the [AuthStorage] interface, which allows the developer to define how information used
-/// during authorization is stored and fetched. However, it is rare that you would implement your own storage
-/// mechanism and it is better to use the [AuthStorage] implementation included in 'package:aqueduct/managed_auth.dart'.
-/// Example:
+/// An [AuthServer] requires [storage]. This is typically implemented by using `ManagedAuthStorage` from `package:aqueduct/managed_auth.dart`.
+///
+/// It's atypical to invoke methods directly on instances of this type - [Authorizer], [AuthCodeController] and [AuthController] take care of that.
+///
+/// An example:
+///
 ///
 ///         import 'package:aqueduct/aqueduct.dart';
 ///         import 'package:aqueduct/managed_auth.dart';
 ///
-///         var storage = new ManagedAuthStorage<User>();
-///         var server = new AuthServer(storage);
+///         class MyRequestSink extends RequestSink {
+///           MyRequestSink(ApplicationConfiguration config) : super (config) {
+///             context = createContext();
+///             authServer = new AuthServer(new ManagedAuthStorage<User>(context));
+///           }
 ///
-///         class User extends ManagedObject<_User> implements _User {}
-///         class _User extends Authenticatable {}
+///           ManagedContext context;
+///           AuthServer authServer;
+///
+///           @override
+///           void setupRouter(Router router) {
+///             router
+///               .route("/protected")
+///               .pipe(new Authorizer(authServer))
+///               .generate(() => new ProtectedResourceController());
+///
+///             router
+///               .route("/auth/token")
+///               .generate(() => new AuthController(authServer));
+///           }
+///         }
+///
 class AuthServer extends Object with APIDocumentable implements AuthValidator {
   static const String TokenTypeBearer = "bearer";
 

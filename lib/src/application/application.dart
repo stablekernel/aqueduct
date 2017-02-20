@@ -19,6 +19,8 @@ export 'application_server.dart';
 /// Applications are responsible for managing starting and stopping of HTTP server instances across multiple isolates.
 /// Behavior specific to an application is implemented by setting the [Application]'s [configuration] and providing
 /// a [RequestSinkType].
+///
+/// Instances of this class are created by the command like `aqueduct serve` tool and rarely used by an Aqueduct developer directly.
 class Application<RequestSinkType extends RequestSink> {
   Application();
 

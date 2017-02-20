@@ -9,10 +9,11 @@ import 'application.dart';
 import 'application_configuration.dart';
 import 'package:stack_trace/stack_trace.dart';
 
-/// Represents a [RequestSink] manager being used by an [Application].
+/// Manages listening for HTTP requests and delivering them to [RequestSink] instances.
 ///
 /// An Aqueduct application creates instances of this type to pair an HTTP server and an
-/// instance of an application-specific [RequestSink].
+/// instance of an application-specific [RequestSink]. Instances are created by [Application]
+/// and shouldn't be created otherwise.
 class ApplicationServer {
   /// The configuration this instance used to start its [sink].
   ApplicationConfiguration configuration;
