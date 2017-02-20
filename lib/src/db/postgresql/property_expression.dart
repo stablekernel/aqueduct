@@ -25,7 +25,7 @@ class PropertyExpression extends PropertyMapper {
     } else if (expr is WithinMatcherExpression) {
       return containsPredicate(expr.values);
     } else if (expr is StringMatcherExpression) {
-      return stringPredicate(expr.operator, expr.value);
+      return stringPredicate(expr.operator, expr.value, expr.caseSensitive, expr.invertOperator);
     }
 
     throw new QueryPredicateException(
@@ -78,11 +78,15 @@ class PropertyExpression extends PropertyMapper {
   }
 
   QueryPredicate stringPredicate(
-      StringMatcherOperator operator, dynamic value) {
+      StringMatcherOperator operator, dynamic value, bool caseSensitive, bool invertOperator) {
     var n = columnName(withTableNamespace: true);
     var variableName = columnName(withPrefix: defaultVariablePrefix);
 
     var matchValue = value;
+    var operation = caseSensitive ? "LIKE" : "ILIKE";
+    if (invertOperator) {
+      operation = "NOT $operation";
+    }
     switch (operator) {
       case StringMatcherOperator.beginsWith:
         matchValue = "$value%";
@@ -93,10 +97,11 @@ class PropertyExpression extends PropertyMapper {
       case StringMatcherOperator.contains:
         matchValue = "%$value%";
         break;
+      default: break;
     }
 
     return new QueryPredicate(
-        "$n LIKE @$variableName$typeSuffix", {variableName: matchValue});
+        "$n $operation @$variableName$typeSuffix", {variableName: matchValue});
   }
 }
 
