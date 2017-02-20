@@ -363,7 +363,6 @@ void main() {
   });
 
   test("Failure to decode request body as appropriate type is 400", () async {
-    // do both asMap and decodeAsMap to make sure both future behaviors are correct
     server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8080);
     server.map((req) => new Request(req)).listen((req) async {
       var next = new RequestController();
