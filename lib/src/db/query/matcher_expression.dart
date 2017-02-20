@@ -19,7 +19,7 @@ enum StringMatcherOperator {
   equals
 }
 
-/// Matcher for exactly matching a column value.
+/// Matcher for exactly matching a column value when using [Query.where].
 ///
 /// See [Query.where]. Example:
 ///
@@ -37,7 +37,7 @@ dynamic whereEqualTo(dynamic value, {bool caseSensitive: true}) {
   return new ComparisonMatcherExpression(value, MatcherOperator.equalTo);
 }
 
-/// Matcher for matching all column values other than argument.
+/// Matcher for matching all column values other than argument when using [Query.where].
 ///
 /// See [Query.where].  Example:
 ///
@@ -58,7 +58,7 @@ dynamic whereNotEqualTo(dynamic value, {bool caseSensitive: true}) {
 }
 
 
-/// Matcher for matching a column value greater than the argument.
+/// Matcher for matching a column value greater than the argument when using [Query.where].
 ///
 /// See [Query.where]. Example:
 ///
@@ -68,7 +68,7 @@ dynamic whereGreaterThan(dynamic value) {
   return new ComparisonMatcherExpression(value, MatcherOperator.greaterThan);
 }
 
-/// Matcher for matching a column value greater than or equal to the argument.
+/// Matcher for matching a column value greater than or equal to the argument when using [Query.where].
 ///
 /// See [Query.where].  Example:
 ///
@@ -79,7 +79,7 @@ dynamic whereGreaterThanEqualTo(dynamic value) {
       value, MatcherOperator.greaterThanEqualTo);
 }
 
-/// Matcher for matching a column value less than the argument.
+/// Matcher for matching a column value less than the argument when using [Query.where].
 ///
 /// See [Query.where].  Example:
 ///
@@ -89,7 +89,7 @@ dynamic whereLessThan(dynamic value) {
   return new ComparisonMatcherExpression(value, MatcherOperator.lessThan);
 }
 
-/// Matcher for matching a column value less than or equal to the argument.
+/// Matcher for matching a column value less than or equal to the argument when using [Query.where].
 ///
 /// See [Query.where].  Example:
 ///
@@ -100,7 +100,7 @@ dynamic whereLessThanEqualTo(dynamic value) {
       value, MatcherOperator.lessThanEqualTo);
 }
 
-/// Matcher for matching string properties that contain [value].
+/// Matcher for matching string properties that contain [value] when using [Query.where].
 ///
 /// See [Query.where].  Example:
 ///
@@ -113,7 +113,7 @@ dynamic whereContainsString(String value, {bool caseSensitive: true}) {
   return new StringMatcherExpression(value, StringMatcherOperator.contains, caseSensitive: caseSensitive);
 }
 
-/// Matcher for matching string properties that start with [value].
+/// Matcher for matching string properties that start with [value] when using [Query.where].
 ///
 /// See [Query.where].  Example:
 ///
@@ -122,12 +122,11 @@ dynamic whereContainsString(String value, {bool caseSensitive: true}) {
 ///
 /// [caseSensitive] is will toggle
 /// if [value] is to be case sensitive equal to matched values.
-
 dynamic whereBeginsWith(String value, {bool caseSensitive: true}) {
   return new StringMatcherExpression(value, StringMatcherOperator.beginsWith, caseSensitive: caseSensitive);
 }
 
-/// Matcher for matching string properties that do not end with [value].
+/// Matcher for matching string properties that do not end with [value] when using [Query.where].
 ///
 /// See [Query.where].  Example:
 ///
@@ -143,7 +142,7 @@ dynamic whereDoesNotEndWith(String value, {bool caseSensitive: true}) {
       invertOperator: true);
 }
 
-/// Matcher for matching string properties that do not contain [value].
+/// Matcher for matching string properties that do not contain [value] when using [Query.where].
 ///
 /// See [Query.where].  Example:
 ///
@@ -159,7 +158,7 @@ dynamic whereDoesNotContain(String value, {bool caseSensitive: true}) {
       invertOperator: true);
 }
 
-/// Matcher for matching string properties that do not start with [value].
+/// Matcher for matching string properties that do not start with [value] when using [Query.where].
 ///
 /// See [Query.where].  Example:
 ///
@@ -168,7 +167,6 @@ dynamic whereDoesNotContain(String value, {bool caseSensitive: true}) {
 ///
 /// [caseSensitive] is will toggle
 /// if [value] is to be case sensitive equal to matched values.
-
 dynamic whereDoesNotBeginWith(String value, {bool caseSensitive: true}) {
   return new StringMatcherExpression(
       value, StringMatcherOperator.beginsWith,
@@ -176,7 +174,7 @@ dynamic whereDoesNotBeginWith(String value, {bool caseSensitive: true}) {
       invertOperator: true);
 }
 
-/// Matcher for matching string properties that end with [value].
+/// Matcher for matching string properties that end with [value] when using [Query.where].
 ///
 /// See [Query.where].  Example:
 ///
@@ -189,7 +187,7 @@ dynamic whereEndsWith(String value, {bool caseSensitive: true}) {
   return new StringMatcherExpression(value, StringMatcherOperator.endsWith, caseSensitive: caseSensitive);
 }
 
-/// Matcher for matching values that are within the list of [values].
+/// Matcher for matching values that are within the list of [values] when using [Query.where].
 ///
 /// See [Query.where].  Example:
 ///
@@ -199,7 +197,7 @@ dynamic whereIn(Iterable<dynamic> values) {
   return new WithinMatcherExpression(values.toList());
 }
 
-/// Matcher for matching column values where [lhs] <= value <= [rhs].
+/// Matcher for matching column values where [lhs] <= value <= [rhs] when using [Query.where].
 ///
 /// See [Query.where].  Example:
 ///
@@ -209,7 +207,7 @@ dynamic whereBetween(dynamic lhs, dynamic rhs) {
   return new RangeMatcherExpression(lhs, rhs, true);
 }
 
-/// Matcher for matching column values where matched value is less than [lhs] or greater than [rhs].
+/// Matcher for matching column values where matched value is less than [lhs] or greater than [rhs] when using [Query.where].
 ///
 /// See [Query.where].  Example:
 ///
@@ -219,7 +217,7 @@ dynamic whereOutsideOf(dynamic lhs, dynamic rhs) {
   return new RangeMatcherExpression(lhs, rhs, false);
 }
 
-/// Matcher for matching [ManagedRelationship] property.
+/// Matcher for matching [ManagedRelationship] property when using [Query.where].
 ///
 /// This matcher can be assigned to a [ManagedRelationship] property. The underlying
 /// [PersistentStore] will determine the name of the foreign key column to build
@@ -234,7 +232,7 @@ dynamic whereRelatedByValue(dynamic foreignKeyValue) {
       foreignKeyValue, MatcherOperator.equalTo);
 }
 
-/// Matcher for matching null value.
+/// Matcher for matching null value when using [Query.where].
 ///
 /// See [Query.where]. Example:
 ///
@@ -242,7 +240,7 @@ dynamic whereRelatedByValue(dynamic foreignKeyValue) {
 ///         ..where.manager = whereNull;
 const dynamic whereNull = const NullMatcherExpression(true);
 
-/// Matcher for matching everything but null.
+/// Matcher for matching everything but null when using [Query.where].
 ///
 /// See [Query.where]. Example:
 ///
