@@ -2,21 +2,57 @@ import 'package:matcher/matcher.dart';
 import 'test_client.dart';
 
 /// Validates that expected result is a [num].
+///
+/// Usage:
+///
+///         var response = await client.request("/foo").get();
+///         expect(response, hasResponse(200, {"id": isNumber}));
+///
 const Matcher isNumber = const isInstanceOf<num>();
 
 /// Validates that expected result is an [int].
+///
+/// Usage:
+///
+///         var response = await client.request("/foo").get();
+///         expect(response, hasResponse(200, {"id": isInteger}));
+///
 const Matcher isInteger = const isInstanceOf<int>();
 
 /// Validates that expected result is a [double].
+///
+/// Usage:
+///
+///         var response = await client.request("/foo").get();
+///         expect(response, hasResponse(200, {"id": isDouble}));
+///
 const Matcher isDouble = const isInstanceOf<double>();
 
 /// Validates that expected result is a [String].
+///
+/// Usage:
+///
+///         var response = await client.request("/foo").get();
+///         expect(response, hasResponse(200, {"id": isString}));
+///
 const Matcher isString = const isInstanceOf<String>();
 
 /// Validates that expected result is a [bool].
+///
+/// Usage:
+///
+///         var response = await client.request("/foo").get();
+///         expect(response, hasResponse(200, {"isActive": isBoolean}));
+///
 const Matcher isBoolean = const isInstanceOf<bool>();
 
 /// Validates that expected result is a ISO8601 timestamp.
+///
+/// Usage:
+///
+///         var response = await client.request("/foo").get();
+///         expect(response, hasResponse(200, {"createdDate": isTimestamp}));
+///
 Matcher isTimestamp = predicate((str) {
   try {
     var value = DateTime.parse(str);
@@ -32,6 +68,14 @@ Matcher isTimestamp = predicate((str) {
 /// without having to match every key in a [Map]. This is useful for specific conditions
 /// in an HTTP response without validating the entire data structure, especially when that
 /// data structure is large. See [hasResponse] for more details.
+///
+///
+/// Usage:
+///
+///         var response = await client.request("/foo").get();
+///         // Validates that the key 'id' is an integer, but the map may contain more keys.
+///         expect(response, hasResponse(200, partial({"id": isInteger})));
+///
 _PartialMapMatcher partial(Map map) => new _PartialMapMatcher(map);
 
 /// This instance is used to validate that a header or key does not exist.
@@ -40,7 +84,7 @@ _PartialMapMatcher partial(Map map) => new _PartialMapMatcher(map);
 /// as a value to indicate that a particular key should not exist. For example, the following
 /// would ensure that the evaluated map does not have the key 'foo':
 ///
-///         expect(map, partial(
+///         expect(map, partial({
 ///           "id" : greaterThan(0),
 ///           "foo" : isNotPresent
 ///         });
@@ -48,30 +92,51 @@ const isNotPresent = const _NotPresentMatcher();
 
 /// Converts a header value to an instance of [int] to be used inside a matcher.
 ///
-/// See [hasResponse] for more details.
+/// Used in matchers like [hasResponse] and [hasHeaders]. Used to convert a value - typically a String - to an integer
+/// to be used inside another matcher. For example:
+///
+///        var response = await client.request("/foo").get();
+///       expect(response, hasResponse(200, null, headers: {
+///         "headerValue": asNumber(lessThan(4))
+///       });
 _Converter asNumber(dynamic term) =>
     new _Converter(_ConverterType.number, term);
 
 /// Converts a header value to an instance of [DateTime] to be used inside a matcher.
 ///
-/// See [hasResponse] for more details.
+/// Used in matchers like [hasResponse] and [hasHeaders]. Used to convert a value - typically a String - to a DateTime
+/// to be used inside another matcher. For example:
+///
+///       var response = await client.request("/foo").get();
+///       expect(response, hasResponse(200, null, headers: {
+///         "headerValue": asDateTime(equal(new DateTime.now())
+///       });
 _Converter asDateTime(dynamic term) =>
     new _Converter(_ConverterType.datetime, term);
 
 /// Validates that a [TestResponse] has the specified HTTP status code.
 ///
-/// This matcher only validates the status code. See [hasResponse] for more details.
+/// This matcher only validates the status code. See [hasResponse] for more details. Usage:
+///
+///         var response = await client.request("/foo").get();
+///         expect(response, hasStatus(404));
 HTTPResponseMatcher hasStatus(int statusCode) =>
     new HTTPResponseMatcher(statusCode, null, null);
 
 /// Validates that a [TestResponse] has the specified HTTP response body.
 ///
-/// This matcher only validates the HTTP response body. See [hasResponse] for more details.
+/// This matcher only validates the HTTP response body. See [hasResponse] for more details. Usage:
+///
+///       var response = await client.request("/foo").get();
+///       expect(response, hasBody("string body"));
 HTTPBodyMatcher hasBody(dynamic matchSpec) => new HTTPBodyMatcher(matchSpec);
 
 /// Validates that a [TestResponse] has the specified HTTP headers.
 ///
-/// This matcher only validates the HTTP headers. See [hasResponse] for more details.
+/// This matcher only validates the HTTP headers. See [hasResponse] for more details. Usage:
+///
+///       var response = await client.request("/foo").get();
+///       expect(response, hasHeaders(partial({"x-request-id": 4})));
 HTTPHeaderMatcher hasHeaders(Map<String, dynamic> matchers,
         {bool failIfContainsUnmatchedHeader: false}) =>
     new HTTPHeaderMatcher(matchers, failIfContainsUnmatchedHeader);
@@ -87,11 +152,13 @@ HTTPHeaderMatcher hasHeaders(Map<String, dynamic> matchers,
 /// be [Map] or [List]. When [bodyMatcher] is a [Map] or [List], the value is compared for equality to the decoded HTTP response body. For example,
 /// the following would match on a response with Content-Type: application/json and a body of '{"key" : "value"}':
 ///
+///         var response = await client.request("/foo").get();
 ///         expect(response, hasResponse(200, {"key" : "value"});
 ///
 /// When using a matcher, the matcher will use its own matching behavior. For example, if the response had a JSON list of strings, the following
 /// would expect that each object contains the substring 'foo':
 ///
+///         var response = await client.request("/foo").get();
 ///         expect(response, hasResponse(200, everyElement(contains("foo")));
 ///
 /// For matching a subset of keys in a [Map], see [partial].
@@ -106,6 +173,7 @@ HTTPHeaderMatcher hasHeaders(Map<String, dynamic> matchers,
 ///
 /// Example:
 ///
+///      var response = await client.request("/foo").get();
 ///      expect(response, hasResponse(200, [], headers: {
 ///         "x-version" : asNumber(greaterThan(1))(
 ///      });
@@ -122,7 +190,7 @@ HTTPResponseMatcher hasResponse(int statusCode, dynamic bodyMatcher,
 
 /// A test matcher that matches a response from an HTTP server.
 ///
-/// See [hasStatus] or [hasResponse] for more details.
+/// See [hasStatus] or [hasResponse] for more details. Use [hasResponse] to create instances of this type.
 class HTTPResponseMatcher extends Matcher {
   HTTPResponseMatcher(this.statusCode, this.headers, this.body);
 
@@ -255,7 +323,7 @@ class HTTPBodyMatcher extends Matcher {
 
 /// A test matcher that matches HTTP headers.
 ///
-/// See [hasHeaders] or [hasResponse] for more details.
+/// See [hasHeaders] or [hasResponse] for more details. Use [hasHeaders] to create instances of this type.
 class HTTPHeaderMatcher extends Matcher {
   HTTPHeaderMatcher(this.matchHeaders, this.shouldFailIfOthersPresent);
   Map<String, dynamic> matchHeaders;
