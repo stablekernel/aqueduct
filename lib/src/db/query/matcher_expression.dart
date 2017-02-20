@@ -1,24 +1,6 @@
 import 'matcher_internal.dart';
 import 'query.dart';
 
-/// The operator in a comparison matcher.
-enum MatcherOperator {
-  lessThan,
-  greaterThan,
-  notEqual,
-  lessThanEqualTo,
-  greaterThanEqualTo,
-  equalTo
-}
-
-/// The operator in a string matcher.
-enum StringMatcherOperator {
-  beginsWith,
-  contains,
-  endsWith,
-  equals
-}
-
 /// Matcher for exactly matching a column value when using [Query.where].
 ///
 /// See [Query.where]. Example:

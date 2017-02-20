@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../helpers.dart';
+import '../../lib/src/db/query/matcher_internal.dart';
 
 main() {
   ManagedContext context = null;

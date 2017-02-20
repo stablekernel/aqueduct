@@ -57,7 +57,7 @@ class ManagedRelationship {
   }
 }
 
-/// The different types of relationships.
+/// The different types of relationships for [ManagedRelationship] instances declared in [ManagedObject] persistent types.
 enum ManagedRelationshipType {
   /// The relationship property is not backed by a database column, but instead represents a single row in the database.
   hasOne,
@@ -65,7 +65,7 @@ enum ManagedRelationshipType {
   /// The relationship property is not backed by a database column, but instead represents many rows in the database.
   hasMany,
 
-  /// A relationship property of this kind will be a foreign key reference to another entity.
+  /// A relationship property of this kind will be a foreign key column.
   ///
   /// See [ManagedRelationship].
   belongsTo

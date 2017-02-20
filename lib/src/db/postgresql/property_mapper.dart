@@ -1,6 +1,7 @@
 import 'package:postgres/postgres.dart';
 
 import '../db.dart';
+import '../query/matcher_internal.dart';
 import 'entity_table.dart';
 
 export 'property_column.dart';

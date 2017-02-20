@@ -1,5 +1,23 @@
 import 'query.dart';
 
+/// The operator in a comparison matcher.
+enum MatcherOperator {
+  lessThan,
+  greaterThan,
+  notEqual,
+  lessThanEqualTo,
+  greaterThanEqualTo,
+  equalTo
+}
+
+/// The operator in a string matcher.
+enum StringMatcherOperator {
+  beginsWith,
+  contains,
+  endsWith,
+  equals
+}
+
 abstract class MatcherExpression {}
 
 class ComparisonMatcherExpression implements MatcherExpression {
