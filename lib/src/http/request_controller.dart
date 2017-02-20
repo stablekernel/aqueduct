@@ -304,7 +304,9 @@ class RequestController extends Object with APIDocumentable {
   }
 }
 
-/// Metadata for a [RequestController] subclass that indicates it must be instantiated for each request.
+/// Metadata for a [RequestController] subclass that requires it must be instantiated for each request.
+///
+/// Requires that the [RequestController] must be created through [RequestController.generate].
 ///
 /// [RequestController]s may carry some state throughout the course of their handling of a request. If
 /// that [RequestController] is reused for another request, some of that state may carry over. Therefore,

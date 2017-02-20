@@ -26,8 +26,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 /// application: Classes in this module begin with 'Application' and are responsible for starting and stopping web servers on a number of isolates.
 library aqueduct;
 
-export 'dart:io';
-
 export 'package:logging/logging.dart';
 export 'package:safe_config/safe_config.dart';
 
