@@ -1,11 +1,15 @@
 /// Library for implementing OAuth 2.0 storage using [ManagedObject]s.
 ///
 /// This library contains [ManagedObject] subclasses to represent OAuth 2.0 artifacts
-/// and implements [AuthStorage] for use by an [AuthServer]. Usage of this library
-/// requires defining a [ManagedObject] subclass that represents an OAuth 2.0 resource owner.
+/// and implements [AuthStorage] for use by an [AuthServer]. Usage of this library involves two tasks.
+/// First, an instance of [ManagedAuthStorage] is provided to an [AuthServer] at startup:
 ///
-/// That [ManagedObject] subclass must implement [ManagedAuthResourceOwner]. Its persistent type must
-/// implement [ManagedAuthenticatable]. For example, the follower `User` fulfills the requirement:
+///         var context = new ManagedContext(dataModel, store);
+///         var storage = new ManagedAuthStorage<User>(context)
+///         var authServer = new AuthServer(storage);
+///
+/// Then, a [ManagedObject] subclass that represents an OAuth 2.0 resource owner ust be declared. It must implement [ManagedAuthResourceOwner].
+/// Its persistent type must implement [ManagedAuthenticatable]. For example, the follower `User` fulfills the requirement:
 ///
 ///         class User extends ManagedObject<_User> implements _User, ManagedAuthResourceOwner  {}
 ///         class _User extends ManagedAuthenticatable { ... }
@@ -245,7 +249,7 @@ class ManagedAuthenticatable implements Authenticatable {
 abstract class ManagedAuthResourceOwner
     implements ManagedAuthenticatable, ManagedObject {}
 
-/// [ManagedObject] [AuthStorage] for an [AuthServer].
+/// [AuthStorage] implementation for an [AuthServer] using [ManagedObject]s.
 ///
 /// An instance of this class manages storage and retrieval of OAuth 2.0 tokens, clients and resource owners
 /// using the [ManagedObject]s declared in this library.
