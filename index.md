@@ -7,6 +7,8 @@ title: "Documentation Home"
 
 Aqueduct is a productive server-side framework for building REST APIs.
 
+Need to be sold? Check out the [tour](other/tour.html).
+
 ### Tutorial
 
 If this is your first look at Aqueduct, check out the Tutorials below. They are a step-by-step guide to creating an Aqueduct application from scratch and take about 1-2 hours to complete.
