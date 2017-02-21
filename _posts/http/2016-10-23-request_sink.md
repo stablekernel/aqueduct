@@ -3,7 +3,7 @@ layout: page
 title: "The Application and its RequestSink"
 category: http
 date: 2016-06-19 21:22:35
-order: 5
+order: 6
 ---
 
 Every Aqueduct application must have one subclass of `RequestSink`. This subclass implements a handful of 'initialization methods' to set up the specifics of the application. Aqueduct applications are ran using the command line utility `aqueduct serve`, which finds that `RequestSink` subclass and executes its initialization methods.

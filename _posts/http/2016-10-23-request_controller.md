@@ -3,7 +3,7 @@ layout: page
 title: "Handling Requests"
 category: http
 date: 2016-06-19 21:22:35
-order: 3
+order: 4
 ---
 
 An Aqueduct application's job is to respond to HTTP requests. Each request in an Aqueduct application is an instance of `Request` (see [Request and Response Objects](request_and_response.html)). The behavior of processing and responding to requests is carried out by instances of `RequestController`.
