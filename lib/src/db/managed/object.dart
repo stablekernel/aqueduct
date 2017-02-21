@@ -39,30 +39,30 @@ abstract class ManagedBacking {
   Map<String, dynamic> get valueMap;
 }
 
-/// An object whose storage is managed by an underlying [Map].
+/// An object that represents a database row.
 ///
-/// This class is meant to be subclassed.
+/// This class must be subclassed. A subclass is declared for each table in a database. These subclasses
+/// create the data model of an application.
 ///
-/// Instances of this class may store values in a [backingMap] instead of directly in its properties. The properties managed by the [backingMap]
-/// are those declared in its [PersistentType] and those with [ManagedTransientAttribute] metadata in a subclass. The properties
-/// declared by the [PersistentType] describes the columns of a database table. Properties declared in a subclass of this type are not persisted
-/// in a database table, but are managed by the [backingMap] if and only if they are marked with [ManagedTransientAttribute]. Properties declared
-/// by the subclass that do not have this metadata are stored in an instance variable like any other Dart class.
+/// A managed object is declared in two parts, the subclass and its "persistent type".
 ///
-/// A [ManagedObject] can be serialized into or deserialized from a [Map]. This allows a managed object to be encoded into or decoded from a format like JSON.
-/// Only properties in [backingMap] are serialized/deserialized.
-///
-/// Managed objects are compiled into a [ManagedDataModel], where each managed object's mapping to the database is represented by a [ManagedEntity].
-///
-/// Managed objects are also used in building queries. See [Query.where] and [Query.values].
-///
-/// A managed object is declared in two parts:
 ///         class User extends ManagedObject<_User> implements _User {
-///           String name; // Not persisted
+///           String name;
 ///         }
 ///         class _User {
-///           @primaryKey int id; // Persisted
+///           @primaryKey
+///           int id;
+///
+///           @ManagedColumnAttributes(indexed: true)
+///           String email;
 ///         }
+///
+/// Persistent types are plain Dart objects that represent a database table. Each property is a column in the database.
+///
+/// A subclass of this type must implement its persistent type and use it as the type argument of [ManagedObject]. Properties and methods
+/// declared in the subclass (also called the 'instance type') are not stored in the database.
+///
+/// See more documentation on defining a data model at https://stablekernel.github.io/aqueduct
 class ManagedObject<PersistentType> implements HTTPSerializable {
   /// The [ManagedEntity] this instance is described by.
   ManagedEntity entity =

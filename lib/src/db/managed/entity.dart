@@ -5,11 +5,9 @@ import '../query/query.dart';
 
 /// Mapping information between a table in a database and a [ManagedObject] object.
 ///
-/// An entity defines the mapping between a database table and [ManagedObject] subclass. It is a necessary component of the overall ORM capabilities
-/// of Aqueduct. It may also be used at runtime to reflect on the database table and [ManagedObject] that represents that table in a more meaningful way.
-///
-/// Instances of this class are automatically created by [ManagedDataModel]. In general, you do not need to use or create instances
-/// of this class.
+/// An entity defines the mapping between a database table and [ManagedObject] subclass. Entities
+/// are created by declaring [ManagedObject] subclasses and instantiating a [ManagedDataModel].
+/// In general, you do not need to use or create instances of this class.
 ///
 /// An entity describes the properties that a subclass of [ManagedObject] will have and their representation in the underlying database.
 /// Each of these properties are represented by an instance of a [ManagedPropertyDescription] subclass. A property is either an attribute or a relationship.

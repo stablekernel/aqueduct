@@ -372,7 +372,7 @@ class _RequestControllerGenerator extends RequestController {
 /// Thrown when [RequestController] throws an exception.
 ///
 ///
-class RequestControllerException {
+class RequestControllerException implements Exception {
   RequestControllerException(this.message);
 
   String message;
