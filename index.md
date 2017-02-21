@@ -5,9 +5,9 @@ title: "Documentation Home"
 
 ![Aqueduct](images/aqueduct.png)
 
-Aqueduct is a productive server-side framework for building REST APIs.
+Aqueduct is a productive server-side framework written in Dart.
 
-Need to be sold? Check out the [tour](other/tour.html).
+Need to be sold? [Check out the tour](other/tour.html).
 
 ### Tutorial
 

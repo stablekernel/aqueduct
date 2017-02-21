@@ -25,8 +25,7 @@ sections: [
     ['ref', 'Reference'],
     ['dev', 'Developers'],
     ['post', 'Posts'],
-    ['deploy', 'Deployment'],
-    ['other', 'Other']
+    ['deploy', 'Deployment']
 ]
 
 # Keep as an empty string if served up at the root. If served up at a specific
