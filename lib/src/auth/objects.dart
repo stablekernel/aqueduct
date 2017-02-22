@@ -146,6 +146,10 @@ class AuthToken {
       map["refresh_token"] = refreshToken;
     }
 
+    if (scopes != null) {
+      map["scope"] = scopes.map((s) => s.scopeString).join(" ");
+    }
+
     return map;
   }
 }
