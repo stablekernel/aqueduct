@@ -12,11 +12,15 @@ export 'predicate.dart';
 // This is an unfortunate need because of lack of reified generics
 // See factory constructor.
 
-/// Contains information for building and executing a database operation.
+/// Instances of this type configure and execute database commands.
 ///
 /// Queries are used to fetch, update, insert, delete and count objects in a database. A query's [InstanceType] indicates
 /// the type of [ManagedObject] subclass' that this query will return as well. The [InstanceType]'s corresponding [ManagedEntity] determines
 /// the database table and columns to work with.
+///
+///         var query = new Query<Employee>()
+///           ..where.salary = whereGreaterThan(50000);
+///         var employees = await query.fetch();
 abstract class Query<InstanceType extends ManagedObject> {
   /// Creates a new [Query].
   ///

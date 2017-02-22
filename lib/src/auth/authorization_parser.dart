@@ -6,6 +6,8 @@ class AuthorizationBearerParser {
   /// throws an [AuthorizationParserException]. Otherwise, returns the [String] representation of the bearer token.
   ///
   /// For example, if the input to this method is "Bearer token" it would return 'token'.
+  ///
+  /// If [authorizationHeader] is malformed or null, throws an [AuthorizationParserException].
   static String parse(String authorizationHeader) {
     if (authorizationHeader == null) {
       throw new AuthorizationParserException(
@@ -22,7 +24,7 @@ class AuthorizationBearerParser {
   }
 }
 
-/// A container for Basic authorization credentials.
+/// A structure to hold Basic authorization credentials.
 ///
 /// See [AuthorizationBasicParser] for getting instances of this type.
 class AuthBasicCredentials {
@@ -39,6 +41,8 @@ class AuthorizationBasicParser {
   /// base64 encoded in [authorizationHeader]. For example, if the input to this method
   /// was 'Basic base64String' it would decode the base64String
   /// and return the username and password by splitting that decoded string around the character ':'.
+  ///
+  /// If [authorizationHeader] is malformed or null, throws an [AuthorizationParserException].
   static AuthBasicCredentials parse(String authorizationHeader) {
     if (authorizationHeader == null) {
       throw new AuthorizationParserException(

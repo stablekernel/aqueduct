@@ -4,11 +4,13 @@ import 'data_model_builder.dart';
 
 /// Instances of this class contain descriptions and metadata for mapping [ManagedObject]s to database rows.
 ///
-/// A data model describes each database table to [ManagedObject] object mapping for a single database. For each
-/// mapping, there is an instance of [ManagedEntity] - a data model is a collection of such entities.
+/// An instance of this type must be used to initialize a [ManagedContext], and so are required to use [Query]s.
 ///
-/// Data models are created by reflecting on an Aqueduct application library or by providing a list of
-/// types that extend [ManagedObject].
+/// The [ManagedDataModel.fromCurrentMirrorSystem] constructor will reflect on an application's code and find
+/// all subclasses of [ManagedObject], building a [ManagedEntity] for each.
+///
+/// Most applications do not need to access instances of this type.
+///
 class ManagedDataModel {
   /// Creates an instance of [ManagedDataModel] from a list of types that extend [ManagedObject]. It is preferable
   /// to use [ManagedDataModel.fromCurrentMirrorSystem] over this method.

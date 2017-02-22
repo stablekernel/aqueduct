@@ -4,9 +4,9 @@ import 'dart:io';
 import '../db/db.dart';
 import 'http.dart';
 
-/// A [RequestController] for performing CRUD operations on [ManagedObject] instances.
+/// A [RequestController] that implements basic CRUD operations for a [ManagedObject].
 ///
-/// Instances of this class create and execute [Query]s based on [Request]'s they receive. This instances of this class effectively map a REST API call
+/// Instances of this class map a REST API call
 /// directly to a database [Query]. For example, this [RequestController] handles an HTTP PUT request by executing an update [Query]; the path variable in the request
 /// indicates the value of the primary key for the updated row and the HTTP request body are the values updated.
 ///
@@ -32,9 +32,9 @@ import 'http.dart';
 ///
 /// count (integer): restricts the number of objects fetched to count. By default, this is null, which means no restrictions.
 /// offset (integer): offsets the fetch by offset amount of objects. By default, this is null, which means no offset.
-/// pageBy (string): indicates the key in which to page by. See [QueryPage] for more information on paging. If this value is passed as part of the query, either pageAfter or pagePrior must also be passed, but only one of those.
-/// pageAfter (string): indicates the page value and direction of the paging. pageBy must also be set. See [QueryPage] for more information.
-/// pagePrior (string): indicates the page value and direction of the paging. pageBy must also be set. See [QueryPage] for more information.
+/// pageBy (string): indicates the key in which to page by. See [Query.pageBy] for more information on paging. If this value is passed as part of the query, either pageAfter or pagePrior must also be passed, but only one of those.
+/// pageAfter (string): indicates the page value and direction of the paging. pageBy must also be set. See [Query.pageBy] for more information.
+/// pagePrior (string): indicates the page value and direction of the paging. pageBy must also be set. See [Query.pageBy] for more information.
 /// sortBy (string): indicates the sort order. The syntax is 'sortBy=key,order' where key is a property of [InstanceType] and order is either 'asc' or 'desc'. You may specify multiple sortBy parameters.
 class ManagedObjectController<InstanceType extends ManagedObject>
     extends HTTPController {

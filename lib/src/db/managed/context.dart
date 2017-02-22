@@ -2,14 +2,24 @@ import 'managed.dart';
 import '../persistent_store/persistent_store.dart';
 import '../query/query.dart';
 
-/// Coordinates with a [ManagedDataModel] and [PersistentStore] to execute queries and
-/// translate between [ManagedObject] objects and database rows.
+/// The target for database queries and coordinator of [Query]s.
 ///
-/// An application that uses Aqueduct's ORM functionality must create an instance of this type.
+/// An application that uses Aqueduct's ORM functionality must create an instance of this type. This is done
+/// in a [RequestSink]'s constructor:
+///
+///         class MyRequestSink extends RequestSink {
+///            MyRequestSink(ApplicationConfiguration config) : super(config) {
+///               var store = new PostgreSQLPersistentStore(...);
+///               var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
+///               context = new ManagedContext(dataModel, store);
+///            }
+///
+///            ManagedContext context;
+///         }
 ///
 /// A [Query] must have a valid [ManagedContext] to execute. Most applications only need one [ManagedContext],
-/// so the first [ManagedContext] instantiated becomes the [ManagedContext.defaultContext]. By default, [Query]s
-/// target the [ManagedContext.defaultContext].
+/// so the most recently [ManagedContext] instantiated becomes the [ManagedContext.defaultContext]. By default, [Query]s
+/// target the [ManagedContext.defaultContext] and need not be specified.
 class ManagedContext {
   /// The default context that a [Query] runs on.
   ///
@@ -26,7 +36,8 @@ class ManagedContext {
   /// Creates an instance of [ManagedContext] from a [ManagedDataModel] and [PersistentStore].
   ///
   /// This instance will become the [ManagedContext.defaultContext], unless another [ManagedContext]
-  /// is created, in which the new context becomes the default context.
+  /// is created, in which the new context becomes the default context. See [ManagedContext.standalone]
+  /// to create a context without setting it as the default context.
   ManagedContext(this.dataModel, this.persistentStore) {
     defaultContext = this;
   }
@@ -37,7 +48,7 @@ class ManagedContext {
   /// but does not set it to be the [defaultContext].
   ManagedContext.standalone(this.dataModel, this.persistentStore);
 
-  /// The persistent store that [Query]s on this context are executed on.
+  /// The persistent store that [Query]s on this context are executed through.
   PersistentStore persistentStore;
 
   /// The data model containing the [ManagedEntity]s that describe the [ManagedObject]s this instance works with.

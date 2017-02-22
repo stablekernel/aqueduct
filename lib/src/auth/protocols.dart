@@ -1,10 +1,11 @@
 import 'dart:async';
 import 'auth.dart';
 
-/// An interface for implementing an OAuth 2.0 "resource owner".
+/// An interface for implementing an OAuth 2.0 resource owner.
 ///
 /// In order for an [AuthServer] to authenticate a resource owner - like a User, Profile or Account in your application -
-/// that resource owner class must implement this interface.
+/// that resource owner class must implement this interface. See the library aqueduct/managed_auth for an implementation
+/// of this interface. It is preferred to use aqueduct/managed_auth than trying to implement this interface.
 abstract class Authenticatable {
   /// The username of the authenticatable resource.
   ///
@@ -26,7 +27,7 @@ abstract class Authenticatable {
 /// An interface for implementing storage behavior for an [AuthServer].
 ///
 /// This interface is responsible for persisting and retrieving information generated and requested by an [AuthServer].
-/// For a concrete, tested implementation of this class, see 'package:aqueduct/managed_auth.dart'.
+/// For a concrete, tested implementation of this class, see `ManagedAuthStorage` in `package:aqueduct/managed_auth.dart`.
 ///
 /// An [AuthServer] does not dictate how information is stored and therefore can't dictate how information is disposed of.
 /// It is up to implementors of this class to discard of any information it no longer wants to keep.

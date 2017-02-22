@@ -244,21 +244,6 @@ class DefaultPersistentStore extends PersistentStore {
 
   Future close() async {}
 
-  QueryPredicate comparisonPredicate(ManagedPropertyDescription desc,
-          MatcherOperator operator, dynamic value) =>
-      null;
-  QueryPredicate containsPredicate(
-          ManagedPropertyDescription desc, Iterable<dynamic> values) =>
-      null;
-  QueryPredicate nullPredicate(ManagedPropertyDescription desc, bool isNull) =>
-      null;
-  QueryPredicate rangePredicate(ManagedPropertyDescription desc,
-          dynamic lhsValue, dynamic rhsValue, bool insideRange) =>
-      null;
-  QueryPredicate stringPredicate(ManagedPropertyDescription desc,
-          StringMatcherOperator operator, dynamic value) =>
-      null;
-
   List<String> createTable(SchemaTable t, {bool isTemporary: false}) => [];
   List<String> renameTable(SchemaTable table, String name) => [];
   List<String> deleteTable(SchemaTable table) => [];

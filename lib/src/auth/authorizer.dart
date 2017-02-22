@@ -20,10 +20,17 @@ enum AuthStrategy {
 /// A [RequestController] that will authorize further passage in a [RequestController] chain when a request has valid
 /// credentials.
 ///
-/// An instance of [Authorizer] will validate a [Request] given a [strategy] and a [validator].
+/// An instance of [Authorizer] will validate a [Request] given a [strategy] and a [validator]. [validator] is typically the instance
+/// of [AuthServer] in an application.
+///
 /// If the [Request] is unauthorized (as determined by the [validator]), it will respond with the appropriate status code and prevent
 /// further request processing. If the [Request] is valid, an [Authorization] will be added
-/// to the [Request] and the request will be delivered to this instance's [nextController].
+/// to the [Request] and the request will be delivered to this instance's [nextController]. Usage:
+///
+///         router
+///           .route("/protectedroute")
+///           .pipe(new Authorizer.bearer(authServer))
+///           .generate(() => new ProtectedResourceController());
 class Authorizer extends RequestController {
   /// Creates an instance of [Authorizer].
   ///
@@ -47,7 +54,7 @@ class Authorizer extends RequestController {
   ///
   /// This object will check credentials parsed from the Authorization header and produce an
   /// [Authorization] instance representing the authorization the credentials have. It may also
-  /// reject a request.
+  /// reject a request. This is typically an instance of [AuthServer].
   AuthValidator validator;
 
   /// The list of scopes this instance requires.
@@ -137,10 +144,10 @@ class Authorizer extends RequestController {
   }
 }
 
-/// Instances that implement this type can be used by an [Authorizer] to determine authorization.
+/// Instances that implement this type can be used by an [Authorizer] to determine authorization of a request.
 ///
 /// When an [Authorizer] processes a [Request], it invokes methods from this type to determine the [Authorization] from the Authorization
-/// header of the [Request].
+/// header of the [Request]. [AuthServer] implements this interface.
 abstract class AuthValidator {
   /// Returns an [Authorization] from basic credentials.
   ///

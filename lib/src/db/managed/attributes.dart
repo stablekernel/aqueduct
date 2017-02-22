@@ -57,7 +57,7 @@ class ManagedRelationship {
   }
 }
 
-/// The different types of relationships.
+/// The different types of relationships for [ManagedRelationship] instances declared in [ManagedObject] persistent types.
 enum ManagedRelationshipType {
   /// The relationship property is not backed by a database column, but instead represents a single row in the database.
   hasOne,
@@ -65,7 +65,7 @@ enum ManagedRelationshipType {
   /// The relationship property is not backed by a database column, but instead represents many rows in the database.
   hasMany,
 
-  /// A relationship property of this kind will be a foreign key reference to another entity.
+  /// A relationship property of this kind will be a foreign key column.
   ///
   /// See [ManagedRelationship].
   belongsTo
@@ -78,20 +78,29 @@ const ManagedColumnAttributes managedPrimaryKey = const ManagedColumnAttributes(
     databaseType: ManagedPropertyType.bigInteger,
     autoincrement: true);
 
-/// Metadata to describe the behavior of the underlying database column of a managed property.
+/// Metadata to describe the behavior of the underlying database column of a persistent property in [ManagedObject] subclasses.
 ///
-/// By default, simply declaring a a property in a persistent type class will make it a database column
-/// and its persistence information will be derived from its type.
-/// If, however, the property needs any of the attributes defined by this class, it should be annotated with an instance of this class.
+/// By default, simply declaring a a property in a persistent type will make it a database column
+/// and its database column will be derived from the proprerty's type.
+/// If the property needs additional directives - like indexing or uniqueness -  it should be annotated with an instance of this class.
+///
+///         class User extends ManagedObject<_User> implements _User {}
+///         class _User {
+///           @managedPrimaryKey
+///           int id;
+///
+///           @ManagedColumnAttributes(indexed: true, unique: true)
+///           String email;
+///         }
 class ManagedColumnAttributes {
-  /// When true, indicates that this model property is the primary key.
+  /// When true, indicates that this property is the primary key.
   ///
   /// Only one property of a class may have primaryKey equal to true.
   final bool isPrimaryKey;
 
   /// The type of the field in the database.
   ///
-  /// By default, the [PersistentStore] will use the appropriate type for Dart type, e.g. a Dart String is a PostgreSQL text type.
+  /// By default, the database column type is inferred from the Dart type of the property, e.g. a Dart [String] is a PostgreSQL text type.
   /// This allows you to override the default type mapping for the annotated property.
   final ManagedPropertyType databaseType;
 
@@ -102,9 +111,16 @@ class ManagedColumnAttributes {
 
   /// The default value of the property.
   ///
-  /// By default, a property does not have a default property. This is a String to be interpreted by the [PersistentStore]. Most
-  /// [PersistentStore]s will use this string to further define the type of the database column with a default value, thus it must
-  /// be flexible.
+  /// By default, a property does not have a default property. This is a String to be interpreted by the database driver. For example,
+  /// a PostgreSQL datetime column that defaults to the current time:
+  ///
+  ///         class User extends ManagedObject<_User> implements _User {}
+  ///         class _User {
+  ///           @ManagedColumnAttributes(defaultValue: "now()")
+  ///           DateTime createdDate;
+  ///
+  ///           ...
+  ///         }
   final String defaultValue;
 
   /// Whether or not the property is unique among all instances.
@@ -119,7 +135,7 @@ class ManagedColumnAttributes {
 
   /// Whether or not fetching an instance of this type should include this property.
   ///
-  /// By default, all properties on a [ManagedObject] are returned if not specified (unless they are to-many relationship properties).
+  /// By default, all properties on a [ManagedObject] are returned if not specified (unless they are has-one or has-many relationship properties).
   /// This flag will remove the associated property from the result set unless it is explicitly specified by [Query.returningProperties].
   final bool shouldOmitByDefault;
 
