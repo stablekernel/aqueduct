@@ -86,6 +86,10 @@ class AuthController extends HTTPController {
 
         return AuthController.tokenResponse(token);
       } else if (grantType == "authorization_code") {
+        if (scope != null) {
+          return _responseForError(AuthRequestError.invalidRequest);
+        }
+
         var token = await authServer.exchange(
             authCode, basicRecord.username, basicRecord.password);
 
