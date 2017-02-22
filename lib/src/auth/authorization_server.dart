@@ -297,6 +297,7 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
 
     List<AuthScope> validScopes;
     if (client.supportsScopes) {
+
       if ((requestedScopes?.length ?? 0) == 0) {
         throw new AuthServerException(AuthRequestError.invalidScope, client);
       }

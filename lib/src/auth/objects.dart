@@ -51,8 +51,8 @@ class AuthClient {
 
   /// The list of scopes available when authorizing with this client.
   ///
-  /// Scoping is determined by the client that a user authorizes on its behalf. This list
-  /// contains all valid scopes for this client. If null, client does not support scopes
+  /// Scoping is determined by this instance; i.e. the authorizing client determines which scopes a token
+  /// has. This list contains all valid scopes for this client. If null, client does not support scopes
   /// and all access tokens have same authorization.
   List<AuthScope> get allowedScopes => _allowedScopes;
   void set allowedScopes(List<AuthScope> scopes) {

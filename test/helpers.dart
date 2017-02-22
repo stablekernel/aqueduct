@@ -27,6 +27,8 @@ class TestToken implements AuthToken, AuthCode {
         ..type = t.type
         ..accessToken = t.accessToken
         ..refreshToken = t.refreshToken
+        ..scopes = t.scopes
+        ..requestedScopes = t.requestedScopes
         ..code = t.code;
     } else if (t is AuthToken) {
       this
@@ -36,6 +38,7 @@ class TestToken implements AuthToken, AuthCode {
         ..clientID = t.clientID
         ..type = t.type
         ..accessToken = t.accessToken
+        ..scopes = t.scopes
         ..refreshToken = t.refreshToken;
     } else if (t is AuthCode) {
       this
@@ -43,6 +46,7 @@ class TestToken implements AuthToken, AuthCode {
         ..expirationDate = t.expirationDate
         ..resourceOwnerIdentifier = t.resourceOwnerIdentifier
         ..clientID = t.clientID
+        ..requestedScopes = t.requestedScopes
         ..code = t.code;
     }
   }
@@ -101,7 +105,15 @@ class InMemoryAuthStorage implements AuthStorage {
           "com.stablekernel.redirect2",
           AuthUtility.generatePasswordHash("gibraltar", salt),
           salt,
-          "http://stablekernel.com/auth/redirect2")
+          "http://stablekernel.com/auth/redirect2"),
+      "com.stablekernel.scoped": new AuthClient.withRedirectURI(
+          "com.stablekernel.scoped",
+          AuthUtility.generatePasswordHash("kilimanjaro", salt),
+          salt,
+          "http://stablekernel.com/auth/scoped", allowedScopes: [
+            new AuthScope("user"),
+            new AuthScope("other_scope")
+          ]),
     };
   }
 
@@ -172,6 +184,8 @@ class InMemoryAuthStorage implements AuthStorage {
           orElse: () => null);
       var replacement = new TestToken.from(t);
       replacement.code = issuedFrom.code;
+      replacement.scopes = issuedFrom.requestedScopes;
+
       tokens.remove(existingIssued);
       tokens.add(replacement);
     } else {
