@@ -1,12 +1,14 @@
 import 'package:aqueduct/aqueduct.dart';
+import 'package:aqueduct/src/db/query/matcher_internal.dart';
 import 'package:test/test.dart';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../helpers.dart';
-import '../../lib/src/db/query/matcher_internal.dart';
+
 
 main() {
+  RequestController.letUncaughtExceptionsEscape = true;
   ManagedContext context = null;
   HttpServer server = null;
 
@@ -20,7 +22,7 @@ main() {
     router.finalize();
 
     server.listen((req) async {
-      router.receive(new Request(req));
+      router.receive(new Request(req)).catchError((e) => print("$e"));
     });
   });
 
@@ -85,7 +87,7 @@ class TestModelController extends QueryController<TestModel> {
       statusCode = 400;
     }
 
-    var comparisonMatcher = query.where["id"];
+    ComparisonMatcherExpression comparisonMatcher = query.where["id"];
     if (comparisonMatcher.operator != MatcherOperator.equalTo ||
         comparisonMatcher.value != id) {
       statusCode = 400;
@@ -112,7 +114,7 @@ class TestModelController extends QueryController<TestModel> {
       statusCode = 400;
     }
 
-    var comparisonMatcher = query.where["id"];
+    ComparisonMatcherExpression comparisonMatcher = query.where["id"];
     if (comparisonMatcher.operator != MatcherOperator.equalTo ||
         comparisonMatcher.value != id) {
       statusCode = 400;
