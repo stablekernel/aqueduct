@@ -86,7 +86,7 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
   /// After [expiration], this token will no longer be valid.
   Future<AuthToken> authenticate(
       String username, String password, String clientID, String clientSecret,
-      {Duration expiration: const Duration(hours: 1)}) async {
+      {Duration expiration: const Duration(hours: 24), List<AuthScope> requestedScopes}) async {
     if (clientID == null) {
       throw new AuthServerException(AuthRequestError.invalidClient, null);
     }
@@ -128,9 +128,25 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
       throw new AuthServerException(AuthRequestError.invalidGrant, client);
     }
 
+    List<AuthScope> validScopes;
+    if (client.supportsScopes) {
+      if ((requestedScopes?.length ?? 0) == 0) {
+        throw new AuthServerException(AuthRequestError.invalidScope, client);
+      }
+
+      validScopes = requestedScopes
+          .where((incomingScope) => client.allowsScope(incomingScope))
+          .toList();
+
+      if (validScopes.length == 0) {
+        throw new AuthServerException(AuthRequestError.invalidScope, client);
+      }
+    }
+
     AuthToken token = _generateToken(
         authenticatable.id, client.id, expiration.inSeconds,
-        allowRefresh: !client.isPublic);
+        allowRefresh: !client.isPublic,
+        scopes: validScopes);
     await storage.storeToken(this, token);
 
     return token;
@@ -159,7 +175,7 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
   /// This method coordinates with this instance's [storage] to update the old token with a new access token and issue/expiration dates if successful.
   /// If not successful, it will throw an [AuthRequestError].
   Future<AuthToken> refresh(
-      String refreshToken, String clientID, String clientSecret) async {
+      String refreshToken, String clientID, String clientSecret, {List<AuthScope> requestedScopes}) async {
     if (clientID == null) {
       throw new AuthServerException(AuthRequestError.invalidClient, null);
     }
@@ -187,6 +203,20 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
       throw new AuthServerException(AuthRequestError.invalidClient, client);
     }
 
+    var updatedScopes = t.scopes;
+    if ((requestedScopes?.length ?? 0) != 0) {
+      for (var incomingScope in requestedScopes) {
+        var hasExistingScopeOrSuperset = t.scopes
+            .any((existingScope) => incomingScope.isSubsetOrEqualTo(existingScope));
+
+        if (!hasExistingScopeOrSuperset) {
+          throw new AuthServerException(AuthRequestError.invalidScope, client);
+        }
+      }
+
+      updatedScopes = requestedScopes;
+    }
+
     var diff = t.expirationDate.difference(t.issueDate);
     var now = new DateTime.now().toUtc();
     var newToken = new AuthToken()
@@ -195,6 +225,7 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
       ..expirationDate = now.add(new Duration(seconds: diff.inSeconds)).toUtc()
       ..refreshToken = t.refreshToken
       ..type = t.type
+      ..scopes = updatedScopes
       ..resourceOwnerIdentifier = t.resourceOwnerIdentifier
       ..clientID = t.clientID;
 
@@ -211,7 +242,7 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
   /// appropriate [AuthRequestError].
   Future<AuthCode> authenticateForCode(
       String username, String password, String clientID,
-      {int expirationInSeconds: 600}) async {
+      {int expirationInSeconds: 600, List<AuthScope> requestedScopes}) async {
     if (clientID == null) {
       throw new AuthServerException(AuthRequestError.invalidClient, null);
     }
@@ -243,8 +274,23 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
       throw new AuthServerException(AuthRequestError.accessDenied, client);
     }
 
+    List<AuthScope> validScopes;
+    if (client.supportsScopes) {
+      if ((requestedScopes?.length ?? 0) == 0) {
+        throw new AuthServerException(AuthRequestError.invalidScope, client);
+      }
+
+      validScopes = requestedScopes
+          .where((incomingScope) => client.allowsScope(incomingScope))
+          .toList();
+
+      if (validScopes.length == 0) {
+        throw new AuthServerException(AuthRequestError.invalidScope, client);
+      }
+    }
+
     AuthCode authCode =
-        _generateAuthCode(authenticatable.id, client, expirationInSeconds);
+        _generateAuthCode(authenticatable.id, client, expirationInSeconds, scopes: validScopes);
     await storage.storeAuthCode(this, authCode);
     return authCode;
   }
@@ -302,7 +348,7 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
       throw new AuthServerException(AuthRequestError.invalidGrant, client);
     }
     AuthToken token = _generateToken(
-        authCode.resourceOwnerIdentifier, client.id, expirationInSeconds);
+        authCode.resourceOwnerIdentifier, client.id, expirationInSeconds, scopes: authCode.requestedScopes);
     await storage.storeToken(this, token, issuedFrom: authCode);
 
     return token;
@@ -389,7 +435,7 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
 
   AuthToken _generateToken(
       dynamic ownerID, String clientID, int expirationInSeconds,
-      {bool allowRefresh: true}) {
+      {bool allowRefresh: true, List<AuthScope> scopes: null}) {
     var now = new DateTime.now().toUtc();
     AuthToken token = new AuthToken()
       ..accessToken = randomStringOfLength(32)
@@ -397,6 +443,7 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
       ..expirationDate = now.add(new Duration(seconds: expirationInSeconds))
       ..type = TokenTypeBearer
       ..resourceOwnerIdentifier = ownerID
+      ..scopes = scopes
       ..clientID = clientID;
 
     if (allowRefresh) {
@@ -407,13 +454,14 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
   }
 
   AuthCode _generateAuthCode(
-      dynamic ownerID, AuthClient client, int expirationInSeconds) {
+      dynamic ownerID, AuthClient client, int expirationInSeconds, {List<AuthScope> scopes: null}) {
     var now = new DateTime.now().toUtc();
     return new AuthCode()
       ..code = randomStringOfLength(32)
       ..clientID = client.id
       ..resourceOwnerIdentifier = ownerID
       ..issueDate = now
+      ..requestedScopes = scopes
       ..expirationDate = now.add(new Duration(seconds: expirationInSeconds));
   }
 }

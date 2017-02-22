@@ -59,7 +59,7 @@ void main() {
     expect(scope.isExactly("user:location:equipment"), true);
   });
 
-  test("Multiple element equal scopes match", () {
+  test("Multiple element equal scopes match, with modifier", () {
     var scope = new AuthScope("user:location:equipment.readonly");
     expect(scope.allows("user:location:equipment.readonly"), true);
     expect(scope.isExactly("user:location:equipment.readonly"), true);
@@ -136,5 +136,46 @@ void main() {
   test("Multiple element scope that does not allow more restrictive scope", () {
     var scope = new AuthScope("user:location");
     expect(scope.allows("user:location:equipment"), false);
+  });
+
+  test("Can contain all valid characters", () {
+    var scope = new AuthScope("ABC:DEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzz0123456789!#\$%&'`()*+,./;<=>?@[]^_{|}-");
+    expect(scope.allows("ABC:DEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzz0123456789!#\$%&'`()*+,./;<=>?@[]^_{|}-"), true);
+    expect(scope.allows("ABC"), true);
+  });
+
+  test("Cannot contain invalid characters", () {
+    try {
+      var _ = new AuthScope("abdef\"xz");
+      expect(true, false);
+    } on FormatException catch (e) {
+      expect(e.toString(), contains("Invalid authorization scope"));
+    }
+
+    try {
+      var _ = new AuthScope("abdef\\xz");
+      expect(true, false);
+    } on FormatException catch (e) {
+      expect(e.toString(), contains("Invalid authorization scope"));
+    }
+  });
+
+  test("Verify isSubsetOrEqualTo", () {
+    var scope = new AuthScope("users:foo");
+    expect(scope.isSubsetOrEqualTo(new AuthScope("users")), true);
+    expect(scope.isSubsetOrEqualTo(new AuthScope("users:foo")), true);
+    expect(scope.isSubsetOrEqualTo(new AuthScope("users:foo.readonly")), false);
+    expect(scope.isSubsetOrEqualTo(new AuthScope("xyz")), false);
+    expect(scope.isSubsetOrEqualTo(new AuthScope("users:foo:bar")), false);
+  });
+
+  group("Client behavior", () {
+    test("Client collapses redundant scope because of nesting", () {
+      fail("NYI");
+    });
+
+    test("Client collapses redundant scope because of modifier", () {
+      fail("NYI");
+    });
   });
 }

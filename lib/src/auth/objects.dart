@@ -3,14 +3,14 @@ import 'auth.dart';
 /// Represents an OAuth 2.0 client ID and secret pair.
 class AuthClient {
   /// Creates an instance of [AuthClient].
-  AuthClient(this.id, this.hashedSecret, this.salt);
+  AuthClient(this.id, this.hashedSecret, this.salt, {this.allowedScopes});
 
   /// Creates an instance of a public [AuthClient].
-  AuthClient.public(this.id);
+  AuthClient.public(this.id, {this.allowedScopes});
 
   /// Creates an instance of [AuthClient] that uses the authorization code grant flow.
   AuthClient.withRedirectURI(
-      this.id, this.hashedSecret, this.salt, this.redirectURI);
+      this.id, this.hashedSecret, this.salt, this.redirectURI, {this.allowedScopes});
 
   /// The ID of the client.
   String id;
@@ -29,6 +29,19 @@ class AuthClient {
   ///
   /// This value may be null if the client doesn't support the authorization code flow.
   String redirectURI;
+
+  /// The list of scopes available when authorizing with this client.
+  ///
+  /// Scoping is determined by the client that a user authorizes on its behalf. This list
+  /// contains all valid scopes for this client. If null, client does not support scopes
+  /// and all access tokens have same authorization.
+  List<AuthScope> allowedScopes;
+
+  bool get supportsScopes => allowedScopes != null;
+
+  bool allowsScope(AuthScope scope) {
+    return allowedScopes?.any((clientScope) => scope.isSubsetOrEqualTo(clientScope)) ?? false;
+  }
 
   /// Whether or not this is a public or confidential client.
   ///
@@ -77,6 +90,9 @@ class AuthToken {
 
   /// The client ID this token was issued from.
   String clientID;
+
+  /// Scopes this token has access to.
+  List<AuthScope> scopes;
 
   /// Whether or not this token is expired by evaluated [expirationDate].
   bool get isExpired {
@@ -127,6 +143,9 @@ class AuthCode {
   /// Whether or not this authorization code has already been exchanged for a token.
   bool hasBeenExchanged;
 
+  /// Scopes the exchanged token will have.
+  List<AuthScope> requestedScopes;
+
   /// Whether or not this code has expired yet, according to its [expirationDate].
   bool get isExpired {
     return expirationDate.difference(new DateTime.now().toUtc()).inSeconds <= 0;
@@ -164,16 +183,44 @@ class Authorization {
   /// If this instance represents the authorization header of a request with basic authorization credentials,
   /// the parsed credentials will be available in this property. Otherwise, this value is null.
   final AuthBasicCredentials credentials;
+
+  AuthScope grantedScope;
+  List<AuthScope> scopes;
 }
 
 class AuthScope {
-  AuthScope(String scopeString) {
+  static Map<String, AuthScope> _cache = {};
+
+  factory AuthScope(String scopeString) {
+    var cached = _cache[scopeString];
+    if (cached != null) {
+      return cached;
+    }
+
+    var scope = new AuthScope._(scopeString);
+    _cache[scopeString] = scope;
+    return scope;
+  }
+
+  AuthScope._(this.scopeString) {
+    for (var c in scopeString.codeUnits) {
+      if (!(c == 33 || (c >= 35 && c <= 91) || (c >= 93 && c <= 126))) {
+        throw new FormatException("Invalid authorization scope. May only contain "
+            "the following characters: A-Za-z0-9!#\$%&'`()*+,./:;<=>?@[]^_{|}-",
+            scopeString, scopeString.codeUnits.indexOf(c));
+      }
+    }
+
     _segments = _parse(scopeString);
     _lastModifier = _segments.last.modifier;
   }
 
+  String scopeString;
   List<_AuthScopeSegment> _segments;
   String _lastModifier;
+
+  Iterable<String> get segments => _segments.map((s) => s.name);
+  String get modifier => _lastModifier;
 
   List<_AuthScopeSegment> _parse(String scopeString) {
     if (scopeString == null || scopeString == "") {
@@ -213,6 +260,10 @@ class AuthScope {
     }
 
     return elements;
+  }
+
+  bool isSubsetOrEqualTo(AuthScope scope) {
+    return allowsScope(scope);
   }
 
   bool allowsScope(AuthScope incomingScope) {
@@ -277,6 +328,8 @@ class AuthScope {
   bool isExactly(String scopeString) {
     return isExactlyScope(new AuthScope(scopeString));
   }
+
+  String toString() => scopeString;
 }
 
 class _AuthScopeSegment {
@@ -288,6 +341,7 @@ class _AuthScopeSegment {
     } else {
       name = segment;
     }
+
   }
 
   String name;

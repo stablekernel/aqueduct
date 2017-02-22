@@ -27,7 +27,7 @@ void main() {
           AuthUtility.generatePasswordHash("mckinley", salt),
           salt,
           "http://stablekernel.com/auth/redirect"),
-      new AuthClient("com.stablekernel.public", null, salt),
+      new AuthClient.public("com.stablekernel.public"),
       new AuthClient.withRedirectURI(
           "com.stablekernel.redirect2",
           AuthUtility.generatePasswordHash("gibraltar", salt),
@@ -945,6 +945,359 @@ void main() {
       expect(await auth.verify(t2.accessToken), isNotNull);
 
       expect(await auth.verify(t1.accessToken), isNull);
+    });
+  });
+
+  group("Scoping cases", () {
+    AuthServer auth;
+    User createdUser;
+    setUp(() async {
+      auth = new AuthServer(storage);
+      createdUser = (await createUsers(1)).first;
+
+      var salt = "ABCDEFGHIJKLMNOPQRSTUVWXYZ012345";
+
+      var clients = [
+        new AuthClient.public("all", allowedScopes: [
+          new AuthScope("user"),
+          new AuthScope("location:add"),
+          new AuthScope("admin:settings.readonly")
+        ]),
+        new AuthClient.public("subset", allowedScopes: [
+          new AuthScope("user.readonly"),
+          new AuthScope("location:view")
+        ]),
+        new AuthClient.public("subset.multiple", allowedScopes: [
+          new AuthScope("user:a"),
+          new AuthScope("user:b")
+        ]),
+        new AuthClient.withRedirectURI("all.redirect",
+            AuthUtility.generatePasswordHash("a", salt), salt, "http://a.com", allowedScopes: [
+              new AuthScope("user"),
+              new AuthScope("location:add"),
+              new AuthScope("admin:settings.readonly")
+            ]),
+        new AuthClient.withRedirectURI("subset.redirect",
+            AuthUtility.generatePasswordHash("b", salt), salt, "http://b.com", allowedScopes: [
+              new AuthScope("user.readonly"),
+              new AuthScope("location:view")
+            ]),
+      ];
+
+      await Future.wait(clients
+          .map((ac) => new ManagedClient()
+            ..id = ac.id
+            ..salt = ac.salt
+            ..allowedScope = ac.allowedScopes.map((a) => a.scopeString).join(" ")
+            ..hashedSecret = ac.hashedSecret
+            ..redirectURI = ac.redirectURI)
+          .map((mc) {
+        var q = new Query<ManagedClient>()..values = mc;
+        return q.insert();
+      }));
+    });
+
+    test("Client can issue tokens for valid scope, only include specified scope", () async {
+      var token1 = await auth.authenticate(createdUser.username,
+          User.DefaultPassword, "all", null, requestedScopes: [
+            new AuthScope("user")
+          ]);
+
+      expect(token1.scopes.length, 1);
+      expect(token1.accessToken, isNotNull);
+      expect(token1.scopes.first.isExactly("user"), true);
+
+      var token2 = await auth.authenticate(createdUser.username,
+          User.DefaultPassword, "all", null, requestedScopes: [
+            new AuthScope("user:sub")
+          ]);
+
+      expect(token2.scopes.length, 1);
+      expect(token2.accessToken, isNotNull);
+      expect(token2.scopes.first.isExactly("user:sub"), true);
+    });
+
+    test("Client can request multiple scopes and if all are valid, get token and all specified scopes", () async {
+      var token = await auth.authenticate(createdUser.username,
+          User.DefaultPassword, "all", null, requestedScopes: [
+            new AuthScope("user"),
+            new AuthScope("location:add")
+          ]);
+
+      expect(token.scopes.length, 2);
+      expect(token.accessToken, isNotNull);
+      expect(token.scopes.any((s) => s.isExactly("user")), true);
+      expect(token.scopes.any((s) => s.isExactly("location:add")), true);
+    });
+
+    test("Client that requests multiple scopes for token where one is not valid, only get valid scopes", () async {
+      var token = await auth.authenticate(createdUser.username,
+          User.DefaultPassword, "all", null, requestedScopes: [
+            new AuthScope("user"),
+            new AuthScope("unknown")
+          ]);
+
+      expect(token.scopes.length, 1);
+      expect(token.accessToken, isNotNull);
+      expect(token.scopes.any((s) => s.isExactly("user")), true);
+    });
+
+    test("Client that requests multiple scopes where they are subsets of valid scopes, gets subsets back", () async {
+      var token = await auth.authenticate(createdUser.username,
+          User.DefaultPassword, "all", null, requestedScopes: [
+            new AuthScope("user:sub"),
+            new AuthScope("location:add:sub")
+          ]);
+
+      expect(token.scopes.length, 2);
+      expect(token.accessToken, isNotNull);
+      expect(token.scopes.any((s) => s.isExactly("user:sub")), true);
+      expect(token.scopes.any((s) => s.isExactly("location:add:sub")), true);
+    });
+
+    test("Client that requests allowed nested scope gets token", () async {
+      var token = await auth.authenticate(createdUser.username,
+          User.DefaultPassword, "subset.multiple", null, requestedScopes: [
+            new AuthScope("user:a"),
+          ]);
+      expect(token.scopes.length, 1);
+      expect(token.accessToken, isNotNull);
+      expect(token.scopes.any((s) => s.isExactly("user:a")), true);
+
+      token = await auth.authenticate(createdUser.username,
+          User.DefaultPassword, "subset.multiple", null, requestedScopes: [
+            new AuthScope("user:b"),
+          ]);
+      expect(token.scopes.length, 1);
+      expect(token.accessToken, isNotNull);
+      expect(token.scopes.any((s) => s.isExactly("user:b")), true);
+
+      try {
+        var _ = await auth.authenticate(createdUser.username,
+          User.DefaultPassword, "subset.multiple", null, requestedScopes: [
+            new AuthScope("user"),
+          ]);
+        expect(true, false);
+      } on AuthServerException catch (e) {
+        expect(e.reason, AuthRequestError.invalidScope);
+      }
+    });
+
+    test("Client will reject token request for unknown scope", () async {
+      try {
+        var _ = await auth.authenticate(createdUser.username,
+            User.DefaultPassword, "all", null, requestedScopes: [
+              new AuthScope("unknown")
+            ]);
+
+        expect(true, false);
+      } on AuthServerException catch (e) {
+        expect(e.reason, AuthRequestError.invalidScope);
+      }
+    });
+
+    test("Client will reject token request for scope with too high of privileges", () async {
+      try {
+        var _ = await auth.authenticate(createdUser.username,
+            User.DefaultPassword, "all", null, requestedScopes: [
+              new AuthScope("location")
+            ]);
+
+        expect(true, false);
+      } on AuthServerException catch (e) {
+        expect(e.reason, AuthRequestError.invalidScope);
+      }
+    });
+
+    test("Client will reject token request for scope that has limiting modifier", () async {
+      try {
+        var _ = await auth.authenticate(createdUser.username,
+            User.DefaultPassword, "all", null, requestedScopes: [
+              new AuthScope("admin:settings")
+            ]);
+
+        expect(true, false);
+      } on AuthServerException catch (e) {
+        expect(e.reason, AuthRequestError.invalidScope);
+      }
+    });
+
+    test("Refresh token without scope specified returns same scope", () async {
+      var token = await auth.authenticate(createdUser.username,
+          User.DefaultPassword, "all.redirect", "a", requestedScopes: [
+            new AuthScope("user"),
+            new AuthScope("location:add")
+          ]);
+
+      token = await auth.refresh(token.refreshToken, "all.redirect", "a");
+      expect(token.scopes.length, 2);
+      expect(token.accessToken, isNotNull);
+      expect(token.scopes.any((s) => s.isExactly("user")), true);
+      expect(token.scopes.any((s) => s.isExactly("location:add")), true);
+    });
+
+    test("Refresh token with lesser scope specified returns specified scope", () async {
+      var token = await auth.authenticate(createdUser.username,
+          User.DefaultPassword, "all.redirect", "a", requestedScopes: [
+            new AuthScope("user"),
+            new AuthScope("location:add")
+          ]);
+
+      token = await auth.refresh(token.refreshToken, "all.redirect", "a", requestedScopes: [
+        new AuthScope("user"),
+        new AuthScope("location:add.modifier")
+      ]);
+      expect(token.scopes.length, 2);
+      expect(token.accessToken, isNotNull);
+      expect(token.scopes.any((s) => s.isExactly("user")), true);
+      expect(token.scopes.any((s) => s.isExactly("location:add.modifier")), true);
+
+      token = await auth.refresh(token.refreshToken, "all.redirect", "a", requestedScopes: [
+        new AuthScope("user:under"),
+      ]);
+      expect(token.scopes.length, 1);
+      expect(token.accessToken, isNotNull);
+      expect(token.scopes.any((s) => s.isExactly("user:under")), true);
+    });
+
+    test("Refresh token with new, valid scope fails because refresh can't upgrade scope", () async {
+      var token = await auth.authenticate(createdUser.username,
+          User.DefaultPassword, "all.redirect", "a", requestedScopes: [
+            new AuthScope("user"),
+            new AuthScope("location:add")
+          ]);
+
+      try {
+        var _ = await auth.refresh(token.refreshToken, "all.redirect", "a", requestedScopes: [
+          new AuthScope("user"),
+          new AuthScope("location:add"),
+          new AuthScope("admin:settings.readonly")
+        ]);
+
+        expect(true, false);
+      } on AuthServerException catch (e) {
+        expect(e.reason, AuthRequestError.invalidScope);
+      }
+    });
+
+    test("Refresh token request with higher privileged scope fails because refresh can't upgrade scope", () async {
+      var token = await auth.authenticate(createdUser.username,
+          User.DefaultPassword, "all.redirect", "a", requestedScopes: [
+            new AuthScope("user:foo"),
+            new AuthScope("location:add")
+          ]);
+
+      try {
+        var _ = await auth.refresh(token.refreshToken, "all.redirect", "a", requestedScopes: [
+          new AuthScope("user")
+        ]);
+
+        expect(true, false);
+      } on AuthServerException catch (e) {
+        expect(e.reason, AuthRequestError.invalidScope);
+      }
+    });
+
+    test("Client can issue auth code for valid scope", () async {
+      var code1 = await auth.authenticateForCode(createdUser.username,
+          User.DefaultPassword, "all.redirect", requestedScopes: [
+            new AuthScope("user")
+          ]);
+      var token1 = await auth.exchange(code1.code, "all.redirect", "a");
+
+      expect(token1.scopes.length, 1);
+      expect(token1.accessToken, isNotNull);
+      expect(token1.scopes.first.isExactly("user"), true);
+
+      var code2 = await auth.authenticateForCode(createdUser.username,
+          User.DefaultPassword, "all.redirect", requestedScopes: [
+            new AuthScope("user:sub")
+          ]);
+      var token2 = await auth.exchange(code2.code, "all.redirect", "a");
+
+      expect(token2.scopes.length, 1);
+      expect(token2.accessToken, isNotNull);
+      expect(token2.scopes.first.isExactly("user:sub"), true);
+    });
+
+    test("Client that requests multiple scopes for auth code where they are subsets of valid scopes, gets subsets back", () async {
+      var code = await auth.authenticateForCode(createdUser.username,
+          User.DefaultPassword, "all.redirect", requestedScopes: [
+            new AuthScope("user:sub"),
+            new AuthScope("location:add:sub")
+          ]);
+      var token = await auth.exchange(code.code, "all.redirect", "a");
+
+      expect(token.scopes.length, 2);
+      expect(token.accessToken, isNotNull);
+      expect(token.scopes.any((s) => s.isExactly("user:sub")), true);
+      expect(token.scopes.any((s) => s.isExactly("location:add:sub")), true);
+    });
+
+    test("Client can request multiple scopes and if all are valid, get auth code", () async {
+      var code = await auth.authenticateForCode(createdUser.username,
+          User.DefaultPassword, "all.redirect", requestedScopes: [
+            new AuthScope("user"),
+            new AuthScope("location:add")
+          ]);
+
+      var token = await auth.exchange(code.code, "all.redirect", "a");
+
+      expect(token.scopes.length, 2);
+      expect(token.accessToken, isNotNull);
+      expect(token.scopes.any((s) => s.isExactly("user")), true);
+      expect(token.scopes.any((s) => s.isExactly("location:add")), true);
+    });
+
+    test("Client that requests multiple scopes for auth code where one is not valid, only get valid scopes", () async {
+      var code = await auth.authenticateForCode(createdUser.username,
+          User.DefaultPassword, "all.redirect", requestedScopes: [
+            new AuthScope("user"),
+            new AuthScope("unknown")
+          ]);
+
+      var token = await auth.exchange(code.code, "all.redirect", "a");
+      expect(token.scopes.length, 1);
+      expect(token.accessToken, isNotNull);
+      expect(token.scopes.any((s) => s.isExactly("user")), true);
+    });
+
+    test("Client will reject auth code request for unknown scope", () async {
+      try {
+        var _ = await auth.authenticateForCode(createdUser.username,
+            User.DefaultPassword, "all.redirect", requestedScopes: [
+              new AuthScope("unknown")
+            ]);
+
+        expect(true, false);
+      } on AuthServerException catch (e) {
+        expect(e.reason, AuthRequestError.invalidScope);
+      }
+    });
+
+    test("Client will reject auth code request for scope with too high of privileges", () async {
+      try {
+        var _ = await auth.authenticateForCode(createdUser.username,
+            User.DefaultPassword, "all.redirect", requestedScopes: [
+              new AuthScope("location")
+            ]);
+
+        expect(true, false);
+      } on AuthServerException catch (e) {
+        expect(e.reason, AuthRequestError.invalidScope);
+      }
+    });
+    test("Client will reject auth code request for scope that has limiting modifier", () async {
+      try {
+        var _ = await auth.authenticateForCode(createdUser.username,
+            User.DefaultPassword, "all.redirect", requestedScopes: [
+              new AuthScope("admin:settings")
+            ]);
+
+        expect(true, false);
+      } on AuthServerException catch (e) {
+        expect(e.reason, AuthRequestError.invalidScope);
+      }
     });
   });
 }

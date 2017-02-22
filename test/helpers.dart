@@ -54,6 +54,8 @@ class TestToken implements AuthToken, AuthCode {
   dynamic resourceOwnerIdentifier;
   String clientID;
   String code;
+  List<AuthScope> scopes;
+  List<AuthScope> requestedScopes;
   bool get hasBeenExchanged => accessToken != null;
   void set hasBeenExchanged(bool s) {}
 

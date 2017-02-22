@@ -18,6 +18,7 @@ class ManagedToken extends ManagedObject<_ManagedToken>
       ..issueDate = t.issueDate
       ..expirationDate = t.expirationDate
       ..type = t.type
+      ..scope = t.scopes?.map((s) => s.scopeString)?.join(" ")
       ..resourceOwner = tokenResourceOwner as dynamic
       ..client = (new ManagedClient()..id = t.clientID);
   }
@@ -35,6 +36,7 @@ class ManagedToken extends ManagedObject<_ManagedToken>
       ..resourceOwner = tokenResourceOwner as dynamic
       ..issueDate = code.issueDate
       ..expirationDate = code.expirationDate
+      ..scope = code.requestedScopes?.map((s) => s.scopeString)?.join(" ")
       ..client = (new ManagedClient()..id = code.clientID);
   }
 
@@ -46,6 +48,7 @@ class ManagedToken extends ManagedObject<_ManagedToken>
       ..expirationDate = expirationDate
       ..type = type
       ..resourceOwnerIdentifier = resourceOwner.id
+      ..scopes = scope?.split(" ")?.map((s) => new AuthScope(s))?.toList()
       ..clientID = client.id;
   }
 
@@ -55,6 +58,7 @@ class ManagedToken extends ManagedObject<_ManagedToken>
       ..code = code
       ..resourceOwnerIdentifier = resourceOwner.id
       ..issueDate = issueDate
+      ..requestedScopes = scope?.split(" ")?.map((s) => new AuthScope(s))?.toList()
       ..expirationDate = expirationDate
       ..clientID = client.id;
   }
@@ -72,6 +76,9 @@ class _ManagedToken {
 
   @ManagedColumnAttributes(indexed: true, unique: true, nullable: true)
   String refreshToken;
+
+  @ManagedColumnAttributes(nullable: true)
+  String scope;
 
   DateTime issueDate;
 
@@ -95,7 +102,13 @@ class _ManagedToken {
 class ManagedClient extends ManagedObject<_ManagedClient>
     implements _ManagedClient {
   AuthClient asClient() {
-    return new AuthClient.withRedirectURI(id, hashedSecret, salt, redirectURI);
+    var scopes = allowedScope
+        ?.split(" ")
+        ?.map((s) => new AuthScope(s))
+        ?.toList();
+
+    return new AuthClient.withRedirectURI(id, hashedSecret, salt, redirectURI,
+        allowedScopes: scopes);
   }
 }
 
@@ -111,6 +124,9 @@ class _ManagedClient {
 
   @ManagedColumnAttributes(unique: true, nullable: true)
   String redirectURI;
+
+  @ManagedColumnAttributes(nullable: true)
+  String allowedScope;
 
   ManagedSet<ManagedToken> tokens;
 
