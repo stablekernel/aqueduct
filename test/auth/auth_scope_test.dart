@@ -32,6 +32,17 @@ void main() {
       new AuthScope(":user:location:");
       expect(true, false);
     } on FormatException {}
+
+    try {
+      new AuthScope(" ab");
+      expect(true, false);
+    } on FormatException {}
+
+    try {
+      new AuthScope("ab c");
+      expect(true, false);
+    } on FormatException {}
+
   });
 
   // Success allows
