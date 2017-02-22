@@ -229,7 +229,7 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
       }
 
       updatedScopes = requestedScopes;
-    } else {
+    } else if (client.supportsScopes) {
       // Ensure we still have access to same scopes if we didn't specify any
       for (var incomingScope in t.scopes) {
         if (!client.allowsScope(incomingScope)) {
