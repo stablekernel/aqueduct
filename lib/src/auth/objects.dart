@@ -50,8 +50,13 @@ class AuthClient {
   /// and all access tokens have same authorization.
   List<AuthScope> allowedScopes;
 
+  /// Whether or not this instance allows scoping or not.
+  ///
+  /// In application's that do not use authorization scopes, this will return false.
+  /// Otherwise, will return true.
   bool get supportsScopes => allowedScopes != null;
 
+  /// Whether or not this client can issue tokens for the provided [scope].
   bool allowsScope(AuthScope scope) {
     return allowedScopes?.any((clientScope) => scope.isSubsetOrEqualTo(clientScope)) ?? false;
   }
