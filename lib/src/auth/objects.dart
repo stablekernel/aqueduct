@@ -188,9 +188,49 @@ class Authorization {
   List<AuthScope> scopes;
 }
 
+
+/// Instances represent OAuth 2.0 scope.
+///
+/// An OAuth 2.0 token may optionally have authorization scopes. An authorization scope provides more granular
+/// authorization to protected resources. Without authorization scopes, any valid token can pass through an
+/// [Authorizer.bearer]. Scopes allow [Authorizer]s to restrict access to routes that do not have the
+/// appropriate scope values.
+///
+/// An [AuthClient] has a list of valid scopes (see `aqueduct auth` tool). An access token issued for an [AuthClient] may ask for
+/// any of the scopes the client provides. Scopes are then granted to the access token. An [Authorizer] may specify
+/// a one or more required scopes that a token must have to pass to the next controller.
+///
+/// The format of [scopeString] is meant to be flexible; see constructor for details.
 class AuthScope {
   static Map<String, AuthScope> _cache = {};
 
+  /// Creates an instance of this type from [scopeString].
+  ///
+  /// A simple authorization scope string is a single keyword. Valid characters are
+  ///
+  ///         A-Za-z0-9!#\$%&'`()*+,./:;<=>?@[]^_{|}-.
+  ///
+  /// For example, 'account' is a valid scope. An [Authorizer] can require an access token to have
+  /// the 'account' scope to pass through it. Access tokens without the 'account' scope are unauthorized.
+  ///
+  /// More advanced scopes may contain multiple segments and a modifier. For example, the following are valid scopes:
+  ///
+  ///     user
+  ///     user:settings
+  ///     user:posts
+  ///     user:posts.readonly
+  ///
+  /// Segments are delimited by the colon character (`:`). Segments allow more granular scoping options. Each segment adds a
+  /// restriction to the segment prior to it. For example, the scope `user`
+  /// would allow all user actions, whereas `user:settings` would only allow access to a user's settings. Routes that are secured
+  /// to either `user:settings` or `user:posts.readonly` are accessible by an access token with `user` scope. A token with `user:settings`
+  /// would not be able to access a route limited to `user:posts`.
+  ///
+  /// A modifier is an additional restrictive measure and follows scope segments and the dot character (`.`). A scope may only
+  /// have one modifier at the very end of the scope. A modifier can be any string, as long as its characters are in the above
+  /// list of valid characters. A modifier adds an additional restriction to a scope, without having to make up a new segment.
+  /// An example is the 'readonly' modifier above. A route that requires `user:posts.readonly` would allow passage when the token
+  /// has `user`, `user:posts` or `user:posts.readonly`. A route that required `user:posts` would not allow `user:posts.readonly`.
   factory AuthScope(String scopeString) {
     var cached = _cache[scopeString];
     if (cached != null) {
@@ -215,12 +255,21 @@ class AuthScope {
     _lastModifier = _segments.last.modifier;
   }
 
+  /// This instance as a string.
   String scopeString;
+
+  /// Individual segments, separated by `:` character, of this instance.
+  ///
+  /// Will always have a length of at least 1.
+  Iterable<String> get segments => _segments.map((s) => s.name);
+
+  /// The modifier of this scope, if it exists.
+  ///
+  /// If this instance does not have a modifier, returns null.
+  String get modifier => _lastModifier;
+
   List<_AuthScopeSegment> _segments;
   String _lastModifier;
-
-  Iterable<String> get segments => _segments.map((s) => s.name);
-  String get modifier => _lastModifier;
 
   List<_AuthScopeSegment> _parse(String scopeString) {
     if (scopeString == null || scopeString == "") {
@@ -262,10 +311,22 @@ class AuthScope {
     return elements;
   }
 
+  /// Whether or not this instance is a subset or equal to [scope].
+  ///
+  /// The scope `users:posts` is a subset of `users`.
   bool isSubsetOrEqualTo(AuthScope scope) {
     return allowsScope(scope);
   }
 
+  /// Whether or not [incomingScope] has at least the same scoping access as this instance.
+  ///
+  /// This check is used to determine if an [Authorizer] can allow a [Request] to pass if the [Request]'s
+  /// [Request.authorization] has a scope that has the same or more scope than there required scope of an [Authorizer].
+  ///
+  /// For example, the scope `user:location` would allow both `user` and `user:location`.
+  ///
+  /// The scope `user` would allow `user`,
+  /// but would not allow `user:location`, as `user:location` is more restrictive than the required scope.
   bool allowsScope(AuthScope incomingScope) {
     if (incomingScope._lastModifier != null) {
       // If the modifier of the incoming scope is restrictive,
@@ -303,10 +364,14 @@ class AuthScope {
     return true;
   }
 
+  /// String variant of [allowsScope].
+  ///
+  /// Parses an instance of this type from [scopeString] and invokes [allowsScope].
   bool allows(String scopeString) {
     return allowsScope(new AuthScope(scopeString));
   }
 
+  /// Whether or not two scopes are exactly the same.
   bool isExactlyScope(AuthScope scope) {
     var incomingIterator = scope._segments.iterator;
     for (var segment in _segments) {
@@ -325,6 +390,9 @@ class AuthScope {
     return true;
   }
 
+  /// String variant of [isExactlyScope].
+  ///
+  /// Parses an instance of this type from [scopeString] and invokes [isExactlyScope].
   bool isExactly(String scopeString) {
     return isExactlyScope(new AuthScope(scopeString));
   }
