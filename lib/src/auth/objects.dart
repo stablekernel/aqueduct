@@ -14,16 +14,22 @@ class AuthClient {
   ///
   /// If this client supports scopes, [allowedScopes] must contain a list of scopes that tokens may request when authorized
   /// by this client.
-  AuthClient(this.id, this.hashedSecret, this.salt, {this.allowedScopes});
+  AuthClient(String id, String hashedSecret, String salt, {List<AuthScope> allowedScopes}) :
+    this.withRedirectURI(id, hashedSecret, salt, null, allowedScopes: allowedScopes);
 
   /// Creates an instance of a public [AuthClient].
-  AuthClient.public(this.id, {this.allowedScopes});
+  AuthClient.public(String id, {List<AuthScope> allowedScopes}) :
+      this.withRedirectURI(id, null, null, null, allowedScopes: allowedScopes);
 
   /// Creates an instance of [AuthClient] that uses the authorization code grant flow.
   ///
   /// All values must be non-null. This is confidential client.
   AuthClient.withRedirectURI(
-      this.id, this.hashedSecret, this.salt, this.redirectURI, {this.allowedScopes});
+      this.id, this.hashedSecret, this.salt, this.redirectURI, {List<AuthScope> allowedScopes}) {
+    this.allowedScopes = allowedScopes;
+  }
+
+  List<AuthScope> _allowedScopes;
 
   /// The ID of the client.
   String id;
@@ -48,7 +54,15 @@ class AuthClient {
   /// Scoping is determined by the client that a user authorizes on its behalf. This list
   /// contains all valid scopes for this client. If null, client does not support scopes
   /// and all access tokens have same authorization.
-  List<AuthScope> allowedScopes;
+  List<AuthScope> get allowedScopes => _allowedScopes;
+  void set allowedScopes(List<AuthScope> scopes) {
+    _allowedScopes = scopes
+      ?.where((s) {
+        return !scopes.any((otherScope) =>
+          s.isSubsetOrEqualTo(otherScope) && !s.isExactlyScope(otherScope));
+        })
+        ?.toList();
+  }
 
   /// Whether or not this instance allows scoping or not.
   ///
@@ -265,6 +279,11 @@ class AuthScope {
   }
 
   AuthScope._(this.scopeString) {
+    if (scopeString?.isEmpty ?? true) {
+      throw new FormatException(
+          "Invalid AuthScope. May not be null or empty string.", scopeString);
+    }
+
     for (var c in scopeString.codeUnits) {
       if (!(c == 33 || (c >= 35 && c <= 91) || (c >= 93 && c <= 126))) {
         throw new FormatException("Invalid authorization scope. May only contain "

@@ -171,11 +171,45 @@ void main() {
 
   group("Client behavior", () {
     test("Client collapses redundant scope because of nesting", () {
-      fail("NYI");
+      var c = new AuthClient("a", "b", "c", allowedScopes: [
+        new AuthScope("abc"),
+        new AuthScope("abc:def")
+      ]);
+      expect(c.allowedScopes.length, 1);
+      expect(c.allowedScopes.first.isExactly("abc"), true);
+
+      c = new AuthClient("a", "b", "c", allowedScopes: [
+        new AuthScope("abc"),
+        new AuthScope("abc:def"),
+        new AuthScope("abc:def:xyz"),
+        new AuthScope("cba"),
+        new AuthScope("cba:foo")
+      ]);
+      expect(c.allowedScopes.length, 2);
+      expect(c.allowedScopes.any((s) => s.isExactly("abc")), true);
+      expect(c.allowedScopes.any((s) => s.isExactly("cba")), true);
     });
 
     test("Client collapses redundant scope because of modifier", () {
-      fail("NYI");
+      var c = new AuthClient("a", "b", "c", allowedScopes: [
+        new AuthScope("abc"),
+        new AuthScope("abc:def"),
+        new AuthScope("abc.readonly"),
+        new AuthScope("abc:def.readonly")
+      ]);
+      expect(c.allowedScopes.length, 1);
+      expect(c.allowedScopes.first.isExactly("abc"), true);
+
+      c = new AuthClient("a", "b", "c", allowedScopes: [
+        new AuthScope("abc"),
+        new AuthScope("abc:def"),
+        new AuthScope("abc:def:xyz.readonly"),
+        new AuthScope("cba"),
+        new AuthScope("cba:foo.readonly")
+      ]);
+      expect(c.allowedScopes.length, 2);
+      expect(c.allowedScopes.any((s) => s.isExactly("abc")), true);
+      expect(c.allowedScopes.any((s) => s.isExactly("cba")), true);
     });
   });
 }
