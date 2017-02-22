@@ -37,19 +37,12 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
   /// [AuthServer] for more details.
   AuthStorage storage;
 
-  Map<String, AuthClient> _clientCache = {};
-
   /// Returns a [AuthClient] record for its [clientID].
   ///
   /// A server keeps a cache of known [AuthClient]s. If a client does not exist in the cache,
   /// it will ask its [storage] via [AuthStorage.fetchClientByID].
   Future<AuthClient> clientForID(String clientID) async {
-    AuthClient client = _clientCache[clientID] ??
-        (await storage.fetchClientByID(this, clientID));
-
-    _clientCache[clientID] = client;
-
-    return client;
+    return storage.fetchClientByID(this, clientID);
   }
 
   /// Revokes a [AuthClient] record.
@@ -62,8 +55,6 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
     }
 
     await storage.revokeClientWithID(this, clientID);
-
-    _clientCache.remove(clientID);
   }
 
   /// Revokes access for an [Authenticatable].
@@ -212,9 +203,15 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
         if (!hasExistingScopeOrSuperset) {
           throw new AuthServerException(AuthRequestError.invalidScope, client);
         }
+
+        if (!client.allowsScope(incomingScope)) {
+          throw new AuthServerException(AuthRequestError.invalidScope, client);
+        }
       }
 
       updatedScopes = requestedScopes;
+    } else {
+      // Ensure we still have access to same scopes
     }
 
     var diff = t.expirationDate.difference(t.issueDate);

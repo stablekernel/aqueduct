@@ -997,6 +997,8 @@ void main() {
       }));
     });
 
+    // -- Password grant --
+
     test("Client can issue tokens for valid scope, only include specified scope", () async {
       var token1 = await auth.authenticate(createdUser.username,
           User.DefaultPassword, "all", null, requestedScopes: [
@@ -1122,6 +1124,8 @@ void main() {
       }
     });
 
+    // --- Refresh ---
+
     test("Refresh token without scope specified returns same scope", () async {
       var token = await auth.authenticate(createdUser.username,
           User.DefaultPassword, "all.redirect", "a", requestedScopes: [
@@ -1180,7 +1184,7 @@ void main() {
       }
     });
 
-    test("Refresh token request with higher privileged scope fails because refresh can't upgrade scope", () async {
+    test("Refresh token request with higher privileged scope does not include that scope because refresh can't upgrade scope", () async {
       var token = await auth.authenticate(createdUser.username,
           User.DefaultPassword, "all.redirect", "a", requestedScopes: [
             new AuthScope("user:foo"),
@@ -1197,6 +1201,43 @@ void main() {
         expect(e.reason, AuthRequestError.invalidScope);
       }
     });
+
+    test("Refresh token request after client has been modified to limit previous granted scope fails", () async {
+      // token1 will have explicit refresh scope, token2 will have implicit refrsh scope
+      var token1 = await auth.authenticate(createdUser.username,
+          User.DefaultPassword, "all.redirect", "a", requestedScopes: [
+            new AuthScope("user"),
+            new AuthScope("location:add")
+          ]);
+      var token2 = await auth.authenticate(createdUser.username,
+          User.DefaultPassword, "all.redirect", "a", requestedScopes: [
+            new AuthScope("user"),
+            new AuthScope("location:add")
+          ]);
+
+      var q = new Query<ManagedClient>()
+        ..where.id = whereEqualTo("all.redirect")
+        ..values.allowedScope = "user location:add.readonly";
+      await q.updateOne();
+
+      try {
+        var _ = await auth.refresh(token1.refreshToken, "all.redirect", "a", requestedScopes: [
+          new AuthScope("user"),
+          new AuthScope("location:add")
+        ]);
+        expect(true, false);
+      } on AuthServerException catch (e) {
+        expect(e.reason, AuthRequestError.invalidScope);
+      }
+
+      try {
+        var _ = await auth.refresh(token2.refreshToken, "all.redirect", "a");
+      } on AuthServerException catch (e) {
+        expect(e.reason, AuthRequestError.invalidScope);
+      }
+    });
+
+    // --- Auth code ---
 
     test("Client can issue auth code for valid scope", () async {
       var code1 = await auth.authenticateForCode(createdUser.username,
@@ -1287,6 +1328,7 @@ void main() {
         expect(e.reason, AuthRequestError.invalidScope);
       }
     });
+
     test("Client will reject auth code request for scope that has limiting modifier", () async {
       try {
         var _ = await auth.authenticateForCode(createdUser.username,
