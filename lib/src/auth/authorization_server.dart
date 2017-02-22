@@ -230,7 +230,12 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
 
       updatedScopes = requestedScopes;
     } else {
-      // Ensure we still have access to same scopes
+      // Ensure we still have access to same scopes if we didn't specify any
+      for (var incomingScope in t.scopes) {
+        if (!client.allowsScope(incomingScope)) {
+          throw new AuthServerException(AuthRequestError.invalidScope, client);
+        }
+      }
     }
 
     var diff = t.expirationDate.difference(t.issueDate);

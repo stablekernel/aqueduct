@@ -1203,7 +1203,7 @@ void main() {
     });
 
     test("Refresh token request after client has been modified to limit previous granted scope fails", () async {
-      // token1 will have explicit refresh scope, token2 will have implicit refrsh scope
+      // token1 will have explicit refresh scope, token2 will have implicit refresh scope
       var token1 = await auth.authenticate(createdUser.username,
           User.DefaultPassword, "all.redirect", "a", requestedScopes: [
             new AuthScope("user"),
@@ -1232,6 +1232,7 @@ void main() {
 
       try {
         var _ = await auth.refresh(token2.refreshToken, "all.redirect", "a");
+        expect(true, false);
       } on AuthServerException catch (e) {
         expect(e.reason, AuthRequestError.invalidScope);
       }
