@@ -8,10 +8,11 @@ import 'documentable.dart';
 import 'router.dart';
 import '../application/application.dart';
 
-/// Instances of this class are responsible for setting up routing and resources used by an [Application].
+/// Instances of this type are the root of an Aqueduct application.
 ///
 /// [Application]s set up HTTP(S) listeners, but do not do anything with them. The behavior of how an application
-/// responds to requests is defined by its [RequestSink]. Must be subclassed.
+/// responds to requests is defined by its [RequestSink]. Must be subclassed. This class must be visible
+/// to the application library file for tools like `aqueduct serve` to run Aqueduct applications.
 ///
 /// A [RequestSink] must implement its constructor and [setupRouter]. HTTP requests to the [Application] are added to a [RequestSink]
 /// for processing. The path the HTTP request takes is determined by the [RequestController] chains in [setupRouter]. A [RequestSink]

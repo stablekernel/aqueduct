@@ -9,19 +9,31 @@ typedef Future<String> _RenderAuthorizationPageFunction(
     Uri requestURI,
     Map<String, String> queryParameters);
 
-/// [RequestController] for issuing OAuth 2.0 authorization codes.
+/// [HTTPController] for issuing OAuth 2.0 authorization codes.
 ///
 /// This controller provides the necessary methods for issuing OAuth 2.0 authorization codes: returning
 /// a HTML login form and issuing a request for an authorization code. The login form's submit
 /// button should initiate the request for the authorization code.
 ///
-/// See [getAuthorizationPage] and [authorize] for more details.
+/// This controller should be routed to by a pattern like `/auth/code`. It will respond to POST and GET HTTP methods.
+/// Do not put an [Authorizer] in front of instances of this type. Example:
+///
+///       router.route("/auth/token").generate(() => new AuthCodeController(authServer));
+///
+///
+/// See [getAuthorizationPage] (GET) and [authorize] (POST) for more details.
 class AuthCodeController extends HTTPController {
   /// Creates a new instance of an [AuthCodeController].
   ///
   /// An [AuthCodeController] requires an [AuthServer] to carry out tasks.
   ///
   /// By default, an [AuthCodeController] has only one [acceptedContentTypes] - 'application/x-www-form-urlencoded'.
+  ///
+  /// In order to display a login page, [renderAuthorizationPageHTML] must be provided. This method must return a full HTML
+  /// document that will POST to this same endpoint when a 'Login' button is pressed. This method must provide
+  /// the username and password the user enters, as well as the queryParameters as part of the form data to this endpoint's POST.
+  /// The requestURI of this method is the full request URI of this endpoint. See the [RequestSink] subclass in example/templates/default
+  /// or in a project generated with `aqueduct create` for an example.
   AuthCodeController(this.authServer,
       {Future<String> renderAuthorizationPageHTML(AuthCodeController controller,
           Uri requestURI, Map<String, String> queryParameters)}) {

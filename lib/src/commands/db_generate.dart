@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:mirrors';
 
 import '../db/db.dart';
 import '../utilities/source_generator.dart';
@@ -26,7 +27,16 @@ class CLIDatabaseGenerate extends CLICommand
 
     var file = new File.fromUri(
         migrationDirectory.uri.resolve("00000001_Initial.migration.dart"));
-    file.writeAsStringSync(await generateMigrationSource());
+    var source = await generateMigrationSource();
+    List<String> tables = source["tablesEvaluated"];
+
+    displayInfo("The following ManagedObject<T> subclasses were found:");
+    tables.forEach((t) => displayProgress(t));
+    displayProgress("");
+    displayProgress("* If you were expecting more declarations, ensure the files are visible in the application library file.");
+    displayProgress("");
+
+    file.writeAsStringSync(source["source"]);
 
     displayInfo(
         "Created new migration file (version ${versionNumberFromFile(file)}).",
@@ -36,14 +46,20 @@ class CLIDatabaseGenerate extends CLICommand
     return 0;
   }
 
-  Future<String> generateMigrationSource() {
+  Future<Map<String, dynamic>> generateMigrationSource() {
     var generator = new SourceGenerator(
         (List<String> args, Map<String, dynamic> values) async {
       var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
       var schema = new Schema.fromDataModel(dataModel);
 
-      return SchemaBuilder.sourceForSchemaUpgrade(
-          new Schema.empty(), schema, 1);
+      return {
+        "source": SchemaBuilder.sourceForSchemaUpgrade(
+            new Schema.empty(), schema, 1),
+        "tablesEvaluated" : dataModel
+            .entities
+            .map((e) => MirrorSystem.getName(e.instanceType.simpleName))
+            .toList()
+      };
     }, imports: [
       "package:aqueduct/aqueduct.dart",
       "package:$libraryName/$libraryName.dart",
@@ -55,7 +71,7 @@ class CLIDatabaseGenerate extends CLICommand
     var executor = new IsolateExecutor(generator, [libraryName],
         packageConfigURI: projectDirectory.uri.resolve(".packages"));
 
-    return executor.execute(projectDirectory.uri) as Future<String>;
+    return executor.execute(projectDirectory.uri) as Future<Map<String, dynamic>>;
   }
 
   String get name {

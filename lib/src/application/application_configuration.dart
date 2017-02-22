@@ -6,7 +6,7 @@ import '../http/request_sink.dart';
 ///
 /// Instances of this type are configured by the command-line arguments for `aqueduct serve` and passed to [RequestSink] instances in their constructor.
 /// Instances of this type are also passed to to a [RequestSink] subclass's `initializeApplication` method before it is instantiated. This allows
-/// values to be modified prior to starting the server.
+/// values to be modified prior to starting the server. See [RequestSink] for example usage.
 class ApplicationConfiguration {
   /// Whether or not this application is being used to document an API.
   ///
@@ -17,7 +17,8 @@ class ApplicationConfiguration {
 
   /// The absolute path of the configuration file for this application.
   ///
-  /// This value is used by [RequestSink] subclasses to read a configuration file. This value is set automatically
+  /// This value is used by [RequestSink] subclasses to read a configuration file. A [RequestSink] can choose
+  /// to read values from this file at different initialization points. This value is set automatically
   /// when using `aqueduct serve`.
   String configurationFilePath;
 
@@ -52,7 +53,7 @@ class ApplicationConfiguration {
 
   /// Options for each [RequestSink] to use when in this application.
   ///
-  /// Allows delivery of custom configuration parameters to [RequestSink] instances
-  /// that are attached to this application.
+  /// This is a user-specific set of configuration options. These values are typically set in [RequestSink]'s `initializeApplication`
+  /// method so that each individual instance of [RequestSink] has actionable configuration options to use during their initialization.
   Map<String, dynamic> options = {};
 }

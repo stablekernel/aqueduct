@@ -138,9 +138,13 @@ abstract class ManagedPropertyDescription {
   }
 }
 
-/// Contains information for an attribute of a [ManagedEntity].
+/// Stores the specifics of database columns in [ManagedObject]s as indicated by [ManagedColumnAttributes].
 ///
-/// Attributes are the scalar values of a [ManagedObject] (as opposed to relationship values).
+/// This class is used internally to manage data models. For specifying these attributes,
+/// see [ManagedColumnAttributes].
+///
+/// Attributes are the scalar values of a [ManagedObject] (as opposed to relationship values,
+/// which are [ManagedRelationshipDescription] instances).
 ///
 /// Each scalar property [ManagedObject] object persists is described by an instance of [ManagedAttributeDescription]. This class
 /// adds two properties to [ManagedPropertyDescription] that are only valid for non-relationship types, [isPrimaryKey] and [defaultValue].

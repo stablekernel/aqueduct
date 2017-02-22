@@ -1,14 +1,24 @@
 import 'auth.dart';
 
 /// Represents an OAuth 2.0 client ID and secret pair.
+///
+/// See the aqueduct/managed_auth library for a concrete implementation of this type.
+///
+/// Use the command line tool `aqueduct auth` to create instances of this type and store them to a database.
 class AuthClient {
   /// Creates an instance of [AuthClient].
+  ///
+  /// [id] must not be null. [hashedSecret] and [salt] must either both be null or both be valid values. If [hashedSecret] and [salt]
+  /// are valid values, this client is a confidential client. Otherwise, the client is public. The terms 'confidential' and 'public'
+  /// are described by the OAuth 2.0 specification.
   AuthClient(this.id, this.hashedSecret, this.salt);
 
   /// Creates an instance of a public [AuthClient].
   AuthClient.public(this.id);
 
   /// Creates an instance of [AuthClient] that uses the authorization code grant flow.
+  ///
+  /// All values must be non-null. This is confidential client.
   AuthClient.withRedirectURI(
       this.id, this.hashedSecret, this.salt, this.redirectURI);
 
@@ -52,6 +62,8 @@ class AuthClient {
 ///
 /// [AuthStorage] and [AuthServer] will exchange OAuth 2.0
 /// tokens through instances of this type.
+///
+/// See the `package:aqueduct/managed_auth` library for a concrete implementation of this type.
 class AuthToken {
   /// The value to be passed as a Bearer Authorization header.
   String accessToken;
@@ -104,6 +116,8 @@ class AuthToken {
 ///
 /// [AuthStorage] and [AuthServer] will exchange OAuth 2.0
 /// authorization codes through instances of this type.
+///
+/// See the aqueduct/managed_auth library for a concrete implementation of this type.
 class AuthCode {
   /// The actual one-time code used to exchange for tokens.
   String code;
@@ -133,10 +147,10 @@ class AuthCode {
   }
 }
 
-/// Information about an authorized request.
+/// Authorization information for a [Request] after it has passed through an [Authorizer].
 ///
 /// After a request has passed through an [Authorizer], an instance of this type
-/// is created and attached to the request. Instances of this type contain the information
+/// is created and attached to the request (see [Authorizer.authorization]). Instances of this type contain the information
 /// that the [Authorizer] obtained from an [AuthValidator] (typically an [AuthServer])
 /// about the validity of the credentials in a request.
 class Authorization {

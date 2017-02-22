@@ -62,11 +62,10 @@ void main() {
 }
 
 class AppRequestSink extends RequestSink {
-  AppRequestSink(Map<String, dynamic> opts) : super(opts) {
+  AppRequestSink(ApplicationConfiguration config) : super(config) {
     logger.onRecord.listen((p) => print("$p"));
 
-    var dataModel =
-        new ManagedDataModel.fromPackageContainingType(this.runtimeType);
+    var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
     var psc = new PostgreSQLPersistentStore.fromConnectionInfo(
         "dart", "dart", "localhost", 5432, "dart_test");
 
@@ -85,6 +84,7 @@ class Note extends ManagedObject<_Note> implements _Note {}
 class _Note {
   @managedPrimaryKey
   int id;
+
   String contents;
 }
 ```

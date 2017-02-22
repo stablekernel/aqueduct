@@ -3,8 +3,15 @@ import 'http.dart';
 
 /// Describes a CORS policy for a [RequestController].
 ///
-/// These instances can be set as a [RequestController.policy], which will
-/// manage CORS requests according to the policy's properties.
+/// A CORS policy describes allowed origins, accepted HTTP methods and headers, exposed response headers
+/// and other values used by browsers to manage XHR requests to an Aqueduct application.
+///
+/// Every [RequestController] has a [RequestController.policy]. By default, this value is [defaultPolicy], which is quite permissive.
+///
+/// Modifications to policy for a specific [RequestController] can be accomplished in the initializer of the controller.
+///
+/// Application-wide defaults can be managed by modifying [defaultPolicy] in a [RequestSink]'s constructor.
+///
 class CORSPolicy {
   /// The default CORS policy.
   ///
@@ -22,7 +29,7 @@ class CORSPolicy {
 
   /// List of 'Simple' CORS headers.
   ///
-  /// These are headers that are considered acceptable as part of any CORS request.
+  /// These are headers that are considered acceptable as part of any CORS request and cannot be changed.
   static List<String> simpleHeaders = const [
     "accept",
     "accept-language",
@@ -32,7 +39,7 @@ class CORSPolicy {
 
   /// List of 'Simple' CORS Response headers.
   ///
-  /// These headers can be returned in a response without explicitly exposing them.
+  /// These headers can be returned in a response without explicitly exposing them and cannot be changed.
   static List<String> simpleResponseHeaders = const [
     "cache-control",
     "content-language",
@@ -84,6 +91,8 @@ class CORSPolicy {
   /// Which response headers to expose to the client.
   ///
   /// Defaults to empty. In the specification (http://www.w3.org/TR/cors/), this is 'list of exposed headers'.
+  ///
+  ///
   List<String> exposedResponseHeaders;
 
   /// Which HTTP methods are allowed.
@@ -126,6 +135,7 @@ class CORSPolicy {
   ///
   /// Will return true if [allowedOrigins] contains the case-sensitive Origin of the [request],
   /// or that [allowedOrigins] contains *.
+  /// This method is invoked internally by [RequestController]s that have a [RequestController.policy].
   bool isRequestOriginAllowed(HttpRequest request) {
     if (allowedOrigins.contains("*")) {
       return true;
@@ -142,6 +152,7 @@ class CORSPolicy {
   /// Validates whether or not a preflight request matches this policy.
   ///
   /// Will return true if the policy agrees with the Access-Control-Request-* headers of the request, otherwise, false.
+  /// This method is invoked internally by [RequestController]s that have a [RequestController.policy].
   bool validatePreflightRequest(HttpRequest request) {
     if (!isRequestOriginAllowed(request)) {
       return false;
@@ -172,6 +183,7 @@ class CORSPolicy {
   ///
   /// Contains the Access-Control-Allow-* headers for a CORS preflight request according
   /// to this policy.
+  /// This method is invoked internally by [RequestController]s that have a [RequestController.policy].
   Response preflightResponse(Request req) {
     var headers = {
       "Access-Control-Allow-Origin": req.innerRequest.headers.value("origin"),

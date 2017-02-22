@@ -4,7 +4,7 @@ import '../persistent_store/persistent_store.dart';
 import 'schema.dart';
 
 /// Thrown when [Migration] encounters an error.
-class MigrationException {
+class MigrationException implements Exception {
   MigrationException(this.message);
   String message;
 

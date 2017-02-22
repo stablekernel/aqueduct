@@ -87,7 +87,7 @@ class PBKDF2 {
   }
 }
 
-class PBKDF2Exception {
+class PBKDF2Exception implements Exception {
   PBKDF2Exception(this.message);
   String message;
 }

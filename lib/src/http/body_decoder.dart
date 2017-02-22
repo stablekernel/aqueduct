@@ -10,7 +10,11 @@ typedef Future<String> HTTPBodyStreamDecoder(Stream<List<int>> s);
 
 /// Instances of this class decode HTTP request bodies according to their content type.
 ///
-/// Default decoders are available for 'application/json', 'application/x-www-form-urlencoded' and 'text/*'.
+/// Every instance of [Request] has a [Request.body] property of this type. [HTTPController]s automatically decode
+/// [Request.body] prior to invoking a responder method. Other [RequestController]s should use [decodedData]
+/// or one of the typed methods ([asList], [asMap], [decodeAsMap], [decodeAsList]) to decode HTTP body data.
+///
+/// Default decoders are available for 'application/json', 'application/x-www-form-urlencoded' and 'text/*' content types.
 class HTTPBody {
   static Map<String, Map<String, Function>> _decoders = {
     "application": {
@@ -147,10 +151,11 @@ class HTTPBody {
     return _decodedData;
   }
 
-  /// Adds a decoder for HTTP Request Bodies.
+  /// Adds a decoder for HTTP Request Bodies, available application-wide.
   ///
-  /// Adds a [decoder] function for [type] when reading [HttpRequest]s. Decoders are used by [Request]s to decode their body
-  /// into the format indicated by the request's Content-Type, e.g. application/json. Decoding are most often initiated by invoking [Request.decodeBody], but can also be used more directly
+  /// Adds a [decoder] function for [type] when reading [HttpRequest]s. Add decoders in a [RequestSink]'s constructor.
+  /// Decoders are used by [Request]s to decode their body
+  /// into the format indicated by the request's Content-Type, e.g. application/json. Decoding is most often initiated by [Request] instances, but can also be used more directly
   /// via [decode]. By default, there are decoders for the following content types:
   ///
   ///       application/json
@@ -201,7 +206,9 @@ class HTTPBody {
   /// Decodes an [HttpRequest]'s body based on its Content-Type.
   ///
   /// This method will return the decoded object as a [Future]. The [HttpRequest]'s Content-Type is evaluated
-  /// for a matching decoding function in [_decoders]. If no such decoder is found, the body is returned as a [List] of bytes, where each byte is an [int].
+  /// for a matching decoding function from [addDecoder]. If no such decoder is found, the body is returned as a [List] of bytes, where each byte is an [int].
+  ///
+  /// It is preferable to use [Request.body]'s [decodedData] method instead of this method directly.
   static Future<dynamic> decode(HttpRequest request) async {
     try {
       if (request.headers.contentType == null) {
