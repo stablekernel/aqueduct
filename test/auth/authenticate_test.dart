@@ -93,9 +93,9 @@ void main() {
       expect(token.type, "bearer");
 
       expect(token.issueDate.difference(token.expirationDate).inSeconds.abs(),
-          greaterThan(3599));
+          greaterThan(86399));
       expect(token.issueDate.difference(token.expirationDate).inSeconds.abs(),
-          lessThan(3601));
+          lessThan(86401));
     });
 
     test(

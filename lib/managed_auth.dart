@@ -52,6 +52,7 @@ class ManagedToken extends ManagedObject<_ManagedToken>
       ..issueDate = t.issueDate
       ..expirationDate = t.expirationDate
       ..type = t.type
+      ..scope = t.scopes?.map((s) => s.scopeString)?.join(" ")
       ..resourceOwner = tokenResourceOwner as dynamic
       ..client = (new ManagedClient()..id = t.clientID);
   }
@@ -70,6 +71,7 @@ class ManagedToken extends ManagedObject<_ManagedToken>
       ..resourceOwner = tokenResourceOwner as dynamic
       ..issueDate = code.issueDate
       ..expirationDate = code.expirationDate
+      ..scope = code.requestedScopes?.map((s) => s.scopeString)?.join(" ")
       ..client = (new ManagedClient()..id = code.clientID);
   }
 
@@ -82,6 +84,7 @@ class ManagedToken extends ManagedObject<_ManagedToken>
       ..expirationDate = expirationDate
       ..type = type
       ..resourceOwnerIdentifier = resourceOwner.id
+      ..scopes = scope?.split(" ")?.map((s) => new AuthScope(s))?.toList()
       ..clientID = client.id;
   }
 
@@ -92,6 +95,7 @@ class ManagedToken extends ManagedObject<_ManagedToken>
       ..code = code
       ..resourceOwnerIdentifier = resourceOwner.id
       ..issueDate = issueDate
+      ..requestedScopes = scope?.split(" ")?.map((s) => new AuthScope(s))?.toList()
       ..expirationDate = expirationDate
       ..clientID = client.id;
   }
@@ -125,6 +129,10 @@ class _ManagedToken {
   /// If this token can be refreshed, this value is non-null.
   @ManagedColumnAttributes(indexed: true, unique: true, nullable: true)
   String refreshToken;
+
+  /// Scopes for this token, delimited by the space character.
+  @ManagedColumnAttributes(nullable: true)
+  String scope;
 
   /// When this token was last issued or refreshed.
   DateTime issueDate;
@@ -165,7 +173,13 @@ class ManagedClient extends ManagedObject<_ManagedClient>
     implements _ManagedClient {
   /// As an [AuthClient].
   AuthClient asClient() {
-    return new AuthClient.withRedirectURI(id, hashedSecret, salt, redirectURI);
+    var scopes = allowedScope
+        ?.split(" ")
+        ?.map((s) => new AuthScope(s))
+        ?.toList();
+
+    return new AuthClient.withRedirectURI(id, hashedSecret, salt, redirectURI,
+        allowedScopes: scopes);
   }
 }
 
@@ -195,6 +209,12 @@ class _ManagedClient {
   /// for a token. Only confidential clients may have a value.
   @ManagedColumnAttributes(unique: true, nullable: true)
   String redirectURI;
+
+  /// Scopes that this client allows.
+  ///
+  /// If null, this client does not support scopes and all tokens are valid for all routes.
+  @ManagedColumnAttributes(nullable: true)
+  String allowedScope;
 
   /// Tokens that have been issued for this client.
   ManagedSet<ManagedToken> tokens;

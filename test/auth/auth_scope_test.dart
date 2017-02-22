@@ -32,6 +32,17 @@ void main() {
       new AuthScope(":user:location:");
       expect(true, false);
     } on FormatException {}
+
+    try {
+      new AuthScope(" ab");
+      expect(true, false);
+    } on FormatException {}
+
+    try {
+      new AuthScope("ab c");
+      expect(true, false);
+    } on FormatException {}
+
   });
 
   // Success allows
@@ -59,7 +70,7 @@ void main() {
     expect(scope.isExactly("user:location:equipment"), true);
   });
 
-  test("Multiple element equal scopes match", () {
+  test("Multiple element equal scopes match, with modifier", () {
     var scope = new AuthScope("user:location:equipment.readonly");
     expect(scope.allows("user:location:equipment.readonly"), true);
     expect(scope.isExactly("user:location:equipment.readonly"), true);
@@ -136,5 +147,80 @@ void main() {
   test("Multiple element scope that does not allow more restrictive scope", () {
     var scope = new AuthScope("user:location");
     expect(scope.allows("user:location:equipment"), false);
+  });
+
+  test("Can contain all valid characters", () {
+    var scope = new AuthScope("ABC:DEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzz0123456789!#\$%&'`()*+,./;<=>?@[]^_{|}-");
+    expect(scope.allows("ABC:DEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzz0123456789!#\$%&'`()*+,./;<=>?@[]^_{|}-"), true);
+    expect(scope.allows("ABC"), true);
+  });
+
+  test("Cannot contain invalid characters", () {
+    try {
+      var _ = new AuthScope("abdef\"xz");
+      expect(true, false);
+    } on FormatException catch (e) {
+      expect(e.toString(), contains("Invalid authorization scope"));
+    }
+
+    try {
+      var _ = new AuthScope("abdef\\xz");
+      expect(true, false);
+    } on FormatException catch (e) {
+      expect(e.toString(), contains("Invalid authorization scope"));
+    }
+  });
+
+  test("Verify isSubsetOrEqualTo", () {
+    var scope = new AuthScope("users:foo");
+    expect(scope.isSubsetOrEqualTo(new AuthScope("users")), true);
+    expect(scope.isSubsetOrEqualTo(new AuthScope("users:foo")), true);
+    expect(scope.isSubsetOrEqualTo(new AuthScope("users:foo.readonly")), false);
+    expect(scope.isSubsetOrEqualTo(new AuthScope("xyz")), false);
+    expect(scope.isSubsetOrEqualTo(new AuthScope("users:foo:bar")), false);
+  });
+
+  group("Client behavior", () {
+    test("Client collapses redundant scope because of nesting", () {
+      var c = new AuthClient("a", "b", "c", allowedScopes: [
+        new AuthScope("abc"),
+        new AuthScope("abc:def")
+      ]);
+      expect(c.allowedScopes.length, 1);
+      expect(c.allowedScopes.first.isExactly("abc"), true);
+
+      c = new AuthClient("a", "b", "c", allowedScopes: [
+        new AuthScope("abc"),
+        new AuthScope("abc:def"),
+        new AuthScope("abc:def:xyz"),
+        new AuthScope("cba"),
+        new AuthScope("cba:foo")
+      ]);
+      expect(c.allowedScopes.length, 2);
+      expect(c.allowedScopes.any((s) => s.isExactly("abc")), true);
+      expect(c.allowedScopes.any((s) => s.isExactly("cba")), true);
+    });
+
+    test("Client collapses redundant scope because of modifier", () {
+      var c = new AuthClient("a", "b", "c", allowedScopes: [
+        new AuthScope("abc"),
+        new AuthScope("abc:def"),
+        new AuthScope("abc.readonly"),
+        new AuthScope("abc:def.readonly")
+      ]);
+      expect(c.allowedScopes.length, 1);
+      expect(c.allowedScopes.first.isExactly("abc"), true);
+
+      c = new AuthClient("a", "b", "c", allowedScopes: [
+        new AuthScope("abc"),
+        new AuthScope("abc:def"),
+        new AuthScope("abc:def:xyz.readonly"),
+        new AuthScope("cba"),
+        new AuthScope("cba:foo.readonly")
+      ]);
+      expect(c.allowedScopes.length, 2);
+      expect(c.allowedScopes.any((s) => s.isExactly("abc")), true);
+      expect(c.allowedScopes.any((s) => s.isExactly("cba")), true);
+    });
   });
 }
