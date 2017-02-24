@@ -36,7 +36,8 @@ class Authorizer extends RequestController {
   ///
   /// The default strategy is [AuthStrategy.bearer].
   Authorizer(this.validator,
-      {this.strategy: AuthStrategy.bearer, this.scopes}) {
+      {this.strategy: AuthStrategy.bearer, List<String> scopes}) {
+    this.scopes = scopes;
     policy = null;
   }
 
@@ -61,7 +62,11 @@ class Authorizer extends RequestController {
   ///
   /// A bearer token must have access to all of the scopes in this list in order to pass
   /// through to the [nextController].
-  List<String> scopes;
+  List<String> get scopes => _scopes?.map((s) => s.scopeString)?.toList();
+  void set scopes(List<String> scopes) {
+    _scopes = scopes?.map((s) => new AuthScope(s))?.toList();
+  }
+  List<AuthScope> _scopes;
 
   /// The [AuthStrategy] for authorizing a request.
   ///
@@ -93,7 +98,7 @@ class Authorizer extends RequestController {
       return _responseFromParseException(e);
     }
 
-    var authorization = await validator.fromBearerToken(bearerToken, scopes);
+    var authorization = await validator.fromBearerToken(bearerToken, scopesRequired: _scopes);
     if (authorization == null) {
       return new Response.unauthorized();
     }
@@ -174,7 +179,7 @@ abstract class AuthValidator {
   /// the token results in an [Authorization]. By default, [AuthServer] - the primary implementor of this type -
   /// will allow access, assuming that 'null scope' means 'any scope'.
   Future<Authorization> fromBearerToken(
-      String bearerToken, List<String> scopesRequired);
+      String bearerToken, {List<AuthScope> scopesRequired});
 
   List<APISecurityRequirement> requirementsForStrategy(AuthStrategy strategy);
 }

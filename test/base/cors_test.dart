@@ -615,7 +615,7 @@ class CORSSink extends RequestSink implements AuthValidator {
   }
 
   Future<Authorization> fromBearerToken(
-      String bearerToken, List<String> scopesRequired) async {
+      String bearerToken, {List<AuthScope> scopesRequired}) async {
     if (bearerToken == "noauth") {
       return null;
     }
