@@ -298,6 +298,7 @@ class AuthScope {
 
   AuthScope._(this.scopeString) {
     if (scopeString?.isEmpty ?? true) {
+      print("${StackTrace.current}");
       throw new FormatException(
           "Invalid AuthScope. May not be null or empty string.", scopeString);
     }
