@@ -6,7 +6,7 @@ date: 2016-06-19 21:22:35
 order: 2
 ---
 
-Aqueduct is a web server framework. At a high level, it handles request routing and handling, authentication and authorization, database querying, and logging. Aqueduct applications are written in [Dart](https://www.dartlang.org), a powerful and flexible language with a gentle learning curve.
+Aqueduct is a web server framework. At a high level, it handles request routing and handling, authentication and authorization, database querying, instance configuration and logging. Aqueduct applications are written in [Dart](https://www.dartlang.org), a powerful and flexible language with a gentle learning curve.
 
 To use Aqueduct, you must [install Dart SDK](https://www.dartlang.org/install). It's a very quick set of steps.
 
@@ -16,7 +16,7 @@ You must also install the `aqueduct` command line utility. After installing Dart
 pub global activate aqueduct
 ```
 
-This command may give you an extra instruction that adds the directory for activated global Dart packages - like `aqueduct` - to your `PATH`.
+Make sure you read the output of this command in full - it may have you do some extra setup.
 
 Once the `aqueduct` utility has been activated, you should provision your local machine to be able to run Aqueduct application tests. This is done with the following command:
 

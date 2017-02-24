@@ -6,6 +6,25 @@ date: 2016-06-19 21:22:35
 order: 6
 ---
 
+
+By convention, a `RequestSink` subclass is in its own file named `lib/<application_name>_request_sink.dart`. This file must visible to the application library file. (In an application named `foo`, the library file is in `lib/foo.dart`.) An example directory structure:
+
+```
+wildfire/
+  lib/
+    wildfire.dart
+    wildfire_request_sink.dart
+    controllers/
+      user_controller.dart      
+    ...
+```
+
+To make the `RequestSink` subclass visible, the file `wildfire.dart` imports `wildfire_request_sink.dart`:
+
+```dart
+import 'wildfire_request_sink.dart';
+```
+
 Every Aqueduct application must have one subclass of `RequestSink`. This subclass implements a handful of 'initialization methods' to set up the specifics of the application. Aqueduct applications are ran using the command line utility `aqueduct serve`, which finds that `RequestSink` subclass and executes its initialization methods.
 
 An Aqueduct application will create multiple instances of a `RequestSink` subclass. Each instance has its own `Isolate` - Dart's version of a thread - that it will process requests on. This behavior allows an application's code to be replicated across a number of threads.

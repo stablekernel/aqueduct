@@ -6,52 +6,26 @@ date: 2016-06-19 21:22:35
 order: 2
 ---
 
-An Aqueduct application is a tree of `RequestController`s. A `RequestController` takes a `Request` and either creates a `Response` or passes the `Request` to another `RequestController`. More often than not, `RequestController` is subclassed to create reusable components to build a request processing pipeline. Some commonly used `RequestController`s are `RequestSink`, `Authorizer`, `Router` and `HTTPController`.
+_An Aqueduct application created with the command-line tool `aqueduct create` will create an application with the structure discussed in this document. See [Getting Started](../deploy/getting-started.html) for installation and usage._
 
-Every application has one `RequestSink` subclass. Instances of this subclass are the first `RequestController` to receive a new request. See [Request Sink](request_sink.html) for more details. Here's an example of a basic `RequestSink` subclass:
+An Aqueduct application is a tree of `RequestController`s. A `RequestController` takes a `Request` and either creates a `Response` or passes the `Request` to another `RequestController` in the tree. More often than not, `RequestController` is subclassed to create reusable components to build a request processing pipeline. Some commonly used `RequestController`s are `RequestSink`, `Authorizer`, `Router` and `HTTPController`.
 
-```dart
-class MyRequestSink extends RequestSink {
-  MyRequestSink(ApplicationConfiguration config) : super(config);
+The root of the `RequestController` tree is always an application-specific subclass of `RequestSink`. The only requirement of an Aqueduct application is that a subclass of this type is declared in an application package and is visible from its top-level library file. A `RequestSink` is not only the first `RequestController` that receives requests, its initialization process creates all of the other `RequestController`s in an application. See [Request Sink](request_sink.html) for more details.
 
-  @override
-  void setupRouter(Router router) {
-    router
-      .route("/users/[:id]")
-      .pipe(new Authorizer(authServer))
-      .generate(() => new UserController);
+A `RequestSink` sends all `Request`s to its `Router`. A `Router` figures out which `RequestController` to send a `Request` to based on the HTTP request path. Setting up which `RequestController` receives requests for a particular path (or paths) is called routing. Routing is done by overriding `RequestSink`'s `setupRouter` method. If no `RequestController` has matches the path of the request, the `Router` responds with a 404 and dumps the request. See [Routing](routing.html) for more details.
 
-    router
-      .route("/index")
-      .pipe(new StaticPageController("index.html"));
-  }
-}
-```
+Once past a router, a `Request` typically goes through an `Authorizer` then an `HTTPController` subclass. An `Authorizer` validates the Authorization header of a request, and attaches authorization information to the request so that the next controller can use it. If an `Authorizer` rejects a request, it responds to it with a 401 and does not pass it to the next controller. See [Authorization](../auth/overview.html) for more details.
 
-A `RequestSink` immediately sends a `Request` to its `Router`. A `Router` inspects the path of the request and sends it to another `RequestController` that has been registered to handle requests of that path. A `Router` can group paths together so that they all go the same controller. A typical route is `/users/[:id]` - which matches paths like `/users` and `/users/1`. Routes are registered by overriding `setupRouter()` in the application's `RequestSink` subclass.
+An `HTTPController` subclass handles all of the operations for an HTTP resource collection (or single resource in that collection). For example, a subclass of `HTTPController` named `UserController` would likely be able to list users, show a single user, create a new user, delete a user or update an existing user. An `HTTPController` always responds to any request it receives. See [HTTPControllers](http_controller.html) for more details.
 
-See [Routing](routing.html) for more details.
-
-After a request is split
-
-The mechanism by which these `Request`s are created and sent to `RequestSink` are internal - just by creating a `RequestSink` subclass, requests can be received.
-
-`RequestSink`s also sets up the flow of the application's `RequestController`s and initializes things like database connections. By convention, a `RequestSink` subclass is in its own file named `lib/<application_name>_request_sink.dart`. This file must visible to the application library file. (In an application named `foo`, the library file is `lib/foo.dart`.) An example directory structure:
+The directory structure of an Aqueduct application typically looks like this:
 
 ```
-wildfire/
-  lib/
-    wildfire.dart
-    wildfire_request_sink.dart
-    controllers/
-      user_controller.dart      
-    ...
+application_name/
+  application_name.dart
+  application_name_request_sink.dart
+  controllers/
+    user_controller.dart
 ```
 
-To make the `RequestSink` subclass visible, the file `wildfire.dart` imports `wildfire_request_sink.dart`:
-
-```dart
-import 'wildfire_request_sink.dart';
-```
-
-A `RequestSink` has a `Router`. A `Router` registers `RequestController`s with string patterns called *routes*. When a new `Request` is sent to a `RequestSink`, it is immediately sent to the sink's `router`.
+Aqueduct applications are run by running `aqueduct serve` in project directory (here, `application_name`). The top-level library file, `application_name/application_name.dart`, must at least import `application_name_request_sink.dart` so that `aqueduct` serve can see it. See [Deploying](../deploy/overview.html) for more details on this command.
