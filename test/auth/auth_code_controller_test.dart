@@ -108,6 +108,45 @@ void main() {
       expectRedirect(res, new Uri.http("stablekernel.com", "/auth/redirect"),
           state: "Wisconsin@&");
     });
+
+    test("With scope", () async {
+      var res = await codeResponse({
+        "client_id": "com.stablekernel.scoped",
+        "state": "Wisconsin@&",
+        "username": "bob+0@stablekernel.com",
+        "password": InMemoryAuthStorage.DefaultPassword,
+        "scope": "user"
+      });
+
+      expectRedirect(res, new Uri.http("stablekernel.com", "/auth/scoped"),
+          state: "Wisconsin@&");
+
+      var redirectURI = Uri.parse(res.headers["location"].first);
+      var codeParam = redirectURI.queryParameters["code"];
+      var token = await application.mainIsolateSink.authServer.exchange(codeParam, "com.stablekernel.scoped", "kilimanjaro");
+      expect(token.scopes.length, 1);
+      expect(token.scopes.first.isExactly("user"), true);
+    });
+
+    test("With multiple scopes", () async {
+      var res = await codeResponse({
+        "client_id": "com.stablekernel.scoped",
+        "state": "Wisconsin@&",
+        "username": "bob+0@stablekernel.com",
+        "password": InMemoryAuthStorage.DefaultPassword,
+        "scope": "user other_scope"
+      });
+
+      expectRedirect(res, new Uri.http("stablekernel.com", "/auth/scoped"),
+          state: "Wisconsin@&");
+
+      var redirectURI = Uri.parse(res.headers["location"].first);
+      var codeParam = redirectURI.queryParameters["code"];
+      var token = await application.mainIsolateSink.authServer.exchange(codeParam, "com.stablekernel.scoped", "kilimanjaro");
+      expect(token.scopes.length, 2);
+      expect(token.scopes.any((s) => s.isExactly("user")), true);
+      expect(token.scopes.any((s) => s.isExactly("other_scope")), true);
+    });
   });
 
   group("username Failure Cases", () {
@@ -382,6 +421,32 @@ void main() {
       expectErrorRedirect(resp,
           new Uri.http("stablekernel.com", "/auth/redirect"), "invalid_request",
           state: "xyz");
+    });
+  });
+
+  group("Scope failure cases", () {
+    test("Malformed scope", () async {
+      var res = await codeResponse({
+        "client_id": "com.stablekernel.scoped",
+        "state": "Wisconsin@&",
+        "username": "bob+0@stablekernel.com",
+        "password": InMemoryAuthStorage.DefaultPassword,
+        "scope": "u\"ser"
+      });
+
+      expectErrorRedirect(res, new Uri.http("stablekernel.com", "/auth/scoped"), "invalid_scope", state: "Wisconsin@&");
+    });
+
+    test("Scope that client can't grant", () async {
+      var res = await codeResponse({
+        "client_id": "com.stablekernel.scoped",
+        "state": "Wisconsin@&",
+        "username": "bob+0@stablekernel.com",
+        "password": InMemoryAuthStorage.DefaultPassword,
+        "scope": "invalid"
+      });
+
+      expectErrorRedirect(res, new Uri.http("stablekernel.com", "/auth/scoped"), "invalid_scope", state: "Wisconsin@&");
     });
   });
 

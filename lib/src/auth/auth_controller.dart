@@ -60,7 +60,8 @@ class AuthController extends HTTPController {
       @HTTPQuery("password") String password,
       @HTTPQuery("refresh_token") String refreshToken,
       @HTTPQuery("code") String authCode,
-      @HTTPQuery("grant_type") String grantType}) async {
+      @HTTPQuery("grant_type") String grantType,
+      @HTTPQuery("scope") String scope}) async {
     AuthBasicCredentials basicRecord;
     try {
       basicRecord = AuthorizationBasicParser.parse(authHeader);
@@ -69,17 +70,26 @@ class AuthController extends HTTPController {
     }
 
     try {
+      var scopes = scope
+        ?.split(" ")
+        ?.map((s) => new AuthScope(s))
+        ?.toList();
+
       if (grantType == "password") {
         var token = await authServer.authenticate(
-            username, password, basicRecord.username, basicRecord.password);
+            username, password, basicRecord.username, basicRecord.password, requestedScopes: scopes);
 
         return AuthController.tokenResponse(token);
       } else if (grantType == "refresh_token") {
         var token = await authServer.refresh(
-            refreshToken, basicRecord.username, basicRecord.password);
+            refreshToken, basicRecord.username, basicRecord.password, requestedScopes: scopes);
 
         return AuthController.tokenResponse(token);
       } else if (grantType == "authorization_code") {
+        if (scope != null) {
+          return _responseForError(AuthRequestError.invalidRequest);
+        }
+
         var token = await authServer.exchange(
             authCode, basicRecord.username, basicRecord.password);
 
@@ -87,6 +97,8 @@ class AuthController extends HTTPController {
       } else if (grantType == null) {
         return _responseForError(AuthRequestError.invalidRequest);
       }
+    } on FormatException {
+      return _responseForError(AuthRequestError.invalidScope);
     } on AuthServerException catch (e) {
       return _responseForError(e.reason);
     }

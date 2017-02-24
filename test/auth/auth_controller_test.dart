@@ -95,6 +95,19 @@ void main() {
           await tokenResponse("com.stablekernel.redirect", "mckinley", user1);
       expect(res, hasAuthResponse(200, bearerTokenMatcher));
     });
+
+    test("Can be scoped", () async {
+      var m = new Map<String, String>.from(user1);
+      m["scope"] = "user";
+
+      var res =
+        await tokenResponse("com.stablekernel.scoped", "kilimanjaro", m);
+      expect(res, hasAuthResponse(200, bearerTokenMatcherWithScope("user")));
+
+      m["scope"] = "user other_scope";
+      res = await tokenResponse("com.stablekernel.scoped", "kilimanjaro", m);
+      expect(res, hasAuthResponse(200, bearerTokenMatcherWithScope("user other_scope")));
+    });
   });
 
   group("Success Cases: refresh_token", () {
@@ -123,6 +136,64 @@ void main() {
             "x-content-type-options": isString
           }));
     });
+
+    test("If token is scoped and scope is omitted, get same token back", () async {
+      var m = new Map<String, String>.from(user1);
+      m["scope"] = "user";
+
+      var resToken =
+      await tokenResponse("com.stablekernel.scoped", "kilimanjaro", m);
+
+      var resRefresh = await refreshResponse("com.stablekernel.scoped",
+          "kilimanjaro", refreshTokenMapFromTokenResponse(resToken));
+      expect(
+          resRefresh,
+          hasResponse(200, {
+            "access_token": isString,
+            "refresh_token": resToken.asMap["refresh_token"],
+            "expires_in": greaterThan(3500),
+            "token_type": "bearer",
+            "scope": "user"
+          }, headers: {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store",
+            "pragma": "no-cache",
+            "transfer-encoding": isString,
+            "x-frame-options": isString,
+            "x-xss-protection": isString,
+            "x-content-type-options": isString
+          }));
+    });
+
+    test("If token is scoped and scope is part of request, get rescoped token", () async {
+      var m = new Map<String, String>.from(user1);
+      m["scope"] = "user other_scope";
+
+      var resToken =
+        await tokenResponse("com.stablekernel.scoped", "kilimanjaro", m);
+
+      var refreshMap = refreshTokenMapFromTokenResponse(resToken);
+      refreshMap["scope"] = "user";
+      var resRefresh = await refreshResponse("com.stablekernel.scoped",
+          "kilimanjaro", refreshMap);
+      expect(
+          resRefresh,
+          hasResponse(200, {
+            "access_token": isString,
+            "refresh_token": resToken.asMap["refresh_token"],
+            "expires_in": greaterThan(3500),
+            "token_type": "bearer",
+            "scope": "user"
+          }, headers: {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store",
+            "pragma": "no-cache",
+            "transfer-encoding": isString,
+            "x-frame-options": isString,
+            "x-xss-protection": isString,
+            "x-content-type-options": isString
+          }));
+    });
   });
 
   group("Success Cases: authorization_code", () {
@@ -133,6 +204,16 @@ void main() {
       var res = await exchangeResponse(
           "com.stablekernel.redirect", "mckinley", code.code);
       expect(res, hasAuthResponse(200, bearerTokenMatcher));
+    });
+
+    test("If code is scoped, token has same scope", () async {
+      var code = await authenticationServer.authenticateForCode(
+          user1["username"], user1["password"], "com.stablekernel.scoped",
+          requestedScopes: [new AuthScope("user")]);
+
+      var res = await exchangeResponse(
+          "com.stablekernel.scoped", "kilimanjaro", code.code);
+      expect(res, hasAuthResponse(200, bearerTokenMatcherWithScope("user")));
     });
   });
 
@@ -543,6 +624,60 @@ void main() {
     });
   });
 
+  group("Scope failure cases", () {
+    test("Try to add scope to code exchange is invalid_request", () async {
+      var code = await authenticationServer.authenticateForCode(
+          user1["username"], user1["password"], "com.stablekernel.scoped",
+          requestedScopes: [new AuthScope("user")]);
+
+      var m = {
+        "grant_type": "authorization_code",
+        "code": Uri.encodeQueryComponent(code.code),
+        "scope": "other_scope"
+      };
+
+      var req = client.clientAuthenticatedRequest("/auth/token",
+          clientID: "com.stablekernel.scoped", clientSecret: "kilimanjaro")
+        ..formData = m;
+
+      var res = await req.post();
+
+      expect(res, hasResponse(400, {"error": "invalid_request"}));
+    });
+
+    test("Malformed scope is invalid_scope error", () async {
+      var m = new Map<String, String>.from(user1);
+      m["scope"] = "\"user";
+
+      var res =
+        await tokenResponse("com.stablekernel.scoped", "kilimanjaro", m);
+      expect(res, hasResponse(400, {"error": "invalid_scope"}));
+    });
+
+    test("Malformed refresh scope is invalid_scope error", () async {
+      var m = new Map<String, String>.from(user1);
+      m["scope"] = "user other_scope";
+
+      var resToken =
+        await tokenResponse("com.stablekernel.scoped", "kilimanjaro", m);
+
+      var refreshMap = refreshTokenMapFromTokenResponse(resToken);
+      refreshMap["scope"] = "\"user";
+      var resRefresh = await refreshResponse("com.stablekernel.scoped",
+          "kilimanjaro", refreshMap);
+      expect(resRefresh, hasResponse(400, {"error": "invalid_scope"}));
+    });
+
+    test("Invalid scope for client is invalid_scope error", () async {
+      var m = new Map<String, String>.from(user1);
+      m["scope"] = "not_valid";
+
+      var res =
+        await tokenResponse("com.stablekernel.scoped", "kilimanjaro", m);
+      expect(res, hasResponse(400, {"error": "invalid_scope"}));
+    });
+  });
+
   /////////////////
 
   test("Response documentation", () {
@@ -614,6 +749,16 @@ dynamic get bearerTokenMatcher => {
       "expires_in": greaterThan(3500),
       "token_type": "bearer"
     };
+
+dynamic bearerTokenMatcherWithScope(String scope) {
+  return {
+    "access_token": hasLength(greaterThan(0)),
+    "refresh_token": hasLength(greaterThan(0)),
+    "expires_in": greaterThan(3500),
+    "token_type": "bearer",
+    "scope": scope
+  };
+}
 
 dynamic get bearerTokenWithoutRefreshMatcher => partial({
       "access_token": hasLength(greaterThan(0)),

@@ -133,9 +133,16 @@ class AuthCodeController extends HTTPController {
     }
 
     try {
+      var scopes = scope
+        ?.split(" ")
+        ?.map((s) => new AuthScope(s))
+        ?.toList();
+
       var authCode =
-          await authServer.authenticateForCode(username, password, clientID);
+          await authServer.authenticateForCode(username, password, clientID, requestedScopes: scopes);
       return _redirectResponse(client.redirectURI, state, code: authCode.code);
+    } on FormatException {
+      return _redirectResponse(null, state, error: new AuthServerException(AuthRequestError.invalidScope, client));
     } on AuthServerException catch (e) {
       return _redirectResponse(null, state, error: e);
     }
