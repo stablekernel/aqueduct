@@ -249,7 +249,7 @@ sudo iptables-save
 Then - either locally or remotely - add a new OAuth 2.0 client:
 
 ```bash
-  aqueduct auth add-client --id com.app.standard --secret secret --connect postgres://joeconway:tf4-avf-ogQ-DyF@deploy-aws.ci8bvy5dthsi.us-east-1.rds.amazonaws.com:5432/deploy_aws
+  aqueduct auth add-client --id com.app.standard --secret secret --connect postgres://user:password@deploy-aws.hexthing.us-east-1.rds.amazonaws.com:5432/deploy_aws
 ```
 
 Your Aqueduct application is now up and running.

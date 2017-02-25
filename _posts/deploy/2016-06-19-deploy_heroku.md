@@ -17,7 +17,7 @@ To run a production Aqueduct application on Heroku. Make sure to also read [Test
 1. [Dart has been installed.](https://www.dartlang.org/install)
 2. [A Heroku account.](https://signup.heroku.com)
 3. [`git` has been installed.](https://git-scm.com/downloads)
-4. [`heroku` has been installed.](https://devcenter.heroku.com/articles/heroku-cli))
+4. [`heroku` has been installed.](https://devcenter.heroku.com/articles/heroku-cli)
 5. [Aqueduct has been activated.](getting_started.html)
 
 ### Overview
@@ -59,6 +59,7 @@ This command will create the files Heroku needs to run the application, remove `
 Heroku provides configuration values through environment variables, where Aqueduct normally provides them in `config.yaml` file. Because Aqueduct uses [safe_config](https://pub.dartlang.org/packages/safe_config), configuration files can map keys to environment variables with a simple syntax. The `config.yaml` file's values get replaced with their environment variable names and it gets checked into source control. To map configuration values to an environment variable, the value for a configuration key is prefixed with a dollar sign (`$`) followed by the case-sensitive name of the environment variable.
 
 Modify `config.yaml` to appear as follows:
+
 ```yaml
 database: $DATABASE_URL
 logging:
@@ -90,6 +91,7 @@ heroku run /app/dart-sdk/bin/pub global run aqueduct:aqueduct auth add-client --
 ```
 
 Finally, spin up a dyno and the application will start receiving requests:
+
 ```bash
 heroku ps:scale web=1
 ```
