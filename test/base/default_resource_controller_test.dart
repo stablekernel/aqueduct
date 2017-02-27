@@ -1,7 +1,10 @@
+import 'dart:io';
+import 'dart:async';
+
+import 'package:aqueduct/test.dart';
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
-import 'dart:async';
-import 'dart:io';
+
 import '../helpers.dart';
 
 void main() {

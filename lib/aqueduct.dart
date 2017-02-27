@@ -33,7 +33,5 @@ export 'src/application/application.dart';
 export 'src/auth/auth.dart';
 export 'src/db/db.dart';
 export 'src/http/http.dart';
-export 'src/utilities/mock_server.dart';
 export 'src/utilities/pbkdf2.dart';
-export 'src/utilities/test_client.dart';
-export 'src/utilities/test_matchers.dart';
+

@@ -1,5 +1,3 @@
-import 'query.dart';
-
 /// The operator in a comparison matcher.
 enum MatcherOperator {
   lessThan,

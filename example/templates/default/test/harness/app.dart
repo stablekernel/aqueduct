@@ -1,6 +1,10 @@
 import 'package:wildfire/wildfire.dart';
+import 'package:aqueduct/test.dart';
+
 export 'package:wildfire/wildfire.dart';
+export 'package:aqueduct/test.dart';
 export 'package:test/test.dart';
+export 'package:aqueduct/aqueduct.dart';
 
 /// A testing harness for wildfire.
 ///
@@ -41,6 +45,7 @@ class TestApplication {
     RequestController.letUncaughtExceptionsEscape = true;
     application = new Application<WildfireSink>();
     application.configuration.configurationFilePath = "config.yaml.src";
+
     await application.start(runOnMainIsolate: true);
 
     ManagedContext.defaultContext = sink.context;
