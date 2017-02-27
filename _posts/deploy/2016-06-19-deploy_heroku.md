@@ -60,7 +60,7 @@ Heroku provides configuration values through environment variables, where Aquedu
 
 Modify `config.yaml` to appear as follows:
 
-```yaml
+```
 database: $DATABASE_URL
 logging:
  type: console

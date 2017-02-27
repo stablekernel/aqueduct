@@ -26,7 +26,7 @@ void main() {
 
 Tests are made possible by the `test` package which you'll need to claim as a dependency. In `quiz/pubspec.yaml`, add it as a development dependency by adding the following two lines to the end of the file:
 
-```yaml
+```
 dev_dependencies:
   test: any
 ```
@@ -94,7 +94,7 @@ class QuizRequestSink extends RequestSink {
 }
 ```
 
-It is important that there is a top-level library file (`quiz.dart`) that exports the file that contains the `RequestSink` subclass, otherwise, the `aqueduct` executable won't be able to find it and start your application. Files with `RequestController`s should be imported in `sink.dart`, since that's the only place they'll get used.
+It is important that there is a top-level library file (`quiz.dart`) that exports the file that contains the `RequestSink` subclass, otherwise, the `aqueduct` executable won't be able to find it and start your application. Files that declare `RequestController` subclasses should be imported in `sink.dart`, since that's the only place they'll get used.
 
 Additionally, the top-level library file *must* be named the same as the project - here, `quiz.dart`. The name of the project is is `name` key in `pubspec.yaml`.
 
@@ -106,7 +106,7 @@ lib/
   quiz.dart
   sink.dart
   controller/
-    question_controller.darttest
+    question_controller.dart
 ```  
 
 Writing Tests
@@ -114,14 +114,16 @@ Writing Tests
 
 We'd like to ensure that when we hit the `/questions` endpoint, we get a response with questions. What does that mean? Well, that is up to us. But, let's say that 'questions' means 'a list of strings that all end in a question mark'.
 
-In Dart, tests are stored in a top-level `test` directory. Create that directory in `quiz`. Then, add a new file to it named `question_controller_test.dart`. (Tests must end in `_test.dart` and live in the `test` directory for the tools to find them without you having to specify their path.) In this file, import both the `test` and `quiz` package.
+In Dart, tests are stored in a top-level `test` directory. Create that directory in `quiz`. Then, add a new file to it named `question_controller_test.dart`. (Tests must end in `_test.dart` and live in the `test` directory for the tools to find them without you having to specify their path.) In this file, import the following:
 
 ```dart
-import 'package:test/test.dart';
 import 'package:quiz/quiz.dart';
+import 'package:test/test.dart';
+import 'package:aqueduct/test.dart';
+import 'package:aqueduct/aqueduct.dart';
 ```
 
-The way Aqueduct accomplishes testing is by starting an entire application, running the tests, then stopping the application. To accomplish this, declare a `setUp` and `tearDown` method to run before and after each test. After the import statements, add a `main` function with the appropriate setup and teardown code:
+The way Aqueduct accomplishes testing is by starting an entire application, running the tests, then stopping the application. The library `aqueduct/test` has helpful utilities for testing Aqueduct applications. Declare a `setUp` and `tearDown` method to run before and after each test. After the import statements, add a `main` function with the appropriate setup and teardown code:
 
 ```dart
 void main() {
