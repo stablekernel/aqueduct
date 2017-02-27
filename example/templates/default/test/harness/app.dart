@@ -3,6 +3,8 @@ import 'package:aqueduct/test.dart';
 
 export 'package:wildfire/wildfire.dart';
 export 'package:aqueduct/test.dart';
+export 'package:test/test.dart';
+export 'package:aqueduct/aqueduct.dart';
 
 /// A testing harness for wildfire.
 ///
