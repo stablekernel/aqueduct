@@ -166,7 +166,7 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
   ///
   /// This method obtains an [AuthToken] for [accessToken] from [storage] and then verifies that the token is valid.
   /// If the token is valid, an [Authorization] object is returned. Otherwise, [null] is returned.
-  Future<Authorization> verify(String accessToken) async {
+  Future<Authorization> verify(String accessToken, {List<AuthScope> scopesRequired}) async {
     if (accessToken == null) {
       return null;
     }
@@ -176,7 +176,21 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
       return null;
     }
 
-    return new Authorization(t.clientID, t.resourceOwnerIdentifier, this);
+    if (scopesRequired != null) {
+      var hasAllRequiredScopes = scopesRequired.every((requiredScope) {
+        var tokenHasValidScope = t.scopes
+            ?.any((tokenScope) => requiredScope.allowsScope(tokenScope));
+
+        return tokenHasValidScope ?? false;
+      });
+
+      if (!hasAllRequiredScopes) {
+        return null;
+      }
+    }
+
+
+    return new Authorization(t.clientID, t.resourceOwnerIdentifier, this, scopes: t.scopes);
   }
 
   /// Refreshes a valid [AuthToken] instance.
@@ -436,8 +450,8 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
 
   @override
   Future<Authorization> fromBearerToken(
-      String bearerToken, List<String> scopesRequired) {
-    return verify(bearerToken);
+      String bearerToken, {List<AuthScope> scopesRequired}) {
+    return verify(bearerToken, scopesRequired: scopesRequired);
   }
 
   @override

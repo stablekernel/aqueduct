@@ -201,7 +201,9 @@ class AuthCode {
 class Authorization {
   /// Creates an instance of a [Authorization].
   Authorization(this.clientID, this.resourceOwnerIdentifier, this.validator,
-      {this.credentials});
+      {this.credentials, List<AuthScope> scopes}) {
+    this._scopes = scopes;
+  }
 
   /// The client ID the permission was granted under.
   final String clientID;
@@ -224,10 +226,22 @@ class Authorization {
   /// the parsed credentials will be available in this property. Otherwise, this value is null.
   final AuthBasicCredentials credentials;
 
-  AuthScope grantedScope;
-  List<AuthScope> scopes;
-}
+  /// The list of scopes this authorization has access to.
+  ///
+  /// If the access token used to create this instance has scope,
+  /// those scopes will be available here. Otherwise, null.
+  List<String> get scopes => _scopes?.map((s) => s.scopeString)?.toList();
+  List<AuthScope> _scopes;
 
+  /// Whether or not this instance has access to a specific scope.
+  ///
+  /// This method checks each element in [scopes] for any that gives privileges
+  /// to access [scope].
+  bool authorizedForScope(String scope) {
+    var asScope = new AuthScope(scope);
+    return _scopes?.any((s) => asScope.allowsScope(s)) ?? false;
+  }
+}
 
 /// Instances represent OAuth 2.0 scope.
 ///
