@@ -189,7 +189,6 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
       }
     }
 
-
     return new Authorization(t.clientID, t.resourceOwnerIdentifier, this, scopes: t.scopes);
   }
 

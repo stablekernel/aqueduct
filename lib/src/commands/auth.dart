@@ -8,6 +8,7 @@ import 'base.dart';
 class CLIAuth extends CLICommand {
   CLIAuth() {
     registerCommand(new CLIAuthAddClient());
+    registerCommand(new CLIAuthScopeClient());
   }
 
   Future<int> handle() async {
@@ -40,9 +41,76 @@ class CLIAuth extends CLICommand {
   }
 }
 
+class CLIAuthScopeClient extends CLIDatabaseConnectingCommand {
+  CLIAuthScopeClient() {
+    options
+      ..addOption("scopes", help: "A space-delimited list of allowed scopes. Omit if application does not support scopes.", defaultsTo: "")
+      ..addOption("id", abbr: "i", help: "The client ID to insert.");
+  }
+
+  String get clientID => values["id"];
+  List<String> get scopes {
+    var v = values["scopes"] as String;
+    if (v.isEmpty) {
+      return null;
+    }
+    return v?.split(" ")?.toList();
+  }
+
+  Future<int> handle() async {
+    if (clientID == null) {
+      displayError("Option --id required.");
+      return 1;
+    }
+    if ((scopes?.isEmpty ?? true)) {
+      displayError("Option --scopes required.");
+      return 1;
+    }
+
+    var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
+    var context = new ManagedContext(dataModel, persistentStore);
+
+    var scopingClient = new AuthClient.public(
+        clientID, allowedScopes: scopes?.map((s) => new AuthScope(s))?.toList());
+
+    var query = new Query<ManagedClient>(context)
+      ..where.id = whereEqualTo(clientID)
+      ..values.allowedScope = scopingClient.allowedScopes?.map((s) => s.scopeString)?.join(" ");
+
+
+    try {
+      var result = await query.updateOne();
+      if (result == null) {
+        displayError("Client ID '$clientID' does not exist.");
+        return 1;
+      }
+
+      displayInfo("Success", color: CLIColor.green);
+      displayProgress("Client with ID '$clientID' has been updated.");
+      displayProgress("Updated scope: ${result.allowedScope}");
+      return 0;
+    } on QueryException catch (e) {
+      displayError("Updating Client Scope Failed");
+
+      displayProgress("$e");
+    }
+
+    return 1;
+  }
+
+  String get name {
+    return "set-scope";
+  }
+
+  String get description {
+    return "Sets the scope of an existing OAuth 2.0 client in a database that has been provisioned with the aqueduct/managed_auth package.";
+  }
+}
+
 class CLIAuthAddClient extends CLIDatabaseConnectingCommand {
   CLIAuthAddClient() {
     options
+      ..addOption("allowed-scopes", help: "A space-delimited list of allowed scopes. Omit if application does not support scopes.", defaultsTo: "")
       ..addOption("id", abbr: "i", help: "The client ID to insert.")
       ..addOption("secret",
           abbr: "s",
@@ -57,6 +125,13 @@ class CLIAuthAddClient extends CLIDatabaseConnectingCommand {
   String get clientID => values["id"];
   String get secret => values["secret"];
   String get redirectUri => values["redirect-uri"];
+  List<String> get allowedScopes {
+    var v = values["allowed-scopes"] as String;
+    if (v.isEmpty) {
+      return null;
+    }
+    return v?.split(" ")?.toList();
+  }
 
   Future<int> handle() async {
     if (clientID == null) {
@@ -75,13 +150,15 @@ class CLIAuthAddClient extends CLIDatabaseConnectingCommand {
     var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
     var context = new ManagedContext(dataModel, persistentStore);
 
-    var credentials = AuthUtility.generateAPICredentialPair(clientID, secret,
-        redirectURI: redirectUri);
+    var credentials = AuthUtility.generateAPICredentialPair(clientID, secret, redirectURI: redirectUri)
+      ..allowedScopes = allowedScopes?.map((s) => new AuthScope(s))?.toList();
+
     var managedCredentials = new ManagedClient()
       ..id = credentials.id
       ..hashedSecret = credentials.hashedSecret
       ..salt = credentials.salt
-      ..redirectURI = credentials.redirectURI;
+      ..redirectURI = credentials.redirectURI
+      ..allowedScope = credentials.allowedScopes?.map((s) => s.scopeString)?.join(" ");
 
     var query = new Query<ManagedClient>(context)..values = managedCredentials;
 
@@ -90,8 +167,13 @@ class CLIAuthAddClient extends CLIDatabaseConnectingCommand {
 
       displayInfo("Success", color: CLIColor.green);
       displayProgress("Client with ID '$clientID' has been added.");
-      displayProgress(
-          "The client secret has been hashed. You must store it elsewhere, as it cannot be retrieved.");
+      if (secret != null) {
+        displayProgress(
+            "The client secret has been hashed. You must store it elsewhere, as it cannot be retrieved.");
+      }
+      if (managedCredentials.allowedScope != null) {
+        displayProgress("Allowed scope: ${managedCredentials.allowedScope}");
+      }
       return 0;
     } on QueryException catch (e) {
       displayError("Adding Client Failed");
@@ -112,7 +194,11 @@ class CLIAuthAddClient extends CLIDatabaseConnectingCommand {
         if (underlying.code == PostgreSQLErrorCode.undefinedTable) {
           displayProgress(
               "No table to store OAuth 2.0 client exists. Have you run 'aqueduct db upgrade'?");
+        } else {
+          displayProgress("$e");
         }
+      } else {
+        displayProgress("$e");
       }
     }
 
