@@ -59,6 +59,8 @@ router
   .generate(() => new CheckInController());
 ```
 
+Note that you don't have to use an `Authorizer` to restrict access based on scope. A controller has access to scope information after the request has passed through an `Authorizer`, so it can use the scope to make more granular decisions about the result of an API call.
+
 ### Authorization Objects
 
 A bearer token is a representation of granted authorization - at some point in the past, a user provided their credentials and the token is the proof of that. When a bearer token is sent back to an Aqueduct application as part of an HTTP request, the application can look up which user the token is for and the client application it was issued for. This information is stored in an instance of `Authorization`. When a `Request` successfully passes through an `Authorizer`, an instance of `Authorization` is assigned to its `authorization` property.
