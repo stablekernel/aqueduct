@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/managed_auth.dart';
+import 'package:aqueduct/test.dart';
 import 'package:test/test.dart';
 
 import '../context_helpers.dart';

@@ -1,8 +1,5 @@
-import 'package:test/test.dart';
-import 'package:aqueduct/aqueduct.dart';
+import 'package:aqueduct/test.dart';
 import 'dart:isolate';
-import 'dart:io';
-import 'dart:async';
 
 void main() {
   group("Mock HTTP Tests", () {

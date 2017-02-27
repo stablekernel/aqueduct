@@ -1,6 +1,4 @@
 import '../db.dart';
-import '../managed/backing.dart';
-import '../query/matcher_internal.dart';
 import 'entity_table.dart';
 import 'property_expression.dart';
 import 'property_mapper.dart';

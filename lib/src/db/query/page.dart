@@ -1,5 +1,4 @@
 import 'query.dart';
-import 'sort_descriptor.dart';
 
 /// A description of a page of results to be applied to a [Query].
 ///

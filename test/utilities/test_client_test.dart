@@ -1,6 +1,4 @@
-import 'package:test/test.dart';
-import 'package:aqueduct/aqueduct.dart';
-import 'dart:io';
+import 'package:aqueduct/test.dart';
 import 'dart:convert';
 
 void main() {

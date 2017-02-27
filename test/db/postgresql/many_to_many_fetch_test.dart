@@ -11,7 +11,6 @@ import '../../helpers.dart';
  */
 
 void main() {
-  List<RootObject> rootObjects;
   ManagedContext ctx;
   setUpAll(() async {
     ctx = await contextWithModels([
@@ -23,7 +22,7 @@ void main() {
       Team,
       Game
     ]);
-    rootObjects = await populateModelGraph(ctx);
+    var _ = await populateModelGraph(ctx);
     await populateGameSchedule();
   });
 
