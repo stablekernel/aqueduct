@@ -86,19 +86,13 @@ class CLIAuthScopeClient extends CLIDatabaseConnectingCommand {
       }
 
       displayInfo("Success", color: CLIColor.green);
-      displayProgress("Client with ID '$clientID' has been added.");
+      displayProgress("Client with ID '$clientID' has been updated.");
       displayProgress("Updated scope: ${result.allowedScope}");
       return 0;
     } on QueryException catch (e) {
       displayError("Updating Client Scope Failed");
 
-      var underlying = e.underlyingException;
-      if (underlying is PostgreSQLException) {
-        if (underlying.code == PostgreSQLErrorCode.undefinedTable) {
-          displayProgress(
-              "No table to store OAuth 2.0 client exists. Have you run 'aqueduct db upgrade'?");
-        }
-      }
+      displayProgress("$e");
     }
 
     return 1;
@@ -200,7 +194,11 @@ class CLIAuthAddClient extends CLIDatabaseConnectingCommand {
         if (underlying.code == PostgreSQLErrorCode.undefinedTable) {
           displayProgress(
               "No table to store OAuth 2.0 client exists. Have you run 'aqueduct db upgrade'?");
+        } else {
+          displayProgress("$e");
         }
+      } else {
+        displayProgress("$e");
       }
     }
 
