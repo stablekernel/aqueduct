@@ -424,7 +424,7 @@ Future<HttpServer> enableAuthorizer(Authorizer authorizer) async {
   return server;
 }
 
-Future<RequestControllerEvent> respond(Request req) async {
+Future<RequestOrResponse> respond(Request req) async {
   var map = {
     "clientID": req.authorization.clientID,
     "resourceOwnerIdentifier": req.authorization.resourceOwnerIdentifier

@@ -74,7 +74,7 @@ class Authorizer extends RequestController {
   AuthStrategy strategy;
 
   @override
-  Future<RequestControllerEvent> processRequest(Request req) async {
+  Future<RequestOrResponse> processRequest(Request req) async {
     var header = req.innerRequest.headers.value(HttpHeaders.AUTHORIZATION);
     if (header == null) {
       return new Response.unauthorized();
@@ -89,7 +89,7 @@ class Authorizer extends RequestController {
     return new Response.serverError();
   }
 
-  Future<RequestControllerEvent> _processBearerHeader(
+  Future<RequestOrResponse> _processBearerHeader(
       Request request, String headerValue) async {
     String bearerToken;
     try {
@@ -107,7 +107,7 @@ class Authorizer extends RequestController {
     return request;
   }
 
-  Future<RequestControllerEvent> _processBasicHeader(
+  Future<RequestOrResponse> _processBasicHeader(
       Request request, String headerValue) async {
     AuthBasicCredentials elements;
     try {

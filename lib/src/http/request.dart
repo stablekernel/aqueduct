@@ -10,7 +10,7 @@ import 'http.dart';
 /// Instances of this class travel through a [RequestController] chain to be responded to, sometimes acquiring new values
 /// as they go through controllers. Each instance of this class has a standard library [HttpRequest]. You should not respond
 /// directly to the [HttpRequest], as [RequestController]s take that responsibility.
-class Request implements RequestControllerEvent {
+class Request implements RequestOrResponse {
   /// Creates an instance of [Request], no need to do so manually.
   Request(this.innerRequest) {
     connectionInfo = innerRequest.connectionInfo;
