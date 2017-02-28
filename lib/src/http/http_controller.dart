@@ -141,7 +141,7 @@ abstract class HTTPController extends RequestController {
   /// controller will stop processing the request and immediately return the [Response] to the HTTP client.
   ///
   /// May not return any other [Request] than [req].
-  Future<RequestControllerEvent> willProcessRequest(Request req) async {
+  Future<RequestOrResponse> willProcessRequest(Request req) async {
     return req;
   }
 
@@ -268,7 +268,7 @@ abstract class HTTPController extends RequestController {
   }
 
   @override
-  Future<RequestControllerEvent> processRequest(Request req) async {
+  Future<RequestOrResponse> processRequest(Request req) async {
     try {
       request = req;
 

@@ -24,7 +24,6 @@ class _User extends ManagedAuthenticatable {
   @ManagedColumnAttributes(omitByDefault: true)
   String salt;
 
-  ManagedSet<ManagedAuthCode> authorizationCodes;
   ManagedSet<ManagedToken> tokens;
  */
 }

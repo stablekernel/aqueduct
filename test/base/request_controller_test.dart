@@ -394,7 +394,7 @@ class Always200Controller extends RequestController {
     policy.allowedOrigins = ["http://somewhere.com"];
   }
   @override
-  Future<RequestControllerEvent> processRequest(Request req) async {
+  Future<RequestOrResponse> processRequest(Request req) async {
     var q = req.innerRequest.uri.queryParameters["q"];
     if (q == "http_response_exception") {
       throw new HTTPResponseException(400, "ok");

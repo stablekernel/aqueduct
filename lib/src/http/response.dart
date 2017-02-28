@@ -7,7 +7,7 @@ import '../utilities/lowercasing_map.dart';
 ///
 /// This object can be used to write an HTTP response and contains conveniences
 /// for creating these objects.
-class Response implements RequestControllerEvent {
+class Response implements RequestOrResponse {
   /// The default value of a [contentType].
   ///
   /// If no [contentType] is set for an instance, this is the value used. By default, this value is

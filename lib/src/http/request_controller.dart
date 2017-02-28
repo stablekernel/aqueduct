@@ -10,7 +10,7 @@ import '../db/db.dart';
 /// The unifying protocol for [Request] and [Response] classes.
 ///
 /// A [RequestController] must return an instance of this type from its [RequestController.processRequest] method.
-abstract class RequestControllerEvent {}
+abstract class RequestOrResponse {}
 
 /// [RequestController]s respond to, modify or forward HTTP requests.
 ///
@@ -106,7 +106,7 @@ class RequestController extends Object with APIDocumentable {
   ///
   /// See also [generate] and [pipe].
   RequestController listen(
-      Future<RequestControllerEvent> requestControllerFunction(
+      Future<RequestOrResponse> requestControllerFunction(
           Request request)) {
     var controller = new RequestController()
       .._listener = requestControllerFunction;
@@ -202,7 +202,7 @@ class RequestController extends Object with APIDocumentable {
   ///
   /// [RequestController]s should return a [Response] from this method if they responded to the request.
   /// If a [RequestController] does not respond to the request, but instead modifies it, this method must return the same [Request].
-  Future<RequestControllerEvent> processRequest(Request req) {
+  Future<RequestOrResponse> processRequest(Request req) {
     if (_listener != null) {
       return _listener(req);
     }

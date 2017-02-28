@@ -36,7 +36,7 @@ abstract class QueryController<InstanceType extends ManagedObject>
   Query<InstanceType> query;
 
   @override
-  Future<RequestControllerEvent> willProcessRequest(Request req) async {
+  Future<RequestOrResponse> willProcessRequest(Request req) async {
     if (req.path.orderedVariableNames.length > 0) {
       var firstVarName = req.path.orderedVariableNames.first;
       var idValue = req.path.variables[firstVarName];
@@ -69,13 +69,9 @@ abstract class QueryController<InstanceType extends ManagedObject>
 
   @override
   void didDecodeRequestBody(HTTPBody body) {
-    var reflectedModel =
-        reflectClass(InstanceType).newInstance(new Symbol(""), []);
-    query.values = reflectedModel.reflectee as InstanceType;
     if (body.hasContent) {
       query.values.readMap(body.asMap());
+      query.values.removePropertyFromBackingMap(query.values.entity.primaryKey);
     }
-
-    query.values.removePropertyFromBackingMap(query.values.entity.primaryKey);
   }
 }

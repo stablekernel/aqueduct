@@ -490,7 +490,7 @@ class FilteringController extends HTTPController {
   }
 
   @override
-  Future<RequestControllerEvent> willProcessRequest(Request req) async {
+  Future<RequestOrResponse> willProcessRequest(Request req) async {
     if (req.innerRequest.headers.value("ignore") != null) {
       return new Response.badRequest(body: "ignored");
     }
