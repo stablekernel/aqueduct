@@ -19,13 +19,14 @@ codeurl: 'https://github.com/stablekernel/aqueduct.git'
 # Default categories (in order) to appear in the navigation
 sections: [
     #['tut', 'Tutorial'],
-    ['db', 'Guide: Database'],
     ['http', 'Guide: HTTP'],
+    ['db', 'Guide: Database'],
     ['auth', 'Guide: Authentication'],
+    ['testing', 'Guide: Testing'],
+    ['deploy', 'Guide: Deployment'],
     ['ref', 'Reference'],
     ['dev', 'Developers'],
-    ['post', 'Posts'],
-    ['deploy', 'Deployment']
+    ['post', 'Posts']
 ]
 
 # Keep as an empty string if served up at the root. If served up at a specific

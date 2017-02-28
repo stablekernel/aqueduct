@@ -1,14 +1,14 @@
 ---
 layout: page
-title: "The Application and its RequestSink"
+title: "The RequestSink"
 category: http
 date: 2016-06-19 21:22:35
 order: 6
 ---
 
-*******
+The only requirement of an Aqueduct application is that it has exactly one `RequestSink` subclass. This subclass handles the initialization of an application, including setting up routes, authorization and database connections.
 
-By convention, a `RequestSink` subclass is in its own file named `lib/<application_name>_request_sink.dart`. This file must visible to the application library file. (In an application named `foo`, the library file is in `lib/foo.dart`.) An example directory structure:
+By convention, a `RequestSink` subclass is declared in its own file named `lib/<application_name>_request_sink.dart`. This file must visible to the application library file. (In an application named `foo`, the library file is `lib/foo.dart`.) An example directory structure:
 
 ```
 wildfire/
@@ -26,25 +26,21 @@ To make the `RequestSink` subclass visible, the file `wildfire.dart` imports `wi
 import 'wildfire_request_sink.dart';
 ```
 
-******
-
-Every Aqueduct application must have one subclass of `RequestSink`. This subclass implements a handful of 'initialization methods' to set up the specifics of the application. Aqueduct applications are ran using the command line utility `aqueduct serve`, which finds that `RequestSink` subclass and executes its initialization methods.
+Applications are run with the command line tool `aqueduct serve`. This tool finds the subclass of `RequestSink` visible to the application library file.
 
 An Aqueduct application will create multiple instances of a `RequestSink` subclass. Each instance has its own `Isolate` - Dart's version of a thread - that it will process requests on. This behavior allows an application's code to be replicated across a number of threads.
 
 ## Subclassing RequestSink
 
-The first responsibility of a `RequestSink` is that it is the first `RequestController` that will receive an HTTP request. For more information on `RequestController`s and how HTTP requests get responded to, see [this guide](request_controller.html). This responsibility doesn't require the programmer to do anything.
+The responsibility of a `RequestSink` is to set up routes and initialize resources it will use to fulfill requests. There are five initialization methods in `RequestSink`, each with its own purpose. The methods and the order they are executed in are as follows:
 
-The other responsibility of a `RequestSink` is to set up routes and initialize resources it will use to fulfill requests. There are five initialization methods in `RequestSink`, each with its own purpose. The methods and the order they are executed in are as follows:
-
-1. `RequestSink.initializeApplication`: this method is called once at the very beginning of an application's startup, before any instances of `RequestSink` are created.
+1. `RequestSink.initializeApplication`: this *static* method is called once at the very beginning of an application's startup, before any instances of `RequestSink` are created.
 2. An instance of `RequestSink` is created with its default constructor.
-3. The method `setupRouter` is invoked on the `RequestSink` instance.
+3. The method `setupRouter` is invoked on the `RequestSink` instance; initialized properties from the constructor are injected into controllers created here.
 4. The method `willOpen` is invoked on the `RequestSink` instance.
 5. The method `didOpen` is invoked on the `RequestSink` instance.
 
-Only `setupRouter` is required, but it is extremely common to provide a new constructor and implement `RequestSink.initializeApplication`. It is rare to use `willOpen` and rarer still to use `didOpen`.
+Only `setupRouter` is required, but it is extremely common to provide a constructor and implement `RequestSink.initializeApplication`. It is rare to use `willOpen` and rarer still to use `didOpen`.
 
 Aqueduct applications will create more than one instance of `RequestSink` and repeat steps 2-5 for each instance. See a later section on multi-threading in Aqueduct applications.
 
@@ -60,7 +56,7 @@ static Future initializeApplication(ApplicationConfiguration config) async {
 }
 ```
 
-A common usage of this method is to set up resources that can be shared across isolates or single, persistent connections to remote services. This method can modify `ApplicationConfiguration` prior to `RequestSink` instances being created. This allows resources allocated during this one-time setup method can be accessible by each `RequestSink` instance.
+A common use of this method is to set up resources that will be shared across isolates or unique persistent connections to remote services. This method can modify `ApplicationConfiguration` prior to `RequestSink` instances being created. This allows resources allocated during this one-time setup method can be accessible by each `RequestSink` instance.
 
 In its simplest form, `initializeApplication` will often read values from a configuration file and set them in the `ApplicationConfiguration.options` map. That looks like this:
 
@@ -74,13 +70,15 @@ RequestSink(ApplicationConfiguration config) {
 }
 ```
 
-In a more complex example, Aqueduct applications that use [scribe](https://pub.dartlang.org/packages/scribe) will implement `initializeApplication` to optimize logging. `scribe` works by spawning a new isolate that writes log statements to disk or the console. Other isolates that do work send their log messages to `scribe`'s logging isolate so that they can move on to more important things. The logging isolate is spawned in `initializeApplication`, and a communication port to that isolate is added to the `ApplicationConfiguration`. Each `RequestSink` stores that communication port so that it can send messages to the logging isolate later.
+In a more complex example, Aqueduct applications that use [scribe](https://pub.dartlang.org/packages/scribe) will implement `initializeApplication` to optimize logging. `scribe` works by spawning a new isolate that writes log statements to disk or the console. Other isolates that do work send their log messages to `scribe`'s logging isolate so that they can move on to more important things. The logging isolate is spawned in `initializeApplication`, and a communication port to that isolate is added to the `ApplicationConfiguration`. Each `RequestSink` grabs that communication port so that it can send messages to the logging isolate later.
 
-It is important to note the behavior of isolates as it relates to Aqueduct and the initialization process. Each isolate has its own heap. `initializeApplication` is executed in the main isolate, whereas each `RequestSink` is instantiated in its own isolate. Any static or global variables that are set in the main isolate *will not be set* in other isolates. Static properties like the encoder and decoder maps created by `Response.addEncoder` and `HTTPBodyDecoder.addDecoder` must not be modified in `initializeApplication`, since these changes will not occur in other isolates. For initialization that is isolate-specific, see later sections.
+It is important to note the behavior of isolates as it relates to Aqueduct and the initialization process. Each isolate has its own heap. `initializeApplication` is executed in the main isolate, whereas each `RequestSink` is instantiated in its own isolate. This means that any values stored in `ApplicationConfiguration` must be safe to pass across isolates - i.e., they can't contain references to closures.
+
+Additionally, any static or global variables that are set in the main isolate *will not be set* in other isolates. Static properties like the encoder and decoder maps created by `Response.addEncoder` and `HTTPBody.addDecoder` must not be modified in `initializeApplication`, since these changes will not occur in other isolates. For initialization that is isolate-specific, see later sections.
 
 Also, because static methods cannot be overridden in Dart, it is important that you ensure the name and signature of `initializeApplication` exactly matches what is shown in these code samples. The analyzer can't help you here, unfortunately.
 
-### Use RequestSink's Constructor to Initialize Resources and Isolate-Specific Settings
+### Use RequestSink's Constructor to Initialize Resources and Isolate-Specific Configurations
 
 A resource, in this context, is something your application will use to fulfill requests. A database connection is an example of a resource. Resources should be created the constructor of a `RequestSink` and stored as properties.
 
@@ -96,9 +94,7 @@ class MySink extends RequestSink {
 }
 ```
 
-It isn't necessary to store the `ApplicationConfiguration` argument, because it will automatically be stored in `ReqeustSink.configuration` in the `super` constructor.
-
-Isolate specific initialization - static properties and configurations like those modified by `Response.addEncoder` - should also be set in this method.
+Isolate specific initialization should also be set in this method.
 
 ```dart
 class MySink extends RequestSink {
@@ -108,25 +104,24 @@ class MySink extends RequestSink {
 }  
 ```
 
-All of the properties of a `RequestSink` should be initialized in its constructor. This allows the next phase of initialization - setting up routes - to inject these resources into the controllers that handle the various endpoints. For example, a typical `RequestSink` will have some property that holds a database connection; this property should be initialized in the constructor.
+All of the properties of a `RequestSink` should be initialized in its constructor. This allows the next phase of initialization - setting up routes - to inject these resources into controllers. For example, a typical `RequestSink` will have some property that holds a database connection; this property should be initialized in the constructor.
 
 A constructor for a `RequestSink` may look like this:
 
 ```dart
 class WildfireSink extends RequestSink {
+  static String ConfigurationKey = "config";
 
-  // A constant so the Application<T> can add the right
-  // key-value pairs to its configurationOptions.
-  static const String ConfigurationKey = "ConfigurationKey";
+  static Future initializeApplication(ApplicationConfiguration config) async {        
+    config.options[ConfigurationKey] = new Configuration(config.configurationFilePath);
+  }  
 
-  // The required constructor
   WildfireSink(Map<String, dynamic> opts) : super(opts) {
     WildfireConfiguration configuration = opts[ConfigurationKey];
 
     context = contextWithConnectionInfo(configuration.database);
 
-    authServer = new AuthServer<User, Token, AuthCode>(
-        new WildfireAuthDelegate());
+    authServer = new AuthServer<User, Token, AuthCode>(new WildfireAuthDelegate());
   }
 
   ManagedContext context;
@@ -140,7 +135,7 @@ A constructor should never call asynchronous functions. Some resources require a
 
 Once a `RequestSink` is instantiated, its `setupRouter` method is invoked. This method takes a `Router` that you must configure with all of the routes your application will respond to. (See [Routing](routing.html) for more details.)
 
-When setting up routes, you will create many instances of `RequestController` that will be responsible for processing requests. Any resources these controllers need should be provided in their constructor from the recently initialized properties of the `RequestSink`. For example, `Authorizer`s need an instance of `AuthServer` to validate a request. The following code is an example of this:
+When setting up routes, you will create many instances of `RequestController`. Any resources these controllers need should be injected in their constructor. For example, `Authorizer`s need an instance of `AuthServer` to validate a request. The following code is an example of this:
 
 ```dart
 class MySink extends RequestSink {
@@ -215,7 +210,7 @@ When an application is started with `aqueduct serve`, a flag indicates how many 
 
 An isolate can't share memory with another isolate. Therefore, each `RequestSink` instance has its own set of resources, like database connections. This behavior also makes connection pooling a non-issue - the connections are effectively pooled by the fact that there is a pool of `RequestSink`s. If a `RequestSink` creates a database connection and an application is started with four isolates, there will be four database connections total.
 
-However, there are times where you want your own pool or you want to share a single resource across multiple isolates. For example, an API that must register with some other server (like in a system with an event bus) or must maintain a single persistent connection (like the error pipe to Apple's Push Notification Service or a streaming connection to Nest). These types of resources and registrations should not be created by a `RequestSink`, because they will occur more than once. These types of resources should be instantiated in `initializeApplication`.
+However, there are times where you want your own pool or you want to share a single resource across multiple isolates. For example, an API that must register with some other server (like in a system with an event bus) or must maintain a single persistent connection (like the error pipe to Apple's Push Notification Service or a streaming connection to Nest). These types of resources should be instantiated in `initializeApplication`.
 
 ## Preprocessing Requests and initialHandler
 
