@@ -69,13 +69,9 @@ abstract class QueryController<InstanceType extends ManagedObject>
 
   @override
   void didDecodeRequestBody(HTTPBody body) {
-    var reflectedModel =
-        reflectClass(InstanceType).newInstance(new Symbol(""), []);
-    query.values = reflectedModel.reflectee as InstanceType;
     if (body.hasContent) {
       query.values.readMap(body.asMap());
+      query.values.removePropertyFromBackingMap(query.values.entity.primaryKey);
     }
-
-    query.values.removePropertyFromBackingMap(query.values.entity.primaryKey);
   }
 }
