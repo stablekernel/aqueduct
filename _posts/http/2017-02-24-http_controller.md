@@ -122,7 +122,7 @@ class UserController extends HTTPController {
 }
 ```
 
-### HTTPQuery/HTTPHeader
+### Query and Header Values
 
 The `Request` being processed can always be accessed through the `request` property of a controller. For example, if you want to check for a particular header:
 
