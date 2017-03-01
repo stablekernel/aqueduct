@@ -1,4 +1,5 @@
 analyzer:
   strong-mode: true
   exclude:
-    - tmp_templates/**
+    - test_project/**
+    - test/db/migration_test_projects/**

@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:io';
 
 import 'package:logging/logging.dart';
@@ -11,10 +10,11 @@ import 'http.dart';
 /// Instances of this class travel through a [RequestController] chain to be responded to, sometimes acquiring new values
 /// as they go through controllers. Each instance of this class has a standard library [HttpRequest]. You should not respond
 /// directly to the [HttpRequest], as [RequestController]s take that responsibility.
-class Request implements RequestControllerEvent {
+class Request implements RequestOrResponse {
   /// Creates an instance of [Request], no need to do so manually.
   Request(this.innerRequest) {
     connectionInfo = innerRequest.connectionInfo;
+    _body = new HTTPBody(this.innerRequest);
   }
 
   /// The internal [HttpRequest] of this [Request].
@@ -54,7 +54,8 @@ class Request implements RequestControllerEvent {
   /// Once decoded, this value will be an object that is determined by the decoder passed to [decodeBody].
   /// For example, if the request body was a JSON object and the decoder handled JSON, this value would be a [Map]
   /// representing the JSON object.
-  dynamic requestBodyObject;
+  HTTPBody get body => _body;
+  HTTPBody _body;
 
   /// Whether or not this request is a CORS request.
   ///
@@ -86,22 +87,6 @@ class Request implements RequestControllerEvent {
   /// Access to logger directly from this instance.
   Logger get logger => new Logger("aqueduct");
 
-  /// Decodes the body of this request according to its Content-Type.
-  ///
-  /// This method initiates the decoding of this request's body according to its Content-Type, returning a [Future] that completes
-  /// with the decoded object when decoding has finished. The decoded body is also available in [requestBodyObject] once decoding has completed.
-  /// This method may be called multiple times; decoding will only occur once. If there is no request body, this method will return a [Future] that completes
-  /// with the null value.
-  ///
-  /// [HTTPController]s invoke this method prior to invoking their responder method, so there is no need to call this method in a [HTTPController].
-  Future decodeBody() async {
-    if (innerRequest.contentLength > 0) {
-      requestBodyObject ??= await HTTPBodyDecoder.decode(innerRequest);
-    }
-
-    return requestBodyObject;
-  }
-
   String get _sanitizedHeaders {
     StringBuffer buf = new StringBuffer("{");
 
@@ -114,8 +99,8 @@ class Request implements RequestControllerEvent {
   }
 
   String get _sanitizedBody {
-    if (requestBodyObject != null) {
-      return _truncatedString("$requestBodyObject", charSize: 512);
+    if (body.hasBeenDecoded) {
+      return _truncatedString(body.asDynamic().toString(), charSize: 512);
     }
 
     return "-";
@@ -132,28 +117,29 @@ class Request implements RequestControllerEvent {
   ///
   /// [RequestController]s invoke this method to respond to this request.
   ///
-  /// Once this method has executed, the [Request] is no longer valid. All headers from [responseObject] are
-  /// added to the HTTP response. If [responseObject] has a [Response.body], this request will attempt to encode the body data according to the
-  /// Content-Type in the [responseObject]'s [Response.headers].
+  /// Once this method has executed, the [Request] is no longer valid. All headers from [aqueductResponse] are
+  /// added to the HTTP response. If [aqueductResponse] has a [Response.body], this request will attempt to encode the body data according to the
+  /// Content-Type in the [aqueductResponse]'s [Response.headers].
   ///
   /// By default, 'application/json' and 'text/plain' are supported HTTP response body encoding types. If you wish to encode another
   /// format, see [Response.addEncoder].
-  void respond(Response responseObject) {
+  void respond(Response aqueductResponse) {
     respondDate = new DateTime.now().toUtc();
 
-    var encodedBody = responseObject.encodedBody;
+    // Note: this line's placement is intentional. If encoding the body fails and this throws an exception,
+    // and the status code has already been written too, then we can't change the status code to send
+    // back an error response.
+    var encodedBody = aqueductResponse.encodedBody;
 
-    response.statusCode = responseObject.statusCode;
+    response.statusCode = aqueductResponse.statusCode;
 
-    if (responseObject.headers != null) {
-      responseObject.headers.forEach((k, v) {
-        response.headers.add(k, v);
-      });
-    }
+    aqueductResponse.headers?.forEach((k, v) {
+      response.headers.add(k, v);
+    });
 
     if (encodedBody != null) {
-      response.headers
-          .add(HttpHeaders.CONTENT_TYPE, responseObject.contentType.toString());
+      response.headers.add(
+          HttpHeaders.CONTENT_TYPE, aqueductResponse.contentType.toString());
       response.write(encodedBody);
     }
 

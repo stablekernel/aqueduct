@@ -35,6 +35,29 @@ void main() {
     expect(result.emailAddress, "2@a.com");
   });
 
+  test("Setting relationship to a new value succeeds", () async {
+    context = await contextWithModels([Child, Parent]);
+
+    var q = new Query<Parent>()..values.name = "Bob";
+    var parent = await q.insert();
+
+    var childQuery = new Query<Child>()
+      ..values.name = "Fred"
+      ..values.parent = parent;
+
+    var child = await childQuery.insert();
+    expect(child.parent.id, parent.id);
+
+    q = new Query<Parent>()..values.name = "Sally";
+    var newParent = await q.insert();
+
+    childQuery = new Query<Child>()
+      ..where.id = whereEqualTo(child.id)
+      ..values.parent = newParent;
+    child = (await childQuery.update()).first;
+    expect(child.parent.id, newParent.id);
+  });
+
   test("Setting relationship to null succeeds", () async {
     context = await contextWithModels([Child, Parent]);
 
@@ -50,7 +73,7 @@ void main() {
     expect(child.parent.id, parent.id);
 
     childQuery = new Query<Child>()
-      ..matchOn["id"] = whereEqualTo(child.id)
+      ..where["id"] = whereEqualTo(child.id)
       ..values = (new Child()..parent = null);
     child = (await childQuery.update()).first;
     expect(child.parent, isNull);
@@ -101,7 +124,7 @@ void main() {
     await req.insert();
 
     var q = new Query<TestModel>()
-      ..matchOn["name"] = "Bob"
+      ..where["name"] = "Bob"
       ..values = (new TestModel()..emailAddress = "3@a.com");
 
     List<TestModel> results = await q.update();
@@ -126,7 +149,7 @@ void main() {
         .insert();
 
     var updateQuery = new Query<TestModel>()
-      ..matchOn["emailAddress"] = "1@a.com"
+      ..where["emailAddress"] = "1@a.com"
       ..values.emailAddress = "3@a.com";
     var updatedObject = (await updateQuery.update()).first;
 
@@ -181,7 +204,7 @@ void main() {
     await req.insert();
 
     req = new Query<TestModel>()
-      ..predicate = new QueryPredicate("name is not null", {})
+      ..predicate = new QueryPredicate("name is not null", null)
       ..values.name = "Joe";
 
     try {
@@ -234,7 +257,7 @@ void main() {
     await req.insert();
 
     req = new Query<TestModel>()
-      ..confirmQueryModifiesAllInstancesOnDeleteOrUpdate = true
+      ..canModifyAllInstances = true
       ..values.name = "Fred";
 
     var res = await req.update();
@@ -261,7 +284,7 @@ void main() {
 
     try {
       var q = new Query<TestModel>()
-        ..matchOn.emailAddress = "2@a.com"
+        ..where.emailAddress = "2@a.com"
         ..values.emailAddress = "1@a.com";
       await q.updateOne();
       expect(true, false);

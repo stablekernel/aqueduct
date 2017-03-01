@@ -7,11 +7,13 @@ import '../http/request.dart';
 import '../http/request_sink.dart';
 import 'application.dart';
 import 'application_configuration.dart';
+import 'package:stack_trace/stack_trace.dart';
 
-/// Represents a [RequestSink] manager being used by an [Application].
+/// Manages listening for HTTP requests and delivering them to [RequestSink] instances.
 ///
 /// An Aqueduct application creates instances of this type to pair an HTTP server and an
-/// instance of an application-specific [RequestSink].
+/// instance of an application-specific [RequestSink]. Instances are created by [Application]
+/// and shouldn't be created otherwise.
 class ApplicationServer {
   /// The configuration this instance used to start its [sink].
   ApplicationConfiguration configuration;
@@ -82,12 +84,18 @@ class ApplicationServer {
 
     await sink.willOpen();
 
-    server.map((baseReq) => new Request(baseReq)).listen((Request req) async {
-      logger.fine("Request received $req.", req);
-      await sink.willReceiveRequest(req);
-      sink.receive(req);
-    });
+    server.map((baseReq) => new Request(baseReq)).listen(_dispatchRequest);
 
     sink.didOpen();
+  }
+
+  void _dispatchRequest(Request request) {
+    logger.fine("Request received $request.", request);
+
+    Chain.capture(() {
+      sink.willReceiveRequest(request).then((_) {
+        sink.receive(request);
+      });
+    });
   }
 }

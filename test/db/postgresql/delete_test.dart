@@ -81,8 +81,7 @@ void main() {
     var result = await req.fetch();
     expect(result.length, 10);
 
-    req = new Query<TestModel>()
-      ..confirmQueryModifiesAllInstancesOnDeleteOrUpdate = true;
+    req = new Query<TestModel>()..canModifyAllInstances = true;
     var count = await req.delete();
     expect(count, 10);
 
@@ -132,12 +131,12 @@ void main() {
     var refModelReq = new Query<RefModel>()..values = refModelObject;
     var refObj = await refModelReq.insert();
 
-    testModelReq = new Query<TestModel>()
-      ..confirmQueryModifiesAllInstancesOnDeleteOrUpdate = true;
+    testModelReq = new Query<TestModel>()..canModifyAllInstances = true;
     var count = await testModelReq.delete();
     expect(count, 1);
 
-    refModelReq = new Query<RefModel>()..resultProperties = ["id", "test"];
+    refModelReq = new Query<RefModel>()
+      ..returningProperties((r) => [r.id, r.test]);
     refObj = await refModelReq.fetchOne();
     expect(refObj.test, null);
   });
@@ -155,8 +154,7 @@ void main() {
 
     var successful = false;
     try {
-      griReq = new Query<GRestrictInverse>()
-        ..confirmQueryModifiesAllInstancesOnDeleteOrUpdate = true;
+      griReq = new Query<GRestrictInverse>()..canModifyAllInstances = true;
       await griReq.delete();
       successful = true;
     } on QueryException catch (e) {
@@ -177,8 +175,7 @@ void main() {
     var cascadeReq = new Query<GCascade>()..values = cascadeObj;
     await cascadeReq.insert();
 
-    req = new Query<GCascadeInverse>()
-      ..confirmQueryModifiesAllInstancesOnDeleteOrUpdate = true;
+    req = new Query<GCascadeInverse>()..canModifyAllInstances = true;
     var count = await req.delete();
     expect(count, 1);
 

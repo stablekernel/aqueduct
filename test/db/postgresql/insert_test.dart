@@ -13,6 +13,15 @@ void main() {
     context = null;
   });
 
+  test("Accessing valueObject of Query automatically creates an instance",
+      () async {
+    context = await contextWithModels([TestModel]);
+
+    var q = new Query<TestModel>()..values.id = 1;
+
+    expect(q.values.id, 1);
+  });
+
   test("Insert Bad Key", () async {
     context = await contextWithModels([TestModel]);
 
@@ -126,7 +135,7 @@ void main() {
 
     var insertReq = new Query<TestModel>()
       ..valueMap = {"id": 20, "name": "Bob"}
-      ..resultProperties = ["id", "name"];
+      ..returningProperties((t) => [t.id, t.name]);
 
     var value = await insertReq.insert();
     expect(value.id, 20);
@@ -135,7 +144,7 @@ void main() {
 
     insertReq = new Query<TestModel>()
       ..valueMap = {"id": 21, "name": "Bob"}
-      ..resultProperties = ["id", "name", "emailAddress"];
+      ..returningProperties((t) => [t.id, t.name, t.emailAddress]);
 
     value = await insertReq.insert();
     expect(value.id, 21);

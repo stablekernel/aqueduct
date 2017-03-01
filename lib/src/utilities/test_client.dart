@@ -101,8 +101,8 @@ class TestClient {
   }
 
   /// Closes this instances underlying HTTP client.
-  Future close() async {
-    await _client.close(force: true);
+  void close() {
+    _client.close(force: true);
   }
 }
 
@@ -330,7 +330,7 @@ class TestResponse {
   /// This is a convenience for casting [decodedBody] to an expected type as well as type-checking the decoded body.
   Map<dynamic, dynamic> get asMap => decodedBody as Map;
 
-  Future _decodeBody() async {
+  Future _decodeBody() {
     var completer = new Completer();
     _innerResponse.transform(UTF8.decoder).listen((contents) {
       body = contents;
@@ -340,19 +340,6 @@ class TestResponse {
         if (contentType.primaryType == "application" &&
             contentType.subType == "json") {
           decodedBody = JSON.decode(body);
-        } else if (contentType.primaryType == "application" &&
-            contentType.subType == "x-www-form-urlencoded") {
-          var split = body.split("&");
-          var map = {};
-          split.forEach((str) {
-            var innerSplit = str.split("=");
-            if (innerSplit.length == 2) {
-              map[innerSplit[0]] = innerSplit[1];
-            } else {
-              map[innerSplit[0]] = true;
-            }
-          });
-          decodedBody = map;
         } else {
           decodedBody = body;
         }
@@ -361,7 +348,7 @@ class TestResponse {
       completer.complete();
     });
 
-    await completer.future;
+    return completer.future;
   }
 
   String toString() {

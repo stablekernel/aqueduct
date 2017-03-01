@@ -3,9 +3,9 @@ import 'dart:collection';
 import 'backing.dart';
 import '../../http/serializable.dart';
 import 'managed.dart';
-import 'query_matchable.dart';
+import '../query/query.dart';
 
-/// Instances of this type contain zero or more instances of [ManagedObject].
+/// Instances of this type contain zero or more instances of [ManagedObject] and represent has-many relationships.
 ///
 /// 'Has many' relationship properties in [ManagedObject]s are represented by this type. [ManagedSet]s properties may only be declared in the persistent
 /// type of a [ManagedObject]. Example usage:
@@ -23,8 +23,8 @@ import 'query_matchable.dart';
 ///          User user;
 ///        }
 class ManagedSet<InstanceType extends ManagedObject> extends Object
-    with ListMixin<InstanceType>, QueryMatchableExtension
-    implements QueryMatchable, HTTPSerializable {
+    with ListMixin<InstanceType>
+    implements HTTPSerializable {
   /// Creates an empty [ManagedSet].
   ManagedSet() {
     _innerValues = [];
@@ -39,33 +39,29 @@ class ManagedSet<InstanceType extends ManagedObject> extends Object
         ManagedContext.defaultContext.dataModel.entityForType(InstanceType);
   }
 
+  List<InstanceType> _innerValues;
+  InstanceType _whereBuider;
+
   /// The [ManagedEntity] that represents the [InstanceType].
   ManagedEntity entity;
 
-  /// Used when building a [Query] to include instances of this type.
+  /// Whether or not [haveAtLeastOneWhere] has been accessed.
   ///
-  /// A [Query] will, by default, fetch rows from a single table and return them as instances
-  /// of the appropriate [ManagedObject] subclass. A [Query] may join on multiple database tables
-  /// when setting this property to true in its [Query.matchOn] subproperties. For example, the following
-  /// query will fetch both 'Parent' and 'children' managed objects, where 'children' is a [ManagedSet].
-  ///
-  ///         var query = new Query<Parent>()
-  ///           ..matchOn.children.includeInResultSet = true;
-  ///
-  ///
-  bool includeInResultSet = false;
+  /// This flag is used internally to determine whether or not a [Query] should
+  /// be built using the values in [haveAtLeastOneWhere].
+  bool get hasWhereBuilder => _whereBuider != null;
 
-  /// Used by [Query] to apply constraints to fetching instances from this [ManagedSet].
+  /// When building a [Query], apply filters to a property of this type.
   ///
-  /// See [Query.matchOn] for more details. When constructing a [Query.matchOn] that includes
+  /// See [Query.where] for more details. When constructing a [Query.where] that includes
   /// instances from this [ManagedSet], you may add matchers (such as [whereEqualTo]) to this property's properties to further
   /// constrain the values returned from the [Query].
-  InstanceType get matchOn {
-    if (_matchOn == null) {
-      _matchOn = entity.newInstance() as InstanceType;
-      _matchOn.backing = new ManagedMatcherBacking();
+  InstanceType get haveAtLeastOneWhere {
+    if (_whereBuider == null) {
+      _whereBuider = entity.newInstance() as InstanceType;
+      _whereBuider.backing = new ManagedMatcherBacking();
     }
-    return _matchOn;
+    return _whereBuider;
   }
 
   /// The number of elements in this set.
@@ -74,9 +70,7 @@ class ManagedSet<InstanceType extends ManagedObject> extends Object
     _innerValues.length = newLength;
   }
 
-  Map<String, dynamic> get backingMap => matchOn.backingMap;
-  List<InstanceType> _innerValues;
-  InstanceType _matchOn;
+  Map<String, dynamic> get backingMap => haveAtLeastOneWhere.backingMap;
 
   /// Adds an [InstanceType] to this set.
   void add(InstanceType item) {

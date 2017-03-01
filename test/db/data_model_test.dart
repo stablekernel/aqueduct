@@ -5,9 +5,13 @@ import '../helpers.dart';
 
 void main() {
   group("Valid data model", () {
-    var dataModel = new ManagedDataModel([User, Item, Manager]);
-    var context = new ManagedContext(dataModel, new DefaultPersistentStore());
-    ManagedContext.defaultContext = context;
+    ManagedDataModel dataModel;
+    setUp(() {
+      dataModel = new ManagedDataModel([User, Item, Manager]);
+      ManagedContext.defaultContext =
+          new ManagedContext(dataModel, new DefaultPersistentStore());
+      ;
+    });
 
     test("Entities have appropriate types", () {
       var entity = dataModel.entityForType(User);
@@ -122,9 +126,10 @@ void main() {
       expect(relDesc.isNullable, false);
       expect(relDesc.inverseKey, #items);
       expect(
-          relDesc.inverseRelationship ==
-              dataModel.entityForType(User).relationships[
-                  MirrorSystem.getName(relDesc.inverseKey)],
+          relDesc.inverse ==
+              dataModel
+                  .entityForType(User)
+                  .relationships[MirrorSystem.getName(relDesc.inverseKey)],
           true);
       expect(relDesc.deleteRule, ManagedRelationshipDeleteRule.cascade);
       expect(relDesc.destinationEntity == dataModel.entityForType(User), true);
@@ -136,9 +141,10 @@ void main() {
       expect(relDesc.isNullable, true);
       expect(relDesc.inverseKey, #manager);
       expect(
-          relDesc.inverseRelationship ==
-              dataModel.entityForType(User).relationships[
-                  MirrorSystem.getName(relDesc.inverseKey)],
+          relDesc.inverse ==
+              dataModel
+                  .entityForType(User)
+                  .relationships[MirrorSystem.getName(relDesc.inverseKey)],
           true);
       expect(relDesc.deleteRule, ManagedRelationshipDeleteRule.nullify);
       expect(relDesc.destinationEntity == dataModel.entityForType(User), true);
@@ -149,9 +155,10 @@ void main() {
       expect(relDesc is ManagedRelationshipDescription, true);
       expect(relDesc.inverseKey, #worker);
       expect(
-          relDesc.inverseRelationship ==
-              dataModel.entityForType(Manager).relationships[
-                  MirrorSystem.getName(relDesc.inverseKey)],
+          relDesc.inverse ==
+              dataModel
+                  .entityForType(Manager)
+                  .relationships[MirrorSystem.getName(relDesc.inverseKey)],
           true);
       expect(
           relDesc.destinationEntity == dataModel.entityForType(Manager), true);
@@ -160,42 +167,117 @@ void main() {
       expect(entity.relationships["items"].relationshipType,
           ManagedRelationshipType.hasMany);
     });
+  });
 
-    test("Instances created from entity only have mapped elements", () {
-      var entity = dataModel.entityForType(User);
-      User instance = entity.instanceFromMappingElements(
-          [new PersistentColumnMapping(entity.attributes["id"], 2)]);
-      expect(instance.id, 2);
-      expect(instance.loadedTimestamp, isNull);
-      expect(instance.manager, isNull);
-      expect(instance.items, isNull);
+  group("Edge cases", () {
+    test("ManagedObject with two foreign keys to same object are distinct", () {
+      var model = new ManagedDataModel([
+        DoubleRelationshipForeignKeyModel,
+        DoubleRelationshipHasModel,
+        SomeOtherRelationshipModel
+      ]);
+
+      var isManyOf = model
+          .entityForType(DoubleRelationshipForeignKeyModel)
+          .relationships["isManyOf"];
+      expect(isManyOf.inverse.name, "hasManyOf");
+      expect(isManyOf.destinationEntity.tableName,
+          model.entityForType(DoubleRelationshipHasModel).tableName);
+
+      var isOneOf = model
+          .entityForType(DoubleRelationshipForeignKeyModel)
+          .relationships["isOneOf"];
+      expect(isOneOf.inverse.name, "hasOneOf");
+      expect(isOneOf.destinationEntity.tableName,
+          model.entityForType(DoubleRelationshipHasModel).tableName);
     });
 
     test(
-        "Instances created from entity contain belongsTo relationships as model objects",
+        "ManagedObject with multiple relationships where one is deferred succeeds in finding relationship",
         () {
-      var entity = dataModel.entityForType(Item);
-      Item instance = entity.instanceFromMappingElements([
-        new PersistentColumnMapping(entity.attributes["name"], "foo"),
-        new PersistentColumnMapping(entity.relationships["user"], 1)
+      var model = new ManagedDataModel([
+        DoubleRelationshipForeignKeyModel,
+        DoubleRelationshipHasModel,
+        SomeOtherRelationshipModel
       ]);
-      expect(instance.name, "foo");
-      expect(instance.user is User, true);
-      expect(instance.user.id, 1);
+
+      var partial = model
+          .entityForType(DoubleRelationshipForeignKeyModel)
+          .relationships["partial"];
+      expect(partial.destinationEntity.tableName,
+          model.entityForType(SomeOtherRelationshipModel).tableName);
+    });
+  });
+
+  group("Valid data model with deferred types", () {
+    test("Entities have correct properties and relationships", () {
+      var dataModel = new ManagedDataModel([TotalModel, PartialReferenceModel]);
+      ManagedContext.defaultContext =
+          new ManagedContext(dataModel, new DefaultPersistentStore());
+
+      expect(dataModel.entities.length, 2);
+
+      var totalEntity = dataModel.entityForType(TotalModel);
+      var referenceEntity = dataModel.entityForType(PartialReferenceModel);
+
+      expect(totalEntity.properties.length, 5);
+      expect(totalEntity.primaryKey, "id");
+      expect(totalEntity.attributes["transient"].isTransient, true);
+      expect(totalEntity.attributes["addedField"].name, isNotNull);
+      expect(totalEntity.attributes["id"].isPrimaryKey, true);
+      expect(totalEntity.attributes["field"].isIndexed, true);
+      expect(
+          totalEntity
+              .relationships["hasManyRelationship"].destinationEntity.tableName,
+          referenceEntity.tableName);
+      expect(totalEntity.relationships["hasManyRelationship"].relationshipType,
+          ManagedRelationshipType.hasMany);
+
+      expect(
+          referenceEntity
+              .relationships["foreignKeyColumn"].destinationEntity.tableName,
+          totalEntity.tableName);
     });
 
-    test("Instances created from entity omit joined element", () {
-      var entity = dataModel.entityForType(User);
-      User instance = entity.instanceFromMappingElements([
-        new PersistentColumnMapping(entity.attributes["id"], 2),
-        new PersistentJoinMapping(
-            PersistentJoinType.leftOuter, entity.attributes["items"], null, [
-          new PersistentColumnMapping(
-              dataModel.entityForType(Item).attributes["name"], "foobar")
-        ])
-      ]);
-      expect(instance.id, 2);
-      expect(instance.items, isNull);
+    test("Will use tableName of base class if not declared in subclass", () {
+      var dataModel = new ManagedDataModel([TotalModel, PartialReferenceModel]);
+      ManagedContext.defaultContext =
+          new ManagedContext(dataModel, new DefaultPersistentStore());
+      expect(dataModel.entityForType(TotalModel).tableName, "predefined");
+    });
+
+    test("Order of partial data model doesn't matter when related", () {
+      var dm1 = new ManagedDataModel([TotalModel, PartialReferenceModel]);
+      var dm2 = new ManagedDataModel([PartialReferenceModel, TotalModel]);
+      expect(dm1.entities.map((e) => e.tableName).contains("predefined"), true);
+      expect(
+          dm1.entities
+              .map((e) => e.tableName)
+              .contains("_PartialReferenceModel"),
+          true);
+      expect(dm2.entities.map((e) => e.tableName).contains("predefined"), true);
+      expect(
+          dm2.entities
+              .map((e) => e.tableName)
+              .contains("_PartialReferenceModel"),
+          true);
+    });
+
+    test("Partials have defaultProperties from persistent type superclasses",
+        () {
+      var dataModel = new ManagedDataModel([TotalModel, PartialReferenceModel]);
+      var defaultProperties =
+          dataModel.entityForType(TotalModel).defaultProperties;
+      expect(defaultProperties.contains("id"), true);
+      expect(defaultProperties.contains("field"), true);
+      expect(defaultProperties.contains("addedField"), true);
+
+      expect(
+          dataModel
+              .entityForType(PartialReferenceModel)
+              .defaultProperties
+              .contains("foreignKeyColumn"),
+          true);
     });
   });
 
@@ -206,7 +288,7 @@ void main() {
       expect(true, false);
     } on ManagedDataModelException catch (e) {
       expect(e.message,
-          "Relationship ref on _FailingChild set to nullify on delete, but is not nullable");
+          contains("Relationship 'ref' on '_FailingChild' has both"));
     }
   });
 
@@ -215,7 +297,10 @@ void main() {
       new ManagedDataModel([NoPrimaryKey]);
       expect(true, false);
     } on ManagedDataModelException catch (e) {
-      expect(e.message, "No primary key for entity _NoPrimaryKey");
+      expect(
+          e.message,
+          contains(
+              "Class '_NoPrimaryKey' doesn't declare a primary key property"));
     }
   });
 
@@ -242,8 +327,10 @@ void main() {
       new ManagedDataModel([InvalidModel]);
       expect(true, false);
     } on ManagedDataModelException catch (e) {
-      expect(e.message,
-          contains("Property uri on _InvalidModel has invalid type"));
+      expect(
+          e.message,
+          contains(
+              "Property 'uri' on '_InvalidModel' has an unsupported type"));
     }
   });
 
@@ -253,15 +340,38 @@ void main() {
       new ManagedDataModel([InvalidTransientModel]);
       expect(true, false);
     } on ManagedDataModelException catch (e) {
-      expect(e.message,
-          contains("Property uri on InvalidTransientModel has invalid type"));
+      expect(
+          e.message,
+          startsWith(
+              "Property 'uri' on '_InvalidTransientModel' has an unsupported type"));
     }
   });
 
+  test(
+      "Types with same inverse name for two relationships use type as tie-breaker to determine inverse",
+      () {
+    var model = new ManagedDataModel([LeftMany, JoinMany, RightMany]);
+
+    var joinEntity = model.entityForType(JoinMany);
+    expect(
+        joinEntity.relationships["left"].destinationEntity.instanceType
+            .isSubtypeOf(reflectType(LeftMany)),
+        true);
+    expect(
+        joinEntity.relationships["right"].destinationEntity.instanceType
+            .isSubtypeOf(reflectType(RightMany)),
+        true);
+  });
+
   group("Schema generation", () {
-    var dataModel = new ManagedDataModel([User, Item, Manager]);
-    var context = new ManagedContext(dataModel, new DefaultPersistentStore());
-    ManagedContext.defaultContext = context;
+    ManagedDataModel dataModel;
+
+    setUp(() {
+      dataModel = new ManagedDataModel([User, Item, Manager]);
+      ManagedContext.defaultContext =
+          new ManagedContext(dataModel, new DefaultPersistentStore());
+      ;
+    });
 
     test("works for a data model", () {
       var entity = dataModel.entityForType(User);
@@ -459,4 +569,114 @@ class InvalidTransientModel extends ManagedObject<_InvalidTransientModel>
 class _InvalidTransientModel {
   @managedPrimaryKey
   int id;
+}
+
+class TotalModel extends ManagedObject<_TotalModel> implements _TotalModel {
+  @managedTransientAttribute
+  int transient;
+}
+
+class _TotalModel extends PartialModel {
+  String addedField;
+}
+
+class PartialModel {
+  @managedPrimaryKey
+  int id;
+
+  @ManagedColumnAttributes(indexed: true)
+  String field;
+
+  ManagedSet<PartialReferenceModel> hasManyRelationship;
+
+  static String tableName() {
+    return "predefined";
+  }
+}
+
+class PartialReferenceModel extends ManagedObject<_PartialReferenceModel>
+    implements _PartialReferenceModel {}
+
+class _PartialReferenceModel {
+  @managedPrimaryKey
+  int id;
+
+  String field;
+
+  @ManagedRelationship.deferred(ManagedRelationshipDeleteRule.cascade,
+      isRequired: true)
+  PartialModel foreignKeyColumn;
+}
+
+class DoubleRelationshipForeignKeyModel
+    extends ManagedObject<_DoubleRelationshipForeignKeyModel>
+    implements _DoubleRelationshipForeignKeyModel {}
+
+class _DoubleRelationshipForeignKeyModel {
+  @managedPrimaryKey
+  int id;
+
+  @ManagedRelationship(#hasManyOf)
+  DoubleRelationshipHasModel isManyOf;
+
+  @ManagedRelationship(#hasOneOf)
+  DoubleRelationshipHasModel isOneOf;
+
+  @ManagedRelationship.deferred(ManagedRelationshipDeleteRule.cascade)
+  SomeOtherPartialModel partial;
+}
+
+class DoubleRelationshipHasModel
+    extends ManagedObject<_DoubleRelationshipHasModel>
+    implements _DoubleRelationshipHasModel {}
+
+class _DoubleRelationshipHasModel {
+  @managedPrimaryKey
+  int id;
+
+  ManagedSet<DoubleRelationshipForeignKeyModel> hasManyOf;
+  DoubleRelationshipForeignKeyModel hasOneOf;
+}
+
+class SomeOtherRelationshipModel
+    extends ManagedObject<_SomeOtherRelationshipModel> {}
+
+class _SomeOtherRelationshipModel extends SomeOtherPartialModel {
+  @managedPrimaryKey
+  int id;
+}
+
+class SomeOtherPartialModel {
+  DoubleRelationshipForeignKeyModel deferredRelationship;
+}
+
+class LeftMany extends ManagedObject<_LeftMany> implements _LeftMany {}
+
+class _LeftMany {
+  @managedPrimaryKey
+  int id;
+
+  ManagedSet<JoinMany> join;
+}
+
+class RightMany extends ManagedObject<_RightMany> implements _RightMany {}
+
+class _RightMany {
+  @managedPrimaryKey
+  int id;
+
+  ManagedSet<JoinMany> join;
+}
+
+class JoinMany extends ManagedObject<_JoinMany> implements _JoinMany {}
+
+class _JoinMany {
+  @managedPrimaryKey
+  int id;
+
+  @ManagedRelationship(#join)
+  LeftMany left;
+
+  @ManagedRelationship(#join)
+  RightMany right;
 }

@@ -4,9 +4,9 @@ import 'dart:io';
 import '../db/db.dart';
 import 'http.dart';
 
-/// A [RequestController] for performing CRUD operations on [ManagedObject] instances.
+/// A [RequestController] that implements basic CRUD operations for a [ManagedObject].
 ///
-/// Instances of this class create and execute [Query]s based on [Request]'s they receive. This instances of this class effectively map a REST API call
+/// Instances of this class map a REST API call
 /// directly to a database [Query]. For example, this [RequestController] handles an HTTP PUT request by executing an update [Query]; the path variable in the request
 /// indicates the value of the primary key for the updated row and the HTTP request body are the values updated.
 ///
@@ -32,9 +32,9 @@ import 'http.dart';
 ///
 /// count (integer): restricts the number of objects fetched to count. By default, this is null, which means no restrictions.
 /// offset (integer): offsets the fetch by offset amount of objects. By default, this is null, which means no offset.
-/// pageBy (string): indicates the key in which to page by. See [QueryPage] for more information on paging. If this value is passed as part of the query, either pageAfter or pagePrior must also be passed, but only one of those.
-/// pageAfter (string): indicates the page value and direction of the paging. pageBy must also be set. See [QueryPage] for more information.
-/// pagePrior (string): indicates the page value and direction of the paging. pageBy must also be set. See [QueryPage] for more information.
+/// pageBy (string): indicates the key in which to page by. See [Query.pageBy] for more information on paging. If this value is passed as part of the query, either pageAfter or pagePrior must also be passed, but only one of those.
+/// pageAfter (string): indicates the page value and direction of the paging. pageBy must also be set. See [Query.pageBy] for more information.
+/// pagePrior (string): indicates the page value and direction of the paging. pageBy must also be set. See [Query.pageBy] for more information.
 /// sortBy (string): indicates the sort order. The syntax is 'sortBy=key,order' where key is a property of [InstanceType] and order is either 'asc' or 'desc'. You may specify multiple sortBy parameters.
 class ManagedObjectController<InstanceType extends ManagedObject>
     extends HTTPController {
@@ -83,7 +83,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
   @httpGet
   getObject(@HTTPPath("id") String id) async {
     var primaryKey = _query.entity.primaryKey;
-    _query.matchOn[primaryKey] = whereEqualTo(
+    _query.where[primaryKey] = whereEqualTo(
         _parseValueForProperty(id, _query.entity.properties[primaryKey]));
 
     _query = await willFindObjectWithQuery(_query);
@@ -91,9 +91,9 @@ class ManagedObjectController<InstanceType extends ManagedObject>
     var result = await _query?.fetchOne();
 
     if (result == null) {
-      return await didNotFindObject();
+      return didNotFindObject();
     } else {
-      return await didFindObject(result);
+      return didFindObject(result);
     }
   }
 
@@ -118,13 +118,13 @@ class ManagedObjectController<InstanceType extends ManagedObject>
   createObject() async {
     InstanceType instance = _query.entity.instanceType
         .newInstance(new Symbol(""), []).reflectee as InstanceType;
-    instance.readMap(requestBody as Map<String, dynamic>);
+    instance.readMap(request.body.asMap());
     _query.values = instance;
 
     _query = await willInsertObjectWithQuery(_query);
     var result = await _query?.insert();
 
-    return await didInsertObject(result);
+    return didInsertObject(result);
   }
 
   /// Executed prior to a delete query being executed.
@@ -154,7 +154,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
   @httpDelete
   deleteObject(@HTTPPath("id") String id) async {
     var primaryKey = _query.entity.primaryKey;
-    _query.matchOn[primaryKey] = whereEqualTo(
+    _query.where[primaryKey] = whereEqualTo(
         _parseValueForProperty(id, _query.entity.properties[primaryKey]));
 
     _query = await willDeleteObjectWithQuery(_query);
@@ -162,9 +162,9 @@ class ManagedObjectController<InstanceType extends ManagedObject>
     var result = await _query?.delete();
 
     if (result == 0) {
-      return await didNotFindObjectToDeleteWithID(id);
+      return didNotFindObjectToDeleteWithID(id);
     } else {
-      return await didDeleteObjectWithID(id);
+      return didDeleteObjectWithID(id);
     }
   }
 
@@ -195,19 +195,19 @@ class ManagedObjectController<InstanceType extends ManagedObject>
   @httpPut
   updateObject(@HTTPPath("id") String id) async {
     var primaryKey = _query.entity.primaryKey;
-    _query.matchOn[primaryKey] = whereEqualTo(
+    _query.where[primaryKey] = whereEqualTo(
         _parseValueForProperty(id, _query.entity.properties[primaryKey]));
 
     InstanceType instance = _query.entity.instanceType
         .newInstance(new Symbol(""), []).reflectee as InstanceType;
-    instance.readMap(requestBody as Map<String, dynamic>);
+    instance.readMap(request.body.asMap());
     _query.values = instance;
 
     _query = await willUpdateObjectWithQuery(_query);
 
     var results = await _query?.updateOne();
     if (results == null) {
-      return await didNotFindObjectToDeleteWithID(id);
+      return didNotFindObjectToDeleteWithID(id);
     } else {
       return didUpdateObject(results);
     }
@@ -264,12 +264,12 @@ class ManagedObjectController<InstanceType extends ManagedObject>
       }
 
       pageValue = _parseValueForProperty(pageValue, pageByProperty);
-      _query.pageDescriptor = new QueryPage(direction, pageBy,
+      _query.pageBy((t) => t[pageBy], direction,
           boundingValue: pageValue == "null" ? null : pageValue);
     }
 
     if (sortBy != null) {
-      _query.sortDescriptors = sortBy.map((sort) {
+      sortBy.forEach((sort) {
         var split = sort.split(",").map((str) => str.trim()).toList();
         if (split.length != 2) {
           throw new HTTPResponseException(500,
@@ -283,19 +283,18 @@ class ManagedObjectController<InstanceType extends ManagedObject>
           throw new HTTPResponseException(400,
               "sortBy order must be either asc or desc, not ${split.last}");
         }
-        return new QuerySortDescriptor(
-            split.first,
-            split.last == "asc"
-                ? QuerySortOrder.ascending
-                : QuerySortOrder.descending);
-      }).toList();
+        var sortOrder = split.last == "asc"
+            ? QuerySortOrder.ascending
+            : QuerySortOrder.descending;
+        _query.sortBy((t) => t[split.first], sortOrder);
+      });
     }
 
     _query = await willFindObjectsWithQuery(_query);
 
     var results = await _query?.fetch();
 
-    return await didFindObjects(results);
+    return didFindObjects(results);
   }
 
   @override

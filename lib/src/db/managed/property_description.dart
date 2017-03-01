@@ -73,10 +73,10 @@ abstract class ManagedPropertyDescription {
   /// Defaults to false.
   final bool isNullable;
 
-  /// Whether or not this property is returned in the default set of [Query.resultProperties].
+  /// Whether or not this property is returned in the default set of [Query.returningProperties].
   ///
-  /// This defaults to true. If true, when executing a [Query] that does not explicitly specify [Query.resultProperties],
-  /// this property will be returned. If false, you must explicitly specify this property in [Query.resultProperties] to retrieve it from persistent storage.
+  /// This defaults to true. If true, when executing a [Query] that does not explicitly specify [Query.returningProperties],
+  /// this property will be returned. If false, you must explicitly specify this property in [Query.returningProperties] to retrieve it from persistent storage.
   final bool isIncludedInDefaultResultSet;
 
   /// Whether or not this property should use an auto-incrementing scheme.
@@ -110,6 +110,10 @@ abstract class ManagedPropertyDescription {
     return null;
   }
 
+  static List<Type> get supportedDartTypes {
+    return [String, DateTime, bool, int, double];
+  }
+
   /// Whether or not a the argument can be assigned to this property.
   bool isAssignableWith(dynamic dartValue) {
     switch (type) {
@@ -134,9 +138,13 @@ abstract class ManagedPropertyDescription {
   }
 }
 
-/// Contains information for an attribute of a [ManagedEntity].
+/// Stores the specifics of database columns in [ManagedObject]s as indicated by [ManagedColumnAttributes].
 ///
-/// Attributes are the scalar values of a [ManagedObject] (as opposed to relationship values).
+/// This class is used internally to manage data models. For specifying these attributes,
+/// see [ManagedColumnAttributes].
+///
+/// Attributes are the scalar values of a [ManagedObject] (as opposed to relationship values,
+/// which are [ManagedRelationshipDescription] instances).
 ///
 /// Each scalar property [ManagedObject] object persists is described by an instance of [ManagedAttributeDescription]. This class
 /// adds two properties to [ManagedPropertyDescription] that are only valid for non-relationship types, [isPrimaryKey] and [defaultValue].
@@ -194,7 +202,7 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
   final ManagedTransientAttribute transientStatus;
 
   String toString() {
-    return "AttributeDescription on ${entity.tableName}.$name Type: $type";
+    return "[Attribute]    ${entity.tableName}.$name ($type)";
   }
 }
 
@@ -231,7 +239,7 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
   final Symbol inverseKey;
 
   /// The [ManagedRelationshipDescription] on [destinationEntity] that represents the inverse of this relationship.
-  ManagedRelationshipDescription get inverseRelationship =>
+  ManagedRelationshipDescription get inverse =>
       destinationEntity.relationships[MirrorSystem.getName(inverseKey)];
 
   /// Whether or not a the argument can be assigned to this property.
@@ -255,10 +263,6 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
   }
 
   String toString() {
-    if (relationshipType == ManagedRelationshipType.belongsTo) {
-      return "RelationshipDescription on ${entity.tableName}.$name Type: ${relationshipType} ($type)";
-    }
-
-    return "RelationshipDescription on ${entity.tableName}.$name Type: ${relationshipType}";
+    return "[Relationship] ${entity.tableName}.$name ${relationshipType} ${destinationEntity.tableName}.${MirrorSystem.getName(inverseKey)}";
   }
 }

@@ -7,23 +7,98 @@ import 'package:analyzer/analyzer.dart';
 import 'http.dart';
 import 'http_controller_internal.dart';
 
-/// Base class for HTTP web service controller.
+/// Base class for grouping response logic for a group of endpoints.
 ///
-/// Subclasses of this class can process and respond to an HTTP request. A new instance of this type
-/// should be created for every request is processes. Subclasses of this type implement 'responder methods' to
-/// handle HTTP requests of a specified HTTP method and path. Responder methods must have [HTTPMethod] metadata and return
-/// a [Future] that completes with [Response]. Responder methods may also have [HTTPPath], [HTTPHeader], [HTTPQuery]
-/// parameters. An [HTTPController] evaluates a [Request] and finds a responder method that has a matching [HTTPMethod],
-/// [HTTPPath], [HTTPHeader], [HTTPQuery] values.
+/// Instances of this class respond to HTTP requests. This class must be subclassed to provide any behavior.
+/// Instances are typically the last [RequestController] in a series of controllers. A new [HTTPController] instance must be created for each [Request],
+/// therefore they must be added to a series of [RequestController]s with [generate]. A [Request] must have passed through a [Router]
+/// prior to being delivered to an [HTTPController].
 ///
-/// Instances of this class may also declare properties that are marked with [HTTPHeader] and [HTTPQuery], in which case
+/// The primary responsibility of an [HTTPController] is receive [Request]s and map the [Request] to an individual 'responder method'
+/// to generate a response. A responder method returns a [Response] wrapped in a [Future] and must have [HTTPMethod] metadata (e.g., [httpGet]
+/// or [httpPost]). It may also have [HTTPPath], [HTTPQuery] and [HTTPHeader] parameters.
+///
+/// [Request]s sent to an [HTTPController] have already been routed according to their path by a [Router]. An [HTTPController] does further routing
+/// based on the HTTP method and path variables of the [Request].
+///
+/// An [HTTPController] typically receives a group of routes from a [Router] that refer to a resource collection or individual resource. For example,
+/// consider the following route:
+///
+///         router
+///           .route("/users/[:id]")
+///           .generate(() => new UserController());
+///
+/// The requests `/users` and `/users/1` are both routed to an instance of `UserController` (a subclass of `HTTPController`) in this example. Responder methods
+/// would be implemented in `UserController` to handle both the collection (`/users`) and individual resource (`/users/1`) cases for each supported HTTP method the
+/// controller wants to provide.
+///
+/// In the above example, a `UserController` would implement both `GET /users`, `GET /users/:id`, and `POST /users/` like so:
+///
+///         class UserController extends HTTPController {
+///           // invoked for GET /users
+///           @httpGet
+///           Future<Response> getAllUsers() async
+///             => new Response.ok(await fetchAllUsers());
+///
+///           // invoked for GET /users/[0-9]+
+///           @httpGet
+///           Future<Response> getOneUser(@HTTPPath("id") int id) async =>
+///             new Response.ok(await fetchOneUser(id));
+///
+///           // invoked for POST /users
+///           @httpPost
+///           Future<Response> createUser() async =>
+///             return new Response.ok(await createUserFromBody(request.body.asMap()));
+///         }
+///
+/// The responder method is selected by first evaluating the HTTP method of the incoming [Request]. If no such method exists - here, for example, there
+/// are not [httpPut] or [httpDelete] responder methods - a 405 status code is returned.
+///
+/// After evaluating the HTTP method, path variables (using the `:variableName` syntax in `Router`) are evaluated next.
+/// If there are no path variables (e.g., `/users`), the responder method with no `HTTPPath` arguments is selected. Responder methods
+/// with `HTTPPath` parameters must have the exact number and matching names for each path variable parsed in the request. In the above example,
+/// the path variable is named `id` in [Router.route] and therefore the argument to [HTTPPath] is `id`.
+///
+/// If there is no responder method match for the incoming request's path variables, a 404 is returned and no responder method is invoked.
+///
+/// Responder methods may also have [HTTPHeader] and [HTTPQuery] parameters. Parameters in the positional parameters
+/// of a responder method are required; if the header or query value is omitted from a request,
+/// no responder method is selected and a 400 status code is returned.
+///
+/// [HTTPHeader] and [HTTPQuery] parameters in the optional part of a method signature are optional;
+/// if the header or query value is omitted from the request, the responder method is still invoked
+/// and those parameters are null. For example, the following requires that the request always contain
+/// the header `X-Required`, which will be parsed to `int` and available in `requiredValue`. If it contains `email` in the query string,
+/// that value will be available in `emailFilter` when this method is invoked. If it does not, the `emailFilter` is null.
+///
+///         class UserController extends HTTPController {
+///           @httpGet
+///           Future<Response> getAllUsers(
+///             @HTTPHeader("X-Required") int requiredValue,
+///             {@HTTPQuery("email") String emailFilter}) async {
+///               ...
+///           }
+///         }
+///
+/// [HTTPController] subclasses may also declare properties that are marked with [HTTPHeader] and [HTTPQuery], in which case
 /// all responder methods accept those header and query values.
 ///
 ///       class UserController extends RequestController {
+///         @HTTPHeader("X-Opt") String optionalHeader;
+///
 ///         @httpGet getUser(@HTTPPath ("id") int userID) async {
-///           return new Response.ok(await _userWithID(userID));
+///           optionalHeader == request.innerRequest.headers["x-opt"]; // true
+///
+///           return new Response.ok(await userWithID(userID));
 ///         }
 ///       }
+///
+/// Properties are optional by default. [requiredHTTPParameter] will mark them as required for all responder methods.
+///
+/// An instance of this type will decode the [Request.body] prior to invoking a responder method.
+///
+/// See further documentation on https://stablekernel.github.io/aqueduct under HTTP guides.
+///
 @cannotBeReused
 abstract class HTTPController extends RequestController {
   static ContentType _applicationWWWFormURLEncodedContentType =
@@ -39,7 +114,7 @@ abstract class HTTPController extends RequestController {
   ///
   /// These values are attached by a [Router] instance that precedes this [RequestController]. Is null
   /// if no [Router] preceded the controller and is the empty map if there are no values. The keys
-  /// are the case-sensitive name of the path variables as defined by the [route].
+  /// are the case-sensitive name of the path variables as defined by [Router.route].
   Map<String, String> get pathVariables => request.path?.variables;
 
   /// Types of content this [HTTPController] will accept.
@@ -59,25 +134,61 @@ abstract class HTTPController extends RequestController {
   /// that property with this value. Defaults to "application/json".
   ContentType responseContentType = ContentType.JSON;
 
-  /// The HTTP request body object, after being decoded.
-  ///
-  /// This object will be decoded according to the this request's content type. If there was no body, this value will be null.
-  dynamic get requestBody => request.requestBodyObject;
-
   /// Executed prior to handling a request, but after the [request] has been set.
   ///
   /// This method is used to do pre-process setup and filtering. The [request] will be set, but its body will not be decoded
   /// nor will the appropriate responder method be selected yet. By default, returns the request. If this method returns a [Response], this
   /// controller will stop processing the request and immediately return the [Response] to the HTTP client.
-  Future<RequestControllerEvent> willProcessRequest(Request req) async {
+  ///
+  /// May not return any other [Request] than [req].
+  Future<RequestOrResponse> willProcessRequest(Request req) async {
     return req;
   }
 
   /// Executed prior to a responder method being executed, but after the body has been processed.
   ///
   /// This method is called after the body has been processed by the decoder, but prior to the request being
-  /// handled by the appropriate responder method.
-  void didDecodeRequestBody(dynamic decodedObject) {}
+  /// handled by the selected responder method. If there is no HTTP body in the request,
+  /// this method is not called.
+  void didDecodeRequestBody(HTTPBody decodedObject) {}
+
+  /// Returns a [Response] for missing [HTTPParameter]s.
+  ///
+  /// This method is invoked by this instance when [HTTPParameter]s (like [HTTPQuery] or [HTTPHeader]s)
+  /// are required, but not included in a request. The return value of this method will
+  /// be sent back to the requesting client to signify the missing parameters.
+  ///
+  /// By default, this method returns a response with status code 400 and each missing header
+  /// or query parameter is listed under the key "error" in a JSON object.
+  ///
+  /// This method can be overridden by subclasses to provide a different response.
+  Response responseForMissingParameters(
+      List<HTTPControllerMissingParameter> params) {
+    var missingHeaders = params
+        .where((p) => p.type == HTTPControllerMissingParameterType.header)
+        .map((p) => p.externalName)
+        .toList();
+    var missingQueryParameters = params
+        .where((p) => p.type == HTTPControllerMissingParameterType.query)
+        .map((p) => p.externalName)
+        .toList();
+
+    StringBuffer missings = new StringBuffer();
+    if (missingQueryParameters.isNotEmpty) {
+      var missingQueriesString =
+          missingQueryParameters.map((p) => "'${p}'").join(", ");
+      missings.write("Missing query value(s): ${missingQueriesString}.");
+    }
+    if (missingQueryParameters.isNotEmpty && missingHeaders.isNotEmpty) {
+      missings.write(" ");
+    }
+    if (missingHeaders.isNotEmpty) {
+      var missingHeadersString = missingHeaders.map((p) => "'${p}'").join(", ");
+      missings.write("Missing header(s): ${missingHeadersString}.");
+    }
+
+    return new Response.badRequest(body: {"error": missings.toString()});
+  }
 
   bool _requestContentTypeIsSupported(Request req) {
     var incomingContentType = request.innerRequest.headers.contentType;
@@ -103,14 +214,14 @@ abstract class HTTPController extends RequestController {
 
     if (request.innerRequest.contentLength > 0) {
       if (_requestContentTypeIsSupported(request)) {
-        await request.decodeBody();
+        await request.body.decodedData;
       } else {
         return new Response(HttpStatus.UNSUPPORTED_MEDIA_TYPE, null, null);
       }
     }
 
-    if (requestBody != null) {
-      didDecodeRequestBody(requestBody);
+    if (request.body.hasContent != null) {
+      didDecodeRequestBody(request.body);
     }
 
     var queryParameters = request.innerRequest.uri.queryParametersAll;
@@ -121,7 +232,7 @@ abstract class HTTPController extends RequestController {
                 ._applicationWWWFormURLEncodedContentType.primaryType &&
         contentType.subType ==
             HTTPController._applicationWWWFormURLEncodedContentType.subType) {
-      queryParameters = requestBody as Map<String, List<String>> ?? {};
+      queryParameters = request.body.asMap() as Map<String, List<String>> ?? {};
     }
 
     var orderedParameters =
@@ -134,7 +245,7 @@ abstract class HTTPController extends RequestController {
         .map((p) => p as HTTPControllerMissingParameter)
         .toList();
     if (missingParameters.length > 0) {
-      return _missingRequiredParameterResponseIfNecessary(missingParameters);
+      return responseForMissingParameters(missingParameters);
     }
 
     controllerProperties
@@ -157,7 +268,7 @@ abstract class HTTPController extends RequestController {
   }
 
   @override
-  Future<RequestControllerEvent> processRequest(Request req) async {
+  Future<RequestOrResponse> processRequest(Request req) async {
     try {
       request = req;
 
@@ -280,34 +391,6 @@ abstract class HTTPController extends RequestController {
 
     return responses;
   }
-}
-
-Response _missingRequiredParameterResponseIfNecessary(
-    List<HTTPControllerMissingParameter> params) {
-  var missingHeaders = params
-      .where((p) => p.type == HTTPControllerMissingParameterType.header)
-      .map((p) => p.externalName)
-      .toList();
-  var missingQueryParameters = params
-      .where((p) => p.type == HTTPControllerMissingParameterType.query)
-      .map((p) => p.externalName)
-      .toList();
-
-  StringBuffer missings = new StringBuffer();
-  if (missingQueryParameters.isNotEmpty) {
-    var missingQueriesString =
-        missingQueryParameters.map((p) => "'${p}'").join(", ");
-    missings.write("Missing query value(s): ${missingQueriesString}.");
-  }
-  if (missingQueryParameters.isNotEmpty && missingHeaders.isNotEmpty) {
-    missings.write(" ");
-  }
-  if (missingHeaders.isNotEmpty) {
-    var missingHeadersString = missingHeaders.map((p) => "'${p}'").join(", ");
-    missings.write("Missing header(s): ${missingHeadersString}.");
-  }
-
-  return new Response.badRequest(body: {"error": missings.toString()});
 }
 
 APIParameterLocation _parameterLocationFromHTTPParameter(HTTPParameter p) {

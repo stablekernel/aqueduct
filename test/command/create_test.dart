@@ -1,73 +1,63 @@
-import 'package:test/test.dart';
 import 'dart:io';
+import 'dart:async';
+
+import 'package:test/test.dart';
+import 'package:aqueduct/executable.dart';
 import 'package:path/path.dart' as path_lib;
 
-Directory testTemplateDirectory = new Directory("tmp_templates");
+var temporaryDirectory =
+    new Directory.fromUri(Directory.current.uri.resolve("test_project"));
 
 void main() {
-  setUp(() {
-    testTemplateDirectory.createSync();
-  });
+  setUp(() {});
 
   tearDown(() {
-    testTemplateDirectory.deleteSync(recursive: true);
+    if (temporaryDirectory.existsSync()) {
+      temporaryDirectory.deleteSync(recursive: true);
+    }
   });
 
   group("Project naming", () {
-    test("Appropriately named project gets created correctly", () {
-      var res = runWith(["-n", "test_project"]);
-      expect(res.exitCode, 0);
+    test("Appropriately named project gets created correctly", () async {
+      var res = await runWith(["test_project"]);
+      expect(res, 0);
 
-      expect(
-          new Directory(
-                  path_lib.join(testTemplateDirectory.path, "test_project"))
-              .existsSync(),
+      expect(new Directory(path_lib.join(temporaryDirectory.path)).existsSync(),
           true);
     });
 
-    test("Project name with bad characters fails immediately", () {
-      var res = runWith(["-n", "!@"]);
-      expect(res.exitCode, 1);
+    test("Project name with bad characters fails immediately", () async {
+      var res = await runWith(["!@"]);
+      expect(res != 0, true);
 
-      expect(testTemplateDirectory.listSync().isEmpty, true);
+      expect(temporaryDirectory.existsSync(), false);
     });
 
-    test("Project name with uppercase characters fails immediately", () {
-      var res = runWith(["-n", "ANeatApp"]);
-      expect(res.exitCode, 1);
+    test("Project name with uppercase characters fails immediately", () async {
+      var res = await runWith(["ANeatApp"]);
+      expect(res != 0, true);
 
-      expect(testTemplateDirectory.listSync().isEmpty, true);
+      expect(temporaryDirectory.existsSync(), false);
     });
 
-    test("Project name with dashes fails immediately", () {
-      var res = runWith(["-n", "a-neat-app"]);
-      expect(res.exitCode, 1);
-
-      expect(testTemplateDirectory.listSync().isEmpty, true);
+    test("Project name with dashes fails immediately", () async {
+      expect(await runWith(["a-neat-app"]) != 0, true);
+      expect(temporaryDirectory.existsSync(), false);
     });
 
-    test("Not providing name returns error", () {
-      var res = runWith([]);
-      expect(res.exitCode, 1);
-
-      expect(testTemplateDirectory.listSync().isEmpty, true);
-    });
-
-    test("Providing empty name returns error", () {
-      var res = runWith(["-n"]);
-      expect(res.exitCode, 255);
-
-      expect(testTemplateDirectory.listSync().isEmpty, true);
+    test("Not providing name returns error", () async {
+      expect(await runWith([]) != 0, true);
+      expect(temporaryDirectory.existsSync(), false);
     });
   });
 
   group("Templates from path", () {
-    test("Template gets generated from local path, project points to it", () {
-      var res = runWith(["-n", "test_project"]);
-      expect(res.exitCode, 0);
+    test("Template gets generated from local path, project points to it",
+        () async {
+      expect(await runWith(["test_project"]), 0);
 
       var aqueductLocationString =
-          new File(projectPath("test_project", file: ".packages"))
+          new File.fromUri(temporaryDirectory.uri.resolve(".packages"))
               .readAsStringSync()
               .split("\n")
               .firstWhere((p) => p.startsWith("aqueduct:"))
@@ -78,35 +68,25 @@ void main() {
       expect(path, path_lib.join(Directory.current.path, "lib"));
     });
 
-    test("Tests run on template generated from local path", () {
-      var res = runWith(["-n", "test_project"]);
-      expect(res.exitCode, 0);
+    test("Tests run on template generated from local path", () async {
+      expect(await runWith(["test_project"]), 0);
 
-      res = Process.runSync("pub", ["run", "test", "-j", "1"],
-          runInShell: true,
-          workingDirectory:
-              path_lib.join(testTemplateDirectory.path, "test_project"));
-      print("${res.stdout} ${res.stderr}");
+      var res = Process.runSync("pub", ["run", "test", "-j", "1"],
+          runInShell: true, workingDirectory: temporaryDirectory.path);
+
       expect(res.exitCode, 0);
       expect(res.stdout, contains("All tests passed"));
     });
   });
 }
 
-ProcessResult runWith(List<String> args) {
+Future<int> runWith(List<String> args) {
   var aqueductDirectory = Directory.current.path;
-  var result = Process.runSync(
-      "pub", ["global", "activate", "-spath", "$aqueductDirectory"],
-      runInShell: true);
-  expect(result.exitCode, 0);
-
   var allArgs = ["create", "--path-source", "$aqueductDirectory"];
   allArgs.addAll(args);
 
-  return Process.runSync("aqueduct", allArgs,
-      runInShell: true, workingDirectory: testTemplateDirectory.path);
-}
+  var cmd = new Runner();
+  var results = cmd.options.parse(allArgs);
 
-String projectPath(String projectName, {String file}) {
-  return path_lib.join(testTemplateDirectory.path, projectName, file);
+  return cmd.process(results);
 }

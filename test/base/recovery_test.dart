@@ -29,8 +29,7 @@ main() {
 
       var errorMessage = await app.logger.onRecord.first;
       expect(errorMessage.message, contains("Uncaught exception"));
-      expect(
-          errorMessage.error.toString(), contains("foo"));
+      expect(errorMessage.error.toString(), contains("foo"));
       expect(errorMessage.stackTrace, isNotNull);
 
       // And then we should make sure everything is working just fine.
@@ -50,8 +49,7 @@ main() {
       var logMessages = await app.logger.onRecord.take(5);
       logMessages.forEach((errorMessage) {
         expect(errorMessage.message, contains("Uncaught exception"));
-        expect(
-            errorMessage.error.toString(), contains("foo"));
+        expect(errorMessage.error.toString(), contains("foo"));
         expect(errorMessage.stackTrace, isNotNull);
       });
 

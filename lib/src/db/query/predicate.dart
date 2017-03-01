@@ -1,12 +1,10 @@
 import 'query.dart';
-import '../managed/managed.dart';
 import '../persistent_store/persistent_store.dart';
-import '../query/matcher_internal.dart';
 
 /// A predicate contains instructions for filtering rows when performing a [Query].
 ///
 /// Predicates currently are the WHERE clause in a SQL statement and are used verbatim
-/// by the [PersistentStore]. In general, you should use [Query.matchOn] instead of using this class directly, as [Query.matchOn] will
+/// by the [PersistentStore]. In general, you should use [Query.where] instead of using this class directly, as [Query.where] will
 /// use the underlying [PersistentStore] to generate a [QueryPredicate] for you.
 ///
 /// A predicate has a format and parameters. The format is the [String] that comes after WHERE in a SQL query. The format may
@@ -29,72 +27,38 @@ class QueryPredicate {
 
   /// Default constructor
   ///
-  /// The [format] and [parameters] of this predicate.
+  /// The [format] and [parameters] of this predicate. [parameters] may be null.
   QueryPredicate(this.format, this.parameters);
-
-  factory QueryPredicate.fromQueryIncludable(
-      QueryMatchable obj, PersistentStore persistentStore) {
-    var entity = obj.entity;
-    var attributeKeys = obj.backingMap.keys.where((propertyName) {
-      var desc = entity.properties[propertyName];
-      if (desc is ManagedRelationshipDescription) {
-        return desc.relationshipType == ManagedRelationshipType.belongsTo;
-      }
-
-      return true;
-    });
-
-    return QueryPredicate.andPredicates(attributeKeys.map((queryKey) {
-      var desc = entity.properties[queryKey];
-      var matcher = obj.backingMap[queryKey];
-
-      if (matcher is ComparisonMatcherExpression) {
-        return persistentStore.comparisonPredicate(
-            desc, matcher.operator, matcher.value);
-      } else if (matcher is RangeMatcherExpression) {
-        return persistentStore.rangePredicate(
-            desc, matcher.lhs, matcher.rhs, matcher.within);
-      } else if (matcher is NullMatcherExpression) {
-        return persistentStore.nullPredicate(desc, matcher.shouldBeNull);
-      } else if (matcher is WithinMatcherExpression) {
-        return persistentStore.containsPredicate(desc, matcher.values);
-      } else if (matcher is StringMatcherExpression) {
-        return persistentStore.stringPredicate(
-            desc, matcher.operator, matcher.value);
-      }
-
-      throw new QueryPredicateException(
-          "Unknown MatcherExpression ${matcher.runtimeType}");
-    }).toList());
-  }
 
   /// Joins together a list of predicates by the 'and' token.
   ///
   /// For combining multiple predicate together.
-  static QueryPredicate andPredicates(List<QueryPredicate> predicates) {
-    if (predicates == null) {
+  static QueryPredicate andPredicates(Iterable<QueryPredicate> predicates) {
+    var predicateList = predicates.toList();
+    if (predicateList == null) {
       return null;
     }
 
-    if (predicates.length == 0) {
+    if (predicateList.length == 0) {
       return null;
+    }
+
+    if (predicateList.length == 1) {
+      return predicateList.first;
     }
 
     var predicateFormat =
-        predicates.map((pred) => "${pred.format}").join(" and ");
+        "(" + predicateList.map((pred) => "${pred.format}").join(" AND ") + ")";
 
     var valueMap = <String, dynamic>{};
-    predicates.forEach((p) {
-      var pValueMap = p.parameters;
-
-      pValueMap.keys.forEach((k) {
+    predicateList.forEach((p) {
+      p.parameters?.forEach((k, v) {
         if (valueMap.containsKey(k)) {
           throw new QueryPredicateException(
               "Duplicate keys in and predicate, ${k} appears in multiple predicates. Make keys more specific.");
         }
+        valueMap[k] = v;
       });
-
-      valueMap.addAll(pValueMap);
     });
 
     return new QueryPredicate(predicateFormat, valueMap);

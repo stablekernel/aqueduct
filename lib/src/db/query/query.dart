@@ -1,113 +1,178 @@
 import 'dart:async';
 
 import '../managed/managed.dart';
-import '../managed/backing.dart';
-import 'page.dart';
+import '../postgresql/postgresql_persistent_store.dart';
+import '../postgresql/postgresql_query.dart';
+import 'matcher_expression.dart';
 import 'predicate.dart';
-import 'sort_descriptor.dart';
-import '../persistent_store/persistent_store.dart';
-import '../persistent_store/persistent_store_query.dart';
-import 'query_mapping.dart';
 
+export 'error.dart';
 export 'matcher_expression.dart';
-export 'page.dart';
 export 'predicate.dart';
-export 'sort_descriptor.dart';
+// This is an unfortunate need because of lack of reified generics
+// See factory constructor.
 
-/// Contains information for building and executing a database operation.
+/// Instances of this type configure and execute database commands.
 ///
 /// Queries are used to fetch, update, insert, delete and count objects in a database. A query's [InstanceType] indicates
 /// the type of [ManagedObject] subclass' that this query will return as well. The [InstanceType]'s corresponding [ManagedEntity] determines
 /// the database table and columns to work with.
-class Query<InstanceType extends ManagedObject> {
+///
+///         var query = new Query<Employee>()
+///           ..where.salary = whereGreaterThan(50000);
+///         var employees = await query.fetch();
+abstract class Query<InstanceType extends ManagedObject> {
   /// Creates a new [Query].
   ///
   /// By default, [context] is [ManagedContext.defaultContext]. The [entity] of this instance is found by
   /// evaluating [InstanceType] in [context].
-  Query([ManagedContext context]) {
-    this.context = context ?? ManagedContext.defaultContext;
-    entity = this.context.dataModel.entityForType(InstanceType);
+  factory Query([ManagedContext context]) {
+    var ctx = context ?? ManagedContext.defaultContext;
+
+    // This is an unfortunate need because of lack of reified generics.
+    // Would be better if persistent stores had a method to return a Query<T> subclass
+    // where T was not stripped.
+    if (ctx.persistentStore is PostgreSQLPersistentStore) {
+      return new PostgresQuery<InstanceType>(ctx);
+    }
+
+    return null;
   }
 
+  /// Configures this instance to also include has-one relationship properties for returned objects.
+  ///
+  /// This method configures this instance to also include values for the relationship property identified
+  /// by [propertyIdentifier]. [propertyIdentifier] must return a has-one relationship property of [InstanceType].
+  /// i.e., the returned value from this closure must be a [ManagedObject] subclass.
+  ///
+  ///         var query = new Query<AccountHolder>()
+  ///           ..joinOne((accountHolder) => accountHolder.primaryAccount);
+  ///
+  /// Instances returned from this query when executing [fetch] or [fetchOne]
+  /// will include values for that relationship property if a value exists. If the value does not exist,
+  /// i.e. the value is null, the returned object will contain the null value for its relationship property.
+  ///
+  /// This method returns another instance of [Query] with a parametrized type of the related object. The
+  /// return query is a subquery of this instance. A subquery may be configured just like any other query,
+  /// e.g. configuring properties like [returningProperties] and [where].
+  ///
+  /// More than one [joinOne] (or [joinMany]) can be used on a single query and subqueries can also have [joinOne]
+  /// and [joinMany] nested configurations. Keep in mind, each additional join configuration does have an impact on
+  /// query performance.
+  ///
+  /// This configuration is only valid when executing [fetch] or [fetchOne].
+  Query<T> joinOne<T extends ManagedObject>(
+      T propertyIdentifier(InstanceType x));
+
+  /// Configures this instance to also include has-many relationship properties for returned objects.
+  ///
+  /// This method configures this instance to also include values for the relationship property identified
+  /// by [propertyIdentifier]. [propertyIdentifier] must return a has-many relationship property of [InstanceType].
+  /// i.e., the returned value from this closure must be a [ManagedSet].
+  ///
+  ///         var query = new Query<AccountHolder>()
+  ///           ..joinMany((accountHolder) => accountHolder.accounts);
+  ///
+  /// Instances returned from this query when executing [fetch] or [fetchOne]
+  /// will include values for that relationship property if a value exists. If the value does not exist,
+  /// i.e. the value is null, the returned object will contain the null value for its relationship property.
+  ///
+  /// This method returns another instance of [Query] with a parametrized type of the related object. The
+  /// return query is a subquery of this instance. A subquery may be configured just like any other query,
+  /// e.g. configuring properties like [returningProperties] and [where].
+  ///
+  /// More than one [joinOne] (or [joinMany]) can be used on a single query and subqueries can also have [joinOne]
+  /// and [joinMany] nested configurations. Keep in mind, each additional join configuration does have an impact on
+  /// query performance.
+  ///
+  /// This configuration is only valid when executing [fetch] or [fetchOne].
+  Query<T> joinMany<T extends ManagedObject>(
+      ManagedSet<T> propertyIdentifier(InstanceType x));
+
+
+  /// Configures this instance to fetch a section of a larger result set.
+  ///
+  /// This method provides an effective mechanism for paging a result set by ordering rows
+  /// by some property, offsetting into that ordered set and returning rows starting from that offset.
+  /// The [fetchLimit] of this instance must also be configured to limit the size of the page.
+  ///
+  /// The property that determines order is identified by [propertyIdentifier]. This closure must
+  /// return a property of of [InstanceType]. The order is determined by [order]. When fetching
+  /// the 'first' page of results, no value is passed for [boundingValue]. As later pages are fetched,
+  /// the value of the paging property for the last returned object in the previous result set is used
+  /// as [boundingValue]. For example:
+  ///
+  ///         var recentHireQuery = new Query<Employee>()
+  ///           ..pageBy((e) => e.hireDate, QuerySortOrder.descending);
+  ///         var recentHires = await recentHireQuery.fetch();
+  ///
+  ///         var nextRecentHireQuery = new Query<Employee>()
+  ///           ..pageBy((e) => e.hireDate, QuerySortOrder.descending,
+  ///             boundingValue: recentHires.last.hireDate);
+  ///
+  /// Note that internally, [pageBy] adds a matcher to [where] and adds a high-priority [sortBy].
+  /// Adding multiple [pageBy]s to an instance has undefined behavior.
+  void pageBy<T>(T propertyIdentifier(InstanceType x), QuerySortOrder order,
+      {T boundingValue});
+
+
+  /// Configures this instance to sort its results by some property and order.
+  ///
+  /// This method will have the database perform a sort by some property identified by [propertyIdentifier].
+  /// [propertyIdentifier] must return a scalar property of [InstanceType] that can be compared. The [order]
+  /// indicates the order the returned rows will be in. Multiple [sortBy]s may be invoked on an instance;
+  /// the order in which they are added indicates sort precedence. Example:
+  ///
+  ///         var query = new Query<Employee>()
+  ///           ..sortBy((e) => e.name, QuerySortOrder.ascending);
+  void sortBy<T>(T propertyIdentifier(InstanceType x), QuerySortOrder order);
+
   /// The [ManagedEntity] of the [InstanceType].
-  ManagedEntity entity;
+  ManagedEntity get entity;
 
-  /// The [ManagedContext] this query will be exeuted on.
-  ManagedContext context;
+  /// The [ManagedContext] this query will be executed on.
+  ManagedContext get context;
 
-  /// A convenience for building [predicate]s in a safe way.
+  /// A convenience for building [predicate] in a safe way.
   ///
   /// Use this property instead of providing a [predicate] to filter the rows this query manipulates or fetches. This property
   /// is an instance of [InstanceType] with special [ManagedObject.backingMap] behavior. When you set properties of this property using
-  /// matchers (see examples such as [whereEqualTo] and [whereContains]), the underlying database will generate a [QueryPredicate] to
+  /// matchers (see examples such as [whereEqualTo] and [whereContainsString]), the underlying database will generate a [QueryPredicate] to
   /// match the behavior of these matches. For example, the following query will generate a predicate that only operates on rows
   /// where 'id' is greater than 1:
   ///
   ///       var q = new Query<Employee>()
-  ///           ..matchOn.employeeID = greaterThan(1);
-  ///
-  /// This property is also used to fetch relationship properties. When [InstanceType] has a has-one or has-many relationship, setting the relationship
-  /// property's [ManagedObject.includeInResultSet] will cause this [Query] to also fetch objects of that [ManagedObject]'s type. For example,
-  /// the following query will fetch 'Employee's and their 'Task's.
-  ///
-  ///       var q = new Query<Employee>()
-  ///           ..matchOn.tasks.includeInResultSet = true;
-  ///
-  /// Any relationship property that is included in the result set in this way may have further constraints by setting properties
-  /// in its [matchOn].
-  ///
-  ///       var q = new Query<Employee>()
-  ///           ..matchOn.tasks.includeInResultSet = true
-  ///           ..matchOn.tasks.matchOn.status = whereEqualTo("Complete");
-  InstanceType get matchOn {
-    if (_matchOn == null) {
-      _matchOn = entity.newInstance() as InstanceType;
-      _matchOn.backing = new ManagedMatcherBacking();
-    }
-    return _matchOn;
-  }
-
-  InstanceType _matchOn;
+  ///           ..where.employeeID = greaterThan(1);
+  InstanceType get where;
 
   /// Confirms that a query has no predicate before executing it.
   ///
   /// This is a safety measure for update and delete queries to prevent accidentally updating or deleting every row.
   /// This flag defaults to false, meaning that if this query is either an update or a delete, but contains no predicate,
   /// it will fail. If a query is meant to update or delete every row on a table, you may set this to true to allow this query to proceed.
-  bool confirmQueryModifiesAllInstancesOnDeleteOrUpdate = false;
+  bool canModifyAllInstances;
 
   /// Number of seconds before a Query times out.
   ///
   /// A Query will fail and throw a [QueryException] if [timeoutInSeconds] seconds elapse before the query completes.
-  int timeoutInSeconds = 30;
+  int timeoutInSeconds;
 
   /// Limits the number of objects returned from the Query.
   ///
   /// Defaults to 0. When zero, there is no limit to the number of objects returned from the Query.
   /// This value should be set when using [pageDescriptor] to limit the page size.
-  int fetchLimit = 0;
+  int fetchLimit;
 
   /// Offsets the rows returned.
   ///
   /// The set of rows returned will exclude the first [offset] number of rows selected in the query. Do not
   /// set this property when using [pageDescriptor].
-  int offset = 0;
-
-  /// A specifier for a page of results.
-  ///
-  /// Defaults to null. Use a [QueryPage] along with [fetchLimit] when fetching a subset of rows from a large data set.
-  QueryPage pageDescriptor;
-
-  /// The order in which rows should be returned.
-  ///
-  /// By default, results are not sorted. Sort descriptors are evaluated in order, thus the first sort descriptor
-  /// is applies first, the second to break ties, and so on.
-  List<QuerySortDescriptor> sortDescriptors;
+  int offset;
 
   /// A predicate for filtering the result or operation set.
   ///
   /// A predicate will identify the rows being accessed, see [QueryPredicate] for more details. Prefer to use
-  /// [matchOn] instead of this property directly.
+  /// [where] instead of this property directly.
   QueryPredicate predicate;
 
   /// Values to be used when inserting or updating an object.
@@ -126,73 +191,24 @@ class Query<InstanceType extends ManagedObject> {
   ///       ..values.name = 'Joe
   ///       ..values.job = 'programmer';
   ///
-  InstanceType get values {
-    if (_valueObject == null) {
-      _valueObject = entity.newInstance() as InstanceType;
-    }
-    return _valueObject;
-  }
+  InstanceType values;
 
-  void set values(InstanceType obj) {
-    _valueObject = obj;
-  }
-
-  InstanceType _valueObject;
-
-  PersistentStoreQuery persistentQueryForStore(PersistentStore store) {
-    var psq = new PersistentStoreQuery()
-      ..confirmQueryModifiesAllInstancesOnDeleteOrUpdate =
-          confirmQueryModifiesAllInstancesOnDeleteOrUpdate
-      ..entity = entity
-      ..timeoutInSeconds = timeoutInSeconds
-      ..sortDescriptors = sortDescriptors
-      ..resultKeys = mappingElementsForList(
-          (resultProperties ?? entity.defaultProperties), entity);
-
-    if (_matchOn != null) {
-      psq.predicate = new QueryPredicate.fromQueryIncludable(_matchOn, store);
-    } else {
-      psq.predicate = predicate;
-    }
-
-    if (_matchOn?.hasJoinElements ?? false) {
-      if (pageDescriptor != null) {
-        throw new QueryException(QueryExceptionEvent.requestFailure,
-            message:
-                "Query cannot have properties that are includeInResultSet and also have a pageDescriptor.");
-      }
-
-      var joinElements = joinElementsFromQueryMatchable(
-          matchOn, store, nestedResultProperties);
-      psq.resultKeys.addAll(joinElements);
-    } else {
-      psq.fetchLimit = fetchLimit;
-      psq.offset = offset;
-
-      psq.pageDescriptor = validatePageDescriptor(entity, pageDescriptor);
-
-      psq.values =
-          mappingElementsForMap((valueMap ?? values?.backingMap), entity);
-    }
-
-    return psq;
-  }
-
-  /// A list of properties to be fetched by this query.
+  /// Configures the list of properties to be fetched for [InstanceType].
   ///
-  /// Each [InstanceType] will have these properties set when this query is executed. Each property must be
-  /// a column-backed property of [InstanceType].
+  /// This method configures which properties will be populated for [InstanceType] when returned
+  /// from this query. This impacts all query execution methods that return [InstanceType] or [List] of [InstanceType].
   ///
-  /// By default, this property is null, which indicates that the default properties of [InstanceType] should be fetched.
-  /// See [ManagedEntity.defaultProperties] for more details.
-  List<String> resultProperties;
-
-  /// The properties to be fetched for any nested [ManagedObject]s.
+  /// The following example would configure this instance to fetch the 'id' and 'name' for each returned 'Employee':
   ///
-  /// When executing a query that includes relationship properties (see [matchOn]), this value indicates which properties of those related [ManagedObject]s
-  /// are fetched. By default, a related object's default properties are fetched (see [ManagedEntity.defaultProperties]). To specify otherwise,
-  /// set the list of desired property names in this [Map]. The key is the [ManagedObject] type of the related object.
-  Map<Type, List<String>> nestedResultProperties = {};
+  ///         var q = new Query<Employee>()
+  ///           ..returningProperties((employee) => [employee.id, employee.name]);
+  ///
+  /// Note that if the primary key property of an object is omitted from this list, it will be added when this
+  /// instance executes. If the primary key value should not be sent back as part of an API response,
+  /// it can be stripped from the returned object(s) with [ManagedObject.removePropertyFromBackingMap].
+  ///
+  /// If this method is not invoked, the properties defined by [ManagedEntity.defaultProperties] are returned.
+  void returningProperties(List<dynamic> propertyIdentifiers(InstanceType x));
 
   /// Inserts an [InstanceType] into the underlying database.
   ///
@@ -203,135 +219,62 @@ class Query<InstanceType extends ManagedObject> {
   ///       var q = new Query<User>()
   ///         ..values.name = "Joe";
   ///       var newUser = await q.insert();
-  Future<InstanceType> insert() async {
-    return await context.executeInsertQuery(this);
-  }
+  Future<InstanceType> insert();
 
   /// Updates [InstanceType]s in the underlying database.
   ///
-  /// The [Query] must have its [values] or [valueMap] property set and should likely have its [predicate] or [matchOn] set as well. This operation will
-  /// update each row that matches the conditions in [predicate]/[matchOn] with the values from [values] or [valueMap]. If no [matchOn] or [predicate] is set,
+  /// The [Query] must have its [values] or [valueMap] property set and should likely have its [predicate] or [where] set as well. This operation will
+  /// update each row that matches the conditions in [predicate]/[where] with the values from [values] or [valueMap]. If no [where] or [predicate] is set,
   /// this method will throw an exception by default, assuming that you don't typically want to update every row in a database table. To specify otherwise,
-  /// set [confirmQueryModifiesAllInstancesOnDeleteOrUpdate] to true.
+  /// set [canModifyAllInstances] to true.
   /// The return value is a [Future] that completes with the any updated [InstanceType]s. Example:
   ///
   ///       var q = new Query<User>()
-  ///         ..matchOn.name = "Fred"
+  ///         ..where.name = "Fred"
   ///         ..values.name = "Joe";
   ///       var usersNamedFredNowNamedJoe = await q.update();
-  Future<List<InstanceType>> update() async {
-    return await context.executeUpdateQuery(this);
-  }
+  Future<List<InstanceType>> update();
 
   /// Updates an [InstanceType] in the underlying database.
   ///
   /// This method works the same as [update], except it may only update one row in the underlying database. If this method
   /// ends up modifying multiple rows, an exception is thrown.
-  Future<InstanceType> updateOne() async {
-    var results = await context.executeUpdateQuery(this);
-    if (results.length == 1) {
-      return results.first;
-    } else if (results.length == 0) {
-      return null;
-    }
-
-    throw new QueryException(QueryExceptionEvent.internalFailure,
-        message:
-            "updateOne modified more than one row, this is a serious error.");
-  }
+  Future<InstanceType> updateOne();
 
   /// Fetches [InstanceType]s from the database.
   ///
-  /// This operation will return all [InstanceType]s from the database, filtered by [predicate]/[matchOn]. Example:
+  /// This operation will return all [InstanceType]s from the database, filtered by [predicate]/[where]. Example:
   ///
   ///       var q = new Query<User>();
   ///       var allUsers = q.fetch();
   ///
-  Future<List<InstanceType>> fetch() async {
-    return await context.executeFetchQuery(this);
-  }
+  Future<List<InstanceType>> fetch();
 
   /// Fetches a single [InstanceType] from the database.
   ///
   /// This method behaves the same as [fetch], but limits the results to a single object.
-  Future<InstanceType> fetchOne() async {
-    fetchLimit = 1;
-
-    var results = await context.executeFetchQuery(this);
-    if (results.length == 1) {
-      return results.first;
-    } else if (results.length > 1) {
-      throw new QueryException(QueryExceptionEvent.requestFailure,
-          message:
-              "Query expected to fetch one instance, but ${results.length} instances were returned.");
-    }
-    return null;
-  }
+  Future<InstanceType> fetchOne();
 
   /// Deletes [InstanceType]s from the underlying database.
   ///
-  /// This method will delete rows identified by [predicate]/[matchOn]. If no [matchOn] or [predicate] is set,
+  /// This method will delete rows identified by [predicate]/[where]. If no [where] or [predicate] is set,
   /// this method will throw an exception by default, assuming that you don't typically want to delete every row in a database table. To specify otherwise,
-  /// set [confirmQueryModifiesAllInstancesOnDeleteOrUpdate] to true.
+  /// set [canModifyAllInstances] to true.
   ///
   /// This method will return the number of rows deleted.
   /// Example:
   ///
   ///       var q = new Query<User>()
-  ///           ..matchOn.id = whereEqualTo(1);
+  ///           ..where.id = whereEqualTo(1);
   ///       var deletedCount = await q.delete();
-  Future<int> delete() async {
-    return await context.executeDeleteQuery(this);
-  }
+  Future<int> delete();
 }
 
-/// An exception describing an issue with a query.
-///
-/// A suggested HTTP status code based on the type of exception will always be available.
-class QueryException implements Exception {
-  QueryException(this.event,
-      {String message: null, this.underlyingException: null})
-      : this._message = message;
+/// Order value for [Query.pageBy] and [Query.sortBy].
+enum QuerySortOrder {
+  /// Ascending order. Example: 1, 2, 3, 4, ...
+  ascending,
 
-  final String _message;
-
-  /// The exception generated by the [PersistentStore] or other mechanism that caused [Query] to fail.
-  final dynamic underlyingException;
-
-  /// The type of event that caused this exception.
-  final QueryExceptionEvent event;
-
-  String toString() => _message ?? underlyingException.toString();
-}
-
-/// Categorizations of query failures for [QueryException].
-enum QueryExceptionEvent {
-  /// This event is used when the underlying [PersistentStore] reports that a unique constraint was violated.
-  ///
-  /// [RequestController]s interpret this exception to return a status code 409 by default.
-  conflict,
-
-  /// This event is used when the underlying [PersistentStore] reports an issue with the form of a [Query].
-  ///
-  /// [RequestController]s interpret this exception to return a status code 500 by default. This indicates
-  /// to the programmer that the issue is with their code.
-  internalFailure,
-
-  /// This event is used when the underlying [PersistentStore] cannot reach its database.
-  ///
-  /// [RequestController]s interpret this exception to return a status code 503 by default.
-  connectionFailure,
-
-  /// This event is used when the underlying [PersistentStore] reports an issue with the data used in a [Query].
-  ///
-  /// [RequestController]s interpret this exception to return a status code 400 by default.
-  requestFailure
-}
-
-abstract class QueryMatchable {
-  ManagedEntity entity;
-
-  bool includeInResultSet;
-
-  Map<String, dynamic> get backingMap;
+  /// Descending order. Example: 4, 3, 2, 1, ...
+  descending
 }

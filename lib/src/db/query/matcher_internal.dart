@@ -1,4 +1,20 @@
-import 'query.dart';
+/// The operator in a comparison matcher.
+enum MatcherOperator {
+  lessThan,
+  greaterThan,
+  notEqual,
+  lessThanEqualTo,
+  greaterThanEqualTo,
+  equalTo
+}
+
+/// The operator in a string matcher.
+enum StringMatcherOperator {
+  beginsWith,
+  contains,
+  endsWith,
+  equals
+}
 
 abstract class MatcherExpression {}
 
@@ -29,8 +45,10 @@ class WithinMatcherExpression implements MatcherExpression {
 }
 
 class StringMatcherExpression implements MatcherExpression {
-  StringMatcherExpression(this.value, this.operator);
+  StringMatcherExpression(this.value, this.operator, {this.caseSensitive: true, this.invertOperator: false});
 
   StringMatcherOperator operator;
+  bool invertOperator;
+  bool caseSensitive;
   String value;
 }

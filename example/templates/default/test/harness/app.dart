@@ -1,6 +1,10 @@
 import 'package:wildfire/wildfire.dart';
+import 'package:aqueduct/test.dart';
+
 export 'package:wildfire/wildfire.dart';
+export 'package:aqueduct/test.dart';
 export 'package:test/test.dart';
+export 'package:aqueduct/aqueduct.dart';
 
 /// A testing harness for wildfire.
 ///
@@ -9,6 +13,8 @@ export 'package:test/test.dart';
 /// code's current database schema during startup. This instance will use configuration values
 /// from config.yaml.src.
 class TestApplication {
+  static const DefaultClientID = "com.aqueduct.test";
+  static const DefaultClientSecret = "kilimanjaro";
 
   /// Creates an instance of this class.
   ///
@@ -20,15 +26,13 @@ class TestApplication {
 
   Application<WildfireSink> application;
   WildfireSink get sink => application.mainIsolateSink;
-  LoggingServer logger = new LoggingServer([]);
   TestClient client;
   WildfireConfiguration configuration;
 
   /// Starts running this test harness.
   ///
-  /// This method will start a [LoggingServer] and an [Application] with [WildfireSink].
-  /// It will also setup a temporary database connection to the database described in
-  /// config.yaml.src. The current declared [ManagedObject]s in this application will be
+  /// This method will start an [Application] with [WildfireSink].
+  /// The declared [ManagedObject]s in this application will be
   /// used to generate a temporary database schema. The [WildfireSink] instance will use
   /// this temporary database. Stopping this application will remove the data from the
   /// temporary database.
@@ -38,13 +42,9 @@ class TestApplication {
   ///
   /// You must call [stop] on this instance when tearing down your tests.
   Future start() async {
-    await logger.start();
-
+    RequestController.letUncaughtExceptionsEscape = true;
     application = new Application<WildfireSink>();
-    application.configuration.configurationOptions = {
-      WildfireSink.ConfigurationKey: configuration,
-      WildfireSink.LoggingTargetKey: logger.getNewTarget()
-    };
+    application.configuration.configurationFilePath = "config.yaml.src";
 
     await application.start(runOnMainIsolate: true);
 
@@ -54,16 +54,14 @@ class TestApplication {
     await addClientRecord();
 
     client = new TestClient(application)
-      ..clientID = "com.aqueduct.test"
-      ..clientSecret = "kilimanjaro";
+      ..clientID = DefaultClientID
+      ..clientSecret = DefaultClientSecret;
   }
 
   /// Stops running this application harness.
   ///
   /// This method must be called during test tearDown.
   Future stop() async {
-    await sink.context.persistentStore?.close();
-    await logger?.stop();
     await application?.stop();
   }
 
@@ -72,21 +70,17 @@ class TestApplication {
   /// [start] must have already been called prior to executing this method. By default,
   /// every application harness inserts a default client record during [start]. See [start]
   /// for more details.
-  static Future<ClientRecord> addClientRecord(
-      {String clientID: "com.aqueduct.test",
-      String clientSecret: "kilimanjaro"}) async {
-    var salt = AuthServer.generateRandomSalt();
-    var hashedPassword = AuthServer.generatePasswordHash(clientSecret, salt);
-    var testClientRecord = new ClientRecord();
-    testClientRecord.id = clientID;
-    testClientRecord.salt = salt;
-    testClientRecord.hashedPassword = hashedPassword;
+  static Future<ManagedClient> addClientRecord(
+      {String clientID: DefaultClientID,
+      String clientSecret: DefaultClientSecret}) async {
+    var salt = AuthUtility.generateRandomSalt();
+    var hashedPassword = AuthUtility.generatePasswordHash(clientSecret, salt);
 
-    var clientQ = new Query<ClientRecord>()
+    var clientQ = new Query<ManagedClient>()
       ..values.id = clientID
       ..values.salt = salt
-      ..values.hashedPassword = hashedPassword;
-    return await clientQ.insert();
+      ..values.hashedSecret = hashedPassword;
+    return clientQ.insert();
   }
 
   /// Adds database tables to the temporary test database based on the declared [ManagedObject]s in this application.

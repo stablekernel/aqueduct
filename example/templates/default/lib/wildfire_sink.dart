@@ -1,75 +1,119 @@
 import 'wildfire.dart';
 
+import 'controller/identity_controller.dart';
+import 'controller/register_controller.dart';
+import 'controller/user_controller.dart';
+import 'utility/html_template.dart';
+
 /// This class handles setting up this application.
 ///
 /// Override methods from [RequestSink] to set up the resources your
 /// application uses and the routes it exposes.
 ///
+/// See the documentation in this file for [initializeApplication], [WildfireSink], [setupRouter] and [willOpen]
+/// for the purpose and order of the initialization methods.
+///
 /// Instances of this class are the type argument to [Application].
 /// See http://stablekernel.github.io/aqueduct/http/request_sink.html
 /// for more details.
-///
-/// See bin/start.dart for usage.
 class WildfireSink extends RequestSink {
-  static const String ConfigurationKey = "ConfigurationKey";
+  static const String ConfigurationValuesKey = "ConfigurationValuesKey";
   static const String LoggingTargetKey = "LoggingTargetKey";
 
-  /// [Application] creates instances of this type with this constructor.
-  ///
-  /// The options will be the values set in the spawning [Application]'s
-  /// [Application.configuration] [ApplicationConfiguration.configurationOptions].
-  /// See bin/start.dart.
-  WildfireSink(Map<String, dynamic> opts) : super(opts) {
-    WildfireConfiguration configuration = opts[ConfigurationKey];
+  HTMLRenderer htmlRenderer = new HTMLRenderer();
+  ManagedContext context;
+  AuthServer authServer;
 
-    LoggingTarget target = opts[LoggingTargetKey];
+  /**
+   * Initialization methods
+   */
+  /// Do one-time application setup in this method.
+  ///
+  /// This method is executed before any instances of this type are created and is the first step in the initialization process.
+  ///
+  /// Values can be added to [config]'s [ApplicationConfiguration.options] and will be available in each instance of this class
+  /// in the constructor. The values added to the configuration's options are often from a configuration file that this method reads.
+  static Future initializeApplication(ApplicationConfiguration config) async {
+    if (config.configurationFilePath == null) {
+      throw new ApplicationStartupException(
+          "No configuration file found. See README.md.");
+    }
+
+    var configFileValues =
+        new WildfireConfiguration(config.configurationFilePath);
+    config.options[ConfigurationValuesKey] = configFileValues;
+
+    var loggingServer = configFileValues.logging.loggingServer;
+    await loggingServer?.start();
+    config.options[LoggingTargetKey] = loggingServer?.getNewTarget();
+  }
+
+  /// Constructor called for each isolate run by an [Application].
+  ///
+  /// This constructor is called for each isolate an [Application] creates to serve requests - therefore,
+  /// any initialization that must occur only once per application startup should happen in [initializeApplication].
+  ///
+  /// This constructor is invoked after [initializeApplication].
+  ///
+  /// The [options] are provided by the command line arguments and script that starts the application, and often
+  /// contain values that [initializeApplication] adds to it.
+  ///
+  /// Resources that require asynchronous initialization, such as database connections, should be instantiated in this
+  /// method but should be opened in [willOpen].
+  WildfireSink(ApplicationConfiguration options) : super(options) {
+    WildfireConfiguration configuration =
+        options.options[ConfigurationValuesKey];
+
+    LoggingTarget target = options.options[LoggingTargetKey];
     target?.bind(logger);
 
     context = contextWithConnectionInfo(configuration.database);
+    ManagedContext.defaultContext = context;
 
-    authServer = new AuthServer<User, Token, AuthCode>(
-        new WildfireAuthDelegate());
+    authServer = new AuthServer(new ManagedAuthStorage<User>(context));
   }
 
-  ManagedContext context;
-  AuthServer<User, Token, AuthCode> authServer;
-
   /// All routes must be configured in this method.
+  ///
+  /// This method is invoked after the constructor and before [willOpen] Routes must be set up in this method, as
+  /// the router gets 'compiled' after this method completes and routes cannot be added later.
   @override
   void setupRouter(Router router) {
     router
-        .route("/auth/token")
-        .pipe(
-            new Authorizer(authServer, strategy: AuthStrategy.client))
-        .generate(() => new AuthController(authServer));
+        .route("/register")
+        .pipe(new Authorizer.basic(authServer))
+        .generate(() => new RegisterController(authServer));
 
     router
-        .route("/auth/code")
-        .pipe(
-            new Authorizer(authServer, strategy: AuthStrategy.client))
-        .generate(() => new AuthCodeController(authServer));
-
-    router
-        .route("/identity")
-        .pipe(new Authorizer(authServer))
+        .route("/me")
+        .pipe(new Authorizer.bearer(authServer))
         .generate(() => new IdentityController());
 
     router
-        .route("/register")
-        .pipe(
-            new Authorizer(authServer, strategy: AuthStrategy.client))
-        .generate(() => new RegisterController());
-
-    router
         .route("/users/[:id]")
-        .pipe(new Authorizer(authServer))
-        .generate(() => new UserController());
+        .pipe(new Authorizer.bearer(authServer))
+        .generate(() => new UserController(authServer));
+
+    router.route("/auth/token").generate(() => new AuthController(authServer));
+
+    router.route("/auth/code").generate(() => new AuthCodeController(authServer,
+        renderAuthorizationPageHTML: renderLoginPage));
   }
+
+  /// Final initialization method for this instance.
+  ///
+  /// This method allows any resources that require asynchronous initialization to complete their
+  /// initialization process. This method is invoked after [setupRouter] and prior to this
+  /// instance receiving any requests.
+  Future willOpen() async {}
+
+  /**
+   * Helper methods
+   */
 
   ManagedContext contextWithConnectionInfo(
       DatabaseConnectionConfiguration connectionInfo) {
-    var dataModel =
-        new ManagedDataModel.fromCurrentMirrorSystem();
+    var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
     var psc = new PostgreSQLPersistentStore.fromConnectionInfo(
         connectionInfo.username,
         connectionInfo.password,
@@ -77,11 +121,21 @@ class WildfireSink extends RequestSink {
         connectionInfo.port,
         connectionInfo.databaseName);
 
-    var ctx = new ManagedContext(dataModel, psc);
-    ManagedContext.defaultContext = ctx;
-
-    return ctx;
+    return new ManagedContext(dataModel, psc);
   }
+
+  Future<String> renderLoginPage(AuthCodeController controller, Uri requestURI,
+      Map<String, String> queryParameters) async {
+    var path = requestURI.path;
+    var map = new Map<String, String>.from(queryParameters);
+    map["path"] = path;
+
+    return htmlRenderer.renderHTML("web/login.html", map);
+  }
+
+  /**
+   * Overrides
+   */
 
   @override
   Map<String, APISecurityScheme> documentSecuritySchemes(
@@ -100,5 +154,28 @@ class WildfireConfiguration extends ConfigurationItem {
   WildfireConfiguration(String fileName) : super.fromFile(fileName);
 
   DatabaseConnectionConfiguration database;
-  int port;
+  LoggingConfiguration logging;
+}
+
+class LoggingConfiguration extends ConfigurationItem {
+  static const String TypeConsole = "console";
+  static const String TypeFile = "file";
+  String type;
+
+  @optionalConfiguration
+  String filename;
+
+  LoggingServer _loggingServer;
+  LoggingServer get loggingServer {
+    if (_loggingServer == null) {
+      if (type == LoggingConfiguration.TypeConsole) {
+        _loggingServer = new LoggingServer([new ConsoleBackend()]);
+      } else if (type == LoggingConfiguration.TypeFile) {
+        var logPath = filename ?? "api.log";
+        _loggingServer =
+            new LoggingServer([new RotatingLoggingBackend(logPath)]);
+      }
+    }
+    return _loggingServer;
+  }
 }

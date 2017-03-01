@@ -35,7 +35,7 @@ void main() {
 
     req = new Query<TestModel>()
       ..predicate = new QueryPredicate("id = @id", {"id": item.id})
-      ..resultProperties = ["id", "name"];
+      ..returningProperties((t) => [t.id, t.name]);
 
     item = await req.fetchOne();
 
@@ -54,9 +54,7 @@ void main() {
     }
 
     var req = new Query<TestModel>()
-      ..sortDescriptors = [
-        new QuerySortDescriptor("email", QuerySortOrder.ascending)
-      ]
+      ..sortBy((t) => t.email, QuerySortOrder.ascending)
       ..predicate = new QueryPredicate("email like @key", {"key": "asc%"});
 
     var result = await req.fetch();
@@ -65,10 +63,7 @@ void main() {
       expect(result[i].email, "asc${i}@a.com");
     }
 
-    req = new Query<TestModel>()
-      ..sortDescriptors = [
-        new QuerySortDescriptor("id", QuerySortOrder.ascending)
-      ];
+    req = new Query<TestModel>()..sortBy((t) => t.id, QuerySortOrder.ascending);
     result = await req.fetch();
 
     int idIndex = 0;
@@ -91,9 +86,7 @@ void main() {
     }
 
     var req = new Query<TestModel>()
-      ..sortDescriptors = [
-        new QuerySortDescriptor("email", QuerySortOrder.descending)
-      ]
+      ..sortBy((t) => t.email, QuerySortOrder.descending)
       ..predicate = new QueryPredicate("email like @key", {"key": "desc%"});
     var result = await req.fetch();
 
@@ -115,10 +108,8 @@ void main() {
     }
 
     var req = new Query<TestModel>()
-      ..sortDescriptors = [
-        new QuerySortDescriptor("name", QuerySortOrder.ascending),
-        new QuerySortDescriptor("email", QuerySortOrder.descending)
-      ]
+      ..sortBy((t) => t.name, QuerySortOrder.ascending)
+      ..sortBy((t) => t.email, QuerySortOrder.descending)
       ..predicate = new QueryPredicate("email like @key", {"key": "multi%"});
 
     var result = await req.fetch();
@@ -162,8 +153,8 @@ void main() {
     var req = new Query<TestModel>()..values = m;
     await req.insert();
 
-    req = new Query<TestModel>();
-    req.resultProperties = ["id", "badkey"];
+    req = new Query<TestModel>()
+      ..returningProperties((t) => [t.id, t["badkey"]]);
 
     var successful = false;
     try {
@@ -207,7 +198,7 @@ void main() {
         5);
 
     var query = new Query<GenPost>();
-    query.matchOn["owner"] = whereRelatedByValue(u1.id);
+    query.where["owner"] = whereRelatedByValue(u1.id);
     res = await query.fetch();
 
     GenUser user = res.first.owner;
@@ -242,8 +233,8 @@ void main() {
     expect(result.id, greaterThan(0));
     expect(result.backingMap["text"], isNull);
 
-    var matcher = new Query<Omit>()..matchOn["id"] = whereEqualTo(result.id);
-    var fq = new Query<Omit>()..predicate = matcher.predicate;
+    var fq = new Query<Omit>()
+      ..predicate = new QueryPredicate("id=@id", {"id": result.id});
 
     var fResult = await fq.fetchOne();
     expect(fResult.id, result.id);
@@ -251,7 +242,7 @@ void main() {
   });
 
   test(
-      "Fetch one that returns more than one row (because of join) throws exception",
+      "Throw exception when fetchOne returns more than one because the fetchLimit can't be applied to joins",
       () async {
     context = await contextWithModels([GenUser, GenPost]);
 
@@ -263,7 +254,7 @@ void main() {
     }
 
     try {
-      var q = new Query<GenUser>()..matchOn.posts.includeInResultSet = true;
+      var q = new Query<GenUser>()..joinMany((u) => u.posts);
       await q.fetchOne();
 
       expect(true, false);
@@ -287,43 +278,19 @@ void main() {
           ..values.owner = u1)
         .insert();
 
-    var q = new Query<GenPost>()..resultProperties = ["id", "owner"];
+    var q = new Query<GenPost>()..returningProperties((p) => [p.id, p.owner]);
 
     var result = await q.fetchOne();
     expect(result.owner.id, 1);
     expect(result.owner.backingMap.length, 1);
 
-    q = new Query<GenPost>()..resultProperties = ["id", "owner_id"];
+    q = new Query<GenPost>()..returningProperties((p) => [p.id, p["owner_id"]]);
     try {
       await q.fetchOne();
       expect(true, false);
     } on QueryException catch (e) {
       expect(e.toString(),
           contains("Property owner_id does not exist on _GenPost"));
-    }
-  });
-
-  test("Trying to manipulate RelationshipInverse matcher fails", () async {
-    context = await contextWithModels([GenUser, GenPost]);
-
-    try {
-      var _ = new Query<GenPost>()..matchOn.owner.id = 1;
-      expect(true, false);
-    } on QueryException catch (e) {
-      expect(
-          e.toString(),
-          contains(
-              "Attempting to access matcher on RelationshipInverse owner on _GenPost. Assign this value to whereRelatedByValue instead."));
-    }
-
-    try {
-      var _ = new Query<GenPost>()..matchOn.owner.includeInResultSet = true;
-      expect(true, false);
-    } on QueryException catch (e) {
-      expect(
-          e.toString(),
-          contains(
-              "Attempting to access matcher on RelationshipInverse owner on _GenPost. Assign this value to whereRelatedByValue instead."));
     }
   });
 }

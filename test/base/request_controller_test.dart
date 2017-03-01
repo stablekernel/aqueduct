@@ -296,7 +296,9 @@ void main() {
     expect(resp.statusCode, 500);
   });
 
-  test("willSendResponse is always called prior to Response being sent for preflight requests", () async {
+  test(
+      "willSendResponse is always called prior to Response being sent for preflight requests",
+      () async {
     server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8080);
     server.map((req) => new Request(req)).listen((req) async {
       var next = new RequestController();
@@ -308,27 +310,30 @@ void main() {
     var req = await (new HttpClient().open("OPTIONS", "localhost", 8080, ""));
     req.headers.set("Origin", "http://foobar.com");
     req.headers.set("Access-Control-Request-Method", "POST");
-    req.headers
-        .set("Access-Control-Request-Headers", "accept, authorization");
+    req.headers.set("Access-Control-Request-Headers", "accept, authorization");
     var resp = await req.close();
 
     expect(resp.statusCode, 200);
-    expect(JSON.decode((new String.fromCharCodes(await resp.first))), {"statusCode" : 403});
+    expect(JSON.decode((new String.fromCharCodes(await resp.first))),
+        {"statusCode": 403});
 
     // valid preflight
     req = await (new HttpClient().open("OPTIONS", "localhost", 8080, ""));
     req.headers.set("Origin", "http://somewhere.com");
     req.headers.set("Access-Control-Request-Method", "POST");
-    req.headers
-        .set("Access-Control-Request-Headers", "accept, authorization");
+    req.headers.set("Access-Control-Request-Headers", "accept, authorization");
     resp = await req.close();
 
     expect(resp.statusCode, 200);
-    expect(resp.headers.value("access-control-allow-methods"), "POST, PUT, DELETE, GET");
-    expect(JSON.decode((new String.fromCharCodes(await resp.first))), {"statusCode" : 200});
+    expect(resp.headers.value("access-control-allow-methods"),
+        "POST, PUT, DELETE, GET");
+    expect(JSON.decode((new String.fromCharCodes(await resp.first))),
+        {"statusCode": 200});
   });
 
-  test("willSendResponse is always called prior to Response being sent for normal requests", () async {
+  test(
+      "willSendResponse is always called prior to Response being sent for normal requests",
+      () async {
     server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8080);
     server.map((req) => new Request(req)).listen((req) async {
       var next = new RequestController();
@@ -339,22 +344,40 @@ void main() {
     // normal response
     var resp = await http.get("http://localhost:8080");
     expect(resp.statusCode, 200);
-    expect(JSON.decode(resp.body), {"statusCode" : 100});
+    expect(JSON.decode(resp.body), {"statusCode": 100});
 
     // httpresponseexception
     resp = await http.get("http://localhost:8080?q=http_response_exception");
     expect(resp.statusCode, 200);
-    expect(JSON.decode(resp.body), {"statusCode" : 400});
+    expect(JSON.decode(resp.body), {"statusCode": 400});
 
     // query exception
     resp = await http.get("http://localhost:8080?q=query_exception");
     expect(resp.statusCode, 200);
-    expect(JSON.decode(resp.body), {"statusCode" : 503});
+    expect(JSON.decode(resp.body), {"statusCode": 503});
 
     // any other exception (500)
     resp = await http.get("http://localhost:8080?q=server_error");
     expect(resp.statusCode, 200);
-    expect(JSON.decode(resp.body), {"statusCode" : 500});
+    expect(JSON.decode(resp.body), {"statusCode": 500});
+  });
+
+  test("Failure to decode request body as appropriate type is 400", () async {
+    server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8080);
+    server.map((req) => new Request(req)).listen((req) async {
+      var next = new RequestController();
+      next.listen((r) async {
+        await r.body.decodeAsMap();
+        return new Response.ok(null);
+      });
+      await next.receive(req);
+    });
+
+    var resp = await http.post("http://localhost:8080", headers: {
+      "content-type": "application/json"
+    }, body: JSON.encode(["a"]));
+
+    expect(resp.statusCode, 400);
   });
 }
 
@@ -371,7 +394,7 @@ class Always200Controller extends RequestController {
     policy.allowedOrigins = ["http://somewhere.com"];
   }
   @override
-  Future<RequestControllerEvent> processRequest(Request req) async {
+  Future<RequestOrResponse> processRequest(Request req) async {
     var q = req.innerRequest.uri.queryParameters["q"];
     if (q == "http_response_exception") {
       throw new HTTPResponseException(400, "ok");
@@ -385,9 +408,7 @@ class Always200Controller extends RequestController {
 
   @override
   void willSendResponse(Response resp) {
-    var originalMap = {
-      "statusCode" : resp.statusCode
-    };
+    var originalMap = {"statusCode": resp.statusCode};
     resp.statusCode = 200;
     resp.body = originalMap;
     resp.contentType = ContentType.JSON;

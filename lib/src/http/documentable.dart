@@ -3,10 +3,15 @@ import 'dart:mirrors';
 
 import 'package:path/path.dart' as path_lib;
 
-Map<String, dynamic> _stripNull(Map<String, dynamic> m) {
+Map<String, dynamic> _stripNullAndEmpty(Map<String, dynamic> m) {
   var outMap = <String, dynamic>{};
   m.forEach((k, v) {
-    if (v != null) {
+    if (v is Map) {
+      var stripped = _stripNullAndEmpty(v as Map<String, dynamic>);
+      if (stripped.isNotEmpty) {
+        outMap[k] = stripped;
+      }
+    } else if (v != null) {
       outMap[k] = v;
     }
   });
@@ -56,7 +61,7 @@ class APIDocumentable {
   APIRequestBody documentRequestBodyForOperation(APIOperation operation) =>
       documentableChild?.documentRequestBodyForOperation(operation);
 
-  /// Returns all [APISecurityScheme]s this instance knowsa bout.
+  /// Returns all [APISecurityScheme]s this instance knows about.
   Map<String, APISecurityScheme> documentSecuritySchemes(
           PackagePathResolver resolver) =>
       documentableChild?.documentSecuritySchemes(resolver);
@@ -83,11 +88,11 @@ class APIDocument {
     m["info"] = info.asMap();
 
     if (version.startsWith("2.")) {
-      if (hosts.length > 0) {
+      if ((hosts?.length ?? 0) > 0) {
         m["host"] = hosts.first.host;
       }
     } else {
-      m["hosts"] = hosts.map((host) => host.asMap()).toList();
+      m["hosts"] = hosts?.map((host) => host.asMap())?.toList();
     }
 
     m["consumes"] = consumes.map((ct) => ct.toString()).toList();
@@ -102,7 +107,7 @@ class APIDocument {
     });
     m["securityDefinitions"] = mappedSchemes;
 
-    return m;
+    return _stripNullAndEmpty(m);
   }
 }
 
@@ -116,14 +121,14 @@ class APIInfo {
   APILicense license = new APILicense();
 
   Map<String, dynamic> asMap() {
-    return _stripNull({
+    return {
       "title": title,
       "description": description,
       "version": version,
       "termsOfService": termsOfServiceURL,
       "contact": contact.asMap(),
       "license": license.asMap()
-    });
+    };
   }
 }
 
@@ -153,20 +158,41 @@ class APIHost {
   String host = "localhost:8000";
   String basePath = "/";
   String scheme = "http";
+  int port;
+
+  APIHost();
+  APIHost.fromURI(Uri uri) {
+    host = uri.host;
+    basePath = uri.path ?? "/";
+
+    if (uri.hasScheme) {
+      scheme = uri.scheme;
+    } else {
+      scheme = "http";
+    }
+
+    if (uri.hasPort) {
+      port = uri.port;
+    }
+  }
 
   Uri get uri {
     return new Uri(scheme: scheme, host: host, path: basePath);
   }
 
   Map<String, String> asMap() {
-    return {"host": host, "basePath": basePath, "scheme": scheme};
+    var hostWithPort = host;
+    if (port != null) {
+      hostWithPort = "$host:$port";
+    }
+    return {"host": hostWithPort, "basePath": basePath, "scheme": scheme};
   }
 }
 
 /// Represents a security requirement in the OpenAPI specification.
 class APISecurityRequirement {
   String name;
-  List<APISecurityScope> scopes;
+  List<APISecurityScope> scopes = [];
 
   Map<String, dynamic> asMap() {
     return {name: scopes};
@@ -192,13 +218,18 @@ class APISecurityDefinition {
 }
 
 /// Represents a OAuth 2.0 security scheme flow in the OpenAPI specification.
-enum APISecuritySchemeFlow { implicit, password, application, accessCode }
+enum APISecuritySchemeFlow {
+  implicit,
+  password,
+  application,
+  authorizationCode
+}
 
 /// Represents a security scheme in the OpenAPI specification.
 class APISecurityScheme {
   static String stringForFlow(APISecuritySchemeFlow flow) {
     switch (flow) {
-      case APISecuritySchemeFlow.accessCode:
+      case APISecuritySchemeFlow.authorizationCode:
         return "accessCode";
       case APISecuritySchemeFlow.password:
         return "password";
@@ -214,11 +245,12 @@ class APISecurityScheme {
     type = "basic";
   }
 
-  APISecurityScheme.apiKey() {
+  APISecurityScheme.apiKey(this.apiKeyName, this.apiKeyLocation) {
     type = "apiKey";
   }
 
-  APISecurityScheme.oauth2() {
+  APISecurityScheme.oauth2(this.oauthFlow,
+      {this.authorizationURL, this.tokenURL, this.scopes: const []}) {
     type = "oauth2";
   }
 
@@ -233,7 +265,7 @@ class APISecurityScheme {
   APISecuritySchemeFlow oauthFlow;
   String authorizationURL;
   String tokenURL;
-  List<APISecurityScope> scopes = [];
+  List<APISecurityScope> scopes;
 
   bool get isOAuth2 {
     return type == "oauth2";
@@ -251,7 +283,7 @@ class APISecurityScheme {
       m["flow"] = stringForFlow(oauthFlow);
 
       if (oauthFlow == APISecuritySchemeFlow.implicit ||
-          oauthFlow == APISecuritySchemeFlow.accessCode) {
+          oauthFlow == APISecuritySchemeFlow.authorizationCode) {
         m["authorizationUrl"] = authorizationURL;
       }
 
@@ -353,7 +385,7 @@ class APIOperation {
 
     // m["requestBody"] = requestBody?.asMap();
 
-    return _stripNull(m);
+    return _stripNullAndEmpty(m);
   }
 }
 
@@ -381,11 +413,11 @@ class APIResponse {
       mappedHeaders[headerName] = headerObject.asMap();
     });
 
-    return _stripNull({
+    return {
       "description": description,
       "schema": schema?.asMap(),
       "headers": mappedHeaders
-    });
+    };
   }
 }
 
@@ -457,7 +489,7 @@ class APIParameter {
     m["schema"] = schemaObject?.asMap();
     m["in"] = parameterLocationStringForType(parameterLocation);
 
-    return _stripNull(m);
+    return _stripNullAndEmpty(m);
   }
 }
 

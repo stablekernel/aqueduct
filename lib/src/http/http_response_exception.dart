@@ -22,6 +22,8 @@ class HTTPResponseException implements Exception {
   final int statusCode;
 
   /// A [Response] object derived from this exception.
-  Response get response => new Response(statusCode, null, {"error": message})
-    ..contentType = ContentType.JSON;
+  Response get response {
+    return new Response(statusCode, null, {"error": message})
+      ..contentType = ContentType.JSON;
+  }
 }

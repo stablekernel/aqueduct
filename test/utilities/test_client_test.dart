@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
-import 'dart:io';
+import 'package:aqueduct/test.dart';
+import 'dart:convert';
 
 void main() {
   group("Test Client/Request", () {
@@ -96,6 +99,35 @@ void main() {
       expect(msg.path, "/foo");
       expect(msg.method, "PUT");
       expect(msg.body, '{"foo":"bar"}');
+    });
+
+    test("Client authenticated requests add credentials", () async {
+      var defaultTestClient = new TestClient.onPort(4040)
+        ..clientID = "a"
+        ..clientSecret = "b";
+      expect(
+          (await defaultTestClient.clientAuthenticatedRequest("/foo").get())
+              is TestResponse,
+          true);
+      var msg = await server.next();
+      expect(msg.path, "/foo");
+      expect(msg.method, "GET");
+
+      var auth = new Base64Encoder().convert("a:b".codeUnits);
+      expect(msg.headers["authorization"], "Basic $auth");
+    });
+
+    test("Bearer requests add credentials", () async {
+      var defaultTestClient = new TestClient.onPort(4040)
+        ..defaultAccessToken = "abc";
+      expect(
+          (await defaultTestClient.authenticatedRequest("/foo").get())
+              is TestResponse,
+          true);
+      var msg = await server.next();
+      expect(msg.path, "/foo");
+      expect(msg.method, "GET");
+      expect(msg.headers["authorization"], "Bearer abc");
     });
 
     test("Headers are added correctly", () async {
@@ -554,7 +586,7 @@ void main() {
       await server?.close();
     });
 
-    test("Omit status code ignores it", () async {
+    test("Omit status code from matcher, matching ignores it", () async {
       var defaultTestClient = new TestClient.onPort(4000);
 
       server.queueResponse(
@@ -567,7 +599,7 @@ void main() {
               headers: {"content-type": "application/json; charset=utf-8"}));
     });
 
-    test("Omit headers ignores them", () async {
+    test("Omit headers from matcher, matching ignores them", () async {
       var defaultTestClient = new TestClient.onPort(4000);
 
       server.queueResponse(new Response.ok({"foo": "bar"},
@@ -580,8 +612,8 @@ void main() {
     test("Omit body ignores them", () async {
       var defaultTestClient = new TestClient.onPort(4000);
 
-      server.queueResponse(new Response.ok({"foo": "bar"},
-          headers: {"content-type": "application/json"}));
+      server.queueResponse(
+          new Response.ok({"foo": "bar"})..contentType = ContentType.JSON);
       var response = await defaultTestClient.request("/foo").get();
       expect(
           response,

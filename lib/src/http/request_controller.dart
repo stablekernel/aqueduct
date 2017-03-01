@@ -10,7 +10,7 @@ import '../db/db.dart';
 /// The unifying protocol for [Request] and [Response] classes.
 ///
 /// A [RequestController] must return an instance of this type from its [RequestController.processRequest] method.
-abstract class RequestControllerEvent {}
+abstract class RequestOrResponse {}
 
 /// [RequestController]s respond to, modify or forward HTTP requests.
 ///
@@ -28,6 +28,19 @@ class RequestController extends Object with APIDocumentable {
   /// By default, this is false. During debugging, setting this to true can help debug Aqueduct applications
   /// from the HTTP client.
   static bool includeErrorDetailsInServerErrorResponses = false;
+
+  /// Whether or not to allow uncaught exceptions escape request controllers.
+  ///
+  /// When this value is false - the default - all [RequestController] instances handle
+  /// unexpected exceptions by catching and logging them, and then returning a 500 error.
+  ///
+  /// While running tests, it is useful to know where unexpected exceptions come from because
+  /// they are an error in your code. By setting this value to true, all [RequestController]s
+  /// will rethrow unexpected exceptions in addition to the base behavior. This allows the stack
+  /// trace of the unexpected exception to appear in test results and halt the tests with failure.
+  ///
+  /// By default, this value is false. Do not set this value to true outside of tests.
+  static bool letUncaughtExceptionsEscape = false;
 
   Function _listener;
   RequestController nextController;
@@ -93,7 +106,7 @@ class RequestController extends Object with APIDocumentable {
   ///
   /// See also [generate] and [pipe].
   RequestController listen(
-      Future<RequestControllerEvent> requestControllerFunction(
+      Future<RequestOrResponse> requestControllerFunction(
           Request request)) {
     var controller = new RequestController()
       .._listener = requestControllerFunction;
@@ -168,9 +181,16 @@ class RequestController extends Object with APIDocumentable {
         logger.info(req.toDebugString());
       }
     } catch (any, stacktrace) {
-      try {
-        _handleError(req, any, stacktrace);
-      } catch (_) {}
+      if (letUncaughtExceptionsEscape) {
+        var shouldRethrow = _handleError(req, any, stacktrace);
+        if (shouldRethrow) {
+          rethrow;
+        }
+      } else {
+        try {
+          _handleError(req, any, stacktrace);
+        } catch (_) {}
+      }
     }
   }
 
@@ -182,12 +202,12 @@ class RequestController extends Object with APIDocumentable {
   ///
   /// [RequestController]s should return a [Response] from this method if they responded to the request.
   /// If a [RequestController] does not respond to the request, but instead modifies it, this method must return the same [Request].
-  Future<RequestControllerEvent> processRequest(Request req) async {
+  Future<RequestOrResponse> processRequest(Request req) {
     if (_listener != null) {
-      return await _listener(req);
+      return _listener(req);
     }
 
-    return req;
+    return new Future.microtask(() => req);
   }
 
   /// Executed prior to [Response] being sent.
@@ -197,7 +217,8 @@ class RequestController extends Object with APIDocumentable {
   /// including server errors.
   void willSendResponse(Response response) {}
 
-  void _sendResponse(Request request, Response response, {bool includeCORSHeaders: false}) {
+  void _sendResponse(Request request, Response response,
+      {bool includeCORSHeaders: false}) {
     if (includeCORSHeaders) {
       applyCORSHeadersIfNecessary(request, response);
     }
@@ -205,7 +226,7 @@ class RequestController extends Object with APIDocumentable {
     request.respond(response);
   }
 
-  void _handleError(Request request, dynamic caughtValue, StackTrace trace) {
+  bool _handleError(Request request, dynamic caughtValue, StackTrace trace) {
     if (caughtValue is HTTPResponseException) {
       var response = caughtValue.response;
       _sendResponse(request, response, includeCORSHeaders: true);
@@ -255,7 +276,11 @@ class RequestController extends Object with APIDocumentable {
           "${request.toDebugString(includeHeaders: true, includeBody: true)}",
           caughtValue,
           trace);
+
+      return true;
     }
+
+    return false;
   }
 
   RequestController _lastRequestController() {
@@ -279,7 +304,9 @@ class RequestController extends Object with APIDocumentable {
   }
 }
 
-/// Metadata for a [RequestController] subclass that indicates it must be instantiated for each request.
+/// Metadata for a [RequestController] subclass that requires it must be instantiated for each request.
+///
+/// Requires that the [RequestController] must be created through [RequestController.generate].
 ///
 /// [RequestController]s may carry some state throughout the course of their handling of a request. If
 /// that [RequestController] is reused for another request, some of that state may carry over. Therefore,
@@ -320,8 +347,8 @@ class _RequestControllerGenerator extends RequestController {
   }
 
   @override
-  Future receive(Request req) async {
-    await instantiate().receive(req);
+  Future receive(Request req) {
+    return instantiate().receive(req);
   }
 
   @override
@@ -345,7 +372,7 @@ class _RequestControllerGenerator extends RequestController {
 /// Thrown when [RequestController] throws an exception.
 ///
 ///
-class RequestControllerException {
+class RequestControllerException implements Exception {
   RequestControllerException(this.message);
 
   String message;

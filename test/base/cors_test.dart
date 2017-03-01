@@ -1,9 +1,10 @@
-import "package:test/test.dart";
+import 'dart:async';
 import "dart:core";
 import "dart:io";
-import 'package:http/http.dart' as http;
+
 import 'package:aqueduct/aqueduct.dart';
-import 'dart:async';
+import 'package:http/http.dart' as http;
+import "package:test/test.dart";
 
 // These tests are based on the specification found at http://www.w3.org/TR/cors/.
 void main() {
@@ -250,7 +251,7 @@ void main() {
       expect(resp.headers.value("access-control-allow-origin"),
           "http://exclusive.com");
       expect(resp.headers.value("access-control-allow-headers"),
-          "authorization, x-requested-with, x-forwarded-for, content-type");
+          "origin, authorization, x-requested-with, x-forwarded-for, content-type");
       expect(resp.headers.value("access-control-allow-methods"),
           "POST, PUT, DELETE, GET");
       expect(resp.headers.value("access-control-expose-headers"), isNull);
@@ -317,7 +318,7 @@ void main() {
       expect(resp.headers.value("access-control-allow-origin"),
           "http://foobar.com");
       expect(resp.headers.value("access-control-allow-headers"),
-          "authorization, x-requested-with, x-forwarded-for, content-type");
+          "origin, authorization, x-requested-with, x-forwarded-for, content-type");
       expect(resp.headers.value("access-control-allow-methods"),
           "POST, PUT, DELETE, GET");
       expect(resp.headers.value("access-control-expose-headers"), isNull);
@@ -335,7 +336,7 @@ void main() {
       expect(resp.headers.value("access-control-allow-origin"),
           "http://foobar.com");
       expect(resp.headers.value("access-control-allow-headers"),
-          "authorization, x-requested-with, x-forwarded-for, content-type");
+          "origin, authorization, x-requested-with, x-forwarded-for, content-type");
       expect(resp.headers.value("access-control-allow-methods"), "GET");
       expect(resp.headers.value("access-control-expose-headers"), isNull);
       expect(resp.headers.value("access-control-allow-credentials"), "true");
@@ -354,7 +355,27 @@ void main() {
       expect(resp.headers.value("access-control-allow-origin"),
           "http://foobar.com");
       expect(resp.headers.value("access-control-allow-headers"),
-          "authorization, x-requested-with, x-forwarded-for, content-type");
+          "origin, authorization, x-requested-with, x-forwarded-for, content-type");
+      expect(resp.headers.value("access-control-allow-methods"),
+          "POST, PUT, DELETE, GET");
+      expect(resp.headers.value("access-control-expose-headers"), isNull);
+      expect(resp.headers.value("access-control-allow-credentials"), "true");
+    });
+
+    test("Headers are case insensitive", () async {
+      var req = await (new HttpClient()
+          .open("OPTIONS", "localhost", 8000, "defaultpolicy"));
+      req.headers.set("Origin", "http://foobar.com");
+      req.headers.set("Access-Control-Request-Method", "POST");
+      req.headers.set("Access-Control-Request-Headers",
+          "Authorization, X-Requested-With, X-Forwarded-For, Content-Type");
+      var resp = await req.close();
+
+      expect(resp.statusCode, 200);
+      expect(resp.headers.value("access-control-allow-origin"),
+          "http://foobar.com");
+      expect(resp.headers.value("access-control-allow-headers"),
+          "origin, authorization, x-requested-with, x-forwarded-for, content-type");
       expect(resp.headers.value("access-control-allow-methods"),
           "POST, PUT, DELETE, GET");
       expect(resp.headers.value("access-control-expose-headers"), isNull);
@@ -374,7 +395,7 @@ void main() {
       expect(resp.headers.value("access-control-allow-origin"),
           "http://foobar.com");
       expect(resp.headers.value("access-control-allow-headers"),
-          "authorization, x-requested-with, x-forwarded-for, content-type");
+          "origin, authorization, x-requested-with, x-forwarded-for, content-type");
       expect(resp.headers.value("access-control-allow-methods"),
           "POST, PUT, DELETE, GET");
       expect(resp.headers.value("access-control-expose-headers"), isNull);
@@ -394,7 +415,7 @@ void main() {
       expect(resp.headers.value("access-control-allow-origin"),
           "http://foobar.com");
       expect(resp.headers.value("access-control-allow-headers"),
-          "authorization, x-requested-with, x-forwarded-for, content-type");
+          "origin, authorization, x-requested-with, x-forwarded-for, content-type");
       expect(resp.headers.value("access-control-allow-methods"),
           "POST, PUT, DELETE, GET");
       expect(resp.headers.value("access-control-expose-headers"), isNull);
@@ -461,7 +482,7 @@ void main() {
       expect(resp.headers.value("access-control-allow-origin"),
           "http://foobar.com");
       expect(resp.headers.value("access-control-allow-headers"),
-          "authorization, x-requested-with, x-forwarded-for, content-type");
+          "origin, authorization, x-requested-with, x-forwarded-for, content-type");
       expect(resp.headers.value("access-control-allow-methods"),
           "POST, PUT, DELETE, GET");
       expect(resp.headers.value("access-control-expose-headers"), isNull);
@@ -481,7 +502,7 @@ void main() {
       expect(resp.headers.value("access-control-allow-origin"),
           "http://exclusive.com");
       expect(resp.headers.value("access-control-allow-headers"),
-          "authorization, x-requested-with, x-forwarded-for, content-type");
+          "origin, authorization, x-requested-with, x-forwarded-for, content-type");
       expect(resp.headers.value("access-control-allow-methods"),
           "POST, PUT, DELETE, GET");
       expect(resp.headers.value("access-control-expose-headers"), isNull);
@@ -506,12 +527,34 @@ void main() {
       expect(resp.headers.value("access-control-allow-origin"),
           "http://foobar.com");
       expect(resp.headers.value("access-control-allow-headers"),
-          "authorization, x-requested-with, x-forwarded-for, content-type");
+          "origin, authorization, x-requested-with, x-forwarded-for, content-type");
       expect(resp.headers.value("access-control-allow-methods"),
           "POST, PUT, DELETE, GET");
       expect(resp.headers.value("access-control-expose-headers"), isNull);
       expect(resp.headers.value("access-control-allow-credentials"), "true");
       expect(resp.headers.value("access-control-max-age"), "86400");
+    });
+  });
+
+  group("Generators and policies", () {
+    test("Headers don't continue to pile up when using a generator", () async {
+      http.Response lastResponse;
+
+      for (var i = 0; i < 10; i++) {
+        lastResponse = await http.get("http://localhost:8000/add",
+            headers: {"Origin": "http://www.a.com"});
+        expect(lastResponse.statusCode, 200);
+      }
+
+      expect(
+          lastResponse.headers["access-control-expose-headers"]
+              .indexOf("X-Header"),
+          greaterThanOrEqualTo(0));
+      expect(
+          lastResponse.headers["access-control-expose-headers"]
+              .indexOf("X-Header"),
+          lastResponse.headers["access-control-expose-headers"]
+              .lastIndexOf("X-Header"));
     });
   });
 }
@@ -532,18 +575,14 @@ expectThatNoCORSProcessingOccurred(dynamic resp) {
   }
 }
 
-class CORSSink extends RequestSink
-    implements AuthServerDelegate<AuthImpl, TokenImpl, AuthCodeImpl> {
-  CORSSink(Map<String, dynamic> opts) : super(opts) {
-    authServer = new AuthServer<AuthImpl, TokenImpl, AuthCodeImpl>(this);
-  }
-
-  AuthServer<AuthImpl, TokenImpl, AuthCodeImpl> authServer;
-
+class CORSSink extends RequestSink implements AuthValidator {
+  CORSSink(ApplicationConfiguration opts) : super(opts);
   void setupRouter(Router router) {
+    router.route("/add").generate(() => new AdditiveController());
+
     router
         .route("/opts")
-        .pipe(new Authorizer(authServer))
+        .pipe(new Authorizer(this))
         .generate(() => new OptionsController());
     router
         .route("/restrictive")
@@ -551,7 +590,7 @@ class CORSSink extends RequestSink
     router.route("/single_method").generate(() => new SingleMethodController());
     router
         .route("/restrictive_auth")
-        .pipe(new Authorizer(authServer))
+        .pipe(new Authorizer(this))
         .generate(() => new RestrictiveOriginController());
     router
         .route("/restrictive_nocreds")
@@ -562,111 +601,29 @@ class CORSSink extends RequestSink
         .generate(() => new DefaultPolicyController());
     router
         .route("/nopolicyauth")
-        .pipe(new Authorizer(authServer))
+        .pipe(new Authorizer(this))
         .generate(() => new NoPolicyController());
     router
         .route("/defaultpolicyauth")
-        .pipe(new Authorizer(authServer))
+        .pipe(new Authorizer(this))
         .generate(() => new DefaultPolicyController());
   }
 
-  Future<TokenImpl> tokenForAccessToken(
-      AuthServer server, String accessToken) async {
-    if (accessToken == "noauth") {
+  Future<Authorization> fromBasicCredentials(
+      AuthBasicCredentials credentials) async {
+    return new Authorization("a", 1, this);
+  }
+
+  Future<Authorization> fromBearerToken(
+      String bearerToken, {List<AuthScope> scopesRequired}) async {
+    if (bearerToken == "noauth") {
       return null;
     }
-
-    return new TokenImpl()
-      ..accessToken = "access"
-      ..refreshToken = "access"
-      ..clientID = "access"
-      ..resourceOwnerIdentifier = "access"
-      ..issueDate = new DateTime.now().toUtc()
-      ..expirationDate = new DateTime(10000)
-      ..type = "password";
+    return new Authorization("a", 1, this);
   }
 
-  Future<TokenImpl> tokenForRefreshToken(
-      AuthServer server, String refreshToken) async {
-    if (refreshToken == "noauth") {
-      return null;
-    }
-
-    return new TokenImpl()
-      ..accessToken = "access"
-      ..refreshToken = "access"
-      ..clientID = "access"
-      ..resourceOwnerIdentifier = "access"
-      ..type = "password";
-  }
-
-  Future<AuthImpl> authenticatableForUsername(
-      AuthServer server, String username) async {
-    return new AuthImpl()
-      ..username = "access"
-      ..id = "access";
-  }
-
-  Future<AuthImpl> authenticatableForID(AuthServer server, dynamic id) async {
-    return new AuthImpl()
-      ..username = "access"
-      ..id = "access";
-  }
-
-  Future<AuthClient> clientForID(AuthServer server, String id) async {
-    if (id == "noauth") {
-      return null;
-    }
-
-    var salt = AuthServer.generateRandomSalt();
-    var password = AuthServer.generatePasswordHash("access", salt);
-
-    return new AuthClient("access", password, salt);
-  }
-
-  Future deleteTokenForRefreshToken(
-      AuthServer server, String refreshToken) async {}
-  Future<TokenImpl> storeToken(AuthServer server, TokenImpl t) async => null;
-  Future updateToken(AuthServer server, TokenImpl t) async {}
-  Future<AuthCodeImpl> storeAuthCode(
-          AuthServer server, AuthCodeImpl ac) async =>
+  List<APISecurityRequirement> requirementsForStrategy(AuthStrategy strategy) =>
       null;
-  Future updateAuthCode(AuthServer server, AuthCodeImpl ac) async {}
-  Future deleteAuthCode(AuthServer server, AuthCodeImpl ac) async {}
-  Future<AuthCodeImpl> authCodeForCode(
-      AuthServer server, String authCode) async {
-    return new AuthCodeImpl()
-      ..code = authCode
-      ..expirationDate = new DateTime.now().add(new Duration(minutes: 10));
-  }
-}
-
-class AuthImpl implements Authenticatable {
-  String username;
-  String hashedPassword;
-  String salt;
-  dynamic id;
-}
-
-class TokenImpl implements AuthTokenizable {
-  String accessToken;
-  String refreshToken;
-  DateTime issueDate;
-  DateTime expirationDate;
-  String type;
-  dynamic resourceOwnerIdentifier;
-  String clientID;
-}
-
-class AuthCodeImpl implements AuthTokenExchangable<TokenImpl> {
-  String redirectURI;
-  String code;
-  String clientID;
-  dynamic resourceOwnerIdentifier;
-  DateTime issueDate;
-  DateTime expirationDate;
-
-  TokenImpl token;
 }
 
 class NoPolicyController extends HTTPController {
@@ -745,5 +702,16 @@ class OptionsController extends HTTPController {
 class SingleMethodController extends HTTPController {
   SingleMethodController() {
     policy.allowedMethods = ["GET"];
+  }
+}
+
+class AdditiveController extends HTTPController {
+  AdditiveController() {
+    policy.exposedResponseHeaders.add("X-Header");
+  }
+
+  @httpGet
+  Future<Response> getThing() async {
+    return new Response.ok(null);
   }
 }

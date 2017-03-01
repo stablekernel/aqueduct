@@ -1,18 +1,25 @@
-import 'dart:async';
-
-import '../persistent_store/persistent_store_query.dart';
 import 'managed.dart';
 import '../persistent_store/persistent_store.dart';
 import '../query/query.dart';
 
-/// Coordinates with a [ManagedDataModel] and [PersistentStore] to execute queries and
-/// translate between [ManagedObject] objects and database rows.
+/// The target for database queries and coordinator of [Query]s.
 ///
-/// An application that uses Aqueduct's ORM functionality must create an instance of this type.
+/// An application that uses Aqueduct's ORM functionality must create an instance of this type. This is done
+/// in a [RequestSink]'s constructor:
+///
+///         class MyRequestSink extends RequestSink {
+///            MyRequestSink(ApplicationConfiguration config) : super(config) {
+///               var store = new PostgreSQLPersistentStore(...);
+///               var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
+///               context = new ManagedContext(dataModel, store);
+///            }
+///
+///            ManagedContext context;
+///         }
 ///
 /// A [Query] must have a valid [ManagedContext] to execute. Most applications only need one [ManagedContext],
-/// so the first [ManagedContext] instantiated becomes the [ManagedContext.defaultContext]. By default, [Query]s
-/// target the [ManagedContext.defaultContext].
+/// so the most recently [ManagedContext] instantiated becomes the [ManagedContext.defaultContext]. By default, [Query]s
+/// target the [ManagedContext.defaultContext] and need not be specified.
 class ManagedContext {
   /// The default context that a [Query] runs on.
   ///
@@ -29,7 +36,8 @@ class ManagedContext {
   /// Creates an instance of [ManagedContext] from a [ManagedDataModel] and [PersistentStore].
   ///
   /// This instance will become the [ManagedContext.defaultContext], unless another [ManagedContext]
-  /// is created, in which the new context becomes the default context.
+  /// is created, in which the new context becomes the default context. See [ManagedContext.standalone]
+  /// to create a context without setting it as the default context.
   ManagedContext(this.dataModel, this.persistentStore) {
     defaultContext = this;
   }
@@ -40,7 +48,7 @@ class ManagedContext {
   /// but does not set it to be the [defaultContext].
   ManagedContext.standalone(this.dataModel, this.persistentStore);
 
-  /// The persistent store that [Query]s on this context are executed on.
+  /// The persistent store that [Query]s on this context are executed through.
   PersistentStore persistentStore;
 
   /// The data model containing the [ManagedEntity]s that describe the [ManagedObject]s this instance works with.
@@ -51,154 +59,5 @@ class ManagedContext {
   /// See [ManagedDataModel.entityForType].
   ManagedEntity entityForType(Type type) {
     return dataModel.entityForType(type);
-  }
-
-  Future<ManagedObject> executeInsertQuery(Query query) async {
-    var psq = query.persistentQueryForStore(persistentStore);
-    var results = await persistentStore.executeInsertQuery(psq);
-
-    return query.entity.instanceFromMappingElements(results);
-  }
-
-  Future<List<ManagedObject>> executeFetchQuery(Query query) async {
-    var psq = query.persistentQueryForStore(persistentStore);
-    var results = await persistentStore.executeFetchQuery(psq);
-
-    return _coalesceAndMapRows(results, query.entity);
-  }
-
-  Future<List<ManagedObject>> executeUpdateQuery(Query query) async {
-    var psq = query.persistentQueryForStore(persistentStore);
-    var results = await persistentStore.executeUpdateQuery(psq);
-
-    return results.map((row) {
-      return query.entity.instanceFromMappingElements(row);
-    }).toList();
-  }
-
-  Future<int> executeDeleteQuery(Query query) async {
-    return await persistentStore
-        .executeDeleteQuery(query.persistentQueryForStore(persistentStore));
-  }
-
-  List<ManagedObject> _coalesceAndMapRows(
-      List<List<PersistentColumnMapping>> elements, ManagedEntity entity) {
-    if (elements.length == 0) {
-      return [];
-    }
-
-    // If we don't have any JoinElements, we should avoid doing anything special.
-    if (!elements.first.any((e) => e is PersistentJoinMapping)) {
-      return elements.map((row) {
-        return entity.instanceFromMappingElements(row);
-      }).toList();
-    }
-
-    // There needs to be tests to ensure that the order of JoinElements is dependent.
-    List<PersistentJoinMapping> joinElements =
-        elements.first.where((e) => e is PersistentJoinMapping).toList();
-
-    var joinElementIndexes =
-        joinElements.map((e) => elements.first.indexOf(e)).toList();
-
-    var primaryKeyColumn = elements.first.firstWhere((e) {
-      var eProp = e.property;
-      if (eProp is ManagedAttributeDescription) {
-        return eProp.isPrimaryKey;
-      }
-      return false;
-    });
-
-    var primaryKeyColumnIndex = elements.first.indexOf(primaryKeyColumn);
-    Map<String, Map<dynamic, ManagedObject>> matchMap = {};
-
-    var primaryTypeString = entity.tableName;
-    matchMap[primaryTypeString] = {};
-    joinElements
-        .map((PersistentJoinMapping e) => e.joinProperty.entity.tableName)
-        .forEach((name) {
-      matchMap[name] = {};
-    });
-
-    elements.forEach((row) {
-      var primaryTypeInstance = _createInstanceIfNecessary(
-              entity, row, primaryKeyColumnIndex, joinElements, matchMap)
-          .first as ManagedObject;
-      Map<ManagedEntity, ManagedObject> instancesInThisRow = {
-        entity: primaryTypeInstance
-      };
-
-      joinElementIndexes
-          .map((joinIndex) => row[joinIndex])
-          .forEach((PersistentColumnMapping element) {
-        PersistentJoinMapping joinElement = element;
-
-        var subInstanceTuple = _createInstanceIfNecessary(
-            joinElement.joinProperty.entity,
-            joinElement.values,
-            joinElement.primaryKeyIndex,
-            joinElements,
-            matchMap);
-        if (subInstanceTuple == null) {
-          return;
-        }
-
-        ManagedObject subInstance = subInstanceTuple.first;
-        instancesInThisRow[joinElement.joinProperty.entity] = subInstance;
-        if (subInstanceTuple.last) {
-          ManagedRelationshipDescription owningModelPropertyDesc =
-              joinElement.property;
-          ManagedObject owningInstance =
-              instancesInThisRow[owningModelPropertyDesc.entity];
-
-          var inversePropertyName = owningModelPropertyDesc.name;
-          if (owningModelPropertyDesc.relationshipType ==
-              ManagedRelationshipType.hasMany) {
-            owningInstance[inversePropertyName].add(subInstance);
-          } else {
-            owningInstance[inversePropertyName] = subInstance;
-          }
-        }
-      });
-    });
-
-    return matchMap[primaryTypeString].values.toList();
-  }
-
-  // Returns a two element tuple, where the first element is the instance represented by mapping the columns across the mappingEntity. The second
-  // element is a boolean indicating if the instance was newly created (true) or already existed in the result set (false).
-  List<dynamic> _createInstanceIfNecessary(
-      ManagedEntity mappingEntity,
-      List<PersistentColumnMapping> columns,
-      int primaryKeyIndex,
-      List<PersistentJoinMapping> joinElements,
-      Map<String, Map<dynamic, ManagedObject>> matchMap) {
-    var primaryKeyValue = columns[primaryKeyIndex].value;
-    if (primaryKeyValue == null) {
-      return null;
-    }
-
-    var existingInstance = matchMap[mappingEntity.tableName][primaryKeyValue];
-
-    var isNewInstance = false;
-    if (existingInstance == null) {
-      isNewInstance = true;
-
-      existingInstance = mappingEntity.instanceFromMappingElements(columns);
-      joinElements
-          .where((je) => je.property.entity == mappingEntity)
-          .forEach((je) {
-        ManagedRelationshipDescription relDesc = je.property;
-
-        if (relDesc.relationshipType == ManagedRelationshipType.hasMany) {
-          existingInstance[je.property.name] = new ManagedSet();
-        } else {
-          existingInstance[je.property.name] = null;
-        }
-      });
-
-      matchMap[mappingEntity.tableName][primaryKeyValue] = existingInstance;
-    }
-    return [existingInstance, isNewInstance];
   }
 }

@@ -1,12 +1,16 @@
+import 'dart:io';
+import 'dart:async';
+
+import 'package:aqueduct/test.dart';
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
-import 'dart:async';
-import 'dart:io';
+
 import '../helpers.dart';
 
 void main() {
   group("Standard operations", () {
     var app = new Application<TestSink>();
+    RequestController.letUncaughtExceptionsEscape = true;
     app.configuration.port = 8080;
     var client = new TestClient.onPort(app.configuration.port);
     List<TestModel> allObjects = [];
@@ -345,7 +349,7 @@ void main() {
 }
 
 class TestSink extends RequestSink {
-  TestSink(Map<String, dynamic> opts) : super(opts) {
+  TestSink(ApplicationConfiguration opts) : super(opts) {
     var dataModel = new ManagedDataModel([TestModel]);
     var persistentStore = new PostgreSQLPersistentStore.fromConnectionInfo(
         "dart", "dart", "localhost", 5432, "dart_test");

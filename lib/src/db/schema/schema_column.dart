@@ -116,8 +116,14 @@ class SchemaColumn {
   bool matches(SchemaColumn otherColumn, [List<String> reasons]) {
     var matches = true;
 
+    if (name.toLowerCase() != otherColumn.name.toLowerCase()) {
+      matches = false;
+      reasons?.add(
+          "Column '\$table.${name}' does not have the same value for 'name' in compared schemas"
+          "(${otherColumn.name.toLowerCase()} != ${name.toLowerCase()})");
+    }
+
     var symbols = [
-      #name,
       #isIndexed,
       #type,
       #isNullable,
@@ -137,7 +143,8 @@ class SchemaColumn {
           argColumnMirror.getField(sym).reflectee) {
         matches = false;
         reasons?.add(
-            "\$table.${name} does not have same ${MirrorSystem.getName(sym)}.");
+            "Column '\$table.${name}' does not have same value for '${MirrorSystem.getName(sym)}' in compared schemas"
+            " (${receiverColumnMirror.getField(sym).reflectee} != ${argColumnMirror.getField(sym).reflectee}).");
       }
     });
 

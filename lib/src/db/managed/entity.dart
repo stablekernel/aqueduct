@@ -2,15 +2,12 @@ import 'dart:mirrors';
 import 'managed.dart';
 import '../../http/documentable.dart';
 import '../query/query.dart';
-import '../persistent_store/persistent_store_query.dart';
 
 /// Mapping information between a table in a database and a [ManagedObject] object.
 ///
-/// An entity defines the mapping between a database table and [ManagedObject] subclass. It is a necessary component of the overall ORM capabilities
-/// of Aqueduct. It may also be used at runtime to reflect on the database table and [ManagedObject] that represents that table in a more meaningful way.
-///
-/// Instances of this class are automatically created by [ManagedDataModel]. In general, you do not need to use or create instances
-/// of this class.
+/// An entity defines the mapping between a database table and [ManagedObject] subclass. Entities
+/// are created by declaring [ManagedObject] subclasses and instantiating a [ManagedDataModel].
+/// In general, you do not need to use or create instances of this class.
 ///
 /// An entity describes the properties that a subclass of [ManagedObject] will have and their representation in the underlying database.
 /// Each of these properties are represented by an instance of a [ManagedPropertyDescription] subclass. A property is either an attribute or a relationship.
@@ -74,11 +71,6 @@ class ManagedEntity {
     _primaryKey = m.values
         .firstWhere((attrDesc) => attrDesc.isPrimaryKey, orElse: () => null)
         ?.name;
-
-    if (_primaryKey == null) {
-      throw new ManagedDataModelException(
-          "No primary key for entity ${MirrorSystem.getName(persistentType.simpleName)}");
-    }
   }
 
   /// All relationship values of this entity.
@@ -107,7 +99,7 @@ class ManagedEntity {
   /// The list of default properties returned when querying an instance of this type.
   ///
   /// By default, a [Query] will return all the properties named in this list. You may specify
-  /// a different set of properties by setting the [Query]'s [resultProperties] value. The default
+  /// a different set of properties by setting the [Query.returningProperties] value. The default
   /// set of properties is a list of all attributes that do not have the [omitByDefault] flag
   /// set in their [ManagedColumnAttributes] and all [ManagedRelationshipType.belongsTo] relationships.
   List<String> get defaultProperties {
@@ -140,6 +132,10 @@ class ManagedEntity {
 
   String _primaryKey;
 
+  ManagedAttributeDescription get primaryKeyAttribute {
+    return properties[primaryKey];
+  }
+
   /// Name of table in database this entity maps to.
   ///
   /// By default, the table will be named by the persistent type, e.g., a managed object declared as so will have a [tableName] of '_User'.
@@ -166,36 +162,6 @@ class ManagedEntity {
         instanceType.newInstance(new Symbol(""), []).reflectee as ManagedObject;
     model.entity = this;
     return model;
-  }
-
-  /// Creates an instance of this entity from a list of [PersistentColumnMapping]s.
-  ///
-  /// This method is used by a [ManagedContext] to instantiate entities from a row
-  /// returned from a database. It will initialize all column values, including belongsTo
-  /// relationships. It will not populate data from hasMany or hasOne relationships
-  /// that were populated in a join query, as this is the responsibility of the context.
-  ManagedObject instanceFromMappingElements(
-      List<PersistentColumnMapping> elements) {
-    ManagedObject instance = newInstance();
-
-    elements.forEach((e) {
-      if (e is! PersistentJoinMapping) {
-        if (e.property is ManagedRelationshipDescription) {
-          // A belongsTo relationship, keep the foreign key.
-          if (e.value != null) {
-            ManagedRelationshipDescription relDesc = e.property;
-            ManagedObject innerInstance =
-                relDesc.destinationEntity.newInstance();
-            innerInstance[relDesc.destinationEntity.primaryKey] = e.value;
-            instance[e.property.name] = innerInstance;
-          }
-        } else {
-          instance[e.property.name] = e.value;
-        }
-      }
-    });
-
-    return instance;
   }
 
   Map<String, APISchemaObject> _propertiesForEntity(ManagedEntity me,

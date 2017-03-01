@@ -45,14 +45,10 @@ class ManagedMatcherBacking extends ManagedBacking {
       if (relDesc?.relationshipType == ManagedRelationshipType.hasMany) {
         valueMap[propertyName] = new ManagedSet()
           ..entity = relDesc.destinationEntity;
-      } else if (relDesc?.relationshipType == ManagedRelationshipType.hasOne) {
+      } else if (relDesc?.relationshipType == ManagedRelationshipType.hasOne ||
+          relDesc?.relationshipType == ManagedRelationshipType.belongsTo) {
         valueMap[propertyName] = relDesc.destinationEntity.newInstance()
           ..backing = new ManagedMatcherBacking();
-      } else if (relDesc?.relationshipType ==
-          ManagedRelationshipType.belongsTo) {
-        throw new QueryException(QueryExceptionEvent.requestFailure,
-            message:
-                "Attempting to access matcher on RelationshipInverse $propertyName on ${entity.tableName}. Assign this value to whereRelatedByValue instead.");
       }
     }
 
@@ -67,26 +63,43 @@ class ManagedMatcherBacking extends ManagedBacking {
     }
 
     if (value is MatcherExpression) {
-      var relDesc = entity.relationships[propertyName];
+      var property = entity.properties[propertyName];
 
-      if (relDesc != null &&
-          relDesc.relationshipType != ManagedRelationshipType.belongsTo) {
-        throw new QueryException(QueryExceptionEvent.internalFailure,
-            message:
-                "Attempting to set matcher on hasOne or hasMany relationship. Use includeInResultSet.");
+      if (property is ManagedRelationshipDescription) {
+        var innerObject = valueForProperty(entity, propertyName);
+        if (innerObject is ManagedObject) {
+          innerObject[innerObject.entity.primaryKey] = value;
+        } else if (innerObject is ManagedSet) {
+          innerObject.haveAtLeastOneWhere[innerObject.entity.primaryKey] =
+              value;
+        }
+      } else {
+        valueMap[propertyName] = value;
       }
-
-      valueMap[propertyName] = value;
     } else {
       // Setting simply a value, wrap it with an AssignmentMatcher if applicable.
       if (entity.relationships.containsKey(propertyName)) {
         throw new QueryException(QueryExceptionEvent.internalFailure,
             message:
-                "Attempting to set simple value matcher for property $propertyName on ${entity.tableName}, but that property is a relationship.");
+                "Attempting to set a value for property '${entity.tableName}.$propertyName' "
+                "on, but that property is a relationship. Valid values for relationship "
+                "properties are whereRelatedByValue, whereNull, or whereNotNull.");
       }
 
       valueMap[propertyName] =
           new ComparisonMatcherExpression(value, MatcherOperator.equalTo);
     }
+  }
+}
+
+class ManagedAccessTrackingBacking extends ManagedBacking {
+  Map<String, dynamic> get valueMap => null;
+
+  dynamic valueForProperty(ManagedEntity entity, String propertyName) =>
+      propertyName;
+
+  void setValueForProperty(
+      ManagedEntity entity, String propertyName, dynamic value) {
+    // no-op
   }
 }

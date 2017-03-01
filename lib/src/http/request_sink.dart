@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:async';
+import 'dart:mirrors';
 
 import 'request.dart';
 import 'request_controller.dart';
@@ -7,25 +8,50 @@ import 'documentable.dart';
 import 'router.dart';
 import '../application/application.dart';
 
-/// Instances of this class are responsible for setting up routing and resources used by an [Application].
+/// Instances of this type are the root of an Aqueduct application.
 ///
 /// [Application]s set up HTTP(S) listeners, but do not do anything with them. The behavior of how an application
-/// responds to requests is defined by its [RequestSink]. Must be subclassed.
+/// responds to requests is defined by its [RequestSink]. Must be subclassed. This class must be visible
+/// to the application library file for tools like `aqueduct serve` to run Aqueduct applications.
 ///
 /// A [RequestSink] must implement its constructor and [setupRouter]. HTTP requests to the [Application] are added to a [RequestSink]
 /// for processing. The path the HTTP request takes is determined by the [RequestController] chains in [setupRouter]. A [RequestSink]
-/// is also a [RequestController], but will always forward HTTP requests on to its [initialHandler].
+/// is also a [RequestController], but will always forward HTTP requests on to its [initialController].
+///
+/// Multiple instances of this type will be created for an [Application], each processing requests independently. Initialization code for
+/// a [RequestSink] instance happens in the constructor, [setupRouter] and [willOpen] - in that order. The constructor instantiates resources,
+/// [setupRouter] sets up routing and [willOpen] performs any tasks that occur asynchronously, like opening database connections. These initialization
+/// steps occur for every instance of [RequestSink] in an application.
+///
+/// Any initialization that occurs once per application cannot
+/// be performed in one of above methods. Instead, one-time initialization must be performed by implementing a static method in the
+/// [RequestSink] subclass named `initializeApplication`. This method gets executed once when an application starts, prior to instances of [RequestSink]
+/// being created. This method takes an [ApplicationConfiguration],
+/// and may attach values to its [ApplicationConfiguration.options] for use by the [RequestSink] instances. This method is often used to
+/// read configuration values from a file.
+///
+/// The signature of this method is ([ApplicationConfiguration]) -> [Future], for example:
+///
+///         class MyRequestSink extends RequestSink {
+///           static Future initializeApplication(ApplicationConfiguration config) async {
+///             // Do one-time setup here, e.g read configuration values from a file
+///             var configurationValuesFromFile = ...;
+///             config.options = configurationValuesFromFile;
+///           }
+///           ...
+///         }
+///
 abstract class RequestSink extends RequestController
     implements APIDocumentable {
   /// Default constructor.
   ///
-  /// The default constructor takes a [Map] of configuration [options]. This [Map] is the same [Map] in [ApplicationConfiguration.configurationOptions].
+  /// The default constructor takes a [Map] of configuration [configuration]. This [Map] is the same [Map] in [ApplicationConfiguration.options].
   ///
   /// For any code that requires async initialization, use [willOpen]. However, it is important to note that any properties that are used during initialization callbacks (like [setupRouter]) should be
   /// initialized in this constructor and not during [willOpen]. If properties that are needed during initialization callbacks
   /// must be initialized asynchronously, those properties should implement their own deferred initialization mechanism
   /// that can be triggered in [willOpen], but still must be initialized in this constructor.
-  RequestSink(this.options);
+  RequestSink(this.configuration);
 
   /// Documentation info for this instance.
   APIInfo apiInfo = new APIInfo();
@@ -45,7 +71,7 @@ abstract class RequestSink extends RequestController
   ///
   /// Options allow passing of application-specific information - like database connection information -
   /// from configuration data. This property is set in the constructor.
-  Map<String, dynamic> options;
+  ApplicationConfiguration configuration;
 
   /// Returns the first [RequestController] to handle HTTP requests added to this sink.
   ///
@@ -95,19 +121,14 @@ abstract class RequestSink extends RequestController
 
     doc.securitySchemes?.values?.forEach((scheme) {
       if (scheme.isOAuth2) {
-        if (scheme.oauthFlow == APISecuritySchemeFlow.implicit ||
-            scheme.oauthFlow == APISecuritySchemeFlow.accessCode) {
-          var morePath = _authorizationPath(doc.paths);
-          if (morePath != null) {
-            scheme.authorizationURL = host.resolve(morePath).toString();
-          }
+        var authCodePath = _authorizationPath(doc.paths);
+        if (authCodePath != null) {
+          scheme.authorizationURL = host.resolve(authCodePath).toString();
         }
 
-        if (scheme.oauthFlow == APISecuritySchemeFlow.password ||
-            scheme.oauthFlow == APISecuritySchemeFlow.accessCode ||
-            scheme.oauthFlow == APISecuritySchemeFlow.application) {
-          var morePath = _authorizationTokenPath(doc.paths);
-          scheme.tokenURL = host.resolve(morePath).toString();
+        var tokenPath = _authorizationTokenPath(doc.paths);
+        if (tokenPath != null) {
+          scheme.tokenURL = host.resolve(tokenPath).toString();
         }
       }
     });
@@ -133,6 +154,27 @@ abstract class RequestSink extends RequestController
         doc.paths.expand((p) => p.operations.expand((op) => op.produces)));
 
     return doc;
+  }
+
+  static Type get defaultSinkType {
+    var sinkType = reflectClass(RequestSink);
+    var classes = currentMirrorSystem()
+        .libraries
+        .values
+        .where((lib) => lib.uri.scheme == "package" || lib.uri.scheme == "file")
+        .expand((lib) => lib.declarations.values)
+        .where((decl) =>
+            decl is ClassMirror &&
+            decl.isSubclassOf(sinkType) &&
+            decl.reflectedType != RequestSink)
+        .map((decl) => decl as ClassMirror)
+        .toList();
+
+    if (classes.length == 0) {
+      return null;
+    }
+
+    return classes.first.reflectedType;
   }
 
   String _authorizationPath(List<APIPath> paths) {
