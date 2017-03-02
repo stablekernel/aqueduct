@@ -18,21 +18,21 @@ pub global activate aqueduct
 
 Make sure you read the output of this command in full - it may have you do some extra setup.
 
-Once the `aqueduct` utility has been activated, you should provision your local machine to be able to run Aqueduct application tests. This is done with the following command:
+To create new projects, use the following:
+
+```bash
+aqueduct create my_app
+```
+
+This command creates a new project directory from a template.
+
+Once the `aqueduct` utility has been activated, you should setup your local machine to be able to run Aqueduct application tests. This is done with the following command:
 
 ```bash
 aqueduct setup
 ```
 
 This command will prompt you to install PostgreSQL locally and then create a test database that is configured such that Aqueduct can run tests against it.
-
-To create new projects, it is recommended to use the `aqueduct create` command:
-
-```bash
-aqueduct create my_app
-```
-
-This command creates a new project directory from a template that makes getting started much easier.
 
 The recommended IDE is [IntelliJ IDEA CE](https://www.jetbrains.com/idea/download/) (or any other IntelliJ platform, like Webstorm) with the [Dart Plugin](https://plugins.jetbrains.com/idea/plugin/6351-dart). (The plugin can be installed directly from the IntelliJ IDEA plugin preference pane.)
 
