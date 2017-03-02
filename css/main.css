@@ -68,6 +68,11 @@ code {
     padding-right: 0;
 }
 
+div.highlighter-rouge {
+  padding-top: 15px;
+  padding-bottom: 20px;
+}
+
 code.highlighter-rouge {
   font-size: inherit;
   color: rgb(102, 102, 102);
