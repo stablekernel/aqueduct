@@ -1,0 +1,1211 @@
+
+<!DOCTYPE html>
+<html class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for Aqueduct, a Dart server-side framework.">
+      
+      
+      
+      
+        <link rel="shortcut icon" href="../../assets/images/favicon.png">
+      
+      <meta name="generator" content="mkdocs-0.16.1, mkdocs-material-1.1.1">
+    
+    
+      
+        <title>Handling Requests: HTTPController - Aqueduct</title>
+      
+    
+    
+      <script src="../../assets/javascripts/modernizr-56ade86843.js"></script>
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/application-4ebe3f1d68.css">
+      
+    
+    
+      
+        
+        
+        
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700|Roboto+Mono">
+        <style>body,input{font-family:"Roboto","Helvetica Neue",Helvetica,Arial,sans-serif}code,kbd,pre{font-family:"Roboto Mono","Courier New",Courier,monospace}</style>
+      
+      <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    
+    
+      <link rel="stylesheet" href="../../style/css/override.css">
+    
+    
+  </head>
+  
+  
+  
+  
+    <body>
+  
+    <svg class="md-svg">
+      <defs>
+        
+        
+          <svg xmlns="http://www.w3.org/2000/svg" width="416" height="448" viewBox="0 0 416 448" id="github"><path fill="currentColor" d="M160 304q0 10-3.125 20.5t-10.75 19T128 352t-18.125-8.5-10.75-19T96 304t3.125-20.5 10.75-19T128 256t18.125 8.5 10.75 19T160 304zm160 0q0 10-3.125 20.5t-10.75 19T288 352t-18.125-8.5-10.75-19T256 304t3.125-20.5 10.75-19T288 256t18.125 8.5 10.75 19T320 304zm40 0q0-30-17.25-51T296 232q-10.25 0-48.75 5.25Q229.5 240 208 240t-39.25-2.75Q130.75 232 120 232q-29.5 0-46.75 21T56 304q0 22 8 38.375t20.25 25.75 30.5 15 35 7.375 37.25 1.75h42q20.5 0 37.25-1.75t35-7.375 30.5-15 20.25-25.75T360 304zm56-44q0 51.75-15.25 82.75-9.5 19.25-26.375 33.25t-35.25 21.5-42.5 11.875-42.875 5.5T212 416q-19.5 0-35.5-.75t-36.875-3.125-38.125-7.5-34.25-12.875T37 371.5t-21.5-28.75Q0 312 0 260q0-59.25 34-99-6.75-20.5-6.75-42.5 0-29 12.75-54.5 27 0 47.5 9.875t47.25 30.875Q171.5 96 212 96q37 0 70 8 26.25-20.5 46.75-30.25T376 64q12.75 25.5 12.75 54.5 0 21.75-6.75 42 34 40 34 99.5z"/></svg>
+        
+      </defs>
+    </svg>
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="drawer">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="search">
+    <label class="md-overlay" data-md-component="overlay" for="drawer"></label>
+    
+      <header class="md-header">
+  <nav class="md-header-nav md-grid">
+    <div class="md-flex">
+      <div class="md-flex__cell md-flex__cell--shrink">
+        
+          <a href="../.." title="Aqueduct" class="md-icon md-icon--home md-header-nav__button">
+          </a>
+        
+      </div>
+      <div class="md-flex__cell md-flex__cell--shrink">
+        <label class="md-icon md-icon--menu md-header-nav__button" for="drawer"></label>
+      </div>
+      <div class="md-flex__cell md-flex__cell--stretch">
+        <span class="md-flex__ellipsis md-header-nav__title">
+          
+            
+              
+                <span class="md-header-nav__parent">
+                  HTTP
+                </span>
+              
+            
+            Handling Requests: HTTPController
+          
+        </span>
+      </div>
+      <div class="md-flex__cell md-flex__cell--shrink">
+        
+          <label class="md-icon md-icon--search md-header-nav__button" for="search"></label>
+          
+<div class="md-search" data-md-component="search">
+  <div class="md-search__overlay"></div>
+  <div class="md-search__inner">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" placeholder="Search" accesskey="s" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="query">
+      <label class="md-icon md-search__icon" for="search"></label>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+        
+      </div>
+      <div class="md-flex__cell md-flex__cell--shrink">
+        <div class="md-header-nav__source">
+          
+            
+
+
+  
+
+
+  <a href="https://github.com/stablekernel/aqueduct" title="Go to repository" class="md-source" data-md-source="github">
+    
+      <div class="md-source__icon">
+        <svg viewBox="0 0 24 24" width="24" height="24">
+          <use xlink:href="#github" width="24" height="24"></use>
+        </svg>
+      </div>
+    
+    <div class="md-source__repository">
+      GitHub
+    </div>
+  </a>
+
+          
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>
+    
+    <div class="md-container">
+      
+      
+      <main class="md-main">
+        <div class="md-main__inner md-grid" data-md-component="container">
+          
+            
+              <div class="md-sidebar md-sidebar--primary" data-md-component="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    <nav class="md-nav md-nav--primary" data-md-level="0">
+  <label class="md-nav__title md-nav__title--site" for="drawer">
+    
+      <i class="md-icon md-icon--home md-nav__button"></i>
+    
+    Aqueduct
+  </label>
+  
+    <div class="md-nav__source">
+      
+
+
+  
+
+
+  <a href="https://github.com/stablekernel/aqueduct" title="Go to repository" class="md-source" data-md-source="github">
+    
+      <div class="md-source__icon">
+        <svg viewBox="0 0 24 24" width="24" height="24">
+          <use xlink:href="#github" width="24" height="24"></use>
+        </svg>
+      </div>
+    
+    <div class="md-source__repository">
+      GitHub
+    </div>
+  </a>
+
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../.." title="Home" class="md-nav__link">
+      Home
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-2" type="checkbox" id="nav-2">
+    
+    <label class="md-nav__link" for="nav-2">
+      Tutorial
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-2">
+        Tutorial
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../tut/getting-started/" title="1. Getting Started" class="md-nav__link">
+      1. Getting Started
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../tut/writing-tests/" title="2. Writing Tests" class="md-nav__link">
+      2. Writing Tests
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../tut/executing-queries/" title="3. Executing Database Queries" class="md-nav__link">
+      3. Executing Database Queries
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../tut/model-relationships-and-joins/" title="4. Advanced Database Queries" class="md-nav__link">
+      4. Advanced Database Queries
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../tut/deploying-and-other-fun-things/" title="5. Deploying" class="md-nav__link">
+      5. Deploying
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-3" type="checkbox" id="nav-3" checked>
+    
+    <label class="md-nav__link" for="nav-3">
+      HTTP
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-3">
+        HTTP
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../overview/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../structure/" title="Application Structure" class="md-nav__link">
+      Application Structure
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../request_and_response/" title="Request and Response Objects" class="md-nav__link">
+      Request and Response Objects
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../request_controller/" title="Handling Requests: Fundamentals" class="md-nav__link">
+      Handling Requests: Fundamentals
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../routing/" title="Routing" class="md-nav__link">
+      Routing
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../request_sink/" title="Initialization and the RequestSink" class="md-nav__link">
+      Initialization and the RequestSink
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-toggle md-nav__toggle" data-md-toggle="toc" type="checkbox" id="toc">
+    
+      
+    
+    
+      <label class="md-nav__link md-nav__link--active" for="toc">
+        Handling Requests: HTTPController
+      </label>
+    
+    <a href="./" title="Handling Requests: HTTPController" class="md-nav__link md-nav__link--active">
+      Handling Requests: HTTPController
+    </a>
+    
+      
+<nav class="md-nav md-nav--secondary">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#responder-methods" title="Responder Methods" class="md-nav__link">
+    Responder Methods
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#request-and-response-bodies" title="Request and Response Bodies" class="md-nav__link">
+    Request and Response Bodies
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#query-and-header-values" title="Query and Header Values" class="md-nav__link">
+    Query and Header Values
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#more-specialized-httpcontrollers" title="More Specialized HTTPControllers" class="md-nav__link">
+    More Specialized HTTPControllers
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#accessing-the-request" title="Accessing the Request" class="md-nav__link">
+    Accessing the Request
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+    
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../cors/" title="CORS Configuration" class="md-nav__link">
+      CORS Configuration
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-4" type="checkbox" id="nav-4">
+    
+    <label class="md-nav__link" for="nav-4">
+      Database/ORM
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-4">
+        Database/ORM
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../db/overview/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../db/modeling_data/" title="Modeling Data" class="md-nav__link">
+      Modeling Data
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../db/serialization/" title="Storage, Serialization and Deserialization" class="md-nav__link">
+      Storage, Serialization and Deserialization
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../db/executing_queries/" title="Executing Queries" class="md-nav__link">
+      Executing Queries
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../db/advanced_queries/" title="Advanced Queries" class="md-nav__link">
+      Advanced Queries
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../db/db_tools/" title="Migration and Tooling" class="md-nav__link">
+      Migration and Tooling
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../db/inside_the_db/" title="Inside the DB" class="md-nav__link">
+      Inside the DB
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-5" type="checkbox" id="nav-5">
+    
+    <label class="md-nav__link" for="nav-5">
+      OAuth 2.0
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-5">
+        OAuth 2.0
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../auth/overview/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../auth/server/" title="Setting up Authorization" class="md-nav__link">
+      Setting up Authorization
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../auth/authorizer/" title="Protected Routes" class="md-nav__link">
+      Protected Routes
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../auth/controllers/" title="Issuing Access Tokens" class="md-nav__link">
+      Issuing Access Tokens
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../auth/cli/" title="Creating OAuth 2.0 Clients" class="md-nav__link">
+      Creating OAuth 2.0 Clients
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../auth/what_is_oauth/" title="What is OAuth 2.0?" class="md-nav__link">
+      What is OAuth 2.0?
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-6" type="checkbox" id="nav-6">
+    
+    <label class="md-nav__link" for="nav-6">
+      Testing
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-6">
+        Testing
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../testing/overview/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../testing/harness/" title="Test Harness" class="md-nav__link">
+      Test Harness
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../testing/test_client/" title="Writing Tests and the TestClient" class="md-nav__link">
+      Writing Tests and the TestClient
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-7" type="checkbox" id="nav-7">
+    
+    <label class="md-nav__link" for="nav-7">
+      Deployment
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-7">
+        Deployment
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../deploy/overview/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../deploy/deploy_local/" title="Deploy Locally" class="md-nav__link">
+      Deploy Locally
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../deploy/deploy_heroku/" title="Deploy on Heroku" class="md-nav__link">
+      Deploy on Heroku
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../deploy/deploy_aws/" title="Deploy on AWS" class="md-nav__link">
+      Deploy on AWS
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../deploy/script/" title="Deploying without aqueduct serve" class="md-nav__link">
+      Deploying without aqueduct serve
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#responder-methods" title="Responder Methods" class="md-nav__link">
+    Responder Methods
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#request-and-response-bodies" title="Request and Response Bodies" class="md-nav__link">
+    Request and Response Bodies
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#query-and-header-values" title="Query and Header Values" class="md-nav__link">
+    Query and Header Values
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#more-specialized-httpcontrollers" title="More Specialized HTTPControllers" class="md-nav__link">
+    More Specialized HTTPControllers
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#accessing-the-request" title="Accessing the Request" class="md-nav__link">
+    Accessing the Request
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content">
+            <article class="md-content__inner md-typeset">
+               
+                 <a href="https://github.com/stablekernel/aqueduct/edit/master/docs/http/http_controller.md" title="Edit this page" class="md-icon md-content__edit">edit</a>
+               
+              
+                
+                <h1 id="httpcontroller">HTTPController</h1>
+<p>The overwhelming majority of Aqueduct code is written in subclasses of <code>HTTPController</code>. Instances of this class receive requests for a particular resource. For example, an <code>HTTPController</code> might handle requests to create, update, delete, read and list users.</p>
+<p>An <code>HTTPController</code> works by selecting one of its methods to respond to a request. This selection is based on the HTTP method and path variables of the request. For example, a <code>POST /users</code> would trigger a <code>createUser</code> method to be invoked, whereas a <code>GET /users/1</code> would trigger its <code>getUserByID</code> method. The names of these methods are up to you; the method that gets called is determined by metadata on the method and its parameters.</p>
+<h3 id="responder-methods">Responder Methods</h3>
+<p>A method that handles a request in an <code>HTTPController</code> subclass is called a <em>responder method</em>. To be a responder method, a method must return a <code>Future&lt;Response&gt;</code> and have <code>HTTPMethod</code> metadata. Here's an example:</p>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">UserController</span> <span class="kd">extends</span> <span class="n">HTTPController</span> <span class="p">{</span>
+  <span class="err">@</span><span class="n">httpGet</span>
+  <span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">getAllUsers</span><span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="kd">await</span> <span class="n">getUsersFromDatabase</span><span class="p">());</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>The constant <code>httpGet</code> is an instance of <code>HTTPMethod</code>. When a <code>GET</code> request is sent to an instance of <code>UserController</code>, this method is invoked and the <code>Response</code> it returns is sent to the HTTP client. There exist <code>HTTPMethod</code> constants for the major HTTP methods: <code>httpPut</code>, <code>httpGet</code>, <code>httpPost</code> and <code>httpDelete</code>. You may use <code>HTTPMethod</code> for other types of HTTP methods:</p>
+<div class="codehilite"><pre><span></span><span class="err">@</span><span class="n">HTTPMethod</span><span class="p">(</span><span class="s2">&quot;PATCH&quot;</span><span class="p">)</span>
+<span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">patch</span><span class="p">()</span> <span class="kd">async</span> <span class="p">{</span> <span class="p">...</span> <span class="p">}</span>
+</pre></div>
+
+
+<p>A responder method may have parameters that further qualify its selection based on the path of the HTTP request. For example, the following controller may respond to both <code>GET /users</code> and <code>GET /users/1</code>:</p>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">UserController</span> <span class="kd">extends</span> <span class="n">HTTPController</span> <span class="p">{</span>
+  <span class="err">@</span><span class="n">httpGet</span>
+  <span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">getAllUsers</span><span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="kd">await</span> <span class="n">getUsersFromDatabase</span><span class="p">());</span>
+  <span class="p">}</span>
+
+  <span class="err">@</span><span class="n">httpGet</span>
+  <span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">getOneUser</span><span class="p">(</span><span class="err">@</span><span class="n">HTTPPath</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">)</span> <span class="kt">int</span> <span class="n">id</span><span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="kd">await</span> <span class="n">getAUserFromDatabaseByID</span><span class="p">(</span><span class="n">id</span><span class="p">));</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>For this controller to work correctly, it must be hooked up to a route with an optional <code>id</code> path variable:</p>
+<div class="codehilite"><pre><span></span><span class="n">router</span>
+  <span class="p">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/users/[:id]&quot;</span><span class="p">)</span>
+  <span class="p">.</span><span class="n">generate</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="k">new</span> <span class="n">UserController</span><span class="p">());</span>
+</pre></div>
+
+
+<p>Notice that the <code>id</code> parameter in <code>getOneUser</code> has <code>HTTPPath</code> metadata. The argument to <code>HTTPPath</code> must be the name of the path variable in the route. In this example, the path variable is <code>id</code> and the argument to <code>HTTPPath</code> is the same. When a <code>GET</code> request is delivered to the controller in this example, it is checked for the path variable <code>id</code>: if it exists, <code>getOneUser</code> is invoked, otherwise <code>getAllUsers</code> is invoked.</p>
+<p>The value of an <code>HTTPPath</code> parameter will be equal to value of the variable in the incoming request path. A path variable is a <code>String</code>, but an <code>HTTPPath</code> parameter can be another type and the value will be parsed into that type. Any type that has a static <code>parse(String)</code> method can be used as a path variable. If the <code>HTTPPath</code> parameter is a <code>String</code>, no parsing occurs.</p>
+<p>A responder method may have multiple <code>HTTPPath</code> parameters and the order does not matter. If no responder method exists for the incoming HTTP method, a 405 status code is returned. An <code>HTTPController</code> will always respond to a request.</p>
+<h3 id="request-and-response-bodies">Request and Response Bodies</h3>
+<p>An <code>HTTPController</code> limits the content type of HTTP request bodies it accepts. By default, an <code>HTTPController</code> will accept both <code>application/json</code> and <code>application/x-www-form-urlencoded</code> request bodies for its <code>POST</code> and <code>PUT</code> methods. This can be modified by setting the <code>acceptedContentTypes</code> property in the constructor.</p>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">UserController</span> <span class="kd">extends</span> <span class="n">HTTPController</span> <span class="p">{</span>
+  <span class="n">UserController</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">acceptedContentTypes</span> <span class="o">=</span> <span class="p">[</span><span class="n">ContentType</span><span class="p">.</span><span class="n">JSON</span><span class="p">,</span> <span class="n">ContentType</span><span class="p">.</span><span class="n">XML</span><span class="p">];</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>If a request is made with a content type other than the accepted content types, the controller automatically responds with a unsupported media type (status code 415) response.</p>
+<p>The body of an HTTP request is decoded if the content type is supported and there exists a responder method to handle the request. This means two things. First, the body is not decoded if the request is going to be discarded because no responder method was found.</p>
+<p>Second, methods on <code>HTTPBody</code> have two flavors: those that return the contents as a <code>Future</code> or those that return the already decoded body. Responder methods can access the already decoded body without awaiting on the <code>Future</code>-flavored variants of <code>HTTPBody</code>:</p>
+<div class="codehilite"><pre><span></span><span class="err">@</span><span class="n">httpPost</span>
+<span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">createThing</span><span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
+  <span class="c1">// do this:</span>
+  <span class="kd">var</span> <span class="n">bodyMap</span> <span class="o">=</span> <span class="n">request</span><span class="p">.</span><span class="n">body</span><span class="p">.</span><span class="n">asMap</span><span class="p">();</span>
+
+  <span class="c1">// no need to do this:</span>
+  <span class="kd">var</span> <span class="n">bodyMap</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">request</span><span class="p">.</span><span class="n">body</span><span class="p">.</span><span class="n">decodeAsMap</span><span class="p">();</span>
+
+  <span class="k">return</span> <span class="p">...;</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>An <code>HTTPController</code> can also have a default content type for its response bodies. By default, this is <code>application/json</code> - any response body is encoded to JSON. This default can be changed by changing <code>responseContentType</code> in the constructor:</p>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">UserController</span> <span class="kd">extends</span> <span class="n">HTTPController</span> <span class="p">{</span>
+  <span class="n">UserController</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">responseContentType</span> <span class="o">=</span> <span class="n">ContentType</span><span class="p">.</span><span class="n">XML</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>The <code>responseContentType</code> is the <em>default</em> response content type. An individual <code>Response</code> may set its own <code>contentType</code>, which takes precedence over the <code>responseContentType</code>. For example, the following controller returns JSON by default, but if the request specifically asks for XML, that's what it will return:</p>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">UserController</span> <span class="kd">extends</span> <span class="n">HTTPController</span> <span class="p">{</span>
+  <span class="n">UserController</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">responseContentType</span> <span class="o">=</span> <span class="n">ContentType</span><span class="p">.</span><span class="n">JSON</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="err">@</span><span class="n">httpGet</span>
+  <span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">getUserByID</span><span class="p">(</span><span class="err">@</span><span class="n">HTTPPath</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">)</span> <span class="kt">int</span> <span class="n">id</span><span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="n">response</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(...);</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">request</span><span class="p">.</span><span class="n">headers</span><span class="p">.</span><span class="n">value</span><span class="p">(</span><span class="n">HttpHeaders</span><span class="p">.</span><span class="n">ACCEPT</span><span class="p">).</span><span class="n">startsWith</span><span class="p">(</span><span class="s2">&quot;application/xml&quot;</span><span class="p">))</span> <span class="p">{</span>
+      <span class="n">response</span><span class="p">.</span><span class="n">contentType</span> <span class="o">=</span> <span class="n">ContentType</span><span class="p">.</span><span class="n">XML</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">return</span> <span class="n">response</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<h3 id="query-and-header-values">Query and Header Values</h3>
+<p>The <code>Request</code> being processed can always be accessed through the <code>request</code> property of a controller. For example, if you want to check for a particular header:</p>
+<div class="codehilite"><pre><span></span><span class="err">@</span><span class="n">httpGet</span>
+<span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">getThing</span><span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">request</span><span class="p">.</span><span class="n">innerRequest</span><span class="p">.</span><span class="n">headers</span><span class="p">.</span><span class="n">value</span><span class="p">(</span><span class="s2">&quot;X-Header&quot;</span><span class="p">)</span> <span class="o">!=</span> <span class="kc">null</span><span class="p">)</span> <span class="p">{</span>
+    <span class="p">...</span>
+  <span class="p">}</span>
+
+  <span class="k">return</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(...);</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p><code>HTTPController</code>s can help when reading header and query parameter values from a request. A responder method can have additional parameters with either <code>HTTPQuery</code> or <code>HTTPHeader</code> metadata. For example:</p>
+<div class="codehilite"><pre><span></span><span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">getThing</span><span class="p">(</span>
+  <span class="err">@</span><span class="n">HTTPQuery</span><span class="p">(</span><span class="s2">&quot;limit&quot;</span><span class="p">)</span> <span class="kt">int</span> <span class="n">numberOfThings</span><span class="p">,</span>
+  <span class="err">@</span><span class="n">HTTPQuery</span><span class="p">(</span><span class="s2">&quot;offset&quot;</span><span class="p">)</span> <span class="kt">int</span> <span class="n">offset</span><span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="n">things</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">getThingsBetween</span><span class="p">(</span><span class="n">offset</span><span class="p">,</span> <span class="n">offset</span> <span class="o">+</span> <span class="n">numberOfThings</span><span class="p">);</span>
+    <span class="k">return</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="n">things</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>If the request <code>/things?limit=10&amp;offset=20</code> is handled by this method, <code>numberOfThings</code> will be 10 and <code>offset</code> will be 20. <code>HTTPQuery</code> and <code>HTTPHeader</code> parameters, like <code>HTTPPath</code> parameters, are always strings but can be parsed into types that implement <code>parse</code>. <code>HTTPHeader</code> metadata on parameters works the same, but read values from headers. <code>HTTPQuery</code> parameter names are case sensitive, whereas <code>HTTPHeader</code> parameter names are not.</p>
+<p>The position of a parameter with <code>HTTPQuery</code> or <code>HTTPMethod</code> metadata in an parameter list matters. In the above example, both <code>limit</code> and <code>offset</code> are <em>required</em> in the request. If these parameters were optional parameters, the they are optional:</p>
+<div class="codehilite"><pre><span></span><span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">getThing</span><span class="p">(</span>
+  <span class="p">{</span><span class="err">@</span><span class="n">HTTPQuery</span><span class="p">(</span><span class="s2">&quot;limit&quot;</span><span class="p">)</span> <span class="kt">int</span> <span class="n">numberOfThings</span><span class="p">,</span>
+  <span class="err">@</span><span class="n">HTTPQuery</span><span class="p">(</span><span class="s2">&quot;offset&quot;</span><span class="p">)</span> <span class="kt">int</span> <span class="n">offset</span><span class="p">})</span> <span class="kd">async</span> <span class="p">{</span>
+    <span class="n">offset</span> <span class="o">??=</span> <span class="m">0</span><span class="p">;</span>
+    <span class="n">numberOfThings</span> <span class="o">??=</span> <span class="m">10</span><span class="p">;</span>
+
+    <span class="kd">var</span> <span class="n">things</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">getThingsBetween</span><span class="p">(</span><span class="n">offset</span><span class="p">,</span> <span class="n">offset</span> <span class="o">+</span> <span class="n">numberOfThings</span><span class="p">);</span>
+    <span class="k">return</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="n">things</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>In the above example - with curly brackets (<code>{}</code>) to indicate optional - the request can omit both <code>limit</code> and <code>offset</code>. If omitted, their values are null and the controller can provide defaults. This optional vs. required behavior is true for both <code>HTTPQuery</code> and <code>HTTPHeader</code> parameters, but not for <code>HTTPPath</code>.</p>
+<p>If a method has required query or header parameters that are not met by a request, the controller responds with a 400 status code, listing the required parameters that were missing, and <em>does not</em> invoke the responder method.</p>
+<p>Controllers can also declare properties with <code>HTTPQuery</code> or <code>HTTPHeader</code> metadata. For example, the following controller will set its <code>version</code> property to the header <code>X-Version</code> for all requests it receives:</p>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">VersionedController</span> <span class="kd">extends</span> <span class="n">HTTPController</span> <span class="p">{</span>
+  <span class="err">@</span><span class="n">HTTPHeader</span><span class="p">(</span><span class="s2">&quot;x-version&quot;</span><span class="p">)</span>
+  <span class="kt">String</span> <span class="n">version</span><span class="p">;</span>
+
+  <span class="err">@</span><span class="n">httpGet</span>
+  <span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">getThings</span><span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
+    <span class="c1">// version = X-Version header from request</span>
+    <span class="p">...</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>Properties that are declared with this metadata default to optional. To make them required, add additional metadata:</p>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">VersionedController</span> <span class="kd">extends</span> <span class="n">HTTPController</span> <span class="p">{</span>
+  <span class="err">@</span><span class="n">requiredHTTPParameter</span>
+  <span class="err">@</span><span class="n">HTTPHeader</span><span class="p">(</span><span class="s2">&quot;x-version&quot;</span><span class="p">)</span>
+  <span class="kt">String</span> <span class="n">version</span><span class="p">;</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>If a required property has no value in the request, a 400 is returned and no responder method is called. If the property is optional and not in the request, the value is null.</p>
+<p><code>HTTPQuery</code> parameters will also assign values from request bodies if the content type is <code>application/x-www-form-urlencoded</code>. For example, a <code>POST /endpoint?param=1</code> sends <code>param=1</code> in the HTTP body, but it is conceptually a query string. Therefore, the following responder method would have the value <code>1</code> in its <code>param</code> parameter:</p>
+<div class="codehilite"><pre><span></span><span class="err">@</span><span class="n">httpPost</span>
+<span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">createThing</span><span class="p">(</span><span class="err">@</span><span class="n">HTTPQuery</span><span class="p">(</span><span class="s2">&quot;param&quot;</span><span class="p">)</span> <span class="kt">int</span> <span class="n">param</span><span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<h3 id="more-specialized-httpcontrollers">More Specialized HTTPControllers</h3>
+<p>Because many <code>HTTPController</code> subclasses will execute <a href="../../db/executing_queries/">Queries</a>, there are helpful <code>HTTPController</code> subclasses for reducing boilerplate code.</p>
+<p>A <code>QueryController&lt;T&gt;</code> builds a <code>Query&lt;T&gt;</code> based on the incoming request. If the request has a body, this <code>Query&lt;T&gt;</code>'s <code>values</code> property is read from that body. If the request has a path variable, the <code>Query&lt;T&gt;</code> assigns a matcher to the primary key value of its <code>where</code>. For example, in a normal <code>HTTPController</code> that responds to a PUT request, you might write the following:</p>
+<div class="codehilite"><pre><span></span><span class="err">@</span><span class="n">httpPut</span>
+<span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">updateUser</span><span class="p">(</span><span class="err">@</span><span class="n">HTTPPath</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">)</span> <span class="kt">int</span> <span class="n">id</span><span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>
+  <span class="kd">var</span> <span class="n">query</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span><span class="p">()</span>
+    <span class="p">..</span><span class="n">where</span><span class="p">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">whereEqualTo</span><span class="p">(</span><span class="n">id</span><span class="p">)</span>
+    <span class="p">..</span><span class="n">values</span> <span class="o">=</span> <span class="p">(</span><span class="k">new</span> <span class="n">User</span><span class="p">()..</span><span class="n">readMap</span><span class="p">(</span><span class="n">request</span><span class="p">.</span><span class="n">body</span><span class="p">.</span><span class="n">asMap</span><span class="p">());</span>
+
+  <span class="k">return</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="kd">await</span> <span class="n">query</span><span class="p">.</span><span class="n">updateOne</span><span class="p">());</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>A <code>QueryController&lt;T&gt;</code> builds this query for you. The <code>ManagedObject&lt;T&gt;</code> subclass is the type argument to <code>QueryController&lt;T&gt;</code>, which has an additional <code>query</code> property that is read from the request.</p>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">UserController</span> <span class="kd">extends</span> <span class="n">QueryController</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span> <span class="p">{</span>
+  <span class="c1">// query already exists and is identical to the snippet above</span>
+  <span class="k">return</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="kd">await</span> <span class="n">query</span><span class="p">.</span><span class="n">updateOne</span><span class="p">());</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>A <code>ManagedObjectController&lt;T&gt;</code> is significantly more powerful; you don't even need to subclass it. It does all the things a CRUD endpoint does without any code. Here's an example usage:</p>
+<div class="codehilite"><pre><span></span><span class="n">router</span>
+  <span class="p">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/users/[:id]&quot;</span><span class="p">)</span>
+  <span class="p">.</span><span class="n">generate</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="k">new</span> <span class="n">ManagedObjectController</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span><span class="p">());</span>
+</pre></div>
+
+
+<p>This controller has the following behavior:</p>
+<table>
+<thead>
+<tr>
+<th>Request</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>POST /users</td>
+<td>Inserts a user into the database with values from the request body</td>
+</tr>
+<tr>
+<td>GET /users</td>
+<td>Fetches all users in the database</td>
+</tr>
+<tr>
+<td>GET /users/:id</td>
+<td>Fetches a single user by id</td>
+</tr>
+<tr>
+<td>DELETE /users/:id</td>
+<td>Deletes a single user by id</td>
+</tr>
+<tr>
+<td>PUT /users/:id</td>
+<td>Updated a single user by id, using values from the request body</td>
+</tr>
+</tbody>
+</table>
+<p>The objects returned from getting the collection - e.g, <code>GET /users</code> - can be modified with query parameters. For example, the following request will return the users sorted by their name in ascending order:</p>
+<div class="codehilite"><pre><span></span><span class="err">GET /users?sortBy=name,asc</span>
+</pre></div>
+
+
+<p>The results can be paged (see <a href="../../db/advanced_queries/">Paging in Advanced Queries</a>) with query parameters <code>offset</code>, <code>count</code>, <code>pageBy</code>, <code>pageAfter</code> and <code>pagePrior</code>.</p>
+<p>A <code>ManagedObjectController&lt;T&gt;</code> can also be subclassed. A subclass allows for callbacks to be overridden to adjust the query before execution, or the results before sending the respond. Each operation - fetch, update, delete, etc. - has a pair of methods to do this. For example, the following subclass alters the query and results before any update via <code>PUT</code>:</p>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">UserController</span> <span class="kd">extends</span> <span class="n">ManagedObjectController</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span> <span class="p">{</span>
+  <span class="n">Future</span><span class="o">&lt;</span><span class="n">Query</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;&gt;</span> <span class="n">willUpdateObjectWithQuery</span><span class="p">(</span>
+      <span class="n">Query</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span> <span class="n">query</span><span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>
+    <span class="n">query</span><span class="p">.</span><span class="n">values</span><span class="p">.</span><span class="n">lastUpdatedAt</span> <span class="o">=</span> <span class="k">new</span> <span class="n">DateTime</span><span class="p">.</span><span class="n">now</span><span class="p">().</span><span class="n">toUtc</span><span class="p">();</span>
+    <span class="k">return</span> <span class="n">query</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">didUpdateObject</span><span class="p">(</span><span class="n">User</span> <span class="n">object</span><span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>
+    <span class="n">object</span><span class="p">.</span><span class="n">removePropertyFromBackingMap</span><span class="p">(</span><span class="s2">&quot;private&quot;</span><span class="p">);</span>
+    <span class="k">return</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="n">object</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<h3 id="accessing-the-request">Accessing the Request</h3>
+<p>Recall that any value from the request itself can be accessed through the <code>request</code> property of a controller.</p>
+<p>This also means that an <code>HTTPController</code> instance cannot be reused to handle multiple requests; if it awaited on an asynchronous method, a new request could be assigned to the <code>request</code> property. Therefore, all <code>HTTPController</code>s must be added to a request processing pipeline with <code>generate</code>. If you add a controller with <code>pipe</code>, an exception will be thrown immediately at startup.</p>
+              
+              
+            </article>
+          </div>
+        </div>
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <div class="md-footer-nav">
+      <nav class="md-footer-nav__inner md-grid">
+        
+          <a href="../request_sink/" title="Initialization and the RequestSink" class="md-flex md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+            <div class="md-flex__cell md-flex__cell--shrink">
+              <i class="md-icon md-icon--arrow-back md-footer-nav__button"></i>
+            </div>
+            <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title">
+              <span class="md-flex__ellipsis">
+                <span class="md-footer-nav__direction">
+                  Previous
+                </span>
+                Initialization and the RequestSink
+              </span>
+            </div>
+          </a>
+        
+        
+          <a href="../cors/" title="CORS Configuration" class="md-flex md-footer-nav__link md-footer-nav__link--next" rel="next">
+            <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title">
+              <span class="md-flex__ellipsis">
+                <span class="md-footer-nav__direction">
+                  Next
+                </span>
+                CORS Configuration
+              </span>
+            </div>
+            <div class="md-flex__cell md-flex__cell--shrink">
+              <i class="md-icon md-icon--arrow-forward md-footer-nav__button"></i>
+            </div>
+          </a>
+        
+      </nav>
+    </div>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+          <div class="md-footer-copyright__highlight">
+            Built by stable|kernel
+          </div>
+        
+        powered by
+        <a href="http://www.mkdocs.org" title="MkDocs">MkDocs</a>
+        and
+        <a href="http://squidfunk.github.io/mkdocs-material/" title="Material for MkDocs">
+          Material for MkDocs</a>
+      </div>
+      
+        
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    
+      <script src="../../assets/javascripts/application-30ac6a1727.js"></script>
+      <script>app.initialize({url:{base:"../.."}})</script>
+      
+    
+    
+      
+    
+  </body>
+</html>

@@ -1,0 +1,7 @@
+.md-header {
+  background-color: rgb(33, 160, 221);
+}
+
+.md-nav--secondary {
+  border-left: .4rem solid rgb(33, 160, 221);
+}

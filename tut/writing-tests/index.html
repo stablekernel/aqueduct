@@ -1,0 +1,1117 @@
+
+<!DOCTYPE html>
+<html class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for Aqueduct, a Dart server-side framework.">
+      
+      
+      
+      
+        <link rel="shortcut icon" href="../../assets/images/favicon.png">
+      
+      <meta name="generator" content="mkdocs-0.16.1, mkdocs-material-1.1.1">
+    
+    
+      
+        <title>2. Writing Tests - Aqueduct</title>
+      
+    
+    
+      <script src="../../assets/javascripts/modernizr-56ade86843.js"></script>
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/application-4ebe3f1d68.css">
+      
+    
+    
+      
+        
+        
+        
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700|Roboto+Mono">
+        <style>body,input{font-family:"Roboto","Helvetica Neue",Helvetica,Arial,sans-serif}code,kbd,pre{font-family:"Roboto Mono","Courier New",Courier,monospace}</style>
+      
+      <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    
+    
+      <link rel="stylesheet" href="../../style/css/override.css">
+    
+    
+  </head>
+  
+  
+  
+  
+    <body>
+  
+    <svg class="md-svg">
+      <defs>
+        
+        
+          <svg xmlns="http://www.w3.org/2000/svg" width="416" height="448" viewBox="0 0 416 448" id="github"><path fill="currentColor" d="M160 304q0 10-3.125 20.5t-10.75 19T128 352t-18.125-8.5-10.75-19T96 304t3.125-20.5 10.75-19T128 256t18.125 8.5 10.75 19T160 304zm160 0q0 10-3.125 20.5t-10.75 19T288 352t-18.125-8.5-10.75-19T256 304t3.125-20.5 10.75-19T288 256t18.125 8.5 10.75 19T320 304zm40 0q0-30-17.25-51T296 232q-10.25 0-48.75 5.25Q229.5 240 208 240t-39.25-2.75Q130.75 232 120 232q-29.5 0-46.75 21T56 304q0 22 8 38.375t20.25 25.75 30.5 15 35 7.375 37.25 1.75h42q20.5 0 37.25-1.75t35-7.375 30.5-15 20.25-25.75T360 304zm56-44q0 51.75-15.25 82.75-9.5 19.25-26.375 33.25t-35.25 21.5-42.5 11.875-42.875 5.5T212 416q-19.5 0-35.5-.75t-36.875-3.125-38.125-7.5-34.25-12.875T37 371.5t-21.5-28.75Q0 312 0 260q0-59.25 34-99-6.75-20.5-6.75-42.5 0-29 12.75-54.5 27 0 47.5 9.875t47.25 30.875Q171.5 96 212 96q37 0 70 8 26.25-20.5 46.75-30.25T376 64q12.75 25.5 12.75 54.5 0 21.75-6.75 42 34 40 34 99.5z"/></svg>
+        
+      </defs>
+    </svg>
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="drawer">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="search">
+    <label class="md-overlay" data-md-component="overlay" for="drawer"></label>
+    
+      <header class="md-header">
+  <nav class="md-header-nav md-grid">
+    <div class="md-flex">
+      <div class="md-flex__cell md-flex__cell--shrink">
+        
+          <a href="../.." title="Aqueduct" class="md-icon md-icon--home md-header-nav__button">
+          </a>
+        
+      </div>
+      <div class="md-flex__cell md-flex__cell--shrink">
+        <label class="md-icon md-icon--menu md-header-nav__button" for="drawer"></label>
+      </div>
+      <div class="md-flex__cell md-flex__cell--stretch">
+        <span class="md-flex__ellipsis md-header-nav__title">
+          
+            
+              
+                <span class="md-header-nav__parent">
+                  Tutorial
+                </span>
+              
+            
+            2. Writing Tests
+          
+        </span>
+      </div>
+      <div class="md-flex__cell md-flex__cell--shrink">
+        
+          <label class="md-icon md-icon--search md-header-nav__button" for="search"></label>
+          
+<div class="md-search" data-md-component="search">
+  <div class="md-search__overlay"></div>
+  <div class="md-search__inner">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" placeholder="Search" accesskey="s" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="query">
+      <label class="md-icon md-search__icon" for="search"></label>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+        
+      </div>
+      <div class="md-flex__cell md-flex__cell--shrink">
+        <div class="md-header-nav__source">
+          
+            
+
+
+  
+
+
+  <a href="https://github.com/stablekernel/aqueduct" title="Go to repository" class="md-source" data-md-source="github">
+    
+      <div class="md-source__icon">
+        <svg viewBox="0 0 24 24" width="24" height="24">
+          <use xlink:href="#github" width="24" height="24"></use>
+        </svg>
+      </div>
+    
+    <div class="md-source__repository">
+      GitHub
+    </div>
+  </a>
+
+          
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>
+    
+    <div class="md-container">
+      
+      
+      <main class="md-main">
+        <div class="md-main__inner md-grid" data-md-component="container">
+          
+            
+              <div class="md-sidebar md-sidebar--primary" data-md-component="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    <nav class="md-nav md-nav--primary" data-md-level="0">
+  <label class="md-nav__title md-nav__title--site" for="drawer">
+    
+      <i class="md-icon md-icon--home md-nav__button"></i>
+    
+    Aqueduct
+  </label>
+  
+    <div class="md-nav__source">
+      
+
+
+  
+
+
+  <a href="https://github.com/stablekernel/aqueduct" title="Go to repository" class="md-source" data-md-source="github">
+    
+      <div class="md-source__icon">
+        <svg viewBox="0 0 24 24" width="24" height="24">
+          <use xlink:href="#github" width="24" height="24"></use>
+        </svg>
+      </div>
+    
+    <div class="md-source__repository">
+      GitHub
+    </div>
+  </a>
+
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../.." title="Home" class="md-nav__link">
+      Home
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-2" type="checkbox" id="nav-2" checked>
+    
+    <label class="md-nav__link" for="nav-2">
+      Tutorial
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-2">
+        Tutorial
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../getting-started/" title="1. Getting Started" class="md-nav__link">
+      1. Getting Started
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-toggle md-nav__toggle" data-md-toggle="toc" type="checkbox" id="toc">
+    
+      
+    
+    
+      <label class="md-nav__link md-nav__link--active" for="toc">
+        2. Writing Tests
+      </label>
+    
+    <a href="./" title="2. Writing Tests" class="md-nav__link md-nav__link--active">
+      2. Writing Tests
+    </a>
+    
+      
+<nav class="md-nav md-nav--secondary">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#restructuring-quiz" title="Restructuring quiz" class="md-nav__link">
+    Restructuring quiz
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#writing-tests" title="Writing Tests" class="md-nav__link">
+    Writing Tests
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-sort-of-wizardry-is-this" title="What sort of wizardry is this?" class="md-nav__link">
+    What sort of wizardry is this?
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-chapter-executing-database-queries" title="Next Chapter: Executing Database Queries" class="md-nav__link">
+    Next Chapter: Executing Database Queries
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+    
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../executing-queries/" title="3. Executing Database Queries" class="md-nav__link">
+      3. Executing Database Queries
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../model-relationships-and-joins/" title="4. Advanced Database Queries" class="md-nav__link">
+      4. Advanced Database Queries
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../deploying-and-other-fun-things/" title="5. Deploying" class="md-nav__link">
+      5. Deploying
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-3" type="checkbox" id="nav-3">
+    
+    <label class="md-nav__link" for="nav-3">
+      HTTP
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-3">
+        HTTP
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/overview/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/structure/" title="Application Structure" class="md-nav__link">
+      Application Structure
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/request_and_response/" title="Request and Response Objects" class="md-nav__link">
+      Request and Response Objects
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/request_controller/" title="Handling Requests: Fundamentals" class="md-nav__link">
+      Handling Requests: Fundamentals
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/routing/" title="Routing" class="md-nav__link">
+      Routing
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/request_sink/" title="Initialization and the RequestSink" class="md-nav__link">
+      Initialization and the RequestSink
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/http_controller/" title="Handling Requests: HTTPController" class="md-nav__link">
+      Handling Requests: HTTPController
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/cors/" title="CORS Configuration" class="md-nav__link">
+      CORS Configuration
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-4" type="checkbox" id="nav-4">
+    
+    <label class="md-nav__link" for="nav-4">
+      Database/ORM
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-4">
+        Database/ORM
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../db/overview/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../db/modeling_data/" title="Modeling Data" class="md-nav__link">
+      Modeling Data
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../db/serialization/" title="Storage, Serialization and Deserialization" class="md-nav__link">
+      Storage, Serialization and Deserialization
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../db/executing_queries/" title="Executing Queries" class="md-nav__link">
+      Executing Queries
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../db/advanced_queries/" title="Advanced Queries" class="md-nav__link">
+      Advanced Queries
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../db/db_tools/" title="Migration and Tooling" class="md-nav__link">
+      Migration and Tooling
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../db/inside_the_db/" title="Inside the DB" class="md-nav__link">
+      Inside the DB
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-5" type="checkbox" id="nav-5">
+    
+    <label class="md-nav__link" for="nav-5">
+      OAuth 2.0
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-5">
+        OAuth 2.0
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../auth/overview/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../auth/server/" title="Setting up Authorization" class="md-nav__link">
+      Setting up Authorization
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../auth/authorizer/" title="Protected Routes" class="md-nav__link">
+      Protected Routes
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../auth/controllers/" title="Issuing Access Tokens" class="md-nav__link">
+      Issuing Access Tokens
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../auth/cli/" title="Creating OAuth 2.0 Clients" class="md-nav__link">
+      Creating OAuth 2.0 Clients
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../auth/what_is_oauth/" title="What is OAuth 2.0?" class="md-nav__link">
+      What is OAuth 2.0?
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-6" type="checkbox" id="nav-6">
+    
+    <label class="md-nav__link" for="nav-6">
+      Testing
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-6">
+        Testing
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../testing/overview/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../testing/harness/" title="Test Harness" class="md-nav__link">
+      Test Harness
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../testing/test_client/" title="Writing Tests and the TestClient" class="md-nav__link">
+      Writing Tests and the TestClient
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-7" type="checkbox" id="nav-7">
+    
+    <label class="md-nav__link" for="nav-7">
+      Deployment
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-7">
+        Deployment
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../deploy/overview/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../deploy/deploy_local/" title="Deploy Locally" class="md-nav__link">
+      Deploy Locally
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../deploy/deploy_heroku/" title="Deploy on Heroku" class="md-nav__link">
+      Deploy on Heroku
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../deploy/deploy_aws/" title="Deploy on AWS" class="md-nav__link">
+      Deploy on AWS
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../deploy/script/" title="Deploying without aqueduct serve" class="md-nav__link">
+      Deploying without aqueduct serve
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#restructuring-quiz" title="Restructuring quiz" class="md-nav__link">
+    Restructuring quiz
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#writing-tests" title="Writing Tests" class="md-nav__link">
+    Writing Tests
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-sort-of-wizardry-is-this" title="What sort of wizardry is this?" class="md-nav__link">
+    What sort of wizardry is this?
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-chapter-executing-database-queries" title="Next Chapter: Executing Database Queries" class="md-nav__link">
+    Next Chapter: Executing Database Queries
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content">
+            <article class="md-content__inner md-typeset">
+               
+                 <a href="https://github.com/stablekernel/aqueduct/edit/master/docs/tut/writing-tests.md" title="Edit this page" class="md-icon md-content__edit">edit</a>
+               
+              
+                
+                <h1 id="testing-aqueduct-applications">Testing Aqueduct Applications</h1>
+<p>One of the core principles of Aqueduct is efficient testing. While opening up your browser and typing in a URL can verify the code you just wrote succeeds, it's not a very reliable way of testing software. We'll also run into some dead-ends when we test HTTP requests that use an HTTP method other than GET. Therefore, there are some helpful utilities for writing tests built into Aqueduct.</p>
+<p>(As a note, testing Dart in Atom is not well supported - yet. Once you get past this tutorial, it is highly recommended you download IntelliJ IDEA Community Edition for better test support. Most importantly, Aqueduct's style of testing requires that test files are not run in parallel - and Atom only runs them in parallel. In the meantime, you can use the command line and run the tests serially using the command <code>pub run test -j 1</code>.)</p>
+<p>In general, testing in Dart is simple: in a file that ends with <code>_test.dart</code>, you write a <code>main</code> function and use the <code>test</code> function register a test. Each test is a closure that runs some code and has expectations. For example, this code would test that 1 + 1 = 2:</p>
+<div class="codehilite"><pre><span></span><span class="k">import</span> <span class="s1">&#39;package:test/test.dart&#39;</span><span class="p">;</span>
+
+<span class="kt">void</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">test</span><span class="p">(</span><span class="s2">&quot;1+1 = 2&quot;</span><span class="p">,</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="n">expect</span><span class="p">(</span><span class="m">1</span> <span class="o">+</span> <span class="m">1</span><span class="p">,</span> <span class="n">equals</span><span class="p">(</span><span class="m">2</span><span class="p">));</span>
+  <span class="p">});</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>Tests are made possible by the <code>test</code> package which you'll need to claim as a dependency. In <code>quiz/pubspec.yaml</code>, add it as a development dependency by adding the following two lines to the end of the file:</p>
+<div class="codehilite"><pre><span></span><span class="n">dev_dependencies</span><span class="o">:</span>
+  <span class="n">test</span><span class="o">:</span> <span class="n">any</span>
+</pre></div>
+
+
+<p>Now, get the dependencies again by right-clicking on any project file and selecting 'Pub Get'. (Or run <code>pub get</code> from the command line in the <code>quiz</code> directory.)</p>
+<h2 id="restructuring-quiz">Restructuring quiz</h2>
+<p>Last chapter, we just threw everything in a single file to get started. We should really get things structured a bit more. The suggested approach is to separate <code>RequestController</code>s into their own files. These files should live in <code>lib/controller</code>. The <code>RequestSink</code> subclass should be in its own file, too, but directly under <code>lib</code>.</p>
+<p>Create a new directory, <code>lib/controller</code> and add a new file <code>question_controller.dart</code> to it. Create a new file in <code>lib</code> named <code>sink.dart</code>.</p>
+<p>Now, we'll move some code around. The full contents of each file will be listed here to make sure nothing gets lost. There are three total source files in the project. Change the file <code>quiz.dart</code> to only contain:</p>
+<div class="codehilite"><pre><span></span><span class="k">export</span> <span class="s1">&#39;dart:async&#39;</span><span class="p">;</span>
+<span class="k">export</span> <span class="s1">&#39;package:aqueduct/aqueduct.dart&#39;</span><span class="p">;</span>
+
+<span class="k">export</span> <span class="s1">&#39;sink.dart&#39;</span><span class="p">;</span>
+</pre></div>
+
+
+<p>Move the implementation of <code>QuestionController</code> to <code>controller/question_controller.dart</code> and import the top-level file:</p>
+<div class="codehilite"><pre><span></span><span class="k">import</span> <span class="s1">&#39;package:quiz/quiz.dart&#39;</span><span class="p">;</span>
+
+<span class="kd">class</span> <span class="nc">QuestionController</span> <span class="kd">extends</span> <span class="n">HTTPController</span> <span class="p">{</span>
+  <span class="kd">var</span> <span class="n">questions</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;How much wood can a woodchuck chuck?&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;What&#39;s the tallest mountain in the world?&quot;</span>
+  <span class="p">];</span>
+
+  <span class="err">@</span><span class="n">httpGet</span>
+  <span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">getAllQuestions</span><span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="n">questions</span><span class="p">);</span>
+  <span class="p">}</span>
+
+  <span class="err">@</span><span class="n">httpGet</span>
+  <span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">getQuestionAtIndex</span><span class="p">(</span><span class="err">@</span><span class="n">HTTPPath</span><span class="p">(</span><span class="s2">&quot;index&quot;</span><span class="p">)</span> <span class="kt">int</span> <span class="n">index</span><span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">index</span> <span class="o">&lt;</span> <span class="m">0</span> <span class="o">||</span> <span class="n">index</span> <span class="o">&gt;=</span> <span class="n">questions</span><span class="p">.</span><span class="n">length</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">notFound</span><span class="p">();</span>
+    <span class="p">}</span>
+
+    <span class="k">return</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="n">questions</span><span class="p">[</span><span class="n">index</span><span class="p">]);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>Move <code>QuizRequestSink</code> to <code>sink.dart</code>:</p>
+<div class="codehilite"><pre><span></span><span class="k">import</span> <span class="s1">&#39;package:quiz/quiz.dart&#39;</span><span class="p">;</span>
+<span class="k">import</span> <span class="s1">&#39;controller/question_controller.dart&#39;</span><span class="p">;</span>
+
+<span class="kd">class</span> <span class="nc">QuizRequestSink</span> <span class="kd">extends</span> <span class="n">RequestSink</span> <span class="p">{</span>
+  <span class="n">QuizRequestSink</span><span class="p">(</span><span class="n">ApplicationConfiguration</span> <span class="n">options</span><span class="p">)</span> <span class="o">:</span> <span class="k">super</span> <span class="p">(</span><span class="n">options</span><span class="p">);</span>
+
+  <span class="err">@</span><span class="n">override</span>
+  <span class="kt">void</span> <span class="n">setupRouter</span><span class="p">(</span><span class="n">Router</span> <span class="n">router</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">router</span>
+      <span class="p">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/questions/[:index(</span><span class="se">\\</span><span class="s2">d+)]&quot;</span><span class="p">)</span>
+      <span class="p">.</span><span class="n">generate</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="k">new</span> <span class="n">QuestionController</span><span class="p">());</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>It is important that there is a top-level library file (<code>quiz.dart</code>) that exports the file that contains the <code>RequestSink</code> subclass, otherwise, the <code>aqueduct</code> executable won't be able to find it and start your application. Files that declare <code>RequestController</code> subclasses should be imported in <code>sink.dart</code>, since that's the only place they'll get used.</p>
+<p>Additionally, the top-level library file <em>must</em> be named the same as the project - here, <code>quiz.dart</code>. The name of the project is is <code>name</code> key in <code>pubspec.yaml</code>.</p>
+<p>You can double-check that your changes worked by running <code>aqueduct serve</code> from the project directory. The full project structure should be:</p>
+<div class="codehilite"><pre><span></span>pubspec.yaml
+lib/
+  quiz.dart
+  sink.dart
+  controller/
+    question_controller.dart
+</pre></div>
+
+
+<h2 id="writing-tests">Writing Tests</h2>
+<p>We'd like to ensure that when we hit the <code>/questions</code> endpoint, we get a response with questions. What does that mean? Well, that is up to us. But, let's say that 'questions' means 'a list of strings that all end in a question mark'.</p>
+<p>In Dart, tests are stored in a top-level <code>test</code> directory. Create that directory in <code>quiz</code>. Then, add a new file to it named <code>question_controller_test.dart</code>. (Tests must end in <code>_test.dart</code> and live in the <code>test</code> directory for the tools to find them without you having to specify their path.) In this file, import the following:</p>
+<div class="codehilite"><pre><span></span><span class="k">import</span> <span class="s1">&#39;package:quiz/quiz.dart&#39;</span><span class="p">;</span>
+<span class="k">import</span> <span class="s1">&#39;package:test/test.dart&#39;</span><span class="p">;</span>
+<span class="k">import</span> <span class="s1">&#39;package:aqueduct/test.dart&#39;</span><span class="p">;</span>
+<span class="k">import</span> <span class="s1">&#39;package:aqueduct/aqueduct.dart&#39;</span><span class="p">;</span>
+</pre></div>
+
+
+<p>The way Aqueduct accomplishes testing is by starting an entire application, running the tests, then stopping the application. The library <code>aqueduct/test</code> has helpful utilities for testing Aqueduct applications. Declare a <code>setUp</code> and <code>tearDown</code> method to run before and after each test. After the import statements, add a <code>main</code> function with the appropriate setup and teardown code:</p>
+<div class="codehilite"><pre><span></span><span class="kt">void</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
+  <span class="kd">var</span> <span class="n">app</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Application</span><span class="o">&lt;</span><span class="n">QuizRequestSink</span><span class="o">&gt;</span><span class="p">();</span>
+
+  <span class="n">setUp</span><span class="p">(()</span> <span class="kd">async</span> <span class="p">{</span>
+    <span class="kd">await</span> <span class="n">app</span><span class="p">.</span><span class="n">start</span><span class="p">(</span><span class="nl">runOnMainIsolate:</span> <span class="kc">true</span><span class="p">);</span>
+  <span class="p">});</span>
+
+  <span class="n">tearDown</span><span class="p">(()</span> <span class="kd">async</span> <span class="p">{</span>
+    <span class="kd">await</span> <span class="n">app</span><span class="p">.</span><span class="n">stop</span><span class="p">();</span>
+  <span class="p">});</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>The <code>Application</code> type has a type argument that must be a subclass of <code>RequestSink</code> - specifically, the <code>RequestSink</code> of your project. When running the application through <code>aqueduct serve</code>, an instance of <code>Application&lt;T&gt;</code> is created for you. Running tests, you create it and start it yourself in <code>setup</code> and stop it <code>tearDown</code>. (In order for your tests to shut down properly, the application must be stopped in <code>tearDown</code>.)</p>
+<p>Notice also that <code>start</code> takes an optional argument, <code>runOnMainIsolate</code>. When this argument is true, an instance of your <code>RequestSink</code> is created on the main isolate and requests are received on the same isolate running the tests. This behavior is different than when using <code>aqueduct serve</code>, where one or more additional isolates are created and each has an instance of the <code>RequestSink</code> that is accepting requests.</p>
+<p>During testing, running the application on the main isolate is very important. We'll see why a bit later, but the general idea is that your tests have access to the properties of a <code>RequestSink</code> if and only if it is running on the main isolate.</p>
+<p>Now, we need to add a test to verify that hitting the <code>/questions</code> endpoint does return our definition of 'questions'. In Aqueduct, there is a utility called a <code>TestClient</code> to make this a lot easier. At the top of your main function, but after we create the application instance, declare a new variable:</p>
+<div class="codehilite"><pre><span></span><span class="kt">void</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
+  <span class="kd">var</span> <span class="n">app</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Application</span><span class="o">&lt;</span><span class="n">QuizRequestSink</span><span class="o">&gt;</span><span class="p">();</span>
+  <span class="kd">var</span> <span class="n">client</span> <span class="o">=</span> <span class="k">new</span> <span class="n">TestClient</span><span class="p">(</span><span class="n">app</span><span class="p">);</span>
+<span class="p">...</span>
+</pre></div>
+
+
+<p>A <code>TestClient</code> will execute HTTP requests on your behalf in your tests, and is configured to point at the running application. Testing an Aqueduct application is generally two steps: make a request and then verify you got the response you wanted. Let's create a new test and do the first step. Near the end of main, add the following test:</p>
+<div class="codehilite"><pre><span></span><span class="kt">void</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
+  <span class="p">...</span>
+
+  <span class="n">test</span><span class="p">(</span><span class="s2">&quot;/questions returns list of questions&quot;</span><span class="p">,</span> <span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="n">response</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">client</span><span class="p">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;/questions&quot;</span><span class="p">).</span><span class="kd">get</span><span class="p">();</span>
+  <span class="p">});</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>If you run this test file now, an instance of your application will spin up on the main isolate, and your first test will execute a GET <code>http://localhost:8080/questions</code>, then your application will be torn down. Of course, we don't verify anything about the response, so we should actually do something there.</p>
+<p>The value of <code>response</code> in the previous code snippet is an instance of <code>TestResponse</code>. Dart tests use the Hamcrest style matchers in their expectations. There are built-in matchers in Aqueduct for setting up and matching expectations on <code>TestResponse</code> instances. For example, if we wanted to verify that we got a 404 back, we'd simply do:</p>
+<div class="codehilite"><pre><span></span>  <span class="n">expect</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="n">hasStatus</span><span class="p">(</span><span class="m">404</span><span class="p">));</span>
+</pre></div>
+
+
+<p>But here, we want to verify that we get back a 200 and that the response body is a list of questions. Add the following code to the end of the test:</p>
+<div class="codehilite"><pre><span></span><span class="n">test</span><span class="p">(</span><span class="s2">&quot;/questions returns list of questions&quot;</span><span class="p">,</span> <span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
+  <span class="kd">var</span> <span class="n">response</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">client</span><span class="p">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;/questions&quot;</span><span class="p">).</span><span class="kd">get</span><span class="p">();</span>
+  <span class="n">expect</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="n">hasResponse</span><span class="p">(</span><span class="m">200</span><span class="p">,</span> <span class="n">everyElement</span><span class="p">(</span><span class="n">endsWith</span><span class="p">(</span><span class="s2">&quot;?&quot;</span><span class="p">))));</span>
+<span class="p">});</span>
+</pre></div>
+
+
+<p>Now, make sure you shut down your application if you were running it from a previous chapter. To run a test file in Atom, you can do two things: manually hit Cmd-Shift-P and type in run test or use the keyboard shortcut, Cmd-Option-Ctrl-T. The test results will appear in a panel. (Make sure you save your test file first!  Atom currently isn't great at displaying test results. A more powerful option is IntelliJ IDEA Community Edition, but Atom is a lot friendlier for a tutorial.)</p>
+<p>You should see the string 'All tests passed!' in your test results panel.</p>
+<p>There's one little issue here: the <code>everyElement</code> matcher ensures each element passes the inner matcher (<code>endsWith</code>). However, if this response returned an empty list of questions, the inner matcher would never run and the test would pass. Let's also verify that there is at least one question, too:</p>
+<div class="codehilite"><pre><span></span><span class="n">test</span><span class="p">(</span><span class="s2">&quot;/questions returns list of questions&quot;</span><span class="p">,</span> <span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
+  <span class="kd">var</span> <span class="n">response</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">client</span><span class="p">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;/questions&quot;</span><span class="p">).</span><span class="kd">get</span><span class="p">();</span>
+  <span class="n">expect</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="n">hasResponse</span><span class="p">(</span><span class="m">200</span><span class="p">,</span> <span class="n">everyElement</span><span class="p">(</span><span class="n">endsWith</span><span class="p">(</span><span class="s2">&quot;?&quot;</span><span class="p">))));</span>
+  <span class="n">expect</span><span class="p">(</span><span class="n">response</span><span class="p">.</span><span class="n">decodedBody</span><span class="p">,</span> <span class="n">hasLength</span><span class="p">(</span><span class="n">greaterThan</span><span class="p">(</span><span class="m">0</span><span class="p">)));</span>
+<span class="p">});</span>
+</pre></div>
+
+
+<h2 id="what-sort-of-wizardry-is-this">What sort of wizardry is this?</h2>
+<p>The <code>hasResponse</code> matcher takes two arguments: a status code and a 'body matcher'. If the response's status code matches the first argument of <code>hasResponse</code> - 200 in this case - the matcher will move on to the body. The response's HTTP body will be decoded according to its <code>Content-Type</code> header. In this example, the body is a JSON list of strings, and therefore it will be decoded into a Dart list of strings.</p>
+<p>Next, the decoded body is matched against the body matcher. There are a lot of built-in matchers - see the documentation for the test package <a href="https://www.dartdocs.org/documentation/test/latest">here</a> - and <code>everyElement</code> and <code>endsWith</code> are two examples. <code>everyElement</code> verifies that the decoded body is a list, and then runs the <code>endsWith</code> matcher on every string in that list. Since every string ends with ?, this matcher as a whole will succeed.</p>
+<p>Let's write two more tests - first, that getting a specific question returns a question (a string with a question mark at the end) and then a test that ensures a question outside of the range of questions will return a 404. Add the following two tests inside the main function:</p>
+<div class="codehilite"><pre><span></span><span class="n">test</span><span class="p">(</span><span class="s2">&quot;/questions/index returns a single question&quot;</span><span class="p">,</span> <span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
+  <span class="kd">var</span> <span class="n">response</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">client</span><span class="p">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;/questions/1&quot;</span><span class="p">).</span><span class="kd">get</span><span class="p">();</span>
+  <span class="n">expect</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="n">hasResponse</span><span class="p">(</span><span class="m">200</span><span class="p">,</span> <span class="n">endsWith</span><span class="p">(</span><span class="s2">&quot;?&quot;</span><span class="p">)));</span>
+<span class="p">});</span>
+
+<span class="n">test</span><span class="p">(</span><span class="s2">&quot;/questions/index out of range returns 404&quot;</span><span class="p">,</span> <span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
+  <span class="kd">var</span> <span class="n">response</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">client</span><span class="p">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;/questions/100&quot;</span><span class="p">).</span><span class="kd">get</span><span class="p">();</span>
+  <span class="n">expect</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="n">hasStatus</span><span class="p">(</span><span class="m">404</span><span class="p">));</span>
+<span class="p">});</span>
+</pre></div>
+
+
+<p>Run the tests against, and they should all pass.</p>
+<h2 id="next-chapter-executing-database-queries"><a href="../executing-queries/">Next Chapter: Executing Database Queries</a></h2>
+              
+              
+            </article>
+          </div>
+        </div>
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <div class="md-footer-nav">
+      <nav class="md-footer-nav__inner md-grid">
+        
+          <a href="../getting-started/" title="1. Getting Started" class="md-flex md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+            <div class="md-flex__cell md-flex__cell--shrink">
+              <i class="md-icon md-icon--arrow-back md-footer-nav__button"></i>
+            </div>
+            <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title">
+              <span class="md-flex__ellipsis">
+                <span class="md-footer-nav__direction">
+                  Previous
+                </span>
+                1. Getting Started
+              </span>
+            </div>
+          </a>
+        
+        
+          <a href="../executing-queries/" title="3. Executing Database Queries" class="md-flex md-footer-nav__link md-footer-nav__link--next" rel="next">
+            <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title">
+              <span class="md-flex__ellipsis">
+                <span class="md-footer-nav__direction">
+                  Next
+                </span>
+                3. Executing Database Queries
+              </span>
+            </div>
+            <div class="md-flex__cell md-flex__cell--shrink">
+              <i class="md-icon md-icon--arrow-forward md-footer-nav__button"></i>
+            </div>
+          </a>
+        
+      </nav>
+    </div>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+          <div class="md-footer-copyright__highlight">
+            Built by stable|kernel
+          </div>
+        
+        powered by
+        <a href="http://www.mkdocs.org" title="MkDocs">MkDocs</a>
+        and
+        <a href="http://squidfunk.github.io/mkdocs-material/" title="Material for MkDocs">
+          Material for MkDocs</a>
+      </div>
+      
+        
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    
+      <script src="../../assets/javascripts/application-30ac6a1727.js"></script>
+      <script>app.initialize({url:{base:"../.."}})</script>
+      
+    
+    
+      
+    
+  </body>
+</html>

@@ -1,1 +1,0 @@
-../_posts/2016-06-23-deploying-and-other-fun-things.md

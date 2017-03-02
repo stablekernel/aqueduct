@@ -1,0 +1,1195 @@
+
+<!DOCTYPE html>
+<html class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for Aqueduct, a Dart server-side framework.">
+      
+      
+      
+      
+        <link rel="shortcut icon" href="../../assets/images/favicon.png">
+      
+      <meta name="generator" content="mkdocs-0.16.1, mkdocs-material-1.1.1">
+    
+    
+      
+        <title>Storage, Serialization and Deserialization - Aqueduct</title>
+      
+    
+    
+      <script src="../../assets/javascripts/modernizr-56ade86843.js"></script>
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/application-4ebe3f1d68.css">
+      
+    
+    
+      
+        
+        
+        
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700|Roboto+Mono">
+        <style>body,input{font-family:"Roboto","Helvetica Neue",Helvetica,Arial,sans-serif}code,kbd,pre{font-family:"Roboto Mono","Courier New",Courier,monospace}</style>
+      
+      <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    
+    
+      <link rel="stylesheet" href="../../style/css/override.css">
+    
+    
+  </head>
+  
+  
+  
+  
+    <body>
+  
+    <svg class="md-svg">
+      <defs>
+        
+        
+          <svg xmlns="http://www.w3.org/2000/svg" width="416" height="448" viewBox="0 0 416 448" id="github"><path fill="currentColor" d="M160 304q0 10-3.125 20.5t-10.75 19T128 352t-18.125-8.5-10.75-19T96 304t3.125-20.5 10.75-19T128 256t18.125 8.5 10.75 19T160 304zm160 0q0 10-3.125 20.5t-10.75 19T288 352t-18.125-8.5-10.75-19T256 304t3.125-20.5 10.75-19T288 256t18.125 8.5 10.75 19T320 304zm40 0q0-30-17.25-51T296 232q-10.25 0-48.75 5.25Q229.5 240 208 240t-39.25-2.75Q130.75 232 120 232q-29.5 0-46.75 21T56 304q0 22 8 38.375t20.25 25.75 30.5 15 35 7.375 37.25 1.75h42q20.5 0 37.25-1.75t35-7.375 30.5-15 20.25-25.75T360 304zm56-44q0 51.75-15.25 82.75-9.5 19.25-26.375 33.25t-35.25 21.5-42.5 11.875-42.875 5.5T212 416q-19.5 0-35.5-.75t-36.875-3.125-38.125-7.5-34.25-12.875T37 371.5t-21.5-28.75Q0 312 0 260q0-59.25 34-99-6.75-20.5-6.75-42.5 0-29 12.75-54.5 27 0 47.5 9.875t47.25 30.875Q171.5 96 212 96q37 0 70 8 26.25-20.5 46.75-30.25T376 64q12.75 25.5 12.75 54.5 0 21.75-6.75 42 34 40 34 99.5z"/></svg>
+        
+      </defs>
+    </svg>
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="drawer">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="search">
+    <label class="md-overlay" data-md-component="overlay" for="drawer"></label>
+    
+      <header class="md-header">
+  <nav class="md-header-nav md-grid">
+    <div class="md-flex">
+      <div class="md-flex__cell md-flex__cell--shrink">
+        
+          <a href="../.." title="Aqueduct" class="md-icon md-icon--home md-header-nav__button">
+          </a>
+        
+      </div>
+      <div class="md-flex__cell md-flex__cell--shrink">
+        <label class="md-icon md-icon--menu md-header-nav__button" for="drawer"></label>
+      </div>
+      <div class="md-flex__cell md-flex__cell--stretch">
+        <span class="md-flex__ellipsis md-header-nav__title">
+          
+            
+              
+                <span class="md-header-nav__parent">
+                  Database/ORM
+                </span>
+              
+            
+            Storage, Serialization and Deserialization
+          
+        </span>
+      </div>
+      <div class="md-flex__cell md-flex__cell--shrink">
+        
+          <label class="md-icon md-icon--search md-header-nav__button" for="search"></label>
+          
+<div class="md-search" data-md-component="search">
+  <div class="md-search__overlay"></div>
+  <div class="md-search__inner">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" placeholder="Search" accesskey="s" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="query">
+      <label class="md-icon md-search__icon" for="search"></label>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+        
+      </div>
+      <div class="md-flex__cell md-flex__cell--shrink">
+        <div class="md-header-nav__source">
+          
+            
+
+
+  
+
+
+  <a href="https://github.com/stablekernel/aqueduct" title="Go to repository" class="md-source" data-md-source="github">
+    
+      <div class="md-source__icon">
+        <svg viewBox="0 0 24 24" width="24" height="24">
+          <use xlink:href="#github" width="24" height="24"></use>
+        </svg>
+      </div>
+    
+    <div class="md-source__repository">
+      GitHub
+    </div>
+  </a>
+
+          
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>
+    
+    <div class="md-container">
+      
+      
+      <main class="md-main">
+        <div class="md-main__inner md-grid" data-md-component="container">
+          
+            
+              <div class="md-sidebar md-sidebar--primary" data-md-component="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    <nav class="md-nav md-nav--primary" data-md-level="0">
+  <label class="md-nav__title md-nav__title--site" for="drawer">
+    
+      <i class="md-icon md-icon--home md-nav__button"></i>
+    
+    Aqueduct
+  </label>
+  
+    <div class="md-nav__source">
+      
+
+
+  
+
+
+  <a href="https://github.com/stablekernel/aqueduct" title="Go to repository" class="md-source" data-md-source="github">
+    
+      <div class="md-source__icon">
+        <svg viewBox="0 0 24 24" width="24" height="24">
+          <use xlink:href="#github" width="24" height="24"></use>
+        </svg>
+      </div>
+    
+    <div class="md-source__repository">
+      GitHub
+    </div>
+  </a>
+
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../.." title="Home" class="md-nav__link">
+      Home
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-2" type="checkbox" id="nav-2">
+    
+    <label class="md-nav__link" for="nav-2">
+      Tutorial
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-2">
+        Tutorial
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../tut/getting-started/" title="1. Getting Started" class="md-nav__link">
+      1. Getting Started
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../tut/writing-tests/" title="2. Writing Tests" class="md-nav__link">
+      2. Writing Tests
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../tut/executing-queries/" title="3. Executing Database Queries" class="md-nav__link">
+      3. Executing Database Queries
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../tut/model-relationships-and-joins/" title="4. Advanced Database Queries" class="md-nav__link">
+      4. Advanced Database Queries
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../tut/deploying-and-other-fun-things/" title="5. Deploying" class="md-nav__link">
+      5. Deploying
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-3" type="checkbox" id="nav-3">
+    
+    <label class="md-nav__link" for="nav-3">
+      HTTP
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-3">
+        HTTP
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/overview/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/structure/" title="Application Structure" class="md-nav__link">
+      Application Structure
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/request_and_response/" title="Request and Response Objects" class="md-nav__link">
+      Request and Response Objects
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/request_controller/" title="Handling Requests: Fundamentals" class="md-nav__link">
+      Handling Requests: Fundamentals
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/routing/" title="Routing" class="md-nav__link">
+      Routing
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/request_sink/" title="Initialization and the RequestSink" class="md-nav__link">
+      Initialization and the RequestSink
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/http_controller/" title="Handling Requests: HTTPController" class="md-nav__link">
+      Handling Requests: HTTPController
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/cors/" title="CORS Configuration" class="md-nav__link">
+      CORS Configuration
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-4" type="checkbox" id="nav-4" checked>
+    
+    <label class="md-nav__link" for="nav-4">
+      Database/ORM
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-4">
+        Database/ORM
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../overview/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../modeling_data/" title="Modeling Data" class="md-nav__link">
+      Modeling Data
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-toggle md-nav__toggle" data-md-toggle="toc" type="checkbox" id="toc">
+    
+      
+    
+    
+      <label class="md-nav__link md-nav__link--active" for="toc">
+        Storage, Serialization and Deserialization
+      </label>
+    
+    <a href="./" title="Storage, Serialization and Deserialization" class="md-nav__link md-nav__link--active">
+      Storage, Serialization and Deserialization
+    </a>
+    
+      
+<nav class="md-nav md-nav--secondary">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#transient-properties-and-serializationdeserialization" title="Transient Properties and Serialization/Deserialization" class="md-nav__link">
+    Transient Properties and Serialization/Deserialization
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#serialization-and-deserialization-of-relationship-properties" title="Serialization and Deserialization of Relationship Properties" class="md-nav__link">
+    Serialization and Deserialization of Relationship Properties
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+    
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../executing_queries/" title="Executing Queries" class="md-nav__link">
+      Executing Queries
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../advanced_queries/" title="Advanced Queries" class="md-nav__link">
+      Advanced Queries
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../db_tools/" title="Migration and Tooling" class="md-nav__link">
+      Migration and Tooling
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../inside_the_db/" title="Inside the DB" class="md-nav__link">
+      Inside the DB
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-5" type="checkbox" id="nav-5">
+    
+    <label class="md-nav__link" for="nav-5">
+      OAuth 2.0
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-5">
+        OAuth 2.0
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../auth/overview/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../auth/server/" title="Setting up Authorization" class="md-nav__link">
+      Setting up Authorization
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../auth/authorizer/" title="Protected Routes" class="md-nav__link">
+      Protected Routes
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../auth/controllers/" title="Issuing Access Tokens" class="md-nav__link">
+      Issuing Access Tokens
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../auth/cli/" title="Creating OAuth 2.0 Clients" class="md-nav__link">
+      Creating OAuth 2.0 Clients
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../auth/what_is_oauth/" title="What is OAuth 2.0?" class="md-nav__link">
+      What is OAuth 2.0?
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-6" type="checkbox" id="nav-6">
+    
+    <label class="md-nav__link" for="nav-6">
+      Testing
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-6">
+        Testing
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../testing/overview/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../testing/harness/" title="Test Harness" class="md-nav__link">
+      Test Harness
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../testing/test_client/" title="Writing Tests and the TestClient" class="md-nav__link">
+      Writing Tests and the TestClient
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-7" type="checkbox" id="nav-7">
+    
+    <label class="md-nav__link" for="nav-7">
+      Deployment
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-7">
+        Deployment
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../deploy/overview/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../deploy/deploy_local/" title="Deploy Locally" class="md-nav__link">
+      Deploy Locally
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../deploy/deploy_heroku/" title="Deploy on Heroku" class="md-nav__link">
+      Deploy on Heroku
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../deploy/deploy_aws/" title="Deploy on AWS" class="md-nav__link">
+      Deploy on AWS
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../deploy/script/" title="Deploying without aqueduct serve" class="md-nav__link">
+      Deploying without aqueduct serve
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#transient-properties-and-serializationdeserialization" title="Transient Properties and Serialization/Deserialization" class="md-nav__link">
+    Transient Properties and Serialization/Deserialization
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#serialization-and-deserialization-of-relationship-properties" title="Serialization and Deserialization of Relationship Properties" class="md-nav__link">
+    Serialization and Deserialization of Relationship Properties
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content">
+            <article class="md-content__inner md-typeset">
+               
+                 <a href="https://github.com/stablekernel/aqueduct/edit/master/docs/db/serialization.md" title="Edit this page" class="md-icon md-content__edit">edit</a>
+               
+              
+                
+                <h1 id="storage-serialization-and-deserialization">Storage, Serialization and Deserialization</h1>
+<p>In the previous chapter, you have seen that <code>ManagedObject&lt;T&gt;</code>s subclasses are responsible for representing database rows and can be encoded to or decoded from transmission formats like JSON or XML. This chapter explains the behavior of those transformations.</p>
+<p><code>ManagedObject&lt;T&gt;</code>s are created by reading JSON from a HTTP request body. Their values are often written to JSON in an HTTP response body. For these tasks, every <code>ManagedObject&lt;T&gt;</code> has the methods <code>readMap</code> and <code>asMap</code>. You'll likely invoke <code>readMap</code> often - you rarely have to invoke <code>asMap</code>, as some other mechanisms do this for you when returning and HTTP response. Here's an example of those two methods:</p>
+<div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">userMap</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;id&quot;</span> <span class="o">:</span> <span class="m">1</span><span class="p">,</span>
+    <span class="s2">&quot;name&quot;</span> <span class="o">:</span> <span class="s2">&quot;Bob&quot;</span>
+<span class="p">};</span>
+
+<span class="kd">var</span> <span class="n">user</span> <span class="o">=</span> <span class="k">new</span> <span class="n">User</span><span class="p">()..</span><span class="n">readMap</span><span class="p">(</span><span class="n">userMap</span><span class="p">);</span>
+
+<span class="kd">var</span> <span class="n">outUserMap</span> <span class="o">=</span> <span class="n">user</span><span class="p">.</span><span class="n">asMap</span><span class="p">();</span>
+
+<span class="n">userMap</span> <span class="o">==</span> <span class="n">outUserMap</span><span class="p">;</span> <span class="c1">// yup</span>
+</pre></div>
+
+
+<p>Note that <code>ManagedObject&lt;T&gt;</code>s don't have anything to do with JSON, XML or some other format here. Other parts of Aqueduct manage moving data back and forth between JSON and <code>Map</code>s - <code>ManagedObject&lt;T&gt;</code> doesn't care about the actual format as long as it can work with <code>Map</code>s.</p>
+<p>It's important to understand how <code>null</code> works when reading from or writing to a <code>Map</code> with a <code>ManagedObject&lt;T&gt;</code>. <code>User</code> has two properties, <code>id</code> and <code>name</code>, and in the previous code block, both of those properties were in the both the input and output <code>Map</code>. But what happens if <code>id</code> is not in the input map:</p>
+<div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">userMap</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="s2">&quot;name&quot;</span> <span class="o">:</span> <span class="s2">&quot;Bob&quot;</span>
+<span class="p">};</span>
+
+<span class="kd">var</span> <span class="n">user</span> <span class="o">=</span> <span class="k">new</span> <span class="n">User</span><span class="p">()..</span><span class="n">readMap</span><span class="p">(</span><span class="n">userMap</span><span class="p">);</span>
+
+<span class="n">user</span><span class="p">.</span><span class="n">id</span> <span class="o">==</span> <span class="kc">null</span><span class="p">;</span> <span class="c1">// yup</span>
+<span class="n">user</span><span class="p">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;Bob&quot;</span><span class="p">;</span> <span class="c1">// yup</span>
+
+<span class="kd">var</span> <span class="n">outUserMap</span> <span class="o">=</span> <span class="n">user</span><span class="p">.</span><span class="n">AsMap</span><span class="p">();</span>
+<span class="n">outUserMap</span> <span class="o">==</span> <span class="p">{</span>
+  <span class="s2">&quot;name&quot;</span> <span class="o">:</span> <span class="s2">&quot;Bob&quot;</span>
+<span class="p">};</span>
+</pre></div>
+
+
+<p>OK, so the <code>User</code> reads in the map without <code>id</code>, says the <code>id</code> is <code>null</code>, and when it transformed the <code>User</code> back to <code>Map</code>, remembered that <code>id</code> wasn't in there. But what about this, where <code>id</code> is in the input map, but its explicitly <code>null</code>:</p>
+<div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">userMap</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="s2">&quot;id&quot;</span> <span class="o">:</span> <span class="kc">null</span>
+  <span class="s2">&quot;name&quot;</span> <span class="o">:</span> <span class="s2">&quot;Bob&quot;</span>
+<span class="p">};</span>
+
+<span class="kd">var</span> <span class="n">user</span> <span class="o">=</span> <span class="k">new</span> <span class="n">User</span><span class="p">()..</span><span class="n">readMap</span><span class="p">(</span><span class="n">userMap</span><span class="p">);</span>
+
+<span class="n">user</span><span class="p">.</span><span class="n">id</span> <span class="o">==</span> <span class="kc">null</span><span class="p">;</span> <span class="c1">// yup</span>
+<span class="n">user</span><span class="p">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;Bob&quot;</span><span class="p">;</span> <span class="c1">// yup</span>
+
+<span class="kd">var</span> <span class="n">outUserMap</span> <span class="o">=</span> <span class="n">user</span><span class="p">.</span><span class="n">asMap</span><span class="p">();</span>
+<span class="n">outUserMap</span> <span class="o">==</span> <span class="p">{</span>
+  <span class="s2">&quot;id&quot;</span> <span class="o">:</span> <span class="kc">null</span>
+  <span class="s2">&quot;name&quot;</span> <span class="o">:</span> <span class="s2">&quot;Bob&quot;</span>
+<span class="p">};</span>
+</pre></div>
+
+
+<p>Here, because the value in the input map was explicitly <code>null</code> when read, <code>User</code> includes it in its output map. A <code>ManagedObject&lt;T&gt;</code> - like <code>User</code> here - makes the distinction between a value that is <code>null</code> and a value that it <em>doesn't have enough information about</em>. A property of a <code>ManagedObject&lt;T&gt;</code> can get set in three ways: its read from a map, its through an accessor method or its read from the database. In all three of these situations, not every property is available. For example, a database query may only fetch a subset of columns.</p>
+<p>This is no more obvious than when just creating a brand new instance:</p>
+<div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">user</span> <span class="o">=</span> <span class="k">new</span> <span class="n">User</span><span class="p">();</span>
+<span class="n">user</span><span class="p">.</span><span class="n">id</span> <span class="o">==</span> <span class="kc">null</span><span class="p">;</span> <span class="c1">// yup</span>
+<span class="n">user</span><span class="p">.</span><span class="n">name</span> <span class="o">==</span> <span class="kc">null</span><span class="p">;</span> <span class="c1">// yup</span>
+
+<span class="n">user</span><span class="p">.</span><span class="n">asMap</span><span class="p">()</span> <span class="o">==</span> <span class="p">{};</span> <span class="c1">// yup</span>
+</pre></div>
+
+
+<p>A <code>ManagedObject&lt;T&gt;</code> will not include keys in its <code>asMap()</code> if it doesn't have a value for them. The value may exist somewhere else - like in the database - but if it doesn't have it, it won't include it. This distinction is useful information for clients of Aqueduct applications.</p>
+<p>So what about values that are actually <code>null</code>? A property with the value <code>null</code> will be included in <code>asMap()</code> if its been read from the database, read using <code>readMap()</code> or explicitly assigned to a property. The following three user objects will all have <code>{"name": null}</code>:</p>
+<div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">user1</span> <span class="o">=</span> <span class="k">new</span> <span class="n">User</span><span class="p">()</span>
+  <span class="p">..</span><span class="n">id</span> <span class="o">=</span> <span class="m">1</span>
+  <span class="p">..</span><span class="n">name</span> <span class="o">=</span> <span class="kc">null</span><span class="p">;</span>
+
+<span class="kd">var</span> <span class="n">user2</span> <span class="o">=</span> <span class="k">new</span> <span class="n">User</span><span class="p">()..</span><span class="n">readMap</span><span class="p">({</span>
+  <span class="s2">&quot;id&quot;</span><span class="o">:</span> <span class="m">2</span>
+  <span class="s2">&quot;name&quot;</span><span class="o">:</span> <span class="kc">null</span>
+<span class="p">});</span>
+
+<span class="kd">var</span> <span class="n">query</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span><span class="p">()</span>
+  <span class="p">..</span><span class="n">where</span><span class="p">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">whereEqualTo</span><span class="p">(</span><span class="m">3</span><span class="p">)</span>
+  <span class="p">..</span><span class="n">where</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">whereNull</span><span class="p">;</span>
+<span class="kd">var</span> <span class="n">user3</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">query</span><span class="p">.</span><span class="n">fetchOne</span><span class="p">();</span>
+</pre></div>
+
+
+<p>Note that any value that is returned from an accessor method that hasn't been populated in a <code>ManagedObject&lt;T&gt;</code> will be <code>null</code>. If using an object's values to perform some calculation, it's your job to know if the value has been fetched or not. (See <code>ManagedObject&lt;T&gt;.hasValueForProperty()</code> for how to check this at runtime.)</p>
+<p>One last thing to note: if you wish to remove a value from a <code>ManagedObject&lt;T&gt;</code>s storage (and likewise, its <code>asMap()</code>), you may not simply set the property to <code>null</code>. This can only be accomplished with <code>ManagedObject&lt;T&gt;.removePropertyFromBackingMap()</code>.</p>
+<p>It is helpful to think of a <code>ManagedObject&lt;T&gt;</code> as a proxy to a database row that may or may not exist yet, and may have less data than actually exists in the database row.</p>
+<h3 id="transient-properties-and-serializationdeserialization">Transient Properties and Serialization/Deserialization</h3>
+<p>By default, transient properties and getters - those declared in the subclass of <code>ManagedObject&lt;T&gt;</code> - are <em>not</em> included in the <code>asMap()</code>. (Setters are obviously not included, as you can't get a value from them.) To include a transient property or getter in <code>asMap()</code>, you may mark it with <code>@managedTransientOutputAttribute</code> metadata. Properties marked with this metadata will be included in the serialized <code>Map</code> if and only if they are not null. A good reason to use this feature is when you want to provide a value to the consumer of the API that is derived from one or more values in persistent type of the managed object:</p>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">User</span> <span class="kd">extends</span> <span class="n">ManagedObject</span><span class="o">&lt;</span><span class="n">_User</span><span class="o">&gt;</span> <span class="kd">implements</span> <span class="n">_User</span> <span class="p">{</span>
+  <span class="err">@</span><span class="n">managedTransientOutputAttribute</span>
+  <span class="kt">String</span> <span class="kd">get</span> <span class="n">fullName</span> <span class="o">=&gt;</span> <span class="s2">&quot;</span><span class="si">$</span><span class="n">firstName</span><span class="s2"> </span><span class="si">$</span><span class="n">lastName</span><span class="s2">&quot;</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kd">class</span> <span class="nc">_User</span> <span class="p">{</span>
+  <span class="kt">String</span> <span class="n">firstName</span><span class="p">;</span>
+  <span class="kt">String</span> <span class="n">lastName</span><span class="p">;</span>
+
+  <span class="p">...</span>
+<span class="p">}</span>
+
+<span class="kd">var</span> <span class="n">user</span> <span class="o">=</span> <span class="k">new</span> <span class="n">User</span><span class="p">()</span>
+  <span class="p">..</span><span class="n">firstName</span> <span class="o">=</span> <span class="s2">&quot;Bob&quot;</span>
+  <span class="p">..</span><span class="n">lastName</span> <span class="o">=</span> <span class="s2">&quot;Boberson&quot;</span><span class="p">;</span>
+
+<span class="kd">var</span> <span class="n">map</span> <span class="o">=</span> <span class="n">user</span><span class="p">.</span><span class="n">asMap</span><span class="p">();</span>
+<span class="n">map</span> <span class="o">==</span> <span class="p">{</span>
+  <span class="s1">&#39;firstName&#39;</span> <span class="o">:</span> <span class="s1">&#39;Bob&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;lastName&#39;</span> <span class="o">:</span> <span class="s1">&#39;Boberson&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;fullName&#39;</span> <span class="o">:</span> <span class="s1">&#39;Bob Boberson&#39;</span>
+<span class="p">};</span>
+</pre></div>
+
+
+<p>Transient properties may also be used as inputs when reading with <code>readMap()</code> by marking a property with <code>@managedTransientInputAttribute</code>. For example, consider how to handle user passwords. The persistent type - a direct mapping to the database - does not have a password property for security purposes. Instead, it has a password hash and a salt. An instance type could then define a password property, which automatically set the salt and hash of the password in the underlying persistent type:</p>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">User</span> <span class="kd">extends</span> <span class="n">ManagedObject</span><span class="o">&lt;</span><span class="n">_User</span><span class="o">&gt;</span> <span class="kd">implements</span> <span class="n">_User</span> <span class="p">{</span>
+  <span class="err">@</span><span class="n">managedTransientInputAttribute</span>
+  <span class="kt">void</span> <span class="kd">set</span> <span class="n">password</span><span class="p">(</span><span class="kt">String</span> <span class="n">pw</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">salt</span> <span class="o">=</span> <span class="n">generateSalt</span><span class="p">();</span>
+    <span class="n">hashedPassword</span> <span class="o">=</span> <span class="n">hash</span><span class="p">(</span><span class="n">pw</span><span class="p">,</span> <span class="n">salt</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+<span class="kd">class</span> <span class="nc">_User</span> <span class="p">{</span>
+  <span class="kt">String</span> <span class="n">salt</span><span class="p">;</span>
+  <span class="kt">String</span> <span class="n">hashedPassword</span><span class="p">;</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+
+<span class="kd">var</span> <span class="n">map</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="s1">&#39;password&#39;</span> <span class="o">:</span> <span class="s1">&#39;mypassword&#39;</span>
+<span class="p">};</span>
+<span class="kd">var</span> <span class="n">user</span> <span class="o">=</span> <span class="k">new</span> <span class="n">User</span><span class="p">()..</span><span class="n">readMap</span><span class="p">(</span><span class="n">map</span><span class="p">);</span>
+<span class="kd">var</span> <span class="n">salt</span> <span class="o">=</span> <span class="n">user</span><span class="p">.</span><span class="n">salt</span><span class="p">;</span> <span class="c1">// &#39;somerandomstring&#39;</span>
+<span class="kd">var</span> <span class="n">hashedPassword</span> <span class="o">=</span> <span class="n">user</span><span class="p">.</span><span class="n">hashedPassword</span><span class="p">;</span> <span class="c1">// &#39;somehashedstring&#39;</span>
+
+<span class="kd">var</span> <span class="n">password</span> <span class="o">=</span> <span class="n">user</span><span class="p">.</span><span class="n">password</span><span class="p">;</span> <span class="c1">// Analyzer error - user.password doesn&#39;t exist!</span>
+</pre></div>
+
+
+<p>On a related note, persistent properties are always included in <code>asMap()</code> by default, but can be omitted by adding <code>ManagedColumnAttributes</code> metadata with the <code>omitByDefault</code> option:</p>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">_User</span> <span class="p">{</span>
+  <span class="err">@</span><span class="n">ManagedColumnAttributes</span><span class="p">(</span><span class="nl">omitByDefault:</span> <span class="kc">true</span><span class="p">)</span>
+  <span class="kt">String</span> <span class="n">salt</span><span class="p">;</span>
+
+  <span class="err">@</span><span class="n">ManagedColumnAttributes</span><span class="p">(</span><span class="nl">omitByDefault:</span> <span class="kc">true</span><span class="p">)</span>
+  <span class="kt">String</span> <span class="n">hashedPassword</span><span class="p">;</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>A transient input attribute must be a setter or a property, just like an transient output attribute must be a getter or a property. For properties that are both inputs and outputs, you may use the metadata <code>@managedTransientAttribute</code>.</p>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">User</span> <span class="kd">extends</span> <span class="n">ManagedObject</span><span class="o">&lt;</span><span class="n">_User</span><span class="o">&gt;</span> <span class="kd">implements</span> <span class="n">_User</span> <span class="p">{</span>
+  <span class="err">@</span><span class="n">managedTransientAttribute</span>
+  <span class="kt">String</span> <span class="n">nickname</span><span class="p">;</span> <span class="c1">// shows up in asMap() and can be read from readMap()</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>Also, a separate getter and setter may exist for the same name to allow both input and output:</p>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">User</span> <span class="kd">extends</span> <span class="n">ManagedObject</span><span class="o">&lt;</span><span class="n">_User</span><span class="o">&gt;</span> <span class="kd">implements</span> <span class="n">_User</span> <span class="p">{</span>
+  <span class="err">@</span><span class="n">managedTransientInputAttribute</span>
+  <span class="kt">void</span> <span class="kd">set</span> <span class="n">transientValue</span><span class="p">(</span><span class="kt">String</span> <span class="n">s</span><span class="p">)</span> <span class="p">{</span>
+    <span class="p">...</span>
+  <span class="p">}</span>
+
+  <span class="err">@</span><span class="n">managedTransientOutputAttribute</span>
+  <span class="kt">String</span> <span class="kd">get</span> <span class="n">transientValue</span> <span class="o">=&gt;</span> <span class="p">...;</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>Transient properties marked with these metadata <em>are</em> <code>attributes</code> in <code>ManagedEntity</code> (like scalar properties on the persistent type, but unlike other properties on an instance type).</p>
+<h3 id="serialization-and-deserialization-of-relationship-properties">Serialization and Deserialization of Relationship Properties</h3>
+<p>Relationship properties - references to other <code>ManagedObject&lt;T&gt;</code> subclasses - can also be included in <code>asMap()</code> and read from <code>readMap()</code>, so long as the instance knows their value. Relationship properties are typically populated when executing a <code>Query&lt;T&gt;</code> with <code>joinOne()</code> or <code>joinMany()</code> - aka, a SQL JOIN.</p>
+<p>If an object has a "has-one" or "belongs to" relationship property, its <code>asMap</code> will contain a nested <code>Map</code> representing the related object. For example, recall the <code>User</code> with a <code>job</code>:</p>
+<div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">job</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Job</span><span class="p">()</span>
+  <span class="p">..</span><span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;Programmer&quot;</span><span class="p">;</span>
+<span class="kd">var</span> <span class="n">user</span> <span class="o">=</span> <span class="k">new</span> <span class="n">User</span><span class="p">()</span>
+  <span class="p">..</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Bob&quot;</span>
+  <span class="p">..</span><span class="n">job</span> <span class="o">=</span> <span class="n">job</span><span class="p">;</span>
+
+<span class="kd">var</span> <span class="n">userMap</span> <span class="o">=</span> <span class="n">user</span><span class="p">.</span><span class="n">asMap</span><span class="p">();</span>
+<span class="n">userMap</span> <span class="o">==</span> <span class="p">{</span>
+  <span class="s2">&quot;id&quot;</span><span class="o">:</span> <span class="m">1</span><span class="p">,</span>
+  <span class="s2">&quot;name&quot;</span><span class="o">:</span> <span class="s2">&quot;Bob&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;job&quot;</span><span class="o">:</span> <span class="p">{</span>
+    <span class="s2">&quot;id&quot;</span><span class="o">:</span> <span class="m">1</span>
+    <span class="s2">&quot;title&quot;</span><span class="o">:</span> <span class="s2">&quot;Programmer&quot;</span>
+  <span class="p">}</span>
+<span class="p">};</span> <span class="c1">// yup</span>
+</pre></div>
+
+
+<p>Notice that the names of the keys - including relationship properties and properties of the related object - all match the names of their declared properties.</p>
+<p>It's important to note that "belongs to" relationships - those with <code>ManagedRelationship</code> metadata that represent foreign key columns - are always represented by <code>Map</code>s. When fetching an object with a from a database, the underlying foreign key column value is fetched by default. When that object's <code>asMap()</code> is invoked, the foreign key value is wrapped in a <code>Map</code>. The key to this <code>Map</code> is the primary key of the related object. For example:</p>
+<div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">jobQuery</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Job</span><span class="o">&gt;</span><span class="p">();</span>
+<span class="kd">var</span> <span class="n">job</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">jobQuery</span><span class="p">.</span><span class="n">fetchOne</span><span class="p">();</span>
+
+<span class="n">job</span><span class="p">.</span><span class="n">asMap</span><span class="p">()</span> <span class="o">==</span> <span class="p">{</span>
+  <span class="s2">&quot;id&quot;</span><span class="o">:</span> <span class="m">1</span><span class="p">,</span>
+  <span class="s2">&quot;title&quot;</span><span class="o">:</span> <span class="s2">&quot;Programmer&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;user&quot;</span><span class="o">:</span> <span class="p">{</span>
+    <span class="s2">&quot;id&quot;</span><span class="o">:</span> <span class="m">1</span>
+  <span class="p">}</span>
+<span class="p">};</span> <span class="c1">// yup</span>
+</pre></div>
+
+
+<p>This behavior might be different than some ORMs, which would include a key that matches the name of the underlying database column where the value is simply the integer foreign key. That would look like this:</p>
+<div class="codehilite"><pre><span></span><span class="n">job</span><span class="p">.</span><span class="n">asMap</span><span class="p">()</span> <span class="o">==</span> <span class="p">{</span>
+  <span class="s2">&quot;id&quot;</span><span class="o">:</span> <span class="m">1</span><span class="p">,</span>
+  <span class="s2">&quot;title&quot;</span><span class="o">:</span> <span class="s2">&quot;Programmer&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;user_id&quot;</span><span class="o">:</span> <span class="m">1</span>
+<span class="p">};</span> <span class="c1">// nope</span>
+</pre></div>
+
+
+<p>Aqueduct treats relationships consistently and chooses not to expose any of the underlying database details to the API consumer. An iOS app, for example, shouldn't care - a relationship could be maintained by foreign key references or by witchcraft. The interesting piece to the API consumer is that job's have a user, and user's have a job.</p>
+<p>"Has-many" relationships, which are represented as <code>ManagedSet&lt;T&gt;</code>s, are written as <code>List&lt;Map&gt;</code>s in <code>asMap()</code>.</p>
+<div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">user</span> <span class="o">=</span> <span class="k">new</span> <span class="n">User</span><span class="p">()</span>
+  <span class="p">..</span><span class="n">id</span> <span class="o">=</span> <span class="m">1</span><span class="p">;</span>
+  <span class="p">..</span><span class="n">posts</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ManagedSet</span><span class="p">.</span><span class="n">from</span><span class="p">([</span>
+      <span class="k">new</span> <span class="n">Post</span><span class="p">()..</span><span class="n">id</span> <span class="o">=</span> <span class="m">2</span><span class="p">,</span>
+      <span class="k">new</span> <span class="n">Post</span><span class="p">()..</span><span class="n">id</span> <span class="o">=</span> <span class="m">3</span>
+  <span class="p">]);</span>
+
+<span class="kd">var</span> <span class="n">userMap</span> <span class="o">=</span> <span class="n">user</span><span class="p">.</span><span class="n">asMap</span><span class="p">();</span>
+<span class="n">userMap</span> <span class="o">==</span> <span class="p">{</span>
+  <span class="s1">&#39;id&#39;</span> <span class="o">:</span> <span class="m">1</span><span class="p">,</span>
+  <span class="s1">&#39;posts&#39;</span> <span class="o">:</span> <span class="p">[</span>
+    <span class="p">{</span>
+      <span class="s1">&#39;id&#39;</span> <span class="o">:</span> <span class="m">2</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+      <span class="s1">&#39;id&#39;</span> <span class="o">:</span> <span class="m">3</span>
+    <span class="p">}</span>
+  <span class="p">]</span>
+<span class="p">};</span>
+</pre></div>
+
+
+<p>It is important to note the potential for cyclic object graphs. Since all relationship properties are two-sided, the two properties in that relationship are references to one another. That is, you could do something like this:</p>
+<div class="codehilite"><pre><span></span><span class="n">identical</span><span class="p">(</span><span class="n">user</span><span class="p">.</span><span class="n">profile</span><span class="p">.</span><span class="n">user</span><span class="p">,</span> <span class="n">user</span><span class="p">);</span>
+<span class="n">identical</span><span class="p">(</span><span class="n">user</span><span class="p">.</span><span class="n">posts</span><span class="p">.</span><span class="n">first</span><span class="p">.</span><span class="n">user</span><span class="p">,</span> <span class="n">user</span><span class="p">);</span>
+</pre></div>
+
+
+<p>When fetching objects from a database, this won't happen - Aqueduct will create multiple instances of the same row when necessary to avoid this. Therefore, the previous code snippet would not be true, but the following two statements that check the values inside those objects would be:</p>
+<div class="codehilite"><pre><span></span>user.profile.user.id == user.id;
+
+user.posts.first.user.id == user.id
+</pre></div>
+
+
+<p>While managed objects from a database will not have cyclic references, managed objects you instantiate yourself can if you mistakenly do so. When you invoke <code>asMap()</code> on a cyclic graph, you'll get a stack overflow error. It's best to avoid creating cyclic graphs altogether. For example:</p>
+<div class="codehilite"><pre><span></span><span class="c1">// do:</span>
+<span class="kd">var</span> <span class="n">user</span> <span class="o">=</span> <span class="k">new</span> <span class="n">User</span><span class="p">();</span>
+<span class="n">posts</span><span class="p">.</span><span class="n">forEach</span><span class="p">((</span><span class="n">p</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">p</span><span class="p">.</span><span class="n">user</span> <span class="o">=</span> <span class="k">new</span> <span class="n">User</span><span class="p">()..</span><span class="n">id</span> <span class="o">=</span> <span class="n">user</span><span class="p">.</span><span class="n">id</span><span class="p">;</span>
+<span class="p">});</span>
+
+<span class="c1">// do not:</span>
+<span class="kd">var</span> <span class="n">user</span> <span class="o">=</span> <span class="k">new</span> <span class="n">User</span><span class="p">();</span>
+<span class="n">posts</span><span class="p">.</span><span class="n">forEach</span><span class="p">((</span><span class="n">p</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">p</span><span class="p">.</span><span class="n">user</span> <span class="o">=</span> <span class="n">user</span><span class="p">;</span>
+<span class="p">});</span>
+</pre></div>
+
+
+<p>When reading the values of a <code>ManagedObject&lt;T&gt;</code> with <code>readMap()</code>, relationship properties must also be represented as nested <code>Map</code>s. Thus:</p>
+<div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">userMap</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="s2">&quot;id&quot;</span><span class="o">:</span> <span class="m">1</span><span class="p">,</span>
+  <span class="s2">&quot;name&quot;</span><span class="o">:</span> <span class="s2">&quot;Bob&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;posts&quot;</span><span class="o">:</span> <span class="p">[</span>
+    <span class="p">{</span><span class="s2">&quot;id&quot;</span><span class="o">:</span> <span class="m">1</span><span class="p">,</span> <span class="s2">&quot;text&quot;</span><span class="o">:</span> <span class="s2">&quot;hello&quot;</span><span class="p">}</span>
+  <span class="p">]</span>
+<span class="p">};</span>
+
+<span class="kd">var</span> <span class="n">user</span> <span class="o">=</span> <span class="k">new</span> <span class="n">User</span><span class="p">()..</span><span class="n">readMap</span><span class="p">(</span><span class="n">userMap</span><span class="p">);</span>
+<span class="n">user</span><span class="p">.</span><span class="n">posts</span> <span class="o">==</span> <span class="k">new</span> <span class="n">ManagedSet</span><span class="o">&lt;</span><span class="n">Post</span><span class="o">&gt;</span><span class="p">[</span>
+  <span class="k">new</span> <span class="n">Post</span><span class="p">()</span>
+    <span class="p">..</span><span class="n">id</span> <span class="o">=</span> <span class="m">1</span>
+    <span class="p">..</span><span class="n">text</span> <span class="o">=</span> <span class="s2">&quot;hello&quot;</span>
+<span class="p">];</span> <span class="c1">// yup, other Post doesn&#39;t implement == to check property equality</span>
+</pre></div>
+              
+              
+            </article>
+          </div>
+        </div>
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <div class="md-footer-nav">
+      <nav class="md-footer-nav__inner md-grid">
+        
+          <a href="../modeling_data/" title="Modeling Data" class="md-flex md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+            <div class="md-flex__cell md-flex__cell--shrink">
+              <i class="md-icon md-icon--arrow-back md-footer-nav__button"></i>
+            </div>
+            <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title">
+              <span class="md-flex__ellipsis">
+                <span class="md-footer-nav__direction">
+                  Previous
+                </span>
+                Modeling Data
+              </span>
+            </div>
+          </a>
+        
+        
+          <a href="../executing_queries/" title="Executing Queries" class="md-flex md-footer-nav__link md-footer-nav__link--next" rel="next">
+            <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title">
+              <span class="md-flex__ellipsis">
+                <span class="md-footer-nav__direction">
+                  Next
+                </span>
+                Executing Queries
+              </span>
+            </div>
+            <div class="md-flex__cell md-flex__cell--shrink">
+              <i class="md-icon md-icon--arrow-forward md-footer-nav__button"></i>
+            </div>
+          </a>
+        
+      </nav>
+    </div>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+          <div class="md-footer-copyright__highlight">
+            Built by stable|kernel
+          </div>
+        
+        powered by
+        <a href="http://www.mkdocs.org" title="MkDocs">MkDocs</a>
+        and
+        <a href="http://squidfunk.github.io/mkdocs-material/" title="Material for MkDocs">
+          Material for MkDocs</a>
+      </div>
+      
+        
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    
+      <script src="../../assets/javascripts/application-30ac6a1727.js"></script>
+      <script>app.initialize({url:{base:"../.."}})</script>
+      
+    
+    
+      
+    
+  </body>
+</html>
