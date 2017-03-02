@@ -1,0 +1,51 @@
+site_name: Aqueduct
+theme: 'material'
+markdown_extensions:
+  - codehilite
+extra_css:
+  - style/css/override.css
+repo_url: https://github.com/stablekernel/aqueduct
+site_description: Documentation for Aqueduct, a Dart server-side framework.
+copyright: Built by stable|kernel
+pages:
+- Home: 'index.md'
+- Tutorial:
+  - '1. Getting Started': 'tut/getting-started.md'
+  - '2. Writing Tests': 'tut/writing-tests.md'
+  - '3. Executing Database Queries': 'tut/executing-queries.md'
+  - '4. Advanced Database Queries': 'tut/model-relationships-and-joins.md'
+  - '5. Deploying': 'tut/deploying-and-other-fun-things.md'
+- HTTP:
+  - 'Overview': 'http/overview.md'
+  - 'Application Structure': 'http/structure.md'
+  - 'Request and Response Objects': 'http/request_and_response.md'
+  - 'Handling Requests: Fundamentals': 'http/request_controller.md'
+  - 'Routing': 'http/routing.md'
+  - 'Initialization and the RequestSink': 'http/request_sink.md'
+  - 'Handling Requests: HTTPController': 'http/http_controller.md'
+  - 'CORS Configuration': 'http/cors.md'
+- Database/ORM:
+  - 'Overview': 'db/overview.md'
+  - 'Modeling Data': 'db/modeling_data.md'
+  - 'Storage, Serialization and Deserialization': 'db/serialization.md'
+  - 'Executing Queries': 'db/executing_queries.md'
+  - 'Advanced Queries': 'db/advanced_queries.md'
+  - 'Migration and Tooling': 'db/db_tools.md'
+  - 'Inside the DB': 'db/inside_the_db.md'
+- OAuth 2.0:
+  - 'Overview': 'auth/overview.md'
+  - 'Setting up Authorization': 'auth/server.md'
+  - 'Protected Routes': 'auth/authorizer.md'
+  - 'Issuing Access Tokens': 'auth/controllers.md'
+  - 'Creating OAuth 2.0 Clients': 'auth/cli.md'
+  - 'What is OAuth 2.0?': 'auth/what_is_oauth.md'
+- Testing:
+  - 'Overview': 'testing/overview.md'
+  - 'Test Harness': 'testing/harness.md'
+  - 'Writing Tests and the TestClient': 'testing/test_client.md'
+- Deployment:
+  - 'Overview': 'deploy/overview.md'
+  - 'Deploy Locally': 'deploy/deploy_local.md'
+  - 'Deploy on Heroku': 'deploy/deploy_heroku.md'
+  - 'Deploy on AWS': 'deploy/deploy_aws.md'
+  - 'Deploying without aqueduct serve': 'deploy/script.md'

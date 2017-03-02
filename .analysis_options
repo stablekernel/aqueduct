@@ -1,5 +1,0 @@
-analyzer:
-  strong-mode: true
-  exclude:
-    - test_project/**
-    - test/db/migration_test_projects/**
