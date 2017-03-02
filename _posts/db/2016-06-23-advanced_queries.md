@@ -39,17 +39,17 @@ When paging, the query must have a `fetchLimit` - otherwise you're just sorting 
 
 The next argument to `pageBy` defines the order the rows will be sorted in. Without a `boundingValue`, `pageBy` returns rows starting from the beginning of the sorted list of rows. Therefore, when no bounding value is passed, the "first page" of rows is returned. With a `boundingValue`, the query returns rows starting from the first row past the bounding value. The `boundingValue` is not inclusive. For example, consider the following table and a `fetchLimit` of 2.
 
-id | dateCreated
-----------------
-1 | Jan 1 -- First Query Starts here
-2 | Jan 2
-3 | Jan 3
-4 | Jan 4
+id|dateCreated
+--|--------------
+1|Jan 1 -- First Query Starts here
+2|Jan 2
+3|Jan 3
+4|Jan 4
 
 The first query would return `Jan 1` and `Jan 2`. In the next query, `boundingValue` is set to `Jan 2`. The query would start grabbing rows from after Jan 2:
 
 id | dateCreated
-----------------
+---|-------------
 1 | Jan 1
 2 | Jan 2
 3 | Jan 3 -- Next Query Starts here
@@ -285,4 +285,4 @@ var q = new Query<User>()
   ..joinMany((u) => u.tasks);
 ```
 
-Note that a query will always fetch the primary key of all objects, even if it is omitted in `returningProperties`. 
+Note that a query will always fetch the primary key of all objects, even if it is omitted in `returningProperties`.
