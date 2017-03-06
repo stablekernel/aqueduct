@@ -8,6 +8,8 @@ Aqueduct has built-in classes to manage authentication and authorization accordi
 - Adding `Authorizer`s to a series of `RequestController`s to allow only authorized requests.
 - Creating OAuth 2.0 Client Identifiers through the `aqueduct auth` tool
 
+![Authorization Objects](../img/authobjects.png)
+
 ## Guides
 
 - [What is OAuth 2.0?](what_is_oauth.md)
