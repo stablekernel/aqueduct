@@ -538,20 +538,6 @@
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#paging-fetched-result-sets" title="Paging Fetched Result Sets" class="md-nav__link">
-    Paging Fetched Result Sets
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#filtering-results-of-a-fetch-operation" title="Filtering Results of a Fetch Operation" class="md-nav__link">
-    Filtering Results of a Fetch Operation
-  </a>
-  
-</li>
-      
     </ul>
   
 </nav>
@@ -916,20 +902,6 @@
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#paging-fetched-result-sets" title="Paging Fetched Result Sets" class="md-nav__link">
-    Paging Fetched Result Sets
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#filtering-results-of-a-fetch-operation" title="Filtering Results of a Fetch Operation" class="md-nav__link">
-    Filtering Results of a Fetch Operation
-  </a>
-  
-</li>
-      
     </ul>
   
 </nav>
@@ -1134,84 +1106,6 @@
 <p>An error encountered in preparing or executing a query will throw a <code>QueryException</code>. <code>RequestController</code>s, by default, will interpret the event of a <code>QueryException</code> to return a <code>Response</code> to an HTTP client. For common scenarios - like a unique violation generating an exception with suggested status code of <code>409</code> - Aqueduct will return a reasonable status code to the requesting HTTP client. Therefore, you do not have to catch query exceptions unless you wish to override the suggested status code.</p>
 <h3 id="statement-reuse">Statement Reuse</h3>
 <p>Aqueduct will parameterize and reuse queries when possible. This allows for significant speed and security improvements. Note that you do not have to do anything special to take advantage of this feature. However, currently at this time, you may not disable this feature.</p>
-<h3 id="paging-fetched-result-sets">Paging Fetched Result Sets</h3>
-<p>In larger data sets, it may make sense to only return a portion of rows from a database. For example, in a social media application, a user could have thousands of pieces of content they had created over many years. The likely use case for fetching their content would be to grab only the most recent content, and only grab earlier content as necessary. There are many ways to accomplish paging, and the right solution oftentimes depends on the context and may require additional services beyond just a single database - Aqueduct doesn't pretend to fully solve this problem. Aqueduct does provide two mechanisms on <code>Query&lt;T&gt;</code> instances for building queries that can fetch a subset of rows within a certain range.</p>
-<p>First, naive paging can be accomplished using the <code>fetchLimit</code> and <code>offset</code> properties of a <code>Query&lt;T&gt;</code>. For example, if a table contains 100 rows, and you would like to vend them out 10 at a time to a client, each query would have a value of 10 for its <code>fetchLimit</code>. The first query would have an <code>offset</code> of 0, then 10, then 20, and so on. Especially when adding <code>sortDescriptors</code> to a <code>Query&lt;T&gt;</code>, this type of paging can be effective. One of the drawbacks to this type of paging is that it can skip or duplicate rows if rows are being added or deleted while fetching subsequent pages.</p>
-<p>For example, a table contains 100 rows and you're fetching ten at a time. After two queries, you've fetched 20 total. The next query will fetch rows 21-30. If before that query goes off, a new row is inserted at row 10, the rest of the rows get shifted upwards. That means the row that was previously at row 20 moves to row 21. When the third query runs, it'll get that row again. Likewise, if a row is deleted from within the first 20 rows, what would have been row 21 moves into slot 20. The third query won't get that row and it is effectively skipped.</p>
-<p>A <code>Query&lt;T&gt;</code> has a property named <code>pageDescriptor</code> (an instance of <code>QueryPage</code>) to better handle paging and avoid the problem of sliding rows. A <code>QueryPage</code> works by sorting a table by one of its columns and finding a point in the sorted rows where one row is less than a value and the next row is greater than that value. When a fetch is made with a query page, the first row is fetched from one side of that pivot point. This value is called the <code>boundingValue</code>. The number of rows fetched is determined by <code>Query.fetchLimit</code>.</p>
-<p>For example, consider an entity that has a <code>createdDate</code> property:</p>
-<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">Task</span> <span class="kd">extends</span> <span class="n">ManagedObject</span><span class="o">&lt;</span><span class="n">_Task</span><span class="o">&gt;</span> <span class="kd">implements</span> <span class="n">_Task</span> <span class="p">{}</span>
-<span class="kd">class</span> <span class="nc">_Task</span> <span class="p">{</span>
-  <span class="err">@</span><span class="n">managedPrimaryKey</span> <span class="kt">int</span> <span class="n">id</span><span class="p">;</span>
-  <span class="kt">String</span> <span class="n">text</span><span class="p">;</span>
-
-  <span class="err">@</span><span class="n">ManagedColumnAttributes</span><span class="p">(</span><span class="nl">indexed:</span> <span class="kc">true</span><span class="p">)</span>
-  <span class="n">DateTime</span> <span class="n">dateCreated</span><span class="p">;</span>
-<span class="p">}</span>
-</pre></div>
-
-
-<p>In an application that displays a timeline of <code>Task</code>s, a user would most likely want to see their most recent five tasks first. Then, if they choose to continue browsing, the next five tasks after that, and then the next five and so on. This particular query would fetch the first five <code>Task</code>s:</p>
-<div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">query</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Task</span><span class="o">&gt;</span><span class="p">()</span>
-  <span class="p">..</span><span class="n">fetchLimit</span> <span class="o">=</span> <span class="m">5</span>
-  <span class="p">..</span><span class="n">pageDescriptor</span> <span class="o">=</span> <span class="k">new</span> <span class="n">QueryPage</span><span class="p">(</span><span class="n">SortOrder</span><span class="p">.</span><span class="n">descending</span><span class="p">,</span> <span class="s2">&quot;dateCreated&quot;</span><span class="p">);</span>
-<span class="kd">var</span> <span class="n">firstFive</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">query</span><span class="p">.</span><span class="n">fetch</span><span class="p">();</span>
-</pre></div>
-
-
-<p>The page descriptor here sorts the task table by its <code>dateCreated</code> in a descending order - later dates come first. Because no <code>boundingValue</code> is specified (<code>null</code>) in the <code>QueryPage</code>, the values will be fetched from the beginning: the most five most recent task. To fetch the next page, you use a <code>boundingValue</code> of the last fetched task's <code>dateCreated</code>.</p>
-<div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">firstFive</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">query</span><span class="p">.</span><span class="n">fetch</span><span class="p">();</span>
-
-<span class="kd">var</span> <span class="n">nextPageQuery</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Task</span><span class="o">&gt;</span><span class="p">()</span>
-  <span class="p">..</span><span class="n">fetchLimit</span> <span class="o">=</span> <span class="m">5</span>
-  <span class="p">..</span><span class="n">pageDescriptor</span> <span class="o">=</span> <span class="k">new</span> <span class="n">QueryPage</span><span class="p">(</span><span class="n">SortOrder</span><span class="p">.</span><span class="n">descending</span><span class="p">,</span> <span class="s2">&quot;dateCreated&quot;</span><span class="p">,</span> <span class="nl">boundingValue:</span> <span class="n">firstFive</span><span class="p">.</span><span class="n">last</span><span class="p">.</span><span class="n">dateCreated</span><span class="p">);</span>
-<span class="kd">var</span> <span class="n">nextFive</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">nextPageQuery</span><span class="p">.</span><span class="n">fetch</span><span class="p">();</span>  
-</pre></div>
-
-
-<p>The <code>boundingValue</code> is <em>not</em> inclusive. For example, if the last task was on October 5, 2013 - the <code>boundingValue</code> - the first result of the next page will start at the task that is closest to October 5, 2013 followed by the next four most recent. The <code>boundingValue</code> is encoded according to the type of the query page's property when sent to the underlying database, so you may pass normal Dart types like <code>DateTime</code> and <code>int</code>. The order of the rows returned by a query that has been paged will always match the order defined by the <code>QueryPage</code>'s <code>order</code>. If the query finds no more instances - that is, it runs out of data - the query will simply return no more objects.</p>
-<p>The value <code>null</code> should be the <code>boundingValue</code> when fetching the first page. It is also permissible to use a value that is known to be well outside of the range of possible values - for example, a date in the year 3000 is unlikely to exclude the most recent task object. It is a good idea to add an index <code>ManagedColumnAttributes</code> to any property that is used in a <code>QueryPage</code>. Do not use the <code>offset</code> property of a <code>Query&lt;T&gt;</code> when performing pages, as the property and bounding value already provide an offset into the data.</p>
-<h3 id="filtering-results-of-a-fetch-operation">Filtering Results of a Fetch Operation</h3>
-<p>More often than not, fetching every row of a table doesn't make sense. Instead, the desired result is a specific object or set of objects matching some condition. Aqueduct offers two ways to perform this filtering, both of which translate to a SQL <em>where clause</em>.</p>
-<p>The first option is the least prohibitive, the most prone to error and the most difficult to maintain: a <code>Query&lt;T&gt;.predicate</code>. A <code>Predicate</code> is a <code>String</code> that is added to the underlying query's where clause. A <code>Predicate</code> has two properties, a <code>format</code> string and a <code>Map&lt;String, dynamic&gt;</code> of parameter values. The <code>format</code> string can (and should) parameterize any input values. Parameters are indicated in the format string using the <code>@</code> token:</p>
-<div class="codehilite"><pre><span></span><span class="c1">// Creates a predicate that would only include instances where some column &quot;id&quot; is less than 2</span>
-<span class="kd">var</span> <span class="n">predicate</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Predicate</span><span class="p">(</span><span class="s2">&quot;id &lt; @id&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;id&quot;</span> <span class="o">:</span> <span class="m">2</span><span class="p">});</span>
-</pre></div>
-
-
-<p>The text following the <code>@</code> token may contain <code>[A-Za-z0-9_]</code>. The resulting where clause will be formed by replacing each token with the matching key in the parameters map. The value is not transformed in any way, so it must be the appropriate type for the property it is filtering by. If a key is not present in the <code>Map</code>, an exception will be thrown. Extra keys will be ignored.</p>
-<p>A raw <code>Predicate</code> like this one suffers from a few issues. First, predicates are <em>database specific</em> that is, after the values from the <code>parameters</code> are added to the <code>format</code> string, the resulting <code>String</code> is evaluated as-is by the underlying database. Perhaps more importantly, there is nothing to verify that the <code>Predicate</code> refers to the appropriate column names or that the data in the <code>parameters</code> is the right type. This can cause chaos when refactoring code, where a simple name change to a property would break a query. This option is primarily intended to be used as a fallback if <code>Query&lt;T&gt;.matchOn</code> is incapable of expressing the desired SQL.</p>
-<p>The <code>matchOn</code> property of a <code>Query&lt;T&gt;</code> is a much safer and more elegant way to build a query. The <code>matchOn</code> property allows you to assign <em>matchers</em> to the properties of a <code>ManagedObject&lt;T&gt;</code>. A <code>MatcherExpression</code> applies a condition - like equal to or less than - to the property it is assigned to. (This follows the same Hamcrest matcher style that the Dart test framework uses.)</p>
-<p>The <code>matchOn</code> property of a <code>Query&lt;T&gt;</code> has the same properties as the managed object being fetched. For each property of <code>matchOn</code> that is assigned a matcher, the resulting condition will be built into a generated <code>Predicate</code>. Here's an example of a query that finds a <code>User</code> with an <code>id</code> equal to 1:</p>
-<div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">query</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span><span class="p">()</span>
-  <span class="p">..</span><span class="n">matchOn</span><span class="p">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">whereEqualTo</span><span class="p">(</span><span class="m">1</span><span class="p">);</span>
-</pre></div>
-
-
-<p>(The generated SQL here would be 'SELECT _user.id, _user.name, ... FROM _user WHERE _user.id = 1'.)</p>
-<p>All <code>MatcherExpression</code>s are created using one of the <code>where</code> top-level methods in Aqueduct. Other examples are <code>whereGreaterThan</code>, <code>whereBetween</code>, and <code>whereIn</code>. Every matcher set on a <code>matchOn</code> is combined using logical 'and'. In other words, the following query will find all users whose <code>name</code> is "Bob" <em>and</em> <code>email</code> is not null:</p>
-<div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">query</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span><span class="p">()</span>
-  <span class="p">..</span><span class="n">matchOn</span><span class="p">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">whereEqualTo</span><span class="p">(</span><span class="s2">&quot;Bob&quot;</span><span class="p">)</span>
-  <span class="p">..</span><span class="n">matchOn</span><span class="p">.</span><span class="n">email</span> <span class="o">=</span> <span class="n">whereNotNull</span><span class="p">;</span>
-</pre></div>
-
-
-<p>Matcher methods all have a <code>dynamic</code> return type, the actual object type is opaque. The <code>matchOn</code> property is actually an instance of <code>ManagedObject&lt;T&gt;</code>, just like other managed objects you may use in your application. However, it has a special <code>backingMap</code> with different behavior than a managed object used to represent a database row.</p>
-<p>Relationship properties may also be matched, but there are important nuances to understand. When matching on <code>ManagedRelationship</code> properties - the properties that represent foreign key columns - you must use the <code>whereRelatedByValue</code> matcher. For example, the following <code>Query&lt;T&gt;</code> would fetch all tasks that belong to <code>User</code> with <code>id</code> equal to 1:</p>
-<div class="codehilite"><pre><span></span><span class="nl">Do:</span>
-
-<span class="kd">var</span> <span class="n">query</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Task</span><span class="o">&gt;</span><span class="p">()</span>
-  <span class="p">..</span><span class="n">matchOn</span><span class="p">.</span><span class="n">user</span> <span class="o">=</span> <span class="n">whereRelatedByValue</span><span class="p">(</span><span class="m">1</span><span class="p">);</span>
-
-<span class="n">Do</span> <span class="nl">not:</span>
-<span class="kd">var</span> <span class="n">query</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Task</span><span class="o">&gt;</span><span class="p">()</span>
-  <span class="p">..</span><span class="n">matchOn</span><span class="p">.</span><span class="n">user</span><span class="p">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">whereEqualTo</span><span class="p">(</span><span class="m">1</span><span class="p">);</span>
-</pre></div>
-
-
-<p>The <code>whereRelatedByValue</code> matcher will determine the primary key of the user managed object to build the predicate. (That is, in this example, the generated SQL is 'SELECT _task.id, _task.user_id, ... FROM _task where _task._user_id = 1'.)</p>
-<p>This matcher is only available for <code>ManagedRelation</code> properties - the other side of the relationship cannot be fetched in this way. That is covered in the next section.</p>
-<p>Setting the <code>predicate</code> and using <code>matchOn</code> property of a <code>Query&lt;T&gt;</code> at the same time has undefined behavior, you should only use one or the other. The <code>Predicate</code> generated by a <code>matchOn</code> property is database-agnostic.</p>
               
               
             </article>
