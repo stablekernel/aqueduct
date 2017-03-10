@@ -54,7 +54,7 @@ void main() {
   group("Paging", () {
     ManagedContext context = null;
 
-    var check = (List checkIDs, List values) {
+    var check = (List checkIDs, List<PageableTestModel> values) {
       expect(checkIDs.length, values.length);
       var ids = values.map((v) => v.id).toList();
       for (int i = 0; i < ids.length; i++) {
@@ -272,7 +272,7 @@ void main() {
 
   group("Failure cases", () {
     ManagedContext context = null;
-    var check = (List checkIDs, List values) {
+    var check = (List checkIDs, List<PageableTestModel> values) {
       expect(checkIDs.length, values.length);
       var ids = values.map((v) => v.id).toList();
       for (int i = 0; i < ids.length; i++) {

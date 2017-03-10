@@ -34,7 +34,7 @@ void main() {
 
       var verifier = (Parent p) {
         expect(p.name, "D");
-        expect(p.id, isNotNull);
+        expect(p.pid, isNotNull);
         expect(p.children, []);
       };
       verifier(await q.fetchOne());
@@ -52,7 +52,7 @@ void main() {
 
       var verifier = (Parent p) {
         expect(p.name, "D");
-        expect(p.id, isNotNull);
+        expect(p.pid, isNotNull);
         expect(p.children, []);
       };
       verifier(await q.fetchOne());
@@ -68,8 +68,8 @@ void main() {
 
       var verifier = (Parent p) {
         expect(p.name, "C");
-        expect(p.id, isNotNull);
-        expect(p.children.first.id, isNotNull);
+        expect(p.pid, isNotNull);
+        expect(p.children.first.cid, isNotNull);
         expect(p.children.first.name, "C5");
         expect(p.children.first.backingMap.containsKey("toy"), false);
         expect(p.children.first.backingMap.containsKey("vaccinations"), false);
@@ -84,22 +84,22 @@ void main() {
       var q = new Query<Parent>()..where.name = "B";
 
       q.joinMany((p) => p.children)
-        ..sortBy((c) => c.id, QuerySortOrder.ascending)
+        ..sortBy((c) => c.cid, QuerySortOrder.ascending)
         ..joinOne((c) => c.toy)
         ..joinMany((c) => c.vaccinations);
 
       var verifier = (Parent p) {
         expect(p.name, "B");
-        expect(p.id, isNotNull);
-        expect(p.children.first.id, isNotNull);
+        expect(p.pid, isNotNull);
+        expect(p.children.first.cid, isNotNull);
         expect(p.children.first.name, "C3");
         expect(p.children.first.backingMap.containsKey("toy"), true);
         expect(p.children.first.toy, isNull);
         expect(p.children.first.vaccinations.length, 1);
-        expect(p.children.first.vaccinations.first.id, isNotNull);
+        expect(p.children.first.vaccinations.first.vid, isNotNull);
         expect(p.children.first.vaccinations.first.kind, "V3");
 
-        expect(p.children.last.id, isNotNull);
+        expect(p.children.last.cid, isNotNull);
         expect(p.children.last.name, "C4");
         expect(p.children.last.backingMap.containsKey("toy"), true);
         expect(p.children.last.toy, isNull);
@@ -116,27 +116,27 @@ void main() {
       var q = new Query<Parent>()..where.name = "A";
 
       q.joinMany((p) => p.children)
-        ..sortBy((c) => c.id, QuerySortOrder.ascending)
+        ..sortBy((c) => c.cid, QuerySortOrder.ascending)
         ..joinOne((c) => c.toy)
         ..joinMany((c) => c.vaccinations)
-            .sortBy((v) => v.id, QuerySortOrder.ascending);
+            .sortBy((v) => v.vid, QuerySortOrder.ascending);
 
       var verifier = (Parent p) {
         expect(p.name, "A");
-        expect(p.id, isNotNull);
-        expect(p.children.first.id, isNotNull);
+        expect(p.pid, isNotNull);
+        expect(p.children.first.cid, isNotNull);
         expect(p.children.first.name, "C1");
-        expect(p.children.first.toy.id, isNotNull);
+        expect(p.children.first.toy.tid, isNotNull);
         expect(p.children.first.toy.name, "T1");
         expect(p.children.first.vaccinations.length, 2);
-        expect(p.children.first.vaccinations.first.id, isNotNull);
+        expect(p.children.first.vaccinations.first.vid, isNotNull);
         expect(p.children.first.vaccinations.first.kind, "V1");
-        expect(p.children.first.vaccinations.last.id, isNotNull);
+        expect(p.children.first.vaccinations.last.vid, isNotNull);
         expect(p.children.first.vaccinations.last.kind, "V2");
 
-        expect(p.children.last.id, isNotNull);
+        expect(p.children.last.cid, isNotNull);
         expect(p.children.last.name, "C2");
-        expect(p.children.last.toy.id, isNotNull);
+        expect(p.children.last.toy.tid, isNotNull);
         expect(p.children.last.toy.name, "T2");
         expect(p.children.last.vaccinations, []);
       };
@@ -149,13 +149,13 @@ void main() {
         "Fetching multiple top-level instances and including one level of subobjects",
         () async {
       var q = new Query<Parent>()
-        ..sortBy((p) => p.id, QuerySortOrder.ascending)
+        ..sortBy((p) => p.pid, QuerySortOrder.ascending)
         ..joinMany((p) => p.children)
         ..where.name = whereIn(["A", "C", "D"]);
       var results = await q.fetch();
       expect(results.length, 3);
 
-      expect(results.first.id, isNotNull);
+      expect(results.first.pid, isNotNull);
       expect(results.first.name, "A");
       expect(results.first.children.length, 2);
       expect(results.first.children.first.name, "C1");
@@ -168,7 +168,7 @@ void main() {
       expect(results.first.children.last.backingMap.containsKey("vaccinations"),
           false);
 
-      expect(results[1].id, isNotNull);
+      expect(results[1].pid, isNotNull);
       expect(results[1].name, "C");
       expect(results[1].children.length, 1);
       expect(results[1].children.first.name, "C5");
@@ -176,7 +176,7 @@ void main() {
       expect(results[1].children.first.backingMap.containsKey("vaccinations"),
           false);
 
-      expect(results.last.id, isNotNull);
+      expect(results.last.pid, isNotNull);
       expect(results.last.name, "D");
       expect(results.last.children.length, 0);
     });
@@ -192,15 +192,15 @@ void main() {
       var originalIterator = truth.iterator;
       for (var p in all) {
         originalIterator.moveNext();
-        expect(p.id, originalIterator.current.id);
+        expect(p.pid, originalIterator.current.pid);
         expect(p.name, originalIterator.current.name);
 
         var originalChildrenIterator = p.children.iterator;
         p.children?.forEach((child) {
           originalChildrenIterator.moveNext();
-          expect(child.id, originalChildrenIterator.current.id);
+          expect(child.cid, originalChildrenIterator.current.cid);
           expect(child.name, originalChildrenIterator.current.name);
-          expect(child.toy?.id, originalChildrenIterator.current.toy?.id);
+          expect(child.toy?.tid, originalChildrenIterator.current.toy?.tid);
           expect(child.toy?.name, originalChildrenIterator.current.toy?.name);
 
           var vacIter =
@@ -208,7 +208,7 @@ void main() {
                   <Vaccine>[].iterator;
           child.vaccinations?.forEach((v) {
             vacIter.moveNext();
-            expect(v.id, vacIter.current.id);
+            expect(v.vid, vacIter.current.vid);
             expect(v.kind, vacIter.current.kind);
           });
           expect(vacIter.moveNext(), false);
@@ -237,10 +237,10 @@ void main() {
       var q = new Query<Parent>()..where.name = "A";
 
       q.joinMany((p) => p.children)
-        ..sortBy((c) => c.id, QuerySortOrder.ascending)
+        ..sortBy((c) => c.cid, QuerySortOrder.ascending)
         ..joinOne((c) => c.toy)
         ..joinMany((c) => c.vaccinations)
-            .sortBy((v) => v.id, QuerySortOrder.ascending);
+            .sortBy((v) => v.vid, QuerySortOrder.ascending);
 
       var results = await q.fetch();
 
@@ -264,9 +264,9 @@ void main() {
 
       q.joinMany((p) => p.children)
         ..where.name = "C1"
-        ..sortBy((c) => c.id, QuerySortOrder.ascending)
+        ..sortBy((c) => c.cid, QuerySortOrder.ascending)
         ..joinMany((c) => c.vaccinations)
-            .sortBy((v) => v.id, QuerySortOrder.ascending)
+            .sortBy((v) => v.vid, QuerySortOrder.ascending)
         ..joinOne((c) => c.toy);
 
       var results = await q.fetch();
@@ -325,7 +325,7 @@ void main() {
     test(
         "Predicate that omits top-level objects but would include lower level object return no results",
         () async {
-      var q = new Query<Parent>()..where.id = 5;
+      var q = new Query<Parent>()..where.pid = 5;
 
       var childJoin = q.joinMany((p) => p.children)..joinOne((c) => c.toy);
       childJoin.joinMany((c) => c.vaccinations)..where.kind = "V1";
@@ -363,15 +363,15 @@ void main() {
       var originalIterator = truth.reversed.iterator;
       for (var p in results) {
         originalIterator.moveNext();
-        expect(p.id, originalIterator.current.id);
+        expect(p.pid, originalIterator.current.pid);
         expect(p.name, originalIterator.current.name);
 
         var originalChildrenIterator = p.children.iterator;
         p.children?.forEach((child) {
           originalChildrenIterator.moveNext();
-          expect(child.id, originalChildrenIterator.current.id);
+          expect(child.cid, originalChildrenIterator.current.cid);
           expect(child.name, originalChildrenIterator.current.name);
-          expect(child.toy?.id, originalChildrenIterator.current.toy?.id);
+          expect(child.toy?.tid, originalChildrenIterator.current.toy?.tid);
           expect(child.toy?.name, originalChildrenIterator.current.toy?.name);
 
           var vacIter =
@@ -379,7 +379,7 @@ void main() {
                   <Vaccine>[].iterator;
           child.vaccinations?.forEach((v) {
             vacIter.moveNext();
-            expect(v.id, vacIter.current.id);
+            expect(v.vid, vacIter.current.vid);
             expect(v.kind, vacIter.current.kind);
           });
           expect(vacIter.moveNext(), false);
@@ -403,7 +403,7 @@ void main() {
 
     test("Objects returned in join are not the same instance", () async {
       var q = new Query<Parent>()
-        ..where.id = 1
+        ..where.pid = 1
         ..joinMany((p) => p.children);
 
       var o = await q.fetchOne();
@@ -428,7 +428,7 @@ void main() {
     test("Trying to fetch hasMany relationship through resultProperties fails",
         () async {
       var q = new Query<Parent>()
-        ..returningProperties((p) => [p.id, p.children]);
+        ..returningProperties((p) => [p.pid, p.children]);
       try {
         await q.fetchOne();
       } on QueryException catch (e) {
@@ -442,7 +442,7 @@ void main() {
     test("Trying to fetch hasMany relationship through resultProperties fails",
         () async {
       var q = new Query<Parent>()
-        ..returningProperties((p) => [p.id, p.children]);
+        ..returningProperties((p) => [p.pid, p.children]);
       try {
         await q.fetchOne();
         expect(true, false);
@@ -455,7 +455,7 @@ void main() {
 
       q = new Query<Parent>();
       q.joinMany((p) => p.children)
-        ..returningProperties((p) => [p.id, p.vaccinations]);
+        ..returningProperties((p) => [p.cid, p.vaccinations]);
 
       try {
         await q.fetchOne();
@@ -474,7 +474,7 @@ class Parent extends ManagedObject<_Parent> implements _Parent {}
 
 class _Parent {
   @managedPrimaryKey
-  int id;
+  int pid;
   String name;
 
   ManagedSet<Child> children;
@@ -484,7 +484,7 @@ class Child extends ManagedObject<_Child> implements _Child {}
 
 class _Child {
   @managedPrimaryKey
-  int id;
+  int cid;
   String name;
 
   @ManagedRelationship(#children)
@@ -499,7 +499,7 @@ class Toy extends ManagedObject<_Toy> implements _Toy {}
 
 class _Toy {
   @managedPrimaryKey
-  int id;
+  int tid;
 
   String name;
 
@@ -511,7 +511,7 @@ class Vaccine extends ManagedObject<_Vaccine> implements _Vaccine {}
 
 class _Vaccine {
   @managedPrimaryKey
-  int id;
+  int vid;
   String kind;
 
   @ManagedRelationship(#vaccinations)

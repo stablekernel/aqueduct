@@ -100,7 +100,6 @@ abstract class ManagedPropertyDescription {
     }
 
     var mirror = reflectType(t);
-
     if (mirror.isSubtypeOf(reflectType(Map))) {
       return ManagedPropertyType.transientMap;
     } else if (mirror.isSubtypeOf(reflectType(List))) {
@@ -116,6 +115,10 @@ abstract class ManagedPropertyDescription {
 
   /// Whether or not a the argument can be assigned to this property.
   bool isAssignableWith(dynamic dartValue) {
+    if (dartValue == null) {
+      return true;
+    }
+
     switch (type) {
       case ManagedPropertyType.integer:
         return dartValue is int;

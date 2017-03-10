@@ -32,28 +32,28 @@ void main() {
       var results = await q.fetch();
 
       expect(results.length,
-          rootObjects.firstWhere((r) => r.id == 1).children.length);
+          rootObjects.firstWhere((r) => r.rid == 1).children.length);
       for (var child in rootObjects.first.children) {
-        var matching = results.firstWhere((c) => c.id == child.id);
+        var matching = results.firstWhere((c) => c.cid == child.cid);
         expect(child.value1, matching.value1);
         expect(child.value2, matching.value2);
-        expect(child.parents.id, 1);
+        expect(child.parents.rid, 1);
       }
     });
 
     test(
         "Can match on belongsTo relationship's primary key, does not cause join",
         () async {
-      var q = new Query<ChildObject>()..where.parents.id = whereEqualTo(1);
+      var q = new Query<ChildObject>()..where.parents.rid = whereEqualTo(1);
       var results = await q.fetch();
 
       expect(results.length,
-          rootObjects.firstWhere((r) => r.id == 1).children.length);
+          rootObjects.firstWhere((r) => r.rid == 1).children.length);
       for (var child in rootObjects.first.children) {
-        var matching = results.firstWhere((c) => c.id == child.id);
+        var matching = results.firstWhere((c) => c.cid == child.cid);
         expect(child.value1, matching.value1);
         expect(child.value2, matching.value2);
-        expect(child.parents.id, 1);
+        expect(child.parents.rid, 1);
       }
     });
 
@@ -66,7 +66,7 @@ void main() {
 
       expect(results.length, childNotChildren.length);
       childNotChildren.forEach((c) {
-        expect(results.firstWhere((resultChild) => c.id == resultChild.id),
+        expect(results.firstWhere((resultChild) => c.cid == resultChild.cid),
             isNotNull);
       });
 
@@ -78,7 +78,7 @@ void main() {
 
       expect(results.length, childrenNotChild.length);
       childrenNotChild.forEach((c) {
-        expect(results.firstWhere((resultChild) => c.id == resultChild.id),
+        expect(results.firstWhere((resultChild) => c.cid == resultChild.cid),
             isNotNull);
       });
     });
@@ -92,7 +92,7 @@ void main() {
 
       expect(results.length, childNotChildren.length);
       childNotChildren.forEach((c) {
-        expect(results.firstWhere((resultChild) => c.id == resultChild.id),
+        expect(results.firstWhere((resultChild) => c.cid == resultChild.cid),
             isNotNull);
       });
 
@@ -103,7 +103,7 @@ void main() {
 
       expect(results.length, childrenNotChild.length);
       childrenNotChild.forEach((c) {
-        expect(results.firstWhere((resultChild) => c.id == resultChild.id),
+        expect(results.firstWhere((resultChild) => c.cid == resultChild.cid),
             isNotNull);
       });
     });
@@ -111,7 +111,7 @@ void main() {
 
   test("Multiple joins from same table", () async {
     var q = new Query<ChildObject>()
-      ..sortBy((c) => c.id, QuerySortOrder.ascending)
+      ..sortBy((c) => c.cid, QuerySortOrder.ascending)
       ..joinOne((c) => c.parent)
       ..joinOne((c) => c.parents);
     var results = await q.fetch();
@@ -119,15 +119,15 @@ void main() {
     expect(
         results.map((c) => c.asMap()).toList(),
         equals([
-          fullObjectMap(1, and: {"parents": null, "parent": fullObjectMap(1)}),
-          fullObjectMap(2, and: {"parents": fullObjectMap(1), "parent": null}),
-          fullObjectMap(3, and: {"parents": fullObjectMap(1), "parent": null}),
-          fullObjectMap(4, and: {"parents": fullObjectMap(1), "parent": null}),
-          fullObjectMap(5, and: {"parents": fullObjectMap(1), "parent": null}),
-          fullObjectMap(6, and: {"parents": null, "parent": fullObjectMap(2)}),
-          fullObjectMap(7, and: {"parents": fullObjectMap(2), "parent": null}),
-          fullObjectMap(8, and: {"parents": null, "parent": fullObjectMap(3)}),
-          fullObjectMap(9, and: {"parents": fullObjectMap(4), "parent": null})
+          fullObjectMap(ChildObject, 1, and: {"parents": null, "parent": fullObjectMap(RootObject, 1)}),
+          fullObjectMap(ChildObject, 2, and: {"parents": fullObjectMap(RootObject, 1), "parent": null}),
+          fullObjectMap(ChildObject, 3, and: {"parents": fullObjectMap(RootObject, 1), "parent": null}),
+          fullObjectMap(ChildObject, 4, and: {"parents": fullObjectMap(RootObject, 1), "parent": null}),
+          fullObjectMap(ChildObject, 5, and: {"parents": fullObjectMap(RootObject, 1), "parent": null}),
+          fullObjectMap(ChildObject, 6, and: {"parents": null, "parent": fullObjectMap(RootObject, 2)}),
+          fullObjectMap(ChildObject, 7, and: {"parents": fullObjectMap(RootObject, 2), "parent": null}),
+          fullObjectMap(ChildObject, 8, and: {"parents": null, "parent": fullObjectMap(RootObject, 3)}),
+          fullObjectMap(ChildObject, 9, and: {"parents": fullObjectMap(RootObject, 4), "parent": null})
         ]));
   });
 
@@ -139,29 +139,29 @@ void main() {
       expect(
           results.map((c) => c.asMap()).toList(),
           equals([
-            fullObjectMap(1, and: {
+            fullObjectMap(ChildObject, 1, and: {
               "parents": null,
-              "parent": {"id": 1}
+              "parent": {"rid": 1}
             }),
-            fullObjectMap(2,
-                and: {"parents": fullObjectMap(1), "parent": null}),
-            fullObjectMap(3,
-                and: {"parents": fullObjectMap(1), "parent": null}),
-            fullObjectMap(4,
-                and: {"parents": fullObjectMap(1), "parent": null}),
-            fullObjectMap(5,
-                and: {"parents": fullObjectMap(1), "parent": null}),
-            fullObjectMap(6, and: {
+            fullObjectMap(ChildObject, 2,
+                and: {"parents": fullObjectMap(RootObject, 1), "parent": null}),
+            fullObjectMap(ChildObject, 3,
+                and: {"parents": fullObjectMap(RootObject, 1), "parent": null}),
+            fullObjectMap(ChildObject, 4,
+                and: {"parents": fullObjectMap(RootObject, 1), "parent": null}),
+            fullObjectMap(ChildObject, 5,
+                and: {"parents": fullObjectMap(RootObject, 1), "parent": null}),
+            fullObjectMap(ChildObject, 6, and: {
               "parents": null,
-              "parent": {"id": 2}
+              "parent": {"rid": 2}
             }),
-            fullObjectMap(7,
-                and: {"parents": fullObjectMap(2), "parent": null}),
-            fullObjectMap(8, and: {
+            fullObjectMap(ChildObject, 7,
+                and: {"parents": fullObjectMap(RootObject, 2), "parent": null}),
+            fullObjectMap(ChildObject, 8, and: {
               "parents": null,
-              "parent": {"id": 3}
+              "parent": {"rid": 3}
             }),
-            fullObjectMap(9, and: {"parents": fullObjectMap(4), "parent": null})
+            fullObjectMap(ChildObject, 9, and: {"parents": fullObjectMap(RootObject, 4), "parent": null})
           ]));
     });
 
@@ -173,55 +173,55 @@ void main() {
       expect(
           results.map((g) => g.asMap()).toList(),
           equals([
-            fullObjectMap(1, and: {
+            fullObjectMap(GrandChildObject, 1, and: {
               "parents": null,
-              "parent": {"id": 1}
+              "parent": {"cid": 1}
             }),
-            fullObjectMap(2, and: {
+            fullObjectMap(GrandChildObject, 2, and: {
               "parent": null,
-              "parents": fullObjectMap(1, and: {
+              "parents": fullObjectMap(ChildObject, 1, and: {
                 "parents": null,
-                "parent": {"id": 1}
+                "parent": {"rid": 1}
               })
             }),
-            fullObjectMap(3, and: {
+            fullObjectMap(GrandChildObject, 3, and: {
               "parent": null,
-              "parents": fullObjectMap(1, and: {
+              "parents": fullObjectMap(ChildObject, 1, and: {
                 "parents": null,
-                "parent": {"id": 1}
+                "parent": {"rid": 1}
               })
             }),
-            fullObjectMap(4, and: {
+            fullObjectMap(GrandChildObject, 4, and: {
               "parents": null,
-              "parent": {"id": 2}
+              "parent": {"cid": 2}
             }),
-            fullObjectMap(5, and: {
+            fullObjectMap(GrandChildObject, 5, and: {
               "parent": null,
-              "parents": fullObjectMap(2,
-                  and: {"parents": fullObjectMap(1), "parent": null})
+              "parents": fullObjectMap(ChildObject, 2,
+                  and: {"parents": fullObjectMap(RootObject, 1), "parent": null})
             }),
-            fullObjectMap(6, and: {
+            fullObjectMap(GrandChildObject, 6, and: {
               "parent": null,
-              "parents": fullObjectMap(2,
-                  and: {"parents": fullObjectMap(1), "parent": null})
+              "parents": fullObjectMap(ChildObject, 2,
+                  and: {"parents": fullObjectMap(RootObject, 1), "parent": null})
             }),
-            fullObjectMap(7, and: {
+            fullObjectMap(GrandChildObject, 7, and: {
               "parents": null,
-              "parent": {"id": 3}
+              "parent": {"cid": 3}
             }),
-            fullObjectMap(8, and: {
+            fullObjectMap(GrandChildObject, 8, and: {
               "parent": null,
-              "parents": fullObjectMap(4,
-                  and: {"parents": fullObjectMap(1), "parent": null})
+              "parents": fullObjectMap(ChildObject, 4,
+                  and: {"parents": fullObjectMap(RootObject, 1), "parent": null})
             }),
           ]));
     });
 
     test("Bidirectional join", () async {
       var q = new Query<ChildObject>()
-        ..sortBy((c) => c.id, QuerySortOrder.ascending)
+        ..sortBy((c) => c.cid, QuerySortOrder.ascending)
         ..joinMany((c) => c.grandChildren)
-            .sortBy((g) => g.id, QuerySortOrder.descending)
+            .sortBy((g) => g.gid, QuerySortOrder.descending)
         ..joinOne((c) => c.parents);
 
       var results = await q.fetch();
@@ -229,71 +229,71 @@ void main() {
       expect(
           results.map((c) => c.asMap()).toList(),
           equals([
-            fullObjectMap(1, and: {
+            fullObjectMap(ChildObject, 1, and: {
               "parents": null,
-              "parent": {"id": 1},
+              "parent": {"rid": 1},
               "grandChildren": [
-                fullObjectMap(3, and: {
-                  "parents": {"id": 1},
+                fullObjectMap(GrandChildObject, 3, and: {
+                  "parents": {"cid": 1},
                   "parent": null
                 }),
-                fullObjectMap(2, and: {
-                  "parents": {"id": 1},
+                fullObjectMap(GrandChildObject, 2, and: {
+                  "parents": {"cid": 1},
                   "parent": null
                 }),
               ]
             }),
-            fullObjectMap(2, and: {
-              "parents": fullObjectMap(1),
+            fullObjectMap(ChildObject, 2, and: {
+              "parents": fullObjectMap(RootObject, 1),
               "parent": null,
               "grandChildren": [
-                fullObjectMap(6, and: {
-                  "parents": {"id": 2},
+                fullObjectMap(GrandChildObject, 6, and: {
+                  "parents": {"cid": 2},
                   "parent": null
                 }),
-                fullObjectMap(5, and: {
-                  "parents": {"id": 2},
+                fullObjectMap(GrandChildObject, 5, and: {
+                  "parents": {"cid": 2},
                   "parent": null
                 }),
               ]
             }),
-            fullObjectMap(3, and: {
-              "parents": fullObjectMap(1),
+            fullObjectMap(ChildObject, 3, and: {
+              "parents": fullObjectMap(RootObject, 1),
               "parent": null,
               "grandChildren": []
             }),
-            fullObjectMap(4, and: {
-              "parents": fullObjectMap(1),
+            fullObjectMap(ChildObject, 4, and: {
+              "parents": fullObjectMap(RootObject, 1),
               "parent": null,
               "grandChildren": [
-                fullObjectMap(8, and: {
-                  "parents": {"id": 4},
+                fullObjectMap(GrandChildObject, 8, and: {
+                  "parents": {"cid": 4},
                   "parent": null
                 }),
               ]
             }),
-            fullObjectMap(5, and: {
-              "parents": fullObjectMap(1),
+            fullObjectMap(ChildObject, 5, and: {
+              "parents": fullObjectMap(RootObject, 1),
               "parent": null,
               "grandChildren": []
             }),
-            fullObjectMap(6, and: {
+            fullObjectMap(ChildObject, 6, and: {
               "parents": null,
-              "parent": {"id": 2},
+              "parent": {"rid": 2},
               "grandChildren": []
             }),
-            fullObjectMap(7, and: {
-              "parents": fullObjectMap(2),
+            fullObjectMap(ChildObject, 7, and: {
+              "parents": fullObjectMap(RootObject, 2),
               "parent": null,
               "grandChildren": []
             }),
-            fullObjectMap(8, and: {
+            fullObjectMap(ChildObject, 8, and: {
               "parents": null,
-              "parent": {"id": 3},
+              "parent": {"rid": 3},
               "grandChildren": []
             }),
-            fullObjectMap(9, and: {
-              "parents": fullObjectMap(4),
+            fullObjectMap(ChildObject, 9, and: {
+              "parents": fullObjectMap(RootObject, 4),
               "parent": null,
               "grandChildren": []
             })
@@ -304,41 +304,41 @@ void main() {
   group("Join on parent of hasOne relationship", () {
     test("Standard join", () async {
       var q = new Query<ChildObject>()
-        ..sortBy((c) => c.id, QuerySortOrder.ascending)
+        ..sortBy((c) => c.cid, QuerySortOrder.ascending)
         ..joinOne((c) => c.parent);
       var results = await q.fetch();
 
       expect(
           results.map((c) => c.asMap()).toList(),
           equals([
-            fullObjectMap(1,
-                and: {"parents": null, "parent": fullObjectMap(1)}),
-            fullObjectMap(2, and: {
-              "parents": {"id": 1},
+            fullObjectMap(ChildObject, 1,
+                and: {"parents": null, "parent": fullObjectMap(RootObject, 1)}),
+            fullObjectMap(ChildObject, 2, and: {
+              "parents": {"rid": 1},
               "parent": null
             }),
-            fullObjectMap(3, and: {
-              "parents": {"id": 1},
+            fullObjectMap(ChildObject, 3, and: {
+              "parents": {"rid": 1},
               "parent": null
             }),
-            fullObjectMap(4, and: {
-              "parents": {"id": 1},
+            fullObjectMap(ChildObject, 4, and: {
+              "parents": {"rid": 1},
               "parent": null
             }),
-            fullObjectMap(5, and: {
-              "parents": {"id": 1},
+            fullObjectMap(ChildObject, 5, and: {
+              "parents": {"rid": 1},
               "parent": null
             }),
-            fullObjectMap(6,
-                and: {"parents": null, "parent": fullObjectMap(2)}),
-            fullObjectMap(7, and: {
-              "parents": {"id": 2},
+            fullObjectMap(ChildObject, 6,
+                and: {"parents": null, "parent": fullObjectMap(RootObject, 2)}),
+            fullObjectMap(ChildObject, 7, and: {
+              "parents": {"rid": 2},
               "parent": null
             }),
-            fullObjectMap(8,
-                and: {"parents": null, "parent": fullObjectMap(3)}),
-            fullObjectMap(9, and: {
-              "parents": {"id": 4},
+            fullObjectMap(ChildObject, 8,
+                and: {"parents": null, "parent": fullObjectMap(RootObject, 3)}),
+            fullObjectMap(ChildObject, 9, and: {
+              "parents": {"rid": 4},
               "parent": null
             })
           ]));
@@ -346,7 +346,7 @@ void main() {
 
     test("Nested join", () async {
       var q = new Query<GrandChildObject>()
-        ..sortBy((g) => g.id, QuerySortOrder.ascending);
+        ..sortBy((g) => g.gid, QuerySortOrder.ascending);
 
       q.joinOne((c) => c.parent)..joinOne((c) => c.parent);
 
@@ -355,44 +355,44 @@ void main() {
       expect(
           results.map((g) => g.asMap()).toList(),
           equals([
-            fullObjectMap(1, and: {
+            fullObjectMap(GrandChildObject, 1, and: {
               "parents": null,
-              "parent": fullObjectMap(1,
-                  and: {"parents": null, "parent": fullObjectMap(1)})
+              "parent": fullObjectMap(ChildObject, 1,
+                  and: {"parents": null, "parent": fullObjectMap(RootObject, 1)})
             }),
-            fullObjectMap(2, and: {
+            fullObjectMap(GrandChildObject, 2, and: {
               "parent": null,
-              "parents": {"id": 1}
+              "parents": {"cid": 1}
             }),
-            fullObjectMap(3, and: {
+            fullObjectMap(GrandChildObject, 3, and: {
               "parent": null,
-              "parents": {"id": 1}
+              "parents": {"cid": 1}
             }),
-            fullObjectMap(4, and: {
+            fullObjectMap(GrandChildObject, 4, and: {
               "parents": null,
-              "parent": fullObjectMap(2, and: {
-                "parents": {"id": 1},
+              "parent": fullObjectMap(ChildObject, 2, and: {
+                "parents": {"rid": 1},
                 "parent": null
               })
             }),
-            fullObjectMap(5, and: {
+            fullObjectMap(GrandChildObject, 5, and: {
               "parent": null,
-              "parents": {"id": 2}
+              "parents": {"cid": 2}
             }),
-            fullObjectMap(6, and: {
+            fullObjectMap(GrandChildObject, 6, and: {
               "parent": null,
-              "parents": {"id": 2}
+              "parents": {"cid": 2}
             }),
-            fullObjectMap(7, and: {
+            fullObjectMap(GrandChildObject, 7, and: {
               "parents": null,
-              "parent": fullObjectMap(3, and: {
-                "parents": {"id": 1},
+              "parent": fullObjectMap(ChildObject, 3, and: {
+                "parents": {"rid": 1},
                 "parent": null
               })
             }),
-            fullObjectMap(8, and: {
+            fullObjectMap(GrandChildObject, 8, and: {
               "parent": null,
-              "parents": {"id": 4}
+              "parents": {"cid": 4}
             })
           ]));
     });
@@ -406,21 +406,21 @@ void main() {
       expect(
           results.map((c) => c.asMap()).toList(),
           equals([
-            fullObjectMap(2, and: {
+            fullObjectMap(ChildObject, 2, and: {
               "parent": null,
-              "parents": {"id": 1}
+              "parents": {"rid": 1}
             }),
-            fullObjectMap(3, and: {
+            fullObjectMap(ChildObject, 3, and: {
               "parent": null,
-              "parents": {"id": 1}
+              "parents": {"rid": 1}
             }),
-            fullObjectMap(4, and: {
+            fullObjectMap(ChildObject, 4, and: {
               "parent": null,
-              "parents": {"id": 1}
+              "parents": {"rid": 1}
             }),
-            fullObjectMap(5, and: {
+            fullObjectMap(ChildObject, 5, and: {
               "parent": null,
-              "parents": {"id": 1}
+              "parents": {"rid": 1}
             }),
           ]));
     });
@@ -428,65 +428,65 @@ void main() {
     test("Nested implicit joins", () async {
       var q = new Query<GrandChildObject>()
         ..where.parents.parents.value1 = whereEqualTo(1)
-        ..sortBy((g) => g.id, QuerySortOrder.ascending);
+        ..sortBy((g) => g.gid, QuerySortOrder.ascending);
 
       var results = await q.fetch();
 
       expect(
           results.map((c) => c.asMap()).toList(),
           equals([
-            fullObjectMap(5, and: {
+            fullObjectMap(GrandChildObject, 5, and: {
               "parent": null,
-              "parents": {"id": 2}
+              "parents": {"cid": 2}
             }),
-            fullObjectMap(6, and: {
+            fullObjectMap(GrandChildObject, 6, and: {
               "parent": null,
-              "parents": {"id": 2}
+              "parents": {"cid": 2}
             }),
-            fullObjectMap(8, and: {
+            fullObjectMap(GrandChildObject, 8, and: {
               "parent": null,
-              "parents": {"id": 4}
+              "parents": {"cid": 4}
             }),
           ]));
 
       q = new Query<GrandChildObject>()
         ..where.parents.parents = whereRelatedByValue(1)
-        ..sortBy((g) => g.id, QuerySortOrder.ascending);
+        ..sortBy((g) => g.gid, QuerySortOrder.ascending);
       results = await q.fetch();
 
       expect(
           results.map((c) => c.asMap()).toList(),
           equals([
-            fullObjectMap(5, and: {
+            fullObjectMap(GrandChildObject, 5, and: {
               "parent": null,
-              "parents": {"id": 2}
+              "parents": {"cid": 2}
             }),
-            fullObjectMap(6, and: {
+            fullObjectMap(GrandChildObject, 6, and: {
               "parent": null,
-              "parents": {"id": 2}
+              "parents": {"cid": 2}
             }),
-            fullObjectMap(8, and: {
+            fullObjectMap(GrandChildObject, 8, and: {
               "parent": null,
-              "parents": {"id": 4}
+              "parents": {"cid": 4}
             }),
           ]));
     });
 
     test("Bidirectional implicit join", () async {
       var q = new Query<ChildObject>()
-        ..where.parents.id = whereEqualTo(1)
+        ..where.parents.rid = whereEqualTo(1)
         ..where.grandChild = whereNotNull;
       var results = await q.fetch();
       expect(
           results.map((c) => c.asMap()).toList(),
           equals([
-            fullObjectMap(2, and: {
+            fullObjectMap(ChildObject, 2, and: {
               "parent": null,
-              "parents": {"id": 1}
+              "parents": {"rid": 1}
             }),
-            fullObjectMap(3, and: {
+            fullObjectMap(ChildObject, 3, and: {
               "parent": null,
-              "parents": {"id": 1}
+              "parents": {"rid": 1}
             }),
           ]));
     });

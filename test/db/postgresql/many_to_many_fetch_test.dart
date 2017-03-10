@@ -33,39 +33,39 @@ void main() {
   group("Explicit joins", () {
     test("Can join across many to many relationship, from one side", () async {
       var q = new Query<RootObject>()
-        ..sortBy((r) => r.id, QuerySortOrder.ascending);
+        ..sortBy((r) => r.rid, QuerySortOrder.ascending);
 
       q.joinMany((r) => r.join)..joinOne((r) => r.other);
       var results = await q.fetch();
       expect(
           results.map((r) => r.asMap()).toList(),
           equals([
-            fullObjectMap(1, and: {
+            fullObjectMap(RootObject, 1, and: {
               "join": [
                 {
                   "id": 1,
-                  "root": {"id": 1},
-                  "other": fullObjectMap(1)
+                  "root": {"rid": 1},
+                  "other": fullObjectMap(OtherRootObject, 1)
                 },
                 {
                   "id": 2,
-                  "root": {"id": 1},
-                  "other": fullObjectMap(2)
+                  "root": {"rid": 1},
+                  "other": fullObjectMap(OtherRootObject, 2)
                 },
               ]
             }),
-            fullObjectMap(2, and: {
+            fullObjectMap(RootObject, 2, and: {
               "join": [
                 {
                   "id": 3,
-                  "root": {"id": 2},
-                  "other": fullObjectMap(3)
+                  "root": {"rid": 2},
+                  "other": fullObjectMap(OtherRootObject, 3)
                 },
               ]
             }),
-            fullObjectMap(3, and: {"join": []}),
-            fullObjectMap(4, and: {"join": []}),
-            fullObjectMap(5, and: {"join": []}),
+            fullObjectMap(RootObject, 3, and: {"join": []}),
+            fullObjectMap(RootObject, 4, and: {"join": []}),
+            fullObjectMap(RootObject, 5, and: {"join": []}),
           ]));
     });
 
@@ -79,29 +79,29 @@ void main() {
       expect(
           results.map((r) => r.asMap()).toList(),
           equals([
-            fullObjectMap(1, and: {
+            fullObjectMap(OtherRootObject, 1, and: {
               "join": [
                 {
                   "id": 1,
-                  "root": fullObjectMap(1),
+                  "root": fullObjectMap(RootObject, 1),
                   "other": {"id": 1},
                 }
               ]
             }),
-            fullObjectMap(2, and: {
+            fullObjectMap(OtherRootObject, 2, and: {
               "join": [
                 {
                   "id": 2,
-                  "root": fullObjectMap(1),
+                  "root": fullObjectMap(RootObject, 1),
                   "other": {"id": 2},
                 },
               ]
             }),
-            fullObjectMap(3, and: {
+            fullObjectMap(OtherRootObject, 3, and: {
               "join": [
                 {
                   "id": 3,
-                  "root": fullObjectMap(2),
+                  "root": fullObjectMap(RootObject, 2),
                   "other": {"id": 3},
                 }
               ]
@@ -119,9 +119,9 @@ void main() {
       expect(
           results.map((r) => r.asMap()).toList(),
           equals([
-            {"id": 1, "other": fullObjectMap(1), "root": fullObjectMap(1)},
-            {"id": 2, "other": fullObjectMap(2), "root": fullObjectMap(1)},
-            {"id": 3, "other": fullObjectMap(3), "root": fullObjectMap(2)},
+            {"id": 1, "other": fullObjectMap(OtherRootObject, 1), "root": fullObjectMap(RootObject, 1)},
+            {"id": 2, "other": fullObjectMap(OtherRootObject, 2), "root": fullObjectMap(RootObject, 1)},
+            {"id": 3, "other": fullObjectMap(OtherRootObject, 3), "root": fullObjectMap(RootObject, 2)},
           ]));
     });
   });
@@ -129,17 +129,17 @@ void main() {
   group("Implicit joins", () {
     test("Can use implicit matcher across many to many table", () async {
       var q = new Query<RootObject>()
-        ..sortBy((r) => r.id, QuerySortOrder.ascending)
+        ..sortBy((r) => r.rid, QuerySortOrder.ascending)
         ..where.join.haveAtLeastOneWhere.other.value1 = whereLessThan(4);
 
       var results = await q.fetch();
       expect(results.map((r) => r.asMap()).toList(),
-          equals([fullObjectMap(1), fullObjectMap(2)]));
+          equals([fullObjectMap(RootObject, 1), fullObjectMap(RootObject, 2)]));
 
       q.where.join.haveAtLeastOneWhere.other.value1 = whereEqualTo(3);
       results = await q.fetch();
       expect(
-          results.map((r) => r.asMap()).toList(), equals([fullObjectMap(2)]));
+          results.map((r) => r.asMap()).toList(), equals([fullObjectMap(RootObject, 2)]));
     });
 
     test("Can use implicit join with join table to one side", () async {
@@ -151,12 +151,12 @@ void main() {
             {
               "id": 1,
               "other": {"id": 1},
-              "root": {"id": 1}
+              "root": {"rid": 1}
             },
             {
               "id": 2,
               "other": {"id": 2},
-              "root": {"id": 1}
+              "root": {"rid": 1}
             },
           ]));
     });
@@ -172,7 +172,7 @@ void main() {
             {
               "id": 1,
               "other": {"id": 1},
-              "root": {"id": 1}
+              "root": {"rid": 1}
             },
           ]));
 
@@ -186,7 +186,7 @@ void main() {
             {
               "id": 2,
               "other": {"id": 2},
-              "root": {"id": 1}
+              "root": {"rid": 1}
             },
           ]));
 
