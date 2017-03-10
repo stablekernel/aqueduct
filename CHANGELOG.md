@@ -1,5 +1,10 @@
 # aqueduct changelog
 
+## 2.0.1
+
+- Fixes issue where some types of join queries would access the wrong properties
+- Fixes issue where an object cannot be inserted without values; this matters when the inserted values will be created by the database.
+
 ## 2.0.0
 
 - Added `RequestController.letUncaughtExceptionsEscape` for better debugging during tests.

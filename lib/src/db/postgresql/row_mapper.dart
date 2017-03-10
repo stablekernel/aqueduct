@@ -105,7 +105,7 @@ class RowMapper extends PostgresMapper
         leftMapper =
             new PropertyToColumnMapper(originatingTable, joiningProperty);
         rightMapper = new PropertyToColumnMapper(
-            this, joiningProperty.entity.primaryKeyAttribute);
+            this, entity.primaryKeyAttribute);
       } else {
         leftMapper = new PropertyToColumnMapper(
             originatingTable, originatingTable.entity.primaryKeyAttribute);

@@ -163,6 +163,13 @@ void main() {
     expect(successful, false);
   });
 
+  test("Reading from map with non-assignable type fails", () {
+    try {
+      new User()..readMap({"id": "foo"});
+      expect(true, false);
+    } on ManagedDataModelException {}
+  });
+
   test("Handles DateTime conversion", () {
     var dateString = "2000-01-01T05:05:05.010Z";
     var map = {"id": 1, "name": "Bob", "dateCreated": dateString};
@@ -187,7 +194,7 @@ void main() {
     expect(m.transientDouble, 30.0);
   });
 
-  test("Reads embeded object", () {
+  test("Reads embedded object", () {
     var postMap = {
       "text": "hey",
       "id": 1,

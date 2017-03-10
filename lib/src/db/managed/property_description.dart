@@ -40,7 +40,8 @@ abstract class ManagedPropertyDescription {
       bool indexed: false,
       bool nullable: false,
       bool includedInDefaultResultSet: true,
-      bool autoincrement: false})
+      bool autoincrement: false,
+      Type underlyingType})
       : isUnique = unique,
         isIndexed = indexed,
         isNullable = nullable,
@@ -86,7 +87,7 @@ abstract class ManagedPropertyDescription {
   final bool autoincrement;
 
   /// Returns the corresponding [ManagedPropertyType] given a Dart type.
-  static ManagedPropertyType propertyTypeForDartType(Type t) {
+  static ManagedPropertyType propertyTypeForDartType(Type t, {bool isTransient: false}) {
     if (t == int) {
       return ManagedPropertyType.integer;
     } else if (t == String) {
@@ -100,11 +101,15 @@ abstract class ManagedPropertyDescription {
     }
 
     var mirror = reflectType(t);
-
     if (mirror.isSubtypeOf(reflectType(Map))) {
-      return ManagedPropertyType.transientMap;
+      if (isTransient) {
+        return ManagedPropertyType.transientMap;
+      }
+
     } else if (mirror.isSubtypeOf(reflectType(List))) {
-      return ManagedPropertyType.transientList;
+      if (isTransient) {
+        return ManagedPropertyType.transientList;
+      }
     }
 
     return null;
@@ -116,6 +121,10 @@ abstract class ManagedPropertyDescription {
 
   /// Whether or not a the argument can be assigned to this property.
   bool isAssignableWith(dynamic dartValue) {
+    if (dartValue == null) {
+      return true;
+    }
+
     switch (type) {
       case ManagedPropertyType.integer:
         return dartValue is int;
@@ -169,7 +178,8 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
       bool indexed: false,
       bool nullable: false,
       bool includedInDefaultResultSet: true,
-      bool autoincrement: false})
+      bool autoincrement: false,
+      Type underlyingType})
       : isPrimaryKey = primaryKey,
         this.defaultValue = defaultValue,
         this.transientStatus = transientStatus,
@@ -178,7 +188,8 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
             indexed: indexed,
             nullable: nullable,
             includedInDefaultResultSet: includedInDefaultResultSet,
-            autoincrement: autoincrement);
+            autoincrement: autoincrement,
+            underlyingType: underlyingType);
 
   /// Whether or not this attribute is the primary key for its [ManagedEntity].
   ///

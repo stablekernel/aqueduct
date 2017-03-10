@@ -11,13 +11,13 @@ class RootObject extends ManagedObject<_RootObject> implements _RootObject {
   }
 
   bool operator ==(dynamic other) {
-    return id == other.id;
+    return rid == other.cid;
   }
 }
 
 class _RootObject {
   @managedPrimaryKey
-  int id;
+  int rid;
 
   int value1;
   int value2;
@@ -38,13 +38,13 @@ class ChildObject extends ManagedObject<_ChildObject> implements _ChildObject {
   }
 
   bool operator ==(dynamic other) {
-    return id == other.id;
+    return cid == other.cid;
   }
 }
 
 class _ChildObject {
   @managedPrimaryKey
-  int id;
+  int cid;
 
   int value1;
   int value2;
@@ -70,13 +70,13 @@ class GrandChildObject extends ManagedObject<_GrandChildObject>
   }
 
   bool operator ==(dynamic other) {
-    return id == other.id;
+    return gid == other.cid;
   }
 }
 
 class _GrandChildObject {
   @managedPrimaryKey
-  int id;
+  int gid;
 
   int value1;
   int value2;
@@ -99,7 +99,7 @@ class OtherRootObject extends ManagedObject<_OtherRootObject>
   }
 
   bool operator ==(dynamic other) {
-    return id == other.id;
+    return id == other.cid;
   }
 }
 
@@ -116,7 +116,7 @@ class _OtherRootObject {
 class RootJoinObject extends ManagedObject<_RootJoinObject>
     implements _RootJoinObject {
   bool operator ==(dynamic other) {
-    return id == other.id;
+    return id == other.cid;
   }
 }
 
@@ -223,26 +223,26 @@ Future<List<RootObject>> populateModelGraph(ManagedContext ctx) async {
   for (var root in rootObjects) {
     var q = new Query<RootObject>()..values = root;
     var r = await q.insert();
-    root.id = r.id;
+    root.rid = r.rid;
 
     if (root.child != null) {
       var child = root.child;
       child.parent = root;
       var cQ = new Query<ChildObject>()..values = child;
-      child.id = (await cQ.insert()).id;
+      child.cid = (await cQ.insert()).cid;
 
       if (child.grandChild != null) {
         var gc = child.grandChild;
         gc.parent = child;
         var gq = new Query<GrandChildObject>()..values = gc;
-        gc.id = (await gq.insert()).id;
+        gc.gid = (await gq.insert()).gid;
       }
 
       if (child?.grandChildren != null) {
         for (var gc in child.grandChildren) {
           gc.parents = child;
           var gq = new Query<GrandChildObject>()..values = gc;
-          gc.id = (await gq.insert()).id;
+          gc.gid = (await gq.insert()).gid;
         }
       }
     }
@@ -251,20 +251,20 @@ Future<List<RootObject>> populateModelGraph(ManagedContext ctx) async {
       for (var child in root.children) {
         child.parents = root;
         var cQ = new Query<ChildObject>()..values = child;
-        child.id = (await cQ.insert()).id;
+        child.cid = (await cQ.insert()).cid;
 
         if (child.grandChild != null) {
           var gc = child.grandChild;
           gc.parent = child;
           var gq = new Query<GrandChildObject>()..values = gc;
-          gc.id = (await gq.insert()).id;
+          gc.gid = (await gq.insert()).gid;
         }
 
         if (child?.grandChildren != null) {
           for (var gc in child.grandChildren) {
             gc.parents = child;
             var gq = new Query<GrandChildObject>()..values = gc;
-            gc.id = (await gq.insert()).id;
+            gc.gid = (await gq.insert()).gid;
           }
         }
       }
@@ -275,7 +275,7 @@ Future<List<RootObject>> populateModelGraph(ManagedContext ctx) async {
         var otherQ = new Query<OtherRootObject>()..values = join.other;
         join.other.id = (await otherQ.insert()).id;
 
-        join.root = new RootObject()..id = root.id;
+        join.root = new RootObject()..rid = root.rid;
 
         var joinQ = new Query<RootJoinObject>()..values = join;
         await joinQ.insert();
@@ -286,8 +286,16 @@ Future<List<RootObject>> populateModelGraph(ManagedContext ctx) async {
   return rootObjects;
 }
 
-Map fullObjectMap(v, {and}) {
-  var m = {"id": v, "value1": v, "value2": v};
+Map fullObjectMap(Type t, v, {and}) {
+  var idName = "id";
+  if (t == RootObject) {
+    idName = "rid";
+  } else if (t == ChildObject) {
+    idName = "cid";
+  } else if (t == GrandChildObject) {
+    idName = "gid";
+  }
+  var m = {idName: v, "value1": v, "value2": v};
   if (and != null) {
     m.addAll(and);
   }

@@ -224,9 +224,9 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
         value = value.toDouble();
       }
 
-      if (propertyDescription.isAssignableWith(value)) {
-        return value;
-      }
+      // no need to check type here - gets checked by managed backing
+
+      return value;
     } else if (propertyDescription is ManagedRelationshipDescription) {
       ManagedRelationshipDescription relationshipDescription =
           propertyDescription;

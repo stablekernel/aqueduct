@@ -10,7 +10,6 @@ void main() {
       dataModel = new ManagedDataModel([User, Item, Manager]);
       ManagedContext.defaultContext =
           new ManagedContext(dataModel, new DefaultPersistentStore());
-      ;
     });
 
     test("Entities have appropriate types", () {
