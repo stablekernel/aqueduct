@@ -125,8 +125,8 @@ class ManagedDataModelException implements Exception {
         "${_getName(expectedProperty) ?? "Some property"} on "
         "'${_getPersistentClassName(destinationEntity)}'"
         "is supposed to exist, and it should be either a "
-        "'${_getInstanceClassName(destinationEntity)}' or"
-        "'ManagedSet<${_getInstanceClassName(destinationEntity)} >'.");
+        "'${_getInstanceClassName(entity)}' or"
+        "'ManagedSet<${_getInstanceClassName(entity)} >'.");
   }
 
   factory ManagedDataModelException.incompatibleDeleteRule(
