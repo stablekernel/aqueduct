@@ -40,8 +40,7 @@ abstract class ManagedPropertyDescription {
       bool indexed: false,
       bool nullable: false,
       bool includedInDefaultResultSet: true,
-      bool autoincrement: false,
-      Type underlyingType})
+      bool autoincrement: false})
       : isUnique = unique,
         isIndexed = indexed,
         isNullable = nullable,
@@ -173,8 +172,7 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
       bool indexed: false,
       bool nullable: false,
       bool includedInDefaultResultSet: true,
-      bool autoincrement: false,
-      Type underlyingType})
+      bool autoincrement: false})
       : isPrimaryKey = primaryKey,
         this.defaultValue = defaultValue,
         this.transientStatus = transientStatus,
@@ -183,8 +181,7 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
             indexed: indexed,
             nullable: nullable,
             includedInDefaultResultSet: includedInDefaultResultSet,
-            autoincrement: autoincrement,
-            underlyingType: underlyingType);
+            autoincrement: autoincrement);
 
   /// Whether or not this attribute is the primary key for its [ManagedEntity].
   ///
