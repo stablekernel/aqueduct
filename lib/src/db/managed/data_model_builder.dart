@@ -90,8 +90,7 @@ class DataModelBuilder {
           nullable: attributes?.isNullable ?? false,
           includedInDefaultResultSet:
               !(attributes?.shouldOmitByDefault ?? false),
-          autoincrement: attributes?.autoincrement ?? false,
-          underlyingType: declaration.type.reflectedType);
+          autoincrement: attributes?.autoincrement ?? false);
     });
   }
 
@@ -100,7 +99,7 @@ class DataModelBuilder {
     return entity.instanceType.declarations.values
         .where(isTransientPropertyOrAccessor)
         .map((declaration) {
-      var type = propertyTypeFromDeclaration(declaration, isTransient: true);
+      var type = propertyTypeFromDeclaration(declaration);
       if (type == null) {
         throw new ManagedDataModelException.invalidType(
             entity, declaration.simpleName);

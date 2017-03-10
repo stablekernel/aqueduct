@@ -521,7 +521,6 @@ void main() {
       q.joinMany((r) => r.children)..where.cid = whereGreaterThan(3);
 
       q.joinOne((r) => r.child)..where.cid = whereEqualTo(1);
-
       var results = await q.fetch();
 
       expect(results.length, rootObjects.length);

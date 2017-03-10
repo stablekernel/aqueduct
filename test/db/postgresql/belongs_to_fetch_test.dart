@@ -17,7 +17,7 @@ void main() {
       RootJoinObject,
       OtherRootObject,
       ChildObject,
-      GrandChildObject, Story, StoryEvent
+      GrandChildObject
     ]);
     rootObjects = await populateModelGraph(ctx);
   });
@@ -491,27 +491,4 @@ void main() {
           ]));
     });
   });
-}
-
-class Story extends ManagedObject<_Story> implements _Story {}
-class _Story {
-  @ManagedColumnAttributes(primaryKey: true)
-  int id;
-
-  ManagedSet<StoryEvent> events;
-}
-
-class StoryEvent extends ManagedObject<_StoryEvent > implements _StoryEvent  {}
-class _StoryEvent {
-  @ManagedColumnAttributes(primaryKey: true)
-  String guid;
-
-  @ManagedColumnAttributes(indexed: true)
-  String state;
-
-  @ManagedColumnAttributes(indexed: true)
-  DateTime occurredAt;
-
-  @ManagedRelationship(#events)
-  Story story;
 }

@@ -15,7 +15,7 @@ VariableMirror instanceVariableFromClass(ClassMirror classMirror, Symbol name) {
       .firstWhere((dm) => dm.simpleName == name, orElse: () => null);
 }
 
-ManagedPropertyType propertyTypeFromDeclaration(DeclarationMirror declaration, {bool isTransient: false}) {
+ManagedPropertyType propertyTypeFromDeclaration(DeclarationMirror declaration) {
   if (declaration is MethodMirror) {
     ClassMirror type;
 
@@ -26,13 +26,13 @@ ManagedPropertyType propertyTypeFromDeclaration(DeclarationMirror declaration, {
     }
 
     return ManagedPropertyDescription
-        .propertyTypeForDartType(type.reflectedType, isTransient: isTransient);
+        .propertyTypeForDartType(type.reflectedType);
   } else if (declaration is VariableMirror) {
     var attributes = attributeMetadataFromDeclaration(declaration);
 
     return attributes?.databaseType ??
         ManagedPropertyDescription
-            .propertyTypeForDartType(declaration.type.reflectedType, isTransient: isTransient);
+            .propertyTypeForDartType(declaration.type.reflectedType);
   }
 
   throw new ManagedDataModelException(
