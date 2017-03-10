@@ -21,8 +21,13 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
 
     var buffer = new StringBuffer();
     buffer.write("INSERT INTO ${builder.primaryTableDefinition} ");
-    buffer.write("(${builder.valuesColumnString}) ");
-    buffer.write("VALUES (${builder.insertionValueString}) ");
+
+    if (builder.columnValueMappers.isEmpty) {
+      buffer.write("VALUES (DEFAULT) ");
+    } else {
+      buffer.write("(${builder.valuesColumnString}) ");
+      buffer.write("VALUES (${builder.insertionValueString}) ");
+    }
 
     if ((builder.returningOrderedMappers?.length ?? 0) > 0) {
       buffer.write("RETURNING ${builder.returningColumnString}");

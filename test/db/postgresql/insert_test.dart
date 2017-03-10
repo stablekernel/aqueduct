@@ -217,6 +217,14 @@ void main() {
     var pq = new Query<GenPost>();
     expect(await pq.fetch(), hasLength(0));
   });
+
+  test("Insert object with no keys", () async {
+    context = await contextWithModels([BoringObject]);
+
+    var q = new Query<BoringObject>();
+    var result = await q.insert();
+    expect(result.id, greaterThan(0));
+  });
 }
 
 class TestModel extends ManagedObject<_TestModel> implements _TestModel {}
@@ -278,4 +286,10 @@ class _Transient {
   int id;
 
   String value;
+}
+
+class BoringObject extends ManagedObject<_BoringObject> implements _BoringObject {}
+class _BoringObject {
+  @managedPrimaryKey
+  int id;
 }
