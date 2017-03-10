@@ -87,7 +87,7 @@ abstract class ManagedPropertyDescription {
   final bool autoincrement;
 
   /// Returns the corresponding [ManagedPropertyType] given a Dart type.
-  static ManagedPropertyType propertyTypeForDartType(Type t, {bool isTransient: false}) {
+  static ManagedPropertyType propertyTypeForDartType(Type t) {
     if (t == int) {
       return ManagedPropertyType.integer;
     } else if (t == String) {
@@ -102,14 +102,9 @@ abstract class ManagedPropertyDescription {
 
     var mirror = reflectType(t);
     if (mirror.isSubtypeOf(reflectType(Map))) {
-      if (isTransient) {
-        return ManagedPropertyType.transientMap;
-      }
-
+      return ManagedPropertyType.transientMap;
     } else if (mirror.isSubtypeOf(reflectType(List))) {
-      if (isTransient) {
-        return ManagedPropertyType.transientList;
-      }
+      return ManagedPropertyType.transientList;
     }
 
     return null;
