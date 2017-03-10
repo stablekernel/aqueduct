@@ -34,7 +34,7 @@ void main() {
 
       var verifier = (Parent p) {
         expect(p.name, "D");
-        expect(p.id, isNotNull);
+        expect(p.pid, isNotNull);
         expect(p.backingMap["child"], isNull);
         expect(p.backingMap.containsKey("child"), true);
       };
@@ -53,7 +53,7 @@ void main() {
 
       var verifier = (Parent p) {
         expect(p.name, "D");
-        expect(p.id, isNotNull);
+        expect(p.pid, isNotNull);
         expect(p.backingMap["child"], isNull);
         expect(p.backingMap.containsKey("child"), true);
       };
@@ -70,8 +70,8 @@ void main() {
 
       var verifier = (Parent p) {
         expect(p.name, "C");
-        expect(p.id, isNotNull);
-        expect(p.child.id, isNotNull);
+        expect(p.pid, isNotNull);
+        expect(p.child.cid, isNotNull);
         expect(p.child.name, "C3");
         expect(p.child.backingMap.containsKey("toy"), false);
         expect(p.child.backingMap.containsKey("vaccinations"), false);
@@ -91,13 +91,13 @@ void main() {
 
       var verifier = (Parent p) {
         expect(p.name, "B");
-        expect(p.id, isNotNull);
-        expect(p.child.id, isNotNull);
+        expect(p.pid, isNotNull);
+        expect(p.child.cid, isNotNull);
         expect(p.child.name, "C2");
         expect(p.child.backingMap.containsKey("toy"), true);
         expect(p.child.toy, isNull);
         expect(p.child.vaccinations.length, 1);
-        expect(p.child.vaccinations.first.id, isNotNull);
+        expect(p.child.vaccinations.first.vid, isNotNull);
         expect(p.child.vaccinations.first.kind, "V3");
       };
 
@@ -116,8 +116,8 @@ void main() {
 
       var verifier = (Parent p) {
         expect(p.name, "C");
-        expect(p.id, isNotNull);
-        expect(p.child.id, isNotNull);
+        expect(p.pid, isNotNull);
+        expect(p.child.cid, isNotNull);
         expect(p.child.name, "C3");
         expect(p.child.backingMap.containsKey("toy"), true);
         expect(p.child.toy, isNull);
@@ -136,11 +136,11 @@ void main() {
         ..where.name = whereIn(["C", "D"]);
 
       var results = await q.fetch();
-      expect(results.first.id, isNotNull);
+      expect(results.first.pid, isNotNull);
       expect(results.first.name, "C");
       expect(results.first.child.name, "C3");
 
-      expect(results.last.id, isNotNull);
+      expect(results.last.pid, isNotNull);
       expect(results.last.name, "D");
       expect(results.last.backingMap.containsKey("child"), true);
       expect(results.last.child, isNull);
@@ -157,18 +157,18 @@ void main() {
       var originalIterator = truth.iterator;
       for (var p in all) {
         originalIterator.moveNext();
-        expect(p.id, originalIterator.current.id);
+        expect(p.pid, originalIterator.current.pid);
         expect(p.name, originalIterator.current.name);
-        expect(p.child?.id, originalIterator.current.child?.id);
+        expect(p.child?.cid, originalIterator.current.child?.cid);
         expect(p.child?.name, originalIterator.current.child?.name);
-        expect(p.child?.toy?.id, originalIterator.current.child?.toy?.id);
+        expect(p.child?.toy?.tid, originalIterator.current.child?.toy?.tid);
         expect(p.child?.toy?.name, originalIterator.current.child?.toy?.name);
 
         var vacIter = originalIterator.current.child?.vaccinations?.iterator ??
             <Vaccine>[].iterator;
         p?.child?.vaccinations?.forEach((v) {
           vacIter.moveNext();
-          expect(v.id, vacIter.current.id);
+          expect(v.vid, vacIter.current.vid);
           expect(v.kind, vacIter.current.kind);
         });
         expect(vacIter.moveNext(), false);
@@ -195,7 +195,7 @@ void main() {
       q.joinOne((p) => p.child)
         ..joinOne((c) => c.toy)
         ..joinMany((c) => c.vaccinations)
-            .sortBy((v) => v.id, QuerySortOrder.ascending);
+            .sortBy((v) => v.vid, QuerySortOrder.ascending);
 
       var results = await q.fetch();
 
@@ -216,7 +216,7 @@ void main() {
         ..where.name = "C1"
         ..joinOne((c) => c.toy)
         ..joinMany((c) => c.vaccinations)
-            .sortBy((v) => v.id, QuerySortOrder.ascending);
+            .sortBy((v) => v.vid, QuerySortOrder.ascending);
 
       var results = await q.fetch();
 
@@ -260,7 +260,7 @@ void main() {
     test(
         "Predicate that omits top-level objects but would include lower level object return no results",
         () async {
-      var q = new Query<Parent>()..where.id = 5;
+      var q = new Query<Parent>()..where.pid = 5;
 
       var childJoin = q.joinOne((p) => p.child)..joinOne((c) => c.toy);
       childJoin.joinMany((c) => c.vaccinations)..where.kind = "V1";
@@ -293,42 +293,42 @@ void main() {
       var parents = await q.fetch();
       for (var p in parents) {
         expect(p.name, isNotNull);
-        expect(p.id, isNotNull);
+        expect(p.pid, isNotNull);
         expect(p.backingMap.length, 3);
 
         if (p.child != null) {
           expect(p.child.name, isNotNull);
-          expect(p.child.id, isNotNull);
+          expect(p.child.cid, isNotNull);
           expect(p.child.backingMap.length, 3);
 
           for (var v in p.child.vaccinations) {
             expect(v.kind, isNotNull);
-            expect(v.id, isNotNull);
+            expect(v.vid, isNotNull);
           }
         }
       }
     });
 
     test("Can specify result keys for all joined objects", () async {
-      var q = new Query<Parent>()..returningProperties((p) => [p.id]);
+      var q = new Query<Parent>()..returningProperties((p) => [p.pid]);
 
       var childQuery = q.joinOne((p) => p.child)
-        ..returningProperties((c) => [c.id]);
+        ..returningProperties((c) => [c.cid]);
 
       childQuery.joinMany((c) => c.vaccinations)
-        ..returningProperties((v) => [v.id]);
+        ..returningProperties((v) => [v.vid]);
 
       var parents = await q.fetch();
       for (var p in parents) {
-        expect(p.id, isNotNull);
+        expect(p.pid, isNotNull);
         expect(p.backingMap.length, 2);
 
         if (p.child != null) {
-          expect(p.child.id, isNotNull);
+          expect(p.child.cid, isNotNull);
           expect(p.child.backingMap.length, 2);
 
           for (var v in p.child.vaccinations) {
-            expect(v.id, isNotNull);
+            expect(v.vid, isNotNull);
             expect(v.backingMap.length, 1);
           }
         }
@@ -350,7 +350,7 @@ void main() {
 
     test("Objects returned in join are not the same instance", () async {
       var q = new Query<Parent>()
-        ..where.id = 1
+        ..where.pid = 1
         ..joinOne((p) => p.child);
 
       var o = await q.fetchOne();
@@ -372,7 +372,7 @@ void main() {
 
     test("Trying to fetch hasOne relationship through resultProperties fails",
         () async {
-      var q = new Query<Parent>()..returningProperties((p) => [p.id, p.child]);
+      var q = new Query<Parent>()..returningProperties((p) => [p.pid, p.child]);
       try {
         await q.fetchOne();
         expect(true, false);
@@ -384,7 +384,7 @@ void main() {
       }
 
       q = new Query<Parent>();
-      q.joinOne((p) => p.child)..returningProperties((c) => [c.id, c.toy]);
+      q.joinOne((p) => p.child)..returningProperties((c) => [c.cid, c.toy]);
 
       try {
         await q.fetchOne();
@@ -400,7 +400,7 @@ void main() {
     test("Including paging on a join fails", () async {
       var q = new Query<Parent>()
         ..joinOne((p) => p.child)
-        ..pageBy((p) => p.id, QuerySortOrder.ascending);
+        ..pageBy((p) => p.pid, QuerySortOrder.ascending);
 
       try {
         await q.fetchOne();
@@ -419,7 +419,7 @@ class Parent extends ManagedObject<_Parent> implements _Parent {}
 
 class _Parent {
   @managedPrimaryKey
-  int id;
+  int pid;
   String name;
 
   Child child;
@@ -429,7 +429,7 @@ class Child extends ManagedObject<_Child> implements _Child {}
 
 class _Child {
   @managedPrimaryKey
-  int id;
+  int cid;
   String name;
 
   @ManagedRelationship(#child)
@@ -444,7 +444,7 @@ class Toy extends ManagedObject<_Toy> implements _Toy {}
 
 class _Toy {
   @managedPrimaryKey
-  int id;
+  int tid;
 
   String name;
 
@@ -456,7 +456,7 @@ class Vaccine extends ManagedObject<_Vaccine> implements _Vaccine {}
 
 class _Vaccine {
   @managedPrimaryKey
-  int id;
+  int vid;
   String kind;
 
   @ManagedRelationship(#vaccinations)
