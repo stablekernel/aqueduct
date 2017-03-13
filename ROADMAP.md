@@ -1,4 +1,44 @@
-# 1.x
+# 2.x
+
+### Websocket Support
+  - Purpose: Websockets are a common way of implementing bidirectional communication and realtime "push" behavior in an web application and Aqueduct applications should allow for this behavior to be incorporated into the application structure.
+  - Notes:
+    - RequestController subclass that upgrades requests and then manages events.
+      - Must be addressable from inside the application once established, so that events in the application can push data to its connected client. Addressing is application-specific.
+      - Must handle errors, cleanup and maintaining connectivity.
+      - Must handle working in a RequestController listener stream, i.e. can be behind middleware like Authorizers.
+      - Could potentially be sent to another isolate (if detachSocket + sending DetachedSocket across an isolate works), so that one (or more) dedicated isolates handle websocket connections. Looking for a more Erlang architecture here. Another approach would be to set up a separate
+
+### Database Migration Generation
+  - Purpose: To alleviate burden of database migration and reduce error.
+  - Notes:
+    - For migrations past the initial, create a migration file that has operations already implemented. (This behavior is effectively already available because `Schema` objects can already do a 'diff' via their compare method.)    
+
+### Discussion Forums
+  - Purpose: To have a place where developers get can specific questions answered and clear up some of the cruft in Github issues.
+
+### Examples of Aqueduct Applications
+  - Purpose: To help newcomers get acquainted with Aqueduct and start from a better foundation for common web application features.
+  - Notes:
+    - A message board application
+    - A social network application
+
+### Improved Content-Type Handling Behavior
+  - Purpose: Provide more flexibility on HTTP response bodies and ease of use for common response bodies.
+  - Notes:
+    - Currently not so great behavior for binary formats.
+    - Not great at inferring content type either.
+
+### Support JSONB data in ORM
+  - Purpose: More flexible data storage options.
+  - Notes:
+    - Requires JSONB support in Postgres driver.
+
+### Support Sharing Managed Objects across client/server
+
+### Support Other Databases
+
+# Recently Completed
 
 ### OAuth 2.0/Authorization Improvements
   - Purpose: To give Aqueduct applications behavior closer to the OAuth 2.0 specification, which minimizes usability friction.
@@ -10,15 +50,6 @@
     - Add protections for POST /auth/code to ensure the request is coming from the HTML authentication page.
     - Make interface more convenient for setting up authorizers.
 
-### Websocket Support
-  - Purpose: Websockets are a common way of implementing bidirectional communication and realtime "push" behavior in an web application and Aqueduct applications should allow for this behavior to be incorporated into the application structure.
-  - Notes:
-    - RequestController subclass that upgrades requests and then manages events.
-      - Must be addressable from inside the application once established, so that events in the application can push data to its connected client. Addressing is application-specific.
-      - Must handle errors, cleanup and maintaining connectivity.
-      - Must handle working in a RequestController listener stream, i.e. can be behind middleware like Authorizers.
-      - Could potentially be sent to another isolate (if detachSocket + sending DetachedSocket across an isolate works), so that one (or more) dedicated isolates handle websocket connections. Looking for a more Erlang architecture here. Another approach would be to set up a separate
-
 ### Scripting/Tool Feedback Improvements
   - Purpose: To give better feedback to Aqueduct users executing Aqueduct applications.
   - Notes:
@@ -28,27 +59,7 @@
     - Add OpenAPI document generation script to aqueduct tool, not as a standalone.
     - Add client id/secret generation to aqueduct script.
 
-### Database Migration Generation
-  - Purpose: To alleviate burden of database migration and reduce error.
-  - Notes:
-    - For migrations past the initial, create a migration file that has operations already implemented. (This behavior is effectively already available because `Schema` objects can already do a 'diff' via their compare method.)    
-
 ### Documentation
   - Purpose: To help developers understand how to use Aqueduct.
   - Notes:
     - See https://github.com/stablekernel/aqueduct/issues/114
-
-### Discussion Forums
-  - Purpose: To have a place where developers get can specific questions answered and clear up some of the cruft in Github issues.
-
-### Examples of Aqueduct Applications
-  - Purpose: To help newcomers get acquainted with Aqueduct and start from a better foundation for common web application features.
-  - Notes:
-    - A message board application
-    - A social network application
-
-# 2.0
-
-### Support Sharing Managed Objects across client/server
-
-### Support Other Databases
