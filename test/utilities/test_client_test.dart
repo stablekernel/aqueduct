@@ -16,6 +16,29 @@ void main() {
       await server?.close();
     });
 
+    test("Create from app, explicit port", () {
+      var app = new Application<SomeSink>()
+          ..configuration.port = 4111;
+      var client = new TestClient(app);
+      expect(client.baseURL, "http://localhost:4111");
+    });
+
+    test("Create from app, assigned port", () async {
+      var app = new Application<SomeSink>()
+        ..configuration.port = 0;
+      await app.start(runOnMainIsolate: true);
+
+      var client = new TestClient(app);
+      var parsedURI = Uri.parse(client.baseURL);
+      expect(parsedURI.port, greaterThan(0));
+      expect(parsedURI.port, app.server.server.port);
+      var response = await client.request("/").get();
+      expect(response, hasStatus(200));
+
+      await app.stop();
+    });
+
+
     test("Host created correctly", () {
       var defaultTestClient = new TestClient.onPort(4040);
       var portConfiguredClient = new TestClient.fromConfig(
@@ -621,4 +644,13 @@ void main() {
               headers: {"Content-Type": "application/json; charset=utf-8"}));
     });
   });
+}
+
+class SomeSink extends RequestSink {
+  SomeSink(ApplicationConfiguration config) : super (config) {}
+
+  @override
+  void setupRouter(Router r) {
+    r.route("/").listen((r) async => new Response.ok(null));
+  }
 }
