@@ -152,7 +152,7 @@ class ManagedDataModelException implements Exception {
         "The property with 'ManagedRelationship' metadata is actually a foreign key column "
         "in the database. The other one isn't a column, but an entire row or rows."
         "Ask yourself which makes more sense: "
-        "\"{_getInstanceClassName(entity)}.${_getName(property)} has "
+        "\"${_getInstanceClassName(entity)}.${_getName(property)} has "
         "${_getInstanceClassName(destinationEntity)}.${_getName(inverseProperty)}\" "
         "or \"${_getInstanceClassName(destinationEntity)}.${_getName(inverseProperty)} has "
         "${_getInstanceClassName(entity)}.${_getName(property)}\"? If it is the first,"
@@ -210,6 +210,20 @@ class ManagedDataModelException implements Exception {
         "it is transient, but it it has a mismatch. A transient "
         "getter method must have 'isAvailableAsOutput' and a transient "
         "setter method must have 'isAvailableAsInput'.");
+  }
+
+  factory ManagedDataModelException.cyclicReference(
+      ManagedEntity entity,
+      Symbol property,
+      ManagedEntity destinationEntity,
+      Symbol inverseProperty) {
+    return new ManagedDataModelException(
+        "Managed objects '${_getPersistentClassName(entity)}' "
+        "and '${_getPersistentClassName(destinationEntity)}' "
+        "have cyclic relationship properties. This would yield two tables "
+        "with foreign key references to eachother. Try creating "
+        "a 'ManagedObject' subclass that represents a join table between the two tables. "
+        "The offending properties are: '${_getName(property)}' and '${_getName(inverseProperty)}'");
   }
 
   static String _getPersistentClassName(ManagedEntity entity) =>

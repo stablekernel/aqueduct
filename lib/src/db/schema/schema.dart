@@ -135,14 +135,14 @@ class Schema {
 
     var tableIsReady = (SchemaTable t) {
       var foreignKeyColumns =
-          t.columns.where((sc) => sc.relatedTableName != null).toList();
+      t.columns.where((sc) => sc.relatedTableName != null).toList();
 
       if (foreignKeyColumns.isEmpty) {
         return true;
       }
 
       return foreignKeyColumns.map((sc) => sc.relatedTableName).every(
-          (tableName) =>
+              (tableName) =>
               tablesAccountedFor.map((st) => st.name).contains(tableName));
     };
 
