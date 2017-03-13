@@ -148,7 +148,7 @@ class ManagedDataModelException implements Exception {
         "on '${_getPersistentClassName(entity)}' "
         "and '${_getName(inverseProperty)}' "
         "on '${_getPersistentClassName(destinationEntity)}' "
-        "both have 'ManagedRelationship' metadata, but only one side can."
+        "both have 'ManagedRelationship' metadata, but only one side can. "
         "The property with 'ManagedRelationship' metadata is actually a foreign key column "
         "in the database. The other one isn't a column, but an entire row or rows."
         "Ask yourself which makes more sense: "
