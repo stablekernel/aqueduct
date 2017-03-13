@@ -15,10 +15,10 @@ main() {
       await app.start(numberOfInstances: 1);
 
       // This request will generate an uncaught exception
-      var failFuture = http.get("http://localhost:8080/");
+      var failFuture = http.get("http://localhost:8081/");
 
       // This request will come in right after the failure but should succeed
-      var successFuture = http.get("http://localhost:8080/1");
+      var successFuture = http.get("http://localhost:8081/1");
 
       // Ensure both requests respond with 200, since the failure occurs asynchronously AFTER the response has been generated
       // for the failure case.
@@ -33,7 +33,7 @@ main() {
       expect(errorMessage.stackTrace, isNotNull);
 
       // And then we should make sure everything is working just fine.
-      expect((await http.get("http://localhost:8080/1")).statusCode, 200);
+      expect((await http.get("http://localhost:8081/1")).statusCode, 200);
     });
 
     test("Application with multiple isolates reports uncaught error, recovers",
@@ -42,8 +42,8 @@ main() {
 
       // Throw some deferred crashers then some success messages at the server
       var failFutures = new Iterable.generate(5)
-          .map((_) => http.get("http://localhost:8080"));
-      var successResponse = await http.get("http://localhost:8080/1");
+          .map((_) => http.get("http://localhost:8081"));
+      var successResponse = await http.get("http://localhost:8081/1");
       expect(successResponse.statusCode, 200);
 
       var logMessages = await app.logger.onRecord.take(5);

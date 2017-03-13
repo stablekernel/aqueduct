@@ -12,7 +12,16 @@ import '../application/application_configuration.dart';
 /// test matchers.
 class TestClient {
   /// Creates an instance that targets the configured [app].
-  TestClient(Application app) : this.fromConfig(app.configuration);
+  TestClient(Application app) {
+    var scheme = app.configuration.securityContext != null ? "https" : "http";
+    var host = "localhost";
+    var port = app.configuration.port;
+
+    if (port == 0) {
+      port = app.mainIsolateSink.server.server.port;
+    }
+    baseURL = "$scheme://$host:$port";
+  }
 
   /// Creates an instance that targets http://localhost:[port].
   TestClient.onPort(int port) {

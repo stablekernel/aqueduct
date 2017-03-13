@@ -114,17 +114,17 @@ And now you can make requests:
 
 ```sh
 # Create a new note: POST /notes
-curl -X POST http://localhost:8080/notes -H "Content-Type: application/json" -d '{"contents" : "a note"}'
+curl -X POST http://localhost:8081/notes -H "Content-Type: application/json" -d '{"contents" : "a note"}'
 
 # Get that note: GET /notes/1
-curl -X GET http://localhost:8080/notes/1
+curl -X GET http://localhost:8081/notes/1
 
 # Change that note: PUT /notes/1
-curl -X PUT http://localhost:8080/notes/1 -H "Content-Type: application/json" -d '{"contents" : "edit"}'
+curl -X PUT http://localhost:8081/notes/1 -H "Content-Type: application/json" -d '{"contents" : "edit"}'
 
 # Delete that note: 
-curl -X DELETE http://localhost:8080/notes/1
+curl -X DELETE http://localhost:8081/notes/1
 
 # Note there are no more notes:
-curl -X GET http://localhost:8080/notes
+curl -X GET http://localhost:8081/notes
 ```

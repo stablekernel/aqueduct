@@ -23,13 +23,13 @@ main() {
     });
 
     test("Application responds to request", () async {
-      var response = await http.get("http://localhost:8080/t");
+      var response = await http.get("http://localhost:8081/t");
       expect(response.statusCode, 200);
     });
 
     test("Application properly routes request", () async {
-      var tResponse = await http.get("http://localhost:8080/t");
-      var rResponse = await http.get("http://localhost:8080/r");
+      var tResponse = await http.get("http://localhost:8081/t");
+      var rResponse = await http.get("http://localhost:8081/r");
 
       expect(tResponse.body, '"t_ok"');
       expect(rResponse.body, '"r_ok"');
@@ -37,7 +37,7 @@ main() {
 
     test("Application gzips content", () async {
       var resp = await http
-          .get("http://localhost:8080/t", headers: {"Accept-Encoding": "gzip"});
+          .get("http://localhost:8081/t", headers: {"Accept-Encoding": "gzip"});
       expect(resp.headers["content-encoding"], "gzip");
     });
 
@@ -46,7 +46,7 @@ main() {
 
       var successful = false;
       try {
-        var _ = await http.get("http://localhost:8080/t");
+        var _ = await http.get("http://localhost:8081/t");
         successful = true;
       } catch (e) {
         expect(e, isNotNull);
@@ -54,7 +54,7 @@ main() {
       expect(successful, false);
 
       await app.start(runOnMainIsolate: true);
-      var resp = await http.get("http://localhost:8080/t");
+      var resp = await http.get("http://localhost:8081/t");
       expect(resp.statusCode, 200);
     });
 
@@ -63,7 +63,7 @@ main() {
         () async {
       var sum = 0;
       for (var i = 0; i < 10; i++) {
-        var result = await http.get("http://localhost:8080/startup");
+        var result = await http.get("http://localhost:8081/startup");
         sum += int.parse(JSON.decode(result.body));
       }
       expect(sum, 10);
@@ -99,7 +99,7 @@ main() {
 
       crashingApp.configuration.options = {"crashIn": "dontCrash"};
       await crashingApp.start(runOnMainIsolate: true);
-      var response = await http.get("http://localhost:8080/t");
+      var response = await http.get("http://localhost:8081/t");
       expect(response.statusCode, 200);
       await crashingApp.stop();
     });
@@ -109,7 +109,7 @@ main() {
 
       await app.start(runOnMainIsolate: true);
 
-      var response = await http.get("http://localhost:8080/t");
+      var response = await http.get("http://localhost:8081/t");
       expect(response.statusCode, 200);
 
       await app.stop();

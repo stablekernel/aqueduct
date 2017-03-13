@@ -44,6 +44,7 @@ class TestApplication {
   Future start() async {
     RequestController.letUncaughtExceptionsEscape = true;
     application = new Application<WildfireSink>();
+    application.configuration.port = 0;
     application.configuration.configurationFilePath = "config.yaml.src";
 
     await application.start(runOnMainIsolate: true);
@@ -62,6 +63,7 @@ class TestApplication {
   ///
   /// This method must be called during test tearDown.
   Future stop() async {
+    application.logger.clearListeners();
     await application?.stop();
   }
 

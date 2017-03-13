@@ -25,13 +25,13 @@ main() {
     ////////////////////////////////////////////
 
     test("Application responds to request", () async {
-      var response = await http.get("http://localhost:8080/t");
+      var response = await http.get("http://localhost:8081/t");
       expect(response.statusCode, 200);
     });
 
     test("Application properly routes request", () async {
-      var tRequest = http.get("http://localhost:8080/t");
-      var rRequest = http.get("http://localhost:8080/r");
+      var tRequest = http.get("http://localhost:8081/t");
+      var rRequest = http.get("http://localhost:8081/r");
 
       var tResponse = await tRequest;
       var rResponse = await rRequest;
@@ -44,7 +44,7 @@ main() {
       var reqs = <Future>[];
       var responses = [];
       for (int i = 0; i < 100; i++) {
-        var req = http.get("http://localhost:8080/t");
+        var req = http.get("http://localhost:8081/t");
         req.then((resp) {
           responses.add(resp);
         });
@@ -71,12 +71,12 @@ main() {
       await app.stop();
 
       try {
-        await http.get("http://localhost:8080/t");
+        await http.get("http://localhost:8081/t");
       } on SocketException {}
 
       await app.start(numberOfInstances: 3);
 
-      var resp = await http.get("http://localhost:8080/t");
+      var resp = await http.get("http://localhost:8081/t");
       expect(resp.statusCode, 200);
     });
 
@@ -85,7 +85,7 @@ main() {
         () async {
       var sum = 0;
       for (var i = 0; i < 10; i++) {
-        var result = await http.get("http://localhost:8080/startup");
+        var result = await http.get("http://localhost:8081/startup");
         sum += int.parse(JSON.decode(result.body));
       }
       expect(sum, 10);
@@ -124,7 +124,7 @@ main() {
 
       crashingApp.configuration.options = {"crashIn": "dontCrash"};
       await crashingApp.start();
-      var response = await http.get("http://localhost:8080/t");
+      var response = await http.get("http://localhost:8081/t");
       expect(response.statusCode, 200);
       await crashingApp.stop();
     });
@@ -132,11 +132,11 @@ main() {
     test(
         "Application that fails to open because port is bound fails gracefully",
         () async {
-      var server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 8080);
+      var server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 8081);
       server.listen((req) {});
 
       var conflictingApp = new Application<TestSink>();
-      conflictingApp.configuration.port = 8080;
+      conflictingApp.configuration.port = 8081;
 
       try {
         await conflictingApp.start();

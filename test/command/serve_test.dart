@@ -33,7 +33,7 @@ void main() {
         await runAqueductProcess(["serve", "--detached"], temporaryDirectory);
     expect(res, 0);
 
-    var result = await http.get("http://localhost:8080/endpoint");
+    var result = await http.get("http://localhost:8081/endpoint");
     expect(result.statusCode, 200);
   });
 

@@ -32,8 +32,8 @@ class ApplicationConfiguration {
 
   /// The port to listen for HTTP requests on.
   ///
-  /// Defaults to 8080.
-  int port = 8080;
+  /// Defaults to 8081.
+  int port = 8081;
 
   /// Whether or not the application should only receive connections over IPv6.
   ///
