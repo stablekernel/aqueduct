@@ -1,5 +1,10 @@
 # aqueduct changelog
 
+## 2.0.2
+
+- Allow binding to system-assigned port so tests can be run in parallel
+- Change `aqueduct serve` default port to 8081 so can develop in parallel to Angular2 apps that default to 8080
+
 ## 2.0.1
 
 - Fixes issue where some types of join queries would access the wrong properties
