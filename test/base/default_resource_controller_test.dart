@@ -11,7 +11,7 @@ void main() {
   group("Standard operations", () {
     var app = new Application<TestSink>();
     RequestController.letUncaughtExceptionsEscape = true;
-    app.configuration.port = 8080;
+    app.configuration.port = 8081;
     var client = new TestClient.onPort(app.configuration.port);
     List<TestModel> allObjects = [];
 
@@ -88,8 +88,8 @@ void main() {
 
   group("Standard operation failure cases", () {
     var app = new Application<TestSink>();
-    app.configuration.port = 8080;
-    var client = new TestClient.onPort(8080);
+    app.configuration.port = 8081;
+    var client = new TestClient.onPort(8081);
 
     setUpAll(() async {
       await app.start(runOnMainIsolate: true);
@@ -121,8 +121,8 @@ void main() {
 
   group("Objects that don't exist", () {
     var app = new Application<TestSink>();
-    app.configuration.port = 8080;
-    var client = new TestClient.onPort(8080);
+    app.configuration.port = 8081;
+    var client = new TestClient.onPort(8081);
 
     setUpAll(() async {
       await app.start(runOnMainIsolate: true);
@@ -150,15 +150,15 @@ void main() {
 
     test("Delete nonexistant object is 404", () async {
       expect(
-          await client.request("http://localhost:8080/controller/1").delete(),
+          await client.request("http://localhost:8081/controller/1").delete(),
           hasStatus(404));
     });
   });
 
   group("Extended GET requests", () {
     var app = new Application<TestSink>();
-    app.configuration.port = 8080;
-    var client = new TestClient.onPort(8080);
+    app.configuration.port = 8081;
+    var client = new TestClient.onPort(8081);
     List<TestModel> allObjects = [];
 
     setUpAll(() async {

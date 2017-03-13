@@ -35,7 +35,7 @@ class CLIDocument extends CLICommand with CLIProject {
   }
 
   List<Uri> get hosts {
-    List<String> hostValues = values["host"] ?? ["http://localhost:8080"];
+    List<String> hostValues = values["host"] ?? ["http://localhost:8081"];
     return hostValues.map((str) {
       var uri = Uri.parse(str);
       if (uri == null) {

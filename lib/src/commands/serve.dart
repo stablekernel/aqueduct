@@ -21,7 +21,7 @@ class CLIServer extends CLIServeBase {
       ..addOption("port",
           abbr: "p",
           help: "The port number to listen for HTTP requests on.",
-          defaultsTo: "8080")
+          defaultsTo: "8081")
       ..addOption("address",
           abbr: "a",
           help:

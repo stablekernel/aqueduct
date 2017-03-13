@@ -133,7 +133,7 @@ void main() {
   test(
       "Request controller's can serialize and encode Serializable objects as JSON by default",
       () async {
-    server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8080);
+    server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8081);
     server.map((req) => new Request(req)).listen((req) async {
       var next = new RequestController();
       next.listen((req) async {
@@ -143,7 +143,7 @@ void main() {
       await next.receive(req);
     });
 
-    var resp = await http.get("http://localhost:8080");
+    var resp = await http.get("http://localhost:8081");
     expect(resp.headers["content-type"], startsWith("application/json"));
     expect(JSON.decode(resp.body), {"name": "Bob"});
   });
@@ -151,7 +151,7 @@ void main() {
   test(
       "Responding to request with no content-type, but does have a body, defaults to application/json",
       () async {
-    server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8080);
+    server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8081);
     server.map((req) => new Request(req)).listen((req) async {
       var next = new RequestController();
       next.listen((req) async {
@@ -160,7 +160,7 @@ void main() {
       await next.receive(req);
     });
 
-    var resp = await http.get("http://localhost:8080");
+    var resp = await http.get("http://localhost:8081");
     expect(resp.headers["content-type"], startsWith("application/json"));
     expect(JSON.decode(resp.body), {"a": "b"});
   });
@@ -168,7 +168,7 @@ void main() {
   test(
       "Responding to a request with no explicit content-type and has a body that cannot be encoded to JSON will throw 500",
       () async {
-    server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8080);
+    server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8081);
     server.map((req) => new Request(req)).listen((req) async {
       var next = new RequestController();
       next.listen((req) async {
@@ -177,7 +177,7 @@ void main() {
       await next.receive(req);
     });
 
-    var resp = await http.get("http://localhost:8080");
+    var resp = await http.get("http://localhost:8081");
     expect(resp.statusCode, 500);
     expect(resp.headers["content-type"], "text/plain; charset=utf-8");
     expect(resp.body, "");
@@ -186,7 +186,7 @@ void main() {
   test(
       "Responding to request with no explicit content-type, but does not have a body, defaults to plaintext Content-Type header",
       () async {
-    server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8080);
+    server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8081);
     server.map((req) => new Request(req)).listen((req) async {
       var next = new RequestController();
       next.listen((req) async {
@@ -194,7 +194,7 @@ void main() {
       });
       await next.receive(req);
     });
-    var resp = await http.get("http://localhost:8080");
+    var resp = await http.get("http://localhost:8081");
     expect(resp.statusCode, 200);
     expect(resp.headers["content-length"], "0");
     expect(resp.headers["content-type"], "text/plain; charset=utf-8");
@@ -202,7 +202,7 @@ void main() {
   });
 
   test("Using an encoder that doesn't exist returns a 500", () async {
-    server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8080);
+    server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8081);
     server.map((req) => new Request(req)).listen((req) async {
       var next = new RequestController();
       next.listen((req) async {
@@ -211,7 +211,7 @@ void main() {
       });
       await next.receive(req);
     });
-    var resp = await http.get("http://localhost:8080");
+    var resp = await http.get("http://localhost:8081");
     var contentType = ContentType.parse(resp.headers["content-type"]);
     expect(resp.statusCode, 500);
     expect(contentType.primaryType, "application");
@@ -223,7 +223,7 @@ void main() {
   test(
       "Using an encoder other than the default correctly encodes and sets content-type",
       () async {
-    server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8080);
+    server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8081);
     server.map((req) => new Request(req)).listen((req) async {
       var next = new RequestController();
       next.listen((req) async {
@@ -232,7 +232,7 @@ void main() {
       });
       await next.receive(req);
     });
-    var resp = await http.get("http://localhost:8080");
+    var resp = await http.get("http://localhost:8081");
     expect(resp.statusCode, 200);
     expect(resp.headers["content-type"], "text/plain");
     expect(resp.body, "1234");
@@ -241,7 +241,7 @@ void main() {
   test("A decoder with a match-all subtype will be used when matching",
       () async {
     Response.addEncoder(new ContentType("b", "*"), (s) => s);
-    server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8080);
+    server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8081);
     server.map((req) => new Request(req)).listen((req) async {
       var next = new RequestController();
       next.listen((req) async {
@@ -250,7 +250,7 @@ void main() {
       });
       await next.receive(req);
     });
-    var resp = await http.get("http://localhost:8080");
+    var resp = await http.get("http://localhost:8081");
     expect(resp.statusCode, 200);
     expect(resp.headers["content-type"], "b/bar; charset=utf-8");
     expect(resp.body, "hello");
@@ -263,7 +263,7 @@ void main() {
     Response.addEncoder(new ContentType("a", "html"), (s) {
       return "<html>$s</html>";
     });
-    server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8080);
+    server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8081);
     server.map((req) => new Request(req)).listen((req) async {
       var next = new RequestController();
       next.listen((req) async {
@@ -272,7 +272,7 @@ void main() {
       });
       await next.receive(req);
     });
-    var resp = await http.get("http://localhost:8080");
+    var resp = await http.get("http://localhost:8081");
     expect(resp.statusCode, 200);
     expect(resp.headers["content-type"], "a/html; charset=utf-8");
     expect(resp.body, "<html>hello</html>");
@@ -283,7 +283,7 @@ void main() {
     Response.addEncoder(new ContentType("foo", "bar"), (s) {
       throw new Exception("uhoh");
     });
-    server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8080);
+    server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8081);
     server.map((req) => new Request(req)).listen((req) async {
       var next = new RequestController();
       next.listen((req) async {
@@ -292,14 +292,14 @@ void main() {
       });
       await next.receive(req);
     });
-    var resp = await http.get("http://localhost:8080");
+    var resp = await http.get("http://localhost:8081");
     expect(resp.statusCode, 500);
   });
 
   test(
       "willSendResponse is always called prior to Response being sent for preflight requests",
       () async {
-    server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8080);
+    server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8081);
     server.map((req) => new Request(req)).listen((req) async {
       var next = new RequestController();
       next.generate(() => new Always200Controller());
@@ -307,7 +307,7 @@ void main() {
     });
 
     // Invalid preflight
-    var req = await (new HttpClient().open("OPTIONS", "localhost", 8080, ""));
+    var req = await (new HttpClient().open("OPTIONS", "localhost", 8081, ""));
     req.headers.set("Origin", "http://foobar.com");
     req.headers.set("Access-Control-Request-Method", "POST");
     req.headers.set("Access-Control-Request-Headers", "accept, authorization");
@@ -318,7 +318,7 @@ void main() {
         {"statusCode": 403});
 
     // valid preflight
-    req = await (new HttpClient().open("OPTIONS", "localhost", 8080, ""));
+    req = await (new HttpClient().open("OPTIONS", "localhost", 8081, ""));
     req.headers.set("Origin", "http://somewhere.com");
     req.headers.set("Access-Control-Request-Method", "POST");
     req.headers.set("Access-Control-Request-Headers", "accept, authorization");
@@ -334,7 +334,7 @@ void main() {
   test(
       "willSendResponse is always called prior to Response being sent for normal requests",
       () async {
-    server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8080);
+    server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8081);
     server.map((req) => new Request(req)).listen((req) async {
       var next = new RequestController();
       next.generate(() => new Always200Controller());
@@ -342,28 +342,28 @@ void main() {
     });
 
     // normal response
-    var resp = await http.get("http://localhost:8080");
+    var resp = await http.get("http://localhost:8081");
     expect(resp.statusCode, 200);
     expect(JSON.decode(resp.body), {"statusCode": 100});
 
     // httpresponseexception
-    resp = await http.get("http://localhost:8080?q=http_response_exception");
+    resp = await http.get("http://localhost:8081?q=http_response_exception");
     expect(resp.statusCode, 200);
     expect(JSON.decode(resp.body), {"statusCode": 400});
 
     // query exception
-    resp = await http.get("http://localhost:8080?q=query_exception");
+    resp = await http.get("http://localhost:8081?q=query_exception");
     expect(resp.statusCode, 200);
     expect(JSON.decode(resp.body), {"statusCode": 503});
 
     // any other exception (500)
-    resp = await http.get("http://localhost:8080?q=server_error");
+    resp = await http.get("http://localhost:8081?q=server_error");
     expect(resp.statusCode, 200);
     expect(JSON.decode(resp.body), {"statusCode": 500});
   });
 
   test("Failure to decode request body as appropriate type is 400", () async {
-    server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8080);
+    server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8081);
     server.map((req) => new Request(req)).listen((req) async {
       var next = new RequestController();
       next.listen((r) async {
@@ -373,7 +373,7 @@ void main() {
       await next.receive(req);
     });
 
-    var resp = await http.post("http://localhost:8080", headers: {
+    var resp = await http.post("http://localhost:8081", headers: {
       "content-type": "application/json"
     }, body: JSON.encode(["a"]));
 
