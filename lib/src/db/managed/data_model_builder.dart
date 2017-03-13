@@ -19,6 +19,21 @@ class DataModelBuilder {
 
     entities.forEach((_, entity) {
       entity.relationships = relationshipsForEntity(entity);
+
+      // Verify we don't have cyclic refs; we can do this here, before
+      // every relationship has been established, because if there is a cyclic
+      // reference, we'll catch one of them.
+      entity.relationships.forEach((_, rel) {
+        if (rel.relationshipType == ManagedRelationshipType.belongsTo) {
+          var foreignKey = rel.destinationEntity.relationships?.values
+              ?.firstWhere((r) => r.relationshipType == ManagedRelationshipType.belongsTo
+                              && r.destinationEntity == entity, orElse: () => null);
+          if (foreignKey != null) {
+            throw new ManagedDataModelException.cyclicReference(
+                entity, new Symbol(rel.name), foreignKey.entity, new Symbol(foreignKey.name));
+          }
+        }
+      });
     });
   }
 

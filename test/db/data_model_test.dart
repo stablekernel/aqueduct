@@ -408,6 +408,32 @@ void main() {
           false);
     });
   });
+
+  group("Cyclic graph", () {
+    test("Both properties have ManagedRelationship metadata", () {
+      try {
+        var _ = new ManagedDataModel([InvalidCyclicLeft, InvalidCyclicRight]);
+        expect(true, false);
+      } on ManagedDataModelException catch (e) {
+        expect(e.message, contains("InvalidCyclicLeft"));
+        expect(e.message, contains("InvalidCyclicRight"));
+        expect(e.message, contains("but only one side"));
+      }
+    });
+
+    test("ManagedObjects cannot have foreign key refs to eachother", () {
+      try {
+        var _ = new ManagedDataModel([CyclicLeft, CyclicRight]);
+        expect(true, false);
+      } on ManagedDataModelException catch (e) {
+        expect(e.message, contains("CyclicLeft"));
+        expect(e.message, contains("CyclicRight"));
+        expect(e.message, contains("have cyclic relationship properties"));
+        expect(e.message, contains("rightRef"));
+        expect(e.message, contains("leftRef"));
+      }
+    });
+  });
 }
 
 class User extends ManagedObject<_User> implements _User {
@@ -678,4 +704,44 @@ class _JoinMany {
 
   @ManagedRelationship(#join)
   RightMany right;
+}
+
+class InvalidCyclicLeft extends ManagedObject<_InvalidCyclicLeft> {}
+class _InvalidCyclicLeft {
+  @managedPrimaryKey
+  int id;
+
+  @ManagedRelationship(#ref)
+  InvalidCyclicRight ref;
+}
+
+class InvalidCyclicRight extends ManagedObject<_InvalidCyclicRight> {}
+class _InvalidCyclicRight {
+  @managedPrimaryKey
+  int id;
+
+  @ManagedRelationship(#ref)
+  InvalidCyclicLeft ref;
+}
+
+class CyclicLeft extends ManagedObject<_CyclicLeft> {}
+class _CyclicLeft  {
+  @managedPrimaryKey
+  int id;
+
+  @ManagedRelationship(#from)
+  CyclicRight leftRef;
+
+  CyclicRight from;
+}
+
+class CyclicRight extends ManagedObject<_CyclicRight> {}
+class _CyclicRight  {
+  @managedPrimaryKey
+  int id;
+
+  @ManagedRelationship(#from)
+  CyclicLeft rightRef;
+
+  CyclicLeft from;
 }
