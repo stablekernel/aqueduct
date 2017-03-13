@@ -135,7 +135,7 @@ In the project directory, run the following command to start the application:
 aqueduct serve
 ```
 
-In a browser, open the URL `http://localhost:8080/questions`. You'll see the list of questions! (You can shut down the server by hitting Ctrl-C in the terminal where you ran `aqueduct serve`.)
+In a browser, open the URL `http://localhost:8081/questions`. You'll see the list of questions! (You can shut down the server by hitting Ctrl-C in the terminal where you ran `aqueduct serve`.)
 
 Routing and Another Route
 ---
@@ -191,13 +191,13 @@ class QuestionController extends HTTPController {
 }
 ```
 
-Reload the application by hitting Ctrl-C and then running `aqueduct serve` again. In your browser, enter `http://localhost:8080/questions` and you'll get the list of questions. Then, enter `http://localhost:8080/questions/0` and you'll get the first question. If you enter an index not within the list of questions or something other than an integer, you'll get a 404.
+Reload the application by hitting Ctrl-C and then running `aqueduct serve` again. In your browser, enter `http://localhost:8081/questions` and you'll get the list of questions. Then, enter `http://localhost:8081/questions/0` and you'll get the first question. If you enter an index not within the list of questions or something other than an integer, you'll get a 404.
 
 When a `Request` is sent to an `HTTPController`, it evaluates the HTTP method of the request and matches it against every declared responder method. In this case, the `HTTPController` will have two possible choices: `getQuestions` and `getQuestionAtIndex`. From here, it looks at the parameters for each of the methods and the path variables in the `Request`.
 
 Parameters with `HTTPPath` metadata are used to match path variables from the `Request`. If there are no path variables, the no-argument `getAllQuestions` is invoked. If there is one `HTTPPath` argument *and* the name of the path variable is named `index` (the `String` argument to `HTTPPath`), then `getQuestionAtIndex` is called. The name of the path variable is defined by the name of the variable declared in `Router`'s `route` method.
 
-If neither of those scenarios are true, the `HTTPController` responds with 404 and doesn't call any of your responder methods. Because the route is declared to also evaluate a regular expression that restricts `index` to only numeric values, non-numeric values in the `index` portion of the route will also yield a 404. You can try that be hitting `http://localhost:8080/questions/foo` from your browser.
+If neither of those scenarios are true, the `HTTPController` responds with 404 and doesn't call any of your responder methods. Because the route is declared to also evaluate a regular expression that restricts `index` to only numeric values, non-numeric values in the `index` portion of the route will also yield a 404. You can try that be hitting `http://localhost:8081/questions/foo` from your browser.
 
 This HTTP method and path variable matching behavior is specific to `HTTPController`.
 

@@ -159,7 +159,7 @@ void main() {
 }
 ```
 
-If you run this test file now, an instance of your application will spin up on the main isolate, and your first test will execute a GET `http://localhost:8080/questions`, then your application will be torn down. Of course, we don't verify anything about the response, so we should actually do something there.
+If you run this test file now, an instance of your application will spin up on the main isolate, and your first test will execute a GET `http://localhost:8081/questions`, then your application will be torn down. Of course, we don't verify anything about the response, so we should actually do something there.
 
 The value of `response` in the previous code snippet is an instance of `TestResponse`. Dart tests use the Hamcrest style matchers in their expectations. There are built-in matchers in Aqueduct for setting up and matching expectations on `TestResponse` instances. For example, if we wanted to verify that we got a 404 back, we'd simply do:
 

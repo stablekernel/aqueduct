@@ -19,7 +19,7 @@ main() async {
   try {
     var app = new Application<MyRequestSink>();
     var config = new ApplicationConfiguration()
-      ..port = 8080
+      ..port = 8081
       ..configurationFilePath = "config.yaml";
 
     app.configuration = config;
