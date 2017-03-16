@@ -12,6 +12,8 @@ class SchemaException implements Exception {
   SchemaException(this.message);
 
   String message;
+
+  String toString() => "SchemaException: $message";
 }
 
 /// Represents a database and its tables.
