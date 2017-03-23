@@ -44,7 +44,7 @@ class CLIDatabaseValidate extends CLICommand
 
     var differences = currentSchema.differenceFrom(schemaFromMigrationFiles);
 
-    if (!differences.hasDifferences) {
+    if (differences.hasDifferences) {
       displayError("Validation failed");
       differences.errorMessages.forEach((diff) {
         displayProgress(diff);
