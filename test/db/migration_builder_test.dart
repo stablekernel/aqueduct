@@ -23,7 +23,7 @@ void main() {
     var schema = new Schema.fromMap(response);
 
     expect(schema.tables.length, 1);
-    expect(expectedTable.matches(schema.tables.first), true);
+    expect(expectedTable.differenceFrom(schema.tables.first).hasDifferences, false);
   });
 
   test("Delete table", () async {
@@ -72,7 +72,7 @@ void main() {
     var source = sourceForSchemaUpgrade(existingSchema, commands);
     var response = await runSource(source, existingSchema);
     var schema = new Schema.fromMap(response);
-    expect(schema.matches(expectedSchema), true);
+    expect(schema.differenceFrom(expectedSchema).hasDifferences, false);
   });
 
   test("Delete column", () async {
@@ -98,7 +98,7 @@ void main() {
     var source = sourceForSchemaUpgrade(existingSchema, commands);
     var response = await runSource(source, existingSchema);
     var schema = new Schema.fromMap(response);
-    expect(schema.matches(expectedSchema), true);
+    expect(schema.differenceFrom(expectedSchema).hasDifferences, false);
   });
 
   test("Alter column, many statements", () async {
@@ -129,7 +129,7 @@ void main() {
     var source = sourceForSchemaUpgrade(existingSchema, commands);
     var response = await runSource(source, existingSchema);
     var schema = new Schema.fromMap(response);
-    expect(schema.matches(expectedSchema), true);
+    expect(schema.differenceFrom(expectedSchema).hasDifferences, false);
   });
 
 
@@ -158,7 +158,7 @@ void main() {
     var source = sourceForSchemaUpgrade(existingSchema, commands);
     var response = await runSource(source, existingSchema);
     var schema = new Schema.fromMap(response);
-    expect(schema.matches(expectedSchema), true);
+    expect(schema.differenceFrom(expectedSchema).hasDifferences, false);
   });
 }
 

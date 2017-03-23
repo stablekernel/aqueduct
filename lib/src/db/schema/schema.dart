@@ -1,6 +1,9 @@
+import 'dart:mirrors';
+
 import '../managed/managed.dart';
 
 import 'schema_table.dart';
+import 'schema_column.dart';
 
 export 'migration.dart';
 export 'schema_builder.dart';
@@ -59,31 +62,36 @@ class Schema {
   /// Whether or not two schemas match.
   ///
   /// If passing [reasons], the reasons for a mismatch are added to the passed in [List].
-  bool matches(Schema schema, [List<String> reasons]) {
-    var matches = true;
+  SchemaDifference differenceFrom(Schema schema) {
+    var actualSchema = schema;
 
-    for (var receiverTable in tables) {
-      var matchingArgTable = schema[receiverTable.name];
-      if (matchingArgTable == null) {
-        matches = false;
-        reasons?.add(
-            "Compared schema does not contain '${receiverTable.name}', but that table exists in receiver schema.");
+    var differences = new SchemaDifference()
+      ..expectedSchema = this
+      ..actualSchema = actualSchema;
+
+    for (var expectedTable in tables) {
+      var actualTable = actualSchema[expectedTable.name];
+      if (actualTable == null) {
+        differences.differingTables.add(new SchemaTableDifference()
+          ..actualTable = null
+          ..expectedTable = expectedTable);
       } else {
-        if (!receiverTable.matches(matchingArgTable, reasons)) {
-          matches = false;
+        var diff = expectedTable.differenceFrom(actualTable);
+        if (diff.hasDifferences) {
+          differences.differingTables.add(diff);
         }
       }
     }
 
-    if (schema.tables.length > tables.length) {
-      matches = false;
-      schema.tables.where((st) => this[st.name] == null).forEach((st) {
-        reasons?.add(
-            "Receiver schema does not contain '${st.name}', but that table exists in compared schema.");
-      });
-    }
+    differences.differingTables.addAll(actualSchema.tables
+        .where((t) => this[t.name] == null)
+        .map((unexpectedTable) {
+      return new SchemaTableDifference()
+        ..actualTable = unexpectedTable
+        ..expectedTable = null;
+    }));
 
-    return matches;
+    return differences;
   }
 
   void addTable(SchemaTable table) {
@@ -156,4 +164,76 @@ class Schema {
             .where((st) => !tablesAccountedFor.contains(st))
             .toList());
   }
+}
+
+class SchemaDifference {
+  bool get hasDifferences => differingTables.length > 0;
+  List<String> get errorMessages =>
+      differingTables.expand((diff) => diff.errorMessages).toList();
+
+  Schema expectedSchema;
+  Schema actualSchema;
+
+  List<SchemaTableDifference> differingTables = [];
+}
+
+class SchemaTableDifference {
+  bool get hasDifferences =>
+      differingColumns.length > 0 ||
+      expectedTable?.name?.toLowerCase() != actualTable?.name?.toLowerCase() ||
+      (expectedTable == null && actualTable != null) ||
+      (actualTable == null && expectedTable != null);
+
+  List<String> get errorMessages {
+    if (expectedTable == null && actualTable != null) {
+      return [
+        "Table '${actualTable}' should NOT exist, but is created by migration files."
+      ];
+    } else if (expectedTable != null && actualTable == null) {
+      return [
+        "Table '${expectedTable}' should exist, but it is NOT created by migration files."
+      ];
+    }
+
+    return differingColumns.expand((diff) => diff.errorMessages(this)).toList();
+  }
+
+  SchemaTable expectedTable;
+  SchemaTable actualTable;
+
+  List<SchemaColumnDifference> differingColumns = [];
+}
+
+class SchemaColumnDifference {
+  bool get hasDifferences =>
+      differingProperties.length > 0 ||
+      (expectedColumn == null && actualColumn != null) ||
+      (actualColumn == null && expectedColumn != null);
+
+  List<String> errorMessages(SchemaTableDifference tableDiff) {
+    if (expectedColumn == null && actualColumn != null) {
+      return [
+        "Column '${actualColumn.name}' in table '${tableDiff.actualTable.name}' should NOT exist, but is created by migration files"
+      ];
+    } else if (expectedColumn != null && actualColumn == null) {
+      return [
+        "Column '${expectedColumn.name}' in table '${tableDiff.actualTable.name}' should exist, but is NOT created by migration files"
+      ];
+    }
+
+    return differingProperties.map((propertyName) {
+      var expectedValue =
+          reflect(expectedColumn).getField(new Symbol(propertyName)).reflectee;
+      var actualValue =
+          reflect(actualColumn).getField(new Symbol(propertyName)).reflectee;
+
+      return "Column '${expectedColumn.name}' in table '${tableDiff.actualTable.name}' expected "
+          "'$expectedValue' for '$propertyName', but migration files yield '$actualValue'";
+    }).toList();
+  }
+
+  SchemaColumn expectedColumn;
+  SchemaColumn actualColumn;
+
+  List<String> differingProperties = [];
 }

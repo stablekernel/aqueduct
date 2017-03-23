@@ -36,17 +36,20 @@ class CLIDatabaseValidate extends CLICommand
     var result = await currentSchemaExecutor.execute(projectDirectory.uri);
     var currentSchema = new Schema.fromMap(result as Map<String, dynamic>);
 
-    var baseSchema = new Schema.empty();
+    var schemaFromMigrationFiles = new Schema.empty();
     for (var migrationFile in migrationFiles) {
-      baseSchema =
-          await schemaByApplyingMigrationFile(baseSchema, migrationFile);
+      schemaFromMigrationFiles =
+          await schemaByApplyingMigrationFile(schemaFromMigrationFiles, migrationFile);
     }
 
-    var errors = <String>[];
-    var matches = baseSchema.matches(currentSchema, errors);
+    var differences = currentSchema.differenceFrom(schemaFromMigrationFiles);
 
-    if (!matches) {
-      displayError("Validation failed:\n\t${errors.join("\n\t")}");
+    if (!differences.hasDifferences) {
+      displayError("Validation failed");
+      differences.errorMessages.forEach((diff) {
+        displayProgress(diff);
+      });
+
       return 1;
     }
 

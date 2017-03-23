@@ -7,6 +7,19 @@ import '../utilities/source_generator.dart';
 import 'base.dart';
 import 'db.dart';
 
+
+/*
+The following types were evaluated:
+  - User
+    - Name changed to: XYZ
+    - Added: ColumnName
+    - Removed: ColumnName
+  - Foo
+    - No Changes
+  - XYZ
+    - No Changes
+ */
+
 class CLIDatabaseGenerate extends CLICommand
     with CLIDatabaseMigratable, CLIProject {
   Future<int> handle() async {

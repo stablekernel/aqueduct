@@ -63,7 +63,7 @@ void main() {
         new SchemaColumn("foobar", ManagedPropertyType.integer, isIndexed: true)
       ]));
 
-      expect(db.schema.matches(schema), true);
+      expect(db.schema.differenceFrom(schema).hasDifferences, false);
 
       var insertResults = await db.store.execute(
           "INSERT INTO tableToKeep (columnToEdit) VALUES ('1') RETURNING columnToEdit, addedColumn");
