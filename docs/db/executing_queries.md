@@ -127,7 +127,7 @@ There is a variant to `Query<T>.update` named `updateOne`. The `updateOne` metho
 // Update user with id = 1 to have the name 'Fred'
 var query = new Query<User>()
   ..values.name = "Fred"
-  ..matchOn.id = whereEqualTo(1);
+  ..where.id = whereEqualTo(1);
 
 var updatedUser = await query.updateOne();
 ```

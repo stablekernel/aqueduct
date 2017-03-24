@@ -201,18 +201,16 @@ The inverse relationship doesn't have to be updated - whether it is has-one or h
 
 ```dart
 var query = new Query<Question>()
-  ..where.answers.includeInResultSet = true;
+  ..joinMany((question) => question.answers);  
 ```
 
-Each returned `Question` would also have a `ManagedSet` of `Answer`s in its `answers` property. You may also filter which answers are returned for each `Question` by nesting `where` properties.
+Each returned `Question` would also have a `ManagedSet` of `Answer`s in its `answers` property. You may also filter which answers are returned for each `Question`. A `joinMany` or `joinOne` creates a new `Query<T>` that has its own `where` property.
 
 ```dart
-var query = new Query<Question>()
-  ..where.answers.includeInResultSet = true
-  ..where.answers.where.isCorrect = whereEqualTo(true);
+var query = new Query<Question>();
+var join = query.joinMany((question) => question.answers)
+  ..where.isCorrect = whereEqualTo(true);  
 ```
-
-This would fetch all `Question`s and all of their correct answers. Note that if `includeInResultSet` was not set to `true`, this `Query<T>` would not filter answers because it wouldn't fetch them at all!
 
 An `ManagedSet` is serialized into a `List` of `Map`s, and therefore the encoded JSON will be an array of objects.
 
