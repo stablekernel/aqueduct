@@ -1103,8 +1103,8 @@ git pull
 </pre></div>
 
 
-<p>By default, an Aqueduct application will listen on port 8080. HTTP requests will come in on port 80. You can't bind to port 80 without using sudo. Instead, reroute HTTP requests on port 80 to port 8080 by entering the following on the EC2 instance:</p>
-<div class="codehilite"><pre><span></span>sudo iptables -t nat -A PREROUTING -p tcp --dport <span class="m">80</span> -j REDIRECT --to <span class="m">8080</span>
+<p>By default, an Aqueduct application will listen on port 8081. HTTP requests will come in on port 80. You can't bind to port 80 without using sudo. Instead, reroute HTTP requests on port 80 to port 8081 by entering the following on the EC2 instance:</p>
+<div class="codehilite"><pre><span></span>sudo iptables -t nat -A PREROUTING -p tcp --dport <span class="m">80</span> -j REDIRECT --to <span class="m">8081</span>
 sudo iptables-save
 </pre></div>
 
@@ -1188,6 +1188,8 @@ sudo iptables-save
       
     
     
+      
+      <script>!function(e,t,a,n,o,c,i){e.GoogleAnalyticsObject=o,e[o]=e[o]||function(){(e[o].q=e[o].q||[]).push(arguments)},e[o].l=1*new Date,c=t.createElement(a),i=t.getElementsByTagName(a)[0],c.async=1,c.src=n,i.parentNode.insertBefore(c,i)}(window,document,"script","https://www.google-analytics.com/analytics.js","ga"),ga("create","UA-41269877-2","aqueduct.io"),ga("set","anonymizeIp",!0),ga("send","pageview");var links=document.getElementsByTagName("a");Array.prototype.map.call(links,function(e){e.host!=document.location.host&&e.addEventListener("click",function(){var t=e.getAttribute("data-md-action")||"follow";ga("send","event","outbound",t,e.href)})});var query=document.forms.search.query;query.addEventListener("blur",function(){if(this.value){var e=document.location.pathname;ga("send","pageview",e+"?q="+this.value)}})</script>
       
     
   </body>

@@ -886,13 +886,13 @@
 </pre></div>
 
 
-<p>Now that we have defined this relationship, we can associate answers with questions and return them in our <code>/questions</code> endpoint. In <code>question_controller.dart</code>, let's update the queries to fetch the <code>Answer</code> for each <code>Question</code> and include it in the response JSON. First, for <code>getAllQuestions</code>, set <code>includeInResultSet</code> to <code>true</code> for <code>matchOn</code>'s <code>answer</code>:</p>
+<p>Now that we have defined this relationship, we can associate answers with questions and return them in our <code>/questions</code> endpoint. In <code>question_controller.dart</code>, let's update the queries to fetch the <code>Answer</code> for each <code>Question</code> and include it in the response JSON. First, for <code>getAllQuestions</code>, use <code>joinOne()</code> to connect to <code>question.answer</code> for <code>where</code>'s <code>answer</code>:</p>
 <div class="codehilite"><pre><span></span><span class="err">@</span><span class="n">httpGet</span> <span class="n">getAllQuestions</span><span class="p">({</span><span class="err">@</span><span class="n">HTTPQuery</span><span class="p">(</span><span class="s2">&quot;contains&quot;</span><span class="p">)</span> <span class="kt">String</span> <span class="nl">containsSubstring:</span> <span class="kc">null</span><span class="p">})</span> <span class="kd">async</span> <span class="p">{</span>
   <span class="kd">var</span> <span class="n">questionQuery</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Question</span><span class="o">&gt;</span><span class="p">()</span>
-    <span class="p">..</span><span class="n">matchOn</span><span class="p">.</span><span class="n">answer</span><span class="p">.</span><span class="n">includeInResultSet</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+    <span class="p">..</span><span class="n">joinOne</span><span class="p">((</span><span class="n">question</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="n">question</span><span class="p">.</span><span class="n">answer</span><span class="p">);</span>
 
   <span class="k">if</span> <span class="p">(</span><span class="n">containsSubstring</span> <span class="o">!=</span> <span class="kc">null</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">questionQuery</span><span class="p">.</span><span class="n">matchOn</span><span class="p">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">whereContains</span><span class="p">(</span><span class="n">containsSubstring</span><span class="p">);</span>
+    <span class="n">questionQuery</span><span class="p">.</span><span class="n">where</span><span class="p">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">whereContains</span><span class="p">(</span><span class="n">containsSubstring</span><span class="p">);</span>
   <span class="p">}</span>
 
   <span class="kd">var</span> <span class="n">questions</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">questionQuery</span><span class="p">.</span><span class="n">fetch</span><span class="p">();</span>
@@ -1008,18 +1008,17 @@
 
 <p>The inverse relationship doesn't have to be updated - whether it is has-one or has-many is determined by whether or not property is a <code>ManagedSet&lt;T&gt;</code> or a subclass of <code>ManagedObject&lt;T&gt;</code>. For <code>ManagedSet&lt;T&gt;</code>, <code>T</code> must be a subclass of <code>ManagedObject&lt;T&gt;</code>. A <code>ManagedSet</code> acts just like a <code>List</code> - it has methods like <code>map</code> and <code>where</code> - but also has special behavior that allows it to be used in building <code>Query&lt;T&gt;</code>s. If you wish to join on <code>ManagedSet&lt;T&gt;</code> properties, the syntax is the same:</p>
 <div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">query</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Question</span><span class="o">&gt;</span><span class="p">()</span>
-  <span class="p">..</span><span class="n">matchOn</span><span class="p">.</span><span class="n">answers</span><span class="p">.</span><span class="n">includeInResultSet</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+  <span class="p">..</span><span class="n">joinMany</span><span class="p">((</span><span class="n">question</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="n">question</span><span class="p">.</span><span class="n">answers</span><span class="p">);</span>  
 </pre></div>
 
 
-<p>Each returned <code>Question</code> would also have a <code>ManagedSet</code> of <code>Answer</code>s in its <code>answers</code> property. You may also filter which answers are returned for each <code>Question</code> by nesting <code>matchOn</code> properties.</p>
-<div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">query</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Question</span><span class="o">&gt;</span><span class="p">()</span>
-  <span class="p">..</span><span class="n">matchOn</span><span class="p">.</span><span class="n">answers</span><span class="p">.</span><span class="n">includeInResultSet</span> <span class="o">=</span> <span class="kc">true</span>
-  <span class="p">..</span><span class="n">matchOn</span><span class="p">.</span><span class="n">answers</span><span class="p">.</span><span class="n">matchOn</span><span class="p">.</span><span class="n">isCorrect</span> <span class="o">=</span> <span class="n">whereEqualTo</span><span class="p">(</span><span class="kc">true</span><span class="p">);</span>
+<p>Each returned <code>Question</code> would also have a <code>ManagedSet</code> of <code>Answer</code>s in its <code>answers</code> property. You may also filter which answers are returned for each <code>Question</code>. A <code>joinMany</code> or <code>joinOne</code> creates a new <code>Query&lt;T&gt;</code> that has its own <code>where</code> property.</p>
+<div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">query</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Question</span><span class="o">&gt;</span><span class="p">();</span>
+<span class="kd">var</span> <span class="n">join</span> <span class="o">=</span> <span class="n">query</span><span class="p">.</span><span class="n">joinMany</span><span class="p">((</span><span class="n">question</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="n">question</span><span class="p">.</span><span class="n">answers</span><span class="p">)</span>
+  <span class="p">..</span><span class="n">where</span><span class="p">.</span><span class="n">isCorrect</span> <span class="o">=</span> <span class="n">whereEqualTo</span><span class="p">(</span><span class="kc">true</span><span class="p">);</span>  
 </pre></div>
 
 
-<p>This would fetch all <code>Question</code>s and all of their correct answers. Note that if <code>includeInResultSet</code> was not set to <code>true</code>, this <code>Query&lt;T&gt;</code> would not filter answers because it wouldn't fetch them at all!</p>
 <p>An <code>ManagedSet</code> is serialized into a <code>List</code> of <code>Map</code>s, and therefore the encoded JSON will be an array of objects.</p>
 <h2 id="next-deployment"><a href="../deploying-and-other-fun-things/">Next: Deployment</a></h2>
               
@@ -1095,6 +1094,8 @@
       
     
     
+      
+      <script>!function(e,t,a,n,o,c,i){e.GoogleAnalyticsObject=o,e[o]=e[o]||function(){(e[o].q=e[o].q||[]).push(arguments)},e[o].l=1*new Date,c=t.createElement(a),i=t.getElementsByTagName(a)[0],c.async=1,c.src=n,i.parentNode.insertBefore(c,i)}(window,document,"script","https://www.google-analytics.com/analytics.js","ga"),ga("create","UA-41269877-2","aqueduct.io"),ga("set","anonymizeIp",!0),ga("send","pageview");var links=document.getElementsByTagName("a");Array.prototype.map.call(links,function(e){e.host!=document.location.host&&e.addEventListener("click",function(){var t=e.getAttribute("data-md-action")||"follow";ga("send","event","outbound",t,e.href)})});var query=document.forms.search.query;query.addEventListener("blur",function(){if(this.value){var e=document.location.pathname;ga("send","pageview",e+"?q="+this.value)}})</script>
       
     
   </body>

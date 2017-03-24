@@ -1097,7 +1097,7 @@
 <p>This test should now fail, but it tests what we want. Update the <code>getQuestionAtIndex</code> method to use a query, but apply a <em>matcher</em> to the <code>Question.index</code>. In <code>question_controller.dart</code>, replace the <code>getQuestionAtIndex</code> method.</p>
 <div class="codehilite"><pre><span></span>  <span class="err">@</span><span class="n">httpGet</span> <span class="n">getQuestionAtIndex</span><span class="p">(</span><span class="err">@</span><span class="n">HTTPPath</span><span class="p">(</span><span class="s2">&quot;index&quot;</span><span class="p">)</span> <span class="kt">int</span> <span class="n">index</span><span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>
     <span class="kd">var</span> <span class="n">questionQuery</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Question</span><span class="o">&gt;</span><span class="p">()</span>
-      <span class="p">..</span><span class="n">matchOn</span><span class="p">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">whereEqualTo</span><span class="p">(</span><span class="n">index</span><span class="p">);</span>    
+      <span class="p">..</span><span class="n">where</span><span class="p">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">whereEqualTo</span><span class="p">(</span><span class="n">index</span><span class="p">);</span>    
 
     <span class="kd">var</span> <span class="n">question</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">questionQuery</span><span class="p">.</span><span class="n">fetchOne</span><span class="p">();</span>
 
@@ -1109,7 +1109,7 @@
 </pre></div>
 
 
-<p>Matchers are constants and functions that get assigned to properties of a query's <code>matchOn</code> property. They modify the query to include a <code>where</code> clause, which filters the result set. This particular query will create a query that matches on a <code>Question</code> whose <code>index</code> is equal to value of the <code>index</code> local variable. There are many matchers available, and all matchers for <code>Query&lt;T&gt;</code>s begin with the word <code>where</code>. Check the <a href="https://www.dartdocs.org/documentation/aqueduct/latest">Aqueduct API reference</a> to see them all.</p>
+<p>Matchers are constants and functions that get assigned to properties of a query's <code>where</code> property. They modify the query to include a <code>where</code> clause, which filters the result set. This particular query will create a query that matches on a <code>Question</code> whose <code>index</code> is equal to value of the <code>index</code> local variable. There are many matchers available, and all matchers for <code>Query&lt;T&gt;</code>s begin with the word <code>where</code>. Check the <a href="https://www.dartdocs.org/documentation/aqueduct/latest">Aqueduct API reference</a> to see them all.</p>
 <p>Run the tests again, good to go! Now go ahead and delete the property <code>questions</code> for <code>QuestionController</code>, so the final class looks like this:</p>
 <div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">QuestionController</span> <span class="kd">extends</span> <span class="n">HTTPController</span> <span class="p">{</span>
   <span class="err">@</span><span class="n">httpGet</span> <span class="n">getAllQuestions</span><span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
@@ -1122,7 +1122,7 @@
   <span class="err">@</span><span class="n">httpGet</span>
   <span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">getQuestionAtIndex</span><span class="p">(</span><span class="err">@</span><span class="n">HTTPPath</span><span class="p">(</span><span class="s2">&quot;index&quot;</span><span class="p">)</span> <span class="kt">int</span> <span class="n">index</span><span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>
     <span class="kd">var</span> <span class="n">questionQuery</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Question</span><span class="o">&gt;</span><span class="p">()</span>
-      <span class="p">..</span><span class="n">matchOn</span><span class="p">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">whereEqualTo</span><span class="p">(</span><span class="n">index</span><span class="p">);</span>    
+      <span class="p">..</span><span class="n">where</span><span class="p">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">whereEqualTo</span><span class="p">(</span><span class="n">index</span><span class="p">);</span>    
 
     <span class="kd">var</span> <span class="n">question</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">questionQuery</span><span class="p">.</span><span class="n">fetchOne</span><span class="p">();</span>
 
@@ -1135,13 +1135,13 @@
 </pre></div>
 
 
-<p>That's fetch and insert. Delete works the same way - you specify <code>matchOn</code> values and invoke <code>delete</code> on the query. If you want to update database rows, you specify both <code>values</code> and <code>matchOn</code>.</p>
+<p>That's fetch and insert. Delete works the same way - you specify <code>where</code> values and invoke <code>delete</code> on the query. If you want to update database rows, you specify both <code>values</code> and <code>where</code>.</p>
 <h2 id="the-more-you-know-query-parameters-and-http-headers">The more you know: Query Parameters and HTTP Headers</h2>
 <p>You can specify that a <code>HTTPController</code> responder method extract HTTP query parameters and headers and supply them as arguments to the method. We'll allow the <code>getAllQuestions</code> method to take a query parameter named <code>contains</code>. If this query parameter is part of the request, we'll filter the questions on whether or not that question contains some substring. In <code>question_controller.dart</code>, update this method:</p>
 <div class="codehilite"><pre><span></span>  <span class="err">@</span><span class="n">httpGet</span> <span class="n">getAllQuestions</span><span class="p">({</span><span class="err">@</span><span class="n">HTTPQuery</span><span class="p">(</span><span class="s2">&quot;contains&quot;</span><span class="p">)</span> <span class="kt">String</span> <span class="nl">containsSubstring:</span> <span class="kc">null</span><span class="p">})</span> <span class="kd">async</span> <span class="p">{</span>
     <span class="kd">var</span> <span class="n">questionQuery</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Question</span><span class="o">&gt;</span><span class="p">();</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">containsSubstring</span> <span class="o">!=</span> <span class="kc">null</span><span class="p">)</span> <span class="p">{</span>
-      <span class="n">questionQuery</span><span class="p">.</span><span class="n">matchOn</span><span class="p">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">whereContains</span><span class="p">(</span><span class="n">containsSubstring</span><span class="p">);</span>
+      <span class="n">questionQuery</span><span class="p">.</span><span class="n">where</span><span class="p">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">whereContains</span><span class="p">(</span><span class="n">containsSubstring</span><span class="p">);</span>
     <span class="p">}</span>
     <span class="kd">var</span> <span class="n">questions</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">questionQuery</span><span class="p">.</span><span class="n">fetch</span><span class="p">();</span>
     <span class="k">return</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="n">questions</span><span class="p">);</span>
@@ -1166,7 +1166,7 @@
 <p>This test will pass, along with the rest of them. It's important to note that GET <code>/questions</code> without a <code>contains</code> query still yields the correct results. That is because the <code>HTTPQuery</code> argument was declared in the optional parameters portion of the responder method. If the parameter were in the required, positional set of parameters and the query string was not included, this request would respond with a 400. (The same positional vs. optional behavior is true of <code>HTTPHeader</code>s as well.) For example, if we wanted to make a 'X-Client-ID' header that had to be included on this request, we'd do the following:</p>
 <div class="codehilite"><pre><span></span>  <span class="err">@</span><span class="n">httpGet</span> <span class="n">getAllQuestions</span><span class="p">(</span>
     <span class="err">@</span><span class="n">HTTPHeader</span><span class="p">(</span><span class="s2">&quot;X-Client-ID&quot;</span><span class="p">)</span> <span class="kt">int</span> <span class="n">clientID</span><span class="p">,</span>
-    <span class="p">{</span><span class="err">@</span><span class="n">HTTPQuery</span><span class="p">(</span><span class="s2">&quot;contains&quot;</span><span class="p">)</span> <span class="kt">String</span> <span class="nl">containsSubstring:</span> <span class="kc">null</span><span class="p">}</span>
+    <span class="p">{</span><span class="err">@</span><span class="n">HTTPQuery</span><span class="p">(</span><span class="s2">&quot;contains&quot;</span><span class="p">)</span> <span class="kt">String</span> <span class="n">containsSubstring</span> <span class="o">=</span> <span class="kc">null</span><span class="p">}</span>
   <span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">clientID</span> <span class="o">!=</span> <span class="m">12345</span><span class="p">)</span> <span class="p">{</span>
       <span class="k">return</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">unauthorized</span><span class="p">();</span>
@@ -1174,7 +1174,7 @@
 
     <span class="kd">var</span> <span class="n">questionQuery</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Question</span><span class="o">&gt;</span><span class="p">();</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">containsSubstring</span> <span class="o">!=</span> <span class="kc">null</span><span class="p">)</span> <span class="p">{</span>
-      <span class="n">questionQuery</span><span class="p">.</span><span class="n">matchOn</span><span class="p">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">whereContains</span><span class="p">(</span><span class="n">containsSubstring</span><span class="p">);</span>
+      <span class="n">questionQuery</span><span class="p">.</span><span class="n">where</span><span class="p">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">whereContains</span><span class="p">(</span><span class="n">containsSubstring</span><span class="p">);</span>
     <span class="p">}</span>
 
     <span class="kd">var</span> <span class="n">questions</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">questionQuery</span><span class="p">.</span><span class="n">fetch</span><span class="p">();</span>
@@ -1259,6 +1259,8 @@
       
     
     
+      
+      <script>!function(e,t,a,n,o,c,i){e.GoogleAnalyticsObject=o,e[o]=e[o]||function(){(e[o].q=e[o].q||[]).push(arguments)},e[o].l=1*new Date,c=t.createElement(a),i=t.getElementsByTagName(a)[0],c.async=1,c.src=n,i.parentNode.insertBefore(c,i)}(window,document,"script","https://www.google-analytics.com/analytics.js","ga"),ga("create","UA-41269877-2","aqueduct.io"),ga("set","anonymizeIp",!0),ga("send","pageview");var links=document.getElementsByTagName("a");Array.prototype.map.call(links,function(e){e.host!=document.location.host&&e.addEventListener("click",function(){var t=e.getAttribute("data-md-action")||"follow";ga("send","event","outbound",t,e.href)})});var query=document.forms.search.query;query.addEventListener("blur",function(){if(this.value){var e=document.location.pathname;ga("send","pageview",e+"?q="+this.value)}})</script>
       
     
   </body>
