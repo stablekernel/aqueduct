@@ -61,15 +61,15 @@ class _Answer {
 }
 ```
 
-Now that we have defined this relationship, we can associate answers with questions and return them in our `/questions` endpoint. In `question_controller.dart`, let's update the queries to fetch the `Answer` for each `Question` and include it in the response JSON. First, for `getAllQuestions`, set `includeInResultSet` to `true` for `matchOn`'s `answer`:
+Now that we have defined this relationship, we can associate answers with questions and return them in our `/questions` endpoint. In `question_controller.dart`, let's update the queries to fetch the `Answer` for each `Question` and include it in the response JSON. First, for `getAllQuestions`, use `joinOne()` to connect to `question.answer` for `where`'s `answer`:
 
 ```dart
 @httpGet getAllQuestions({@HTTPQuery("contains") String containsSubstring: null}) async {
   var questionQuery = new Query<Question>()
-    ..matchOn.answer.includeInResultSet = true;
+    ..joinOne((question) => question.answer);
 
   if (containsSubstring != null) {
-    questionQuery.matchOn.description = whereContains(containsSubstring);
+    questionQuery.where.description = whereContains(containsSubstring);
   }
 
   var questions = await questionQuery.fetch();
@@ -201,15 +201,15 @@ The inverse relationship doesn't have to be updated - whether it is has-one or h
 
 ```dart
 var query = new Query<Question>()
-  ..matchOn.answers.includeInResultSet = true;
+  ..where.answers.includeInResultSet = true;
 ```
 
-Each returned `Question` would also have a `ManagedSet` of `Answer`s in its `answers` property. You may also filter which answers are returned for each `Question` by nesting `matchOn` properties.
+Each returned `Question` would also have a `ManagedSet` of `Answer`s in its `answers` property. You may also filter which answers are returned for each `Question` by nesting `where` properties.
 
 ```dart
 var query = new Query<Question>()
-  ..matchOn.answers.includeInResultSet = true
-  ..matchOn.answers.matchOn.isCorrect = whereEqualTo(true);
+  ..where.answers.includeInResultSet = true
+  ..where.answers.where.isCorrect = whereEqualTo(true);
 ```
 
 This would fetch all `Question`s and all of their correct answers. Note that if `includeInResultSet` was not set to `true`, this `Query<T>` would not filter answers because it wouldn't fetch them at all!

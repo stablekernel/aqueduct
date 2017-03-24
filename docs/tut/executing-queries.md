@@ -239,7 +239,7 @@ This test should now fail, but it tests what we want. Update the `getQuestionAtI
 ```dart
   @httpGet getQuestionAtIndex(@HTTPPath("index") int index) async {
     var questionQuery = new Query<Question>()
-      ..matchOn.index = whereEqualTo(index);    
+      ..where.index = whereEqualTo(index);    
 
     var question = await questionQuery.fetchOne();
 
@@ -250,7 +250,7 @@ This test should now fail, but it tests what we want. Update the `getQuestionAtI
   }
 ```
 
-Matchers are constants and functions that get assigned to properties of a query's `matchOn` property. They modify the query to include a `where` clause, which filters the result set. This particular query will create a query that matches on a `Question` whose `index` is equal to value of the `index` local variable. There are many matchers available, and all matchers for `Query<T>`s begin with the word `where`. Check the [Aqueduct API reference](https://www.dartdocs.org/documentation/aqueduct/latest) to see them all.
+Matchers are constants and functions that get assigned to properties of a query's `where` property. They modify the query to include a `where` clause, which filters the result set. This particular query will create a query that matches on a `Question` whose `index` is equal to value of the `index` local variable. There are many matchers available, and all matchers for `Query<T>`s begin with the word `where`. Check the [Aqueduct API reference](https://www.dartdocs.org/documentation/aqueduct/latest) to see them all.
 
 Run the tests again, good to go! Now go ahead and delete the property `questions` for `QuestionController`, so the final class looks like this:
 
@@ -266,7 +266,7 @@ class QuestionController extends HTTPController {
   @httpGet
   Future<Response> getQuestionAtIndex(@HTTPPath("index") int index) async {
     var questionQuery = new Query<Question>()
-      ..matchOn.index = whereEqualTo(index);    
+      ..where.index = whereEqualTo(index);    
 
     var question = await questionQuery.fetchOne();
 
@@ -278,7 +278,7 @@ class QuestionController extends HTTPController {
 }
 ```
 
-That's fetch and insert. Delete works the same way - you specify `matchOn` values and invoke `delete` on the query. If you want to update database rows, you specify both `values` and `matchOn`.
+That's fetch and insert. Delete works the same way - you specify `where` values and invoke `delete` on the query. If you want to update database rows, you specify both `values` and `where`.
 
 The more you know: Query Parameters and HTTP Headers
 ---
@@ -288,7 +288,7 @@ You can specify that a `HTTPController` responder method extract HTTP query para
   @httpGet getAllQuestions({@HTTPQuery("contains") String containsSubstring: null}) async {
     var questionQuery = new Query<Question>();
     if (containsSubstring != null) {
-      questionQuery.matchOn.description = whereContains(containsSubstring);
+      questionQuery.where.description = whereContains(containsSubstring);
     }
     var questions = await questionQuery.fetch();
     return new Response.ok(questions);
@@ -317,7 +317,7 @@ This test will pass, along with the rest of them. It's important to note that GE
 ```dart
   @httpGet getAllQuestions(
     @HTTPHeader("X-Client-ID") int clientID,
-    {@HTTPQuery("contains") String containsSubstring: null}
+    {@HTTPQuery("contains") String containsSubstring = null}
   ) async {
     if (clientID != 12345) {
       return new Response.unauthorized();
@@ -325,7 +325,7 @@ This test will pass, along with the rest of them. It's important to note that GE
 
     var questionQuery = new Query<Question>();
     if (containsSubstring != null) {
-      questionQuery.matchOn.description = whereContains(containsSubstring);
+      questionQuery.where.description = whereContains(containsSubstring);
     }
 
     var questions = await questionQuery.fetch();
