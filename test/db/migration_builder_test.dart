@@ -133,7 +133,7 @@ void main() {
   });
 
 
-  test("Alter column, just one statements", () async {
+  test("Alter column, just one statement", () async {
     var existingTable = new SchemaTable("foo", [
       new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
       new SchemaColumn("loaded", ManagedPropertyType.string,
