@@ -2,7 +2,6 @@ import 'dart:io';
 import 'dart:async';
 import 'package:aqueduct/aqueduct.dart';
 import 'package:test/test.dart';
-import 'package:args/args.dart';
 import 'package:aqueduct/executable.dart';
 import '../helpers.dart';
 import 'package:postgres/postgres.dart';
