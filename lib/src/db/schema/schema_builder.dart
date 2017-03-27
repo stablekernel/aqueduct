@@ -177,11 +177,12 @@ class SchemaBuilder {
       renameColumn(tableName, existingColumn.name, newColumn.name);
     }
 
-    if (existingColumn.isNullable == false &&
-        newColumn.isNullable == true &&
-        unencodedInitialValue == null) {
+    if (existingColumn.isNullable == true &&
+        newColumn.isNullable == false &&
+        unencodedInitialValue == null &&
+        newColumn.defaultValue == null) {
       throw new SchemaException(
-          "May not change column (${existingColumn.name}) to be nullable without unencodedInitialValue.");
+          "May not change column (${existingColumn.name}) to be nullable without defaultValue or unencodedInitialValue.");
     }
 
     table.replaceColumn(existingColumn, newColumn);
@@ -195,17 +196,17 @@ class SchemaBuilder {
         }
       }
 
-      if (existingColumn.isNullable != newColumn.isNullable) {
-        commands.addAll(store.alterColumnNullability(
-            table, newColumn, unencodedInitialValue));
-      }
-
       if (existingColumn.isUnique != newColumn.isUnique) {
         commands.addAll(store.alterColumnUniqueness(table, newColumn));
       }
 
       if (existingColumn.defaultValue != newColumn.defaultValue) {
         commands.addAll(store.alterColumnDefaultValue(table, newColumn));
+      }
+
+      if (existingColumn.isNullable != newColumn.isNullable) {
+        commands.addAll(store.alterColumnNullability(
+            table, newColumn, unencodedInitialValue));
       }
 
       if (existingColumn.deleteRule != newColumn.deleteRule) {
@@ -227,7 +228,6 @@ class SchemaBuilder {
     var diff = existingSchema.differenceFrom(newSchema);
 
     // Grab tables from dependencyOrderedTables to reuse ordering behavior
-
     newSchema.dependencyOrderedTables
       .where((t) => diff.tableNamesToAdd.contains(t.name))
         .forEach((t) {
@@ -253,7 +253,11 @@ class SchemaBuilder {
         builder.writeln(MigrationBuilder.deleteColumnString(tableDiff.actualTable.name, columnName, "    "));
       });
 
-      // alterColumn
+      tableDiff.differingColumns
+        .where((columnDiff) => columnDiff.expectedColumn != null && columnDiff.actualColumn != null)
+        .forEach((columnDiff) {
+        builder.writeln(MigrationBuilder.alterColumnString(tableDiff.actualTable.name, columnDiff.expectedColumn, columnDiff.actualColumn, "    "));
+      });
     });
 
     builder.writeln("  }");

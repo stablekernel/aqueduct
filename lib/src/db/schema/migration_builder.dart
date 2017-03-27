@@ -26,7 +26,7 @@ class MigrationBuilder {
   static String addColumnString(String tableName, SchemaColumn column, String spaceOffset) {
     var builder = new StringBuffer();
 
-    if (column.isNullable) {
+    if (column.isNullable || column.defaultValue != null) {
       builder.writeln(
           '${spaceOffset}database.addColumn("${tableName}", ${_newColumnString(column, "")});');
     } else {
@@ -73,7 +73,7 @@ class MigrationBuilder {
     }
 
     if (previousColumn.defaultValue != updatedColumn.defaultValue) {
-      builder.writeln("$spaceOffset  c.defaultValue = ${updatedColumn.defaultValue};");
+      builder.writeln("$spaceOffset  c.defaultValue = \"${updatedColumn.defaultValue}\";");
     }
 
     if (previousColumn.isPrimaryKey != updatedColumn.isPrimaryKey) {
@@ -96,10 +96,10 @@ class MigrationBuilder {
       builder.writeln("$spaceOffset  c.isNullable = ${updatedColumn.isNullable};");
     }
 
-    if(previousColumn.isNullable == true && updatedColumn.isNullable == false) {
-      builder.writeln("}, unencodedInitialValue: <<set>>);");
+    if(previousColumn.isNullable == true && updatedColumn.isNullable == false && updatedColumn.defaultValue == null) {
+      builder.writeln("$spaceOffset}, unencodedInitialValue: <<set>>);");
     } else {
-      builder.writeln("});");
+      builder.writeln("$spaceOffset});");
     }
 
     return builder.toString();

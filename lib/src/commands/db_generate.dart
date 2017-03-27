@@ -6,19 +6,7 @@ import '../db/db.dart';
 import '../utilities/source_generator.dart';
 import 'base.dart';
 import 'db.dart';
-
-
-/*
-The following types were evaluated:
-  - User
-    - Name changed to: XYZ
-    - Added: ColumnName
-    - Removed: ColumnName
-  - Foo
-    - No Changes
-  - XYZ
-    - No Changes
- */
+import 'db_validate.dart';
 
 class CLIDatabaseGenerate extends CLICommand
     with CLIDatabaseMigratable, CLIProject {
@@ -68,7 +56,7 @@ class CLIDatabaseGenerate extends CLICommand
 
       return {
         "source": SchemaBuilder.sourceForSchemaUpgrade(
-            new Schema.empty(), schema, 1, changeList: changeList),
+            inputSchema, schema, 1, changeList: changeList),
         "tablesEvaluated" : dataModel
             .entities
             .map((e) => MirrorSystem.getName(e.instanceType.simpleName))
@@ -91,17 +79,15 @@ class CLIDatabaseGenerate extends CLICommand
   }
 
   Future<Map<String, dynamic>> schemaMapFromExistingMigrationFiles() async {
-    if (migrationFiles.isEmpty) {
-      return {
-        "tables": []
-      };
+    // build the schema by replaying migration files
+    var schema = new Schema.empty();
+    for (var migration in migrationFiles) {
+      displayProgress("Replaying version ${versionNumberFromFile(migration)}");
+      schema = await schemaByApplyingMigrationFile(
+          projectDirectory, migration, schema, versionNumberFromFile(migration));
     }
 
-    // build the schema by replaying migration files
-
-    return {
-      "tables": []
-    };
+    return schema.asMap();
   }
 
   String get name {

@@ -39,7 +39,7 @@ class CLIDatabaseValidate extends CLICommand
     var schemaFromMigrationFiles = new Schema.empty();
     for (var migrationFile in migrationFiles) {
       schemaFromMigrationFiles =
-          await schemaByApplyingMigrationFile(schemaFromMigrationFiles, migrationFile);
+          await schemaByApplyingMigrationFile(projectDirectory, migrationFile, schemaFromMigrationFiles, versionNumberFromFile(migrationFile));
     }
 
     var differences = currentSchema.differenceFrom(schemaFromMigrationFiles);
@@ -60,48 +60,6 @@ class CLIDatabaseValidate extends CLICommand
     return 0;
   }
 
-  Future<Schema> schemaByApplyingMigrationFile(
-      Schema baseSchema, File migrationFile) async {
-    var sourceFunction =
-        (List<String> args, Map<String, dynamic> values) async {
-      var inputSchema =
-          new Schema.fromMap(values["schema"] as Map<String, dynamic>);
-
-      var versionNumber = int.parse(args.first);
-      var migrationClassMirror = currentMirrorSystem()
-              .isolate
-              .rootLibrary
-              .declarations
-              .values
-              .firstWhere((dm) =>
-                  dm is ClassMirror && dm.isSubclassOf(reflectClass(Migration)))
-          as ClassMirror;
-
-      var migrationInstance = migrationClassMirror
-          .newInstance(new Symbol(''), []).reflectee as Migration;
-      migrationInstance.database = new SchemaBuilder(null, inputSchema);
-
-      await migrationInstance.upgrade();
-
-      return migrationInstance.currentSchema.asMap();
-    };
-
-    var generator = new SourceGenerator(sourceFunction,
-        imports: [
-          "dart:async",
-          "package:aqueduct/aqueduct.dart",
-          "dart:isolate",
-          "dart:mirrors"
-        ],
-        additionalContents: migrationFile.readAsStringSync());
-
-    var schemaMap = await IsolateExecutor.executeSource(generator,
-        ["${versionNumberFromFile(migrationFile)}"], projectDirectory.uri,
-        message: {"schema": baseSchema.asMap()});
-
-    return new Schema.fromMap(schemaMap as Map<String, dynamic>);
-  }
-
   String get name {
     return "validate";
   }
@@ -109,4 +67,47 @@ class CLIDatabaseValidate extends CLICommand
   String get description {
     return "Compares the schema created by the sum of migration files to the current codebase's schema.";
   }
+}
+
+
+Future<Schema> schemaByApplyingMigrationFile(
+    Directory projectDirectory, File migrationFile, Schema baseSchema, int versionNumber) async {
+  var sourceFunction =
+      (List<String> args, Map<String, dynamic> values) async {
+    var inputSchema =
+    new Schema.fromMap(values["schema"] as Map<String, dynamic>);
+
+    var versionNumber = int.parse(args.first);
+    var migrationClassMirror = currentMirrorSystem()
+        .isolate
+        .rootLibrary
+        .declarations
+        .values
+        .firstWhere((dm) =>
+    dm is ClassMirror && dm.isSubclassOf(reflectClass(Migration)))
+    as ClassMirror;
+
+    var migrationInstance = migrationClassMirror
+        .newInstance(new Symbol(''), []).reflectee as Migration;
+    migrationInstance.database = new SchemaBuilder(null, inputSchema);
+
+    await migrationInstance.upgrade();
+
+    return migrationInstance.currentSchema.asMap();
+  };
+
+  var generator = new SourceGenerator(sourceFunction,
+      imports: [
+        "dart:async",
+        "package:aqueduct/aqueduct.dart",
+        "dart:isolate",
+        "dart:mirrors"
+      ],
+      additionalContents: migrationFile.readAsStringSync());
+
+  var schemaMap = await IsolateExecutor.executeSource(generator,
+      ["${versionNumber}"], projectDirectory.uri,
+      message: {"schema": baseSchema.asMap()});
+
+  return new Schema.fromMap(schemaMap as Map<String, dynamic>);
 }

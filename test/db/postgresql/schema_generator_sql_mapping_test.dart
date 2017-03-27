@@ -193,13 +193,13 @@ void main() {
       var propDesc = new ManagedAttributeDescription(
           dm.entityForType(GeneratorModel1),
           "foobar",
-          ManagedPropertyType.integer);
+          ManagedPropertyType.integer, nullable: true);
       var cmds = psc.addColumn(
           schema.tables.first,
           new SchemaColumn.fromEntity(
               dm.entityForType(GeneratorModel1), propDesc));
       expect(cmds,
-          ["ALTER TABLE _GeneratorModel1 ADD COLUMN foobar INT NOT NULL"]);
+          ["ALTER TABLE _GeneratorModel1 ADD COLUMN foobar INT NULL"]);
     });
 
     test("Add column with index", () {
@@ -237,13 +237,13 @@ void main() {
           ManagedRelationshipDeleteRule.cascade,
           ManagedRelationshipType.belongsTo,
           new Symbol(dm.entityForType(GeneratorModel2).primaryKey),
-          indexed: true);
+          indexed: true, nullable: true);
       var cmds = psc.addColumn(
           schema.tables.first,
           new SchemaColumn.fromEntity(
               dm.entityForType(GeneratorModel1), propDesc));
       expect(cmds[0],
-          "ALTER TABLE _GeneratorModel1 ADD COLUMN foobar_id TEXT NOT NULL");
+          "ALTER TABLE _GeneratorModel1 ADD COLUMN foobar_id TEXT NULL");
       expect(cmds[1],
           "CREATE INDEX _GeneratorModel1_foobar_id_idx ON _GeneratorModel1 (foobar_id)");
       expect(cmds[2],
@@ -307,10 +307,10 @@ void main() {
       } on SchemaException {}
 
       cmds = psc.alterColumnNullability(schema.tables.first, col, "'foo'");
-      expect(cmds.first,
-          "UPDATE _GeneratorModel1 SET name='foo' WHERE name IS NULL");
-      expect(cmds.last,
-          "ALTER TABLE _GeneratorModel1 ALTER COLUMN name SET NOT NULL");
+      expect(cmds, [
+        "UPDATE _GeneratorModel1 SET name='foo' WHERE name IS NULL",
+        "ALTER TABLE _GeneratorModel1 ALTER COLUMN name SET NOT NULL",
+      ]);
     });
 
     test("Alter column change uniqueness", () {

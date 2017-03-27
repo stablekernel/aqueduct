@@ -105,7 +105,7 @@ void main() {
     var existingTable = new SchemaTable("foo", [
         new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
         new SchemaColumn("loaded", ManagedPropertyType.string,
-          isIndexed: true, isNullable: true, autoincrement: true, isUnique: true, defaultValue: "'foo'")
+          isIndexed: true, isNullable: true, autoincrement: true, isUnique: true, defaultValue: null)
     ]);
     var existingSchema = new Schema([
       existingTable
@@ -115,7 +115,7 @@ void main() {
       ..isIndexed = false
       ..isNullable = false
       ..isUnique = false
-      ..defaultValue = null;
+      ..defaultValue = "'foo'";
 
     var commands = [
       MigrationBuilder.alterColumnString("foo", existingTable.columnForName("loaded"), alteredColumn, "")

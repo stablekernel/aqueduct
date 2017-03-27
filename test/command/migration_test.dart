@@ -196,10 +196,8 @@ void main() {
           true);
 
       await runAqueductProcess(["db", "generate"], projectDirectory);
-      addLinesToUpgradeFile(
-          new File.fromUri(migrationDirectory.uri
-              .resolve("00000002_Unnamed.migration.dart")),
-          ["database.deleteTable(\"foo\");"]);
+      var secondMigrationFile = new File.fromUri(migrationDirectory.uri.resolve("00000002_Unnamed.migration.dart"));
+      expect(secondMigrationFile.readAsStringSync(), contains("database.deleteTable(\"foo\")"));
 
       expect(await runAqueductProcess(["db", "validate"], projectDirectory), 0);
     });

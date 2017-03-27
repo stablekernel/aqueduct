@@ -138,8 +138,8 @@ class SchemaColumn {
       var expectedValue = expectedColumn.getField(sym).reflectee;
       var actualValue = actualColumn.getField(sym).reflectee;
       if (expectedValue is String) {
-        expectedValue = (expectedValue as String).toLowerCase();
-        actualValue = (actualValue as String).toLowerCase();
+        expectedValue = (expectedValue as String)?.toLowerCase();
+        actualValue = (actualValue as String)?.toLowerCase();
 
       }
 
