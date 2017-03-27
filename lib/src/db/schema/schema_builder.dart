@@ -70,7 +70,7 @@ class SchemaBuilder {
   }
 
   /// Validates and adds a column to a table in [schema].
-  void addColumn(String tableName, SchemaColumn column) {
+  void addColumn(String tableName, SchemaColumn column, {String unencodedInitialValue}) {
     var table = schema.tableForName(tableName);
     if (table == null) {
       throw new SchemaException("Table ${tableName} does not exist.");
@@ -78,7 +78,7 @@ class SchemaBuilder {
 
     table.addColumn(column);
     if (store != null) {
-      commands.addAll(store.addColumn(table, column));
+      commands.addAll(store.addColumn(table, column, unencodedInitialValue: unencodedInitialValue));
     }
   }
 
@@ -121,6 +121,17 @@ class SchemaBuilder {
   }
 
   /// Validates and alters a column in a table in [schema].
+  ///
+  /// Alterations are made by setting properties of the column passed to [modify]. If the column's nullability
+  /// changes from nullable to not nullable,  all previously null values for that column
+  /// are set to the value of [unencodedInitialValue].
+  ///
+  /// Example:
+  ///
+  ///         database.alterColumn("table", "column", (c) {
+  ///           c.isIndexed = true;
+  ///           c.isNullable = false;
+  ///         }), unencodedInitialValue: "0");
   void alterColumn(String tableName, String columnName,
       void modify(SchemaColumn targetColumn),
       {String unencodedInitialValue}) {
@@ -205,7 +216,7 @@ class SchemaBuilder {
 
   /// Used internally.
   static String sourceForSchemaUpgrade(
-      Schema existingSchema, Schema newSchema, int version) {
+      Schema existingSchema, Schema newSchema, int version, {List<String> changeList}) {
     var builder = new StringBuffer();
     builder.writeln("import 'package:aqueduct/aqueduct.dart';");
     builder.writeln("import 'dart:async';");
@@ -213,12 +224,36 @@ class SchemaBuilder {
     builder.writeln("class Migration$version extends Migration {");
     builder.writeln("  Future upgrade() async {");
 
-    var existingTableNames = existingSchema.tables.map((t) => t.name).toList();
+    var diff = existingSchema.differenceFrom(newSchema);
+
+    // Grab tables from dependencyOrderedTables to reuse ordering behavior
 
     newSchema.dependencyOrderedTables
-        .where((t) => !existingTableNames.contains(t.name))
+      .where((t) => diff.tableNamesToAdd.contains(t.name))
         .forEach((t) {
       builder.writeln(MigrationBuilder.createTableString(t, "    "));
+    });
+
+    existingSchema.dependencyOrderedTables.reversed
+        .where((t) => diff.tableNamesToDelete.contains(t.name))
+        .forEach((t) {
+      builder.writeln(MigrationBuilder.deleteTableString(t.name, "    "));
+    });
+
+    diff.differingTables
+        .where((tableDiff) => tableDiff.expectedTable != null && tableDiff.actualTable != null)
+        .forEach((tableDiff) {
+      tableDiff.columnNamesToAdd
+          .forEach((columnName) {
+        builder.writeln(MigrationBuilder.addColumnString(tableDiff.actualTable.name, tableDiff.actualTable.columnForName(columnName), "    "));
+      });
+
+      tableDiff.columnNamesToDelete
+          .forEach((columnName) {
+        builder.writeln(MigrationBuilder.deleteColumnString(tableDiff.actualTable.name, columnName, "    "));
+      });
+
+      // alterColumn
     });
 
     builder.writeln("  }");

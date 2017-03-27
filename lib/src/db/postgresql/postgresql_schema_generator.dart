@@ -37,10 +37,21 @@ class PostgreSQLSchemaGenerator {
     return ["DROP TABLE ${table.name}"];
   }
 
-  List<String> addColumn(SchemaTable table, SchemaColumn column) {
-    var commands = [
-      "ALTER TABLE ${table.name} ADD COLUMN ${_columnStringForColumn(column)}"
-    ];
+  List<String> addColumn(SchemaTable table, SchemaColumn column, {String unencodedInitialValue}) {
+    var commands = <String>[];
+
+    if (!column.isNullable) {
+      column.defaultValue ??= unencodedInitialValue;
+      commands.addAll([
+        "ALTER TABLE ${table.name} ADD COLUMN ${_columnStringForColumn(column)}",
+        "ALTER TABLE ${table.name} ALTER COLUMN ${_columnNameForColumn(column)} DROP DEFAULT"
+      ]);
+    } else {
+      commands.addAll([
+        "ALTER TABLE ${table.name} ADD COLUMN ${_columnStringForColumn(column)}"
+      ]);
+    }
+
 
     if (column.isIndexed) {
       commands.addAll(addIndexToColumn(table, column));
@@ -49,6 +60,7 @@ class PostgreSQLSchemaGenerator {
     if (column.isForeignKey) {
       commands.addAll(_addConstraintsForColumn(table.name, column));
     }
+
 
     return commands;
   }

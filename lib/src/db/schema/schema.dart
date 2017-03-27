@@ -175,6 +175,18 @@ class SchemaDifference {
   Schema actualSchema;
 
   List<SchemaTableDifference> differingTables = [];
+
+  List<String> get tableNamesToAdd =>
+      differingTables
+          .where((diff) => diff.expectedTable == null && diff.actualTable != null)
+          .map((diff) => diff.actualTable.name)
+          .toList();
+
+  List<String> get tableNamesToDelete =>
+      differingTables
+          .where((diff) => diff.expectedTable != null && diff.actualTable == null)
+          .map((diff) => diff.expectedTable.name)
+          .toList();
 }
 
 class SchemaTableDifference {
@@ -202,6 +214,18 @@ class SchemaTableDifference {
   SchemaTable actualTable;
 
   List<SchemaColumnDifference> differingColumns = [];
+
+  List<String> get columnNamesToAdd =>
+      differingColumns
+          .where((diff) => diff.expectedColumn == null && diff.actualColumn != null)
+          .map((diff) => diff.actualColumn.name)
+          .toList();
+
+  List<String> get columnNamesToDelete =>
+      differingColumns
+          .where((diff) => diff.expectedColumn != null && diff.actualColumn == null)
+          .map((diff) => diff.expectedColumn.name)
+          .toList();
 }
 
 class SchemaColumnDifference {

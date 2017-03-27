@@ -26,8 +26,13 @@ class MigrationBuilder {
   static String addColumnString(String tableName, SchemaColumn column, String spaceOffset) {
     var builder = new StringBuffer();
 
-    builder.writeln(
-        '${spaceOffset}database.addColumn("${tableName}", ${_newColumnString(column, "")});');
+    if (column.isNullable) {
+      builder.writeln(
+          '${spaceOffset}database.addColumn("${tableName}", ${_newColumnString(column, "")});');
+    } else {
+      builder.writeln(
+          '${spaceOffset}database.addColumn("${tableName}", ${_newColumnString(column, "")}, unencodedInitialValue: <<set>>);');
+    }
 
     return builder.toString();
   }
@@ -59,10 +64,6 @@ class MigrationBuilder {
       builder.writeln("$spaceOffset  c.isIndexed = ${updatedColumn.isIndexed};");
     }
 
-    if (previousColumn.isNullable != updatedColumn.isNullable) {
-      builder.writeln("$spaceOffset  c.isNullable = ${updatedColumn.isNullable};");
-    }
-
     if (previousColumn.autoincrement != updatedColumn.autoincrement) {
       builder.writeln("$spaceOffset  c.autoincrement = ${updatedColumn.autoincrement};");
     }
@@ -91,7 +92,15 @@ class MigrationBuilder {
       builder.writeln("$spaceOffset  c.deleteRule = ${updatedColumn.deleteRule};");
     }
 
-    builder.writeln("});");
+    if (previousColumn.isNullable != updatedColumn.isNullable) {
+      builder.writeln("$spaceOffset  c.isNullable = ${updatedColumn.isNullable};");
+    }
+
+    if(previousColumn.isNullable == true && updatedColumn.isNullable == false) {
+      builder.writeln("}, unencodedInitialValue: <<set>>);");
+    } else {
+      builder.writeln("});");
+    }
 
     return builder.toString();
   }
