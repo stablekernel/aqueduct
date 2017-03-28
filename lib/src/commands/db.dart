@@ -1,9 +1,11 @@
+import 'dart:mirrors';
 import 'dart:async';
 import 'dart:io';
 
 import 'package:safe_config/safe_config.dart';
 import 'package:yaml/yaml.dart';
 
+import '../utilities/source_generator.dart';
 import '../db/db.dart';
 import 'base.dart';
 import 'db_generate.dart';
@@ -199,4 +201,46 @@ abstract class CLIDatabaseMigratable extends CLIProject {
     var migrationName = fileName.split(".").first;
     return int.parse(migrationName.split("_").first);
   }
+
+  Future<Schema> schemaByApplyingMigrationFile(File migrationFile, Schema fromSchema) async {
+    var sourceFunction =
+        (List<String> args, Map<String, dynamic> values) async {
+      var inputSchema =
+        new Schema.fromMap(values["schema"] as Map<String, dynamic>);
+
+      var versionNumber = int.parse(args.first);
+      var migrationClassMirror = currentMirrorSystem()
+          .isolate
+          .rootLibrary
+          .declarations
+          .values
+          .firstWhere((dm) =>
+      dm is ClassMirror && dm.isSubclassOf(reflectClass(Migration)))
+      as ClassMirror;
+
+      var migrationInstance = migrationClassMirror
+          .newInstance(new Symbol(''), []).reflectee as Migration;
+      migrationInstance.database = new SchemaBuilder(null, inputSchema);
+
+      await migrationInstance.upgrade();
+
+      return migrationInstance.currentSchema.asMap();
+    };
+
+    var generator = new SourceGenerator(sourceFunction,
+        imports: [
+          "dart:async",
+          "package:aqueduct/aqueduct.dart",
+          "dart:isolate",
+          "dart:mirrors"
+        ],
+        additionalContents: migrationFile.readAsStringSync());
+
+    var schemaMap = await IsolateExecutor.executeSource(generator,
+        ["${versionNumberFromFile(migrationFile)}"], projectDirectory.uri,
+        message: {"schema": fromSchema.asMap()});
+
+    return new Schema.fromMap(schemaMap as Map<String, dynamic>);
+  }
 }
+

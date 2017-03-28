@@ -6,7 +6,6 @@ import '../db/db.dart';
 import '../utilities/source_generator.dart';
 import 'base.dart';
 import 'db.dart';
-import 'db_validate.dart';
 
 class CLIDatabaseGenerate extends CLICommand
     with CLIDatabaseMigratable, CLIProject {
@@ -83,8 +82,7 @@ class CLIDatabaseGenerate extends CLICommand
     var schema = new Schema.empty();
     for (var migration in migrationFiles) {
       displayProgress("Replaying version ${versionNumberFromFile(migration)}");
-      schema = await schemaByApplyingMigrationFile(
-          projectDirectory, migration, schema, versionNumberFromFile(migration));
+      schema = await schemaByApplyingMigrationFile(migration, schema);
     }
 
     return schema.asMap();

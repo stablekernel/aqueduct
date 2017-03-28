@@ -150,27 +150,27 @@ class SchemaBuilder {
 
     if (existingColumn.type != newColumn.type) {
       throw new SchemaException(
-          "May not change column (${existingColumn.name}) type (${existingColumn.typeString} -> ${newColumn.typeString})");
+          "May not change column type for '${existingColumn.name}' in '$tableName' (${existingColumn.typeString} -> ${newColumn.typeString})");
     }
 
     if (existingColumn.autoincrement != newColumn.autoincrement) {
       throw new SchemaException(
-          "May not change column (${existingColumn.name}) autoincrementing behavior");
+          "May not change column autoincrementing behavior for '${existingColumn.name}' in '$tableName'");
     }
 
     if (existingColumn.isPrimaryKey != newColumn.isPrimaryKey) {
       throw new SchemaException(
-          "May not change column (${existingColumn.name}) to/from primary key");
+          "May not change column primary key status for '${existingColumn.name}' in '$tableName'");
     }
 
     if (existingColumn.relatedTableName != newColumn.relatedTableName) {
       throw new SchemaException(
-          "May not change column (${existingColumn.name}) reference table (${existingColumn.relatedTableName} -> ${newColumn.relatedTableName})");
+          "May not change reference table for foreign key column '${existingColumn.name}' in '$tableName' (${existingColumn.relatedTableName} -> ${newColumn.relatedTableName})");
     }
 
     if (existingColumn.relatedColumnName != newColumn.relatedColumnName) {
       throw new SchemaException(
-          "May not change column (${existingColumn.name}) reference column (${existingColumn.relatedColumnName} -> ${newColumn.relatedColumnName})");
+          "May not change reference column for foreign key column '${existingColumn.name}' in '$tableName' (${existingColumn.relatedColumnName} -> ${newColumn.relatedColumnName})");
     }
 
     if (existingColumn.name != newColumn.name) {
@@ -182,7 +182,7 @@ class SchemaBuilder {
         unencodedInitialValue == null &&
         newColumn.defaultValue == null) {
       throw new SchemaException(
-          "May not change column (${existingColumn.name}) to be nullable without defaultValue or unencodedInitialValue.");
+          "May not change column '${existingColumn.name}' in '$tableName' to be nullable without defaultValue or unencodedInitialValue.");
     }
 
     table.replaceColumn(existingColumn, newColumn);
@@ -256,7 +256,7 @@ class SchemaBuilder {
       tableDiff.differingColumns
         .where((columnDiff) => columnDiff.expectedColumn != null && columnDiff.actualColumn != null)
         .forEach((columnDiff) {
-        builder.writeln(MigrationBuilder.alterColumnString(tableDiff.actualTable.name, columnDiff.expectedColumn, columnDiff.actualColumn, "    "));
+          builder.writeln(MigrationBuilder.alterColumnString(tableDiff.actualTable.name, columnDiff.expectedColumn, columnDiff.actualColumn, "    "));
       });
     });
 

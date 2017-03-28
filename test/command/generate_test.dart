@@ -621,6 +621,10 @@ void main() {
       }
     });
 
+    test("Alter column's deleteRule", () async {
+      fail("nyi");
+    });
+
     test("Alter many properties of a column", () async {
       var schemas = [
         new Schema.empty(),
@@ -646,6 +650,33 @@ void main() {
 
       results = await connection.query("INSERT INTO t (id, x) VALUES (2, null) RETURNING id, x");
       expect(results, [[2, null]]);
+    });
+  });
+
+  group("Invalid operations", () {
+    test("Cannot change relatedTable", () async {
+      fail("nyi");
+
+    });
+
+    test("Cannot change relatedColumn", () async {
+      fail("nyi");
+
+    });
+
+    test("Cannot change primaryKey", () async {
+      fail("nyi");
+
+    });
+
+    test("Cannot change autoincrement", () async {
+      fail("nyi");
+
+    });
+
+    test("Cannot change type", () async {
+      fail("nyi");
+
     });
   });
 }
