@@ -1,6 +1,66 @@
 import 'schema.dart';
 
 class MigrationBuilder {
+  static String sourceForSchemaUpgrade(
+      Schema existingSchema, Schema newSchema, int version, {List<String> changeList}) {
+    var builder = new StringBuffer();
+    builder.writeln("import 'package:aqueduct/aqueduct.dart';");
+    builder.writeln("import 'dart:async';");
+    builder.writeln("");
+    builder.writeln("class Migration$version extends Migration {");
+    builder.writeln("  Future upgrade() async {");
+
+    var diff = existingSchema.differenceFrom(newSchema);
+
+    // Grab tables from dependencyOrderedTables to reuse ordering behavior
+    newSchema.dependencyOrderedTables
+        .where((t) => diff.tableNamesToAdd.contains(t.name))
+        .forEach((t) {
+      changeList?.add("Adding table '${t.name}'");
+      builder.writeln(MigrationBuilder.createTableString(t, "    "));
+    });
+
+    existingSchema.dependencyOrderedTables.reversed
+        .where((t) => diff.tableNamesToDelete.contains(t.name))
+        .forEach((t) {
+      changeList?.add("Deleting table '${t.name}'");
+      builder.writeln(MigrationBuilder.deleteTableString(t.name, "    "));
+    });
+
+    diff.differingTables
+        .where((tableDiff) => tableDiff.expectedTable != null && tableDiff.actualTable != null)
+        .forEach((tableDiff) {
+      tableDiff.columnNamesToAdd
+          .forEach((columnName) {
+        changeList?.add("Adding column '$columnName' to table '${tableDiff.actualTable.name}'");
+        builder.writeln(MigrationBuilder.addColumnString(tableDiff.actualTable.name, tableDiff.actualTable.columnForName(columnName), "    "));
+      });
+
+      tableDiff.columnNamesToDelete
+          .forEach((columnName) {
+        changeList?.add("Deleting column '$columnName' from table '${tableDiff.actualTable.name}'");
+        builder.writeln(MigrationBuilder.deleteColumnString(tableDiff.actualTable.name, columnName, "    "));
+      });
+
+      tableDiff.differingColumns
+          .where((columnDiff) => columnDiff.expectedColumn != null && columnDiff.actualColumn != null)
+          .forEach((columnDiff) {
+        changeList?.add("Modifying column '${columnDiff.actualColumn.name}' in table '${tableDiff.actualTable.name}'");
+        builder.writeln(MigrationBuilder.alterColumnString(tableDiff.actualTable.name, columnDiff.expectedColumn, columnDiff.actualColumn, "    "));
+      });
+    });
+
+    builder.writeln("  }");
+    builder.writeln("");
+    builder.writeln("  Future downgrade() async {");
+    builder.writeln("  }");
+    builder.writeln("  Future seed() async {");
+    builder.writeln("  }");
+    builder.writeln("}");
+
+    return builder.toString();
+  }
+
   static String createTableString(SchemaTable table, String spaceOffset,
       {bool temporary: false}) {
     var builder = new StringBuffer();

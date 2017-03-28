@@ -56,7 +56,6 @@ class PostgreSQLSchemaGenerator {
       ]);
     }
 
-
     if (column.isIndexed) {
       commands.addAll(addIndexToColumn(table, column));
     }
@@ -64,7 +63,6 @@ class PostgreSQLSchemaGenerator {
     if (column.isForeignKey) {
       commands.addAll(_addConstraintsForColumn(table.name, column));
     }
-
 
     return commands;
   }

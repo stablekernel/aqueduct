@@ -9,6 +9,7 @@ export 'migration.dart';
 export 'schema_builder.dart';
 export 'schema_column.dart';
 export 'schema_table.dart';
+export 'migration_builder.dart';
 
 /// Thrown when a [Schema] encounters an error.
 class SchemaException implements Exception {

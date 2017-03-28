@@ -622,7 +622,38 @@ void main() {
     });
 
     test("Alter column's deleteRule", () async {
-      fail("nyi");
+      var schemas = [
+        new Schema.empty(),
+        new Schema([
+          new SchemaTable("t", [
+            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
+          ]),
+          new SchemaTable("u", [
+            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
+            new SchemaColumn.relationship("ref", ManagedPropertyType.integer, relatedTableName: "t", relatedColumnName: "id",
+                rule: ManagedRelationshipDeleteRule.nullify)
+          ])
+        ]),
+        new Schema([
+          new SchemaTable("t", [
+            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
+          ]),
+          new SchemaTable("u", [
+            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
+            new SchemaColumn.relationship("ref", ManagedPropertyType.integer, relatedTableName: "t", relatedColumnName: "id",
+                rule: ManagedRelationshipDeleteRule.cascade)
+          ])
+        ]),
+      ];
+
+      await writeMigrations(migrationDirectory, schemas);
+      await executeMigrations(migrationDirectory.parent);
+
+      await connection.query("INSERT INTO t (id) VALUES (1)");
+      await connection.query("INSERT INTO u (id, ref_id) VALUES (1, 1)");
+      await connection.query("DELETE FROM t WHERE id=1");
+      var results = await connection.query("SELECT * FROM u");
+      expect(results, []);
     });
 
     test("Alter many properties of a column", () async {
@@ -654,9 +685,72 @@ void main() {
   });
 
   group("Invalid operations", () {
-    test("Cannot change relatedTable", () async {
-      fail("nyi");
+    var migrationDirectory = new Directory("tmp_migrations/migrations");
 
+    setUp(() async {
+      migrationDirectory.createSync(recursive: true);
+    });
+
+    tearDown(() async {
+      migrationDirectory.parent.deleteSync(recursive: true);
+    });
+
+    test("Cannot add existing table", () async {
+      fail("nyi");
+    });
+
+    test("Cannot delete unknown table", () async {
+      fail("nyi");
+    });
+
+    test("Cannot add column to unknown table", () async {
+      fail("nyi");
+    });
+
+    test("Cannot delete column from unknown table", () async {
+      fail("nyi");
+    });
+
+    test("Cannot delete unknown column", () async {
+      fail("nyi");
+    });
+
+    test("Cannot add column to table with existing column of same name", () async {
+      fail("nyi");
+    });
+
+    test("Cannot change relatedTable", () async {
+      var schemas = [
+        new Schema.empty(),
+        new Schema([
+          new SchemaTable("u", [
+            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
+            new SchemaColumn.relationship("ref", ManagedPropertyType.integer, relatedTableName: "t", relatedColumnName: "id"),
+          ]),
+          new SchemaTable("t", [
+            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
+          ]),
+        ]),
+        new Schema([
+          new SchemaTable("v", [
+            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
+          ]),
+          new SchemaTable("u", [
+            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
+            new SchemaColumn.relationship("ref", ManagedPropertyType.integer, relatedTableName: "v", relatedColumnName: "id"),
+          ]),
+          new SchemaTable("t", [
+            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
+          ]),
+        ]),
+      ];
+
+      try {
+        await writeMigrations(migrationDirectory, schemas);
+        expect(true, false);
+      } catch (e) {
+        print("$e");
+      }
     });
 
     test("Cannot change relatedColumn", () async {
@@ -704,7 +798,7 @@ Future writeMigrations(Directory migrationDirectory, List<Schema> schemas) async
     .length;
 
   for (var i = 1; i < schemas.length; i++) {
-    var source = await SchemaBuilder.sourceForSchemaUpgrade(schemas[i - 1], schemas[i], i);
+    var source = await MigrationBuilder.sourceForSchemaUpgrade(schemas[i - 1], schemas[i], i);
     var file = new File.fromUri(migrationDirectory.uri.resolve("${i + currentNumberOfMigrations}.migration.dart"));
     file.writeAsStringSync(source);
   }

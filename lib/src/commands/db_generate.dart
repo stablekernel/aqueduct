@@ -54,7 +54,7 @@ class CLIDatabaseGenerate extends CLICommand
       var changeList = <String>[];
 
       return {
-        "source": SchemaBuilder.sourceForSchemaUpgrade(
+        "source": MigrationBuilder.sourceForSchemaUpgrade(
             inputSchema, schema, 1, changeList: changeList),
         "tablesEvaluated" : dataModel
             .entities
