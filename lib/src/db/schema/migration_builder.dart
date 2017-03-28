@@ -52,20 +52,8 @@ class MigrationBuilder {
     builder.writeln(
         '${spaceOffset}database.alterColumn("${tableName}", "${previousColumn.name}", (c) {');
 
-    if (previousColumn.name != updatedColumn.name) {
-      builder.writeln('$spaceOffset  c.name = "${updatedColumn.name}";');
-    }
-
-    if (previousColumn.type != updatedColumn.type) {
-      builder.writeln("$spaceOffset  c.type = ${updatedColumn.type};");
-    }
-
     if (previousColumn.isIndexed != updatedColumn.isIndexed) {
       builder.writeln("$spaceOffset  c.isIndexed = ${updatedColumn.isIndexed};");
-    }
-
-    if (previousColumn.autoincrement != updatedColumn.autoincrement) {
-      builder.writeln("$spaceOffset  c.autoincrement = ${updatedColumn.autoincrement};");
     }
 
     if (previousColumn.isUnique != updatedColumn.isUnique) {
@@ -74,18 +62,6 @@ class MigrationBuilder {
 
     if (previousColumn.defaultValue != updatedColumn.defaultValue) {
       builder.writeln("$spaceOffset  c.defaultValue = \"${updatedColumn.defaultValue}\";");
-    }
-
-    if (previousColumn.isPrimaryKey != updatedColumn.isPrimaryKey) {
-      builder.writeln("$spaceOffset  c.isPrimaryKey = ${updatedColumn.isPrimaryKey};");
-    }
-
-    if (previousColumn.relatedTableName != updatedColumn.relatedTableName) {
-      builder.writeln("$spaceOffset  c.relatedTableName = ${updatedColumn.relatedTableName};");
-    }
-
-    if (previousColumn.relatedColumnName != updatedColumn.relatedColumnName) {
-      builder.writeln("$spaceOffset  c.relatedColumnName = ${updatedColumn.relatedColumnName};");
     }
 
     if (previousColumn.deleteRule != updatedColumn.deleteRule) {

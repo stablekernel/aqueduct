@@ -242,6 +242,12 @@ void main() {
       await store?.close();
     });
 
+    test("Upgrade with no migration files returns 0 exit code", () async {
+      expect(
+          await runAqueductProcess(["db", "upgrade", "--connect", connectString], projectDirectory),
+          equals(0));
+    });
+
     test("Generate and execute initial schema makes workable DB", () async {
       await runAqueductProcess(["db", "generate"], projectDirectory);
       await runAqueductProcess(
@@ -253,6 +259,24 @@ void main() {
         [1]
       ]);
       expect(await columnsOfTable(store, "_testobject"), ["id", "foo"]);
+    });
+
+    test("Database already up to date returns 0 status code, does not change version", () async {
+      await runAqueductProcess(["db", "generate"], projectDirectory);
+      await runAqueductProcess(
+          ["db", "upgrade", "--connect", connectString], projectDirectory);
+
+      List<List<dynamic>> versionRow = await store
+          .execute("SELECT versionNumber, dateOfUpgrade FROM _aqueduct_version_pgsql");
+      expect(versionRow.first.first, 1);
+      var updateDate = versionRow.first.last;
+
+      expect(await runAqueductProcess(
+          ["db", "upgrade", "--connect", connectString], projectDirectory), 0);
+      versionRow = await store
+          .execute("SELECT versionNumber, dateOfUpgrade FROM _aqueduct_version_pgsql");
+      expect(versionRow.length, 1);
+      expect(versionRow.first.last, equals(updateDate));
     });
 
     test("Multiple migration files are ran", () async {
