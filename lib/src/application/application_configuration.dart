@@ -45,11 +45,9 @@ class ApplicationConfiguration {
   /// Defaults to false.
   bool isUsingClientCertificate = false;
 
-  /// Information for securing the application over HTTPS.
-  ///
-  /// Defaults to null. If this is null, this application will run unsecured over HTTP. To
-  /// run securely over HTTPS, this property must be set with valid security details.
-  SecurityContext securityContext = null;
+  String certificateFilePath;
+
+  String privateKeyFilePath;
 
   /// Options for each [RequestSink] to use when in this application.
   ///

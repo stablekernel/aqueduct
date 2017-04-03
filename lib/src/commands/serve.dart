@@ -40,6 +40,10 @@ class CLIServer extends CLIServeBase {
           abbr: "n",
           help: "Number of isolates processing requests",
           defaultsTo: "3")
+      ..addOption("ssl-key-path",
+          help: "The path to an SSL private key file. If provided along with --ssl-certificate-path, the application will be HTTPS-enabled.")
+      ..addOption("ssl-certificate-path",
+          help: "The path to an SSL certicate file. If provided along with --ssl-certificate-path, the application will be HTTPS-enabled.")
       ..addFlag("local",
           abbr: "l",
           help:
@@ -69,6 +73,8 @@ class CLIServer extends CLIServeBase {
   ArgResults get command => values.command;
   int get startupTimeout => int.parse(values["timeout"]);
   bool get monitorStartup => values["monitor"];
+  String get keyPath => values["ssl-key-path"];
+  String get certificatePath => values["ssl-certificate-path"];
   bool get shouldRunDetached => values["detached"];
   bool get shouldRunObservatory => values["observe"];
   bool get ipv6Only => values["ipv6-only"];
@@ -112,7 +118,9 @@ class CLIServer extends CLIServeBase {
       "ADDRESS": address,
       "IPV6_ONLY": ipv6Only,
       "NUMBER_OF_ISOLATES": numberOfIsolates,
-      "CONFIGURATION_FILE_PATH": configurationFile.path
+      "CONFIGURATION_FILE_PATH": configurationFile.path,
+      "SSL_KEY_PATH": keyPath,
+      "SSL_CERTIFICATE_PATH": certificatePath
     };
 
     displayInfo("Starting application '$packageName/$libraryName'");
@@ -305,6 +313,16 @@ class CLIServer extends CLIServeBase {
     if (values["CONFIGURATION_FILE_PATH"] == null) {
       configString = "";
     }
+    var certificateString =
+        "..certificateFilePath = \"___SSL_CERTIFICATE_PATH___\"";
+    if (values["SSL_CERTIFICATE_PATH"] == null) {
+      certificateString = "";
+    }
+    var keyString =
+        "..privateKeyFilePath = \"___SSL_KEY_PATH___\"";
+    if (values["SSL_KEY_PATH"] == null) {
+      keyString = "";
+    }
 
     var onCompleteString =
         "var signalFile = new File(\".\${pid}.$pidSuffix\");\n"
@@ -329,6 +347,8 @@ main() async {
     var app = new Application<___SINK_TYPE___>();
     var config = new ApplicationConfiguration()
       ..port = ___PORT___
+      $certificateString
+      $keyString
       $addressString
       $configString
       ..isIpv6Only = ___IPV6_ONLY___;

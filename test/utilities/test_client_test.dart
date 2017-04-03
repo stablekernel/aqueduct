@@ -50,8 +50,7 @@ void main() {
       var hostPortSSLConfiguredClient =
           new TestClient.fromConfig(new ApplicationConfiguration()
             ..port = 2121
-            ..address = "foobar.com"
-            ..securityContext = (new SecurityContext()));
+            ..address = "foobar.com", useHTTPS: true);
       expect(defaultTestClient.baseURL, "http://localhost:4040");
       expect(portConfiguredClient.baseURL, "http://localhost:2121");
       expect(hostPortConfiguredClient.baseURL, "http://localhost:2121");

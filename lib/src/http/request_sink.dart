@@ -67,6 +67,18 @@ abstract class RequestSink extends RequestController
   /// Using a router other than this router will impede the sink's ability to generate documentation.
   Router router = new Router();
 
+
+  SecurityContext get securityContext {
+    if (configuration?.certificateFilePath == null
+    || configuration?.privateKeyFilePath == null) {
+      return null;
+    }
+
+    return new SecurityContext()
+      ..useCertificateChain(configuration.certificateFilePath)
+      ..usePrivateKey(configuration.privateKeyFilePath);
+  }
+
   /// Configuration options from the application.
   ///
   /// Options allow passing of application-specific information - like database connection information -

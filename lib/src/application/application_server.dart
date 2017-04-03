@@ -24,6 +24,9 @@ class ApplicationServer {
   /// The instance of [RequestSink] serving requests.
   RequestSink sink;
 
+  bool get requiresHTTPS => _requiresHTTPS;
+  bool _requiresHTTPS = false;
+
   /// The unique identifier of this instance.
   ///
   /// Each instance has its own identifier, a numeric value starting at 1, to identify it
@@ -50,13 +53,18 @@ class ApplicationServer {
       sink.router?.finalize();
       sink.nextController = sink.initialController;
 
-      if (configuration.securityContext != null) {
+      var securityContext = sink.securityContext;
+      if (securityContext != null) {
+        _requiresHTTPS = true;
+
         server = await HttpServer.bindSecure(configuration.address,
-            configuration.port, configuration.securityContext,
+            configuration.port, securityContext,
             requestClientCertificate: configuration.isUsingClientCertificate,
             v6Only: configuration.isIpv6Only,
             shared: shareHttpServer);
       } else {
+        _requiresHTTPS = false;
+
         server = await HttpServer.bind(
             configuration.address, configuration.port,
             v6Only: configuration.isIpv6Only, shared: shareHttpServer);

@@ -149,6 +149,16 @@ main() {
       await conflictingApp.stop();
     });
   });
+
+  group("SSL startup", () {
+    test("Provide SSL cert via configuration, allow https connections", () async {
+
+    });
+
+    test("Provide SSL cert via override in RequestSink, allow https connections", () async {
+
+    });
+  });
 }
 
 class TestException implements Exception {

@@ -13,7 +13,7 @@ import '../application/application_configuration.dart';
 class TestClient {
   /// Creates an instance that targets the configured [app].
   TestClient(Application app) {
-    var scheme = app.configuration.securityContext != null ? "https" : "http";
+    var scheme = app.server.requiresHTTPS ? "https" : "http";
     var host = "localhost";
     var port = app.configuration.port;
 
@@ -29,9 +29,8 @@ class TestClient {
   }
 
   /// Creates an instance from an [ApplicationConfiguration].
-  TestClient.fromConfig(ApplicationConfiguration config) {
-    baseURL =
-        "${config.securityContext != null ? "https" : "http"}://localhost:${config.port}";
+  TestClient.fromConfig(ApplicationConfiguration config, {bool useHTTPS: false}) {
+    baseURL = "${useHTTPS ? "https" : "http"}://localhost:${config.port}";
   }
 
   /// The base URL that requests will be made against.
