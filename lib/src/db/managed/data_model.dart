@@ -212,6 +212,15 @@ class ManagedDataModelException implements Exception {
         "setter method must have 'isAvailableAsInput'.");
   }
 
+  factory ManagedDataModelException.duplicateTables(
+      ManagedEntity entity1, ManagedEntity entity2) {
+    return new ManagedDataModelException(
+        "Entities '${_getInstanceClassName(entity1)}' and '${_getInstanceClassName(entity2)}' "
+            "have the same table name: '${entity1.tableName}'. Rename these "
+            "tables by changing the value in their 'tableName' method or removing "
+            "the 'tableName' method altogether.");
+  }
+
   factory ManagedDataModelException.cyclicReference(
       ManagedEntity entity,
       Symbol property,

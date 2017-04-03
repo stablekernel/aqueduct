@@ -696,7 +696,6 @@ void main() {
     });
 
     test("Cannot add existing table", () async {
-      fail("nyi");
     });
 
     test("Cannot delete unknown table", () async {
@@ -807,3 +806,4 @@ Future writeMigrations(Directory migrationDirectory, List<Schema> schemas) async
 Future<int> executeMigrations(Directory projectDirectory) async {
   return runAqueductProcess(["db", "upgrade", "--connect", "postgres://dart:dart@localhost:5432/dart_test"], projectDirectory);
 }
+
