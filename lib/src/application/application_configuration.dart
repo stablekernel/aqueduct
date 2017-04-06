@@ -45,8 +45,18 @@ class ApplicationConfiguration {
   /// Defaults to false.
   bool isUsingClientCertificate = false;
 
+  /// The path to a SSL certificate.
+  ///
+  /// If specified - along with [privateKeyFilePath] - an [Application] will only allow secure connections over HTTPS.
+  /// This value is often set through the `--ssl-certificate-path` command line option of `aqueduct serve`. For finer control
+  /// over how HTTPS is configured for an application, see [RequestSink.securityContext].
   String certificateFilePath;
 
+  /// The path to a private key.
+  ///
+  /// If specified - along with [certificateFilePath] - an [Application] will only allow secure connections over HTTPS.
+  /// This value is often set through the `--ssl-key-path` command line option of `aqueduct serve`. For finer control
+  /// over how HTTPS is configured for an application, see [RequestSink.securityContext].
   String privateKeyFilePath;
 
   /// Options for each [RequestSink] to use when in this application.

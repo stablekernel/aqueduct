@@ -67,7 +67,15 @@ abstract class RequestSink extends RequestController
   /// Using a router other than this router will impede the sink's ability to generate documentation.
   Router router = new Router();
 
-
+  /// The context used for setting up HTTPS in an application.
+  ///
+  /// By default, this value is null. When null, an [Application] using this instance will listen over HTTP, and not HTTPS.
+  /// If this instance [configuration] has non-null values for both [ApplicationConfiguration.certificateFilePath] and [ApplicationConfiguration.privateKeyFilePath],
+  /// this value is a valid [SecurityContext] configured to use the certificate chain and private key as indicated by the configuration. The listening server
+  /// will allow connections over HTTPS only. This getter is only invoked once per instance, after [initializeApplication] and [RequestSink]'s constructor have been
+  /// called, but before any other initialization occurs.
+  ///
+  /// You may override this getter to provide a customized [SecurityContext].
   SecurityContext get securityContext {
     if (configuration?.certificateFilePath == null
     || configuration?.privateKeyFilePath == null) {
