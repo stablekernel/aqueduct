@@ -292,6 +292,13 @@ class CLIServer extends CLIServeBase {
   }
 
   void prepare() {
+    if (keyPath != null && certificatePath == null) {
+      throw new CLIException("Configuration error: --ssl-key-path was specified, but --ssl-certificate-path was not.");
+    }
+    if (keyPath == null && certificatePath != null) {
+      throw new CLIException("Configuration error: --ssl-certificate-path was specified, but --ssl-key-path was not.");
+    }
+
     displayInfo("Preparing...");
     pidFilesInDirectory(projectDirectory).forEach((FileSystemEntity f) {
       var pidString =

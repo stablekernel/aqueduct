@@ -59,6 +59,62 @@ void main() {
     var res = await runAqueductProcess(["serve"], temporaryDirectory);
     expect(res != 0, true);
   });
+
+  test("Start with valid SSL args opens https server", () async {
+    var certFile = new File.fromUri(new Directory("ci").uri.resolve("aqueduct.cert.pem"));
+    var keyFile = new File.fromUri(new Directory("ci").uri.resolve("aqueduct.key.pem"));
+
+    certFile.copySync(temporaryDirectory.uri.resolve("server.crt").path);
+    keyFile.copySync(temporaryDirectory.uri.resolve("server.key").path);
+
+    var res = await runAqueductProcess(
+          ["serve", "--detached", "--ssl-key-path", "server.key", "--ssl-certificate-path", "server.crt"],
+          temporaryDirectory);
+    expect(res, 0);
+
+    var completer = new Completer();
+    var socket = await SecureSocket.connect("localhost", 8081, onBadCertificate: (_) => true);
+    var request = "GET /endpoint HTTP/1.1\r\nConnection: close\r\nHost: localhost\r\n\r\n";
+    socket.add(request.codeUnits);
+
+    socket.listen((bytes) => completer.complete(bytes));
+    var httpResult = new String.fromCharCodes(await completer.future);
+    expect(httpResult, contains("200 OK"));
+    await socket.close();
+  });
+
+  test("Start without one of SSL values throws exception", () async {
+    var keyFile = new File.fromUri(new Directory("ci").uri.resolve("aqueduct.key.pem"));
+    keyFile.copySync(temporaryDirectory.uri.resolve("server.key").path);
+
+    var res = await runAqueductProcess(
+        ["serve", "--detached", "--ssl-key-path", "server.key"],
+        temporaryDirectory);
+    expect(res, 1);
+  });
+
+  test("Start with invalid SSL values throws exceptions", () async {
+    var keyFile = new File.fromUri(new Directory("ci").uri.resolve("aqueduct.key.pem"));
+    keyFile.copySync(temporaryDirectory.uri.resolve("server.key").path);
+
+    var badCertFile = new File.fromUri(temporaryDirectory.uri.resolve("server.crt"));
+    badCertFile.writeAsStringSync("foobar");
+
+    var res = await runAqueductProcess(
+        ["serve", "--detached", "--ssl-key-path", "server.key", "--ssl-certificate-path", "server.crt"],
+        temporaryDirectory);
+    expect(res, 1);
+  });
+
+  test("Can't find SSL file, throws exception", () async {
+    var keyFile = new File.fromUri(new Directory("ci").uri.resolve("aqueduct.key.pem"));
+    keyFile.copySync(temporaryDirectory.uri.resolve("server.key").path);
+
+    var res = await runAqueductProcess(
+        ["serve", "--detached", "--ssl-key-path", "server.key", "--ssl-certificate-path", "server.crt"],
+        temporaryDirectory);
+    expect(res, 1);
+  });
 }
 
 Future<int> runAqueductProcess(
