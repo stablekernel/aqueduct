@@ -13,6 +13,14 @@ import '../application/application_configuration.dart';
 class TestClient {
   /// Creates an instance that targets the configured [app].
   TestClient(Application app) {
+    if (app.server == null) {
+      throw new TestClientException(
+          "TestClient failed to initialize from Application. "
+              "Start the application prior to instantiating a TestClient and ensure that the "
+              "application is run with `runOnMainIsolate: true`. You may also create a TestClient "
+              "without an Application through its named constructors.");
+    }
+
     var scheme = app.server.requiresHTTPS ? "https" : "http";
     var host = "localhost";
     var port = app.configuration.port;
@@ -365,4 +373,12 @@ class TestResponse {
     var headerString = headerItems.join("\n\t\t\t ");
     return "\n\tStatus Code: $statusCode\n\tHeaders: ${headerString}\n\tBody: $body";
   }
+}
+
+class TestClientException implements Exception {
+  TestClientException(this.message);
+
+  String message;
+
+  String toString() => "TestClientException: $message";
 }

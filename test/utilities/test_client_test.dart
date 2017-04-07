@@ -16,9 +16,10 @@ void main() {
       await server?.close();
     });
 
-    test("Create from app, explicit port", () {
+    test("Create from app, explicit port", () async {
       var app = new Application<SomeSink>()
           ..configuration.port = 4111;
+      await app.start(runOnMainIsolate: true);
       var client = new TestClient(app);
       expect(client.baseURL, "http://localhost:4111");
     });
@@ -36,6 +37,16 @@ void main() {
       expect(response, hasStatus(200));
 
       await app.stop();
+    });
+
+    test("Create from unstarted app throws useful exception", () {
+      var app = new Application<SomeSink>();
+      try {
+        var _ = new TestClient(app);
+        expect(true, false);
+      } on TestClientException catch (e) {
+        expect(e.message, contains("Start the application prior"));
+      }
     });
 
 
