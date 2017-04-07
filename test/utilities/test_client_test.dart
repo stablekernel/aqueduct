@@ -16,9 +16,10 @@ void main() {
       await server?.close();
     });
 
-    test("Create from app, explicit port", () {
+    test("Create from app, explicit port", () async {
       var app = new Application<SomeSink>()
           ..configuration.port = 4111;
+      await app.start(runOnMainIsolate: true);
       var client = new TestClient(app);
       expect(client.baseURL, "http://localhost:4111");
     });
@@ -38,6 +39,15 @@ void main() {
       await app.stop();
     });
 
+    test("Create from unstarted app throws useful exception", () {
+      var app = new Application<SomeSink>();
+      try {
+        var _ = new TestClient(app);
+        expect(true, false);
+      } on TestClientException catch (e) {
+        expect(e.toString(), contains("Start the application prior"));
+      }
+    });
 
     test("Host created correctly", () {
       var defaultTestClient = new TestClient.onPort(4040);
@@ -50,8 +60,7 @@ void main() {
       var hostPortSSLConfiguredClient =
           new TestClient.fromConfig(new ApplicationConfiguration()
             ..port = 2121
-            ..address = "foobar.com"
-            ..securityContext = (new SecurityContext()));
+            ..address = "foobar.com", useHTTPS: true);
       expect(defaultTestClient.baseURL, "http://localhost:4040");
       expect(portConfiguredClient.baseURL, "http://localhost:2121");
       expect(hostPortConfiguredClient.baseURL, "http://localhost:2121");
