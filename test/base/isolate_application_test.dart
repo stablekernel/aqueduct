@@ -149,6 +149,35 @@ main() {
       await conflictingApp.stop();
     });
   });
+
+  group("SSL", () {
+    Application app;
+
+    tearDown(() async {
+      await app?.stop();
+    });
+
+    test("Start with HTTPS", () async {
+      var ciDirUri = new Directory("ci").uri;
+
+      app = new Application<TestSink>()
+        ..configuration.certificateFilePath = ciDirUri.resolve("aqueduct.cert.pem").path
+        ..configuration.privateKeyFilePath = ciDirUri.resolve("aqueduct.key.pem").path;
+
+      await app.start(numberOfInstances: 3);
+
+      var completer = new Completer();
+      var socket = await SecureSocket.connect("localhost", 8081, onBadCertificate: (_) => true);
+      var request = "GET /r HTTP/1.1\r\nConnection: close\r\nHost: localhost\r\n\r\n";
+      socket.add(request.codeUnits);
+
+      socket.listen((bytes) => completer.complete(bytes));
+      var httpResult = new String.fromCharCodes(await completer.future);
+      expect(httpResult, contains("200 OK"));
+      expect(httpResult, contains("r_ok"));
+      await socket.close();
+    });
+  });
 }
 
 class TestException implements Exception {

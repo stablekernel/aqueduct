@@ -84,11 +84,19 @@ void main() {
   });
 
   test("Start without one of SSL values throws exception", () async {
+    var certFile = new File.fromUri(new Directory("ci").uri.resolve("aqueduct.cert.pem"));
     var keyFile = new File.fromUri(new Directory("ci").uri.resolve("aqueduct.key.pem"));
+
+    certFile.copySync(temporaryDirectory.uri.resolve("server.crt").path);
     keyFile.copySync(temporaryDirectory.uri.resolve("server.key").path);
 
     var res = await runAqueductProcess(
         ["serve", "--detached", "--ssl-key-path", "server.key"],
+        temporaryDirectory);
+    expect(res, 1);
+
+    res = await runAqueductProcess(
+        ["serve", "--detached", "--ssl-certificate-path", "server.crt"],
         temporaryDirectory);
     expect(res, 1);
   });

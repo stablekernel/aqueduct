@@ -45,10 +45,9 @@ void main() {
         var _ = new TestClient(app);
         expect(true, false);
       } on TestClientException catch (e) {
-        expect(e.message, contains("Start the application prior"));
+        expect(e.toString(), contains("Start the application prior"));
       }
     });
-
 
     test("Host created correctly", () {
       var defaultTestClient = new TestClient.onPort(4040);
