@@ -75,12 +75,14 @@ main() {
 
     test("Paths", () {
       var paths = apiDocs["paths"] as Map<String, Map<String, dynamic>>;
-      expect(paths.length, 5);
+      expect(paths.length, 7);
       expect(paths.keys.contains("/auth/code"), true);
       expect(paths.keys.contains("/auth/token"), true);
       expect(paths.keys.contains("/t"), true);
       expect(paths.keys.contains("/t/{id}"), true);
       expect(paths.keys.contains("/t/{id}/{notID}"), true);
+      expect(paths.keys.contains("/h"), true);
+      expect(paths.keys.contains("/h/{var}"), true);
     });
 
     test("Operations /t", () {
@@ -436,6 +438,9 @@ class TestSink extends RequestSink {
         .route("/t[/:id[/:notID]]")
         .pipe(new Authorizer.bearer(authServer))
         .generate(() => new TController());
+    router.route("/h[/:var]").listen((Request req) async {
+      return new Response.ok("");
+    });
   }
 
   Map<String, APISecurityScheme> documentSecuritySchemes(

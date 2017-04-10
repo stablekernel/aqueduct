@@ -124,7 +124,7 @@ class RouteSpecification extends Object with APIDocumentable {
       return param;
     }).toList();
 
-    List<APIOperation> allOperations = controller.documentOperations(resolver);
+    List<APIOperation> allOperations = controller.documentOperations(resolver) ?? [];
     p.operations = allOperations.where((op) {
       var opPathParamNames = op.parameters
           .where((p) => p.parameterLocation == APIParameterLocation.path)
