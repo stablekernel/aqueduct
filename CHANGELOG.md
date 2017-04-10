@@ -1,5 +1,9 @@
 # aqueduct changelog
 
+## 2.0.3
+
+- Fixes issue with `aqueduct document` for routes using `listen`
+
 ## 2.0.2
 
 - Allow binding to system-assigned port so tests can be run in parallel
