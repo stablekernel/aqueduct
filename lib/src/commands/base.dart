@@ -1,25 +1,27 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:isolate';
+import 'dart:mirrors';
 
-import 'package:path/path.dart' as path_lib;
 import 'package:args/args.dart';
+import 'package:path/path.dart' as path_lib;
 import 'package:yaml/yaml.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 import '../utilities/source_generator.dart';
-
-import 'db.dart';
-import 'setup.dart';
-import 'create.dart';
-import 'serve.dart';
 import 'auth.dart';
+import 'create.dart';
+import 'db.dart';
 import 'document.dart';
+import 'serve.dart';
+import 'setup.dart';
 
-export 'db.dart';
-export 'setup.dart';
-export 'create.dart';
-export 'serve.dart';
 export 'auth.dart';
+export 'create.dart';
+export 'db.dart';
 export 'document.dart';
+export 'serve.dart';
+export 'setup.dart';
 
 /// Exceptions thrown by command line interfaces.
 class CLIException {
@@ -70,6 +72,9 @@ abstract class CLICommand implements CLIResultHandler {
     });
   }
 
+  Version get toolVersion => _toolVersion;
+  Version _toolVersion;
+
   void registerCommand(CLICommand cmd) {
     _commandMap[cmd.name] = cmd;
     options.addCommand(cmd.name, cmd.options);
@@ -105,6 +110,12 @@ abstract class CLICommand implements CLIResultHandler {
 
     try {
       values = results;
+
+      await determineToolVersion();
+
+      displayInfo("Aqueduct CLI Version: ${toolVersion}");
+      preProcess();
+
       if (helpMeItsScary) {
         printHelp(parentCommandName: parentCommandNames?.join(" "));
         return 0;
@@ -141,6 +152,24 @@ abstract class CLICommand implements CLIResultHandler {
       await cleanup();
     }
     return 1;
+  }
+
+  Future determineToolVersion() async {
+    try {
+      var toolLibraryFilePath = (await Isolate.resolvePackageUri(currentMirrorSystem().findLibrary(#aqueduct).uri)).path;
+      var idx = toolLibraryFilePath.lastIndexOf("aqueduct${path_lib.separator}lib");
+      toolLibraryFilePath = toolLibraryFilePath.substring(0, idx + "aqueduct".length);
+
+      var toolLibraryDirectory = new Directory(toolLibraryFilePath);
+      var toolPubspecFile = new File.fromUri(toolLibraryDirectory.absolute.uri.resolve("pubspec.yaml"));
+      Map<String, dynamic> toolPubspecContents = loadYaml(toolPubspecFile.readAsStringSync());
+      String toolVersion = toolPubspecContents["version"];
+      _toolVersion = new Version.parse(toolVersion);
+    } catch (_) {}
+  }
+
+  void preProcess() {
+
   }
 
   void displayError(String errorMessage,
@@ -233,7 +262,7 @@ abstract class CLICommand implements CLIResultHandler {
   }
 }
 
-abstract class CLIProject implements CLIResultHandler {
+abstract class CLIProject implements CLIResultHandler, CLICommand {
   String _packageName;
 
   Directory get projectDirectory => new Directory(values["directory"]).absolute;
@@ -250,6 +279,23 @@ abstract class CLIProject implements CLIResultHandler {
     return _packageName;
   }
 
+  Version _projectVersion;
+  Version get projectVersion {
+    if (_projectVersion == null) {
+      var lockFile = new File.fromUri(projectDirectory.uri.resolve("pubspec.lock"));
+      if (!lockFile.existsSync()) {
+        throw new CLIException("No pubspec.lock file. Run `pub get`.");
+      }
+
+      Map<String, Map<String, dynamic>> lockFileContents = loadYaml(lockFile.readAsStringSync());
+      String projectVersion = lockFileContents["packages"]["aqueduct"]["version"];
+      _projectVersion = new Version.parse(projectVersion);
+    }
+
+    return _projectVersion;
+  }
+
+
   static File fileInDirectory(Directory directory, String name) {
     if (path_lib.isRelative(name)) {
       return new File.fromUri(directory.uri.resolve(name));
@@ -260,6 +306,12 @@ abstract class CLIProject implements CLIResultHandler {
 
   File fileInProjectDirectory(String name) {
     return fileInDirectory(projectDirectory, name);
+  }
+
+  void preProcess() {
+    try {
+      displayInfo("Aqueduct project dependency version: ${projectVersion}");
+    } catch (_) {} // Ignore if this doesn't succeed.
   }
 
   Directory subdirectoryInProjectDirectory(String name,
