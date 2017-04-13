@@ -1,0 +1,216 @@
+a {
+  color: rgb(102, 188, 208);
+}
+
+#powered-by {
+  margin-top: 80px;
+}
+
+.bordered-feature h3 {
+  font-size: 32px;
+  color: #dddddd;
+  text-align:right;
+}
+
+.bordered-feature h3 b {
+  color: #ffffff;
+}
+
+.feature-content {
+  padding-top: 80px;
+}
+
+.navbar-default {
+    margin-bottom: 0px;
+}
+
+.bordered-feature {
+  border-right: 1px solid #999;
+  height: 260px;
+  padding-right: 40px;
+}
+
+.navbar-default {
+  background-color:#414042;
+}
+
+.navbar-brand,
+.navbar-nav li a {
+    line-height: 100px;
+    height: 100px;
+    padding-top: 0;
+}
+
+.navbar .nav > li > a {
+  color: #d6dadc;
+}
+
+.navbar .nav > li > a:hover {
+  color: white;
+}
+
+
+#brand-logo {
+  padding-top: 20px;
+  padding-left: 20px;
+  width: 153px;
+  height: 75;
+}
+
+.code-container  {
+  padding-left: 50px;
+}
+
+.feature-header {
+  font-size: 32px;
+  margin-left: 50px;
+  margin-top: 40px;
+}
+
+.carousel-indicators li {
+  background-color: white;
+}
+
+.carousel-indicators .active {
+  background-color: rgb(102, 188, 208);
+}
+
+.carousel-inner {
+  height: 100%;
+}
+
+.carousel {
+  height: 100%;
+}
+
+.item {
+  height: 100%;
+}
+
+#features {
+  height: 600px;
+}
+
+#bg-container {
+  height: 100%;
+}
+
+.bg-image {
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-size: 1440px 519px;
+  background-position: 10% bottom;
+  /*background-color: rgb(255, 255, 255);*/
+  background-color:#414042;
+  background-image: url(http://aqueduct-stablekernel-com.stablekernel.staging.wpengine.com/wp-content/uploads/sites/3/2017/03/darkBG.png);
+}
+
+
+#getting-started {
+  background-color: #d6dadc;
+}
+
+#getting-started-install {
+  background-color: #414042;
+}
+
+#getting-started-doc {
+}
+
+#getting-started li {
+  font-size: 1.5em;
+  color: #d6dadc;
+}
+
+#getting-started h3 {
+  color: #d6dadc;
+}
+
+#getting-started pre {
+  font: menlo;
+  color: #d6dadc;
+  background-color: inherit;
+  border: none;
+}
+
+#doc-panel {
+  background-color: #d6dadc;
+  height: 346px;
+}
+
+#footer {
+  background-image: url(http://aqueduct-stablekernel-com.stablekernel.staging.wpengine.com/wp-content/uploads/sites/3/2017/03/darkBG.png);
+  background-repeat: no-repeat;
+
+  background-size: 1440px 519px;
+  background-position: 10% 100%;
+  background-attachment: fixed;
+
+  background-color: rgb(65, 64, 66);
+  height: 346px;
+}
+
+
+@media screen and (min-width: 1440px) {
+  .bg-image {
+    background-size: contain;
+  }
+  #footer {
+    background-size: contain;
+  }
+}
+
+
+@media screen and (max-width:991px) {
+  #sample-1 {
+    width: 384px;
+  }
+  #sample-2 {
+    width: 384px;
+  }
+  #sample-3 {
+    width: 370px;
+  }
+  #sample-4 {
+    width: 361px;
+  }
+  #sample-5 {
+    width: 376px;
+  }
+  #sample-6 {
+    width: 364px;
+  }
+
+  .code-container {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    padding-top: 20px;
+    padding-left: 0px;
+    padding-right: 0px;
+  }
+  .code-container p {
+    font: 13.0px Menlo;
+  }
+  .bordered-feature h3 {
+    margin-left: 34px;
+    font-size: 32px;
+    color: #dddddd;
+    text-align: left;
+  }
+  .bordered-feature {
+    border-right: none;
+    padding-right: 34px;
+    height: auto;
+  }
+  .feature-content {
+    padding-top: 40px;
+  }
+
+}
+
+@media screen and (min-width:992px) {
+  .code-container p {
+    font: 15.0px Menlo;
+  }
+}

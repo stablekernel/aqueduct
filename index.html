@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <link rel="stylesheet" href="css/aqueduct.css" type="text/css" media="all">
+  <link rel="stylesheet" href="css/syntax.css" type="text/css" media="all">
+</head>
+<body>
+  <nav class="navbar navbar-default">
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="#"><img id="brand-logo" alt="aqueduct" src="images/logo.png"/></a>
+      </div>
+
+      <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+        <ul class="nav navbar-nav navbar-right">
+          <li><a href="https://stablekernel.com">STABLE | KERNEL</a></li>
+          <li><a href="docs/tut/getting-started/">TUTORIAL</a></li>
+          <li><a href="docs/">DOCUMENTATION</a></li>
+          <li><a href="https://stablekernel.com/contact">CONTACT</a></li>
+        </ul>
+      </div>
+      <div class="row bg-image" id="features">
+          <div id="feature-carousel" class="carousel slide" data-ride="carousel">
+            <ol class="carousel-indicators">
+              <li data-target="#feature-carousel" data-slide-to="0" class="active"></li>
+              <li data-target="#feature-carousel" data-slide-to="1"></li>
+              <li data-target="#feature-carousel" data-slide-to="2"></li>
+              <li data-target="#feature-carousel" data-slide-to="3"></li>
+              <li data-target="#feature-carousel" data-slide-to="4"></li>
+              <li data-target="#feature-carousel" data-slide-to="5"></li>
+            </ol>
+            <div class="carousel-inner">
+              <div class="item active">
+                <div class="row feature-content">
+                  <div class="col-md-6 bordered-feature">
+                    <div class="row">
+                      <div class="col-md-4"></div>
+                      <div class="col-md-8">
+                        <h3><b>Build</b> well-architected, server-side applications.</h3>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="code-container" id="sample-1">
+                      <p class="p1_1"><span class="s1_1">import </span>'package:aqueduct/aqueduct.dart'<span class="s2_1">;</span></p>
+                      <p class="p2_1"><br></p>
+                      <p class="p3_1"><span class="s1_1">class </span>AppRequestSink <span class="s1_1">extends </span>RequestSink <span class="s2_1">{</span></p>
+                      <p class="p3_1"><span class="s2_1"><span class="Apple-converted-space">  </span></span>AppRequestSink<span class="s2_1">(</span>ApplicationConfiguration <span class="s3_1">config</span><span class="s2_1">)</span></p>
+                      <p class="p4_1"><span class="Apple-converted-space">    </span>: <span class="s1_1">super</span>(<span class="s3_1">config</span>);</p>
+                      <p class="p2_1"><br></p>
+                      <p class="p5_1"><span class="s2_1"><span class="Apple-converted-space">  </span></span>@override</p>
+                      <p class="p6_1"><span class="s4_1"><span class="Apple-converted-space">  </span></span><span class="s1_1">void </span>setupRouter<span class="s2_1">(</span><span class="s5_1">Router </span><span class="s3_1">router</span><span class="s2_1">) {</span></p>
+                      <p class="p7_1"><span class="s2_1"><span class="Apple-converted-space">    </span></span>router</p>
+                      <p class="p1_1"><span class="s3_1"><span class="Apple-converted-space">      </span></span><span class="s2_1">.</span><span class="s6_1">route</span><span class="s2_1">(</span>"/resource"<span class="s2_1">)</span></p>
+                      <p class="p4_1"><span class="Apple-converted-space">      </span>.<span class="s6_1">listen</span>((<span class="s3_1">req</span>) <span class="s1_1">async </span>=&gt;</p>
+                      <p class="p4_1"><span class="Apple-converted-space">          </span><span class="s1_1">new </span><span class="s5_1">Response</span>.<span class="s7_1"><b>ok</b></span>({<span class="s8_1">"key"</span>: <span class="s8_1">"value"</span>}));</p>
+                      <p class="p2_1"><br></p>
+                      <p class="p7_1"><span class="s2_1"><span class="Apple-converted-space">    </span></span>router</p>
+                      <p class="p1_1"><span class="s3_1"><span class="Apple-converted-space">      </span></span><span class="s2_1">.</span><span class="s6_1">route</span><span class="s2_1">(</span>"/users/[:id]"<span class="s2_1">)</span></p>
+                      <p class="p4_1"><span class="Apple-converted-space">      </span>.<span class="s6_1">pipe</span>(<span class="s1_1">new </span><span class="s5_1">Authorizer</span>.<span class="s7_1"><b>bearer</b></span>(<span class="s9_1">authServer</span>))</p>
+                      <p class="p4_1"><span class="Apple-converted-space">      </span>.<span class="s6_1">generate</span>(() =&gt; <span class="s1_1">new </span><span class="s5_1">UserController</span>());</p>
+                      <p class="p4_1"><span class="Apple-converted-space">  </span>}</p>
+                      <p class="p4_1">}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="item">
+                <div class="row feature-content">
+                  <div class="col-md-6 bordered-feature">
+                    <div class="row">
+                      <div class="col-md-4"></div>
+                      <div class="col-md-8">
+                        <h3><b>Compose</b> modular, maintainable code.</h3>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                  <div class="code-container" id="sample-2">
+                    <p class="p1_2"><span class="s1_2">import </span>'package:aqueduct/aqueduct.dart'<span class="s2_2">;</span></p>
+                    <p class="p2_2"><br></p>
+                    <p class="p3_2"><span class="s1_2">class </span>PersonController <span class="s1_2">extends </span>HTTPController <span class="s2_2">{</span></p>
+                    <p class="p4_2"><span class="s2_2"><span class="Apple-converted-space">  </span></span>@httpGet</p>
+                    <p class="p3_2"><span class="s3_2"><span class="Apple-converted-space">  </span></span>Future<span class="s2_2">&lt;</span>Response<span class="s2_2">&gt; </span><span class="s4_2">getAll</span><span class="s2_2">(</span></p>
+                    <p class="p4_2"><span class="s2_2"><span class="Apple-converted-space">      </span>{</span>@HTTPQuery(<span class="s5_2">"name"</span>) <span class="s6_2">String </span><span class="s7_2">name</span><span class="s2_2">}) </span><span class="s1_2">async </span><span class="s2_2">{</span></p>
+                    <p class="p5_2"><span class="Apple-converted-space">    </span><span class="s1_2">var </span><span class="s8_2">people </span>= <span class="s1_2">await </span><span class="s4_2">fetchPeople</span>(<span class="s7_2">byName</span>: <span class="s7_2">name</span>);</p>
+                    <p class="p6_2"><span class="s2_2"><span class="Apple-converted-space">    </span></span>return new <span class="s6_2">Response</span><span class="s2_2">.</span><span class="s9_2"><b>ok</b></span><span class="s2_2">(</span><span class="s8_2">people</span><span class="s2_2">);</span></p>
+                    <p class="p5_2"><span class="Apple-converted-space">  </span>}</p>
+                    <p class="p2_2"><br></p>
+                    <p class="p4_2"><span class="s2_2"><span class="Apple-converted-space">  </span></span>@httpGet</p>
+                    <p class="p3_2"><span class="s3_2"><span class="Apple-converted-space">  </span></span>Future<span class="s2_2">&lt;</span>Response<span class="s2_2">&gt; </span><span class="s4_2">getOne</span><span class="s2_2">(</span></p>
+                    <p class="p4_2"><span class="Apple-converted-space">      </span></span>@HTTPPath(<span class="s5_2">"id"</span>) <span class="s6_2">int </span><span class="s7_2">id</span><span class="s2_2">) </span><span class="s1_2">async </span><span class="s2_2">{</span></p>
+                    <p class="p7_2"><span class="s2_2"><span class="Apple-converted-space">    </span></span><span class="s1_2">var </span><span class="s8_2">person </span><span class="s2_2">= </span><span class="s1_2">await </span>fetchPerson<span class="s2_2">(</span><span class="s7_2">id</span><span class="s2_2">);</span></p>
+                    <p class="p6_2"><span class="s2_2"><span class="Apple-converted-space">    </span></span>return new <span class="s6_2">Response</span><span class="s2_2">.</span><span class="s9_2"><b>ok</b></span><span class="s2_2">(</span><span class="s8_2">person</span><span class="s2_2">);</span></p>
+                    <p class="p5_2"><span class="Apple-converted-space">  </span>}</p>
+                    <p class="p5_2">}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+              <div class="item">
+                <div class="row feature-content">
+                  <div class="col-md-6 bordered-feature">
+                    <div class="row">
+                      <div class="col-md-4"></div>
+                      <div class="col-md-8">
+                        <h3><b>Achieve</b> the productivity of a cohesive framework.</h3>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                  <div class="code-container" id="sample-3">
+                    <p class="p1_3"><span class="s1_3">import </span>'package:aqueduct/aqueduct.dart'<span class="s2_3">;</span></p>
+                    <p class="p2_3"><br></p>
+                    <p class="p3_3"><span class="s1_3">class </span>PersonController <span class="s1_3">extends </span>HTTPController <span class="s2_3">{</span></p>
+                    <p class="p4_3"><span class="s2_3"><span class="Apple-converted-space">  </span></span>@httpGet</p>
+                    <p class="p5_3"><span class="s3_3"><span class="Apple-converted-space">  </span></span><span class="s4_3">Future</span><span class="s2_3">&lt;</span><span class="s4_3">Response</span><span class="s2_3">&gt; </span>getAll<span class="s2_3">() </span><span class="s1_3">async </span><span class="s2_3">{</span></p>
+                    <p class="p3_3"><span class="s2_3"><span class="Apple-converted-space">    </span></span><span class="s1_3">var </span><span class="s5_3">query </span><span class="s2_3">= </span><span class="s1_3">new </span>Query<span class="s2_3">&lt;</span>Person<span class="s2_3">&gt;();</span></p>
+                    <p class="p2_3"><span class="Apple-converted-space">    </span></p>
+                    <p class="p6_3"><span class="s2_3"><span class="Apple-converted-space">    </span></span><span class="s1_3">var </span>results <span class="s2_3">= </span><span class="s1_3">await </span>query<span class="s2_3">.</span><span class="s6_3">fetch</span><span class="s2_3">();</span></p>
+                    <p class="p2_3"><span class="Apple-converted-space">    </span></p>
+                    <p class="p7_3"><span class="s2_3"><span class="Apple-converted-space">    </span></span>return new <span class="s4_3">Response</span><span class="s2_3">.</span><span class="s7_3"><b>ok</b></span><span class="s2_3">(</span><span class="s5_3">results</span><span class="s2_3">);</span></p>
+                    <p class="p8_3"><span class="Apple-converted-space">  </span>}</p>
+                    <p class="p8_3">}</p>
+                  </div>
+                </div>
+              </div>
+              </div>
+              <div class="item">
+                <div class="row feature-content">
+                  <div class="col-md-6 bordered-feature">
+                    <div class="row">
+                      <div class="col-md-4"></div>
+                      <div class="col-md-8">
+                        <h3><b>Design</b> elegant, statically-typed queries.</h3>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                  <div class="code-container" id="sample-4">
+                    <p class="p1_4"><span class="s1_4">var </span><span class="s2_4">query </span><span class="s3_4">= </span><span class="s1_4">new </span>Query<span class="s3_4">&lt;</span>Employee<span class="s3_4">&gt;()</span></p>
+                    <p class="p2_4"><span class="s3_4"><span class="Apple-converted-space">  </span>..</span><span class="s4_4">where</span><span class="s3_4">.</span><span class="s4_4">name </span><span class="s3_4">= </span>whereBeginsWith<span class="s3_4">(</span><span class="s5_4">"Sal"</span><span class="s3_4">)</span></p>
+                    <p class="p2_4"><span class="s3_4"><span class="Apple-converted-space">  </span>..</span><span class="s4_4">where</span><span class="s3_4">.</span><span class="s4_4">salary </span><span class="s3_4">= </span>whereGreaterThan<span class="s3_4">(</span><span class="s6_4">50000</span><span class="s3_4">);</span></p>
+                    <p class="p3_4"><br></p>
+                    <p class="p4_4"><span class="s1_4">var </span>employees <span class="s3_4">= </span><span class="s1_4">await </span>query<span class="s3_4">.</span><span class="s7_4">fetch</span><span class="s3_4">();</span></p>
+                    <p class="p3_4"><br></p>
+                    <p class="p1_4"><span class="s2_4">query </span><span class="s3_4">= </span><span class="s1_4">new </span>Query<span class="s3_4">&lt;</span>Employee<span class="s3_4">&gt;()</span></p>
+                    <p class="p5_4"><span class="s3_4"><span class="Apple-converted-space">  </span>..</span><span class="s4_4">where</span><span class="s3_4">.</span><span class="s4_4">name </span><span class="s3_4">= </span><span class="s8_4">whereEqualTo</span><span class="s3_4">(</span>"Sue Gallagher"<span class="s3_4">)</span></p>
+                    <p class="p6_4"><span class="Apple-converted-space">  </span>..<span class="s7_4">joinOne</span>((<span class="s9_4">e</span>) =&gt; <span class="s9_4">e</span>.<span class="s4_4">manager</span>)</p>
+                    <p class="p6_4"><span class="Apple-converted-space">  </span>..<span class="s7_4">joinMany</span>((<span class="s9_4">e</span>) =&gt; <span class="s9_4">e</span>.<span class="s4_4">directReports</span>);</p>
+                    <p class="p3_4"><br></p>
+                    <p class="p4_4"><span class="s1_4">var </span>employee <span class="s3_4">= </span><span class="s1_4">await </span>query<span class="s3_4">.</span><span class="s7_4">fetchOne</span><span class="s3_4">();</span></p>
+                  </div>
+                </div>
+              </div>
+              </div>
+              <div class="item">
+                <div class="row feature-content">
+                  <div class="col-md-6 bordered-feature">
+                    <div class="row">
+                      <div class="col-md-4"></div>
+                      <div class="col-md-8">
+                        <h3><b>Construct</b> your data model clearly in code.</h3>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                  <div class="code-container" id="sample-5">
+                    <p class="p1_5"><span class="s1_5">class </span>Employee</p>
+                    <p class="p1_5"><span class="Apple-converted-space">    </span><span class="s1_5">extends </span>ManagedObject<span class="s2_5">&lt;</span>_Employee<span class="s2_5">&gt;</span></p>
+                    <p class="p2_5"><span class="s2_5"><span class="Apple-converted-space">    </span></span>implements <span class="s3_5">_Employee </span><span class="s2_5">{</span></p>
+                    <p class="p3_5"><span class="s2_5"><span class="Apple-converted-space">  </span></span><span class="s3_5">bool </span><span class="s1_5">get </span>wasRecentlyHired <span class="s2_5">{</span></p>
+                    <p class="p4_5"><span class="Apple-converted-space">    </span><span class="s1_5">var </span><span class="s4_5">now </span>= <span class="s1_5">new </span><span class="s3_5">DateTime</span>.<span class="s5_5"><b>now</b></span>();</p>
+                    <p class="p5_5"><span class="s2_5"><span class="Apple-converted-space">    </span></span><span class="s1_5">return </span>hireDate<span class="s2_5">.</span><span class="s6_5">difference</span><span class="s2_5">(</span><span class="s4_5">now</span><span class="s2_5">).</span>inDays <span class="s2_5">&lt; </span><span class="s7_5">30</span><span class="s2_5">;</span></p>
+                    <p class="p4_5"><span class="Apple-converted-space">  </span>}</p>
+                    <p class="p4_5">}</p>
+                    <p class="p6_5"><br></p>
+                    <p class="p1_5"><span class="s1_5">class </span>_Employee<span class="Apple-converted-space">  </span><span class="s2_5">{</span></p>
+                    <p class="p7_5"><span class="s2_5"><span class="Apple-converted-space">  </span></span>@managedPrimaryKey</p>
+                    <p class="p8_5"><span class="s8_5"><span class="Apple-converted-space">  </span></span><span class="s3_5">int </span>index<span class="s2_5">;</span></p>
+                    <p class="p6_5"><br></p>
+                    <p class="p7_5"><span class="s2_5"><span class="Apple-converted-space">  </span></span>@ManagedColumnAttributes(<span class="s9_5">indexed</span><span class="s2_5">: </span><span class="s1_5">true</span>)</p>
+                    <p class="p1_5"><span class="s8_5"><span class="Apple-converted-space">  </span></span>String <span class="s1_50">name</span><span class="s2_5">;</span></p>
+                    <p class="p6_5"><br></p>
+                    <p class="p1_5"><span class="s2_5"><span class="Apple-converted-space">  </span></span>DateTime <span class="s1_50">hireDate</span><span class="s2_5">;</span></p>
+                    <p class="p8_5"><span class="s2_5"><span class="Apple-converted-space">  </span></span><span class="s3_5">int </span>salary<span class="s2_5">;</span></p>
+                    <p class="p6_5"><br></p>
+                    <p class="p7_5"><span class="s2_5"><span class="Apple-converted-space">  </span></span>@ManagedRelationship(#employees)</p>
+                    <p class="p1_5"><span class="s8_5"><span class="Apple-converted-space">  </span></span>Company <span class="s1_50">company</span><span class="s2_5">;</span></p>
+                    <p class="p4_5">}</p>
+                  </div>
+                </div>
+                </div>
+              </div>
+              <div class="item">
+                <div class="row feature-content">
+                  <div class="col-md-6 bordered-feature">
+                    <div class="row">
+                      <div class="col-md-4"></div>
+                      <div class="col-md-8">
+                        <h3><b>Ensure</b> integrity with minimal effort.</h3>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                  <div class="code-container" id="sample-6">
+                    <p class="p1_6"><span class="s1_6">test</span><span class="s2_6">(</span>"/users/1 returns a user"<span class="s2_6">, () </span><span class="s3_6">async </span><span class="s2_6">{</span></p>
+                    <p class="p2_6"><span class="s2_6"><span class="Apple-converted-space">  </span></span><span class="s3_6">var </span>response <span class="s2_6">= </span><span class="s3_6">await </span>testClient</p>
+                    <p class="p3_6"><span class="s4_6"><span class="Apple-converted-space">      </span></span><span class="s2_6">.</span>authenticatedRequest<span class="s2_6">(</span><span class="s5_6">"/users/1"</span><span class="s2_6">).</span>get<span class="s2_6">();</span></p>
+                    <p class="p4_6"><br></p>
+                    <p class="p5_6"><span class="s2_6"><span class="Apple-converted-space">  </span></span>expect<span class="s2_6">(</span><span class="s4_6">response</span><span class="s2_6">, </span>hasResponse<span class="s2_6">(</span><span class="s6_6">200</span><span class="s2_6">, </span>partial<span class="s2_6">({</span></p>
+                    <p class="p6_6"><span class="Apple-converted-space">    </span><span class="s5_6">"id"</span>: <span class="s6_6">1</span>,</p>
+                    <p class="p7_6"><span class="s2_6"><span class="Apple-converted-space">    </span></span><span class="s5_6">"name"</span><span class="s2_6">: </span>isString</p>
+                    <p class="p6_6"><span class="s7_6"><span class="Apple-converted-space">  </span></span>})));</p>
+                    <p class="p6_6">});</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          </div>
+      </div>
+      <div class="row" id="getting-started">
+        <div class="col-md-6" id="getting-started-install">
+          <div class="center-block" style="width:450px;padding:20px">
+            <h2 class="text-center" style="color:#d6dadc;">Start creating.</h3>
+              <ol>
+                <li><h3><a href="https://www.dartlang.org/install">Install Dart</a></h3></li>
+                <li>
+                  <h3>Activate Aqueduct</h3>
+                  <pre><code class="lang-bash">
+pub global activate aqueduct
+                  </code></pre>
+                </li>
+                <li>
+                  <h3>Run first time setup</h3>
+                  <pre><code class="lang-bash">
+aqueduct setup
+                  </code></pre>
+                </li>
+                <li>
+                  <h3>Create a new project</h3>
+                  <pre><code class="lang-bash">
+aqueduct create my_project
+                  </code></pre>
+                </li>
+                <li>
+                  <h3>Open project directory with <a href="https://www.jetbrains.com/idea/download/">IntelliJ IDEA CE</a> or <a href="https://atom.io/">Atom</a></h3>
+                </li>
+                <li>
+                  <h3><a href="docs/deploy/overview">Run the application</a></h3>
+                </li>
+              </ol>
+            </div>
+          </div>
+          <div class="col-md-6" id="getting-started-doc">
+            <a href="docs/tut/getting-started">Guided Tutorial</a>
+            <a href="docs/">Documentation Guides</a>
+            <a href="https://www.dartdocs.org/documentation/aqueduct/latest">API Reference</a>
+            <a href="https://github.com/stablekernel/aqueduct">View on Github</a>
+            <a href="https://pub.dartlang.org/packages/aqueduct">View on Pub</>
+          </div>
+        </div>
+        <div class="row" id="footer">
+          <div class="col-md-3">
+            <img class="center-block" id="powered-by" src="http://aqueduct-stablekernel-com.stablekernel.staging.wpengine.com/wp-content/uploads/sites/3/2017/03/powered_by@2x.png"/>
+          </div>
+          <div class="col-md-3"></div>
+          <div class="col-md-3">
+            <ul>
+              <li><a href="http://info.stablekernel.com/aqueduct-stable-kernel-newsletter?hsCtaTracking=38cddba6-7fda-475c-9b91-421388cbf122%7Ca54e2993-c5b9-48b2-a134-8b354f1715e7">Sign up for newsletter</a></li>
+              <li><a href="https://www.youtube.com/watch?v=twr3cDFCeo4">Watch Dart Summit 2016 Presentation</a></li>
+              <li><a href="http://news.dartlang.org/2016/11/aqueduct-server-side-web-framework.html">Aqueduct on news.dartlang.org</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </nav>
+  </body>
+</html>
