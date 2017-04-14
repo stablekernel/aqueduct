@@ -117,7 +117,7 @@ a {
   background-repeat: no-repeat;
   background-attachment: fixed;
   background-size: 1440px 519px;
-  background-position: 10% bottom;
+  background-position: 10% 100%;
   background-color:#414042;
   background-image: url('../images/darkBG.png');
 }
@@ -166,14 +166,21 @@ a {
   list-style-type: none;
 }
 
-#footer {
-  background-image: url('../images/darkBG.png');
-  background-repeat: no-repeat;
+/*
+background-repeat: no-repeat;
+background-attachment: fixed;
+background-size: 1440px 519px;
+background-position: 10% bottom;
+background-color:#414042;
+background-image: url('../images/darkBG.png');
+*/
 
+#footer {
+  background-repeat: no-repeat;
+  background-attachment: fixed;
   background-size: 1440px 519px;
   background-position: 10% 100%;
-  background-attachment: fixed;
-
+  background-image: url('../images/darkBG.png');
   background-color: rgb(65, 64, 66);
   height: 400px;
 }
