@@ -1,15 +1,26 @@
+body {
+  font-family: 'Raleway', sans-serif;
+}
+
+ol {
+  list-style-type: decimal;
+}
+
 a {
   color: rgb(102, 188, 208);
 }
 
-#powered-by {
-  margin-top: 80px;
+.gs-content {
+  width: fit-content;
+  padding: 40px;
 }
 
 .bordered-feature h3 {
   font-size: 32px;
   color: #dddddd;
-  text-align:right;
+  text-align: right;
+  font-family: 'Raleway', sans-serif;
+  font-style: bold;
 }
 
 .bordered-feature h3 b {
@@ -21,7 +32,7 @@ a {
 }
 
 .navbar-default {
-    margin-bottom: 0px;
+  margin-bottom: 0px;
 }
 
 .bordered-feature {
@@ -42,13 +53,14 @@ a {
 }
 
 .navbar .nav > li > a {
+  font-size: 16px;
+  font-family: 'Raleway-SemiBold', sans-serif;
   color: #d6dadc;
 }
 
 .navbar .nav > li > a:hover {
   color: white;
 }
-
 
 #brand-logo {
   padding-top: 20px;
@@ -59,6 +71,7 @@ a {
 
 .code-container  {
   padding-left: 50px;
+  width: fit-content;
 }
 
 .feature-header {
@@ -100,21 +113,12 @@ a {
   background-attachment: fixed;
   background-size: 1440px 519px;
   background-position: 10% bottom;
-  /*background-color: rgb(255, 255, 255);*/
   background-color:#414042;
-  background-image: url(http://aqueduct-stablekernel-com.stablekernel.staging.wpengine.com/wp-content/uploads/sites/3/2017/03/darkBG.png);
+  background-image: url('../images/darkBG.png');
 }
-
 
 #getting-started {
-  background-color: #d6dadc;
-}
-
-#getting-started-install {
-  background-color: #414042;
-}
-
-#getting-started-doc {
+  background-color: #272628;
 }
 
 #getting-started li {
@@ -122,24 +126,43 @@ a {
   color: #d6dadc;
 }
 
+#getting-started h2 {
+  padding-bottom: 24px;
+  color: #d6dadc;
+}
+
 #getting-started h3 {
   color: #d6dadc;
+  font-size: 1em;
 }
 
 #getting-started pre {
-  font: menlo;
+  font: Menlo, monospace;
   color: #d6dadc;
   background-color: inherit;
   border: none;
+  padding: 0;
 }
 
-#doc-panel {
-  background-color: #d6dadc;
-  height: 346px;
+#getting-started-install {
+  background-color: #4B4A4C;
+}
+
+#getting-started-doc {
+  height: 100%;
+}
+
+#getting-started-doc ul {
+  font-size: 1em;
+}
+
+#getting-started-doc li {
+  margin-bottom: 1em;
+  list-style-type: none;
 }
 
 #footer {
-  background-image: url(http://aqueduct-stablekernel-com.stablekernel.staging.wpengine.com/wp-content/uploads/sites/3/2017/03/darkBG.png);
+  background-image: url('../images/darkBG.png');
   background-repeat: no-repeat;
 
   background-size: 1440px 519px;
@@ -147,7 +170,25 @@ a {
   background-attachment: fixed;
 
   background-color: rgb(65, 64, 66);
-  height: 346px;
+  height: 400px;
+}
+
+#footer-logo {
+  padding-top: 70px;
+}
+
+#footer-links {
+  padding-top: 40px;
+}
+
+#footer-links ul {
+  font-size: 1.2em;
+  width: fit-content;
+}
+
+#footer-links li {
+  margin-bottom: 1em;
+  list-style-type: none;
 }
 
 
@@ -160,27 +201,19 @@ a {
   }
 }
 
+@media screen and (max-width:480px) {
+  .code-container p {
+    font: 11.0px Menlo, monospace;
+  }
+}
+
+@media screen and (max-width:991px) and (min-width:481px) {
+  .code-container p {
+    font: 13.0px Menlo, monospace;
+  }
+}
 
 @media screen and (max-width:991px) {
-  #sample-1 {
-    width: 384px;
-  }
-  #sample-2 {
-    width: 384px;
-  }
-  #sample-3 {
-    width: 370px;
-  }
-  #sample-4 {
-    width: 361px;
-  }
-  #sample-5 {
-    width: 376px;
-  }
-  #sample-6 {
-    width: 364px;
-  }
-
   .code-container {
     display: block;
     margin-left: auto;
@@ -189,9 +222,7 @@ a {
     padding-left: 0px;
     padding-right: 0px;
   }
-  .code-container p {
-    font: 13.0px Menlo;
-  }
+
   .bordered-feature h3 {
     margin-left: 34px;
     font-size: 32px;
@@ -207,10 +238,14 @@ a {
     padding-top: 40px;
   }
 
+  #footer-links li {
+    text-align: center;
+  }
+
 }
 
 @media screen and (min-width:992px) {
   .code-container p {
-    font: 15.0px Menlo;
+    font: 15.0px Menlo, monospace;
   }
 }
