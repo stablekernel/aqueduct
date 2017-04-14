@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:isolate';
 
 import 'package:aqueduct/aqueduct.dart';
-import 'package:aqueduct/src/db/schema/migration_builder.dart';
 import 'package:test/test.dart';
 
 void main() {

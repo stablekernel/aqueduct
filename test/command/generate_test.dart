@@ -696,6 +696,37 @@ void main() {
     });
 
     test("Cannot add existing table", () async {
+      var schemas = [
+        new Schema.empty(),
+        new Schema([
+          new SchemaTable("u", [
+            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
+            new SchemaColumn.relationship("ref", ManagedPropertyType.integer, relatedTableName: "t", relatedColumnName: "id"),
+          ]),
+          new SchemaTable("t", [
+            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
+          ]),
+        ]),
+        new Schema([
+          new SchemaTable("v", [
+            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
+          ]),
+          new SchemaTable("u", [
+            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
+            new SchemaColumn.relationship("ref", ManagedPropertyType.integer, relatedTableName: "v", relatedColumnName: "id"),
+          ]),
+          new SchemaTable("t", [
+            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
+          ]),
+        ]),
+      ];
+
+      try {
+        await writeMigrations(migrationDirectory, schemas);
+        expect(true, false);
+      } catch (e) {
+        print("$e");
+      }
     });
 
     test("Cannot delete unknown table", () async {
@@ -750,6 +781,8 @@ void main() {
       } catch (e) {
         print("$e");
       }
+
+      fail("invalid");
     });
 
     test("Cannot change relatedColumn", () async {
