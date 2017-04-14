@@ -31,6 +31,9 @@ a {
   padding-top: 80px;
 }
 
+.navbar {
+  border: none;
+}
 .navbar-default {
   margin-bottom: 0px;
 }
