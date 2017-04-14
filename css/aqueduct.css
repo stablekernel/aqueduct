@@ -12,6 +12,7 @@ a {
 
 .gs-content {
   width: fit-content;
+  width: -webkit-fit-content;
   padding: 40px;
 }
 
@@ -75,6 +76,7 @@ a {
 .code-container  {
   padding-left: 50px;
   width: fit-content;
+  width: -webkit-fit-content;
 }
 
 .feature-header {
@@ -187,6 +189,7 @@ a {
 #footer-links ul {
   font-size: 1.2em;
   width: fit-content;
+  width: -webkit-fit-content;
 }
 
 #footer-links li {
