@@ -19,4 +19,4 @@ Aqueduct responds to HTTP requests. The main concepts and tasks are:
 - [The RequestSink](request_sink.md)
 - [Routing](routing.md)
 - [HTTPControllers](http_controller.md)
-- [CORS Configuration](cors.md)
+- [CORS Configuration](configure.md)

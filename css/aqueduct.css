@@ -85,6 +85,14 @@ a {
   margin-top: 40px;
 }
 
+.carousel-control.left {
+  background-image: none;
+}
+
+.carousel-control.right {
+  background-image: none;
+}
+
 .carousel-indicators li {
   background-color: white;
 }

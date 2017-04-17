@@ -24,7 +24,7 @@ pages:
   - 'Routing': 'http/routing.md'
   - 'Initialization and the RequestSink': 'http/request_sink.md'
   - 'Handling Requests: HTTPController': 'http/http_controller.md'
-  - 'CORS Configuration': 'http/cors.md'
+  - 'CORS Configuration': 'http/configure.md'
 - Database/ORM:
   - 'Overview': 'db/overview.md'
   - 'Modeling Data': 'db/modeling_data.md'
