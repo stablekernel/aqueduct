@@ -54,7 +54,7 @@ Every `Query<T>` has a `values` property that is the type of managed object bein
 INSERT INTO _user (name, email) VALUES ('Bob', 'bob@stablekernel.com')
 ```
 
-Note there is no value provided for the `id` property in this query. Recall that `managedPrimaryKey` metadata is a convenience for `ManagedColumnAttributes` with `autoincrementing` behavior. Therefore, the database will assign a value for `id` during insertion. The object returned from `insert()` will be an instance of `User` that represents the inserted row. Thus, the returned `User` will have all of the values that were set in `Query<T>.values` as well as the auto-generated `id` value.
+Note there is no value provided for the `id` property in this query. Recall that `managedPrimaryKey` metadata is a convenience for `ManagedColumnAttributes` with autoincrementing behavior. Therefore, the database will assign a value for `id` during insertion. The object returned from `insert()` will be an instance of `User` that represents the inserted row. Thus, the returned `User` will have all of the values that were set in `Query<T>.values` as well as the auto-generated `id` value.
 
 Properties that are not set in the `values` property will not be sent to the database. Values that are explicitly set to `null` will be sent as `NULL`. For example, consider the following `Query<T>`:
 

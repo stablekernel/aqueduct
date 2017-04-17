@@ -36,7 +36,7 @@ If the header can't be parsed, doesn't exist or is in the wrong format, an `Auth
 
 Once parsed, an `Authorizer` sends the information - either the bearer token, or the username and password - to an `AuthServer` for verification. If the `AuthServer` rejects the authorization info, the `Authorizer` responds to the request with a 401 status code and prevents the next controller from receiving the request. Otherwise, the request continues to the next controller.
 
-The type of `Authorizer` - `bearer` or `basic` - determines how the `AuthServer` verifies the information.
+The type of `Authorizer` - `AuthStrategy.bearer` or `AuthStrategy.basic` - determines how the `AuthServer` verifies the information.
 
 For `Authorizer.bearer` authorizers, the value in a request's header must be a valid, unexpired access token. These types of authorizers are used when an endpoint requires a logged in user.
 

@@ -83,7 +83,6 @@ class Preparer {
     }
 
     if (possible == null) {
-      print("No match found for $symbol");
       return null;
     }
 
@@ -160,6 +159,7 @@ class Preparer {
     var intermediateDirectory = new Directory.fromUri(outputDirectory.uri.resolve("intermediate/"));
     await intermediateDirectory.create(recursive: true);
 
+    List<String> missingSymbols = [];
     var files = documents;
     var regex = new RegExp("`([A-Za-z0-9_\\.]+)`");
 
@@ -174,6 +174,8 @@ class Preparer {
           if (resolution != null) {
             var replacement = constructedReferenceURLFrom(baseReferenceURL, resolution.link.split("/"));
             contents = contents.replaceRange(match.start, match.end, "<a href=\"$replacement\">${symbol}</a>");
+          } else {
+            missingSymbols.add(symbol);
           }
         });
 
@@ -188,6 +190,9 @@ class Preparer {
       });
 
     await Future.wait(fileOps);
+
+    print("Unknown symbols: ");
+    print("${missingSymbols.join(", ")}");
   }
 
   List<String> relativePathComponents(Uri base, Uri path) {
@@ -204,7 +209,7 @@ class Preparer {
 
     var result = await process.exitCode;
     if (result != 0) {
-      throw new Exception("Command '$command' failed with exit code ${result.exitCode}");
+      throw new Exception("Command '$command' failed with exit code ${process.exitCode}");
     }
   }
 }

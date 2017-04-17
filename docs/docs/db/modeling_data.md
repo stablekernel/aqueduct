@@ -245,7 +245,7 @@ class _Profile {
 }
 ```
 
-By default, the delete rule is `nullify` (it is the least destructive action) and required is `false`. If you try and set up a relationship where the `ManagedRelationship` is both `nullify` and `required`, you will get an exception during startup: if the foreign key column can't be null and deleting the related object would nullify the foreign key column... well, that wouldn't work.
+By default, the delete rule is `ManagedRelationshipDeleteRule.nullify` (it is the least destructive action) and required is `false`. If you try and set up a relationship where the `ManagedRelationship` is both `ManagedRelationshipDeleteRule.nullify` and `isRequired`, you will get an exception during startup: if the foreign key column can't be null and deleting the related object would nullify the foreign key column... well, that wouldn't work.
 
 When fetching managed objects from a database, there are rules on which relationship properties are fetched. By default, any 'has-one' or 'has-many' relationships are *not* fetched from the database:
 

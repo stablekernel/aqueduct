@@ -33,7 +33,7 @@ Conceptually, this works by sorting the rows in descending order - larger times 
 
 When paging, the query must have a `fetchLimit` - otherwise you're just sorting and returning every row. The `pageBy` method takes a closure to identify which property is being used to sort the rows. This closure will be passed an instance of `Post` and it must return one of its properties. This pattern of using a closure to identify a property like this is common to all of the advanced querying methods. The reason it is done this way is to let the analyzer help you catch errors in query building and the code completion to kick in and write faster code.
 
-The next argument to `pageBy` defines the order the rows will be sorted in. Without a `boundingValue`, `pageBy` returns rows starting from the beginning of the sorted list of rows. Therefore, when no bounding value is passed, the "first page" of rows is returned. With a `boundingValue`, the query returns rows starting from the first row past the bounding value. The `boundingValue` is not inclusive. For example, consider the following table and a `fetchLimit` of 2.
+The next argument to `pageBy` defines the order the rows will be sorted in. Without a bounding value, `pageBy` returns rows starting from the beginning of the sorted list of rows. Therefore, when no bounding value is passed, the "first page" of rows is returned. With a bounding value, the query returns rows starting from the first row past the bounding value. The bounding value is not inclusive. For example, consider the following table and a `fetchLimit` of 2.
 
 id|dateCreated
 --|--------------
@@ -42,7 +42,7 @@ id|dateCreated
 3|Jan 3
 4|Jan 4
 
-The first query would return `Jan 1` and `Jan 2`. In the next query, `boundingValue` is set to `Jan 2`. The query would start grabbing rows from after Jan 2:
+The first query would return `Jan 1` and `Jan 2`. In the next query, bounding value is set to `Jan 2`. The query would start grabbing rows from after Jan 2:
 
 id | dateCreated
 ---|-------------
@@ -66,7 +66,7 @@ int pageableProperty;
 
 More often than not, fetching every row of a table doesn't make sense. Instead, the desired result is a specific object or set of objects matching some condition. Aqueduct offers two ways to perform this filtering, both of which translate to a SQL *where clause*.
 
-The first option is the least prohibitive, the most prone to error and the most difficult to maintain: a `Query<T>.predicate`. A `Predicate` is a `String` that is added to the underlying query's where clause. A `Predicate` has two properties, a format string and a `Map<String, dynamic>` of parameter values. The `format` string can (and should) parameterize any input values. Parameters are indicated in the format string using the `@` token:
+The first option is the least prohibitive, the most prone to error and the most difficult to maintain: a `Query<T>.predicate`. A `QueryPredicate` is a `String` that is added to the underlying query's where clause. A `QueryPredicate` has two properties, a format string and a `Map<String, dynamic>` of parameter values. The `format` string can (and should) parameterize any input values. Parameters are indicated in the format string using the `@` token:
 
 ```dart
 // Creates a predicate that would only include instances where some column "id" is less than 2
@@ -75,7 +75,7 @@ var predicate = new Predicate("id < @idVariable", {"idVariable" : 2});
 
 The text following the `@` token may contain `[A-Za-z0-9_]`. The resulting where clause will be formed by replacing each token with the matching key in the parameters map. The value is not transformed in any way, so it must be the appropriate type for the property it is filtering by. If a key is not present in the `Map`, an exception will be thrown. Extra keys will be ignored.
 
-A raw `Predicate` like this one suffers from a few issues. First, predicates are *database specific* that is, after the values from the `parameters` are added to the `format` string, the resulting `String` is evaluated as-is by the underlying database. Perhaps more importantly, there is nothing to verify that the `Predicate` refers to the appropriate column names or that the data in the `parameters` is the right type. This can cause chaos when refactoring code, where a simple name change to a property would break a query. This option is primarily intended to be used as a fallback if `Query<T>.where` is incapable of expressing the desired SQL.
+A raw `QueryPredicate` like this one suffers from a few issues. First, predicates are *database specific* that is, after the values from the `parameters` are added to the `format` string, the resulting `String` is evaluated as-is by the underlying database. Perhaps more importantly, there is nothing to verify that the `QueryPredicate` refers to the appropriate column names or that the data in the `parameters` is the right type. This can cause chaos when refactoring code, where a simple name change to a property would break a query. This option is primarily intended to be used as a fallback if `Query<T>.where` is incapable of expressing the desired SQL.
 
 The `where` property of a `Query<T>` is a much safer and more elegant way to build a query. The `where` property allows you to assign *matchers* to the properties of a `ManagedObject<T>`. A matcher applies a condition - like equal to or less than - to the property it is assigned to. (This follows the same Hamcrest matcher style that the Dart test framework uses.)
 
