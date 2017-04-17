@@ -166,15 +166,6 @@ a {
   list-style-type: none;
 }
 
-/*
-background-repeat: no-repeat;
-background-attachment: fixed;
-background-size: 1440px 519px;
-background-position: 10% bottom;
-background-color:#414042;
-background-image: url('../images/darkBG.png');
-*/
-
 #footer {
   background-repeat: no-repeat;
   background-attachment: fixed;
