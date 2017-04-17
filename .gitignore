@@ -1,3 +1,5 @@
+.packages
+.idea/
 .DS_Store
 site/
 build/
