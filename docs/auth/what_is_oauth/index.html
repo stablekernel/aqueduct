@@ -382,7 +382,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../http/cors/" title="CORS Configuration" class="md-nav__link">
+    <a href="../../http/configure/" title="CORS Configuration" class="md-nav__link">
       CORS Configuration
     </a>
   </li>
@@ -866,7 +866,7 @@
 <h3 id="other-methods-for-obtaining-authorization">Other Methods for Obtaining Authorization</h3>
 <p>The method of getting a token above - sending a username and password to <code>/auth/token</code> - is just one of four possible methods OAuth 2.0 uses to authenticate a user. This particular one is called the <em>resource owner password credentials grant</em>. A resource owner is a fancy word for a 'user'. We can shorten it up to just the 'password flow'. It's probably the most common flow - mobiles applications and front-end web applications often use this flow. When you enter your credentials, the client application sends them directly to the server.</p>
 <p>The other commonly used flow prevents the client application from ever seeing the user's credentials. For example, you might sign into Pivotal Tracker with your Google account. Your account on Pivotal Tracker doesn't have a password. Instead, it is linked to your Google account - which does. Pivotal Tracker never sees your Google password. When you login to Pivotal Tracker in this way, it takes you to Google's authentication page - owned and operated by Google. When you login successfully, Google gives Pivotal Tracker your token. Pivotal Tracker is now an application that can do things on your behalf.</p>
-<p>This is called the <em>authorization code grant</em> - or just 'auth code flow'. An instance of <code>AuthCodeController</code> handles granting authorization codes. Once a code is received, it can be exchanged via an <code>AuthController</code>.</p>
+<p>This is called the <em>authorization code grant</em> - or just 'auth code flow'. An instance of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/AuthCodeController-class.html">AuthCodeController</a> handles granting authorization codes. Once a code is received, it can be exchanged via an <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/AuthController-class.html">AuthController</a>.</p>
               
               
             </article>

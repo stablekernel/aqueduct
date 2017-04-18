@@ -392,9 +392,41 @@
       
     
     
+      <label class="md-nav__link md-nav__link--active" for="toc">
+        CORS Configuration
+      </label>
+    
     <a href="./" title="CORS Configuration" class="md-nav__link md-nav__link--active">
       CORS Configuration
     </a>
+    
+      
+<nav class="md-nav md-nav--secondary">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#configuring-cors" title="Configuring CORS" class="md-nav__link">
+    Configuring CORS
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuring-https" title="Configuring HTTPS" class="md-nav__link">
+    Configuring HTTPS
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
     
   </li>
 
@@ -769,6 +801,25 @@
     
   
   
+    <label class="md-nav__title" for="toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#configuring-cors" title="Configuring CORS" class="md-nav__link">
+    Configuring CORS
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuring-https" title="Configuring HTTPS" class="md-nav__link">
+    Configuring HTTPS
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -778,14 +829,16 @@
           <div class="md-content">
             <article class="md-content__inner md-typeset">
                
-                 <a href="https://github.com/stablekernel/aqueduct/edit/master/docs/http/cors.md" title="Edit this page" class="md-icon md-content__edit">edit</a>
+                 <a href="https://github.com/stablekernel/aqueduct/edit/master/docs/http/configure.md" title="Edit this page" class="md-icon md-content__edit">edit</a>
                
               
                 
-                <h1 id="configuring-cors">Configuring CORS</h1>
-<p>All request controllers have built-in behavior for handling CORS requests from a browser. When a preflight request is received from a browser (an OPTIONS request with Access-Control-Request-Method header and Origin headers), any request controller receiving this request will immediately pass it on to its <code>nextController</code>. The final controller listening to the stream will use its policy to validate and return a response to the HTTP client. This allows the final responding controller - typically a subclass of <code>HTTPController</code> - to determine CORS policy.</p>
-<p>Every <code>RequestController</code> has a <code>policy</code> property, of type <code>CORSPolicy</code>. The <code>policy</code> has properties for configuring CORS options for that particular endpoint. By having a <code>policy</code>, every <code>RequestController</code> automatically implements logic to respond to preflight requests without any additional code.</p>
-<p>Policies can be set at the controller level or at the application level. The static property <code>CORSPolicy.defaultPolicy</code> can be modified at initialization time to set the CORS options for every controller.</p>
+                <h1 id="configuring-an-aqueduct-application">Configuring an Aqueduct Application</h1>
+<p>This guide covers CORS and HTTPS.</p>
+<h2 id="configuring-cors">Configuring CORS</h2>
+<p>All request controllers have built-in behavior for handling CORS requests from a browser. When a preflight request is received from a browser (an OPTIONS request with Access-Control-Request-Method header and Origin headers), any request controller receiving this request will immediately pass it on to its <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController/nextController.html">nextController</a>. The final controller listening to the stream will use its policy to validate and return a response to the HTTP client. This allows the final responding controller - typically a subclass of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a> - to determine CORS policy.</p>
+<p>Every <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a> has a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController/policy.html">policy</a> property, of type <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/CORSPolicy-class.html">CORSPolicy</a>. The <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController/policy.html">policy</a> has properties for configuring CORS options for that particular endpoint. By having a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController/policy.html">policy</a>, every <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a> automatically implements logic to respond to preflight requests without any additional code.</p>
+<p>Policies can be set at the controller level or at the application level. The static property <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/CORSPolicy/defaultPolicy.html">CORSPolicy.defaultPolicy</a> can be modified at initialization time to set the CORS options for every controller.</p>
 <div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">MyRequestSink</span> <span class="kd">extends</span> <span class="n">RequestSink</span> <span class="p">{</span>
   <span class="n">MyRequestSink</span><span class="p">(</span><span class="n">ApplicationConfiguration</span> <span class="n">config</span><span class="p">)</span> <span class="o">:</span> <span class="k">super</span><span class="p">(</span><span class="n">config</span><span class="p">)</span> <span class="p">{</span>
     <span class="n">CORSPolicy</span><span class="p">.</span><span class="n">defaultPolicy</span><span class="p">.</span><span class="n">allowedOrigins</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;http://mywebsite.com/&quot;</span><span class="p">];</span>
@@ -795,10 +848,31 @@
 
 
 <p>The default policy is very permissive: POST, PUT, DELETE and GET are allowed methods. All origins are valid (*).</p>
-<p>Each individual controller can override or replace the default policy by modifying its own <code>policy</code> in its constructor.</p>
+<p>Each individual controller can override or replace the default policy by modifying its own <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController/policy.html">policy</a> in its constructor.</p>
 <div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">MyHTTPController</span> <span class="kd">extends</span> <span class="n">HTTPController</span> <span class="p">{</span>
   <span class="n">MyHTTPController</span><span class="p">()</span> <span class="p">{</span>
     <span class="n">policy</span><span class="p">.</span><span class="n">allowedMethods</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;POST&quot;</span><span class="p">];</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<h2 id="configuring-https">Configuring HTTPS</h2>
+<p>By default, an Aqueduct application does not use HTTPS. In many cases, an Aqueduct application sits behind an SSL-enabled load balancer or some other proxy. The traffic from the load balancer is sent to the Aqueduct application unencrypted over HTTP.</p>
+<p>However, Aqueduct may be configured to manage HTTPS connections itself. By passing the value private key and SSL certificate paths as options to <code>--ssl-key-path</code> <em>and</em> <code>--ssl-certificate-path</code> in <code>aqueduct serve</code>, an Aqueduct application will configure itself to only allow HTTPS connections.</p>
+<div class="codehilite"><pre><span></span>aqueduct serve --ssl-key-path server.key.pem --ssl-certificate-path server.cert.pem
+</pre></div>
+
+
+<p>Both the key and certificate file must be unencrypted PEM files, and both must be provided to this command. These files are typically issued by a "Certificate Authority", such as <a href="../letsencrypt.org">letsencrypt.org</a>.</p>
+<p>When an application is started with these options, the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationConfiguration/certificateFilePath.html">certificateFilePath</a> and <code>keyFilePath</code> are set on the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationConfiguration-class.html">ApplicationConfiguration</a> your application is being run with. (If you are not using <code>aqueduct serve</code>, you can set these values directly when instantiating <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationConfiguration-class.html">ApplicationConfiguration</a>.)</p>
+<p>For more granular control over setting up an HTTPS server, you may override <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink/securityContext.html">securityContext</a> in <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a>. By default, this property will create a <code>SecurityContext</code> from the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationConfiguration/certificateFilePath.html">certificateFilePath</a> and <code>keyFilePath</code> in the sink's <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Application/configuration.html">configuration</a>. A <code>SecurityContext</code> allows for password-encrypted credential files, configuring client certificates and other less used HTTPS schemes.</p>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">MyRequestSink</span> <span class="kd">extends</span> <span class="n">RequestSink</span> <span class="p">{</span>
+  <span class="err">@</span><span class="n">override</span>
+  <span class="n">SecurityContext</span> <span class="kd">get</span> <span class="n">securityContext</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="k">new</span> <span class="n">SecurityContext</span><span class="p">()</span>
+      <span class="p">..</span><span class="n">usePrivateKey</span><span class="p">(</span><span class="s2">&quot;server.key&quot;</span><span class="p">,</span> <span class="nl">password:</span> <span class="s2">&quot;1234&quot;</span><span class="p">)</span>
+      <span class="p">..</span><span class="n">useCertificateChain</span><span class="p">(</span><span class="s2">&quot;server.crt&quot;</span><span class="p">,</span> <span class="nl">password:</span> <span class="s2">&quot;1234&quot;</span><span class="p">);</span>
   <span class="p">}</span>
 <span class="p">}</span>
 </pre></div>

@@ -382,7 +382,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../http/cors/" title="CORS Configuration" class="md-nav__link">
+    <a href="../../http/configure/" title="CORS Configuration" class="md-nav__link">
       CORS Configuration
     </a>
   </li>
@@ -835,7 +835,7 @@
                 
                 <h1 id="verify-requests-with-testclient">Verify Requests with TestClient</h1>
 <p>Setting up a <a href="../harness/">Test Harness</a> is required for testing Aqueduct applications. Once a test harness is set up, tests are comprised of issuing HTTP requests to the application, verifying responses, and sometimes checking external data sources for desired changes.</p>
-<p>HTTP requests are issued through an instance of <code>TestClient</code>. A <code>TestApplication</code> harness has a <code>client</code> property of this type. Starting a <code>TestApplication</code> configures the <code>TestClient</code> so that its requests go to your application. There are three execution methods on <code>TestClient</code>, the most basic being <code>request</code>:</p>
+<p>HTTP requests are issued through an instance of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.test/TestClient-class.html">TestClient</a>. A <code>TestApplication</code> harness has a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/AuthServerException/client.html">client</a> property of this type. Starting a <code>TestApplication</code> configures the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.test/TestClient-class.html">TestClient</a> so that its requests go to your application. There are three execution methods on <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.test/TestClient-class.html">TestClient</a>, the most basic being <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController/request.html">request</a>:</p>
 <div class="codehilite"><pre><span></span><span class="n">test</span><span class="p">(</span><span class="s2">&quot;Test that this endpoint returns 200&quot;</span><span class="p">,</span> <span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
   <span class="kd">var</span> <span class="n">response</span> <span class="o">=</span> <span class="n">app</span><span class="p">.</span><span class="n">client</span><span class="p">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;/endpoint&quot;</span><span class="p">).</span><span class="kd">get</span><span class="p">();</span>
   <span class="n">expect</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="n">hasStatus</span><span class="p">(</span><span class="m">200</span><span class="p">));</span>
@@ -843,7 +843,7 @@
 </pre></div>
 
 
-<p>The <code>request</code> method creates a new instance of <code>TestRequest</code>. A <code>TestRequest</code> is an object that represents an HTTP request, and it has execution methods like <code>get</code>, <code>post</code>, etc. as well as properties for setting headers, query parameters and an HTTP body. Here's a configured <code>TestRequest</code>:</p>
+<p>The <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController/request.html">request</a> method creates a new instance of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.test/TestRequest-class.html">TestRequest</a>. A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.test/TestRequest-class.html">TestRequest</a> is an object that represents an HTTP request, and it has execution methods like <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.test/TestRequest/get.html">get</a>, <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.test/TestRequest/post.html">post</a>, etc. as well as properties for setting headers, query parameters and an HTTP body. Here's a configured <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.test/TestRequest-class.html">TestRequest</a>:</p>
 <div class="codehilite"><pre><span></span><span class="n">app</span><span class="p">.</span><span class="n">client</span><span class="p">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;/endpoint&quot;</span><span class="p">)</span>
   <span class="p">..</span><span class="n">queryParameters</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;q&quot;</span><span class="o">:</span> <span class="m">1</span><span class="p">},</span>
   <span class="p">..</span><span class="n">headers</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;Header&quot;</span><span class="o">:</span> <span class="s2">&quot;value&quot;</span><span class="p">}</span>
@@ -867,9 +867,9 @@
 </pre></div>
 
 
-<p>A similar property named <code>formData</code> exists for <code>x-www-form-urlencoded</code> bodies.</p>
-<p>The other two variants of <code>request</code> are <code>clientAuthenticatedRequest</code> and <code>authenticatedRequest</code>. A <code>clientAuthenticatedRequest</code> includes a Basic Authorization header, while an <code>authenticatedRequest</code> includes a Bearer Authorization header.</p>
-<p>A <code>TestClient</code> has default values for both bearer and basic authorization headers. For example, the test harness sets the default credentials for a <code>clientAuthenticatedRequest</code> to the testing client ID. When creating a <code>clientAuthenticatedRequest</code> and not specifying the client ID and secret, those values are used:</p>
+<p>A similar property named <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.test/TestRequest/formData.html">formData</a> exists for <code>x-www-form-urlencoded</code> bodies.</p>
+<p>The other two variants of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController/request.html">request</a> are <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.test/TestClient/clientAuthenticatedRequest.html">clientAuthenticatedRequest</a> and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.test/TestClient/authenticatedRequest.html">authenticatedRequest</a>. A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.test/TestClient/clientAuthenticatedRequest.html">clientAuthenticatedRequest</a> includes a Basic Authorization header, while an <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.test/TestClient/authenticatedRequest.html">authenticatedRequest</a> includes a Bearer Authorization header.</p>
+<p>A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.test/TestClient-class.html">TestClient</a> has default values for both bearer and basic authorization headers. For example, the test harness sets the default credentials for a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.test/TestClient/clientAuthenticatedRequest.html">clientAuthenticatedRequest</a> to the testing client ID. When creating a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.test/TestClient/clientAuthenticatedRequest.html">clientAuthenticatedRequest</a> and not specifying the client ID and secret, those values are used:</p>
 <div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">request</span> <span class="o">=</span> <span class="n">app</span><span class="p">.</span><span class="n">client</span><span class="p">.</span><span class="n">clientAuthenticatedRequest</span><span class="p">(</span><span class="s2">&quot;/endpoint&quot;</span><span class="p">);</span>
 <span class="c1">// request&#39;s authorization header is: Basic base64(com.aqueduct.test:kilimanjaro)</span>
 </pre></div>
@@ -881,7 +881,7 @@
 </pre></div>
 
 
-<p>The same goes for <code>authenticatedRequest</code>, except that there is no default value to begin with. It often makes sense to create a 'user' during the setup of tests and then set the default bearer token to that user's granted token:</p>
+<p>The same goes for <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.test/TestClient/authenticatedRequest.html">authenticatedRequest</a>, except that there is no default value to begin with. It often makes sense to create a 'user' during the setup of tests and then set the default bearer token to that user's granted token:</p>
 <div class="codehilite"><pre><span></span><span class="n">setUp</span><span class="p">(()</span> <span class="kd">async</span> <span class="p">{</span>
   <span class="kd">await</span> <span class="n">app</span><span class="p">.</span><span class="n">start</span><span class="p">();</span>
 
@@ -906,7 +906,7 @@
 
 <p>It's often useful to move this code into a method in the <code>TestApplication</code> itself.</p>
 <h3 id="matching-responses">Matching Responses</h3>
-<p>Tests for an Aqueduct application usually involve sending a request and verifying the response is what you expected. When a <code>TestRequest</code> is executed with a method like <code>get</code>, a <code>TestResponse</code> is returned. A <code>TestResponse</code> can be cherry-picked for information to validate, but there are also special test matchers in the <code>aqueduct/test</code> library. (This library is exported from the test harness file that ships with applications created by <code>aqueduct create</code>.)</p>
+<p>Tests for an Aqueduct application usually involve sending a request and verifying the response is what you expected. When a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.test/TestRequest-class.html">TestRequest</a> is executed with a method like <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.test/TestRequest/get.html">get</a>, a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.test/TestResponse-class.html">TestResponse</a> is returned. A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.test/TestResponse-class.html">TestResponse</a> can be cherry-picked for information to validate, but there are also special test matchers in the <code>aqueduct/test</code> library. (This library is exported from the test harness file that ships with applications created by <code>aqueduct create</code>.)</p>
 <p>An example of a test that verifies a 200 status code response looks like this:</p>
 <div class="codehilite"><pre><span></span><span class="n">test</span><span class="p">(</span><span class="s2">&quot;Get 200&quot;</span><span class="p">,</span> <span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
   <span class="kd">var</span> <span class="n">response</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">app</span><span class="p">.</span><span class="n">client</span><span class="p">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;/endpoint&quot;</span><span class="p">).</span><span class="kd">get</span><span class="p">();</span>
@@ -915,7 +915,7 @@
 </pre></div>
 
 
-<p><code>hasStatus</code> is an Aqueduct matcher. It verifies that a <code>TestResponse</code>'s status code is 200. It's more likely that you are interested in verifying the body of a response using the <code>hasResponse</code> matcher. This matcher checks everything about a response.</p>
+<p><a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.test/hasStatus.html">hasStatus</a> is an Aqueduct matcher. It verifies that a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.test/TestResponse-class.html">TestResponse</a>'s status code is 200. It's more likely that you are interested in verifying the body of a response using the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.test/hasResponse.html">hasResponse</a> matcher. This matcher checks everything about a response.</p>
 <div class="codehilite"><pre><span></span><span class="n">test</span><span class="p">(</span><span class="s2">&quot;Get 200 with key value pair&quot;</span><span class="p">,</span> <span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
   <span class="kd">var</span> <span class="n">response</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">app</span><span class="p">.</span><span class="n">client</span><span class="p">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;/endpoint&quot;</span><span class="p">).</span><span class="kd">get</span><span class="p">();</span>
   <span class="n">expect</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="n">hasResponse</span><span class="p">(</span><span class="m">200</span><span class="p">,</span> <span class="p">{</span>
@@ -925,8 +925,8 @@
 </pre></div>
 
 
-<p>This will validate that not only does the response have a 200 status code, but its body - after decoding - is a <code>Map</code> that contains <code>key: value</code>. A <code>TestResponse</code> automatically decodes its HTTP body according to the Content-Type response header.</p>
-<p>Matchers from the official Dart test package can be mixed and matched into <code>hasResponse</code>:</p>
+<p>This will validate that not only does the response have a 200 status code, but its body - after decoding - is a <code>Map</code> that contains <code>key: value</code>. A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.test/TestResponse-class.html">TestResponse</a> automatically decodes its HTTP body according to the Content-Type response header.</p>
+<p>Matchers from the official Dart test package can be mixed and matched into <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.test/hasResponse.html">hasResponse</a>:</p>
 <div class="codehilite"><pre><span></span><span class="n">test</span><span class="p">(</span><span class="s2">&quot;Get 200 with key value pair&quot;</span><span class="p">,</span> <span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
   <span class="kd">var</span> <span class="n">response</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">app</span><span class="p">.</span><span class="n">client</span><span class="p">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;/endpoint&quot;</span><span class="p">).</span><span class="kd">get</span><span class="p">();</span>
   <span class="n">expect</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="n">hasResponse</span><span class="p">(</span><span class="m">200</span><span class="p">,</span> <span class="p">{</span>
@@ -946,7 +946,7 @@
 </pre></div>
 
 
-<p>The body of a <code>TestResponse</code> can also be accessed via <code>body</code>, <code>asMap</code>, and <code>asList</code>.</p>
+<p>The body of a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.test/TestResponse-class.html">TestResponse</a> can also be accessed via <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request/body.html">body</a>, <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIContact/asMap.html">asMap</a>, and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPBody/asList.html">asList</a>.</p>
 <div class="codehilite"><pre><span></span><span class="n">test</span><span class="p">(</span><span class="s2">&quot;Get 200 with more than five key value pairs&quot;</span><span class="p">,</span> <span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
   <span class="kd">var</span> <span class="n">response</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">app</span><span class="p">.</span><span class="n">client</span><span class="p">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;/endpoint&quot;</span><span class="p">).</span><span class="kd">get</span><span class="p">();</span>
   <span class="n">expect</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="n">hasResponse</span><span class="p">(</span><span class="m">200</span><span class="p">,</span> <span class="n">everyElement</span><span class="p">({</span>
@@ -958,7 +958,7 @@
 </pre></div>
 
 
-<p>Another valuable matcher is <code>partial</code>. Sometimes it doesn't make sense to validate every single key-value pair in a response. The <code>partial</code> matcher only checks that the body has the specified keys - extra keys don't create a mismatch.</p>
+<p>Another valuable matcher is <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.test/partial.html">partial</a>. Sometimes it doesn't make sense to validate every single key-value pair in a response. The <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.test/partial.html">partial</a> matcher only checks that the body has the specified keys - extra keys don't create a mismatch.</p>
 <div class="codehilite"><pre><span></span><span class="n">test</span><span class="p">(</span><span class="s2">&quot;Get 200 that at least have these keys&quot;</span><span class="p">,</span> <span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
   <span class="kd">var</span> <span class="n">response</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">app</span><span class="p">.</span><span class="n">client</span><span class="p">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;/endpoint&quot;</span><span class="p">).</span><span class="kd">get</span><span class="p">();</span>
   <span class="n">expect</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="n">hasResponse</span><span class="p">(</span><span class="m">200</span><span class="p">,</span> <span class="n">partial</span><span class="p">({</span>
@@ -971,7 +971,7 @@
 
 
 <p>Even if the response has keys 4, 5 and 6, as long as the values for keys 1, 2 and 3 match, this test will pass.</p>
-<p>When using <code>partial</code>, you can also ensure that a map doesn't have a key with the <code>isNotPresent</code> matcher.</p>
+<p>When using <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.test/partial.html">partial</a>, you can also ensure that a map doesn't have a key with the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.test/isNotPresent-constant.html">isNotPresent</a> matcher.</p>
 <div class="codehilite"><pre><span></span><span class="n">test</span><span class="p">(</span><span class="s2">&quot;Get 200 that at least have these keys&quot;</span><span class="p">,</span> <span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
   <span class="kd">var</span> <span class="n">response</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">app</span><span class="p">.</span><span class="n">client</span><span class="p">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;/endpoint&quot;</span><span class="p">).</span><span class="kd">get</span><span class="p">();</span>
   <span class="n">expect</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="n">hasResponse</span><span class="p">(</span><span class="m">200</span><span class="p">,</span> <span class="n">partial</span><span class="p">({</span>
@@ -983,7 +983,7 @@
 
 <p>This ensures that <code>key3</code> is not in the map. This is different than verifying <code>key3: null</code>, which would be true if <code>key3</code>'s value was actually the null value. See the API reference for more matchers.</p>
 <h3 id="verifying-other-information">Verifying Other Information</h3>
-<p>Sometimes, the response to a request doesn't have all of the information that needs to be verified. For example, a request that triggers the Aqueduct application to send a request to some other server can't always be verified through the response. The <code>MockHTTPServer</code> makes it easy to check if the request triggered another request.</p>
+<p>Sometimes, the response to a request doesn't have all of the information that needs to be verified. For example, a request that triggers the Aqueduct application to send a request to some other server can't always be verified through the response. The <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.test/MockHTTPServer-class.html">MockHTTPServer</a> makes it easy to check if the request triggered another request.</p>
 <div class="codehilite"><pre><span></span><span class="n">setUp</span><span class="p">(()</span> <span class="kd">async</span> <span class="p">{</span>
   <span class="p">...</span>
   <span class="n">mockServer</span> <span class="o">=</span> <span class="k">new</span> <span class="n">MockHTTPServer</span><span class="p">(</span><span class="m">4000</span><span class="p">);</span>
@@ -1004,7 +1004,7 @@
 </pre></div>
 
 
-<p>A <code>MockHTTPServer</code> always listens on localhost. You can specify the port. In practice, you will configure remote services like these through a configuration file. If in production, this outgoing request should go to <code>https://google.com</code>, the <code>config.yaml</code> file would have that value:</p>
+<p>A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.test/MockHTTPServer-class.html">MockHTTPServer</a> always listens on localhost. You can specify the port. In practice, you will configure remote services like these through a configuration file. If in production, this outgoing request should go to <code>https://google.com</code>, the <code>config.yaml</code> file would have that value:</p>
 <div class="codehilite"><pre><span></span><span class="n">google</span><span class="o">:</span>
   <span class="n">url</span><span class="o">:</span> <span class="n">https</span><span class="o">://</span><span class="n">google</span><span class="o">.</span><span class="na">com</span>
 </pre></div>
@@ -1017,7 +1017,7 @@
 </pre></div>
 
 
-<p>You may also want to query the database a test application is working with. You can access any property of the application's <code>RequestSink</code> - including its <code>ManagedContext</code> - through the <code>TestApplication</code>.</p>
+<p>You may also want to query the database a test application is working with. You can access any property of the application's <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> - including its <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedContext-class.html">ManagedContext</a> - through the <code>TestApplication</code>.</p>
 <div class="codehilite"><pre><span></span><span class="n">test</span><span class="p">(</span><span class="s2">&quot;ensure we hashed the password&quot;</span><span class="p">,</span> <span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
   <span class="kd">var</span> <span class="n">response</span> <span class="o">=</span> <span class="kd">await</span> <span class="p">(</span><span class="n">app</span><span class="p">.</span><span class="n">client</span><span class="p">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;/register&quot;</span><span class="p">)</span>
     <span class="p">..</span><span class="n">json</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;email&quot;</span><span class="o">:</span> <span class="s2">&quot;a@b.com&quot;</span><span class="p">,</span> <span class="s2">&quot;password&quot;</span><span class="o">:</span> <span class="s2">&quot;foo&quot;</span><span class="p">}).</span><span class="kd">get</span><span class="p">();</span>

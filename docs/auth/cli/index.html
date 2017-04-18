@@ -382,7 +382,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../http/cors/" title="CORS Configuration" class="md-nav__link">
+    <a href="../../http/configure/" title="CORS Configuration" class="md-nav__link">
       CORS Configuration
     </a>
   </li>
@@ -783,9 +783,9 @@
               
                 
                 <h1 id="manage-oauth-20-clients">Manage OAuth 2.0 Clients</h1>
-<p>The <code>aqueduct auth</code> command line tool creates OAuth 2.0 client application identifiers and inserts them into an application's database. To use this tool, you must use <code>ManagedAuthStorage</code> for an <code>AuthServer</code>'s <code>storage</code>.</p>
-<p>Exchanging credentials for an authorization token requires a registered client identifier. A token belongs to both the authenticating user and the client application. Clients are represented by instances of <code>ManagedClient</code> from <code>aqueduct/managed_auth</code>. Authenticating clients must provide their client ID (and client secret, if applicable) in the Authorization header when requesting access tokens.</p>
-<p>An application's database must have already been provisioned such that the table that backs <code>ManagedClient</code> exists. (See <a href="../../db/db_tools/">Generating Databases</a>.) An OAuth 2.0 client must have a string identifier that uniquely identifies the client. For example, <code>com.food_app.mobile</code> may be a client identifier for the mobile applications for some 'Food App'.</p>
+<p>The <code>aqueduct auth</code> command line tool creates OAuth 2.0 client application identifiers and inserts them into an application's database. To use this tool, you must use <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.managed_auth/ManagedAuthStorage-class.html">ManagedAuthStorage</a> for an <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/AuthServer-class.html">AuthServer</a>'s <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/AuthServer/storage.html">storage</a>.</p>
+<p>Exchanging credentials for an authorization token requires a registered client identifier. A token belongs to both the authenticating user and the client application. Clients are represented by instances of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.managed_auth/ManagedClient-class.html">ManagedClient</a> from <code>aqueduct/managed_auth</code>. Authenticating clients must provide their client ID (and client secret, if applicable) in the Authorization header when requesting access tokens.</p>
+<p>An application's database must have already been provisioned such that the table that backs <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.managed_auth/ManagedClient-class.html">ManagedClient</a> exists. (See <a href="../../db/db_tools/">Generating Databases</a>.) An OAuth 2.0 client must have a string identifier that uniquely identifies the client. For example, <code>com.food_app.mobile</code> may be a client identifier for the mobile applications for some 'Food App'.</p>
 <p>To create a simple OAuth 2.0 client, the following command line utility can be run:</p>
 <div class="codehilite"><pre><span></span>aqueduct auth add-client \
   --id com.food_app.mobile \
@@ -793,7 +793,7 @@
 </pre></div>
 
 
-<p>The <code>connect</code> option identifies the database for the application, which this tool will connect to and insert a record into the <code>ManagedClient</code> database table. The identifier is provided through the <code>id</code> option.</p>
+<p>The <code>connect</code> option identifies the database for the application, which this tool will connect to and insert a record into the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.managed_auth/ManagedClient-class.html">ManagedClient</a> database table. The identifier is provided through the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIOperation/id.html">id</a> option.</p>
 <p>An OAuth 2.0 client created in this way is a <em>public</em> client; there is no client secret. An OAuth 2.0 client that uses the resource owner grant flow, but cannot secure its client secret should use this type of client. An application can't secure its client secret if its source code is viewable - like any JavaScript application. It is suggested that native mobile applications also use public clients because their source code could potentially disassembled to reveal a client secret, but this in practice this isn't all that common.</p>
 <p>To include a public client in an authorization header, the client secret is omitted. The string to base64 encode is <code>ClientID:</code>, where the colon (<code>:</code>) is required. For example, to generate an authorization header in Dart for a public client:</p>
 <div class="codehilite"><pre><span></span><span class="nt">var</span> <span class="nt">clientID</span> <span class="o">=</span> <span class="s2">&quot;com.foobar.xyz&quot;</span><span class="o">;</span>
@@ -811,7 +811,7 @@
 
 
 <p>Client secrets are hashed with a randomly generated salt before they are stored. Therefore, their actual value must be stored securely elsewhere. (We use LastPass, for example.)</p>
-<p>To allow the authorization code flow (provided by <code>AuthCodeController</code>), a client must have a redirect URI. This is the URI that an authenticating user's browser will be redirected to after entering their username and password. A client must be a confidential client to have a redirect URI.</p>
+<p>To allow the authorization code flow (provided by <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/AuthCodeController-class.html">AuthCodeController</a>), a client must have a redirect URI. This is the URI that an authenticating user's browser will be redirected to after entering their username and password. A client must be a confidential client to have a redirect URI.</p>
 <div class="codehilite"><pre><span></span>aqueduct auth add-client \
   --id com.food_app.mobile \
   --secret myspecialsecret \

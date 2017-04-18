@@ -387,7 +387,7 @@
 
 
   <li class="md-nav__item">
-    <a href="http/cors/" title="CORS Configuration" class="md-nav__link">
+    <a href="http/configure/" title="CORS Configuration" class="md-nav__link">
       CORS Configuration
     </a>
   </li>
@@ -936,7 +936,7 @@
 </pre></div>
 
 
-<p>And subclass a <code>RequestSink</code> to declare routes:</p>
+<p>And subclass a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> to declare routes:</p>
 <div class="codehilite"><pre><span></span><span class="k">import</span> <span class="s1">&#39;package:aqueduct/aqueduct.dart&#39;</span><span class="p">;</span>
 
 <span class="kd">class</span> <span class="nc">AppRequestSink</span> <span class="kd">extends</span> <span class="n">RequestSink</span> <span class="p">{</span>
@@ -969,7 +969,7 @@
 
 
 <h3 id="controllers">Controllers</h3>
-<p>The class most often used to respond to a request is <code>HTTPController</code>. <code>HTTPController</code>s must be subclassed and are declared in their own file. An <code>HTTPController</code> handles all HTTP requests for a resource; e.g. POST /users, GET /users and GET /users/1 all go to the same controller.</p>
+<p>The class most often used to respond to a request is <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a>. <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a>s must be subclassed and are declared in their own file. An <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a> handles all HTTP requests for a resource; e.g. POST /users, GET /users and GET /users/1 all go to the same controller.</p>
 <div class="codehilite"><pre><span></span><span class="k">import</span> <span class="s1">&#39;package:aqueduct/aqueduct.dart&#39;</span>
 
 <span class="n">class</span> <span class="n">ResourceController</span> <span class="n">extends</span> <span class="n">HTTPController</span> <span class="err">{</span>
@@ -1052,7 +1052,7 @@ numberOfDoodads: 3
 </pre></div>
 
 
-<p>The results of a <code>Query&lt;T&gt;</code> can be filtered by configuring its <code>where</code> property, which uses Dart's powerful, real-time static analyzer to avoid mistakes and offer code completion.</p>
+<p>The results of a <code>Query&lt;T&gt;</code> can be filtered by configuring its <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet/where.html">where</a> property, which uses Dart's powerful, real-time static analyzer to avoid mistakes and offer code completion.</p>
 <div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">query</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Employee</span><span class="o">&gt;</span><span class="p">()</span>
   <span class="p">..</span><span class="n">where</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">whereStartsWith</span><span class="p">(</span><span class="s2">&quot;Sa&quot;</span><span class="p">)</span>
   <span class="p">..</span><span class="n">where</span><span class="p">.</span><span class="n">salary</span> <span class="o">=</span> <span class="n">whereGreaterThan</span><span class="p">(</span><span class="m">50000</span><span class="p">);</span>
@@ -1060,7 +1060,7 @@ numberOfDoodads: 3
 </pre></div>
 
 
-<p>Building queries to insert or update values into the database uses the similar <code>values</code> property of a <code>Query&lt;T&gt;</code>.</p>
+<p>Building queries to insert or update values into the database uses the similar <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/values.html">values</a> property of a <code>Query&lt;T&gt;</code>.</p>
 <div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">query</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Employee</span><span class="o">&gt;</span><span class="p">()</span>
   <span class="p">..</span><span class="n">values</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Bob&quot;</span>
   <span class="p">..</span><span class="n">values</span><span class="p">.</span><span class="n">salary</span> <span class="o">=</span> <span class="m">50000</span><span class="p">;</span>
@@ -1104,7 +1104,7 @@ missing required properties return 400, database connection failure returns 503,
 </pre></div>
 
 
-<p><code>ManagedObject&lt;T&gt;</code>s have relationship properties - references to other <code>ManagedObject&lt;T&gt;</code>s. The property with <code>ManagedRelationship</code> metadata is a foreign key column.</p>
+<p><code>ManagedObject&lt;T&gt;</code>s have relationship properties - references to other <code>ManagedObject&lt;T&gt;</code>s. The property with <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedRelationship-class.html">ManagedRelationship</a> metadata is a foreign key column.</p>
 <div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">Employee</span> <span class="kd">extends</span> <span class="n">ManagedObject</span><span class="o">&lt;</span><span class="n">_Employee</span><span class="o">&gt;</span> <span class="kd">implements</span> <span class="n">_Employee</span> <span class="p">{}</span>
 <span class="kd">class</span> <span class="nc">_Employee</span> <span class="p">{</span>
   <span class="n">ManagedSet</span><span class="o">&lt;</span><span class="n">Initiative</span><span class="o">&gt;</span> <span class="n">initiatives</span><span class="p">;</span>
@@ -1147,7 +1147,7 @@ aqueduct db upgrade --connect postgres@://...
 
 
 <h3 id="oauth-20">OAuth 2.0</h3>
-<p>Authentication and authorization are enabled at application startup by creating an <code>AuthServer</code> with <code>ManagedAuthStorage</code>:</p>
+<p>Authentication and authorization are enabled at application startup by creating an <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/AuthServer-class.html">AuthServer</a> with <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.managed_auth/ManagedAuthStorage-class.html">ManagedAuthStorage</a>:</p>
 <div class="codehilite"><pre><span></span><span class="k">import</span> <span class="s1">&#39;package:aqueduct/aqueduct.dart&#39;</span><span class="p">;</span>
 <span class="k">import</span> <span class="s1">&#39;package:aqueduct/managed_auth.dart&#39;</span><span class="p">;</span>
 
@@ -1162,7 +1162,7 @@ aqueduct db upgrade --connect postgres@://...
 </pre></div>
 
 
-<p>Set up routes to exchange credentials for tokens using <code>AuthController</code> and <code>AuthCodeController</code>. Add <code>Authorizer</code>s between routes and their controller to restrict access to authorized resource owners only:</p>
+<p>Set up routes to exchange credentials for tokens using <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/AuthController-class.html">AuthController</a> and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/AuthCodeController-class.html">AuthCodeController</a>. Add <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Authorizer-class.html">Authorizer</a>s between routes and their controller to restrict access to authorized resource owners only:</p>
 <div class="codehilite"><pre><span></span><span class="kt">void</span> <span class="n">setupRouter</span><span class="p">(</span><span class="n">Router</span> <span class="n">router</span><span class="p">)</span> <span class="p">{</span>
   <span class="n">router</span>
     <span class="p">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/auth/token&quot;</span><span class="p">)</span>

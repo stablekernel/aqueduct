@@ -439,7 +439,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../http/cors/" title="CORS Configuration" class="md-nav__link">
+    <a href="../../http/configure/" title="CORS Configuration" class="md-nav__link">
       CORS Configuration
     </a>
   </li>
@@ -883,7 +883,7 @@
 
 <p>Now, get the dependencies again by right-clicking on any project file and selecting 'Pub Get'. (Or run <code>pub get</code> from the command line in the <code>quiz</code> directory.)</p>
 <h2 id="restructuring-quiz">Restructuring quiz</h2>
-<p>Last chapter, we just threw everything in a single file to get started. We should really get things structured a bit more. The suggested approach is to separate <code>RequestController</code>s into their own files. These files should live in <code>lib/controller</code>. The <code>RequestSink</code> subclass should be in its own file, too, but directly under <code>lib</code>.</p>
+<p>Last chapter, we just threw everything in a single file to get started. We should really get things structured a bit more. The suggested approach is to separate <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a>s into their own files. These files should live in <code>lib/controller</code>. The <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> subclass should be in its own file, too, but directly under <code>lib</code>.</p>
 <p>Create a new directory, <code>lib/controller</code> and add a new file <code>question_controller.dart</code> to it. Create a new file in <code>lib</code> named <code>sink.dart</code>.</p>
 <p>Now, we'll move some code around. The full contents of each file will be listed here to make sure nothing gets lost. There are three total source files in the project. Change the file <code>quiz.dart</code> to only contain:</p>
 <div class="codehilite"><pre><span></span><span class="k">export</span> <span class="s1">&#39;dart:async&#39;</span><span class="p">;</span>
@@ -936,8 +936,8 @@
 </pre></div>
 
 
-<p>It is important that there is a top-level library file (<code>quiz.dart</code>) that exports the file that contains the <code>RequestSink</code> subclass, otherwise, the <code>aqueduct</code> executable won't be able to find it and start your application. Files that declare <code>RequestController</code> subclasses should be imported in <code>sink.dart</code>, since that's the only place they'll get used.</p>
-<p>Additionally, the top-level library file <em>must</em> be named the same as the project - here, <code>quiz.dart</code>. The name of the project is is <code>name</code> key in <code>pubspec.yaml</code>.</p>
+<p>It is important that there is a top-level library file (<code>quiz.dart</code>) that exports the file that contains the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> subclass, otherwise, the <code>aqueduct</code> executable won't be able to find it and start your application. Files that declare <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a> subclasses should be imported in <code>sink.dart</code>, since that's the only place they'll get used.</p>
+<p>Additionally, the top-level library file <em>must</em> be named the same as the project - here, <code>quiz.dart</code>. The name of the project is is <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIContact/name.html">name</a> key in <code>pubspec.yaml</code>.</p>
 <p>You can double-check that your changes worked by running <code>aqueduct serve</code> from the project directory. The full project structure should be:</p>
 <div class="codehilite"><pre><span></span>pubspec.yaml
 lib/
@@ -973,10 +973,10 @@ lib/
 </pre></div>
 
 
-<p>The <code>Application</code> type has a type argument that must be a subclass of <code>RequestSink</code> - specifically, the <code>RequestSink</code> of your project. When running the application through <code>aqueduct serve</code>, an instance of <code>Application&lt;T&gt;</code> is created for you. Running tests, you create it and start it yourself in <code>setup</code> and stop it <code>tearDown</code>. (In order for your tests to shut down properly, the application must be stopped in <code>tearDown</code>.)</p>
-<p>Notice also that <code>start</code> takes an optional argument, <code>runOnMainIsolate</code>. When this argument is true, an instance of your <code>RequestSink</code> is created on the main isolate and requests are received on the same isolate running the tests. This behavior is different than when using <code>aqueduct serve</code>, where one or more additional isolates are created and each has an instance of the <code>RequestSink</code> that is accepting requests.</p>
-<p>During testing, running the application on the main isolate is very important. We'll see why a bit later, but the general idea is that your tests have access to the properties of a <code>RequestSink</code> if and only if it is running on the main isolate.</p>
-<p>Now, we need to add a test to verify that hitting the <code>/questions</code> endpoint does return our definition of 'questions'. In Aqueduct, there is a utility called a <code>TestClient</code> to make this a lot easier. At the top of your main function, but after we create the application instance, declare a new variable:</p>
+<p>The <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Application-class.html">Application</a> type has a type argument that must be a subclass of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> - specifically, the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> of your project. When running the application through <code>aqueduct serve</code>, an instance of <code>Application&lt;T&gt;</code> is created for you. Running tests, you create it and start it yourself in <code>setup</code> and stop it <code>tearDown</code>. (In order for your tests to shut down properly, the application must be stopped in <code>tearDown</code>.)</p>
+<p>Notice also that <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Application/start.html">start</a> takes an optional argument, <code>runOnMainIsolate</code>. When this argument is true, an instance of your <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> is created on the main isolate and requests are received on the same isolate running the tests. This behavior is different than when using <code>aqueduct serve</code>, where one or more additional isolates are created and each has an instance of the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> that is accepting requests.</p>
+<p>During testing, running the application on the main isolate is very important. We'll see why a bit later, but the general idea is that your tests have access to the properties of a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> if and only if it is running on the main isolate.</p>
+<p>Now, we need to add a test to verify that hitting the <code>/questions</code> endpoint does return our definition of 'questions'. In Aqueduct, there is a utility called a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.test/TestClient-class.html">TestClient</a> to make this a lot easier. At the top of your main function, but after we create the application instance, declare a new variable:</p>
 <div class="codehilite"><pre><span></span><span class="kt">void</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
   <span class="kd">var</span> <span class="n">app</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Application</span><span class="o">&lt;</span><span class="n">QuizRequestSink</span><span class="o">&gt;</span><span class="p">();</span>
   <span class="kd">var</span> <span class="n">client</span> <span class="o">=</span> <span class="k">new</span> <span class="n">TestClient</span><span class="p">(</span><span class="n">app</span><span class="p">);</span>
@@ -984,7 +984,7 @@ lib/
 </pre></div>
 
 
-<p>A <code>TestClient</code> will execute HTTP requests on your behalf in your tests, and is configured to point at the running application. Testing an Aqueduct application is generally two steps: make a request and then verify you got the response you wanted. Let's create a new test and do the first step. Near the end of main, add the following test:</p>
+<p>A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.test/TestClient-class.html">TestClient</a> will execute HTTP requests on your behalf in your tests, and is configured to point at the running application. Testing an Aqueduct application is generally two steps: make a request and then verify you got the response you wanted. Let's create a new test and do the first step. Near the end of main, add the following test:</p>
 <div class="codehilite"><pre><span></span><span class="kt">void</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
   <span class="p">...</span>
 
@@ -996,7 +996,7 @@ lib/
 
 
 <p>If you run this test file now, an instance of your application will spin up on the main isolate, and your first test will execute a GET <code>http://localhost:8081/questions</code>, then your application will be torn down. Of course, we don't verify anything about the response, so we should actually do something there.</p>
-<p>The value of <code>response</code> in the previous code snippet is an instance of <code>TestResponse</code>. Dart tests use the Hamcrest style matchers in their expectations. There are built-in matchers in Aqueduct for setting up and matching expectations on <code>TestResponse</code> instances. For example, if we wanted to verify that we got a 404 back, we'd simply do:</p>
+<p>The value of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPBodyDecoderException/response.html">response</a> in the previous code snippet is an instance of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.test/TestResponse-class.html">TestResponse</a>. Dart tests use the Hamcrest style matchers in their expectations. There are built-in matchers in Aqueduct for setting up and matching expectations on <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.test/TestResponse-class.html">TestResponse</a> instances. For example, if we wanted to verify that we got a 404 back, we'd simply do:</p>
 <div class="codehilite"><pre><span></span>  <span class="n">expect</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="n">hasStatus</span><span class="p">(</span><span class="m">404</span><span class="p">));</span>
 </pre></div>
 
@@ -1021,7 +1021,7 @@ lib/
 
 
 <h2 id="what-sort-of-wizardry-is-this">What sort of wizardry is this?</h2>
-<p>The <code>hasResponse</code> matcher takes two arguments: a status code and a 'body matcher'. If the response's status code matches the first argument of <code>hasResponse</code> - 200 in this case - the matcher will move on to the body. The response's HTTP body will be decoded according to its <code>Content-Type</code> header. In this example, the body is a JSON list of strings, and therefore it will be decoded into a Dart list of strings.</p>
+<p>The <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.test/hasResponse.html">hasResponse</a> matcher takes two arguments: a status code and a 'body matcher'. If the response's status code matches the first argument of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.test/hasResponse.html">hasResponse</a> - 200 in this case - the matcher will move on to the body. The response's HTTP body will be decoded according to its <code>Content-Type</code> header. In this example, the body is a JSON list of strings, and therefore it will be decoded into a Dart list of strings.</p>
 <p>Next, the decoded body is matched against the body matcher. There are a lot of built-in matchers - see the documentation for the test package <a href="https://www.dartdocs.org/documentation/test/latest">here</a> - and <code>everyElement</code> and <code>endsWith</code> are two examples. <code>everyElement</code> verifies that the decoded body is a list, and then runs the <code>endsWith</code> matcher on every string in that list. Since every string ends with ?, this matcher as a whole will succeed.</p>
 <p>Let's write two more tests - first, that getting a specific question returns a question (a string with a question mark at the end) and then a test that ensures a question outside of the range of questions will return a 404. Add the following two tests inside the main function:</p>
 <div class="codehilite"><pre><span></span><span class="n">test</span><span class="p">(</span><span class="s2">&quot;/questions/index returns a single question&quot;</span><span class="p">,</span> <span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>

@@ -382,7 +382,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../http/cors/" title="CORS Configuration" class="md-nav__link">
+    <a href="../../http/configure/" title="CORS Configuration" class="md-nav__link">
       CORS Configuration
     </a>
   </li>
@@ -804,10 +804,10 @@
                 <h2 id="tasks">Tasks</h2>
 <p>Aqueduct has built-in classes to manage authentication and authorization according to the <a href="https://tools.ietf.org/html/rfc6749">OAuth 2.0 specification</a>.  To manage authentication and authorization, the following tasks are required/suggested:</p>
 <ul>
-<li>Creating <code>AuthServer</code> instances to enable OAuth 2.0 in an Aqueduct application</li>
+<li>Creating <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/AuthServer-class.html">AuthServer</a> instances to enable OAuth 2.0 in an Aqueduct application</li>
 <li>Using <code>aqueduct/managed_auth</code> to manage storage of authorization objects, e.g. storing tokens in a database.</li>
-<li>Using <code>AuthCodeController</code> and <code>AuthController</code> to expose endpoints for exchanging credentials for authorization tokens.</li>
-<li>Adding <code>Authorizer</code>s to a series of <code>RequestController</code>s to allow only authorized requests.</li>
+<li>Using <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/AuthCodeController-class.html">AuthCodeController</a> and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/AuthController-class.html">AuthController</a> to expose endpoints for exchanging credentials for authorization tokens.</li>
+<li>Adding <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Authorizer-class.html">Authorizer</a>s to a series of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a>s to allow only authorized requests.</li>
 <li>Creating OAuth 2.0 Client Identifiers through the <code>aqueduct auth</code> tool</li>
 </ul>
 <p><img alt="Authorization Objects" src="../../img/authobjects.png" /></p>

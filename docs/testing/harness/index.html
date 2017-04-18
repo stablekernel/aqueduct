@@ -382,7 +382,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../http/cors/" title="CORS Configuration" class="md-nav__link">
+    <a href="../../http/configure/" title="CORS Configuration" class="md-nav__link">
       CORS Configuration
     </a>
   </li>
@@ -808,22 +808,22 @@
 
 
 <p>Note that the app harness file exports the Dart test package and Aqueduct's test helper package.</p>
-<p>Before each test is run, the <code>TestApplication</code> harness is started. This harness starts your application running locally. Tests can issue requests to the application through its <code>client</code>, which is covered in more detail <a href="../test_client/">here</a>.</p>
+<p>Before each test is run, the <code>TestApplication</code> harness is started. This harness starts your application running locally. Tests can issue requests to the application through its <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/AuthServerException/client.html">client</a>, which is covered in more detail <a href="../test_client/">here</a>.</p>
 <p>There are a few important details to understand about the <code>TestApplication</code> when it is started.</p>
 <p>An Aqueduct application will likely read values from a configuration file. The convention for configuration files in Aqueduct applications is to have two files: a template file that is checked into version control (<code>config.yaml.src</code>) and a deployed file that exists on a machine running a deployed instance of the application (<code>config.yaml</code>).</p>
 <p>By default, a project created with <code>aqueduct create</code> follows this convention. The file <code>config.yaml.src</code> is created when the project is created. It is the 'template' for your application's configuration file. As your configuration needs change, your modify the <code>config.yaml.src</code> file to include all of the keys that a deployed <code>config.yaml</code> file should have.</p>
 <p>The test harness uses the values from <code>config.yaml.src</code> to configure the test instance of the application. This is very valuable: it ensures that the application you are testing is being configured in the same way as the deployed application. It also allows you to choose appropriate test configuration values for your test application so that things that need to be mocked can be driven by the values in the template configuration file.</p>
 <p>On startup, the <code>TestApplication</code> will add a temporary version of your application's database schema to a local database. The database connection information comes from <code>config.yaml.src</code> - which defaults to and should stay <code>postgres://dart:dart@localhost:5432/dart_test</code>. This database is set up by the <code>aqueduct setup</code> command. Once your tests run, all of the created tables are deleted.</p>
-<p>Because most applications will use Aqueduct's Auth framework, it is required that an application have valid client ID and client secrets during testing to issue authorization tokens. By default, a single client ID/secret pair is added when starting the application: <code>com.aqueduct.test</code>/<code>kilimanjaro</code>. If your application uses scopes or has behavioral differences for client IDs, you'll need to add those client IDs with <code>TestApplication.addClientRecord</code>. This can be done by adding the code to the test harness's <code>start</code> method.</p>
+<p>Because most applications will use Aqueduct's Auth framework, it is required that an application have valid client ID and client secrets during testing to issue authorization tokens. By default, a single client ID/secret pair is added when starting the application: <code>com.aqueduct.test</code>/<code>kilimanjaro</code>. If your application uses scopes or has behavioral differences for client IDs, you'll need to add those client IDs with <code>TestApplication.addClientRecord</code>. This can be done by adding the code to the test harness's <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Application/start.html">start</a> method.</p>
 <p>You may modify the <code>TestApplication</code> to do any additional work that your application needs to do prior during startup.</p>
-<p>A <code>TestApplication</code> has a <code>client</code> property that executes requests against the application. The client is configured such that making requests only requires the path. The following sends a request for <code>GET /users</code> to the application, regardless of the host or port the application is listening on.</p>
+<p>A <code>TestApplication</code> has a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/AuthServerException/client.html">client</a> property that executes requests against the application. The client is configured such that making requests only requires the path. The following sends a request for <code>GET /users</code> to the application, regardless of the host or port the application is listening on.</p>
 <div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">app</span> <span class="o">=</span> <span class="k">new</span> <span class="n">TestApplication</span><span class="p">();</span>
 <span class="kd">var</span> <span class="n">response</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">app</span><span class="p">.</span><span class="n">client</span><span class="p">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;/users&quot;</span><span class="p">).</span><span class="kd">get</span><span class="p">;</span>
 </pre></div>
 
 
-<p>More details about the <code>client</code> are available in the next guide, <a href="../test_client/">TestClient</a>.</p>
-<p>Lastly, a <code>TestApplication</code> runs its <code>RequestSink</code> on the main isolate - the same isolate that is running your tests. This allows your tests to peek at values inside the <code>RequestSink</code> and ensures there is only one database connection, since that connection is the only one that has access to the database schema.</p>
+<p>More details about the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/AuthServerException/client.html">client</a> are available in the next guide, <a href="../test_client/">TestClient</a>.</p>
+<p>Lastly, a <code>TestApplication</code> runs its <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> on the main isolate - the same isolate that is running your tests. This allows your tests to peek at values inside the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> and ensures there is only one database connection, since that connection is the only one that has access to the database schema.</p>
               
               
             </article>

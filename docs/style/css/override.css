@@ -5,3 +5,15 @@
 .md-nav--secondary {
   border-left: .4rem solid rgb(33, 160, 221);
 }
+
+.md-typeset code {
+  background-color: rgba(0, 0, 0, 0.0);
+  border-right-width: 0px;
+  border-left-width: 0px;
+  box-shadow: none;
+  padding-right: 0px;
+  margin-left: 0px;
+  margin-right: 0px;
+  font-size: 1.05em;
+  color: rgb(35, 41, 79);
+}

@@ -382,7 +382,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../http/cors/" title="CORS Configuration" class="md-nav__link">
+    <a href="../../http/configure/" title="CORS Configuration" class="md-nav__link">
       CORS Configuration
     </a>
   </li>
@@ -834,9 +834,9 @@
               
                 
                 <h1 id="issue-access-tokens-with-authcontroller">Issue Access Tokens with AuthController</h1>
-<p>An application using Aqueduct's Auth framework must have endpoints to exchange credentials for access tokens. While a developer could implement these endpoints themselves and talk directly to an <code>AuthServer</code>, the OAuth 2.0 specification is where happiness goes to die. Therefore, there exists a <code>RequestController</code>s in Aqueduct that handles granting and refreshing authorization tokens named <code>AuthController</code> (the resource owner grant flow). Another controller, <code>AuthCodeController</code>, handles the authorization code flow.</p>
+<p>An application using Aqueduct's Auth framework must have endpoints to exchange credentials for access tokens. While a developer could implement these endpoints themselves and talk directly to an <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/AuthServer-class.html">AuthServer</a>, the OAuth 2.0 specification is where happiness goes to die. Therefore, there exists a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a>s in Aqueduct that handles granting and refreshing authorization tokens named <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/AuthController-class.html">AuthController</a> (the resource owner grant flow). Another controller, <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/AuthCodeController-class.html">AuthCodeController</a>, handles the authorization code flow.</p>
 <h3 id="issue-refresh-and-exchange-tokens-with-authcontroller">Issue, Refresh and Exchange Tokens with AuthController</h3>
-<p>Using an <code>AuthController</code> in an application is straightforward - hook it up to a <code>Router</code> and pass it an <code>AuthServer</code>.</p>
+<p>Using an <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/AuthController-class.html">AuthController</a> in an application is straightforward - hook it up to a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Router-class.html">Router</a> and pass it an <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/AuthServer-class.html">AuthServer</a>.</p>
 <div class="codehilite"><pre><span></span><span class="err">@</span><span class="n">override</span>
 <span class="kt">void</span> <span class="n">setupRouter</span><span class="p">(</span><span class="n">Router</span> <span class="n">router</span><span class="p">)</span> <span class="p">{</span>
   <span class="n">router</span>
@@ -846,7 +846,7 @@
 </pre></div>
 
 
-<p>An <code>AuthController</code> follows the OAuth 2.0 specification for granting and refreshing access tokens. To grant an access token, a client application sends a POST HTTP request to the controller. The request must contain two important components: an Authorization header with the Client ID and Client Secret, and a <code>x-www-form-urlencoded</code> body with the username and password of the authenticating user. The body must also contain the key-value pair <code>grant_type=password</code>. For example, the following Dart code will initiate successful authentication:</p>
+<p>An <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/AuthController-class.html">AuthController</a> follows the OAuth 2.0 specification for granting and refreshing access tokens. To grant an access token, a client application sends a POST HTTP request to the controller. The request must contain two important components: an Authorization header with the Client ID and Client Secret, and a <code>x-www-form-urlencoded</code> body with the username and password of the authenticating user. The body must also contain the key-value pair <code>grant_type=password</code>. For example, the following Dart code will initiate successful authentication:</p>
 <div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">clientID</span> <span class="o">=</span> <span class="p">...;</span>
 <span class="kd">var</span> <span class="n">clientSecret</span> <span class="o">=</span> <span class="p">...;</span>
 
@@ -889,15 +889,15 @@
 
 
 <p>See <a href="../cli/">Aqueduct Auth CLI</a> for more details on creating OAuth 2.0 client identifier and secrets.</p>
-<p>If an Aqueduct application is using scope, an additional <code>scope</code> parameter can contain a space-delimited list of requested authorization scope. Only allowed scopes are returned and granted, and if no scopes are allowed then the request fails. If scope is provided, granted scope will be available in the response body.</p>
-<p>It is important that an <code>Authorizer</code> <em>does not</em> protect instances of <code>AuthController</code>. The Authorization header is parsed and verified by <code>AuthController</code>.</p>
-<p>Once granted, an access token can be used to pass <code>Authorizer</code>s in protected endpoints.</p>
+<p>If an Aqueduct application is using scope, an additional <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.managed_auth/ManagedToken/scope.html">scope</a> parameter can contain a space-delimited list of requested authorization scope. Only allowed scopes are returned and granted, and if no scopes are allowed then the request fails. If scope is provided, granted scope will be available in the response body.</p>
+<p>It is important that an <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Authorizer-class.html">Authorizer</a> <em>does not</em> protect instances of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/AuthController-class.html">AuthController</a>. The Authorization header is parsed and verified by <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/AuthController-class.html">AuthController</a>.</p>
+<p>Once granted, an access token can be used to pass <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Authorizer-class.html">Authorizer</a>s in protected endpoints.</p>
 <h3 id="issue-authorization-codes-with-authcodecontroller">Issue Authorization Codes with AuthCodeController</h3>
-<p>An <code>AuthCodeController</code> manages the OAuth 2.0 authorization code flow. The authorization code flow is used when an Aqueduct application allows third party applications access to authorized resources.</p>
+<p>An <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/AuthCodeController-class.html">AuthCodeController</a> manages the OAuth 2.0 authorization code flow. The authorization code flow is used when an Aqueduct application allows third party applications access to authorized resources.</p>
 <p>Let's say you've built an Aqueduct application that allows people to store notes to themselves, and it has users that have created accounts. Now, a friend approaches you with their application that is a to-do list. Instead of building their own note-taking feature, your friend wants their users of their application to access the notes those users have stored in your application. While trustworthy, you don't want your friend to have access to the username and passwords of your subscribers.</p>
 <p>To handle this, your friend builds a link into their application that takes the user to a web form hosted by your application. The user enters their credentials in this form and they are sent to your application. Your application responds by redirecting the user's browser back into your friend's application, but with an authorization code in the URL. Your friend's application parses the code from the URL and sends it to their server. Behind the scenes, their server exchanges this code with your server for an access token.</p>
-<p>An <code>AuthCodeController</code> responds to both <code>GET</code> and <code>POST</code> requests. When issued a <code>GET</code>, it serves up a webpage with a login form. This login form's action sends a <code>POST</code> back to the same endpoint with the username and password of the user. Upon success, the response from the <code>POST</code> is a 302 redirect with an authorization code.</p>
-<p>Setting up an <code>AuthCodeController</code> is nearly as simple as setting up an <code>AuthController</code>, but requires a function that renders the HTML login form. Here's an example:</p>
+<p>An <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/AuthCodeController-class.html">AuthCodeController</a> responds to both <code>GET</code> and <code>POST</code> requests. When issued a <code>GET</code>, it serves up a webpage with a login form. This login form's action sends a <code>POST</code> back to the same endpoint with the username and password of the user. Upon success, the response from the <code>POST</code> is a 302 redirect with an authorization code.</p>
+<p>Setting up an <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/AuthCodeController-class.html">AuthCodeController</a> is nearly as simple as setting up an <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/AuthController-class.html">AuthController</a>, but requires a function that renders the HTML login form. Here's an example:</p>
 <div class="codehilite"><pre><span></span><span class="err">@</span><span class="n">override</span>
 <span class="kt">void</span> <span class="n">setupRouter</span><span class="p">(</span><span class="n">Router</span> <span class="n">router</span><span class="p">)</span> <span class="p">{</span>
   <span class="n">router</span>
@@ -919,19 +919,19 @@
 
 
 <p>It is important that all values passed to HTML rendering function are sent in the form's query parameters - they contain necessary security components and scope information. (The default project created with <code>aqueduct create</code> has an implementation with a simple login form that does this.)</p>
-<p>When your friend's application links to your login page - here, a <code>GET /auth/code</code> - they must include three query parameters: <code>state</code>, <code>client_id</code>, <code>response_type</code>. They may optionally include <code>scope</code>:</p>
+<p>When your friend's application links to your login page - here, a <code>GET /auth/code</code> - they must include three query parameters: <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/AuthCodeController/state.html">state</a>, <code>client_id</code>, <code>response_type</code>. They may optionally include <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.managed_auth/ManagedToken/scope.html">scope</a>:</p>
 <div class="codehilite"><pre><span></span>GET https://stablekernel/auth/code?client_id=friend.app&amp;response_type=code&amp;state=87uijn3rkja
 </pre></div>
 
 
-<p>The value of <code>client_id</code> must be a previously created client identifier specifically made for your friend's application. (See more on generating client identifiers with <code>aqueduct auth</code> in <a href="../cli/">Aqueduct Auth CLI</a>.) The <code>response_type</code> must always be <code>code</code>. The <code>state</code> must be a value your friend's application creates.</p>
-<p>When your application redirects back to your friend's application, both the generated authorization code and the value for <code>state</code> will be query parameters in the URL. It is your friend's job to ensure that the <code>state</code> matches the state they provided to the initial <code>GET</code>. (They probably generated it from a session cookie.) That redirect URL will look like:</p>
+<p>The value of <code>client_id</code> must be a previously created client identifier specifically made for your friend's application. (See more on generating client identifiers with <code>aqueduct auth</code> in <a href="../cli/">Aqueduct Auth CLI</a>.) The <code>response_type</code> must always be <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/AuthCode/code.html">code</a>. The <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/AuthCodeController/state.html">state</a> must be a value your friend's application creates.</p>
+<p>When your application redirects back to your friend's application, both the generated authorization code and the value for <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/AuthCodeController/state.html">state</a> will be query parameters in the URL. It is your friend's job to ensure that the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/AuthCodeController/state.html">state</a> matches the state they provided to the initial <code>GET</code>. (They probably generated it from a session cookie.) That redirect URL will look like:</p>
 <div class="codehilite"><pre><span></span>https://friends.app/code_callback?code=abcd672kk&amp;state=87uijn3rkja
 </pre></div>
 
 
 <p>The redirect URL is pre-determined when generating the client identifier with <code>aqueduct auth</code>.</p>
-<p>Once your friend's application has an authorization code, it is sent to their server. To exchange the code, a <code>POST</code> to an <code>AuthController</code> - <em>NOT</em> the <code>AuthCodeController</code> - with the following body will return a token response:</p>
+<p>Once your friend's application has an authorization code, it is sent to their server. To exchange the code, a <code>POST</code> to an <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/AuthController-class.html">AuthController</a> - <em>NOT</em> the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/AuthCodeController-class.html">AuthCodeController</a> - with the following body will return a token response:</p>
 <div class="codehilite"><pre><span></span>grant_type=authorization_code&amp;code=abcd672kk
 </pre></div>
               
