@@ -247,7 +247,7 @@ class APIReferenceTransformer extends Transformer {
   APIReferenceTransformer(this.symbolMap, this.baseReferenceURL);
 
   Uri baseReferenceURL;
-  final RegExp regex = new RegExp("`([A-Za-z0-9_\\.\\<\\>]+)`");
+  final RegExp regex = new RegExp("`([A-Za-z0-9_\\.\\<\\>@\\(\\)]+)`");
   Map<String, Map<String, List<SymbolResolution>>> symbolMap;
 
   @override
@@ -282,9 +282,7 @@ class APIReferenceTransformer extends Transformer {
     }
 
 
-    if (symbol.endsWith("<T>")) {
-      symbol = symbol.substring(0, symbol.lastIndexOf("<T>"));
-    }
+    symbol = symbol.replaceAll("<T>", "").replaceAll("@", "").replaceAll("()", "");
 
     var possible = symbolMap["qualified"][symbol];
     if (possible == null) {
