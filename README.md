@@ -40,12 +40,12 @@ Open the project directory in the editor of your choice. Our preferred editor is
 
 ## Tutorials
 
-Need a walkthrough? Read the [tutorials](http://stablekernel.github.io/aqueduct/). They take you through the steps of building an Aqueduct application.
+Need a walkthrough? Read the [tutorials](https://aqueduct.io/docs/tut/getting-started). They take you through the steps of building an Aqueduct application.
 
 ## Documentation
 
 You can find the API reference [here](https://www.dartdocs.org/documentation/aqueduct/latest).
-You can find in-depth guides and tutorials [here](http://stablekernel.github.io/aqueduct/).
+You can find in-depth guides and tutorials [here](https://aqueduct.io/docs/).
 
 ## Roadmap
 
