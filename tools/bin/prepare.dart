@@ -33,20 +33,16 @@ class Preparer {
     baseReferenceURL = Uri.parse(baseRefURL);
   }
 
+  List<Transformer> transformers;
   Uri baseReferenceURL;
   String sourceBranch;
   Directory inputDirectory;
   Directory outputDirectory;
   Map<String, Map<String, List<SymbolResolution>>> symbolMap = {};
-  Directory get documentDirectory =>
-    new Directory.fromUri(inputDirectory.uri.resolve("docs/").resolve("docs/"));
-
-  List<File> get documents =>
-    documentDirectory
-        .listSync(recursive: true)
-        .where((fse) => fse.path.endsWith(".md"))
-        .where((fse) => fse is File)
-        .toList();
+  List<String> blacklist = [
+    "tools",
+    "build"
+  ];
 
   Future cleanup() async {
     await outputDirectory.delete(recursive: true);
@@ -63,7 +59,18 @@ class Preparer {
 
       symbolMap = await generateSymbolMap();
 
-      await buildGuides();
+      transformers = [new BlacklistTransformer(blacklist), new APIReferenceTransformer(symbolMap, baseReferenceURL)];
+
+      await transformDirectory(inputDirectory, outputDirectory);
+
+      await run("mkdocs", ["build"], directory: new Directory.fromUri(outputDirectory.uri.resolve("docs")));
+
+      var builtDocsPath = outputDirectory.uri.resolve("docs/").resolve("site/").path;
+      var finalDocsPath = outputDirectory.uri.resolve("docs/").path;
+      var tempDocsPath = outputDirectory.uri.resolve("docs_tmp").path;
+      await run("mv", [builtDocsPath, tempDocsPath], directory: outputDirectory);
+      new Directory(finalDocsPath).deleteSync(recursive: true);
+      await run("mv", [tempDocsPath, finalDocsPath], directory: outputDirectory);
 
     } catch (e, st) {
       print("$e $st");
@@ -72,39 +79,74 @@ class Preparer {
     }
   }
 
-  SymbolResolution bestGuessForSymbol(String symbol) {
-    if (symbolMap.isEmpty) {
-      return null;
+  Future transformDirectory(Directory source, Directory destination) async {
+    if (!destination.existsSync()) {
+      destination.createSync();
     }
 
-    var possible = symbolMap["qualified"][symbol];
-    if (possible == null) {
-      possible = symbolMap["name"][symbol];
+    var contents = source.listSync(recursive: false);
+    Iterable<File> files = contents.where((fse) => fse is File);
+    for (var f in files) {
+      var filename = f.uri.pathSegments.last;
+
+      List<int> contents;
+      for (var transformer in transformers) {
+        if (!transformer.shouldIncludeItem(filename)) {
+          break;
+        }
+
+        if (!transformer.shouldTransformFile(filename)) {
+          continue;
+        }
+
+        contents = contents ?? f.readAsBytesSync();
+        contents = await transformer.transform(contents);
+      }
+
+      var destinationUri = destination.uri.resolve(filename);
+      if (contents != null) {
+        var outFile = new File.fromUri(destinationUri);
+        outFile.writeAsBytesSync(contents);
+      }
     }
 
-    if (possible == null) {
-      return null;
-    }
+    Iterable<Directory> subdirectories = contents.where((fse) => fse is Directory);
+    for (var subdirectory in subdirectories) {
+      var dirName = subdirectory.uri.pathSegments[subdirectory.uri.pathSegments.length - 2];
+      var destinationDir = new Directory.fromUri(destination.uri.resolve("$dirName"));
 
-    if (possible.length == 1) {
-      return possible.first;
-    }
+      for (var t in transformers) {
+        if (!t.shouldConsiderDirectories) {
+          continue;
+        }
 
-    return possible.firstWhere((r) => r.type == "class",
-        orElse: () => possible.first);
+        if (!t.shouldIncludeItem(dirName)) {
+          destinationDir = null;
+          break;
+        }
+      }
+
+      if (destinationDir != null) {
+        destinationDir.createSync(recursive: false);
+        await transformDirectory(subdirectory, destinationDir);
+      }
+    }
   }
 
   Future<Map<String, Map<String, List<SymbolResolution>>>> generateSymbolMap() async {
+    print("Cloning 'aqueduct' (${sourceBranch})...");
     await run(
         "git",
         ["clone", "-b", sourceBranch, "git@github.com:stablekernel/aqueduct.git"],
         directory: outputDirectory);
 
+    print("Generating API reference...");
     var sourceDir = new Directory.fromUri(outputDirectory.uri.resolve("aqueduct"));
     await run(
       "dartdoc", [], directory: sourceDir
     );
 
+    print("Building symbol map...");
     var indexFile = new File.fromUri(sourceDir.uri.resolve("doc/").resolve("api/").resolve("index.json"));
     List<Map<String, dynamic>> indexJSON = JSON.decode(await indexFile.readAsString());
     var libraries = indexJSON
@@ -145,65 +187,6 @@ class Preparer {
     };
   }
 
-  Uri constructedReferenceURLFrom(Uri base, List<String> relativePathComponents) {
-    var subdirectories = relativePathComponents.sublist(0, relativePathComponents.length - 1);
-    Uri enclosingDir = subdirectories.fold(base, (Uri prev, elem) {
-      return prev.resolve("${elem}/");
-    });
-
-
-    return enclosingDir.resolve(relativePathComponents.last);
-  }
-
-  Future buildGuides() async {
-    var intermediateDirectory = new Directory.fromUri(outputDirectory.uri.resolve("intermediate/"));
-    await intermediateDirectory.create(recursive: true);
-
-    List<String> missingSymbols = [];
-    var files = documents;
-    var regex = new RegExp("`([A-Za-z0-9_\\.]+)`");
-
-    var fileOps = files
-      .map((file) async {
-        var contents = await file.readAsString();
-        var matches = regex.allMatches(contents).toList().reversed;
-
-        matches.forEach((match) {
-          var symbol = match.group(1);
-          var resolution = bestGuessForSymbol(symbol);
-          if (resolution != null) {
-            var replacement = constructedReferenceURLFrom(baseReferenceURL, resolution.link.split("/"));
-            contents = contents.replaceRange(match.start, match.end, "<a href=\"$replacement\">${symbol}</a>");
-          } else {
-            missingSymbols.add(symbol);
-          }
-        });
-
-        var intermediateUri = constructedReferenceURLFrom(intermediateDirectory.uri, relativePathComponents(documentDirectory.uri, file.uri));
-
-        var intermediateFile = new File.fromUri(intermediateUri);
-        if (!intermediateFile.parent.existsSync()) {
-          await intermediateFile.parent.create(recursive: true);
-        }
-
-        await intermediateFile.writeAsString(contents);
-      });
-
-    await Future.wait(fileOps);
-
-    print("Unknown symbols: ");
-    print("${missingSymbols.join(", ")}");
-  }
-
-  List<String> relativePathComponents(Uri base, Uri path) {
-    var baseComponents = base.pathSegments;
-    var pathComponents = path.pathSegments;
-    var componentDiff = pathComponents.length - baseComponents.length + 1;
-
-    return pathComponents.sublist(pathComponents.length - componentDiff);
-  }
-
-
   Future run(String command, List<String> args, {Directory directory}) async {
     var process = await Process.start(command, args, workingDirectory: directory.path);
 
@@ -212,17 +195,6 @@ class Preparer {
       throw new Exception("Command '$command' failed with exit code ${process.exitCode}");
     }
   }
-}
-
-class SymbolReference {
-  SymbolReference(this.filename, this.startPosition, this.endPosition, this.symbolName);
-
-  String filename;
-  int startPosition;
-  int endPosition;
-  String symbolName;
-
-  String toString() => "$filename:$startPosition:$endPosition $symbolName";
 }
 
 class SymbolResolution {
@@ -239,4 +211,98 @@ class SymbolResolution {
   String link;
 
   String toString() => "$name: $qualifiedName $link $type";
+}
+
+abstract class Transformer {
+  bool shouldTransformFile(String filename) => true;
+  bool get shouldConsiderDirectories => false;
+  bool shouldIncludeItem(String filename) => true;
+  Future<List<int>> transform(List<int> inputContents) async => inputContents;
+}
+
+class BlacklistTransformer extends Transformer {
+  BlacklistTransformer(this.blacklist);
+  List<String> blacklist;
+
+  @override
+  bool get shouldConsiderDirectories => true;
+
+  @override
+  bool shouldIncludeItem(String filename) {
+    if (filename.startsWith(".")) {
+      return false;
+    }
+
+    for (var b in blacklist) {
+      if (b == filename) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+}
+
+class APIReferenceTransformer extends Transformer {
+  APIReferenceTransformer(this.symbolMap, this.baseReferenceURL);
+
+  Uri baseReferenceURL;
+  final RegExp regex = new RegExp("`([A-Za-z0-9_\\.]+)`");
+  Map<String, Map<String, List<SymbolResolution>>> symbolMap;
+
+  @override
+  bool shouldTransformFile(String filename) {
+    return filename.endsWith(".md");
+  }
+
+  @override
+  Future<List<int>> transform(List<int> inputContents) async {
+    var contents = UTF8.decode(inputContents);
+
+    var matches = regex.allMatches(contents).toList().reversed;
+
+    matches.forEach((match) {
+      var symbol = match.group(1);
+      var resolution = bestGuessForSymbol(symbol);
+      if (resolution != null) {
+        var replacement = constructedReferenceURLFrom(baseReferenceURL, resolution.link.split("/"));
+        contents = contents.replaceRange(match.start, match.end, "<a href=\"$replacement\">${symbol}</a>");
+      } else {
+//        missingSymbols.add(symbol);
+      }
+    });
+
+    return UTF8.encode(contents);
+  }
+
+  SymbolResolution bestGuessForSymbol(String symbol) {
+    if (symbolMap.isEmpty) {
+      return null;
+    }
+
+    var possible = symbolMap["qualified"][symbol];
+    if (possible == null) {
+      possible = symbolMap["name"][symbol];
+    }
+
+    if (possible == null) {
+      return null;
+    }
+
+    if (possible.length == 1) {
+      return possible.first;
+    }
+
+    return possible.firstWhere((r) => r.type == "class",
+        orElse: () => possible.first);
+  }
+}
+
+Uri constructedReferenceURLFrom(Uri base, List<String> relativePathComponents) {
+  var subdirectories = relativePathComponents.sublist(0, relativePathComponents.length - 1);
+  Uri enclosingDir = subdirectories.fold(base, (Uri prev, elem) {
+    return prev.resolve("${elem}/");
+  });
+
+  return enclosingDir.resolve(relativePathComponents.last);
 }
