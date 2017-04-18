@@ -179,7 +179,7 @@ class ResourceController extends HTTPController {
 }
 ```
 
-The results of a `Query<T>` can be filtered by configuring its `where` property, which uses Dart's powerful, real-time static analyzer to avoid mistakes and offer code completion.
+The results of a `Query<T>` can be filtered by configuring its `Query.where` property, which uses Dart's powerful, real-time static analyzer to avoid mistakes and offer code completion.
 
 ```dart
 var query = new Query<Employee>()
