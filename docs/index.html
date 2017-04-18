@@ -986,7 +986,7 @@
 </pre></div>
 
 
-<p>Use <code>ManagedObjectController&lt;T&gt;</code>s that map a REST interface to database queries without writing any code:</p>
+<p>Use <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObjectController-class.html">ManagedObjectController&lt;T&gt;</a>s that map a REST interface to database queries without writing any code:</p>
 <div class="codehilite"><pre><span></span><span class="n">router</span>
   <span class="p">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/users/[:id]&quot;</span><span class="p">)</span>
   <span class="p">.</span><span class="n">generate</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="k">new</span> <span class="n">ManagedObjectController</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span><span class="p">());</span>
@@ -1036,7 +1036,7 @@ numberOfDoodads: 3
 
 <p>Aqueduct applications threads are isolated - they share no memory with other threads - and each runs a replica of the same web server. Pooling resources is effectively achieved through this mechanism.</p>
 <h3 id="querying-a-database">Querying a Database</h3>
-<p>Much of the time, a request is handled by sending one or more commands to a database to either get data or send data. This is done with <code>Query&lt;T&gt;</code> objects.</p>
+<p>Much of the time, a request is handled by sending one or more commands to a database to either get data or send data. This is done with <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query-class.html">Query&lt;T&gt;</a> objects.</p>
 <div class="codehilite"><pre><span></span><span class="k">import</span> <span class="s1">&#39;package:aqueduct/aqueduct.dart&#39;</span>
 
 <span class="n">class</span> <span class="n">ResourceController</span> <span class="n">extends</span> <span class="n">HTTPController</span> <span class="err">{</span>
@@ -1052,7 +1052,7 @@ numberOfDoodads: 3
 </pre></div>
 
 
-<p>The results of a <code>Query&lt;T&gt;</code> can be filtered by configuring its <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet/where.html">where</a> property, which uses Dart's powerful, real-time static analyzer to avoid mistakes and offer code completion.</p>
+<p>The results of a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query-class.html">Query&lt;T&gt;</a> can be filtered by configuring its <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/where.html">Query.where</a> property, which uses Dart's powerful, real-time static analyzer to avoid mistakes and offer code completion.</p>
 <div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">query</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Employee</span><span class="o">&gt;</span><span class="p">()</span>
   <span class="p">..</span><span class="n">where</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">whereStartsWith</span><span class="p">(</span><span class="s2">&quot;Sa&quot;</span><span class="p">)</span>
   <span class="p">..</span><span class="n">where</span><span class="p">.</span><span class="n">salary</span> <span class="o">=</span> <span class="n">whereGreaterThan</span><span class="p">(</span><span class="m">50000</span><span class="p">);</span>
@@ -1060,7 +1060,7 @@ numberOfDoodads: 3
 </pre></div>
 
 
-<p>Building queries to insert or update values into the database uses the similar <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/values.html">values</a> property of a <code>Query&lt;T&gt;</code>.</p>
+<p>Building queries to insert or update values into the database uses the similar <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/values.html">values</a> property of a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query-class.html">Query&lt;T&gt;</a>.</p>
 <div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">query</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Employee</span><span class="o">&gt;</span><span class="p">()</span>
   <span class="p">..</span><span class="n">values</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Bob&quot;</span>
   <span class="p">..</span><span class="n">values</span><span class="p">.</span><span class="n">salary</span> <span class="o">=</span> <span class="m">50000</span><span class="p">;</span>
@@ -1074,7 +1074,7 @@ numberOfDoodads: 3
 </pre></div>
 
 
-<p><code>Query&lt;T&gt;</code>s can sort and page on a result set. It can also join tables and return objects and their relationships:</p>
+<p><a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query-class.html">Query&lt;T&gt;</a>s can sort and page on a result set. It can also join tables and return objects and their relationships:</p>
 <div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">query</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Employee</span><span class="o">&gt;</span><span class="p">()</span>
   <span class="p">..</span><span class="n">where</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Sue Gallagher&quot;</span>
   <span class="p">..</span><span class="n">joinOne</span><span class="p">((</span><span class="n">e</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="n">e</span><span class="p">.</span><span class="n">manager</span><span class="p">)</span>
@@ -1085,9 +1085,9 @@ numberOfDoodads: 3
 
 
 <p>Exceptions thrown for queries are caught by the controller and translated into the appropriate status code. Unique constraint conflicts return 409,
-missing required properties return 400, database connection failure returns 503, etc. You can change this by try-catching <code>Query&lt;T&gt;</code> methods.</p>
+missing required properties return 400, database connection failure returns 503, etc. You can change this by try-catching <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query-class.html">Query&lt;T&gt;</a> methods.</p>
 <h3 id="defining-a-data-model">Defining a Data Model</h3>
-<p>For each database table, there is a <code>ManagedObject&lt;T&gt;</code> subclass. These subclasses are the type argument to <code>Query&lt;T&gt;</code>. They are made up of two classes: a persistent type that declares a property for each database column in the table, and the subclass of <code>ManagedObject&lt;T&gt;</code> that you work with in your code.</p>
+<p>For each database table, there is a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a> subclass. These subclasses are the type argument to <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query-class.html">Query&lt;T&gt;</a>. They are made up of two classes: a persistent type that declares a property for each database column in the table, and the subclass of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a> that you work with in your code.</p>
 <div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">Employee</span> <span class="kd">extends</span> <span class="n">ManagedObject</span><span class="o">&lt;</span><span class="n">_Employee</span><span class="o">&gt;</span> <span class="kd">implements</span> <span class="n">_Employee</span> <span class="p">{</span>
   <span class="kt">bool</span> <span class="kd">get</span> <span class="n">wasRecentlyHired</span> <span class="o">=&gt;</span> <span class="n">hireDate</span><span class="p">.</span><span class="n">difference</span><span class="p">(</span><span class="k">new</span> <span class="n">DateTime</span><span class="p">.</span><span class="n">now</span><span class="p">()).</span><span class="n">inDays</span> <span class="o">&lt;</span> <span class="m">30</span><span class="p">;</span>
 <span class="p">}</span>
@@ -1104,7 +1104,7 @@ missing required properties return 400, database connection failure returns 503,
 </pre></div>
 
 
-<p><code>ManagedObject&lt;T&gt;</code>s have relationship properties - references to other <code>ManagedObject&lt;T&gt;</code>s. The property with <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedRelationship-class.html">ManagedRelationship</a> metadata is a foreign key column.</p>
+<p><a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a>s have relationship properties - references to other <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a>s. The property with <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedRelationship-class.html">ManagedRelationship</a> metadata is a foreign key column.</p>
 <div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">Employee</span> <span class="kd">extends</span> <span class="n">ManagedObject</span><span class="o">&lt;</span><span class="n">_Employee</span><span class="o">&gt;</span> <span class="kd">implements</span> <span class="n">_Employee</span> <span class="p">{}</span>
 <span class="kd">class</span> <span class="nc">_Employee</span> <span class="p">{</span>
   <span class="n">ManagedSet</span><span class="o">&lt;</span><span class="n">Initiative</span><span class="o">&gt;</span> <span class="n">initiatives</span><span class="p">;</span>
@@ -1122,7 +1122,7 @@ missing required properties return 400, database connection failure returns 503,
 </pre></div>
 
 
-<p><code>ManagedObject&lt;T&gt;</code>s are easily read from and written to JSON (or any other format):</p>
+<p><a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a>s are easily read from and written to JSON (or any other format):</p>
 <div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">UserController</span> <span class="kd">extends</span> <span class="n">HTTPController</span> <span class="p">{</span>
   <span class="err">@</span><span class="n">httpPut</span>
   <span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">updateUser</span><span class="p">(</span><span class="err">@</span><span class="n">HTTPPath</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">)</span> <span class="kt">int</span> <span class="n">id</span><span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>
