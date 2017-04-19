@@ -433,7 +433,7 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
 
     if (client.hashedSecret == null) {
       if (password == "") {
-        return new Authorization(client.id, null, this);
+        return new Authorization(client.id, null, this, credentials: credentials);
       }
 
       return null;

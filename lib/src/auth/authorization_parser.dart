@@ -33,6 +33,8 @@ class AuthBasicCredentials {
 
   /// The password of a Basic Authorization header.
   String password;
+
+  String toString() => "$username:$password";
 }
 
 /// Parses a Basic Authorization header.

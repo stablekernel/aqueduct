@@ -90,12 +90,17 @@ class TestClient {
   /// The [path] will be appended to the [baseURL] of this instance. You may omit or include
   /// the leading slash in the path, the result will be the same.
   ///
-  /// If you do not provide a [clientID] or [clientSecret], the values of [TestClient.clientID] and [TestClient.clientSecret]
-  /// will be used.
+  /// If you do not provide a [clientID] and [clientSecret], the values of [TestClient.clientID] and [TestClient.clientSecret]
+  /// will be used. If you provide only a [clientID] and no [clientSecret], [clientSecret] defaults to the empty string; i.e.
+  /// [clientID] is considered a public client without a secret.
   TestRequest clientAuthenticatedRequest(String path,
       {String clientID: null, String clientSecret: null}) {
+
+    if (clientID != null && clientSecret == null) {
+      clientSecret = "";
+    }
     clientID ??= this.clientID;
-    clientSecret ??= this.clientSecret;
+    clientSecret ??= this.clientSecret ?? "";
 
     var req = request(path)..setBasicAuthorization(clientID, clientSecret);
 

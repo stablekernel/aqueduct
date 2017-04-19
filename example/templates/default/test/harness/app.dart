@@ -15,6 +15,7 @@ export 'package:aqueduct/aqueduct.dart';
 class TestApplication {
   static const DefaultClientID = "com.aqueduct.test";
   static const DefaultClientSecret = "kilimanjaro";
+  static const DefaultPublicClientID = "com.aqueduct.public";
 
   /// Creates an instance of this class.
   ///
@@ -53,6 +54,7 @@ class TestApplication {
 
     await createDatabaseSchema(sink.context, sink.logger);
     await addClientRecord();
+    await addClientRecord(clientID: DefaultPublicClientID, clientSecret: null);
 
     client = new TestClient(application)
       ..clientID = DefaultClientID
@@ -75,8 +77,12 @@ class TestApplication {
   static Future<ManagedClient> addClientRecord(
       {String clientID: DefaultClientID,
       String clientSecret: DefaultClientSecret}) async {
-    var salt = AuthUtility.generateRandomSalt();
-    var hashedPassword = AuthUtility.generatePasswordHash(clientSecret, salt);
+    var salt;
+    var hashedPassword;
+    if (clientSecret != null) {
+      salt = AuthUtility.generateRandomSalt();
+      hashedPassword = AuthUtility.generatePasswordHash(clientSecret, salt);
+    }
 
     var clientQ = new Query<ManagedClient>()
       ..values.id = clientID
