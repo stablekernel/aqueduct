@@ -149,6 +149,35 @@ void main() {
       expect(msg.headers["authorization"], "Basic $auth");
     });
 
+    test("Default public client authenticated requests add credentials", () async {
+      var defaultTestClient = new TestClient.onPort(4040)
+        ..clientID = "a";
+      expect(
+          (await defaultTestClient.clientAuthenticatedRequest("/foo").get())
+          is TestResponse,
+          true);
+      var msg = await server.next();
+      expect(msg.path, "/foo");
+      expect(msg.method, "GET");
+
+      var auth = new Base64Encoder().convert("a:".codeUnits);
+      expect(msg.headers["authorization"], "Basic $auth");
+    });
+
+    test("Public client authenticated requests add credentials", () async {
+      var defaultTestClient = new TestClient.onPort(4040);
+      expect(
+          (await defaultTestClient.clientAuthenticatedRequest("/foo", clientID: "a").get())
+          is TestResponse,
+          true);
+      var msg = await server.next();
+      expect(msg.path, "/foo");
+      expect(msg.method, "GET");
+
+      var auth = new Base64Encoder().convert("a:".codeUnits);
+      expect(msg.headers["authorization"], "Basic $auth");
+    });
+
     test("Bearer requests add credentials", () async {
       var defaultTestClient = new TestClient.onPort(4040)
         ..defaultAccessToken = "abc";

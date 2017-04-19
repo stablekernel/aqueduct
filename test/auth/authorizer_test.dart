@@ -97,7 +97,7 @@ void main() {
           headers: {HttpHeaders.AUTHORIZATION: "Bearer $accessToken"});
       expect(res.statusCode, 200);
       expect(JSON.decode(res.body),
-          {"clientID": "com.stablekernel.app1", "resourceOwnerIdentifier": 1});
+          {"clientID": "com.stablekernel.app1", "resourceOwnerIdentifier": 1, "credentials": null});
     });
   });
 
@@ -178,7 +178,8 @@ void main() {
       expect(res.statusCode, 200);
       expect(JSON.decode(res.body), {
         "clientID": "com.stablekernel.app1",
-        "resourceOwnerIdentifier": null
+        "resourceOwnerIdentifier": null,
+        "credentials": "com.stablekernel.app1:kilimanjaro"
       });
     });
 
@@ -193,7 +194,8 @@ void main() {
       expect(res.statusCode, 200);
       expect(JSON.decode(res.body), {
         "clientID": "com.stablekernel.public",
-        "resourceOwnerIdentifier": null
+        "resourceOwnerIdentifier": null,
+        "credentials": "com.stablekernel.public:"
       });
 
       res = await http.get("http://localhost:8000", headers: {
@@ -427,7 +429,8 @@ Future<HttpServer> enableAuthorizer(Authorizer authorizer) async {
 Future<RequestOrResponse> respond(Request req) async {
   var map = {
     "clientID": req.authorization.clientID,
-    "resourceOwnerIdentifier": req.authorization.resourceOwnerIdentifier
+    "resourceOwnerIdentifier": req.authorization.resourceOwnerIdentifier,
+    "credentials": req.authorization.credentials?.toString()
   };
 
   if ((req.authorization.scopes?.length ?? 0) > 0) {

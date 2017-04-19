@@ -26,6 +26,20 @@ main() {
               200, partial({"access_token": hasLength(greaterThan(0))})));
     });
 
+    test("Can create user with public client", () async {
+      var response = await (app.client.clientAuthenticatedRequest("/register", clientID: "com.aqueduct.public")
+        ..json = {
+          "username": "bob@stablekernel.com",
+          "password": "foobaraxegrind12%"
+        })
+          .post();
+
+      expect(
+          response,
+          hasResponse(
+              200, partial({"access_token": hasLength(greaterThan(0))})));
+    });
+
     test("Created user has same email a username", () async {
       var json = {
         "username": "bob@stablekernel.com",

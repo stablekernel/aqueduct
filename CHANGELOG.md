@@ -3,6 +3,7 @@
 ## 2.0.3
 
 - Fixes issue with `aqueduct document` for routes using `listen`
+- Fixes issue when using `TestClient` to execute requests with public OAuth2 client
 
 ## 2.0.2
 
