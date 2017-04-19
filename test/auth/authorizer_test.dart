@@ -430,7 +430,7 @@ Future<RequestOrResponse> respond(Request req) async {
   var map = {
     "clientID": req.authorization.clientID,
     "resourceOwnerIdentifier": req.authorization.resourceOwnerIdentifier,
-    "credentials": req.authorization.credentials.toString()
+    "credentials": req.authorization.credentials?.toString()
   };
 
   if ((req.authorization.scopes?.length ?? 0) > 0) {
