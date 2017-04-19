@@ -213,4 +213,99 @@ class SchemaBuilder {
       }
     }
   }
+
+  //todo: Transitionary code that can be removed at 3.0
+  @deprecated
+  static String sourceForSchemaUpgrade(
+      Schema existingSchema, Schema newSchema, int version) {
+    var builder = new StringBuffer();
+    builder.writeln("import 'package:aqueduct/aqueduct.dart';");
+    builder.writeln("import 'dart:async';");
+    builder.writeln("");
+    builder.writeln("class Migration$version extends Migration {");
+    builder.writeln("  Future upgrade() async {");
+
+    var existingTableNames = existingSchema.tables.map((t) => t.name).toList();
+
+    newSchema.dependencyOrderedTables
+        .where((t) => !existingTableNames.contains(t.name))
+        .forEach((t) {
+      builder.writeln(_createTableString(t, "    "));
+    });
+
+    builder.writeln("  }");
+    builder.writeln("");
+    builder.writeln("  Future downgrade() async {");
+    builder.writeln("  }");
+    builder.writeln("  Future seed() async {");
+    builder.writeln("  }");
+    builder.writeln("}");
+
+    return builder.toString();
+  }
+
+  //todo: Transitionary code that can be removed at 3.0
+  @deprecated
+  static String _createTableString(SchemaTable table, String spaceOffset,
+      {bool temporary: false}) {
+    var builder = new StringBuffer();
+    builder.writeln(
+        '${spaceOffset}database.createTable(new SchemaTable("${table.name}", [');
+    table.columns.forEach((col) {
+      builder.writeln("${spaceOffset}${_newColumnString(table, col, "  ")},");
+    });
+    builder.writeln('${spaceOffset}]));');
+
+    return builder.toString();
+  }
+
+  //todo: Transitionary code that can be removed at 3.0
+  @deprecated
+  static String _newColumnString(
+      SchemaTable table, SchemaColumn column, String spaceOffset) {
+    var builder = new StringBuffer();
+    if (column.relatedTableName != null) {
+      builder.write(
+          '${spaceOffset}new SchemaColumn.relationship("${column.name}", ${column.type}');
+      builder.write(", relatedTableName: \"${column.relatedTableName}\"");
+      builder.write(", relatedColumnName: \"${column.relatedColumnName}\"");
+      builder.write(", rule: ${column.deleteRule}");
+    } else {
+      builder.write(
+          '${spaceOffset}new SchemaColumn("${column.name}", ${column.type}');
+      if (column.isPrimaryKey) {
+        builder.write(", isPrimaryKey: true");
+      } else {
+        builder.write(", isPrimaryKey: false");
+      }
+      if (column.autoincrement) {
+        builder.write(", autoincrement: true");
+      } else {
+        builder.write(", autoincrement: false");
+      }
+      if (column.defaultValue != null) {
+        builder.write(', defaultValue: "${column.defaultValue}"');
+      }
+      if (column.isIndexed) {
+        builder.write(", isIndexed: true");
+      } else {
+        builder.write(", isIndexed: false");
+      }
+    }
+
+    if (column.isNullable) {
+      builder.write(", isNullable: true");
+    } else {
+      builder.write(", isNullable: false");
+    }
+    if (column.isUnique) {
+      builder.write(", isUnique: true");
+    } else {
+      builder.write(", isUnique: false");
+    }
+
+    builder.write(")");
+    return builder.toString();
+  }
+
 }

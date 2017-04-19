@@ -13,7 +13,7 @@ void main() {
     var projectSourceDirectory = getTestProjectDirectory("initial");
     Directory projectDirectory = new Directory("test_project");
     var migrationDirectory =
-    new Directory.fromUri(projectDirectory.uri.resolve("migrations"));
+        new Directory.fromUri(projectDirectory.uri.resolve("migrations"));
     var addFiles = (List<String> filenames) {
       filenames.forEach((name) {
         new File.fromUri(migrationDirectory.uri.resolve(name))
@@ -44,52 +44,55 @@ void main() {
 
     test(
         "If there are no migration files, create an initial one that validates to schema",
-            () async {
-          await runPubGet(projectDirectory, offline: true);
+        () async {
+      await runPubGet(projectDirectory, offline: true);
 
-          // Putting a non-migration file in there to ensure that this doesn't prevent from being ugpraded
-          migrationDirectory.createSync();
-          addFiles(["notmigration.dart"]);
+      // Putting a non-migration file in there to ensure that this doesn't prevent from being ugpraded
+      migrationDirectory.createSync();
+      addFiles(["notmigration.dart"]);
 
-          await runAqueductProcess(["db", "generate"], projectDirectory);
-          var out = await runAqueductProcess(["db", "validate"], projectDirectory);
-          expect(out, 0);
-        });
+      await runAqueductProcess(["db", "generate"], projectDirectory);
+      var out = await runAqueductProcess(["db", "validate"], projectDirectory);
+      expect(out, 0);
+    });
 
-    test("If there is already a migration file, create an upgrade file with changes",
-            () async {
-          await runPubGet(projectDirectory, offline: true);
+    test(
+        "If there is already a migration file, create an upgrade file with changes",
+        () async {
+      await runPubGet(projectDirectory, offline: true);
 
-          await runAqueductProcess(["db", "generate"], projectDirectory);
+      await runAqueductProcess(["db", "generate"], projectDirectory);
 
-          // Let's add an index
-          var modelFile = new File.fromUri(projectDirectory.uri.resolve("lib/").resolve("wildfire.dart"));
-          var contents = modelFile
-            .readAsStringSync()
-            .replaceFirst("String foo;", "@ManagedColumnAttributes(indexed: true) String foo;");
-          modelFile.writeAsStringSync(contents);
+      // Let's add an index
+      var modelFile = new File.fromUri(
+          projectDirectory.uri.resolve("lib/").resolve("wildfire.dart"));
+      var contents = modelFile.readAsStringSync().replaceFirst(
+          "String foo;", "@ManagedColumnAttributes(indexed: true) String foo;");
+      modelFile.writeAsStringSync(contents);
 
-          await runAqueductProcess(["db", "generate"], projectDirectory);
+      await runAqueductProcess(["db", "generate"], projectDirectory);
 
-          expect(
-              migrationDirectory
-                  .listSync()
-                  .where((fse) => !fse.uri.pathSegments.last.startsWith(".")),
-              hasLength(2));
-          expect(
-              new File.fromUri(migrationDirectory.uri
+      expect(
+          migrationDirectory
+              .listSync()
+              .where((fse) => !fse.uri.pathSegments.last.startsWith(".")),
+          hasLength(2));
+      expect(
+          new File.fromUri(migrationDirectory.uri
                   .resolve("00000001_Initial.migration.dart"))
-                  .existsSync(),
-              true);
-          expect(
-              new File.fromUri(migrationDirectory.uri
+              .existsSync(),
+          true);
+      expect(
+          new File.fromUri(migrationDirectory.uri
                   .resolve("00000002_Unnamed.migration.dart"))
-                  .existsSync(),
-              true);
+              .existsSync(),
+          true);
 
-          var out = await runAqueductProcess(["db", "validate"], projectDirectory);
-          expect(out, 0);
-        });
+      print("${new File.fromUri(migrationDirectory.uri
+          .resolve("00000002_Unnamed.migration.dart")).readAsStringSync()}");
+      var out = await runAqueductProcess(["db", "validate"], projectDirectory);
+      expect(out, 0);
+    });
   });
 
   group("Schema diffs", () {
@@ -97,7 +100,8 @@ void main() {
     PostgreSQLConnection connection;
 
     setUp(() async {
-      connection = new PostgreSQLConnection("localhost", 5432, "dart_test", username: "dart", password: "dart");
+      connection = new PostgreSQLConnection("localhost", 5432, "dart_test",
+          username: "dart", password: "dart");
       await connection.open();
       migrationDirectory.createSync(recursive: true);
     });
@@ -122,31 +126,39 @@ void main() {
         new Schema.empty(),
         new Schema([
           new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true)
+            new SchemaColumn("id", ManagedPropertyType.integer,
+                isPrimaryKey: true)
           ])
         ])
       ]);
 
       await executeMigrations(migrationDirectory.parent);
 
-      var results = await connection.query("INSERT INTO t (id) VALUES (1) RETURNING id");
-      expect(results, [[1]]);
+      var results =
+          await connection.query("INSERT INTO t (id) VALUES (1) RETURNING id");
+      expect(results, [
+        [1]
+      ]);
     });
 
-    test("Table that is no longer in destination schema emits deleteTable", () async {
+    test("Table that is no longer in destination schema emits deleteTable",
+        () async {
       var schemas = [
         new Schema.empty(),
         new Schema([
           new SchemaTable("u", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true)
+            new SchemaColumn("id", ManagedPropertyType.integer,
+                isPrimaryKey: true)
           ]),
           new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true)
+            new SchemaColumn("id", ManagedPropertyType.integer,
+                isPrimaryKey: true)
           ])
         ]),
         new Schema([
           new SchemaTable("u", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true)
+            new SchemaColumn("id", ManagedPropertyType.integer,
+                isPrimaryKey: true)
           ]),
         ]),
       ];
@@ -154,16 +166,25 @@ void main() {
       await writeMigrations(migrationDirectory, schemas.sublist(0, 2));
       await executeMigrations(migrationDirectory.parent);
 
-      var results = await connection.query("INSERT INTO t (id) VALUES (1) RETURNING id");
-      expect(results, [[1]]);
-      results = await connection.query("INSERT INTO u (id) VALUES (1) RETURNING id");
-      expect(results, [[1]]);
+      var results =
+          await connection.query("INSERT INTO t (id) VALUES (1) RETURNING id");
+      expect(results, [
+        [1]
+      ]);
+      results =
+          await connection.query("INSERT INTO u (id) VALUES (1) RETURNING id");
+      expect(results, [
+        [1]
+      ]);
 
       await writeMigrations(migrationDirectory, schemas.sublist(1));
       await executeMigrations(migrationDirectory.parent);
 
-      results = await connection.query("INSERT INTO u (id) VALUES (2) RETURNING id");
-      expect(results, [[2]]);
+      results =
+          await connection.query("INSERT INTO u (id) VALUES (2) RETURNING id");
+      expect(results, [
+        [2]
+      ]);
       try {
         await connection.query("INSERT INTO t (id) VALUES (1) RETURNING id");
         expect(true, false);
@@ -172,16 +193,21 @@ void main() {
       }
     });
 
-    test("Two tables to be deleted that are order-dependent because of constraints are added/deleted in the right order", () async {
+    test(
+        "Two tables to be deleted that are order-dependent because of constraints are added/deleted in the right order",
+        () async {
       var schemas = [
         new Schema.empty(),
         new Schema([
           new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true)
+            new SchemaColumn("id", ManagedPropertyType.integer,
+                isPrimaryKey: true)
           ]),
           new SchemaTable("u", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
-            new SchemaColumn.relationship("ref", ManagedPropertyType.integer, relatedTableName: "t", relatedColumnName: "id")
+            new SchemaColumn("id", ManagedPropertyType.integer,
+                isPrimaryKey: true),
+            new SchemaColumn.relationship("ref", ManagedPropertyType.integer,
+                relatedTableName: "t", relatedColumnName: "id")
           ]),
         ]),
         new Schema.empty()
@@ -216,16 +242,21 @@ void main() {
       }
     });
 
-    test("Repeat of above, reverse order: Two tables to be added/deleted that are order-dependent because of constraints are deleted in the right order", () async {
+    test(
+        "Repeat of above, reverse order: Two tables to be added/deleted that are order-dependent because of constraints are deleted in the right order",
+        () async {
       var schemas = [
         new Schema.empty(),
         new Schema([
           new SchemaTable("u", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
-            new SchemaColumn.relationship("ref", ManagedPropertyType.integer, relatedTableName: "t", relatedColumnName: "id")
+            new SchemaColumn("id", ManagedPropertyType.integer,
+                isPrimaryKey: true),
+            new SchemaColumn.relationship("ref", ManagedPropertyType.integer,
+                relatedTableName: "t", relatedColumnName: "id")
           ]),
           new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true)
+            new SchemaColumn("id", ManagedPropertyType.integer,
+                isPrimaryKey: true)
           ]),
         ]),
         new Schema.empty()
@@ -254,16 +285,20 @@ void main() {
         new Schema.empty(),
         new Schema([
           new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true)
+            new SchemaColumn("id", ManagedPropertyType.integer,
+                isPrimaryKey: true)
           ]),
         ]),
         new Schema([
           new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true)
+            new SchemaColumn("id", ManagedPropertyType.integer,
+                isPrimaryKey: true)
           ]),
           new SchemaTable("u", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
-            new SchemaColumn.relationship("ref", ManagedPropertyType.integer, relatedTableName: "t", relatedColumnName: "id")
+            new SchemaColumn("id", ManagedPropertyType.integer,
+                isPrimaryKey: true),
+            new SchemaColumn.relationship("ref", ManagedPropertyType.integer,
+                relatedTableName: "t", relatedColumnName: "id")
           ]),
         ])
       ];
@@ -272,25 +307,33 @@ void main() {
       await executeMigrations(migrationDirectory.parent);
 
       await connection.query("INSERT INTO t (id) VALUES (1)");
-      var results = await connection.query("INSERT INTO u (id, ref_id) VALUES (1, 1) RETURNING id, ref_id");
-      expect(results, [[1, 1]]);
+      var results = await connection.query(
+          "INSERT INTO u (id, ref_id) VALUES (1, 1) RETURNING id, ref_id");
+      expect(results, [
+        [1, 1]
+      ]);
     });
 
-    test("Add new table, and add foreign key to that table from existing table", () async {
+    test("Add new table, and add foreign key to that table from existing table",
+        () async {
       var schemas = [
         new Schema.empty(),
         new Schema([
           new SchemaTable("u", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true)
+            new SchemaColumn("id", ManagedPropertyType.integer,
+                isPrimaryKey: true)
           ]),
         ]),
         new Schema([
           new SchemaTable("u", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
-            new SchemaColumn.relationship("ref", ManagedPropertyType.integer, relatedTableName: "t", relatedColumnName: "id")
+            new SchemaColumn("id", ManagedPropertyType.integer,
+                isPrimaryKey: true),
+            new SchemaColumn.relationship("ref", ManagedPropertyType.integer,
+                relatedTableName: "t", relatedColumnName: "id")
           ]),
           new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
+            new SchemaColumn("id", ManagedPropertyType.integer,
+                isPrimaryKey: true),
           ]),
         ])
       ];
@@ -299,8 +342,11 @@ void main() {
       await executeMigrations(migrationDirectory.parent);
 
       await connection.query("INSERT INTO t (id) VALUES (1)");
-      var results = await connection.query("INSERT INTO u (id, ref_id) VALUES (1, 1) RETURNING id, ref_id");
-      expect(results, [[1, 1]]);
+      var results = await connection.query(
+          "INSERT INTO u (id, ref_id) VALUES (1, 1) RETURNING id, ref_id");
+      expect(results, [
+        [1, 1]
+      ]);
     });
 
     /*
@@ -312,12 +358,14 @@ void main() {
         new Schema.empty(),
         new Schema([
           new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true)
+            new SchemaColumn("id", ManagedPropertyType.integer,
+                isPrimaryKey: true)
           ]),
         ]),
         new Schema([
           new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
+            new SchemaColumn("id", ManagedPropertyType.integer,
+                isPrimaryKey: true),
             new SchemaColumn("x", ManagedPropertyType.integer, isNullable: true)
           ]),
         ])
@@ -328,28 +376,38 @@ void main() {
 
       await connection.query("INSERT INTO t (id) VALUES (1)");
       var results = await connection.query("SELECT * FROM t");
-      expect(results, [[1]]);
+      expect(results, [
+        [1]
+      ]);
 
       await writeMigrations(migrationDirectory, schemas.sublist(1));
       await executeMigrations(migrationDirectory.parent);
 
       await connection.query("INSERT INTO t (id, x) VALUES (2, 0)");
       results = await connection.query("SELECT * from t ORDER BY id ASC");
-      expect(results, [[1, null], [2, 0]]);
+      expect(results, [
+        [1, null],
+        [2, 0]
+      ]);
     });
 
-    test("New non-nullable column with default value can be upgraded to, default value provided for existing columns", () async {
+    test(
+        "New non-nullable column with default value can be upgraded to, default value provided for existing columns",
+        () async {
       var schemas = [
         new Schema.empty(),
         new Schema([
           new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true)
+            new SchemaColumn("id", ManagedPropertyType.integer,
+                isPrimaryKey: true)
           ]),
         ]),
         new Schema([
           new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
-            new SchemaColumn("x", ManagedPropertyType.integer, isNullable: false, defaultValue: "2")
+            new SchemaColumn("id", ManagedPropertyType.integer,
+                isPrimaryKey: true),
+            new SchemaColumn("x", ManagedPropertyType.integer,
+                isNullable: false, defaultValue: "2")
           ]),
         ])
       ];
@@ -364,21 +422,30 @@ void main() {
       await connection.query("INSERT INTO t (id) VALUES (2)");
       await connection.query("INSERT INTO t (id, x) VALUES (3, 0)");
       var results = await connection.query("SELECT * from t ORDER BY id ASC");
-      expect(results, [[1, 2], [2, 2], [3, 0]]);
+      expect(results, [
+        [1, 2],
+        [2, 2],
+        [3, 0]
+      ]);
     });
 
-    test("Adding non-nullable column without default value requires initialValue", () async {
+    test(
+        "Adding non-nullable column without default value requires initialValue",
+        () async {
       var schemas = [
         new Schema.empty(),
         new Schema([
           new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true)
+            new SchemaColumn("id", ManagedPropertyType.integer,
+                isPrimaryKey: true)
           ]),
         ]),
         new Schema([
           new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
-            new SchemaColumn("x", ManagedPropertyType.integer, isNullable: false, defaultValue: null)
+            new SchemaColumn("id", ManagedPropertyType.integer,
+                isPrimaryKey: true),
+            new SchemaColumn("x", ManagedPropertyType.integer,
+                isNullable: false, defaultValue: null)
           ]),
         ])
       ];
@@ -389,33 +456,42 @@ void main() {
       await writeMigrations(migrationDirectory, schemas.sublist(1));
 
       // Fails because syntax error for placeholder for unencodedInitialValue
-      expect(await executeMigrations(migrationDirectory.parent), greaterThan(0));
+      expect(
+          await executeMigrations(migrationDirectory.parent), greaterThan(0));
 
       // Update generated source code to add initialValue,
-      var lastMigrationFile = new File.fromUri(migrationDirectory.uri.resolve("2.migration.dart"));
-      var contents = lastMigrationFile
-          .readAsStringSync()
-          .replaceFirst(r"<<set>>", "'2'");
+      var lastMigrationFile =
+          new File.fromUri(migrationDirectory.uri.resolve("2.migration.dart"));
+      var contents =
+          lastMigrationFile.readAsStringSync().replaceFirst(r"<<set>>", "'2'");
       lastMigrationFile.writeAsStringSync(contents);
       expect(await executeMigrations(migrationDirectory.parent), 0);
 
       await connection.query("INSERT INTO t (id, x) VALUES (2, 3)");
-      var results = await connection.query("SELECT id, x FROM t ORDER BY id ASC");
-      expect(results, [[1, 2], [2, 3]]);
+      var results =
+          await connection.query("SELECT id, x FROM t ORDER BY id ASC");
+      expect(results, [
+        [1, 2],
+        [2, 3]
+      ]);
     });
 
-    test("Add multiple columns in destination schema, emits multiple addColumn", () async {
+    test("Add multiple columns in destination schema, emits multiple addColumn",
+        () async {
       var schemas = [
         new Schema.empty(),
         new Schema([
           new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true)
+            new SchemaColumn("id", ManagedPropertyType.integer,
+                isPrimaryKey: true)
           ]),
         ]),
         new Schema([
           new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
-            new SchemaColumn("x", ManagedPropertyType.integer, isNullable: true),
+            new SchemaColumn("id", ManagedPropertyType.integer,
+                isPrimaryKey: true),
+            new SchemaColumn("x", ManagedPropertyType.integer,
+                isNullable: true),
             new SchemaColumn("y", ManagedPropertyType.string, isNullable: true),
           ]),
         ])
@@ -424,8 +500,11 @@ void main() {
       await writeMigrations(migrationDirectory, schemas);
       await executeMigrations(migrationDirectory.parent);
 
-      var results = await connection.query("INSERT INTO t (id, x, y) VALUES (1, 2, 'a') RETURNING id, x, y");
-      expect(results, [[1, 2, 'a']]);
+      var results = await connection.query(
+          "INSERT INTO t (id, x, y) VALUES (1, 2, 'a') RETURNING id, x, y");
+      expect(results, [
+        [1, 2, 'a']
+      ]);
     });
 
     test("Remove column from destination schema, emits deleteColumn", () async {
@@ -433,14 +512,16 @@ void main() {
         new Schema.empty(),
         new Schema([
           new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
+            new SchemaColumn("id", ManagedPropertyType.integer,
+                isPrimaryKey: true),
             new SchemaColumn("x", ManagedPropertyType.integer),
             new SchemaColumn("y", ManagedPropertyType.string),
           ]),
         ]),
         new Schema([
           new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
+            new SchemaColumn("id", ManagedPropertyType.integer,
+                isPrimaryKey: true),
           ]),
         ])
       ];
@@ -448,14 +529,18 @@ void main() {
       await writeMigrations(migrationDirectory, schemas);
       await executeMigrations(migrationDirectory.parent);
 
-      var results = await connection.query("INSERT INTO t (id) VALUES (1) RETURNING id");
-      expect(results, [[1]]);
+      var results =
+          await connection.query("INSERT INTO t (id) VALUES (1) RETURNING id");
+      expect(results, [
+        [1]
+      ]);
 
       try {
         await connection.query("INSERT INTO t (id, x, y) VALUES (1, 2, 'a')");
         expect(true, false);
       } on PostgreSQLException catch (e) {
-        expect(e.message, contains("column \"x\" of relation \"t\" does not exist"));
+        expect(e.message,
+            contains("column \"x\" of relation \"t\" does not exist"));
       }
     });
 
@@ -464,16 +549,22 @@ void main() {
         new Schema.empty(),
         new Schema([
           new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
-            new SchemaColumn("wasIndexed", ManagedPropertyType.integer, isIndexed: true),
-            new SchemaColumn("nowIndexed", ManagedPropertyType.string, isIndexed: false),
+            new SchemaColumn("id", ManagedPropertyType.integer,
+                isPrimaryKey: true),
+            new SchemaColumn("wasIndexed", ManagedPropertyType.integer,
+                isIndexed: true),
+            new SchemaColumn("nowIndexed", ManagedPropertyType.string,
+                isIndexed: false),
           ]),
         ]),
         new Schema([
           new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
-            new SchemaColumn("wasIndexed", ManagedPropertyType.integer, isIndexed: false),
-            new SchemaColumn("nowIndexed", ManagedPropertyType.string, isIndexed: true),
+            new SchemaColumn("id", ManagedPropertyType.integer,
+                isPrimaryKey: true),
+            new SchemaColumn("wasIndexed", ManagedPropertyType.integer,
+                isIndexed: false),
+            new SchemaColumn("nowIndexed", ManagedPropertyType.string,
+                isIndexed: true),
           ]),
         ]),
       ];
@@ -481,7 +572,8 @@ void main() {
       await writeMigrations(migrationDirectory, schemas);
       await executeMigrations(migrationDirectory.parent);
 
-      var results = await connection.query("SELECT indexname, indexdef FROM pg_indexes where tablename = 't' ORDER BY indexname ASC");
+      var results = await connection.query(
+          "SELECT indexname, indexdef FROM pg_indexes where tablename = 't' ORDER BY indexname ASC");
       expect(results.length, 2);
       expect(results[0][0], "t_nowindexed_idx");
       expect(results[0][1], startsWith("CREATE INDEX"));
@@ -496,16 +588,22 @@ void main() {
         new Schema.empty(),
         new Schema([
           new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
-            new SchemaColumn("wasNullable", ManagedPropertyType.integer, isNullable: true),
-            new SchemaColumn("nowNullable", ManagedPropertyType.string, isNullable: false),
+            new SchemaColumn("id", ManagedPropertyType.integer,
+                isPrimaryKey: true),
+            new SchemaColumn("wasNullable", ManagedPropertyType.integer,
+                isNullable: true),
+            new SchemaColumn("nowNullable", ManagedPropertyType.string,
+                isNullable: false),
           ]),
         ]),
         new Schema([
           new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
-            new SchemaColumn("wasNullable", ManagedPropertyType.integer, isNullable: false, defaultValue: "2"),
-            new SchemaColumn("nowNullable", ManagedPropertyType.string, isNullable: true),
+            new SchemaColumn("id", ManagedPropertyType.integer,
+                isPrimaryKey: true),
+            new SchemaColumn("wasNullable", ManagedPropertyType.integer,
+                isNullable: false, defaultValue: "2"),
+            new SchemaColumn("nowNullable", ManagedPropertyType.string,
+                isNullable: true),
           ]),
         ]),
       ];
@@ -513,8 +611,11 @@ void main() {
       await writeMigrations(migrationDirectory, schemas);
       await executeMigrations(migrationDirectory.parent);
 
-      var results = await connection.query("INSERT INTO t (id) VALUES (1) RETURNING id, wasNullable, nowNullable");
-      expect(results, [[1, 2, null]]);
+      var results = await connection.query(
+          "INSERT INTO t (id) VALUES (1) RETURNING id, wasNullable, nowNullable");
+      expect(results, [
+        [1, 2, null]
+      ]);
     });
 
     test("Alter column's nullability, with initial values", () async {
@@ -522,14 +623,18 @@ void main() {
         new Schema.empty(),
         new Schema([
           new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
-            new SchemaColumn("x", ManagedPropertyType.integer, isNullable: true, defaultValue: null)
+            new SchemaColumn("id", ManagedPropertyType.integer,
+                isPrimaryKey: true),
+            new SchemaColumn("x", ManagedPropertyType.integer,
+                isNullable: true, defaultValue: null)
           ]),
         ]),
         new Schema([
           new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
-            new SchemaColumn("x", ManagedPropertyType.integer, isNullable: false, defaultValue: null)
+            new SchemaColumn("id", ManagedPropertyType.integer,
+                isPrimaryKey: true),
+            new SchemaColumn("x", ManagedPropertyType.integer,
+                isNullable: false, defaultValue: null)
           ]),
         ])
       ];
@@ -541,19 +646,25 @@ void main() {
       await writeMigrations(migrationDirectory, schemas.sublist(1));
 
       // Fails because syntax error for placeholder for unencodedInitialValue
-      expect(await executeMigrations(migrationDirectory.parent), greaterThan(0));
+      expect(
+          await executeMigrations(migrationDirectory.parent), greaterThan(0));
 
       // Update generated source code to add initialValue,
-      var lastMigrationFile = new File.fromUri(migrationDirectory.uri.resolve("2.migration.dart"));
-      var contents = lastMigrationFile
-          .readAsStringSync()
-          .replaceFirst(r"<<set>>", "'2'");
+      var lastMigrationFile =
+          new File.fromUri(migrationDirectory.uri.resolve("2.migration.dart"));
+      var contents =
+          lastMigrationFile.readAsStringSync().replaceFirst(r"<<set>>", "'2'");
       lastMigrationFile.writeAsStringSync(contents);
       expect(await executeMigrations(migrationDirectory.parent), 0);
 
       await connection.query("INSERT INTO t (id, x) VALUES (3, 3)");
-      var results = await connection.query("SELECT id, x FROM t ORDER BY id ASC");
-      expect(results, [[1, 2], [2, 7], [3, 3]]);
+      var results =
+          await connection.query("SELECT id, x FROM t ORDER BY id ASC");
+      expect(results, [
+        [1, 2],
+        [2, 7],
+        [3, 3]
+      ]);
     });
 
     test("Alter column's uniqueness", () async {
@@ -561,16 +672,22 @@ void main() {
         new Schema.empty(),
         new Schema([
           new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
-            new SchemaColumn("wasUnique", ManagedPropertyType.integer, isUnique: true),
-            new SchemaColumn("nowUnique", ManagedPropertyType.string, isUnique: false),
+            new SchemaColumn("id", ManagedPropertyType.integer,
+                isPrimaryKey: true),
+            new SchemaColumn("wasUnique", ManagedPropertyType.integer,
+                isUnique: true),
+            new SchemaColumn("nowUnique", ManagedPropertyType.string,
+                isUnique: false),
           ]),
         ]),
         new Schema([
           new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
-            new SchemaColumn("wasUnique", ManagedPropertyType.integer, isUnique: false),
-            new SchemaColumn("nowUnique", ManagedPropertyType.string, isUnique: true),
+            new SchemaColumn("id", ManagedPropertyType.integer,
+                isPrimaryKey: true),
+            new SchemaColumn("wasUnique", ManagedPropertyType.integer,
+                isUnique: false),
+            new SchemaColumn("nowUnique", ManagedPropertyType.string,
+                isUnique: true),
           ]),
         ]),
       ];
@@ -578,7 +695,8 @@ void main() {
       await writeMigrations(migrationDirectory, schemas);
       await executeMigrations(migrationDirectory.parent);
 
-      var results = await connection.query("SELECT indexname, indexdef FROM pg_indexes where tablename = 't' ORDER BY indexname ASC");
+      var results = await connection.query(
+          "SELECT indexname, indexdef FROM pg_indexes where tablename = 't' ORDER BY indexname ASC");
       expect(results.length, 2);
       expect(results[0][0], "t_nowunique_key");
       expect(results[0][1], startsWith("CREATE UNIQUE INDEX"));
@@ -593,16 +711,22 @@ void main() {
         new Schema.empty(),
         new Schema([
           new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
-            new SchemaColumn("wasDefault", ManagedPropertyType.integer, defaultValue: "2"),
-            new SchemaColumn("nowDefault", ManagedPropertyType.string, defaultValue: null),
+            new SchemaColumn("id", ManagedPropertyType.integer,
+                isPrimaryKey: true),
+            new SchemaColumn("wasDefault", ManagedPropertyType.integer,
+                defaultValue: "2"),
+            new SchemaColumn("nowDefault", ManagedPropertyType.string,
+                defaultValue: null),
           ]),
         ]),
         new Schema([
           new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
-            new SchemaColumn("wasDefault", ManagedPropertyType.integer, defaultValue: null),
-            new SchemaColumn("nowDefault", ManagedPropertyType.string, defaultValue: "'default'"),
+            new SchemaColumn("id", ManagedPropertyType.integer,
+                isPrimaryKey: true),
+            new SchemaColumn("wasDefault", ManagedPropertyType.integer,
+                defaultValue: null),
+            new SchemaColumn("nowDefault", ManagedPropertyType.string,
+                defaultValue: "'default'"),
           ]),
         ]),
       ];
@@ -610,8 +734,11 @@ void main() {
       await writeMigrations(migrationDirectory, schemas);
       await executeMigrations(migrationDirectory.parent);
 
-      var results = await connection.query("INSERT INTO t (id, wasDefault) VALUES (1, 1) RETURNING id, wasDefault, nowDefault");
-      expect(results, [[1, 1, "default"]]);
+      var results = await connection.query(
+          "INSERT INTO t (id, wasDefault) VALUES (1, 1) RETURNING id, wasDefault, nowDefault");
+      expect(results, [
+        [1, 1, "default"]
+      ]);
 
       try {
         await connection.query("INSERT INTO t (id) VALUES (2)");
@@ -626,21 +753,29 @@ void main() {
         new Schema.empty(),
         new Schema([
           new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
+            new SchemaColumn("id", ManagedPropertyType.integer,
+                isPrimaryKey: true),
           ]),
           new SchemaTable("u", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
-            new SchemaColumn.relationship("ref", ManagedPropertyType.integer, relatedTableName: "t", relatedColumnName: "id",
+            new SchemaColumn("id", ManagedPropertyType.integer,
+                isPrimaryKey: true),
+            new SchemaColumn.relationship("ref", ManagedPropertyType.integer,
+                relatedTableName: "t",
+                relatedColumnName: "id",
                 rule: ManagedRelationshipDeleteRule.nullify)
           ])
         ]),
         new Schema([
           new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
+            new SchemaColumn("id", ManagedPropertyType.integer,
+                isPrimaryKey: true),
           ]),
           new SchemaTable("u", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
-            new SchemaColumn.relationship("ref", ManagedPropertyType.integer, relatedTableName: "t", relatedColumnName: "id",
+            new SchemaColumn("id", ManagedPropertyType.integer,
+                isPrimaryKey: true),
+            new SchemaColumn.relationship("ref", ManagedPropertyType.integer,
+                relatedTableName: "t",
+                relatedColumnName: "id",
                 rule: ManagedRelationshipDeleteRule.cascade)
           ])
         ]),
@@ -661,14 +796,18 @@ void main() {
         new Schema.empty(),
         new Schema([
           new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
-            new SchemaColumn("x", ManagedPropertyType.integer, isNullable: false),
+            new SchemaColumn("id", ManagedPropertyType.integer,
+                isPrimaryKey: true),
+            new SchemaColumn("x", ManagedPropertyType.integer,
+                isNullable: false),
           ]),
         ]),
         new Schema([
           new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
-            new SchemaColumn("x", ManagedPropertyType.integer, isNullable: true, defaultValue: "2"),
+            new SchemaColumn("id", ManagedPropertyType.integer,
+                isPrimaryKey: true),
+            new SchemaColumn("x", ManagedPropertyType.integer,
+                isNullable: true, defaultValue: "2"),
           ]),
         ]),
       ];
@@ -676,11 +815,17 @@ void main() {
       await writeMigrations(migrationDirectory, schemas);
       await executeMigrations(migrationDirectory.parent);
 
-      var results = await connection.query("INSERT INTO t (id) VALUES (1) RETURNING id, x");
-      expect(results, [[1, 2]]);
+      var results = await connection
+          .query("INSERT INTO t (id) VALUES (1) RETURNING id, x");
+      expect(results, [
+        [1, 2]
+      ]);
 
-      results = await connection.query("INSERT INTO t (id, x) VALUES (2, null) RETURNING id, x");
-      expect(results, [[2, null]]);
+      results = await connection
+          .query("INSERT INTO t (id, x) VALUES (2, null) RETURNING id, x");
+      expect(results, [
+        [2, null]
+      ]);
     });
   });
 
@@ -700,23 +845,30 @@ void main() {
         new Schema.empty(),
         new Schema([
           new SchemaTable("u", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
-            new SchemaColumn.relationship("ref", ManagedPropertyType.integer, relatedTableName: "t", relatedColumnName: "id"),
+            new SchemaColumn("id", ManagedPropertyType.integer,
+                isPrimaryKey: true),
+            new SchemaColumn.relationship("ref", ManagedPropertyType.integer,
+                relatedTableName: "t", relatedColumnName: "id"),
           ]),
           new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
+            new SchemaColumn("id", ManagedPropertyType.integer,
+                isPrimaryKey: true),
           ]),
         ]),
         new Schema([
           new SchemaTable("v", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
+            new SchemaColumn("id", ManagedPropertyType.integer,
+                isPrimaryKey: true),
           ]),
           new SchemaTable("u", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
-            new SchemaColumn.relationship("ref", ManagedPropertyType.integer, relatedTableName: "v", relatedColumnName: "id"),
+            new SchemaColumn("id", ManagedPropertyType.integer,
+                isPrimaryKey: true),
+            new SchemaColumn.relationship("ref", ManagedPropertyType.integer,
+                relatedTableName: "v", relatedColumnName: "id"),
           ]),
           new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
+            new SchemaColumn("id", ManagedPropertyType.integer,
+                isPrimaryKey: true),
           ]),
         ]),
       ];
@@ -745,7 +897,8 @@ void main() {
       fail("nyi");
     });
 
-    test("Cannot add column to table with existing column of same name", () async {
+    test("Cannot add column to table with existing column of same name",
+        () async {
       fail("nyi");
     });
 
@@ -754,23 +907,30 @@ void main() {
         new Schema.empty(),
         new Schema([
           new SchemaTable("u", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
-            new SchemaColumn.relationship("ref", ManagedPropertyType.integer, relatedTableName: "t", relatedColumnName: "id"),
+            new SchemaColumn("id", ManagedPropertyType.integer,
+                isPrimaryKey: true),
+            new SchemaColumn.relationship("ref", ManagedPropertyType.integer,
+                relatedTableName: "t", relatedColumnName: "id"),
           ]),
           new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
+            new SchemaColumn("id", ManagedPropertyType.integer,
+                isPrimaryKey: true),
           ]),
         ]),
         new Schema([
           new SchemaTable("v", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
+            new SchemaColumn("id", ManagedPropertyType.integer,
+                isPrimaryKey: true),
           ]),
           new SchemaTable("u", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
-            new SchemaColumn.relationship("ref", ManagedPropertyType.integer, relatedTableName: "v", relatedColumnName: "id"),
+            new SchemaColumn("id", ManagedPropertyType.integer,
+                isPrimaryKey: true),
+            new SchemaColumn.relationship("ref", ManagedPropertyType.integer,
+                relatedTableName: "v", relatedColumnName: "id"),
           ]),
           new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
+            new SchemaColumn("id", ManagedPropertyType.integer,
+                isPrimaryKey: true),
           ]),
         ]),
       ];
@@ -787,22 +947,18 @@ void main() {
 
     test("Cannot change relatedColumn", () async {
       fail("nyi");
-
     });
 
     test("Cannot change primaryKey", () async {
       fail("nyi");
-
     });
 
     test("Cannot change autoincrement", () async {
       fail("nyi");
-
     });
 
     test("Cannot change type", () async {
       fail("nyi");
-
     });
   });
 }
@@ -823,20 +979,27 @@ Directory getTestProjectDirectory(String name) {
       .resolve("test/command/migration_test_projects/$name"));
 }
 
-Future writeMigrations(Directory migrationDirectory, List<Schema> schemas) async {
+Future writeMigrations(
+    Directory migrationDirectory, List<Schema> schemas) async {
   var currentNumberOfMigrations = migrationDirectory
-    .listSync()
-    .where((e) => e.path.endsWith("migration.dart"))
-    .length;
+      .listSync()
+      .where((e) => e.path.endsWith("migration.dart"))
+      .length;
 
   for (var i = 1; i < schemas.length; i++) {
-    var source = await MigrationBuilder.sourceForSchemaUpgrade(schemas[i - 1], schemas[i], i);
-    var file = new File.fromUri(migrationDirectory.uri.resolve("${i + currentNumberOfMigrations}.migration.dart"));
+    var source = await MigrationBuilder.sourceForSchemaUpgrade(
+        schemas[i - 1], schemas[i], i);
+    var file = new File.fromUri(migrationDirectory.uri
+        .resolve("${i + currentNumberOfMigrations}.migration.dart"));
     file.writeAsStringSync(source);
   }
 }
 
 Future<int> executeMigrations(Directory projectDirectory) async {
-  return runAqueductProcess(["db", "upgrade", "--connect", "postgres://dart:dart@localhost:5432/dart_test"], projectDirectory);
+  return runAqueductProcess([
+    "db",
+    "upgrade",
+    "--connect",
+    "postgres://dart:dart@localhost:5432/dart_test"
+  ], projectDirectory);
 }
-

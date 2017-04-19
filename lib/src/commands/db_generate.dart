@@ -17,7 +17,6 @@ class CLIDatabaseGenerate extends CLICommand
     var versionNumber = 1;
 
     if (!files.isEmpty) {
-      // For now, just make a new empty one...
       versionNumber  = versionNumberFromFile(files.last) + 1;
       newMigrationFile = new File.fromUri(migrationDirectory.uri.resolve(
           "${"$versionNumber".padLeft(8, "0")}_Unnamed.migration.dart"));
@@ -53,9 +52,17 @@ class CLIDatabaseGenerate extends CLICommand
       var schema = new Schema.fromDataModel(dataModel);
       var changeList = <String>[];
 
+      var source;
+      if (currentMirrorSystem().libraries.containsKey(Uri.parse("package:aqueduct/src/db/schema/migration_builder.dart"))) {
+        source = MigrationBuilder.sourceForSchemaUpgrade(
+            inputSchema, schema, 1, changeList: changeList);
+      } else {
+        print("\n*** Warning: using outdated version of db generate. Upgrade your project's aqueduct dependency to at least 2.0.3.***\n");
+        source = SchemaBuilder.sourceForSchemaUpgrade(inputSchema, schema, 1);
+      }
+
       return {
-        "source": MigrationBuilder.sourceForSchemaUpgrade(
-            inputSchema, schema, 1, changeList: changeList),
+        "source": source,
         "tablesEvaluated" : dataModel
             .entities
             .map((e) => MirrorSystem.getName(e.instanceType.simpleName))
@@ -78,7 +85,7 @@ class CLIDatabaseGenerate extends CLICommand
   }
 
   Future<Map<String, dynamic>> schemaMapFromExistingMigrationFiles() async {
-    // build the schema by replaying migration files
+    displayInfo("Replaying migration files...");
     var schema = new Schema.empty();
     for (var migration in migrationFiles) {
       displayProgress("Replaying version ${versionNumberFromFile(migration)}");
