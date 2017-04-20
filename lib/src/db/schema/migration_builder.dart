@@ -107,6 +107,22 @@ class MigrationBuilder {
   }
 
   static String alterColumnString(String tableName, SchemaColumn previousColumn, SchemaColumn updatedColumn, String spaceOffset) {
+    if (updatedColumn.isPrimaryKey != previousColumn.isPrimaryKey) {
+      throw new SchemaException("Cannot change primary key of '$tableName'");
+    }
+
+    if (updatedColumn.relatedColumnName != previousColumn.relatedColumnName) {
+      throw new SchemaException("Cannot change ManagedRelationship inverse of '$tableName.${previousColumn.name}'");
+    }
+
+    if (updatedColumn.relatedTableName != previousColumn.relatedTableName) {
+      throw new SchemaException("Cannot change type of '$tableName.${previousColumn.name}'");
+    }
+
+    if (updatedColumn.type != previousColumn.type) {
+      throw new SchemaException("Cannot change type of '$tableName.${previousColumn.name}'");
+    }
+
     var builder = new StringBuffer();
 
     builder.writeln(

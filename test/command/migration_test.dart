@@ -4,7 +4,7 @@ import 'package:aqueduct/executable.dart';
 import 'dart:async';
 import 'dart:io';
 import 'package:args/args.dart';
-import '../helpers.dart';
+import 'cli_helpers.dart';
 
 void main() {
   group("Cooperation", () {
@@ -359,11 +359,6 @@ class Migration1 extends Migration {
   Future seed() async {}
 }
 
-Directory getTestProjectDirectory(String name) {
-  return new Directory.fromUri(Directory.current.uri
-      .resolve("test/command/migration_test_projects/$name"));
-}
-
 void addLinesToUpgradeFile(File upgradeFile, List<String> extraLines) {
   var lines = upgradeFile
       .readAsStringSync()
@@ -388,17 +383,6 @@ Future<List<String>> columnsOfTable(
       .execute("select column_name from information_schema.columns where "
           "table_name='$tableName'");
   return results.map((rows) => rows.first).toList();
-}
-
-Future<int> runAqueductProcess(
-    List<String> commands, Directory workingDirectory) async {
-  commands.add("--directory");
-  commands.add("${workingDirectory.path}");
-
-  var cmd = new Runner();
-  var results = cmd.options.parse(commands);
-
-  return cmd.process(results);
 }
 
 class MockMigratable extends CLIDatabaseMigratable {

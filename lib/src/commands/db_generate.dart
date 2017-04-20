@@ -54,6 +54,7 @@ class CLIDatabaseGenerate extends CLICommand
 
       var source;
       if (currentMirrorSystem().libraries.containsKey(Uri.parse("package:aqueduct/src/db/schema/migration_builder.dart"))) {
+        // This runs on 2.0.3 and later. Previous project versions will fallback to outdated version.
         source = MigrationBuilder.sourceForSchemaUpgrade(
             inputSchema, schema, 1, changeList: changeList);
       } else {

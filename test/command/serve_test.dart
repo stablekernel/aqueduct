@@ -1,11 +1,9 @@
 import 'dart:io';
-import 'dart:async';
 
 import 'package:test/test.dart';
-import 'package:aqueduct/executable.dart';
 import 'package:http/http.dart' as http;
 
-import '../helpers.dart';
+import 'cli_helpers.dart';
 
 void main() {
   var temporaryDirectory = new Directory("test_project");
@@ -123,17 +121,6 @@ void main() {
         temporaryDirectory);
     expect(res, 1);
   });
-}
-
-Future<int> runAqueductProcess(
-    List<String> commands, Directory workingDirectory) async {
-  commands.add("--directory");
-  commands.add("${workingDirectory.path}");
-
-  var cmd = new Runner();
-  var results = cmd.options.parse(commands);
-
-  return cmd.process(results);
 }
 
 void addLinesToFile(

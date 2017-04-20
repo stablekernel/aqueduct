@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:aqueduct/aqueduct.dart';
 import 'package:test/test.dart';
 import 'package:aqueduct/executable.dart';
-import '../helpers.dart';
+import 'cli_helpers.dart';
 import 'package:postgres/postgres.dart';
 
 void main() {
@@ -829,80 +829,107 @@ void main() {
     });
   });
 
-  group("Invalid operations", () {
-    var migrationDirectory = new Directory("tmp_migrations/migrations");
+  group("Invalid schema changes", () {
+    fail("wholw group nyi");
+
+    var projectSourceDirectory = getTestProjectDirectory("initial");
+    Directory projectDirectory = new Directory("test_project");
+    var migrationDirectory =
+      new Directory.fromUri(projectDirectory.uri.resolve("migrations"));
+
+    var replaceLibraryFileWith = (String contents) {
+      var f = new File.fromUri(projectDirectory.uri.resolve("lib/").resolve("wildfire.dart"));
+      contents = "import 'package:aqueduct/aqueduct.dart';\n" + contents;
+      f.writeAsStringSync(contents);
+    };
 
     setUp(() async {
-      migrationDirectory.createSync(recursive: true);
+      createTestProject(projectSourceDirectory, projectDirectory);
     });
 
-    tearDown(() async {
-      migrationDirectory.parent.deleteSync(recursive: true);
+    tearDown(() {
+      projectDirectory.deleteSync(recursive: true);
     });
 
-    test("Cannot add existing table", () async {
-      var schemas = [
-        new Schema.empty(),
-        new Schema([
-          new SchemaTable("u", [
-            new SchemaColumn("id", ManagedPropertyType.integer,
-                isPrimaryKey: true),
-            new SchemaColumn.relationship("ref", ManagedPropertyType.integer,
-                relatedTableName: "t", relatedColumnName: "id"),
-          ]),
-          new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer,
-                isPrimaryKey: true),
-          ]),
-        ]),
-        new Schema([
-          new SchemaTable("v", [
-            new SchemaColumn("id", ManagedPropertyType.integer,
-                isPrimaryKey: true),
-          ]),
-          new SchemaTable("u", [
-            new SchemaColumn("id", ManagedPropertyType.integer,
-                isPrimaryKey: true),
-            new SchemaColumn.relationship("ref", ManagedPropertyType.integer,
-                relatedTableName: "v", relatedColumnName: "id"),
-          ]),
-          new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer,
-                isPrimaryKey: true),
-          ]),
-        ]),
+    test("Cannot delete primary key column", () async {
+      var code = [
+        """
+        class U extends ManagedObject<_U> implements _U {}
+        class _U {
+          @managedPrimaryKey int id;
+          int foo;
+        }
+        """,
+        """
+        class U extends ManagedObject<_U> implements _U {}
+        class _U {
+          int id;
+          @managedPrimaryKey int foo;
+        }
+        """
       ];
 
-      try {
-        await writeMigrations(migrationDirectory, schemas);
-        expect(true, false);
-      } catch (e) {
-        print("$e");
-      }
-    });
+      await runPubGet(projectDirectory, offline: true);
 
-    test("Cannot delete unknown table", () async {
-      fail("nyi");
-    });
+      replaceLibraryFileWith(code.first);
+      await runAqueductProcess(["db", "generate"], projectDirectory);
 
-    test("Cannot add column to unknown table", () async {
-      fail("nyi");
-    });
+      replaceLibraryFileWith(code.last);
+      var result = await runAqueductProcess(["db", "generate"], projectDirectory);
+      expect(result != 0, true);
+//        expect(e.toString(), contains("Cannot change primary of of '_U'"));
 
-    test("Cannot delete column from unknown table", () async {
-      fail("nyi");
-    });
-
-    test("Cannot delete unknown column", () async {
-      fail("nyi");
-    });
-
-    test("Cannot add column to table with existing column of same name",
-        () async {
-      fail("nyi");
     });
 
     test("Cannot change relatedTable", () async {
+      var code = [
+        """
+        class U extends ManagedObject<_U> {}
+        class _U {
+          @managedPrimaryKey int id;
+          T x;
+        }
+        class T extends ManagedObject<_T> {}
+        class _T {
+          @managedPrimaryKey int id;
+          @ManagedRelationship(#x)
+          U y;
+        }
+        """,
+        """
+        class U extends ManagedObject<_U> {}
+        class _U {
+          @managedPrimaryKey int id;
+        }
+        class T extends ManagedObject<_T> {}
+        class _T {
+          @managedPrimaryKey int id;
+          @ManagedRelationship(#x)
+          V y;
+        }
+        class V extends ManagedObject<_V> {}
+        class _V {
+          @managedPrimaryKey int id;
+          T x;
+        }
+        """
+      ];
+
+      await runPubGet(projectDirectory, offline: true);
+
+      replaceLibraryFileWith(code.first);
+      await runAqueductProcess(["db", "generate"], projectDirectory);
+
+      replaceLibraryFileWith(code.last);
+      try {
+        await runAqueductProcess(["db", "generate"], projectDirectory);
+        expect(true, false);
+      } on SchemaException catch (e) {
+        expect(e.toString(), contains("Cannot change type of of '_T.y'"));
+      }
+    });
+
+    test("Cannot change relatedColumn", () async {
       var schemas = [
         new Schema.empty(),
         new Schema([
@@ -915,68 +942,62 @@ void main() {
           new SchemaTable("t", [
             new SchemaColumn("id", ManagedPropertyType.integer,
                 isPrimaryKey: true),
-          ]),
-        ]),
-        new Schema([
-          new SchemaTable("v", [
-            new SchemaColumn("id", ManagedPropertyType.integer,
-                isPrimaryKey: true),
-          ]),
-          new SchemaTable("u", [
-            new SchemaColumn("id", ManagedPropertyType.integer,
-                isPrimaryKey: true),
-            new SchemaColumn.relationship("ref", ManagedPropertyType.integer,
-                relatedTableName: "v", relatedColumnName: "id"),
-          ]),
-          new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer,
-                isPrimaryKey: true),
+            new SchemaColumn("foo", ManagedPropertyType.integer)
           ]),
         ]),
       ];
 
-      try {
-        await writeMigrations(migrationDirectory, schemas);
-        expect(true, false);
-      } catch (e) {
-        print("$e");
-      }
-
-      fail("invalid");
-    });
-
-    test("Cannot change relatedColumn", () async {
-      fail("nyi");
+      await writeMigrations(migrationDirectory, schemas);
+      await addMigrationFileWithLines(migrationDirectory.parent, [
+        "database.alterColumn(\"u\", \"ref\", (c) {c.relatedColumnName=\"foo\";});"
+      ]);
+      var res = await executeMigrations(migrationDirectory.parent);
+      expect(res != 0, true);
     });
 
     test("Cannot change primaryKey", () async {
-      fail("nyi");
+      var schemas = [
+        new Schema.empty(),
+        new Schema([
+          new SchemaTable("t", [
+            new SchemaColumn("id", ManagedPropertyType.integer,
+                isPrimaryKey: true),
+            new SchemaColumn("foo", ManagedPropertyType.integer),
+          ]),
+        ]),
+      ];
+
+      await writeMigrations(migrationDirectory, schemas);
+      await addMigrationFileWithLines(migrationDirectory.parent, [
+        "database.alterColumn(\"t\", \"foo\", (c) {c.isPrimaryKey=true;});"
+      ]);
+      var res = await executeMigrations(migrationDirectory.parent);
+      expect(res != 0, true);
     });
 
     test("Cannot change autoincrement", () async {
-      fail("nyi");
+      var schemas = [
+        new Schema.empty(),
+        new Schema([
+          new SchemaTable("t", [
+            new SchemaColumn("id", ManagedPropertyType.integer,
+                isPrimaryKey: true, autoincrement: true),
+          ]),
+        ]),
+      ];
+
+      await writeMigrations(migrationDirectory, schemas);
+      await addMigrationFileWithLines(migrationDirectory.parent, [
+        "database.alterColumn(\"t\", \"id\", (c) {c.autoincrement=false;});"
+      ]);
+      var res = await executeMigrations(migrationDirectory.parent);
+      expect(res != 0, true);
     });
 
     test("Cannot change type", () async {
       fail("nyi");
     });
   });
-}
-
-Future<int> runAqueductProcess(
-    List<String> commands, Directory workingDirectory) async {
-  commands.add("--directory");
-  commands.add("${workingDirectory.path}");
-
-  var cmd = new Runner();
-  var results = cmd.options.parse(commands);
-
-  return cmd.process(results);
-}
-
-Directory getTestProjectDirectory(String name) {
-  return new Directory.fromUri(Directory.current.uri
-      .resolve("test/command/migration_test_projects/$name"));
 }
 
 Future writeMigrations(
@@ -989,17 +1010,39 @@ Future writeMigrations(
   for (var i = 1; i < schemas.length; i++) {
     var source = await MigrationBuilder.sourceForSchemaUpgrade(
         schemas[i - 1], schemas[i], i);
+    print("$source");
     var file = new File.fromUri(migrationDirectory.uri
         .resolve("${i + currentNumberOfMigrations}.migration.dart"));
     file.writeAsStringSync(source);
   }
 }
 
-Future<int> executeMigrations(Directory projectDirectory) async {
+Future<CLIResult> executeMigrations(Directory projectDirectory) async {
   return runAqueductProcess([
     "db",
     "upgrade",
     "--connect",
     "postgres://dart:dart@localhost:5432/dart_test"
   ], projectDirectory);
+}
+
+Future addMigrationFileWithLines(Directory projectDirectory, List<String> lines) async {
+  var migDir = new Directory.fromUri(projectDirectory.uri.resolve("migrations/"));
+  var migFiles = migDir.listSync(recursive: false).where((fse) => fse.path.endsWith(".migration.dart")).toList();
+  var version = migFiles.length + 1;
+  var emptyContents = MigrationBuilder.sourceForSchemaUpgrade(new Schema([]), new Schema([]), version);
+  emptyContents = emptyContents.split("\n")
+      .map((line) {
+        if (line.contains("Future upgrade()")) {
+          var l = [line];
+          l.addAll(lines);
+          return l;
+        }
+        return [line];
+      })
+      .expand((ls) => ls)
+      .join("\n");
+
+  var emptyFile = new File.fromUri(migDir.uri.resolve("$version.migration.dart"));
+  emptyFile.writeAsString(emptyContents);
 }
