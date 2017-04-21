@@ -29,7 +29,9 @@ void main() {
   test("Served application starts and responds to route", () async {
     var res =
         await runAqueductProcess(["serve", "--detached"], temporaryDirectory);
-    expect(res, 0);
+    expect(res.exitCode, 0);
+    expect(res.output, contains("port 8081"));
+    expect(res.output, contains("config.yaml"));
 
     var result = await http.get("http://localhost:8081/endpoint");
     expect(result.statusCode, 200);
@@ -41,7 +43,8 @@ void main() {
     libFile.writeAsStringSync("import 'package:aqueduct/aqueduct.dart';");
 
     var res = await runAqueductProcess(["serve"], temporaryDirectory);
-    expect(res != 0, true);
+    expect(res.exitCode, isNot(0));
+    expect(res.output, contains("No RequestSink subclass"));
   });
 
   test("Exception throw during initializeApplication halts startup", () async {
@@ -55,7 +58,10 @@ void main() {
     """);
 
     var res = await runAqueductProcess(["serve"], temporaryDirectory);
-    expect(res != 0, true);
+    expect(res.exitCode, isNot(0));
+    expect(res.output, contains("Application failed to start"));
+    expect(res.output, contains("Exception: error")); // error generated
+    expect(res.output, contains("WildfireSink.initializeApplication")); // stacktrace
   });
 
   test("Start with valid SSL args opens https server", () async {

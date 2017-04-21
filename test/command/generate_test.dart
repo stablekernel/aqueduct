@@ -2,7 +2,6 @@ import 'dart:io';
 import 'dart:async';
 import 'package:aqueduct/aqueduct.dart';
 import 'package:test/test.dart';
-import 'package:aqueduct/executable.dart';
 import 'cli_helpers.dart';
 import 'package:postgres/postgres.dart';
 
@@ -30,15 +29,15 @@ void main() {
     });
 
     test("Run without pub get yields error", () async {
-      var out = await runAqueductProcess(["db", "generate"], projectDirectory);
-      expect(out != 0, true);
+      var res = await runAqueductProcess(["db", "generate"], projectDirectory);
+      expect(res.exitCode, isNot(0));
     });
 
     test("Ensure migration directory will get created on generation", () async {
       await runPubGet(projectDirectory, offline: true);
       expect(migrationDirectory.existsSync(), false);
-      var out = await runAqueductProcess(["db", "generate"], projectDirectory);
-      expect(out, 0);
+      var res = await runAqueductProcess(["db", "generate"], projectDirectory);
+      expect(res.exitCode, 0);
       expect(migrationDirectory.existsSync(), true);
     });
 
@@ -51,9 +50,11 @@ void main() {
       migrationDirectory.createSync();
       addFiles(["notmigration.dart"]);
 
-      await runAqueductProcess(["db", "generate"], projectDirectory);
-      var out = await runAqueductProcess(["db", "validate"], projectDirectory);
-      expect(out, 0);
+      var res = await runAqueductProcess(["db", "generate"], projectDirectory);
+      expect(res.exitCode, 0);
+
+      res = await runAqueductProcess(["db", "validate"], projectDirectory);
+      expect(res.exitCode, 0);
     });
 
     test(
@@ -61,7 +62,8 @@ void main() {
         () async {
       await runPubGet(projectDirectory, offline: true);
 
-      await runAqueductProcess(["db", "generate"], projectDirectory);
+      var res = await runAqueductProcess(["db", "generate"], projectDirectory);
+      expect(res.exitCode, 0);
 
       // Let's add an index
       var modelFile = new File.fromUri(
@@ -70,7 +72,8 @@ void main() {
           "String foo;", "@ManagedColumnAttributes(indexed: true) String foo;");
       modelFile.writeAsStringSync(contents);
 
-      await runAqueductProcess(["db", "generate"], projectDirectory);
+      res = await runAqueductProcess(["db", "generate"], projectDirectory);
+      expect(res.exitCode, 0);
 
       expect(
           migrationDirectory
@@ -90,8 +93,8 @@ void main() {
 
       print("${new File.fromUri(migrationDirectory.uri
           .resolve("00000002_Unnamed.migration.dart")).readAsStringSync()}");
-      var out = await runAqueductProcess(["db", "validate"], projectDirectory);
-      expect(out, 0);
+      res = await runAqueductProcess(["db", "validate"], projectDirectory);
+      expect(res.exitCode, 0);
     });
   });
 
@@ -830,8 +833,6 @@ void main() {
   });
 
   group("Invalid schema changes", () {
-    fail("wholw group nyi");
-
     var projectSourceDirectory = getTestProjectDirectory("initial");
     Directory projectDirectory = new Directory("test_project");
     var migrationDirectory =
@@ -872,13 +873,13 @@ void main() {
       await runPubGet(projectDirectory, offline: true);
 
       replaceLibraryFileWith(code.first);
-      await runAqueductProcess(["db", "generate"], projectDirectory);
+      var res = await runAqueductProcess(["db", "generate"], projectDirectory);
+      expect(res.exitCode, 0);
 
       replaceLibraryFileWith(code.last);
-      var result = await runAqueductProcess(["db", "generate"], projectDirectory);
-      expect(result != 0, true);
-//        expect(e.toString(), contains("Cannot change primary of of '_U'"));
-
+      res = await runAqueductProcess(["db", "generate"], projectDirectory);
+      expect(res.exitCode, isNot(0));
+      expect(res.output, contains("Cannot change primary key of '_U'"));
     });
 
     test("Cannot change relatedTable", () async {
@@ -918,84 +919,136 @@ void main() {
       await runPubGet(projectDirectory, offline: true);
 
       replaceLibraryFileWith(code.first);
-      await runAqueductProcess(["db", "generate"], projectDirectory);
+      var res = await runAqueductProcess(["db", "generate"], projectDirectory);
+      expect(res.exitCode, 0);
 
       replaceLibraryFileWith(code.last);
-      try {
-        await runAqueductProcess(["db", "generate"], projectDirectory);
-        expect(true, false);
-      } on SchemaException catch (e) {
-        expect(e.toString(), contains("Cannot change type of of '_T.y'"));
-      }
+      res = await runAqueductProcess(["db", "generate"], projectDirectory);
+      expect(res.exitCode, isNot(0));
+      expect(res.output, contains("Cannot change type of '_T.y'"));
     });
 
-    test("Cannot change relatedColumn", () async {
-      var schemas = [
-        new Schema.empty(),
-        new Schema([
-          new SchemaTable("u", [
-            new SchemaColumn("id", ManagedPropertyType.integer,
-                isPrimaryKey: true),
-            new SchemaColumn.relationship("ref", ManagedPropertyType.integer,
-                relatedTableName: "t", relatedColumnName: "id"),
-          ]),
-          new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer,
-                isPrimaryKey: true),
-            new SchemaColumn("foo", ManagedPropertyType.integer)
-          ]),
-        ]),
+    test("Cannot generate without primary key", () async {
+      var code = [
+        """
+        class U extends ManagedObject<_U> {}
+        class _U {
+          @managedPrimaryKey int id;
+          int x;
+        }
+        """,
+        """
+        class U extends ManagedObject<_U> {}
+        class _U {
+          int id;
+          int x;
+        }
+        """
       ];
 
-      await writeMigrations(migrationDirectory, schemas);
-      await addMigrationFileWithLines(migrationDirectory.parent, [
-        "database.alterColumn(\"u\", \"ref\", (c) {c.relatedColumnName=\"foo\";});"
-      ]);
-      var res = await executeMigrations(migrationDirectory.parent);
-      expect(res != 0, true);
+      await runPubGet(projectDirectory, offline: true);
+
+      replaceLibraryFileWith(code.first);
+      var res = await runAqueductProcess(["db", "generate"], projectDirectory);
+      expect(res.exitCode, 0);
+
+      replaceLibraryFileWith(code.last);
+      res = await runAqueductProcess(["db", "generate"], projectDirectory);
+      expect(res.exitCode, isNot(0));
+      expect(res.output, contains("Class 'U' doesn't declare a priamry key property"));
     });
 
     test("Cannot change primaryKey", () async {
-      var schemas = [
-        new Schema.empty(),
-        new Schema([
-          new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer,
-                isPrimaryKey: true),
-            new SchemaColumn("foo", ManagedPropertyType.integer),
-          ]),
-        ]),
+      var code = [
+        """
+        class U extends ManagedObject<_U> {}
+        class _U {
+          @managedPrimaryKey int id;
+          int x;
+        }
+        """,
+        """
+        class U extends ManagedObject<_U> {}
+        class _U {
+          int id;
+          @managedPrimaryKey int x;
+        }
+        """
       ];
 
-      await writeMigrations(migrationDirectory, schemas);
-      await addMigrationFileWithLines(migrationDirectory.parent, [
-        "database.alterColumn(\"t\", \"foo\", (c) {c.isPrimaryKey=true;});"
-      ]);
-      var res = await executeMigrations(migrationDirectory.parent);
-      expect(res != 0, true);
+      await runPubGet(projectDirectory, offline: true);
+
+      replaceLibraryFileWith(code.first);
+      var res = await runAqueductProcess(["db", "generate"], projectDirectory);
+      expect(res.exitCode, 0);
+
+      replaceLibraryFileWith(code.last);
+      res = await runAqueductProcess(["db", "generate"], projectDirectory);
+      expect(res.exitCode, isNot(0));
+      expect(res.output, contains("Cannot change primary key of '_U'"));
     });
 
     test("Cannot change autoincrement", () async {
-      var schemas = [
-        new Schema.empty(),
-        new Schema([
-          new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer,
-                isPrimaryKey: true, autoincrement: true),
-          ]),
-        ]),
+      var code = [
+        """
+        class U extends ManagedObject<_U> {}
+        class _U {
+          @managedPrimaryKey int id;
+          int x;
+        }
+        """,
+        """
+        class U extends ManagedObject<_U> {}
+        class _U {
+          @managedPrimaryKey int id;
+
+          @ManagedColumnAttributes(autoincrement: true)
+          int x;
+        }
+        """
       ];
 
-      await writeMigrations(migrationDirectory, schemas);
-      await addMigrationFileWithLines(migrationDirectory.parent, [
-        "database.alterColumn(\"t\", \"id\", (c) {c.autoincrement=false;});"
-      ]);
-      var res = await executeMigrations(migrationDirectory.parent);
-      expect(res != 0, true);
+      await runPubGet(projectDirectory, offline: true);
+
+      replaceLibraryFileWith(code.first);
+      var res = await runAqueductProcess(["db", "generate"], projectDirectory);
+      expect(res.exitCode, 0);
+
+      replaceLibraryFileWith(code.last);
+      res = await runAqueductProcess(["db", "generate"], projectDirectory);
+      expect(res.exitCode, isNot(0));
+      expect(res.output, contains("Cannot change autoincrement behavior of '_U.x'"));
     });
 
     test("Cannot change type", () async {
-      fail("nyi");
+      var code = [
+        """
+        class U extends ManagedObject<_U> {}
+        class _U {
+          @managedPrimaryKey int id;
+          int x;
+        }
+        """,
+        """
+        class U extends ManagedObject<_U> {}
+        class _U {
+          @managedPrimaryKey int id;
+
+          String x;
+        }
+        """
+      ];
+
+      await runPubGet(projectDirectory, offline: true);
+
+      replaceLibraryFileWith(code.first);
+      var res = await runAqueductProcess(["db", "generate"], projectDirectory);
+      expect(res.exitCode, 0);
+
+      replaceLibraryFileWith(code.last);
+      res = await runAqueductProcess(["db", "generate"], projectDirectory);
+      expect(res.exitCode, isNot(0));
+      expect(res.output, contains("Cannot change type of '_U.x'"));
     });
   });
 }
@@ -1018,12 +1071,15 @@ Future writeMigrations(
 }
 
 Future<CLIResult> executeMigrations(Directory projectDirectory) async {
-  return runAqueductProcess([
+  var result = await runAqueductProcess([
     "db",
     "upgrade",
     "--connect",
     "postgres://dart:dart@localhost:5432/dart_test"
   ], projectDirectory);
+
+  expect(result.exitCode, 0);
+  return result;
 }
 
 Future addMigrationFileWithLines(Directory projectDirectory, List<String> lines) async {

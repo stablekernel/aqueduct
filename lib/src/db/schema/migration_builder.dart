@@ -123,6 +123,10 @@ class MigrationBuilder {
       throw new SchemaException("Cannot change type of '$tableName.${previousColumn.name}'");
     }
 
+    if (updatedColumn.autoincrement != previousColumn.autoincrement) {
+      throw new SchemaException("Cannot change autoincrement behavior of '$tableName.${previousColumn.name}'");
+    }
+
     var builder = new StringBuffer();
 
     builder.writeln(

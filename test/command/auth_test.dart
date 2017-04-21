@@ -3,7 +3,6 @@ import 'dart:async';
 
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
-import 'package:aqueduct/executable.dart';
 import 'package:aqueduct/managed_auth.dart';
 import 'cli_helpers.dart';
 
