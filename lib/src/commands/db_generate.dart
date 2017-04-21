@@ -44,22 +44,23 @@ class CLIDatabaseGenerate extends CLICommand
     return 0;
   }
 
-  Future<Map<String, dynamic>> generateMigrationSource(Map<String, dynamic> initialSchema) {
+  Future<Map<String, dynamic>> generateMigrationSource(Map<String, dynamic> initialSchema, int version) {
     var generator = new SourceGenerator(
         (List<String> args, Map<String, dynamic> values) async {
       var inputSchema = new Schema.fromMap(values["initialSchema"]);
       var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
       var schema = new Schema.fromDataModel(dataModel);
       var changeList = <String>[];
+      var version = values["version"] ?? 1;
 
       var source;
       if (currentMirrorSystem().libraries.containsKey(Uri.parse("package:aqueduct/src/db/schema/migration_builder.dart"))) {
         // This runs on 2.0.3 and later. Previous project versions will fallback to outdated version.
         source = MigrationBuilder.sourceForSchemaUpgrade(
-            inputSchema, schema, 1, changeList: changeList);
+            inputSchema, schema, version, changeList: changeList);
       } else {
         print("\n*** Warning: using outdated version of db generate. Upgrade your project's aqueduct dependency to at least 2.0.3.***\n");
-        source = SchemaBuilder.sourceForSchemaUpgrade(inputSchema, schema, 1);
+        source = SchemaBuilder.sourceForSchemaUpgrade(inputSchema, schema, version);
       }
 
       return {
@@ -79,7 +80,8 @@ class CLIDatabaseGenerate extends CLICommand
     ]);
 
     var executor = new IsolateExecutor(generator, [libraryName], message: {
-      "initialSchema" : initialSchema
+      "initialSchema" : initialSchema,
+      "version": version,
     }, packageConfigURI: projectDirectory.uri.resolve(".packages"));
 
     return executor.execute(projectDirectory.uri) as Future<Map<String, dynamic>>;
