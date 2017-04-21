@@ -91,8 +91,6 @@ void main() {
               .existsSync(),
           true);
 
-      print("${new File.fromUri(migrationDirectory.uri
-          .resolve("00000002_Unnamed.migration.dart")).readAsStringSync()}");
       res = await runAqueductProcess(["db", "validate"], projectDirectory);
       expect(res.exitCode, 0);
     });
@@ -459,8 +457,8 @@ void main() {
       await writeMigrations(migrationDirectory, schemas.sublist(1));
 
       // Fails because syntax error for placeholder for unencodedInitialValue
-      expect(
-          await executeMigrations(migrationDirectory.parent), greaterThan(0));
+      var res = await executeMigrations(migrationDirectory.parent);
+      expect(res.exitCode, isNot(0));
 
       // Update generated source code to add initialValue,
       var lastMigrationFile =
@@ -468,7 +466,8 @@ void main() {
       var contents =
           lastMigrationFile.readAsStringSync().replaceFirst(r"<<set>>", "'2'");
       lastMigrationFile.writeAsStringSync(contents);
-      expect(await executeMigrations(migrationDirectory.parent), 0);
+      res = await executeMigrations(migrationDirectory.parent);
+      expect(res.exitCode, 0);
 
       await connection.query("INSERT INTO t (id, x) VALUES (2, 3)");
       var results =
@@ -649,8 +648,8 @@ void main() {
       await writeMigrations(migrationDirectory, schemas.sublist(1));
 
       // Fails because syntax error for placeholder for unencodedInitialValue
-      expect(
-          await executeMigrations(migrationDirectory.parent), greaterThan(0));
+      var res = await executeMigrations(migrationDirectory.parent);
+      expect(res.exitCode, isNot(0));
 
       // Update generated source code to add initialValue,
       var lastMigrationFile =
@@ -658,7 +657,8 @@ void main() {
       var contents =
           lastMigrationFile.readAsStringSync().replaceFirst(r"<<set>>", "'2'");
       lastMigrationFile.writeAsStringSync(contents);
-      expect(await executeMigrations(migrationDirectory.parent), 0);
+      res = await executeMigrations(migrationDirectory.parent);
+      expect(res.exitCode, 0);
 
       await connection.query("INSERT INTO t (id, x) VALUES (3, 3)");
       var results =
@@ -955,7 +955,7 @@ void main() {
       replaceLibraryFileWith(code.last);
       res = await runAqueductProcess(["db", "generate"], projectDirectory);
       expect(res.exitCode, isNot(0));
-      expect(res.output, contains("Class 'U' doesn't declare a priamry key property"));
+      expect(res.output, contains("Class '_U' doesn't declare a primary key property"));
     });
 
     test("Cannot change primaryKey", () async {
@@ -1063,7 +1063,7 @@ Future writeMigrations(
   for (var i = 1; i < schemas.length; i++) {
     var source = await MigrationBuilder.sourceForSchemaUpgrade(
         schemas[i - 1], schemas[i], i);
-    print("$source");
+
     var file = new File.fromUri(migrationDirectory.uri
         .resolve("${i + currentNumberOfMigrations}.migration.dart"));
     file.writeAsStringSync(source);
@@ -1071,15 +1071,12 @@ Future writeMigrations(
 }
 
 Future<CLIResult> executeMigrations(Directory projectDirectory) async {
-  var result = await runAqueductProcess([
+  return runAqueductProcess([
     "db",
     "upgrade",
     "--connect",
     "postgres://dart:dart@localhost:5432/dart_test"
   ], projectDirectory);
-
-  expect(result.exitCode, 0);
-  return result;
 }
 
 Future addMigrationFileWithLines(Directory projectDirectory, List<String> lines) async {
