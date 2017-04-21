@@ -11,7 +11,9 @@ main() {
 
     setUp(() async {
       app = new Application<TestSink>();
+      print("Application will start");
       await app.start(numberOfInstances: 3);
+      print("Application started");
     });
 
     tearDown(() async {
