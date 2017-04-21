@@ -1,9 +1,18 @@
+import 'dart:io';
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
 import 'dart:async';
-import 'package:http/http.dart' as http;
 
 main() {
+  HttpClient client;
+  setUp(() async {
+    client = new HttpClient();
+  });
+
+  tearDown(() async {
+    await client.close(force: true);
+  });
+
   group("Recovers", () {
     var app = new Application<TestSink>();
 
@@ -15,17 +24,17 @@ main() {
       await app.start(numberOfInstances: 1);
 
       // This request will generate an uncaught exception
-      var failFuture = http.get("http://localhost:8081/");
+      var failFuture = getStatusCode(client, "/");
 
       // This request will come in right after the failure but should succeed
-      var successFuture = http.get("http://localhost:8081/1");
+      var successFuture = getStatusCode(client, "/1");
 
       // Ensure both requests respond with 200, since the failure occurs asynchronously AFTER the response has been generated
       // for the failure case.
       var successResponse = await successFuture;
       var failResponse = await failFuture;
-      expect(successResponse.statusCode, 200);
-      expect(failResponse.statusCode, 200);
+      expect(successResponse, 200);
+      expect(failResponse, 200);
 
       var errorMessage = await app.logger.onRecord.first;
       expect(errorMessage.message, contains("Uncaught exception"));
@@ -33,7 +42,7 @@ main() {
       expect(errorMessage.stackTrace, isNotNull);
 
       // And then we should make sure everything is working just fine.
-      expect((await http.get("http://localhost:8081/1")).statusCode, 200);
+      expect(await getStatusCode(client, "/1"), 200);
     });
 
     test("Application with multiple isolates reports uncaught error, recovers",
@@ -64,6 +73,13 @@ main() {
       expect(contents.where((c) => c.contains("Uncaught exception")).length, 5);
     });
   });
+}
+
+Future<int> getStatusCode(HttpClient client, String path) async {
+  var req = await client.getUrl(Uri.parse("http://localhost:8081$path"));
+  var resp = await req.close();
+
+  return resp.statusCode;
 }
 
 class TestSink extends RequestSink {
