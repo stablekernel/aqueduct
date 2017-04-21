@@ -835,8 +835,6 @@ void main() {
   group("Invalid schema changes", () {
     var projectSourceDirectory = getTestProjectDirectory("initial");
     Directory projectDirectory = new Directory("test_project");
-    var migrationDirectory =
-      new Directory.fromUri(projectDirectory.uri.resolve("migrations"));
 
     var replaceLibraryFileWith = (String contents) {
       var f = new File.fromUri(projectDirectory.uri.resolve("lib/").resolve("wildfire.dart"));
