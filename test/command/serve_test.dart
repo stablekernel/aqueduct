@@ -76,6 +76,7 @@ void main() {
     var res = await runAqueductProcess(
           ["serve", "--detached", "--ssl-key-path", "server.key", "--ssl-certificate-path", "server.crt"],
           temporaryDirectory);
+    print("${res.exitCode} ${res.output}");
     expect(res.exitCode, 0);
 
     var completer = new Completer();
@@ -99,11 +100,13 @@ void main() {
     var res = await runAqueductProcess(
         ["serve", "--detached", "--ssl-key-path", "server.key"],
         temporaryDirectory);
+    print("${res.exitCode} ${res.output}");
     expect(res.exitCode, 1);
 
     res = await runAqueductProcess(
         ["serve", "--detached", "--ssl-certificate-path", "server.crt"],
         temporaryDirectory);
+    print("${res.exitCode} ${res.output}");
     expect(res.exitCode, 1);
   });
 
@@ -127,6 +130,7 @@ void main() {
     var res = await runAqueductProcess(
         ["serve", "--detached", "--ssl-key-path", "server.key", "--ssl-certificate-path", "server.crt"],
         temporaryDirectory);
+    print("${res.exitCode} ${res.output}");
     expect(res.exitCode, 1);
   });
 }
