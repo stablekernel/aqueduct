@@ -75,7 +75,7 @@ void main() {
     var res = await runAqueductProcess(
           ["serve", "--detached", "--ssl-key-path", "server.key", "--ssl-certificate-path", "server.crt"],
           temporaryDirectory);
-    expect(res, 0);
+    expect(res.exitCode, 0);
 
     var completer = new Completer();
     var socket = await SecureSocket.connect("localhost", 8081, onBadCertificate: (_) => true);
@@ -98,12 +98,12 @@ void main() {
     var res = await runAqueductProcess(
         ["serve", "--detached", "--ssl-key-path", "server.key"],
         temporaryDirectory);
-    expect(res, 1);
+    expect(res.exitCode, 1);
 
     res = await runAqueductProcess(
         ["serve", "--detached", "--ssl-certificate-path", "server.crt"],
         temporaryDirectory);
-    expect(res, 1);
+    expect(res.exitCode, 1);
   });
 
   test("Start with invalid SSL values throws exceptions", () async {
@@ -116,7 +116,7 @@ void main() {
     var res = await runAqueductProcess(
         ["serve", "--detached", "--ssl-key-path", "server.key", "--ssl-certificate-path", "server.crt"],
         temporaryDirectory);
-    expect(res, 1);
+    expect(res.exitCode, 1);
   });
 
   test("Can't find SSL file, throws exception", () async {
@@ -126,7 +126,7 @@ void main() {
     var res = await runAqueductProcess(
         ["serve", "--detached", "--ssl-key-path", "server.key", "--ssl-certificate-path", "server.crt"],
         temporaryDirectory);
-    expect(res, 1);
+    expect(res.exitCode, 1);
   });
 }
 
