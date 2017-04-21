@@ -67,6 +67,7 @@ class ApplicationIsolateSupervisor {
 
       _serverSendPort = message;
     } else if (message == MessageStop) {
+      receivePort.close();
       _stopCompleter?.complete();
       _stopCompleter = null;
     } else if (message is List) {

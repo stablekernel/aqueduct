@@ -38,6 +38,17 @@ main() {
 
     test("Application with multiple isolates reports uncaught error, recovers",
         () async {
+      var contents = <String>[];
+      int counter = 0;
+      var completer = new Completer();
+      app.logger.onRecord.listen((rec) {
+        contents.add(rec.message);
+        counter ++;
+        if (counter == 5) {
+          completer.complete();
+        }
+      });
+
       await app.start(numberOfInstances: 2);
 
       // Throw some deferred crashers then some success messages at the server
@@ -45,16 +56,11 @@ main() {
           .map((_) => http.get("http://localhost:8081"));
       var successResponse = await http.get("http://localhost:8081/1");
       expect(successResponse.statusCode, 200);
-
-      var logMessages = await app.logger.onRecord.take(5);
-      logMessages.forEach((errorMessage) {
-        expect(errorMessage.message, contains("Uncaught exception"));
-        expect(errorMessage.error.toString(), contains("foo"));
-        expect(errorMessage.stackTrace, isNotNull);
-      });
-
       expect((await Future.wait(failFutures)).map((r) => r.statusCode),
           everyElement(200));
+
+      await completer.future;
+      expect(contents.where((c) => c.contains("Uncaught exception")).length, 5);
     });
   });
 }
