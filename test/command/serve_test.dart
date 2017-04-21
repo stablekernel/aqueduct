@@ -30,6 +30,7 @@ void main() {
   test("Served application starts and responds to route", () async {
     var res =
         await runAqueductProcess(["serve", "--detached"], temporaryDirectory);
+    print("${res.exitCode} ${res.output}");
     expect(res.exitCode, 0);
     expect(res.output, contains("port 8081"));
     expect(res.output, contains("config.yaml"));
