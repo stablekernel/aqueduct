@@ -4,19 +4,15 @@ import 'package:aqueduct/aqueduct.dart';
 import 'dart:async';
 
 main() {
-  HttpClient client;
-  setUp(() async {
-    client = new HttpClient();
-  });
-
-  tearDown(() async {
-    await client.close(force: true);
-  });
-
   group("Recovers", () {
     var app = new Application<TestSink>();
+    HttpClient client;
+    setUp(() async {
+      client = new HttpClient();
+    });
 
     tearDown(() async {
+      await client.close(force: true);
       await app?.stop();
     });
 
