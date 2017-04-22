@@ -1,5 +1,4 @@
 import "package:test/test.dart";
-import "dart:core";
 import 'package:aqueduct/aqueduct.dart';
 
 import '../../lib/src/http/route_node.dart';

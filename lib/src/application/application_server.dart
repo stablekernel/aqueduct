@@ -98,12 +98,8 @@ class ApplicationServer {
   }
 
   void _dispatchRequest(Request request) {
-    logger.fine("Request received $request.", request);
-
     Chain.capture(() {
-      sink.willReceiveRequest(request).then((_) {
-        sink.receive(request);
-      });
+      sink.receive(request);
     });
   }
 }

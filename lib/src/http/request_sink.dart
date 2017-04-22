@@ -120,13 +120,6 @@ abstract class RequestSink extends RequestController
   /// being opened, a request could be received prior to this method being executed.
   void didOpen() {}
 
-  /// Executed for each [Request] that will be sent to this instance.
-  ///
-  /// This method will run prior to each request being [receive]ed to this
-  /// instance's [initialController]. Use this method to provide additional
-  /// context to the request prior to it being handled.
-  Future willReceiveRequest(Request request) async {}
-
   @override
   APIDocument documentAPI(PackagePathResolver resolver) {
     var doc = new APIDocument()..info = apiInfo;

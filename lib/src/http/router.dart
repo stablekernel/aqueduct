@@ -46,7 +46,7 @@ class Router extends RequestController {
   /// By default, this function will respond to the incoming [Request] with a 404 response,
   /// and does not forward or allow consumption of the [Request] for later controllers.
   Function get unhandledRequestController => _unhandledRequestController;
-  void set unhandledRequestController(void listener(Request req)) {
+  void set unhandledRequestController(Future listener(Request req)) {
     _unhandledRequestController = listener;
   }
 
@@ -107,35 +107,41 @@ class Router extends RequestController {
 
   @override
   Future receive(Request req) async {
-    var requestURISegmentIterator = req.innerRequest.uri.pathSegments.iterator;
-    if (_basePathSegments.length > 0) {
-      for (var i = 0; i < _basePathSegments.length; i++) {
-        requestURISegmentIterator.moveNext();
-        if (_basePathSegments[i] != requestURISegmentIterator.current) {
-          _unhandledRequestController(req);
-          return;
+    RequestController next;
+    try {
+      var requestURISegmentIterator = req.innerRequest.uri.pathSegments.iterator;
+      if (_basePathSegments.length > 0) {
+        for (var i = 0; i < _basePathSegments.length; i++) {
+          requestURISegmentIterator.moveNext();
+          if (_basePathSegments[i] != requestURISegmentIterator.current) {
+            await _unhandledRequestController(req);
+            return null;
+          }
         }
       }
-    }
 
-    var remainingSegments = <String>[];
-    while (requestURISegmentIterator.moveNext()) {
-      remainingSegments.add(requestURISegmentIterator.current);
-    }
-    if (remainingSegments.isEmpty) {
-      remainingSegments = [""];
-    }
+      var remainingSegments = <String>[];
+      while (requestURISegmentIterator.moveNext()) {
+        remainingSegments.add(requestURISegmentIterator.current);
+      }
+      if (remainingSegments.isEmpty) {
+        remainingSegments = [""];
+      }
 
-    var node = _rootRouteNode.nodeForPathSegments(remainingSegments);
-    if (node?.specification != null) {
-      var requestPath =
-          new HTTPRequestPath(node.specification, remainingSegments);
+      var node = _rootRouteNode.nodeForPathSegments(remainingSegments);
+      if (node?.specification == null) {
+        await _unhandledRequestController(req);
+        return null;
+      }
+
+      var requestPath = new HTTPRequestPath(node.specification, remainingSegments);
       req.path = requestPath;
-      node.controller.receive(req);
-      return;
+      next = node.controller;
+    } catch (any, stack) {
+      return handleError(req, any, stack);
     }
 
-    _unhandledRequestController(req);
+    return next?.receive(req);
   }
 
   @override
@@ -147,10 +153,10 @@ class Router extends RequestController {
         .toList();
   }
 
-  void _handleUnhandledRequest(Request req) {
+  Future _handleUnhandledRequest(Request req) async {
     var response = new Response.notFound();
     applyCORSHeadersIfNecessary(req, response);
-    req.respond(response);
+    await req.respond(response);
     logger.info("${req.toDebugString()}");
   }
 }

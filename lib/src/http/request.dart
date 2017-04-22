@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:logging/logging.dart';
@@ -123,7 +124,7 @@ class Request implements RequestOrResponse {
   ///
   /// By default, 'application/json' and 'text/plain' are supported HTTP response body encoding types. If you wish to encode another
   /// format, see [Response.addEncoder].
-  void respond(Response aqueductResponse) {
+  Future respond(Response aqueductResponse) {
     respondDate = new DateTime.now().toUtc();
 
     // Note: this line's placement is intentional. If encoding the body fails and this throws an exception,
@@ -143,7 +144,7 @@ class Request implements RequestOrResponse {
       response.write(encodedBody);
     }
 
-    response.close();
+    return response.close();
   }
 
   String toString() {
