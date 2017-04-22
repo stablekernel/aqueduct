@@ -41,7 +41,7 @@ main() {
       var contents = <String>[];
       int counter = 0;
       var completer = new Completer();
-      var subscription = app.logger.onRecord.listen((rec) {
+      app.logger.onRecord.listen((rec) {
         contents.add(rec.message);
         counter ++;
         if (counter == 5) {
@@ -49,24 +49,19 @@ main() {
         }
       });
 
-      print("will start");
       await app.start(numberOfInstances: 2);
-      print("did start");
 
       // Throw some deferred crashers then some success messages at the server
       var failFutures = new Iterable.generate(5)
           .map((_) => http.get("http://localhost:8081"));
-      print("sent crashers");
+
       var successResponse = await http.get("http://localhost:8081/1");
       expect(successResponse.statusCode, 200);
       expect((await Future.wait(failFutures)).map((r) => r.statusCode),
           everyElement(200));
-      print("waiting for completer");
 
       await completer.future;
       expect(contents.where((c) => c.contains("Uncaught exception")).length, 5);
-      print("canceling");
-      await subscription.cancel();
     });
   });
 }
