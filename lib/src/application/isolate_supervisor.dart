@@ -45,7 +45,7 @@ class ApplicationIsolateSupervisor {
 
     return _launchCompleter.future.timeout(new Duration(seconds: 30),
         onTimeout: () {
-//      receivePort.close();
+      receivePort.close();
       throw new TimeoutException("Isolate failed to launch in 30 seconds.");
     });
   }
@@ -65,7 +65,8 @@ class ApplicationIsolateSupervisor {
 
       _serverSendPort = message;
     } else if (message == MessageStop) {
-//      receivePort.close();
+      receivePort.close();
+
       _stopCompleter?.complete();
       _stopCompleter = null;
     } else if (message is List) {
@@ -76,7 +77,7 @@ class ApplicationIsolateSupervisor {
 
   void _handleIsolateException(dynamic error, StackTrace stacktrace) {
     if (_isLaunching) {
-//      receivePort.close();
+      receivePort.close();
 
       var appException = new ApplicationStartupException(error);
       _launchCompleter.completeError(appException, stacktrace);
