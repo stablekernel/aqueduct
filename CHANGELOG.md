@@ -4,6 +4,7 @@
 
 - Fixes issue with `aqueduct document` for routes using `listen`
 - Fixes issue when using `TestClient` to execute requests with public OAuth2 client
+- Enables database migrations past the initial `aqueduct db generate`.
 
 ## 2.0.2
 
