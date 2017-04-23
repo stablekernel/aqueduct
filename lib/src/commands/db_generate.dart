@@ -22,7 +22,7 @@ class CLIDatabaseGenerate extends CLICommand
           "${"$versionNumber".padLeft(8, "0")}_Unnamed.migration.dart"));
     }
 
-    var source = await generateMigrationSource(await schemaMapFromExistingMigrationFiles(), versionNumber);
+    var source = await generateMigrationSource(await schemaMapFromExistingMigrationFiles());
     List<String> tables = source["tablesEvaluated"];
     List<String> changeList = source["changeList"];
 
