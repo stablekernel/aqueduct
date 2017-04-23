@@ -44,9 +44,10 @@ class CLIDatabaseGenerate extends CLICommand
     return 0;
   }
 
-  Future<Map<String, dynamic>> generateMigrationSource(Map<String, dynamic> initialSchema, int version) {
+  Future<Map<String, dynamic>> generateMigrationSource(Map<String, dynamic> initialSchema, int inputVersion) {
     var generator = new SourceGenerator(
         (List<String> args, Map<String, dynamic> values) async {
+      var version = values["version"] ?? 1;
       var inputSchema = new Schema.fromMap(values["initialSchema"]);
       var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
       var schema = new Schema.fromDataModel(dataModel);
@@ -68,8 +69,7 @@ class CLIDatabaseGenerate extends CLICommand
             .entities
             .map((e) => MirrorSystem.getName(e.instanceType.simpleName))
             .toList(),
-        "changeList": changeList,
-        "version": version
+        "changeList": changeList
       };
     }, imports: [
       "package:aqueduct/aqueduct.dart",
@@ -80,7 +80,8 @@ class CLIDatabaseGenerate extends CLICommand
     ]);
 
     var executor = new IsolateExecutor(generator, [libraryName], message: {
-      "initialSchema" : initialSchema
+      "initialSchema" : initialSchema,
+      "version": inputVersion
     }, packageConfigURI: projectDirectory.uri.resolve(".packages"));
 
     return executor.execute(projectDirectory.uri) as Future<Map<String, dynamic>>;

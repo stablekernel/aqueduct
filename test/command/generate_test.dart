@@ -37,6 +37,7 @@ void main() {
       await runPubGet(projectDirectory, offline: true);
       expect(migrationDirectory.existsSync(), false);
       var res = await runAqueductProcess(["db", "generate"], projectDirectory);
+      print("${res.output}");
       expect(res.exitCode, 0);
       expect(migrationDirectory.existsSync(), true);
     });
