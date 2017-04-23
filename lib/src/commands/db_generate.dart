@@ -22,7 +22,7 @@ class CLIDatabaseGenerate extends CLICommand
           "${"$versionNumber".padLeft(8, "0")}_Unnamed.migration.dart"));
     }
 
-    var source = await generateMigrationSource(await schemaMapFromExistingMigrationFiles());
+    var source = await generateMigrationSource(await schemaMapFromExistingMigrationFiles(), versionNumber);
     List<String> tables = source["tablesEvaluated"];
     List<String> changeList = source["changeList"];
 
@@ -44,7 +44,7 @@ class CLIDatabaseGenerate extends CLICommand
     return 0;
   }
 
-  Future<Map<String, dynamic>> generateMigrationSource(Map<String, dynamic> initialSchema) {
+  Future<Map<String, dynamic>> generateMigrationSource(Map<String, dynamic> initialSchema, int version) {
     var generator = new SourceGenerator(
         (List<String> args, Map<String, dynamic> values) async {
       var inputSchema = new Schema.fromMap(values["initialSchema"]);
@@ -56,10 +56,10 @@ class CLIDatabaseGenerate extends CLICommand
       if (currentMirrorSystem().libraries.containsKey(Uri.parse("package:aqueduct/src/db/schema/migration_builder.dart"))) {
         // This runs on 2.0.3 and later. Previous project versions will fallback to outdated version.
         source = MigrationBuilder.sourceForSchemaUpgrade(
-            inputSchema, schema, 1, changeList: changeList);
+            inputSchema, schema, version, changeList: changeList);
       } else {
         print("\n*** Warning: using outdated version of db generate. Upgrade your project's aqueduct dependency to at least 2.0.3.***\n");
-        source = SchemaBuilder.sourceForSchemaUpgrade(inputSchema, schema, 1);
+        source = SchemaBuilder.sourceForSchemaUpgrade(inputSchema, schema, version);
       }
 
       return {
@@ -68,7 +68,8 @@ class CLIDatabaseGenerate extends CLICommand
             .entities
             .map((e) => MirrorSystem.getName(e.instanceType.simpleName))
             .toList(),
-        "changeList": changeList
+        "changeList": changeList,
+        "version": version
       };
     }, imports: [
       "package:aqueduct/aqueduct.dart",
