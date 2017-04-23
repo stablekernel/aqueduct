@@ -109,9 +109,7 @@ class Application<RequestSinkType extends RequestSink> {
   ///
   /// Closes down every [RequestSinkType] and stops listening for HTTP requests.
   Future stop() async {
-    for (var supervisor in supervisors) {
-      await supervisor.stop();
-    }
+    await Future.wait(supervisors.map((s) => s.stop()));
     supervisors = [];
 
     await server?.server?.close(force: true);

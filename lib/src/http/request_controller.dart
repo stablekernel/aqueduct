@@ -190,6 +190,92 @@ class RequestController extends Object with APIDocumentable {
   /// including server errors.
   void willSendResponse(Response response) {}
 
+  /// Returns an HTTP response for a request that yields an exception or error.
+  ///
+  /// This method is automatically invoked by [receive] and should rarely be invoked otherwise.
+  ///
+  /// This method is invoked when an value is thrown inside an instance's [processRequest]. [request] is the [Request] being processed,
+  /// [caughtValue] is the value that is thrown and [trace] is a [StackTrace] at the point of the throw.
+  ///
+  /// For unknown exceptions and errors, this method sends a 500 response for the request being processed. This ensures that any errors
+  /// still yield a response to the HTTP client. If [includeErrorDetailsInServerErrorResponses] is true, the body of this
+  /// method will contain the error and stacktrace as JSON data.
+  ///
+  /// If [caughtValue] is an [HTTPResponseException] or [QueryException], this method translates [caughtValue] and sends an appropriate
+  /// HTTP response.
+  ///
+  /// For [HTTPResponseException]s, the response is created by [HTTPResponseException.response].
+  ///
+  /// For [QueryException]s, the response is one of the following:
+  ///
+  /// * 400: When the query is valid SQL but fails for any reason, except a unique constraint violation.
+  /// * 409: When the query fails because of a unique constraint violation.
+  /// * 500: When the query is invalid SQL.
+  /// * 503: When the database cannot be reached.
+  ///
+  /// This method is invoked by [receive] and should not be invoked elsewhere. If a subclass overrides [receive], such as [Router],
+  /// this method should be called to handle any errors.
+  ///
+  /// Note: [includeErrorDetailsInServerErrorResponses] is not evaluated when [caughtValue] is an [HTTPResponseException] or [QueryException], as
+  /// these are normal control flows. There is one exception - if [QueryException.event] is [QueryExceptionEvent.internalFailure], this method
+  /// will include the error and stacktrace. [QueryExceptionEvent.internalFailure] occurs when the [Query] is malformed.
+  Future<bool> handleError(Request request, dynamic caughtValue, StackTrace trace) async {
+    if (caughtValue is HTTPResponseException) {
+      var response = caughtValue.response;
+      await _sendResponse(request, response, includeCORSHeaders: true);
+
+      logger.info(
+          "${request.toDebugString(includeHeaders: true, includeBody: true)}");
+    } else if (caughtValue is QueryException &&
+        caughtValue.event != QueryExceptionEvent.internalFailure) {
+      // Note that if the event is an internal failure, this code is skipped and the 500 handler is executed.
+      var statusCode = 500;
+      switch (caughtValue.event) {
+        case QueryExceptionEvent.requestFailure:
+          statusCode = 400;
+          break;
+        case QueryExceptionEvent.internalFailure:
+          statusCode = 500;
+          break;
+        case QueryExceptionEvent.connectionFailure:
+          statusCode = 503;
+          break;
+        case QueryExceptionEvent.conflict:
+          statusCode = 409;
+          break;
+      }
+
+      var response =
+      new Response(statusCode, null, {"error": caughtValue.toString()});
+      await _sendResponse(request, response, includeCORSHeaders: true);
+
+      logger.info(
+          "${request.toDebugString(includeHeaders: true, includeBody: true)}");
+    } else {
+      var body = null;
+      if (includeErrorDetailsInServerErrorResponses) {
+        body = {
+          "error": "${this.runtimeType}: $caughtValue.",
+          "stacktrace": trace.toString()
+        };
+      }
+
+      var response = new Response.serverError(body: body)
+        ..contentType = ContentType.JSON;
+
+      await _sendResponse(request, response, includeCORSHeaders: true);
+
+      logger.severe(
+          "${request.toDebugString(includeHeaders: true, includeBody: true)}",
+          caughtValue,
+          trace);
+
+      return true;
+    }
+
+    return false;
+  }
+
   Future _handlePreflightRequest(Request req) async {
     RequestController controllerToDictatePolicy;
     try {
@@ -229,63 +315,6 @@ class RequestController extends Object with APIDocumentable {
     willSendResponse(response);
 
     return request.respond(response);
-  }
-
-  Future<bool> handleError(Request request, dynamic caughtValue, StackTrace trace) async {
-    if (caughtValue is HTTPResponseException) {
-      var response = caughtValue.response;
-      await _sendResponse(request, response, includeCORSHeaders: true);
-
-      logger.info(
-          "${request.toDebugString(includeHeaders: true, includeBody: true)}");
-    } else if (caughtValue is QueryException &&
-        caughtValue.event != QueryExceptionEvent.internalFailure) {
-      // Note that if the event is an internal failure, this code is skipped and the 500 handler is executed.
-      var statusCode = 500;
-      switch (caughtValue.event) {
-        case QueryExceptionEvent.requestFailure:
-          statusCode = 400;
-          break;
-        case QueryExceptionEvent.internalFailure:
-          statusCode = 500;
-          break;
-        case QueryExceptionEvent.connectionFailure:
-          statusCode = 503;
-          break;
-        case QueryExceptionEvent.conflict:
-          statusCode = 409;
-          break;
-      }
-
-      var response =
-          new Response(statusCode, null, {"error": caughtValue.toString()});
-      await _sendResponse(request, response, includeCORSHeaders: true);
-
-      logger.info(
-          "${request.toDebugString(includeHeaders: true, includeBody: true)}");
-    } else {
-      var body = null;
-      if (includeErrorDetailsInServerErrorResponses) {
-        body = {
-          "error": "${this.runtimeType}: $caughtValue.",
-          "stacktrace": trace.toString()
-        };
-      }
-
-        var response = new Response.serverError(body: body)
-          ..contentType = ContentType.JSON;
-
-      await _sendResponse(request, response, includeCORSHeaders: true);
-
-      logger.severe(
-          "${request.toDebugString(includeHeaders: true, includeBody: true)}",
-          caughtValue,
-          trace);
-
-      return true;
-    }
-
-    return false;
   }
 
   RequestController _lastRequestController() {
