@@ -54,10 +54,8 @@ class ApplicationIsolateSupervisor {
   Future stop() async {
     _stopCompleter = new Completer();
     _serverSendPort.send(MessageStop);
-    await _stopCompleter.future.timeout(new Duration(seconds: 30));
-    receivePort.close();
 
-    isolate.kill();
+    return _stopCompleter.future.timeout(new Duration(seconds: 30));
   }
 
   void listener(dynamic message) {
@@ -67,6 +65,8 @@ class ApplicationIsolateSupervisor {
 
       _serverSendPort = message;
     } else if (message == MessageStop) {
+      receivePort.close();
+
       _stopCompleter?.complete();
       _stopCompleter = null;
     } else if (message is List) {

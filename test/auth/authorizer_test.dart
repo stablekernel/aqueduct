@@ -384,11 +384,16 @@ void main() {
     test("Actual status code returned for exception in bearer authorizer", () async {
       var anotherAuthServer = new AuthServer(new CrashingStorage());
       server = await enableAuthorizer(new Authorizer.bearer(anotherAuthServer));
-      var res = await http.get("http://localhost:8000", headers: {
-        HttpHeaders.AUTHORIZATION:
-        "Bearer axy"
-      });
+      var client = new HttpClient();
+      var req = await client.getUrl(Uri.parse("http://localhost:8000"));
+      req.headers.add(HttpHeaders.AUTHORIZATION, "Bearer axy");
+      var res = await req.close();
+//      var res = await http.get("http://localhost:8000", headers: {
+//        HttpHeaders.AUTHORIZATION:
+//        "Bearer axy"
+//      });
       expect(res.statusCode, 504);
+      print("test complete");
     });
   });
 
@@ -421,7 +426,9 @@ Future<HttpServer> enableAuthorizer(Authorizer authorizer) async {
   router.finalize();
 
   var server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 8000);
-  server.map((httpReq) => new Request(httpReq)).listen(router.receive);
+  server.map((httpReq) => new Request(httpReq)).listen((r) {
+    router.receive(r);
+  });
 
   return server;
 }

@@ -13,17 +13,27 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 /// Core libraries for Aqueduct applications.
 ///
-/// This library is made up of a handful of modules for common functionality needed in building a web server.
+/// The library contains behavior for building REST server applications.
+/// Some of the functionality includes routing requests to controllers, OAuth 2.0 and an ORM.
 ///
-/// There are four primary modules in this library.
+/// Please see documentation guides at https://aqueduct.io/docs/.
 ///
-/// auth: Has classes for implementing OAuth 2.0 behavior. Classes in this module all begin with the word 'Auth'.
+/// See the tutorial at https://aqueduct.io/docs/tut/getting-started/.
 ///
-/// db: Exposes an ORM. Classes in this module begin with 'Managed', 'Schema', 'Query' and 'Persistent'.
+/// An example Aqueduct application:
 ///
-/// http: Classes for building HTTP request and response logic. Classes in this module often begin with 'HTTP'.
+///       class Sink extends RequestSink {
+///         Sink(ApplicationConfiguration config) : super(config);
 ///
-/// application: Classes in this module begin with 'Application' and are responsible for starting and stopping web servers on a number of isolates.
+///         @override
+///         void setupRouter(Router router) {
+///           router
+///             .route("/ok")
+///             .listen((req) async {
+///               return new Response.ok(null);
+///             });
+///         }
+///       }
 library aqueduct;
 
 export 'package:logging/logging.dart';

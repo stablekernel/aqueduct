@@ -143,55 +143,28 @@ class RequestController extends Object with APIDocumentable {
   /// and not [processRequest]. You must also ensure that CORS requests are handled properly,
   /// as this method does the heavy-lifting for handling CORS requests.
   Future receive(Request req) async {
+    if (req.isPreflightRequest) {
+      return _handlePreflightRequest(req);
+    }
+
+    var result;
     try {
-      if (req.isPreflightRequest) {
-        var controllerToDictatePolicy = _lastRequestController();
-        if (controllerToDictatePolicy != this) {
-          controllerToDictatePolicy.receive(req);
-          return;
-        }
-
-        if (policy != null) {
-          if (!policy.validatePreflightRequest(req.innerRequest)) {
-            var response = new Response.forbidden();
-            _sendResponse(req, response);
-            logger.info(req.toDebugString(includeHeaders: true));
-          } else {
-            var response = policy.preflightResponse(req);
-            _sendResponse(req, response);
-            logger.info(req.toDebugString());
-          }
-          return;
-        } else {
-          // If we don't have a policy, then a preflight request makes no sense.
-          var response = new Response.forbidden();
-          _sendResponse(req, response);
-          logger.info(req.toDebugString(includeHeaders: true));
-          return;
-        }
-      }
-
-      var result = await processRequest(req);
-
-      if (result is Request && nextController != null) {
-        nextController.receive(req);
-      } else if (result is Response) {
-        _sendResponse(req, result, includeCORSHeaders: true);
-
+      result = await processRequest(req);
+      if (result is Response) {
+        await _sendResponse(req, result, includeCORSHeaders: true);
         logger.info(req.toDebugString());
+        return null;
       }
     } catch (any, stacktrace) {
-      if (letUncaughtExceptionsEscape) {
-        var shouldRethrow = _handleError(req, any, stacktrace);
-        if (shouldRethrow) {
-          rethrow;
-        }
-      } else {
-        try {
-          _handleError(req, any, stacktrace);
-        } catch (_) {}
+      var shouldRethrow = await handleError(req, any, stacktrace);
+      if (letUncaughtExceptionsEscape && shouldRethrow) {
+        rethrow;
       }
+
+      return null;
     }
+
+    return nextController?.receive(result);
   }
 
   /// Overridden by subclasses to modify or respond to an incoming request.
@@ -217,19 +190,39 @@ class RequestController extends Object with APIDocumentable {
   /// including server errors.
   void willSendResponse(Response response) {}
 
-  void _sendResponse(Request request, Response response,
-      {bool includeCORSHeaders: false}) {
-    if (includeCORSHeaders) {
-      applyCORSHeadersIfNecessary(request, response);
-    }
-    willSendResponse(response);
-    request.respond(response);
-  }
-
-  bool _handleError(Request request, dynamic caughtValue, StackTrace trace) {
+  /// Returns an HTTP response for a request that yields an exception or error.
+  ///
+  /// This method is automatically invoked by [receive] and should rarely be invoked otherwise.
+  ///
+  /// This method is invoked when an value is thrown inside an instance's [processRequest]. [request] is the [Request] being processed,
+  /// [caughtValue] is the value that is thrown and [trace] is a [StackTrace] at the point of the throw.
+  ///
+  /// For unknown exceptions and errors, this method sends a 500 response for the request being processed. This ensures that any errors
+  /// still yield a response to the HTTP client. If [includeErrorDetailsInServerErrorResponses] is true, the body of this
+  /// method will contain the error and stacktrace as JSON data.
+  ///
+  /// If [caughtValue] is an [HTTPResponseException] or [QueryException], this method translates [caughtValue] and sends an appropriate
+  /// HTTP response.
+  ///
+  /// For [HTTPResponseException]s, the response is created by [HTTPResponseException.response].
+  ///
+  /// For [QueryException]s, the response is one of the following:
+  ///
+  /// * 400: When the query is valid SQL but fails for any reason, except a unique constraint violation.
+  /// * 409: When the query fails because of a unique constraint violation.
+  /// * 500: When the query is invalid SQL.
+  /// * 503: When the database cannot be reached.
+  ///
+  /// This method is invoked by [receive] and should not be invoked elsewhere. If a subclass overrides [receive], such as [Router],
+  /// this method should be called to handle any errors.
+  ///
+  /// Note: [includeErrorDetailsInServerErrorResponses] is not evaluated when [caughtValue] is an [HTTPResponseException] or [QueryException], as
+  /// these are normal control flows. There is one exception - if [QueryException.event] is [QueryExceptionEvent.internalFailure], this method
+  /// will include the error and stacktrace. [QueryExceptionEvent.internalFailure] occurs when the [Query] is malformed.
+  Future<bool> handleError(Request request, dynamic caughtValue, StackTrace trace) async {
     if (caughtValue is HTTPResponseException) {
       var response = caughtValue.response;
-      _sendResponse(request, response, includeCORSHeaders: true);
+      await _sendResponse(request, response, includeCORSHeaders: true);
 
       logger.info(
           "${request.toDebugString(includeHeaders: true, includeBody: true)}");
@@ -253,8 +246,8 @@ class RequestController extends Object with APIDocumentable {
       }
 
       var response =
-          new Response(statusCode, null, {"error": caughtValue.toString()});
-      _sendResponse(request, response, includeCORSHeaders: true);
+      new Response(statusCode, null, {"error": caughtValue.toString()});
+      await _sendResponse(request, response, includeCORSHeaders: true);
 
       logger.info(
           "${request.toDebugString(includeHeaders: true, includeBody: true)}");
@@ -270,7 +263,7 @@ class RequestController extends Object with APIDocumentable {
       var response = new Response.serverError(body: body)
         ..contentType = ContentType.JSON;
 
-      _sendResponse(request, response, includeCORSHeaders: true);
+      await _sendResponse(request, response, includeCORSHeaders: true);
 
       logger.severe(
           "${request.toDebugString(includeHeaders: true, includeBody: true)}",
@@ -281,6 +274,47 @@ class RequestController extends Object with APIDocumentable {
     }
 
     return false;
+  }
+
+  Future _handlePreflightRequest(Request req) async {
+    RequestController controllerToDictatePolicy;
+    try {
+      var lastControllerInChain = _lastRequestController();
+      if (lastControllerInChain != this) {
+        controllerToDictatePolicy = lastControllerInChain;
+      } else {
+        if (policy != null) {
+          if (!policy.validatePreflightRequest(req.innerRequest)) {
+            await _sendResponse(req, new Response.forbidden());
+            logger.info(req.toDebugString(includeHeaders: true));
+          } else {
+            await _sendResponse(req, policy.preflightResponse(req));
+            logger.info(req.toDebugString());
+          }
+
+          return null;
+        } else {
+          // If we don't have a policy, then a preflight request makes no sense.
+          await _sendResponse(req, new Response.forbidden());
+          logger.info(req.toDebugString(includeHeaders: true));
+          return null;
+        }
+      }
+    } catch (any, stacktrace) {
+      return handleError(req, any, stacktrace);
+    }
+
+    return controllerToDictatePolicy?.receive(req);
+  }
+
+  Future _sendResponse(Request request, Response response,
+      {bool includeCORSHeaders: false}) {
+    if (includeCORSHeaders) {
+      applyCORSHeadersIfNecessary(request, response);
+    }
+    willSendResponse(response);
+
+    return request.respond(response);
   }
 
   RequestController _lastRequestController() {
