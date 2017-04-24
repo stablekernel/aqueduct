@@ -45,34 +45,37 @@ class SchemaTable {
   /// Whether or not two tables match.
   ///
   /// If passing [reasons], the reasons for a mismatch are added to the passed in [List].
-  bool matches(SchemaTable table, [List<String> reasons]) {
-    var matches = true;
+  SchemaTableDifference differenceFrom(SchemaTable table) {
+    var actualTable = table;
+    var differences = new SchemaTableDifference()
+      ..expectedTable = this
+      ..actualTable = actualTable;
 
-    for (var receiverColumn in columns) {
-      var matchingArgColumn = table[receiverColumn.name];
-      if (matchingArgColumn == null) {
-        matches = false;
-        reasons?.add(
-            "Compared table '${table.name}' does not contain '${receiverColumn.name}', but that column exists in receiver schema.");
+    for (var expectedColumn in columns) {
+      var actualColumn = actualTable[expectedColumn.name];
+      if (actualColumn == null) {
+        differences.differingColumns.add(
+            new SchemaColumnDifference()
+              ..expectedColumn = expectedColumn
+              ..actualColumn = null
+        );
       } else {
-        var columnReasons = <String>[];
-        if (!receiverColumn.matches(matchingArgColumn, columnReasons)) {
-          reasons?.addAll(columnReasons
-              .map((reason) => reason.replaceAll("\$table", table.name)));
-          matches = false;
+        var diff = expectedColumn.differenceFrom(actualColumn);
+        if (diff.hasDifferences) {
+          differences.differingColumns.add(diff);
         }
       }
     }
 
-    if (table.columns.length > columns.length) {
-      matches = false;
-      table.columns.where((st) => this[st.name] == null).forEach((st) {
-        reasons?.add(
-            "Receiver table '${table.name}' does not contain '${st.name}', but that column exists in compared table.");
-      });
-    }
+    differences.differingColumns.addAll(actualTable.columns
+        .where((t) => this[t.name] == null)
+        .map((unexpectedColumn) {
+      return new SchemaColumnDifference()
+        ..actualColumn = unexpectedColumn
+        ..expectedColumn = null;
+    }));
 
-    return matches;
+    return differences;
   }
 
   void addColumn(SchemaColumn column) {

@@ -6,7 +6,7 @@ void main() {
     SchemaBuilder builder;
     setUp(() {
       var dataModel = new ManagedDataModel(
-          [LoadedSingleItem, DefaultItem, LoadedItem, Container]);
+          [LoadedSingleItem, DefaultItem, LoadedItem, Container, ExtensiveModel]);
       Schema baseSchema = new Schema.fromDataModel(dataModel);
       builder = new SchemaBuilder(null, baseSchema);
     });
@@ -171,8 +171,8 @@ void main() {
       }
 
       try {
-        builder.alterColumn("_LoadedItem", "someIndexedThing", (c) {
-          c.isNullable = true;
+        builder.alterColumn("_ExtensiveModel", "nullableValue", (c) {
+          c.isNullable = false;
         });
         expect(true, false);
       } on SchemaException catch (e) {

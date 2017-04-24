@@ -25,7 +25,7 @@ abstract class PersistentStore {
   List<String> renameTable(SchemaTable table, String name);
   List<String> deleteTable(SchemaTable table);
 
-  List<String> addColumn(SchemaTable table, SchemaColumn column);
+  List<String> addColumn(SchemaTable table, SchemaColumn column, {String unencodedInitialValue});
   List<String> deleteColumn(SchemaTable table, SchemaColumn column);
   List<String> renameColumn(
       SchemaTable table, SchemaColumn column, String name);

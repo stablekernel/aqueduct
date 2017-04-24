@@ -37,10 +37,24 @@ class PostgreSQLSchemaGenerator {
     return ["DROP TABLE ${table.name}"];
   }
 
-  List<String> addColumn(SchemaTable table, SchemaColumn column) {
-    var commands = [
-      "ALTER TABLE ${table.name} ADD COLUMN ${_columnStringForColumn(column)}"
-    ];
+  List<String> addColumn(SchemaTable table, SchemaColumn column, {String unencodedInitialValue}) {
+    var commands = <String>[];
+
+    if (!column.isNullable && column.defaultValue == null) {
+      if (unencodedInitialValue == null) {
+        throw new SchemaException("Attempting to addColumn to database that is not nullable, has no default value, and does not have unencodedInitialValue.");
+      }
+
+      column.defaultValue = unencodedInitialValue;
+      commands.addAll([
+        "ALTER TABLE ${table.name} ADD COLUMN ${_columnStringForColumn(column)}",
+        "ALTER TABLE ${table.name} ALTER COLUMN ${_columnNameForColumn(column)} DROP DEFAULT"
+      ]);
+    } else {
+      commands.addAll([
+        "ALTER TABLE ${table.name} ADD COLUMN ${_columnStringForColumn(column)}"
+      ]);
+    }
 
     if (column.isIndexed) {
       commands.addAll(addIndexToColumn(table, column));
@@ -72,14 +86,21 @@ class PostgreSQLSchemaGenerator {
         "ALTER TABLE ${table.name} ALTER COLUMN ${_columnNameForColumn(column)} DROP NOT NULL"
       ];
     } else {
-      if (unencodedInitialValue == null) {
+      if (unencodedInitialValue == null && column.defaultValue == null) {
         throw new SchemaException(
-            "Attempting to change column ${column.name} to 'not nullable', but no value specified to set values that are currently null in the database to avoid violating that constraint change.");
+            "Attempting to change column ${column.name} to 'not nullable', but not defaultValue or unencodedInitialValue is set for existing columns.");
       }
-      return [
-        "UPDATE ${table.name} SET ${_columnNameForColumn(column)}=${unencodedInitialValue} WHERE ${_columnNameForColumn(column)} IS NULL",
-        "ALTER TABLE ${table.name} ALTER COLUMN ${_columnNameForColumn(column)} SET NOT NULL"
-      ];
+
+      if (column.defaultValue == null) {
+        return [
+          "UPDATE ${table.name} SET ${_columnNameForColumn(column)}=${unencodedInitialValue} WHERE ${_columnNameForColumn(column)} IS NULL",
+          "ALTER TABLE ${table.name} ALTER COLUMN ${_columnNameForColumn(column)} SET NOT NULL",
+        ];
+      } else {
+        return [
+          "ALTER TABLE ${table.name} ALTER COLUMN ${_columnNameForColumn(column)} SET NOT NULL"
+        ];
+      }
     }
   }
 

@@ -1,11 +1,10 @@
-import 'dart:io';
 import 'dart:async';
+import 'dart:io';
 
 import 'package:test/test.dart';
-import 'package:aqueduct/executable.dart';
 import 'package:http/http.dart' as http;
 
-import '../helpers.dart';
+import 'cli_helpers.dart';
 
 void main() {
   var temporaryDirectory = new Directory("test_project");
@@ -31,7 +30,10 @@ void main() {
   test("Served application starts and responds to route", () async {
     var res =
         await runAqueductProcess(["serve", "--detached"], temporaryDirectory);
-    expect(res, 0);
+    print("${res.exitCode} ${res.output}");
+    expect(res.exitCode, 0);
+    expect(res.output, contains("port 8081"));
+    expect(res.output, contains("config.yaml"));
 
     var result = await http.get("http://localhost:8081/endpoint");
     expect(result.statusCode, 200);
@@ -43,7 +45,8 @@ void main() {
     libFile.writeAsStringSync("import 'package:aqueduct/aqueduct.dart';");
 
     var res = await runAqueductProcess(["serve"], temporaryDirectory);
-    expect(res != 0, true);
+    expect(res.exitCode, isNot(0));
+    expect(res.output, contains("No RequestSink subclass"));
   });
 
   test("Exception throw during initializeApplication halts startup", () async {
@@ -57,7 +60,10 @@ void main() {
     """);
 
     var res = await runAqueductProcess(["serve"], temporaryDirectory);
-    expect(res != 0, true);
+    expect(res.exitCode, isNot(0));
+    expect(res.output, contains("Application failed to start"));
+    expect(res.output, contains("Exception: error")); // error generated
+    expect(res.output, contains("WildfireSink.initializeApplication")); // stacktrace
   });
 
   test("Start with valid SSL args opens https server", () async {
@@ -70,7 +76,7 @@ void main() {
     var res = await runAqueductProcess(
           ["serve", "--detached", "--ssl-key-path", "server.key", "--ssl-certificate-path", "server.crt"],
           temporaryDirectory);
-    expect(res, 0);
+    expect(res.exitCode, 0);
 
     var completer = new Completer();
     var socket = await SecureSocket.connect("localhost", 8081, onBadCertificate: (_) => true);
@@ -93,12 +99,12 @@ void main() {
     var res = await runAqueductProcess(
         ["serve", "--detached", "--ssl-key-path", "server.key"],
         temporaryDirectory);
-    expect(res, 1);
+    expect(res.exitCode, 1);
 
     res = await runAqueductProcess(
         ["serve", "--detached", "--ssl-certificate-path", "server.crt"],
         temporaryDirectory);
-    expect(res, 1);
+    expect(res.exitCode, 1);
   });
 
   test("Start with invalid SSL values throws exceptions", () async {
@@ -111,7 +117,7 @@ void main() {
     var res = await runAqueductProcess(
         ["serve", "--detached", "--ssl-key-path", "server.key", "--ssl-certificate-path", "server.crt"],
         temporaryDirectory);
-    expect(res, 1);
+    expect(res.exitCode, 1);
   });
 
   test("Can't find SSL file, throws exception", () async {
@@ -121,19 +127,8 @@ void main() {
     var res = await runAqueductProcess(
         ["serve", "--detached", "--ssl-key-path", "server.key", "--ssl-certificate-path", "server.crt"],
         temporaryDirectory);
-    expect(res, 1);
+    expect(res.exitCode, 1);
   });
-}
-
-Future<int> runAqueductProcess(
-    List<String> commands, Directory workingDirectory) async {
-  commands.add("--directory");
-  commands.add("${workingDirectory.path}");
-
-  var cmd = new Runner();
-  var results = cmd.options.parse(commands);
-
-  return cmd.process(results);
 }
 
 void addLinesToFile(

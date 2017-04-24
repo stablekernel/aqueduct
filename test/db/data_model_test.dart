@@ -206,6 +206,17 @@ void main() {
       expect(partial.destinationEntity.tableName,
           model.entityForType(SomeOtherRelationshipModel).tableName);
     });
+
+    test("Two entities with same tableName should throw exception", () {
+      try {
+        var _ = new ManagedDataModel([SameNameOne, SameNameTwo]);
+        expect(true, false);
+      } on ManagedDataModelException catch (e) {
+        expect(e.message, contains("SameNameOne"));
+        expect(e.message, contains("SameNameTwo"));
+        expect(e.message, contains("'fo'"));
+      }
+    });
   });
 
   group("Valid data model with deferred types", () {
@@ -744,4 +755,20 @@ class _CyclicRight  {
   CyclicLeft rightRef;
 
   CyclicLeft from;
+}
+
+class SameNameOne extends ManagedObject<_SameNameOne> {}
+class _SameNameOne {
+  @managedPrimaryKey
+  int id;
+
+  static String tableName() => "fo";
+}
+
+class SameNameTwo extends ManagedObject<_SameNameTwo> {}
+class _SameNameTwo {
+  @managedPrimaryKey
+  int id;
+
+  static String tableName() => "fo";
 }
