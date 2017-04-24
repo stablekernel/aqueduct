@@ -61,6 +61,15 @@ abstract class CLICommand implements CLIResultHandler {
   bool get showStacktrace => values["stacktrace"];
   Map<String, CLICommand> _commandMap = {};
 
+  StringSink _outputSink = stdout;
+  StringSink get outputSink => _outputSink;
+  void set outputSink(StringSink sink) {
+    _outputSink = sink;
+    _commandMap.values.forEach((cmd) {
+      cmd.outputSink = sink;
+    });
+  }
+
   void registerCommand(CLICommand cmd) {
     _commandMap[cmd.name] = cmd;
     options.addCommand(cmd.name, cmd.options);
@@ -136,20 +145,20 @@ abstract class CLICommand implements CLIResultHandler {
 
   void displayError(String errorMessage,
       {bool showUsage: false, CLIColor color: CLIColor.boldRed}) {
-    print(
+    outputSink.writeln(
         "${colorSymbol(color)}${_ErrorDelimiter}$errorMessage$defaultColorSymbol");
     if (showUsage) {
-      print("\n${options.usage}");
+      outputSink.writeln("\n${options.usage}");
     }
   }
 
   void displayInfo(String infoMessage, {CLIColor color: CLIColor.boldNone}) {
-    print("${colorSymbol(color)}${_Delimiter}$infoMessage$defaultColorSymbol");
+    outputSink.writeln("${colorSymbol(color)}${_Delimiter}$infoMessage$defaultColorSymbol");
   }
 
   void displayProgress(String progressMessage,
       {CLIColor color: CLIColor.none}) {
-    print("${colorSymbol(color)}${_Tabs}$progressMessage$defaultColorSymbol");
+    outputSink.writeln("${colorSymbol(color)}${_Tabs}$progressMessage$defaultColorSymbol");
   }
 
   String colorSymbol(CLIColor color) {

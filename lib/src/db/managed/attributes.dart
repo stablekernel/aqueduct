@@ -146,6 +146,9 @@ class ManagedColumnAttributes {
   final bool autoincrement;
 
   /// Creates an instance of this type.
+  ///
+  /// [defaultValue] is sent as-is to the database, therefore, if the default value is the integer value 2,
+  /// pass the string "2". If the default value is a string, it must also be wrapped in single quotes: "'defaultValue'".
   const ManagedColumnAttributes(
       {bool primaryKey: false,
       ManagedPropertyType databaseType,

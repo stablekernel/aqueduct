@@ -6,8 +6,17 @@ class DataModelBuilder {
   DataModelBuilder(ManagedDataModel dataModel, List<Type> instanceTypes) {
     instanceTypes.forEach((type) {
       var backingMirror = persistentTypeOfInstanceType(type);
-      var entity = new ManagedEntity(dataModel,
-          tableNameFromClass(backingMirror), reflectClass(type), backingMirror);
+      var name = tableNameFromClass(backingMirror);
+      var entity = new ManagedEntity(dataModel, name, reflectClass(type), backingMirror);
+
+      var existingEntityWithThisTableName = entities
+          .values
+          .firstWhere((e) => e.tableName == entity.tableName,
+            orElse: () => null);
+      if (existingEntityWithThisTableName != null) {
+        throw new ManagedDataModelException.duplicateTables(existingEntityWithThisTableName, entity);
+      }
+
       entities[type] = entity;
       persistentTypeToEntityMap[entity.persistentType.reflectedType] = entity;
 

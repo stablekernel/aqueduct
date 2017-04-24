@@ -69,7 +69,7 @@ class SchemaBuilder {
   }
 
   /// Validates and adds a column to a table in [schema].
-  void addColumn(String tableName, SchemaColumn column) {
+  void addColumn(String tableName, SchemaColumn column, {String unencodedInitialValue}) {
     var table = schema.tableForName(tableName);
     if (table == null) {
       throw new SchemaException("Table ${tableName} does not exist.");
@@ -77,7 +77,7 @@ class SchemaBuilder {
 
     table.addColumn(column);
     if (store != null) {
-      commands.addAll(store.addColumn(table, column));
+      commands.addAll(store.addColumn(table, column, unencodedInitialValue: unencodedInitialValue));
     }
   }
 
@@ -120,6 +120,17 @@ class SchemaBuilder {
   }
 
   /// Validates and alters a column in a table in [schema].
+  ///
+  /// Alterations are made by setting properties of the column passed to [modify]. If the column's nullability
+  /// changes from nullable to not nullable,  all previously null values for that column
+  /// are set to the value of [unencodedInitialValue].
+  ///
+  /// Example:
+  ///
+  ///         database.alterColumn("table", "column", (c) {
+  ///           c.isIndexed = true;
+  ///           c.isNullable = false;
+  ///         }), unencodedInitialValue: "0");
   void alterColumn(String tableName, String columnName,
       void modify(SchemaColumn targetColumn),
       {String unencodedInitialValue}) {
@@ -138,38 +149,39 @@ class SchemaBuilder {
 
     if (existingColumn.type != newColumn.type) {
       throw new SchemaException(
-          "May not change column (${existingColumn.name}) type (${existingColumn.typeString} -> ${newColumn.typeString})");
+          "May not change column type for '${existingColumn.name}' in '$tableName' (${existingColumn.typeString} -> ${newColumn.typeString})");
     }
 
     if (existingColumn.autoincrement != newColumn.autoincrement) {
       throw new SchemaException(
-          "May not change column (${existingColumn.name}) autoincrementing behavior");
+          "May not change column autoincrementing behavior for '${existingColumn.name}' in '$tableName'");
     }
 
     if (existingColumn.isPrimaryKey != newColumn.isPrimaryKey) {
       throw new SchemaException(
-          "May not change column (${existingColumn.name}) to/from primary key");
+          "May not change column primary key status for '${existingColumn.name}' in '$tableName'");
     }
 
     if (existingColumn.relatedTableName != newColumn.relatedTableName) {
       throw new SchemaException(
-          "May not change column (${existingColumn.name}) reference table (${existingColumn.relatedTableName} -> ${newColumn.relatedTableName})");
+          "May not change reference table for foreign key column '${existingColumn.name}' in '$tableName' (${existingColumn.relatedTableName} -> ${newColumn.relatedTableName})");
     }
 
     if (existingColumn.relatedColumnName != newColumn.relatedColumnName) {
       throw new SchemaException(
-          "May not change column (${existingColumn.name}) reference column (${existingColumn.relatedColumnName} -> ${newColumn.relatedColumnName})");
+          "May not change reference column for foreign key column '${existingColumn.name}' in '$tableName' (${existingColumn.relatedColumnName} -> ${newColumn.relatedColumnName})");
     }
 
     if (existingColumn.name != newColumn.name) {
       renameColumn(tableName, existingColumn.name, newColumn.name);
     }
 
-    if (existingColumn.isNullable == false &&
-        newColumn.isNullable == true &&
-        unencodedInitialValue == null) {
+    if (existingColumn.isNullable == true &&
+        newColumn.isNullable == false &&
+        unencodedInitialValue == null &&
+        newColumn.defaultValue == null) {
       throw new SchemaException(
-          "May not change column (${existingColumn.name}) to be nullable without unencodedInitialValue.");
+          "May not change column '${existingColumn.name}' in '$tableName' to be nullable without defaultValue or unencodedInitialValue.");
     }
 
     table.replaceColumn(existingColumn, newColumn);
@@ -183,11 +195,6 @@ class SchemaBuilder {
         }
       }
 
-      if (existingColumn.isNullable != newColumn.isNullable) {
-        commands.addAll(store.alterColumnNullability(
-            table, newColumn, unencodedInitialValue));
-      }
-
       if (existingColumn.isUnique != newColumn.isUnique) {
         commands.addAll(store.alterColumnUniqueness(table, newColumn));
       }
@@ -196,98 +203,22 @@ class SchemaBuilder {
         commands.addAll(store.alterColumnDefaultValue(table, newColumn));
       }
 
+      if (existingColumn.isNullable != newColumn.isNullable) {
+        commands.addAll(store.alterColumnNullability(
+            table, newColumn, unencodedInitialValue));
+      }
+
       if (existingColumn.deleteRule != newColumn.deleteRule) {
         commands.addAll(store.alterColumnDeleteRule(table, newColumn));
       }
     }
   }
 
-  /// Used internally.
+  //todo: Transitionary code that can be removed at 3.0
+  @deprecated
   static String sourceForSchemaUpgrade(
       Schema existingSchema, Schema newSchema, int version) {
-    var builder = new StringBuffer();
-    builder.writeln("import 'package:aqueduct/aqueduct.dart';");
-    builder.writeln("import 'dart:async';");
-    builder.writeln("");
-    builder.writeln("class Migration$version extends Migration {");
-    builder.writeln("  Future upgrade() async {");
-
-    var existingTableNames = existingSchema.tables.map((t) => t.name).toList();
-
-    newSchema.dependencyOrderedTables
-        .where((t) => !existingTableNames.contains(t.name))
-        .forEach((t) {
-      builder.writeln(_createTableString(t, "    "));
-    });
-
-    builder.writeln("  }");
-    builder.writeln("");
-    builder.writeln("  Future downgrade() async {");
-    builder.writeln("  }");
-    builder.writeln("  Future seed() async {");
-    builder.writeln("  }");
-    builder.writeln("}");
-
-    return builder.toString();
+    return null;
   }
 
-  static String _createTableString(SchemaTable table, String spaceOffset,
-      {bool temporary: false}) {
-    var builder = new StringBuffer();
-    builder.writeln(
-        '${spaceOffset}database.createTable(new SchemaTable("${table.name}", [');
-    table.columns.forEach((col) {
-      builder.writeln("${spaceOffset}${_newColumnString(table, col, "  ")},");
-    });
-    builder.writeln('${spaceOffset}]));');
-
-    return builder.toString();
-  }
-
-  static String _newColumnString(
-      SchemaTable table, SchemaColumn column, String spaceOffset) {
-    var builder = new StringBuffer();
-    if (column.relatedTableName != null) {
-      builder.write(
-          '${spaceOffset}new SchemaColumn.relationship("${column.name}", ${column.type}');
-      builder.write(", relatedTableName: \"${column.relatedTableName}\"");
-      builder.write(", relatedColumnName: \"${column.relatedColumnName}\"");
-      builder.write(", rule: ${column.deleteRule}");
-    } else {
-      builder.write(
-          '${spaceOffset}new SchemaColumn("${column.name}", ${column.type}');
-      if (column.isPrimaryKey) {
-        builder.write(", isPrimaryKey: true");
-      } else {
-        builder.write(", isPrimaryKey: false");
-      }
-      if (column.autoincrement) {
-        builder.write(", autoincrement: true");
-      } else {
-        builder.write(", autoincrement: false");
-      }
-      if (column.defaultValue != null) {
-        builder.write(', defaultValue: "${column.defaultValue}"');
-      }
-      if (column.isIndexed) {
-        builder.write(", isIndexed: true");
-      } else {
-        builder.write(", isIndexed: false");
-      }
-    }
-
-    if (column.isNullable) {
-      builder.write(", isNullable: true");
-    } else {
-      builder.write(", isNullable: false");
-    }
-    if (column.isUnique) {
-      builder.write(", isUnique: true");
-    } else {
-      builder.write(", isUnique: false");
-    }
-
-    builder.write(")");
-    return builder.toString();
-  }
 }

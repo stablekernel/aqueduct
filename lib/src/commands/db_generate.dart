@@ -12,23 +12,19 @@ class CLIDatabaseGenerate extends CLICommand
   Future<int> handle() async {
     var files = migrationFiles;
 
-    if (!files.isEmpty) {
-      // For now, just make a new empty one...
-      var newVersionNumber = versionNumberFromFile(files.last) + 1;
-      var contents = SchemaBuilder.sourceForSchemaUpgrade(
-          new Schema.empty(), new Schema.empty(), newVersionNumber);
-      var file = new File.fromUri(migrationDirectory.uri.resolve(
-          "${"$newVersionNumber".padLeft(8, "0")}_Unnamed.migration.dart"));
-      file.writeAsStringSync(contents);
+    var newMigrationFile = new File.fromUri(
+        migrationDirectory.uri.resolve("00000001_Initial.migration.dart"));
+    var versionNumber = 1;
 
-      displayInfo("Created new migration file ${file.uri}.");
-      return 0;
+    if (!files.isEmpty) {
+      versionNumber  = versionNumberFromFile(files.last) + 1;
+      newMigrationFile = new File.fromUri(migrationDirectory.uri.resolve(
+          "${"$versionNumber".padLeft(8, "0")}_Unnamed.migration.dart"));
     }
 
-    var file = new File.fromUri(
-        migrationDirectory.uri.resolve("00000001_Initial.migration.dart"));
-    var source = await generateMigrationSource();
+    var source = await generateMigrationSource(await schemaMapFromExistingMigrationFiles(), versionNumber);
     List<String> tables = source["tablesEvaluated"];
+    List<String> changeList = source["changeList"];
 
     displayInfo("The following ManagedObject<T> subclasses were found:");
     tables.forEach((t) => displayProgress(t));
@@ -36,29 +32,44 @@ class CLIDatabaseGenerate extends CLICommand
     displayProgress("* If you were expecting more declarations, ensure the files are visible in the application library file.");
     displayProgress("");
 
-    file.writeAsStringSync(source["source"]);
+    changeList?.forEach((c) => displayProgress(c));
+
+    newMigrationFile.writeAsStringSync(source["source"]);
 
     displayInfo(
-        "Created new migration file (version ${versionNumberFromFile(file)}).",
+        "Created new migration file (version ${versionNumberFromFile(newMigrationFile)}).",
         color: CLIColor.boldGreen);
-    displayProgress("New file is located at ${file.path}");
+    displayProgress("New file is located at ${newMigrationFile.path}");
 
     return 0;
   }
 
-  Future<Map<String, dynamic>> generateMigrationSource() {
+  Future<Map<String, dynamic>> generateMigrationSource(Map<String, dynamic> initialSchema, int inputVersion) {
     var generator = new SourceGenerator(
         (List<String> args, Map<String, dynamic> values) async {
+      var version = values["version"] ?? 1;
+      var inputSchema = new Schema.fromMap(values["initialSchema"]);
       var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
       var schema = new Schema.fromDataModel(dataModel);
+      var changeList = <String>[];
+
+      var source;
+      if (currentMirrorSystem().libraries.containsKey(Uri.parse("package:aqueduct/src/db/schema/migration_builder.dart"))) {
+        // This runs on 2.0.3 and later. Previous project versions will fallback to outdated version.
+        source = MigrationBuilder.sourceForSchemaUpgrade(
+            inputSchema, schema, version, changeList: changeList);
+      } else {
+        print("\n*** Warning: using outdated version of db generate. Upgrade your project's aqueduct dependency to at least 2.0.3.***\n");
+        source = SchemaBuilder.sourceForSchemaUpgrade(inputSchema, schema, version);
+      }
 
       return {
-        "source": SchemaBuilder.sourceForSchemaUpgrade(
-            new Schema.empty(), schema, 1),
+        "source": source,
         "tablesEvaluated" : dataModel
             .entities
             .map((e) => MirrorSystem.getName(e.instanceType.simpleName))
-            .toList()
+            .toList(),
+        "changeList": changeList
       };
     }, imports: [
       "package:aqueduct/aqueduct.dart",
@@ -68,10 +79,23 @@ class CLIDatabaseGenerate extends CLICommand
       "dart:async"
     ]);
 
-    var executor = new IsolateExecutor(generator, [libraryName],
-        packageConfigURI: projectDirectory.uri.resolve(".packages"));
+    var executor = new IsolateExecutor(generator, [libraryName], message: {
+      "initialSchema" : initialSchema,
+      "version": inputVersion
+    }, packageConfigURI: projectDirectory.uri.resolve(".packages"));
 
     return executor.execute(projectDirectory.uri) as Future<Map<String, dynamic>>;
+  }
+
+  Future<Map<String, dynamic>> schemaMapFromExistingMigrationFiles() async {
+    displayInfo("Replaying migration files...");
+    var schema = new Schema.empty();
+    for (var migration in migrationFiles) {
+      displayProgress("Replaying version ${versionNumberFromFile(migration)}");
+      schema = await schemaByApplyingMigrationFile(migration, schema);
+    }
+
+    return schema.asMap();
   }
 
   String get name {

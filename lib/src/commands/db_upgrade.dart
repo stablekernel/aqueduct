@@ -42,12 +42,13 @@ class CLIDatabaseUpgrade extends CLIDatabaseConnectingCommand {
     var schema = new Schema.empty();
     for (var migration in migrationFilesToGetToCurrent) {
       displayProgress("Replaying version ${versionNumberFromFile(migration)}");
-      schema = await executeUpgradeForFile(migration, schema, dryRun: true);
+      schema = await schemaByApplyingMigrationFile(migration, schema);
     }
 
     for (var migration in migrationFilesToRun) {
       displayInfo("Applying version ${versionNumberFromFile(migration)}...");
-      schema = await executeUpgradeForFile(migration, schema, dryRun: false);
+      schema =
+          await executeUpgradeForFile(migration, schema, _storeConnectionMap);
       displayProgress(
           "Applied version ${versionNumberFromFile(migration)} successfully.",
           color: CLIColor.green);
@@ -86,11 +87,12 @@ class CLIDatabaseUpgrade extends CLIDatabaseConnectingCommand {
     return [migrationFilesToGetToCurrent, migrationFilesToRun];
   }
 
-  Future<Schema> executeUpgradeForFile(File file, Schema schema,
-      {bool dryRun: false}) async {
+  Future<Schema> executeUpgradeForFile(
+      File file, Schema schema, Map<String, dynamic> connectionInfo) async {
     var generator = new SourceGenerator(
         (List<String> args, Map<String, dynamic> values) async {
       hierarchicalLoggingEnabled = true;
+
       PostgreSQLPersistentStore.logger.level = Level.ALL;
       PostgreSQLPersistentStore.logger.onRecord
           .listen((r) => print("\t${r.message}"));
@@ -98,7 +100,6 @@ class CLIDatabaseUpgrade extends CLIDatabaseConnectingCommand {
       var inputSchema =
           new Schema.fromMap(values["schema"] as Map<String, dynamic>);
       var dbInfo = values["dbInfo"];
-      var dryRun = values["dryRun"];
 
       PersistentStore store;
       if (dbInfo != null && dbInfo["flavor"] == "postgres") {
@@ -120,18 +121,17 @@ class CLIDatabaseUpgrade extends CLIDatabaseConnectingCommand {
               .firstWhere((dm) =>
                   dm is ClassMirror && dm.isSubclassOf(reflectClass(Migration)))
           as ClassMirror;
+
       var migrationInstance = migrationClassMirror
           .newInstance(new Symbol(''), []).reflectee as Migration;
       migrationInstance.database = new SchemaBuilder(store, inputSchema);
 
       await migrationInstance.upgrade();
 
-      if (!dryRun) {
-        await migrationInstance.store
-            .upgrade(versionNumber, migrationInstance.database.commands);
-        await migrationInstance.seed();
-        await migrationInstance.database.store.close();
-      }
+      await migrationInstance.store
+          .upgrade(versionNumber, migrationInstance.database.commands);
+      await migrationInstance.seed();
+      await migrationInstance.database.store.close();
 
       return migrationInstance.currentSchema.asMap();
     }, imports: [
@@ -142,13 +142,9 @@ class CLIDatabaseUpgrade extends CLIDatabaseConnectingCommand {
       "dart:mirrors"
     ], additionalContents: file.readAsStringSync());
 
-    var executor = new IsolateExecutor(generator, [
-      "${versionNumberFromFile(file)}"
-    ], message: {
-      "dryRun": dryRun,
-      "schema": schema.asMap(),
-      "dbInfo": _storeConnectionMap,
-    });
+    var executor = new IsolateExecutor(
+        generator, ["${versionNumberFromFile(file)}"],
+        message: {"schema": schema.asMap(), "dbInfo": connectionInfo});
 
     var schemaMap = await executor.execute(projectDirectory.uri);
     return new Schema.fromMap(schemaMap as Map<String, dynamic>);

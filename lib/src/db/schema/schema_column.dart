@@ -113,17 +113,13 @@ class SchemaColumn {
   /// Whether or not two columns match.
   ///
   /// If passing [reasons], the reasons for a mismatch are added to the passed in [List].
-  bool matches(SchemaColumn otherColumn, [List<String> reasons]) {
-    var matches = true;
-
-    if (name.toLowerCase() != otherColumn.name.toLowerCase()) {
-      matches = false;
-      reasons?.add(
-          "Column '\$table.${name}' does not have the same value for 'name' in compared schemas"
-          "(${otherColumn.name.toLowerCase()} != ${name.toLowerCase()})");
-    }
+  SchemaColumnDifference differenceFrom(SchemaColumn column) {
+    var differences = new SchemaColumnDifference()
+      ..expectedColumn = this
+      ..actualColumn = column;
 
     var symbols = [
+      #name,
       #isIndexed,
       #type,
       #isNullable,
@@ -136,19 +132,23 @@ class SchemaColumn {
       #deleteRule
     ];
 
-    var receiverColumnMirror = reflect(this);
-    var argColumnMirror = reflect(otherColumn);
+    var expectedColumn = reflect(this);
+    var actualColumn = reflect(column);
     symbols.forEach((sym) {
-      if (receiverColumnMirror.getField(sym).reflectee !=
-          argColumnMirror.getField(sym).reflectee) {
-        matches = false;
-        reasons?.add(
-            "Column '\$table.${name}' does not have same value for '${MirrorSystem.getName(sym)}' in compared schemas"
-            " (${receiverColumnMirror.getField(sym).reflectee} != ${argColumnMirror.getField(sym).reflectee}).");
+      var expectedValue = expectedColumn.getField(sym).reflectee;
+      var actualValue = actualColumn.getField(sym).reflectee;
+      if (expectedValue is String) {
+        expectedValue = (expectedValue as String)?.toLowerCase();
+        actualValue = (actualValue as String)?.toLowerCase();
+
+      }
+
+      if (expectedValue != actualValue) {
+        differences.differingProperties.add(MirrorSystem.getName(sym));
       }
     });
 
-    return matches;
+    return differences;
   }
 
   static String typeStringForType(ManagedPropertyType type) {

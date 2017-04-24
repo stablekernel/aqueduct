@@ -302,8 +302,8 @@ void main() {
           [LoadedSingleItem, DefaultItem, LoadedItem, Container]);
       var baseSchema = new Schema.fromDataModel(dataModel);
       var newSchema = new Schema.fromMap(baseSchema.asMap());
-      expect(newSchema.matches(baseSchema), true);
-      expect(baseSchema.matches(newSchema), true);
+      expect(newSchema.differenceFrom(baseSchema).hasDifferences, false);
+      expect(baseSchema.differenceFrom(newSchema).hasDifferences, false);
     });
 
     test("Copying is pristine", () {
@@ -311,8 +311,8 @@ void main() {
           [LoadedSingleItem, DefaultItem, LoadedItem, Container]);
       var baseSchema = new Schema.fromDataModel(dataModel);
       var newSchema = new Schema.from(baseSchema);
-      expect(newSchema.matches(baseSchema), true);
-      expect(baseSchema.matches(newSchema), true);
+      expect(newSchema.differenceFrom(baseSchema).hasDifferences, false);
+      expect(baseSchema.differenceFrom(newSchema).hasDifferences, false);
     });
   });
 
@@ -328,20 +328,20 @@ void main() {
       var newSchema = new Schema.from(baseSchema);
       newSchema.tables.add(new SchemaTable("foo", []));
 
-      var errors = <String>[];
-      expect(newSchema.matches(baseSchema, errors), false);
-      expect(errors.length, 1);
-      expect(errors.first, contains("does not contain 'foo'"));
+      var diff = baseSchema.differenceFrom(newSchema);
+      expect(diff.hasDifferences, true);
+      expect(diff.errorMessages.length, 1);
+      expect(diff.errorMessages.first, contains("'foo' should NOT exist"));
     });
 
     test("Missing table show up as error", () {
       var newSchema = new Schema.from(baseSchema);
       newSchema.tables.removeWhere((t) => t.name == "_DefaultItem");
 
-      var errors = <String>[];
-      expect(newSchema.matches(baseSchema, errors), false);
-      expect(errors.length, 1);
-      expect(errors.first, contains("does not contain '_DefaultItem'"));
+      var diff = baseSchema.differenceFrom(newSchema);
+      expect(diff.hasDifferences, true);
+      expect(diff.errorMessages.length, 1);
+      expect(diff.errorMessages.first, contains("'_DefaultItem' should exist"));
     });
 
     test("Same table but renamed shows up as error", () {
@@ -349,10 +349,13 @@ void main() {
       newSchema.tables.firstWhere((t) => t.name == "_DefaultItem").name =
           "DefaultItem";
 
-      var errors = <String>[];
-      expect(newSchema.matches(baseSchema, errors), false);
-      expect(errors.length, 1);
-      expect(errors.first, contains("does not contain 'DefaultItem'"));
+      var diff = baseSchema.differenceFrom(newSchema);
+      expect(diff.hasDifferences, true);
+      expect(diff.errorMessages.length, 2);
+      expect(diff.errorMessages,
+          contains(contains("'_DefaultItem' should exist")));
+      expect(diff.errorMessages,
+          contains(contains("'DefaultItem' should NOT exist")));
     });
 
     test("Missing column shows up as error", () {
@@ -362,10 +365,11 @@ void main() {
           .columns
           .removeWhere((c) => c.name == "id");
 
-      var errors = <String>[];
-      expect(newSchema.matches(baseSchema, errors), false);
-      expect(errors.length, 1);
-      expect(errors.first, contains("'_DefaultItem' does not contain 'id'"));
+      var diff = baseSchema.differenceFrom(newSchema);
+      expect(diff.hasDifferences, true);
+      expect(diff.errorMessages.length, 1);
+      expect(diff.errorMessages.first,
+          contains("Column 'id' in table '_DefaultItem' should exist"));
     });
 
     test("Additional column shows up as error", () {
@@ -375,10 +379,11 @@ void main() {
           .columns
           .add(new SchemaColumn("foo", ManagedPropertyType.integer));
 
-      var errors = <String>[];
-      expect(newSchema.matches(baseSchema, errors), false);
-      expect(errors.length, 1);
-      expect(errors.first, contains("'_DefaultItem' does not contain 'foo'"));
+      var diff = baseSchema.differenceFrom(newSchema);
+      expect(diff.hasDifferences, true);
+      expect(diff.errorMessages.length, 1);
+      expect(diff.errorMessages.first,
+          contains("Column 'foo' in table '_DefaultItem' should NOT exist"));
     });
 
     test("Same column but with wrong name shows up as error", () {
@@ -389,10 +394,17 @@ void main() {
           .firstWhere((c) => c.name == "id")
           .name = "idd";
 
-      var errors = <String>[];
-      expect(newSchema.matches(baseSchema, errors), false);
-      expect(errors.length, 1);
-      expect(errors.first, contains("'_DefaultItem' does not contain 'idd'"));
+      var diff = baseSchema.differenceFrom(newSchema);
+      expect(diff.hasDifferences, true);
+      expect(diff.errorMessages.length, 2);
+      expect(
+          diff.errorMessages,
+          contains(
+              contains("Column 'id' in table '_DefaultItem' should exist")));
+      expect(
+          diff.errorMessages,
+          contains(contains(
+              "Column 'idd' in table '_DefaultItem' should NOT exist")));
     });
 
     test("Column differences show up as errors", () {
@@ -401,110 +413,91 @@ void main() {
           .firstWhere((t) => t.name == "_DefaultItem")
           .columns
           .firstWhere((c) => c.name == "id");
-      var errors = <String>[];
 
       column.isPrimaryKey = !column.isPrimaryKey;
-      expect(newSchema.matches(baseSchema, errors), false);
-      expect(errors.length, 1);
-      expect(
-          errors.first,
-          contains(
-              "'_DefaultItem.id' does not have same value for 'isPrimaryKey'"));
+      var diff = baseSchema.differenceFrom(newSchema);
+      expect(diff.hasDifferences, true);
+      expect(diff.errorMessages.length, 1);
+      expect(diff.errorMessages.first,
+          "Column 'id' in table '_DefaultItem' expected 'true' for 'isPrimaryKey', but migration files yield 'false'");
       column.isPrimaryKey = !column.isPrimaryKey;
-      errors = <String>[];
 
       column.isIndexed = !column.isIndexed;
-      expect(newSchema.matches(baseSchema, errors), false);
-      expect(errors.length, 1);
-      expect(
-          errors.first,
-          contains(
-              "'_DefaultItem.id' does not have same value for 'isIndexed'"));
+      diff = baseSchema.differenceFrom(newSchema);
+      expect(diff.hasDifferences, true);
+      expect(diff.errorMessages.length, 1);
+      expect(diff.errorMessages.first,
+          'Column \'id\' in table \'_DefaultItem\' expected \'false\' for \'isIndexed\', but migration files yield \'true\'');
       column.isIndexed = !column.isIndexed;
-      errors = <String>[];
 
       column.isNullable = !column.isNullable;
-      expect(newSchema.matches(baseSchema, errors), false);
-      expect(errors.length, 1);
-      expect(
-          errors.first,
-          contains(
-              "'_DefaultItem.id' does not have same value for 'isNullable'"));
+      diff = baseSchema.differenceFrom(newSchema);
+      expect(diff.hasDifferences, true);
+      expect(diff.errorMessages.length, 1);
+      expect(diff.errorMessages.first,
+          'Column \'id\' in table \'_DefaultItem\' expected \'false\' for \'isNullable\', but migration files yield \'true\'');
       column.isNullable = !column.isNullable;
-      errors = <String>[];
 
       column.autoincrement = !column.autoincrement;
-      expect(newSchema.matches(baseSchema, errors), false);
-      expect(errors.length, 1);
-      expect(
-          errors.first,
-          contains(
-              "'_DefaultItem.id' does not have same value for 'autoincrement'"));
+      diff = baseSchema.differenceFrom(newSchema);
+      expect(diff.hasDifferences, true);
+      expect(diff.errorMessages.length, 1);
+      expect(diff.errorMessages.first,
+          'Column \'id\' in table \'_DefaultItem\' expected \'true\' for \'autoincrement\', but migration files yield \'false\'');
       column.autoincrement = !column.autoincrement;
-      errors = <String>[];
 
       column.isUnique = !column.isUnique;
-      expect(newSchema.matches(baseSchema, errors), false);
-      expect(errors.length, 1);
-      expect(
-          errors.first,
-          contains(
-              "'_DefaultItem.id' does not have same value for 'isUnique'"));
+      diff = baseSchema.differenceFrom(newSchema);
+      expect(diff.hasDifferences, true);
+      expect(diff.errorMessages.length, 1);
+      expect(diff.errorMessages.first,
+          'Column \'id\' in table \'_DefaultItem\' expected \'false\' for \'isUnique\', but migration files yield \'true\'');
       column.isUnique = !column.isUnique;
-      errors = <String>[];
 
       var captureValue = column.defaultValue;
       column.defaultValue = "foobar";
-      expect(newSchema.matches(baseSchema, errors), false);
-      expect(errors.length, 1);
-      expect(
-          errors.first,
-          contains(
-              "'_DefaultItem.id' does not have same value for 'defaultValue'"));
+      diff = baseSchema.differenceFrom(newSchema);
+      expect(diff.hasDifferences, true);
+      expect(diff.errorMessages.length, 1);
+      expect(diff.errorMessages.first,
+          'Column \'id\' in table \'_DefaultItem\' expected \'null\' for \'defaultValue\', but migration files yield \'foobar\'');
       column.defaultValue = captureValue;
-      errors = <String>[];
 
       var capType = column.type;
       column.type = ManagedPropertyType.boolean;
-      expect(newSchema.matches(baseSchema, errors), false);
-      expect(errors.length, 1);
-      expect(errors.first,
-          contains("'_DefaultItem.id' does not have same value for 'type'"));
+      diff = baseSchema.differenceFrom(newSchema);
+      expect(diff.hasDifferences, true);
+      expect(diff.errorMessages.length, 1);
+      expect(diff.errorMessages.first,
+          'Column \'id\' in table \'_DefaultItem\' expected \'ManagedPropertyType.bigInteger\' for \'type\', but migration files yield \'ManagedPropertyType.boolean\'');
       column.type = capType;
-      errors = <String>[];
 
       captureValue = column.relatedColumnName;
       column.relatedColumnName = "whatever";
-      expect(newSchema.matches(baseSchema, errors), false);
-      expect(errors.length, 1);
-      expect(
-          errors.first,
-          contains(
-              "'_DefaultItem.id' does not have same value for 'relatedColumnName'"));
+      diff = baseSchema.differenceFrom(newSchema);
+      expect(diff.hasDifferences, true);
+      expect(diff.errorMessages.length, 1);
+      expect(diff.errorMessages.first,
+          'Column \'id\' in table \'_DefaultItem\' expected \'null\' for \'relatedColumnName\', but migration files yield \'whatever\'');
       column.relatedColumnName = captureValue;
-      errors = <String>[];
 
       captureValue = column.relatedTableName;
       column.relatedTableName = "whatever";
-      expect(newSchema.matches(baseSchema, errors), false);
-      expect(errors.length, 1);
-      expect(
-          errors.first,
-          contains(
-              "'_DefaultItem.id' does not have same value for 'relatedTableName'"));
+      diff = baseSchema.differenceFrom(newSchema);
+      expect(diff.hasDifferences, true);
+      expect(diff.errorMessages.length, 1);
+      expect(diff.errorMessages.first,
+          'Column \'id\' in table \'_DefaultItem\' expected \'null\' for \'relatedTableName\', but migration files yield \'whatever\'');
       column.relatedTableName = captureValue;
-      errors = <String>[];
 
       var capDeleteRule = column.deleteRule;
       column.deleteRule = ManagedRelationshipDeleteRule.setDefault;
-      expect(newSchema.matches(baseSchema, errors), false);
-      expect(errors.length, 1);
-      expect(
-          errors.first,
-          contains(
-              "'_DefaultItem.id' does not have same value for 'deleteRule'"));
+      diff = baseSchema.differenceFrom(newSchema);
+      expect(diff.hasDifferences, true);
+      expect(diff.errorMessages.length, 1);
+      expect(diff.errorMessages.first,
+          'Column \'id\' in table \'_DefaultItem\' expected \'null\' for \'deleteRule\', but migration files yield \'ManagedRelationshipDeleteRule.setDefault\'');
       column.deleteRule = capDeleteRule;
-      errors = <String>[];
     });
 
     test("Multiple reasons all show up", () {
@@ -514,16 +507,21 @@ void main() {
       df.columns.add(new SchemaColumn("foobar", ManagedPropertyType.integer));
       df.columns.firstWhere((sc) => sc.name == "id").isPrimaryKey = false;
 
-      var errors = <String>[];
-      expect(newSchema.matches(baseSchema, errors), false);
-      expect(errors.length, 3);
-      expect(errors, contains(contains("does not contain 'foo'")));
-      expect(errors,
-          contains(contains("'_DefaultItem' does not contain 'foobar'")));
+      var diff = baseSchema.differenceFrom(newSchema);
+      expect(diff.hasDifferences, true);
+      expect(diff.errorMessages.length, 3);
       expect(
-          errors,
-          contains(contains(
-              "'_DefaultItem.id' does not have same value for 'isPrimaryKey'")));
+          diff.errorMessages,
+          contains(
+              'Column \'id\' in table \'_DefaultItem\' expected \'true\' for \'isPrimaryKey\', but migration files yield \'false\''));
+      expect(
+          diff.errorMessages,
+          contains(
+              'Column \'foobar\' in table \'_DefaultItem\' should NOT exist, but is created by migration files'));
+      expect(
+          diff.errorMessages,
+          contains(
+              'Table \'foo\' should NOT exist, but is created by migration files.'));
     });
 
     test("Tables and columns are case-insensitive", () {
@@ -537,7 +535,8 @@ void main() {
             [new SchemaColumn("COLUMN", ManagedPropertyType.bigInteger)])
       ]);
 
-      expect(lowercaseSchema.matches(uppercaseSchema), true);
+      expect(lowercaseSchema.differenceFrom(uppercaseSchema).hasDifferences,
+          false);
     });
   });
 }

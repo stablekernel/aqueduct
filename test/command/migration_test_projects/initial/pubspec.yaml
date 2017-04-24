@@ -7,7 +7,6 @@ environment:
   sdk: '>=1.20.0 <2.0.0'
 
 dependencies:
-  scribe: any
   aqueduct:
     path: ..
 

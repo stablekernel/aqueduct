@@ -4,7 +4,7 @@ import 'package:aqueduct/executable.dart';
 import 'dart:async';
 import 'dart:io';
 import 'package:args/args.dart';
-import '../helpers.dart';
+import 'cli_helpers.dart';
 
 void main() {
   group("Cooperation", () {
@@ -63,7 +63,7 @@ void main() {
         new SchemaColumn("foobar", ManagedPropertyType.integer, isIndexed: true)
       ]));
 
-      expect(db.schema.matches(schema), true);
+      expect(db.schema.differenceFrom(schema).hasDifferences, false);
 
       var insertResults = await db.store.execute(
           "INSERT INTO tableToKeep (columnToEdit) VALUES ('1') RETURNING columnToEdit, addedColumn");
@@ -142,80 +142,7 @@ void main() {
     });
   });
 
-  group("Generating migration files", () {
-    var projectSourceDirectory = getTestProjectDirectory("initial");
-    Directory projectDirectory = new Directory("test_project");
-    var migrationDirectory =
-        new Directory.fromUri(projectDirectory.uri.resolve("migrations"));
-    var addFiles = (List<String> filenames) {
-      filenames.forEach((name) {
-        new File.fromUri(migrationDirectory.uri.resolve(name))
-            .writeAsStringSync(" ");
-      });
-    };
 
-    setUp(() async {
-      createTestProject(projectSourceDirectory, projectDirectory);
-    });
-
-    tearDown(() {
-      projectDirectory.deleteSync(recursive: true);
-    });
-
-    test("Run without pub get yields error", () async {
-      var out = await runAqueductProcess(["db", "generate"], projectDirectory);
-      expect(out != 0, true);
-    });
-
-    test("Ensure migration directory will get created on generation", () async {
-      await runPubGet(projectDirectory, offline: true);
-      expect(migrationDirectory.existsSync(), false);
-      var out = await runAqueductProcess(["db", "generate"], projectDirectory);
-      expect(out, 0);
-      expect(migrationDirectory.existsSync(), true);
-    });
-
-    test(
-        "If there are no migration files, create an initial one that validates to schema",
-        () async {
-      await runPubGet(projectDirectory, offline: true);
-
-      // Putting a non-migration file in there to ensure that this doesn't prevent from being ugpraded
-      migrationDirectory.createSync();
-      addFiles(["notmigration.dart"]);
-
-      await runAqueductProcess(["db", "generate"], projectDirectory);
-      var out = await runAqueductProcess(["db", "validate"], projectDirectory);
-      expect(out, 0);
-    });
-
-    test("If there is already a migration file, create an upgrade file",
-        () async {
-      await runPubGet(projectDirectory, offline: true);
-
-      await runAqueductProcess(["db", "generate"], projectDirectory);
-      await runAqueductProcess(["db", "generate"], projectDirectory);
-
-      expect(
-          migrationDirectory
-              .listSync()
-              .where((fse) => !fse.uri.pathSegments.last.startsWith(".")),
-          hasLength(2));
-      expect(
-          new File.fromUri(migrationDirectory.uri
-                  .resolve("00000001_Initial.migration.dart"))
-              .existsSync(),
-          true);
-      expect(
-          new File.fromUri(migrationDirectory.uri
-                  .resolve("00000002_Unnamed.migration.dart"))
-              .existsSync(),
-          true);
-
-      var out = await runAqueductProcess(["db", "validate"], projectDirectory);
-      expect(out, 0);
-    });
-  });
 
   group("Validating", () {
     var projectSourceDirectory = getTestProjectDirectory("initial");
@@ -233,48 +160,59 @@ void main() {
     });
 
     test("If validating with no migration dir, get error", () async {
-      expect(
-          await runAqueductProcess(["db", "validate"], projectDirectory) != 0,
-          true);
+      var res = await runAqueductProcess(["db", "validate"], projectDirectory);
+
+      expect(res.exitCode, isNot(0));
+      expect(res.output, contains("No migration files found"));
     });
 
     test("Validating two equal schemas succeeds", () async {
-      await runAqueductProcess(["db", "generate"], projectDirectory);
-      expect(await runAqueductProcess(["db", "validate"], projectDirectory), 0);
+      var res = await runAqueductProcess(["db", "generate"], projectDirectory);
+      expect(res.exitCode, 0);
+
+      res = await runAqueductProcess(["db", "validate"], projectDirectory);
+      expect(res.exitCode, 0);
+      expect(res.output, contains("Validation OK"));
+      expect(res.output, contains("version is 1"));
     });
 
     test("Validating different schemas fails", () async {
-      await runAqueductProcess(["db", "generate"], projectDirectory);
+      var res = await runAqueductProcess(["db", "generate"], projectDirectory);
+      expect(res.exitCode, 0);
+
       addLinesToUpgradeFile(
           new File.fromUri(migrationDirectory.uri
               .resolve("00000001_Initial.migration.dart")),
           ["database.createTable(new SchemaTable(\"foo\", []));"]);
 
-      expect(
-          await runAqueductProcess(["db", "validate"], projectDirectory) != 0,
-          true);
+      res = await runAqueductProcess(["db", "validate"], projectDirectory);
+      expect(res.exitCode, isNot(0));
+      expect(res.output, contains("Validation failed"));
     });
 
     test(
         "Validating runs all migrations in directory and checks the total product",
         () async {
-      await runAqueductProcess(["db", "generate"], projectDirectory);
+      var res = await runAqueductProcess(["db", "generate"], projectDirectory);
+      expect(res.exitCode, 0);
+
       addLinesToUpgradeFile(
           new File.fromUri(migrationDirectory.uri
               .resolve("00000001_Initial.migration.dart")),
           ["database.createTable(new SchemaTable(\"foo\", []));"]);
 
-      expect(
-          await runAqueductProcess(["db", "validate"], projectDirectory) != 0,
-          true);
+      res = await runAqueductProcess(["db", "validate"], projectDirectory);
+      expect(res.exitCode, isNot(0));
+      expect(res.output, contains("Validation failed"));
 
-      await runAqueductProcess(["db", "generate"], projectDirectory);
-      addLinesToUpgradeFile(
-          new File.fromUri(migrationDirectory.uri
-              .resolve("00000002_Unnamed.migration.dart")),
-          ["database.deleteTable(\"foo\");"]);
+      res = await runAqueductProcess(["db", "generate"], projectDirectory);
+      expect(res.exitCode, 0);
 
-      expect(await runAqueductProcess(["db", "validate"], projectDirectory), 0);
+      var secondMigrationFile = new File.fromUri(migrationDirectory.uri.resolve("00000002_Unnamed.migration.dart"));
+      expect(secondMigrationFile.readAsStringSync(), contains("database.deleteTable(\"foo\")"));
+
+      res = await runAqueductProcess(["db", "validate"], projectDirectory);
+      expect(res.exitCode, 0);
     });
   });
 
@@ -317,10 +255,19 @@ void main() {
       await store?.close();
     });
 
+    test("Upgrade with no migration files returns 0 exit code", () async {
+      var res = await runAqueductProcess(["db", "upgrade", "--connect", connectString], projectDirectory);
+      expect(res.exitCode, 0);
+      expect(res.output, contains("No migration files"));
+    });
+
     test("Generate and execute initial schema makes workable DB", () async {
-      await runAqueductProcess(["db", "generate"], projectDirectory);
-      await runAqueductProcess(
+      var res = await runAqueductProcess(["db", "generate"], projectDirectory);
+      expect(res.exitCode, 0);
+
+      res = await runAqueductProcess(
           ["db", "upgrade", "--connect", connectString], projectDirectory);
+      expect(res.exitCode, 0);
 
       var version = await store
           .execute("SELECT versionNumber FROM _aqueduct_version_pgsql");
@@ -330,9 +277,34 @@ void main() {
       expect(await columnsOfTable(store, "_testobject"), ["id", "foo"]);
     });
 
+    test("Database already up to date returns 0 status code, does not change version", () async {
+      var res = await runAqueductProcess(["db", "generate"], projectDirectory);
+      expect(res.exitCode, 0);
+
+      res = await runAqueductProcess(
+          ["db", "upgrade", "--connect", connectString], projectDirectory);
+      expect(res.exitCode, 0);
+
+      List<List<dynamic>> versionRow = await store
+          .execute("SELECT versionNumber, dateOfUpgrade FROM _aqueduct_version_pgsql");
+      expect(versionRow.first.first, 1);
+      var updateDate = versionRow.first.last;
+
+      res = await runAqueductProcess(["db", "upgrade", "--connect", connectString], projectDirectory);
+      expect(res.exitCode, 0);
+
+      versionRow = await store
+          .execute("SELECT versionNumber, dateOfUpgrade FROM _aqueduct_version_pgsql");
+      expect(versionRow.length, 1);
+      expect(versionRow.first.last, equals(updateDate));
+    });
+
     test("Multiple migration files are ran", () async {
-      await runAqueductProcess(["db", "generate"], projectDirectory);
-      await runAqueductProcess(["db", "generate"], projectDirectory);
+      var res = await runAqueductProcess(["db", "generate"], projectDirectory);
+      expect(res.exitCode, 0);
+
+      res = await runAqueductProcess(["db", "generate"], projectDirectory);
+      expect(res.exitCode, 0);
 
       addLinesToUpgradeFile(
           new File.fromUri(migrationDirectory.uri
@@ -357,11 +329,16 @@ void main() {
 
     test("Only later migration files are ran if already at a version",
         () async {
-      await runAqueductProcess(["db", "generate"], projectDirectory);
-      await runAqueductProcess(
-          ["db", "upgrade", "--connect", connectString], projectDirectory);
+      var res = await runAqueductProcess(["db", "generate"], projectDirectory);
+      expect(res.exitCode, 0);
 
-      await runAqueductProcess(["db", "generate"], projectDirectory);
+      res = await runAqueductProcess(
+          ["db", "upgrade", "--connect", connectString], projectDirectory);
+      expect(res.exitCode, 0);
+
+      res = await runAqueductProcess(["db", "generate"], projectDirectory);
+      expect(res.exitCode, 0);
+
       addLinesToUpgradeFile(
           new File.fromUri(migrationDirectory.uri
               .resolve("00000002_Unnamed.migration.dart")),
@@ -369,10 +346,10 @@ void main() {
             "database.createTable(new SchemaTable(\"foo\", [new SchemaColumn.relationship(\"testobject\", ManagedPropertyType.bigInteger, relatedTableName: \"_testobject\", relatedColumnName: \"id\")]));",
             "database.deleteColumn(\"_testobject\", \"foo\");"
           ]);
-      ;
 
-      await runAqueductProcess(
+      res = await runAqueductProcess(
           ["db", "upgrade", "--connect", connectString], projectDirectory);
+      expect(res.exitCode, 0);
 
       var version = await store
           .execute("SELECT versionNumber FROM _aqueduct_version_pgsql");
@@ -410,11 +387,6 @@ class Migration1 extends Migration {
   Future seed() async {}
 }
 
-Directory getTestProjectDirectory(String name) {
-  return new Directory.fromUri(Directory.current.uri
-      .resolve("test/command/migration_test_projects/$name"));
-}
-
 void addLinesToUpgradeFile(File upgradeFile, List<String> extraLines) {
   var lines = upgradeFile
       .readAsStringSync()
@@ -439,17 +411,6 @@ Future<List<String>> columnsOfTable(
       .execute("select column_name from information_schema.columns where "
           "table_name='$tableName'");
   return results.map((rows) => rows.first).toList();
-}
-
-Future<int> runAqueductProcess(
-    List<String> commands, Directory workingDirectory) async {
-  commands.add("--directory");
-  commands.add("${workingDirectory.path}");
-
-  var cmd = new Runner();
-  var results = cmd.options.parse(commands);
-
-  return cmd.process(results);
 }
 
 class MockMigratable extends CLIDatabaseMigratable {

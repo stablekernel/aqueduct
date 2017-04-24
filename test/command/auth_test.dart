@@ -1,9 +1,10 @@
+import 'dart:io';
 import 'dart:async';
 
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
-import 'package:aqueduct/executable.dart';
 import 'package:aqueduct/managed_auth.dart';
+import 'cli_helpers.dart';
 
 void main() {
   var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
@@ -133,40 +134,47 @@ void main() {
 
   group("Failure cases", () {
     test("Without id fails", () async {
-      await runWith(["add-client", "--secret", "abcdef"]);
+      var processResult = await runWith(["add-client", "--secret", "abcdef"]);
       var q = new Query<ManagedClient>();
       var results = await q.fetch();
       expect(results.length, 0);
+
+      expect(processResult.exitCode, isNot(0));
+      expect(processResult.output, contains("id required"));
     });
 
     test("Create public client with redirect uri fails", () async {
-      await runWith(["add-client", "--id", "foobar", "--redirect-uri", "http://xyz.com"]);
+      var processResult = await runWith(["add-client", "--id", "foobar", "--redirect-uri", "http://xyz.com"]);
       var q = new Query<ManagedClient>();
       var results = await q.fetch();
       expect(results.length, 0);
+
+      expect(processResult.exitCode, isNot(0));
+      expect(processResult.output, contains("authorization code flow must be a confidential client"));
     });
 
     test("Malformed scope fails", () async {
-      await runWith(["add-client", "--id", "foobar", "--allowed-scopes", "x\"x"]);
+      var processResult = await runWith(["add-client", "--id", "foobar", "--allowed-scopes", "x\"x"]);
       var q = new Query<ManagedClient>();
       var results = await q.fetch();
       expect(results.length, 0);
+
+      expect(processResult.exitCode, isNot(0));
+      expect(processResult.output, contains("Invalid authorization scope"));
     });
 
     test("Update scope of invalid client id fails", () async {
       var result = await runWith(["set-scope", "--id", "a.b.c", "--scopes", "abc efg"]);
-      expect(result != 0, true);
+      expect(result.exitCode, isNot(0));
+      expect(result.output, contains("does not exist"));
     });
   });
 }
 
-Future<int> runWith(List<String> args) {
+Future<CLIResult> runWith(List<String> args) {
   var allArgs = ["auth"];
   allArgs.addAll(args);
   allArgs.addAll(["--connect", "postgres://dart:dart@localhost:5432/dart_test"]);
 
-  var cmd = new Runner();
-  var results = cmd.options.parse(allArgs);
-
-  return cmd.process(results);
+  return runAqueductProcess(allArgs, Directory.current);
 }
