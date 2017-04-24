@@ -16,8 +16,6 @@ Future main(List<String> args) async {
   tempDir.createSync();
   outputDir.createSync();
 
-  testFiles = testFiles.where((f) => f.path.endsWith("test_client_test.dart")).toList();
-
   var count = 0;
   for (var file in testFiles) {
     print("Running ${file.uri.pathSegments.last} (${count + 1} of ${testFiles.length})...");
