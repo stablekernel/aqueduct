@@ -16,7 +16,7 @@ Future main(List<String> args) async {
   tempDir.createSync();
   outputDir.createSync();
 
-//  testFiles = testFiles.where((f) => f.path.endsWith("isolate_application_test.dart")).toList();
+  testFiles = testFiles.where((f) => f.path.endsWith("migration_builder_test.dart")).toList();
 
   var count = 0;
   for (var file in testFiles) {

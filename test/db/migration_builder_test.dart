@@ -202,5 +202,8 @@ Future<Map<String, dynamic>> runSource(String source, Schema fromSchema) async {
       onError: errPort.sendPort,
       packageConfig: new Uri.file(".packages"));
 
-  return completer.future;
+  var results = await completer.future;
+  receivePort.close();
+  errPort.close();
+  return results;
 }
