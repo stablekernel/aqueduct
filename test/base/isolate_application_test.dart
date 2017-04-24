@@ -11,7 +11,7 @@ main() {
 
     setUp(() async {
       app = new Application<TestSink>();
-      await app.start(numberOfInstances: 3);
+      await app.start(numberOfInstances: 2);
     });
 
     tearDown(() async {
@@ -19,10 +19,8 @@ main() {
     });
 
     test("Application starts", () async {
-      expect(app.supervisors.length, 3);
+      expect(app.supervisors.length, 2);
     });
-
-    ////////////////////////////////////////////
 
     test("Application responds to request", () async {
       var response = await http.get("http://localhost:8081/t");
@@ -61,10 +59,6 @@ main() {
           responses.any(
               (http.Response resp) => resp.headers["server"] == "aqueduct/2"),
           true);
-      expect(
-          responses.any(
-              (http.Response resp) => resp.headers["server"] == "aqueduct/3"),
-          true);
     });
 
     test("Application stops", () async {
@@ -74,7 +68,7 @@ main() {
         await http.get("http://localhost:8081/t");
       } on SocketException {}
 
-      await app.start(numberOfInstances: 3);
+      await app.start(numberOfInstances: 2);
 
       var resp = await http.get("http://localhost:8081/t");
       expect(resp.statusCode, 200);
@@ -146,7 +140,6 @@ main() {
       }
 
       await server.close(force: true);
-      await conflictingApp.stop();
     });
   });
 

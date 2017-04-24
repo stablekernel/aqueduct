@@ -31,6 +31,7 @@ void main() {
         await store.execute(c);
       }
     }
+    await ManagedContext.defaultContext.persistentStore.close();
   });
 
   group("Success cases", () {

@@ -16,7 +16,9 @@ class CLIAuth extends CLICommand {
     return 0;
   }
 
-  Future cleanup() async {}
+  Future cleanup() async {
+
+  }
 
   String get name {
     return "auth";
@@ -48,6 +50,7 @@ class CLIAuthScopeClient extends CLIDatabaseConnectingCommand {
       ..addOption("id", abbr: "i", help: "The client ID to insert.");
   }
 
+  ManagedContext context;
   String get clientID => values["id"];
   List<String> get scopes {
     var v = values["scopes"] as String;
@@ -68,7 +71,7 @@ class CLIAuthScopeClient extends CLIDatabaseConnectingCommand {
     }
 
     var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
-    var context = new ManagedContext(dataModel, persistentStore);
+    context = new ManagedContext.standalone(dataModel, persistentStore);
 
     var scopingClient = new AuthClient.public(
         clientID, allowedScopes: scopes?.map((s) => new AuthScope(s))?.toList());
@@ -98,6 +101,11 @@ class CLIAuthScopeClient extends CLIDatabaseConnectingCommand {
     return 1;
   }
 
+  @override
+  Future cleanup() async {
+    await context?.persistentStore?.close();
+  }
+
   String get name {
     return "set-scope";
   }
@@ -122,6 +130,7 @@ class CLIAuthAddClient extends CLIDatabaseConnectingCommand {
               "The redirect URI of the client if it supports the authorization code flow. May be omitted.");
   }
 
+  ManagedContext context;
   String get clientID => values["id"];
   String get secret => values["secret"];
   String get redirectUri => values["redirect-uri"];
@@ -148,7 +157,7 @@ class CLIAuthAddClient extends CLIDatabaseConnectingCommand {
     }
 
     var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
-    var context = new ManagedContext(dataModel, persistentStore);
+    context = new ManagedContext.standalone(dataModel, persistentStore);
 
     var credentials = AuthUtility.generateAPICredentialPair(clientID, secret, redirectURI: redirectUri)
       ..allowedScopes = allowedScopes?.map((s) => new AuthScope(s))?.toList();
@@ -203,6 +212,11 @@ class CLIAuthAddClient extends CLIDatabaseConnectingCommand {
     }
 
     return 1;
+  }
+
+  @override
+  Future cleanup() async {
+    await context?.persistentStore?.close();
   }
 
   String get name {

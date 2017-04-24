@@ -42,6 +42,7 @@ class ApplicationIsolateSupervisor {
 
     isolate.setErrorsFatal(false);
     isolate.resume(isolate.pauseCapability);
+    isolate.addErrorListener(receivePort.sendPort);
 
     return _launchCompleter.future.timeout(new Duration(seconds: 30),
         onTimeout: () {
@@ -55,7 +56,11 @@ class ApplicationIsolateSupervisor {
     _stopCompleter = new Completer();
     _serverSendPort.send(MessageStop);
 
-    return _stopCompleter.future.timeout(new Duration(seconds: 30));
+    try {
+      await _stopCompleter.future.timeout(new Duration(seconds: 30));
+    } on TimeoutException {
+      isolate.kill();
+    }
   }
 
   void listener(dynamic message) {
