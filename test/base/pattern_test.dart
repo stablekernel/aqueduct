@@ -226,5 +226,6 @@ List<List<RouteSegment>> _segmentsForRoute(String route) {
   return RouteSpecification
       .specificationsForRoutePattern(route)
       .map((spec) => spec.segments)
+      .map((segs) => segs as List<RouteSegment>)
       .toList();
 }
