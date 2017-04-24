@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:aqueduct/aqueduct.dart';
 
-import '../cli_helpers.dart';
+import 'cli_helpers.dart';
 
 Future<CLIResult> executeMigrations(Directory projectDirectory) async {
   return runAqueductProcess([
@@ -29,4 +29,30 @@ Future writeMigrations(
         .resolve("${i + currentNumberOfMigrations}.migration.dart"));
     file.writeAsStringSync(source);
   }
+}
+
+void addLinesToUpgradeFile(File upgradeFile, List<String> extraLines) {
+  var lines = upgradeFile
+      .readAsStringSync()
+      .split("\n")
+      .map((line) {
+    if (line.contains("Future upgrade()")) {
+      var l = [line];
+      l.addAll(extraLines);
+      return l;
+    }
+    return [line];
+  })
+      .expand((lines) => lines)
+      .join("\n");
+
+  upgradeFile.writeAsStringSync(lines);
+}
+
+Future<List<String>> columnsOfTable(
+    PersistentStore persistentStore, String tableName) async {
+  List<List<String>> results = await persistentStore
+      .execute("select column_name from information_schema.columns where "
+      "table_name='$tableName'");
+  return results.map((rows) => rows.first).toList();
 }

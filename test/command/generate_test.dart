@@ -2,7 +2,7 @@ import 'dart:io';
 import 'dart:async';
 import 'package:aqueduct/aqueduct.dart';
 import 'package:test/test.dart';
-import '../cli_helpers.dart';
+import 'cli_helpers.dart';
 import 'generate_helpers.dart';
 
 void main() {

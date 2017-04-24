@@ -1,6 +1,6 @@
 import 'package:test/test.dart';
 import 'dart:io';
-import '../cli_helpers.dart';
+import 'cli_helpers.dart';
 
 void main() {
   group("Invalid schema changes", () {
