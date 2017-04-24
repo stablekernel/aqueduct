@@ -16,7 +16,7 @@ Future main(List<String> args) async {
   tempDir.createSync();
   outputDir.createSync();
 
-  testFiles = testFiles.where((f) => f.path.endsWith("migration_builder_test.dart")).toList();
+  testFiles = testFiles.where((f) => f.path.endsWith("test_client_test.dart")).toList();
 
   var count = 0;
   for (var file in testFiles) {
@@ -39,6 +39,8 @@ Future main(List<String> args) async {
   var output = await lcovFormatter.format(hitmap);
   var outputFile = new File.fromUri(outputDir.uri.resolve("lcov.info"));
   outputFile.writeAsStringSync(output);
+
+  tempDir.deleteSync(recursive: true);
 }
 
 Map<String, dynamic> onlyFromSource(Map<String, dynamic> initialCoverage, String sourcePrefix) {
