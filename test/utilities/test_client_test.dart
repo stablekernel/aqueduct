@@ -7,17 +7,19 @@ import 'dart:convert';
 
 void main() {
   group("Test Client/Request", () {
+    Application app;
     var server = new MockHTTPServer(4040);
     setUp(() async {
       await server.open();
     });
 
     tearDown(() async {
+      await app?.stop();
       await server?.close();
     });
 
     test("Create from app, explicit port", () async {
-      var app = new Application<SomeSink>()
+      app = new Application<SomeSink>()
           ..configuration.port = 4111;
       await app.start(runOnMainIsolate: true);
       var client = new TestClient(app);
@@ -25,7 +27,7 @@ void main() {
     });
 
     test("Create from app, assigned port", () async {
-      var app = new Application<SomeSink>()
+      app = new Application<SomeSink>()
         ..configuration.port = 0;
       await app.start(runOnMainIsolate: true);
 
@@ -35,12 +37,10 @@ void main() {
       expect(parsedURI.port, app.server.server.port);
       var response = await client.request("/").get();
       expect(response, hasStatus(200));
-
-      await app.stop();
     });
 
     test("Create from unstarted app throws useful exception", () {
-      var app = new Application<SomeSink>();
+      app = new Application<SomeSink>();
       try {
         var _ = new TestClient(app);
         expect(true, false);

@@ -92,13 +92,15 @@ class Application<RequestSinkType extends RequestSink> {
       try {
         for (int i = 0; i < numberOfInstances; i++) {
           var supervisor = await _spawn(configuration, i + 1);
-
-          await supervisor.resume();
-
           supervisors.add(supervisor);
+          await supervisor.resume();
         }
       } catch (e, st) {
-        await stop();
+        supervisors.forEach((sup) {
+          sup.receivePort.close();
+          sup.isolate.kill();
+        });
+        supervisors = [];
         logger.severe("$e", this, st);
         rethrow;
       }
@@ -152,7 +154,6 @@ class Application<RequestSinkType extends RequestSink> {
         streamLibraryURI, config, identifier, receivePort.sendPort);
     var isolate = await Isolate.spawn(isolateServerEntryPoint, initialMessage,
         paused: true);
-    isolate.addErrorListener(receivePort.sendPort);
 
     return new ApplicationIsolateSupervisor(
         this, isolate, receivePort, identifier, logger);

@@ -28,6 +28,9 @@ class CLIDatabaseVersion extends CLIDatabaseConnectingCommand {
     return 0;
   }
 
+  @override
+  Future cleanup() => persistentStore.close();
+
   String get name {
     return "get-version";
   }

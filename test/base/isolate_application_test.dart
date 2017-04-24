@@ -11,30 +11,36 @@ main() {
 
     setUp(() async {
       app = new Application<TestSink>();
-      await app.start(numberOfInstances: 3);
+      await app.start(numberOfInstances: 2);
+      print("started");
     });
 
     tearDown(() async {
+      print("stopping");
       await app?.stop();
+      print("stopped");
     });
 
     test("Application starts", () async {
-      expect(app.supervisors.length, 3);
+      expect(app.supervisors.length, 2);
     });
 
-    ////////////////////////////////////////////
-
     test("Application responds to request", () async {
+      print("send req single");
       var response = await http.get("http://localhost:8081/t");
+      print("finished send req single");
       expect(response.statusCode, 200);
     });
 
     test("Application properly routes request", () async {
+      print("sending reqs");
       var tRequest = http.get("http://localhost:8081/t");
       var rRequest = http.get("http://localhost:8081/r");
 
       var tResponse = await tRequest;
+      print("t done");
       var rResponse = await rRequest;
+      print("r done");
 
       expect(tResponse.body, '"t_ok"');
       expect(rResponse.body, '"r_ok"');
@@ -43,7 +49,7 @@ main() {
     test("Application handles a bunch of requests", () async {
       var reqs = <Future>[];
       var responses = [];
-      for (int i = 0; i < 100; i++) {
+      for (int i = 0; i < 20; i++) {
         var req = http.get("http://localhost:8081/t");
         req.then((resp) {
           responses.add(resp);
@@ -51,7 +57,10 @@ main() {
         reqs.add(req);
       }
 
+      print("wait for resp");
+
       await Future.wait(reqs);
+      print("resps done");
 
       expect(
           responses.any(
@@ -60,10 +69,6 @@ main() {
       expect(
           responses.any(
               (http.Response resp) => resp.headers["server"] == "aqueduct/2"),
-          true);
-      expect(
-          responses.any(
-              (http.Response resp) => resp.headers["server"] == "aqueduct/3"),
           true);
     });
 
@@ -74,7 +79,7 @@ main() {
         await http.get("http://localhost:8081/t");
       } on SocketException {}
 
-      await app.start(numberOfInstances: 3);
+      await app.start(numberOfInstances: 2);
 
       var resp = await http.get("http://localhost:8081/t");
       expect(resp.statusCode, 200);
@@ -146,7 +151,6 @@ main() {
       }
 
       await server.close(force: true);
-      await conflictingApp.stop();
     });
   });
 
@@ -164,7 +168,7 @@ main() {
         ..configuration.certificateFilePath = ciDirUri.resolve("aqueduct.cert.pem").path
         ..configuration.privateKeyFilePath = ciDirUri.resolve("aqueduct.key.pem").path;
 
-      await app.start(numberOfInstances: 3);
+      await app.start(numberOfInstances: 1);
 
       var completer = new Completer();
       var socket = await SecureSocket.connect("localhost", 8081, onBadCertificate: (_) => true);

@@ -8,7 +8,9 @@ main() {
     var app = new Application<TestSink>();
 
     tearDown(() async {
+      print("stopping");
       await app?.stop();
+      print("stopped");
     });
 
     test("Application reports uncaught error, recovers", () async {
@@ -42,6 +44,7 @@ main() {
       int counter = 0;
       var completer = new Completer();
       app.logger.onRecord.listen((rec) {
+        print("got msg");
         contents.add(rec.message);
         counter ++;
         if (counter == 5) {
@@ -60,7 +63,9 @@ main() {
       expect((await Future.wait(failFutures)).map((r) => r.statusCode),
           everyElement(200));
 
+      print("wait on completion");
       await completer.future;
+      print("completed");
       expect(contents.where((c) => c.contains("Uncaught exception")).length, 5);
     });
   });
