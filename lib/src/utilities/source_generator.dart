@@ -83,7 +83,6 @@ class IsolateExecutor {
 
     var onErrorPort = new ReceivePort()
       ..listen((err) {
-        print("$err");
         if (err is List) {
           completer.completeError(err.first, new StackTrace.fromString(err.last));
         } else {

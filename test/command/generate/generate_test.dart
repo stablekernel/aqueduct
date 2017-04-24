@@ -2,7 +2,8 @@ import 'dart:io';
 import 'dart:async';
 import 'package:aqueduct/aqueduct.dart';
 import 'package:test/test.dart';
-import 'cli_helpers.dart';
+import '../cli_helpers.dart';
+import 'generate_helpers.dart';
 
 void main() {
   group("Generating migration files", () {
@@ -112,15 +113,6 @@ Future writeMigrations(
         .resolve("${i + currentNumberOfMigrations}.migration.dart"));
     file.writeAsStringSync(source);
   }
-}
-
-Future<CLIResult> executeMigrations(Directory projectDirectory) async {
-  return runAqueductProcess([
-    "db",
-    "upgrade",
-    "--connect",
-    "postgres://dart:dart@localhost:5432/dart_test"
-  ], projectDirectory);
 }
 
 Future addMigrationFileWithLines(Directory projectDirectory, List<String> lines) async {
