@@ -1,5 +1,5 @@
 language: dart
-#sudo: required
+sudo: required
 addons:
   postgresql: "9.4"
 services:
