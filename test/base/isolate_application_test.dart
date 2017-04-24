@@ -157,7 +157,7 @@ main() {
         ..configuration.certificateFilePath = ciDirUri.resolve("aqueduct.cert.pem").path
         ..configuration.privateKeyFilePath = ciDirUri.resolve("aqueduct.key.pem").path;
 
-      await app.start(numberOfInstances: 3);
+      await app.start(numberOfInstances: 1);
 
       var completer = new Completer();
       var socket = await SecureSocket.connect("localhost", 8081, onBadCertificate: (_) => true);

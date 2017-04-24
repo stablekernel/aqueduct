@@ -83,6 +83,7 @@ class IsolateExecutor {
 
     var onErrorPort = new ReceivePort()
       ..listen((err) {
+        print("$err");
         if (err is List) {
           completer.completeError(err.first, new StackTrace.fromString(err.last));
         } else {
@@ -99,12 +100,12 @@ class IsolateExecutor {
       message["_sendPort"] = controlPort.sendPort;
 
       if (packageConfigURI != null) {
-        Isolate.spawnUri(tempFile.absolute.uri, arguments, message,
+        await Isolate.spawnUri(tempFile.absolute.uri, arguments, message,
             errorsAreFatal: true,
             onError: onErrorPort.sendPort,
             packageConfig: packageConfigURI);
       } else {
-        Isolate.spawnUri(tempFile.uri, arguments, message,
+        await Isolate.spawnUri(tempFile.uri, arguments, message,
             errorsAreFatal: true,
             onError: onErrorPort.sendPort,
             automaticPackageResolution: true);
