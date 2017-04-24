@@ -22,7 +22,7 @@ dependencies:
 dev_dependencies:
   test: any
   http: ">=0.11.3+7 <0.12.0"
-  coverage: any
+  coverage: ^0.9.0
 
 executables:
   aqueduct: aqueduct

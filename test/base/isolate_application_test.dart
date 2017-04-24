@@ -41,7 +41,7 @@ main() {
     test("Application handles a bunch of requests", () async {
       var reqs = <Future>[];
       var responses = [];
-      for (int i = 0; i < 100; i++) {
+      for (int i = 0; i < 20; i++) {
         var req = http.get("http://localhost:8081/t");
         req.then((resp) {
           responses.add(resp);
