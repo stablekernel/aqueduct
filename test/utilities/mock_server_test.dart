@@ -50,6 +50,13 @@ void main() {
       serverRequest = await server.next();
       expect(serverRequest.path, "/bar");
     });
+
+    test("Clear and empty", () async {
+      await (testClient.request("/hello?foo=bar")..headers = {"X": "Y"}).get();
+      expect(server.isEmpty, false);
+      server.clear();
+      expect(server.isEmpty, true);
+    });
   });
 }
 
