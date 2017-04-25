@@ -3,6 +3,8 @@ import 'dart:io';
 
 import 'package:test/test.dart';
 import 'package:http/http.dart' as http;
+import 'package:yaml/yaml.dart' as yaml;
+import 'package:pub_semver/pub_semver.dart';
 
 import 'cli_helpers.dart';
 
@@ -35,6 +37,13 @@ void main() {
     expect(res.output, contains("port 8081"));
     expect(res.output, contains("config.yaml"));
 
+
+    var thisPubspec = yaml.loadYaml(new File("pubspec.yaml").readAsStringSync());
+    var thisVersion = new Version.parse(thisPubspec["version"]);
+    expect(res.output, contains("CLI Version: $thisVersion"));
+    expect(res.output, contains("Aqueduct project version: $thisVersion"));
+    
+    
     var result = await http.get("http://localhost:8081/endpoint");
     expect(result.statusCode, 200);
   });
