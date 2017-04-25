@@ -310,7 +310,7 @@ abstract class CLIProject implements CLIResultHandler, CLICommand {
 
   void preProcess() {
     try {
-      displayInfo("Aqueduct project dependency version: ${projectVersion}");
+      displayInfo("Aqueduct project version: ${projectVersion}");
     } catch (_) {} // Ignore if this doesn't succeed.
   }
 
