@@ -166,18 +166,6 @@ class ManagedColumnAttributes {
         this.isIndexed = indexed,
         this.shouldOmitByDefault = omitByDefault,
         this.autoincrement = autoincrement;
-
-  /// A supporting constructor to support modifying Attributes.
-  ManagedColumnAttributes.fromAttributes(
-      ManagedColumnAttributes source, ManagedPropertyType databaseType)
-      : this.databaseType = databaseType,
-        this.isPrimaryKey = source.isPrimaryKey,
-        this.isNullable = source.isNullable,
-        this.defaultValue = source.defaultValue,
-        this.isUnique = source.isUnique,
-        this.isIndexed = source.isIndexed,
-        this.shouldOmitByDefault = source.shouldOmitByDefault,
-        this.autoincrement = source.autoincrement;
 }
 
 /// Metadata for a subclass of [ManagedObject] that allows the property to be used in [ManagedObject.readMap] and [ManagedObject.asMap], but is not persisted in the underlying database.

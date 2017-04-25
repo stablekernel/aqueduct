@@ -147,39 +147,44 @@ main() {
         await conflictingApp.start();
         expect(true, false);
       } on ApplicationStartupException catch (e) {
-        expect(e, new isInstanceOf<ApplicationStartupException>());
+        expect(e.toString(), contains("Failed to create server socket"));
       }
 
       await server.close(force: true);
     });
-  });
 
-  group("SSL", () {
-    Application app;
+    test("Isolate timeout kills application when first isolate fails", () async {
+      var timeoutApp = new Application<TimeoutSink>()
+        ..isolateStartupTimeout = new Duration(seconds: 1)
+        ..configuration.options = {
+          "timeout1" : 2
+        };
 
-    tearDown(() async {
-      await app?.stop();
+      try {
+        await timeoutApp.start(numberOfInstances: 2);
+        expect(true, false);
+      } on TimeoutException catch (e) {
+        expect(e.toString(), contains("Isolate (1) failed to launch"));
+      }
+
+      expect(timeoutApp.supervisors.length, 0);
     });
 
-    test("Start with HTTPS", () async {
-      var ciDirUri = new Directory("ci").uri;
+    test("Isolate timeout kills application when first isolate succeeds, but next fails", () async {
+      var timeoutApp = new Application<TimeoutSink>()
+        ..isolateStartupTimeout = new Duration(seconds: 1)
+        ..configuration.options = {
+          "timeout2" : 2
+        };
 
-      app = new Application<TestSink>()
-        ..configuration.certificateFilePath = ciDirUri.resolve("aqueduct.cert.pem").path
-        ..configuration.privateKeyFilePath = ciDirUri.resolve("aqueduct.key.pem").path;
+      try {
+        await timeoutApp.start(numberOfInstances: 2);
+        expect(true, false);
+      } on TimeoutException catch (e) {
+        expect(e.toString(), contains("Isolate (2) failed to launch"));
+      }
 
-      await app.start(numberOfInstances: 1);
-
-      var completer = new Completer();
-      var socket = await SecureSocket.connect("localhost", 8081, onBadCertificate: (_) => true);
-      var request = "GET /r HTTP/1.1\r\nConnection: close\r\nHost: localhost\r\n\r\n";
-      socket.add(request.codeUnits);
-
-      socket.listen((bytes) => completer.complete(bytes));
-      var httpResult = new String.fromCharCodes(await completer.future);
-      expect(httpResult, contains("200 OK"));
-      expect(httpResult, contains("r_ok"));
-      await socket.close();
+      expect(timeoutApp.supervisors.length, 0);
     });
   });
 }
@@ -204,7 +209,7 @@ class CrashSink extends RequestSink {
     if (configuration.options["crashIn"] == "addRoutes") {
       throw new TestException("addRoutes");
     }
-    router.route("/t").generate(() => new TController());
+    router.route("/t").listen((req) async => new Response.ok("t_ok"));
   }
 
   @override
@@ -225,8 +230,8 @@ class TestSink extends RequestSink {
   TestSink(ApplicationConfiguration opts) : super(opts);
 
   void setupRouter(Router router) {
-    router.route("/t").generate(() => new TController());
-    router.route("/r").generate(() => new RController());
+    router.route("/t").listen((req) async => new Response.ok("t_ok"));
+    router.route("/r").listen((req) async => new Response.ok("r_ok"));
     router.route("startup").listen((r) async {
       var total = configuration.options["startup"].fold(0, (a, b) => a + b);
       return new Response.ok("$total");
@@ -234,16 +239,17 @@ class TestSink extends RequestSink {
   }
 }
 
-class TController extends HTTPController {
-  @httpGet
-  Future<Response> getAll() async {
-    return new Response.ok("t_ok");
-  }
-}
+class TimeoutSink extends RequestSink {
+  TimeoutSink(ApplicationConfiguration config) : super(config);
+  void setupRouter(Router router) {}
 
-class RController extends HTTPController {
-  @httpGet
-  Future<Response> getAll() async {
-    return new Response.ok("r_ok");
+  @override
+  Future willOpen() async {
+    var timeoutLength = configuration.options["timeout${server.identifier}"];
+    if (timeoutLength == null) {
+      return;
+    }
+
+    await new Future.delayed(new Duration(seconds: timeoutLength));
   }
 }

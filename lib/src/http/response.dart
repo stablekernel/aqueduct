@@ -230,10 +230,6 @@ class Response implements RequestOrResponse {
   Response.serverError({Map<String, dynamic> headers, dynamic body})
       : this(HttpStatus.INTERNAL_SERVER_ERROR, headers, body);
 
-  String toString() {
-    return "$statusCode $headers";
-  }
-
   static Map<String, dynamic> _headersWith(
       Map<String, dynamic> inputHeaders, Map<String, dynamic> otherHeaders) {
     var m = new LowercaseMap.fromMap(inputHeaders ?? {});

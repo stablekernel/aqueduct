@@ -229,14 +229,3 @@ const dynamic whereNull = const NullMatcherExpression(true);
 ///       var q = new Query<Employee>()
 ///         ..where.manager = whereNotNull;
 const dynamic whereNotNull = const NullMatcherExpression(false);
-
-/// Thrown when a [Query] matcher is invalid.
-class PredicateMatcherException implements Exception {
-  PredicateMatcherException(this.message);
-
-  String message;
-
-  String toString() {
-    return "PredicateMatcherException: $message";
-  }
-}

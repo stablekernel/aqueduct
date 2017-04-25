@@ -118,12 +118,8 @@ class AuthCodeController extends HTTPController {
       return _redirectResponse(null, null, error: exception);
     }
 
-    if (responseType != "code") {
-      if (clientID == null) {
-        return new Response.badRequest();
-      }
-
-      if (client.redirectURI == null) {
+    if (responseType != "code") {      
+      if (client?.redirectURI == null) {
         return new Response.badRequest();
       }
 
