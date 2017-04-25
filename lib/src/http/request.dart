@@ -1,8 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:logging/logging.dart';
-
 import '../auth/auth.dart';
 import 'http.dart';
 

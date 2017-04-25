@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
 import 'package:postgres/postgres.dart';
@@ -118,7 +116,7 @@ void main() {
     try {
       await persistentStore.executeQuery("SELECT 1", null, 20);
       expect(true, false);
-    } on QueryException catch (e) {}
+    } on QueryException {}
 
     persistentStore.port = 5432;
     var x = await persistentStore.executeQuery("SELECT 1", null, 20);

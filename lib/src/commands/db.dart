@@ -161,7 +161,9 @@ abstract class CLIDatabaseConnectingCommand extends CLICommand
   }
 }
 
-abstract class CLIDatabaseMigratable extends CLIProject {
+abstract class CLIDatabaseMigratable{
+  Directory get projectDirectory;
+
   Directory get migrationDirectory {
     var dir = new Directory.fromUri(projectDirectory.uri.resolve("migrations"));
     if (!dir.existsSync()) {
