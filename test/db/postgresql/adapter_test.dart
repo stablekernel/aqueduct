@@ -1,17 +1,21 @@
+import 'dart:io';
+
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
 import 'package:postgres/postgres.dart';
 import 'dart:async';
 
 void main() {
-  PostgreSQLPersistentStore persistentStore =
-      new PostgreSQLPersistentStore(() async {
-    var connection = new PostgreSQLConnection("localhost", 5432, "dart_test",
+  PostgreSQLPersistentStore persistentStore;
+
+  setUp(() async {
+    persistentStore = new PostgreSQLPersistentStore(() async {
+      var connection = new PostgreSQLConnection("localhost", 5432, "dart_test",
         username: "dart", password: "dart");
-    await connection.open();
-    return connection;
+      await connection.open();
+      return connection;
+    });
   });
-  ;
 
   tearDown(() async {
     await persistentStore.close();
@@ -107,5 +111,17 @@ void main() {
                   [v]
                 ])
             .toList());
+  });
+
+  test("Connect to bad db fails gracefully, can then be used again", () async {
+    persistentStore = new PostgreSQLPersistentStore.fromConnectionInfo("dart", "dart", "localhost", 5433, "dart_test");
+    try {
+      await persistentStore.executeQuery("SELECT 1", null, 20);
+      expect(true, false);
+    } on QueryException catch (e) {}
+
+    persistentStore.port = 5432;
+    var x = await persistentStore.executeQuery("SELECT 1", null, 20);
+    expect(x, [[1]]);
   });
 }

@@ -207,7 +207,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
 
     var results = await _query?.updateOne();
     if (results == null) {
-      return didNotFindObjectToDeleteWithID(id);
+      return didNotFindObjectToUpdateWithID(id);
     } else {
       return didUpdateObject(results);
     }
@@ -272,7 +272,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
       sortBy.forEach((sort) {
         var split = sort.split(",").map((str) => str.trim()).toList();
         if (split.length != 2) {
-          throw new HTTPResponseException(500,
+          throw new HTTPResponseException(400,
               "sortBy keys must be string pairs delimited by a comma: key,asc or key,desc");
         }
         if (_query.entity.properties[split.first] == null) {

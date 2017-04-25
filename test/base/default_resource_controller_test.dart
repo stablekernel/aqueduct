@@ -150,7 +150,7 @@ void main() {
 
     test("Delete nonexistant object is 404", () async {
       expect(
-          await client.request("http://localhost:8081/controller/1").delete(),
+          await client.request("/controller/1").delete(),
           hasStatus(404));
     });
   });
@@ -209,6 +209,12 @@ void main() {
           await client.request("/controller?sortBy=name,name").get(),
           hasResponse(400,
               {"error": "sortBy order must be either asc or desc, not name"}));
+    });
+
+    test("Getting all objects with bad syntax fails", () async {
+      var resp = await client.request("/controller?sortBy=name,asc,bar").get();
+      expect(resp, hasResponse(400,
+              {"error": contains("sortBy keys must be string pairs delimited by a comma")}));
     });
 
     test("Paging after", () async {

@@ -40,6 +40,11 @@ class PostgreSQLPersistentStore extends PersistentStore
   /// The time zone of the connection to the database this instance connects to.
   String timeZone = "UTC";
 
+  /// Amount of time to wait before connection fails to open.
+  ///
+  /// Defaults to 30 seconds.
+  Duration connectTimeout = new Duration(seconds: 30);
+
   PostgreSQLConnection _databaseConnection;
   Completer<PostgreSQLConnection> _pendingConnectionCompleter;
 
@@ -82,7 +87,7 @@ class PostgreSQLPersistentStore extends PersistentStore
       if (_pendingConnectionCompleter == null) {
         _pendingConnectionCompleter = new Completer<PostgreSQLConnection>();
 
-        connectFunction().then((conn) {
+        connectFunction().timeout(connectTimeout).then((conn) {
           _databaseConnection = conn;
           _pendingConnectionCompleter.complete(_databaseConnection);
           _pendingConnectionCompleter = null;
