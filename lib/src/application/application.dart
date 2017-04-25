@@ -50,6 +50,11 @@ class Application<RequestSinkType extends RequestSink> {
   /// This must be configured prior to [start]ing the [Application].
   ApplicationConfiguration configuration = new ApplicationConfiguration();
 
+  /// Duration to wait for each isolate during startup before considered failure.
+  ///
+  /// Defaults to 30 seconds.
+  Duration isolateStartupTimeout = new Duration(seconds: 30);
+
   /// Starts the application by spawning Isolates that listen for HTTP requests.
   ///
   /// Returns a [Future] that completes when all [Isolate]s have started listening for requests.
@@ -114,7 +119,7 @@ class Application<RequestSinkType extends RequestSink> {
     await Future.wait(supervisors.map((s) => s.stop()));
     supervisors = [];
 
-    await server?.server?.close(force: true);
+    return server?.server?.close(force: true);
   }
 
   static Future<APIDocument> document(Type sinkType,
@@ -156,7 +161,7 @@ class Application<RequestSinkType extends RequestSink> {
         paused: true);
 
     return new ApplicationIsolateSupervisor(
-        this, isolate, receivePort, identifier, logger);
+        this, isolate, receivePort, identifier, logger, startupTimeout: isolateStartupTimeout);
   }
 }
 

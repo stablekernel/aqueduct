@@ -5,13 +5,6 @@ import 'token_generator.dart';
 import 'dart:mirrors';
 
 class SourceGenerator {
-  static String generate(Function closure,
-      {List<String> imports: const [], String additionalContents}) {
-    var gen = new SourceGenerator(closure,
-        imports: imports, additionalContents: additionalContents);
-    return gen.source;
-  }
-
   SourceGenerator(this.closure,
       {this.imports: const [], this.additionalContents});
 

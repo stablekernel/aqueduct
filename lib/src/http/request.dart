@@ -85,9 +85,6 @@ class Request implements RequestOrResponse {
   /// Used for logging.
   DateTime respondDate = null;
 
-  /// Access to logger directly from this instance.
-  Logger get logger => new Logger("aqueduct");
-
   String get _sanitizedHeaders {
     StringBuffer buf = new StringBuffer("{");
 
@@ -190,10 +187,4 @@ class Request implements RequestOrResponse {
 
     return builder.toString();
   }
-}
-
-/// Thrown when a [Request] encounters an error.
-class RequestException implements Exception {
-  RequestException(this.message);
-  String message;
 }

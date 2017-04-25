@@ -48,17 +48,11 @@ abstract class QueryController<InstanceType extends ManagedObject>
             primaryKeyDesc.type == ManagedPropertyType.integer) {
           try {
             query.where[query.entity.primaryKey] = int.parse(idValue);
-          } on FormatException {
-            var errorMessage =
-                "Expected integer value for QueryController on ${query.entity}, but $idValue was not able to be parsed to an integer.";
-
-            return new Response.notFound(body: {"error": errorMessage});
+          } on FormatException {            
+            return new Response.notFound();
           }
         } else {
-          var errorMessage =
-              "ID Value $idValue is not assignable for QueryController on ${query.entity}, expected value of type ${primaryKeyDesc.type}";
-
-          return new Response.notFound(body: {"error": errorMessage});
+          return new Response.notFound();
         }
       }
     }

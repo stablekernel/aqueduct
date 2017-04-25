@@ -24,9 +24,3 @@ class LowercaseMap<V> extends Object with MapMixin<String, V> {
 
   V remove(Object key) => _inner.remove(key);
 }
-
-class LowercaseMapException implements Exception {
-  LowercaseMapException(this.message);
-  String message;
-  String toString() => "LowercaseMapException: $message";
-}

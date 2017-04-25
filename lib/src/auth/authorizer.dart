@@ -80,13 +80,11 @@ class Authorizer extends RequestController {
       return new Response.unauthorized();
     }
 
-    if (strategy == AuthStrategy.bearer) {
-      return _processBearerHeader(req, header);
-    } else if (strategy == AuthStrategy.basic) {
-      return _processBasicHeader(req, header);
+    switch (strategy) {
+      case AuthStrategy.bearer: return _processBearerHeader(req, header);
+      case AuthStrategy.basic: return _processBasicHeader(req, header);
+      default: return new Response.serverError();
     }
-
-    return new Response.serverError();
   }
 
   Future<RequestOrResponse> _processBearerHeader(
@@ -126,14 +124,15 @@ class Authorizer extends RequestController {
   }
 
   Response _responseFromParseException(AuthorizationParserException e) {
-    if (e.reason == AuthorizationParserExceptionReason.malformed) {
-      return new Response.badRequest(
-          body: {"error": "invalid_authorization_header"});
-    } else if (e.reason == AuthorizationParserExceptionReason.missing) {
-      return new Response.unauthorized();
-    }
-
-    return new Response.serverError();
+    switch (e.reason) {
+      case AuthorizationParserExceptionReason.malformed:
+        return new Response.badRequest(
+            body: {"error": "invalid_authorization_header"});
+      case AuthorizationParserExceptionReason.missing:
+        return new Response.unauthorized();
+      default:
+        return new Response.serverError();
+    }    
   }
 
   @override

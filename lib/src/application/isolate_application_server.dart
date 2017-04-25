@@ -51,10 +51,6 @@ void isolateServerEntryPoint(ApplicationInitialServerMessage params) {
 
     sink = sinkTypeMirror
         .newInstance(new Symbol(""), [params.configuration]).reflectee;
-  } on Error catch (e, st) {
-    params.parentMessagePort.send([e.toString(), st.toString()]);
-
-    return;
   } catch (e, st) {
     params.parentMessagePort.send([e, st.toString()]);
 

@@ -246,6 +246,23 @@ void main() {
       var response = await defaultTestClient.request("/foo").get();
       expect(response.body, isNull);
     });
+
+    test("Request with accept adds header", () async {
+      server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 4000);
+      server.listen((req) {
+        var resReq = new Request(req);
+        resReq.respond(new Response.ok({
+          "ACCEPT": req.headers.value(HttpHeaders.ACCEPT)
+        }));
+      });
+
+      var client = new TestClient.onPort(4000);
+      var req = client.request("/foo")
+        ..accept = [ContentType.JSON, ContentType.TEXT];
+
+      var response = await req.post();
+      expect(response.decodedBody, {"ACCEPT": "application/json; charset=utf-8,text/plain; charset=utf-8"});
+    });
   });
 
   group("Matcher Basics", () {
