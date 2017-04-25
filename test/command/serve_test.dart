@@ -138,6 +138,17 @@ void main() {
         temporaryDirectory);
     expect(res.exitCode, 1);
   });
+
+
+  test("Run application with invalid code fails with error", () async {
+    var f = new File.fromUri(temporaryDirectory.uri.resolve("lib/").resolve("wildfire.dart"));
+    addLinesToFile(f, "import", "ajsdjklasd");
+
+    var res = await runAqueductProcess(["serve", "--detached"], temporaryDirectory);
+
+    expect(res.exitCode, isNot(0));
+    expect(res.output, contains("unexpected token"));
+  });
 }
 
 void addLinesToFile(

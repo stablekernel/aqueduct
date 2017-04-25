@@ -13,16 +13,17 @@ main() {
   HttpServer server = null;
 
   setUpAll(() async {
-    context = await contextWithModels([TestModel]);
+    context = await contextWithModels([TestModel, StringModel]);
     ManagedContext.defaultContext = context;
 
     server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8081);
     var router = new Router();
     router.route("/users/[:id]").generate(() => new TestModelController());
+    router.route("/string/:id").generate(() => new StringController());
     router.finalize();
 
     server.listen((req) async {
-      router.receive(new Request(req)).catchError((e) => print("$e"));
+      router.receive(new Request(req));
     });
   });
 
@@ -59,11 +60,14 @@ main() {
         body: JSON.encode({"name": "joe"}));
     expect(response.statusCode, 200);
   });
+
+  test("Non-integer, oddly named identifier", () async {
+    var response = await http.get("http://localhost:8081/string/bar");
+    expect(response.body, '"bar"');
+  });
 }
 
 class TestModelController extends QueryController<TestModel> {
-  TestModelController() : super();
-
   @httpGet
   getAll() async {
     int statusCode = 200;
@@ -161,4 +165,18 @@ class _TestModel {
 
   String name;
   String email;
+}
+
+class StringController extends QueryController<StringModel> {
+  @httpGet
+  get(@HTTPPath("id") String id) async {
+    ComparisonMatcherExpression comparisonMatcher = query.where["foo"];
+    return new Response.ok(comparisonMatcher.value);
+  }
+}
+
+class StringModel extends ManagedObject<_StringModel> implements _StringModel {}
+class _StringModel {
+  @ManagedColumnAttributes(primaryKey: true)
+  String foo;
 }

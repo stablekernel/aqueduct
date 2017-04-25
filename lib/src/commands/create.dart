@@ -214,17 +214,6 @@ class CLITemplateCreator extends CLICommand {
     return new Directory(currentDirPath);
   }
 
-  String projectNameFromPath(String pathString) {
-    var lastPathComponentIndex = pathString.lastIndexOf(path_lib.separator);
-    var parentPath = pathString.substring(0, lastPathComponentIndex);
-    var parentDirectory = new Directory(parentPath);
-    if (!parentDirectory.existsSync()) {
-      throw new CLIException("Path $parentPath does not exist.");
-    }
-
-    return pathString.substring(lastPathComponentIndex + 1);
-  }
-
   void createProjectSpecificFiles(
       String directoryPath, String aqueductVersion) {
     displayProgress("Generating config.yaml from config.yaml.src.");

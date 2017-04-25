@@ -13,7 +13,7 @@ class ApplicationIsolateSupervisor {
 
   /// Create an isntance of [ApplicationIsolateSupervisor].
   ApplicationIsolateSupervisor(this.supervisingApplication, this.isolate,
-      this.receivePort, this.identifier, this.logger);
+      this.receivePort, this.identifier, this.logger, {this.startupTimeout: const Duration(seconds: 30)});
 
   /// The [Isolate] being supervised.
   final Isolate isolate;
@@ -23,6 +23,8 @@ class ApplicationIsolateSupervisor {
 
   /// A numeric identifier for the isolate relative to the [Application].
   final int identifier;
+
+  final Duration startupTimeout;
 
   /// A reference to the owning [Application]
   Application supervisingApplication;
@@ -44,10 +46,10 @@ class ApplicationIsolateSupervisor {
     isolate.resume(isolate.pauseCapability);
     isolate.addErrorListener(receivePort.sendPort);
 
-    return _launchCompleter.future.timeout(new Duration(seconds: 30),
-        onTimeout: () {
+    return _launchCompleter.future.timeout(startupTimeout, onTimeout: () {
       receivePort.close();
-      throw new TimeoutException("Isolate failed to launch in 30 seconds.");
+      throw new TimeoutException("Isolate ($identifier) failed to launch in ${startupTimeout} seconds. "
+          "There may be an error with your application or Application.isolateStartupTimeout needs to be increased.");
     });
   }
 
