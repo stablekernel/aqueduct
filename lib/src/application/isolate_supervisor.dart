@@ -59,8 +59,9 @@ class ApplicationIsolateSupervisor {
     _serverSendPort.send(MessageStop);
 
     try {
-      await _stopCompleter.future.timeout(new Duration(seconds: 30));
+      await _stopCompleter.future.timeout(new Duration(seconds: 5));
     } on TimeoutException {
+      logger?.severe("Isolate ($identifier) not responding to stop message, terminating.");
       isolate.kill();
     }
   }
