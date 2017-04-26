@@ -47,12 +47,18 @@ class ApplicationIsolateSupervisor {
     isolate.addErrorListener(receivePort.sendPort);
     print("will wait for ${startupTimeout}");
 
-    return _launchCompleter.future.timeout(startupTimeout, onTimeout: () {
-      print("did tieout");
+    try {
+      await _launchCompleter.future.timeout(startupTimeout);
+    } finally {
       receivePort.close();
-      throw new TimeoutException("Isolate ($identifier) failed to launch in ${startupTimeout} seconds. "
-          "There may be an error with your application or Application.isolateStartupTimeout needs to be increased.");
-    });
+    }
+
+//    return _launchCompleter.future.timeout(startupTimeout, onTimeout: () {
+//      print("did tieout");
+//      receivePort.close();
+//      throw new TimeoutException("Isolate ($identifier) failed to launch in ${startupTimeout} seconds. "
+//          "There may be an error with your application or Application.isolateStartupTimeout needs to be increased.");
+//    });
   }
 
   /// Stops the [Isolate] being supervised.
