@@ -10,6 +10,7 @@ import 'application.dart';
 /// You should not use this class directly.
 class ApplicationIsolateSupervisor {
   static const String MessageStop = "_MessageStop";
+  static const String MessageListening = "_MessageListening";
 
   /// Create an isntance of [ApplicationIsolateSupervisor].
   ApplicationIsolateSupervisor(this.supervisingApplication, this.isolate,
@@ -70,10 +71,10 @@ class ApplicationIsolateSupervisor {
   void listener(dynamic message) {
     print("$identifier received $message");
     if (message is SendPort) {
+      _serverSendPort = message;
+    } else if (message == MessageListening) {
       _launchCompleter.complete();
       _launchCompleter = null;
-
-      _serverSendPort = message;
     } else if (message == MessageStop) {
       receivePort.close();
 

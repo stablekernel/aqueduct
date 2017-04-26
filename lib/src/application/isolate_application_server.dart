@@ -23,10 +23,10 @@ class ApplicationIsolateServer extends ApplicationServer {
   }
 
   @override
-  Future didOpen() async {
-    await super.didOpen();
-
+  Future start({bool shareHttpServer: false}) async {
     supervisingApplicationPort.send(supervisingReceivePort.sendPort);
+    var result = await super.start();
+    supervisingApplicationPort.send(ApplicationIsolateSupervisor.MessageListening);
   }
 
   void listener(dynamic message) {
