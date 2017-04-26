@@ -87,11 +87,17 @@ class Application<RequestSinkType extends RequestSink> {
             "runOnMainIsolate set to true, ignoring numberOfInstances (set to $numberOfInstances)");
       }
 
-      var sink = requestSinkType
-          .newInstance(new Symbol(""), [configuration]).reflectee;
-      server = new ApplicationServer(configuration, 1);
 
-      await server.start(sink);
+      try {
+        var sink = requestSinkType
+            .newInstance(new Symbol(""), [configuration]).reflectee;
+        server = new ApplicationServer(configuration, 1);
+
+        await server.start(sink);
+      } catch (e) {
+        await server?.server?.close(force: true);
+        throw new ApplicationStartupException(e);
+      }
     } else {
       supervisors = [];
       try {

@@ -79,22 +79,25 @@ main() {
       try {
         crashingApp.configuration.options = {"crashIn": "constructor"};
         await crashingApp.start(runOnMainIsolate: true);
-      } catch (e) {
-        expect(e.message, "constructor");
+        expect(true, false);
+      } on ApplicationStartupException catch (e) {
+        expect(e.originalException.toString(), contains("constructor"));
       }
 
       try {
         crashingApp.configuration.options = {"crashIn": "addRoutes"};
         await crashingApp.start(runOnMainIsolate: true);
-      } catch (e) {
-        expect(e.message, "addRoutes");
+        expect(true, false);
+      } on ApplicationStartupException catch (e) {
+        expect(e.originalException.toString(), contains("addRoutes"));
       }
 
       try {
         crashingApp.configuration.options = {"crashIn": "willOpen"};
         await crashingApp.start(runOnMainIsolate: true);
-      } catch (e) {
-        expect(e.message, "willOpen");
+        expect(true, false);
+      } on ApplicationStartupException catch (e) {
+        expect(e.originalException.toString(), contains("willOpen"));
       }
 
       crashingApp.configuration.options = {"crashIn": "dontCrash"};
@@ -103,23 +106,14 @@ main() {
       expect(response.statusCode, 200);
       await crashingApp.stop();
     });
-
-    test("Application can run on main thread", () async {
-      var app = new Application<TestSink>();
-
-      await app.start(runOnMainIsolate: true);
-
-      var response = await http.get("http://localhost:8081/t");
-      expect(response.statusCode, 200);
-
-      await app.stop();
-    });
   });
 }
 
 class TestException implements Exception {
   final String message;
   TestException(this.message);
+
+  String toString() => message;
 }
 
 class CrashingTestSink extends RequestSink {
