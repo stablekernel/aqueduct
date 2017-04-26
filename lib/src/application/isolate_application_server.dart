@@ -32,7 +32,6 @@ class ApplicationIsolateServer extends ApplicationServer {
 
   void listener(dynamic message) {
     if (message == ApplicationIsolateSupervisor.MessageStop) {
-      print("SRV $identifier received stop");
       supervisingReceivePort.close();
       if (server != null) {
         close().then((s) {
@@ -40,7 +39,6 @@ class ApplicationIsolateServer extends ApplicationServer {
               .send(ApplicationIsolateSupervisor.MessageStop);
         });
       } else {
-        print("sending ack $supervisingApplicationPort");
         supervisingApplicationPort
             .send(ApplicationIsolateSupervisor.MessageStop);
       }

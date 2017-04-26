@@ -89,9 +89,9 @@ class Application<RequestSinkType extends RequestSink> {
 
       var sink = requestSinkType
           .newInstance(new Symbol(""), [configuration]).reflectee;
-      server = new ApplicationServer(sink, configuration, 1);
+      server = new ApplicationServer(configuration, 1);
 
-      await server.start();
+      await server.start(sink);
     } else {
       supervisors = [];
       try {
@@ -99,10 +99,8 @@ class Application<RequestSinkType extends RequestSink> {
           var supervisor = await _spawn(configuration, i + 1);
           supervisors.add(supervisor);
           await supervisor.resume();
-          print("${supervisor.identifier} finished started");
         }
       } catch (e, st) {
-        print("Cuaght $e, waiting...");
         await stop().timeout(new Duration(seconds: 5));
         supervisors = [];
         logger.severe("$e", this, st);

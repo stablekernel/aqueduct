@@ -62,7 +62,6 @@ main() {
           await server.close(force: true);
         });
 
-    //todo: disabling tests. apparently issue with isolates on linux
     test("Isolate timeout kills application when first isolate fails", () async {
       var timeoutApp = new Application<TimeoutSink>()
         ..isolateStartupTimeout = new Duration(seconds: 2)
