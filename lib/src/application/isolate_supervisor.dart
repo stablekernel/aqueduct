@@ -55,6 +55,11 @@ class ApplicationIsolateSupervisor {
 
   /// Stops the [Isolate] being supervised.
   Future stop() async {
+    if (_serverSendPort == null) {
+      isolate.kill();
+      return;
+    }
+
     _stopCompleter = new Completer();
     _serverSendPort.send(MessageStop);
 
