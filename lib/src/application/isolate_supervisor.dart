@@ -49,7 +49,7 @@ class ApplicationIsolateSupervisor {
     print("will wait for ${startupTimeout}");
 
     return _launchCompleter.future.timeout(startupTimeout, onTimeout: () {
-      receivePort.close();
+      print("SUP $identifier close receive port");
       throw new TimeoutException("Isolate ($identifier) failed to launch in ${startupTimeout} seconds. "
           "There may be an error with your application or Application.isolateStartupTimeout needs to be increased.");
     });
@@ -58,6 +58,7 @@ class ApplicationIsolateSupervisor {
   /// Stops the [Isolate] being supervised.
   Future stop() async {
     _stopCompleter = new Completer();
+    print("SUP $identifier sending STOP");
     _serverSendPort.send(MessageStop);
 
     try {
@@ -66,10 +67,11 @@ class ApplicationIsolateSupervisor {
       logger?.severe("Isolate ($identifier) not responding to stop message, terminating.");
       isolate.kill();
     }
+    receivePort.close();
   }
 
   void listener(dynamic message) {
-    print("$identifier received $message");
+    print("SUP $identifier received $message");
     if (message is SendPort) {
       _serverSendPort = message;
     } else if (message == MessageListening) {
@@ -88,8 +90,6 @@ class ApplicationIsolateSupervisor {
 
   void _handleIsolateException(dynamic error, StackTrace stacktrace) {
     if (_isLaunching) {
-      receivePort.close();
-
       var appException = new ApplicationStartupException(error);
       _launchCompleter.completeError(appException, stacktrace);
     } else {
