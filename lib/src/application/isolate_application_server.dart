@@ -51,7 +51,6 @@ void isolateServerEntryPoint(ApplicationInitialServerMessage params) {
   sink = sinkTypeMirror
       .newInstance(new Symbol(""), [params.configuration]).reflectee;
 
-
   var server = new ApplicationIsolateServer(
       sink, params.configuration, params.identifier, params.parentMessagePort);
   server.start(shareHttpServer: true);

@@ -2,11 +2,13 @@ import 'dart:async';
 import 'dart:isolate';
 
 Future main() async {
-  var receivePort = new ReceivePort();
-  var isolate = await Isolate.spawn(entry, receivePort.sendPort, paused: true);
-  var sup = new Supervisor(isolate, receivePort);
+  for (var i = 0; i < 2; i++) {
+    var receivePort = new ReceivePort();
+    var isolate = await Isolate.spawn(entry, receivePort.sendPort, paused: true);
+    var sup = new Supervisor(isolate, receivePort);
 
-  await sup.resume();
+    await sup.resume();
+  }
 }
 
 void entry(SendPort msg) {
