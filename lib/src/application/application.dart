@@ -96,6 +96,7 @@ class Application<RequestSinkType extends RequestSink> {
       supervisors = [];
       try {
         for (int i = 0; i < numberOfInstances; i++) {
+          print("start sup");
           var supervisor = await _spawn(configuration, i + 1);
           supervisors.add(supervisor);
           await supervisor.resume();
