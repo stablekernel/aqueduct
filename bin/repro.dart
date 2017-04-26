@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:isolate';
-import 'dart:io';
 
 Future main() async {
   var completer = new Completer();
@@ -11,7 +10,10 @@ Future main() async {
     }
   });
 
-  var isolate = await Isolate.spawn(entry, receivePort.sendPort);
+  var isolate = await Isolate.spawn(entry, receivePort.sendPort, paused: true);
+  isolate.setErrorsFatal(false);
+  isolate.resume(isolate.pauseCapability);
+  isolate.addErrorListener(receivePort.sendPort);
 
   await completer.future.timeout(new Duration(seconds: 2));
   receivePort.close();
