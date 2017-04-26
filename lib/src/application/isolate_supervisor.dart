@@ -45,6 +45,7 @@ class ApplicationIsolateSupervisor {
     isolate.setErrorsFatal(false);
     isolate.resume(isolate.pauseCapability);
     isolate.addErrorListener(receivePort.sendPort);
+    print("will wait for ${startupTimeout}");
 
     return _launchCompleter.future.timeout(startupTimeout, onTimeout: () {
       receivePort.close();
