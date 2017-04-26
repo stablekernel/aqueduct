@@ -31,6 +31,7 @@ class ApplicationIsolateServer extends ApplicationServer {
 
   void listener(dynamic message) {
     if (message == ApplicationIsolateSupervisor.MessageStop) {
+      print("$identifier received stop");
       supervisingReceivePort.close();
       server.close(force: true).then((s) {
         supervisingApplicationPort

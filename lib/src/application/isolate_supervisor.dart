@@ -43,31 +43,19 @@ class ApplicationIsolateSupervisor {
     receivePort.listen(listener);
 
     isolate.setErrorsFatal(false);
-    isolate.resume(isolate.pauseCapability);
     isolate.addErrorListener(receivePort.sendPort);
+    isolate.resume(isolate.pauseCapability);
     print("will wait for ${startupTimeout}");
 
-    try {
-      await _launchCompleter.future.timeout(startupTimeout);
-    } finally {
+    return _launchCompleter.future.timeout(startupTimeout, onTimeout: () {
       receivePort.close();
-    }
-
-//    return _launchCompleter.future.timeout(startupTimeout, onTimeout: () {
-//      print("did tieout");
-//      receivePort.close();
-//      throw new TimeoutException("Isolate ($identifier) failed to launch in ${startupTimeout} seconds. "
-//          "There may be an error with your application or Application.isolateStartupTimeout needs to be increased.");
-//    });
+      throw new TimeoutException("Isolate ($identifier) failed to launch in ${startupTimeout} seconds. "
+          "There may be an error with your application or Application.isolateStartupTimeout needs to be increased.");
+    });
   }
 
   /// Stops the [Isolate] being supervised.
   Future stop() async {
-    if (_serverSendPort == null) {
-      isolate.kill();
-      return;
-    }
-
     _stopCompleter = new Completer();
     _serverSendPort.send(MessageStop);
 
