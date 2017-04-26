@@ -99,6 +99,7 @@ class Application<RequestSinkType extends RequestSink> {
           var supervisor = await _spawn(configuration, i + 1);
           supervisors.add(supervisor);
           await supervisor.resume();
+          print("${supervisor.identifier} finished started");
         }
       } catch (e, st) {
         print("Cuaght $e, waiting...");
