@@ -38,7 +38,7 @@ class ApplicationIsolateSupervisor {
   Completer _stopCompleter;
 
   /// Resumes the [Isolate] being supervised.
-  Future resume() {
+  Future resume() async {
     _launchCompleter = new Completer();
     receivePort.listen(listener);
 
@@ -47,7 +47,7 @@ class ApplicationIsolateSupervisor {
     isolate.addErrorListener(receivePort.sendPort);
     print("will wait for ${startupTimeout}");
 
-    return _launchCompleter.future.timeout(startupTimeout, onTimeout: () {
+    return await _launchCompleter.future.timeout(startupTimeout, onTimeout: () {
       receivePort.close();
       throw new TimeoutException("Isolate ($identifier) failed to launch in ${startupTimeout} seconds. "
           "There may be an error with your application or Application.isolateStartupTimeout needs to be increased.");
