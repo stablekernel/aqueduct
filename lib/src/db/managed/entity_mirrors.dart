@@ -1,5 +1,6 @@
 import 'dart:mirrors';
 import 'managed.dart';
+import 'validate.dart';
 import '../../utilities/mirror_helpers.dart';
 
 List<VariableMirror> instanceVariablesFromClass(ClassMirror classMirror) {
@@ -113,14 +114,16 @@ bool doesVariableMirrorRepresentRelationship(VariableMirror mirror) {
   return false;
 }
 
+List<Validate> validatorsFromDeclaration(DeclarationMirror dm) =>
+  allMetadataOfType(Validate, dm);
 ManagedTransientAttribute transientMetadataFromDeclaration(
         DeclarationMirror dm) =>
-    metadataFromDeclaration(ManagedTransientAttribute, dm);
+    firstMetadataOfType(ManagedTransientAttribute, dm);
 ManagedColumnAttributes attributeMetadataFromDeclaration(
         DeclarationMirror dm) =>
-    metadataFromDeclaration(ManagedColumnAttributes, dm);
+    firstMetadataOfType(ManagedColumnAttributes, dm);
 ManagedRelationship relationshipMetadataFromProperty(DeclarationMirror dm) =>
-    metadataFromDeclaration(ManagedRelationship, dm);
+    firstMetadataOfType(ManagedRelationship, dm);
 
 Iterable<ClassMirror> classHierarchyForClass(ClassMirror t) sync* {
   var persistentTypePtr = t;

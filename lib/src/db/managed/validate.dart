@@ -4,38 +4,86 @@ enum ValidateOperation { update, insert }
 
 enum _BuiltinValidate { regex, comparison, length, present, absent, oneOf }
 
-abstract class Validate<T> {
+class Validate<T> {
   static bool run(
-      ManagedObject object, ValidateOperation operation, List<String> errors) {
-    var entity = object.entity;
+      ManagedObject object, {ValidateOperation operation, List<String> errors}) {
+    errors ??= [];
+
+    var valid = true;
+    var validators = object.entity.validators;
+    validators.forEach((propertyKey, validators) {
+      if (validators.isEmpty) {
+        return;
+      }
+
+      var value = object.backingMap[propertyKey.name];
+      validators.forEach((v) {
+        if (v._builtinValidate == _BuiltinValidate.absent) {
+          if (object.backingMap.containsKey(propertyKey.name)) {
+            errors.add("Value for '${propertyKey.name}' may not be included for ${_errorStringForOperation(operation)}s.");
+            valid = false;
+          }
+        } else if (v._builtinValidate == _BuiltinValidate.present) {
+          if (!object.backingMap.containsKey(propertyKey.name)) {
+            errors.add("Value for '${propertyKey.name}' must be included for ${_errorStringForOperation(operation)}s.");
+            valid = false;
+          }
+
+        } else if (value != null) {
+          if (!v.validate(operation, propertyKey, value, errors)) {
+            valid = false;
+          }
+        }
+      });
+    });
+
+    return valid;
+  }
+
+  static String _errorStringForOperation(ValidateOperation op) {
+    if (op == ValidateOperation.insert) {
+      return "insert";
+    } else if (op == ValidateOperation.update) {
+      return "update";
+    }
+
+    return "unknown";
   }
 
   const Validate({bool onUpdate, bool onInsert})
       : runOnUpdate = onUpdate,
         runOnInsert = onInsert,
-        this.value = null,
-        this.values = null,
-        this.lessThan = null,
-        this.lessThanEqualTo = null,
-        this.greaterThan = null,
-        this.greaterThanEqualTo = null,
-        this.equalTo = null,
+        this._value = null,
+        this._values = null,
+        this._lessThan = null,
+        this._lessThanEqualTo = null,
+        this._greaterThan = null,
+        this._greaterThanEqualTo = null,
+        this._equalTo = null,
         _builtinValidate = null;
 
   const Validate._(
       {bool onUpdate,
       bool onInsert,
       _BuiltinValidate validator,
-      this.value,
-      this.values,
-      this.greaterThan,
-      this.greaterThanEqualTo,
-      this.equalTo,
-      this.lessThan,
-      this.lessThanEqualTo})
+        dynamic value,
+        List<dynamic> values,
+        Comparable greaterThan,
+        dynamic greaterThanEqualTo,
+        num equalTo,
+        num lessThan,
+        num lessThanEqualTo
+      })
       : runOnUpdate = onUpdate,
         runOnInsert = onInsert,
-        _builtinValidate = validator;
+        _builtinValidate = validator,
+        this._value = value,
+        this._values = values,
+        this._greaterThan = greaterThan,
+        this._greaterThanEqualTo = greaterThanEqualTo,
+        this._equalTo = equalTo,
+        this._lessThan = lessThan,
+        this._lessThanEqualTo = lessThanEqualTo;
 
   const Validate.matches(String pattern, {bool onUpdate: true, onInsert: true})
       : this._(
@@ -45,11 +93,11 @@ abstract class Validate<T> {
             validator: _BuiltinValidate.regex);
 
   const Validate.compare(
-      {num lessThan,
-      num greaterThan,
-      num equalTo,
-      num greaterThanEqualTo,
-      num lessThanEqualTo,
+      {dynamic lessThan,
+       dynamic greaterThan,
+        dynamic equalTo,
+        dynamic greaterThanEqualTo,
+        dynamic lessThanEqualTo,
       bool onUpdate: true,
       onInsert: true})
       : this._(
@@ -92,7 +140,7 @@ abstract class Validate<T> {
             onInsert: onInsert,
             validator: _BuiltinValidate.absent);
 
-  const Validate.oneOf(List<T> values,
+  const Validate.oneOf(List<dynamic> values,
       {bool onUpdate: true, bool onInsert: true})
       : this._(
             values: values,
@@ -102,34 +150,34 @@ abstract class Validate<T> {
 
   final bool runOnUpdate;
   final bool runOnInsert;
-  final dynamic value;
-  final List<dynamic> values;
-  final num greaterThan;
-  final num greaterThanEqualTo;
-  final num equalTo;
-  final num lessThan;
-  final num lessThanEqualTo;
+  final dynamic _value;
+  final List<dynamic> _values;
+  final num _greaterThan;
+  final num _greaterThanEqualTo;
+  final num _equalTo;
+  final num _lessThan;
+  final num _lessThanEqualTo;
   final _BuiltinValidate _builtinValidate;
 
-  bool validate(ValidateOperation operation, String propertyName, T value, List<String> errors) {
+  bool validate(ValidateOperation operation, ManagedAttributeDescription property, T value, List<String> errors) {
     switch (_builtinValidate) {
       case _BuiltinValidate.oneOf:
-        return _validateOneOf(operation, propertyName, value, errors);
+        return _validateOneOf(operation, property, value, errors);
       case _BuiltinValidate.regex:
-        return _validateMatches(operation, propertyName, value as String, errors);
+        return _validateMatches(operation, property, value as String, errors);
       case _BuiltinValidate.length:
-        return _validateLength(operation, propertyName, value as String, errors);
+        return _validateLength(operation, property, value as String, errors);
       case _BuiltinValidate.comparison:
-        return _validateComparison(operation, propertyName, value as Comparable, errors);
+        return _validateComparison(operation, property, value as Comparable, errors);
       default:
         return true;
     }
   }
 
   bool _validateOneOf(
-      ValidateOperation operation, String propertyName, dynamic value, List<String> errors) {
-    if (!values.any((v) => value == v)) {
-      errors.add("The value for '$propertyName' is invalid. Must be one of: ${values.map((v) => "'$v'").join(",")}.");
+      ValidateOperation operation, ManagedAttributeDescription property, dynamic value, List<String> errors) {
+    if (!_values.any((v) => value == v)) {
+      errors.add("The value for '${property.name}' is invalid. Must be one of: ${_values.map((v) => "'$v'").join(",")}.");
       return false;
     }
 
@@ -137,38 +185,38 @@ abstract class Validate<T> {
   }
 
   bool _validateLength(
-      ValidateOperation operation, String propertyName, String value, List<String> errors) {
-    if (greaterThan != null) {
-      if (value.length <= greaterThan) {
-        errors.add("The value for '$propertyName' is invalid. Must have length greater than '$greaterThan'.");
+      ValidateOperation operation, ManagedAttributeDescription property, String value, List<String> errors) {
+    if (_greaterThan != null) {
+      if (value.length <= _greaterThan) {
+        errors.add("The value for '${property.name}' is invalid. Must have length greater than '$_greaterThan'.");
         return false;
       }
     }
 
-    if (greaterThanEqualTo != null) {
-      if (value.length < greaterThanEqualTo) {
-        errors.add("The value for '$propertyName' is invalid. Must have length greater than or equal to '$greaterThanEqualTo'.");
+    if (_greaterThanEqualTo != null) {
+      if (value.length < _greaterThanEqualTo) {
+        errors.add("The value for '${property.name}' is invalid. Must have length greater than or equal to '$_greaterThanEqualTo'.");
         return false;
       }
     }
 
-    if (lessThan != null) {
-      if (value.length < lessThan) {
-        errors.add("The value for '$propertyName' is invalid. Must have length less than '$lessThan'.");
+    if (_lessThan != null) {
+      if (value.length < _lessThan) {
+        errors.add("The value for '${property.name}' is invalid. Must have length less than '$_lessThan'.");
         return false;
       }
     }
 
-    if (lessThanEqualTo != null) {
-      if (value.length < lessThanEqualTo) {
-        errors.add("The value for '$propertyName' is invalid. Must have length less than or equal to '$lessThanEqualTo'.");
+    if (_lessThanEqualTo != null) {
+      if (value.length < _lessThanEqualTo) {
+        errors.add("The value for '${property.name}' is invalid. Must have length less than or equal to '$_lessThanEqualTo'.");
         return false;
       }
     }
 
-    if (equalTo != null) {
-      if (value.length != equalTo) {
-        errors.add("The value for '$propertyName' is invalid. Must have length equal to '$equalTo'.");
+    if (_equalTo != null) {
+      if (value.length != _equalTo) {
+        errors.add("The value for '${property.name}' is invalid. Must have length equal to '$_equalTo'.");
         return false;
       }
     }
@@ -177,38 +225,38 @@ abstract class Validate<T> {
   }
 
   bool _validateComparison(
-      ValidateOperation operation, String propertyName, Comparable value, List<String> errors) {
-    if (greaterThan != null) {
-      if (value.compareTo(greaterThan) <= 0) {
-        errors.add("The value for '$propertyName' is invalid. Must be greater than '$greaterThan'.");
+      ValidateOperation operation, ManagedAttributeDescription property, Comparable value, List<String> errors) {
+    if (_greaterThan != null) {
+      if (value.compareTo(_greaterThan) <= 0) {
+        errors.add("The value for '${property.name}' is invalid. Must be greater than '$_greaterThan'.");
         return false;
       }
     }
 
-    if (greaterThanEqualTo != null) {
-      if (value.compareTo(greaterThanEqualTo) < 0) {
-        errors.add("The value for '$propertyName' is invalid. Must be greater than or equal to '$greaterThanEqualTo'.");
+    if (_greaterThanEqualTo != null) {
+      if (value.compareTo(_greaterThanEqualTo) < 0) {
+        errors.add("The value for '${property.name}' is invalid. Must be greater than or equal to '$_greaterThanEqualTo'.");
         return false;
       }
     }
 
-    if (lessThan != null) {
-      if (value.compareTo(lessThan) >= 0) {
-        errors.add("The value for '$propertyName' is invalid. Must be less than '$lessThan'.");
+    if (_lessThan != null) {
+      if (value.compareTo(_lessThan) >= 0) {
+        errors.add("The value for '${property.name}' is invalid. Must be less than '$_lessThan'.");
         return false;
       }
     }
 
-    if (lessThanEqualTo != null) {
-      if (value.compareTo(lessThanEqualTo) > 0) {
-        errors.add("The value for '$propertyName' is invalid. Must be less than or equal to '$lessThanEqualTo'.");
+    if (_lessThanEqualTo != null) {
+      if (value.compareTo(_lessThanEqualTo) > 0) {
+        errors.add("The value for '${property.name}' is invalid. Must be less than or equal to '$_lessThanEqualTo'.");
         return false;
       }
     }
 
-    if (equalTo != null) {
-      if (value.compareTo(equalTo) != 0) {
-        errors.add("The value for '$propertyName' is invalid. Must be equal to '$equalTo'.");
+    if (_equalTo != null) {
+      if (value.compareTo(_equalTo) != 0) {
+        errors.add("The value for '${property.name}' is invalid. Must be equal to '$_equalTo'.");
         return false;
       }
     }
@@ -217,10 +265,11 @@ abstract class Validate<T> {
   }
 
   bool _validateMatches(
-      ValidateOperation operation, String propertyName, String value, List<String> errors) {
-    var regex = new RegExp(value);
+      ValidateOperation operation, ManagedAttributeDescription property, String value, List<String> errors) {
+    var regex = new RegExp(_value);
+
     if (!regex.hasMatch(value)) {
-      errors.add("The value for '$propertyName' is invalid. Must match pattern ${regex.pattern}.");
+      errors.add("The value for '${property.name}' is invalid. Must match pattern ${regex.pattern}.");
       return false;
     }
 
