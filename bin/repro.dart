@@ -11,6 +11,7 @@ Future main() async {
     };
 
   await timeoutApp.start(numberOfInstances: 2);
+  print("exited");
 
 //  for (var i = 0; i < 2; i++) {
 //    var receivePort = new ReceivePort();
