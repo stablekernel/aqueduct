@@ -4,18 +4,25 @@ import 'dart:isolate';
 Future main() async {
   for (var i = 0; i < 2; i++) {
     var receivePort = new ReceivePort();
-    var isolate = await Isolate.spawn(entry, receivePort.sendPort, paused: true);
+    var isolate = await Isolate.spawn(entry, [receivePort.sendPort, i], paused: true);
     var sup = new Supervisor(isolate, receivePort);
 
     await sup.resume();
+    print("$i started");
   }
 }
 
-void entry(SendPort msg) {
-  var server = new IsolateServer(msg);
-  new Future.delayed(new Duration(seconds: 4), () {
-    msg.send(server.supervisingReceivePort.sendPort);
-  });
+void entry(List msg) {
+  SendPort sendPort = msg.first;
+  var id = msg.last;
+  var server = new IsolateServer(sendPort);
+  if (id == 0) {
+    sendPort.send(server.supervisingReceivePort.sendPort);
+  } else {
+    new Future.delayed(new Duration(seconds: 4), () {
+      sendPort.send(server.supervisingReceivePort.sendPort);
+    });
+  }
 }
 
 class Supervisor {
