@@ -106,11 +106,8 @@ class ManagedDataModelException implements Exception {
         "Relationship '${_getName(property)}' on "
         "'${_getPersistentClassName(entity)}' "
         "cannot both have 'ManagedColumnAttributes' and 'ManagedRelationship' metadata. "
-        "Check out the parameters in the 'ManagedRelationship' constructor instead."
-        "Were you trying to make this relationship has-one or has-many? "
-        "Just declare the inverse property as "
-        "'${_getInstanceClassName(destinationEntity)}' "
-        "or 'ManagedSet<${_getInstanceClassName(destinationEntity)}>'. ");
+        "To add flags for indexing or nullability to a relationship, see the constructor "
+        "for 'ManagedRelationship'.");
   }
 
   factory ManagedDataModelException.missingInverse(
@@ -118,11 +115,15 @@ class ManagedDataModelException implements Exception {
       Symbol property,
       ManagedEntity destinationEntity,
       Symbol expectedProperty) {
+    var expectedString = "Some property";
+    if (expectedProperty != null) {
+      expectedString = "'${_getName(expectedProperty)}'";
+    }
     return new ManagedDataModelException(
         "Relationship '${_getName(property)}' on "
         "'${_getPersistentClassName(entity)}' has "
         "no inverse property. Every relationship must have an inverse. "
-        "${_getName(expectedProperty) ?? "Some property"} on "
+        "$expectedString on "
         "'${_getPersistentClassName(destinationEntity)}'"
         "is supposed to exist, and it should be either a "
         "'${_getInstanceClassName(entity)}' or"
@@ -171,7 +172,7 @@ class ManagedDataModelException implements Exception {
         "has more than one inverse property declared in "
         "${_getPersistentClassName(destinationEntity)}, but can only"
         "have one. The properties that claim to be an inverse "
-        "are ${inversePropertyCandidates.join(",")}.");
+        "are ${inversePropertyCandidates.map((s) => _getName(s)).join(",")}.");
   }
 
   factory ManagedDataModelException.noDestinationEntity(

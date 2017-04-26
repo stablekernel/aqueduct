@@ -420,7 +420,7 @@ void main() {
     });
   });
 
-  group("Cyclic graph", () {
+  group("Error cases", () {
     test("Both properties have ManagedRelationship metadata", () {
       try {
         var _ = new ManagedDataModel([InvalidCyclicLeft, InvalidCyclicRight]);
@@ -442,6 +442,47 @@ void main() {
         expect(e.message, contains("have cyclic relationship properties"));
         expect(e.message, contains("rightRef"));
         expect(e.message, contains("leftRef"));
+      }
+    });
+
+    test("Model with ManagedRelationship and ManagedColumnAttributes fails compilation", () {
+      try {
+        new ManagedDataModel([InvalidMetadata, InvalidMetadata1]);
+        expect(true, false);
+      } on ManagedDataModelException catch (e) {
+        expect(e.message, contains("cannot both have"));
+        expect(e.message, contains("InvalidMetadata"));
+        expect(e.message, contains("'bar'"));
+      }
+    });
+
+    test("Managed objects with missing inverses fail compilation", () {
+      // This needs to find the probable property
+      try {
+        new ManagedDataModel([MissingInverse1, MissingInverseWrongSymbol]);
+        expect(true, false);
+      } on ManagedDataModelException catch (e) {
+        expect(e.message, contains("has no inverse property"));
+        expect(e.message, contains("'inverse'"));
+        expect(e.message, contains("'has'"));
+      }
+
+      try {
+        new ManagedDataModel([MissingInverse2, MissingInverseAbsent]);
+        expect(true, false);
+      } on ManagedDataModelException catch (e) {
+        expect(e.message, contains("has no inverse property"));
+        expect(e.message, contains("'inverseMany'"));
+      }
+    });
+
+    test("Duplicate inverse properties fail compilation", () {
+      try {
+        new ManagedDataModel([DupInverse, DupInverseHas]);
+        expect(true, false);
+      } on ManagedDataModelException catch (e) {
+        expect(e.message, contains("has more than one inverse property"));
+        expect(e.message, contains("foo,bar"));
       }
     });
   });
@@ -771,4 +812,73 @@ class _SameNameTwo {
   int id;
 
   static String tableName() => "fo";
+}
+
+class InvalidMetadata extends ManagedObject<_InvalidMetadata> {}
+class _InvalidMetadata {
+  @ManagedColumnAttributes(primaryKey: true)
+  int id;
+
+  @ManagedRelationship(#foo)
+  @ManagedColumnAttributes(indexed: true)
+  InvalidMetadata1 bar;
+}
+
+class InvalidMetadata1 extends ManagedObject<_InvalidMetadata1> {}
+class _InvalidMetadata1 {
+  @managedPrimaryKey
+  int id;
+
+  InvalidMetadata foo;
+}
+
+class MissingInverse1 extends ManagedObject<_MissingInverse1> {}
+class _MissingInverse1 {
+  @managedPrimaryKey
+  int id;
+
+  MissingInverseWrongSymbol inverse;
+}
+
+class MissingInverseWrongSymbol extends ManagedObject<_MissingInverseWrongSymbol> {}
+class _MissingInverseWrongSymbol {
+  @managedPrimaryKey
+  int id;
+
+  @ManagedRelationship(#foobar)
+  MissingInverse1 has;
+}
+
+class MissingInverse2 extends ManagedObject<_MissingInverse2> {}
+class _MissingInverse2 {
+  @managedPrimaryKey
+  int id;
+
+  ManagedSet<MissingInverseAbsent> inverseMany;
+}
+
+class MissingInverseAbsent extends ManagedObject<_MissingInverseAbsent> {}
+class _MissingInverseAbsent {
+  @managedPrimaryKey
+  int id;
+}
+
+class DupInverseHas extends ManagedObject<_DupInverseHas> {}
+class _DupInverseHas {
+  @managedPrimaryKey
+  int id;
+
+  ManagedSet<DupInverse> inverse;
+}
+
+class DupInverse extends ManagedObject<_DupInverse> {}
+class _DupInverse {
+  @managedPrimaryKey
+  int id;
+
+  @ManagedRelationship(#inverse)
+  DupInverseHas foo;
+
+  @ManagedRelationship(#inverse)
+  DupInverseHas bar;
 }

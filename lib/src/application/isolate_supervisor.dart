@@ -55,12 +55,18 @@ class ApplicationIsolateSupervisor {
 
   /// Stops the [Isolate] being supervised.
   Future stop() async {
+    if (_serverSendPort == null) {
+      isolate.kill();
+      return;
+    }
+
     _stopCompleter = new Completer();
     _serverSendPort.send(MessageStop);
 
     try {
-      await _stopCompleter.future.timeout(new Duration(seconds: 30));
+      await _stopCompleter.future.timeout(new Duration(seconds: 5));
     } on TimeoutException {
+      logger?.severe("Isolate ($identifier) not responding to stop message, terminating.");
       isolate.kill();
     }
   }

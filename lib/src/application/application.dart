@@ -101,10 +101,7 @@ class Application<RequestSinkType extends RequestSink> {
           await supervisor.resume();
         }
       } catch (e, st) {
-        supervisors.forEach((sup) {
-          sup.receivePort.close();
-          sup.isolate.kill();
-        });
+        await stop().timeout(new Duration(seconds: 5));
         supervisors = [];
         logger.severe("$e", this, st);
         rethrow;

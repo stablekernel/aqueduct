@@ -362,14 +362,17 @@ class DataModelBuilder {
             owningEntity, property.simpleName, destinationEntity, null);
       }
 
-      var specificInverse = candidates.firstWhere(
-          (p) =>
-              relationshipMetadataFromProperty(p).inversePropertyName ==
-                  property.simpleName &&
-              owningEntity.instanceType.isSubtypeOf(p.type),
-          orElse: () => null);
-      if (specificInverse != null) {
-        return specificInverse;
+      var specificInverses = candidates.where((p) {
+        return relationshipMetadataFromProperty(p).inversePropertyName ==
+            property.simpleName &&
+        owningEntity.instanceType.isSubtypeOf(p.type);
+      }).toList();
+      if (specificInverses.length == 1) {
+        return specificInverses.first;
+      } else if (specificInverses.length > 1) {
+        throw new ManagedDataModelException.duplicateInverse(
+            owningEntity, property.simpleName, destinationEntity,
+            candidates.map((vm) => vm.simpleName).toList());
       }
 
       // We may be deferring, so check for those and make sure the types match up.
@@ -378,8 +381,12 @@ class DataModelBuilder {
           .where((p) => owningEntity.persistentType.isSubtypeOf(p.type))
           .toList();
       if (deferredCandidates.length == 0) {
+        VariableMirror candidate = null;
+        if (candidates.length > 0) {
+          candidate = candidates.first;
+        }
         throw new ManagedDataModelException.missingInverse(
-            owningEntity, property.simpleName, destinationEntity, null);
+            owningEntity, property.simpleName, destinationEntity, candidate.simpleName);
       }
 
       if (deferredCandidates.length > 1) {

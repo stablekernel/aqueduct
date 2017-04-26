@@ -85,6 +85,7 @@ void main() {
     var res = await runAqueductProcess(
           ["serve", "--detached", "--ssl-key-path", "server.key", "--ssl-certificate-path", "server.crt"],
           temporaryDirectory);
+    print("${res.output}");
     expect(res.exitCode, 0);
 
     var completer = new Completer();
