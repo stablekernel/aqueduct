@@ -1,16 +1,25 @@
 import 'dart:async';
 import 'dart:isolate';
 import 'dart:io';
+import 'package:aqueduct/aqueduct.dart';
 
 Future main() async {
-  for (var i = 0; i < 2; i++) {
-    var receivePort = new ReceivePort();
-    var isolate = await Isolate.spawn(entry, [receivePort.sendPort, i], paused: true);
-    var sup = new Supervisor(isolate, receivePort);
+  var timeoutApp = new Application<TimeoutSink>()
+    ..isolateStartupTimeout = new Duration(seconds: 2)
+    ..configuration.options = {
+      "timeout2" : 4
+    };
 
-    await sup.resume();
-    print("$i started");
-  }
+  await timeoutApp.start(numberOfInstances: 2);
+
+//  for (var i = 0; i < 2; i++) {
+//    var receivePort = new ReceivePort();
+//    var isolate = await Isolate.spawn(entry, [receivePort.sendPort, i], paused: true);
+//    var sup = new Supervisor(isolate, receivePort);
+//
+//    await sup.resume();
+//    print("$i started");
+//  }
 }
 
 void entry(List msg) {
@@ -82,5 +91,20 @@ class IsolateServer {
         supervisingApplicationPort.send("stop");
       });
     }
+  }
+}
+
+class TimeoutSink extends RequestSink {
+  TimeoutSink(ApplicationConfiguration config) : super(config);
+  void setupRouter(Router router) {}
+
+  @override
+  Future willOpen() async {
+    var timeoutLength = configuration.options["timeout${server.identifier}"];
+    if (timeoutLength == null) {
+      return;
+    }
+
+    await new Future.delayed(new Duration(seconds: timeoutLength));
   }
 }
