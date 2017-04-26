@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:isolate';
+import 'dart:io';
 
 Future main() async {
   for (var i = 0; i < 2; i++) {
@@ -16,13 +17,7 @@ void entry(List msg) {
   SendPort sendPort = msg.first;
   var id = msg.last;
   var server = new IsolateServer(sendPort);
-  if (id == 0) {
-    sendPort.send(server.supervisingReceivePort.sendPort);
-  } else {
-    new Future.delayed(new Duration(seconds: 4), () {
-      sendPort.send(server.supervisingReceivePort.sendPort);
-    });
-  }
+  server.start(id);
 }
 
 class Supervisor {
@@ -60,14 +55,32 @@ class IsolateServer {
     supervisingReceivePort.listen(listener);
   }
 
+  HttpServer server;
   ReceivePort supervisingReceivePort;
   SendPort supervisingApplicationPort;
+
+  void start(int id) {
+    if (id == 0) {
+      HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 4040).then((s) {
+        server = s;
+        server.listen((req) {
+          req.response.close();
+        });
+      });
+      supervisingApplicationPort.send(supervisingReceivePort.sendPort);
+    } else {
+      new Future.delayed(new Duration(seconds: 4), () {
+        supervisingApplicationPort.send(supervisingReceivePort.sendPort);
+      });
+    }
+  }
 
   void listener(dynamic message) {
     if (message == "stop") {
       supervisingReceivePort.close();
-
-      supervisingApplicationPort.send("stop");
+      server?.close(force: true)?.then((_) {
+        supervisingApplicationPort.send("stop");
+      });
     }
   }
 }
