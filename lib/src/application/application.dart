@@ -101,6 +101,7 @@ class Application<RequestSinkType extends RequestSink> {
           await supervisor.resume();
         }
       } catch (e, st) {
+        print("Cuaght $e, waiting...");
         await stop().timeout(new Duration(seconds: 5));
         supervisors = [];
         logger.severe("$e", this, st);
