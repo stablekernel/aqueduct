@@ -63,39 +63,39 @@ main() {
         });
 
     //todo: disabling tests. apparently issue with isolates on linux
-//    test("Isolate timeout kills application when first isolate fails", () async {
-//      var timeoutApp = new Application<TimeoutSink>()
-//        ..isolateStartupTimeout = new Duration(seconds: 4)
-//        ..configuration.options = {
-//          "timeout1" : 2
-//        };
-//
-//      try {
-//        await timeoutApp.start(numberOfInstances: 2);
-//        expect(true, false);
-//      } on TimeoutException catch (e) {
-//        expect(e.toString(), contains("Isolate (1) failed to launch"));
-//      }
-//
-//      expect(timeoutApp.supervisors.length, 0);
-//    });
-//
-//    test("Isolate timeout kills application when first isolate succeeds, but next fails", () async {
-//      var timeoutApp = new Application<TimeoutSink>()
-//        ..isolateStartupTimeout = new Duration(seconds: 4)
-//        ..configuration.options = {
-//          "timeout2" : 2
-//        };
-//
-//      try {
-//        await timeoutApp.start(numberOfInstances: 2);
-//        expect(true, false);
-//      } on TimeoutException catch (e) {
-//        expect(e.toString(), contains("Isolate (2) failed to launch"));
-//      }
-//
-//      expect(timeoutApp.supervisors.length, 0);
-//    });
+    test("Isolate timeout kills application when first isolate fails", () async {
+      var timeoutApp = new Application<TimeoutSink>()
+        ..isolateStartupTimeout = new Duration(seconds: 2)
+        ..configuration.options = {
+          "timeout1" : 2
+        };
+
+      try {
+        await timeoutApp.start(numberOfInstances: 4);
+        expect(true, false);
+      } on TimeoutException catch (e) {
+        expect(e.toString(), contains("Isolate (1) failed to launch"));
+      }
+
+      expect(timeoutApp.supervisors.length, 0);
+    });
+
+    test("Isolate timeout kills application when first isolate succeeds, but next fails", () async {
+      var timeoutApp = new Application<TimeoutSink>()
+        ..isolateStartupTimeout = new Duration(seconds: 2)
+        ..configuration.options = {
+          "timeout2" : 2
+        };
+
+      try {
+        await timeoutApp.start(numberOfInstances: 4);
+        expect(true, false);
+      } on TimeoutException catch (e) {
+        expect(e.toString(), contains("Isolate (2) failed to launch"));
+      }
+
+      expect(timeoutApp.supervisors.length, 0);
+    });
   });
 }
 
