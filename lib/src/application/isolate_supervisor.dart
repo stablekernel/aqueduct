@@ -72,6 +72,7 @@ class ApplicationIsolateSupervisor {
   }
 
   void listener(dynamic message) {
+    print("$identifier received $message");
     if (message is SendPort) {
       _launchCompleter.complete();
       _launchCompleter = null;
