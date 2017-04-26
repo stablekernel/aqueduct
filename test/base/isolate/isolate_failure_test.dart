@@ -67,11 +67,11 @@ main() {
       var timeoutApp = new Application<TimeoutSink>()
         ..isolateStartupTimeout = new Duration(seconds: 2)
         ..configuration.options = {
-          "timeout1" : 2
+          "timeout1" : 4
         };
 
       try {
-        await timeoutApp.start(numberOfInstances: 4);
+        await timeoutApp.start(numberOfInstances: 2);
         expect(true, false);
       } on TimeoutException catch (e) {
         expect(e.toString(), contains("Isolate (1) failed to launch"));
@@ -84,11 +84,11 @@ main() {
       var timeoutApp = new Application<TimeoutSink>()
         ..isolateStartupTimeout = new Duration(seconds: 2)
         ..configuration.options = {
-          "timeout2" : 2
+          "timeout2" : 4
         };
 
       try {
-        await timeoutApp.start(numberOfInstances: 4);
+        await timeoutApp.start(numberOfInstances: 2);
         expect(true, false);
       } on TimeoutException catch (e) {
         expect(e.toString(), contains("Isolate (2) failed to launch"));
