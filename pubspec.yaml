@@ -22,7 +22,10 @@ dependencies:
 dev_dependencies:
   test: any
   http: ">=0.11.3+7 <0.12.0"
-  coverage: ^0.9.0
+  coverage:
+    git:
+      url: git@github.com:joeconwaystk/coverage.git
+      ref: master
 
 executables:
   aqueduct: aqueduct

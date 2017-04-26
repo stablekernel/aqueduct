@@ -19,7 +19,8 @@ Future main(List<String> args) async {
   var count = 0;
   for (var file in testFiles) {
     print("Running ${file.uri.pathSegments.last} (${count + 1} of ${testFiles.length})...");
-    var coverage = await runAndCollect(file.path);
+    var coverage = await runAndCollect(file.path, outputBuffer: stdout);
+
     var coverageJSONFile = new File.fromUri(tempDir.uri.resolve("$count.coverage.json"));
     coverageJSONFile.writeAsStringSync(JSON.encode(coverage));
 
