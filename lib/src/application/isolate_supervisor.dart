@@ -10,6 +10,7 @@ import 'application.dart';
 /// You should not use this class directly.
 class ApplicationIsolateSupervisor {
   static const String MessageStop = "_MessageStop";
+  static const String MessageListening = "_MessageListening";
 
   /// Create an isntance of [ApplicationIsolateSupervisor].
   ApplicationIsolateSupervisor(this.supervisingApplication, this.isolate,
@@ -38,16 +39,15 @@ class ApplicationIsolateSupervisor {
   Completer _stopCompleter;
 
   /// Resumes the [Isolate] being supervised.
-  Future resume() {
+  Future resume() async {
     _launchCompleter = new Completer();
     receivePort.listen(listener);
 
     isolate.setErrorsFatal(false);
-    isolate.resume(isolate.pauseCapability);
     isolate.addErrorListener(receivePort.sendPort);
+    isolate.resume(isolate.pauseCapability);
 
     return _launchCompleter.future.timeout(startupTimeout, onTimeout: () {
-      receivePort.close();
       throw new TimeoutException("Isolate ($identifier) failed to launch in ${startupTimeout} seconds. "
           "There may be an error with your application or Application.isolateStartupTimeout needs to be increased.");
     });
@@ -55,11 +55,6 @@ class ApplicationIsolateSupervisor {
 
   /// Stops the [Isolate] being supervised.
   Future stop() async {
-    if (_serverSendPort == null) {
-      isolate.kill();
-      return;
-    }
-
     _stopCompleter = new Completer();
     _serverSendPort.send(MessageStop);
 
@@ -69,14 +64,15 @@ class ApplicationIsolateSupervisor {
       logger?.severe("Isolate ($identifier) not responding to stop message, terminating.");
       isolate.kill();
     }
+    receivePort.close();
   }
 
   void listener(dynamic message) {
     if (message is SendPort) {
+      _serverSendPort = message;
+    } else if (message == MessageListening) {
       _launchCompleter.complete();
       _launchCompleter = null;
-
-      _serverSendPort = message;
     } else if (message == MessageStop) {
       receivePort.close();
 
@@ -90,8 +86,6 @@ class ApplicationIsolateSupervisor {
 
   void _handleIsolateException(dynamic error, StackTrace stacktrace) {
     if (_isLaunching) {
-      receivePort.close();
-
       var appException = new ApplicationStartupException(error);
       _launchCompleter.completeError(appException, stacktrace);
     } else {

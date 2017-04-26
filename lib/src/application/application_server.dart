@@ -39,43 +39,43 @@ class ApplicationServer {
   /// Creates an instance of this type.
   ///
   /// You should not need to invoke this method directly.
-  ApplicationServer(this.sink, this.configuration, this.identifier) {
-    sink.server = this;
-  }
+  ApplicationServer(this.configuration, this.identifier);
 
   /// Starts this instance, allowing it to receive HTTP requests.
   ///
   /// Do not invoke this method directly, [Application] instances are responsible
   /// for calling this method.
-  Future start({bool shareHttpServer: false}) async {
-    try {
-      sink.setupRouter(sink.router);
-      sink.router?.finalize();
-      sink.nextController = sink.initialController;
+  Future start(RequestSink sink, {bool shareHttpServer: false}) async {
+    this.sink = sink;
+    sink.server = this;
 
-      var securityContext = sink.securityContext;
-      if (securityContext != null) {
-        _requiresHTTPS = true;
+    sink.setupRouter(sink.router);
+    sink.router?.finalize();
+    sink.nextController = sink.initialController;
 
-        server = await HttpServer.bindSecure(configuration.address,
-            configuration.port, securityContext,
-            requestClientCertificate: configuration.isUsingClientCertificate,
-            v6Only: configuration.isIpv6Only,
-            shared: shareHttpServer);
-      } else {
-        _requiresHTTPS = false;
+    var securityContext = sink.securityContext;
+    if (securityContext != null) {
+      _requiresHTTPS = true;
 
-        server = await HttpServer.bind(
-            configuration.address, configuration.port,
-            v6Only: configuration.isIpv6Only, shared: shareHttpServer);
-      }
+      server = await HttpServer.bindSecure(configuration.address,
+          configuration.port, securityContext,
+          requestClientCertificate: configuration.isUsingClientCertificate,
+          v6Only: configuration.isIpv6Only,
+          shared: shareHttpServer);
+    } else {
+      _requiresHTTPS = false;
 
-      server.autoCompress = true;
-      await didOpen();
-    } catch (e) {
-      await server?.close(force: true);
-      rethrow;
+      server = await HttpServer.bind(
+          configuration.address, configuration.port,
+          v6Only: configuration.isIpv6Only, shared: shareHttpServer);
     }
+
+    server.autoCompress = true;
+    await didOpen();
+  }
+
+  Future close() {
+    return server?.close(force: true);
   }
 
   /// Invoked when this server becomes ready receive requests.

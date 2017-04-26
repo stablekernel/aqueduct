@@ -12,54 +12,54 @@ class ApplicationIsolateServer extends ApplicationServer {
   ReceivePort supervisingReceivePort;
 
   ApplicationIsolateServer(
-      RequestSink sink,
       ApplicationConfiguration configuration,
       int identifier,
       this.supervisingApplicationPort)
-      : super(sink, configuration, identifier) {
-    sink.server = this;
+      : super(configuration, identifier) {
     supervisingReceivePort = new ReceivePort();
     supervisingReceivePort.listen(listener);
-  }
-
-  @override
-  Future didOpen() async {
-    await super.didOpen();
 
     supervisingApplicationPort.send(supervisingReceivePort.sendPort);
   }
 
+  @override
+  Future start(RequestSink sink, {bool shareHttpServer: false}) async {
+    var result = await super.start(sink, shareHttpServer: shareHttpServer);
+    supervisingApplicationPort.send(ApplicationIsolateSupervisor.MessageListening);
+    return result;
+  }
+
+
   void listener(dynamic message) {
     if (message == ApplicationIsolateSupervisor.MessageStop) {
       supervisingReceivePort.close();
-      server.close(force: true).then((s) {
+      if (server != null) {
+        close().then((s) {
+          supervisingApplicationPort
+              .send(ApplicationIsolateSupervisor.MessageStop);
+        });
+      } else {
         supervisingApplicationPort
             .send(ApplicationIsolateSupervisor.MessageStop);
-      });
+      }
     }
   }
 }
 
 /// This method is used internally.
 void isolateServerEntryPoint(ApplicationInitialServerMessage params) {
-  RequestSink sink;
-  try {
-    var sinkSourceLibraryMirror =
-        currentMirrorSystem().libraries[params.streamLibraryURI];
-    var sinkTypeMirror = sinkSourceLibraryMirror
-        .declarations[new Symbol(params.streamTypeName)] as ClassMirror;
-
-    sink = sinkTypeMirror
-        .newInstance(new Symbol(""), [params.configuration]).reflectee;
-  } catch (e, st) {
-    params.parentMessagePort.send([e, st.toString()]);
-
-    return;
-  }
-
   var server = new ApplicationIsolateServer(
-      sink, params.configuration, params.identifier, params.parentMessagePort);
-  server.start(shareHttpServer: true);
+      params.configuration, params.identifier, params.parentMessagePort);
+
+  var sinkSourceLibraryMirror =
+  currentMirrorSystem().libraries[params.streamLibraryURI];
+  var sinkTypeMirror = sinkSourceLibraryMirror
+      .declarations[new Symbol(params.streamTypeName)] as ClassMirror;
+
+  RequestSink sink = sinkTypeMirror
+      .newInstance(new Symbol(""), [params.configuration]).reflectee;
+
+  server.start(sink, shareHttpServer: true);
 }
 
 class ApplicationInitialServerMessage {
