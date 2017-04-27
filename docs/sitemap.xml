@@ -128,6 +128,12 @@
     </url>
         
     <url>
+     <loc>/db/validations/</loc>
+     <lastmod>2017-04-27</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+        
+    <url>
      <loc>/db/db_tools/</loc>
      <lastmod>2017-04-27</lastmod>
      <changefreq>daily</changefreq>
