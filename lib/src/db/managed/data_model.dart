@@ -236,6 +236,12 @@ class ManagedDataModelException implements Exception {
         "The offending properties are: '${_getName(property)}' and '${_getName(inverseProperty)}'");
   }
 
+  factory ManagedDataModelException.invalidValidator(
+      ManagedEntity entity, String property, String reason) {
+    return new ManagedDataModelException("Type '${_getPersistentClassName(entity)}' "
+        "has invalid validator for property '$property'. Reason: $reason");
+  }
+
   static String _getPersistentClassName(ManagedEntity entity) =>
       _getName(entity?.persistentType?.simpleName);
 

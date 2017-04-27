@@ -94,17 +94,7 @@ class ManagedEntity {
     return all;
   }
 
-  Map<ManagedAttributeDescription, List<Validate>> get validators {
-    if (_validators == null) {
-      _validators = <ManagedAttributeDescription, List<Validate>>{};
-      attributes.forEach((key, attr) {
-        _validators[attr] = attr.validators;
-      });
-    }
-
-    return _validators;
-  }
-  Map<ManagedAttributeDescription, List<Validate>> _validators;
+  List<ManagedValidator> validators;
 
   /// The list of default properties returned when querying an instance of this type.
   ///

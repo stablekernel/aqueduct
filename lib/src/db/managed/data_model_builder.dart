@@ -24,6 +24,11 @@ class DataModelBuilder {
       if (entity.primaryKey == null) {
         throw new ManagedDataModelException.noPrimaryKey(entity);
       }
+
+      entity.validators = entity.attributes.values
+          .map((desc) => desc.validators.map((v) => new ManagedValidator(desc, v)))
+          .expand((e) => e)
+          .toList();
     });
 
     entities.forEach((_, entity) {

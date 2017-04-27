@@ -3,7 +3,6 @@ import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/executable.dart';
 import 'dart:async';
 import 'dart:io';
-import 'package:args/args.dart';
 import 'cli_helpers.dart';
 import 'generate_helpers.dart';
 
