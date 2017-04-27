@@ -158,11 +158,8 @@ abstract class CLICommand implements CLIResultHandler {
     try {
       var toolLibraryFilePath = (await Isolate.resolvePackageUri(currentMirrorSystem().findLibrary(#aqueduct).uri))
           .toFilePath(windows: Platform.isWindows);
-      print("$toolLibraryFilePath");
       var aqueductDirectory = new Directory(FileSystemEntity.parentOf(FileSystemEntity.parentOf(toolLibraryFilePath)));
-      print("$aqueductDirectory");
       var toolPubspecFile = new File.fromUri(aqueductDirectory.absolute.uri.resolve("pubspec.yaml"));
-      print("$toolPubspecFile");
 
       Map<String, dynamic> toolPubspecContents = loadYaml(toolPubspecFile.readAsStringSync());
       String toolVersion = toolPubspecContents["version"];
