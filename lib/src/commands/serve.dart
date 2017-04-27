@@ -123,8 +123,6 @@ class CLIServer extends CLIServeBase {
       "SSL_CERTIFICATE_PATH": certificatePath
     };
 
-    print("${replacements}");
-
     displayInfo("Starting application '$packageName/$libraryName'");
     displayProgress("Sink Type: $requestSinkType");
     displayProgress("Config: ${configurationFile?.path}");
@@ -258,7 +256,6 @@ class CLIServer extends CLIServeBase {
     var filename = ".tmp_aqueduct_serve_start.dart";
     var file = new File.fromUri(binDirectory.uri.resolve(filename));
 
-    print(contents);
     file.writeAsStringSync(contents);
 
     registeredLaunchArtifacts.add(file);
