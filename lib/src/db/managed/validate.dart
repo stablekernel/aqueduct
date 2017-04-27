@@ -1,12 +1,20 @@
 import '../db.dart';
 
-typedef bool _Validation(ValidateOperation operation, ManagedAttributeDescription property, dynamic value, List<String> errors);
-
+/// Types of operations [ManagedValidator]s will be triggered for.
 enum ValidateOperation { update, insert }
 
-enum _BuiltinValidate { regex, comparison, length, present, absent, oneOf }
-
+/// Validates properties of [ManagedObject] before an insert or update [Query].
+///
+/// Instances of this type are created during [ManagedDataModel] compilation.
 class ManagedValidator {
+  /// Executes all validations for [object].
+  ///
+  /// Validates the properties of [object] according to its declared validators. Validators
+  /// are added to properties using [Validate] metadata. See [Validate].
+  ///
+  /// Called automatically when [Query] inserts or executes an object.
+  ///
+  /// Pass an empty list for [errors] to receive more details on any failed validations.
   static bool validate(
       ManagedObject object, {ValidateOperation operation: ValidateOperation.insert, List<String> errors}) {
     errors ??= [];
@@ -49,6 +57,10 @@ class ManagedValidator {
     return valid;
   }
 
+  /// Creates an instance of this type.
+  ///
+  /// Instances of this type are created by adding [Validate] metadata
+  /// to [ManagedObject] properties.
   ManagedValidator(this.attribute, this.definition) {
     if (definition._builtinValidate != null) {
       _build();
@@ -57,7 +69,10 @@ class ManagedValidator {
     }
   }
 
+  /// The attribute this instance runs on.
   final ManagedAttributeDescription attribute;
+
+  /// The metadata associated with this instance.
   final Validate definition;
 
   _Validation _validationMethod;
@@ -253,7 +268,44 @@ class ManagedValidator {
   }
 }
 
+/// Add as metadata to persistent properties to validate their values before insertion or updating.
+///
+/// When executing update or insert queries, any properties with this metadata will be validated
+/// against the condition declared by this instance. Example:
+///
+///         class Person extends ManagedObject<_Person> implements _Person {}
+///         class _Person {
+///           @managedPrimaryKey
+///           int id;
+///
+///           @Validate.length(greaterThan: 10)
+///           String name;
+///         }
+///
+/// Properties may have more than one metadata of this type. All validations must pass
+/// for an insert or update to be valid.
+///
+/// By default, validations occur on update and insert queries. Constructors have arguments
+/// for only running a validation on insert or update. See [runOnUpdate] and [runOnInsert].
+///
+/// This class may be subclassed to create custom validations. Subclasses must override [validate].
 class Validate<T> {
+  /// Invoke this constructor when creating custom subclasses.
+  ///
+  /// This constructor is used so that subclasses can pass [onUpdate] and [onInsert].
+  /// Example:
+  ///         class CustomValidate extends Validate<String> {
+  ///           CustomValidate({bool onUpdate: true, bool onInsert: true})
+  ///             : super(onUpdate: onUpdate, onInsert: onInsert);
+  ///
+  ///            bool validate(
+  ///              ValidateOperation operation,
+  ///              ManagedAttributeDescription property,
+  ///              String value,
+  ///              List<String> errors) {
+  ///                return someCondition;
+  ///            }
+  ///         }
   const Validate({bool onUpdate: true, bool onInsert: true})
       : runOnUpdate = onUpdate,
         runOnInsert = onInsert,
@@ -289,6 +341,15 @@ class Validate<T> {
         this._lessThan = lessThan,
         this._lessThanEqualTo = lessThanEqualTo;
 
+  /// A validator for matching an input String against a regular expression.
+  ///
+  /// Values passing through validators of this type must match a regular expression
+  /// created by [pattern]. See [RegExp] in the Dart standard library for behavior.
+  ///
+  /// This validator is only valid for [String] properties.
+  ///
+  /// If [onUpdate] is true (the default), this validation is run on update queries.
+  /// If [onInsert] is true (the default), this validation is run on insert queries.
   const Validate.matches(String pattern, {bool onUpdate: true, onInsert: true})
       : this._(
             value: pattern,
@@ -296,6 +357,34 @@ class Validate<T> {
             onInsert: onInsert,
             validator: _BuiltinValidate.regex);
 
+  /// A validator for comparing a value.
+  ///
+  /// Values passing through validators of this type must be [lessThan],
+  /// [greaterThan], [lessThanEqualTo], [equalTo], or [greaterThanEqualTo
+  /// to the value provided for each argument.
+  ///
+  /// Any argument not specified is not evaluated. A typical validator
+  /// only uses one argument:
+  ///
+  ///         @Validate.compare(lessThan: 10.0)
+  ///         double value;
+  ///
+  /// All provided arguments are evaluated. Therefore, the following
+  /// requires an input value to be between 6 and 10:
+  ///
+  ///         @Validate.compare(greaterThanEqualTo: 6, lessThanEqualTo: 10)
+  ///         int value;
+  ///
+  /// This validator can be used for [String], [double], [int] and [DateTime] properties.
+  ///
+  /// When creating a validator for [DateTime] properties, the value for an argument
+  /// is a [String] that will be parsed by [DateTime.parse].
+  ///
+  ///       @Validate.compare(greaterThan: "2017-02-11T00:30:00Z")
+  ///       DateTime date;
+  ///
+  /// If [onUpdate] is true (the default), this validation is run on update queries.
+  /// If [onInsert] is true (the default), this validation is run on insert queries.
   const Validate.compare(
       {Comparable lessThan,
         Comparable greaterThan,
@@ -314,6 +403,26 @@ class Validate<T> {
             onInsert: onInsert,
             validator: _BuiltinValidate.comparison);
 
+  /// A validator for validating the length of a [String].
+  ///
+  /// Values passing through validators of this type must a [String] with a length that is[lessThan],
+  /// [greaterThan], [lessThanEqualTo], [equalTo], or [greaterThanEqualTo
+  /// to the value provided for each argument.
+  ///
+  /// Any argument not specified is not evaluated. A typical validator
+  /// only uses one argument:
+  ///
+  ///         @Validate.length(lessThan: 10)
+  ///         String foo;
+  ///
+  /// All provided arguments are evaluated. Therefore, the following
+  /// requires an input string to have a length to be between 6 and 10:
+  ///
+  ///         @Validate.length(greaterThanEqualTo: 6, lessThanEqualTo: 10)
+  ///         String foo;
+  ///
+  /// If [onUpdate] is true (the default), this validation is run on update queries.
+  /// If [onInsert] is true (the default), this validation is run on insert queries.
   const Validate.length(
       {int lessThan,
         int greaterThan,
@@ -332,18 +441,51 @@ class Validate<T> {
             onInsert: onInsert,
             validator: _BuiltinValidate.length);
 
+  /// A validator for ensuring a property always has a value when being inserted or updated.
+  ///
+  /// This metadata requires that a property must be set in [Query.values] before an update
+  /// or insert. The value may be null, if the property's [ManagedColumnAttributes.nullable] allow it.
+  ///
+  /// If [onUpdate] is true (the default), this validation requires a property to be present for update queries.
+  /// If [onInsert] is true (the default), this validation requires a property to be present for insert queries.
   const Validate.present({bool onUpdate: true, bool onInsert: true})
       : this._(
             onUpdate: onUpdate,
             onInsert: onInsert,
             validator: _BuiltinValidate.present);
 
+  /// A validator for ensuring a property does not have a value when being inserted or updated.
+  ///
+  /// This metadata requires that a property must NOT be set in [Query.values] before an update
+  /// or insert.
+  ///
+  /// This validation is used to restrict input during either an insert or update query. For example,
+  /// a 'dateCreated' property would use this validator to ensure that property isn't set during an update.
+  ///
+  ///       @Validate.absent(onUpdate: true, onInsert: false)
+  ///       DateTime dateCreated;
+  ///
+  /// If [onUpdate] is true (the default), this validation requires a property to be absent for update queries.
+  /// If [onInsert] is true (the default), this validation requires a property to be absent for insert queries.
   const Validate.absent({bool onUpdate: true, bool onInsert: true})
       : this._(
             onUpdate: onUpdate,
             onInsert: onInsert,
             validator: _BuiltinValidate.absent);
 
+  /// A validator for ensuring a value is one of a set of values.
+  ///
+  /// An input value must be one of [values].
+  ///
+  /// [values] must be homogenous - every value must be the same type -
+  /// and the property with this metadata must also match the type
+  /// of the objects in [values].
+  ///
+  ///         @Validate.oneOf(const ["A", "B", "C")
+  ///         String foo;
+  ///
+  /// If [onUpdate] is true (the default), this validation is run on update queries.
+  /// If [onInsert] is true (the default), this validation is run on insert queries.
   const Validate.oneOf(List<dynamic> values,
       {bool onUpdate: true, bool onInsert: true})
       : this._(
@@ -352,8 +494,12 @@ class Validate<T> {
             onInsert: onInsert,
             validator: _BuiltinValidate.oneOf);
 
+  /// Whether or not this validation is checked on update queries.
   final bool runOnUpdate;
+
+  /// Whether or not this validation is checked on insert queries.
   final bool runOnInsert;
+
   final dynamic _value;
   final List<dynamic> _values;
   final Comparable _greaterThan;
@@ -363,7 +509,23 @@ class Validate<T> {
   final Comparable _lessThanEqualTo;
   final _BuiltinValidate _builtinValidate;
 
+  /// Custom validations override this method to provide validation behavior.
+  ///
+  /// This method returns true if and only if [value] passes its test.
+  /// If validation fails, a description of the failure should be added to [errors].
+  /// [errors] is guaranteed to be a valid [List] when this method is invoked during validation.
+  ///
+  /// This method is not run when [value] is null.
+  ///
+  /// The type of [value] will have already been type-checked prior to executing this method.
+  ///
+  /// Both [operation] and [property] are informational only. This method will only be invoked
+  /// according to [runOnInsert] and [runOnUpdate], i.e., if this validator's
+  ///  [runOnUpdate] is false, [operation] will never be [ValidateOperation.update].
   bool validate(ValidateOperation operation, ManagedAttributeDescription property, T value, List<String> errors) {
     return false;
   }
 }
+
+typedef bool _Validation(ValidateOperation operation, ManagedAttributeDescription property, dynamic value, List<String> errors);
+enum _BuiltinValidate { regex, comparison, length, present, absent, oneOf }

@@ -94,6 +94,9 @@ class ManagedEntity {
     return all;
   }
 
+  /// List of [ManagedValidator]s for attributes of this entity.
+  ///
+  /// All validators for all [attributes] in one, flat list. Order is undefined.
   List<ManagedValidator> validators;
 
   /// The list of default properties returned when querying an instance of this type.

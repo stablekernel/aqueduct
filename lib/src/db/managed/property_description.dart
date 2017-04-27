@@ -206,6 +206,7 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
   /// If this property is non-null, the attribute is transient (not backed by a database field/column).
   final ManagedTransientAttribute transientStatus;
 
+  /// [ManagedValidator]s for this instance.
   final List<Validate> validators;
 
   String toString() {
