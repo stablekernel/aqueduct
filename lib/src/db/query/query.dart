@@ -9,8 +9,6 @@ import 'predicate.dart';
 export 'error.dart';
 export 'matcher_expression.dart';
 export 'predicate.dart';
-// This is an unfortunate need because of lack of reified generics
-// See factory constructor.
 
 /// Instances of this type configure and execute database commands.
 ///
