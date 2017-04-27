@@ -156,16 +156,17 @@ abstract class CLICommand implements CLIResultHandler {
 
   Future determineToolVersion() async {
     try {
-      var toolLibraryFilePath = (await Isolate.resolvePackageUri(currentMirrorSystem().findLibrary(#aqueduct).uri)).path;
-      var idx = toolLibraryFilePath.lastIndexOf("aqueduct${path_lib.separator}lib");
-      toolLibraryFilePath = toolLibraryFilePath.substring(0, idx + "aqueduct".length);
+      var toolLibraryFilePath = (await Isolate.resolvePackageUri(currentMirrorSystem().findLibrary(#aqueduct).uri))
+          .toFilePath(windows: Platform.isWindows);
+      var aqueductDirectory = new Directory(FileSystemEntity.parentOf(FileSystemEntity.parentOf(toolLibraryFilePath)));
+      var toolPubspecFile = new File.fromUri(aqueductDirectory.absolute.uri.resolve("pubspec.yaml"));
 
-      var toolLibraryDirectory = new Directory(toolLibraryFilePath);
-      var toolPubspecFile = new File.fromUri(toolLibraryDirectory.absolute.uri.resolve("pubspec.yaml"));
       Map<String, dynamic> toolPubspecContents = loadYaml(toolPubspecFile.readAsStringSync());
       String toolVersion = toolPubspecContents["version"];
       _toolVersion = new Version.parse(toolVersion);
-    } catch (_) {}
+    } catch (e) {
+      print(e);
+    }
   }
 
   void preProcess() {
