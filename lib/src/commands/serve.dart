@@ -235,7 +235,9 @@ class CLIServer extends CLIServeBase {
 
     new Timer.periodic(new Duration(milliseconds: 100), (t) {
       var signalFile = fileInProjectDirectory(pidPathForPid(process.pid));
+      print("Looking for $signalFile");
       if (signalFile.existsSync()) {
+        print("Exists!");
         t.cancel();
         completer.complete(signalFile.readAsStringSync());
         return;
