@@ -31,6 +31,7 @@ pages:
   - 'Storage, Serialization and Deserialization': 'db/serialization.md'
   - 'Executing Queries': 'db/executing_queries.md'
   - 'Advanced Queries': 'db/advanced_queries.md'
+  - 'Validations': 'db/validations.md'
   - 'Migration and Tooling': 'db/db_tools.md'
   - 'Inside the DB': 'db/inside_the_db.md'
 - OAuth 2.0:
