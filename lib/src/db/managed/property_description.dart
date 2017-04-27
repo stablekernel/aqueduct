@@ -154,8 +154,9 @@ abstract class ManagedPropertyDescription {
 class ManagedAttributeDescription extends ManagedPropertyDescription {
   ManagedAttributeDescription.transient(ManagedEntity entity, String name,
       ManagedPropertyType type, this.transientStatus)
-      : isPrimaryKey = false,
+      : this.isPrimaryKey = false,
         this.defaultValue = null,
+        this.validators = [],
         super(entity, name, type,
             unique: false,
             indexed: false,
@@ -172,8 +173,9 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
       bool indexed: false,
       bool nullable: false,
       bool includedInDefaultResultSet: true,
-      bool autoincrement: false})
-      : isPrimaryKey = primaryKey,
+      bool autoincrement: false,
+      this.validators: const []})
+      : this.isPrimaryKey = primaryKey,
         this.defaultValue = defaultValue,
         this.transientStatus = transientStatus,
         super(entity, name, type,
@@ -203,6 +205,9 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
   ///
   /// If this property is non-null, the attribute is transient (not backed by a database field/column).
   final ManagedTransientAttribute transientStatus;
+
+  /// [ManagedValidator]s for this instance.
+  final List<Validate> validators;
 
   String toString() {
     return "[Attribute]    ${entity.tableName}.$name ($type)";

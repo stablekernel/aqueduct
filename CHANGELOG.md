@@ -1,5 +1,10 @@
 # aqueduct changelog
 
+## 2.1.0
+
+- Fixes race condition when stopping an application during test execution
+- Adds validation behavior to `ManagedObject`s using types `Validate` and `ManagedValidator`.
+
 ## 2.0.3
 
 - Fixes issue with `aqueduct document` for routes using `listen`

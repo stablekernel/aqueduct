@@ -1,7 +1,6 @@
 import 'dart:mirrors';
 import 'managed.dart';
 import '../../http/documentable.dart';
-import '../query/query.dart';
 
 /// Mapping information between a table in a database and a [ManagedObject] object.
 ///
@@ -63,7 +62,6 @@ class ManagedEntity {
   /// transient property declared in the instance type.
   /// The keys are the case-sensitive name of the attribute. Values that represent a relationship to another object
   /// are not stored in [attributes].
-
   Map<String, ManagedAttributeDescription> _attributes;
   Map<String, ManagedAttributeDescription> get attributes => _attributes;
   void set attributes(Map<String, ManagedAttributeDescription> m) {
@@ -95,6 +93,11 @@ class ManagedEntity {
     }
     return all;
   }
+
+  /// List of [ManagedValidator]s for attributes of this entity.
+  ///
+  /// All validators for all [attributes] in one, flat list. Order is undefined.
+  List<ManagedValidator> validators;
 
   /// The list of default properties returned when querying an instance of this type.
   ///

@@ -16,7 +16,7 @@ class QueryException implements Exception {
   /// The type of event that caused this exception.
   final QueryExceptionEvent event;
 
-  String toString() => _message ?? underlyingException.toString();
+  String toString() => _message ?? underlyingException?.toString();
 }
 
 /// Categorizations of query failures for [QueryException].
