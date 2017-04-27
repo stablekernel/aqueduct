@@ -297,7 +297,9 @@ abstract class CLIProject implements CLIResultHandler, CLICommand {
 
 
   static File fileInDirectory(Directory directory, String name) {
+    print("$directory $name");
     if (path_lib.isRelative(name)) {
+      print("rel: ${directory.uri.resolve(name)}");
       return new File.fromUri(directory.uri.resolve(name));
     }
 
