@@ -211,7 +211,7 @@ class CLIServer extends CLIServeBase {
     displayProgress("Starting process...");
     return Process.start("dart", args,
         workingDirectory: projectDirectory.absolute.path,
-        runInShell: Platform.isWindows,
+        runInShell: false,
         mode: startMode);
   }
 
@@ -316,17 +316,17 @@ class CLIServer extends CLIServeBase {
       addressString = "";
     }
     var configString =
-        "..configurationFilePath = \"___CONFIGURATION_FILE_PATH___\"";
+        "..configurationFilePath = r\"___CONFIGURATION_FILE_PATH___\"";
     if (values["CONFIGURATION_FILE_PATH"] == null) {
       configString = "";
     }
     var certificateString =
-        "..certificateFilePath = \"___SSL_CERTIFICATE_PATH___\"";
+        "..certificateFilePath = r\"___SSL_CERTIFICATE_PATH___\"";
     if (values["SSL_CERTIFICATE_PATH"] == null) {
       certificateString = "";
     }
     var keyString =
-        "..privateKeyFilePath = \"___SSL_KEY_PATH___\"";
+        "..privateKeyFilePath = r\"___SSL_KEY_PATH___\"";
     if (values["SSL_KEY_PATH"] == null) {
       keyString = "";
     }
