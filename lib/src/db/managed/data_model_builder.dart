@@ -24,6 +24,11 @@ class DataModelBuilder {
       if (entity.primaryKey == null) {
         throw new ManagedDataModelException.noPrimaryKey(entity);
       }
+
+      entity.validators = entity.attributes.values
+          .map((desc) => desc.validators.map((v) => new ManagedValidator(desc, v)))
+          .expand((e) => e)
+          .toList();
     });
 
     entities.forEach((_, entity) {
@@ -104,8 +109,10 @@ class DataModelBuilder {
             entity, declaration.simpleName);
       }
 
+      var validators = validatorsFromDeclaration(declaration);
       var attributes = attributeMetadataFromDeclaration(declaration);
       var name = propertyNameFromDeclaration(declaration);
+
       return new ManagedAttributeDescription(entity, name, type,
           primaryKey: attributes?.isPrimaryKey ?? false,
           defaultValue: attributes?.defaultValue ?? null,
@@ -114,7 +121,8 @@ class DataModelBuilder {
           nullable: attributes?.isNullable ?? false,
           includedInDefaultResultSet:
               !(attributes?.shouldOmitByDefault ?? false),
-          autoincrement: attributes?.autoincrement ?? false);
+          autoincrement: attributes?.autoincrement ?? false,
+          validators: validators);
     });
   }
 

@@ -9,8 +9,6 @@ import 'predicate.dart';
 export 'error.dart';
 export 'matcher_expression.dart';
 export 'predicate.dart';
-// This is an unfortunate need because of lack of reified generics
-// See factory constructor.
 
 /// Instances of this type configure and execute database commands.
 ///
@@ -219,6 +217,9 @@ abstract class Query<InstanceType extends ManagedObject> {
   ///       var q = new Query<User>()
   ///         ..values.name = "Joe";
   ///       var newUser = await q.insert();
+  ///
+  /// If the [InstanceType] has properties with [Validate] metadata, those validations
+  /// will be executed prior to sending the query to the database.
   Future<InstanceType> insert();
 
   /// Updates [InstanceType]s in the underlying database.
@@ -233,12 +234,18 @@ abstract class Query<InstanceType extends ManagedObject> {
   ///         ..where.name = "Fred"
   ///         ..values.name = "Joe";
   ///       var usersNamedFredNowNamedJoe = await q.update();
+  ///
+  /// If the [InstanceType] has properties with [Validate] metadata, those validations
+  /// will be executed prior to sending the query to the database.
   Future<List<InstanceType>> update();
 
   /// Updates an [InstanceType] in the underlying database.
   ///
   /// This method works the same as [update], except it may only update one row in the underlying database. If this method
   /// ends up modifying multiple rows, an exception is thrown.
+  ///
+  /// If the [InstanceType] has properties with [Validate] metadata, those validations
+  /// will be executed prior to sending the query to the database.
   Future<InstanceType> updateOne();
 
   /// Fetches [InstanceType]s from the database.

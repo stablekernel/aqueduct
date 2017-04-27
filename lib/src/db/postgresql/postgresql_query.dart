@@ -15,6 +15,8 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
 
   @override
   Future<InstanceType> insert() async {
+    validateValueObject(ValidateOperation.insert);
+
     var builder = new PostgresQueryBuilder(entity,
         returningProperties: propertiesToFetch,
         values: valueMap ?? values?.backingMap);
@@ -41,6 +43,8 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
 
   @override
   Future<List<InstanceType>> update() async {
+    validateValueObject(ValidateOperation.update);
+
     var builder = new PostgresQueryBuilder(entity,
         returningProperties: propertiesToFetch,
         values: valueMap ?? values?.backingMap,
@@ -126,6 +130,15 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
   }
 
   //////
+
+  void validateValueObject(ValidateOperation op) {
+    if (valueMap == null) {
+      var errors = <String>[];
+      if (!ManagedValidator.validate(values, operation: op, errors: errors)) {
+        throw new QueryException(QueryExceptionEvent.requestFailure, message: errors.join(", "));
+      }
+    }
+  }
 
   PostgresQueryBuilder createFetchMapper() {
     var allSortDescriptors =
