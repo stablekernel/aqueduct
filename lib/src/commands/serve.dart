@@ -211,7 +211,7 @@ class CLIServer extends CLIServeBase {
     displayProgress("Starting process...");
     return Process.start("dart", args,
         workingDirectory: projectDirectory.absolute.path,
-        runInShell: Platform.isWindows,
+        runInShell: false,
         mode: startMode);
   }
 
