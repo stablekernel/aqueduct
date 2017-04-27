@@ -258,6 +258,7 @@ class CLIServer extends CLIServeBase {
     var filename = ".tmp_aqueduct_serve_start.dart";
     var file = new File.fromUri(binDirectory.uri.resolve(filename));
 
+    print(contents);
     file.writeAsStringSync(contents);
 
     registeredLaunchArtifacts.add(file);
