@@ -86,8 +86,7 @@ class Application<RequestSinkType extends RequestSink> {
         logger.info(
             "runOnMainIsolate set to true, ignoring numberOfInstances (set to $numberOfInstances)");
       }
-
-
+      
       try {
         var sink = requestSinkType
             .newInstance(new Symbol(""), [configuration]).reflectee;

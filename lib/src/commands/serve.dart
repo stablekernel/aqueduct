@@ -123,6 +123,8 @@ class CLIServer extends CLIServeBase {
       "SSL_CERTIFICATE_PATH": certificatePath
     };
 
+    print("${replacements}");
+
     displayInfo("Starting application '$packageName/$libraryName'");
     displayProgress("Sink Type: $requestSinkType");
     displayProgress("Config: ${configurationFile?.path}");
