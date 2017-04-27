@@ -156,7 +156,8 @@ abstract class CLICommand implements CLIResultHandler {
 
   Future determineToolVersion() async {
     try {
-      var toolLibraryFilePath = (await Isolate.resolvePackageUri(currentMirrorSystem().findLibrary(#aqueduct).uri)).path;
+      var toolLibraryFilePath = (await Isolate.resolvePackageUri(currentMirrorSystem().findLibrary(#aqueduct).uri))
+          .toFilePath(windows: Platform.isWindows);
       print("$toolLibraryFilePath");
       var aqueductDirectory = new Directory(FileSystemEntity.parentOf(FileSystemEntity.parentOf(toolLibraryFilePath)));
       print("$aqueductDirectory");
