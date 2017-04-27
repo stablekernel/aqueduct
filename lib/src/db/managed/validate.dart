@@ -7,15 +7,16 @@ enum ValidateOperation { update, insert }
 ///
 /// Instances of this type are created during [ManagedDataModel] compilation.
 class ManagedValidator {
-  /// Executes all validations for [object].
+  /// Executes all [Validate]s for [object].
   ///
   /// Validates the properties of [object] according to its declared validators. Validators
   /// are added to properties using [Validate] metadata. See [Validate].
   ///
-  /// Called automatically when [Query] inserts or executes an object.
+  /// This method is invoked by [ManagedObject.validate]. Invoking this method directly will
+  /// ignore any validations that occur by overriding [ManagedObject.validate] and should be avoided.
   ///
   /// Pass an empty list for [errors] to receive more details on any failed validations.
-  static bool validate(
+  static bool run(
       ManagedObject object, {ValidateOperation operation: ValidateOperation.insert, List<String> errors}) {
     errors ??= [];
 

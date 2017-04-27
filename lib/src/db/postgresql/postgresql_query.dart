@@ -15,7 +15,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
 
   @override
   Future<InstanceType> insert() async {
-    validateValueObject(ValidateOperation.insert);
+    finalizeAndValidateValues(ValidateOperation.insert);
 
     var builder = new PostgresQueryBuilder(entity,
         returningProperties: propertiesToFetch,
@@ -43,7 +43,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
 
   @override
   Future<List<InstanceType>> update() async {
-    validateValueObject(ValidateOperation.update);
+    finalizeAndValidateValues(ValidateOperation.update);
 
     var builder = new PostgresQueryBuilder(entity,
         returningProperties: propertiesToFetch,
@@ -131,10 +131,16 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
 
   //////
 
-  void validateValueObject(ValidateOperation op) {
+  void finalizeAndValidateValues(ValidateOperation op) {
     if (valueMap == null) {
+      if (op == ValidateOperation.insert) {
+        values.willInsert();
+      } else if (op == ValidateOperation.update) {
+        values.willUpdate();
+      }
+
       var errors = <String>[];
-      if (!ManagedValidator.validate(values, operation: op, errors: errors)) {
+      if (!values.validate(forOperation: op, collectErrorsIn: errors)) {
         throw new QueryException(QueryExceptionEvent.requestFailure, message: errors.join(", "));
       }
     }

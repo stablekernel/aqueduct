@@ -98,6 +98,77 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
     return backingMap.containsKey(propertyName);
   }
 
+  /// Callback to modify an object prior to updating it with a [Query].
+  ///
+  /// Subclasses of this type may override this method to set or modify values prior to being updated
+  /// via [Query.update] or [Query.updateOne]. It is automatically invoked by [Query.update] and [Query.updateOne].
+  ///
+  /// This method is invoked prior to validation and therefore any values modified in this method
+  /// are subject to the validation behavior of this instance.
+  ///
+  /// An example implementation would set the 'updatedDate' of an object each time it was updated:
+  ///
+  ///         @override
+  ///         void willUpdate() {
+  ///           updatedDate = new DateTime.now().toUtc();
+  ///         }
+  ///
+  /// This method is only invoked when a query is configured by its [Query.values]. This method is not invoked
+  /// if [Query.valueMap] is used to configure a query.
+  void willUpdate() {
+
+  }
+
+  /// Callback to modify an object prior to inserting it with a [Query].
+  ///
+  /// Subclasses of this type may override this method to set or modify values prior to being inserted
+  /// via [Query.insert]. It is automatically invoked by [Query.insert].
+  ///
+  /// This method is invoked prior to validation and therefore any values modified in this method
+  /// are subject to the validation behavior of this instance.
+  ///
+  /// An example implementation would set the 'createdDate' of an object when it is first created
+  ///
+  ///         @override
+  ///         void willInsert() {
+  ///           createdDate = new DateTime.now().toUtc();
+  ///         }
+  ///
+  /// This method is only invoked when a query is configured by its [Query.values]. This method is not invoked
+  /// if [Query.valueMap] is used to configure a query.
+  void willInsert() {
+
+  }
+
+  /// Validates an object according to its property [Validate] metadata.
+  ///
+  /// This method is invoked by [Query] when inserting or updating an instance of this type. By default,
+  /// this method runs all of the [Validate] metadata for each property of this instance's persistent type. See [Validate]
+  /// for more information.
+  ///
+  /// This method return the result of [ManagedValidator.run]. You may override this method to provide additional validation
+  /// prior to insertion or deletion. If you override this method, you *must* invoke the super implementation to
+  /// validate property [Validate] metadata, e.g.:
+  ///
+  ///         bool validate({ValidateOperation forOperation: ValidateOperation.insert, List<String> collectErrorsIn}) {
+  ///           var valid = super(forOperation: forOperation, collectErrorsIn: collectErrorsIn);
+  ///
+  ///           if (a + b > 10) {
+  ///             valid = false;
+  ///             collectErrorsIn.add("a + b > 10");
+  ///           }
+  ///
+  ///           return valid;
+  ///         }
+  ///
+  /// [collectErrorsIn] is guaranteed to be a non-null [List] when this method is invoked by [Query.updateOne], [Query.update]
+  /// and [Query.insert]. It is not guaranteed to be non-null when invoked manually. This list is provided as a reference value
+  /// by the object performing the validation. Do not create a new [List] and pass
+  /// it to the superclass' implementation, as it will not be the same list the caller has access to.
+  bool validate({ValidateOperation forOperation: ValidateOperation.insert, List<String> collectErrorsIn}) {
+    return ManagedValidator.run(this, operation: forOperation, errors: collectErrorsIn);
+  }
+
   noSuchMethod(Invocation invocation) {
     if (invocation.isGetter) {
       var propertyName = MirrorSystem.getName(invocation.memberName);

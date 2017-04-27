@@ -3,7 +3,8 @@
 ## 2.1.0
 
 - Fixes race condition when stopping an application during test execution
-- Adds validation behavior to `ManagedObject`s using types `Validate` and `ManagedValidator`.
+- Adds validation behavior to `ManagedObject`s using `Validate` and `ManagedValidator` and `ManagedObject.validate`.
+- `ManagedObject`s now have callbacks `willUpdate` and `willInsert` to modify their values before updating and inserting.
 - Fixes issue with `aqueduct serve` on Windows.
 
 ## 2.0.3
