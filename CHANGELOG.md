@@ -4,6 +4,7 @@
 
 - Fixes race condition when stopping an application during test execution
 - Adds validation behavior to `ManagedObject`s using types `Validate` and `ManagedValidator`.
+- Fixes issue with `aqueduct serve` on Windows.
 
 ## 2.0.3
 
