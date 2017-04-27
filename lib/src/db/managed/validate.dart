@@ -15,7 +15,7 @@ class ManagedValidator {
   /// Called automatically when [Query] inserts or executes an object.
   ///
   /// Pass an empty list for [errors] to receive more details on any failed validations.
-  static bool validate(
+  static bool run(
       ManagedObject object, {ValidateOperation operation: ValidateOperation.insert, List<String> errors}) {
     errors ??= [];
 

@@ -98,6 +98,18 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
     return backingMap.containsKey(propertyName);
   }
 
+  void willUpdate() {
+
+  }
+
+  void willInsert() {
+
+  }
+
+  bool validate({ValidateOperation forOperation: ValidateOperation.insert, List<String> collectErrorsIn}) {
+    return ManagedValidator.run(this, operation: forOperation, errors: collectErrorsIn);
+  }
+
   noSuchMethod(Invocation invocation) {
     if (invocation.isGetter) {
       var propertyName = MirrorSystem.getName(invocation.memberName);
