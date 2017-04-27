@@ -258,13 +258,11 @@ class ManagedValidator {
   }
 
   static String _errorStringForOperation(ValidateOperation op) {
-    if (op == ValidateOperation.insert) {
-      return "insert";
-    } else if (op == ValidateOperation.update) {
-      return "update";
+    switch (op) {
+      case ValidateOperation.insert: return "insert";
+      case ValidateOperation.update: return "update";
+      default: return "unknown";
     }
-
-    return "unknown";
   }
 }
 
