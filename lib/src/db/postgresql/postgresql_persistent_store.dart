@@ -42,6 +42,18 @@ class PostgreSQLPersistentStore extends PersistentStore
   /// The time zone of the connection to the database this instance connects to.
   String timeZone = "UTC";
 
+  /// Whether or not the underlying database connection is open.
+  ///
+  /// Connections are automatically opened when a query is executed, so this property should not be used
+  /// under normal operation. See [getDatabaseConnection].
+  bool get isConnected {
+    if (_databaseConnection == null) {
+      return false;
+    }
+
+    return !_databaseConnection.isClosed;
+  }
+
   /// Amount of time to wait before connection fails to open.
   ///
   /// Defaults to 30 seconds.
