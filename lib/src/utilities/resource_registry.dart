@@ -1,13 +1,13 @@
 import 'dart:async';
 
 class ResourceRegistry {
-  static List<ResourceRegistration> _registrations = [];
+  static List<_ResourceRegistration> _registrations = [];
 
   static T add<T>(T object, Future onClose(T object)) {
     if (_registrations.any((r) => identical(r.object, object))) {
       return object;
     }
-    _registrations.add(new ResourceRegistration(object, onClose));
+    _registrations.add(new _ResourceRegistration(object, onClose));
     return object;
   }
 
@@ -23,8 +23,8 @@ class ResourceRegistry {
 
 typedef Future _CloseFunction<T>(T object);
 
-class ResourceRegistration<T> {
-  ResourceRegistration(this.object, this.onClose);
+class _ResourceRegistration<T> {
+  _ResourceRegistration(this.object, this.onClose);
 
   T object;
   _CloseFunction onClose;
