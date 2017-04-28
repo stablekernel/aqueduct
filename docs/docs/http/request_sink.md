@@ -52,7 +52,7 @@ static Future initializeApplication(ApplicationConfiguration config) async {
 
 A common use of this method is to set up resources that will be shared across isolates or unique persistent connections to remote services. This method can modify `ApplicationConfiguration` prior to `RequestSink` instances being created. This allows resources allocated during this one-time setup method can be accessible by each `RequestSink` instance.
 
-In its simplest form, `initializeApplication` will often read values from a configuration file and set them in the `ApplicationConfiguration.options` map. That looks like this:
+In its simplest form, `initializeApplication` will often read values from a [configuration file](configure.md) and set them in the `ApplicationConfiguration.options` map. That looks like this:
 
 ```dart
 static Future initializeApplication(ApplicationConfiguration config) async {        

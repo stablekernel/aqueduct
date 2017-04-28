@@ -4,6 +4,60 @@ This guide covers configuring an Aqueduct application.
 
 ## Configuration Files
 
+Aqueduct applications will likely use a YAML configuration file to provide environment-specific values like database connection information. Configuration is managed by the `aqueduct serve` command and your `RequestSink` subclass.
+
+The path to a configuration file may be passed to `aqueduct serve` with the `--config` option. This value defaults to `config.yaml`. When your application starts, the path to the configuration file is available in `ApplicationConfiguration.configurationFilePath`.
+
+The best practice for using a configuration file is to load its contents with [safe_config](https://pub.dartlang.org/packages/safe_config), which is automatically included as a dependency of Aqueduct applications. The documentation for this package is available at the link above, but the basic premise is to map a configuration file to a Dart object.
+
+In `RequestSink.initializeApplication`, the contents of the configuration file are read into an application-specific `ConfigurationItem`.
+
+```dart
+class MyRequestSink extends RequestSink {
+  static Future initializeApplication(ApplicationConfiguration config) async {    
+    var configFileValues = new MyConfiguration(config.configurationFilePath);
+    config.options[ConfigurationValuesKey] = configFileValues;    
+  }
+}
+
+class MyConfiguration extends ConfigurationItem {
+  MyConfiguration(String fileName) : super.fromFile(fileName);
+
+  String username;
+  String password;
+  String host;
+  String name;
+}
+```
+
+Each property of a `ConfigurationItem` must be a key in the loaded YAML configuration file. Thus, the above requires a YAML file like so:
+
+```
+username: abcdef
+password: foobar
+host: localhost
+name: appDB
+```
+
+In `initializeApplication`, the configuration file is parsed and added to `ApplicationConfiguration.options`. When each `RequestSink` isolate starts, the configuration item is available in the options passed to its constructor:
+
+```dart
+class MyRequestSink extends RequestSink {
+  static Future initializeApplication(ApplicationConfiguration config) async {    
+    var configFileValues = new MyConfiguration(config.configurationFilePath);
+    config.options["appOptions"] = configFileValues;    
+  }
+
+  MyRequestSink(ApplicationConfiguration config) : super(config) {
+    var options = config["appOptions"];
+    var store = new PostgreSQLPersistentStore.fromConnectionInfo(
+      options.username, options.password, options.host, 5432, options.name);
+  }
+}
+```
+
+The `safe_config` package has instructions for more complex configuration patterns and some built-in configuration types for things like database connections.
+
 ## Preventing Resource Leaks
 
 When an Aqueduct application starts, the application and its `RequestSink`s will likely open connections and streams that they use to respond to requests. In order for application tests to complete successfully, these connections and streams must be closed when the application stops. For built-in connections and streams, like `PostgreSQLPersistentStore`, this happens automatically when `Application.stop()` is invoked.
