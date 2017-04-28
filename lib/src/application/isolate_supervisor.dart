@@ -3,7 +3,6 @@ import 'dart:isolate';
 
 import 'package:logging/logging.dart';
 
-import '../utilities/resource_registry.dart';
 import 'application.dart';
 
 /// Represents the supervision of a [ApplicationIsolateServer].
@@ -66,7 +65,6 @@ class ApplicationIsolateSupervisor {
       isolate.kill();
     }
 
-    await ResourceRegistry.release();
     receivePort.close();
   }
 
