@@ -44,4 +44,5 @@ export 'src/auth/auth.dart';
 export 'src/db/db.dart';
 export 'src/http/http.dart';
 export 'src/utilities/pbkdf2.dart';
+export 'src/utilities/resource_registry.dart';
 

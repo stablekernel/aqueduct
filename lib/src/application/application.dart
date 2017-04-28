@@ -6,6 +6,7 @@ import 'dart:mirrors';
 import 'package:logging/logging.dart';
 
 import '../http/http.dart';
+import '../utilities/resource_registry.dart';
 import 'application_configuration.dart';
 import 'application_server.dart';
 import 'isolate_application_server.dart';
@@ -13,6 +14,7 @@ import 'isolate_supervisor.dart';
 
 export 'application_configuration.dart';
 export 'application_server.dart';
+
 
 /// A container for web server applications.
 ///
@@ -121,7 +123,11 @@ class Application<RequestSinkType extends RequestSink> {
     await Future.wait(supervisors.map((s) => s.stop()));
     supervisors = [];
 
-    return server?.server?.close(force: true);
+    await ResourceRegistry.release();
+
+    await server?.server?.close(force: true);
+
+    logger.clearListeners();
   }
 
   static Future<APIDocument> document(Type sinkType,

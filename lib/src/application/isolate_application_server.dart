@@ -3,6 +3,7 @@ import 'dart:isolate';
 import 'dart:mirrors';
 
 import '../http/request_sink.dart';
+import '../utilities/resource_registry.dart';
 import 'application.dart';
 import 'application_configuration.dart';
 import 'isolate_supervisor.dart';
@@ -29,20 +30,18 @@ class ApplicationIsolateServer extends ApplicationServer {
     return result;
   }
 
-
   void listener(dynamic message) {
     if (message == ApplicationIsolateSupervisor.MessageStop) {
-      supervisingReceivePort.close();
-      if (server != null) {
-        close().then((s) {
-          supervisingApplicationPort
-              .send(ApplicationIsolateSupervisor.MessageStop);
-        });
-      } else {
-        supervisingApplicationPort
-            .send(ApplicationIsolateSupervisor.MessageStop);
-      }
+      stop();
     }
+  }
+
+  Future stop() async {
+    supervisingReceivePort.close();
+    await close();
+    await ResourceRegistry.release();
+    supervisingApplicationPort
+        .send(ApplicationIsolateSupervisor.MessageStop);
   }
 }
 

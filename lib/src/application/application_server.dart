@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:logging/logging.dart';
-
 import '../http/request.dart';
 import '../http/request_sink.dart';
 import 'application.dart';
@@ -74,8 +73,9 @@ class ApplicationServer {
     await didOpen();
   }
 
-  Future close() {
-    return server?.close(force: true);
+  Future close() async {
+    await server?.close(force: true);
+    sink?.logger?.clearListeners();
   }
 
   /// Invoked when this server becomes ready receive requests.

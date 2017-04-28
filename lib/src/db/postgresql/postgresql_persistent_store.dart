@@ -1,6 +1,8 @@
 import 'package:logging/logging.dart';
 import 'package:postgres/postgres.dart';
 import 'dart:async';
+
+import '../../utilities/resource_registry.dart';
 import '../managed/managed.dart';
 import '../query/query.dart';
 import '../persistent_store/persistent_store.dart';
@@ -49,12 +51,16 @@ class PostgreSQLPersistentStore extends PersistentStore
   Completer<PostgreSQLConnection> _pendingConnectionCompleter;
 
   /// Creates an instance of this type from a manual function.
-  PostgreSQLPersistentStore(this.connectFunction) : super();
+  PostgreSQLPersistentStore(this.connectFunction) : super() {
+    ResourceRegistry.add<PostgreSQLPersistentStore>(this, (store) => store.close());
+  }
 
   /// Creates an instance of this type from connection info.
   PostgreSQLPersistentStore.fromConnectionInfo(
       this.username, this.password, this.host, this.port, this.databaseName,
       {this.timeZone: "UTC", bool useSSL: false}) {
+    ResourceRegistry.add<PostgreSQLPersistentStore>(this, (store) => store.close());
+
     this.connectFunction = () async {
       logger
           .info("PostgreSQL connecting, $username@$host:$port/$databaseName.");
