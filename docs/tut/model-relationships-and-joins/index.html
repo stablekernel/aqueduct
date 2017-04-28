@@ -851,7 +851,8 @@
 
 <span class="kd">class</span> <span class="nc">Answer</span> <span class="kd">extends</span> <span class="n">ManagedObject</span><span class="o">&lt;</span><span class="n">_Answer</span><span class="o">&gt;</span> <span class="kd">implements</span> <span class="n">_Answer</span> <span class="p">{}</span>
 <span class="kd">class</span> <span class="nc">_Answer</span> <span class="p">{</span>
-  <span class="err">@</span><span class="n">managedPrimaryKey</span> <span class="kt">int</span> <span class="n">id</span><span class="p">;</span>
+  <span class="err">@</span><span class="n">managedPrimaryKey</span>
+  <span class="kt">int</span> <span class="n">id</span><span class="p">;</span>
   <span class="kt">String</span> <span class="n">description</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
@@ -864,7 +865,8 @@
 
 <p>Now that we have a managed object that represents both a question and answer, we will set up a relationship between them. It logically makes sense that a 'question <em>has an</em> answer', so let's add that property to <code>_Question</code>, the persistent type of <code>Question</code>:</p>
 <div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">_Question</span> <span class="p">{</span>
-  <span class="err">@</span><span class="n">managedPrimaryKey</span> <span class="kt">int</span> <span class="n">index</span><span class="p">;</span>
+  <span class="err">@</span><span class="n">managedPrimaryKey</span>
+  <span class="kt">int</span> <span class="n">index</span><span class="p">;</span>
 
   <span class="kt">String</span> <span class="n">description</span><span class="p">;</span>
   <span class="n">Answer</span> <span class="n">answer</span><span class="p">;</span>
@@ -872,9 +874,10 @@
 </pre></div>
 
 
-<p>Yes, it was pretty much that simple. There is one more thing to do - for all relationships, we also must specify the <em>inverse relationship</em>. The inverse will be a property on <code>_Answer</code> that points back to the <code>Question</code> it is the answer for. In <code>_Answer</code>, add the inverse:</p>
+<p>For all relationships, we also must specify the <em>inverse relationship</em>. The inverse will be a property on <code>_Answer</code> that points back to the <code>Question</code> it is the answer for. In <code>_Answer</code>, add the inverse:</p>
 <div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">_Answer</span> <span class="p">{</span>
-  <span class="err">@</span><span class="n">managedPrimaryKey</span> <span class="kt">int</span> <span class="n">id</span><span class="p">;</span>
+  <span class="err">@</span><span class="n">managedPrimaryKey</span>
+  <span class="kt">int</span> <span class="n">id</span><span class="p">;</span>
   <span class="kt">String</span> <span class="n">description</span><span class="p">;</span>
 
   <span class="err">@</span><span class="n">ManagedRelationship</span><span class="p">(</span><span class="err">#</span><span class="n">answer</span><span class="p">)</span>
@@ -899,12 +902,13 @@
 
 
 <p>Now that we have defined this relationship, we can associate answers with questions and return them in our <code>/questions</code> endpoint. In <code>question_controller.dart</code>, let's update the queries to fetch the <code>Answer</code> for each <code>Question</code> and include it in the response JSON. First, for <code>getAllQuestions</code>, use <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/joinOne.html">joinOne()</a> to connect to <code>question.answer</code> for <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet/where.html">where</a>'s <code>answer</code>:</p>
-<div class="codehilite"><pre><span></span><span class="err">@</span><span class="n">httpGet</span> <span class="n">getAllQuestions</span><span class="p">({</span><span class="err">@</span><span class="n">HTTPQuery</span><span class="p">(</span><span class="s2">&quot;contains&quot;</span><span class="p">)</span> <span class="kt">String</span> <span class="nl">containsSubstring:</span> <span class="kc">null</span><span class="p">})</span> <span class="kd">async</span> <span class="p">{</span>
+<div class="codehilite"><pre><span></span><span class="err">@</span><span class="n">httpGet</span>
+<span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">getAllQuestions</span><span class="p">({</span><span class="err">@</span><span class="n">HTTPQuery</span><span class="p">(</span><span class="s2">&quot;contains&quot;</span><span class="p">)</span> <span class="kt">String</span> <span class="nl">containsSubstring:</span> <span class="kc">null</span><span class="p">})</span> <span class="kd">async</span> <span class="p">{</span>
   <span class="kd">var</span> <span class="n">questionQuery</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Question</span><span class="o">&gt;</span><span class="p">()</span>
     <span class="p">..</span><span class="n">joinOne</span><span class="p">((</span><span class="n">question</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="n">question</span><span class="p">.</span><span class="n">answer</span><span class="p">);</span>
 
   <span class="k">if</span> <span class="p">(</span><span class="n">containsSubstring</span> <span class="o">!=</span> <span class="kc">null</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">questionQuery</span><span class="p">.</span><span class="n">where</span><span class="p">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">whereContains</span><span class="p">(</span><span class="n">containsSubstring</span><span class="p">);</span>
+    <span class="n">questionQuery</span><span class="p">.</span><span class="n">where</span><span class="p">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">whereContainsString</span><span class="p">(</span><span class="n">containsSubstring</span><span class="p">);</span>
   <span class="p">}</span>
 
   <span class="kd">var</span> <span class="n">questions</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">questionQuery</span><span class="p">.</span><span class="n">fetch</span><span class="p">();</span>
@@ -943,6 +947,8 @@
 <p>The partial matcher here will just check to see if the 'answer' key is a map that contains a <code>String</code> 'description' value. The extraneous 'id' key won't cause a failure. If you run the tests now, this test will still fail - 'answer' in the JSON is null because there are no answers in the database. Let's insert some by replacing <code>setUp</code> in <code>question_controller_test.dart</code>:</p>
 <div class="codehilite"><pre><span></span><span class="n">setUp</span><span class="p">(()</span> <span class="kd">async</span> <span class="p">{</span>
   <span class="kd">await</span> <span class="n">app</span><span class="p">.</span><span class="n">start</span><span class="p">(</span><span class="nl">runOnMainIsolate:</span> <span class="kc">true</span><span class="p">);</span>
+  <span class="n">client</span> <span class="o">=</span> <span class="k">new</span> <span class="n">TestClient</span><span class="p">(</span><span class="n">app</span><span class="p">);</span>
+
   <span class="kd">var</span> <span class="n">ctx</span> <span class="o">=</span> <span class="n">ManagedContext</span><span class="p">.</span><span class="n">defaultContext</span><span class="p">;</span>
   <span class="kd">var</span> <span class="n">builder</span> <span class="o">=</span> <span class="k">new</span> <span class="n">SchemaBuilder</span><span class="p">.</span><span class="n">toSchema</span><span class="p">(</span><span class="n">ctx</span><span class="p">.</span><span class="n">persistentStore</span><span class="p">,</span> <span class="k">new</span> <span class="n">Schema</span><span class="p">.</span><span class="n">fromDataModel</span><span class="p">(</span><span class="n">ctx</span><span class="p">.</span><span class="n">dataModel</span><span class="p">),</span> <span class="nl">isTemporary:</span> <span class="kc">true</span><span class="p">);</span>
 
@@ -992,26 +998,13 @@
 </pre></div>
 
 
-<p>Now, running the tests against, the first one will succeed again. Update the test that checks a list of questions when sending a 'contains' query parameter to also ensure the answer is there:</p>
-<div class="codehilite"><pre><span></span><span class="n">test</span><span class="p">(</span><span class="s2">&quot;/questions returns list of questions filtered by contains&quot;</span><span class="p">,</span> <span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
-  <span class="kd">var</span> <span class="n">response</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">client</span><span class="p">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;/questions?contains=mountain&quot;</span><span class="p">).</span><span class="kd">get</span><span class="p">();</span>
-  <span class="n">expect</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="n">hasResponse</span><span class="p">(</span><span class="m">200</span><span class="p">,</span> <span class="p">[{</span>
-      <span class="s2">&quot;index&quot;</span> <span class="o">:</span> <span class="n">greaterThanOrEqualTo</span><span class="p">(</span><span class="m">0</span><span class="p">),</span>
-      <span class="s2">&quot;description&quot;</span> <span class="o">:</span> <span class="s2">&quot;What&#39;s the tallest mountain in the world?&quot;</span><span class="p">,</span>
-      <span class="s2">&quot;answer&quot;</span> <span class="o">:</span> <span class="n">partial</span><span class="p">({</span>
-        <span class="s2">&quot;description&quot;</span> <span class="o">:</span> <span class="s2">&quot;Mount Everest&quot;</span>
-      <span class="p">})</span>
-  <span class="p">}]));</span>
-  <span class="n">expect</span><span class="p">(</span><span class="n">response</span><span class="p">.</span><span class="n">decodedBody</span><span class="p">,</span> <span class="n">hasLength</span><span class="p">(</span><span class="m">1</span><span class="p">));</span>
-<span class="p">});</span>
-</pre></div>
-
-
-<p>All tests are back to passing.</p>
+<p>Now, running the tests against, the first one will succeed again. We'll leave it as an exercise to the user to update the remaining failing tests to check for an answer.</p>
 <h2 id="more-on-joins-and-relationships">More on Joins and Relationships</h2>
 <p>Has-many relationships are also available. For example, if you wanted many answers for a question, it'd be declared like so:</p>
 <div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">_Question</span> <span class="p">{</span>
-  <span class="err">@</span><span class="n">managedPrimaryKey</span> <span class="kt">int</span> <span class="n">index</span><span class="p">;</span>
+  <span class="err">@</span><span class="n">managedPrimaryKey</span>
+  <span class="kt">int</span> <span class="n">index</span><span class="p">;</span>
+
   <span class="kt">String</span> <span class="n">description</span><span class="p">;</span>
   <span class="n">ManagedSet</span><span class="o">&lt;</span><span class="n">Answer</span><span class="o">&gt;</span> <span class="n">answers</span><span class="p">;</span>
 <span class="p">}</span>

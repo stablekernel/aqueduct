@@ -4,7 +4,7 @@
     
     <url>
      <loc>/</loc>
-     <lastmod>2017-04-27</lastmod>
+     <lastmod>2017-04-28</lastmod>
      <changefreq>daily</changefreq>
     </url>
     
@@ -13,31 +13,31 @@
         
     <url>
      <loc>/tut/getting-started/</loc>
-     <lastmod>2017-04-27</lastmod>
+     <lastmod>2017-04-28</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/tut/writing-tests/</loc>
-     <lastmod>2017-04-27</lastmod>
+     <lastmod>2017-04-28</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/tut/executing-queries/</loc>
-     <lastmod>2017-04-27</lastmod>
+     <lastmod>2017-04-28</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/tut/model-relationships-and-joins/</loc>
-     <lastmod>2017-04-27</lastmod>
+     <lastmod>2017-04-28</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/tut/deploying-and-other-fun-things/</loc>
-     <lastmod>2017-04-27</lastmod>
+     <lastmod>2017-04-28</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
@@ -47,49 +47,49 @@
         
     <url>
      <loc>/http/overview/</loc>
-     <lastmod>2017-04-27</lastmod>
+     <lastmod>2017-04-28</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/http/structure/</loc>
-     <lastmod>2017-04-27</lastmod>
+     <lastmod>2017-04-28</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/http/request_and_response/</loc>
-     <lastmod>2017-04-27</lastmod>
+     <lastmod>2017-04-28</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/http/request_controller/</loc>
-     <lastmod>2017-04-27</lastmod>
+     <lastmod>2017-04-28</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/http/routing/</loc>
-     <lastmod>2017-04-27</lastmod>
+     <lastmod>2017-04-28</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/http/request_sink/</loc>
-     <lastmod>2017-04-27</lastmod>
+     <lastmod>2017-04-28</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/http/http_controller/</loc>
-     <lastmod>2017-04-27</lastmod>
+     <lastmod>2017-04-28</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/http/configure/</loc>
-     <lastmod>2017-04-27</lastmod>
+     <lastmod>2017-04-28</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
@@ -99,49 +99,49 @@
         
     <url>
      <loc>/db/overview/</loc>
-     <lastmod>2017-04-27</lastmod>
+     <lastmod>2017-04-28</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/db/modeling_data/</loc>
-     <lastmod>2017-04-27</lastmod>
+     <lastmod>2017-04-28</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/db/serialization/</loc>
-     <lastmod>2017-04-27</lastmod>
+     <lastmod>2017-04-28</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/db/executing_queries/</loc>
-     <lastmod>2017-04-27</lastmod>
+     <lastmod>2017-04-28</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/db/advanced_queries/</loc>
-     <lastmod>2017-04-27</lastmod>
+     <lastmod>2017-04-28</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/db/validations/</loc>
-     <lastmod>2017-04-27</lastmod>
+     <lastmod>2017-04-28</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/db/db_tools/</loc>
-     <lastmod>2017-04-27</lastmod>
+     <lastmod>2017-04-28</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/db/inside_the_db/</loc>
-     <lastmod>2017-04-27</lastmod>
+     <lastmod>2017-04-28</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
@@ -151,37 +151,37 @@
         
     <url>
      <loc>/auth/overview/</loc>
-     <lastmod>2017-04-27</lastmod>
+     <lastmod>2017-04-28</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/auth/server/</loc>
-     <lastmod>2017-04-27</lastmod>
+     <lastmod>2017-04-28</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/auth/authorizer/</loc>
-     <lastmod>2017-04-27</lastmod>
+     <lastmod>2017-04-28</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/auth/controllers/</loc>
-     <lastmod>2017-04-27</lastmod>
+     <lastmod>2017-04-28</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/auth/cli/</loc>
-     <lastmod>2017-04-27</lastmod>
+     <lastmod>2017-04-28</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/auth/what_is_oauth/</loc>
-     <lastmod>2017-04-27</lastmod>
+     <lastmod>2017-04-28</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
@@ -191,19 +191,19 @@
         
     <url>
      <loc>/testing/overview/</loc>
-     <lastmod>2017-04-27</lastmod>
+     <lastmod>2017-04-28</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/testing/harness/</loc>
-     <lastmod>2017-04-27</lastmod>
+     <lastmod>2017-04-28</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/testing/test_client/</loc>
-     <lastmod>2017-04-27</lastmod>
+     <lastmod>2017-04-28</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
@@ -213,31 +213,31 @@
         
     <url>
      <loc>/deploy/overview/</loc>
-     <lastmod>2017-04-27</lastmod>
+     <lastmod>2017-04-28</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/deploy/deploy_local/</loc>
-     <lastmod>2017-04-27</lastmod>
+     <lastmod>2017-04-28</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/deploy/deploy_heroku/</loc>
-     <lastmod>2017-04-27</lastmod>
+     <lastmod>2017-04-28</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/deploy/deploy_aws/</loc>
-     <lastmod>2017-04-27</lastmod>
+     <lastmod>2017-04-28</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/deploy/script/</loc>
-     <lastmod>2017-04-27</lastmod>
+     <lastmod>2017-04-28</lastmod>
      <changefreq>daily</changefreq>
     </url>
         

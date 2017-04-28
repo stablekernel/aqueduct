@@ -973,9 +973,11 @@ lib/
 <p>The way Aqueduct accomplishes testing is by starting an entire application, running the tests, then stopping the application. The library <code>aqueduct/test</code> has helpful utilities for testing Aqueduct applications. Declare a <code>setUp</code> and <code>tearDown</code> method to run before and after each test. After the import statements, add a <code>main</code> function with the appropriate setup and teardown code:</p>
 <div class="codehilite"><pre><span></span><span class="kt">void</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
   <span class="kd">var</span> <span class="n">app</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Application</span><span class="o">&lt;</span><span class="n">QuizRequestSink</span><span class="o">&gt;</span><span class="p">();</span>
+  <span class="n">TestClient</span> <span class="n">client</span><span class="p">;</span>
 
   <span class="n">setUp</span><span class="p">(()</span> <span class="kd">async</span> <span class="p">{</span>
     <span class="kd">await</span> <span class="n">app</span><span class="p">.</span><span class="n">start</span><span class="p">(</span><span class="nl">runOnMainIsolate:</span> <span class="kc">true</span><span class="p">);</span>
+    <span class="n">client</span> <span class="o">=</span> <span class="k">new</span> <span class="n">TestClient</span><span class="p">(</span><span class="n">app</span><span class="p">);</span>
   <span class="p">});</span>
 
   <span class="n">tearDown</span><span class="p">(()</span> <span class="kd">async</span> <span class="p">{</span>
@@ -988,36 +990,21 @@ lib/
 <p>The <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Application-class.html">Application</a> type has a type argument that must be a subclass of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> - specifically, the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> of your project. When running the application through <code>aqueduct serve</code>, an instance of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Application-class.html">Application&lt;T&gt;</a> is created for you. Running tests, you create it and start it yourself in <code>setup</code> and stop it <code>tearDown</code>. (In order for your tests to shut down properly, the application must be stopped in <code>tearDown</code>.)</p>
 <p>Notice also that <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Application/start.html">start</a> takes an optional argument, <code>runOnMainIsolate</code>. When this argument is true, an instance of your <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> is created on the main isolate and requests are received on the same isolate running the tests. This behavior is different than when using <code>aqueduct serve</code>, where one or more additional isolates are created and each has an instance of the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> that is accepting requests.</p>
 <p>During testing, running the application on the main isolate is very important. We'll see why a bit later, but the general idea is that your tests have access to the properties of a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> if and only if it is running on the main isolate.</p>
-<p>Now, we need to add a test to verify that hitting the <code>/questions</code> endpoint does return our definition of 'questions'. In Aqueduct, there is a utility called a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.test/TestClient-class.html">TestClient</a> to make this a lot easier. At the top of your main function, but after we create the application instance, declare a new variable:</p>
-<div class="codehilite"><pre><span></span><span class="kt">void</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
-  <span class="kd">var</span> <span class="n">app</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Application</span><span class="o">&lt;</span><span class="n">QuizRequestSink</span><span class="o">&gt;</span><span class="p">();</span>
-  <span class="kd">var</span> <span class="n">client</span> <span class="o">=</span> <span class="k">new</span> <span class="n">TestClient</span><span class="p">(</span><span class="n">app</span><span class="p">);</span>
-<span class="p">...</span>
-</pre></div>
-
-
-<p>A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.test/TestClient-class.html">TestClient</a> will execute HTTP requests on your behalf in your tests, and is configured to point at the running application. Testing an Aqueduct application is generally two steps: make a request and then verify you got the response you wanted. Let's create a new test and do the first step. Near the end of main, add the following test:</p>
+<p>Now, we need to add a test to verify that hitting the <code>/questions</code> endpoint does return our definition of 'questions'. A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.test/TestClient-class.html">TestClient</a> will execute HTTP requests on your behalf, and is configured to point at the running application. Testing an Aqueduct application is generally two steps: make a request and then verify you got the response you wanted. Let's create a new test and do the first step. Near the end of main, add the following test:</p>
 <div class="codehilite"><pre><span></span><span class="kt">void</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
   <span class="p">...</span>
 
   <span class="n">test</span><span class="p">(</span><span class="s2">&quot;/questions returns list of questions&quot;</span><span class="p">,</span> <span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
     <span class="kd">var</span> <span class="n">response</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">client</span><span class="p">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;/questions&quot;</span><span class="p">).</span><span class="kd">get</span><span class="p">();</span>
+    <span class="n">expect</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="n">hasResponse</span><span class="p">(</span><span class="m">200</span><span class="p">,</span> <span class="n">everyElement</span><span class="p">(</span><span class="n">endsWith</span><span class="p">(</span><span class="s2">&quot;?&quot;</span><span class="p">))));</span>
   <span class="p">});</span>
 <span class="p">}</span>
 </pre></div>
 
 
-<p>If you run this test file now, an instance of your application will spin up on the main isolate, and your first test will execute a GET <code>http://localhost:8081/questions</code>, then your application will be torn down. Of course, we don't verify anything about the response, so we should actually do something there.</p>
-<p>The value of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPBodyDecoderException/response.html">response</a> in the previous code snippet is an instance of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.test/TestResponse-class.html">TestResponse</a>. Dart tests use the Hamcrest style matchers in their expectations. There are built-in matchers in Aqueduct for setting up and matching expectations on <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.test/TestResponse-class.html">TestResponse</a> instances. For example, if we wanted to verify that we got a 404 back, we'd simply do:</p>
+<p>This test executes the request <code>GET http://localhost:8081/questions</code> and ensures that the response's status code is 200 and the body is a list of strings that all end in '?'.</p>
+<p>The value of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPBodyDecoderException/response.html">response</a> in the previous code snippet is an instance of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.test/TestResponse-class.html">TestResponse</a>. Dart tests use the Hamcrest style matchers in their expectations. There are built-in matchers in Aqueduct for setting up and matching expectations on <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.test/TestResponse-class.html">TestResponse</a> instances. For example, if we wanted to verify that we got a 404 back, we'd do this:</p>
 <div class="codehilite"><pre><span></span>  <span class="n">expect</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="n">hasStatus</span><span class="p">(</span><span class="m">404</span><span class="p">));</span>
-</pre></div>
-
-
-<p>But here, we want to verify that we get back a 200 and that the response body is a list of questions. Add the following code to the end of the test:</p>
-<div class="codehilite"><pre><span></span><span class="n">test</span><span class="p">(</span><span class="s2">&quot;/questions returns list of questions&quot;</span><span class="p">,</span> <span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
-  <span class="kd">var</span> <span class="n">response</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">client</span><span class="p">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;/questions&quot;</span><span class="p">).</span><span class="kd">get</span><span class="p">();</span>
-  <span class="n">expect</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="n">hasResponse</span><span class="p">(</span><span class="m">200</span><span class="p">,</span> <span class="n">everyElement</span><span class="p">(</span><span class="n">endsWith</span><span class="p">(</span><span class="s2">&quot;?&quot;</span><span class="p">))));</span>
-<span class="p">});</span>
 </pre></div>
 
 
