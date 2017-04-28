@@ -121,9 +121,11 @@ The way Aqueduct accomplishes testing is by starting an entire application, runn
 ```dart
 void main() {
   var app = new Application<QuizRequestSink>();
+  TestClient client;
 
   setUp(() async {
     await app.start(runOnMainIsolate: true);
+    client = new TestClient(app);
   });
 
   tearDown(() async {
@@ -138,16 +140,7 @@ Notice also that `start` takes an optional argument, `runOnMainIsolate`. When th
 
 During testing, running the application on the main isolate is very important. We'll see why a bit later, but the general idea is that your tests have access to the properties of a `RequestSink` if and only if it is running on the main isolate.
 
-Now, we need to add a test to verify that hitting the `/questions` endpoint does return our definition of 'questions'. In Aqueduct, there is a utility called a `TestClient` to make this a lot easier. At the top of your main function, but after we create the application instance, declare a new variable:
-
-```dart
-void main() {
-  var app = new Application<QuizRequestSink>();
-  var client = new TestClient(app);
-...
-```
-
-A `TestClient` will execute HTTP requests on your behalf in your tests, and is configured to point at the running application. Testing an Aqueduct application is generally two steps: make a request and then verify you got the response you wanted. Let's create a new test and do the first step. Near the end of main, add the following test:
+Now, we need to add a test to verify that hitting the `/questions` endpoint does return our definition of 'questions'. A `TestClient` will execute HTTP requests on your behalf, and is configured to point at the running application. Testing an Aqueduct application is generally two steps: make a request and then verify you got the response you wanted. Let's create a new test and do the first step. Near the end of main, add the following test:
 
 ```dart
 void main() {
@@ -155,25 +148,17 @@ void main() {
 
   test("/questions returns list of questions", () async {
     var response = await client.request("/questions").get();
+    expect(response, hasResponse(200, everyElement(endsWith("?"))));
   });
 }
 ```
 
-If you run this test file now, an instance of your application will spin up on the main isolate, and your first test will execute a GET `http://localhost:8081/questions`, then your application will be torn down. Of course, we don't verify anything about the response, so we should actually do something there.
+This test executes the request `GET http://localhost:8081/questions` and ensures that the response's status code is 200 and the body is a list of strings that all end in '?'.
 
-The value of `response` in the previous code snippet is an instance of `TestResponse`. Dart tests use the Hamcrest style matchers in their expectations. There are built-in matchers in Aqueduct for setting up and matching expectations on `TestResponse` instances. For example, if we wanted to verify that we got a 404 back, we'd simply do:
+The value of `response` in the previous code snippet is an instance of `TestResponse`. Dart tests use the Hamcrest style matchers in their expectations. There are built-in matchers in Aqueduct for setting up and matching expectations on `TestResponse` instances. For example, if we wanted to verify that we got a 404 back, we'd do this:
 
 ```dart
   expect(response, hasStatus(404));
-```
-
-But here, we want to verify that we get back a 200 and that the response body is a list of questions. Add the following code to the end of the test:
-
-```dart
-test("/questions returns list of questions", () async {
-  var response = await client.request("/questions").get();
-  expect(response, hasResponse(200, everyElement(endsWith("?"))));
-});
 ```
 
 Now, make sure you shut down your application if you were running it from a previous chapter. To run a test file in Atom, you can do two things: manually hit Cmd-Shift-P and type in run test or use the keyboard shortcut, Cmd-Option-Ctrl-T. The test results will appear in a panel. (Make sure you save your test file first!  Atom currently isn't great at displaying test results. A more powerful option is IntelliJ IDEA Community Edition, but Atom is a lot friendlier for a tutorial.)

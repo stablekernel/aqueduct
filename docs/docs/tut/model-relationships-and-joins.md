@@ -7,7 +7,8 @@ import 'package:quiz/quiz.dart';
 
 class Answer extends ManagedObject<_Answer> implements _Answer {}
 class _Answer {
-  @managedPrimaryKey int id;
+  @managedPrimaryKey
+  int id;
   String description;
 }
 
@@ -23,18 +24,20 @@ Now that we have a managed object that represents both a question and answer, we
 
 ```dart
 class _Question {
-  @managedPrimaryKey int index;
+  @managedPrimaryKey
+  int index;
 
   String description;
   Answer answer;
 }
 ```
 
-Yes, it was pretty much that simple. There is one more thing to do - for all relationships, we also must specify the *inverse relationship*. The inverse will be a property on `_Answer` that points back to the `Question` it is the answer for. In `_Answer`, add the inverse:
+For all relationships, we also must specify the *inverse relationship*. The inverse will be a property on `_Answer` that points back to the `Question` it is the answer for. In `_Answer`, add the inverse:
 
 ```dart
 class _Answer {
-  @managedPrimaryKey int id;
+  @managedPrimaryKey
+  int id;
   String description;
 
   @ManagedRelationship(#answer)
@@ -64,12 +67,13 @@ class _Answer {
 Now that we have defined this relationship, we can associate answers with questions and return them in our `/questions` endpoint. In `question_controller.dart`, let's update the queries to fetch the `Answer` for each `Question` and include it in the response JSON. First, for `getAllQuestions`, use `joinOne()` to connect to `question.answer` for `where`'s `answer`:
 
 ```dart
-@httpGet getAllQuestions({@HTTPQuery("contains") String containsSubstring: null}) async {
+@httpGet
+Future<Response> getAllQuestions({@HTTPQuery("contains") String containsSubstring: null}) async {
   var questionQuery = new Query<Question>()
     ..joinOne((question) => question.answer);
 
   if (containsSubstring != null) {
-    questionQuery.where.description = whereContains(containsSubstring);
+    questionQuery.where.description = whereContainsString(containsSubstring);
   }
 
   var questions = await questionQuery.fetch();
@@ -111,6 +115,8 @@ The partial matcher here will just check to see if the 'answer' key is a map tha
 ```dart
 setUp(() async {
   await app.start(runOnMainIsolate: true);
+  client = new TestClient(app);
+
   var ctx = ManagedContext.defaultContext;
   var builder = new SchemaBuilder.toSchema(ctx.persistentStore, new Schema.fromDataModel(ctx.dataModel), isTemporary: true);
 
@@ -166,23 +172,7 @@ insertQuery = new Query<Answer>()
   ..values.question.id = 1;
 ```
 
-Now, running the tests against, the first one will succeed again. Update the test that checks a list of questions when sending a 'contains' query parameter to also ensure the answer is there:
-
-```dart
-test("/questions returns list of questions filtered by contains", () async {
-  var response = await client.request("/questions?contains=mountain").get();
-  expect(response, hasResponse(200, [{
-      "index" : greaterThanOrEqualTo(0),
-      "description" : "What's the tallest mountain in the world?",
-      "answer" : partial({
-        "description" : "Mount Everest"
-      })
-  }]));
-  expect(response.decodedBody, hasLength(1));
-});
-```
-
-All tests are back to passing.
+Now, running the tests against, the first one will succeed again. We'll leave it as an exercise to the user to update the remaining failing tests to check for an answer.
 
 More on Joins and Relationships
 ---
@@ -191,7 +181,9 @@ Has-many relationships are also available. For example, if you wanted many answe
 
 ```dart
 class _Question {
-  @managedPrimaryKey int index;
+  @managedPrimaryKey
+  int index;
+
   String description;
   ManagedSet<Answer> answers;
 }
