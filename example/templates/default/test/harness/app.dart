@@ -65,7 +65,6 @@ class TestApplication {
   ///
   /// This method must be called during test tearDown.
   Future stop() async {
-    application.logger.clearListeners();
     await application?.stop();
   }
 

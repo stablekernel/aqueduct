@@ -229,7 +229,7 @@ class CLITemplateCreator extends CLICommand {
         new File(path_lib.join(destDirectoryPath, "pubspec.yaml"));
     var contents = pubspecFile.readAsStringSync();
 
-    contents = contents.replaceFirst("aqueduct: \"^2.0.0\"", aqueductVersion);
+    contents = contents.replaceFirst("aqueduct: ^2.0.0", aqueductVersion);
 
     pubspecFile.writeAsStringSync(contents);
   }

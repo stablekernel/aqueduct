@@ -79,7 +79,6 @@ main() {
     });
 
     test("Isolate timeout kills application when first isolate succeeds, but next fails", () async {
-      print("final test");
       var timeoutApp = new Application<TimeoutSink>()
         ..isolateStartupTimeout = new Duration(seconds: 2)
         ..configuration.options = {

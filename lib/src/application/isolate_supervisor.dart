@@ -64,6 +64,7 @@ class ApplicationIsolateSupervisor {
       logger?.severe("Isolate ($identifier) not responding to stop message, terminating.");
       isolate.kill();
     }
+
     receivePort.close();
   }
 

@@ -175,7 +175,12 @@ class LoggingConfiguration extends ConfigurationItem {
         _loggingServer =
             new LoggingServer([new RotatingLoggingBackend(logPath)]);
       }
+
+      if (_loggingServer != null) {
+        ResourceRegistry.add(_loggingServer, (l) => l.stop());
+      }
     }
+
     return _loggingServer;
   }
 }
