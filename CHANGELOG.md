@@ -1,5 +1,9 @@
 # aqueduct changelog
 
+## 2.1.1
+
+- Adds `ResourceRegistry`: tracks port-consuming resources like database connections to ensure they are closed when an application shuts down during testing.
+
 ## 2.1.0
 
 - Fixes race condition when stopping an application during test execution
