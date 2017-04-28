@@ -16,7 +16,6 @@ class ResourceRegistry {
   }
 
   static Future release() async {
-    print("Will close $_registrations");
     await Future.wait(_registrations.map((r) => r.close()));
     _registrations = [];
   }
@@ -33,6 +32,4 @@ class _ResourceRegistration<T> {
   Future close() {
     return onClose(object);
   }
-
-  String toString() => "ResourceRegistration: $object";
 }
