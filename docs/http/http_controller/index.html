@@ -399,8 +399,8 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#responder-methods" title="Responder Methods" class="md-nav__link">
-    Responder Methods
+  <a href="#responder-methods-and-parameter-binding" title="Responder Methods and Parameter Binding" class="md-nav__link">
+    Responder Methods and Parameter Binding
   </a>
   
 </li>
@@ -408,13 +408,6 @@
         <li class="md-nav__item">
   <a href="#request-and-response-bodies" title="Request and Response Bodies" class="md-nav__link">
     Request and Response Bodies
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#query-and-header-values" title="Query and Header Values" class="md-nav__link">
-    Query and Header Values
   </a>
   
 </li>
@@ -838,8 +831,8 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#responder-methods" title="Responder Methods" class="md-nav__link">
-    Responder Methods
+  <a href="#responder-methods-and-parameter-binding" title="Responder Methods and Parameter Binding" class="md-nav__link">
+    Responder Methods and Parameter Binding
   </a>
   
 </li>
@@ -847,13 +840,6 @@
         <li class="md-nav__item">
   <a href="#request-and-response-bodies" title="Request and Response Bodies" class="md-nav__link">
     Request and Response Bodies
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#query-and-header-values" title="Query and Header Values" class="md-nav__link">
-    Query and Header Values
   </a>
   
 </li>
@@ -888,10 +874,9 @@
               
                 
                 <h1 id="httpcontroller">HTTPController</h1>
-<p>The overwhelming majority of Aqueduct code is written in subclasses of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a>. Instances of this class receive requests for a particular resource. For example, an <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a> might handle requests to create, update, delete, read and list users.</p>
-<p>An <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a> works by selecting one of its methods to respond to a request. This selection is based on the HTTP method and path variables of the request. For example, a <code>POST /users</code> would trigger a <code>createUser</code> method to be invoked, whereas a <code>GET /users/1</code> would trigger its <code>getUserByID</code> method. The names of these methods are up to you; the method that gets called is determined by metadata on the method and its parameters.</p>
-<h3 id="responder-methods">Responder Methods</h3>
-<p>A method that handles a request in an <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a> subclass is called a <em>responder method</em>. To be a responder method, a method must return a <code>Future&lt;Response&gt;</code> and have <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPMethod-class.html">HTTPMethod</a> metadata. Here's an example:</p>
+<p>Most Aqueduct code is written in subclasses of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a>. Instances of this class receive requests for a particular resource. For example, an <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a> might handle requests to create, update, delete, read and list users. <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a> is subclassed to implement an instance method for each one of these operations. For example, a <code>POST /users</code> would trigger a <code>createUser</code> method, whereas a <code>GET /users/1</code> would trigger its <code>getUserByID</code> method. The names of these methods are up to you; the method that gets called is determined by metadata on the method and its parameters.</p>
+<h3 id="responder-methods-and-parameter-binding">Responder Methods and Parameter Binding</h3>
+<p>These methods are called <em>responder methods</em>. A responder method must return a <code>Future&lt;Response&gt;</code> and have <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPMethod-class.html">HTTPMethod</a> metadata. Here's an example:</p>
 <div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">UserController</span> <span class="kd">extends</span> <span class="n">HTTPController</span> <span class="p">{</span>
   <span class="err">@</span><span class="n">httpGet</span>
   <span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">getAllUsers</span><span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
@@ -907,33 +892,91 @@
 </pre></div>
 
 
-<p>A responder method may have parameters that further qualify its selection based on the path of the HTTP request. For example, the following controller may respond to both <code>GET /users</code> and <code>GET /users/1</code>:</p>
+<p>If a request is sent to an <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a> and there isn't a responder method with matching <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPMethod-class.html">HTTPMethod</a> metadata, a 405 response is sent and no method is invoked.</p>
+<p>Each responder method can <em>bind</em> values from the HTTP request to its arguments. The following responder method binds the value from the path variable <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIOperation/id.html">id</a>:</p>
+<div class="codehilite"><pre><span></span><span class="err">@</span><span class="n">httpGet</span>
+<span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">getOneUser</span><span class="p">(</span><span class="err">@</span><span class="n">HTTPPath</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">)</span> <span class="kt">int</span> <span class="n">id</span><span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="kd">await</span> <span class="n">getAUserFromDatabaseByID</span><span class="p">(</span><span class="n">id</span><span class="p">));</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>When a <a href="router.md">route contains a path variable</a> (like <code>/users/:id</code>), the value of that path variable will be available in the argument. It is often the case that a path variable is an optional part of a route (like <code>/users/[:id]</code>). Thus, the request <code>/users</code> and <code>/users/:id</code> get sent to the same controller. There must be a responder method for both variants. For example, the following controller may respond to both <code>GET /users</code> and <code>GET /users/1</code>:</p>
 <div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">UserController</span> <span class="kd">extends</span> <span class="n">HTTPController</span> <span class="p">{</span>
   <span class="err">@</span><span class="n">httpGet</span>
   <span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">getAllUsers</span><span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
-    <span class="k">return</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="kd">await</span> <span class="n">getUsersFromDatabase</span><span class="p">());</span>
+    <span class="c1">// invoked with path is /users</span>
   <span class="p">}</span>
 
   <span class="err">@</span><span class="n">httpGet</span>
   <span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">getOneUser</span><span class="p">(</span><span class="err">@</span><span class="n">HTTPPath</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">)</span> <span class="kt">int</span> <span class="n">id</span><span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>
-    <span class="k">return</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="kd">await</span> <span class="n">getAUserFromDatabaseByID</span><span class="p">(</span><span class="n">id</span><span class="p">));</span>
+    <span class="c1">// invoked with path is /users/:id</span>
   <span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
 
 
-<p>For this controller to work correctly, it must be hooked up to a route with an optional <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIOperation/id.html">id</a> path variable:</p>
-<div class="codehilite"><pre><span></span><span class="n">router</span>
-  <span class="p">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/users/[:id]&quot;</span><span class="p">)</span>
-  <span class="p">.</span><span class="n">generate</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="k">new</span> <span class="n">UserController</span><span class="p">());</span>
+<p><a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPPath-class.html">HTTPPath</a>'s argument is the name of the path variable as it is declared in the route. For example, if the route is <code>/thing/:abcdef</code>, <code>HTTPPath("abcdef")</code> binds the path variable. The actual argument can be named whatever you want - you don't have to name it the same as the path variable.</p>
+<p>The <em>type</em> of the path binding can be a <code>String</code> or any type that has a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/AuthorizationBasicParser/parse.html">parse</a> method ( like <code>int</code>, <code>double</code>, and <code>DateTime</code>). When the path binding is not a <code>String</code>, the value of the path variable is parsed according to its type. If parsing fails, the responder method is not invoked and a 404 Not Found response is returned.</p>
+<p>Query string parameters and header values may also be bound to responder methods with <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPQuery-class.html">HTTPQuery</a> and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPHeader-class.html">HTTPHeader</a> metadata. The following responder method will bind the query strings parameters <code>limit</code> and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/offset.html">offset</a> to <code>numberOfThings</code> and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/offset.html">offset</a>:</p>
+<div class="codehilite"><pre><span></span><span class="err">@</span><span class="n">httpGet</span>
+<span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">getThing</span><span class="p">(</span>
+  <span class="err">@</span><span class="n">HTTPQuery</span><span class="p">(</span><span class="s2">&quot;limit&quot;</span><span class="p">)</span> <span class="kt">int</span> <span class="n">numberOfThings</span><span class="p">,</span>
+  <span class="err">@</span><span class="n">HTTPQuery</span><span class="p">(</span><span class="s2">&quot;offset&quot;</span><span class="p">)</span> <span class="kt">int</span> <span class="n">offset</span><span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="n">things</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">getThingsBetween</span><span class="p">(</span><span class="n">offset</span><span class="p">,</span> <span class="n">offset</span> <span class="o">+</span> <span class="n">numberOfThings</span><span class="p">);</span>
+    <span class="k">return</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="n">things</span><span class="p">);</span>
+<span class="p">}</span>
 </pre></div>
 
 
-<p>Notice that the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIOperation/id.html">id</a> parameter in <code>getOneUser</code> has <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPPath-class.html">HTTPPath</a> metadata. The argument to <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPPath-class.html">HTTPPath</a> must be the name of the path variable in the route. In this example, the path variable is <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIOperation/id.html">id</a> and the argument to <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPPath-class.html">HTTPPath</a> is the same. When a <code>GET</code> request is delivered to the controller in this example, it is checked for the path variable <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIOperation/id.html">id</a>: if it exists, <code>getOneUser</code> is invoked, otherwise <code>getAllUsers</code> is invoked.</p>
-<p>The value of an <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPPath-class.html">HTTPPath</a> parameter will be equal to value of the variable in the incoming request path. A path variable is a <code>String</code>, but an <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPPath-class.html">HTTPPath</a> parameter can be another type and the value will be parsed into that type. Any type that has a static <code>parse(String)</code> method can be used as a path variable. If the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPPath-class.html">HTTPPath</a> parameter is a <code>String</code>, no parsing occurs.</p>
-<p>A responder method may have multiple <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPPath-class.html">HTTPPath</a> parameters and the order does not matter. If no responder method exists for the incoming HTTP method, a 405 status code is returned. An <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a> will always respond to a request.</p>
+<p>For example, if the request was <code>/?limit=10&amp;offset=0</code>, the values of <code>numberOfThings</code> and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/offset.html">offset</a> are 10 and 1. In this above method, both <code>limit</code> and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/offset.html">offset</a> are <em>required</em>. If one or both are values are missing from the query string in a request, the responder method is not called and a 400 Bad Request response is sent.</p>
+<p>Query parameters can be made optional by moving them to the optional part of the method signature. Thus, the following method still requires <code>limit</code>, but if <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/offset.html">offset</a> is omitted, its value defaults to 0:</p>
+<div class="codehilite"><pre><span></span><span class="err">@</span><span class="n">httpGet</span>
+<span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">getThing</span><span class="p">(</span>
+  <span class="err">@</span><span class="n">HTTPQuery</span><span class="p">(</span><span class="s2">&quot;limit&quot;</span><span class="p">)</span> <span class="kt">int</span> <span class="n">numberOfThings</span><span class="p">,</span>
+  <span class="p">{</span><span class="err">@</span><span class="n">HTTPQuery</span><span class="p">(</span><span class="s2">&quot;offset&quot;</span><span class="p">)</span> <span class="kt">int</span> <span class="nl">offset:</span> <span class="m">0</span><span class="p">})</span> <span class="kd">async</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="n">things</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">getThingsBetween</span><span class="p">(</span><span class="n">offset</span><span class="p">,</span> <span class="n">offset</span> <span class="o">+</span> <span class="n">numberOfThings</span><span class="p">);</span>
+    <span class="k">return</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="n">things</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>The argument to <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPQuery-class.html">HTTPQuery</a> is case-sensitive.</p>
+<p>Headers are bound in the same way using <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPHeader-class.html">HTTPHeader</a> metadata. Unlike <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPQuery-class.html">HTTPQuery</a>, <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPHeader-class.html">HTTPHeader</a>s are compared case-insensitively. Here's an example of a responder method that takes an <code>X-Timestamp</code> header:</p>
+<div class="codehilite"><pre><span></span><span class="err">@</span><span class="n">httpGet</span>
+<span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">getThings</span><span class="p">(</span>
+  <span class="p">{</span><span class="err">@</span><span class="n">HTTPHeader</span><span class="p">(</span><span class="s2">&quot;x-timestamp&quot;</span><span class="p">)</span> <span class="n">DateTime</span> <span class="n">timestamp</span><span class="p">})</span> <span class="kd">async</span> <span class="p">{</span>
+    <span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>An <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a>s properties may also have <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPQuery-class.html">HTTPQuery</a> and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPHeader-class.html">HTTPHeader</a> metadata. This binds values from the request to the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a> instance itself, making them accessible from <em>all</em> responder methods.</p>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">ThingController</span> <span class="kd">extends</span> <span class="n">HTTPController</span> <span class="p">{</span>
+  <span class="err">@</span><span class="n">requiredHTTPParameter</span>
+  <span class="err">@</span><span class="n">HTTPHeader</span><span class="p">(</span><span class="s2">&quot;x-timestamp&quot;</span><span class="p">)</span>
+  <span class="n">DateTime</span> <span class="n">timestamp</span><span class="p">;</span>
+
+  <span class="err">@</span><span class="n">HTTPQuery</span><span class="p">(</span><span class="s2">&quot;limit&quot;</span><span class="p">)</span>
+  <span class="kt">int</span> <span class="n">limit</span><span class="p">;</span>
+
+  <span class="err">@</span><span class="n">httpGet</span>
+  <span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">getThings</span><span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
+      <span class="c1">// can use both limit and timestamp</span>
+  <span class="p">}</span>
+
+  <span class="err">@</span><span class="n">httpGet</span>
+  <span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">getThing</span><span class="p">(</span><span class="err">@</span><span class="n">HTTPPath</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">)</span> <span class="kt">int</span> <span class="n">id</span><span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>
+      <span class="c1">// can use both limit and timestamp</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>In the above, both <code>timestamp</code> and <code>limit</code> are bound prior to <code>getThing</code> and <code>getThings</code> being invoked. By default, a bound property is optional but can have additional <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/requiredHTTPParameter-constant.html">requiredHTTPParameter</a> metadata. If required, any request without the required property fails with a 400 Bad Request status code and none of the responder methods are invoked.</p>
+<p>Aqueduct treats <code>POST</code> and <code>PUT</code> requests with <code>application/x-www-form-urlencoded</code> content type as query strings, so the body of the request can be bound to <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPQuery-class.html">HTTPQuery</a> parameters.</p>
 <h3 id="request-and-response-bodies">Request and Response Bodies</h3>
-<p>An <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a> limits the content type of HTTP request bodies it accepts. By default, an <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a> will accept both <code>application/json</code> and <code>application/x-www-form-urlencoded</code> request bodies for its <code>POST</code> and <code>PUT</code> methods. This can be modified by setting the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController/acceptedContentTypes.html">acceptedContentTypes</a> property in the constructor.</p>
+<p>An <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a> can limit the content type of HTTP request bodies it accepts. By default, an <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a> will accept both <code>application/json</code> and <code>application/x-www-form-urlencoded</code> request bodies for its <code>POST</code> and <code>PUT</code> methods. This can be modified by setting the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController/acceptedContentTypes.html">acceptedContentTypes</a> property in the constructor.</p>
 <div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">UserController</span> <span class="kd">extends</span> <span class="n">HTTPController</span> <span class="p">{</span>
   <span class="n">UserController</span><span class="p">()</span> <span class="p">{</span>
     <span class="n">acceptedContentTypes</span> <span class="o">=</span> <span class="p">[</span><span class="n">ContentType</span><span class="p">.</span><span class="n">JSON</span><span class="p">,</span> <span class="n">ContentType</span><span class="p">.</span><span class="n">XML</span><span class="p">];</span>
@@ -942,8 +985,8 @@
 </pre></div>
 
 
-<p>If a request is made with a content type other than the accepted content types, the controller automatically responds with a unsupported media type (status code 415) response.</p>
-<p>The body of an HTTP request is decoded if the content type is supported and there exists a responder method to handle the request. This means two things. First, the body is not decoded if the request is going to be discarded because no responder method was found.</p>
+<p>If a request is made with a content type other than the accepted content types, the controller automatically responds with a 415 Unsupported Media Type response.</p>
+<p>The body of an HTTP request is decoded if the content type is accepted and there exists a responder method to handle the request. This means two things. First, the body is not decoded if the request is going to be discarded because no responder method was found.</p>
 <p>Second, methods on <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPBody-class.html">HTTPBody</a> have two flavors: those that return the contents as a <code>Future</code> or those that return the already decoded body. Responder methods can access the already decoded body without awaiting on the <code>Future</code>-flavored variants of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPBody-class.html">HTTPBody</a>:</p>
 <div class="codehilite"><pre><span></span><span class="err">@</span><span class="n">httpPost</span>
 <span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">createThing</span><span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
@@ -958,7 +1001,7 @@
 </pre></div>
 
 
-<p>An <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a> can also have a default content type for its response bodies. By default, this is <code>application/json</code> - any response body is encoded to JSON. This default can be changed by changing <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController/responseContentType.html">responseContentType</a> in the constructor:</p>
+<p>An <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a> can also have a default content type for its <em>response</em> bodies. By default, this is <code>application/json</code> - any response body returned as JSON. This default can be changed by changing <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController/responseContentType.html">responseContentType</a> in the constructor:</p>
 <div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">UserController</span> <span class="kd">extends</span> <span class="n">HTTPController</span> <span class="p">{</span>
   <span class="n">UserController</span><span class="p">()</span> <span class="p">{</span>
     <span class="n">responseContentType</span> <span class="o">=</span> <span class="n">ContentType</span><span class="p">.</span><span class="n">XML</span><span class="p">;</span>
@@ -987,80 +1030,8 @@
 </pre></div>
 
 
-<h3 id="query-and-header-values">Query and Header Values</h3>
-<p>The <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request-class.html">Request</a> being processed can always be accessed through the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController/request.html">request</a> property of a controller. For example, if you want to check for a particular header:</p>
-<div class="codehilite"><pre><span></span><span class="err">@</span><span class="n">httpGet</span>
-<span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">getThing</span><span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
-  <span class="k">if</span> <span class="p">(</span><span class="n">request</span><span class="p">.</span><span class="n">innerRequest</span><span class="p">.</span><span class="n">headers</span><span class="p">.</span><span class="n">value</span><span class="p">(</span><span class="s2">&quot;X-Header&quot;</span><span class="p">)</span> <span class="o">!=</span> <span class="kc">null</span><span class="p">)</span> <span class="p">{</span>
-    <span class="p">...</span>
-  <span class="p">}</span>
-
-  <span class="k">return</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(...);</span>
-<span class="p">}</span>
-</pre></div>
-
-
-<p><a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a>s can help when reading header and query parameter values from a request. A responder method can have additional parameters with either <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPQuery-class.html">HTTPQuery</a> or <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPHeader-class.html">HTTPHeader</a> metadata. For example:</p>
-<div class="codehilite"><pre><span></span><span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">getThing</span><span class="p">(</span>
-  <span class="err">@</span><span class="n">HTTPQuery</span><span class="p">(</span><span class="s2">&quot;limit&quot;</span><span class="p">)</span> <span class="kt">int</span> <span class="n">numberOfThings</span><span class="p">,</span>
-  <span class="err">@</span><span class="n">HTTPQuery</span><span class="p">(</span><span class="s2">&quot;offset&quot;</span><span class="p">)</span> <span class="kt">int</span> <span class="n">offset</span><span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>
-    <span class="kd">var</span> <span class="n">things</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">getThingsBetween</span><span class="p">(</span><span class="n">offset</span><span class="p">,</span> <span class="n">offset</span> <span class="o">+</span> <span class="n">numberOfThings</span><span class="p">);</span>
-    <span class="k">return</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="n">things</span><span class="p">);</span>
-<span class="p">}</span>
-</pre></div>
-
-
-<p>If the request <code>/things?limit=10&amp;offset=20</code> is handled by this method, <code>numberOfThings</code> will be 10 and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/offset.html">offset</a> will be 20. <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPQuery-class.html">HTTPQuery</a> and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPHeader-class.html">HTTPHeader</a> parameters, like <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPPath-class.html">HTTPPath</a> parameters, are always strings but can be parsed into types that implement <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/AuthorizationBasicParser/parse.html">parse</a>. <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPHeader-class.html">HTTPHeader</a> metadata on parameters works the same, but read values from headers. <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPQuery-class.html">HTTPQuery</a> parameter names are case sensitive, whereas <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPHeader-class.html">HTTPHeader</a> parameter names are not.</p>
-<p>The position of a parameter with <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPQuery-class.html">HTTPQuery</a> or <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPMethod-class.html">HTTPMethod</a> metadata in an parameter list matters. In the above example, both <code>limit</code> and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/offset.html">offset</a> are <em>required</em> in the request. If these parameters were optional parameters, the they are optional:</p>
-<div class="codehilite"><pre><span></span><span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">getThing</span><span class="p">(</span>
-  <span class="p">{</span><span class="err">@</span><span class="n">HTTPQuery</span><span class="p">(</span><span class="s2">&quot;limit&quot;</span><span class="p">)</span> <span class="kt">int</span> <span class="n">numberOfThings</span><span class="p">,</span>
-  <span class="err">@</span><span class="n">HTTPQuery</span><span class="p">(</span><span class="s2">&quot;offset&quot;</span><span class="p">)</span> <span class="kt">int</span> <span class="n">offset</span><span class="p">})</span> <span class="kd">async</span> <span class="p">{</span>
-    <span class="n">offset</span> <span class="o">??=</span> <span class="m">0</span><span class="p">;</span>
-    <span class="n">numberOfThings</span> <span class="o">??=</span> <span class="m">10</span><span class="p">;</span>
-
-    <span class="kd">var</span> <span class="n">things</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">getThingsBetween</span><span class="p">(</span><span class="n">offset</span><span class="p">,</span> <span class="n">offset</span> <span class="o">+</span> <span class="n">numberOfThings</span><span class="p">);</span>
-    <span class="k">return</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="n">things</span><span class="p">);</span>
-<span class="p">}</span>
-</pre></div>
-
-
-<p>In the above example - with curly brackets (<code>{}</code>) to indicate optional - the request can omit both <code>limit</code> and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/offset.html">offset</a>. If omitted, their values are null and the controller can provide defaults. This optional vs. required behavior is true for both <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPQuery-class.html">HTTPQuery</a> and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPHeader-class.html">HTTPHeader</a> parameters, but not for <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPPath-class.html">HTTPPath</a>.</p>
-<p>If a method has required query or header parameters that are not met by a request, the controller responds with a 400 status code, listing the required parameters that were missing, and <em>does not</em> invoke the responder method.</p>
-<p>Controllers can also declare properties with <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPQuery-class.html">HTTPQuery</a> or <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPHeader-class.html">HTTPHeader</a> metadata. For example, the following controller will set its <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIInfo/version.html">version</a> property to the header <code>X-Version</code> for all requests it receives:</p>
-<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">VersionedController</span> <span class="kd">extends</span> <span class="n">HTTPController</span> <span class="p">{</span>
-  <span class="err">@</span><span class="n">HTTPHeader</span><span class="p">(</span><span class="s2">&quot;x-version&quot;</span><span class="p">)</span>
-  <span class="kt">String</span> <span class="n">version</span><span class="p">;</span>
-
-  <span class="err">@</span><span class="n">httpGet</span>
-  <span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">getThings</span><span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
-    <span class="c1">// version = X-Version header from request</span>
-    <span class="p">...</span>
-  <span class="p">}</span>
-<span class="p">}</span>
-</pre></div>
-
-
-<p>Properties that are declared with this metadata default to optional. To make them required, add additional metadata:</p>
-<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">VersionedController</span> <span class="kd">extends</span> <span class="n">HTTPController</span> <span class="p">{</span>
-  <span class="err">@</span><span class="n">requiredHTTPParameter</span>
-  <span class="err">@</span><span class="n">HTTPHeader</span><span class="p">(</span><span class="s2">&quot;x-version&quot;</span><span class="p">)</span>
-  <span class="kt">String</span> <span class="n">version</span><span class="p">;</span>
-  <span class="p">...</span>
-<span class="p">}</span>
-</pre></div>
-
-
-<p>If a required property has no value in the request, a 400 is returned and no responder method is called. If the property is optional and not in the request, the value is null.</p>
-<p><a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPQuery-class.html">HTTPQuery</a> parameters will also assign values from request bodies if the content type is <code>application/x-www-form-urlencoded</code>. For example, a <code>POST /endpoint?param=1</code> sends <code>param=1</code> in the HTTP body, but it is conceptually a query string. Therefore, the following responder method would have the value <code>1</code> in its <code>param</code> parameter:</p>
-<div class="codehilite"><pre><span></span><span class="err">@</span><span class="n">httpPost</span>
-<span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">createThing</span><span class="p">(</span><span class="err">@</span><span class="n">HTTPQuery</span><span class="p">(</span><span class="s2">&quot;param&quot;</span><span class="p">)</span> <span class="kt">int</span> <span class="n">param</span><span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>
-  <span class="p">...</span>
-<span class="p">}</span>
-</pre></div>
-
-
 <h3 id="more-specialized-httpcontrollers">More Specialized HTTPControllers</h3>
-<p>Because many <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a> subclasses will execute <a href="../../db/executing_queries/">Queries</a>, there are helpful <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a> subclasses for reducing boilerplate code.</p>
+<p>Because many <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a> subclasses will execute <a href="../../db/executing_queries/">queries</a>, there are helpful <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a> subclasses for reducing boilerplate code.</p>
 <p>A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/QueryController-class.html">QueryController&lt;T&gt;</a> builds a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query-class.html">Query&lt;T&gt;</a> based on the incoming request. If the request has a body, this <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query-class.html">Query&lt;T&gt;</a>'s <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/values.html">values</a> property is read from that body. If the request has a path variable, the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query-class.html">Query&lt;T&gt;</a> assigns a matcher to the primary key value of its <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet/where.html">where</a>. For example, in a normal <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a> that responds to a PUT request, you might write the following:</p>
 <div class="codehilite"><pre><span></span><span class="err">@</span><span class="n">httpPut</span>
 <span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">updateUser</span><span class="p">(</span><span class="err">@</span><span class="n">HTTPPath</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">)</span> <span class="kt">int</span> <span class="n">id</span><span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>
@@ -1073,10 +1044,13 @@
 </pre></div>
 
 
-<p>A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/QueryController-class.html">QueryController&lt;T&gt;</a> builds this query for you. The <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a> subclass is the type argument to <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/QueryController-class.html">QueryController&lt;T&gt;</a>, which has an additional <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/QueryController/query.html">query</a> property that is read from the request.</p>
+<p>A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/QueryController-class.html">QueryController&lt;T&gt;</a> builds this query before a responder method is invoked, storing it in the inherited <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/QueryController/query.html">query</a> property. A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a> subclass is the type argument to <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/QueryController-class.html">QueryController&lt;T&gt;</a>.</p>
 <div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">UserController</span> <span class="kd">extends</span> <span class="n">QueryController</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span> <span class="p">{</span>
-  <span class="c1">// query already exists and is identical to the snippet above</span>
-  <span class="k">return</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="kd">await</span> <span class="n">query</span><span class="p">.</span><span class="n">updateOne</span><span class="p">());</span>
+  <span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">updateUser</span><span class="p">(</span><span class="err">@</span><span class="n">HTTPPath</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">)</span> <span class="kt">int</span> <span class="n">id</span><span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>
+    <span class="c1">// query already exists and is identical to the snippet above</span>
+    <span class="kd">var</span> <span class="n">result</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">query</span><span class="p">.</span><span class="n">updateOne</span><span class="p">();</span>
+    <span class="k">return</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="n">result</span><span class="p">);</span>
+  <span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
 
@@ -1141,8 +1115,9 @@
 </pre></div>
 
 
+<p>See also <a href="../../db/validations/">validations</a>, which are powerful when combined with <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObjectController-class.html">ManagedObjectController&lt;T&gt;</a>.</p>
 <h3 id="accessing-the-request">Accessing the Request</h3>
-<p>Recall that any value from the request itself can be accessed through the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController/request.html">request</a> property of a controller.</p>
+<p>Any value from the request itself can be accessed through the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController/request.html">request</a> property of a controller.</p>
 <p>This also means that an <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a> instance cannot be reused to handle multiple requests; if it awaited on an asynchronous method, a new request could be assigned to the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController/request.html">request</a> property. Therefore, all <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a>s must be added to a request processing pipeline with <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController/generate.html">generate</a>. If you add a controller with <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController/pipe.html">pipe</a>, an exception will be thrown immediately at startup.</p>
               
               
