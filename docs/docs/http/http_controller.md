@@ -1,12 +1,10 @@
 # HTTPController
 
-The overwhelming majority of Aqueduct code is written in subclasses of `HTTPController`. Instances of this class receive requests for a particular resource. For example, an `HTTPController` might handle requests to create, update, delete, read and list users.
+Most Aqueduct code is written in subclasses of `HTTPController`. Instances of this class receive requests for a particular resource. For example, an `HTTPController` might handle requests to create, update, delete, read and list users. `HTTPController` is subclassed to implement an instance method for each one of these operations. For example, a `POST /users` would trigger a `createUser` method, whereas a `GET /users/1` would trigger its `getUserByID` method. The names of these methods are up to you; the method that gets called is determined by metadata on the method and its parameters.
 
-An `HTTPController` works by selecting one of its methods to respond to a request. This selection is based on the HTTP method and path variables of the request. For example, a `POST /users` would trigger a `createUser` method to be invoked, whereas a `GET /users/1` would trigger its `getUserByID` method. The names of these methods are up to you; the method that gets called is determined by metadata on the method and its parameters.
+### Responder Methods and Parameter Binding
 
-### Responder Methods
-
-A method that handles a request in an `HTTPController` subclass is called a *responder method*. To be a responder method, a method must return a `Future<Response>` and have `HTTPMethod` metadata. Here's an example:
+These methods are called *responder methods*. A responder method must return a `Future<Response>` and have `HTTPMethod` metadata. Here's an example:
 
 ```dart
 class UserController extends HTTPController {
@@ -24,39 +22,105 @@ The constant `httpGet` is an instance of `HTTPMethod`. When a `GET` request is s
 Future<Response> patch() async { ... }
 ```
 
-A responder method may have parameters that further qualify its selection based on the path of the HTTP request. For example, the following controller may respond to both `GET /users` and `GET /users/1`:
+If a request is sent to an `HTTPController` and there isn't a responder method with matching `HTTPMethod` metadata, a 405 response is sent and no method is invoked.
+
+Each responder method can *bind* values from the HTTP request to its arguments. The following responder method binds the value from the path variable `id`:
+
+```dart
+@httpGet
+Future<Response> getOneUser(@HTTPPath("id") int id) async {
+  return new Response.ok(await getAUserFromDatabaseByID(id));
+}
+```
+
+When a [route contains a path variable](router.md) (like `/users/:id`), the value of that path variable will be available in the argument. It is often the case that a path variable is an optional part of a route (like `/users/[:id]`). Thus, the request `/users` and `/users/:id` get sent to the same controller. There must be a responder method for both variants. For example, the following controller may respond to both `GET /users` and `GET /users/1`:
 
 ```dart
 class UserController extends HTTPController {
   @httpGet
   Future<Response> getAllUsers() async {
-    return new Response.ok(await getUsersFromDatabase());
+    // invoked with path is /users
   }
 
   @httpGet
   Future<Response> getOneUser(@HTTPPath("id") int id) async {
-    return new Response.ok(await getAUserFromDatabaseByID(id));
+    // invoked with path is /users/:id
   }
 }
 ```
 
-For this controller to work correctly, it must be hooked up to a route with an optional `id` path variable:
+`HTTPPath`'s argument is the name of the path variable as it is declared in the route. For example, if the route is `/thing/:abcdef`, `HTTPPath("abcdef")` binds the path variable. The actual argument can be named whatever you want - you don't have to name it the same as the path variable.
+
+The *type* of the path binding can be a `String` or any type that has a `parse` method ( like `int`, `double`, and `DateTime`). When the path binding is not a `String`, the value of the path variable is parsed according to its type. If parsing fails, the responder method is not invoked and a 404 Not Found response is returned.
+
+Query string parameters and header values may also be bound to responder methods with `HTTPQuery` and `HTTPHeader` metadata. The following responder method will bind the query strings parameters `limit` and `offset` to `numberOfThings` and `offset`:
 
 ```dart
-router
-  .route("/users/[:id]")
-  .generate(() => new UserController());
+@httpGet
+Future<Response> getThing(
+  @HTTPQuery("limit") int numberOfThings,
+  @HTTPQuery("offset") int offset) async {
+    var things = await getThingsBetween(offset, offset + numberOfThings);
+    return new Response.ok(things);
+}
 ```
 
-Notice that the `id` parameter in `getOneUser` has `HTTPPath` metadata. The argument to `HTTPPath` must be the name of the path variable in the route. In this example, the path variable is `id` and the argument to `HTTPPath` is the same. When a `GET` request is delivered to the controller in this example, it is checked for the path variable `id`: if it exists, `getOneUser` is invoked, otherwise `getAllUsers` is invoked.
+For example, if the request was `/?limit=10&offset=0`, the values of `numberOfThings` and `offset` are 10 and 1. In this above method, both `limit` and `offset` are *required*. If one or both are values are missing from the query string in a request, the responder method is not called and a 400 Bad Request response is sent.
 
-The value of an `HTTPPath` parameter will be equal to value of the variable in the incoming request path. A path variable is a `String`, but an `HTTPPath` parameter can be another type and the value will be parsed into that type. Any type that has a static `parse(String)` method can be used as a path variable. If the `HTTPPath` parameter is a `String`, no parsing occurs.
+Query parameters can be made optional by moving them to the optional part of the method signature. Thus, the following method still requires `limit`, but if `offset` is omitted, its value defaults to 0:
 
-A responder method may have multiple `HTTPPath` parameters and the order does not matter. If no responder method exists for the incoming HTTP method, a 405 status code is returned. An `HTTPController` will always respond to a request.
+```dart
+@httpGet
+Future<Response> getThing(
+  @HTTPQuery("limit") int numberOfThings,
+  {@HTTPQuery("offset") int offset: 0}) async {
+    var things = await getThingsBetween(offset, offset + numberOfThings);
+    return new Response.ok(things);
+}
+```
+
+The argument to `HTTPQuery` is case-sensitive.
+
+Headers are bound in the same way using `HTTPHeader` metadata. Unlike `HTTPQuery`, `HTTPHeader`s are compared case-insensitively. Here's an example of a responder method that takes an `X-Timestamp` header:
+
+```dart
+@httpGet
+Future<Response> getThings(
+  {@HTTPHeader("x-timestamp") DateTime timestamp}) async {
+    ...
+}
+```
+
+An `HTTPController`s properties may also have `HTTPQuery` and `HTTPHeader` metadata. This binds values from the request to the `HTTPController` instance itself, making them accessible from *all* responder methods.
+
+```dart
+class ThingController extends HTTPController {
+  @requiredHTTPParameter
+  @HTTPHeader("x-timestamp")
+  DateTime timestamp;
+
+  @HTTPQuery("limit")
+  int limit;
+
+  @httpGet
+  Future<Response> getThings() async {
+      // can use both limit and timestamp
+  }
+
+  @httpGet
+  Future<Response> getThing(@HTTPPath("id") int id) async {
+      // can use both limit and timestamp
+  }
+}
+```
+
+In the above, both `timestamp` and `limit` are bound prior to `getThing` and `getThings` being invoked. By default, a bound property is optional but can have additional `requiredHTTPParameter` metadata. If required, any request without the required property fails with a 400 Bad Request status code and none of the responder methods are invoked.
+
+Aqueduct treats `POST` and `PUT` requests with `application/x-www-form-urlencoded` content type as query strings, so the body of the request can be bound to `HTTPQuery` parameters.
 
 ### Request and Response Bodies
 
-An `HTTPController` limits the content type of HTTP request bodies it accepts. By default, an `HTTPController` will accept both `application/json` and `application/x-www-form-urlencoded` request bodies for its `POST` and `PUT` methods. This can be modified by setting the `acceptedContentTypes` property in the constructor.
+An `HTTPController` can limit the content type of HTTP request bodies it accepts. By default, an `HTTPController` will accept both `application/json` and `application/x-www-form-urlencoded` request bodies for its `POST` and `PUT` methods. This can be modified by setting the `acceptedContentTypes` property in the constructor.
 
 ```dart
 class UserController extends HTTPController {
@@ -66,9 +130,9 @@ class UserController extends HTTPController {
 }
 ```
 
-If a request is made with a content type other than the accepted content types, the controller automatically responds with a unsupported media type (status code 415) response.
+If a request is made with a content type other than the accepted content types, the controller automatically responds with a 415 Unsupported Media Type response.
 
-The body of an HTTP request is decoded if the content type is supported and there exists a responder method to handle the request. This means two things. First, the body is not decoded if the request is going to be discarded because no responder method was found.
+The body of an HTTP request is decoded if the content type is accepted and there exists a responder method to handle the request. This means two things. First, the body is not decoded if the request is going to be discarded because no responder method was found.
 
 Second, methods on `HTTPBody` have two flavors: those that return the contents as a `Future` or those that return the already decoded body. Responder methods can access the already decoded body without awaiting on the `Future`-flavored variants of `HTTPBody`:
 
@@ -85,7 +149,7 @@ Future<Response> createThing() async {
 }
 ```
 
-An `HTTPController` can also have a default content type for its response bodies. By default, this is `application/json` - any response body is encoded to JSON. This default can be changed by changing `responseContentType` in the constructor:
+An `HTTPController` can also have a default content type for its *response* bodies. By default, this is `application/json` - any response body returned as JSON. This default can be changed by changing `responseContentType` in the constructor:
 
 ```dart
 class UserController extends HTTPController {
@@ -116,92 +180,9 @@ class UserController extends HTTPController {
 }
 ```
 
-### Query and Header Values
-
-The `Request` being processed can always be accessed through the `request` property of a controller. For example, if you want to check for a particular header:
-
-```dart
-@httpGet
-Future<Response> getThing() async {
-  if (request.innerRequest.headers.value("X-Header") != null) {
-    ...
-  }
-
-  return new Response.ok(...);
-}
-```
-
-`HTTPController`s can help when reading header and query parameter values from a request. A responder method can have additional parameters with either `HTTPQuery` or `HTTPHeader` metadata. For example:
-
-```dart
-Future<Response> getThing(
-  @HTTPQuery("limit") int numberOfThings,
-  @HTTPQuery("offset") int offset) async {
-    var things = await getThingsBetween(offset, offset + numberOfThings);
-    return new Response.ok(things);
-}
-```
-
-If the request `/things?limit=10&offset=20` is handled by this method, `numberOfThings` will be 10 and `offset` will be 20. `HTTPQuery` and `HTTPHeader` parameters, like `HTTPPath` parameters, are always strings but can be parsed into types that implement `parse`. `HTTPHeader` metadata on parameters works the same, but read values from headers. `HTTPQuery` parameter names are case sensitive, whereas `HTTPHeader` parameter names are not.
-
-The position of a parameter with `HTTPQuery` or `HTTPMethod` metadata in an parameter list matters. In the above example, both `limit` and `offset` are *required* in the request. If these parameters were optional parameters, the they are optional:
-
-```dart
-Future<Response> getThing(
-  {@HTTPQuery("limit") int numberOfThings,
-  @HTTPQuery("offset") int offset}) async {
-    offset ??= 0;
-    numberOfThings ??= 10;
-
-    var things = await getThingsBetween(offset, offset + numberOfThings);
-    return new Response.ok(things);
-}
-```
-
-In the above example - with curly brackets (`{}`) to indicate optional - the request can omit both `limit` and `offset`. If omitted, their values are null and the controller can provide defaults. This optional vs. required behavior is true for both `HTTPQuery` and `HTTPHeader` parameters, but not for `HTTPPath`.
-
-If a method has required query or header parameters that are not met by a request, the controller responds with a 400 status code, listing the required parameters that were missing, and *does not* invoke the responder method.
-
-Controllers can also declare properties with `HTTPQuery` or `HTTPHeader` metadata. For example, the following controller will set its `version` property to the header `X-Version` for all requests it receives:
-
-```dart
-class VersionedController extends HTTPController {
-  @HTTPHeader("x-version")
-  String version;
-
-  @httpGet
-  Future<Response> getThings() async {
-    // version = X-Version header from request
-    ...
-  }
-}
-```
-
-Properties that are declared with this metadata default to optional. To make them required, add additional metadata:
-
-```dart
-class VersionedController extends HTTPController {
-  @requiredHTTPParameter
-  @HTTPHeader("x-version")
-  String version;
-  ...
-}
-```
-
-If a required property has no value in the request, a 400 is returned and no responder method is called. If the property is optional and not in the request, the value is null.
-
-`HTTPQuery` parameters will also assign values from request bodies if the content type is `application/x-www-form-urlencoded`. For example, a `POST /endpoint?param=1` sends `param=1` in the HTTP body, but it is conceptually a query string. Therefore, the following responder method would have the value `1` in its `param` parameter:
-
-```dart
-@httpPost
-Future<Response> createThing(@HTTPQuery("param") int param) async {
-  ...
-}
-```
-
 ### More Specialized HTTPControllers
 
-Because many `HTTPController` subclasses will execute [Queries](../db/executing_queries.md), there are helpful `HTTPController` subclasses for reducing boilerplate code.
+Because many `HTTPController` subclasses will execute [queries](../db/executing_queries.md), there are helpful `HTTPController` subclasses for reducing boilerplate code.
 
 A `QueryController<T>` builds a `Query<T>` based on the incoming request. If the request has a body, this `Query<T>`'s `values` property is read from that body. If the request has a path variable, the `Query<T>` assigns a matcher to the primary key value of its `where`. For example, in a normal `HTTPController` that responds to a PUT request, you might write the following:
 
@@ -216,12 +197,15 @@ Future<Response> updateUser(@HTTPPath("id") int id) async {
 }
 ```
 
-A `QueryController<T>` builds this query for you. The `ManagedObject<T>` subclass is the type argument to `QueryController<T>`, which has an additional `query` property that is read from the request.
+A `QueryController<T>` builds this query before a responder method is invoked, storing it in the inherited `query` property. A `ManagedObject<T>` subclass is the type argument to `QueryController<T>`.
 
 ```dart
 class UserController extends QueryController<User> {
-  // query already exists and is identical to the snippet above
-  return new Response.ok(await query.updateOne());
+  Future<Response> updateUser(@HTTPPath("id") int id) async {
+    // query already exists and is identical to the snippet above
+    var result = await query.updateOne();
+    return new Response.ok(result);
+  }
 }
 ```
 
@@ -268,8 +252,10 @@ class UserController extends ManagedObjectController<User> {
 }
 ```
 
+See also [validations](../db/validations.md), which are powerful when combined with `ManagedObjectController<T>`.
+
 ### Accessing the Request
 
-Recall that any value from the request itself can be accessed through the `request` property of a controller.
+Any value from the request itself can be accessed through the `request` property of a controller.
 
 This also means that an `HTTPController` instance cannot be reused to handle multiple requests; if it awaited on an asynchronous method, a new request could be assigned to the `request` property. Therefore, all `HTTPController`s must be added to a request processing pipeline with `generate`. If you add a controller with `pipe`, an exception will be thrown immediately at startup.
