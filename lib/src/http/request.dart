@@ -111,6 +111,8 @@ class Request implements RequestOrResponse {
 
   /// Sends a [Response] to this [Request]'s client.
   ///
+  /// Do not invoke this method directly.
+  ///
   /// [RequestController]s invoke this method to respond to this request.
   ///
   /// Once this method has executed, the [Request] is no longer valid. All headers from [aqueductResponse] are
@@ -121,7 +123,7 @@ class Request implements RequestOrResponse {
   /// format, see [Response.addEncoder].
   Future respond(Response aqueductResponse) {
     respondDate = new DateTime.now().toUtc();
-
+    
     // Note: this line's placement is intentional. If encoding the body fails and this throws an exception,
     // and the status code has already been written too, then we can't change the status code to send
     // back an error response.
