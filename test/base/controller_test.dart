@@ -271,7 +271,6 @@ void main() {
   });
 
   test("Content-Type can be set adjusting responseContentType", () async {
-    RequestController.letUncaughtExceptionsEscape = true;
     server = await enableController("/a", ContentTypeController);
     var resp =
         await http.get("http://localhost:4040/a?opt=responseContentType");
