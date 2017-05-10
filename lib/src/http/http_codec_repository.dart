@@ -3,24 +3,45 @@ import 'dart:io';
 import 'http.dart';
 
 class HTTPCodecRepository {
-  static Map<String, Codec> _primaryTypeCodecs = {
+  static HTTPCodecRepository get defaultInstance => _defaultInstance;
+  static HTTPCodecRepository _defaultInstance = new HTTPCodecRepository();
 
-  };
-  static Map<String, Map<String, Codec>> _subtypeCodecs = {
-    "application" : {
-      "json": new JsonCodec()
-    }
-  };
-  static Map<String, bool> _primaryTypeCompressionMap = {
-    "text": true
-  };
-  static Map<String, Map<String, bool>> _subtypeCompressionMap = {
-    "application" : {
-      "json" : true
-    }
-  };
+  HTTPCodecRepository() {
+    add(new ContentType("application", "json"), const JsonCodec(), allowCompression: true);
+    setAllowsCompression(new ContentType("text", "*"), true);
+  }
 
-  static bool shouldGZipContentType(ContentType contentType) {
+  Map<String, Codec> _primaryTypeCodecs = {};
+  Map<String, Map<String, Codec>> _subtypeCodecs = {};
+  Map<String, bool> _primaryTypeCompressionMap = {};
+  Map<String, Map<String, bool>> _subtypeCompressionMap = {};
+
+  void add(ContentType contentType, Codec codec, {bool allowCompression: true}) {
+    if (contentType.subType == "*") {
+      _primaryTypeCodecs[contentType.primaryType] = codec;
+      _primaryTypeCompressionMap[contentType.primaryType] = allowCompression;
+    } else {
+      var innerCodecs = _subtypeCodecs[contentType.primaryType] ?? {};
+      innerCodecs[contentType.subType] = codec;
+      _subtypeCodecs[contentType.primaryType] = innerCodecs;
+
+      var innerCompress = _subtypeCompressionMap[contentType.primaryType] ?? {};
+      innerCompress[contentType.subType] = allowCompression;
+      _subtypeCompressionMap[contentType.primaryType] = innerCompress;
+    }
+  }
+
+  void setAllowsCompression(ContentType contentType, bool allowed) {
+    if (contentType.subType == "*") {
+      _primaryTypeCompressionMap[contentType.primaryType] = allowed;
+    } else {
+      var innerCompress = _subtypeCompressionMap[contentType.primaryType] ?? {};
+      innerCompress[contentType.subType] = allowed;
+      _subtypeCompressionMap[contentType.primaryType] = innerCompress;
+    }
+  }
+
+  bool isContentTypeCompressable(ContentType contentType) {
     var subtypeCompress = _subtypeCompressionMap[contentType.primaryType];
     if (subtypeCompress != null) {
       if (subtypeCompress.containsKey(contentType.subType)) {
@@ -28,26 +49,12 @@ class HTTPCodecRepository {
       }
     }
 
-    var primaryTypeCompress = _primaryTypeCompressionMap[contentType.primaryType];
-    if (primaryTypeCompress) {
-      return true;
-    }
-
-    return false;
+    return _primaryTypeCompressionMap[contentType.primaryType] ?? false;
   }
 
-  static void add(ContentType contentType, Codec codec, {bool allowCompression: true}) {
-
-  }
-
-  static void allowCompressionFor(ContentType contentType) {
-
-  }
-
-  Codec codecForContentType(ContentType contentType, {bool withCompression: true}) {
+  Codec codecForContentType(ContentType contentType) {
     Codec contentCodec;
     Codec charsetCodec;
-    Codec gzipCodec;
 
     var subtypes = _subtypeCodecs[contentType.primaryType];
     if (subtypes != null) {
@@ -60,33 +67,20 @@ class HTTPCodecRepository {
 
     if ((contentType?.charset?.length ?? 0) > 0) {
       charsetCodec = _codecForCharset(contentType.charset);
+    } else if (contentType.primaryType == "text" && contentCodec == null) {
+      charsetCodec = LATIN1;
     }
 
-    if (withCompression && shouldGZipContentType(contentType)) {
-      gzipCodec = GZIP;
-    }
 
     if (contentCodec != null) {
       if (charsetCodec != null) {
-        if (gzipCodec != null) {
-          return contentCodec.fuse(charsetCodec).fuse(gzipCodec);
-        }
-
         return contentCodec.fuse(charsetCodec);
       }
       return contentCodec;
     }
 
     if (charsetCodec != null) {
-      if (gzipCodec != null) {
-        return charsetCodec.fuse(gzipCodec);
-      }
-
       return charsetCodec;
-    }
-
-    if (gzipCodec != null) {
-      return gzipCodec;
     }
 
     return null;
@@ -95,17 +89,17 @@ class HTTPCodecRepository {
   Codec _codecForCharset(String charset) {
     var encoding = Encoding.getByName(charset);
     if (encoding == null) {
-      throw new HTTPCodecRepositoryException("Invalid charset '$charset'");
+      throw new HTTPCodecException("Invalid charset '$charset'");
     }
 
     return encoding;
   }
 }
 
-class HTTPCodecRepositoryException implements Exception {
-  HTTPCodecRepositoryException(this.message);
+class HTTPCodecException implements Exception {
+  HTTPCodecException(this.message);
 
   String message;
 
-  String toString() => "HTTPCodecRepositoryException: $message";
+  String toString() => "HTTPCodecException: $message";
 }

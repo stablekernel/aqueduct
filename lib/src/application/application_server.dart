@@ -69,7 +69,6 @@ class ApplicationServer {
           v6Only: configuration.isIpv6Only, shared: shareHttpServer);
     }
 
-    server.autoCompress = true;
     await didOpen();
   }
 

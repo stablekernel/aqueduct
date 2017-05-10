@@ -502,24 +502,6 @@ void main() {
         expect(e.toString(), contains("Expected: Body: {'foo': 'notbar'}"));
         expect(e.toString(), contains('Body: {"foo":"bar"}'));
       }
-
-      server.queueResponse(
-          new Response.ok({"nocontenttype": "thatsaysthisisjson"})
-            ..contentType = ContentType.TEXT);
-
-      response = await defaultTestClient.request("/foo").get();
-      try {
-        expect(response,
-            hasBody(containsPair("nocontenttype", "thatsaysthisisjson")));
-        expect(true, false);
-      } on TestFailure catch (e) {
-        expect(
-            e.toString(),
-            contains(
-                "Expected: Body: contains pair 'nocontenttype' => 'thatsaysthisisjson'"));
-        expect(e.toString(),
-            contains("Body: {nocontenttype: thatsaysthisisjson}"));
-      }
     });
   });
 

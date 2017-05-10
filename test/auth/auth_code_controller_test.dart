@@ -309,6 +309,7 @@ void main() {
   });
 
   group("client_id failures", () {
+    RequestController.letUncaughtExceptionsEscape = true;
     test("Omit client_id returns 400", () async {
       var resp = await codeResponse({
         "username": user1["username"],

@@ -17,6 +17,8 @@ Future main(List<String> args) async {
     tempDir.createSync();
     outputDir.createSync();
 
+    testFiles = testFiles.where((f) => f.path.endsWith("body_encoder_test.dart"));
+
     var count = 0;
     for (var file in testFiles) {
       print("Running ${file.uri.pathSegments.last} (${count + 1} of ${testFiles.length})...");

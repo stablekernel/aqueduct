@@ -14,39 +14,6 @@ class Response implements RequestOrResponse {
   /// [ContentType.JSON].
   static ContentType defaultContentType = ContentType.JSON;
 
-  /// Adds an HTTP Response Body encoder to list of available encoders for all [Request]s.
-  ///
-  /// When the [contentType] of an instance is set, an encoder function is applied to the data. This method
-  /// adds an encoder function for [type].
-  ///
-  /// By default, 'application/json' and 'text/*' are available. A [Response] with "application/json" [contentType]
-  /// will be encoded by invoking [JSON.decode] on the instance's [body]. The default encoder for [ContentType]s whose primary type is "text" will invoke [toString]
-  /// on the instance's [body].
-  ///
-  /// [type] can have a '*' [ContentType.subType] that matches all subtypes for a primary type.
-  ///
-  /// An [encoder] must take one argument of any type, and return a value
-  /// that will become the HTTP response body.
-  ///
-  /// The return value is written to the response with [IOSink.write] and so it must either be a [String] or its [toString]
-  /// must produce the desired value.
-  static void addEncoder(ContentType type, dynamic encoder(dynamic value)) {
-    var topLevel = _encoders[type.primaryType];
-    if (topLevel == null) {
-      topLevel = {};
-      _encoders[type.primaryType] = topLevel;
-    }
-
-    topLevel[type.subType] = encoder;
-  }
-
-  static Map<String, Map<String, Function>> _encoders = {
-    "application": {
-      "json": (v) => JSON.encode(v),
-    },
-    "text": {"*": (Object v) => v.toString()}
-  };
-
   /// An object representing the body of the [Response], which will be encoded when used to [Request.respond].
   ///
   /// This is typically a map or list of maps that will be encoded to JSON. If the [body] was previously set with a [HTTPSerializable] object
@@ -73,31 +40,8 @@ class Response implements RequestOrResponse {
 
     _body = serializedBody ?? initialResponseBody;
   }
-
   dynamic _body;
 
-  /// Returns the encoded [body] according to [contentType].
-  ///
-  /// If there is no [body] present, this property is null. This property will use the encoders available through [addEncoder]. If
-  /// no encoder is found, [toString] is called on the body.
-  dynamic get encodedBody {
-    if (_body == null) {
-      return null;
-    }
-
-    var encoder = null;
-    var topLevel = _encoders[contentType.primaryType];
-    if (topLevel != null) {
-      encoder = topLevel[contentType.subType] ?? topLevel["*"];
-    }
-
-    if (encoder == null) {
-      throw new HTTPResponseException(
-          500, "Could not encode body as ${contentType.toString()}.");
-    }
-
-    return encoder(_body);
-  }
 
   /// Map of headers to send in this response.
   ///

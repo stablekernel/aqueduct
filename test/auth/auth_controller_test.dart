@@ -131,7 +131,8 @@ void main() {
             "content-type": "application/json; charset=utf-8",
             "cache-control": "no-store",
             "pragma": "no-cache",
-            "transfer-encoding": isString,
+            "content-encoding": "gzip",
+            "content-length": asNumber(greaterThan(0)),
             "x-frame-options": isString,
             "x-xss-protection": isString,
             "x-content-type-options": isString
@@ -159,7 +160,8 @@ void main() {
             "content-type": "application/json; charset=utf-8",
             "cache-control": "no-store",
             "pragma": "no-cache",
-            "transfer-encoding": isString,
+            "content-encoding": "gzip",
+            "content-length": asNumber(greaterThan(0)),
             "x-frame-options": isString,
             "x-xss-protection": isString,
             "x-content-type-options": isString
@@ -189,7 +191,8 @@ void main() {
             "content-type": "application/json; charset=utf-8",
             "cache-control": "no-store",
             "pragma": "no-cache",
-            "transfer-encoding": isString,
+            "content-encoding": "gzip",
+            "content-length": asNumber(greaterThan(0)),
             "x-frame-options": isString,
             "x-xss-protection": isString,
             "x-content-type-options": isString
@@ -772,9 +775,10 @@ dynamic hasAuthResponse(int statusCode, dynamic body) =>
     hasResponse(statusCode, body, headers: {
       "content-type": "application/json; charset=utf-8",
       "cache-control": "no-store",
+      "content-encoding": "gzip",
       "pragma": "no-cache",
-      "transfer-encoding": isString,
       "x-frame-options": isString,
       "x-xss-protection": isString,
-      "x-content-type-options": isString
+      "x-content-type-options": isString,
+      "content-length": asNumber(greaterThan(0))
     });
