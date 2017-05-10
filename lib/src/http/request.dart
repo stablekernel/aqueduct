@@ -116,7 +116,7 @@ class Request implements RequestOrResponse {
   /// format, see [Response.addEncoder].
   Future respond(Response aqueductResponse) {
     respondDate = new DateTime.now().toUtc();
-    
+
     // Note: this line's placement is intentional. If encoding the body fails and this throws an exception,
     // and the status code has already been written too, then we can't change the status code to send
     // back an error response. Note that a streaming body isn't checked this way

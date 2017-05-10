@@ -22,6 +22,7 @@ class HTTPCodecRepository {
     setAllowsCompression(new ContentType("text", "*"), true);
   }
 
+
   Map<String, Codec> _primaryTypeCodecs = {};
   Map<String, Map<String, Codec>> _subtypeCodecs = {};
   Map<String, bool> _primaryTypeCompressionMap = {};
