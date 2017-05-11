@@ -15,7 +15,7 @@ class HTTPRequestBody {
   ///
   /// Instances of this type decode [request]'s body based on its content-type.
   ///
-  /// See [addDecoder] for more information about how data is decoded.
+  /// See [HTTPCodecRepository] for more information about how data is decoded.
   ///
   /// Decoded data is cached the after it is decoded.
   HTTPRequestBody(HttpRequest request) : this._request = request {
