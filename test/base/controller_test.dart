@@ -222,7 +222,6 @@ void main() {
   });
 
   test("Sending bad JSON returns 400", () async {
-    RequestController.letUncaughtExceptionsEscape = true;
     server = await enableController("/a", TController);
     var res = await http.post("http://localhost:4040/a",
         body: "{`foobar' : 2}", headers: {"Content-Type": "application/json"});
