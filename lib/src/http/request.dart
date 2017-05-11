@@ -13,7 +13,7 @@ class Request implements RequestOrResponse {
   /// Creates an instance of [Request], no need to do so manually.
   Request(this.innerRequest) {
     connectionInfo = innerRequest.connectionInfo;
-    _body = new HTTPBody(this.innerRequest);
+    _body = new HTTPRequestBody(this.innerRequest);
   }
 
   /// The internal [HttpRequest] of this [Request].
@@ -53,8 +53,8 @@ class Request implements RequestOrResponse {
   /// Once decoded, this value will be an object that is determined by the decoder passed to [decodeBody].
   /// For example, if the request body was a JSON object and the decoder handled JSON, this value would be a [Map]
   /// representing the JSON object.
-  HTTPBody get body => _body;
-  HTTPBody _body;
+  HTTPRequestBody get body => _body;
+  HTTPRequestBody _body;
 
   /// Whether or not this request is a CORS request.
   ///
@@ -94,13 +94,6 @@ class Request implements RequestOrResponse {
     return buf.toString();
   }
 
-  String get _sanitizedBody {
-    if (body.hasBeenDecoded) {
-      return _truncatedString(body.asDynamic().toString(), charSize: 512);
-    }
-
-    return "-";
-  }
 
   String _truncatedString(String originalString, {int charSize: 128}) {
     if (originalString.length <= charSize) {
@@ -203,8 +196,7 @@ class Request implements RequestOrResponse {
       bool includeResource: true,
       bool includeStatusCode: true,
       bool includeContentSize: false,
-      bool includeHeaders: false,
-      bool includeBody: false}) {
+      bool includeHeaders: false}) {
     var builder = new StringBuffer();
     if (includeRequestIP) {
       builder.write("${innerRequest.connectionInfo?.remoteAddress?.address} ");
@@ -227,9 +219,6 @@ class Request implements RequestOrResponse {
     }
     if (includeHeaders) {
       builder.write("${_sanitizedHeaders} ");
-    }
-    if (includeBody) {
-      builder.write("${_sanitizedBody} ");
     }
 
     return builder.toString();

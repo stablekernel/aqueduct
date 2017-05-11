@@ -150,7 +150,7 @@ abstract class HTTPController extends RequestController {
   /// This method is called after the body has been processed by the decoder, but prior to the request being
   /// handled by the selected responder method. If there is no HTTP body in the request,
   /// this method is not called.
-  void didDecodeRequestBody(HTTPBody decodedObject) {}
+  void didDecodeRequestBody(HTTPRequestBody decodedObject) {}
 
   /// Returns a [Response] for missing [HTTPParameter]s.
   ///
@@ -220,7 +220,7 @@ abstract class HTTPController extends RequestController {
       }
     }
 
-    if (request.body.hasContent != null) {
+    if (request.body.hasBody != null) {
       didDecodeRequestBody(request.body);
     }
 

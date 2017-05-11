@@ -225,7 +225,7 @@ class RequestController extends Object with APIDocumentable {
       await _sendResponse(request, response, includeCORSHeaders: true);
 
       logger.info(
-          "${request.toDebugString(includeHeaders: true, includeBody: true)}");
+          "${request.toDebugString(includeHeaders: true)}");
     } else if (caughtValue is QueryException &&
         caughtValue.event != QueryExceptionEvent.internalFailure) {
       // Note that if the event is an internal failure, this code is skipped and the 500 handler is executed.
@@ -250,7 +250,7 @@ class RequestController extends Object with APIDocumentable {
       await _sendResponse(request, response, includeCORSHeaders: true);
 
       logger.info(
-          "${request.toDebugString(includeHeaders: true, includeBody: true)}");
+          "${request.toDebugString(includeHeaders: true)}");
     } else {
       var body = null;
       if (includeErrorDetailsInServerErrorResponses) {
@@ -266,7 +266,7 @@ class RequestController extends Object with APIDocumentable {
       await _sendResponse(request, response, includeCORSHeaders: true);
 
       logger.severe(
-          "${request.toDebugString(includeHeaders: true, includeBody: true)}",
+          "${request.toDebugString(includeHeaders: true)}",
           caughtValue,
           trace);
 

@@ -305,7 +305,6 @@ class OutlierSink extends RequestSink {
 
         req.toDebugString(
             includeHeaders: true,
-            includeBody: true,
             includeContentSize: true,
             includeElapsedTime: true,
             includeMethod: true,
