@@ -38,7 +38,6 @@ void main() {
     test(
         "GET login form with valid values returns a 'page' with the provided values",
         () async {
-          RequestController.letUncaughtExceptionsEscape = true;
       var req = client.request("/auth/code")
         ..formData = {
           "client_id": "com.stablekernel.redirect",
