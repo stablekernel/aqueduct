@@ -3,11 +3,6 @@ import 'dart:io';
 import 'dart:convert';
 import 'http.dart';
 
-/// A decoding method for decoding a stream of bytes from an HTTP request body into a String.
-///
-/// This function is used as part of the [HTTPBody] process. Typically, this represents the function [Utf8Codec.decodeStream].
-typedef Future<String> HTTPBodyStreamDecoder(Stream<List<int>> s);
-
 /// Instances of this class decode HTTP request bodies according to their content type.
 ///
 /// Every instance of [Request] has a [Request.body] property of this type. [HTTPController]s automatically decode
@@ -15,53 +10,90 @@ typedef Future<String> HTTPBodyStreamDecoder(Stream<List<int>> s);
 /// or one of the typed methods ([asList], [asMap], [decodeAsMap], [decodeAsList]) to decode HTTP body data.
 ///
 /// Default decoders are available for 'application/json', 'application/x-www-form-urlencoded' and 'text/*' content types.
-class HTTPBody {
-  static Map<String, Map<String, Function>> _decoders = {
-    "application": {
-      "json": _jsonDecoder,
-      "x-www-form-urlencoded": _wwwFormURLEncodedDecoder
-    },
-    "text": {"*": _textDecoder}
-  };
-
+class HTTPRequestBody {
   /// Creates a new instance of this type.
   ///
   /// Instances of this type decode [request]'s body based on its content-type.
   ///
-  /// See [addDecoder] for more information about how data is decoded.
+  /// See [HTTPCodecRepository] for more information about how data is decoded.
   ///
   /// Decoded data is cached the after it is decoded.
-  HTTPBody(HttpRequest request) : this._request = request;
+  HTTPRequestBody(HttpRequest request) : this._request = request {
+    _bodyIsChunked = _request.headers["transfer-encoding"]
+        ?.any((s) => s.split(",").any((s) => s.trim() == "chunked")) ?? false;
+    _hasBody = (_request.headers.contentLength ?? 0) > 0 || _bodyIsChunked;
+  }
 
-  HttpRequest _request;
+  final HttpRequest _request;
   dynamic _decodedData;
+  bool _bodyIsChunked = false;
+  bool _hasBody = false;
 
   /// Whether or not the data has been decoded yet.
   ///
   /// True when data has already been decoded.
   ///
   /// If this body has no content, this value is true.
-  bool get hasBeenDecoded => _decodedData != null || !hasContent;
+  bool get hasBeenDecoded => _decodedData != null || !hasBody;
 
   /// Whether or not this body is empty or not.
   ///
   /// If content-length header is greater than 0.
-  bool get hasContent {
-    // todo: transfer-encoding
-    return _request.headers.contentLength > 0;
-  }
+  bool get hasBody => _hasBody;
 
   /// Returns decoded data, decoding it if not already decoded.
   ///
-  /// First access to this method will initiate decoding of the body,
-  /// according to content-type of the request this instance was initialized with.
-  /// Subsequent access will return cached decoded data.
-  /// If the body is empty, this method will return null.
+  /// This is the raw access method to a request body's decoded data. It is preferable
+  /// to use methods such as [decodeAsMap], [decodeAsList], and [decodeAsString], all of which
+  /// invoke this method.
   ///
-  /// See also [decodeAsMap], [decodeAsList] and [asMap] and [asList].
-  Future<dynamic> get decodedData async {
+  /// The first time this method is invoked, the body of the request this instance belongs to
+  /// is read in full and decoded according to the content-type of that request. This decoded data
+  /// is cached in this instance. Subsequent access will
+  /// return the cached decoded data instead of decoding it again.
+  ///
+  /// If the body of the request is empty, this method will return null and no decoding is attempted.
+  ///
+  /// The return type of this method depends on the codec selected from [HTTPCodecRepository], determined
+  /// by the content-type of the request.
+  ///
+  /// If there is no codec in [HTTPCodecRepository] for the content type of the
+  /// request body being decoded, this method returns the flat, unaltered list of bytes directly
+  /// from the request body. Each byte is an [int].
+  ///
+  /// If the selected codec produces [String] data (for example, any `text` content-type), the return value
+  /// of this method is a [List] of [String]. The entire decoded request body is obtained by concatenating
+  /// each element of this list. Prefer to use [decodeAsString] which automatically does this concatenation.
+  ///
+  /// For `application/json` and `application/x-www-form-urlencoded` data, the return value is a list that contains
+  /// exactly one object - the decoded JSON or form object. Prefer to use [decodeAsMap] or [decodeAsList], which returns
+  /// the single object from this list. Note that if the request body is a JSON list, the return value of this type
+  /// is [List<List<Map<String, dynamic>>>], where the outer list contains exactly one object: the decoded JSON list.
+  ///
+  /// For custom codecs, the return type of this method is determined by the output of that codec. Note that
+  /// the reason [String] data must be concatenated is that body data may be chunked and each chunk is decoded independently.
+  /// Whereas a JSON or form data must be read in full before the conversion is complete and so its codec only emits a single,
+  /// complete object.
+  Future<List<dynamic>> get decodedData async {
+    // Note that gzip compression will automatically be applied by dart:io.
     if (!hasBeenDecoded) {
-      _decodedData ??= await HTTPBody.decode(_request);
+      if (_decodedData == null) {
+        if (_request.headers.contentType != null) {
+          var codec = HTTPCodecRepository.defaultInstance
+              .codecForContentType(_request.headers.contentType);
+          if (codec != null) {
+            var bodyStream = codec.decoder.bind(_request).handleError((err) {
+              throw new HTTPBodyDecoderException("Failed to decode request body.",
+                  underlyingException: err);
+            });
+            _decodedData = await bodyStream.toList();
+          } else {
+            _decodedData = await _readBytes();
+          }
+        } else {
+          _decodedData = await _readBytes();
+        }
+      }
     }
 
     return _decodedData;
@@ -69,48 +101,67 @@ class HTTPBody {
 
   /// Returns decoded data as [Map], decoding it if not already decoded.
   ///
-  /// First access to this method will initiate decoding of the body,
-  /// according to content-type of the request this instance was initialized with.
-  /// Subsequent access will return cached decoded data.
-  /// If the body is empty, this method will return null.
+  /// This method invokes [decodedData] and casts the decoded object as [Map<String, dynamic>].
   ///
-  /// If the body data was not decoded into a [Map] representation, an [HTTPBodyDecoderException] is thrown.
-  /// Note that this method does not ensure that all map keys are [String].
+  /// If there is no body data, this method returns null.
+  ///
+  /// If [decodedData] does not produce a [List] that contains a single [Map<String, dynamic>] this method throws an
+  /// [HTTPBodyDecoderException].
   ///
   /// For a non-[Future] variant, see [asMap].
   Future<Map<String, dynamic>> decodeAsMap() async {
-    var d = await decodedData;
-    if (d == null) {
-      return null;
-    }
-    if (d is! Map<String, dynamic>) {
-      throw new HTTPBodyDecoderException("decodeAsMap() invoked on non-Map<String, dynamic> data.");
-    }
-    return d;
+    await decodedData;
+
+    return asMap();
   }
 
   /// Returns decoded data as [List], decoding it if not already decoded.
   ///
-  /// First access to this method will initiate decoding of the body,
-  /// according to content-type of the request this instance was initialized with.
-  /// Subsequent access will return cached decoded data.
-  /// If the body is empty, this method will return null.
+  /// This method invokes [decodedData] and casts the decoded object as a [List].
+  /// Note that this method *may not* be used to return a list of decoded bytes, use
+  /// [decodeAsBytes] instead.
   ///
-  /// If the body data was not decoded into a [List] representation, an [HTTPBodyDecoderException] is thrown.
-  /// Note that this method does not ensure that all values are [Map].
+  /// If there is no body data, this method returns null.
+  ///
+  /// If [decodedData] does not produce a [List] that contains a single [List] object, this method
+  /// throws an [HTTPBodyDecoderException].
   ///
   /// For a non-[Future] variant, see [asList].
   Future<List<Map<String, dynamic>>> decodeAsList() async {
-    var d = await decodedData;
-    if (d == null) {
-      return null;
-    }
+    await decodedData;
 
-    if (d is! List<Map<String, dynamic>>) {
-      throw new HTTPBodyDecoderException("decodeAsList() invoked on non-List<Map<String, dynamic>> data.");
-    }
-    return d;
+    return asList();
+  }
 
+  /// Returns decoded data as [String], decoding it if not already decoded.
+  ///
+  /// This method invokes [decodedData] and concatenates each [String] element into a single [String].
+  /// The concatenated [String] is returned from this method as a [Future].
+  ///
+  /// If there is no body data, this method returns null.
+  ///
+  /// If [decodedData] does not produce a [List<String>], this method
+  /// throws an [HTTPBodyDecoderException].
+  ///
+  /// For a non-[Future] variant, see [asString].
+  Future<String> decodeAsString() async {
+    await decodedData;
+
+    return asString();
+  }
+
+  /// Returns decoded data as [List] of bytes, decoding it if not already decoded.
+  ///
+  /// This method invokes [decodedData] and returns the decoded bytes if the codec
+  /// produced a list of bytes.
+  ///
+  /// If there is no body data, this method returns null.
+  ///
+  /// For a non-[Future] variant, see [asBytes].
+  Future<List<int>> decodeAsBytes() async {
+    await decodedData;
+
+    return asBytes();
   }
 
   /// Returns decoded data as [Map] if decoding has already occurred.
@@ -122,7 +173,22 @@ class HTTPBody {
     if (!hasBeenDecoded) {
       throw new HTTPBodyDecoderException("asMap() invoked, but has not been decoded yet.");
     }
-    return _decodedData as Map<String, dynamic>;
+
+    if (_decodedData == null) {
+      return null;
+    }
+
+    var d = _decodedData as List<Map<String, dynamic>>;
+    if (d.length != 1) {
+      throw new HTTPBodyDecoderException("asMap() failed: more than one object in 'decodedData'.");
+    }
+
+    var firstObject = d.first;
+    if (firstObject is! Map<String, dynamic>) {
+      throw new HTTPBodyDecoderException("asMap() invoked on non-Map<String, dynamic> data.");
+    }
+
+    return firstObject;
   }
 
   /// Returns decoded data as [List] if decoding has already occurred.
@@ -135,122 +201,72 @@ class HTTPBody {
       throw new HTTPBodyDecoderException("asList() invoked, but has not been decoded yet.");
     }
 
-    return _decodedData as List<dynamic>;
+    if (_decodedData == null) {
+      return null;
+    }
+
+    var d = _decodedData as List<dynamic>;
+    if (d.length != 1) {
+      throw new HTTPBodyDecoderException("decodeAsList() failed: more than one object in 'decodedData'.");
+    }
+
+    var firstObject = d.first;
+    if (firstObject is! List) {
+      throw new HTTPBodyDecoderException("asList() invoked on non-List data.");
+    }
+
+    return firstObject;
   }
 
-  /// Returns decoded data as [dynamic] if decoding has already occurred.
+  /// Returns decoded data as [String] if decoding as already occurred.
   ///
   /// If decoding has not yet occurred, this method throws an [HTTPBodyDecoderException].
   ///
-  /// If decoding as occurred, behavior is the same as [decodedData], but the result is not wrapped in [Future].
-  dynamic asDynamic() {
+  /// If decoding as occurred, behavior is the same as [decodeAsString], but the result is not wrapped in [Future].
+  String asString() {
     if (!hasBeenDecoded) {
-      throw new HTTPBodyDecoderException("asDynamic() invoked, but has not been decoded yet.");
+      throw new HTTPBodyDecoderException("asString() invoked, but has not been decoded yet.");
     }
 
-    return _decodedData;
-  }
-
-  /// Adds a decoder for HTTP Request Bodies, available application-wide.
-  ///
-  /// Adds a [decoder] function for [type] when reading [HttpRequest]s. Add decoders in a [RequestSink]'s constructor.
-  /// Decoders are used by [Request]s to decode their body
-  /// into the format indicated by the request's Content-Type, e.g. application/json. Decoding is most often initiated by [Request] instances, but can also be used more directly
-  /// via [decode]. By default, there are decoders for the following content types:
-  ///
-  ///       application/json
-  ///       application/x-www-form-urlencoded
-  ///       text/*
-  ///
-  /// This method will replace an existing decoder if one exists. A [decoder] must return the decoded data as a [Future]. It takes a single [HttpRequest] as an argument. For example, the JSON encoder
-  /// is implemented similar to the following:
-  ///
-  ///       Future<dynamic> jsonDecoder(HttpRequest req) async {
-  ///         return JSON.decode(await UTF8.decodeStream(req));
-  ///       }
-  static void addDecoder(
-      ContentType type, Future<dynamic> decoder(HttpRequest req)) {
-    var innerMap = _decoders[type.primaryType];
-    if (innerMap == null) {
-      innerMap = {};
-      _decoders[type.primaryType] = innerMap;
+    if (_decodedData == null) {
+      return null;
     }
 
-    innerMap[type.subType] = decoder;
+    var d = _decodedData as List<String>;
+    return d.fold(new StringBuffer(), (StringBuffer buf, value) {
+      if (value is! String) {
+        throw new HTTPBodyDecoderException("asString() failed: non-String data emitted from codec");
+      }
+
+      buf.write(value);
+      return buf;
+    }).toString();
   }
 
-  static Future<dynamic> _jsonDecoder(HttpRequest req) {
-    return streamDecoderForCharset(req.headers.contentType.charset)(req)
-        .then((str) => JSON.decode(str));
-  }
-
-  static Future<dynamic> _wwwFormURLEncodedDecoder(HttpRequest req) {
-    return streamDecoderForCharset(req.headers.contentType.charset,
-            defaultEncoding: ASCII)(req)
-        .then(
-            (bodyAsString) => new Uri(query: bodyAsString).queryParametersAll);
-  }
-
-  static Future<dynamic> _textDecoder(HttpRequest req) {
-    return streamDecoderForCharset(req.headers.contentType.charset,
-        defaultEncoding: ASCII)(req);
-  }
-
-  static Future<dynamic> _binaryDecoder(HttpRequest req) async {
-    BytesBuilder aggregatedBytes = await req.fold(
-        new BytesBuilder(), (BytesBuilder builder, data) => builder..add(data));
-
-    return aggregatedBytes.takeBytes();
-  }
-
-  /// Decodes an [HttpRequest]'s body based on its Content-Type.
+  /// Returns decoded data as a [List] of bytes if decoding as already occurred.
   ///
-  /// This method will return the decoded object as a [Future]. The [HttpRequest]'s Content-Type is evaluated
-  /// for a matching decoding function from [addDecoder]. If no such decoder is found, the body is returned as a [List] of bytes, where each byte is an [int].
+  /// If decoding has not yet occurred, this method throws an [HTTPBodyDecoderException].
   ///
-  /// It is preferable to use [Request.body]'s [decodedData] method instead of this method directly.
-  static Future<dynamic> decode(HttpRequest request) async {
-    try {
-      if (request.headers.contentType == null) {
-        return await _binaryDecoder(request);
-      }
-
-      var primaryType = request.headers.contentType.primaryType;
-      var subType = request.headers.contentType.subType;
-
-      var outerMap = _decoders[primaryType];
-      if (outerMap == null) {
-        return await _binaryDecoder(request);
-      }
-
-      var decoder = outerMap[subType];
-      if (decoder != null) {
-        return await decoder(request);
-      }
-
-      decoder = outerMap["*"];
-      if (decoder != null) {
-        return await decoder(request);
-      }
-    } catch (e) {
-      throw new HTTPBodyDecoderException("Exception encountered during decoding. Content-Type: ${request.headers.contentType}", underlyingException: e);
+  /// If decoding as occurred, behavior is the same as [decodeAsBytes], but the result is not wrapped in [Future].
+  List<int> asBytes() {
+    if (!hasBeenDecoded) {
+      throw new HTTPBodyDecoderException("asBytes() invoked, but has not been decoded yet.");
     }
 
-    throw new HTTPBodyDecoderException(
-        "No decoder for ${request.headers.contentType}");
+    if (_decodedData == null) {
+      return null;
+    }
+
+    return _decodedData as List<int>;
   }
 
-  /// Returns a stream decoder for a character set.
-  ///
-  /// By default, this method will return the function [Utf8Codec.decodeStream]. This is a convenience
-  /// method for decoding bytes in the specified charset.
-  static HTTPBodyStreamDecoder streamDecoderForCharset(String charset,
-      {Encoding defaultEncoding: UTF8}) {
-    return (Encoding.getByName(charset) ?? defaultEncoding).decodeStream;
+  Future<List<int>> _readBytes() async {
+    var bytes = await _request.fold(new BytesBuilder(), (BytesBuilder builder, data) => builder..add(data));
+    return bytes.takeBytes();
   }
 }
 
-/// Thrown when [HTTPBody] encounters an exception.
+/// Thrown when [HTTPRequestBody] encounters an exception.
 class HTTPBodyDecoderException implements HTTPResponseException {
   HTTPBodyDecoderException(this.message, {this.underlyingException})
       : statusCode = 400;

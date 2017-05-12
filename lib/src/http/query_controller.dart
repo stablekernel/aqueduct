@@ -61,8 +61,8 @@ abstract class QueryController<InstanceType extends ManagedObject>
   }
 
   @override
-  void didDecodeRequestBody(HTTPBody body) {
-    if (body.hasContent) {
+  void didDecodeRequestBody(HTTPRequestBody body) {
+    if (body.hasBody) {
       query.values.readMap(body.asMap());
       query.values.removePropertyFromBackingMap(query.values.entity.primaryKey);
     }

@@ -19,6 +19,7 @@ class HTTPCodecRepository {
 
   HTTPCodecRepository._() {
     add(new ContentType("application", "json"), const JsonCodec(), allowCompression: true);
+    add(new ContentType("application", "x-www-form-urlencoded"), const _FormCodec(), allowCompression: true);
     setAllowsCompression(new ContentType("text", "*"), true);
   }
 
@@ -144,4 +145,63 @@ class HTTPCodecException implements Exception {
   String message;
 
   String toString() => "HTTPCodecException: $message";
+}
+
+class _FormCodec extends Codec {
+  const _FormCodec();
+
+  Converter<Map<String, dynamic>, dynamic> get encoder =>
+      throw new HTTPCodecException("Cannot encode application/x-www-form-urlencoded data. This content type is only available for decoding.");
+
+  Converter<dynamic, Map<String, dynamic>> get decoder => const _FormDecoder();
+}
+
+
+class _FormDecoder extends Converter<dynamic, Map<String, dynamic>> {
+  // This class may take input as either String or List<int>. If charset is not defined in request,
+  // then data is List<int> (from HTTPCodecRepository) and will default to being UTF8 decoded first.
+  // Otherwise, if String, the request body has been decoded according to charset already.
+
+  const _FormDecoder();
+
+  Map<String, dynamic> convert(dynamic data) {
+    if (data is! String) {
+      if (data is List<int>) {
+        data = UTF8.decode(data);
+      } else {
+        throw new HTTPCodecException("Invalid data type '${data.runtimeType}' for '_FormDecoder', must be 'List<int>' or 'String'");
+      }
+    }
+    var parsed = new Uri(query: data);
+
+    return parsed.queryParametersAll;
+  }
+
+  _FormSink startChunkedConversion(Sink<Map<String, dynamic>> outSink) {
+    return new _FormSink(outSink);
+  }
+}
+
+class _FormSink extends ChunkedConversionSink<dynamic> {
+  _FormSink(this._outSink);
+
+  final decoder = const _FormDecoder();
+  final Sink<Map<String, dynamic>> _outSink;
+  final StringBuffer _buffer = new StringBuffer();
+
+  void add(dynamic data) {
+    if (data is! String) {
+      if (data is List<int>) {
+        data = UTF8.decode(data);
+      } else {
+        throw new HTTPCodecException("Invalid data type '${data.runtimeType}' for '_FormDecoder', must be 'List<int>' or 'String'");
+      }
+    }
+    _buffer.write(data);
+  }
+
+  void close() {
+    _outSink.add(decoder.convert(_buffer.toString()));
+    _outSink.close();
+  }
 }
