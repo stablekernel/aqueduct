@@ -147,7 +147,6 @@ class HTTPCodecException implements Exception {
   String toString() => "HTTPCodecException: $message";
 }
 
-
 class _FormCodec extends Codec {
   const _FormCodec();
 
