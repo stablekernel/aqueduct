@@ -47,12 +47,13 @@ class Request implements RequestOrResponse {
   /// null if no permission has been set.
   Authorization authorization;
 
-  /// The request body object, as determined by how it was decoded.
+  /// The request body object.
   ///
-  /// This value will be null until [decodeBody] is executed or if there is no request body.
-  /// Once decoded, this value will be an object that is determined by the decoder passed to [decodeBody].
-  /// For example, if the request body was a JSON object and the decoder handled JSON, this value would be a [Map]
-  /// representing the JSON object.
+  /// This object contains the request body if one exists and behavior for decoding it according
+  /// to this instance's content-type. See [HTTPRequestBody] for details on decoding the body into
+  /// an object (or objects).
+  ///
+  /// This value is is always non-null. If there is no request body, [HTTPRequestBody.isEmpty] is true.
   HTTPRequestBody get body => _body;
   HTTPRequestBody _body;
 
@@ -94,12 +95,11 @@ class Request implements RequestOrResponse {
     return buf.toString();
   }
 
-
   String _truncatedString(String originalString, {int charSize: 128}) {
     if (originalString.length <= charSize) {
       return originalString;
     }
-    return originalString.substring(0, charSize);
+    return originalString.substring(0, charSize) + " ... (${originalString.length - charSize} truncated bytes)";
   }
 
   /// Sends a [Response] to this [Request]'s client.

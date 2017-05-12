@@ -19,27 +19,25 @@ class HTTPRequestBody {
   ///
   /// Decoded data is cached the after it is decoded.
   HTTPRequestBody(HttpRequest request) : this._request = request {
-    _bodyIsChunked = _request.headers["transfer-encoding"]
-        ?.any((s) => s.split(",").any((s) => s.trim() == "chunked")) ?? false;
-    _hasBody = (_request.headers.contentLength ?? 0) > 0 || _bodyIsChunked;
+    _hasContent = (request.headers.contentLength ?? 0) > 0
+               || request.headers.chunkedTransferEncoding;
   }
 
   final HttpRequest _request;
   dynamic _decodedData;
-  bool _bodyIsChunked = false;
-  bool _hasBody = false;
 
   /// Whether or not the data has been decoded yet.
   ///
   /// True when data has already been decoded.
   ///
   /// If this body has no content, this value is true.
-  bool get hasBeenDecoded => _decodedData != null || !hasBody;
+  bool get hasBeenDecoded => _decodedData != null || isEmpty;
 
   /// Whether or not this body is empty or not.
   ///
   /// If content-length header is greater than 0.
-  bool get hasBody => _hasBody;
+  bool get isEmpty => !_hasContent;
+  bool _hasContent;
 
   /// Returns decoded data, decoding it if not already decoded.
   ///

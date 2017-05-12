@@ -20,6 +20,58 @@ void main() {
       await server?.close(force: true);
     });
 
+    group("Content vs. empty", () {
+      HttpClient client;
+      setUp(() {
+        client = new HttpClient();
+      });
+
+      tearDown(() {
+        client.close(force: true);
+      });
+
+      test("Empty body shows as isEmpty", () async {
+        http.get("http://localhost:8123").catchError((err) => null);
+        var request = await server.first;
+        var body = new HTTPRequestBody(request);
+        expect(body.isEmpty, true);
+      });
+
+      test("Request with content-length header shows is not empty", () async {
+        var json = UTF8.encode(JSON.encode({"k": "v"}));
+        var req = await client.openUrl("POST", Uri.parse("http://localhost:8123"));
+        req.headers.add(HttpHeaders.CONTENT_TYPE, ContentType.JSON.toString());
+        req.headers.add(HttpHeaders.CONTENT_LENGTH, json.length);
+        req.add(json);
+        var f = req.close();
+
+        var request = await server.first;
+        expect(request.headers.value(HttpHeaders.CONTENT_LENGTH), "${json.length}");
+        var body = new HTTPRequestBody(request);
+        expect(body.isEmpty, false);
+
+        request.response.close();
+        await f;
+      });
+
+      test("Request with chunked transfer encoding shows not empty", () async {
+        var json = UTF8.encode(JSON.encode({"k": "v"}));
+        var req = await client.openUrl("POST", Uri.parse("http://localhost:8123"));
+        req.headers.add(HttpHeaders.CONTENT_TYPE, ContentType.JSON.toString());
+        req.add(json);
+        var f = req.close();
+
+        var request = await server.first;
+        expect(request.headers.value(HttpHeaders.CONTENT_LENGTH), isNull);
+        expect(request.headers.value(HttpHeaders.TRANSFER_ENCODING), "chunked");
+        var body = new HTTPRequestBody(request);
+        expect(body.isEmpty, false);
+
+        request.response.close();
+        await f;
+      });
+    });
+
     test("application/json decoder works on valid json", () async {
       http
           .post("http://localhost:8123",
