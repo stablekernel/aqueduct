@@ -111,6 +111,8 @@ class Request implements RequestOrResponse {
 
   /// Sends a [Response] to this [Request]'s client.
   ///
+  /// Do not invoke this method directly.
+  ///
   /// [RequestController]s invoke this method to respond to this request.
   ///
   /// Once this method has executed, the [Request] is no longer valid. All headers from [aqueductResponse] are
@@ -124,22 +126,69 @@ class Request implements RequestOrResponse {
 
     // Note: this line's placement is intentional. If encoding the body fails and this throws an exception,
     // and the status code has already been written too, then we can't change the status code to send
-    // back an error response.
-    var encodedBody = aqueductResponse.encodedBody;
+    // back an error response. Note that a streaming body isn't checked this way
+    _Reference<String> didCompress = new _Reference(null);
+    var body = _responseBodyBytes(aqueductResponse, didCompress);
 
     response.statusCode = aqueductResponse.statusCode;
-
     aqueductResponse.headers?.forEach((k, v) {
       response.headers.add(k, v);
     });
 
-    if (encodedBody != null) {
+    if (body != null) {
+      if (didCompress.value != null) {
+        response.headers.add(HttpHeaders.CONTENT_ENCODING, didCompress.value);
+      }
+
       response.headers.add(
           HttpHeaders.CONTENT_TYPE, aqueductResponse.contentType.toString());
-      response.write(encodedBody);
+      response.headers.add(
+          HttpHeaders.CONTENT_LENGTH, body.length);
+      response.add(body);
     }
 
     return response.close();
+  }
+
+  List<int> _responseBodyBytes(Response resp, _Reference<String> compressionType) {
+    if (resp.body == null) {
+      return null;
+    }
+
+    var codec = HTTPCodecRepository
+        .defaultInstance.codecForContentType(resp.contentType);
+
+    // todo(joeconwaystk): Set minimum threshold on number of bytes needed to perform gzip, do not gzip otherwise.
+    // There isn't a great way of doing this that I can think of except splitting out gzip from the fused codec,
+    // have to measure the value of fusing vs the cost of gzipping smaller data.
+    var canGzip =
+        HTTPCodecRepository.defaultInstance.isContentTypeCompressable(resp.contentType)
+            && _acceptsGzipResponseBody;
+
+    if (codec == null) {
+      if (resp.body is! List<int>) {
+        throw new HTTPCodecException("Invalid body '${resp.body.runtimeType}' for Content-Type '${resp.contentType}'");
+      }
+
+      if (canGzip) {
+        compressionType.value = "gzip";
+        return GZIP.encode(resp.body);
+      }
+      return resp.body;
+    }
+
+    if (canGzip) {
+      compressionType.value = "gzip";
+      codec = codec.fuse(GZIP);
+    }
+
+    return codec.encode(resp.body);
+  }
+
+  bool get _acceptsGzipResponseBody {
+    return innerRequest
+        .headers[HttpHeaders.ACCEPT_ENCODING]
+        ?.any((v) => v.split(",").any((s) => s.trim() == "gzip")) ?? false;
   }
 
   String toString() {
@@ -185,4 +234,9 @@ class Request implements RequestOrResponse {
 
     return builder.toString();
   }
+}
+
+class _Reference<T> {
+  _Reference(this.value);
+  T value;
 }

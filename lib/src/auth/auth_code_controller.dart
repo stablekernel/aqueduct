@@ -40,7 +40,6 @@ class AuthCodeController extends HTTPController {
     acceptedContentTypes = [
       new ContentType("application", "x-www-form-urlencoded")
     ];
-    responseContentType = ContentType.HTML;
 
     _renderFunction = renderAuthorizationPageHTML;
   }
@@ -95,7 +94,8 @@ class AuthCodeController extends HTTPController {
       return new Response.notFound();
     }
 
-    return new Response.ok(renderedPage);
+    return new Response.ok(renderedPage)
+      ..contentType = ContentType.HTML;
   }
 
   /// Creates a one-time use authorization code.
@@ -160,6 +160,8 @@ class AuthCodeController extends HTTPController {
         }
       });
     });
+
+    ops.firstWhere((op) => op.method == "get").produces = [ContentType.HTML];
 
     return ops;
   }

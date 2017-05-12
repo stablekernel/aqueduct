@@ -2,6 +2,7 @@ export 'body_decoder.dart';
 export 'controller_routing.dart';
 export 'cors_policy.dart';
 export 'documentable.dart';
+export 'http_codec_repository.dart';
 export 'http_controller.dart';
 export 'http_response_exception.dart';
 export 'query_controller.dart';
