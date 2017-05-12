@@ -145,12 +145,12 @@ abstract class HTTPController extends RequestController {
     return req;
   }
 
-  /// Executed prior to a responder method being executed, but after the body has been processed.
+  /// Callback to indicate when a request body has been processed.
   ///
   /// This method is called after the body has been processed by the decoder, but prior to the request being
-  /// handled by the selected responder method. If there is no HTTP body in the request,
+  /// handled by the selected responder method. If there is no HTTP request body,
   /// this method is not called.
-  void didDecodeRequestBody(HTTPBody decodedObject) {}
+  void didDecodeRequestBody(HTTPRequestBody decodedObject) {}
 
   /// Returns a [Response] for missing [HTTPParameter]s.
   ///
@@ -212,15 +212,12 @@ abstract class HTTPController extends RequestController {
           null);
     }
 
-    if (request.innerRequest.contentLength > 0) {
-      if (_requestContentTypeIsSupported(request)) {
-        await request.body.decodedData;
-      } else {
+    if (!request.body.isEmpty) {
+      if (!_requestContentTypeIsSupported(request)) {
         return new Response(HttpStatus.UNSUPPORTED_MEDIA_TYPE, null, null);
       }
-    }
 
-    if (request.body.hasContent != null) {
+      await request.body.decodedData;
       didDecodeRequestBody(request.body);
     }
 
