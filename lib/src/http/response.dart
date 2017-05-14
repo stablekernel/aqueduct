@@ -100,6 +100,16 @@ class Response implements RequestOrResponse {
   /// This value indicates whether or not [contentType] has been set, or is still using its default value.
   bool get hasExplicitlySetContentType => _contentType != null;
 
+  /// Whether or not the body object of this instance should be encoded.
+  ///
+  /// By default, a body object is encoded according to its [contentType] and the corresponding
+  /// [Codec] in [HTTPCodecRepository].
+  ///
+  /// If this instance's body object has already been encoded as a list of bytes by some other mechanism,
+  /// this property should be set to false to avoid the encoding process. This is useful when streaming a file
+  /// from disk where it is already stored as an encoded list of bytes.
+  bool encodeBody = true;
+
   /// The default constructor.
   ///
   /// There exist convenience constructors for common response status codes

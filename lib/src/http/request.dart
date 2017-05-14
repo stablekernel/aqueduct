@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:convert';
 
 import '../auth/auth.dart';
 import 'http.dart';
@@ -166,8 +167,10 @@ class Request implements RequestOrResponse {
       return null;
     }
 
-    var codec = HTTPCodecRepository
-        .defaultInstance.codecForContentType(resp.contentType);
+    Codec codec;
+    if (resp.encodeBody) {
+      codec = HTTPCodecRepository.defaultInstance.codecForContentType(resp.contentType);
+    }
 
     // todo(joeconwaystk): Set minimum threshold on number of bytes needed to perform gzip, do not gzip otherwise.
     // There isn't a great way of doing this that I can think of except splitting out gzip from the fused codec,
@@ -175,6 +178,7 @@ class Request implements RequestOrResponse {
     var canGzip =
         HTTPCodecRepository.defaultInstance.isContentTypeCompressable(resp.contentType)
             && _acceptsGzipResponseBody;
+
 
     if (codec == null) {
       if (resp.body is! List<int>) {
@@ -197,8 +201,11 @@ class Request implements RequestOrResponse {
   }
 
   Stream<List<int>> _responseBodyStream(Response resp, _Reference<String> compressionType) {
-    var codec = HTTPCodecRepository
-        .defaultInstance.codecForContentType(resp.contentType);
+    Codec codec;
+    if (resp.encodeBody) {
+      codec = HTTPCodecRepository.defaultInstance.codecForContentType(resp.contentType);
+    }
+
     var canGzip =
         HTTPCodecRepository.defaultInstance.isContentTypeCompressable(resp.contentType)
             && _acceptsGzipResponseBody;
