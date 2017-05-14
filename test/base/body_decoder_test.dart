@@ -440,7 +440,7 @@ void main() {
     test("decodeAsBytes with no data returns null", () async {
       http
           .post("http://localhost:8123",
-          headers: {"Content-Type": "binary/octet-stream"})
+          headers: {"Content-Type": "application/octet-stream"})
           .catchError((err) => null);
       var body = new HTTPRequestBody(await server.first);
 
@@ -451,7 +451,7 @@ void main() {
     test("asBytes with no data returns null", () async {
       http
           .post("http://localhost:8123",
-          headers: {"Content-Type": "binary/octet-stream"})
+          headers: {"Content-Type": "application/octet-stream"})
           .catchError((err) => null);
 
       var body = new HTTPRequestBody(await server.first);
@@ -546,7 +546,7 @@ Future postString(String data) {
 Future postBytes(List<int> bytes) {
   return http
       .post("http://localhost:8123",
-      headers: {"Content-Type": "binary/octet-stream"},
+      headers: {"Content-Type": "application/octet-stream"},
       body: bytes)
       .catchError((err) => null);
 }
