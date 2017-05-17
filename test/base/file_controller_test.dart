@@ -13,6 +13,7 @@ void main() {
   var htmlContents = "<html><h3>Aqueduct</h3></html>";
   var jsonFile = new File.fromUri(fileDirectory.uri.resolve("file.json"));
   var htmlFile = new File.fromUri(fileDirectory.uri.resolve("file.html"));
+  var indexFile = new File.fromUri(fileDirectory.uri.resolve("index.html"));
   var unknownFileExtension = new File.fromUri(fileDirectory.uri.resolve("file.unk"));
   var noFileExtension = new File.fromUri(fileDirectory.uri.resolve("file"));
 
@@ -24,6 +25,7 @@ void main() {
     htmlFile.writeAsBytesSync(UTF8.encode(htmlContents));
     unknownFileExtension.writeAsBytesSync(UTF8.encode(htmlContents));
     noFileExtension.writeAsBytesSync(UTF8.encode(htmlContents));
+    indexFile.writeAsBytesSync(UTF8.encode(htmlContents));
 
     var router = new Router()
       ..route("/files/*").pipe(new HTTPFileController("temp_files"));
@@ -77,6 +79,15 @@ void main() {
     expect(response.statusCode, 200);
     expect(response.headers["content-type"], "application/octet-stream");
     expect(response.headers["content-encoding"], isNull);
+    expect(response.headers["transfer-encoding"], "chunked");
+    expect(response.body, htmlContents);
+  });
+
+  test("If no file specified, serve index.html", () async {
+    var response = await getFile("");
+    expect(response.statusCode, 200);
+    expect(response.headers["content-type"], "text/html; charset=utf-8");
+    expect(response.headers["content-encoding"], "gzip");
     expect(response.headers["transfer-encoding"], "chunked");
     expect(response.body, htmlContents);
   });
