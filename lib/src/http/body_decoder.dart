@@ -45,9 +45,9 @@ class HTTPRequestBody {
   /// to use methods such as [decodeAsMap], [decodeAsList], and [decodeAsString], all of which
   /// invoke this method.
   ///
-  /// The first time this method is invoked, the body of the request this instance belongs to
-  /// is read in full and decoded according to the content-type of that request. This decoded data
-  /// is cached in this instance. Subsequent access will
+  /// The first time this method is invoked, this instance's contents are
+  /// read in full and decoded according to the content-type of its request. The decoded data
+  /// is stored in this instance so that subsequent access will
   /// return the cached decoded data instead of decoding it again.
   ///
   /// If the body of the request is empty, this method will return null and no decoding is attempted.
@@ -56,14 +56,14 @@ class HTTPRequestBody {
   /// by the content-type of the request.
   ///
   /// If there is no codec in [HTTPCodecRepository] for the content type of the
-  /// request body being decoded, this method returns the flat, unaltered list of bytes directly
-  /// from the request body. Each byte is an [int].
+  /// request body being decoded, this method returns the unaltered list of bytes directly
+  /// from the request body as [List<int>].
   ///
   /// If the selected codec produces [String] data (for example, any `text` content-type), the return value
-  /// of this method is a [List] of [String]. The entire decoded request body is obtained by concatenating
-  /// each element of this list. Prefer to use [decodeAsString] which automatically does this concatenation.
+  /// of this method is a [List<String>]. The entire decoded request body is obtained by concatenating
+  /// each element of this list. It is preferable to use [decodeAsString] which automatically does this concatenation.
   ///
-  /// For `application/json` and `application/x-www-form-urlencoded` data, the return value is a list that contains
+  /// For `application/json` and `application/x-www-form-urlencoded` data, the return value is a [List<Object>] that contains
   /// exactly one object - the decoded JSON or form object. Prefer to use [decodeAsMap] or [decodeAsList], which returns
   /// the single object from this list. Note that if the request body is a JSON list, the return value of this type
   /// is [List<List<Map<String, dynamic>>>], where the outer list contains exactly one object: the decoded JSON list.
@@ -73,7 +73,7 @@ class HTTPRequestBody {
   /// Whereas a JSON or form data must be read in full before the conversion is complete and so its codec only emits a single,
   /// complete object.
   Future<List<dynamic>> get decodedData async {
-    // Note that gzip compression will automatically be applied by dart:io.
+    // Note that gzip decompression will automatically be applied by dart:io.
     if (!hasBeenDecoded) {
       if (_decodedData == null) {
         if (_request.headers.contentType != null) {
