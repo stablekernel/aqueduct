@@ -109,6 +109,17 @@ void main() {
     expect(resp.statusCode, 500);
   });
 
+  test("Encoder that doesn't net out with List<int> safely fails", () async {
+    HTTPCodecRepository.defaultInstance.add(
+        new ContentType("application", "baddata"), new BadDataCodec(), allowCompression: false);
+    var serverResponse = new Response.ok("abcd")
+      ..contentType = new ContentType("application", "baddata");
+    server = await bindAndRespondWith(serverResponse);
+
+    var resp = await http.get("http://localhost:8081");
+    expect(resp.statusCode, 500);
+  });
+
   group("Compression", () {
     test("Content-Type that can be gzipped and request has Accept-Encoding will be gzipped", () async {
       // both gzip and gzip, deflate
@@ -239,5 +250,15 @@ class CrashingCodec extends Codec {
 class CrashingEncoder extends Converter<String, List<int>> {
   const CrashingEncoder();
   List<int> convert(String object) => throw new Exception("uhoh");
+}
+
+class BadDataCodec extends Codec {
+  Converter get encoder => const BadDataEncoder ();
+  Converter get decoder => null;
+}
+
+class BadDataEncoder extends Converter<String, String> {
+  const BadDataEncoder ();
+  String convert(String object) => object;
 }
 

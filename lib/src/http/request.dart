@@ -117,30 +117,48 @@ class Request implements RequestOrResponse {
   Future respond(Response aqueductResponse) {
     respondDate = new DateTime.now().toUtc();
 
-    // Note: this line's placement is intentional. If encoding the body fails and this throws an exception,
-    // and the status code has already been written too, then we can't change the status code to send
-    // back an error response. Note that a streaming body isn't checked this way
-    _Reference<String> didCompress = new _Reference(null);
-    var body = _responseBodyBytes(aqueductResponse, didCompress);
+    _Reference<String> compressionType = new _Reference(null);
+    var body = aqueductResponse.body;
+    if (body is! Stream) {
+      // Note: this pre-encodes the body in memory, such that encoding fails this will throw and we can return a 500
+      // because we have yet to write to the response.
+      body = _responseBodyBytes(aqueductResponse, compressionType);
+    }
 
     response.statusCode = aqueductResponse.statusCode;
     aqueductResponse.headers?.forEach((k, v) {
       response.headers.add(k, v);
     });
 
-    if (body != null) {
-      if (didCompress.value != null) {
-        response.headers.add(HttpHeaders.CONTENT_ENCODING, didCompress.value);
-      }
-
-      response.headers.add(
-          HttpHeaders.CONTENT_TYPE, aqueductResponse.contentType.toString());
-      response.headers.add(
-          HttpHeaders.CONTENT_LENGTH, body.length);
-      response.add(body);
+    if (body == null) {
+      return response.close();
     }
 
-    return response.close();
+    response.headers.add(
+        HttpHeaders.CONTENT_TYPE, aqueductResponse.contentType.toString());
+
+    if (body is List) {
+      if (compressionType.value != null) {
+        response.headers.add(HttpHeaders.CONTENT_ENCODING, compressionType.value);
+      }
+      response.headers.add(HttpHeaders.CONTENT_LENGTH, body.length);
+
+      response.add(body);
+
+      return response.close();
+    }
+
+    var bodyStream = _responseBodyStream(aqueductResponse, compressionType);
+    if (compressionType.value != null) {
+      response.headers.add(HttpHeaders.CONTENT_ENCODING, compressionType.value);
+    }
+    response.headers.add(HttpHeaders.TRANSFER_ENCODING, "chunked");
+
+    return response.addStream(bodyStream).then((_) {
+      return response.close();
+    }).catchError((e, st) {
+      throw new HTTPStreamingException(e, st);
+    });
   }
 
   List<int> _responseBodyBytes(Response resp, _Reference<String> compressionType) {
@@ -176,6 +194,29 @@ class Request implements RequestOrResponse {
     }
 
     return codec.encode(resp.body);
+  }
+
+  Stream<List<int>> _responseBodyStream(Response resp, _Reference<String> compressionType) {
+    var codec = HTTPCodecRepository
+        .defaultInstance.codecForContentType(resp.contentType);
+    var canGzip =
+        HTTPCodecRepository.defaultInstance.isContentTypeCompressable(resp.contentType)
+            && _acceptsGzipResponseBody;
+    if (codec == null) {
+      if (canGzip) {
+        compressionType.value = "gzip";
+        return GZIP.encoder.bind(resp.body);
+      }
+
+      return resp.body;
+    }
+
+    if (canGzip) {
+      compressionType.value = "gzip";
+      codec = codec.fuse(GZIP);
+    }
+
+    return codec.encoder.bind(resp.body);
   }
 
   bool get _acceptsGzipResponseBody {
@@ -223,6 +264,13 @@ class Request implements RequestOrResponse {
 
     return builder.toString();
   }
+}
+
+class HTTPStreamingException implements Exception {
+  HTTPStreamingException(this.underlyingException, this.trace);
+
+  dynamic underlyingException;
+  StackTrace trace;
 }
 
 class _Reference<T> {

@@ -190,7 +190,7 @@ class RequestController extends Object with APIDocumentable {
   /// including server errors.
   void willSendResponse(Response response) {}
 
-  /// Returns an HTTP response for a request that yields an exception or error.
+  /// Sends an HTTP response for a request that yields an exception or error.
   ///
   /// This method is automatically invoked by [receive] and should rarely be invoked otherwise.
   ///
@@ -219,6 +219,8 @@ class RequestController extends Object with APIDocumentable {
   /// Note: [includeErrorDetailsInServerErrorResponses] is not evaluated when [caughtValue] is an [HTTPResponseException] or [QueryException], as
   /// these are normal control flows. There is one exception - if [QueryException.event] is [QueryExceptionEvent.internalFailure], this method
   /// will include the error and stacktrace. [QueryExceptionEvent.internalFailure] occurs when the [Query] is malformed.
+  ///
+  /// This method returns true if the error is unexpected, allowing [letUncaughtExceptionsEscape] to rethrow the exception during debugging.
   Future<bool> handleError(Request request, dynamic caughtValue, StackTrace trace) async {
     if (caughtValue is HTTPResponseException) {
       var response = caughtValue.response;
@@ -251,6 +253,15 @@ class RequestController extends Object with APIDocumentable {
 
       logger.info(
           "${request.toDebugString(includeHeaders: true)}");
+    } else if (caughtValue is HTTPStreamingException) {
+      logger.severe(
+          "${request.toDebugString(includeHeaders: true)}",
+          caughtValue.underlyingException,
+          caughtValue.trace);
+
+      await request.response.close();
+
+      return true;
     } else {
       var body = null;
       if (includeErrorDetailsInServerErrorResponses) {
