@@ -68,16 +68,11 @@ void main() {
 
       // The test fails for a different reason in checked vs. unchecked mode.
       // Tests run in checked mode, but coverage runs in unchecked mode.
-      if (Platform.executableArguments.contains("--checked")) {
+      try {
         var result = await resultFuture;
         expect(result.statusCode, 500);
         expect(result.bodyBytes, []);
-      } else {
-        try {
-          await resultFuture;
-          expect(true, false);
-        } on http.ClientException catch (e) {}
-      }
+      } on http.ClientException catch (_) {}
     });
   });
 
