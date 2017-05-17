@@ -5,7 +5,7 @@ import 'http.dart';
 
 /// A decoding method for decoding a stream of bytes from an HTTP request body into a String.
 ///
-/// This function is used as part of the [HTTPBody] process. Typically, this represents the function [Utf8Codec.decodeStream].
+/// This function is used as part of the [HTTPRequestBody] process. Typically, this represents the function [Utf8Codec.decodeStream].
 typedef Future<String> HTTPBodyStreamDecoder(Stream<List<int>> s);
 
 /// Instances of this class decode HTTP request bodies according to their content type.
@@ -15,7 +15,7 @@ typedef Future<String> HTTPBodyStreamDecoder(Stream<List<int>> s);
 /// or one of the typed methods ([asList], [asMap], [decodeAsMap], [decodeAsList]) to decode HTTP body data.
 ///
 /// Default decoders are available for 'application/json', 'application/x-www-form-urlencoded' and 'text/*' content types.
-class HTTPBody {
+class HTTPRequestBody {
   static Map<String, Map<String, Function>> _decoders = {
     "application": {
       "json": _jsonDecoder,
@@ -31,7 +31,10 @@ class HTTPBody {
   /// See [addDecoder] for more information about how data is decoded.
   ///
   /// Decoded data is cached the after it is decoded.
-  HTTPBody(HttpRequest request) : this._request = request;
+  HTTPRequestBody(HttpRequest request) : this._request = request {
+    _hasContent = (request.headers.contentLength ?? 0) > 0
+               || request.headers.chunkedTransferEncoding;
+  }
 
   HttpRequest _request;
   dynamic _decodedData;
@@ -41,15 +44,13 @@ class HTTPBody {
   /// True when data has already been decoded.
   ///
   /// If this body has no content, this value is true.
-  bool get hasBeenDecoded => _decodedData != null || !hasContent;
+  bool get hasBeenDecoded => _decodedData != null || isEmpty;
 
   /// Whether or not this body is empty or not.
   ///
   /// If content-length header is greater than 0.
-  bool get hasContent {
-    // todo: transfer-encoding
-    return _request.headers.contentLength > 0;
-  }
+  bool get isEmpty => !_hasContent;
+  bool _hasContent;
 
   /// Returns decoded data, decoding it if not already decoded.
   ///
@@ -61,7 +62,7 @@ class HTTPBody {
   /// See also [decodeAsMap], [decodeAsList] and [asMap] and [asList].
   Future<dynamic> get decodedData async {
     if (!hasBeenDecoded) {
-      _decodedData ??= await HTTPBody.decode(_request);
+      _decodedData ??= await HTTPRequestBody.decode(_request);
     }
 
     return _decodedData;
@@ -250,7 +251,7 @@ class HTTPBody {
   }
 }
 
-/// Thrown when [HTTPBody] encounters an exception.
+/// Thrown when [HTTPRequestBody] encounters an exception.
 class HTTPBodyDecoderException implements HTTPResponseException {
   HTTPBodyDecoderException(this.message, {this.underlyingException})
       : statusCode = 400;

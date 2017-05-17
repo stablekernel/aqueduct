@@ -288,6 +288,19 @@ void main() {
     expect(resp.body, "body");
   });
 
+  test("didDecodeRequestBody invoked when there is a request body", () async {
+    server = await enableController("/a", DecodeCallbackController);
+    var resp = await http.get("http://localhost:4040/a");
+    expect(JSON.decode(resp.body), {"didDecode": false});
+
+    resp = await http.post("http://localhost:4040/a", headers: {
+      HttpHeaders.CONTENT_TYPE: ContentType.JSON.toString()
+    }, body: JSON.encode({
+      "k":"v"
+    }));
+    expect(JSON.decode(resp.body), {"didDecode": true});
+  });
+
   group("Annotated HTTP parameters", () {
     test("are supplied correctly", () async {
       server = await enableController("/a", HTTPParameterController);
@@ -675,6 +688,25 @@ class DuplicateParamController extends HTTPController {
   Future<Response> getThing(@HTTPQuery("list") List<String> list,
       @HTTPQuery("single") String single) async {
     return new Response.ok({"list": list, "single": single});
+  }
+}
+
+class DecodeCallbackController extends HTTPController {
+  bool didDecode = false;
+
+  @httpGet
+  Future<Response> getThing() async {
+    return new Response.ok({"didDecode": didDecode});
+  }
+
+  @httpPost
+  Future<Response> postThing() async {
+    return new Response.ok({"didDecode": didDecode});
+  }
+
+  @override
+  void didDecodeRequestBody(HTTPRequestBody decodedObject) {
+    didDecode = true;
   }
 }
 

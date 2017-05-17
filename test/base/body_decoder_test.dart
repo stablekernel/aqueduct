@@ -18,6 +18,58 @@ void main() {
       await server?.close(force: true);
     });
 
+    group("Content vs. empty", () {
+      HttpClient client;
+      setUp(() {
+        client = new HttpClient();
+      });
+
+      tearDown(() {
+        client.close(force: true);
+      });
+
+      test("Empty body shows as isEmpty", () async {
+        http.get("http://localhost:8123").catchError((err) => null);
+        var request = await server.first;
+        var body = new HTTPRequestBody(request);
+        expect(body.isEmpty, true);
+      });
+
+      test("Request with content-length header shows is not empty", () async {
+        var json = UTF8.encode(JSON.encode({"k": "v"}));
+        var req = await client.openUrl("POST", Uri.parse("http://localhost:8123"));
+        req.headers.add(HttpHeaders.CONTENT_TYPE, ContentType.JSON.toString());
+        req.headers.add(HttpHeaders.CONTENT_LENGTH, json.length);
+        req.add(json);
+        var f = req.close();
+
+        var request = await server.first;
+        expect(request.headers.value(HttpHeaders.CONTENT_LENGTH), "${json.length}");
+        var body = new HTTPRequestBody(request);
+        expect(body.isEmpty, false);
+
+        request.response.close();
+        await f;
+      });
+
+      test("Request with chunked transfer encoding shows not empty", () async {
+        var json = UTF8.encode(JSON.encode({"k": "v"}));
+        var req = await client.openUrl("POST", Uri.parse("http://localhost:8123"));
+        req.headers.add(HttpHeaders.CONTENT_TYPE, ContentType.JSON.toString());
+        req.add(json);
+        var f = req.close();
+
+        var request = await server.first;
+        expect(request.headers.value(HttpHeaders.CONTENT_LENGTH), isNull);
+        expect(request.headers.value(HttpHeaders.TRANSFER_ENCODING), "chunked");
+        var body = new HTTPRequestBody(request);
+        expect(body.isEmpty, false);
+
+        request.response.close();
+        await f;
+      });
+    });
+
     test("application/json decoder works on valid json", () async {
       http
           .post("http://localhost:8123",
@@ -26,7 +78,7 @@ void main() {
           .catchError((err) => null);
       var request = await server.first;
 
-      var body = await HTTPBody.decode(request);
+      var body = await HTTPRequestBody.decode(request);
       expect(body, {"a": "val"});
     });
 
@@ -39,7 +91,7 @@ void main() {
           .catchError((err) => null);
       var request = await server.first;
 
-      var body = await HTTPBody.decode(request);
+      var body = await HTTPRequestBody.decode(request);
       expect(body, {
         "a": ["b"],
         "c": ["2"]
@@ -54,7 +106,7 @@ void main() {
 
       var request = await server.first;
 
-      var body = await HTTPBody.decode(request);
+      var body = await HTTPRequestBody.decode(request);
       expect(body, "foobar");
     });
 
@@ -67,7 +119,7 @@ void main() {
       ;
       var request = await server.first;
 
-      var body = await HTTPBody.decode(request);
+      var body = await HTTPRequestBody.decode(request);
       expect(body, "foobar".codeUnits);
     });
 
@@ -81,7 +133,7 @@ void main() {
 
       expect(request.headers.contentType, isNull);
 
-      var body = await HTTPBody.decode(request);
+      var body = await HTTPRequestBody.decode(request);
       expect(body, "foobar".codeUnits);
     });
 
@@ -94,7 +146,7 @@ void main() {
       var request = await server.first;
 
       try {
-        var _ = await HTTPBody.decode(request);
+        var _ = await HTTPRequestBody.decode(request);
       } on HTTPBodyDecoderException catch (e) {
         expect(e, isNotNull);
       }
@@ -108,7 +160,7 @@ void main() {
       var request = await server.first;
 
       try {
-        var _ = await HTTPBody.decode(request);
+        var _ = await HTTPRequestBody.decode(request);
       } on HTTPBodyDecoderException catch (e) {
         expect(e, isNotNull);
         expect(e.underlyingException is FormatException, true);
@@ -120,11 +172,11 @@ void main() {
     HttpServer server;
 
     setUpAll(() {
-      HTTPBody.addDecoder(new ContentType("application", "thingy"),
+      HTTPRequestBody.addDecoder(new ContentType("application", "thingy"),
           (req) async {
         return "application/thingy";
       });
-      HTTPBody.addDecoder(new ContentType("somethingelse", "*"),
+      HTTPRequestBody.addDecoder(new ContentType("somethingelse", "*"),
           (req) async {
         return "somethingelse/*";
       });
@@ -146,7 +198,7 @@ void main() {
           .catchError((err) => null);
       var request = await server.first;
 
-      var body = await HTTPBody.decode(request);
+      var body = await HTTPRequestBody.decode(request);
       expect(body, "application/thingy");
     });
 
@@ -159,7 +211,7 @@ void main() {
       ;
       var request = await server.first;
 
-      var body = await HTTPBody.decode(request);
+      var body = await HTTPRequestBody.decode(request);
       expect(body, "somethingelse/*");
     });
   });
@@ -177,20 +229,20 @@ void main() {
 
     test("Decode valid decodeAsMap", () async {
       postJSON({"a" : "val"});
-      var body = new HTTPBody(await server.first);
+      var body = new HTTPRequestBody(await server.first);
       expect(await body.decodeAsMap(), {"a": "val"});
     });
 
     test("Return valid asMap from already decoded body", () async {
       postJSON({"a" : "val"});
-      var body = new HTTPBody(await server.first);
+      var body = new HTTPRequestBody(await server.first);
       await body.decodedData;
       expect(body.asMap(), {"a": "val"});
     });
 
     test("Call asMap prior to decode throws exception", () async {
       postJSON({"a" : "val"});
-      var body = new HTTPBody(await server.first);
+      var body = new HTTPRequestBody(await server.first);
 
       try {
         body.asMap();
@@ -200,7 +252,7 @@ void main() {
 
     test("decodeAsMap with non-map returns HTTPBodyException", () async {
       postJSON("a");
-      var body = new HTTPBody(await server.first);
+      var body = new HTTPRequestBody(await server.first);
 
       try {
         await body.decodeAsMap();
@@ -213,7 +265,7 @@ void main() {
           .post("http://localhost:8123",
           headers: {"Content-Type": "application/json"})
           .catchError((err) => null);
-      var body = new HTTPBody(await server.first);
+      var body = new HTTPRequestBody(await server.first);
 
       expect(await body.decodeAsMap(), null);
       expect(body.hasBeenDecoded, true);
@@ -225,7 +277,7 @@ void main() {
           headers: {"Content-Type": "application/json"})
           .catchError((err) => null);
 
-      var body = new HTTPBody(await server.first);
+      var body = new HTTPRequestBody(await server.first);
       await body.decodedData;
       expect(body.asMap(), null);
     });
@@ -244,20 +296,20 @@ void main() {
 
     test("Decode valid decodeAsList", () async {
       postJSON([{"a": "val"}]);
-      var body = new HTTPBody(await server.first);
+      var body = new HTTPRequestBody(await server.first);
       expect(await body.decodeAsList(), [{"a": "val"}]);
     });
 
     test("Return valid asList from already decoded body", () async {
       postJSON([{"a" : "val"}]);
-      var body = new HTTPBody(await server.first);
+      var body = new HTTPRequestBody(await server.first);
       await body.decodedData;
       expect(body.asList(), [{"a": "val"}]);
     });
 
     test("Call asList prior to decode throws exception", () async {
       postJSON([{"a" : "val"}]);
-      var body = new HTTPBody(await server.first);
+      var body = new HTTPRequestBody(await server.first);
 
       try {
         body.asList();
@@ -267,7 +319,7 @@ void main() {
 
     test("decodeAsList with non-list returns HTTPBodyException", () async {
       postJSON("a");
-      var body = new HTTPBody(await server.first);
+      var body = new HTTPRequestBody(await server.first);
 
       try {
         await body.decodeAsList();
@@ -280,7 +332,7 @@ void main() {
           .post("http://localhost:8123",
           headers: {"Content-Type": "application/json"})
           .catchError((err) => null);
-      var body = new HTTPBody(await server.first);
+      var body = new HTTPRequestBody(await server.first);
 
       expect(await body.decodeAsList(), null);
       expect(body.hasBeenDecoded, true);
@@ -292,7 +344,7 @@ void main() {
           headers: {"Content-Type": "application/json"})
           .catchError((err) => null);
 
-      var body = new HTTPBody(await server.first);
+      var body = new HTTPRequestBody(await server.first);
       await body.decodedData;
       expect(body.asList(), null);
     });
