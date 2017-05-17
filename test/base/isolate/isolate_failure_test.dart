@@ -76,6 +76,7 @@ main() {
       }
 
       expect(timeoutApp.supervisors.length, 0);
+      print("-- test completes");
     });
 
     test("Isolate timeout kills application when first isolate succeeds, but next fails", () async {
@@ -93,6 +94,7 @@ main() {
       }
 
       expect(timeoutApp.supervisors.length, 0);
+      print("-- test completes");
     });
   });
 }
