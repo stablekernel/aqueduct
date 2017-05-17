@@ -61,7 +61,12 @@ class HTTPFileController extends RequestController {
   Future<RequestOrResponse> processRequest(Request request) async {
     var relativePath = request.path.remainingPath;
     var fileUri = servingDirectory.resolve(relativePath);
-    var file = new File.fromUri(fileUri);
+    File file;
+    if (FileSystemEntity.isDirectorySync(fileUri.toFilePath())) {
+      file = new File.fromUri(fileUri.resolve("index.html"));
+    } else {
+      file = new File.fromUri(fileUri);
+    }
 
     if (!(await file.exists())) {
       return new Response.notFound();
