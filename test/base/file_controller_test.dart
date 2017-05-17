@@ -13,12 +13,17 @@ void main() {
   var htmlContents = "<html><h3>Aqueduct</h3></html>";
   var jsonFile = new File.fromUri(fileDirectory.uri.resolve("file.json"));
   var htmlFile = new File.fromUri(fileDirectory.uri.resolve("file.html"));
+  var unknownFileExtension = new File.fromUri(fileDirectory.uri.resolve("file.unk"));
+  var noFileExtension = new File.fromUri(fileDirectory.uri.resolve("file"));
+
   HttpServer server;
 
   setUpAll(() async {
     fileDirectory.createSync();
     jsonFile.writeAsBytesSync(UTF8.encode(JSON.encode(jsonContents)));
     htmlFile.writeAsBytesSync(UTF8.encode(htmlContents));
+    unknownFileExtension.writeAsBytesSync(UTF8.encode(htmlContents));
+    noFileExtension.writeAsBytesSync(UTF8.encode(htmlContents));
 
     var router = new Router()
       ..route("/files/*").pipe(new HTTPFileController("temp_files"));
@@ -56,6 +61,24 @@ void main() {
   test("Missing files returns 404", () async {
     var response = await getFile("file.foobar");
     expect(response.statusCode, 404);
+  });
+
+  test("Unknown extension-content type is application/octet-stream", () async {
+    var response = await getFile("file.unk");
+    expect(response.statusCode, 200);
+    expect(response.headers["content-type"], "application/octet-stream");
+    expect(response.headers["content-encoding"], isNull);
+    expect(response.headers["transfer-encoding"], "chunked");
+    expect(response.body, htmlContents);
+  });
+
+  test("No file extension is application/octet-stream", () async {
+    var response = await getFile("file");
+    expect(response.statusCode, 200);
+    expect(response.headers["content-type"], "application/octet-stream");
+    expect(response.headers["content-encoding"], isNull);
+    expect(response.headers["transfer-encoding"], "chunked");
+    expect(response.body, htmlContents);
   });
 }
 

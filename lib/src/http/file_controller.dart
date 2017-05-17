@@ -28,6 +28,7 @@ class HTTPFileController extends RequestController {
     "rtf": new ContentType("application", "rtf"),
     "pdf": new ContentType("application", "pdf"),
     "csv": new ContentType("text", "plain", charset: "utf-8"),
+    "md": new ContentType("text", "plain", charset: "utf-8"),
 
     /* Fonts */
     "ttf": new ContentType("font", "ttf"),
