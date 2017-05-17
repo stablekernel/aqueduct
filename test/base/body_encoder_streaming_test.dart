@@ -66,9 +66,18 @@ void main() {
       sc.add([5, 6, 7, 8]);
       sc.close();
 
-      var result = await resultFuture;
-      expect(result.statusCode, 500);
-      expect(result.bodyBytes, []);
+      // The test fails for a different reason in checked vs. unchecked mode.
+      // Tests run in checked mode, but coverage runs in unchecked mode.
+      if (Platform.executableArguments.contains("--checked")) {
+        var result = await resultFuture;
+        expect(result.statusCode, 500);
+        expect(result.bodyBytes, []);
+      } else {
+        try {
+          await resultFuture;
+          expect(true, false);
+        } on http.ClientException catch (e) {}
+      }
     });
   });
 
@@ -232,7 +241,7 @@ void main() {
     HttpServer server;
 
     tearDown(() async {
-      await server?.close(force: true);
+      await server.close(force: true);
     });
 
     test("Client request is cancelled during stream cleans up appropriately", () async {
@@ -260,6 +269,7 @@ void main() {
       expect(server.connectionsInfo().active, 1);
 
       await socket.close();
+      await socket.destroy();
       await sc.close();
 
       expect(serverHasNoMoreConnections(server), completes);
