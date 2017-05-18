@@ -110,12 +110,13 @@ class HTTPFileController extends RequestController {
     }
 
     var lastModifiedDate = HttpDate.format(await file.lastModified());
+    var contentType = contentTypeForExtension(path.extension(file.path))
+        ?? new ContentType("application", "octet-stream");
     var byteStream = file.openRead();
 
     return new Response.ok(byteStream,
         headers: {HttpHeaders.LAST_MODIFIED: lastModifiedDate})
       ..encodeBody = false
-      ..contentType = contentTypeForExtension(path.extension(file.path)
-          ?? new ContentType("application", "octet-stream"));
+      ..contentType = contentType;
   }
 }
