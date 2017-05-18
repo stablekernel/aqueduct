@@ -20,13 +20,16 @@ class ApplicationIsolateServer extends ApplicationServer {
     supervisingReceivePort = new ReceivePort();
     supervisingReceivePort.listen(listener);
 
+    logger.fine("ApplicationIsolateServer($identifier) listening, sending port");
     supervisingApplicationPort.send(supervisingReceivePort.sendPort);
   }
 
   @override
   Future start(RequestSink sink, {bool shareHttpServer: false}) async {
     var result = await super.start(sink, shareHttpServer: shareHttpServer);
+    logger.fine("ApplicationIsolateServer($identifier) started, sending listen message");
     supervisingApplicationPort.send(ApplicationIsolateSupervisor.MessageListening);
+
     return result;
   }
 

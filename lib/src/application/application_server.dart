@@ -45,6 +45,7 @@ class ApplicationServer {
   /// Do not invoke this method directly, [Application] instances are responsible
   /// for calling this method.
   Future start(RequestSink sink, {bool shareHttpServer: false}) async {
+    logger.fine("ApplicationServer($identifier).start entry");
     this.sink = sink;
     sink.server = this;
 
@@ -52,6 +53,7 @@ class ApplicationServer {
     sink.router?.finalize();
     sink.nextController = sink.initialController;
 
+    logger.fine("ApplicationServer($identifier).start binding HTTP");
     var securityContext = sink.securityContext;
     if (securityContext != null) {
       _requiresHTTPS = true;
@@ -69,7 +71,8 @@ class ApplicationServer {
           v6Only: configuration.isIpv6Only, shared: shareHttpServer);
     }
 
-    await didOpen();
+    logger.fine("ApplicationServer($identifier).start bound HTTP");
+    return didOpen();
   }
 
   Future close() async {
@@ -86,13 +89,13 @@ class ApplicationServer {
   /// [RequestSink.didOpen] is invoked after this opening has completed.
   Future didOpen() async {
     logger.info("Server aqueduct/$identifier started.");
-
     server.serverHeader = "aqueduct/${this.identifier}";
+
 
     await sink.willOpen();
 
+    logger.fine("ApplicationServer($identifier).didOpen start listening");
     server.map((baseReq) => new Request(baseReq)).listen(_dispatchRequest);
-
     sink.didOpen();
   }
 
