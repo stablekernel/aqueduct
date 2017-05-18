@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:isolate';
 import 'dart:mirrors';
 
+import 'package:logging/logging.dart';
+
 import '../http/request_sink.dart';
 import '../utilities/resource_registry.dart';
 import 'application.dart';
@@ -11,12 +13,18 @@ import 'isolate_supervisor.dart';
 class ApplicationIsolateServer extends ApplicationServer {
   SendPort supervisingApplicationPort;
   ReceivePort supervisingReceivePort;
+  bool logToConsole;
 
   ApplicationIsolateServer(
       ApplicationConfiguration configuration,
       int identifier,
-      this.supervisingApplicationPort)
+      this.supervisingApplicationPort, this.logToConsole)
       : super(configuration, identifier) {
+    if (logToConsole) {
+      hierarchicalLoggingEnabled = true;
+      logger.level = Level.ALL;
+      logger.onRecord.listen((r) => print(r));
+    }
     supervisingReceivePort = new ReceivePort();
     supervisingReceivePort.listen(listener);
 
@@ -43,6 +51,7 @@ class ApplicationIsolateServer extends ApplicationServer {
     supervisingReceivePort.close();
     await close();
     await ResourceRegistry.release();
+    logger.clearListeners();
     supervisingApplicationPort
         .send(ApplicationIsolateSupervisor.MessageStop);
   }
@@ -51,7 +60,7 @@ class ApplicationIsolateServer extends ApplicationServer {
 /// This method is used internally.
 void isolateServerEntryPoint(ApplicationInitialServerMessage params) {
   var server = new ApplicationIsolateServer(
-      params.configuration, params.identifier, params.parentMessagePort);
+      params.configuration, params.identifier, params.parentMessagePort, params.logToConsole);
 
   var sinkSourceLibraryMirror =
   currentMirrorSystem().libraries[params.streamLibraryURI];
@@ -70,7 +79,8 @@ class ApplicationInitialServerMessage {
   ApplicationConfiguration configuration;
   SendPort parentMessagePort;
   int identifier;
+  bool logToConsole = false;
 
   ApplicationInitialServerMessage(this.streamTypeName, this.streamLibraryURI,
-      this.configuration, this.identifier, this.parentMessagePort);
+      this.configuration, this.identifier, this.parentMessagePort, {this.logToConsole: false});
 }
