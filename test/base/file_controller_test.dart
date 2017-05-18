@@ -138,7 +138,7 @@ void main() {
     var request = "GET /files/file.html HTTP/1.1\r\nConnection: keep-alive\r\nHost: localhost\r\n\r\n";
     socket.add(request.codeUnits);
     await socket.flush();
-    await socket.close();
+    await socket.destroy();
 
     var response = await getFile("file.html");
     expect(response.statusCode, 200);
