@@ -43,6 +43,22 @@ import '../application/application.dart';
 ///
 abstract class RequestSink extends RequestController
     implements APIDocumentable {
+  /// One-time setup method for an application.
+  ///
+  /// This method is invoked as the first step during application startup. It is only invoked once per application, whereas other initialization
+  /// methods are invoked once per isolate. Implement this method in an application's [RequestSink] subclass. This method is often used to
+  /// read configuration values from the configuration file:
+  ///
+  ///         class MyRequestSink extends RequestSink {
+  ///           static Future initializeApplication(ApplicationConfiguration config) async {
+  ///             var configurationValuesFromFile = ...;
+  ///             config.options = configurationValuesFromFile;
+  ///           }
+  ///
+  /// * Note that static methods are not inherited in Dart and therefore you are not overriding this method. The declaration of this method in the base [RequestSink] class
+  /// is for documentation purposes..
+  static Future initializeApplication(ApplicationConfiguration config) async {}
+
   /// Default constructor.
   ///
   /// The default constructor takes a [Map] of configuration [configuration]. This [Map] is the same [Map] in [ApplicationConfiguration.options].

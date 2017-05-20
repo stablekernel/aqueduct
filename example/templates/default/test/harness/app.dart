@@ -50,9 +50,7 @@ class TestApplication {
 
     await application.start(runOnMainIsolate: true);
 
-    ManagedContext.defaultContext = sink.context;
-
-    await createDatabaseSchema(sink.context, sink.logger);
+    await createDatabaseSchema(ManagedContext.defaultContext, sink.logger);
     await addClientRecord();
     await addClientRecord(clientID: DefaultPublicClientID, clientSecret: null);
 

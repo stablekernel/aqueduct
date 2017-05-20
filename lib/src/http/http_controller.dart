@@ -97,7 +97,7 @@ import 'http_controller_internal.dart';
 ///
 /// An instance of this type will decode the [Request.body] prior to invoking a responder method.
 ///
-/// See further documentation on https://stablekernel.github.io/aqueduct under HTTP guides.
+/// See further documentation here: http://aqueduct.io/docs/http/http_controller/
 ///
 @cannotBeReused
 abstract class HTTPController extends RequestController {

@@ -3,8 +3,17 @@ import 'package:aqueduct/aqueduct.dart';
 import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'dart:io';
+import '../../helpers.dart';
 
 main() {
+  setUpAll(() {
+    justLogEverything();
+  });
+
+  tearDownAll(() {
+    new Logger("aqueduct").clearListeners();
+  });
+
   group("Failures", () {
     test(
         "Application start fails and logs appropriate message if request stream doesn't open",
@@ -69,7 +78,7 @@ main() {
         };
 
       try {
-        await timeoutApp.start(numberOfInstances: 2);
+        await timeoutApp.start(numberOfInstances: 2, consoleLogging: true);
         expect(true, false);
       } on TimeoutException catch (e) {
         expect(e.toString(), contains("Isolate (1) failed to launch"));
@@ -87,7 +96,7 @@ main() {
         };
 
       try {
-        await timeoutApp.start(numberOfInstances: 2);
+        await timeoutApp.start(numberOfInstances: 2, consoleLogging: true);
         expect(true, false);
       } on TimeoutException catch (e) {
         expect(e.toString(), contains("Isolate (2) failed to launch"));
