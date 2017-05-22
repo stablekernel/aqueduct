@@ -10,7 +10,7 @@ If you have not yet, run:
 aqueduct setup
 ```
 
-See [Getting Started](https://stablekernel.github.io/aqueduct/deploy/getting_started.html)
+See [Getting Started](https://aqueduct.io/docs/)
 
 ## Notes
 
@@ -22,7 +22,7 @@ To disable logging during tests, set `logging:type:` to `off` in `config.yaml.sr
 
 ## Authentication/Authorization
 
-This project uses OAuth 2.0. See the [Deployment Guides](http://stablekernel.github.io/aqueduct/deploy/overview.html) for provisioning the database to hold auth information and inserting OAuth 2.0 client IDs.
+This project uses OAuth 2.0. See the [Deployment Guides](http://aqueduct.io/docs/deploy/overview) for provisioning the database to hold auth information and inserting OAuth 2.0 client IDs.
 
 Routes are pre-configured for the resource owner password flow (`/auth/token`) and the authorization code flow (`/auth/code` and `/auth/token`).
 
@@ -38,11 +38,11 @@ Tests will be run using the configuration file `config.yaml.src`. This file shou
 
 See the application test harness, `test/app/harness.dart`, for more details. This file contains a `TestApplication` class that can be set up and torn down for tests. It will create a temporary database that the tests run against. See examples of usage in the `_test.dart` files in `test/`.
 
-See [Getting Started](https://stablekernel.github.io/aqueduct/deploy/getting_started.html) and [Testing](https://stablekernel.github.io/aqueduct/testing/overview.html).
+See [Testing](https://aqueduct.io/docs/testing/overview).
 
 ## Deployment and Database Provisioning
 
-Run Aqueduct applications with `aqueduct serve`. This application connects to a database and requires a configuration file. See the [Deployment Guides](http://stablekernel.github.io/aqueduct/deploy/overview.html) for configuring databases.
+Run Aqueduct applications with `aqueduct serve`. This application connects to a database and requires a configuration file. See the [Deployment Guides](http://aqueduct.io/docs/deploy/overview/) for configuring databases.
 
 ## Logging and Configuration
 

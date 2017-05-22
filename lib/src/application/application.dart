@@ -67,7 +67,7 @@ class Application<RequestSinkType extends RequestSink> {
   ///
   /// If this instances [RequestSinkType] implements `initializeApplication` (see [RequestSink] for more details),
   /// that one-time initialization method will be executed prior to the spawning of isolates and instantiations of [RequestSink].
-  Future start({int numberOfInstances: 1, bool runOnMainIsolate: false}) async {
+  Future start({int numberOfInstances: 1, bool runOnMainIsolate: false, bool consoleLogging: false}) async {
     if (configuration.address == null) {
       if (runOnMainIsolate) {
         configuration.address = InternetAddress.LOOPBACK_IP_V4;
@@ -103,7 +103,7 @@ class Application<RequestSinkType extends RequestSink> {
       supervisors = [];
       try {
         for (int i = 0; i < numberOfInstances; i++) {
-          var supervisor = await _spawn(configuration, i + 1);
+          var supervisor = await _spawn(configuration, i + 1, logToConsole: consoleLogging);
           supervisors.add(supervisor);
           await supervisor.resume();
         }
@@ -156,7 +156,7 @@ class Application<RequestSinkType extends RequestSink> {
   }
 
   Future<ApplicationIsolateSupervisor> _spawn(
-      ApplicationConfiguration config, int identifier) async {
+      ApplicationConfiguration config, int identifier, {bool logToConsole: false}) async {
     var receivePort = new ReceivePort();
 
     var streamTypeMirror = reflectType(RequestSinkType);
@@ -164,7 +164,7 @@ class Application<RequestSinkType extends RequestSink> {
     var streamTypeName = MirrorSystem.getName(streamTypeMirror.simpleName);
 
     var initialMessage = new ApplicationInitialServerMessage(streamTypeName,
-        streamLibraryURI, config, identifier, receivePort.sendPort);
+        streamLibraryURI, config, identifier, receivePort.sendPort, logToConsole: logToConsole);
     var isolate = await Isolate.spawn(isolateServerEntryPoint, initialMessage,
         paused: true);
 

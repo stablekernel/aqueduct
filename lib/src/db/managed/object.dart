@@ -62,7 +62,7 @@ abstract class ManagedBacking {
 /// A subclass of this type must implement its persistent type and use it as the type argument of [ManagedObject]. Properties and methods
 /// declared in the subclass (also called the 'instance type') are not stored in the database.
 ///
-/// See more documentation on defining a data model at https://stablekernel.github.io/aqueduct
+/// See more documentation on defining a data model at http://aqueduct.io/docs/db/modeling_data/
 class ManagedObject<PersistentType> implements HTTPSerializable {
   /// The [ManagedEntity] this instance is described by.
   ManagedEntity entity =

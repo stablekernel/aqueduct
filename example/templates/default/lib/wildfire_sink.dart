@@ -14,14 +14,10 @@ import 'utility/html_template.dart';
 /// for the purpose and order of the initialization methods.
 ///
 /// Instances of this class are the type argument to [Application].
-/// See http://stablekernel.github.io/aqueduct/http/request_sink.html
+/// See http://aqueduct.io/docs/http/request_sink
 /// for more details.
 class WildfireSink extends RequestSink {
-  static const String ConfigurationValuesKey = "ConfigurationValuesKey";
-  static const String LoggingTargetKey = "LoggingTargetKey";
-
   HTMLRenderer htmlRenderer = new HTMLRenderer();
-  ManagedContext context;
   AuthServer authServer;
 
   /**
@@ -31,21 +27,18 @@ class WildfireSink extends RequestSink {
   ///
   /// This method is executed before any instances of this type are created and is the first step in the initialization process.
   ///
-  /// Values can be added to [config]'s [ApplicationConfiguration.options] and will be available in each instance of this class
-  /// in the constructor. The values added to the configuration's options are often from a configuration file that this method reads.
-  static Future initializeApplication(ApplicationConfiguration config) async {
-    if (config.configurationFilePath == null) {
+  /// Values can be added to [appConfig]'s [ApplicationConfiguration.options] and will be available in each instance of this class
+  /// in the constructor.
+  static Future initializeApplication(ApplicationConfiguration appConfig) async {
+    if (appConfig.configurationFilePath == null) {
       throw new ApplicationStartupException(
           "No configuration file found. See README.md.");
     }
 
-    var configFileValues =
-        new WildfireConfiguration(config.configurationFilePath);
-    config.options[ConfigurationValuesKey] = configFileValues;
-
-    var loggingServer = configFileValues.logging.loggingServer;
+    var options = new WildfireConfiguration(appConfig.configurationFilePath);
+    var loggingServer = options.logging.loggingServer;
     await loggingServer?.start();
-    config.options[LoggingTargetKey] = loggingServer?.getNewTarget();
+    appConfig.options["loggingTarget"] = loggingServer?.getNewTarget();
   }
 
   /// Constructor called for each isolate run by an [Application].
@@ -55,22 +48,19 @@ class WildfireSink extends RequestSink {
   ///
   /// This constructor is invoked after [initializeApplication].
   ///
-  /// The [options] are provided by the command line arguments and script that starts the application, and often
+  /// The [appConfig] is made up of command line arguments from the script that starts the application and often
   /// contain values that [initializeApplication] adds to it.
   ///
-  /// Resources that require asynchronous initialization, such as database connections, should be instantiated in this
-  /// method but should be opened in [willOpen].
-  WildfireSink(ApplicationConfiguration options) : super(options) {
-    WildfireConfiguration configuration =
-        options.options[ConfigurationValuesKey];
-
-    LoggingTarget target = options.options[LoggingTargetKey];
+  /// Configuration of database connections, [HTTPCodecRepository] and other per-isolate resources should be done in this constructor.
+  WildfireSink(ApplicationConfiguration appConfig) : super(appConfig) {
+    LoggingTarget target = appConfig.options["loggingTarget"];
     target?.bind(logger);
 
-    context = contextWithConnectionInfo(configuration.database);
-    ManagedContext.defaultContext = context;
+    var options = new WildfireConfiguration(appConfig.configurationFilePath);
+    ManagedContext.defaultContext = contextWithConnectionInfo(options.database);
 
-    authServer = new AuthServer(new ManagedAuthStorage<User>(context));
+    authServer =
+      new AuthServer(new ManagedAuthStorage<User>(ManagedContext.defaultContext));
   }
 
   /// All routes must be configured in this method.
