@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:logging/logging.dart';
 
 class HTMLRenderer {
-  Logger logger = new Logger("wildfire");
   Map<String, String> _cache = {};
 
   Future<String> renderHTML(

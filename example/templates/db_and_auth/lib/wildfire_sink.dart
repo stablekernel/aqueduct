@@ -49,10 +49,11 @@ class WildfireSink extends RequestSink {
   /// Configuration of database connections, [HTTPCodecRepository] and other per-isolate resources should be done in this constructor.
   WildfireSink(ApplicationConfiguration appConfig) : super(appConfig) {
     var options = new WildfireConfiguration(appConfig.configurationFilePath);
+
     ManagedContext.defaultContext = contextWithConnectionInfo(options.database);
 
-    authServer =
-      new AuthServer(new ManagedAuthStorage<User>(ManagedContext.defaultContext));
+    var authStorage = new ManagedAuthStorage<User>(ManagedContext.defaultContext);
+    authServer = new AuthServer(authStorage);
   }
 
   /// All routes must be configured in this method.

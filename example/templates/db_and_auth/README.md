@@ -4,39 +4,55 @@ An application built with [aqueduct](https://github.com/stablekernel/aqueduct).
 
 ## First Time Setup
 
-If you have not yet, run:
+This application is tested against a local PostgreSQL database. The test harness (`test/harness/app.dart`) creates database tables for each `ManagedObject` subclass declared in this application. These tables are discarded when the test completes.
+
+The local database installation must have a database named `dart_test`, for which a user named `dart` (with password `dart`) has full privileges to.
+The following command creates this database and user on a locally running PostgreSQL database:
 
 ```
 aqueduct setup
 ```
 
-See [Getting Started](https://aqueduct.io/docs/)
+See `test/identity_controller_test.dart` for an example of a test suite.
+
+For more information, see [Getting Started](https://aqueduct.io/docs/)
 
 ## Notes
 
-Files declaring an instance of `ManagedObject` must be exported from `lib/wildfire_model.dart`.
+The data model of this application is defined by all declared subclasses of `ManagedObject`. Each of these subclasses is defined in a file in the `model` directory and each of these files must be exported from `wildfire_model.sink`.
 
-See configured routes in `lib/wildfire_sink.dart`.
+Routes and other initialization are configured in `lib/wildfire_sink.dart`.
 
-To disable logging during tests, set `logging:type:` to `off` in `config.yaml.src`. To re-enable, set to `console`.
 
 ## Authentication/Authorization
 
-This project uses OAuth 2.0. See the [Deployment Guides](http://aqueduct.io/docs/deploy/overview) for provisioning the database to hold auth information and inserting OAuth 2.0 client IDs.
+This application uses OAuth 2.0 and has endpoints (`/auth/token` and `/auth/code`) for supporting the resource owner and authorization code flows.
 
-Routes are pre-configured for the resource owner password flow (`/auth/token`) and the authorization code flow (`/auth/code` and `/auth/token`).
+The test harness inserts OAuth 2.0 clients into the application's storage prior to running a test. See `test/harness/app.dart` for more details and `test/identity_controller_test.dart` for usage.
+
+OAuth 2.0 clients are added to a live database with the `aqueduct auth` command. For example,
+
+```
+aqueduct auth add-client \
+    --id com.wildfire.mobile
+    --secret myspecialsecret
+    --connect postgres://user:password@host:5432/wildfire
+```
+
+
+For more information and more configuration options for OAuth 2.0 clients, see [OAuth 2.0 CLI](https://aqueduct.io/docs/auth/cli/)
 
 ## Running Tests
 
 To run all tests for this application, run the following command in this directory:
 
 ```
-pub run test -j 1
+pub run test
 ```
 
 Tests will be run using the configuration file `config.yaml.src`. This file should contain all test configuration values and remain in source control. This `config.yaml.src` file is the 'template' for `config.yaml` files living on deployed servers. This allows tests to use a configuration file with the same layout as deployed instances and avoid configuration errors.
 
-See the application test harness, `test/app/harness.dart`, for more details. This file contains a `TestApplication` class that can be set up and torn down for tests. It will create a temporary database that the tests run against. See examples of usage in the `_test.dart` files in `test/`.
+See the application test harness, `test/app/harness.dart`, for more details. This file contains a `TestApplication` class that can be set up and torn down for tests. It will create a temporary database that the tests run against. It alos inserts OAuth 2.0 clients into this test database prior to running a test. See examples of usage in the `_test.dart` files in `test/`.
 
 See [Testing](https://aqueduct.io/docs/testing/overview).
 
@@ -44,13 +60,11 @@ See [Testing](https://aqueduct.io/docs/testing/overview).
 
 Run Aqueduct applications with `aqueduct serve`. This application connects to a database and requires a configuration file. See the [Deployment Guides](http://aqueduct.io/docs/deploy/overview/) for configuring databases.
 
-## Logging and Configuration
+## Configuration
 
-The configuration file currently requires an entry for `database:` and `logging:`.
+The configuration file (`config.yaml`) currently requires an entry for `database:` which describes a database connection.
 
-Logs can be sent to stdout or to a rotating file. See the behavior of `LoggingConfiguration` and `WildfireSink.initializeApplication` in `lib/wildfire_sink.dart` for possible configuration values.
-
-See [safe_config](https://pub.dartlang.org/packages/safe_config) for more details on configuration.
+The file `config.yaml.src` is used for testing: it should be checked into source control and contain values for testing purposes. It should maintain the same keys as `config.yaml`.
 
 ## Creating API Documentation
 
