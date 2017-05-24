@@ -100,7 +100,7 @@ void main() {
     });
 
     test("Tests run on template generated from local path (with a little help)", () async {
-      expect((await runWith(["test_project"])).exitCode, 0);
+      expect((await runWith(["test_project", "-t", "db"])).exitCode, 0);
 
       var res = Process.runSync("pub", ["run", "test", "-j", "1"],
           runInShell: true, workingDirectory: temporaryDirectory.path);
@@ -117,4 +117,13 @@ Future<CLIResult> runWith(List<String> args) {
   allArgs.addAll(args);
 
   return runAqueductProcess(allArgs, Directory.current);
+}
+
+void addLinesToFile(
+    File file, String afterFindingThisString, String insertThisString) {
+  var contents = file.readAsStringSync();
+  var indexOf =
+      contents.indexOf(afterFindingThisString) + afterFindingThisString.length;
+  var newContents = contents.replaceRange(indexOf, indexOf, insertThisString);
+  file.writeAsStringSync(newContents);
 }
