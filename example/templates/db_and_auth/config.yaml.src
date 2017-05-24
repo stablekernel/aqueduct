@@ -1,0 +1,9 @@
+database:
+ username: dart
+ password: dart
+ host: localhost
+ port: 5432
+ databaseName: dart_test
+logging:
+ type: console
+ filename: api.log

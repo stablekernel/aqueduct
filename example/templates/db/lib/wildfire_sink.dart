@@ -13,7 +13,6 @@ import 'wildfire.dart';
 /// See http://aqueduct.io/docs/http/request_sink
 /// for more details.
 class WildfireSink extends RequestSink {
-
   /**
    * Initialization methods
    */
@@ -35,14 +34,15 @@ class WildfireSink extends RequestSink {
   /// This constructor is called for each isolate an [Application] creates to serve requests - therefore,
   /// any initialization that must occur only once per application startup should happen in [initializeApplication].
   ///
-  /// This constructor is invoked after [initializeApplication] and is invoked once per isolate.
+  /// This constructor is invoked after [initializeApplication].
   ///
   /// The [appConfig] is made up of command line arguments from the script that starts the application and often
   /// contain values that [initializeApplication] adds to it.
   ///
   /// Configuration of database connections, [HTTPCodecRepository] and other per-isolate resources should be done in this constructor.
   WildfireSink(ApplicationConfiguration appConfig) : super(appConfig) {
-    var _ = new WildfireConfiguration(appConfig.configurationFilePath);
+    var options = new WildfireConfiguration(appConfig.configurationFilePath);
+    ManagedContext.defaultContext = contextWithConnectionInfo(options.database);
   }
 
   /// All routes must be configured in this method.
@@ -51,7 +51,9 @@ class WildfireSink extends RequestSink {
   /// the router gets 'compiled' after this method completes and routes cannot be added later.
   @override
   void setupRouter(Router router) {
-
+    router
+        .route("/model/[:id]")
+        .generate(() => new ManagedObjectController<Model>());
   }
 
   /// Final initialization method for this instance.
@@ -60,6 +62,23 @@ class WildfireSink extends RequestSink {
   /// initialization process. This method is invoked after [setupRouter] and prior to this
   /// instance receiving any requests.
   Future willOpen() async {}
+
+  /**
+   * Helper methods
+   */
+
+  ManagedContext contextWithConnectionInfo(
+      DatabaseConnectionConfiguration connectionInfo) {
+    var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
+    var psc = new PostgreSQLPersistentStore.fromConnectionInfo(
+        connectionInfo.username,
+        connectionInfo.password,
+        connectionInfo.host,
+        connectionInfo.port,
+        connectionInfo.databaseName);
+
+    return new ManagedContext(dataModel, psc);
+  }
 }
 
 /// An instance of this class represents values from a configuration
@@ -71,4 +90,5 @@ class WildfireSink extends RequestSink {
 class WildfireConfiguration extends ConfigurationItem {
   WildfireConfiguration(String fileName) : super.fromFile(fileName);
 
+  DatabaseConnectionConfiguration database;
 }

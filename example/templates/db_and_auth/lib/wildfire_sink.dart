@@ -1,5 +1,9 @@
 import 'wildfire.dart';
 
+import 'controller/identity_controller.dart';
+import 'controller/register_controller.dart';
+import 'controller/user_controller.dart';
+import 'utility/html_template.dart';
 
 /// This class handles setting up this application.
 ///
@@ -13,6 +17,8 @@ import 'wildfire.dart';
 /// See http://aqueduct.io/docs/http/request_sink
 /// for more details.
 class WildfireSink extends RequestSink {
+  HTMLRenderer htmlRenderer = new HTMLRenderer();
+  AuthServer authServer;
 
   /**
    * Initialization methods
@@ -35,14 +41,18 @@ class WildfireSink extends RequestSink {
   /// This constructor is called for each isolate an [Application] creates to serve requests - therefore,
   /// any initialization that must occur only once per application startup should happen in [initializeApplication].
   ///
-  /// This constructor is invoked after [initializeApplication] and is invoked once per isolate.
+  /// This constructor is invoked after [initializeApplication].
   ///
   /// The [appConfig] is made up of command line arguments from the script that starts the application and often
   /// contain values that [initializeApplication] adds to it.
   ///
   /// Configuration of database connections, [HTTPCodecRepository] and other per-isolate resources should be done in this constructor.
   WildfireSink(ApplicationConfiguration appConfig) : super(appConfig) {
-    var _ = new WildfireConfiguration(appConfig.configurationFilePath);
+    var options = new WildfireConfiguration(appConfig.configurationFilePath);
+    ManagedContext.defaultContext = contextWithConnectionInfo(options.database);
+
+    authServer =
+      new AuthServer(new ManagedAuthStorage<User>(ManagedContext.defaultContext));
   }
 
   /// All routes must be configured in this method.
@@ -51,6 +61,30 @@ class WildfireSink extends RequestSink {
   /// the router gets 'compiled' after this method completes and routes cannot be added later.
   @override
   void setupRouter(Router router) {
+    /* OAuth 2.0 Endpoints */
+    router.route("/auth/token").generate(() => new AuthController(authServer));
+
+    router.route("/auth/code").generate(() => new AuthCodeController(authServer,
+        renderAuthorizationPageHTML: renderLoginPage));
+
+    /* Create an account */
+    router
+        .route("/register")
+        .pipe(new Authorizer.basic(authServer))
+        .generate(() => new RegisterController(authServer));
+
+    /* Gets profile for user with bearer token */
+    router
+        .route("/me")
+        .pipe(new Authorizer.bearer(authServer))
+        .generate(() => new IdentityController());
+
+    /* Gets all users or one specific user by id */
+    router
+        .route("/users/[:id]")
+        .pipe(new Authorizer.bearer(authServer))
+        .generate(() => new UserController(authServer));
+
 
   }
 
@@ -60,6 +94,42 @@ class WildfireSink extends RequestSink {
   /// initialization process. This method is invoked after [setupRouter] and prior to this
   /// instance receiving any requests.
   Future willOpen() async {}
+
+  /**
+   * Helper methods
+   */
+
+  ManagedContext contextWithConnectionInfo(
+      DatabaseConnectionConfiguration connectionInfo) {
+    var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
+    var psc = new PostgreSQLPersistentStore.fromConnectionInfo(
+        connectionInfo.username,
+        connectionInfo.password,
+        connectionInfo.host,
+        connectionInfo.port,
+        connectionInfo.databaseName);
+
+    return new ManagedContext(dataModel, psc);
+  }
+
+  Future<String> renderLoginPage(AuthCodeController controller, Uri requestURI,
+      Map<String, String> queryParameters) async {
+    var path = requestURI.path;
+    var map = new Map<String, String>.from(queryParameters);
+    map["path"] = path;
+
+    return htmlRenderer.renderHTML("web/login.html", map);
+  }
+
+  /**
+   * Overrides
+   */
+
+  @override
+  Map<String, APISecurityScheme> documentSecuritySchemes(
+      PackagePathResolver resolver) {
+    return authServer.documentSecuritySchemes(resolver);
+  }
 }
 
 /// An instance of this class represents values from a configuration
@@ -71,4 +141,5 @@ class WildfireSink extends RequestSink {
 class WildfireConfiguration extends ConfigurationItem {
   WildfireConfiguration(String fileName) : super.fromFile(fileName);
 
+  DatabaseConnectionConfiguration database;
 }
