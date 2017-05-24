@@ -59,7 +59,29 @@ void main() {
     });
   });
 
-  group("Templates from path", () {
+  group("Templates", () {
+    test("Listed templates are accurate", () async {
+      // This test will fail if you add or change the name of a template.
+      // If you are adding a template, just add it to this list. If you are renaming/deleting a template,
+      // make sure there is still a 'default' template.
+      var result = await runWith(["list-templates"]);
+      var names = ["db", "db_and_auth", "default"];
+      var lines = result.output.split("\n");
+
+      // [0;1m-- Aqueduct CLI Version: 2.1.1[0m
+      // [0;1m-- Available templates:[0m
+      // [0m    [0m
+      // [0m    default - an empty Aqueduct application[0m
+      // [0m    db - an Aqueduct application with a database connection and data model[0m
+      // [0m    db_and_auth - an Aqueduct application with a database connection, data model and OAuth 2.0 endpoints[0m
+      //
+
+      expect(lines.length, names.length + 4);
+      for (var n in names) {
+        expect(lines.any((l) => l.startsWith("\x1B[0m    $n ")), true);
+      }
+    });
+
     test("Template gets generated from local path, project points to it",
         () async {
       var res = await runWith(["test_project"]);
@@ -77,7 +99,7 @@ void main() {
       expect(path, path_lib.join(Directory.current.path, "lib"));
     });
 
-    test("Tests run on template generated from local path", () async {
+    test("Tests run on template generated from local path (with a little help)", () async {
       expect((await runWith(["test_project"])).exitCode, 0);
 
       var res = Process.runSync("pub", ["run", "test", "-j", "1"],

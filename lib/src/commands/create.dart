@@ -29,6 +29,8 @@ class CLITemplateCreator extends CLICommand {
       ..addFlag("offline",
           negatable: false,
           help: "Will fetch dependencies from a local cache if they exist.");
+
+    registerCommand(new CLITemplateList());
   }
 
   String get templateName => values["template"];
@@ -75,7 +77,8 @@ class CLITemplateCreator extends CLICommand {
       return 1;
     }
 
-    displayProgress("Template source is: ${sourceDirectory.path}.");
+    displayProgress("Template source is: ${sourceDirectory.path}");
+    displayProgress("See more templates with 'aqueduct create list-templates'");
     await copyProjectFiles(destDirectory, sourceDirectory, projectName);
 
     createProjectSpecificFiles(destDirectory.path, aqueductDependencyString);
@@ -332,5 +335,26 @@ class CLITemplateCreator extends CLICommand {
 
   String get description {
     return "Creates Aqueduct applications from templates.";
+  }
+}
+
+
+class CLITemplateList extends CLICommand {
+  Future<int> handle() async {
+    displayInfo("Available templates:");
+    displayProgress("");
+    displayProgress("default - an empty Aqueduct application");
+    displayProgress("db - an Aqueduct application with a database connection and data model");
+    displayProgress("db_and_auth - an Aqueduct application with a database connection, data model and OAuth 2.0 endpoints");
+    return 0;
+  }
+
+  String get name {
+    return "list-templates";
+  }
+
+
+  String get description {
+    return "List Aqueduct application templates.";
   }
 }
