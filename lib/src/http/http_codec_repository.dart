@@ -21,6 +21,7 @@ class HTTPCodecRepository {
     add(new ContentType("application", "json"), const JsonCodec(), allowCompression: true);
     add(new ContentType("application", "x-www-form-urlencoded"), const _FormCodec(), allowCompression: true);
     setAllowsCompression(new ContentType("text", "*"), true);
+    setAllowsCompression(new ContentType("application", "javascript"), true);
   }
 
 
