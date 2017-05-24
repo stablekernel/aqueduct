@@ -24,10 +24,7 @@ class WildfireSink extends RequestSink {
   /// Values can be added to [appConfig]'s [ApplicationConfiguration.options] and will be available in each instance of this class
   /// in the constructor.
   static Future initializeApplication(ApplicationConfiguration appConfig) async {
-    if (appConfig.configurationFilePath == null) {
-      throw new ApplicationStartupException(
-          "No configuration file found. See README.md.");
-    }
+
   }
 
   /// Constructor called for each isolate run by an [Application].
@@ -42,7 +39,7 @@ class WildfireSink extends RequestSink {
   ///
   /// Configuration of database connections, [HTTPCodecRepository] and other per-isolate resources should be done in this constructor.
   WildfireSink(ApplicationConfiguration appConfig) : super(appConfig) {
-    var _ = new WildfireConfiguration(appConfig.configurationFilePath);
+
   }
 
   /// All routes must be configured in this method.
@@ -60,15 +57,4 @@ class WildfireSink extends RequestSink {
   /// initialization process. This method is invoked after [setupRouter] and prior to this
   /// instance receiving any requests.
   Future willOpen() async {}
-}
-
-/// An instance of this class represents values from a configuration
-/// file specific to this application.
-///
-/// Configuration files must have key-value for the properties in this class.
-/// For more documentation on configuration files, see
-/// https://pub.dartlang.org/packages/safe_config.
-class WildfireConfiguration extends ConfigurationItem {
-  WildfireConfiguration(String fileName) : super.fromFile(fileName);
-
 }
