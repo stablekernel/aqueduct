@@ -243,7 +243,7 @@ abstract class CLICommand implements CLIResultHandler {
     print("${options.usage}");
 
     if (options.commands.length > 0) {
-      print("Available commands:");
+      print("Available sub-commands:");
 
       var commandNames = options.commands.keys.toList();
       commandNames.sort((a, b) => b.length.compareTo(a.length));
