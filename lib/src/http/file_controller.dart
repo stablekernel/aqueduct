@@ -6,26 +6,10 @@ import 'http.dart';
 
 /// Serves files from a directory on the filesystem.
 ///
-/// An instance of this type serves files by appending all or part of an HTTP request path to its [servingDirectory] and streaming the bytes
-/// of that file as a response.
-///
-/// Instances of this type may be [pipe]d from a route that contains the match-all route pattern (`*`). For example, consider the following:
-///
-///       router
-///        .route("/site/*")
-///        .pipe(new HTTPFileController("build/web"));
-///
-/// In the above, `GET /site/index.html` would respond with the contents of the file `build/web/index.html`, relative to the project directory.
-///
-/// The content type of the response is determined by the file extension of the served file. There are many built-in extension-to-content-type mappings and you may
-/// add more with [setContentTypeForExtension]. Unknown file extension will result in `application/octet-stream` content-type responses.
-///
-/// These mappings should be added in an application's [RequestSink] constructor.
-///
-/// Note that this controller will always compress files with `gzip` if the request has the appropriate header.
+/// See the constructor for usage.
 ///
 class HTTPFileController extends RequestController {
-  static Map<String, ContentType> _extensionMap = {
+  static Map<String, ContentType> _defaultExtensionMap = {
     /* Web content */
     "html": new ContentType("text", "html", charset: "utf-8"),
     "css": new ContentType("text", "css", charset: "utf-8"),
@@ -57,13 +41,65 @@ class HTTPFileController extends RequestController {
     "otf": new ContentType("font", "otf"),
   };
 
+  /// Creates an instance of this type that serves files from [pathOfDirectoryToServe].
+  ///
+  /// An instance of this type serves files by appending all or part of an HTTP request path to [pathOfDirectoryToServe] and streaming the bytes
+  /// of that file as a response.
+  ///
+  /// Instances of this type are [pipe]d from a route that MUST contain the match-all route pattern (`*`). For example, consider the following:
+  ///
+  ///       router
+  ///        .route("/site/*")
+  ///        .pipe(new HTTPFileController("build/web"));
+  ///
+  /// In the above, `GET /site/index.html` would respond with the contents of the file `build/web/index.html`, relative to the project directory.
+  ///
+  /// If [pathOfDirectoryToServe] contains a leading slash, it is an absolute path. Otherwise, it is relative to the current working directory
+  /// of the running application.
+  ///
+  /// The content type of the response is determined by the file extension of the served file. There are many built-in extension-to-content-type mappings and you may
+  /// add more with [setContentTypeForExtension]. Unknown file extension will result in `application/octet-stream` content-type responses.
+  ///
+  /// The contents of a file will be compressed with 'gzip' if the request allows for it and the content-type of the file can be compressed
+  /// according to [HTTPCodecRepository].
+  ///
+  /// If [defaultCacheBustingPolicies] is true, the following two policies are added:
+  ///
+  /// * HTML files require a conditional request
+  /// * The following files are aggressively cached (max-age=one year):
+  ///     .jpg, .js, .png, .css, .jpeg, .ttf, .eot, .woff, .otf
+  ///
+  /// When using this set of policies, deployed files should be post-processed by a cache-busting
+  /// build step. A cache-busting build step will insert the MD5 hash of a file into its path
+  /// and update references to those renamed files in HTML, CSS and JavaScript files.
+  ///
+  /// Note that the 'Last-Modified' header is always applied to a response served from this instance.
+  HTTPFileController(String pathOfDirectoryToServe, {bool defaultCacheBustingPolicies: false})
+      : _servingDirectory = new Uri.directory(pathOfDirectoryToServe) {
+    if (defaultCacheBustingPolicies) {
+      addCachePolicy(
+          const HTTPCachePolicy(requireConditionalRequest: true),
+              (path) => path.endsWith(".html"));
+
+      addCachePolicy(
+          const HTTPCachePolicy(expirationFromNow: const Duration(seconds: 31536000)),
+          (path) =>
+              [".jpg", ".js", ".png", ".css", ".jpeg", ".ttf", ".eot", ".woff", ".otf"]
+                  .any((suffix) => path.endsWith(suffix)));
+    }
+  }
+
+  Map<String, ContentType> _extensionMap =  new Map.from(_defaultExtensionMap);
+  List<_PolicyPair> _policyPairs = [];
+  final Uri _servingDirectory;
+
   /// Returns a [ContentType] for a file extension.
   ///
   /// Returns the associated content type for [extension], if one exists. Extension may have leading '.',
   /// e.g. both '.jpg' and 'jpg' are valid inputs to this method.
   ///
   /// Returns null if there is no entry for [extension]. Entries can be added with [setContentTypeForExtension].
-  static ContentType contentTypeForExtension(String extension) {
+  ContentType contentTypeForExtension(String extension) {
     if (extension.startsWith(".")) {
       extension = extension.substring(1);
     }
@@ -74,30 +110,49 @@ class HTTPFileController extends RequestController {
   ///
   /// When a file with [extension] file extension is served by any instance of this type,
   /// the [contentType] will be sent as the response's Content-Type header.
-  static void setContentTypeForExtension(
+  void setContentTypeForExtension(
       String extension, ContentType contentType) {
     _extensionMap[extension] = contentType;
   }
 
-  /// Serves files from [pathOfDirectoryToServe].
+  /// Add a cache policy for file paths that return true for [shouldApplyToPath].
   ///
-  /// See [HTTPFileController] for usage.
+  /// When this instance serves a file, the headers determined by [policy]
+  /// will be applied to files whose path returns true for [shouldApplyToPath].
   ///
-  /// [policy] is currently unimplemented.
-  HTTPFileController(String pathOfDirectoryToServe, {HTTPCachePolicy policy})
-      : servingDirectory = new Uri.directory(pathOfDirectoryToServe),
-        cachePolicy = policy ?? new HTTPCachePolicy();
-
-  /// Directory that files are served from.
-  final Uri servingDirectory;
-
-  /// HTTP Cache headers to apply to the responses from this instance.
-  final HTTPCachePolicy cachePolicy;
+  /// If a path would meet the criteria for multiple [shouldApplyToPath] functions added to this instance,
+  /// the policy added earliest to this instance will be applied.
+  ///
+  /// For example, the following adds a set of cache policies that will apply 'Cache-Control: no-cache, no-store' to '.widget' files,
+  /// and 'Cache-Control: public' for any other files:
+  ///
+  ///         fileController.addCachePolicy(const HTTPCachePolicy(preventCaching: true),
+  ///           (p) => p.endsWith(".widget"));
+  ///         fileController.addCachePolicy(const HTTPCachePolicy(),
+  ///           (p) => true);
+  ///
+  /// Whereas the following incorrect example would apply 'Cache-Control: public' to '.widget' files because the first policy
+  /// would always apply to it and the second policy would be ignored:
+  ///
+  ///         fileController.addCachePolicy(const HTTPCachePolicy(),
+  ///           (p) => true);
+  ///         fileController.addCachePolicy(const HTTPCachePolicy(preventCaching: true),
+  ///           (p) => p.endsWith(".widget"));
+  ///
+  /// Note that the 'Last-Modified' header is always applied to a response served from this instance.
+  ///
+  void addCachePolicy(HTTPCachePolicy policy, bool shouldApplyToPath(String path)) {
+    _policyPairs.add(new _PolicyPair(policy, shouldApplyToPath));
+  }
 
   @override
   Future<RequestOrResponse> processRequest(Request request) async {
+    if (request.innerRequest.method.toLowerCase() != "get") {
+      return new Response(HttpStatus.METHOD_NOT_ALLOWED, null, null);
+    }
+
     var relativePath = request.path.remainingPath;
-    var fileUri = servingDirectory.resolve(relativePath);
+    var fileUri = _servingDirectory.resolve(relativePath);
     File file;
     if (FileSystemEntity.isDirectorySync(fileUri.toFilePath())) {
       file = new File.fromUri(fileUri.resolve("index.html"));
@@ -109,14 +164,38 @@ class HTTPFileController extends RequestController {
       return new Response.notFound();
     }
 
-    var lastModifiedDate = HttpDate.format(await file.lastModified());
+    var lastModifiedDate = await file.lastModified();
+    var ifModifiedSince = request.innerRequest.headers.value(HttpHeaders.IF_MODIFIED_SINCE);
+    if (ifModifiedSince != null) {
+      var date = HttpDate.parse(ifModifiedSince);
+      if (lastModifiedDate.isBefore(date)) {
+        return new Response.notModified(lastModifiedDate, _policyForFile(file));
+      }
+    }
+
+    var lastModifiedDateStringValue = HttpDate.format(lastModifiedDate);
     var contentType = contentTypeForExtension(path.extension(file.path))
         ?? new ContentType("application", "octet-stream");
     var byteStream = file.openRead();
 
     return new Response.ok(byteStream,
-        headers: {HttpHeaders.LAST_MODIFIED: lastModifiedDate})
+        headers: {HttpHeaders.LAST_MODIFIED: lastModifiedDateStringValue})
+      ..cachePolicy = _policyForFile(file)
       ..encodeBody = false
       ..contentType = contentType;
   }
+
+  HTTPCachePolicy _policyForFile(File file) {
+    return _policyPairs.firstWhere((pair) => pair.shouldApplyToPath(file.path),
+        orElse: () => null)
+        ?.policy;
+  }
+}
+
+typedef bool _ShouldApplyToPath(String path);
+class _PolicyPair {
+  _PolicyPair(this.policy, this.shouldApplyToPath);
+
+  final _ShouldApplyToPath shouldApplyToPath;
+  final HTTPCachePolicy policy;
 }

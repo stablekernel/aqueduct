@@ -130,8 +130,13 @@ class Request implements RequestOrResponse {
     aqueductResponse.headers?.forEach((k, v) {
       response.headers.add(k, v);
     });
+    
+    if (aqueductResponse.cachePolicy != null) {
+      response.headers.add(HttpHeaders.CACHE_CONTROL, aqueductResponse.cachePolicy.headerValue);
+    }
 
     if (body == null) {
+      response.headers.removeAll(HttpHeaders.CONTENT_TYPE);
       return response.close();
     }
 
@@ -149,6 +154,7 @@ class Request implements RequestOrResponse {
       return response.close();
     }
 
+    // Otherwise, body is stream
     var bodyStream = _responseBodyStream(aqueductResponse, compressionType);
     if (compressionType.value != null) {
       response.headers.add(HttpHeaders.CONTENT_ENCODING, compressionType.value);
