@@ -40,9 +40,19 @@ void main() {
     cssFile.writeAsBytesSync(UTF8.encode(cssContents));
     jsFile.writeAsBytesSync(UTF8.encode(jsContents));
 
+    var cachingController = new HTTPFileController("temp_files")
+      ..addCachePolicy(
+          const HTTPCachePolicy(requireConditionalRequest: true),
+              (path) => path.endsWith(".html"))
+      ..addCachePolicy(
+          const HTTPCachePolicy(expirationFromNow: const Duration(seconds: 31536000)),
+              (path) =>
+              [".jpg", ".js", ".png", ".css", ".jpeg", ".ttf", ".eot", ".woff", ".otf"]
+                  .any((suffix) => path.endsWith(suffix)));
+
     var router = new Router()
       ..route("/files/*").pipe(new HTTPFileController("temp_files"))
-      ..route("/cache/*").pipe(new HTTPFileController("temp_files", defaultCacheBustingPolicies: true))
+      ..route("/cache/*").pipe(cachingController)
       ..route("/silly/*").pipe(
           new HTTPFileController("temp_files")
             ..setContentTypeForExtension("silly", new ContentType("text", "html", charset: "utf-8")));

@@ -63,31 +63,10 @@ class HTTPFileController extends RequestController {
   /// The contents of a file will be compressed with 'gzip' if the request allows for it and the content-type of the file can be compressed
   /// according to [HTTPCodecRepository].
   ///
-  /// If [defaultCacheBustingPolicies] is true, the following two policies are added:
-  ///
-  /// * HTML files require a conditional request
-  /// * The following files are aggressively cached (max-age=one year):
-  ///     .jpg, .js, .png, .css, .jpeg, .ttf, .eot, .woff, .otf
-  ///
-  /// When using this set of policies, deployed files should be post-processed by a cache-busting
-  /// build step. A cache-busting build step will insert the MD5 hash of a file into its path
-  /// and update references to those renamed files in HTML, CSS and JavaScript files.
   ///
   /// Note that the 'Last-Modified' header is always applied to a response served from this instance.
-  HTTPFileController(String pathOfDirectoryToServe, {bool defaultCacheBustingPolicies: false})
-      : _servingDirectory = new Uri.directory(pathOfDirectoryToServe) {
-    if (defaultCacheBustingPolicies) {
-      addCachePolicy(
-          const HTTPCachePolicy(requireConditionalRequest: true),
-              (path) => path.endsWith(".html"));
-
-      addCachePolicy(
-          const HTTPCachePolicy(expirationFromNow: const Duration(seconds: 31536000)),
-          (path) =>
-              [".jpg", ".js", ".png", ".css", ".jpeg", ".ttf", ".eot", ".woff", ".otf"]
-                  .any((suffix) => path.endsWith(suffix)));
-    }
-  }
+  HTTPFileController(String pathOfDirectoryToServe)
+      : _servingDirectory = new Uri.directory(pathOfDirectoryToServe);
 
   Map<String, ContentType> _extensionMap =  new Map.from(_defaultExtensionMap);
   List<_PolicyPair> _policyPairs = [];
