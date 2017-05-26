@@ -50,34 +50,33 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
     return _whereBuilder;
   }
 
-  Query<T> joinOne<T extends ManagedObject>(T m(InstanceType x)) {
+  Query<T> join<T extends ManagedObject>(
+      {T object(InstanceType x), ManagedSet<T> set(InstanceType x)}) {
     var tracker = new ManagedAccessTrackingBacking();
     var obj = entity.newInstance()..backing = tracker;
-    var matchingKey = m(obj as InstanceType) as String;
+    var matchingKey;
+    if (object != null) {
+      matchingKey = object(obj as InstanceType) as String;
+    } else if (set != null) {
+      matchingKey = set(obj as InstanceType) as String;
+    }
 
     var attr = entity.relationships[matchingKey];
     if (attr == null) {
       throw new QueryException(QueryExceptionEvent.internalFailure,
           message:
-              "Property '${matchingKey}' is not a relationship or does not exist for ${entity.tableName} in 'joinMany'.");
+          "Property '${matchingKey}' is not a relationship or does not exist for ${entity.tableName} in 'joinMany'.");
     }
 
     return _createSubquery(attr);
   }
 
+  Query<T> joinOne<T extends ManagedObject>(T m(InstanceType x)) {
+    return join(object: m);
+  }
+
   Query<T> joinMany<T extends ManagedObject>(ManagedSet<T> m(InstanceType x)) {
-    var tracker = new ManagedAccessTrackingBacking();
-    var obj = entity.newInstance()..backing = tracker;
-    var matchingKey = m(obj as InstanceType) as String;
-
-    var attr = entity.relationships[matchingKey];
-    if (attr == null) {
-      throw new QueryException(QueryExceptionEvent.internalFailure,
-          message:
-              "Property '${matchingKey}' is not a relationship or does not exist for ${entity.tableName} in 'joinMany'.");
-    }
-
-    return _createSubquery(attr);
+    return join(set: m);
   }
 
   Query _createSubquery(ManagedRelationshipDescription fromRelationship) {

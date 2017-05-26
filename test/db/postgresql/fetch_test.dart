@@ -254,7 +254,7 @@ void main() {
     }
 
     try {
-      var q = new Query<GenUser>()..joinMany((u) => u.posts);
+      var q = new Query<GenUser>()..join(set: (u) => u.posts);
       await q.fetchOne();
 
       expect(true, false);

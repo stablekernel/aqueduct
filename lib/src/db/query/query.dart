@@ -37,56 +37,58 @@ abstract class Query<InstanceType extends ManagedObject> {
     return null;
   }
 
-  /// Configures this instance to also include has-one relationship properties for returned objects.
+  /// Configures this instance to fetch a relationship property identified by [object] or [set].
   ///
-  /// This method configures this instance to also include values for the relationship property identified
-  /// by [propertyIdentifier]. [propertyIdentifier] must return a has-one relationship property of [InstanceType].
-  /// i.e., the returned value from this closure must be a [ManagedObject] subclass.
+  /// By default, objects returned by [Query.fetch] do not have their relationship properties populated. (In other words,
+  /// [ManagedObject] and [ManagedSet] properties are null.) This method configures this instance to conduct a SQL join,
+  /// allowing it to fetch relationship properties for the returned instances.
   ///
-  ///         var query = new Query<AccountHolder>()
-  ///           ..joinOne((accountHolder) => accountHolder.primaryAccount);
+  /// Consider a [ManagedObject] subclass with the following relationship properties as an example:
   ///
-  /// Instances returned from this query when executing [fetch] or [fetchOne]
-  /// will include values for that relationship property if a value exists. If the value does not exist,
-  /// i.e. the value is null, the returned object will contain the null value for its relationship property.
+  ///         class User extends ManagedObject<_User> implements _User {}
+  ///         class _User {
+  ///           Profile profile;
+  ///           ManagedSet<Note> notes;
+  ///         }
   ///
-  /// This method returns another instance of [Query] with a parametrized type of the related object. The
-  /// return query is a subquery of this instance. A subquery may be configured just like any other query,
-  /// e.g. configuring properties like [returningProperties] and [where].
+  /// To fetch an object and one of its has-one properties, use the [object] closure:
   ///
-  /// More than one [joinOne] (or [joinMany]) can be used on a single query and subqueries can also have [joinOne]
-  /// and [joinMany] nested configurations. Keep in mind, each additional join configuration does have an impact on
-  /// query performance.
+  ///         var query = new Query<User>()
+  ///           ..join(object: (u) => u.profile);
   ///
-  /// This configuration is only valid when executing [fetch] or [fetchOne].
+  /// To fetch an object and its has-many properties, use the [set] closure:
+  ///
+  ///         var query = new Query<User>()
+  ///           ..join(set: (u) => u.notes);
+  ///
+  /// Both [object] and [set] are passed an empty instance of the type being queried. [object] must return a has-one property (a [ManagedObject] subclass)
+  /// of the object it is pased. [set] must return a has-many property (a [ManagedSet]) of the object it is passed.
+  ///
+  /// Multiple relationship properties can be included by invoking this method multiple times with different properties, e.g.:
+  ///
+  ///         var query = new Query<User>()
+  ///           ..join(object: (u) => u.profile)
+  ///           ..join(set: (u) => u.notes);
+  ///
+  /// This method also returns a new instance of [Query], where [InstanceType] is is the type of the relationship property. This can be used
+  /// to configure which properties are returned for the related objects and to filter a [ManagedSet] relationship property. For example:
+  ///
+  ///         var query = new Query<User>();
+  ///         var subquery = query.join(set: (u) => u.notes)
+  ///           ..where.dateCreatedAt = whereGreaterThan(someDate);
+  ///
+  /// This mechanism only works on [fetch] and [fetchOne] execution methods. You *must not* execute a subquery created by this method.
+  Query<T> join<T extends ManagedObject>({T object(InstanceType x), ManagedSet<T> set(InstanceType x)});
+
+  /// Deprecated: see [join].
+  @Deprecated("3.0, use join(object:set:) instead")
   Query<T> joinOne<T extends ManagedObject>(
       T propertyIdentifier(InstanceType x));
 
-  /// Configures this instance to also include has-many relationship properties for returned objects.
-  ///
-  /// This method configures this instance to also include values for the relationship property identified
-  /// by [propertyIdentifier]. [propertyIdentifier] must return a has-many relationship property of [InstanceType].
-  /// i.e., the returned value from this closure must be a [ManagedSet].
-  ///
-  ///         var query = new Query<AccountHolder>()
-  ///           ..joinMany((accountHolder) => accountHolder.accounts);
-  ///
-  /// Instances returned from this query when executing [fetch] or [fetchOne]
-  /// will include values for that relationship property if a value exists. If the value does not exist,
-  /// i.e. the value is null, the returned object will contain the null value for its relationship property.
-  ///
-  /// This method returns another instance of [Query] with a parametrized type of the related object. The
-  /// return query is a subquery of this instance. A subquery may be configured just like any other query,
-  /// e.g. configuring properties like [returningProperties] and [where].
-  ///
-  /// More than one [joinOne] (or [joinMany]) can be used on a single query and subqueries can also have [joinOne]
-  /// and [joinMany] nested configurations. Keep in mind, each additional join configuration does have an impact on
-  /// query performance.
-  ///
-  /// This configuration is only valid when executing [fetch] or [fetchOne].
+  /// Deprecated: see [join].
+  @Deprecated("3.0, use join(object:set:) instead")
   Query<T> joinMany<T extends ManagedObject>(
       ManagedSet<T> propertyIdentifier(InstanceType x));
-
 
   /// Configures this instance to fetch a section of a larger result set.
   ///

@@ -35,7 +35,7 @@ void main() {
       var q = new Query<RootObject>()
         ..sortBy((r) => r.rid, QuerySortOrder.ascending);
 
-      q.joinMany((r) => r.join)..joinOne((r) => r.other);
+      q.join(set: (r) => r.join)..join(object: (r) => r.other);
       var results = await q.fetch();
       expect(
           results.map((r) => r.asMap()).toList(),
@@ -74,7 +74,7 @@ void main() {
       var q = new Query<OtherRootObject>()
         ..sortBy((o) => o.id, QuerySortOrder.ascending);
 
-      q.joinMany((r) => r.join)..joinOne((r) => r.root);
+      q.join(set: (r) => r.join)..join(object: (r) => r.root);
       var results = await q.fetch();
       expect(
           results.map((r) => r.asMap()).toList(),
@@ -112,8 +112,8 @@ void main() {
     test("Can join from join table", () async {
       var q = new Query<RootJoinObject>()
         ..sortBy((r) => r.id, QuerySortOrder.ascending)
-        ..joinOne((r) => r.other)
-        ..joinOne((r) => r.root);
+        ..join(object: (r) => r.other)
+        ..join(object: (r) => r.root);
 
       var results = await q.fetch();
       expect(
@@ -202,7 +202,7 @@ void main() {
     test("Can join by one relationship", () async {
       var q = new Query<Team>()..sortBy((t) => t.id, QuerySortOrder.ascending);
 
-      q.joinMany((t) => t.awayGames)..joinOne((g) => g.homeTeam);
+      q.join(set: (t) => t.awayGames)..join(object: (g) => g.homeTeam);
 
       var results = await q.fetch();
       expect(
@@ -248,7 +248,7 @@ void main() {
     test("Can join by other relationship", () async {
       var q = new Query<Team>()..sortBy((t) => t.id, QuerySortOrder.ascending);
 
-      q.joinMany((t) => t.homeGames)..joinOne((g) => g.awayTeam);
+      q.join(set: (t) => t.homeGames)..join(object: (g) => g.awayTeam);
       var results = await q.fetch();
 
       expect(
@@ -293,8 +293,8 @@ void main() {
 
     test("Can join from join table", () async {
       var q = new Query<Game>()
-        ..joinOne((g) => g.awayTeam)
-        ..joinOne((g) => g.homeTeam)
+        ..join(object: (g) => g.awayTeam)
+        ..join(object: (g) => g.homeTeam)
         ..sortBy((g) => g.id, QuerySortOrder.ascending);
       var results = await q.fetch();
 
@@ -332,7 +332,7 @@ void main() {
       try {
         var q = new Query<Team>();
 
-        q.joinMany((t) => t.homeGames)..joinOne((g) => g.homeTeam);
+        q.join(set: (t) => t.homeGames)..join(object: (g) => g.homeTeam);
         expect(true, false);
       } on QueryException catch (e) {
         expect(e.toString(), contains("Invalid cyclic"));
@@ -411,7 +411,7 @@ void main() {
         () async {
       try {
         var q = new Query<Team>();
-        q.joinMany((t) => t.awayGames)
+        q.join(set: (t) => t.awayGames)
           ..where.awayTeam.name = whereContainsString("Minn");
         await q.fetch();
 
@@ -426,7 +426,7 @@ void main() {
     test("Can filter returned nested objects by their values", () async {
       // 'All teams and the games they've played at Minnesota'
       var q = new Query<Team>();
-      q.joinMany((t) => t.awayGames)
+      q.join(set: (t) => t.awayGames)
         ..where.homeTeam.name = whereContainsString("Minn");
       var results = await q.fetch();
 

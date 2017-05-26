@@ -46,7 +46,7 @@ void main() {
     });
 
     test("Objects have default values when explicitly joined", () async {
-      var q = new Query<RootObject>()..joinOne((r) => r.child);
+      var q = new Query<RootObject>()..join(object: (r) => r.child);
       var results = await q.fetch();
 
       for (var r in results) {
@@ -75,7 +75,7 @@ void main() {
         () async {
       var q = new Query<RootObject>();
 
-      q.joinOne((r) => r.child)..where.grandChild.gid = whereGreaterThan(1);
+      q.join(object: (r) => r.child)..where.grandChild.gid = whereGreaterThan(1);
       var results = await q.fetch();
 
       for (var r in results) {
@@ -103,7 +103,7 @@ void main() {
     test("Nested explicit joins return values for all tables", () async {
       var q = new Query<RootObject>();
 
-      q.joinOne((r) => r.child)..joinOne((c) => c.grandChild);
+      q.join(object: (r) => r.child)..join(object: (c) => c.grandChild);
 
       var results = await q.fetch();
       for (var r in results) {
@@ -143,7 +143,7 @@ void main() {
         () async {
       var q = new Query<RootObject>()..returningProperties((r) => [r.rid]);
 
-      q.joinOne((r) => r.child)..returningProperties((c) => [c.cid]);
+      q.join(object: (r) => r.child)..returningProperties((c) => [c.cid]);
 
       var results = await q.fetch();
       for (var r in results) {
@@ -163,9 +163,9 @@ void main() {
         () async {
       var q = new Query<RootObject>()..returningProperties((r) => [r.rid]);
 
-      var cq = q.joinOne((r) => r.child)..returningProperties((c) => [c.cid]);
+      var cq = q.join(object: (r) => r.child)..returningProperties((c) => [c.cid]);
 
-      cq.joinOne((c) => c.grandChild)..returningProperties((g) => [g.gid]);
+      cq.join(object: (c) => c.grandChild)..returningProperties((g) => [g.gid]);
 
       var results = await q.fetch();
       for (var r in results) {
@@ -201,7 +201,7 @@ void main() {
     test("Explicitly joining related object", () async {
       var q = new Query<RootObject>()..where.rid = whereGreaterThan(1);
 
-      q.joinMany((r) => r.children)..where.cid = whereGreaterThan(5);
+      q.join(set: (r) => r.children)..where.cid = whereGreaterThan(5);
 
       var results = await q.fetch();
       expect(results.length, rootObjects.length - 1);
@@ -218,7 +218,7 @@ void main() {
 
     test("Explicitly joining related objects, nested implicit join", () async {
       var q = new Query<RootObject>()..where.rid = whereEqualTo(1);
-      q.joinMany((r) => r.children)
+      q.join(set: (r) => r.children)
         ..where.grandChildren.haveAtLeastOneWhere.gid = whereEqualTo(5);
 
       var results = await q.fetch();
@@ -232,9 +232,9 @@ void main() {
         () async {
       var q = new Query<RootObject>()..where.rid = whereEqualTo(1);
 
-      var cq = q.joinMany((r) => r.children);
+      var cq = q.join(set: (r) => r.children);
 
-      cq.joinMany((c) => c.grandChildren)..where.gid = whereLessThan(6);
+      cq.join(set: (c) => c.grandChildren)..where.gid = whereLessThan(6);
 
       var results = await q.fetch();
       expect(results.length, 1);
@@ -285,7 +285,7 @@ void main() {
   group("With where clauses on child object", () {
     test("Explicit joins do not impact returned root objects", () async {
       var q = new Query<RootObject>();
-      q.joinOne((r) => r.child)..where.cid = whereEqualTo(1);
+      q.join(object: (r) => r.child)..where.cid = whereEqualTo(1);
       var results = await q.fetch();
 
       expect(results.length, rootObjects.length);
@@ -300,7 +300,7 @@ void main() {
         "Implicit join on child affects child object returned, but not root objects",
         () async {
       var q = new Query<RootObject>();
-      q.joinMany((r) => r.children)..where.grandChild.gid = whereEqualTo(4);
+      q.join(set: (r) => r.children)..where.grandChild.gid = whereEqualTo(4);
       var results = await q.fetch();
 
       expect(results.length, rootObjects.length);
@@ -315,7 +315,7 @@ void main() {
         "Where clause on child + implicit join to granchild can find overly identified object",
         () async {
       var q = new Query<RootObject>();
-      q.joinMany((r) => r.children)
+      q.join(set: (r) => r.children)
         ..where.cid = whereEqualTo(2)
         ..where.grandChildren.haveAtLeastOneWhere.gid = whereEqualTo(6);
       var results = await q.fetch();
@@ -333,7 +333,7 @@ void main() {
         "Where clause on child + implicit join to grandchild returns empty if conditions conflict",
         () async {
       var q = new Query<RootObject>();
-      q.joinMany((r) => r.children)
+      q.join(set: (r) => r.children)
         ..where.cid = whereEqualTo(4)
         ..where.grandChildren.haveAtLeastOneWhere.gid = whereEqualTo(6);
       var results = await q.fetch();
@@ -346,7 +346,7 @@ void main() {
         "Where clause on child + implicit join to grandchild returns appropriate matches",
         () async {
       var q = new Query<RootObject>();
-      q.joinMany((r) => r.children)
+      q.join(set: (r) => r.children)
         ..where.cid = whereLessThanEqualTo(5)
         ..where.grandChildren.haveAtLeastOneWhere.gid = whereGreaterThan(5);
       var results = await q.fetch();
@@ -369,8 +369,8 @@ void main() {
         "Explicit join on child and grandchild, retains all root objects and child objects",
         () async {
       var q = new Query<RootObject>();
-      var cq = q.joinMany((r) => r.children);
-      cq.joinMany((c) => c.grandChildren)..where.gid = whereEqualTo(5);
+      var cq = q.join(set: (r) => r.children);
+      cq.join(set: (c) => c.grandChildren)..where.gid = whereEqualTo(5);
 
       var results = await q.fetch();
 
@@ -414,7 +414,7 @@ void main() {
         () async {
       var q = new Query<RootObject>()..where.child.value1 = whereGreaterThan(0);
 
-      q.joinOne((r) => r.child)..returningProperties((c) => [c.cid]);
+      q.join(object: (r) => r.child)..returningProperties((c) => [c.cid]);
 
       var results = await q.fetch();
       for (var r in results) {
@@ -434,7 +434,7 @@ void main() {
       var q = new Query<RootObject>()
         ..where.children.haveAtLeastOneWhere.cid = whereGreaterThan(5);
 
-      q.joinMany((r) => r.children)..where.cid = whereLessThan(10);
+      q.join(set: (r) => r.children)..where.cid = whereLessThan(10);
 
       var results = await q.fetch();
 
@@ -518,9 +518,9 @@ void main() {
     test("Join on on two properties with same entity type", () async {
       var q = new Query<RootObject>();
 
-      q.joinMany((r) => r.children)..where.cid = whereGreaterThan(3);
+      q.join(set: (r) => r.children)..where.cid = whereGreaterThan(3);
 
-      q.joinOne((r) => r.child)..where.cid = whereEqualTo(1);
+      q.join(object: (r) => r.child)..where.cid = whereEqualTo(1);
       var results = await q.fetch();
 
       expect(results.length, rootObjects.length);

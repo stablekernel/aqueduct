@@ -29,7 +29,7 @@ void main() {
     test("Fetch has-one relationship that is null returns null for property",
         () async {
       var q = new Query<Parent>()
-        ..joinOne((p) => p.child)
+        ..join(object: (p) => p.child)
         ..where.name = "D";
 
       var verifier = (Parent p) {
@@ -47,9 +47,9 @@ void main() {
         () async {
       var q = new Query<Parent>()..where.name = "D";
 
-      q.joinOne((p) => p.child)
-        ..joinOne((c) => c.toy)
-        ..joinMany((c) => c.vaccinations);
+      q.join(object: (p) => p.child)
+        ..join(object: (c) => c.toy)
+        ..join(set: (c) => c.vaccinations);
 
       var verifier = (Parent p) {
         expect(p.name, "D");
@@ -65,7 +65,7 @@ void main() {
         "Fetch has-one relationship that is non-null returns value for property with scalar values only",
         () async {
       var q = new Query<Parent>()
-        ..joinOne((p) => p.child)
+        ..join(object: (p) => p.child)
         ..where.name = "C";
 
       var verifier = (Parent p) {
@@ -85,9 +85,9 @@ void main() {
         () async {
       var q = new Query<Parent>()..where.name = "B";
 
-      q.joinOne((p) => p.child)
-        ..joinOne((c) => c.toy)
-        ..joinMany((c) => c.vaccinations);
+      q.join(object: (p) => p.child)
+        ..join(object: (c) => c.toy)
+        ..join(set: (c) => c.vaccinations);
 
       var verifier = (Parent p) {
         expect(p.name, "B");
@@ -110,9 +110,9 @@ void main() {
         () async {
       var q = new Query<Parent>()..where.name = "C";
 
-      q.joinOne((p) => p.child)
-        ..joinOne((c) => c.toy)
-        ..joinMany((c) => c.vaccinations);
+      q.join(object: (p) => p.child)
+        ..join(object: (c) => c.toy)
+        ..join(set: (c) => c.vaccinations);
 
       var verifier = (Parent p) {
         expect(p.name, "C");
@@ -132,7 +132,7 @@ void main() {
         "Fetching multiple top-level instances and including next-level hasOne",
         () async {
       var q = new Query<Parent>()
-        ..joinOne((p) => p.child)
+        ..join(object: (p) => p.child)
         ..where.name = whereIn(["C", "D"]);
 
       var results = await q.fetch();
@@ -148,9 +148,9 @@ void main() {
 
     test("Fetch entire graph", () async {
       var q = new Query<Parent>();
-      q.joinOne((p) => p.child)
-        ..joinOne((c) => c.toy)
-        ..joinMany((c) => c.vaccinations);
+      q.join(object: (p) => p.child)
+        ..join(object: (c) => c.toy)
+        ..join(set: (c) => c.vaccinations);
 
       var all = await q.fetch();
 
@@ -192,9 +192,9 @@ void main() {
     test("Predicate impacts top-level objects when fetching object graph",
         () async {
       var q = new Query<Parent>()..where.name = "A";
-      q.joinOne((p) => p.child)
-        ..joinOne((c) => c.toy)
-        ..joinMany((c) => c.vaccinations)
+      q.join(object: (p) => p.child)
+        ..join(object: (c) => c.toy)
+        ..join(set: (c) => c.vaccinations)
             .sortBy((v) => v.vid, QuerySortOrder.ascending);
 
       var results = await q.fetch();
@@ -212,10 +212,10 @@ void main() {
     test("Predicate impacts 2nd level objects when fetching object graph",
         () async {
       var q = new Query<Parent>();
-      q.joinOne((p) => p.child)
+      q.join(object: (p) => p.child)
         ..where.name = "C1"
-        ..joinOne((c) => c.toy)
-        ..joinMany((c) => c.vaccinations)
+        ..join(object: (c) => c.toy)
+        ..join(set: (c) => c.vaccinations)
             .sortBy((v) => v.vid, QuerySortOrder.ascending);
 
       var results = await q.fetch();
@@ -238,8 +238,8 @@ void main() {
     test("Predicate impacts 3rd level objects when fetching object graph",
         () async {
       var q = new Query<Parent>();
-      var childJoin = q.joinOne((p) => p.child)..joinOne((c) => c.toy);
-      childJoin.joinMany((c) => c.vaccinations)..where.kind = "V1";
+      var childJoin = q.join(object: (p) => p.child)..join(object: (c) => c.toy);
+      childJoin.join(set: (c) => c.vaccinations)..where.kind = "V1";
 
       var results = await q.fetch();
 
@@ -262,8 +262,8 @@ void main() {
         () async {
       var q = new Query<Parent>()..where.pid = 5;
 
-      var childJoin = q.joinOne((p) => p.child)..joinOne((c) => c.toy);
-      childJoin.joinMany((c) => c.vaccinations)..where.kind = "V1";
+      var childJoin = q.join(object: (p) => p.child)..join(object: (c) => c.toy);
+      childJoin.join(set: (c) => c.vaccinations)..where.kind = "V1";
       var results = await q.fetch();
       expect(results.length, 0);
     });
@@ -285,9 +285,9 @@ void main() {
         () async {
       var q = new Query<Parent>()..returningProperties((p) => [p.name]);
 
-      var childQuery = q.joinOne((p) => p.child)
+      var childQuery = q.join(object: (p) => p.child)
         ..returningProperties((c) => [c.name]);
-      childQuery.joinMany((c) => c.vaccinations)
+      childQuery.join(set: (c) => c.vaccinations)
         ..returningProperties((v) => [v.kind]);
 
       var parents = await q.fetch();
@@ -312,10 +312,10 @@ void main() {
     test("Can specify result keys for all joined objects", () async {
       var q = new Query<Parent>()..returningProperties((p) => [p.pid]);
 
-      var childQuery = q.joinOne((p) => p.child)
+      var childQuery = q.join(object: (p) => p.child)
         ..returningProperties((c) => [c.cid]);
 
-      childQuery.joinMany((c) => c.vaccinations)
+      childQuery.join(set: (c) => c.vaccinations)
         ..returningProperties((v) => [v.vid]);
 
       var parents = await q.fetch();
@@ -351,7 +351,7 @@ void main() {
     test("Objects returned in join are not the same instance", () async {
       var q = new Query<Parent>()
         ..where.pid = 1
-        ..joinOne((p) => p.child);
+        ..join(object: (p) => p.child);
 
       var o = await q.fetchOne();
       expect(identical(o.child.parent, o), false);
@@ -384,7 +384,7 @@ void main() {
       }
 
       q = new Query<Parent>();
-      q.joinOne((p) => p.child)..returningProperties((c) => [c.cid, c.toy]);
+      q.join(object: (p) => p.child)..returningProperties((c) => [c.cid, c.toy]);
 
       try {
         await q.fetchOne();
@@ -399,7 +399,7 @@ void main() {
 
     test("Including paging on a join fails", () async {
       var q = new Query<Parent>()
-        ..joinOne((p) => p.child)
+        ..join(object: (p) => p.child)
         ..pageBy((p) => p.pid, QuerySortOrder.ascending);
 
       try {
