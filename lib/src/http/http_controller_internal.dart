@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'dart:mirrors';
 
-import 'controller_routing.dart';
+import 'http_controller_binding.dart';
 import 'request.dart';
 import 'response.dart';
 

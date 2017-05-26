@@ -97,9 +97,20 @@ class ManagedSet<InstanceType extends ManagedObject> extends Object
     _innerValues[index] = value;
   }
 
-  /// Returns a serialized [List] of the elements in this set.
   @override
   dynamic asSerializable() {
     return _innerValues.map((i) => i.asSerializable()).toList();
   }
+
+  @override
+  void fromRequestBody(dynamic requestBody) {
+    throw new _ManagedSetExpection("ManagedSet may not be read from request body. Use List<T> instead.");
+  }
+}
+
+class _ManagedSetExpection implements Exception {
+  _ManagedSetExpection(this.message);
+  
+  String message;
+  String toString() => "ManagedSetException: $message";
 }
