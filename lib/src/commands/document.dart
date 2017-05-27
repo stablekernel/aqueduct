@@ -59,6 +59,7 @@ class CLIDocument extends CLICommand with CLIProject {
   String get licenseName => values["license-name"];
   String get configurationPath => values["config-path"];
 
+  @override
   Future<int> handle() async {
     try {
       print("${await documentProject()}");
@@ -124,14 +125,17 @@ class CLIDocument extends CLICommand with CLIProject {
     return executor.execute(projectDirectory.uri) as Future<String>;
   }
 
+  @override
   String get name {
     return "document";
   }
 
+  @override
   String get description {
     return "Generates an OpenAPI specification of an application.";
   }
 
+  @override
   String get detailedDescription {
     return "This tool will generate an OpenAPI specification of an Aqueduct application. It operates by invoking Application.document. "
         "This method locates an application's RequestSink and invokes the first three phases of initialization:\n\n"

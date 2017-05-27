@@ -11,6 +11,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
     implements Query<InstanceType> {
   PostgresQuery(this.context);
 
+  @override
   ManagedContext context;
 
   @override

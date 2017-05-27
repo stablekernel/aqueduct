@@ -237,5 +237,6 @@ class SchemaColumn {
     };
   }
 
+  @override
   String toString() => "$name $relatedTableName";
 }

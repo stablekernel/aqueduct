@@ -47,6 +47,7 @@ class PropertyToColumnMapper extends PropertyMapper {
 
   bool isForeignKeyColumnAndWillBePopulatedByJoin = false;
 
+  @override
   String toString() {
     return "Mapper on $property";
   }

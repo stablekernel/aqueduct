@@ -42,6 +42,7 @@ class CLITemplateCreator extends CLICommand {
   String get version => values["version"];
   bool get offline => values["offline"];
 
+  @override
   Future<int> handle() async {
     if (projectName == null) {
       printHelp(parentCommandName: "aqueduct");
@@ -319,20 +320,24 @@ class CLITemplateCreator extends CLICommand {
     }
   }
 
+  @override
   String get usage {
     return super.usage + " <project_name>";
   }
 
+  @override
   String get name {
     return "create";
   }
 
+  @override
   String get detailedDescription {
     return "This command will use a template from the aqueduct package determined by either "
         "git-url (and git-ref), path-source or version. If none of these "
         "are specified, the most recent version on pub.dartlang.org is used.";
   }
 
+  @override
   String get description {
     return "Creates Aqueduct applications from templates.";
   }
@@ -340,6 +345,7 @@ class CLITemplateCreator extends CLICommand {
 
 
 class CLITemplateList extends CLICommand {
+  @override
   Future<int> handle() async {
     displayInfo("Available templates:");
     displayProgress("");
@@ -349,11 +355,12 @@ class CLITemplateList extends CLICommand {
     return 0;
   }
 
+  @override
   String get name {
     return "list-templates";
   }
 
-
+  @override
   String get description {
     return "List Aqueduct application templates.";
   }

@@ -7,6 +7,7 @@ import 'db.dart';
 
 class CLIDatabaseValidate extends CLICommand
     with CLIDatabaseMigratable, CLIProject {
+  @override
   Future<int> handle() async {
     var files = migrationFiles;
     if (files.isEmpty) {
@@ -58,10 +59,12 @@ class CLIDatabaseValidate extends CLICommand
     return 0;
   }
 
+  @override
   String get name {
     return "validate";
   }
 
+  @override
   String get description {
     return "Compares the schema created by the sum of migration files to the current codebase's schema.";
   }

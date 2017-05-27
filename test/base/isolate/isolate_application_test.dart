@@ -106,6 +106,7 @@ class TestSink extends RequestSink {
 
   TestSink(ApplicationConfiguration opts) : super(opts);
 
+  @override
   void setupRouter(Router router) {
     router.route("/t").listen((req) async => new Response.ok("t_ok"));
     router.route("/r").listen((req) async => new Response.ok("r_ok"));

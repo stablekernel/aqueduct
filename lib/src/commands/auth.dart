@@ -11,23 +11,28 @@ class CLIAuth extends CLICommand {
     registerCommand(new CLIAuthScopeClient());
   }
 
+  @override
   Future<int> handle() async {
     printHelp(parentCommandName: "aqueduct");
     return 0;
   }
 
+  @override
   Future cleanup() async {
 
   }
 
+  @override
   String get name {
     return "auth";
   }
 
+  @override
   String get description {
     return "A tool for adding OAuth 2.0 clients to a database using the managed_auth package.";
   }
 
+  @override
   String get detailedDescription {
     return "Some commands require connecting to a database to perform their action. These commands will "
         "have options for --connect and --database-config in their usage instructions."
@@ -60,6 +65,7 @@ class CLIAuthScopeClient extends CLIDatabaseConnectingCommand {
     return v?.split(" ")?.toList();
   }
 
+  @override
   Future<int> handle() async {
     if (clientID == null) {
       displayError("Option --id required.");
@@ -106,10 +112,12 @@ class CLIAuthScopeClient extends CLIDatabaseConnectingCommand {
     await context?.persistentStore?.close();
   }
 
+  @override
   String get name {
     return "set-scope";
   }
 
+  @override
   String get description {
     return "Sets the scope of an existing OAuth 2.0 client in a database that has been provisioned with the aqueduct/managed_auth package.";
   }
@@ -142,6 +150,7 @@ class CLIAuthAddClient extends CLIDatabaseConnectingCommand {
     return v?.split(" ")?.toList();
   }
 
+  @override
   Future<int> handle() async {
     if (clientID == null) {
       displayError("Option --id required.");
@@ -219,10 +228,12 @@ class CLIAuthAddClient extends CLIDatabaseConnectingCommand {
     await context?.persistentStore?.close();
   }
 
+  @override
   String get name {
     return "add-client";
   }
 
+  @override
   String get description {
     return "Adds an OAuth 2.0 client to a database when the database has been provisioned with the aqueduct/managed_auth package.";
   }

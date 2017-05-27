@@ -218,6 +218,7 @@ void main() {
 }
 
 class Migration1 extends Migration {
+  @override
   Future upgrade() async {
     database.createTable(new SchemaTable("foo", [
       new SchemaColumn("foobar", ManagedPropertyType.integer, isIndexed: true)
@@ -237,13 +238,17 @@ class Migration1 extends Migration {
     });
   }
 
+  @override
   Future downgrade() async {}
+  @override
   Future seed() async {}
 }
 
 
 class MockMigratable extends CLICommand with CLIDatabaseMigratable, CLIProject {
   MockMigratable(this.projectDirectory);
+
+  @override
   Directory projectDirectory;
 
   @override

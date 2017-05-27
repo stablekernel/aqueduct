@@ -136,5 +136,6 @@ class SchemaTable {
     return {"name": name, "columns": columns.map((c) => c.asMap()).toList()};
   }
 
+  @override
   String toString() => name;
 }

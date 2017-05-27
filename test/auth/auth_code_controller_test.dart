@@ -538,6 +538,7 @@ class TestSink extends RequestSink {
 
   AuthServer authServer;
 
+  @override
   void setupRouter(Router router) {
     router.route("/auth/code").generate(() => new AuthCodeController(authServer,
             renderAuthorizationPageHTML: (AuthCodeController c, Uri uri,

@@ -299,17 +299,21 @@ class HTTPBodyDecoderException implements HTTPResponseException {
   HTTPBodyDecoderException(this.message, {this.underlyingException})
       : statusCode = 400;
 
+  @override
   final String message;
   final dynamic underlyingException;
 
+  @override
   final int statusCode;
 
   /// A [Response] object derived from this exception.
+  @override
   Response get response {
     return new Response(statusCode, null, {"error": message})
       ..contentType = ContentType.JSON;
   }
 
+  @override
   String toString() {
     return "HTTPBodyDecoderException: $message ${underlyingException == null ? "" : underlyingException}";
   }

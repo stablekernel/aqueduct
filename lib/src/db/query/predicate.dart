@@ -70,6 +70,7 @@ class QueryPredicateException implements Exception {
   final String message;
   QueryPredicateException(this.message);
 
+  @override
   String toString() {
     return "PredicateException: $message";
   }

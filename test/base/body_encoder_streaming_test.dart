@@ -296,13 +296,17 @@ Future<HttpServer> bindAndRespondWith(Response response) async {
 }
 
 class CrashingCodec extends Codec {
+  @override
   CrashingEncoder get encoder => new CrashingEncoder();
+  @override
   Converter get decoder => null;
 }
 
 class CrashingEncoder extends Converter<String, List<int>> {
+  @override
   List<int> convert(String val) => [];
 
+  @override
   CrashingSink startChunkedConversion(Sink<List<int>> sink) {
     return new CrashingSink(sink);
   }

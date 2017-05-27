@@ -5,6 +5,7 @@ import 'property_mapper.dart';
 import 'row_mapper.dart';
 
 abstract class PredicateBuilder implements EntityTableMapper {
+  @override
   ManagedEntity get entity;
 
   List<PropertyExpression> propertyExpressionsFromObject(

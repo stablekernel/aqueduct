@@ -209,6 +209,7 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
   /// [ManagedValidator]s for this instance.
   final List<Validate> validators;
 
+  @override
   String toString() {
     return "[Attribute]    ${entity.tableName}.$name ($type)";
   }
@@ -251,6 +252,7 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
       destinationEntity.relationships[MirrorSystem.getName(inverseKey)];
 
   /// Whether or not a the argument can be assigned to this property.
+  @override
   bool isAssignableWith(dynamic dartValue) {
     var type = reflect(dartValue).type;
 
@@ -270,6 +272,7 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
     return type == destinationEntity.instanceType;
   }
 
+  @override
   String toString() {
     return "[Relationship] ${entity.tableName}.$name ${relationshipType} ${destinationEntity.tableName}.${MirrorSystem.getName(inverseKey)}";
   }

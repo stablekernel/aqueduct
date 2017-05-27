@@ -34,6 +34,7 @@ class AuthBasicCredentials {
   /// The password of a Basic Authorization header.
   String password;
 
+  @override
   String toString() => "$username:$password";
 }
 
@@ -59,7 +60,7 @@ class AuthorizationBasicParser {
     }
 
     var base64String = match[1];
-    var decodedCredentials = null;
+    var decodedCredentials;
     try {
       decodedCredentials =
           new String.fromCharCodes(new Base64Decoder().convert(base64String));

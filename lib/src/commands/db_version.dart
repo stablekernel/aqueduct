@@ -5,6 +5,7 @@ import 'db.dart';
 
 /// Used internally.
 class CLIDatabaseVersion extends CLIDatabaseConnectingCommand {
+  @override
   Future<int> handle() async {
     try {
       var current = await persistentStore.schemaVersion;
@@ -31,10 +32,12 @@ class CLIDatabaseVersion extends CLIDatabaseConnectingCommand {
   @override
   Future cleanup() => persistentStore.close();
 
+  @override
   String get name {
     return "get-version";
   }
 
+  @override
   String get description {
     return "Shows the schema version of a database.";
   }

@@ -55,7 +55,7 @@ class AuthClient {
   /// has. This list contains all valid scopes for this client. If null, client does not support scopes
   /// and all access tokens have same authorization.
   List<AuthScope> get allowedScopes => _allowedScopes;
-  void set allowedScopes(List<AuthScope> scopes) {
+  set allowedScopes(List<AuthScope> scopes) {
     _allowedScopes = scopes
       ?.where((s) {
         return !scopes.any((otherScope) =>
@@ -88,6 +88,7 @@ class AuthClient {
   /// be sure that the client secret cannot be viewed by anyone outside of the developer.
   bool get isConfidential => hashedSecret != null;
 
+  @override
   String toString() {
     return "AuthClient (${isPublic ? "public" : "confidental"}): $id $redirectURI";
   }
@@ -456,6 +457,7 @@ class AuthScope {
     return isExactlyScope(new AuthScope(scopeString));
   }
 
+  @override
   String toString() => scopeString;
 }
 
@@ -474,6 +476,7 @@ class _AuthScopeSegment {
   String name;
   String modifier;
 
+  @override
   String toString() {
     if (modifier == null) {
       return name;

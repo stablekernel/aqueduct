@@ -30,6 +30,7 @@ class CLIException {
   List<String> instructions;
   String message;
 
+  @override
   String toString() => message;
 }
 
@@ -57,6 +58,7 @@ abstract class CLICommand implements CLIResultHandler {
     ..addFlag("color",
         help: "Toggles ANSI color", negatable: true, defaultsTo: true);
 
+  @override
   ArgResults values;
   bool get showColors => values["color"];
   bool get helpMeItsScary => values["help"];
@@ -309,6 +311,7 @@ abstract class CLIProject implements CLIResultHandler, CLICommand {
     return fileInDirectory(projectDirectory, name);
   }
 
+  @override
   void preProcess() {
     try {
       displayInfo("Aqueduct project version: ${projectVersion}");
@@ -340,15 +343,18 @@ class Runner extends CLICommand {
     registerCommand(new CLIDocument());
   }
 
+  @override
   Future<int> handle() async {
     printHelp();
     return 0;
   }
 
+  @override
   String get name {
     return "aqueduct";
   }
 
+  @override
   String get description {
     return "Aqueduct is a tool for managing Aqueduct applications.";
   }

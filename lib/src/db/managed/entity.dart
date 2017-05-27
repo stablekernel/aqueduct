@@ -155,6 +155,7 @@ class ManagedEntity {
   String _tableName;
 
   /// Derived from this' [tableName].
+  @override
   int get hashCode {
     return tableName.hashCode;
   }
@@ -247,10 +248,12 @@ class ManagedEntity {
   }
 
   /// Two entities are considered equal if they have the same [tableName].
+  @override
   operator ==(dynamic other) {
     return tableName == other.tableName;
   }
 
+  @override
   String toString() {
     return "ManagedEntity on $tableName";
   }

@@ -45,6 +45,7 @@ class RouteSegment {
   bool get isVariable => variableName != null;
   bool isRemainingMatcher = false;
 
+  @override
   bool operator ==(dynamic other) {
     return literal == other.literal &&
         variableName == other.variableName &&
@@ -52,6 +53,7 @@ class RouteSegment {
         matcher?.pattern == other.matcher?.pattern;
   }
 
+  @override
   String toString() {
     if (isLiteralMatcher) {
       return literal;

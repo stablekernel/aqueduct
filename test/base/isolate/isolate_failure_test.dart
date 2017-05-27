@@ -110,6 +110,7 @@ main() {
 
 class TimeoutSink extends RequestSink {
   TimeoutSink(ApplicationConfiguration config) : super(config);
+  @override
   void setupRouter(Router router) {}
 
   @override
@@ -135,6 +136,7 @@ class TestException implements Exception {
   final String message;
   TestException(this.message);
 
+  @override
   String toString() {
     return "TestException: $message";
   }
@@ -147,6 +149,7 @@ class CrashSink extends RequestSink {
     }
   }
 
+  @override
   void setupRouter(Router router) {
     if (configuration.options["crashIn"] == "addRoutes") {
       throw new TestException("addRoutes");
@@ -171,6 +174,7 @@ class TestSink extends RequestSink {
 
   TestSink(ApplicationConfiguration opts) : super(opts);
 
+  @override
   void setupRouter(Router router) {
     router.route("/t").listen((req) async => new Response.ok("t_ok"));
     router.route("/r").listen((req) async => new Response.ok("r_ok"));

@@ -163,6 +163,7 @@ class RouteSpecification extends Object with APIDocumentable {
     return [p];
   }
 
+  @override
   String toString() => segments.join("/");
 }
 

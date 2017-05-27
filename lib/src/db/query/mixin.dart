@@ -7,19 +7,31 @@ import 'sort_descriptor.dart';
 abstract class QueryMixin<InstanceType extends ManagedObject>
     implements Query<InstanceType> {
   ManagedEntity _entity;
+  @override
   ManagedEntity get entity =>
       _entity ?? context.dataModel.entityForType(InstanceType);
 
+  @override
   int offset = 0;
+
+  @override
   int fetchLimit = 0;
+
+  @override
   int timeoutInSeconds = 30;
+
+  @override
   bool canModifyAllInstances = false;
+
+  @override
+  Map<String, dynamic> valueMap;
+
+  @override
+  QueryPredicate predicate;
 
   QueryPage pageDescriptor;
   List<QuerySortDescriptor> sortDescriptors;
-  Map<String, dynamic> valueMap;
   Map<ManagedRelationshipDescription, Query> subQueries;
-  QueryPredicate predicate;
 
   QueryMixin _parentQuery;
   InstanceType _whereBuilder;
@@ -31,6 +43,7 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
   List<String> get propertiesToFetch =>
       _propertiesToFetch ?? entity.defaultProperties;
 
+  @override
   InstanceType get values {
     if (_valueObject == null) {
       _valueObject = entity.newInstance() as InstanceType;
@@ -38,10 +51,12 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
     return _valueObject;
   }
 
-  void set values(InstanceType obj) {
+  @override
+  set values(InstanceType obj) {
     _valueObject = obj;
   }
 
+  @override
   InstanceType get where {
     if (_whereBuilder == null) {
       _whereBuilder = entity.newInstance() as InstanceType;
@@ -50,6 +65,7 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
     return _whereBuilder;
   }
 
+  @override
   Query<T> join<T extends ManagedObject>(
       {T object(InstanceType x), ManagedSet<T> set(InstanceType x)}) {
     var tracker = new ManagedAccessTrackingBacking();
@@ -71,10 +87,12 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
     return _createSubquery(attr);
   }
 
+  @override
   Query<T> joinOne<T extends ManagedObject>(T m(InstanceType x)) {
     return join(object: m);
   }
 
+  @override
   Query<T> joinMany<T extends ManagedObject>(ManagedSet<T> m(InstanceType x)) {
     return join(set: m);
   }
@@ -113,6 +131,7 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
     return subquery;
   }
 
+  @override
   void pageBy<T>(T propertyIdentifier(InstanceType x), QuerySortOrder order,
       {T boundingValue}) {
     var tracker = new ManagedAccessTrackingBacking();
@@ -138,6 +157,7 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
         new QueryPage(order, propertyName, boundingValue: boundingValue);
   }
 
+  @override
   void sortBy<T>(T propertyIdentifier(InstanceType x), QuerySortOrder order) {
     var tracker = new ManagedAccessTrackingBacking();
     var obj = entity.newInstance()..backing = tracker;
@@ -162,6 +182,7 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
     sortDescriptors.add(new QuerySortDescriptor(propertyName, order));
   }
 
+  @override
   void returningProperties(List<dynamic> propertyIdentifiers(InstanceType x)) {
     var tracker = new ManagedAccessTrackingBacking();
     var obj = entity.newInstance()..backing = tracker;

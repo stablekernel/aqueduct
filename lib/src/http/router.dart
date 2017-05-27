@@ -87,17 +87,20 @@ class Router extends RequestController {
   }
 
   /// Routers override this method to throw an exception. Use [route] instead.
+  @override
   RequestController pipe(RequestController n) {
     throw new RouterException("Routers may not use pipe, use route instead.");
   }
 
   /// Routers override this method to throw an exception. Use [route] instead.
+  @override
   RequestController generate(RequestController generatorFunction()) {
     throw new RouterException(
         "Routers may not use generate, use route instead.");
   }
 
   /// Routers override this method to throw an exception. Use [route] instead.
+  @override
   RequestController listen(
       Future<RequestOrResponse> requestControllerFunction(
           Request request)) {
@@ -183,6 +186,7 @@ class RouterException implements Exception {
 
   final String message;
 
+  @override
   String toString() {
     return "RouterException: $message";
   }

@@ -169,6 +169,7 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
     return ManagedValidator.run(this, operation: forOperation, errors: collectErrorsIn);
   }
 
+  @override
   noSuchMethod(Invocation invocation) {
     if (invocation.isGetter) {
       var propertyName = MirrorSystem.getName(invocation.memberName);
@@ -263,6 +264,7 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
   }
 
   /// Returns the output of [asMap].
+  @override
   dynamic asSerializable() {
     return asMap();
   }

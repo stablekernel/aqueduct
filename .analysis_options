@@ -6,11 +6,9 @@ analyzer:
 
 linter:
   rules:
-    - camel_case_types
     - empty_constructor_bodies
     - always_declare_return_types
     - camel_case_types
-    - constant_identifier_names
     - empty_constructor_bodies
     - implementation_imports
     - library_names

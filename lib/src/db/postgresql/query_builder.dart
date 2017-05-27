@@ -74,10 +74,16 @@ class PostgresQueryBuilder extends Object
   List<PropertyToColumnValue> columnValueMappers;
   QueryPredicate finalizedPredicate;
   List<PropertySortMapper> sortMappers;
+
+  @override
   ManagedEntity entity;
+
+  @override
   String tableAlias;
 
+  @override
   EntityTableMapper get rootTableMapper => this;
+
   String get primaryTableDefinition => tableDefinition;
   bool get containsJoins =>
       returningOrderedMappers.reversed.any((p) => p is RowMapper);
@@ -200,6 +206,8 @@ class PostgresQueryBuilder extends Object
   }
 
   int aliasCounter = 0;
+
+  @override
   String generateTableAlias() {
     tableAlias ??= "t0";
     aliasCounter++;

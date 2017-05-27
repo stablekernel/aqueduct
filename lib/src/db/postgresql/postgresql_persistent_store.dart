@@ -204,6 +204,7 @@ class PostgreSQLPersistentStore extends PersistentStore
     }
   }
 
+  @override
   Future<dynamic> executeQuery(
       String formatString, Map<String, dynamic> values, int timeoutInSeconds,
       {PersistentStoreQueryReturnType returnType:

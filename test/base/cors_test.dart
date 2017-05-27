@@ -577,6 +577,7 @@ expectThatNoCORSProcessingOccurred(dynamic resp) {
 
 class CORSSink extends RequestSink implements AuthValidator {
   CORSSink(ApplicationConfiguration opts) : super(opts);
+  @override
   void setupRouter(Router router) {
     router.route("/add").generate(() => new AdditiveController());
 
@@ -609,11 +610,13 @@ class CORSSink extends RequestSink implements AuthValidator {
         .generate(() => new DefaultPolicyController());
   }
 
+  @override
   Future<Authorization> fromBasicCredentials(
       AuthBasicCredentials credentials) async {
     return new Authorization("a", 1, this);
   }
 
+  @override
   Future<Authorization> fromBearerToken(
       String bearerToken, {List<AuthScope> scopesRequired}) async {
     if (bearerToken == "noauth") {
@@ -622,6 +625,7 @@ class CORSSink extends RequestSink implements AuthValidator {
     return new Authorization("a", 1, this);
   }
 
+  @override
   List<APISecurityRequirement> requirementsForStrategy(AuthStrategy strategy) =>
       null;
 }

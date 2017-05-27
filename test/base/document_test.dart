@@ -425,6 +425,7 @@ class TestSink extends RequestSink {
 
   AuthServer authServer;
 
+  @override
   void setupRouter(Router router) {
     router
         .route("/auth/code")
@@ -443,6 +444,7 @@ class TestSink extends RequestSink {
     });
   }
 
+  @override
   Map<String, APISecurityScheme> documentSecuritySchemes(
       PackagePathResolver resolver) {
     return authServer.documentSecuritySchemes(resolver);

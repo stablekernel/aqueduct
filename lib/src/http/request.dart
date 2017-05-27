@@ -238,6 +238,7 @@ class Request implements RequestOrResponse {
         ?.any((v) => v.split(",").any((s) => s.trim() == "gzip")) ?? false;
   }
 
+  @override
   String toString() {
     return "${innerRequest.method} ${this.innerRequest.uri} (${this.receivedDate.millisecondsSinceEpoch})";
   }

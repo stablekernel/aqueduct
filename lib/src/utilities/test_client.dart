@@ -372,6 +372,7 @@ class TestResponse {
     return completer.future;
   }
 
+  @override
   String toString() {
     var headerItems = headers.toString().split("\n");
     headerItems.removeWhere((str) => str == "");
@@ -385,5 +386,6 @@ class TestClientException implements Exception {
 
   String message;
 
+  @override
   String toString() => "TestClientException: $message";
 }

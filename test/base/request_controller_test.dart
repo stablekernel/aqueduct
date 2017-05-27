@@ -261,6 +261,7 @@ void main() {
 class SomeObject implements HTTPSerializable {
   String name;
 
+  @override
   Map<String, dynamic> asSerializable() {
     return {"name": name};
   }

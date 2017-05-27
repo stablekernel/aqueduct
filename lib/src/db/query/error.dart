@@ -16,6 +16,7 @@ class QueryException implements Exception {
   /// The type of event that caused this exception.
   final QueryExceptionEvent event;
 
+  @override
   String toString() => _message ?? underlyingException?.toString();
 }
 

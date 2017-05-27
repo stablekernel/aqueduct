@@ -198,6 +198,7 @@ class _HTTPResponseMatcher extends Matcher {
   _HTTPHeaderMatcher headers = null;
   _HTTPBodyMatcher body = null;
 
+  @override
   bool matches(item, Map matchState) {
     if (item is! TestResponse) {
       matchState["Response Type"] = item.runtimeType;
@@ -224,6 +225,7 @@ class _HTTPResponseMatcher extends Matcher {
     return true;
   }
 
+  @override
   Description describe(Description description) {
     if (statusCode != null) {
       description.add("\n\tStatus Code: $statusCode");
@@ -240,6 +242,7 @@ class _HTTPResponseMatcher extends Matcher {
     return description;
   }
 
+  @override
   Description describeMismatch(
       item, Description mismatchDescription, Map matchState, bool verbose) {
     var responseTypeMismatch = matchState["Response Type"];
@@ -271,6 +274,7 @@ class _HTTPBodyMatcher extends Matcher {
 
   dynamic contentMatcher;
 
+  @override
   bool matches(dynamic item, Map matchState) {
     if (item is! TestResponse) {
       matchState["Response Type"] = item.runtimeType;
@@ -285,6 +289,7 @@ class _HTTPBodyMatcher extends Matcher {
     return true;
   }
 
+  @override
   Description describe(Description description) {
     description.add("Body: ");
     description.addDescriptionOf(contentMatcher);
@@ -292,6 +297,7 @@ class _HTTPBodyMatcher extends Matcher {
     return description;
   }
 
+  @override
   Description describeMismatch(
       item, Description mismatchDescription, Map matchState, bool verbose) {
     var responseTypeMismatch = matchState["Response Type"];
@@ -329,6 +335,7 @@ class _HTTPHeaderMatcher extends Matcher {
   Map<String, dynamic> matchHeaders;
   bool shouldFailIfOthersPresent;
 
+  @override
   bool matches(item, Map matchState) {
     if (item is! TestResponse) {
       matchState["Response Type"] = item.runtimeType;
@@ -386,6 +393,7 @@ class _HTTPHeaderMatcher extends Matcher {
     return true;
   }
 
+  @override
   Description describe(Description description) {
     description.add("Headers: ");
     var first = false;
@@ -407,6 +415,7 @@ class _HTTPHeaderMatcher extends Matcher {
     return description;
   }
 
+  @override
   Description describeMismatch(
       item, Description mismatchDescription, Map matchState, bool verbose) {
     var responseTypeMismatch = matchState["Response Type"];
@@ -438,6 +447,7 @@ class _PartialMapMatcher extends Matcher {
 
   Map<dynamic, Matcher> map = {};
 
+  @override
   bool matches(item, Map matchState) {
     if (item is! Map) {
       matchState["Not Map"] = "was ${item.runtimeType}";
@@ -478,6 +488,7 @@ class _PartialMapMatcher extends Matcher {
     return true;
   }
 
+  @override
   Description describe(Description description) {
     description.add("Partially matches: {");
     map.forEach((key, matcher) {
@@ -490,6 +501,7 @@ class _PartialMapMatcher extends Matcher {
     return description;
   }
 
+  @override
   Description describeMismatch(
       item, Description mismatchDescription, Map matchState, bool verbose) {
     if (matchState["Not Map"] != null) {

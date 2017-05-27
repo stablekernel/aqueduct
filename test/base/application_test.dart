@@ -113,6 +113,7 @@ class TestException implements Exception {
   final String message;
   TestException(this.message);
 
+  @override
   String toString() => message;
 }
 
@@ -123,6 +124,7 @@ class CrashingTestSink extends RequestSink {
     }
   }
 
+  @override
   void setupRouter(Router router) {
     if (configuration.options["crashIn"] == "addRoutes") {
       throw new TestException("addRoutes");
@@ -147,6 +149,7 @@ class TestSink extends RequestSink {
 
   TestSink(ApplicationConfiguration opts) : super(opts);
 
+  @override
   void setupRouter(Router router) {
     router.route("/t").generate(() => new TController());
     router.route("/r").generate(() => new RController());

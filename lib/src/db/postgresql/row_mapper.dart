@@ -30,6 +30,7 @@ class RowMapper extends PostgresMapper
   QueryPredicate _joinCondition;
   List<PropertySortMapper> _sortMappers;
 
+  @override
   ManagedEntity get entity => joiningProperty.inverse.entity;
 
   ManagedRelationshipDescription get foreignKeyProperty =>
@@ -238,10 +239,12 @@ class RowMapper extends PostgresMapper
         joiningProperty.name == relationship.name;
   }
 
+  @override
   String generateTableAlias() {
     return originatingTable.generateTableAlias();
   }
 
+  @override
   String toString() {
     return "RowMapper on $joiningProperty: $returningOrderedMappers";
   }

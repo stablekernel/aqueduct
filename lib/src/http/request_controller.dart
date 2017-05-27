@@ -372,7 +372,7 @@ class _RequestControllerGenerator extends RequestController {
   }
 
   Function generator;
-  CORSPolicy _policyOverride = null;
+  CORSPolicy _policyOverride;
 
   RequestController instantiate() {
     RequestController instance = generator();
@@ -383,11 +383,13 @@ class _RequestControllerGenerator extends RequestController {
     return instance;
   }
 
+  @override
   CORSPolicy get policy {
     return instantiate().policy;
   }
 
-  void set policy(CORSPolicy p) {
+  @override
+  set policy(CORSPolicy p) {
     _policyOverride = p;
   }
 
@@ -422,5 +424,6 @@ class RequestControllerException implements Exception {
 
   String message;
 
+  @override
   String toString() => "RequestControllerException: $message";
 }

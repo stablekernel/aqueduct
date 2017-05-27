@@ -63,7 +63,7 @@ class Authorizer extends RequestController {
   /// A bearer token must have access to all of the scopes in this list in order to pass
   /// through to the [nextController].
   List<String> get scopes => _scopes?.map((s) => s.scopeString)?.toList();
-  void set scopes(List<String> scopes) {
+  set scopes(List<String> scopes) {
     _scopes = scopes?.map((s) => new AuthScope(s))?.toList();
   }
   List<AuthScope> _scopes;

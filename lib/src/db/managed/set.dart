@@ -65,32 +65,40 @@ class ManagedSet<InstanceType extends ManagedObject> extends Object
   }
 
   /// The number of elements in this set.
+  @override
   int get length => _innerValues.length;
-  void set length(int newLength) {
+
+  @override
+  set length(int newLength) {
     _innerValues.length = newLength;
   }
 
   Map<String, dynamic> get backingMap => haveAtLeastOneWhere.backingMap;
 
   /// Adds an [InstanceType] to this set.
+  @override
   void add(InstanceType item) {
     _innerValues.add(item);
   }
 
   /// Adds an [Iterable] of [InstanceType] to this set.
+  @override
   void addAll(Iterable<InstanceType> items) {
     _innerValues.addAll(items);
   }
 
   /// Retrieves an [InstanceType] from this set by an index.
+  @override
   InstanceType operator [](int index) => _innerValues[index];
 
   /// Set an [InstanceType] in this set by an index.
+  @override
   operator []=(int index, InstanceType value) {
     _innerValues[index] = value;
   }
 
   /// Returns a serialized [List] of the elements in this set.
+  @override
   dynamic asSerializable() {
     return _innerValues.map((i) => i.asSerializable()).toList();
   }

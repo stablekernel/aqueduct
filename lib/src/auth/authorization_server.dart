@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import '../http/documentable.dart';
+import '../http/request_sink.dart';
 import '../utilities/token_generator.dart';
 import 'auth.dart';
 

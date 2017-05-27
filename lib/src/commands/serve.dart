@@ -95,12 +95,14 @@ class CLIServer extends CLIServeBase {
   Directory get binDirectory => subdirectoryInProjectDirectory("bin");
   List<FileSystemEntity> registeredLaunchArtifacts = [];
 
+  @override
   Future<int> handle() async {
     await deriveApplicationLibraryDetails();
 
     return start();
   }
 
+  @override
   Future cleanup() async {
     deleteLaunchArtifacts();
   }
@@ -387,16 +389,19 @@ Future writeError(String error) async {
     });
   }
 
+  @override
   String get name {
     return "serve";
   }
 
+  @override
   String get description {
     return "Runs Aqueduct applications.";
   }
 }
 
 class CLIServeStop extends CLIServeBase {
+  @override
   Future<int> handle() async {
     var pidFiles = pidFilesInDirectory(projectDirectory);
     if (pidFiles.isEmpty) {
@@ -416,8 +421,11 @@ class CLIServeStop extends CLIServeBase {
     return 0;
   }
 
+  @override
   String get description =>
       "Stops an application in the current directory from running.";
+
+  @override
   String get name => "stop";
 }
 

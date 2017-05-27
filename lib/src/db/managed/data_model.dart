@@ -253,6 +253,7 @@ class ManagedDataModelException implements Exception {
 
   final String message;
 
+  @override
   String toString() {
     return "DataModelException: $message";
   }

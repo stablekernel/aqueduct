@@ -580,11 +580,14 @@ Future postBytes(List<int> bytes) {
 }
 
 class CrashingCodec extends Codec {
+  @override
   Converter get encoder => const CrashingEncoder();
+  @override
   Converter get decoder => null;
 }
 
 class CrashingEncoder extends Converter<String, List<int>> {
   const CrashingEncoder();
+  @override
   List<int> convert(String object) => throw new Exception("uhoh");
 }
