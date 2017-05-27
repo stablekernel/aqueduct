@@ -32,7 +32,7 @@ class HTTPRequestBody {
   /// are lost and only the decoded value remains.
   ///
   /// If this flag is set to true, the encoded request body bytes are stored and accessible with [asBytes] (or [decodeAsBytes]).
-  bool retainRawBytes = false;
+  bool retainOriginalBytes = false;
   List<int> _bytes;
 
   /// Whether or not the data has been decoded yet.
@@ -90,7 +90,7 @@ class HTTPRequestBody {
               .codecForContentType(_request.headers.contentType);
           if (codec != null) {
             Stream<List<int>> stream = _request;
-            if (retainRawBytes) {
+            if (retainOriginalBytes) {
               _bytes = await _readBytes(_request);
               stream = new Stream.fromIterable([_bytes]);
             }
@@ -175,7 +175,7 @@ class HTTPRequestBody {
   ///
   /// If the body was decoded with a codec, this method will throw an exception by default because
   /// the raw request body bytes are discarded after decoding succeeds to free up memory. You may set
-  /// [retainRawBytes] to true prior to decoding to keep a copy of the raw bytes; in which case,
+  /// [retainOriginalBytes] to true prior to decoding to keep a copy of the raw bytes; in which case,
   /// this method will successfully return the request body bytes.
   ///
   /// For a non-[Future] variant, see [asBytes].
