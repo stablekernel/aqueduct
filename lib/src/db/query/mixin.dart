@@ -65,7 +65,7 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
     if (attr == null) {
       throw new QueryException(QueryExceptionEvent.internalFailure,
           message:
-          "Property '${matchingKey}' is not a relationship or does not exist for ${entity.tableName} in 'joinMany'.");
+          "Invalid join. Property '${matchingKey}' is not a relationship or does not exist for ${entity.tableName}.");
     }
 
     return _createSubquery(attr);
@@ -148,12 +148,12 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
       if (entity.relationships[propertyName] != null) {
         throw new QueryException(QueryExceptionEvent.internalFailure,
             message:
-                "Property '${propertyName}' cannot be paged on for ${entity.tableName}. "
-                "Reason: relationship properties cannot be paged on.");
+                "Property '${propertyName}' cannot be sorted by for ${entity.tableName}. "
+                "Reason: results cannot be sorted by relationship properties.");
       } else {
         throw new QueryException(QueryExceptionEvent.internalFailure,
             message:
-                "Property '${propertyName}' cannot be paged on for ${entity.tableName}. "
+                "Property '${propertyName}' cannot be sorted by for ${entity.tableName}. "
                 "Reason: property does not exist for entity.");
       }
     }

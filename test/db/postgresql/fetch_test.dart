@@ -96,6 +96,28 @@ void main() {
     }
   });
 
+  test("Cannot sort by property that doesn't exist", () async {
+    context = await contextWithModels([TestModel]);
+    try {
+      new Query<GenUser>()
+        ..sortBy((u) => u["nonexisting"], QuerySortOrder.ascending);
+      expect(true, false);
+    } on QueryException catch (e) {
+      expect(e.toString(), contains("property does not exist"));
+    }
+  });
+
+  test("Cannot sort by relationship property", () async {
+    context = await contextWithModels([GenUser, GenPost]);
+    try {
+      new Query<GenUser>()
+          ..sortBy((u) => u.posts, QuerySortOrder.ascending);
+      expect(true, false);
+    } on QueryException catch (e) {
+      expect(e.toString(), contains("results cannot be sorted by relationship properties"));
+    }
+  });
+
   test("Order by multiple sort descriptors work", () async {
     context = await contextWithModels([TestModel]);
 
