@@ -22,7 +22,7 @@ main() {
 
           try {
             crashingApp.configuration.options = {"crashIn": "constructor"};
-            await crashingApp.start();
+            await crashingApp.start(consoleLogging: true);
             expect(true, false);
           } on ApplicationStartupException catch (e) {
             expect(e.toString(), contains("TestException: constructor"));
@@ -30,7 +30,7 @@ main() {
 
           try {
             crashingApp.configuration.options = {"crashIn": "addRoutes"};
-            await crashingApp.start();
+            await crashingApp.start(consoleLogging: true);
             expect(true, false);
           } on ApplicationStartupException catch (e) {
             expect(e.toString(), contains("TestException: addRoutes"));
@@ -38,14 +38,14 @@ main() {
 
           try {
             crashingApp.configuration.options = {"crashIn": "willOpen"};
-            await crashingApp.start();
+            await crashingApp.start(consoleLogging: true);
             expect(true, false);
           } on ApplicationStartupException catch (e) {
             expect(e.toString(), contains("TestException: willOpen"));
           }
 
           crashingApp.configuration.options = {"crashIn": "dontCrash"};
-          await crashingApp.start();
+          await crashingApp.start(consoleLogging: true);
           var response = await http.get("http://localhost:8081/t");
           expect(response.statusCode, 200);
           await crashingApp.stop();
@@ -61,7 +61,7 @@ main() {
           conflictingApp.configuration.port = 8081;
 
           try {
-            await conflictingApp.start();
+            await conflictingApp.start(consoleLogging: true);
             expect(true, false);
           } on ApplicationStartupException catch (e) {
             expect(e.toString(), contains("Failed to create server socket"));

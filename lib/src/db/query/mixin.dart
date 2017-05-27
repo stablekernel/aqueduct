@@ -50,34 +50,33 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
     return _whereBuilder;
   }
 
-  Query<T> joinOne<T extends ManagedObject>(T m(InstanceType x)) {
+  Query<T> join<T extends ManagedObject>(
+      {T object(InstanceType x), ManagedSet<T> set(InstanceType x)}) {
     var tracker = new ManagedAccessTrackingBacking();
     var obj = entity.newInstance()..backing = tracker;
-    var matchingKey = m(obj as InstanceType) as String;
+    var matchingKey;
+    if (object != null) {
+      matchingKey = object(obj as InstanceType) as String;
+    } else if (set != null) {
+      matchingKey = set(obj as InstanceType) as String;
+    }
 
     var attr = entity.relationships[matchingKey];
     if (attr == null) {
       throw new QueryException(QueryExceptionEvent.internalFailure,
           message:
-              "Property '${matchingKey}' is not a relationship or does not exist for ${entity.tableName} in 'joinMany'.");
+          "Invalid join. Property '${matchingKey}' is not a relationship or does not exist for ${entity.tableName}.");
     }
 
     return _createSubquery(attr);
   }
 
+  Query<T> joinOne<T extends ManagedObject>(T m(InstanceType x)) {
+    return join(object: m);
+  }
+
   Query<T> joinMany<T extends ManagedObject>(ManagedSet<T> m(InstanceType x)) {
-    var tracker = new ManagedAccessTrackingBacking();
-    var obj = entity.newInstance()..backing = tracker;
-    var matchingKey = m(obj as InstanceType) as String;
-
-    var attr = entity.relationships[matchingKey];
-    if (attr == null) {
-      throw new QueryException(QueryExceptionEvent.internalFailure,
-          message:
-              "Property '${matchingKey}' is not a relationship or does not exist for ${entity.tableName} in 'joinMany'.");
-    }
-
-    return _createSubquery(attr);
+    return join(set: m);
   }
 
   Query _createSubquery(ManagedRelationshipDescription fromRelationship) {
@@ -149,12 +148,12 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
       if (entity.relationships[propertyName] != null) {
         throw new QueryException(QueryExceptionEvent.internalFailure,
             message:
-                "Property '${propertyName}' cannot be paged on for ${entity.tableName}. "
-                "Reason: relationship properties cannot be paged on.");
+                "Property '${propertyName}' cannot be sorted by for ${entity.tableName}. "
+                "Reason: results cannot be sorted by relationship properties.");
       } else {
         throw new QueryException(QueryExceptionEvent.internalFailure,
             message:
-                "Property '${propertyName}' cannot be paged on for ${entity.tableName}. "
+                "Property '${propertyName}' cannot be sorted by for ${entity.tableName}. "
                 "Reason: property does not exist for entity.");
       }
     }

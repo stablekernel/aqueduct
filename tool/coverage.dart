@@ -18,15 +18,16 @@ Future main(List<String> args) async {
     outputDir.createSync();
 
     var count = 0;
-    for (var file in testFiles) {
+    await Future.forEach(testFiles, (File file) async {
       print("Running ${file.uri.pathSegments.last} (${count + 1} of ${testFiles.length})...");
       var coverage = await runAndCollect(file.path, outputSink: stdout);
+      print("All coverage collected for ${file.uri.pathSegments.last}.");
 
       var coverageJSONFile = new File.fromUri(tempDir.uri.resolve("$count.coverage.json"));
       coverageJSONFile.writeAsStringSync(JSON.encode(coverage));
 
       count ++;
-    }
+    });
 
     print("Formatting coverage...");
     var hitmap = await parseCoverage(tempDir

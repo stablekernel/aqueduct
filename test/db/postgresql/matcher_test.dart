@@ -178,7 +178,7 @@ void main() {
   });
 
   test("whereAnyMatch matcher", () async {
-    var q = new Query<TestModel>()..joinOne((t) => t.inner);
+    var q = new Query<TestModel>()..join(object: (t) => t.inner);
     var results = await q.fetch();
     expect(results.length, 6);
 

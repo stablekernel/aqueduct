@@ -30,7 +30,7 @@ class CORSPolicy {
   /// List of 'Simple' CORS headers.
   ///
   /// These are headers that are considered acceptable as part of any CORS request and cannot be changed.
-  static List<String> simpleHeaders = const [
+  static const List<String> simpleRequestHeaders = const [
     "accept",
     "accept-language",
     "content-language",
@@ -40,7 +40,7 @@ class CORSPolicy {
   /// List of 'Simple' CORS Response headers.
   ///
   /// These headers can be returned in a response without explicitly exposing them and cannot be changed.
-  static List<String> simpleResponseHeaders = const [
+  static const List<String> simpleResponseHeaders = const [
     "cache-control",
     "content-language",
     "content-type",
@@ -103,7 +103,7 @@ class CORSPolicy {
   /// The allowed request headers.
   ///
   /// Defaults to authorization, x-requested-with, x-forwarded-for. Must be lowercase.
-  /// Use in conjunction with [simpleHeaders]. In the specification (http://www.w3.org/TR/cors/), this is 'list of headers'.
+  /// Use in conjunction with [simpleRequestHeaders]. In the specification (http://www.w3.org/TR/cors/), this is 'list of headers'.
   List<String> allowedRequestHeaders;
 
   /// The number of seconds to cache a pre-flight request for a requesting client.
@@ -170,7 +170,7 @@ class CORSPolicy {
         ?.toList();
     if (requestedHeaders?.isNotEmpty ?? false) {
       var nonSimpleHeaders =
-          requestedHeaders.where((str) => !simpleHeaders.contains(str));
+          requestedHeaders.where((str) => !simpleRequestHeaders.contains(str));
       if (nonSimpleHeaders.any((h) => !allowedRequestHeaders.contains(h))) {
         return false;
       }

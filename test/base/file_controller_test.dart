@@ -10,8 +10,12 @@ void main() {
   var client = new HttpClient();
   var fileDirectory = new Directory("temp_files");
   var jsonContents = {"key": "value"};
+  var cssContents = "a { color: red; }";
+  var jsContents = "f() {}";
   var htmlContents = "<html><h3>Aqueduct</h3></html>";
   var jsonFile = new File.fromUri(fileDirectory.uri.resolve("file.json"));
+  var cssFile = new File.fromUri(fileDirectory.uri.resolve("file.css"));
+  var jsFile = new File.fromUri(fileDirectory.uri.resolve("file.js"));
   var htmlFile = new File.fromUri(fileDirectory.uri.resolve("file.html"));
   var indexFile = new File.fromUri(fileDirectory.uri.resolve("index.html"));
   var unknownFileExtension = new File.fromUri(fileDirectory.uri.resolve("file.unk"));
@@ -33,9 +37,25 @@ void main() {
     indexFile.writeAsBytesSync(UTF8.encode(htmlContents));
     subdirFile.writeAsBytesSync(UTF8.encode(htmlContents));
     sillyFileExtension.writeAsBytesSync(UTF8.encode(htmlContents));
+    cssFile.writeAsBytesSync(UTF8.encode(cssContents));
+    jsFile.writeAsBytesSync(UTF8.encode(jsContents));
+
+    var cachingController = new HTTPFileController("temp_files")
+      ..addCachePolicy(
+          const HTTPCachePolicy(requireConditionalRequest: true),
+              (path) => path.endsWith(".html"))
+      ..addCachePolicy(
+          const HTTPCachePolicy(expirationFromNow: const Duration(seconds: 31536000)),
+              (path) =>
+              [".jpg", ".js", ".png", ".css", ".jpeg", ".ttf", ".eot", ".woff", ".otf"]
+                  .any((suffix) => path.endsWith(suffix)));
 
     var router = new Router()
-      ..route("/files/*").pipe(new HTTPFileController("temp_files"));
+      ..route("/files/*").pipe(new HTTPFileController("temp_files"))
+      ..route("/cache/*").pipe(cachingController)
+      ..route("/silly/*").pipe(
+          new HTTPFileController("temp_files")
+            ..setContentTypeForExtension("silly", new ContentType("text", "html", charset: "utf-8")));
     router.finalize();
 
     server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8081);
@@ -56,6 +76,7 @@ void main() {
     expect(response.headers["content-type"], "application/json; charset=utf-8");
     expect(response.headers["content-encoding"], "gzip");
     expect(response.headers["transfer-encoding"], "chunked");
+    expect(response.headers["cache-control"], isNull);
     expect(HttpDate.parse(response.headers["last-modified"]), isNotNull);
     expect(JSON.decode(response.body), jsonContents);
   });
@@ -66,6 +87,7 @@ void main() {
     expect(response.headers["content-type"], "text/html; charset=utf-8");
     expect(response.headers["content-encoding"], "gzip");
     expect(response.headers["transfer-encoding"], "chunked");
+    expect(response.headers["cache-control"], isNull);
     expect(HttpDate.parse(response.headers["last-modified"]), isNotNull);
     expect(response.body, htmlContents);
   });
@@ -73,6 +95,7 @@ void main() {
   test("Missing files returns 404", () async {
     var response = await getFile("file.foobar");
     expect(response.headers["last-modified"], isNull);
+    expect(response.headers["cache-control"], isNull);
 
     expect(response.statusCode, 404);
   });
@@ -83,6 +106,7 @@ void main() {
     expect(response.headers["content-type"], "application/octet-stream");
     expect(response.headers["content-encoding"], isNull);
     expect(response.headers["transfer-encoding"], "chunked");
+    expect(response.headers["cache-control"], isNull);
     expect(HttpDate.parse(response.headers["last-modified"]), isNotNull);
     expect(response.body, htmlContents);
   });
@@ -93,6 +117,7 @@ void main() {
     expect(response.headers["content-type"], "application/octet-stream");
     expect(response.headers["content-encoding"], isNull);
     expect(response.headers["transfer-encoding"], "chunked");
+    expect(response.headers["cache-control"], isNull);
     expect(HttpDate.parse(response.headers["last-modified"]), isNotNull);
 
     expect(response.body, htmlContents);
@@ -104,6 +129,7 @@ void main() {
     expect(response.headers["content-type"], "text/html; charset=utf-8");
     expect(response.headers["content-encoding"], "gzip");
     expect(response.headers["transfer-encoding"], "chunked");
+    expect(response.headers["cache-control"], isNull);
     expect(HttpDate.parse(response.headers["last-modified"]), isNotNull);
 
     expect(response.body, htmlContents);
@@ -115,6 +141,7 @@ void main() {
     expect(response.headers["content-type"], "text/html; charset=utf-8");
     expect(response.headers["content-encoding"], "gzip");
     expect(response.headers["transfer-encoding"], "chunked");
+    expect(response.headers["cache-control"], isNull);
     expect(HttpDate.parse(response.headers["last-modified"]), isNotNull);
     expect(response.body, htmlContents);
 
@@ -123,12 +150,12 @@ void main() {
   });
 
   test("Can add extension", () async {
-    HTTPFileController.setContentTypeForExtension("silly", new ContentType("text", "html", charset: "utf-8"));
-    var response = await getFile("file.silly");
+    var response = await http.get("http://localhost:8081/silly/file.silly");
     expect(response.statusCode, 200);
     expect(response.headers["content-type"], "text/html; charset=utf-8");
     expect(response.headers["content-encoding"], "gzip");
     expect(response.headers["transfer-encoding"], "chunked");
+    expect(response.headers["cache-control"], isNull);
     expect(HttpDate.parse(response.headers["last-modified"]), isNotNull);
     expect(response.body, htmlContents);
   });
@@ -146,10 +173,88 @@ void main() {
 
     expect(serverHasNoMoreConnections(server), completes);
   });
+
+  group("Default caching", () {
+    test("Uncached file has no cache-control", () async {
+      var response = await getCacheableFile("file.json");
+      expect(response.statusCode, 200);
+      expect(response.headers["content-type"], "application/json; charset=utf-8");
+      expect(response.headers["content-encoding"], "gzip");
+      expect(response.headers["transfer-encoding"], "chunked");
+      expect(response.headers["cache-control"], isNull);
+      expect(HttpDate.parse(response.headers["last-modified"]), isNotNull);
+      expect(JSON.decode(response.body), jsonContents);
+    });
+
+    test("HTML file has no-cache", () async {
+      var response = await getCacheableFile("file.html");
+      expect(response.statusCode, 200);
+      expect(response.headers["content-type"], "text/html; charset=utf-8");
+      expect(response.headers["content-encoding"], "gzip");
+      expect(response.headers["transfer-encoding"], "chunked");
+      expect(response.headers["cache-control"], "public, no-cache");
+      expect(HttpDate.parse(response.headers["last-modified"]), isNotNull);
+      expect(response.body, htmlContents);
+    });
+
+    test("Fetch file with If-Modified-Since before last modified date, returns file", () async {
+      var response = await getCacheableFile("file.html", ifModifiedSince: new DateTime(2000));
+      expect(response.statusCode, 200);
+      expect(response.headers["content-type"], "text/html; charset=utf-8");
+      expect(response.headers["content-encoding"], "gzip");
+      expect(response.headers["transfer-encoding"], "chunked");
+      expect(response.headers["cache-control"], "public, no-cache");
+      expect(HttpDate.parse(response.headers["last-modified"]), isNotNull);
+      expect(response.body, htmlContents);
+    });
+
+    test("Fetch file with If-Modified-Since after last modified date, returns 304 with no body", () async {
+      var response = await getCacheableFile("file.html", ifModifiedSince: new DateTime.now().add(new Duration(hours: 1)));
+      expect(response.statusCode, 304);
+      expect(response.headers["content-type"], isNull);
+      expect(response.headers["content-encoding"], isNull);
+      expect(response.headers["transfer-encoding"], isNull);
+      expect(response.headers["cache-control"], "public, no-cache");
+      expect(HttpDate.parse(response.headers["last-modified"]), isNotNull);
+      expect(response.body.isEmpty, true);
+    });
+
+    test("JS file has large max-age", () async {
+      var response = await getCacheableFile("file.js");
+      expect(response.statusCode, 200);
+      expect(response.headers["content-type"], "application/javascript; charset=utf-8");
+      expect(response.headers["content-encoding"], "gzip");
+      expect(response.headers["transfer-encoding"], "chunked");
+      expect(response.headers["cache-control"], "public, max-age=31536000");
+      expect(HttpDate.parse(response.headers["last-modified"]), isNotNull);
+      expect(response.body, jsContents);
+    });
+
+    test("CSS file has large max-age", () async {
+      var response = await getCacheableFile("file.css");
+      expect(response.statusCode, 200);
+      expect(response.headers["content-type"], "text/css; charset=utf-8");
+      expect(response.headers["content-encoding"], "gzip");
+      expect(response.headers["transfer-encoding"], "chunked");
+      expect(response.headers["cache-control"], "public, max-age=31536000");
+      expect(HttpDate.parse(response.headers["last-modified"]), isNotNull);
+      expect(response.body, cssContents);
+    });
+  });
 }
 
 Future<http.Response> getFile(String path) async {
   return http.get("http://localhost:8081/files/$path");
+}
+
+Future<http.Response> getCacheableFile(String path, {DateTime ifModifiedSince}) async {
+  if (ifModifiedSince == null) {
+    return http.get("http://localhost:8081/cache/$path");
+  }
+
+  return http.get("http://localhost:8081/cache/$path", headers: {
+    HttpHeaders.IF_MODIFIED_SINCE: HttpDate.format(ifModifiedSince)
+  });
 }
 
 Future serverHasNoMoreConnections(HttpServer server) async {
