@@ -150,12 +150,12 @@ void main() {
 
       var resp = await http.get("http://localhost:8081");
       expect(resp.statusCode, 500);
-      expect(resp.headers["content-type"], "text/plain; charset=utf-8");
-      expect(resp.body, "");
+      expect(resp.headers["content-type"], isNull);
+      expect(resp.body.isEmpty, true);
     });
 
     test(
-        "Responding to request with no explicit content-type, but does not have a body, defaults to plaintext Content-Type header",
+        "Responding to request with no explicit content-type, does not have a body, has no content-type",
         () async {
       server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8081);
       server.map((req) => new Request(req)).listen((req) async {
@@ -168,8 +168,8 @@ void main() {
       var resp = await http.get("http://localhost:8081");
       expect(resp.statusCode, 200);
       expect(resp.headers["content-length"], "0");
-      expect(resp.headers["content-type"], "text/plain; charset=utf-8");
-      expect(resp.body, "");
+      expect(resp.headers["content-type"], isNull);
+      expect(resp.body.isEmpty, true);
     });
 
     test(

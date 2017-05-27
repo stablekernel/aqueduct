@@ -48,7 +48,8 @@ class Response implements RequestOrResponse {
   /// Where the key is the Header name and value is the Header value. Values are added to the Response body
   /// according to [HttpHeaders.add].
   ///
-  /// The keys of this map are case-insensitive - they will always be lowercased.
+  /// The keys of this map are case-insensitive - they will always be lowercased. If the value is a [List],
+  /// each item in the list will be added separately for the same header name.
   ///
   /// See [contentType] for behavior when setting 'content-type' in this property.
   Map<String, dynamic> get headers => _headers;
@@ -60,6 +61,13 @@ class Response implements RequestOrResponse {
 
   /// The HTTP status code of this response.
   int statusCode;
+
+  /// Cache policy that sets 'Cache-Control' headers for this instance.
+  ///
+  /// If null (the default), no 'Cache-Control' headers are applied. Otherwise,
+  /// the value returned by [HTTPCachePolicy.headerValue] will be applied to this instance for the header name
+  /// 'Cache-Control'.
+  HTTPCachePolicy cachePolicy;
 
   /// The content type of the body of this response.
   ///
@@ -113,7 +121,7 @@ class Response implements RequestOrResponse {
   /// The default constructor.
   ///
   /// There exist convenience constructors for common response status codes
-  /// and you should prefer to use those. Always use lowercase keys for headers.
+  /// and you should prefer to use those.
   Response(int statusCode, Map<String, dynamic> headers, dynamic body) {
     this.body = body;
     this.headers = new LowercaseMap.fromMap(headers ?? {});
@@ -121,66 +129,56 @@ class Response implements RequestOrResponse {
   }
 
   /// Represents a 200 response.
-  ///
-  /// Always use lowercase keys for headers.
   Response.ok(dynamic body, {Map<String, dynamic> headers})
       : this(HttpStatus.OK, headers, body);
 
   /// Represents a 201 response.
   ///
   /// The [location] is a URI that is added as the Location header.
-  ///
-  /// Always use lowercase keys for headers.
   Response.created(String location,
       {dynamic body, Map<String, dynamic> headers})
       : this(HttpStatus.CREATED,
             _headersWith(headers, {HttpHeaders.LOCATION: location}), body);
 
   /// Represents a 202 response.
-  ///
-  /// Always use lowercase keys for headers.
   Response.accepted({Map<String, dynamic> headers})
       : this(HttpStatus.ACCEPTED, headers, null);
 
-  /// Represents a 400 response.
+  /// Represents a 304 response.
   ///
-  /// Always use lowercase keys for headers.
+  /// Where [lastModified] is the last modified date of the resource
+  /// and [cachePolicy] is the same policy as applied when this resource was first fetched.
+  Response.notModified(DateTime lastModified, HTTPCachePolicy cachePolicy) {
+    statusCode = HttpStatus.NOT_MODIFIED;
+    headers = {HttpHeaders.LAST_MODIFIED: HttpDate.format(lastModified)};
+    this.cachePolicy = cachePolicy;
+  }
+
+  /// Represents a 400 response.
   Response.badRequest({Map<String, dynamic> headers, dynamic body})
       : this(HttpStatus.BAD_REQUEST, headers, body);
 
   /// Represents a 401 response.
-  ///
-  /// Always use lowercase keys for headers.
   Response.unauthorized({Map<String, dynamic> headers, dynamic body})
       : this(HttpStatus.UNAUTHORIZED, headers, body);
 
   /// Represents a 403 response.
-  ///
-  /// Always use lowercase keys for headers.
   Response.forbidden({Map<String, dynamic> headers, dynamic body})
       : this(HttpStatus.FORBIDDEN, headers, body);
 
   /// Represents a 404 response.
-  ///
-  /// Always use lowercase keys for headers.
   Response.notFound({Map<String, dynamic> headers, dynamic body})
       : this(HttpStatus.NOT_FOUND, headers, body);
 
   /// Represents a 409 response.
-  ///
-  /// Always use lowercase keys for headers.
   Response.conflict({Map<String, dynamic> headers, dynamic body})
       : this(HttpStatus.CONFLICT, headers, body);
 
   /// Represents a 410 response.
-  ///
-  /// Always use lowercase keys for headers.
   Response.gone({Map<String, dynamic> headers, dynamic body})
       : this(HttpStatus.GONE, headers, body);
 
   /// Represents a 500 response.
-  ///
-  /// Always use lowercase keys for headers.
   Response.serverError({Map<String, dynamic> headers, dynamic body})
       : this(HttpStatus.INTERNAL_SERVER_ERROR, headers, body);
 

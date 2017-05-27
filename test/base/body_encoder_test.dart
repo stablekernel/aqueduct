@@ -24,11 +24,10 @@ void main() {
     server = await bindAndRespondWith(response);
 
     var resp = await http.get("http://localhost:8081");
-    var contentType = ContentType.parse(resp.headers["content-type"]);
+
     expect(resp.statusCode, 500);
-    expect(contentType.primaryType, "text");
-    expect(contentType.subType, "plain");
-    expect(resp.body, "");
+    expect(response.headers["content-type"], isNull);
+    expect(resp.body.isEmpty, true);
   });
 
   test("Using an encoder that doesn't exist with a List<int> is OK", () async {
