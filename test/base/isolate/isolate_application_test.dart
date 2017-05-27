@@ -16,7 +16,7 @@ main() {
 
     setUp(() async {
       app = new Application<TestSink>();
-      await app.start(numberOfInstances: 2);
+      await app.start(numberOfInstances: 2, consoleLogging: true);
       print("started");
     });
 
@@ -76,7 +76,7 @@ main() {
         await http.get("http://localhost:8081/t");
       } on SocketException {}
 
-      await app.start(numberOfInstances: 2);
+      await app.start(numberOfInstances: 2, consoleLogging: true);
 
       var resp = await http.get("http://localhost:8081/t");
       expect(resp.statusCode, 200);
