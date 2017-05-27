@@ -114,17 +114,19 @@ class TimeoutSink extends RequestSink {
 
   @override
   Future willOpen() async {
-    var timeoutLength = configuration.options["timeout${server.identifier}"];
+    int timeoutLength = configuration.options["timeout${server.identifier}"];
     if (timeoutLength == null) {
       return;
     }
 
     print("Waiting for $timeoutLength seconds...");
-    await new Future.delayed(new Duration(seconds: timeoutLength / 3));
-    print("... 1/3 ...");
-    await new Future.delayed(new Duration(seconds: timeoutLength / 3));
-    print("... 2/3 ...");
-    await new Future.delayed(new Duration(seconds: timeoutLength / 3));
+    await new Future.delayed(new Duration(seconds: timeoutLength ~/ 4));
+    print("... 1/4 ...");
+    await new Future.delayed(new Duration(seconds: timeoutLength ~/ 4));
+    print("... 2/4 ...");
+    await new Future.delayed(new Duration(seconds: timeoutLength ~/ 4));
+    print("... 3/4 ...");
+    await new Future.delayed(new Duration(seconds: timeoutLength ~/ 4));
     print("Done waiting.");
   }
 }
