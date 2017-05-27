@@ -363,7 +363,7 @@ class TestSink extends RequestSink {
     ManagedContext.defaultContext = context;
   }
 
-  ManagedContext context = null;
+  ManagedContext context;
 
   @override
   Future willOpen() async {

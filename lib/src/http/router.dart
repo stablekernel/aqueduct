@@ -35,7 +35,7 @@ class Router extends RequestController {
   /// more efficient than including the base path in each route.
   String get basePath => _basePathSegments.join("/");
   set basePath(String bp) {
-    _basePathSegments = bp.split("/").where((str) => !str.isEmpty).toList();
+    _basePathSegments = bp.split("/").where((str) => str.isNotEmpty).toList();
   }
 
   List<String> _basePathSegments = [];

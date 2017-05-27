@@ -66,7 +66,7 @@ void main() {
   });
 
   group("Response error cases", () {
-    HttpServer server = null;
+    HttpServer server;
     tearDown(() async {
       await server.close();
     });

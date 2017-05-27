@@ -83,7 +83,7 @@ class Request implements RequestOrResponse {
   /// The timestamp for when this request was responded to.
   ///
   /// Used for logging.
-  DateTime respondDate = null;
+  DateTime respondDate;
 
   String get _sanitizedHeaders {
     StringBuffer buf = new StringBuffer("{");
@@ -113,8 +113,6 @@ class Request implements RequestOrResponse {
   /// added to the HTTP response. If [aqueductResponse] has a [Response.body], this request will attempt to encode the body data according to the
   /// Content-Type in the [aqueductResponse]'s [Response.headers].
   ///
-  /// By default, 'application/json' and 'text/plain' are supported HTTP response body encoding types. If you wish to encode another
-  /// format, see [Response.addEncoder].
   Future respond(Response aqueductResponse) {
     respondDate = new DateTime.now().toUtc();
 

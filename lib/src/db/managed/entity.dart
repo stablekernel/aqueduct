@@ -1,6 +1,7 @@
 import 'dart:mirrors';
 import 'managed.dart';
 import '../../http/documentable.dart';
+import '../query/query.dart';
 
 /// Mapping information between a table in a database and a [ManagedObject] object.
 ///
@@ -103,7 +104,7 @@ class ManagedEntity {
   ///
   /// By default, a [Query] will return all the properties named in this list. You may specify
   /// a different set of properties by setting the [Query.returningProperties] value. The default
-  /// set of properties is a list of all attributes that do not have the [omitByDefault] flag
+  /// set of properties is a list of all attributes that do not have the [ManagedColumnAttributes.shouldOmitByDefault] flag
   /// set in their [ManagedColumnAttributes] and all [ManagedRelationshipType.belongsTo] relationships.
   List<String> get defaultProperties {
     if (_defaultProperties == null) {
@@ -127,7 +128,7 @@ class ManagedEntity {
 
   /// Name of primary key property.
   ///
-  /// If this has a primary key (as determined by the having an [ManagedColumnAttributes] with [ManagedColumnAttributes.primaryKey] set to true,
+  /// If this has a primary key (as determined by the having an [ManagedColumnAttributes] with [ManagedColumnAttributes.isPrimaryKey] set to true,
   /// returns the name of that property. Otherwise, returns null. Entities should always have a primary key.
   String get primaryKey {
     return _primaryKey;

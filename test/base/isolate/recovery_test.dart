@@ -84,7 +84,7 @@ class UncaughtCrashController extends HTTPController {
   @httpGet
   Future<Response> crashUncaught() async {
     new Future(() {
-      var x = null;
+      var x;
       x.foo();
     });
     return new Response.ok(null);

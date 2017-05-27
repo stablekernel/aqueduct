@@ -1,5 +1,7 @@
 import 'matcher_internal.dart';
 import 'query.dart';
+import '../persistent_store/persistent_store.dart';
+import '../managed/managed.dart';
 
 /// Matcher for exactly matching a column value when using [Query.where].
 ///

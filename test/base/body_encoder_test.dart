@@ -6,8 +6,8 @@ import 'dart:io';
 import 'dart:convert';
 
 void main() {
-  HttpServer server = null;
-  HttpClient client = null;
+  HttpServer server;
+  HttpClient client;
 
   setUp(() async {
     client = new HttpClient();

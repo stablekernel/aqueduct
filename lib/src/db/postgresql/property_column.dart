@@ -3,6 +3,10 @@ import 'entity_table.dart';
 import 'property_mapper.dart';
 
 class PropertyToColumnMapper extends PropertyMapper {
+  PropertyToColumnMapper(
+      EntityTableMapper table, ManagedPropertyDescription property)
+      : super(table, property);
+
   static List<PropertyToColumnMapper> fromKeys(
       EntityTableMapper table, ManagedEntity entity, List<String> keys) {
     // Ensure the primary key is always available and at 0th index.
@@ -40,10 +44,6 @@ class PropertyToColumnMapper extends PropertyMapper {
 
     return property;
   }
-
-  PropertyToColumnMapper(
-      EntityTableMapper table, ManagedPropertyDescription property)
-      : super(table, property);
 
   bool isForeignKeyColumnAndWillBePopulatedByJoin = false;
 

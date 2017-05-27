@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:convert';
 import 'http.dart';
 
 /// Instances of this class decode HTTP request bodies according to their content type.

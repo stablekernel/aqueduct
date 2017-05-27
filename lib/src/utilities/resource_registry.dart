@@ -1,4 +1,6 @@
 import 'dart:async';
+import '../application/application.dart';
+import '../db/persistent_store/persistent_store.dart';
 
 /// Mechanism to release port-consuming resources like database connections and streams.
 ///
@@ -11,7 +13,7 @@ import 'dart:async';
 /// There is one registry per isolate. The order in which registrations are shut down is undefined. [release] triggers shutdown
 /// and is automatically invoked by [Application.stop].
 ///
-/// Built-in Aqueduct types that open a stream, like [PostgreSQLPersistentStore], automatically register themselves
+/// Built-in Aqueduct types that open a stream, like [PersistentStore], automatically register themselves
 /// when instantiated. If you are unsure whether an object has been registered for shutdown, you may add it -
 /// multiple additions have no effect on the registry, as they will only be shutdown once.
 class ResourceRegistry {

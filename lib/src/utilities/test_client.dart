@@ -3,6 +3,7 @@ import 'dart:async';
 import 'dart:convert';
 import '../application/application.dart';
 import '../application/application_configuration.dart';
+import '../utilities/test_matchers.dart';
 
 /// Instances of this class are used during testing to make testing an HTTP server more convenient.
 ///
@@ -168,10 +169,10 @@ class TestRequest {
   /// HTTP headers to add to the request.
   ///
   /// Prefer to use [addHeader] over directly setting this value. Additionally,
-  /// there are setters for setting specific and common headers. See [basicAuthorization] and [accepts] as examples.
+  /// there are setters for setting specific and common headers. See [setBasicAuthorization] and [accept] as examples.
   Map<String, dynamic> get headers => _headers;
   set headers(Map<String, dynamic> h) {
-    if (!_headers.isEmpty) {
+    if (_headers.isNotEmpty) {
       print(
           "WARNING: Setting TestRequest headers, but headers already have values.");
     }
@@ -184,7 +185,7 @@ class TestRequest {
   ///
   /// This value is derived from [baseURL], [path], and [queryParameters].
   String get requestURL {
-    String url = null;
+    String url;
     if (path.startsWith("/")) {
       url = "$baseURL$path";
     } else {
@@ -244,7 +245,7 @@ class TestRequest {
 
   /// Form-data encodes a serialized value into [body] and sets [contentType].
   ///
-  /// This method will encode [v] as x-www-form-urlencoded data and set it as the [body] of this request. [v] must be
+  /// This method will encode [args] as x-www-form-urlencoded data and set it as the [body] of this request. [args] must be
   /// a [Map<String, String>] . The [contentType] will be set to "application/x-www-form-urlencoded".
   set formData(Map<String, String> args) {
     body = args.keys

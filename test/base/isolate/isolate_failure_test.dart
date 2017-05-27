@@ -166,13 +166,13 @@ class CrashSink extends RequestSink {
 }
 
 class TestSink extends RequestSink {
+  TestSink(ApplicationConfiguration opts) : super(opts);
+
   static Future initializeApplication(ApplicationConfiguration config) async {
     List<int> v = config.options["startup"] ?? [];
     v.add(1);
     config.options["startup"] = v;
   }
-
-  TestSink(ApplicationConfiguration opts) : super(opts);
 
   @override
   void setupRouter(Router router) {

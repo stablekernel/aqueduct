@@ -276,7 +276,7 @@ abstract class HTTPController extends RequestController {
       request = req;
 
       var preprocessedResult = await willProcessRequest(req);
-      Response response = null;
+      Response response;
       if (preprocessedResult is Request) {
         response = await _process();
       } else if (preprocessedResult is Response) {

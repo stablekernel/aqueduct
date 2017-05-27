@@ -1,3 +1,5 @@
+import 'http.dart';
+
 /// Interface for serializable instances to be returned as the HTTP response body.
 ///
 /// Implementers of this interface may be the 'body' argument in a [Response].

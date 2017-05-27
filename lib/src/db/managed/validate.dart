@@ -1,4 +1,5 @@
 import '../db.dart';
+import '../managed/managed.dart';
 
 /// Types of operations [ManagedValidator]s will be triggered for.
 enum ValidateOperation { update, insert }
@@ -7,6 +8,18 @@ enum ValidateOperation { update, insert }
 ///
 /// Instances of this type are created during [ManagedDataModel] compilation.
 class ManagedValidator {
+  /// Creates an instance of this type.
+  ///
+  /// Instances of this type are created by adding [Validate] metadata
+  /// to [ManagedObject] properties.
+  ManagedValidator(this.attribute, this.definition) {
+    if (definition._builtinValidate != null) {
+      _build();
+    } else {
+      _validationMethod = definition.validate;
+    }
+  }
+
   /// Executes all [Validate]s for [object].
   ///
   /// Validates the properties of [object] according to its declared validators. Validators
@@ -56,18 +69,6 @@ class ManagedValidator {
     });
 
     return valid;
-  }
-
-  /// Creates an instance of this type.
-  ///
-  /// Instances of this type are created by adding [Validate] metadata
-  /// to [ManagedObject] properties.
-  ManagedValidator(this.attribute, this.definition) {
-    if (definition._builtinValidate != null) {
-      _build();
-    } else {
-      _validationMethod = definition.validate;
-    }
   }
 
   /// The attribute this instance runs on.
@@ -443,7 +444,7 @@ class Validate<T> {
   /// A validator for ensuring a property always has a value when being inserted or updated.
   ///
   /// This metadata requires that a property must be set in [Query.values] before an update
-  /// or insert. The value may be null, if the property's [ManagedColumnAttributes.nullable] allow it.
+  /// or insert. The value may be null, if the property's [ManagedColumnAttributes.isNullable] allow it.
   ///
   /// If [onUpdate] is true (the default), this validation requires a property to be present for update queries.
   /// If [onInsert] is true (the default), this validation requires a property to be present for insert queries.

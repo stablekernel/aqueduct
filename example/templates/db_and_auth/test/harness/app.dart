@@ -13,9 +13,9 @@ export 'package:aqueduct/aqueduct.dart';
 /// code's current database schema during startup. This instance will use configuration values
 /// from config.yaml.src.
 class TestApplication {
-  static const DefaultClientID = "com.aqueduct.test";
-  static const DefaultClientSecret = "kilimanjaro";
-  static const DefaultPublicClientID = "com.aqueduct.public";
+  static const String DefaultClientID = "com.aqueduct.test";
+  static const String DefaultClientSecret = "kilimanjaro";
+  static const String DefaultPublicClientID = "com.aqueduct.public";
 
   Application<WildfireSink> application;
   WildfireSink get sink => application.mainIsolateSink;

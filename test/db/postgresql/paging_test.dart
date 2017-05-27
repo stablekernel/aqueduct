@@ -4,7 +4,7 @@ import '../../helpers.dart';
 
 void main() {
   group("Offset/limit", () {
-    ManagedContext context = null;
+    ManagedContext context;
 
     setUpAll(() async {
       context = await contextWithModels([PageableTestModel]);
@@ -52,7 +52,7 @@ void main() {
   });
 
   group("Paging", () {
-    ManagedContext context = null;
+    ManagedContext context;
 
     var check = (List checkIDs, List<PageableTestModel> values) {
       expect(checkIDs.length, values.length);
@@ -271,7 +271,7 @@ void main() {
   });
 
   group("Failure cases", () {
-    ManagedContext context = null;
+    ManagedContext context;
     var check = (List checkIDs, List<PageableTestModel> values) {
       expect(checkIDs.length, values.length);
       var ids = values.map((v) => v.id).toList();

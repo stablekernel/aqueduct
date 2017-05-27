@@ -41,7 +41,7 @@ abstract class AuthStorage {
   /// Returns an [Authenticatable] for an [username].
   ///
   /// This method must return an instance of [Authenticatable] if one exists for [username]. Otherwise, it must return null.
-  /// [server] is the [AuthServer] requesting the [ResourceOwner].
+  /// [server] is the [AuthServer] invoking this method.
   Future<Authenticatable> fetchAuthenticatableByUsername(
       AuthServer server, String username);
 

@@ -22,7 +22,7 @@ class InternalControllerException implements Exception {
       headerMap[k] = additionalHeaders.value(k);
     });
 
-    var bodyMap = null;
+    var bodyMap;
     if (responseMessage != null) {
       bodyMap = {"error": responseMessage};
     }
@@ -39,17 +39,6 @@ abstract class HTTPParameter {
 }
 
 class HTTPControllerCache {
-  static Map<Type, HTTPControllerCache> controllerCache = {};
-  static HTTPControllerCache cacheForType(Type t) {
-    var cacheItem = controllerCache[t];
-    if (cacheItem != null) {
-      return cacheItem;
-    }
-
-    controllerCache[t] = new HTTPControllerCache(t);
-    return controllerCache[t];
-  }
-
   HTTPControllerCache(Type controllerType) {
     var allDeclarations = reflectClass(controllerType).declarations;
 
@@ -82,6 +71,17 @@ class HTTPControllerCache {
 
       methodCache[key] = method;
     });
+  }
+
+  static Map<Type, HTTPControllerCache> controllerCache = {};
+  static HTTPControllerCache cacheForType(Type t) {
+    var cacheItem = controllerCache[t];
+    if (cacheItem != null) {
+      return cacheItem;
+    }
+
+    controllerCache[t] = new HTTPControllerCache(t);
+    return controllerCache[t];
   }
 
   Map<String, HTTPControllerCachedMethod> methodCache = {};
@@ -128,10 +128,6 @@ class HTTPControllerCache {
 }
 
 class HTTPControllerCachedMethod {
-  static String generateRequestMethodKey(String httpMethod, int arity) {
-    return "${httpMethod.toLowerCase()}/$arity";
-  }
-
   HTTPControllerCachedMethod(MethodMirror mirror) {
     httpMethod =
         mirror.metadata.firstWhere((m) => m.reflectee is HTTPMethod).reflectee;
@@ -142,9 +138,13 @@ class HTTPControllerCachedMethod {
         .toList();
     optionalParameters = new Map.fromIterable(
         mirror.parameters.where((pm) => pm.isOptional).map(
-            (pm) => new HTTPControllerCachedParameter(pm, isRequired: false)),
+                (pm) => new HTTPControllerCachedParameter(pm, isRequired: false)),
         key: (HTTPControllerCachedParameter p) => p.symbol,
         value: (p) => p);
+  }
+
+  static String generateRequestMethodKey(String httpMethod, int arity) {
+    return "${httpMethod.toLowerCase()}/$arity";
   }
 
   Symbol methodSymbol;
@@ -213,8 +213,8 @@ Map<Symbol, dynamic> parseParametersFromRequest(
     Map<String, List<String>> queryParameters) {
   return mappings.keys.fold({}, (m, sym) {
     var mapper = mappings[sym];
-    List<String> value = null;
-    var paramType = null;
+    List<String> value;
+    var paramType;
 
     if (mapper.httpParameter is HTTPQuery) {
       paramType = HTTPControllerMissingParameterType.query;

@@ -15,7 +15,7 @@ import '../../helpers.dart';
 
 void main() {
   group("Happy path", () {
-    ManagedContext context = null;
+    ManagedContext context;
     List<Parent> truth;
     setUpAll(() async {
       context = await contextWithModels([Child, Parent, Toy, Vaccine]);
@@ -178,7 +178,7 @@ void main() {
   });
 
   group("Happy path with predicates", () {
-    ManagedContext context = null;
+    ManagedContext context;
 
     setUpAll(() async {
       context = await contextWithModels([Child, Parent, Toy, Vaccine]);
@@ -270,7 +270,7 @@ void main() {
   });
 
   group("Result keys", () {
-    ManagedContext context = null;
+    ManagedContext context;
 
     setUpAll(() async {
       context = await contextWithModels([Child, Parent, Toy, Vaccine]);
@@ -337,7 +337,7 @@ void main() {
   });
 
   group("Offhand assumptions about data", () {
-    ManagedContext context = null;
+    ManagedContext context;
 
     setUpAll(() async {
       context = await contextWithModels([Child, Parent, Toy, Vaccine]);
@@ -359,7 +359,7 @@ void main() {
   });
 
   group("Bad usage cases", () {
-    ManagedContext context = null;
+    ManagedContext context;
 
     setUpAll(() async {
       context = await contextWithModels([Child, Parent, Toy, Vaccine]);

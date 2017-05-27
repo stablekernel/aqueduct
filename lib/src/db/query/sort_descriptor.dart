@@ -2,7 +2,7 @@ import 'query.dart';
 
 /// The order in which a collection of objects should be sorted when returned from a database.
 ///
-/// See [Query.sortDescriptors] and [Query.pageDescriptor] for more details.
+/// See [Query.sortBy] and [Query.pageBy] for more details.
 class QuerySortDescriptor {
   QuerySortDescriptor(this.key, this.order);
 

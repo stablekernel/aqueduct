@@ -11,12 +11,6 @@ import 'http.dart';
 /// Additional mappings are added via [add]. This method must be called per-isolate and it is recommended
 /// to add mappings in an application's [RequestSink] subclass constructor.
 class HTTPCodecRepository {
-  /// The instance used by Aqueduct to encode and decode HTTP bodies.
-  ///
-  /// Custom codecs must be added to this instance. This value is guaranteed to be non-null.
-  static HTTPCodecRepository get defaultInstance => _defaultInstance;
-  static HTTPCodecRepository _defaultInstance = new HTTPCodecRepository._();
-
   HTTPCodecRepository._() {
     add(new ContentType("application", "json"), const JsonCodec(), allowCompression: true);
     add(new ContentType("application", "x-www-form-urlencoded"), const _FormCodec(), allowCompression: true);
@@ -24,6 +18,11 @@ class HTTPCodecRepository {
     setAllowsCompression(new ContentType("application", "javascript"), true);
   }
 
+  /// The instance used by Aqueduct to encode and decode HTTP bodies.
+  ///
+  /// Custom codecs must be added to this instance. This value is guaranteed to be non-null.
+  static HTTPCodecRepository get defaultInstance => _defaultInstance;
+  static HTTPCodecRepository _defaultInstance = new HTTPCodecRepository._();
 
   Map<String, Codec> _primaryTypeCodecs = {};
   Map<String, Map<String, Codec>> _subtypeCodecs = {};
@@ -192,8 +191,7 @@ class _FormDecoder extends Converter<dynamic, Map<String, dynamic>> {
 class _FormSink extends ChunkedConversionSink<dynamic> {
   _FormSink(this._outSink);
 
-  @override
-  final decoder = const _FormDecoder();
+  final _FormDecoder decoder = const _FormDecoder();
   final Sink<Map<String, dynamic>> _outSink;
   final StringBuffer _buffer = new StringBuffer();
 

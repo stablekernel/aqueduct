@@ -17,7 +17,7 @@ class LowercaseMap<V> extends Object with MapMixin<String, V> {
   V operator [](Object key) => _inner[key];
 
   @override
-  operator []=(String key, V value) {
+  void operator []=(String key, V value) {
     _inner[key.toLowerCase()] = value;
   }
 

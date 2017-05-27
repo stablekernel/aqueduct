@@ -38,18 +38,18 @@ import 'http.dart';
 /// sortBy (string): indicates the sort order. The syntax is 'sortBy=key,order' where key is a property of [InstanceType] and order is either 'asc' or 'desc'. You may specify multiple sortBy parameters.
 class ManagedObjectController<InstanceType extends ManagedObject>
     extends HTTPController {
-  /// Returns a route pattern for using [ManagedObjectController]s.
-  ///
-  /// Returns the string "/$name/[:id]", to be used as a route pattern in a [Router] for instances of [ResourceController] and subclasses.
-  static String routePattern(String name) {
-    return "/$name/[:id]";
-  }
-
   /// Creates an instance of a [ManagedObjectController].
   ///
   /// [context] defaults to [ManagedContext.defaultContext].
   ManagedObjectController([ManagedContext context]) : super() {
     _query = new Query<InstanceType>(context ?? ManagedContext.defaultContext);
+  }
+
+  /// Returns a route pattern for using [ManagedObjectController]s.
+  ///
+  /// Returns the string "/$name/[:id]", to be used as a route pattern in a [Router] for instances of [ResourceController] and subclasses.
+  static String routePattern(String name) {
+    return "/$name/[:id]";
   }
 
   Query<InstanceType> _query;
@@ -242,8 +242,8 @@ class ManagedObjectController<InstanceType extends ManagedObject>
     _query.offset = offset;
 
     if (pageBy != null) {
-      var direction = null;
-      var pageValue = null;
+      var direction;
+      var pageValue;
       if (pageAfter != null) {
         direction = QuerySortOrder.ascending;
         pageValue = pageAfter;

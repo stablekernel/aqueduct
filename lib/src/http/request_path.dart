@@ -62,7 +62,7 @@ class HTTPRequestPath {
   ///
   /// The remaining path will will be a single string, including any path delimiters (/),
   /// but will not have a leading path delimiter.
-  String remainingPath = null;
+  String remainingPath;
 
   /// An ordered list of variable names (the keys in [variables]) based on their position in the path.
   ///
@@ -78,13 +78,6 @@ class HTTPRequestPath {
 ///
 /// Contains [RouteSegment]s for each path segment. This class is used internally by [Router].
 class RouteSpecification extends Object with APIDocumentable {
-  static List<RouteSpecification> specificationsForRoutePattern(
-      String routePattern) {
-    return _pathsFromRoutePattern(routePattern)
-        .map((path) => new RouteSpecification(path))
-        .toList();
-  }
-
   /// Creates a new [RouteSpecification] from a [String].
   ///
   /// The [patternString] must be stripped of any optionals.
@@ -92,6 +85,14 @@ class RouteSpecification extends Object with APIDocumentable {
     segments = _splitPathSegments(patternString);
     variableNames =
         segments.where((e) => e.isVariable).map((e) => e.variableName).toList();
+  }
+
+
+  static List<RouteSpecification> specificationsForRoutePattern(
+      String routePattern) {
+    return _pathsFromRoutePattern(routePattern)
+        .map((path) => new RouteSpecification(path))
+        .toList();
   }
 
   /// A list of this specification's [RouteSegment]s.

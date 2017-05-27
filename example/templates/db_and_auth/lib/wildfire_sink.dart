@@ -17,25 +17,6 @@ import 'utility/html_template.dart';
 /// See http://aqueduct.io/docs/http/request_sink
 /// for more details.
 class WildfireSink extends RequestSink {
-  HTMLRenderer htmlRenderer = new HTMLRenderer();
-  AuthServer authServer;
-
-  /**
-   * Initialization methods
-   */
-  /// Do one-time application setup in this method.
-  ///
-  /// This method is executed before any instances of this type are created and is the first step in the initialization process.
-  ///
-  /// Values can be added to [appConfig]'s [ApplicationConfiguration.options] and will be available in each instance of this class
-  /// in the constructor.
-  static Future initializeApplication(ApplicationConfiguration appConfig) async {
-    if (appConfig.configurationFilePath == null) {
-      throw new ApplicationStartupException(
-          "No configuration file found. See README.md.");
-    }
-  }
-
   /// Constructor called for each isolate run by an [Application].
   ///
   /// This constructor is called for each isolate an [Application] creates to serve requests - therefore,
@@ -54,6 +35,25 @@ class WildfireSink extends RequestSink {
 
     var authStorage = new ManagedAuthStorage<User>(ManagedContext.defaultContext);
     authServer = new AuthServer(authStorage);
+  }
+
+  HTMLRenderer htmlRenderer = new HTMLRenderer();
+  AuthServer authServer;
+
+  /**
+   * Initialization methods
+   */
+  /// Do one-time application setup in this method.
+  ///
+  /// This method is executed before any instances of this type are created and is the first step in the initialization process.
+  ///
+  /// Values can be added to [appConfig]'s [ApplicationConfiguration.options] and will be available in each instance of this class
+  /// in the constructor.
+  static Future initializeApplication(ApplicationConfiguration appConfig) async {
+    if (appConfig.configurationFilePath == null) {
+      throw new ApplicationStartupException(
+          "No configuration file found. See README.md.");
+    }
   }
 
   /// All routes must be configured in this method.
@@ -94,9 +94,10 @@ class WildfireSink extends RequestSink {
   /// This method allows any resources that require asynchronous initialization to complete their
   /// initialization process. This method is invoked after [setupRouter] and prior to this
   /// instance receiving any requests.
+  @override
   Future willOpen() async {}
 
-  /**
+  /*
    * Helper methods
    */
 
@@ -122,7 +123,7 @@ class WildfireSink extends RequestSink {
     return htmlRenderer.renderHTML("web/login.html", map);
   }
 
-  /**
+  /*
    * Overrides
    */
 

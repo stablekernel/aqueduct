@@ -1,5 +1,6 @@
 import 'http_controller_internal.dart';
 import 'http_controller.dart';
+import 'request.dart';
 
 /// Metadata for a [HTTPController] responder method that is triggered by an HTTP GET method.
 ///

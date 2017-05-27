@@ -18,6 +18,35 @@ typedef Future<PostgreSQLConnection> PostgreSQLConnectionFunction();
 /// Instances of this class are configured to connect to a particular PostgreSQL database.
 class PostgreSQLPersistentStore extends PersistentStore
     with PostgreSQLSchemaGenerator {
+  /// Creates an instance of this type from a manual function.
+  PostgreSQLPersistentStore(this.connectFunction) : super() {
+    ResourceRegistry.add<PostgreSQLPersistentStore>(this, (store) => store.close());
+  }
+
+  /// Creates an instance of this type from connection info.
+  PostgreSQLPersistentStore.fromConnectionInfo(
+      this.username, this.password, this.host, this.port, this.databaseName,
+      {this.timeZone: "UTC", bool useSSL: false}) {
+    ResourceRegistry.add<PostgreSQLPersistentStore>(this, (store) => store.close());
+
+    this.connectFunction = () async {
+      logger
+          .info("PostgreSQL connecting, $username@$host:$port/$databaseName.");
+      var connection = new PostgreSQLConnection(host, port, databaseName,
+          username: username,
+          password: password,
+          timeZone: timeZone,
+          useSSL: useSSL);
+      try {
+        await connection.open();
+      } catch (e) {
+        await connection?.close();
+        rethrow;
+      }
+      return connection;
+    };
+  }
+
   /// The logger used by instances of this class.
   static Logger logger = new Logger("aqueduct");
 
@@ -61,35 +90,6 @@ class PostgreSQLPersistentStore extends PersistentStore
 
   PostgreSQLConnection _databaseConnection;
   Completer<PostgreSQLConnection> _pendingConnectionCompleter;
-
-  /// Creates an instance of this type from a manual function.
-  PostgreSQLPersistentStore(this.connectFunction) : super() {
-    ResourceRegistry.add<PostgreSQLPersistentStore>(this, (store) => store.close());
-  }
-
-  /// Creates an instance of this type from connection info.
-  PostgreSQLPersistentStore.fromConnectionInfo(
-      this.username, this.password, this.host, this.port, this.databaseName,
-      {this.timeZone: "UTC", bool useSSL: false}) {
-    ResourceRegistry.add<PostgreSQLPersistentStore>(this, (store) => store.close());
-
-    this.connectFunction = () async {
-      logger
-          .info("PostgreSQL connecting, $username@$host:$port/$databaseName.");
-      var connection = new PostgreSQLConnection(host, port, databaseName,
-          username: username,
-          password: password,
-          timeZone: timeZone,
-          useSSL: useSSL);
-      try {
-        await connection.open();
-      } catch (e) {
-        await connection?.close();
-        rethrow;
-      }
-      return connection;
-    };
-  }
 
   /// Retrieves a connection to the database this instance connects to.
   ///
@@ -211,7 +211,7 @@ class PostgreSQLPersistentStore extends PersistentStore
     var now = new DateTime.now().toUtc();
     try {
       var dbConnection = await getDatabaseConnection();
-      var results = null;
+      var results;
 
       if (returnType == PersistentStoreQueryReturnType.rows) {
         results = await dbConnection

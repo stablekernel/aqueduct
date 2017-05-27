@@ -93,7 +93,7 @@ class ManagedSet<InstanceType extends ManagedObject> extends Object
 
   /// Set an [InstanceType] in this set by an index.
   @override
-  operator []=(int index, InstanceType value) {
+  void operator []=(int index, InstanceType value) {
     _innerValues[index] = value;
   }
 

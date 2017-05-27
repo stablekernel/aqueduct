@@ -1,4 +1,5 @@
 import 'managed.dart';
+import '../query/query.dart';
 
 /// Possible values for a delete rule in a [ManagedRelationship].
 enum ManagedRelationshipDeleteRule {
@@ -17,7 +18,7 @@ enum ManagedRelationshipDeleteRule {
 
 /// Metadata for a [ManagedObject] property that requests the property be backed by a foreign key column in a database.
 ///
-/// A property in a [ManagedObject]'s [ManagedObject.PersistentType] with this metadata will map to a database column
+/// A property in a [ManagedObject]'s persistent type with this metadata will map to a database column
 /// that has a foreign key reference to the related [ManagedObject]. Relationships are made up of two [ManagedObject]s, where each
 /// has a property that refers to the other. Only one of those properties may have this metadata. The property with this metadata
 /// resolves to a column in the database. The relationship property without this metadata resolves to a row or rows in the database.

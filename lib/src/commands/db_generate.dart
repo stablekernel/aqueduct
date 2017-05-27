@@ -17,7 +17,7 @@ class CLIDatabaseGenerate extends CLICommand
         migrationDirectory.uri.resolve("00000001_Initial.migration.dart"));
     var versionNumber = 1;
 
-    if (!files.isEmpty) {
+    if (files.isNotEmpty) {
       versionNumber  = versionNumberFromFile(files.last) + 1;
       newMigrationFile = new File.fromUri(migrationDirectory.uri.resolve(
           "${"$versionNumber".padLeft(8, "0")}_Unnamed.migration.dart"));

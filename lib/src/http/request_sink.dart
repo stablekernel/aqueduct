@@ -43,6 +43,16 @@ import '../application/application.dart';
 ///
 abstract class RequestSink extends RequestController
     implements APIDocumentable {
+  /// Default constructor.
+  ///
+  /// The default constructor takes a [Map] of configuration [configuration]. This [Map] is the same [Map] in [ApplicationConfiguration.options].
+  ///
+  /// For any code that requires async initialization, use [willOpen]. However, it is important to note that any properties that are used during initialization callbacks (like [setupRouter]) should be
+  /// initialized in this constructor and not during [willOpen]. If properties that are needed during initialization callbacks
+  /// must be initialized asynchronously, those properties should implement their own deferred initialization mechanism
+  /// that can be triggered in [willOpen], but still must be initialized in this constructor.
+  RequestSink(this.configuration);
+
   /// One-time setup method for an application.
   ///
   /// This method is invoked as the first step during application startup. It is only invoked once per application, whereas other initialization
@@ -58,16 +68,6 @@ abstract class RequestSink extends RequestController
   /// * Note that static methods are not inherited in Dart and therefore you are not overriding this method. The declaration of this method in the base [RequestSink] class
   /// is for documentation purposes..
   static Future initializeApplication(ApplicationConfiguration config) async {}
-
-  /// Default constructor.
-  ///
-  /// The default constructor takes a [Map] of configuration [configuration]. This [Map] is the same [Map] in [ApplicationConfiguration.options].
-  ///
-  /// For any code that requires async initialization, use [willOpen]. However, it is important to note that any properties that are used during initialization callbacks (like [setupRouter]) should be
-  /// initialized in this constructor and not during [willOpen]. If properties that are needed during initialization callbacks
-  /// must be initialized asynchronously, those properties should implement their own deferred initialization mechanism
-  /// that can be triggered in [willOpen], but still must be initialized in this constructor.
-  RequestSink(this.configuration);
 
   /// Documentation info for this instance.
   APIInfo apiInfo = new APIInfo();

@@ -259,7 +259,7 @@ class RequestController extends Object with APIDocumentable {
 
       return true;
     } else {
-      var body = null;
+      var body;
       if (includeErrorDetailsInServerErrorResponses) {
         body = {
           "error": "${this.runtimeType}: $caughtValue.",

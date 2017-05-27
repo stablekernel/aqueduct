@@ -512,7 +512,6 @@ class FilteringController extends HTTPController {
 }
 
 class TController extends HTTPController {
-  TController() {}
   @httpGet
   Future<Response> getAll() async {
     return new Response.ok("getAll");
@@ -667,6 +666,8 @@ class ModelEncodeController extends HTTPController {
     if (thing == "null") {
       return new Response.ok(null);
     }
+
+    return new Response.serverError();
   }
 }
 
@@ -680,6 +681,8 @@ class ContentTypeController extends HTTPController {
       return new Response.ok("body")
         ..contentType = new ContentType("text", "plain");
     }
+
+    return new Response.serverError();
   }
 }
 

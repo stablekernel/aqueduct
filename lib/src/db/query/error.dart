@@ -1,4 +1,6 @@
 import 'query.dart';
+import '../persistent_store/persistent_store.dart';
+import '../../http/http.dart';
 
 /// An exception describing an issue with a query.
 ///

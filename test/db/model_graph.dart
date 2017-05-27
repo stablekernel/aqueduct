@@ -306,7 +306,7 @@ Future<List<RootObject>> populateModelGraph(ManagedContext ctx) async {
   return rootObjects;
 }
 
-Map fullObjectMap(Type t, v, {and}) {
+Map fullObjectMap(Type t, dynamic v, {Map<String, dynamic> and}) {
   var idName = "id";
   if (t == RootObject) {
     idName = "rid";

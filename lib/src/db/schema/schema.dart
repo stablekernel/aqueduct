@@ -1,6 +1,7 @@
 import 'dart:mirrors';
 
 import '../managed/managed.dart';
+import 'migration.dart';
 
 import 'schema_table.dart';
 import 'schema_column.dart';
@@ -61,9 +62,7 @@ class Schema {
   /// Gets a table from [tables] by that table's name.
   SchemaTable operator [](String tableName) => tableForName(tableName);
 
-  /// Whether or not two schemas match.
-  ///
-  /// If passing [reasons], the reasons for a mismatch are added to the passed in [List].
+  /// The differences between two schemas.
   SchemaDifference differenceFrom(Schema schema) {
     var actualSchema = schema;
 

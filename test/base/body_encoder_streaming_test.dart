@@ -126,8 +126,8 @@ void main() {
   });
 
   group("Compression", () {
-    HttpServer server = null;
-    HttpClient client = null;
+    HttpServer server;
+    HttpClient client;
 
     setUp(() async {
       client = new HttpClient();

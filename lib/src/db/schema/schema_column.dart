@@ -110,9 +110,7 @@ class SchemaColumn {
     return relatedTableName != null && relatedColumnName != null;
   }
 
-  /// Whether or not two columns match.
-  ///
-  /// If passing [reasons], the reasons for a mismatch are added to the passed in [List].
+  /// The differences between two columns.
   SchemaColumnDifference differenceFrom(SchemaColumn column) {
     var differences = new SchemaColumnDifference()
       ..expectedColumn = this

@@ -1,4 +1,5 @@
 import 'auth.dart';
+import '../http/request.dart';
 
 /// Represents an OAuth 2.0 client ID and secret pair.
 ///
@@ -196,7 +197,7 @@ class AuthCode {
 /// Authorization information for a [Request] after it has passed through an [Authorizer].
 ///
 /// After a request has passed through an [Authorizer], an instance of this type
-/// is created and attached to the request (see [Authorizer.authorization]). Instances of this type contain the information
+/// is created and attached to the request (see [Request.authorization]). Instances of this type contain the information
 /// that the [Authorizer] obtained from an [AuthValidator] (typically an [AuthServer])
 /// about the validity of the credentials in a request.
 class Authorization {

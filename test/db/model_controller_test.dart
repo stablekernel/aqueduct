@@ -10,8 +10,8 @@ import '../helpers.dart';
 
 void main() {
   RequestController.letUncaughtExceptionsEscape = true;
-  ManagedContext context = null;
-  HttpServer server = null;
+  ManagedContext context;
+  HttpServer server;
 
   setUpAll(() async {
     context = await contextWithModels([TestModel, StringModel]);

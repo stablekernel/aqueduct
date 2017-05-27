@@ -43,6 +43,9 @@ class SourceGenerator {
 }
 
 class IsolateExecutor {
+  IsolateExecutor(this.generator, this.arguments,
+      {this.message, this.packageConfigURI});
+
   static Future<dynamic> executeSource(
       SourceGenerator source, List<String> arguments, Uri workingDirectory,
       {Map<String, dynamic> message, Uri packageConfigURI}) async {
@@ -51,9 +54,6 @@ class IsolateExecutor {
 
     return executor.execute(workingDirectory);
   }
-
-  IsolateExecutor(this.generator, this.arguments,
-      {this.message, this.packageConfigURI});
 
   SourceGenerator generator;
   Map<String, dynamic> message;

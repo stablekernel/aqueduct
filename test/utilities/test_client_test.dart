@@ -214,7 +214,7 @@ void main() {
   });
 
   group("Test Response", () {
-    HttpServer server = null;
+    HttpServer server;
 
     tearDown(() async {
       await server.close(force: true);
@@ -316,7 +316,7 @@ void main() {
   });
 
   group("Header matchers", () {
-    HttpServer server = null;
+    HttpServer server;
     setUpAll(() async {
       server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 4000);
       server.listen((req) {
@@ -684,7 +684,7 @@ void main() {
 }
 
 class SomeSink extends RequestSink {
-  SomeSink(ApplicationConfiguration config) : super (config) {}
+  SomeSink(ApplicationConfiguration config) : super (config);
 
   @override
   void setupRouter(Router r) {
