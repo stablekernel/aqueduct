@@ -74,7 +74,7 @@ main() {
       var timeoutApp = new Application<TimeoutSink>()
         ..isolateStartupTimeout = new Duration(seconds: 4)
         ..configuration.options = {
-          "timeout1" : 20
+          "timeout1" : 10
         };
 
       try {
@@ -92,7 +92,7 @@ main() {
       var timeoutApp = new Application<TimeoutSink>()
         ..isolateStartupTimeout = new Duration(seconds: 4)
         ..configuration.options = {
-          "timeout2" : 20
+          "timeout2" : 10
         };
 
       try {
