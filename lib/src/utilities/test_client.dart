@@ -170,7 +170,7 @@ class TestRequest {
   /// Prefer to use [addHeader] over directly setting this value. Additionally,
   /// there are setters for setting specific and common headers. See [basicAuthorization] and [accepts] as examples.
   Map<String, dynamic> get headers => _headers;
-  void set headers(Map<String, dynamic> h) {
+  set headers(Map<String, dynamic> h) {
     if (!_headers.isEmpty) {
       print(
           "WARNING: Setting TestRequest headers, but headers already have values.");
@@ -222,12 +222,12 @@ class TestRequest {
   /// Will apply the following header to this request:
   ///
   ///         Authorization: Bearer token
-  void set bearerAuthorization(String token) {
+  set bearerAuthorization(String token) {
     addHeader(HttpHeaders.AUTHORIZATION, "Bearer $token");
   }
 
   /// Sets the Accept header of this request.
-  void set accept(List<ContentType> contentTypes) {
+  set accept(List<ContentType> contentTypes) {
     addHeader(
         HttpHeaders.ACCEPT, contentTypes.map((ct) => ct.toString()).join(","));
   }
@@ -237,7 +237,7 @@ class TestRequest {
   /// This method will encode [v] as JSON data and set it as the [body] of this request. [v] must be
   /// encodable to JSON ([Map]s, [List]s, [String]s, [int]s, etc.). The [contentType]
   /// will be set to [ContentType.JSON].
-  void set json(dynamic v) {
+  set json(dynamic v) {
     body = JSON.encode(v);
     contentType = ContentType.JSON;
   }
@@ -246,7 +246,7 @@ class TestRequest {
   ///
   /// This method will encode [v] as x-www-form-urlencoded data and set it as the [body] of this request. [v] must be
   /// a [Map<String, String>] . The [contentType] will be set to "application/x-www-form-urlencoded".
-  void set formData(Map<String, String> args) {
+  set formData(Map<String, String> args) {
     body = args.keys
         .map((key) => "$key=${Uri.encodeQueryComponent(args[key])}")
         .join("&");
@@ -377,7 +377,7 @@ class TestResponse {
     var headerItems = headers.toString().split("\n");
     headerItems.removeWhere((str) => str == "");
     var headerString = headerItems.join("\n\t\t\t ");
-    return "\n\tStatus Code: $statusCode\n\tHeaders: ${headerString}\n\tBody: $body";
+    return "\n\tStatus Code: $statusCode\n\tHeaders: $headerString\n\tBody: $body";
   }
 }
 

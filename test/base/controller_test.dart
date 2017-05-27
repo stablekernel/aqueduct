@@ -520,13 +520,13 @@ class TController extends HTTPController {
 
   @httpGet
   Future<Response> getOne(@HTTPPath("id") String id) async {
-    return new Response.ok("${id}");
+    return new Response.ok("$id");
   }
 
   @httpGet
   Future<Response> getBoth(
       @HTTPPath("id") String id, @HTTPPath("flag") String flag) async {
-    return new Response.ok("${id}${flag}");
+    return new Response.ok("$id$flag");
   }
 
   @httpPut
@@ -571,12 +571,12 @@ class IntController extends HTTPController {
 
   @httpGet
   Future<Response> getAll({@HTTPQuery("opt") int opt: null}) async {
-    return new Response.ok("${opt}");
+    return new Response.ok("$opt");
   }
 
   @httpPost
   Future<Response> create({@HTTPQuery("opt") int opt: null}) async {
-    return new Response.ok("${opt}");
+    return new Response.ok("$opt");
   }
 }
 
@@ -588,7 +588,7 @@ class DateTimeController extends HTTPController {
 
   @httpGet
   Future<Response> getAll({@HTTPQuery("opt") DateTime opt: null}) async {
-    return new Response.ok("${opt}");
+    return new Response.ok("$opt");
   }
 }
 

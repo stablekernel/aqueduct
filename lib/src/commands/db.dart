@@ -152,7 +152,7 @@ abstract class CLIDatabaseConnectingCommand extends CLICommand
       return _persistentStore;
     }
 
-    throw new CLIException("Invalid flavor ${databaseFlavor}");
+    throw new CLIException("Invalid flavor $databaseFlavor");
   }
 
   @override

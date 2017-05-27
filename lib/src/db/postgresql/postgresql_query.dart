@@ -200,11 +200,11 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
     buffer.write("${builder.orderByString} ");
 
     if (fetchLimit != 0) {
-      buffer.write("LIMIT ${fetchLimit} ");
+      buffer.write("LIMIT $fetchLimit ");
     }
 
     if (offset != 0) {
-      buffer.write("OFFSET ${offset} ");
+      buffer.write("OFFSET $offset ");
     }
 
     var results = await context.persistentStore.executeQuery(

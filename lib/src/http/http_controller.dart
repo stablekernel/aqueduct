@@ -181,15 +181,15 @@ abstract class HTTPController extends RequestController {
     StringBuffer missings = new StringBuffer();
     if (missingQueryParameters.isNotEmpty) {
       var missingQueriesString =
-          missingQueryParameters.map((p) => "'${p}'").join(", ");
-      missings.write("Missing query value(s): ${missingQueriesString}.");
+          missingQueryParameters.map((p) => "'$p'").join(", ");
+      missings.write("Missing query value(s): $missingQueriesString.");
     }
     if (missingQueryParameters.isNotEmpty && missingHeaders.isNotEmpty) {
       missings.write(" ");
     }
     if (missingHeaders.isNotEmpty) {
-      var missingHeadersString = missingHeaders.map((p) => "'${p}'").join(", ");
-      missings.write("Missing header(s): ${missingHeadersString}.");
+      var missingHeadersString = missingHeaders.map((p) => "'$p'").join(", ");
+      missings.write("Missing header(s): $missingHeadersString.");
     }
 
     return new Response.badRequest(body: {"error": missings.toString()});

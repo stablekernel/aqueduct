@@ -403,7 +403,7 @@ class APIResponse {
     return int.parse(key);
   }
 
-  void set statusCode(int code) {
+  set statusCode(int code) {
     key = "$code";
   }
 

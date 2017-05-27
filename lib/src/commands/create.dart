@@ -50,7 +50,7 @@ class CLITemplateCreator extends CLICommand {
     }
 
     if (!isSnakeCase(projectName)) {
-      displayError("Invalid project name (${projectName} is not snake_case).");
+      displayError("Invalid project name ($projectName is not snake_case).");
       return 1;
     }
 
@@ -91,7 +91,7 @@ class CLITemplateCreator extends CLICommand {
     await runPubGet(destDirectory, offline: offline);
 
     displayProgress("Success.");
-    displayInfo("New project '${projectName}' successfully created.");
+    displayInfo("New project '$projectName' successfully created.");
     displayProgress("Project is located at ${destDirectory.path}");
     displayProgress("Open this directory in IntelliJ IDEA, Atom or VS Code.");
     displayProgress(
@@ -122,7 +122,7 @@ class CLITemplateCreator extends CLICommand {
     new File(path_lib.join(projectDirectory.path, ".packages")).deleteSync();
 
     var path = path_lib.normalize(resolvedURL + "..");
-    displayProgress("Aqueduct directory is: ${path}");
+    displayProgress("Aqueduct directory is: $path");
 
     return path;
   }

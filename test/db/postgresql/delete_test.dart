@@ -41,7 +41,7 @@ void main() {
 
     for (int i = 0; i < 10; i++) {
       var m = new TestModel()
-        ..email = "${i}@a.com"
+        ..email = "$i@a.com"
         ..name = "joe";
 
       var req = new Query<TestModel>()..values = m;
@@ -69,7 +69,7 @@ void main() {
 
     for (int i = 0; i < 10; i++) {
       var m = new TestModel()
-        ..email = "${i}@a.com"
+        ..email = "$i@a.com"
         ..name = "joe";
 
       var req = new Query<TestModel>()..values = m;
@@ -96,7 +96,7 @@ void main() {
 
     for (int i = 0; i < 10; i++) {
       var m = new TestModel()
-        ..email = "${i}@a.com"
+        ..email = "$i@a.com"
         ..name = "joe";
 
       var req = new Query<TestModel>()..values = m;
@@ -204,7 +204,7 @@ class _TestModel {
 
   @override
   String toString() {
-    return "TestModel: ${id} ${name} ${email}";
+    return "TestModel: $id $name $email";
   }
 }
 

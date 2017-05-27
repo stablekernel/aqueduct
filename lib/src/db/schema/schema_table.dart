@@ -109,7 +109,7 @@ class SchemaTable {
     column = this[column.name];
     if (column == null) {
       throw new SchemaException(
-          "Column ${column.name} does not exist on ${name}.");
+          "Column ${column.name} does not exist on $name.");
     }
 
     columns.remove(column);
@@ -119,7 +119,7 @@ class SchemaTable {
     existingColumn = this[existingColumn.name];
     if (existingColumn == null) {
       throw new SchemaException(
-          "Column ${existingColumn.name} does not exist on ${name}.");
+          "Column ${existingColumn.name} does not exist on $name.");
     }
 
     var index = columns.indexOf(existingColumn);

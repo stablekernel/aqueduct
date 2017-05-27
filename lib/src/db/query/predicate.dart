@@ -55,7 +55,7 @@ class QueryPredicate {
       p.parameters?.forEach((k, v) {
         if (valueMap.containsKey(k)) {
           throw new QueryPredicateException(
-              "Duplicate keys in and predicate, ${k} appears in multiple predicates. Make keys more specific.");
+              "Duplicate keys in and predicate, $k appears in multiple predicates. Make keys more specific.");
         }
         valueMap[k] = v;
       });

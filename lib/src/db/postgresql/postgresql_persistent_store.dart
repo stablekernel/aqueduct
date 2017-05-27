@@ -188,7 +188,7 @@ class PostgreSQLPersistentStore extends PersistentStore
         if (existingVersionRows.length > 0) {
           var date = existingVersionRows.first.last;
           throw new MigrationException(
-              "Trying to upgrade database to version $versionNumber, but that migration has already been performed on ${date}.");
+              "Trying to upgrade database to version $versionNumber, but that migration has already been performed on $date.");
         }
 
         for (var cmd in commands) {

@@ -380,7 +380,6 @@ void main() {
       dataModel = new ManagedDataModel([User, Item, Manager]);
       ManagedContext.defaultContext =
           new ManagedContext(dataModel, new DefaultPersistentStore());
-      ;
     });
 
     test("works for a data model", () {
@@ -565,18 +564,18 @@ class TransientTest extends ManagedObject<_TransientTest>
   String get defaultedText => "Mr. $text";
 
   @managedTransientInputAttribute
-  void set defaultedText(String str) {
+  set defaultedText(String str) {
     text = str.split(" ").last;
   }
 
   @managedTransientInputAttribute
-  void set inputOnly(String s) {
+  set inputOnly(String s) {
     text = s;
   }
 
   @managedTransientOutputAttribute
   String get outputOnly => text;
-  void set outputOnly(String s) {
+  set outputOnly(String s) {
     text = s;
   }
 
@@ -586,13 +585,13 @@ class TransientTest extends ManagedObject<_TransientTest>
 
   // This is intentionally invalid
   @managedTransientOutputAttribute
-  void set invalidOutput(String s) {
+  set invalidOutput(String s) {
     text = s;
   }
 
   @managedTransientAttribute
   String get bothButOnlyOnOne => text;
-  void set bothButOnlyOnOne(String s) {
+  set bothButOnlyOnOne(String s) {
     text = s;
   }
 
@@ -608,7 +607,7 @@ class TransientTest extends ManagedObject<_TransientTest>
   @managedTransientAttribute
   String get bothOverQualified => text;
   @managedTransientAttribute
-  void set bothOverQualified(String s) {
+  set bothOverQualified(String s) {
     text = s;
   }
 }

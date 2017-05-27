@@ -323,7 +323,6 @@ void main() {
               "awayTeam": {"id": 3, "name": "Iowa"}
             },
           ]));
-      ;
     });
 
     test(

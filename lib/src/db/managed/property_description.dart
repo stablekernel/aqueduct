@@ -274,6 +274,6 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
 
   @override
   String toString() {
-    return "[Relationship] ${entity.tableName}.$name ${relationshipType} ${destinationEntity.tableName}.${MirrorSystem.getName(inverseKey)}";
+    return "[Relationship] ${entity.tableName}.$name $relationshipType ${destinationEntity.tableName}.${MirrorSystem.getName(inverseKey)}";
   }
 }

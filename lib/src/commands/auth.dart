@@ -199,9 +199,9 @@ class CLIAuthAddClient extends CLIDatabaseConnectingCommand {
         PostgreSQLException underlying = e.underlyingException;
         if (underlying.constraintName == "_authclient_redirecturi_key") {
           displayProgress(
-              "Redirect URI '${redirectUri}' already exists for another client.");
+              "Redirect URI '$redirectUri' already exists for another client.");
         } else {
-          displayProgress("Client ID '${clientID}' already exists.");
+          displayProgress("Client ID '$clientID' already exists.");
         }
 
         return 1;

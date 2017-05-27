@@ -9,7 +9,7 @@ void main() {
     setUpAll(() async {
       context = await contextWithModels([PageableTestModel]);
       for (int i = 0; i < 10; i++) {
-        var p = new PageableTestModel()..value = "${i}";
+        var p = new PageableTestModel()..value = "$i";
         await (new Query<PageableTestModel>()..values = p).insert();
       }
     });
@@ -65,7 +65,7 @@ void main() {
     setUpAll(() async {
       context = await contextWithModels([PageableTestModel]);
       for (int i = 0; i < 10; i++) {
-        var p = new PageableTestModel()..value = "${i}";
+        var p = new PageableTestModel()..value = "$i";
         await (new Query<PageableTestModel>()..values = p).insert();
       }
     });
@@ -283,7 +283,7 @@ void main() {
     setUpAll(() async {
       context = await contextWithModels([PageableTestModel, HasMany, BelongsTo]);
       for (int i = 0; i < 10; i++) {
-        var p = new PageableTestModel()..value = "${i}";
+        var p = new PageableTestModel()..value = "$i";
         await (new Query<PageableTestModel>()..values = p).insert();
       }
     });

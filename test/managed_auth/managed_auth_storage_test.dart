@@ -464,7 +464,6 @@ void main() {
       createdUser = (await createUsers(1)).first;
       code = await auth.authenticateForCode(createdUser.username,
           User.DefaultPassword, "com.stablekernel.redirect");
-      ;
     });
 
     test("Can create an auth code that can be exchanged for a token", () async {

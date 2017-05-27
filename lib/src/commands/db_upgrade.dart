@@ -35,7 +35,7 @@ class CLIDatabaseUpgrade extends CLIDatabaseConnectingCommand {
     }
 
     displayInfo("Updating to version: ${versionsToApply.last}...");
-    displayProgress("From version: ${currentVersion}");
+    displayProgress("From version: $currentVersion");
     var migrationFileSplit = splitMigrationFiles(currentVersion);
     var migrationFilesToGetToCurrent = migrationFileSplit.first;
     List<File> migrationFilesToRun = migrationFileSplit.last;

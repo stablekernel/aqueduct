@@ -64,7 +64,7 @@ class ManagedEntity {
   /// are not stored in [attributes].
   Map<String, ManagedAttributeDescription> _attributes;
   Map<String, ManagedAttributeDescription> get attributes => _attributes;
-  void set attributes(Map<String, ManagedAttributeDescription> m) {
+  set attributes(Map<String, ManagedAttributeDescription> m) {
     _attributes = m;
     _primaryKey = m.values
         .firstWhere((attrDesc) => attrDesc.isPrimaryKey, orElse: () => null)

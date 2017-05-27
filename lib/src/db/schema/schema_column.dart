@@ -86,7 +86,7 @@ class SchemaColumn {
   String get typeString => _type;
 
   ManagedPropertyType get type => typeFromTypeString(_type);
-  void set type(ManagedPropertyType t) {
+  set type(ManagedPropertyType t) {
     _type = typeStringForType(t);
   }
 
@@ -102,7 +102,7 @@ class SchemaColumn {
   String _deleteRule;
   ManagedRelationshipDeleteRule get deleteRule =>
       deleteRuleForDeleteRuleString(_deleteRule);
-  void set deleteRule(ManagedRelationshipDeleteRule t) {
+  set deleteRule(ManagedRelationshipDeleteRule t) {
     _deleteRule = deleteRuleStringForDeleteRule(t);
   }
 

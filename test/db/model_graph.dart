@@ -14,6 +14,9 @@ class RootObject extends ManagedObject<_RootObject> implements _RootObject {
   bool operator ==(dynamic other) {
     return rid == other.cid;
   }
+
+  @override
+  int get hashCode => rid;
 }
 
 class _RootObject {
@@ -42,6 +45,9 @@ class ChildObject extends ManagedObject<_ChildObject> implements _ChildObject {
   bool operator ==(dynamic other) {
     return cid == other.cid;
   }
+
+  @override
+  int get hashCode => cid;
 }
 
 class _ChildObject {
@@ -75,6 +81,9 @@ class GrandChildObject extends ManagedObject<_GrandChildObject>
   bool operator ==(dynamic other) {
     return gid == other.cid;
   }
+
+  @override
+  int get hashCode => gid;
 }
 
 class _GrandChildObject {
@@ -105,6 +114,9 @@ class OtherRootObject extends ManagedObject<_OtherRootObject>
   bool operator ==(dynamic other) {
     return id == other.cid;
   }
+
+  @override
+  int get hashCode => id;
 }
 
 class _OtherRootObject {
@@ -123,6 +135,9 @@ class RootJoinObject extends ManagedObject<_RootJoinObject>
   bool operator ==(dynamic other) {
     return id == other.cid;
   }
+
+  @override
+  int get hashCode => id;
 }
 
 class _RootJoinObject {

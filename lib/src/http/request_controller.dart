@@ -53,7 +53,7 @@ class RequestController extends Object with APIDocumentable {
   /// The CORS policy of this controller.
   CORSPolicy get policy => _policy;
   CORSPolicy _policy = new CORSPolicy();
-  void set policy(CORSPolicy p) {
+  set policy(CORSPolicy p) {
     _policy = p;
   }
 

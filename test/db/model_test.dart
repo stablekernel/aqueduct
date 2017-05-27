@@ -457,18 +457,18 @@ class TransientTest extends ManagedObject<_TransientTest>
   String get defaultedText => "Mr. $text";
 
   @managedTransientInputAttribute
-  void set defaultedText(String str) {
+  set defaultedText(String str) {
     text = str.split(" ").last;
   }
 
   @managedTransientInputAttribute
-  void set inputOnly(String s) {
+  set inputOnly(String s) {
     text = s;
   }
 
   @managedTransientOutputAttribute
   String get outputOnly => text;
-  void set outputOnly(String s) {
+  set outputOnly(String s) {
     text = s;
   }
 
@@ -478,13 +478,13 @@ class TransientTest extends ManagedObject<_TransientTest>
 
   // This is intentionally invalid
   @managedTransientOutputAttribute
-  void set invalidOutput(String s) {
+  set invalidOutput(String s) {
     text = s;
   }
 
   @managedTransientAttribute
   String get bothButOnlyOnOne => text;
-  void set bothButOnlyOnOne(String s) {
+  set bothButOnlyOnOne(String s) {
     text = s;
   }
 
@@ -500,7 +500,7 @@ class TransientTest extends ManagedObject<_TransientTest>
   @managedTransientAttribute
   String get bothOverQualified => text;
   @managedTransientAttribute
-  void set bothOverQualified(String s) {
+  set bothOverQualified(String s) {
     text = s;
   }
 }
@@ -518,7 +518,7 @@ class TransientTypeTest extends ManagedObject<_TransientTypeTest>
   int get transientInt => backingInt + 1;
 
   @managedTransientInputAttribute
-  void set transientInt(int i) {
+  set transientInt(int i) {
     backingInt = i - 1;
   }
 
@@ -526,7 +526,7 @@ class TransientTypeTest extends ManagedObject<_TransientTypeTest>
   int get transientBigInt => backingBigInt ~/ 2;
 
   @managedTransientInputAttribute
-  void set transientBigInt(int i) {
+  set transientBigInt(int i) {
     backingBigInt = i * 2;
   }
 
@@ -534,7 +534,7 @@ class TransientTypeTest extends ManagedObject<_TransientTypeTest>
   String get transientString => backingString.toLowerCase();
 
   @managedTransientInputAttribute
-  void set transientString(String s) {
+  set transientString(String s) {
     backingString = s.toUpperCase();
   }
 
@@ -542,7 +542,7 @@ class TransientTypeTest extends ManagedObject<_TransientTypeTest>
   DateTime get transientDate => backingDateTime.add(new Duration(days: 1));
 
   @managedTransientInputAttribute
-  void set transientDate(DateTime d) {
+  set transientDate(DateTime d) {
     backingDateTime = d.subtract(new Duration(days: 1));
   }
 
@@ -550,7 +550,7 @@ class TransientTypeTest extends ManagedObject<_TransientTypeTest>
   bool get transientBool => !backingBool;
 
   @managedTransientInputAttribute
-  void set transientBool(bool b) {
+  set transientBool(bool b) {
     backingBool = !b;
   }
 
@@ -558,7 +558,7 @@ class TransientTypeTest extends ManagedObject<_TransientTypeTest>
   double get transientDouble => backingDouble / 5;
 
   @managedTransientInputAttribute
-  void set transientDouble(double d) {
+  set transientDouble(double d) {
     backingDouble = d * 5;
   }
 
@@ -577,7 +577,7 @@ class TransientTypeTest extends ManagedObject<_TransientTypeTest>
   }
 
   @managedTransientInputAttribute
-  void set transientMap(Map<String, String> m) {
+  set transientMap(Map<String, String> m) {
     var pairStrings = m.keys.map((key) {
       String value = m[key];
       return "$key:$value";
@@ -592,7 +592,7 @@ class TransientTypeTest extends ManagedObject<_TransientTypeTest>
   }
 
   @managedTransientInputAttribute
-  void set transientList(List<int> l) {
+  set transientList(List<int> l) {
     backingListString = l.map((i) => i.toString()).join(",");
   }
 }

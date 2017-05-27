@@ -204,7 +204,7 @@ class RowMapper extends PostgresMapper
 
     var selectString =
         "SELECT $columnsWithNamespace FROM $tableDefinition $nestedJoins";
-    var alias = "${tableReference}(${columnsWithoutNamespace})";
+    var alias = "$tableReference($columnsWithoutNamespace)";
     return "LEFT OUTER JOIN ($selectString$outerWhereString) $alias ON ${joinCondition.format}";
   }
 
@@ -214,7 +214,7 @@ class RowMapper extends PostgresMapper
     }
 
     var thisJoin =
-        "LEFT OUTER JOIN ${tableDefinition} ON ${joinCondition.format}";
+        "LEFT OUTER JOIN $tableDefinition ON ${joinCondition.format}";
 
     if (returningOrderedMappers.any((p) => p is RowMapper)) {
       var nestedJoins =

@@ -67,9 +67,9 @@ class MigrationBuilder {
     builder.writeln(
         '${spaceOffset}database.createTable(new SchemaTable("${table.name}", [');
     table.columns.forEach((col) {
-      builder.writeln("${spaceOffset}${_newColumnString(col, "  ")},");
+      builder.writeln("$spaceOffset${_newColumnString(col, "  ")},");
     });
-    builder.writeln('${spaceOffset}]));');
+    builder.writeln('$spaceOffset]));');
 
     return builder.toString();
   }
@@ -88,10 +88,10 @@ class MigrationBuilder {
 
     if (column.isNullable || column.defaultValue != null) {
       builder.writeln(
-          '${spaceOffset}database.addColumn("${tableName}", ${_newColumnString(column, "")});');
+          '${spaceOffset}database.addColumn("$tableName", ${_newColumnString(column, "")});');
     } else {
       builder.writeln(
-          '${spaceOffset}database.addColumn("${tableName}", ${_newColumnString(column, "")}, unencodedInitialValue: <<set>>);');
+          '${spaceOffset}database.addColumn("$tableName", ${_newColumnString(column, "")}, unencodedInitialValue: <<set>>);');
     }
 
     return builder.toString();
@@ -101,7 +101,7 @@ class MigrationBuilder {
     var builder = new StringBuffer();
 
     builder.writeln(
-        '${spaceOffset}database.deleteColumn("${tableName}", "${columnName}");');
+        '${spaceOffset}database.deleteColumn("$tableName", "$columnName");');
 
     return builder.toString();
   }
@@ -130,7 +130,7 @@ class MigrationBuilder {
     var builder = new StringBuffer();
 
     builder.writeln(
-        '${spaceOffset}database.alterColumn("${tableName}", "${previousColumn.name}", (c) {');
+        '${spaceOffset}database.alterColumn("$tableName", "${previousColumn.name}", (c) {');
 
     if (previousColumn.isIndexed != updatedColumn.isIndexed) {
       builder.writeln("$spaceOffset  c.isIndexed = ${updatedColumn.isIndexed};");

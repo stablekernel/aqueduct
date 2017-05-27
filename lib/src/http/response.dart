@@ -24,7 +24,7 @@ class Response implements RequestOrResponse {
   ///
   /// This may be any value that can be encoded into an HTTP response body. If this value is a [HTTPSerializable] or a [List] of [HTTPSerializable],
   /// each instance of [HTTPSerializable] will transformed via its [HTTPSerializable.asSerializable] method before being set.
-  void set body(dynamic initialResponseBody) {
+  set body(dynamic initialResponseBody) {
     var serializedBody = null;
     if (initialResponseBody is HTTPSerializable) {
       serializedBody = initialResponseBody.asSerializable();
@@ -53,7 +53,7 @@ class Response implements RequestOrResponse {
   ///
   /// See [contentType] for behavior when setting 'content-type' in this property.
   Map<String, dynamic> get headers => _headers;
-  void set headers(Map<String, dynamic> h) {
+  set headers(Map<String, dynamic> h) {
     _headers = new LowercaseMap.fromMap(h);
   }
 
@@ -97,7 +97,7 @@ class Response implements RequestOrResponse {
     return ContentType.parse(inHeaders);
   }
 
-  void set contentType(ContentType t) {
+  set contentType(ContentType t) {
     _contentType = t;
   }
 

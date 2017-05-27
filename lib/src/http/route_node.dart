@@ -54,6 +54,9 @@ class RouteSegment {
   }
 
   @override
+  int get hashCode => (literal ?? variableName).hashCode;
+
+  @override
   String toString() {
     if (isLiteralMatcher) {
       return literal;

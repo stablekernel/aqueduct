@@ -273,7 +273,7 @@ class Request implements RequestOrResponse {
       builder.write("${innerRequest.response.contentLength} ");
     }
     if (includeHeaders) {
-      builder.write("${_sanitizedHeaders} ");
+      builder.write("$_sanitizedHeaders ");
     }
 
     return builder.toString();

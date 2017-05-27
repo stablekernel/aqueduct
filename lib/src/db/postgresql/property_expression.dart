@@ -47,7 +47,7 @@ class PropertyExpression extends PropertyMapper {
 
     var counter = 0;
     values.forEach((value) {
-      var prefix = "${defaultVariablePrefix}${counter}_";
+      var prefix = "$defaultVariablePrefix${counter}_";
 
       var variableName = columnName(withPrefix: prefix);
       tokenList.add("@$variableName$typeSuffix");

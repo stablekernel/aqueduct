@@ -260,7 +260,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
       var pageByProperty = _query.entity.properties[pageBy];
       if (pageByProperty == null) {
         throw new HTTPResponseException(400,
-            "pageBy key ${pageBy} does not exist for ${_query.entity.tableName}");
+            "pageBy key $pageBy does not exist for ${_query.entity.tableName}");
       }
 
       pageValue = _parseValueForProperty(pageValue, pageByProperty);

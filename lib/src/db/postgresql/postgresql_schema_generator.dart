@@ -8,7 +8,7 @@ class PostgreSQLSchemaGenerator {
     var columnString =
         table.columns.map((col) => _columnStringForColumn(col)).join(",");
     var tableCommand =
-        "CREATE${isTemporary ? " TEMPORARY " : " "}TABLE ${table.name} (${columnString})";
+        "CREATE${isTemporary ? " TEMPORARY " : " "}TABLE ${table.name} ($columnString)";
 
     var indexCommands = table.columns
         .where((col) =>
@@ -93,7 +93,7 @@ class PostgreSQLSchemaGenerator {
 
       if (column.defaultValue == null) {
         return [
-          "UPDATE ${table.name} SET ${_columnNameForColumn(column)}=${unencodedInitialValue} WHERE ${_columnNameForColumn(column)} IS NULL",
+          "UPDATE ${table.name} SET ${_columnNameForColumn(column)}=$unencodedInitialValue WHERE ${_columnNameForColumn(column)} IS NULL",
           "ALTER TABLE ${table.name} ALTER COLUMN ${_columnNameForColumn(column)} SET NOT NULL",
         ];
       } else {
@@ -162,7 +162,7 @@ class PostgreSQLSchemaGenerator {
 
   List<String> _addConstraintsForColumn(String tableName, SchemaColumn column) {
     return [
-      "ALTER TABLE ONLY ${tableName} ADD FOREIGN KEY (${_columnNameForColumn(column)}) "
+      "ALTER TABLE ONLY $tableName ADD FOREIGN KEY (${_columnNameForColumn(column)}) "
           "REFERENCES ${column.relatedTableName} (${column.relatedColumnName}) "
           "ON DELETE ${_deleteRuleStringForDeleteRule(SchemaColumn.deleteRuleStringForDeleteRule(column.deleteRule))}"
     ];

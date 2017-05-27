@@ -45,7 +45,7 @@ class Router extends RequestController {
   /// If a [Request] has no matching route, this function will be called.
   /// By default, this function will respond to the incoming [Request] with a 404 response,
   /// and does not forward or allow consumption of the [Request] for later controllers.
-  void set unhandledRequestController(Future listener(Request req)) {
+  set unhandledRequestController(Future listener(Request req)) {
     _unhandledRequestController = listener;
   }
 

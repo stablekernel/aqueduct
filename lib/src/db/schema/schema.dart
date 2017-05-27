@@ -201,11 +201,11 @@ class SchemaTableDifference {
   List<String> get errorMessages {
     if (expectedTable == null && actualTable != null) {
       return [
-        "Table '${actualTable}' should NOT exist, but is created by migration files."
+        "Table '$actualTable' should NOT exist, but is created by migration files."
       ];
     } else if (expectedTable != null && actualTable == null) {
       return [
-        "Table '${expectedTable}' should exist, but it is NOT created by migration files."
+        "Table '$expectedTable' should exist, but it is NOT created by migration files."
       ];
     }
 
