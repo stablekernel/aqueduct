@@ -119,7 +119,9 @@ class TimeoutSink extends RequestSink {
       return;
     }
 
+    logger.info("Waiting for ${timeoutLength} seconds...");
     await new Future.delayed(new Duration(seconds: timeoutLength));
+    logger.info("Finished waiting, returning from willOpen");
   }
 }
 
