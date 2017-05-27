@@ -112,8 +112,8 @@ void main() {
   test("Multiple joins from same table", () async {
     var q = new Query<ChildObject>()
       ..sortBy((c) => c.cid, QuerySortOrder.ascending)
-      ..joinOne((c) => c.parent)
-      ..joinOne((c) => c.parents);
+      ..join(object: (c) => c.parent)
+      ..join(object: (c) => c.parents);
     var results = await q.fetch();
 
     expect(
@@ -133,7 +133,7 @@ void main() {
 
   group("Join on parent of hasMany relationship", () {
     test("Standard join", () async {
-      var q = new Query<ChildObject>()..joinOne((c) => c.parents);
+      var q = new Query<ChildObject>()..join(object: (c) => c.parents);
       var results = await q.fetch();
 
       expect(
@@ -167,7 +167,7 @@ void main() {
 
     test("Nested join", () async {
       var q = new Query<GrandChildObject>();
-      q.joinOne((c) => c.parents)..joinOne((c) => c.parents);
+      q.join(object: (c) => c.parents)..join(object: (c) => c.parents);
       var results = await q.fetch();
 
       expect(
@@ -220,9 +220,9 @@ void main() {
     test("Bidirectional join", () async {
       var q = new Query<ChildObject>()
         ..sortBy((c) => c.cid, QuerySortOrder.ascending)
-        ..joinMany((c) => c.grandChildren)
+        ..join(set: (c) => c.grandChildren)
             .sortBy((g) => g.gid, QuerySortOrder.descending)
-        ..joinOne((c) => c.parents);
+        ..join(object: (c) => c.parents);
 
       var results = await q.fetch();
 
@@ -305,7 +305,7 @@ void main() {
     test("Standard join", () async {
       var q = new Query<ChildObject>()
         ..sortBy((c) => c.cid, QuerySortOrder.ascending)
-        ..joinOne((c) => c.parent);
+        ..join(object: (c) => c.parent);
       var results = await q.fetch();
 
       expect(
@@ -348,7 +348,7 @@ void main() {
       var q = new Query<GrandChildObject>()
         ..sortBy((g) => g.gid, QuerySortOrder.ascending);
 
-      q.joinOne((c) => c.parent)..joinOne((c) => c.parent);
+      q.join(object: (c) => c.parent)..join(object: (c) => c.parent);
 
       var results = await q.fetch();
 

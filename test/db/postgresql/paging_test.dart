@@ -281,7 +281,7 @@ void main() {
     };
 
     setUpAll(() async {
-      context = await contextWithModels([PageableTestModel]);
+      context = await contextWithModels([PageableTestModel, HasMany, BelongsTo]);
       for (int i = 0; i < 10; i++) {
         var p = new PageableTestModel()..value = "${i}";
         await (new Query<PageableTestModel>()..values = p).insert();
@@ -326,6 +326,16 @@ void main() {
       var res = await req.fetch();
       check([2, 3, 4, 5, 6], res);
     });
+
+    test("Page by relationship fails", () async {
+      try {
+        new Query<HasMany>()
+          ..pageBy((p) => p.objects, QuerySortOrder.ascending);
+        expect(true, false);
+      } on QueryException catch (e) {
+        expect(e.toString(), contains("relationship properties cannot be paged on"));
+      }
+    });
   });
 }
 
@@ -337,4 +347,21 @@ class _PageableTestModel {
   int id;
 
   String value;
+}
+
+class HasMany extends ManagedObject<_HasMany> implements _HasMany {}
+class _HasMany {
+  @managedPrimaryKey
+  int id;
+
+  ManagedSet<BelongsTo> objects;
+}
+
+class BelongsTo extends ManagedObject<_BelongsTo> implements _BelongsTo {}
+class _BelongsTo {
+  @managedPrimaryKey
+  int id;
+
+  @ManagedRelationship(#objects)
+  HasMany hasMany;
 }

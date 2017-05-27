@@ -29,7 +29,7 @@ void main() {
     test("Fetch has-many relationship that has none returns empty OrderedSet",
         () async {
       var q = new Query<Parent>()
-        ..joinMany((p) => p.children)
+        ..join(set: (p) => p.children)
         ..where.name = "D";
 
       var verifier = (Parent p) {
@@ -46,9 +46,9 @@ void main() {
         () async {
       var q = new Query<Parent>()..where.name = "D";
 
-      q.joinMany((p) => p.children)
-        ..joinOne((c) => c.toy)
-        ..joinMany((c) => c.vaccinations);
+      q.join(set: (p) => p.children)
+        ..join(object: (c) => c.toy)
+        ..join(set: (c) => c.vaccinations);
 
       var verifier = (Parent p) {
         expect(p.name, "D");
@@ -63,7 +63,7 @@ void main() {
         "Fetch has-many relationship that is non-empty returns values for scalar properties in subobjects only",
         () async {
       var q = new Query<Parent>()
-        ..joinMany((p) => p.children)
+        ..join(set: (p) => p.children)
         ..where.name = "C";
 
       var verifier = (Parent p) {
@@ -83,10 +83,10 @@ void main() {
         () async {
       var q = new Query<Parent>()..where.name = "B";
 
-      q.joinMany((p) => p.children)
+      q.join(set: (p) => p.children)
         ..sortBy((c) => c.cid, QuerySortOrder.ascending)
-        ..joinOne((c) => c.toy)
-        ..joinMany((c) => c.vaccinations);
+        ..join(object: (c) => c.toy)
+        ..join(set: (c) => c.vaccinations);
 
       var verifier = (Parent p) {
         expect(p.name, "B");
@@ -115,10 +115,10 @@ void main() {
         () async {
       var q = new Query<Parent>()..where.name = "A";
 
-      q.joinMany((p) => p.children)
+      q.join(set: (p) => p.children)
         ..sortBy((c) => c.cid, QuerySortOrder.ascending)
-        ..joinOne((c) => c.toy)
-        ..joinMany((c) => c.vaccinations)
+        ..join(object: (c) => c.toy)
+        ..join(set: (c) => c.vaccinations)
             .sortBy((v) => v.vid, QuerySortOrder.ascending);
 
       var verifier = (Parent p) {
@@ -150,7 +150,7 @@ void main() {
         () async {
       var q = new Query<Parent>()
         ..sortBy((p) => p.pid, QuerySortOrder.ascending)
-        ..joinMany((p) => p.children)
+        ..join(set: (p) => p.children)
         ..where.name = whereIn(["A", "C", "D"]);
       var results = await q.fetch();
       expect(results.length, 3);
@@ -183,9 +183,9 @@ void main() {
 
     test("Fetch entire graph", () async {
       var q = new Query<Parent>();
-      q.joinMany((p) => p.children)
-        ..joinOne((c) => c.toy)
-        ..joinMany((c) => c.vaccinations);
+      q.join(set: (p) => p.children)
+        ..join(object: (c) => c.toy)
+        ..join(set: (c) => c.vaccinations);
 
       var all = await q.fetch();
 
@@ -236,10 +236,10 @@ void main() {
         () async {
       var q = new Query<Parent>()..where.name = "A";
 
-      q.joinMany((p) => p.children)
+      q.join(set: (p) => p.children)
         ..sortBy((c) => c.cid, QuerySortOrder.ascending)
-        ..joinOne((c) => c.toy)
-        ..joinMany((c) => c.vaccinations)
+        ..join(object: (c) => c.toy)
+        ..join(set: (c) => c.vaccinations)
             .sortBy((v) => v.vid, QuerySortOrder.ascending);
 
       var results = await q.fetch();
@@ -262,12 +262,12 @@ void main() {
         () async {
       var q = new Query<Parent>();
 
-      q.joinMany((p) => p.children)
+      q.join(set: (p) => p.children)
         ..where.name = "C1"
         ..sortBy((c) => c.cid, QuerySortOrder.ascending)
-        ..joinMany((c) => c.vaccinations)
+        ..join(set: (c) => c.vaccinations)
             .sortBy((v) => v.vid, QuerySortOrder.ascending)
-        ..joinOne((c) => c.toy);
+        ..join(object: (c) => c.toy);
 
       var results = await q.fetch();
 
@@ -289,8 +289,8 @@ void main() {
         () async {
       var q = new Query<Parent>();
 
-      var childJoin = q.joinMany((p) => p.children)..joinOne((c) => c.toy);
-      childJoin.joinMany((c) => c.vaccinations)..where.kind = "V1";
+      var childJoin = q.join(set: (p) => p.children)..join(object: (c) => c.toy);
+      childJoin.join(set: (c) => c.vaccinations)..where.kind = "V1";
 
       var results = await q.fetch();
 
@@ -327,8 +327,8 @@ void main() {
         () async {
       var q = new Query<Parent>()..where.pid = 5;
 
-      var childJoin = q.joinMany((p) => p.children)..joinOne((c) => c.toy);
-      childJoin.joinMany((c) => c.vaccinations)..where.kind = "V1";
+      var childJoin = q.join(set: (p) => p.children)..join(object: (c) => c.toy);
+      childJoin.join(set: (c) => c.vaccinations)..where.kind = "V1";
 
       var results = await q.fetch();
       expect(results.length, 0);
@@ -354,9 +354,9 @@ void main() {
       var q = new Query<Parent>()
         ..sortBy((p) => p.name, QuerySortOrder.descending);
 
-      q.joinMany((p) => p.children)
-        ..joinOne((c) => c.toy)
-        ..joinMany((c) => c.vaccinations);
+      q.join(set: (p) => p.children)
+        ..join(object: (c) => c.toy)
+        ..join(set: (c) => c.vaccinations);
 
       var results = await q.fetch();
 
@@ -404,7 +404,7 @@ void main() {
     test("Objects returned in join are not the same instance", () async {
       var q = new Query<Parent>()
         ..where.pid = 1
-        ..joinMany((p) => p.children);
+        ..join(set: (p) => p.children);
 
       var o = await q.fetchOne();
       for (var c in o.children) {
@@ -454,7 +454,7 @@ void main() {
       }
 
       q = new Query<Parent>();
-      q.joinMany((p) => p.children)
+      q.join(set: (p) => p.children)
         ..returningProperties((p) => [p.cid, p.vaccinations]);
 
       try {
