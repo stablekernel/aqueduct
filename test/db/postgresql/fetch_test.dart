@@ -99,7 +99,7 @@ void main() {
   test("Cannot sort by property that doesn't exist", () async {
     context = await contextWithModels([TestModel]);
     try {
-      new Query<GenUser>()
+      new Query<TestModel>()
         ..sortBy((u) => u["nonexisting"], QuerySortOrder.ascending);
       expect(true, false);
     } on QueryException catch (e) {
