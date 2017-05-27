@@ -148,7 +148,7 @@ abstract class HTTPController extends RequestController {
   /// Callback invoked prior to decoding a request body.
   ///
   /// This method is invoked prior to decoding the request body.
-  void willDecodeRequestBody(HTTPRequestBody decodedObject) {}
+  void willDecodeRequestBody(HTTPRequestBody body) {}
 
   /// Callback to indicate when a request body has been processed.
   ///
