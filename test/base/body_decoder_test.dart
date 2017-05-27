@@ -473,7 +473,7 @@ void main() {
     test("Retain bytes when codec is used", () async {
       postJSON({"k": "v"});
 
-      var body = new HTTPRequestBody(await server.first)..retainRawBytes = true;
+      var body = new HTTPRequestBody(await server.first)..retainOriginalBytes = true;
       await body.decodedData;
       expect(body.asMap(), {"k": "v"});
       expect(body.asBytes(), UTF8.encode(JSON.encode({"k":"v"})));
@@ -482,7 +482,7 @@ void main() {
     test("Retain bytes when no codec is used", () async {
       postBytes([1, 2, 3, 4]);
 
-      var body = new HTTPRequestBody(await server.first)..retainRawBytes = true;
+      var body = new HTTPRequestBody(await server.first)..retainOriginalBytes = true;
       await body.decodedData;
       expect(body.asBytes(), [1, 2, 3, 4]);
     });
