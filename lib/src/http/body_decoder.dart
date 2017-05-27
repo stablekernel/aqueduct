@@ -24,7 +24,16 @@ class HTTPRequestBody {
   }
 
   final HttpRequest _request;
-  dynamic _decodedData;
+  List<dynamic> _decodedData;
+
+  /// Whether or not to keep the raw bytes of a request body.
+  ///
+  /// By default, this flag is false and once [decodedData] has been invoked, the raw bytes of the request body
+  /// are lost and only the decoded value remains.
+  ///
+  /// If this flag is set to true, the encoded request body bytes are stored and accessible with [asBytes] (or [decodeAsBytes]).
+  bool retainRawBytes = false;
+  List<int> _bytes;
 
   /// Whether or not the data has been decoded yet.
   ///
@@ -80,16 +89,22 @@ class HTTPRequestBody {
           var codec = HTTPCodecRepository.defaultInstance
               .codecForContentType(_request.headers.contentType);
           if (codec != null) {
-            var bodyStream = codec.decoder.bind(_request).handleError((err) {
+            Stream<List<int>> stream = _request;
+            if (retainRawBytes) {
+              _bytes = await _readBytes(_request);
+              stream = new Stream.fromIterable([_bytes]);
+            }
+
+            var bodyStream = codec.decoder.bind(stream).handleError((err) {
               throw new HTTPBodyDecoderException("Failed to decode request body.",
                   underlyingException: err);
             });
             _decodedData = await bodyStream.toList();
           } else {
-            _decodedData = await _readBytes();
+            _decodedData = await _readBytes(_request);
           }
         } else {
-          _decodedData = await _readBytes();
+          _decodedData = await _readBytes(_request);
         }
       }
     }
@@ -148,12 +163,20 @@ class HTTPRequestBody {
     return asString();
   }
 
-  /// Returns decoded data as [List] of bytes, decoding it if not already decoded.
-  ///
-  /// This method invokes [decodedData] and returns the decoded bytes if the codec
-  /// produced a list of bytes.
+  /// Returns request body as [List] of bytes.
   ///
   /// If there is no body data, this method returns null.
+  ///
+  /// This method first invokes [decodedData], potentially decoding the request body
+  /// if there is a codec in [HTTPCodecRepository] for the content-type of the request.
+  ///
+  /// If there is not a codec for the content-type of the request, no decoding occurs and this method returns the
+  /// list of bytes directly from the request body.
+  ///
+  /// If the body was decoded with a codec, this method will throw an exception by default because
+  /// the raw request body bytes are discarded after decoding succeeds to free up memory. You may set
+  /// [retainRawBytes] to true prior to decoding to keep a copy of the raw bytes; in which case,
+  /// this method will successfully return the request body bytes.
   ///
   /// For a non-[Future] variant, see [asBytes].
   Future<List<int>> decodeAsBytes() async {
@@ -203,12 +226,11 @@ class HTTPRequestBody {
       return null;
     }
 
-    var d = _decodedData as List<dynamic>;
-    if (d.length != 1) {
+    if (_decodedData.length != 1) {
       throw new HTTPBodyDecoderException("decodeAsList() failed: more than one object in 'decodedData'.");
     }
 
-    var firstObject = d.first;
+    var firstObject = _decodedData.first;
     if (firstObject is! List) {
       throw new HTTPBodyDecoderException("asList() invoked on non-List data.");
     }
@@ -241,7 +263,7 @@ class HTTPRequestBody {
     }).toString();
   }
 
-  /// Returns decoded data as a [List] of bytes if decoding as already occurred.
+  /// Returns decoded data as a [List] of bytes if decoding has already been attempted.
   ///
   /// If decoding has not yet occurred, this method throws an [HTTPBodyDecoderException].
   ///
@@ -251,15 +273,23 @@ class HTTPRequestBody {
       throw new HTTPBodyDecoderException("asBytes() invoked, but has not been decoded yet.");
     }
 
+    if (_bytes != null) {
+      return _bytes;
+    }
+
     if (_decodedData == null) {
       return null;
+    }
+
+    if (_decodedData.first is! int) {
+      throw new HTTPBodyDecoderException("asBytes() expected list of bytes, instead got List<${_decodedData.first.runtimeType}>");
     }
 
     return _decodedData as List<int>;
   }
 
-  Future<List<int>> _readBytes() async {
-    var bytes = await _request.fold(new BytesBuilder(), (BytesBuilder builder, data) => builder..add(data));
+  Future<List<int>> _readBytes(Stream<List<int>> stream) async {
+    var bytes = await stream.fold(new BytesBuilder(), (BytesBuilder builder, data) => builder..add(data));
     return bytes.takeBytes();
   }
 }
