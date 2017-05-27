@@ -559,7 +559,7 @@ void main() {
   });
 }
 
-expectThatNoCORSProcessingOccurred(dynamic resp) {
+void expectThatNoCORSProcessingOccurred(dynamic resp) {
   if (resp is http.Response) {
     expect(resp.headers["access-control-allow-origin"], isNull);
     expect(resp.headers["access-control-allow-headers"], isNull);
@@ -636,24 +636,24 @@ class NoPolicyController extends HTTPController {
   }
 
   @httpGet
-  getAll() async {
+  Future<Response> getAll() async {
     return new Response.ok("getAll");
   }
 
   @httpPost
-  throwException() async {
+  Future<Response> throwException() async {
     throw new HTTPResponseException(400, "Foobar");
   }
 }
 
 class DefaultPolicyController extends HTTPController {
   @httpGet
-  getAll() async {
+  Future<Response> getAll() async {
     return new Response.ok("getAll");
   }
 
   @httpPost
-  throwException() async {
+  Future<Response> throwException() async {
     throw new HTTPResponseException(400, "Foobar");
   }
 }
@@ -666,12 +666,12 @@ class RestrictiveNoCredsOriginController extends HTTPController {
   }
 
   @httpGet
-  getAll() async {
+  Future<Response> getAll() async {
     return new Response.ok("getAll");
   }
 
   @httpPost
-  makeThing() async {
+  Future<Response> makeThing() async {
     return new Response.ok("makeThing");
   }
 }
@@ -682,12 +682,12 @@ class RestrictiveOriginController extends HTTPController {
     policy.exposedResponseHeaders = ["foobar", "x-foo"];
   }
   @httpGet
-  getAll() async {
+  Future<Response> getAll() async {
     return new Response.ok("getAll");
   }
 
   @httpPost
-  makeThing() async {
+  Future<Response> makeThing() async {
     return new Response.ok("makeThing");
   }
 }
@@ -698,7 +698,7 @@ class OptionsController extends HTTPController {
   }
 
   @HTTPMethod("options")
-  getThing() async {
+  Future<Response> getThing() async {
     return new Response.ok("getThing");
   }
 }

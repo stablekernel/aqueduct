@@ -264,7 +264,7 @@ void main() {
       expect(server.connectionsInfo().active, 1);
 
       await socket.close();
-      await socket.destroy();
+      socket.destroy();
       await sc.close();
 
       expect(serverHasNoMoreConnections(server), completes);

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
 
@@ -33,7 +34,7 @@ class TestSink extends RequestSink {
 
 class FailingController extends HTTPController {
   @httpGet
-  get() async {
+  Future<Response> get() async {
     return new Response.ok(null);
   }
 }

@@ -81,7 +81,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
   }
 
   @httpGet
-  getObject(@HTTPPath("id") String id) async {
+  Future<Response> getObject(@HTTPPath("id") String id) async {
     var primaryKey = _query.entity.primaryKey;
     _query.where[primaryKey] = whereEqualTo(
         _parseValueForProperty(id, _query.entity.properties[primaryKey]));
@@ -115,7 +115,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
   }
 
   @httpPost
-  createObject() async {
+  Future<Response> createObject() async {
     InstanceType instance = _query.entity.instanceType
         .newInstance(new Symbol(""), []).reflectee as InstanceType;
     instance.readMap(request.body.asMap());
@@ -152,7 +152,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
   }
 
   @httpDelete
-  deleteObject(@HTTPPath("id") String id) async {
+  Future<Response> deleteObject(@HTTPPath("id") String id) async {
     var primaryKey = _query.entity.primaryKey;
     _query.where[primaryKey] = whereEqualTo(
         _parseValueForProperty(id, _query.entity.properties[primaryKey]));
@@ -193,7 +193,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
   }
 
   @httpPut
-  updateObject(@HTTPPath("id") String id) async {
+  Future<Response> updateObject(@HTTPPath("id") String id) async {
     var primaryKey = _query.entity.primaryKey;
     _query.where[primaryKey] = whereEqualTo(
         _parseValueForProperty(id, _query.entity.properties[primaryKey]));
@@ -231,7 +231,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
   }
 
   @httpGet
-  getObjects(
+  Future<Response> getObjects(
       {@HTTPQuery("count") int count: 0,
       @HTTPQuery("offset") int offset: 0,
       @HTTPQuery("pageBy") String pageBy: null,

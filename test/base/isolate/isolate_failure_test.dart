@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 import 'dart:io';
 import '../../helpers.dart';
 
-main() {
+void main() {
   setUpAll(() {
     justLogEverything();
   });

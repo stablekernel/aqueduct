@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:aqueduct/aqueduct.dart';
 export 'context_helpers.dart';
 
-justLogEverything() {
+void justLogEverything() {
   hierarchicalLoggingEnabled = true;
   new Logger("")
     ..level = Level.ALL

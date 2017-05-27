@@ -4,7 +4,7 @@ import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-main() {
+void main() {
   group("Application lifecycle", () {
     Application<TestSink> app;
 

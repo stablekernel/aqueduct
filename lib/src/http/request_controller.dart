@@ -51,11 +51,7 @@ class RequestController extends Object with APIDocumentable {
   Logger get logger => new Logger("aqueduct");
 
   /// The CORS policy of this controller.
-  CORSPolicy get policy => _policy;
-  CORSPolicy _policy = new CORSPolicy();
-  set policy(CORSPolicy p) {
-    _policy = p;
-  }
+  CORSPolicy policy = new CORSPolicy();
 
   /// The next [RequestController] to pass a [Request] to if this instance returns a [Request] from [processRequest].
   ///

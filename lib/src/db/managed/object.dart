@@ -170,7 +170,7 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
   }
 
   @override
-  noSuchMethod(Invocation invocation) {
+  dynamic noSuchMethod(Invocation invocation) {
     if (invocation.isGetter) {
       var propertyName = MirrorSystem.getName(invocation.memberName);
       return this[propertyName];

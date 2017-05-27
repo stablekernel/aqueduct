@@ -129,9 +129,8 @@ class PostgreSQLPersistentStore extends PersistentStore
     var now = new DateTime.now().toUtc();
     var dbConnection = await getDatabaseConnection();
     try {
-      var results =
+      var rows =
           await dbConnection.query(sql, substitutionValues: substitutionValues);
-      var rows = await results.toList();
 
       var mappedRows = rows.map((row) => row.toList()).toList();
       logger.finest(() =>

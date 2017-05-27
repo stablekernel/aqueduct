@@ -59,7 +59,7 @@ class Schema {
   List<SchemaTable> get dependencyOrderedTables => _orderedTables([], tables);
 
   /// Gets a table from [tables] by that table's name.
-  operator [](String tableName) => tableForName(tableName);
+  SchemaTable operator [](String tableName) => tableForName(tableName);
 
   /// Whether or not two schemas match.
   ///

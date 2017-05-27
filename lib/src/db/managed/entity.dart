@@ -249,7 +249,7 @@ class ManagedEntity {
 
   /// Two entities are considered equal if they have the same [tableName].
   @override
-  operator ==(dynamic other) {
+  bool operator ==(dynamic other) {
     return tableName == other.tableName;
   }
 

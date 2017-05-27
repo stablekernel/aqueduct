@@ -42,4 +42,3 @@ linter:
     - await_only_futures
     - sort_constructors_first
     - sort_unnamed_constructors_first
-    - unawaited_futures

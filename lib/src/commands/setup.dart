@@ -141,7 +141,7 @@ web: /app/dart-sdk/bin/pub global run aqueduct:aqueduct serve --port \$PORT --no
     for (var cmd in commands) {
       List<String> args = ["-c", cmd, "-U", grantingUser];
 
-      var result = await Process.runSync("psql", args, runInShell: true);
+      var result = Process.runSync("psql", args, runInShell: true);
       if (result.stdout.contains("CREATE DATABASE")) {
         displayProgress("Successfully created database dart_test.");
       } else if (result.stdout.contains("CREATE ROLE")) {

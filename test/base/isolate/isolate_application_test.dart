@@ -6,7 +6,7 @@ import 'dart:io';
 import 'dart:convert';
 import '../../helpers.dart';
 
-main() {
+void main() {
   setUpAll(() {
     justLogEverything();
   });

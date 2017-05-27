@@ -80,7 +80,7 @@ class CLITemplateCreator extends CLICommand {
 
     displayProgress("Template source is: ${sourceDirectory.path}");
     displayProgress("See more templates with 'aqueduct create list-templates'");
-    await copyProjectFiles(destDirectory, sourceDirectory, projectName);
+    copyProjectFiles(destDirectory, sourceDirectory, projectName);
 
     createProjectSpecificFiles(destDirectory.path, aqueductDependencyString);
     replaceAqueductDependencyString(
