@@ -145,6 +145,11 @@ abstract class HTTPController extends RequestController {
     return req;
   }
 
+  /// Callback invoked prior to decoding a request body.
+  ///
+  /// This method is invoked prior to decoding the request body.
+  void willDecodeRequestBody(HTTPRequestBody decodedObject) {}
+
   /// Callback to indicate when a request body has been processed.
   ///
   /// This method is called after the body has been processed by the decoder, but prior to the request being
@@ -217,6 +222,7 @@ abstract class HTTPController extends RequestController {
         return new Response(HttpStatus.UNSUPPORTED_MEDIA_TYPE, null, null);
       }
 
+      willDecodeRequestBody(request.body);
       await request.body.decodedData;
       didDecodeRequestBody(request.body);
     }
