@@ -74,7 +74,7 @@ main() {
       var timeoutApp = new Application<TimeoutSink>()
         ..isolateStartupTimeout = new Duration(seconds: 4)
         ..configuration.options = {
-          "timeout1" : 20
+          "timeout1" : 10
         };
 
       try {
@@ -92,7 +92,7 @@ main() {
       var timeoutApp = new Application<TimeoutSink>()
         ..isolateStartupTimeout = new Duration(seconds: 4)
         ..configuration.options = {
-          "timeout2" : 20
+          "timeout2" : 10
         };
 
       try {
@@ -119,7 +119,13 @@ class TimeoutSink extends RequestSink {
       return;
     }
 
-    await new Future.delayed(new Duration(seconds: timeoutLength));
+    print("Waiting for $timeoutLength seconds...");
+    await new Future.delayed(new Duration(seconds: timeoutLength / 3));
+    print("... 1/3 ...");
+    await new Future.delayed(new Duration(seconds: timeoutLength / 3));
+    print("... 2/3 ...");
+    await new Future.delayed(new Duration(seconds: timeoutLength / 3));
+    print("Done waiting.");
   }
 }
 
