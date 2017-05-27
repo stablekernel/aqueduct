@@ -147,7 +147,7 @@ class HTTPFileController extends RequestController {
     var ifModifiedSince = request.innerRequest.headers.value(HttpHeaders.IF_MODIFIED_SINCE);
     if (ifModifiedSince != null) {
       var date = HttpDate.parse(ifModifiedSince);
-      if (lastModifiedDate.isBefore(date)) {
+      if (!lastModifiedDate.isAfter(date)) {
         return new Response.notModified(lastModifiedDate, _policyForFile(file));
       }
     }
