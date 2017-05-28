@@ -30,6 +30,7 @@ class RowMapper extends PostgresMapper
   QueryPredicate _joinCondition;
   List<PropertySortMapper> _sortMappers;
 
+  @override
   ManagedEntity get entity => joiningProperty.inverse.entity;
 
   ManagedRelationshipDescription get foreignKeyProperty =>
@@ -203,7 +204,7 @@ class RowMapper extends PostgresMapper
 
     var selectString =
         "SELECT $columnsWithNamespace FROM $tableDefinition $nestedJoins";
-    var alias = "${tableReference}(${columnsWithoutNamespace})";
+    var alias = "$tableReference($columnsWithoutNamespace)";
     return "LEFT OUTER JOIN ($selectString$outerWhereString) $alias ON ${joinCondition.format}";
   }
 
@@ -213,7 +214,7 @@ class RowMapper extends PostgresMapper
     }
 
     var thisJoin =
-        "LEFT OUTER JOIN ${tableDefinition} ON ${joinCondition.format}";
+        "LEFT OUTER JOIN $tableDefinition ON ${joinCondition.format}";
 
     if (returningOrderedMappers.any((p) => p is RowMapper)) {
       var nestedJoins =
@@ -238,10 +239,12 @@ class RowMapper extends PostgresMapper
         joiningProperty.name == relationship.name;
   }
 
+  @override
   String generateTableAlias() {
     return originatingTable.generateTableAlias();
   }
 
+  @override
   String toString() {
     return "RowMapper on $joiningProperty: $returningOrderedMappers";
   }

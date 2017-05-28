@@ -4,7 +4,7 @@ import 'dart:async';
 import 'dart:io';
 import '../helpers.dart';
 
-main() {
+void main() {
   test("Package resolver", () {
     String homeDir =
         Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'];
@@ -425,6 +425,7 @@ class TestSink extends RequestSink {
 
   AuthServer authServer;
 
+  @override
   void setupRouter(Router router) {
     router
         .route("/auth/code")
@@ -443,6 +444,7 @@ class TestSink extends RequestSink {
     });
   }
 
+  @override
   Map<String, APISecurityScheme> documentSecuritySchemes(
       PackagePathResolver resolver) {
     return authServer.documentSecuritySchemes(resolver);
@@ -459,19 +461,19 @@ class TController extends HTTPController {
   /// EFGH
   /// IJKL
   @httpGet
-  getAll({@HTTPQuery("param") String param: null}) async {
+  Future<Response> getAll({@HTTPQuery("param") String param: null}) async {
     return new Response.ok("");
   }
 
   /// ABCD
   @httpPut
-  putOne(@HTTPPath("id") int id,
+  Future<Response> putOne(@HTTPPath("id") int id,
       {@HTTPQuery("p1") int p1: null, @HTTPHeader("X-P2") int p2: null}) async {
     return new Response.ok("");
   }
 
   @httpGet
-  getOne(@HTTPPath("id") int id) async {
+  Future<Response> getOne(@HTTPPath("id") int id) async {
     return new Response.ok("");
   }
 
@@ -479,7 +481,7 @@ class TController extends HTTPController {
   /// QRST
 
   @httpGet
-  getTwo(@HTTPPath("id") int id, @HTTPPath("notID") int notID) async {
+  Future<Response> getTwo(@HTTPPath("id") int id, @HTTPPath("notID") int notID) async {
     return new Response.ok("");
   }
 

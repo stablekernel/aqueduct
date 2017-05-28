@@ -4,7 +4,7 @@ import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-main() {
+void main() {
   group("Application lifecycle", () {
     Application<TestSink> app;
 
@@ -113,6 +113,7 @@ class TestException implements Exception {
   final String message;
   TestException(this.message);
 
+  @override
   String toString() => message;
 }
 
@@ -123,6 +124,7 @@ class CrashingTestSink extends RequestSink {
     }
   }
 
+  @override
   void setupRouter(Router router) {
     if (configuration.options["crashIn"] == "addRoutes") {
       throw new TestException("addRoutes");
@@ -139,14 +141,15 @@ class CrashingTestSink extends RequestSink {
 }
 
 class TestSink extends RequestSink {
+  TestSink(ApplicationConfiguration opts) : super(opts);
+
   static Future initializeApplication(ApplicationConfiguration config) async {
     List<int> v = config.options["startup"] ?? [];
     v.add(1);
     config.options["startup"] = v;
   }
 
-  TestSink(ApplicationConfiguration opts) : super(opts);
-
+  @override
   void setupRouter(Router router) {
     router.route("/t").generate(() => new TController());
     router.route("/r").generate(() => new RController());

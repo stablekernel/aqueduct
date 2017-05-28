@@ -126,8 +126,8 @@ void main() {
   });
 
   group("Compression", () {
-    HttpServer server = null;
-    HttpClient client = null;
+    HttpServer server;
+    HttpClient client;
 
     setUp(() async {
       client = new HttpClient();
@@ -264,7 +264,7 @@ void main() {
       expect(server.connectionsInfo().active, 1);
 
       await socket.close();
-      await socket.destroy();
+      socket.destroy();
       await sc.close();
 
       expect(serverHasNoMoreConnections(server), completes);
@@ -296,13 +296,17 @@ Future<HttpServer> bindAndRespondWith(Response response) async {
 }
 
 class CrashingCodec extends Codec {
+  @override
   CrashingEncoder get encoder => new CrashingEncoder();
+  @override
   Converter get decoder => null;
 }
 
 class CrashingEncoder extends Converter<String, List<int>> {
+  @override
   List<int> convert(String val) => [];
 
+  @override
   CrashingSink startChunkedConversion(Sink<List<int>> sink) {
     return new CrashingSink(sink);
   }

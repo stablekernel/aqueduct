@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/src/db/query/matcher_internal.dart';
 import 'package:test/test.dart';
@@ -7,10 +8,10 @@ import 'dart:convert';
 import '../helpers.dart';
 
 
-main() {
+void main() {
   RequestController.letUncaughtExceptionsEscape = true;
-  ManagedContext context = null;
-  HttpServer server = null;
+  ManagedContext context;
+  HttpServer server;
 
   setUpAll(() async {
     context = await contextWithModels([TestModel, StringModel]);
@@ -69,7 +70,7 @@ main() {
 
 class TestModelController extends QueryController<TestModel> {
   @httpGet
-  getAll() async {
+  Future<Response> getAll() async {
     int statusCode = 200;
 
     if (query == null) {
@@ -84,7 +85,7 @@ class TestModelController extends QueryController<TestModel> {
   }
 
   @httpGet
-  getOne(@HTTPPath("id") int id) async {
+  Future<Response> getOne(@HTTPPath("id") int id) async {
     int statusCode = 200;
 
     if (query == null) {
@@ -105,7 +106,7 @@ class TestModelController extends QueryController<TestModel> {
   }
 
   @httpPut
-  putOne(@HTTPPath("id") int id) async {
+  Future<Response> putOne(@HTTPPath("id") int id) async {
     int statusCode = 200;
 
     if (query.values == null) {
@@ -136,7 +137,7 @@ class TestModelController extends QueryController<TestModel> {
   }
 
   @httpPost
-  create() async {
+  Future<Response> create() async {
     int statusCode = 200;
     if (query.values == null) {
       statusCode = 400;
@@ -152,7 +153,7 @@ class TestModelController extends QueryController<TestModel> {
   }
 
   @httpPost
-  crash(@HTTPPath("id") int id) async {
+  Future<Response> crash(@HTTPPath("id") int id) async {
     return new Response.ok("");
   }
 }
@@ -169,7 +170,7 @@ class _TestModel {
 
 class StringController extends QueryController<StringModel> {
   @httpGet
-  get(@HTTPPath("id") String id) async {
+  Future<Response> get(@HTTPPath("id") String id) async {
     ComparisonMatcherExpression comparisonMatcher = query.where["foo"];
     return new Response.ok(comparisonMatcher.value);
   }

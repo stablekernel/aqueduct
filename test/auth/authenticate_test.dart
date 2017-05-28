@@ -424,7 +424,6 @@ void main() {
       createdUser = delegate.users[1];
       code = await auth.authenticateForCode(createdUser.username,
           InMemoryAuthStorage.DefaultPassword, "com.stablekernel.redirect");
-      ;
     });
 
     test("Can create an auth code that can be exchanged for a token", () async {

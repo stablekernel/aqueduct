@@ -1,4 +1,6 @@
 import 'query.dart';
+import '../persistent_store/persistent_store.dart';
+import '../../http/http.dart';
 
 /// An exception describing an issue with a query.
 ///
@@ -16,6 +18,7 @@ class QueryException implements Exception {
   /// The type of event that caused this exception.
   final QueryExceptionEvent event;
 
+  @override
   String toString() => _message ?? underlyingException?.toString();
 }
 

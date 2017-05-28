@@ -2,6 +2,9 @@ import 'dart:io';
 import 'dart:mirrors';
 
 import 'package:path/path.dart' as path_lib;
+import 'http.dart';
+import '../auth/auth.dart';
+import '../db/managed/managed.dart';
 
 Map<String, dynamic> _stripNullAndEmpty(Map<String, dynamic> m) {
   var outMap = <String, dynamic>{};
@@ -23,7 +26,7 @@ Map<String, dynamic> _stripNullAndEmpty(Map<String, dynamic> m) {
 /// Classes that wish to participate in the documentation process should extend or mixin this class.
 ///
 /// Documentation behavior starts at the root of an application (its [RequestSink]) by invoking [documentAPI].
-/// The [RequestSink] will invoke methods from this interface on its [RequestSink.initialHandler]. These methods
+/// The [RequestSink] will invoke methods from this interface on its [RequestSink.initialController]. These methods
 /// travel down the object graph formed by a [RequestSink], its [Router], [RequestController]s, [AuthServer] and [ManagedObject]s.
 ///
 /// Classes that extend this class will override methods such as [documentPaths] and [documentOperations] if they have the information
@@ -227,6 +230,19 @@ enum APISecuritySchemeFlow {
 
 /// Represents a security scheme in the OpenAPI specification.
 class APISecurityScheme {
+  APISecurityScheme.basic() {
+    type = "basic";
+  }
+
+  APISecurityScheme.apiKey(this.apiKeyName, this.apiKeyLocation) {
+    type = "apiKey";
+  }
+
+  APISecurityScheme.oauth2(this.oauthFlow,
+      {this.authorizationURL, this.tokenURL, this.scopes: const []}) {
+    type = "oauth2";
+  }
+
   static String stringForFlow(APISecuritySchemeFlow flow) {
     switch (flow) {
       case APISecuritySchemeFlow.authorizationCode:
@@ -239,19 +255,6 @@ class APISecurityScheme {
         return "application";
     }
     return null;
-  }
-
-  APISecurityScheme.basic() {
-    type = "basic";
-  }
-
-  APISecurityScheme.apiKey(this.apiKeyName, this.apiKeyLocation) {
-    type = "apiKey";
-  }
-
-  APISecurityScheme.oauth2(this.oauthFlow,
-      {this.authorizationURL, this.tokenURL, this.scopes: const []}) {
-    type = "oauth2";
   }
 
   String type;
@@ -403,7 +406,7 @@ class APIResponse {
     return int.parse(key);
   }
 
-  void set statusCode(int code) {
+  set statusCode(int code) {
     key = "$code";
   }
 

@@ -35,7 +35,7 @@ class Router extends RequestController {
   /// more efficient than including the base path in each route.
   String get basePath => _basePathSegments.join("/");
   set basePath(String bp) {
-    _basePathSegments = bp.split("/").where((str) => !str.isEmpty).toList();
+    _basePathSegments = bp.split("/").where((str) => str.isNotEmpty).toList();
   }
 
   List<String> _basePathSegments = [];
@@ -45,7 +45,7 @@ class Router extends RequestController {
   /// If a [Request] has no matching route, this function will be called.
   /// By default, this function will respond to the incoming [Request] with a 404 response,
   /// and does not forward or allow consumption of the [Request] for later controllers.
-  void set unhandledRequestController(Future listener(Request req)) {
+  set unhandledRequestController(Future listener(Request req)) {
     _unhandledRequestController = listener;
   }
 
@@ -87,17 +87,20 @@ class Router extends RequestController {
   }
 
   /// Routers override this method to throw an exception. Use [route] instead.
+  @override
   RequestController pipe(RequestController n) {
     throw new RouterException("Routers may not use pipe, use route instead.");
   }
 
   /// Routers override this method to throw an exception. Use [route] instead.
+  @override
   RequestController generate(RequestController generatorFunction()) {
     throw new RouterException(
         "Routers may not use generate, use route instead.");
   }
 
   /// Routers override this method to throw an exception. Use [route] instead.
+  @override
   RequestController listen(
       Future<RequestOrResponse> requestControllerFunction(
           Request request)) {
@@ -183,6 +186,7 @@ class RouterException implements Exception {
 
   final String message;
 
+  @override
   String toString() {
     return "RouterException: $message";
   }

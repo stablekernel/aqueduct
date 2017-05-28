@@ -3,7 +3,7 @@ import 'package:aqueduct/aqueduct.dart';
 import '../../helpers.dart';
 
 void main() {
-  ManagedContext context = null;
+  ManagedContext context;
   tearDown(() async {
     await context?.persistentStore?.close();
     context = null;
@@ -48,7 +48,7 @@ void main() {
     context = await contextWithModels([TestModel]);
 
     for (int i = 0; i < 10; i++) {
-      var m = new TestModel(name: "Joe${i}", email: "asc${i}@a.com");
+      var m = new TestModel(name: "Joe$i", email: "asc$i@a.com");
       var req = new Query<TestModel>()..values = m;
       await req.insert();
     }
@@ -60,7 +60,7 @@ void main() {
     var result = await req.fetch();
 
     for (int i = 0; i < 10; i++) {
-      expect(result[i].email, "asc${i}@a.com");
+      expect(result[i].email, "asc$i@a.com");
     }
 
     req = new Query<TestModel>()..sortBy((t) => t.id, QuerySortOrder.ascending);
@@ -78,7 +78,7 @@ void main() {
     context = await contextWithModels([TestModel]);
 
     for (int i = 0; i < 10; i++) {
-      var m = new TestModel(name: "Joe${i}", email: "desc${i}@a.com");
+      var m = new TestModel(name: "Joe$i", email: "desc$i@a.com");
 
       var req = new Query<TestModel>()..values = m;
 
@@ -92,7 +92,7 @@ void main() {
 
     for (int i = 0; i < 10; i++) {
       int v = 9 - i;
-      expect(result[i].email, "desc${v}@a.com");
+      expect(result[i].email, "desc$v@a.com");
     }
   });
 
@@ -122,7 +122,7 @@ void main() {
     context = await contextWithModels([TestModel]);
 
     for (int i = 0; i < 10; i++) {
-      var m = new TestModel(name: "Joe${i%2}", email: "multi${i}@a.com");
+      var m = new TestModel(name: "Joe${i%2}", email: "multi$i@a.com");
 
       var req = new Query<TestModel>()..values = m;
 
@@ -337,8 +337,9 @@ class _TestModel {
     return "simple";
   }
 
+  @override
   String toString() {
-    return "TestModel: ${id} ${name} ${email}";
+    return "TestModel: $id $name $email";
   }
 }
 

@@ -1,5 +1,7 @@
 import 'dart:mirrors';
 import 'managed.dart';
+import '../persistent_store/persistent_store.dart';
+import '../query/query.dart';
 
 /// Possible data types for [ManagedEntity] attributes.
 enum ManagedPropertyType {
@@ -45,7 +47,7 @@ abstract class ManagedPropertyDescription {
         isIndexed = indexed,
         isNullable = nullable,
         isIncludedInDefaultResultSet = includedInDefaultResultSet,
-        this.autoincrement = autoincrement {}
+        this.autoincrement = autoincrement;
 
   /// A reference to the [ManagedEntity] that contains this property.
   final ManagedEntity entity;
@@ -152,6 +154,27 @@ abstract class ManagedPropertyDescription {
 /// Each scalar property [ManagedObject] object persists is described by an instance of [ManagedAttributeDescription]. This class
 /// adds two properties to [ManagedPropertyDescription] that are only valid for non-relationship types, [isPrimaryKey] and [defaultValue].
 class ManagedAttributeDescription extends ManagedPropertyDescription {
+  ManagedAttributeDescription(
+      ManagedEntity entity, String name, ManagedPropertyType type,
+      {ManagedTransientAttribute transientStatus: null,
+        bool primaryKey: false,
+        String defaultValue: null,
+        bool unique: false,
+        bool indexed: false,
+        bool nullable: false,
+        bool includedInDefaultResultSet: true,
+        bool autoincrement: false,
+        this.validators: const []})
+      : this.isPrimaryKey = primaryKey,
+        this.defaultValue = defaultValue,
+        this.transientStatus = transientStatus,
+        super(entity, name, type,
+          unique: unique,
+          indexed: indexed,
+          nullable: nullable,
+          includedInDefaultResultSet: includedInDefaultResultSet,
+          autoincrement: autoincrement);
+
   ManagedAttributeDescription.transient(ManagedEntity entity, String name,
       ManagedPropertyType type, this.transientStatus)
       : this.isPrimaryKey = false,
@@ -163,27 +186,6 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
             nullable: false,
             includedInDefaultResultSet: false,
             autoincrement: false);
-
-  ManagedAttributeDescription(
-      ManagedEntity entity, String name, ManagedPropertyType type,
-      {ManagedTransientAttribute transientStatus: null,
-      bool primaryKey: false,
-      String defaultValue: null,
-      bool unique: false,
-      bool indexed: false,
-      bool nullable: false,
-      bool includedInDefaultResultSet: true,
-      bool autoincrement: false,
-      this.validators: const []})
-      : this.isPrimaryKey = primaryKey,
-        this.defaultValue = defaultValue,
-        this.transientStatus = transientStatus,
-        super(entity, name, type,
-            unique: unique,
-            indexed: indexed,
-            nullable: nullable,
-            includedInDefaultResultSet: includedInDefaultResultSet,
-            autoincrement: autoincrement);
 
   /// Whether or not this attribute is the primary key for its [ManagedEntity].
   ///
@@ -209,6 +211,7 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
   /// [ManagedValidator]s for this instance.
   final List<Validate> validators;
 
+  @override
   String toString() {
     return "[Attribute]    ${entity.tableName}.$name ($type)";
   }
@@ -232,7 +235,7 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
             unique: unique,
             indexed: indexed,
             nullable: nullable,
-            includedInDefaultResultSet: includedInDefaultResultSet) {}
+            includedInDefaultResultSet: includedInDefaultResultSet);
 
   /// The entity that this relationship's instances are represented by.
   final ManagedEntity destinationEntity;
@@ -251,6 +254,7 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
       destinationEntity.relationships[MirrorSystem.getName(inverseKey)];
 
   /// Whether or not a the argument can be assigned to this property.
+  @override
   bool isAssignableWith(dynamic dartValue) {
     var type = reflect(dartValue).type;
 
@@ -270,7 +274,8 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
     return type == destinationEntity.instanceType;
   }
 
+  @override
   String toString() {
-    return "[Relationship] ${entity.tableName}.$name ${relationshipType} ${destinationEntity.tableName}.${MirrorSystem.getName(inverseKey)}";
+    return "[Relationship] ${entity.tableName}.$name $relationshipType ${destinationEntity.tableName}.${MirrorSystem.getName(inverseKey)}";
   }
 }

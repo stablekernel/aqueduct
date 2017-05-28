@@ -3,7 +3,7 @@ import 'package:aqueduct/aqueduct.dart';
 import '../../helpers.dart';
 
 void main() {
-  ManagedContext context = null;
+  ManagedContext context;
 
   setUpAll(() async {
     context = await contextWithModels([TestModel, InnerModel]);

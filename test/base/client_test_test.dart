@@ -1,10 +1,11 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:aqueduct/test.dart';
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
 
-main() {
+void main() {
   test("Client can expect array of JSON", () async {
     TestClient client = new TestClient.onPort(8081);
     HttpServer server =
@@ -23,7 +24,7 @@ main() {
 
 class TestController extends HTTPController {
   @httpGet
-  get() async {
+  Future<Response> get() async {
     return new Response.ok([
       {"id": 1},
       {"id": 2}

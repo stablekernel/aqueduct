@@ -188,6 +188,7 @@ class MockHTTPServer extends MockServer<MockHTTPRequest> {
   }
 
   /// Shuts down the server listening for HTTP requests.
+  @override
   Future close() {
     return server?.close();
   }

@@ -9,6 +9,7 @@ import 'db.dart';
 
 class CLIDatabaseGenerate extends CLICommand
     with CLIDatabaseMigratable, CLIProject {
+  @override
   Future<int> handle() async {
     var files = migrationFiles;
 
@@ -16,7 +17,7 @@ class CLIDatabaseGenerate extends CLICommand
         migrationDirectory.uri.resolve("00000001_Initial.migration.dart"));
     var versionNumber = 1;
 
-    if (!files.isEmpty) {
+    if (files.isNotEmpty) {
       versionNumber  = versionNumberFromFile(files.last) + 1;
       newMigrationFile = new File.fromUri(migrationDirectory.uri.resolve(
           "${"$versionNumber".padLeft(8, "0")}_Unnamed.migration.dart"));
@@ -98,14 +99,17 @@ class CLIDatabaseGenerate extends CLICommand
     return schema.asMap();
   }
 
+  @override
   String get name {
     return "generate";
   }
 
+  @override
   String get detailedDescription {
     return "The migration file will upgrade the schema generated from running existing migration files match that of the schema in the current codebase.";
   }
 
+  @override
   String get description {
     return "Creates a migration file.";
   }

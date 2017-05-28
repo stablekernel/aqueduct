@@ -8,6 +8,7 @@ class MigrationException implements Exception {
   MigrationException(this.message);
   String message;
 
+  @override
   String toString() => message;
 }
 

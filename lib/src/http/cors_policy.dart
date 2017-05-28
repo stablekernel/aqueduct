@@ -13,6 +13,34 @@ import 'http.dart';
 /// Application-wide defaults can be managed by modifying [defaultPolicy] in a [RequestSink]'s constructor.
 ///
 class CORSPolicy {
+  /// Create a new instance of [CORSPolicy].
+  ///
+  /// Values are set to match [defaultPolicy].
+  CORSPolicy() {
+    var def = defaultPolicy;
+    allowedOrigins = new List.from(def.allowedOrigins);
+    allowCredentials = def.allowCredentials;
+    exposedResponseHeaders = new List.from(def.exposedResponseHeaders);
+    allowedMethods = new List.from(def.allowedMethods);
+    allowedRequestHeaders = new List.from(def.allowedRequestHeaders);
+    cacheInSeconds = def.cacheInSeconds;
+  }
+
+  CORSPolicy._defaults() {
+    allowedOrigins = ["*"];
+    allowCredentials = true;
+    exposedResponseHeaders = [];
+    allowedMethods = ["POST", "PUT", "DELETE", "GET"];
+    allowedRequestHeaders = [
+      "origin",
+      "authorization",
+      "x-requested-with",
+      "x-forwarded-for",
+      "content-type"
+    ];
+    cacheInSeconds = 86400;
+  }
+
   /// The default CORS policy.
   ///
   /// You may modify this default policy. All instances of [CORSPolicy] are instantiated
@@ -49,34 +77,6 @@ class CORSPolicy {
     "last-modified",
     "pragma"
   ];
-
-  /// Create a new instance of [CORSPolicy].
-  ///
-  /// Values are set to match [defaultPolicy].
-  CORSPolicy() {
-    var def = defaultPolicy;
-    allowedOrigins = new List.from(def.allowedOrigins);
-    allowCredentials = def.allowCredentials;
-    exposedResponseHeaders = new List.from(def.exposedResponseHeaders);
-    allowedMethods = new List.from(def.allowedMethods);
-    allowedRequestHeaders = new List.from(def.allowedRequestHeaders);
-    cacheInSeconds = def.cacheInSeconds;
-  }
-
-  CORSPolicy._defaults() {
-    allowedOrigins = ["*"];
-    allowCredentials = true;
-    exposedResponseHeaders = [];
-    allowedMethods = ["POST", "PUT", "DELETE", "GET"];
-    allowedRequestHeaders = [
-      "origin",
-      "authorization",
-      "x-requested-with",
-      "x-forwarded-for",
-      "content-type"
-    ];
-    cacheInSeconds = 86400;
-  }
 
   /// The list of case-sensitive allowed origins.
   ///

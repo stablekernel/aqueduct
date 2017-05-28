@@ -1,6 +1,7 @@
 import 'managed.dart';
 import '../persistent_store/persistent_store.dart';
 import '../query/query.dart';
+import '../../http/request_sink.dart';
 
 /// The target for database queries and coordinator of [Query]s.
 ///
@@ -31,7 +32,7 @@ class ManagedContext {
   /// will not use more than one [ManagedContext]. When running tests, you should set
   /// this value each time you instantiate a [ManagedContext] to ensure that a previous test isolate
   /// state did not set this property.
-  static ManagedContext defaultContext = null;
+  static ManagedContext defaultContext;
 
   /// Creates an instance of [ManagedContext] from a [ManagedDataModel] and [PersistentStore].
   ///

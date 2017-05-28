@@ -1,6 +1,6 @@
 import 'harness/app.dart';
 
-main() {
+void main() {
   group("Success cases", () {
     TestApplication app = new TestApplication();
 

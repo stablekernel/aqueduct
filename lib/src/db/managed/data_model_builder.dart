@@ -389,7 +389,7 @@ class DataModelBuilder {
           .where((p) => owningEntity.persistentType.isSubtypeOf(p.type))
           .toList();
       if (deferredCandidates.length == 0) {
-        VariableMirror candidate = null;
+        VariableMirror candidate;
         if (candidates.length > 0) {
           candidate = candidates.first;
         }

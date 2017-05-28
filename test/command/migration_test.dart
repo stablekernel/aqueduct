@@ -104,7 +104,7 @@ void main() {
       expect(migrationsDirectory.listSync().length, 5);
 
       var mock = new MockMigratable(temporaryDirectory);
-      var files = await mock.migrationFiles;
+      var files = mock.migrationFiles;
       expect(files.length, 1);
       expect(files.first.uri.pathSegments.last, "00000001.migration.dart");
     });
@@ -120,7 +120,7 @@ void main() {
       expect(migrationsDirectory.listSync().length, 5);
 
       var mock = new MockMigratable(temporaryDirectory);
-      var files = await mock.migrationFiles;
+      var files = mock.migrationFiles;
       expect(files.length, 5);
       expect(files[0].uri.pathSegments.last, "00000001.migration.dart");
       expect(files[1].uri.pathSegments.last, "2.migration.dart");
@@ -133,7 +133,7 @@ void main() {
       addFiles(["a_foo.migration.dart"]);
       var mock = new MockMigratable(temporaryDirectory);
       try {
-        await mock.migrationFiles;
+        mock.migrationFiles;
         expect(true, false);
       } on CLIException catch (e) {
         expect(e.message,
@@ -218,6 +218,7 @@ void main() {
 }
 
 class Migration1 extends Migration {
+  @override
   Future upgrade() async {
     database.createTable(new SchemaTable("foo", [
       new SchemaColumn("foobar", ManagedPropertyType.integer, isIndexed: true)
@@ -237,13 +238,17 @@ class Migration1 extends Migration {
     });
   }
 
+  @override
   Future downgrade() async {}
+  @override
   Future seed() async {}
 }
 
 
 class MockMigratable extends CLICommand with CLIDatabaseMigratable, CLIProject {
   MockMigratable(this.projectDirectory);
+
+  @override
   Directory projectDirectory;
 
   @override

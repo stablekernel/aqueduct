@@ -5,7 +5,7 @@ import 'package:test/test.dart';
 import 'cli_helpers.dart';
 import 'package:path/path.dart' as path_lib;
 
-var temporaryDirectory =
+Directory temporaryDirectory =
     new Directory.fromUri(Directory.current.uri.resolve("test_project"));
 
 void main() {

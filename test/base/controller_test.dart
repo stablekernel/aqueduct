@@ -498,7 +498,7 @@ void main() {
 
 class FilteringController extends HTTPController {
   @httpGet
-  getAll() async {
+  Future<Response> getAll() async {
     return new Response.ok(null);
   }
 
@@ -512,7 +512,6 @@ class FilteringController extends HTTPController {
 }
 
 class TController extends HTTPController {
-  TController() {}
   @httpGet
   Future<Response> getAll() async {
     return new Response.ok("getAll");
@@ -520,13 +519,13 @@ class TController extends HTTPController {
 
   @httpGet
   Future<Response> getOne(@HTTPPath("id") String id) async {
-    return new Response.ok("${id}");
+    return new Response.ok("$id");
   }
 
   @httpGet
   Future<Response> getBoth(
       @HTTPPath("id") String id, @HTTPPath("flag") String flag) async {
-    return new Response.ok("${id}${flag}");
+    return new Response.ok("$id$flag");
   }
 
   @httpPut
@@ -571,12 +570,12 @@ class IntController extends HTTPController {
 
   @httpGet
   Future<Response> getAll({@HTTPQuery("opt") int opt: null}) async {
-    return new Response.ok("${opt}");
+    return new Response.ok("$opt");
   }
 
   @httpPost
   Future<Response> create({@HTTPQuery("opt") int opt: null}) async {
-    return new Response.ok("${opt}");
+    return new Response.ok("$opt");
   }
 }
 
@@ -588,7 +587,7 @@ class DateTimeController extends HTTPController {
 
   @httpGet
   Future<Response> getAll({@HTTPQuery("opt") DateTime opt: null}) async {
-    return new Response.ok("${opt}");
+    return new Response.ok("$opt");
   }
 }
 
@@ -601,7 +600,7 @@ class MultiQueryParamController extends HTTPController {
 
 class BooleanQueryParamController extends HTTPController {
   @httpGet
-  get({@HTTPQuery("param") bool param: false}) async {
+  Future<Response> get({@HTTPQuery("param") bool param: false}) async {
     return new Response.ok(param ? "true" : "false");
   }
 }
@@ -638,7 +637,7 @@ class HTTPParameterController extends HTTPController {
 
 class ModelEncodeController extends HTTPController {
   @httpGet
-  getThings(@HTTPPath("thing") String thing) async {
+  Future<Response> getThings(@HTTPPath("thing") String thing) async {
     if (thing == "list") {
       return new Response.ok([
         {"id": 1},
@@ -667,12 +666,14 @@ class ModelEncodeController extends HTTPController {
     if (thing == "null") {
       return new Response.ok(null);
     }
+
+    return new Response.serverError();
   }
 }
 
 class ContentTypeController extends HTTPController {
   @httpGet
-  getThing(@HTTPQuery("opt") String opt) async {
+  Future<Response> getThing(@HTTPQuery("opt") String opt) async {
     if (opt == "responseContentType") {
       responseContentType = new ContentType("text", "plain");
       return new Response.ok("body");
@@ -680,6 +681,8 @@ class ContentTypeController extends HTTPController {
       return new Response.ok("body")
         ..contentType = new ContentType("text", "plain");
     }
+
+    return new Response.serverError();
   }
 }
 

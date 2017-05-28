@@ -14,6 +14,11 @@ import 'package:stack_trace/stack_trace.dart';
 /// instance of an application-specific [RequestSink]. Instances are created by [Application]
 /// and shouldn't be created otherwise.
 class ApplicationServer {
+  /// Creates an instance of this type.
+  ///
+  /// You should not need to invoke this method directly.
+  ApplicationServer(this.configuration, this.identifier);
+
   /// The configuration this instance used to start its [sink].
   ApplicationConfiguration configuration;
 
@@ -34,11 +39,6 @@ class ApplicationServer {
 
   /// The logger of this instance
   Logger get logger => new Logger("aqueduct");
-
-  /// Creates an instance of this type.
-  ///
-  /// You should not need to invoke this method directly.
-  ApplicationServer(this.configuration, this.identifier);
 
   /// Starts this instance, allowing it to receive HTTP requests.
   ///
@@ -82,8 +82,8 @@ class ApplicationServer {
 
   /// Invoked when this server becomes ready receive requests.
   ///
-  /// This method will invoke [RequestSink.open] and await for it to finish.
-  /// Once [RequestSink.open] completes, the underlying [server]'s HTTP requests
+  /// This method will invoke [RequestSink.willOpen] and await for it to finish.
+  /// Once [RequestSink.willOpen] completes, the underlying [server]'s HTTP requests
   /// will be sent to this instance's [sink].
   ///
   /// [RequestSink.didOpen] is invoked after this opening has completed.

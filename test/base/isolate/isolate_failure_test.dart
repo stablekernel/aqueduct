@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 import 'dart:io';
 import '../../helpers.dart';
 
-main() {
+void main() {
   setUpAll(() {
     justLogEverything();
   });
@@ -110,6 +110,7 @@ main() {
 
 class TimeoutSink extends RequestSink {
   TimeoutSink(ApplicationConfiguration config) : super(config);
+  @override
   void setupRouter(Router router) {}
 
   @override
@@ -135,6 +136,7 @@ class TestException implements Exception {
   final String message;
   TestException(this.message);
 
+  @override
   String toString() {
     return "TestException: $message";
   }
@@ -147,6 +149,7 @@ class CrashSink extends RequestSink {
     }
   }
 
+  @override
   void setupRouter(Router router) {
     if (configuration.options["crashIn"] == "addRoutes") {
       throw new TestException("addRoutes");
@@ -163,14 +166,15 @@ class CrashSink extends RequestSink {
 }
 
 class TestSink extends RequestSink {
+  TestSink(ApplicationConfiguration opts) : super(opts);
+
   static Future initializeApplication(ApplicationConfiguration config) async {
     List<int> v = config.options["startup"] ?? [];
     v.add(1);
     config.options["startup"] = v;
   }
 
-  TestSink(ApplicationConfiguration opts) : super(opts);
-
+  @override
   void setupRouter(Router router) {
     router.route("/t").listen((req) async => new Response.ok("t_ok"));
     router.route("/r").listen((req) async => new Response.ok("r_ok"));

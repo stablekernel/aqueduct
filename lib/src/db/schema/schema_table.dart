@@ -42,9 +42,7 @@ class SchemaTable {
 
   SchemaColumn operator [](String columnName) => columnForName(columnName);
 
-  /// Whether or not two tables match.
-  ///
-  /// If passing [reasons], the reasons for a mismatch are added to the passed in [List].
+  /// The differences between two tables.
   SchemaTableDifference differenceFrom(SchemaTable table) {
     var actualTable = table;
     var differences = new SchemaTableDifference()
@@ -109,7 +107,7 @@ class SchemaTable {
     column = this[column.name];
     if (column == null) {
       throw new SchemaException(
-          "Column ${column.name} does not exist on ${name}.");
+          "Column ${column.name} does not exist on $name.");
     }
 
     columns.remove(column);
@@ -119,7 +117,7 @@ class SchemaTable {
     existingColumn = this[existingColumn.name];
     if (existingColumn == null) {
       throw new SchemaException(
-          "Column ${existingColumn.name} does not exist on ${name}.");
+          "Column ${existingColumn.name} does not exist on $name.");
     }
 
     var index = columns.indexOf(existingColumn);
@@ -136,5 +134,6 @@ class SchemaTable {
     return {"name": name, "columns": columns.map((c) => c.asMap()).toList()};
   }
 
+  @override
   String toString() => name;
 }

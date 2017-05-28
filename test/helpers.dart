@@ -2,15 +2,16 @@ import 'dart:async';
 import 'package:aqueduct/aqueduct.dart';
 export 'context_helpers.dart';
 
-justLogEverything() {
+void justLogEverything() {
   hierarchicalLoggingEnabled = true;
   new Logger("")
     ..level = Level.ALL
-    ..onRecord.listen((p) => print("${p} ${p.object} ${p.stackTrace}"));
+    ..onRecord.listen((p) => print("$p ${p.object} ${p.stackTrace}"));
 }
 
 class TestUser extends Authenticatable {
   int get uniqueIdentifier => id;
+  @override
   int id;
 }
 
@@ -49,23 +50,37 @@ class TestToken implements AuthToken, AuthCode {
         ..code = t.code;
     }
   }
+  @override
   String accessToken;
+  @override
   String refreshToken;
+  @override
   DateTime issueDate;
+  @override
   DateTime expirationDate;
+  @override
   String type;
+  @override
   dynamic resourceOwnerIdentifier;
+  @override
   String clientID;
+  @override
   String code;
+  @override
   List<AuthScope> scopes;
+  @override
   List<AuthScope> requestedScopes;
+  @override
   bool get hasBeenExchanged => accessToken != null;
-  void set hasBeenExchanged(bool s) {}
+  @override
+  set hasBeenExchanged(bool s) {}
 
+  @override
   bool get isExpired {
     return expirationDate.difference(new DateTime.now().toUtc()).inSeconds <= 0;
   }
 
+  @override
   Map<String, dynamic> asMap() {
     var map = {
       "access_token": accessToken,
@@ -247,44 +262,59 @@ class InMemoryAuthStorage implements AuthStorage {
 }
 
 class DefaultPersistentStore extends PersistentStore {
+  @override
   Future<dynamic> execute(String sql,
           {Map<String, dynamic> substitutionValues}) async =>
       null;
+  @override
   Future<dynamic> executeQuery(String formatString, Map<String, dynamic> values,
           int timeoutInSeconds,
           {PersistentStoreQueryReturnType returnType}) async =>
       null;
-
+  @override
   Future close() async {}
 
+  @override
   List<String> createTable(SchemaTable t, {bool isTemporary: false}) => [];
+  @override
   List<String> renameTable(SchemaTable table, String name) => [];
+  @override
   List<String> deleteTable(SchemaTable table) => [];
 
+  @override
   List<String> addColumn(SchemaTable table, SchemaColumn column, {String unencodedInitialValue}) => [];
+  @override
   List<String> deleteColumn(SchemaTable table, SchemaColumn column) => [];
+  @override
   List<String> renameColumn(
           SchemaTable table, SchemaColumn column, String name) =>
       [];
+  @override
   List<String> alterColumnNullability(SchemaTable table, SchemaColumn column,
           String unencodedInitialValue) =>
       [];
+  @override
   List<String> alterColumnUniqueness(SchemaTable table, SchemaColumn column) =>
       [];
+  @override
   List<String> alterColumnDefaultValue(
           SchemaTable table, SchemaColumn column) =>
       [];
+  @override
   List<String> alterColumnDeleteRule(SchemaTable table, SchemaColumn column) =>
       [];
-
+  @override
   List<String> addIndexToColumn(SchemaTable table, SchemaColumn column) => [];
+  @override
   List<String> renameIndex(
           SchemaTable table, SchemaColumn column, String newIndexName) =>
       [];
+  @override
   List<String> deleteIndexFromColumn(SchemaTable table, SchemaColumn column) =>
       [];
-
+  @override
   Future<int> get schemaVersion async => 0;
+  @override
   Future upgrade(int versionNumber, List<String> commands,
           {bool temporary: false}) async =>
       null;

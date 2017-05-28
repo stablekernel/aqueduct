@@ -6,8 +6,8 @@ import 'dart:io';
 import 'dart:convert';
 
 void main() {
-  HttpServer server = null;
-  HttpClient client = null;
+  HttpServer server;
+  HttpClient client;
 
   setUp(() async {
     client = new HttpClient();
@@ -232,32 +232,41 @@ Future<HttpServer> bindAndRespondWith(Response response) async {
 }
 
 class ByteCodec extends Codec {
+  @override
   Converter get encoder => const ByteEncoder();
+  @override
   Converter get decoder => null;
 }
 
 class ByteEncoder extends Converter<String, List<int>> {
   const ByteEncoder();
+  @override
   List<int> convert(String object) => UTF8.encode(object);
 }
 
 class CrashingCodec extends Codec {
+  @override
   Converter get encoder => const CrashingEncoder();
+  @override
   Converter get decoder => null;
 }
 
 class CrashingEncoder extends Converter<String, List<int>> {
   const CrashingEncoder();
+  @override
   List<int> convert(String object) => throw new Exception("uhoh");
 }
 
 class BadDataCodec extends Codec {
+  @override
   Converter get encoder => const BadDataEncoder ();
+  @override
   Converter get decoder => null;
 }
 
 class BadDataEncoder extends Converter<String, String> {
   const BadDataEncoder ();
+  @override
   String convert(String object) => object;
 }
 

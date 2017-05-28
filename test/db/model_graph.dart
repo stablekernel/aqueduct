@@ -10,9 +10,13 @@ class RootObject extends ManagedObject<_RootObject> implements _RootObject {
     counter++;
   }
 
+  @override
   bool operator ==(dynamic other) {
     return rid == other.cid;
   }
+
+  @override
+  int get hashCode => rid;
 }
 
 class _RootObject {
@@ -37,9 +41,13 @@ class ChildObject extends ManagedObject<_ChildObject> implements _ChildObject {
     counter++;
   }
 
+  @override
   bool operator ==(dynamic other) {
     return cid == other.cid;
   }
+
+  @override
+  int get hashCode => cid;
 }
 
 class _ChildObject {
@@ -69,9 +77,13 @@ class GrandChildObject extends ManagedObject<_GrandChildObject>
     counter++;
   }
 
+  @override
   bool operator ==(dynamic other) {
     return gid == other.cid;
   }
+
+  @override
+  int get hashCode => gid;
 }
 
 class _GrandChildObject {
@@ -98,9 +110,13 @@ class OtherRootObject extends ManagedObject<_OtherRootObject>
     counter++;
   }
 
+  @override
   bool operator ==(dynamic other) {
     return id == other.cid;
   }
+
+  @override
+  int get hashCode => id;
 }
 
 class _OtherRootObject {
@@ -115,9 +131,13 @@ class _OtherRootObject {
 
 class RootJoinObject extends ManagedObject<_RootJoinObject>
     implements _RootJoinObject {
+  @override
   bool operator ==(dynamic other) {
     return id == other.cid;
   }
+
+  @override
+  int get hashCode => id;
 }
 
 class _RootJoinObject {
@@ -286,7 +306,7 @@ Future<List<RootObject>> populateModelGraph(ManagedContext ctx) async {
   return rootObjects;
 }
 
-Map fullObjectMap(Type t, v, {and}) {
+Map fullObjectMap(Type t, dynamic v, {Map<String, dynamic> and}) {
   var idName = "id";
   if (t == RootObject) {
     idName = "rid";

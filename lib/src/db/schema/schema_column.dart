@@ -86,7 +86,7 @@ class SchemaColumn {
   String get typeString => _type;
 
   ManagedPropertyType get type => typeFromTypeString(_type);
-  void set type(ManagedPropertyType t) {
+  set type(ManagedPropertyType t) {
     _type = typeStringForType(t);
   }
 
@@ -102,7 +102,7 @@ class SchemaColumn {
   String _deleteRule;
   ManagedRelationshipDeleteRule get deleteRule =>
       deleteRuleForDeleteRuleString(_deleteRule);
-  void set deleteRule(ManagedRelationshipDeleteRule t) {
+  set deleteRule(ManagedRelationshipDeleteRule t) {
     _deleteRule = deleteRuleStringForDeleteRule(t);
   }
 
@@ -110,9 +110,7 @@ class SchemaColumn {
     return relatedTableName != null && relatedColumnName != null;
   }
 
-  /// Whether or not two columns match.
-  ///
-  /// If passing [reasons], the reasons for a mismatch are added to the passed in [List].
+  /// The differences between two columns.
   SchemaColumnDifference differenceFrom(SchemaColumn column) {
     var differences = new SchemaColumnDifference()
       ..expectedColumn = this
@@ -237,5 +235,6 @@ class SchemaColumn {
     };
   }
 
+  @override
   String toString() => "$name $relatedTableName";
 }

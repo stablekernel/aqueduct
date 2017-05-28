@@ -1,6 +1,7 @@
 import 'dart:mirrors';
 
 import '../managed/managed.dart';
+import 'migration.dart';
 
 import 'schema_table.dart';
 import 'schema_column.dart';
@@ -17,6 +18,7 @@ class SchemaException implements Exception {
 
   String message;
 
+  @override
   String toString() => "SchemaException: $message";
 }
 
@@ -58,11 +60,9 @@ class Schema {
   List<SchemaTable> get dependencyOrderedTables => _orderedTables([], tables);
 
   /// Gets a table from [tables] by that table's name.
-  operator [](String tableName) => tableForName(tableName);
+  SchemaTable operator [](String tableName) => tableForName(tableName);
 
-  /// Whether or not two schemas match.
-  ///
-  /// If passing [reasons], the reasons for a mismatch are added to the passed in [List].
+  /// The differences between two schemas.
   SchemaDifference differenceFrom(Schema schema) {
     var actualSchema = schema;
 
@@ -200,11 +200,11 @@ class SchemaTableDifference {
   List<String> get errorMessages {
     if (expectedTable == null && actualTable != null) {
       return [
-        "Table '${actualTable}' should NOT exist, but is created by migration files."
+        "Table '$actualTable' should NOT exist, but is created by migration files."
       ];
     } else if (expectedTable != null && actualTable == null) {
       return [
-        "Table '${expectedTable}' should exist, but it is NOT created by migration files."
+        "Table '$expectedTable' should exist, but it is NOT created by migration files."
       ];
     }
 

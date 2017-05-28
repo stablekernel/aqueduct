@@ -2,6 +2,8 @@ import 'auth.dart';
 
 /// An exception thrown by [AuthServer].
 class AuthServerException implements Exception {
+  AuthServerException(this.reason, this.client);
+
   /// Returns a string suitable to be included in a query string or JSON response body
   /// to indicate the error during processing an OAuth 2.0 request.
   static String errorString(AuthRequestError error) {
@@ -35,8 +37,6 @@ class AuthServerException implements Exception {
     return null;
   }
 
-  AuthServerException(this.reason, this.client);
-
   AuthRequestError reason;
   AuthClient client;
 
@@ -44,6 +44,7 @@ class AuthServerException implements Exception {
     return errorString(reason);
   }
 
+  @override
   String toString() {
     return "AuthServerException: $reason $client";
   }

@@ -30,14 +30,17 @@ class CLIDatabase extends CLICommand {
     registerCommand(new CLIDatabaseVersion());
   }
 
+  @override
   String get name {
     return "db";
   }
 
+  @override
   String get description {
     return "Modifies, verifies and generates database schemas.";
   }
 
+  @override
   String get detailedDescription {
     return "Some commands require connecting to a database to perform their action. These commands will "
         "have options for --connect and --database-config in their usage instructions."
@@ -52,6 +55,7 @@ class CLIDatabase extends CLICommand {
         "\tdatabaseName: \"database\"";
   }
 
+  @override
   Future<int> handle() async {
     printHelp();
     return 0;
@@ -148,7 +152,7 @@ abstract class CLIDatabaseConnectingCommand extends CLICommand
       return _persistentStore;
     }
 
-    throw new CLIException("Invalid flavor ${databaseFlavor}");
+    throw new CLIException("Invalid flavor $databaseFlavor");
   }
 
   @override

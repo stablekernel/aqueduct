@@ -181,5 +181,6 @@ class ApplicationStartupException implements Exception {
 
   dynamic originalException;
 
+  @override
   String toString() => originalException.toString();
 }

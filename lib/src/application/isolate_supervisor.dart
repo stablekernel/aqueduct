@@ -4,6 +4,7 @@ import 'dart:isolate';
 import 'package:logging/logging.dart';
 
 import 'application.dart';
+import 'isolate_application_server.dart';
 
 /// Represents the supervision of a [ApplicationIsolateServer].
 ///
@@ -12,7 +13,7 @@ class ApplicationIsolateSupervisor {
   static const String MessageStop = "_MessageStop";
   static const String MessageListening = "_MessageListening";
 
-  /// Create an isntance of [ApplicationIsolateSupervisor].
+  /// Create an instance of [ApplicationIsolateSupervisor].
   ApplicationIsolateSupervisor(this.supervisingApplication, this.isolate,
       this.receivePort, this.identifier, this.logger, {this.startupTimeout: const Duration(seconds: 30)});
 
@@ -50,7 +51,7 @@ class ApplicationIsolateSupervisor {
 
     return _launchCompleter.future.timeout(startupTimeout, onTimeout: () {
       logger.fine("ApplicationIsolateSupervisor($identifier).resume timed out waiting for isolate start");
-      throw new TimeoutException("Isolate ($identifier) failed to launch in ${startupTimeout} seconds. "
+      throw new TimeoutException("Isolate ($identifier) failed to launch in $startupTimeout seconds. "
           "There may be an error with your application or Application.isolateStartupTimeout needs to be increased.");
     });
   }

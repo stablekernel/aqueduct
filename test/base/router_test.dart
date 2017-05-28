@@ -9,7 +9,7 @@ import 'package:aqueduct/aqueduct.dart';
 
 void main() {
   group("Router basics", () {
-    HttpServer server = null;
+    HttpServer server;
 
     tearDown(() async {
       await server?.close(force: true);
@@ -118,7 +118,7 @@ void main() {
   });
 
   group("Router ordering", () {
-    HttpServer server = null;
+    HttpServer server;
     var router = new Router();
     setUpAll(() async {
       router.route("/").listen((req) async {

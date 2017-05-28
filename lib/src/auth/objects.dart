@@ -1,4 +1,5 @@
 import 'auth.dart';
+import '../http/request.dart';
 
 /// Represents an OAuth 2.0 client ID and secret pair.
 ///
@@ -55,7 +56,7 @@ class AuthClient {
   /// has. This list contains all valid scopes for this client. If null, client does not support scopes
   /// and all access tokens have same authorization.
   List<AuthScope> get allowedScopes => _allowedScopes;
-  void set allowedScopes(List<AuthScope> scopes) {
+  set allowedScopes(List<AuthScope> scopes) {
     _allowedScopes = scopes
       ?.where((s) {
         return !scopes.any((otherScope) =>
@@ -88,6 +89,7 @@ class AuthClient {
   /// be sure that the client secret cannot be viewed by anyone outside of the developer.
   bool get isConfidential => hashedSecret != null;
 
+  @override
   String toString() {
     return "AuthClient (${isPublic ? "public" : "confidental"}): $id $redirectURI";
   }
@@ -195,7 +197,7 @@ class AuthCode {
 /// Authorization information for a [Request] after it has passed through an [Authorizer].
 ///
 /// After a request has passed through an [Authorizer], an instance of this type
-/// is created and attached to the request (see [Authorizer.authorization]). Instances of this type contain the information
+/// is created and attached to the request (see [Request.authorization]). Instances of this type contain the information
 /// that the [Authorizer] obtained from an [AuthValidator] (typically an [AuthServer])
 /// about the validity of the credentials in a request.
 class Authorization {
@@ -456,6 +458,7 @@ class AuthScope {
     return isExactlyScope(new AuthScope(scopeString));
   }
 
+  @override
   String toString() => scopeString;
 }
 
@@ -474,6 +477,7 @@ class _AuthScopeSegment {
   String name;
   String modifier;
 
+  @override
   String toString() {
     if (modifier == null) {
       return name;

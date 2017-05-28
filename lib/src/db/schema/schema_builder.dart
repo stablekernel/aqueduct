@@ -45,7 +45,7 @@ class SchemaBuilder {
   void renameTable(String currentTableName, String newName) {
     var table = schema.tableForName(currentTableName);
     if (table == null) {
-      throw new SchemaException("Table ${currentTableName} does not exist.");
+      throw new SchemaException("Table $currentTableName does not exist.");
     }
 
     schema.renameTable(table, newName);
@@ -58,7 +58,7 @@ class SchemaBuilder {
   void deleteTable(String tableName) {
     var table = schema.tableForName(tableName);
     if (table == null) {
-      throw new SchemaException("Table ${tableName} does not exist.");
+      throw new SchemaException("Table $tableName does not exist.");
     }
 
     schema.removeTable(table);
@@ -72,7 +72,7 @@ class SchemaBuilder {
   void addColumn(String tableName, SchemaColumn column, {String unencodedInitialValue}) {
     var table = schema.tableForName(tableName);
     if (table == null) {
-      throw new SchemaException("Table ${tableName} does not exist.");
+      throw new SchemaException("Table $tableName does not exist.");
     }
 
     table.addColumn(column);
@@ -85,12 +85,12 @@ class SchemaBuilder {
   void deleteColumn(String tableName, String columnName) {
     var table = schema.tableForName(tableName);
     if (table == null) {
-      throw new SchemaException("Table ${tableName} does not exist.");
+      throw new SchemaException("Table $tableName does not exist.");
     }
 
     var column = table.columnForName(columnName);
     if (column == null) {
-      throw new SchemaException("Column ${columnName} does not exists.");
+      throw new SchemaException("Column $columnName does not exists.");
     }
 
     table.removeColumn(column);
@@ -104,12 +104,12 @@ class SchemaBuilder {
   void renameColumn(String tableName, String columnName, String newName) {
     var table = schema.tableForName(tableName);
     if (table == null) {
-      throw new SchemaException("Table ${tableName} does not exist.");
+      throw new SchemaException("Table $tableName does not exist.");
     }
 
     var column = table.columnForName(columnName);
     if (column == null) {
-      throw new SchemaException("Column ${columnName} does not exists.");
+      throw new SchemaException("Column $columnName does not exists.");
     }
 
     table.renameColumn(column, newName);
@@ -136,12 +136,12 @@ class SchemaBuilder {
       {String unencodedInitialValue}) {
     var table = schema.tableForName(tableName);
     if (table == null) {
-      throw new SchemaException("Table ${tableName} does not exist.");
+      throw new SchemaException("Table $tableName does not exist.");
     }
 
     var existingColumn = table[columnName];
     if (existingColumn == null) {
-      throw new SchemaException("Column ${columnName} does not exist.");
+      throw new SchemaException("Column $columnName does not exist.");
     }
 
     var newColumn = new SchemaColumn.from(existingColumn);

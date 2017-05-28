@@ -51,11 +51,7 @@ class RequestController extends Object with APIDocumentable {
   Logger get logger => new Logger("aqueduct");
 
   /// The CORS policy of this controller.
-  CORSPolicy get policy => _policy;
-  CORSPolicy _policy = new CORSPolicy();
-  void set policy(CORSPolicy p) {
-    _policy = p;
-  }
+  CORSPolicy policy = new CORSPolicy();
 
   /// The next [RequestController] to pass a [Request] to if this instance returns a [Request] from [processRequest].
   ///
@@ -263,7 +259,7 @@ class RequestController extends Object with APIDocumentable {
 
       return true;
     } else {
-      var body = null;
+      var body;
       if (includeErrorDetailsInServerErrorResponses) {
         body = {
           "error": "${this.runtimeType}: $caughtValue.",
@@ -372,7 +368,7 @@ class _RequestControllerGenerator extends RequestController {
   }
 
   Function generator;
-  CORSPolicy _policyOverride = null;
+  CORSPolicy _policyOverride;
 
   RequestController instantiate() {
     RequestController instance = generator();
@@ -383,11 +379,13 @@ class _RequestControllerGenerator extends RequestController {
     return instance;
   }
 
+  @override
   CORSPolicy get policy {
     return instantiate().policy;
   }
 
-  void set policy(CORSPolicy p) {
+  @override
+  set policy(CORSPolicy p) {
     _policyOverride = p;
   }
 
@@ -422,5 +420,6 @@ class RequestControllerException implements Exception {
 
   String message;
 
+  @override
   String toString() => "RequestControllerException: $message";
 }

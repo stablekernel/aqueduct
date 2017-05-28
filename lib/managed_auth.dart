@@ -234,18 +234,22 @@ class _ManagedClient {
 /// and hashed password. The [ManagedObject] subclass must implement [ManagedAuthResourceOwner].
 class ManagedAuthenticatable implements Authenticatable {
   /// The primary key of a resource owner.
+  @override
   @managedPrimaryKey
   int id;
 
   /// The username of a resource owner.
+  @override
   @ManagedColumnAttributes(unique: true, indexed: true)
   String username;
 
   /// The hashed password of a resource owner.
+  @override
   @ManagedColumnAttributes(omitByDefault: true)
   String hashedPassword;
 
   /// The salt for [hashedPassword].
+  @override
   @ManagedColumnAttributes(omitByDefault: true)
   String salt;
 

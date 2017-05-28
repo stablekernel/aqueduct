@@ -105,7 +105,7 @@ Future writeMigrations(
       .length;
 
   for (var i = 1; i < schemas.length; i++) {
-    var source = await MigrationBuilder.sourceForSchemaUpgrade(
+    var source = MigrationBuilder.sourceForSchemaUpgrade(
         schemas[i - 1], schemas[i], i);
 
     var file = new File.fromUri(migrationDirectory.uri

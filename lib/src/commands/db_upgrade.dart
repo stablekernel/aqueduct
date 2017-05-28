@@ -11,6 +11,7 @@ import '../db/db.dart';
 
 /// Used internally.
 class CLIDatabaseUpgrade extends CLIDatabaseConnectingCommand {
+  @override
   Future<int> handle() async {
     Map<int, File> versionMap = migrationFiles.fold({}, (map, file) {
       var versionNumber = versionNumberFromFile(file);
@@ -34,7 +35,7 @@ class CLIDatabaseUpgrade extends CLIDatabaseConnectingCommand {
     }
 
     displayInfo("Updating to version: ${versionsToApply.last}...");
-    displayProgress("From version: ${currentVersion}");
+    displayProgress("From version: $currentVersion");
     var migrationFileSplit = splitMigrationFiles(currentVersion);
     var migrationFilesToGetToCurrent = migrationFileSplit.first;
     List<File> migrationFilesToRun = migrationFileSplit.last;
@@ -57,10 +58,12 @@ class CLIDatabaseUpgrade extends CLIDatabaseConnectingCommand {
     return 0;
   }
 
+  @override
   String get name {
     return "upgrade";
   }
 
+  @override
   String get description {
     return "Executes migration files against a database.";
   }

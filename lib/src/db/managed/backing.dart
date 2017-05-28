@@ -4,8 +4,10 @@ import 'managed.dart';
 import '../query/matcher_internal.dart';
 
 class ManagedValueBacking extends ManagedBacking {
+  @override
   Map<String, dynamic> valueMap = {};
 
+  @override
   dynamic valueForProperty(ManagedEntity entity, String propertyName) {
     if (entity.properties[propertyName] == null) {
       throw new ManagedDataModelException(
@@ -15,6 +17,7 @@ class ManagedValueBacking extends ManagedBacking {
     return valueMap[propertyName];
   }
 
+  @override
   void setValueForProperty(
       ManagedEntity entity, String propertyName, dynamic value) {
     var property = entity.properties[propertyName];
@@ -37,8 +40,10 @@ class ManagedValueBacking extends ManagedBacking {
 }
 
 class ManagedMatcherBacking extends ManagedBacking {
+  @override
   Map<String, dynamic> valueMap = {};
 
+  @override
   dynamic valueForProperty(ManagedEntity entity, String propertyName) {
     if (!valueMap.containsKey(propertyName)) {
       var relDesc = entity.relationships[propertyName];
@@ -55,6 +60,7 @@ class ManagedMatcherBacking extends ManagedBacking {
     return valueMap[propertyName];
   }
 
+  @override
   void setValueForProperty(
       ManagedEntity entity, String propertyName, dynamic value) {
     if (value == null) {
@@ -93,11 +99,14 @@ class ManagedMatcherBacking extends ManagedBacking {
 }
 
 class ManagedAccessTrackingBacking extends ManagedBacking {
+  @override
   Map<String, dynamic> get valueMap => null;
 
+  @override
   dynamic valueForProperty(ManagedEntity entity, String propertyName) =>
       propertyName;
 
+  @override
   void setValueForProperty(
       ManagedEntity entity, String propertyName, dynamic value) {
     // no-op

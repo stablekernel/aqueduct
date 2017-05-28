@@ -3,7 +3,7 @@ import 'package:aqueduct/aqueduct.dart';
 import '../../helpers.dart';
 
 void main() {
-  ManagedContext context = null;
+  ManagedContext context;
 
   tearDown(() async {
     await context?.persistentStore?.close();
@@ -41,7 +41,7 @@ void main() {
 
     for (int i = 0; i < 10; i++) {
       var m = new TestModel()
-        ..email = "${i}@a.com"
+        ..email = "$i@a.com"
         ..name = "joe";
 
       var req = new Query<TestModel>()..values = m;
@@ -69,7 +69,7 @@ void main() {
 
     for (int i = 0; i < 10; i++) {
       var m = new TestModel()
-        ..email = "${i}@a.com"
+        ..email = "$i@a.com"
         ..name = "joe";
 
       var req = new Query<TestModel>()..values = m;
@@ -96,7 +96,7 @@ void main() {
 
     for (int i = 0; i < 10; i++) {
       var m = new TestModel()
-        ..email = "${i}@a.com"
+        ..email = "$i@a.com"
         ..name = "joe";
 
       var req = new Query<TestModel>()..values = m;
@@ -202,8 +202,9 @@ class _TestModel {
     return "simple";
   }
 
+  @override
   String toString() {
-    return "TestModel: ${id} ${name} ${email}";
+    return "TestModel: $id $name $email";
   }
 }
 

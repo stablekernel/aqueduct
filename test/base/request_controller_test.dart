@@ -66,7 +66,7 @@ void main() {
   });
 
   group("Response error cases", () {
-    HttpServer server = null;
+    HttpServer server;
     tearDown(() async {
       await server.close();
     });
@@ -261,6 +261,7 @@ void main() {
 class SomeObject implements HTTPSerializable {
   String name;
 
+  @override
   Map<String, dynamic> asSerializable() {
     return {"name": name};
   }

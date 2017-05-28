@@ -4,12 +4,12 @@ import '../../helpers.dart';
 
 void main() {
   group("Offset/limit", () {
-    ManagedContext context = null;
+    ManagedContext context;
 
     setUpAll(() async {
       context = await contextWithModels([PageableTestModel]);
       for (int i = 0; i < 10; i++) {
-        var p = new PageableTestModel()..value = "${i}";
+        var p = new PageableTestModel()..value = "$i";
         await (new Query<PageableTestModel>()..values = p).insert();
       }
     });
@@ -52,7 +52,7 @@ void main() {
   });
 
   group("Paging", () {
-    ManagedContext context = null;
+    ManagedContext context;
 
     var check = (List checkIDs, List<PageableTestModel> values) {
       expect(checkIDs.length, values.length);
@@ -65,7 +65,7 @@ void main() {
     setUpAll(() async {
       context = await contextWithModels([PageableTestModel]);
       for (int i = 0; i < 10; i++) {
-        var p = new PageableTestModel()..value = "${i}";
+        var p = new PageableTestModel()..value = "$i";
         await (new Query<PageableTestModel>()..values = p).insert();
       }
     });
@@ -271,7 +271,7 @@ void main() {
   });
 
   group("Failure cases", () {
-    ManagedContext context = null;
+    ManagedContext context;
     var check = (List checkIDs, List<PageableTestModel> values) {
       expect(checkIDs.length, values.length);
       var ids = values.map((v) => v.id).toList();
@@ -283,7 +283,7 @@ void main() {
     setUpAll(() async {
       context = await contextWithModels([PageableTestModel, HasMany, BelongsTo]);
       for (int i = 0; i < 10; i++) {
-        var p = new PageableTestModel()..value = "${i}";
+        var p = new PageableTestModel()..value = "$i";
         await (new Query<PageableTestModel>()..values = p).insert();
       }
     });

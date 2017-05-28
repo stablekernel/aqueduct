@@ -538,6 +538,7 @@ class TestSink extends RequestSink {
 
   AuthServer authServer;
 
+  @override
   void setupRouter(Router router) {
     router.route("/auth/code").generate(() => new AuthCodeController(authServer,
             renderAuthorizationPageHTML: (AuthCodeController c, Uri uri,
@@ -550,7 +551,7 @@ class TestSink extends RequestSink {
   }
 }
 
-expectRedirect(TestResponse resp, Uri requestURI, {String state}) {
+void expectRedirect(TestResponse resp, Uri requestURI, {String state}) {
   expect(resp, hasStatus(HttpStatus.MOVED_TEMPORARILY));
 
   var location = resp.headers.value(HttpHeaders.LOCATION);
@@ -565,7 +566,7 @@ expectRedirect(TestResponse resp, Uri requestURI, {String state}) {
   expect(uri.queryParametersAll["code"].length, 1);
 }
 
-expectErrorRedirect(TestResponse resp, Uri requestURI, String errorReason,
+void expectErrorRedirect(TestResponse resp, Uri requestURI, String errorReason,
     {String state}) {
   expect(resp, hasStatus(HttpStatus.MOVED_TEMPORARILY));
 

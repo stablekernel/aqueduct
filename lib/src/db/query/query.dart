@@ -5,10 +5,12 @@ import '../postgresql/postgresql_persistent_store.dart';
 import '../postgresql/postgresql_query.dart';
 import 'matcher_expression.dart';
 import 'predicate.dart';
+import 'error.dart';
 
 export 'error.dart';
 export 'matcher_expression.dart';
 export 'predicate.dart';
+
 
 /// Instances of this type configure and execute database commands.
 ///
@@ -160,13 +162,13 @@ abstract class Query<InstanceType extends ManagedObject> {
   /// Limits the number of objects returned from the Query.
   ///
   /// Defaults to 0. When zero, there is no limit to the number of objects returned from the Query.
-  /// This value should be set when using [pageDescriptor] to limit the page size.
+  /// This value should be set when using [pageBy] to limit the page size.
   int fetchLimit;
 
   /// Offsets the rows returned.
   ///
   /// The set of rows returned will exclude the first [offset] number of rows selected in the query. Do not
-  /// set this property when using [pageDescriptor].
+  /// set this property when using [pageBy].
   int offset;
 
   /// A predicate for filtering the result or operation set.

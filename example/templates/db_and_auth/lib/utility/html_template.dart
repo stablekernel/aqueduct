@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'dart:async';
-import 'package:logging/logging.dart';
 
 class HTMLRenderer {
   Map<String, String> _cache = {};

@@ -30,6 +30,7 @@ class CLISetup extends CLICommand with CLIProject {
   bool get confirm => values["confirm"];
   String get grantingUser => values["granting-user"];
 
+  @override
   Future<int> handle() async {
     if (shouldSetupHeroku) {
       return setupHerokuProject();
@@ -140,7 +141,7 @@ web: /app/dart-sdk/bin/pub global run aqueduct:aqueduct serve --port \$PORT --no
     for (var cmd in commands) {
       List<String> args = ["-c", cmd, "-U", grantingUser];
 
-      var result = await Process.runSync("psql", args, runInShell: true);
+      var result = Process.runSync("psql", args, runInShell: true);
       if (result.stdout.contains("CREATE DATABASE")) {
         displayProgress("Successfully created database dart_test.");
       } else if (result.stdout.contains("CREATE ROLE")) {
@@ -174,10 +175,12 @@ web: /app/dart-sdk/bin/pub global run aqueduct:aqueduct serve --port \$PORT --no
     return 0;
   }
 
+  @override
   String get name {
     return "setup";
   }
 
+  @override
   String get description {
     return "A one-time setup command for your development environment.";
   }

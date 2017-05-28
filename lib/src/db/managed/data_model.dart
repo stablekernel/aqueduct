@@ -1,6 +1,7 @@
 import 'dart:mirrors';
 import 'managed.dart';
 import 'data_model_builder.dart';
+import '../query/query.dart';
 
 /// Instances of this class contain descriptions and metadata for mapping [ManagedObject]s to database rows.
 ///
@@ -253,6 +254,7 @@ class ManagedDataModelException implements Exception {
 
   final String message;
 
+  @override
   String toString() {
     return "DataModelException: $message";
   }

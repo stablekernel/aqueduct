@@ -3,7 +3,7 @@ import 'package:aqueduct/aqueduct.dart';
 import 'dart:async';
 import 'package:http/http.dart' as http;
 
-main() {
+void main() {
   group("Recovers", () {
     var app = new Application<TestSink>();
 
@@ -82,16 +82,16 @@ class TestSink extends RequestSink {
 
 class UncaughtCrashController extends HTTPController {
   @httpGet
-  crashUncaught() async {
+  Future<Response> crashUncaught() async {
     new Future(() {
-      var x = null;
+      var x;
       x.foo();
     });
     return new Response.ok(null);
   }
 
   @httpGet
-  dontCrash(@HTTPPath("id") int id) async {
+  Future<Response> dontCrash(@HTTPPath("id") int id) async {
     return new Response.ok(null);
   }
 }

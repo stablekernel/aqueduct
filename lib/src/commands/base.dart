@@ -30,6 +30,7 @@ class CLIException {
   List<String> instructions;
   String message;
 
+  @override
   String toString() => message;
 }
 
@@ -57,6 +58,7 @@ abstract class CLICommand implements CLIResultHandler {
     ..addFlag("color",
         help: "Toggles ANSI color", negatable: true, defaultsTo: true);
 
+  @override
   ArgResults values;
   bool get showColors => values["color"];
   bool get helpMeItsScary => values["help"];
@@ -65,7 +67,7 @@ abstract class CLICommand implements CLIResultHandler {
 
   StringSink _outputSink = stdout;
   StringSink get outputSink => _outputSink;
-  void set outputSink(StringSink sink) {
+  set outputSink(StringSink sink) {
     _outputSink = sink;
     _commandMap.values.forEach((cmd) {
       cmd.outputSink = sink;
@@ -113,7 +115,7 @@ abstract class CLICommand implements CLIResultHandler {
 
       await determineToolVersion();
 
-      displayInfo("Aqueduct CLI Version: ${toolVersion}");
+      displayInfo("Aqueduct CLI Version: $toolVersion");
       preProcess();
 
       if (helpMeItsScary) {
@@ -176,19 +178,19 @@ abstract class CLICommand implements CLIResultHandler {
   void displayError(String errorMessage,
       {bool showUsage: false, CLIColor color: CLIColor.boldRed}) {
     outputSink.writeln(
-        "${colorSymbol(color)}${_ErrorDelimiter}$errorMessage$defaultColorSymbol");
+        "${colorSymbol(color)}$_ErrorDelimiter$errorMessage$defaultColorSymbol");
     if (showUsage) {
       outputSink.writeln("\n${options.usage}");
     }
   }
 
   void displayInfo(String infoMessage, {CLIColor color: CLIColor.boldNone}) {
-    outputSink.writeln("${colorSymbol(color)}${_Delimiter}$infoMessage$defaultColorSymbol");
+    outputSink.writeln("${colorSymbol(color)}$_Delimiter$infoMessage$defaultColorSymbol");
   }
 
   void displayProgress(String progressMessage,
       {CLIColor color: CLIColor.none}) {
-    outputSink.writeln("${colorSymbol(color)}${_Tabs}$progressMessage$defaultColorSymbol");
+    outputSink.writeln("${colorSymbol(color)}$_Tabs$progressMessage$defaultColorSymbol");
   }
 
   String colorSymbol(CLIColor color) {
@@ -230,8 +232,8 @@ abstract class CLICommand implements CLIResultHandler {
   };
 
   void printHelp({String parentCommandName}) {
-    print("${description}");
-    print("${detailedDescription}");
+    print("$description");
+    print("$detailedDescription");
     print("");
     if (parentCommandName == null) {
       print("Usage: $usage");
@@ -309,9 +311,10 @@ abstract class CLIProject implements CLIResultHandler, CLICommand {
     return fileInDirectory(projectDirectory, name);
   }
 
+  @override
   void preProcess() {
     try {
-      displayInfo("Aqueduct project version: ${projectVersion}");
+      displayInfo("Aqueduct project version: $projectVersion");
     } catch (_) {} // Ignore if this doesn't succeed.
   }
 
@@ -340,15 +343,18 @@ class Runner extends CLICommand {
     registerCommand(new CLIDocument());
   }
 
+  @override
   Future<int> handle() async {
     printHelp();
     return 0;
   }
 
+  @override
   String get name {
     return "aqueduct";
   }
 
+  @override
   String get description {
     return "Aqueduct is a tool for managing Aqueduct applications.";
   }

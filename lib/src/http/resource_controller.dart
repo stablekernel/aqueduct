@@ -38,18 +38,18 @@ import 'http.dart';
 /// sortBy (string): indicates the sort order. The syntax is 'sortBy=key,order' where key is a property of [InstanceType] and order is either 'asc' or 'desc'. You may specify multiple sortBy parameters.
 class ManagedObjectController<InstanceType extends ManagedObject>
     extends HTTPController {
-  /// Returns a route pattern for using [ManagedObjectController]s.
-  ///
-  /// Returns the string "/$name/[:id]", to be used as a route pattern in a [Router] for instances of [ResourceController] and subclasses.
-  static String routePattern(String name) {
-    return "/$name/[:id]";
-  }
-
   /// Creates an instance of a [ManagedObjectController].
   ///
   /// [context] defaults to [ManagedContext.defaultContext].
   ManagedObjectController([ManagedContext context]) : super() {
     _query = new Query<InstanceType>(context ?? ManagedContext.defaultContext);
+  }
+
+  /// Returns a route pattern for using [ManagedObjectController]s.
+  ///
+  /// Returns the string "/$name/[:id]", to be used as a route pattern in a [Router] for instances of [ResourceController] and subclasses.
+  static String routePattern(String name) {
+    return "/$name/[:id]";
   }
 
   Query<InstanceType> _query;
@@ -81,7 +81,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
   }
 
   @httpGet
-  getObject(@HTTPPath("id") String id) async {
+  Future<Response> getObject(@HTTPPath("id") String id) async {
     var primaryKey = _query.entity.primaryKey;
     _query.where[primaryKey] = whereEqualTo(
         _parseValueForProperty(id, _query.entity.properties[primaryKey]));
@@ -115,7 +115,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
   }
 
   @httpPost
-  createObject() async {
+  Future<Response> createObject() async {
     InstanceType instance = _query.entity.instanceType
         .newInstance(new Symbol(""), []).reflectee as InstanceType;
     instance.readMap(request.body.asMap());
@@ -152,7 +152,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
   }
 
   @httpDelete
-  deleteObject(@HTTPPath("id") String id) async {
+  Future<Response> deleteObject(@HTTPPath("id") String id) async {
     var primaryKey = _query.entity.primaryKey;
     _query.where[primaryKey] = whereEqualTo(
         _parseValueForProperty(id, _query.entity.properties[primaryKey]));
@@ -193,7 +193,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
   }
 
   @httpPut
-  updateObject(@HTTPPath("id") String id) async {
+  Future<Response> updateObject(@HTTPPath("id") String id) async {
     var primaryKey = _query.entity.primaryKey;
     _query.where[primaryKey] = whereEqualTo(
         _parseValueForProperty(id, _query.entity.properties[primaryKey]));
@@ -231,7 +231,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
   }
 
   @httpGet
-  getObjects(
+  Future<Response> getObjects(
       {@HTTPQuery("count") int count: 0,
       @HTTPQuery("offset") int offset: 0,
       @HTTPQuery("pageBy") String pageBy: null,
@@ -242,8 +242,8 @@ class ManagedObjectController<InstanceType extends ManagedObject>
     _query.offset = offset;
 
     if (pageBy != null) {
-      var direction = null;
-      var pageValue = null;
+      var direction;
+      var pageValue;
       if (pageAfter != null) {
         direction = QuerySortOrder.ascending;
         pageValue = pageAfter;
@@ -260,7 +260,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
       var pageByProperty = _query.entity.properties[pageBy];
       if (pageByProperty == null) {
         throw new HTTPResponseException(400,
-            "pageBy key ${pageBy} does not exist for ${_query.entity.tableName}");
+            "pageBy key $pageBy does not exist for ${_query.entity.tableName}");
       }
 
       pageValue = _parseValueForProperty(pageValue, pageByProperty);
