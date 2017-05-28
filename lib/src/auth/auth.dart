@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:crypto/crypto.dart';
+import 'package:pbkdf2/pbkdf2.dart';
 
-import '../utilities/pbkdf2.dart';
 import 'objects.dart';
 
 export 'auth_code_controller.dart';

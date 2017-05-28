@@ -11,7 +11,6 @@ environment:
 dependencies:
   safe_config: ">=1.1.0 <2.0.0"
   yaml: ">=2.1.9 <3.0.0"
-  matcher: ">=0.12.0+2 <0.13.0"
   crypto: "^2.0.0"
   logging: ">=0.11.3 <0.12.0"
   analyzer: ">=0.28.0 <0.30.0"
@@ -20,9 +19,12 @@ dependencies:
   stack_trace: "^1.0.0"
   pub_semver: "^1.0.0"
   path: ^1.4.1
+  pbkdf2:
+    git: https://github.com/joeconwaystk/pbkdf2.git
 
 dev_dependencies:
   test: any
+  matcher: ">=0.12.0+2 <0.13.0"
   http: ">=0.11.3+7 <0.12.0"
   coverage:
     git:
