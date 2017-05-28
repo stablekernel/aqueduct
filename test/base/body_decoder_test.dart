@@ -458,6 +458,34 @@ void main() {
       await body.decodedData;
       expect(body.asBytes(), null);
     });
+
+    test("Throw exception if not retaining bytes and body was decoded", () async {
+      postJSON({"k": "v"});
+      var body = new HTTPRequestBody(await server.first);
+      try {
+        await body.decodeAsBytes();
+        expect(true, false);
+      } on HTTPBodyDecoderException catch (e) {
+        expect(e.message, contains("expected list of bytes"));
+      }
+    });
+
+    test("Retain bytes when codec is used", () async {
+      postJSON({"k": "v"});
+
+      var body = new HTTPRequestBody(await server.first)..retainOriginalBytes = true;
+      await body.decodedData;
+      expect(body.asMap(), {"k": "v"});
+      expect(body.asBytes(), UTF8.encode(JSON.encode({"k":"v"})));
+    });
+
+    test("Retain bytes when no codec is used", () async {
+      postBytes([1, 2, 3, 4]);
+
+      var body = new HTTPRequestBody(await server.first)..retainOriginalBytes = true;
+      await body.decodedData;
+      expect(body.asBytes(), [1, 2, 3, 4]);
+    });
   });
 
   group("Request decoding behavior", () {
