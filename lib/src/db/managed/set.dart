@@ -112,5 +112,7 @@ class _ManagedSetExpection implements Exception {
   _ManagedSetExpection(this.message);
   
   String message;
+
+  @override
   String toString() => "ManagedSetException: $message";
 }

@@ -1,4 +1,3 @@
-@TestOn("vm")
 import "package:test/test.dart";
 import "dart:core";
 import "dart:io";
@@ -356,7 +355,7 @@ void main() {
 
       expect(resp.statusCode, 400);
       expect(JSON.decode(resp.body),
-          {"error": "Missing header(s): 'X-Request-id'."});
+          {"error": "Missing Header 'X-Request-id'"});
     });
 
     test("missing required controller query param fails", () async {
@@ -368,7 +367,7 @@ void main() {
 
       expect(resp.statusCode, 400);
       expect(JSON.decode(resp.body),
-          {"error": "Missing query value(s): 'Shaqs'."});
+          {"error": "Missing Query Parameter 'Shaqs'"});
     });
 
     test("missing required method header param fails", () async {
@@ -379,7 +378,7 @@ void main() {
       });
 
       expect(resp.statusCode, 400);
-      expect(JSON.decode(resp.body), {"error": "Missing header(s): 'Cookie'."});
+      expect(JSON.decode(resp.body), {"error": "Missing Header 'Cookie'"});
     });
 
     test("missing require method query param fails", () async {
@@ -391,7 +390,7 @@ void main() {
 
       expect(resp.statusCode, 400);
       expect(JSON.decode(resp.body),
-          {"error": "Missing query value(s): 'Table'."});
+          {"error": "Missing Query Parameter 'Table'"});
     });
 
     test("reports all missing required parameters", () async {
@@ -440,7 +439,7 @@ void main() {
 
       expect(resp.statusCode, 400);
 
-      expect(JSON.decode(resp.body)["error"], contains("Missing query value"));
+      expect(JSON.decode(resp.body)["error"], contains("Missing Query Parameter"));
       expect(JSON.decode(resp.body)["error"], contains("Table"));
       expect(JSON.decode(resp.body)["error"], contains("Shaqs"));
     });

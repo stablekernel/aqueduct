@@ -1,7 +1,14 @@
+import 'dart:io';
+import 'dart:mirrors';
+
 import 'http_controller_internal.dart';
 import 'http_controller.dart';
 import 'request_path.dart';
 import 'serializable.dart';
+import '../db/managed/managed.dart';
+import 'router.dart';
+import 'body_decoder.dart';
+import 'request.dart';
 
 /// Binds an [HTTPController] responder method to HTTP GET.
 ///
@@ -129,11 +136,19 @@ class HTTPRequiredParameter {
 ///
 /// If the request path is /users/1, /users/2, etc., `getOneUser` is invoked because the path variable `id` is present and matches
 /// the [HTTPPath] argument. If no path variables are present, `getUsers` is invoked.
-class HTTPPath extends HTTPParameter {
+class HTTPPath extends HTTPBinding {
   /// Binds a route variable from [HTTPRequestPath.variables] to an [HTTPController] responder method argument.
   ///
   /// [segment] matches the name of a path variable created by [Router]. See class description for more details.
   const HTTPPath(String segment) : super(segment);
+
+  @override
+  String get type => null;
+
+  @override
+  dynamic parseValueFrom(TypeMirror intoType, Request request) {
+    return convertParameterWithMirror(request.path.variables[externalName], intoType);
+  }
 }
 
 /// Binds an HTTP request header to an [HTTPController] property or responder method argument.
@@ -148,7 +163,7 @@ class HTTPPath extends HTTPParameter {
 ///         Future<Response> getUser(@HTTPHeader("x-timestamp") DateTime timestamp) async => ...;
 ///       }
 ///
-/// The type of a bound property or argument must either be a [String] or implement a static [parse] method (e.g., [int.parse], [DateTime.parse]).
+/// The type of a bound property or argument must either be a [String] or implement a static `parse` method (e.g., [int.parse], [DateTime.parse]).
 ///
 /// If a declaration with this metadata is a positional argument in a responder method, it is required for that method.
 ///     e.g. the above example shows a required positional argument
@@ -161,17 +176,27 @@ class HTTPPath extends HTTPParameter {
 /// No responder method will be called in this case.
 ///
 /// If not required and not present in a request, the bound arguments and properties will be null when the responder method is invoked.
-class HTTPHeader extends HTTPParameter {
+class HTTPHeader extends HTTPBinding {
   /// Binds an HTTP request header to an [HTTPController] property or responder method argument.
   ///
   /// [header] case-insensitively matches the name of a header of an incoming request. See class description for more details.
   const HTTPHeader(String header) : super(header);
+
+  @override
+  String get type => "Header";
+
+  @override
+  dynamic parseValueFrom(TypeMirror intoType, Request request) {
+    var value = request.innerRequest.headers[externalName];
+    return convertParameterListWithMirror(value, intoType);
+  }
 }
 
 /// Binds an HTTP query parameter to an [HTTPController] property or responder method argument.
 ///
 /// This metadata may be applied to a responder method argument or a property of an [HTTPController]. When the incoming request's [Uri]
-/// has a matching query key, the argument or property is set to the query's value.
+/// has a matching query key, the argument or property is set to the query's value. Note that if the request is a POST with content-type 'application/x-www-form-urlencoded',
+/// the query string included in the request body may still be bound to instances of this type.
 ///
 /// For example, the following controller reads the query value 'since' into `timestamp` for use
 /// in the responder method (e.g., http://host.com/users?since=2017-08-04T00:00:00Z
@@ -181,7 +206,7 @@ class HTTPHeader extends HTTPParameter {
 ///         Future<Response> getUser(@HTTPQuery("since") DateTime timestamp) async => ...;
 ///       }
 ///
-/// The type of a bound property or argument must either be a [String], [bool] or implement a static [parse] method (e.g., [int.parse], [DateTime.parse]). It may also
+/// The type of a bound property or argument may either be a [String], [bool] or implement a static `parse` method (e.g., [int.parse], [DateTime.parse]). It may also
 /// be a [List] of any of the allowed typed, for which each query key-value pair will be added to this list.
 ///
 /// If a declaration with this metadata is a positional argument in a responder method, it is required for that method.
@@ -195,11 +220,27 @@ class HTTPHeader extends HTTPParameter {
 /// No responder method will be called in this case.
 ///
 /// If not required and not present in a request, the bound arguments and properties will be null when the responder method is invoked.
-class HTTPQuery extends HTTPParameter {
+class HTTPQuery extends HTTPBinding {
   /// Binds an HTTP request path query element to an [HTTPController] property or responder method argument.
   ///
   /// [key] case-insensitively matches the name of a header of an incoming request. See class description for more details.
   const HTTPQuery(String key) : super(key);
+
+  @override
+  String get type => "Query Parameter";
+
+  @override
+  dynamic parseValueFrom(TypeMirror intoType, Request request) {
+    var queryParameters = request.innerRequest.uri.queryParametersAll;
+    dynamic value = queryParameters[externalName];
+    if (value == null) {
+      if (requestHasFormData(request)) {
+        value = request.body.asMap()[externalName];
+      }
+    }
+
+    return convertParameterListWithMirror(value, intoType);
+  }
 }
 
 /// Binds an HTTP request body to an [HTTPController] property or responder method argument.
@@ -264,14 +305,21 @@ class HTTPQuery extends HTTPParameter {
 /// No responder method will be called in this case. Validation only occurs if there is a request body.
 ///
 /// If not required and not present in a request, the bound arguments and properties will be null when the responder method is invoked.
-class HTTPBody extends HTTPParameter {
+class HTTPBody extends HTTPBinding {
   /// Binds an HTTP request body to an [HTTPController] property or responder method argument.
   ///
   /// See class description for more details.
-  const HTTPBody(bool validate(HTTPSerializable object, List<String> errors))
+  const HTTPBody({bool validate(HTTPSerializable object, List<String> errors)})
       : validation = validate, super(null);
   final _HTTPRequestBodyValidator validation;
+
+  @override
+  String get type => "Body";
+
+  @override
+  dynamic parseValueFrom(TypeMirror intoType, Request request) {
+    return null;
+  }
 }
 
 typedef bool _HTTPRequestBodyValidator(HTTPSerializable object, List<String> errors);
-

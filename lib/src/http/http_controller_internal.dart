@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:mirrors';
 
+import 'http_controller.dart';
 import 'http_controller_binding.dart';
 import 'request.dart';
 import 'response.dart';
@@ -8,286 +10,327 @@ import 'response.dart';
 class InternalControllerException implements Exception {
   final String message;
   final int statusCode;
-  final HttpHeaders additionalHeaders;
-  final String responseMessage;
+  final Map<String, String> additionalHeaders;
+  final String errorMessage;
 
   InternalControllerException(this.message, this.statusCode,
-      {HttpHeaders additionalHeaders: null, String responseMessage: null})
-      : this.additionalHeaders = additionalHeaders,
-        this.responseMessage = responseMessage;
+      {Map<String, String> headers: null, String errorMessage: null})
+      : this.additionalHeaders = headers,
+        this.errorMessage = errorMessage;
 
   Response get response {
-    var headerMap = <String, dynamic>{};
-    additionalHeaders?.forEach((k, _) {
-      headerMap[k] = additionalHeaders.value(k);
-    });
-
     var bodyMap;
-    if (responseMessage != null) {
-      bodyMap = {"error": responseMessage};
+    if (errorMessage != null) {
+      bodyMap = {"error": errorMessage};
     }
-    return new Response(statusCode, headerMap, bodyMap);
+    return new Response(statusCode, additionalHeaders, bodyMap);
   }
+
+  @override
+  String toString() => "InternalControllerException: $message";
 }
 
 /// Parent class for annotations used for optional parameters in controller methods
-abstract class HTTPParameter {
-  const HTTPParameter(this.externalName);
+abstract class HTTPBinding {
+  const HTTPBinding(this.externalName);
 
   /// The name of the variable in the HTTP request.
   final String externalName;
+
+  String get type;
+
+  dynamic parseValueFrom(TypeMirror intoType, Request request);
+
+  dynamic convertParameterListWithMirror(
+      List<String> parameterValues, TypeMirror typeMirror) {
+    if (parameterValues == null) {
+      return null;
+    }
+
+    if (typeMirror.isSubtypeOf(reflectType(List))) {
+      return parameterValues
+          .map((str) =>
+          convertParameterWithMirror(str, typeMirror.typeArguments.first))
+          .toList();
+    } else {
+      if (parameterValues.length > 1) {
+        throw new InternalControllerException(
+            "Duplicate value for parameter", HttpStatus.BAD_REQUEST,
+            errorMessage: "Duplicate parameter for non-List parameter type");
+      }
+      return convertParameterWithMirror(parameterValues.first, typeMirror);
+    }
+  }
+
+  dynamic convertParameterWithMirror(
+      String parameterValue, TypeMirror typeMirror) {
+    if (parameterValue == null) {
+      return null;
+    }
+
+    if (typeMirror.isSubtypeOf(reflectType(bool))) {
+      return true;
+    }
+
+    if (typeMirror.isSubtypeOf(reflectType(String))) {
+      return parameterValue;
+    }
+
+    if (typeMirror is ClassMirror) {
+      var parseDecl = typeMirror.declarations[#parse];
+      if (parseDecl != null) {
+        try {
+          var reflValue =
+          typeMirror.invoke(parseDecl.simpleName, [parameterValue]);
+          return reflValue.reflectee;
+        } catch (e) {
+          throw new InternalControllerException(
+              "Invalid value for parameter type", HttpStatus.BAD_REQUEST,
+              errorMessage: "URI parameter is wrong type");
+        }
+      }
+    }
+
+    // If we get here, then it wasn't a string and couldn't be parsed, and we should throw?
+    throw new InternalControllerException(
+        "Invalid path parameter type, types must be String or implement parse",
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        errorMessage: "URI parameter is wrong type");
+  }
 }
 
-class HTTPControllerCache {
-  HTTPControllerCache(Type controllerType) {
+class HTTPRequestBinding {
+  Symbol methodSymbol;
+  Map<Symbol, dynamic> properties = {};
+  List<dynamic> positionalMethodArguments = [];
+  Map<Symbol, dynamic> optionalMethodArguments = {};
+}
+
+class HTTPValueBinding {
+  HTTPValueBinding(this.value, {this.symbol});
+  HTTPValueBinding.deferred(this.deferredBinder, {this.symbol});
+  HTTPValueBinding.error(this.errorMessage);
+
+  Symbol symbol;
+  dynamic value;
+  HTTPControllerParameterBinder deferredBinder;
+  String errorMessage;
+}
+
+class HTTPControllerBinder {
+  HTTPControllerBinder(Type controllerType) {
     var allDeclarations = reflectClass(controllerType).declarations;
 
     allDeclarations.values
         .where((decl) => decl is VariableMirror)
         .where(
-            (decl) => decl.metadata.any((im) => im.reflectee is HTTPParameter))
+            (decl) => decl.metadata.any((im) => im.reflectee is HTTPBinding))
         .forEach((decl) {
-      HTTPControllerCachedParameter param;
       var isRequired = allDeclarations[decl.simpleName]
           .metadata
           .any((im) => im.reflectee is HTTPRequiredParameter);
-      if (isRequired) {
-        hasControllerRequiredParameter = true;
-        param = new HTTPControllerCachedParameter(decl, isRequired: true);
-      } else {
-        param = new HTTPControllerCachedParameter(decl, isRequired: false);
-      }
-
-      propertyCache[param.symbol] = param;
+      propertyBinders.add(new HTTPControllerParameterBinder(decl, isRequired: isRequired));
     });
 
     allDeclarations.values
         .where((decl) => decl is MethodMirror)
         .where((decl) => decl.metadata.any((im) => im.reflectee is HTTPMethod))
-        .map((decl) => new HTTPControllerCachedMethod(decl))
-        .forEach((HTTPControllerCachedMethod method) {
-      var key = HTTPControllerCachedMethod.generateRequestMethodKey(
+        .map((decl) => new HTTPControllerMethodBinder(decl))
+        .forEach((HTTPControllerMethodBinder method) {
+      var key = HTTPControllerMethodBinder.generateKey(
           method.httpMethod.method, method.pathParameters.length);
 
-      methodCache[key] = method;
+      methodBinders[key] = method;
     });
   }
 
-  static Map<Type, HTTPControllerCache> controllerCache = {};
-  static HTTPControllerCache cacheForType(Type t) {
-    var cacheItem = controllerCache[t];
-    if (cacheItem != null) {
-      return cacheItem;
+  static Map<Type, HTTPControllerBinder> controllerBinders = {};
+  static HTTPControllerBinder binderForType(Type t) {
+    var binder = controllerBinders[t];
+    if (binder != null) {
+      return binder;
     }
 
-    controllerCache[t] = new HTTPControllerCache(t);
-    return controllerCache[t];
+    controllerBinders[t] = new HTTPControllerBinder(t);
+    return controllerBinders[t];
   }
 
-  Map<String, HTTPControllerCachedMethod> methodCache = {};
-  Map<Symbol, HTTPControllerCachedParameter> propertyCache = {};
-  bool hasControllerRequiredParameter = false;
+  // At the end of this method, request.body.decodedData will have been invoked.
+  static Future<HTTPRequestBinding> bindRequest(HTTPController controller, Request request) async {
+    var controllerBinder = binderForType(controller.runtimeType);
+    var methodBinder = controllerBinder.methodBinderForRequest(request);
+    if (methodBinder == null) {
+      var allowHeaders = {
+        "Allow": controllerBinder.allowedMethodsForArity(request.path.variables?.length ?? 0).join(", ")
+      };
+      throw new InternalControllerException(
+          "No responder method found", 405, headers: allowHeaders);
+    }
 
-  bool hasRequiredParametersForMethod(MethodMirror mm) {
-    if (hasControllerRequiredParameter) {
+    var parseWith = (HTTPControllerParameterBinder binder) {
+      var value = binder.parse(request);
+      if (value == null && binder.isRequired) {
+        return new HTTPValueBinding.error("Missing ${binder.binding.type} '${binder.name}'");
+      }
+
+      return new HTTPValueBinding(value, symbol: binder.symbol);
+    };
+
+    var initiallyBindWith = (HTTPControllerParameterBinder binder) {
+      if (binder.binding is HTTPBody || (binder.binding is HTTPQuery && requestHasFormData(request))) {
+        return new HTTPValueBinding.deferred(binder, symbol: binder.symbol);
+      }
+
+      return parseWith(binder);
+    };
+
+    var properties = controllerBinder.propertyBinders.map(initiallyBindWith).toList();
+    var positional = methodBinder.positionalParameters.map(initiallyBindWith).toList();
+    var optional = methodBinder.optionalParameters.map(initiallyBindWith).toList();
+    var flattened = [properties, positional, optional].expand((x) => x).toList();
+
+    var errorMessage = flattened
+        .where((v) => v.errorMessage != null)
+        .map((v) => v.errorMessage)
+        .join(", ");
+
+    if (errorMessage.isNotEmpty) {
+      throw new InternalControllerException("Missing required values", 400, errorMessage: errorMessage);
+    }
+
+    if (!request.body.isEmpty) {
+      controller.willDecodeRequestBody(request.body);
+      await request.body.decodedData;
+      controller.didDecodeRequestBody(request.body);
+    }
+
+    flattened.forEach((boundValue) {
+      if (boundValue.deferredBinder != null) {
+        var output = parseWith(boundValue.deferredBinder);
+        boundValue.value = output.value;
+        boundValue.errorMessage = output.errorMessage;
+      }
+    });
+
+    // Recheck error after deferred
+    errorMessage = flattened
+        .where((v) => v.errorMessage != null)
+        .map((v) => v.errorMessage)
+        .join(", ");
+
+    if (errorMessage.isNotEmpty) {
+      throw new InternalControllerException("Missing required values", 400, errorMessage: errorMessage);
+    }
+
+    return new HTTPRequestBinding()
+      ..methodSymbol = methodBinder.methodSymbol
+      ..positionalMethodArguments = positional.map((v) => v.value).toList()
+      ..optionalMethodArguments = toSymbolMap(optional)
+      ..properties = toSymbolMap(properties);
+  }
+
+  Map<String, HTTPControllerMethodBinder> methodBinders = {};
+  List<HTTPControllerParameterBinder> propertyBinders = [];
+
+  HTTPControllerMethodBinder methodBinderForRequest(Request req) {
+    var key = HTTPControllerMethodBinder.generateKey(
+        req.innerRequest.method, req.path.orderedVariableNames.length);
+
+    return methodBinders[key];
+  }
+
+  // Used to respond with 405 when there is no responder method for HTTP method
+  List<String> allowedMethodsForArity(int arity) {
+    return methodBinders.values
+        .where((m) => m.pathParameters.length == arity)
+        .map((m) => m.httpMethod.method.toUpperCase())
+        .toList();
+  }
+
+  // Used during document generation
+  bool hasRequiredBindingsForMethod(MethodMirror mm) {
+    if (propertyBinders.any((binder) => binder.isRequired)) {
       return true;
     }
 
     if (mm is MethodMirror &&
         mm.metadata.any((im) => im.reflectee is HTTPMethod)) {
-      HTTPControllerCachedMethod method = new HTTPControllerCachedMethod(mm);
-      var key = HTTPControllerCachedMethod.generateRequestMethodKey(
+      HTTPControllerMethodBinder method = new HTTPControllerMethodBinder(mm);
+      var key = HTTPControllerMethodBinder.generateKey(
           method.httpMethod.method, method.pathParameters.length);
 
-      return methodCache[key]
+      return methodBinders[key]
           .positionalParameters
-          .any((p) => p.httpParameter is! HTTPPath && p.isRequired);
+          .any((p) => p.binding is! HTTPPath && p.isRequired);
     }
 
     return false;
   }
-
-  HTTPControllerCachedMethod mapperForRequest(Request req) {
-    var key = HTTPControllerCachedMethod.generateRequestMethodKey(
-        req.innerRequest.method, req.path.orderedVariableNames.length);
-
-    return methodCache[key];
-  }
-
-  Map<Symbol, dynamic> propertiesFromRequest(
-      HttpHeaders headers, Map<String, List<String>> queryParameters) {
-    return parseParametersFromRequest(propertyCache, headers, queryParameters);
-  }
-
-  List<String> allowedMethodsForArity(int arity) {
-    return methodCache.values
-        .where((m) => m.pathParameters.length == arity)
-        .map((m) => m.httpMethod.method.toUpperCase())
-        .toList();
-  }
 }
 
-class HTTPControllerCachedMethod {
-  HTTPControllerCachedMethod(MethodMirror mirror) {
+class HTTPControllerMethodBinder {
+  HTTPControllerMethodBinder(MethodMirror mirror) {
     httpMethod =
         mirror.metadata.firstWhere((m) => m.reflectee is HTTPMethod).reflectee;
     methodSymbol = mirror.simpleName;
     positionalParameters = mirror.parameters
         .where((pm) => !pm.isOptional)
-        .map((pm) => new HTTPControllerCachedParameter(pm, isRequired: true))
+        .map((pm) => new HTTPControllerParameterBinder(pm, isRequired: true))
         .toList();
-    optionalParameters = new Map.fromIterable(
-        mirror.parameters.where((pm) => pm.isOptional).map(
-                (pm) => new HTTPControllerCachedParameter(pm, isRequired: false)),
-        key: (HTTPControllerCachedParameter p) => p.symbol,
-        value: (p) => p);
+    optionalParameters =
+        mirror.parameters
+            .where((pm) => pm.isOptional)
+            .map((pm) => new HTTPControllerParameterBinder(pm, isRequired: false))
+            .toList();
   }
 
-  static String generateRequestMethodKey(String httpMethod, int arity) {
-    return "${httpMethod.toLowerCase()}/$arity";
+  static String generateKey(String httpMethod, int pathArity) {
+    return "${httpMethod.toLowerCase()}/$pathArity";
   }
 
   Symbol methodSymbol;
   HTTPMethod httpMethod;
-  List<HTTPControllerCachedParameter> positionalParameters = [];
-  Map<Symbol, HTTPControllerCachedParameter> optionalParameters = {};
-  List<HTTPControllerCachedParameter> get pathParameters =>
-      positionalParameters.where((p) => p.httpParameter is HTTPPath).toList();
-
-  List<dynamic> positionalParametersFromRequest(
-      Request req, Map<String, List<String>> queryParameters) {
-    return positionalParameters.map((param) {
-      if (param.httpParameter is HTTPPath) {
-        return convertParameterWithMirror(
-            req.path.variables[param.name], param.typeMirror);
-      } else if (param.httpParameter is HTTPQuery) {
-        return convertParameterListWithMirror(
-                queryParameters[param.name], param.typeMirror) ??
-            new HTTPControllerMissingParameter(
-                HTTPControllerMissingParameterType.query, param.name);
-      } else if (param.httpParameter is HTTPHeader) {
-        return convertParameterListWithMirror(
-                req.innerRequest.headers[param.name], param.typeMirror) ??
-            new HTTPControllerMissingParameter(
-                HTTPControllerMissingParameterType.header, param.name);
-      }
-    }).toList();
-  }
-
-  Map<Symbol, dynamic> optionalParametersFromRequest(
-      HttpHeaders headers, Map<String, List<String>> queryParameters) {
-    return parseParametersFromRequest(
-        optionalParameters, headers, queryParameters);
-  }
+  List<HTTPControllerParameterBinder> positionalParameters = [];
+  List<HTTPControllerParameterBinder> optionalParameters = [];
+  List<HTTPControllerParameterBinder> get pathParameters =>
+      positionalParameters.where((p) => p.binding is HTTPPath).toList();
 }
 
-class HTTPControllerCachedParameter {
-  HTTPControllerCachedParameter(VariableMirror mirror,
+class HTTPControllerParameterBinder {
+  HTTPControllerParameterBinder(VariableMirror mirror,
       {this.isRequired: false}) {
     symbol = mirror.simpleName;
-    httpParameter = mirror.metadata
-        .firstWhere((im) => im.reflectee is HTTPParameter, orElse: () => null)
+    binding = mirror.metadata
+        .firstWhere((im) => im.reflectee is HTTPBinding, orElse: () => null)
         ?.reflectee;
     typeMirror = mirror.type;
   }
 
   Symbol symbol;
-  String get name => httpParameter.externalName;
+  String get name => binding.externalName;
   TypeMirror typeMirror;
-  HTTPParameter httpParameter;
+  HTTPBinding binding;
   bool isRequired;
-}
 
-enum HTTPControllerMissingParameterType { header, query }
-
-class HTTPControllerMissingParameter {
-  HTTPControllerMissingParameter(this.type, this.externalName);
-
-  HTTPControllerMissingParameterType type;
-  String externalName;
-}
-
-Map<Symbol, dynamic> parseParametersFromRequest(
-    Map<Symbol, HTTPControllerCachedParameter> mappings,
-    HttpHeaders headers,
-    Map<String, List<String>> queryParameters) {
-  return mappings.keys.fold({}, (m, sym) {
-    var mapper = mappings[sym];
-    List<String> value;
-    var paramType;
-
-    if (mapper.httpParameter is HTTPQuery) {
-      paramType = HTTPControllerMissingParameterType.query;
-      value = queryParameters[mapper.httpParameter.externalName];
-    } else if (mapper.httpParameter is HTTPHeader) {
-      paramType = HTTPControllerMissingParameterType.header;
-      value = headers[mapper.httpParameter.externalName];
-    }
-
-    if (value != null) {
-      m[sym] = convertParameterListWithMirror(value, mapper.typeMirror);
-    } else if (mapper.isRequired) {
-      m[sym] = new HTTPControllerMissingParameter(
-          paramType, mapper.httpParameter.externalName);
-    }
-
-    return m;
-  });
-}
-
-dynamic convertParameterListWithMirror(
-    List<String> parameterValues, TypeMirror typeMirror) {
-  if (parameterValues == null) {
-    return null;
-  }
-
-  if (typeMirror.isSubtypeOf(reflectType(List))) {
-    return parameterValues
-        .map((str) =>
-            convertParameterWithMirror(str, typeMirror.typeArguments.first))
-        .toList();
-  } else {
-    if (parameterValues.length > 1) {
-      throw new InternalControllerException(
-          "Duplicate value for parameter", HttpStatus.BAD_REQUEST,
-          responseMessage: "Duplicate parameter for non-List parameter type");
-    }
-    return convertParameterWithMirror(parameterValues.first, typeMirror);
+  dynamic parse(Request request) {
+    return binding.parseValueFrom(typeMirror, request);
   }
 }
 
-dynamic convertParameterWithMirror(
-    String parameterValue, TypeMirror typeMirror) {
-  if (parameterValue == null) {
-    return null;
-  }
-
-  if (typeMirror.isSubtypeOf(reflectType(bool))) {
+bool requestHasFormData(Request request) {
+  var contentType = request.innerRequest.headers.contentType;
+  if (contentType != null
+      && contentType.primaryType == "application"
+      && contentType.subType == "x-www-form-urlencoded") {
     return true;
   }
 
-  if (typeMirror.isSubtypeOf(reflectType(String))) {
-    return parameterValue;
-  }
+  return false;
+}
 
-  if (typeMirror is ClassMirror) {
-    var parseDecl = typeMirror.declarations[#parse];
-    if (parseDecl != null) {
-      try {
-        var reflValue =
-            typeMirror.invoke(parseDecl.simpleName, [parameterValue]);
-        return reflValue.reflectee;
-      } catch (e) {
-        throw new InternalControllerException(
-            "Invalid value for parameter type", HttpStatus.BAD_REQUEST,
-            responseMessage: "URI parameter is wrong type");
-      }
-    }
-  }
-
-  // If we get here, then it wasn't a string and couldn't be parsed, and we should throw?
-  throw new InternalControllerException(
-      "Invalid path parameter type, types must be String or implement parse",
-      HttpStatus.INTERNAL_SERVER_ERROR,
-      responseMessage: "URI parameter is wrong type");
+Map<Symbol, dynamic> toSymbolMap(List<HTTPValueBinding> boundValues) {
+  return new Map.fromIterable(
+      boundValues.where((v) => v.value != null),
+      key: (HTTPValueBinding v) => v.symbol,
+      value: (HTTPValueBinding v) => v.value);
 }

@@ -101,9 +101,6 @@ import 'http_controller_internal.dart';
 ///
 @cannotBeReused
 abstract class HTTPController extends RequestController {
-  static ContentType _applicationWWWFormURLEncodedContentType =
-      new ContentType("application", "x-www-form-urlencoded");
-
   /// The request being processed by this [HTTPController].
   ///
   /// It is this [HTTPController]'s responsibility to return a [Response] object for this request. Responder methods
@@ -125,7 +122,7 @@ abstract class HTTPController extends RequestController {
   /// will automatically respond with an Unsupported Media Type response.
   List<ContentType> acceptedContentTypes = [
     ContentType.JSON,
-    _applicationWWWFormURLEncodedContentType
+    new ContentType("application", "x-www-form-urlencoded")
   ];
 
   /// The default content type of responses from this [HTTPController].
@@ -157,44 +154,6 @@ abstract class HTTPController extends RequestController {
   /// this method is not called.
   void didDecodeRequestBody(HTTPRequestBody decodedObject) {}
 
-  /// Returns a [Response] for missing [HTTPParameter]s.
-  ///
-  /// This method is invoked by this instance when [HTTPParameter]s (like [HTTPQuery] or [HTTPHeader]s)
-  /// are required, but not included in a request. The return value of this method will
-  /// be sent back to the requesting client to signify the missing parameters.
-  ///
-  /// By default, this method returns a response with status code 400 and each missing header
-  /// or query parameter is listed under the key "error" in a JSON object.
-  ///
-  /// This method can be overridden by subclasses to provide a different response.
-  Response responseForMissingParameters(
-      List<HTTPControllerMissingParameter> params) {
-    var missingHeaders = params
-        .where((p) => p.type == HTTPControllerMissingParameterType.header)
-        .map((p) => p.externalName)
-        .toList();
-    var missingQueryParameters = params
-        .where((p) => p.type == HTTPControllerMissingParameterType.query)
-        .map((p) => p.externalName)
-        .toList();
-
-    StringBuffer missings = new StringBuffer();
-    if (missingQueryParameters.isNotEmpty) {
-      var missingQueriesString =
-          missingQueryParameters.map((p) => "'$p'").join(", ");
-      missings.write("Missing query value(s): $missingQueriesString.");
-    }
-    if (missingQueryParameters.isNotEmpty && missingHeaders.isNotEmpty) {
-      missings.write(" ");
-    }
-    if (missingHeaders.isNotEmpty) {
-      var missingHeadersString = missingHeaders.map((p) => "'$p'").join(", ");
-      missings.write("Missing header(s): $missingHeadersString.");
-    }
-
-    return new Response.badRequest(body: {"error": missings.toString()});
-  }
-
   bool _requestContentTypeIsSupported(Request req) {
     var incomingContentType = request.innerRequest.headers.contentType;
     return acceptedContentTypes.firstWhere((ct) {
@@ -205,61 +164,21 @@ abstract class HTTPController extends RequestController {
   }
 
   Future<Response> _process() async {
-    var controllerCache = HTTPControllerCache.cacheForType(runtimeType);
-    var mapper = controllerCache.mapperForRequest(request);
-    if (mapper == null) {
-      return new Response(
-          405,
-          {
-            "Allow": controllerCache
-                .allowedMethodsForArity(pathVariables?.length ?? 0)
-          },
-          null);
-    }
-
     if (!request.body.isEmpty) {
       if (!_requestContentTypeIsSupported(request)) {
         return new Response(HttpStatus.UNSUPPORTED_MEDIA_TYPE, null, null);
       }
-
-      willDecodeRequestBody(request.body);
-      await request.body.decodedData;
-      didDecodeRequestBody(request.body);
     }
 
-    var queryParameters = request.innerRequest.uri.queryParametersAll;
-    var contentType = request.innerRequest.headers.contentType;
-    if (contentType != null &&
-        contentType.primaryType ==
-            HTTPController
-                ._applicationWWWFormURLEncodedContentType.primaryType &&
-        contentType.subType ==
-            HTTPController._applicationWWWFormURLEncodedContentType.subType) {
-      queryParameters = request.body.asMap() as Map<String, List<String>> ?? {};
-    }
-
-    var orderedParameters =
-        mapper.positionalParametersFromRequest(request, queryParameters);
-    var controllerProperties = controllerCache.propertiesFromRequest(
-        request.innerRequest.headers, queryParameters);
-    var missingParameters = [orderedParameters, controllerProperties.values]
-        .expand((p) => p)
-        .where((p) => p is HTTPControllerMissingParameter)
-        .map((p) => p as HTTPControllerMissingParameter)
-        .toList();
-    if (missingParameters.length > 0) {
-      return responseForMissingParameters(missingParameters);
-    }
-
-    controllerProperties
+    var binding = await HTTPControllerBinder.bindRequest(this, request);
+    binding.properties
         .forEach((sym, value) => reflect(this).setField(sym, value));
 
-    Future<Response> eventualResponse = reflect(this)
+    var eventualResponse = reflect(this)
         .invoke(
-            mapper.methodSymbol,
-            orderedParameters,
-            mapper.optionalParametersFromRequest(
-                request.innerRequest.headers, queryParameters))
+            binding.methodSymbol,
+            binding.positionalMethodArguments,
+            binding.optionalMethodArguments)
         .reflectee as Future<Response>;
 
     var response = await eventualResponse;
@@ -295,7 +214,7 @@ abstract class HTTPController extends RequestController {
 
   @override
   List<APIOperation> documentOperations(PackagePathResolver resolver) {
-    var controllerCache = HTTPControllerCache.cacheForType(runtimeType);
+    var controllerCache = HTTPControllerBinder.binderForType(runtimeType);
     var reflectedType = reflect(this).type;
     var uri = reflectedType.location.sourceUri;
     var fileUnit = parseDartFile(resolver.resolve(uri));
@@ -314,7 +233,7 @@ abstract class HTTPController extends RequestController {
       }
     });
 
-    return controllerCache.methodCache.values.map((cachedMethod) {
+    return controllerCache.methodBinders.values.map((cachedMethod) {
       var op = new APIOperation();
       op.id = APIOperation.idForMethod(this, cachedMethod.methodSymbol);
       op.method = cachedMethod.httpMethod.method;
@@ -347,10 +266,10 @@ abstract class HTTPController extends RequestController {
       op.parameters = [
         cachedMethod.positionalParameters,
         cachedMethod.optionalParameters.values,
-        controllerCache.propertyCache.values
+        controllerCache.propertyBinders.values
       ].expand((i) => i.toList()).map((param) {
         var paramLocation =
-            _parameterLocationFromHTTPParameter(param.httpParameter);
+            _parameterLocationFromHTTPParameter(param.binding);
         if (usesFormEncodedData &&
             paramLocation == APIParameterLocation.query) {
           paramLocation = APIParameterLocation.formData;
@@ -380,10 +299,10 @@ abstract class HTTPController extends RequestController {
 
     var symbol = APIOperation.symbolForID(operation.id, this);
     if (symbol != null) {
-      var controllerCache = HTTPControllerCache.cacheForType(runtimeType);
+      var controllerCache = HTTPControllerBinder.binderForType(runtimeType);
       var methodMirror = reflect(this).type.declarations[symbol];
 
-      if (controllerCache.hasRequiredParametersForMethod(methodMirror)) {
+      if (controllerCache.hasRequiredBindingsForMethod(methodMirror)) {
         responses.add(new APIResponse()
           ..statusCode = HttpStatus.BAD_REQUEST
           ..description = "Missing required query and/or header parameter(s)."
@@ -396,7 +315,7 @@ abstract class HTTPController extends RequestController {
   }
 }
 
-APIParameterLocation _parameterLocationFromHTTPParameter(HTTPParameter p) {
+APIParameterLocation _parameterLocationFromHTTPParameter(HTTPBinding p) {
   if (p is HTTPPath) {
     return APIParameterLocation.path;
   } else if (p is HTTPQuery) {
