@@ -14,7 +14,7 @@ abstract class HTTPSerializable {
   ///
   /// This method returns a [Map<String, dynamic>] where each key is the name of a property in the implementing type.
   /// If a [Response.body]'s type implements this interface, this method is invoked prior to any content-type encoding
-  /// performed by the [Response].  A [Response.body] may also be a [List<Serializable>], for which this method is invoked on
+  /// performed by the [Response].  A [Response.body] may also be a [List<HTTPSerializable>], for which this method is invoked on
   /// each element in the list.
   Map<String, dynamic> asSerializable();
 }
