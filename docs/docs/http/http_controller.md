@@ -1,10 +1,12 @@
 # HTTPController
 
-Most Aqueduct code is written in subclasses of `HTTPController`. Instances of this class receive requests for a particular resource. For example, an `HTTPController` might handle requests to create, update, delete, read and list users. `HTTPController` is subclassed to implement an instance method for each one of these operations. For example, a `POST /users` would trigger a `createUser` method, whereas a `GET /users/1` would trigger its `getUserByID` method. The names of these methods are up to you; the method that gets called is determined by metadata on the method and its parameters.
+Most Aqueduct code is written in subclasses of `HTTPController`. Instances of this class receive requests for a particular resource. For example, an `HTTPController` subclass named `UserController` might handle requests to create, update, delete, read and list users. `HTTPController` is subclassed to implement an instance method for each one of these operations.
+
+For example, a `POST /users` would trigger a `createUser` method, whereas a `GET /users/1` would trigger a `getUserByID` method. The names of these methods are up to you; the method that gets called is determined by metadata on the method and its parameters.
 
 ### Responder Methods and Parameter Binding
 
-These methods are called *responder methods*. A responder method must return a `Future<Response>` and have `HTTPMethod` metadata. Here's an example:
+An `HTTPController` method that responds to a request is called a *responder method*. A responder method must return a `Future<Response>` and have `HTTPMethod` metadata. Here's an example:
 
 ```dart
 class UserController extends HTTPController {
@@ -15,7 +17,7 @@ class UserController extends HTTPController {
 }
 ```
 
-The constant `httpGet` is an instance of `HTTPMethod`. When a `GET` request is sent to an instance of `UserController`, this method is invoked and the `Response` it returns is sent to the HTTP client. There exist `HTTPMethod` constants for the major HTTP methods: `httpPut`, `httpGet`, `httpPost` and `httpDelete`. You may use `HTTPMethod` for other types of HTTP methods:
+The constant `httpGet` is an instance of `HTTPMethod`. When a `GET` request is sent to an instance of `UserController`, the method `getAllUsers` is invoked and the `Response` it returns is sent to the HTTP client. There exist `HTTPMethod` constants for the major HTTP methods: `httpPut`, `httpGet`, `httpPost` and `httpDelete`. You may use `HTTPMethod` for other types of HTTP methods:
 
 ```dart
 @HTTPMethod("PATCH")
@@ -33,7 +35,7 @@ Future<Response> getOneUser(@HTTPPath("id") int id) async {
 }
 ```
 
-When a [route contains a path variable](router.md) (like `/users/:id`), the value of that path variable will be available in the argument. It is often the case that a path variable is an optional part of a route (like `/users/[:id]`). Thus, the request `/users` and `/users/:id` get sent to the same controller. There must be a responder method for both variants. For example, the following controller may respond to both `GET /users` and `GET /users/1`:
+When a [route contains a path variable](router.md) (like `/users/:id`), the value of that path variable will be available in this argument. It is often the case that a path variable is an optional part of a route (like `/users/[:id]`). Thus, the request `/users` and `/users/:id` get sent to the same controller. There must be a responder method for both variants. For example, the following controller may respond to both `GET /users` and `GET /users/1`:
 
 ```dart
 class UserController extends HTTPController {
@@ -49,11 +51,13 @@ class UserController extends HTTPController {
 }
 ```
 
-`HTTPPath`'s argument is the name of the path variable as it is declared in the route. For example, if the route is `/thing/:abcdef`, `HTTPPath("abcdef")` binds the path variable. The actual argument can be named whatever you want - you don't have to name it the same as the path variable.
+The argument to `HTTPPath` is the name of the path variable as it is declared in the route. For example, if the route is `/thing/:abcdef`, the argument must be `"abcdef"`.
 
-The *type* of the path binding can be a `String` or any type that has a `parse` method ( like `int`, `double`, and `DateTime`). When the path binding is not a `String`, the value of the path variable is parsed according to its type. If parsing fails, the responder method is not invoked and a 404 Not Found response is returned.
+The variable that `HTTPPath` is bound to can be named whatever you want - you don't have to name it the same as the path variable.
 
-Query string parameters and header values may also be bound to responder methods with `HTTPQuery` and `HTTPHeader` metadata. The following responder method will bind the query strings parameters `limit` and `offset` to `numberOfThings` and `offset`:
+The *type* of the bound variable can be a `String` or any type that has a `parse` method ( like `int`, `double`, and `DateTime`). When the path binding is not a `String`, the value of the path variable is parsed according to its type. If parsing fails, the responder method is not invoked and a 404 Not Found response is returned.
+
+Query string parameters and header values may also be bound to responder methods with `HTTPQuery` and `HTTPHeader` metadata. The following responder method will bind the query string parameters `limit` and `offset` to `numberOfThings` and `offset`:
 
 ```dart
 @httpGet
@@ -81,7 +85,7 @@ Future<Response> getThing(
 
 The argument to `HTTPQuery` is case-sensitive.
 
-Headers are bound in the same way using `HTTPHeader` metadata. Unlike `HTTPQuery`, `HTTPHeader`s are compared case-insensitively. Here's an example of a responder method that takes an `X-Timestamp` header:
+Headers are bound in the same way using `HTTPHeader` metadata. Unlike `HTTPQuery`, `HTTPHeader`s are compared case-insensitively. Here's an example of a responder method that takes an optional `X-Timestamp` header:
 
 ```dart
 @httpGet
@@ -91,7 +95,7 @@ Future<Response> getThings(
 }
 ```
 
-An `HTTPController`s properties may also have `HTTPQuery` and `HTTPHeader` metadata. This binds values from the request to the `HTTPController` instance itself, making them accessible from *all* responder methods.
+The properties of an `HTTPController`s may also have `HTTPQuery` and `HTTPHeader` metadata. This binds values from the request to the `HTTPController` instance itself, making them accessible from *all* responder methods.
 
 ```dart
 class ThingController extends HTTPController {
@@ -118,6 +122,83 @@ In the above, both `timestamp` and `limit` are bound prior to `getThing` and `ge
 
 Aqueduct treats `POST` and `PUT` requests with `application/x-www-form-urlencoded` content type as query strings, so the body of the request can be bound to `HTTPQuery` parameters.
 
+Query strings can have repeating keys, i.e. `/?x=1&x=2`. You may also bind a query parameter to a `List`:
+
+```dart
+@httpGet
+Future<Response> getThing(@HTTPQuery("x") List<String> xs) async {
+  // xs = ["1", "2"]
+}
+```
+
+Query strings may also have no value, i.e. `/?flag`. You may bind a query parameter to a boolean that will be true if the bound key is present in the query string:
+
+```dart
+@httpGet
+Future<Response> getThing(@HTTPQuery("flag") bool flag) async {
+  // xs = true
+}
+```
+
+### Binding HTTP Request Bodies
+
+You may also bind an HTTP request body to an object with `@HTTPBody` metadata:
+
+```dart
+@httpPost
+Future<Response> createUser(@HTTPBody() User user) async {
+  var query = new Query<User>()
+    ..values = user;
+  var insertedUser = await query.insert();
+  return new Response.ok(insertedUser);
+}
+```
+
+Body binding is available for both properties and responder method parameters, just like query and header bindings.
+
+An type must implement `HTTPSerializable` to be bound to a request body. This interface requires that the method `fromRequestBody` be implemented:
+
+```dart
+class Person implements HTTPSerializable {
+  String name;
+  String email;
+
+  @override
+  void fromRequestBody(Map<String, dynamic> requestBody) {
+    name = requestBody["name"];
+    email = requestBody["email"];
+  }
+
+  @override
+  Map<String, dynamic> asSerializable() {
+    return {
+      "name": name,
+      "email": email
+    };
+  }
+}
+
+class PersonController extends HTTPController {
+  @httpPost
+  Future<Response> createPerson(@HTTPBody() Person p) {
+    // p.name and p.email are read from body when body is {"name": "...", "email": "..."}
+  }
+}
+```
+
+You may also bind a `List<HTTPSerializable>`:
+
+```dart
+class PersonController extends HTTPController {
+  @httpPost
+  Future<Response> createPerson(@HTTPBody() List<Person> people) {
+    // When body is [{"name": "...", "email": "..."}]
+  }
+}
+```
+
+The request body is decoded based on its content type prior to binding it to an `HTTPSerializable`. Thus, for data like `application/json`, the bound body object is read from a `Map<String, dynamic>`.
+
 ### Request and Response Bodies
 
 An `HTTPController` can limit the content type of HTTP request bodies it accepts. By default, an `HTTPController` will accept both `application/json` and `application/x-www-form-urlencoded` request bodies for its `POST` and `PUT` methods. This can be modified by setting the `acceptedContentTypes` property in the constructor.
@@ -134,7 +215,7 @@ If a request is made with a content type other than the accepted content types, 
 
 The body of an HTTP request is decoded if the content type is accepted and there exists a responder method to handle the request. This means two things. First, the body is not decoded if the request is going to be discarded because no responder method was found.
 
-Second, methods on `HTTPBody` have two flavors: those that return the contents as a `Future` or those that return the already decoded body. Responder methods can access the already decoded body without awaiting on the `Future`-flavored variants of `HTTPBody`:
+Second, methods on `HTTPRequestBody` have two flavors: those that return the contents as a `Future` or those that return the already decoded body. Responder methods can access the already decoded body without awaiting on the `Future`-flavored variants of `HTTPRequestBody`:
 
 ```dart
 @httpPost
@@ -258,4 +339,4 @@ See also [validations](../db/validations.md), which are powerful when combined w
 
 Any value from the request itself can be accessed through the `request` property of a controller.
 
-This also means that an `HTTPController` instance cannot be reused to handle multiple requests; if it awaited on an asynchronous method, a new request could be assigned to the `request` property. Therefore, all `HTTPController`s must be added to a request processing pipeline with `generate`. If you add a controller with `pipe`, an exception will be thrown immediately at startup.
+This also means that an `HTTPController` instance cannot be reused to handle multiple requests; if it awaited on an operation, a new request could be assigned to the `request` property. Therefore, all `HTTPController`s must be added to a request processing pipeline with `generate`. If you add a controller with `pipe`, an exception will be thrown immediately at startup.

@@ -4,54 +4,43 @@ This guide covers configuring an Aqueduct application.
 
 ## Configuration Files
 
-Aqueduct applications will likely use a YAML configuration file to provide environment-specific values like database connection information. Configuration is managed by the `aqueduct serve` command and your `RequestSink` subclass.
+Aqueduct applications use YAML configuration files to provide environment-specific values like database connection information. Configuration is managed by the `aqueduct serve` command and your `RequestSink` subclass.
 
 The path to a configuration file may be passed to `aqueduct serve` with the `--config` option. This value defaults to `config.yaml`. When your application starts, the path to the configuration file is available in `ApplicationConfiguration.configurationFilePath`.
 
 The best practice for using a configuration file is to load its contents with [safe_config](https://pub.dartlang.org/packages/safe_config), which is automatically included as a dependency of Aqueduct applications. The documentation for this package is available at the link above, but the basic premise is to map a configuration file to a Dart object.
 
-In `RequestSink.initializeApplication`, the contents of the configuration file are read into an application-specific `ConfigurationItem`.
+Configurations are defined by extending `ConfigurationItem`. This type is declared in the same file as a `RequestSink` subclass.
 
 ```dart
-class MyRequestSink extends RequestSink {
-  static Future initializeApplication(ApplicationConfiguration config) async {    
-    var configFileValues = new MyConfiguration(config.configurationFilePath);
-    config.options[ConfigurationValuesKey] = configFileValues;    
-  }
-}
-
 class MyConfiguration extends ConfigurationItem {
   MyConfiguration(String fileName) : super.fromFile(fileName);
 
-  String username;
-  String password;
-  String host;
-  String name;
+  String dbUsername;
+  String dbPassword;
+  String dbHost;
+  String dbName;
 }
 ```
 
-Each property of a `ConfigurationItem` must be a key in the loaded YAML configuration file. Thus, the above requires a YAML file like so:
+Each property of a `ConfigurationItem` corresponds to a key in the YAML configuration file. Thus, the above requires a YAML file like so:
 
 ```
-username: abcdef
-password: foobar
-host: localhost
-name: appDB
+dbUsername: abcdef
+dbPassword: foobar
+dbHost: localhost
+dbName: appDB
 ```
 
-In `initializeApplication`, the configuration file is parsed and added to `ApplicationConfiguration.options`. When each `RequestSink` isolate starts, the configuration item is available in the options passed to its constructor:
+Configuration values are read when instantiating a `RequestSink`. (They may also be read in `RequestSink.initializeApplication`.)
 
 ```dart
 class MyRequestSink extends RequestSink {
-  static Future initializeApplication(ApplicationConfiguration config) async {    
-    var configFileValues = new MyConfiguration(config.configurationFilePath);
-    config.options["appOptions"] = configFileValues;    
-  }
-
   MyRequestSink(ApplicationConfiguration config) : super(config) {
-    var options = config["appOptions"];
+    var dbInfo = new MyConfiguration(config.configurationFilePath);
+
     var store = new PostgreSQLPersistentStore.fromConnectionInfo(
-      options.username, options.password, options.host, 5432, options.name);
+      dbInfo.dbUsername, dbInfo.dbPassword, dbInfo.dbHost, 5432, dbInfo.dbName);
   }
 }
 ```
@@ -60,7 +49,7 @@ The `safe_config` package has instructions for more complex configuration patter
 
 ## Preventing Resource Leaks
 
-When an Aqueduct application starts, the application and its `RequestSink`s will likely open connections and streams that they use to respond to requests. In order for application tests to complete successfully, these connections and streams must be closed when the application stops. For built-in connections and streams, like `PostgreSQLPersistentStore`, this happens automatically when `Application.stop()` is invoked.
+When an Aqueduct application starts, the application and its `RequestSink`s will likely open connections and streams that they use interpret requests. In order for application tests to complete successfully, these connections and streams must be closed when the application stops. For built-in connections and streams, like `PostgreSQLPersistentStore`, this happens automatically when `Application.stop()` is invoked.
 
 Objects that need to be closed can be registered with `ResourceRegistry` to automatically be closed when the application is stopped. Registration looks like this:
 
@@ -70,7 +59,7 @@ await connection.open();
 ResourceRegistry.add<ConnectionOfSomeKind>(connection, (c) => c.close());
 ```
 
-The object to be closed is the first argument and a closure to close it is the second argument. The argument passed to this closure is the object being closed. The closure must return a `Future` that completes with the resource has finished closing. All registered resources are closed when an application is stopped.
+This method takes the object to be closed and a closure that closes it. The argument passed to this closure is the object being closed. The closure must return a `Future` that completes with the resource has finished closing. All registered resources are closed when an application is stopped.
 
 The registry is per-isolate. This means that each isolate spawned for a `RequestSink` and the main isolate that runs `RequestSink.initializeApplication()` each have their own registry. This detail should not matter - you must only register each closable resource.
 
@@ -79,14 +68,24 @@ The return type of `ResourceRegistry.add` is the object being registered. This m
 ```dart
 var connection = ResourceRegistry.add<ConnectionOfSomeKind>(
   new ConnectionOfSomeKind(), (c) => c.close());
+
 await connection.open();  
 ```
 
 ## Configuring CORS
 
-All request controllers have built-in behavior for handling CORS requests from a browser. When a preflight request is received from a browser (an OPTIONS request with Access-Control-Request-Method header and Origin headers), any request controller receiving this request will immediately pass it on to its `nextController`. The final controller listening to the stream will use its policy to validate and return a response to the HTTP client. This allows the final responding controller - typically a subclass of `HTTPController` - to determine CORS policy.
+All request controllers have built-in behavior for handling CORS requests from a browser. When a preflight request is received from a browser (an OPTIONS request with Access-Control-Request-Method header and Origin headers), the response is created by evaluating the policy of the `RequestController` that will respond to the real request.
 
-Every `RequestController` has a `policy` property, of type `CORSPolicy`. The `policy` has properties for configuring CORS options for that particular endpoint. By having a `policy`, every `RequestController` automatically implements logic to respond to preflight requests without any additional code.
+In practice, this means that the policy of the last controller in a channel is used. For example, the policy of `FooController` is generates the preflight response:
+
+```dart
+router
+  .route("/foo")
+  .pipe(new Authorizer(...))
+  .generate(() => new FooController());
+```
+
+Every `RequestController` has a `policy` property (a `CORSPolicy` instance). The `policy` has properties for configuring CORS options for that particular endpoint. By having a `policy`, every `RequestController` automatically implements logic to respond to preflight requests without any additional code.
 
 Policies can be set at the controller level or at the application level. The static property `CORSPolicy.defaultPolicy` can be modified at initialization time to set the CORS options for every controller.
 
