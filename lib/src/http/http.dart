@@ -1,11 +1,11 @@
 export 'body_decoder.dart';
 export 'cache_policy.dart';
-export 'controller_routing.dart';
 export 'cors_policy.dart';
 export 'documentable.dart';
 export 'file_controller.dart';
 export 'http_codec_repository.dart';
 export 'http_controller.dart';
+export 'http_controller_binding.dart';
 export 'http_response_exception.dart';
 export 'query_controller.dart';
 export 'request.dart';

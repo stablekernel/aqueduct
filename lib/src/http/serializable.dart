@@ -1,13 +1,20 @@
 import 'http.dart';
 
-/// Interface for serializable instances to be returned as the HTTP response body.
+/// Interface for serializable instances to be decoded from an HTTP request body and encoded to an HTTP response body.
 ///
-/// Implementers of this interface may be the 'body' argument in a [Response].
+/// Implementers of this interface may be a [Response.body] and bound with an [HTTPBody] in [HTTPController].
 abstract class HTTPSerializable {
-  /// Returns a serialized version of an object.
+  /// Reads values from [requestBody] into an object.
   ///
-  /// Must return a data type that is encodable using the encoder of the [RequestController]. By default,
-  /// values are encoded as JSON, therefore, instances of this class must return JSON-encodable data; such as a String, number
-  /// boolean or a Map or List containing those values.
-  dynamic asSerializable();
+  /// This method is invoked when an [HTTPController] property or responder method argument is bound with [HTTPBody]. [requestBody] is the
+  /// request body of the incoming HTTP request, decoded according to its content-type.
+  void fromRequestBody(Map<String, dynamic> requestBody);
+
+  /// Returns a serializable version of an object.
+  ///
+  /// This method returns a [Map<String, dynamic>] where each key is the name of a property in the implementing type.
+  /// If a [Response.body]'s type implements this interface, this method is invoked prior to any content-type encoding
+  /// performed by the [Response].  A [Response.body] may also be a [List<HTTPSerializable>], for which this method is invoked on
+  /// each element in the list.
+  Map<String, dynamic> asSerializable();
 }

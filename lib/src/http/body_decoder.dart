@@ -41,6 +41,14 @@ class HTTPRequestBody {
   /// If this body has no content, this value is true.
   bool get hasBeenDecoded => _decodedData != null || isEmpty;
 
+  Type get decodedType {
+    if (!hasBeenDecoded) {
+      throw new HTTPBodyDecoderException("decodedType invoked prior to decoding data");
+    }
+
+    return _decodedData.first.runtimeType;
+  }
+
   /// Whether or not this body is empty or not.
   ///
   /// If content-length header is greater than 0.
@@ -71,8 +79,8 @@ class HTTPRequestBody {
   /// of this method is a [List<String>]. The entire decoded request body is obtained by concatenating
   /// each element of this list. It is preferable to use [decodeAsString] which automatically does this concatenation.
   ///
-  /// For `application/json` and `application/x-www-form-urlencoded` data, the return value is a [List<Object>] that contains
-  /// exactly one object - the decoded JSON or form object. Prefer to use [decodeAsMap] or [decodeAsList], which returns
+  /// For `application/json` and `application/x-www-form-urlencoded` data, the return value is a [List<Map>] that contains
+  /// exactly one object - the decoded JSON or form object as a Map. Prefer to use [decodeAsMap], which returns
   /// the single object from this list. Note that if the request body is a JSON list, the return value of this type
   /// is [List<List<Map<String, dynamic>>>], where the outer list contains exactly one object: the decoded JSON list.
   ///

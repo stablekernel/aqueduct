@@ -262,6 +262,9 @@ class SomeObject implements HTTPSerializable {
   String name;
 
   @override
+  void fromRequestBody(dynamic any) {}
+
+  @override
   Map<String, dynamic> asSerializable() {
     return {"name": name};
   }

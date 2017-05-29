@@ -263,10 +263,12 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
     return outputMap;
   }
 
-  /// Returns the output of [asMap].
   @override
-  dynamic asSerializable() {
-    return asMap();
+  Map<String, dynamic> asSerializable() => asMap();
+
+  @override
+  void fromRequestBody(dynamic object) {
+    readMap(object);
   }
 
   static dynamic _valueEncoder(String key, dynamic value) {
