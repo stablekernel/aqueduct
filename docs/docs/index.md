@@ -1,40 +1,35 @@
-![Aqueduct](img/aqueduct.png)
+![Aqueduct](https://raw.githubusercontent.com/stablekernel/aqueduct/master/images/aqueduct.png)
 
-Aqueduct is a productive server-side framework written in Dart.
+[![Build Status](https://travis-ci.org/stablekernel/aqueduct.svg?branch=master)](https://travis-ci.org/stablekernel/aqueduct) [![codecov](https://codecov.io/gh/stablekernel/aqueduct/branch/master/graph/badge.svg)](https://codecov.io/gh/stablekernel/aqueduct)
 
-[![Build Status](https://travis-ci.org/stablekernel/aqueduct.svg?branch=master)](https://travis-ci.org/stablekernel/aqueduct) [![](https://codecov.io/gh/stablekernel/aqueduct/branch/master/graph/badge.svg)](https://codecov.io/gh/stablekernel/aqueduct)
+[![Gitter](https://badges.gitter.im/dart-lang/server.svg)](https://gitter.im/dart-lang/server?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+
+Aqueduct is a server-side framework for building and deploying REST applications. It is written in Dart. Its goal to provide am integrated and consistently styled framework.
+
+It contains behavior for routing and authorizing HTTP requests, persisting data in PostgreSQL, testing, and much more. The `aqueduct` command-line tool serves applications, manages database schemas and OAuth 2.0 clients, and generates OpenAPI specifications.
+
+Aqueduct is well-tested, documented and adheres to semantic versioning.
 
 ## Getting Started
 
-Make sure to check out the tutorial in the navigation menu.
-
 1. [Install Dart](https://www.dartlang.org/install).
-2. Activate the Aqueduct Command-Line Tool
+2. Activate Aqueduct
 
         pub global activate aqueduct
 
-3. Run first time setup (this prompts you to setup a local PostgreSQL database for testing).
-
-        aqueduct setup
-
-4. Create a new project.
+3. Create a new project.
 
         aqueduct create my_project
 
-The recommended IDE is [IntelliJ IDEA CE](https://www.jetbrains.com/idea/download/) (or any other IntelliJ platform, like Webstorm) with the [Dart Plugin](https://plugins.jetbrains.com/idea/plugin/6351-dart). (The plugin can be installed directly from the IntelliJ IDEA plugin preference pane.)
+Open the project directory in an [IntelliJ IDE](https://www.jetbrains.com/idea/download/), [Atom](https://atom.io) or [Visual Studio Code](https://code.visualstudio.com). All three IDEs have a Dart plugin.
 
-Other editors with good Dart plugins are [Atom](https://atom.io) and [Visual Studio Code](https://code.visualstudio.com).
+## Tutorials and Documentation
 
-In any of these editors, open the project directory created by `aqueduct create`.
+Step-by-step tutorials for beginners are available [here](https://aqueduct.io/docs/tut/getting-started).
 
-## Other Important References
+You can find the API reference [here](https://www.dartdocs.org/documentation/aqueduct/latest) or you can install it in [Dash](https://kapeli.com/docsets#dartdoc).
 
-Deeper dives into the framework are available under the Guides in the sidebar.
-
-[Aqueduct API Reference](https://www.dartdocs.org/documentation/aqueduct/latest).
-
-[Aqueduct on Github](https://github.com/stablekernel/aqueduct).
-
+You can find in-depth guides [here](https://aqueduct.io/docs/).
 
 ## Tour
 
@@ -48,7 +43,7 @@ Create applications with the command line tool:
 aqueduct create my_app
 ```
 
-And subclass a `RequestSink` to declare routes:
+A subclass of `RequestSink` initializes the application by setting up routes, database connections and other resources used to serve requests.
 
 ```dart
 import 'package:aqueduct/aqueduct.dart';
@@ -80,12 +75,21 @@ Build complex routes with path variables, create route groups via optional path 
 
   router
     .route("/file/*")
-    .generate(() => new StaticFileController());
+    .generate(() => new HTTPFileController());
+```
+
+Middleware can be inserted to pre-process or reject requests before they reach the next stage.
+
+```dart
+router
+  .route("/users/[:id]")
+  .pipe(new Authorizer(authServer))
+  .generate(() => new UserController());
 ```
 
 ### Controllers
 
-The class most often used to respond to a request is `HTTPController`. `HTTPController`s must be subclassed and are declared in their own file. An `HTTPController` handles all HTTP requests for a resource; e.g. POST /users, GET /users and GET /users/1 all go to the same controller.
+HTTP requests are bound to *responder methods* implemented in `HTTPController` subclasses. A single `HTTPController` subclass handles all HTTP methods for resource, e.g. POST /users, GET /users and GET /users/1 all go to the same controller.
 
 ```dart
 import 'package:aqueduct/aqueduct.dart'
@@ -100,10 +104,36 @@ class ResourceController extends HTTPController {
   Future<Response> getResourceByID(@HTTPPath("id") int id) async {
     return new Response.ok(await fetchResource(id));
   }
+
+  @httpPost
+  Future<Response> createResource(@HTTPBody() Resource resource) async {
+    var inserted = await insertResource(resource);
+    return new Response.ok(inserted);
+  }
 }
 ```
 
-Use `ManagedObjectController<T>`s that map a REST interface to database queries without writing any code:
+Values from the request can be read by accessing the `request` property or can be bound to responder method arguments:
+
+```dart
+class ResourceController extends HTTPController {
+  @httpGet
+  Future<Response> getAllResources(
+      @HTTPHeader("x-request-id") String requestID,
+      {@HTTPQuery("limit") int limit}) async {
+    return new Response.ok(await fetchResources(limit ?? 0));
+  }
+
+  @httpPost
+  Future<Response> createResource() async {
+    var resource = new Resource()..readMap(request.body.asMap());
+    var inserted = await insertResource(resource);
+    return new Response.ok(inserted);
+  }
+}
+```
+
+`ManagedObjectController<T>`s are specialized `HTTPController`s that map a REST interface to database queries without writing any code:
 
 ```dart
 router
@@ -111,7 +141,22 @@ router
   .generate(() => new ManagedObjectController<User>());
 ```
 
-Controllers catch exceptions and translate them to the appropriate status code response.
+`RequestController`s are a more generic controller that has a single method to either respond to requests or process them in some way. A `RequestController` is the base class for middleware, `HTTPController` and anything else that can handle a request.
+
+```dart
+class VerifyingController extends RequestController {
+  @override
+  Future<RequestOrResponse> processRequest(Request request) async {
+    if (request.innerRequest.headers.value("x-secret-key") == "secret!") {
+      return request;
+    }
+
+    return new Response.badRequest();
+  }
+}
+```
+
+All controllers catch exceptions and translate them to the appropriate status code response.
 
 ### Configuration
 
@@ -138,6 +183,7 @@ class AppRequestSink extends RequestSink {
 }
 
 class AppOptions extends ConfigurationItem {
+  AppOptions(String path) : super.fromFile(path);
   DatabaseConnectionInfo database;
   String otherOption;
   int numberOfDoodads;
@@ -146,23 +192,23 @@ class AppOptions extends ConfigurationItem {
 
 ### Running and Concurrency
 
-Aqueduct applications are run with a command line tool, which can also open debugging and instrumentation tools and specify how many threads the application should run on:
+Aqueduct applications are run with the `aqueduct` command line tool, which can also open debugging and instrumentation tools and specify how many threads the application should run on:
 
 ```
 aqueduct serve --observe --isolates 5
 ```
 
-Run applications detached or still connected to the shell (how a tool like Heroku expects):
+Run applications detached or still connected to the shell:
 
 ```
 aqueduct serve --detached --port $PORT
 ```
 
-Aqueduct applications threads are isolated - they share no memory with other threads - and each runs a replica of the same web server. Pooling resources is effectively achieved through this mechanism.
+Aqueduct applications are multi-isolate (multi-threaded). Each isolate runs a replica of the same web server with its own set of resources like database connections. This makes behavior like database connection pooling implicit and painless.
 
 ### Querying a Database
 
-Much of the time, a request is handled by sending one or more commands to a database to either get data or send data. This is done with `Query<T>` objects.
+Aqueduct applications have a built-in ORM. Database commands are executed with instances of `Query<T>`.
 
 ```dart
 import 'package:aqueduct/aqueduct.dart'
@@ -179,7 +225,7 @@ class ResourceController extends HTTPController {
 }
 ```
 
-The results of a `Query<T>` can be filtered by configuring its `Query.where` property, which uses Dart's powerful, real-time static analyzer to avoid mistakes and offer code completion.
+The results of a `Query<T>` can be filtered by configuring the `Query.where` property, which uses Dart's powerful, real-time static analyzer to avoid mistakes and offer code completion.
 
 ```dart
 var query = new Query<Employee>()
@@ -188,7 +234,7 @@ var query = new Query<Employee>()
 var results = await query.fetch();
 ```
 
-Building queries to insert or update values into the database uses the similar `values` property of a `Query<T>`.
+Building a query to insert or update values leverages the same behavior:
 
 ```dart
 var query = new Query<Employee>()
@@ -214,12 +260,12 @@ var query = new Query<Employee>()
 var herAndHerManagerAndHerDirectReports = await query.fetchOne();
 ```
 
-Exceptions thrown for queries are caught by the controller and translated into the appropriate status code. Unique constraint conflicts return 409,
-missing required properties return 400, database connection failure returns 503, etc. You can change this by try-catching `Query<T>` methods.
+Exceptions thrown for queries are caught by a controller and translated into the appropriate status code. Unique constraint conflicts return 409,
+missing required properties return 400, database connection failure returns 503, etc. You can change this by catching exceptions from `Query<T>` methods.
 
 ### Defining a Data Model
 
-For each database table, there is a `ManagedObject<T>` subclass. These subclasses are the type argument to `Query<T>`. They are made up of two classes: a persistent type that declares a property for each database column in the table, and the subclass of `ManagedObject<T>` that you work with in your code.
+Rows in databases are represented by instances of `ManagedObject<T>` subclasses. These subclasses are the type argument to `Query<T>`. They are made up of two classes: one that declares a property for each database column in a table and the subclass of `ManagedObject<T>` that you work with in your code.
 
 ```dart
 class Employee extends ManagedObject<_Employee> implements _Employee {
@@ -237,22 +283,22 @@ class _Employee  {
 }
 ```
 
-`ManagedObject<T>`s have relationship properties - references to other `ManagedObject<T>`s. The property with `ManagedRelationship` metadata is a foreign key column.
+`ManagedObject<T>`s have relationship properties for has-one, has-many and many-to-many references to other `ManagedObject<T>`s. The property with `ManagedRelationship` metadata is a foreign key column.
 
 ```dart
 class Employee extends ManagedObject<_Employee> implements _Employee {}
 class _Employee {
-  ManagedSet<Initiative> initiatives;
-
   ...
+
+  ManagedSet<Initiative> initiatives;
 }
 
 class Initiative extends ManagedObject<_Initiative> implements _Initiative {}
 class _Initiative {
+  ...
+
   @ManagedRelationship(#initiatives)
   Employee leader;
-
-  ...
 }
 ```
 
@@ -261,10 +307,10 @@ class _Initiative {
 ```dart
 class UserController extends HTTPController {
   @httpPut
-  Future<Response> updateUser(@HTTPPath("id") int id) async {
+  Future<Response> updateUser(@HTTPPath("id") int id, @HTTPBody() User user) async {
     var query = new Query<User>()
       ..where.id = id
-      ..values = (new User()..readMap(request.body.asMap());
+      ..values = user;
 
     var updatedUser = await query.updateOne();
 
@@ -328,47 +374,25 @@ aqueduct auth add-client --id com.app.mobile --secret foobar --redirect-uri http
 
 ### Logging
 
-Logging can write to stdout or a rotating log file. Logging runs on its own thread; API threads send messages to the logging thread which handles I/O.
+All requests are logged to an instance of `Logger`. Set up a listener for logger in `RequestSink` to print log messages to the console. (See also [scribe](https://pub.dartlang.org/packages/scribe) for logging to rotating files.)
+
 
 ```dart
 class WildfireSink extends RequestSink {
-  static String LoggingTargetKey = "logging";
-
-  static Future initializeApplication(ApplicationConfiguration config) async {    
-    ...
-    var loggingServer = new LoggingServer([new ConsoleBackend()]);
-    await loggingServer?.start();
-    config.options[LoggingTargetKey] = loggingServer?.getNewTarget();
-  }
-
   WildfireSink(ApplicationConfiguration config) : super(config) {
-    var target = config.options[LoggingTargetKey];
-    target?.bind(logger);
-
-    logger.info("We're up!");
+    logger.onRecord.listen((record) {
+      print("$record");
+    });
   }
 }
 ```
 
 ### Testing
 
-Because Aqueduct can generate database migration files, it can generate your application data model on the fly, too. Starting a test instance of an application will connect to a temporary database and create tables that are destroyed when the database connection closes. Endpoints are validated with specialized matchers in the Hamcrest matcher style:
+Tests are run by starting the Aqueduct application and verifying responses in a test file. A test harness is included in projects generated from `aqueduct create` that starts and stops a test instance of your application and uploads your database schema to a temporary, local database.
 
 ```dart
-test("/users/1 returns a user", () async {
-  var response = await testClient.authenticatedRequest("/users/1").get();
-  expect(response, hasResponse(200, partial({
-    "id": 1,
-    "name": isString
-  })));
-});
-```
-
-Use the template project's test harness to quickly set up tests:
-
-```dart
-import 'package:test/test.dart';
-import 'package:my_app/my_app.dart';
+import 'harness/app.dart';
 
 void main() {
   var app = new TestApplication();
@@ -382,6 +406,28 @@ void main() {
     ...
   });
 }
+```
+
+A `TestClient` executes requests configured for the locally running test instance of your application. Instances of `TestResponse` are returned and can be evaluated with matchers like any other Dart tests. There are special matchers specifically for Aqueduct.
+
+```dart
+test("POST /users creates a user", () async {
+  var request = app.client.request("/users")
+    ..json = {"email": "bob@stablekernel.com"};
+  var response = await request.post();
+
+  expect(response, hasResponse(200, {
+    "id": isNumber,
+    "email": "bob@stablekernel.com"
+  }));
+});
+
+test("GET /users/1 returns a user", () async {
+  var response = await app.client.authenticatedRequest("/users/1").get();
+  expect(response, hasResponse(200, partial({
+    "email": "bob@stablekernel.com"
+  })));
+});
 ```
 
 ### Documentation

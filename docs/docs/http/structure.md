@@ -1,27 +1,92 @@
-# Aqueduct Application Structure
+# Aqueduct Application Architecture
 
-An Aqueduct application created with the command-line tool `aqueduct create` will create an application with the structure discussed in this document. See [Getting Started](../index.md#getting-started) for installation and usage.
+The fundamental object of Aqueduct is a `RequestController`. Request controllers are chained together to create a *request channel*. A request channel is a series of request controllers that a request flows through to be verified, modified and responded to.
 
-An Aqueduct application is a tree of `RequestController`s. A `RequestController` takes a `Request` and either creates a `Response` or passes the `Request` to another `RequestController` in the tree. More often than not, `RequestController` is subclassed to create reusable components to build a request processing pipeline. Some commonly used `RequestController`s are `RequestSink`, `Authorizer`, `Router` and `HTTPController`.
+![Structure](../img/structure.png)
 
-The root of the `RequestController` tree is always an application-specific subclass of `RequestSink`. The only requirement of an Aqueduct application is that a subclass of this type is declared in an application package and is visible from its top-level library file. A `RequestSink` is not only the first `RequestController` that receives requests, its initialization process creates all of the other `RequestController`s in an application. See [Request Sink](request_sink.md) for more details.
+A request channel always starts at an instance of `RequestSink`. When an application receives an HTTP request, it adds it to the `RequestSink`. A `RequestSink` has a `Router` that splits the channel based on the path of the request. For example, a request with the path `/users` will go down one part of the channel, while a `/things` request will go down another.
 
-A `RequestSink` sends all `Request`s to its `Router`. A `Router` figures out which `RequestController` to send a `Request` to based on the HTTP request path. Setting up which `RequestController` receives requests for a particular path (or paths) is called routing. Routing is done by overriding `RequestSink`'s `setupRouter` method. If no `RequestController` has matches the path of the request, the `Router` responds with a 404 and dumps the request. See [Routing](routing.md) for more details.
+An application's request channel is defined in its `RequestSink`. Each application will have one and only one `RequestSink` subclass that must implement `setupRouter`. For example, the diagram above looks like this in code:
 
-Once past a router, a `Request` typically goes through an `Authorizer` then an `HTTPController` subclass. An `Authorizer` validates the Authorization header of a request, and attaches authorization information to the request so that the next controller can use it. If an `Authorizer` rejects a request, it responds to it with a 401 and does not pass it to the next controller. See [Authorization](../auth/overview.md) for more details.
+```dart
+class MyRequestSink extends RequestSink {
+  MyRequestSink(ApplicationConfiguration config) : super(config);
 
-An `HTTPController` subclass handles all of the operations for an HTTP resource collection (or single resource in that collection). For example, a subclass of `HTTPController` named `UserController` would likely be able to list users, show a single user, create a new user, delete a user or update an existing user. An `HTTPController` always responds to any request it receives. See [HTTPControllers](http_controller.md) for more details.
+  @override
+  void setupRouter(Router router) {
+    router
+      .route("/a")
+      .generate(() => new AController());
 
-## Filesystem Structure
+    router
+      .route("/b")
+      .pipe(new Authorizer(...))
+      .generate(() => new BController());
 
-The directory structure of an Aqueduct application typically looks like this:
+    router
+      .route("/c")
+      .pipe(new Authorizer(...))
+      .generate(() => new CController());      
+  }
+}
+```
+
+Each controller in the channel can either respond to the request or send it to the next controller in the channel. For example, an `Authorizer` will respond with a 401 Unauthorized response if a request's authorization isn't valid - but if it is valid, the request is passed to the next controller in the channel.
+
+This structure means that `RequestController` is the base class for types that are middleware and for those that always respond to a request. There are no other types that handle requests and this makes Aqueduct very simple to understand.
+
+For more details, see [Request Controllers](request_controller.md).
+
+## Isolates
+
+An Aqueduct application may run its request channel on multiple isolates. The number of isolates is configured when running `aqueduct serve`.
 
 ```
-application_name/
+aqueduct serve --isolates 3
+```
+
+An isolate is a thread with its own memory heap, thus each isolate has its own isolated replica of the request channel. Database connections and other resources created in a `RequestSink` are also replicated in each isolate.
+
+When the application receives an HTTP request, only one of its isolates receives and responds to the request. This structure spreads computation across multiple CPUs/cores and makes patterns like connection pooling implicit, i.e. each isolate has its own database connection.
+
+## Aqueduct Project Structure and Organization
+
+An Aqueduct project is a directory that contains, at minimum, the following file structure:
+
+```
+pubspec.yaml
+lib/
   application_name.dart
-  application_name_request_sink.dart
-  controllers/
-    user_controller.dart
 ```
 
-Aqueduct applications are run by running `aqueduct serve` in project directory (here, `application_name`). The top-level library file, `application_name/application_name.dart`, must at least import `application_name_request_sink.dart` so that `aqueduct` serve can see it. See [Deploying](../deploy/overview.md) for more details on this command.
+The name of any Dart application is defined by the `name` key in `pubspec.yaml`. In order for `aqueduct serve` to run your application, there must be a `.dart` file in `lib/` with that same name. This is your application library file and it must declare a `RequestSink` subclass or import another file that does. This is the bare minimum requirement to run an Aqueduct application. (See [Deploying](../deploy/overview.md) for more details on running applications.)
+
+For organizing applications of reasonable size, we recommend the following structure:
+
+```
+pubspec.yaml
+config.src.yaml
+config.yaml
+lib/
+  application_name.dart
+  application_name_sink.dart  
+  controller/
+    user_controller.dart
+  model/
+    user.dart
+test/
+  user_controller_test.dart
+  harness/
+    app.dart
+```
+
+The required `pubspec.yaml` and `lib/application_name.dart` files are present alongside a few others:
+
+- `config.yaml`: A configuration file for the running application. This is the default name for configuration files when running `aqueduct serve`. The name of an application's configuration file is available in `ApplicationConfiguration.configurationFilePath`. This file is usually ignored in version control. (For some situations, it does make sense to check it into source control - like [Deploying to Heroku](../deploy/heroku.md).)
+- `config.src.yaml`: A template for `config.yaml`. This file has two purposes: it contains the configuration keys that your application expects, and its values are used when running automated tests. This helps when deploying applications: you simply copy this file to `config.yaml` on the destination machine and fill in appropriate values. This file is checked into source control. For more details, see [automated testing](../testing/overview).
+- `application_name_sink.dart`: A file solely for the `RequestSink` of an application. This file should be *exported* from `application_name.dart`.
+- `controller/`: A directory for `RequestController` subclass files.
+- `model/`: A directory for `ManagedObject<T>` subclass files.
+- `test/harness/app.dart`: A file that contains a test harness that starts and stops an application during automated testing. For more details, see [automated testing](../testing/overview).
+
+Feel free to create other subdirectories in `lib/` for organizing other types of files.

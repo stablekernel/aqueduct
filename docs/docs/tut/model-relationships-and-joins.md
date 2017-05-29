@@ -3,7 +3,7 @@
 Managed objects can also have relationships to other managed objects. There are two types of relationships: to-one and to-many. Let's add an answer for each `Question` in the form of a to-one relationship. First, create a new file `lib/model/answer.dart` and define a new managed object to represent an answer:
 
 ```dart
-import 'package:quiz/quiz.dart';
+import '../quiz.dart';
 
 class Answer extends ManagedObject<_Answer> implements _Answer {}
 class _Answer {
@@ -14,15 +14,12 @@ class _Answer {
 
 ```
 
-Notice we created the persistent type and subclass of `ManagedObject`. Export this file to the library from `model.dart` so everything that needs to see it can:
-
-```dart
-export 'model/answer.dart';
-```
-
 Now that we have a managed object that represents both a question and answer, we will set up a relationship between them. It logically makes sense that a 'question *has an* answer', so let's add that property to `_Question`, the persistent type of `Question`:
 
 ```dart
+// Don't miss this new import!
+import 'answer.dart';
+
 class _Question {
   @managedPrimaryKey
   int index;
@@ -35,6 +32,9 @@ class _Question {
 For all relationships, we also must specify the *inverse relationship*. The inverse will be a property on `_Answer` that points back to the `Question` it is the answer for. In `_Answer`, add the inverse:
 
 ```dart
+// Don't miss this new import, either!
+import 'question.dart';
+
 class _Answer {
   @managedPrimaryKey
   int id;
@@ -113,37 +113,41 @@ test("/questions returns list of questions", () async {
 The partial matcher here will just check to see if the 'answer' key is a map that contains a `String` 'description' value. The extraneous 'id' key won't cause a failure. If you run the tests now, this test will still fail - 'answer' in the JSON is null because there are no answers in the database. Let's insert some by replacing `setUp` in `question_controller_test.dart`:
 
 ```dart
-setUp(() async {
-  await app.start(runOnMainIsolate: true);
-  client = new TestClient(app);
+// Don't forget to add this import, too!
+import 'package:quiz/model/answer.dart';
 
-  var ctx = ManagedContext.defaultContext;
-  var builder = new SchemaBuilder.toSchema(ctx.persistentStore, new Schema.fromDataModel(ctx.dataModel), isTemporary: true);
+void main() {
+  setUp(() async {
+    await app.start(runOnMainIsolate: true);
+    client = new TestClient(app);
 
-  for (var cmd in builder.commands) {
-    await ctx.persistentStore.execute(cmd);
-  }
+    var ctx = ManagedContext.defaultContext;
+    var builder = new SchemaBuilder.toSchema(ctx.persistentStore, new Schema.fromDataModel(ctx.dataModel), isTemporary: true);
 
-  var questions = [
-    new Question()
-      ..description = "How much wood can a woodchuck chuck?"
-      ..answer = (new Answer()..description = "Depends"),
-    new Question()
-      ..description = "What's the tallest mountain in the world?"
-      ..answer = (new Answer()..description = "Mount Everest")
-  ];
+    for (var cmd in builder.commands) {
+      await ctx.persistentStore.execute(cmd);
+    }
 
-  for (var question in questions) {
-    var questionInsert = new Query<Question>()
-        ..values = question;
-    var insertedQuestion = await questionInsert.insert();
+    var questions = [
+      new Question()
+        ..description = "How much wood can a woodchuck chuck?"
+        ..answer = (new Answer()..description = "Depends"),
+      new Question()
+        ..description = "What's the tallest mountain in the world?"
+        ..answer = (new Answer()..description = "Mount Everest")
+    ];
 
-    var answerInsert = new Query<Answer>()
-      ..values.description = question.answer.description
-      ..values.question = insertedQuestion;
-    await answerInsert.insert();
-  }
-});
+    for (var question in questions) {
+      var questionInsert = new Query<Question>()
+          ..values = question;
+      var insertedQuestion = await questionInsert.insert();
+
+      var answerInsert = new Query<Answer>()
+        ..values.description = question.answer.description
+        ..values.question = insertedQuestion;
+      await answerInsert.insert();
+    }
+  });
 ```
 
 Notice that we accumulated all of the questions and answers into a list of questions where each has an answer (`questions`). Managed objects can be used just like normal objects, too.

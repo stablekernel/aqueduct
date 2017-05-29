@@ -31,7 +31,9 @@ Restructuring quiz
 
 Last chapter, we just threw everything in a single file to get started. We should really get things structured a bit more. The suggested approach is to separate `RequestController`s into their own files. These files should live in `lib/controller`. The `RequestSink` subclass should be in its own file, too, but directly under `lib`.
 
-Create a new directory, `lib/controller` and add a new file `question_controller.dart` to it. Create a new file in `lib` named `sink.dart`.
+Create a new directory, `lib/controller` and add a new file `question_controller.dart` to it.
+
+Create a new file in `lib` named `sink.dart`.
 
 Now, we'll move some code around. The full contents of each file will be listed here to make sure nothing gets lost. There are three total source files in the project. Change the file `quiz.dart` to only contain:
 
@@ -42,10 +44,10 @@ export 'package:aqueduct/aqueduct.dart';
 export 'sink.dart';
 ```
 
-Move the implementation of `QuestionController` to `controller/question_controller.dart` and import the top-level file:
+Move the implementation of `QuestionController` to `controller/question_controller.dart` and import the application library fie:
 
 ```dart
-import 'package:quiz/quiz.dart';
+import '../quiz.dart';
 
 class QuestionController extends HTTPController {
   var questions = [
@@ -72,7 +74,7 @@ class QuestionController extends HTTPController {
 Move `QuizRequestSink` to `sink.dart`:
 
 ```dart
-import 'package:quiz/quiz.dart';
+import 'quiz.dart';
 import 'controller/question_controller.dart';
 
 class QuizRequestSink extends RequestSink {

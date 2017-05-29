@@ -1,47 +1,84 @@
-# Handling Requests
+# Handling Requests: Fundamentals
 
-For every HTTP request, an instance of [Request](request_and_response.md) is created. A `RequestController` creates a `Response` for a request. Sometimes. Other times, a controller does something with the request and then passes it on to another.
+This guide provides a deeper understanding of how a request object moves through an Aqueduct application to get responded to. For more use-case based guidance on handling requests, see [HTTPController](http_controller.md).
 
-Aqueduct applications are just a bunch of `RequestController`s strung together like a real life assembly line. In an assembly line of cars, the body of a car gets put on a conveyor belt. The first worker puts on a steering wheel, the next puts on tires and the last one paints the car a color. The car is then removed from the conveyor belt and sold. Each worker has a specific job in a specific order - they rely on the rest of the assembly line to complete the car, but their job is isolated.
+An Aqueduct application is a [channel of RequestController](structure.md) instances that HTTP requests go through to get responded to.
 
-This conveyor belt is built by chaining together `RequestController`s with methods like `pipe` and `generate`. Here's an example of some common Aqueduct code:
+![Aqueduct Structure](../img/callout_structure.png)
 
-```dart
-var router = new Router();
-router
-  .route("/users")
-  .pipe(new Authorizer(authServer))
-  .generate(() => new UserController());
-```
+The above diagram shows a request entering a channel at a `RequestSink` and then being passed to a `Router`. The `Router` splits the channel. If a request's path matches a registered route, the request is passed down the split channel. If it doesn't, the `Router` stops the request from continuing down the channel and responds to it with a 404 Not Found response. Likewise, `Authorizer` might reject a request if it doesn't have valid authorization credentials or let it pass to the next controller in the channel. At the end of the channel, some controller must respond to the request.
 
-This chains together a `Router`, an `Authorizer` and a `UserController` - all subclasses of `RequestController`. So, let's say this router gets a request - if the path matches `/users`, it goes to the `Authorizer`, and if its authorized, it goes to a `UserController`, which responds to the request.
-
-A request can drop out of the assembly line before it reaches the end. If the request's path didn't match `/users`, a 404 response would be created and the request would never get to the `Authorizer`. If the request wasn't authorized, a 401 response would be created and the request would never get to the `UserController`.
-
-More generally, `RequestController`s take a `Request` as input. If they want to respond to the request, they create a response. Otherwise, they send the request to the next controller in line.
-
-Both `pipe` and `generate` set up this relationship between controllers; difference being that `generate` creates a new instance of the controller each time a request comes through and `pipe` just reuses the same one. (That's why the argument is a closure that creates a new `UserController` in this example, not just a `UserController` instance.)
-
-The reason this distinction exists is because some controllers will have properties that reference the request they are currently processing. Since Aqueduct applications handle multiple `Request`s at a time, these controllers would get their properties changed while waiting for an asynchronous operation to complete if there were only one instance.
-
-The most commonly used controller - [HTTPController](http_controller.md) - must be generated, whereas an `Authorizer` holds no state and does not. `RequestController` subclasses that require generation have `@cannotBeReused` metadata and will throw an exception immediately at startup if not.
-
-There's also a `listen` method that takes a closure to process the request instead of an object (that closure still gets wrapped in a `RequestController` under the hood):
+Channels always begin with a `RequestSink` and a `Router`. This channel is built upon by invoking `route` on the `Router`, which splits the channel into subchannels. These subchannels are added to with the methods `pipe`, `generate`, and `listen`. Each of these `RequestController` methods attaches another `RequestController` to form a channel. Here's an example:
 
 ```dart
-var router = new Router();
-router
-  .route("/health")
-  .listen((req) async => new Response.ok(null));
+@override
+void setupRouter(Router router) {
+  router
+    .route("/path")
+    .listen((Request request) async {
+      logger.info("$request");
+      return request;
+    })
+    .pipe(new FilteringController())
+    .generate(() => new CRUDController());
+}
 ```
 
-The `route` method is unique to a `Router`, but allows for multiple controllers to be chained to the router based on their request path. There's a whole section on [Routing](routing.html).
+First, notice that these methods can be chained together in this way because they always return the controller being added to the channel. For example, `router.route` creates a new "route controller" and returns it. The route controller then has `listen` invoked on it, which creates a new `RequestController` from a closure and returns it, for which `pipe` is invoked... you get the drift.
 
-`RequestController`s serve as the building blocks of an Aqueduct application, but they are rarely used directly. More often than not, an Aqueduct application is built entirely out of [Router](routing.html), [Authorizer](../auth/authorizer.html) and [HTTPController](http_controller.html) subclasses.
+The `listen` method is the easiest to understand: it takes an async closure that takes a `Request` and may either return a `Response` or that same `Request`. If it returns the `Request`, the request is passed to the next controller in the channel. If it returns a `Response`, a response is sent to the HTTP client and no more controllers get the request.
+
+Concrete implementations of `RequestController` - like the mythical `FilteringController` and `CRUDController` above - override a method with the same signature as the `listen` closure. This method is named `processRequest` and it looks like this:
+
+```dart
+class FilteringController {
+  @override
+  Future<RequestOrResponse> processRequest(Request request) async {
+    if (isThereSomethingWrongWith(request)) {
+      return new Response.badRequest();
+    }
+
+    return request;
+  }
+}
+```
+
+(In fact, the `listen` closure is simply wrapped by an instance of `RequestController`. The default behavior of `processRequest` is to invoke its closure.)
+
+The difference between `pipe` and `generate` is important. A `RequestController` like `FilteringController` doesn't have any properties that change when processing a request. But let's pretend `CRUDController` is defined like the following, where it reads the body into a property and then accesses that property later:
+
+```dart
+class CRUDController {
+  Map<String, dynamic> body;
+
+  @override
+  Future<RequestOrResponse> processRequest(Request request) async {
+    body = await request.body.asMap();
+
+    if (request.innerRequest.method == "POST") {
+      return handlePost();
+    } else if (request.innerMethod == "PUT") {
+      return handlePut();
+    } ...
+  }
+
+  Future<RequestOrResponse> handlePost() async {
+    ... do something with body ...
+  }
+}
+```
+
+In the above, the `body` property will be updated when `CRUDController` receives a request. It is possible that `CRUDController` is working on creating a response when it gets a new request, changing its `body` property. This would change the `body` for all requests that `CRUDController` is currently processing!
+
+Therefore, when a controller has state that changes for every request, a new instance should be created for each request. The `generate` method takes a closure that creates a new instance of a controller. The `pipe` method on the other hand reuses the same controller for every request because the request passes right through it without changing any of its state.
+
+The most common controller in an Aqueduct is an `HTTPController`. This controller handles all requests for an HTTP resource. For example, a controller of this type might handle `POST /users`, `PUT /users/1`, `GET /users`, `GET /users/1` and `DELETE /users/1`. It has conveniences for organizing code such that each of these operations is bound to its own instance method. These conveniences require that the controller store parsed values from the request in it properties. Therefore, all `HTTPController`s must be added to a channel with `generate`.
+
+`HTTPController` - and any other controller that requires a new instance for each request - is marked with `@cannotBeReused` metadata. If you try and `pipe` to a controller with this metadata, you'll get an error at startup with a helpful error message.
 
 ## Exception Handling
 
-If an exception is thrown while processing a request, it will be caught by the `RequestController` doing the processing. The controller will respond with an appropriate status code and the request is discarded so no more controllers will see it.
+`RequestController`s wrap `processRequest` in a try-catch block. If an exception is thrown during the processing of a request, it is caught and the controller will send a response on your behalf. The request is then removed from the channel and no more controllers will receive it.
 
 There are two types of exceptions that a `RequestController` will interpret to return a meaningful status code: `HTTPResponseException` and `QueryException`. Any other uncaught exceptions will result in a 500 status code error.
 
@@ -54,28 +91,33 @@ There are two types of exceptions that a `RequestController` will interpret to r
 |Invalid input|400|
 |Database can't be reached|503|
 
-An `HTTPResponseException` can be thrown at anytime to escape early from processing and return a response. Exceptions of these type allow you to specify the status code and a message. The message is encoded in a JSON object for the key "error". Some classes in Aqueduct will throw an exception of this kind if some precondition isn't met. You may add your own try-catch blocks to request processing code to either catch and reinterpret the behavior of `HTTPResponseException` and `QueryException`, or for any other reason.
+An `HTTPResponseException` can be thrown at anytime to escape early from processing and return a response. Exceptions of these type allow you to specify the status code and a message. The message is encoded in a JSON object for the key "error". Some classes in Aqueduct will throw an exception of this kind if some precondition isn't met.
 
-Other than `HTTPResponseException`s, exceptions are always logged along with some details of the request that generated the exception. `HTTPResponseException`s are not logged, as they are used for control flow and are considered "normal" operation.
+If you have code that can throw for legitimate reasons, you may catch those exceptions to return a response with an appropriate status code:
+
+```dart
+class Controller extends RequestController {
+  Future<RequestOrResponse> processRequest(Request request) async {
+    try {
+      await someFailableOperation();
+    } on OperationException catch (e) {
+      return new Response(503, null, {"error": e.errorMessage});
+    }
+
+    ...
+  }
+}
+```
+
+You may also catch `Query` or `HTTPResponseException`s to reinterpret them, but the default behavior is pretty reasonable.
+
+Other than `HTTPResponseException`s, exceptions are written to the `Logger` along with some details of the request that generated the exception. `HTTPResponseException`s are not logged, as they are used for control flow and are considered "normal" operation.
 
 ## Subclassing RequestController
 
 Using existing subclasses of `RequestController` like `Router`, `Authorizer` and `HTTPController` cover the majority of Aqueduct use cases. There are times where creating your own `RequestController` subclass may make sense.
 
-Subclassing `RequestController` usually involves overriding its `processRequest` method. This method takes a `Request` as input and returns either a `Response` or `Request` wrapped in a `Future`.
-
-```dart
-class Controller extends RequestController {
-  @override
-  Future<RequestOrResponse> processRequest(Request request) async {
-      ... return either request or a new Response ...
-  }
-}
-```
-
-A controller receives `Request`s in this method. If this method returns a `Response`, that response is sent to the HTTP client and no more processing occurs. If this method returns a `Request`, the next controller in the assembly line has this method invoked.
-
-A controller must return the same instance of `Request` it receives, but it may attach additional information by adding key-value pairs to the request's `attachments`.
+To pass a request on to the next controller in the channel, a controller must return the same instance of `Request` it receives. It may, however, attach additional information by adding key-value pairs to the request's `attachments`.
 
 For example, an `Authorizer`'s pseudo code looks like this:
 
@@ -90,6 +132,17 @@ Future<RequestOrResponse> processRequest(Request request) async {
 }
 ```
 
-It's important that the last controller in the assembly line always responds to a request. Typically, this is an instance of an `HTTPController` subclass.
+The next controller in the channel can look up the value of `authInfo`:
 
-Aqueduct automatically invokes `processRequest` on controllers inside a try-catch block. This allows uncaught errors to always send a response to the HTTP client and attaches things like CORS headers.
+```dart
+Future<RequestOrResponse> processRequest(Request request) async {
+    var authInfo = request.attachments["authInfo"];
+
+
+    return new Response.ok("You are user: ${authInfo.username}");
+}
+```
+
+## CORS Headers and Preflight Requests
+
+`RequestController`s have built-in behavior for handling CORS requests. They will automatically respond to `OPTIONS` preflight requests and attach CORS headers to any other response. See [the chapter on CORS](configure.md) for more details.

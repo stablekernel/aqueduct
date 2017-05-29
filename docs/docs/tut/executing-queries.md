@@ -7,10 +7,10 @@ Building a Data Model
 
 Aqueduct has a built-in ORM (some of which is modeled after the iOS/macOS Core Data framework). Like all ORMs, rows of a database are mapped to objects. In Aqueduct, these objects are of type `ManagedObject<T>`. Let's define a managed object that represents a 'question'. Create a new directory in `lib` named `model`, and then add a new file to it named `question.dart` (thus, `lib/model/question.dart`).
 
-A managed object is a subclass of `ManagedObject<T>`, where `T` is a *persistent type*. A persistent type is a simple Dart class that maps to a database table. Each of its properties maps to a column in that table. By convention, but not required, persistent types are prefixed with '\_'. In `question.dart`, let's define a persistent type for a question:
+A managed object is a subclass of `ManagedObject<T>`, where `T` is a *persistent type*. A persistent type is a simple Dart class that maps to a database table. Each of its properties maps to a column in that table. Persistent types are prefixed with '\_'. In `question.dart`, let's define a persistent type for a question:
 
 ```dart
-import 'package:quiz/quiz.dart';
+import '../quiz.dart';
 
 class _Question {
   @ManagedColumnAttributes(primaryKey: true, databaseType: PropertyType.bigInteger, autoincrement: true)
@@ -36,7 +36,7 @@ class _Question {
 Once a persistent type has been defined, you must also declare a corresponding subclass of `ManagedObject`. At the top of `question.dart`, but underneath the import, add the following:
 
 ```dart
-import 'package:quiz/quiz.dart';
+import '../quiz.dart';
 
 class Question extends ManagedObject<_Question> implements _Question {}
 class _Question {
@@ -50,31 +50,6 @@ class _Question {
 This dual-class setup is important and necessary for using Aqueduct's ORM. The persistent type - the plain Dart class that starts with an underscore - represents a database table. Each property of the persistent type is a column in that database table. The name of the database table matches the name of the class (here, `_Question`).
 
 The `ManagedObject` subclass is the type you work with in your code. Its associated persistent type appears twice in its declaration: as the type argument to `ManagedObject` (`ManagedObject<_Question>`) and as an interface (`implements _Question`). A `ManagedObject` may have properties and methods of its own, but those are *not* backed by a database column.
-
-Importing ManagedObjects
----
-
-As your code progresses, those `ManagedObject<T>`s will have relationships with other `ManagedObject<T>`s and be used in your request handling code. Additionally, the tools that generate database schemas and 'compile' the declarations of `ManagedObject<T>` also need to see the definitions. Therefore, `ManagedObject` declarations must be visible to the rest of your application.
-
-The best practice is to declare each `ManagedObject<T>` in its own file and create a file that exports all `ManagedObject<T>`s. Create a new file in `lib` named `model.dart`. In this file, export `model/question.dart`:
-
-```dart
-export 'model/question.dart';
-```
-
-The `model.dart` file exports all of your `ManagedObject` declarations. Now, to make all of your managed objects visible, export `model.dart` in `quiz.dart`:
-
-```dart
-export 'dart:async';
-export 'package:aqueduct/aqueduct.dart';
-
-export 'sink.dart';
-
-// Add this export:
-export 'model.dart';
-```
-
-Now, every file in your application that import the application package will see the managed object declarations - and more importantly, the tools will see those declarations, too.
 
 Defining a Context
 ---
@@ -97,7 +72,7 @@ class QuizRequestSink extends RequestSink {
 
 (In the future, we'll allow this information to be passed from a configuration file. But for now, we'll do it manually.)
 
-A `ManagedDataModel` is initialized with its named constructor `fromCurrentMirrorSystem`. This constructor uses reflection to find every `ManagedObject<T>` subclass in your application and compile a data model from them. (This is why it is important to export managed objects the way it was done in the previous section.)
+A `ManagedDataModel` is initialized with its named constructor `fromCurrentMirrorSystem`. This constructor uses reflection to find every `ManagedObject<T>` subclass in your application and compile a data model from them.
 
 The persistent store is a specific implementation of a persistent store, `PostgreSQLPersistentStore`. It is initialized with information necessary to connect to a database. A `ManagedContext` simply ties those two things together.
 
@@ -108,9 +83,11 @@ When a `ManagedContext` is created, it becomes the *default context* of your app
 Executing Queries
 ---
 
-Now that we have a context - which can establish a connection to a database, talk to the database and map rows to managed objects - we can execute queries in our `RequestController`s. In `question_controller.dart`, replace the code for `getAllQuestions` (we'll work on `getQuestionAtIndex` soon):
+Now that we have a context - which can establish a connection to a database, talk to the database and map rows to managed objects - we can execute queries in our `RequestController`s. In `question_controller.dart`, import `question.dart` and replace the code for `getAllQuestions` (we'll work on `getQuestionAtIndex` soon):
 
 ```dart
+import '../model/question.dart';
+
 class QuestionController extends HttpController {
   var questions = [
     "How much wood can a woodchuck chuck?",
@@ -138,7 +115,7 @@ As we've mentioned a few times, a key facet to Aqueduct is efficient automated t
 
 Therefore, on any machine you're going to test on, you need to install PostgreSQL and configure a test database. You'll only need to set this up once on - all Aqueduct project tests run against the same database.
 
-On macOS, the best way to do this locally is download [Postgres.app](http://postgresapp.com). This has a self-contained instance of Postgres that you start by opening up the application itself. Download this application and run it.
+On macOS, the best way to do this with [Postgres.app](http://postgresapp.com). This macOS app has a self-contained instance of Postgres that you start by opening up the application itself. Download this application and run it.
 
 Once running, run the command `aqueduct setup` from anywhere. It will give you some additional instructions to follow to make sure everything is OK. It just runs the following SQL:
 
@@ -175,6 +152,10 @@ The database connection is automatically closed when the tests complete by the e
 We now need questions in the database (you can run your tests and see the they fail because there are no questions). Let's first seed the database with some questions using an insert query at the end of `setUp`.
 
 ```dart
+// Don't forget this import!
+import 'package:quiz/model/question.dart';
+
+void main() {
   setUp(() async {
     await app.start(runOnMainIsolate: true);
     client = new TestClient(app);
