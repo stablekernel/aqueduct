@@ -134,6 +134,7 @@ class Request implements RequestOrResponse {
     }
 
     if (body == null) {
+      response.headers.removeAll(HttpHeaders.CONTENT_TYPE);
       return response.close();
     }
 
