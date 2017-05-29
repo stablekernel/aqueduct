@@ -220,9 +220,9 @@ class CLITemplateCreator extends CLICommand {
 
   void createProjectSpecificFiles(
       String directoryPath, String aqueductVersion) {
-    displayProgress("Generating config.yaml from config.yaml.src.");
+    displayProgress("Generating config.yaml from config.src.yaml.");
     var configSrcPath =
-        new File(path_lib.join(directoryPath, "config.yaml.src"));
+        new File(path_lib.join(directoryPath, "config.src.yaml"));
     configSrcPath
         .copySync(new File(path_lib.join(directoryPath, "config.yaml")).path);
   }

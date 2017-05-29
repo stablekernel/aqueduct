@@ -1,5 +1,6 @@
 import 'wildfire.dart';
 
+import 'model/model.dart';
 
 /// This class handles setting up this application.
 ///

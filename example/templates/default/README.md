@@ -11,7 +11,7 @@ To run all tests for this application, run the following command in this directo
 pub run test -j 1
 ```
 
-Tests will be run using the configuration file `config.yaml.src`. This file should contain all test configuration values and remain in source control. This `config.yaml.src` file is the 'template' for `config.yaml` files living on deployed servers. This allows tests to use a configuration file with the same layout as deployed instances and avoid configuration errors.
+Tests will be run using the configuration file `config.src.yaml`. This file should contain all test configuration values and remain in source control. This `config.src.yaml` file is the 'template' for `config.yaml` files living on deployed servers. This allows tests to use a configuration file with the same layout as deployed instances and avoid configuration errors.
 
 See the application test harness, `test/app/harness.dart`, for more details. This file contains a `TestApplication` class that can be set up and torn down for tests. It will create a temporary database that the tests run against. See examples of usage in the `_test.dart` files in `test/`.
 

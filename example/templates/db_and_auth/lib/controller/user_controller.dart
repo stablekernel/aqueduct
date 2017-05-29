@@ -1,4 +1,5 @@
 import '../wildfire.dart';
+import '../model/user.dart';
 
 class UserController extends QueryController<User> {
   UserController(this.authServer);

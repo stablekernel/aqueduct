@@ -19,7 +19,7 @@ For more information, see [Getting Started](https://aqueduct.io/docs/)
 
 ## Notes
 
-The data model of this application is defined by all declared subclasses of `ManagedObject`. Each of these subclasses is defined in a file in the `model` directory and each of these files must be exported from `wildfire_model.sink`.
+The data model of this application is defined by all declared subclasses of `ManagedObject`. Each of these subclasses is defined in a file in the `model` directory.
 
 Routes and other initialization are configured in `lib/wildfire_sink.dart`.
 
@@ -31,7 +31,7 @@ To run all tests for this application, run the following command in this directo
 pub run test
 ```
 
-Tests will be run using the configuration file `config.yaml.src`. This file should contain all test configuration values and remain in source control. This `config.yaml.src` file is the template for `config.yaml` files living on deployed servers. This allows tests to use a configuration file with the same layout as deployed instances and avoid configuration errors.
+Tests will be run using the configuration file `config.src.yaml`. This file should contain all test configuration values and remain in source control. This `config.src.yaml` file is the template for `config.yaml` files living on deployed servers. This allows tests to use a configuration file with the same layout as deployed instances and avoid configuration errors.
 
 See the application test harness, `test/app/harness.dart`, for more details. This file contains a `TestApplication` class that can be set up and torn down for tests. It will create a temporary database that the tests run against. See examples of usage in the `_test.dart` files in `test/`.
 
@@ -45,7 +45,7 @@ Run Aqueduct applications with `aqueduct serve`. This application connects to a 
 
 The configuration file (`config.yaml`) currently requires an entry for `database:` which describes a database connection.
 
-The file `config.yaml.src` is used for testing: it should be checked into source control and contain values for testing purposes. It should maintain the same keys as `config.yaml`.
+The file `config.src.yaml` is used for testing: it should be checked into source control and contain values for testing purposes. It should maintain the same keys as `config.yaml`.
 
 ## Creating API Documentation
 

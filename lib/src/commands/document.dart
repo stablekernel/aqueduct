@@ -14,7 +14,7 @@ class CLIDocument extends CLICommand with CLIProject {
           abbr: "c",
           help:
               "The path to a configuration file that this application needs to initialize resources for the purpose of documenting its API.",
-          defaultsTo: "config.yaml.src")
+          defaultsTo: "config.src.yaml")
       ..addOption("title", help: "API Docs: Title", defaultsTo: "Aqueduct App")
       ..addOption("description",
           help: "API Docs: Description", defaultsTo: "An Aqueduct App")
@@ -145,7 +145,7 @@ class CLIDocument extends CLICommand with CLIProject {
         "After these initialization methods are called, RequestSink.document is invoked. Note that the full initialization process does not"
         " occur: RequestSink.willOpen and RequestSink.didOpen are not called because no web server is started. However, it is important that"
         " the first three steps of initialization can occur without error when generating documentation. This often requires having a"
-        " valid configuration file (--config-path) when running this tool. The suggested approach is to use config.yaml.src as the configuration"
+        " valid configuration file (--config-path) when running this tool. The suggested approach is to use config.src.yaml as the configuration"
         " file for the document tool. The flag 'isDocumenting' will be set to true in ApplicationConfiguration.";
   }
 }

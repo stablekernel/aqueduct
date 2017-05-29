@@ -11,7 +11,7 @@ export 'package:aqueduct/aqueduct.dart';
 /// Use instances of this class to start/stop the test wildfire server. Use [client] to execute
 /// requests against the test server. This instance will create a temporary version of your
 /// code's current database schema during startup. This instance will use configuration values
-/// from config.yaml.src.
+/// from config.src.yaml.
 class TestApplication {
   Application<WildfireSink> application;
   WildfireSink get sink => application.mainIsolateSink;
@@ -33,7 +33,7 @@ class TestApplication {
     RequestController.letUncaughtExceptionsEscape = true;
     application = new Application<WildfireSink>();
     application.configuration.port = 0;
-    application.configuration.configurationFilePath = "config.yaml.src";
+    application.configuration.configurationFilePath = "config.src.yaml";
 
     await application.start(runOnMainIsolate: true);
 

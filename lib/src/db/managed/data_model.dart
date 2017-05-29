@@ -184,9 +184,7 @@ class ManagedDataModelException implements Exception {
         "'${_getPersistentClassName(entity)}' expects that there is a subclass "
         "of 'ManagedObject' named '${_getName(typeMirror.simpleName)}', "
         "but there isn't one. If you have declared one - and you really checked "
-        "hard for typos - make sure that the class is visible to the script "
-        "that starts the application or tests. (This usually means exporting "
-        "that file from your application's main library file.");
+        "hard for typos - make sure the file it is declared in is imported appropriately.");
   }
 
   factory ManagedDataModelException.multipleDestinationEntities(
