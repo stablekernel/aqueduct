@@ -8,6 +8,7 @@ import 'serializable.dart';
 import '../db/managed/managed.dart';
 import 'router.dart';
 import 'body_decoder.dart';
+import 'http_response_exception.dart';
 import 'request.dart';
 
 /// Binds an [HTTPController] responder method to HTTP GET.
@@ -146,8 +147,9 @@ class HTTPPath extends HTTPBinding {
   String get type => null;
 
   @override
-  dynamic parseValueFrom(TypeMirror intoType, Request request) {
-    return convertParameterWithMirror(request.path.variables[externalName], intoType);
+  dynamic parse(ClassMirror intoType, Request request) {
+    return convertParameterWithMirror(
+        request.path.variables[externalName], intoType);
   }
 }
 
@@ -186,7 +188,7 @@ class HTTPHeader extends HTTPBinding {
   String get type => "Header";
 
   @override
-  dynamic parseValueFrom(TypeMirror intoType, Request request) {
+  dynamic parse(ClassMirror intoType, Request request) {
     var value = request.innerRequest.headers[externalName];
     return convertParameterListWithMirror(value, intoType);
   }
@@ -230,7 +232,7 @@ class HTTPQuery extends HTTPBinding {
   String get type => "Query Parameter";
 
   @override
-  dynamic parseValueFrom(TypeMirror intoType, Request request) {
+  dynamic parse(ClassMirror intoType, Request request) {
     var queryParameters = request.innerRequest.uri.queryParametersAll;
     dynamic value = queryParameters[externalName];
     if (value == null) {
@@ -265,35 +267,6 @@ class HTTPQuery extends HTTPBinding {
 ///         }
 ///       }
 ///
-/// You may optional provide a validation method that executes prior to invoking the responder method. This method returns a true
-/// if the object is valid, otherwise it returns false. This method has two parameters: the bound object and a [List<String>] that errors can be added to.
-/// Parsing will have already occurred prior to this method being invoked.
-///
-/// If parsing throws an exception, a 400 Bad Request response is returned and neither the validation method or the responder method is invoked.
-/// If this method returns false, the responder method is not invoked and a 400 Bad Request response is returned. Any errors added to the list
-/// in the validation method are returned in a JSON body: `{"error": errors.join(", ")}`. Example:
-///
-///       class UserController extends HTTPController {
-///         @httpPost
-///         Future<Response> createUser(@HTTPBody(validate: validateUserRequestBody) User user) async {
-///           var query = new Query<User)..values = user;
-///
-///           ...
-///         }
-///
-///         bool validateUserRequestBody(User user, List<String> errors) {
-///           if (user.name == null) {
-///             errors.add("name must not be null");
-///             return false;
-///           }
-///
-///           return true;
-///         }
-///       }
-///
-/// Note: this validation method is separate from [ManagedObject.validate], because the validation that occurs before insertion into a database
-/// is often quite different than a request body.
-///
 /// If a declaration with this metadata is a positional argument in a responder method, it is required for that method.
 ///     e.g. the above example shows a required positional argument
 /// If a declaration with this metadata is an optional argument in a responder method, it is optional for that method.
@@ -309,17 +282,67 @@ class HTTPBody extends HTTPBinding {
   /// Binds an HTTP request body to an [HTTPController] property or responder method argument.
   ///
   /// See class description for more details.
-  const HTTPBody({bool validate(HTTPSerializable object, List<String> errors)})
-      : validation = validate, super(null);
-  final _HTTPRequestBodyValidator validation;
+
+  const HTTPBody() : super(null);
 
   @override
   String get type => "Body";
 
   @override
-  dynamic parseValueFrom(TypeMirror intoType, Request request) {
-    return null;
+  dynamic parse(ClassMirror intoType, Request request) {
+    if (request.body.isEmpty) {
+      return null;
+    }
+
+    if (intoType.isAssignableTo(reflectType(HTTPSerializable))) {
+      if (!reflectType(request.body.decodedType)
+          .isSubtypeOf(reflectType(Map))) {
+        throw new HTTPResponseException(
+            400, "Expected Map, got ${request.body.decodedType}");
+      }
+
+      var value = intoType.newInstance(new Symbol(""), []).reflectee
+          as HTTPSerializable;
+      value.fromRequestBody(request.body.asMap());
+
+      return value;
+    } else if (intoType.isSubtypeOf(reflectType(List))) {
+      if (!reflectType(request.body.decodedType)
+          .isSubtypeOf(reflectType(List))) {
+        throw new HTTPResponseException(
+            400, "Expected List, got ${request.body.decodedType}");
+      }
+
+      var bodyList = request.body.asList();
+      if (bodyList.isEmpty) {
+        return [];
+      }
+
+      var typeArg = intoType.typeArguments.first as ClassMirror;
+      return bodyList.map((object) {
+        if (!reflectType(object.runtimeType).isSubtypeOf(reflectType(Map))) {
+          throw new HTTPResponseException(
+              400, "Expected Map, got ${request.body.decodedType}");
+        }
+
+        var value = typeArg.newInstance(new Symbol(""), []).reflectee
+            as HTTPSerializable;
+        value.fromRequestBody(object);
+
+        return value;
+      }).toList();
+    }
+
+    throw new _HTTPBodyBindingException(
+        "Failed to bind HTTPBody: ${intoType.reflectedType} is not HTTPSerializable or List<HTTPSerializable>");
   }
 }
 
-typedef bool _HTTPRequestBodyValidator(HTTPSerializable object, List<String> errors);
+class _HTTPBodyBindingException implements Exception {
+  _HTTPBodyBindingException(this.message);
+
+  String message;
+
+  @override
+  String toString() => message;
+}

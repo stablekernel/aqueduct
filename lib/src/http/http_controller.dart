@@ -265,8 +265,8 @@ abstract class HTTPController extends RequestController {
 
       op.parameters = [
         cachedMethod.positionalParameters,
-        cachedMethod.optionalParameters.values,
-        controllerCache.propertyBinders.values
+        cachedMethod.optionalParameters,
+        controllerCache.propertyBinders
       ].expand((i) => i.toList()).map((param) {
         var paramLocation =
             _parameterLocationFromHTTPParameter(param.binding);
@@ -280,7 +280,7 @@ abstract class HTTPController extends RequestController {
           ..required = param.isRequired
           ..parameterLocation = paramLocation
           ..schemaObject =
-              (new APISchemaObject.fromTypeMirror(param.typeMirror));
+              (new APISchemaObject.fromTypeMirror(param.boundValueType));
       }).toList();
 
       return op;

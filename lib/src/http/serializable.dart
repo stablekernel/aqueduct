@@ -7,9 +7,8 @@ abstract class HTTPSerializable {
   /// Reads values from [requestBody] into an object.
   ///
   /// This method is invoked when an [HTTPController] property or responder method argument is bound with [HTTPBody]. [requestBody] is the
-  /// request body of the incoming HTTP request, decoded according to its content-type. This is often [Map<String, dynamic>], but is typed to dynamic to
-  /// allow for atypical scenarios.
-  void fromRequestBody(dynamic requestBody);
+  /// request body of the incoming HTTP request, decoded according to its content-type.
+  void fromRequestBody(Map<String, dynamic> requestBody);
 
   /// Returns a serializable version of an object.
   ///
@@ -18,6 +17,6 @@ abstract class HTTPSerializable {
   /// performed by the [Response].  A [Response.body] may also be a [List<Serializable>], for which this method is invoked on
   /// each element in the list.
   ///
-  /// The return type is dynamic to support non-[Map] objects for atypical encoding.
+  /// The return type is dynamic to support non-[Map] objects such as Lists.
   dynamic asSerializable();
 }

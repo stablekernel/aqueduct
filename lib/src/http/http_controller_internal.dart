@@ -39,7 +39,7 @@ abstract class HTTPBinding {
 
   String get type;
 
-  dynamic parseValueFrom(TypeMirror intoType, Request request);
+  dynamic parse(ClassMirror intoType, Request request);
 
   dynamic convertParameterListWithMirror(
       List<String> parameterValues, TypeMirror typeMirror) {
@@ -170,7 +170,7 @@ class HTTPControllerBinder {
     var parseWith = (HTTPControllerParameterBinder binder) {
       var value = binder.parse(request);
       if (value == null && binder.isRequired) {
-        return new HTTPValueBinding.error("Missing ${binder.binding.type} '${binder.name}'");
+        return new HTTPValueBinding.error("Missing ${binder.binding.type} '${binder.name ?? ""}'");
       }
 
       return new HTTPValueBinding(value, symbol: binder.symbol);
@@ -303,17 +303,17 @@ class HTTPControllerParameterBinder {
     binding = mirror.metadata
         .firstWhere((im) => im.reflectee is HTTPBinding, orElse: () => null)
         ?.reflectee;
-    typeMirror = mirror.type;
+    boundValueType = mirror.type;
   }
 
   Symbol symbol;
   String get name => binding.externalName;
-  TypeMirror typeMirror;
+  ClassMirror boundValueType;
   HTTPBinding binding;
   bool isRequired;
 
   dynamic parse(Request request) {
-    return binding.parseValueFrom(typeMirror, request);
+    return binding.parse(boundValueType, request);
   }
 }
 
