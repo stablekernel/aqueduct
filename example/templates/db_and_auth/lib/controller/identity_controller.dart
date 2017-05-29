@@ -1,4 +1,5 @@
 import '../wildfire.dart';
+import '../model/user.dart';
 
 class IdentityController extends HTTPController {
   @httpGet

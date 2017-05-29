@@ -19,7 +19,7 @@ For more information, see [Getting Started](https://aqueduct.io/docs/)
 
 ## Notes
 
-The data model of this application is defined by all declared subclasses of `ManagedObject`. Each of these subclasses is defined in a file in the `model` directory and each of these files must be exported from `wildfire_model.sink`.
+The data model of this application is defined by all declared subclasses of `ManagedObject`. Each of these subclasses is defined in a file in the `model` directory.
 
 Routes and other initialization are configured in `lib/wildfire_sink.dart`.
 

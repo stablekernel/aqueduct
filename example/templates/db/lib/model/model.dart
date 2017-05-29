@@ -1,4 +1,4 @@
-import 'package:wildfire/wildfire.dart';
+import '../wildfire.dart';
 
 class Model extends ManagedObject<_Model> implements _Model {
   @override
