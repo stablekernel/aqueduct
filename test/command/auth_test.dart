@@ -166,7 +166,7 @@ void main() {
     });
 
     test("Update scope of invalid client id fails", () async {
-      var result = await runWith(["set-scope", "--id", "a.b.c", "--scopes", "abc efg", "--stacktrace"]);
+      var result = await runWith(["set-scope", "--id", "a.b.c", "--scopes", "abc efg"]);
       expect(result.exitCode, isNot(0));
       expect(result.output, contains("does not exist"));
     });
