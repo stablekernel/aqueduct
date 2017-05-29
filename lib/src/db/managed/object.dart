@@ -264,7 +264,7 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
   }
 
   @override
-  dynamic asSerializable() => asMap();
+  Map<String, dynamic> asSerializable() => asMap();
 
   @override
   void fromRequestBody(dynamic object) {

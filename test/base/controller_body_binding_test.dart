@@ -50,6 +50,14 @@ void main() {
       expect(JSON.decode(response.body), m);
     });
 
+    test("Can read empty List body", () async {
+      server = await enableController("/", ListTestController);
+      var m = [];
+      var response = await postJSON(m);
+      expect(response.statusCode, 200);
+      expect(JSON.decode(response.body), m);
+    });
+
     test("Body arg can be optional", () async {
       server = await enableController("/", OptionalTestController);
       var m = {
@@ -157,6 +165,14 @@ void main() {
       expect(response.statusCode, 400);
       expect(JSON.decode(response.body)["error"], contains("Missing Body"));
     });
+
+    test("Expect list of objects, got list of strings", () async {
+      server = await enableController("/", ListTestController);
+      var response = await postJSON(["a", "b"]);
+      expect(response.statusCode, 400);
+      expect(JSON.decode(response.body)["error"], contains("Expected List<Map>"));
+      expect(JSON.decode(response.body)["error"], contains("got List<String>"));
+    });
   });
 }
 
@@ -189,7 +205,7 @@ class CrashModel implements HTTPSerializable {
   }
 
   @override
-  dynamic asSerializable() {
+  Map<String, dynamic> asSerializable() {
     return null;
   }
 }

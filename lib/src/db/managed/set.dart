@@ -1,7 +1,6 @@
 import 'dart:collection';
 
 import 'backing.dart';
-import '../../http/serializable.dart';
 import 'managed.dart';
 import '../query/query.dart';
 
@@ -23,8 +22,7 @@ import '../query/query.dart';
 ///          User user;
 ///        }
 class ManagedSet<InstanceType extends ManagedObject> extends Object
-    with ListMixin<InstanceType>
-    implements HTTPSerializable {
+    with ListMixin<InstanceType> {
   /// Creates an empty [ManagedSet].
   ManagedSet() {
     _innerValues = [];
@@ -44,12 +42,6 @@ class ManagedSet<InstanceType extends ManagedObject> extends Object
 
   /// The [ManagedEntity] that represents the [InstanceType].
   ManagedEntity entity;
-
-  /// Whether or not [haveAtLeastOneWhere] has been accessed.
-  ///
-  /// This flag is used internally to determine whether or not a [Query] should
-  /// be built using the values in [haveAtLeastOneWhere].
-  bool get hasWhereBuilder => _whereBuider != null;
 
   /// When building a [Query], apply filters to a property of this type.
   ///
@@ -73,8 +65,6 @@ class ManagedSet<InstanceType extends ManagedObject> extends Object
     _innerValues.length = newLength;
   }
 
-  Map<String, dynamic> get backingMap => haveAtLeastOneWhere.backingMap;
-
   /// Adds an [InstanceType] to this set.
   @override
   void add(InstanceType item) {
@@ -96,23 +86,4 @@ class ManagedSet<InstanceType extends ManagedObject> extends Object
   void operator []=(int index, InstanceType value) {
     _innerValues[index] = value;
   }
-
-  @override
-  dynamic asSerializable() {
-    return _innerValues.map((i) => i.asSerializable()).toList();
-  }
-
-  @override
-  void fromRequestBody(dynamic requestBody) {
-    throw new _ManagedSetExpection("ManagedSet may not be read from request body. Use List<T> instead.");
-  }
-}
-
-class _ManagedSetExpection implements Exception {
-  _ManagedSetExpection(this.message);
-  
-  String message;
-
-  @override
-  String toString() => "ManagedSetException: $message";
 }

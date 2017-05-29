@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:mirrors';
 
 import 'http_controller_internal.dart';
@@ -7,7 +6,6 @@ import 'request_path.dart';
 import 'serializable.dart';
 import '../db/managed/managed.dart';
 import 'router.dart';
-import 'body_decoder.dart';
 import 'http_response_exception.dart';
 import 'request.dart';
 
@@ -322,7 +320,7 @@ class HTTPBody extends HTTPBinding {
       return bodyList.map((object) {
         if (!reflectType(object.runtimeType).isSubtypeOf(reflectType(Map))) {
           throw new HTTPResponseException(
-              400, "Expected Map, got ${request.body.decodedType}");
+              400, "Expected List<Map>, got List<${object.runtimeType}>");
         }
 
         var value = typeArg.newInstance(new Symbol(""), []).reflectee
