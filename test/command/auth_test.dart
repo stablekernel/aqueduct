@@ -9,6 +9,7 @@ import 'cli_helpers.dart';
 void main() {
   var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
   var schema = new Schema.fromDataModel(dataModel);
+  ManagedContext context;
   PersistentStore store;
 
   setUp(() async {
@@ -22,24 +23,25 @@ void main() {
       }
     }
 
-    ManagedContext.defaultContext = new ManagedContext(dataModel, store);
+    context = new ManagedContext.standalone(dataModel, store);
   });
 
   tearDown(() async {
+    ManagedContext.defaultContext = null;
     for (var t in schema.dependencyOrderedTables.reversed) {
       var tableCommands = store.deleteTable(t);
       for (var c in tableCommands) {
         await store.execute(c);
       }
     }
-    await ManagedContext.defaultContext.persistentStore.close();
+    await context.persistentStore.close();
   });
 
   group("Success cases", () {
     test("Can create public client", () async {
       await runWith(["add-client", "--id", "a.b.c"]);
 
-      var q = new Query<ManagedClient>();
+      var q = new Query<ManagedClient>(context);
       var results = await q.fetch();
       expect(results.length, 1);
       expect(results.first.id, "a.b.c");
@@ -52,7 +54,7 @@ void main() {
     test("Can create confidential client", () async {
       await runWith(["add-client", "--id", "a.b.c", "--secret", "abc"]);
 
-      var q = new Query<ManagedClient>();
+      var q = new Query<ManagedClient>(context);
       var results = await q.fetch();
       expect(results.length, 1);
       expect(results.first.id, "a.b.c");
@@ -67,7 +69,7 @@ void main() {
     test("Can create confidential client with redirect uri", () async {
       await runWith(["add-client", "--id", "a.b.c", "--secret", "abc", "--redirect-uri", "http://foobar.com"]);
 
-      var q = new Query<ManagedClient>();
+      var q = new Query<ManagedClient>(context);
       var results = await q.fetch();
       expect(results.length, 1);
       expect(results.first.id, "a.b.c");
@@ -82,7 +84,7 @@ void main() {
     test("Can create client with scope", () async {
       await runWith(["add-client", "--id", "a.b.c", "--allowed-scopes", "xyz"]);
 
-      var q = new Query<ManagedClient>();
+      var q = new Query<ManagedClient>(context);
       var results = await q.fetch();
       expect(results.length, 1);
       expect(results.first.id, "a.b.c");
@@ -95,7 +97,7 @@ void main() {
     test("Can create client with multiple scopes", () async {
       await runWith(["add-client", "--allowed-scopes", "xyz.f abc def", "--id", "a.b.c"]);
 
-      var q = new Query<ManagedClient>();
+      var q = new Query<ManagedClient>(context);
       var results = await q.fetch();
       expect(results.length, 1);
       expect(results.first.id, "a.b.c");
@@ -108,7 +110,7 @@ void main() {
     test("Scope gets collapsed", () async {
       await runWith(["add-client", "--allowed-scopes", "xyz:a xyz xyz:a.f xyz.f", "--id", "a.b.c"]);
 
-      var q = new Query<ManagedClient>();
+      var q = new Query<ManagedClient>(context);
       var results = await q.fetch();
       expect(results.length, 1);
       expect(results.first.id, "a.b.c");
@@ -121,7 +123,7 @@ void main() {
     test("Can set scope on client", () async {
       await runWith(["add-client", "--id", "a.b.c"]);
       await runWith(["set-scope", "--id", "a.b.c", "--scopes", "abc efg"]);
-      var q = new Query<ManagedClient>();
+      var q = new Query<ManagedClient>(context);
       var results = await q.fetch();
       expect(results.length, 1);
       expect(results.first.id, "a.b.c");
@@ -135,7 +137,7 @@ void main() {
   group("Failure cases", () {
     test("Without id fails", () async {
       var processResult = await runWith(["add-client", "--secret", "abcdef"]);
-      var q = new Query<ManagedClient>();
+      var q = new Query<ManagedClient>(context);
       var results = await q.fetch();
       expect(results.length, 0);
 
@@ -145,7 +147,7 @@ void main() {
 
     test("Create public client with redirect uri fails", () async {
       var processResult = await runWith(["add-client", "--id", "foobar", "--redirect-uri", "http://xyz.com"]);
-      var q = new Query<ManagedClient>();
+      var q = new Query<ManagedClient>(context);
       var results = await q.fetch();
       expect(results.length, 0);
 
@@ -155,7 +157,7 @@ void main() {
 
     test("Malformed scope fails", () async {
       var processResult = await runWith(["add-client", "--id", "foobar", "--allowed-scopes", "x\"x"]);
-      var q = new Query<ManagedClient>();
+      var q = new Query<ManagedClient>(context);
       var results = await q.fetch();
       expect(results.length, 0);
 
