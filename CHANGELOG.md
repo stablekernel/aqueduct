@@ -1,5 +1,18 @@
 # aqueduct changelog
 
+## 2.2.0
+
+- The default template created by `aqueduct create` is now mostly empty. Available templates can be listed with `aqueduct create list-templates` and selected with the command-line option `--template`.
+- Bug fixes where `aqueduct auth` would fail to insert new Client IDs.
+- `joinMany` and `joinOne` are deprecated, use `join(set:)` and `join(object:)` instead.
+- `HTTPCodecRepository` replaces `Response.addEncoder` and `HTTPBody.addDecoder`.
+- `Stream`s may now be `Response` bodies.
+- Request bodies may be bound in `HTTPController` with `HTTPBody` metadata.
+- Adds file serving with `HTTPFileController`.
+- Adds `HTTPCachePolicy` to control cache headers for a `Response`.
+- `Request.body` has significantly improved behavior and has been optimized.
+- Content-Length is included instead of `Transfer-Encoding: chunked` when the size of the response body can be determined efficiently.
+
 ## 2.1.1
 
 - Adds `ResourceRegistry`: tracks port-consuming resources like database connections to ensure they are closed when an application shuts down during testing.
