@@ -45,7 +45,13 @@ class WildfireSink extends RequestSink {
   /// the router gets 'compiled' after this method completes and routes cannot be added later.
   @override
   void setupRouter(Router router) {
-
+    // Prefer to use `pipe` and `generate` instead of `listen`.
+    // See: https://aqueduct.io/docs/http/request_controller/
+    router
+      .route("/example")
+      .listen((request) async {
+        return new Response.ok({"key": "value"});
+      });
   }
 
   /// Final initialization method for this instance.
