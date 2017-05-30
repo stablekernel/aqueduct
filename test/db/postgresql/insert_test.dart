@@ -205,7 +205,7 @@ void main() {
       ]
     };
 
-    var u = new GenUser()..readMap(json);
+    var u = new GenUser()..readFromMap(json);
 
     var q = new Query<GenUser>()..values = u;
 

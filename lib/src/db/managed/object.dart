@@ -186,6 +186,11 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
     return super.noSuchMethod(invocation);
   }
 
+  @Deprecated("3.0, use readFromMap instead")
+  void readMap(Map<String, dynamic> keyValues) {
+    readFromMap(keyValues);
+  }
+
   /// Populates the properties of a this instance from a map.
   ///
   /// This method will thrown an exception if a key in the map does not
@@ -195,7 +200,8 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
   ///     var values = JSON.decode(requestBody);
   ///     var user = new User()
   ///       ..readFromMap(values);
-  void readMap(Map<String, dynamic> keyValues) {
+  @override
+  void readFromMap(Map<String, dynamic> keyValues) {
     var mirror = reflect(this);
 
     keyValues.forEach((k, v) {
@@ -243,6 +249,7 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
   ///
   /// Usage:
   ///     var json = JSON.encode(model.asMap());
+  @override
   Map<String, dynamic> asMap() {
     var outputMap = <String, dynamic>{};
 
@@ -261,14 +268,6 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
     });
 
     return outputMap;
-  }
-
-  @override
-  Map<String, dynamic> asSerializable() => asMap();
-
-  @override
-  void fromRequestBody(dynamic object) {
-    readMap(object);
   }
 
   static dynamic _valueEncoder(String key, dynamic value) {
@@ -318,7 +317,7 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
 
         ManagedObject instance = destinationEntity.instanceType
             .newInstance(new Symbol(""), []).reflectee;
-        instance.readMap(value as Map<String, dynamic>);
+        instance.readFromMap(value as Map<String, dynamic>);
 
         return instance;
       } else if (relationshipDescription.relationshipType ==
@@ -339,7 +338,7 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
             (value as List<Map<String, dynamic>>).map((v) {
           ManagedObject instance = destinationEntity.instanceType
               .newInstance(new Symbol(""), []).reflectee;
-          instance.readMap(v);
+          instance.readFromMap(v);
           return instance;
         }));
       }

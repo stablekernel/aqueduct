@@ -118,7 +118,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
   Future<Response> createObject() async {
     InstanceType instance = _query.entity.instanceType
         .newInstance(new Symbol(""), []).reflectee as InstanceType;
-    instance.readMap(request.body.asMap());
+    instance.readFromMap(request.body.asMap());
     _query.values = instance;
 
     _query = await willInsertObjectWithQuery(_query);
@@ -200,7 +200,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
 
     InstanceType instance = _query.entity.instanceType
         .newInstance(new Symbol(""), []).reflectee as InstanceType;
-    instance.readMap(request.body.asMap());
+    instance.readFromMap(request.body.asMap());
     _query.values = instance;
 
     _query = await willUpdateObjectWithQuery(_query);

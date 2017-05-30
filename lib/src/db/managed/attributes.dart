@@ -169,12 +169,12 @@ class ManagedColumnAttributes {
         this.autoincrement = autoincrement;
 }
 
-/// Metadata for a subclass of [ManagedObject] that allows the property to be used in [ManagedObject.readMap] and [ManagedObject.asMap], but is not persisted in the underlying database.
+/// Metadata for a subclass of [ManagedObject] that allows the property to be used in [ManagedObject.readFromMap] and [ManagedObject.asMap], but is not persisted in the underlying database.
 const ManagedTransientAttribute managedTransientAttribute =
     const ManagedTransientAttribute(
         availableAsInput: true, availableAsOutput: true);
 
-/// Metadata for a subclass of [ManagedObject] that indicates it can be used in [ManagedObject.readMap], but is not persisted in the underlying database.
+/// Metadata for a subclass of [ManagedObject] that indicates it can be used in [ManagedObject.readFromMap], but is not persisted in the underlying database.
 const ManagedTransientAttribute managedTransientInputAttribute =
     const ManagedTransientAttribute(
         availableAsInput: true, availableAsOutput: false);
