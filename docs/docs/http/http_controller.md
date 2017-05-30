@@ -35,7 +35,7 @@ Future<Response> getOneUser(@HTTPPath("id") int id) async {
 }
 ```
 
-When a [route contains a path variable](router.md) (like `/users/:id`), the value of that path variable will be available in this argument. It is often the case that a path variable is an optional part of a route (like `/users/[:id]`). Thus, the request `/users` and `/users/:id` get sent to the same controller. There must be a responder method for both variants. For example, the following controller may respond to both `GET /users` and `GET /users/1`:
+When a [route contains a path variable](routing.md) (like `/users/:id`), the value of that path variable will be available in this argument. It is often the case that a path variable is an optional part of a route (like `/users/[:id]`). Thus, the request `/users` and `/users/:id` get sent to the same controller. There must be a responder method for both variants. For example, the following controller may respond to both `GET /users` and `GET /users/1`:
 
 ```dart
 class UserController extends HTTPController {
@@ -156,7 +156,7 @@ Future<Response> createUser(@HTTPBody() User user) async {
 
 Body binding is available for both properties and responder method parameters, just like query and header bindings.
 
-An type must implement `HTTPSerializable` to be bound to a request body. This interface requires that the method `fromRequestBody` be implemented:
+An type must implement `HTTPSerializable` to be bound to a request body. This interface requires that the method `readFromMap` be implemented:
 
 ```dart
 class Person implements HTTPSerializable {
@@ -164,13 +164,13 @@ class Person implements HTTPSerializable {
   String email;
 
   @override
-  void fromRequestBody(Map<String, dynamic> requestBody) {
+  void readFromMap(Map<String, dynamic> requestBody) {
     name = requestBody["name"];
     email = requestBody["email"];
   }
 
   @override
-  Map<String, dynamic> asSerializable() {
+  Map<String, dynamic> asMap() {
     return {
       "name": name,
       "email": email
@@ -272,7 +272,7 @@ A `QueryController<T>` builds a `Query<T>` based on the incoming request. If the
 Future<Response> updateUser(@HTTPPath("id") int id) async {
   var query = new Query<User>()
     ..where.id = whereEqualTo(id)
-    ..values = (new User()..readMap(request.body.asMap());
+    ..values = (new User()..readFromMap(request.body.asMap());
 
   return new Response.ok(await query.updateOne());
 }

@@ -126,7 +126,7 @@ class ResourceController extends HTTPController {
 
   @httpPost
   Future<Response> createResource() async {
-    var resource = new Resource()..readMap(request.body.asMap());
+    var resource = new Resource()..readFromMap(request.body.asMap());
     var inserted = await insertResource(resource);
     return new Response.ok(inserted);
   }
@@ -254,8 +254,8 @@ bob = await updateQuery.updateOne();
 ```dart
 var query = new Query<Employee>()
   ..where.name = "Sue Gallagher"
-  ..joinOne((e) => e.manager)
-  ..joinMany((e) => e.directReports);
+  ..join(object: (e) => e.manager)
+  ..join(set: (e) => e.directReports);
 
 var herAndHerManagerAndHerDirectReports = await query.fetchOne();
 ```

@@ -1,6 +1,6 @@
 # Modeling Data
 
-In Aqueduct, data from a database is represented by *managed objects*. A managed object is an instance of some subclass of `ManagedObject<T>`. Each instance represents a row in the database. Managed objects are declared like so:
+In Aqueduct, database tables are modeled by subclassing `ManagedObject<T>`. These are declared like so:
 
 ```dart
 class User extends ManagedObject<_User> implements _User {  
@@ -14,22 +14,19 @@ class _User {
 }
 ```
 
-Here, we have declared that there is a `User` type. An instance of `User` is an object that represents a row in a `_User` table. The `_User` table has two columns: a primary key integer named `id` and a string named `name`. This deserves an explanation.
+This declares a `User` type for use in application code. The `_User` type describes a table named `_User` in a database. The table has two columns, a primary key integer named `id` and a text column named `name`.
 
-The first class - `User` - is the type you will use in your application code - you will get instances of `User` from the database, you will create instances of `User` to insert them in the database, you will decode JSON from an HTTP request body into `User` instances and you will encode `User` instances into JSON in an HTTP response body. This class - referred to as an *instance type* - must extend `ManagedObject<T>`. The class `ManagedObject<T>` has behavior to make these tasks easier on the developer.
+An instance of `User` represents a row in the `_User` table. When you fetch rows from the `_User` table, you will get instances of `User`. This type - referred to as the *instance type* of a managed object - must subclass `ManagedObject<T>`.
 
-The second class - `_User` - declares the mapping to a database table. That is, it declares that there is a table named `_User` in the database with two columns, `id` and `name`. This class is referred to as a *persistent type*. A persistent type, by convention, is prefixed with an underscore. This is for two reasons. First, the underscore makes it can't be used in other files - because it shouldn't be. Second, some databases have predefined tables and you may want to have similarly named tables in your application. For example, there is a `user` table in PostgreSQL. The prefix makes it so you don't have a name collision with a predefined table. (Later in the guide, we'll go over how to name tables differently than the persistent type name, but this is rarely useful.)
+The type argument of `ManagedObject<T>` declares the table that backs instances of this type. The table definition type - `_User` - is called the *persistent type* of a managed object. Properties in the persistent type must have a corresponding column in the database. Properties in the instance type are not stored in a database and are called *transient*.
 
-A persistent type and instance type are always declared in pairs. The persistent type is used twice in the declaration of the instance type: as the type argument to `ManagedObject<T>` and as an interface the instance type implements. In the above example, `User` implements `_User`, therefore `User` has two properties: `id` and `name`. Let's say we create a new `User` instance and set its `name`:
+An instance type should implement its persistent type, e.g. `implements _User`. This allows `User` to have the properties `id` and `name`.
 
-```dart
-var user = new User();
-user.name = "Bob";
-```
+A persistent type, by convention, is prefixed with an underscore. This is for two reasons. First, the underscore makes it can't be used in other files - because it shouldn't be. Second, some databases have predefined tables and you may want to have similarly named tables in your application. For example, there is a `user` table in PostgreSQL. The prefix makes it so you don't have a name collision with a predefined table. (Later in the guide, we'll go over how to name tables differently than the persistent type name, but this is rarely useful.)
 
-This is where `ManagedObject<T>` starts doing its job. Each `ManagedObject<T>` stores its values in an internal `Map`. The keys in this map are the names of the properties from the persistent type. When an accessor method on `User` is invoked, the values are fetched from or stored in that internal `Map`. The code in `ManagedObject<T>` *manages* the storage and validation of those values by ensuring they meet the definition in the persistent type.
+A `ManagedObject<T>` manages the storage and validation of properties that are stored in a database - i.e. the properties declared in the persistent type.
 
-The distinction between persistent type and instance type allows for many of the powerful features of Aqueduct, which are covered by other guides in this documentation.  For now, the key takeaway is that the persistent type must map directly to a database table - every property must correspond to a database column, and vice versa. Aqueduct has tools to generate database tables based on the declaration of persistent types in an application (see [Aqueduct Database Tool](db_tools.md)).
+The distinction between persistent type and instance type allows for many of the powerful features of Aqueduct, which are covered by other guides. For now, the key takeaway is that the persistent type must map directly to a database table - every property must correspond to a database column, and vice versa. Aqueduct has tools to generate database tables based on the declaration of persistent types in an application (see [Aqueduct Database Tool](db_tools.md)).
 
 ### More on Persistent Types
 
@@ -67,7 +64,7 @@ There are eight configurable items available in the `ManagedColumnAttributes` cl
 * `omitByDefault` - Toggles whether or not this property should be fetched from the database by default. Useful for properties like hashed passwords, where you don't want to return that information when fetching an account unless you explicitly want to check the password.
 * `autoincrement` - Toggles whether or not the underlying database should generate a new value from a serial generator each time a new instance is inserted into the database.
 
-By not specifying `ManagedColumnAttributes`, the default values for each of these possible configurations is used and the database type is inferred from the type of the property. This also means that all properties declared in a persistent type represent a column in a database table - even without `ManagedColumnAttributes` metadata.
+By not specifying `ManagedColumnAttributes`, the default values for each of these possible configurations is used and the database type is inferred from the type of the property. This also means that *all* properties declared in a persistent type represent a column in a database table - even without `ManagedColumnAttributes` metadata.
 
 Every persistent type must have at least one property with `ManagedColumnAttributes` where `primaryKey` is true. There is a convenience instance of `ManagedColumnAttributes` for this purpose, `@managedPrimaryKey`, which is equivalent to the following:
 
@@ -94,17 +91,13 @@ Note that the specific database driver determines whether or not the table name 
 
 Where persistent types simply declare a mapping to a database table, `ManagedObject<T>`s do the actual work of lugging data between HTTP clients, Aqueduct applications and databases.
 
-Managed objects can be inserted into a database and fetched back from that database. They can be used to configure an update to a database row. They can read their values from a `Map` and write them into a `Map` - this `Map` can safely be encoded to or decoded from JSON or another transmission format. This allows `ManagedObject<T>`s to be exactly represented in an HTTP request or response. Managed objects also lay the foundation for building queries. Here's an example of a common lifecycle of a `ManagedObject<T>` subclass, `User`:
+Managed objects can be inserted into and fetched from a database. They can be used to configure an update to a database row. They can read their values from a `Map` and write them into a `Map` - this `Map` can safely be encoded to or decoded from JSON or another transmission format. This allows `ManagedObject<T>`s to be exactly represented in an HTTP request or response. Managed objects also lay the foundation for building queries. Here's an example of a common lifecycle of a `ManagedObject<T>` subclass, `User`:
 
 ```dart
-@httpPost createThing() async {
-  // Construct User from HTTP request body JSON
-  var userFromRequestBody = new User()
-    ..readMap(requestBody);
-
+@httpPost createThing(@HTTPBody() User user) async {
   // Construct Query for inserting the user, using values from the request body.
   var insertQuery = new Query<User>()
-    ..values = userFromRequestBody;
+    ..values = user;
 
   // Execute insert, get User back from database
   var insertedUser = await insertQuery.insert();
@@ -153,7 +146,7 @@ class _Video {
 
 Each video has a persistent property that indicates when the video was uploaded. As a convenience, you'd like to be able to determine if a video is "recent" - that is, it has been uploaded in the last week. Adding an `isRecent` property to the persistent type doesn't make any sense, because that information can be derived from the existing upload date property. This is a good place to use a transient property.
 
-By default, transient properties are not included when a `ManagedObject<T>` is written into or read from a `Map`. So when a `Video` is returned as JSON in an HTTP response - `isRecent` won't be in the HTTP body. However, this is just the default behavior and can easily be changed, though - see [Storage, Serialization and Deserialization](serialization.md) for more details.
+By default, transient properties are not included when a `ManagedObject<T>` is written into or read from a `Map`. When a `Video` is returned as JSON in an HTTP response, `isRecent` won't be in the HTTP body. However, this is just the default behavior and can easily be changed, though - see [Storage, Serialization and Deserialization](serialization.md) for more details.
 
 You may also override a `ManagedObject<T>`s `asMap()` method to get to similar behavior:
 
@@ -171,9 +164,9 @@ class Video extends ManagedObject<_Video> implements _Video {
 
 In addition to attributes, managed objects may also have properties that are other managed objects or collections of managed objects. These types of properties are called *relationships*. For example, in a social network application, a user may have many posts that they have created. A user, then, should have a property that is a list of posts. This is called a 'has-many' relationship, because a user can have many posts.
 
-A user might also have a job, so the user type should also have a property that references their job. This is called a 'has-one' relationship, because a user can only ever have one job at a time (... work with me here).
+A user might also have a job, so the user type should also have a property that references their job. This is called a 'has-one' relationship, because a user can only ever have one job at a time.
 
-These relationships are also properties declared in a persistent type. In the above examples, a user would look like this:
+Relationships are also properties declared in a persistent type. In the above examples, a user would look like this:
 
 ```dart
 class User extends ManagedObject<_User> implements _User {}
@@ -186,21 +179,15 @@ class _User {
 }
 ```
 
-The type `ManagedSet` is what indicates that the relationship is has-many. A `ManagedSet` is a glorified `List` - it can do everything a `List` can do - but has some additional behavior to help manage relationships and build queries. The type argument - here, `Post` - must be another `ManagedObject<T>` subclass. That means there is also a `_Post` table. If the type of a property is a just a `ManagedObject<T>` subclass - like `Job` - the relationship is has-one. One thing to note here is that all things 'database related' are declared inside the persistent type. The persistent type declares the database table, attribute properties declare the columns the table has, and relationship properties declare relationships to other database tables.
+If the type of a property is a `ManagedObject<T>` subclass - like `Job` - the relationship is has-one.
 
-The relationship properties in `_User` do not represent columns in a database - they represent *entire rows* in a database table. Relationships in the database are maintained by foreign key reference columns. Therefore, the types `Job` and `Post` must have a column that stores the foreign key to `_User`. These properties are declared like so:
+The type `ManagedSet` is what indicates that the relationship is has-many. A `ManagedSet` is a glorified `List` - it can do everything a `List` can do - but has some additional behavior to help manage relationships and build queries. The type argument must be a `ManagedObject<T>` subclass.
+
+One thing to note here is that all things 'database related' are declared inside the persistent type. The persistent type declares the database table, attribute properties declare the columns the table has, and relationship properties declare relationships to other database tables.
+
+The relationship properties in `_User` do not represent columns in a database - they represent *entire rows* in a database table. Relationships in the database are maintained by foreign key constraints. Therefore, the types `Job` and `Post` must have a column that stores the primary key of a  `_User`. Let's look at `Job` first:
 
 ```dart
-class Post extends ManagedObject<_Post> implements _Post {}
-class _Post {
-  @managedPrimaryKey
-  int id;
-  String text;
-
-  @ManagedRelationship(#posts)
-  User user;
-}
-
 class Job extends ManagedObject<_Job> implements _Job {}
 class _Job {
   @managedPrimaryKey
@@ -212,18 +199,29 @@ class _Job {
 }
 ```
 
+`Job.user` is a relationship property because it is a `ManagedObject<T>` subclass. It is the *inverse* property of `User.job`. All relationship properties must have an inverse. In other words, if a user has a job, then a job has a user. The inverse is set up by adding `ManagedRelationship` data to one of the relationship properties. The argument to `ManagedRelationship` is the name of the property on the other type.
 
-The properties `user` on both `_Post` and `_Job` have `ManagedRelationship` metadata and are the *inverses* of the `_User`'s `posts` and `job` properties. All relationships must have an inverse. In other words, if a `User` has `posts`, then a `Post` has a `user`. The first argument to `ManagedRelationship` is what links relationships together. For example, the value `#job` for a `Job`'s `user` indicates that the name of the property for a `User`'s job is `job`. Because tables can have multiple references to the same table, it's important that a distinction is made and therefore this value is required.
+Only one side of the relationship may have `ManagedRelationship` metadata. The side with this metadata is said to *belong to* the other side. Thus, a `Job` belongs to a `User` and a `User` has-one `Job`. The property with `ManagedRelationship` metadata is represented by a foreign key column in the database. The table `_Job`, then, has three columns: `id`, `title` and `user_id`. The name `user_id` is generated by joining the name of the relationship property with the name of the primary key on the other object.
 
-Because `user` has `ManagedRelationship` metadata in both `_Post` and `_Job`, it is said that `_Post`s and `_Job`s *belong to* `_User`. `_User`, on the other hand, *has one* `_Job` and *has many* `_Post`s. Relationships may not belong to each other, so only one side of a relationship property may have the `ManagedRelationship` metadata and that property cannot be a `ManagedSet<T>`.
+Setting the inverse of a has-many relationship is done in the same way, so `Post` would be declared like so:
 
-In the underlying database, properties with `ManagedRelationship` metadata are actually a foreign key column. Therefore, `_Post` has three columns: `id`, `title` and `user_id`. Whereas `User` still only has two columns, `name` and `id`, even though it declares properties for `Job` and `Post`.
+```dart
+class Post extends ManagedObject<_Post> implements _Post {}
+class _Post {
+  @managedPrimaryKey
+  int id;
+  String text;
 
-The types of relationship properties must always be the instance type, not the persistent type. In other words, `User`'s `job` is of type `Job`, not `_Job`.
+  @ManagedRelationship(#posts)
+  User user;
+}
+```
+
+The types of relationship properties must always be the instance type, not the persistent type. In other words, `User.job` is of type `Job`, not `_Job`.
 
 When an application starts up, relationships are checked for integrity. This check ensures that relationships are two-sided and only one property has the `ManagedRelationship` metadata. If they do not, an exception will be thrown.
 
-`ManagedRelationship` properties are always indexed; although this may change in the future to be configurable, but it will always be the default. Additionally, `ManagedRelationship` properties specify that the column is unique if the other side is a 'has-one' relationship. Because the `ManagedRelationship` property is actually a foreign key column, it may also define some extra configuration parameters: a delete rule and whether or not it is required.
+`ManagedRelationship` properties are always indexed; this may change in the future to be configurable, but it will always be the default. Additionally, the column backing `ManagedRelationship` properties are unique if the other side is a 'has-one' relationship. Because the `ManagedRelationship` property is actually a foreign key column, it may also define some extra configuration parameters: a delete rule and whether or not it is required.
 
 By making `Post.user` required, we will require that every `Post` must have a user in order to be inserted into the database. This means that a `Post` cannot exist without a user (i.e., the foreign key may not be null),
 
@@ -235,12 +233,12 @@ class _Post {
 }
 ```
 
-By changing the `Profile.user` delete rule to `RelationshipDeleteRule.cascade`, deleting a `User` will also delete its `Profile`:
+By changing the `Job.user` delete rule to `RelationshipDeleteRule.cascade`, deleting a `User` will also delete its `Job`:
 
 ```dart
-class _Profile {
+class _Job {
   ...
-  @ManagedRelationship(#profile, onDelete: ManagedRelationshipDeleteRule.cascade)
+  @ManagedRelationship(#job, onDelete: ManagedRelationshipDeleteRule.cascade)
   User user;
 }
 ```
@@ -257,7 +255,7 @@ var userMap = user.asMap();
 userMap == {
   'id' : 1,
   'name' : 'Bob'
-}; // does not contain 'profile' or 'posts'
+}; // does not contain 'job' or 'posts'
 ```
 
 In order to fetch these types of relationships, you must explicitly configure a `Query<T>` to include them, which executes a SQL join. This is covered in the [Executing Queries](executing_queries.md).

@@ -83,14 +83,14 @@ When a body object is a `Stream<T>`, the response will not be sent until the str
 
 ### Custom Objects
 
-Any object may be the body object of a `Response` if it implements `HTTPSerializable`. An object conforming to this type must implement `asSerializable()`, which gets invoked on the body object prior to it being sent to the first encoding step. For example, the following object can be used as a body object and is automatically converted into a `Map` and then JSON encoded:
+Any object may be the body object of a `Response` if it implements `HTTPSerializable`. An object conforming to this type must implement `asMap()`, which gets invoked on the body object prior to it being sent to the first encoding step. For example, the following object can be used as a body object and is automatically converted into a `Map` and then JSON encoded:
 
 ```dart
 class Person implements HTTPSerializable {
   String name;
   String email;
 
-  Map<String, dynamic> asSerializable() {
+  Map<String, dynamic> asMap() {
     return {
       "name": name,
       "email": email

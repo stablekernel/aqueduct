@@ -64,13 +64,13 @@ class _Answer {
 }
 ```
 
-Now that we have defined this relationship, we can associate answers with questions and return them in our `/questions` endpoint. In `question_controller.dart`, let's update the queries to fetch the `Answer` for each `Question` and include it in the response JSON. First, for `getAllQuestions`, use `joinOne()` to connect to `question.answer` for `where`'s `answer`:
+Now that we have defined this relationship, we can associate answers with questions and return them in our `/questions` endpoint. In `question_controller.dart`, let's update the queries to fetch the `Answer` for each `Question` and include it in the response JSON. First, for `getAllQuestions`, use `join()` to connect to `question.answer` for `where`'s `answer`:
 
 ```dart
 @httpGet
 Future<Response> getAllQuestions({@HTTPQuery("contains") String containsSubstring: null}) async {
   var questionQuery = new Query<Question>()
-    ..joinOne((question) => question.answer);
+    ..join(object: (question) => question.answer);
 
   if (containsSubstring != null) {
     questionQuery.where.description = whereContainsString(containsSubstring);
@@ -197,14 +197,14 @@ The inverse relationship doesn't have to be updated - whether it is has-one or h
 
 ```dart
 var query = new Query<Question>()
-  ..joinMany((question) => question.answers);  
+  ..join(set: (question) => question.answers);  
 ```
 
-Each returned `Question` would also have a `ManagedSet` of `Answer`s in its `answers` property. You may also filter which answers are returned for each `Question`. A `joinMany` or `joinOne` creates a new `Query<T>` that has its own `where` property.
+Each returned `Question` would also have a `ManagedSet` of `Answer`s in its `answers` property. You may also filter which answers are returned for each `Question`. A `join` creates a new `Query<T>` that has its own `where` property.
 
 ```dart
 var query = new Query<Question>();
-var join = query.joinMany((question) => question.answers)
+var join = query.join(set: (question) => question.answers)
   ..where.isCorrect = whereEqualTo(true);  
 ```
 

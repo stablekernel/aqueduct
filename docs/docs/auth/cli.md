@@ -1,10 +1,10 @@
 # Manage OAuth 2.0 Clients
 
-The `aqueduct auth` command line tool creates OAuth 2.0 client application identifiers and inserts them into an application's database. To use this tool, you must use `ManagedAuthStorage` for an `AuthServer`'s `storage`.
+The `aqueduct auth` command line tool creates OAuth 2.0 client application identifiers and inserts them into an application's database. To use this tool, you must use `ManagedAuthStorage` for an `AuthServer.storage` and you must have executed a database migration after importing `package:aqueduct/managed_auth.dart`.
 
 Exchanging credentials for an authorization token requires a registered client identifier. A token belongs to both the authenticating user and the client application. Clients are represented by instances of `ManagedClient` from `aqueduct/managed_auth`. Authenticating clients must provide their client ID (and client secret, if applicable) in the Authorization header when requesting access tokens.
 
-An application's database must have already been provisioned such that the table that backs `ManagedClient` exists. (See [Generating Databases](../db/db_tools.md).) An OAuth 2.0 client must have a string identifier that uniquely identifies the client. For example, `com.food_app.mobile` may be a client identifier for the mobile applications for some 'Food App'.
+An OAuth 2.0 client must have a string identifier that uniquely identifies the client. For example, `com.food_app.mobile` may be a client identifier for the mobile applications for some 'Food App'.
 
 To create a simple OAuth 2.0 client, the following command line utility can be run:
 
@@ -16,9 +16,9 @@ aqueduct auth add-client \
 
 The `connect` option identifies the database for the application, which this tool will connect to and insert a record into the `ManagedClient` database table. The identifier is provided through the `id` option.
 
-An OAuth 2.0 client created in this way is a *public* client; there is no client secret. An OAuth 2.0 client that uses the resource owner grant flow, but cannot secure its client secret should use this type of client. An application can't secure its client secret if its source code is viewable - like any JavaScript application. It is suggested that native mobile applications also use public clients because their source code could potentially disassembled to reveal a client secret, but this in practice this isn't all that common.
+An OAuth 2.0 client created in this way is a *public* client; there is no client secret. An OAuth 2.0 client that uses the resource owner grant flow, but cannot secure its client secret, should use this type of client. An application can't secure its client secret if its source code is viewable - like any JavaScript application. It is suggested that native mobile applications also use public clients because their source code could potentially disassembled to reveal a client secret, but this in practice this isn't all that common.
 
-To include a public client in an authorization header, the client secret is omitted. The string to base64 encode is `ClientID:`, where the colon (`:`) is required. For example, to generate an authorization header in Dart for a public client:
+To include a public client in an authorization header, the client secret is omitted. The string to base64 encode is `$clientID:`, where the colon (`:`) is required. For example, to generate an authorization header in Dart for a public client:
 
 ```
 var clientID = "com.foobar.xyz";
@@ -57,7 +57,7 @@ aqueduct auth add-client \
   --connect postgres://user:password@dbhost:5432/food_app
 ```
 
-Scopes are space-delimited and must be enclosed in quotes such that your shell will treat the entire string as one value.
+Scopes are space-delimited and must be enclosed in quotes so that your shell will treat the entire string as one value.
 
 Scope may be set after a client has already been created with `aqueduct auth set-scope`:
 
