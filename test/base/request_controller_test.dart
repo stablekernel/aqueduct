@@ -262,10 +262,10 @@ class SomeObject implements HTTPSerializable {
   String name;
 
   @override
-  void fromRequestBody(dynamic any) {}
+  void readFromMap(dynamic any) {}
 
   @override
-  Map<String, dynamic> asSerializable() {
+  Map<String, dynamic> asMap() {
     return {"name": name};
   }
 }

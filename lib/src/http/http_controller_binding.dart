@@ -248,7 +248,7 @@ class HTTPQuery extends HTTPBinding {
 /// This metadata may be applied to a responder method argument or a property of an [HTTPController]. The body of an incoming
 /// request is decoded into the argument or property. The argument or property *must* implement [HTTPSerializable] or be
 /// a [List<HTTPSerializable>]. If the property or argument is a [List<HTTPSerializable>], the request body must be decoded into
-/// a [List] of objects (i.e., a JSON array) and [HTTPSerializable.fromRequestBody] is invoked for each object.
+/// a [List] of objects (i.e., a JSON array) and [HTTPSerializable.readFromMap] is invoked for each object.
 ///
 /// Note that [ManagedObject] implements [HTTPSerializable].
 ///
@@ -301,7 +301,7 @@ class HTTPBody extends HTTPBinding {
 
       var value = intoType.newInstance(new Symbol(""), []).reflectee
           as HTTPSerializable;
-      value.fromRequestBody(request.body.asMap());
+      value.readFromMap(request.body.asMap());
 
       return value;
     } else if (intoType.isSubtypeOf(reflectType(List))) {
@@ -325,7 +325,7 @@ class HTTPBody extends HTTPBinding {
 
         var value = typeArg.newInstance(new Symbol(""), []).reflectee
             as HTTPSerializable;
-        value.fromRequestBody(object);
+        value.readFromMap(object);
 
         return value;
       }).toList();

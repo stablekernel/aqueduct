@@ -87,15 +87,15 @@ class Response implements RequestOrResponse {
   /// Sets the unencoded response body.
   ///
   /// This may be any value that can be encoded into an HTTP response body. If this value is a [HTTPSerializable] or a [List] of [HTTPSerializable],
-  /// each instance of [HTTPSerializable] will transformed via its [HTTPSerializable.asSerializable] method before being set.
+  /// each instance of [HTTPSerializable] will transformed via its [HTTPSerializable.asMap] method before being set.
   set body(dynamic initialResponseBody) {
     var serializedBody;
     if (initialResponseBody is HTTPSerializable) {
-      serializedBody = initialResponseBody.asSerializable();
+      serializedBody = initialResponseBody.asMap();
     } else if (initialResponseBody is List) {
       serializedBody = initialResponseBody.map((value) {
         if (value is HTTPSerializable) {
-          return value.asSerializable();
+          return value.asMap();
         } else {
           return value;
         }

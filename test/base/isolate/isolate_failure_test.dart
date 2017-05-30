@@ -120,15 +120,17 @@ class TimeoutSink extends RequestSink {
       return;
     }
 
-    print("Waiting for $timeoutLength seconds...");
-    await new Future.delayed(new Duration(seconds: timeoutLength ~/ 4));
-    print("... 1/4 ...");
-    await new Future.delayed(new Duration(seconds: timeoutLength ~/ 4));
-    print("... 2/4 ...");
-    await new Future.delayed(new Duration(seconds: timeoutLength ~/ 4));
-    print("... 3/4 ...");
-    await new Future.delayed(new Duration(seconds: timeoutLength ~/ 4));
-    print("Done waiting.");
+    var completer = new Completer();
+    var elapsed = 0;
+    var timer = new Timer.periodic(new Duration(milliseconds: 500), (t) {
+      elapsed += 500;
+      print("waiting...");
+      if (elapsed > timeoutLength * 1000) {
+        completer.complete();
+        t.cancel();
+      }
+    });
+    await completer.future;
   }
 }
 

@@ -17,7 +17,7 @@ import 'http.dart';
 /// 1. The [Query] will always have a type argument that matches [InstanceType].
 /// 2. If the request contains a path variable that matches the name of the primary key of [InstanceType], the [Query] will set
 /// its [Query.where] to match on the [ManagedObject] whose primary key is that value of the path parameter.
-/// 3. If the [Request] contains a body, it will be decoded per the [acceptedContentTypes] and deserialized into the [Query.values] property via [ManagedObject.readMap].
+/// 3. If the [Request] contains a body, it will be decoded per the [acceptedContentTypes] and deserialized into the [Query.values] property via [ManagedObject.readFromMap].
 abstract class QueryController<InstanceType extends ManagedObject>
     extends HTTPController {
   /// Create an instance of [QueryController]. By default, [context] is the [ManagedContext.defaultContext].
@@ -32,7 +32,7 @@ abstract class QueryController<InstanceType extends ManagedObject>
   /// 1. The [Query] will always have a type argument that matches [InstanceType].
   /// 2. If the request contains a path variable that matches the name of the primary key of [InstanceType], the [Query] will set
   /// its [Query.where] to match on the [ManagedObject] whose primary key is that value of the path parameter.
-  /// 3. If the [Request] contains a body, it will be decoded per the [acceptedContentTypes] and deserialized into the [Query.values] property via [ManagedObject.readMap].
+  /// 3. If the [Request] contains a body, it will be decoded per the [acceptedContentTypes] and deserialized into the [Query.values] property via [ManagedObject.readFromMap].
   Query<InstanceType> query;
 
   @override
@@ -63,7 +63,7 @@ abstract class QueryController<InstanceType extends ManagedObject>
 
   @override
   void didDecodeRequestBody(HTTPRequestBody body) {
-    query.values.readMap(body.asMap());
+    query.values.readFromMap(body.asMap());
     query.values.removePropertyFromBackingMap(query.values.entity.primaryKey);
   }
 }

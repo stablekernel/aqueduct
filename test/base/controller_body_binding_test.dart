@@ -99,7 +99,7 @@ void main() {
       expect(response.statusCode, 500);
     });
 
-    test("fromRequestBody throws uncaught error should return a 500", () async {
+    test("fromMap throws uncaught error should return a 500", () async {
       server = await enableController("/", CrashController);
       var m = {
         "id": 1,
@@ -200,12 +200,12 @@ class _TestModel {
 
 class CrashModel implements HTTPSerializable {
   @override
-  void fromRequestBody(dynamic requestBody) {
+  void readFromMap(dynamic requestBody) {
     throw new Exception("whatever");
   }
 
   @override
-  Map<String, dynamic> asSerializable() {
+  Map<String, dynamic> asMap() {
     return null;
   }
 }

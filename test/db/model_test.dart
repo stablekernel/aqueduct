@@ -137,12 +137,12 @@ void main() {
     ];
 
     var user = new User();
-    user.readMap(map);
+    user.readFromMap(map);
 
     expect(user.id, 1);
     expect(user.name, "Bob");
 
-    var posts = postMap.map((e) => new Post()..readMap(e)).toList();
+    var posts = postMap.map((e) => new Post()..readFromMap(e)).toList();
     expect(posts[0].id, 1);
     expect(posts[1].id, 2);
     expect(posts[0].text, "hey");
@@ -155,7 +155,7 @@ void main() {
     var user = new User();
     var successful = false;
     try {
-      user.readMap(map);
+      user.readFromMap(map);
       successful = true;
     } on QueryException catch (e) {
       expect(e.toString(), "Key bad_key does not exist for User");
@@ -165,7 +165,7 @@ void main() {
 
   test("Reading from map with non-assignable type fails", () {
     try {
-      new User()..readMap({"id": "foo"});
+      new User()..readFromMap({"id": "foo"});
       expect(true, false);
     } on ManagedDataModelException {}
   });
@@ -174,7 +174,7 @@ void main() {
     var dateString = "2000-01-01T05:05:05.010Z";
     var map = {"id": 1, "name": "Bob", "dateCreated": dateString};
     var user = new User();
-    user.readMap(map);
+    user.readFromMap(map);
 
     expect(
         user.dateCreated.difference(DateTime.parse(dateString)), Duration.ZERO);
@@ -187,7 +187,7 @@ void main() {
       "Handles input of type num for double precision float properties of the model",
       () {
     var m = new TransientTypeTest()
-      ..readMap({
+      ..readFromMap({
         "transientDouble": 30,
       });
 
@@ -200,7 +200,7 @@ void main() {
       "id": 1,
       "owner": {"name": "Alex", "id": 18}
     };
-    var post = new Post()..readMap(postMap);
+    var post = new Post()..readFromMap(postMap);
     expect(post.text, "hey");
     expect(post.id, 1);
     expect(post.owner.id, 18);
@@ -212,7 +212,7 @@ void main() {
     var post = new Post();
     var successful = false;
     try {
-      post.readMap(postMap);
+      post.readFromMap(postMap);
       successful = true;
     } on QueryException catch (e) {
       expect(e.toString(),
@@ -252,28 +252,28 @@ void main() {
 
   test("Transient properties aren't stored in backing", () {
     var t = new TransientTest();
-    t.readMap({"inOut": 2});
+    t.readFromMap({"inOut": 2});
     expect(t.inOut, 2);
     expect(t["inOut"], isNull);
   });
 
   test("mappableInput properties are read in readMap", () {
-    var t = new TransientTest()..readMap({"id": 1, "defaultedText": "bar foo"});
+    var t = new TransientTest()..readFromMap({"id": 1, "defaultedText": "bar foo"});
     expect(t.id, 1);
     expect(t.text, "foo");
     expect(t.inputInt, isNull);
     expect(t.inOut, isNull);
 
-    t = new TransientTest()..readMap({"inputOnly": "foo"});
+    t = new TransientTest()..readFromMap({"inputOnly": "foo"});
     expect(t.text, "foo");
 
-    t = new TransientTest()..readMap({"inputInt": 2});
+    t = new TransientTest()..readFromMap({"inputInt": 2});
     expect(t.inputInt, 2);
 
-    t = new TransientTest()..readMap({"inOut": 2});
+    t = new TransientTest()..readFromMap({"inOut": 2});
     expect(t.inOut, 2);
 
-    t = new TransientTest()..readMap({"bothOverQualified": "foo"});
+    t = new TransientTest()..readFromMap({"bothOverQualified": "foo"});
     expect(t.text, "foo");
   });
 
@@ -294,13 +294,13 @@ void main() {
 
   test("Transient properties are type checked in readMap", () {
     try {
-      new TransientTest()..readMap({"id": 1, "defaultedText": 2});
+      new TransientTest()..readFromMap({"id": 1, "defaultedText": 2});
 
       throw 'Unreachable';
     } on QueryException {}
 
     try {
-      new TransientTest()..readMap({"id": 1, "inputInt": "foo"});
+      new TransientTest()..readFromMap({"id": 1, "inputInt": "foo"});
 
       throw 'Unreachable';
     } on QueryException {}
@@ -308,27 +308,27 @@ void main() {
 
   test("Properties that aren't mappableInput are not read in readMap", () {
     try {
-      new TransientTest()..readMap({"outputOnly": "foo"});
+      new TransientTest()..readFromMap({"outputOnly": "foo"});
       throw 'Unreachable';
     } on QueryException {}
 
     try {
-      new TransientTest()..readMap({"invalidOutput": "foo"});
+      new TransientTest()..readFromMap({"invalidOutput": "foo"});
       throw 'Unreachable';
     } on QueryException {}
 
     try {
-      new TransientTest()..readMap({"invalidInput": "foo"});
+      new TransientTest()..readFromMap({"invalidInput": "foo"});
       throw 'Unreachable';
     } on QueryException {}
 
     try {
-      new TransientTest()..readMap({"bothButOnlyOnOne": "foo"});
+      new TransientTest()..readFromMap({"bothButOnlyOnOne": "foo"});
       throw 'Unreachable';
     } on QueryException {}
 
     try {
-      new TransientTest()..readMap({"outputInt": "foo"});
+      new TransientTest()..readFromMap({"outputInt": "foo"});
       throw 'Unreachable';
     } on QueryException {}
   });
@@ -365,7 +365,7 @@ void main() {
     var dateString = "2016-10-31T15:40:45+00:00";
 
     var m = (new TransientTypeTest()
-          ..readMap({
+          ..readFromMap({
             "transientInt": 5,
             "transientBigInt": 123456789,
             "transientString": "lowercase string",
@@ -394,7 +394,7 @@ void main() {
 
   test("Reading hasMany relationship from JSON succeeds", () {
     var u = new User();
-    u.readMap({
+    u.readFromMap({
       "name": "Bob",
       "id": 1,
       "posts": [
@@ -411,7 +411,7 @@ void main() {
       () {
     var t = new TransientTest();
     try {
-      t.readMap({"notAnAttribute": true});
+      t.readFromMap({"notAnAttribute": true});
       expect(true, false);
     } on QueryException {}
 
