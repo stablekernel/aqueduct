@@ -393,6 +393,18 @@
   </li>
 
         
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="http/serving_files/" title="Serving Files and Caching" class="md-nav__link">
+      Serving Files and Caching
+    </a>
+  </li>
+
+        
       </ul>
     </nav>
   </li>
@@ -784,8 +796,8 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#other-important-references" title="Other Important References" class="md-nav__link">
-    Other Important References
+  <a href="#tutorials-and-documentation" title="Tutorials and Documentation" class="md-nav__link">
+    Tutorials and Documentation
   </a>
   
 </li>
@@ -904,23 +916,18 @@
                 
                   <h1>Home</h1>
                 
-                <p><img alt="Aqueduct" src="./img/aqueduct.png" /></p>
-<p>Aqueduct is a productive server-side framework written in Dart.</p>
-<p><a href="https://travis-ci.org/stablekernel/aqueduct"><img alt="Build Status" src="https://travis-ci.org/stablekernel/aqueduct.svg?branch=master" /></a> <a href="https://codecov.io/gh/stablekernel/aqueduct"><img alt="" src="https://codecov.io/gh/stablekernel/aqueduct/branch/master/graph/badge.svg" /></a></p>
+                <p><img alt="Aqueduct" src="https://raw.githubusercontent.com/stablekernel/aqueduct/master/images/aqueduct.png" /></p>
+<p><a href="https://travis-ci.org/stablekernel/aqueduct"><img alt="Build Status" src="https://travis-ci.org/stablekernel/aqueduct.svg?branch=master" /></a> <a href="https://codecov.io/gh/stablekernel/aqueduct"><img alt="codecov" src="https://codecov.io/gh/stablekernel/aqueduct/branch/master/graph/badge.svg" /></a></p>
+<p><a href="https://gitter.im/dart-lang/server?utm_source=badge&amp;utm_medium=badge&amp;utm_campaign=pr-badge"><img alt="Gitter" src="https://badges.gitter.im/dart-lang/server.svg" /></a></p>
+<p>Aqueduct is a server-side framework for building and deploying REST applications. It is written in Dart. Its goal to provide am integrated and consistently styled framework.</p>
+<p>It contains behavior for routing and authorizing HTTP requests, persisting data in PostgreSQL, testing, and much more. The <code>aqueduct</code> command-line tool serves applications, manages database schemas and OAuth 2.0 clients, and generates OpenAPI specifications.</p>
+<p>Aqueduct is well-tested, documented and adheres to semantic versioning.</p>
 <h2 id="getting-started">Getting Started</h2>
-<p>Make sure to check out the tutorial in the navigation menu.</p>
 <ol>
 <li><a href="https://www.dartlang.org/install">Install Dart</a>.</li>
 <li>
-<p>Activate the Aqueduct Command-Line Tool</p>
+<p>Activate Aqueduct</p>
 <div class="codehilite"><pre><span></span>pub global activate aqueduct
-</pre></div>
-
-
-</li>
-<li>
-<p>Run first time setup (this prompts you to setup a local PostgreSQL database for testing).</p>
-<div class="codehilite"><pre><span></span>aqueduct setup
 </pre></div>
 
 
@@ -933,13 +940,11 @@
 
 </li>
 </ol>
-<p>The recommended IDE is <a href="https://www.jetbrains.com/idea/download/">IntelliJ IDEA CE</a> (or any other IntelliJ platform, like Webstorm) with the <a href="https://plugins.jetbrains.com/idea/plugin/6351-dart">Dart Plugin</a>. (The plugin can be installed directly from the IntelliJ IDEA plugin preference pane.)</p>
-<p>Other editors with good Dart plugins are <a href="https://atom.io">Atom</a> and <a href="https://code.visualstudio.com">Visual Studio Code</a>.</p>
-<p>In any of these editors, open the project directory created by <code>aqueduct create</code>.</p>
-<h2 id="other-important-references">Other Important References</h2>
-<p>Deeper dives into the framework are available under the Guides in the sidebar.</p>
-<p><a href="https://www.dartdocs.org/documentation/aqueduct/latest">Aqueduct API Reference</a>.</p>
-<p><a href="https://github.com/stablekernel/aqueduct">Aqueduct on Github</a>.</p>
+<p>Open the project directory in an <a href="https://www.jetbrains.com/idea/download/">IntelliJ IDE</a>, <a href="https://atom.io">Atom</a> or <a href="https://code.visualstudio.com">Visual Studio Code</a>. All three IDEs have a Dart plugin.</p>
+<h2 id="tutorials-and-documentation">Tutorials and Documentation</h2>
+<p>Step-by-step tutorials for beginners are available <a href="https://aqueduct.io/docs/tut/getting-started">here</a>.</p>
+<p>You can find the API reference <a href="https://www.dartdocs.org/documentation/aqueduct/latest">here</a> or you can install it in <a href="https://kapeli.com/docsets#dartdoc">Dash</a>.</p>
+<p>You can find in-depth guides <a href="https://aqueduct.io/docs/">here</a>.</p>
 <h2 id="tour">Tour</h2>
 <p>Take a tour of Aqueduct.</p>
 <h3 id="initialization">Initialization</h3>
@@ -948,7 +953,7 @@
 </pre></div>
 
 
-<p>And subclass a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> to declare routes:</p>
+<p>A subclass of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> initializes the application by setting up routes, database connections and other resources used to serve requests.</p>
 <div class="codehilite"><pre><span></span><span class="k">import</span> <span class="s1">&#39;package:aqueduct/aqueduct.dart&#39;</span><span class="p">;</span>
 
 <span class="kd">class</span> <span class="nc">AppRequestSink</span> <span class="kd">extends</span> <span class="n">RequestSink</span> <span class="p">{</span>
@@ -976,12 +981,20 @@
 
   <span class="n">router</span>
     <span class="p">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/file/*&quot;</span><span class="p">)</span>
-    <span class="p">.</span><span class="n">generate</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="k">new</span> <span class="n">StaticFileController</span><span class="p">());</span>
+    <span class="p">.</span><span class="n">generate</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="k">new</span> <span class="n">HTTPFileController</span><span class="p">());</span>
+</pre></div>
+
+
+<p>Middleware can be inserted to pre-process or reject requests before they reach the next stage.</p>
+<div class="codehilite"><pre><span></span><span class="n">router</span>
+  <span class="p">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/users/[:id]&quot;</span><span class="p">)</span>
+  <span class="p">.</span><span class="n">pipe</span><span class="p">(</span><span class="k">new</span> <span class="n">Authorizer</span><span class="p">(</span><span class="n">authServer</span><span class="p">))</span>
+  <span class="p">.</span><span class="n">generate</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="k">new</span> <span class="n">UserController</span><span class="p">());</span>
 </pre></div>
 
 
 <h3 id="controllers">Controllers</h3>
-<p>The class most often used to respond to a request is <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a>. <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a>s must be subclassed and are declared in their own file. An <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a> handles all HTTP requests for a resource; e.g. POST /users, GET /users and GET /users/1 all go to the same controller.</p>
+<p>HTTP requests are bound to <em>responder methods</em> implemented in <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a> subclasses. A single <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a> subclass handles all HTTP methods for resource, e.g. POST /users, GET /users and GET /users/1 all go to the same controller.</p>
 <div class="codehilite"><pre><span></span><span class="k">import</span> <span class="s1">&#39;package:aqueduct/aqueduct.dart&#39;</span>
 
 <span class="n">class</span> <span class="n">ResourceController</span> <span class="n">extends</span> <span class="n">HTTPController</span> <span class="err">{</span>
@@ -994,18 +1007,57 @@
   <span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">getResourceByID</span><span class="p">(</span><span class="err">@</span><span class="n">HTTPPath</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">)</span> <span class="kt">int</span> <span class="n">id</span><span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>
     <span class="k">return</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="kd">await</span> <span class="n">fetchResource</span><span class="p">(</span><span class="n">id</span><span class="p">));</span>
   <span class="p">}</span>
+
+  <span class="err">@</span><span class="n">httpPost</span>
+  <span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">createResource</span><span class="p">(</span><span class="err">@</span><span class="n">HTTPBody</span><span class="p">()</span> <span class="n">Resource</span> <span class="n">resource</span><span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="n">inserted</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">insertResource</span><span class="p">(</span><span class="n">resource</span><span class="p">);</span>
+    <span class="k">return</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="n">inserted</span><span class="p">);</span>
+  <span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
 
 
-<p>Use <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObjectController-class.html">ManagedObjectController&lt;T&gt;</a>s that map a REST interface to database queries without writing any code:</p>
+<p>Values from the request can be read by accessing the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController/request.html">request</a> property or can be bound to responder method arguments:</p>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">ResourceController</span> <span class="kd">extends</span> <span class="n">HTTPController</span> <span class="p">{</span>
+  <span class="err">@</span><span class="n">httpGet</span>
+  <span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">getAllResources</span><span class="p">(</span>
+      <span class="err">@</span><span class="n">HTTPHeader</span><span class="p">(</span><span class="s2">&quot;x-request-id&quot;</span><span class="p">)</span> <span class="kt">String</span> <span class="n">requestID</span><span class="p">,</span>
+      <span class="p">{</span><span class="err">@</span><span class="n">HTTPQuery</span><span class="p">(</span><span class="s2">&quot;limit&quot;</span><span class="p">)</span> <span class="kt">int</span> <span class="n">limit</span><span class="p">})</span> <span class="kd">async</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="kd">await</span> <span class="n">fetchResources</span><span class="p">(</span><span class="n">limit</span> <span class="o">??</span> <span class="m">0</span><span class="p">));</span>
+  <span class="p">}</span>
+
+  <span class="err">@</span><span class="n">httpPost</span>
+  <span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">createResource</span><span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="n">resource</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Resource</span><span class="p">()..</span><span class="n">readFromMap</span><span class="p">(</span><span class="n">request</span><span class="p">.</span><span class="n">body</span><span class="p">.</span><span class="n">asMap</span><span class="p">());</span>
+    <span class="kd">var</span> <span class="n">inserted</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">insertResource</span><span class="p">(</span><span class="n">resource</span><span class="p">);</span>
+    <span class="k">return</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="n">inserted</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p><a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObjectController-class.html">ManagedObjectController&lt;T&gt;</a>s are specialized <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a>s that map a REST interface to database queries without writing any code:</p>
 <div class="codehilite"><pre><span></span><span class="n">router</span>
   <span class="p">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/users/[:id]&quot;</span><span class="p">)</span>
   <span class="p">.</span><span class="n">generate</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="k">new</span> <span class="n">ManagedObjectController</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span><span class="p">());</span>
 </pre></div>
 
 
-<p>Controllers catch exceptions and translate them to the appropriate status code response.</p>
+<p><a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a>s are a more generic controller that has a single method to either respond to requests or process them in some way. A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a> is the base class for middleware, <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a> and anything else that can handle a request.</p>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">VerifyingController</span> <span class="kd">extends</span> <span class="n">RequestController</span> <span class="p">{</span>
+  <span class="err">@</span><span class="n">override</span>
+  <span class="n">Future</span><span class="o">&lt;</span><span class="n">RequestOrResponse</span><span class="o">&gt;</span> <span class="n">processRequest</span><span class="p">(</span><span class="n">Request</span> <span class="n">request</span><span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">request</span><span class="p">.</span><span class="n">innerRequest</span><span class="p">.</span><span class="n">headers</span><span class="p">.</span><span class="n">value</span><span class="p">(</span><span class="s2">&quot;x-secret-key&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;secret!&quot;</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="n">request</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">return</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">badRequest</span><span class="p">();</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>All controllers catch exceptions and translate them to the appropriate status code response.</p>
 <h3 id="configuration">Configuration</h3>
 <p>Read YAML configuration data into type-safe and name-safe structures at startup:</p>
 <div class="codehilite"><pre><span></span>// config.yaml
@@ -1028,6 +1080,7 @@ numberOfDoodads: 3
 <span class="p">}</span>
 
 <span class="kd">class</span> <span class="nc">AppOptions</span> <span class="kd">extends</span> <span class="n">ConfigurationItem</span> <span class="p">{</span>
+  <span class="n">AppOptions</span><span class="p">(</span><span class="kt">String</span> <span class="n">path</span><span class="p">)</span> <span class="o">:</span> <span class="k">super</span><span class="p">.</span><span class="n">fromFile</span><span class="p">(</span><span class="n">path</span><span class="p">);</span>
   <span class="n">DatabaseConnectionInfo</span> <span class="n">database</span><span class="p">;</span>
   <span class="kt">String</span> <span class="n">otherOption</span><span class="p">;</span>
   <span class="kt">int</span> <span class="n">numberOfDoodads</span><span class="p">;</span>
@@ -1036,19 +1089,19 @@ numberOfDoodads: 3
 
 
 <h3 id="running-and-concurrency">Running and Concurrency</h3>
-<p>Aqueduct applications are run with a command line tool, which can also open debugging and instrumentation tools and specify how many threads the application should run on:</p>
+<p>Aqueduct applications are run with the <code>aqueduct</code> command line tool, which can also open debugging and instrumentation tools and specify how many threads the application should run on:</p>
 <div class="codehilite"><pre><span></span>aqueduct serve --observe --isolates 5
 </pre></div>
 
 
-<p>Run applications detached or still connected to the shell (how a tool like Heroku expects):</p>
+<p>Run applications detached or still connected to the shell:</p>
 <div class="codehilite"><pre><span></span>aqueduct serve --detached --port $PORT
 </pre></div>
 
 
-<p>Aqueduct applications threads are isolated - they share no memory with other threads - and each runs a replica of the same web server. Pooling resources is effectively achieved through this mechanism.</p>
+<p>Aqueduct applications are multi-isolate (multi-threaded). Each isolate runs a replica of the same web server with its own set of resources like database connections. This makes behavior like database connection pooling implicit and painless.</p>
 <h3 id="querying-a-database">Querying a Database</h3>
-<p>Much of the time, a request is handled by sending one or more commands to a database to either get data or send data. This is done with <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query-class.html">Query&lt;T&gt;</a> objects.</p>
+<p>Aqueduct applications have a built-in ORM. Database commands are executed with instances of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query-class.html">Query&lt;T&gt;</a>.</p>
 <div class="codehilite"><pre><span></span><span class="k">import</span> <span class="s1">&#39;package:aqueduct/aqueduct.dart&#39;</span>
 
 <span class="n">class</span> <span class="n">ResourceController</span> <span class="n">extends</span> <span class="n">HTTPController</span> <span class="err">{</span>
@@ -1064,7 +1117,7 @@ numberOfDoodads: 3
 </pre></div>
 
 
-<p>The results of a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query-class.html">Query&lt;T&gt;</a> can be filtered by configuring its <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/where.html">Query.where</a> property, which uses Dart's powerful, real-time static analyzer to avoid mistakes and offer code completion.</p>
+<p>The results of a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query-class.html">Query&lt;T&gt;</a> can be filtered by configuring the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/where.html">Query.where</a> property, which uses Dart's powerful, real-time static analyzer to avoid mistakes and offer code completion.</p>
 <div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">query</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Employee</span><span class="o">&gt;</span><span class="p">()</span>
   <span class="p">..</span><span class="n">where</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">whereStartsWith</span><span class="p">(</span><span class="s2">&quot;Sa&quot;</span><span class="p">)</span>
   <span class="p">..</span><span class="n">where</span><span class="p">.</span><span class="n">salary</span> <span class="o">=</span> <span class="n">whereGreaterThan</span><span class="p">(</span><span class="m">50000</span><span class="p">);</span>
@@ -1072,7 +1125,7 @@ numberOfDoodads: 3
 </pre></div>
 
 
-<p>Building queries to insert or update values into the database uses the similar <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/values.html">values</a> property of a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query-class.html">Query&lt;T&gt;</a>.</p>
+<p>Building a query to insert or update values leverages the same behavior:</p>
 <div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">query</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Employee</span><span class="o">&gt;</span><span class="p">()</span>
   <span class="p">..</span><span class="n">values</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Bob&quot;</span>
   <span class="p">..</span><span class="n">values</span><span class="p">.</span><span class="n">salary</span> <span class="o">=</span> <span class="m">50000</span><span class="p">;</span>
@@ -1089,17 +1142,17 @@ numberOfDoodads: 3
 <p><a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query-class.html">Query&lt;T&gt;</a>s can sort and page on a result set. It can also join tables and return objects and their relationships:</p>
 <div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">query</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Employee</span><span class="o">&gt;</span><span class="p">()</span>
   <span class="p">..</span><span class="n">where</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Sue Gallagher&quot;</span>
-  <span class="p">..</span><span class="n">joinOne</span><span class="p">((</span><span class="n">e</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="n">e</span><span class="p">.</span><span class="n">manager</span><span class="p">)</span>
-  <span class="p">..</span><span class="n">joinMany</span><span class="p">((</span><span class="n">e</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="n">e</span><span class="p">.</span><span class="n">directReports</span><span class="p">);</span>
+  <span class="p">..</span><span class="n">join</span><span class="p">(</span><span class="nl">object:</span> <span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="n">e</span><span class="p">.</span><span class="n">manager</span><span class="p">)</span>
+  <span class="p">..</span><span class="n">join</span><span class="p">(</span><span class="kd">set</span><span class="o">:</span> <span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="n">e</span><span class="p">.</span><span class="n">directReports</span><span class="p">);</span>
 
 <span class="kd">var</span> <span class="n">herAndHerManagerAndHerDirectReports</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">query</span><span class="p">.</span><span class="n">fetchOne</span><span class="p">();</span>
 </pre></div>
 
 
-<p>Exceptions thrown for queries are caught by the controller and translated into the appropriate status code. Unique constraint conflicts return 409,
-missing required properties return 400, database connection failure returns 503, etc. You can change this by try-catching <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query-class.html">Query&lt;T&gt;</a> methods.</p>
+<p>Exceptions thrown for queries are caught by a controller and translated into the appropriate status code. Unique constraint conflicts return 409,
+missing required properties return 400, database connection failure returns 503, etc. You can change this by catching exceptions from <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query-class.html">Query&lt;T&gt;</a> methods.</p>
 <h3 id="defining-a-data-model">Defining a Data Model</h3>
-<p>For each database table, there is a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a> subclass. These subclasses are the type argument to <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query-class.html">Query&lt;T&gt;</a>. They are made up of two classes: a persistent type that declares a property for each database column in the table, and the subclass of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a> that you work with in your code.</p>
+<p>Rows in databases are represented by instances of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a> subclasses. These subclasses are the type argument to <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query-class.html">Query&lt;T&gt;</a>. They are made up of two classes: one that declares a property for each database column in a table and the subclass of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a> that you work with in your code.</p>
 <div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">Employee</span> <span class="kd">extends</span> <span class="n">ManagedObject</span><span class="o">&lt;</span><span class="n">_Employee</span><span class="o">&gt;</span> <span class="kd">implements</span> <span class="n">_Employee</span> <span class="p">{</span>
   <span class="kt">bool</span> <span class="kd">get</span> <span class="n">wasRecentlyHired</span> <span class="o">=&gt;</span> <span class="n">hireDate</span><span class="p">.</span><span class="n">difference</span><span class="p">(</span><span class="k">new</span> <span class="n">DateTime</span><span class="p">.</span><span class="n">now</span><span class="p">()).</span><span class="n">inDays</span> <span class="o">&lt;</span> <span class="m">30</span><span class="p">;</span>
 <span class="p">}</span>
@@ -1116,20 +1169,20 @@ missing required properties return 400, database connection failure returns 503,
 </pre></div>
 
 
-<p><a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a>s have relationship properties - references to other <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a>s. The property with <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedRelationship-class.html">ManagedRelationship</a> metadata is a foreign key column.</p>
+<p><a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a>s have relationship properties for has-one, has-many and many-to-many references to other <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a>s. The property with <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedRelationship-class.html">ManagedRelationship</a> metadata is a foreign key column.</p>
 <div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">Employee</span> <span class="kd">extends</span> <span class="n">ManagedObject</span><span class="o">&lt;</span><span class="n">_Employee</span><span class="o">&gt;</span> <span class="kd">implements</span> <span class="n">_Employee</span> <span class="p">{}</span>
 <span class="kd">class</span> <span class="nc">_Employee</span> <span class="p">{</span>
-  <span class="n">ManagedSet</span><span class="o">&lt;</span><span class="n">Initiative</span><span class="o">&gt;</span> <span class="n">initiatives</span><span class="p">;</span>
-
   <span class="p">...</span>
+
+  <span class="n">ManagedSet</span><span class="o">&lt;</span><span class="n">Initiative</span><span class="o">&gt;</span> <span class="n">initiatives</span><span class="p">;</span>
 <span class="p">}</span>
 
 <span class="kd">class</span> <span class="nc">Initiative</span> <span class="kd">extends</span> <span class="n">ManagedObject</span><span class="o">&lt;</span><span class="n">_Initiative</span><span class="o">&gt;</span> <span class="kd">implements</span> <span class="n">_Initiative</span> <span class="p">{}</span>
 <span class="kd">class</span> <span class="nc">_Initiative</span> <span class="p">{</span>
+  <span class="p">...</span>
+
   <span class="err">@</span><span class="n">ManagedRelationship</span><span class="p">(</span><span class="err">#</span><span class="n">initiatives</span><span class="p">)</span>
   <span class="n">Employee</span> <span class="n">leader</span><span class="p">;</span>
-
-  <span class="p">...</span>
 <span class="p">}</span>
 </pre></div>
 
@@ -1137,10 +1190,10 @@ missing required properties return 400, database connection failure returns 503,
 <p><a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a>s are easily read from and written to JSON (or any other format):</p>
 <div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">UserController</span> <span class="kd">extends</span> <span class="n">HTTPController</span> <span class="p">{</span>
   <span class="err">@</span><span class="n">httpPut</span>
-  <span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">updateUser</span><span class="p">(</span><span class="err">@</span><span class="n">HTTPPath</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">)</span> <span class="kt">int</span> <span class="n">id</span><span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>
+  <span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">updateUser</span><span class="p">(</span><span class="err">@</span><span class="n">HTTPPath</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">)</span> <span class="kt">int</span> <span class="n">id</span><span class="p">,</span> <span class="err">@</span><span class="n">HTTPBody</span><span class="p">()</span> <span class="n">User</span> <span class="n">user</span><span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>
     <span class="kd">var</span> <span class="n">query</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span><span class="p">()</span>
       <span class="p">..</span><span class="n">where</span><span class="p">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">id</span>
-      <span class="p">..</span><span class="n">values</span> <span class="o">=</span> <span class="p">(</span><span class="k">new</span> <span class="n">User</span><span class="p">()..</span><span class="n">readMap</span><span class="p">(</span><span class="n">request</span><span class="p">.</span><span class="n">body</span><span class="p">.</span><span class="n">asMap</span><span class="p">());</span>
+      <span class="p">..</span><span class="n">values</span> <span class="o">=</span> <span class="n">user</span><span class="p">;</span>
 
     <span class="kd">var</span> <span class="n">updatedUser</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">query</span><span class="p">.</span><span class="n">updateOne</span><span class="p">();</span>
 
@@ -1198,42 +1251,20 @@ aqueduct db upgrade --connect postgres@://...
 
 
 <h3 id="logging">Logging</h3>
-<p>Logging can write to stdout or a rotating log file. Logging runs on its own thread; API threads send messages to the logging thread which handles I/O.</p>
+<p>All requests are logged to an instance of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Logger-class.html">Logger</a>. Set up a listener for logger in <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> to print log messages to the console. (See also <a href="https://pub.dartlang.org/packages/scribe">scribe</a> for logging to rotating files.)</p>
 <div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">WildfireSink</span> <span class="kd">extends</span> <span class="n">RequestSink</span> <span class="p">{</span>
-  <span class="kd">static</span> <span class="kt">String</span> <span class="n">LoggingTargetKey</span> <span class="o">=</span> <span class="s2">&quot;logging&quot;</span><span class="p">;</span>
-
-  <span class="kd">static</span> <span class="n">Future</span> <span class="n">initializeApplication</span><span class="p">(</span><span class="n">ApplicationConfiguration</span> <span class="n">config</span><span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>    
-    <span class="p">...</span>
-    <span class="kd">var</span> <span class="n">loggingServer</span> <span class="o">=</span> <span class="k">new</span> <span class="n">LoggingServer</span><span class="p">([</span><span class="k">new</span> <span class="n">ConsoleBackend</span><span class="p">()]);</span>
-    <span class="kd">await</span> <span class="n">loggingServer</span><span class="o">?</span><span class="p">.</span><span class="n">start</span><span class="p">();</span>
-    <span class="n">config</span><span class="p">.</span><span class="n">options</span><span class="p">[</span><span class="n">LoggingTargetKey</span><span class="p">]</span> <span class="o">=</span> <span class="n">loggingServer</span><span class="o">?</span><span class="p">.</span><span class="n">getNewTarget</span><span class="p">();</span>
-  <span class="p">}</span>
-
   <span class="n">WildfireSink</span><span class="p">(</span><span class="n">ApplicationConfiguration</span> <span class="n">config</span><span class="p">)</span> <span class="o">:</span> <span class="k">super</span><span class="p">(</span><span class="n">config</span><span class="p">)</span> <span class="p">{</span>
-    <span class="kd">var</span> <span class="n">target</span> <span class="o">=</span> <span class="n">config</span><span class="p">.</span><span class="n">options</span><span class="p">[</span><span class="n">LoggingTargetKey</span><span class="p">];</span>
-    <span class="n">target</span><span class="o">?</span><span class="p">.</span><span class="n">bind</span><span class="p">(</span><span class="n">logger</span><span class="p">);</span>
-
-    <span class="n">logger</span><span class="p">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;We&#39;re up!&quot;</span><span class="p">);</span>
+    <span class="n">logger</span><span class="p">.</span><span class="n">onRecord</span><span class="p">.</span><span class="n">listen</span><span class="p">((</span><span class="n">record</span><span class="p">)</span> <span class="p">{</span>
+      <span class="n">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">$</span><span class="n">record</span><span class="s2">&quot;</span><span class="p">);</span>
+    <span class="p">});</span>
   <span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
 
 
 <h3 id="testing">Testing</h3>
-<p>Because Aqueduct can generate database migration files, it can generate your application data model on the fly, too. Starting a test instance of an application will connect to a temporary database and create tables that are destroyed when the database connection closes. Endpoints are validated with specialized matchers in the Hamcrest matcher style:</p>
-<div class="codehilite"><pre><span></span><span class="n">test</span><span class="p">(</span><span class="s2">&quot;/users/1 returns a user&quot;</span><span class="p">,</span> <span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
-  <span class="kd">var</span> <span class="n">response</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">testClient</span><span class="p">.</span><span class="n">authenticatedRequest</span><span class="p">(</span><span class="s2">&quot;/users/1&quot;</span><span class="p">).</span><span class="kd">get</span><span class="p">();</span>
-  <span class="n">expect</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="n">hasResponse</span><span class="p">(</span><span class="m">200</span><span class="p">,</span> <span class="n">partial</span><span class="p">({</span>
-    <span class="s2">&quot;id&quot;</span><span class="o">:</span> <span class="m">1</span><span class="p">,</span>
-    <span class="s2">&quot;name&quot;</span><span class="o">:</span> <span class="n">isString</span>
-  <span class="p">})));</span>
-<span class="p">});</span>
-</pre></div>
-
-
-<p>Use the template project's test harness to quickly set up tests:</p>
-<div class="codehilite"><pre><span></span><span class="k">import</span> <span class="s1">&#39;package:test/test.dart&#39;</span><span class="p">;</span>
-<span class="k">import</span> <span class="s1">&#39;package:my_app/my_app.dart&#39;</span><span class="p">;</span>
+<p>Tests are run by starting the Aqueduct application and verifying responses in a test file. A test harness is included in projects generated from <code>aqueduct create</code> that starts and stops a test instance of your application and uploads your database schema to a temporary, local database.</p>
+<div class="codehilite"><pre><span></span><span class="k">import</span> <span class="s1">&#39;harness/app.dart&#39;</span><span class="p">;</span>
 
 <span class="kt">void</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
   <span class="kd">var</span> <span class="n">app</span> <span class="o">=</span> <span class="k">new</span> <span class="n">TestApplication</span><span class="p">();</span>
@@ -1247,6 +1278,27 @@ aqueduct db upgrade --connect postgres@://...
     <span class="p">...</span>
   <span class="p">});</span>
 <span class="p">}</span>
+</pre></div>
+
+
+<p>A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.test/TestClient-class.html">TestClient</a> executes requests configured for the locally running test instance of your application. Instances of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.test/TestResponse-class.html">TestResponse</a> are returned and can be evaluated with matchers like any other Dart tests. There are special matchers specifically for Aqueduct.</p>
+<div class="codehilite"><pre><span></span><span class="n">test</span><span class="p">(</span><span class="s2">&quot;POST /users creates a user&quot;</span><span class="p">,</span> <span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
+  <span class="kd">var</span> <span class="n">request</span> <span class="o">=</span> <span class="n">app</span><span class="p">.</span><span class="n">client</span><span class="p">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;/users&quot;</span><span class="p">)</span>
+    <span class="p">..</span><span class="n">json</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;email&quot;</span><span class="o">:</span> <span class="s2">&quot;bob@stablekernel.com&quot;</span><span class="p">};</span>
+  <span class="kd">var</span> <span class="n">response</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">request</span><span class="p">.</span><span class="n">post</span><span class="p">();</span>
+
+  <span class="n">expect</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="n">hasResponse</span><span class="p">(</span><span class="m">200</span><span class="p">,</span> <span class="p">{</span>
+    <span class="s2">&quot;id&quot;</span><span class="o">:</span> <span class="n">isNumber</span><span class="p">,</span>
+    <span class="s2">&quot;email&quot;</span><span class="o">:</span> <span class="s2">&quot;bob@stablekernel.com&quot;</span>
+  <span class="p">}));</span>
+<span class="p">});</span>
+
+<span class="n">test</span><span class="p">(</span><span class="s2">&quot;GET /users/1 returns a user&quot;</span><span class="p">,</span> <span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
+  <span class="kd">var</span> <span class="n">response</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">app</span><span class="p">.</span><span class="n">client</span><span class="p">.</span><span class="n">authenticatedRequest</span><span class="p">(</span><span class="s2">&quot;/users/1&quot;</span><span class="p">).</span><span class="kd">get</span><span class="p">();</span>
+  <span class="n">expect</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="n">hasResponse</span><span class="p">(</span><span class="m">200</span><span class="p">,</span> <span class="n">partial</span><span class="p">({</span>
+    <span class="s2">&quot;email&quot;</span><span class="o">:</span> <span class="s2">&quot;bob@stablekernel.com&quot;</span>
+  <span class="p">})));</span>
+<span class="p">});</span>
 </pre></div>
 
 

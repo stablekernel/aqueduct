@@ -445,6 +445,18 @@
   </li>
 
         
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/serving_files/" title="Serving Files and Caching" class="md-nav__link">
+      Serving Files and Caching
+    </a>
+  </li>
+
+        
       </ul>
     </nav>
   </li>
@@ -896,7 +908,8 @@
 <p>Now, get the dependencies again by right-clicking on any project file and selecting 'Pub Get'. (Or run <code>pub get</code> from the command line in the <code>quiz</code> directory.)</p>
 <h2 id="restructuring-quiz">Restructuring quiz</h2>
 <p>Last chapter, we just threw everything in a single file to get started. We should really get things structured a bit more. The suggested approach is to separate <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a>s into their own files. These files should live in <code>lib/controller</code>. The <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> subclass should be in its own file, too, but directly under <code>lib</code>.</p>
-<p>Create a new directory, <code>lib/controller</code> and add a new file <code>question_controller.dart</code> to it. Create a new file in <code>lib</code> named <code>sink.dart</code>.</p>
+<p>Create a new directory, <code>lib/controller</code> and add a new file <code>question_controller.dart</code> to it.</p>
+<p>Create a new file in <code>lib</code> named <code>sink.dart</code>.</p>
 <p>Now, we'll move some code around. The full contents of each file will be listed here to make sure nothing gets lost. There are three total source files in the project. Change the file <code>quiz.dart</code> to only contain:</p>
 <div class="codehilite"><pre><span></span><span class="k">export</span> <span class="s1">&#39;dart:async&#39;</span><span class="p">;</span>
 <span class="k">export</span> <span class="s1">&#39;package:aqueduct/aqueduct.dart&#39;</span><span class="p">;</span>
@@ -905,8 +918,8 @@
 </pre></div>
 
 
-<p>Move the implementation of <code>QuestionController</code> to <code>controller/question_controller.dart</code> and import the top-level file:</p>
-<div class="codehilite"><pre><span></span><span class="k">import</span> <span class="s1">&#39;package:quiz/quiz.dart&#39;</span><span class="p">;</span>
+<p>Move the implementation of <code>QuestionController</code> to <code>controller/question_controller.dart</code> and import the application library fie:</p>
+<div class="codehilite"><pre><span></span><span class="k">import</span> <span class="s1">&#39;../quiz.dart&#39;</span><span class="p">;</span>
 
 <span class="kd">class</span> <span class="nc">QuestionController</span> <span class="kd">extends</span> <span class="n">HTTPController</span> <span class="p">{</span>
   <span class="kd">var</span> <span class="n">questions</span> <span class="o">=</span> <span class="p">[</span>
@@ -932,7 +945,7 @@
 
 
 <p>Move <code>QuizRequestSink</code> to <code>sink.dart</code>:</p>
-<div class="codehilite"><pre><span></span><span class="k">import</span> <span class="s1">&#39;package:quiz/quiz.dart&#39;</span><span class="p">;</span>
+<div class="codehilite"><pre><span></span><span class="k">import</span> <span class="s1">&#39;quiz.dart&#39;</span><span class="p">;</span>
 <span class="k">import</span> <span class="s1">&#39;controller/question_controller.dart&#39;</span><span class="p">;</span>
 
 <span class="kd">class</span> <span class="nc">QuizRequestSink</span> <span class="kd">extends</span> <span class="n">RequestSink</span> <span class="p">{</span>

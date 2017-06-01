@@ -388,6 +388,18 @@
   </li>
 
         
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/serving_files/" title="Serving Files and Caching" class="md-nav__link">
+      Serving Files and Caching
+    </a>
+  </li>
+
+        
       </ul>
     </nav>
   </li>
@@ -958,7 +970,7 @@
 </pre></div>
 
 
-<p>The body of a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.test/TestResponse-class.html">TestResponse</a> can also be accessed via <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request/body.html">body</a>, <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIContact/asMap.html">asMap</a>, and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPBody/asList.html">asList</a>.</p>
+<p>The body of a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.test/TestResponse-class.html">TestResponse</a> can also be accessed via <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request/body.html">body</a>, <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIContact/asMap.html">asMap</a>, and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPRequestBody/asList.html">asList</a>.</p>
 <div class="codehilite"><pre><span></span><span class="n">test</span><span class="p">(</span><span class="s2">&quot;Get 200 with more than five key value pairs&quot;</span><span class="p">,</span> <span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
   <span class="kd">var</span> <span class="n">response</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">app</span><span class="p">.</span><span class="n">client</span><span class="p">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;/endpoint&quot;</span><span class="p">).</span><span class="kd">get</span><span class="p">();</span>
   <span class="n">expect</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="n">hasResponse</span><span class="p">(</span><span class="m">200</span><span class="p">,</span> <span class="n">everyElement</span><span class="p">({</span>

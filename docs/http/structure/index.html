@@ -339,8 +339,15 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#filesystem-structure" title="Filesystem Structure" class="md-nav__link">
-    Filesystem Structure
+  <a href="#isolates" title="Isolates" class="md-nav__link">
+    Isolates
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aqueduct-project-structure-and-organization" title="Aqueduct Project Structure and Organization" class="md-nav__link">
+    Aqueduct Project Structure and Organization
   </a>
   
 </li>
@@ -420,6 +427,18 @@
   <li class="md-nav__item">
     <a href="../configure/" title="Configuration" class="md-nav__link">
       Configuration
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../serving_files/" title="Serving Files and Caching" class="md-nav__link">
+      Serving Files and Caching
     </a>
   </li>
 
@@ -810,8 +829,15 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#filesystem-structure" title="Filesystem Structure" class="md-nav__link">
-    Filesystem Structure
+  <a href="#isolates" title="Isolates" class="md-nav__link">
+    Isolates
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aqueduct-project-structure-and-organization" title="Aqueduct Project Structure and Organization" class="md-nav__link">
+    Aqueduct Project Structure and Organization
   </a>
   
 </li>
@@ -831,24 +857,82 @@
                
               
                 
-                <h1 id="aqueduct-application-structure">Aqueduct Application Structure</h1>
-<p>An Aqueduct application created with the command-line tool <code>aqueduct create</code> will create an application with the structure discussed in this document. See <a href="../..#getting-started">Getting Started</a> for installation and usage.</p>
-<p>An Aqueduct application is a tree of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a>s. A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a> takes a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request-class.html">Request</a> and either creates a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Response-class.html">Response</a> or passes the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request-class.html">Request</a> to another <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a> in the tree. More often than not, <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a> is subclassed to create reusable components to build a request processing pipeline. Some commonly used <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a>s are <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a>, <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Authorizer-class.html">Authorizer</a>, <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Router-class.html">Router</a> and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a>.</p>
-<p>The root of the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a> tree is always an application-specific subclass of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a>. The only requirement of an Aqueduct application is that a subclass of this type is declared in an application package and is visible from its top-level library file. A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> is not only the first <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a> that receives requests, its initialization process creates all of the other <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a>s in an application. See <a href="../request_sink/">Request Sink</a> for more details.</p>
-<p>A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> sends all <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request-class.html">Request</a>s to its <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Router-class.html">Router</a>. A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Router-class.html">Router</a> figures out which <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a> to send a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request-class.html">Request</a> to based on the HTTP request path. Setting up which <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a> receives requests for a particular path (or paths) is called routing. Routing is done by overriding <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a>'s <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink/setupRouter.html">setupRouter</a> method. If no <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a> has matches the path of the request, the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Router-class.html">Router</a> responds with a 404 and dumps the request. See <a href="../routing/">Routing</a> for more details.</p>
-<p>Once past a router, a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request-class.html">Request</a> typically goes through an <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Authorizer-class.html">Authorizer</a> then an <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a> subclass. An <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Authorizer-class.html">Authorizer</a> validates the Authorization header of a request, and attaches authorization information to the request so that the next controller can use it. If an <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Authorizer-class.html">Authorizer</a> rejects a request, it responds to it with a 401 and does not pass it to the next controller. See <a href="../../auth/overview/">Authorization</a> for more details.</p>
-<p>An <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a> subclass handles all of the operations for an HTTP resource collection (or single resource in that collection). For example, a subclass of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a> named <code>UserController</code> would likely be able to list users, show a single user, create a new user, delete a user or update an existing user. An <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a> always responds to any request it receives. See <a href="../http_controller/">HTTPControllers</a> for more details.</p>
-<h2 id="filesystem-structure">Filesystem Structure</h2>
-<p>The directory structure of an Aqueduct application typically looks like this:</p>
-<div class="codehilite"><pre><span></span>application_name/
-  application_name.dart
-  application_name_request_sink.dart
-  controllers/
-    user_controller.dart
+                <h1 id="aqueduct-application-architecture">Aqueduct Application Architecture</h1>
+<p>The fundamental object of Aqueduct is a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a>. Request controllers are chained together to create a <em>request channel</em>. A request channel is a series of request controllers that a request flows through to be verified, modified and responded to.</p>
+<p><img alt="Structure" src="../../img/structure.png" /></p>
+<p>A request channel always starts at an instance of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a>. When an application receives an HTTP request, it adds it to the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a>. A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> has a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Router-class.html">Router</a> that splits the channel based on the path of the request. For example, a request with the path <code>/users</code> will go down one part of the channel, while a <code>/things</code> request will go down another.</p>
+<p>An application's request channel is defined in its <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a>. Each application will have one and only one <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> subclass that must implement <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink/setupRouter.html">setupRouter</a>. For example, the diagram above looks like this in code:</p>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">MyRequestSink</span> <span class="kd">extends</span> <span class="n">RequestSink</span> <span class="p">{</span>
+  <span class="n">MyRequestSink</span><span class="p">(</span><span class="n">ApplicationConfiguration</span> <span class="n">config</span><span class="p">)</span> <span class="o">:</span> <span class="k">super</span><span class="p">(</span><span class="n">config</span><span class="p">);</span>
+
+  <span class="err">@</span><span class="n">override</span>
+  <span class="kt">void</span> <span class="n">setupRouter</span><span class="p">(</span><span class="n">Router</span> <span class="n">router</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">router</span>
+      <span class="p">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/a&quot;</span><span class="p">)</span>
+      <span class="p">.</span><span class="n">generate</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="k">new</span> <span class="n">AController</span><span class="p">());</span>
+
+    <span class="n">router</span>
+      <span class="p">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/b&quot;</span><span class="p">)</span>
+      <span class="p">.</span><span class="n">pipe</span><span class="p">(</span><span class="k">new</span> <span class="n">Authorizer</span><span class="p">(...))</span>
+      <span class="p">.</span><span class="n">generate</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="k">new</span> <span class="n">BController</span><span class="p">());</span>
+
+    <span class="n">router</span>
+      <span class="p">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/c&quot;</span><span class="p">)</span>
+      <span class="p">.</span><span class="n">pipe</span><span class="p">(</span><span class="k">new</span> <span class="n">Authorizer</span><span class="p">(...))</span>
+      <span class="p">.</span><span class="n">generate</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="k">new</span> <span class="n">CController</span><span class="p">());</span>      
+  <span class="p">}</span>
+<span class="p">}</span>
 </pre></div>
 
 
-<p>Aqueduct applications are run by running <code>aqueduct serve</code> in project directory (here, <code>application_name</code>). The top-level library file, <code>application_name/application_name.dart</code>, must at least import <code>application_name_request_sink.dart</code> so that <code>aqueduct</code> serve can see it. See <a href="../../deploy/overview/">Deploying</a> for more details on this command.</p>
+<p>Each controller in the channel can either respond to the request or send it to the next controller in the channel. For example, an <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Authorizer-class.html">Authorizer</a> will respond with a 401 Unauthorized response if a request's authorization isn't valid - but if it is valid, the request is passed to the next controller in the channel.</p>
+<p>This structure means that <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a> is the base class for types that are middleware and for those that always respond to a request. There are no other types that handle requests and this makes Aqueduct very simple to understand.</p>
+<p>For more details, see <a href="../request_controller/">Request Controllers</a>.</p>
+<h2 id="isolates">Isolates</h2>
+<p>An Aqueduct application may run its request channel on multiple isolates. The number of isolates is configured when running <code>aqueduct serve</code>.</p>
+<div class="codehilite"><pre><span></span>aqueduct serve --isolates 3
+</pre></div>
+
+
+<p>An isolate is a thread with its own memory heap, thus each isolate has its own isolated replica of the request channel. Database connections and other resources created in a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> are also replicated in each isolate.</p>
+<p>When the application receives an HTTP request, only one of its isolates receives and responds to the request. This structure spreads computation across multiple CPUs/cores and makes patterns like connection pooling implicit, i.e. each isolate has its own database connection.</p>
+<h2 id="aqueduct-project-structure-and-organization">Aqueduct Project Structure and Organization</h2>
+<p>An Aqueduct project is a directory that contains, at minimum, the following file structure:</p>
+<div class="codehilite"><pre><span></span>pubspec.yaml
+lib/
+  application_name.dart
+</pre></div>
+
+
+<p>The name of any Dart application is defined by the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIContact/name.html">name</a> key in <code>pubspec.yaml</code>. In order for <code>aqueduct serve</code> to run your application, there must be a <code>.dart</code> file in <code>lib/</code> with that same name. This is your application library file and it must declare a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> subclass or import another file that does. This is the bare minimum requirement to run an Aqueduct application. (See <a href="../../deploy/overview/">Deploying</a> for more details on running applications.)</p>
+<p>For organizing applications of reasonable size, we recommend the following structure:</p>
+<div class="codehilite"><pre><span></span>pubspec.yaml
+config.src.yaml
+config.yaml
+lib/
+  application_name.dart
+  application_name_sink.dart  
+  controller/
+    user_controller.dart
+  model/
+    user.dart
+test/
+  user_controller_test.dart
+  harness/
+    app.dart
+</pre></div>
+
+
+<p>The required <code>pubspec.yaml</code> and <code>lib/application_name.dart</code> files are present alongside a few others:</p>
+<ul>
+<li><code>config.yaml</code>: A configuration file for the running application. This is the default name for configuration files when running <code>aqueduct serve</code>. The name of an application's configuration file is available in <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationConfiguration/configurationFilePath.html">ApplicationConfiguration.configurationFilePath</a>. This file is usually ignored in version control. (For some situations, it does make sense to check it into source control - like <a href="../../deploy/deploy_heroku/">Deploying to Heroku</a>.)</li>
+<li><code>config.src.yaml</code>: A template for <code>config.yaml</code>. This file has two purposes: it contains the configuration keys that your application expects, and its values are used when running automated tests. This helps when deploying applications: you simply copy this file to <code>config.yaml</code> on the destination machine and fill in appropriate values. This file is checked into source control. For more details, see <a href="../../testing/overview">automated testing</a>.</li>
+<li><code>application_name_sink.dart</code>: A file solely for the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> of an application. This file should be <em>exported</em> from <code>application_name.dart</code>.</li>
+<li><code>controller/</code>: A directory for <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a> subclass files.</li>
+<li><code>model/</code>: A directory for <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a> subclass files.</li>
+<li><code>test/harness/app.dart</code>: A file that contains a test harness that starts and stops an application during automated testing. For more details, see <a href="../../testing/overview">automated testing</a>.</li>
+</ul>
+<p>Feel free to create other subdirectories in <code>lib/</code> for organizing other types of files.</p>
               
               
             </article>

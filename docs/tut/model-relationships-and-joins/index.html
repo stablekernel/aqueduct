@@ -431,6 +431,18 @@
   </li>
 
         
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/serving_files/" title="Serving Files and Caching" class="md-nav__link">
+      Serving Files and Caching
+    </a>
+  </li>
+
+        
       </ul>
     </nav>
   </li>
@@ -847,7 +859,7 @@
                 
                 <h1 id="managedobject-relationships">ManagedObject Relationships</h1>
 <p>Managed objects can also have relationships to other managed objects. There are two types of relationships: to-one and to-many. Let's add an answer for each <code>Question</code> in the form of a to-one relationship. First, create a new file <code>lib/model/answer.dart</code> and define a new managed object to represent an answer:</p>
-<div class="codehilite"><pre><span></span><span class="k">import</span> <span class="s1">&#39;package:quiz/quiz.dart&#39;</span><span class="p">;</span>
+<div class="codehilite"><pre><span></span><span class="k">import</span> <span class="s1">&#39;../quiz.dart&#39;</span><span class="p">;</span>
 
 <span class="kd">class</span> <span class="nc">Answer</span> <span class="kd">extends</span> <span class="n">ManagedObject</span><span class="o">&lt;</span><span class="n">_Answer</span><span class="o">&gt;</span> <span class="kd">implements</span> <span class="n">_Answer</span> <span class="p">{}</span>
 <span class="kd">class</span> <span class="nc">_Answer</span> <span class="p">{</span>
@@ -858,13 +870,11 @@
 </pre></div>
 
 
-<p>Notice we created the persistent type and subclass of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject</a>. Export this file to the library from <code>model.dart</code> so everything that needs to see it can:</p>
-<div class="codehilite"><pre><span></span><span class="k">export</span> <span class="s1">&#39;model/answer.dart&#39;</span><span class="p">;</span>
-</pre></div>
-
-
 <p>Now that we have a managed object that represents both a question and answer, we will set up a relationship between them. It logically makes sense that a 'question <em>has an</em> answer', so let's add that property to <code>_Question</code>, the persistent type of <code>Question</code>:</p>
-<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">_Question</span> <span class="p">{</span>
+<div class="codehilite"><pre><span></span><span class="c1">// Don&#39;t miss this new import!</span>
+<span class="k">import</span> <span class="s1">&#39;answer.dart&#39;</span><span class="p">;</span>
+
+<span class="kd">class</span> <span class="nc">_Question</span> <span class="p">{</span>
   <span class="err">@</span><span class="n">managedPrimaryKey</span>
   <span class="kt">int</span> <span class="n">index</span><span class="p">;</span>
 
@@ -875,7 +885,10 @@
 
 
 <p>For all relationships, we also must specify the <em>inverse relationship</em>. The inverse will be a property on <code>_Answer</code> that points back to the <code>Question</code> it is the answer for. In <code>_Answer</code>, add the inverse:</p>
-<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">_Answer</span> <span class="p">{</span>
+<div class="codehilite"><pre><span></span><span class="c1">// Don&#39;t miss this new import, either!</span>
+<span class="k">import</span> <span class="s1">&#39;question.dart&#39;</span><span class="p">;</span>
+
+<span class="kd">class</span> <span class="nc">_Answer</span> <span class="p">{</span>
   <span class="err">@</span><span class="n">managedPrimaryKey</span>
   <span class="kt">int</span> <span class="n">id</span><span class="p">;</span>
   <span class="kt">String</span> <span class="n">description</span><span class="p">;</span>
@@ -901,11 +914,11 @@
 </pre></div>
 
 
-<p>Now that we have defined this relationship, we can associate answers with questions and return them in our <code>/questions</code> endpoint. In <code>question_controller.dart</code>, let's update the queries to fetch the <code>Answer</code> for each <code>Question</code> and include it in the response JSON. First, for <code>getAllQuestions</code>, use <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/joinOne.html">joinOne()</a> to connect to <code>question.answer</code> for <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet/where.html">where</a>'s <code>answer</code>:</p>
+<p>Now that we have defined this relationship, we can associate answers with questions and return them in our <code>/questions</code> endpoint. In <code>question_controller.dart</code>, let's update the queries to fetch the <code>Answer</code> for each <code>Question</code> and include it in the response JSON. First, for <code>getAllQuestions</code>, use <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet/join.html">join()</a> to connect to <code>question.answer</code> for <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet/where.html">where</a>'s <code>answer</code>:</p>
 <div class="codehilite"><pre><span></span><span class="err">@</span><span class="n">httpGet</span>
 <span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">getAllQuestions</span><span class="p">({</span><span class="err">@</span><span class="n">HTTPQuery</span><span class="p">(</span><span class="s2">&quot;contains&quot;</span><span class="p">)</span> <span class="kt">String</span> <span class="nl">containsSubstring:</span> <span class="kc">null</span><span class="p">})</span> <span class="kd">async</span> <span class="p">{</span>
   <span class="kd">var</span> <span class="n">questionQuery</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Question</span><span class="o">&gt;</span><span class="p">()</span>
-    <span class="p">..</span><span class="n">joinOne</span><span class="p">((</span><span class="n">question</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="n">question</span><span class="p">.</span><span class="n">answer</span><span class="p">);</span>
+    <span class="p">..</span><span class="n">join</span><span class="p">(</span><span class="nl">object:</span> <span class="p">(</span><span class="n">question</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="n">question</span><span class="p">.</span><span class="n">answer</span><span class="p">);</span>
 
   <span class="k">if</span> <span class="p">(</span><span class="n">containsSubstring</span> <span class="o">!=</span> <span class="kc">null</span><span class="p">)</span> <span class="p">{</span>
     <span class="n">questionQuery</span><span class="p">.</span><span class="n">where</span><span class="p">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">whereContainsString</span><span class="p">(</span><span class="n">containsSubstring</span><span class="p">);</span>
@@ -945,37 +958,41 @@
 
 
 <p>The partial matcher here will just check to see if the 'answer' key is a map that contains a <code>String</code> 'description' value. The extraneous 'id' key won't cause a failure. If you run the tests now, this test will still fail - 'answer' in the JSON is null because there are no answers in the database. Let's insert some by replacing <code>setUp</code> in <code>question_controller_test.dart</code>:</p>
-<div class="codehilite"><pre><span></span><span class="n">setUp</span><span class="p">(()</span> <span class="kd">async</span> <span class="p">{</span>
-  <span class="kd">await</span> <span class="n">app</span><span class="p">.</span><span class="n">start</span><span class="p">(</span><span class="nl">runOnMainIsolate:</span> <span class="kc">true</span><span class="p">);</span>
-  <span class="n">client</span> <span class="o">=</span> <span class="k">new</span> <span class="n">TestClient</span><span class="p">(</span><span class="n">app</span><span class="p">);</span>
+<div class="codehilite"><pre><span></span><span class="c1">// Don&#39;t forget to add this import, too!</span>
+<span class="k">import</span> <span class="s1">&#39;package:quiz/model/answer.dart&#39;</span><span class="p">;</span>
 
-  <span class="kd">var</span> <span class="n">ctx</span> <span class="o">=</span> <span class="n">ManagedContext</span><span class="p">.</span><span class="n">defaultContext</span><span class="p">;</span>
-  <span class="kd">var</span> <span class="n">builder</span> <span class="o">=</span> <span class="k">new</span> <span class="n">SchemaBuilder</span><span class="p">.</span><span class="n">toSchema</span><span class="p">(</span><span class="n">ctx</span><span class="p">.</span><span class="n">persistentStore</span><span class="p">,</span> <span class="k">new</span> <span class="n">Schema</span><span class="p">.</span><span class="n">fromDataModel</span><span class="p">(</span><span class="n">ctx</span><span class="p">.</span><span class="n">dataModel</span><span class="p">),</span> <span class="nl">isTemporary:</span> <span class="kc">true</span><span class="p">);</span>
+<span class="kt">void</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">setUp</span><span class="p">(()</span> <span class="kd">async</span> <span class="p">{</span>
+    <span class="kd">await</span> <span class="n">app</span><span class="p">.</span><span class="n">start</span><span class="p">(</span><span class="nl">runOnMainIsolate:</span> <span class="kc">true</span><span class="p">);</span>
+    <span class="n">client</span> <span class="o">=</span> <span class="k">new</span> <span class="n">TestClient</span><span class="p">(</span><span class="n">app</span><span class="p">);</span>
 
-  <span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="n">cmd</span> <span class="k">in</span> <span class="n">builder</span><span class="p">.</span><span class="n">commands</span><span class="p">)</span> <span class="p">{</span>
-    <span class="kd">await</span> <span class="n">ctx</span><span class="p">.</span><span class="n">persistentStore</span><span class="p">.</span><span class="n">execute</span><span class="p">(</span><span class="n">cmd</span><span class="p">);</span>
-  <span class="p">}</span>
+    <span class="kd">var</span> <span class="n">ctx</span> <span class="o">=</span> <span class="n">ManagedContext</span><span class="p">.</span><span class="n">defaultContext</span><span class="p">;</span>
+    <span class="kd">var</span> <span class="n">builder</span> <span class="o">=</span> <span class="k">new</span> <span class="n">SchemaBuilder</span><span class="p">.</span><span class="n">toSchema</span><span class="p">(</span><span class="n">ctx</span><span class="p">.</span><span class="n">persistentStore</span><span class="p">,</span> <span class="k">new</span> <span class="n">Schema</span><span class="p">.</span><span class="n">fromDataModel</span><span class="p">(</span><span class="n">ctx</span><span class="p">.</span><span class="n">dataModel</span><span class="p">),</span> <span class="nl">isTemporary:</span> <span class="kc">true</span><span class="p">);</span>
 
-  <span class="kd">var</span> <span class="n">questions</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="k">new</span> <span class="n">Question</span><span class="p">()</span>
-      <span class="p">..</span><span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;How much wood can a woodchuck chuck?&quot;</span>
-      <span class="p">..</span><span class="n">answer</span> <span class="o">=</span> <span class="p">(</span><span class="k">new</span> <span class="n">Answer</span><span class="p">()..</span><span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;Depends&quot;</span><span class="p">),</span>
-    <span class="k">new</span> <span class="n">Question</span><span class="p">()</span>
-      <span class="p">..</span><span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;What&#39;s the tallest mountain in the world?&quot;</span>
-      <span class="p">..</span><span class="n">answer</span> <span class="o">=</span> <span class="p">(</span><span class="k">new</span> <span class="n">Answer</span><span class="p">()..</span><span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;Mount Everest&quot;</span><span class="p">)</span>
-  <span class="p">];</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="n">cmd</span> <span class="k">in</span> <span class="n">builder</span><span class="p">.</span><span class="n">commands</span><span class="p">)</span> <span class="p">{</span>
+      <span class="kd">await</span> <span class="n">ctx</span><span class="p">.</span><span class="n">persistentStore</span><span class="p">.</span><span class="n">execute</span><span class="p">(</span><span class="n">cmd</span><span class="p">);</span>
+    <span class="p">}</span>
 
-  <span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="n">question</span> <span class="k">in</span> <span class="n">questions</span><span class="p">)</span> <span class="p">{</span>
-    <span class="kd">var</span> <span class="n">questionInsert</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Question</span><span class="o">&gt;</span><span class="p">()</span>
-        <span class="p">..</span><span class="n">values</span> <span class="o">=</span> <span class="n">question</span><span class="p">;</span>
-    <span class="kd">var</span> <span class="n">insertedQuestion</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">questionInsert</span><span class="p">.</span><span class="n">insert</span><span class="p">();</span>
+    <span class="kd">var</span> <span class="n">questions</span> <span class="o">=</span> <span class="p">[</span>
+      <span class="k">new</span> <span class="n">Question</span><span class="p">()</span>
+        <span class="p">..</span><span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;How much wood can a woodchuck chuck?&quot;</span>
+        <span class="p">..</span><span class="n">answer</span> <span class="o">=</span> <span class="p">(</span><span class="k">new</span> <span class="n">Answer</span><span class="p">()..</span><span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;Depends&quot;</span><span class="p">),</span>
+      <span class="k">new</span> <span class="n">Question</span><span class="p">()</span>
+        <span class="p">..</span><span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;What&#39;s the tallest mountain in the world?&quot;</span>
+        <span class="p">..</span><span class="n">answer</span> <span class="o">=</span> <span class="p">(</span><span class="k">new</span> <span class="n">Answer</span><span class="p">()..</span><span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;Mount Everest&quot;</span><span class="p">)</span>
+    <span class="p">];</span>
 
-    <span class="kd">var</span> <span class="n">answerInsert</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Answer</span><span class="o">&gt;</span><span class="p">()</span>
-      <span class="p">..</span><span class="n">values</span><span class="p">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">question</span><span class="p">.</span><span class="n">answer</span><span class="p">.</span><span class="n">description</span>
-      <span class="p">..</span><span class="n">values</span><span class="p">.</span><span class="n">question</span> <span class="o">=</span> <span class="n">insertedQuestion</span><span class="p">;</span>
-    <span class="kd">await</span> <span class="n">answerInsert</span><span class="p">.</span><span class="n">insert</span><span class="p">();</span>
-  <span class="p">}</span>
-<span class="p">});</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="n">question</span> <span class="k">in</span> <span class="n">questions</span><span class="p">)</span> <span class="p">{</span>
+      <span class="kd">var</span> <span class="n">questionInsert</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Question</span><span class="o">&gt;</span><span class="p">()</span>
+          <span class="p">..</span><span class="n">values</span> <span class="o">=</span> <span class="n">question</span><span class="p">;</span>
+      <span class="kd">var</span> <span class="n">insertedQuestion</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">questionInsert</span><span class="p">.</span><span class="n">insert</span><span class="p">();</span>
+
+      <span class="kd">var</span> <span class="n">answerInsert</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Answer</span><span class="o">&gt;</span><span class="p">()</span>
+        <span class="p">..</span><span class="n">values</span><span class="p">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">question</span><span class="p">.</span><span class="n">answer</span><span class="p">.</span><span class="n">description</span>
+        <span class="p">..</span><span class="n">values</span><span class="p">.</span><span class="n">question</span> <span class="o">=</span> <span class="n">insertedQuestion</span><span class="p">;</span>
+      <span class="kd">await</span> <span class="n">answerInsert</span><span class="p">.</span><span class="n">insert</span><span class="p">();</span>
+    <span class="p">}</span>
+  <span class="p">});</span>
 </pre></div>
 
 
@@ -1013,13 +1030,13 @@
 
 <p>The inverse relationship doesn't have to be updated - whether it is has-one or has-many is determined by whether or not property is a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet-class.html">ManagedSet&lt;T&gt;</a> or a subclass of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a>. For <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet-class.html">ManagedSet&lt;T&gt;</a>, <code>T</code> must be a subclass of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a>. A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet-class.html">ManagedSet</a> acts just like a <code>List</code> - it has methods like <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet/map.html">map</a> and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet/where.html">where</a> - but also has special behavior that allows it to be used in building <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query-class.html">Query&lt;T&gt;</a>s. If you wish to join on <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet-class.html">ManagedSet&lt;T&gt;</a> properties, the syntax is the same:</p>
 <div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">query</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Question</span><span class="o">&gt;</span><span class="p">()</span>
-  <span class="p">..</span><span class="n">joinMany</span><span class="p">((</span><span class="n">question</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="n">question</span><span class="p">.</span><span class="n">answers</span><span class="p">);</span>  
+  <span class="p">..</span><span class="n">join</span><span class="p">(</span><span class="kd">set</span><span class="o">:</span> <span class="p">(</span><span class="n">question</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="n">question</span><span class="p">.</span><span class="n">answers</span><span class="p">);</span>  
 </pre></div>
 
 
-<p>Each returned <code>Question</code> would also have a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet-class.html">ManagedSet</a> of <code>Answer</code>s in its <code>answers</code> property. You may also filter which answers are returned for each <code>Question</code>. A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/joinMany.html">joinMany</a> or <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/joinOne.html">joinOne</a> creates a new <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query-class.html">Query&lt;T&gt;</a> that has its own <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet/where.html">where</a> property.</p>
+<p>Each returned <code>Question</code> would also have a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet-class.html">ManagedSet</a> of <code>Answer</code>s in its <code>answers</code> property. You may also filter which answers are returned for each <code>Question</code>. A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet/join.html">join</a> creates a new <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query-class.html">Query&lt;T&gt;</a> that has its own <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet/where.html">where</a> property.</p>
 <div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">query</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Question</span><span class="o">&gt;</span><span class="p">();</span>
-<span class="kd">var</span> <span class="n">join</span> <span class="o">=</span> <span class="n">query</span><span class="p">.</span><span class="n">joinMany</span><span class="p">((</span><span class="n">question</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="n">question</span><span class="p">.</span><span class="n">answers</span><span class="p">)</span>
+<span class="kd">var</span> <span class="n">join</span> <span class="o">=</span> <span class="n">query</span><span class="p">.</span><span class="n">join</span><span class="p">(</span><span class="kd">set</span><span class="o">:</span> <span class="p">(</span><span class="n">question</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="n">question</span><span class="p">.</span><span class="n">answers</span><span class="p">)</span>
   <span class="p">..</span><span class="n">where</span><span class="p">.</span><span class="n">isCorrect</span> <span class="o">=</span> <span class="n">whereEqualTo</span><span class="p">(</span><span class="kc">true</span><span class="p">);</span>  
 </pre></div>
 

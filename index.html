@@ -170,8 +170,8 @@
                     <p class="p3_4"><br></p>
                     <p class="p1_4"><span class="s2_4">query </span><span class="s3_4">= </span><span class="s1_4">new </span>Query<span class="s3_4">&lt;</span>Employee<span class="s3_4">&gt;()</span></p>
                     <p class="p5_4"><span class="s3_4"><span class="Apple-converted-space">  </span>..</span><span class="s4_4">where</span><span class="s3_4">.</span><span class="s4_4">name </span><span class="s3_4">= </span><span class="s8_4">whereEqualTo</span><span class="s3_4">(</span>"Sue Gallagher"<span class="s3_4">)</span></p>
-                    <p class="p6_4"><span class="Apple-converted-space">  </span>..<span class="s7_4">joinOne</span>((<span class="s9_4">e</span>) =&gt; <span class="s9_4">e</span>.<span class="s4_4">manager</span>)</p>
-                    <p class="p6_4"><span class="Apple-converted-space">  </span>..<span class="s7_4">joinMany</span>((<span class="s9_4">e</span>) =&gt; <span class="s9_4">e</span>.<span class="s4_4">directReports</span>);</p>
+                    <p class="p6_4"><span class="Apple-converted-space">  </span>..<span class="s7_4">join</span>(object: (<span class="s9_4">e</span>) =&gt; <span class="s9_4">e</span>.<span class="s4_4">manager</span>)</p>
+                    <p class="p6_4"><span class="Apple-converted-space">  </span>..<span class="s7_4">join</span>(set: (<span class="s9_4">e</span>) =&gt; <span class="s9_4">e</span>.<span class="s4_4">directReports</span>);</p>
                     <p class="p3_4"><br></p>
                     <p class="p4_4"><span class="s1_4">var </span>employee <span class="s3_4">= </span><span class="s1_4">await </span>query<span class="s3_4">.</span><span class="s7_4">fetchOne</span><span class="s3_4">();</span></p>
                   </div>

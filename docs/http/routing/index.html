@@ -375,9 +375,50 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#what-is-routing" title="What is routing?" class="md-nav__link">
+    What is routing?
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#route-specifications-match-http-request-paths" title="Route Specifications Match HTTP Request Paths" class="md-nav__link">
     Route Specifications Match HTTP Request Paths
   </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#path-variables" title="Path Variables" class="md-nav__link">
+    Path Variables
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#optional-path-segments" title="Optional Path Segments" class="md-nav__link">
+    Optional Path Segments
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#restricting-path-variable-values" title="Restricting Path Variable Values" class="md-nav__link">
+    Restricting Path Variable Values
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#matching-the-remaining-path" title="Matching the Remaining Path" class="md-nav__link">
+    Matching the Remaining Path
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -434,6 +475,18 @@
   <li class="md-nav__item">
     <a href="../configure/" title="Configuration" class="md-nav__link">
       Configuration
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../serving_files/" title="Serving Files and Caching" class="md-nav__link">
+      Serving Files and Caching
     </a>
   </li>
 
@@ -824,9 +877,50 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#what-is-routing" title="What is routing?" class="md-nav__link">
+    What is routing?
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#route-specifications-match-http-request-paths" title="Route Specifications Match HTTP Request Paths" class="md-nav__link">
     Route Specifications Match HTTP Request Paths
   </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#path-variables" title="Path Variables" class="md-nav__link">
+    Path Variables
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#optional-path-segments" title="Optional Path Segments" class="md-nav__link">
+    Optional Path Segments
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#restricting-path-variable-values" title="Restricting Path Variable Values" class="md-nav__link">
+    Restricting Path Variable Values
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#matching-the-remaining-path" title="Matching the Remaining Path" class="md-nav__link">
+    Matching the Remaining Path
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -860,12 +954,12 @@
               
                 
                 <h1 id="routing">Routing</h1>
-<p>Every HTTP request has a URL. A URL identifies a <em>resource</em> on a computer. In the early days of the Internet, a resource was a file. For example, the URL <code>http://www.geocities.com/my_page/image.jpg</code> would return the file <code>image.jpg</code> from the folder <code>my_page</code> on the webserver located at <code>www.geocities.com</code>. In a web application today, resources come from many other sources of data, like a database or a connected device. The job of a web application is to provide a resource for a URL, wherever that resource might come from.</p>
+<h2 id="what-is-routing">What is routing?</h2>
+<p>Every HTTP request has a URL. A URL identifies a <em>resource</em> on a computer. In the early days of the Internet, a resource was a file. For example, the URL <code>http://www.geocities.com/my_page/image.jpg</code> would return the file <code>image.jpg</code> from the folder <code>my_page</code> on the webserver located at <code>www.geocities.com</code>. In a web application today, resources come from many other sources of data, like a database or a connected device. The job of a web application is to provide, create or modify a resource for a URL, wherever that resource might come from.</p>
 <p>A URL is made up of many parts, some of which are optional. The typical URL we see as humans looks like this: <code>http://stablekernel.com/about</code>. Most people recognize that typing this URL into a browser would take them to our company's "About" page. In other words, our "About" page is a resource and the URL identifies it.</p>
 <p>More generally, the "About" page URL has the three required components of a URL: a <em>scheme</em> (<code>http</code>), a <em>host</em> (<code>stablekernel.com</code>) and a <em>path</em> (<code>/about</code>). The host specifies the computer responsible for providing the resource, the path indicates the 'name' of the resource and the scheme lets both the requester and the host know how they should exchange information.</p>
 <p>An Aqueduct application receives requests when the scheme is <code>http</code> (or <code>https</code>) and the host refers to a machine where the application is running. Therefore, once the application gets the request, it only cares about the remaining component: the path.</p>
-<p>In Aqueduct, a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Router-class.html">Router</a> splits a stream of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request-class.html">Request</a>s coming into the application based on their path. This process is known as <em>routing</em>. When an application starts up, routes are registered in a subclass of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a>. Each registered route creates a new stream of requests that <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a>s can listen to.</p>
-<p>When an incoming request's path matches a route, the router will send the request to the next listener for that route. Typically, routing is the first processing step a request goes through in an Aqueduct application.</p>
+<p>In Aqueduct, a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Router-class.html">Router</a> routes <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request-class.html">Request</a>s to a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a> based on the request path. This process is known as <em>routing</em>. When an application starts up, routes are registered in a subclass of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a>. Each registered route creates a new <a href="../structure/">channel</a> of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a>s that the request will be passed through.</p>
 <h2 id="route-specifications-match-http-request-paths">Route Specifications Match HTTP Request Paths</h2>
 <p>A route is registered by invoking <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Router/route.html">Router.route</a>. This method takes a <em>route specification</em> - a <code>String</code> with some syntax rules that will match the path of a request. This registration occurs when an application first starts by overriding <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink/setupRouter.html">RequestSink.setupRouter</a>. For example:</p>
 <div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">MyRequestSink</span> <span class="kd">extends</span> <span class="n">RequestSink</span> <span class="p">{</span>
@@ -875,21 +969,23 @@
   <span class="kt">void</span> <span class="n">setupRouter</span><span class="p">(</span><span class="n">Router</span> <span class="n">router</span><span class="p">)</span> <span class="p">{</span>
     <span class="n">router</span>
       <span class="p">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/users&quot;</span><span class="p">)</span>
-      <span class="p">.</span><span class="n">listen</span><span class="p">((</span><span class="n">req</span><span class="p">)</span> <span class="p">{...});</span>
+      <span class="p">.</span><span class="n">listen</span><span class="p">((</span><span class="n">req</span><span class="p">)</span> <span class="kd">async</span> <span class="o">=&gt;</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="kd">await</span> <span class="n">getAllUsers</span><span class="p">());</span>
   <span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
 
 
 <p>The argument to <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Router/route.html">route</a> is the route specification string. This particular route matches the path <code>/users</code>. That is, a request for the URL <code>http://myserver.com/users</code> will be sent to the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController/listen.html">listen</a> closure. (Leading and trailing slashes are stripped out when routes are compiled, so including them has no effect, but it is good style to show a leading slash.)</p>
-<p>A path can have multiple segments (the characters between slashes). For example, the path <code>/users/foo</code> has two path segments: <code>users</code> and <code>foo</code>. Routes, too, have segments. A router matches each segment of a path against each segment of a route specification. The path and the route must also have the same number of segments. Thus, the route specification <code>/users/foo</code> would match the path <code>/users/foo</code>, but not <code>/users</code>, <code>/users/7</code> or <code>/users/foo/1</code>.</p>
-<p>A route specification can have <em>path variables</em>. A path variable is a route segment that always succeeds in matching a path segment, and that segment is stored so that later controllers can use its value. In a route specification, a path variable starts with a colon (<code>:</code>). The name of the variable follows this colon. For example, consider the following route that declares a path variable named <code>userID</code>:</p>
+<p>A path can have multiple segments (the characters between slashes). For example, the path <code>/users/foo</code> has two path segments: <code>users</code> and <code>foo</code>. A route specification matches each segment of a path against each of its segments. The path and the route must also have the same number of segments. Thus, the route specification <code>/users/foo</code> would match the path <code>/users/foo</code>, but it would not match the paths <code>/users</code>, <code>/users/7</code> or <code>/users/foo/1</code>.</p>
+<h3 id="path-variables">Path Variables</h3>
+<p>A route specification may have <em>path variables</em>. A path variable is a route segment that always succeeds in matching a path segment. The value of the segment is stored so that down-channel controllers can use it. In a route specification, a path variable starts with a colon (<code>:</code>). The name of the variable follows this colon. For example, consider the following route that declares a path variable named <code>userID</code>:</p>
 <div class="codehilite"><pre><span></span><span class="n">router</span><span class="p">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/users/:userID&quot;</span><span class="p">)</span>
 </pre></div>
 
 
 <p>This route specification will match <code>/users/1</code>, <code>/users/2</code>, <code>/users/foo</code>, etc. The value of <code>userID</code> is <code>1</code>, <code>2</code> and <code>foo</code>, respectively. This route won't match <code>/users</code> or <code>/users/1/2</code>.</p>
-<p>Routes may have optional path segments. This allows a group of routes that all refer to the same resource collection to go to the same controller. For example, the requests <code>/users</code> and <code>/users/1</code> can both be covered by a single route specification.</p>
+<h3 id="optional-path-segments">Optional Path Segments</h3>
+<p>Routes may have optional path segments. This allows a group of routes that all refer to a resource collection to go to the same controller. For example, the requests <code>/users</code> and <code>/users/1</code> can both be covered by a single route specification.</p>
 <p>An optional path segment has square brackets (<code>[]</code>) around it. The brackets can go before or after slashes. For example, the following two syntaxes register a route that accepts both <code>/users</code> and <code>/users/:userID</code>:</p>
 <div class="codehilite"><pre><span></span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/users/[:userID]&quot;</span><span class="p">)</span>
 <span class="n">route</span><span class="p">(</span><span class="s2">&quot;/users[/:userID]&quot;</span><span class="p">)</span>
@@ -897,12 +993,24 @@
 
 
 <p>Conceptually, a request with a path of <code>/users/1</code> identifies a single user, where <code>/users</code> identifies all users. Optional segments are used to create better code structure by forwarding requests that deal with a specific type of resource to the same request controller. Therefore, the code to handle one user or multiple users is written in the same place.</p>
-<p>You may have any number of optional segments in a route specification. Each optional segment must be nested. The following route would match <code>/a</code>, <code>/a/b</code> and <code>/a/b/c</code> (but not <code>/a/c</code>):</p>
+<p>You may have any number of optional segments in a route specification. Each optional segment must be nested. The following route would match <code>/a</code>, <code>/a/b</code> and <code>/a/b/c</code>. It would not match <code>/a/c</code>.</p>
 <div class="codehilite"><pre><span></span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/a/[b/[c]]&quot;</span><span class="p">)</span>
 </pre></div>
 
 
-<p>It's pretty rare to have more than one optional segment in a route. In most circumstances, a good API has routes with just one optional segment. The first segment is the type of the resource and the second segment is an optional unique identifier for a specific resource of that type. More generally, a typical route is <code>/type/[:id]</code>. It is also fairly rare to have an optional literal segment - optionals are typically used for path variables only.</p>
+<p>It's pretty rare to have more than one optional segment in a route. For example, consider the route:</p>
+<div class="codehilite"><pre><span></span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/users/[:id/[:subresource/[:subresourceid]]]&quot;</span><span class="p">);</span>
+</pre></div>
+
+
+<p>The code to handle one or more users is likely very different than the code to handle one of its subresources - different database tables will be queried and different authorization may be needed. Thus, a better approach is to split subresources into their own routes to keep controller logic modular:</p>
+<div class="codehilite"><pre><span></span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/users/[:id]&quot;</span><span class="p">)...;</span>
+<span class="n">route</span><span class="p">(</span><span class="s2">&quot;/users/:id/posts/[:id]&quot;</span><span class="p">)...;</span>
+<span class="n">route</span><span class="p">(</span><span class="s2">&quot;/users/:id/notes/[:id]&quot;</span><span class="p">)...;</span>
+</pre></div>
+
+
+<h3 id="restricting-path-variable-values">Restricting Path Variable Values</h3>
 <p>Path variables may restrict their possible values with a regular expression. The expression comes in parentheses following the path variable name. For example, the following route specification limits <code>userID</code> to numbers only:</p>
 <div class="codehilite"><pre><span></span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/users/:userID([0-9]+)&quot;</span><span class="p">)</span>
 </pre></div>
@@ -910,6 +1018,7 @@
 
 <p>This regular expression would only apply to the <code>:userID</code> segment. Note that capture groups and parentheses in general can't be included in a route's regular expression.</p>
 <p>Everything in between the parentheses is evaluated as the regular expression. Therefore, any additional spaces or characters will be a part of the regular expression. Since spaces aren't valid in a URL, you don't want spaces in a regular expression.</p>
+<h3 id="matching-the-remaining-path">Matching the Remaining Path</h3>
 <p>Finally, a route specification may have a special 'match-all' token, the asterisk (<code>*</code>). This token allows for any remaining request path to be matched, regardless of its contents or length. For example, the route specification <code>/users/*</code> would match the following paths:</p>
 <div class="codehilite"><pre><span></span>/users
 /users/1
@@ -919,7 +1028,7 @@
 </pre></div>
 
 
-<p>This token is used when another medium is going to interpret the URL. For example, a request controller that reads a file might have a route <code>/file/*</code>. It uses everything after <code>/file</code> to figure out the path on the filesystem.</p>
+<p>This token is used when another medium is going to interpret the URL. For example, <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPFileController-class.html">HTTPFileController</a> - which reads a file from the filesystem - might have a route <code>/file/*</code>. It uses everything after <code>/file</code> to figure out the path on the filesystem.</p>
 <h2 id="accessing-path-variables">Accessing Path Variables</h2>
 <p>Information that a router parses from a request path - like path variables - are stored in a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request-class.html">Request</a>'s <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIPath/path.html">path</a>. As a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request-class.html">Request</a> passes through a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Router-class.html">Router</a>, its <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIPath/path.html">path</a> is set to an instance of this type. Later controllers access the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIPath/path.html">path</a> of a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request-class.html">Request</a> to help determine which resource the request is referring to. The <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIPath/path.html">path</a> is an instance of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPRequestPath-class.html">HTTPRequestPath</a>.</p>
 <p>The <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPRequestPath/variables.html">variables</a> of an <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPRequestPath-class.html">HTTPRequestPath</a> are a <code>Map&lt;String, String&gt;</code>, where the key is the name of the variable in the route specification and the value is the matching path segment in an incoming request. For example, consider a route specification <code>/users/:id</code>. When a request with path <code>/users/1</code> is routed, this specification will match. So, a controller would access it like so:</p>
@@ -931,7 +1040,7 @@
 <p>The values in <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPRequestPath/variables.html">variables</a> are always <code>String</code>s, since a request path is a <code>String</code>. <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a>s may parse path variables into types like <code>int</code>.</p>
 <p><a href="../http_controller/">HTTPController</a> uses path variables to select a responder method to handle a request.</p>
 <h2 id="failed-matches-return-404">Failed Matches Return 404</h2>
-<p>A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Router-class.html">Router</a> will return a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Response/Response.notFound.html">Response.notFound</a> - a response with status code 404 - if it receives a request that no route is registered for. The router will not send this request downstream to further listeners. This behavior may be overridden by providing a closure to <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Router/unhandledRequestController.html">Router.unhandledRequestController</a>, but the use-case is rare.</p>
+<p>A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Router-class.html">Router</a> will return a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Response/Response.notFound.html">Response.notFound</a> - a response with status code 404 - if it receives a request that no route is registered for. The router will not send this request downstream to further listeners. This behavior may be overridden by providing a closure to <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Router/unhandledRequestController.html">Router.unhandledRequestController</a> to provide a 404 HTML page if the request allows it.</p>
               
               
             </article>

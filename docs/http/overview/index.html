@@ -399,6 +399,18 @@
   </li>
 
         
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../serving_files/" title="Serving Files and Caching" class="md-nav__link">
+      Serving Files and Caching
+    </a>
+  </li>
+
+        
       </ul>
     </nav>
   </li>
@@ -814,26 +826,26 @@
                   <h1>Overview</h1>
                 
                 <h2 id="tasks">Tasks</h2>
-<p>Aqueduct responds to HTTP requests. The main concepts and tasks are:</p>
+<p>Aqueduct applications respond to HTTP requests. The main concepts and tasks are:</p>
 <ul>
 <li>Using a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Router-class.html">Router</a> to dispatch <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request-class.html">Request</a>s to a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a></li>
-<li>Using <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a>s to process, modify and respond to <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request-class.html">Request</a>s</li>
-<li>Subclassing <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> to handle application initialization</li>
+<li>Subclassing <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a> to bind requests and their properties to <em>responder methods</em></li>
+<li>Subclassing <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> to initialize an application</li>
 <li>Running Aqueduct Applications with <code>aqueduct serve</code></li>
-<li>Subclassing <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a> to group routes and create responses</li>
-<li>Using helpful controllers like <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/QueryController-class.html">QueryController&lt;T&gt;</a> and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObjectController-class.html">ManagedObjectController&lt;T&gt;</a>.</li>
-<li>Decoding HTTP request bodies with <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPBody-class.html">HTTPBody</a> and encoding objects into HTTP response bodies with <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Response-class.html">Response</a></li>
-<li>Handling CORS requests with <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/CORSPolicy-class.html">CORSPolicy</a></li>
+<li>Using specialized database controllers like <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/QueryController-class.html">QueryController&lt;T&gt;</a> and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObjectController-class.html">ManagedObjectController&lt;T&gt;</a>.</li>
+<li>Decoding HTTP request bodies with <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPRequestBody-class.html">HTTPRequestBody</a> and encoding objects into HTTP response bodies with <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Response-class.html">Response</a></li>
+<li>Using <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a>s to implement middleware and other types of responder logic.</li>
 </ul>
 <h2 id="guides">Guides</h2>
 <ul>
-<li><a href="../structure/">Structure of Aqueduct Application</a></li>
+<li><a href="../structure/">Architecture and Organization of Aqueduct Applications</a></li>
 <li><a href="../request_and_response/">Request and Response Objects</a></li>
 <li><a href="../request_controller/">Handling Requests</a></li>
 <li><a href="../request_sink/">The RequestSink</a></li>
 <li><a href="../routing/">Routing</a></li>
 <li><a href="../http_controller/">HTTPControllers</a></li>
 <li><a href="../configure/">Configuration Files, CORS and SSL</a></li>
+<li><a href="../serving_files/">Serving Files and Caching</a></li>
 </ul>
               
               

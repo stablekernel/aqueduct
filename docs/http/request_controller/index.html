@@ -376,6 +376,13 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#cors-headers-and-preflight-requests" title="CORS Headers and Preflight Requests" class="md-nav__link">
+    CORS Headers and Preflight Requests
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -427,6 +434,18 @@
   <li class="md-nav__item">
     <a href="../configure/" title="Configuration" class="md-nav__link">
       Configuration
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../serving_files/" title="Serving Files and Caching" class="md-nav__link">
+      Serving Files and Caching
     </a>
   </li>
 
@@ -830,6 +849,13 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#cors-headers-and-preflight-requests" title="CORS Headers and Preflight Requests" class="md-nav__link">
+    CORS Headers and Preflight Requests
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -845,36 +871,71 @@
                
               
                 
-                <h1 id="handling-requests">Handling Requests</h1>
-<p>For every HTTP request, an instance of <a href="../request_and_response/">Request</a> is created. A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a> creates a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Response-class.html">Response</a> for a request. Sometimes. Other times, a controller does something with the request and then passes it on to another.</p>
-<p>Aqueduct applications are just a bunch of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a>s strung together like a real life assembly line. In an assembly line of cars, the body of a car gets put on a conveyor belt. The first worker puts on a steering wheel, the next puts on tires and the last one paints the car a color. The car is then removed from the conveyor belt and sold. Each worker has a specific job in a specific order - they rely on the rest of the assembly line to complete the car, but their job is isolated.</p>
-<p>This conveyor belt is built by chaining together <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a>s with methods like <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController/pipe.html">pipe</a> and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController/generate.html">generate</a>. Here's an example of some common Aqueduct code:</p>
-<div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">router</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Router</span><span class="p">();</span>
-<span class="n">router</span>
-  <span class="p">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/users&quot;</span><span class="p">)</span>
-  <span class="p">.</span><span class="n">pipe</span><span class="p">(</span><span class="k">new</span> <span class="n">Authorizer</span><span class="p">(</span><span class="n">authServer</span><span class="p">))</span>
-  <span class="p">.</span><span class="n">generate</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="k">new</span> <span class="n">UserController</span><span class="p">());</span>
+                <h1 id="handling-requests-fundamentals">Handling Requests: Fundamentals</h1>
+<p>This guide provides a deeper understanding of how a request object moves through an Aqueduct application to get responded to. For more use-case based guidance on handling requests, see <a href="../http_controller/">HTTPController</a>.</p>
+<p>An Aqueduct application is a <a href="../structure/">channel of RequestController</a> instances that HTTP requests go through to get responded to.</p>
+<p><img alt="Aqueduct Structure" src="../../img/callout_structure.png" /></p>
+<p>The above diagram shows a request entering a channel at a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> and then being passed to a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Router-class.html">Router</a>. The <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Router-class.html">Router</a> splits the channel. If a request's path matches a registered route, the request is passed down the split channel. If it doesn't, the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Router-class.html">Router</a> stops the request from continuing down the channel and responds to it with a 404 Not Found response. Likewise, <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Authorizer-class.html">Authorizer</a> might reject a request if it doesn't have valid authorization credentials or let it pass to the next controller in the channel. At the end of the channel, some controller must respond to the request.</p>
+<p>Channels always begin with a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> and a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Router-class.html">Router</a>. This channel is built upon by invoking <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Router/route.html">route</a> on the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Router-class.html">Router</a>, which splits the channel into subchannels. These subchannels are added to with the methods <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController/pipe.html">pipe</a>, <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController/generate.html">generate</a>, and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController/listen.html">listen</a>. Each of these <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a> methods attaches another <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a> to form a channel. Here's an example:</p>
+<div class="codehilite"><pre><span></span><span class="err">@</span><span class="n">override</span>
+<span class="kt">void</span> <span class="n">setupRouter</span><span class="p">(</span><span class="n">Router</span> <span class="n">router</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">router</span>
+    <span class="p">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/path&quot;</span><span class="p">)</span>
+    <span class="p">.</span><span class="n">listen</span><span class="p">((</span><span class="n">Request</span> <span class="n">request</span><span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>
+      <span class="n">logger</span><span class="p">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">$</span><span class="n">request</span><span class="s2">&quot;</span><span class="p">);</span>
+      <span class="k">return</span> <span class="n">request</span><span class="p">;</span>
+    <span class="p">})</span>
+    <span class="p">.</span><span class="n">pipe</span><span class="p">(</span><span class="k">new</span> <span class="n">FilteringController</span><span class="p">())</span>
+    <span class="p">.</span><span class="n">generate</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="k">new</span> <span class="n">CRUDController</span><span class="p">());</span>
+<span class="p">}</span>
 </pre></div>
 
 
-<p>This chains together a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Router-class.html">Router</a>, an <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Authorizer-class.html">Authorizer</a> and a <code>UserController</code> - all subclasses of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a>. So, let's say this router gets a request - if the path matches <code>/users</code>, it goes to the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Authorizer-class.html">Authorizer</a>, and if its authorized, it goes to a <code>UserController</code>, which responds to the request.</p>
-<p>A request can drop out of the assembly line before it reaches the end. If the request's path didn't match <code>/users</code>, a 404 response would be created and the request would never get to the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Authorizer-class.html">Authorizer</a>. If the request wasn't authorized, a 401 response would be created and the request would never get to the <code>UserController</code>.</p>
-<p>More generally, <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a>s take a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request-class.html">Request</a> as input. If they want to respond to the request, they create a response. Otherwise, they send the request to the next controller in line.</p>
-<p>Both <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController/pipe.html">pipe</a> and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController/generate.html">generate</a> set up this relationship between controllers; difference being that <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController/generate.html">generate</a> creates a new instance of the controller each time a request comes through and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController/pipe.html">pipe</a> just reuses the same one. (That's why the argument is a closure that creates a new <code>UserController</code> in this example, not just a <code>UserController</code> instance.)</p>
-<p>The reason this distinction exists is because some controllers will have properties that reference the request they are currently processing. Since Aqueduct applications handle multiple <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request-class.html">Request</a>s at a time, these controllers would get their properties changed while waiting for an asynchronous operation to complete if there were only one instance.</p>
-<p>The most commonly used controller - <a href="../http_controller/">HTTPController</a> - must be generated, whereas an <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Authorizer-class.html">Authorizer</a> holds no state and does not. <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a> subclasses that require generation have <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/cannotBeReused-constant.html">@cannotBeReused</a> metadata and will throw an exception immediately at startup if not.</p>
-<p>There's also a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController/listen.html">listen</a> method that takes a closure to process the request instead of an object (that closure still gets wrapped in a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a> under the hood):</p>
-<div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">router</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Router</span><span class="p">();</span>
-<span class="n">router</span>
-  <span class="p">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/health&quot;</span><span class="p">)</span>
-  <span class="p">.</span><span class="n">listen</span><span class="p">((</span><span class="n">req</span><span class="p">)</span> <span class="kd">async</span> <span class="o">=&gt;</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="kc">null</span><span class="p">));</span>
+<p>First, notice that these methods can be chained together in this way because they always return the controller being added to the channel. For example, <code>router.route</code> creates a new "route controller" and returns it. The route controller then has <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController/listen.html">listen</a> invoked on it, which creates a new <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a> from a closure and returns it, for which <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController/pipe.html">pipe</a> is invoked... you get the drift.</p>
+<p>The <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController/listen.html">listen</a> method is the easiest to understand: it takes an async closure that takes a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request-class.html">Request</a> and may either return a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Response-class.html">Response</a> or that same <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request-class.html">Request</a>. If it returns the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request-class.html">Request</a>, the request is passed to the next controller in the channel. If it returns a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Response-class.html">Response</a>, a response is sent to the HTTP client and no more controllers get the request.</p>
+<p>Concrete implementations of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a> - like the mythical <code>FilteringController</code> and <code>CRUDController</code> above - override a method with the same signature as the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController/listen.html">listen</a> closure. This method is named <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Authorizer/processRequest.html">processRequest</a> and it looks like this:</p>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">FilteringController</span> <span class="p">{</span>
+  <span class="err">@</span><span class="n">override</span>
+  <span class="n">Future</span><span class="o">&lt;</span><span class="n">RequestOrResponse</span><span class="o">&gt;</span> <span class="n">processRequest</span><span class="p">(</span><span class="n">Request</span> <span class="n">request</span><span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">isThereSomethingWrongWith</span><span class="p">(</span><span class="n">request</span><span class="p">))</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">badRequest</span><span class="p">();</span>
+    <span class="p">}</span>
+
+    <span class="k">return</span> <span class="n">request</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
 </pre></div>
 
 
-<p>The <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Router/route.html">route</a> method is unique to a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Router-class.html">Router</a>, but allows for multiple controllers to be chained to the router based on their request path. There's a whole section on <a href="../routing.html">Routing</a>.</p>
-<p><a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a>s serve as the building blocks of an Aqueduct application, but they are rarely used directly. More often than not, an Aqueduct application is built entirely out of <a href="../routing.html">Router</a>, <a href="../../auth/authorizer.html">Authorizer</a> and <a href="../http_controller.html">HTTPController</a> subclasses.</p>
+<p>(In fact, the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController/listen.html">listen</a> closure is simply wrapped by an instance of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a>. The default behavior of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Authorizer/processRequest.html">processRequest</a> is to invoke its closure.)</p>
+<p>The difference between <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController/pipe.html">pipe</a> and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController/generate.html">generate</a> is important. A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a> like <code>FilteringController</code> doesn't have any properties that change when processing a request. But let's pretend <code>CRUDController</code> is defined like the following, where it reads the body into a property and then accesses that property later:</p>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">CRUDController</span> <span class="p">{</span>
+  <span class="n">Map</span><span class="o">&lt;</span><span class="kt">String</span><span class="p">,</span> <span class="kt">dynamic</span><span class="o">&gt;</span> <span class="n">body</span><span class="p">;</span>
+
+  <span class="err">@</span><span class="n">override</span>
+  <span class="n">Future</span><span class="o">&lt;</span><span class="n">RequestOrResponse</span><span class="o">&gt;</span> <span class="n">processRequest</span><span class="p">(</span><span class="n">Request</span> <span class="n">request</span><span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>
+    <span class="n">body</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">request</span><span class="p">.</span><span class="n">body</span><span class="p">.</span><span class="n">asMap</span><span class="p">();</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">request</span><span class="p">.</span><span class="n">innerRequest</span><span class="p">.</span><span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;POST&quot;</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="n">handlePost</span><span class="p">();</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">request</span><span class="p">.</span><span class="n">innerMethod</span> <span class="o">==</span> <span class="s2">&quot;PUT&quot;</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="n">handlePut</span><span class="p">();</span>
+    <span class="p">}</span> <span class="p">...</span>
+  <span class="p">}</span>
+
+  <span class="n">Future</span><span class="o">&lt;</span><span class="n">RequestOrResponse</span><span class="o">&gt;</span> <span class="n">handlePost</span><span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
+    <span class="p">...</span> <span class="k">do</span> <span class="n">something</span> <span class="kd">with</span> <span class="n">body</span> <span class="p">...</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>In the above, the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request/body.html">body</a> property will be updated when <code>CRUDController</code> receives a request. It is possible that <code>CRUDController</code> is working on creating a response when it gets a new request, changing its <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request/body.html">body</a> property. This would change the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request/body.html">body</a> for all requests that <code>CRUDController</code> is currently processing!</p>
+<p>Therefore, when a controller has state that changes for every request, a new instance should be created for each request. The <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController/generate.html">generate</a> method takes a closure that creates a new instance of a controller. The <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController/pipe.html">pipe</a> method on the other hand reuses the same controller for every request because the request passes right through it without changing any of its state.</p>
+<p>The most common controller in an Aqueduct is an <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a>. This controller handles all requests for an HTTP resource. For example, a controller of this type might handle <code>POST /users</code>, <code>PUT /users/1</code>, <code>GET /users</code>, <code>GET /users/1</code> and <code>DELETE /users/1</code>. It has conveniences for organizing code such that each of these operations is bound to its own instance method. These conveniences require that the controller store parsed values from the request in it properties. Therefore, all <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a>s must be added to a channel with <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController/generate.html">generate</a>.</p>
+<p><a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a> - and any other controller that requires a new instance for each request - is marked with <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/cannotBeReused-constant.html">@cannotBeReused</a> metadata. If you try and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController/pipe.html">pipe</a> to a controller with this metadata, you'll get an error at startup with a helpful error message.</p>
 <h2 id="exception-handling">Exception Handling</h2>
-<p>If an exception is thrown while processing a request, it will be caught by the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a> doing the processing. The controller will respond with an appropriate status code and the request is discarded so no more controllers will see it.</p>
+<p><a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a>s wrap <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Authorizer/processRequest.html">processRequest</a> in a try-catch block. If an exception is thrown during the processing of a request, it is caught and the controller will send a response on your behalf. The request is then removed from the channel and no more controllers will receive it.</p>
 <p>There are two types of exceptions that a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a> will interpret to return a meaningful status code: <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPResponseException-class.html">HTTPResponseException</a> and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/QueryException-class.html">QueryException</a>. Any other uncaught exceptions will result in a 500 status code error.</p>
 <p><a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/QueryException-class.html">QueryException</a>s are generated by the Aqueduct ORM. A request controller interprets these types of exceptions to return a suitable status code. The following reasons for the exception generate the following status codes:</p>
 <table>
@@ -903,22 +964,27 @@
 </tr>
 </tbody>
 </table>
-<p>An <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPResponseException-class.html">HTTPResponseException</a> can be thrown at anytime to escape early from processing and return a response. Exceptions of these type allow you to specify the status code and a message. The message is encoded in a JSON object for the key "error". Some classes in Aqueduct will throw an exception of this kind if some precondition isn't met. You may add your own try-catch blocks to request processing code to either catch and reinterpret the behavior of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPResponseException-class.html">HTTPResponseException</a> and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/QueryException-class.html">QueryException</a>, or for any other reason.</p>
-<p>Other than <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPResponseException-class.html">HTTPResponseException</a>s, exceptions are always logged along with some details of the request that generated the exception. <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPResponseException-class.html">HTTPResponseException</a>s are not logged, as they are used for control flow and are considered "normal" operation.</p>
-<h2 id="subclassing-requestcontroller">Subclassing RequestController</h2>
-<p>Using existing subclasses of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a> like <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Router-class.html">Router</a>, <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Authorizer-class.html">Authorizer</a> and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a> cover the majority of Aqueduct use cases. There are times where creating your own <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a> subclass may make sense.</p>
-<p>Subclassing <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a> usually involves overriding its <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Authorizer/processRequest.html">processRequest</a> method. This method takes a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request-class.html">Request</a> as input and returns either a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Response-class.html">Response</a> or <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request-class.html">Request</a> wrapped in a <code>Future</code>.</p>
+<p>An <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPResponseException-class.html">HTTPResponseException</a> can be thrown at anytime to escape early from processing and return a response. Exceptions of these type allow you to specify the status code and a message. The message is encoded in a JSON object for the key "error". Some classes in Aqueduct will throw an exception of this kind if some precondition isn't met.</p>
+<p>If you have code that can throw for legitimate reasons, you may catch those exceptions to return a response with an appropriate status code:</p>
 <div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">Controller</span> <span class="kd">extends</span> <span class="n">RequestController</span> <span class="p">{</span>
-  <span class="err">@</span><span class="n">override</span>
   <span class="n">Future</span><span class="o">&lt;</span><span class="n">RequestOrResponse</span><span class="o">&gt;</span> <span class="n">processRequest</span><span class="p">(</span><span class="n">Request</span> <span class="n">request</span><span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>
-      <span class="p">...</span> <span class="k">return</span> <span class="n">either</span> <span class="n">request</span> <span class="n">or</span> <span class="n">a</span> <span class="k">new</span> <span class="n">Response</span> <span class="p">...</span>
+    <span class="k">try</span> <span class="p">{</span>
+      <span class="kd">await</span> <span class="n">someFailableOperation</span><span class="p">();</span>
+    <span class="p">}</span> <span class="n">on</span> <span class="n">OperationException</span> <span class="k">catch</span> <span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="k">new</span> <span class="n">Response</span><span class="p">(</span><span class="m">503</span><span class="p">,</span> <span class="kc">null</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="o">:</span> <span class="n">e</span><span class="p">.</span><span class="n">errorMessage</span><span class="p">});</span>
+    <span class="p">}</span>
+
+    <span class="p">...</span>
   <span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
 
 
-<p>A controller receives <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request-class.html">Request</a>s in this method. If this method returns a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Response-class.html">Response</a>, that response is sent to the HTTP client and no more processing occurs. If this method returns a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request-class.html">Request</a>, the next controller in the assembly line has this method invoked.</p>
-<p>A controller must return the same instance of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request-class.html">Request</a> it receives, but it may attach additional information by adding key-value pairs to the request's <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request/attachments.html">attachments</a>.</p>
+<p>You may also catch <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query-class.html">Query</a> or <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPResponseException-class.html">HTTPResponseException</a>s to reinterpret them, but the default behavior is pretty reasonable.</p>
+<p>Other than <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPResponseException-class.html">HTTPResponseException</a>s, exceptions are written to the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Logger-class.html">Logger</a> along with some details of the request that generated the exception. <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPResponseException-class.html">HTTPResponseException</a>s are not logged, as they are used for control flow and are considered "normal" operation.</p>
+<h2 id="subclassing-requestcontroller">Subclassing RequestController</h2>
+<p>Using existing subclasses of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a> like <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Router-class.html">Router</a>, <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Authorizer-class.html">Authorizer</a> and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a> cover the majority of Aqueduct use cases. There are times where creating your own <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a> subclass may make sense.</p>
+<p>To pass a request on to the next controller in the channel, a controller must return the same instance of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request-class.html">Request</a> it receives. It may, however, attach additional information by adding key-value pairs to the request's <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request/attachments.html">attachments</a>.</p>
 <p>For example, an <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Authorizer-class.html">Authorizer</a>'s pseudo code looks like this:</p>
 <div class="codehilite"><pre><span></span><span class="n">Future</span><span class="o">&lt;</span><span class="n">RequestOrResponse</span><span class="o">&gt;</span> <span class="n">processRequest</span><span class="p">(</span><span class="n">Request</span> <span class="n">request</span><span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>
     <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">isAuthorized</span><span class="p">(</span><span class="n">request</span><span class="p">))</span> <span class="p">{</span>
@@ -931,8 +997,18 @@
 </pre></div>
 
 
-<p>It's important that the last controller in the assembly line always responds to a request. Typically, this is an instance of an <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a> subclass.</p>
-<p>Aqueduct automatically invokes <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Authorizer/processRequest.html">processRequest</a> on controllers inside a try-catch block. This allows uncaught errors to always send a response to the HTTP client and attaches things like CORS headers.</p>
+<p>The next controller in the channel can look up the value of <code>authInfo</code>:</p>
+<div class="codehilite"><pre><span></span><span class="n">Future</span><span class="o">&lt;</span><span class="n">RequestOrResponse</span><span class="o">&gt;</span> <span class="n">processRequest</span><span class="p">(</span><span class="n">Request</span> <span class="n">request</span><span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="n">authInfo</span> <span class="o">=</span> <span class="n">request</span><span class="p">.</span><span class="n">attachments</span><span class="p">[</span><span class="s2">&quot;authInfo&quot;</span><span class="p">];</span>
+
+
+    <span class="k">return</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="s2">&quot;You are user: </span><span class="si">${</span><span class="n">authInfo</span><span class="p">.</span><span class="n">username</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<h2 id="cors-headers-and-preflight-requests">CORS Headers and Preflight Requests</h2>
+<p><a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a>s have built-in behavior for handling CORS requests. They will automatically respond to <code>OPTIONS</code> preflight requests and attach CORS headers to any other response. See <a href="../configure/">the chapter on CORS</a> for more details.</p>
               
               
             </article>

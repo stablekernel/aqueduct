@@ -274,13 +274,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#importing-managedobjects" title="Importing ManagedObjects" class="md-nav__link">
-    Importing ManagedObjects
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#defining-a-context" title="Defining a Context" class="md-nav__link">
     Defining a Context
   </a>
@@ -462,6 +455,18 @@
   <li class="md-nav__item">
     <a href="../../http/configure/" title="Configuration" class="md-nav__link">
       Configuration
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/serving_files/" title="Serving Files and Caching" class="md-nav__link">
+      Serving Files and Caching
     </a>
   </li>
 
@@ -859,13 +864,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#importing-managedobjects" title="Importing ManagedObjects" class="md-nav__link">
-    Importing ManagedObjects
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#defining-a-context" title="Defining a Context" class="md-nav__link">
     Defining a Context
   </a>
@@ -919,8 +917,8 @@
 <p>Now that you've seen how to route HTTP requests and respond to them, we'll do something useful with those requests: like interacting with a database. We will continue to build on the last chapter project, <code>quiz</code>, by storing the questions in a database and retrieving them from the database.</p>
 <h2 id="building-a-data-model">Building a Data Model</h2>
 <p>Aqueduct has a built-in ORM (some of which is modeled after the iOS/macOS Core Data framework). Like all ORMs, rows of a database are mapped to objects. In Aqueduct, these objects are of type <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a>. Let's define a managed object that represents a 'question'. Create a new directory in <code>lib</code> named <code>model</code>, and then add a new file to it named <code>question.dart</code> (thus, <code>lib/model/question.dart</code>).</p>
-<p>A managed object is a subclass of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a>, where <code>T</code> is a <em>persistent type</em>. A persistent type is a simple Dart class that maps to a database table. Each of its properties maps to a column in that table. By convention, but not required, persistent types are prefixed with '_'. In <code>question.dart</code>, let's define a persistent type for a question:</p>
-<div class="codehilite"><pre><span></span><span class="k">import</span> <span class="s1">&#39;package:quiz/quiz.dart&#39;</span><span class="p">;</span>
+<p>A managed object is a subclass of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a>, where <code>T</code> is a <em>persistent type</em>. A persistent type is a simple Dart class that maps to a database table. Each of its properties maps to a column in that table. Persistent types are prefixed with '_'. In <code>question.dart</code>, let's define a persistent type for a question:</p>
+<div class="codehilite"><pre><span></span><span class="k">import</span> <span class="s1">&#39;../quiz.dart&#39;</span><span class="p">;</span>
 
 <span class="kd">class</span> <span class="nc">_Question</span> <span class="p">{</span>
   <span class="err">@</span><span class="n">ManagedColumnAttributes</span><span class="p">(</span><span class="nl">primaryKey:</span> <span class="kc">true</span><span class="p">,</span> <span class="nl">databaseType:</span> <span class="n">PropertyType</span><span class="p">.</span><span class="n">bigInteger</span><span class="p">,</span> <span class="nl">autoincrement:</span> <span class="kc">true</span><span class="p">)</span>
@@ -943,7 +941,7 @@
 
 <p><em>All managed objects must have exactly one property with <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedEntity/primaryKey.html">primaryKey</a> set to true.</em> Other interesting flags for <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedColumnAttributes-class.html">ManagedColumnAttributes</a> are <code>indexed</code>, <code>nullable</code> and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedAttributeDescription/defaultValue.html">defaultValue</a>. If a property does not have <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedColumnAttributes-class.html">ManagedColumnAttributes</a>, it is still a persistent property. All of the , it's just a normal column and its database type is inferred from its Dart type. Supported Dart types are <code>int</code>, <code>double</code>, <code>String</code>, <code>DateTime</code> and <code>bool</code>.</p>
 <p>Once a persistent type has been defined, you must also declare a corresponding subclass of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject</a>. At the top of <code>question.dart</code>, but underneath the import, add the following:</p>
-<div class="codehilite"><pre><span></span><span class="k">import</span> <span class="s1">&#39;package:quiz/quiz.dart&#39;</span><span class="p">;</span>
+<div class="codehilite"><pre><span></span><span class="k">import</span> <span class="s1">&#39;../quiz.dart&#39;</span><span class="p">;</span>
 
 <span class="kd">class</span> <span class="nc">Question</span> <span class="kd">extends</span> <span class="n">ManagedObject</span><span class="o">&lt;</span><span class="n">_Question</span><span class="o">&gt;</span> <span class="kd">implements</span> <span class="n">_Question</span> <span class="p">{}</span>
 <span class="kd">class</span> <span class="nc">_Question</span> <span class="p">{</span>
@@ -957,25 +955,6 @@
 
 <p>This dual-class setup is important and necessary for using Aqueduct's ORM. The persistent type - the plain Dart class that starts with an underscore - represents a database table. Each property of the persistent type is a column in that database table. The name of the database table matches the name of the class (here, <code>_Question</code>).</p>
 <p>The <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject</a> subclass is the type you work with in your code. Its associated persistent type appears twice in its declaration: as the type argument to <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject</a> (<code>ManagedObject&lt;_Question&gt;</code>) and as an interface (<code>implements _Question</code>). A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject</a> may have properties and methods of its own, but those are <em>not</em> backed by a database column.</p>
-<h2 id="importing-managedobjects">Importing ManagedObjects</h2>
-<p>As your code progresses, those <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a>s will have relationships with other <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a>s and be used in your request handling code. Additionally, the tools that generate database schemas and 'compile' the declarations of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a> also need to see the definitions. Therefore, <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject</a> declarations must be visible to the rest of your application.</p>
-<p>The best practice is to declare each <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a> in its own file and create a file that exports all <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a>s. Create a new file in <code>lib</code> named <code>model.dart</code>. In this file, export <code>model/question.dart</code>:</p>
-<div class="codehilite"><pre><span></span><span class="k">export</span> <span class="s1">&#39;model/question.dart&#39;</span><span class="p">;</span>
-</pre></div>
-
-
-<p>The <code>model.dart</code> file exports all of your <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject</a> declarations. Now, to make all of your managed objects visible, export <code>model.dart</code> in <code>quiz.dart</code>:</p>
-<div class="codehilite"><pre><span></span><span class="k">export</span> <span class="s1">&#39;dart:async&#39;</span><span class="p">;</span>
-<span class="k">export</span> <span class="s1">&#39;package:aqueduct/aqueduct.dart&#39;</span><span class="p">;</span>
-
-<span class="k">export</span> <span class="s1">&#39;sink.dart&#39;</span><span class="p">;</span>
-
-<span class="c1">// Add this export:</span>
-<span class="k">export</span> <span class="s1">&#39;model.dart&#39;</span><span class="p">;</span>
-</pre></div>
-
-
-<p>Now, every file in your application that import the application package will see the managed object declarations - and more importantly, the tools will see those declarations, too.</p>
 <h2 id="defining-a-context">Defining a Context</h2>
 <p>In order for an application to work with a database, it needs a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedContext-class.html">ManagedContext</a>. A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedContext-class.html">ManagedContext</a> is the facilitator between your code and a database. It is made up of two components, a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedDataModel-class.html">ManagedDataModel</a> (the thing that keeps track of all of your managed object types) and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/PersistentStore-class.html">PersistentStore</a> (the thing that talks to the database). These objects are set up in a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a>. In <code>sink.dart</code>, add the following code to the constructor for <code>QuizRequestSink</code> and define a new property:</p>
 <div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">QuizRequestSink</span> <span class="kd">extends</span> <span class="n">RequestSink</span> <span class="p">{</span>
@@ -993,13 +972,15 @@
 
 
 <p>(In the future, we'll allow this information to be passed from a configuration file. But for now, we'll do it manually.)</p>
-<p>A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedDataModel-class.html">ManagedDataModel</a> is initialized with its named constructor <code>fromCurrentMirrorSystem</code>. This constructor uses reflection to find every <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a> subclass in your application and compile a data model from them. (This is why it is important to export managed objects the way it was done in the previous section.)</p>
+<p>A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedDataModel-class.html">ManagedDataModel</a> is initialized with its named constructor <code>fromCurrentMirrorSystem</code>. This constructor uses reflection to find every <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a> subclass in your application and compile a data model from them.</p>
 <p>The persistent store is a specific implementation of a persistent store, <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/PostgreSQLPersistentStore-class.html">PostgreSQLPersistentStore</a>. It is initialized with information necessary to connect to a database. A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedContext-class.html">ManagedContext</a> simply ties those two things together.</p>
 <p>(By the way, the interface for <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/PersistentStore-class.html">PersistentStore</a> can be implemented for different flavors of SQL and even non-SQL databases. We just so happen to prefer PostgreSQL, so we've already built that one.)</p>
 <p>When a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedContext-class.html">ManagedContext</a> is created, it becomes the <em>default context</em> of your application. When we execute database queries, they run on the default context (by default). If we have multiple databases, we can create more <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedContext-class.html">ManagedContext</a>s and pass them around to make sure we hit the right database. For now, we can ignore this, just know that it exists.</p>
 <h2 id="executing-queries_1">Executing Queries</h2>
-<p>Now that we have a context - which can establish a connection to a database, talk to the database and map rows to managed objects - we can execute queries in our <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a>s. In <code>question_controller.dart</code>, replace the code for <code>getAllQuestions</code> (we'll work on <code>getQuestionAtIndex</code> soon):</p>
-<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">QuestionController</span> <span class="kd">extends</span> <span class="n">HttpController</span> <span class="p">{</span>
+<p>Now that we have a context - which can establish a connection to a database, talk to the database and map rows to managed objects - we can execute queries in our <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a>s. In <code>question_controller.dart</code>, import <code>question.dart</code> and replace the code for <code>getAllQuestions</code> (we'll work on <code>getQuestionAtIndex</code> soon):</p>
+<div class="codehilite"><pre><span></span><span class="k">import</span> <span class="s1">&#39;../model/question.dart&#39;</span><span class="p">;</span>
+
+<span class="kd">class</span> <span class="nc">QuestionController</span> <span class="kd">extends</span> <span class="n">HttpController</span> <span class="p">{</span>
   <span class="kd">var</span> <span class="n">questions</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">&quot;How much wood can a woodchuck chuck?&quot;</span><span class="p">,</span>
     <span class="s2">&quot;What&#39;s the tallest mountain in the world?&quot;</span>
@@ -1021,7 +1002,7 @@
 <h2 id="configuring-a-database">Configuring a Database</h2>
 <p>As we've mentioned a few times, a key facet to Aqueduct is efficient automated testing. The scheme for testing is to create a 'test' database that all of your Aqueduct projects run against. When you run tests against that database, the tests create <em>temporary</em> tables prior to executing. The good news is that the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedDataModel-class.html">ManagedDataModel</a> in your application can drive this table creation, so you don't need to do anything special. The tests are run against the current version of the schema defined by your code.</p>
 <p>Therefore, on any machine you're going to test on, you need to install PostgreSQL and configure a test database. You'll only need to set this up once on - all Aqueduct project tests run against the same database.</p>
-<p>On macOS, the best way to do this locally is download <a href="http://postgresapp.com">Postgres.app</a>. This has a self-contained instance of Postgres that you start by opening up the application itself. Download this application and run it.</p>
+<p>On macOS, the best way to do this with <a href="http://postgresapp.com">Postgres.app</a>. This macOS app has a self-contained instance of Postgres that you start by opening up the application itself. Download this application and run it.</p>
 <p>Once running, run the command <code>aqueduct setup</code> from anywhere. It will give you some additional instructions to follow to make sure everything is OK. It just runs the following SQL:</p>
 <div class="codehilite"><pre><span></span><span class="k">create</span> <span class="k">database</span> <span class="n">dart_test</span><span class="p">;</span>
 <span class="k">create</span> <span class="k">user</span> <span class="n">dart</span> <span class="k">with</span> <span class="k">createdb</span><span class="p">;</span>
@@ -1050,7 +1031,11 @@
 <p>After the application is started, we know that it creates a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedContext-class.html">ManagedContext</a> in the constructor of <code>QuizRequestSink</code>. The default context can be accessed through <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedContext/defaultContext.html">ManagedContext.defaultContext</a>. We also know that this context has a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedDataModel-class.html">ManagedDataModel</a> containing <code>Question</code>. The class <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/SchemaBuilder-class.html">SchemaBuilder</a> will create a series of SQL commands from the data model, translated by the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/PostgreSQLPersistentStore-class.html">PostgreSQLPersistentStore</a>. (Note that the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/DatabaseConnectionConfiguration/isTemporary.html">isTemporary</a> parameter makes all of the tables temporary and therefore they disappear when the database connection in the context's persistent store closes. This prevents changes to the database from leaking into subsequent tests.)</p>
 <p>The database connection is automatically closed when the tests complete by the existing <code>tearDown</code> method that stops the application. Note that when the databsae connection is closed, the tables and data in the database created by this test are discarded.</p>
 <p>We now need questions in the database (you can run your tests and see the they fail because there are no questions). Let's first seed the database with some questions using an insert query at the end of <code>setUp</code>.</p>
-<div class="codehilite"><pre><span></span>  <span class="n">setUp</span><span class="p">(()</span> <span class="kd">async</span> <span class="p">{</span>
+<div class="codehilite"><pre><span></span><span class="c1">// Don&#39;t forget this import!</span>
+<span class="k">import</span> <span class="s1">&#39;package:quiz/model/question.dart&#39;</span><span class="p">;</span>
+
+<span class="kt">void</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">setUp</span><span class="p">(()</span> <span class="kd">async</span> <span class="p">{</span>
     <span class="kd">await</span> <span class="n">app</span><span class="p">.</span><span class="n">start</span><span class="p">(</span><span class="nl">runOnMainIsolate:</span> <span class="kc">true</span><span class="p">);</span>
     <span class="n">client</span> <span class="o">=</span> <span class="k">new</span> <span class="n">TestClient</span><span class="p">(</span><span class="n">app</span><span class="p">);</span>
 

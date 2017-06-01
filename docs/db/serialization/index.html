@@ -388,6 +388,18 @@
   </li>
 
         
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/serving_files/" title="Serving Files and Caching" class="md-nav__link">
+      Serving Files and Caching
+    </a>
+  </li>
+
+        
       </ul>
     </nav>
   </li>
@@ -471,16 +483,29 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#null-behavior" title="Null Behavior" class="md-nav__link">
+    Null Behavior
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#transient-properties-and-serializationdeserialization" title="Transient Properties and Serialization/Deserialization" class="md-nav__link">
     Transient Properties and Serialization/Deserialization
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#serialization-and-deserialization-of-relationship-properties" title="Serialization and Deserialization of Relationship Properties" class="md-nav__link">
     Serialization and Deserialization of Relationship Properties
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -817,16 +842,29 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#null-behavior" title="Null Behavior" class="md-nav__link">
+    Null Behavior
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#transient-properties-and-serializationdeserialization" title="Transient Properties and Serialization/Deserialization" class="md-nav__link">
     Transient Properties and Serialization/Deserialization
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#serialization-and-deserialization-of-relationship-properties" title="Serialization and Deserialization of Relationship Properties" class="md-nav__link">
     Serialization and Deserialization of Relationship Properties
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -846,60 +884,70 @@
               
                 
                 <h1 id="storage-serialization-and-deserialization">Storage, Serialization and Deserialization</h1>
-<p>In the previous chapter, you have seen that <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a>s subclasses are responsible for representing database rows and can be encoded to or decoded from transmission formats like JSON or XML. This chapter explains the behavior of those transformations.</p>
-<p><a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a>s are created by reading JSON from a HTTP request body. Their values are often written to JSON in an HTTP response body. For these tasks, every <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a> has the methods <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject/readMap.html">readMap</a> and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIContact/asMap.html">asMap</a>. You'll likely invoke <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject/readMap.html">readMap</a> often - you rarely have to invoke <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIContact/asMap.html">asMap</a>, as some other mechanisms do this for you when returning and HTTP response. Here's an example of those two methods:</p>
-<div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">userMap</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;id&quot;</span> <span class="o">:</span> <span class="m">1</span><span class="p">,</span>
-    <span class="s2">&quot;name&quot;</span> <span class="o">:</span> <span class="s2">&quot;Bob&quot;</span>
-<span class="p">};</span>
+<p>In the previous chapter, you have seen that <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a>s subclasses are responsible for representing database rows and can be encoded to or decoded from formats like JSON or XML. This chapter explains the behavior of those transformations.</p>
+<p><a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a> implements <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPSerializable-class.html">HTTPSerializable</a> so that they can read from a <code>Map</code> or converted to a <code>Map</code>. A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a> can be passed as the body object of a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Response-class.html">Response</a> and bound to <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPBody-class.html">HTTPBody</a> variables in <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a>:</p>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">UserController</span> <span class="kd">extends</span> <span class="n">HTTPController</span> <span class="p">{</span>
+  <span class="err">@</span><span class="n">httpPost</span>
+  <span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">createUser</span><span class="p">(</span><span class="err">@</span><span class="n">HTTPBody</span><span class="p">()</span> <span class="n">User</span> <span class="n">user</span><span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="n">query</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span><span class="p">()</span>
+      <span class="p">..</span><span class="n">values</span> <span class="o">=</span> <span class="n">user</span><span class="p">;</span>
 
-<span class="kd">var</span> <span class="n">user</span> <span class="o">=</span> <span class="k">new</span> <span class="n">User</span><span class="p">()..</span><span class="n">readMap</span><span class="p">(</span><span class="n">userMap</span><span class="p">);</span>
-
-<span class="kd">var</span> <span class="n">outUserMap</span> <span class="o">=</span> <span class="n">user</span><span class="p">.</span><span class="n">asMap</span><span class="p">();</span>
-
-<span class="n">userMap</span> <span class="o">==</span> <span class="n">outUserMap</span><span class="p">;</span> <span class="c1">// yup</span>
+    <span class="k">return</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="kd">await</span> <span class="n">query</span><span class="p">.</span><span class="n">insert</span><span class="p">());</span>
+  <span class="p">}</span>
+<span class="p">}</span>
 </pre></div>
 
 
-<p>Note that <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a>s don't have anything to do with JSON, XML or some other format here. Other parts of Aqueduct manage moving data back and forth between JSON and <code>Map</code>s - <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a> doesn't care about the actual format as long as it can work with <code>Map</code>s.</p>
-<p>It's important to understand how <code>null</code> works when reading from or writing to a <code>Map</code> with a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a>. <code>User</code> has two properties, <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIOperation/id.html">id</a> and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIContact/name.html">name</a>, and in the previous code block, both of those properties were in the both the input and output <code>Map</code>. But what happens if <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIOperation/id.html">id</a> is not in the input map:</p>
-<div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">userMap</span> <span class="o">=</span> <span class="p">{</span>
-  <span class="s2">&quot;name&quot;</span> <span class="o">:</span> <span class="s2">&quot;Bob&quot;</span>
-<span class="p">};</span>
+<p>Note that <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a>s don't have anything to do with JSON, XML or some other format here. Other parts of Aqueduct manage moving data back and forth between JSON and <code>Map</code>s - <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a> doesn't care about the transmission format as long as its a <code>Map</code> or <code>List&lt;Map&gt;</code>.</p>
+<h2 id="null-behavior">Null Behavior</h2>
+<p>It's important to understand how <code>null</code> works when reading from or writing to a <code>Map</code> with a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a>. Consider the following managed object:</p>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">User</span> <span class="kd">extends</span> <span class="n">ManagedObject</span><span class="o">&lt;</span><span class="n">_User</span><span class="o">&gt;</span> <span class="kd">implements</span> <span class="n">_User</span> <span class="p">{}</span>
+<span class="kd">class</span> <span class="nc">_User</span> <span class="p">{</span>
+  <span class="err">@</span><span class="n">managedPrimaryKey</span>
+  <span class="kt">int</span> <span class="n">id</span><span class="p">;</span>
 
-<span class="kd">var</span> <span class="n">user</span> <span class="o">=</span> <span class="k">new</span> <span class="n">User</span><span class="p">()..</span><span class="n">readMap</span><span class="p">(</span><span class="n">userMap</span><span class="p">);</span>
-
-<span class="n">user</span><span class="p">.</span><span class="n">id</span> <span class="o">==</span> <span class="kc">null</span><span class="p">;</span> <span class="c1">// yup</span>
-<span class="n">user</span><span class="p">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;Bob&quot;</span><span class="p">;</span> <span class="c1">// yup</span>
-
-<span class="kd">var</span> <span class="n">outUserMap</span> <span class="o">=</span> <span class="n">user</span><span class="p">.</span><span class="n">AsMap</span><span class="p">();</span>
-<span class="n">outUserMap</span> <span class="o">==</span> <span class="p">{</span>
-  <span class="s2">&quot;name&quot;</span> <span class="o">:</span> <span class="s2">&quot;Bob&quot;</span>
-<span class="p">};</span>
+  <span class="kt">String</span> <span class="n">name</span><span class="p">;</span>
+<span class="p">}</span>
 </pre></div>
 
 
-<p>OK, so the <code>User</code> reads in the map without <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIOperation/id.html">id</a>, says the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIOperation/id.html">id</a> is <code>null</code>, and when it transformed the <code>User</code> back to <code>Map</code>, remembered that <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIOperation/id.html">id</a> wasn't in there. But what about this, where <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIOperation/id.html">id</a> is in the input map, but its explicitly <code>null</code>:</p>
+<p><code>User</code> has two properties, <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIOperation/id.html">id</a> and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIContact/name.html">name</a>. If we read a <code>User</code> from a <code>Map</code> that does not contain an <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIOperation/id.html">id</a> key, its <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIOperation/id.html">id</a> will be null. If we convert <code>User</code> to a <code>Map</code>, the key <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIOperation/id.html">id</a> will not be present:</p>
 <div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">userMap</span> <span class="o">=</span> <span class="p">{</span>
-  <span class="s2">&quot;id&quot;</span> <span class="o">:</span> <span class="kc">null</span>
   <span class="s2">&quot;name&quot;</span> <span class="o">:</span> <span class="s2">&quot;Bob&quot;</span>
 <span class="p">};</span>
 
-<span class="kd">var</span> <span class="n">user</span> <span class="o">=</span> <span class="k">new</span> <span class="n">User</span><span class="p">()..</span><span class="n">readMap</span><span class="p">(</span><span class="n">userMap</span><span class="p">);</span>
+<span class="kd">var</span> <span class="n">user</span> <span class="o">=</span> <span class="k">new</span> <span class="n">User</span><span class="p">()..</span><span class="n">readFromMap</span><span class="p">(</span><span class="n">userMap</span><span class="p">);</span>
 
 <span class="n">user</span><span class="p">.</span><span class="n">id</span> <span class="o">==</span> <span class="kc">null</span><span class="p">;</span> <span class="c1">// yup</span>
 <span class="n">user</span><span class="p">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;Bob&quot;</span><span class="p">;</span> <span class="c1">// yup</span>
 
 <span class="kd">var</span> <span class="n">outUserMap</span> <span class="o">=</span> <span class="n">user</span><span class="p">.</span><span class="n">asMap</span><span class="p">();</span>
 <span class="n">outUserMap</span> <span class="o">==</span> <span class="p">{</span>
+  <span class="s2">&quot;name&quot;</span> <span class="o">:</span> <span class="s2">&quot;Bob&quot;</span>
+<span class="p">};</span>
+</pre></div>
+
+
+<p>However, if we read <code>User</code> from a <code>Map</code> where the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIOperation/id.html">id</a> key is the <em>value</em> null, when we transform it back to a <code>Map</code> the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIOperation/id.html">id</a> is present and its value is null:</p>
+<div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">userMap</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="s2">&quot;id&quot;</span> <span class="o">:</span> <span class="kc">null</span>
+  <span class="s2">&quot;name&quot;</span> <span class="o">:</span> <span class="s2">&quot;Bob&quot;</span>
+<span class="p">};</span>
+
+<span class="kd">var</span> <span class="n">user</span> <span class="o">=</span> <span class="k">new</span> <span class="n">User</span><span class="p">()..</span><span class="n">readFromMap</span><span class="p">(</span><span class="n">userMap</span><span class="p">);</span>
+
+<span class="n">user</span><span class="p">.</span><span class="n">id</span> <span class="o">==</span> <span class="kc">null</span><span class="p">;</span> <span class="c1">// yup</span>
+<span class="n">user</span><span class="p">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;Bob&quot;</span><span class="p">;</span> <span class="c1">// yup</span>
+
+<span class="kd">var</span> <span class="n">outUserMap</span> <span class="o">=</span> <span class="n">user</span><span class="p">.</span><span class="n">asMap</span><span class="p">();</span>
+<span class="n">outUserMap</span> <span class="o">==</span> <span class="p">{</span>
   <span class="s2">&quot;id&quot;</span> <span class="o">:</span> <span class="kc">null</span>
   <span class="s2">&quot;name&quot;</span> <span class="o">:</span> <span class="s2">&quot;Bob&quot;</span>
 <span class="p">};</span>
 </pre></div>
 
 
-<p>Here, because the value in the input map was explicitly <code>null</code> when read, <code>User</code> includes it in its output map. A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a> - like <code>User</code> here - makes the distinction between a value that is <code>null</code> and a value that it <em>doesn't have enough information about</em>. A property of a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a> can get set in three ways: its read from a map, its through an accessor method or its read from the database. In all three of these situations, not every property is available. For example, a database query may only fetch a subset of columns.</p>
-<p>This is no more obvious than when just creating a brand new instance:</p>
+<p>A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a> like <code>User</code> makes the distinction between a value that is <code>null</code> and a value that it <em>doesn't have enough information for</em>. A property of a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a> can get set in three ways: it is read from a map, its setter is invoked or it is read from the database. In all three of these situations, not every property is available. This is no more obvious than when  creating a brand new instance:</p>
 <div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">user</span> <span class="o">=</span> <span class="k">new</span> <span class="n">User</span><span class="p">();</span>
 <span class="n">user</span><span class="p">.</span><span class="n">id</span> <span class="o">==</span> <span class="kc">null</span><span class="p">;</span> <span class="c1">// yup</span>
 <span class="n">user</span><span class="p">.</span><span class="n">name</span> <span class="o">==</span> <span class="kc">null</span><span class="p">;</span> <span class="c1">// yup</span>
@@ -909,12 +957,12 @@
 
 
 <p>A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a> will not include keys in its <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIContact/asMap.html">asMap()</a> if it doesn't have a value for them. The value may exist somewhere else - like in the database - but if it doesn't have it, it won't include it. This distinction is useful information for clients of Aqueduct applications.</p>
-<p>So what about values that are actually <code>null</code>? A property with the value <code>null</code> will be included in <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIContact/asMap.html">asMap()</a> if its been read from the database, read using <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject/readMap.html">readMap()</a> or explicitly assigned to a property. The following three user objects will all have <code>{"name": null}</code>:</p>
+<p>So what about values that are actually <code>null</code>? A property with the value <code>null</code> will be included in <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIContact/asMap.html">asMap()</a> if its been read from the database, read using <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ConfigurationItem/readFromMap.html">readFromMap()</a> or explicitly assigned with a setter. The following three user objects will all have <code>{"name": null}</code>:</p>
 <div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">user1</span> <span class="o">=</span> <span class="k">new</span> <span class="n">User</span><span class="p">()</span>
   <span class="p">..</span><span class="n">id</span> <span class="o">=</span> <span class="m">1</span>
   <span class="p">..</span><span class="n">name</span> <span class="o">=</span> <span class="kc">null</span><span class="p">;</span>
 
-<span class="kd">var</span> <span class="n">user2</span> <span class="o">=</span> <span class="k">new</span> <span class="n">User</span><span class="p">()..</span><span class="n">readMap</span><span class="p">({</span>
+<span class="kd">var</span> <span class="n">user2</span> <span class="o">=</span> <span class="k">new</span> <span class="n">User</span><span class="p">()..</span><span class="n">readFromMap</span><span class="p">({</span>
   <span class="s2">&quot;id&quot;</span><span class="o">:</span> <span class="m">2</span>
   <span class="s2">&quot;name&quot;</span><span class="o">:</span> <span class="kc">null</span>
 <span class="p">});</span>
@@ -926,11 +974,11 @@
 </pre></div>
 
 
-<p>Note that any value that is returned from an accessor method that hasn't been populated in a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a> will be <code>null</code>. If using an object's values to perform some calculation, it's your job to know if the value has been fetched or not. (See <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject/hasValueForProperty.html">ManagedObject&lt;T&gt;.hasValueForProperty()</a> for how to check this at runtime.)</p>
-<p>One last thing to note: if you wish to remove a value from a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a>s storage (and likewise, its <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIContact/asMap.html">asMap()</a>), you may not simply set the property to <code>null</code>. This can only be accomplished with <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject/removePropertyFromBackingMap.html">ManagedObject&lt;T&gt;.removePropertyFromBackingMap()</a>.</p>
+<p>Note that an unset value that is returned from a getter will be <code>null</code>. If using an object's values to perform some calculation, it's your job to know if the value has been fetched or not. (While <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject/hasValueForProperty.html">ManagedObject&lt;T&gt;.hasValueForProperty()</a> checks this at runtime, that isn't a good practice.)</p>
+<p>One last thing to note: if you wish to remove a value from a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a>s storage (and likewise, its <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIContact/asMap.html">asMap()</a>), you must use <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject/removePropertyFromBackingMap.html">ManagedObject&lt;T&gt;.removePropertyFromBackingMap()</a>.</p>
 <p>It is helpful to think of a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a> as a proxy to a database row that may or may not exist yet, and may have less data than actually exists in the database row.</p>
 <h3 id="transient-properties-and-serializationdeserialization">Transient Properties and Serialization/Deserialization</h3>
-<p>By default, transient properties and getters - those declared in the subclass of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a> - are <em>not</em> included in the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIContact/asMap.html">asMap()</a>. (Setters are obviously not included, as you can't get a value from them.) To include a transient property or getter in <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIContact/asMap.html">asMap()</a>, you may mark it with <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/managedTransientOutputAttribute-constant.html">@managedTransientOutputAttribute</a> metadata. Properties marked with this metadata will be included in the serialized <code>Map</code> if and only if they are not null. A good reason to use this feature is when you want to provide a value to the consumer of the API that is derived from one or more values in persistent type of the managed object:</p>
+<p>By default, transient properties and getters - those declared in the subclass of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a> - are <em>not</em> included in the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIContact/asMap.html">asMap()</a>. (Setters are obviously not included, as you can't get a value from them.) To include a transient property or getter in <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIContact/asMap.html">asMap()</a>, you may mark it with <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/managedTransientOutputAttribute-constant.html">@managedTransientOutputAttribute</a> metadata. Properties marked with this metadata will be included in <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIContact/asMap.html">asMap()</a> if and only if they are not null. A good reason to use this feature is when you want to provide a value to the consumer of the API that is derived from persistent properties:</p>
 <div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">User</span> <span class="kd">extends</span> <span class="n">ManagedObject</span><span class="o">&lt;</span><span class="n">_User</span><span class="o">&gt;</span> <span class="kd">implements</span> <span class="n">_User</span> <span class="p">{</span>
   <span class="err">@</span><span class="n">managedTransientOutputAttribute</span>
   <span class="kt">String</span> <span class="kd">get</span> <span class="n">fullName</span> <span class="o">=&gt;</span> <span class="s2">&quot;</span><span class="si">$</span><span class="n">firstName</span><span class="s2"> </span><span class="si">$</span><span class="n">lastName</span><span class="s2">&quot;</span><span class="p">;</span>
@@ -956,7 +1004,7 @@
 </pre></div>
 
 
-<p>Transient properties may also be used as inputs when reading with <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject/readMap.html">readMap()</a> by marking a property with <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/managedTransientInputAttribute-constant.html">@managedTransientInputAttribute</a>. For example, consider how to handle user passwords. The persistent type - a direct mapping to the database - does not have a password property for security purposes. Instead, it has a password hash and a salt. An instance type could then define a password property, which automatically set the salt and hash of the password in the underlying persistent type:</p>
+<p>Transient properties may also be used as inputs when reading with <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ConfigurationItem/readFromMap.html">readFromMap()</a> by marking a property with <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/managedTransientInputAttribute-constant.html">@managedTransientInputAttribute</a>. For example, consider how to handle user passwords. A password is not stored in plain-text in the database, but they are sent in requests. Thus, a password could read from a request body, but it needs to be salted, hashed and stored in two columns in the database. An instance type could then define a password property, which automatically set the salt and hash of the password in the underlying persistent type:</p>
 <div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">User</span> <span class="kd">extends</span> <span class="n">ManagedObject</span><span class="o">&lt;</span><span class="n">_User</span><span class="o">&gt;</span> <span class="kd">implements</span> <span class="n">_User</span> <span class="p">{</span>
   <span class="err">@</span><span class="n">managedTransientInputAttribute</span>
   <span class="kt">void</span> <span class="kd">set</span> <span class="n">password</span><span class="p">(</span><span class="kt">String</span> <span class="n">pw</span><span class="p">)</span> <span class="p">{</span>
@@ -973,7 +1021,7 @@
 <span class="kd">var</span> <span class="n">map</span> <span class="o">=</span> <span class="p">{</span>
   <span class="s1">&#39;password&#39;</span> <span class="o">:</span> <span class="s1">&#39;mypassword&#39;</span>
 <span class="p">};</span>
-<span class="kd">var</span> <span class="n">user</span> <span class="o">=</span> <span class="k">new</span> <span class="n">User</span><span class="p">()..</span><span class="n">readMap</span><span class="p">(</span><span class="n">map</span><span class="p">);</span>
+<span class="kd">var</span> <span class="n">user</span> <span class="o">=</span> <span class="k">new</span> <span class="n">User</span><span class="p">()..</span><span class="n">readFromMap</span><span class="p">(</span><span class="n">map</span><span class="p">);</span>
 <span class="kd">var</span> <span class="n">salt</span> <span class="o">=</span> <span class="n">user</span><span class="p">.</span><span class="n">salt</span><span class="p">;</span> <span class="c1">// &#39;somerandomstring&#39;</span>
 <span class="kd">var</span> <span class="n">hashedPassword</span> <span class="o">=</span> <span class="n">user</span><span class="p">.</span><span class="n">hashedPassword</span><span class="p">;</span> <span class="c1">// &#39;somehashedstring&#39;</span>
 
@@ -996,7 +1044,7 @@
 <p>A transient input attribute must be a setter or a property, just like an transient output attribute must be a getter or a property. For properties that are both inputs and outputs, you may use the metadata <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/managedTransientAttribute-constant.html">@managedTransientAttribute</a>.</p>
 <div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">User</span> <span class="kd">extends</span> <span class="n">ManagedObject</span><span class="o">&lt;</span><span class="n">_User</span><span class="o">&gt;</span> <span class="kd">implements</span> <span class="n">_User</span> <span class="p">{</span>
   <span class="err">@</span><span class="n">managedTransientAttribute</span>
-  <span class="kt">String</span> <span class="n">nickname</span><span class="p">;</span> <span class="c1">// shows up in asMap() and can be read from readMap()</span>
+  <span class="kt">String</span> <span class="n">nickname</span><span class="p">;</span> <span class="c1">// shows up in asMap() and can be read from readFromMap()</span>
 <span class="p">}</span>
 </pre></div>
 
@@ -1014,10 +1062,9 @@
 </pre></div>
 
 
-<p>Transient properties marked with these metadata <em>are</em> <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedEntity/attributes.html">attributes</a> in <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedEntity-class.html">ManagedEntity</a> (like scalar properties on the persistent type, but unlike other properties on an instance type).</p>
 <h3 id="serialization-and-deserialization-of-relationship-properties">Serialization and Deserialization of Relationship Properties</h3>
-<p>Relationship properties - references to other <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a> subclasses - can also be included in <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIContact/asMap.html">asMap()</a> and read from <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject/readMap.html">readMap()</a>, so long as the instance knows their value. Relationship properties are typically populated when executing a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query-class.html">Query&lt;T&gt;</a> with <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/joinOne.html">joinOne()</a> or <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/joinMany.html">joinMany()</a> - aka, a SQL JOIN.</p>
-<p>If an object has a "has-one" or "belongs to" relationship property, its <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIContact/asMap.html">asMap</a> will contain a nested <code>Map</code> representing the related object. For example, recall the <code>User</code> with a <code>job</code>:</p>
+<p>Relationship properties - references to other <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a> subclasses - can also be included in <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIContact/asMap.html">asMap()</a> and read from <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ConfigurationItem/readFromMap.html">readFromMap()</a>. Relationship properties are populated when using <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/join.html">Query.join</a> - aka, a SQL JOIN.</p>
+<p>If a relationship property has been set or read from the database, its <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIContact/asMap.html">asMap()</a> will contain the nested <code>Map</code> produced by the related objects <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIContact/asMap.html">asMap()</a>. For example, recall the <code>User</code> with a <code>job</code>:</p>
 <div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">job</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Job</span><span class="p">()</span>
   <span class="p">..</span><span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;Programmer&quot;</span><span class="p">;</span>
 <span class="kd">var</span> <span class="n">user</span> <span class="o">=</span> <span class="k">new</span> <span class="n">User</span><span class="p">()</span>
@@ -1037,7 +1084,7 @@
 
 
 <p>Notice that the names of the keys - including relationship properties and properties of the related object - all match the names of their declared properties.</p>
-<p>It's important to note that "belongs to" relationships - those with <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedRelationship-class.html">ManagedRelationship</a> metadata that represent foreign key columns - are always represented by <code>Map</code>s. When fetching an object with a from a database, the underlying foreign key column value is fetched by default. When that object's <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIContact/asMap.html">asMap()</a> is invoked, the foreign key value is wrapped in a <code>Map</code>. The key to this <code>Map</code> is the primary key of the related object. For example:</p>
+<p>It's important to note that "belongs to" relationships - those with <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedRelationship-class.html">ManagedRelationship</a> metadata - are always returned in <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIContact/asMap.html">asMap()</a> when fetching an object from the database. However, the full object is not returned - only its primary key. Therefore, you will get the following result:</p>
 <div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">jobQuery</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Job</span><span class="o">&gt;</span><span class="p">();</span>
 <span class="kd">var</span> <span class="n">job</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">jobQuery</span><span class="p">.</span><span class="n">fetchOne</span><span class="p">();</span>
 
@@ -1051,7 +1098,7 @@
 </pre></div>
 
 
-<p>This behavior might be different than some ORMs, which would include a key that matches the name of the underlying database column where the value is simply the integer foreign key. That would look like this:</p>
+<p>This behavior might be different than some ORMs, which may collapse the <code>user</code> into a scalar <code>user_id</code>:</p>
 <div class="codehilite"><pre><span></span><span class="n">job</span><span class="p">.</span><span class="n">asMap</span><span class="p">()</span> <span class="o">==</span> <span class="p">{</span>
   <span class="s2">&quot;id&quot;</span><span class="o">:</span> <span class="m">1</span><span class="p">,</span>
   <span class="s2">&quot;title&quot;</span><span class="o">:</span> <span class="s2">&quot;Programmer&quot;</span><span class="p">,</span>
@@ -1112,7 +1159,7 @@ user.posts.first.user.id == user.id
 </pre></div>
 
 
-<p>When reading the values of a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a> with <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject/readMap.html">readMap()</a>, relationship properties must also be represented as nested <code>Map</code>s. Thus:</p>
+<p>When reading the values of a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a> with <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ConfigurationItem/readFromMap.html">readFromMap()</a>, relationship properties must also be represented as nested <code>Map</code>s or <code>List&lt;Map&gt;</code>. Thus:</p>
 <div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">userMap</span> <span class="o">=</span> <span class="p">{</span>
   <span class="s2">&quot;id&quot;</span><span class="o">:</span> <span class="m">1</span><span class="p">,</span>
   <span class="s2">&quot;name&quot;</span><span class="o">:</span> <span class="s2">&quot;Bob&quot;</span><span class="p">,</span>
@@ -1121,7 +1168,7 @@ user.posts.first.user.id == user.id
   <span class="p">]</span>
 <span class="p">};</span>
 
-<span class="kd">var</span> <span class="n">user</span> <span class="o">=</span> <span class="k">new</span> <span class="n">User</span><span class="p">()..</span><span class="n">readMap</span><span class="p">(</span><span class="n">userMap</span><span class="p">);</span>
+<span class="kd">var</span> <span class="n">user</span> <span class="o">=</span> <span class="k">new</span> <span class="n">User</span><span class="p">()..</span><span class="n">readFromMap</span><span class="p">(</span><span class="n">userMap</span><span class="p">);</span>
 <span class="n">user</span><span class="p">.</span><span class="n">posts</span> <span class="o">==</span> <span class="k">new</span> <span class="n">ManagedSet</span><span class="o">&lt;</span><span class="n">Post</span><span class="o">&gt;</span><span class="p">[</span>
   <span class="k">new</span> <span class="n">Post</span><span class="p">()</span>
     <span class="p">..</span><span class="n">id</span> <span class="o">=</span> <span class="m">1</span>
