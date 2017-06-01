@@ -20,10 +20,10 @@ dependencies:
   pub_semver: "^1.0.0"
   path: ^1.4.1
   password_hash: ^1.0.0
+  matcher: ">=0.12.0+2 <0.13.0"
 
 dev_dependencies:
   test: any
-  matcher: ">=0.12.0+2 <0.13.0"
   http: ">=0.11.3+7 <0.12.0"
   coverage:
     git:
