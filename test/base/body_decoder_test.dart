@@ -84,6 +84,20 @@ void main() {
       expect(body, [{"a": "val"}]);
     });
 
+    test("Omit charset from known decoder defaults to charset added if exists", () async {
+      var client = new HttpClient();
+      var req = await client.postUrl(Uri.parse("http://localhost:8123"));
+      req.headers.add(HttpHeaders.CONTENT_TYPE, "application/json");
+      req.add(UTF8.encode(JSON.encode({"a": "val"})));
+      req.close().catchError((err) => null);
+
+      request = new Request(await server.first);
+      expect(request.innerRequest.headers.contentType.charset, null);
+
+      var body = await request.body.decodedData;
+      expect(body, [{"a": "val"}]);
+    });
+
     test("application/x-form-url-encoded decoder works on valid form data",
         () async {
       http
@@ -158,7 +172,7 @@ void main() {
       // We'll just use JSON here so we don't have to write a separate codec
       // to test whether or not this content-type gets paired to a codec.
       HTTPCodecRepository.defaultInstance.add(new ContentType("application", "thingy"), const JsonCodec());
-      HTTPCodecRepository.defaultInstance.add(new ContentType("somethingelse", "*"), const JsonCodec());
+      HTTPCodecRepository.defaultInstance.add(new ContentType("somethingelse", "*", charset: "utf-8"), const JsonCodec());
     });
 
     setUp(() async {
@@ -190,6 +204,42 @@ void main() {
       var request = new Request(await server.first);
       var body = await request.body.decodedData;
       expect(body, [{"key":"value"}]);
+    });
+
+    test("Omit charset from added decoder with default charset and match-all subtype", () async {
+      var client = new HttpClient();
+      var req = await client.postUrl(Uri.parse("http://localhost:8123"));
+      req.headers.add(HttpHeaders.CONTENT_TYPE, "somethingelse/foobar");
+      req.add(UTF8.encode(JSON.encode({"a": "val"})));
+      req.close().catchError((err) => null);
+
+      var request = new Request(await server.first);
+      expect(request.innerRequest.headers.contentType.charset, null);
+
+      var body = await request.body.decodedData;
+      expect(body, [{"a": "val"}]);
+    });
+
+    test("Omit charset from added decoder does not add charset decoded if not specified", () async {
+      var client = new HttpClient();
+      var req = await client.postUrl(Uri.parse("http://localhost:8123"));
+      req.headers.add(HttpHeaders.CONTENT_TYPE, "application/thingy");
+      req.add(UTF8.encode(JSON.encode({"a": "val"})));
+      req.close().catchError((err) => null);
+
+      var request = new Request(await server.first);
+      expect(request.innerRequest.headers.contentType.charset, null);
+
+      // The test fails for a different reason in checked vs. unchecked mode.
+      // Tests run in checked mode, but coverage runs in unchecked mode.
+      var data;
+      try {
+        data = await request.body.decodedData;
+      } catch (e) {
+        expect(e, isNotNull);
+      }
+
+      expect(data, isNull);
     });
   });
 

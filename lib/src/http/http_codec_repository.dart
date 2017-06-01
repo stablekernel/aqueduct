@@ -12,8 +12,8 @@ import 'http.dart';
 /// to add mappings in an application's [RequestSink] subclass constructor.
 class HTTPCodecRepository {
   HTTPCodecRepository._() {
-    add(new ContentType("application", "json"), const JsonCodec(), allowCompression: true);
-    add(new ContentType("application", "x-www-form-urlencoded"), const _FormCodec(), allowCompression: true);
+    add(new ContentType("application", "json", charset: "utf-8"), const JsonCodec(), allowCompression: true);
+    add(new ContentType("application", "x-www-form-urlencoded", charset: "utf-8"), const _FormCodec(), allowCompression: true);
     setAllowsCompression(new ContentType("text", "*"), true);
     setAllowsCompression(new ContentType("application", "javascript"), true);
   }
@@ -28,18 +28,18 @@ class HTTPCodecRepository {
   Map<String, Map<String, Codec>> _subtypeCodecs = {};
   Map<String, bool> _primaryTypeCompressionMap = {};
   Map<String, Map<String, bool>> _subtypeCompressionMap = {};
+  Map<String, Map<String, String>> _defaultCharsetMap = {};
 
   /// Adds a custom [codec] for [contentType].
   ///
-  /// The body of a [Response] sent with [contentType] will be transformed by [codec].
+  /// The body of a [Response] sent with [contentType] will be transformed by [codec]. A [Request] with [contentType] Content-Type
+  /// will be decode its [Request.body] with [codec].
   ///
-  /// [codec] may produce a [List<int>] or [String]. If it produces a [String],
-  /// [contentType]'s primary type must be `text`. Specifying a charset for [contentType] has no effect,
-  /// as a [Response] indicates the charset it will use.
+  /// [codec] must produce a [List<int>] (or used chunked conversion to create a `Stream<List<int>>`).
   ///
-  /// [contentType]'s subtype may be `*`; this signifies that matching is only done on the primary content type.
-  /// For example, if [contentType] is `text/*`, then all `text/` (`text/html`, `text/plain`, etc.) content types
-  /// are converted by [codec].
+  /// [contentType]'s subtype may be `*`; all Content-Type's with a matching [ContentType.primaryType] will be
+  /// encoded or decoded by [codec], regardless of [ContentType.subType]. For example, if [contentType] is `text/*`, then all
+  /// `text/` (`text/html`, `text/plain`, etc.) content types are converted by [codec].
   ///
   /// The most specific codec for a content type is chosen when converting an HTTP body. For example, if both `text/*`
   /// and `text/html` have been added through this method, a [Response] with content type `text/html` will select the codec
@@ -49,6 +49,18 @@ class HTTPCodecRepository {
   /// Media types like images and audio files should avoid setting [allowCompression] because they are already compressed.
   ///
   /// A response with a content type not in this instance will be sent unchanged to the HTTP client (and therefore must be [List<int>]
+  ///
+  /// The [ContentType.charset] is not evaluated when selecting the codec for a content type. However, a charset indicates the default
+  /// used when a request's Content-Type header omits a charset. For example, in order to decode JSON data, the request body must first be decoded
+  /// from a list of bytes into a [String]. If a request omits the charset, this first step is would not be applied and the JSON codec would attempt
+  /// to decode a list of bytes instead of a [String] and would fail. Thus, `application/json` is added through the following:
+  ///
+  ///         HTTPCodecRepository.defaultInstance.add(
+  ///           new ContentType("application", "json", charset: "utf-8"), const JsonCodec(), allowsCompression: true);
+  ///
+  /// In the event that a request is sent without a charset, the codec will automatically apply a UTF8 decode step because of this default.
+  ///
+  /// Only use default charsets when the codec must first be decoded into a [String].
   void add(ContentType contentType, Codec codec, {bool allowCompression: true}) {
     if (contentType.subType == "*") {
       _primaryTypeCodecs[contentType.primaryType] = codec;
@@ -61,6 +73,12 @@ class HTTPCodecRepository {
       var innerCompress = _subtypeCompressionMap[contentType.primaryType] ?? {};
       innerCompress[contentType.subType] = allowCompression;
       _subtypeCompressionMap[contentType.primaryType] = innerCompress;
+    }
+
+    if (contentType.charset != null) {
+      var innerCodecs = _defaultCharsetMap[contentType.primaryType] ?? {};
+      innerCodecs[contentType.subType] = contentType.charset;
+      _defaultCharsetMap[contentType.primaryType] = innerCodecs;
     }
   }
 
@@ -112,6 +130,8 @@ class HTTPCodecRepository {
       charsetCodec = _codecForCharset(contentType.charset);
     } else if (contentType.primaryType == "text" && contentCodec == null) {
       charsetCodec = LATIN1;
+    } else {
+      charsetCodec = _defaultCharsetCodecForType(contentType);
     }
 
 
@@ -136,6 +156,20 @@ class HTTPCodecRepository {
     }
 
     return encoding;
+  }
+
+  Codec _defaultCharsetCodecForType(ContentType type) {
+    var inner = _defaultCharsetMap[type.primaryType];
+    if (inner == null) {
+      return null;
+    }
+
+    var encodingName = inner[type.subType] ?? inner["*"];
+    if (encodingName == null) {
+      return null;
+    }
+
+    return Encoding.getByName(encodingName);
   }
 }
 

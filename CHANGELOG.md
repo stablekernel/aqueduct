@@ -1,5 +1,9 @@
 # aqueduct changelog
 
+## 2.2.1
+
+- Allow `HTTPCodecRepository.add` to use specify default charset for Content-Type if a request does not specify one.
+
 ## 2.2.0
 
 - The default template created by `aqueduct create` is now mostly empty. Available templates can be listed with `aqueduct create list-templates` and selected with the command-line option `--template`.
