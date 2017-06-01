@@ -19,3 +19,4 @@ Aqueduct applications respond to HTTP requests. The main concepts and tasks are:
 - [Routing](routing.md)
 - [HTTPControllers](http_controller.md)
 - [Configuration Files, CORS and SSL](configure.md)
+- [Serving Files and Caching](serving_files.md)
