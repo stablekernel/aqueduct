@@ -1,8 +1,5 @@
-import 'dart:convert';
-import 'dart:math';
-
 import 'package:crypto/crypto.dart';
-import 'package:pbkdf2/pbkdf2.dart';
+import 'package:password_hash/password_hash.dart';
 
 import 'objects.dart';
 
@@ -25,22 +22,14 @@ class AuthUtility {
   static String generatePasswordHash(String password, String salt,
       {int hashRounds: 1000, int hashLength: 32}) {
     var generator = new PBKDF2(hashAlgorithm: sha256);
-    var key = generator.generateKey(password, salt, hashRounds, hashLength);
-
-    return new Base64Encoder().convert(key);
+    return generator.generateBase64Key(password, salt, hashRounds, hashLength);
   }
 
   /// A utility method to generate a random base64 salt.
   ///
   ///
   static String generateRandomSalt({int hashLength: 32}) {
-    var random = new Random.secure();
-    List<int> salt = [];
-    for (var i = 0; i < hashLength; i++) {
-      salt.add(random.nextInt(256));
-    }
-
-    return new Base64Encoder().convert(salt);
+    return Salt.generateAsBase64String(hashLength);
   }
 
   /// A utility method to generate a ClientID and Client Secret Pair.

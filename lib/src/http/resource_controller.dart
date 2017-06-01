@@ -18,11 +18,11 @@ import 'http.dart';
 ///
 /// The mapping for HTTP request to action is as follows:
 ///
-///       GET /<name>/:id -> Fetch Object by ID
-///       PUT /<name>/:id -> Update Object by ID, HTTP Request Body contains update values.
-///       DELETE /<name>/:id -> Delete Object by ID
-///       POST /<name> -> Create new Object, HTTP Request Body contains update values.
-///       GET /<name> -> Fetch instances of Object
+/// - GET /<name>/:id -> Fetch Object by ID
+/// - PUT /<name>/:id -> Update Object by ID, HTTP Request Body contains update values.
+/// - DELETE /<name>/:id -> Delete Object by ID
+/// - POST /<name> -> Create new Object, HTTP Request Body contains update values.
+/// - GET /<name> -> Fetch instances of Object
 ///
 /// You may use this class without subclassing, but you may also subclass it to modify the executed [Query] prior to its execution, or modify the returned [Response] after the query has been completed.
 ///
@@ -30,12 +30,12 @@ import 'http.dart';
 ///
 /// GET requests with no path parameter can take extra query parameters to modify the request. The following are the available query parameters:
 ///
-/// count (integer): restricts the number of objects fetched to count. By default, this is null, which means no restrictions.
-/// offset (integer): offsets the fetch by offset amount of objects. By default, this is null, which means no offset.
-/// pageBy (string): indicates the key in which to page by. See [Query.pageBy] for more information on paging. If this value is passed as part of the query, either pageAfter or pagePrior must also be passed, but only one of those.
-/// pageAfter (string): indicates the page value and direction of the paging. pageBy must also be set. See [Query.pageBy] for more information.
-/// pagePrior (string): indicates the page value and direction of the paging. pageBy must also be set. See [Query.pageBy] for more information.
-/// sortBy (string): indicates the sort order. The syntax is 'sortBy=key,order' where key is a property of [InstanceType] and order is either 'asc' or 'desc'. You may specify multiple sortBy parameters.
+/// - count (integer): restricts the number of objects fetched to count. By default, this is null, which means no restrictions.
+/// - offset (integer): offsets the fetch by offset amount of objects. By default, this is null, which means no offset.
+/// - pageBy (string): indicates the key in which to page by. See [Query.pageBy] for more information on paging. If this value is passed as part of the query, either pageAfter or pagePrior must also be passed, but only one of those.
+/// - pageAfter (string): indicates the page value and direction of the paging. pageBy must also be set. See [Query.pageBy] for more information.
+/// - pagePrior (string): indicates the page value and direction of the paging. pageBy must also be set. See [Query.pageBy] for more information.
+/// - sortBy (string): indicates the sort order. The syntax is 'sortBy=key,order' where key is a property of [InstanceType] and order is either 'asc' or 'desc'. You may specify multiple sortBy parameters.
 class ManagedObjectController<InstanceType extends ManagedObject>
     extends HTTPController {
   /// Creates an instance of a [ManagedObjectController].

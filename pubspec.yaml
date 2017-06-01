@@ -1,8 +1,8 @@
 name: aqueduct
-version: 2.1.1
+version: 2.2.0
 description: Server-side framework, including routing, ORM and OAuth 2.0 in a consistent, rigorously tested framework.
 author: stable|kernel <http://stablekernel.com>
-homepage: https://github.com/stablekernel/aqueduct
+homepage: https://aqueduct.io
 documentation:
 
 environment:
@@ -19,8 +19,7 @@ dependencies:
   stack_trace: "^1.0.0"
   pub_semver: "^1.0.0"
   path: ^1.4.1
-  pbkdf2:
-    git: https://github.com/joeconwaystk/pbkdf2.git
+  password_hash: ^1.0.0
 
 dev_dependencies:
   test: any

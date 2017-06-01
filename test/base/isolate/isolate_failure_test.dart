@@ -122,7 +122,7 @@ class TimeoutSink extends RequestSink {
 
     var completer = new Completer();
     var elapsed = 0;
-    var timer = new Timer.periodic(new Duration(milliseconds: 500), (t) {
+    var _ = new Timer.periodic(new Duration(milliseconds: 500), (t) {
       elapsed += 500;
       print("waiting...");
       if (elapsed > timeoutLength * 1000) {
