@@ -55,9 +55,11 @@ void main() {
     });
 
     test("Stream a list of bytes with incorrect content type returns 500", () async {
+      HTTPCodecRepository.defaultInstance.add(new ContentType("application", "silly"), const JsonCodec());
+
       var sc = new StreamController<List<int>>();
       var response = new Response.ok(sc.stream)
-        ..contentType = new ContentType("application", "json");
+        ..contentType = new ContentType("application", "silly");
       server = await bindAndRespondWith(response);
 
       var resultFuture = http.get("http://localhost:8081");

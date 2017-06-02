@@ -1,5 +1,5 @@
 name: aqueduct
-version: 2.2.0
+version: 2.2.1
 description: Server-side framework, including routing, ORM and OAuth 2.0 in a consistent, rigorously tested framework.
 author: stable|kernel <http://stablekernel.com>
 homepage: https://aqueduct.io
