@@ -4,9 +4,11 @@
 
 [![Gitter](https://badges.gitter.im/dart-lang/server.svg)](https://gitter.im/dart-lang/server?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
-Aqueduct is a server-side framework for building and deploying REST applications. It is written in Dart. Its goal to provide am integrated and consistently styled framework.
+Aqueduct is a server-side framework for building and deploying REST applications. It is written in Dart. Its goal is to provide an integrated, consistently styled API.
 
-It contains behavior for routing and authorizing HTTP requests, persisting data in PostgreSQL, testing, and much more. The `aqueduct` command-line tool serves applications, manages database schemas and OAuth 2.0 clients, and generates OpenAPI specifications.
+The framework contains behavior for routing and authorizing HTTP requests, persisting data in PostgreSQL, testing, and more. 
+
+The `aqueduct` command-line tool serves applications, manages database schemas and OAuth 2.0 clients, and generates OpenAPI specifications.
 
 Aqueduct is well-tested, documented and adheres to semantic versioning.
 
@@ -29,7 +31,7 @@ Step-by-step tutorials for beginners are available [here](https://aqueduct.io/do
 
 You can find the API reference [here](https://www.dartdocs.org/documentation/aqueduct/latest) or you can install it in [Dash](https://kapeli.com/docsets#dartdoc).
 
-You can find in-depth guides [here](https://aqueduct.io/docs/).
+You can find in-depth and conceptual guides [here](https://aqueduct.io/docs/).
 
 ## An Example
 
