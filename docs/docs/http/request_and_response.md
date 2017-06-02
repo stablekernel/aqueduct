@@ -142,16 +142,34 @@ If there isn't an exact match, but there is an entry for the primary type with t
 ```dart
 class MySink extends RequestSink {
   MySink(ApplicationConfiguration config) : super(config) {
-    HTTPCodecRepository.add(new ContentType("text", "html"), new HTMLCodec());
+    HTTPCodecRepository.defaultInstance.add(new ContentType("application", "html"), new HTMLCodec());
   }
 }
 ```
 
-Content type to codec mappings are added in the constructor of an application's [RequestSink](request_sink.md). The codec must implement `Codec` from `dart:convert`. In the above example, when a response's content type is `text/html`, the `HTMLCodec` will encode the body object. This codec takes precedence because it is more specific about the content type than `text/*`.
+Content type to codec mappings are added in the constructor of an application's [RequestSink](request_sink.md). The codec must implement `Codec` from `dart:convert`. In the above example, when a response's content type is `text/html`, the `HTMLCodec` will encode the body object. This codec takes precedence over `text/*` because it is more specific.
 
-Note that character sets have no impact on which codec gets selected from `HTTPCodecRepository`. When `Response.contentType` has a character set, Aqueduct will run a character encoding codec like `Utf8Codec` or `AsciiCodec` on the `String` produced by the first codec. This means that any `Response` with a content type that contains `charset` must have a body object that is either a `String` or will produce a `String` through its first conversion step. For example, a CSS body object is already a `String` and the first conversion step for JSON produces a `String`.
+When selecting a codec for a response body, the `ContentType.charset` doesn't impact which codec is selected. For example, the following two lines are equivalent:
+
+```dart
+HTTPCodecRepository.defaultInstance.add(new ContentType("application", "html"), new HTMLCodec());
+HTTPCodecRepository.defaultInstance.add(new ContentType("application", "html", charset: "utf-8"), new HTMLCodec());
+```
+
+If a response's content-type has a charset, then a charset encoder like `UTF8` will be applied as a last encoding step. For example, a response with content-type `application/json; charset=utf-8` will encode the body object as a JSON string, which is then encoded as a list of UTF8 bytes. It is required that a response body's eventually encoded type is a list of bytes, so it follows that a codec that produces a string must have a charset.
 
 If there is no codec in the repository for the content type of a `Response`, the body object must be a `List<int>` or `Stream<List<int>>`. If you find yourself converting data prior to setting it as a body object, it may make sense to add your own codec to `HTTPCodecRepository`.
+
+A request's body, on the other hand, always starts as a list of bytes. To decode a JSON request body, it first must be decoded from the list of UTF8 bytes into a string. It is possible that a client could omit the charset in its content-type header. Codecs added to `HTTPCodecRepository` may specify a default charset to interpret a charset-less content-type. When a codec is added to the repository, if content-type's charset is non-null, that is the default. For example, the JSON codec is added like this:
+
+```dart
+HTTPCodecRepository.defaultInstance.add(
+  new ContentType("application", "json", charset: "utf-8"),
+  const JsonCodec(),
+  allowCompression: true);
+```
+
+If the charset is null, no charset decoding occurs on a request body if one doesn't exist. Content-types that are decoded from a `String` should not use a default charset because the repository would always attempt to decode the body as a string first.
 
 ### Compression with gzip
 
