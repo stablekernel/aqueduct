@@ -89,6 +89,12 @@ class ApplicationIsolateSupervisor {
       logger.fine("ApplicationIsolateSupervisor($identifier) received isolate error ${message.first}");
       var stacktrace = new StackTrace.fromString(message.last);
       _handleIsolateException(message.first, stacktrace);
+    } else if (message is MessageHubMessage) {
+      supervisingApplication.supervisors
+          .where((sup) => sup != this)
+          .forEach((supervisor) {
+            supervisor._serverSendPort.send(message);
+          });
     }
   }
 

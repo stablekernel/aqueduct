@@ -41,9 +41,16 @@ class ApplicationIsolateServer extends ApplicationServer {
     return result;
   }
 
+  @override
+  void sendApplicationEvent(dynamic event) {
+    supervisingApplicationPort.send(new MessageHubMessage(event));
+  }
+
   void listener(dynamic message) {
     if (message == ApplicationIsolateSupervisor.MessageStop) {
       stop();
+    } else if (message is MessageHubMessage) {
+      hubSink?.add(message.payload);
     }
   }
 
@@ -86,4 +93,10 @@ class ApplicationInitialServerMessage {
 
   ApplicationInitialServerMessage(this.streamTypeName, this.streamLibraryURI,
       this.configuration, this.identifier, this.parentMessagePort, {this.logToConsole: false});
+}
+
+class MessageHubMessage {
+  MessageHubMessage(this.payload);
+
+  dynamic payload;
 }

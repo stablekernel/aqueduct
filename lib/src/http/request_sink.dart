@@ -75,7 +75,15 @@ abstract class RequestSink extends RequestController
   /// This instance's owning server.
   ///
   /// Reference back to the owning server that adds requests into this sink.
-  ApplicationServer server;
+  ApplicationServer get server => _server;
+  set server(ApplicationServer server) {
+    _server = server;
+    messageHub._outboundController.stream.listen(server.sendApplicationEvent);
+    server.hubSink = messageHub._inboundController.sink;
+  }
+  ApplicationServer _server;
+
+  final ApplicationMessageHub messageHub = new ApplicationMessageHub();
 
   /// This instance's router.
   ///
@@ -135,6 +143,11 @@ abstract class RequestSink extends RequestController
   /// Because requests could potentially be queued prior to this instance
   /// being opened, a request could be received prior to this method being executed.
   void didOpen() {}
+
+  Future close() async {
+    await messageHub.close();
+    logger?.clearListeners();
+  }
 
   @override
   APIDocument documentAPI(PackagePathResolver resolver) {
@@ -243,5 +256,28 @@ abstract class RequestSink extends RequestController
 
     var path = paths.firstWhere((p) => p.operations.contains(op));
     return path.path;
+  }
+}
+
+
+class ApplicationMessageHub extends Stream<dynamic> implements Sink<dynamic> {
+  @override
+  StreamSubscription<dynamic> listen(void onData(dynamic event),
+      {Function onError, void onDone(), bool cancelOnError}) =>
+    _inboundController.stream.listen(
+        onData, onError: onError, onDone: onDone, cancelOnError: cancelOnError);
+
+  @override
+  void add(dynamic event) {
+    _outboundController.sink.add(event);
+  }
+
+  StreamController<dynamic> _outboundController = new StreamController<dynamic>();
+  StreamController<dynamic> _inboundController = new StreamController<dynamic>();
+
+  @override
+  Future close() async {
+    await _outboundController.close();
+    await _inboundController.close();
   }
 }
