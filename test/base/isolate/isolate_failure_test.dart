@@ -137,7 +137,7 @@ class TimeoutSink extends RequestSink {
 
   @override
   Future close() async {
-    timer.cancel();
+    timer?.cancel();
     await super.close();
   }
 }
