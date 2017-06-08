@@ -28,6 +28,9 @@ class ApplicationServer {
   /// The instance of [RequestSink] serving requests.
   RequestSink sink;
 
+  /// Target for sending messages to other [RequestSink] isolates.
+  ///
+  /// Events are added to this sink by instances of [ApplicationMessageHub] and should not otherwise be used.
   EventSink<dynamic> hubSink;
 
   bool get requiresHTTPS => _requiresHTTPS;

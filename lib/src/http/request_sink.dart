@@ -9,6 +9,7 @@ import 'request_controller.dart';
 import 'documentable.dart';
 import 'router.dart';
 import '../application/application.dart';
+import '../utilities/resource_registry.dart';
 
 /// Instances of this type are the root of an Aqueduct application.
 ///
@@ -85,6 +86,10 @@ abstract class RequestSink extends RequestController
   }
   ApplicationServer _server;
 
+  /// Sends and receives messages to other isolates running a [RequestSink].
+  ///
+  /// Messages may be sent to other instances of this type via [ApplicationMessageHub.add]. An instance of this type
+  /// may listen for those messages via [ApplicationMessageHub.listen]. See [ApplicationMessageHub] for more details.
   final ApplicationMessageHub messageHub = new ApplicationMessageHub();
 
   /// This instance's router.
@@ -146,6 +151,13 @@ abstract class RequestSink extends RequestController
   /// being opened, a request could be received prior to this method being executed.
   void didOpen() {}
 
+  /// Closes this instance.
+  ///
+  /// Tell the sink that no further requests will be added, and it may release any resources it is using. Prefer using [ResourceRegistry]
+  /// to overriding this method.
+  ///
+  /// If you do override this method, you must call the super implementation. The default behavior of this method removes
+  /// any listeners from [logger], so it is advantageous to invoke the super implementation at the end of the override.
   Future close() async {
     await messageHub.close();
     logger?.clearListeners();
@@ -261,12 +273,42 @@ abstract class RequestSink extends RequestController
   }
 }
 
-
+/// Sends and receives messages from other isolates started by an [Application].
+///
+/// Messages added to an instance of this type - through [add] - are broadcast to every isolate running a [RequestSink].
+/// These messages are be received by [listen]ing to an instance of this type. A hub only receives messages from other isolates - it will not
+/// receive messages that it sent.
+///
+/// This type implements both [Stream] (for receiving events from other isolates) and [Sink] (for sending events to other isolates). Avoid
+/// [Stream] methods such as [Stream.first], which will stop the hub from listening to future events.
+///
+/// For example, an application may want to send data to every connected websocket. A reference to each websocket
+/// is only known to the isolate it established a connection on. This data must be sent to each isolate so that each websocket
+/// connected to that isolate can send the data:
+///
+///         router.route("/broadcast").listen((req) async {
+///           var message = await req.body.decodeAsString();
+///           websocketsOnThisIsolate.forEach((s) => s.add(message);
+///           messageHub.add({"event": "broadcastMessage", "data": message});
+///           return new Response.accepted();
+///         });
+///
+///         messageHub.listen((event) {
+///           if (event is Map && event["event"] == "broadcastMessage") {
+///             websocketsOnThisIsolate.forEach((s) => s.add(event["data"]);
+///           }
+///         });
 class ApplicationMessageHub extends Stream<dynamic> implements Sink<dynamic> {
   Logger _logger = new Logger("aqueduct");
   StreamController<dynamic> _outboundController = new StreamController<dynamic>();
   StreamController<dynamic> _inboundController = new StreamController<dynamic>();
 
+  /// Adds a listener for data events from other isolates.
+  ///
+  /// When an isolate invokes [add], all other isolates receive that data in [onData].
+  ///
+  /// [onError], if provided, will be invoked when an isolate tries to [add] bad data. Only the isolate
+  /// that failed to send the data will receive [onError] events.
   @override
   StreamSubscription<dynamic> listen(void onData(dynamic event),
       {Function onError, void onDone(), bool cancelOnError: false}) =>
@@ -276,6 +318,12 @@ class ApplicationMessageHub extends Stream<dynamic> implements Sink<dynamic> {
         onDone: onDone,
         cancelOnError: cancelOnError);
 
+  /// Sends a message to all other isolates.
+  ///
+  /// [event] will be delivered to all other isolates that have set up a callback for [listen].
+  ///
+  /// [event] must be isolate-safe data - in general, this means it may not be or contain a closure. Consult the API reference `dart:isolate` for more details. If [event]
+  /// is not isolate-safe data, an error is delivered to [listen] on this isolate.
   @override
   void add(dynamic event) {
     _outboundController.sink.add(event);
