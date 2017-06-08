@@ -333,6 +333,14 @@ class ApplicationMessageHub extends Stream<dynamic> implements Sink<dynamic> {
 
   @override
   Future close() async {
+    if (!_outboundController.hasListener) {
+      _outboundController.stream.listen(null);
+    }
+
+    if (!_inboundController.hasListener) {
+      _inboundController.stream.listen(null);
+    }
+
     await _outboundController.close();
     await _inboundController.close();
   }
