@@ -106,11 +106,11 @@ class ApplicationIsolateSupervisor {
     list.forEach((m) => _sendMessageToOtherSupervisors(m));
   }
 
-  void _sendMessageToOtherSupervisors(MessageHubMessage msg) {
+  void _sendMessageToOtherSupervisors(MessageHubMessage message) {
     supervisingApplication.supervisors
         .where((sup) => sup != this)
         .forEach((supervisor) {
-      supervisor._serverSendPort.send(msg);
+      supervisor._serverSendPort.send(message);
     });
   }
 
