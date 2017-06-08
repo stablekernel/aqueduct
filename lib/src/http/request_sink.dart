@@ -159,7 +159,9 @@ abstract class RequestSink extends RequestController
   /// If you do override this method, you must call the super implementation. The default behavior of this method removes
   /// any listeners from [logger], so it is advantageous to invoke the super implementation at the end of the override.
   Future close() async {
+    logger.fine("RequestSink(${server.identifier}).close: closing messageHub");
     await messageHub.close();
+    logger.fine("RequestSink(${server.identifier}).close: clear logger listeners");
     logger?.clearListeners();
   }
 
