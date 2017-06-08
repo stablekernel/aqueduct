@@ -34,6 +34,8 @@ class ApplicationIsolateSupervisor {
   /// A reference to the [Logger] used by the [supervisingApplication].
   Logger logger;
 
+  List<MessageHubMessage> _pendingMessageQueue = [];
+
   bool get _isLaunching => _launchCompleter != null;
   SendPort _serverSendPort;
   Completer _launchCompleter;
@@ -89,7 +91,27 @@ class ApplicationIsolateSupervisor {
       logger.fine("ApplicationIsolateSupervisor($identifier) received isolate error ${message.first}");
       var stacktrace = new StackTrace.fromString(message.last);
       _handleIsolateException(message.first, stacktrace);
+    } else if (message is MessageHubMessage) {
+      if (!supervisingApplication.hasFinishedLaunching) {
+        _pendingMessageQueue.add(message);
+      } else {
+        _sendMessageToOtherSupervisors(message);
+      }
     }
+  }
+
+  void sendPendingMessages() {
+    var list = new List.from(_pendingMessageQueue);
+    _pendingMessageQueue.clear();
+    list.forEach((m) => _sendMessageToOtherSupervisors(m));
+  }
+
+  void _sendMessageToOtherSupervisors(MessageHubMessage message) {
+    supervisingApplication.supervisors
+        .where((sup) => sup != this)
+        .forEach((supervisor) {
+      supervisor._serverSendPort.send(message);
+    });
   }
 
   void _handleIsolateException(dynamic error, StackTrace stacktrace) {

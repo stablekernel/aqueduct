@@ -1,5 +1,9 @@
 # aqueduct changelog
 
+## 2.2.2
+
+- Adds `ApplicationMessageHub` to send cross-isolate messages.
+
 ## 2.2.1
 
 - Allow `HTTPCodecRepository.add` to use specify default charset for Content-Type if a request does not specify one.

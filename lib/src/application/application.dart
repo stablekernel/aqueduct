@@ -57,6 +57,14 @@ class Application<RequestSinkType extends RequestSink> {
   /// Defaults to 30 seconds.
   Duration isolateStartupTimeout = new Duration(seconds: 30);
 
+  /// Whether or not this application has finished [start] successfully.
+  ///
+  /// This will return true if [start] has been invoked and completed; i.e. this is the synchronous version of the [Future] returned by [start].
+  ///
+  /// If [stop] has been invoked, this value still returns true until [start] is invoked again.
+  bool get hasFinishedLaunching => _hasFinishedLaunching;
+  bool _hasFinishedLaunching = false;
+
   /// Starts the application by spawning Isolates that listen for HTTP requests.
   ///
   /// Returns a [Future] that completes when all [Isolate]s have started listening for requests.
@@ -68,6 +76,8 @@ class Application<RequestSinkType extends RequestSink> {
   /// If this instances [RequestSinkType] implements `initializeApplication` (see [RequestSink] for more details),
   /// that one-time initialization method will be executed prior to the spawning of isolates and instantiations of [RequestSink].
   Future start({int numberOfInstances: 1, bool runOnMainIsolate: false, bool consoleLogging: false}) async {
+    _hasFinishedLaunching = false;
+
     if (configuration.address == null) {
       if (runOnMainIsolate) {
         configuration.address = InternetAddress.LOOPBACK_IP_V4;
@@ -99,6 +109,7 @@ class Application<RequestSinkType extends RequestSink> {
         await server?.server?.close(force: true);
         throw new ApplicationStartupException(e);
       }
+      _hasFinishedLaunching = true;
     } else {
       supervisors = [];
       try {
@@ -113,6 +124,8 @@ class Application<RequestSinkType extends RequestSink> {
         logger.severe("$e", this, st);
         rethrow;
       }
+      _hasFinishedLaunching = true;
+      supervisors.forEach((sup) => sup.sendPendingMessages());
     }
   }
 

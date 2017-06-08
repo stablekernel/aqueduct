@@ -28,6 +28,11 @@ class ApplicationServer {
   /// The instance of [RequestSink] serving requests.
   RequestSink sink;
 
+  /// Target for sending messages to other [RequestSink] isolates.
+  ///
+  /// Events are added to this sink by instances of [ApplicationMessageHub] and should not otherwise be used.
+  EventSink<dynamic> hubSink;
+
   bool get requiresHTTPS => _requiresHTTPS;
   bool _requiresHTTPS = false;
 
@@ -76,8 +81,14 @@ class ApplicationServer {
   }
 
   Future close() async {
+    logger.fine("ApplicationServer($identifier).close Closing HTTP listener");
     await server?.close(force: true);
-    sink?.logger?.clearListeners();
+    logger.fine("ApplicationServer($identifier).close Closing request sink");
+    await sink?.close();
+
+    // This is actually closed by sink.messageHub.close, but this shuts up the analyzer.
+    hubSink?.close();
+    logger.fine("ApplicationServer($identifier).close Closing complete");
   }
 
   /// Invoked when this server becomes ready receive requests.
@@ -96,6 +107,10 @@ class ApplicationServer {
     server.map((baseReq) => new Request(baseReq)).listen(_dispatchRequest);
     sink.didOpen();
     logger.info("Server aqueduct/$identifier started.");
+  }
+
+  void sendApplicationEvent(dynamic event) {
+    // By default, do nothing
   }
 
   void _dispatchRequest(Request request) {
