@@ -26,6 +26,7 @@ pages:
   - 'Handling Requests: HTTPController': 'http/http_controller.md'
   - 'Configuration': 'http/configure.md'
   - 'Serving Files and Caching': 'http/serving_files.md'
+  - 'Websockets': 'http/websockets.md'
 - Database/ORM:
   - 'Overview': 'db/overview.md'
   - 'Modeling Data': 'db/modeling_data.md'

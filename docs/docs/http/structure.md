@@ -90,3 +90,28 @@ The required `pubspec.yaml` and `lib/application_name.dart` files are present al
 - `test/harness/app.dart`: A file that contains a test harness that starts and stops an application during automated testing. For more details, see [automated testing](../testing/overview).
 
 Feel free to create other subdirectories in `lib/` for organizing other types of files.
+
+
+## Aqueduct and dart:io
+
+Aqueduct runs on top of `dart:io` and relies on its `HttpServer` implementation. When an Aqueduct application is started, one or more `HttpServer` instances are bound to the port specified by `aqueduct serve`. For each HTTP request, an instance of `Request` is created to wrap the `HttpRequest` from `dart:io`. The `Request` is added to a `RequestSink`, sending it through the channel of `RequestController`s until it is responded to.
+
+In rare circumstances, you may choose to remove a `Request` from the request channel and manipulate the request with `dart:io` only. Once removed, it is your responsibility to respond to the request by setting properties on and closing the `HttpRequest.response`. To take a request out of the channel, simply return `null` from a `RequestController`:
+
+```dart
+@override
+void setupRouter(Router router) {
+  router
+    .route("/bypass_aqueduct")
+    .listen((req) async {
+      req.response.statusCode = 200;
+      req.response.close();
+
+      return null;
+    });
+}
+```
+
+(In Aqueduct 2.2.1 and below, a `RequestController` that removes a request from the channel in this way must be the last request controller in the channel.)
+
+This technique is valuable when Aqueduct can't do something you want it to do or when using [websockets](websockets.md).

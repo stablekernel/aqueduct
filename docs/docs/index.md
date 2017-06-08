@@ -4,7 +4,7 @@
 
 [![Gitter](https://badges.gitter.im/dart-lang/server.svg)](https://gitter.im/dart-lang/server?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
-Aqueduct is a server-side framework for building and deploying REST applications. It is written in Dart. Its goal to provide am integrated and consistently styled framework.
+Aqueduct is a server-side framework for building and deploying REST applications. It is written in Dart. Its goal to provide an integrated, consistently styled framework.
 
 It contains behavior for routing and authorizing HTTP requests, persisting data in PostgreSQL, testing, and much more. The `aqueduct` command-line tool serves applications, manages database schemas and OAuth 2.0 clients, and generates OpenAPI specifications.
 
@@ -35,30 +35,40 @@ You can find in-depth guides [here](https://aqueduct.io/docs/).
 
 Take a tour of Aqueduct.
 
-### Initialization
+### Creating and Running and Application
 
-Create applications with the command line tool:
+Create applications with the `aqueduct create` tool:
 
 ```
 aqueduct create my_app
 ```
 
-A subclass of `RequestSink` initializes the application by setting up routes, database connections and other resources used to serve requests.
+Run applications with `aqueduct serve` tool inside a directory created by `aqueduct create`:
+
+```
+aqueduct serve
+```
+
+### Structure
+
+An Aqueduct application is a series of controllers that form a *channel* for a request to flow through in order. Any of those controllers may respond to a request and take it out of the channel. Controllers in the middle of the channel often verify something, while the controller at the end fulfills the request. Fulfillment might mean returning the contents of a file or storing data from the request body in a database.
+
+### Initialization
+
+An application's channel is created by subclassing [RequestSink](http/request_sink.md). This type also performs any other application initialization, like creating database connections and defining how authorization occurs.
 
 ```dart
 import 'package:aqueduct/aqueduct.dart';
 
 class AppRequestSink extends RequestSink {
-  ManagedContext databaseContext;
-
-  AppRequestSink(ApplicationConfig config) : super(config) {
+  AppRequestSink(ApplicationConfiguration config) : super(config) {
     databaseContext = contextFrom(config);
   }
 
   @override
   void setupRouter(Router router) {
     router
-      .route("/resource")
+      .route("/resource/[:id]")
       .generate(() => new ResourceController(databaseContext));
   }
 }
@@ -66,9 +76,11 @@ class AppRequestSink extends RequestSink {
 
 ### Routing
 
-Build complex routes with path variables, create route groups via optional path segments:
+A [router](htto/routing.md) splits a channel into sub-channels based on the path of a request. A request with the path `/users` will be handled by a different controller than a request with the path `/posts`, for example. Routes are defined by *route specification syntax*. Routes can contain variables and optional segments, enabling routes to be grouped together.
 
 ```dart
+@override
+void setupRouter(Router router) {    
   router
     .route("/users/[:id]")
     .generate(() => new UserController());
@@ -76,20 +88,18 @@ Build complex routes with path variables, create route groups via optional path 
   router
     .route("/file/*")
     .generate(() => new HTTPFileController());
-```
 
-Middleware can be inserted to pre-process or reject requests before they reach the next stage.
-
-```dart
-router
-  .route("/users/[:id]")
-  .pipe(new Authorizer(authServer))
-  .generate(() => new UserController());
+  router
+    .route("/health")
+    .listen((req) async => new Response.ok(null));
+}    
 ```
 
 ### Controllers
 
-HTTP requests are bound to *responder methods* implemented in `HTTPController` subclasses. A single `HTTPController` subclass handles all HTTP methods for resource, e.g. POST /users, GET /users and GET /users/1 all go to the same controller.
+[HTTPController](http/http_controller.md) are the controller that most often fulfill a request. An `HTTPController` subclass handles all operations for resource, e.g. `POST /users`, `GET /users` and `GET /users/1`.
+
+Subclasses implement a *responder method* for each operation:
 
 ```dart
 import 'package:aqueduct/aqueduct.dart'
@@ -113,7 +123,7 @@ class ResourceController extends HTTPController {
 }
 ```
 
-Values from the request can be read by accessing the `request` property or can be bound to responder method arguments:
+Properties of the request are bound to responder method arguments and controller properties:
 
 ```dart
 class ResourceController extends HTTPController {
@@ -125,15 +135,14 @@ class ResourceController extends HTTPController {
   }
 
   @httpPost
-  Future<Response> createResource() async {
-    var resource = new Resource()..readFromMap(request.body.asMap());
-    var inserted = await insertResource(resource);
+  Future<Response> createResource(@HTTPBody() Resource resource) async {
+    var inserted = await insertResourceIntoDatabase(resource);
     return new Response.ok(inserted);
   }
 }
 ```
 
-`ManagedObjectController<T>`s are specialized `HTTPController`s that map a REST interface to database queries without writing any code:
+`ManagedObjectController<T>`s are `HTTPController`s that automatically map a REST interface to database queries:
 
 ```dart
 router
@@ -141,7 +150,7 @@ router
   .generate(() => new ManagedObjectController<User>());
 ```
 
-`RequestController`s are a more generic controller that has a single method to either respond to requests or process them in some way. A `RequestController` is the base class for middleware, `HTTPController` and anything else that can handle a request.
+`RequestController` is the base class for all controllers that form a channel. They only have a single method to handle the request, and must either return the request or a response. When a request controller returns a response, the request is taken out of the channel.
 
 ```dart
 class VerifyingController extends RequestController {
@@ -156,7 +165,9 @@ class VerifyingController extends RequestController {
 }
 ```
 
-All controllers catch exceptions and translate them to the appropriate status code response.
+This behavior lets a channel prevent invalid requests from being fulfilled, or let's a controller be reused in multiple places to provide some preprocessing step.
+
+Uncaught exceptions are caught by the controller and translated into an appropriate response, removing the request from the channel. Exceptions should only be caught when another response is desired or when the request should continue to the next controller in the channel.
 
 ### Configuration
 
@@ -172,6 +183,20 @@ otherOption: hello
 numberOfDoodads: 3  
 ```
 
+Subclass `ConfigurationItem` and declare a property for each key in the configuration file:
+
+```dart
+class AppOptions extends ConfigurationItem {
+  AppOptions(String path) : super.fromFile(path);
+
+  DatabaseConnectionInfo database;
+  String otherOption;
+  int numberOfDoodads;
+}
+```
+
+Read the configuration file identified by an `ApplicationConfiguration`:
+
 ```dart
 import 'package:aqueduct/aqueduct.dart';
 
@@ -181,18 +206,11 @@ class AppRequestSink extends RequestSink {
     ...
   }
 }
-
-class AppOptions extends ConfigurationItem {
-  AppOptions(String path) : super.fromFile(path);
-  DatabaseConnectionInfo database;
-  String otherOption;
-  int numberOfDoodads;
-}
 ```
 
 ### Running and Concurrency
 
-Aqueduct applications are run with the `aqueduct` command line tool, which can also open debugging and instrumentation tools and specify how many threads the application should run on:
+Aqueduct applications are run with the `aqueduct serve` command line tool, which can also open debugging and instrumentation tools and specify how many threads the application should run on:
 
 ```
 aqueduct serve --observe --isolates 5
@@ -204,11 +222,11 @@ Run applications detached or still connected to the shell:
 aqueduct serve --detached --port $PORT
 ```
 
-Aqueduct applications are multi-isolate (multi-threaded). Each isolate runs a replica of the same web server with its own set of resources like database connections. This makes behavior like database connection pooling implicit and painless.
+Aqueduct applications are multi-isolate (multi-threaded). Each isolate runs a replica of the same web server with its own set of resources like database connections. This makes behavior like database connection pooling implicit.
 
 ### Querying a Database
 
-Aqueduct applications have a built-in ORM. Database commands are executed with instances of `Query<T>`.
+Database operations are built and executed with instances of `Query<T>`.
 
 ```dart
 import 'package:aqueduct/aqueduct.dart'
@@ -225,7 +243,7 @@ class ResourceController extends HTTPController {
 }
 ```
 
-The results of a `Query<T>` can be filtered by configuring the `Query.where` property, which uses Dart's powerful, real-time static analyzer to avoid mistakes and offer code completion.
+The results can be filtered by the `Query.where` property, which has the same properties as the object being queried.
 
 ```dart
 var query = new Query<Employee>()
@@ -234,7 +252,7 @@ var query = new Query<Employee>()
 var results = await query.fetch();
 ```
 
-Building a query to insert or update values leverages the same behavior:
+Values set on the properties of `Query.values` are sent to the database on insert and update operations. Like `Query.where`, `Query.values` has the same properties as the object being inserted or updated.
 
 ```dart
 var query = new Query<Employee>()
@@ -261,11 +279,11 @@ var herAndHerManagerAndHerDirectReports = await query.fetchOne();
 ```
 
 Exceptions thrown for queries are caught by a controller and translated into the appropriate status code. Unique constraint conflicts return 409,
-missing required properties return 400, database connection failure returns 503, etc. You can change this by catching exceptions from `Query<T>` methods.
+missing required properties return 400 and database connection failure returns 503.
 
 ### Defining a Data Model
 
-Rows in databases are represented by instances of `ManagedObject<T>` subclasses. These subclasses are the type argument to `Query<T>`. They are made up of two classes: one that declares a property for each database column in a table and the subclass of `ManagedObject<T>` that you work with in your code.
+`ManagedObject<T>` instances represent a row in a database; each property is a column in the corresponding table. This class is always subclassed and is in fact made up of two classes:
 
 ```dart
 class Employee extends ManagedObject<_Employee> implements _Employee {
@@ -282,6 +300,8 @@ class _Employee  {
   int salary;
 }
 ```
+
+Each property in the private class
 
 `ManagedObject<T>`s have relationship properties for has-one, has-many and many-to-many references to other `ManagedObject<T>`s. The property with `ManagedRelationship` metadata is a foreign key column.
 
