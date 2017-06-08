@@ -81,11 +81,14 @@ class ApplicationServer {
   }
 
   Future close() async {
+    logger.fine("ApplicationServer($identifier).close Closing HTTP listener");
     await server?.close(force: true);
+    logger.fine("ApplicationServer($identifier).close Closing requst sink");
     await sink?.close();
 
     // This is actually closed by sink.messageHub.close, but this shuts up the analyzer.
     hubSink?.close();
+    logger.fine("ApplicationServer($identifier).close Closing complete");
   }
 
   /// Invoked when this server becomes ready receive requests.
