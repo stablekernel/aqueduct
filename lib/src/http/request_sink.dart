@@ -262,8 +262,10 @@ abstract class RequestSink extends RequestController
 }
 
 
-class ApplicationMessageHub extends Stream<dynamic> implements EventSink<dynamic> {
+class ApplicationMessageHub extends Stream<dynamic> implements Sink<dynamic> {
   Logger _logger = new Logger("aqueduct");
+  StreamController<dynamic> _outboundController = new StreamController<dynamic>();
+  StreamController<dynamic> _inboundController = new StreamController<dynamic>();
 
   @override
   StreamSubscription<dynamic> listen(void onData(dynamic event),
@@ -278,13 +280,6 @@ class ApplicationMessageHub extends Stream<dynamic> implements EventSink<dynamic
   void add(dynamic event) {
     _outboundController.sink.add(event);
   }
-
-  @override
-  void addError(Object error, [StackTrace stack]) =>
-      _inboundController.addError(error, stack);
-
-  StreamController<dynamic> _outboundController = new StreamController<dynamic>();
-  StreamController<dynamic> _inboundController = new StreamController<dynamic>();
 
   @override
   Future close() async {

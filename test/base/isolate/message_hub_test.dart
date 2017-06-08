@@ -4,7 +4,6 @@ import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:aqueduct/aqueduct.dart';
-import 'package:aqueduct/test.dart';
 import 'package:test/test.dart';
 import '../../helpers.dart';
 
