@@ -2,6 +2,8 @@ import 'dart:io';
 import 'dart:async';
 import 'dart:mirrors';
 
+import 'package:logging/logging.dart';
+
 import 'request.dart';
 import 'request_controller.dart';
 import 'documentable.dart';
@@ -260,17 +262,26 @@ abstract class RequestSink extends RequestController
 }
 
 
-class ApplicationMessageHub extends Stream<dynamic> implements Sink<dynamic> {
+class ApplicationMessageHub extends Stream<dynamic> implements EventSink<dynamic> {
+  Logger _logger = new Logger("aqueduct");
+
   @override
   StreamSubscription<dynamic> listen(void onData(dynamic event),
-      {Function onError, void onDone(), bool cancelOnError}) =>
+      {Function onError, void onDone(), bool cancelOnError: false}) =>
     _inboundController.stream.listen(
-        onData, onError: onError, onDone: onDone, cancelOnError: cancelOnError);
+        onData,
+        onError: onError ?? (err, st) => _logger.severe("ApplicationMessageHub error", err, st),
+        onDone: onDone,
+        cancelOnError: cancelOnError);
 
   @override
   void add(dynamic event) {
     _outboundController.sink.add(event);
   }
+
+  @override
+  void addError(Object error, [StackTrace stack]) =>
+      _inboundController.addError(error, stack);
 
   StreamController<dynamic> _outboundController = new StreamController<dynamic>();
   StreamController<dynamic> _inboundController = new StreamController<dynamic>();

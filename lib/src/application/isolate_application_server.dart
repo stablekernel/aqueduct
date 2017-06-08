@@ -43,7 +43,11 @@ class ApplicationIsolateServer extends ApplicationServer {
 
   @override
   void sendApplicationEvent(dynamic event) {
-    supervisingApplicationPort.send(new MessageHubMessage(event));
+    try {
+      supervisingApplicationPort.send(new MessageHubMessage(event));
+    } catch (e, st) {
+      hubSink?.addError(e, st);
+    }
   }
 
   void listener(dynamic message) {

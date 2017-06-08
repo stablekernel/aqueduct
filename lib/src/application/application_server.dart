@@ -28,7 +28,7 @@ class ApplicationServer {
   /// The instance of [RequestSink] serving requests.
   RequestSink sink;
 
-  Sink<dynamic> hubSink;
+  EventSink<dynamic> hubSink;
 
   bool get requiresHTTPS => _requiresHTTPS;
   bool _requiresHTTPS = false;

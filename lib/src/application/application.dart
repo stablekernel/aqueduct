@@ -57,6 +57,9 @@ class Application<RequestSinkType extends RequestSink> {
   /// Defaults to 30 seconds.
   Duration isolateStartupTimeout = new Duration(seconds: 30);
 
+  bool get hasFinishedLaunching => _hasFinishedLaunching;
+  bool _hasFinishedLaunching = false;
+
   /// Starts the application by spawning Isolates that listen for HTTP requests.
   ///
   /// Returns a [Future] that completes when all [Isolate]s have started listening for requests.
@@ -99,6 +102,7 @@ class Application<RequestSinkType extends RequestSink> {
         await server?.server?.close(force: true);
         throw new ApplicationStartupException(e);
       }
+      _hasFinishedLaunching = true;
     } else {
       supervisors = [];
       try {
@@ -113,6 +117,8 @@ class Application<RequestSinkType extends RequestSink> {
         logger.severe("$e", this, st);
         rethrow;
       }
+      _hasFinishedLaunching = true;
+      supervisors.forEach((sup) => sup.sendPendingMessages());
     }
   }
 
