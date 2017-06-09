@@ -73,16 +73,10 @@ class Runner {
     // Clone docs/source into another directory.
     var docsSource = await directoryWithBranch("docs/source");
     await publishDocs(docsSource, master);
-    // verify docs will work, aka no errors from mkdocs build
-
-
-    // Clear docsLive
-    // move files from docsSource/build????? into docsLives
-    // commit and push docsLive
 
     if (!docsOnly) {
       await postGithubRelease(upcomingVersion, name, changeset);
-      await publish();
+      await publish(master);
     }
 
     return 0;
@@ -114,22 +108,28 @@ class Runner {
     print("Building /source to /docs site with mkdoc...");
     var process = await Process.start(
         "mkdocs", ["build", "-d", docsLive.uri.resolve("docs").path, "-s"],
-        workingDirectory: docSource.uri.resolve("docs").path);
+        workingDirectory: docsLive.uri.resolve("source").path);
     stderr.addStream(process.stderr);
     stdout.addStream(process.stdout);
     var exitCode = await process.exitCode;
     if (exitCode != 0) {
       throw "mkdocs failed with exit code $exitCode.";
     }
-//
-//    // This should create docSource/docs/site
-//    var builtDocsPath = docSource.uri.resolve("docs/").resolve("site/").path;
-//    var finalDocsPath = outputDirectory.uri.resolve("docs/").path;
-//    var tempDocsPath = outputDirectory.uri.resolve("docs_tmp").path;
-//    await run("mv", [builtDocsPath, tempDocsPath], directory: outputDirectory);
-//    new Directory(finalDocsPath).deleteSync(recursive: true);
-//    await run("mv", [tempDocsPath, finalDocsPath], directory: outputDirectory);
 
+    var sourceDirectoryInLive = new Directory.fromUri(docsLive.uri.resolve("source"));
+    sourceDirectoryInLive.deleteSync(recursive: true);
+
+    // Push gh-pages to remote
+    if (!isDryRun) {
+      print("Pushing gh-pages to remote...");
+      var process = await Process.start("git", ["push"], workingDirectory: docsLive.path);
+      stderr.addStream(process.stderr);
+      stdout.addStream(process.stdout);
+      var exitCode = await process.exitCode;
+      if (exitCode != 0) {
+        throw "mkdocs failed with exit code $exitCode.";
+      }
+    }
   }
 
   Future<Directory> directoryWithBranch(String branchName) async {
@@ -223,7 +223,7 @@ class Runner {
     }
   }
 
-  Future publish() async {
+  Future publish(Directory master) async {
     print("Publishing to pub...");
     var args = ["publish"];
     if (isDryRun) {
@@ -232,7 +232,7 @@ class Runner {
       args.add("-f");
     }
 
-    var process = await Process.start("pub", args);
+    var process = await Process.start("pub", args, workingDirectory: master.path);
     stderr.addStream(process.stderr);
     stdout.addStream(process.stdout);
 
@@ -294,7 +294,9 @@ class Runner {
 
   Future transformDirectory(List<Transformer> transformers, Directory source, Directory destination) async {
     var contents = source.listSync(recursive: false);
-    Iterable<File> files = contents.where((fse) => fse is File);
+    var files = contents
+        .where((fse) => fse is File)
+        .map((fse) => fse as File);
     for (var f in files) {
       var filename = f.uri.pathSegments.last;
 
@@ -319,7 +321,9 @@ class Runner {
       }
     }
 
-    Iterable<Directory> subdirectories = contents.where((fse) => fse is Directory);
+    Iterable<Directory> subdirectories = contents
+        .where((fse) => fse is Directory)
+        .map((fse) => fse as Directory);
     for (var subdirectory in subdirectories) {
       var dirName = subdirectory.uri.pathSegments[subdirectory.uri.pathSegments.length - 2];
       var destinationDir = new Directory.fromUri(destination.uri.resolve("$dirName"));
