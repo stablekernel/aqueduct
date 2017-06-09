@@ -76,7 +76,7 @@ class AppRequestSink extends RequestSink {
 
 ### Routing
 
-A [router](htto/routing.md) splits a channel into sub-channels based on the path of a request. A request with the path `/users` will be handled by a different controller than a request with the path `/posts`, for example. Routes are defined by *route specification syntax*. Routes can contain variables and optional segments, enabling routes to be grouped together.
+A [router](http/routing.md) splits a channel into sub-channels based on the path of a request. A request with the path `/users` will be handled by a different controller than a request with the path `/posts`, for example. Routes are defined by *route specification syntax*. Routes can contain variables and optional segments, enabling routes to be grouped together.
 
 ```dart
 @override
