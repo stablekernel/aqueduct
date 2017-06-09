@@ -50,6 +50,10 @@ class Runner {
     // - pub
     // - mkdocs
 
+    if (name == null && !(isDryRun || docsOnly)) {
+      throw "--name is required.";
+    }
+
     print("Preparing release: '$name'... ${isDryRun ? "(dry-run)":""} ${docsOnly ? "(docs-only)":""}");
 
     var master = await directoryWithBranch("master");
@@ -129,7 +133,7 @@ class Runner {
   }
 
   Future<Directory> directoryWithBranch(String branchName) async {
-    var dir = await Directory.current.createTemp(branchName);
+    var dir = await Directory.current.createTemp(branchName.replaceAll("/", "_"));
     _cleanup.add(() => dir.delete(recursive: true));
 
     print("Cloning '$branchName' into ${dir.path}...");
