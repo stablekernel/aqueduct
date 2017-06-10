@@ -97,7 +97,7 @@ class Runner {
     print("Cleaning ${docsLive.path}...");
     docsLive
       .listSync()
-      .where((fse) => !fse.uri.pathSegments.last.startsWith(r"\."))
+      .where((fse) => !fse.uri.pathSegments.last.startsWith(r"."))
       .forEach((fse) {
         fse.deleteSync(recursive: true);
       });
