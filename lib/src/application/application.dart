@@ -102,7 +102,7 @@ class Application<RequestSinkType extends RequestSink> {
       try {
         var sink = requestSinkType
             .newInstance(new Symbol(""), [configuration]).reflectee;
-        server = new ApplicationServer(configuration, 1);
+        server = new ApplicationServer(configuration, 1, captureStack: true);
 
         await server.start(sink);
       } catch (e) {

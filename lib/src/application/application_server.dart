@@ -17,7 +17,7 @@ class ApplicationServer {
   /// Creates an instance of this type.
   ///
   /// You should not need to invoke this method directly.
-  ApplicationServer(this.configuration, this.identifier);
+  ApplicationServer(this.configuration, this.identifier, {this.captureStack: false});
 
   /// The configuration this instance used to start its [sink].
   ApplicationConfiguration configuration;
@@ -27,6 +27,11 @@ class ApplicationServer {
 
   /// The instance of [RequestSink] serving requests.
   RequestSink sink;
+
+  /// Used during debugging to capture the stacktrace better for asynchronous calls.
+  ///
+  /// Defaults to false.
+  bool captureStack;
 
   /// Target for sending messages to other [RequestSink] isolates.
   ///
@@ -104,18 +109,21 @@ class ApplicationServer {
     await sink.willOpen();
 
     logger.fine("ApplicationServer($identifier).didOpen start listening");
-    server.map((baseReq) => new Request(baseReq)).listen(_dispatchRequest);
+    if (captureStack) {
+      server.map((baseReq) => new Request(baseReq)).listen((req) {
+        Chain.capture(() {
+          sink.receive(req);
+        });
+      });
+    } else {
+      server.map((baseReq) => new Request(baseReq)).listen(sink.receive);
+    }
+
     sink.didOpen();
     logger.info("Server aqueduct/$identifier started.");
   }
 
   void sendApplicationEvent(dynamic event) {
     // By default, do nothing
-  }
-
-  void _dispatchRequest(Request request) {
-    Chain.capture(() {
-      sink.receive(request);
-    });
   }
 }
