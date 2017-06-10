@@ -101,13 +101,12 @@ class Runner {
         if (fse is Directory) {
           var lastPathComponent = fse.uri.pathSegments[fse.uri.pathSegments.length - 2];
           return lastPathComponent != ".git";
+        } else if (fse is File) {
+          return fse.uri.pathSegments.last != ".nojekyll";
         }
-        return true;
       })
       .forEach((fse) {
-        if (fse.uri.pathSegments.last != ".nojekyll") {
-          fse.deleteSync(recursive: true);
-        }
+        fse.deleteSync(recursive: true);
       });
 
     print("Transforming docs from ${docSource.path} into ${docsLive.path}...");
