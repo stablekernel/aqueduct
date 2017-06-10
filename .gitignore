@@ -19,3 +19,4 @@ Dart_Packages.xml
 .DS_Store
 .idea
 *.iml
+release.yaml
