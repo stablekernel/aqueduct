@@ -232,7 +232,7 @@
         }, 
         {
             "location": "/http/overview/", 
-            "text": "Tasks\n\n\nAqueduct applications respond to HTTP requests. The main concepts and tasks are:\n\n\n\n\nUsing a \nRouter\n to dispatch \nRequest\ns to a \nRequestController\n\n\nSubclassing \nHTTPController\n to bind requests and their properties to \nresponder methods\n\n\nSubclassing \nRequestSink\n to initialize an application\n\n\nRunning Aqueduct Applications with \naqueduct serve\n\n\nUsing specialized database controllers like \nQueryController\nT\n and \nManagedObjectController\nT\n.\n\n\nDecoding HTTP request bodies with \nHTTPRequestBody\n and encoding objects into HTTP response bodies with \nResponse\n\n\nUsing \nRequestController\ns to implement middleware and other types of responder logic.\n\n\n\n\nGuides\n\n\n\n\nArchitecture and Organization of Aqueduct Applications\n\n\nRequest and Response Objects\n\n\nHandling Requests\n\n\nThe RequestSink\n\n\nRouting\n\n\nHTTPControllers\n\n\nConfiguration Files, CORS and SSL\n\n\nServing Files and Caching", 
+            "text": "Tasks\n\n\nAqueduct applications respond to HTTP requests. The main concepts and tasks are:\n\n\n\n\nUsing a \nRouter\n to dispatch \nRequest\ns to a \nRequestController\n\n\nSubclassing \nHTTPController\n to bind requests and their properties to \nresponder methods\n\n\nSubclassing \nRequestSink\n to initialize an application\n\n\nRunning Aqueduct Applications with \naqueduct serve\n\n\nUsing specialized database controllers like \nQueryController\nT\n and \nManagedObjectController\nT\n.\n\n\nDecoding HTTP request bodies with \nHTTPRequestBody\n and encoding objects into HTTP response bodies with \nResponse\n\n\nUsing \nRequestController\ns to implement middleware and other types of responder logic.\n\n\n\n\nGuides\n\n\n\n\nArchitecture and Organization of Aqueduct Applications\n\n\nRequest and Response Objects\n\n\nHandling Requests\n\n\nThe RequestSink\n\n\nRouting\n\n\nHTTPControllers\n\n\nConfiguration Files, CORS and SSL\n\n\nServing Files and Caching\n\n\nWebsockets", 
             "title": "Overview"
         }, 
         {
@@ -242,7 +242,7 @@
         }, 
         {
             "location": "/http/overview/#guides", 
-            "text": "Architecture and Organization of Aqueduct Applications  Request and Response Objects  Handling Requests  The RequestSink  Routing  HTTPControllers  Configuration Files, CORS and SSL  Serving Files and Caching", 
+            "text": "Architecture and Organization of Aqueduct Applications  Request and Response Objects  Handling Requests  The RequestSink  Routing  HTTPControllers  Configuration Files, CORS and SSL  Serving Files and Caching  Websockets", 
             "title": "Guides"
         }, 
         {
