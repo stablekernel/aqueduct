@@ -17,7 +17,7 @@ class ApplicationServer {
   /// Creates an instance of this type.
   ///
   /// You should not need to invoke this method directly.
-  ApplicationServer(this.configuration, this.identifier, {this.captureStack});
+  ApplicationServer(this.configuration, this.identifier, {this.captureStack: false});
 
   /// The configuration this instance used to start its [sink].
   ApplicationConfiguration configuration;
@@ -31,7 +31,7 @@ class ApplicationServer {
   /// Used during debugging to capture the stacktrace better for asynchronous calls.
   ///
   /// Defaults to false.
-  bool captureStack = false;
+  bool captureStack;
 
   /// Target for sending messages to other [RequestSink] isolates.
   ///
