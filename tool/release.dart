@@ -97,9 +97,17 @@ class Runner {
     print("Cleaning ${docsLive.path}...");
     docsLive
       .listSync()
-      .where((fse) => !fse.uri.pathSegments.last.startsWith(r"."))
+      .where((fse) {
+        if (fse is Directory) {
+          var lastPathComponent = fse.uri.pathSegments[fse.uri.pathSegments.length - 2];
+          return lastPathComponent != ".git";
+        }
+        return true;
+      })
       .forEach((fse) {
-        fse.deleteSync(recursive: true);
+        if (fse.uri.pathSegments.last != ".nojekyll") {
+          fse.deleteSync(recursive: true);
+        }
       });
 
     print("Transforming docs from ${docSource.path} into ${docsLive.path}...");
@@ -118,7 +126,7 @@ class Runner {
 
     var sourceDirectoryInLive = new Directory.fromUri(docsLive.uri.resolve("source"));
     sourceDirectoryInLive.deleteSync(recursive: true);
-    process = await Process.start("git", ["commit", "-am", "\"commit by release tool\""], workingDirectory: docsLive.path);
+    process = await Process.start("git", ["commit", "-am", "commit by release tool"], workingDirectory: docsLive.path);
     stderr.addStream(process.stderr);
     stdout.addStream(process.stdout);
     exitCode = await process.exitCode;
