@@ -118,6 +118,13 @@ class Runner {
 
     var sourceDirectoryInLive = new Directory.fromUri(docsLive.uri.resolve("source"));
     sourceDirectoryInLive.deleteSync(recursive: true);
+    process = await Process.start("git", ["commit", "-am", "\"commit by release tool\""], workingDirectory: docsLive.path);
+    stderr.addStream(process.stderr);
+    stdout.addStream(process.stdout);
+    exitCode = await process.exitCode;
+    if (exitCode != 0) {
+      throw "git commit in ${docsLive.path} failed with exit code $exitCode.";
+    }
 
     // Push gh-pages to remote
     if (!isDryRun) {
@@ -127,7 +134,7 @@ class Runner {
       stdout.addStream(process.stdout);
       var exitCode = await process.exitCode;
       if (exitCode != 0) {
-        throw "mkdocs failed with exit code $exitCode.";
+        throw "git push to ${docsLive.path} failed with exit code $exitCode.";
       }
     }
   }
