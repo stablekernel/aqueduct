@@ -400,6 +400,18 @@
   </li>
 
         
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/websockets/" title="Websockets" class="md-nav__link">
+      Websockets
+    </a>
+  </li>
+
+        
       </ul>
     </nav>
   </li>
@@ -888,7 +900,7 @@
 </pre></div>
 
 
-<p>An <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Authorizer-class.html">Authorizer</a> has no state itself, so it is added to a channel via <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController/pipe.html">pipe</a>; i.e., it does not need to be <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController/generate.html">generate</a>d.</p>
+<p>An <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Authorizer-class.html">Authorizer</a> has no state itself, so it is added to a channel via <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationMessageHub/pipe.html">pipe</a>; i.e., it does not need to be <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController/generate.html">generate</a>d.</p>
 <p>An <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Authorizer-class.html">Authorizer</a> parses the Authorization header of an HTTP request. The named constructors of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Authorizer-class.html">Authorizer</a> indicate the required format of Authorization header. The <code>Authorization.bearer()</code> constructor expects an OAuth 2.0 bearer token in the header, which has the following format:</p>
 <div class="codehilite"><pre><span></span><span class="n">Authorization</span><span class="o">:</span> <span class="n">Bearer</span> <span class="mi">768</span><span class="n">iuzjkx82jkasjkd9z9</span>
 </pre></div>

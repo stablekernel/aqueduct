@@ -443,6 +443,18 @@
   </li>
 
         
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/websockets/" title="Websockets" class="md-nav__link">
+      Websockets
+    </a>
+  </li>
+
+        
       </ul>
     </nav>
   </li>
@@ -914,7 +926,7 @@
 </pre></div>
 
 
-<p>Now that we have defined this relationship, we can associate answers with questions and return them in our <code>/questions</code> endpoint. In <code>question_controller.dart</code>, let's update the queries to fetch the <code>Answer</code> for each <code>Question</code> and include it in the response JSON. First, for <code>getAllQuestions</code>, use <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet/join.html">join()</a> to connect to <code>question.answer</code> for <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet/where.html">where</a>'s <code>answer</code>:</p>
+<p>Now that we have defined this relationship, we can associate answers with questions and return them in our <code>/questions</code> endpoint. In <code>question_controller.dart</code>, let's update the queries to fetch the <code>Answer</code> for each <code>Question</code> and include it in the response JSON. First, for <code>getAllQuestions</code>, use <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationMessageHub/join.html">join()</a> to connect to <code>question.answer</code> for <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationMessageHub/where.html">where</a>'s <code>answer</code>:</p>
 <div class="codehilite"><pre><span></span><span class="err">@</span><span class="n">httpGet</span>
 <span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">getAllQuestions</span><span class="p">({</span><span class="err">@</span><span class="n">HTTPQuery</span><span class="p">(</span><span class="s2">&quot;contains&quot;</span><span class="p">)</span> <span class="kt">String</span> <span class="nl">containsSubstring:</span> <span class="kc">null</span><span class="p">})</span> <span class="kd">async</span> <span class="p">{</span>
   <span class="kd">var</span> <span class="n">questionQuery</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Question</span><span class="o">&gt;</span><span class="p">()</span>
@@ -1028,13 +1040,13 @@
 </pre></div>
 
 
-<p>The inverse relationship doesn't have to be updated - whether it is has-one or has-many is determined by whether or not property is a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet-class.html">ManagedSet&lt;T&gt;</a> or a subclass of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a>. For <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet-class.html">ManagedSet&lt;T&gt;</a>, <code>T</code> must be a subclass of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a>. A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet-class.html">ManagedSet</a> acts just like a <code>List</code> - it has methods like <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet/map.html">map</a> and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet/where.html">where</a> - but also has special behavior that allows it to be used in building <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query-class.html">Query&lt;T&gt;</a>s. If you wish to join on <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet-class.html">ManagedSet&lt;T&gt;</a> properties, the syntax is the same:</p>
+<p>The inverse relationship doesn't have to be updated - whether it is has-one or has-many is determined by whether or not property is a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet-class.html">ManagedSet&lt;T&gt;</a> or a subclass of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a>. For <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet-class.html">ManagedSet&lt;T&gt;</a>, <code>T</code> must be a subclass of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a>. A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet-class.html">ManagedSet</a> acts just like a <code>List</code> - it has methods like <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationMessageHub/map.html">map</a> and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationMessageHub/where.html">where</a> - but also has special behavior that allows it to be used in building <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query-class.html">Query&lt;T&gt;</a>s. If you wish to join on <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet-class.html">ManagedSet&lt;T&gt;</a> properties, the syntax is the same:</p>
 <div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">query</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Question</span><span class="o">&gt;</span><span class="p">()</span>
   <span class="p">..</span><span class="n">join</span><span class="p">(</span><span class="kd">set</span><span class="o">:</span> <span class="p">(</span><span class="n">question</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="n">question</span><span class="p">.</span><span class="n">answers</span><span class="p">);</span>  
 </pre></div>
 
 
-<p>Each returned <code>Question</code> would also have a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet-class.html">ManagedSet</a> of <code>Answer</code>s in its <code>answers</code> property. You may also filter which answers are returned for each <code>Question</code>. A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet/join.html">join</a> creates a new <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query-class.html">Query&lt;T&gt;</a> that has its own <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet/where.html">where</a> property.</p>
+<p>Each returned <code>Question</code> would also have a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet-class.html">ManagedSet</a> of <code>Answer</code>s in its <code>answers</code> property. You may also filter which answers are returned for each <code>Question</code>. A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationMessageHub/join.html">join</a> creates a new <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query-class.html">Query&lt;T&gt;</a> that has its own <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationMessageHub/where.html">where</a> property.</p>
 <div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">query</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Question</span><span class="o">&gt;</span><span class="p">();</span>
 <span class="kd">var</span> <span class="n">join</span> <span class="o">=</span> <span class="n">query</span><span class="p">.</span><span class="n">join</span><span class="p">(</span><span class="kd">set</span><span class="o">:</span> <span class="p">(</span><span class="n">question</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="n">question</span><span class="p">.</span><span class="n">answers</span><span class="p">)</span>
   <span class="p">..</span><span class="n">where</span><span class="p">.</span><span class="n">isCorrect</span> <span class="o">=</span> <span class="n">whereEqualTo</span><span class="p">(</span><span class="kc">true</span><span class="p">);</span>  

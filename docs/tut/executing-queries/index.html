@@ -471,6 +471,18 @@
   </li>
 
         
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/websockets/" title="Websockets" class="md-nav__link">
+      Websockets
+    </a>
+  </li>
+
+        
       </ul>
     </nav>
   </li>
@@ -1121,9 +1133,9 @@
 </pre></div>
 
 
-<p>That's fetch and insert. Delete works the same way - you specify <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet/where.html">where</a> values and invoke <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/delete.html">delete</a> on the query. If you want to update database rows, you specify both <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/values.html">values</a> and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet/where.html">where</a>.</p>
+<p>That's fetch and insert. Delete works the same way - you specify <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationMessageHub/where.html">where</a> values and invoke <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/delete.html">delete</a> on the query. If you want to update database rows, you specify both <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/values.html">values</a> and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationMessageHub/where.html">where</a>.</p>
 <h2 id="the-more-you-know-query-parameters-and-http-headers">The more you know: Query Parameters and HTTP Headers</h2>
-<p>You can specify that a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a> responder method extract HTTP query parameters and headers and supply them as arguments to the method. We'll allow the <code>getAllQuestions</code> method to take a query parameter named <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet/contains.html">contains</a>. If this query parameter is part of the request, we'll filter the questions on whether or not that question contains some substring. In <code>question_controller.dart</code>, update this method:</p>
+<p>You can specify that a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a> responder method extract HTTP query parameters and headers and supply them as arguments to the method. We'll allow the <code>getAllQuestions</code> method to take a query parameter named <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationMessageHub/contains.html">contains</a>. If this query parameter is part of the request, we'll filter the questions on whether or not that question contains some substring. In <code>question_controller.dart</code>, update this method:</p>
 <div class="codehilite"><pre><span></span>  <span class="err">@</span><span class="n">httpGet</span>
   <span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">getAllQuestions</span><span class="p">({</span><span class="err">@</span><span class="n">HTTPQuery</span><span class="p">(</span><span class="s2">&quot;contains&quot;</span><span class="p">)</span> <span class="kt">String</span> <span class="nl">containsSubstring:</span> <span class="kc">null</span><span class="p">})</span> <span class="kd">async</span> <span class="p">{</span>
     <span class="kd">var</span> <span class="n">questionQuery</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Question</span><span class="o">&gt;</span><span class="p">();</span>
@@ -1136,7 +1148,7 @@
 </pre></div>
 
 
-<p>If an HTTP request has a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet/contains.html">contains</a> query parameter, that value will be passed as the <code>containsSubstring</code> parameter. As you can see, you may name the parameter whatever you like, it doesn't have to match the name of query parameter. Also, note that we first check <code>containsSubstring</code> to make sure it is not-null. If we simply assigned <code>null</code> to <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIHeader/description.html">description</a>, we'd be creating a matcher that checked to see if the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIHeader/description.html">description</a> <em>contained</em> <code>null</code>.</p>
+<p>If an HTTP request has a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationMessageHub/contains.html">contains</a> query parameter, that value will be passed as the <code>containsSubstring</code> parameter. As you can see, you may name the parameter whatever you like, it doesn't have to match the name of query parameter. Also, note that we first check <code>containsSubstring</code> to make sure it is not-null. If we simply assigned <code>null</code> to <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIHeader/description.html">description</a>, we'd be creating a matcher that checked to see if the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIHeader/description.html">description</a> <em>contained</em> <code>null</code>.</p>
 <p>Using HTTP header values as parameters is accomplished in the same way, except using the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPHeader-class.html">HTTPHeader</a> metadata. Query parameters are case sensitive, where header parameters are not.</p>
 <p>Then, add a new test in <code>question_controller_test.dart</code>:</p>
 <div class="codehilite"><pre><span></span>  <span class="n">test</span><span class="p">(</span><span class="s2">&quot;/questions returns list of questions filtered by contains&quot;</span><span class="p">,</span> <span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
@@ -1150,7 +1162,7 @@
 </pre></div>
 
 
-<p>This test will pass, along with the rest of them. It's important to note that GET <code>/questions</code> without a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet/contains.html">contains</a> query still yields the correct results. That is because the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPQuery-class.html">HTTPQuery</a> argument was declared in the optional parameters portion of the responder method. If the parameter were in the required, positional set of parameters and the query string was not included, this request would respond with a 400. (The same positional vs. optional behavior is true of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPHeader-class.html">HTTPHeader</a>s as well.) For example, if we wanted to make a 'X-Client-ID' header that had to be included on this request, we'd do the following:</p>
+<p>This test will pass, along with the rest of them. It's important to note that GET <code>/questions</code> without a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationMessageHub/contains.html">contains</a> query still yields the correct results. That is because the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPQuery-class.html">HTTPQuery</a> argument was declared in the optional parameters portion of the responder method. If the parameter were in the required, positional set of parameters and the query string was not included, this request would respond with a 400. (The same positional vs. optional behavior is true of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPHeader-class.html">HTTPHeader</a>s as well.) For example, if we wanted to make a 'X-Client-ID' header that had to be included on this request, we'd do the following:</p>
 <div class="codehilite"><pre><span></span>  <span class="err">@</span><span class="n">httpGet</span>
   <span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">getAllQuestions</span><span class="p">(</span>
     <span class="err">@</span><span class="n">HTTPHeader</span><span class="p">(</span><span class="s2">&quot;X-Client-ID&quot;</span><span class="p">)</span> <span class="kt">int</span> <span class="n">clientID</span><span class="p">,</span>

@@ -464,6 +464,18 @@
   </li>
 
         
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../websockets/" title="Websockets" class="md-nav__link">
+      Websockets
+    </a>
+  </li>
+
+        
       </ul>
     </nav>
   </li>
@@ -1129,7 +1141,7 @@
 
 <h3 id="more-specialized-httpcontrollers">More Specialized HTTPControllers</h3>
 <p>Because many <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a> subclasses will execute <a href="../../db/executing_queries/">queries</a>, there are helpful <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a> subclasses for reducing boilerplate code.</p>
-<p>A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/QueryController-class.html">QueryController&lt;T&gt;</a> builds a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query-class.html">Query&lt;T&gt;</a> based on the incoming request. If the request has a body, this <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query-class.html">Query&lt;T&gt;</a>'s <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/values.html">values</a> property is read from that body. If the request has a path variable, the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query-class.html">Query&lt;T&gt;</a> assigns a matcher to the primary key value of its <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet/where.html">where</a>. For example, in a normal <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a> that responds to a PUT request, you might write the following:</p>
+<p>A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/QueryController-class.html">QueryController&lt;T&gt;</a> builds a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query-class.html">Query&lt;T&gt;</a> based on the incoming request. If the request has a body, this <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query-class.html">Query&lt;T&gt;</a>'s <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/values.html">values</a> property is read from that body. If the request has a path variable, the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query-class.html">Query&lt;T&gt;</a> assigns a matcher to the primary key value of its <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationMessageHub/where.html">where</a>. For example, in a normal <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a> that responds to a PUT request, you might write the following:</p>
 <div class="codehilite"><pre><span></span><span class="err">@</span><span class="n">httpPut</span>
 <span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">updateUser</span><span class="p">(</span><span class="err">@</span><span class="n">HTTPPath</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">)</span> <span class="kt">int</span> <span class="n">id</span><span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>
   <span class="kd">var</span> <span class="n">query</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span><span class="p">()</span>
@@ -1215,7 +1227,7 @@
 <p>See also <a href="../../db/validations/">validations</a>, which are powerful when combined with <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObjectController-class.html">ManagedObjectController&lt;T&gt;</a>.</p>
 <h3 id="accessing-the-request">Accessing the Request</h3>
 <p>Any value from the request itself can be accessed through the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController/request.html">request</a> property of a controller.</p>
-<p>This also means that an <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a> instance cannot be reused to handle multiple requests; if it awaited on an operation, a new request could be assigned to the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController/request.html">request</a> property. Therefore, all <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a>s must be added to a request processing pipeline with <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController/generate.html">generate</a>. If you add a controller with <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController/pipe.html">pipe</a>, an exception will be thrown immediately at startup.</p>
+<p>This also means that an <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a> instance cannot be reused to handle multiple requests; if it awaited on an operation, a new request could be assigned to the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController/request.html">request</a> property. Therefore, all <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a>s must be added to a request processing pipeline with <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController/generate.html">generate</a>. If you add a controller with <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationMessageHub/pipe.html">pipe</a>, an exception will be thrown immediately at startup.</p>
               
               
             </article>

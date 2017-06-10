@@ -352,6 +352,13 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#aqueduct-and-dartio" title="Aqueduct and dart:io" class="md-nav__link">
+    Aqueduct and dart:io
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -439,6 +446,18 @@
   <li class="md-nav__item">
     <a href="../serving_files/" title="Serving Files and Caching" class="md-nav__link">
       Serving Files and Caching
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../websockets/" title="Websockets" class="md-nav__link">
+      Websockets
     </a>
   </li>
 
@@ -842,6 +861,13 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#aqueduct-and-dartio" title="Aqueduct and dart:io" class="md-nav__link">
+    Aqueduct and dart:io
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -933,6 +959,25 @@ test/
 <li><code>test/harness/app.dart</code>: A file that contains a test harness that starts and stops an application during automated testing. For more details, see <a href="../../testing/overview">automated testing</a>.</li>
 </ul>
 <p>Feel free to create other subdirectories in <code>lib/</code> for organizing other types of files.</p>
+<h2 id="aqueduct-and-dartio">Aqueduct and dart:io</h2>
+<p>Aqueduct runs on top of <code>dart:io</code> and relies on its <code>HttpServer</code> implementation. When an Aqueduct application is started, one or more <code>HttpServer</code> instances are bound to the port specified by <code>aqueduct serve</code>. For each HTTP request, an instance of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request-class.html">Request</a> is created to wrap the <code>HttpRequest</code> from <code>dart:io</code>. The <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request-class.html">Request</a> is added to a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a>, sending it through the channel of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a>s until it is responded to.</p>
+<p>In rare circumstances, you may choose to remove a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request-class.html">Request</a> from the request channel and manipulate the request with <code>dart:io</code> only. Once removed, it is your responsibility to respond to the request by setting properties on and closing the <code>HttpRequest.response</code>. To take a request out of the channel, simply return <code>null</code> from a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a>:</p>
+<div class="codehilite"><pre><span></span><span class="err">@</span><span class="n">override</span>
+<span class="kt">void</span> <span class="n">setupRouter</span><span class="p">(</span><span class="n">Router</span> <span class="n">router</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">router</span>
+    <span class="p">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/bypass_aqueduct&quot;</span><span class="p">)</span>
+    <span class="p">.</span><span class="n">listen</span><span class="p">((</span><span class="n">req</span><span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>
+      <span class="n">req</span><span class="p">.</span><span class="n">response</span><span class="p">.</span><span class="n">statusCode</span> <span class="o">=</span> <span class="m">200</span><span class="p">;</span>
+      <span class="n">req</span><span class="p">.</span><span class="n">response</span><span class="p">.</span><span class="n">close</span><span class="p">();</span>
+
+      <span class="k">return</span> <span class="kc">null</span><span class="p">;</span>
+    <span class="p">});</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>(In Aqueduct 2.2.1 and below, a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a> that removes a request from the channel in this way must be the last request controller in the channel.)</p>
+<p>This technique is valuable when Aqueduct can't do something you want it to do or when using <a href="../websockets/">websockets</a>.</p>
               
               
             </article>

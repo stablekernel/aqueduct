@@ -400,6 +400,18 @@
   </li>
 
         
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/websockets/" title="Websockets" class="md-nav__link">
+      Websockets
+    </a>
+  </li>
+
+        
       </ul>
     </nav>
   </li>
@@ -919,29 +931,29 @@
 
 <h2 id="filtering-results-of-a-fetch-operation">Filtering Results of a Fetch Operation</h2>
 <p>Fetching every row of a table usually doesn't make sense. Instead, we want a specific object or a set of objects matching some condition.</p>
-<p><a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/where.html">Query.where</a> is a safe and  elegant way to build a query. The <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet/where.html">where</a> property allows you to assign <em>matchers</em> to the properties of a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a>. A matcher applies a condition - like equal to or less than - to the property it is assigned to. (This follows the same Hamcrest matcher style that the Dart test framework uses.)</p>
-<p><a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/where.html">Query.where</a> is the same type as the object being fetched. For each property of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet/where.html">where</a> that is assigned a matcher, an expression will be added to the SQL where clause. Here's an example of a query that finds a <code>User</code> with an <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIOperation/id.html">id</a> equal to 1:</p>
+<p><a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/where.html">Query.where</a> is a safe and  elegant way to build a query. The <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationMessageHub/where.html">where</a> property allows you to assign <em>matchers</em> to the properties of a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a>. A matcher applies a condition - like equal to or less than - to the property it is assigned to. (This follows the same Hamcrest matcher style that the Dart test framework uses.)</p>
+<p><a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/where.html">Query.where</a> is the same type as the object being fetched. For each property of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationMessageHub/where.html">where</a> that is assigned a matcher, an expression will be added to the SQL where clause. Here's an example of a query that finds a <code>User</code> with an <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIOperation/id.html">id</a> equal to 1:</p>
 <div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">query</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span><span class="p">()</span>
   <span class="p">..</span><span class="n">where</span><span class="p">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">whereEqualTo</span><span class="p">(</span><span class="m">1</span><span class="p">);</span>
 </pre></div>
 
 
 <p>(The generated SQL here would be 'SELECT _user.id, _user.name, ... FROM _user WHERE _user.id = 1'.)</p>
-<p>All matchers begins with the word <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet/where.html">where</a>. Other examples are <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/whereGreaterThan.html">whereGreaterThan</a>, <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/whereBetween.html">whereBetween</a>, and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/whereIn.html">whereIn</a>. Every matcher set on a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet/where.html">where</a> is combined using logical 'and'. In other words, the following query will find all users whose <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIContact/name.html">name</a> is "Bob" <em>and</em> <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIContact/email.html">email</a> is not null:</p>
+<p>All matchers begins with the word <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationMessageHub/where.html">where</a>. Other examples are <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/whereGreaterThan.html">whereGreaterThan</a>, <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/whereBetween.html">whereBetween</a>, and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/whereIn.html">whereIn</a>. Every matcher set on a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationMessageHub/where.html">where</a> is combined using logical 'and'. In other words, the following query will find all users whose <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIContact/name.html">name</a> is "Bob" <em>and</em> <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIContact/email.html">email</a> is not null:</p>
 <div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">query</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span><span class="p">()</span>
   <span class="p">..</span><span class="n">where</span><span class="p">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">whereEqualTo</span><span class="p">(</span><span class="s2">&quot;Bob&quot;</span><span class="p">)</span>
   <span class="p">..</span><span class="n">where</span><span class="p">.</span><span class="n">email</span> <span class="o">=</span> <span class="n">whereNotNull</span><span class="p">;</span>
 </pre></div>
 
 
-<p>There are <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet/where.html">where</a> methods for other operators and string comparisons, see the API reference for more.</p>
+<p>There are <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationMessageHub/where.html">where</a> methods for other operators and string comparisons, see the API reference for more.</p>
 <p>Relationship properties can be have matchers, too. For example, the following query will fetch all parents who have children that are less than 10 years old:</p>
 <div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">query</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Parent</span><span class="o">&gt;</span><span class="p">()</span>
   <span class="p">..</span><span class="n">where</span><span class="p">.</span><span class="n">children</span><span class="p">.</span><span class="n">haveAtLeastOneWhere</span><span class="p">.</span><span class="n">age</span> <span class="o">=</span> <span class="n">whereLessThan</span><span class="p">(</span><span class="m">10</span><span class="p">);</span>
 </pre></div>
 
 
-<p>When building <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet/where.html">where</a> with relationship properties, there are some important things to understand. First, the values for any relationship properties are not returned in the results. In the previous query, that means that a list of <code>Parent</code>s would be returned - but their <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Logger/children.html">children</a> property wouldn't be populated. (To actually include relationship values, the next section talks about <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet/join.html">join</a>.)</p>
+<p>When building <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationMessageHub/where.html">where</a> with relationship properties, there are some important things to understand. First, the values for any relationship properties are not returned in the results. In the previous query, that means that a list of <code>Parent</code>s would be returned - but their <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Logger/children.html">children</a> property wouldn't be populated. (To actually include relationship values, the next section talks about <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationMessageHub/join.html">join</a>.)</p>
 <p>Most matchers applied to a relationship property will incur a SQL join, which can be more expensive than a typical fetch. The only time a relationship matcher doesn't incur a SQL join is when matching the value of a foreign key column. That is, a belongs-to relationship property where we're only checking the primary key of the related object. There are two ways of doing this:</p>
 <div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">preferredQuery</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Child</span><span class="o">&gt;</span><span class="p">()</span>
   <span class="p">..</span><span class="n">where</span><span class="p">.</span><span class="n">parent</span> <span class="o">=</span> <span class="n">whereRelatedByValue</span><span class="p">(</span><span class="m">23</span><span class="p">);</span>
@@ -1008,7 +1020,7 @@
 </pre></div>
 
 
-<p>The method <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet/join.html">join()</a> will tell a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query-class.html">Query&lt;T&gt;</a> to also include a particular has-many relationship, here, a user's <code>tasks</code>:</p>
+<p>The method <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationMessageHub/join.html">join()</a> will tell a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query-class.html">Query&lt;T&gt;</a> to also include a particular has-many relationship, here, a user's <code>tasks</code>:</p>
 <div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">q</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span><span class="p">()</span>
   <span class="p">..</span><span class="n">join</span><span class="p">(</span><span class="kd">set</span><span class="o">:</span> <span class="p">(</span><span class="n">u</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="n">u</span><span class="p">.</span><span class="n">tasks</span><span class="p">);</span>
 <span class="kd">var</span> <span class="n">users</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">q</span><span class="p">.</span><span class="n">fetch</span><span class="p">();</span>
@@ -1025,7 +1037,7 @@
 
 
 <p>Notice that the <code>tasks</code> are in fact included in this query.  When joining a has-many relationship, the <code>set:</code> argument is given a closure that returns a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet-class.html">ManagedSet&lt;T&gt;</a> property of the type being queried.</p>
-<p>The method <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet/join.html">join()</a> actually returns a new <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query-class.html">Query&lt;T&gt;</a>, where <code>T</code> is the type of object in the relationship property. That is, the above code could also be written as such:</p>
+<p>The method <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationMessageHub/join.html">join()</a> actually returns a new <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query-class.html">Query&lt;T&gt;</a>, where <code>T</code> is the type of object in the relationship property. That is, the above code could also be written as such:</p>
 <div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">q</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span><span class="p">();</span>
 
 <span class="c1">// type annotation added for clarity</span>
@@ -1059,7 +1071,7 @@
 
 
 <p>Notice that the results of this query include all of the details for a <code>Task.user</code> - not just its <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIOperation/id.html">id</a>.</p>
-<p>A subquery created through <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet/join.html">join</a> can also be filtered through its <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet/where.html">where</a> property. For example, the following query would return user's named 'Bob' and their overdue tasks only:</p>
+<p>A subquery created through <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationMessageHub/join.html">join</a> can also be filtered through its <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationMessageHub/where.html">where</a> property. For example, the following query would return user's named 'Bob' and their overdue tasks only:</p>
 <div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">q</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span><span class="p">()</span>
   <span class="p">..</span><span class="n">where</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">whereEquals</span><span class="p">(</span><span class="s2">&quot;Bob&quot;</span><span class="p">);</span>
 
@@ -1068,7 +1080,7 @@
 </pre></div>
 
 
-<p>Note that the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet/where.html">where</a> property on the subquery is an instance of <code>Task</code>, whereas <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet/where.html">where</a> on the <code>User</code> query is <code>User</code>. More on that in a bit.</p>
+<p>Note that the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationMessageHub/where.html">where</a> property on the subquery is an instance of <code>Task</code>, whereas <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationMessageHub/where.html">where</a> on the <code>User</code> query is <code>User</code>. More on that in a bit.</p>
 <p>More than one join can be applied to a query, and subqueries can be nested. So, this is all valid, assuming the relationship properties exist:</p>
 <div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">q</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span><span class="p">()</span>
   <span class="p">..</span><span class="n">join</span><span class="p">(</span><span class="nl">object:</span> <span class="p">(</span><span class="n">u</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="n">u</span><span class="p">.</span><span class="n">address</span><span class="p">);</span>
@@ -1079,7 +1091,7 @@
 
 
 <p>This would fetch all users, their addresses, all of their tasks, and the location for each of their tasks. You'd get a nice sized tree of objects here.</p>
-<p>It's important to understand how objects are filtered when using <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet/where.html">where</a> and subqueries. Matchers applied to the top-level query will filter out those types of objects. A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet/where.html">where</a> on a subquery has no impact on the number of objects returned at the top-level.</p>
+<p>It's important to understand how objects are filtered when using <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationMessageHub/where.html">where</a> and subqueries. Matchers applied to the top-level query will filter out those types of objects. A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationMessageHub/where.html">where</a> on a subquery has no impact on the number of objects returned at the top-level.</p>
 <p>Let's say there were 10 total users, each with 10 total tasks. The following query returns all 10 user objects, but each user's <code>tasks</code> would only contains those that are overdue. So a user might have 0, 1, or 10 tasks returned - even though there are a total of 10 available.</p>
 <div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">q</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span><span class="p">();</span>
 

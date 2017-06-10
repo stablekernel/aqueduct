@@ -400,6 +400,18 @@
   </li>
 
         
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/websockets/" title="Websockets" class="md-nav__link">
+      Websockets
+    </a>
+  </li>
+
+        
       </ul>
     </nav>
   </li>
@@ -988,7 +1000,7 @@
 
 
 <p>Note that <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Validate-class.html">Validate</a> is generic - you may provide a type argument which must match the type of the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Level/value.html">value</a> argument to <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Validate/validate.html">Validate.validate()</a>. Omitting the type argument defaults to <code>dynamic</code> and therefore <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Level/value.html">value</a> must be <code>dynamic</code>.</p>
-<p>The <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject/validate.html">validate</a> method must return <code>false</code> if validation failed, otherwise it should return <code>true</code>. It should add error messages for any failed validations. These error messages are returned in the HTTP response.</p>
+<p>The <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ConfigurationItem/validate.html">validate</a> method must return <code>false</code> if validation failed, otherwise it should return <code>true</code>. It should add error messages for any failed validations. These error messages are returned in the HTTP response.</p>
 <h3 id="validation-behavior">Validation Behavior</h3>
 <p>A property may have more than one <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Validate-class.html">Validate</a> metadata. In this case, all of the validations for a property must pass. The order in which multiple validations are performed is undefined and subject to change. Here's an example of validations that ensure a property's value is 10 characters long and only contains 10 alphabetic capital letters:</p>
 <div class="codehilite"><pre><span></span><span class="err">@</span><span class="n">Validate</span><span class="p">.</span><span class="n">length</span><span class="p">(</span><span class="nl">equalTo:</span> <span class="m">10</span><span class="p">)</span>

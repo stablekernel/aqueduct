@@ -400,6 +400,18 @@
   </li>
 
         
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/websockets/" title="Websockets" class="md-nav__link">
+      Websockets
+    </a>
+  </li>
+
+        
       </ul>
     </nav>
   </li>
@@ -1028,12 +1040,12 @@
 </pre></div>
 
 
-<p>Like <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/values.html">values</a>, <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet/where.html">where</a> is also the same managed object type the query is being executed on. In the above example, then, both <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/values.html">values</a> and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet/where.html">where</a> and instances of <code>User</code>. This query executes the following SQL:</p>
+<p>Like <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/values.html">values</a>, <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationMessageHub/where.html">where</a> is also the same managed object type the query is being executed on. In the above example, then, both <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/values.html">values</a> and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationMessageHub/where.html">where</a> and instances of <code>User</code>. This query executes the following SQL:</p>
 <div class="codehilite"><pre><span></span><span class="k">UPDATE</span> <span class="n">_user</span> <span class="k">SET</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Fred&#39;</span> <span class="k">WHERE</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Bob&#39;</span><span class="p">;</span>
 </pre></div>
 
 
-<p>The <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet/where.html">where</a> property is a very powerful and flexible, and so there is an entire section dedicated to it later in this guide. For now, we'll stick to some of the things specific to <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/update.html">update()</a>.</p>
+<p>The <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationMessageHub/where.html">where</a> property is a very powerful and flexible, and so there is an entire section dedicated to it later in this guide. For now, we'll stick to some of the things specific to <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/update.html">update()</a>.</p>
 <p>Like <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet/insert.html">insert()</a>, only the values set in the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/values.html">values</a> property of a query get updated when executing <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/update.html">update()</a>. Values that are omitted are not included. Values that need to be set to <code>null</code> must explicitly be set to <code>null</code> in the query:</p>
 <div class="codehilite"><pre><span></span><span class="c1">// A Query that will remove names from anyone currently named Bob.</span>
 <span class="kd">var</span> <span class="n">query</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span><span class="p">()</span>
@@ -1054,9 +1066,9 @@
 
 
 <p>The <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/updateOne.html">updateOne</a> method will return <code>null</code> if no rows were updated. It is important to note that if <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/updateOne.html">updateOne</a> is used and more than one row is updated, <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/updateOne.html">updateOne</a> will throw an exception and the changes to the data <em>are not reversible</em>. Because this is likely a mistake, this is considered an error, hence the exception is thrown. It is up to the programmer to recognize whether or not a particular <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/updateOne.html">updateOne</a> query would impact multiple rows.</p>
-<p>Update queries have a safety feature that prevents you from accidentally updating every row. If you try to execute a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query-class.html">Query&lt;T&gt;</a> to do an update without configuring <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet/where.html">where</a>, an exception is thrown prior to carrying out the request. If you actually want to update every row of a table, you must set the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/canModifyAllInstances.html">Query.canModifyAllInstances</a> to <code>true</code> prior to execution. (This property defaults to <code>false</code>.)</p>
+<p>Update queries have a safety feature that prevents you from accidentally updating every row. If you try to execute a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query-class.html">Query&lt;T&gt;</a> to do an update without configuring <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationMessageHub/where.html">where</a>, an exception is thrown prior to carrying out the request. If you actually want to update every row of a table, you must set the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/canModifyAllInstances.html">Query.canModifyAllInstances</a> to <code>true</code> prior to execution. (This property defaults to <code>false</code>.)</p>
 <h3 id="deleting-data-with-a-query">Deleting Data with a Query</h3>
-<p>A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query-class.html">Query&lt;T&gt;</a> will delete rows from a database when using <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/delete.html">delete()</a>. Like update queries, you should specify a row or rows using <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet/where.html">where</a> properties of the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query-class.html">Query&lt;T&gt;</a>. The result of a delete operation will be a <code>Future&lt;int&gt;</code> with the number of rows deleted.</p>
+<p>A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query-class.html">Query&lt;T&gt;</a> will delete rows from a database when using <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/delete.html">delete()</a>. Like update queries, you should specify a row or rows using <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationMessageHub/where.html">where</a> properties of the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query-class.html">Query&lt;T&gt;</a>. The result of a delete operation will be a <code>Future&lt;int&gt;</code> with the number of rows deleted.</p>
 <div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">query</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span><span class="p">()</span>
   <span class="p">..</span><span class="n">where</span><span class="p">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">whereEqualTo</span><span class="p">(</span><span class="m">1</span><span class="p">);</span>
 
@@ -1074,7 +1086,7 @@
 </pre></div>
 
 
-<p>A fetch <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query-class.html">Query&lt;T&gt;</a> uses its <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet/where.html">where</a> property to filter the result set, just like delete and update queries. Any properties set in the query's <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/values.html">values</a> are ignored when executing a fetch, since there is no need for them. In addition to fetching a list of instances from a database, you may also fetch a single instance with <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/fetchOne.html">fetchOne</a>. If no instance is found, <code>null</code> is returned.</p>
+<p>A fetch <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query-class.html">Query&lt;T&gt;</a> uses its <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationMessageHub/where.html">where</a> property to filter the result set, just like delete and update queries. Any properties set in the query's <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/values.html">values</a> are ignored when executing a fetch, since there is no need for them. In addition to fetching a list of instances from a database, you may also fetch a single instance with <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/fetchOne.html">fetchOne</a>. If no instance is found, <code>null</code> is returned.</p>
 <div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">query</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span><span class="p">()</span>
   <span class="p">..</span><span class="n">where</span><span class="p">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">whereEqualTo</span><span class="p">(</span><span class="m">1</span><span class="p">);</span>
 
