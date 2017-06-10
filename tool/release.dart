@@ -125,7 +125,15 @@ class Runner {
 
     var sourceDirectoryInLive = new Directory.fromUri(docsLive.uri.resolve("source"));
     sourceDirectoryInLive.deleteSync(recursive: true);
-    process = await Process.start("git", ["commit", "-am", "commit by release tool"], workingDirectory: docsLive.path);
+    process = await Process.start("git", ["add", "."], workingDirectory: docsLive.path);
+    stderr.addStream(process.stderr);
+    stdout.addStream(process.stdout);
+    exitCode = await process.exitCode;
+    if (exitCode != 0) {
+      throw "git add in ${docsLive.path} failed with exit code $exitCode.";
+    }
+
+    process = await Process.start("git", ["commit", "-m", "commit by release tool"], workingDirectory: docsLive.path);
     stderr.addStream(process.stderr);
     stdout.addStream(process.stdout);
     exitCode = await process.exitCode;
