@@ -390,6 +390,7 @@ class SymbolResolution {
   String type;
   String link;
 
+  @override
   String toString() => "$name: $qualifiedName $link $type";
 }
 

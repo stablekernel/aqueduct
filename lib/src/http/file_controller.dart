@@ -65,12 +65,15 @@ class HTTPFileController extends RequestController {
   ///
   ///
   /// Note that the 'Last-Modified' header is always applied to a response served from this instance.
-  HTTPFileController(String pathOfDirectoryToServe)
-      : _servingDirectory = new Uri.directory(pathOfDirectoryToServe);
+  HTTPFileController(String pathOfDirectoryToServe,
+      {Future<Response> onFileNotFound(HTTPFileController controller, Request req)})
+      : _servingDirectory = new Uri.directory(pathOfDirectoryToServe),
+        _onFileNotFound = onFileNotFound;
 
   Map<String, ContentType> _extensionMap =  new Map.from(_defaultExtensionMap);
   List<_PolicyPair> _policyPairs = [];
   final Uri _servingDirectory;
+  final Function _onFileNotFound;
 
   /// Returns a [ContentType] for a file extension.
   ///
@@ -140,6 +143,9 @@ class HTTPFileController extends RequestController {
     }
 
     if (!(await file.exists())) {
+      if (_onFileNotFound != null) {
+        return _onFileNotFound(this, request);
+      }
       return new Response.notFound();
     }
 

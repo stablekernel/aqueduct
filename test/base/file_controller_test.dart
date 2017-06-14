@@ -52,6 +52,9 @@ void main() {
 
     var router = new Router()
       ..route("/files/*").pipe(new HTTPFileController("temp_files"))
+      ..route("/redirect/*").pipe(new HTTPFileController("temp_files", onFileNotFound: (c, r) async {
+        return new Response.ok({"k": "v"});
+      }))
       ..route("/cache/*").pipe(cachingController)
       ..route("/silly/*").pipe(
           new HTTPFileController("temp_files")
@@ -172,6 +175,12 @@ void main() {
     expect(response.body, htmlContents);
 
     expect(serverHasNoMoreConnections(server), completes);
+  });
+
+  test("Provide onFileNotFound provides another response", () async {
+    var response = await http.get("http://localhost:8081/redirect/jkasdjlkasjdksadj");
+    expect(response.statusCode, 200);
+    expect(JSON.decode(response.body), {"k":"v"});
   });
 
   group("Default caching", () {

@@ -5,8 +5,6 @@ import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'package:aqueduct/aqueduct.dart';
 
-// Add to make sure variables and remaining path get stuffed into PathRequest
-
 void main() {
   group("Router basics", () {
     HttpServer server;
@@ -39,6 +37,23 @@ void main() {
 
       var response = await http.get("http://localhost:4040/notplayer");
       expect(response.statusCode, equals(404));
+      // No Accept header, so allow HTML
+      expect(response.body, contains("<html>"));
+    });
+
+    test("Router 404 but does not accept html, no body", () async {
+      Router router = new Router();
+
+      router.route("/player").listen((req) async {
+        return new Response.ok("");
+      });
+
+      server = await enableRouter(router);
+
+      var response = await http.get("http://localhost:4040/notplayer", headers: {HttpHeaders.ACCEPT: "application/json"});
+      expect(response.statusCode, equals(404));
+      expect(response.headers[HttpHeaders.CONTENT_TYPE], isNull);
+      expect(response.body.isEmpty, true);
     });
 
     test("Router delivers path values", () async {
@@ -209,6 +224,36 @@ void main() {
       response = await http.get("http://localhost:4040/equipment/1/code");
       expect(response.body, '"/equipment/1/code"');
     });
+  });
+
+  group("Disambiguate *", () {
+    HttpServer server;
+    var router = new Router();
+    setUpAll(() async {
+      router.route("/*").listen((req) async => new Response.ok("*${req.path.remainingPath}"));
+      router.route("/a").listen((req) async => new Response.ok("a"));
+
+      server = await enableRouter(router);
+    });
+
+    tearDownAll(() async {
+      await server?.close(force: true);
+    });
+
+    test("Disambiguate *", () async {
+      var r1 = await http.get("http://localhost:4040/a");
+      var r2 = await http.get("http://localhost:4040/b");
+      var r3 = await http.get("http://localhost:4040/ab");
+      var r4 = await http.get("http://localhost:4040/a/b");
+      var r5 = await http.get("http://localhost:4040/");
+
+      expect(r1.body, "\"a\"");
+      expect(r2.body, "\"*b\"");
+      expect(r3.body, "\"*ab\"");
+      expect(r4.statusCode, 404);
+      expect(r5.body, "\"*\"");
+    });
+
   });
 }
 
