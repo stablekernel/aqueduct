@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:mirrors';
 
 import 'http_controller_internal.dart';
@@ -234,7 +235,7 @@ class HTTPQuery extends HTTPBinding {
     var queryParameters = request.innerRequest.uri.queryParametersAll;
     dynamic value = queryParameters[externalName];
     if (value == null) {
-      if (requestHasFormData(request)) {
+      if (request.acceptsContentType(new ContentType("application", "x-www-form-urlencoded"))) {
         value = request.body.asMap()[externalName];
       }
     }
