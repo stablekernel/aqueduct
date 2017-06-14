@@ -154,6 +154,8 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
       }
     }
 
+    var validScopesByRole = storage.(validScopes ?? requestedScopes)
+
     AuthToken token = _generateToken(
         authenticatable.id, client.id, expiration.inSeconds,
         allowRefresh: !client.isPublic,
