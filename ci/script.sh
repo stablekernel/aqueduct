@@ -2,8 +2,13 @@
 
 set -e
 
-pub run test -j 1 -r expanded
+if [[ "$STAGE" == "tests" ]]; then
+  pub run test -j 1 -r expanded
+fi
 
-if [[ "$TRAVIS_BRANCH" == "master" ]]; then
+if [[ "$STAGE" == "coverage" && "$TRAVIS_BRANCH" == "master" ]]; then
   dart tool/coverage.dart
+  curl -s https://codecov.io/bash > .codecov
+  chmod +x .codecov
+  ./.codecov -f coverage/lcov.info -X xcode
 fi
