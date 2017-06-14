@@ -58,6 +58,85 @@ class Request implements RequestOrResponse {
   HTTPRequestBody get body => _body;
   HTTPRequestBody _body;
 
+  /// The acceptable content types for a [Response] returned for this instance.
+  ///
+  /// This list is determined by parsing the `Accept` header (or the concatenation
+  /// of multiple `Accept` headers). The list is ordered such the more desirable
+  /// content-types appear earlier in the list. Desirability is determined by
+  /// a q-value (if one exists) and the specificity of the content-type.
+  ///
+  /// See also [acceptsContentType].
+  List<ContentType> get acceptableContentTypes {
+    if (_cachedAcceptableTypes == null) {
+      try {
+        var contentTypes = innerRequest
+            .headers[HttpHeaders.ACCEPT]
+            ?.expand((h) => h.split(",").map((s) => s.trim()))
+            ?.where((h) => h.isNotEmpty)
+            ?.map((h) => ContentType.parse(h))
+            ?.toList() ?? [];
+
+        contentTypes.sort((c1, c2) {
+          num q1 = num.parse(c1.parameters["q"] ?? "1.0");
+          num q2 = num.parse(c2.parameters["q"] ?? "1.0");
+
+          var comparison = q1.compareTo(q2);
+          if (comparison == 0) {
+            if (c1.primaryType == "*" && c2.primaryType != "*") {
+              return 1;
+            } else if (c1.primaryType != "*" && c2.primaryType == "*") {
+              return -1;
+            }
+
+            if (c1.subType == "*" && c2.subType != "*") {
+              return 1;
+            } else if (c1.subType != "*" && c2.subType == "*") {
+              return -1;
+            }
+          }
+
+          return -comparison;
+        });
+
+        _cachedAcceptableTypes = contentTypes;
+      } catch (_) {
+        throw new HTTPResponseException(400, "Accept header is malformed");
+      }
+    }
+    return _cachedAcceptableTypes;
+  }
+  List<ContentType> _cachedAcceptableTypes;
+
+  /// Whether a [Response] may contain a body of type [contentType].
+  ///
+  /// This method searches [acceptableContentTypes] for a match with [contentType]. If one exists,
+  /// this method returns true. Otherwise, it returns false.
+  ///
+  /// Note that if no Accept header is present, this method always returns true.
+  bool acceptsContentType(ContentType contentType) {
+    if (acceptableContentTypes.isEmpty) {
+      return true;
+    }
+
+    return acceptableContentTypes.any((acceptable) {
+      if (acceptable.primaryType == "*") {
+        return true;
+      }
+
+      if (acceptable.primaryType == contentType.primaryType) {
+        if (acceptable.subType == "*") {
+          return true;
+        }
+
+        if (acceptable.subType == contentType.subType) {
+          return true;
+        }
+      }
+
+      return false;
+    });
+  }
+
   /// Whether or not this request is a CORS request.
   ///
   /// This is true if there is an Origin header.

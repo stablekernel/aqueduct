@@ -11,7 +11,9 @@ before_script:
   - psql -c 'grant all on database dart_test to dart;' -U postgres
   - pub get
 script: bash ci/script.sh
-after_success: bash ci/after_script.sh
+env:
+  - STAGE=tests
+  - STAGE=coverage
 branches:
   only:
     - master
