@@ -1,5 +1,9 @@
 # aqueduct changelog
 
+## 2.3.0
+
+- Adds `Request.acceptableContentTypes` and `Request.acceptsContentType` for convenient usage of Accept header.
+
 ## 2.2.2
 
 - Adds `ApplicationMessageHub` to send cross-isolate messages.
