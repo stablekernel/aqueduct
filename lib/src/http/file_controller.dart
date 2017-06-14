@@ -146,7 +146,13 @@ class HTTPFileController extends RequestController {
       if (_onFileNotFound != null) {
         return _onFileNotFound(this, request);
       }
-      return new Response.notFound();
+      var response = new Response.notFound();
+      if (request.acceptsContentType(ContentType.HTML)) {
+        response
+          ..body = "<html><h3>404 Not Found</h3></html>"
+          ..contentType = ContentType.HTML;
+      }
+      return response;
     }
 
     var lastModifiedDate = await file.lastModified();

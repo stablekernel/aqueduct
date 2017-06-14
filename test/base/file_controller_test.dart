@@ -99,8 +99,20 @@ void main() {
     var response = await getFile("file.foobar");
     expect(response.headers["last-modified"], isNull);
     expect(response.headers["cache-control"], isNull);
+    expect(response.headers["content-type"], "text/html; charset=utf-8");
 
     expect(response.statusCode, 404);
+    expect(response.body, contains("<html>"));
+  });
+
+  test("If 404 response to request without Accept: text/html, do not include HTML body", () async {
+    var response = await getFile("file.foobar", headers: {HttpHeaders.ACCEPT: "text/plain"});
+    expect(response.headers["last-modified"], isNull);
+    expect(response.headers["cache-control"], isNull);
+    expect(response.headers["content-type"], isNull);
+
+    expect(response.statusCode, 404);
+    expect(response.body, isEmpty);
   });
 
   test("Unknown extension-content type is application/octet-stream", () async {
@@ -183,6 +195,7 @@ void main() {
     expect(JSON.decode(response.body), {"k":"v"});
   });
 
+
   group("Default caching", () {
     test("Uncached file has no cache-control", () async {
       var response = await getCacheableFile("file.json");
@@ -252,8 +265,8 @@ void main() {
   });
 }
 
-Future<http.Response> getFile(String path) async {
-  return http.get("http://localhost:8081/files/$path");
+Future<http.Response> getFile(String path, {Map<String, String> headers}) async {
+  return http.get("http://localhost:8081/files/$path", headers: headers);
 }
 
 Future<http.Response> getCacheableFile(String path, {DateTime ifModifiedSince}) async {
