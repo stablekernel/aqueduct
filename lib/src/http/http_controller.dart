@@ -154,18 +154,12 @@ abstract class HTTPController extends RequestController {
   /// this method is not called.
   void didDecodeRequestBody(HTTPRequestBody decodedObject) {}
 
-  bool _requestContentTypeIsSupported(Request req) {
-    var incomingContentType = request.innerRequest.headers.contentType;
-    return acceptedContentTypes.firstWhere((ct) {
-          return ct.primaryType == incomingContentType.primaryType &&
-              ct.subType == incomingContentType.subType;
-        }, orElse: () => null) !=
-        null;
-  }
+  bool _requestContentTypeIsSupported(Request req) =>
+      acceptedContentTypes.any((ct) => request.acceptsContentType(ct));
 
   Future<Response> _process() async {
     if (!request.body.isEmpty) {
-      if (!_requestContentTypeIsSupported(request)) {
+      if (! _requestContentTypeIsSupported(request)) {
         return new Response(HttpStatus.UNSUPPORTED_MEDIA_TYPE, null, null);
       }
     }
