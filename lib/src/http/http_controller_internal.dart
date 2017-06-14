@@ -177,8 +177,7 @@ class HTTPControllerBinder {
     };
 
     var initiallyBindWith = (HTTPControllerParameterBinder binder) {
-      var hasFormData = request.acceptsContentType(new ContentType("application", "x-www-form-urlencoded"));
-      if (binder.binding is HTTPBody || (binder.binding is HTTPQuery && hasFormData)) {
+      if (binder.binding is HTTPBody || (binder.binding is HTTPQuery && requestHasFormData(request))) {
         return new HTTPValueBinding.deferred(binder, symbol: binder.symbol);
       }
 
@@ -316,6 +315,17 @@ class HTTPControllerParameterBinder {
   dynamic parse(Request request) {
     return binding.parse(boundValueType, request);
   }
+}
+
+bool requestHasFormData(Request request) {
+  var contentType = request.innerRequest.headers.contentType;
+  if (contentType != null
+      && contentType.primaryType == "application"
+      && contentType.subType == "x-www-form-urlencoded") {
+    return true;
+  }
+
+  return false;
 }
 
 Map<Symbol, dynamic> toSymbolMap(List<HTTPValueBinding> boundValues) {
