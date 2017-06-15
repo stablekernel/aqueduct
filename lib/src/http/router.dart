@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:async';
 
 import 'http.dart';
@@ -157,6 +158,12 @@ class Router extends RequestController {
 
   Future _handleUnhandledRequest(Request req) async {
     var response = new Response.notFound();
+    if (req.acceptsContentType(ContentType.HTML)) {
+      response
+          ..body = "<html><h3>404 Not Found</h3></html>"
+          ..contentType = ContentType.HTML;
+    }
+
     applyCORSHeadersIfNecessary(req, response);
     await req.respond(response);
     logger.info("${req.toDebugString()}");

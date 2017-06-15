@@ -57,20 +57,26 @@ class HTTPFileController extends RequestController {
   /// If [pathOfDirectoryToServe] contains a leading slash, it is an absolute path. Otherwise, it is relative to the current working directory
   /// of the running application.
   ///
+  /// If no file is found, the default behavior is to return a 404 Not Found. (If the [Request] accepts 'text/html', a simple 404 page is returned.) You may
+  /// override this behavior by providing [onFileNotFound]. The first argument to [onFileNotFound  is the instance of this type that could not find the file and
+  /// may be accessed to use any settings like cache policies or content type mappings. The second argument is the request.
+  ///
   /// The content type of the response is determined by the file extension of the served file. There are many built-in extension-to-content-type mappings and you may
   /// add more with [setContentTypeForExtension]. Unknown file extension will result in `application/octet-stream` content-type responses.
   ///
   /// The contents of a file will be compressed with 'gzip' if the request allows for it and the content-type of the file can be compressed
   /// according to [HTTPCodecRepository].
   ///
-  ///
   /// Note that the 'Last-Modified' header is always applied to a response served from this instance.
-  HTTPFileController(String pathOfDirectoryToServe)
-      : _servingDirectory = new Uri.directory(pathOfDirectoryToServe);
+  HTTPFileController(String pathOfDirectoryToServe,
+      {Future<Response> onFileNotFound(HTTPFileController controller, Request req)})
+      : _servingDirectory = new Uri.directory(pathOfDirectoryToServe),
+        _onFileNotFound = onFileNotFound;
 
   Map<String, ContentType> _extensionMap =  new Map.from(_defaultExtensionMap);
   List<_PolicyPair> _policyPairs = [];
   final Uri _servingDirectory;
+  final Function _onFileNotFound;
 
   /// Returns a [ContentType] for a file extension.
   ///
@@ -124,6 +130,16 @@ class HTTPFileController extends RequestController {
     _policyPairs.add(new _PolicyPair(policy, shouldApplyToPath));
   }
 
+  /// Returns the [HTTPCachePolicy] for [path].
+  ///
+  /// Evaluates each policy added by [addCachePolicy] against the [path] and
+  /// returns it if exists.
+  HTTPCachePolicy cachePolicyForPath(String path) {
+    return _policyPairs.firstWhere((pair) => pair.shouldApplyToPath(path),
+        orElse: () => null)
+        ?.policy;
+  }
+
   @override
   Future<RequestOrResponse> processRequest(Request request) async {
     if (request.innerRequest.method.toLowerCase() != "get") {
@@ -140,7 +156,16 @@ class HTTPFileController extends RequestController {
     }
 
     if (!(await file.exists())) {
-      return new Response.notFound();
+      if (_onFileNotFound != null) {
+        return _onFileNotFound(this, request);
+      }
+      var response = new Response.notFound();
+      if (request.acceptsContentType(ContentType.HTML)) {
+        response
+          ..body = "<html><h3>404 Not Found</h3></html>"
+          ..contentType = ContentType.HTML;
+      }
+      return response;
     }
 
     var lastModifiedDate = await file.lastModified();
@@ -164,11 +189,7 @@ class HTTPFileController extends RequestController {
       ..contentType = contentType;
   }
 
-  HTTPCachePolicy _policyForFile(File file) {
-    return _policyPairs.firstWhere((pair) => pair.shouldApplyToPath(file.path),
-        orElse: () => null)
-        ?.policy;
-  }
+  HTTPCachePolicy _policyForFile(File file) => cachePolicyForPath(file.path);
 }
 
 typedef bool _ShouldApplyToPath(String path);
