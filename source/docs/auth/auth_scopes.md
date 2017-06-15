@@ -100,7 +100,7 @@ It is important to ensure that an application that uses scope has protections on
 
 Adding scopes to client identifiers is a requirement for any application that wishes to use scoping. An application may optionally add restrictions to scope depending on some attribute(s) of the user. When authenticating, the server first filters the list of requested scopes by what is allowed for the client, and then filters the resulting list by what is allowed for the user.
 
-This user-level filtering is done by overriding `allowedScopesForAuthenticatable` in `AuthStorage`. By default, this method returns `null` - which means there are no restrictions. If the client application allows the scope, then any user that logs in with that application can request that scope.
+This user-level filtering is done by overriding `allowedScopesForAuthenticatable` in `AuthStorage`. By default, this method returns `AuthScope.Any` - which means there are no restrictions. If the client application allows the scope, then any user that logs in with that application can request that scope.
 
 This method may return a list of `AuthScope`s that are valid for the authenticating user. The following example shows a `ManagedAuthStorage<T>` subclass that allows any scope for `@stablekernel.com` usernames, no scopes for `@hotmail.com` addresses and some limited scope for everyone else:
 
@@ -112,7 +112,7 @@ class DomainBasedAuthStorage extends ManagedAuthStorage<User> {
   @override
   List<AuthScope> allowedScopesForAuthenticatable(covariant User user) {
     if (user.username.endsWith("@stablekernel.com")) {
-      return null;
+      return AuthScope.Any;
     } else if (user.username.endsWith("@hotmail.com")) {
       return [];
     } else {
