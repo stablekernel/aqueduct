@@ -94,7 +94,7 @@ If none of the requested scopes are allowed, the access token will *not* be gran
 
 If the client identifier has not been configured with scopes - either because the application doesn't use scopes or this particular client doesn't have any - scopes specified in an authenticating request are ignored. A token will be granted in this scenario, but will have no scope. The `scope` key is omitted from the token payload.
 
-It is important to ensure that an application that uses scope has protections on its resources (see a later section).
+It is important to ensure that an application that uses scope has protections on its resources (see [a later section](#using-scope-to-protect-resources)).
 
 ### User-based Scope Management
 
