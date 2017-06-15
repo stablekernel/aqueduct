@@ -55,15 +55,15 @@ Note that you don't have to use an `Authorizer` to restrict access based on scop
 
 ### Authorization Objects
 
-A bearer token is a representation of granted authorization - at some point in the past, a user provided their credentials and the token is the proof of that. When a bearer token is sent in the authorization header of an HTTP request, the application can look up which user the token is for and the client application it was issued for. This information is stored in an instance of `Authorization` after the token has been verified and is assigned to `Request.authorization`.
+A bearer token represents a granted authorization - at some point in the past, a user provided their credentials and the token is the proof of that. When a bearer token is sent in the authorization header of an HTTP request, the application can look up which user the token is for and the client application it was issued for. This information is stored in an instance of `Authorization` after the token has been verified and is assigned to `Request.authorization`.
 
-Controllers in a protected by an `Authorizer` channel can access this information to further determine their behavior. For example, a social networking application might have a `/news_feed` endpoint protected by an `Authorizer`. When an authenticated user makes a request for `/news_feed`, the controller will return that user's news feed. It can determine this by using the `Authorization`:
+Controllers protected by an `Authorizer` can access this information to further determine their behavior. For example, a social networking application might have a `/news_feed` endpoint protected by an `Authorizer`. When an authenticated user makes a request for `/news_feed`, the controller will return that user's news feed. It can determine this by using the `Authorization`:
 
 ```dart
 class NewsFeedController extends HTTPController {
   @httpGet
   Future<Response> getNewsFeed() async {
-    var forUserID = request.authorization.resourceOwnerIdentifier;
+    var forUserID = request.authorization.resourceOwner.id;
 
     var query = new Query<Post>()
       ..where.author = whereRelatedByValue(forUserID);
@@ -73,7 +73,7 @@ class NewsFeedController extends HTTPController {
 }
 ```
 
-In the above controller, it's impossible for a user to access another user's posts without having an access token granted by them.
+In the above controller, it's impossible for a user to access another user's posts.
 
 `Authorization` objects also retain the scope of an access token so that a controller can make more granular decisions about the information/action in the endpoint. Checking whether an `Authorization` has access to a particular scope is accomplished by either looking at the list of its `scopes` or using `authorizedForScope`:
 
@@ -85,7 +85,7 @@ class NewsFeedController extends HTTPController {
       return new Response.unauthorized();
     }
 
-    var forUserID = request.authorization.resourceOwnerIdentifier;
+    var forUserID = request.authorization.resourceOwner.id;
 
     var query = new Query<Post>()
       ..where.author = whereRelatedByValue(forUserID);
@@ -97,4 +97,33 @@ class NewsFeedController extends HTTPController {
 
 ### Using Authorizers Without AuthServer
 
-Throughout this guide, the argument to an instance of `Authorizer` has been referred to as an `AuthServer`. This is true - but only because `AuthServer` implements `AuthValidator`. `AuthValidator` is an interface for verifying bearer tokens and username/password credentials. You may use `Authorizer` without using `AuthServer`. For example, an application that used simple Basic Auth credentials would have no need for `AuthServer` and its OAuth 2.0 behavior. See the API reference for `AuthValidator` for more details.
+Throughout this guide, the argument to an instance of `Authorizer` has been referred to as an `AuthServer`. This is true - but only because `AuthServer` implements `AuthValidator`. `AuthValidator` is an interface for verifying bearer tokens and username/password credentials.
+
+You may use `Authorizer` without using `AuthServer`. For example, an application that doesn't use OAuth 2.0 could provide its own `AuthValidator` interface to simply verify the username and password of every request:
+
+```dart
+class BasicValidator implements AuthValidator {
+  @override
+  Future<Authorization> fromBasicCredentials(
+      AuthBasicCredentials usernameAndPassword) {    
+    var user = await userForName(usernameAndPassword.username);
+    if (user.password == hash(usernameAndPassword.password, user.salt)) {
+      return new Authorization(...);
+    }
+
+    // Will end up creating a 401 Not Authorized Response
+    return null;
+  }
+
+  @override
+  Future<Authorization> fromBearerToken(
+      String bearerToken, {List<AuthScope> scopesRequired}) {
+    throw new HTTPResponseException(
+      400, "Invalid Authorization. Bearer tokens not supported.");
+  }
+
+  // Used by `aqueduct document`.
+  @override
+  List<APISecurityRequirement> requirementsForStrategy(AuthStrategy strategy) => [];
+}
+```

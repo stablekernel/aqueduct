@@ -39,9 +39,10 @@ pages:
 - OAuth 2.0:
   - 'Overview': 'auth/overview.md'
   - 'Setting up Authorization': 'auth/server.md'
-  - 'Protected Routes': 'auth/authorizer.md'
+  - 'Protecting Routes': 'auth/authorizer.md'
   - 'Issuing Access Tokens': 'auth/controllers.md'
-  - 'Creating OAuth 2.0 Clients': 'auth/cli.md'
+  - 'Managing OAuth 2.0 Clients': 'auth/cli.md'
+  - 'OAuth 2.0 Scoping': 'auth/auth_scopes.md'
   - 'What is OAuth 2.0?': 'auth/what_is_oauth.md'
 - Testing:
   - 'Overview': 'testing/overview.md'

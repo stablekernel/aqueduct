@@ -1,12 +1,18 @@
 # Creating AuthServers to Authenticate and Authorize
 
-An instance of `AuthServer` handles creating, verifying and refreshing authorization tokens. An instance of `AuthServer` is created in a `RequestSink` constructor. `AuthServer`s handle verification logic for types like `Authorizer`s, `AuthCodeController`s and `AuthController`s. A `AuthServer` must store the artifacts it uses and creates - like client identifiers and access tokens - in a database. For this, an `AuthServer` has a `storage` property that implements methods to store OAuth 2.0 data. This allows storage to be independent of verification logic.
+An instance of `AuthServer` handles creating, verifying and refreshing authorization tokens. They are created in a `RequestSink` constructor and are used by instances of `Authorizer`, `AuthController` and `AuthCodeController`.
+
+An `AuthServer` must persist the data it uses and creates - like client identifiers and access tokens. Storage is often performed by a database, but it can be in memory, a cache or some files. For that reason, an `AuthServer` doesn't perform any storage itself - it relies on an instance of `AuthStorage` specific to your use case.
+
+This allows storage to be independent of verification logic.
 
 ## Creating Instances of AuthServer and AuthStorage
 
-An instance of `AuthServer` is created in a `RequestSink`'s constructor along with its instance of `AuthStorage`. The library `aqueduct/managed_auth` contains `ManagedAuthStorage<T>`, a complete implementation of database storage using `Query<T>` and `ManagedObject<T>`s. It is strongly recommended to use an instance of `ManagedAuthStorage<T>` because it has been thoroughly tested and handles cleaning up unused tokens.
+An instance of `AuthServer` is created in a `RequestSink`'s constructor along with its instance of `AuthStorage`. `AuthStorage` is just an interface - storage is implemented by providing an implementation for each of its methods.
 
-This library is included in the `aqueduct` package, but it is not imported by default and must be imported separately. This package declares and uses `ManagedObject<T>`s to represent authorization objects. Therefore, it must have a reference to `ManagedContext` (see [Aqueduct ORM](../db/overview.md)). Initialization looks like this:
+Because storage can be quite complex and sensitive, the type `ManagedAuthStorage<T>` implements storage with `ManagedObject<T>`s and `Query<T>`s. It is highly recommended to use this type instead of implementing your own storage because it has been thoroughly tested and handles cleaning up expired data correctly.
+
+`ManagedAuthStorage<T>` is declared in a sub-library, `managed_auth`, that is part of the `aqueduct` package but not part of the `aqueduct` library. Therefore, it must be explicitly imported. Here's an example of creating an `AuthServer` and `ManagedAuthStorage<T>`:
 
 ```dart
 import 'package:aqueduct/aqueduct.dart';
@@ -27,7 +33,7 @@ class MyRequestSink extends RequestSink {
 
 (Notice that `ManagedAuthStorage` has a type argument - this will be covered in the next section.)
 
-While `AuthServer` has methods for handling authorization tasks, they is rarely used directly. Instead, `AuthCodeController` and `AuthController` are hooked up to routes to grant authorization tokens via the API. Instances of `Authorizer` secure routes when building processing pipelines in `setupRouter`. All of these types have a reference to an `AuthServer` and invoke the appropriate methods to carry out their task.
+While `AuthServer` has methods for handling authorization tasks, it is rarely used directly. Instead, `AuthCodeController` and `AuthController` are hooked up to routes to grant authorization tokens via the API. Instances of `Authorizer` secure routes in request channels. All of these types invoke the appropriate methods on the `AuthServer`.
 
 Therefore, a full authorization implementation rarely extends past a `RequestSink`. Here's an example `RequestSink` subclass that sets up and uses authorization:
 
@@ -61,13 +67,13 @@ class MyRequestSink extends RequestSink {
 }
 ```
 
-For more details on authorization controllers, see [Authorization Controllers](controllers.md). For more details on securing routes, see [Authorizers](authorizer.md).
+For more details on authorization controllers like `AuthController`, see [Authorization Controllers](controllers.md). For more details on securing routes, see [Authorizers](authorizer.md).
 
 ## Using ManagedAuthStorage
 
 `ManagedAuthStorage<T>` is a concrete implementation of `AuthStorage`, providing storage of authorization tokens and clients for `AuthServer`. Storage is accomplished by Aqueduct's ORM. `ManagedAuthStorage<T>`, by default, is not part of the standard `aqueduct/aqueduct` library. To use this class, an application must import `package:aqueduct/managed_auth.dart`.
 
-The type argument to `ManagedAuthStorage<T>` represents the concept of a 'user' or 'account' in an application - OAuth 2.0 terminology would refer to this object as a *resource owner*.
+The type argument to `ManagedAuthStorage<T>` represents the application's concept of a 'user' or 'account' - OAuth 2.0 terminology would refer to this type as a *resource owner*.
 
 The type argument must be a `ManagedObject<T>` subclass that is specific to your application. Its persistent type *must extend* `ManagedAuthenticatable` and the instance type must implement `ManagedAuthResourceOwner`. A basic definition may look like this:
 
@@ -82,22 +88,27 @@ class _User extends ManagedAuthenticatable {
 }
 ```
 
-By extending `ManagedAuthenticatable`, the persistent type has an integer primary key, a unique username, a hashed password (and its salt) and a `ManagedSet<T>` of authorization tokens that have been granted by this user. These are the necessary attributes that the type argument to `ManagedAuthStorage<T>` must have for an `AuthServer` to properly store and fetch resource owners. The interface `ManagedAuthResourceOwner` is a requirement that ensures the type argument is both a `ManagedObject<T>` and `ManagedAuthenticatable`, and serves no other purpose than to restrict `ManagedAuthStorage<T>`'s type parameter.
+By extending `ManagedAuthenticatable`, the database table has the following four columns:
 
-This structure allows an application to declare its own resource owner type - with additional attributes and relationships - while still enforcing the needs of Aqueduct's OAuth 2.0 implementation.
+- an integer primary key named `id`
+- a unique string `username`
+- a password hash
+- a salt used to generate the password hash
 
-Once a resource owner type has been declared, instances of `ManagedAuthStorage<T>` can be created and passed to an `AuthServer`:
+A `ManagedAuthenticatable` also has a `ManagedSet` of `tokens` for each token that has been granted on its behalf.
 
-```dart
-var context = new ManagedContext(...);
-var storage = new ManagedAuthStorage<User>(context);
-var server = new AuthServer(storage);
-```
+The interface `ManagedAuthResourceOwner` is a requirement that ensures the type argument is both a `ManagedObject<T>` and `ManagedAuthenticatable`, and serves no other purpose than to restrict `ManagedAuthStorage<T>`'s type parameter.
 
-The `aqueduct/managed_auth` library also declares two `ManagedObject<T>` subclasses. `ManagedToken` represents instances of authorization tokens and codes, and `ManagedClient` represents instances of OAuth 2.0 clients.
+This structure allows an application to declare its own 'user' type while still enforcing the needs of Aqueduct's OAuth 2.0 implementation.
+
+The `managed_auth` library also declares two `ManagedObject<T>` subclasses. `ManagedToken` represents instances of authorization tokens and codes, and `ManagedClient` represents instances of OAuth 2.0 clients. This means that an Aqueduct application that uses `ManagedAuthStorage<T>` has a minimum of three database tables: users, tokens and clients.
 
 `ManagedAuthStorage<T>` will delete authorization tokens and codes when they are no longer in use. This is determined by how many tokens a resource owner has and the tokens expiration dates. Once a resource owner acquires more than 40 tokens/codes, the oldest tokens/codes (determined by expiration date) are deleted. Effectively, the resource owner is limited to 40 tokens. This number can be changed when instantiating `ManagedAuthStorage<T>`:
 
 ```dart
 var storage = new ManagedAuthStorage(context, tokenLimit: 20);
 ```
+
+## Configuring the Database
+
+`ManagedAuthStorage<T>` requires database tables for its users, tokens and clients. Use the [database command-line tool](../db/db_tools.md) on your project to generate migration scripts and execute them against a database. This tool will see the declarations for your user type, `ManagedToken` and `ManagedClient` and create the appropriate tables.
