@@ -184,7 +184,7 @@ class EmailController extend HTTPController {
       return new Response.unauthorized();
     }
 
-    var inbox = await emailForUser(request.authorization.resourceOwner.id);
+    var inbox = await emailForUser(request.authorization.resourceOwnerIdentifier);
     return new Response.ok(inbox);
   }
 
@@ -205,7 +205,7 @@ Note that scopes are not the only way to secure resources, even if they are bein
 ```dart
 @httpGet
 Future<Response> getUserSettings(@HTTPPath("id") int id) async {
-  if (request.authorization.resourceOwner.id != id) {
+  if (request.authorization.resourceOwnerIdentifier != id) {
     return new Response.unauthorized();
   }
 

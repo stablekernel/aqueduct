@@ -63,7 +63,7 @@ Controllers protected by an `Authorizer` can access this information to further 
 class NewsFeedController extends HTTPController {
   @httpGet
   Future<Response> getNewsFeed() async {
-    var forUserID = request.authorization.resourceOwner.id;
+    var forUserID = request.authorization.resourceOwnerIdentifier;
 
     var query = new Query<Post>()
       ..where.author = whereRelatedByValue(forUserID);
@@ -85,7 +85,7 @@ class NewsFeedController extends HTTPController {
       return new Response.unauthorized();
     }
 
-    var forUserID = request.authorization.resourceOwner.id;
+    var forUserID = request.authorization.resourceOwnerIdentifier;
 
     var query = new Query<Post>()
       ..where.author = whereRelatedByValue(forUserID);
