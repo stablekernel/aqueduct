@@ -3,6 +3,7 @@
 ## 2.3.0
 
 - Adds `Request.acceptableContentTypes` and `Request.acceptsContentType` for convenient usage of Accept header.
+- Adds `AuthStorage.allowedScopesForAuthenticatable` to provide user attribute-based scoping, e.g. roles.
 
 ## 2.2.2
 

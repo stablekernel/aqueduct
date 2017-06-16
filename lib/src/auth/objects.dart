@@ -258,11 +258,6 @@ class Authorization {
 ///
 /// The format of [scopeString] is meant to be flexible; see constructor for details.
 class AuthScope {
-  static Map<String, AuthScope> _cache = {};
-  static const List<AuthScope> Any = const [
-    const AuthScope._("_scope:_constant:_marker", const [], null)
-  ];
-
   /// Creates an instance of this type from [scopeString].
   ///
   /// A simple authorization scope string is a single keyword. Valid characters are
@@ -302,6 +297,15 @@ class AuthScope {
   }
 
   const AuthScope._(this.scopeString, this._segments, this._lastModifier);
+
+  /// Signifies 'any' scope in [AuthStorage.allowedScopesForAuthenticatable].
+  ///
+  /// See [AuthStorage.allowedScopesForAuthenticatable] for more details.
+  static const List<AuthScope> Any = const [
+    const AuthScope._("_scope:_constant:_marker", const [], null)
+  ];
+
+  static Map<String, AuthScope> _cache = {};
 
   static AuthScope _parse(String scopeString) {
     if (scopeString?.isEmpty ?? true) {
