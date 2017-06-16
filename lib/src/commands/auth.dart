@@ -1,4 +1,6 @@
 import 'dart:async';
+
+import 'package:crypto/crypto.dart';
 import 'package:aqueduct/managed_auth.dart';
 import 'package:aqueduct/aqueduct.dart';
 import 'package:postgres/postgres.dart';
@@ -127,6 +129,12 @@ class CLIAuthAddClient extends CLIDatabaseConnectingCommand {
     options
       ..addOption("allowed-scopes", help: "A space-delimited list of allowed scopes. Omit if application does not support scopes.", defaultsTo: "")
       ..addOption("id", abbr: "i", help: "The client ID to insert.")
+      ..addOption("hash-rounds", help: "Number of hash rounds to apply to secret. Must match AuthServer.hashRounds.", defaultsTo: "1000")
+      ..addOption("hash-length", help: "Length in bytes of secret key after hashing. Must match AuthServer.hashLength.", defaultsTo: "32")
+      ..addOption("hash-function", help: "Hash function to apply when hashing secret. Must match AuthServer.hashFunction.", defaultsTo: "sha256", allowed: [
+        "sha256", "sha1", "md5"
+      ])
+
       ..addOption("secret",
           abbr: "s",
           help:
@@ -140,6 +148,17 @@ class CLIAuthAddClient extends CLIDatabaseConnectingCommand {
   String get clientID => values["id"];
   String get secret => values["secret"];
   String get redirectUri => values["redirect-uri"];
+  Hash get hashFunction {
+    switch(values["hash-function"]) {
+      case "sha256": return sha256;
+      case "sha1": return sha1;
+      case "md5": return md5;
+      default: throw new CLIException("Value '${values["hash-function"]}' is not valid for option hash-function.");
+    }
+  }
+  int get hashRounds => int.parse(values["hash-rounds"]);
+  int get hashLength => int.parse(values["hash-length"]);
+
   List<String> get allowedScopes {
     var v = values["allowed-scopes"] as String;
     if (v.isEmpty) {
@@ -166,7 +185,9 @@ class CLIAuthAddClient extends CLIDatabaseConnectingCommand {
     var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
     ManagedContext.defaultContext = new ManagedContext(dataModel, persistentStore);
 
-    var credentials = AuthUtility.generateAPICredentialPair(clientID, secret, redirectURI: redirectUri)
+    var credentials = AuthUtility.generateAPICredentialPair(
+        clientID, secret, redirectURI: redirectUri,
+        hashLength: hashLength, hashRounds: hashRounds, hashFunction: hashFunction)
       ..allowedScopes = allowedScopes?.map((s) => new AuthScope(s))?.toList();
 
     var managedCredentials = new ManagedClient()
