@@ -110,5 +110,6 @@ abstract class AuthStorage {
   /// The implementing class must delete the [AuthCode] for [code] from its persistent storage.
   Future revokeAuthCodeWithCode(AuthServer server, String code);
 
-  List<String> allowedScopesForAuthenticatable
+
+  List<AuthScope> allowedScopesForAuthenticatable(Authenticatable authenticatable) => AuthScope.Any;
 }

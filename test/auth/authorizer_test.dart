@@ -230,7 +230,6 @@ void main() {
     String userReadOnlyScopedAccessToken;
     String userAndOtherReadOnlyScopedAccessToken;
 
-
     setUp(() async {
       userReadOnlyScopedAccessToken = (await authServer.authenticate(
             delegate.users[1].username,
