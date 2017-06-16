@@ -14,8 +14,7 @@ class RegisterController extends QueryController<User> {
     }
 
     var salt = AuthUtility.generateRandomSalt();
-    var hashedPassword =
-        AuthUtility.generatePasswordHash(query.values.password, salt);
+    var hashedPassword = authServer.hashPassword(query.values.password, salt);
 
     query.values.hashedPassword = hashedPassword;
     query.values.salt = salt;
