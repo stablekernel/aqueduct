@@ -258,8 +258,6 @@ class Authorization {
 ///
 /// The format of [scopeString] is meant to be flexible; see constructor for details.
 class AuthScope {
-  static Map<String, AuthScope> _cache = {};
-
   /// Creates an instance of this type from [scopeString].
   ///
   /// A simple authorization scope string is a single keyword. Valid characters are
@@ -293,12 +291,23 @@ class AuthScope {
       return cached;
     }
 
-    var scope = new AuthScope._(scopeString);
+    var scope = _parse(scopeString);
     _cache[scopeString] = scope;
     return scope;
   }
 
-  AuthScope._(this.scopeString) {
+  const AuthScope._(this.scopeString, this._segments, this._lastModifier);
+
+  /// Signifies 'any' scope in [AuthStorage.allowedScopesForAuthenticatable].
+  ///
+  /// See [AuthStorage.allowedScopesForAuthenticatable] for more details.
+  static const List<AuthScope> Any = const [
+    const AuthScope._("_scope:_constant:_marker", const [], null)
+  ];
+
+  static Map<String, AuthScope> _cache = {};
+
+  static AuthScope _parse(String scopeString) {
     if (scopeString?.isEmpty ?? true) {
       throw new FormatException(
           "Invalid AuthScope. May not be null or empty string.", scopeString);
@@ -312,12 +321,14 @@ class AuthScope {
       }
     }
 
-    _segments = _parse(scopeString);
-    _lastModifier = _segments.last.modifier;
+    var segments = _parseSegments(scopeString);
+    var lastModifier = segments.last.modifier;
+
+    return new AuthScope._(scopeString, segments, lastModifier);
   }
 
   /// This instance as a string.
-  String scopeString;
+  final String scopeString;
 
   /// Individual segments, separated by `:` character, of this instance.
   ///
@@ -329,10 +340,10 @@ class AuthScope {
   /// If this instance does not have a modifier, returns null.
   String get modifier => _lastModifier;
 
-  List<_AuthScopeSegment> _segments;
-  String _lastModifier;
+  final List<_AuthScopeSegment> _segments;
+  final String _lastModifier;
 
-  List<_AuthScopeSegment> _parse(String scopeString) {
+  static List<_AuthScopeSegment> _parseSegments(String scopeString) {
     if (scopeString == null || scopeString == "") {
       throw new FormatException(
           "Invalid AuthScope. May not be null or empty string.", scopeString);

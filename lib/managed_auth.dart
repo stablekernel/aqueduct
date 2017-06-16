@@ -288,7 +288,7 @@ abstract class ManagedAuthResourceOwner
 ///         var authServer = new AuthServer(storage);
 ///
 class ManagedAuthStorage<T extends ManagedAuthResourceOwner>
-    implements AuthStorage {
+    extends AuthStorage {
 
   /// Creates an instance of this type.
   ///
@@ -336,7 +336,7 @@ class ManagedAuthStorage<T extends ManagedAuthResourceOwner>
   Future<T> fetchAuthenticatableByUsername(AuthServer server, String username) {
     var query = new Query<T>(context)
       ..where.username = username
-      ..returningProperties((t) => [t.id, t.hashedPassword, t.salt]);
+      ..returningProperties((t) => [t.id, t.hashedPassword, t.salt, t.username]);
 
     return query.fetchOne();
   }

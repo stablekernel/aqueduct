@@ -139,21 +139,7 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
       throw new AuthServerException(AuthRequestError.invalidGrant, client);
     }
 
-    List<AuthScope> validScopes;
-    if (client.supportsScopes) {
-      if ((requestedScopes?.length ?? 0) == 0) {
-        throw new AuthServerException(AuthRequestError.invalidScope, client);
-      }
-
-      validScopes = requestedScopes
-          .where((incomingScope) => client.allowsScope(incomingScope))
-          .toList();
-
-      if (validScopes.length == 0) {
-        throw new AuthServerException(AuthRequestError.invalidScope, client);
-      }
-    }
-
+    List<AuthScope> validScopes = _validatedScopes(client, authenticatable, requestedScopes);
     AuthToken token = _generateToken(
         authenticatable.id, client.id, expiration.inSeconds,
         allowRefresh: !client.isPublic,
@@ -229,6 +215,7 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
 
     var updatedScopes = t.scopes;
     if ((requestedScopes?.length ?? 0) != 0) {
+      // If we do specify scope
       for (var incomingScope in requestedScopes) {
         var hasExistingScopeOrSuperset = t.scopes
             .any((existingScope) => incomingScope.isSubsetOrEqualTo(existingScope));
@@ -309,21 +296,7 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
       throw new AuthServerException(AuthRequestError.accessDenied, client);
     }
 
-    List<AuthScope> validScopes;
-    if (client.supportsScopes) {
-      if ((requestedScopes?.length ?? 0) == 0) {
-        throw new AuthServerException(AuthRequestError.invalidScope, client);
-      }
-
-      validScopes = requestedScopes
-          .where((incomingScope) => client.allowsScope(incomingScope))
-          .toList();
-
-      if (validScopes.length == 0) {
-        throw new AuthServerException(AuthRequestError.invalidScope, client);
-      }
-    }
-
+    List<AuthScope> validScopes = _validatedScopes(client, authenticatable, requestedScopes);
     AuthCode authCode =
         _generateAuthCode(authenticatable.id, client, expirationInSeconds, scopes: validScopes);
     await storage.storeAuthCode(this, authCode);
@@ -466,6 +439,38 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
     }
 
     return [];
+  }
+
+  List<AuthScope> _validatedScopes(AuthClient client, Authenticatable authenticatable, List<AuthScope> requestedScopes) {
+    List<AuthScope> validScopes;
+    if (client.supportsScopes) {
+      if ((requestedScopes?.length ?? 0) == 0) {
+        throw new AuthServerException(AuthRequestError.invalidScope, client);
+      }
+
+      validScopes = requestedScopes
+          .where((incomingScope) => client.allowsScope(incomingScope))
+          .toList();
+
+      if (validScopes.length == 0) {
+        throw new AuthServerException(AuthRequestError.invalidScope, client);
+      }
+
+      var validScopesForAuthenticatable = storage.allowedScopesForAuthenticatable(authenticatable);
+      if (!identical(validScopesForAuthenticatable, AuthScope.Any)) {
+        validScopes = validScopes
+            .where((clientAllowedScope) =>
+              validScopesForAuthenticatable.any((userScope) =>
+                  userScope.allowsScope(clientAllowedScope)))
+            .toList();
+
+        if (validScopes.length == 0) {
+          throw new AuthServerException(AuthRequestError.invalidScope, client);
+        }
+      }
+    }
+
+    return validScopes;
   }
 
   AuthToken _generateToken(

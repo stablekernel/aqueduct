@@ -159,6 +159,7 @@ class HTTPFileController extends RequestController {
       if (_onFileNotFound != null) {
         return _onFileNotFound(this, request);
       }
+
       var response = new Response.notFound();
       if (request.acceptsContentType(ContentType.HTML)) {
         response

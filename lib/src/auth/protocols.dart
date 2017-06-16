@@ -41,6 +41,9 @@ abstract class AuthStorage {
   /// Returns an [Authenticatable] for an [username].
   ///
   /// This method must return an instance of [Authenticatable] if one exists for [username]. Otherwise, it must return null.
+  ///
+  /// If overriding this method, every property declared by [Authenticatable] must be non-null in the return value.
+  ///
   /// [server] is the [AuthServer] invoking this method.
   Future<Authenticatable> fetchAuthenticatableByUsername(
       AuthServer server, String username);
@@ -109,4 +112,18 @@ abstract class AuthStorage {
   ///
   /// The implementing class must delete the [AuthCode] for [code] from its persistent storage.
   Future revokeAuthCodeWithCode(AuthServer server, String code);
+
+  /// Returns list of allowed scopes for a given [Authenticatable].
+  ///
+  /// Subclasses override this method to return a list of [AuthScope]s based on some attribute(s) of an [Authenticatable].
+  /// That [Authenticatable] is then restricted to only those scopes, even if the authenticating client would allow other scopes
+  /// or scopes with higher privileges.
+  ///
+  /// By default, this method returns [AuthScope.Any] - any [Authenticatable] being authenticated has full access to the scopes
+  /// available to the authenticating client.
+  ///
+  /// When overriding this method, it is important to note that (by default) only the properties declared by [Authenticatable]
+  /// will be valid for [authenticatable]. If [authenticatable] has properties that are application-specific (like a `role`),
+  /// [fetchAuthenticatableByUsername] must also be overridden to ensure those values are fetched.
+  List<AuthScope> allowedScopesForAuthenticatable(Authenticatable authenticatable) => AuthScope.Any;
 }

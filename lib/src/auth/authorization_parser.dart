@@ -60,7 +60,7 @@ class AuthorizationBasicParser {
     }
 
     var base64String = match[1];
-    var decodedCredentials;
+    String decodedCredentials;
     try {
       decodedCredentials =
           new String.fromCharCodes(new Base64Decoder().convert(base64String));
