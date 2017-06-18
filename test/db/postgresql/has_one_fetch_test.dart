@@ -59,6 +59,15 @@ void main() {
       };
       verifier(await q.fetchOne());
       verifier((await q.fetch()).first);
+
+      var dynQuery = new Query.forEntity(context.dataModel.entityForType(Parent))
+        ..where["name"] = "D";
+
+      dynQuery.join<ManagedObject>(object: (p) => p["child"])
+        ..join<ManagedObject>(object: (c) => c["toy"])
+        ..join<ManagedObject>(set: (c) => c["vaccinations"]);
+      verifier(await dynQuery.fetchOne());
+      verifier((await dynQuery.fetch()).first);
     });
 
     test(

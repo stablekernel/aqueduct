@@ -22,6 +22,24 @@ void main() {
 
     expect(item.name, "Joe");
     expect(item.email, "a@a.com");
+
+    var dynQuery = new Query.forEntity(context.dataModel.entityForType(TestModel))
+      ..where["id"] = whereEqualTo(item.id);
+    item = await dynQuery.fetchOne();
+    expect(item.name, "Joe");
+    expect(item.email, "a@a.com");
+  });
+
+  test("Query with dynamic entity and mis-matched context throws exception", () async {
+    context = await contextWithModels([TestModel]);
+
+    var someOtherContext = new ManagedContext.standalone(new ManagedDataModel([]), null);
+    try {
+      new Query.forEntity(context.dataModel.entityForType(TestModel), someOtherContext);
+      expect(true, false);
+    } on QueryException catch (e) {
+      expect(e.toString(), contains("Cannot instantiate"));
+    }
   });
 
   test("Specifying resultProperties works", () async {

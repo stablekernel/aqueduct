@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:aqueduct/aqueduct.dart';
+import 'package:aqueduct/src/db/query/mixin.dart';
 export 'context_helpers.dart';
 
 void justLogEverything() {
@@ -263,6 +264,11 @@ class InMemoryAuthStorage extends AuthStorage {
 
 class DefaultPersistentStore extends PersistentStore {
   @override
+  Query<T> newQuery<T extends ManagedObject>(ManagedContext context, ManagedEntity entity) {
+    return new _MockQuery<T>.withEntity(context, entity);
+  }
+
+  @override
   Future<dynamic> execute(String sql,
           {Map<String, dynamic> substitutionValues}) async =>
       null;
@@ -318,4 +324,50 @@ class DefaultPersistentStore extends PersistentStore {
   Future upgrade(int versionNumber, List<String> commands,
           {bool temporary: false}) async =>
       null;
+}
+
+class _MockQuery<InstanceType extends ManagedObject> extends Object
+    with QueryMixin<InstanceType>
+    implements Query<InstanceType> {
+  _MockQuery(this.context);
+  _MockQuery.withEntity(this.context, ManagedEntity entity) {
+    _entity = entity;
+  }
+
+  @override
+  ManagedContext context;
+
+  @override
+  ManagedEntity get entity =>
+      _entity ?? context.dataModel.entityForType(InstanceType);
+
+  ManagedEntity _entity;
+
+  @override
+  Future<InstanceType> insert() async {
+    throw new Exception("insert() in _MockQuery");
+  }
+
+  @override
+  Future<List<InstanceType>> update() async {
+    throw new Exception("update() in _MockQuery");
+
+  }
+  @override
+  Future<InstanceType> updateOne() async {
+    throw new Exception("updateOne() in _MockQuery");
+  }
+
+  @override
+  Future<int> delete() async {
+    throw new Exception("delete() in _MockQuery");
+  }
+  @override
+  Future<List<InstanceType>> fetch() async {
+    throw new Exception("fetch() in _MockQuery");
+  }
+  @override
+  Future<InstanceType> fetchOne() async {
+    throw new Exception("fetchOne() in _MockQuery");
+  }
 }

@@ -2,6 +2,7 @@ import 'package:logging/logging.dart';
 import 'package:postgres/postgres.dart';
 import 'dart:async';
 
+import '../postgresql/postgresql_query.dart';
 import '../../utilities/resource_registry.dart';
 import '../managed/managed.dart';
 import '../query/query.dart';
@@ -121,6 +122,11 @@ class PostgreSQLPersistentStore extends PersistentStore
     }
 
     return _databaseConnection;
+  }
+
+  @override
+  Query<T> newQuery<T extends ManagedObject>(ManagedContext context, ManagedEntity entity) {
+    return new PostgresQuery<T>.withEntity(context, entity);
   }
 
   @override

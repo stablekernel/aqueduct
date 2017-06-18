@@ -24,7 +24,7 @@ abstract class QueryController<InstanceType extends ManagedObject>
   QueryController([ManagedContext context]) : super() {
     query = new Query<InstanceType>(context ?? ManagedContext.defaultContext);
   }
-
+  
   /// A query representing the values received from the [request] being processed.
   ///
   /// You may execute this [query] as is or modify it. The following is true of this property:

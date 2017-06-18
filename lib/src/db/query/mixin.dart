@@ -117,7 +117,7 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
 
     subQueries ??= {};
 
-    var subquery = new Query.withEntity(fromRelationship.destinationEntity, context);
+    var subquery = new Query.forEntity(fromRelationship.destinationEntity, context);
     (subquery as QueryMixin)._parentQuery = this;
     subQueries[fromRelationship] = subquery;
 
