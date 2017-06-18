@@ -39,6 +39,21 @@ abstract class Query<InstanceType extends ManagedObject> {
     return null;
   }
 
+  factory Query.withEntity(ManagedEntity entity, [ManagedContext context]) {
+    var ctx = context ?? ManagedContext.defaultContext;
+    if (!ctx.dataModel.entities.any((e) => identical(entity, e))) {
+      throw new QueryException(
+          QueryExceptionEvent.internalFailure,
+          message: "Cannot instantiate Query.withEntity, entity/context mismatch");
+    }
+
+    if (ctx.persistentStore is PostgreSQLPersistentStore) {
+      return new PostgresQuery.withEntity(ctx, entity);
+    }
+
+    return null;
+  }
+
   /// Configures this instance to fetch a relationship property identified by [object] or [set].
   ///
   /// By default, objects returned by [Query.fetch] do not have their relationship properties populated. (In other words,

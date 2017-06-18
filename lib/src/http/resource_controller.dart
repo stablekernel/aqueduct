@@ -45,6 +45,11 @@ class ManagedObjectController<InstanceType extends ManagedObject>
     _query = new Query<InstanceType>(context ?? ManagedContext.defaultContext);
   }
 
+  ManagedObjectController.forEntity(
+      ManagedEntity entity, [ManagedContext context]) : super() {
+    _query = new Query.withEntity(entity, context ?? ManagedContext.defaultContext);
+  }
+
   /// Returns a route pattern for using [ManagedObjectController]s.
   ///
   /// Returns the string "/$name/[:id]", to be used as a route pattern in a [Router] for instances of [ResourceController] and subclasses.
