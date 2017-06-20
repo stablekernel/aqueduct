@@ -352,6 +352,44 @@ void main() {
       expect(errorResponse.schema, isNull);
     });
   });
+
+  group("With dynamic entity", () {
+    var app = new Application<TestSink>();
+    app.configuration.port = 8081;
+    var client = new TestClient.onPort(8081);
+    List<TestModel> allObjects = [];
+
+    setUpAll(() async {
+      await app.start(runOnMainIsolate: true);
+
+      var now = new DateTime.now().toUtc();
+      for (var i = 0; i < 10; i++) {
+        var q = new Query<TestModel>()
+          ..values.createdAt = now
+          ..values.name = "${9 - i}";
+        allObjects.add(await q.insert());
+
+        now = now.add(new Duration(seconds: 1));
+      }
+    });
+
+    tearDownAll(() async {
+      await app.mainIsolateSink.context.persistentStore.close();
+      await app.stop();
+    });
+
+
+    test("Can get one object", () async {
+      var resp = await client.request("/dynamic/1").get();
+      expect(resp, hasResponse(200, allObjects.first.asMap()));
+    });
+
+    test("Can get all objects", () async {
+      var resp = await client.request("/dynamic").get();
+      expect(resp, hasResponse(200, allObjects.map((m) => m.asMap()).toList()));
+    });
+
+  });
 }
 
 class TestSink extends RequestSink {
@@ -383,6 +421,10 @@ class TestSink extends RequestSink {
     router
         .route("/controller/[:id]")
         .generate(() => new ManagedObjectController<TestModel>());
+
+    router
+      .route("/dynamic/[:id]")
+      .generate(() => new ManagedObjectController.forEntity(context.dataModel.entityForType(TestModel)));
   }
 }
 

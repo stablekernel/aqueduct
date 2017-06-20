@@ -10,9 +10,18 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
     with QueryMixin<InstanceType>
     implements Query<InstanceType> {
   PostgresQuery(this.context);
+  PostgresQuery.withEntity(this.context, ManagedEntity entity) {
+    _entity = entity;
+  }
 
   @override
   ManagedContext context;
+
+  @override
+  ManagedEntity get entity =>
+      _entity ?? context.dataModel.entityForType(InstanceType);
+
+  ManagedEntity _entity;
 
   @override
   Future<InstanceType> insert() async {

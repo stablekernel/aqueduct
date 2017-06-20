@@ -1,6 +1,10 @@
 import 'dart:async';
 import '../query/query.dart';
 import '../schema/schema.dart';
+import '../managed/object.dart';
+import '../managed/context.dart';
+import '../managed/entity.dart';
+import '../query/mixin.dart';
 
 enum PersistentStoreQueryReturnType { rowCount, rows }
 
@@ -9,6 +13,13 @@ enum PersistentStoreQueryReturnType { rowCount, rows }
 /// You rarely need to use this class directly. See [Query] for how to interact with instances of this class.
 /// Implementors of this class serve as the bridge between [Query]s and a specific database.
 abstract class PersistentStore {
+  /// Creates a new database-specific [Query].
+  ///
+  /// Subclasses override this method to provide a concrete implementation of [Query]
+  /// specific to this type. Objects returned from this method must implement [Query]. They
+  /// should mixin [QueryMixin] to most of the behavior provided by a query.
+  Query<T> newQuery<T extends ManagedObject>(ManagedContext context, ManagedEntity entity);
+
   /// Executes an arbitrary command.
   Future execute(String sql, {Map<String, dynamic> substitutionValues});
 

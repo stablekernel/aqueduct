@@ -1,8 +1,7 @@
 import 'dart:async';
 
 import '../managed/managed.dart';
-import '../postgresql/postgresql_persistent_store.dart';
-import '../postgresql/postgresql_query.dart';
+
 import 'matcher_expression.dart';
 import 'predicate.dart';
 import 'error.dart';
@@ -28,15 +27,26 @@ abstract class Query<InstanceType extends ManagedObject> {
   /// evaluating [InstanceType] in [context].
   factory Query([ManagedContext context]) {
     var ctx = context ?? ManagedContext.defaultContext;
+    var entity = ctx.dataModel.entityForType(InstanceType);
 
-    // This is an unfortunate need because of lack of reified generics.
-    // Would be better if persistent stores had a method to return a Query<T> subclass
-    // where T was not stripped.
-    if (ctx.persistentStore is PostgreSQLPersistentStore) {
-      return new PostgresQuery<InstanceType>(ctx);
+    return ctx.persistentStore.newQuery<InstanceType>(ctx, entity);
+  }
+
+  /// Creates a new [Query] without a static type.
+  ///
+  /// This method is used when generating queries dynamically from runtime values,
+  /// where the static type argument cannot be defined. Behaves just like the unnamed constructor.
+  ///
+  /// If [entity] is not in [context]'s [ManagedContext.dataModel], throws a internal failure [QueryException].
+  factory Query.forEntity(ManagedEntity entity, [ManagedContext context]) {
+    var ctx = context ?? ManagedContext.defaultContext;
+    if (!ctx.dataModel.entities.any((e) => identical(entity, e))) {
+      throw new QueryException(
+          QueryExceptionEvent.internalFailure,
+          message: "Cannot instantiate Query.withEntity, entity/context mismatch");
     }
 
-    return null;
+    return ctx.persistentStore.newQuery<InstanceType>(ctx, entity);
   }
 
   /// Configures this instance to fetch a relationship property identified by [object] or [set].

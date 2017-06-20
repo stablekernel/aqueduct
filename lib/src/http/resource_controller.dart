@@ -45,6 +45,16 @@ class ManagedObjectController<InstanceType extends ManagedObject>
     _query = new Query<InstanceType>(context ?? ManagedContext.defaultContext);
   }
 
+  /// Creates a new [ManagedObjectController] without a static type.
+  ///
+  /// This method is used when generating instances of this type dynamically from runtime values,
+  /// where the static type argument cannot be defined. Behaves just like the unnamed constructor.
+  ///
+  ManagedObjectController.forEntity(
+      ManagedEntity entity, [ManagedContext context]) : super() {
+    _query = new Query.forEntity(entity, context ?? ManagedContext.defaultContext);
+  }
+
   /// Returns a route pattern for using [ManagedObjectController]s.
   ///
   /// Returns the string "/$name/[:id]", to be used as a route pattern in a [Router] for instances of [ResourceController] and subclasses.

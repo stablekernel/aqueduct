@@ -6,11 +6,6 @@ import 'sort_descriptor.dart';
 
 abstract class QueryMixin<InstanceType extends ManagedObject>
     implements Query<InstanceType> {
-  ManagedEntity _entity;
-  @override
-  ManagedEntity get entity =>
-      _entity ?? context.dataModel.entityForType(InstanceType);
-
   @override
   int offset = 0;
 
@@ -122,10 +117,8 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
 
     subQueries ??= {};
 
-    var subquery = new Query(context);
-    (subquery as QueryMixin)
-      .._entity = fromRelationship.destinationEntity
-      .._parentQuery = this;
+    var subquery = new Query.forEntity(fromRelationship.destinationEntity, context);
+    (subquery as QueryMixin)._parentQuery = this;
     subQueries[fromRelationship] = subquery;
 
     return subquery;
