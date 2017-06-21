@@ -7,8 +7,8 @@ import 'postgresql_query.dart';
 import 'postgresql_persistent_store.dart';
 import 'query_builder.dart';
 
-class PostgresQueryFoldOperation<T extends ManagedObject> extends QueryFoldOperation<T>{
-  PostgresQueryFoldOperation(this.query);
+class PostgresQueryReduce<T extends ManagedObject> extends QueryReduceOperation<T>{
+  PostgresQueryReduce(this.query);
 
   final PostgresQuery<T> query;
 

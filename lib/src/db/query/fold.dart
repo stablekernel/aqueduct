@@ -6,14 +6,14 @@ import 'query.dart';
 ///
 /// See instance methods for available aggregate functions.
 ///
-/// See [Query.fold] for more details on usage.
-abstract class QueryFoldOperation<T extends ManagedObject> {
+/// See [Query.reduce] for more details on usage.
+abstract class QueryReduceOperation<T extends ManagedObject> {
   /// Computes the average of some [ManagedObject] property.
   ///
   /// [selector] identifies the property being averaged, e.g.
   ///
   ///         var query = new Query<User>();
-  ///         var averageAge = await query.fold.average((user) => user.age);
+  ///         var averageAge = await query.reduce.average((user) => user.age);
   ///
   /// The property must be an attribute and its type must be an [num], i.e. [int] or [double].
   Future<double> average(num selector(T object));
@@ -26,7 +26,7 @@ abstract class QueryFoldOperation<T extends ManagedObject> {
   /// Example:
   ///
   ///         var query = new Query<User>();
-  ///         var totalUsers = await query.fold.count();
+  ///         var totalUsers = await query.reduce.count();
   ///
   Future<int> count();
 
@@ -35,7 +35,7 @@ abstract class QueryFoldOperation<T extends ManagedObject> {
   /// [selector] identifies the property being evaluated, e.g.
   ///
   ///         var query = new Query<User>();
-  ///         var oldestUser = await query.fold.maximum((user) => user.age);
+  ///         var oldestUser = await query.reduce.maximum((user) => user.age);
   ///
   /// The property must be an attribute and its type must be [String], [int], [double], or [DateTime].
   Future<U> maximum<U>(U selector(T object));
@@ -45,7 +45,7 @@ abstract class QueryFoldOperation<T extends ManagedObject> {
   /// [selector] identifies the property being evaluated, e.g.
   ///
   ///         var query = new Query<User>();
-  ///         var youngestUser = await query.fold.minimum((user) => user.age);
+  ///         var youngestUser = await query.reduce.minimum((user) => user.age);
   ///
   /// The property must be an attribute and its type must be [String], [int], [double], or [DateTime].
   Future<U> minimum<U>(U selector(T object));
@@ -56,7 +56,7 @@ abstract class QueryFoldOperation<T extends ManagedObject> {
   /// [selector] identifies the property being evaluated, e.g.
   ///
   ///         var query = new Query<User>();
-  ///         var yearsLivesByAllUsers = await query.fold.sum((user) => user.age);
+  ///         var yearsLivesByAllUsers = await query.reduce.sum((user) => user.age);
   ///
   /// The property must be an attribute and its type must be an [num], i.e. [int] or [double].
   Future<U> sum<U extends num>(U selector(T object));

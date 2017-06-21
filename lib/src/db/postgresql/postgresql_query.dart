@@ -25,8 +25,8 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
   ManagedEntity _entity;
 
   @override
-  QueryFoldOperation<InstanceType> get fold {
-    return new PostgresQueryFoldOperation(this);
+  QueryReduceOperation<InstanceType> get reduce {
+    return new PostgresQueryReduce(this);
   }
 
   @override

@@ -372,7 +372,7 @@ class _MockQuery<InstanceType extends ManagedObject> extends Object
   }
 
   @override
-  QueryFoldOperation<InstanceType> get fold {
+  QueryReduceOperation<InstanceType> get reduce {
     throw new Exception("fold in _MockQuery");
   }
 }
