@@ -15,11 +15,13 @@ abstract class QueryFoldOperation<T extends ManagedObject> {
   ///         var query = new Query<User>();
   ///         var averageAge = await query.fold.average((user) => user.age);
   ///
+  /// The property must be an attribute and its type must be an [num], i.e. [int] or [double].
   Future<double> average(num selector(T object));
 
   /// Counts the number of [ManagedObject] instances in the database.
   ///
-  /// Note: this can be an expensive query.
+  /// Note: this can be an expensive query. Consult the documentation
+  /// for the underlying database.
   ///
   /// Example:
   ///
@@ -35,6 +37,7 @@ abstract class QueryFoldOperation<T extends ManagedObject> {
   ///         var query = new Query<User>();
   ///         var oldestUser = await query.fold.maximum((user) => user.age);
   ///
+  /// The property must be an attribute and its type must be [String], [int], [double], or [DateTime].
   Future<U> maximum<U>(U selector(T object));
 
   /// Finds the minimum of some [ManagedObject] property.
@@ -44,6 +47,7 @@ abstract class QueryFoldOperation<T extends ManagedObject> {
   ///         var query = new Query<User>();
   ///         var youngestUser = await query.fold.minimum((user) => user.age);
   ///
+  /// The property must be an attribute and its type must be [String], [int], [double], or [DateTime].
   Future<U> minimum<U>(U selector(T object));
 
 
@@ -54,5 +58,6 @@ abstract class QueryFoldOperation<T extends ManagedObject> {
   ///         var query = new Query<User>();
   ///         var yearsLivesByAllUsers = await query.fold.sum((user) => user.age);
   ///
+  /// The property must be an attribute and its type must be an [num], i.e. [int] or [double].
   Future<U> sum<U extends num>(U selector(T object));
 }

@@ -140,6 +140,34 @@ void main() {
       expect(result, objects.sublist(0, 5).fold(0, (p, a) => p + a.i));
     });
   });
+
+  group("Overflow", () {
+    List<Test> overflowObjects;
+    ManagedContext overflowContext;
+    setUpAll(() async {
+      overflowContext = await contextWithModels([Test]);
+      overflowObjects = await populate(overflowContext, overflow: true);
+
+      /* Note that objects are sorted by id, and therefore all values are in sorted order */
+      overflowObjects.sort((t1, t2) => t1.id.compareTo(t2.id));
+    });
+
+    tearDownAll(() async {
+      await ctx.persistentStore.close();
+    });
+
+    test("Sum with large integer numbers", () async {
+      var q = new Query<Test>();
+      var result = await q.fold.sum((t) => t.i);
+      expect(result, overflowObjects.fold(0, (p, n) => p + n.i));
+    });
+
+    test("Sum with fractional", () async {
+      var q = new Query<Test>();
+      var result = await q.fold.sum((t) => t.d);
+      expect(result, overflowObjects.fold(0, (p, n) => p + n.d));
+    });
+  });
 }
 
 class Test extends ManagedObject<_Test> implements _Test {}
@@ -153,11 +181,16 @@ class _Test {
   int i;
 }
 
-Future<List<Test>> populate(ManagedContext ctx) async {
+Future<List<Test>> populate(ManagedContext ctx, {bool overflow: false}) async {
   var s = "a";
   var dt = new DateTime.now();
   var d = 0.0;
   var i = 0;
+
+  if (overflow) {
+    d = 2.1234;
+    i = 100000000000;
+  }
 
   return Future.wait(new List.generate(10, (_) {
     var q = new Query<Test>(ctx)

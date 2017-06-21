@@ -6,7 +6,7 @@
 - Adds `AuthStorage.allowedScopesForAuthenticatable` to provide user attribute-based scoping, e.g. roles.
 - Adds `Query.forEntity` and `ManagedObjectController.forEntity` to dynamically instantiate these types, i.e. use runtime values to build the query.
 - Adds `PersistentStore.newQuery` - allows a `PersistentStore` implementation to provide its own implementation of `Query` specific to its underlying database.
-- Adds `Query.fold` to performance aggregate functions on database tables, e.g. sum, average, maximum, etc.
+- Adds `Query.fold` to performaggregate functions on database tables, e.g. sum, average, maximum, etc.
 
 
 ## 2.2.2
