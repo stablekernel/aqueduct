@@ -5,7 +5,7 @@ import '../query/mixin.dart';
 import '../query/sort_descriptor.dart';
 import 'property_mapper.dart';
 import 'query_builder.dart';
-import 'postgresql_query_fold.dart';
+import 'postgresql_query_reduce.dart';
 
 class PostgresQuery<InstanceType extends ManagedObject> extends Object
     with QueryMixin<InstanceType>

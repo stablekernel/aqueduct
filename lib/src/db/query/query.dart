@@ -5,12 +5,12 @@ import '../managed/managed.dart';
 import 'matcher_expression.dart';
 import 'predicate.dart';
 import 'error.dart';
-import 'fold.dart';
+import 'reduce.dart';
 
 export 'error.dart';
 export 'matcher_expression.dart';
 export 'predicate.dart';
-export 'fold.dart';
+export 'reduce.dart';
 
 
 /// Instances of this type configure and execute database commands.
