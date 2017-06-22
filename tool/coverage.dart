@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:convert';
+import 'package:crypto/crypto.dart';
 import 'package:coverage/coverage.dart';
 
 Future main(List<String> args) async {
@@ -36,7 +37,8 @@ Future main(List<String> args) async {
       var coverage = await runAndCollect(file.path, outputSink: stdout);
       print("All coverage collected for ${file.uri.pathSegments.last}.");
 
-      var coverageJSONFile = new File.fromUri(tempDir.uri.resolve("$count.coverage.json"));
+      var fileHash = md5.convert(file.path.codeUnits);
+      var coverageJSONFile = new File.fromUri(tempDir.uri.resolve("${fileHash.toString()}.coverage.json"));
       coverageJSONFile.writeAsStringSync(JSON.encode(coverage));
 
       count ++;
