@@ -8,7 +8,4 @@ fi
 
 if [[ "$STAGE" == "coverage" && "$TRAVIS_BRANCH" == "master" ]]; then
   dart tool/coverage.dart
-  curl -s https://codecov.io/bash > .codecov
-  chmod +x .codecov
-  ./.codecov -f coverage/lcov.info -X xcode
 fi
