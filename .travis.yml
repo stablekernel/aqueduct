@@ -4,6 +4,8 @@ addons:
   postgresql: "9.4"
 services:
   - postgresql
+before_install:
+  - bash ci/before_script.sh
 before_script:
   - psql -c 'create user dart with createdb;' -U postgres
   - psql -c "alter user dart with password 'dart';" -U postgres
@@ -13,9 +15,12 @@ before_script:
 script: bash ci/script.sh
 env:
   - STAGE=tests
-  - STAGE=coverage
+  - STAGE=coverage COVERAGE_SLICE='auth base'
+  - STAGE=coverage COVERAGE_SLICE='command db managed_auth utilities'
 branches:
   only:
     - master
     - 1.0
     - 2.0
+after_success:
+  - bash ci/after_script.sh
