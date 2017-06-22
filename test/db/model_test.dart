@@ -7,7 +7,7 @@ void main() {
   setUpAll(() {
     var ps = new DefaultPersistentStore();
     ManagedDataModel dm =
-        new ManagedDataModel([TransientTest, TransientTypeTest, User, Post]);
+        new ManagedDataModel([TransientTest, TransientTypeTest, User, Post, PrivateField]);
     var _ = new ManagedContext(dm, ps);
   });
 
@@ -418,6 +418,25 @@ void main() {
     t.notAnAttribute = "foo";
     expect(t.asMap().containsKey("notAnAttribute"), false);
   });
+
+  group("Private fields", () {
+    test("Private fields on entity", () {
+      var entity = ManagedContext.defaultContext.dataModel.entityForType(PrivateField);
+      expect(entity.attributes["_private"], isNotNull);
+    });
+
+    test("Can get/set value of private field", () {
+      var p = new PrivateField();
+      p._private = "x";
+      expect(p._private, "x");
+    });
+
+    test("Can get/set value of private field thru public accessor", () {
+      var p = new PrivateField()..public = "x";
+      expect(p.public, "x");
+      expect(p._private, "x");
+    });
+  });
 }
 
 class User extends ManagedObject<_User> implements _User {
@@ -618,4 +637,18 @@ class _TransientTypeTest {
   String backingMapString;
 
   String backingListString;
+}
+
+class PrivateField extends ManagedObject<_PrivateField> implements _PrivateField {
+  set public(String p) {
+    _private = p;
+  }
+
+  String get public => _private;
+}
+class _PrivateField {
+  @managedPrimaryKey
+  int id;
+
+  String _private;
 }

@@ -333,6 +333,21 @@ void main() {
           contains("Property owner_id does not exist on _GenPost"));
     }
   });
+
+  test("Can use public accessor to private property in where", () async {
+    context = await contextWithModels([PrivateField]);
+
+    await (new Query<PrivateField>()).insert();
+    var q = new Query<PrivateField>()
+      ..where.public = "x";
+    var result = await q.fetchOne();
+    expect(result.public, "x");
+
+    q = new Query<PrivateField>()
+      ..where.public = "y";
+    result = await q.fetchOne();
+    expect(result, isNull);
+  });
 }
 
 class TestModel extends ManagedObject<_TestModel> implements _TestModel {
@@ -397,4 +412,22 @@ class _Omit {
 
   @ManagedColumnAttributes(omitByDefault: true)
   String text;
+}
+
+class PrivateField extends ManagedObject<_PrivateField> implements _PrivateField {
+  PrivateField() : super() {
+    _private = "x";
+  }
+
+  set public(String p) {
+    _private = p;
+  }
+
+  String get public => _private;
+}
+class _PrivateField {
+  @managedPrimaryKey
+  int id;
+
+  String _private;
 }

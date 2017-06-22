@@ -171,6 +171,20 @@ void main() {
               "CREATE TABLE _GenAuth (id INT PRIMARY KEY,owner_id BIGINT NULL UNIQUE)"),
           true);
     });
+
+    test("Private fields are generated as columns", () {
+      var dm = new ManagedDataModel([PrivateField]);
+      var schema = new Schema.fromDataModel(dm);
+      var cmds = schema.tables
+          .map((t) => psc.createTable(t))
+          .expand((l) => l)
+          .toList();
+
+      expect(
+          cmds.contains(
+              "CREATE TABLE _PrivateField (id BIGSERIAL PRIMARY KEY,_private TEXT NOT NULL)"),
+          true);
+    });
   });
 
   group("Non-create table generator mappings", () {
@@ -534,4 +548,18 @@ class _GenNotNullable {
   @ManagedRelationship(#gen,
       onDelete: ManagedRelationshipDeleteRule.nullify, isRequired: false)
   GenObj ref;
+}
+
+class PrivateField extends ManagedObject<_PrivateField> implements _PrivateField {
+  set public(String p) {
+    _private = p;
+  }
+
+  String get public => _private;
+}
+class _PrivateField {
+  @managedPrimaryKey
+  int id;
+
+  String _private;
 }

@@ -225,6 +225,16 @@ void main() {
     var result = await q.insert();
     expect(result.id, greaterThan(0));
   });
+
+  test("Can use public accessor to set private property in values", () async {
+    context = await contextWithModels([PrivateField]);
+
+    await (new Query<PrivateField>()..values.public = "x").insert();
+    var q = new Query<PrivateField>()
+      ..where.public = "x";
+    var result = await q.fetchOne();
+    expect(result.public, "x");
+  });
 }
 
 class TestModel extends ManagedObject<_TestModel> implements _TestModel {}
@@ -292,4 +302,18 @@ class BoringObject extends ManagedObject<_BoringObject> implements _BoringObject
 class _BoringObject {
   @managedPrimaryKey
   int id;
+}
+
+class PrivateField extends ManagedObject<_PrivateField> implements _PrivateField {
+  set public(String p) {
+    _private = p;
+  }
+
+  String get public => _private;
+}
+class _PrivateField {
+  @managedPrimaryKey
+  int id;
+
+  String _private;
 }

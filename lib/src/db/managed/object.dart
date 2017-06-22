@@ -176,7 +176,9 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
       return this[propertyName];
     } else if (invocation.isSetter) {
       var propertyName = MirrorSystem.getName(invocation.memberName);
-      propertyName = propertyName.substring(0, propertyName.length - 1);
+      if (propertyName.endsWith("=")) {
+        propertyName = propertyName.substring(0, propertyName.length - 1);
+      }
 
       var value = invocation.positionalArguments.first;
       this[propertyName] = value;
