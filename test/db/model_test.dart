@@ -216,7 +216,7 @@ void main() {
       successful = true;
     } on QueryException catch (e) {
       expect(e.toString(),
-          "Expecting a Map for User in the owner field, got 12 instead.");
+          "Expecting a Map for User in the 'owner' field, got '12' instead.");
     }
     expect(successful, false);
   });
@@ -442,14 +442,14 @@ void main() {
         e.readFromMap({"enumValues": "foobar"});
         expect(true, false);
       } on QueryException catch (e) {
-        expect(e.toString(), contains("Invalid value 'foobar'"));
+        expect(e.toString(), contains("The value 'foobar' is not valid for"));
       }
 
       try {
         e.backing.setValueForProperty(e.entity, "enumValues", "foobar");
         expect(true, false);
-      } on QueryException catch (e) {
-        expect(e.toString(), contains("Invalid value 'foobar'"));
+      } on ManagedDataModelException catch (e) {
+        expect(e.toString(), contains("Type mismatch"));
       }
     });
   });

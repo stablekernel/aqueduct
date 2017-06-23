@@ -170,12 +170,13 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
         bool nullable: false,
         bool includedInDefaultResultSet: true,
         bool autoincrement: false,
-        this.validators: const [],
-        bool isStringBackedEnum: false})
+        List<Validate> validators: const [],
+        Map<String, dynamic> enumerationValueMap})
       : this.isPrimaryKey = primaryKey,
         this.defaultValue = defaultValue,
         this.transientStatus = transientStatus,
-        this.isStringBackedEnum = isStringBackedEnum,
+        this.enumerationValueMap = enumerationValueMap,
+        this._validators = validators,
         super(entity, name, type,
           unique: unique,
           indexed: indexed,
@@ -186,9 +187,9 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
   ManagedAttributeDescription.transient(ManagedEntity entity, String name,
       ManagedPropertyType type, this.transientStatus)
       : this.isPrimaryKey = false,
-        this.isStringBackedEnum = false,
+        this.enumerationValueMap = null,
         this.defaultValue = null,
-        this.validators = [],
+        this._validators = [],
         super(entity, name, type,
             unique: false,
             indexed: false,
@@ -212,10 +213,18 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
   /// If [transientStatus] is non-null, this value will be true. Otherwise, the attribute is backed by a database field/column.
   bool get isTransient => transientStatus != null;
 
-  /// Whether or not this property is an enum backed by a [String].
+  /// Contains lookup table for string value of an enumeration to the enumerated value.
   ///
-  /// True when using enums as persistent types.
-  final bool isStringBackedEnum;
+  /// Value is null when this attribute does not represent an enumerated type.
+  ///
+  /// If `enum Options { option1, option2 }` then this map contains:
+  ///
+  ///         {
+  ///           "option1": Options.option1,
+  ///           "option2": Options.option2
+  ///          }
+  ///
+  final Map<String, dynamic> enumerationValueMap;
 
   /// The validity of a transient attribute as input, output or both.
   ///
@@ -223,16 +232,28 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
   final ManagedTransientAttribute transientStatus;
 
   /// [ManagedValidator]s for this instance.
-  final List<Validate> validators;
+  List<Validate> get validators {
+    if (isEnumeratedValue) {
+      var total = new List.from(_validators);
+      total.add(new Validate.oneOf(enumerationValueMap.values.toList()));
+      return total;
+    }
+
+    return _validators;
+  }
+
+  final List<Validate> _validators;
+
+  /// Whether or not this attribute is represented by a Dart enum.
+  bool get isEnumeratedValue => enumerationValueMap != null;
 
   @override
   bool isAssignableWith(dynamic dartValue) {
-    var assignable = super.isAssignableWith(dartValue);
-    if (assignable) {
-      return true;
+    if (isEnumeratedValue) {
+      return enumerationValueMap.containsValue(dartValue);
     }
 
-    return isStringBackedEnum && reflect(dartValue).type.isEnum;
+    return super.isAssignableWith(dartValue);
   }
 
   @override
@@ -244,7 +265,7 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
   dynamic encodeValue(dynamic value) {
     if (value is DateTime) {
       return value.toIso8601String();
-    } else if (isStringBackedEnum) {
+    } else if (isEnumeratedValue) {
       // todo: optimize?
       return value.toString().split(".").last;
     }
@@ -259,9 +280,12 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
     } else if (type == ManagedPropertyType.doublePrecision &&
         value is num) {
       value = value.toDouble();
-    } else if (isStringBackedEnum) {
-      // todo: definitely optimize
-      return value;
+    } else if (isEnumeratedValue) {
+      if (!enumerationValueMap.containsKey(value)) {
+        throw new QueryException(QueryExceptionEvent.requestFailure,
+            message: "The value '$value' is not valid for '${MirrorSystem.getName(entity.instanceType.simpleName)}.$name'");
+      }
+      return enumerationValueMap[value];
     }
 
     // no need to check type here - gets checked by managed backing
@@ -335,6 +359,8 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
           .toList();
     } else if (value is ManagedObject) {
       return value.asMap();
+    } else if (value == null) {
+      return null;
     }
 
     throw new QueryException(QueryExceptionEvent.requestFailure,
@@ -344,6 +370,10 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
 
   @override
   dynamic decodeValue(dynamic value) {
+    if (value == null) {
+      return null;
+    }
+
     if (relationshipType == ManagedRelationshipType.belongsTo ||
         relationshipType == ManagedRelationshipType.hasOne) {
       if (value is! Map<String, dynamic>) {

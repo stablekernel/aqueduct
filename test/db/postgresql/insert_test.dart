@@ -185,6 +185,23 @@ void main() {
         result.dateCreated.difference(new DateTime.now()).inSeconds <= 0, true);
   });
 
+  test("Can insert timestamp manually", () async {
+    context = await contextWithModels([GenTime]);
+
+    var dt = new DateTime.now();
+    var t = new GenTime()
+      ..dateCreated = dt
+      ..text = "hey";
+
+    var q = new Query<GenTime>()..values = t;
+
+    var result = await q.insert();
+
+    expect(result.dateCreated is DateTime, true);
+    expect(
+        result.dateCreated.difference(dt).inSeconds == 0, true);
+  });
+
   test("Transient values work correctly", () async {
     context = await contextWithModels([TransientModel]);
 

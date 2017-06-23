@@ -2,7 +2,7 @@ import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
 
 void main() {
-  var dataModel = new ManagedDataModel([T, U, V]);
+  var dataModel = new ManagedDataModel([T, U, V, EnumObject]);
   ManagedContext.defaultContext = new ManagedContext(dataModel, null);
 
   group("Validate.matches", () {

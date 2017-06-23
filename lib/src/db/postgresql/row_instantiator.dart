@@ -113,24 +113,28 @@ abstract class RowInstantiator {
 
   void applyColumnValueToProperty(
       ManagedObject instance, PropertyToColumnMapper mapper, dynamic value) {
-    if (mapper.property is ManagedRelationshipDescription) {
+    var desc = mapper.property;
+
+    if (desc is ManagedRelationshipDescription) {
       // This is a belongsTo relationship (otherwise it wouldn't be a column), keep the foreign key.
       // However, if we are later going to get these values and more from a join,
       // we need ignore it here.
       if (!mapper.isForeignKeyColumnAndWillBePopulatedByJoin) {
         if (value != null) {
-          ManagedRelationshipDescription relDesc = mapper.property;
-
-          var innerInstance = relDesc.destinationEntity.newInstance();
-          innerInstance[relDesc.destinationEntity.primaryKey] = value;
-          instance[mapper.property.name] = innerInstance;
+          var innerInstance = desc.destinationEntity.newInstance();
+          innerInstance[desc.destinationEntity.primaryKey] = value;
+          instance[desc.name] = innerInstance;
         } else {
           // If null, explicitly add null to map so the value is populated.
-          instance[mapper.property.name] = null;
+          instance[desc.name] = null;
         }
       }
-    } else {
-      instance[mapper.property.name] = value;
+    } else if (desc is ManagedAttributeDescription) {
+      if (desc.isEnumeratedValue) {
+        instance[desc.name] = desc.decodeValue(value);
+      } else {
+        instance[desc.name] = value;
+      }
     }
   }
 

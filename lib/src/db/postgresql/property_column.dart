@@ -55,8 +55,16 @@ class PropertyToColumnMapper extends PropertyMapper {
 
 class PropertyToColumnValue extends PropertyMapper {
   PropertyToColumnValue(
-      EntityTableMapper table, ManagedPropertyDescription property, this.value)
-      : super(table, property);
+      EntityTableMapper table, ManagedPropertyDescription property, dynamic value)
+      : super(table, property) {
+    if (property is ManagedAttributeDescription) {
+      if (property.isEnumeratedValue) {
+        value = property.encodeValue(value);
+      }
+    }
+
+    this.value = value;
+  }
 
   dynamic value;
 }

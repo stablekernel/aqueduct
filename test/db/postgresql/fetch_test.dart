@@ -373,19 +373,18 @@ void main() {
     expect(result, isNull);
   });
 
-  test("When fetching invalid enum value from db, throws exception when trying to access", () async {
+  test("When fetching invalid enum value from db, throws exception", () async {
     context = await contextWithModels([EnumObject]);
 
     await context.persistentStore.execute("INSERT INTO _enumobject (enumValues) VALUES ('foobar')");
 
-    var q = new Query<EnumObject>();
-    var result = await q.fetch();
     try {
-      var _ = result.first.enumValues;
+      var q = new Query<EnumObject>();
+      await q.fetch();
       expect(true, false);
     } on QueryException catch (e) {
       expect(e.toString(), contains("'foobar'"));
-      expect(e.toString(), contains("'enumValues'"));
+      expect(e.toString(), contains("'EnumObject.enumValues'"));
     }
   });
 }

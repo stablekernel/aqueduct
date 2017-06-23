@@ -112,9 +112,14 @@ class DataModelBuilder {
       var validators = validatorsFromDeclaration(declaration);
       var attributes = attributeMetadataFromDeclaration(declaration);
       var name = propertyNameFromDeclaration(declaration);
-      var isStringBackedEnum = false;
-      if (declaration.type is ClassMirror) {
-        isStringBackedEnum = (declaration.type as ClassMirror).isEnum;
+      var enumToPropertyNameMap;
+      var declType = declaration.type;
+      if (declType is ClassMirror && declType.isEnum) {
+        List<dynamic> enumeratedCases = declType.getField(#values).reflectee;
+        enumToPropertyNameMap = enumeratedCases.fold({}, (m, v) {
+          m[v.toString().split(".").last] = v;
+          return m;
+        });
       }
 
       return new ManagedAttributeDescription(entity, name, type,
@@ -127,7 +132,7 @@ class DataModelBuilder {
               !(attributes?.shouldOmitByDefault ?? false),
           autoincrement: attributes?.autoincrement ?? false,
           validators: validators,
-          isStringBackedEnum: isStringBackedEnum);
+          enumerationValueMap: enumToPropertyNameMap);
     });
   }
 
