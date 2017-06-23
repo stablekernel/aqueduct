@@ -6,6 +6,8 @@ import 'package:coverage/coverage.dart';
 
 Future main(List<String> args) async {
   try {
+    var commitSHA = Platform.environment["TRAVIS_COMMIT"] ?? "local";
+    print("Running coverage for commit ${commitSHA}...");
     var tempDir = new Directory("coverage_json/");
     var outputDir = new Directory("coverage/");
     var testDir = new Directory("test/");
@@ -38,7 +40,7 @@ Future main(List<String> args) async {
       print("All coverage collected for ${file.uri.pathSegments.last}.");
 
       var fileHash = md5.convert(file.path.codeUnits);
-      var coverageJSONFile = new File.fromUri(tempDir.uri.resolve("${fileHash.toString()}.coverage.json"));
+      var coverageJSONFile = new File.fromUri(tempDir.uri.resolve("$commitSHA.${fileHash.toString()}.coverage.json"));
       coverageJSONFile.writeAsStringSync(JSON.encode(coverage));
 
       count ++;
@@ -50,7 +52,7 @@ Future main(List<String> args) async {
         .length;
     var totalCoverageFiles = tempDir
         .listSync()
-        .where((f) => f is File && f.path.endsWith("json"))
+        .where((f) => f is File && f.path.endsWith("json") && f.uri.pathSegments.last.startsWith(commitSHA))
         .length;
 
     print("There are ${totalTestFiles} total test files and ${totalCoverageFiles} coverage files.");
@@ -58,7 +60,7 @@ Future main(List<String> args) async {
       print("Formatting coverage...");
       var hitmap = await parseCoverage(tempDir
           .listSync()
-          .where((f) => f.path.endsWith("coverage.json"))
+          .where((f) => f.path.endsWith("coverage.json") && f.uri.pathSegments.last.startsWith(commitSHA))
           .map((f) => f as File), 1);
 
       print("Converting to lcov...");
@@ -69,6 +71,7 @@ Future main(List<String> args) async {
 
       tempDir
           .listSync()
+          .where((f) => f.uri.pathSegments.last.startsWith(commitSHA) && f.path.endsWith("coverage.json"))
           .forEach((f) {
             f.deleteSync(recursive: true);
           });
@@ -80,15 +83,4 @@ Future main(List<String> args) async {
     print("$st");
     exitCode = 1;
   }
-}
-
-Map<String, dynamic> onlyFromSource(Map<String, dynamic> initialCoverage, String sourcePrefix) {
-  List<Map<String, dynamic>> coverage = initialCoverage["coverage"];
-  var filteredList = coverage.where(((coverObj) {
-    String source = coverObj["source"];
-    return source.startsWith(sourcePrefix);
-  })).toList();
-  
-  initialCoverage["coverage"] = filteredList;
-  return initialCoverage;
 }
