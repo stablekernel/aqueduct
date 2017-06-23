@@ -52,7 +52,7 @@ Future main(List<String> args) async {
         .length;
     var totalCoverageFiles = tempDir
         .listSync()
-        .where((f) => f is File && f.path.endsWith("json") && f.path.startsWith(commitSHA))
+        .where((f) => f is File && f.path.endsWith("json") && f.uri.pathSegments.last.startsWith(commitSHA))
         .length;
 
     print("There are ${totalTestFiles} total test files and ${totalCoverageFiles} coverage files.");
@@ -60,7 +60,7 @@ Future main(List<String> args) async {
       print("Formatting coverage...");
       var hitmap = await parseCoverage(tempDir
           .listSync()
-          .where((f) => f.path.endsWith("coverage.json") && f.path.startsWith(commitSHA))
+          .where((f) => f.path.endsWith("coverage.json") && f.uri.pathSegments.last.startsWith(commitSHA))
           .map((f) => f as File), 1);
 
       print("Converting to lcov...");
@@ -71,7 +71,7 @@ Future main(List<String> args) async {
 
       tempDir
           .listSync()
-          .where((f) => f.path.startsWith(commitSHA) && f.path.endsWith("coverage.json"))
+          .where((f) => f.uri.pathSegments.last.startsWith(commitSHA) && f.path.endsWith("coverage.json"))
           .forEach((f) {
             f.deleteSync(recursive: true);
           });
@@ -83,15 +83,4 @@ Future main(List<String> args) async {
     print("$st");
     exitCode = 1;
   }
-}
-
-Map<String, dynamic> onlyFromSource(Map<String, dynamic> initialCoverage, String sourcePrefix) {
-  List<Map<String, dynamic>> coverage = initialCoverage["coverage"];
-  var filteredList = coverage.where(((coverObj) {
-    String source = coverObj["source"];
-    return source.startsWith(sourcePrefix);
-  })).toList();
-  
-  initialCoverage["coverage"] = filteredList;
-  return initialCoverage;
 }
