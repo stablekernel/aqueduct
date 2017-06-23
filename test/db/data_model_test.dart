@@ -7,7 +7,7 @@ void main() {
   group("Valid data model", () {
     ManagedDataModel dataModel;
     setUp(() {
-      dataModel = new ManagedDataModel([User, Item, Manager]);
+      dataModel = new ManagedDataModel([User, Item, Manager, EnumObject]);
       ManagedContext.defaultContext =
           new ManagedContext(dataModel, new DefaultPersistentStore());
     });
@@ -24,6 +24,10 @@ void main() {
       entity = dataModel.entityForType(Manager);
       expect(reflectClass(Manager) == entity.instanceType, true);
       expect(reflectClass(_Manager) == entity.persistentType, true);
+
+      entity = dataModel.entityForType(EnumObject);
+      expect(reflectClass(EnumObject) == entity.instanceType, true);
+      expect(reflectClass(_EnumObject) == entity.persistentType, true);
     });
 
     test("Non-existent entity is null", () {
@@ -165,6 +169,11 @@ void main() {
 
       expect(entity.relationships["items"].relationshipType,
           ManagedRelationshipType.hasMany);
+    });
+
+    test("Enums are string attributes in persistent type", () {
+      var entity = dataModel.entityForType(EnumObject);
+      expect(entity.attributes["enumValues"].type, ManagedPropertyType.string);
     });
   });
 
@@ -880,4 +889,16 @@ class _DupInverse {
 
   @ManagedRelationship(#inverse)
   DupInverseHas bar;
+}
+
+class EnumObject extends ManagedObject<_EnumObject> implements _EnumObject {}
+class _EnumObject {
+  @managedPrimaryKey
+  int id;
+
+  EnumValues enumValues;
+}
+
+enum EnumValues {
+  abcd, efgh, other18
 }

@@ -7,7 +7,7 @@ void main() {
   setUpAll(() {
     var ps = new DefaultPersistentStore();
     ManagedDataModel dm =
-        new ManagedDataModel([TransientTest, TransientTypeTest, User, Post, PrivateField]);
+        new ManagedDataModel([TransientTest, TransientTypeTest, User, Post, PrivateField, EnumObject]);
     var _ = new ManagedContext(dm, ps);
   });
 
@@ -419,6 +419,23 @@ void main() {
     expect(t.asMap().containsKey("notAnAttribute"), false);
   });
 
+  group("Persistent num fields", () {
+    test("Can assign/read enum value to persistent property", () {
+      var e = new EnumObject();
+      e.enumValues = EnumValues.abcd;
+      expect(e.enumValues, EnumValues.abcd);
+    });
+
+    test("Enum value in readMap is a matching string", () {
+      var e = new EnumObject()..readFromMap({"enumValues": "efgh"});
+      expect(e.enumValues, EnumValues.efgh);
+    });
+
+    test("Enum value in asMap is a matching string", () {
+
+    });
+  });
+
   group("Private fields", () {
     test("Private fields on entity", () {
       var entity = ManagedContext.defaultContext.dataModel.entityForType(PrivateField);
@@ -651,4 +668,16 @@ class _PrivateField {
   int id;
 
   String _private;
+}
+
+class EnumObject extends ManagedObject<_EnumObject> implements _EnumObject {}
+class _EnumObject {
+  @managedPrimaryKey
+  int id;
+
+  EnumValues enumValues;
+}
+
+enum EnumValues {
+  abcd, efgh, other18
 }
