@@ -6,19 +6,22 @@ import '../../helpers.dart';
 void main() {
   List<Test> objects;
   ManagedContext ctx;
-  setUpAll(() async {
+  setUp(() async {
     ctx = await contextWithModels([Test]);
-    objects = await populate(ctx);
-
-    /* Note that objects are sorted by id, and therefore all values are in sorted order */
-    objects.sort((t1, t2) => t1.id.compareTo(t2.id));
   });
 
-  tearDownAll(() async {
+  tearDown(() async {
     await ctx.persistentStore.close();
   });
 
   group("Average", () {
+    setUp(() async {
+      objects = await populate(ctx);
+
+      /* Note that objects are sorted by id, and therefore all values are in sorted order */
+      objects.sort((t1, t2) => t1.id.compareTo(t2.id));
+    });
+
     test("Average produces average for int type", () async {
       var q = new Query<Test>();
       var result = await q.reduce.average((t) => t.i);
@@ -40,6 +43,13 @@ void main() {
   });
 
   group("Count", () {
+    setUp(() async {
+      objects = await populate(ctx);
+
+      /* Note that objects are sorted by id, and therefore all values are in sorted order */
+      objects.sort((t1, t2) => t1.id.compareTo(t2.id));
+    });
+
     test("Count produces number of objects", () async {
       var q = new Query<Test>();
       var result = await q.reduce.count();
@@ -55,6 +65,13 @@ void main() {
   });
 
   group("Maximum", () {
+    setUp(() async {
+      objects = await populate(ctx);
+
+      /* Note that objects are sorted by id, and therefore all values are in sorted order */
+      objects.sort((t1, t2) => t1.id.compareTo(t2.id));
+    });
+
     test("Maximum of int", () async {
       var q = new Query<Test>();
       var result = await q.reduce.maximum((t) => t.i);
@@ -88,6 +105,13 @@ void main() {
   });
 
   group("Minimum", () {
+    setUp(() async {
+      objects = await populate(ctx);
+
+      /* Note that objects are sorted by id, and therefore all values are in sorted order */
+      objects.sort((t1, t2) => t1.id.compareTo(t2.id));
+    });
+
     test("Minimum of int", () async {
       var q = new Query<Test>();
       var result = await q.reduce.minimum((t) => t.i);
@@ -121,6 +145,13 @@ void main() {
   });
 
   group("Sum", () {
+    setUp(() async {
+      objects = await populate(ctx);
+
+      /* Note that objects are sorted by id, and therefore all values are in sorted order */
+      objects.sort((t1, t2) => t1.id.compareTo(t2.id));
+    });
+
     test("Sum produces sum for int type", () async {
       var q = new Query<Test>();
       var result = await q.reduce.sum((t) => t.i);
@@ -142,30 +173,23 @@ void main() {
   });
 
   group("Overflow", () {
-    List<Test> overflowObjects;
-    ManagedContext overflowContext;
-    setUpAll(() async {
-      overflowContext = await contextWithModels([Test]);
-      overflowObjects = await populate(overflowContext, overflow: true);
+    setUp(() async {
+      objects = await populate(ctx, overflow: true);
 
       /* Note that objects are sorted by id, and therefore all values are in sorted order */
-      overflowObjects.sort((t1, t2) => t1.id.compareTo(t2.id));
-    });
-
-    tearDownAll(() async {
-      await ctx.persistentStore.close();
+      objects.sort((t1, t2) => t1.id.compareTo(t2.id));
     });
 
     test("Sum with large integer numbers", () async {
       var q = new Query<Test>();
       var result = await q.reduce.sum((t) => t.i);
-      expect(result, overflowObjects.fold(0, (p, n) => p + n.i));
+      expect(result, objects.fold(0, (p, n) => p + n.i));
     });
 
     test("Sum with fractional", () async {
       var q = new Query<Test>();
       var result = await q.reduce.sum((t) => t.d);
-      expect(result, overflowObjects.fold(0, (p, n) => p + n.d));
+      expect(result, objects.fold(0, (p, n) => p + n.d));
     });
   });
 }
