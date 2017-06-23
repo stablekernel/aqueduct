@@ -1,17 +1,21 @@
 import 'harness/app.dart';
 
 Future main() async {
+  TestApplication app = new TestApplication();
+
+  setUpAll(() async {
+    await app.start();
+  });
+
+  tearDownAll(() async {
+    await app.stop();
+  });
+
+  tearDown(() async {
+    await app.discardPersistentData();
+  });
+
   group("Success flow", () {
-    TestApplication app = new TestApplication();
-
-    setUp(() async {
-      await app.start();
-    });
-
-    tearDown(() async {
-      await app.stop();
-    });
-
     test("Can create model", () async {
       var request = app.client.request("/model")
         ..json = {

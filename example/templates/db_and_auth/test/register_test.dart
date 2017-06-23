@@ -1,17 +1,21 @@
 import 'harness/app.dart';
 
 void main() {
+  TestApplication app = new TestApplication();
+
+  setUpAll(() async {
+    await app.start();
+  });
+
+  tearDownAll(() async {
+    await app.stop();
+  });
+
+  tearDown(() async {
+    await app.discardPersistentData();
+  });
+
   group("Success cases", () {
-    TestApplication app = new TestApplication();
-
-    setUp(() async {
-      await app.start();
-    });
-
-    tearDown(() async {
-      await app.stop();
-    });
-
     test("Can create user", () async {
       var response = await (app.client.clientAuthenticatedRequest("/register")
             ..json = {
@@ -60,16 +64,6 @@ void main() {
   });
 
   group("Failure cases", () {
-    TestApplication app = new TestApplication();
-
-    setUp(() async {
-      await app.start();
-    });
-
-    tearDown(() async {
-      await app.stop();
-    });
-
     test("Trying to create existing user fails", () async {
       await (app.client.clientAuthenticatedRequest("/register")
             ..json = {

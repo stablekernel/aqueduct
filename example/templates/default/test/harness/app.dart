@@ -18,7 +18,8 @@ class TestApplication {
 
   /// Starts running this test harness.
   ///
-  /// This method will start an [Application] with [WildfireSink].
+  /// This method will start an [Application] with [WildfireSink]. Invoke this method
+  /// in setUpAll (or setUp, depending on your need).
   ///
   /// You must call [stop] on this instance when tearing down your tests.
   Future start() async {
@@ -34,7 +35,8 @@ class TestApplication {
 
   /// Stops running this application harness.
   ///
-  /// This method must be called during test tearDown.
+  /// This method must be invoked in tearDownAll or tearDown to free up operating system
+  /// resources.
   Future stop() async {
     await application?.stop();
   }

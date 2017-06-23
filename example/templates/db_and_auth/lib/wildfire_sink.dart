@@ -30,6 +30,8 @@ class WildfireSink extends RequestSink {
   ///
   /// Configuration of database connections, [HTTPCodecRepository] and other per-isolate resources should be done in this constructor.
   WildfireSink(ApplicationConfiguration appConfig) : super(appConfig) {
+    logger.onRecord.listen((rec) => print("$rec ${rec.error ?? ""} ${rec.stackTrace ?? ""}"));
+
     var options = new WildfireConfiguration(appConfig.configurationFilePath);
 
     ManagedContext.defaultContext = contextWithConnectionInfo(options.database);

@@ -32,6 +32,10 @@ class TestApplication {
   /// An initial client ID/secret pair will be generated and added to the database
   /// for the [client] to use. This value is "com.aqueduct.test"/"kilimanjaro".
   ///
+  /// Invoke this method in setUpAll (or setUp, depending on your test behavior). You may
+  /// also use [discardPersistentData] to keep the application running but discard any
+  /// data stored by the ORM during the test.
+  ///
   /// You must call [stop] on this instance when tearing down your tests.
   Future start() async {
     RequestController.letUncaughtExceptionsEscape = true;
@@ -41,20 +45,33 @@ class TestApplication {
 
     await application.start(runOnMainIsolate: true);
 
-    await createDatabaseSchema(ManagedContext.defaultContext, sink.logger);
-    await addClientRecord();
-    await addClientRecord(clientID: DefaultPublicClientID, clientSecret: null);
+    await initializeDatabase();
 
     client = new TestClient(application)
       ..clientID = DefaultClientID
       ..clientSecret = DefaultClientSecret;
   }
 
+  Future initializeDatabase() async {
+    await createDatabaseSchema(ManagedContext.defaultContext);
+    await addClientRecord();
+    await addClientRecord(clientID: DefaultPublicClientID, clientSecret: null);
+  }
+
   /// Stops running this application harness.
   ///
-  /// This method must be called during test tearDown.
+  /// This method stops the application from running and frees up any system resources it uses.
+  /// Invoke this method in tearDownAll (or tearDown, depending on your test behavior).
   Future stop() async {
     await application?.stop();
+  }
+
+  /// Discards any persistent data stored during a test.
+  ///
+  /// Invoke this method in tearDown() to clear data between tests.
+  Future discardPersistentData() async {
+    await ManagedContext.defaultContext.persistentStore.close();
+    await initializeDatabase();
   }
 
   /// Adds a client id/secret pair to the temporary database.
@@ -83,7 +100,7 @@ class TestApplication {
   ///
   /// This method is executed during [start], and you shouldn't have to invoke it yourself.
   static Future createDatabaseSchema(
-      ManagedContext context, Logger logger) async {
+      ManagedContext context, {Logger logger}) async {
     var builder = new SchemaBuilder.toSchema(
         context.persistentStore, new Schema.fromDataModel(context.dataModel),
         isTemporary: true);

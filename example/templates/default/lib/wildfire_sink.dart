@@ -27,7 +27,9 @@ class WildfireSink extends RequestSink {
   /// contain values that [initializeApplication] adds to it.
   ///
   /// Configuration of database connections, [HTTPCodecRepository] and other per-isolate resources should be done in this constructor.
-  WildfireSink(ApplicationConfiguration appConfig) : super(appConfig);
+  WildfireSink(ApplicationConfiguration appConfig) : super(appConfig) {
+    logger.onRecord.listen((rec) => print("$rec ${rec.error ?? ""} ${rec.stackTrace ?? ""}"));
+  }
 
   /// Do one-time application setup in this method.
   ///
