@@ -16,7 +16,8 @@ script: bash ci/script.sh
 env:
   - STAGE=tests
   - STAGE=coverage COVERAGE_SLICE='auth base'
-  - STAGE=coverage COVERAGE_SLICE='command db managed_auth utilities'
+  - STAGE=coverage COVERAGE_SLICE='command'
+  - STAGE=coverage COVERAGE_SLICE='db managed_auth utilities'
 branches:
   only:
     - master
