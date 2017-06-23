@@ -173,6 +173,7 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
   dynamic noSuchMethod(Invocation invocation) {
     if (invocation.isGetter) {
       var propertyName = MirrorSystem.getName(invocation.memberName);
+
       return this[propertyName];
     } else if (invocation.isSetter) {
       var propertyName = MirrorSystem.getName(invocation.memberName);
@@ -180,8 +181,8 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
         propertyName = propertyName.substring(0, propertyName.length - 1);
       }
 
-      var value = invocation.positionalArguments.first;
-      this[propertyName] = value;
+      this[propertyName] = invocation.positionalArguments.first;
+
       return null;
     }
 
@@ -217,7 +218,7 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
 
       if (property is ManagedAttributeDescription) {
         if (!property.isTransient) {
-          backing.setValueForProperty(entity, k, _valueDecoder(property, v));
+          backing.setValueForProperty(entity, k, property.decodeValue(v));
         } else {
           if (!property.transientStatus.isAvailableAsInput) {
             throw new QueryException(QueryExceptionEvent.requestFailure,
@@ -225,7 +226,7 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
                     "Key $k does not exist for ${MirrorSystem.getName(mirror.type.simpleName)}");
           }
 
-          var decodedValue = _valueDecoder(property, v);
+          var decodedValue = property.decodeValue(v);
           if (!property.isAssignableWith(decodedValue)) {
             var valueTypeName =
                 MirrorSystem.getName(reflect(decodedValue).type.simpleName);
@@ -237,7 +238,7 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
           mirror.setField(new Symbol(k), decodedValue);
         }
       } else {
-        backing.setValueForProperty(entity, k, _valueDecoder(property, v));
+        backing.setValueForProperty(entity, k, property.decodeValue(v));
       }
     });
   }
@@ -256,7 +257,7 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
     var outputMap = <String, dynamic>{};
 
     backing.valueMap.forEach((k, v) {
-      outputMap[k] = _valueEncoder(k, v);
+      outputMap[k] = entity.properties[k].encodeValue(v);
     });
 
     var reflectedThis = reflect(this);
@@ -270,82 +271,5 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
     });
 
     return outputMap;
-  }
-
-  static dynamic _valueEncoder(String key, dynamic value) {
-    if (value is ManagedSet) {
-      return value
-          .map((ManagedObject innerValue) => innerValue.asMap())
-          .toList();
-    } else if (value is ManagedObject) {
-      return value.asMap();
-    }
-
-    if (value is DateTime) {
-      return value.toIso8601String();
-    }
-
-    return value;
-  }
-
-  static dynamic _valueDecoder(
-      ManagedPropertyDescription propertyDescription, dynamic value) {
-    if (propertyDescription is ManagedAttributeDescription) {
-      if (propertyDescription.type == ManagedPropertyType.datetime) {
-        value = DateTime.parse(value);
-      }
-
-      if (propertyDescription.type == ManagedPropertyType.doublePrecision &&
-          value is num) {
-        value = value.toDouble();
-      }
-
-      // no need to check type here - gets checked by managed backing
-
-      return value;
-    } else if (propertyDescription is ManagedRelationshipDescription) {
-      ManagedRelationshipDescription relationshipDescription =
-          propertyDescription;
-      var destinationEntity = relationshipDescription.destinationEntity;
-      if (relationshipDescription.relationshipType ==
-              ManagedRelationshipType.belongsTo ||
-          relationshipDescription.relationshipType ==
-              ManagedRelationshipType.hasOne) {
-        if (value is! Map<String, dynamic>) {
-          throw new QueryException(QueryExceptionEvent.requestFailure,
-              message:
-                  "Expecting a Map for ${MirrorSystem.getName(destinationEntity.instanceType.simpleName)} in the ${relationshipDescription.name} field, got $value instead.");
-        }
-
-        ManagedObject instance = destinationEntity.instanceType
-            .newInstance(new Symbol(""), []).reflectee;
-        instance.readFromMap(value as Map<String, dynamic>);
-
-        return instance;
-      } else if (relationshipDescription.relationshipType ==
-          ManagedRelationshipType.hasMany) {
-        if (value is! List<Map<String, dynamic>>) {
-          throw new QueryException(QueryExceptionEvent.requestFailure,
-              message:
-                  "Expecting a List for ${MirrorSystem.getName(destinationEntity.instanceType.simpleName)} in the ${relationshipDescription.name} field, got $value instead.");
-        }
-
-        if (value.length > 0 && value.first is! Map) {
-          throw new QueryException(QueryExceptionEvent.requestFailure,
-              message:
-                  "Expecting a List<Map> for ${MirrorSystem.getName(destinationEntity.instanceType.simpleName)} in the ${relationshipDescription.name} field, got $value instead.");
-        }
-
-        return new ManagedSet.from(
-            (value as List<Map<String, dynamic>>).map((v) {
-          ManagedObject instance = destinationEntity.instanceType
-              .newInstance(new Symbol(""), []).reflectee;
-          instance.readFromMap(v);
-          return instance;
-        }));
-      }
-    }
-
-    return value;
   }
 }

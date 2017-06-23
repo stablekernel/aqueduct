@@ -419,7 +419,7 @@ void main() {
     expect(t.asMap().containsKey("notAnAttribute"), false);
   });
 
-  group("Persistent num fields", () {
+  group("Persistent enum fields", () {
     test("Can assign/read enum value to persistent property", () {
       var e = new EnumObject();
       e.enumValues = EnumValues.abcd;
@@ -432,7 +432,25 @@ void main() {
     });
 
     test("Enum value in asMap is a matching string", () {
+      var e = new EnumObject()..enumValues = EnumValues.other18;
+      expect(e.asMap()["enumValues"], "other18");
+    });
 
+    test("Cannot assign value via backingMap or readMap that isn't a valid enum case", () {
+      var e = new EnumObject();
+      try {
+        e.readFromMap({"enumValues": "foobar"});
+        expect(true, false);
+      } on QueryException catch (e) {
+        expect(e.toString(), contains("Invalid value 'foobar'"));
+      }
+
+      try {
+        e.backing.setValueForProperty(e.entity, "enumValues", "foobar");
+        expect(true, false);
+      } on QueryException catch (e) {
+        expect(e.toString(), contains("Invalid value 'foobar'"));
+      }
     });
   });
 

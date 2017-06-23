@@ -185,6 +185,20 @@ void main() {
               "CREATE TABLE _PrivateField (id BIGSERIAL PRIMARY KEY,_private TEXT NOT NULL)"),
           true);
     });
+
+    test("Enum fields are generated as strings", () {
+      var dm = new ManagedDataModel([EnumObject]);
+      var schema = new Schema.fromDataModel(dm);
+      var cmds = schema.tables
+          .map((t) => psc.createTable(t))
+          .expand((l) => l)
+          .toList();
+
+      expect(
+          cmds.contains(
+              "CREATE TABLE _EnumObject (id BIGSERIAL PRIMARY KEY,enumValues TEXT NOT NULL)"),
+          true);
+    });
   });
 
   group("Non-create table generator mappings", () {
@@ -562,4 +576,16 @@ class _PrivateField {
   int id;
 
   String _private;
+}
+
+class EnumObject extends ManagedObject<_EnumObject> implements _EnumObject {}
+class _EnumObject {
+  @managedPrimaryKey
+  int id;
+
+  EnumValues enumValues;
+}
+
+enum EnumValues {
+  abcd, efgh, other18
 }

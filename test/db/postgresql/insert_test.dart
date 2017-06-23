@@ -235,6 +235,16 @@ void main() {
     var result = await q.fetchOne();
     expect(result.public, "x");
   });
+
+  test("Can use enum to set property to be stored in db", () async {
+    context = await contextWithModels([EnumObject]);
+
+    var q = new Query<EnumObject>()
+      ..values.enumValues = EnumValues.efgh;
+
+    var result = await q.insert();
+    expect(result.enumValues, EnumValues.efgh);
+  });
 }
 
 class TestModel extends ManagedObject<_TestModel> implements _TestModel {}
@@ -316,4 +326,16 @@ class _PrivateField {
   int id;
 
   String _private;
+}
+
+class EnumObject extends ManagedObject<_EnumObject> implements _EnumObject {}
+class _EnumObject {
+  @managedPrimaryKey
+  int id;
+
+  EnumValues enumValues;
+}
+
+enum EnumValues {
+  abcd, efgh, other18
 }

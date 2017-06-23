@@ -112,6 +112,10 @@ class DataModelBuilder {
       var validators = validatorsFromDeclaration(declaration);
       var attributes = attributeMetadataFromDeclaration(declaration);
       var name = propertyNameFromDeclaration(declaration);
+      var isStringBackedEnum = false;
+      if (declaration.type is ClassMirror) {
+        isStringBackedEnum = (declaration.type as ClassMirror).isEnum;
+      }
 
       return new ManagedAttributeDescription(entity, name, type,
           primaryKey: attributes?.isPrimaryKey ?? false,
@@ -122,7 +126,8 @@ class DataModelBuilder {
           includedInDefaultResultSet:
               !(attributes?.shouldOmitByDefault ?? false),
           autoincrement: attributes?.autoincrement ?? false,
-          validators: validators);
+          validators: validators,
+          isStringBackedEnum: isStringBackedEnum);
     });
   }
 

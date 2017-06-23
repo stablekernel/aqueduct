@@ -94,7 +94,7 @@ class ManagedDataModelException implements Exception {
         "'${_getPersistentClassName(entity)}'"
         " has an unsupported type. Must be "
         "${ManagedPropertyDescription.supportedDartTypes.join(", ")}"
-        " or ManagedObject subclass (see also 'ManagedRelationship.deferred'). "
+        ", an enum, or ManagedObject subclass (see also 'ManagedRelationship.deferred'). "
         "If you want to store something "
         "weird in the database, try declaring accessors in the ManagedObject subclass, "
         "and have those set values of the properties in the persistent type that are "
