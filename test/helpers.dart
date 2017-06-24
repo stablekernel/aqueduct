@@ -370,4 +370,9 @@ class _MockQuery<InstanceType extends ManagedObject> extends Object
   Future<InstanceType> fetchOne() async {
     throw new Exception("fetchOne() in _MockQuery");
   }
+
+  @override
+  QueryReduceOperation<InstanceType> get reduce {
+    throw new Exception("fold in _MockQuery");
+  }
 }

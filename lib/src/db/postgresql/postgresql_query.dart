@@ -5,6 +5,7 @@ import '../query/mixin.dart';
 import '../query/sort_descriptor.dart';
 import 'property_mapper.dart';
 import 'query_builder.dart';
+import 'postgresql_query_reduce.dart';
 
 class PostgresQuery<InstanceType extends ManagedObject> extends Object
     with QueryMixin<InstanceType>
@@ -22,6 +23,11 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
       _entity ?? context.dataModel.entityForType(InstanceType);
 
   ManagedEntity _entity;
+
+  @override
+  QueryReduceOperation<InstanceType> get reduce {
+    return new PostgresQueryReduce(this);
+  }
 
   @override
   Future<InstanceType> insert() async {

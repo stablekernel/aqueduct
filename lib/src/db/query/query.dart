@@ -5,10 +5,12 @@ import '../managed/managed.dart';
 import 'matcher_expression.dart';
 import 'predicate.dart';
 import 'error.dart';
+import 'reduce.dart';
 
 export 'error.dart';
 export 'matcher_expression.dart';
 export 'predicate.dart';
+export 'reduce.dart';
 
 
 /// Instances of this type configure and execute database commands.
@@ -144,6 +146,22 @@ abstract class Query<InstanceType extends ManagedObject> {
 
   /// The [ManagedContext] this query will be executed on.
   ManagedContext get context;
+
+  /// Returns a new object that can execute functions like sum, average, maximum, etc.
+  ///
+  /// The methods of this object will execute an aggregate function on the database table.
+  /// For example, this property can be used to find the average age of all users.
+  ///
+  ///         var query = new Query<User>();
+  ///         var averageAge = await query.reduce.average((user) => user.age);
+  ///
+  /// Any where clauses established by [where] or [predicate] will impact the rows evaluated
+  /// and therefore the value returned from this object's instance methods.
+  ///
+  /// Always returns a new instance of [QueryReduceOperation]. The returned object is permanently
+  /// associated with this instance. Any changes to this instance (i.e., modifying [where]) will impact the
+  /// result.
+  QueryReduceOperation<InstanceType> get reduce;
 
   /// A convenience for building [predicate] in a safe way.
   ///
