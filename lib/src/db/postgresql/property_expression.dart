@@ -107,7 +107,7 @@ class PropertyExpression extends PropertyMapper {
   dynamic _encodedValue(dynamic value) {
     if (property is ManagedAttributeDescription) {
       if ((property as ManagedAttributeDescription).isEnumeratedValue) {
-        return property.encodeValue(value);
+        return property.encodePrimitiveValue(value);
       }
     }
 

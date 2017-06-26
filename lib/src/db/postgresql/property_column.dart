@@ -59,7 +59,7 @@ class PropertyToColumnValue extends PropertyMapper {
       : super(table, property) {
     if (property is ManagedAttributeDescription) {
       if (property.isEnumeratedValue) {
-        value = property.encodeValue(value);
+        value = property.encodePrimitiveValue(value);
       }
     }
 

@@ -35,16 +35,18 @@ void main() {
       reflect(user).setField(#name, 1);
 
       expect(true, false);
-    } on ManagedDataModelException catch (e) {
-      expect(e.message,
-          "Type mismatch for property name on _User, expected assignable type matching ManagedPropertyType.string but got _Smi.");
+    } on QueryException catch (e) {
+      expect(e.toString(), contains("'User'"));
+      expect(e.toString(), contains("string"));
+      expect(e.toString(), contains("'_Smi'"));
     }
 
     try {
       reflect(user).setField(#id, "foo");
-    } on ManagedDataModelException catch (e) {
-      expect(e.message,
-          "Type mismatch for property id on _User, expected assignable type matching ManagedPropertyType.integer but got _OneByteString.");
+    } on QueryException catch (e) {
+      expect(e.toString(), contains("'User'"));
+      expect(e.toString(), contains("integer"));
+      expect(e.toString(), contains("String"));
     }
   });
 
@@ -60,14 +62,14 @@ void main() {
       reflect(user).getField(#foo);
       expect(true, false);
     } on ManagedDataModelException catch (e) {
-      expect(e.message, "Model type User has no property foo.");
+      expect(e.toString(), contains("'User' has no property named 'foo'"));
     }
 
     try {
       reflect(user).setField(#foo, "hey");
       expect(true, false);
-    } on ManagedDataModelException catch (e) {
-      expect(e.message, "Model type User has no property foo.");
+    } on QueryException catch (e) {
+      expect(e.toString(), "'User' has no property named 'foo'.");
     }
   });
 
@@ -167,7 +169,11 @@ void main() {
     try {
       new User()..readFromMap({"id": "foo"});
       expect(true, false);
-    } on ManagedDataModelException {}
+    } on QueryException catch (e) {
+      expect(e.toString(), contains("integer"));
+      expect(e.toString(), contains("'User'"));
+      expect(e.toString(), contains("'id'"));
+    }
   });
 
   test("Handles DateTime conversion", () {
@@ -181,6 +187,17 @@ void main() {
 
     var remap = user.asMap();
     expect(remap["dateCreated"], dateString);
+
+    map = {"id": 1, "name": "Bob", "dateCreated": 123};
+    user = new User();
+    try {
+      user.readFromMap(map);
+      expect(true, false);
+    } on QueryException catch (e) {
+      expect(e.toString(), contains("datetime"));
+      expect(e.toString(), contains("'dateCreated'"));
+      expect(e.toString(), contains("'User'"));
+    }
   });
 
   test(
@@ -448,8 +465,10 @@ void main() {
       try {
         e.backing.setValueForProperty(e.entity, "enumValues", "foobar");
         expect(true, false);
-      } on ManagedDataModelException catch (e) {
-        expect(e.toString(), contains("Type mismatch"));
+      } on QueryException catch (e) {
+        expect(e.toString(), contains("string"));
+        expect(e.toString(), contains("'EnumObject'"));
+        expect(e.toString(), contains("'enumValues'"));
       }
     });
   });

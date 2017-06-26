@@ -131,7 +131,7 @@ abstract class RowInstantiator {
       }
     } else if (desc is ManagedAttributeDescription) {
       if (desc.isEnumeratedValue) {
-        instance[desc.name] = desc.decodeValue(value);
+        instance[desc.name] = desc.decodePrimitiveValue(value);
       } else {
         instance[desc.name] = value;
       }
