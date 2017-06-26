@@ -44,8 +44,10 @@ pages:
   - 'Managing OAuth 2.0 Clients': 'auth/cli.md'
   - 'OAuth 2.0 Scoping': 'auth/auth_scopes.md'
   - 'What is OAuth 2.0?': 'auth/what_is_oauth.md'
-- Testing:
+- Development and Testing:
   - 'Overview': 'testing/overview.md'
+  - 'Development Best Practices': 'testing/best_practices.md'
+  - 'Developing Client Applications': 'testing/clients.md'
   - 'Test Harness': 'testing/harness.md'
   - 'Writing Tests and the TestClient': 'testing/test_client.md'
 - Deployment:

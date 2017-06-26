@@ -4,11 +4,7 @@
 
 [![Gitter](https://badges.gitter.im/dart-lang/server.svg)](https://gitter.im/dart-lang/server?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
-Aqueduct is a server-side framework for building and deploying REST applications. It is written in Dart. Its goal to provide an integrated, consistently styled framework.
-
-It contains behavior for routing and authorizing HTTP requests, persisting data in PostgreSQL, testing, and much more. The `aqueduct` command-line tool serves applications, manages database schemas and OAuth 2.0 clients, and generates OpenAPI specifications.
-
-Aqueduct is well-tested, documented and adheres to semantic versioning.
+Aqueduct is a server-side framework for building and deploying REST applications. It is written in Dart.
 
 ## Getting Started
 
@@ -23,13 +19,11 @@ Aqueduct is well-tested, documented and adheres to semantic versioning.
 
 Open the project directory in an [IntelliJ IDE](https://www.jetbrains.com/idea/download/), [Atom](https://atom.io) or [Visual Studio Code](https://code.visualstudio.com). All three IDEs have a Dart plugin.
 
-## Tutorials and Documentation
+## Tutorials and API Reference
 
 Step-by-step tutorials for beginners are available [here](https://aqueduct.io/docs/tut/getting-started).
 
 You can find the API reference [here](https://www.dartdocs.org/documentation/aqueduct/latest) or you can install it in [Dash](https://kapeli.com/docsets#dartdoc).
-
-You can find in-depth guides [here](https://aqueduct.io/docs/).
 
 ## Tour
 
@@ -37,13 +31,13 @@ Take a tour of Aqueduct.
 
 ### Creating and Running and Application
 
-Create applications with the `aqueduct create` tool:
+Create applications with the `aqueduct` tool:
 
 ```
 aqueduct create my_app
 ```
 
-Run applications with `aqueduct serve` tool inside a directory created by `aqueduct create`:
+Run applications by using the `aqueduct` tool in a project directory:
 
 ```
 aqueduct serve

@@ -4,52 +4,90 @@ This guide covers configuring an Aqueduct application.
 
 ## Configuration Files
 
-Aqueduct applications use YAML configuration files to provide environment-specific values like database connection information. Configuration is managed by the `aqueduct serve` command and your `RequestSink` subclass.
+Aqueduct applications use YAML configuration files to provide environment-specific values like database connection information. Use separate configuration files for testing and different deployment environments.
 
-The path to a configuration file may be passed to `aqueduct serve` with the `--config` option. This value defaults to `config.yaml`. When your application starts, the path to the configuration file is available in `ApplicationConfiguration.configurationFilePath`.
-
-The best practice for using a configuration file is to load its contents with [safe_config](https://pub.dartlang.org/packages/safe_config), which is automatically included as a dependency of Aqueduct applications. The documentation for this package is available at the link above, but the basic premise is to map a configuration file to a Dart object.
-
-Configurations are defined by extending `ConfigurationItem`. This type is declared in the same file as a `RequestSink` subclass.
+The path of a configuration file is available at runtime via `ApplicationConfiguration.configurationFilePath` and is read in a `RequestSink` constructor (and sometimes `RequestSink.initializeApplication`).
 
 ```dart
-class MyConfiguration extends ConfigurationItem {
-  MyConfiguration(String fileName) : super.fromFile(fileName);
+class TodoAppSink extends RequestSink {
+  TodoAppSink(ApplicationConfiguration options) : super(options) {
+    var configFilePath = options.configurationFilePath;
+    var config = new TodoConfiguration(configFilePath);
 
-  String dbUsername;
-  String dbPassword;
-  String dbHost;
-  String dbName;
-}
-```
-
-Each property of a `ConfigurationItem` corresponds to a key in the YAML configuration file. Thus, the above requires a YAML file like so:
-
-```
-dbUsername: abcdef
-dbPassword: foobar
-dbHost: localhost
-dbName: appDB
-```
-
-Configuration values are read when instantiating a `RequestSink`. (They may also be read in `RequestSink.initializeApplication`.)
-
-```dart
-class MyRequestSink extends RequestSink {
-  MyRequestSink(ApplicationConfiguration config) : super(config) {
-    var dbInfo = new MyConfiguration(config.configurationFilePath);
-
-    var store = new PostgreSQLPersistentStore.fromConnectionInfo(
-      dbInfo.dbUsername, dbInfo.dbPassword, dbInfo.dbHost, 5432, dbInfo.dbName);
   }
 }
 ```
 
-The `safe_config` package has instructions for more complex configuration patterns and some built-in configuration types for things like database connections.
+The default value is `config.yaml`.
+
+The best practice for reading a configuration file is to subclass `ConfigurationItem`. A `ConfigurationItem` declares a property for each key in a configuration file. For example, see the following `ConfigurationItem` subclass:
+
+```dart
+class TodoConfiguration extends ConfigurationItem {
+  TodoConfiguration(String fileName) : super.fromFile(fileName);
+
+  DatabaseConnectionConfiguration database;
+  String apiBaseURL;
+
+  @optionalConfiguration
+  int identifier;
+}
+```
+
+This would read a YAML file like this:
+
+```
+database:
+  username: fred
+  password: fredspassword
+  host: db.myapp.com
+  port: 5432
+  databaseName: fredsdb
+apiBaseURL: /api
+identifier: 2
+```
+
+If required properties are omitted from the YAML file being read, application startup will fail and throw an informative error.
+
+You may use `ConfigurationItem`s to read values from environment variables. In `config.yaml`, use a `$`-prefixed environment variable name instead of a value:
+
+```
+database: $DATABASE_CONNECTION_URL
+apiBaseURL: /api
+```
+
+If the environment variable `DATABASE_CONNECTION_URL`'s value were `"postgres://user:password@localhost:5432/test"`, the value of `TodoConfigurationItem.database` will be that string at runtime. (Note that `DatabaseConnectionConfiguration` may either a YAML object for each connection attribute, or a database connection string.)
+
+The [safe_config package](https://pub.dartlang.org/packages/safe_config) has instructions for more additional usages.
+
+### Configuration Conventions and Deployment Options
+
+Aqueduct uses two configuration files for a project: `config.yaml` and `config.src.yaml`. The latter is the *configuration source file*. The configuration source file declares key-value pairs that will be used when running the application tests. Deployed instances use `config.yaml`.
+
+This pattern is used for two reasons:
+
+- It is the template for the `config.yaml` that will be read on deployed applications, providing documentation for your application's configuration.
+- It has the configurations values used during testing to inject mock dependencies.
+
+For example, a production API instance might have the following `config.yaml` file with connection info for a production database:
+
+```
+database: postgres://app_user:$%4jlkn#an*@mOZkea2@somedns.name.com:5432/production_db
+```
+
+Whereas `config.src.yaml` would have connection info for a local, test database:
+
+```
+database: postgres://test:test@localhost:5432/temporary_db
+```
+
+The source configuration file should be checked into version control. Whether or not `config.yaml` is checked in depends on how you are deploying your code. If you are using environment variables to control application configuration, you should check `config.yaml` into source control and provide `$`-prefixed environment variable values. If you are using managing configuration files on each deployed instance, do not check `config.yaml` into source control because it'll be a different file for each instance.
+
+It can sometimes makes sense to have a `local.yaml` with values for running the application locally, e.g. when doing client testing. Use `--config-path` with `aqueduct serve` to use a non-default name.
 
 ## Preventing Resource Leaks
 
-When an Aqueduct application starts, the application and its `RequestSink`s will likely open connections and streams that they use interpret requests. In order for application tests to complete successfully, these connections and streams must be closed when the application stops. For built-in connections and streams, like `PostgreSQLPersistentStore`, this happens automatically when `Application.stop()` is invoked.
+When an Aqueduct application starts, the application and its `RequestSink`s will likely open connections and streams that they use to respond to requests. In order for application tests to complete successfully, these connections and streams must be closed when the application stops. For built-in connections and streams, like `PostgreSQLPersistentStore`, this happens automatically when `Application.stop()` is invoked.
 
 Objects that need to be closed can be registered with `ResourceRegistry` to automatically be closed when the application is stopped. Registration looks like this:
 
@@ -72,7 +110,7 @@ var connection = ResourceRegistry.add<ConnectionOfSomeKind>(
 await connection.open();  
 ```
 
-## Configuring CORS
+## Configuring CORS Headers
 
 All request controllers have built-in behavior for handling CORS requests from a browser. When a preflight request is received from a browser (an OPTIONS request with Access-Control-Request-Method header and Origin headers), the response is created by evaluating the policy of the `RequestController` that will respond to the real request.
 

@@ -82,15 +82,14 @@ test/
 
 The required `pubspec.yaml` and `lib/application_name.dart` files are present alongside a few others:
 
-- `config.yaml`: A configuration file for the running application. This is the default name for configuration files when running `aqueduct serve`. The name of an application's configuration file is available in `ApplicationConfiguration.configurationFilePath`. This file is usually ignored in version control. (For some situations, it does make sense to check it into source control - like [Deploying to Heroku](../deploy/deploy_heroku.md).)
-- `config.src.yaml`: A template for `config.yaml`. This file has two purposes: it contains the configuration keys that your application expects, and its values are used when running automated tests. This helps when deploying applications: you simply copy this file to `config.yaml` on the destination machine and fill in appropriate values. This file is checked into source control. For more details, see [automated testing](../testing/overview).
+- `config.yaml`: A [configuration file](configure.md) for the running application.
+- `config.src.yaml`: A [template for config.yaml](configure.md).
 - `application_name_sink.dart`: A file solely for the `RequestSink` of an application. This file should be *exported* from `application_name.dart`.
 - `controller/`: A directory for `RequestController` subclass files.
 - `model/`: A directory for `ManagedObject<T>` subclass files.
-- `test/harness/app.dart`: A file that contains a test harness that starts and stops an application during automated testing. For more details, see [automated testing](../testing/overview).
+- `test/harness/app.dart`: A [test harness](../testing/harness.md)) for automated testing.
 
 Feel free to create other subdirectories in `lib/` for organizing other types of files.
-
 
 ## Aqueduct and dart:io
 
