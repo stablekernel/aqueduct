@@ -178,7 +178,7 @@ class Person extends ManagedObject<_Person> implements _Person {
   bool validate(
       {ValidateOperation forOperation: ValidateOperation.insert,
       List<String> collectErrorsIn}) {
-   var valid = super(
+   var valid = super.validate(
      forOperation: forOperation, collectErrorsIn: collectErrorsIn);
 
     if (a + b > 10) {
@@ -191,7 +191,7 @@ class Person extends ManagedObject<_Person> implements _Person {
 }
 ```
 
-When overriding this method, the `super` implementation must be invoked and if it returns `false`, the overridden method must return `false`.
+When overriding this method, the `super` implementation must be invoked to run validations for individual fields. Of course, if it returns `false`, the overridden method must return `false`.
 
 ### Skipping Validations
 
