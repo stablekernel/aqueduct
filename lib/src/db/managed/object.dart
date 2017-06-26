@@ -218,7 +218,7 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
 
       if (property is ManagedAttributeDescription) {
         if (!property.isTransient) {
-          backing.setValueForProperty(entity, k, property.decodeValueFromPrimitive(v));
+          backing.setValueForProperty(entity, k, property.convertFromPrimitiveValue(v));
         } else {
           if (!property.transientStatus.isAvailableAsInput) {
             throw new QueryException(QueryExceptionEvent.requestFailure,
@@ -226,7 +226,7 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
                     "Key $k does not exist for ${MirrorSystem.getName(mirror.type.simpleName)}");
           }
 
-          var decodedValue = property.decodeValueFromPrimitive(v);
+          var decodedValue = property.convertFromPrimitiveValue(v);
           if (!property.isAssignableWith(decodedValue)) {
             var valueTypeName =
                 MirrorSystem.getName(reflect(decodedValue).type.simpleName);
@@ -238,7 +238,7 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
           mirror.setField(new Symbol(k), decodedValue);
         }
       } else {
-        backing.setValueForProperty(entity, k, property.decodeValueFromPrimitive(v));
+        backing.setValueForProperty(entity, k, property.convertFromPrimitiveValue(v));
       }
     });
   }
@@ -257,7 +257,7 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
     var outputMap = <String, dynamic>{};
 
     backing.valueMap.forEach((k, v) {
-      outputMap[k] = entity.properties[k].encodeValueAsPrimitive(v);
+      outputMap[k] = entity.properties[k].convertToPrimitiveValue(v);
     });
 
     var reflectedThis = reflect(this);

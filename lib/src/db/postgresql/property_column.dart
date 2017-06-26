@@ -55,8 +55,10 @@ class PropertyToColumnMapper extends PropertyMapper {
 
 class PropertyToColumnValue extends PropertyMapper {
   PropertyToColumnValue(
-      EntityTableMapper table, ManagedPropertyDescription property, this.value)
-      : super(table, property);
+      EntityTableMapper table, ManagedPropertyDescription property, dynamic value)
+      : super(table, property) {
+    this.value = convertValueForStorage(value);
+  }
 
   dynamic value;
 }

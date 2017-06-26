@@ -130,7 +130,7 @@ abstract class RowInstantiator {
         }
       }
     } else if (desc is ManagedAttributeDescription) {
-      instance[desc.name] = mapper.decodeValueFromManagedValue(value);
+      instance[desc.name] = mapper.convertValueFromStorage(value);
     }
   }
 

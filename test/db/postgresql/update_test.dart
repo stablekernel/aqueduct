@@ -292,6 +292,28 @@ void main() {
       expect(e.event, QueryExceptionEvent.conflict);
     }
   });
+
+  test("Can use enum to set property to be stored in db", () async {
+    context = await contextWithModels([EnumObject]);
+
+    var q = new Query<EnumObject>()
+      ..values.enumValues = EnumValues.efgh;
+
+    await q.insert();
+
+    q = new Query<EnumObject>()
+      ..values.enumValues = EnumValues.abcd;
+
+    await q.insert();
+
+    q = new Query<EnumObject>()
+      ..values.enumValues = EnumValues.other18Letters
+      ..where.enumValues = whereEqualTo(EnumValues.efgh);
+
+    var result = await q.update();
+    expect(result.length, 1);
+    expect(result.first.enumValues, EnumValues.other18Letters);
+  });
 }
 
 class TestModel extends ManagedObject<_TestModel> implements _TestModel {}
@@ -328,4 +350,16 @@ class _Parent {
   String name;
 
   Child child;
+}
+
+class EnumObject extends ManagedObject<_EnumObject> implements _EnumObject {}
+class _EnumObject {
+  @managedPrimaryKey
+  int id;
+
+  EnumValues enumValues;
+}
+
+enum EnumValues {
+  abcd, efgh, other18Letters
 }
