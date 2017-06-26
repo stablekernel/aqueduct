@@ -2,7 +2,7 @@ import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
 
 void main() {
-  var dataModel = new ManagedDataModel([T, U, V]);
+  var dataModel = new ManagedDataModel([T, U, V, EnumObject]);
   ManagedContext.defaultContext = new ManagedContext(dataModel, null);
 
   group("Validate.matches", () {
@@ -179,6 +179,13 @@ void main() {
       expect(t.validate(), true);
       t.oneOf12 = 3;
       expect(t.validate(), false);
+    });
+
+    test("Implicitly added to enum types", () {
+      var e = new EnumObject()..backingMap["enumValues"] = "foobar";
+      expect(e.validate(), false);
+      e.enumValues = EnumValues.abcd;
+      expect(e.validate(), true);
     });
   });
 
@@ -477,4 +484,17 @@ class _V {
 
   @Validate.oneOf(const ["a", "b"])
   String aOrbButReallyOnlyA;
+}
+
+
+class EnumObject extends ManagedObject<_EnumObject> implements _EnumObject {}
+class _EnumObject {
+  @managedPrimaryKey
+  int id;
+
+  EnumValues enumValues;
+}
+
+enum EnumValues {
+  abcd, efgh, other18
 }

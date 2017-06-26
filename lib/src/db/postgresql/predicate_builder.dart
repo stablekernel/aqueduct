@@ -24,9 +24,8 @@ abstract class PredicateBuilder implements EntityTableMapper {
 
           if (desc is ManagedAttributeDescription) {
             return [
-              new PropertyExpression(this, obj.entity.properties[propertyName],
-                  obj.backingMap[propertyName],
-                  additionalVariablePrefix: prefix)
+              new PropertyExpression(
+                  this, desc, innerMatcher, additionalVariablePrefix: prefix)
             ];
           }
 

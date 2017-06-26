@@ -348,6 +348,45 @@ void main() {
     result = await q.fetchOne();
     expect(result, isNull);
   });
+
+  test("When fetching valid enum value from db, is available as enum value and in where", () async {
+    context = await contextWithModels([EnumObject]);
+
+    var q = new Query<EnumObject>()
+      ..values.enumValues = EnumValues.abcd;
+
+    await q.insert();
+
+    q = new Query<EnumObject>();
+    var result = await q.fetchOne();
+    expect(result.enumValues, EnumValues.abcd);
+    expect(result.asMap()["enumValues"], "abcd");
+
+    q = new Query<EnumObject>()
+      ..where.enumValues = EnumValues.abcd;
+    result = await q.fetchOne();
+    expect(result, isNotNull);
+
+    q = new Query<EnumObject>()
+      ..where.enumValues = EnumValues.efgh;
+    result = await q.fetchOne();
+    expect(result, isNull);
+  });
+
+  test("When fetching invalid enum value from db, throws exception", () async {
+    context = await contextWithModels([EnumObject]);
+
+    await context.persistentStore.execute("INSERT INTO _enumobject (enumValues) VALUES ('foobar')");
+
+    try {
+      var q = new Query<EnumObject>();
+      await q.fetch();
+      expect(true, false);
+    } on QueryException catch (e) {
+      expect(e.toString(), contains("'foobar'"));
+      expect(e.toString(), contains("'EnumObject.enumValues'"));
+    }
+  });
 }
 
 class TestModel extends ManagedObject<_TestModel> implements _TestModel {
@@ -430,4 +469,16 @@ class _PrivateField {
   int id;
 
   String _private;
+}
+
+class EnumObject extends ManagedObject<_EnumObject> implements _EnumObject {}
+class _EnumObject {
+  @managedPrimaryKey
+  int id;
+
+  EnumValues enumValues;
+}
+
+enum EnumValues {
+  abcd, efgh, other18
 }

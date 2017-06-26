@@ -101,11 +101,13 @@ abstract class ManagedPropertyDescription {
       return ManagedPropertyType.doublePrecision;
     }
 
-    var mirror = reflectType(t);
+    var mirror = reflectClass(t);
     if (mirror.isSubtypeOf(reflectType(Map))) {
       return ManagedPropertyType.transientMap;
     } else if (mirror.isSubtypeOf(reflectType(List))) {
       return ManagedPropertyType.transientList;
+    } else if (mirror.isEnum) {
+      return ManagedPropertyType.string;
     }
 
     return null;
@@ -141,6 +143,20 @@ abstract class ManagedPropertyDescription {
     }
     return false;
   }
+
+  /// Converts a value from a more complex value into a primitive value according to this instance's definition.
+  ///
+  /// This method takes a Dart representation of a value and converts it to something that can
+  /// be used elsewhere (e.g. an HTTP body or database query). How this value is computed
+  /// depends on this instance's definition.
+  dynamic convertToPrimitiveValue(dynamic value);
+
+  /// Converts a value to a more complex value from a primitive value according to this instance's definition.
+  ///
+  /// This method takes a non-Dart representation of a value (e.g. an HTTP body or database query)
+  /// and turns it into a Dart representation . How this value is computed
+  /// depends on this instance's definition.
+  dynamic convertFromPrimitiveValue(dynamic value);
 }
 
 /// Stores the specifics of database columns in [ManagedObject]s as indicated by [ManagedColumnAttributes].
@@ -164,10 +180,13 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
         bool nullable: false,
         bool includedInDefaultResultSet: true,
         bool autoincrement: false,
-        this.validators: const []})
+        List<Validate> validators: const [],
+        Map<String, dynamic> enumerationValueMap})
       : this.isPrimaryKey = primaryKey,
         this.defaultValue = defaultValue,
         this.transientStatus = transientStatus,
+        this.enumerationValueMap = enumerationValueMap,
+        this._validators = validators,
         super(entity, name, type,
           unique: unique,
           indexed: indexed,
@@ -178,8 +197,9 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
   ManagedAttributeDescription.transient(ManagedEntity entity, String name,
       ManagedPropertyType type, this.transientStatus)
       : this.isPrimaryKey = false,
+        this.enumerationValueMap = null,
         this.defaultValue = null,
-        this.validators = [],
+        this._validators = [],
         super(entity, name, type,
             unique: false,
             indexed: false,
@@ -203,17 +223,84 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
   /// If [transientStatus] is non-null, this value will be true. Otherwise, the attribute is backed by a database field/column.
   bool get isTransient => transientStatus != null;
 
+  /// Contains lookup table for string value of an enumeration to the enumerated value.
+  ///
+  /// Value is null when this attribute does not represent an enumerated type.
+  ///
+  /// If `enum Options { option1, option2 }` then this map contains:
+  ///
+  ///         {
+  ///           "option1": Options.option1,
+  ///           "option2": Options.option2
+  ///          }
+  ///
+  final Map<String, dynamic> enumerationValueMap;
+
   /// The validity of a transient attribute as input, output or both.
   ///
   /// If this property is non-null, the attribute is transient (not backed by a database field/column).
   final ManagedTransientAttribute transientStatus;
 
   /// [ManagedValidator]s for this instance.
-  final List<Validate> validators;
+  List<Validate> get validators {
+    if (isEnumeratedValue) {
+      var total = new List.from(_validators);
+      total.add(new Validate.oneOf(enumerationValueMap.values.toList()));
+      return total;
+    }
+
+    return _validators;
+  }
+
+  final List<Validate> _validators;
+
+  /// Whether or not this attribute is represented by a Dart enum.
+  bool get isEnumeratedValue => enumerationValueMap != null;
+
+  @override
+  bool isAssignableWith(dynamic dartValue) {
+    if (isEnumeratedValue) {
+      return enumerationValueMap.containsValue(dartValue);
+    }
+
+    return super.isAssignableWith(dartValue);
+  }
 
   @override
   String toString() {
     return "[Attribute]    ${entity.tableName}.$name ($type)";
+  }
+
+  @override
+  dynamic convertToPrimitiveValue(dynamic value) {
+    if (value is DateTime) {
+      return value.toIso8601String();
+    } else if (isEnumeratedValue) {
+      // todo: optimize?
+      return value.toString().split(".").last;
+    }
+
+    return value;
+  }
+
+  @override
+  dynamic convertFromPrimitiveValue(dynamic value) {
+    if (type == ManagedPropertyType.datetime && value is String) {
+      value = DateTime.parse(value);
+    } else if (type == ManagedPropertyType.doublePrecision &&
+        value is num) {
+      value = value.toDouble();
+    } else if (isEnumeratedValue) {
+      if (!enumerationValueMap.containsKey(value)) {
+        throw new QueryException(QueryExceptionEvent.requestFailure,
+            message: "The value '$value' is not valid for '${MirrorSystem.getName(entity.instanceType.simpleName)}.$name'");
+      }
+      return enumerationValueMap[value];
+    }
+
+    // no need to check type here - gets checked by managed backing
+
+    return value;
   }
 }
 
@@ -272,6 +359,67 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
     }
 
     return type == destinationEntity.instanceType;
+  }
+
+  @override
+  dynamic convertToPrimitiveValue(dynamic value) {
+    if (value is ManagedSet) {
+      return value
+          .map((ManagedObject innerValue) => innerValue.asMap())
+          .toList();
+    } else if (value is ManagedObject) {
+      return value.asMap();
+    } else if (value == null) {
+      return null;
+    }
+
+    throw new QueryException(QueryExceptionEvent.requestFailure,
+        message: "Invalid value '$value' for property '$entity.$name', "
+            "expected '${MirrorSystem.getName(destinationEntity.instanceType.simpleName)}'");
+  }
+
+  @override
+  dynamic convertFromPrimitiveValue(dynamic value) {
+    if (value == null) {
+      return null;
+    }
+
+    if (relationshipType == ManagedRelationshipType.belongsTo ||
+        relationshipType == ManagedRelationshipType.hasOne) {
+      if (value is! Map<String, dynamic>) {
+        throw new QueryException(QueryExceptionEvent.requestFailure,
+            message:
+            "Expecting a Map for ${MirrorSystem.getName(destinationEntity.instanceType.simpleName)} in the '$name' field, got '$value' instead.");
+      }
+
+      ManagedObject instance = destinationEntity.instanceType
+          .newInstance(new Symbol(""), []).reflectee;
+      instance.readFromMap(value as Map<String, dynamic>);
+
+      return instance;
+    }
+
+    /* else if (relationshipType == ManagedRelationshipType.hasMany) { */
+
+    if (value is! List<Map<String, dynamic>>) {
+      throw new QueryException(QueryExceptionEvent.requestFailure,
+          message:
+          "Expecting a List for ${MirrorSystem.getName(destinationEntity.instanceType.simpleName)} in the '$name' field, got '$value' instead.");
+    }
+
+    if (value.length > 0 && value.first is! Map) {
+      throw new QueryException(QueryExceptionEvent.requestFailure,
+          message:
+          "Expecting a List<Map> for ${MirrorSystem.getName(destinationEntity.instanceType.simpleName)} in the '$name' field, got '$value' instead.");
+    }
+
+    return new ManagedSet.from(
+        (value as List<Map<String, dynamic>>).map((v) {
+          ManagedObject instance = destinationEntity.instanceType
+              .newInstance(new Symbol(""), []).reflectee;
+          instance.readFromMap(v);
+          return instance;
+        }));
   }
 
   @override

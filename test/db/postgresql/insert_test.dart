@@ -185,6 +185,23 @@ void main() {
         result.dateCreated.difference(new DateTime.now()).inSeconds <= 0, true);
   });
 
+  test("Can insert timestamp manually", () async {
+    context = await contextWithModels([GenTime]);
+
+    var dt = new DateTime.now();
+    var t = new GenTime()
+      ..dateCreated = dt
+      ..text = "hey";
+
+    var q = new Query<GenTime>()..values = t;
+
+    var result = await q.insert();
+
+    expect(result.dateCreated is DateTime, true);
+    expect(
+        result.dateCreated.difference(dt).inSeconds == 0, true);
+  });
+
   test("Transient values work correctly", () async {
     context = await contextWithModels([TransientModel]);
 
@@ -234,6 +251,16 @@ void main() {
       ..where.public = "x";
     var result = await q.fetchOne();
     expect(result.public, "x");
+  });
+
+  test("Can use enum to set property to be stored in db", () async {
+    context = await contextWithModels([EnumObject]);
+
+    var q = new Query<EnumObject>()
+      ..values.enumValues = EnumValues.efgh;
+
+    var result = await q.insert();
+    expect(result.enumValues, EnumValues.efgh);
   });
 }
 
@@ -316,4 +343,16 @@ class _PrivateField {
   int id;
 
   String _private;
+}
+
+class EnumObject extends ManagedObject<_EnumObject> implements _EnumObject {}
+class _EnumObject {
+  @managedPrimaryKey
+  int id;
+
+  EnumValues enumValues;
+}
+
+enum EnumValues {
+  abcd, efgh, other18
 }

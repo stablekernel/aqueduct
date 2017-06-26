@@ -11,7 +11,7 @@ class ManagedValueBacking extends ManagedBacking {
   dynamic valueForProperty(ManagedEntity entity, String propertyName) {
     if (entity.properties[propertyName] == null) {
       throw new ManagedDataModelException(
-          "Model type ${MirrorSystem.getName(entity.instanceType.simpleName)} has no property $propertyName.");
+          "'${MirrorSystem.getName(entity.instanceType.simpleName)}' has no property named '$propertyName'.");
     }
 
     return valueMap[propertyName];
@@ -22,16 +22,16 @@ class ManagedValueBacking extends ManagedBacking {
       ManagedEntity entity, String propertyName, dynamic value) {
     var property = entity.properties[propertyName];
     if (property == null) {
-      throw new ManagedDataModelException(
-          "Model type ${MirrorSystem.getName(entity.instanceType.simpleName)} has no property $propertyName.");
+      throw new QueryException(QueryExceptionEvent.requestFailure, message:
+          "'${MirrorSystem.getName(entity.instanceType.simpleName)}' has no property named '$propertyName'.");
     }
 
     if (value != null) {
       if (!property.isAssignableWith(value)) {
         var valueTypeName =
             MirrorSystem.getName(reflect(value).type.simpleName);
-        throw new ManagedDataModelException(
-            "Type mismatch for property $propertyName on ${MirrorSystem.getName(entity.persistentType.simpleName)}, expected assignable type matching ${property.type} but got $valueTypeName.");
+        throw new QueryException(QueryExceptionEvent.requestFailure, message:
+            "Invalid type '$valueTypeName' for '$propertyName' on '${MirrorSystem.getName(entity.instanceType.simpleName)}', expected ${property.type}.");
       }
     }
 

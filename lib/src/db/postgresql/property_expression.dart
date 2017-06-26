@@ -38,7 +38,7 @@ class PropertyExpression extends PropertyMapper {
 
     return new QueryPredicate(
         "$name ${PropertyMapper.symbolTable[operator]} @$variableName$typeSuffix",
-        {variableName: value});
+        {variableName: convertValueForStorage(value)});
   }
 
   QueryPredicate containsPredicate(Iterable<dynamic> values) {
@@ -51,7 +51,7 @@ class PropertyExpression extends PropertyMapper {
 
       var variableName = columnName(withPrefix: prefix);
       tokenList.add("@$variableName$typeSuffix");
-      pairedMap[variableName] = value;
+      pairedMap[variableName] = convertValueForStorage(value);
 
       counter++;
     });
@@ -74,7 +74,7 @@ class PropertyExpression extends PropertyMapper {
 
     return new QueryPredicate(
         "$name $operation @$lhsName$typeSuffix AND @$rhsName$typeSuffix",
-        {lhsName: lhsValue, rhsName: rhsValue});
+        {lhsName: convertValueForStorage(lhsValue), rhsName: convertValueForStorage(rhsValue)});
   }
 
   QueryPredicate stringPredicate(

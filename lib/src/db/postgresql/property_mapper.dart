@@ -45,6 +45,26 @@ abstract class PropertyMapper extends PostgresMapper {
     return "";
   }
 
+  dynamic convertValueForStorage(dynamic value) {
+    if (property is ManagedAttributeDescription) {
+      if ((property as ManagedAttributeDescription).isEnumeratedValue) {
+        return property.convertToPrimitiveValue(value);
+      }
+    }
+
+    return value;
+  }
+
+  dynamic convertValueFromStorage(dynamic value) {
+    if (property is ManagedAttributeDescription) {
+      if ((property as ManagedAttributeDescription).isEnumeratedValue) {
+        return property.convertFromPrimitiveValue(value);
+      }
+    }
+
+    return value;
+  }
+
   String columnName(
       {bool withTypeSuffix: false,
       bool withTableNamespace: false,

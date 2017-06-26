@@ -112,6 +112,15 @@ class DataModelBuilder {
       var validators = validatorsFromDeclaration(declaration);
       var attributes = attributeMetadataFromDeclaration(declaration);
       var name = propertyNameFromDeclaration(declaration);
+      var enumToPropertyNameMap;
+      var declType = declaration.type;
+      if (declType is ClassMirror && declType.isEnum) {
+        List<dynamic> enumeratedCases = declType.getField(#values).reflectee;
+        enumToPropertyNameMap = enumeratedCases.fold({}, (m, v) {
+          m[v.toString().split(".").last] = v;
+          return m;
+        });
+      }
 
       return new ManagedAttributeDescription(entity, name, type,
           primaryKey: attributes?.isPrimaryKey ?? false,
@@ -122,7 +131,8 @@ class DataModelBuilder {
           includedInDefaultResultSet:
               !(attributes?.shouldOmitByDefault ?? false),
           autoincrement: attributes?.autoincrement ?? false,
-          validators: validators);
+          validators: validators,
+          enumerationValueMap: enumToPropertyNameMap);
     });
   }
 
