@@ -144,8 +144,18 @@ abstract class ManagedPropertyDescription {
     return false;
   }
 
+  /// Converts a value from a more complex value into a primitive value according to this instance's definition.
+  ///
+  /// This method takes a Dart representation of a value and converts it to something that can
+  /// be used elsewhere (e.g. an HTTP body or database query). How this value is computed
+  /// depends on this instance's definition.
   dynamic convertToPrimitiveValue(dynamic value);
 
+  /// Converts a value to a more complex value from a primitive value according to this instance's definition.
+  ///
+  /// This method takes a non-Dart representation of a value (e.g. an HTTP body or database query)
+  /// and turns it into a Dart representation . How this value is computed
+  /// depends on this instance's definition.
   dynamic convertFromPrimitiveValue(dynamic value);
 }
 
