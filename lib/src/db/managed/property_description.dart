@@ -144,9 +144,9 @@ abstract class ManagedPropertyDescription {
     return false;
   }
 
-  dynamic encodePrimitiveValue(dynamic value);
+  dynamic encodeValueAsPrimitive(dynamic value);
 
-  dynamic decodePrimitiveValue(dynamic value);
+  dynamic decodeValueFromPrimitive(dynamic value);
 }
 
 /// Stores the specifics of database columns in [ManagedObject]s as indicated by [ManagedColumnAttributes].
@@ -262,7 +262,7 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
   }
 
   @override
-  dynamic encodePrimitiveValue(dynamic value) {
+  dynamic encodeValueAsPrimitive(dynamic value) {
     if (value is DateTime) {
       return value.toIso8601String();
     } else if (isEnumeratedValue) {
@@ -274,7 +274,7 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
   }
 
   @override
-  dynamic decodePrimitiveValue(dynamic value) {
+  dynamic decodeValueFromPrimitive(dynamic value) {
     if (type == ManagedPropertyType.datetime && value is String) {
       value = DateTime.parse(value);
     } else if (type == ManagedPropertyType.doublePrecision &&
@@ -352,7 +352,7 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
   }
 
   @override
-  dynamic encodePrimitiveValue(dynamic value) {
+  dynamic encodeValueAsPrimitive(dynamic value) {
     if (value is ManagedSet) {
       return value
           .map((ManagedObject innerValue) => innerValue.asMap())
@@ -369,7 +369,7 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
   }
 
   @override
-  dynamic decodePrimitiveValue(dynamic value) {
+  dynamic decodeValueFromPrimitive(dynamic value) {
     if (value == null) {
       return null;
     }

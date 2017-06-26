@@ -38,7 +38,7 @@ class PropertyExpression extends PropertyMapper {
 
     return new QueryPredicate(
         "$name ${PropertyMapper.symbolTable[operator]} @$variableName$typeSuffix",
-        {variableName: _encodedValue(value)});
+        {variableName: encodeValueAsManagedValue(value)});
   }
 
   QueryPredicate containsPredicate(Iterable<dynamic> values) {
@@ -51,7 +51,7 @@ class PropertyExpression extends PropertyMapper {
 
       var variableName = columnName(withPrefix: prefix);
       tokenList.add("@$variableName$typeSuffix");
-      pairedMap[variableName] = _encodedValue(value);
+      pairedMap[variableName] = encodeValueAsManagedValue(value);
 
       counter++;
     });
@@ -74,7 +74,7 @@ class PropertyExpression extends PropertyMapper {
 
     return new QueryPredicate(
         "$name $operation @$lhsName$typeSuffix AND @$rhsName$typeSuffix",
-        {lhsName: _encodedValue(lhsValue), rhsName: _encodedValue(rhsValue)});
+        {lhsName: encodeValueAsManagedValue(lhsValue), rhsName: encodeValueAsManagedValue(rhsValue)});
   }
 
   QueryPredicate stringPredicate(
@@ -102,16 +102,6 @@ class PropertyExpression extends PropertyMapper {
 
     return new QueryPredicate(
         "$n $operation @$variableName$typeSuffix", {variableName: matchValue});
-  }
-
-  dynamic _encodedValue(dynamic value) {
-    if (property is ManagedAttributeDescription) {
-      if ((property as ManagedAttributeDescription).isEnumeratedValue) {
-        return property.encodePrimitiveValue(value);
-      }
-    }
-
-    return value;
   }
 }
 

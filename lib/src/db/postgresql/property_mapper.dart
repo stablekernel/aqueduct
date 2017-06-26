@@ -45,6 +45,26 @@ abstract class PropertyMapper extends PostgresMapper {
     return "";
   }
 
+  dynamic encodeValueAsManagedValue(dynamic value) {
+    if (property is ManagedAttributeDescription) {
+      if ((property as ManagedAttributeDescription).isEnumeratedValue) {
+        return property.encodeValueAsPrimitive(value);
+      }
+    }
+
+    return value;
+  }
+
+  dynamic decodeValueFromManagedValue(dynamic value) {
+    if (property is ManagedAttributeDescription) {
+      if ((property as ManagedAttributeDescription).isEnumeratedValue) {
+        return property.decodeValueFromPrimitive(value);
+      }
+    }
+
+    return property.decodeValueFromPrimitive(value);
+  }
+
   String columnName(
       {bool withTypeSuffix: false,
       bool withTableNamespace: false,
