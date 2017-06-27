@@ -2,13 +2,13 @@
 
 ### Keep Projects Separate
 
-Because Dart is cross-platform, developers may use the same project for both an Aqueduct application and a client application. Avoid this. When the projects share dependencies, it may force a one of them to use older versions of libraries than desired. This also creates more a confusing codebase.
+Because Dart is cross-platform, developers may use the same project for both an Aqueduct application and a client application. Avoid this. When projects share dependencies, it may force one of them to use older versions of libraries. Two projects in one also creates a more confusing codebase.
 
 ### Use Test Driven Development (or something close to it)
 
 The preferred method of development is to write tests using `TestClient` - as opposed to using a client application to 'eyeball' test an endpoint in development.
 
-Developers should at minimum write tests for the 'success case' of an endpoint. Developers should use automated testing to code written in the future does not impact previously verified behavior elsewhere in the application.
+Developers should at minimum write tests for the 'success case' of an endpoint and should use automated testing to verify that code written in the future does not impact code written in the past.
 
 ### Use a bin Script to Verify Assumptions
 
@@ -19,7 +19,7 @@ import 'package:myapp/myapp.dart';
 
 Future main() async {
   var whatIsThis = await someYetToBeNamedUsefullyMethod();
-  print("${whatIsThis}");
+  print("$whatIsThis");
 }
 ```
 
@@ -29,13 +29,13 @@ Use `aqueduct create` to create applications with the appropriate structure and 
 
 ### Use a Debugger
 
-Each project has a simple `bin/main.dart` script to run the application without `aqueduct serve`. In IntelliJ IDEA's, right-click on this file and select 'Debug' to run the application in IntelliJ's debugger. Use breakpoints (by clicking on the gutter area to the left of the text editing area) to stop and view variable values and verify program flow.
+Use a debugger while running tests to stop execution, view variable values and verify program flow. Right-click on this file and select 'Debug' to run the tests in the debugger. Use breakpoints (by clicking on the gutter area to the left of the text editing area) to stop execution, view variable values and verify program flow.
 
-Use a client application, CURL or tools like Paw and Postman to issue requests while the debugger is running. Use `aqueduct document` to generate an OpenAPI specification that can be imported into HTTP client applications like Postman.
+Each project also has a `bin/main.dart` script to run the application without `aqueduct serve`. You may also right-click on this file and select 'Debug' to run the application with the debugger turned on. Use a client application, CURL or tools like Paw and Postman to issue requests while the debugger is running. Use `aqueduct document` to generate an OpenAPI specification that can be imported into HTTP client applications like Postman.
 
 ### Use the Suggested Project Directory Structure
 
-See [Aqueduct Project Structure](../http/structure.md#aqueduct_project_structure_and_organization)
+See [Aqueduct Project Structure](../http/structure.md#aqueduct-project-structure-and-organization).
 
 ### Pass Services to Controllers in setupRouter
 
@@ -49,7 +49,7 @@ void setupRouter(Router router) {
 }
 ```
 
-Objects a controller receives in this way are called dependencies. Passing references like this allows for injecting dependencies that depend on the environment; e.g. in production, development or during tests. It also avoids tight coupling between the objects in your application.
+These objects are called dependencies. Passing references like this allows for injecting dependencies that depend on the environment; e.g. in production, development or during tests. It also avoids tight coupling between the objects in your application.
 
 Minimize the access a controller has to its dependencies; e.g. don't pass it a `StreamController` when it only needs `Sink` or a `Stream`.
 

@@ -10,13 +10,15 @@ site_description: Documentation for Aqueduct, a Dart server-side framework.
 copyright: Built by stable|kernel
 pages:
 - Home: 'index.md'
+- Getting Started: 'getting_started.md'
+- Tour: 'tour.md'
 - Tutorial:
   - '1. Getting Started': 'tut/getting-started.md'
   - '2. Writing Tests': 'tut/writing-tests.md'
   - '3. Executing Database Queries': 'tut/executing-queries.md'
   - '4. Advanced Database Queries': 'tut/model-relationships-and-joins.md'
   - '5. Deploying': 'tut/deploying-and-other-fun-things.md'
-- HTTP:
+- Serving HTTP Requests:
   - 'Overview': 'http/overview.md'
   - 'Application Structure': 'http/structure.md'
   - 'Request and Response Objects': 'http/request_and_response.md'
@@ -27,8 +29,9 @@ pages:
   - 'Configuration': 'http/configure.md'
   - 'Serving Files and Caching': 'http/serving_files.md'
   - 'Websockets': 'http/websockets.md'
-- Database/ORM:
+- Databases and ORM:
   - 'Overview': 'db/overview.md'
+  - 'Connecting to a Database': 'db/connecting.md'
   - 'Modeling Data': 'db/modeling_data.md'
   - 'Storage, Serialization and Deserialization': 'db/serialization.md'
   - 'Executing Queries': 'db/executing_queries.md'
@@ -36,7 +39,7 @@ pages:
   - 'Validations': 'db/validations.md'
   - 'Migration and Tooling': 'db/db_tools.md'
   - 'Inside the DB': 'db/inside_the_db.md'
-- OAuth 2.0:
+- Authorization and OAuth 2.0:
   - 'Overview': 'auth/overview.md'
   - 'Setting up Authorization': 'auth/server.md'
   - 'Protecting Routes': 'auth/authorizer.md'
@@ -46,13 +49,17 @@ pages:
   - 'What is OAuth 2.0?': 'auth/what_is_oauth.md'
 - Development and Testing:
   - 'Overview': 'testing/overview.md'
+  - 'Using a Local Database': 'testing/database.md'
+  - 'Using the Debugger': 'testing/debugger.md'
   - 'Development Best Practices': 'testing/best_practices.md'
   - 'Developing Client Applications': 'testing/clients.md'
-  - 'Test Harness': 'testing/harness.md'
-  - 'Writing Tests and the TestClient': 'testing/test_client.md'
+  - 'Writing Tests': 'testing/tests.md'
+  - 'Mocking Services'  : 'testing/mock.md'
 - Deployment:
   - 'Overview': 'deploy/overview.md'
   - 'Deploy Locally': 'deploy/deploy_local.md'
   - 'Deploy on Heroku': 'deploy/deploy_heroku.md'
   - 'Deploy on AWS': 'deploy/deploy_aws.md'
   - 'Deploying without aqueduct serve': 'deploy/script.md'
+- Command-line Tooling:
+  - 'Overview': 'cli/overview.md'

@@ -10,6 +10,7 @@ Aqueduct has an ORM to store data in a database and map database data to Dart ob
 
 ## Guides
 
+- [Connecting to a Database](connecting.md)
 - [Modeling Data](modeling_data.md)
 - [Storage, Serialization and Deserialization](serialization.md)
 - [Executing Queries](executing_queries.md)
