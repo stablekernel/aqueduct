@@ -38,6 +38,29 @@ Aqueduct applications run through the `bin/main.dart` script default to port 800
 aqueduct serve --port 4000
 ```
 
-## Provision a Database During Client Testing
+## Provision a Database for Client Testing
 
-See [provisioning a database](database.md) for more details.
+For applications that use the ORM, you must have a locally running database with your application's data model. See [provisioning a database](database.md) for more details.
+
+If you are using OAuth 2.0, you must have also added client identifiers to the locally running database. You may add client identifiers with the [aqueduct auth](../auth/cli.md) command-line tool, or as part of a utility provisioning script:
+
+```dart
+import 'package:aqueduct/aqueduct.dart';
+import 'package:aqueduct/managed_auth.dart';
+import 'package:myapp/myapp.dart';
+
+Future main() async {
+  var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
+  ManagedContext.defaultContext = new ManagedContext(dataModel, persistentStore);
+
+  var credentials = AuthUtility.generateAPICredentialPair("local.testing", "secretpassword");
+
+  var managedCredentials = new ManagedClient()
+    ..id = credentials.id
+    ..hashedSecret = credentials.hashedSecret
+    ..salt = credentials.salt;
+
+  var query = new Query<ManagedClient>()..values = managedCredentials;
+  await query.insert();
+}
+```

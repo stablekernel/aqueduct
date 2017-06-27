@@ -6,9 +6,9 @@ Because Dart is cross-platform, developers may use the same project for both an 
 
 ### Use Test Driven Development (or something close to it)
 
-The preferred method of development is to write tests using `TestClient` - as opposed to using a client application to 'eyeball' test an endpoint in development.
+In Aqueduct, testing is a first-class citizen. The preferred method of development is to write tests using `TestClient` - as opposed to using a client application to 'eyeball' test an endpoint in development.
 
-Developers should at minimum write tests for the 'success case' of an endpoint and should use automated testing to verify that code written in the future does not impact code written in the past.
+Developers should at minimum write tests for the 'success case' of an endpoint and should use automated testing to verify that code written in the future does not impact code written in the past. Aqueduct has behavior and tooling for testing applications that interface with a database or other external services.
 
 ### Use a bin Script to Verify Assumptions
 
@@ -69,7 +69,7 @@ See more in [Application Structure](../http/structure.md).
 
 Subclassing [HTTPController](../http/http_controller.md) provides significant conveniences, safeties and behaviors used by the majority of an application's request handling logic. Prefer to use this class for non-middleware controllers.
 
-### Keep RequestSink Clean
+### Keep RequestSink Tidy
 
 A `RequestSink` should handle initialization, routing and nothing more. Consider moving non-initialization behavior into a service object in a separate file.
 

@@ -1,114 +1,170 @@
-# Verify Requests with TestClient
+# Testing in Aqueduct
 
-Setting up a [Test Harness](harness.md) is required for testing Aqueduct applications. Once a test harness is set up, tests are comprised of issuing HTTP requests to the application, verifying responses, and sometimes checking external data sources for desired changes.
+From the ground up, Aqueduct is built to be tested. In practice, this means two things:
 
-HTTP requests are issued through an instance of `TestClient`. A `TestApplication` harness has a `client` property of this type. Starting a `TestApplication` configures the `TestClient` so that its requests go to your application. There are three execution methods on `TestClient`, the most basic being `request`:
+- A deployed Aqueduct application has zero code differences from an Aqueduct application under test.
+- There are helpful utilities for writing tests in Aqueduct.
+
+## How Tests are Written
+
+A project created with `aqueduct create` contains a test harness (in `test/harness/app.dart`) for starting and stopping an application. A very simple harness looks like this:
 
 ```dart
-test("Test that this endpoint returns 200", () async {
-  var response = app.client.request("/endpoint").get();
+import 'package:myapp/myapp.dart';
+import 'package:aqueduct/test.dart';
+
+export 'package:myapp/myapp.dart';
+export 'package:aqueduct/test.dart';
+export 'package:test/test.dart';
+export 'package:aqueduct/aqueduct.dart';
+
+class TestApplication {
+  Application<AppSink> application;
+  AppSink get sink => application.mainIsolateSink;
+  TestClient client;
+
+  Future start() async {
+    RequestController.letUncaughtExceptionsEscape = true;
+    application = new Application<AppSink>();
+    application.configuration.port = 0;
+    application.configuration.configurationFilePath = "config.src.yaml";
+
+    await application.start(runOnMainIsolate: true);
+
+    client = new TestClient(application);
+  }
+
+  Future stop() async {
+    await application?.stop();
+  }  
+}
+```
+
+The type `AppSink` is replaced with your application's `RequestSink` subclass. A test file need only import this harness and start and stop the application in its `setUpAll` and `tearDownAll` callbacks:
+
+```dart
+import 'harness/app.dart';
+
+void main() {
+  var app = new TestApplication();
+  setUpAll(() async {
+    await app.start();
+  });
+
+  tearDownAll(() async {
+    await app.stop();
+  });
+}
+```
+
+Note that a test file must be in the `test/` directory of a project and its file name must end with `_test.dart`.
+
+When executing tests, you use the test harness' `client` to issue requests and verify their response:
+
+```dart
+test("That we get a 200 from /endpoint", () async {
+  var response = await app.client.request("/endpoint").get();
+
   expect(response, hasStatus(200));
 });
 ```
 
-The `request` method creates a new instance of `TestRequest`. A `TestRequest` is an object that represents an HTTP request, and it has execution methods like `get`, `post`, etc. as well as properties for setting headers, query parameters and an HTTP body. Here's a configured `TestRequest`:
+## Using a TestClient
+
+A `TestClient` creates requests (instances of `TestRequest`), which have execution methods (like `get` and `post`) that returns responses (instances of `TestResponse`). The purpose of an Aqueduct test is to ensure that a request elicits the intended response. For example, you may want to make sure that a request with all the right parameters returns a response with the expected status code and JSON response body. Likewise, you may want to ensure that a request with some invalid parameters returns a response with the appropriate error information.
+
+A `TestClient` provides constant information - like the base URL, default headers or default credentials - to the instances of `TestRequest` it creates. There are three methods for creating a request. The path is a required argument to each and need not include the base URL, port or any other information other than the path. The most basic method for creating a request is simply `request` (we'll discuss the other three shortly):
 
 ```dart
-app.client.request("/endpoint")
-  ..queryParameters = {"q": 1},
-  ..headers = {"Header": "value"}
-  ..body = "...";
+var request = app.client.request("/endpoint");
 ```
 
-Query parameter values are URL string encoded.
-
-There are conveniences for adding authorization info:
+A `TestRequest` can be configured with additional headers, request body data and query parameters before being executed. There are conveniences for different types of data. For example, it is often the case to add a JSON request body. The following will automatically encode a JSON request body from Dart objects and set the Content-Type of the request to `application/json; charset=utf-8`:
 
 ```dart
-app.client.request("/endpoint")
-  ..setBasicAuthorization("username", "password");
-
-app.client.request("/endpoint")
-  ..bearerAuthorization(bearerToken);
+var request = app.client.request("/endpoint")
+  ..json = {
+    "id": 1,
+    "something": "else"
+  };
 ```
 
-There are also conveniences for setting the body of the request. The following code both encodes the body argument as JSON and sets the content-type header to `application/json`:
+Headers can be added directly with `headers` or `addHeader`, where some more commonly used headers have exposed properties:
 
 ```dart
-app.client.request("/endpoint")
-  ..json = {"key": "value"};
+request
+  ..addHeader("x-application-id", "something")
+  ..accept = [ContentType.JSON];
 ```
 
-A similar property named `formData` exists for `x-www-form-urlencoded` bodies.
-
-The other two variants of `request` are `clientAuthenticatedRequest` and `authenticatedRequest`. A `clientAuthenticatedRequest` includes a Basic Authorization header, while an `authenticatedRequest` includes a Bearer Authorization header.
-
-A `TestClient` has default values for both bearer and basic authorization headers. For example, the test harness sets the default credentials for a `clientAuthenticatedRequest` to the testing client ID. When creating a `clientAuthenticatedRequest` and not specifying the client ID and secret, those values are used:
+Once configured, an execution method returns a `Future<TestResponse>` for the request. There are execution methods for each of the primary HTTP methods:
 
 ```dart
-var request = app.client.clientAuthenticatedRequest("/endpoint");
-// request's authorization header is: Basic base64(com.aqueduct.test:kilimanjaro)
+var response = await request.post();
 ```
 
-The default can be replaced with optional arguments:
+See a [later section](#verifying-responses) on how to verify elements of a response.
+
+### Testing Authorized Endpoints
+
+Most applications will have some form of authorization for its endpoints. For this purpose, both `TestClient` and `TestRequest` have behavior for managing authorization headers during testing. A `TestRequest`'s authorization header can be set by one of the two following methods:
+
+```dart
+// Base64 encodes username:password, sets 'Authorization: Basic base64String'
+request.setBasicAuthorization("username", "password");
+
+// Sets 'Authorization: Bearer Abcaklaerj893r3jnjkn'
+request.bearerAuthorization = "Abcaklaerj893r3jnjkn";
+```
+
+You may also create requests with an authorization header through `TestClient`:
 
 ```dart
 var request = app.client.clientAuthenticatedRequest(
-  "/endpoint", clientID: "foo", clientSecret: "bar");
+  "/endpoint", clientID: "username", clientSecret: "password");
+
+var request = app.client.authenticatedRequest(
+  "/endpoint", accessToken: "Abcaklaerj893r3jnjkn");
 ```
 
-The same goes for `authenticatedRequest`, except that there is no default value to begin with. It often makes sense to create a 'user' during the setup of tests and then set the default bearer token to that user's granted token:
+The value of `clientAuthenticatedRequest` and `authenticatedRequest` is that defaults can be provided to the `TestClient` for the username, password or access token.
 
 ```dart
-setUp(() async {
-  await app.start();
+app.client.defaultAccessToken = "Abcaklaerj893r3jnjkn";
 
-  var registerRequest = app.client.clientAuthenticatedRequest("/register")
-    ..json = {"email": "fred@fred.com", "password": "bob"};
-  var registerResponse = await registerRequest.post();
-  app.client.defaultAccessToken = registerResponse.asMap["access_token"];
-});
-
-test("With default bearer token", () async {
-  var response = await app.client.authenticatedRequest("/endpoint").get();
-  ...
-});
-
-test("With another bearer token", () async {
-  var response = await app.client
-    .authenticatedRequest("/endpoint", accessToken: "someOtherToken").get();
-  ...
-});
-
+// Automatically includes header 'Authorization: Bearer Abcaklaerj893r3jnjkn'.
+var request = app.client.authenticatedRequest("/endpoint");
 ```
 
-It's often useful to move this code into a method in the `TestApplication` itself.
+See a [later section](#configuring-the-test-harness) for more details on setting up tests that use authorization.
 
-### Matching Responses
+## Verifying Responses
 
-Tests for an Aqueduct application usually involve sending a request and verifying the response is what you expected. When a `TestRequest` is executed with a method like `get`, a `TestResponse` is returned. A `TestResponse` can be cherry-picked for information to validate, but there are also special test matchers in the `aqueduct/test` library. (This library is exported from the test harness file that ships with applications created by `aqueduct create`.)
+Once a `TestRequest` is executed and returns a `TestResponse`, the real work begins: verifying the response is what you expect. A `TestResponse` has properties for the things you would typically expect of an HTTP response: status code, headers and body. In addition to the raw string `body` property, the following body-inspecting properties exist:
 
-An example of a test that verifies a 200 status code response looks like this:
+- `decodedBody` is the object created by decoding the response body according to its content-type
+- `asList` is `decodedBody`, but cast to a `List`
+- `asMap` is `decodedBody`, but cast to a `Map`
 
-```dart
-test("Get 200", () async {
-  var response = await app.client.request("/endpoint").get();
-  expect(response, hasStatus(200));
-});
-```
+The great part about each of these three methods is that if the body cannot be decoded according to its content-type, or cannot be cast into the expected type, an exception is thrown and your tests fail. In other words, these methods implicitly test the validity of the response body.
 
-`hasStatus` is an Aqueduct matcher. It verifies that a `TestResponse`'s status code is 200. It's more likely that you are interested in verifying the body of a response using the `hasResponse` matcher. This matcher checks everything about a response.
+Using individual properties of a `TestResponse` in test expectations is a valid use case, but there are some more helpful utilities for verifying response that create more test code.
+
+The most important matcher is `hasResponse`. This matcher verifies a status code, headers and response body in a single function call. For example:
 
 ```dart
 test("Get 200 with key value pair", () async {
   var response = await app.client.request("/endpoint").get();
+
   expect(response, hasResponse(200, {
-      "key": "value"
+    "key": "value"
+  }, headers: {
+    "x-app": "abcd"
   }));
 });
 ```
 
-This will validate that not only does the response have a 200 status code, but its body - after decoding - is a `Map` that contains `key: value`. A `TestResponse` automatically decodes its HTTP body according to the Content-Type response header.
+This will validate that not only does the response have a 200 status code, but its body - after decoding - is a `Map` that contains `key: value` and it has the header `x-app: abcd`.
 
 Matchers from the official Dart test package can be mixed and matched into `hasResponse`:
 
@@ -129,19 +185,6 @@ test("Get 200 with a lot of key value pairs", () async {
   expect(response, hasResponse(200, everyElement({
       "count": greaterThan(1)
   })));
-});
-```
-
-The body of a `TestResponse` can also be accessed via `body`, `asMap`, and `asList`.
-
-```dart
-test("Get 200 with more than five key value pairs", () async {
-  var response = await app.client.request("/endpoint").get();
-  expect(response, hasResponse(200, everyElement({
-      "count": greaterThan(1)
-  })));
-
-  expect(response.asList, hasLength(greaterThan(5)));
 });
 ```
 
@@ -173,114 +216,159 @@ test("Get 200 that at least have these keys", () async {
 
 This ensures that `key3` is not in the map. This is different than verifying `key3: null`, which would be true if `key3`'s value was actually the null value. See the API reference for more matchers.
 
-### Verifying Other Information
+See the [API Reference](https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.test/aqueduct.test-library.html) for `aqueduct/test` for more behaviors.
 
-Sometimes, the response to a request doesn't have all of the information that needs to be verified. For example, a request that triggers the Aqueduct application to send a request to some other server can't always be verified through the response. The `MockHTTPServer` makes it easy to check if the request triggered another request.
+### Verifying Other Data Not in the Response
+
+Some requests will trigger changes that are not readily available in the response. For example, if a request uploads a file, the response doesn't necessarily tell you that uploading succeeded. For that reason, you may want to verify data stores and other resources the application has after issuing a request.
+
+Recall from the test harness at the top of this guide, `Application.start` has the flag `runOnMainIsolate: true`. This is a special flag that turns off Aqueduct's multi-isolate behavior and is specifically used for testing. When running on the main isolate, the application's request channel and resources are directly available to the test code. This allows you to verify any expected side-effects of a request. For example, by executing a query against a database:
 
 ```dart
-setUp(() async {
+test("Starting an upload creates a pending record in the database", () async {
+  var req = app.client.request("/upload")
+    ..contentType = ContentType.TEXT
+    ..body = someFileContents;
+  var response = await req.post();
+  expect(response, hasStatus(202));
+
+  var query = new Query<Upload>()
+    ..where.pending = whereEqualTo(true);
+  var pendingUpload = await query.fetchOne();
+
+  expect(response.headers.value(HttpHeaders.LOCATION), pendingUpload.path);
+});
+```
+
+Anything the `RequestSink` can access, so too can the tests.
+
+## Configuring the Test Harness
+
+The test harness' primary responsibility is to start and stop the application. Recall from earlier in this guide, the test harness started an application like so:
+
+```dart
+Future start() async {
+  RequestController.letUncaughtExceptionsEscape = true;
+  application = new Application<AppSink>();
+  application.configuration.port = 0;
+  application.configuration.configurationFilePath = "config.src.yaml";
+
+  await application.start(runOnMainIsolate: true);
+
+  client = new TestClient(application);
+}
+```
+
+There are some interesting things to note here. First, the setting of `RequestController.letUncaughtExceptionsEscape`. This property defaults to false - if an unknown exception is thrown in request handling code, the `RequestController` catches it and send a 500 Server Error response to the client. This is an important behavior for a deployed Aqueduct application - the client gets back a response and your application continues running.
+
+However, when this flag is set to true, an uncaught exception will halt the application and fail the tests. This is the behavior you want during testing - it tells you something is wrong and gives you a stack trace to hunt down the problem.
+
+By setting the port number to 0, the application listens on a random, unused port. This allows test suites to run in parallel - the `TestClient` takes care of managing which port to send requests on for you.
+
+The concept and usage of `config.src.yaml` as a configuration file for tests is best explained in [this guide](../http/configure.md).
+
+For basic behavior, this test harness is suitable. If an application is using the ORM or OAuth 2.0 features of Aqueduct, it should also handle provisioning a temporary database and inserting client identifiers and their scope. (Note: if you create an application using the `db` or `db_and_auth` templates, the test harness is already configured in the following ways.)
+
+### Configuring a Database for Tests
+
+It is important that you fully control the data the application is using during testing, otherwise you may not be isolating and verifying the appropriate behavior. Aqueduct's testing strategy is to create all the tables for your application's database and seed them with data before a test, and then drop those tables at the end of a test. Because Aqueduct can build your data model as tables in a database, this behavior is effectively free.
+
+A test harness for an ORM application should have a method that creates a *temporary* `PersistentStore` and uploads the application's data model.
+
+```dart
+class TestApplication {
   ...
-  mockServer = new MockHTTPServer(4000);
-  await mockServer.open();
-});
+  static Future createDatabaseSchema(ManagedContext context) async {
+    var builder = new SchemaBuilder.toSchema(
+        context.persistentStore,
+        new Schema.fromDataModel(context.dataModel),
+        isTemporary: true);
 
-tearDown(() async {
-  await mockServer.close();
-});
-
-test("Sends message to Google", () async {
-  var response = await app.client.request("/do_google_stuff").get();
-
-  var outRequest = await mockServer.next();
-  expect(outRequest.method, "POST");
-  expect(outRequest.path, "/search");
-});
+    for (var cmd in builder.commands) {
+      await context.persistentStore.execute(cmd);
+    }
+  }
+}
 ```
 
-A `MockHTTPServer` always listens on localhost. You can specify the port. In practice, you will configure remote services like these through a configuration file. If in production, this outgoing request should go to `https://google.com`, the `config.yaml` file would have that value:
-
-```
-google:
-  url: https://google.com
-```
-
-But in the `config.yaml.src` file that drives the tests, this configuration value would point back locally to a port of your choosing:
-
-```
-google:
-  url: http://localhost
-  port: 4000
-```      
-
-You may also want to query the database a test application is working with. You can access any property of the application's `RequestSink` - including its `ManagedContext` - through the `TestApplication`.
+This method should be invoked within `TestApplication.start`, right after the application is started.
 
 ```dart
-test("ensure we hashed the password", () async {
-  var response = await (app.client.request("/register")
-    ..json = {"email": "a@b.com", "password": "foo"}).get();
+Future start() async {
+  RequestController.letUncaughtExceptionsEscape = true;
+  application = new Application<FoobarSink>();
+  application.configuration.port = 0;
+  application.configuration.configurationFilePath = "config.src.yaml";
 
-  var passwordQuery = new Query<User>(app.mainIsolateSink.context)
-    ..where.email = whereEqualTo("a@b.com");
-  var user = await passwordQuery.fetchOne();
-  expect(AuthUtility.generatePasswordHash("foo", user.salt), user.password);
-});
+  await application.start(runOnMainIsolate: true);
+
+  await createDatabaseSchema(ManagedContext.defaultContext);
+
+  client = new TestClient(application);
+}
 ```
 
+Notice that the `ManagedContext.defaultContext` will have already been set by the application's `RequestSink`.
 
-# Using the Test Harness
+After a test is executed, the test database should be cleared of data so that none of the stored data test leaks into the next test. Because starting and stopping an application isn't a cheap operation, it is often better to simply delete the contents of the database rather than restart the whole application. This is why the flag `isTemporary` in `SchemaBuilder.toSchema` matters: it creates *temporary* tables that only live as long as the database connection. By simply reconnecting to the database, all of the tables and data created are discard. Therefore, all you have to do is close the connection and add the database schema again.
 
-When creating an application with `aqueduct create`, a test harness class is available in `test/harness/app.dart`. It is responsible for starting a temporary, local instance of an application before tests run and stopping it once tests have finished.
+Here's a method to add to a test harness to do that. (Note that a connection is always reopened anytime a persistent store attempts to execute a query.)
 
-It is required that you run the `aqueduct setup` command prior to running Aqueduct application tests. (See [Getting Started](../index.md#getting-started).)
+```dart
+Future discardPersistentData() async {
+  await ManagedContext.defaultContext.persistentStore.close();
+  await createDatabaseSchema(ManagedContext.defaultContext);
+}
+```
 
-A test file, then, only needs to import this harness and start and stop the application to enable testing. Here's an example of a test file:
+This method gets invoked in the `tearDown` of your tests. It runs after each test.
 
 ```dart
 import 'harness/app.dart';
 
 void main() {
-  TestApplication app = new TestApplication();
-
-  setUp(() async {
-    await app.start();  
+  var app = new TestApplication();
+  setUpAll(() async {
+    await app.start();
   });
 
-  tearDown(() async {
+  tearDownAll(() async {
     await app.stop();
   });
 
-  test("...", () async {
-    var response = await app.client.request("/endpoint").get();
-    expect(response, hasStatus(200));
+  tearDown(() async {
+    await app.discardPersistentData();
   });
 }
 ```
 
-Note that the app harness file exports the Dart test package and Aqueduct's test helper package.
+### Configuring OAuth 2.0 for Tests
 
-Before each test is run, the `TestApplication` harness is started. This harness starts your application running locally. Tests can issue requests to the application through its `client`, which is covered in more detail [here](test_client.md).
-
-There are a few important details to understand about the `TestApplication` when it is started.
-
-An Aqueduct application will likely read values from a configuration file. The convention for configuration files in Aqueduct applications is to have two files: a template file that is checked into version control (`config.yaml.src`) and a deployed file that exists on a machine running a deployed instance of the application (`config.yaml`).
-
-By default, a project created with `aqueduct create` follows this convention. The file `config.yaml.src` is created when the project is created. It is the 'template' for your application's configuration file. As your configuration needs change, your modify the `config.yaml.src` file to include all of the keys that a deployed `config.yaml` file should have.
-
-The test harness uses the values from `config.yaml.src` to configure the test instance of the application. This is very valuable: it ensures that the application you are testing is being configured in the same way as the deployed application. It also allows you to choose appropriate test configuration values for your test application so that things that need to be mocked can be driven by the values in the template configuration file.
-
-On startup, the `TestApplication` will add a temporary version of your application's database schema to a local database. The database connection information comes from `config.yaml.src` - which defaults to and should stay `postgres://dart:dart@localhost:5432/dart_test`. This database is set up by the `aqueduct setup` command. Once your tests run, all of the created tables are deleted.
-
-Because most applications will use Aqueduct's Auth framework, it is required that an application have valid client ID and client secrets during testing to issue authorization tokens. By default, a single client ID/secret pair is added when starting the application: `com.aqueduct.test`/`kilimanjaro`. If your application uses scopes or has behavioral differences for client IDs, you'll need to add those client IDs with `TestApplication.addClientRecord`. This can be done by adding the code to the test harness's `start` method.
-
-You may modify the `TestApplication` to do any additional work that your application needs to do prior during startup.
-
-A `TestApplication` has a `client` property that executes requests against the application. The client is configured such that making requests only requires the path. The following sends a request for `GET /users` to the application, regardless of the host or port the application is listening on.
+An application that uses types like `AuthServer` and `Authorizer` must have valid client IDs for testing. These are best set up in a test harness. Here's a method to add to a test harness to create client identifiers when using `ManagedAuthStorage`:
 
 ```dart
-var app = new TestApplication();
-var response = await app.client.request("/users").get;
+static Future<ManagedClient> addClientRecord(
+    {String clientID: "default",
+    String clientSecret: "default"}) async {
+  var salt;
+  var hashedPassword;
+  if (clientSecret != null) {
+    salt = AuthUtility.generateRandomSalt();
+    hashedPassword = AuthUtility.generatePasswordHash(clientSecret, salt);
+  }
+
+  var clientQ = new Query<ManagedClient>()
+    ..values.id = clientID
+    ..values.salt = salt
+    ..values.hashedSecret = hashedPassword;
+  return clientQ.insert();
+}
 ```
 
-More details about the `client` are available in the next guide, [TestClient](test_client.md).
+This method is invoked doing application startup and again after persistent data is discarded. Additionally, when creating a test client, it often makes sense to set the its default client ID and secret to some default client identifier:
 
-Lastly, a `TestApplication` runs its `RequestSink` on the main isolate - the same isolate that is running your tests. This allows your tests to peek at values inside the `RequestSink` and ensures there is only one database connection, since that connection is the only one that has access to the database schema.
+```dart
+client = new TestClient(application)
+  ..clientID = DefaultClientID
+  ..clientSecret = DefaultClientSecret;
+```
