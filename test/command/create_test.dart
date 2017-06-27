@@ -9,7 +9,9 @@ Directory temporaryDirectory =
     new Directory.fromUri(Directory.current.uri.resolve("test_project"));
 
 void main() {
-  setUp(() {});
+  setUpAll(() {
+    Process.runSync("pub", ["global", "activate", "-spath", Directory.current.path]);
+  });
 
   tearDown(() {
     if (temporaryDirectory.existsSync()) {
@@ -112,8 +114,7 @@ void main() {
 }
 
 Future<CLIResult> runWith(List<String> args) {
-  var aqueductDirectory = Directory.current.path;
-  var allArgs = ["create", "--path-source", "$aqueductDirectory"];
+  var allArgs = ["create"];
   allArgs.addAll(args);
 
   return runAqueductProcess(allArgs, Directory.current);

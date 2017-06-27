@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:path/path.dart' as path_lib;
 import 'package:pub_cache/pub_cache.dart';
 
-import '../http/documentable.dart';
 import 'base.dart';
 
 /// Used internally.
@@ -23,7 +22,6 @@ class CLITemplateCreator extends CLICommand with CLIAqueductGlobal {
   String get templateName => values["template"];
   String get projectName => values.rest.length > 0 ? values.rest.first : null;
   bool get offline => values["offline"];
-  PubCache pub = new PubCache();
 
   @override
   Future<int> handle() async {
