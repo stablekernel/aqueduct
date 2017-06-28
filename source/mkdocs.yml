@@ -63,3 +63,7 @@ pages:
   - 'Deploying without aqueduct serve': 'deploy/script.md'
 - Command-line Tooling:
   - 'Overview': 'cli/overview.md'
+  - 'Creating Applications': 'cli/create.md'
+  - 'Running Applications': 'cli/running.md'
+  - 'Generating an OpenAPI/Swagger Specification': 'cli/document.md'
+  - 'Other Tools': 'cli/setup.md'
