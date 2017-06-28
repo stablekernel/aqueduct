@@ -87,7 +87,7 @@ The required `pubspec.yaml` and `lib/application_name.dart` files are present al
 - `application_name_sink.dart`: A file solely for the `RequestSink` of an application. This file should be *exported* from `application_name.dart`.
 - `controller/`: A directory for `RequestController` subclass files.
 - `model/`: A directory for `ManagedObject<T>` subclass files.
-- `test/harness/app.dart`: A [test harness](../testing/harness.md)) for automated testing.
+- `test/harness/app.dart`: A [test harness](../testing/tests.md)) for automated testing.
 
 Feel free to create other subdirectories in `lib/` for organizing other types of files.
 
