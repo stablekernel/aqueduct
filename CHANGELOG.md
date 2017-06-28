@@ -7,7 +7,8 @@
 - Adds `Query.forEntity` and `ManagedObjectController.forEntity` to dynamically instantiate these types, i.e. use runtime values to build the query.
 - Adds `PersistentStore.newQuery` - allows a `PersistentStore` implementation to provide its own implementation of `Query` specific to its underlying database.
 - Adds `Query.reduce` to perform aggregate functions on database tables, e.g. sum, average, maximum, etc.
-
+- `enum`s may be used as persistent properties in `ManagedObject<T>`. The underlying database will store them a strings.
+- Speed of generating a template project has been greatly improved.
 
 ## 2.2.2
 
