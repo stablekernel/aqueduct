@@ -5,13 +5,6 @@ Future main() async {
 
   setUpAll(() async {
     await app.start();
-    var req = app.client.clientAuthenticatedRequest("/register")
-      ..json = {
-        "username": "bob@stablekernel.com",
-        "password": "foobaraxegrind12%"
-      };
-
-    app.client.defaultAccessToken = (await req.post()).asMap["access_token"];
   });
 
   tearDownAll(() async {
@@ -24,7 +17,14 @@ Future main() async {
 
   group("Success cases", () {
     test("Identity returns user associated with bearer token", () async {
-      var req = app.client.authenticatedRequest("/me");
+      var req = app.client.clientAuthenticatedRequest("/register")
+        ..json = {
+          "username": "bob@stablekernel.com",
+          "password": "foobaraxegrind12%"
+        };
+
+      var accessToken = (await req.post()).asMap["access_token"];
+      req = app.client.authenticatedRequest("/me", accessToken: accessToken);
       var result = await req.get();
 
       expect(
