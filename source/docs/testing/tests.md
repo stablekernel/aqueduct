@@ -71,7 +71,7 @@ test("That we get a 200 from /endpoint", () async {
 
 ## Using a TestClient
 
-A `TestClient` creates requests (instances of `TestRequest`), which have execution methods (like `get` and `post`) that returns responses (instances of `TestResponse`). The purpose of an Aqueduct test is to ensure that a request elicits the intended response. For example, you may want to make sure that a request with all the right parameters returns a response with the expected status code and JSON response body. Likewise, you may want to ensure that a request with some invalid parameters returns a response with the appropriate error information.
+A `TestClient` creates requests (instances of `TestRequest`), which have execution methods (like `get` and `post`) that return responses (instances of `TestResponse`). The purpose of an Aqueduct test is to ensure that a request elicits the intended response. For example, you may want to make sure that a request with all the right parameters returns a response with the expected status code and JSON response body. Likewise, you may want to ensure that a request with some invalid parameters returns a response with the appropriate error information.
 
 A `TestClient` provides constant information - like the base URL, default headers or default credentials - to the instances of `TestRequest` it creates. There are three methods for creating a request. The path is a required argument to each and need not include the base URL, port or any other information other than the path. The most basic method for creating a request is simply `request` (we'll discuss the other three shortly):
 
@@ -148,7 +148,7 @@ Once a `TestRequest` is executed and returns a `TestResponse`, the real work beg
 
 The great part about each of these three methods is that if the body cannot be decoded according to its content-type, or cannot be cast into the expected type, an exception is thrown and your tests fail. In other words, these methods implicitly test the validity of the response body.
 
-Using individual properties of a `TestResponse` in test expectations is a valid use case, but there are some more helpful utilities for verifying response that create more test code.
+Using individual properties of a `TestResponse` in test expectations is a valid use case, but there are some more helpful utilities for verifying responses more clearly.
 
 The most important matcher is `hasResponse`. This matcher verifies a status code, headers and response body in a single function call. For example:
 
@@ -310,7 +310,7 @@ Future start() async {
 
 Notice that the `ManagedContext.defaultContext` will have already been set by the application's `RequestSink`.
 
-After a test is executed, the test database should be cleared of data so that none of the stored data test leaks into the next test. Because starting and stopping an application isn't a cheap operation, it is often better to simply delete the contents of the database rather than restart the whole application. This is why the flag `isTemporary` in `SchemaBuilder.toSchema` matters: it creates *temporary* tables that only live as long as the database connection. By simply reconnecting to the database, all of the tables and data created are discard. Therefore, all you have to do is close the connection and add the database schema again.
+After a test is executed, the test database should be cleared of data so that none of the stored data test leaks into the next test. Because starting and stopping an application isn't a cheap operation, it is often better to simply delete the contents of the database rather than restart the whole application. This is why the flag `isTemporary` in `SchemaBuilder.toSchema` matters: it creates *temporary* tables that only live as long as the database connection. By simply reconnecting to the database, all of the tables and data created are discarded. Therefore, all you have to do is close the connection and add the database schema again.
 
 Here's a method to add to a test harness to do that. (Note that a connection is always reopened anytime a persistent store attempts to execute a query.)
 

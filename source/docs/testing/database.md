@@ -49,7 +49,7 @@ aqueduct serve -c local.yaml
 
 ## Have Scripts to Provision Based on Scenarios
 
-It is often the case that you will want to have a certain set of data in an local database for the purpose of testing a client application. Create `bin` scripts to provision the database and add the desired data. For example, you might have a script named `bin/ios_integration.dart` that re-provision a database and inserts data into it using `Query<T>` instances and the `ManagedObject<T>`s declared in your application.
+It is often the case that you will want to have a certain set of data in an local database for the purpose of testing a client application. Create `bin` scripts to provision the database and add the desired data. For example, you might have a script named `bin/ios_integration.dart` that re-provisions a database and inserts data into it using `Query<T>` instances and the `ManagedObject<T>`s declared in your application.
 
 ```dart
 import 'dart:io';

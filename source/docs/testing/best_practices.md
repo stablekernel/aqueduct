@@ -25,7 +25,7 @@ Future main() async {
 
 ### Create New Projects from a Template
 
-Use `aqueduct create` to create applications with the appropriate structure and boilerplate. There are multiple templates for different kinds of applications; view these templates with subcommands within `aqueduct create`.
+Use `aqueduct create` to create applications with the appropriate structure and boilerplate. There are templates for different kinds of applications; view these templates with `aqueduct create list-templates`.
 
 ### Use a Debugger
 

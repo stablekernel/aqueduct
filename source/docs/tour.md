@@ -264,8 +264,6 @@ class _Employee  {
 }
 ```
 
-Each property in the private class
-
 `ManagedObject<T>`s have relationship properties for has-one, has-many and many-to-many references to other `ManagedObject<T>`s. The property with `ManagedRelationship` metadata is a foreign key column.
 
 ```dart

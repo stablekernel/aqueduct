@@ -67,7 +67,7 @@ Aqueduct uses two configuration files for a project: `config.yaml` and `config.s
 This pattern is used for two reasons:
 
 - It is the template for the `config.yaml` that will be read on deployed applications, providing documentation for your application's configuration.
-- It has the configurations values used during testing to inject mock dependencies.
+- It has the configuration values used during testing to inject mock dependencies.
 
 For example, a production API instance might have the following `config.yaml` file with connection info for a production database:
 

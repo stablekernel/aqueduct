@@ -6,4 +6,4 @@ The `aqueduct document` tool generates an OpenAPI (formerly Swagger) specificati
 aqueduct document > swagger.json
 ```
 
-The file `config.src.yaml` must exists in your project directory so that the application can be initialized in 'test' mode for the documentation to be generated.
+The file `config.src.yaml` must exist in your project directory so that the application can be initialized in 'test' mode for the documentation to be generated.

@@ -19,7 +19,7 @@ test("Will get correct user from GitHub", () async {
 });
 ```
 
-In the above code, we expecting that anytime the request `GET /github_profile/fred` is sent to your application, that it turns around and searches for a user in GitHub's API. This test ensures that we have correctly translated our request to a request to be made to the GitHub API. If no request was made - because of a programmer error - this test would fail because the `Future` returned from `githubMock.next()` would never complete. There is no next request, because none was ever delivered!
+In the above code, we are expecting that anytime the request `GET /github_profile/fred` is sent to your application, that it turns around and searches for a user in GitHub's API. This test ensures that we have correctly translated our request to a request to be made to the GitHub API. If no request was made - because of a programmer error - this test would fail because the `Future` returned from `githubMock.next()` would never complete. There is no next request, because none was ever delivered!
 
 By default, any request sent to a `MockHTTPServer` is a 200 OK Response with an empty body. You may change this behavior by queuing responses in a mock server.
 
