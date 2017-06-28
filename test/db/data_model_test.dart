@@ -298,6 +298,15 @@ void main() {
               .contains("foreignKeyColumn"),
           true);
     });
+
+    test("Can override property in partial and modify attrs/validators", () {
+      var dataModel = new ManagedDataModel([OverriddenTotalModel, PartialReferenceModel]);
+
+      var entity = dataModel.entityForType(OverriddenTotalModel);
+      var field = entity.attributes["field"];
+      expect(field.isUnique, true);
+      expect(field.validators.length, 1);
+    });
   });
 
   test("Delete rule of setNull throws exception if property is not nullable",
@@ -665,6 +674,14 @@ class _TotalModel extends PartialModel {
   String addedField;
 }
 
+class OverriddenTotalModel extends ManagedObject<_OverriddenTotalModel> implements _OverriddenTotalModel {}
+class _OverriddenTotalModel extends PartialModel {
+  @override
+  @ManagedColumnAttributes(indexed: true, unique: true)
+  @Validate.oneOf(const ["a", "b"])
+  String field;
+}
+
 class PartialModel {
   @managedPrimaryKey
   int id;
@@ -902,3 +919,4 @@ class _EnumObject {
 enum EnumValues {
   abcd, efgh, other18
 }
+

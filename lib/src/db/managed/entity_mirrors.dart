@@ -4,11 +4,40 @@ import 'validate.dart';
 import '../../utilities/mirror_helpers.dart';
 
 List<VariableMirror> instanceVariablesFromClass(ClassMirror classMirror) {
-  return classHierarchyForClass(classMirror)
+  var allDeclarations = classHierarchyForClass(classMirror)
       .expand((cm) => cm.declarations.values
           .where(isInstanceVariableMirror)
           .map((d) => d as VariableMirror))
       .toList();
+
+  var duplicates = <VariableMirror>[];
+  var asSet = allDeclarations.fold(<VariableMirror>[], (List<VariableMirror> acc, decl) {
+      if (!acc.any((vm) => vm.simpleName == decl.simpleName)) {
+        acc.add(decl);
+      } else {
+        duplicates.add(decl);
+      }
+      return acc;
+  });
+
+  if (duplicates.isEmpty) {
+    return allDeclarations;
+  }
+
+  // Find best representation - i.e., the deepest in the class hierarchy
+
+  duplicates.forEach((dupe) {
+    var otherRepresentation = asSet.firstWhere((vm) => vm.simpleName == dupe.simpleName);
+    var dupeDepth = classHierarchyForClass(dupe.owner).length;
+    var otherDepth = classHierarchyForClass(otherRepresentation.owner).length;
+
+    if (dupeDepth > otherDepth) {
+      asSet.remove(otherRepresentation);
+      asSet.add(dupe);
+    }
+  });
+
+  return asSet;
 }
 
 VariableMirror instanceVariableFromClass(ClassMirror classMirror, Symbol name) {
