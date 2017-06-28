@@ -1,10 +1,12 @@
 ## Tasks
 
-Aqueduct's aim is to make developers productive, and testing is an important part of being productive. Therefore, Aqueduct has helpful utilities for testing an application.
-
-Aqueduct tests run the application locally, which connects to a temporary, local database. Requests are issued in tests with a `TestClient` that makes configuring requests simple. Specialized test matchers - in the Hamcrest matcher style - validate request responses and can be mix and matched with the official Dart test package matchers.
+Aqueduct applications can be run, tested, debugged and profiled.
 
 ## Guides
 
-- [Using a Test Harness](harness.md)
-- [Executing Requests and Validating Responses](test_client.md)
+- [Best Practices for Aqueduct Development](best_practices.md)
+- [Using a Local Database](database.md)
+- [Developing Client Applications](clients.md)
+- [Using the Debugger and Profiling](debugger.md)
+- [Writing Tests](tests.md)
+- [Use Mock Services](mock.md)

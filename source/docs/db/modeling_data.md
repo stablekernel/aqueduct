@@ -37,6 +37,7 @@ Persistent types define the mapping between your managed objects and a database 
 * `String`
 * `DateTime`
 * `bool`
+* Any `enum`
 
 Properties that are one of these types are more referred to as the *attributes* of an entity. Properties that are references to other model objects - which we will see later - are called *relationships*. Collectively, attributes and relationships are called *properties*.
 
@@ -86,6 +87,40 @@ class _User {
 ```
 
 Note that the specific database driver determines whether or not the table name is case-sensitive or not. The included database driver for PostgreSQL automatically lowercases table names and is case-insensitive.
+
+### Enum Type Persistent Properties
+
+When a persistent property is an `enum` type, the enumeration is stored as a string in the database. Consider the following definition where a user can be an admin or a normal user:
+
+```dart
+enum UserType {
+  admin, user
+}
+
+class User extends ManagedObject<_User> implements _User {}
+class _User {
+  @managedPrimaryKey
+  int id;
+
+  String name;
+  UserType type;
+}
+```
+
+Your code works be assigning valid enumeration cases to the `User.type` property:
+
+```dart
+var query = new Query<User>()
+  ..values.name = "Bob"
+  ..values.type = UserType.admin;
+var bob = await query.insert();
+
+query = new Query<User>()
+  ..where.type = whereEqualTo(UserType.admin);
+var allAdmins = await query.fetch();
+```
+
+In the underlying database, the `type` column is stored as a string. Its value is either "admin" or "user" - which is derived from the two enumeration case names. A enumerated type property has an implicit `Validate.oneOf` validator that asserts the value is one of the valid enumeration cases.
 
 ### ManagedObject<T>
 
