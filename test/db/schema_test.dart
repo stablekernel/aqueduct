@@ -538,6 +538,43 @@ void main() {
       expect(lowercaseSchema.differenceFrom(uppercaseSchema).hasDifferences,
           false);
     });
+
+    test("A model with an overridden property from a partial", () {
+      var dataModel = new ManagedDataModel([OverriddenModel]);
+      var schema = new Schema.fromDataModel(dataModel);
+      expect(schema.tables.length, 1);
+      var t = schema.tables.first;
+
+      expect(t.name, "_OverriddenModel");
+      var tableColumns = t.columns;
+      expect(tableColumns.length, 2);
+      expect(tableColumns.firstWhere((sc) => sc.name == "id").asMap(), {
+        "name": "id",
+        "type": "bigInteger",
+        "nullable": false,
+        "autoincrement": true,
+        "unique": false,
+        "defaultValue": null,
+        "primaryKey": true,
+        "relatedTableName": null,
+        "relatedColumnName": null,
+        "deleteRule": null,
+        "indexed": false
+      });
+      expect(tableColumns.firstWhere((sc) => sc.name == "field").asMap(), {
+        "name": "field",
+        "type": "string",
+        "nullable": false,
+        "autoincrement": false,
+        "unique": true,
+        "defaultValue": null,
+        "primaryKey": false,
+        "relatedTableName": null,
+        "relatedColumnName": null,
+        "deleteRule": null,
+        "indexed": true
+      });
+    });
   });
 }
 
@@ -631,4 +668,20 @@ class _ExtensiveModel {
       indexed: true,
       autoincrement: true)
   int loadedValue;
+}
+
+class OverriddenModel extends ManagedObject<_OverriddenModel> implements _OverriddenModel {}
+class _OverriddenModel extends PartialModel {
+  @override
+  @ManagedColumnAttributes(indexed: true, unique: true)
+  @Validate.oneOf(const ["a", "b"])
+  String field;
+}
+
+class PartialModel {
+  @managedPrimaryKey
+  int id;
+
+  @ManagedColumnAttributes(indexed: true)
+  String field;
 }

@@ -3,11 +3,22 @@ import 'managed.dart';
 import 'validate.dart';
 import '../../utilities/mirror_helpers.dart';
 
+// Expanding the list of ivars for each class yields duplicates of
+// any ivar is overridden. Since the order in which ivars are returned
+// is known (a subclass' ivars always come before its superclass'),
+// we can simply fold this list so that the first ivar 'wins'.
 List<VariableMirror> instanceVariablesFromClass(ClassMirror classMirror) {
   return classHierarchyForClass(classMirror)
       .expand((cm) => cm.declarations.values
           .where(isInstanceVariableMirror)
-          .map((d) => d as VariableMirror))
+          .map((decl) => decl as VariableMirror))
+      .fold(<VariableMirror>[], (List<VariableMirror> acc, decl) {
+        if (!acc.any((vm) => vm.simpleName == decl.simpleName)) {
+          acc.add(decl);
+        }
+
+        return acc;
+      })
       .toList();
 }
 
