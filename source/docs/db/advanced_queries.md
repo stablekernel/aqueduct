@@ -1,4 +1,4 @@
-# Advanced Queries: Filtering, Joins and Paging
+# Advanced Queries: Filtering, Joins, Paging and Reduce
 
 ## Paging Fetched Result Sets
 
@@ -255,6 +255,29 @@ var q = new Query<User>()
 ```
 
 Note that a query will always fetch the primary key of all objects, even if it is omitted in `returningProperties`.
+
+## Reduce Functions (aka, Aggregate Functions)
+
+Queries can also be used to perform functions like `count`, `sum`, `average`, `min` and `max`. Here's an example:
+
+```dart
+var query = new Query<User>();
+var numberOfUsers = await query.reduce.count();
+```
+
+For reduce functions that use the value of some property, a property selector is used to identify that property.
+
+```dart
+var averageSalary = await query.reduce.sum((u) => u.salary);
+```
+
+Any values configured in a `Query<T>` also impact the `reduce` function. For example, applying a `Query.where` and then executing a `sum` function will only sum the rows that meet the criteria of the where clause:
+
+```dart
+var query = new Query<User>()
+  ..where.name = "Bob";
+var averageSalaryOfPeopleNamedBob = await query.reduce.sum((u) => u.salary);
+```
 
 ## Fallbacks
 
