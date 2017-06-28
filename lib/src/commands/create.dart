@@ -2,30 +2,16 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:path/path.dart' as path_lib;
+import 'package:pub_cache/pub_cache.dart';
 
-import '../http/documentable.dart';
 import 'base.dart';
 
 /// Used internally.
-class CLITemplateCreator extends CLICommand {
+class CLITemplateCreator extends CLICommand with CLIAqueductGlobal {
   CLITemplateCreator() {
     options
       ..addOption("template",
           abbr: "t", help: "Name of the template to use", defaultsTo: "default")
-      ..addOption("template-directory", hide: true)
-      ..addOption("git-url",
-          help:
-              "Git url, will trigger generating the template from the specified git repository instead of pub.")
-      ..addOption("git-ref",
-          defaultsTo: "master",
-          help:
-              "Git reference (branch or commit), will trigger generating the template from the git repository instead of pub.")
-      ..addOption("path-source",
-          help:
-              "Full path on filesystem, will trigger generating the template from the aqueduct source at path-source instead of pub.")
-      ..addOption("version",
-          defaultsTo: "any",
-          help: "Version string for aqueduct on pub for template source.")
       ..addFlag("offline",
           negatable: false,
           help: "Will fetch dependencies from a local cache if they exist.");
@@ -34,12 +20,7 @@ class CLITemplateCreator extends CLICommand {
   }
 
   String get templateName => values["template"];
-  String get templateDirectory => values["template-directory"];
   String get projectName => values.rest.length > 0 ? values.rest.first : null;
-  String get gitURL => values["git-url"];
-  String get gitRef => values["git-ref"];
-  String get pathSource => values["path-source"];
-  String get version => values["version"];
   bool get offline => values["offline"];
 
   @override
@@ -62,29 +43,24 @@ class CLITemplateCreator extends CLICommand {
 
     destDirectory.createSync();
 
-    var aqueductPath = await determineAqueductPath(
-        destDirectory, aqueductDependencyString,
-        offline: offline);
-    var sourceDirectory = new Directory(
-        path_lib.join(aqueductPath, "example", "templates", templateName));
+    var aqueductDirectory = aqueductPackageRef.resolve().location;
+    displayProgress("Aqueduct directory is: ${aqueductDirectory.path}");
+    var templateURI = aqueductDirectory.uri
+        .resolve("example/").resolve("templates/").resolve(templateName + "/");
+    var templateSourceDirectory = new Directory.fromUri(templateURI);
 
-    if (templateDirectory != null) {
-      sourceDirectory =
-          new Directory(path_lib.join(templateDirectory, templateName));
-    }
-
-    if (!sourceDirectory.existsSync()) {
-      displayError("No template at ${sourceDirectory.path}.");
+    if (!templateSourceDirectory.existsSync()) {
+      displayError("No template at ${templateSourceDirectory.path}.");
       return 1;
     }
 
-    displayProgress("Template source is: ${sourceDirectory.path}");
+    displayProgress("Template source is: ${templateSourceDirectory.path}");
     displayProgress("See more templates with 'aqueduct create list-templates'");
-    copyProjectFiles(destDirectory, sourceDirectory, projectName);
+    copyProjectFiles(destDirectory, templateSourceDirectory, projectName);
 
-    createProjectSpecificFiles(destDirectory.path, aqueductDependencyString);
+    createProjectSpecificFiles(destDirectory.path);
     replaceAqueductDependencyString(
-        destDirectory.path, aqueductDependencyString);
+        destDirectory.path, getAqueductDependencyStringFromPackage(aqueductPackageRef));
 
     displayInfo(
         "Fetching project dependencies (pub get --no-packages-dir ${offline ? "--offline" : ""})...");
@@ -98,33 +74,6 @@ class CLITemplateCreator extends CLICommand {
         "See ${destDirectory.path}${path_lib.separator}README.md for more information.");
 
     return 0;
-  }
-
-  Future<String> determineAqueductPath(
-      Directory projectDirectory, String aqueductVersion,
-      {bool offline: false}) async {
-    var split = aqueductVersion.split("aqueduct:").last.trim();
-
-    displayInfo("Fetching Aqueduct templates ($split)...");
-    var temporaryPubspec = generatingPubspec(aqueductVersion);
-
-    new File(path_lib.join(projectDirectory.path, "pubspec.yaml"))
-        .writeAsStringSync(temporaryPubspec);
-
-    await runPubGet(projectDirectory, offline: offline);
-
-    var resolver = new PackagePathResolver(
-        path_lib.join(projectDirectory.path, ".packages"));
-    var resolvedURL =
-        resolver.resolve(new Uri(scheme: "package", path: "aqueduct"));
-
-    new File(path_lib.join(projectDirectory.path, "pubspec.yaml")).deleteSync();
-    new File(path_lib.join(projectDirectory.path, ".packages")).deleteSync();
-
-    var path = path_lib.normalize(resolvedURL + "..");
-    displayProgress("Aqueduct directory is: $path");
-
-    return path;
   }
 
   bool shouldIncludeItem(FileSystemEntity entity) {
@@ -218,8 +167,7 @@ class CLITemplateCreator extends CLICommand {
     return new Directory(currentDirPath);
   }
 
-  void createProjectSpecificFiles(
-      String directoryPath, String aqueductVersion) {
+  void createProjectSpecificFiles(String directoryPath) {
     displayProgress("Generating config.yaml from config.src.yaml.");
     var configSrcPath =
         new File(path_lib.join(directoryPath, "config.src.yaml"));
@@ -255,29 +203,12 @@ class CLITemplateCreator extends CLICommand {
     }
   }
 
-  String get aqueductDependencyString {
-    var str = "aqueduct: ";
-    if (gitURL != null) {
-      str += "\n";
-      str += "    git:\n";
-      str += '      url: "$gitURL"\n';
-      str += '      ref: "$gitRef"';
-    } else if (pathSource != null) {
-      str += "\n";
-      str += "    path: $pathSource";
-    } else {
-      if (version == null) {
-        str += "any";
-      } else {
-        str += '"$version"';
-      }
+  String getAqueductDependencyStringFromPackage(PackageRef package) {
+    if (package.sourceType == "path") {
+      return "aqueduct:\n    path: ${package.resolve().location.path}";
     }
-    return str;
-  }
 
-  String generatingPubspec(String aqueductDependencyString) {
-    return 'name: aqueduct_generator\nversion: 1.0.0\nenvironment:\n  sdk: ">=1.16.0 <2.0.0"\ndependencies:\n  ' +
-        aqueductDependencyString;
+    return "aqueduct: ^${package.version}";
   }
 
   bool isSnakeCase(String string) {
@@ -344,7 +275,7 @@ class CLITemplateCreator extends CLICommand {
 }
 
 
-class CLITemplateList extends CLICommand {
+class CLITemplateList extends CLICommand with CLIAqueductGlobal {
   @override
   Future<int> handle() async {
     displayInfo("Available templates:");
@@ -364,4 +295,16 @@ class CLITemplateList extends CLICommand {
   String get description {
     return "List Aqueduct application templates.";
   }
+}
+
+class CLIAqueductGlobal {
+  PubCache pub = new PubCache();
+
+  PackageRef get aqueductPackageRef {
+    return pub
+        .getGlobalApplications()
+        .firstWhere((app) => app.name == "aqueduct")
+        .getDefiningPackageRef();
+  }
+
 }

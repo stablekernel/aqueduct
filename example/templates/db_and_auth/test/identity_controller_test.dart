@@ -1,27 +1,30 @@
 import 'harness/app.dart';
 
 Future main() async {
+  TestApplication app = new TestApplication();
+
+  setUpAll(() async {
+    await app.start();
+  });
+
+  tearDownAll(() async {
+    await app.stop();
+  });
+
+  tearDown(() async {
+    await app.discardPersistentData();
+  });
+
   group("Success cases", () {
-    TestApplication app = new TestApplication();
-
-    setUp(() async {
-      await app.start();
-
+    test("Identity returns user associated with bearer token", () async {
       var req = app.client.clientAuthenticatedRequest("/register")
         ..json = {
           "username": "bob@stablekernel.com",
           "password": "foobaraxegrind12%"
         };
 
-      app.client.defaultAccessToken = (await req.post()).asMap["access_token"];
-    });
-
-    tearDown(() async {
-      await app.stop();
-    });
-
-    test("Identity returns user associated with bearer token", () async {
-      var req = app.client.authenticatedRequest("/me");
+      var accessToken = (await req.post()).asMap["access_token"];
+      req = app.client.authenticatedRequest("/me", accessToken: accessToken);
       var result = await req.get();
 
       expect(
