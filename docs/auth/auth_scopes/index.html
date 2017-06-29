@@ -1,0 +1,1369 @@
+
+<!DOCTYPE html>
+<html class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for Aqueduct, a Dart server-side framework.">
+      
+      
+      
+      
+        <link rel="shortcut icon" href="../../assets/images/favicon.png">
+      
+      <meta name="generator" content="mkdocs-0.16.1, mkdocs-material-1.1.1">
+    
+    
+      
+        <title>OAuth 2.0 Scoping - Aqueduct</title>
+      
+    
+    
+      <script src="../../assets/javascripts/modernizr-56ade86843.js"></script>
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/application-4ebe3f1d68.css">
+      
+    
+    
+      
+        
+        
+        
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700|Roboto+Mono">
+        <style>body,input{font-family:"Roboto","Helvetica Neue",Helvetica,Arial,sans-serif}code,kbd,pre{font-family:"Roboto Mono","Courier New",Courier,monospace}</style>
+      
+      <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    
+    
+      <link rel="stylesheet" href="../../style/css/override.css">
+    
+    
+  </head>
+  
+  
+  
+  
+    <body>
+  
+    <svg class="md-svg">
+      <defs>
+        
+        
+          <svg xmlns="http://www.w3.org/2000/svg" width="416" height="448" viewBox="0 0 416 448" id="github"><path fill="currentColor" d="M160 304q0 10-3.125 20.5t-10.75 19T128 352t-18.125-8.5-10.75-19T96 304t3.125-20.5 10.75-19T128 256t18.125 8.5 10.75 19T160 304zm160 0q0 10-3.125 20.5t-10.75 19T288 352t-18.125-8.5-10.75-19T256 304t3.125-20.5 10.75-19T288 256t18.125 8.5 10.75 19T320 304zm40 0q0-30-17.25-51T296 232q-10.25 0-48.75 5.25Q229.5 240 208 240t-39.25-2.75Q130.75 232 120 232q-29.5 0-46.75 21T56 304q0 22 8 38.375t20.25 25.75 30.5 15 35 7.375 37.25 1.75h42q20.5 0 37.25-1.75t35-7.375 30.5-15 20.25-25.75T360 304zm56-44q0 51.75-15.25 82.75-9.5 19.25-26.375 33.25t-35.25 21.5-42.5 11.875-42.875 5.5T212 416q-19.5 0-35.5-.75t-36.875-3.125-38.125-7.5-34.25-12.875T37 371.5t-21.5-28.75Q0 312 0 260q0-59.25 34-99-6.75-20.5-6.75-42.5 0-29 12.75-54.5 27 0 47.5 9.875t47.25 30.875Q171.5 96 212 96q37 0 70 8 26.25-20.5 46.75-30.25T376 64q12.75 25.5 12.75 54.5 0 21.75-6.75 42 34 40 34 99.5z"/></svg>
+        
+      </defs>
+    </svg>
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="drawer">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="search">
+    <label class="md-overlay" data-md-component="overlay" for="drawer"></label>
+    
+      <header class="md-header">
+  <nav class="md-header-nav md-grid">
+    <div class="md-flex">
+      <div class="md-flex__cell md-flex__cell--shrink">
+        
+          <a href="../.." title="Aqueduct" class="md-icon md-icon--home md-header-nav__button">
+          </a>
+        
+      </div>
+      <div class="md-flex__cell md-flex__cell--shrink">
+        <label class="md-icon md-icon--menu md-header-nav__button" for="drawer"></label>
+      </div>
+      <div class="md-flex__cell md-flex__cell--stretch">
+        <span class="md-flex__ellipsis md-header-nav__title">
+          
+            
+              
+                <span class="md-header-nav__parent">
+                  Authorization and OAuth 2.0
+                </span>
+              
+            
+            OAuth 2.0 Scoping
+          
+        </span>
+      </div>
+      <div class="md-flex__cell md-flex__cell--shrink">
+        
+          <label class="md-icon md-icon--search md-header-nav__button" for="search"></label>
+          
+<div class="md-search" data-md-component="search">
+  <div class="md-search__overlay"></div>
+  <div class="md-search__inner">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" placeholder="Search" accesskey="s" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="query">
+      <label class="md-icon md-search__icon" for="search"></label>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+        
+      </div>
+      <div class="md-flex__cell md-flex__cell--shrink">
+        <div class="md-header-nav__source">
+          
+            
+
+
+  
+
+
+  <a href="https://github.com/stablekernel/aqueduct" title="Go to repository" class="md-source" data-md-source="github">
+    
+      <div class="md-source__icon">
+        <svg viewBox="0 0 24 24" width="24" height="24">
+          <use xlink:href="#github" width="24" height="24"></use>
+        </svg>
+      </div>
+    
+    <div class="md-source__repository">
+      GitHub
+    </div>
+  </a>
+
+          
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>
+    
+    <div class="md-container">
+      
+      
+      <main class="md-main">
+        <div class="md-main__inner md-grid" data-md-component="container">
+          
+            
+              <div class="md-sidebar md-sidebar--primary" data-md-component="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    <nav class="md-nav md-nav--primary" data-md-level="0">
+  <label class="md-nav__title md-nav__title--site" for="drawer">
+    
+      <i class="md-icon md-icon--home md-nav__button"></i>
+    
+    Aqueduct
+  </label>
+  
+    <div class="md-nav__source">
+      
+
+
+  
+
+
+  <a href="https://github.com/stablekernel/aqueduct" title="Go to repository" class="md-source" data-md-source="github">
+    
+      <div class="md-source__icon">
+        <svg viewBox="0 0 24 24" width="24" height="24">
+          <use xlink:href="#github" width="24" height="24"></use>
+        </svg>
+      </div>
+    
+    <div class="md-source__repository">
+      GitHub
+    </div>
+  </a>
+
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../.." title="Home" class="md-nav__link">
+      Home
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../../getting_started/" title="Getting Started" class="md-nav__link">
+      Getting Started
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../../tour/" title="Tour" class="md-nav__link">
+      Tour
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-4" type="checkbox" id="nav-4">
+    
+    <label class="md-nav__link" for="nav-4">
+      Tutorial
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-4">
+        Tutorial
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../tut/getting-started/" title="1. Getting Started" class="md-nav__link">
+      1. Getting Started
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../tut/writing-tests/" title="2. Writing Tests" class="md-nav__link">
+      2. Writing Tests
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../tut/executing-queries/" title="3. Executing Database Queries" class="md-nav__link">
+      3. Executing Database Queries
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../tut/model-relationships-and-joins/" title="4. Advanced Database Queries" class="md-nav__link">
+      4. Advanced Database Queries
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../tut/deploying-and-other-fun-things/" title="5. Deploying" class="md-nav__link">
+      5. Deploying
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-5" type="checkbox" id="nav-5">
+    
+    <label class="md-nav__link" for="nav-5">
+      Serving HTTP Requests
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-5">
+        Serving HTTP Requests
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/overview/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/structure/" title="Application Structure" class="md-nav__link">
+      Application Structure
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/request_and_response/" title="Request and Response Objects" class="md-nav__link">
+      Request and Response Objects
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/request_controller/" title="Handling Requests: Fundamentals" class="md-nav__link">
+      Handling Requests: Fundamentals
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/routing/" title="Routing" class="md-nav__link">
+      Routing
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/request_sink/" title="Initialization and the RequestSink" class="md-nav__link">
+      Initialization and the RequestSink
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/http_controller/" title="Handling Requests: HTTPController" class="md-nav__link">
+      Handling Requests: HTTPController
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/configure/" title="Configuration" class="md-nav__link">
+      Configuration
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/serving_files/" title="Serving Files and Caching" class="md-nav__link">
+      Serving Files and Caching
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/websockets/" title="Websockets" class="md-nav__link">
+      Websockets
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/threading/" title="Multi-threading" class="md-nav__link">
+      Multi-threading
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-6" type="checkbox" id="nav-6">
+    
+    <label class="md-nav__link" for="nav-6">
+      Databases and ORM
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-6">
+        Databases and ORM
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../db/overview/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../db/connecting/" title="Connecting to a Database" class="md-nav__link">
+      Connecting to a Database
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../db/modeling_data/" title="Modeling Data" class="md-nav__link">
+      Modeling Data
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../db/serialization/" title="Storage, Serialization and Deserialization" class="md-nav__link">
+      Storage, Serialization and Deserialization
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../db/executing_queries/" title="Executing Queries" class="md-nav__link">
+      Executing Queries
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../db/advanced_queries/" title="Advanced Queries" class="md-nav__link">
+      Advanced Queries
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../db/validations/" title="Validations" class="md-nav__link">
+      Validations
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../db/db_tools/" title="Migration and Tooling" class="md-nav__link">
+      Migration and Tooling
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../db/inside_the_db/" title="Inside the DB" class="md-nav__link">
+      Inside the DB
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-7" type="checkbox" id="nav-7" checked>
+    
+    <label class="md-nav__link" for="nav-7">
+      Authorization and OAuth 2.0
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-7">
+        Authorization and OAuth 2.0
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../overview/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../server/" title="Setting up Authorization" class="md-nav__link">
+      Setting up Authorization
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../authorizer/" title="Protecting Routes" class="md-nav__link">
+      Protecting Routes
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../controllers/" title="Issuing Access Tokens" class="md-nav__link">
+      Issuing Access Tokens
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../cli/" title="Managing OAuth 2.0 Clients" class="md-nav__link">
+      Managing OAuth 2.0 Clients
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-toggle md-nav__toggle" data-md-toggle="toc" type="checkbox" id="toc">
+    
+      
+    
+    
+      <label class="md-nav__link md-nav__link--active" for="toc">
+        OAuth 2.0 Scoping
+      </label>
+    
+    <a href="./" title="OAuth 2.0 Scoping" class="md-nav__link md-nav__link--active">
+      OAuth 2.0 Scoping
+    </a>
+    
+      
+<nav class="md-nav md-nav--secondary">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#scope-format-and-hierarchy" title="Scope Format and Hierarchy" class="md-nav__link">
+    Scope Format and Hierarchy
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#requesting-scope" title="Requesting Scope" class="md-nav__link">
+    Requesting Scope
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adding-and-managing-scope" title="Adding and Managing Scope" class="md-nav__link">
+    Adding and Managing Scope
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#user-based-scope-management" title="User-based Scope Management" class="md-nav__link">
+    User-based Scope Management
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#using-scope-to-protect-resources" title="Using Scope to Protect Resources" class="md-nav__link">
+    Using Scope to Protect Resources
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+    
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../what_is_oauth/" title="What is OAuth 2.0?" class="md-nav__link">
+      What is OAuth 2.0?
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-8" type="checkbox" id="nav-8">
+    
+    <label class="md-nav__link" for="nav-8">
+      Development and Testing
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-8">
+        Development and Testing
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../testing/overview/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../testing/database/" title="Using a Local Database" class="md-nav__link">
+      Using a Local Database
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../testing/debugger/" title="Using the Debugger" class="md-nav__link">
+      Using the Debugger
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../testing/best_practices/" title="Development Best Practices" class="md-nav__link">
+      Development Best Practices
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../testing/clients/" title="Developing Client Applications" class="md-nav__link">
+      Developing Client Applications
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../testing/tests/" title="Writing Tests" class="md-nav__link">
+      Writing Tests
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../testing/mock/" title="Mocking Services" class="md-nav__link">
+      Mocking Services
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-9" type="checkbox" id="nav-9">
+    
+    <label class="md-nav__link" for="nav-9">
+      Deployment
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-9">
+        Deployment
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../deploy/overview/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../deploy/deploy_local/" title="Deploy Locally" class="md-nav__link">
+      Deploy Locally
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../deploy/deploy_heroku/" title="Deploy on Heroku" class="md-nav__link">
+      Deploy on Heroku
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../deploy/deploy_aws/" title="Deploy on AWS" class="md-nav__link">
+      Deploy on AWS
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../deploy/script/" title="Deploying without aqueduct serve" class="md-nav__link">
+      Deploying without aqueduct serve
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10" type="checkbox" id="nav-10">
+    
+    <label class="md-nav__link" for="nav-10">
+      Command-line Tooling
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-10">
+        Command-line Tooling
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../cli/overview/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../cli/create/" title="Creating Applications" class="md-nav__link">
+      Creating Applications
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../cli/running/" title="Running Applications" class="md-nav__link">
+      Running Applications
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../cli/document/" title="Generating an OpenAPI/Swagger Specification" class="md-nav__link">
+      Generating an OpenAPI/Swagger Specification
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../cli/setup/" title="Other Tools" class="md-nav__link">
+      Other Tools
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#scope-format-and-hierarchy" title="Scope Format and Hierarchy" class="md-nav__link">
+    Scope Format and Hierarchy
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#requesting-scope" title="Requesting Scope" class="md-nav__link">
+    Requesting Scope
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adding-and-managing-scope" title="Adding and Managing Scope" class="md-nav__link">
+    Adding and Managing Scope
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#user-based-scope-management" title="User-based Scope Management" class="md-nav__link">
+    User-based Scope Management
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#using-scope-to-protect-resources" title="Using Scope to Protect Resources" class="md-nav__link">
+    Using Scope to Protect Resources
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content">
+            <article class="md-content__inner md-typeset">
+               
+                 <a href="https://github.com/stablekernel/aqueduct/edit/master/docs/auth/auth_scopes.md" title="Edit this page" class="md-icon md-content__edit">edit</a>
+               
+              
+                
+                <h1 id="granular-authorization-with-oauth-20-scopes">Granular Authorization with OAuth 2.0 Scopes</h1>
+<p>A simple Aqueduct Auth implementation grants access tokens and protects resources by ensuring a request has a valid access token. As an application grows, it may need more granular protection than simply, "Oh, you have a token? Ok, access whatever you want!" For example, an ordinary user shouldn't be able to access administration resources.</p>
+<p>One approach to granular authorization is using <em>roles</em>. A role - like <code>admin</code> and <code>user</code> - exist in a hierarchical model for granting permission. An <code>admin</code> can access everything a <code>user</code> can and more. This approach is a valid part of a granular authorization scheme, but a simple <code>admin &gt; user</code> model falls apart as permissions diverge. Likewise, it is difficult to integrate third party applications that should only have access to a subset of a user's data.</p>
+<p>For example, Google offers lots of services - from email, to analytics data, to document hosting - all of this is accessible to users identified by their Gmail address. These services have their own application, and third party applications may access these services on behalf of the user. As a user, I do not want an third-party application that presents my documents from Google Drive to also have access my email. But I still want to login to both services with the same email and password.</p>
+<p>OAuth 2.0 solves this problem with <em>scope</em>. A scope is a string that identifies access to some resource or action. For example, the scope to read, send and delete your email might be simply called "gmail". But another scope, "gmail.readonly", can only read email - it can't send or delete it. Likewise, the "analytics" scope may let me read analytic data for my websites, but it'll never see my email, much less send one.</p>
+<p>Scope is different than a role because it belongs to the access token, not the user. A user can have multiple access tokens for different applications, each with different scope and therefore different access control.</p>
+<h2 id="scope-format-and-hierarchy">Scope Format and Hierarchy</h2>
+<p>There is no definitive guide on what a scope string should look like, other than being restricted to alphanumeric characters and some symbols. Aqueduct, however, imposes a simple scoping structure.</p>
+<p>Hierarchy is specified by the <code>:</code> character. For example, the following is a hierarchy of scopes related to a user and its belongings:</p>
+<ul>
+<li><code>user</code></li>
+<li><code>user:email</code></li>
+<li><code>user:documents</code></li>
+<li><code>user:documents:spreadsheets</code></li>
+</ul>
+<p>Notice how these scopes form a hierarchy. Each segment makes the scope more restrictive. A scope that begins with the same segments has access to a scope with more segments, e.g. <code>user:documents</code> has access to <code>user:documents:spreadsheets</code>, but <code>user:documents</code> cannot access <code>user:email</code>. The <code>user</code> scope can access email, documents and anything else a user might have.</p>
+<p>Scopes are validated by the method <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Authorization/authorizedForScope.html">Authorization.authorizedForScope()</a>. Once a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request-class.html">Request</a> passes through an <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Authorizer-class.html">Authorizer</a>, it will have a valid <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request/authorization.html">authorization</a> property. If the access token has scopes, this method can be used to ensure it has the appropriate scope for the resource or action. For example, the following will verify that a request has at least <code>user:email</code> access - either <code>user:email</code> <em>or</em> the <code>user</code> scope.</p>
+<div class="codehilite"><pre><span></span><span class="err">@</span><span class="n">httpGet</span>
+<span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">getInbox</span><span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">request</span><span class="p">.</span><span class="n">authorization</span><span class="p">.</span><span class="n">authorizedForScope</span><span class="p">(</span><span class="s2">&quot;user:email&quot;</span><span class="p">))</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">unauthorized</span><span class="p">();</span>
+  <span class="p">}</span>
+
+  <span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>It is often the case where a scope might have further restrictions - like readonly vs. write. You may introduce scopes like <code>user:email:read</code> and <code>user:email:write</code>, but <code>user:email:write</code> would not have access to <code>user:email:read</code> following the previous logic.</p>
+<p>This is where <em>scope modifiers</em> come in. A scope modifier is a <code>.</code>-prefixed string at the end of a scope. For example, <code>user:email.readonly</code> grants readonly access to a user's email. An access token without a modifier has access to a scope with the same hierarchy and <em>any</em> modifier. Thus, <code>user</code> and <code>user:email</code> can both access <code>user:email.readonly</code> protected resources and actions, but <code>user:email.readonly</code> cannot access things protected by <code>user:email</code>.</p>
+<p>A scope modifier is only valid for the last segment of a scope string. That is, <code>user:documents.readonly:spreadsheets</code> is not valid, but <code>user:documents:spreadsheets.readonly</code> is.</p>
+<h2 id="requesting-scope">Requesting Scope</h2>
+<p>Scope is requested by a client application when it is authenticating a user. For example, the form data to request the <code>user:email</code> scope on behalf of <code>bob@stablekernel.com</code> looks like this:</p>
+<p><code>username=bob@stablekernel.com&amp;password=foobarxyz123&amp;grant_type=password&amp;scope=user:email</code></p>
+<p>Multiple scopes can be requested for an access token, which <em>must</em> be separated by spaces. (Note these query parameters must be percent-encoded, but are shown here without percent-encoding to aid visibility.)</p>
+<p><code>username=bob@stablekernel.com&amp;password=foobarxyz123&amp;grant_type=password&amp;scope=user:email user:documents</code></p>
+<p>When using the authorization code flow, the requested scope is provided by the third party application in the query string of the initial <code>GET /auth/code</code>:</p>
+<p><code>GET /auth/code?grant_type=code&amp;client_id=com.foo.bar&amp;state=k3j4kjas&amp;scope=user:email</code></p>
+<p>The webpage served by from this endpoint should alert the user to the scopes the application is requesting.</p>
+<h2 id="adding-and-managing-scope">Adding and Managing Scope</h2>
+<p>An <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/AuthServer-class.html">AuthServer</a> validates that the scopes requested for an access token are valid for the authenticating client application. Therefore, each client identifier (a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.managed_auth/ManagedClient-class.html">ManagedClient</a>) may have a list of allowed scopes. The allowed scopes are configured with the <a href="../cli/">aqueduct auth command-line tool</a>. For example, the following creates a new client identifier with access to the scopes <code>user:email</code> and <code>user:documents</code>, and then later adds <code>user:location</code>:</p>
+<div class="codehilite"><pre><span></span>aqueduct auth add-client <span class="se">\</span>
+  --id com.app.mobile <span class="se">\</span>
+  --secret myspecialsecret <span class="se">\</span>
+  --allowed-scopes <span class="s1">&#39;user:email user:documents&#39;</span> <span class="se">\</span>
+  --connect postgres://user:password@dbhost:5432/db_name
+
+aqueduct auth set-scope <span class="se">\</span>
+  --id com.app.mobile <span class="se">\</span>
+  --scopes <span class="s1">&#39;user:email user:documents user:location&#39;</span> <span class="se">\</span>
+  --connect postgres://user:password@dbhost:5432/db_name
+</pre></div>
+
+
+<p>Once a client has scopes, any access token request from this client <em>must</em> contain a list of desired scopes. Aqueduct does not implicitly grant scopes when a request omits them.</p>
+<p>The <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/AuthServer-class.html">AuthServer</a> will only grant scopes that the client has access to. If some of the scopes in a request aren't valid for the client, the token may still be granted, but any disallowed scopes will be removed. For example, requesting the scopes <code>user:email</code> and <code>user:settings</code> would return an access token that only granted <code>user:email</code>:</p>
+<div class="codehilite"><pre><span></span><span class="p">{</span>
+  <span class="nt">&quot;access_token&quot;</span><span class="p">:</span> <span class="s2">&quot;...&quot;</span><span class="p">,</span>
+  <span class="nt">&quot;refresh_token&quot;</span><span class="p">:</span> <span class="s2">&quot;...&quot;</span><span class="p">,</span>
+  <span class="nt">&quot;token_type&quot;</span><span class="p">:</span> <span class="s2">&quot;bearer&quot;</span><span class="p">,</span>
+  <span class="nt">&quot;expires_in&quot;</span><span class="p">:</span> <span class="mi">3600</span><span class="p">,</span>
+  <span class="nt">&quot;scopes&quot;</span><span class="p">:</span> <span class="s2">&quot;user:email&quot;</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>If none of the requested scopes are allowed, the access token will <em>not</em> be granted and the request will yield an error response.</p>
+<p>If the client identifier has not been configured with scopes - either because the application doesn't use scopes or this particular client doesn't have any - scopes specified in an authenticating request are ignored. A token will be granted in this scenario, but will have no scope. The <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.managed_auth/ManagedToken/scope.html">scope</a> key is omitted from the token payload.</p>
+<p>It is important to ensure that an application that uses scope has protections on its resources (see <a href="#using-scope-to-protect-resources">a later section</a>).</p>
+<h3 id="user-based-scope-management">User-based Scope Management</h3>
+<p>Adding scopes to client identifiers is a requirement for any application that wishes to use scoping. An application may optionally add restrictions to scope depending on some attribute(s) of the user. When authenticating, the server first filters the list of requested scopes by what is allowed for the client, and then filters the resulting list by what is allowed for the user.</p>
+<p>This user-level filtering is done by overriding <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/AuthStorage/allowedScopesForAuthenticatable.html">allowedScopesForAuthenticatable</a> in <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/AuthStorage-class.html">AuthStorage</a>. By default, this method returns <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/AuthScope/Any-constant.html">AuthScope.Any</a> - which means there are no restrictions. If the client application allows the scope, then any user that logs in with that application can request that scope.</p>
+<p>This method may return a list of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/AuthScope-class.html">AuthScope</a>s that are valid for the authenticating user. The following example shows a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.managed_auth/ManagedAuthStorage-class.html">ManagedAuthStorage&lt;T&gt;</a> subclass that allows any scope for <code>@stablekernel.com</code> usernames, no scopes for <code>@hotmail.com</code> addresses and some limited scope for everyone else:</p>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">DomainBasedAuthStorage</span> <span class="kd">extends</span> <span class="n">ManagedAuthStorage</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span> <span class="p">{</span>
+  <span class="n">DomainBasedAuthStorage</span><span class="p">(</span><span class="n">ManagedContext</span> <span class="n">context</span><span class="p">,</span> <span class="p">{</span><span class="kt">int</span> <span class="nl">tokenLimit:</span> <span class="m">40</span><span class="p">})</span> <span class="o">:</span>
+        <span class="k">super</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="nl">tokenLimit:</span> <span class="n">tokenLimit</span><span class="p">);</span>
+
+  <span class="err">@</span><span class="n">override</span>
+  <span class="n">List</span><span class="o">&lt;</span><span class="n">AuthScope</span><span class="o">&gt;</span> <span class="n">allowedScopesForAuthenticatable</span><span class="p">(</span><span class="n">covariant</span> <span class="n">User</span> <span class="n">user</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">user</span><span class="p">.</span><span class="n">username</span><span class="p">.</span><span class="n">endsWith</span><span class="p">(</span><span class="s2">&quot;@stablekernel.com&quot;</span><span class="p">))</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="n">AuthScope</span><span class="p">.</span><span class="n">Any</span><span class="p">;</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">user</span><span class="p">.</span><span class="n">username</span><span class="p">.</span><span class="n">endsWith</span><span class="p">(</span><span class="s2">&quot;@hotmail.com&quot;</span><span class="p">))</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="p">[];</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="p">[</span><span class="k">new</span> <span class="n">AuthScope</span><span class="p">(</span><span class="s2">&quot;user&quot;</span><span class="p">)];</span>
+    <span class="p">}</span>
+  <span class="p">}</span>      
+<span class="p">}</span>
+</pre></div>
+
+
+<p>The <code>user</code> passed to <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/AuthStorage/allowedScopesForAuthenticatable.html">allowedScopesForAuthenticatable</a> is the user being authenticated. It will have previously been fetched by the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/AuthServer-class.html">AuthServer</a>. The <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/AuthServer-class.html">AuthServer</a> fetches this object by invoking <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/AuthStorage/fetchAuthenticatableByUsername.html">AuthStorage.fetchAuthenticatableByUsername()</a>. The default implementation of this method for <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.managed_auth/ManagedAuthStorage-class.html">ManagedAuthStorage&lt;T&gt;</a> only fetches the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIOperation/id.html">id</a>, <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/AuthBasicCredentials/username.html">username</a>, <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/AuthClient/salt.html">salt</a> and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Authenticatable/hashedPassword.html">hashedPassword</a> of the user. This is for two reasons:</p>
+<ul>
+<li>These properties are needed to verify and grant an access token.</li>
+<li>The <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/AuthServer-class.html">AuthServer</a> can only guarantee that the <code>User</code> implements <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Authenticatable-class.html">Authenticatable</a>, and those are the only properties it has.</li>
+</ul>
+<p>When using some other attribute of an application's user object to restrict allowed scopes, you must also override <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/AuthStorage/fetchAuthenticatableByUsername.html">fetchAuthenticatableByUsername</a> to fetch these attributes. For example, if your application's user has a <code>role</code> attribute, you must fetch it and the other four required properties. Here's an example implementation:</p>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">RoleBasedAuthStorage</span> <span class="kd">extends</span> <span class="n">ManagedAuthStorage</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span> <span class="p">{</span>
+  <span class="n">RoleBasedAuthStorage</span><span class="p">(</span><span class="n">ManagedContext</span> <span class="n">context</span><span class="p">,</span> <span class="p">{</span><span class="kt">int</span> <span class="nl">tokenLimit:</span> <span class="m">40</span><span class="p">})</span> <span class="o">:</span>
+        <span class="k">super</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="nl">tokenLimit:</span> <span class="n">tokenLimit</span><span class="p">);</span>
+
+  <span class="err">@</span><span class="n">override</span>
+  <span class="n">Future</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span> <span class="n">fetchAuthenticatableByUsername</span><span class="p">(</span>
+      <span class="n">AuthServer</span> <span class="n">server</span><span class="p">,</span> <span class="kt">String</span> <span class="n">username</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="n">query</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
+      <span class="p">..</span><span class="n">where</span><span class="p">.</span><span class="n">username</span> <span class="o">=</span> <span class="n">username</span>
+      <span class="p">..</span><span class="n">returningProperties</span><span class="p">((</span><span class="n">t</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="p">[</span><span class="n">t</span><span class="p">.</span><span class="n">id</span><span class="p">,</span> <span class="n">t</span><span class="p">.</span><span class="n">username</span><span class="p">,</span> <span class="n">t</span><span class="p">.</span><span class="n">hashedPassword</span><span class="p">,</span> <span class="n">t</span><span class="p">.</span><span class="n">salt</span><span class="p">,</span> <span class="n">t</span><span class="p">.</span><span class="n">role</span><span class="p">]);</span>
+
+    <span class="k">return</span> <span class="n">query</span><span class="p">.</span><span class="n">fetchOne</span><span class="p">();</span>
+  <span class="p">}</span>
+
+  <span class="err">@</span><span class="n">override</span>
+  <span class="n">List</span><span class="o">&lt;</span><span class="n">AuthScope</span><span class="o">&gt;</span> <span class="n">allowedScopesForAuthenticatable</span><span class="p">(</span><span class="n">covariant</span> <span class="n">User</span> <span class="n">user</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="n">scopeStrings</span> <span class="o">=</span> <span class="p">[];</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">user</span><span class="p">.</span><span class="n">role</span> <span class="o">==</span> <span class="s2">&quot;admin&quot;</span><span class="p">)</span> <span class="p">{</span>
+      <span class="n">scopeStrings</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;admin&quot;</span><span class="p">,</span> <span class="s2">&quot;user&quot;</span><span class="p">];</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">user</span><span class="p">.</span><span class="n">role</span> <span class="o">==</span> <span class="s2">&quot;user&quot;</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="p">[</span><span class="s2">&quot;user:email&quot;</span><span class="p">];</span>
+    <span class="p">}</span>
+
+    <span class="k">return</span> <span class="n">scopeStrings</span><span class="p">.</span><span class="n">map</span><span class="p">((</span><span class="n">str</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="k">new</span> <span class="n">AuthScope</span><span class="p">(</span><span class="n">str</span><span class="p">)).</span><span class="n">toList</span><span class="p">();</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>If you do not fetch the four required properties declared in <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Authenticatable-class.html">Authenticatable</a>, an <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/AuthServer-class.html">AuthServer</a> will fail in spectacular ways.</p>
+<h2 id="using-scope-to-protect-resources">Using Scope to Protect Resources</h2>
+<p>An <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Authorizer/Authorizer.bearer.html">Authorizer.bearer()</a> can require an access token to have certain scopes before passing it down the channel:</p>
+<div class="codehilite"><pre><span></span><span class="n">router</span>
+  <span class="p">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/email_attachments&quot;</span><span class="p">)</span>
+  <span class="p">.</span><span class="n">pipe</span><span class="p">(</span><span class="k">new</span> <span class="n">Authorizer</span><span class="p">.</span><span class="n">bearer</span><span class="p">(</span><span class="n">authServer</span><span class="p">,</span> <span class="nl">scopes:</span> <span class="p">[</span><span class="s2">&quot;user:email&quot;</span><span class="p">,</span> <span class="s2">&quot;user:documents&quot;</span><span class="p">]))</span>
+  <span class="p">.</span><span class="n">generate</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="k">new</span> <span class="n">SecureStuffController</span><span class="p">());</span>
+</pre></div>
+
+
+<p>A request's token must have all of the scopes declared by the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Authorizer-class.html">Authorizer</a> - in this case, <em>both</em> "user:email" and "user:documents" (or "user", of course).</p>
+<p>This type of protection is often useful, but within a particular controller you may want finer control. For example, you may want to require a different level of access to <code>POST</code> than <code>GET</code>. You may check if an authorization has valid scopes at any time:</p>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">EmailController</span> <span class="n">extend</span> <span class="n">HTTPController</span> <span class="p">{</span>
+  <span class="err">@</span><span class="n">httpGet</span>
+  <span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">getEmail</span><span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">request</span><span class="p">.</span><span class="n">authorization</span><span class="p">.</span><span class="n">authorizedForScope</span><span class="p">(</span><span class="s2">&quot;user:email.readonly&quot;</span><span class="p">))</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">unauthorized</span><span class="p">();</span>
+    <span class="p">}</span>
+
+    <span class="kd">var</span> <span class="n">inbox</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">emailForUser</span><span class="p">(</span><span class="n">request</span><span class="p">.</span><span class="n">authorization</span><span class="p">.</span><span class="n">resourceOwnerIdentifier</span><span class="p">);</span>
+    <span class="k">return</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="n">inbox</span><span class="p">);</span>
+  <span class="p">}</span>
+
+  <span class="err">@</span><span class="n">httpPost</span>
+  <span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">sendEmail</span><span class="p">(</span><span class="err">@</span><span class="n">HTTPBody</span><span class="p">()</span> <span class="n">Email</span> <span class="n">email</span><span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">request</span><span class="p">.</span><span class="n">authorization</span><span class="p">.</span><span class="n">authorizedForScope</span><span class="p">(</span><span class="s2">&quot;user:email&quot;</span><span class="p">))</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">unauthorized</span><span class="p">();</span>
+    <span class="p">}</span>
+    <span class="kd">await</span> <span class="n">sendEmail</span><span class="p">(</span><span class="n">email</span><span class="p">);</span>
+
+    <span class="k">return</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">accepted</span><span class="p">();</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>Note that scopes are not the only way to secure resources, even if they are being used. For example, you may want to restrict the endpoint <code>/user/1/settings</code> to only allow the user with <code>id=1</code> to access it:</p>
+<div class="codehilite"><pre><span></span><span class="err">@</span><span class="n">httpGet</span>
+<span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">getUserSettings</span><span class="p">(</span><span class="err">@</span><span class="n">HTTPPath</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">)</span> <span class="kt">int</span> <span class="n">id</span><span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">request</span><span class="p">.</span><span class="n">authorization</span><span class="p">.</span><span class="n">resourceOwnerIdentifier</span> <span class="o">!=</span> <span class="n">id</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">unauthorized</span><span class="p">();</span>
+  <span class="p">}</span>
+
+  <span class="k">return</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="kd">await</span> <span class="n">settingsForUser</span><span class="p">(</span><span class="n">id</span><span class="p">));</span>
+<span class="p">}</span>
+</pre></div>
+              
+              
+            </article>
+          </div>
+        </div>
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <div class="md-footer-nav">
+      <nav class="md-footer-nav__inner md-grid">
+        
+          <a href="../cli/" title="Managing OAuth 2.0 Clients" class="md-flex md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+            <div class="md-flex__cell md-flex__cell--shrink">
+              <i class="md-icon md-icon--arrow-back md-footer-nav__button"></i>
+            </div>
+            <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title">
+              <span class="md-flex__ellipsis">
+                <span class="md-footer-nav__direction">
+                  Previous
+                </span>
+                Managing OAuth 2.0 Clients
+              </span>
+            </div>
+          </a>
+        
+        
+          <a href="../what_is_oauth/" title="What is OAuth 2.0?" class="md-flex md-footer-nav__link md-footer-nav__link--next" rel="next">
+            <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title">
+              <span class="md-flex__ellipsis">
+                <span class="md-footer-nav__direction">
+                  Next
+                </span>
+                What is OAuth 2.0?
+              </span>
+            </div>
+            <div class="md-flex__cell md-flex__cell--shrink">
+              <i class="md-icon md-icon--arrow-forward md-footer-nav__button"></i>
+            </div>
+          </a>
+        
+      </nav>
+    </div>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+          <div class="md-footer-copyright__highlight">
+            Built by stable|kernel
+          </div>
+        
+        powered by
+        <a href="http://www.mkdocs.org" title="MkDocs">MkDocs</a>
+        and
+        <a href="http://squidfunk.github.io/mkdocs-material/" title="Material for MkDocs">
+          Material for MkDocs</a>
+      </div>
+      
+        
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    
+      <script src="../../assets/javascripts/application-30ac6a1727.js"></script>
+      <script>app.initialize({url:{base:"../.."}})</script>
+      
+    
+    
+      
+      <script>!function(e,t,a,n,o,c,i){e.GoogleAnalyticsObject=o,e[o]=e[o]||function(){(e[o].q=e[o].q||[]).push(arguments)},e[o].l=1*new Date,c=t.createElement(a),i=t.getElementsByTagName(a)[0],c.async=1,c.src=n,i.parentNode.insertBefore(c,i)}(window,document,"script","https://www.google-analytics.com/analytics.js","ga"),ga("create","UA-41269877-2","aqueduct.io"),ga("set","anonymizeIp",!0),ga("send","pageview");var links=document.getElementsByTagName("a");Array.prototype.map.call(links,function(e){e.host!=document.location.host&&e.addEventListener("click",function(){var t=e.getAttribute("data-md-action")||"follow";ga("send","event","outbound",t,e.href)})});var query=document.forms.search.query;query.addEventListener("blur",function(){if(this.value){var e=document.location.pathname;ga("send","pageview",e+"?q="+this.value)}})</script>
+      
+    
+  </body>
+</html>
