@@ -54,4 +54,4 @@ There are diminishing returns as more database connections are added. That's bec
 
 As a general rule, start with N-1 isolates, where N is the number of processors on the machine. Use `wrk` and Observatory to profile your application and tune accordingly. In a multi-instance environment, remember that the total number of database connections is MxN, where M is the number of machines and N is the number of isolates.
 
-If you find yourself in a jam where IO would be better served less isolates, but CPU would be better served by more isolates, you may consider using a database connection pool isolate.
+If you find yourself in a jam where IO would be better served by less isolates, but CPU would be better served by more isolates, you may consider using a database connection pool isolate.
