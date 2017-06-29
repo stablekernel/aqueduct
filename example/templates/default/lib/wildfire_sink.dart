@@ -31,16 +31,6 @@ class WildfireSink extends RequestSink {
     logger.onRecord.listen((rec) => print("$rec ${rec.error ?? ""} ${rec.stackTrace ?? ""}"));
   }
 
-  /// Do one-time application setup in this method.
-  ///
-  /// This method is executed before any instances of this type are created and is the first step in the initialization process.
-  ///
-  /// Values can be added to [appConfig]'s [ApplicationConfiguration.options] and will be available in each instance of this class
-  /// in the constructor.
-  static Future initializeApplication(ApplicationConfiguration appConfig) async {
-
-  }
-
   /// All routes must be configured in this method.
   ///
   /// This method is invoked after the constructor and before [willOpen] Routes must be set up in this method, as

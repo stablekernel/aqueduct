@@ -10,6 +10,7 @@ import 'documentable.dart';
 import 'router.dart';
 import '../application/application.dart';
 import '../utilities/resource_registry.dart';
+import 'http_codec_repository.dart';
 
 /// Instances of this type are the root of an Aqueduct application.
 ///
@@ -59,17 +60,20 @@ abstract class RequestSink extends RequestController
   /// One-time setup method for an application.
   ///
   /// This method is invoked as the first step during application startup. It is only invoked once per application, whereas other initialization
-  /// methods are invoked once per isolate. Implement this method in an application's [RequestSink] subclass. This method is often used to
-  /// read configuration values from the configuration file:
+  /// methods are invoked once per isolate. Implement this method in an application's [RequestSink] subclass. If you are sharing some resource
+  /// across isolates, it must be instantiated in this method.
   ///
   ///         class MyRequestSink extends RequestSink {
   ///           static Future initializeApplication(ApplicationConfiguration config) async {
-  ///             var configurationValuesFromFile = ...;
-  ///             config.options = configurationValuesFromFile;
+  ///
   ///           }
   ///
+  /// Any modifications to [config] are available in each [RequestSink] and therefore must be isolate-safe data. Do not configure
+  /// types like [HTTPCodecRepository] or any other types that are referenced by your code. If it can't be safely passed in [ApplicationConfiguration],
+  /// it shouldn't be modified.
+  ///
   /// * Note that static methods are not inherited in Dart and therefore you are not overriding this method. The declaration of this method in the base [RequestSink] class
-  /// is for documentation purposes..
+  /// is for documentation purposes.
   static Future initializeApplication(ApplicationConfiguration config) async {}
 
   /// Documentation info for this instance.

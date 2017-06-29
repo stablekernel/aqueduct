@@ -43,22 +43,6 @@ class WildfireSink extends RequestSink {
   HTMLRenderer htmlRenderer = new HTMLRenderer();
   AuthServer authServer;
 
-  /**
-   * Initialization methods
-   */
-  /// Do one-time application setup in this method.
-  ///
-  /// This method is executed before any instances of this type are created and is the first step in the initialization process.
-  ///
-  /// Values can be added to [appConfig]'s [ApplicationConfiguration.options] and will be available in each instance of this class
-  /// in the constructor.
-  static Future initializeApplication(ApplicationConfiguration appConfig) async {
-    if (appConfig.configurationFilePath == null) {
-      throw new ApplicationStartupException(
-          "No configuration file found. See README.md.");
-    }
-  }
-
   /// All routes must be configured in this method.
   ///
   /// This method is invoked after the constructor and before [willOpen] Routes must be set up in this method, as
