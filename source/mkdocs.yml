@@ -29,6 +29,7 @@ pages:
   - 'Configuration': 'http/configure.md'
   - 'Serving Files and Caching': 'http/serving_files.md'
   - 'Websockets': 'http/websockets.md'
+  - 'Multi-threading': 'http/threading.md'
 - Databases and ORM:
   - 'Overview': 'db/overview.md'
   - 'Connecting to a Database': 'db/connecting.md'
