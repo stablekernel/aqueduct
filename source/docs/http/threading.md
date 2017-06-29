@@ -16,9 +16,9 @@ More importantly, you - the programmer - have to do absolutely nothing to take a
 
 While you don't have to do anything in an Aqueduct application to take advantage of multiple processors, there are things you shouldn't do or should do in another way.
 
-First, you must be careful of keeping any state in your application. Practically, this means that once your application has finished initializing, it shouldn't store a value in an object that lives past lifetime of the request it was stored for. Any data that needs to be persisted must be stored in a database or other data store. This is just good practice for a REST API anyhow, so nothing is really lost here.
+First, you must be careful of keeping any state in your application. Practically, this means that once your application has finished initializing, it shouldn't store a value in an object that lives past the lifetime of the request it was stored for. Any data that needs to be persisted must be stored in a database or other data store. This is just good practice for a REST API anyhow, so nothing is really lost here.
 
-However, there are times where you do need to track state. For example, if you are managing websocket connections, you do need to store some state after initialization - a reference to the websocket. [This guide](websockets.md) covers this topic in detail; the simply explanation is to use the `ApplicationMessageHub`.
+However, there are times where you do need to track state. For example, if you are managing websocket connections, you do need to store some state after initialization - a reference to the websocket. [This guide](websockets.md) covers this topic in detail; the simple explanation is to use the `ApplicationMessageHub`.
 
 Another thing that is important to consider is initialization. Most initialization occurs in `RequestSink`'s constructor and its `setupRouter` method. This behavior is guaranteed to occur for each isolate and there is often little to worry about.
 
@@ -42,9 +42,9 @@ For example, when running benchmarks with [wrk](https://github.com/wg/wrk) on my
 
 (Note that benchmarks are a good way of measuring relative performance of an application and identifying bottlenecks, but real world usability performance across a network is the only measurement that matters. The absolute value of these benchmarks should not be taken seriously, as they entirely remove the network portion of the transmission.)
 
-But this isn't the whole story. Server applications are rarely CPU-bound, but instead IO-bound. The red bar represents the number of requests per second when making a database query and returning the results of that query a JSON in the response body. When using Observatory, the measurements indicate that the overwhelming majority of the time is spent transmitting data to and from the database. This is an example of being bound by IO (and the speed of the query).
+But this isn't the whole story. Server applications are rarely CPU-bound, but instead IO-bound. The red bar represents the number of requests per second when making a database query and returning the results of that query as JSON in the response body. When using Observatory, the measurements indicate that the overwhelming majority of the time is spent transmitting data to and from the database. This is an example of being bound by IO (and the speed of the query).
 
-Recall that each isolate has its own database connection. A database connection is a serially queue - it can only handle one query at a time. Increasing the number of database connections means handling more queries at a time. This is no more apparent than when looking at the following graph, which measures the latency of requests with and without a database call.
+Recall that each isolate has its own database connection. A database connection is a serial queue - it can only handle one query at a time. Increasing the number of database connections means handling more queries at a time. This is no more apparent than when looking at the following graph, which measures the latency of requests with and without a database call.
 
 ![Average Latency](../img/latency.png)
 
@@ -54,4 +54,4 @@ There are diminishing returns as more database connections are added. That's bec
 
 As a general rule, start with N-1 isolates, where N is the number of processors on the machine. Use `wrk` and Observatory to profile your application and tune accordingly. In a multi-instance environment, remember that the total number of database connections is MxN, where M is the number of machines and N is the number of isolates.
 
-If you find yourself in a jam where IO would be better served reducing an isolate and CPU would be better server by increasing an isolate, you may consider using database connection pooling across isolates.
+If you find yourself in a jam where IO would be better served less isolates, but CPU would be better served by more isolates, you may consider using a database connection pool isolate.
