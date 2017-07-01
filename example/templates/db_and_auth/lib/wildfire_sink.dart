@@ -11,7 +11,7 @@ import 'utility/html_template.dart';
 /// Override methods from [RequestSink] to set up the resources your
 /// application uses and the routes it exposes.
 ///
-/// See the documentation in this file for [initializeApplication], [WildfireSink], [setupRouter] and [willOpen]
+/// See the documentation in this file for the constructor, [setupRouter] and [willOpen]
 /// for the purpose and order of the initialization methods.
 ///
 /// Instances of this class are the type argument to [Application].
@@ -20,13 +20,8 @@ import 'utility/html_template.dart';
 class WildfireSink extends RequestSink {
   /// Constructor called for each isolate run by an [Application].
   ///
-  /// This constructor is called for each isolate an [Application] creates to serve requests - therefore,
-  /// any initialization that must occur only once per application startup should happen in [initializeApplication].
-  ///
-  /// This constructor is invoked after [initializeApplication].
-  ///
-  /// The [appConfig] is made up of command line arguments from the script that starts the application and often
-  /// contain values that [initializeApplication] adds to it.
+  /// This constructor is called for each isolate an [Application] creates to serve requests.
+  /// The [appConfig] is made up of command line arguments from `aqueduct serve`.
   ///
   /// Configuration of database connections, [HTTPCodecRepository] and other per-isolate resources should be done in this constructor.
   WildfireSink(ApplicationConfiguration appConfig) : super(appConfig) {

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/managed_auth.dart';
