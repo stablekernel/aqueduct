@@ -2,24 +2,19 @@ import 'wildfire.dart';
 
 import 'model/model.dart';
 
-/// This class handles setting up this application.
+/// This type initializes an application.
 ///
-/// Override methods from [RequestSink] to set up the resources your
-/// application uses and the routes it exposes.
-///
-/// See the documentation in this file for the constructor, [setupRouter] and [willOpen]
-/// for the purpose and order of the initialization methods.
-///
-/// Instances of this class are the type argument to [Application].
-/// See http://aqueduct.io/docs/http/request_sink
-/// for more details.
+/// Override methods in this class to set up routes and initialize resources like
+/// database connections. See http://aqueduct.io/docs/http/request_sink.
 class WildfireSink extends RequestSink {
-  /// Constructor called for each isolate run by an [Application].
+  /// Resource initialization code goes here.
   ///
-  /// This constructor is called for each isolate an [Application] creates to serve requests.
-  /// The [appConfig] is made up of command line arguments from `aqueduct serve`.
+  /// Resources like [AuthServer] and [PostgreSQLPersistentStore] should be instantiated
+  /// in this constructor. Configuration behavior - like [HTTPCodecRepository.add] - should be
+  /// configured in this constructor.
   ///
-  /// Configuration of database connections, [HTTPCodecRepository] and other per-isolate resources should be done in this constructor.
+  /// The [appConfig] contains configuration data from `aqueduct serve`, e.g.
+  /// the port the application is running on and the path to a configuration file.
   WildfireSink(ApplicationConfiguration appConfig) : super(appConfig) {
     logger.onRecord.listen((rec) => print("$rec ${rec.error ?? ""} ${rec.stackTrace ?? ""}"));
 
@@ -29,8 +24,8 @@ class WildfireSink extends RequestSink {
 
   /// All routes must be configured in this method.
   ///
-  /// This method is invoked after the constructor and before [willOpen] Routes must be set up in this method, as
-  /// the router gets 'compiled' after this method completes and routes cannot be added later.
+  /// This method is invoked after the constructor and before [willOpen].
+  /// All routes must be set up in this method and cannot be added after this method completes.
   @override
   void setupRouter(Router router) {
     router
@@ -64,11 +59,11 @@ class WildfireSink extends RequestSink {
   }
 }
 
-/// An instance of this class represents values from a configuration
+/// An instance of this class reads values from a configuration
 /// file specific to this application.
 ///
 /// Configuration files must have key-value for the properties in this class.
-/// For more documentation on configuration files, see
+/// For more documentation on configuration files, see https://aqueduct.io/docs/configure/ and
 /// https://pub.dartlang.org/packages/safe_config.
 class WildfireConfiguration extends ConfigurationItem {
   WildfireConfiguration(String fileName) : super.fromFile(fileName);
