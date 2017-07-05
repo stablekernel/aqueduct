@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:convert';
 import 'http.dart';
@@ -106,6 +107,16 @@ class Response implements RequestOrResponse {
   }
   dynamic _body;
 
+  /// Whether or not this instance should buffer its output or send it right away.
+  ///
+  /// In general, output should be buffered and therefore this value defaults to 'true'.
+  ///
+  /// For long-running requests where data may be made available over time,
+  /// this value can be set to 'false' to emit bytes to the HTTP client
+  /// as they are provided.
+  ///
+  /// This property has no effect if [body] is not a [Stream].
+  bool bufferOutput = true;
 
   /// Map of headers to send in this response.
   ///
