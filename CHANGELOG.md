@@ -1,5 +1,9 @@
 # aqueduct changelog
 
+## 2.3.1
+
+- Allow HTTP response buffering to be disabled.
+
 ## 2.3.0
 
 - Adds `Request.acceptableContentTypes` and `Request.acceptsContentType` for convenient usage of Accept header.
