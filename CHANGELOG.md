@@ -2,7 +2,7 @@
 
 ## 2.3.1
 
-- Allow HTTP response buffering to be disabled.
+- Adds `Response.bufferOutput` to control whether the HTTP response bytes are buffered.
 
 ## 2.3.0
 
