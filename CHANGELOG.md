@@ -1,5 +1,9 @@
 # aqueduct changelog
 
+## 2.3.1
+
+- Adds `Response.bufferOutput` to control whether the HTTP response bytes are buffered.
+
 ## 2.3.0
 
 - Adds `Request.acceptableContentTypes` and `Request.acceptsContentType` for convenient usage of Accept header.

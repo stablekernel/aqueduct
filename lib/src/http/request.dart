@@ -237,6 +237,7 @@ class Request implements RequestOrResponse {
       response.headers.add(HttpHeaders.CONTENT_ENCODING, compressionType.value);
     }
     response.headers.add(HttpHeaders.TRANSFER_ENCODING, "chunked");
+    response.bufferOutput = aqueductResponse.bufferOutput;
 
     return response.addStream(bodyStream).then((_) {
       return response.close();

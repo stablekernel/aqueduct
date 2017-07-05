@@ -16,6 +16,7 @@ class HTTPCodecRepository {
     add(new ContentType("application", "x-www-form-urlencoded", charset: "utf-8"), const _FormCodec(), allowCompression: true);
     setAllowsCompression(new ContentType("text", "*"), true);
     setAllowsCompression(new ContentType("application", "javascript"), true);
+    setAllowsCompression(new ContentType("text", "event-stream"), false);
   }
 
   /// The instance used by Aqueduct to encode and decode HTTP bodies.
