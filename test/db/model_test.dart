@@ -490,6 +490,23 @@ void main() {
       expect(p.public, "x");
       expect(p._private, "x");
     });
+
+    test("Private fields are omitted from asMap()", () {
+      var p = new PrivateField()
+        ..public = "x";
+      expect(p.asMap(), {"public": "x"});
+
+      p = new PrivateField()
+        .._private = "x";
+      expect(p.asMap(), {"public": "x"});
+    });
+
+    test("Private fields cannot be set in readFromMap()", () {
+      var p = new PrivateField();
+      p.readFromMap({"_private": "x"});
+      expect(p.public, isNull);
+      expect(p._private, isNull);
+    });
   });
 }
 
@@ -694,10 +711,12 @@ class _TransientTypeTest {
 }
 
 class PrivateField extends ManagedObject<_PrivateField> implements _PrivateField {
+  @managedTransientInputAttribute
   set public(String p) {
     _private = p;
   }
 
+  @managedTransientOutputAttribute
   String get public => _private;
 }
 class _PrivateField {

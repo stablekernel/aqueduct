@@ -208,6 +208,10 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
     var mirror = reflect(this);
 
     keyValues.forEach((k, v) {
+      if (_isPropertyPrivate(k)) {
+        return;
+      }
+
       var property = entity.properties[k];
 
       if (property == null) {
@@ -257,7 +261,9 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
     var outputMap = <String, dynamic>{};
 
     backing.valueMap.forEach((k, v) {
-      outputMap[k] = entity.properties[k].convertToPrimitiveValue(v);
+      if (!_isPropertyPrivate(k)) {
+        outputMap[k] = entity.properties[k].convertToPrimitiveValue(v);
+      }
     });
 
     var reflectedThis = reflect(this);
@@ -272,4 +278,7 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
 
     return outputMap;
   }
+
+  static bool _isPropertyPrivate(String propertyName) =>
+      propertyName.startsWith("_");
 }
