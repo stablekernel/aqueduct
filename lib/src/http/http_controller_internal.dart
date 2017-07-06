@@ -132,7 +132,7 @@ class HTTPControllerBinder {
       propertyBinders.add(new HTTPControllerParameterBinder(decl, isRequired: isRequired));
     });
 
-    allDeclarations.values
+    reflectClass(controllerType).instanceMembers.values
         .where((decl) => decl is MethodMirror)
         .where((decl) => decl.metadata.any((im) => im.reflectee is HTTPMethod))
         .map((decl) => new HTTPControllerMethodBinder(decl))
