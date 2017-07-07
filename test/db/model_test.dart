@@ -6,8 +6,16 @@ import '../helpers.dart';
 void main() {
   setUpAll(() {
     var ps = new DefaultPersistentStore();
-    ManagedDataModel dm =
-        new ManagedDataModel([TransientTest, TransientTypeTest, User, Post, PrivateField, EnumObject]);
+    ManagedDataModel dm = new ManagedDataModel([
+      TransientTest,
+      TransientTypeTest,
+      User,
+      Post,
+      PrivateField,
+      EnumObject,
+      TransientBelongsTo,
+      TransientOwner
+    ]);
     var _ = new ManagedContext(dm, ps);
   });
 
@@ -436,6 +444,13 @@ void main() {
     expect(t.asMap().containsKey("notAnAttribute"), false);
   });
 
+  test("Omit transient properties in asMap when object is a foreign key reference", () {
+    var b = new TransientBelongsTo()
+        ..id = 1
+        ..owner = (new TransientOwner()..id = 1);
+    expect(b.asMap(), {"id": 1, "owner": {"id": 1}});
+  });
+
   group("Persistent enum fields", () {
     test("Can assign/read enum value to persistent property", () {
       var e = new EnumObject();
@@ -489,6 +504,23 @@ void main() {
       var p = new PrivateField()..public = "x";
       expect(p.public, "x");
       expect(p._private, "x");
+    });
+
+    test("Private fields are omitted from asMap()", () {
+      var p = new PrivateField()
+        ..public = "x";
+      expect(p.asMap(), {"public": "x"});
+
+      p = new PrivateField()
+        .._private = "x";
+      expect(p.asMap(), {"public": "x"});
+    });
+
+    test("Private fields cannot be set in readFromMap()", () {
+      var p = new PrivateField();
+      p.readFromMap({"_private": "x"});
+      expect(p.public, isNull);
+      expect(p._private, isNull);
     });
   });
 }
@@ -694,10 +726,12 @@ class _TransientTypeTest {
 }
 
 class PrivateField extends ManagedObject<_PrivateField> implements _PrivateField {
+  @managedTransientInputAttribute
   set public(String p) {
     _private = p;
   }
 
+  @managedTransientOutputAttribute
   String get public => _private;
 }
 class _PrivateField {
@@ -717,4 +751,25 @@ class _EnumObject {
 
 enum EnumValues {
   abcd, efgh, other18
+}
+
+class TransientOwner extends ManagedObject<_TransientOwner> implements _TransientOwner {
+  @managedTransientOutputAttribute
+  int v = 2;
+}
+class _TransientOwner {
+  @managedPrimaryKey
+  int id;
+
+  TransientBelongsTo t;
+}
+
+class TransientBelongsTo extends ManagedObject<_TransientBelongsTo> implements _TransientBelongsTo {
+}
+class _TransientBelongsTo {
+  @managedPrimaryKey
+  int id;
+
+  @ManagedRelationship(#t)
+  TransientOwner owner;
 }

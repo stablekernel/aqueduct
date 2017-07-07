@@ -368,6 +368,13 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
           .map((ManagedObject innerValue) => innerValue.asMap())
           .toList();
     } else if (value is ManagedObject) {
+      // If we're only fetching the foreign key, don't do a full asMap
+      if (relationshipType == ManagedRelationshipType.belongsTo
+      && value.backingMap.length == 1
+      && value.backingMap.containsKey(destinationEntity.primaryKey)) {
+        return {destinationEntity.primaryKey: value[destinationEntity.primaryKey]};
+      }
+
       return value.asMap();
     } else if (value == null) {
       return null;
