@@ -3,6 +3,7 @@
 ## 2.3.1
 
 - Adds `Response.bufferOutput` to control whether the HTTP response bytes are buffered.
+- Adds `whereNot` to apply an inverse to other `Query.where` expression, e.g. `whereNot(whereIn(["a", "b"]))`.
 
 ## 2.3.0
 

@@ -216,6 +216,22 @@ dynamic whereRelatedByValue(dynamic foreignKeyValue) {
       foreignKeyValue, MatcherOperator.equalTo);
 }
 
+/// Inverts a [Query.where] matcher.
+///
+/// Creates a matcher that inverts [expression]. For whatever results would be filtered
+/// by [expression], the inverted expression both:
+///
+/// - includes the results that would have been excluded
+/// - excludes the results that would have been included
+///
+/// For example, the following find's all users not named 'Bob'.
+///
+///       var q = new Query<User>()
+///         ..where.name = whereNot(whereEqualTo("Bob"));
+///
+/// Note: null values are not evaluated. In the previous example, if name
+/// were 'null' for some user, it would *not* be returned by the query.
+///
 dynamic whereNot(MatcherExpression expression) {
   return expression.inverse;
 }
