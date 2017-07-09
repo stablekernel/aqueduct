@@ -129,13 +129,11 @@ void main() {
     expect(results[0].id, 1);
     expect(results[1].id, 2);
 
-    // Now as iterable
-    var iter = [1, 2].map((i) => i);
-    q = new Query<TestModel>()..where["id"] = whereIn(iter);
+    q = new Query<TestModel>()..where["id"] = whereNot(whereIn([1, 2]));
     results = await q.fetch();
-    expect(results.length, 2);
-    expect(results[0].id, 1);
-    expect(results[1].id, 2);
+    expect(results.length, 4);
+    expect(results.any((t) => t.id == 1), false);
+    expect(results.any((t) => t.id == 2), false);
   });
 
   test("whereBetween matcher", () async {

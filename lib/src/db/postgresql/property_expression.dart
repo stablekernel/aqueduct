@@ -22,8 +22,8 @@ class PropertyExpression extends PropertyMapper {
       return rangePredicate(expr.lhs, expr.rhs, expr.within);
     } else if (expr is NullMatcherExpression) {
       return nullPredicate(expr.shouldBeNull);
-    } else if (expr is WithinMatcherExpression) {
-      return containsPredicate(expr.values);
+    } else if (expr is SetMembershipMatcherExpression) {
+      return containsPredicate(expr.within, expr.values);
     } else if (expr is StringMatcherExpression) {
       return stringPredicate(expr.operator, expr.value, expr.caseSensitive, expr.invertOperator);
     }
@@ -41,7 +41,7 @@ class PropertyExpression extends PropertyMapper {
         {variableName: convertValueForStorage(value)});
   }
 
-  QueryPredicate containsPredicate(Iterable<dynamic> values) {
+  QueryPredicate containsPredicate(bool within, Iterable<dynamic> values) {
     var tokenList = [];
     var pairedMap = <String, dynamic>{};
 
@@ -57,7 +57,8 @@ class PropertyExpression extends PropertyMapper {
     });
 
     var name = columnName(withTableNamespace: true);
-    return new QueryPredicate("$name IN (${tokenList.join(",")})", pairedMap);
+    var keyword = within ? "IN" : "NOT IN";
+    return new QueryPredicate("$name $keyword (${tokenList.join(",")})", pairedMap);
   }
 
   QueryPredicate nullPredicate(bool isNull) {

@@ -178,7 +178,7 @@ dynamic whereEndsWith(String value, {bool caseSensitive: true}) {
 ///       var query = new Query<Employee>()
 ///         ..where.department = whereIn(["Engineering", "HR"]);
 dynamic whereIn(Iterable<dynamic> values) {
-  return new WithinMatcherExpression(values.toList());
+  return new SetMembershipMatcherExpression(values.toList());
 }
 
 /// Matcher for matching column values where [lhs] <= value <= [rhs] when using [Query.where].
@@ -214,6 +214,10 @@ dynamic whereOutsideOf(dynamic lhs, dynamic rhs) {
 dynamic whereRelatedByValue(dynamic foreignKeyValue) {
   return new ComparisonMatcherExpression(
       foreignKeyValue, MatcherOperator.equalTo);
+}
+
+dynamic whereNot(MatcherExpression expression) {
+  return expression.inverse;
 }
 
 /// Matcher for matching null value when using [Query.where].
