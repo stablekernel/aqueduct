@@ -178,7 +178,7 @@ dynamic whereEndsWith(String value, {bool caseSensitive: true}) {
 ///       var query = new Query<Employee>()
 ///         ..where.department = whereIn(["Engineering", "HR"]);
 dynamic whereIn(Iterable<dynamic> values) {
-  return new WithinMatcherExpression(values.toList());
+  return new SetMembershipMatcherExpression(values.toList());
 }
 
 /// Matcher for matching column values where [lhs] <= value <= [rhs] when using [Query.where].
@@ -214,6 +214,26 @@ dynamic whereOutsideOf(dynamic lhs, dynamic rhs) {
 dynamic whereRelatedByValue(dynamic foreignKeyValue) {
   return new ComparisonMatcherExpression(
       foreignKeyValue, MatcherOperator.equalTo);
+}
+
+/// Inverts a [Query.where] matcher.
+///
+/// Creates a matcher that inverts [expression]. For whatever results would be filtered
+/// by [expression], the inverted expression both:
+///
+/// - includes the results that would have been excluded
+/// - excludes the results that would have been included
+///
+/// For example, the following find's all users not named 'Bob'.
+///
+///       var q = new Query<User>()
+///         ..where.name = whereNot(whereEqualTo("Bob"));
+///
+/// Note: null values are not evaluated. In the previous example, if name
+/// were 'null' for some user, it would *not* be returned by the query.
+///
+dynamic whereNot(MatcherExpression expression) {
+  return expression.inverse;
 }
 
 /// Matcher for matching null value when using [Query.where].
