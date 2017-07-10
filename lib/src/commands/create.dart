@@ -64,7 +64,11 @@ class CLITemplateCreator extends CLICommand with CLIAqueductGlobal {
 
     displayInfo(
         "Fetching project dependencies (pub get --no-packages-dir ${offline ? "--offline" : ""})...");
-    await runPubGet(destDirectory, offline: offline);
+    try {
+      await runPubGet(destDirectory, offline: offline);
+    } on TimeoutException {
+      displayInfo("Fetching dependencies timed out. Run 'pub get' in your project directory.");
+    }
 
     displayProgress("Success.");
     displayInfo("New project '$projectName' successfully created.");
@@ -236,7 +240,7 @@ class CLITemplateCreator extends CLICommand with CLIAqueductGlobal {
           .run("pub", args,
               workingDirectory: workingDirectory.absolute.path,
               runInShell: true)
-          .timeout(new Duration(seconds: 20));
+          .timeout(new Duration(seconds: 60));
 
       if (result.exitCode != 0) {
         throw new CLIException(
