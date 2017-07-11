@@ -42,15 +42,15 @@ class APIDocumentable {
   ///
   /// This method is implemented by [Router].
   List<APIPath> documentPaths(PackagePathResolver resolver) =>
-      documentableChild?.documentPaths(resolver);
+      documentableChild?.documentPaths(resolver) ?? [];
 
   /// Returns all [APIOperation]s this object knows about.
   List<APIOperation> documentOperations(PackagePathResolver resolver) =>
-      documentableChild?.documentOperations(resolver);
+      documentableChild?.documentOperations(resolver) ?? [];
 
   /// Returns all [APIResponse]s for [operation].
   List<APIResponse> documentResponsesForOperation(APIOperation operation) =>
-      documentableChild?.documentResponsesForOperation(operation);
+      documentableChild?.documentResponsesForOperation(operation) ?? [];
 
   /// Returns all [APIRequestBody]s for [operation].
   APIRequestBody documentRequestBodyForOperation(APIOperation operation) =>
@@ -337,7 +337,7 @@ class APIOperation {
 
     m["summary"] = summary;
     m["description"] = description;
-    m["id"] = id;
+    m["operationId"] = id;
     m["deprecated"] = deprecated;
     m["tags"] = tags;
     m["consumes"] = consumes.map((ct) => ct.toString()).toList();
