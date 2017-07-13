@@ -125,6 +125,15 @@ void main() {
 
       expect(
           (await (defaultTestClient.request("/foo")..json = {"foo": "bar"})
+              .method("PATCH")) is TestResponse,
+          true);
+      msg = await server.next();
+      expect(msg.path, "/foo");
+      expect(msg.method, "PATCH");
+      expect(msg.body, '{"foo":"bar"}');
+
+      expect(
+          (await (defaultTestClient.request("/foo")..json = {"foo": "bar"})
               .put()) is TestResponse,
           true);
       msg = await server.next();

@@ -267,6 +267,14 @@ class TestRequest {
     return _executeRequest("POST");
   }
 
+  /// Executes this request with the given HTTP verb.
+  ///
+  /// The returned [Future] will complete with an instance of [TestResponse] which can be used
+  /// in test expectations using [hasResponse] or [hasStatus].
+  Future<TestResponse> method(String verb) {
+    return _executeRequest(verb);
+  }
+
   /// Executes this request with HTTP PUT.
   ///
   /// The returned [Future] will complete with an instance of [TestResponse] which can be used
