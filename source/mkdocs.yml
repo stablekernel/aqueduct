@@ -68,3 +68,9 @@ pages:
   - 'Running Applications': 'cli/running.md'
   - 'Generating an OpenAPI/Swagger Specification': 'cli/document.md'
   - 'Other Tools': 'cli/setup.md'
+- Snippets:
+  - 'Overview': 'snippets/overview.md'
+  - 'HTTP': 'snippets/http.md'
+  - 'ORM': 'snippets/orm.md'
+  - 'Authentication and Authorization': 'snippets/auth.md'
+  - 'Testing': 'snippets/test.md'
