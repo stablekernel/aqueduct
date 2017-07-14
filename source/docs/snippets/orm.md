@@ -68,6 +68,7 @@ var query = new Query<Team>()
 var teamsWithRookies = await query.fetch();
 ```
 
+<<<<<<< HEAD
 ## Complex/Unsupported WHERE Clause (using 'OR')
 
 ```dart
@@ -127,3 +128,12 @@ class MyAppConfiguration extends ConfigurationItem {
 }
 
 ```
+=======
+## Updating a Row/Object
+
+##
+
+## Adding an Index to a Column
+
+## Making a Column Unique
+>>>>>>> Some snippets, resourceregistry rename
