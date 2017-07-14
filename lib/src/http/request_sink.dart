@@ -157,7 +157,7 @@ abstract class RequestSink extends RequestController
 
   /// Closes this instance.
   ///
-  /// Tell the sink that no further requests will be added, and it may release any resources it is using. Prefer using [ResourceRegistry]
+  /// Tell the sink that no further requests will be added, and it may release any resources it is using. Prefer using [ServiceRegistry]
   /// to overriding this method.
   ///
   /// If you do override this method, you must call the super implementation. The default behavior of this method removes
