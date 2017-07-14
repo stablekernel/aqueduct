@@ -220,9 +220,9 @@ See the [API Reference](https://www.dartdocs.org/documentation/aqueduct/latest/a
 
 ### Verifying Other Data Not in the Response
 
-Some requests will trigger changes that are not readily available in the response. For example, if a request uploads a file, the response doesn't necessarily tell you that uploading succeeded. For that reason, you may want to verify data stores and other resources the application has after issuing a request.
+Some requests will trigger changes that are not readily available in the response. For example, if a request uploads a file, the response doesn't necessarily tell you that uploading succeeded. For that reason, you may want to verify data stores and other services the application has after issuing a request.
 
-Recall from the test harness at the top of this guide, `Application.start` has the flag `runOnMainIsolate: true`. This is a special flag that turns off Aqueduct's multi-isolate behavior and is specifically used for testing. When running on the main isolate, the application's request channel and resources are directly available to the test code. This allows you to verify any expected side-effects of a request. For example, by executing a query against a database:
+Recall from the test harness at the top of this guide, `Application.start` has the flag `runOnMainIsolate: true`. This is a special flag that turns off Aqueduct's multi-isolate behavior and is specifically used for testing. When running on the main isolate, the application's request channel and services are directly available to the test code. This allows you to verify any expected side-effects of a request. For example, by executing a query against a database:
 
 ```dart
 test("Starting an upload creates a pending record in the database", () async {

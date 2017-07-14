@@ -45,7 +45,7 @@ An Aqueduct application may run its request channel on multiple isolates. The nu
 aqueduct serve --isolates 3
 ```
 
-An isolate is a thread with its own memory heap, thus each isolate has its own isolated replica of the request channel. Database connections and other resources created in a `RequestSink` are also replicated in each isolate.
+An isolate is a thread with its own memory heap, thus each isolate has its own isolated replica of the request channel. Database connections and other services created in a `RequestSink` are also replicated in each isolate.
 
 When the application receives an HTTP request, only one of its isolates receives and responds to the request. This structure spreads computation across multiple CPUs/cores and makes patterns like connection pooling implicit, i.e. each isolate has its own database connection.
 

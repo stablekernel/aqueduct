@@ -185,7 +185,7 @@ Run applications detached or still connected to the shell:
 aqueduct serve --detached --port $PORT
 ```
 
-Aqueduct applications are multi-isolate (multi-threaded). Each isolate runs a replica of the same web server with its own set of resources like database connections. This makes behavior like database connection pooling implicit.
+Aqueduct applications are multi-isolate (multi-threaded). Each isolate runs a replica of the same web server with its own set of services like database connections. This makes behavior like database connection pooling implicit.
 
 ### Querying a Database
 
