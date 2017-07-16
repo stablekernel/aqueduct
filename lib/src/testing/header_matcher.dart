@@ -1,9 +1,7 @@
 import 'dart:io';
 
 import 'package:matcher/matcher.dart';
-import 'client.dart';
 import 'partial_matcher.dart';
-import 'matchers.dart';
 import 'http_value_wrapper.dart';
 
 class HTTPHeaderMatcher extends Matcher {

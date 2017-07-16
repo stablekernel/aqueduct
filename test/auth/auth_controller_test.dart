@@ -132,7 +132,7 @@ void main() {
             "cache-control": "no-store",
             "pragma": "no-cache",
             "content-encoding": "gzip",
-            "content-length": asNumber(greaterThan(0)),
+            "content-length": greaterThan(0),
             "x-frame-options": isString,
             "x-xss-protection": isString,
             "x-content-type-options": isString
@@ -161,7 +161,7 @@ void main() {
             "cache-control": "no-store",
             "pragma": "no-cache",
             "content-encoding": "gzip",
-            "content-length": asNumber(greaterThan(0)),
+            "content-length": greaterThan(0),
             "x-frame-options": isString,
             "x-xss-protection": isString,
             "x-content-type-options": isString
@@ -192,7 +192,7 @@ void main() {
             "cache-control": "no-store",
             "pragma": "no-cache",
             "content-encoding": "gzip",
-            "content-length": asNumber(greaterThan(0)),
+            "content-length": greaterThan(0),
             "x-frame-options": isString,
             "x-xss-protection": isString,
             "x-content-type-options": isString
@@ -780,5 +780,5 @@ dynamic hasAuthResponse(int statusCode, dynamic body) =>
       "x-frame-options": isString,
       "x-xss-protection": isString,
       "x-content-type-options": isString,
-      "content-length": asNumber(greaterThan(0))
+      "content-length": greaterThan(0)
     });

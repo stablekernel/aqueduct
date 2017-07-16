@@ -1,9 +1,10 @@
 part of aqueduct.test.client;
 
-/// Instances of this type represent the response from executing a [TestRequest].
+/// Instances are HTTP responses returned from [TestClient].
 ///
-/// This class is used to create test expectations on responses from your application code. See also [hasStatus] and [hasResponse].
-/// Do not create instances of this class manually - see [TestRequest] for more details.
+/// Instances are created when invoking an execution method with a [TestClient].
+///
+/// See methods like [expectResponse], [hasResponse] and [hasStatus] for usage.
 class TestResponse {
   TestResponse._(this._innerResponse);
 
