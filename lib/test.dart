@@ -13,6 +13,6 @@
 /// }
 library aqueduct.test;
 
-export 'src/utilities/mock_server.dart';
-export 'src/utilities/test_client.dart';
-export 'src/utilities/test_matchers.dart';
+export 'src/testing/mock_server.dart';
+export 'src/testing/client.dart';
+export 'src/testing/matchers.dart';
