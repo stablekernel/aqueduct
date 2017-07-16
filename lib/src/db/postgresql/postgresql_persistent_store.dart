@@ -21,14 +21,14 @@ class PostgreSQLPersistentStore extends PersistentStore
     with PostgreSQLSchemaGenerator {
   /// Creates an instance of this type from a manual function.
   PostgreSQLPersistentStore(this.connectFunction) : super() {
-    ResourceRegistry.add<PostgreSQLPersistentStore>(this, (store) => store.close());
+    ServiceRegistry.defaultInstance.register<PostgreSQLPersistentStore>(this, (store) => store.close());
   }
 
   /// Creates an instance of this type from connection info.
   PostgreSQLPersistentStore.fromConnectionInfo(
       this.username, this.password, this.host, this.port, this.databaseName,
       {this.timeZone: "UTC", bool useSSL: false}) {
-    ResourceRegistry.add<PostgreSQLPersistentStore>(this, (store) => store.close());
+    ServiceRegistry.defaultInstance.register<PostgreSQLPersistentStore>(this, (store) => store.close());
 
     this.connectFunction = () async {
       logger

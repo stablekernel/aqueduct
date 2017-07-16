@@ -63,7 +63,7 @@ class ApplicationIsolateServer extends ApplicationServer {
     logger.fine("ApplicationIsolateServer($identifier) closing server");
     await close();
     logger.fine("ApplicationIsolateServer($identifier) did close server");
-    await ResourceRegistry.release();
+    await ServiceRegistry.defaultInstance.close();
     logger.clearListeners();
     logger.fine("ApplicationIsolateServer($identifier) sending stop acknowledgement");
     supervisingApplicationPort

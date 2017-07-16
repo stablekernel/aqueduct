@@ -136,7 +136,7 @@ class Application<RequestSinkType extends RequestSink> {
     await Future.wait(supervisors.map((s) => s.stop()));
     supervisors = [];
 
-    await ResourceRegistry.release();
+    await ServiceRegistry.defaultInstance.close();
 
     await server?.server?.close(force: true);
 
