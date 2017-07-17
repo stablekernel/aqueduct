@@ -26,9 +26,9 @@ class HTTPCodecRepository {
   static HTTPCodecRepository _defaultInstance = new HTTPCodecRepository._();
 
   Map<String, Codec> _primaryTypeCodecs = {};
-  Map<String, Map<String, Codec>> _subtypeCodecs = {};
+  Map<String, Map<String, Codec>> _fullySpecificedCodecs = {};
   Map<String, bool> _primaryTypeCompressionMap = {};
-  Map<String, Map<String, bool>> _subtypeCompressionMap = {};
+  Map<String, Map<String, bool>> _fullySpecifiedCompressionMap = {};
   Map<String, Map<String, String>> _defaultCharsetMap = {};
 
   /// Adds a custom [codec] for [contentType].
@@ -67,13 +67,13 @@ class HTTPCodecRepository {
       _primaryTypeCodecs[contentType.primaryType] = codec;
       _primaryTypeCompressionMap[contentType.primaryType] = allowCompression;
     } else {
-      var innerCodecs = _subtypeCodecs[contentType.primaryType] ?? {};
+      var innerCodecs = _fullySpecificedCodecs[contentType.primaryType] ?? {};
       innerCodecs[contentType.subType] = codec;
-      _subtypeCodecs[contentType.primaryType] = innerCodecs;
+      _fullySpecificedCodecs[contentType.primaryType] = innerCodecs;
 
-      var innerCompress = _subtypeCompressionMap[contentType.primaryType] ?? {};
+      var innerCompress = _fullySpecifiedCompressionMap[contentType.primaryType] ?? {};
       innerCompress[contentType.subType] = allowCompression;
-      _subtypeCompressionMap[contentType.primaryType] = innerCompress;
+      _fullySpecifiedCompressionMap[contentType.primaryType] = innerCompress;
     }
 
     if (contentType.charset != null) {
@@ -91,9 +91,9 @@ class HTTPCodecRepository {
     if (contentType.subType == "*") {
       _primaryTypeCompressionMap[contentType.primaryType] = allowed;
     } else {
-      var innerCompress = _subtypeCompressionMap[contentType.primaryType] ?? {};
+      var innerCompress = _fullySpecifiedCompressionMap[contentType.primaryType] ?? {};
       innerCompress[contentType.subType] = allowed;
-      _subtypeCompressionMap[contentType.primaryType] = innerCompress;
+      _fullySpecifiedCompressionMap[contentType.primaryType] = innerCompress;
     }
   }
 
@@ -101,7 +101,7 @@ class HTTPCodecRepository {
   ///
   /// See also [setAllowsCompression].
   bool isContentTypeCompressable(ContentType contentType) {
-    var subtypeCompress = _subtypeCompressionMap[contentType.primaryType];
+    var subtypeCompress = _fullySpecifiedCompressionMap[contentType.primaryType];
     if (subtypeCompress != null) {
       if (subtypeCompress.containsKey(contentType.subType)) {
         return subtypeCompress[contentType.subType];
@@ -118,7 +118,7 @@ class HTTPCodecRepository {
     Codec contentCodec;
     Codec charsetCodec;
 
-    var subtypes = _subtypeCodecs[contentType.primaryType];
+    var subtypes = _fullySpecificedCodecs[contentType.primaryType];
     if (subtypes != null) {
       contentCodec = subtypes[contentType.subType];
     }
@@ -134,7 +134,6 @@ class HTTPCodecRepository {
     } else {
       charsetCodec = _defaultCharsetCodecForType(contentType);
     }
-
 
     if (contentCodec != null) {
       if (charsetCodec != null) {
@@ -188,13 +187,22 @@ class _FormCodec extends Codec {
   const _FormCodec();
 
   @override
-  Converter<Map<String, dynamic>, String> get encoder =>
-      throw new HTTPCodecException("Cannot encode application/x-www-form-urlencoded data. This content type is only available for decoding.");
+  Converter<Map<String, dynamic>, String> get encoder => const _FormEncoder();
 
   @override
   Converter<String, Map<String, dynamic>> get decoder => const _FormDecoder();
 }
 
+class _FormEncoder extends Converter<Map<String, dynamic>, String> {
+  const _FormEncoder();
+
+  @override
+  String convert(Map<String, dynamic> data) {
+    return data.keys
+        .map((key) => "$key=${Uri.encodeQueryComponent(data[key])}")
+        .join("&");
+  }
+}
 
 class _FormDecoder extends Converter<String, Map<String, dynamic>> {
   // This class may take input as either String or List<int>. If charset is not defined in request,

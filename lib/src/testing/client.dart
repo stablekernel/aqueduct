@@ -2,6 +2,7 @@ library aqueduct.test.client;
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:mirrors';
 import 'dart:io';
 import 'package:aqueduct/aqueduct.dart';
 import '../application/application.dart';

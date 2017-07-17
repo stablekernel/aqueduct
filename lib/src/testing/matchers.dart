@@ -219,9 +219,9 @@ Matcher hasResponse(int statusCode, dynamic bodyMatcher,
       (bodyMatcher != null ? new HTTPBodyMatcher(bodyMatcher) : null));
 }
 
-/// Short-hand for [hasResponse] that returns [response].
+/// Short-hand for [expect] and [hasResponse] that returns [response].
 ///
-/// This convenience method runs an expectation on [response] with [hasResponse], that is:
+/// This convenience method runs an expectation on [response] using [hasResponse] built from [statusCode], [body], and [headers], that is:
 ///
 ///         expect(response, hasResponse(statusCode, body, headers: headers));
 ///

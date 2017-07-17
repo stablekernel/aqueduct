@@ -6,18 +6,47 @@ part of aqueduct.test.client;
 ///
 /// See methods like [expectResponse], [hasResponse] and [hasStatus] for usage.
 class TestResponse {
-  TestResponse._(this._innerResponse);
+  TestResponse._(this._innerResponse)
+    : bodyDecoder = new TestResponseBody(_innerResponse);
 
   final HttpClientResponse _innerResponse;
+  final TestResponseBody bodyDecoder;
 
   /// The HTTP response body decoded according to its Content-Type.
   ///
-  /// For example, if the response has a Content-Type of application/json, this value will be the body decoded
-  /// from JSON into a [Map] or [List]. You may also use [asList] and [asMap] for additional typing clues for the analyzer.
-  dynamic decodedBody;
+  /// Prefer to use [bodyDecoder].
+  ///
+  /// Decoding is performed by [bodyDecoder].
+  dynamic get decodedBody {
+    if (bodyDecoder.isEmpty) {
+      return null;
+    }
 
-  /// The raw HTTP response body.
-  String body;
+    if (reflectType(bodyDecoder.decodedType).isSubtypeOf(reflectType(Map))) {
+      return bodyDecoder.asMap();
+    } else if (reflectType(bodyDecoder.decodedType).isSubtypeOf(reflectType(String))) {
+      return bodyDecoder.asString();
+    } else if (reflectType(bodyDecoder.decodedType).isSubtypeOf(reflectType(List))) {
+      return bodyDecoder.asList();
+    }
+
+    return bodyDecoder.asBytes();
+  }
+
+  /// A [String] representation of the body.
+  ///
+  /// Kept for backwards compatibility, use [bodyDecoder] instead.
+  String get body {
+    if (decodedBody == null) {
+      return null;
+    }
+
+    var codec = HTTPCodecRepository
+        .defaultInstance
+        .codecForContentType(_innerResponse.headers.contentType);
+
+    return UTF8.decode(codec.encode(decodedBody));
+  }
 
   /// HTTP response headers.
   HttpHeaders get headers => _innerResponse.headers;
@@ -33,34 +62,13 @@ class TestResponse {
 
   /// The [decodedBody] typed to a [List].
   ///
-  /// This is a convenience for casting [decodedBody] to an expected type as well as type-checking the decoded body.
-  List<dynamic> get asList => decodedBody as List;
+  /// Use [bodyDecoder] instead.
+  List<dynamic> get asList => bodyDecoder.asList();
 
   /// The [decodedBody] typed to a [Map].
   ///
-  /// This is a convenience for casting [decodedBody] to an expected type as well as type-checking the decoded body.
+  /// Use [bodyDecoder] instead.
   Map<dynamic, dynamic> get asMap => decodedBody as Map;
-
-  Future _decodeBody() {
-    var completer = new Completer();
-    _innerResponse.transform(UTF8.decoder).listen((contents) {
-      body = contents;
-
-      if (body != null) {
-        var contentType = this._innerResponse.headers.contentType;
-        if (contentType.primaryType == "application" &&
-            contentType.subType == "json") {
-          decodedBody = JSON.decode(body);
-        } else {
-          decodedBody = body;
-        }
-      }
-    }).onDone(() {
-      completer.complete();
-    });
-
-    return completer.future;
-  }
 
   @override
   String toString() {
@@ -74,8 +82,8 @@ class TestResponse {
       buffer.writeln("  - $header");
     });
 
-    if (body != null) {
-
+    if (!bodyDecoder.isEmpty) {
+      buffer.writeln(decodedBody.toString());
     } else {
       buffer.writeln("- Body is empty");
     }
@@ -83,4 +91,31 @@ class TestResponse {
 
     return buffer.toString();
   }
+}
+
+/// Instances of these type represent the body of a [TestResponse].
+class TestResponseBody extends Object with HTTPBodyDecoder {
+  /// Creates a new instance of this type.
+  ///
+  /// Instances of this type decode [response]'s body based on its content-type.
+  ///
+  /// See [HTTPCodecRepository] for more information about how data is decoded.
+  ///
+  /// Decoded data is cached the after it is decoded.
+  TestResponseBody(HttpClientResponse response) : this._response = response {
+    _hasContent = (response.headers.contentLength ?? 0) > 0
+        || response.headers.chunkedTransferEncoding;
+  }
+
+  final HttpClientResponse _response;
+  bool _hasContent;
+
+  @override
+  Stream<List<int>> get bytes => _response;
+
+  @override
+  ContentType get contentType => _response.headers.contentType;
+
+  @override
+  bool get isEmpty => !_hasContent;
 }
