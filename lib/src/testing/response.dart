@@ -10,6 +10,11 @@ class TestResponse {
     : bodyDecoder = new TestResponseBody(_innerResponse);
 
   final HttpClientResponse _innerResponse;
+
+  /// HTTP Body of this instance,
+  ///
+  /// Use this property to retrieve the body of this request. This property behaves exactly like
+  /// [Request.body] and is automatically decoded before this instance becomes available.
   final TestResponseBody bodyDecoder;
 
   /// The HTTP response body decoded according to its Content-Type.
