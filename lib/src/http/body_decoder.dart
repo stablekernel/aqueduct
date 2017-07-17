@@ -6,16 +6,15 @@ import 'http.dart';
 ///
 /// See [HTTPRequestBody] for a concrete implementation.
 abstract class HTTPBodyDecoder {
+  HTTPBodyDecoder(this.bytes);
+
   /// The stream of bytes to decode.
-  ///
-  /// Concrete implementations provide the bytes to be decoded.
-  Stream<List<int>> get bytes;
+  final Stream<List<int>> bytes;
 
   /// Determines how [bytes] get decoded.
   ///
   /// A decoder is chosen from [HTTPCodecRepository] according to this value.
   ContentType get contentType;
-
 
   /// Whether or not [bytes] is empty.
   ///

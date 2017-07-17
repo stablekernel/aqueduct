@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:io';
 import 'http.dart';
 import 'body_decoder.dart';
@@ -10,7 +9,7 @@ import 'body_decoder.dart';
 /// or one of the typed methods ([asList], [asMap], [decodeAsMap], [decodeAsList]) to decode HTTP body data.
 ///
 /// Default decoders are available for 'application/json', 'application/x-www-form-urlencoded' and 'text/*' content types.
-class HTTPRequestBody extends Object with HTTPBodyDecoder {
+class HTTPRequestBody extends HTTPBodyDecoder {
   /// Creates a new instance of this type.
   ///
   /// Instances of this type decode [request]'s body based on its content-type.
@@ -18,16 +17,15 @@ class HTTPRequestBody extends Object with HTTPBodyDecoder {
   /// See [HTTPCodecRepository] for more information about how data is decoded.
   ///
   /// Decoded data is cached the after it is decoded.
-  HTTPRequestBody(HttpRequest request) : this._request = request {
+  HTTPRequestBody(HttpRequest request)
+      : this._request = request,
+        super(request) {
     _hasContent = (request.headers.contentLength ?? 0) > 0
         || request.headers.chunkedTransferEncoding;
   }
 
   final HttpRequest _request;
   bool _hasContent;
-
-  @override
-  Stream<List<int>> get bytes => _request;
 
   @override
   ContentType get contentType => _request.headers.contentType;

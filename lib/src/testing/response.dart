@@ -94,7 +94,7 @@ class TestResponse {
 }
 
 /// Instances of these type represent the body of a [TestResponse].
-class TestResponseBody extends Object with HTTPBodyDecoder {
+class TestResponseBody extends HTTPBodyDecoder {
   /// Creates a new instance of this type.
   ///
   /// Instances of this type decode [response]'s body based on its content-type.
@@ -102,16 +102,15 @@ class TestResponseBody extends Object with HTTPBodyDecoder {
   /// See [HTTPCodecRepository] for more information about how data is decoded.
   ///
   /// Decoded data is cached the after it is decoded.
-  TestResponseBody(HttpClientResponse response) : this._response = response {
+  TestResponseBody(HttpClientResponse response)
+      : this._response = response,
+        super(response) {
     _hasContent = (response.headers.contentLength ?? 0) > 0
         || response.headers.chunkedTransferEncoding;
   }
 
   final HttpClientResponse _response;
   bool _hasContent;
-
-  @override
-  Stream<List<int>> get bytes => _response;
 
   @override
   ContentType get contentType => _response.headers.contentType;
