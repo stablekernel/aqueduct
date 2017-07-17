@@ -68,10 +68,62 @@ var query = new Query<Team>()
 var teamsWithRookies = await query.fetch();
 ```
 
+## Complex/Unsupported WHERE Clause (using 'OR')
+
+```dart
+var query = new Query<Team>()
+  ..predicate = new QueryPredicate("name = '@name1' OR name = '@name2'", {
+      "name1": "Badgers",
+      "name2": "Gophers"
+    });
+
+var badgerAndGopherTeams = await query.fetch();
+```
+
 ## Updating a Row/Object
 
-##
+```dart
+var query = new Query<Team>()
+  ..where.id = whereEqualTo(10)
+  ..values.name = "Badgers";
 
-## Adding an Index to a Column
+var team = await query.updateOne();
+```
 
-## Making a Column Unique
+## Configure a Database Connection from Configuration File
+
+```dart
+class AppSink extends RequestSink {
+  AppSink(ApplicationConfiguration config) : super(config) {  
+    var options = new MyAppConfiguration(appConfig.configurationFilePath);
+    context = contextWithConnectionInfo(options.database);
+  }
+
+  ManagedContext context;
+
+  @override
+  void setupRouter(Router r) {
+
+  }
+
+  ManagedContext contextWithConnectionInfo(
+      DatabaseConnectionConfiguration connectionInfo) {
+    var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
+    var psc = new PostgreSQLPersistentStore.fromConnectionInfo(
+        connectionInfo.username,
+        connectionInfo.password,
+        connectionInfo.host,
+        connectionInfo.port,
+        connectionInfo.databaseName);
+
+    return new ManagedContext(dataModel, psc);
+  }
+}
+
+class MyAppConfiguration extends ConfigurationItem {
+  MyAppConfiguration(String fileName) : super.fromFile(fileName);
+
+  DatabaseConnectionConfiguration database;
+}
+
+```

@@ -12,6 +12,7 @@ pages:
 - Home: 'index.md'
 - Getting Started: 'getting_started.md'
 - Tour: 'tour.md'
+- IntelliJ IDEA Templates: 'intellij.md'
 - Tutorial:
   - '1. Getting Started': 'tut/getting-started.md'
   - '2. Writing Tests': 'tut/writing-tests.md'
