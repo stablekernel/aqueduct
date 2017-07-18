@@ -151,7 +151,7 @@ class RoleBasedAuthStorage extends ManagedAuthStorage<User> {
     if (user.role == "admin") {
       scopeStrings = ["admin", "user"];
     } else if (user.role == "user") {
-      return ["user:email"];
+      scopeStrings = ["user:email"];
     }
 
     return scopeStrings.map((str) => new AuthScope(str)).toList();

@@ -55,9 +55,11 @@ The argument to `HTTPPath` is the name of the path variable as it is declared in
 
 The variable that `HTTPPath` is bound to can be named whatever you want - you don't have to name it the same as the path variable.
 
-The *type* of the bound variable can be a `String` or any type that has a `parse` method ( like `int`, `double`, and `DateTime`). When the path binding is not a `String`, the value of the path variable is parsed according to its type. If parsing fails, the responder method is not invoked and a 404 Not Found response is returned.
+The *type* of the bound variable can be a `String` or any type that has a `parse` method (like `int`, `double`, `HttpDate` and `DateTime`). If the bound variable's type is not `String` or a type that implements `parse`, a 500 Server Error is returned.
 
-Query string parameters and header values may also be bound to responder methods with `HTTPQuery` and `HTTPHeader` metadata. The following responder method will bind the query string parameters `limit` and `offset` to `numberOfThings` and `offset`:
+If the bound path variable's type does implement `parse`, but the value from the request is in an invalid format, a 404 Not Found response is returned.
+
+Query string parameters and header values may also be bound to responder methods with `HTTPQuery` and `HTTPHeader` metadata. (Note that a failed parse for query or header binding return a 400 Bad Request response.) The following responder method will bind the query string parameters `limit` and `offset` to `numberOfThings` and `offset`:
 
 ```dart
 @httpGet

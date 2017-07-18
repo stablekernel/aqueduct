@@ -211,6 +211,6 @@ Second, the way Aqueduct applications are structured makes it really difficult t
 
 Finally, isolates. Aqueduct applications are set up to run on multiple isolates (the `--isolates` option for the in `aqueduct serve`). An isolate is effectively a thread that shares no memory with other threads. If we were to keep track of state in some way, that state would not be reflected across all of the isolates running on this web server. So depending on which isolate grabbed a request, it may have different state than you might expect. Again, Aqueduct forces you into this model on purpose.
 
-Isolates will spread themselves out across CPUs on the host machine. Each isolate will have its own instance of your `RequestSink` subclass. Having multiple isolates running the same stateless web server on one machine allows for faster request handling. Each isolate also maintains its own set of resources, like database connections.
+Isolates will spread themselves out across CPUs on the host machine. Each isolate will have its own instance of your `RequestSink` subclass. Having multiple isolates running the same stateless web server on one machine allows for faster request handling. Each isolate also maintains its own set of services, like database connections.
 
 ## [Next Chapter: Writing Tests](writing-tests.md)
