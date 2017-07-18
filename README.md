@@ -4,8 +4,8 @@
 
 [![Gitter](https://badges.gitter.im/dart-lang/server.svg)](https://gitter.im/dart-lang/server?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
-<a href="http://slackaqueductsignup.herokuapp.com/"><img src="https://assets.brandfolder.com/ubhnmsn4/original/Slack_Mark_Web.png" alt="Slack" width="50" height="50"/>
-Aqueduct on Slack</a>
+<a href="http://slackaqueductsignup.herokuapp.com/"><img src="https://slackaqueductsignup.herokuapp.com/badge.svg" alt="Slack"/></a><br/>
+
 Aqueduct is a server-side framework for building and deploying multi-threaded REST applications. It is written in Dart and targets the Dart VM. Its goal is to provide an integrated, consistently styled API. If this is your first time viewing Aqueduct, check out [the tour](https://aqueduct.io/docs/tour/).
 
 The framework contains behavior for routing, OAuth 2.0, a PostgreSQL ORM, testing, and more.
