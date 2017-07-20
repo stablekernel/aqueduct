@@ -1,4 +1,4 @@
-# Executing Queries
+# 3. Executing Queries
 
 We will continue to build on the last chapter's project, `quiz`, by storing questions in a database and retrieving them from the database.
 

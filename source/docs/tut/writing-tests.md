@@ -1,5 +1,4 @@
-
-# Testing Aqueduct Applications
+# 2. Writing Tests
 
 One of the core principles of Aqueduct is effective testing. While opening up your browser and typing in a URL can verify the code you just wrote succeeds, it's not a very reliable way of testing software. We'll also run into trouble when testing endpoints that use HTTP methods other than GET. Therefore, there are some helpful utilities for writing tests in Aqueduct.
 
