@@ -68,10 +68,6 @@ var query = new Query<Team>()
 var teamsWithRookies = await query.fetch();
 ```
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> snippets and intellij
 ## Complex/Unsupported WHERE Clause (using 'OR')
 
 ```dart
@@ -84,7 +80,6 @@ var query = new Query<Team>()
 var badgerAndGopherTeams = await query.fetch();
 ```
 
-<<<<<<< HEAD
 ## Updating a Row/Object
 
 ```dart
@@ -132,58 +127,3 @@ class MyAppConfiguration extends ConfigurationItem {
 }
 
 ```
-=======
-=======
->>>>>>> snippets and intellij
-## Updating a Row/Object
-
-```dart
-var query = new Query<Team>()
-  ..where.id = whereEqualTo(10)
-  ..values.name = "Badgers";
-
-var team = await query.updateOne();
-```
-
-## Configure a Database Connection from Configuration File
-
-```dart
-class AppSink extends RequestSink {
-  AppSink(ApplicationConfiguration config) : super(config) {  
-    var options = new MyAppConfiguration(appConfig.configurationFilePath);
-    context = contextWithConnectionInfo(options.database);
-  }
-
-  ManagedContext context;
-
-  @override
-  void setupRouter(Router r) {
-
-  }
-
-<<<<<<< HEAD
-## Making a Column Unique
->>>>>>> Some snippets, resourceregistry rename
-=======
-  ManagedContext contextWithConnectionInfo(
-      DatabaseConnectionConfiguration connectionInfo) {
-    var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
-    var psc = new PostgreSQLPersistentStore.fromConnectionInfo(
-        connectionInfo.username,
-        connectionInfo.password,
-        connectionInfo.host,
-        connectionInfo.port,
-        connectionInfo.databaseName);
-
-    return new ManagedContext(dataModel, psc);
-  }
-}
-
-class MyAppConfiguration extends ConfigurationItem {
-  MyAppConfiguration(String fileName) : super.fromFile(fileName);
-
-  DatabaseConnectionConfiguration database;
-}
-
-```
->>>>>>> snippets and intellij
