@@ -23,7 +23,7 @@ In-depth documentation is available [here](https://aqueduct.io/docs).
 
         aqueduct create my_project
 
-Open the project directory in an [IntelliJ IDE](https://www.jetbrains.com/idea/download/), [Atom](https://atom.io) or [Visual Studio Code](https://code.visualstudio.com). All three IDEs have a Dart plugin.
+Open the project directory in an [IntelliJ IDE](https://www.jetbrains.com/idea/download/), [Atom](https://atom.io) or [Visual Studio Code](https://code.visualstudio.com). All three IDEs have a Dart plugin. IntelliJ IDEA is preferred and has [file and code templates](https://aqueduct.io/docs/intellij/) specific to Aqueduct.
 
 ## Tutorials, Documentation and Examples
 

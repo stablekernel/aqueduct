@@ -4,6 +4,9 @@
 
 - Adds `Response.bufferOutput` to control whether the HTTP response bytes are buffered.
 - Adds `whereNot` to apply an inverse to other `Query.where` expression, e.g. `whereNot(whereIn(["a", "b"]))`.
+- Fixes bug where subclassing `ManagedObjectController` didn't work.
+- Renames `ResourceRegistry` to `ServiceRegistry`.
+- Improves feedback and interface for `package:aqueduct/test.dart`.
 
 ## 2.3.0
 
