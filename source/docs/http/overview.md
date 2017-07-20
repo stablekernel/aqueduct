@@ -2,13 +2,13 @@
 
 Aqueduct applications respond to HTTP requests. The main concepts and tasks are:
 
-- Using a `Router` to dispatch `Request`s to a `RequestController`
-- Subclassing `HTTPController` to bind requests and their properties to *responder methods*
-- Subclassing `RequestSink` to initialize an application
-- Running Aqueduct Applications with `aqueduct serve`
-- Using specialized database controllers like `QueryController<T>` and `ManagedObjectController<T>`.
-- Decoding HTTP request bodies with `HTTPRequestBody` and encoding objects into HTTP response bodies with `Response`
-- Using `RequestController`s to implement middleware and other types of responder logic.
+- Using a `Router` to determine which code is run for an HTTP request
+- *Binding* the values from an HTTP request to the parameters of a method with `HTTPController`
+- Setting up routes and initializing an application by subclassing `RequestSink`
+- Starting and stopping Aqueduct Applications with `aqueduct serve`
+- Binding an REST interface to a database table with `ManagedObjectController<T>`
+- Encoding and Decoding HTTP request and response bodies according to `HTTPCodecRepository`
+- Building pipelines with middleware
 
 ## Guides
 

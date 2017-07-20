@@ -1,12 +1,14 @@
 # Aqueduct Application Architecture
 
-The fundamental object of Aqueduct is a `RequestController`. Request controllers are chained together to create a *request channel*. A request channel is a series of request controllers that a request flows through to be verified, modified and responded to.
+The most important object in Aqueduct is a `RequestController`. A `RequestController` is the only thing that can respond to HTTP requests. The logic for an application is written in the methods of this type and its subclasses.
+
+Request controllers are chained together to create a *request channel*. A request channel is a series of request controllers that a request flows through to be verified, modified and responded to.
 
 ![Structure](../img/structure.png)
 
-A request channel always starts at an instance of `RequestSink`. When an application receives an HTTP request, it adds it to the `RequestSink`. A `RequestSink` has a `Router` that splits the channel based on the path of the request. For example, a request with the path `/users` will go down one part of the channel, while a `/things` request will go down another.
+A request channel always starts at an instance of `RequestSink` (a subclass of `RequestController`). When an application receives an HTTP request, it adds it to the `RequestSink`. A `RequestSink` has a `Router` (also a subclass of `RequestController`) that splits the channel based on the path of the request. For example, a request with the path `/users` will go down one part of the channel, while a `/things` request will go down another.
 
-An application's request channel is defined in its `RequestSink`. Each application will have one and only one `RequestSink` subclass that must implement `setupRouter`. For example, the diagram above looks like this in code:
+An application has exactly one `RequestSink` subclass; it is responsible for defining its application's request channel by overriding the method `setupRouter`. For example, the diagram above looks like this in code:
 
 ```dart
 class MyRequestSink extends RequestSink {
@@ -31,13 +33,11 @@ class MyRequestSink extends RequestSink {
 }
 ```
 
-Each controller in the channel can either respond to the request or send it to the next controller in the channel. For example, an `Authorizer` will respond with a 401 Unauthorized response if a request's authorization isn't valid - but if it is valid, the request is passed to the next controller in the channel.
+In the above code, all of the objects created are instances of a `RequestController` subclass. Each of these controllers can either respond to the request, or send it to the next controller in the channel. For example, an `Authorizer` will respond with a 401 Unauthorized response if a request's authorization isn't valid - but if it is valid, the request is passed to the next controller in the channel.
 
-This structure means that `RequestController` is the base class for types that are middleware and for those that always respond to a request. There are no other types that handle requests and this makes Aqueduct very simple to understand.
+For more details on the object that handles requests, see [Request Controllers](request_controller.md).
 
-For more details, see [Request Controllers](request_controller.md).
-
-## Isolates
+## Isolates: Multi-threaded Applications
 
 An Aqueduct application may run its request channel on multiple isolates. The number of isolates is configured when running `aqueduct serve`.
 
