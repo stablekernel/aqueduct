@@ -1,10 +1,11 @@
 
 <!DOCTYPE html>
-<html class="no-js">
+<html lang="en" class="no-js">
   <head>
     
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
+      <meta http-equiv="x-ua-compatible" content="ie=edge">
       
         <meta name="description" content="Documentation for Aqueduct, a Dart server-side framework.">
       
@@ -13,7 +14,7 @@
       
         <link rel="shortcut icon" href="../../assets/images/favicon.png">
       
-      <meta name="generator" content="mkdocs-0.16.1, mkdocs-material-1.1.1">
+      <meta name="generator" content="mkdocs-0.16.3, mkdocs-material-1.7.4">
     
     
       
@@ -21,10 +22,10 @@
       
     
     
-      <script src="../../assets/javascripts/modernizr-56ade86843.js"></script>
+      <script src="../../assets/javascripts/modernizr-1df76c4e58.js"></script>
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/application-4ebe3f1d68.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/application-769c285a91.css">
       
     
     
@@ -60,7 +61,7 @@
     <input class="md-toggle" data-md-toggle="search" type="checkbox" id="search">
     <label class="md-overlay" data-md-component="overlay" for="drawer"></label>
     
-      <header class="md-header">
+      <header class="md-header" data-md-component="header">
   <nav class="md-header-nav md-grid">
     <div class="md-flex">
       <div class="md-flex__cell md-flex__cell--shrink">
@@ -91,24 +92,30 @@
           <label class="md-icon md-icon--search md-header-nav__button" for="search"></label>
           
 <div class="md-search" data-md-component="search">
-  <div class="md-search__overlay"></div>
+  <label class="md-search__overlay" for="search"></label>
   <div class="md-search__inner">
     <form class="md-search__form" name="search">
-      <input type="text" class="md-search__input" name="query" placeholder="Search" accesskey="s" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="query">
+      <input type="text" class="md-search__input" name="query" required placeholder="Search" accesskey="s" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="query">
       <label class="md-icon md-search__icon" for="search"></label>
+      <button type="reset" class="md-icon md-search__icon" data-md-component="reset">close</button>
     </form>
     <div class="md-search__output">
       <div class="md-search__scrollwrap" data-md-scrollfix>
-        <div class="md-search-result" data-md-component="result"></div>
+        <div class="md-search-result" data-md-component="result" data-md-lang-search="">
+          <div class="md-search-result__meta" data-md-lang-result-none="No matching documents" data-md-lang-result-one="1 matching document" data-md-lang-result-other="# matching documents">
+            Type to start searching
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
       </div>
     </div>
   </div>
 </div>
         
       </div>
-      <div class="md-flex__cell md-flex__cell--shrink">
-        <div class="md-header-nav__source">
-          
+      
+        <div class="md-flex__cell md-flex__cell--shrink">
+          <div class="md-header-nav__source">
             
 
 
@@ -128,9 +135,9 @@
     </div>
   </a>
 
-          
+          </div>
         </div>
-      </div>
+      
     </div>
   </nav>
 </header>
@@ -218,15 +225,27 @@
       
 
 
+  <li class="md-nav__item">
+    <a href="../../intellij/" title="IntelliJ IDEA Templates" class="md-nav__link">
+      IntelliJ IDEA Templates
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-4" type="checkbox" id="nav-4">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-5" type="checkbox" id="nav-5">
     
-    <label class="md-nav__link" for="nav-4">
+    <label class="md-nav__link" for="nav-5">
       Tutorial
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
-      <label class="md-nav__title" for="nav-4">
+      <label class="md-nav__title" for="nav-5">
         Tutorial
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -306,13 +325,13 @@
 
   <li class="md-nav__item md-nav__item--active md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-5" type="checkbox" id="nav-5" checked>
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-6" type="checkbox" id="nav-6" checked>
     
-    <label class="md-nav__link" for="nav-5">
+    <label class="md-nav__link" for="nav-6">
       Serving HTTP Requests
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
-      <label class="md-nav__title" for="nav-5">
+      <label class="md-nav__title" for="nav-6">
         Serving HTTP Requests
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -426,8 +445,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#use-requestsinks-constructor-to-initialize-resources-and-isolate-specific-configurations" title="Use RequestSink's Constructor to Initialize Resources and Isolate-Specific Configurations" class="md-nav__link">
-    Use RequestSink's Constructor to Initialize Resources and Isolate-Specific Configurations
+  <a href="#use-requestsinks-constructor-to-initialize-service-and-isolate-specific-configurations" title="Use RequestSink's Constructor to Initialize Service and Isolate-Specific Configurations" class="md-nav__link">
+    Use RequestSink's Constructor to Initialize Service and Isolate-Specific Configurations
   </a>
   
 </li>
@@ -459,8 +478,8 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#lazy-resources" title="Lazy Resources" class="md-nav__link">
-    Lazy Resources
+  <a href="#lazy-services" title="Lazy Services" class="md-nav__link">
+    Lazy Services
   </a>
   
 </li>
@@ -478,6 +497,8 @@
   </a>
   
 </li>
+      
+      
       
     </ul>
   
@@ -558,13 +579,13 @@
 
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-6" type="checkbox" id="nav-6">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-7" type="checkbox" id="nav-7">
     
-    <label class="md-nav__link" for="nav-6">
+    <label class="md-nav__link" for="nav-7">
       Databases and ORM
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
-      <label class="md-nav__title" for="nav-6">
+      <label class="md-nav__title" for="nav-7">
         Databases and ORM
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -666,18 +687,6 @@
   </li>
 
         
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../../db/inside_the_db/" title="Inside the DB" class="md-nav__link">
-      Inside the DB
-    </a>
-  </li>
-
-        
       </ul>
     </nav>
   </li>
@@ -690,13 +699,13 @@
 
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-7" type="checkbox" id="nav-7">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-8" type="checkbox" id="nav-8">
     
-    <label class="md-nav__link" for="nav-7">
+    <label class="md-nav__link" for="nav-8">
       Authorization and OAuth 2.0
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
-      <label class="md-nav__title" for="nav-7">
+      <label class="md-nav__title" for="nav-8">
         Authorization and OAuth 2.0
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -798,13 +807,13 @@
 
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-8" type="checkbox" id="nav-8">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-9" type="checkbox" id="nav-9">
     
-    <label class="md-nav__link" for="nav-8">
+    <label class="md-nav__link" for="nav-9">
       Development and Testing
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
-      <label class="md-nav__title" for="nav-8">
+      <label class="md-nav__title" for="nav-9">
         Development and Testing
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -906,13 +915,13 @@
 
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-9" type="checkbox" id="nav-9">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10" type="checkbox" id="nav-10">
     
-    <label class="md-nav__link" for="nav-9">
+    <label class="md-nav__link" for="nav-10">
       Deployment
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
-      <label class="md-nav__title" for="nav-9">
+      <label class="md-nav__title" for="nav-10">
         Deployment
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -990,13 +999,13 @@
 
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10" type="checkbox" id="nav-10">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-11" type="checkbox" id="nav-11">
     
-    <label class="md-nav__link" for="nav-10">
+    <label class="md-nav__link" for="nav-11">
       Command-line Tooling
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
-      <label class="md-nav__title" for="nav-10">
+      <label class="md-nav__title" for="nav-11">
         Command-line Tooling
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -1067,6 +1076,90 @@
   </li>
 
     
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-12" type="checkbox" id="nav-12">
+    
+    <label class="md-nav__link" for="nav-12">
+      Snippets
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-12">
+        Snippets
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../snippets/overview/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../snippets/http/" title="HTTP" class="md-nav__link">
+      HTTP
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../snippets/orm/" title="ORM" class="md-nav__link">
+      ORM
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../snippets/auth/" title="Authentication and Authorization" class="md-nav__link">
+      Authentication and Authorization
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../snippets/test/" title="Testing" class="md-nav__link">
+      Testing
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
   </ul>
 </nav>
                   </div>
@@ -1103,8 +1196,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#use-requestsinks-constructor-to-initialize-resources-and-isolate-specific-configurations" title="Use RequestSink's Constructor to Initialize Resources and Isolate-Specific Configurations" class="md-nav__link">
-    Use RequestSink's Constructor to Initialize Resources and Isolate-Specific Configurations
+  <a href="#use-requestsinks-constructor-to-initialize-service-and-isolate-specific-configurations" title="Use RequestSink's Constructor to Initialize Service and Isolate-Specific Configurations" class="md-nav__link">
+    Use RequestSink's Constructor to Initialize Service and Isolate-Specific Configurations
   </a>
   
 </li>
@@ -1136,8 +1229,8 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#lazy-resources" title="Lazy Resources" class="md-nav__link">
-    Lazy Resources
+  <a href="#lazy-services" title="Lazy Services" class="md-nav__link">
+    Lazy Services
   </a>
   
 </li>
@@ -1156,6 +1249,8 @@
   
 </li>
       
+      
+      
     </ul>
   
 </nav>
@@ -1166,10 +1261,10 @@
           
           <div class="md-content">
             <article class="md-content__inner md-typeset">
-               
-                 <a href="https://github.com/stablekernel/aqueduct/edit/master/docs/http/request_sink.md" title="Edit this page" class="md-icon md-content__edit">edit</a>
-               
               
+                
+                  <a href="https://github.com/stablekernel/aqueduct/edit/master/docs/http/request_sink.md" title="Edit this page" class="md-icon md-content__icon">edit</a>
+                
                 
                 <h1 id="application-initialization-and-the-requestsink">Application Initialization and the RequestSink</h1>
 <p>The only requirement of an Aqueduct application is that it has exactly one <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> subclass. This subclass handles the initialization of an application, including setting up routes, authorization and database connections.</p>
@@ -1186,7 +1281,7 @@
 
 <p>Applications are run with the command line tool <code>aqueduct serve</code>. This tool create multiple <code>Isolate</code>s (a thread managed by the VM) and creates an instance of the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> for each. Therefore, the channel of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a>s created by the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> is replicated for each isolate. Requests are divvied up among each isolate to maximize CPU and resource usage.</p>
 <h2 id="subclassing-requestsink">Subclassing RequestSink</h2>
-<p>The responsibility of a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> is to set up routes and initialize resources it will use to fulfill requests. There are five initialization methods in <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a>, each with its own purpose. The methods and the order they are executed in are as follows:</p>
+<p>The responsibility of a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> is to set up routes and initialize services it will use to fulfill requests. There are five initialization methods in <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a>, each with its own purpose. The methods and the order they are executed in are as follows:</p>
 <ol>
 <li><a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink/initializeApplication.html">RequestSink.initializeApplication</a>: this <em>static</em> method is called once at the very beginning of an application's startup, before any instances of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> are created.</li>
 <li>An instance of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> is created with its default constructor.</li>
@@ -1205,7 +1300,7 @@
 </pre></div>
 
 
-<p>A common use of this method is to set up resources that will be shared across isolates or unique persistent connections to remote services. This method can modify <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationConfiguration-class.html">ApplicationConfiguration</a> prior to <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> instances being created. This allows resources allocated during this one-time setup method can be accessible by each <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> instance.</p>
+<p>A common use of this method is to set up services that will be shared across isolates or unique persistent connections to remote services. This method can modify <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationConfiguration-class.html">ApplicationConfiguration</a> prior to <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> instances being created. This allows services allocated during this one-time setup method can be accessible by each <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> instance.</p>
 <p>For example:</p>
 <div class="codehilite"><pre><span></span><span class="kd">static</span> <span class="n">Future</span> <span class="n">initializeApplication</span><span class="p">(</span><span class="n">ApplicationConfiguration</span> <span class="n">config</span><span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>        
   <span class="n">config</span><span class="p">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;special item&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;xyz&quot;</span><span class="p">;</span>
@@ -1228,10 +1323,10 @@
 
 
 <p>Also, because static methods cannot be overridden in Dart, it is important that you ensure the name and signature of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink/initializeApplication.html">initializeApplication</a> exactly matches what is shown in these code samples. The analyzer can't help you here, unfortunately.</p>
-<h3 id="use-requestsinks-constructor-to-initialize-resources-and-isolate-specific-configurations">Use RequestSink's Constructor to Initialize Resources and Isolate-Specific Configurations</h3>
-<p>A resource, in this context, is something your application will use to fulfill requests. A database connection is an example of a resource. Resources should be created the constructor of a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> and stored as properties.</p>
+<h3 id="use-requestsinks-constructor-to-initialize-service-and-isolate-specific-configurations">Use RequestSink's Constructor to Initialize Service and Isolate-Specific Configurations</h3>
+<p>A service, in this context, is something your application will use to fulfill requests. A database connection is an example of a service. Services should be created the constructor of a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> and stored as properties.</p>
 <p>The constructor of a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> must be unnamed and take a single argument of type <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationConfiguration-class.html">ApplicationConfiguration</a>. This instance of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationConfiguration-class.html">ApplicationConfiguration</a> will have the same values as the instance in the previous initialization step (<a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink/initializeApplication.html">initializeApplication</a>). The configuration contains a path to the configuration file that the application was started with (this defaults to <code>config.yaml</code>). This file often contains values that set up things like database connections:</p>
-<p>The values in <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationConfiguration-class.html">ApplicationConfiguration</a> often contain the details for the resources that should be created - like database connection information. Here is an example:</p>
+<p>The values in <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationConfiguration-class.html">ApplicationConfiguration</a> often contain the details for the services that should be created - like database connection information. Here is an example:</p>
 <div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">MySink</span> <span class="kd">extends</span> <span class="n">RequestSink</span> <span class="p">{</span>
   <span class="n">MySink</span><span class="p">(</span><span class="n">ApplicationConfiguration</span> <span class="n">config</span><span class="p">)</span> <span class="o">:</span> <span class="k">super</span><span class="p">(</span><span class="n">config</span><span class="p">)</span> <span class="p">{</span>
     <span class="kd">var</span> <span class="n">appConfigValues</span> <span class="o">=</span> <span class="k">new</span> <span class="n">MyConfig</span><span class="p">(</span><span class="n">config</span><span class="p">.</span><span class="n">configurationFilePath</span><span class="p">);</span>
@@ -1252,11 +1347,11 @@
 </pre></div>
 
 
-<p>All of the properties of a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> should be initialized in its constructor. This allows the next phase of initialization - setting up routes - to inject these resources into controllers. For example, a typical <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> will have some property that holds a database connection; this property should be initialized in the constructor.</p>
-<p>A constructor should never call asynchronous functions. Some resources require asynchronous initialization - e.g., a database connection has to connect to a database - but those must be fully initialized later. (See a later section on Lazy Resources.)</p>
+<p>All of the properties of a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> should be initialized in its constructor. This allows the next phase of initialization - setting up routes - to inject these services into controllers. For example, a typical <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> will have some property that holds a database connection; this property should be initialized in the constructor.</p>
+<p>A constructor should never call asynchronous functions. Some services require asynchronous initialization - e.g., a database connection has to connect to a database - but those must be fully initialized later. (See a later section on Lazy Services.)</p>
 <h3 id="setting-up-routes-in-setuprouter">Setting up Routes in setupRouter</h3>
 <p>Once a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> is instantiated, its <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink/setupRouter.html">setupRouter</a> method is invoked. This method takes a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Router-class.html">Router</a> that you must configure with all of the routes your application will respond to. (See <a href="../routing/">Routing</a> for more details.)</p>
-<p>When setting up routes, you will create many instances of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a>. Any resources these controllers need should be injected in their constructor. For example, <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Authorizer-class.html">Authorizer</a>s need an instance of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/AuthServer-class.html">AuthServer</a> to validate a request. The following code is an example of this:</p>
+<p>When setting up routes, you will create many instances of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a>. Any services these controllers need should be injected in their constructor. For example, <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Authorizer-class.html">Authorizer</a>s need an instance of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/AuthServer-class.html">AuthServer</a> to validate a request. The following code is an example of this:</p>
 <div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">MySink</span> <span class="kd">extends</span> <span class="n">RequestSink</span> <span class="p">{</span>
   <span class="n">MySink</span><span class="p">(</span><span class="n">ApplicationConfiguration</span> <span class="n">config</span><span class="p">)</span> <span class="o">:</span> <span class="k">super</span><span class="p">(</span><span class="n">config</span><span class="p">)</span> <span class="p">{</span>  
     <span class="n">authServer</span> <span class="o">=</span> <span class="k">new</span> <span class="n">AuthServer</span><span class="p">(...);</span>
@@ -1279,13 +1374,13 @@
 <p>You may not call any asynchronous functions in this this method.</p>
 <p>After <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink/setupRouter.html">setupRouter</a> has completed, the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink/router.html">RequestSink.router</a> property is set to the router this method configured.</p>
 <h3 id="perform-asynchronous-initialization-with-willopen">Perform Asynchronous Initialization with willOpen</h3>
-<p>For any initialization that needs to occur asynchronously, you may override <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink/willOpen.html">RequestSink.willOpen</a>. This method is asynchronous, and the application will wait for this method to complete before sending any HTTP requests to the request sink. In general, you should avoid using this method and read the later section on Lazy Resources.</p>
+<p>For any initialization that needs to occur asynchronously, you may override <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink/willOpen.html">RequestSink.willOpen</a>. This method is asynchronous, and the application will wait for this method to complete before sending any HTTP requests to the request sink. In general, you should avoid using this method and read the later section on Lazy Services.</p>
 <h3 id="start-receiving-requests">Start Receiving Requests</h3>
 <p>Once an <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> sets up its routes and performs asynchronous initialization, the application will hook up the stream of HTTP requests to the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> and data will start flowing. Just prior to this, one last method is invoked on <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a>, <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationServer/didOpen.html">didOpen</a>. This method is a final callback to the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> that indicates all initialization has completed.</p>
-<h2 id="lazy-resources">Lazy Resources</h2>
-<p>An Aqueduct application will probably communicate to other servers and databases. A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> will have properties to represent these connections. Resources like these must open a persistent network connection, a process that is asynchronous by nature. Following the initialization process of a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a>, it may then make sense to create the resources in a constructor and then open them in <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink/willOpen.html">willOpen</a>.</p>
+<h2 id="lazy-services">Lazy Services</h2>
+<p>An Aqueduct application will probably communicate to other servers and databases. A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> will have properties to represent these connections. Services like these must open a persistent network connection, a process that is asynchronous by nature. Following the initialization process of a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a>, it may then make sense to create the services in a constructor and then open them in <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink/willOpen.html">willOpen</a>.</p>
 <p>However, an Aqueduct application will run for a long time. It is probable that connections it uses will occasionally be interrupted. If these connections are only opened when the application first starts, the application will not be able to reopen these connections without restarting it. This would be catastrophic.</p>
-<p>For that reason, asynchronous resources should manage their own opening behavior. For example, a database connection should open it when it is asked to execute a query. If it has a valid connection, it will go ahead and execute the query. Otherwise, it will establish the connection and then execute the query. The caller doesn't care - they get a <code>Future</code> with the desired data.</p>
+<p>For that reason, asynchronous services should manage their own opening behavior. For example, a database connection should open it when it is asked to execute a query. If it has a valid connection, it will go ahead and execute the query. Otherwise, it will establish the connection and then execute the query. The caller doesn't care - they get a <code>Future</code> with the desired data.</p>
 <p>The pseudo-code looks something like this:</p>
 <div class="codehilite"><pre><span></span><span class="n">Future</span> <span class="n">execute</span><span class="p">(</span><span class="kt">String</span> <span class="n">sql</span><span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>
   <span class="k">if</span> <span class="p">(</span><span class="n">connection</span> <span class="o">==</span> <span class="kc">null</span> <span class="o">||</span> <span class="o">!</span><span class="n">connection</span><span class="p">.</span><span class="n">isAvailable</span><span class="p">)</span> <span class="p">{</span>
@@ -1317,15 +1412,20 @@
 
 
 <p>The number of isolates defaults to 3. An application will spawn that many isolates and create an instance of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> for each. When an HTTP request is received, one of the isolates - and its <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> - will receive the request while the others will never see it. Each isolate works independently of each other, running as their own "web server" within a web server. Because a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> initializes itself in the exact same way on each isolate, each isolate behaves exactly the same way.</p>
-<p>An isolate can't share memory with another isolate. Therefore, each <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> instance has its own set of resources, like database connections. This behavior also makes connection pooling implicit - the connections are effectively pooled by the fact that there is a pool of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a>s. If a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> creates a database connection and an application is started with four isolates, there will be four database connections total.</p>
-<p>However, there are times where you want your own pool or you want to share a single resource across multiple isolates. For example, an API that must register with some other server (like in a system with an event bus) or must maintain a single persistent connection (like the error pipe to Apple's Push Notification Service or a streaming connection to Nest). These types of resources should be instantiated in <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink/initializeApplication.html">initializeApplication</a>.</p>
+<p>An isolate can't share memory with another isolate. Therefore, each <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> instance has its own set of services, like database connections. This behavior also makes connection pooling implicit - the connections are effectively pooled by the fact that there is a pool of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a>s. If a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> creates a database connection and an application is started with four isolates, there will be four database connections total.</p>
+<p>However, there are times where you want your own pool or you want to share a single service across multiple isolates. For example, an API that must register with some other server (like in a system with an event bus) or must maintain a single persistent connection (like the error pipe to Apple's Push Notification Service or a streaming connection to Nest). These types of services should be instantiated in <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink/initializeApplication.html">initializeApplication</a>.</p>
 <h2 id="the-application-object">The Application Object</h2>
 <p>Hidden in all of this discussion is the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Application-class.html">Application&lt;T&gt;</a> object. Because the <code>aqueduct serve</code> command manages creating <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Application-class.html">Application&lt;T&gt;</a> instances, your code rarely concerns itself with this type.</p>
 <p>An <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Application-class.html">Application&lt;T&gt;</a> is the top-level object in an Aqueduct application; it setups up HTTP listeners and sends their requests to <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> instances. The <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Application-class.html">Application&lt;T&gt;</a> itself is just a generic container for <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a>s; it doesn't do much other than kick everything off.</p>
 <p>The application's <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Application/start.html">start</a> method will initialize at least one instance of the application's <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a>. If something goes wrong during this initialization process, the application will throw an exception and halt starting the server. For example, setting up an invalid route in a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a> subclass would trigger this type of startup exception.</p>
 <p>An <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Application-class.html">Application&lt;T&gt;</a> has a number of options that determine how it will listen for HTTP requests, such as which port it is listening on or the SSL certificate it will use. These values are available in the application's <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Application/configuration.html">configuration</a> property, an instance of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationConfiguration-class.html">ApplicationConfiguration</a>.</p>
 <p>Properties of an <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationConfiguration-class.html">ApplicationConfiguration</a> and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Application-class.html">Application&lt;T&gt;</a> are provided through the <code>aqueduct serve</code> command-line options.</p>
+                
+                  
+                
               
+              
+                
               
             </article>
           </div>
@@ -1393,7 +1493,9 @@
       
     </div>
     
-      <script src="../../assets/javascripts/application-30ac6a1727.js"></script>
+      <script src="../../assets/javascripts/application-c35428f87f.js"></script>
+      
+      
       <script>app.initialize({url:{base:"../.."}})</script>
       
     

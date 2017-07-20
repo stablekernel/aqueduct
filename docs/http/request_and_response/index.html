@@ -1,10 +1,11 @@
 
 <!DOCTYPE html>
-<html class="no-js">
+<html lang="en" class="no-js">
   <head>
     
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
+      <meta http-equiv="x-ua-compatible" content="ie=edge">
       
         <meta name="description" content="Documentation for Aqueduct, a Dart server-side framework.">
       
@@ -13,7 +14,7 @@
       
         <link rel="shortcut icon" href="../../assets/images/favicon.png">
       
-      <meta name="generator" content="mkdocs-0.16.1, mkdocs-material-1.1.1">
+      <meta name="generator" content="mkdocs-0.16.3, mkdocs-material-1.7.4">
     
     
       
@@ -21,10 +22,10 @@
       
     
     
-      <script src="../../assets/javascripts/modernizr-56ade86843.js"></script>
+      <script src="../../assets/javascripts/modernizr-1df76c4e58.js"></script>
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/application-4ebe3f1d68.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/application-769c285a91.css">
       
     
     
@@ -60,7 +61,7 @@
     <input class="md-toggle" data-md-toggle="search" type="checkbox" id="search">
     <label class="md-overlay" data-md-component="overlay" for="drawer"></label>
     
-      <header class="md-header">
+      <header class="md-header" data-md-component="header">
   <nav class="md-header-nav md-grid">
     <div class="md-flex">
       <div class="md-flex__cell md-flex__cell--shrink">
@@ -91,24 +92,30 @@
           <label class="md-icon md-icon--search md-header-nav__button" for="search"></label>
           
 <div class="md-search" data-md-component="search">
-  <div class="md-search__overlay"></div>
+  <label class="md-search__overlay" for="search"></label>
   <div class="md-search__inner">
     <form class="md-search__form" name="search">
-      <input type="text" class="md-search__input" name="query" placeholder="Search" accesskey="s" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="query">
+      <input type="text" class="md-search__input" name="query" required placeholder="Search" accesskey="s" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="query">
       <label class="md-icon md-search__icon" for="search"></label>
+      <button type="reset" class="md-icon md-search__icon" data-md-component="reset">close</button>
     </form>
     <div class="md-search__output">
       <div class="md-search__scrollwrap" data-md-scrollfix>
-        <div class="md-search-result" data-md-component="result"></div>
+        <div class="md-search-result" data-md-component="result" data-md-lang-search="">
+          <div class="md-search-result__meta" data-md-lang-result-none="No matching documents" data-md-lang-result-one="1 matching document" data-md-lang-result-other="# matching documents">
+            Type to start searching
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
       </div>
     </div>
   </div>
 </div>
         
       </div>
-      <div class="md-flex__cell md-flex__cell--shrink">
-        <div class="md-header-nav__source">
-          
+      
+        <div class="md-flex__cell md-flex__cell--shrink">
+          <div class="md-header-nav__source">
             
 
 
@@ -128,9 +135,9 @@
     </div>
   </a>
 
-          
+          </div>
         </div>
-      </div>
+      
     </div>
   </nav>
 </header>
@@ -218,15 +225,27 @@
       
 
 
+  <li class="md-nav__item">
+    <a href="../../intellij/" title="IntelliJ IDEA Templates" class="md-nav__link">
+      IntelliJ IDEA Templates
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-4" type="checkbox" id="nav-4">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-5" type="checkbox" id="nav-5">
     
-    <label class="md-nav__link" for="nav-4">
+    <label class="md-nav__link" for="nav-5">
       Tutorial
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
-      <label class="md-nav__title" for="nav-4">
+      <label class="md-nav__title" for="nav-5">
         Tutorial
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -306,13 +325,13 @@
 
   <li class="md-nav__item md-nav__item--active md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-5" type="checkbox" id="nav-5" checked>
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-6" type="checkbox" id="nav-6" checked>
     
-    <label class="md-nav__link" for="nav-5">
+    <label class="md-nav__link" for="nav-6">
       Serving HTTP Requests
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
-      <label class="md-nav__title" for="nav-5">
+      <label class="md-nav__title" for="nav-6">
         Serving HTTP Requests
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -421,6 +440,8 @@
     </nav>
   
 </li>
+      
+      
       
     </ul>
   
@@ -537,13 +558,13 @@
 
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-6" type="checkbox" id="nav-6">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-7" type="checkbox" id="nav-7">
     
-    <label class="md-nav__link" for="nav-6">
+    <label class="md-nav__link" for="nav-7">
       Databases and ORM
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
-      <label class="md-nav__title" for="nav-6">
+      <label class="md-nav__title" for="nav-7">
         Databases and ORM
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -645,18 +666,6 @@
   </li>
 
         
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../../db/inside_the_db/" title="Inside the DB" class="md-nav__link">
-      Inside the DB
-    </a>
-  </li>
-
-        
       </ul>
     </nav>
   </li>
@@ -669,13 +678,13 @@
 
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-7" type="checkbox" id="nav-7">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-8" type="checkbox" id="nav-8">
     
-    <label class="md-nav__link" for="nav-7">
+    <label class="md-nav__link" for="nav-8">
       Authorization and OAuth 2.0
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
-      <label class="md-nav__title" for="nav-7">
+      <label class="md-nav__title" for="nav-8">
         Authorization and OAuth 2.0
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -777,13 +786,13 @@
 
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-8" type="checkbox" id="nav-8">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-9" type="checkbox" id="nav-9">
     
-    <label class="md-nav__link" for="nav-8">
+    <label class="md-nav__link" for="nav-9">
       Development and Testing
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
-      <label class="md-nav__title" for="nav-8">
+      <label class="md-nav__title" for="nav-9">
         Development and Testing
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -885,13 +894,13 @@
 
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-9" type="checkbox" id="nav-9">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10" type="checkbox" id="nav-10">
     
-    <label class="md-nav__link" for="nav-9">
+    <label class="md-nav__link" for="nav-10">
       Deployment
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
-      <label class="md-nav__title" for="nav-9">
+      <label class="md-nav__title" for="nav-10">
         Deployment
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -969,13 +978,13 @@
 
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10" type="checkbox" id="nav-10">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-11" type="checkbox" id="nav-11">
     
-    <label class="md-nav__link" for="nav-10">
+    <label class="md-nav__link" for="nav-11">
       Command-line Tooling
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
-      <label class="md-nav__title" for="nav-10">
+      <label class="md-nav__title" for="nav-11">
         Command-line Tooling
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -1037,6 +1046,90 @@
   <li class="md-nav__item">
     <a href="../../cli/setup/" title="Other Tools" class="md-nav__link">
       Other Tools
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-12" type="checkbox" id="nav-12">
+    
+    <label class="md-nav__link" for="nav-12">
+      Snippets
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-12">
+        Snippets
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../snippets/overview/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../snippets/http/" title="HTTP" class="md-nav__link">
+      HTTP
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../snippets/orm/" title="ORM" class="md-nav__link">
+      ORM
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../snippets/auth/" title="Authentication and Authorization" class="md-nav__link">
+      Authentication and Authorization
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../snippets/test/" title="Testing" class="md-nav__link">
+      Testing
     </a>
   </li>
 
@@ -1114,6 +1207,8 @@
   
 </li>
       
+      
+      
     </ul>
   
 </nav>
@@ -1124,10 +1219,10 @@
           
           <div class="md-content">
             <article class="md-content__inner md-typeset">
-               
-                 <a href="https://github.com/stablekernel/aqueduct/edit/master/docs/http/request_and_response.md" title="Edit this page" class="md-icon md-content__edit">edit</a>
-               
               
+                
+                  <a href="https://github.com/stablekernel/aqueduct/edit/master/docs/http/request_and_response.md" title="Edit this page" class="md-icon md-content__icon">edit</a>
+                
                 
                 <h1 id="request-and-response-objects">Request and Response Objects</h1>
 <p>In Aqueduct, HTTP requests and responses are instances of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request-class.html">Request</a> and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Response-class.html">Response</a>, respectively. For every HTTP request an application receives, an instance of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request-class.html">Request</a> is created. A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Response-class.html">Response</a> must be created for each <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request-class.html">Request</a>. Requests pass through a channel of <a href="../request_controller/">RequestControllers</a> to be validated, modified and finally responded to.</p>
@@ -1145,7 +1240,7 @@
 
 <p>When a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Response-class.html">Response</a> is returned from a request controller, Aqueduct handles sending the HTTP response back to the client.</p>
 <p>An HTTP response often contains a <em>body</em>. For example, the body in response to <code>GET /users/1</code> might be JSON object that represents a user. To ensure the client understands that the body is a JSON object, it includes the header <code>Content-Type: application/json; charset=utf-8</code>.</p>
-<p>When creating a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Response-class.html">Response</a> that has a body, you provide a <em>body object</em> and a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Response/contentType.html">contentType</a>. The body object is passed to one of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Response-class.html">Response</a>'s constructors. For example, this map` is the body object of a response:</p>
+<p>When creating a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Response-class.html">Response</a> that has a body, you provide a <em>body object</em> and a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPBodyDecoder/contentType.html">contentType</a>. The body object is passed to one of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Response-class.html">Response</a>'s constructors. For example, this map` is the body object of a response:</p>
 <div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">map</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;key&quot;</span><span class="o">:</span> <span class="s2">&quot;value&quot;</span><span class="p">};</span>
 
 <span class="c1">// ContentType.JSON is the default, setting it may be omitted.</span>
@@ -1160,7 +1255,7 @@
 <p>A <code>ContentType</code> is made up of three components: a primary type, a subtype and an optional character set.</p>
 <p><img alt="Content Type Components" src="../../img/content_type_components.png" /></p>
 <p>The primary and subtype determine the first conversion step and the charset determines the next. Each step is performed by an instance of <code>Codec</code>. For example, the content type <code>application/json</code> selects <code>JsonCodec</code>, while charset <code>utf-8</code> selects <code>Utf8Codec</code>. These two codecs are run in succession to convert the <code>Map</code> to a list of bytes.</p>
-<p>The body object must be a valid input for the initial encoder step. In the above example, a <code>Map&lt;String, dynamic&gt;</code> can be encoded by a <code>JsonCodec</code>. But if the body object was something silly - like an <code>Isolate</code> - encoding would fail at runtime and the client would be sent a 500 Server Error response. A valid input for one <code>Codec</code> may not be valid for another; it is up to you to ensure that the body object is valid for the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Response/contentType.html">contentType</a> of the response.</p>
+<p>The body object must be a valid input for the initial encoder step. In the above example, a <code>Map&lt;String, dynamic&gt;</code> can be encoded by a <code>JsonCodec</code>. But if the body object was something silly - like an <code>Isolate</code> - encoding would fail at runtime and the client would be sent a 500 Server Error response. A valid input for one <code>Codec</code> may not be valid for another; it is up to you to ensure that the body object is valid for the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPBodyDecoder/contentType.html">contentType</a> of the response.</p>
 <p>Not all content types require two conversion steps. For example, when serving an HTML file, the body object is already an HTML <code>String</code>. It will only be converted by a charset encoder:</p>
 <div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">html</span> <span class="o">=</span> <span class="s2">&quot;&lt;html&gt;&lt;/html&gt;&quot;</span><span class="p">;</span>
 <span class="kd">var</span> <span class="n">response</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="n">html</span><span class="p">)</span>
@@ -1276,7 +1371,12 @@
 <p>You may also set whether or not a content type uses compression without having to specify a codec if no conversion step needs to occur:</p>
 <div class="codehilite"><pre><span></span><span class="n">HTTPCodecRepository</span><span class="p">.</span><span class="n">setAllowsCompression</span><span class="p">(</span><span class="k">new</span> <span class="n">ContentType</span><span class="p">(</span><span class="s2">&quot;application&quot;</span><span class="p">,</span> <span class="s2">&quot;x-special&quot;</span><span class="p">),</span> <span class="kc">true</span><span class="p">);</span>
 </pre></div>
+                
+                  
+                
               
+              
+                
               
             </article>
           </div>
@@ -1344,7 +1444,9 @@
       
     </div>
     
-      <script src="../../assets/javascripts/application-30ac6a1727.js"></script>
+      <script src="../../assets/javascripts/application-c35428f87f.js"></script>
+      
+      
       <script>app.initialize({url:{base:"../.."}})</script>
       
     

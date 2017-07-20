@@ -1,10 +1,11 @@
 
 <!DOCTYPE html>
-<html class="no-js">
+<html lang="en" class="no-js">
   <head>
     
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
+      <meta http-equiv="x-ua-compatible" content="ie=edge">
       
         <meta name="description" content="Documentation for Aqueduct, a Dart server-side framework.">
       
@@ -13,7 +14,7 @@
       
         <link rel="shortcut icon" href="../../assets/images/favicon.png">
       
-      <meta name="generator" content="mkdocs-0.16.1, mkdocs-material-1.1.1">
+      <meta name="generator" content="mkdocs-0.16.3, mkdocs-material-1.7.4">
     
     
       
@@ -21,10 +22,10 @@
       
     
     
-      <script src="../../assets/javascripts/modernizr-56ade86843.js"></script>
+      <script src="../../assets/javascripts/modernizr-1df76c4e58.js"></script>
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/application-4ebe3f1d68.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/application-769c285a91.css">
       
     
     
@@ -60,7 +61,7 @@
     <input class="md-toggle" data-md-toggle="search" type="checkbox" id="search">
     <label class="md-overlay" data-md-component="overlay" for="drawer"></label>
     
-      <header class="md-header">
+      <header class="md-header" data-md-component="header">
   <nav class="md-header-nav md-grid">
     <div class="md-flex">
       <div class="md-flex__cell md-flex__cell--shrink">
@@ -91,24 +92,30 @@
           <label class="md-icon md-icon--search md-header-nav__button" for="search"></label>
           
 <div class="md-search" data-md-component="search">
-  <div class="md-search__overlay"></div>
+  <label class="md-search__overlay" for="search"></label>
   <div class="md-search__inner">
     <form class="md-search__form" name="search">
-      <input type="text" class="md-search__input" name="query" placeholder="Search" accesskey="s" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="query">
+      <input type="text" class="md-search__input" name="query" required placeholder="Search" accesskey="s" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="query">
       <label class="md-icon md-search__icon" for="search"></label>
+      <button type="reset" class="md-icon md-search__icon" data-md-component="reset">close</button>
     </form>
     <div class="md-search__output">
       <div class="md-search__scrollwrap" data-md-scrollfix>
-        <div class="md-search-result" data-md-component="result"></div>
+        <div class="md-search-result" data-md-component="result" data-md-lang-search="">
+          <div class="md-search-result__meta" data-md-lang-result-none="No matching documents" data-md-lang-result-one="1 matching document" data-md-lang-result-other="# matching documents">
+            Type to start searching
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
       </div>
     </div>
   </div>
 </div>
         
       </div>
-      <div class="md-flex__cell md-flex__cell--shrink">
-        <div class="md-header-nav__source">
-          
+      
+        <div class="md-flex__cell md-flex__cell--shrink">
+          <div class="md-header-nav__source">
             
 
 
@@ -128,9 +135,9 @@
     </div>
   </a>
 
-          
+          </div>
         </div>
-      </div>
+      
     </div>
   </nav>
 </header>
@@ -217,18 +224,30 @@
       
       
 
+
+  <li class="md-nav__item">
+    <a href="../../intellij/" title="IntelliJ IDEA Templates" class="md-nav__link">
+      IntelliJ IDEA Templates
+    </a>
+  </li>
+
+    
+      
+      
+      
+
   
 
 
   <li class="md-nav__item md-nav__item--active md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-4" type="checkbox" id="nav-4" checked>
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-5" type="checkbox" id="nav-5" checked>
     
-    <label class="md-nav__link" for="nav-4">
+    <label class="md-nav__link" for="nav-5">
       Tutorial
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
-      <label class="md-nav__title" for="nav-4">
+      <label class="md-nav__title" for="nav-5">
         Tutorial
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -296,9 +315,36 @@
       
     
     
+      <label class="md-nav__link md-nav__link--active" for="toc">
+        5. Deploying
+      </label>
+    
     <a href="./" title="5. Deploying" class="md-nav__link md-nav__link--active">
       5. Deploying
     </a>
+    
+      
+<nav class="md-nav md-nav--secondary">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#onward" title="Onward" class="md-nav__link">
+    Onward
+  </a>
+  
+</li>
+      
+      
+      
+    </ul>
+  
+</nav>
     
   </li>
 
@@ -315,13 +361,13 @@
 
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-5" type="checkbox" id="nav-5">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-6" type="checkbox" id="nav-6">
     
-    <label class="md-nav__link" for="nav-5">
+    <label class="md-nav__link" for="nav-6">
       Serving HTTP Requests
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
-      <label class="md-nav__title" for="nav-5">
+      <label class="md-nav__title" for="nav-6">
         Serving HTTP Requests
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -471,13 +517,13 @@
 
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-6" type="checkbox" id="nav-6">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-7" type="checkbox" id="nav-7">
     
-    <label class="md-nav__link" for="nav-6">
+    <label class="md-nav__link" for="nav-7">
       Databases and ORM
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
-      <label class="md-nav__title" for="nav-6">
+      <label class="md-nav__title" for="nav-7">
         Databases and ORM
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -579,18 +625,6 @@
   </li>
 
         
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../../db/inside_the_db/" title="Inside the DB" class="md-nav__link">
-      Inside the DB
-    </a>
-  </li>
-
-        
       </ul>
     </nav>
   </li>
@@ -603,13 +637,13 @@
 
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-7" type="checkbox" id="nav-7">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-8" type="checkbox" id="nav-8">
     
-    <label class="md-nav__link" for="nav-7">
+    <label class="md-nav__link" for="nav-8">
       Authorization and OAuth 2.0
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
-      <label class="md-nav__title" for="nav-7">
+      <label class="md-nav__title" for="nav-8">
         Authorization and OAuth 2.0
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -711,13 +745,13 @@
 
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-8" type="checkbox" id="nav-8">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-9" type="checkbox" id="nav-9">
     
-    <label class="md-nav__link" for="nav-8">
+    <label class="md-nav__link" for="nav-9">
       Development and Testing
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
-      <label class="md-nav__title" for="nav-8">
+      <label class="md-nav__title" for="nav-9">
         Development and Testing
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -819,13 +853,13 @@
 
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-9" type="checkbox" id="nav-9">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10" type="checkbox" id="nav-10">
     
-    <label class="md-nav__link" for="nav-9">
+    <label class="md-nav__link" for="nav-10">
       Deployment
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
-      <label class="md-nav__title" for="nav-9">
+      <label class="md-nav__title" for="nav-10">
         Deployment
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -903,13 +937,13 @@
 
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10" type="checkbox" id="nav-10">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-11" type="checkbox" id="nav-11">
     
-    <label class="md-nav__link" for="nav-10">
+    <label class="md-nav__link" for="nav-11">
       Command-line Tooling
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
-      <label class="md-nav__title" for="nav-10">
+      <label class="md-nav__title" for="nav-11">
         Command-line Tooling
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -980,6 +1014,90 @@
   </li>
 
     
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-12" type="checkbox" id="nav-12">
+    
+    <label class="md-nav__link" for="nav-12">
+      Snippets
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-12">
+        Snippets
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../snippets/overview/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../snippets/http/" title="HTTP" class="md-nav__link">
+      HTTP
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../snippets/orm/" title="ORM" class="md-nav__link">
+      ORM
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../snippets/auth/" title="Authentication and Authorization" class="md-nav__link">
+      Authentication and Authorization
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../snippets/test/" title="Testing" class="md-nav__link">
+      Testing
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
   </ul>
 </nav>
                   </div>
@@ -997,6 +1115,20 @@
     
   
   
+    <label class="md-nav__title" for="toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#onward" title="Onward" class="md-nav__link">
+    Onward
+  </a>
+  
+</li>
+      
+      
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -1005,19 +1137,92 @@
           
           <div class="md-content">
             <article class="md-content__inner md-typeset">
-               
-                 <a href="https://github.com/stablekernel/aqueduct/edit/master/docs/tut/deploying-and-other-fun-things.md" title="Edit this page" class="md-icon md-content__edit">edit</a>
-               
               
                 
-                <h1 id="deploying-an-aqueduct-application">Deploying an Aqueduct Application</h1>
-<p>We've only touched on a small part of Aqueduct, but we've hit the fundamentals pretty well. The rest of the documentation should lead you towards more specific features, in a less hand-holding way. A lot of the code you have written throughout the tutorial is part of the templates that ship with Aqueduct. So it's likely that this is the last time you'll write the 'setup code' you wrote throughout this tutorial. To create a project from the templates, run:</p>
-<div class="codehilite"><pre><span></span>aqueduct create my_project
+                  <a href="https://github.com/stablekernel/aqueduct/edit/master/docs/tut/deploying-and-other-fun-things.md" title="Edit this page" class="md-icon md-content__icon">edit</a>
+                
+                
+                <h1 id="5-deploying-an-aqueduct-application">5. Deploying an Aqueduct Application</h1>
+<p>The last chapter is a quick one - we'll get our application and its database running locally. When writing tests, the harness creates temporary tables that are destroyed when the tests end. Those tables are created in a database named <code>dart_test</code> that is exclusively used for this purpose. All of your projects will use this same database for running tests.</p>
+<p>To run the application outside of the tests, you'll need another database. Run the <code>psql</code> command-line tool and enter the following SQL:</p>
+<div class="codehilite"><pre><span></span><span class="k">CREATE</span> <span class="k">DATABASE</span> <span class="n">quiz</span><span class="p">;</span>
+<span class="k">CREATE</span> <span class="k">USER</span> <span class="n">quiz_user</span> <span class="k">WITH</span> <span class="k">createdb</span><span class="p">;</span>
+<span class="k">ALTER</span> <span class="k">USER</span> <span class="n">quiz_user</span> <span class="k">WITH</span> <span class="n">password</span> <span class="s1">&#39;quizzy&#39;</span><span class="p">;</span>
+<span class="k">GRANT</span> <span class="k">all</span> <span class="k">ON</span> <span class="k">database</span> <span class="n">quiz</span> <span class="k">TO</span> <span class="n">quiz_user</span><span class="p">;</span>
 </pre></div>
 
 
-<p>Deploying Aqueduct applications involves using the <code>aqueduct serve</code> command to run the web server, and <code>aqueduct db</code> to upload your application's database schema to a live database. See the <a href="../../deploy/overview/">Deployment Guide</a> for detailed instructions.</p>
+<p>This creates a database <code>quiz</code> that <code>quiz_user</code> has access to. Now, add <code>quiz</code>'s data model to this database by running the following commands in the project directory:</p>
+<div class="codehilite"><pre><span></span>aqueduct db generate
+aqueduct db upgrade --connect postgres://quiz_user:quizzy@localhost:5432/quiz
+</pre></div>
+
+
+<p>The first command generates a migration file in <code>migrations/</code> that adds tables <code>_Question</code> and <code>_Answer</code>, and the second command executes that migration file on the newly created database.</p>
+<p>After adding the data model to the <code>quiz</code> database, run the following commands in <code>psql</code> to insert a question and answer:</p>
+<div class="codehilite"><pre><span></span><span class="err">\</span><span class="k">c</span> <span class="n">quiz</span>
+<span class="k">INSERT</span> <span class="k">INTO</span> <span class="n">_question</span> <span class="p">(</span><span class="n">description</span><span class="p">)</span> <span class="k">VALUES</span> <span class="p">(</span><span class="s1">&#39;What is 1+1?&#39;</span><span class="p">);</span>
+<span class="k">INSERT</span> <span class="k">INTO</span> <span class="n">_answer</span> <span class="p">(</span><span class="n">description</span><span class="p">,</span> <span class="n">question_index</span><span class="p">)</span> <span class="k">VALUES</span> <span class="p">(</span><span class="s1">&#39;2&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+</pre></div>
+
+
+<p>The application is currently hard-coded to connect to the test database. We'll write a bit of code to read connection info from a YAML configuration file instead. At the bottom of <code>quiz_sink.dart</code>, create a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ConfigurationItem-class.html">ConfigurationItem</a> subclass:</p>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">QuizConfig</span> <span class="kd">extends</span> <span class="n">ConfigurationItem</span> <span class="p">{</span>
+  <span class="n">QuizConfig</span><span class="p">(</span><span class="kt">String</span> <span class="n">filename</span><span class="p">)</span> <span class="o">:</span> <span class="k">super</span><span class="p">.</span><span class="n">fromFile</span><span class="p">(</span><span class="n">filename</span><span class="p">);</span>
+
+  <span class="n">DatabaseConnectionConfiguration</span> <span class="n">database</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>Update <code>QuizSink</code>'s constructor to create its persistent store from configuration values:</p>
+<div class="codehilite"><pre><span></span><span class="n">QuizSink</span><span class="p">(</span><span class="n">ApplicationConfiguration</span> <span class="n">appConfig</span><span class="p">)</span> <span class="o">:</span> <span class="k">super</span><span class="p">(</span><span class="n">appConfig</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">logger</span><span class="p">.</span><span class="n">onRecord</span><span class="p">.</span><span class="n">listen</span><span class="p">((</span><span class="n">rec</span><span class="p">)</span> <span class="o">=&gt;</span>
+    <span class="n">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">$</span><span class="n">rec</span><span class="s2"> </span><span class="si">${</span><span class="n">rec</span><span class="p">.</span><span class="n">error</span> <span class="o">??</span> <span class="s2">&quot;&quot;</span><span class="si">}</span><span class="s2"> </span><span class="si">${</span><span class="n">rec</span><span class="p">.</span><span class="n">stackTrace</span> <span class="o">??</span> <span class="s2">&quot;&quot;</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">));</span>
+  <span class="kd">var</span> <span class="n">dataModel</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ManagedDataModel</span><span class="p">.</span><span class="n">fromCurrentMirrorSystem</span><span class="p">();</span>
+
+  <span class="kd">var</span> <span class="n">configValues</span> <span class="o">=</span> <span class="k">new</span> <span class="n">QuizConfig</span><span class="p">(</span><span class="n">appConfig</span><span class="p">.</span><span class="n">configurationFilePath</span><span class="p">);</span>
+
+  <span class="kd">var</span> <span class="n">persistentStore</span> <span class="o">=</span> <span class="k">new</span> <span class="n">PostgreSQLPersistentStore</span><span class="p">.</span><span class="n">fromConnectionInfo</span><span class="p">(</span>
+      <span class="n">configValues</span><span class="p">.</span><span class="n">database</span><span class="p">.</span><span class="n">username</span><span class="p">,</span>
+      <span class="n">configValues</span><span class="p">.</span><span class="n">database</span><span class="p">.</span><span class="n">password</span><span class="p">,</span>
+      <span class="n">configValues</span><span class="p">.</span><span class="n">database</span><span class="p">.</span><span class="n">host</span><span class="p">,</span>
+      <span class="n">configValues</span><span class="p">.</span><span class="n">database</span><span class="p">.</span><span class="n">port</span><span class="p">,</span>
+      <span class="n">configValues</span><span class="p">.</span><span class="n">database</span><span class="p">.</span><span class="n">databaseName</span><span class="p">);</span>
+  <span class="n">context</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ManagedContext</span><span class="p">(</span><span class="n">dataModel</span><span class="p">,</span> <span class="n">persistentStore</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>Finally, create the file <code>config.yaml</code> in the root of the project directory and add the following key-values pairs:</p>
+<div class="codehilite"><pre><span></span><span class="n">database</span><span class="o">:</span>
+ <span class="n">username</span><span class="o">:</span> <span class="n">quiz_user</span>
+ <span class="n">password</span><span class="o">:</span> <span class="n">quizzy</span>
+ <span class="n">host</span><span class="o">:</span> <span class="n">localhost</span>
+ <span class="n">port</span><span class="o">:</span> <span class="mi">5432</span>
+ <span class="n">databaseName</span><span class="o">:</span> <span class="n">quiz</span>
+</pre></div>
+
+
+<p>Run <code>aqueduct serve</code> and open a browser to <code>http://localhost:8081/questions</code> - you'll see the question in your database. For other ways of running an Aqueduct application (and tips for running them remotely), see <a href="../../deploy/overview/">this guide</a>.</p>
+<div class="admonition tip">
+<p class="admonition-title">Test and Deployment Configuration</p>
+<p>The <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationConfiguration/configurationFilePath.html">configurationFilePath</a> defaults to <code>config.yaml</code> when using <code>aqueduct serve</code>. In the test harness, the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationConfiguration/configurationFilePath.html">configurationFilePath</a> is set to <code>config.src.yaml</code>. To continue running the tests, add the database connection configuration for <code>dart_test</code> database to the file <code>config.src.yaml</code>. For more details on configuration, see <a href="../../http/configure/">this guide</a>.</p>
+</div>
+<h2 id="onward">Onward</h2>
+<p>We've only touched on a small part of Aqueduct, but we've hit the fundamentals pretty well. The rest of the guides on this site will take you deeper on these topics, and topics we haven't covered like OAuth 2.0.</p>
+<p>It's very important that you get comfortable using the <a href="https://www.dartdocs.org/documentation/aqueduct/latest">API reference</a> in addition to these guides. If you are looking to solve a problem, start by looking at the API reference for all of the objects you have access to (including the type you are writing the method for). The properties and methods you have access to will lead you to more properties and methods that'll eventually do what you want done.</p>
+<p>Users of the documentation viewer <a href="https://kapeli.com/dash">Dash</a> can add Aqueduct through the <code>Preferences</code> pane, under <code>Downloads</code>.</p>
+<p>There are IntelliJ IDEA file and code templates available for Aqueduct. See <a href="../../intellij/">this guide</a> for installation instructions and usage. It takes 10 seconds and it'll save you a ton of time overall.</p>
+<p>And lastly, remember to create a new project:</p>
+<div class="codehilite"><pre><span></span>aqueduct create my_next_big_idea
+</pre></div>
+                
+                  
+                
               
+              
+                
               
             </article>
           </div>
@@ -1085,7 +1290,9 @@
       
     </div>
     
-      <script src="../../assets/javascripts/application-30ac6a1727.js"></script>
+      <script src="../../assets/javascripts/application-c35428f87f.js"></script>
+      
+      
       <script>app.initialize({url:{base:"../.."}})</script>
       
     

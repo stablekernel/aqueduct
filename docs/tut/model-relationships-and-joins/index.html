@@ -1,10 +1,11 @@
 
 <!DOCTYPE html>
-<html class="no-js">
+<html lang="en" class="no-js">
   <head>
     
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
+      <meta http-equiv="x-ua-compatible" content="ie=edge">
       
         <meta name="description" content="Documentation for Aqueduct, a Dart server-side framework.">
       
@@ -13,7 +14,7 @@
       
         <link rel="shortcut icon" href="../../assets/images/favicon.png">
       
-      <meta name="generator" content="mkdocs-0.16.1, mkdocs-material-1.1.1">
+      <meta name="generator" content="mkdocs-0.16.3, mkdocs-material-1.7.4">
     
     
       
@@ -21,10 +22,10 @@
       
     
     
-      <script src="../../assets/javascripts/modernizr-56ade86843.js"></script>
+      <script src="../../assets/javascripts/modernizr-1df76c4e58.js"></script>
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/application-4ebe3f1d68.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/application-769c285a91.css">
       
     
     
@@ -60,7 +61,7 @@
     <input class="md-toggle" data-md-toggle="search" type="checkbox" id="search">
     <label class="md-overlay" data-md-component="overlay" for="drawer"></label>
     
-      <header class="md-header">
+      <header class="md-header" data-md-component="header">
   <nav class="md-header-nav md-grid">
     <div class="md-flex">
       <div class="md-flex__cell md-flex__cell--shrink">
@@ -91,24 +92,30 @@
           <label class="md-icon md-icon--search md-header-nav__button" for="search"></label>
           
 <div class="md-search" data-md-component="search">
-  <div class="md-search__overlay"></div>
+  <label class="md-search__overlay" for="search"></label>
   <div class="md-search__inner">
     <form class="md-search__form" name="search">
-      <input type="text" class="md-search__input" name="query" placeholder="Search" accesskey="s" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="query">
+      <input type="text" class="md-search__input" name="query" required placeholder="Search" accesskey="s" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="query">
       <label class="md-icon md-search__icon" for="search"></label>
+      <button type="reset" class="md-icon md-search__icon" data-md-component="reset">close</button>
     </form>
     <div class="md-search__output">
       <div class="md-search__scrollwrap" data-md-scrollfix>
-        <div class="md-search-result" data-md-component="result"></div>
+        <div class="md-search-result" data-md-component="result" data-md-lang-search="">
+          <div class="md-search-result__meta" data-md-lang-result-none="No matching documents" data-md-lang-result-one="1 matching document" data-md-lang-result-other="# matching documents">
+            Type to start searching
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
       </div>
     </div>
   </div>
 </div>
         
       </div>
-      <div class="md-flex__cell md-flex__cell--shrink">
-        <div class="md-header-nav__source">
-          
+      
+        <div class="md-flex__cell md-flex__cell--shrink">
+          <div class="md-header-nav__source">
             
 
 
@@ -128,9 +135,9 @@
     </div>
   </a>
 
-          
+          </div>
         </div>
-      </div>
+      
     </div>
   </nav>
 </header>
@@ -217,18 +224,30 @@
       
       
 
+
+  <li class="md-nav__item">
+    <a href="../../intellij/" title="IntelliJ IDEA Templates" class="md-nav__link">
+      IntelliJ IDEA Templates
+    </a>
+  </li>
+
+    
+      
+      
+      
+
   
 
 
   <li class="md-nav__item md-nav__item--active md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-4" type="checkbox" id="nav-4" checked>
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-5" type="checkbox" id="nav-5" checked>
     
-    <label class="md-nav__link" for="nav-4">
+    <label class="md-nav__link" for="nav-5">
       Tutorial
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
-      <label class="md-nav__title" for="nav-4">
+      <label class="md-nav__title" for="nav-5">
         Tutorial
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -316,6 +335,8 @@
   
 </li>
       
+      
+      
     </ul>
   
 </nav>
@@ -347,13 +368,13 @@
 
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-5" type="checkbox" id="nav-5">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-6" type="checkbox" id="nav-6">
     
-    <label class="md-nav__link" for="nav-5">
+    <label class="md-nav__link" for="nav-6">
       Serving HTTP Requests
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
-      <label class="md-nav__title" for="nav-5">
+      <label class="md-nav__title" for="nav-6">
         Serving HTTP Requests
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -503,13 +524,13 @@
 
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-6" type="checkbox" id="nav-6">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-7" type="checkbox" id="nav-7">
     
-    <label class="md-nav__link" for="nav-6">
+    <label class="md-nav__link" for="nav-7">
       Databases and ORM
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
-      <label class="md-nav__title" for="nav-6">
+      <label class="md-nav__title" for="nav-7">
         Databases and ORM
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -611,18 +632,6 @@
   </li>
 
         
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../../db/inside_the_db/" title="Inside the DB" class="md-nav__link">
-      Inside the DB
-    </a>
-  </li>
-
-        
       </ul>
     </nav>
   </li>
@@ -635,13 +644,13 @@
 
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-7" type="checkbox" id="nav-7">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-8" type="checkbox" id="nav-8">
     
-    <label class="md-nav__link" for="nav-7">
+    <label class="md-nav__link" for="nav-8">
       Authorization and OAuth 2.0
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
-      <label class="md-nav__title" for="nav-7">
+      <label class="md-nav__title" for="nav-8">
         Authorization and OAuth 2.0
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -743,13 +752,13 @@
 
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-8" type="checkbox" id="nav-8">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-9" type="checkbox" id="nav-9">
     
-    <label class="md-nav__link" for="nav-8">
+    <label class="md-nav__link" for="nav-9">
       Development and Testing
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
-      <label class="md-nav__title" for="nav-8">
+      <label class="md-nav__title" for="nav-9">
         Development and Testing
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -851,13 +860,13 @@
 
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-9" type="checkbox" id="nav-9">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10" type="checkbox" id="nav-10">
     
-    <label class="md-nav__link" for="nav-9">
+    <label class="md-nav__link" for="nav-10">
       Deployment
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
-      <label class="md-nav__title" for="nav-9">
+      <label class="md-nav__title" for="nav-10">
         Deployment
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -935,13 +944,13 @@
 
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10" type="checkbox" id="nav-10">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-11" type="checkbox" id="nav-11">
     
-    <label class="md-nav__link" for="nav-10">
+    <label class="md-nav__link" for="nav-11">
       Command-line Tooling
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
-      <label class="md-nav__title" for="nav-10">
+      <label class="md-nav__title" for="nav-11">
         Command-line Tooling
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -1012,6 +1021,90 @@
   </li>
 
     
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-12" type="checkbox" id="nav-12">
+    
+    <label class="md-nav__link" for="nav-12">
+      Snippets
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-12">
+        Snippets
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../snippets/overview/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../snippets/http/" title="HTTP" class="md-nav__link">
+      HTTP
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../snippets/orm/" title="ORM" class="md-nav__link">
+      ORM
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../snippets/auth/" title="Authentication and Authorization" class="md-nav__link">
+      Authentication and Authorization
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../snippets/test/" title="Testing" class="md-nav__link">
+      Testing
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
   </ul>
 </nav>
                   </div>
@@ -1046,6 +1139,8 @@
   
 </li>
       
+      
+      
     </ul>
   
 </nav>
@@ -1056,12 +1151,12 @@
           
           <div class="md-content">
             <article class="md-content__inner md-typeset">
-               
-                 <a href="https://github.com/stablekernel/aqueduct/edit/master/docs/tut/model-relationships-and-joins.md" title="Edit this page" class="md-icon md-content__edit">edit</a>
-               
               
                 
-                <h1 id="managedobject-relationships">ManagedObject Relationships</h1>
+                  <a href="https://github.com/stablekernel/aqueduct/edit/master/docs/tut/model-relationships-and-joins.md" title="Edit this page" class="md-icon md-content__icon">edit</a>
+                
+                
+                <h1 id="4-advanced-database-queries">4. Advanced Database Queries</h1>
 <p>Managed objects can also have relationships to other managed objects. There are two types of relationships: to-one and to-many. Let's add an answer for each <code>Question</code> in the form of a to-one relationship. First, create a new file <code>lib/model/answer.dart</code> and define a new managed object to represent an answer:</p>
 <div class="codehilite"><pre><span></span><span class="k">import</span> <span class="s1">&#39;../quiz.dart&#39;</span><span class="p">;</span>
 
@@ -1069,6 +1164,7 @@
 <span class="kd">class</span> <span class="nc">_Answer</span> <span class="p">{</span>
   <span class="err">@</span><span class="n">managedPrimaryKey</span>
   <span class="kt">int</span> <span class="n">id</span><span class="p">;</span>
+
   <span class="kt">String</span> <span class="n">description</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
@@ -1103,12 +1199,13 @@
 </pre></div>
 
 
-<p>Notice that we added <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedRelationship-class.html">ManagedRelationship</a> metadata to <code>question</code>. Since relationships are two-sided, only one side needs to have this metadata (and in fact, only one side <em>can</em> have this metadata). The first argument is the name of the property on the other side of the relationship; this is what links the relationship together.</p>
-<p>The property with <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedRelationship-class.html">ManagedRelationship</a> metadata is actually a column in the database. More specifically, it is a foreign key column. So in this case, the <code>_Answer</code> table has a foreign key column named <code>question_index</code>. (The name is derived by taking the name of the relationship property and name of the primary key property on the other side and joining it with a <code>_</code>.) The <code>_Answer</code> table now has three columns: <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIOperation/id.html">id</a>, <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIHeader/description.html">description</a> and <code>question_index</code>.</p>
-<p>The relationship property <em>without</em> <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedRelationship-class.html">ManagedRelationship</a> metadata is <em>not</em> a column in the database. Instead, it represents an <em>entire row</em> in the database. Thus, the table <code>_Question</code> only has two columns: <code>index</code> and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIHeader/description.html">description</a>.</p>
+<p>Notice that we added <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedRelationship-class.html">ManagedRelationship</a> metadata to the property <code>question</code>. Since relationships are two-sided, only one side needs to have this metadata (and in fact, only one side <em>can</em> have this metadata). The first argument is the name of the property on the other side of the relationship; this is what links the relationship together.</p>
+<p>The property with <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedRelationship-class.html">ManagedRelationship</a> metadata maps to the foreign key column in the database table. The table <code>_Answer</code> has a foreign key column named <code>question_index</code>. (The name is derived by taking the name of the relationship property and name of the primary key property on the other side and joining it with a <code>_</code>.) The <code>_Answer</code> table now has three columns: <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIOperation/id.html">id</a>, <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIHeader/description.html">description</a> and <code>question_index</code>.</p>
+<p>The relationship property <em>without</em> <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedRelationship-class.html">ManagedRelationship</a> metadata is <em>not</em> a column in a table. Instead, it represents an <em>entire row</em> in another table. Thus, the table <code>_Question</code> only has two columns: <code>index</code> and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIHeader/description.html">description</a>.</p>
 <p><a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedRelationship-class.html">ManagedRelationship</a> also allows you to specify a delete rule and whether or not the property is required, i.e., not nullable. By default, the delete rule is <code>ManagedRelationshipDeleteRule.nullify</code> and not required - this is the least destructive action. But, in this case, we want every question to always have an answer and if we delete the question, the answer gets deleted along with it:</p>
 <div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">_Answer</span> <span class="p">{</span>
-  <span class="err">@</span><span class="n">primaryKey</span> <span class="kt">int</span> <span class="n">id</span><span class="p">;</span>
+  <span class="err">@</span><span class="n">primaryKey</span>
+  <span class="kt">int</span> <span class="n">id</span><span class="p">;</span>
   <span class="kt">String</span> <span class="n">description</span><span class="p">;</span>
 
   <span class="err">@</span><span class="n">ManagedRelationship</span><span class="p">(</span>
@@ -1118,7 +1215,7 @@
 </pre></div>
 
 
-<p>Now that we have defined this relationship, we can associate answers with questions and return them in our <code>/questions</code> endpoint. In <code>question_controller.dart</code>, let's update the queries to fetch the <code>Answer</code> for each <code>Question</code> and include it in the response JSON. First, for <code>getAllQuestions</code>, use <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationMessageHub/join.html">join()</a> to connect to <code>question.answer</code> for <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationMessageHub/where.html">where</a>'s <code>answer</code>:</p>
+<p>Now that we have defined this relationship, we can associate answers with questions and return them in our <code>/questions</code> endpoint. In <code>question_controller.dart</code>, let's update the queries to fetch the <code>Answer</code> for each <code>Question</code> and include it in the response JSON. First, for <code>getAllQuestions</code>, use <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationMessageHub/join.html">join()</a> to include the answers:</p>
 <div class="codehilite"><pre><span></span><span class="err">@</span><span class="n">httpGet</span>
 <span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">getAllQuestions</span><span class="p">({</span><span class="err">@</span><span class="n">HTTPQuery</span><span class="p">(</span><span class="s2">&quot;contains&quot;</span><span class="p">)</span> <span class="kt">String</span> <span class="nl">containsSubstring:</span> <span class="kc">null</span><span class="p">})</span> <span class="kd">async</span> <span class="p">{</span>
   <span class="kd">var</span> <span class="n">questionQuery</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Question</span><span class="o">&gt;</span><span class="p">()</span>
@@ -1134,7 +1231,24 @@
 </pre></div>
 
 
-<p>Yeah, that was it. The SQL that gets built for this <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query-class.html">Query&lt;T&gt;</a> will join on the underlying <code>_Answer</code> table. Therefore, each <code>answer</code> property of every <code>Question</code> returned will have a valid <code>Answer</code> instance from the database. Managed objects also know how to serialize their relationship properties, so you'll get the following JSON when fetching a question that has been joined with its answer:</p>
+<p>And same for <code>getQuestionAtIndex</code>:</p>
+<div class="codehilite"><pre><span></span><span class="err">@</span><span class="n">httpGet</span>
+<span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">getQuestionAtIndex</span><span class="p">(</span><span class="err">@</span><span class="n">HTTPPath</span><span class="p">(</span><span class="s2">&quot;index&quot;</span><span class="p">)</span> <span class="kt">int</span> <span class="n">index</span><span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>
+  <span class="kd">var</span> <span class="n">questionQuery</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Question</span><span class="o">&gt;</span><span class="p">()</span>
+    <span class="p">..</span><span class="n">join</span><span class="p">(</span><span class="nl">object:</span> <span class="p">(</span><span class="n">question</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="n">question</span><span class="p">.</span><span class="n">answer</span><span class="p">)</span>
+    <span class="p">..</span><span class="n">where</span><span class="p">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">whereEqualTo</span><span class="p">(</span><span class="n">index</span><span class="p">);</span>
+
+  <span class="kd">var</span> <span class="n">question</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">questionQuery</span><span class="p">.</span><span class="n">fetchOne</span><span class="p">();</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">question</span> <span class="o">==</span> <span class="kc">null</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">notFound</span><span class="p">();</span>
+  <span class="p">}</span>
+  <span class="k">return</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="n">question</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>The SQL that gets built for this <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query-class.html">Query&lt;T&gt;</a> will join on the underlying <code>_Answer</code> table. Therefore, each <code>answer</code> property of every <code>Question</code> returned will have a valid <code>Answer</code> instance from the database. Managed objects also know how to serialize their relationship properties, so you'll get the following JSON when fetching a question that has been joined with its answer:</p>
 <div class="codehilite"><pre><span></span><span class="p">{</span>
   <span class="nt">&quot;index&quot;</span> <span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
   <span class="nt">&quot;description&quot;</span> <span class="p">:</span> <span class="s2">&quot;A question?&quot;</span><span class="p">,</span>
@@ -1146,36 +1260,56 @@
 </pre></div>
 
 
-<p>Let's update our tests to ensure this works correctly. If you run your tests now, the two tests that get a list of <code>Question</code>s will fail because they don't expect an answer key in the JSON. Now, we don't really care about the 'id' of the answer at all, just its 'description'. Therefore, when we add to the HTTP body matcher to match the inner 'answer' object, it'd be great if we could just ignore it. That's why there is the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.test/partial.html">partial</a> matcher. A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.test/partial.html">partial</a> matcher will match a <code>Map</code>, but will only verify the values for the specified keys. Any other key-value pairs are just ignored. Let's try that out by updating the first test for getting all questions:</p>
+<p>Let's update our tests to ensure this works correctly. If you run your tests now, the two tests that get a list of <code>Question</code>s will fail because they don't expect an answer key in the JSON. Now, we don't really care about the 'id' of the answer at all, just its 'description'. That's why there is the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.test/partial.html">partial</a> matcher. A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.test/partial.html">partial</a> matcher will match a <code>Map</code>, but will only verify the values for the specified keys. Any other key-value pairs are just ignored. Update the following tests:</p>
 <div class="codehilite"><pre><span></span><span class="n">test</span><span class="p">(</span><span class="s2">&quot;/questions returns list of questions&quot;</span><span class="p">,</span> <span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
-    <span class="kd">var</span> <span class="n">response</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">client</span><span class="p">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;/questions&quot;</span><span class="p">).</span><span class="kd">get</span><span class="p">();</span>
-    <span class="n">expect</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="n">hasResponse</span><span class="p">(</span><span class="m">200</span><span class="p">,</span> <span class="n">everyElement</span><span class="p">({</span>
-        <span class="s2">&quot;index&quot;</span> <span class="o">:</span> <span class="n">greaterThanOrEqualTo</span><span class="p">(</span><span class="m">0</span><span class="p">),</span>
-        <span class="s2">&quot;description&quot;</span> <span class="o">:</span> <span class="n">endsWith</span><span class="p">(</span><span class="s2">&quot;?&quot;</span><span class="p">),</span>
-        <span class="s2">&quot;answer&quot;</span> <span class="o">:</span> <span class="n">partial</span><span class="p">({</span>
-          <span class="s2">&quot;description&quot;</span> <span class="o">:</span> <span class="n">isString</span>
+  <span class="n">expectResponse</span><span class="p">(</span>
+    <span class="kd">await</span> <span class="n">app</span><span class="p">.</span><span class="n">client</span><span class="p">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;/questions&quot;</span><span class="p">).</span><span class="kd">get</span><span class="p">(),</span>
+    <span class="m">200</span><span class="p">,</span>
+    <span class="nl">body:</span> <span class="n">allOf</span><span class="p">([</span>
+      <span class="n">hasLength</span><span class="p">(</span><span class="n">greaterThan</span><span class="p">(</span><span class="m">0</span><span class="p">)),</span>
+      <span class="n">everyElement</span><span class="p">(</span><span class="n">partial</span><span class="p">({</span>
+        <span class="s2">&quot;description&quot;</span><span class="o">:</span> <span class="n">endsWith</span><span class="p">(</span><span class="s2">&quot;?&quot;</span><span class="p">),</span>
+        <span class="s2">&quot;answer&quot;</span><span class="o">:</span> <span class="n">partial</span><span class="p">({</span>
+          <span class="s2">&quot;description&quot;</span><span class="o">:</span> <span class="n">isString</span>
         <span class="p">})</span>
-    <span class="p">})));</span>
-    <span class="n">expect</span><span class="p">(</span><span class="n">response</span><span class="p">.</span><span class="n">decodedBody</span><span class="p">,</span> <span class="n">hasLength</span><span class="p">(</span><span class="n">greaterThan</span><span class="p">(</span><span class="m">0</span><span class="p">)));</span>
-  <span class="p">});</span>
+      <span class="p">}))]));</span>
+<span class="p">});</span>
+
+<span class="n">test</span><span class="p">(</span><span class="s2">&quot;/questions/index returns a single question&quot;</span><span class="p">,</span> <span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
+  <span class="n">expectResponse</span><span class="p">(</span>
+    <span class="kd">await</span> <span class="n">app</span><span class="p">.</span><span class="n">client</span><span class="p">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;/questions/1&quot;</span><span class="p">).</span><span class="kd">get</span><span class="p">(),</span>
+    <span class="m">200</span><span class="p">,</span>
+    <span class="nl">body:</span> <span class="n">partial</span><span class="p">({</span>
+      <span class="s2">&quot;description&quot;</span><span class="o">:</span> <span class="n">endsWith</span><span class="p">(</span><span class="s2">&quot;?&quot;</span><span class="p">),</span>
+      <span class="s2">&quot;answer&quot;</span><span class="o">:</span> <span class="n">partial</span><span class="p">({</span>
+        <span class="s2">&quot;description&quot;</span><span class="o">:</span> <span class="n">isString</span>
+      <span class="p">})</span>
+    <span class="p">}));</span>
+<span class="p">});</span>
+
+<span class="n">test</span><span class="p">(</span><span class="s2">&quot;/questions returns list of questions filtered by contains&quot;</span><span class="p">,</span> <span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
+  <span class="kd">var</span> <span class="n">request</span> <span class="o">=</span> <span class="n">app</span><span class="p">.</span><span class="n">client</span><span class="p">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;/questions?contains=mountain&quot;</span><span class="p">);</span>
+  <span class="n">expectResponse</span><span class="p">(</span>
+    <span class="kd">await</span> <span class="n">request</span><span class="p">.</span><span class="kd">get</span><span class="p">(),</span>
+    <span class="m">200</span><span class="p">,</span>
+    <span class="nl">body:</span> <span class="p">[{</span>
+      <span class="s2">&quot;index&quot;</span> <span class="o">:</span> <span class="n">greaterThanOrEqualTo</span><span class="p">(</span><span class="m">0</span><span class="p">),</span>
+      <span class="s2">&quot;description&quot;</span> <span class="o">:</span> <span class="s2">&quot;What&#39;s the tallest mountain in the world?&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;answer&quot;</span><span class="o">:</span> <span class="n">partial</span><span class="p">({</span>
+        <span class="s2">&quot;description&quot;</span><span class="o">:</span> <span class="s2">&quot;Mount Everest&quot;</span>
+      <span class="p">})</span>
+    <span class="p">}]);</span>
+<span class="p">});</span>
 </pre></div>
 
 
-<p>The partial matcher here will just check to see if the 'answer' key is a map that contains a <code>String</code> 'description' value. The extraneous 'id' key won't cause a failure. If you run the tests now, this test will still fail - 'answer' in the JSON is null because there are no answers in the database. Let's insert some by replacing <code>setUp</code> in <code>question_controller_test.dart</code>:</p>
+<p>If you run the tests now, this test will still fail - 'answer' in the JSON is null because there are no answers in the test database. Let's insert some by adding to <code>setUpAll</code> in <code>question_controller_test.dart</code>:</p>
 <div class="codehilite"><pre><span></span><span class="c1">// Don&#39;t forget to add this import, too!</span>
 <span class="k">import</span> <span class="s1">&#39;package:quiz/model/answer.dart&#39;</span><span class="p">;</span>
 
 <span class="kt">void</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
-  <span class="n">setUp</span><span class="p">(()</span> <span class="kd">async</span> <span class="p">{</span>
-    <span class="kd">await</span> <span class="n">app</span><span class="p">.</span><span class="n">start</span><span class="p">(</span><span class="nl">runOnMainIsolate:</span> <span class="kc">true</span><span class="p">);</span>
-    <span class="n">client</span> <span class="o">=</span> <span class="k">new</span> <span class="n">TestClient</span><span class="p">(</span><span class="n">app</span><span class="p">);</span>
-
-    <span class="kd">var</span> <span class="n">ctx</span> <span class="o">=</span> <span class="n">ManagedContext</span><span class="p">.</span><span class="n">defaultContext</span><span class="p">;</span>
-    <span class="kd">var</span> <span class="n">builder</span> <span class="o">=</span> <span class="k">new</span> <span class="n">SchemaBuilder</span><span class="p">.</span><span class="n">toSchema</span><span class="p">(</span><span class="n">ctx</span><span class="p">.</span><span class="n">persistentStore</span><span class="p">,</span> <span class="k">new</span> <span class="n">Schema</span><span class="p">.</span><span class="n">fromDataModel</span><span class="p">(</span><span class="n">ctx</span><span class="p">.</span><span class="n">dataModel</span><span class="p">),</span> <span class="nl">isTemporary:</span> <span class="kc">true</span><span class="p">);</span>
-
-    <span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="n">cmd</span> <span class="k">in</span> <span class="n">builder</span><span class="p">.</span><span class="n">commands</span><span class="p">)</span> <span class="p">{</span>
-      <span class="kd">await</span> <span class="n">ctx</span><span class="p">.</span><span class="n">persistentStore</span><span class="p">.</span><span class="n">execute</span><span class="p">(</span><span class="n">cmd</span><span class="p">);</span>
-    <span class="p">}</span>
+  <span class="n">setUpAll</span><span class="p">(()</span> <span class="kd">async</span> <span class="p">{</span>
+    <span class="kd">await</span> <span class="n">app</span><span class="p">.</span><span class="n">start</span><span class="p">();</span>
 
     <span class="kd">var</span> <span class="n">questions</span> <span class="o">=</span> <span class="p">[</span>
       <span class="k">new</span> <span class="n">Question</span><span class="p">()</span>
@@ -1183,45 +1317,31 @@
         <span class="p">..</span><span class="n">answer</span> <span class="o">=</span> <span class="p">(</span><span class="k">new</span> <span class="n">Answer</span><span class="p">()..</span><span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;Depends&quot;</span><span class="p">),</span>
       <span class="k">new</span> <span class="n">Question</span><span class="p">()</span>
         <span class="p">..</span><span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;What&#39;s the tallest mountain in the world?&quot;</span>
-        <span class="p">..</span><span class="n">answer</span> <span class="o">=</span> <span class="p">(</span><span class="k">new</span> <span class="n">Answer</span><span class="p">()..</span><span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;Mount Everest&quot;</span><span class="p">)</span>
+        <span class="p">..</span><span class="n">answer</span> <span class="o">=</span> <span class="p">(</span><span class="k">new</span> <span class="n">Answer</span><span class="p">()..</span><span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;Mount Everest&quot;</span><span class="p">),</span>
     <span class="p">];</span>
 
-    <span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="n">question</span> <span class="k">in</span> <span class="n">questions</span><span class="p">)</span> <span class="p">{</span>
-      <span class="kd">var</span> <span class="n">questionInsert</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Question</span><span class="o">&gt;</span><span class="p">()</span>
-          <span class="p">..</span><span class="n">values</span> <span class="o">=</span> <span class="n">question</span><span class="p">;</span>
-      <span class="kd">var</span> <span class="n">insertedQuestion</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">questionInsert</span><span class="p">.</span><span class="n">insert</span><span class="p">();</span>
+    <span class="kd">await</span> <span class="n">Future</span><span class="p">.</span><span class="n">forEach</span><span class="p">(</span><span class="n">questions</span><span class="p">,</span> <span class="p">(</span><span class="n">Question</span> <span class="n">q</span><span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>
+      <span class="kd">var</span> <span class="n">query</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Question</span><span class="o">&gt;</span><span class="p">()</span>
+          <span class="p">..</span><span class="n">values</span> <span class="o">=</span> <span class="n">q</span><span class="p">;</span>
+      <span class="kd">var</span> <span class="n">insertedQuestion</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">query</span><span class="p">.</span><span class="n">insert</span><span class="p">();</span>
 
-      <span class="kd">var</span> <span class="n">answerInsert</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Answer</span><span class="o">&gt;</span><span class="p">()</span>
-        <span class="p">..</span><span class="n">values</span><span class="p">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">question</span><span class="p">.</span><span class="n">answer</span><span class="p">.</span><span class="n">description</span>
+      <span class="kd">var</span> <span class="n">answerQuery</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Answer</span><span class="o">&gt;</span><span class="p">()</span>
+        <span class="p">..</span><span class="n">values</span><span class="p">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">q</span><span class="p">.</span><span class="n">answer</span><span class="p">.</span><span class="n">description</span>
         <span class="p">..</span><span class="n">values</span><span class="p">.</span><span class="n">question</span> <span class="o">=</span> <span class="n">insertedQuestion</span><span class="p">;</span>
-      <span class="kd">await</span> <span class="n">answerInsert</span><span class="p">.</span><span class="n">insert</span><span class="p">();</span>
-    <span class="p">}</span>
+      <span class="kd">await</span> <span class="n">answerQuery</span><span class="p">.</span><span class="n">insert</span><span class="p">();</span>
+      <span class="k">return</span> <span class="n">insertedQuestion</span><span class="p">;</span>
+    <span class="p">});</span>
   <span class="p">});</span>
 </pre></div>
 
 
 <p>Notice that we accumulated all of the questions and answers into a list of questions where each has an answer (<code>questions</code>). Managed objects can be used just like normal objects, too.</p>
 <p>Then, for each question, we inserted it and got a reference to the <code>insertedQuestion</code> back. The difference between each <code>Question</code> in <code>questions</code> and <code>insertedQuestion</code> is that the <code>insertedQuestion</code> will have its primary key value (<code>index</code>) set by the database. This allows the <code>Answer</code>s - which have to be inserted separately, because they are different tables - to specify which question they are the answer for.</p>
-<p>At the time the answer is being inserted, the question in the database <code>insertedQuestion</code> does not yet have an answer - so asking it for its <code>answer.description</code> would yield null. Therefore, the <code>values.description</code> is set from the source of data created in <code>questions</code>, but the <code>question</code> must be set from <code>insertedQuestion</code> - which contains the actual <code>index</code> of the question.</p>
 <p>Recall that a property with <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedRelationship-class.html">ManagedRelationship</a> - like <code>Answer.question</code> - is actually a foreign key column. When setting this property with a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a>, the primary key value of that instance is sent as the value for the foreign key column. In this case, the <code>insertedQuestion</code> has valid values for both <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIHeader/description.html">description</a> and <code>index</code>. Setting the query's <code>values.question</code> to this instance ignores the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIHeader/description.html">description</a> - it's not going to store it anyway - and sets the <code>index</code> of the answer being inserted.</p>
 <p>Note, also, that the query to insert a question has <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/values.html">values</a> that contain an answer. These answers will be ignored during that insertion, because only the question is being inserted. Inserting or updating values will only operate on one table at a table - this is intentional explicit to avoid unintended consequences.</p>
-<p>You could also set the answer's question with the following code:</p>
-<div class="codehilite"><pre><span></span><span class="n">insertQuery</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Answer</span><span class="o">&gt;</span><span class="p">()</span>
-  <span class="p">..</span><span class="n">values</span><span class="p">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">answersIterator</span><span class="p">.</span><span class="n">current</span>
-  <span class="p">..</span><span class="n">values</span><span class="p">.</span><span class="n">question</span> <span class="o">=</span> <span class="p">(</span><span class="k">new</span> <span class="n">Question</span><span class="p">()..</span><span class="n">index</span> <span class="o">=</span> <span class="m">1</span><span class="p">);</span>
-</pre></div>
-
-
-<p>But you couldn't do this, because <code>values.question</code> is null:</p>
-<div class="codehilite"><pre><span></span><span class="n">insertQuery</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Answer</span><span class="o">&gt;</span><span class="p">()</span>
-  <span class="p">..</span><span class="n">values</span><span class="p">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">answersIterator</span><span class="p">.</span><span class="n">current</span>
-  <span class="p">..</span><span class="n">values</span><span class="p">.</span><span class="n">question</span><span class="p">.</span><span class="n">id</span> <span class="o">=</span> <span class="m">1</span><span class="p">;</span>
-</pre></div>
-
-
-<p>Now, running the tests against, the first one will succeed again. We'll leave it as an exercise to the user to update the remaining failing tests to check for an answer.</p>
+<p>The tests will now pass.</p>
 <h2 id="more-on-joins-and-relationships">More on Joins and Relationships</h2>
-<p>Has-many relationships are also available. For example, if you wanted many answers for a question, it'd be declared like so:</p>
+<p>Relationships can also be 'has-many'. For example, if you wanted many answers for a question, we'd use a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet-class.html">ManagedSet&lt;T&gt;</a>:</p>
 <div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">_Question</span> <span class="p">{</span>
   <span class="err">@</span><span class="n">managedPrimaryKey</span>
   <span class="kt">int</span> <span class="n">index</span><span class="p">;</span>
@@ -1232,7 +1352,7 @@
 </pre></div>
 
 
-<p>The inverse relationship doesn't have to be updated - whether it is has-one or has-many is determined by whether or not property is a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet-class.html">ManagedSet&lt;T&gt;</a> or a subclass of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a>. For <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet-class.html">ManagedSet&lt;T&gt;</a>, <code>T</code> must be a subclass of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a>. A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet-class.html">ManagedSet</a> acts just like a <code>List</code> - it has methods like <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationMessageHub/map.html">map</a> and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationMessageHub/where.html">where</a> - but also has special behavior that allows it to be used in building <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query-class.html">Query&lt;T&gt;</a>s. If you wish to join on <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet-class.html">ManagedSet&lt;T&gt;</a> properties, the syntax is the same:</p>
+<p>The inverse relationship doesn't have to be updated. For <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet-class.html">ManagedSet&lt;T&gt;</a>, <code>T</code> must be a subclass of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a>. A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet-class.html">ManagedSet</a> acts just like a <code>List</code> - it has methods like <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationMessageHub/map.html">map</a> and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationMessageHub/where.html">where</a> - but also has special behavior that allows it to be used in building <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query-class.html">Query&lt;T&gt;</a>s. If you wish to join on <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet-class.html">ManagedSet&lt;T&gt;</a> properties, the syntax is similar:</p>
 <div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">query</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Question</span><span class="o">&gt;</span><span class="p">()</span>
   <span class="p">..</span><span class="n">join</span><span class="p">(</span><span class="kd">set</span><span class="o">:</span> <span class="p">(</span><span class="n">question</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="n">question</span><span class="p">.</span><span class="n">answers</span><span class="p">);</span>  
 </pre></div>
@@ -1240,14 +1360,22 @@
 
 <p>Each returned <code>Question</code> would also have a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet-class.html">ManagedSet</a> of <code>Answer</code>s in its <code>answers</code> property. You may also filter which answers are returned for each <code>Question</code>. A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationMessageHub/join.html">join</a> creates a new <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query-class.html">Query&lt;T&gt;</a> that has its own <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationMessageHub/where.html">where</a> property.</p>
 <div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">query</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Question</span><span class="o">&gt;</span><span class="p">();</span>
-<span class="kd">var</span> <span class="n">join</span> <span class="o">=</span> <span class="n">query</span><span class="p">.</span><span class="n">join</span><span class="p">(</span><span class="kd">set</span><span class="o">:</span> <span class="p">(</span><span class="n">question</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="n">question</span><span class="p">.</span><span class="n">answers</span><span class="p">)</span>
+
+<span class="n">query</span><span class="p">.</span><span class="n">join</span><span class="p">(</span><span class="kd">set</span><span class="o">:</span> <span class="p">(</span><span class="n">question</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="n">question</span><span class="p">.</span><span class="n">answers</span><span class="p">)</span>
   <span class="p">..</span><span class="n">where</span><span class="p">.</span><span class="n">isCorrect</span> <span class="o">=</span> <span class="n">whereEqualTo</span><span class="p">(</span><span class="kc">true</span><span class="p">);</span>  
+
+<span class="kd">var</span> <span class="n">questionsWithCorrectAnswers</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">query</span><span class="p">.</span><span class="n">fetch</span><span class="p">();</span>
 </pre></div>
 
 
 <p>An <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet-class.html">ManagedSet</a> is serialized into a <code>List</code> of <code>Map</code>s, and therefore the encoded JSON will be an array of objects.</p>
 <h2 id="next-deployment"><a href="../deploying-and-other-fun-things/">Next: Deployment</a></h2>
+                
+                  
+                
               
+              
+                
               
             </article>
           </div>
@@ -1315,7 +1443,9 @@
       
     </div>
     
-      <script src="../../assets/javascripts/application-30ac6a1727.js"></script>
+      <script src="../../assets/javascripts/application-c35428f87f.js"></script>
+      
+      
       <script>app.initialize({url:{base:"../.."}})</script>
       
     

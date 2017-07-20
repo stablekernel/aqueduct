@@ -1,10 +1,11 @@
 
 <!DOCTYPE html>
-<html class="no-js">
+<html lang="en" class="no-js">
   <head>
     
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
+      <meta http-equiv="x-ua-compatible" content="ie=edge">
       
         <meta name="description" content="Documentation for Aqueduct, a Dart server-side framework.">
       
@@ -13,7 +14,7 @@
       
         <link rel="shortcut icon" href="../../assets/images/favicon.png">
       
-      <meta name="generator" content="mkdocs-0.16.1, mkdocs-material-1.1.1">
+      <meta name="generator" content="mkdocs-0.16.3, mkdocs-material-1.7.4">
     
     
       
@@ -21,10 +22,10 @@
       
     
     
-      <script src="../../assets/javascripts/modernizr-56ade86843.js"></script>
+      <script src="../../assets/javascripts/modernizr-1df76c4e58.js"></script>
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/application-4ebe3f1d68.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/application-769c285a91.css">
       
     
     
@@ -60,7 +61,7 @@
     <input class="md-toggle" data-md-toggle="search" type="checkbox" id="search">
     <label class="md-overlay" data-md-component="overlay" for="drawer"></label>
     
-      <header class="md-header">
+      <header class="md-header" data-md-component="header">
   <nav class="md-header-nav md-grid">
     <div class="md-flex">
       <div class="md-flex__cell md-flex__cell--shrink">
@@ -91,24 +92,30 @@
           <label class="md-icon md-icon--search md-header-nav__button" for="search"></label>
           
 <div class="md-search" data-md-component="search">
-  <div class="md-search__overlay"></div>
+  <label class="md-search__overlay" for="search"></label>
   <div class="md-search__inner">
     <form class="md-search__form" name="search">
-      <input type="text" class="md-search__input" name="query" placeholder="Search" accesskey="s" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="query">
+      <input type="text" class="md-search__input" name="query" required placeholder="Search" accesskey="s" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="query">
       <label class="md-icon md-search__icon" for="search"></label>
+      <button type="reset" class="md-icon md-search__icon" data-md-component="reset">close</button>
     </form>
     <div class="md-search__output">
       <div class="md-search__scrollwrap" data-md-scrollfix>
-        <div class="md-search-result" data-md-component="result"></div>
+        <div class="md-search-result" data-md-component="result" data-md-lang-search="">
+          <div class="md-search-result__meta" data-md-lang-result-none="No matching documents" data-md-lang-result-one="1 matching document" data-md-lang-result-other="# matching documents">
+            Type to start searching
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
       </div>
     </div>
   </div>
 </div>
         
       </div>
-      <div class="md-flex__cell md-flex__cell--shrink">
-        <div class="md-header-nav__source">
-          
+      
+        <div class="md-flex__cell md-flex__cell--shrink">
+          <div class="md-header-nav__source">
             
 
 
@@ -128,9 +135,9 @@
     </div>
   </a>
 
-          
+          </div>
         </div>
-      </div>
+      
     </div>
   </nav>
 </header>
@@ -217,18 +224,30 @@
       
       
 
+
+  <li class="md-nav__item">
+    <a href="../../intellij/" title="IntelliJ IDEA Templates" class="md-nav__link">
+      IntelliJ IDEA Templates
+    </a>
+  </li>
+
+    
+      
+      
+      
+
   
 
 
   <li class="md-nav__item md-nav__item--active md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-4" type="checkbox" id="nav-4" checked>
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-5" type="checkbox" id="nav-5" checked>
     
-    <label class="md-nav__link" for="nav-4">
+    <label class="md-nav__link" for="nav-5">
       Tutorial
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
-      <label class="md-nav__title" for="nav-4">
+      <label class="md-nav__title" for="nav-5">
         Tutorial
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -291,6 +310,13 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#object-relational-mapping" title="Object-Relational Mapping" class="md-nav__link">
+    Object-Relational Mapping
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#building-a-data-model" title="Building a Data Model" class="md-nav__link">
     Building a Data Model
   </a>
@@ -305,15 +331,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#executing-queries_1" title="Executing Queries" class="md-nav__link">
+  <a href="#executing-queries" title="Executing Queries" class="md-nav__link">
     Executing Queries
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#configuring-a-database" title="Configuring a Database" class="md-nav__link">
-    Configuring a Database
+  <a href="#setting-up-a-database" title="Setting Up a Database" class="md-nav__link">
+    Setting Up a Database
   </a>
   
 </li>
@@ -331,6 +357,8 @@
   </a>
   
 </li>
+      
+      
       
     </ul>
   
@@ -375,13 +403,13 @@
 
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-5" type="checkbox" id="nav-5">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-6" type="checkbox" id="nav-6">
     
-    <label class="md-nav__link" for="nav-5">
+    <label class="md-nav__link" for="nav-6">
       Serving HTTP Requests
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
-      <label class="md-nav__title" for="nav-5">
+      <label class="md-nav__title" for="nav-6">
         Serving HTTP Requests
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -531,13 +559,13 @@
 
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-6" type="checkbox" id="nav-6">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-7" type="checkbox" id="nav-7">
     
-    <label class="md-nav__link" for="nav-6">
+    <label class="md-nav__link" for="nav-7">
       Databases and ORM
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
-      <label class="md-nav__title" for="nav-6">
+      <label class="md-nav__title" for="nav-7">
         Databases and ORM
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -639,18 +667,6 @@
   </li>
 
         
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../../db/inside_the_db/" title="Inside the DB" class="md-nav__link">
-      Inside the DB
-    </a>
-  </li>
-
-        
       </ul>
     </nav>
   </li>
@@ -663,13 +679,13 @@
 
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-7" type="checkbox" id="nav-7">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-8" type="checkbox" id="nav-8">
     
-    <label class="md-nav__link" for="nav-7">
+    <label class="md-nav__link" for="nav-8">
       Authorization and OAuth 2.0
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
-      <label class="md-nav__title" for="nav-7">
+      <label class="md-nav__title" for="nav-8">
         Authorization and OAuth 2.0
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -771,13 +787,13 @@
 
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-8" type="checkbox" id="nav-8">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-9" type="checkbox" id="nav-9">
     
-    <label class="md-nav__link" for="nav-8">
+    <label class="md-nav__link" for="nav-9">
       Development and Testing
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
-      <label class="md-nav__title" for="nav-8">
+      <label class="md-nav__title" for="nav-9">
         Development and Testing
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -879,13 +895,13 @@
 
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-9" type="checkbox" id="nav-9">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10" type="checkbox" id="nav-10">
     
-    <label class="md-nav__link" for="nav-9">
+    <label class="md-nav__link" for="nav-10">
       Deployment
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
-      <label class="md-nav__title" for="nav-9">
+      <label class="md-nav__title" for="nav-10">
         Deployment
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -963,13 +979,13 @@
 
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10" type="checkbox" id="nav-10">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-11" type="checkbox" id="nav-11">
     
-    <label class="md-nav__link" for="nav-10">
+    <label class="md-nav__link" for="nav-11">
       Command-line Tooling
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
-      <label class="md-nav__title" for="nav-10">
+      <label class="md-nav__title" for="nav-11">
         Command-line Tooling
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -1040,6 +1056,90 @@
   </li>
 
     
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-12" type="checkbox" id="nav-12">
+    
+    <label class="md-nav__link" for="nav-12">
+      Snippets
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-12">
+        Snippets
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../snippets/overview/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../snippets/http/" title="HTTP" class="md-nav__link">
+      HTTP
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../snippets/orm/" title="ORM" class="md-nav__link">
+      ORM
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../snippets/auth/" title="Authentication and Authorization" class="md-nav__link">
+      Authentication and Authorization
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../snippets/test/" title="Testing" class="md-nav__link">
+      Testing
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
   </ul>
 </nav>
                   </div>
@@ -1061,6 +1161,13 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#object-relational-mapping" title="Object-Relational Mapping" class="md-nav__link">
+    Object-Relational Mapping
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#building-a-data-model" title="Building a Data Model" class="md-nav__link">
     Building a Data Model
   </a>
@@ -1075,15 +1182,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#executing-queries_1" title="Executing Queries" class="md-nav__link">
+  <a href="#executing-queries" title="Executing Queries" class="md-nav__link">
     Executing Queries
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#configuring-a-database" title="Configuring a Database" class="md-nav__link">
-    Configuring a Database
+  <a href="#setting-up-a-database" title="Setting Up a Database" class="md-nav__link">
+    Setting Up a Database
   </a>
   
 </li>
@@ -1102,6 +1209,8 @@
   
 </li>
       
+      
+      
     </ul>
   
 </nav>
@@ -1112,42 +1221,23 @@
           
           <div class="md-content">
             <article class="md-content__inner md-typeset">
-               
-                 <a href="https://github.com/stablekernel/aqueduct/edit/master/docs/tut/executing-queries.md" title="Edit this page" class="md-icon md-content__edit">edit</a>
-               
               
                 
-                <h1 id="executing-queries">Executing Queries</h1>
-<p>Now that you've seen how to route HTTP requests and respond to them, we'll do something useful with those requests: like interacting with a database. We will continue to build on the last chapter project, <code>quiz</code>, by storing the questions in a database and retrieving them from the database.</p>
+                  <a href="https://github.com/stablekernel/aqueduct/edit/master/docs/tut/executing-queries.md" title="Edit this page" class="md-icon md-content__icon">edit</a>
+                
+                
+                <h1 id="3-executing-queries">3. Executing Queries</h1>
+<p>We will continue to build on the last chapter's project, <code>quiz</code>, by storing questions in a database and retrieving them from the database.</p>
+<h2 id="object-relational-mapping">Object-Relational Mapping</h2>
+<p>For a quick prelude, let's make sure we understand what an object-relational mapping (ORM) is. There are different kinds of databases that have different use cases. A relational database management system - which pretty much means a 'SQL' database - stores its data in the form of tables. A table represents some sort of entity - like a person or a bank account - and has columns that describe the attributes of that entity - like a name or a balance. Every row in a table is an instance of that entity - like a single person named Bob or Bob's bank account.</p>
+<p>In an object-oriented framework like Aqueduct, we have a similar concept: a class represents some sort of entity, and an object with that class is an instance of that entity. An ORM maps rows in a database to and from objects in an application. In Aqueduct, each database table-class pairing is called an <em>entity</em>. Collectively, an application's entities are called its data model.</p>
 <h2 id="building-a-data-model">Building a Data Model</h2>
-<p>Aqueduct has a built-in ORM (some of which is modeled after the iOS/macOS Core Data framework). Like all ORMs, rows of a database are mapped to objects. In Aqueduct, these objects are of type <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a>. Let's define a managed object that represents a 'question'. Create a new directory in <code>lib</code> named <code>model</code>, and then add a new file to it named <code>question.dart</code> (thus, <code>lib/model/question.dart</code>).</p>
-<p>A managed object is a subclass of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a>, where <code>T</code> is a <em>persistent type</em>. A persistent type is a simple Dart class that maps to a database table. Each of its properties maps to a column in that table. Persistent types are prefixed with '_'. In <code>question.dart</code>, let's define a persistent type for a question:</p>
-<div class="codehilite"><pre><span></span><span class="k">import</span> <span class="s1">&#39;../quiz.dart&#39;</span><span class="p">;</span>
-
-<span class="kd">class</span> <span class="nc">_Question</span> <span class="p">{</span>
-  <span class="err">@</span><span class="n">ManagedColumnAttributes</span><span class="p">(</span><span class="nl">primaryKey:</span> <span class="kc">true</span><span class="p">,</span> <span class="nl">databaseType:</span> <span class="n">PropertyType</span><span class="p">.</span><span class="n">bigInteger</span><span class="p">,</span> <span class="nl">autoincrement:</span> <span class="kc">true</span><span class="p">)</span>
-  <span class="kt">int</span> <span class="n">index</span><span class="p">;</span>
-
-  <span class="kt">String</span> <span class="n">description</span><span class="p">;</span>
-<span class="p">}</span>
-</pre></div>
-
-
-<p>Each property in a persistent type can be marked with <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedColumnAttributes-class.html">ManagedColumnAttributes</a> metadata that defines how the underlying database column is defined. The <code>index</code> property of <code>_Question</code> is the primary key column and a "big" integer. The autoincrement flag lets the database generate this value when a new question is inserted. Because it is quite common to have a primary key that is a big integer and autoincrementing, there is shorthand for it. Replace the metadata with the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/managedPrimaryKey-constant.html">managedPrimaryKey</a> shorthand:</p>
-<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">_Question</span> <span class="p">{</span>
-  <span class="err">@</span><span class="n">managedPrimaryKey</span>
-  <span class="kt">int</span> <span class="n">index</span><span class="p">;</span>
-
-  <span class="kt">String</span> <span class="n">description</span><span class="p">;</span>
-<span class="p">}</span>
-</pre></div>
-
-
-<p><em>All managed objects must have exactly one property with <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedEntity/primaryKey.html">primaryKey</a> set to true.</em> Other interesting flags for <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedColumnAttributes-class.html">ManagedColumnAttributes</a> are <code>indexed</code>, <code>nullable</code> and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedAttributeDescription/defaultValue.html">defaultValue</a>. If a property does not have <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedColumnAttributes-class.html">ManagedColumnAttributes</a>, it is still a persistent property. All of the , it's just a normal column and its database type is inferred from its Dart type. Supported Dart types are <code>int</code>, <code>double</code>, <code>String</code>, <code>DateTime</code> and <code>bool</code>.</p>
-<p>Once a persistent type has been defined, you must also declare a corresponding subclass of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject</a>. At the top of <code>question.dart</code>, but underneath the import, add the following:</p>
+<p>In our <code>quiz</code> application, we really have one type of entity - a "question". We will create an entity by declaring a class whose instances represent a question.</p>
+<p>Create a new directory <code>lib/model/</code> and then add a new file to it named <code>lib/model/question.dart</code>. Add the following code:</p>
 <div class="codehilite"><pre><span></span><span class="k">import</span> <span class="s1">&#39;../quiz.dart&#39;</span><span class="p">;</span>
 
 <span class="kd">class</span> <span class="nc">Question</span> <span class="kd">extends</span> <span class="n">ManagedObject</span><span class="o">&lt;</span><span class="n">_Question</span><span class="o">&gt;</span> <span class="kd">implements</span> <span class="n">_Question</span> <span class="p">{}</span>
+
 <span class="kd">class</span> <span class="nc">_Question</span> <span class="p">{</span>
   <span class="err">@</span><span class="n">managedPrimaryKey</span>
   <span class="kt">int</span> <span class="n">index</span><span class="p">;</span>
@@ -1157,15 +1247,41 @@
 </pre></div>
 
 
-<p>This dual-class setup is important and necessary for using Aqueduct's ORM. The persistent type - the plain Dart class that starts with an underscore - represents a database table. Each property of the persistent type is a column in that database table. The name of the database table matches the name of the class (here, <code>_Question</code>).</p>
-<p>The <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject</a> subclass is the type you work with in your code. Its associated persistent type appears twice in its declaration: as the type argument to <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject</a> (<code>ManagedObject&lt;_Question&gt;</code>) and as an interface (<code>implements _Question</code>). A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject</a> may have properties and methods of its own, but those are <em>not</em> backed by a database column.</p>
+<p>This declares a "question" entity. The class <code>_Question</code> is a one-to-one mapping to a database table with the same name. Each of its properties - <code>index</code> and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIHeader/description.html">description</a> - are columns in that table. When the ORM fetches rows from the <code>_Question</code> table, they will be returned as instances of <code>Question</code>.</p>
+<p><img alt="ManagedObject Diagram" src="../../img/tut3_db.png" /></p>
+<p>When declaring an entity, there must be two classes:</p>
+<ul>
+<li>A <em>persistent type</em> that starts with a <code>_</code>, has exactly one primary key property, and declares a property for each database column. In the above, the persistent type is <code>_Question</code>.</li>
+<li>An <em>instance type</em> that extends <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a> (where <code>T</code> is the persistent type). The instance type also implements the persistent type so that it has the same properties. In the above, the instance type is <code>Question</code>.</li>
+</ul>
+<div class="admonition tip">
+<p class="admonition-title">Why two classes?</p>
+<p>The two classes allow for much of the powerful behavior of the Aqueduct ORM. Answering this question requires a understanding of those behaviors, which we won't cover much in this beginner's tutorial. Once you've got the basics down, check out <a href="../../db/modeling_data/">this guide</a> for more detail.</p>
+</div>
+<p>During application initialization, the data model gets compiled so that it information about these entities is available at runtime to the components that need it. In <code>quiz_sink.dart</code>, add the following code to the constructor:</p>
+<div class="codehilite"><pre><span></span><span class="n">QuizSink</span><span class="p">(</span><span class="n">ApplicationConfiguration</span> <span class="n">appConfig</span><span class="p">)</span> <span class="o">:</span> <span class="k">super</span><span class="p">(</span><span class="n">appConfig</span><span class="p">)</span> <span class="p">{</span>
+  <span class="cm">/* This line was added by the template */</span>
+  <span class="n">logger</span><span class="p">.</span><span class="n">onRecord</span><span class="p">.</span><span class="n">listen</span><span class="p">((</span><span class="n">rec</span><span class="p">)</span> <span class="o">=&gt;</span>
+    <span class="n">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">$</span><span class="n">rec</span><span class="s2"> </span><span class="si">${</span><span class="n">rec</span><span class="p">.</span><span class="n">error</span> <span class="o">??</span> <span class="s2">&quot;&quot;</span><span class="si">}</span><span class="s2"> </span><span class="si">${</span><span class="n">rec</span><span class="p">.</span><span class="n">stackTrace</span> <span class="o">??</span> <span class="s2">&quot;&quot;</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">));</span>
+
+  <span class="kd">var</span> <span class="n">dataModel</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ManagedDataModel</span><span class="p">.</span><span class="n">fromCurrentMirrorSystem</span><span class="p">();</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>The <code>fromCurrentMirrorSystem</code> constructor will be able to find all of the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a> subclasses in your application. This data model will be one of the two necessary components for our next task, creating a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedContext-class.html">ManagedContext</a>.</p>
 <h2 id="defining-a-context">Defining a Context</h2>
-<p>In order for an application to work with a database, it needs a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedContext-class.html">ManagedContext</a>. A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedContext-class.html">ManagedContext</a> is the facilitator between your code and a database. It is made up of two components, a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedDataModel-class.html">ManagedDataModel</a> (the thing that keeps track of all of your managed object types) and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/PersistentStore-class.html">PersistentStore</a> (the thing that talks to the database). These objects are set up in a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a>. In <code>sink.dart</code>, add the following code to the constructor for <code>QuizRequestSink</code> and define a new property:</p>
-<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">QuizRequestSink</span> <span class="kd">extends</span> <span class="n">RequestSink</span> <span class="p">{</span>
-  <span class="n">QuizRequestSink</span><span class="p">(</span><span class="n">Map</span><span class="o">&lt;</span><span class="kt">String</span><span class="p">,</span> <span class="kt">dynamic</span><span class="o">&gt;</span> <span class="n">options</span><span class="p">)</span> <span class="o">:</span> <span class="k">super</span><span class="p">(</span><span class="n">options</span><span class="p">)</span> <span class="p">{</span>
+<p>A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedContext-class.html">ManagedContext</a> is an application's gateway to a database. It maintains a connection to a database, executes queries on that database, and translates the results to and from <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a>s according to a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedDataModel-class.html">ManagedDataModel</a>. We have the data model already, so now we must provide database connection information. In <code>quiz_sink.dart</code>, declare a new property and add a few more lines to the constructor:</p>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">QuizSink</span> <span class="kd">extends</span> <span class="n">RequestSink</span> <span class="p">{</span>
+  <span class="n">QuizSink</span><span class="p">(</span><span class="n">ApplicationConfiguration</span> <span class="n">options</span><span class="p">)</span> <span class="o">:</span> <span class="k">super</span><span class="p">(</span><span class="n">options</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">logger</span><span class="p">.</span><span class="n">onRecord</span><span class="p">.</span><span class="n">listen</span><span class="p">((</span><span class="n">rec</span><span class="p">)</span> <span class="o">=&gt;</span>
+      <span class="n">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">$</span><span class="n">rec</span><span class="s2"> </span><span class="si">${</span><span class="n">rec</span><span class="p">.</span><span class="n">error</span> <span class="o">??</span> <span class="s2">&quot;&quot;</span><span class="si">}</span><span class="s2"> </span><span class="si">${</span><span class="n">rec</span><span class="p">.</span><span class="n">stackTrace</span> <span class="o">??</span> <span class="s2">&quot;&quot;</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">));</span>
+
     <span class="kd">var</span> <span class="n">dataModel</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ManagedDataModel</span><span class="p">.</span><span class="n">fromCurrentMirrorSystem</span><span class="p">();</span>
+
     <span class="kd">var</span> <span class="n">persistentStore</span> <span class="o">=</span> <span class="k">new</span> <span class="n">PostgreSQLPersistentStore</span><span class="p">.</span><span class="n">fromConnectionInfo</span><span class="p">(</span>
       <span class="s2">&quot;dart&quot;</span><span class="p">,</span> <span class="s2">&quot;dart&quot;</span><span class="p">,</span> <span class="s2">&quot;localhost&quot;</span><span class="p">,</span> <span class="m">5432</span><span class="p">,</span> <span class="s2">&quot;dart_test&quot;</span><span class="p">);</span>
+
     <span class="n">context</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ManagedContext</span><span class="p">(</span><span class="n">dataModel</span><span class="p">,</span> <span class="n">persistentStore</span><span class="p">);</span>
   <span class="p">}</span>
 
@@ -1175,14 +1291,11 @@
 </pre></div>
 
 
-<p>(In the future, we'll allow this information to be passed from a configuration file. But for now, we'll do it manually.)</p>
-<p>A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedDataModel-class.html">ManagedDataModel</a> is initialized with its named constructor <code>fromCurrentMirrorSystem</code>. This constructor uses reflection to find every <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject&lt;T&gt;</a> subclass in your application and compile a data model from them.</p>
-<p>The persistent store is a specific implementation of a persistent store, <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/PostgreSQLPersistentStore-class.html">PostgreSQLPersistentStore</a>. It is initialized with information necessary to connect to a database. A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedContext-class.html">ManagedContext</a> simply ties those two things together.</p>
-<p>(By the way, the interface for <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/PersistentStore-class.html">PersistentStore</a> can be implemented for different flavors of SQL and even non-SQL databases. We just so happen to prefer PostgreSQL, so we've already built that one.)</p>
-<p>When a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedContext-class.html">ManagedContext</a> is created, it becomes the <em>default context</em> of your application. When we execute database queries, they run on the default context (by default). If we have multiple databases, we can create more <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedContext-class.html">ManagedContext</a>s and pass them around to make sure we hit the right database. For now, we can ignore this, just know that it exists.</p>
-<h2 id="executing-queries_1">Executing Queries</h2>
-<p>Now that we have a context - which can establish a connection to a database, talk to the database and map rows to managed objects - we can execute queries in our <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a>s. In <code>question_controller.dart</code>, import <code>question.dart</code> and replace the code for <code>getAllQuestions</code> (we'll work on <code>getQuestionAtIndex</code> soon):</p>
-<div class="codehilite"><pre><span></span><span class="k">import</span> <span class="s1">&#39;../model/question.dart&#39;</span><span class="p">;</span>
+<p>This creates a context that connects to the database <code>postgres://dart:dart@localhost:5432/dart_test</code> that has a single <code>_Question</code> table. Before we create that database, let's finish writing the code that will fetch questions from a database.</p>
+<h2 id="executing-queries">Executing Queries</h2>
+<p>Once a context has been created, when can execute <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query-class.html">Query&lt;T&gt;</a>s on it. In <code>lib/controller/question_controller.dart</code>, replace the implementation of <code>getAllQuestions</code> to fetch questions from a database and import the file that declares <code>Question</code>:</p>
+<div class="codehilite"><pre><span></span><span class="k">import</span> <span class="s1">&#39;../quiz.dart&#39;</span><span class="p">;</span>
+<span class="k">import</span> <span class="s1">&#39;../model/question.dart&#39;</span><span class="p">;</span>
 
 <span class="kd">class</span> <span class="nc">QuestionController</span> <span class="kd">extends</span> <span class="n">HttpController</span> <span class="p">{</span>
   <span class="kd">var</span> <span class="n">questions</span> <span class="o">=</span> <span class="p">[</span>
@@ -1194,6 +1307,7 @@
   <span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">getAllQuestions</span><span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
     <span class="kd">var</span> <span class="n">questionQuery</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Question</span><span class="o">&gt;</span><span class="p">();</span>
     <span class="kd">var</span> <span class="n">databaseQuestions</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">questionQuery</span><span class="p">.</span><span class="n">fetch</span><span class="p">();</span>
+
     <span class="k">return</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="n">databaseQuestions</span><span class="p">);</span>
   <span class="p">}</span>
 
@@ -1201,184 +1315,200 @@
 </pre></div>
 
 
-<p>When this responder method is executed, it'll create a new <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query-class.html">Query&lt;T&gt;</a> for <code>Question</code> (as indicated by the type parameter). A query has a handful of execution methods on it - <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/fetch.html">fetch</a>, <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/fetchOne.html">fetchOne</a>, <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedSet/insert.html">insert</a>, <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/update.html">update</a>, <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/updateOne.html">updateOne</a> and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/delete.html">delete</a>. By executing a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/fetch.html">fetch</a> on a vanilla <code>Query&lt;Question&gt;</code>, this will return a list of <code>Question</code>s, one for each row in the database's question table.</p>
-<p>Now, we need an actual database to fetch data from.</p>
-<h2 id="configuring-a-database">Configuring a Database</h2>
-<p>As we've mentioned a few times, a key facet to Aqueduct is efficient automated testing. The scheme for testing is to create a 'test' database that all of your Aqueduct projects run against. When you run tests against that database, the tests create <em>temporary</em> tables prior to executing. The good news is that the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedDataModel-class.html">ManagedDataModel</a> in your application can drive this table creation, so you don't need to do anything special. The tests are run against the current version of the schema defined by your code.</p>
-<p>Therefore, on any machine you're going to test on, you need to install PostgreSQL and configure a test database. You'll only need to set this up once on - all Aqueduct project tests run against the same database.</p>
-<p>On macOS, the best way to do this with <a href="http://postgresapp.com">Postgres.app</a>. This macOS app has a self-contained instance of Postgres that you start by opening up the application itself. Download this application and run it.</p>
-<p>Once running, run the command <code>aqueduct setup</code> from anywhere. It will give you some additional instructions to follow to make sure everything is OK. It just runs the following SQL:</p>
-<div class="codehilite"><pre><span></span><span class="k">create</span> <span class="k">database</span> <span class="n">dart_test</span><span class="p">;</span>
-<span class="k">create</span> <span class="k">user</span> <span class="n">dart</span> <span class="k">with</span> <span class="k">createdb</span><span class="p">;</span>
-<span class="k">alter</span> <span class="k">user</span> <span class="n">dart</span> <span class="k">with</span> <span class="n">password</span> <span class="s1">&#39;dart&#39;</span><span class="p">;</span>
-<span class="k">grant</span> <span class="k">all</span> <span class="k">on</span> <span class="k">database</span> <span class="n">dart_test</span> <span class="k">to</span> <span class="n">dart</span><span class="p">;</span>
-</pre></div>
+<p>In <code>getAllQuestions</code>, we create an instance of <code>Query&lt;Question&gt;</code> and then execute its <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/fetch.html">fetch()</a> method. This method will fetch every question from the database and returns them as a <code>List&lt;Question&gt;</code> into the variable <code>databaseQuestions</code>. This list is the body object to the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Response-class.html">Response</a>, which by default, encodes them as a list of JSON objects.</p>
+<div class="admonition note">
+<p class="admonition-title">Where's the context?</p>
+<p>Most applications only talk to a single database and therefore have a single <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedContext-class.html">ManagedContext</a>. When creating a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query-class.html">Query&lt;T&gt;</a> without specifying a context, the query defaults to executing on the last context created - which happens to be the one we instantiated in <code>QuizSink</code>.</p>
+</div>
+<p>Now, let's update <code>getQuestionAtIndex</code> to fetch a single question by its index from the database.</p>
+<div class="codehilite"><pre><span></span><span class="err">@</span><span class="n">httpGet</span>
+<span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">getQuestionAtIndex</span><span class="p">(</span><span class="err">@</span><span class="n">HTTPPath</span><span class="p">(</span><span class="s2">&quot;index&quot;</span><span class="p">)</span> <span class="kt">int</span> <span class="n">index</span><span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>
+  <span class="kd">var</span> <span class="n">questionQuery</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Question</span><span class="o">&gt;</span><span class="p">()</span>
+    <span class="p">..</span><span class="n">where</span><span class="p">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">whereEqualTo</span><span class="p">(</span><span class="n">index</span><span class="p">);</span>    
 
+  <span class="kd">var</span> <span class="n">question</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">questionQuery</span><span class="p">.</span><span class="n">fetchOne</span><span class="p">();</span>
 
-<p>If you are on another operating system or this command fails for your installation of PostgreSQL, you may run the above commands through the <code>psql</code> command-line utility.</p>
-<p>You'll notice in your <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a>, the configuration parameters for the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/PostgreSQLPersistentStore-class.html">PostgreSQLPersistentStore</a> match those that you have just added to your local instance of Postgres, so your application will run against that instance. However, if you were to run your code now, the table backing <code>Question</code>s would not exist. When running tests, we need to create a temporary table for <code>Question</code>s before the tests start. Go to the <code>setUp</code> method in <code>question_controller_test.dart</code>, and enter the following code after the application is started:</p>
-<div class="codehilite"><pre><span></span>  <span class="n">setUp</span><span class="p">(()</span> <span class="kd">async</span> <span class="p">{</span>
-    <span class="kd">await</span> <span class="n">app</span><span class="p">.</span><span class="n">start</span><span class="p">(</span><span class="nl">runOnMainIsolate:</span> <span class="kc">true</span><span class="p">);</span>
-    <span class="n">client</span> <span class="o">=</span> <span class="k">new</span> <span class="n">TestClient</span><span class="p">(</span><span class="n">app</span><span class="p">);</span>
-
-    <span class="kd">var</span> <span class="n">ctx</span> <span class="o">=</span> <span class="n">ManagedContext</span><span class="p">.</span><span class="n">defaultContext</span><span class="p">;</span>
-    <span class="kd">var</span> <span class="n">builder</span> <span class="o">=</span> <span class="k">new</span> <span class="n">SchemaBuilder</span><span class="p">.</span><span class="n">toSchema</span><span class="p">(</span>
-      <span class="n">ctx</span><span class="p">.</span><span class="n">persistentStore</span><span class="p">,</span> <span class="k">new</span> <span class="n">Schema</span><span class="p">.</span><span class="n">fromDataModel</span><span class="p">(</span><span class="n">ctx</span><span class="p">.</span><span class="n">dataModel</span><span class="p">),</span> <span class="nl">isTemporary:</span> <span class="kc">true</span><span class="p">);</span>
-
-    <span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="n">cmd</span> <span class="k">in</span> <span class="n">builder</span><span class="p">.</span><span class="n">commands</span><span class="p">)</span> <span class="p">{</span>
-      <span class="kd">await</span> <span class="n">ctx</span><span class="p">.</span><span class="n">persistentStore</span><span class="p">.</span><span class="n">execute</span><span class="p">(</span><span class="n">cmd</span><span class="p">);</span>
-    <span class="p">}</span>
-  <span class="p">});</span>
-</pre></div>
-
-
-<p>After the application is started, we know that it creates a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedContext-class.html">ManagedContext</a> in the constructor of <code>QuizRequestSink</code>. The default context can be accessed through <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedContext/defaultContext.html">ManagedContext.defaultContext</a>. We also know that this context has a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedDataModel-class.html">ManagedDataModel</a> containing <code>Question</code>. The class <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/SchemaBuilder-class.html">SchemaBuilder</a> will create a series of SQL commands from the data model, translated by the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/PostgreSQLPersistentStore-class.html">PostgreSQLPersistentStore</a>. (Note that the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/DatabaseConnectionConfiguration/isTemporary.html">isTemporary</a> parameter makes all of the tables temporary and therefore they disappear when the database connection in the context's persistent store closes. This prevents changes to the database from leaking into subsequent tests.)</p>
-<p>The database connection is automatically closed when the tests complete by the existing <code>tearDown</code> method that stops the application. Note that when the databsae connection is closed, the tables and data in the database created by this test are discarded.</p>
-<p>We now need questions in the database (you can run your tests and see the they fail because there are no questions). Let's first seed the database with some questions using an insert query at the end of <code>setUp</code>.</p>
-<div class="codehilite"><pre><span></span><span class="c1">// Don&#39;t forget this import!</span>
-<span class="k">import</span> <span class="s1">&#39;package:quiz/model/question.dart&#39;</span><span class="p">;</span>
-
-<span class="kt">void</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
-  <span class="n">setUp</span><span class="p">(()</span> <span class="kd">async</span> <span class="p">{</span>
-    <span class="kd">await</span> <span class="n">app</span><span class="p">.</span><span class="n">start</span><span class="p">(</span><span class="nl">runOnMainIsolate:</span> <span class="kc">true</span><span class="p">);</span>
-    <span class="n">client</span> <span class="o">=</span> <span class="k">new</span> <span class="n">TestClient</span><span class="p">(</span><span class="n">app</span><span class="p">);</span>
-
-    <span class="kd">var</span> <span class="n">ctx</span> <span class="o">=</span> <span class="n">ManagedContext</span><span class="p">.</span><span class="n">defaultContext</span><span class="p">;</span>
-    <span class="kd">var</span> <span class="n">builder</span> <span class="o">=</span> <span class="k">new</span> <span class="n">SchemaBuilder</span><span class="p">.</span><span class="n">toSchema</span><span class="p">(</span><span class="n">ctx</span><span class="p">.</span><span class="n">persistentStore</span><span class="p">,</span> <span class="k">new</span> <span class="n">Schema</span><span class="p">.</span><span class="n">fromDataModel</span><span class="p">(</span><span class="n">ctx</span><span class="p">.</span><span class="n">dataModel</span><span class="p">),</span> <span class="nl">isTemporary:</span> <span class="kc">true</span><span class="p">);</span>
-
-    <span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="n">cmd</span> <span class="k">in</span> <span class="n">builder</span><span class="p">.</span><span class="n">commands</span><span class="p">)</span> <span class="p">{</span>
-      <span class="kd">await</span> <span class="n">ctx</span><span class="p">.</span><span class="n">persistentStore</span><span class="p">.</span><span class="n">execute</span><span class="p">(</span><span class="n">cmd</span><span class="p">);</span>
-    <span class="p">}</span>
-
-    <span class="kd">var</span> <span class="n">questions</span> <span class="o">=</span> <span class="p">[</span>
-      <span class="s2">&quot;How much wood can a woodchuck chuck?&quot;</span><span class="p">,</span>
-      <span class="s2">&quot;What&#39;s the tallest mountain in the world?&quot;</span>
-    <span class="p">];</span>
-
-    <span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="n">question</span> <span class="k">in</span> <span class="n">questions</span><span class="p">)</span> <span class="p">{</span>
-      <span class="kd">var</span> <span class="n">insertQuery</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Question</span><span class="o">&gt;</span><span class="p">()</span>
-        <span class="p">..</span><span class="n">values</span><span class="p">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">question</span><span class="p">;</span>
-      <span class="kd">await</span> <span class="n">insertQuery</span><span class="p">.</span><span class="n">insert</span><span class="p">();</span>
-    <span class="p">}</span>
-  <span class="p">});</span>
-</pre></div>
-
-
-<p>Now, this is also a lesson in insert queries. <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query-class.html">Query&lt;T&gt;</a> has a property named <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/values.html">values</a>, an instance of the type being queried. In this case, <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/values.html">values</a> is a <code>Question</code> because the query is created as <code>Query&lt;Question&gt;</code>. When the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query-class.html">Query&lt;T&gt;</a> is inserted, all of the values that have been set on <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/values.html">values</a> property are inserted into the database. (If you don't set a value, it isn't sent in the insert query at all. A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query-class.html">Query&lt;T&gt;</a> does not send <code>null</code> unless you explicitly set a property to <code>null</code>.)</p>
-<p>In our seeded test database, there will be two questions. If you re-run the tests, the first one should pa... wait, no it fails. The test results says this:</p>
-<div class="codehilite"><pre><span></span><span class="n">Expected</span><span class="o">:</span>
-  <span class="n">Status</span> <span class="n">Code</span><span class="o">:</span> <span class="mi">200</span>
-  <span class="n">Body</span><span class="o">:</span> <span class="n">every</span> <span class="n">element</span><span class="o">(</span><span class="n">a</span> <span class="n">string</span> <span class="n">ending</span> <span class="k">with</span> <span class="s1">&#39;?&#39;</span><span class="o">)</span>
-  <span class="n">Actual</span><span class="o">:</span> <span class="n">TestResponse</span><span class="o">:&lt;</span>
-  <span class="n">Status</span> <span class="n">Code</span><span class="o">:</span> <span class="mi">200</span>
-  <span class="n">Headers</span><span class="o">:</span> <span class="n">transfer</span><span class="o">-</span><span class="n">encoding</span><span class="o">:</span> <span class="n">chunked</span>
-       <span class="n">content</span><span class="o">-</span><span class="n">encoding</span><span class="o">:</span> <span class="n">gzip</span>
-       <span class="n">x</span><span class="o">-</span><span class="n">frame</span><span class="o">-</span><span class="n">options</span><span class="o">:</span> <span class="n">SAMEORIGIN</span>
-       <span class="n">content</span><span class="o">-</span><span class="n">type</span><span class="o">:</span> <span class="n">application</span><span class="o">/</span><span class="n">json</span><span class="o">;</span> <span class="n">charset</span><span class="o">=</span><span class="n">utf</span><span class="o">-</span><span class="mi">8</span>
-       <span class="n">x</span><span class="o">-</span><span class="n">xss</span><span class="o">-</span><span class="n">protection</span><span class="o">:</span> <span class="mi">1</span><span class="o">;</span> <span class="n">mode</span><span class="o">=</span><span class="n">block</span>
-       <span class="n">x</span><span class="o">-</span><span class="n">content</span><span class="o">-</span><span class="n">type</span><span class="o">-</span><span class="n">options</span><span class="o">:</span> <span class="n">nosniff</span>
-       <span class="n">server</span><span class="o">:</span> <span class="n">aqueduct</span><span class="o">/</span><span class="mi">1</span>
-  <span class="n">Body</span><span class="o">:</span> <span class="o">[{</span><span class="s2">&quot;index&quot;</span><span class="o">:</span><span class="mi">1</span><span class="o">,</span><span class="s2">&quot;description&quot;</span><span class="o">:</span><span class="s2">&quot;How much wood can a woodchuck chuck?&quot;</span><span class="o">},{</span><span class="s2">&quot;index&quot;</span><span class="o">:</span><span class="mi">2</span><span class="o">,</span><span class="s2">&quot;description&quot;</span><span class="o">:</span><span class="s2">&quot;What&#39;s the tallest mountain in the world?&quot;</span><span class="o">}]&gt;</span>
-</pre></div>
-
-
-<p>When a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.test/hasResponse.html">hasResponse</a> matcher fails, it prints out what you expected and what the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.test/TestResponse-class.html">TestResponse</a> actually was. The expectation was that every element is a string ending with '?'. Instead, the bottom of the test result says that the body is actually a list of maps, for which there is a index and a description. This is the list of JSON-encoded <code>Question</code> objects, and they are obviously not <code>String</code>s like they previously were.</p>
-<p>This is because a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedObject-class.html">ManagedObject</a> like <code>Question</code> is serialized into a <code>Map&lt;String, dynamic&gt;</code> when returned in a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Response-class.html">Response</a>. Each key in the map is a property of the managed object. Since <code>Question</code> declares two properties - <code>index</code> and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIHeader/description.html">description</a> - each question in the response body JSON is a map of those two values. Let's update this test to reflect that change:</p>
-<div class="codehilite"><pre><span></span>  <span class="n">test</span><span class="p">(</span><span class="s2">&quot;/questions returns list of questions&quot;</span><span class="p">,</span> <span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
-    <span class="kd">var</span> <span class="n">response</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">client</span><span class="p">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;/questions&quot;</span><span class="p">).</span><span class="kd">get</span><span class="p">();</span>
-    <span class="n">expect</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="n">hasResponse</span><span class="p">(</span><span class="m">200</span><span class="p">,</span> <span class="n">everyElement</span><span class="p">({</span>
-        <span class="s2">&quot;index&quot;</span> <span class="o">:</span> <span class="n">greaterThan</span><span class="p">(</span><span class="m">0</span><span class="p">),</span>
-        <span class="s2">&quot;description&quot;</span> <span class="o">:</span> <span class="n">endsWith</span><span class="p">(</span><span class="s2">&quot;?&quot;</span><span class="p">)</span>
-    <span class="p">})));</span>
-    <span class="n">expect</span><span class="p">(</span><span class="n">response</span><span class="p">.</span><span class="n">decodedBody</span><span class="p">,</span> <span class="n">hasLength</span><span class="p">(</span><span class="n">greaterThan</span><span class="p">(</span><span class="m">0</span><span class="p">)));</span>
-  <span class="p">});</span>
-</pre></div>
-
-
-<p>Now, the expectation is that every element in the response body is a <code>Map</code>, for which it has an <code>index</code> greater than or equal to <code>0</code> and and a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIHeader/description.html">description</a> that ends with <code>?</code>. Run these tests again and the tests will pass.</p>
-<p>Now, our <code>QuestionController</code> reads from a database when fetching all questions through the <code>/questions</code> endpoint. However, it is still reading from the list of static questions when fetching a single question with <code>/questions/:id</code>.</p>
-<p>Modify <code>getQuestionAtIndex</code> in <code>question_controller.dart</code> to fetch a single question from the database. You may also delete the property <code>questions</code> from <code>QuestionController</code>.</p>
-<div class="codehilite"><pre><span></span>  <span class="err">@</span><span class="n">httpGet</span>
-  <span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">getQuestionAtIndex</span><span class="p">(</span><span class="err">@</span><span class="n">HTTPPath</span><span class="p">(</span><span class="s2">&quot;index&quot;</span><span class="p">)</span> <span class="kt">int</span> <span class="n">index</span><span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>
-    <span class="kd">var</span> <span class="n">questionQuery</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Question</span><span class="o">&gt;</span><span class="p">()</span>
-      <span class="p">..</span><span class="n">where</span><span class="p">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">whereEqualTo</span><span class="p">(</span><span class="n">index</span><span class="p">);</span>    
-
-    <span class="kd">var</span> <span class="n">question</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">questionQuery</span><span class="p">.</span><span class="n">fetchOne</span><span class="p">();</span>
-
-    <span class="k">if</span> <span class="p">(</span><span class="n">question</span> <span class="o">==</span> <span class="kc">null</span><span class="p">)</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">notFound</span><span class="p">();</span>
-    <span class="p">}</span>
-    <span class="k">return</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="n">question</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">question</span> <span class="o">==</span> <span class="kc">null</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">notFound</span><span class="p">();</span>
   <span class="p">}</span>
+  <span class="k">return</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="n">question</span><span class="p">);</span>
+<span class="p">}</span>
 </pre></div>
 
 
-<p>In this query, a 'where' is being applied to the query. The <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/where.html">Query.where</a> property allows you to restrict the results returned from a query to those that match the conditions applied to it. <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/where.html">Query.where</a> is also an instance of <code>Question</code>, like <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/values.html">values</a>, so its properties like <code>index</code> are accessible. When setting a property of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/where.html">Query.where</a>, you must use a <em>matcher</em>. There are many available matchers and all of them begin with the word 'where'. This particular query only fetches questions where the index is equal to the argument <code>index</code>. (Check the <a href="https://www.dartdocs.org/documentation/aqueduct/latest">Aqueduct API reference</a> to see all of the matchers.)</p>
-<p>Now, we must update the second test in <code>question_controller_test.dart</code> now that this endpoint is returning a JSON object that represents a question:</p>
-<div class="codehilite"><pre><span></span>  <span class="n">test</span><span class="p">(</span><span class="s2">&quot;/questions/index returns a single question&quot;</span><span class="p">,</span> <span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
-    <span class="kd">var</span> <span class="n">response</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">client</span><span class="p">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;/questions/1&quot;</span><span class="p">).</span><span class="kd">get</span><span class="p">();</span>
-    <span class="n">expect</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="n">hasResponse</span><span class="p">(</span><span class="m">200</span><span class="p">,</span> <span class="p">{</span>
-        <span class="s2">&quot;index&quot;</span> <span class="o">:</span> <span class="n">greaterThanOrEqualTo</span><span class="p">(</span><span class="m">0</span><span class="p">),</span>
-        <span class="s2">&quot;description&quot;</span> <span class="o">:</span> <span class="n">endsWith</span><span class="p">(</span><span class="s2">&quot;?&quot;</span><span class="p">)</span>
-    <span class="p">}));</span>
+<p>This query does two interesting things: it filters the result of the query by the question's index and only fetches a single question with <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/fetchOne.html">fetchOne()</a>.</p>
+<p>Filtering is accomplished through the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationMessageHub/where.html">where</a> property of a <code>Query&lt;Question&gt;</code>; this property has all of the same properties as <code>Question</code>. <em>Matchers</em> like <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/whereEqualTo.html">whereEqualTo</a> are set as the values of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationMessageHub/where.html">where</a>'s properties. This adds conditions to the where clause of the generated SQL query. In the above code, we constrain the query to only fetch questions whose <code>index</code> is equal to the <code>index</code> from the path variable. Since <code>index</code> is the primary key of <code>Question</code>, this will either give us a single question or return null.</p>
+<div class="admonition tip">
+<p class="admonition-title">Matching All the Things</p>
+<p>There are a lot of matchers available to build different queries. All matchers start with the word <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationMessageHub/where.html">where</a> and can be found by searching the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/">API reference</a>.</p>
+</div>
+<h2 id="setting-up-a-database">Setting Up a Database</h2>
+<p>Ensure that your PostgreSQL installation is running and open the command-line tool <code>psql</code>. In this tool, create a new database and a user that can connect to it with the following SQL:</p>
+<div class="codehilite"><pre><span></span><span class="k">CREATE</span> <span class="k">DATABASE</span> <span class="n">dart_test</span><span class="p">;</span>
+<span class="k">CREATE</span> <span class="k">USER</span> <span class="n">dart</span> <span class="k">WITH</span> <span class="k">createdb</span><span class="p">;</span>
+<span class="k">ALTER</span> <span class="k">USER</span> <span class="n">dart</span> <span class="k">WITH</span> <span class="n">password</span> <span class="s1">&#39;dart&#39;</span><span class="p">;</span>
+<span class="k">GRANT</span> <span class="k">all</span> <span class="k">ON</span> <span class="k">database</span> <span class="n">dart_test</span> <span class="k">TO</span> <span class="n">dart</span><span class="p">;</span>
+</pre></div>
+
+
+<p>The user, password and database name match those provided when creating our <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ManagedContext-class.html">ManagedContext</a> in <code>QuizSink</code>. This database will be used during testing. Before the tests run, the test harness will create tables for all of your entities in this database. After the tests complete, the tables will be deleted from this database. Therefore, this database should only be used for running tests.</p>
+<p>We must update our test harness to create these tables. In <code>test/harness/app.dart</code>, add the following method to <code>TestApplication</code>:</p>
+<div class="codehilite"><pre><span></span><span class="kd">static</span> <span class="n">Future</span> <span class="n">createDatabaseSchema</span><span class="p">(</span><span class="n">ManagedContext</span> <span class="n">context</span><span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>
+  <span class="kd">var</span> <span class="n">builder</span> <span class="o">=</span> <span class="k">new</span> <span class="n">SchemaBuilder</span><span class="p">.</span><span class="n">toSchema</span><span class="p">(</span>
+      <span class="n">context</span><span class="p">.</span><span class="n">persistentStore</span><span class="p">,</span> <span class="k">new</span> <span class="n">Schema</span><span class="p">.</span><span class="n">fromDataModel</span><span class="p">(</span><span class="n">context</span><span class="p">.</span><span class="n">dataModel</span><span class="p">),</span>
+      <span class="nl">isTemporary:</span> <span class="kc">true</span><span class="p">);</span>
+
+  <span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="n">cmd</span> <span class="k">in</span> <span class="n">builder</span><span class="p">.</span><span class="n">commands</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">await</span> <span class="n">context</span><span class="p">.</span><span class="n">persistentStore</span><span class="p">.</span><span class="n">execute</span><span class="p">(</span><span class="n">cmd</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>Then, in <code>TestApplication.start</code>, add the line that calls this method after <code>await application.start()</code>:</p>
+<div class="codehilite"><pre><span></span><span class="n">Future</span> <span class="n">start</span><span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
+  <span class="n">RequestController</span><span class="p">.</span><span class="n">letUncaughtExceptionsEscape</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+  <span class="n">application</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Application</span><span class="o">&lt;</span><span class="n">QuizSink</span><span class="o">&gt;</span><span class="p">();</span>
+  <span class="n">application</span><span class="p">.</span><span class="n">configuration</span><span class="p">.</span><span class="n">port</span> <span class="o">=</span> <span class="m">0</span><span class="p">;</span>
+  <span class="n">application</span><span class="p">.</span><span class="n">configuration</span><span class="p">.</span><span class="n">configurationFilePath</span> <span class="o">=</span> <span class="s2">&quot;config.src.yaml&quot;</span><span class="p">;</span>
+
+  <span class="kd">await</span> <span class="n">application</span><span class="p">.</span><span class="n">start</span><span class="p">(</span><span class="nl">runOnMainIsolate:</span> <span class="kc">true</span><span class="p">);</span>
+
+  <span class="cm">/* Add this line */</span>
+  <span class="kd">await</span> <span class="n">createDatabaseSchema</span><span class="p">(</span><span class="n">sink</span><span class="p">.</span><span class="n">context</span><span class="p">);</span>
+
+  <span class="n">client</span> <span class="o">=</span> <span class="k">new</span> <span class="n">TestClient</span><span class="p">(</span><span class="n">application</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>Now when our tests in <code>question_controller_test.dart</code> go through their setup process, the SQL command to create the question table will be executed. The last thing left to do is populate this test database with questions during the test setup process. At the top of <code>question_controller_test.dart</code>, import <code>question.dart</code>:</p>
+<div class="codehilite"><pre><span></span><span class="k">import</span> <span class="s1">&#39;package:quiz/model/question.dart&#39;</span><span class="p">;</span>
+</pre></div>
+
+
+<p>And then update the <code>setUpAll</code> method:</p>
+<div class="codehilite"><pre><span></span><span class="n">setUpAll</span><span class="p">(()</span> <span class="kd">async</span> <span class="p">{</span>
+  <span class="kd">await</span> <span class="n">app</span><span class="p">.</span><span class="n">start</span><span class="p">();</span>
+
+  <span class="kd">var</span> <span class="n">questions</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="k">new</span> <span class="n">Question</span><span class="p">()</span>
+      <span class="p">..</span><span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;How much wood can a woodchuck chuck?&quot;</span><span class="p">,</span>
+    <span class="k">new</span> <span class="n">Question</span><span class="p">()</span>
+      <span class="p">..</span><span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;What&#39;s the tallest mountain in the world?&quot;</span><span class="p">,</span>
+  <span class="p">];</span>
+
+  <span class="kd">await</span> <span class="n">Future</span><span class="p">.</span><span class="n">forEach</span><span class="p">(</span><span class="n">questions</span><span class="p">,</span> <span class="p">(</span><span class="n">q</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="n">query</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Question</span><span class="o">&gt;</span><span class="p">()</span>
+        <span class="p">..</span><span class="n">values</span> <span class="o">=</span> <span class="n">q</span><span class="p">;</span>
+    <span class="k">return</span> <span class="n">query</span><span class="p">.</span><span class="n">insert</span><span class="p">();</span>
   <span class="p">});</span>
+<span class="p">});</span>
 </pre></div>
 
 
-<p>That's fetch and insert. Delete works the same way - you specify <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationMessageHub/where.html">where</a> values and invoke <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/delete.html">delete</a> on the query. If you want to update database rows, you specify both <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Query/values.html">values</a> and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationMessageHub/where.html">where</a>.</p>
+<p>This inserts the two original questions as instances of <code>Question</code> into the database during setup. If we were to run our tests now, they would fail and the output would look like this:</p>
+<div class="codehilite"><pre><span></span><span class="nt">Expected</span><span class="o">:</span> <span class="nt">---</span> <span class="nt">HTTP</span> <span class="nt">Response</span> <span class="nt">---</span>
+          <span class="nt">-</span> <span class="nt">Status</span> <span class="nt">code</span> <span class="nt">must</span> <span class="nt">be</span> <span class="nt">200</span>
+          <span class="nt">-</span> <span class="nt">Headers</span> <span class="nt">can</span> <span class="nt">be</span> <span class="nt">anything</span>
+          <span class="nt">-</span> <span class="nt">Body</span> <span class="nt">after</span> <span class="nt">decoding</span> <span class="nt">must</span> <span class="nt">be</span><span class="o">:</span>
+
+            <span class="o">(</span><span class="nt">an</span> <span class="nt">object</span> <span class="nt">with</span> <span class="nt">length</span> <span class="nt">of</span> <span class="nt">a</span> <span class="nt">value</span> <span class="nt">greater</span> <span class="nt">than</span> <span class="o">&lt;</span><span class="nt">0</span><span class="o">&gt;</span> <span class="nt">and</span> <span class="nt">every</span> <span class="nt">element</span><span class="o">(</span><span class="nt">a</span> <span class="nt">string</span> <span class="nt">ending</span> <span class="nt">with</span> <span class="s1">&#39;?&#39;</span><span class="o">))</span>
+          <span class="nt">---------------------</span>
+<span class="nt">Actual</span><span class="o">:</span> <span class="nt">TestResponse</span><span class="o">:&lt;</span><span class="nt">-----------</span>
+        <span class="nt">-</span> <span class="nt">Status</span> <span class="nt">code</span> <span class="nt">is</span> <span class="nt">200</span>
+        <span class="nt">-</span> <span class="nt">Headers</span> <span class="nt">are</span> <span class="nt">the</span> <span class="nt">following</span><span class="o">:</span>
+          <span class="nt">-</span> <span class="nt">content-encoding</span><span class="o">:</span> <span class="nt">gzip</span>
+          <span class="nt">-</span> <span class="nt">content-length</span><span class="o">:</span> <span class="nt">124</span>
+          <span class="nt">-</span> <span class="nt">x-frame-options</span><span class="o">:</span> <span class="nt">SAMEORIGIN</span>
+          <span class="nt">-</span> <span class="nt">content-type</span><span class="o">:</span> <span class="nt">application</span><span class="o">/</span><span class="nt">json</span><span class="o">;</span> <span class="nt">charset</span><span class="o">=</span><span class="nt">utf-8</span>
+          <span class="nt">-</span> <span class="nt">x-xss-protection</span><span class="o">:</span> <span class="nt">1</span><span class="o">;</span> <span class="nt">mode</span><span class="o">=</span><span class="nt">block</span>
+          <span class="nt">-</span> <span class="nt">x-content-type-options</span><span class="o">:</span> <span class="nt">nosniff</span>
+          <span class="nt">-</span> <span class="nt">server</span><span class="o">:</span> <span class="nt">aqueduct</span><span class="o">/</span><span class="nt">1</span>
+        <span class="nt">-------------------------</span>
+        <span class="o">&gt;</span>
+ <span class="nt">Which</span><span class="o">:</span> <span class="nt">the</span> <span class="nt">body</span> <span class="nt">differs</span> <span class="nt">for</span> <span class="nt">the</span> <span class="nt">following</span> <span class="nt">reasons</span><span class="o">:</span>
+        <span class="nt">has</span> <span class="nt">value</span>
+        <span class="p">{</span><span class="err">&#39;index&#39;:</span> <span class="err">1,</span> <span class="err">&#39;description&#39;:</span> <span class="err">&#39;How</span> <span class="err">much</span> <span class="err">wood</span> <span class="err">can</span> <span class="err">a</span> <span class="err">woodchuck</span> <span class="err">chuck?&#39;</span><span class="p">}</span>
+          <span class="nt">which</span>
+        <span class="p">{</span><span class="err">&#39;index&#39;:</span> <span class="err">1,</span> <span class="err">&#39;description&#39;:</span> <span class="err">&#39;How</span> <span class="err">much</span> <span class="err">wood</span> <span class="err">can</span> <span class="err">a</span> <span class="err">woodchuck</span> <span class="err">chuck?&#39;</span><span class="p">}</span>
+          <span class="nt">not</span> <span class="nt">a</span> <span class="nt">string</span> <span class="nt">at</span> <span class="nt">index</span> <span class="nt">0</span>
+</pre></div>
+
+
+<p>Our tests currently verify that the response body contains a list of JSON strings that all end in <code>?</code>. However, now that we are returning a list of JSON objects that represent a question, each question has the following form:</p>
+<div class="codehilite"><pre><span></span><span class="p">{</span>
+  <span class="nt">&quot;index&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+  <span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;How much wood can a woodchuck chuck?&quot;</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>We'll need to update our tests so that we're verifying that the <em>description</em> of a question object ends with <code>?</code>. Wrap the <code>endsWith("?")</code> matchers in the two tests that use them with <code>containsPair</code>.</p>
+<div class="codehilite"><pre><span></span><span class="n">test</span><span class="p">(</span><span class="s2">&quot;/questions returns list of questions&quot;</span><span class="p">,</span> <span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
+  <span class="n">expectResponse</span><span class="p">(</span>
+    <span class="kd">await</span> <span class="n">app</span><span class="p">.</span><span class="n">client</span><span class="p">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;/questions&quot;</span><span class="p">).</span><span class="kd">get</span><span class="p">(),</span>
+    <span class="m">200</span><span class="p">,</span>
+    <span class="nl">body:</span> <span class="n">allOf</span><span class="p">([</span>
+      <span class="n">hasLength</span><span class="p">(</span><span class="n">greaterThan</span><span class="p">(</span><span class="m">0</span><span class="p">)),</span>
+      <span class="n">everyElement</span><span class="p">(</span><span class="n">containsPair</span><span class="p">(</span><span class="s2">&quot;description&quot;</span><span class="p">,</span> <span class="n">endsWith</span><span class="p">(</span><span class="s2">&quot;?&quot;</span><span class="p">)))</span>
+    <span class="p">]));</span>
+<span class="p">});</span>
+
+<span class="n">test</span><span class="p">(</span><span class="s2">&quot;/questions/index returns a single question&quot;</span><span class="p">,</span> <span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
+  <span class="n">expectResponse</span><span class="p">(</span>
+    <span class="kd">await</span> <span class="n">app</span><span class="p">.</span><span class="n">client</span><span class="p">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;/questions/1&quot;</span><span class="p">).</span><span class="kd">get</span><span class="p">(),</span>
+    <span class="m">200</span><span class="p">,</span>
+    <span class="nl">body:</span> <span class="n">containsPair</span><span class="p">(</span><span class="s2">&quot;description&quot;</span><span class="p">,</span> <span class="n">endsWith</span><span class="p">(</span><span class="s2">&quot;?&quot;</span><span class="p">)));</span>
+<span class="p">});</span>
+</pre></div>
+
+
+<p>Run the tests again by right-clicking on the <code>main</code> function and selecting <code>Run</code>. They should all pass.</p>
 <h2 id="the-more-you-know-query-parameters-and-http-headers">The more you know: Query Parameters and HTTP Headers</h2>
-<p>You can specify that a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPController-class.html">HTTPController</a> responder method extract HTTP query parameters and headers and supply them as arguments to the method. We'll allow the <code>getAllQuestions</code> method to take a query parameter named <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationMessageHub/contains.html">contains</a>. If this query parameter is part of the request, we'll filter the questions on whether or not that question contains some substring. In <code>question_controller.dart</code>, update this method:</p>
-<div class="codehilite"><pre><span></span>  <span class="err">@</span><span class="n">httpGet</span>
-  <span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">getAllQuestions</span><span class="p">({</span><span class="err">@</span><span class="n">HTTPQuery</span><span class="p">(</span><span class="s2">&quot;contains&quot;</span><span class="p">)</span> <span class="kt">String</span> <span class="nl">containsSubstring:</span> <span class="kc">null</span><span class="p">})</span> <span class="kd">async</span> <span class="p">{</span>
-    <span class="kd">var</span> <span class="n">questionQuery</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Question</span><span class="o">&gt;</span><span class="p">();</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">containsSubstring</span> <span class="o">!=</span> <span class="kc">null</span><span class="p">)</span> <span class="p">{</span>
-      <span class="n">questionQuery</span><span class="p">.</span><span class="n">where</span><span class="p">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">whereContainsString</span><span class="p">(</span><span class="n">containsSubstring</span><span class="p">);</span>
-    <span class="p">}</span>
-    <span class="kd">var</span> <span class="n">questions</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">questionQuery</span><span class="p">.</span><span class="n">fetch</span><span class="p">();</span>
-    <span class="k">return</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="n">questions</span><span class="p">);</span>
+<p>So far, we have bound HTTP method and path parameters to responder methods in <code>QuestionController</code>. You can also bind query parameters, headers and request bodies, too.</p>
+<p>We'll allow the <code>getAllQuestions</code> method to take a query parameter named <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationMessageHub/contains.html">contains</a>. If this query parameter is part of the request, we'll filter the questions on whether or not that question contains some substring. In <code>question_controller.dart</code>, update this method by adding an optional parameter named <code>containsSubstring</code>:</p>
+<div class="codehilite"><pre><span></span><span class="err">@</span><span class="n">httpGet</span>
+<span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">getAllQuestions</span><span class="p">({</span><span class="err">@</span><span class="n">HTTPQuery</span><span class="p">(</span><span class="s2">&quot;contains&quot;</span><span class="p">)</span> <span class="kt">String</span> <span class="n">containsSubstring</span><span class="p">})</span> <span class="kd">async</span> <span class="p">{</span>
+  <span class="kd">var</span> <span class="n">questionQuery</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Question</span><span class="o">&gt;</span><span class="p">();</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">containsSubstring</span> <span class="o">!=</span> <span class="kc">null</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">questionQuery</span><span class="p">.</span><span class="n">where</span><span class="p">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">whereContainsString</span><span class="p">(</span><span class="n">containsSubstring</span><span class="p">);</span>
   <span class="p">}</span>
+  <span class="kd">var</span> <span class="n">databaseQuestions</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">questionQuery</span><span class="p">.</span><span class="n">fetch</span><span class="p">();</span>
+  <span class="k">return</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="n">databaseQuestions</span><span class="p">);</span>
+<span class="p">}</span>
 </pre></div>
 
 
-<p>If an HTTP request has a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationMessageHub/contains.html">contains</a> query parameter, that value will be passed as the <code>containsSubstring</code> parameter. As you can see, you may name the parameter whatever you like, it doesn't have to match the name of query parameter. Also, note that we first check <code>containsSubstring</code> to make sure it is not-null. If we simply assigned <code>null</code> to <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIHeader/description.html">description</a>, we'd be creating a matcher that checked to see if the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIHeader/description.html">description</a> <em>contained</em> <code>null</code>.</p>
-<p>Using HTTP header values as parameters is accomplished in the same way, except using the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPHeader-class.html">HTTPHeader</a> metadata. Query parameters are case sensitive, where header parameters are not.</p>
+<p>If an HTTP request has a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationMessageHub/contains.html">contains</a> query parameter, that value will be available in the <code>containsSubstring</code> variable when this method is invoked. Also, note that we first check <code>containsSubstring</code> to make sure it is not-null. If we simply assigned <code>null</code> to <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIHeader/description.html">description</a>, we'd be creating a matcher that checked to see if the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIHeader/description.html">description</a> <em>contained</em> <code>null</code>.</p>
+<div class="admonition tip">
+<p class="admonition-title">HTTPController Binding</p>
+<p>For more information on binding, see <a href="../../http/http_controller/">this guide</a>.</p>
+</div>
 <p>Then, add a new test in <code>question_controller_test.dart</code>:</p>
-<div class="codehilite"><pre><span></span>  <span class="n">test</span><span class="p">(</span><span class="s2">&quot;/questions returns list of questions filtered by contains&quot;</span><span class="p">,</span> <span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
-    <span class="kd">var</span> <span class="n">response</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">client</span><span class="p">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;/questions?contains=mountain&quot;</span><span class="p">).</span><span class="kd">get</span><span class="p">();</span>
-    <span class="n">expect</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="n">hasResponse</span><span class="p">(</span><span class="m">200</span><span class="p">,</span> <span class="p">[{</span>
-        <span class="s2">&quot;index&quot;</span> <span class="o">:</span> <span class="n">greaterThanOrEqualTo</span><span class="p">(</span><span class="m">0</span><span class="p">),</span>
-        <span class="s2">&quot;description&quot;</span> <span class="o">:</span> <span class="s2">&quot;What&#39;s the tallest mountain in the world?&quot;</span>
-    <span class="p">}]));</span>
-    <span class="n">expect</span><span class="p">(</span><span class="n">response</span><span class="p">.</span><span class="n">decodedBody</span><span class="p">,</span> <span class="n">hasLength</span><span class="p">(</span><span class="m">1</span><span class="p">));</span>
-  <span class="p">});</span>
+<div class="codehilite"><pre><span></span><span class="n">test</span><span class="p">(</span><span class="s2">&quot;/questions returns list of questions filtered by contains&quot;</span><span class="p">,</span> <span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
+  <span class="kd">var</span> <span class="n">request</span> <span class="o">=</span> <span class="n">app</span><span class="p">.</span><span class="n">client</span><span class="p">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;/questions?contains=mountain&quot;</span><span class="p">);</span>
+  <span class="n">expectResponse</span><span class="p">(</span>
+    <span class="kd">await</span> <span class="n">request</span><span class="p">.</span><span class="kd">get</span><span class="p">(),</span>
+    <span class="m">200</span><span class="p">,</span>
+    <span class="nl">body:</span> <span class="p">[{</span>
+      <span class="s2">&quot;index&quot;</span> <span class="o">:</span> <span class="n">greaterThanOrEqualTo</span><span class="p">(</span><span class="m">0</span><span class="p">),</span>
+      <span class="s2">&quot;description&quot;</span> <span class="o">:</span> <span class="s2">&quot;What&#39;s the tallest mountain in the world?&quot;</span>
+    <span class="p">}]);</span>  
+<span class="p">});</span>
 </pre></div>
 
 
-<p>This test will pass, along with the rest of them. It's important to note that GET <code>/questions</code> without a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationMessageHub/contains.html">contains</a> query still yields the correct results. That is because the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPQuery-class.html">HTTPQuery</a> argument was declared in the optional parameters portion of the responder method. If the parameter were in the required, positional set of parameters and the query string was not included, this request would respond with a 400. (The same positional vs. optional behavior is true of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPHeader-class.html">HTTPHeader</a>s as well.) For example, if we wanted to make a 'X-Client-ID' header that had to be included on this request, we'd do the following:</p>
-<div class="codehilite"><pre><span></span>  <span class="err">@</span><span class="n">httpGet</span>
-  <span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">getAllQuestions</span><span class="p">(</span>
-    <span class="err">@</span><span class="n">HTTPHeader</span><span class="p">(</span><span class="s2">&quot;X-Client-ID&quot;</span><span class="p">)</span> <span class="kt">int</span> <span class="n">clientID</span><span class="p">,</span>
-    <span class="p">{</span><span class="err">@</span><span class="n">HTTPQuery</span><span class="p">(</span><span class="s2">&quot;contains&quot;</span><span class="p">)</span> <span class="kt">String</span> <span class="n">containsSubstring</span> <span class="o">=</span> <span class="kc">null</span><span class="p">}</span>
-  <span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">clientID</span> <span class="o">!=</span> <span class="m">12345</span><span class="p">)</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">unauthorized</span><span class="p">();</span>
-    <span class="p">}</span>
-
-    <span class="kd">var</span> <span class="n">questionQuery</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Question</span><span class="o">&gt;</span><span class="p">();</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">containsSubstring</span> <span class="o">!=</span> <span class="kc">null</span><span class="p">)</span> <span class="p">{</span>
-      <span class="n">questionQuery</span><span class="p">.</span><span class="n">where</span><span class="p">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">whereContainsString</span><span class="p">(</span><span class="n">containsSubstring</span><span class="p">);</span>
-    <span class="p">}</span>
-
-    <span class="kd">var</span> <span class="n">questions</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">questionQuery</span><span class="p">.</span><span class="n">fetch</span><span class="p">();</span>
-    <span class="k">return</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="n">questions</span><span class="p">);</span>
-  <span class="p">}</span>
-</pre></div>
-
-
-<p>Note that in this case, the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIConfiguration/clientID.html">clientID</a> will be parsed as an integer before being sent as an argument to <code>getAllQuestions</code>. If the value cannot be parsed as an integer or is omitted, a 400 status code will be returned before your responder method gets called.</p>
-<p>Specifying query and header parameters in a responder method is a good way to make your code more intentional and avoid boilerplate parsing code. Additionally, Aqueduct is able to generate documentation from method signatures - by specifying these types of parameters, the documentation generator can add that information to the documentation.</p>
+<p>This test expects that the body is a list of exactly one object whose description is the one question we know has the word 'mountain' in it.</p>
+<p>This test will pass, along with the rest of them. It's important to note that GET <code>/questions</code> without a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/ApplicationMessageHub/contains.html">contains</a> query still yields the correct results. That is because the <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPQuery-class.html">HTTPQuery</a> argument was declared in the optional parameters portion of the responder method. If the parameter were in the required, positional set of parameters and the query string was not included, this request would respond with a 400. (The same positional vs. optional behavior is true of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPHeader-class.html">HTTPHeader</a>s as well.)</p>
+<p>Binding query and header parameters in a responder method is a good way to make your code more intentional and avoid boilerplate parsing code. Additionally, Aqueduct is able to generate documentation from method signatures - by using bindings, the documentation generator can add that information to the documentation.</p>
 <h2 id="next-relationships-and-joins"><a href="../model-relationships-and-joins/">Next: Relationships and Joins</a></h2>
+                
+                  
+                
               
+              
+                
               
             </article>
           </div>
@@ -1446,7 +1576,9 @@
       
     </div>
     
-      <script src="../../assets/javascripts/application-30ac6a1727.js"></script>
+      <script src="../../assets/javascripts/application-c35428f87f.js"></script>
+      
+      
       <script>app.initialize({url:{base:"../.."}})</script>
       
     
