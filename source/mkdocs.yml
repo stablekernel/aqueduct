@@ -2,6 +2,7 @@ site_name: Aqueduct
 theme: 'material'
 markdown_extensions:
   - codehilite
+  - markdown.extensions.admonition
 extra_css:
   - style/css/override.css
 repo_url: https://github.com/stablekernel/aqueduct
@@ -40,7 +41,6 @@ pages:
   - 'Advanced Queries': 'db/advanced_queries.md'
   - 'Validations': 'db/validations.md'
   - 'Migration and Tooling': 'db/db_tools.md'
-  - 'Inside the DB': 'db/inside_the_db.md'
 - Authorization and OAuth 2.0:
   - 'Overview': 'auth/overview.md'
   - 'Setting up Authorization': 'auth/server.md'

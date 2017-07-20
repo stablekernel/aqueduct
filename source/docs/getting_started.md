@@ -46,17 +46,25 @@ aqueduct create -t db my_project_name
 
 ## Using the Aqueduct ORM
 
-The best way to use Aqueduct's ORM is to use the `db` template when creating a project. This template has code that reads database connection information from a configuration file and sets up the appropriate objects to connect to that database.
+Aqueduct's ORM uses PostgreSQL. During development, you will need a locally running instance of PostgreSQL. On macOS, installing  [Postgres.app](https://postgresapp.com) is a very convenient way to run PostgreSQL locally. For other platforms, see [PostgreSQL's downloads page](https://www.postgresql.org/download/).
 
-Here is a simple list of SQL commands to create a database user and database from the `psql` command-line utility:
+When creating a project, use the `db` template. If adding to an existing project, see [this guide](db/connecting.md).
+
+To create a database, make sure PostgreSQL is running and open the command-line utility to connect to it.
 
 ```
+psql
+```
+
+Then, create a database that your application will connect to and a user that it will connect with:
+
+```sql
 CREATE DATABASE my_database_name;
 CREATE USER dart_app WITH PASSWORD 'dart';
 GRANT ALL ON DATABASE my_database_name TO dart_app;
 ```
 
-An application must create a `ManagedContext` that connects to a database:
+An application must create a `ManagedContext` that connects to this database:
 
 ```dart
 class MyProjectSink extends RequestSink {
