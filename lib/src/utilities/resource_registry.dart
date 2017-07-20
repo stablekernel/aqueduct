@@ -10,7 +10,7 @@ import '../db/persistent_store/persistent_store.dart';
 /// When shutdown of an application occurs, the registered objects are closed, thus releasing the resource they consume
 /// that prevent the isolate from shutting down.
 ///
-/// There is one registry per isolate. The order in which registrations are shut down is undefined. [release] triggers shutdown
+/// There is one registry per isolate. The order in which registrations are shut down is undefined. [close] triggers shutdown
 /// and is automatically invoked by [Application.stop].
 ///
 /// Built-in Aqueduct types that open a stream, like [PersistentStore], automatically register themselves
@@ -21,7 +21,7 @@ class ServiceRegistry {
 
   static List<_ServiceRegistration> _registrations = [];
 
-  /// Adds an object to the registry, registered objects are closed when [release] is invoked.
+  /// Adds an object to the registry, registered objects are closed when [close] is invoked.
   ///
   /// When [close] is invoked on this instance, [onClose] will be invoked with [object] and [object] will be removed.
   /// This method returns [object]. This allows for concise registration and allocation:

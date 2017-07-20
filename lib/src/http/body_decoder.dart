@@ -2,45 +2,43 @@ import 'dart:async';
 import 'dart:io';
 import 'http.dart';
 
-/// Instances of this class decode HTTP request bodies according to their content type.
+/// Decodes [bytes] according to [contentType].
 ///
-/// Every instance of [Request] has a [Request.body] property of this type. [HTTPController]s automatically decode
-/// [Request.body] prior to invoking a responder method. Other [RequestController]s should use [decodedData]
-/// or one of the typed methods ([asList], [asMap], [decodeAsMap], [decodeAsList]) to decode HTTP body data.
-///
-/// Default decoders are available for 'application/json', 'application/x-www-form-urlencoded' and 'text/*' content types.
-class HTTPRequestBody {
-  /// Creates a new instance of this type.
-  ///
-  /// Instances of this type decode [request]'s body based on its content-type.
-  ///
-  /// See [HTTPCodecRepository] for more information about how data is decoded.
-  ///
-  /// Decoded data is cached the after it is decoded.
-  HTTPRequestBody(HttpRequest request) : this._request = request {
-    _hasContent = (request.headers.contentLength ?? 0) > 0
-               || request.headers.chunkedTransferEncoding;
-  }
+/// See [HTTPRequestBody] for a concrete implementation.
+abstract class HTTPBodyDecoder {
+  HTTPBodyDecoder(this.bytes);
 
-  final HttpRequest _request;
-  List<dynamic> _decodedData;
+  /// The stream of bytes to decode.
+  final Stream<List<int>> bytes;
 
-  /// Whether or not to keep the raw bytes of a request body.
+  /// Determines how [bytes] get decoded.
   ///
-  /// By default, this flag is false and once [decodedData] has been invoked, the raw bytes of the request body
-  /// are lost and only the decoded value remains.
+  /// A decoder is chosen from [HTTPCodecRepository] according to this value.
+  ContentType get contentType;
+
+  /// Whether or not [bytes] is empty.
   ///
-  /// If this flag is set to true, the encoded request body bytes are stored and accessible with [asBytes] (or [decodeAsBytes]).
+  /// No decoding will occur if this flag is true.
+  ///
+  /// Concrete implementations provide an implementation for this method without inspecting
+  /// [bytes].
+  bool get isEmpty;
+
+  /// Whether or not [bytes] are available as a list after decoding has occurred.
+  ///
+  /// By default, invoking [decodedData] (or one of the methods that invokes it) will discard
+  /// the initial bytes and only keep the decoded value. Setting this flag to false
+  /// will keep a copy of the original bytes, accessible through [asBytes].
   bool retainOriginalBytes = false;
-  List<int> _bytes;
 
-  /// Whether or not the data has been decoded yet.
+  /// Whether or not [bytes] have been decoded yet.
   ///
-  /// True when data has already been decoded.
-  ///
-  /// If this body has no content, this value is true.
+  /// If [isEmpty] is true, this value is always true.
   bool get hasBeenDecoded => _decodedData != null || isEmpty;
 
+  /// The type of data [bytes] was decoded into.
+  ///
+  /// Will throw an exception if [bytes] have not been decoded yet.
   Type get decodedType {
     if (!hasBeenDecoded) {
       throw new HTTPBodyDecoderException("decodedType invoked prior to decoding data");
@@ -49,56 +47,46 @@ class HTTPRequestBody {
     return _decodedData.first.runtimeType;
   }
 
-  /// Whether or not this body is empty or not.
-  ///
-  /// If content-length header is greater than 0.
-  bool get isEmpty => !_hasContent;
-  bool _hasContent;
+  List<dynamic> _decodedData;
+  List<int> _bytes;
 
   /// Returns decoded data, decoding it if not already decoded.
   ///
-  /// This is the raw access method to a request body's decoded data. It is preferable
+  /// This is the raw access method to an HTTP body's decoded data. It is preferable
   /// to use methods such as [decodeAsMap], [decodeAsList], and [decodeAsString], all of which
   /// invoke this method.
   ///
-  /// The first time this method is invoked, this instance's contents are
-  /// read in full and decoded according to the content-type of its request. The decoded data
-  /// is stored in this instance so that subsequent access will
+  /// The first time this method is invoked, [bytes] is read in full and decoded according to [contentType].
+  /// The decoded data is stored in this instance so that subsequent access will
   /// return the cached decoded data instead of decoding it again.
   ///
-  /// If the body of the request is empty, this method will return null and no decoding is attempted.
+  /// If the body is empty, this method will return null and no decoding is attempted.
   ///
-  /// The return type of this method depends on the codec selected from [HTTPCodecRepository], determined
-  /// by the content-type of the request.
+  /// The elements of the return value depend on the codec selected from [HTTPCodecRepository], determined
+  /// by [contentType]. There are effectively three different scenarios:
   ///
   /// If there is no codec in [HTTPCodecRepository] for the content type of the
-  /// request body being decoded, this method returns the unaltered list of bytes directly
+  /// request body being decoded, this method returns the flattened list of bytes directly
   /// from the request body as [List<int>].
   ///
   /// If the selected codec produces [String] data (for example, any `text` content-type), the return value
-  /// of this method is a [List<String>]. The entire decoded request body is obtained by concatenating
-  /// each element of this list. It is preferable to use [decodeAsString] which automatically does this concatenation.
+  /// is a list of strings that, when concatenated, are the full [String] body. It is preferable to use
+  /// [decodeAsString] which automatically does this concatenation.
   ///
-  /// For `application/json` and `application/x-www-form-urlencoded` data, the return value is a [List<Map>] that contains
-  /// exactly one object - the decoded JSON or form object as a Map. Prefer to use [decodeAsMap], which returns
-  /// the single object from this list. Note that if the request body is a JSON list, the return value of this type
-  /// is [List<List<Map<String, dynamic>>>], where the outer list contains exactly one object: the decoded JSON list.
-  ///
-  /// For custom codecs, the return type of this method is determined by the output of that codec. Note that
-  /// the reason [String] data must be concatenated is that body data may be chunked and each chunk is decoded independently.
-  /// Whereas a JSON or form data must be read in full before the conversion is complete and so its codec only emits a single,
-  /// complete object.
+  /// For most [contentType]s, the return value is a single element [List] containing the decoded body object. For example,
+  /// this method return a [List] with a single [Map] when the body is a JSON object. If the body is a list of JSON objects,
+  /// this method returns a [List] with a single [List] element that contains the JSON objects. It is preferable to use
+  /// [decodeAsMap] or [decodeAsList] which unboxes the outer [List] returned by this method.
   Future<List<dynamic>> get decodedData async {
-    // Note that gzip decompression will automatically be applied by dart:io.
     if (!hasBeenDecoded) {
       if (_decodedData == null) {
-        if (_request.headers.contentType != null) {
+        if (contentType != null) {
           var codec = HTTPCodecRepository.defaultInstance
-              .codecForContentType(_request.headers.contentType);
+              .codecForContentType(contentType);
           if (codec != null) {
-            Stream<List<int>> stream = _request;
+            Stream<List<int>> stream = bytes;
             if (retainOriginalBytes) {
-              _bytes = await _readBytes(_request);
+              _bytes = await _readBytes(bytes);
               stream = new Stream.fromIterable([_bytes]);
             }
 
@@ -108,10 +96,10 @@ class HTTPRequestBody {
             });
             _decodedData = await bodyStream.toList();
           } else {
-            _decodedData = await _readBytes(_request);
+            _decodedData = await _readBytes(bytes);
           }
         } else {
-          _decodedData = await _readBytes(_request);
+          _decodedData = await _readBytes(bytes);
         }
       }
     }

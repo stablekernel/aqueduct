@@ -27,11 +27,23 @@ class TestRequest {
 
   /// The HTTP request body.
   ///
-  /// For form data or JSON data, use [formData] or [json] instead of setting this
-  /// directly. Those methods will set this property to the encoded value. For other content types,
-  /// this value must be the encoded HTTP request body and [contentType] must also be set to
-  /// an appropriate value.
+  /// Sets the body of this instance directly.
+  ///
+  /// Prior to execution, this property will be encoded according to its [contentType] and [HTTPCodecRepository].
+  /// If [encodeBody] is false, this must be a [List<int>].
+  ///
+  /// Prefer to use [setBody], [json] or [formData] which set this property and [contentType]
+  /// at the same time.
+  ///
+  /// Note: for backwards compatibility, if [body] is a [String] is encoded
+  /// as UTF8 bytes by default and no codec is used.
   dynamic body;
+
+  /// Whether or not [body] should be encoded according to [contentType].
+  ///
+  /// Defaults to true. When true, [body] will automatically be encoded by selecting a codec from
+  /// [HTTPCodecRepository] by [contentType]. If false, [body] must be a [List<int>].
+  bool encodeBody = true;
 
   /// Query parameters to add to the request.
   ///
@@ -105,14 +117,22 @@ class TestRequest {
         HttpHeaders.ACCEPT, contentTypes.map((ct) => ct.toString()).join(","));
   }
 
+  /// Sets the [body] and [contentType].
+  ///
+  /// On execution, [body] will be encoded according to [contentType]. [contentType]
+  /// defaults to [ContentType.JSON].
+  void setBody(dynamic body, {ContentType contentType}) {
+    this.contentType = contentType ?? ContentType.JSON;
+    this.body = body;
+  }
+
   /// JSON encodes a serialized value into [body] and sets [contentType].
   ///
   /// This method will encode [v] as JSON data and set it as the [body] of this request. [v] must be
   /// encodable to JSON ([Map]s, [List]s, [String]s, [int]s, etc.). The [contentType]
   /// will be set to [ContentType.JSON].
   set json(dynamic v) {
-    body = JSON.encode(v);
-    contentType = ContentType.JSON;
+    setBody(v, contentType: ContentType.JSON);
   }
 
   /// Form-data encodes a serialized value into [body] and sets [contentType].
@@ -120,10 +140,7 @@ class TestRequest {
   /// This method will encode [args] as x-www-form-urlencoded data and set it as the [body] of this request. [args] must be
   /// a [Map<String, String>] . The [contentType] will be set to "application/x-www-form-urlencoded".
   set formData(Map<String, String> args) {
-    body = args.keys
-        .map((key) => "$key=${Uri.encodeQueryComponent(args[key])}")
-        .join("&");
-    contentType = new ContentType("application", "x-www-form-urlencoded");
+    setBody(args, contentType: new ContentType("application", "x-www-form-urlencoded", charset: "utf-8"));
   }
 
   /// Adds a header to this request.
@@ -179,15 +196,41 @@ class TestRequest {
 
     if (body != null) {
       request.headers.contentType = contentType;
-      request.headers.contentLength = body.length;
-      request.add(UTF8.encode(body));
+      var bytes;
+      if (body is String) {
+        bytes = UTF8.encode(body);
+      } else {
+        bytes = _bodyBytes(body);
+      }
+      request.headers.contentLength = bytes.length;
+      request.add(bytes);
     }
 
     var requestResponse = await request.close();
 
     var response = new TestResponse._(requestResponse);
-    await response._decodeBody();
+
+    // Trigger body to be decoded
+    await response.bodyDecoder.decodedData;
 
     return response;
+  }
+
+  List<int> _bodyBytes(dynamic body) {
+    if (body == null) {
+      return null;
+    }
+
+    var codec = HTTPCodecRepository.defaultInstance.codecForContentType(contentType);
+
+    if (codec == null) {
+      if (body is! List<int>) {
+        throw new HTTPCodecException("Invalid body '${body.runtimeType}' for Content-Type '${contentType}'");
+      }
+
+      return body;
+    }
+
+    return codec.encode(body);
   }
 }

@@ -1,3 +1,4 @@
+export 'request_body.dart';
 export 'body_decoder.dart';
 export 'cache_policy.dart';
 export 'cors_policy.dart';
