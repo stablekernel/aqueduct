@@ -145,7 +145,7 @@ Future<RequestOrResponse> processRequest(Request request) async {
 
 ## Middleware Modifying a Response
 
-A `RequestController` that doesn't respond to a request can still modify the eventual response. This is valuable for "middleware" `RequestController` that have some information to return back to the client, but aren't responsible for generating the response. For example, the following shows a request channel where `UserController` will create the response, but middleware will add a header to the response:
+A `RequestController` that doesn't respond to a request can still modify the eventual response. This is valuable for "middleware" `RequestController`s that have some information to return back to the client, but aren't responsible for generating the response. For example, the following shows a request channel where `UserController` will create the response, but middleware will add a header to the response:
 
 ```dart
 router
