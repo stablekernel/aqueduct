@@ -4,7 +4,7 @@ The purpose of this tutorial series is to become familiar with how Aqueduct work
 
 1. Dart ([Install Instructions](https://www.dartlang.org/install))
 2. IntelliJ IDEA or any other Jetbrains IDE ([Install Instructions](https://www.jetbrains.com/idea/download/))
-3. The IntelliJ IDEA Dart Plugin ([Install Instructions](https://www.jetbrains.com/help/idea/dart-support.html))
+3. The IntelliJ IDEA Dart Plugin ([Install Instructions](https://www.dartlang.org/tools/jetbrains-plugin))
 
 If at anytime you get stuck, hop on over to the [Aqueduct Slack channel](http://slackaqueductsignup.herokuapp.com).
 

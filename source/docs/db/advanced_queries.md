@@ -287,7 +287,7 @@ You may also provide raw WHERE clauses with `Query.predicate`. A `QueryPredicate
 
 ```dart
 // Creates a predicate that would only include instances where some column "id" is less than 2
-var predicate = new Predicate("id < @idVariable", {"idVariable" : 2});
+var predicate = new QueryPredicate("id < @idVariable", {"idVariable" : 2});
 ```
 
 The text following the `@` token may contain `[A-Za-z0-9_]`. The resulting where clause will be formed by replacing each token with the matching key in the parameters map. The value is not transformed in any way, so it must be the appropriate type for the column. If a key is not present in the `Map`, an exception will be thrown. Extra keys will be ignored.
