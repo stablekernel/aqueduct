@@ -6,6 +6,83 @@ import 'dart:io';
 import 'dart:convert';
 
 void main() {
+  group("Response modifiers", () {
+    HttpServer server;
+    RequestController root;
+
+    setUp(() async {
+      server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 4111);
+      root = new RequestController();
+      server.map((r) => new Request(r)).listen((req) {
+        root.receive(req);
+      });
+    });
+
+    tearDown(() async {
+      await server.close();
+    });
+
+    test("Can add change status code", () async {
+      root.listen((r) async {
+        return r..addResponseModifier((resp) => resp.statusCode = 201);
+      }).listen((r) async {
+        return new Response.ok(null);
+      });
+
+      var resp = await http.get("http://localhost:4111/");
+      expect(resp.statusCode, 201);
+    });
+
+    test("Can remove header", () async {
+      root.listen((r) async {
+        return r..addResponseModifier((resp) => resp.headers.remove("x-foo"));
+      }).listen((r) async {
+        return new Response.ok(null, headers: {"x-foo": "foo"});
+      });
+
+      var resp = await http.get("http://localhost:4111/");
+      expect(resp.headers.containsKey("x-foo"), false);
+    });
+
+    test("Can add header", () async {
+      root.listen((r) async {
+        return r..addResponseModifier((resp) => resp.headers["x-foo"] = "bar");
+      }).listen((r) async {
+        return new Response.ok(null);
+      });
+
+      var resp = await http.get("http://localhost:4111/");
+      expect(resp.headers["x-foo"], "bar");
+    });
+
+    test("Can change header value", () async {
+      root.listen((r) async {
+        return r..addResponseModifier((resp) => resp.headers["x-foo"] = "bar");
+      }).listen((r) async {
+        return new Response.ok(null, headers: {"x-foo": "foo"});
+      });
+
+      var resp = await http.get("http://localhost:4111/");
+      expect(resp.headers["x-foo"], "bar");
+    });
+
+    test("Can modify body prior to encoding", () async {
+      root.listen((r) async {
+        return r..addResponseModifier((resp) => resp.body["foo"] = "y");
+      }).listen((r) async {
+        return new Response.ok({"x": "a"});
+      });
+
+      var resp = await http.get("http://localhost:4111/");
+      expect(JSON.decode(resp.body), {
+        "foo": "y",
+        "x": "a"
+      });
+    });
+  });
+
+
+
   group("Outlier isolate behavior error cases", () {
     Application app;
 
