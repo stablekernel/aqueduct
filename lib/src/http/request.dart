@@ -5,6 +5,8 @@ import 'dart:convert';
 import '../auth/auth.dart';
 import 'http.dart';
 
+typedef _ResponseModifier(Response resp);
+
 /// A single HTTP request.
 ///
 /// Instances of this class travel through a [RequestController] chain to be responded to, sometimes acquiring new values
@@ -57,6 +59,8 @@ class Request implements RequestOrResponse {
   /// This value is is always non-null. If there is no request body, [HTTPRequestBody.isEmpty] is true.
   HTTPRequestBody get body => _body;
   HTTPRequestBody _body;
+
+  List<_ResponseModifier> _responseModifiers;
 
   /// The acceptable content types for a [Response] returned for this instance.
   ///
@@ -164,6 +168,27 @@ class Request implements RequestOrResponse {
   /// Used for logging.
   DateTime respondDate;
 
+  /// Allows a [RequestController] to modify the response eventually created for this request, without creating that response itself.
+  ///
+  /// Executes [modifier] prior to sending the HTTP response for this request. Modifiers are executed in the order they were added and may contain
+  /// modifiers from other [RequestController]s. Modifiers are executed prior to any data encoded or is written to the network socket.
+  ///
+  /// This is valuable for middleware that wants to include some information in the response, but some other controller later in the channel
+  /// will create the response. [modifier] will run prior to
+  ///
+  /// Usage:
+  ///
+  ///         Future<RequestOrResponse> processRequest(Request request) async {
+  ///           request.addResponseModifier((r) {
+  ///             r.headers["x-rate-limit-remaining"] = 200;
+  ///           });
+  ///           return request;
+  ///         }
+  void addResponseModifier(void modifier(Response response)) {
+    _responseModifiers ??= [];
+    _responseModifiers.add(modifier);
+  }
+
   String get _sanitizedHeaders {
     StringBuffer buf = new StringBuffer("{");
 
@@ -194,6 +219,10 @@ class Request implements RequestOrResponse {
   ///
   Future respond(Response aqueductResponse) {
     respondDate = new DateTime.now().toUtc();
+
+    _responseModifiers?.forEach((modifier) {
+      modifier(aqueductResponse);
+    });
 
     _Reference<String> compressionType = new _Reference(null);
     var body = aqueductResponse.body;

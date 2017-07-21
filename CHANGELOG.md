@@ -1,5 +1,9 @@
 # aqueduct changelog
 
+## 2.3.2
+
+- Adds `Request.addResponseModifier` to allow middleware to modify responses.
+
 ## 2.3.1
 
 - Adds `Response.bufferOutput` to control whether the HTTP response bytes are buffered.
