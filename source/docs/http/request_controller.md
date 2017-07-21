@@ -143,6 +143,24 @@ Future<RequestOrResponse> processRequest(Request request) async {
 }
 ```
 
+## Middleware Modifying a Response
+
+A `RequestController` that doesn't respond to a request can still modify the eventual response. This is valuable for "middleware" `RequestController`s that have some information to return back to the client, but aren't responsible for generating the response. For example, the following shows a request channel where `UserController` will create the response, but middleware will add a header to the response:
+
+```dart
+router
+  .route("/path")
+  .listen((req) async {
+    return req
+      ..addResponseModifier((response) {
+        response.headers["x-api-version"] = "2.1";
+      });
+  })
+  .generate(() => new UserController());
+```
+
+Modifiers are run in the order they are added to a request and are run before any body data is encoded or any values are written to the network socket.
+
 ## CORS Headers and Preflight Requests
 
 `RequestController`s have built-in behavior for handling CORS requests. They will automatically respond to `OPTIONS` preflight requests and attach CORS headers to any other response. See [the chapter on CORS](configure.md) for more details.
