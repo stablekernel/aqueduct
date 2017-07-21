@@ -92,7 +92,10 @@ class RateLimiter extends RequestController {
       return new Response(429, null, null);
     }
 
-    request.attachments["remaining"] = requestsRemaining;
+    request.addResponseModifier((r) {
+      r.headers["x-remaining-requests"] = requestsRemaining;
+    });
+    
     return request;
   }
 }
