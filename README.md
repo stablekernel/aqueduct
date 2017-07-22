@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/stablekernel/aqueduct.svg?branch=master)](https://travis-ci.org/stablekernel/aqueduct) [![codecov](https://codecov.io/gh/stablekernel/aqueduct/branch/master/graph/badge.svg)](https://codecov.io/gh/stablekernel/aqueduct)
 
-<a href="http://slackaqueductsignup.herokuapp.com/"><img src="https://slackaqueductsignup.herokuapp.com/badge.svg" alt="Slack"/></a><br/>
+[![Slack](https://slackaqueductsignup.herokuapp.com/badge.svg)](http://slackaqueductsignup.herokuapp.com/)
 
 Aqueduct is a server-side framework for building and deploying multi-threaded REST applications. It is written in Dart and targets the Dart VM. Its goal is to provide an integrated, consistently styled API. If this is your first time viewing Aqueduct, check out [the tour](https://aqueduct.io/docs/tour/).
 
