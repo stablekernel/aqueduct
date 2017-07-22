@@ -1356,7 +1356,10 @@
       <span class="k">return</span> <span class="k">new</span> <span class="n">Response</span><span class="p">(</span><span class="m">429</span><span class="p">,</span> <span class="kc">null</span><span class="p">,</span> <span class="kc">null</span><span class="p">);</span>
     <span class="p">}</span>
 
-    <span class="n">request</span><span class="p">.</span><span class="n">attachments</span><span class="p">[</span><span class="s2">&quot;remaining&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">requestsRemaining</span><span class="p">;</span>
+    <span class="n">request</span><span class="p">.</span><span class="n">addResponseModifier</span><span class="p">((</span><span class="n">r</span><span class="p">)</span> <span class="p">{</span>
+      <span class="n">r</span><span class="p">.</span><span class="n">headers</span><span class="p">[</span><span class="s2">&quot;x-remaining-requests&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">requestsRemaining</span><span class="p">;</span>
+    <span class="p">});</span>
+
     <span class="k">return</span> <span class="n">request</span><span class="p">;</span>
   <span class="p">}</span>
 <span class="p">}</span>

@@ -420,6 +420,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#middleware-modifying-a-response" title="Middleware Modifying a Response" class="md-nav__link">
+    Middleware Modifying a Response
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#cors-headers-and-preflight-requests" title="CORS Headers and Preflight Requests" class="md-nav__link">
     CORS Headers and Preflight Requests
   </a>
@@ -1147,6 +1154,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#middleware-modifying-a-response" title="Middleware Modifying a Response" class="md-nav__link">
+    Middleware Modifying a Response
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#cors-headers-and-preflight-requests" title="CORS Headers and Preflight Requests" class="md-nav__link">
     CORS Headers and Preflight Requests
   </a>
@@ -1306,6 +1320,21 @@
 </pre></div>
 
 
+<h2 id="middleware-modifying-a-response">Middleware Modifying a Response</h2>
+<p>A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a> that doesn't respond to a request can still modify the eventual response. This is valuable for "middleware" <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a>s that have some information to return back to the client, but aren't responsible for generating the response. For example, the following shows a request channel where <code>UserController</code> will create the response, but middleware will add a header to the response:</p>
+<div class="codehilite"><pre><span></span><span class="n">router</span>
+  <span class="p">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/path&quot;</span><span class="p">)</span>
+  <span class="p">.</span><span class="n">listen</span><span class="p">((</span><span class="n">req</span><span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="n">req</span>
+      <span class="p">..</span><span class="n">addResponseModifier</span><span class="p">((</span><span class="n">response</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">response</span><span class="p">.</span><span class="n">headers</span><span class="p">[</span><span class="s2">&quot;x-api-version&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;2.1&quot;</span><span class="p">;</span>
+      <span class="p">});</span>
+  <span class="p">})</span>
+  <span class="p">.</span><span class="n">generate</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="k">new</span> <span class="n">UserController</span><span class="p">());</span>
+</pre></div>
+
+
+<p>Modifiers are run in the order they are added to a request and are run before any body data is encoded or any values are written to the network socket.</p>
 <h2 id="cors-headers-and-preflight-requests">CORS Headers and Preflight Requests</h2>
 <p><a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a>s have built-in behavior for handling CORS requests. They will automatically respond to <code>OPTIONS</code> preflight requests and attach CORS headers to any other response. See <a href="../configure/">the chapter on CORS</a> for more details.</p>
                 
