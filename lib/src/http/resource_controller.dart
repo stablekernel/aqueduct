@@ -70,8 +70,8 @@ class ManagedObjectController<InstanceType extends ManagedObject>
   /// is equal to the first path argument in the [Request]. You may also return a new [Query],
   /// but it must have the same [InstanceType] as this controller. If you return null from this method, no [Query] will be executed
   /// and [didNotFindObject] will immediately be called.
-  Future<Query<InstanceType>> willFindObjectWithQuery(
-      Query<InstanceType> query) async {
+  FutureOr<Query<InstanceType>> willFindObjectWithQuery(
+      Query<InstanceType> query) {
     return query;
   }
 
@@ -79,14 +79,14 @@ class ManagedObjectController<InstanceType extends ManagedObject>
   ///
   /// By default, returns a [Response.ok] with the encoded instance. The [result] is the fetched [InstanceType]. You may override this method
   /// to provide some other behavior.
-  Future<Response> didFindObject(InstanceType result) async {
+  FutureOr<Response> didFindObject(InstanceType result) {
     return new Response.ok(result);
   }
 
   /// Executed after a fetch by ID query that did not find a matching instance.
   ///
   /// By default, returns [Response.notFound]. You may override this method to provide some other behavior.
-  Future<Response> didNotFindObject() async {
+  FutureOr<Response> didNotFindObject() {
     return new Response.notFound();
   }
 
@@ -112,15 +112,15 @@ class ManagedObjectController<InstanceType extends ManagedObject>
   /// You may modify the [query] prior to its execution in this method. You may also return a new [Query],
   /// but it must have the same type argument as this controller. If you return null from this method,
   /// no values will be inserted and [didInsertObject] will immediately be called with the value null.
-  Future<Query<InstanceType>> willInsertObjectWithQuery(
-      Query<InstanceType> query) async {
+  FutureOr<Query<InstanceType>> willInsertObjectWithQuery(
+      Query<InstanceType> query) {
     return query;
   }
 
   /// Executed after an insert query is successful.
   ///
   /// By default, returns [Response.ok]. The [object] is the newly inserted [InstanceType]. You may override this method to provide some other behavior.
-  Future<Response> didInsertObject(InstanceType object) async {
+  FutureOr<Response> didInsertObject(InstanceType object) {
     return new Response.ok(object);
   }
 
@@ -142,22 +142,22 @@ class ManagedObjectController<InstanceType extends ManagedObject>
   /// You may modify the [query] prior to its execution in this method. You may also return a new [Query],
   /// but it must have the same type argument as this controller. If you return null from this method,
   /// no delete operation will be performed and [didNotFindObjectToDeleteWithID] will immediately be called with the value null.
-  Future<Query<InstanceType>> willDeleteObjectWithQuery(
-      Query<InstanceType> query) async {
+  FutureOr<Query<InstanceType>> willDeleteObjectWithQuery(
+      Query<InstanceType> query) {
     return query;
   }
 
   /// Executed after an object was deleted.
   ///
   /// By default, returns [Response.ok] with no response body. You may override this method to provide some other behavior.
-  Future<Response> didDeleteObjectWithID(dynamic id) async {
+  FutureOr<Response> didDeleteObjectWithID(dynamic id) {
     return new Response.ok(null);
   }
 
   /// Executed when no object was deleted during a delete query.
   ///
   /// Defaults to return [Response.notFound]. You may override this method to provide some other behavior.
-  Future<Response> didNotFindObjectToDeleteWithID(dynamic id) async {
+  FutureOr<Response> didNotFindObjectToDeleteWithID(dynamic id) {
     return new Response.notFound();
   }
 
@@ -183,22 +183,22 @@ class ManagedObjectController<InstanceType extends ManagedObject>
   /// You may modify the [query] prior to its execution in this method. You may also return a new [Query],
   /// but it must have the same type argument as this controller. If you return null from this method,
   /// no values will be inserted and [didNotFindObjectToUpdateWithID] will immediately be called with the value null.
-  Future<Query<InstanceType>> willUpdateObjectWithQuery(
-      Query<InstanceType> query) async {
+  FutureOr<Query<InstanceType>> willUpdateObjectWithQuery(
+      Query<InstanceType> query) {
     return query;
   }
 
   /// Executed after an object was updated.
   ///
   /// By default, returns [Response.ok] with the encoded, updated object. You may override this method to provide some other behavior.
-  Future<Response> didUpdateObject(InstanceType object) async {
+  FutureOr<Response> didUpdateObject(InstanceType object) {
     return new Response.ok(object);
   }
 
   /// Executed after an object not found during an update query.
   ///
   /// By default, returns [Response.notFound]. You may override this method to provide some other behavior.
-  Future<Response> didNotFindObjectToUpdateWithID(dynamic id) async {
+  FutureOr<Response> didNotFindObjectToUpdateWithID(dynamic id) {
     return new Response.notFound();
   }
 
@@ -228,15 +228,15 @@ class ManagedObjectController<InstanceType extends ManagedObject>
   /// You may modify the [query] prior to its execution in this method. You may also return a new [Query],
   /// but it must have the same type argument as this controller. If you return null from this method,
   /// no objects will be fetched and [didFindObjects] will immediately be called with the value null.
-  Future<Query<InstanceType>> willFindObjectsWithQuery(
-      Query<InstanceType> query) async {
+  FutureOr<Query<InstanceType>> willFindObjectsWithQuery(
+      Query<InstanceType> query) {
     return query;
   }
 
   /// Executed after a list of objects has been fetched.
   ///
   /// By default, returns [Response.ok] with the encoded list of founds objects (which may be the empty list).
-  Future<Response> didFindObjects(List<InstanceType> objects) async {
+  FutureOr<Response> didFindObjects(List<InstanceType> objects) {
     return new Response.ok(objects);
   }
 

@@ -74,7 +74,7 @@ class Authorizer extends RequestController {
   AuthStrategy strategy;
 
   @override
-  Future<RequestOrResponse> processRequest(Request req) async {
+  FutureOr<RequestOrResponse> processRequest(Request req) {
     var header = req.innerRequest.headers.value(HttpHeaders.AUTHORIZATION);
     if (header == null) {
       return new Response.unauthorized();
@@ -160,7 +160,7 @@ abstract class AuthValidator {
   /// request handling and immediately return a 401 status code. If this method returns an
   /// [Authorization], it will be set as the [Request.authorization] and request handling
   /// will continue to the [Authorizer.nextController].
-  Future<Authorization> fromBasicCredentials(
+  FutureOr<Authorization> fromBasicCredentials(
       AuthBasicCredentials usernameAndPassword);
 
   /// Returns an [Authorization] from a bearer token.
@@ -177,8 +177,8 @@ abstract class AuthValidator {
   /// If [scopesRequired] is null, an implementor may make its own determination about whether
   /// the token results in an [Authorization]. By default, [AuthServer] - the primary implementor of this type -
   /// will allow access, assuming that 'null scope' means 'any scope'.
-  Future<Authorization> fromBearerToken(
+  FutureOr<Authorization> fromBearerToken(
       String bearerToken, {List<AuthScope> scopesRequired});
 
-  List<APISecurityRequirement> requirementsForStrategy(AuthStrategy strategy);
+  List<APISecurityRequirement> requirementsForStrategy(AuthStrategy strategy) => [];
 }
