@@ -61,7 +61,7 @@ class ApplicationServer {
 
     sink.setupRouter(sink.router);
     sink.router?.finalize();
-    sink.nextController = sink.initialController;
+    sink.pipe(sink.initialController);
 
     logger.fine("ApplicationServer($identifier).start binding HTTP");
     var securityContext = sink.securityContext;

@@ -5,7 +5,7 @@ import 'dart:convert';
 import '../auth/auth.dart';
 import 'http.dart';
 
-typedef _ResponseModifier(Response resp);
+typedef void _ResponseModifier(Response resp);
 
 /// A single HTTP request.
 ///

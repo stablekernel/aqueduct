@@ -103,7 +103,7 @@ class Router extends RequestController {
   /// Routers override this method to throw an exception. Use [route] instead.
   @override
   RequestController listen(
-      Future<RequestOrResponse> requestControllerFunction(
+      FutureOr<RequestOrResponse> requestControllerFunction(
           Request request)) {
     throw new RouterException("Routers may not use listen, use route instead.");
   }
