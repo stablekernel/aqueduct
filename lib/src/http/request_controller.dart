@@ -157,7 +157,7 @@ class RequestController extends Object with APIDocumentable {
   /// If this method returns [req], [req] will be passed to [nextController].
   ///
   /// If this method returns null, [req] is not passed to any other controller and is not responded to. You must respond to [req]
-  /// by through [Request.innerRequest].
+  /// through [Request.innerRequest].
   FutureOr<RequestOrResponse> processRequest(Request req) {
     if (_listener != null) {
       return _listener(req);
