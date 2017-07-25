@@ -8,6 +8,12 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 void main() {
+  var defaultSize = HTTPRequestBody.maxSize;
+  setUp(() {
+    // Revert back to default before each test
+    HTTPRequestBody.maxSize = defaultSize;
+  });
+
   group("Default decoders", () {
     HttpServer server;
     Request request;
@@ -602,6 +608,123 @@ void main() {
       var bytes = UTF8.encode("a=b&c=d");
 
       expect(codec.decode(bytes), {"a": ["b"], "c": ["d"]});
+    });
+  });
+
+  group("Entity too large", () {
+    HttpServer server;
+    HttpClient client;
+
+    setUp(() async {
+      client = new HttpClient();
+      server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 8123);
+    });
+
+    tearDown(() async {
+      client.close(force: true);
+      await server?.close(force: true);
+    });
+
+    test("Entity with known content-type that is too large is rejected, chunked", () async {
+      HTTPRequestBody.maxSize = 8193;
+
+      var controller = new RequestController()
+        ..listen((req) async {
+          var body = await req.body.decodeAsMap();
+          return new Response.ok(body);
+        });
+      server.listen((req) {
+        controller.receive(new Request(req));
+      });
+
+      var req = await client.postUrl(Uri.parse("http://localhost:8123"));
+      req.headers.add(HttpHeaders.CONTENT_TYPE, "application/json; charset=utf-8");
+      var body = {
+        "key": new List.generate(8192 * 50, (_) => "a").join(" ")
+      };
+      req.add(UTF8.encode(JSON.encode(body)));
+
+      var errCompleter = new Completer();
+      var response = await req.close().catchError((err) => errCompleter.complete(err));
+      expect(response, isNull);
+      var outErr = await errCompleter.future;
+      expect(outErr, isNotNull);
+
+      // Make sure we can still send some more requests;
+
+    });
+
+    test("Entity with unknown content-type that is too large is rejected, chunked", () async {
+      HTTPRequestBody.maxSize = 8193;
+
+      var controller = new RequestController()
+        ..listen((req) async {
+          var body = await req.body.decodedData;
+          return new Response.ok(body)..contentType = new ContentType("application", "octet-stream");
+        });
+      server.listen((req) {
+        controller.receive(new Request(req));
+      });
+
+      var req = await client.postUrl(Uri.parse("http://localhost:8123"));
+      req.headers.add(HttpHeaders.CONTENT_TYPE, "application/octet-stream");
+      req.add(new List.generate(8192 * 100, (_) => 1));
+
+      var errCompleter = new Completer();
+      var response = await req.close().catchError((err) => errCompleter.complete(err));
+      expect(response, isNull);
+      var outErr = await errCompleter.future;
+      expect(outErr, isNotNull);
+
+      // Make sure we can still send some more requests;
+
+    });
+
+    test("Entity with known content-type that is too large is rejected, specified length", () async {
+      HTTPRequestBody.maxSize = 8193;
+
+      var controller = new RequestController()
+        ..listen((req) async {
+          var body = await req.body.decodeAsMap();
+          return new Response.ok(body);
+        });
+      server.listen((req) {
+        controller.receive(new Request(req));
+      });
+
+      var req = await client.postUrl(Uri.parse("http://localhost:8123"));
+      req.headers.add(HttpHeaders.CONTENT_TYPE, "application/json; charset=utf-8");
+      var body = {
+        "key": new List.generate(8192 * 50, (_) => "a").join(" ")
+      };
+      var bytes = UTF8.encode(JSON.encode(body));
+      req.headers.add(HttpHeaders.CONTENT_LENGTH, bytes.length);
+      req.add(bytes);
+
+      var response = await req.close().catchError((err) => null);
+      expect(response.statusCode, 413);
+    });
+
+    test("Entity with unknown content-type that is too large is rejected, specified length", () async {
+      HTTPRequestBody.maxSize = 8193;
+
+      var controller = new RequestController()
+        ..listen((req) async {
+          var body = await req.body.decodedData;
+          return new Response.ok(body)..contentType = new ContentType("application", "octet-stream");
+        });
+      server.listen((req) {
+        controller.receive(new Request(req));
+      });
+
+      var req = await client.postUrl(Uri.parse("http://localhost:8123"));
+      var bytes = new List.generate(8192 * 100, (_) => 1);
+      req.headers.add(HttpHeaders.CONTENT_TYPE, "application/octet-stream");
+      req.headers.add(HttpHeaders.CONTENT_LENGTH, bytes.length);
+      req.add(bytes);
+
+      var response = await req.close().catchError((err) => null);
+      expect(response.statusCode, 413);
     });
   });
 }

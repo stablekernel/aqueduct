@@ -6,10 +6,11 @@ import 'http.dart';
 ///
 /// See [HTTPRequestBody] for a concrete implementation.
 abstract class HTTPBodyDecoder {
-  HTTPBodyDecoder(this.bytes);
+  HTTPBodyDecoder(Stream<List<int>> bodyByteStream)
+    : _originalByteStream = bodyByteStream;
 
   /// The stream of bytes to decode.
-  final Stream<List<int>> bytes;
+  Stream<List<int>> get bytes => _originalByteStream;
 
   /// Determines how [bytes] get decoded.
   ///
@@ -47,6 +48,7 @@ abstract class HTTPBodyDecoder {
     return _decodedData.first.runtimeType;
   }
 
+  final Stream<List<int>> _originalByteStream;
   List<dynamic> _decodedData;
   List<int> _bytes;
 
@@ -91,6 +93,10 @@ abstract class HTTPBodyDecoder {
             }
 
             var bodyStream = codec.decoder.bind(stream).handleError((err) {
+              if (err is HTTPBodyDecoderException) {
+                throw err;
+              }
+
               throw new HTTPBodyDecoderException("Failed to decode request body.",
                   underlyingException: err);
             });
@@ -291,8 +297,7 @@ abstract class HTTPBodyDecoder {
 
 /// Thrown when [HTTPRequestBody] encounters an exception.
 class HTTPBodyDecoderException implements HTTPResponseException {
-  HTTPBodyDecoderException(this.message, {this.underlyingException})
-      : statusCode = 400;
+  HTTPBodyDecoderException(this.message, {this.underlyingException, this.statusCode: 400});
 
   @override
   final String message;
