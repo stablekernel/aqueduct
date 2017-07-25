@@ -23,6 +23,9 @@ class HTTPRequestBody extends HTTPBodyDecoder {
         this._originalByteStream = request,
         super(request);
 
+  /// The maximum size of a request body.
+  ///
+  /// A request with a body larger than this size will be rejected. Defaults to 10MB.
   static int maxSize = 1024 * 1024 * 10;
 
   final HttpRequest _request;

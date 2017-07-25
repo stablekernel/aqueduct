@@ -651,7 +651,14 @@ void main() {
       expect(outErr, isNotNull);
 
       // Make sure we can still send some more requests;
-
+      req = await client.postUrl(Uri.parse("http://localhost:8123"));
+      req.headers.add(HttpHeaders.CONTENT_TYPE, "application/json; charset=utf-8");
+      body = {
+        "key": "a"
+      };
+      req.add(UTF8.encode(JSON.encode(body)));
+      response = await req.close();
+      expect(JSON.decode(UTF8.decode(await response.first)), {"key": "a"});
     });
 
     test("Entity with unknown content-type that is too large is rejected, chunked", () async {
@@ -677,7 +684,11 @@ void main() {
       expect(outErr, isNotNull);
 
       // Make sure we can still send some more requests;
-
+      req = await client.postUrl(Uri.parse("http://localhost:8123"));
+      req.headers.add(HttpHeaders.CONTENT_TYPE, "application/octet-stream");
+      req.add([1, 2, 3, 4]);
+      response = await req.close();
+      expect(await response.toList(), [[1, 2, 3, 4]]);
     });
 
     test("Entity with known content-type that is too large is rejected, specified length", () async {
@@ -703,6 +714,15 @@ void main() {
 
       var response = await req.close().catchError((err) => null);
       expect(response.statusCode, 413);
+
+      req = await client.postUrl(Uri.parse("http://localhost:8123"));
+      req.headers.add(HttpHeaders.CONTENT_TYPE, "application/json; charset=utf-8");
+      body = {
+        "key": "a"
+      };
+      req.add(UTF8.encode(JSON.encode(body)));
+      response = await req.close();
+      expect(JSON.decode(UTF8.decode(await response.first)), {"key": "a"});
     });
 
     test("Entity with unknown content-type that is too large is rejected, specified length", () async {
@@ -725,6 +745,12 @@ void main() {
 
       var response = await req.close().catchError((err) => null);
       expect(response.statusCode, 413);
+
+      req = await client.postUrl(Uri.parse("http://localhost:8123"));
+      req.headers.add(HttpHeaders.CONTENT_TYPE, "application/octet-stream");
+      req.add([1, 2, 3, 4]);
+      response = await req.close();
+      expect(await response.toList(), [[1, 2, 3, 4]]);
     });
   });
 }
