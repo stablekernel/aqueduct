@@ -14,7 +14,7 @@ void main() {
       expect(
           e.toString(),
           contains(
-              "RequestController subclass FailingController instances cannot be reused. Rewrite as .generate(() => new FailingController())"));
+              "'FailingController' instances cannot be reused between requests. Rewrite as .generate(() => new FailingController())"));
     }
   });
 

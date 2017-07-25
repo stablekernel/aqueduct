@@ -151,14 +151,14 @@ class InMemoryAuthStorage extends AuthStorage {
   }
 
   @override
-  Future revokeAuthenticatableWithIdentifier(
-      AuthServer server, dynamic identifier) async {
-    tokens.removeWhere((t) => t.resourceOwnerIdentifier == identifier);
+  FutureOr revokeAuthenticatableWithIdentifier(
+      AuthServer server, dynamic identifier) {
+    return tokens.removeWhere((t) => t.resourceOwnerIdentifier == identifier);
   }
 
   @override
-  Future<AuthToken> fetchTokenByAccessToken(
-      AuthServer server, String accessToken) async {
+  FutureOr<AuthToken> fetchTokenByAccessToken(
+      AuthServer server, String accessToken) {
     var existing = tokens.firstWhere((t) => t.accessToken == accessToken,
         orElse: () => null);
     if (existing == null) {
@@ -168,8 +168,8 @@ class InMemoryAuthStorage extends AuthStorage {
   }
 
   @override
-  Future<AuthToken> fetchTokenByRefreshToken(
-      AuthServer server, String refreshToken) async {
+  FutureOr<AuthToken> fetchTokenByRefreshToken(
+      AuthServer server, String refreshToken) {
     var existing = tokens.firstWhere((t) => t.refreshToken == refreshToken,
         orElse: () => null);
     if (existing == null) {
@@ -179,20 +179,19 @@ class InMemoryAuthStorage extends AuthStorage {
   }
 
   @override
-  Future<TestUser> fetchAuthenticatableByUsername(
-      AuthServer server, String username) async {
+  FutureOr<TestUser> fetchAuthenticatableByUsername(
+      AuthServer server, String username) {
     return users.values
         .firstWhere((t) => t.username == username, orElse: () => null);
   }
 
   @override
-  Future revokeTokenIssuedFromCode(AuthServer server, AuthCode code) async {
+  FutureOr revokeTokenIssuedFromCode(AuthServer server, AuthCode code) =>
     tokens.removeWhere((t) => t.code == code.code);
-  }
 
   @override
-  Future storeToken(AuthServer server, AuthToken t,
-      {AuthCode issuedFrom}) async {
+  FutureOr storeToken(AuthServer server, AuthToken t,
+      {AuthCode issuedFrom}) {
     if (issuedFrom != null) {
       var existingIssued = tokens.firstWhere(
           (token) => token.code == issuedFrom?.code,
@@ -206,15 +205,17 @@ class InMemoryAuthStorage extends AuthStorage {
     } else {
       tokens.add(new TestToken.from(t));
     }
+
+    return null;
   }
 
   @override
-  Future refreshTokenWithAccessToken(
+  FutureOr refreshTokenWithAccessToken(
       AuthServer server,
       String accessToken,
       String newAccessToken,
       DateTime newIssueDate,
-      DateTime newExpirationDate) async {
+      DateTime newExpirationDate) {
     var existing = tokens.firstWhere((e) => e.accessToken == accessToken,
         orElse: () => null);
     if (existing != null) {
@@ -230,15 +231,16 @@ class InMemoryAuthStorage extends AuthStorage {
       tokens.remove(existing);
       tokens.add(replacement);
     }
+
+    return null;
   }
 
   @override
-  Future storeAuthCode(AuthServer server, AuthCode code) async {
+  FutureOr storeAuthCode(AuthServer server, AuthCode code) =>
     tokens.add(new TestToken.from(code));
-  }
 
   @override
-  Future<AuthCode> fetchAuthCodeByCode(AuthServer server, String code) async {
+  FutureOr<AuthCode> fetchAuthCodeByCode(AuthServer server, String code) {
     var existing = tokens.firstWhere((t) => t.code == code, orElse: () => null);
     if (existing == null) {
       return null;
@@ -247,19 +249,16 @@ class InMemoryAuthStorage extends AuthStorage {
   }
 
   @override
-  Future revokeAuthCodeWithCode(AuthServer server, String code) async {
+  FutureOr revokeAuthCodeWithCode(AuthServer server, String code) =>
     tokens.removeWhere((c) => c.code == code);
-  }
 
   @override
-  Future<AuthClient> fetchClientByID(AuthServer server, String id) async {
-    return clients[id];
-  }
+  FutureOr<AuthClient> fetchClientByID(AuthServer server, String id) =>
+    clients[id];
 
   @override
-  Future revokeClientWithID(AuthServer server, String id) async {
+  FutureOr revokeClientWithID(AuthServer server, String id) =>
     clients.remove(id);
-  }
 }
 
 class DefaultPersistentStore extends PersistentStore {

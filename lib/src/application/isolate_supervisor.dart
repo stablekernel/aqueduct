@@ -42,7 +42,7 @@ class ApplicationIsolateSupervisor {
   Completer _stopCompleter;
 
   /// Resumes the [Isolate] being supervised.
-  Future resume() async {
+  Future resume() {
     _launchCompleter = new Completer();
     receivePort.listen(listener);
 

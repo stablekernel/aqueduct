@@ -98,7 +98,7 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
       throw new AuthServerException(AuthRequestError.invalidClient, null);
     }
 
-    await storage.revokeClientWithID(this, clientID);
+    return storage.revokeClientWithID(this, clientID);
   }
 
   /// Revokes access for an [Authenticatable].

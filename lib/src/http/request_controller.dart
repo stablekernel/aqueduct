@@ -12,17 +12,21 @@ import '../db/db.dart';
 /// A [RequestController] must return an instance of this type from its [RequestController.processRequest] method.
 abstract class RequestOrResponse {}
 
-/// [RequestController]s respond to, modify or forward HTTP requests.
+typedef FutureOr<RequestOrResponse> _RequestControllerListener(Request request);
+
+/// Base type that processes [Request]s.
 ///
-/// This class is intended to be extended. [RequestController]s are sent [Request]s through
-/// their [receive] method, which in turn invokes [processRequest]. Subclasses
-/// should implement [processRequest] to respond to, modify or forward requests.
-/// In some cases, subclasses may also override [receive].
+/// Instances of this type process requests by creating a [Response] or passing the [Request] to [nextController]. The [nextController]
+/// is set at startup in [RequestSink.setupRouter] via [pipe], [generate], or [listen].
 ///
-/// A request controller wraps the processing of a request in a try-catch block. If a request controller finishes processing a request
-/// and does not respond to it, the [Request] is passed to the next [RequestController]. The next [RequestController] is defined
-/// by methods such as [pipe], [generate], and [listen].
+/// This class is intended to be subclassed. [RequestSink], [Router], [HTTPController] are all examples of this type.
+/// Subclasses should implement [processRequest] to respond to, modify or forward requests.
 class RequestController extends Object with APIDocumentable {
+  /// Default constructor.
+  RequestController();
+
+  RequestController._withListener(this._listener);
+
   /// Returns a stacktrace and additional details about how the request's processing in the HTTP response.
   ///
   /// By default, this is false. During debugging, setting this to true can help debug Aqueduct applications
@@ -42,72 +46,64 @@ class RequestController extends Object with APIDocumentable {
   /// By default, this value is false. Do not set this value to true outside of tests.
   static bool letUncaughtExceptionsEscape = false;
 
-  Function _listener;
-  RequestController nextController;
+  /// Receives requests that this controller does not respond to.
+  ///
+  /// Use [pipe], [generate] or [listen] to set this property.
+  RequestController get nextController => _nextController;
 
-  @override
-  APIDocumentable get documentableChild => nextController;
-
+  /// An instance of the 'aqueduct' logger.
   Logger get logger => new Logger("aqueduct");
 
   /// The CORS policy of this controller.
   CORSPolicy policy = new CORSPolicy();
 
-  /// The next [RequestController] to pass a [Request] to if this instance returns a [Request] from [processRequest].
+  @override
+  APIDocumentable get documentableChild => nextController;
+
+  RequestController _nextController;
+  _RequestControllerListener _listener;
+
+  /// Sets the [nextController] that will receive a request after this one.
   ///
-  /// Request controllers are chained together to form a pipeline that a request travels through to be responded to.
-  /// This method adds an instance of some [RequestController] to a chain. A [RequestController] added to a chain
-  /// in this way must not have any properties that change depending on the request, as many [Request]s will
-  /// travel through the same instance in an asynchronous way.
+  /// If this instance returns a [Request] from [processRequest], that request is passed to [next]'s [receive] method.
   ///
-  /// This method returns a [RequestController] that further [RequestController]s can be chained to.
+  /// See [listen] for a variant of this method that takes a closure instead of an object.
   ///
-  /// See also [generate] and [listen].
-  RequestController pipe(RequestController n) {
-    var typeMirror = reflect(n).type;
+  /// See [generate] for a variant of this method that creates a new instance for each request.
+  RequestController pipe(RequestController next) {
+    var typeMirror = reflect(next).type;
     if (_requestControllerTypeRequiresInstantion(typeMirror)) {
       throw new RequestControllerException(
-          "RequestController subclass ${typeMirror.reflectedType} instances cannot be reused. Rewrite as .generate(() => new ${typeMirror.reflectedType}())");
+          "'${typeMirror.reflectedType}' instances cannot be reused between requests. Rewrite as .generate(() => new ${typeMirror.reflectedType}())");
     }
-    this.nextController = n;
+    _nextController = next;
 
-    return this.nextController;
+    return _nextController;
   }
 
-  /// A function that instantiates a [RequestController] to pass a [Request] to if this instance returns a [Request] from [processRequest].
+  /// Sets the [nextController] that will receive a request after this one.
   ///
-  /// Request controllers are chained together to form a pipeline that a request travels through to be responded to.
-  /// When this instance returns a [Request] from [processRequest], [generatorFunction] is called to instantiate
-  /// a [RequestController]. The [Request] is then sent to the new [RequestController]. [RequestController]s
-  /// that have properties that change depending on the incoming [Request] - like [HTTPController] - must be [generate]d
-  /// for each [Request]. This avoids having a [RequestController]s properties change during the processing of a request due
-  /// to asynchronous behavior.
+  /// If this instance returns a [Request] from [processRequest], that request is passed to the instance created by [instantiator]'s [receive] method.
+  /// This method differs from [pipe] in that [instantiator] creates a new instance for each HTTP request, whereas [pipe] reuses
+  /// the same controller for reach request.
   ///
-  /// This method returns a [RequestController] that further [RequestController]s can be chained to.
+  /// See [listen] for a variant of this method that takes a closure instead of an object.
   ///
-  /// See also [pipe] and [listen].
-  RequestController generate(RequestController generatorFunction()) {
-    this.nextController = new _RequestControllerGenerator(generatorFunction);
-    return this.nextController;
+  /// See [pipe] for a variant of this method that reuses the same object for each HTTP request.
+  RequestController generate(RequestController instantiator()) {
+    _nextController = new _RequestControllerGenerator(instantiator);
+    return _nextController;
   }
 
-  /// A closure that responds to or forwards a [Request].
+  /// Sets the [nextController] that will receive a request after this one.
   ///
-  /// If this instance does not respond to a request, this closure is invoked, passing in the [Request] being processed.
-  /// This is the barebones handler for [RequestController].
+  /// If this instance returns a [Request] from [processRequest], that request is passed to [process].
+  /// [process] is invoked in the same try-catch block as [processRequest].
   ///
-  /// This closure must return a [Request] or [Response].
-  ///
-  /// This method returns a [RequestController] that further [RequestController]s can be chained to.
-  ///
-  /// See also [generate] and [pipe].
-  RequestController listen(
-      Future<RequestOrResponse> requestControllerFunction(
-          Request request)) {
-    var controller = new RequestController()
-      .._listener = requestControllerFunction;
-    this.nextController = controller;
-    return controller;
+  /// See [pipe] and [generate] for variants of this methods that objects instead of closures.
+  RequestController listen(FutureOr<RequestOrResponse> process(Request request)) {
+    _nextController = new RequestController._withListener(process);
+    return _nextController;
   }
 
   bool _requestControllerTypeRequiresInstantion(ClassMirror mirror) {
@@ -122,22 +118,11 @@ class RequestController extends Object with APIDocumentable {
     return false;
   }
 
-  /// The mechanism for delivering a [Request] to this controller for processing.
+  /// Delivers [req] to this instance to be processed.
   ///
   /// This method is the entry point of a [Request] into this [RequestController].
-  /// By default, it invokes this controller's [processRequest] method and, if that method
-  /// determines processing should continue to the [nextController] and a
-  /// [nextController] exists, the request will be delivered to [nextController].
-  ///
-  /// An [RequestSink] invokes this method on its initial controller
-  /// in its [processRequest] method.
-  ///
-  /// Some [RequestController]s may override this method if they do not wish to
-  /// use simple chaining. For example, the [Router] class overrides this method
-  /// to deliver the [Request] to the appropriate [RouteController]. If overriding this
-  /// method, it is important that you always invoke subsequent controller's with [receive]
-  /// and not [processRequest]. You must also ensure that CORS requests are handled properly,
-  /// as this method does the heavy-lifting for handling CORS requests.
+  /// By default, it invokes this controller's [processRequest] method within a try-catch block
+  /// that guarantees an HTTP response will be sent for [Request].
   Future receive(Request req) async {
     if (req.isPreflightRequest) {
       return _handlePreflightRequest(req);
@@ -165,18 +150,20 @@ class RequestController extends Object with APIDocumentable {
 
   /// Overridden by subclasses to modify or respond to an incoming request.
   ///
-  /// Subclasses override this method to provide their specific handling of a request. A [RequestController]
-  /// should either modify or respond to the request. For concrete subclasses of [RequestController] - like [HTTPController] -
-  /// this method has already been implemented.
+  /// Subclasses override this method to provide their specific handling of a request.
   ///
-  /// [RequestController]s should return a [Response] from this method if they responded to the request.
-  /// If a [RequestController] does not respond to the request, but instead modifies it, this method must return the same [Request].
-  Future<RequestOrResponse> processRequest(Request req) {
+  /// If this method returns a [Response], it will be sent as the response for [req] and [req] will not be passed to any other controllers.
+  ///
+  /// If this method returns [req], [req] will be passed to [nextController].
+  ///
+  /// If this method returns null, [req] is not passed to any other controller and is not responded to. You must respond to [req]
+  /// through [Request.innerRequest].
+  FutureOr<RequestOrResponse> processRequest(Request req) {
     if (_listener != null) {
       return _listener(req);
     }
 
-    return new Future.microtask(() => req);
+    return req;
   }
 
   /// Executed prior to [Response] being sent.
@@ -372,7 +359,7 @@ class _RequestControllerGenerator extends RequestController {
 
   RequestController instantiate() {
     RequestController instance = generator();
-    instance.nextController = this.nextController;
+    instance._nextController = this.nextController;
     if (_policyOverride != null) {
       instance.policy = _policyOverride;
     }

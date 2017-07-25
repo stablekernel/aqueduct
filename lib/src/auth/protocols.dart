@@ -35,7 +35,7 @@ abstract class AuthStorage {
   /// This method must revoke all [AuthToken] and [AuthCode]s for an [Authenticatable].
   ///
   /// [server] is the requesting [AuthServer]. [identifier] is the [Authenticatable.id].
-  Future revokeAuthenticatableWithIdentifier(
+  FutureOr revokeAuthenticatableWithIdentifier(
       AuthServer server, dynamic identifier);
 
   /// Returns an [Authenticatable] for an [username].
@@ -45,34 +45,34 @@ abstract class AuthStorage {
   /// If overriding this method, every property declared by [Authenticatable] must be non-null in the return value.
   ///
   /// [server] is the [AuthServer] invoking this method.
-  Future<Authenticatable> fetchAuthenticatableByUsername(
+  FutureOr<Authenticatable> fetchAuthenticatableByUsername(
       AuthServer server, String username);
 
   /// Returns an [AuthClient] for a client ID.
   ///
   /// This method must return an instance of [AuthClient] if one exists for [clientID]. Otherwise, it must return null.
   /// [server] is the [AuthServer] requesting the [AuthClient].
-  Future<AuthClient> fetchClientByID(AuthServer server, String clientID);
+  FutureOr<AuthClient> fetchClientByID(AuthServer server, String clientID);
 
   /// Revokes an [AuthClient] for a client ID.
   ///
   /// This method must delete the [AuthClient] for [clientID]. Subsequent requests to this
   /// instance for [fetchClientByID] must return null after this method completes.
   /// [server] is the [AuthServer] requesting the [AuthClient].
-  Future revokeClientWithID(AuthServer server, String clientID);
+  FutureOr revokeClientWithID(AuthServer server, String clientID);
 
   /// Returns a [AuthToken] for an [accessToken].
   ///
   /// This method must return an instance of [AuthToken] if one exists for [accessToken]. Otherwise, it must return null.
   /// [server] is the [AuthServer] requesting the [AuthToken].
-  Future<AuthToken> fetchTokenByAccessToken(
+  FutureOr<AuthToken> fetchTokenByAccessToken(
       AuthServer server, String accessToken);
 
   /// Returns a [AuthToken] for an [refreshToken].
   ///
   /// This method must return an instance of [AuthToken] if one exists for [refreshToken]. Otherwise, it must return null.
   /// [server] is the [AuthServer] requesting the [AuthToken].
-  Future<AuthToken> fetchTokenByRefreshToken(
+  FutureOr<AuthToken> fetchTokenByRefreshToken(
       AuthServer server, String refreshToken);
 
   /// Deletes a [AuthToken] by its issuing [AuthCode].
@@ -81,37 +81,37 @@ abstract class AuthStorage {
   /// This method must delete the [AuthToken] that was previously acquired by exchanging [authCode] - this means
   /// that the storage performed by this type must track the issuing [AuthCode] for an [AuthToken] if there was one.
   /// Any storage for [authCode] can also be removed as well.
-  Future revokeTokenIssuedFromCode(AuthServer server, AuthCode authCode);
+  FutureOr revokeTokenIssuedFromCode(AuthServer server, AuthCode authCode);
 
   /// Asks this instance to store a [AuthToken] for [server].
   ///
   /// This method must persist the token [t]. If [issuedFrom] is not null, it must associate
   /// the [issuedFrom] [AuthCode] with [t] in storage, such that [t] can be found again
   /// by [issuedFrom]'s [AuthCode.code], even if [t] has been refreshed later.
-  Future storeToken(AuthServer server, AuthToken t, {AuthCode issuedFrom});
+  FutureOr storeToken(AuthServer server, AuthToken t, {AuthCode issuedFrom});
 
   /// Asks this instance to update an existing [AuthToken] for [server].
   ///
   /// This method must must update an existing [AuthToken], found by [oldAccessToken],
   /// with the values [newAccessToken], [newIssueDate] and [newExpirationDate].
-  Future refreshTokenWithAccessToken(AuthServer server, String oldAccessToken,
+  FutureOr refreshTokenWithAccessToken(AuthServer server, String oldAccessToken,
       String newAccessToken, DateTime newIssueDate, DateTime newExpirationDate);
 
   /// Asks this instance to store a [AuthCode] for [server].
   ///
   /// The implementing class must persist the auth code [ac].
-  Future storeAuthCode(AuthServer server, AuthCode ac);
+  FutureOr storeAuthCode(AuthServer server, AuthCode ac);
 
   /// Asks this instance to retrieve an auth code from provided [code].
   ///
   /// This must return an instance of [AuthCode] if one exists for [code], and
   /// null otherwise.
-  Future<AuthCode> fetchAuthCodeByCode(AuthServer server, String code);
+  FutureOr<AuthCode> fetchAuthCodeByCode(AuthServer server, String code);
 
   /// Asks this instance to delete an existing [AuthCode] for [server].
   ///
   /// The implementing class must delete the [AuthCode] for [code] from its persistent storage.
-  Future revokeAuthCodeWithCode(AuthServer server, String code);
+  FutureOr revokeAuthCodeWithCode(AuthServer server, String code);
 
   /// Returns list of allowed scopes for a given [Authenticatable].
   ///
