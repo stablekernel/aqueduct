@@ -104,9 +104,9 @@
                 <p>Aqueduct's memory-isolated threads leverage every CPU without writing any code. No locks, race conditions or connection pools necessary.</p>
             </div>
             <div class="col-sm-6">
-                <pre><code>
-
-                </code></pre>
+                <div id="thread-container">
+                    <img id="thread-image" src="images/hyperthreading.png">
+                </div>
             </div>
         </div>
         <div class="row feature-row">
@@ -192,19 +192,19 @@ Future&lt;Response&gt; updateTeam(
             </div>
         </div>
         <div class="row footer">
-            <div class="col-xs-6">
-                <ul>
+            <div class="col-xs-12">
+                <div id="af-logos">
+                    <a class="ext-logo" target="_blank" href="https://github.com/stablekernel/aqueduct"><i class="fa fa-github"></i></a>
+                    <a class="ext-logo" target="_blank" href="http://slackaqueductsignup.herokuapp.com"><i class="fa fa-slack"></i></a>
+                    <a class="ext-logo" target="_blank" href="https://stackoverflow.com/questions/tagged/aqueduct"><i class="fa fa-stack-overflow"></i></a>
+                </div>
+                <div id="footer-links">
                     <p><a href="/docs/">Documentation</a></p>
                     <p><a href="/docs/tut/getting-started/">Tutorial</a></p>
                     <p><a href="/about.html">About</a></p>
                     <p><a target="_blank" href="https://github.com/stablekernel/aqueduct/issues">Issue Tracker</a></p>
                     <p><a target="_blank" href="https://stablekernel.com/jobs/">Jobs</a></p>
-                </ul>
-            </div>
-            <div class="col-xs-6">
-                <a class="ext-logo" target="_blank" href="https://github.com/stablekernel/aqueduct"><i class="fa fa-github"></i></a>
-                <a class="ext-logo" target="_blank" href="http://slackaqueductsignup.herokuapp.com"><i class="fa fa-slack"></i></a>
-                <a class="ext-logo" target="_blank" href="https://stackoverflow.com/questions/tagged/aqueduct"><i class="fa fa-stack-overflow"></i></a>
+                </div>
             </div>
         </div>
         <div class="row footer">
@@ -212,7 +212,7 @@ Future&lt;Response&gt; updateTeam(
                 <div id="footer-emblem-container">
                 <a href="#"><img src="images/aqueduct-reverse.png" class="footer-emblem"/></a>
                 <a target="_blank" href="https://stablekernel.com"><img src="images/skemblem-white.png" class="footer-emblem"></a>
-                <p>© 2017</p>
+                <p id="copyright">© 2017</p>
                 </div>
             </div>
         </div>
