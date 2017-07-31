@@ -325,6 +325,8 @@ void main() {
         expect(response.statusCode, 413);
       }
 
+      expect(serverHasNoMoreConnections(server), completes);
+
       // Make sure we can still send some more requests;
       req = await client.postUrl(Uri.parse("http://localhost:8123"));
       req.headers.add(HttpHeaders.CONTENT_TYPE, "application/json; charset=utf-8");
@@ -363,6 +365,7 @@ void main() {
       } else {
         expect(response.statusCode, 413);
       }
+      expect(serverHasNoMoreConnections(server), completes);
 
       // Make sure we can still send some more requests;
       req = await client.postUrl(Uri.parse("http://localhost:8123"));
