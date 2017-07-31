@@ -20,8 +20,6 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <script src="prism.js"></script>
     <script src="https://use.fontawesome.com/e6eda8caba.js"></script>
-    <script defer src="main.dart" type="application/dart"></script>
-    <script defer src="packages/browser/dart.js"></script>
     <script async defer src="https://buttons.github.io/buttons.js"></script>
 </head>
 
@@ -112,7 +110,7 @@
         <div class="row feature-row">
             <div class="col-sm-6">
                 <h2><a href="/docs/http/request_controller/">Fluid Routing</a></h2>
-                <p>A familiar, higher-order functional syntax makes application flow easier to construct and read.</p>
+                <p>A familiar, higher-order functional syntax makes application flow easy to construct and read.</p>
             </div>
             <div class="col-sm-6 fix-height">
                 <pre><code class="language-dart">router
@@ -124,7 +122,7 @@
         <div class="row feature-row">
             <div class="col-sm-6">
                 <h2><a href="/docs/db/overview/">Statically-typed ORM and Database Migration</a></h2>
-                <p>Powerful, statically typed queries let you know if your code works before you run it.</p>
+                <p>Powerful, statically typed queries enable code-completion and refactoring tools while minimizing error. Tested command-line tooling for database migrations makes data management a breeze.</p>
             </div>
             <div class="col-sm-6">
                 <pre><code class="language-dart">var query = new Query&lt;Team&gt;()
@@ -137,7 +135,7 @@ var teams = await query.fetch();</code></pre>
         <div class="row feature-row">
             <div class="col-sm-6">
                 <h2><a href="/docs/auth/overview/">OAuth 2.0 Server</a></h2>
-                <p>A rigorously tested OAuth 2.0 server in just a few lines of code. </p>
+                <p>A rigorously tested OAuth 2.0 server in just a few lines of code. A layered implementation allows you to store tokens and client identifiers anywhere without rewriting the logic.</p>
             </div>
             <div class="col-sm-6">
                 <pre><code class="language-dart">var storage = new ManagedAuthStorage&lt;User&gt;(dbCtx);
@@ -155,7 +153,7 @@ router
         <div class="row feature-row">
             <div class="col-sm-6">
                 <h2><a href="/docs/http/http_controller/">Productive Request Bindings</a></h2>
-                <p>Boilerplate-avoiding meta-programming for productivity, readability and safety.</p>
+                <p>Boilerplate-avoiding meta-programming increases productivity, avoids simple errors and makes sure your API handles errors correctly and consistently.</p>
             </div>
             <div class="col-sm-6">
                 <pre><code class="language-dart">@httpPost
@@ -171,7 +169,7 @@ Future&lt;Response&gt; updateTeam(
         <div class="row feature-row">
             <div class="col-sm-6">
                 <h2><a href="/docs/testing/overview/">Integrated Test Library</a></h2>
-                <p>Aqueduct was built to be tested. Know that your code works from end-to-end without fragile mocking.</p>
+                <p>Aqueduct was built to be tested. Know that your code works from end-to-end without fragile mocking. Use continuous integration tools like <a href="https://travis-ci.org" target="_blank">TravisCI</a> with ease.</p>
             </div>
             <div class="col-sm-6">
                 <pre><code class="language-dart">test("GET /teams returns 200 and list of teams", () async {
@@ -188,6 +186,7 @@ Future&lt;Response&gt; updateTeam(
         </div>
         <div class="row final-feature-row">
             <div class="col-sm-12">
+                <h2>Releases you can count on.</h2>
                 <h3>Guaranteed by over 1000 <a target="_blank" href="https://travis-ci.org/stablekernel/aqueduct">automated tests</a> and counting.</h3>
             </div>
         </div>

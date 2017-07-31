@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Aqueduct: Dart HTTP Framework</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="icon" href="favicon.ico">
+    <meta name="description"
+          content="Aqueduct: A cohesive server-side framework for Dart, including controllers, routing, OAuth 2.0, ORM, database migrations and CLI.">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="prism.js"></script>
+    <script src="https://use.fontawesome.com/e6eda8caba.js"></script>
+</head>
+<body>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-xs-12">
+            <div id="header-container">
+                <a href="/docs/">DOCUMENTATION</a>
+                <a target="_blank" href="https://github.com/stablekernel/aqueduct">GITHUB</a>
+                <a target="_blank" href="http://slackaqueductsignup.herokuapp.com">SLACK</a>
+                <a target="_blank" href="/index.html">HOME</a>
+                <a target="_blank" href="https://stablekernel.com">STABLE|KERNEL</a>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-12">
+            <h2>Why Build Another REST Framework?</h2>
+            <p>
+                To support <a href="https://stablekernel.com">our primary business of building native mobile
+                applications</a>, we've written a lot of server code.
+                And we've done this in a number of languages - Go, JavaScript, Erlang, C# and Java - all of which we've
+                enjoyed for different reasons.
+                As developers, we know that switching contexts is costly. Aqueduct's intent is to reduce that cost
+                for our team of primarily mobile developers with a framework that feels more like iOS+Swift and
+                Android+Kotlin.
+            </p>
+            <p>
+                Reducing the cost of context-switching alone isn't everything - we also know a few other things lead to
+                project success.
+            </p>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-12">
+            <h3>Consistent Interfaces</h3>
+            <p>
+                As iOS and Android developers, we've been spoiled by tightly integrated, consistent frameworks. Once
+                you've learned
+                how to use these frameworks, you can generally guess how its other features work. This boils down to
+                employing design patterns
+                and naming conventions consistently. Aqueduct strives for this same consistency.
+            </p>
+            <p>
+                A consistent interface means you don't have to read a lot of conceptual documentation or look on
+                StackOverflow to find what you are looking for.
+                For example, types with the word 'Controller' in them all serve a similar purpose in Aqueduct. Instead
+                of searching
+                the entire <a target="_blank" href="https://www.dartdocs.org/documentation/aqueduct/latest/">API Reference</a> for a type to use, a developer can filter their search to a subset of types
+                with 'Controller' behavior.
+                This is the same optimization behind traversing a search tree instead of a scanning a list when writing
+                software.
+            </p>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-12">
+            <h3>Meta-programming</h3>
+            <p>
+                Meta-programming allows us to declare the behavior we want, without necessarily writing all of the code
+                to get
+                that behavior. This is valuable because it reduces both programmer fatigue and mistakes. For common
+                tasks,
+                this is a big productivity boost.
+            </p>
+            <p>
+                While Aqueduct has many meta-programming features, it doesn't prevent low-level access. Whether that is
+                using the standard
+                Dart library to handle an HTTP request or writing raw SQL, abstractions are there when you need them and
+                can be pushed aside
+                when they get in the way.
+            </p>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-12">
+            <h3>Automated Testing</h3>
+            <p>
+                As mobile developers, we know that the biggest loss in time is due to a broken or inconsistent REST API.
+                Using a client application
+                to test the validity of a server application is unproductive. Testing is a first-class citizen in
+                Aqueduct; tests
+                are both easy to write and run (locally and in continuous integration tooling).
+            </p>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-12">
+            <h3>Quick Start</h3>
+            <p>
+                The ability to quickly get feedback and explore an idea is key to mastering a skill. Aqueduct's tooling,
+                templates
+                and built-in features make creating, modifying and running a new project very quick.
+            </p>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-12">
+            <h3>Speed</h3>
+            <p>
+                Sometimes productivity comes at a runtime cost; this isn't the case for Aqueduct. We built Aqueduct from
+                the ground up to run on multiple threads without
+                having to write any additional code. Even a programmer that hasn't yet learned the pitfalls of
+                concurrency can reap the speed benefits
+                of leveraging multiple CPUs without trouble. Alongside the high performance C/C++ Dart VM, Aqueduct
+                applications
+                don't pull punches.
+            </p>
+        </div>
+    </div>
+    <div class="row footer">
+        <div class="col-xs-12">
+            <div id="af-logos">
+                <a class="ext-logo" target="_blank" href="https://github.com/stablekernel/aqueduct"><i class="fa fa-github"></i></a>
+                <a class="ext-logo" target="_blank" href="http://slackaqueductsignup.herokuapp.com"><i class="fa fa-slack"></i></a>
+                <a class="ext-logo" target="_blank" href="https://stackoverflow.com/questions/tagged/aqueduct"><i class="fa fa-stack-overflow"></i></a>
+            </div>
+            <div id="footer-links">
+                <p><a href="/docs/">Documentation</a></p>
+                <p><a href="/docs/tut/getting-started/">Tutorial</a></p>
+                <p><a href="/about.html">About</a></p>
+                <p><a target="_blank" href="https://github.com/stablekernel/aqueduct/issues">Issue Tracker</a></p>
+                <p><a target="_blank" href="https://stablekernel.com/jobs/">Jobs</a></p>
+            </div>
+        </div>
+    </div>
+    <div class="row footer">
+        <div class="col-xs-12">
+            <div id="footer-emblem-container">
+                <a href="#"><img src="images/aqueduct-reverse.png" class="footer-emblem"/></a>
+                <a target="_blank" href="https://stablekernel.com"><img src="images/skemblem-white.png" class="footer-emblem"></a>
+                <p id="copyright">© 2017</p>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'UA-41269877-2', 'auto');
+    ga('send', 'pageview');
+    </script>
+</div>
+</body>
+</html>
