@@ -168,20 +168,6 @@ a {
     box-shadow: 0px 2px 2px #888888;
 }
 
-#thread-container {
-    margin: 0 0;
-    background-color: white;
-    width: 500px;
-    border-style: solid;
-    border-width: 1px;
-    border-color: rgb(204, 204, 204);
-    border-radius: 4px;
-}
-
-#thread-row {
-    height: 400px;
-}
-
 #install-command {
     padding: 20px 0;
 }
@@ -252,9 +238,13 @@ a {
     margin-left: 40%;
 }
 
-.feature-row pre {
+.feature-box {
     max-width: 500px;
-    background-color: white;
+    background-color: rgb(245, 242, 240);
+    border-style: solid;
+    border-width: 1px;
+    border-color: rgb(204, 204, 204);
+    border-radius: 4px;
 }
 
 .footer {
@@ -314,7 +304,7 @@ a {
         margin-left: 0px;
     }
 
-    .feature-row pre {
+    .feature-box {
         max-width: none;
         height: auto;
     }

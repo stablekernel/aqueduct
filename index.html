@@ -99,10 +99,10 @@
         <div class="row feature-row">
             <div class="col-sm-6">
                 <h2><a href="/docs/http/threading/">Multi-threaded out of the box</a></h2>
-                <p>Aqueduct's memory-isolated threads leverage every CPU without writing any code. No locks, race conditions or connection pools necessary.</p>
+                <p>Aqueduct's memory-isolated threads leverage every CPU without writing any code. No race conditions or complicated synchronization logic to worry about.</p>
             </div>
             <div class="col-sm-6">
-                <div id="thread-container">
+                <div id="thread-container" class="feature-box">
                     <img id="thread-image" src="images/threading.png">
                 </div>
             </div>
@@ -112,8 +112,8 @@
                 <h2><a href="/docs/http/request_controller/">Fluid Routing</a></h2>
                 <p>A familiar, higher-order functional syntax makes application flow easy to construct and read.</p>
             </div>
-            <div class="col-sm-6 fix-height">
-                <pre><code class="language-dart">router
+            <div class="col-sm-6">
+                <pre class="feature-box"><code class="language-dart">router
   .route("/teams/[:id]")
   .pipe(new Authorizer(validator))
   .generate(() => new TeamController(databaseContext));</code></pre>
@@ -125,10 +125,11 @@
                 <p>Powerful, statically typed queries enable code-completion and refactoring tools while minimizing error. Tested command-line tooling for database migrations makes data management a breeze.</p>
             </div>
             <div class="col-sm-6">
-                <pre><code class="language-dart">var query = new Query&lt;Team&gt;()
+                <pre class="feature-box"><code class="language-dart">var query = new Query&lt;Team&gt;()
   ..where.skills = whereContainsString("aqueduct")
   ..join(object: (t) => t.manager)
   ..join(set: (t) => t.developers);
+
 var teams = await query.fetch();</code></pre>
             </div>
         </div>
@@ -138,7 +139,7 @@ var teams = await query.fetch();</code></pre>
                 <p>A rigorously tested OAuth 2.0 server in just a few lines of code. A layered implementation allows you to store tokens and client identifiers anywhere without rewriting the logic.</p>
             </div>
             <div class="col-sm-6">
-                <pre><code class="language-dart">var storage = new ManagedAuthStorage&lt;User&gt;(dbCtx);
+                <pre class="feature-box"><code class="language-dart">var storage = new ManagedAuthStorage&lt;User&gt;(dbCtx);
 var auth = new AuthServer(storage);
 
 router
@@ -156,7 +157,7 @@ router
                 <p>Boilerplate-avoiding meta-programming increases productivity, avoids simple errors and makes sure your API handles errors correctly and consistently.</p>
             </div>
             <div class="col-sm-6">
-                <pre><code class="language-dart">@httpPost
+                <pre class="feature-box"><code class="language-dart">@httpPost
 Future&lt;Response&gt; updateTeam(
     @HTTPPath("id") int teamID,
     @HTTPBody() Team team,
@@ -172,7 +173,7 @@ Future&lt;Response&gt; updateTeam(
                 <p>Aqueduct was built to be tested. Know that your code works from end-to-end without fragile mocking. Use continuous integration tools like <a href="https://travis-ci.org" target="_blank">TravisCI</a> with ease.</p>
             </div>
             <div class="col-sm-6">
-                <pre><code class="language-dart">test("GET /teams returns 200 and list of teams", () async {
+                <pre class="feature-box"><code class="language-dart">test("GET /teams returns 200 and list of teams", () async {
   var request = app.client.request("/teams");
   expectResponse(
     await request.get(),
