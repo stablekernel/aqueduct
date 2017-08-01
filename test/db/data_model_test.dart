@@ -503,6 +503,52 @@ void main() {
       }
     });
   });
+
+  group("Multi-unique", () {
+    test("Add ManagedTableAttributes to persistent type with unique list makes instances unique for those columns", () {
+      var dm = new ManagedDataModel([MultiUnique]);
+      var e = dm.entityForType(MultiUnique);
+      expect(e.unique.length, 2);
+      expect(e.unique.contains(e.properties["a"]), true);
+      expect(e.unique.contains(e.properties["b"]), true);
+    });
+
+    test("Add ManagedTableAttributes to persistent type with only single element in unique list throws exception, warns to use ManagedColumnAttributes", () {
+      try {
+        new ManagedDataModel([MultiUniqueFailureSingleElement]);
+        expect(true, false);
+      } on ManagedDataModelException catch (e) {
+        expect(e.message, contains("add 'ManagedColumnAttributes(unique: true)' to declaration of 'a'"));
+      }
+    });
+
+    test("Add ManagedTableAttributes to persistent type with empty unique list throws exception", () {
+      try {
+        new ManagedDataModel([MultiUniqueFailureNoElement]);
+        expect(true, false);
+      } on ManagedDataModelException catch (e) {
+        expect(e.message, contains("must have two or more properties"));
+      }
+    });
+
+    test("Add ManagedTableAttributes to persistent type with non-existent property in unique list throws exception", () {
+      try {
+        new ManagedDataModel([MultiUniqueFailureUnknown]);
+        expect(true, false);
+      } on ManagedDataModelException catch (e) {
+        expect(e.message, contains("property 'a' does not exist"));
+      }
+    });
+
+    test("Add ManagedTableAttributes to persistent type with has- property in unique list throws exception", () {
+      try {
+        new ManagedDataModel([MultiUniqueFailureRelationship, MultiUniqueFailureRelationshipInverse]);
+        expect(true, false);
+      } on ManagedDataModelException catch (e) {
+        expect(e.message, contains("property 'a' must not be has-many or has-one"));
+      }
+    });
+  });
 }
 
 class User extends ManagedObject<_User> implements _User {
@@ -920,3 +966,57 @@ enum EnumValues {
   abcd, efgh, other18
 }
 
+
+class MultiUnique extends ManagedObject<_MultiUnique> {}
+@ManagedTableAttributes.unique(const [#a, #b])
+class _MultiUnique {
+  @managedPrimaryKey
+  int id;
+
+  int a;
+  int b;
+}
+
+class MultiUniqueFailureSingleElement extends ManagedObject<_MultiUniqueFailureSingleElement> {}
+@ManagedTableAttributes.unique(const [#a])
+class _MultiUniqueFailureSingleElement {
+  @managedPrimaryKey
+  int id;
+
+  int a;
+}
+
+class MultiUniqueFailureNoElement extends ManagedObject<_MultiUniqueFailureNoElement> {}
+@ManagedTableAttributes.unique(const [])
+class _MultiUniqueFailureNoElement {
+  @managedPrimaryKey
+  int id;
+}
+
+class MultiUniqueFailureUnknown extends ManagedObject<_MultiUniqueFailureUnknown> {}
+@ManagedTableAttributes.unique(const [#a, #b])
+class _MultiUniqueFailureUnknown {
+  @managedPrimaryKey
+  int id;
+
+  int b;
+}
+
+class MultiUniqueFailureRelationship extends ManagedObject<_MultiUniqueFailureRelationship> {}
+@ManagedTableAttributes.unique(const [#a, #b])
+class _MultiUniqueFailureRelationship {
+  @managedPrimaryKey
+  int id;
+
+  MultiUniqueFailureRelationshipInverse a;
+  int b;
+}
+
+class MultiUniqueFailureRelationshipInverse extends ManagedObject<_MultiUniqueFailureRelationshipInverse> {}
+class _MultiUniqueFailureRelationshipInverse {
+  @managedPrimaryKey
+  int id;
+
+  @ManagedRelationship(#a)
+  MultiUniqueFailureRelationship rel;
+}

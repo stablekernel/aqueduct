@@ -1,6 +1,16 @@
 import 'managed.dart';
 import '../query/query.dart';
 
+
+class ManagedTableAttributes {
+  const ManagedTableAttributes({List<Symbol> unique})
+    : uniqueProperties = unique;
+
+  const ManagedTableAttributes.unique(List<Symbol> unique) : this(unique: unique);
+
+  final List<Symbol> uniqueProperties;
+}
+
 /// Possible values for a delete rule in a [ManagedRelationship].
 enum ManagedRelationshipDeleteRule {
   /// Prevents a delete operation if the would-be deleted [ManagedObject] still has references to this relationship.

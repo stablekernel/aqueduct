@@ -95,6 +95,8 @@ class ManagedEntity {
     return all;
   }
 
+  List<ManagedPropertyDescription> unique;
+
   /// List of [ManagedValidator]s for attributes of this entity.
   ///
   /// All validators for all [attributes] in one, flat list. Order is undefined.
