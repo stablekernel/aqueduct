@@ -359,8 +359,10 @@ void main() {
       // Depending on circumstance, the request could either throw an exception
       // because it tries to write to a closed pipe, or the response could come back
       // before the client connection tries to send data again. Both are appropriate failure cases.
+      print("waiting...");
       if (response == null) {
         var outErr = await errCompleter.future;
+        print("did complete");
         expect(outErr, isNotNull);
       } else {
         expect(response.statusCode, 413);
