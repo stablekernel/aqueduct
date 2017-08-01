@@ -53,19 +53,18 @@
             <p>
                 As iOS and Android developers, we've been spoiled by tightly integrated, consistent frameworks. Once
                 you've learned
-                how to use these frameworks, you can generally guess how its other features work. This boils down to
+                how to use these frameworks, you can generally guess how their other features work. This boils down to
                 employing design patterns
                 and naming conventions consistently. Aqueduct strives for this same consistency.
             </p>
             <p>
                 A consistent interface means you don't have to read a lot of conceptual documentation or look on
-                StackOverflow to find what you are looking for.
+                StackOverflow to use a feature of the framework.
                 For example, types with the word 'Controller' in them all serve a similar purpose in Aqueduct. Instead
                 of searching
                 the entire <a target="_blank" href="https://www.dartdocs.org/documentation/aqueduct/latest/">API Reference</a> for a type to use, a developer can filter their search to a subset of types
                 with 'Controller' behavior.
-                This is the same optimization behind traversing a search tree instead of a scanning a list when writing
-                software.
+                This is the same optimization behind traversing a search tree instead of a scanning a list, but for us humans.
             </p>
         </div>
     </div>
@@ -80,7 +79,7 @@
                 this is a big productivity boost.
             </p>
             <p>
-                While Aqueduct has many meta-programming features, it doesn't prevent low-level access. Whether that is
+                While Aqueduct has many <a target="_blank" href="/docs/http/http_controller">meta-programming features</a>, it doesn't prevent low-level access. Whether that is
                 using the standard
                 Dart library to handle an HTTP request or writing raw SQL, abstractions are there when you need them and
                 can be pushed aside
@@ -92,17 +91,25 @@
         <div class="col-xs-12">
             <h3>Automated Testing</h3>
             <p>
-                As mobile developers, we know that the biggest loss in time is due to a broken or inconsistent REST API.
+                As mobile developers, we know that time is easily lost to broken or inconsistent REST APIs.
                 Using a client application
-                to test the validity of a server application is unproductive. Testing is a first-class citizen in
+                to test the validity of a server application is unproductive. We wanted something better.
+            </p>
+            <p>
+                Testing is a first-class citizen in
                 Aqueduct; tests
-                are both easy to write and run (locally and in continuous integration tooling).
+                are both easy to write and run (locally and in continuous integration tooling). We know that when we
+                write Aqueduct code, we can trust that client development goes smoothly.
+            </p>
+            <p>
+                Aqueduct itself is well tested, too; we simply can't afford to ship releases that break the applications
+                that we maintain for our clients.
             </p>
         </div>
     </div>
     <div class="row">
         <div class="col-xs-12">
-            <h3>Quick Start</h3>
+            <h3>Quick Start and the Learning Curve</h3>
             <p>
                 The ability to quickly get feedback and explore an idea is key to mastering a skill. Aqueduct's tooling,
                 templates
@@ -114,13 +121,11 @@
         <div class="col-xs-12">
             <h3>Speed</h3>
             <p>
-                Sometimes productivity comes at a runtime cost; this isn't the case for Aqueduct. We built Aqueduct from
-                the ground up to run on multiple threads without
+                We built Aqueduct from the ground up to run on multiple threads without
                 having to write any additional code. Even a programmer that hasn't yet learned the pitfalls of
                 concurrency can reap the speed benefits
-                of leveraging multiple CPUs without trouble. Alongside the high performance C/C++ Dart VM, Aqueduct
-                applications
-                don't pull punches.
+                of multiple CPUs without trouble. Alongside the high performance C/C++ Dart VM, Aqueduct
+                applications deliver on speed.
             </p>
         </div>
     </div>
