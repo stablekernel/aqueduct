@@ -508,6 +508,7 @@ void main() {
     test("Add ManagedTableAttributes to persistent type with unique list makes instances unique for those columns", () {
       var dm = new ManagedDataModel([MultiUnique]);
       var e = dm.entityForType(MultiUnique);
+
       expect(e.uniquePropertySet.length, 2);
       expect(e.uniquePropertySet.contains(e.properties["a"]), true);
       expect(e.uniquePropertySet.contains(e.properties["b"]), true);
@@ -1028,6 +1029,7 @@ class _MultiUniqueFailureRelationshipInverse {
   @ManagedRelationship(#a)
   MultiUniqueFailureRelationship rel;
 }
+<<<<<<< HEAD
 
 class MultiUniqueBelongsTo extends ManagedObject<_MultiUniqueBelongsTo> {}
 @ManagedTableAttributes.unique(const [#rel, #b])
@@ -1048,3 +1050,5 @@ class _MultiUniqueHasA {
 
   MultiUniqueBelongsTo a;
 }
+=======
+>>>>>>> Adding some tests
