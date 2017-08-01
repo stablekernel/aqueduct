@@ -1037,6 +1037,7 @@ class _MultiUniqueFailureRelationshipInverse {
   @ManagedRelationship(#a)
   MultiUniqueFailureRelationship rel;
 }
+<<<<<<< HEAD
 
 class MultiUniqueBelongsTo extends ManagedObject<_MultiUniqueBelongsTo> {}
 @ManagedTableAttributes.unique(const [#rel, #b])
@@ -1057,3 +1058,5 @@ class _MultiUniqueHasA {
 
   MultiUniqueBelongsTo a;
 }
+=======
+>>>>>>> Adding some tests
