@@ -286,6 +286,7 @@ void main() {
     setUp(() async {
       client = new HttpClient();
       server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 8123);
+      server.idleTimeout = new Duration(seconds: 1);
     });
 
     tearDown(() async {
