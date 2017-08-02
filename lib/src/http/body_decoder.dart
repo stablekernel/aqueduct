@@ -299,8 +299,8 @@ abstract class HTTPBodyDecoder {
 class HTTPBodyDecoderException extends HTTPResponseException {
   HTTPBodyDecoderException(
       String message,
-      {this.underlyingException, int statusCode: 400, bool shouldTerminateSession: false})
-        : super(statusCode, message, shouldTerminateSession: shouldTerminateSession);
+      {this.underlyingException, int statusCode: 400})
+        : super(statusCode, message);
 
   final dynamic underlyingException;
 

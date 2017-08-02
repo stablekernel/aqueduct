@@ -11,7 +11,7 @@ import 'request.dart';
 /// as a value in a JSON Object for the key 'error'.
 class HTTPResponseException implements Exception {
   /// Creates an instance of a [HTTPResponseException].
-  HTTPResponseException(this.statusCode, this.message, {this.shouldTerminateSession: false});
+  HTTPResponseException(this.statusCode, this.message);
 
   /// The message to return to the client.
   ///
@@ -21,12 +21,9 @@ class HTTPResponseException implements Exception {
   /// The status code of the [Response].
   final int statusCode;
 
-  bool shouldTerminateSession;
-
   /// A [Response] object derived from this exception.
   Response get response {
     return new Response(statusCode, null, {"error": message})
-      ..terminateSessionAfterSending = shouldTerminateSession
       ..contentType = ContentType.JSON;
   }
 }

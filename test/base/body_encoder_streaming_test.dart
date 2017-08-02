@@ -328,8 +328,6 @@ void main() {
           fail("Should not complete on macOS, see comment above tests");
         } else {
           expect(response.statusCode, 413);
-//          client.close(force: true);
-//          client = new HttpClient();
         }
       } on SocketException catch (e) {
         if (!Platform.isMacOS) {
@@ -372,14 +370,14 @@ void main() {
           fail("Should not complete on macOS, see comment above tests");
         } else {
           expect(response.statusCode, 413);
-//          client.close(force: true);
-//          client = new HttpClient();
         }
       } on SocketException catch (e) {
         if (!Platform.isMacOS) {
           rethrow;
         }
       }
+
+      expect(serverHasNoMoreConnections(server), completes);
 
       // Make sure we can still send some more requests;
       req = await client.postUrl(Uri.parse("http://localhost:8123"));
@@ -397,6 +395,7 @@ Future serverHasNoMoreConnections(HttpServer server) async {
   }
 
   await new Future.delayed(new Duration(milliseconds: 100));
+  print("Active: ${server.connectionsInfo().active} Idle: ${server.connectionsInfo().idle} Closing: ${server.connectionsInfo().closing}");
 
   return serverHasNoMoreConnections(server);
 }

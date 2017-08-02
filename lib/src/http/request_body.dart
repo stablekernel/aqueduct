@@ -57,8 +57,7 @@ class HTTPRequestBody extends HTTPBodyDecoder {
         if (_bytesRead > maxSize) {
           var exception = new HTTPBodyDecoderException(
               "entity length exceeds maximum",
-              statusCode: HttpStatus.REQUEST_ENTITY_TOO_LARGE,
-              shouldTerminateSession: true);
+              statusCode: HttpStatus.REQUEST_ENTITY_TOO_LARGE);
           _bufferingController.addError(exception);
           _bufferingController.close();
           return;
