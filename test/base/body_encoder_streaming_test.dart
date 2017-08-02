@@ -326,18 +326,18 @@ void main() {
           fail("Should not complete on macOS, see comment above tests");
         } else {
           expect(response.statusCode, 413);
+          client.close(force: true);
+          client = new HttpClient();
         }
       } on SocketException catch (e) {
         if (!Platform.isMacOS) {
           rethrow;
         }
-
-        client.close(force: true);
-        client = new HttpClient();
       }
 
+      print("Will wait for server to lose connection");
       expect(serverHasNoMoreConnections(server), completes);
-
+      print("Server shed connections");
       // Make sure we can still send some more requests;
       req = await client.postUrl(Uri.parse("http://localhost:8123"));
       req.headers.add(HttpHeaders.CONTENT_TYPE, "application/json; charset=utf-8");
