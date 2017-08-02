@@ -396,7 +396,6 @@ Future serverHasNoMoreConnections(HttpServer server) async {
   }
 
   await new Future.delayed(new Duration(milliseconds: 100));
-  print("Active: ${server.connectionsInfo().active} Idle: ${server.connectionsInfo().idle} Closing: ${server.connectionsInfo().closing}");
 
   return serverHasNoMoreConnections(server);
 }
