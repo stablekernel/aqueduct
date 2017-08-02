@@ -243,7 +243,8 @@ class Request implements RequestOrResponse {
 
     if (body == null) {
       response.headers.removeAll(HttpHeaders.CONTENT_TYPE);
-      return response.close();
+      return _finalizeResponse(
+          innerRequest, terminateSession: aqueductResponse.terminateSessionAfterSending);
     }
 
     response.headers.add(
@@ -257,7 +258,8 @@ class Request implements RequestOrResponse {
 
       response.add(body);
 
-      return response.close();
+      return _finalizeResponse(
+          innerRequest, terminateSession: aqueductResponse.terminateSessionAfterSending);
     }
 
     // Otherwise, body is stream
@@ -269,10 +271,21 @@ class Request implements RequestOrResponse {
     response.bufferOutput = aqueductResponse.bufferOutput;
 
     return response.addStream(bodyStream).then((_) {
-      return response.close();
+      return _finalizeResponse(
+          innerRequest, terminateSession: aqueductResponse.terminateSessionAfterSending);
     }).catchError((e, st) {
       throw new HTTPStreamingException(e, st);
     });
+  }
+  
+  FutureOr _finalizeResponse(HttpRequest request, {bool terminateSession: false}) {
+    return request.response.close()
+        .then((_) {
+          if (terminateSession) {
+            request.session.destroy();
+          }
+        })
+        .catchError((_) {});
   }
 
   List<int> _responseBodyBytes(Response resp, _Reference<String> compressionType) {

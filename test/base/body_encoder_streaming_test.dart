@@ -294,6 +294,8 @@ void main() {
     });
 
     /*
+      There is a different set of expectations when running on macOS.
+
       On macOS, when the client request is sending data and the server decides to terminate the connection,
       the client will get a 'EPROTOTYPE' socket error (most of the time). This occurs when the client tries
       to send data while the socket is in the process of being torn down. Since the server will kill the
@@ -326,8 +328,8 @@ void main() {
           fail("Should not complete on macOS, see comment above tests");
         } else {
           expect(response.statusCode, 413);
-          client.close(force: true);
-          client = new HttpClient();
+//          client.close(force: true);
+//          client = new HttpClient();
         }
       } on SocketException catch (e) {
         if (!Platform.isMacOS) {
@@ -335,9 +337,8 @@ void main() {
         }
       }
 
-      print("Will wait for server to lose connection");
       expect(serverHasNoMoreConnections(server), completes);
-      print("Server shed connections");
+
       // Make sure we can still send some more requests;
       req = await client.postUrl(Uri.parse("http://localhost:8123"));
       req.headers.add(HttpHeaders.CONTENT_TYPE, "application/json; charset=utf-8");
@@ -365,21 +366,26 @@ void main() {
       req.headers.add(HttpHeaders.CONTENT_TYPE, "application/octet-stream");
       req.add(new List.generate(8192 * 100, (_) => 1));
 
-      var errCompleter = new Completer();
-      var response = await req.close().catchError((err) => errCompleter.complete(err));
-      if (response == null) {
-        var outErr = await errCompleter.future;
-        expect(outErr, isNotNull);
-      } else {
-        expect(response.statusCode, 413);
+      try {
+        var response = await req.close();
+        if (Platform.isMacOS) {
+          fail("Should not complete on macOS, see comment above tests");
+        } else {
+          expect(response.statusCode, 413);
+//          client.close(force: true);
+//          client = new HttpClient();
+        }
+      } on SocketException catch (e) {
+        if (!Platform.isMacOS) {
+          rethrow;
+        }
       }
-      expect(serverHasNoMoreConnections(server), completes);
 
       // Make sure we can still send some more requests;
       req = await client.postUrl(Uri.parse("http://localhost:8123"));
       req.headers.add(HttpHeaders.CONTENT_TYPE, "application/octet-stream");
       req.add([1, 2, 3, 4]);
-      response = await req.close();
+      var response = await req.close();
       expect(await response.toList(), [[1, 2, 3, 4]]);
     });
   });

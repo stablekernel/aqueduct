@@ -302,7 +302,7 @@ class RequestController extends Object with APIDocumentable {
   }
 
   Future _sendResponse(Request request, Response response,
-      {bool includeCORSHeaders: false}) {
+      {bool includeCORSHeaders: false, bool terminateSession: false}) {
     if (includeCORSHeaders) {
       applyCORSHeadersIfNecessary(request, response);
     }

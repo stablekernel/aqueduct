@@ -296,22 +296,13 @@ abstract class HTTPBodyDecoder {
 }
 
 /// Thrown when [HTTPRequestBody] encounters an exception.
-class HTTPBodyDecoderException implements HTTPResponseException {
-  HTTPBodyDecoderException(this.message, {this.underlyingException, this.statusCode: 400});
+class HTTPBodyDecoderException extends HTTPResponseException {
+  HTTPBodyDecoderException(
+      String message,
+      {this.underlyingException, int statusCode: 400, bool shouldTerminateSession: false})
+        : super(statusCode, message, shouldTerminateSession: shouldTerminateSession);
 
-  @override
-  final String message;
   final dynamic underlyingException;
-
-  @override
-  final int statusCode;
-
-  /// A [Response] object derived from this exception.
-  @override
-  Response get response {
-    return new Response(statusCode, null, {"error": message})
-      ..contentType = ContentType.JSON;
-  }
 
   @override
   String toString() {

@@ -137,6 +137,8 @@ class Response implements RequestOrResponse {
   /// The HTTP status code of this response.
   int statusCode;
 
+  bool terminateSessionAfterSending = false;
+
   /// Cache policy that sets 'Cache-Control' headers for this instance.
   ///
   /// If null (the default), no 'Cache-Control' headers are applied. Otherwise,
