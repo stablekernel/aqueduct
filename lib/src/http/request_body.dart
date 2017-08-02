@@ -65,7 +65,10 @@ class HTTPRequestBody extends HTTPBodyDecoder {
         _bufferingController.add(chunk);
       }, onDone: () {
         _bufferingController.close();
-      }, onError: (_) {
+      }, onError: (e, st) {
+        if (!_bufferingController.isClosed) {
+          _bufferingController.addError(e, st);
+        }
         _bufferingController.close();
       }, cancelOnError: true);
     }

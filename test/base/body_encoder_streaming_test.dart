@@ -293,6 +293,14 @@ void main() {
       await server?.close(force: true);
     });
 
+    /*
+      On macOS, when the client request is sending data and the server decides to terminate the connection,
+      the client will get a 'EPROTOTYPE' socket error (most of the time). This occurs when the client tries
+      to send data while the socket is in the process of being torn down. Since the server will kill the
+      socket when it realizes too much data is being sent, the client throws an exception and doesn't
+      get back the response.
+     */
+
     test("Entity with known content-type that is too large is rejected, chunked", () async {
       HTTPRequestBody.maxSize = 8193;
 
@@ -312,17 +320,20 @@ void main() {
       };
       req.add(UTF8.encode(JSON.encode(body)));
 
-      var errCompleter = new Completer();
-      var response = await req.close().catchError((err) => errCompleter.complete(err));
+      try {
+        var response = await req.close();
+        if (Platform.isMacOS) {
+          fail("Should not complete on macOS, see comment above tests");
+        } else {
+          expect(response.statusCode, 413);
+        }
+      } on SocketException catch (e) {
+        if (!Platform.isMacOS) {
+          rethrow;
+        }
 
-      // Depending on circumstance, the request could either throw an exception
-      // because it tries to write to a closed pipe, or the response could come back
-      // before the client connection tries to send data again. Both are appropriate failure cases.
-      if (response == null) {
-        var outErr = await errCompleter.future;
-        expect(outErr, isNotNull);
-      } else {
-        expect(response.statusCode, 413);
+        client.close(force: true);
+        client = new HttpClient();
       }
 
       expect(serverHasNoMoreConnections(server), completes);
@@ -334,7 +345,7 @@ void main() {
         "key": "a"
       };
       req.add(UTF8.encode(JSON.encode(body)));
-      response = await req.close();
+      var response = await req.close();
       expect(JSON.decode(UTF8.decode(await response.first)), {"key": "a"});
     });
 
@@ -356,13 +367,8 @@ void main() {
 
       var errCompleter = new Completer();
       var response = await req.close().catchError((err) => errCompleter.complete(err));
-      // Depending on circumstance, the request could either throw an exception
-      // because it tries to write to a closed pipe, or the response could come back
-      // before the client connection tries to send data again. Both are appropriate failure cases.
-      print("waiting...");
       if (response == null) {
         var outErr = await errCompleter.future;
-        print("did complete");
         expect(outErr, isNotNull);
       } else {
         expect(response.statusCode, 413);
