@@ -23,17 +23,17 @@ class ManagedTableAttributes {
   const ManagedTableAttributes({List<Symbol> unique})
     : uniqueProperties = unique;
 
-  /// Configures each instance of associated persistent type to be unique for [unique].
+  /// Configures each instance of persistent type to be unique for the combination of [unique].
   ///
   /// Adding this metadata to a persistent type requires that all instances of this type
-  /// must be unique for the properties in [unique]. [unique] must contain symbolic names of
+  /// must be unique for the combined properties in [unique]. [unique] must contain symbolic names of
   /// properties declared in the persistent type, and those properties must be either attributes
-  /// or belongs-to relationship properties.
+  /// or belongs-to relationship properties. See [ManagedTableAttributes] for example.
   const ManagedTableAttributes.unique(List<Symbol> unique) : this(unique: unique);
 
   /// Each instance of the associated persistent type is unique for these properties.
   ///
-  /// Null if not set.
+  /// null if not set.
   final List<Symbol> uniqueProperties;
 }
 
