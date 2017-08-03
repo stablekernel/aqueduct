@@ -1,7 +1,6 @@
 import 'managed.dart';
 import '../query/query.dart';
 
-
 /// Metadata to configure underlying table of [ManagedObject] persistent type.
 ///
 /// Adding this metadata to a persistent type (`T` in `ManagedObject<T>`) configures the behavior of the underlying table.
