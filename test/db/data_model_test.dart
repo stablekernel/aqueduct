@@ -513,6 +513,14 @@ void main() {
       expect(e.unique.contains(e.properties["b"]), true);
     });
 
+    test("Add ManagedTableAttributes to persistent type with unique list makes instances unique for those columns, where column is foreign key relationship", () {
+      var dm = new ManagedDataModel([MultiUniqueBelongsTo, MultiUniqueHasA]);
+      var e = dm.entityForType(MultiUniqueBelongsTo);
+      expect(e.unique.length, 2);
+      expect(e.unique.contains(e.properties["rel"]), true);
+      expect(e.unique.contains(e.properties["b"]), true);
+    });
+
     test("Add ManagedTableAttributes to persistent type with only single element in unique list throws exception, warns to use ManagedColumnAttributes", () {
       try {
         new ManagedDataModel([MultiUniqueFailureSingleElement]);
@@ -527,7 +535,7 @@ void main() {
         new ManagedDataModel([MultiUniqueFailureNoElement]);
         expect(true, false);
       } on ManagedDataModelException catch (e) {
-        expect(e.message, contains("must have two or more properties"));
+        expect(e.message, contains("Must contain two or more attributes"));
       }
     });
 
@@ -536,7 +544,7 @@ void main() {
         new ManagedDataModel([MultiUniqueFailureUnknown]);
         expect(true, false);
       } on ManagedDataModelException catch (e) {
-        expect(e.message, contains("property 'a' does not exist"));
+        expect(e.message, contains("'a' is not a property of this type"));
       }
     });
 
@@ -545,7 +553,7 @@ void main() {
         new ManagedDataModel([MultiUniqueFailureRelationship, MultiUniqueFailureRelationshipInverse]);
         expect(true, false);
       } on ManagedDataModelException catch (e) {
-        expect(e.message, contains("property 'a' must not be has-many or has-one"));
+        expect(e.message, contains("declares 'a' as unique"));
       }
     });
   });
@@ -1019,4 +1027,24 @@ class _MultiUniqueFailureRelationshipInverse {
 
   @ManagedRelationship(#a)
   MultiUniqueFailureRelationship rel;
+}
+
+class MultiUniqueBelongsTo extends ManagedObject<_MultiUniqueBelongsTo> {}
+@ManagedTableAttributes.unique(const [#rel, #b])
+class _MultiUniqueBelongsTo {
+  @managedPrimaryKey
+  int id;
+
+  @ManagedRelationship(#a)
+  MultiUniqueHasA rel;
+
+  String b;
+}
+
+class MultiUniqueHasA extends ManagedObject<_MultiUniqueHasA> {}
+class _MultiUniqueHasA {
+  @managedPrimaryKey
+  int id;
+
+  MultiUniqueBelongsTo a;
 }

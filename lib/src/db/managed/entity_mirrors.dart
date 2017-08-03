@@ -125,6 +125,10 @@ bool doesVariableMirrorRepresentRelationship(VariableMirror mirror) {
   return false;
 }
 
+ManagedTableAttributes tableAttributesFromPersistentType(ClassMirror typeMirror) =>
+    firstMetadataOfType(
+        typeMirror.reflectedType, reflectType(ManagedTableAttributes));
+
 List<Validate> validatorsFromDeclaration(DeclarationMirror dm) =>
   allMetadataOfType(Validate, dm);
 ManagedTransientAttribute transientMetadataFromDeclaration(

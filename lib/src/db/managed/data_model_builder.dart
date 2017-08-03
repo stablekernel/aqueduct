@@ -48,6 +48,8 @@ class DataModelBuilder {
           }
         }
       });
+
+      entity.unique = instanceUniquePropertiesForEntity(entity);
     });
   }
 
@@ -404,7 +406,7 @@ class DataModelBuilder {
           candidate = candidates.first;
         }
         throw new ManagedDataModelException.missingInverse(
-            owningEntity, property.simpleName, destinationEntity, candidate.simpleName);
+            owningEntity, property.simpleName, destinationEntity, candidate?.simpleName);
       }
 
       if (deferredCandidates.length > 1) {
@@ -417,5 +419,39 @@ class DataModelBuilder {
 
       return deferredCandidates.first;
     }
+  }
+
+  List<ManagedPropertyDescription> instanceUniquePropertiesForEntity(ManagedEntity entity) {
+    ManagedTableAttributes tableAttributes = entity.persistentType.metadata
+        .firstWhere((im) => im.type.isSubtypeOf(reflectType(ManagedTableAttributes)),
+          orElse: () => null)?.reflectee;
+
+    if (tableAttributes?.uniqueProperties != null) {
+      if (tableAttributes.uniqueProperties.length == 0) {
+        throw new ManagedDataModelException.emptyEntityUniqueProperties(entity);
+      } else if (tableAttributes.uniqueProperties.length == 1) {
+        throw new ManagedDataModelException.singleEntityUniqueProperty(
+            entity, tableAttributes.uniqueProperties.first);
+      }
+
+      return tableAttributes
+          .uniqueProperties
+          .map((sym) {
+            var prop = entity.properties[MirrorSystem.getName(sym)];
+            if (prop == null) {
+              throw new ManagedDataModelException.invalidEntityUniqueProperty(entity, sym);
+            }
+
+            if (prop is ManagedRelationshipDescription
+            && prop.relationshipType != ManagedRelationshipType.belongsTo) {
+              throw new ManagedDataModelException.relationshipEntityUniqueProperty(entity, sym);
+            }
+
+            return prop;
+          })
+          .toList();
+    }
+
+    return null;
   }
 }
