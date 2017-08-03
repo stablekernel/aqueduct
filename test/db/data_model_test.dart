@@ -530,6 +530,14 @@ void main() {
       expect(e.uniquePropertySet.contains(e.properties["b"]), true);
     });
 
+    test("Add ManagedTableAttributes to persistent type with unique list makes instances unique for those columns, where column is foreign key relationship", () {
+      var dm = new ManagedDataModel([MultiUniqueBelongsTo, MultiUniqueHasA]);
+      var e = dm.entityForType(MultiUniqueBelongsTo);
+      expect(e.unique.length, 2);
+      expect(e.unique.contains(e.properties["rel"]), true);
+      expect(e.unique.contains(e.properties["b"]), true);
+    });
+
     test("Add ManagedTableAttributes to persistent type with only single element in unique list throws exception, warns to use ManagedColumnAttributes", () {
       try {
         new ManagedDataModel([MultiUniqueFailureSingleElement]);
@@ -1037,7 +1045,6 @@ class _MultiUniqueFailureRelationshipInverse {
   @ManagedRelationship(#a)
   MultiUniqueFailureRelationship rel;
 }
-<<<<<<< HEAD
 
 class MultiUniqueBelongsTo extends ManagedObject<_MultiUniqueBelongsTo> {}
 @ManagedTableAttributes.unique(const [#rel, #b])
@@ -1058,5 +1065,3 @@ class _MultiUniqueHasA {
 
   MultiUniqueBelongsTo a;
 }
-=======
->>>>>>> Adding some tests
