@@ -1,13 +1,39 @@
 import 'managed.dart';
 import '../query/query.dart';
 
-
+/// Metadata to configure underlying table of [ManagedObject] persistent type.
+///
+/// Adding this metadata to a persistent type (`T` in `ManagedObject<T>`) configures the behavior of the underlying table.
+/// For example:
+///
+///         class User extends ManagedObject<_User> implements _User {}
+///
+///         @ManagedTableAttributes(unique: const [#name, #email]);
+///         class _User {
+///           @managedPrimaryKey
+///           int id;
+///
+///           String name;
+///           String email;
+///         }
 class ManagedTableAttributes {
+  /// Metadata for persistent type.
+  ///
+  /// See also [ManagedTableAttributes.unique].
   const ManagedTableAttributes({List<Symbol> unique})
     : uniqueProperties = unique;
 
+  /// Configures each instance of associated persistent type to be unique for [unique].
+  ///
+  /// Adding this metadata to a persistent type requires that all instances of this type
+  /// must be unique for the properties in [unique]. [unique] must contain symbolic names of
+  /// properties declared in the persistent type, and those properties must be either attributes
+  /// or belongs-to relationship properties.
   const ManagedTableAttributes.unique(List<Symbol> unique) : this(unique: unique);
 
+  /// Each instance of the associated persistent type is unique for these properties.
+  ///
+  /// Null if not set.
   final List<Symbol> uniqueProperties;
 }
 
@@ -26,7 +52,7 @@ enum ManagedRelationshipDeleteRule {
   setDefault
 }
 
-/// Metadata for a [ManagedObject] property that requests the property be backed by a foreign key column in a database.
+/// Metadata to configure property of [ManagedObject] as a foreign key column.
 ///
 /// A property in a [ManagedObject]'s persistent type with this metadata will map to a database column
 /// that has a foreign key reference to the related [ManagedObject]. Relationships are made up of two [ManagedObject]s, where each
@@ -82,8 +108,10 @@ enum ManagedRelationshipType {
   belongsTo
 }
 
-/// Marks a property as a primary key, database type big integer, and autoincrementing. The corresponding property
-/// type must be [int]. It is assumed that the underlying database indexes and uniques the backing column.
+/// Metadata to mark a property as a primary key.
+///
+/// This is a convenience for primary key, database type big integer, and autoincrementing. The corresponding property
+/// type must be [int]. The underlying database indexes and uniques the backing column.
 const ManagedColumnAttributes managedPrimaryKey = const ManagedColumnAttributes(
     primaryKey: true,
     databaseType: ManagedPropertyType.bigInteger,
