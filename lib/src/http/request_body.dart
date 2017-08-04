@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'http.dart';
 import 'body_decoder.dart';
@@ -19,17 +20,70 @@ class HTTPRequestBody extends HTTPBodyDecoder {
   /// Decoded data is cached the after it is decoded.
   HTTPRequestBody(HttpRequest request)
       : this._request = request,
-        super(request) {
-    _hasContent = (request.headers.contentLength ?? 0) > 0
-        || request.headers.chunkedTransferEncoding;
-  }
+        this._originalByteStream = request,
+        super(request);
+
+  /// The maximum size of a request body.
+  ///
+  /// A request with a body larger than this size will be rejected. Value is in bytes. Defaults to 10MB (1024 * 1024 * 10).
+  static int maxSize = 1024 * 1024 * 10;
 
   final HttpRequest _request;
-  bool _hasContent;
+  bool get _hasContent => _hasContentLength || _request.headers.chunkedTransferEncoding;
+  bool get _hasContentLength => (_request.headers.contentLength ?? 0) > 0;
+
+  @override
+  Stream<List<int>> get bytes {
+    // If content-length is specified, then we can check it for maxSize
+    // and just return the original stream.
+    if (_hasContentLength) {
+      if (_request.headers.contentLength > maxSize) {
+        throw new HTTPBodyDecoderException(
+            "entity length exceeds maximum",
+            statusCode: HttpStatus.REQUEST_ENTITY_TOO_LARGE);
+      }
+
+      return _originalByteStream;
+    }
+
+    // If content-length is not specified (e.g., chunked),
+    // then we need to check how many bytes we've read to ensure we haven't
+    // crossed maxSize
+    if (_bufferingController == null) {
+      _bufferingController = new StreamController<List<int>>(sync: true);
+
+      _originalByteStream.listen((chunk) {
+        _bytesRead += chunk.length;
+        if (_bytesRead > maxSize) {
+          var exception = new HTTPBodyDecoderException(
+              "entity length exceeds maximum",
+              statusCode: HttpStatus.REQUEST_ENTITY_TOO_LARGE);
+          _bufferingController.addError(exception);
+          _bufferingController.close();
+          return;
+        }
+
+        _bufferingController.add(chunk);
+      }, onDone: () {
+        _bufferingController.close();
+      }, onError: (e, st) {
+        if (!_bufferingController.isClosed) {
+          _bufferingController.addError(e, st);
+          _bufferingController.close();
+        }
+      }, cancelOnError: true);
+    }
+
+    return _bufferingController.stream;
+  }
 
   @override
   ContentType get contentType => _request.headers.contentType;
 
   @override
   bool get isEmpty => !_hasContent;
+
+  final Stream<List<int>> _originalByteStream;
+  StreamController<List<int>> _bufferingController;
+  int _bytesRead = 0;
 }

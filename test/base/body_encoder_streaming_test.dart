@@ -7,6 +7,12 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 void main() {
+  var defaultSize = HTTPRequestBody.maxSize;
+  setUp(() {
+    // Revert back to default before each test
+    HTTPRequestBody.maxSize = defaultSize;
+  });
+
   group("Unencoded list of bytes", () {
     HttpServer server;
 
@@ -270,6 +276,116 @@ void main() {
       await sc.close();
 
       expect(serverHasNoMoreConnections(server), completes);
+    });
+  });
+
+  group("Entity too large", () {
+    HttpServer server;
+    HttpClient client;
+
+    setUp(() async {
+      client = new HttpClient();
+      server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 8123);
+      server.idleTimeout = new Duration(seconds: 1);
+    });
+
+    tearDown(() async {
+      client.close(force: true);
+      await server?.close(force: true);
+    });
+
+    /*
+      There is a different set of expectations when running on macOS.
+
+      On macOS, when the client request is sending data and the server decides to terminate the connection,
+      the client will get a 'EPROTOTYPE' socket error (most of the time). This occurs when the client tries
+      to send data while the socket is in the process of being torn down. Since the server will kill the
+      socket when it realizes too much data is being sent, the client throws an exception and doesn't
+      get back the response.
+     */
+
+    test("Entity with known content-type that is too large is rejected, chunked", () async {
+      HTTPRequestBody.maxSize = 8193;
+
+      var controller = new RequestController()
+        ..listen((req) async {
+          var body = await req.body.decodeAsMap();
+          return new Response.ok(body);
+        });
+      server.listen((req) {
+        controller.receive(new Request(req));
+      });
+
+      var req = await client.postUrl(Uri.parse("http://localhost:8123"));
+      req.headers.add(HttpHeaders.CONTENT_TYPE, "application/json; charset=utf-8");
+      var body = {
+        "key": new List.generate(8192 * 50, (_) => "a").join(" ")
+      };
+      req.add(UTF8.encode(JSON.encode(body)));
+
+      try {
+        var response = await req.close();
+        if (Platform.isMacOS) {
+          fail("Should not complete on macOS, see comment above tests");
+        } else {
+          expect(response.statusCode, 413);
+        }
+      } on SocketException catch (e) {
+        if (!Platform.isMacOS) {
+          rethrow;
+        }
+      }
+
+      expect(serverHasNoMoreConnections(server), completes);
+
+      // Make sure we can still send some more requests;
+      req = await client.postUrl(Uri.parse("http://localhost:8123"));
+      req.headers.add(HttpHeaders.CONTENT_TYPE, "application/json; charset=utf-8");
+      body = {
+        "key": "a"
+      };
+      req.add(UTF8.encode(JSON.encode(body)));
+      var response = await req.close();
+      expect(JSON.decode(UTF8.decode(await response.first)), {"key": "a"});
+    });
+
+    test("Entity with unknown content-type that is too large is rejected, chunked", () async {
+      HTTPRequestBody.maxSize = 8193;
+
+      var controller = new RequestController()
+        ..listen((req) async {
+          var body = await req.body.decodedData;
+          return new Response.ok(body)..contentType = new ContentType("application", "octet-stream");
+        });
+      server.listen((req) {
+        controller.receive(new Request(req));
+      });
+
+      var req = await client.postUrl(Uri.parse("http://localhost:8123"));
+      req.headers.add(HttpHeaders.CONTENT_TYPE, "application/octet-stream");
+      req.add(new List.generate(8192 * 100, (_) => 1));
+
+      try {
+        var response = await req.close();
+        if (Platform.isMacOS) {
+          fail("Should not complete on macOS, see comment above tests");
+        } else {
+          expect(response.statusCode, 413);
+        }
+      } on SocketException catch (e) {
+        if (!Platform.isMacOS) {
+          rethrow;
+        }
+      }
+
+      expect(serverHasNoMoreConnections(server), completes);
+
+      // Make sure we can still send some more requests;
+      req = await client.postUrl(Uri.parse("http://localhost:8123"));
+      req.headers.add(HttpHeaders.CONTENT_TYPE, "application/octet-stream");
+      req.add([1, 2, 3, 4]);
+      var response = await req.close();
+      expect(await response.toList(), [[1, 2, 3, 4]]);
     });
   });
 }

@@ -1,5 +1,9 @@
 # aqueduct changelog
 
+## 2.4.0
+
+- Adds `HTTPRequestBody.maxSize` to limit HTTP request body sizes. Defaults to 10MB.
+
 ## 2.3.2
 
 - Adds `Request.addResponseModifier` to allow middleware to modify responses.
