@@ -6,13 +6,13 @@ In Aqueduct, HTTP requests and responses are instances of `Request` and `Respons
 
 An instance of `Request` represents an HTTP request. They are automatically created when the application receives a request and are delivered to your application's `RequestSink`. A `Request` is a wrapper around the Dart standard library `HttpRequest` and its values - such as headers - can be accessed through its `innerRequest`. (Just don't write to its `response` - Aqueduct does that.)
 
-A `Request` has a `body` property. This property decodes the HTTP request body into Dart objects based on the request's content type. The mechanism to decode the body is determined by `HTTPCodecRepository`, which is covered in more detail in a later section. By default, decoders exist for text, JSON and form data.
+A `Request` has a `body` property. This property decodes the HTTP request body into Dart objects based on the request's content type. The mechanism to decode the body is determined by `HTTPCodecRepository`, which is covered in more detail in a later section. By default, decoders exist for text, JSON and form data. The size of a request body is limited to 10MB by default and can be changed by setting the value of `HTTPRequestBody.maxSize` during application initialization.
 
 A `Request` may go through many `RequestController`s before it is finally responded to. These `RequestController`s may validate or add more information to the request as it passes through. For example, an `Authorizer` - a subclass of `RequestController` - will validate the Authorization header of a request. Once validated, it will add authorization info to the request - like the user for an OAuth 2.0 bearer token - and pass it to the next `RequestController`. The next controller in the channel has access to the authorization info without having to fetch the information again.
 
 These additional values are added to a `Request`'s `attachments` property. A `Request` also has two built-in attachments, `authorization` and `path`. `authorization` contains authorization information created by an `Authorizer` and `path` has request path information created by a `Router`.
 
-`Request`s are responded to by returning an instance of `Response` from a `RequestController` (see [RequestControllers](request_controller.md)).
+`Request`s are responded to by returning an instance of `Response` from a `RequestController` (see [RequestControllers](request_controller.md)). Controllers that don't create the eventual response can still modify that response by invoking `addResponseModifier`.
 
 ## Response Objects and HTTP Body Encoding
 
