@@ -49,7 +49,7 @@ class DataModelBuilder {
         }
       });
 
-      entity.unique = instanceUniquePropertiesForEntity(entity);
+      entity.uniquePropertySet = instanceUniquePropertiesForEntity(entity);
     });
   }
 
@@ -426,16 +426,16 @@ class DataModelBuilder {
         .firstWhere((im) => im.type.isSubtypeOf(reflectType(ManagedTableAttributes)),
           orElse: () => null)?.reflectee;
 
-    if (tableAttributes?.uniqueProperties != null) {
-      if (tableAttributes.uniqueProperties.length == 0) {
+    if (tableAttributes?.uniquePropertySet != null) {
+      if (tableAttributes.uniquePropertySet.length == 0) {
         throw new ManagedDataModelException.emptyEntityUniqueProperties(entity);
-      } else if (tableAttributes.uniqueProperties.length == 1) {
+      } else if (tableAttributes.uniquePropertySet.length == 1) {
         throw new ManagedDataModelException.singleEntityUniqueProperty(
-            entity, tableAttributes.uniqueProperties.first);
+            entity, tableAttributes.uniquePropertySet.first);
       }
 
       return tableAttributes
-          .uniqueProperties
+          .uniquePropertySet
           .map((sym) {
             var prop = entity.properties[MirrorSystem.getName(sym)];
             if (prop == null) {

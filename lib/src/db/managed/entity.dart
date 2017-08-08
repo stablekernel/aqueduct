@@ -98,13 +98,13 @@ class ManagedEntity {
   /// Set of properties that, together, are unique for each instance of this entity.
   ///
   /// If non-null, each instance of this entity is unique for the combination of values
-  /// for these properties. Instances may have the same values for each property in [unique],
-  /// but cannot have the same value for all properties in [unique]. This differs from setting
+  /// for these properties. Instances may have the same values for each property in [uniquePropertySet],
+  /// but cannot have the same value for all properties in [uniquePropertySet]. This differs from setting
   /// a single property as unique with [ManagedColumnAttributes], where each instance has
   /// a unique value for that property.
   ///
   /// This value is set by adding [ManagedTableAttributes] to the persistent type of a [ManagedObject].
-  List<ManagedPropertyDescription> unique;
+  List<ManagedPropertyDescription> uniquePropertySet;
 
   /// List of [ManagedValidator]s for attributes of this entity.
   ///
