@@ -415,6 +415,7 @@ void main() {
 
       var newSchema = new Schema.from(baseSchema);
       newSchema.tableForName("_Unique").uniqueColumnSet = ["b", "a"];
+
       var diff = baseSchema.differenceFrom(newSchema);
       expect(diff.hasDifferences, false);
     });

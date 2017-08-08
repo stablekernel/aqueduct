@@ -251,6 +251,7 @@ class SchemaTableDifference {
       if (!_equalListElements(expectedTable.uniqueColumnSet, actualTable.uniqueColumnSet)) {
         var expectedColumns = expectedTable.uniqueColumnSet.map((c) => "'$c'").join(", ");
         var actualColumns = actualTable.uniqueColumnSet.map((c) => "'$c'").join(", ");
+
         return "Multi-column unique constraint on table '${expectedTable.name}' "
             "is expected to be for properties $expectedColumns, but is actually $actualColumns";
       }
