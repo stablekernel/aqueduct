@@ -131,7 +131,6 @@ void main() {
     expect(schema.differenceFrom(expectedSchema).hasDifferences, false);
   });
 
-
   test("Alter column, just one statement", () async {
     var existingTable = new SchemaTable("foo", [
       new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
@@ -158,6 +157,63 @@ void main() {
     var response = await runSource(source, existingSchema);
     var schema = new Schema.fromMap(response);
     expect(schema.differenceFrom(expectedSchema).hasDifferences, false);
+  });
+
+  test("Create table with uniqueSet", () async {
+    var expectedTable = new SchemaTable("foo", [
+      new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
+      new SchemaColumn("a", ManagedPropertyType.string),
+      new SchemaColumn("b", ManagedPropertyType.string),
+    ], uniqueColumnSet: ["a", "b"]);
+
+    var commands = [
+      MigrationBuilder.createTableString(expectedTable, "")
+    ];
+    var source = sourceForSchemaUpgrade(new Schema.empty(), commands);
+    print(source);
+    var response = await runSource(source, new Schema([]));
+
+    var schema = new Schema.fromMap(response);
+
+    expect(schema.tables.length, 1);
+    expect(expectedTable.differenceFrom(schema.tables.first).hasDifferences, false);
+  });
+
+  test("Alter table to add uniqueSet", () async {
+    var existingTable = new SchemaTable("foo", [
+      new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
+      new SchemaColumn("a", ManagedPropertyType.string),
+      new SchemaColumn("b", ManagedPropertyType.string),
+    ]);
+    var existingSchema = new Schema([
+      existingTable
+    ]);
+
+    var alteredTable = new SchemaTable.from(existingTable)
+      ..uniqueColumnSet = ["a", "b"];
+
+    var commands = [
+      MigrationBuilder.alterTableString("foo", alteredTable)
+      MigrationBuilder.alterColumnString("foo", existingTable.columnForName("loaded"), alteredColumn, "")
+    ];
+
+    var expectedTable = new SchemaTable("foo", [
+      new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
+      alteredColumn
+    ]);
+    var expectedSchema = new Schema([expectedTable]);
+    var source = sourceForSchemaUpgrade(existingSchema, commands);
+    var response = await runSource(source, existingSchema);
+    var schema = new Schema.fromMap(response);
+    expect(schema.differenceFrom(expectedSchema).hasDifferences, false);
+  });
+
+  test("Alter table to remove uniqueSet", () async {
+
+  });
+
+  test("Alter table to modify uniqueSet", () async {
+
   });
 }
 

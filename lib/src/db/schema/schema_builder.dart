@@ -68,6 +68,21 @@ class SchemaBuilder {
     }
   }
 
+  void alterTable(String tableName, void modify(SchemaTable targetTable)) {
+    var table = schema.tableForName(tableName);
+    if (table == null) {
+      throw new SchemaException("Table $tableName does not exist.");
+    }
+
+    var newTable = new SchemaTable.from(table);
+    modify(newTable);
+
+    if (store != null) {
+      // store.addTableUnique
+      // store.deleteTableUnique
+    }
+  }
+
   /// Validates and adds a column to a table in [schema].
   void addColumn(String tableName, SchemaColumn column, {String unencodedInitialValue}) {
     var table = schema.tableForName(tableName);

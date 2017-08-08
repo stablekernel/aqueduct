@@ -67,9 +67,16 @@ class MigrationBuilder {
     builder.writeln(
         '${spaceOffset}database.createTable(new SchemaTable("${table.name}", [');
     table.columns.forEach((col) {
-      builder.writeln("$spaceOffset${_newColumnString(col, "  ")},");
+      builder.writeln("$spaceOffset    ${_newColumnString(col, "  ")},");
     });
-    builder.writeln('$spaceOffset]));');
+    builder.writeln("$spaceOffset  ],");
+
+    if (table.uniqueColumnSet != null) {
+      var set = table.uniqueColumnSet.map((p) => '"$p"').join(",");
+      builder.writeln("${spaceOffset}  uniqueColumnSet: [$set],");
+    }
+
+    builder.writeln('$spaceOffset));');
 
     return builder.toString();
   }
@@ -81,6 +88,16 @@ class MigrationBuilder {
         '${spaceOffset}database.deleteTable("$tableName");');
 
     return builder.toString();
+  }
+
+  static String alterTableString(SchemaTable previousTable, SchemaTable updatedTable, String spaceOffset) {
+    var builder = new StringBuffer();
+
+    if ((previousTable.uniqueColumnSet == null && updatedTable.uniqueColumnSet != null)
+    || (previousTable.uniqueColumnSet != null && updatedTable.uniqueColumnSet == null)) {
+
+    } else if (previousTable.uniqueColumnSet)
+
   }
 
   static String addColumnString(String tableName, SchemaColumn column, String spaceOffset) {
