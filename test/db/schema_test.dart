@@ -10,7 +10,7 @@ void main() {
       var t = schema.tables.first;
 
       expect(t.name, "_SimpleModel");
-      expect(t.uniqueForColumns, isNull);
+      expect(t.uniqueColumnSet, isNull);
       var tableColumns = t.columns;
       expect(tableColumns.length, 1);
       expect(tableColumns.first.asMap(), {
@@ -38,7 +38,7 @@ void main() {
 
       var table = schema.tables.first;
       expect(table.name, "_ExtensiveModel");
-      expect(table.uniqueForColumns, isNull);
+      expect(table.uniqueColumnSet, isNull);
 
       var columns = table.columns;
       expect(columns.length, 8);
@@ -177,7 +177,7 @@ void main() {
       var containerTable =
           schema.tables.firstWhere((t) => t.name == "_Container");
       expect(containerTable.name, "_Container");
-      expect(containerTable.uniqueForColumns, isNull);
+      expect(containerTable.uniqueColumnSet, isNull);
       var containerColumns = containerTable.columns;
       expect(containerColumns.length, 1);
       expect(containerColumns.first.asMap(), {
@@ -197,7 +197,7 @@ void main() {
       var defaultItemTable =
           schema.tables.firstWhere((t) => t.name == "_DefaultItem");
       expect(defaultItemTable.name, "_DefaultItem");
-      expect(defaultItemTable.uniqueForColumns, isNull);
+      expect(defaultItemTable.uniqueColumnSet, isNull);
       var defaultItemColumns = defaultItemTable.columns;
       expect(defaultItemColumns.length, 2);
       expect(defaultItemColumns.first.asMap(), {
@@ -229,7 +229,7 @@ void main() {
 
       var loadedItemTable =
           schema.tables.firstWhere((t) => t.name == "_LoadedItem");
-      expect(loadedItemTable.uniqueForColumns, isNull);
+      expect(loadedItemTable.uniqueColumnSet, isNull);
       expect(loadedItemTable.name, "_LoadedItem");
       var loadedColumns = loadedItemTable.columns;
       expect(loadedColumns.length, 3);
@@ -275,7 +275,7 @@ void main() {
 
       var loadedSingleItemTable =
           schema.tables.firstWhere((t) => t.name == "_LoadedSingleItem");
-      expect(loadedSingleItemTable.uniqueForColumns, isNull);
+      expect(loadedSingleItemTable.uniqueColumnSet, isNull);
       expect(loadedSingleItemTable.name, "_LoadedSingleItem");
       var loadedSingleColumns = loadedSingleItemTable.columns;
       expect(loadedSingleColumns.length, 2);
@@ -315,7 +315,7 @@ void main() {
       var schema = new Schema.fromDataModel(dataModel);
       expect(schema.tables.length, 1);
       expect(schema.tables.first.name, "_Unique");
-      expect(schema.tables.first.uniqueForColumns, ["a", "b"]);
+      expect(schema.tables.first.uniqueColumnSet, ["a", "b"]);
 
       var tableMap = schema.asMap()["tables"].first;
       expect(tableMap["name"], "_Unique");
@@ -390,7 +390,7 @@ void main() {
 
     test("Table with different unique shows up as error", () {
       var newSchema = new Schema.from(baseSchema);
-      newSchema.tableForName("_Unique").uniqueForColumns = ["a", "b", "c"];
+      newSchema.tableForName("_Unique").uniqueColumnSet = ["a", "b", "c"];
       var diff = baseSchema.differenceFrom(newSchema);
       expect(diff.hasDifferences, true);
       expect(diff.errorMessages.length, 1);
@@ -400,7 +400,7 @@ void main() {
           contains(contains("'a', 'b', 'c'")));
 
       newSchema = new Schema.from(baseSchema);
-      newSchema.tableForName("_Unique").uniqueForColumns = ["a", "c"];
+      newSchema.tableForName("_Unique").uniqueColumnSet = ["a", "c"];
       diff = baseSchema.differenceFrom(newSchema);
       expect(diff.hasDifferences, true);
       expect(diff.errorMessages.length, 1);
@@ -411,24 +411,24 @@ void main() {
     });
 
     test("Table with same unique, but unordered, shows as equal", () {
-      expect(baseSchema.tableForName("_Unique").uniqueForColumns, ["a", "b"]);
+      expect(baseSchema.tableForName("_Unique").uniqueColumnSet, ["a", "b"]);
 
       var newSchema = new Schema.from(baseSchema);
-      newSchema.tableForName("_Unique").uniqueForColumns = ["b", "a"];
+      newSchema.tableForName("_Unique").uniqueColumnSet = ["b", "a"];
       var diff = baseSchema.differenceFrom(newSchema);
       expect(diff.hasDifferences, false);
     });
 
     test("Table with no unique/unique show up as error", () {
       var newSchema = new Schema.from(baseSchema);
-      newSchema.tableForName("_Unique").uniqueForColumns = null;
+      newSchema.tableForName("_Unique").uniqueColumnSet = null;
       var diff = baseSchema.differenceFrom(newSchema);
       expect(diff.hasDifferences, true);
       expect(diff.errorMessages, contains(contains("NOT created by migration files")));
       expect(diff.errorMessages, contains(contains("Multi-column unique constraint on table '_Unique'")));
 
       var nextSchema = new Schema.from(newSchema);
-      nextSchema.tableForName("_Unique").uniqueForColumns = ["a", "b"];
+      nextSchema.tableForName("_Unique").uniqueColumnSet = ["a", "b"];
       diff = newSchema.differenceFrom(nextSchema);
       expect(diff.hasDifferences, true);
       expect(diff.errorMessages, contains(contains("is created by migration files")));

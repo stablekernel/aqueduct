@@ -21,14 +21,14 @@ class SchemaTable {
         .map((p) => new SchemaColumn.fromEntity(entity, p))
         .toList();
 
-    uniqueForColumns = entity.uniquePropertySet?.map((p) => p.name)?.toList();
+    uniqueColumnSet = entity.uniquePropertySet?.map((p) => p.name)?.toList();
   }
 
   SchemaTable.from(SchemaTable otherTable) {
     name = otherTable.name;
     columns =
         otherTable.columns.map((col) => new SchemaColumn.from(col)).toList();
-    _uniqueForColumns = otherTable._uniqueForColumns;
+    _uniqueColumnSet = otherTable._uniqueColumnSet;
   }
 
   SchemaTable.empty();
@@ -38,16 +38,16 @@ class SchemaTable {
     columns = (map["columns"] as List<Map<String, dynamic>>)
         .map((c) => new SchemaColumn.fromMap(c))
         .toList();
-    uniqueForColumns = map["unique"];
+    uniqueColumnSet = map["unique"];
   }
 
   String name;
 
-  List<String> _uniqueForColumns;
-  List<String> get uniqueForColumns => _uniqueForColumns;
-  set uniqueForColumns(List<String> columns) {
-    _uniqueForColumns = columns;
-    _uniqueForColumns?.sort((String a, String b) => a.compareTo(b));
+  List<String> _uniqueColumnSet;
+  List<String> get uniqueColumnSet => _uniqueColumnSet;
+  set uniqueColumnSet(List<String> columns) {
+    _uniqueColumnSet = columns;
+    _uniqueColumnSet?.sort((String a, String b) => a.compareTo(b));
   }
   List<SchemaColumn> columns;
 
@@ -145,7 +145,7 @@ class SchemaTable {
     return {
       "name": name,
       "columns": columns.map((c) => c.asMap()).toList(),
-      "unique": uniqueForColumns
+      "unique": uniqueColumnSet
     };
   }
 

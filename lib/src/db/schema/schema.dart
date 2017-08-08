@@ -241,16 +241,16 @@ class SchemaTableDifference {
   bool get _hasUniqueColumnDifferences => _uniqueColumnDifference != null;
 
   String get _uniqueColumnDifference {
-    if (expectedTable.uniqueForColumns == null && actualTable.uniqueForColumns != null) {
+    if (expectedTable.uniqueColumnSet == null && actualTable.uniqueColumnSet != null) {
       return "Multi-column unique constraint on table '${expectedTable.name}' "
           "should NOT exist, but is created by migration files.";
-    } else if (expectedTable.uniqueForColumns != null && actualTable.uniqueForColumns == null) {
+    } else if (expectedTable.uniqueColumnSet != null && actualTable.uniqueColumnSet == null) {
       return "Multi-column unique constraint on table '${expectedTable.name}' "
           "should exist, but it is NOT created by migration files.";
-    } else if (expectedTable.uniqueForColumns != null && actualTable.uniqueForColumns != null) {
-      if (!_equalListElements(expectedTable.uniqueForColumns, actualTable.uniqueForColumns)) {
-        var expectedColumns = expectedTable.uniqueForColumns.map((c) => "'$c'").join(", ");
-        var actualColumns = actualTable.uniqueForColumns.map((c) => "'$c'").join(", ");
+    } else if (expectedTable.uniqueColumnSet != null && actualTable.uniqueColumnSet != null) {
+      if (!_equalListElements(expectedTable.uniqueColumnSet, actualTable.uniqueColumnSet)) {
+        var expectedColumns = expectedTable.uniqueColumnSet.map((c) => "'$c'").join(", ");
+        var actualColumns = actualTable.uniqueColumnSet.map((c) => "'$c'").join(", ");
         return "Multi-column unique constraint on table '${expectedTable.name}' "
             "is expected to be for properties $expectedColumns, but is actually $actualColumns";
       }
