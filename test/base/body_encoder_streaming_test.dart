@@ -330,7 +330,7 @@ void main() {
         } else {
           expect(response.statusCode, 413);
         }
-      } on SocketException catch (e) {
+      } on SocketException catch (_) {
         if (!Platform.isMacOS) {
           rethrow;
         }
@@ -372,7 +372,7 @@ void main() {
         } else {
           expect(response.statusCode, 413);
         }
-      } on SocketException catch (e) {
+      } on SocketException catch (_) {
         if (!Platform.isMacOS) {
           rethrow;
         }

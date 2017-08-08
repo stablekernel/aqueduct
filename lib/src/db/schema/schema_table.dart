@@ -21,7 +21,7 @@ class SchemaTable {
         .map((p) => new SchemaColumn.fromEntity(entity, p))
         .toList();
 
-    uniqueForColumns = entity.unique?.map((p) => p.name)?.toList();
+    uniqueForColumns = entity.uniquePropertySet?.map((p) => p.name)?.toList();
   }
 
   SchemaTable.from(SchemaTable otherTable) {
