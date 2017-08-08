@@ -20,12 +20,15 @@ class SchemaTable {
     columns = validProperties
         .map((p) => new SchemaColumn.fromEntity(entity, p))
         .toList();
+
+    uniqueForColumns = entity.unique?.map((p) => p.name)?.toList();
   }
 
   SchemaTable.from(SchemaTable otherTable) {
     name = otherTable.name;
     columns =
         otherTable.columns.map((col) => new SchemaColumn.from(col)).toList();
+    _uniqueForColumns = otherTable._uniqueForColumns;
   }
 
   SchemaTable.empty();
@@ -35,9 +38,17 @@ class SchemaTable {
     columns = (map["columns"] as List<Map<String, dynamic>>)
         .map((c) => new SchemaColumn.fromMap(c))
         .toList();
+    uniqueForColumns = map["unique"];
   }
 
   String name;
+
+  List<String> _uniqueForColumns;
+  List<String> get uniqueForColumns => _uniqueForColumns;
+  set uniqueForColumns(List<String> columns) {
+    _uniqueForColumns = columns;
+    _uniqueForColumns?.sort((String a, String b) => a.compareTo(b));
+  }
   List<SchemaColumn> columns;
 
   SchemaColumn operator [](String columnName) => columnForName(columnName);
@@ -131,7 +142,11 @@ class SchemaTable {
   }
 
   Map<String, dynamic> asMap() {
-    return {"name": name, "columns": columns.map((c) => c.asMap()).toList()};
+    return {
+      "name": name,
+      "columns": columns.map((c) => c.asMap()).toList(),
+      "unique": uniqueForColumns
+    };
   }
 
   @override
