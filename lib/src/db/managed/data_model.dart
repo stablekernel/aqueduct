@@ -241,6 +241,36 @@ class ManagedDataModelException implements Exception {
         "has invalid validator for property '$property'. Reason: $reason");
   }
 
+  factory ManagedDataModelException.emptyEntityUniqueProperties(
+      ManagedEntity entity) {
+    return new ManagedDataModelException("Type '${_getPersistentClassName(entity)}' "
+        "has empty set for unique 'ManagedTableAttributes'. Must contain two or "
+        "more attributes (or belongs-to relationship properties).");
+  }
+
+  factory ManagedDataModelException.singleEntityUniqueProperty(
+      ManagedEntity entity, Symbol property) {
+    return new ManagedDataModelException("Type '${_getPersistentClassName(entity)}' "
+        "has only one attribute for unique 'ManagedTableAttributes'. Must contain two or "
+        "more attributes (or belongs-to relationship properties). To make this property unique, "
+        "add 'ManagedColumnAttributes(unique: true)' to declaration of '${_getName(property)}'.");
+  }
+
+  factory ManagedDataModelException.invalidEntityUniqueProperty(
+      ManagedEntity entity, Symbol property) {
+    return new ManagedDataModelException("Type '${_getPersistentClassName(entity)}' "
+        "declares '${MirrorSystem.getName(property)}' as unique in 'ManagedTableAttributes', "
+        "but '${MirrorSystem.getName(property)}' is not a property of this type.");
+  }
+
+  factory ManagedDataModelException.relationshipEntityUniqueProperty(
+      ManagedEntity entity, Symbol property) {
+    return new ManagedDataModelException("Type '${_getPersistentClassName(entity)}' "
+        "declares '${_getName(property)}' as unique in 'ManagedTableAttributes'. This property cannot "
+        "be used to make an instance unique; only attributes or belongs-to relationships may used "
+        "in this way.");
+  }
+
   static String _getPersistentClassName(ManagedEntity entity) =>
       _getName(entity?.persistentType?.simpleName);
 
