@@ -120,11 +120,6 @@ class PasswordVerifier extends AuthValidator {
   Future<Authorization> fromBearerToken(String bearerToken, {List<AuthScope> scopesRequired}) {
     throw new HTTPResponseException(400, "Use basic authorization");
   }
-
-  @override
-  List<APISecurityRequirement> requirementsForStrategy(AuthStrategy strategy) {
-    return [];
-  }
 }
 ```
 
