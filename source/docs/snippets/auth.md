@@ -107,16 +107,23 @@ class AppSink extends RequestSink {
 }
 
 class PasswordVerifier extends AuthValidator {
-  Future<Authorization> fromBasicCredentials(AuthBasicCredentials credentials) {
-    if (!isPasswordCorrect(credentials)) {
+  @override
+  Future<Authorization> fromBasicCredentials(AuthBasicCredentials usernameAndPassword) async {
+    if (!isPasswordCorrect(usernameAndPassword)) {
       return null;
     }
 
-    return new Authorization(null, credentials.username, this);
+    return new Authorization(null, usernameAndPassword.username, this);
   }
 
-  Future<Authorization> fromBearerToken(String bearerToken) {
+  @override
+  Future<Authorization> fromBearerToken(String bearerToken, {List<AuthScope> scopesRequired}) {
     throw new HTTPResponseException(400, "Use basic authorization");
+  }
+
+  @override
+  List<APISecurityRequirement> requirementsForStrategy(AuthStrategy strategy) {
+    return [];
   }
 }
 ```
