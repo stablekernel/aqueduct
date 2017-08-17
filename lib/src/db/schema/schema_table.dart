@@ -5,8 +5,8 @@ import '../managed/managed.dart';
 ///
 /// Use this class during migration to add, delete and modify tables in a schema.
 class SchemaTable {
-  SchemaTable(this.name, this.columns, {List<String> uniqueColumnSet}) {
-    this.uniqueColumnSet = uniqueColumnSet;
+  SchemaTable(this.name, this.columns, {List<String> uniqueColumnSetNames}) {
+    this.uniqueColumnSet = uniqueColumnSetNames;
   }
 
   SchemaTable.fromEntity(ManagedEntity entity) {

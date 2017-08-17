@@ -76,6 +76,8 @@ class SchemaBuilder {
 
     var newTable = new SchemaTable.from(table);
     modify(newTable);
+    schema.removeTable(table);
+    schema.addTable(newTable);
 
     if (store != null) {
       // store.addTableUnique

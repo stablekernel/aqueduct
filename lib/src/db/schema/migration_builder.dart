@@ -73,7 +73,7 @@ class MigrationBuilder {
 
     if (table.uniqueColumnSet != null) {
       var set = table.uniqueColumnSet.map((p) => '"$p"').join(",");
-      builder.writeln("${spaceOffset}  uniqueColumnSet: [$set],");
+      builder.writeln("${spaceOffset}  uniqueColumnSetNames: [$set],");
     }
 
     builder.writeln('$spaceOffset));');
@@ -93,11 +93,29 @@ class MigrationBuilder {
   static String alterTableString(SchemaTable previousTable, SchemaTable updatedTable, String spaceOffset) {
     var builder = new StringBuffer();
 
-    if ((previousTable.uniqueColumnSet == null && updatedTable.uniqueColumnSet != null)
-    || (previousTable.uniqueColumnSet != null && updatedTable.uniqueColumnSet == null)) {
+    builder.writeln(
+        '${spaceOffset}database.alterTable("${previousTable.name}", (table) {');
 
-    } else if (previousTable.uniqueColumnSet)
+    if (previousTable.uniqueColumnSet == null && updatedTable.uniqueColumnSet != null) {
+      var columnNames = updatedTable.uniqueColumnSet
+          .map((n) => '"$n"')
+          .join(",");
+      builder.writeln("${spaceOffset}  table.uniqueColumnSet = [$columnNames];");
+    } else if (previousTable.uniqueColumnSet != null && updatedTable.uniqueColumnSet == null) {
+      builder.writeln("${spaceOffset}  table.uniqueColumnSet = null;");
+    } else if (previousTable.uniqueColumnSet != null && updatedTable.uniqueColumnSet != null) {
+      if (previousTable.uniqueColumnSet.length != updatedTable.uniqueColumnSet.length
+      || !updatedTable.uniqueColumnSet.every((p) => previousTable.uniqueColumnSet.contains(p))) {
+        var columnNames = updatedTable.uniqueColumnSet
+            .map((n) => '"$n"')
+            .join(",");
+        builder.writeln("${spaceOffset}  table.uniqueColumnSet = [$columnNames];");
+      }
+    }
 
+    builder.writeln("});");
+
+    return builder.toString();
   }
 
   static String addColumnString(String tableName, SchemaColumn column, String spaceOffset) {
