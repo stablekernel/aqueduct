@@ -21,10 +21,16 @@ class PostgreSQLSchemaGenerator {
         .map((col) => _addConstraintsForColumn(table.name, col))
         .expand((commands) => commands);
 
+    var uniqueConstraint = <String>[];
+    if (table.uniqueColumnSet != null) {
+      uniqueConstraint = addTableUniqueColumnSet(table);
+    }
+
     return [
       [tableCommand],
       indexCommands,
-      constraintCommands
+      constraintCommands,
+      uniqueConstraint
     ].expand((cmds) => cmds).toList();
   }
 
@@ -35,6 +41,19 @@ class PostgreSQLSchemaGenerator {
 
   List<String> deleteTable(SchemaTable table) {
     return ["DROP TABLE ${table.name}"];
+  }
+
+  List<String> addTableUniqueColumnSet(SchemaTable table) {
+    var colNames = table.uniqueColumnSet.join(",");
+    return [
+      "CREATE UNIQUE INDEX ${table.name}_unique_idx ON ${table.name} ($colNames)"
+    ];
+  }
+
+  List<String> deleteTableUniqueColumnSet(SchemaTable table) {
+    return [
+      "DROP INDEX IF EXISTS ${table.name}_unique_idx"
+    ];
   }
 
   List<String> addColumn(SchemaTable table, SchemaColumn column, {String unencodedInitialValue}) {

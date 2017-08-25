@@ -69,19 +69,32 @@ class SchemaBuilder {
   }
 
   void alterTable(String tableName, void modify(SchemaTable targetTable)) {
-    var table = schema.tableForName(tableName);
-    if (table == null) {
+    var existingTable = schema.tableForName(tableName);
+    if (existingTable == null) {
       throw new SchemaException("Table $tableName does not exist.");
     }
 
-    var newTable = new SchemaTable.from(table);
+    var newTable = new SchemaTable.from(existingTable);
     modify(newTable);
-    schema.removeTable(table);
+    schema.removeTable(existingTable);
     schema.addTable(newTable);
 
     if (store != null) {
-      // store.addTableUnique
-      // store.deleteTableUnique
+      var shouldAddUnique = existingTable.uniqueColumnSet == null && newTable.uniqueColumnSet != null;
+      var shouldRemoveUnique = existingTable.uniqueColumnSet != null && newTable.uniqueColumnSet == null;
+      if (shouldAddUnique) {
+        store.addTableUniqueColumnSet(newTable);
+      } else if (shouldRemoveUnique) {
+        store.deleteTableUniqueColumnSet(newTable);
+      } else if (existingTable.uniqueColumnSet != null && newTable.uniqueColumnSet != null) {
+        var haveSameLength = existingTable.uniqueColumnSet.length == newTable.uniqueColumnSet.length;
+        var haveSameKeys = existingTable.uniqueColumnSet.every((s) => newTable.uniqueColumnSet.contains(s));
+
+        if (!haveSameKeys || !haveSameLength) {
+          store.deleteTableUniqueColumnSet(newTable);
+          store.addTableUniqueColumnSet(newTable);
+        }
+      }
     }
   }
 

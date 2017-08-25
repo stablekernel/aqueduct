@@ -18,6 +18,7 @@ void main() {
 
       expect(commands[0],
           "CREATE TABLE _GeneratorModel1 (id BIGSERIAL PRIMARY KEY,name TEXT NOT NULL,option BOOLEAN NOT NULL,points DOUBLE PRECISION NOT NULL UNIQUE,validDate TIMESTAMP NULL)");
+      expect(commands.length, 1);
     });
 
     test("Create temporary table", () {
@@ -30,17 +31,22 @@ void main() {
 
       expect(commands[0],
           "CREATE TEMPORARY TABLE _GeneratorModel1 (id BIGSERIAL PRIMARY KEY,name TEXT NOT NULL,option BOOLEAN NOT NULL,points DOUBLE PRECISION NOT NULL UNIQUE,validDate TIMESTAMP NULL)");
+      expect(commands.length, 1);
     });
 
     test("Create table with indices", () {
       var dm = new ManagedDataModel([GeneratorModel2]);
       var schema = new Schema.fromDataModel(dm);
+      schema.tableForName("_GeneratorModel2").columns.add(
+        new SchemaColumn("a", ManagedPropertyType.integer, isIndexed: true)
+      );
       var commands = schema.tables
           .map((t) => psc.createTable(t))
           .expand((l) => l)
           .toList();
 
-      expect(commands[0], "CREATE TABLE _GeneratorModel2 (id INT PRIMARY KEY)");
+      expect(commands[0], "CREATE TABLE _GeneratorModel2 (id INT PRIMARY KEY,a INT NOT NULL)");
+      expect(commands[1], "CREATE INDEX _GeneratorModel2_a_idx ON _GeneratorModel2 (a)");
     });
 
     test("Create multiple tables with trailing index", () {
@@ -198,6 +204,20 @@ void main() {
           cmds.contains(
               "CREATE TABLE _EnumObject (id BIGSERIAL PRIMARY KEY,enumValues TEXT NOT NULL)"),
           true);
+    });
+
+    test("Create table with unique set", () {
+      var dm = new ManagedDataModel([Unique]);
+      var schema = new Schema.fromDataModel(dm);
+      var cmds = schema.tables
+          .map((t) => psc.createTable(t))
+          .expand((l) => l)
+          .toList();
+
+      expect(
+          cmds[0], "CREATE TABLE _Unique (id BIGSERIAL PRIMARY KEY,a TEXT NOT NULL,b TEXT NOT NULL,c TEXT NOT NULL)");
+      expect(
+          cmds[1], "CREATE UNIQUE INDEX _Unique_unique_idx ON _Unique (a,b)");
     });
   });
 
@@ -588,4 +608,15 @@ class _EnumObject {
 
 enum EnumValues {
   abcd, efgh, other18
+}
+
+class Unique extends ManagedObject<_Unique> {}
+@ManagedTableAttributes.unique(const [#a, #b])
+class _Unique {
+  @managedPrimaryKey
+  int id;
+
+  String a;
+  String b;
+  String c;
 }

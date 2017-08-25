@@ -285,6 +285,10 @@ class DefaultPersistentStore extends PersistentStore {
   List<String> renameTable(SchemaTable table, String name) => [];
   @override
   List<String> deleteTable(SchemaTable table) => [];
+  @override
+  List<String> addTableUniqueColumnSet(SchemaTable table) => [];
+  @override
+  List<String> deleteTableUniqueColumnSet(SchemaTable table) => [];
 
   @override
   List<String> addColumn(SchemaTable table, SchemaColumn column, {String unencodedInitialValue}) => [];

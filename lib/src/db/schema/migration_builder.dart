@@ -96,16 +96,20 @@ class MigrationBuilder {
     builder.writeln(
         '${spaceOffset}database.alterTable("${previousTable.name}", (table) {');
 
-    if (previousTable.uniqueColumnSet == null && updatedTable.uniqueColumnSet != null) {
+    var fromNoneToSome = previousTable.uniqueColumnSet == null && updatedTable.uniqueColumnSet != null;
+    var fromSomeToNone = previousTable.uniqueColumnSet != null && updatedTable.uniqueColumnSet == null;
+    var haveSameLength = previousTable.uniqueColumnSet.length == updatedTable.uniqueColumnSet.length;
+    var haveSameKeys = updatedTable.uniqueColumnSet.every((p) => previousTable.uniqueColumnSet.contains(p));
+
+    if (fromNoneToSome) {
       var columnNames = updatedTable.uniqueColumnSet
           .map((n) => '"$n"')
           .join(",");
       builder.writeln("${spaceOffset}  table.uniqueColumnSet = [$columnNames];");
-    } else if (previousTable.uniqueColumnSet != null && updatedTable.uniqueColumnSet == null) {
+    } else if (fromSomeToNone) {
       builder.writeln("${spaceOffset}  table.uniqueColumnSet = null;");
     } else if (previousTable.uniqueColumnSet != null && updatedTable.uniqueColumnSet != null) {
-      if (previousTable.uniqueColumnSet.length != updatedTable.uniqueColumnSet.length
-      || !updatedTable.uniqueColumnSet.every((p) => previousTable.uniqueColumnSet.contains(p))) {
+      if (!haveSameLength || !haveSameKeys) {
         var columnNames = updatedTable.uniqueColumnSet
             .map((n) => '"$n"')
             .join(",");
