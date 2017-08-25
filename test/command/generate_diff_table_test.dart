@@ -260,7 +260,35 @@ void main() {
         });
 
     test("Add unique constraint to table", () async {
-      fail("nyi");
+      var schemas = [
+        new Schema.empty(),
+        new Schema([
+          new SchemaTable("u", [
+            new SchemaColumn("id", ManagedPropertyType.integer,
+                isPrimaryKey: true),
+            new SchemaColumn("a", ManagedPropertyType.integer)
+          ]),
+        ]),
+        new Schema([
+          new SchemaTable("u", [
+            new SchemaColumn("id", ManagedPropertyType.integer,
+                isPrimaryKey: true),
+            new SchemaColumn("a", ManagedPropertyType.integer),
+            new SchemaColumn("b", ManagedPropertyType.integer, isNullable: true),
+          ], uniqueColumnSetNames: ["a", "b"]),
+        ])
+      ];
+
+      await writeMigrations(migrationDirectory, schemas);
+      await executeMigrations(migrationDirectory.parent);
+
+      await connection.query("INSERT INTO u (id,a,b) VALUES (1,1,1)");
+      try {
+        await connection.query("INSERT INTO u (id,a,b) VALUES (2,1,1)");
+        expect(true, false);
+      } on QueryException catch (e) {
+        expect(e.event, QueryExceptionEvent.conflict);
+      }
     });
 
     test("Remove unique constraint from table", () async {

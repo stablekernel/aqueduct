@@ -112,41 +112,7 @@ class SchemaColumn {
 
   /// The differences between two columns.
   SchemaColumnDifference differenceFrom(SchemaColumn column) {
-    var differences = new SchemaColumnDifference()
-      ..expectedColumn = this
-      ..actualColumn = column;
-
-    var symbols = [
-      #name,
-      #isIndexed,
-      #type,
-      #isNullable,
-      #autoincrement,
-      #isUnique,
-      #defaultValue,
-      #isPrimaryKey,
-      #relatedTableName,
-      #relatedColumnName,
-      #deleteRule
-    ];
-
-    var expectedColumn = reflect(this);
-    var actualColumn = reflect(column);
-    symbols.forEach((sym) {
-      var expectedValue = expectedColumn.getField(sym).reflectee;
-      var actualValue = actualColumn.getField(sym).reflectee;
-      if (expectedValue is String) {
-        expectedValue = (expectedValue as String)?.toLowerCase();
-        actualValue = (actualValue as String)?.toLowerCase();
-
-      }
-
-      if (expectedValue != actualValue) {
-        differences.differingProperties.add(MirrorSystem.getName(sym));
-      }
-    });
-
-    return differences;
+    return new SchemaColumnDifference(this, column);
   }
 
   static String typeStringForType(ManagedPropertyType type) {
@@ -237,4 +203,71 @@ class SchemaColumn {
 
   @override
   String toString() => "$name $relatedTableName";
+}
+
+
+class SchemaColumnDifference {
+  static const List<Symbol> symbols = const [
+    #name,
+    #isIndexed,
+    #type,
+    #isNullable,
+    #autoincrement,
+    #isUnique,
+    #defaultValue,
+    #isPrimaryKey,
+    #relatedTableName,
+    #relatedColumnName,
+    #deleteRule
+  ];
+
+  SchemaColumnDifference(this.expectedColumn, this.actualColumn) {
+    var expectedColumnRefl = reflect(expectedColumn);
+    var actualColumnRefl = reflect(actualColumn);
+
+    symbols.forEach((sym) {
+      var expectedValue = expectedColumnRefl.getField(sym).reflectee;
+      var actualValue = actualColumnRefl.getField(sym).reflectee;
+      if (expectedValue is String) {
+        expectedValue = (expectedValue as String)?.toLowerCase();
+        actualValue = (actualValue as String)?.toLowerCase();
+      }
+
+      if (expectedValue != actualValue) {
+        differingProperties.add(MirrorSystem.getName(sym));
+      }
+    });
+  }
+
+  SchemaColumn expectedColumn;
+  SchemaColumn actualColumn;
+
+  List<String> differingProperties = [];
+
+  bool get hasDifferences =>
+      differingProperties.length > 0 ||
+          (expectedColumn == null && actualColumn != null) ||
+          (actualColumn == null && expectedColumn != null);
+
+  List<String> errorMessages(SchemaTableDifference tableDiff) {
+    if (expectedColumn == null && actualColumn != null) {
+      return [
+        "Column '${actualColumn.name}' in table '${tableDiff.actualTable.name}' should NOT exist, but is created by migration files"
+      ];
+    } else if (expectedColumn != null && actualColumn == null) {
+      return [
+        "Column '${expectedColumn.name}' in table '${tableDiff.actualTable.name}' should exist, but is NOT created by migration files"
+      ];
+    }
+
+    return differingProperties.map((propertyName) {
+      var expectedValue =
+          reflect(expectedColumn).getField(new Symbol(propertyName)).reflectee;
+      var actualValue =
+          reflect(actualColumn).getField(new Symbol(propertyName)).reflectee;
+
+      return "Column '${expectedColumn.name}' in table '${tableDiff.actualTable.name}' expected "
+          "'$expectedValue' for '$propertyName', but migration files yield '$actualValue'";
+    }).toList();
+  }
 }
