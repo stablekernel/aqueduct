@@ -30,6 +30,7 @@ class MigrationBuilder {
     diff.differingTables
         .where((tableDiff) => tableDiff.expectedTable != null && tableDiff.actualTable != null)
         .forEach((tableDiff) {
+
       tableDiff.columnNamesToAdd
           .forEach((columnName) {
         changeList?.add("Adding column '$columnName' to table '${tableDiff.actualTable.name}'");
@@ -98,9 +99,8 @@ class MigrationBuilder {
 
     var fromNoneToSome = previousTable.uniqueColumnSet == null && updatedTable.uniqueColumnSet != null;
     var fromSomeToNone = previousTable.uniqueColumnSet != null && updatedTable.uniqueColumnSet == null;
-    var haveSameLength = previousTable.uniqueColumnSet.length == updatedTable.uniqueColumnSet.length;
-    var haveSameKeys = updatedTable.uniqueColumnSet.every((p) => previousTable.uniqueColumnSet.contains(p));
 
+    print("$fromNoneToSome $fromSomeToNone");
     if (fromNoneToSome) {
       var columnNames = updatedTable.uniqueColumnSet
           .map((n) => '"$n"')
@@ -109,6 +109,9 @@ class MigrationBuilder {
     } else if (fromSomeToNone) {
       builder.writeln("${spaceOffset}  table.uniqueColumnSet = null;");
     } else if (previousTable.uniqueColumnSet != null && updatedTable.uniqueColumnSet != null) {
+      var haveSameLength = previousTable.uniqueColumnSet.length == updatedTable.uniqueColumnSet.length;
+      var haveSameKeys = updatedTable.uniqueColumnSet.every((p) => previousTable.uniqueColumnSet.contains(p));
+      print("$haveSameKeys $haveSameLength");
       if (!haveSameLength || !haveSameKeys) {
         var columnNames = updatedTable.uniqueColumnSet
             .map((n) => '"$n"')

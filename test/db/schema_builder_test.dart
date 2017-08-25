@@ -52,6 +52,50 @@ void main() {
           isNull);
     });
 
+    test("Adding a unique set", () {
+      builder.alterTable("_ExtensiveModel", (t) {
+        t.uniqueColumnSet = ["startDate", "indexedValue"];
+      });
+
+      expect(
+          builder.schema.tableForName("_ExtensiveModel").uniqueColumnSet,
+          ["indexedValue", "startDate"]);
+    });
+
+    test("Removing a unique set", () {
+      builder.alterTable("_ExtensiveModel", (t) {
+        t.uniqueColumnSet = ["startDate", "indexedValue"];
+      });
+      builder.alterTable("_ExtensiveModel", (t) {
+        t.uniqueColumnSet = null;
+      });
+
+      expect(
+          builder.schema.tableForName("_ExtensiveModel").uniqueColumnSet,
+          isNull);
+    });
+
+    test("Modifying a unique set", () {
+      builder.alterTable("_ExtensiveModel", (t) {
+        t.uniqueColumnSet = ["startDate", "indexedValue"];
+      });
+      builder.alterTable("_ExtensiveModel", (t) {
+        t.uniqueColumnSet = ["startDate", "autoincrementValue"];
+      });
+
+      expect(
+          builder.schema.tableForName("_ExtensiveModel").uniqueColumnSet,
+          ["autoincrementValue", "startDate"]);
+
+      builder.alterTable("_ExtensiveModel", (t) {
+        t.uniqueColumnSet = ["startDate", "autoincrementValue", "indexedValue"];
+      });
+
+      expect(
+          builder.schema.tableForName("_ExtensiveModel").uniqueColumnSet,
+          ["autoincrementValue", "indexedValue", "startDate"]);
+    });
+
     test("Adding column", () {
       builder.addColumn("_DefaultItem",
           new SchemaColumn("col1", ManagedPropertyType.integer));

@@ -258,5 +258,17 @@ void main() {
             [1, 1]
           ]);
         });
+
+    test("Add unique constraint to table", () async {
+      fail("nyi");
+    });
+
+    test("Remove unique constraint from table", () async {
+      fail("nyi");
+    });
+
+    test("Modify unique constraint on table", () async {
+      fail("nyi");
+    });
   });
 }

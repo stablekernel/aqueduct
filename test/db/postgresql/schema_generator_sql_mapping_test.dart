@@ -423,6 +423,30 @@ void main() {
           "ALTER TABLE ONLY _GenPost ADD FOREIGN KEY (owner_id) REFERENCES _GenUser (id) ON DELETE SET NULL");
     });
   });
+
+  group("Unique column set", () {
+    PostgreSQLPersistentStore psc;
+    setUp(() {
+      psc = new PostgreSQLPersistentStore(() => null);
+    });
+
+    test("Can add unique", () {
+      var dm = new ManagedDataModel([Unique]);
+      var schema = new Schema.fromDataModel(dm);
+
+      var cmds = psc.addTableUniqueColumnSet(schema.tableForName("_Unique"));
+      expect(cmds.first, "CREATE UNIQUE INDEX _Unique_unique_idx ON _Unique (a,b)");
+    });
+
+    test("Can remove unique", () {
+      var dm = new ManagedDataModel([Unique]);
+      var schema = new Schema.fromDataModel(dm);
+      schema.tableForName("_Unique").uniqueColumnSet = null;
+
+      var cmds = psc.deleteTableUniqueColumnSet(schema.tableForName("_Unique"));
+      expect(cmds.first, "DROP INDEX IF EXISTS _Unique_unique_idx");
+    });
+  });
 }
 
 class GeneratorModel1 extends ManagedObject<_GeneratorModel1>
