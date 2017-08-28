@@ -28,7 +28,6 @@ Future writeMigrations(
     var file = new File.fromUri(migrationDirectory.uri
         .resolve("${i + currentNumberOfMigrations}.migration.dart"));
     file.writeAsStringSync(source);
-    print("$source");
   }
 }
 

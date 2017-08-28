@@ -286,17 +286,75 @@ void main() {
       try {
         await connection.query("INSERT INTO u (id,a,b) VALUES (2,1,1)");
         expect(true, false);
-      } on QueryException catch (e) {
-        expect(e.event, QueryExceptionEvent.conflict);
+      } on PostgreSQLException catch (e) {
+        expect(e.message, contains("duplicate key value violates unique constraint \"u_unique_idx\""));
       }
     });
 
     test("Remove unique constraint from table", () async {
-      fail("nyi");
+      var schemas = [
+        new Schema.empty(),
+        new Schema([
+          new SchemaTable("u", [
+            new SchemaColumn("id", ManagedPropertyType.integer,
+                isPrimaryKey: true),
+            new SchemaColumn("a", ManagedPropertyType.integer),
+            new SchemaColumn("b", ManagedPropertyType.integer)
+          ], uniqueColumnSetNames: ["a","b"]),
+        ]),
+        new Schema([
+          new SchemaTable("u", [
+            new SchemaColumn("id", ManagedPropertyType.integer,
+                isPrimaryKey: true),
+            new SchemaColumn("a", ManagedPropertyType.integer),
+            new SchemaColumn("b", ManagedPropertyType.integer),
+          ]),
+        ])
+      ];
+
+      await writeMigrations(migrationDirectory, schemas);
+      await executeMigrations(migrationDirectory.parent);
+
+      await connection.query("INSERT INTO u (id,a,b) VALUES (1,1,1)");
+      var y = await connection.query("INSERT INTO u (id,a,b) VALUES (2,1,1)");
+      expect(y, isNotNull);
     });
 
     test("Modify unique constraint on table", () async {
-      fail("nyi");
+      var schemas = [
+        new Schema.empty(),
+        new Schema([
+          new SchemaTable("u", [
+            new SchemaColumn("id", ManagedPropertyType.integer,
+                isPrimaryKey: true),
+            new SchemaColumn("a", ManagedPropertyType.integer),
+            new SchemaColumn("b", ManagedPropertyType.integer)
+          ], uniqueColumnSetNames: ["a","b"]),
+        ]),
+        new Schema([
+          new SchemaTable("u", [
+            new SchemaColumn("id", ManagedPropertyType.integer,
+                isPrimaryKey: true),
+            new SchemaColumn("a", ManagedPropertyType.integer),
+            new SchemaColumn("b", ManagedPropertyType.integer),
+            new SchemaColumn("c", ManagedPropertyType.integer, isNullable: true)
+          ], uniqueColumnSetNames: ["b", "c"]),
+        ])
+      ];
+
+      await writeMigrations(migrationDirectory, schemas);
+      await executeMigrations(migrationDirectory.parent);
+
+      await connection.query("INSERT INTO u (id,a,b,c) VALUES (1,1,1,1)");
+      var y = await connection.query("INSERT INTO u (id,a,b,c) VALUES (2,1,1,2)");
+      expect(y, isNotNull);
+
+      try {
+        await connection.query("INSERT INTO u (id,a,b,c) VALUES (3,5,1,1)");
+        expect(true, false);
+      } on PostgreSQLException catch (e) {
+        expect(e.message, contains("duplicate key value violates unique constraint \"u_unique_idx\""));
+      }
     });
   });
 }

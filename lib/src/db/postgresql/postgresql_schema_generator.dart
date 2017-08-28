@@ -263,15 +263,13 @@ class PostgreSQLSchemaGenerator {
   }
 
   SchemaTable get versionTable {
-    return new SchemaTable.empty()
-      ..name = versionTableName
-      ..columns = [
-        (new SchemaColumn.empty()
+    return new SchemaTable(versionTableName, [
+        new SchemaColumn.empty()
           ..name = "versionNumber"
-          ..type = ManagedPropertyType.integer),
-        (new SchemaColumn.empty()
+          ..type = ManagedPropertyType.integer,
+        new SchemaColumn.empty()
           ..name = "dateOfUpgrade"
-          ..type = ManagedPropertyType.datetime),
-      ];
+          ..type = ManagedPropertyType.datetime,
+      ]);
   }
 }

@@ -81,6 +81,7 @@ class SchemaColumn {
   SchemaColumn.empty();
 
   String name;
+  SchemaTable table;
   String _type;
 
   String get typeString => _type;
@@ -203,6 +204,52 @@ class SchemaColumn {
 
   @override
   String toString() => "$name $relatedTableName";
+
+  String get source {
+    var builder = new StringBuffer();
+    if (relatedTableName != null) {
+      builder.write(
+          'new SchemaColumn.relationship("${name}", ${type}');
+      builder.write(", relatedTableName: \"${relatedTableName}\"");
+      builder.write(", relatedColumnName: \"${relatedColumnName}\"");
+      builder.write(", rule: ${deleteRule}");
+    } else {
+      builder.write(
+          'new SchemaColumn("${name}", ${type}');
+      if (isPrimaryKey) {
+        builder.write(", isPrimaryKey: true");
+      } else {
+        builder.write(", isPrimaryKey: false");
+      }
+      if (autoincrement) {
+        builder.write(", autoincrement: true");
+      } else {
+        builder.write(", autoincrement: false");
+      }
+      if (defaultValue != null) {
+        builder.write(', defaultValue: "${defaultValue}"');
+      }
+      if (isIndexed) {
+        builder.write(", isIndexed: true");
+      } else {
+        builder.write(", isIndexed: false");
+      }
+    }
+
+    if (isNullable) {
+      builder.write(", isNullable: true");
+    } else {
+      builder.write(", isNullable: false");
+    }
+    if (isUnique) {
+      builder.write(", isUnique: true");
+    } else {
+      builder.write(", isUnique: false");
+    }
+
+    builder.write(")");
+    return builder.toString();
+  }
 }
 
 
@@ -222,25 +269,27 @@ class SchemaColumnDifference {
   ];
 
   SchemaColumnDifference(this.expectedColumn, this.actualColumn) {
-    var expectedColumnRefl = reflect(expectedColumn);
-    var actualColumnRefl = reflect(actualColumn);
+    if (actualColumn != null && expectedColumn != null) {
+      var expectedColumnRefl = reflect(expectedColumn);
+      var actualColumnRefl = reflect(actualColumn);
 
-    symbols.forEach((sym) {
-      var expectedValue = expectedColumnRefl.getField(sym).reflectee;
-      var actualValue = actualColumnRefl.getField(sym).reflectee;
-      if (expectedValue is String) {
-        expectedValue = (expectedValue as String)?.toLowerCase();
-        actualValue = (actualValue as String)?.toLowerCase();
-      }
+      symbols.forEach((sym) {
+        var expectedValue = expectedColumnRefl.getField(sym).reflectee;
+        var actualValue = actualColumnRefl.getField(sym).reflectee;
+        if (expectedValue is String) {
+          expectedValue = (expectedValue as String)?.toLowerCase();
+          actualValue = (actualValue as String)?.toLowerCase();
+        }
 
-      if (expectedValue != actualValue) {
-        differingProperties.add(MirrorSystem.getName(sym));
-      }
-    });
+        if (expectedValue != actualValue) {
+          differingProperties.add(MirrorSystem.getName(sym));
+        }
+      });
+    }
   }
 
-  SchemaColumn expectedColumn;
-  SchemaColumn actualColumn;
+  final SchemaColumn expectedColumn;
+  final SchemaColumn actualColumn;
 
   List<String> differingProperties = [];
 
@@ -249,14 +298,14 @@ class SchemaColumnDifference {
           (expectedColumn == null && actualColumn != null) ||
           (actualColumn == null && expectedColumn != null);
 
-  List<String> errorMessages(SchemaTableDifference tableDiff) {
+  List<String> get errorMessages {
     if (expectedColumn == null && actualColumn != null) {
       return [
-        "Column '${actualColumn.name}' in table '${tableDiff.actualTable.name}' should NOT exist, but is created by migration files"
+        "Column '${actualColumn.name}' in table '${actualColumn.table.name}' should NOT exist, but is created by migration files"
       ];
     } else if (expectedColumn != null && actualColumn == null) {
       return [
-        "Column '${expectedColumn.name}' in table '${tableDiff.actualTable.name}' should exist, but is NOT created by migration files"
+        "Column '${expectedColumn.name}' in table '${expectedColumn.table.name}' should exist, but is NOT created by migration files"
       ];
     }
 
@@ -266,8 +315,63 @@ class SchemaColumnDifference {
       var actualValue =
           reflect(actualColumn).getField(new Symbol(propertyName)).reflectee;
 
-      return "Column '${expectedColumn.name}' in table '${tableDiff.actualTable.name}' expected "
+      return "Column '${expectedColumn.name}' in table '${actualColumn.table.name}' expected "
           "'$expectedValue' for '$propertyName', but migration files yield '$actualValue'";
     }).toList();
+  }
+
+  String generateUpgradeSource({List<String> changeList}) {
+    if (actualColumn.isPrimaryKey != expectedColumn.isPrimaryKey) {
+      throw new SchemaException("Cannot change primary key of '${expectedColumn.table.name}'");
+    }
+
+    if (actualColumn.relatedColumnName != expectedColumn.relatedColumnName) {
+      throw new SchemaException("Cannot change ManagedRelationship inverse of '${expectedColumn.table.name}.${expectedColumn.name}'");
+    }
+
+    if (actualColumn.relatedTableName != expectedColumn.relatedTableName) {
+      throw new SchemaException("Cannot change type of '${expectedColumn.table.name}.${expectedColumn.name}'");
+    }
+
+    if (actualColumn.type != expectedColumn.type) {
+      throw new SchemaException("Cannot change type of '${expectedColumn.table.name}.${expectedColumn.name}'");
+    }
+
+    if (actualColumn.autoincrement != expectedColumn.autoincrement) {
+      throw new SchemaException("Cannot change autoincrement behavior of '${expectedColumn.table.name}.${expectedColumn.name}'");
+    }
+
+    var builder = new StringBuffer();
+
+    builder.writeln(
+        'database.alterColumn("${expectedColumn.table.name}", "${expectedColumn.name}", (c) {');
+
+    if (expectedColumn.isIndexed != actualColumn.isIndexed) {
+      builder.writeln("c.isIndexed = ${actualColumn.isIndexed};");
+    }
+
+    if (expectedColumn.isUnique != actualColumn.isUnique) {
+      builder.writeln("c.isUnique = ${actualColumn.isUnique};");
+    }
+
+    if (expectedColumn.defaultValue != actualColumn.defaultValue) {
+      builder.writeln("c.defaultValue = \"${actualColumn.defaultValue}\";");
+    }
+
+    if (expectedColumn.deleteRule != actualColumn.deleteRule) {
+      builder.writeln("c.deleteRule = ${actualColumn.deleteRule};");
+    }
+
+    if (expectedColumn.isNullable != actualColumn.isNullable) {
+      builder.writeln("c.isNullable = ${actualColumn.isNullable};");
+    }
+
+    if(expectedColumn.isNullable == true && actualColumn.isNullable == false && actualColumn.defaultValue == null) {
+      builder.writeln("}, unencodedInitialValue: <<set>>);");
+    } else {
+      builder.writeln("});");
+    }
+
+    return builder.toString();
   }
 }

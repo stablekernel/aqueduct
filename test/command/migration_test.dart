@@ -59,7 +59,7 @@ void main() {
 
       schema.removeTable(schema.tableForName("tableToDelete"));
 
-      schema.tables.add(new SchemaTable("foo", [
+      schema.addTable(new SchemaTable("foo", [
         new SchemaColumn("foobar", ManagedPropertyType.integer, isIndexed: true)
       ]));
 

@@ -37,7 +37,7 @@ void main() {
     test("Create table with indices", () {
       var dm = new ManagedDataModel([GeneratorModel2]);
       var schema = new Schema.fromDataModel(dm);
-      schema.tableForName("_GeneratorModel2").columns.add(
+      schema.tableForName("_GeneratorModel2").addColumn(
         new SchemaColumn("a", ManagedPropertyType.integer, isIndexed: true)
       );
       var commands = schema.tables

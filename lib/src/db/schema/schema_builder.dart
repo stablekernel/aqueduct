@@ -83,16 +83,16 @@ class SchemaBuilder {
       var shouldAddUnique = existingTable.uniqueColumnSet == null && newTable.uniqueColumnSet != null;
       var shouldRemoveUnique = existingTable.uniqueColumnSet != null && newTable.uniqueColumnSet == null;
       if (shouldAddUnique) {
-        store.addTableUniqueColumnSet(newTable);
+        commands.addAll(store.addTableUniqueColumnSet(newTable));
       } else if (shouldRemoveUnique) {
-        store.deleteTableUniqueColumnSet(newTable);
+        commands.addAll(store.deleteTableUniqueColumnSet(newTable));
       } else if (existingTable.uniqueColumnSet != null && newTable.uniqueColumnSet != null) {
         var haveSameLength = existingTable.uniqueColumnSet.length == newTable.uniqueColumnSet.length;
         var haveSameKeys = existingTable.uniqueColumnSet.every((s) => newTable.uniqueColumnSet.contains(s));
 
         if (!haveSameKeys || !haveSameLength) {
-          store.deleteTableUniqueColumnSet(newTable);
-          store.addTableUniqueColumnSet(newTable);
+          commands.addAll(store.deleteTableUniqueColumnSet(newTable));
+          commands.addAll(store.addTableUniqueColumnSet(newTable));
         }
       }
     }
