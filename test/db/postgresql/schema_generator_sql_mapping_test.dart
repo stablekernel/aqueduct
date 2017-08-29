@@ -342,6 +342,14 @@ void main() {
       var cmds = psc.deleteTableUniqueColumnSet(schema.tableForName("_Unique"));
       expect(cmds.first, "DROP INDEX IF EXISTS _Unique_unique_idx");
     });
+
+    test("Can use foreign key", () {
+      var dm = new ManagedDataModel([UniqueContainer, UniqueBelongsTo]);
+      var schema = new Schema.fromDataModel(dm);
+
+      var cmds = psc.addTableUniqueColumnSet(schema.tableForName("_UniqueBelongsTo"));
+      expect(cmds.first, "CREATE UNIQUE INDEX _UniqueBelongsTo_unique_idx ON _UniqueBelongsTo (a,container_id)");
+    });
   });
 }
 
@@ -512,6 +520,7 @@ class _PrivateField {
   String _private;
 }
 
+enum EnumValues { abcd, efgh, other18 }
 class EnumObject extends ManagedObject<_EnumObject> implements _EnumObject {}
 
 class _EnumObject {
@@ -520,8 +529,6 @@ class _EnumObject {
 
   EnumValues enumValues;
 }
-
-enum EnumValues { abcd, efgh, other18 }
 
 class Unique extends ManagedObject<_Unique> {}
 
@@ -533,4 +540,23 @@ class _Unique {
   String a;
   String b;
   String c;
+}
+
+class UniqueContainer extends ManagedObject<_UniqueContainer> {}
+class _UniqueContainer {
+  @managedPrimaryKey
+  int id;
+
+  UniqueBelongsTo contains;
+}
+
+class UniqueBelongsTo extends ManagedObject<_UniqueBelongsTo> {}
+@ManagedTableAttributes.unique(const [#a, #container])
+class _UniqueBelongsTo {
+  @managedPrimaryKey
+  int id;
+
+  int a;
+  @ManagedRelationship(#contains)
+  UniqueContainer container;
 }

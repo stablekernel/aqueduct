@@ -39,7 +39,9 @@ class PostgreSQLSchemaGenerator {
   }
 
   List<String> addTableUniqueColumnSet(SchemaTable table) {
-    var colNames = table.uniqueColumnSet.join(",");
+    var colNames = table.uniqueColumnSet
+        .map((name) => _columnNameForColumn(table[name]))
+        .join(",");
     return ["CREATE UNIQUE INDEX ${table.name}_unique_idx ON ${table.name} ($colNames)"];
   }
 
