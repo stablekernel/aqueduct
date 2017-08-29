@@ -5,33 +5,28 @@ class PostgreSQLSchemaGenerator {
   String get versionTableName => "_aqueduct_version_pgsql";
 
   List<String> createTable(SchemaTable table, {bool isTemporary: false}) {
-    var columnString =
-        table.columns.map((col) => _columnStringForColumn(col)).join(",");
-    var tableCommand =
-        "CREATE${isTemporary ? " TEMPORARY " : " "}TABLE ${table.name} ($columnString)";
+    var commands = <String>[];
+
+    // Create table command
+    var columnString = table.columns.map((col) => _columnStringForColumn(col)).join(",");
+    commands.add("CREATE${isTemporary ? " TEMPORARY " : " "}TABLE ${table.name} ($columnString)");
 
     var indexCommands = table.columns
-        .where((col) =>
-            col.isIndexed && !col.isPrimaryKey) // primary keys are auto-indexed
+        .where((col) => col.isIndexed && !col.isPrimaryKey) // primary keys are auto-indexed
         .map((col) => addIndexToColumn(table, col))
         .expand((commands) => commands);
+    commands.addAll(indexCommands);
 
-    var constraintCommands = table.columns
+    commands.addAll(table.columns
         .where((sc) => sc.isForeignKey)
         .map((col) => _addConstraintsForColumn(table.name, col))
-        .expand((commands) => commands);
+        .expand((commands) => commands));
 
-    var uniqueConstraint = <String>[];
     if (table.uniqueColumnSet != null) {
-      uniqueConstraint = addTableUniqueColumnSet(table);
+      commands.addAll(addTableUniqueColumnSet(table));
     }
 
-    return [
-      [tableCommand],
-      indexCommands,
-      constraintCommands,
-      uniqueConstraint
-    ].expand((cmds) => cmds).toList();
+    return commands;
   }
 
   List<String> renameTable(SchemaTable table, String name) {
@@ -45,15 +40,11 @@ class PostgreSQLSchemaGenerator {
 
   List<String> addTableUniqueColumnSet(SchemaTable table) {
     var colNames = table.uniqueColumnSet.join(",");
-    return [
-      "CREATE UNIQUE INDEX ${table.name}_unique_idx ON ${table.name} ($colNames)"
-    ];
+    return ["CREATE UNIQUE INDEX ${table.name}_unique_idx ON ${table.name} ($colNames)"];
   }
 
   List<String> deleteTableUniqueColumnSet(SchemaTable table) {
-    return [
-      "DROP INDEX IF EXISTS ${table.name}_unique_idx"
-    ];
+    return ["DROP INDEX IF EXISTS ${table.name}_unique_idx"];
   }
 
   List<String> addColumn(SchemaTable table, SchemaColumn column, {String unencodedInitialValue}) {
@@ -61,7 +52,8 @@ class PostgreSQLSchemaGenerator {
 
     if (!column.isNullable && column.defaultValue == null) {
       if (unencodedInitialValue == null) {
-        throw new SchemaException("Attempting to addColumn to database that is not nullable, has no default value, and does not have unencodedInitialValue.");
+        throw new SchemaException(
+            "Attempting to addColumn to database that is not nullable, has no default value, and does not have unencodedInitialValue.");
       }
 
       column.defaultValue = unencodedInitialValue;
@@ -70,9 +62,7 @@ class PostgreSQLSchemaGenerator {
         "ALTER TABLE ${table.name} ALTER COLUMN ${_columnNameForColumn(column)} DROP DEFAULT"
       ]);
     } else {
-      commands.addAll([
-        "ALTER TABLE ${table.name} ADD COLUMN ${_columnStringForColumn(column)}"
-      ]);
+      commands.addAll(["ALTER TABLE ${table.name} ADD COLUMN ${_columnStringForColumn(column)}"]);
     }
 
     if (column.isIndexed) {
@@ -88,37 +78,34 @@ class PostgreSQLSchemaGenerator {
 
   List<String> deleteColumn(SchemaTable table, SchemaColumn column) {
     return [
-      "ALTER TABLE ${table.name} DROP COLUMN ${_columnNameForColumn(column)} ${column.relatedColumnName != null ? "CASCADE" : "RESTRICT"}"
+      "ALTER TABLE ${table.name} DROP COLUMN ${_columnNameForColumn(column)} ${column.relatedColumnName != null
+          ? "CASCADE"
+          : "RESTRICT"}"
     ];
   }
 
-  List<String> renameColumn(
-      SchemaTable table, SchemaColumn column, String name) {
+  List<String> renameColumn(SchemaTable table, SchemaColumn column, String name) {
     // Must rename indices, constraints, etc.
     throw new UnsupportedError("renameColumn is not yet supported.");
   }
 
-  List<String> alterColumnNullability(
-      SchemaTable table, SchemaColumn column, String unencodedInitialValue) {
+  List<String> alterColumnNullability(SchemaTable table, SchemaColumn column, String unencodedInitialValue) {
     if (column.isNullable) {
-      return [
-        "ALTER TABLE ${table.name} ALTER COLUMN ${_columnNameForColumn(column)} DROP NOT NULL"
-      ];
+      return ["ALTER TABLE ${table.name} ALTER COLUMN ${_columnNameForColumn(column)} DROP NOT NULL"];
     } else {
       if (unencodedInitialValue == null && column.defaultValue == null) {
-        throw new SchemaException(
-            "Attempting to change column ${column.name} to 'not nullable', but not defaultValue or unencodedInitialValue is set for existing columns.");
+        throw new SchemaException("Attempting to change column ${column
+            .name} to 'not nullable', but not defaultValue or unencodedInitialValue is set for existing columns.");
       }
 
       if (column.defaultValue == null) {
         return [
-          "UPDATE ${table.name} SET ${_columnNameForColumn(column)}=$unencodedInitialValue WHERE ${_columnNameForColumn(column)} IS NULL",
+          "UPDATE ${table.name} SET ${_columnNameForColumn(column)}=$unencodedInitialValue WHERE ${_columnNameForColumn(
+              column)} IS NULL",
           "ALTER TABLE ${table.name} ALTER COLUMN ${_columnNameForColumn(column)} SET NOT NULL",
         ];
       } else {
-        return [
-          "ALTER TABLE ${table.name} ALTER COLUMN ${_columnNameForColumn(column)} SET NOT NULL"
-        ];
+        return ["ALTER TABLE ${table.name} ALTER COLUMN ${_columnNameForColumn(column)} SET NOT NULL"];
       }
     }
   }
@@ -127,9 +114,7 @@ class PostgreSQLSchemaGenerator {
     if (column.isUnique) {
       return ["ALTER TABLE ${table.name} ADD UNIQUE (${column.name})"];
     } else {
-      return [
-        "ALTER TABLE ${table.name} DROP CONSTRAINT ${_uniqueKeyName(table.name, column)}"
-      ];
+      return ["ALTER TABLE ${table.name} DROP CONSTRAINT ${_uniqueKeyName(table.name, column)}"];
     }
   }
 
@@ -139,16 +124,13 @@ class PostgreSQLSchemaGenerator {
         "ALTER TABLE ${table.name} ALTER COLUMN ${_columnNameForColumn(column)} SET DEFAULT ${column.defaultValue}"
       ];
     } else {
-      return [
-        "ALTER TABLE ${table.name} ALTER COLUMN ${_columnNameForColumn(column)} DROP DEFAULT"
-      ];
+      return ["ALTER TABLE ${table.name} ALTER COLUMN ${_columnNameForColumn(column)} DROP DEFAULT"];
     }
   }
 
   List<String> alterColumnDeleteRule(SchemaTable table, SchemaColumn column) {
     var allCommands = <String>[];
-    allCommands.add(
-        "ALTER TABLE ONLY ${table.name} DROP CONSTRAINT ${_foreignKeyName(table.name, column)}");
+    allCommands.add("ALTER TABLE ONLY ${table.name} DROP CONSTRAINT ${_foreignKeyName(table.name, column)}");
     allCommands.addAll(_addConstraintsForColumn(table.name, column));
     return allCommands;
   }
@@ -159,8 +141,7 @@ class PostgreSQLSchemaGenerator {
     ];
   }
 
-  List<String> renameIndex(
-      SchemaTable table, SchemaColumn column, String newIndexName) {
+  List<String> renameIndex(SchemaTable table, SchemaColumn column, String newIndexName) {
     var existingIndexName = _indexNameForColumn(table.name, column);
     return ["ALTER INDEX $existingIndexName RENAME TO $newIndexName"];
   }
@@ -264,12 +245,12 @@ class PostgreSQLSchemaGenerator {
 
   SchemaTable get versionTable {
     return new SchemaTable(versionTableName, [
-        new SchemaColumn.empty()
-          ..name = "versionNumber"
-          ..type = ManagedPropertyType.integer,
-        new SchemaColumn.empty()
-          ..name = "dateOfUpgrade"
-          ..type = ManagedPropertyType.datetime,
-      ]);
+      new SchemaColumn.empty()
+        ..name = "versionNumber"
+        ..type = ManagedPropertyType.integer,
+      new SchemaColumn.empty()
+        ..name = "dateOfUpgrade"
+        ..type = ManagedPropertyType.datetime,
+    ]);
   }
 }

@@ -3,21 +3,24 @@ import 'dart:mirrors';
 import '../managed/managed.dart';
 import 'schema.dart';
 
-/// Represents a database column for a [SchemaTable].
+/// A portable representation of a database column.
 ///
-/// Use this class during migration to add, delete and modify columns.
+/// Instances of this type contain the database-only details of a [ManagedPropertyDescription].
 class SchemaColumn {
-  SchemaColumn(this.name, ManagedPropertyType t,
+
+  /// Creates an instance of this type from [name], [type] and other properties.
+  SchemaColumn(this.name, ManagedPropertyType type,
       {this.isIndexed: false,
       this.isNullable: false,
       this.autoincrement: false,
       this.isUnique: false,
       this.defaultValue,
       this.isPrimaryKey: false}) {
-    _type = typeStringForType(t);
+    _type = typeStringForType(type);
   }
 
-  SchemaColumn.relationship(this.name, ManagedPropertyType t,
+  /// A convenience constructor for properties that represent foreign key relationships.
+  SchemaColumn.relationship(this.name, ManagedPropertyType type,
       {this.isNullable: true,
       this.isUnique: false,
       this.relatedTableName,
@@ -25,12 +28,12 @@ class SchemaColumn {
       ManagedRelationshipDeleteRule rule:
           ManagedRelationshipDeleteRule.nullify}) {
     isIndexed = true;
-    _type = typeStringForType(t);
+    _type = typeStringForType(type);
     _deleteRule = deleteRuleStringForDeleteRule(rule);
   }
 
-  SchemaColumn.fromEntity(
-      ManagedEntity entity, ManagedPropertyDescription desc) {
+  /// Creates an instance of this type to mirror [desc].
+  SchemaColumn.fromProperty(ManagedPropertyDescription desc) {
     name = desc.name;
 
     if (desc is ManagedRelationshipDescription) {
@@ -50,6 +53,7 @@ class SchemaColumn {
     isIndexed = desc.isIndexed;
   }
 
+  /// Creates a copy of [otherColumn].
   SchemaColumn.from(SchemaColumn otherColumn) {
     name = otherColumn.name;
     _type = otherColumn._type;
@@ -64,6 +68,9 @@ class SchemaColumn {
     _deleteRule = otherColumn._deleteRule;
   }
 
+  /// Creates an instance of this type from [map].
+  ///
+  /// Where [map] is typically created by [asMap].
   SchemaColumn.fromMap(Map<String, dynamic> map) {
     name = map["name"];
     _type = map["type"];
@@ -78,44 +85,81 @@ class SchemaColumn {
     _deleteRule = map["deleteRule"];
   }
 
+  /// Creates an empty instance of this type.
   SchemaColumn.empty();
 
+  /// The name of this column.
   String name;
-  SchemaTable table;
-  String _type;
 
+  /// The [SchemaTable] this column belongs to.
+  ///
+  /// May be null if not assigned to a table.
+  SchemaTable table;
+
+  /// The [String] representation of this column's type.
   String get typeString => _type;
 
+  /// The type of this column in a [ManagedDataModel].
   ManagedPropertyType get type => typeFromTypeString(_type);
   set type(ManagedPropertyType t) {
     _type = typeStringForType(t);
   }
 
+  /// Whether or not this column is indexed.
   bool isIndexed = false;
+
+  /// Whether or not this column is nullable.
   bool isNullable = false;
+
+  /// Whether or not this column is autoincremented.
   bool autoincrement = false;
+
+  /// Whether or not this column is unique.
   bool isUnique = false;
+
+  /// The default value for this column when inserted into a database.
   String defaultValue;
+
+  /// Whether or not this column is the primary key of its [table].
   bool isPrimaryKey = false;
 
+  /// The related table name if this column is a foreign key column.
+  ///
+  /// If this column has a foreign key constraint, this property is the name
+  /// of the referenced table.
+  ///
+  /// Null if this column is not a foreign key reference.
   String relatedTableName;
+
+  /// The related column if this column is a foreign key column.
+  ///
+  /// If this column has a foreign key constraint, this property is the name
+  /// of the reference column in [relatedTableName].
   String relatedColumnName;
-  String _deleteRule;
+
+  /// The delete rule for this column if it is a foreign key column.
+  ///
+  /// Undefined if not a foreign key column.
   ManagedRelationshipDeleteRule get deleteRule =>
       deleteRuleForDeleteRuleString(_deleteRule);
   set deleteRule(ManagedRelationshipDeleteRule t) {
     _deleteRule = deleteRuleStringForDeleteRule(t);
   }
 
+  /// Whether or not this column is a foreign key column.
   bool get isForeignKey {
     return relatedTableName != null && relatedColumnName != null;
   }
+
+  String _type;
+  String _deleteRule;
 
   /// The differences between two columns.
   SchemaColumnDifference differenceFrom(SchemaColumn column) {
     return new SchemaColumnDifference(this, column);
   }
 
+  /// Returns string representation of [ManagedPropertyType].
   static String typeStringForType(ManagedPropertyType type) {
     switch (type) {
       case ManagedPropertyType.integer:
@@ -138,6 +182,7 @@ class SchemaColumn {
     return null;
   }
 
+  /// Returns inverse of [typeStringForType].
   static ManagedPropertyType typeFromTypeString(String type) {
     switch (type) {
       case "integer":
@@ -156,6 +201,7 @@ class SchemaColumn {
     return null;
   }
 
+  /// Returns string representation of [ManagedRelationshipDeleteRule].
   static String deleteRuleStringForDeleteRule(
       ManagedRelationshipDeleteRule rule) {
     switch (rule) {
@@ -171,6 +217,7 @@ class SchemaColumn {
     return null;
   }
 
+  /// Returns inverse of [deleteRuleStringForDeleteRule].
   static ManagedRelationshipDeleteRule deleteRuleForDeleteRuleString(
       String rule) {
     switch (rule) {
@@ -186,6 +233,7 @@ class SchemaColumn {
     return null;
   }
 
+  /// Returns portable representation of this instance.
   Map<String, dynamic> asMap() {
     return {
       "name": name,
@@ -205,6 +253,7 @@ class SchemaColumn {
   @override
   String toString() => "$name $relatedTableName";
 
+  /// Returns Dart code to create this instance again in a script.
   String get source {
     var builder = new StringBuffer();
     if (relatedTableName != null) {
@@ -252,8 +301,11 @@ class SchemaColumn {
   }
 }
 
-
+/// The difference between two compared [SchemaColumn]s.
+///
+/// This class is used for comparing database columns for validation and migration.
 class SchemaColumnDifference {
+  /// List of comparable properties of a [SchemaColumn].
   static const List<Symbol> symbols = const [
     #name,
     #isIndexed,
@@ -268,6 +320,7 @@ class SchemaColumnDifference {
     #deleteRule
   ];
 
+  /// Creates a new instance that represents the difference between [expectedColumn] and [actualColumn].
   SchemaColumnDifference(this.expectedColumn, this.actualColumn) {
     if (actualColumn != null && expectedColumn != null) {
       var expectedColumnRefl = reflect(expectedColumn);
@@ -282,22 +335,36 @@ class SchemaColumnDifference {
         }
 
         if (expectedValue != actualValue) {
-          differingProperties.add(MirrorSystem.getName(sym));
+          _differingProperties.add(MirrorSystem.getName(sym));
         }
       });
     }
   }
 
+  /// The expected column.
+  ///
+  /// May be null if there is no column expected.
   final SchemaColumn expectedColumn;
+
+  /// The actual column.
+  ///
+  /// May be null if there is no actual column.
   final SchemaColumn actualColumn;
 
-  List<String> differingProperties = [];
+  /// The properties that are different between [expectedColumn] and [actualColumn].
+  ///
+  /// This list cannot be modified. May be empty is compared columns are equivalent.
+  List<String> get differingProperties => new List.unmodifiable(_differingProperties);
 
+  /// Whether or not [expectedColumn] and [actualColumn] are different.
   bool get hasDifferences =>
-      differingProperties.length > 0 ||
+      _differingProperties.length > 0 ||
           (expectedColumn == null && actualColumn != null) ||
           (actualColumn == null && expectedColumn != null);
 
+  /// Human-readable list of differences between [expectedColumn] and [actualColumn].
+  ///
+  /// Empty is there are no differences.
   List<String> get errorMessages {
     if (expectedColumn == null && actualColumn != null) {
       return [
@@ -309,7 +376,7 @@ class SchemaColumnDifference {
       ];
     }
 
-    return differingProperties.map((propertyName) {
+    return _differingProperties.map((propertyName) {
       var expectedValue =
           reflect(expectedColumn).getField(new Symbol(propertyName)).reflectee;
       var actualValue =
@@ -320,6 +387,9 @@ class SchemaColumnDifference {
     }).toList();
   }
 
+  List<String> _differingProperties = [];
+
+  /// Dart code to upgrade [expectedColumn] to [actualColumn].
   String generateUpgradeSource({List<String> changeList}) {
     if (actualColumn.isPrimaryKey != expectedColumn.isPrimaryKey) {
       throw new SchemaException("Cannot change primary key of '${expectedColumn.table.name}'");
