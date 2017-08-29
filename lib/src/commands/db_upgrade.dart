@@ -40,6 +40,17 @@ class CLIDatabaseUpgrade extends CLIDatabaseConnectingCommand {
     var migrationFilesToGetToCurrent = migrationFileSplit.first;
     List<File> migrationFilesToRun = migrationFileSplit.last;
 
+    var pattern = new RegExp(r"<<\s*set\s*>>");
+    for (var file in migrationFilesToRun) {
+      var contents = file.readAsStringSync();
+      if (contents.contains(pattern)) {
+        displayError("Migration file needs input");
+        displayProgress("Migration file: ${file.path}");
+        displayProgress("An ambiguous change to the schema requires your input in the referenced file. Search for '<<set>>' and replace with an appropriate value.");
+        return 1;
+      }
+    }
+
     var schema = new Schema.empty();
     for (var migration in migrationFilesToGetToCurrent) {
       displayProgress("Replaying version ${versionNumberFromFile(migration)}");

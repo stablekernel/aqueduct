@@ -344,10 +344,12 @@ class SchemaTableUniqueSetDifference {
       setString = "[${actualColumnNames.map((s) => '"$s"').join(",")}]";
     }
 
-    var builder = new StringBuffer();
-    builder.writeln('database.alterTable("$_tableName", (t) {');
-    builder.writeln("t.uniqueColumnSet = $setString;");
-    builder.writeln("});");
-    return builder.toString();
+    changeList?.add("Setting unique column constraint of '$_tableName' to $setString.");
+
+    return """
+database.alterTable("$_tableName", (t) {
+  t.uniqueColumnSet = $setString;
+});      
+    """;
   }
 }
