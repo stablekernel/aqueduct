@@ -47,7 +47,7 @@ class Schema {
   /// The tables in this database.
   ///
   /// Returns an immutable list of tables in this schema.
-  List<SchemaTable> get tables => new List.unmodifiable(_tableStorage);
+  List<SchemaTable> get tables => new List.unmodifiable(_tableStorage ?? []);
 
   /// An ordered list of tables in this schema.
   ///
@@ -188,7 +188,7 @@ class SchemaDifference {
   /// The tables that differ between [expectedSchema] and [actualSchema].
   ///
   /// The return value cannot be modified.
-  List<SchemaTableDifference> get differingTables => new List.unmodifiable(_differingTables);
+  List<SchemaTableDifference> get differingTables => new List.unmodifiable(_differingTables ?? []);
 
   /// Whether or not [expectedSchema] and [actualSchema] have differences.
   ///

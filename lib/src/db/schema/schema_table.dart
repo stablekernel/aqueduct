@@ -56,15 +56,19 @@ class SchemaTable {
   /// The names of a set of columns that must be unique for each row in this table.
   ///
   /// Are sorted alphabetically. Not modifiable.
-  List<String> get uniqueColumnSet => new List.unmodifiable(_uniqueColumnSet);
+  List<String> get uniqueColumnSet => _uniqueColumnSet != null ? new List.unmodifiable(_uniqueColumnSet) : null;
 
   set uniqueColumnSet(List<String> columnNames) {
-    _uniqueColumnSet = columnNames;
-    _uniqueColumnSet?.sort((String a, String b) => a.compareTo(b));
+    if (columnNames != null) {
+      _uniqueColumnSet = new List.from(columnNames);
+      _uniqueColumnSet?.sort((String a, String b) => a.compareTo(b));
+    } else {
+      _uniqueColumnSet = null;
+    }
   }
 
   /// An unmodifiable list of [SchemaColumn]s in this table.
-  List<SchemaColumn> get columns => new List.unmodifiable(_columnStorage);
+  List<SchemaColumn> get columns => new List.unmodifiable(_columnStorage ?? []);
 
   List<SchemaColumn> _columnStorage;
   List<String> _uniqueColumnSet;
@@ -169,16 +173,16 @@ class SchemaTableDifference {
       for (var expectedColumn in expectedTable.columns) {
         var actualColumn = (actualTable != null ? actualTable[expectedColumn.name] : null);
         if (actualColumn == null) {
-          differingColumns.add(new SchemaColumnDifference(expectedColumn, null));
+          _differingColumns.add(new SchemaColumnDifference(expectedColumn, null));
         } else {
           var diff = expectedColumn.differenceFrom(actualColumn);
           if (diff.hasDifferences) {
-            differingColumns.add(diff);
+            _differingColumns.add(diff);
           }
         }
       }
 
-      differingColumns.addAll(actualTable.columns.where((t) => expectedTable[t.name] == null).map((unexpectedColumn) {
+      _differingColumns.addAll(actualTable.columns.where((t) => expectedTable[t.name] == null).map((unexpectedColumn) {
         return new SchemaColumnDifference(null, unexpectedColumn);
       }));
 
@@ -206,7 +210,7 @@ class SchemaTableDifference {
   /// Is empty is all columns are the same.
   ///
   /// This list cannot be modified.
-  List<SchemaColumnDifference> get differingColumns => new List.unmodifiable(_differingColumns);
+  List<SchemaColumnDifference> get differingColumns => new List.unmodifiable(_differingColumns ?? []);
 
   /// Whether or not [expectedTable] and [actualTable] are the same.
   bool get hasDifferences =>
