@@ -57,6 +57,7 @@ class SchemaTable {
   ///
   /// Are sorted alphabetically. Not modifiable.
   List<String> get uniqueColumnSet => new List.unmodifiable(_uniqueColumnSet);
+
   set uniqueColumnSet(List<String> columnNames) {
     _uniqueColumnSet = columnNames;
     _uniqueColumnSet?.sort((String a, String b) => a.compareTo(b));
@@ -284,9 +285,9 @@ class SchemaTableDifference {
 /// Difference between two [SchemaTable.uniqueColumnSet]s.
 class SchemaTableUniqueSetDifference {
   SchemaTableUniqueSetDifference(SchemaTable expectedTable, SchemaTable actualTable)
-    : expectedColumnNames = expectedTable.uniqueColumnSet ?? [],
-      actualColumnNames = actualTable.uniqueColumnSet ?? [],
-      _tableName = actualTable.name;
+      : expectedColumnNames = expectedTable.uniqueColumnSet ?? [],
+        actualColumnNames = actualTable.uniqueColumnSet ?? [],
+        _tableName = actualTable.name;
 
   /// The expected set of unique column names.
   final List<String> expectedColumnNames;

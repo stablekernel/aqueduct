@@ -7,7 +7,6 @@ import 'schema.dart';
 ///
 /// Instances of this type contain the database-only details of a [ManagedPropertyDescription].
 class SchemaColumn {
-
   /// Creates an instance of this type from [name], [type] and other properties.
   SchemaColumn(this.name, ManagedPropertyType type,
       {this.isIndexed: false,
@@ -25,8 +24,7 @@ class SchemaColumn {
       this.isUnique: false,
       this.relatedTableName,
       this.relatedColumnName,
-      ManagedRelationshipDeleteRule rule:
-          ManagedRelationshipDeleteRule.nullify}) {
+      ManagedRelationshipDeleteRule rule: ManagedRelationshipDeleteRule.nullify}) {
     isIndexed = true;
     _type = typeStringForType(type);
     _deleteRule = deleteRuleStringForDeleteRule(rule);
@@ -101,6 +99,7 @@ class SchemaColumn {
 
   /// The type of this column in a [ManagedDataModel].
   ManagedPropertyType get type => typeFromTypeString(_type);
+
   set type(ManagedPropertyType t) {
     _type = typeStringForType(t);
   }
@@ -140,8 +139,8 @@ class SchemaColumn {
   /// The delete rule for this column if it is a foreign key column.
   ///
   /// Undefined if not a foreign key column.
-  ManagedRelationshipDeleteRule get deleteRule =>
-      deleteRuleForDeleteRuleString(_deleteRule);
+  ManagedRelationshipDeleteRule get deleteRule => deleteRuleForDeleteRuleString(_deleteRule);
+
   set deleteRule(ManagedRelationshipDeleteRule t) {
     _deleteRule = deleteRuleStringForDeleteRule(t);
   }
@@ -202,8 +201,7 @@ class SchemaColumn {
   }
 
   /// Returns string representation of [ManagedRelationshipDeleteRule].
-  static String deleteRuleStringForDeleteRule(
-      ManagedRelationshipDeleteRule rule) {
+  static String deleteRuleStringForDeleteRule(ManagedRelationshipDeleteRule rule) {
     switch (rule) {
       case ManagedRelationshipDeleteRule.cascade:
         return "cascade";
@@ -218,8 +216,7 @@ class SchemaColumn {
   }
 
   /// Returns inverse of [deleteRuleStringForDeleteRule].
-  static ManagedRelationshipDeleteRule deleteRuleForDeleteRuleString(
-      String rule) {
+  static ManagedRelationshipDeleteRule deleteRuleForDeleteRuleString(String rule) {
     switch (rule) {
       case "cascade":
         return ManagedRelationshipDeleteRule.cascade;
@@ -257,14 +254,12 @@ class SchemaColumn {
   String get source {
     var builder = new StringBuffer();
     if (relatedTableName != null) {
-      builder.write(
-          'new SchemaColumn.relationship("${name}", ${type}');
+      builder.write('new SchemaColumn.relationship("${name}", ${type}');
       builder.write(", relatedTableName: \"${relatedTableName}\"");
       builder.write(", relatedColumnName: \"${relatedColumnName}\"");
       builder.write(", rule: ${deleteRule}");
     } else {
-      builder.write(
-          'new SchemaColumn("${name}", ${type}');
+      builder.write('new SchemaColumn("${name}", ${type}');
       if (isPrimaryKey) {
         builder.write(", isPrimaryKey: true");
       } else {
@@ -359,8 +354,8 @@ class SchemaColumnDifference {
   /// Whether or not [expectedColumn] and [actualColumn] are different.
   bool get hasDifferences =>
       _differingProperties.length > 0 ||
-          (expectedColumn == null && actualColumn != null) ||
-          (actualColumn == null && expectedColumn != null);
+      (expectedColumn == null && actualColumn != null) ||
+      (actualColumn == null && expectedColumn != null);
 
   /// Human-readable list of differences between [expectedColumn] and [actualColumn].
   ///
@@ -368,19 +363,19 @@ class SchemaColumnDifference {
   List<String> get errorMessages {
     if (expectedColumn == null && actualColumn != null) {
       return [
-        "Column '${actualColumn.name}' in table '${actualColumn.table.name}' should NOT exist, but is created by migration files"
+        "Column '${actualColumn.name}' in table '${actualColumn.table
+            .name}' should NOT exist, but is created by migration files"
       ];
     } else if (expectedColumn != null && actualColumn == null) {
       return [
-        "Column '${expectedColumn.name}' in table '${expectedColumn.table.name}' should exist, but is NOT created by migration files"
+        "Column '${expectedColumn.name}' in table '${expectedColumn.table
+            .name}' should exist, but is NOT created by migration files"
       ];
     }
 
     return _differingProperties.map((propertyName) {
-      var expectedValue =
-          reflect(expectedColumn).getField(new Symbol(propertyName)).reflectee;
-      var actualValue =
-          reflect(actualColumn).getField(new Symbol(propertyName)).reflectee;
+      var expectedValue = reflect(expectedColumn).getField(new Symbol(propertyName)).reflectee;
+      var actualValue = reflect(actualColumn).getField(new Symbol(propertyName)).reflectee;
 
       return "Column '${expectedColumn.name}' in table '${actualColumn.table.name}' expected "
           "'$expectedValue' for '$propertyName', but migration files yield '$actualValue'";
@@ -396,7 +391,8 @@ class SchemaColumnDifference {
     }
 
     if (actualColumn.relatedColumnName != expectedColumn.relatedColumnName) {
-      throw new SchemaException("Cannot change ManagedRelationship inverse of '${expectedColumn.table.name}.${expectedColumn.name}'");
+      throw new SchemaException(
+          "Cannot change ManagedRelationship inverse of '${expectedColumn.table.name}.${expectedColumn.name}'");
     }
 
     if (actualColumn.relatedTableName != expectedColumn.relatedTableName) {
@@ -408,13 +404,13 @@ class SchemaColumnDifference {
     }
 
     if (actualColumn.autoincrement != expectedColumn.autoincrement) {
-      throw new SchemaException("Cannot change autoincrement behavior of '${expectedColumn.table.name}.${expectedColumn.name}'");
+      throw new SchemaException(
+          "Cannot change autoincrement behavior of '${expectedColumn.table.name}.${expectedColumn.name}'");
     }
 
     var builder = new StringBuffer();
 
-    builder.writeln(
-        'database.alterColumn("${expectedColumn.table.name}", "${expectedColumn.name}", (c) {');
+    builder.writeln('database.alterColumn("${expectedColumn.table.name}", "${expectedColumn.name}", (c) {');
 
     if (expectedColumn.isIndexed != actualColumn.isIndexed) {
       builder.writeln("c.isIndexed = ${actualColumn.isIndexed};");
@@ -436,7 +432,7 @@ class SchemaColumnDifference {
       builder.writeln("c.isNullable = ${actualColumn.isNullable};");
     }
 
-    if(expectedColumn.isNullable == true && actualColumn.isNullable == false && actualColumn.defaultValue == null) {
+    if (expectedColumn.isNullable == true && actualColumn.isNullable == false && actualColumn.defaultValue == null) {
       builder.writeln("}, unencodedInitialValue: <<set>>);");
     } else {
       builder.writeln("});");
