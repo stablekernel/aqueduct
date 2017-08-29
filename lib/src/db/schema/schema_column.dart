@@ -3,34 +3,35 @@ import 'dart:mirrors';
 import '../managed/managed.dart';
 import 'schema.dart';
 
-/// Represents a database column for a [SchemaTable].
+/// A portable representation of a database column.
 ///
-/// Use this class during migration to add, delete and modify columns.
+/// Instances of this type contain the database-only details of a [ManagedPropertyDescription].
 class SchemaColumn {
-  SchemaColumn(this.name, ManagedPropertyType t,
+  /// Creates an instance of this type from [name], [type] and other properties.
+  SchemaColumn(this.name, ManagedPropertyType type,
       {this.isIndexed: false,
       this.isNullable: false,
       this.autoincrement: false,
       this.isUnique: false,
       this.defaultValue,
       this.isPrimaryKey: false}) {
-    _type = typeStringForType(t);
+    _type = typeStringForType(type);
   }
 
-  SchemaColumn.relationship(this.name, ManagedPropertyType t,
+  /// A convenience constructor for properties that represent foreign key relationships.
+  SchemaColumn.relationship(this.name, ManagedPropertyType type,
       {this.isNullable: true,
       this.isUnique: false,
       this.relatedTableName,
       this.relatedColumnName,
-      ManagedRelationshipDeleteRule rule:
-          ManagedRelationshipDeleteRule.nullify}) {
+      ManagedRelationshipDeleteRule rule: ManagedRelationshipDeleteRule.nullify}) {
     isIndexed = true;
-    _type = typeStringForType(t);
+    _type = typeStringForType(type);
     _deleteRule = deleteRuleStringForDeleteRule(rule);
   }
 
-  SchemaColumn.fromEntity(
-      ManagedEntity entity, ManagedPropertyDescription desc) {
+  /// Creates an instance of this type to mirror [desc].
+  SchemaColumn.fromProperty(ManagedPropertyDescription desc) {
     name = desc.name;
 
     if (desc is ManagedRelationshipDescription) {
@@ -50,6 +51,7 @@ class SchemaColumn {
     isIndexed = desc.isIndexed;
   }
 
+  /// Creates a copy of [otherColumn].
   SchemaColumn.from(SchemaColumn otherColumn) {
     name = otherColumn.name;
     _type = otherColumn._type;
@@ -64,6 +66,9 @@ class SchemaColumn {
     _deleteRule = otherColumn._deleteRule;
   }
 
+  /// Creates an instance of this type from [map].
+  ///
+  /// Where [map] is typically created by [asMap].
   SchemaColumn.fromMap(Map<String, dynamic> map) {
     name = map["name"];
     _type = map["type"];
@@ -78,77 +83,82 @@ class SchemaColumn {
     _deleteRule = map["deleteRule"];
   }
 
+  /// Creates an empty instance of this type.
   SchemaColumn.empty();
 
+  /// The name of this column.
   String name;
-  String _type;
 
+  /// The [SchemaTable] this column belongs to.
+  ///
+  /// May be null if not assigned to a table.
+  SchemaTable table;
+
+  /// The [String] representation of this column's type.
   String get typeString => _type;
 
+  /// The type of this column in a [ManagedDataModel].
   ManagedPropertyType get type => typeFromTypeString(_type);
+
   set type(ManagedPropertyType t) {
     _type = typeStringForType(t);
   }
 
+  /// Whether or not this column is indexed.
   bool isIndexed = false;
+
+  /// Whether or not this column is nullable.
   bool isNullable = false;
+
+  /// Whether or not this column is autoincremented.
   bool autoincrement = false;
+
+  /// Whether or not this column is unique.
   bool isUnique = false;
+
+  /// The default value for this column when inserted into a database.
   String defaultValue;
+
+  /// Whether or not this column is the primary key of its [table].
   bool isPrimaryKey = false;
 
+  /// The related table name if this column is a foreign key column.
+  ///
+  /// If this column has a foreign key constraint, this property is the name
+  /// of the referenced table.
+  ///
+  /// Null if this column is not a foreign key reference.
   String relatedTableName;
+
+  /// The related column if this column is a foreign key column.
+  ///
+  /// If this column has a foreign key constraint, this property is the name
+  /// of the reference column in [relatedTableName].
   String relatedColumnName;
-  String _deleteRule;
-  ManagedRelationshipDeleteRule get deleteRule =>
-      deleteRuleForDeleteRuleString(_deleteRule);
+
+  /// The delete rule for this column if it is a foreign key column.
+  ///
+  /// Undefined if not a foreign key column.
+  ManagedRelationshipDeleteRule get deleteRule => deleteRuleForDeleteRuleString(_deleteRule);
+
   set deleteRule(ManagedRelationshipDeleteRule t) {
     _deleteRule = deleteRuleStringForDeleteRule(t);
   }
 
+  /// Whether or not this column is a foreign key column.
   bool get isForeignKey {
     return relatedTableName != null && relatedColumnName != null;
   }
 
+  String _type;
+  String _deleteRule;
+
   /// The differences between two columns.
   SchemaColumnDifference differenceFrom(SchemaColumn column) {
-    var differences = new SchemaColumnDifference()
-      ..expectedColumn = this
-      ..actualColumn = column;
-
-    var symbols = [
-      #name,
-      #isIndexed,
-      #type,
-      #isNullable,
-      #autoincrement,
-      #isUnique,
-      #defaultValue,
-      #isPrimaryKey,
-      #relatedTableName,
-      #relatedColumnName,
-      #deleteRule
-    ];
-
-    var expectedColumn = reflect(this);
-    var actualColumn = reflect(column);
-    symbols.forEach((sym) {
-      var expectedValue = expectedColumn.getField(sym).reflectee;
-      var actualValue = actualColumn.getField(sym).reflectee;
-      if (expectedValue is String) {
-        expectedValue = (expectedValue as String)?.toLowerCase();
-        actualValue = (actualValue as String)?.toLowerCase();
-
-      }
-
-      if (expectedValue != actualValue) {
-        differences.differingProperties.add(MirrorSystem.getName(sym));
-      }
-    });
-
-    return differences;
+    return new SchemaColumnDifference(this, column);
   }
 
+  /// Returns string representation of [ManagedPropertyType].
   static String typeStringForType(ManagedPropertyType type) {
     switch (type) {
       case ManagedPropertyType.integer:
@@ -171,6 +181,7 @@ class SchemaColumn {
     return null;
   }
 
+  /// Returns inverse of [typeStringForType].
   static ManagedPropertyType typeFromTypeString(String type) {
     switch (type) {
       case "integer":
@@ -189,8 +200,8 @@ class SchemaColumn {
     return null;
   }
 
-  static String deleteRuleStringForDeleteRule(
-      ManagedRelationshipDeleteRule rule) {
+  /// Returns string representation of [ManagedRelationshipDeleteRule].
+  static String deleteRuleStringForDeleteRule(ManagedRelationshipDeleteRule rule) {
     switch (rule) {
       case ManagedRelationshipDeleteRule.cascade:
         return "cascade";
@@ -204,8 +215,8 @@ class SchemaColumn {
     return null;
   }
 
-  static ManagedRelationshipDeleteRule deleteRuleForDeleteRuleString(
-      String rule) {
+  /// Returns inverse of [deleteRuleStringForDeleteRule].
+  static ManagedRelationshipDeleteRule deleteRuleForDeleteRuleString(String rule) {
     switch (rule) {
       case "cascade":
         return ManagedRelationshipDeleteRule.cascade;
@@ -219,6 +230,7 @@ class SchemaColumn {
     return null;
   }
 
+  /// Returns portable representation of this instance.
   Map<String, dynamic> asMap() {
     return {
       "name": name,
@@ -237,4 +249,195 @@ class SchemaColumn {
 
   @override
   String toString() => "$name $relatedTableName";
+
+  /// Returns Dart code to create this instance again in a script.
+  String get source {
+    var builder = new StringBuffer();
+    if (relatedTableName != null) {
+      builder.write('new SchemaColumn.relationship("${name}", ${type}');
+      builder.write(", relatedTableName: \"${relatedTableName}\"");
+      builder.write(", relatedColumnName: \"${relatedColumnName}\"");
+      builder.write(", rule: ${deleteRule}");
+    } else {
+      builder.write('new SchemaColumn("${name}", ${type}');
+      if (isPrimaryKey) {
+        builder.write(", isPrimaryKey: true");
+      } else {
+        builder.write(", isPrimaryKey: false");
+      }
+      if (autoincrement) {
+        builder.write(", autoincrement: true");
+      } else {
+        builder.write(", autoincrement: false");
+      }
+      if (defaultValue != null) {
+        builder.write(', defaultValue: "${defaultValue}"');
+      }
+      if (isIndexed) {
+        builder.write(", isIndexed: true");
+      } else {
+        builder.write(", isIndexed: false");
+      }
+    }
+
+    if (isNullable) {
+      builder.write(", isNullable: true");
+    } else {
+      builder.write(", isNullable: false");
+    }
+    if (isUnique) {
+      builder.write(", isUnique: true");
+    } else {
+      builder.write(", isUnique: false");
+    }
+
+    builder.write(")");
+    return builder.toString();
+  }
+}
+
+/// The difference between two compared [SchemaColumn]s.
+///
+/// This class is used for comparing database columns for validation and migration.
+class SchemaColumnDifference {
+  /// List of comparable properties of a [SchemaColumn].
+  static const List<Symbol> symbols = const [
+    #name,
+    #isIndexed,
+    #type,
+    #isNullable,
+    #autoincrement,
+    #isUnique,
+    #defaultValue,
+    #isPrimaryKey,
+    #relatedTableName,
+    #relatedColumnName,
+    #deleteRule
+  ];
+
+  /// Creates a new instance that represents the difference between [expectedColumn] and [actualColumn].
+  SchemaColumnDifference(this.expectedColumn, this.actualColumn) {
+    if (actualColumn != null && expectedColumn != null) {
+      var expectedColumnRefl = reflect(expectedColumn);
+      var actualColumnRefl = reflect(actualColumn);
+
+      symbols.forEach((sym) {
+        var expectedValue = expectedColumnRefl.getField(sym).reflectee;
+        var actualValue = actualColumnRefl.getField(sym).reflectee;
+        if (expectedValue is String) {
+          expectedValue = (expectedValue as String)?.toLowerCase();
+          actualValue = (actualValue as String)?.toLowerCase();
+        }
+
+        if (expectedValue != actualValue) {
+          _differingProperties.add(MirrorSystem.getName(sym));
+        }
+      });
+    }
+  }
+
+  /// The expected column.
+  ///
+  /// May be null if there is no column expected.
+  final SchemaColumn expectedColumn;
+
+  /// The actual column.
+  ///
+  /// May be null if there is no actual column.
+  final SchemaColumn actualColumn;
+
+  /// The properties that are different between [expectedColumn] and [actualColumn].
+  ///
+  /// This list cannot be modified. May be empty is compared columns are equivalent.
+  List<String> get differingProperties => new List.unmodifiable(_differingProperties ?? []);
+
+  /// Whether or not [expectedColumn] and [actualColumn] are different.
+  bool get hasDifferences =>
+      _differingProperties.length > 0 ||
+      (expectedColumn == null && actualColumn != null) ||
+      (actualColumn == null && expectedColumn != null);
+
+  /// Human-readable list of differences between [expectedColumn] and [actualColumn].
+  ///
+  /// Empty is there are no differences.
+  List<String> get errorMessages {
+    if (expectedColumn == null && actualColumn != null) {
+      return [
+        "Column '${actualColumn.name}' in table '${actualColumn.table
+            .name}' should NOT exist, but is created by migration files"
+      ];
+    } else if (expectedColumn != null && actualColumn == null) {
+      return [
+        "Column '${expectedColumn.name}' in table '${expectedColumn.table
+            .name}' should exist, but is NOT created by migration files"
+      ];
+    }
+
+    return _differingProperties.map((propertyName) {
+      var expectedValue = reflect(expectedColumn).getField(new Symbol(propertyName)).reflectee;
+      var actualValue = reflect(actualColumn).getField(new Symbol(propertyName)).reflectee;
+
+      return "Column '${expectedColumn.name}' in table '${actualColumn.table.name}' expected "
+          "'$expectedValue' for '$propertyName', but migration files yield '$actualValue'";
+    }).toList();
+  }
+
+  List<String> _differingProperties = [];
+
+  /// Dart code to upgrade [expectedColumn] to [actualColumn].
+  String generateUpgradeSource({List<String> changeList}) {
+    if (actualColumn.isPrimaryKey != expectedColumn.isPrimaryKey) {
+      throw new SchemaException("Cannot change primary key of '${expectedColumn.table.name}'");
+    }
+
+    if (actualColumn.relatedColumnName != expectedColumn.relatedColumnName) {
+      throw new SchemaException(
+          "Cannot change ManagedRelationship inverse of '${expectedColumn.table.name}.${expectedColumn.name}'");
+    }
+
+    if (actualColumn.relatedTableName != expectedColumn.relatedTableName) {
+      throw new SchemaException("Cannot change type of '${expectedColumn.table.name}.${expectedColumn.name}'");
+    }
+
+    if (actualColumn.type != expectedColumn.type) {
+      throw new SchemaException("Cannot change type of '${expectedColumn.table.name}.${expectedColumn.name}'");
+    }
+
+    if (actualColumn.autoincrement != expectedColumn.autoincrement) {
+      throw new SchemaException(
+          "Cannot change autoincrement behavior of '${expectedColumn.table.name}.${expectedColumn.name}'");
+    }
+
+    var builder = new StringBuffer();
+
+    builder.writeln('database.alterColumn("${expectedColumn.table.name}", "${expectedColumn.name}", (c) {');
+
+    if (expectedColumn.isIndexed != actualColumn.isIndexed) {
+      builder.writeln("c.isIndexed = ${actualColumn.isIndexed};");
+    }
+
+    if (expectedColumn.isUnique != actualColumn.isUnique) {
+      builder.writeln("c.isUnique = ${actualColumn.isUnique};");
+    }
+
+    if (expectedColumn.defaultValue != actualColumn.defaultValue) {
+      builder.writeln("c.defaultValue = \"${actualColumn.defaultValue}\";");
+    }
+
+    if (expectedColumn.deleteRule != actualColumn.deleteRule) {
+      builder.writeln("c.deleteRule = ${actualColumn.deleteRule};");
+    }
+
+    if (expectedColumn.isNullable != actualColumn.isNullable) {
+      builder.writeln("c.isNullable = ${actualColumn.isNullable};");
+    }
+
+    if (expectedColumn.isNullable == true && actualColumn.isNullable == false && actualColumn.defaultValue == null) {
+      builder.writeln("}, unencodedInitialValue: <<set>>);");
+    } else {
+      builder.writeln("});");
+    }
+
+    return builder.toString();
+  }
 }

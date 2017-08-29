@@ -68,6 +68,36 @@ class SchemaBuilder {
     }
   }
 
+  void alterTable(String tableName, void modify(SchemaTable targetTable)) {
+    var existingTable = schema.tableForName(tableName);
+    if (existingTable == null) {
+      throw new SchemaException("Table $tableName does not exist.");
+    }
+
+    var newTable = new SchemaTable.from(existingTable);
+    modify(newTable);
+    schema.removeTable(existingTable);
+    schema.addTable(newTable);
+
+    if (store != null) {
+      var shouldAddUnique = existingTable.uniqueColumnSet == null && newTable.uniqueColumnSet != null;
+      var shouldRemoveUnique = existingTable.uniqueColumnSet != null && newTable.uniqueColumnSet == null;
+      if (shouldAddUnique) {
+        commands.addAll(store.addTableUniqueColumnSet(newTable));
+      } else if (shouldRemoveUnique) {
+        commands.addAll(store.deleteTableUniqueColumnSet(newTable));
+      } else if (existingTable.uniqueColumnSet != null && newTable.uniqueColumnSet != null) {
+        var haveSameLength = existingTable.uniqueColumnSet.length == newTable.uniqueColumnSet.length;
+        var haveSameKeys = existingTable.uniqueColumnSet.every((s) => newTable.uniqueColumnSet.contains(s));
+
+        if (!haveSameKeys || !haveSameLength) {
+          commands.addAll(store.deleteTableUniqueColumnSet(newTable));
+          commands.addAll(store.addTableUniqueColumnSet(newTable));
+        }
+      }
+    }
+  }
+
   /// Validates and adds a column to a table in [schema].
   void addColumn(String tableName, SchemaColumn column, {String unencodedInitialValue}) {
     var table = schema.tableForName(tableName);

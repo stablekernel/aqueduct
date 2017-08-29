@@ -74,6 +74,32 @@ void main() {
     expect(result.emailAddress, "dup1@a.com");
   });
 
+  test("Insert an object that violates a unique set constraint fails with conflict", () async {
+    context = await contextWithModels([MultiUnique]);
+
+    var q = new Query<MultiUnique>()
+      ..values.a = "a"
+      ..values.b = "b";
+
+    await q.insert();
+
+    q = new Query<MultiUnique>()
+      ..values.a = "a"
+      ..values.b = "a";
+
+    await q.insert();
+
+    q = new Query<MultiUnique>()
+      ..values.a = "a"
+      ..values.b = "b";
+    try {
+      await q.insert();
+      expect(true, false);
+    } on QueryException catch (e) {
+      expect(e.event, QueryExceptionEvent.conflict);
+    }
+  });
+
   test("Inserting an object works and returns the object", () async {
     context = await contextWithModels([TestModel]);
 
@@ -351,6 +377,16 @@ class _EnumObject {
   int id;
 
   EnumValues enumValues;
+}
+
+class MultiUnique extends ManagedObject<_MultiUnique> implements _MultiUnique {}
+@ManagedTableAttributes.unique(const [#a, #b])
+class _MultiUnique {
+  @managedPrimaryKey
+  int id;
+
+  String a;
+  String b;
 }
 
 enum EnumValues {

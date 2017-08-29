@@ -356,7 +356,7 @@ void main() {
 
     test("Additional table show up as error", () {
       var newSchema = new Schema.from(baseSchema);
-      newSchema.tables.add(new SchemaTable("foo", []));
+      newSchema.addTable(new SchemaTable("foo", []));
 
       var diff = baseSchema.differenceFrom(newSchema);
       expect(diff.hasDifferences, true);
@@ -366,7 +366,7 @@ void main() {
 
     test("Missing table show up as error", () {
       var newSchema = new Schema.from(baseSchema);
-      newSchema.tables.removeWhere((t) => t.name == "_DefaultItem");
+      newSchema.removeTable(newSchema.tables.firstWhere((t) => t.name == "_DefaultItem"));
 
       var diff = baseSchema.differenceFrom(newSchema);
       expect(diff.hasDifferences, true);
@@ -415,6 +415,7 @@ void main() {
 
       var newSchema = new Schema.from(baseSchema);
       newSchema.tableForName("_Unique").uniqueColumnSet = ["b", "a"];
+
       var diff = baseSchema.differenceFrom(newSchema);
       expect(diff.hasDifferences, false);
     });
@@ -437,10 +438,10 @@ void main() {
 
     test("Missing column shows up as error", () {
       var newSchema = new Schema.from(baseSchema);
-      newSchema.tables
-          .firstWhere((t) => t.name == "_DefaultItem")
-          .columns
-          .removeWhere((c) => c.name == "id");
+      var t = newSchema.tables
+          .firstWhere((t) => t.name == "_DefaultItem");
+      var c = t.columnForName("id");
+      t.removeColumn(c);
 
       var diff = baseSchema.differenceFrom(newSchema);
       expect(diff.hasDifferences, true);
@@ -453,8 +454,7 @@ void main() {
       var newSchema = new Schema.from(baseSchema);
       newSchema.tables
           .firstWhere((t) => t.name == "_DefaultItem")
-          .columns
-          .add(new SchemaColumn("foo", ManagedPropertyType.integer));
+          .addColumn(new SchemaColumn("foo", ManagedPropertyType.integer));
 
       var diff = baseSchema.differenceFrom(newSchema);
       expect(diff.hasDifferences, true);
@@ -579,9 +579,9 @@ void main() {
 
     test("Multiple reasons all show up", () {
       var newSchema = new Schema.from(baseSchema);
-      newSchema.tables.add(new SchemaTable("foo", []));
+      newSchema.addTable(new SchemaTable("foo", []));
       var df = newSchema.tables.firstWhere((t) => t.name == "_DefaultItem");
-      df.columns.add(new SchemaColumn("foobar", ManagedPropertyType.integer));
+      df.addColumn(new SchemaColumn("foobar", ManagedPropertyType.integer));
       df.columns.firstWhere((sc) => sc.name == "id").isPrimaryKey = false;
 
       var diff = baseSchema.differenceFrom(newSchema);

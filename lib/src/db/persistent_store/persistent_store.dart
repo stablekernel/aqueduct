@@ -23,8 +23,7 @@ abstract class PersistentStore {
   /// Executes an arbitrary command.
   Future execute(String sql, {Map<String, dynamic> substitutionValues});
 
-  Future<dynamic> executeQuery(
-      String formatString, Map<String, dynamic> values, int timeoutInSeconds,
+  Future<dynamic> executeQuery(String formatString, Map<String, dynamic> values, int timeoutInSeconds,
       {PersistentStoreQueryReturnType returnType});
 
   /// Closes the underlying database connection.
@@ -33,25 +32,36 @@ abstract class PersistentStore {
   // -- Schema Ops --
 
   List<String> createTable(SchemaTable table, {bool isTemporary: false});
+
   List<String> renameTable(SchemaTable table, String name);
+
   List<String> deleteTable(SchemaTable table);
 
+  List<String> addTableUniqueColumnSet(SchemaTable table);
+
+  List<String> deleteTableUniqueColumnSet(SchemaTable table);
+
   List<String> addColumn(SchemaTable table, SchemaColumn column, {String unencodedInitialValue});
+
   List<String> deleteColumn(SchemaTable table, SchemaColumn column);
-  List<String> renameColumn(
-      SchemaTable table, SchemaColumn column, String name);
-  List<String> alterColumnNullability(
-      SchemaTable table, SchemaColumn column, String unencodedInitialValue);
+
+  List<String> renameColumn(SchemaTable table, SchemaColumn column, String name);
+
+  List<String> alterColumnNullability(SchemaTable table, SchemaColumn column, String unencodedInitialValue);
+
   List<String> alterColumnUniqueness(SchemaTable table, SchemaColumn column);
+
   List<String> alterColumnDefaultValue(SchemaTable table, SchemaColumn column);
+
   List<String> alterColumnDeleteRule(SchemaTable table, SchemaColumn column);
 
   List<String> addIndexToColumn(SchemaTable table, SchemaColumn column);
-  List<String> renameIndex(
-      SchemaTable table, SchemaColumn column, String newIndexName);
+
+  List<String> renameIndex(SchemaTable table, SchemaColumn column, String newIndexName);
+
   List<String> deleteIndexFromColumn(SchemaTable table, SchemaColumn column);
 
   Future<int> get schemaVersion;
-  Future upgrade(int versionNumber, List<String> commands,
-      {bool temporary: false});
+
+  Future upgrade(int versionNumber, List<String> commands, {bool temporary: false});
 }

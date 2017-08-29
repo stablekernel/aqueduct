@@ -530,6 +530,22 @@ void main() {
       expect(e.uniquePropertySet.contains(e.properties["b"]), true);
     });
 
+    test("Add ManagedTableAttributes to persistent type with unique list makes instances unique for those columns, where column is foreign key relationship", () {
+      var dm = new ManagedDataModel([MultiUniqueBelongsTo, MultiUniqueHasA]);
+      var e = dm.entityForType(MultiUniqueBelongsTo);
+      expect(e.uniquePropertySet.length, 2);
+      expect(e.uniquePropertySet.contains(e.properties["rel"]), true);
+      expect(e.uniquePropertySet.contains(e.properties["b"]), true);
+    });
+
+    test("Add ManagedTableAttributes to persistent type with unique list makes instances unique for those columns, where column is foreign key relationship", () {
+      var dm = new ManagedDataModel([MultiUniqueBelongsTo, MultiUniqueHasA]);
+      var e = dm.entityForType(MultiUniqueBelongsTo);
+      expect(e.uniquePropertySet.length, 2);
+      expect(e.uniquePropertySet.contains(e.properties["rel"]), true);
+      expect(e.uniquePropertySet.contains(e.properties["b"]), true);
+    });
+
     test("Add ManagedTableAttributes to persistent type with only single element in unique list throws exception, warns to use ManagedColumnAttributes", () {
       try {
         new ManagedDataModel([MultiUniqueFailureSingleElement]);

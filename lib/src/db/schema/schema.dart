@@ -1,10 +1,6 @@
-import 'dart:mirrors';
-
 import '../managed/managed.dart';
-import 'migration.dart';
 
 import 'schema_table.dart';
-import 'schema_column.dart';
 
 export 'migration.dart';
 export 'schema_builder.dart';
@@ -12,95 +8,84 @@ export 'schema_column.dart';
 export 'schema_table.dart';
 export 'migration_builder.dart';
 
-/// Thrown when a [Schema] encounters an error.
-class SchemaException implements Exception {
-  SchemaException(this.message);
-
-  String message;
-
-  @override
-  String toString() => "SchemaException: $message";
-}
-
-/// Represents a database and its tables.
+/// A portable representation of a database schema.
 ///
-/// This class is used internally and during [Migration].
+/// Instances of this type contain the database-only details of a [ManagedDataModel] and are typically
+/// instantiated from [ManagedDataModel]s. The purpose of this type is to have a portable, differentiable representation
+/// of an application's data model for use in external tooling.
 class Schema {
-  Schema(this.tables);
+  /// Creates an instance of this type with a specific set of [tables].
+  ///
+  /// Prefer to use [Schema.fromDataModel].
+  Schema(List<SchemaTable> tables) : _tableStorage = tables;
 
+  /// Creates an instance of this type from [dataModel].
+  ///
+  /// This is preferred method of creating an instance of this type. Each [ManagedEntity]
+  /// in [dataModel] will correspond to a [SchemaTable] in [tables].
   Schema.fromDataModel(ManagedDataModel dataModel) {
-    tables =
-        dataModel.entities.map((e) => new SchemaTable.fromEntity(e)).toList();
+    _tables = dataModel.entities.map((e) => new SchemaTable.fromEntity(e)).toList();
   }
 
+  /// Creates a deep copy of [otherSchema].
   Schema.from(Schema otherSchema) {
-    tables = otherSchema?.tables
-            ?.map((table) => new SchemaTable.from(table))
-            ?.toList() ??
-        [];
+    _tables = otherSchema?.tables?.map((table) => new SchemaTable.from(table))?.toList() ?? [];
   }
 
+  /// Creates a instance of this type from [map].
+  ///
+  /// [map] is typically created from [asMap].
   Schema.fromMap(Map<String, dynamic> map) {
-    tables = (map["tables"] as List<Map<String, dynamic>>)
-        .map((t) => new SchemaTable.fromMap(t))
-        .toList();
+    _tables = (map["tables"] as List<Map<String, dynamic>>).map((t) => new SchemaTable.fromMap(t)).toList();
   }
 
+  /// Creates an empty schema.
   Schema.empty() {
-    tables = [];
+    _tables = [];
   }
 
   /// The tables in this database.
-  List<SchemaTable> tables;
+  ///
+  /// Returns an immutable list of tables in this schema.
+  List<SchemaTable> get tables => new List.unmodifiable(_tableStorage ?? []);
 
-  /// A list of tables in this database that are ordered by dependencies.
+  /// An ordered list of tables in this schema.
   ///
   /// This ordering ensures that tables that depend on another table (like those that have a foreign key reference) come
   /// after the tables they depend on.
   List<SchemaTable> get dependencyOrderedTables => _orderedTables([], tables);
 
+  // Do not set this directly. Use _tables= instead.
+  List<SchemaTable> _tableStorage;
+
+  set _tables(List<SchemaTable> tables) {
+    _tableStorage = tables ?? [];
+    _tableStorage.forEach((t) => t.schema = this);
+  }
+
   /// Gets a table from [tables] by that table's name.
+  ///
+  /// See [tableForName] for details.
   SchemaTable operator [](String tableName) => tableForName(tableName);
 
   /// The differences between two schemas.
-  SchemaDifference differenceFrom(Schema schema) {
-    var actualSchema = schema;
-
-    var differences = new SchemaDifference()
-      ..expectedSchema = this
-      ..actualSchema = actualSchema;
-
-    for (var expectedTable in tables) {
-      var actualTable = actualSchema[expectedTable.name];
-      if (actualTable == null) {
-        differences.differingTables.add(new SchemaTableDifference()
-          ..actualTable = null
-          ..expectedTable = expectedTable);
-      } else {
-        var diff = expectedTable.differenceFrom(actualTable);
-        if (diff.hasDifferences) {
-          differences.differingTables.add(diff);
-        }
-      }
-    }
-
-    differences.differingTables.addAll(actualSchema.tables
-        .where((t) => this[t.name] == null)
-        .map((unexpectedTable) {
-      return new SchemaTableDifference()
-        ..actualTable = unexpectedTable
-        ..expectedTable = null;
-    }));
-
-    return differences;
+  ///
+  /// In the return value, the receiver is the [SchemaDifference.expectedSchema]
+  /// and [otherSchema] is [SchemaDifference.actualSchema].
+  SchemaDifference differenceFrom(Schema otherSchema) {
+    return new SchemaDifference(this, otherSchema);
   }
 
+  /// Adds a table to this instance.
+  ///
+  /// Sets [table]'s [SchemaTable.schema] to this instance.
   void addTable(SchemaTable table) {
     if (this[table.name] != null) {
       throw new SchemaException("Table ${table.name} already exists.");
     }
 
-    tables.add(table);
+    _tableStorage.add(table);
+    table.schema = this;
   }
 
   void renameTable(SchemaTable table, String newName) {
@@ -118,192 +103,168 @@ class Schema {
 //    table.name = newName;
   }
 
+  /// Removes a table from this instance.
+  ///
+  /// Sets [table]'s [SchemaTable.schema] to null.
   void removeTable(SchemaTable table) {
-    if (this[table.name] == null) {
-      throw new SchemaException(
-          "Table ${table.name} does not exist in schema.");
-    }
+    var toRemove = tables.firstWhere((t) => t.name.toLowerCase() == table.name.toLowerCase(),
+        orElse: () => throw new SchemaException("Table ${table.name} does not exist in schema."));
 
-    tables
-        .removeWhere((st) => st.name.toLowerCase() == table.name.toLowerCase());
+    toRemove.schema = null;
+    _tableStorage.remove(toRemove);
   }
 
+  /// Returns a [SchemaTable] for [name].
+  ///
+  /// [name] is case-insensitively compared to every [SchemaTable.name]
+  /// in [tables]. If no table with this name exists, null is returned.
+  ///
+  /// Note: tables are typically prefixed with an underscore when using
+  /// Aqueduct naming conventions for [ManagedObject].
   SchemaTable tableForName(String name) {
     var lowercaseName = name.toLowerCase();
-    return tables.firstWhere((t) => t.name.toLowerCase() == lowercaseName,
-        orElse: () => null);
+
+    return tables.firstWhere((t) => t.name.toLowerCase() == lowercaseName, orElse: () => null);
   }
 
+  /// Emits this instance as a transportable [Map].
   Map<String, dynamic> asMap() {
     return {"tables": tables.map((t) => t.asMap()).toList()};
   }
 
-  List<SchemaTable> _orderedTables(
-      List<SchemaTable> tablesAccountedFor, List<SchemaTable> remainingTables) {
+  static List<SchemaTable> _orderedTables(List<SchemaTable> tablesAccountedFor, List<SchemaTable> remainingTables) {
     if (remainingTables.isEmpty) {
       return tablesAccountedFor;
     }
 
     var tableIsReady = (SchemaTable t) {
-      var foreignKeyColumns =
-          t.columns.where((sc) => sc.relatedTableName != null).toList();
+      var foreignKeyColumns = t.columns.where((sc) => sc.relatedTableName != null).toList();
 
       if (foreignKeyColumns.isEmpty) {
         return true;
       }
 
-      return foreignKeyColumns.map((sc) => sc.relatedTableName).every(
-          (tableName) =>
-              tablesAccountedFor.map((st) => st.name).contains(tableName));
+      return foreignKeyColumns
+          .map((sc) => sc.relatedTableName)
+          .every((tableName) => tablesAccountedFor.map((st) => st.name).contains(tableName));
     };
 
     tablesAccountedFor.addAll(remainingTables.where(tableIsReady));
 
-    return _orderedTables(
-        tablesAccountedFor,
-        remainingTables
-            .where((st) => !tablesAccountedFor.contains(st))
-            .toList());
+    return _orderedTables(tablesAccountedFor, remainingTables.where((st) => !tablesAccountedFor.contains(st)).toList());
   }
 }
 
+/// The difference between two compared [Schema]s.
+///
+/// This class is used for comparing schemas for validation and migration.
 class SchemaDifference {
-  bool get hasDifferences => differingTables.length > 0;
-  List<String> get errorMessages =>
-      differingTables.expand((diff) => diff.errorMessages).toList();
-
-  Schema expectedSchema;
-  Schema actualSchema;
-
-  List<SchemaTableDifference> differingTables = [];
-
-  List<String> get tableNamesToAdd =>
-      differingTables
-          .where((diff) => diff.expectedTable == null && diff.actualTable != null)
-          .map((diff) => diff.actualTable.name)
-          .toList();
-
-  List<String> get tableNamesToDelete =>
-      differingTables
-          .where((diff) => diff.expectedTable != null && diff.actualTable == null)
-          .map((diff) => diff.expectedTable.name)
-          .toList();
-}
-
-class SchemaTableDifference {
-  bool get hasDifferences =>
-      differingColumns.length > 0 ||
-      expectedTable?.name?.toLowerCase() != actualTable?.name?.toLowerCase() ||
-      (expectedTable == null && actualTable != null) ||
-      (actualTable == null && expectedTable != null) ||
-      _hasUniqueColumnDifferences;
-
-  List<String> get errorMessages {
-    if (expectedTable == null && actualTable != null) {
-      return [
-        "Table '$actualTable' should NOT exist, but is created by migration files."
-      ];
-    } else if (expectedTable != null && actualTable == null) {
-      return [
-        "Table '$expectedTable' should exist, but it is NOT created by migration files."
-      ];
-    }
-
-    var diffs = differingColumns.expand((diff) => diff.errorMessages(this)).toList();
-
-    var uniqueDiff = _uniqueColumnDifference;
-    if (uniqueDiff != null) {
-      diffs.add(uniqueDiff);
-    }
-
-    return diffs;
-  }
-
-  SchemaTable expectedTable;
-  SchemaTable actualTable;
-
-  List<SchemaColumnDifference> differingColumns = [];
-
-  List<String> get columnNamesToAdd =>
-      differingColumns
-          .where((diff) => diff.expectedColumn == null && diff.actualColumn != null)
-          .map((diff) => diff.actualColumn.name)
-          .toList();
-
-  List<String> get columnNamesToDelete =>
-      differingColumns
-          .where((diff) => diff.expectedColumn != null && diff.actualColumn == null)
-          .map((diff) => diff.expectedColumn.name)
-          .toList();
-
-  // Note: this is only table-wide, multi-column unique constraint, not per
-  // column uniqueness
-  bool get _hasUniqueColumnDifferences => _uniqueColumnDifference != null;
-
-  String get _uniqueColumnDifference {
-    if (expectedTable.uniqueColumnSet == null && actualTable.uniqueColumnSet != null) {
-      return "Multi-column unique constraint on table '${expectedTable.name}' "
-          "should NOT exist, but is created by migration files.";
-    } else if (expectedTable.uniqueColumnSet != null && actualTable.uniqueColumnSet == null) {
-      return "Multi-column unique constraint on table '${expectedTable.name}' "
-          "should exist, but it is NOT created by migration files.";
-    } else if (expectedTable.uniqueColumnSet != null && actualTable.uniqueColumnSet != null) {
-      if (!_equalListElements(expectedTable.uniqueColumnSet, actualTable.uniqueColumnSet)) {
-        var expectedColumns = expectedTable.uniqueColumnSet.map((c) => "'$c'").join(", ");
-        var actualColumns = actualTable.uniqueColumnSet.map((c) => "'$c'").join(", ");
-        return "Multi-column unique constraint on table '${expectedTable.name}' "
-            "is expected to be for properties $expectedColumns, but is actually $actualColumns";
+  /// Creates a new instance that represents the difference between [expectedSchema] and [actualSchema].
+  ///
+  SchemaDifference(this.expectedSchema, this.actualSchema) {
+    for (var expectedTable in expectedSchema.tables) {
+      var actualTable = actualSchema[expectedTable.name];
+      if (actualTable == null) {
+        _differingTables.add(new SchemaTableDifference(expectedTable, null));
+      } else {
+        var diff = expectedTable.differenceFrom(actualTable);
+        if (diff.hasDifferences) {
+          _differingTables.add(diff);
+        }
       }
     }
 
-    return null;
+    _differingTables.addAll(actualSchema.tables.where((t) => expectedSchema[t.name] == null).map((unexpectedTable) {
+      return new SchemaTableDifference(null, unexpectedTable);
+    }));
   }
 
-  bool _equalListElements(List<String> a, List<String> b) {
-    if (a.length != b.length) {
-      return false;
+  /// The 'expected' schema.
+  final Schema expectedSchema;
+
+  /// The 'actual' schema.
+  final Schema actualSchema;
+
+  /// The tables that differ between [expectedSchema] and [actualSchema].
+  ///
+  /// The return value cannot be modified.
+  List<SchemaTableDifference> get differingTables => new List.unmodifiable(_differingTables ?? []);
+
+  /// Whether or not [expectedSchema] and [actualSchema] have differences.
+  ///
+  /// If false, both [expectedSchema] and [actualSchema], their tables, and those tables' columns are identical.
+  bool get hasDifferences => _differingTables.length > 0;
+
+  /// Human-readable messages to describe differences between [expectedSchema] and [actualSchema].
+  ///
+  /// Empty is [hasDifferences] is false.
+  List<String> get errorMessages => _differingTables.expand((diff) => diff.errorMessages).toList();
+
+  List<SchemaTableDifference> _differingTables = [];
+
+  /// Returns Dart code to change [expectedSchema] to [actualSchema].
+  String generateUpgradeSource({List<String> changeList}) {
+    var builder = new StringBuffer();
+
+    var tablesToAdd = _differingTables
+        .where((diff) => diff.expectedTable == null && diff.actualTable != null)
+        .map((d) => d.actualTable)
+        .toList();
+    actualSchema.dependencyOrderedTables
+        .where((t) => tablesToAdd.map((toAdd) => toAdd.name).contains(t.name))
+        .forEach((t) {
+      changeList?.add("Adding table '${t.name}'");
+      builder.writeln(createTableSource(t));
+    });
+
+    var tablesToRemove = _differingTables
+        .where((diff) => diff.expectedTable != null && diff.actualTable == null)
+        .map((diff) => diff.expectedTable)
+        .toList();
+    expectedSchema.dependencyOrderedTables.reversed
+        .where((t) => tablesToRemove.map((toRemove) => toRemove.name).contains(t.name))
+        .forEach((t) {
+      changeList?.add("Deleting table '${t.name}'");
+      builder.writeln(deleteTableSource(t));
+    });
+
+    _differingTables.where((diff) => diff.expectedTable != null && diff.actualTable != null).forEach((tableDiff) {
+      var lines = tableDiff.generateUpgradeSource(changeList: changeList);
+      builder.writeln(lines);
+    });
+
+    return builder.toString();
+  }
+
+  static String createTableSource(SchemaTable table) {
+    var builder = new StringBuffer();
+    builder.writeln('database.createTable(new SchemaTable("${table.name}", [');
+    table.columns.forEach((col) {
+      builder.writeln("${col.source},");
+    });
+    builder.writeln("],");
+
+    if (table.uniqueColumnSet != null) {
+      var set = table.uniqueColumnSet.map((p) => '"$p"').join(",");
+      builder.writeln("uniqueColumnSetNames: [$set],");
     }
 
-    for (var i = 0; i < a.length; i++) {
-      if (a[i] != b[i]) {
-        return false;
-      }
-    }
+    builder.writeln('));');
 
-    return true;
+    return builder.toString();
+  }
+
+  static String deleteTableSource(SchemaTable table) {
+    return 'database.deleteTable("${table.name}");';
   }
 }
 
-class SchemaColumnDifference {
-  bool get hasDifferences =>
-      differingProperties.length > 0 ||
-      (expectedColumn == null && actualColumn != null) ||
-      (actualColumn == null && expectedColumn != null);
+/// Thrown when a [Schema] encounters an error.
+class SchemaException implements Exception {
+  SchemaException(this.message);
 
-  List<String> errorMessages(SchemaTableDifference tableDiff) {
-    if (expectedColumn == null && actualColumn != null) {
-      return [
-        "Column '${actualColumn.name}' in table '${tableDiff.actualTable.name}' should NOT exist, but is created by migration files"
-      ];
-    } else if (expectedColumn != null && actualColumn == null) {
-      return [
-        "Column '${expectedColumn.name}' in table '${tableDiff.actualTable.name}' should exist, but is NOT created by migration files"
-      ];
-    }
+  String message;
 
-    return differingProperties.map((propertyName) {
-      var expectedValue =
-          reflect(expectedColumn).getField(new Symbol(propertyName)).reflectee;
-      var actualValue =
-          reflect(actualColumn).getField(new Symbol(propertyName)).reflectee;
-
-      return "Column '${expectedColumn.name}' in table '${tableDiff.actualTable.name}' expected "
-          "'$expectedValue' for '$propertyName', but migration files yield '$actualValue'";
-    }).toList();
-  }
-
-  SchemaColumn expectedColumn;
-  SchemaColumn actualColumn;
-
-  List<String> differingProperties = [];
+  @override
+  String toString() => "SchemaException: $message";
 }
