@@ -205,13 +205,6 @@ class SchemaTableDifference {
   /// Null if either [expectedTable] or [actualTable] are null.
   SchemaTableUniqueSetDifference uniqueSetDifference;
 
-  /// List of columns that differ between [expectedTable] and [actualTable].
-  ///
-  /// Is empty is all columns are the same.
-  ///
-  /// This list cannot be modified.
-  List<SchemaColumnDifference> get differingColumns => new List.unmodifiable(_differingColumns ?? []);
-
   /// Whether or not [expectedTable] and [actualTable] are the same.
   bool get hasDifferences =>
       _differingColumns.length > 0 ||

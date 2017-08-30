@@ -185,11 +185,6 @@ class SchemaDifference {
   /// The 'actual' schema.
   final Schema actualSchema;
 
-  /// The tables that differ between [expectedSchema] and [actualSchema].
-  ///
-  /// The return value cannot be modified.
-  List<SchemaTableDifference> get differingTables => new List.unmodifiable(_differingTables ?? []);
-
   /// Whether or not [expectedSchema] and [actualSchema] have differences.
   ///
   /// If false, both [expectedSchema] and [actualSchema], their tables, and those tables' columns are identical.

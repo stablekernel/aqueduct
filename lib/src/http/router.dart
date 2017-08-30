@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:async';
 
 import 'http.dart';
+import 'route_specification.dart';
 import 'route_node.dart';
 
 /// A router to split requests based on their URI path.
@@ -34,7 +35,7 @@ class Router extends RequestController {
   /// For example, if this [Router]'s base path is "/api" and the route "/users"
   /// is added, the actual route will be "/api/users". Using this property will make route matching
   /// more efficient than including the base path in each route.
-  String get basePath => _basePathSegments.join("/");
+  String get basePath => "/${_basePathSegments.join("/")}";
   set basePath(String bp) {
     _basePathSegments = bp.split("/").where((str) => str.isNotEmpty).toList();
   }

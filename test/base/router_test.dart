@@ -82,6 +82,8 @@ void main() {
 
       response = await http.get("http://localhost:4040/player");
       expect(response.statusCode, equals(404));
+
+      expect(router.basePath, "/api");
     });
 
     test("Change Base API Path after adding routes still succeeds", () async {

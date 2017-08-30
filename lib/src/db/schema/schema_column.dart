@@ -346,11 +346,6 @@ class SchemaColumnDifference {
   /// May be null if there is no actual column.
   final SchemaColumn actualColumn;
 
-  /// The properties that are different between [expectedColumn] and [actualColumn].
-  ///
-  /// This list cannot be modified. May be empty is compared columns are equivalent.
-  List<String> get differingProperties => new List.unmodifiable(_differingProperties ?? []);
-
   /// Whether or not [expectedColumn] and [actualColumn] are different.
   bool get hasDifferences =>
       _differingProperties.length > 0 ||
