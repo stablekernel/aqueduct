@@ -14,7 +14,7 @@
       
         <link rel="shortcut icon" href="../../assets/images/favicon.png">
       
-      <meta name="generator" content="mkdocs-0.16.3, mkdocs-material-1.7.4">
+      <meta name="generator" content="mkdocs-0.16.3, mkdocs-material-1.9.0">
     
     
       
@@ -22,10 +22,10 @@
       
     
     
-      <script src="../../assets/javascripts/modernizr-1df76c4e58.js"></script>
+      <script src="../../assets/javascripts/modernizr-e826f8942a.js"></script>
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/application-769c285a91.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/application-0a3554af36.css">
       
     
     
@@ -91,17 +91,17 @@
         
           <label class="md-icon md-icon--search md-header-nav__button" for="search"></label>
           
-<div class="md-search" data-md-component="search">
+<div class="md-search" data-md-component="search" role="dialog">
   <label class="md-search__overlay" for="search"></label>
   <div class="md-search__inner">
     <form class="md-search__form" name="search">
-      <input type="text" class="md-search__input" name="query" required placeholder="Search" accesskey="s" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="query">
+      <input type="text" class="md-search__input" name="query" required placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="query">
       <label class="md-icon md-search__icon" for="search"></label>
-      <button type="reset" class="md-icon md-search__icon" data-md-component="reset">close</button>
+      <button type="reset" class="md-icon md-search__icon" data-md-component="reset">&#xE5CD;</button>
     </form>
     <div class="md-search__output">
       <div class="md-search__scrollwrap" data-md-scrollfix>
-        <div class="md-search-result" data-md-component="result" data-md-lang-search="">
+        <div class="md-search-result" data-md-component="result" data-md-lang-search="" data-md-lang-tokenizer="[\s\-]+">
           <div class="md-search-result__meta" data-md-lang-result-none="No matching documents" data-md-lang-result-one="1 matching document" data-md-lang-result-other="# matching documents">
             Type to start searching
           </div>
@@ -1221,17 +1221,17 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/stablekernel/aqueduct/edit/master/docs/http/request_and_response.md" title="Edit this page" class="md-icon md-content__icon">edit</a>
+                  <a href="https://github.com/stablekernel/aqueduct/edit/master/docs/http/request_and_response.md" title="Edit this page" class="md-icon md-content__icon">&#xE3C9;</a>
                 
                 
                 <h1 id="request-and-response-objects">Request and Response Objects</h1>
 <p>In Aqueduct, HTTP requests and responses are instances of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request-class.html">Request</a> and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Response-class.html">Response</a>, respectively. For every HTTP request an application receives, an instance of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request-class.html">Request</a> is created. A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Response-class.html">Response</a> must be created for each <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request-class.html">Request</a>. Requests pass through a channel of <a href="../request_controller/">RequestControllers</a> to be validated, modified and finally responded to.</p>
 <h2 id="the-request-object">The Request Object</h2>
-<p>An instance of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request-class.html">Request</a> represents an HTTP request. They are automatically created when the application receives a request and are delivered to your application's <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a>. A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request-class.html">Request</a> is a wrapper around the Dart standard library <code>HttpRequest</code> and its values - such as headers - can be accessed through its <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request/innerRequest.html">innerRequest</a>. (Just don't write to its <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPBodyDecoderException/response.html">response</a> - Aqueduct does that.)</p>
-<p>A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request-class.html">Request</a> has a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request/body.html">body</a> property. This property decodes the HTTP request body into Dart objects based on the request's content type. The mechanism to decode the body is determined by <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPCodecRepository-class.html">HTTPCodecRepository</a>, which is covered in more detail in a later section. By default, decoders exist for text, JSON and form data.</p>
+<p>An instance of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request-class.html">Request</a> represents an HTTP request. They are automatically created when the application receives a request and are delivered to your application's <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestSink-class.html">RequestSink</a>. A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request-class.html">Request</a> is a wrapper around the Dart standard library <code>HttpRequest</code> and its values - such as headers - can be accessed through its <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request/innerRequest.html">innerRequest</a>. (Just don't write to its <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPResponseException/response.html">response</a> - Aqueduct does that.)</p>
+<p>A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request-class.html">Request</a> has a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request/body.html">body</a> property. This property decodes the HTTP request body into Dart objects based on the request's content type. The mechanism to decode the body is determined by <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPCodecRepository-class.html">HTTPCodecRepository</a>, which is covered in more detail in a later section. By default, decoders exist for text, JSON and form data. The size of a request body is limited to 10MB by default and can be changed by setting the value of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPRequestBody/maxSize.html">HTTPRequestBody.maxSize</a> during application initialization.</p>
 <p>A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request-class.html">Request</a> may go through many <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a>s before it is finally responded to. These <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a>s may validate or add more information to the request as it passes through. For example, an <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Authorizer-class.html">Authorizer</a> - a subclass of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a> - will validate the Authorization header of a request. Once validated, it will add authorization info to the request - like the user for an OAuth 2.0 bearer token - and pass it to the next <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a>. The next controller in the channel has access to the authorization info without having to fetch the information again.</p>
 <p>These additional values are added to a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request-class.html">Request</a>'s <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request/attachments.html">attachments</a> property. A <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request-class.html">Request</a> also has two built-in attachments, <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request/authorization.html">authorization</a> and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIPath/path.html">path</a>. <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request/authorization.html">authorization</a> contains authorization information created by an <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Authorizer-class.html">Authorizer</a> and <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/APIPath/path.html">path</a> has request path information created by a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Router-class.html">Router</a>.</p>
-<p><a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request-class.html">Request</a>s are responded to by returning an instance of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Response-class.html">Response</a> from a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a> (see <a href="../request_controller/">RequestControllers</a>).</p>
+<p><a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request-class.html">Request</a>s are responded to by returning an instance of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Response-class.html">Response</a> from a <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/RequestController-class.html">RequestController</a> (see <a href="../request_controller/">RequestControllers</a>). Controllers that don't create the eventual response can still modify that response by invoking <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Request/addResponseModifier.html">addResponseModifier</a>.</p>
 <h2 id="response-objects-and-http-body-encoding">Response Objects and HTTP Body Encoding</h2>
 <p>An instance of <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Response-class.html">Response</a> has a status code, HTTP headers and an HTTP body. There are a number of convenience constructors for <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Response-class.html">Response</a> for commonly used status codes. For example, <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Response/Response.ok.html">Response.ok</a> creates a 200 OK status code response.</p>
 <div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">response</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">({</span><span class="s2">&quot;key&quot;</span><span class="o">:</span> <span class="s2">&quot;value&quot;</span><span class="p">});</span>
@@ -1444,7 +1444,7 @@
       
     </div>
     
-      <script src="../../assets/javascripts/application-c35428f87f.js"></script>
+      <script src="../../assets/javascripts/application-3700c4cc12.js"></script>
       
       
       <script>app.initialize({url:{base:"../.."}})</script>

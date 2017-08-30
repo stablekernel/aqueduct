@@ -4,7 +4,7 @@
     
     <url>
      <loc>/</loc>
-     <lastmod>2017-08-01</lastmod>
+     <lastmod>2017-08-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
     
@@ -12,7 +12,7 @@
     
     <url>
      <loc>/getting_started/</loc>
-     <lastmod>2017-08-01</lastmod>
+     <lastmod>2017-08-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
     
@@ -20,7 +20,7 @@
     
     <url>
      <loc>/tour/</loc>
-     <lastmod>2017-08-01</lastmod>
+     <lastmod>2017-08-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
     
@@ -28,7 +28,7 @@
     
     <url>
      <loc>/intellij/</loc>
-     <lastmod>2017-08-01</lastmod>
+     <lastmod>2017-08-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
     
@@ -37,31 +37,31 @@
         
     <url>
      <loc>/tut/getting-started/</loc>
-     <lastmod>2017-08-01</lastmod>
+     <lastmod>2017-08-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/tut/writing-tests/</loc>
-     <lastmod>2017-08-01</lastmod>
+     <lastmod>2017-08-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/tut/executing-queries/</loc>
-     <lastmod>2017-08-01</lastmod>
+     <lastmod>2017-08-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/tut/model-relationships-and-joins/</loc>
-     <lastmod>2017-08-01</lastmod>
+     <lastmod>2017-08-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/tut/deploying-and-other-fun-things/</loc>
-     <lastmod>2017-08-01</lastmod>
+     <lastmod>2017-08-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
@@ -71,67 +71,67 @@
         
     <url>
      <loc>/http/overview/</loc>
-     <lastmod>2017-08-01</lastmod>
+     <lastmod>2017-08-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/http/structure/</loc>
-     <lastmod>2017-08-01</lastmod>
+     <lastmod>2017-08-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/http/request_and_response/</loc>
-     <lastmod>2017-08-01</lastmod>
+     <lastmod>2017-08-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/http/request_controller/</loc>
-     <lastmod>2017-08-01</lastmod>
+     <lastmod>2017-08-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/http/routing/</loc>
-     <lastmod>2017-08-01</lastmod>
+     <lastmod>2017-08-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/http/request_sink/</loc>
-     <lastmod>2017-08-01</lastmod>
+     <lastmod>2017-08-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/http/http_controller/</loc>
-     <lastmod>2017-08-01</lastmod>
+     <lastmod>2017-08-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/http/configure/</loc>
-     <lastmod>2017-08-01</lastmod>
+     <lastmod>2017-08-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/http/serving_files/</loc>
-     <lastmod>2017-08-01</lastmod>
+     <lastmod>2017-08-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/http/websockets/</loc>
-     <lastmod>2017-08-01</lastmod>
+     <lastmod>2017-08-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/http/threading/</loc>
-     <lastmod>2017-08-01</lastmod>
+     <lastmod>2017-08-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
@@ -141,49 +141,49 @@
         
     <url>
      <loc>/db/overview/</loc>
-     <lastmod>2017-08-01</lastmod>
+     <lastmod>2017-08-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/db/connecting/</loc>
-     <lastmod>2017-08-01</lastmod>
+     <lastmod>2017-08-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/db/modeling_data/</loc>
-     <lastmod>2017-08-01</lastmod>
+     <lastmod>2017-08-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/db/serialization/</loc>
-     <lastmod>2017-08-01</lastmod>
+     <lastmod>2017-08-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/db/executing_queries/</loc>
-     <lastmod>2017-08-01</lastmod>
+     <lastmod>2017-08-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/db/advanced_queries/</loc>
-     <lastmod>2017-08-01</lastmod>
+     <lastmod>2017-08-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/db/validations/</loc>
-     <lastmod>2017-08-01</lastmod>
+     <lastmod>2017-08-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/db/db_tools/</loc>
-     <lastmod>2017-08-01</lastmod>
+     <lastmod>2017-08-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
@@ -193,43 +193,43 @@
         
     <url>
      <loc>/auth/overview/</loc>
-     <lastmod>2017-08-01</lastmod>
+     <lastmod>2017-08-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/auth/server/</loc>
-     <lastmod>2017-08-01</lastmod>
+     <lastmod>2017-08-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/auth/authorizer/</loc>
-     <lastmod>2017-08-01</lastmod>
+     <lastmod>2017-08-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/auth/controllers/</loc>
-     <lastmod>2017-08-01</lastmod>
+     <lastmod>2017-08-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/auth/cli/</loc>
-     <lastmod>2017-08-01</lastmod>
+     <lastmod>2017-08-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/auth/auth_scopes/</loc>
-     <lastmod>2017-08-01</lastmod>
+     <lastmod>2017-08-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/auth/what_is_oauth/</loc>
-     <lastmod>2017-08-01</lastmod>
+     <lastmod>2017-08-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
@@ -239,43 +239,43 @@
         
     <url>
      <loc>/testing/overview/</loc>
-     <lastmod>2017-08-01</lastmod>
+     <lastmod>2017-08-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/testing/database/</loc>
-     <lastmod>2017-08-01</lastmod>
+     <lastmod>2017-08-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/testing/debugger/</loc>
-     <lastmod>2017-08-01</lastmod>
+     <lastmod>2017-08-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/testing/best_practices/</loc>
-     <lastmod>2017-08-01</lastmod>
+     <lastmod>2017-08-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/testing/clients/</loc>
-     <lastmod>2017-08-01</lastmod>
+     <lastmod>2017-08-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/testing/tests/</loc>
-     <lastmod>2017-08-01</lastmod>
+     <lastmod>2017-08-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/testing/mock/</loc>
-     <lastmod>2017-08-01</lastmod>
+     <lastmod>2017-08-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
@@ -285,31 +285,31 @@
         
     <url>
      <loc>/deploy/overview/</loc>
-     <lastmod>2017-08-01</lastmod>
+     <lastmod>2017-08-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/deploy/deploy_local/</loc>
-     <lastmod>2017-08-01</lastmod>
+     <lastmod>2017-08-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/deploy/deploy_heroku/</loc>
-     <lastmod>2017-08-01</lastmod>
+     <lastmod>2017-08-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/deploy/deploy_aws/</loc>
-     <lastmod>2017-08-01</lastmod>
+     <lastmod>2017-08-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/deploy/script/</loc>
-     <lastmod>2017-08-01</lastmod>
+     <lastmod>2017-08-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
@@ -319,31 +319,31 @@
         
     <url>
      <loc>/cli/overview/</loc>
-     <lastmod>2017-08-01</lastmod>
+     <lastmod>2017-08-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/cli/create/</loc>
-     <lastmod>2017-08-01</lastmod>
+     <lastmod>2017-08-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/cli/running/</loc>
-     <lastmod>2017-08-01</lastmod>
+     <lastmod>2017-08-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/cli/document/</loc>
-     <lastmod>2017-08-01</lastmod>
+     <lastmod>2017-08-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/cli/setup/</loc>
-     <lastmod>2017-08-01</lastmod>
+     <lastmod>2017-08-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
@@ -353,31 +353,31 @@
         
     <url>
      <loc>/snippets/overview/</loc>
-     <lastmod>2017-08-01</lastmod>
+     <lastmod>2017-08-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/snippets/http/</loc>
-     <lastmod>2017-08-01</lastmod>
+     <lastmod>2017-08-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/snippets/orm/</loc>
-     <lastmod>2017-08-01</lastmod>
+     <lastmod>2017-08-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/snippets/auth/</loc>
-     <lastmod>2017-08-01</lastmod>
+     <lastmod>2017-08-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/snippets/test/</loc>
-     <lastmod>2017-08-01</lastmod>
+     <lastmod>2017-08-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
