@@ -1,4 +1,5 @@
 import 'http.dart';
+import 'route_specification.dart';
 
 class RouteSegment {
   RouteSegment(String segment) {
