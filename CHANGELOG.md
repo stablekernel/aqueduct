@@ -1,5 +1,10 @@
 # aqueduct changelog
 
+## 2.5.0
+
+- Adds `aqueduct db schema` to print an application's data model.
+- Adds `--machine` flag to `aqueduct` tool to only emit machine-readable output.
+
 ## 2.4.0
 
 - Adds `HTTPRequestBody.maxSize` to limit HTTP request body sizes. Defaults to 10MB.
