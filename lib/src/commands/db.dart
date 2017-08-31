@@ -1,18 +1,19 @@
-import 'dart:mirrors';
 import 'dart:async';
 import 'dart:io';
+import 'dart:mirrors';
 
 import 'package:safe_config/safe_config.dart';
 import 'package:yaml/yaml.dart';
 
-import '../utilities/source_generator.dart';
 import '../db/db.dart';
+import '../utilities/source_generator.dart';
 import 'base.dart';
 import 'db_generate.dart';
 import 'db_show_migrations.dart';
 import 'db_upgrade.dart';
 import 'db_validate.dart';
 import 'db_version.dart';
+import 'db_schema.dart';
 
 class CLIDatabase extends CLICommand {
   CLIDatabase() {
@@ -28,6 +29,7 @@ class CLIDatabase extends CLICommand {
     registerCommand(new CLIDatabaseShowMigrations());
     registerCommand(new CLIDatabaseValidate());
     registerCommand(new CLIDatabaseVersion());
+    registerCommand(new CLIDatabaseSchema());
   }
 
   @override
