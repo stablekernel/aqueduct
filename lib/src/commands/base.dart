@@ -49,24 +49,31 @@ abstract class CLICommand implements CLIResultHandler {
   /// Options for this command.
   ArgParser options = new ArgParser(allowTrailingOptions: true)
     ..addOption("directory",
-        abbr: "d",
-        help: "Project directory to execute command in",
-        defaultsTo: Directory.current.path)
+        abbr: "d", help: "Project directory to execute command in", defaultsTo: Directory.current.path)
     ..addFlag("help", abbr: "h", help: "Shows this", negatable: false)
-    ..addFlag("stacktrace",
-        help: "Shows the stacktrace if an error occurs", defaultsTo: false)
-    ..addFlag("color",
-        help: "Toggles ANSI color", negatable: true, defaultsTo: true);
+    ..addFlag("machine",
+        help: "Output is machine-readable, usable for creating tools on top of this CLI. Behavior varies by command.",
+        defaultsTo: false)
+    ..addFlag("stacktrace", help: "Shows the stacktrace if an error occurs", defaultsTo: false)
+    ..addFlag("color", help: "Toggles ANSI color", negatable: true, defaultsTo: true);
 
   @override
   ArgResults values;
+
   bool get showColors => values["color"];
+
   bool get helpMeItsScary => values["help"];
+
   bool get showStacktrace => values["stacktrace"];
+
+  bool get isMachineOutput => values["machine"];
+
   Map<String, CLICommand> _commandMap = {};
 
   StringSink _outputSink = stdout;
+
   StringSink get outputSink => _outputSink;
+
   set outputSink(StringSink sink) {
     _outputSink = sink;
     _commandMap.values.forEach((cmd) {
@@ -98,16 +105,14 @@ abstract class CLICommand implements CLIResultHandler {
   ///
   /// Do not override this method. This method invokes [handle] within a try-catch block
   /// and will invoke [cleanup] when complete.
-  Future<int> process(ArgResults results,
-      {List<String> parentCommandNames}) async {
+  Future<int> process(ArgResults results, {List<String> parentCommandNames}) async {
     if (results.command != null) {
       if (parentCommandNames == null) {
         parentCommandNames = [name];
       } else {
         parentCommandNames.add(name);
       }
-      return _commandMap[results.command.name]
-          .process(results.command, parentCommandNames: parentCommandNames);
+      return _commandMap[results.command.name].process(results.command, parentCommandNames: parentCommandNames);
     }
 
     try {
@@ -115,7 +120,10 @@ abstract class CLICommand implements CLIResultHandler {
 
       await determineToolVersion();
 
-      displayInfo("Aqueduct CLI Version: $toolVersion");
+      if (!isMachineOutput) {
+        displayInfo("Aqueduct CLI Version: $toolVersion");
+      }
+
       preProcess();
 
       if (helpMeItsScary) {
@@ -171,14 +179,10 @@ abstract class CLICommand implements CLIResultHandler {
     }
   }
 
-  void preProcess() {
+  void preProcess() {}
 
-  }
-
-  void displayError(String errorMessage,
-      {bool showUsage: false, CLIColor color: CLIColor.boldRed}) {
-    outputSink.writeln(
-        "${colorSymbol(color)}$_ErrorDelimiter$errorMessage$defaultColorSymbol");
+  void displayError(String errorMessage, {bool showUsage: false, CLIColor color: CLIColor.boldRed}) {
+    outputSink.writeln("${colorSymbol(color)}$_ErrorDelimiter$errorMessage$defaultColorSymbol");
     if (showUsage) {
       outputSink.writeln("\n${options.usage}");
     }
@@ -188,8 +192,7 @@ abstract class CLICommand implements CLIResultHandler {
     outputSink.writeln("${colorSymbol(color)}$_Delimiter$infoMessage$defaultColorSymbol");
   }
 
-  void displayProgress(String progressMessage,
-      {CLIColor color: CLIColor.none}) {
+  void displayProgress(String progressMessage, {CLIColor color: CLIColor.none}) {
     outputSink.writeln("${colorSymbol(color)}$_Tabs$progressMessage$defaultColorSymbol");
   }
 
@@ -201,7 +204,9 @@ abstract class CLICommand implements CLIResultHandler {
   }
 
   String get name;
+
   String get detailedDescription => "";
+
   String get usage {
     var buf = new StringBuffer(name);
     if (_commandMap.length > 0) {
@@ -269,7 +274,9 @@ abstract class CLIProject implements CLIResultHandler, CLICommand {
   String _packageName;
 
   Directory get projectDirectory => new Directory(values["directory"]).absolute;
+
   String get libraryName => packageName;
+
   String get packageName {
     if (_packageName == null) {
       var file = new File.fromUri(projectDirectory.uri.resolve("pubspec.yaml"));
@@ -283,6 +290,7 @@ abstract class CLIProject implements CLIResultHandler, CLICommand {
   }
 
   Version _projectVersion;
+
   Version get projectVersion {
     if (_projectVersion == null) {
       var lockFile = new File.fromUri(projectDirectory.uri.resolve("pubspec.lock"));
@@ -298,7 +306,6 @@ abstract class CLIProject implements CLIResultHandler, CLICommand {
     return _projectVersion;
   }
 
-
   static File fileInDirectory(Directory directory, String name) {
     if (path_lib.isRelative(name)) {
       return new File.fromUri(directory.uri.resolve(name));
@@ -313,13 +320,14 @@ abstract class CLIProject implements CLIResultHandler, CLICommand {
 
   @override
   void preProcess() {
-    try {
-      displayInfo("Aqueduct project version: $projectVersion");
-    } catch (_) {} // Ignore if this doesn't succeed.
+    if (!isMachineOutput) {
+      try {
+        displayInfo("Aqueduct project version: $projectVersion");
+      } catch (_) {} // Ignore if this doesn't succeed.
+    }
   }
 
-  Directory subdirectoryInProjectDirectory(String name,
-      {bool createIfDoesNotExist: true}) {
+  Directory subdirectoryInProjectDirectory(String name, {bool createIfDoesNotExist: true}) {
     var dir = new Directory(name);
     if (path_lib.isRelative(name)) {
       dir = new Directory.fromUri(projectDirectory.uri.resolve(name));
