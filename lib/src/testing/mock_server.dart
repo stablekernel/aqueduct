@@ -135,17 +135,26 @@ class MockHTTPServer extends MockServer<MockHTTPRequest> {
   /// The underlying [HttpServer] listening for requests.
   HttpServer server;
 
+  /// The response to be returned if there are no queued responses
+  Response defaultResponse = new Response(503, {}, {"error": "No queued requests"});
+
+  /// The delay to be used for responses where a delay is not set
+  Duration defaultDelay;
+
+  /// The number of currently queued responses
+  int get queueCount => _responseQueue.length;
+
   /// The queue of responses that will be returned when HTTP requests are made against this instance.
   ///
   /// See [queueResponse].
-  List<Response> responseQueue = [];
+  List<_MockServerResponse> _responseQueue = [];
 
   /// Adds an HTTP response to the list of responses to be returned.
   ///
   /// A queued response will be returned for the next HTTP request made to this instance and will then be removed.
   /// You may queue up as many responses as you like and they will be returned in order.
-  void queueResponse(Response resp) {
-    responseQueue.add(resp);
+  void queueResponse(Response resp, {Duration delay: null}) {
+    _responseQueue.add(new _MockServerResponse(resp, delay ?? defaultDelay));
   }
 
   /// Begins listening for HTTP requests on [port].
@@ -153,7 +162,7 @@ class MockHTTPServer extends MockServer<MockHTTPRequest> {
   Future open() async {
     server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, port);
     server.listen((HttpRequest req) async {
-      var mockReq = new MockHTTPRequest()
+      final mockReq = new MockHTTPRequest()
         ..method = req.method
         ..path = req.uri.path
         ..queryParameters = req.uri.queryParameters;
@@ -169,21 +178,27 @@ class MockHTTPServer extends MockServer<MockHTTPRequest> {
 
       add(mockReq);
 
-      if (responseQueue.length > 0) {
-        var respObj = responseQueue.first;
-        responseQueue.removeAt(0);
+      Response response;
 
-        if (respObj.statusCode == _mockConnectionFailureStatusCode) {
+      if (_responseQueue.length > 0) {
+        final mockResp = _responseQueue.removeAt(0);
+
+        if (mockResp.response.statusCode == _mockConnectionFailureStatusCode) {
           // We let this one die by not responding.
           return null;
         }
 
-        var wrappedReq = new Request(req);
-        wrappedReq.respond(respObj);
+        if (mockResp.delay != null) {
+          await new Future.delayed(mockResp.delay);
+        }
+
+        response = mockResp.response;
       } else {
-        req.response.statusCode = 200;
-        req.response.close();
+        response = defaultResponse;
       }
+
+      final wrappedReq = new Request(req);
+      wrappedReq.respond(response);
     });
   }
 
@@ -192,4 +207,11 @@ class MockHTTPServer extends MockServer<MockHTTPRequest> {
   Future close() {
     return server?.close();
   }
+}
+
+class _MockServerResponse {
+  _MockServerResponse(this.response, this.delay);
+
+  final Response response;
+  final Duration delay;
 }
