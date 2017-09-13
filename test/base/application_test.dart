@@ -5,6 +5,25 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 void main() {
+  group("App launch status", () {
+    Application<TestSink> app;
+
+    tearDown(() async {
+      await app?.stop();
+    });
+
+    test("didFinishLaunching is false before launch, true after, false after stop", () async {
+      app = new Application<TestSink>();
+      expect(app.hasFinishedLaunching, false);
+
+      await app.start(runOnMainIsolate: true);
+      expect(app.hasFinishedLaunching, true);
+
+      await app.stop();
+      expect(app.hasFinishedLaunching, false);
+    });
+  });
+
   group("Application lifecycle", () {
     Application<TestSink> app;
 
