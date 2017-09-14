@@ -142,7 +142,7 @@ class MockHTTPServer extends MockServer<MockHTTPRequest> {
   Duration defaultDelay;
 
   /// The number of currently queued responses
-  int get queueCount => _responseQueue.length;
+  int get queuedResponseCount => _responseQueue.length;
 
   /// The queue of responses that will be returned when HTTP requests are made against this instance.
   ///
@@ -154,7 +154,7 @@ class MockHTTPServer extends MockServer<MockHTTPRequest> {
   /// A queued response will be returned for the next HTTP request made to this instance and will then be removed.
   /// You may queue up as many responses as you like and they will be returned in order.
   void queueResponse(Response resp, {Duration delay: null}) {
-    _responseQueue.add(new _MockServerResponse(resp, delay ?? defaultDelay));
+    _responseQueue.add(new _MockServerResponse(resp, delay));
   }
 
   /// Begins listening for HTTP requests on [port].
@@ -179,6 +179,7 @@ class MockHTTPServer extends MockServer<MockHTTPRequest> {
       add(mockReq);
 
       Response response;
+      Duration delay = defaultDelay;
 
       if (_responseQueue.length > 0) {
         final mockResp = _responseQueue.removeAt(0);
@@ -189,12 +190,16 @@ class MockHTTPServer extends MockServer<MockHTTPRequest> {
         }
 
         if (mockResp.delay != null) {
-          await new Future.delayed(mockResp.delay);
+          delay = mockResp.delay;
         }
 
         response = mockResp.response;
       } else {
         response = defaultResponse;
+      }
+
+      if (delay != null) {
+        await new Future.delayed(delay);
       }
 
       final wrappedReq = new Request(req);
