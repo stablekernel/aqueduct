@@ -86,53 +86,53 @@ void main() {
     });
 
     test("Mock Server respects delays for queued requests", () async {
-      server.queueResponse(new Response.ok(null), delay: new Duration(milliseconds: 500));
+      server.queueResponse(new Response.ok(null), delay: new Duration(milliseconds: 1000));
 
       var responseReturned = false;
       var responseFuture = testClient.request("/hello").get();
       responseFuture.whenComplete(() => responseReturned = true);
 
-      await new Future.delayed(new Duration(milliseconds: 400));
+      await new Future.delayed(new Duration(milliseconds: 100));
       expect(responseReturned, false);
-      await new Future.delayed(new Duration(milliseconds: 200));
+      await new Future.delayed(new Duration(milliseconds: 1500));
       expect(responseReturned, true);
     });
 
     test("Mock server uses default delay for requests without an explicit delay", () async {
       server.queueResponse(new Response.ok(null));
-      server.defaultDelay = new Duration(milliseconds: 300);
+      server.defaultDelay = new Duration(milliseconds: 1000);
 
       var responseReturned = false;
       var responseFuture = testClient.request("/hello").get();
       responseFuture.whenComplete(() => responseReturned = true);
 
-      await new Future.delayed(new Duration(milliseconds: 200));
+      await new Future.delayed(new Duration(milliseconds: 100));
       expect(responseReturned, false);
-      await new Future.delayed(new Duration(milliseconds: 200));
+      await new Future.delayed(new Duration(milliseconds: 1500));
       expect(responseReturned, true);
 
-      server.queueResponse(new Response.ok(null), delay: new Duration(milliseconds: 600));
+      server.queueResponse(new Response.ok(null), delay: new Duration(milliseconds: 1000));
 
       responseReturned = false;
       responseFuture = testClient.request("/hello").get();
       responseFuture.whenComplete(() => responseReturned = true);
 
-      await new Future.delayed(new Duration(milliseconds: 500));
+      await new Future.delayed(new Duration(milliseconds: 100));
       expect(responseReturned, false);
-      await new Future.delayed(new Duration(milliseconds: 200));
+      await new Future.delayed(new Duration(milliseconds: 1500));
       expect(responseReturned, true);
     });
 
     test("Default response respects default delay", () async {
-      server.defaultDelay = new Duration(milliseconds: 300);
+      server.defaultDelay = new Duration(milliseconds: 1000);
 
       var responseReturned = false;
       var responseFuture = testClient.request("/hello").get();
       responseFuture.whenComplete(() => responseReturned = true);
 
-      await new Future.delayed(new Duration(milliseconds: 200));
+      await new Future.delayed(new Duration(milliseconds: 100));
       expect(responseReturned, false);
-      await new Future.delayed(new Duration(milliseconds: 200));
+      await new Future.delayed(new Duration(milliseconds: 1500));
       expect(responseReturned, true);
     });
   });

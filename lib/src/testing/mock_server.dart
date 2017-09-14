@@ -136,9 +136,13 @@ class MockHTTPServer extends MockServer<MockHTTPRequest> {
   HttpServer server;
 
   /// The response to be returned if there are no queued responses
+  ///
+  /// The default response is a 503 with a JSON Error body
   Response defaultResponse = new Response(503, {}, {"error": "No queued requests"});
 
   /// The delay to be used for responses where a delay is not set
+  ///
+  /// The default delay is null which is no delay
   Duration defaultDelay;
 
   /// The number of currently queued responses
@@ -153,6 +157,7 @@ class MockHTTPServer extends MockServer<MockHTTPRequest> {
   ///
   /// A queued response will be returned for the next HTTP request made to this instance and will then be removed.
   /// You may queue up as many responses as you like and they will be returned in order.
+  /// If a delay is set in this method it will take precedence over [defaultDelay]. If delay isn't set or is explicitly set to null, [defaultDelay] will be used.
   void queueResponse(Response resp, {Duration delay: null}) {
     _responseQueue.add(new _MockServerResponse(resp, delay));
   }
