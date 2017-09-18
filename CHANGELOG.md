@@ -1,15 +1,12 @@
 # aqueduct changelog
 
-## 2.5.1
-
-- Adds `defaultDelay` to `MockHTTPServer`. Defaults to null for no delay.
-- Adds `defaultResponse` to `MockHTTPServer`. Defaults to a 503 response instead of a 200.
-- Adds option to set a custom delay for a specific response in `MockHTTPServer`'s `queueResponse` function.
-
 ## 2.5.0
 
 - Adds `aqueduct db schema` to print an application's data model.
 - Adds `--machine` flag to `aqueduct` tool to only emit machine-readable output.
+- Adds `defaultDelay` to `MockHTTPServer`. Defaults to null for no delay.
+- Adds `defaultResponse` to `MockHTTPServer`. Defaults to a 503 response instead of a 200.
+- Adds option to set a custom delay for a specific response in `MockHTTPServer`'s `queueResponse` function.
 
 ## 2.4.0
 
