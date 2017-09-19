@@ -9,6 +9,7 @@ void main() {
     MockHTTPServer server = new MockHTTPServer(4000);
     setUpAll(() async {
       await server.open();
+      server.defaultResponse = new Response.ok(null);
     });
 
     tearDownAll(() async {
