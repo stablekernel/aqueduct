@@ -61,9 +61,10 @@ class Application<RequestSinkType extends RequestSink> {
   ///
   /// This will return true if [start] has been invoked and completed; i.e. this is the synchronous version of the [Future] returned by [start].
   ///
-  /// If [stop] has been invoked, this value still returns true until [start] is invoked again.
-  bool get hasFinishedLaunching => _hasFinishedLaunching;
-  bool _hasFinishedLaunching = false;
+  /// This value will return to false after [stop] has completed.
+  bool get hasFinishedLaunching => _interruptSubscription != null;
+
+  StreamSubscription<ProcessSignal> _interruptSubscription;
 
   /// Starts the application by spawning Isolates that listen for HTTP requests.
   ///
@@ -76,7 +77,9 @@ class Application<RequestSinkType extends RequestSink> {
   /// If this instances [RequestSinkType] implements `initializeApplication` (see [RequestSink] for more details),
   /// that one-time initialization method will be executed prior to the spawning of isolates and instantiations of [RequestSink].
   Future start({int numberOfInstances: 1, bool runOnMainIsolate: false, bool consoleLogging: false}) async {
-    _hasFinishedLaunching = false;
+    if (server != null || supervisors.length > 0) {
+      throw new ApplicationStartupException("Application already started.");
+    }
 
     if (configuration.address == null) {
       if (runOnMainIsolate) {
@@ -105,13 +108,12 @@ class Application<RequestSinkType extends RequestSink> {
         server = new ApplicationServer(configuration, 1, captureStack: true);
 
         await server.start(sink);
-      } catch (e) {
-        await server?.server?.close(force: true);
+      } catch (e, st) {
+        logger.severe("$e", this, st);
+        await stop().timeout(new Duration(seconds: 5));
         throw new ApplicationStartupException(e);
       }
-      _hasFinishedLaunching = true;
     } else {
-      supervisors = [];
       try {
         for (int i = 0; i < numberOfInstances; i++) {
           var supervisor = await _spawn(configuration, i + 1, logToConsole: consoleLogging);
@@ -119,14 +121,17 @@ class Application<RequestSinkType extends RequestSink> {
           await supervisor.resume();
         }
       } catch (e, st) {
-        await stop().timeout(new Duration(seconds: 5));
-        supervisors = [];
         logger.severe("$e", this, st);
+        await stop().timeout(new Duration(seconds: 5));
         rethrow;
       }
-      _hasFinishedLaunching = true;
       supervisors.forEach((sup) => sup.sendPendingMessages());
     }
+
+    _interruptSubscription = ProcessSignal.SIGINT.watch().listen((evt) {
+      logger.info("Shutting down due to interrupt signal.");
+      stop();
+    });
   }
 
   /// Stops the application from running.
@@ -134,11 +139,14 @@ class Application<RequestSinkType extends RequestSink> {
   /// Closes down every [RequestSinkType] and stops listening for HTTP requests.
   Future stop() async {
     await Future.wait(supervisors.map((s) => s.stop()));
-    supervisors = [];
+    await server?.server?.close(force: true);
 
     await ServiceRegistry.defaultInstance.close();
+    await _interruptSubscription?.cancel();
 
-    await server?.server?.close(force: true);
+    _interruptSubscription = null;
+    server = null;
+    supervisors = [];
 
     logger.clearListeners();
   }

@@ -94,7 +94,26 @@ void main() {
     });
   });
 
+  group("App launch status", () {
+    Application<TestSink> app;
 
+    tearDown(() async {
+      await app?.stop();
+    });
+
+    test("didFinishLaunching is false before launch, true after, false after stop", () async {
+      app = new Application<TestSink>();
+      expect(app.hasFinishedLaunching, false);
+
+      var future = app.start(numberOfInstances: 2, consoleLogging: true);
+      expect(app.hasFinishedLaunching, false);
+      await future;
+      expect(app.hasFinishedLaunching, true);
+
+      await app.stop();
+      expect(app.hasFinishedLaunching, false);
+    });
+  });
 }
 
 class TestSink extends RequestSink {
