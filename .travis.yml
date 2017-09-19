@@ -1,7 +1,9 @@
 language: dart
-#sudo: required
+dart:
+- stable
+- dev
 addons:
-  postgresql: "9.4"
+  postgresql: "9.6"
 services:
   - postgresql
 before_install:
@@ -21,7 +23,8 @@ env:
 branches:
   only:
     - master
-    - 1.0
-    - 2.0
 after_success:
   - bash ci/after_script.sh
+matrix:
+  exclude:
+  - env: STAGE=coverage, TRAVIS_DART_VERSION =~ ^2.*$
