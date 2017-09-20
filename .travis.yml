@@ -1,7 +1,7 @@
 language: dart
 dart:
-- stable
-- dev
+  - stable
+  - dev
 addons:
   postgresql: "9.6"
 services:
@@ -16,10 +16,11 @@ before_script:
   - pub get
 script: bash ci/script.sh
 env:
-  - STAGE=tests
-  - STAGE=coverage COVERAGE_SLICE='auth base'
-  - STAGE=coverage COVERAGE_SLICE='command'
-  - STAGE=coverage COVERAGE_SLICE='db managed_auth utilities testing'
+  global:
+    - STAGE=tests
+    - STAGE=coverage COVERAGE_SLICE='auth base'
+    - STAGE=coverage COVERAGE_SLICE='command'
+    - STAGE=coverage COVERAGE_SLICE='db managed_auth utilities testing'
 branches:
   only:
     - master
