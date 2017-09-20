@@ -16,11 +16,10 @@ before_script:
   - pub get
 script: bash ci/script.sh
 env:
-  global:
-    - STAGE=tests
-    - STAGE=coverage COVERAGE_SLICE='auth base'
-    - STAGE=coverage COVERAGE_SLICE='command'
-    - STAGE=coverage COVERAGE_SLICE='db managed_auth utilities testing'
+  - STAGE=tests
+  - STAGE=coverage COVERAGE_SLICE='auth base'
+  - STAGE=coverage COVERAGE_SLICE='command'
+  - STAGE=coverage COVERAGE_SLICE='db managed_auth utilities testing'
 branches:
   only:
     - master
@@ -28,4 +27,4 @@ after_success:
   - bash ci/after_script.sh
 matrix:
   exclude:
-    - env: STAGE=coverage, TRAVIS_DART_VERSION =~ ^2.*$
+    - env: STAGE=coverage
