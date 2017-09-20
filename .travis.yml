@@ -27,4 +27,5 @@ after_success:
   - bash ci/after_script.sh
 matrix:
   exclude:
-    - env: STAGE=coverage
+    - dart: dev
+      env: STAGE=coverage
