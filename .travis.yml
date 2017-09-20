@@ -29,3 +29,4 @@ after_success:
 matrix:
   exclude:
     - env: STAGE=coverage
+      dart: dev
