@@ -30,3 +30,7 @@ matrix:
   exclude:
     - dart: dev
       env: STAGE=coverage COVERAGE_SLICE='auth base'
+    - dart: dev
+      env: STAGE=coverage COVERAGE_SLICE='command'
+    - dart: dev
+      env: STAGE=coverage COVERAGE_SLICE='db managed_auth utilities testing'
