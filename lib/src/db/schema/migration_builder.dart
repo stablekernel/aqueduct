@@ -11,11 +11,15 @@ import 'package:aqueduct/aqueduct.dart';
 import 'dart:async';
 
 class Migration$version extends Migration { 
+  @override
   Future upgrade() async {
    $source
   }
   
+  @override
   Future downgrade() async {}
+  
+  @override
   Future seed() async {}
 }
     """;
