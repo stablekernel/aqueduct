@@ -58,7 +58,8 @@ The response to a password token request is a JSON body that follows the OAuth 2
 ```
 
 
-!!! The `expires_in` field is a computed property based on the delta of the issue date and expiration date. Take care manually editing the database.
+!!! warning ""
+    The `expires_in` field is a computed property based on the delta of the issue date and expiration date. You should avoid manually editing the values for the columns `issuedate` and `expirationdate`
 
 Tokens are refreshed through the same endpoint, but with a payload that only contains the refresh token and `grant_type=refresh_token`.
 
