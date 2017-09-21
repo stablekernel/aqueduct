@@ -205,38 +205,7 @@ class RequestController extends Object with APIDocumentable {
   ///
   /// This method returns true if the error is unexpected, allowing [letUncaughtExceptionsEscape] to rethrow the exception during debugging.
   Future<bool> handleError(Request request, dynamic caughtValue, StackTrace trace) async {
-    if (caughtValue is HTTPResponseException) {
-      var response = caughtValue.response;
-      await _sendResponse(request, response, includeCORSHeaders: true);
-
-      logger.info(
-          "${request.toDebugString(includeHeaders: true)}");
-    } else if (caughtValue is QueryException &&
-        caughtValue.event != QueryExceptionEvent.internalFailure) {
-      // Note that if the event is an internal failure, this code is skipped and the 500 handler is executed.
-      var statusCode = 500;
-      switch (caughtValue.event) {
-        case QueryExceptionEvent.requestFailure:
-          statusCode = 400;
-          break;
-        case QueryExceptionEvent.internalFailure:
-          statusCode = 500;
-          break;
-        case QueryExceptionEvent.connectionFailure:
-          statusCode = 503;
-          break;
-        case QueryExceptionEvent.conflict:
-          statusCode = 409;
-          break;
-      }
-
-      var response =
-      new Response(statusCode, null, {"error": caughtValue.toString()});
-      await _sendResponse(request, response, includeCORSHeaders: true);
-
-      logger.info(
-          "${request.toDebugString(includeHeaders: true)}");
-    } else if (caughtValue is HTTPStreamingException) {
+    if (caughtValue is HTTPStreamingException) {
       logger.severe(
           "${request.toDebugString(includeHeaders: true)}",
           caughtValue.underlyingException,
@@ -245,29 +214,40 @@ class RequestController extends Object with APIDocumentable {
       await request.response.close();
 
       return true;
-    } else {
-      var body;
-      if (includeErrorDetailsInServerErrorResponses) {
-        body = {
-          "error": "${this.runtimeType}: $caughtValue.",
-          "stacktrace": trace.toString()
-        };
-      }
-
-      var response = new Response.serverError(body: body)
-        ..contentType = ContentType.JSON;
-
-      await _sendResponse(request, response, includeCORSHeaders: true);
-
-      logger.severe(
-          "${request.toDebugString(includeHeaders: true)}",
-          caughtValue,
-          trace);
-
-      return true;
     }
 
-    return false;
+    Response response;
+    if (caughtValue is HTTPResponseException) {
+      response = caughtValue.response;
+
+      logger.info(
+          "${request.toDebugString(includeHeaders: true)}");
+
+      if (caughtValue.isControlFlowException) {
+        await _sendResponse(request, response, includeCORSHeaders: true);
+        return false;
+      }
+    }
+
+    var body;
+    if (includeErrorDetailsInServerErrorResponses) {
+      body = {
+        "error": "${this.runtimeType}: $caughtValue.",
+        "stacktrace": trace.toString()
+      };
+    }
+
+    response ??= new Response.serverError(body: body)
+      ..contentType = ContentType.JSON;
+
+    await _sendResponse(request, response, includeCORSHeaders: true);
+
+    logger.severe(
+        "${request.toDebugString(includeHeaders: true)}",
+        caughtValue,
+        trace);
+
+    return true;
   }
 
   Future _handlePreflightRequest(Request req) async {
