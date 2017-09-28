@@ -20,39 +20,36 @@ part 'request.dart';
 /// test matchers.
 class TestClient {
   /// Creates an instance that targets the configured [app].
-  TestClient(Application app) {
-    if (app.server == null) {
-      throw new TestClientException(
-          "TestClient failed to initialize from Application. "
-              "Start the application prior to instantiating a TestClient and ensure that the "
-              "application is run with `runOnMainIsolate: true`. You may also create a TestClient "
-              "without an Application through its named constructors.");
-    }
+  TestClient(Application app) : _application = app;
 
-    var scheme = app.server.requiresHTTPS ? "https" : "http";
-    var host = "localhost";
-    var port = app.configuration.port;
-
-    if (port == 0) {
-      port = app.mainIsolateSink.server.server.port;
-    }
-    baseURL = "$scheme://$host:$port";
-  }
-
-  /// Creates an instance that targets http://localhost:[port].
-  TestClient.onPort(int port) {
-    baseURL = "http://localhost:$port";
-  }
+  /// Creates an instance that targets http://localhost:[_port].
+  TestClient.onPort(this._port);
 
   /// Creates an instance from an [ApplicationConfiguration].
-  TestClient.fromConfig(ApplicationConfiguration config, {bool useHTTPS: false}) {
-    baseURL = "${useHTTPS ? "https" : "http"}://localhost:${config.port}";
-  }
+  TestClient.fromConfig(ApplicationConfiguration config, {bool useHTTPS: false}) :
+    _scheme = useHTTPS ? "https" : "http",
+    _host = "localhost",
+    _port = config.port;
+
 
   /// The base URL that requests will be made against.
-  String baseURL;
+  String get baseURL {
+    if (_application != null) {
+      if (!_application.hasFinishedLaunching) {
+        throw new TestClientException("Application under test is not running. Add `await app.start()` in a setup method.");
+      }
+      return "${_application.server.requiresHTTPS ? "https" : "http"}://localhost:${_application.configuration.port}";
+    }
 
-  /// When making a [clientAuthenticatedRequest], this client ID will be used if none is provided.
+    return "$_scheme://$_host:$_port";
+  }
+
+  String _scheme = "http";
+  String _host = "localhost";
+  int _port = 0;
+  Application _application;
+
+/// When making a [clientAuthenticatedRequest], this client ID will be used if none is provided.
   ///
   /// This is the 'default' value for the [clientID] parameter in [clientAuthenticatedRequest]. The
   /// client ID along with [clientSecret] will be Base-64 encoded and set as a Basic Authorization header

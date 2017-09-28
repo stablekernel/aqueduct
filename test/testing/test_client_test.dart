@@ -39,14 +39,23 @@ void main() {
       expect(response, hasStatus(200));
     });
 
-    test("Create from unstarted app throws useful exception", () {
+    test("Create from unstarted app throws useful exception", () async {
       app = new Application<SomeSink>();
+      var tc = new TestClient(app);
       try {
-        var _ = new TestClient(app);
+        await tc.request("/").get();
         expect(true, false);
       } on TestClientException catch (e) {
-        expect(e.toString(), contains("Start the application prior"));
+        expect(e.toString(), contains("Application under test is not running"));
       }
+    });
+
+    test("Create from unstarted app, start app, works OK", () async {
+      app = new Application<SomeSink>();
+      var tc = new TestClient(app);
+      await app.start(runOnMainIsolate: true);
+
+      expectResponse(await tc.request("/").get(), 200);
     });
 
     test("Host created correctly", () {
