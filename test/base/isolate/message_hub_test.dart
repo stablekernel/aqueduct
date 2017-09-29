@@ -10,7 +10,6 @@ import '../../helpers.dart';
 const int numberOfIsolates = 3;
 
 void main() {
-justLogEverything();
   group("Happy path", () {
     Application app;
 
@@ -20,7 +19,7 @@ justLogEverything();
 
     test("A message sent to the hub is received by other request sinks, but not by sender", () async {
       app = new Application<HubSink>()..configuration.port = 8000;
-      await app.start(numberOfInstances: numberOfIsolates, consoleLogging: true);
+      await app.start(numberOfInstances: numberOfIsolates);
 
       var resp = await postMessage("msg1");
       var receivingID = isolateIdentifierFromResponse(resp);
@@ -42,7 +41,7 @@ justLogEverything();
       app = new Application<HubSink>()
         ..configuration.port = 8000
         ..configuration.options = {"sendIn": "willOpen"};
-      await app.start(numberOfInstances: numberOfIsolates, consoleLogging: true);
+      await app.start(numberOfInstances: numberOfIsolates);
 
       var messages = await getMessagesFromIsolates();
 
@@ -63,7 +62,7 @@ justLogEverything();
       app = new Application<HubSink>()
         ..configuration.port = 8000
         ..configuration.options = {"sendIn": "constructor"};
-      await app.start(numberOfInstances: numberOfIsolates, consoleLogging: true);
+      await app.start(numberOfInstances: numberOfIsolates);
 
       var messages = await getMessagesFromIsolates();
 
@@ -78,6 +77,37 @@ justLogEverything();
     });
   });
 
+  group("Multiple listeners", () {
+    Application app;
+
+    tearDown(() async {
+      await app?.stop();
+    });
+
+    test("Message hub stream can have multiple listeners", () async {
+      app = new Application<HubSink>()
+        ..configuration.port = 8000
+        ..configuration.options = {"multipleListeners": true};
+      await app.start(numberOfInstances: numberOfIsolates);
+
+      var resp = await postMessage("msg1");
+      var receivingID = isolateIdentifierFromResponse(resp);
+      var messages = await getMessagesFromIsolates();
+
+      var id1 = 1;
+      var id2 = 2;
+      if (receivingID == 1) {
+        id1 = 3;
+      } else if (receivingID == 2) {
+        id2 = 3;
+      }
+      expect(messages[receivingID], []);
+      expect(messages[id1], [{"isolateID": receivingID, "message": "msg1"}, {"isolateID": receivingID, "message": "msg1"}]);
+      expect(messages[id2], [{"isolateID": receivingID, "message": "msg1"}, {"isolateID": receivingID, "message": "msg1"}]);
+    });
+
+  });
+
   group("Failure cases", () {
     Application app;
 
@@ -88,7 +118,7 @@ justLogEverything();
     test("Send invalid x-isolate data returns error in error stream", () async {
       app = new Application<HubSink>()
         ..configuration.port = 8000;
-      await app.start(numberOfInstances: numberOfIsolates, consoleLogging: true);
+      await app.start(numberOfInstances: numberOfIsolates);
 
       var resp = await postMessage("garbage");
       var errors = await getErrorsFromIsolates();
@@ -163,7 +193,16 @@ class HubSink extends RequestSink {
     });
 
     if (config.options["sendIn"] == "constructor") {
+      print("adding constructor message from ${hashCode}");
       messageHub.add({"key": "constructor"});
+    }
+
+    if (config.options["multipleListeners"] == true) {
+      messageHub.listen((event) {
+        messages.add(event);
+      }, onError: (err) {
+        errors.add(err.toString());
+      });
     }
   }
 
@@ -200,5 +239,10 @@ class HubSink extends RequestSink {
     if (configuration.options["sendIn"] == "willOpen") {
       messageHub.add({"isolateID": server.identifier, "message": "init"});
     }
+  }
+
+  @override
+  void didOpen() {
+    print("$hashCode == ${server.identifier}");
   }
 }
