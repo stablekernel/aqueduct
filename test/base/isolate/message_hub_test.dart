@@ -193,7 +193,6 @@ class HubSink extends RequestSink {
     });
 
     if (config.options["sendIn"] == "constructor") {
-      print("adding constructor message from ${hashCode}");
       messageHub.add({"key": "constructor"});
     }
 
@@ -239,10 +238,5 @@ class HubSink extends RequestSink {
     if (configuration.options["sendIn"] == "willOpen") {
       messageHub.add({"isolateID": server.identifier, "message": "init"});
     }
-  }
-
-  @override
-  void didOpen() {
-    print("$hashCode == ${server.identifier}");
   }
 }
