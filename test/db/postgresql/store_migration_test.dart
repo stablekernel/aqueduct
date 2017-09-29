@@ -1,5 +1,6 @@
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
+import 'package:postgres/postgres.dart';
 
 void main() {
   group("Metadata", () {
@@ -58,7 +59,7 @@ void main() {
             temporary: true);
         expect(true, false);
       } on QueryException catch (e) {
-        expect(e.underlyingException.code, "42601");
+        expect((e.underlyingException as PostgreSQLException).code, "42601");
       }
 
       expect(await store.schemaVersion, 1);
@@ -67,7 +68,7 @@ void main() {
         await store.execute("SELECT id FROM t");
         expect(true, false);
       } on QueryException catch (e) {
-        expect(e.underlyingException.code, PostgreSQLErrorCode.undefinedTable);
+        expect((e.underlyingException as PostgreSQLException).code, PostgreSQLErrorCode.undefinedTable);
       }
     });
 

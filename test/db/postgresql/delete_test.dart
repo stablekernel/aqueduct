@@ -1,5 +1,6 @@
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
+import 'package:postgres/postgres.dart';
 import '../../helpers.dart';
 
 void main() {
@@ -159,7 +160,7 @@ void main() {
       successful = true;
     } on QueryException catch (e) {
       expect(e.event, QueryExceptionEvent.requestFailure);
-      expect(e.underlyingException.code, "23503");
+      expect((e.underlyingException as PostgreSQLException).code, "23503");
     }
     expect(successful, false);
   });

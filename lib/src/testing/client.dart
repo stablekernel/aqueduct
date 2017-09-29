@@ -38,7 +38,7 @@ class TestClient {
       if (!_application.hasFinishedLaunching) {
         throw new TestClientException("Application under test is not running. Add `await app.start()` in a setup method.");
       }
-      return "${_application.server.requiresHTTPS ? "https" : "http"}://localhost:${_application.configuration.port}";
+      return "${_application.server.requiresHTTPS ? "https" : "http"}://localhost:${_application.mainIsolateSink.server.server.port}";
     }
 
     return "$_scheme://$_host:$_port";

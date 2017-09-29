@@ -32,9 +32,6 @@ void main() {
       await app.start(runOnMainIsolate: true);
 
       var client = new TestClient(app);
-      var parsedURI = Uri.parse(client.baseURL);
-      expect(parsedURI.port, greaterThan(0));
-      expect(parsedURI.port, app.server.server.port);
       var response = await client.request("/").get();
       expect(response, hasStatus(200));
     });
@@ -51,7 +48,8 @@ void main() {
     });
 
     test("Create from unstarted app, start app, works OK", () async {
-      app = new Application<SomeSink>();
+      app = new Application<SomeSink>()
+        ..configuration.port = 0;
       var tc = new TestClient(app);
       await app.start(runOnMainIsolate: true);
 

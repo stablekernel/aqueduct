@@ -4,6 +4,7 @@
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
 import '../../helpers.dart';
+import 'package:postgres/postgres.dart';
 
 void main() {
   ManagedContext context;
@@ -62,7 +63,7 @@ void main() {
       successful = true;
     } on QueryException catch (e) {
       expect(e.event, QueryExceptionEvent.conflict);
-      expect(e.underlyingException.code, "23505");
+      expect((e.underlyingException as PostgreSQLException).code, "23505");
     }
     expect(successful, false);
 
@@ -149,7 +150,7 @@ void main() {
       successful = true;
     } on QueryException catch (e) {
       expect(e.event, QueryExceptionEvent.requestFailure);
-      expect(e.underlyingException.code, "23502");
+      expect((e.underlyingException as PostgreSQLException).code, "23502");
     }
     expect(successful, false);
   });
