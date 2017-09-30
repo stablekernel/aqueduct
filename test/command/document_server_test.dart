@@ -7,9 +7,7 @@ import 'package:http/http.dart' as http;
 
 import 'cli_helpers.dart';
 
-
-Directory temporaryDirectory =
-new Directory.fromUri(Directory.current.uri.resolve("test_project"));
+Directory temporaryDirectory = new Directory.fromUri(Directory.current.uri.resolve("test_project"));
 
 void main() {
   setUpAll(() {
@@ -42,7 +40,7 @@ void main() {
     expect(response.body, contains("redoc spec-url='swagger.json'"));
 
     process.kill();
-});
+  });
 }
 
 Future<CLIResult> runWith(List<String> args) {
@@ -50,13 +48,4 @@ Future<CLIResult> runWith(List<String> args) {
   allArgs.addAll(args);
 
   return runAqueductProcess(allArgs, Directory.current);
-}
-
-void addLinesToFile(
-    File file, String afterFindingThisString, String insertThisString) {
-  var contents = file.readAsStringSync();
-  var indexOf =
-      contents.indexOf(afterFindingThisString) + afterFindingThisString.length;
-  var newContents = contents.replaceRange(indexOf, indexOf, insertThisString);
-  file.writeAsStringSync(newContents);
 }
