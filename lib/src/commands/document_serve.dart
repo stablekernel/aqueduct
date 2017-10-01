@@ -19,29 +19,39 @@ class CLIDocumentServe extends CLICommand with CLIProject, CLIDocumentOptions {
 
   Router _router = new Router();
 
-  String get _generatedDirectory => ".aqueduct_spec";
+  Directory get _hostedDirectory => new Directory.fromUri(projectDirectory.uri.resolve(".aqueduct_spec"));
+  HttpServer _server;
 
   @override
   Future<int> handle() async {
+    var onComplete = new Completer();
+    ProcessSignal.SIGINT.watch().listen((_) {
+      onComplete.complete();
+    });
+
     await _build();
 
-    var server = await _listen();
-    displayInfo("Document server listening on http://${server.address.host}:${server.port}/.",
+    _server = await _listen();
+
+    displayInfo("Document server listening on http://${_server.address.host}:${_server.port}/.",
         color: CLIColor.boldGreen);
     displayProgress("Use Ctrl-C (SIGINT) to stop running the server.");
+
+    await onComplete.future;
 
     return 0;
   }
 
+  @override
+  Future cleanup() async {
+    await _server?.close();
+    _hostedDirectory.deleteSync(recursive: true);
+  }
+
   Future<HttpServer> _listen() async {
     var server = await HttpServer.bind(InternetAddress.ANY_IP_V4, port);
-    ProcessSignal.SIGINT.watch().listen((_) {
-      cleanup();
-      server.close();
-      exit(0);
-    });
 
-    var fileController = new HTTPFileController(_generatedDirectory)
+    var fileController = new HTTPFileController(_hostedDirectory.uri.path)
       ..addCachePolicy(new HTTPCachePolicy(requireConditionalRequest: true), (p) => p.endsWith(".html"))
       ..addCachePolicy(new HTTPCachePolicy(requireConditionalRequest: true), (p) => p.endsWith(".json"))
       ..addCachePolicy(new HTTPCachePolicy(expirationFromNow: new Duration(days: 300)), (p) => true)
@@ -60,23 +70,14 @@ class CLIDocumentServe extends CLICommand with CLIProject, CLIDocumentOptions {
   }
 
   Future _build() async {
-    try {
-      var directory = new Directory(_generatedDirectory);
-      directory.createSync();
-      var documentJSON = JSON.encode(await documentProject(projectDirectory.uri, libraryName));
+    _hostedDirectory.createSync();
+    var documentJSON = JSON.encode(await documentProject(projectDirectory.uri, libraryName));
 
-      var jsonSpecFile = new File.fromUri(directory.uri.resolve("swagger.json"));
-      jsonSpecFile.writeAsStringSync(documentJSON);
+    var jsonSpecFile = new File.fromUri(_hostedDirectory.uri.resolve("swagger.json"));
+    jsonSpecFile.writeAsStringSync(documentJSON);
 
-      var htmlFile = new File.fromUri(directory.uri.resolve("index.html"));
-      htmlFile.writeAsStringSync(_htmlSource);
-    } catch (e, st) {
-      displayError("Failed to generate documentation");
-      displayProgress("$e");
-      if (showStacktrace) {
-        displayProgress("$st");
-      }
-    }
+    var htmlFile = new File.fromUri(_hostedDirectory.uri.resolve("index.html"));
+    htmlFile.writeAsStringSync(_htmlSource);
   }
 
   String get _htmlSource {

@@ -21,7 +21,7 @@ void main() {
   });
 
   test("Can get API reference", () async {
-    expect((await runWith(["test_project", "-t", "db"])).exitCode, 0);
+    await runWith(["test_project", "-t", "db"]);
 
     var process = await Process.start("pub", ["global", "run", "aqueduct:aqueduct", "document", "serve"],
         runInShell: true, workingDirectory: temporaryDirectory.path);

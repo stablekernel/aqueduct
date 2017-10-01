@@ -128,6 +128,8 @@ class CLIDocument extends CLICommand with CLIProject, CLIDocumentOptions {
       if (showStacktrace) {
         displayProgress("$st");
       }
+
+      return -1;
     }
     return 0;
   }
