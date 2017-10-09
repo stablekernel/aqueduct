@@ -7,13 +7,8 @@ packages
 *.js_
 *.js.deps
 *.js.map
-config.yaml
 workspace.xml
 Dart_Packages.xml
 .DS_Store
-.idea/dictionaries
-migrations/migration.yaml
-error.log
-.aqueductpid
-.aqueductsignal
-api.log*
+.idea/
+*.aqueduct.pid
