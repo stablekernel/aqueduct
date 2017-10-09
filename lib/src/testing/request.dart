@@ -189,7 +189,29 @@ class TestRequest {
   }
 
   Future<TestResponse> _executeRequest(String method) async {
-    var request = await _client.openUrl(method, Uri.parse(requestURL));
+    var uri = Uri.parse(requestURL);
+    var lowercasedMethod = method.toLowerCase();
+    if (body != null) {
+      if (lowercasedMethod == "get" || lowercasedMethod == "delete" || lowercasedMethod == "head") {
+        if (contentType.subType == "x-www-form-urlencoded") {
+          if (body is! Map) {
+            throw new TestClientException("Cannot encode body of type '${body.runtimeType}' into URI query string, must be a Map.");
+          }
+
+          var queryParams = queryParameters;
+          queryParams.addAll(body);
+          uri = uri.replace(queryParameters: queryParams);
+
+          contentType = null;
+          body = null;
+        } else {
+          throw new TestClientException("Cannot send HTTP body with HTTP method '$method'");
+        }
+      }
+    }
+
+    var request = await _client.openUrl(method, uri);
+
     headers?.forEach((headerKey, headerValue) {
       request.headers.add(headerKey, headerValue);
     });

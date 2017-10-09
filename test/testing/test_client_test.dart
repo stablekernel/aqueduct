@@ -220,6 +220,32 @@ void main() {
       expect(msg.path, "/foo");
       expect(msg.headers["x-content"], "1, 2");
     });
+
+    test("Form data is in query string if GET", () async {
+      var data = {"a": "b/b"};
+
+      var defaultTestClient = new TestClient.onPort(4040);
+
+      await (defaultTestClient.request("/foo")..formData = data).get();
+
+      var msg = await server.next();
+      expect(msg.path, "/foo");
+      expect(msg.queryParameters, {"a": "b/b"});
+      expect(msg.body, isNull);
+    });
+
+    test("Form data is in body if POST", () async {
+      var data = {"a": "b/b"};
+
+      var defaultTestClient = new TestClient.onPort(4040);
+
+      await (defaultTestClient.request("/foo")..formData = data).post();
+
+      var msg = await server.next();
+      expect(msg.path, "/foo");
+      expect(msg.queryParameters, {});
+      expect(msg.body, "a=b%2Fb");
+    });
   });
 
   group("Test Response", () {
