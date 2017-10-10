@@ -110,14 +110,17 @@ void main() {
       http
           .post("http://localhost:8123",
               headers: {"Content-Type": "application/x-www-form-urlencoded"},
-              body: "a=b&c=2")
+              body: "a=b&c=2%2F4")
           .catchError((err) => null);
       var request = new Request(await server.first);
+      request.body.retainOriginalBytes = true;
       var body = await request.body.decodedData;
       expect(body, [{
         "a": ["b"],
-        "c": ["2"]
+        "c": ["2/4"]
       }]);
+
+      expect(UTF8.decode(request.body.asBytes()), "a=b&c=2%2F4");
     });
 
     test("Any text decoder works on text with charset", () async {
