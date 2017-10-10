@@ -5,15 +5,39 @@ import '../http/http.dart';
 import '../application/application.dart';
 import '../utilities/source_generator.dart';
 import 'base.dart';
+import 'document_serve.dart';
 
-/// Used internally.
-class CLIDocument extends CLICommand with CLIProject {
-  CLIDocument() {
+abstract class CLIDocumentOptions implements CLICommand {
+  String get title => values["title"];
+  String get apiDescription => values["description"];
+  String get version => values["version"];
+  String get termsOfServiceURL => values["tos"];
+  String get contactEmail => values["contact-email"];
+  String get contactName => values["contact-name"];
+  String get contactURL => values["contact-url"];
+  String get licenseURL => values["license-url"];
+  String get licenseName => values["license-name"];
+  String get configurationPath => values["config-path"];
+  List<Uri> get hosts {
+    List<String> hostValues = values["host"] ?? ["http://localhost:8081"];
+    return hostValues.map((str) {
+      var uri = Uri.parse(str);
+      if (uri == null) {
+        throw new CLIException("Invalid Host Option", instructions: [
+          "Host names must identify scheme, host and port. Example: https://api.myapp.com:8000"
+        ]);
+      }
+
+      return uri;
+    }).toList();
+  }
+
+  void addDocumentConfigurationOptions() {
     options
       ..addOption("config-path",
           abbr: "c",
           help:
-              "The path to a configuration file that this application needs to initialize resources for the purpose of documenting its API.",
+          "The path to a configuration file that this application needs to initialize resources for the purpose of documenting its API.",
           defaultsTo: "config.src.yaml")
       ..addOption("title", help: "API Docs: Title", defaultsTo: "Aqueduct App")
       ..addOption("description",
@@ -34,71 +58,32 @@ class CLIDocument extends CLICommand with CLIProject {
           valueHelp: "https://api.myapp.com:8000");
   }
 
-  List<Uri> get hosts {
-    List<String> hostValues = values["host"] ?? ["http://localhost:8081"];
-    return hostValues.map((str) {
-      var uri = Uri.parse(str);
-      if (uri == null) {
-        throw new CLIException("Invalid Host Option", instructions: [
-          "Host names must identify scheme, host and port. Example: https://api.myapp.com:8000"
-        ]);
-      }
-
-      return uri;
-    }).toList();
-  }
-
-  String get title => values["title"];
-  String get apiDescription => values["description"];
-  String get version => values["version"];
-  String get termsOfServiceURL => values["tos"];
-  String get contactEmail => values["contact-email"];
-  String get contactName => values["contact-name"];
-  String get contactURL => values["contact-url"];
-  String get licenseURL => values["license-url"];
-  String get licenseName => values["license-name"];
-  String get configurationPath => values["config-path"];
-
-  @override
-  Future<int> handle() async {
-    try {
-      print("${await documentProject()}");
-    } catch (e, st) {
-      displayError("Failed to generate documentation");
-      displayProgress("$e");
-      if (showStacktrace) {
-        displayProgress("$st");
-      }
-    }
-    return 0;
-  }
-
-  Future<String> documentProject() {
+  Future<Map<String, dynamic>> documentProject(Uri projectDirectory, String libraryName) {
     var generator = new SourceGenerator(
-        (List<String> args, Map<String, dynamic> values) async {
-      var resolver = new PackagePathResolver(".packages");
-      var config = new ApplicationConfiguration()
-        ..configurationFilePath = values["configPath"];
+            (List<String> args, Map<String, dynamic> values) async {
+          var resolver = new PackagePathResolver(".packages");
+          var config = new ApplicationConfiguration()
+            ..configurationFilePath = values["configPath"];
 
-      var document = await Application.document(
-          RequestSink.defaultSinkType, config, resolver);
+          var document = await Application.document(
+              RequestSink.defaultSinkType, config, resolver);
 
-      document.hosts = (values["hosts"] as List<String>)
-          ?.map((hostString) => new APIHost.fromURI(Uri.parse((hostString))))
-          ?.toList();
+          document.hosts = (values["hosts"] as List<String>)
+              ?.map((hostString) => new APIHost.fromURI(Uri.parse((hostString))))
+              ?.toList();
 
-      document.info.title = values["title"];
-      document.info.description = values["apiDescription"];
-      document.info.version = values["version"];
-      document.info.termsOfServiceURL = values["termsOfServiceURL"];
-      document.info.contact.email = values["contactEmail"];
-      document.info.contact.name = values["contactName"];
-      document.info.contact.url = values["contactURL"];
-      document.info.license.url = values["licenseURL"];
-      document.info.license.name = values["licenseName"];
+          document.info.title = values["title"];
+          document.info.description = values["apiDescription"];
+          document.info.version = values["version"];
+          document.info.termsOfServiceURL = values["termsOfServiceURL"];
+          document.info.contact.email = values["contactEmail"];
+          document.info.contact.name = values["contactName"];
+          document.info.contact.url = values["contactURL"];
+          document.info.license.url = values["licenseURL"];
+          document.info.license.name = values["licenseName"];
 
-      return JSON.encode(document.asMap());
-    }, imports: [
+          return document.asMap();
+        }, imports: [
       "package:aqueduct/aqueduct.dart",
       "package:$libraryName/$libraryName.dart",
       "dart:isolate",
@@ -120,9 +105,33 @@ class CLIDocument extends CLICommand with CLIProject {
           "licenseURL": licenseURL,
           "licenseName": licenseName
         },
-        packageConfigURI: projectDirectory.uri.resolve(".packages"));
+        packageConfigURI: projectDirectory.resolve(".packages"));
 
-    return executor.execute(projectDirectory.uri) as Future<String>;
+    return executor.execute(projectDirectory) as Future<Map<String, dynamic>>;
+  }
+}
+
+class CLIDocument extends CLICommand with CLIProject, CLIDocumentOptions {
+  CLIDocument() {
+    addDocumentConfigurationOptions();
+    registerCommand(new CLIDocumentServe());
+  }
+  
+  @override
+  Future<int> handle() async {
+    try {
+      var documentMap = await documentProject(projectDirectory.uri, libraryName);
+      print("${JSON.encode(documentMap)}");
+    } catch (e, st) {
+      displayError("Failed to generate documentation");
+      displayProgress("$e");
+      if (showStacktrace) {
+        displayProgress("$st");
+      }
+
+      return -1;
+    }
+    return 0;
   }
 
   @override
