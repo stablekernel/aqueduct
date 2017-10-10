@@ -307,7 +307,7 @@ abstract class RequestSink extends RequestController
 class ApplicationMessageHub extends Stream<dynamic> implements Sink<dynamic> {
   Logger _logger = new Logger("aqueduct");
   StreamController<dynamic> _outboundController = new StreamController<dynamic>();
-  StreamController<dynamic> _inboundController = new StreamController<dynamic>();
+  StreamController<dynamic> _inboundController = new StreamController<dynamic>.broadcast();
 
   /// Adds a listener for data events from other isolates.
   ///
