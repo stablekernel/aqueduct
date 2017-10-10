@@ -81,7 +81,41 @@ void main() {
     });
   });
 
+  group("Can return null from request controller is valid", () {
+    HttpServer server;
+    RequestController root;
 
+    setUp(() async {
+      server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 4111);
+      root = new RequestController();
+
+      server.map((r) => new Request(r)).listen((req) {
+        root.receive(req);
+      });
+    });
+
+    tearDown(() async {
+      await server.close();
+    });
+
+    test("Return null", () async {
+      var set = false;
+      root
+        .listen((req) {
+          req.innerRequest.response.statusCode = 200;
+          req.innerRequest.response.close();
+
+          return null;
+        })
+        .listen((req) {
+          set = true;
+        });
+
+      var response = await http.get("http://localhost:4111");
+      expect(response.statusCode, 200);
+      expect(set, false);
+    });
+  });
 
   group("Outlier isolate behavior error cases", () {
     Application app;

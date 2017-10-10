@@ -145,6 +145,10 @@ class RequestController extends Object with APIDocumentable {
       return null;
     }
 
+    if (result == null) {
+      return null;
+    }
+
     return nextController?.receive(result);
   }
 
