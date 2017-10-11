@@ -27,10 +27,13 @@ void main() {
         runInShell: true, workingDirectory: temporaryDirectory.path);
 
     var available = new Completer();
-    process.stdout.listen((bytes) {
+    var aggregateOutput = "";
+    var sub = process.stdout.listen((bytes) {
       var logItem = UTF8.decode(bytes);
-      if (logItem.contains("listening")) {
-        available.complete();
+      aggregateOutput += logItem;
+      if (aggregateOutput.contains("listening")) {
+        available?.complete();
+        available = null;
       }
     });
 
@@ -38,6 +41,8 @@ void main() {
 
     var response = await http.get("http://localhost:8111");
     expect(response.body, contains("redoc spec-url='swagger.json'"));
+
+    await sub.cancel();
 
     process.kill();
   });
