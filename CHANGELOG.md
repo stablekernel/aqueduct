@@ -8,6 +8,7 @@
 - Adds `defaultDelay` to `MockHTTPServer`. Defaults to null for no delay.
 - Adds `defaultResponse` to `MockHTTPServer`. Defaults to a 503 response instead of a 200.
 - Adds option to set a custom delay for a specific response in `MockHTTPServer`'s `queueResponse` function.
+- Performance improvements
 
 ## 2.4.0
 

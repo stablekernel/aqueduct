@@ -15,7 +15,6 @@ typedef void _ResponseModifier(Response resp);
 class Request implements RequestOrResponse {
   /// Creates an instance of [Request], no need to do so manually.
   Request(this.innerRequest) {
-    connectionInfo = innerRequest.connectionInfo;
     _body = new HTTPRequestBody(this.innerRequest);
   }
 
@@ -27,7 +26,9 @@ class Request implements RequestOrResponse {
   final HttpRequest innerRequest;
 
   /// Information about the client connection.
-  HttpConnectionInfo connectionInfo;
+  ///
+  /// Note: accessing this property incurs a significant performance penalty.
+  HttpConnectionInfo get connectionInfo => innerRequest.connectionInfo;
 
   /// The response object of this [Request].
   ///
@@ -351,9 +352,11 @@ class Request implements RequestOrResponse {
   }
 
   /// A string that represents more details about the request, typically used for logging.
+  ///
+  /// Note: Setting includeRequestIP to true creates a significant performance penalty.
   String toDebugString(
       {bool includeElapsedTime: true,
-      bool includeRequestIP: true,
+      bool includeRequestIP: false,
       bool includeMethod: true,
       bool includeResource: true,
       bool includeStatusCode: true,
