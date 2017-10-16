@@ -1,5 +1,7 @@
 # aqueduct changelog
 
+## 3.0.0
+
 ## 2.5.0
 
 - Adds `aqueduct db schema` to print an application's data model.

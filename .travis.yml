@@ -1,6 +1,5 @@
 language: dart
 dart:
-  - stable
   - dev
 addons:
   postgresql: "9.6"
@@ -23,6 +22,7 @@ env:
 branches:
   only:
     - master
+    - 3.0
 after_success:
   - bash ci/after_script.sh
 
