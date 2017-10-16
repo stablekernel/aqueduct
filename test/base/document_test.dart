@@ -461,14 +461,14 @@ class TController extends HTTPController {
   /// EFGH
   /// IJKL
   @httpGet
-  Future<Response> getAll({@HTTPQuery("param") String param: null}) async {
+  Future<Response> getAll({@HTTPQuery("param") String param}) async {
     return new Response.ok("");
   }
 
   /// ABCD
   @httpPut
   Future<Response> putOne(@HTTPPath("id") int id,
-      {@HTTPQuery("p1") int p1: null, @HTTPHeader("X-P2") int p2: null}) async {
+      {@HTTPQuery("p1") int p1, @HTTPHeader("X-P2") int p2}) async {
     return new Response.ok("");
   }
 

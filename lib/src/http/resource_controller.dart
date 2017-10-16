@@ -244,10 +244,10 @@ class ManagedObjectController<InstanceType extends ManagedObject>
   Future<Response> getObjects(
       {@HTTPQuery("count") int count: 0,
       @HTTPQuery("offset") int offset: 0,
-      @HTTPQuery("pageBy") String pageBy: null,
-      @HTTPQuery("pageAfter") String pageAfter: null,
-      @HTTPQuery("pagePrior") String pagePrior: null,
-      @HTTPQuery("sortBy") List<String> sortBy: null}) async {
+      @HTTPQuery("pageBy") String pageBy,
+      @HTTPQuery("pageAfter") String pageAfter,
+      @HTTPQuery("pagePrior") String pagePrior,
+      @HTTPQuery("sortBy") List<String> sortBy}) async {
     _query.fetchLimit = count;
     _query.offset = offset;
 

@@ -37,7 +37,7 @@ enum ManagedPropertyType {
 /// and [ManagedAttributeDescription].
 abstract class ManagedPropertyDescription {
   ManagedPropertyDescription(this.entity, this.name, this.type,
-      {String explicitDatabaseType: null,
+      {String explicitDatabaseType,
       bool unique: false,
       bool indexed: false,
       bool nullable: false,
@@ -172,9 +172,9 @@ abstract class ManagedPropertyDescription {
 class ManagedAttributeDescription extends ManagedPropertyDescription {
   ManagedAttributeDescription(
       ManagedEntity entity, String name, ManagedPropertyType type,
-      {ManagedTransientAttribute transientStatus: null,
+      {ManagedTransientAttribute transientStatus,
         bool primaryKey: false,
-        String defaultValue: null,
+        String defaultValue,
         bool unique: false,
         bool indexed: false,
         bool nullable: false,

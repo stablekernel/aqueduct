@@ -68,7 +68,7 @@ abstract class PropertyMapper extends PostgresMapper {
   String columnName(
       {bool withTypeSuffix: false,
       bool withTableNamespace: false,
-      String withPrefix: null}) {
+      String withPrefix}) {
     var name = property.name;
     if (property is ManagedRelationshipDescription) {
       var relatedPrimaryKey = (property as ManagedRelationshipDescription)

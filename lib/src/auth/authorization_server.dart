@@ -494,7 +494,7 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
 
   AuthToken _generateToken(
       dynamic ownerID, String clientID, int expirationInSeconds,
-      {bool allowRefresh: true, List<AuthScope> scopes: null}) {
+      {bool allowRefresh: true, List<AuthScope> scopes}) {
     var now = new DateTime.now().toUtc();
     AuthToken token = new AuthToken()
       ..accessToken = randomStringOfLength(32)
@@ -513,7 +513,7 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
   }
 
   AuthCode _generateAuthCode(
-      dynamic ownerID, AuthClient client, int expirationInSeconds, {List<AuthScope> scopes: null}) {
+      dynamic ownerID, AuthClient client, int expirationInSeconds, {List<AuthScope> scopes}) {
     var now = new DateTime.now().toUtc();
     return new AuthCode()
       ..code = randomStringOfLength(32)
