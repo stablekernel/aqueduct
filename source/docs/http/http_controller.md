@@ -6,31 +6,24 @@ For example, a `POST /users` would trigger a `createUser` method, whereas a `GET
 
 ### Responder Methods and Parameter Binding
 
-An `HTTPController` method that responds to a request is called a *responder method*. A responder method must return a `Future<Response>` and have `HTTPMethod` metadata. Here's an example:
+An `HTTPController` method that responds to a request is called a *responder method*. A responder method must return a `Future<Response>` and have `Bind.method` metadata. Here's an example:
 
 ```dart
 class UserController extends HTTPController {
-  @httpGet
+  @Bind.method("get")
   Future<Response> getAllUsers() async {
     return new Response.ok(await getUsersFromDatabase());
   }
 }
 ```
 
-The constant `httpGet` is an instance of `HTTPMethod`. When a `GET` request is sent to an instance of `UserController`, the method `getAllUsers` is invoked and the `Response` it returns is sent to the HTTP client. There exist `HTTPMethod` constants for the major HTTP methods: `httpPut`, `httpGet`, `httpPost` and `httpDelete`. You may use `HTTPMethod` for other types of HTTP methods:
-
-```dart
-@HTTPMethod("PATCH")
-Future<Response> patch() async { ... }
-```
-
-If a request is sent to an `HTTPController` and there isn't a responder method with matching `HTTPMethod` metadata, a 405 response is sent and no method is invoked.
+When a `GET` request is sent to an instance of `UserController`, the method `getAllUsers` is invoked and the `Response` it returns is sent to the HTTP client. If a request is sent to an `HTTPController` and there isn't a responder method bound to its HTTP method, a 405 response is sent and no method is invoked.
 
 Each responder method can *bind* values from the HTTP request to its arguments. The following responder method binds the value from the path variable `id`:
 
 ```dart
-@httpGet
-Future<Response> getOneUser(@HTTPPath("id") int id) async {
+@Bind.method("get")
+Future<Response> getOneUser(@Bind.path("id") int id) async {
   return new Response.ok(await getAUserFromDatabaseByID(id));
 }
 ```
@@ -39,33 +32,33 @@ When a [route contains a path variable](routing.md) (like `/users/:id`), the val
 
 ```dart
 class UserController extends HTTPController {
-  @httpGet
+  @Bind.method("get")
   Future<Response> getAllUsers() async {
     // invoked with path is /users
   }
 
-  @httpGet
-  Future<Response> getOneUser(@HTTPPath("id") int id) async {
+  @Bind.method("get")
+  Future<Response> getOneUser(@Bind.path("id") int id) async {
     // invoked with path is /users/:id
   }
 }
 ```
 
-The argument to `HTTPPath` is the name of the path variable as it is declared in the route. For example, if the route is `/thing/:abcdef`, the argument must be `"abcdef"`.
+The argument to `Bind.path` is the name of the path variable as it is declared in the route. For example, if the route is `/thing/:abcdef`, the argument must be `"abcdef"`.
 
-The variable that `HTTPPath` is bound to can be named whatever you want - you don't have to name it the same as the path variable.
+The variable that `Bind.path` is bound to can be named whatever you want - you don't have to name it the same as the path variable.
 
 The *type* of the bound variable can be a `String` or any type that has a `parse` method (like `int`, `double`, `HttpDate` and `DateTime`). If the bound variable's type is not `String` or a type that implements `parse`, a 500 Server Error is returned.
 
 If the bound path variable's type does implement `parse`, but the value from the request is in an invalid format, a 404 Not Found response is returned.
 
-Query string parameters and header values may also be bound to responder methods with `HTTPQuery` and `HTTPHeader` metadata. (Note that a failed parse for query or header binding return a 400 Bad Request response.) The following responder method will bind the query string parameters `limit` and `offset` to `numberOfThings` and `offset`:
+Query string parameters and header values may also be bound to responder methods with `Bind.query` and `Bind.header` metadata. (Note that a failed parse for query or header binding return a 400 Bad Request response.) The following responder method will bind the query string parameters `limit` and `offset` to `numberOfThings` and `offset`:
 
 ```dart
-@httpGet
+@Bind.method("get")
 Future<Response> getThing(
-  @HTTPQuery("limit") int numberOfThings,
-  @HTTPQuery("offset") int offset) async {
+  @Bind.query("limit") int numberOfThings,
+  @Bind.query("offset") int offset) async {
     var things = await getThingsBetween(offset, offset + numberOfThings);
     return new Response.ok(things);
 }
@@ -76,45 +69,45 @@ For example, if the request was `/?limit=10&offset=0`, the values of `numberOfTh
 Query parameters can be made optional by moving them to the optional part of the method signature. Thus, the following method still requires `limit`, but if `offset` is omitted, its value defaults to 0:
 
 ```dart
-@httpGet
+@Bind.method("get")
 Future<Response> getThing(
-  @HTTPQuery("limit") int numberOfThings,
-  {@HTTPQuery("offset") int offset: 0}) async {
+  @Bind.query("limit") int numberOfThings,
+  {@Bind.query("offset") int offset: 0}) async {
     var things = await getThingsBetween(offset, offset + numberOfThings);
     return new Response.ok(things);
 }
 ```
 
-The argument to `HTTPQuery` is case-sensitive.
+The argument to `Bind.query` is case-sensitive.
 
-Headers are bound in the same way using `HTTPHeader` metadata. Unlike `HTTPQuery`, `HTTPHeader`s are compared case-insensitively. Here's an example of a responder method that takes an optional `X-Timestamp` header:
+Headers are bound in the same way using `Bind.header` metadata. Unlike `Bind.query`, `Bind.header`s are compared case-insensitively. Here's an example of a responder method that takes an optional `X-Timestamp` header:
 
 ```dart
-@httpGet
+@Bind.method("get")
 Future<Response> getThings(
-  {@HTTPHeader("x-timestamp") DateTime timestamp}) async {
+  {@Bind.header("x-timestamp") DateTime timestamp}) async {
     ...
 }
 ```
 
-The properties of an `HTTPController`s may also have `HTTPQuery` and `HTTPHeader` metadata. This binds values from the request to the `HTTPController` instance itself, making them accessible from *all* responder methods.
+The properties of an `HTTPController`s may also have `Bind.query` and `Bind.header` metadata. This binds values from the request to the `HTTPController` instance itself, making them accessible from *all* responder methods.
 
 ```dart
 class ThingController extends HTTPController {
   @requiredHTTPParameter
-  @HTTPHeader("x-timestamp")
+  @Bind.header("x-timestamp")
   DateTime timestamp;
 
-  @HTTPQuery("limit")
+  @Bind.query("limit")
   int limit;
 
-  @httpGet
+  @Bind.method("get")
   Future<Response> getThings() async {
       // can use both limit and timestamp
   }
 
-  @httpGet
-  Future<Response> getThing(@HTTPPath("id") int id) async {
+  @Bind.method("get")
+  Future<Response> getThing(@Bind.path("id") int id) async {
       // can use both limit and timestamp
   }
 }
@@ -122,13 +115,13 @@ class ThingController extends HTTPController {
 
 In the above, both `timestamp` and `limit` are bound prior to `getThing` and `getThings` being invoked. By default, a bound property is optional but can have additional `requiredHTTPParameter` metadata. If required, any request without the required property fails with a 400 Bad Request status code and none of the responder methods are invoked.
 
-Aqueduct treats `POST` and `PUT` requests with `application/x-www-form-urlencoded` content type as query strings, so the body of the request can be bound to `HTTPQuery` parameters.
+Aqueduct treats `POST` and `PUT` requests with `application/x-www-form-urlencoded` content type as query strings, so the body of the request can be bound to `Bind.query` parameters.
 
 Query strings can have repeating keys, i.e. `/?x=1&x=2`. You may also bind a query parameter to a `List`:
 
 ```dart
-@httpGet
-Future<Response> getThing(@HTTPQuery("x") List<String> xs) async {
+@Bind.method("get")
+Future<Response> getThing(@Bind.query("x") List<String> xs) async {
   // xs = ["1", "2"]
 }
 ```
@@ -136,19 +129,19 @@ Future<Response> getThing(@HTTPQuery("x") List<String> xs) async {
 Query strings may also have no value, i.e. `/?flag`. You may bind a query parameter to a boolean that will be true if the bound key is present in the query string:
 
 ```dart
-@httpGet
-Future<Response> getThing(@HTTPQuery("flag") bool flag) async {
+@Bind.method("get")
+Future<Response> getThing(@Bind.query("flag") bool flag) async {
   // xs = true
 }
 ```
 
 ### Binding HTTP Request Bodies
 
-You may also bind an HTTP request body to an object with `@HTTPBody` metadata:
+You may also bind an HTTP request body to an object with `@Bind.body` metadata:
 
 ```dart
-@httpPost
-Future<Response> createUser(@HTTPBody() User user) async {
+@Bind.method("post")
+Future<Response> createUser(@Bind.body() User user) async {
   var query = new Query<User>()
     ..values = user;
   var insertedUser = await query.insert();
@@ -181,8 +174,8 @@ class Person implements HTTPSerializable {
 }
 
 class PersonController extends HTTPController {
-  @httpPost
-  Future<Response> createPerson(@HTTPBody() Person p) {
+  @Bind.method("post")
+  Future<Response> createPerson(@Bind.body() Person p) {
     // p.name and p.email are read from body when body is {"name": "...", "email": "..."}
   }
 }
@@ -192,8 +185,8 @@ You may also bind a `List<HTTPSerializable>`:
 
 ```dart
 class PersonController extends HTTPController {
-  @httpPost
-  Future<Response> createPerson(@HTTPBody() List<Person> people) {
+  @Bind.method("post")
+  Future<Response> createPerson(@Bind.body() List<Person> people) {
     // When body is [{"name": "...", "email": "..."}]
   }
 }
@@ -220,7 +213,7 @@ The body of an HTTP request is decoded if the content type is accepted and there
 Second, methods on `HTTPRequestBody` have two flavors: those that return the contents as a `Future` or those that return the already decoded body. Responder methods can access the already decoded body without awaiting on the `Future`-flavored variants of `HTTPRequestBody`:
 
 ```dart
-@httpPost
+@Bind.method("post")
 Future<Response> createThing() async {
   // do this:
   var bodyMap = request.body.asMap();
@@ -250,11 +243,11 @@ class UserController extends HTTPController {
     responseContentType = ContentType.JSON;
   }
 
-  @httpGet
-  Future<Response> getUserByID(@HTTPPath("id") int id) async {
+  @Bind.method("get")
+  Future<Response> getUserByID(@Bind.path("id") int id) async {
     var response = new Response.ok(...);
 
-    if (request.headers.value(HttpHeaders.ACCEPT).startsWith("application/xml")) {
+    if (request.headers.value(Bind.headers.ACCEPT).startsWith("application/xml")) {
       response.contentType = ContentType.XML;
     }
 
@@ -270,8 +263,8 @@ Because many `HTTPController` subclasses will execute [queries](../db/executing_
 A `QueryController<T>` builds a `Query<T>` based on the incoming request. If the request has a body, this `Query<T>`'s `values` property is read from that body. If the request has a path variable, the `Query<T>` assigns a matcher to the primary key value of its `where`. For example, in a normal `HTTPController` that responds to a PUT request, you might write the following:
 
 ```dart
-@httpPut
-Future<Response> updateUser(@HTTPPath("id") int id) async {
+@Bind.method("put")
+Future<Response> updateUser(@Bind.path("id") int id) async {
   var query = new Query<User>()
     ..where.id = whereEqualTo(id)
     ..values = (new User()..readFromMap(request.body.asMap());
@@ -284,7 +277,7 @@ A `QueryController<T>` builds this query before a responder method is invoked, s
 
 ```dart
 class UserController extends QueryController<User> {
-  Future<Response> updateUser(@HTTPPath("id") int id) async {
+  Future<Response> updateUser(@Bind.path("id") int id) async {
     // query already exists and is identical to the snippet above
     var result = await query.updateOne();
     return new Response.ok(result);

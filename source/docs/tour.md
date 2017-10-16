@@ -68,18 +68,18 @@ Subclasses implement a *responder method* for each operation:
 import 'package:aqueduct/aqueduct.dart'
 
 class ResourceController extends HTTPController {
-  @httpGet
+  @Bind.method("get")
   Future<Response> getAllResources() async {
     return new Response.ok(await fetchResources());
   }
 
-  @httpGet
-  Future<Response> getResourceByID(@HTTPPath("id") int id) async {
+  @Bind.method("get")
+  Future<Response> getResourceByID(@Bind.path("id") int id) async {
     return new Response.ok(await fetchResource(id));
   }
 
-  @httpPost
-  Future<Response> createResource(@HTTPBody() Resource resource) async {
+  @Bind.method("post")
+  Future<Response> createResource(@Bind.body() Resource resource) async {
     var inserted = await insertResource(resource);
     return new Response.ok(inserted);
   }
@@ -90,15 +90,15 @@ Properties of the request are bound to responder method arguments and controller
 
 ```dart
 class ResourceController extends HTTPController {
-  @httpGet
+  @Bind.method("get")
   Future<Response> getAllResources(
-      @HTTPHeader("x-request-id") String requestID,
-      {@HTTPQuery("limit") int limit}) async {
+      @Bind.header("x-request-id") String requestID,
+      {@Bind.query("limit") int limit}) async {
     return new Response.ok(await fetchResources(limit ?? 0));
   }
 
-  @httpPost
-  Future<Response> createResource(@HTTPBody() Resource resource) async {
+  @Bind.method("post")
+  Future<Response> createResource(@Bind.body() Resource resource) async {
     var inserted = await insertResourceIntoDatabase(resource);
     return new Response.ok(inserted);
   }
@@ -195,7 +195,7 @@ Database operations are built and executed with instances of `Query<T>`.
 import 'package:aqueduct/aqueduct.dart'
 
 class ResourceController extends HTTPController {
-  @httpGet
+  @Bind.method("get")
   Future<Response> getAllResources() async {
     var query = new Query<Resource>();
 
@@ -287,8 +287,8 @@ class _Initiative {
 
 ```dart
 class UserController extends HTTPController {
-  @httpPut
-  Future<Response> updateUser(@HTTPPath("id") int id, @HTTPBody() User user) async {
+  @Bind.method("put")
+  Future<Response> updateUser(@Bind.path("id") int id, @Bind.body() User user) async {
     var query = new Query<User>()
       ..where.id = id
       ..values = user;
