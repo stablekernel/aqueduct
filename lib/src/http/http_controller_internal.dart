@@ -14,7 +14,7 @@ class InternalControllerException implements Exception {
   final String errorMessage;
 
   InternalControllerException(this.message, this.statusCode,
-      {Map<String, String> headers: null, String errorMessage: null})
+      {Map<String, String> headers, String errorMessage})
       : this.additionalHeaders = headers,
         this.errorMessage = errorMessage;
 

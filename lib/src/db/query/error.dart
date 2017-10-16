@@ -6,7 +6,7 @@ import '../../http/http.dart';
 ///
 /// A suggested HTTP status code based on the type of exception will always be available.
 class QueryException extends HTTPResponseException {
-  QueryException(this.event, {String message: null, this.underlyingException: null})
+  QueryException(this.event, {String message, this.underlyingException})
       : super(_getStatus(event), message ?? underlyingException?.toString(),
             isControlFlowException: event != QueryExceptionEvent.internalFailure);
 

@@ -212,7 +212,7 @@ void main() {
   });
 }
 
-void expectRouterException(void f(), {String exceptionMessage: null}) {
+void expectRouterException(void f(), {String exceptionMessage}) {
   try {
     f();
     fail("Expected RouterException");

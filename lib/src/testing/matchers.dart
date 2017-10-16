@@ -209,7 +209,7 @@ Matcher hasHeaders(Map<String, dynamic> matchers,
 /// The values for [headers] must be [String], [DateTime], [num], or a [Matcher] that compares to one of these types.
 ///
 Matcher hasResponse(int statusCode, dynamic bodyMatcher,
-    {Map<String, dynamic> headers: null,
+    {Map<String, dynamic> headers,
     bool failIfContainsUnmatchedHeader: false}) {
   return new HTTPResponseMatcher(
       statusCode,

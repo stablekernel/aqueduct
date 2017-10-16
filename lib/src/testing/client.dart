@@ -99,7 +99,7 @@ class TestClient {
   /// will be used. If you provide only a [clientID] and no [clientSecret], [clientSecret] defaults to the empty string; i.e.
   /// [clientID] is considered a public client without a secret.
   TestRequest clientAuthenticatedRequest(String path,
-      {String clientID: null, String clientSecret: null}) {
+      {String clientID, String clientSecret}) {
 
     if (clientID != null && clientSecret == null) {
       clientSecret = "";
@@ -119,7 +119,7 @@ class TestClient {
   ///
   /// If you do not provide an [accessToken], the value of [defaultAccessToken]
   /// will be used.
-  TestRequest authenticatedRequest(String path, {String accessToken: null}) {
+  TestRequest authenticatedRequest(String path, {String accessToken}) {
     accessToken ??= defaultAccessToken;
 
     var req = request(path)..bearerAuthorization = accessToken;

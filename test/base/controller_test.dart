@@ -542,7 +542,7 @@ class TController extends HTTPController {
 
 class QController extends HTTPController {
   @httpGet
-  Future<Response> getAll({@HTTPQuery("opt") String opt: null}) async {
+  Future<Response> getAll({@HTTPQuery("opt") String opt}) async {
     if (opt == null) {
       return new Response.ok("NOT");
     }
@@ -552,7 +552,7 @@ class QController extends HTTPController {
 
   @httpGet
   Future<Response> getOne(@HTTPPath("id") String id,
-      {@HTTPQuery("opt") String opt: null}) async {
+      {@HTTPQuery("opt") String opt}) async {
     if (opt == null) {
       return new Response.ok("NOT");
     }
@@ -568,12 +568,12 @@ class IntController extends HTTPController {
   }
 
   @httpGet
-  Future<Response> getAll({@HTTPQuery("opt") int opt: null}) async {
+  Future<Response> getAll({@HTTPQuery("opt") int opt}) async {
     return new Response.ok("$opt");
   }
 
   @httpPost
-  Future<Response> create({@HTTPQuery("opt") int opt: null}) async {
+  Future<Response> create({@HTTPQuery("opt") int opt}) async {
     return new Response.ok("$opt");
   }
 }
@@ -585,14 +585,14 @@ class DateTimeController extends HTTPController {
   }
 
   @httpGet
-  Future<Response> getAll({@HTTPQuery("opt") DateTime opt: null}) async {
+  Future<Response> getAll({@HTTPQuery("opt") DateTime opt}) async {
     return new Response.ok("$opt");
   }
 }
 
 class MultiQueryParamController extends HTTPController {
   @httpGet
-  Future<Response> get({@HTTPQuery("params") List<String> params: null}) async {
+  Future<Response> get({@HTTPQuery("params") List<String> params}) async {
     return new Response.ok(params.join(","));
   }
 }

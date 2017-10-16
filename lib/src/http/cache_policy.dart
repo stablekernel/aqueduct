@@ -12,7 +12,7 @@ class HTTPCachePolicy {
   const HTTPCachePolicy(
       {this.preventIntermediateProxyCaching: false,
         this.preventCaching: false, this.requireConditionalRequest: false,
-        this.expirationFromNow: null});
+        this.expirationFromNow});
 
   /// Prevents a response from being cached by an intermediate proxy.
   ///

@@ -1,5 +1,8 @@
 analyzer:
   strong-mode: true
+  exclude:
+    - test_project/**
+    - test/db/migration_test_projects/**
 
 linter:
   rules:
@@ -17,7 +20,6 @@ linter:
     - super_goes_last
     - type_annotate_public_apis
     - type_init_formals
-    - unnecessary_brace_in_string_interp
     - unnecessary_getters_setters
     - avoid_empty_else
     - package_names

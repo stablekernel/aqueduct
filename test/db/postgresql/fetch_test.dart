@@ -390,7 +390,7 @@ void main() {
 }
 
 class TestModel extends ManagedObject<_TestModel> implements _TestModel {
-  TestModel({String name: null, String email: null}) {
+  TestModel({String name, String email}) {
     this.name = name;
     this.email = email;
   }

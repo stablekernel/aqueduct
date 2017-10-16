@@ -24,9 +24,9 @@ class RouteSegment {
   }
 
   RouteSegment.direct(
-      {String literal: null,
-      String variableName: null,
-      String expression: null,
+      {String literal,
+      String variableName,
+      String expression,
       bool matchesAnything: false}) {
     this.literal = literal;
     this.variableName = variableName;
@@ -77,7 +77,7 @@ class RouteSegment {
 
 class RouteNode {
   RouteNode(List<RouteSpecification> specs,
-      {int level: 0, RegExp matcher: null}) {
+      {int level: 0, RegExp matcher}) {
     patternMatcher = matcher;
 
     var terminatedAtLevel =
