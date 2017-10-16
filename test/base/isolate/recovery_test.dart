@@ -91,7 +91,7 @@ class UncaughtCrashController extends HTTPController {
   }
 
   @httpGet
-  Future<Response> dontCrash(@HTTPPath("id") int id) async {
+  Future<Response> dontCrash(@Bind.path("id") int id) async {
     return new Response.ok(null);
   }
 }

@@ -697,7 +697,7 @@ class OptionsController extends HTTPController {
     policy = null;
   }
 
-  @HTTPMethod("options")
+  @Bind.method("options")
   Future<Response> getThing() async {
     return new Response.ok("getThing");
   }

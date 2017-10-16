@@ -91,7 +91,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
   }
 
   @httpGet
-  Future<Response> getObject(@HTTPPath("id") String id) async {
+  Future<Response> getObject(@Bind.path("id") String id) async {
     var primaryKey = _query.entity.primaryKey;
     _query.where[primaryKey] = whereEqualTo(
         _parseValueForProperty(id, _query.entity.properties[primaryKey]));
@@ -162,7 +162,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
   }
 
   @httpDelete
-  Future<Response> deleteObject(@HTTPPath("id") String id) async {
+  Future<Response> deleteObject(@Bind.path("id") String id) async {
     var primaryKey = _query.entity.primaryKey;
     _query.where[primaryKey] = whereEqualTo(
         _parseValueForProperty(id, _query.entity.properties[primaryKey]));
@@ -203,7 +203,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
   }
 
   @httpPut
-  Future<Response> updateObject(@HTTPPath("id") String id) async {
+  Future<Response> updateObject(@Bind.path("id") String id) async {
     var primaryKey = _query.entity.primaryKey;
     _query.where[primaryKey] = whereEqualTo(
         _parseValueForProperty(id, _query.entity.properties[primaryKey]));
@@ -242,12 +242,12 @@ class ManagedObjectController<InstanceType extends ManagedObject>
 
   @httpGet
   Future<Response> getObjects(
-      {@HTTPQuery("count") int count: 0,
-      @HTTPQuery("offset") int offset: 0,
-      @HTTPQuery("pageBy") String pageBy,
-      @HTTPQuery("pageAfter") String pageAfter,
-      @HTTPQuery("pagePrior") String pagePrior,
-      @HTTPQuery("sortBy") List<String> sortBy}) async {
+      {@Bind.query("count") int count: 0,
+      @Bind.query("offset") int offset: 0,
+      @Bind.query("pageBy") String pageBy,
+      @Bind.query("pageAfter") String pageAfter,
+      @Bind.query("pagePrior") String pagePrior,
+      @Bind.query("sortBy") List<String> sortBy}) async {
     _query.fetchLimit = count;
     _query.offset = offset;
 

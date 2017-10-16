@@ -2,7 +2,7 @@ import '../wildfire.dart';
 import '../model/user.dart';
 
 class IdentityController extends HTTPController {
-  @httpGet
+  @Bind.method("get")
   Future<Response> getIdentity() async {
     var q = new Query<User>()
       ..where.id = request.authorization.resourceOwnerIdentifier;

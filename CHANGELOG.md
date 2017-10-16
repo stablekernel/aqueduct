@@ -2,6 +2,8 @@
 
 ## 3.0.0
 
+- Binding metadata - `HTTPMethod`, `HTTPPath`, `HTTPBody`, `HTTPQuery` and `HTTPHeader` - have been changed to `Bind.method`, `Bind.path`, `Bind.body`, `Bind.query` and `Bind.header`, respectively.
+
 ## 2.5.0
 
 - Adds `aqueduct db schema` to print an application's data model.

@@ -6,8 +6,8 @@ class UserController extends QueryController<User> {
 
   AuthServer authServer;
 
-  @httpGet
-  Future<Response> getUser(@HTTPPath("id") int id) async {
+  @Bind.method("get")
+  Future<Response> getUser(@Bind.path("id") int id) async {
     var u = await query.fetchOne();
     if (u == null) {
       return new Response.notFound();
@@ -20,8 +20,8 @@ class UserController extends QueryController<User> {
     return new Response.ok(u);
   }
 
-  @httpPut
-  Future<Response> updateUser(@HTTPPath("id") int id) async {
+  @Bind.method("put")
+  Future<Response> updateUser(@Bind.path("id") int id) async {
     if (request.authorization.resourceOwnerIdentifier != id) {
       return new Response.unauthorized();
     }
@@ -34,8 +34,8 @@ class UserController extends QueryController<User> {
     return new Response.ok(u);
   }
 
-  @httpDelete
-  Future<Response> deleteUser(@HTTPPath("id") int id) async {
+  @Bind.method("delete")
+  Future<Response> deleteUser(@Bind.path("id") int id) async {
     if (request.authorization.resourceOwnerIdentifier != id) {
       return new Response.unauthorized();
     }

@@ -7,98 +7,68 @@ import 'package:analyzer/analyzer.dart';
 import 'http.dart';
 import 'http_controller_internal.dart';
 
-/// Base class for grouping response logic for a group of endpoints.
+/// Base class for implementing REST endpoints.
 ///
-/// Instances of this class respond to HTTP requests. This class must be subclassed to provide any behavior.
-/// Instances are typically the last [RequestController] in a series of controllers. A new [HTTPController] instance must be created for each [Request],
-/// therefore they must be added to a series of [RequestController]s with [generate]. A [Request] must have passed through a [Router]
-/// prior to being delivered to an [HTTPController].
+/// This class must be subclassed. A new instance must be created for each request and that request must have passed through a [Router] earlier in the channel, e.g.:
 ///
-/// The primary responsibility of an [HTTPController] is receive [Request]s and map the [Request] to an individual 'responder method'
-/// to generate a response. A responder method returns a [Response] wrapped in a [Future] and must have [HTTPMethod] metadata (e.g., [httpGet]
-/// or [httpPost]). It may also have [HTTPPath], [HTTPQuery] and [HTTPHeader] parameters.
+///         router.route("/path").generate(() => new HTTPControllerSubclass());
 ///
-/// [Request]s sent to an [HTTPController] have already been routed according to their path by a [Router]. An [HTTPController] does further routing
-/// based on the HTTP method and path variables of the [Request].
+/// Subclasses implement instance methods that will be invoked when a [Request] meets certain criteria. These criteria are established by
+/// *binding* elements of the HTTP request to instance methods and their parameters. For example, an instance method
+/// that is bound to the HTTP `POST` method will be invoked when this controller handles a `POST` request.
 ///
-/// An [HTTPController] typically receives a group of routes from a [Router] that refer to a resource collection or individual resource. For example,
-/// consider the following route:
-///
-///         router
-///           .route("/users/[:id]")
-///           .generate(() => new UserController());
-///
-/// The requests `/users` and `/users/1` are both routed to an instance of `UserController` (a subclass of `HTTPController`) in this example. Responder methods
-/// would be implemented in `UserController` to handle both the collection (`/users`) and individual resource (`/users/1`) cases for each supported HTTP method the
-/// controller wants to provide.
-///
-/// In the above example, a `UserController` would implement both `GET /users`, `GET /users/:id`, and `POST /users/` like so:
-///
-///         class UserController extends HTTPController {
-///           // invoked for GET /users
-///           @httpGet
-///           Future<Response> getAllUsers() async
-///             => new Response.ok(await fetchAllUsers());
-///
-///           // invoked for GET /users/[0-9]+
-///           @httpGet
-///           Future<Response> getOneUser(@HTTPPath("id") int id) async =>
-///             new Response.ok(await fetchOneUser(id));
-///
-///           // invoked for POST /users
-///           @httpPost
-///           Future<Response> createUser() async =>
-///             return new Response.ok(await createUserFromBody(request.body.asMap()));
+///         class EmployeeController extends HTTPController {
+///            @Bind.method("post")
+///            Future<Response> createEmployee(...) async => new Response.ok(null);
 ///         }
 ///
-/// The responder method is selected by first evaluating the HTTP method of the incoming [Request]. If no such method exists - here, for example, there
-/// are not [httpPut] or [httpDelete] responder methods - a 405 status code is returned.
+/// Instance methods must have [Bind.method] metadata (or pre-defined constant instances like [httpGet]) to respond to a request. These
+/// methods are called *responder methods*. Parameters of a responder method may bind other elements of an HTTP request, such as query
+/// variables, headers, the message body and path variables.
 ///
-/// After evaluating the HTTP method, path variables (using the `:variableName` syntax in `Router`) are evaluated next.
-/// If there are no path variables (e.g., `/users`), the responder method with no `HTTPPath` arguments is selected. Responder methods
-/// with `HTTPPath` parameters must have the exact number and matching names for each path variable parsed in the request. In the above example,
-/// the path variable is named `id` in [Router.route] and therefore the argument to [HTTPPath] is `id`.
+/// There may be multiple responder methods for a given HTTP method. If more than one responder method matches in this way, the arguments of the method
+/// with [Bind.path] metadata are evaluated to 'break the tie'. For example, the route `/employees/[:id]` contains an optional route variable named `id`.
+/// A subclass can implement two responder methods, one for when `id` was present and the other for when it was not:
 ///
-/// If there is no responder method match for the incoming request's path variables, a 404 is returned and no responder method is invoked.
+///         class EmployeeController extends HTTPController {
+///            // This method gets invoked when the path is '/employees'
+///            @Bind.method("get")
+///            Future<Response> getEmployees() async {
+///             return new Response.ok(employees);
+///            }
 ///
-/// Responder methods may also have [HTTPHeader] and [HTTPQuery] parameters. Parameters in the positional parameters
-/// of a responder method are required; if the header or query value is omitted from a request,
-/// no responder method is selected and a 400 status code is returned.
+///            // This method gets invoked when the path is '/employees/id'
+///            @Bind.method("get")
+///            Future<Response> getEmployees(@Bind.path("id") int id) async {
+///             return new Response.ok(employees[id]);
+///            }
+///         }
 ///
-/// [HTTPHeader] and [HTTPQuery] parameters in the optional part of a method signature are optional;
-/// if the header or query value is omitted from the request, the responder method is still invoked
-/// and those parameters are null. For example, the following requires that the request always contain
-/// the header `X-Required`, which will be parsed to `int` and available in `requiredValue`. If it contains `email` in the query string,
-/// that value will be available in `emailFilter` when this method is invoked. If it does not, the `emailFilter` is null.
+/// If no responder method is found that meets both the HTTP method and route variable criteria, an appropriate error response is returned to the client
+/// and no responder methods are called. In other words, the selection of a responder method is determined by the HTTP method and path of the request.
 ///
-///         class UserController extends HTTPController {
-///           @httpGet
-///           Future<Response> getAllUsers(
-///             @HTTPHeader("X-Required") int requiredValue,
-///             {@HTTPQuery("email") String emailFilter}) async {
-///               ...
+/// For the other types of binding - [Bind.query], [Bind.header], and [Bind.body] - a responder method is selected prior to evaluating whether the request
+/// fulfill these bindings. If a responder method is selected, but the request does not have values that fulfill query, header and body criteria, a 400 Bad Request
+/// response is sent and no responder method is invoked.
+///
+/// Query, header and body bindings may be optional if they are in the optional arguments portion of the responder method signature. When optional and the
+/// corresponding value doesn't exist in the incoming request, the responder method is successfully invoked and the associated variable is null. For example,
+/// this method is called whether the query parameter `name` is present or not:
+///
+///         class EmployeeController extends HTTPController {
+///           @Bind.method("get")
+///           Future<Response> getEmployees({@Bind.query("name") String name}) async {
+///             if (name == null) {
+///               return new Response.ok(employees);
+///             }
+///
+///             return new Response.ok(employees.where((e) => e.name == name).toList());
 ///           }
 ///         }
 ///
-/// [HTTPController] subclasses may also declare properties that are marked with [HTTPHeader] and [HTTPQuery], in which case
-/// all responder methods accept those header and query values.
+/// See [Bind] for all possible bindings and https://aqueduct.io/docs/http/http_controller/ for more details.
 ///
-///       class UserController extends RequestController {
-///         @HTTPHeader("X-Opt") String optionalHeader;
-///
-///         @httpGet getUser(@HTTPPath ("id") int userID) async {
-///           optionalHeader == request.innerRequest.headers["x-opt"]; // true
-///
-///           return new Response.ok(await userWithID(userID));
-///         }
-///       }
-///
-/// Properties are optional by default. [requiredHTTPParameter] will mark them as required for all responder methods.
-///
-/// An instance of this type will decode the [Request.body] prior to invoking a responder method.
-///
-/// See further documentation here: http://aqueduct.io/docs/http/http_controller/
-///
+/// [Request.body] will always be decoded prior to invoking a responder method.
 @cannotBeReused
 abstract class HTTPController extends RequestController {
   /// The request being processed by this [HTTPController].
@@ -234,7 +204,7 @@ abstract class HTTPController extends RequestController {
     return controllerCache.methodBinders.values.map((cachedMethod) {
       var op = new APIOperation();
       op.id = APIOperation.idForMethod(this, cachedMethod.methodSymbol);
-      op.method = cachedMethod.httpMethod.method;
+      op.method = cachedMethod.httpMethod.externalName;
       op.consumes = acceptedContentTypes;
       op.produces = [responseContentType];
       op.responses = documentResponsesForOperation(op);
