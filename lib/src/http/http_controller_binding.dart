@@ -9,6 +9,34 @@ import '../db/managed/managed.dart';
 ///
 /// See individual constructors and [HTTPController] for more details.
 class Bind {
+  /// Binds an [HTTPController] operation method to GET requests.
+  ///
+  /// Equivalent to `Bind.method("get")`
+  ///
+  /// See [Bind.method].
+  const Bind.get() : name = "get", _type = _BindType.method;
+
+  /// Binds an [HTTPController] operation method to PUT requests.
+  ///
+  /// Equivalent to `Bind.method("put")`
+  ///
+  /// See [Bind.method].
+  const Bind.put() : name = "put", _type = _BindType.method;
+
+  /// Binds an [HTTPController] operation method to POST requests.
+  ///
+  /// Equivalent to `Bind.method("post")`
+  ///
+  /// See [Bind.method].
+  const Bind.post() : name = "post", _type = _BindType.method;
+
+  /// Binds an [HTTPController] operation method to DELETE requests.
+  ///
+  /// Equivalent to `Bind.method("delete")`
+  ///
+  /// See [Bind.method].
+  const Bind.delete() : name = "delete", _type = _BindType.method;
+
   /// Binds an HTTP query parameter to an [HTTPController] property or responder method argument.
   ///
   /// When the incoming request's [Uri]
@@ -38,6 +66,8 @@ class Bind {
 
   /// Binds an HTTP method to a [HTTPController] responder method.
   ///
+  /// See also [Bind.get], [Bind.put], [Bind.post], and [Bind.delete].
+  ///
   /// [HTTPController] methods with this metadata will be invoked when [name] matches the HTTP method
   /// of the incoming request. [name] is case-insensitively compared; e.g. "GET" and "get" are identical.
   ///
@@ -52,7 +82,7 @@ class Bind {
   ///           Future<Response> getThings() => return new Response.ok(null);
   ///         }
   ///
-  /// This is the generic form of [httpGet], [httpPut], [httpPost] and [httpDelete].
+  /// This is the generic form of [Bind.get], [Bind.put], [Bind.delete] and [Bind.post].
   const Bind.method(this.name) : _type  = _BindType.method;
 
   /// Binds an HTTP request header to an [HTTPController] property or responder method argument.
