@@ -60,7 +60,7 @@ The webpage served by from this endpoint should alert the user to the scopes the
 
 ## Adding and Managing Scope
 
-An `AuthServer` validates that the scopes requested for an access token are valid for the authenticating client application. Therefore, each client identifier (a `ManagedClient`) may have a list of allowed scopes. The allowed scopes are configured with the [aqueduct auth command-line tool](cli.md). For example, the following creates a new client identifier with access to the scopes `user:email` and `user:documents`, and then later adds `user:location`:
+An `AuthServer` validates that the scopes requested for an access token are valid for the authenticating client application. Therefore, each client identifier (a `ManagedAuthClient`) may have a list of allowed scopes. The allowed scopes are configured with the [aqueduct auth command-line tool](cli.md). For example, the following creates a new client identifier with access to the scopes `user:email` and `user:documents`, and then later adds `user:location`:
 
 ```bash
 aqueduct auth add-client \
