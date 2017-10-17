@@ -156,7 +156,7 @@ class HTTPControllerBinder {
       var allowHeaders = {
         "Allow": controllerBinder.allowedMethodsForArity(request.path.variables?.length ?? 0).join(", ")
       };
-      throw new InternalControllerException("No responder method found", 405, headers: allowHeaders);
+      throw new InternalControllerException("No operation found", 405, headers: allowHeaders);
     }
 
     var parseWith = (HTTPControllerParameterBinder binder) {
@@ -224,7 +224,7 @@ class HTTPControllerBinder {
     return methodBinders[key];
   }
 
-  // Used to respond with 405 when there is no responder method for HTTP method
+  // Used to respond with 405 when there is no operation method for HTTP method
   List<String> allowedMethodsForArity(int arity) {
     return methodBinders.values
         .where((m) => m.pathParameters.length == arity)

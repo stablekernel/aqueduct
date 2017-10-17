@@ -11,7 +11,7 @@ import 'http.dart';
 /// the [ManagedObject] type is operates on - is defined by [InstanceType].
 ///
 /// The values of [query] are set based on the HTTP method, HTTP path and request body.
-/// Prior to executing a responder method in subclasses of [QueryController], the [query]
+/// Prior to executing an operation method in subclasses of [QueryController], the [query]
 /// will have the following attributes under the following conditions:
 ///
 /// 1. The [Query] will always have a type argument that matches [InstanceType].

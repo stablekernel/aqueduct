@@ -23,12 +23,12 @@ import 'http_controller_internal.dart';
 ///         }
 ///
 /// Instance methods must have [Bind.method] metadata (or pre-defined constant instances like [httpGet]) to respond to a request. These
-/// methods are called *responder methods*. Parameters of a responder method may bind other elements of an HTTP request, such as query
+/// methods are called *operation methods*. Parameters of a operation method may bind other elements of an HTTP request, such as query
 /// variables, headers, the message body and path variables.
 ///
-/// There may be multiple responder methods for a given HTTP method. If more than one responder method matches in this way, the arguments of the method
+/// There may be multiple operation methods for a given HTTP method. If more than one operation method matches in this way, the arguments of the method
 /// with [Bind.path] metadata are evaluated to 'break the tie'. For example, the route `/employees/[:id]` contains an optional route variable named `id`.
-/// A subclass can implement two responder methods, one for when `id` was present and the other for when it was not:
+/// A subclass can implement two operation methods, one for when `id` was present and the other for when it was not:
 ///
 ///         class EmployeeController extends HTTPController {
 ///            // This method gets invoked when the path is '/employees'
@@ -44,15 +44,15 @@ import 'http_controller_internal.dart';
 ///            }
 ///         }
 ///
-/// If no responder method is found that meets both the HTTP method and route variable criteria, an appropriate error response is returned to the client
-/// and no responder methods are called. In other words, the selection of a responder method is determined by the HTTP method and path of the request.
+/// If no operation method is found that meets both the HTTP method and route variable criteria, an appropriate error response is returned to the client
+/// and no operation methods are called. In other words, the selection of a operation method is determined by the HTTP method and path of the request.
 ///
-/// For the other types of binding - [Bind.query], [Bind.header], and [Bind.body] - a responder method is selected prior to evaluating whether the request
-/// fulfill these bindings. If a responder method is selected, but the request does not have values that fulfill query, header and body criteria, a 400 Bad Request
-/// response is sent and no responder method is invoked.
+/// For the other types of binding - [Bind.query], [Bind.header], and [Bind.body] - a operation method is selected prior to evaluating whether the request
+/// fulfill these bindings. If a operation method is selected, but the request does not have values that fulfill query, header and body criteria, a 400 Bad Request
+/// response is sent and no operation method is invoked.
 ///
-/// Query, header and body bindings may be optional if they are in the optional arguments portion of the responder method signature. When optional and the
-/// corresponding value doesn't exist in the incoming request, the responder method is successfully invoked and the associated variable is null. For example,
+/// Query, header and body bindings may be optional if they are in the optional arguments portion of the operation method signature. When optional and the
+/// corresponding value doesn't exist in the incoming request, the operation method is successfully invoked and the associated variable is null. For example,
 /// this method is called whether the query parameter `name` is present or not:
 ///
 ///         class EmployeeController extends HTTPController {
@@ -68,12 +68,12 @@ import 'http_controller_internal.dart';
 ///
 /// See [Bind] for all possible bindings and https://aqueduct.io/docs/http/http_controller/ for more details.
 ///
-/// [Request.body] will always be decoded prior to invoking a responder method.
+/// [Request.body] will always be decoded prior to invoking a operation method.
 @cannotBeReused
 abstract class HTTPController extends RequestController {
   /// The request being processed by this [HTTPController].
   ///
-  /// It is this [HTTPController]'s responsibility to return a [Response] object for this request. Responder methods
+  /// It is this [HTTPController]'s responsibility to return a [Response] object for this request. Operation methods
   /// may access this request to determine how to respond to it.
   Request request;
 
@@ -97,14 +97,14 @@ abstract class HTTPController extends RequestController {
 
   /// The default content type of responses from this [HTTPController].
   ///
-  /// If the [Response.contentType] has not explicitly been set by a responder method in this controller, the controller will set
+  /// If the [Response.contentType] has not explicitly been set by a operation method in this controller, the controller will set
   /// that property with this value. Defaults to "application/json".
   ContentType responseContentType = ContentType.JSON;
 
   /// Executed prior to handling a request, but after the [request] has been set.
   ///
   /// This method is used to do pre-process setup and filtering. The [request] will be set, but its body will not be decoded
-  /// nor will the appropriate responder method be selected yet. By default, returns the request. If this method returns a [Response], this
+  /// nor will the appropriate operation method be selected yet. By default, returns the request. If this method returns a [Response], this
   /// controller will stop processing the request and immediately return the [Response] to the HTTP client.
   ///
   /// May not return any other [Request] than [req].
@@ -118,7 +118,7 @@ abstract class HTTPController extends RequestController {
   /// Callback to indicate when a request body has been processed.
   ///
   /// This method is called after the body has been processed by the decoder, but prior to the request being
-  /// handled by the selected responder method. If there is no HTTP request body,
+  /// handled by the selected operation method. If there is no HTTP request body,
   /// this method is not called.
   void didDecodeRequestBody(HTTPRequestBody decodedObject) {}
 

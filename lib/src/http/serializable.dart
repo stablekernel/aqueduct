@@ -6,7 +6,7 @@ import 'http.dart';
 abstract class HTTPSerializable {
   /// Reads values from [requestBody] into an object.
   ///
-  /// This method is invoked when an [HTTPController] property or responder method argument is bound with [Bind.body]. [requestBody] is the
+  /// This method is invoked when an [HTTPController] property or operation method argument is bound with [Bind.body]. [requestBody] is the
   /// request body of the incoming HTTP request, decoded according to its content-type.
   void readFromMap(Map<String, dynamic> requestBody);
 
