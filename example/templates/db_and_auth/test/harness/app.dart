@@ -79,7 +79,7 @@ class TestApplication {
   /// [start] must have already been called prior to executing this method. By default,
   /// every application harness inserts a default client record during [start]. See [start]
   /// for more details.
-  static Future<ManagedClient> addClientRecord(
+  static Future<ManagedAuthClient> addClientRecord(
       {String clientID: DefaultClientID,
       String clientSecret: DefaultClientSecret}) async {
     var salt;
@@ -89,7 +89,7 @@ class TestApplication {
       hashedPassword = AuthUtility.generatePasswordHash(clientSecret, salt);
     }
 
-    var clientQ = new Query<ManagedClient>()
+    var clientQ = new Query<ManagedAuthClient>()
       ..values.id = clientID
       ..values.salt = salt
       ..values.hashedSecret = hashedPassword;
