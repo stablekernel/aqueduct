@@ -101,7 +101,7 @@ The interface `ManagedAuthResourceOwner` is a requirement that ensures the type 
 
 This structure allows an application to declare its own 'user' type while still enforcing the needs of Aqueduct's OAuth 2.0 implementation.
 
-The `managed_auth` library also declares two `ManagedObject<T>` subclasses. `ManagedToken` represents instances of authorization tokens and codes, and `ManagedClient` represents instances of OAuth 2.0 clients. This means that an Aqueduct application that uses `ManagedAuthStorage<T>` has a minimum of three database tables: users, tokens and clients.
+The `managed_auth` library also declares two `ManagedObject<T>` subclasses. `ManagedAuthToken` represents instances of authorization tokens and codes, and `ManagedAuthClient` represents instances of OAuth 2.0 clients. This means that an Aqueduct application that uses `ManagedAuthStorage<T>` has a minimum of three database tables: users, tokens and clients.
 
 `ManagedAuthStorage<T>` will delete authorization tokens and codes when they are no longer in use. This is determined by how many tokens a resource owner has and the tokens expiration dates. Once a resource owner acquires more than 40 tokens/codes, the oldest tokens/codes (determined by expiration date) are deleted. Effectively, the resource owner is limited to 40 tokens. This number can be changed when instantiating `ManagedAuthStorage<T>`:
 
@@ -111,4 +111,4 @@ var storage = new ManagedAuthStorage(context, tokenLimit: 20);
 
 ## Configuring the Database
 
-`ManagedAuthStorage<T>` requires database tables for its users, tokens and clients. Use the [database command-line tool](../db/db_tools.md) on your project to generate migration scripts and execute them against a database. This tool will see the declarations for your user type, `ManagedToken` and `ManagedClient` and create the appropriate tables.
+`ManagedAuthStorage<T>` requires database tables for its users, tokens and clients. Use the [database command-line tool](../db/db_tools.md) on your project to generate migration scripts and execute them against a database. This tool will see the declarations for your user type, `ManagedAuthToken` and `ManagedAuthClient` and create the appropriate tables.

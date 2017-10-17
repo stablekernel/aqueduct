@@ -55,12 +55,12 @@ Future main() async {
 
   var credentials = AuthUtility.generateAPICredentialPair("local.testing", "secretpassword");
 
-  var managedCredentials = new ManagedClient()
+  var managedCredentials = new ManagedAuthClient()
     ..id = credentials.id
     ..hashedSecret = credentials.hashedSecret
     ..salt = credentials.salt;
 
-  var query = new Query<ManagedClient>()..values = managedCredentials;
+  var query = new Query<ManagedAuthClient>()..values = managedCredentials;
   await query.insert();
 }
 ```

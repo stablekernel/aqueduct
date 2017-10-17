@@ -347,7 +347,7 @@ void main() {
 An application that uses types like `AuthServer` and `Authorizer` must have valid client IDs for testing. These are best set up in a test harness. Here's a method to add to a test harness to create client identifiers when using `ManagedAuthStorage`:
 
 ```dart
-static Future<ManagedClient> addClientRecord(
+static Future<ManagedAuthClient> addClientRecord(
     {String clientID: "default",
     String clientSecret: "default"}) async {
   var salt;
@@ -357,7 +357,7 @@ static Future<ManagedClient> addClientRecord(
     hashedPassword = AuthUtility.generatePasswordHash(clientSecret, salt);
   }
 
-  var clientQ = new Query<ManagedClient>()
+  var clientQ = new Query<ManagedAuthClient>()
     ..values.id = clientID
     ..values.salt = salt
     ..values.hashedSecret = hashedPassword;
