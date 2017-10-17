@@ -2,6 +2,9 @@
 
 ## 3.0.0
 
+- Renames `ManagedClient` to `ManagedAuthClient`.
+- Renames `ManagedToken` to `ManagedAuthToken`.
+
 ## 2.5.0
 
 - Adds `aqueduct db schema` to print an application's data model.
