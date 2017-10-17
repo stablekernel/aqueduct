@@ -15,7 +15,7 @@ void main() {
   ManagedContext context;
 
   setUp(() async {
-    context = await contextWithModels([User, ManagedClient, ManagedToken]);
+    context = await contextWithModels([User, ManagedAuthClient, ManagedAuthToken]);
 
     var salt = "ABCDEFGHIJKLMNOPQRSTUVWXYZ012345";
     var clients = [
@@ -37,13 +37,13 @@ void main() {
     ];
 
     await Future.wait(clients
-        .map((ac) => new ManagedClient()
+        .map((ac) => new ManagedAuthClient()
           ..id = ac.id
           ..salt = ac.salt
           ..hashedSecret = ac.hashedSecret
           ..redirectURI = ac.redirectURI)
         .map((mc) {
-      var q = new Query<ManagedClient>()..values = mc;
+      var q = new Query<ManagedAuthClient>()..values = mc;
       return q.insert();
     }));
 
@@ -80,13 +80,13 @@ void main() {
         expect(true, false);
       } on AuthServerException {}
 
-      var q = new Query<ManagedClient>();
+      var q = new Query<ManagedAuthClient>();
       expect(await q.fetch(), hasLength(5));
     });
 
     test("Revoking unknown client has no impact", () async {
       await auth.revokeClientID("nonsense");
-      var q = new Query<ManagedClient>();
+      var q = new Query<ManagedAuthClient>();
       expect(await q.fetch(), hasLength(5));
     });
   });
@@ -285,7 +285,7 @@ void main() {
       expect(await auth.verify(initialToken.accessToken), isNull);
 
       // Make sure we don't have duplicates in the db
-      var q = new Query<ManagedToken>();
+      var q = new Query<ManagedAuthToken>();
       expect(await q.fetch(), hasLength(1));
     });
 
@@ -507,7 +507,7 @@ void main() {
         expect(true, false);
       } on AuthServerException {}
 
-      var q = new Query<ManagedToken>()..where.code = code.code;
+      var q = new Query<ManagedAuthToken>()..where.code = code.code;
       expect(await q.fetch(), isEmpty);
     });
 
@@ -526,7 +526,7 @@ void main() {
       expect(await auth.verify(issuedToken.accessToken), isNull);
 
       // Ensure that the associated auth code is also destroyed
-      var authCodeQuery = new Query<ManagedToken>();
+      var authCodeQuery = new Query<ManagedAuthToken>();
       expect(await authCodeQuery.fetch(), isEmpty);
     });
 
@@ -551,7 +551,7 @@ void main() {
       expect(await auth.verify(refreshedToken.accessToken), isNull);
 
       // Ensure that the associated auth code is also destroyed
-      var authCodeQuery = new Query<ManagedToken>();
+      var authCodeQuery = new Query<ManagedAuthToken>();
       expect(await authCodeQuery.fetch(), isEmpty);
     });
 
@@ -635,7 +635,7 @@ void main() {
       expect(await auth.verify(exchangedToken.accessToken), isNull);
       expect(await auth.verify(issuedToken.accessToken), isNull);
 
-      var tokenQuery = new Query<ManagedToken>();
+      var tokenQuery = new Query<ManagedAuthToken>();
       expect(await tokenQuery.fetch(), isEmpty);
     });
 
@@ -677,7 +677,7 @@ void main() {
       expect(await auth.verify(issuedTokenKeep.accessToken),
           new isInstanceOf<Authorization>());
 
-      var tokenQuery = new Query<ManagedToken>();
+      var tokenQuery = new Query<ManagedAuthToken>();
       expect(await tokenQuery.fetch(), hasLength(3));
     });
 
@@ -745,7 +745,7 @@ void main() {
       expect(await auth.verify(exchangedToken.accessToken), isNull);
       expect(await auth.verify(issuedToken.accessToken), isNull);
 
-      var tokenQuery = new Query<ManagedToken>();
+      var tokenQuery = new Query<ManagedAuthToken>();
       expect(await tokenQuery.fetch(), isEmpty);
     });
   });
@@ -769,11 +769,11 @@ void main() {
       var exchangedToken = await auth.exchange(
           exchangedCode.code, "com.stablekernel.redirect", "mckinley");
 
-      var codeQuery = new Query<ManagedToken>()
+      var codeQuery = new Query<ManagedAuthToken>()
         ..where.code = exchangedCode.code;
       expect(await codeQuery.fetch(), hasLength(1));
 
-      var tokenQuery = new Query<ManagedToken>()
+      var tokenQuery = new Query<ManagedAuthToken>()
         ..where.accessToken = exchangedToken.accessToken;
       await tokenQuery.delete();
 
@@ -787,12 +787,12 @@ void main() {
 
       // Insert a code manually to simulate a race condition, but insert it after the others have been
       // so they don't strip it when inserted.
-      var manualCode = new ManagedToken()
+      var manualCode = new ManagedAuthToken()
         ..code = "ASDFGHJ"
         ..issueDate = new DateTime.now().toUtc()
         ..expirationDate =
             new DateTime.now().add(new Duration(seconds: 60)).toUtc()
-        ..client = (new ManagedClient()..id = "com.stablekernel.redirect")
+        ..client = (new ManagedAuthClient()..id = "com.stablekernel.redirect")
         ..resourceOwner = (new User()..id = createdUsers.first.id);
 
       // Insert a code for a different user to make sure it doesn't get pruned.
@@ -810,14 +810,14 @@ void main() {
       }
 
       // Insert the 'race condition' code
-      var manualInsertQuery = new Query<ManagedToken>()..values = manualCode;
+      var manualInsertQuery = new Query<ManagedAuthToken>()..values = manualCode;
       manualCode = await manualInsertQuery.insert();
 
       // Make a new code, should kill the race condition code and the first generated code in the loop.
       // Other user codes remain
       var newCode = await auth.authenticateForCode(createdUsers.first.username,
           User.DefaultPassword, "com.stablekernel.redirect");
-      var codeQuery = new Query<ManagedToken>();
+      var codeQuery = new Query<ManagedAuthToken>();
       var codesInDB = (await codeQuery.fetch()).map((ac) => ac.code).toList();
 
       // These codes are in chronological order
@@ -861,13 +861,13 @@ void main() {
 
       // Insert a token manually to simulate a race condition, but insert it after the others have been
       // so they don't strip it when inserted.
-      var manualToken = new ManagedToken()
+      var manualToken = new ManagedAuthToken()
         ..accessToken = "ASDFGHJ"
         ..refreshToken = "ABCHASDS"
         ..issueDate = new DateTime.now().toUtc()
         ..expirationDate =
             new DateTime.now().add(new Duration(seconds: 60)).toUtc()
-        ..client = (new ManagedClient()..id = "com.stablekernel.app1")
+        ..client = (new ManagedAuthClient()..id = "com.stablekernel.app1")
         ..resourceOwner = (new User()..id = createdUsers.first.id);
 
       // Insert a token for a different user to make sure it doesn't get pruned.
@@ -883,14 +883,14 @@ void main() {
       }
 
       // Insert the 'race condition' token
-      var manualInsertQuery = new Query<ManagedToken>()..values = manualToken;
+      var manualInsertQuery = new Query<ManagedAuthToken>()..values = manualToken;
       manualToken = await manualInsertQuery.insert();
 
       // Make a new token, should kill the race condition token and the first generated token in the loop.
       // Other user token remain
       var newToken = await auth.authenticate(createdUsers.first.username,
           User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
-      var tokenQuery = new Query<ManagedToken>();
+      var tokenQuery = new Query<ManagedAuthToken>();
       var tokensInDB =
           (await tokenQuery.fetch()).map((ac) => ac.accessToken).toList();
 
@@ -985,14 +985,14 @@ void main() {
       ];
 
       await Future.wait(clients
-          .map((ac) => new ManagedClient()
+          .map((ac) => new ManagedAuthClient()
             ..id = ac.id
             ..salt = ac.salt
             ..allowedScope = ac.allowedScopes.map((a) => a.scopeString).join(" ")
             ..hashedSecret = ac.hashedSecret
             ..redirectURI = ac.redirectURI)
           .map((mc) {
-        var q = new Query<ManagedClient>()..values = mc;
+        var q = new Query<ManagedAuthClient>()..values = mc;
         return q.insert();
       }));
     });
@@ -1215,7 +1215,7 @@ void main() {
             new AuthScope("location:add")
           ]);
 
-      var q = new Query<ManagedClient>()
+      var q = new Query<ManagedAuthClient>()
         ..where.id = whereEqualTo("all.redirect")
         ..values.allowedScope = "user location:add.readonly";
       await q.updateOne();

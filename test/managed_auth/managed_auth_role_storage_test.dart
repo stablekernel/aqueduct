@@ -15,7 +15,7 @@ void main() {
   List<User> createdUsers;
 
   setUpAll(() async {
-    context = await contextWithModels([User, ManagedClient, ManagedToken]);
+    context = await contextWithModels([User, ManagedAuthClient, ManagedAuthToken]);
     storage = new RoleBasedAuthStorage(context);
     auth = new AuthServer(storage);
     createdUsers = await createUsers(5);
@@ -31,14 +31,14 @@ void main() {
     ];
 
     await Future.wait(clients
-        .map((ac) => new ManagedClient()
+        .map((ac) => new ManagedAuthClient()
       ..id = ac.id
       ..salt = ac.salt
       ..allowedScope = ac.allowedScopes.map((a) => a.scopeString).join(" ")
       ..hashedSecret = ac.hashedSecret
       ..redirectURI = ac.redirectURI)
         .map((mc) {
-      var q = new Query<ManagedClient>()..values = mc;
+      var q = new Query<ManagedAuthClient>()..values = mc;
       return q.insert();
     }));
   });
