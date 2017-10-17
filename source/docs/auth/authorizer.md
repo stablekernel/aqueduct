@@ -61,7 +61,7 @@ Controllers protected by an `Authorizer` can access this information to further 
 
 ```dart
 class NewsFeedController extends HTTPController {
-  @Bind.method("get")
+  @Bind.get()
   Future<Response> getNewsFeed() async {
     var forUserID = request.authorization.resourceOwnerIdentifier;
 
@@ -79,7 +79,7 @@ In the above controller, it's impossible for a user to access another user's pos
 
 ```dart
 class NewsFeedController extends HTTPController {
-  @Bind.method("get")
+  @Bind.get()
   Future<Response> getNewsFeed() async {
     if (!request.authorization.authorizedForScope("user:feed")) {
       return new Response.unauthorized();

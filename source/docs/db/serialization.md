@@ -6,7 +6,7 @@ In the previous chapter, you have seen that `ManagedObject<T>`s subclasses are r
 
 ```dart
 class UserController extends HTTPController {
-  @Bind.method("post")
+  @Bind.post()
   Future<Response> createUser(@Bind.body() User user) async {
     var query = new Query<User>()
       ..values = user;

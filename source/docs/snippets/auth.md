@@ -77,7 +77,7 @@ class AppSink extends RequestSink {
 }
 
 class ProfileController extends HTTPController {
-  @Bind.method("get")
+  @Bind.get()
   Future<Response> getProfile() async {
     var id = request.authorization.resourceOwnerIdentifier;
     return new Response.ok(await profileForUserID(id));

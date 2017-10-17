@@ -95,7 +95,7 @@ class QuestionController extends HttpController {
     "What's the tallest mountain in the world?"
   ];
 
-  @Bind.method("get")
+  @Bind.get()
   Future<Response> getAllQuestions() async {
     var questionQuery = new Query<Question>();
     var databaseQuestions = await questionQuery.fetch();
@@ -114,7 +114,7 @@ In `getAllQuestions`, we create an instance of `Query<Question>` and then execut
 Now, let's update `getQuestionAtIndex` to fetch a single question by its index from the database.
 
 ```dart
-@Bind.method("get")
+@Bind.get()
 Future<Response> getQuestionAtIndex(@Bind.path("index") int index) async {
   var questionQuery = new Query<Question>()
     ..where.index = whereEqualTo(index);    
@@ -273,12 +273,12 @@ Run the tests again by right-clicking on the `main` function and selecting `Run`
 The more you know: Query Parameters and HTTP Headers
 ---
 
-So far, we have bound HTTP method and path parameters to responder methods in `QuestionController`. You can also bind query parameters, headers and request bodies, too.
+So far, we have bound HTTP method and path parameters to operation methods in `QuestionController`. You can also bind query parameters, headers and request bodies, too.
 
 We'll allow the `getAllQuestions` method to take a query parameter named `contains`. If this query parameter is part of the request, we'll filter the questions on whether or not that question contains some substring. In `question_controller.dart`, update this method by adding an optional parameter named `containsSubstring`:
 
 ```dart
-@Bind.method("get")
+@Bind.get()
 Future<Response> getAllQuestions({@Bind.query("contains") String containsSubstring}) async {
   var questionQuery = new Query<Question>();
   if (containsSubstring != null) {
@@ -311,8 +311,8 @@ test("/questions returns list of questions filtered by contains", () async {
 
 This test expects that the body is a list of exactly one object whose description is the one question we know has the word 'mountain' in it.
 
-This test will pass, along with the rest of them. It's important to note that GET `/questions` without a `contains` query still yields the correct results. That is because the `Bind.query` argument was declared in the optional parameters portion of the responder method. If the parameter were in the required, positional set of parameters and the query string was not included, this request would respond with a 400. (The same positional vs. optional behavior is true of `Bind.header`s as well.)
+This test will pass, along with the rest of them. It's important to note that GET `/questions` without a `contains` query still yields the correct results. That is because the `Bind.query` argument was declared in the optional parameters portion of the operation method. If the parameter were in the required, positional set of parameters and the query string was not included, this request would respond with a 400. (The same positional vs. optional behavior is true of `Bind.header`s as well.)
 
-Binding query and header parameters in a responder method is a good way to make your code more intentional and avoid boilerplate parsing code. Additionally, Aqueduct is able to generate documentation from method signatures - by using bindings, the documentation generator can add that information to the documentation.
+Binding query and header parameters in a operation method is a good way to make your code more intentional and avoid boilerplate parsing code. Additionally, Aqueduct is able to generate documentation from method signatures - by using bindings, the documentation generator can add that information to the documentation.
 
 ## [Next: Relationships and Joins](model-relationships-and-joins.md)

@@ -51,12 +51,12 @@ class AppRequestSink extends RequestSink {
 class Controller extends HTTPController {
   final List<String> things = const ["thing1", "thing2"];
 
-  @Bind.method("get")
+  @Bind.get()
   Future<Response> getThings() async {
     return new Response.ok(things);
   }
 
-  @Bind.method("get")
+  @Bind.get()
   Future<Response> getThing(@Bind.path("id") int id) async {
     if (id < 0 || id >= things.length) {
       return new Response.notFound();

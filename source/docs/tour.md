@@ -62,23 +62,23 @@ void setupRouter(Router router) {
 
 [HTTPController](http/http_controller.md) are the controller that most often fulfill a request. An `HTTPController` subclass handles all operations for resource, e.g. `POST /users`, `GET /users` and `GET /users/1`.
 
-Subclasses implement a *responder method* for each operation:
+Subclasses implement a *operation method* for each operation:
 
 ```dart
 import 'package:aqueduct/aqueduct.dart'
 
 class ResourceController extends HTTPController {
-  @Bind.method("get")
+  @Bind.get()
   Future<Response> getAllResources() async {
     return new Response.ok(await fetchResources());
   }
 
-  @Bind.method("get")
+  @Bind.get()
   Future<Response> getResourceByID(@Bind.path("id") int id) async {
     return new Response.ok(await fetchResource(id));
   }
 
-  @Bind.method("post")
+  @Bind.post()
   Future<Response> createResource(@Bind.body() Resource resource) async {
     var inserted = await insertResource(resource);
     return new Response.ok(inserted);
@@ -86,18 +86,18 @@ class ResourceController extends HTTPController {
 }
 ```
 
-Properties of the request are bound to responder method arguments and controller properties:
+Properties of the request are bound to operation method arguments and controller properties:
 
 ```dart
 class ResourceController extends HTTPController {
-  @Bind.method("get")
+  @Bind.get()
   Future<Response> getAllResources(
       @Bind.header("x-request-id") String requestID,
       {@Bind.query("limit") int limit}) async {
     return new Response.ok(await fetchResources(limit ?? 0));
   }
 
-  @Bind.method("post")
+  @Bind.post()
   Future<Response> createResource(@Bind.body() Resource resource) async {
     var inserted = await insertResourceIntoDatabase(resource);
     return new Response.ok(inserted);
@@ -195,7 +195,7 @@ Database operations are built and executed with instances of `Query<T>`.
 import 'package:aqueduct/aqueduct.dart'
 
 class ResourceController extends HTTPController {
-  @Bind.method("get")
+  @Bind.get()
   Future<Response> getAllResources() async {
     var query = new Query<Resource>();
 
@@ -287,7 +287,7 @@ class _Initiative {
 
 ```dart
 class UserController extends HTTPController {
-  @Bind.method("put")
+  @Bind.put()
   Future<Response> updateUser(@Bind.path("id") int id, @Bind.body() User user) async {
     var query = new Query<User>()
       ..where.id = id

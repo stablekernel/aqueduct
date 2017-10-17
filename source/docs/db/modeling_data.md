@@ -129,7 +129,8 @@ Where persistent types simply declare a mapping to a database table, `ManagedObj
 Managed objects can be inserted into and fetched from a database. They can be used to configure an update to a database row. They can read their values from a `Map` and write them into a `Map` - this `Map` can safely be encoded to or decoded from JSON or another transmission format. This allows `ManagedObject<T>`s to be exactly represented in an HTTP request or response. Managed objects also lay the foundation for building queries. Here's an example of a common lifecycle of a `ManagedObject<T>` subclass, `User`:
 
 ```dart
-@Bind.method("post") createThing(@Bind.body() User user) async {
+@Bind.post()
+Future<Response> createThing(@Bind.body() User user) async {
   // Construct Query for inserting the user, using values from the request body.
   var insertQuery = new Query<User>()
     ..values = user;
