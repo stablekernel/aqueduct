@@ -172,7 +172,7 @@ Future<Response> createUser(@Bind.body() User user) async {
 }
 ```
 
-An type must implement `HTTPSerializable` to be bound to a request body. This interface requires that the methods `readFromMap()` and `asMap()` be implemented:
+The type of the bound variable must implement `HTTPSerializable`. This interface requires that the methods `readFromMap()` and `asMap()` be implemented:
 
 ```dart
 class Person implements HTTPSerializable {
