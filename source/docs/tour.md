@@ -119,7 +119,7 @@ router
 class VerifyingController extends RequestController {
   @override
   Future<RequestOrResponse> processRequest(Request request) async {
-    if (request.innerRequest.headers.value("x-secret-key") == "secret!") {
+    if (request.raw.headers.value("x-secret-key") == "secret!") {
       return request;
     }
 

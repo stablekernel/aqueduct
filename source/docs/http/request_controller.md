@@ -55,9 +55,9 @@ class CRUDController {
   Future<RequestOrResponse> processRequest(Request request) async {
     body = await request.body.asMap();
 
-    if (request.innerRequest.method == "POST") {
+    if (request.raw.method == "POST") {
       return handlePost();
-    } else if (request.innerMethod == "PUT") {
+    } else if (request.raw.method == "PUT") {
       return handlePut();
     } ...
   }

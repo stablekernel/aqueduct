@@ -35,7 +35,7 @@ In Aqueduct, websockets are handled by Dart's standard library `WebSocket` type.
 router
   .route("/connect")
   .listen((request) async {
-    var socket = await WebSocketTransformer.upgrade(request.innerRequest);
+    var socket = await WebSocketTransformer.upgrade(request.raw);
     socket.listen(listener);
 
     return null;
@@ -63,7 +63,7 @@ router
   .pipe(new Authorizer(authServer));
   .listen((request) async {
     var userID = request.authorization.resourceOwnerIdentifier;
-    var socket = await WebSocketTransformer.upgrade(request.innerRequest);
+    var socket = await WebSocketTransformer.upgrade(request.raw);
     socket.listen((event) => handleEvent(event, fromUserID: userID));
 
     connections[userID] = socket;
