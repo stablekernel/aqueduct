@@ -211,21 +211,21 @@ class CrashModel implements HTTPSerializable {
 }
 
 class TestController extends HTTPController {
-  @httpPost
+  @Bind.post()
   Future<Response> create(@Bind.body() TestModel tm) async {
     return new Response.ok(tm);
   }
 }
 
 class ListTestController extends HTTPController {
-  @httpPost
+  @Bind.post()
   Future<Response> create(@Bind.body() List<TestModel> tms) async {
     return new Response.ok(tms);
   }
 }
 
 class OptionalTestController extends HTTPController {
-  @httpPost
+  @Bind.post()
   Future<Response> create({@Bind.body() TestModel tm}) async {
     return new Response.ok(tm);
   }
@@ -235,28 +235,28 @@ class PropertyTestController extends HTTPController {
   @Bind.body()
   TestModel tm;
 
-  @httpPost
+  @Bind.post()
   Future<Response> create() async {
     return new Response.ok(tm);
   }
 }
 
 class NotSerializableController extends HTTPController {
-  @httpPost
+  @Bind.post()
   Future<Response> create(@Bind.body() Uri uri) async {
     return new Response.ok(null);
   }
 }
 
 class ListNotSerializableController extends HTTPController {
-  @httpPost
+  @Bind.post()
   Future<Response> create(@Bind.body() List<Uri> uri) async {
     return new Response.ok(null);
   }
 }
 
 class CrashController extends HTTPController {
-  @httpPost
+  @Bind.post()
   Future<Response> create(@Bind.body() CrashModel tm) async {
     return new Response.ok(null);
   }

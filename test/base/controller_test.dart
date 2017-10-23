@@ -496,7 +496,7 @@ void main() {
 }
 
 class FilteringController extends HTTPController {
-  @httpGet
+  @Bind.get()
   Future<Response> getAll() async {
     return new Response.ok(null);
   }
@@ -511,28 +511,28 @@ class FilteringController extends HTTPController {
 }
 
 class TController extends HTTPController {
-  @httpGet
+  @Bind.get()
   Future<Response> getAll() async {
     return new Response.ok("getAll");
   }
 
-  @httpGet
+  @Bind.get()
   Future<Response> getOne(@Bind.path("id") String id) async {
     return new Response.ok("$id");
   }
 
-  @httpGet
+  @Bind.get()
   Future<Response> getBoth(
       @Bind.path("id") String id, @Bind.path("flag") String flag) async {
     return new Response.ok("$id$flag");
   }
 
-  @httpPut
+  @Bind.put()
   Future<Response> putOne(@Bind.path("id") String id) async {
     throw new Exception("Exception!");
   }
 
-  @httpPost
+  @Bind.post()
   Future<Response> post() async {
     var body = this.request.body.asMap();
 
@@ -541,7 +541,7 @@ class TController extends HTTPController {
 }
 
 class QController extends HTTPController {
-  @httpGet
+  @Bind.get()
   Future<Response> getAll({@Bind.query("opt") String opt}) async {
     if (opt == null) {
       return new Response.ok("NOT");
@@ -550,7 +550,7 @@ class QController extends HTTPController {
     return new Response.ok("OK");
   }
 
-  @httpGet
+  @Bind.get()
   Future<Response> getOne(@Bind.path("id") String id,
       {@Bind.query("opt") String opt}) async {
     if (opt == null) {
@@ -562,43 +562,43 @@ class QController extends HTTPController {
 }
 
 class IntController extends HTTPController {
-  @httpGet
+  @Bind.get()
   Future<Response> getOne(@Bind.path("id") int id) async {
     return new Response.ok("${id * 2}");
   }
 
-  @httpGet
+  @Bind.get()
   Future<Response> getAll({@Bind.query("opt") int opt}) async {
     return new Response.ok("$opt");
   }
 
-  @httpPost
+  @Bind.post()
   Future<Response> create({@Bind.query("opt") int opt}) async {
     return new Response.ok("$opt");
   }
 }
 
 class DateTimeController extends HTTPController {
-  @httpGet
+  @Bind.get()
   Future<Response> getOne(@Bind.path("time") DateTime time) async {
     return new Response.ok("${time.add(new Duration(seconds: 5))}");
   }
 
-  @httpGet
+  @Bind.get()
   Future<Response> getAll({@Bind.query("opt") DateTime opt}) async {
     return new Response.ok("$opt");
   }
 }
 
 class MultiQueryParamController extends HTTPController {
-  @httpGet
+  @Bind.get()
   Future<Response> get({@Bind.query("params") List<String> params}) async {
     return new Response.ok(params.join(","));
   }
 }
 
 class BooleanQueryParamController extends HTTPController {
-  @httpGet
+  @Bind.get()
   Future<Response> get({@Bind.query("param") bool param: false}) async {
     return new Response.ok(param ? "true" : "false");
   }
@@ -616,7 +616,7 @@ class HTTPParameterController extends HTTPController {
   @Bind.query("number")
   int number;
 
-  @httpGet
+  @Bind.get()
   Future<Response> get(@Bind.header("Cookie") String cookieBrand,
       @Bind.query("Table") String tableBrand,
       {@Bind.header("Milk") String milkBrand,
@@ -635,7 +635,7 @@ class HTTPParameterController extends HTTPController {
 }
 
 class ModelEncodeController extends HTTPController {
-  @httpGet
+  @Bind.get()
   Future<Response> getThings(@Bind.path("thing") String thing) async {
     if (thing == "list") {
       return new Response.ok([
@@ -671,7 +671,7 @@ class ModelEncodeController extends HTTPController {
 }
 
 class ContentTypeController extends HTTPController {
-  @httpGet
+  @Bind.get()
   Future<Response> getThing(@Bind.query("opt") String opt) async {
     if (opt == "responseContentType") {
       responseContentType = new ContentType("text", "plain");
@@ -686,7 +686,7 @@ class ContentTypeController extends HTTPController {
 }
 
 class DuplicateParamController extends HTTPController {
-  @httpGet
+  @Bind.get()
   Future<Response> getThing(@Bind.query("list") List<String> list,
       @Bind.query("single") String single) async {
     return new Response.ok({"list": list, "single": single});
@@ -696,12 +696,12 @@ class DuplicateParamController extends HTTPController {
 class DecodeCallbackController extends HTTPController {
   bool didDecode = false;
 
-  @httpGet
+  @Bind.get()
   Future<Response> getThing() async {
     return new Response.ok({"didDecode": didDecode});
   }
 
-  @httpPost
+  @Bind.post()
   Future<Response> postThing() async {
     return new Response.ok({"didDecode": didDecode});
   }

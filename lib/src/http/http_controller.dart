@@ -22,7 +22,7 @@ import 'http_controller_internal.dart';
 ///            Future<Response> createEmployee(...) async => new Response.ok(null);
 ///         }
 ///
-/// Instance methods must have [Bind.method] metadata (or pre-defined constant instances like [httpGet]) to respond to a request. These
+/// Instance methods must have [Bind.method] metadata to respond to a request (see also [Bind.get], [Bind.post], [Bind.put] and [Bind.delete]). These
 /// methods are called *operation methods*. Parameters of a operation method may bind other elements of an HTTP request, such as query
 /// variables, headers, the message body and path variables.
 ///

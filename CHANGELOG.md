@@ -3,6 +3,7 @@
 ## 3.0.0
 
 - Binding metadata - `HTTPMethod`, `HTTPPath`, `HTTPBody`, `HTTPQuery` and `HTTPHeader` - have been changed to `Bind.method`, `Bind.path`, `Bind.body`, `Bind.query` and `Bind.header`, respectively.
+- Deprecates `@httpGet` and similar constants for `Bind.get()` and similar constructors.
 
 ## 2.5.0
 

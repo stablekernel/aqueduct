@@ -460,19 +460,19 @@ class TController extends HTTPController {
   /// ABCD
   /// EFGH
   /// IJKL
-  @httpGet
+  @Bind.get()
   Future<Response> getAll({@Bind.query("param") String param}) async {
     return new Response.ok("");
   }
 
   /// ABCD
-  @httpPut
+  @Bind.put()
   Future<Response> putOne(@Bind.path("id") int id,
       {@Bind.query("p1") int p1, @Bind.header("X-P2") int p2}) async {
     return new Response.ok("");
   }
 
-  @httpGet
+  @Bind.get()
   Future<Response> getOne(@Bind.path("id") int id) async {
     return new Response.ok("");
   }
@@ -480,14 +480,14 @@ class TController extends HTTPController {
   /// MNOP
   /// QRST
 
-  @httpGet
+  @Bind.get()
   Future<Response> getTwo(@Bind.path("id") int id, @Bind.path("notID") int notID) async {
     return new Response.ok("");
   }
 
   /// EFGH
   /// IJKL
-  @httpPost
+  @Bind.post()
   Future<Response> createOne(
       @Bind.header("X-Date") DateTime date, @Bind.query("foo") String foo) async {
     return new Response.ok("");

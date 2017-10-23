@@ -90,7 +90,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
     return new Response.notFound();
   }
 
-  @httpGet
+  @Bind.get()
   Future<Response> getObject(@Bind.path("id") String id) async {
     var primaryKey = _query.entity.primaryKey;
     _query.where[primaryKey] = whereEqualTo(
@@ -124,7 +124,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
     return new Response.ok(object);
   }
 
-  @httpPost
+  @Bind.post()
   Future<Response> createObject() async {
     InstanceType instance = _query.entity.instanceType
         .newInstance(new Symbol(""), []).reflectee as InstanceType;
@@ -161,7 +161,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
     return new Response.notFound();
   }
 
-  @httpDelete
+  @Bind.delete()
   Future<Response> deleteObject(@Bind.path("id") String id) async {
     var primaryKey = _query.entity.primaryKey;
     _query.where[primaryKey] = whereEqualTo(
@@ -202,7 +202,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
     return new Response.notFound();
   }
 
-  @httpPut
+  @Bind.put()
   Future<Response> updateObject(@Bind.path("id") String id) async {
     var primaryKey = _query.entity.primaryKey;
     _query.where[primaryKey] = whereEqualTo(
@@ -240,7 +240,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
     return new Response.ok(objects);
   }
 
-  @httpGet
+  @Bind.put()
   Future<Response> getObjects(
       {@Bind.query("count") int count: 0,
       @Bind.query("offset") int offset: 0,

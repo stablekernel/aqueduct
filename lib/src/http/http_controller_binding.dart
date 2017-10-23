@@ -152,9 +152,9 @@ class Bind {
   /// consider the above route and a controller with the following operation methods:
   ///
   ///         class UserController extends HTTPController {
-  ///           @httpGet
+  ///           @Bind.get()
   ///           Future<Response> getUsers() async => new Response.ok(getAllUsers());
-  ///           @httpGet
+  ///           @Bind.get()
   ///           Future<Response> getOneUser(@Bind.path("id") int id) async => new Response.ok(getUser(id));
   ///         }
   ///
@@ -185,21 +185,25 @@ enum _BindType {
 /// Binds an [HTTPController] operation method to HTTP GET requests.
 ///
 /// Equivalent to [Bind.method] with "GET" argument.
+@Deprecated("4.0; use Bind.get() instead")
 const Bind httpGet = const Bind.method("get");
 
 /// Binds an [HTTPController] operation method to HTTP PUT requests.
 ///
 /// Equivalent to [Bind.method] with "PUT" argument.
+@Deprecated("4.0; use Bind.put() instead")
 const Bind httpPut = const Bind.method("put");
 
 /// Binds an [HTTPController] operation method to HTTP POST requests.
 ///
 /// Equivalent to [Bind.method] with "POST" argument.
+@Deprecated("4.0; use Bind.post() instead")
 const Bind httpPost = const Bind.method("post");
 
 /// Binds an [HTTPController] operation method to HTTP DELETE requests.
 ///
 /// Equivalent to [Bind.method] with "DELETE" argument requests.
+@Deprecated("4.0; use Bind.delete() instead")
 const Bind httpDelete = const Bind.method("delete");
 
 /// Marks an [HTTPController] property binding as required.
