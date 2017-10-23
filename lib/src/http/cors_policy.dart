@@ -114,7 +114,7 @@ class CORSPolicy {
   /// This will add Access-Control-Allow-Origin, Access-Control-Expose-Headers and Access-Control-Allow-Credentials
   /// depending on the this policy.
   Map<String, dynamic> headersForRequest(Request request) {
-    var origin = request.innerRequest.headers.value("origin");
+    var origin = request.raw.headers.value("origin");
 
     var headers = <String, dynamic>{};
     headers["Access-Control-Allow-Origin"] = origin;
@@ -186,7 +186,7 @@ class CORSPolicy {
   /// This method is invoked internally by [RequestController]s that have a [RequestController.policy].
   Response preflightResponse(Request req) {
     var headers = {
-      "Access-Control-Allow-Origin": req.innerRequest.headers.value("origin"),
+      "Access-Control-Allow-Origin": req.raw.headers.value("origin"),
       "Access-Control-Allow-Methods": allowedMethods.join(", "),
       "Access-Control-Allow-Headers": allowedRequestHeaders.join(", ")
     };

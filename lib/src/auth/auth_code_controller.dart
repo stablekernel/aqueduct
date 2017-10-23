@@ -84,7 +84,7 @@ class AuthCodeController extends HTTPController {
       return new Response(405, {}, null);
     }
 
-    var renderedPage = await _renderFunction(this, request.innerRequest.uri, {
+    var renderedPage = await _renderFunction(this, request.raw.uri, {
       "response_type": responseType,
       "client_id": clientID,
       "state": state,

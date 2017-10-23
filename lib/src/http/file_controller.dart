@@ -142,7 +142,7 @@ class HTTPFileController extends RequestController {
 
   @override
   Future<RequestOrResponse> processRequest(Request request) async {
-    if (request.innerRequest.method.toLowerCase() != "get") {
+    if (request.raw.method.toLowerCase() != "get") {
       return new Response(HttpStatus.METHOD_NOT_ALLOWED, null, null);
     }
 
@@ -170,7 +170,7 @@ class HTTPFileController extends RequestController {
     }
 
     var lastModifiedDate = await file.lastModified();
-    var ifModifiedSince = request.innerRequest.headers.value(HttpHeaders.IF_MODIFIED_SINCE);
+    var ifModifiedSince = request.raw.headers.value(HttpHeaders.IF_MODIFIED_SINCE);
     if (ifModifiedSince != null) {
       var date = HttpDate.parse(ifModifiedSince);
       if (!lastModifiedDate.isAfter(date)) {

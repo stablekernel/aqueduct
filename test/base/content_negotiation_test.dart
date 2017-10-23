@@ -22,7 +22,7 @@ void main() {
   });
 
   tearDown(() async {
-    await request?.innerRequest?.response?.close();
+    await request?.raw?.response?.close();
     await server?.close(force: true);
   });
 

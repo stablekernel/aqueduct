@@ -161,7 +161,7 @@ class RequestController extends Object with APIDocumentable {
   /// If this method returns [req], [req] will be passed to [nextController].
   ///
   /// If this method returns null, [req] is not passed to any other controller and is not responded to. You must respond to [req]
-  /// through [Request.innerRequest].
+  /// through [Request.raw].
   FutureOr<RequestOrResponse> processRequest(Request req) {
     if (_listener != null) {
       return _listener(req);
@@ -262,7 +262,7 @@ class RequestController extends Object with APIDocumentable {
         controllerToDictatePolicy = lastControllerInChain;
       } else {
         if (policy != null) {
-          if (!policy.validatePreflightRequest(req.innerRequest)) {
+          if (!policy.validatePreflightRequest(req.raw)) {
             await _sendResponse(req, new Response.forbidden());
             logger.info(req.toDebugString(includeHeaders: true));
           } else {
@@ -308,7 +308,7 @@ class RequestController extends Object with APIDocumentable {
       var lastPolicyController = _lastRequestController();
       var p = lastPolicyController.policy;
       if (p != null) {
-        if (p.isRequestOriginAllowed(req.innerRequest)) {
+        if (p.isRequestOriginAllowed(req.raw)) {
           resp.headers.addAll(p.headersForRequest(req));
         }
       }

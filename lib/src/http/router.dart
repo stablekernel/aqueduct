@@ -113,7 +113,7 @@ class Router extends RequestController {
   Future receive(Request req) async {
     RequestController next;
     try {
-      var requestURISegmentIterator = req.innerRequest.uri.pathSegments.iterator;
+      var requestURISegmentIterator = req.raw.uri.pathSegments.iterator;
       if (_basePathSegments.length > 0) {
         for (var i = 0; i < _basePathSegments.length; i++) {
           requestURISegmentIterator.moveNext();

@@ -14,27 +14,38 @@ typedef void _ResponseModifier(Response resp);
 /// directly to the [HttpRequest], as [RequestController]s take that responsibility.
 class Request implements RequestOrResponse {
   /// Creates an instance of [Request], no need to do so manually.
-  Request(this.innerRequest) {
-    _body = new HTTPRequestBody(this.innerRequest);
+  Request(this.raw) {
+    _body = new HTTPRequestBody(this.raw);
   }
 
-  /// The internal [HttpRequest] of this [Request].
+  /// The underlying [HttpRequest] of this instance.
   ///
-  /// The standard library generated HTTP request object. This contains
-  /// all of the request information provided by the client. Do not respond
-  /// to this value directly.
-  final HttpRequest innerRequest;
+  /// Use this property to access values from the HTTP request that aren't accessible through this instance.
+  ///
+  /// You should typically not manipulate this property's [HttpRequest.response]. By default, Aqueduct controls
+  /// the response through its [RequestController]s.
+  ///
+  /// If you wish to respond to a request manually - and prohibit Aqueduct from responding to the request - you must
+  /// remove this instance from the request channel. To remove a request from the channel, return null from a [RequestController]
+  /// handler method instead of a [Response] or [Request]. For example:
+  ///
+  ///         router.route("/raw").listen((req) async {
+  ///           req.response.statusCode = 200;
+  ///           await req.response.close(); // Respond manually to request
+  ///           return null; // Take request out of channel; no subsequent controllers will see this request.
+  ///         });
+  final HttpRequest raw;
 
   /// Information about the client connection.
   ///
   /// Note: accessing this property incurs a significant performance penalty.
-  HttpConnectionInfo get connectionInfo => innerRequest.connectionInfo;
+  HttpConnectionInfo get connectionInfo => raw.connectionInfo;
 
   /// The response object of this [Request].
   ///
   /// Do not write to this value manually. [RequestController]s are responsible for
   /// using a [Response] instance to fill out this property.
-  HttpResponse get response => innerRequest.response;
+  HttpResponse get response => raw.response;
 
   /// The path and any extracted variable parameters from the URI of this request.
   ///
@@ -74,7 +85,7 @@ class Request implements RequestOrResponse {
   List<ContentType> get acceptableContentTypes {
     if (_cachedAcceptableTypes == null) {
       try {
-        var contentTypes = innerRequest
+        var contentTypes = raw
             .headers[HttpHeaders.ACCEPT]
             ?.expand((h) => h.split(",").map((s) => s.trim()))
             ?.where((h) => h.isNotEmpty)
@@ -145,15 +156,15 @@ class Request implements RequestOrResponse {
   /// Whether or not this request is a CORS request.
   ///
   /// This is true if there is an Origin header.
-  bool get isCORSRequest => innerRequest.headers.value("origin") != null;
+  bool get isCORSRequest => raw.headers.value("origin") != null;
 
   /// Whether or not this is a CORS preflight request.
   ///
   /// This is true if the request HTTP method is OPTIONS and the headers contains Access-Control-Request-Method.
   bool get isPreflightRequest {
     return isCORSRequest &&
-        innerRequest.method == "OPTIONS" &&
-        innerRequest.headers.value("access-control-request-method") != null;
+        raw.method == "OPTIONS" &&
+        raw.headers.value("access-control-request-method") != null;
   }
 
   /// Container for any data a [RequestController] wants to attach to this request for the purpose of being used by a later [RequestController].
@@ -193,7 +204,7 @@ class Request implements RequestOrResponse {
   String get _sanitizedHeaders {
     StringBuffer buf = new StringBuffer("{");
 
-    innerRequest?.headers?.forEach((k, v) {
+    raw?.headers?.forEach((k, v) {
       buf.write("${_truncatedString(k)} : ${_truncatedString(v.join(","))}\\n");
     });
     buf.write("}");
@@ -341,14 +352,14 @@ class Request implements RequestOrResponse {
   }
 
   bool get _acceptsGzipResponseBody {
-    return innerRequest
+    return raw
         .headers[HttpHeaders.ACCEPT_ENCODING]
         ?.any((v) => v.split(",").any((s) => s.trim() == "gzip")) ?? false;
   }
 
   @override
   String toString() {
-    return "${innerRequest.method} ${this.innerRequest.uri} (${this.receivedDate.millisecondsSinceEpoch})";
+    return "${raw.method} ${this.raw.uri} (${this.receivedDate.millisecondsSinceEpoch})";
   }
 
   /// A string that represents more details about the request, typically used for logging.
@@ -364,23 +375,23 @@ class Request implements RequestOrResponse {
       bool includeHeaders: false}) {
     var builder = new StringBuffer();
     if (includeRequestIP) {
-      builder.write("${innerRequest.connectionInfo?.remoteAddress?.address} ");
+      builder.write("${raw.connectionInfo?.remoteAddress?.address} ");
     }
     if (includeMethod) {
-      builder.write("${innerRequest.method} ");
+      builder.write("${raw.method} ");
     }
     if (includeResource) {
-      builder.write("${innerRequest.uri} ");
+      builder.write("${raw.uri} ");
     }
     if (includeElapsedTime && respondDate != null) {
       builder
           .write("${respondDate.difference(receivedDate).inMilliseconds}ms ");
     }
     if (includeStatusCode) {
-      builder.write("${innerRequest.response.statusCode} ");
+      builder.write("${raw.response.statusCode} ");
     }
     if (includeContentSize) {
-      builder.write("${innerRequest.response.contentLength} ");
+      builder.write("${raw.response.contentLength} ");
     }
     if (includeHeaders) {
       builder.write("$_sanitizedHeaders ");
