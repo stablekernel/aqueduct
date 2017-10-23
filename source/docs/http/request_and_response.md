@@ -4,7 +4,7 @@ In Aqueduct, HTTP requests and responses are instances of `Request` and `Respons
 
 ## The Request Object
 
-An instance of `Request` represents an HTTP request. They are automatically created when the application receives a request and are delivered to your application's `RequestSink`. A `Request` is a wrapper around the Dart standard library `HttpRequest` and its values - such as headers - can be accessed through its `innerRequest`. (Just don't write to its `response` - Aqueduct does that.)
+An instance of `Request` represents an HTTP request. They are automatically created when the application receives a request and are delivered to your application's `RequestSink`. A `Request` is a wrapper around the Dart standard library `HttpRequest` and its values - such as headers - can be accessed through its `raw` property.
 
 A `Request` has a `body` property. This property decodes the HTTP request body into Dart objects based on the request's content type. The mechanism to decode the body is determined by `HTTPCodecRepository`, which is covered in more detail in a later section. By default, decoders exist for text, JSON and form data. The size of a request body is limited to 10MB by default and can be changed by setting the value of `HTTPRequestBody.maxSize` during application initialization.
 

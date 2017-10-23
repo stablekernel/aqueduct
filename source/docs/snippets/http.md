@@ -26,7 +26,7 @@ class AppRequestSink extends RequestSink {
   void setupRouter(Router router) {
     router.route("/variable/[:variable]").listen((request) async {
       return new Response.ok({
-        "method": request.innerRequest.method,
+        "method": request.raw.method,
         "path": request.path.variables["variable"] ?? "not specified"
       });      
     });
@@ -86,7 +86,7 @@ class AppRequestSink extends RequestSink {
 class RateLimiter extends RequestController {
   @override
   Future<RequestOrResponse> processRequest(Request request) async {
-    var apiKey = request.innerRequest.headers.value("x-apikey");
+    var apiKey = request.raw.headers.value("x-apikey");
     var requestsRemaining = await remainingRequestsForAPIKey(apiKey);
     if (requestsRemaining <= 0) {
       return new Response(429, null, null);
@@ -95,7 +95,7 @@ class RateLimiter extends RequestController {
     request.addResponseModifier((r) {
       r.headers["x-remaining-requests"] = requestsRemaining;
     });
-    
+
     return request;
   }
 }
@@ -179,7 +179,7 @@ class AppRequestSink extends RequestSink {
   void setupRouter(Router router) {
     // Allow websocket clients to connect to ws://host/connect
     router.route("/connect").listen((request) async {
-      var websocket = await WebSocketTransformer.upgrade(request.innerRequest);
+      var websocket = await WebSocketTransformer.upgrade(request.raw);
       websocket.listen(echo, onDone: () {
         websockets.remove(websocket);
       }, cancelOnError: true);
