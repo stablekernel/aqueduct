@@ -5,6 +5,7 @@
 - Binding metadata - `HTTPMethod`, `HTTPPath`, `HTTPBody`, `HTTPQuery` and `HTTPHeader` - have been changed to `Bind.method`, `Bind.path`, `Bind.body`, `Bind.query` and `Bind.header`, respectively.
 - Deprecates `@httpGet` and similar constants for `Bind.get()` and similar constructors.
 - Renames `Request.innerRequest` to `Request.raw`.
+- Removes `runOnMainIsolate` from `Application.start()` and introduces `Application.test()` as replacement.
 
 ## 2.5.0
 

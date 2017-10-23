@@ -16,7 +16,7 @@ void main() {
       app = new Application<TestSink>();
       expect(app.hasFinishedLaunching, false);
 
-      await app.start(runOnMainIsolate: true);
+      await app.test();
       expect(app.hasFinishedLaunching, true);
 
       await app.stop();
@@ -29,7 +29,7 @@ void main() {
 
     setUp(() async {
       app = new Application<TestSink>();
-      await app.start(runOnMainIsolate: true);
+      await app.test();
     });
 
     tearDown(() async {
@@ -72,7 +72,7 @@ void main() {
       }
       expect(successful, false);
 
-      await app.start(runOnMainIsolate: true);
+      await app.test();
       var resp = await http.get("http://localhost:8081/t");
       expect(resp.statusCode, 200);
     });
@@ -97,7 +97,7 @@ void main() {
 
       try {
         crashingApp.configuration.options = {"crashIn": "constructor"};
-        await crashingApp.start(runOnMainIsolate: true);
+        await crashingApp.test();
         expect(true, false);
       } on ApplicationStartupException catch (e) {
         expect(e.originalException.toString(), contains("constructor"));
@@ -105,7 +105,7 @@ void main() {
 
       try {
         crashingApp.configuration.options = {"crashIn": "addRoutes"};
-        await crashingApp.start(runOnMainIsolate: true);
+        await crashingApp.test();
         expect(true, false);
       } on ApplicationStartupException catch (e) {
         expect(e.originalException.toString(), contains("addRoutes"));
@@ -113,14 +113,14 @@ void main() {
 
       try {
         crashingApp.configuration.options = {"crashIn": "willOpen"};
-        await crashingApp.start(runOnMainIsolate: true);
+        await crashingApp.test();
         expect(true, false);
       } on ApplicationStartupException catch (e) {
         expect(e.originalException.toString(), contains("willOpen"));
       }
 
       crashingApp.configuration.options = {"crashIn": "dontCrash"};
-      await crashingApp.start(runOnMainIsolate: true);
+      await crashingApp.test();
       var response = await http.get("http://localhost:8081/t");
       expect(response.statusCode, 200);
       await crashingApp.stop();

@@ -21,7 +21,7 @@ void main() {
     test("Create from app, explicit port", () async {
       app = new Application<SomeSink>()
           ..configuration.port = 4111;
-      await app.start(runOnMainIsolate: true);
+      await app.test();
       var client = new TestClient(app);
       expect(client.baseURL, "http://localhost:4111");
     });
@@ -29,7 +29,7 @@ void main() {
     test("Create from app, assigned port", () async {
       app = new Application<SomeSink>()
         ..configuration.port = 0;
-      await app.start(runOnMainIsolate: true);
+      await app.test();
 
       var client = new TestClient(app);
       var response = await client.request("/").get();
@@ -51,7 +51,7 @@ void main() {
       app = new Application<SomeSink>()
         ..configuration.port = 0;
       var tc = new TestClient(app);
-      await app.start(runOnMainIsolate: true);
+      await app.test();
 
       expectResponse(await tc.request("/").get(), 200);
     });

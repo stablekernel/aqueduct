@@ -23,7 +23,7 @@ void main() {
   setUp(() async {
     application = new Application<TestSink>();
 
-    await application.start(runOnMainIsolate: true);
+    await application.test();
   });
 
   tearDown(() async {

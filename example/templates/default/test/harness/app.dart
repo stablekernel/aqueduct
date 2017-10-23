@@ -28,7 +28,7 @@ class TestApplication {
     application.configuration.port = 0;
     application.configuration.configurationFilePath = "config.src.yaml";
 
-    await application.start(runOnMainIsolate: true);
+    await application.test();
 
     client = new TestClient(application);
   }
