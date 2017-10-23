@@ -16,11 +16,11 @@ After [installation](#installation), file templates are available through any In
 ## Live Templates
 
 - 'bindmethod'
-    - Enters a skeleton of an `HTTPController` responder method - after insertion, enter the HTTP method to finish the method declaration.
+    - Enters a skeleton of an `HTTPController` operation method - after insertion, enter the HTTP method to finish the method declaration.
 - 'bindheader'  
-    - Enters an `@HTTPHeader` binding - after insertion, enter the name of the header.
+    - Enters an `@Bind.header` binding - after insertion, enter the name of the header.
 - 'bindquery'
-    - Enters an `@HTTPQuery` binding - after insertion, enter the name of the query parameter.
+    - Enters an `@Bind.query` binding - after insertion, enter the name of the query parameter.
 
 ## Installation
 

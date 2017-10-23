@@ -152,12 +152,12 @@ router
                 <p>Boilerplate-avoiding meta-programming increases productivity, avoids simple errors and makes sure your API handles errors correctly and consistently.</p>
             </div>
             <div class="col-sm-6">
-                <pre class="feature-box"><code class="language-dart">@httpPost
+                <pre class="feature-box"><code class="language-dart">@Bind.post()
 Future&lt;Response&gt; updateTeam(
-    @HTTPPath("id") int teamID,
-    @HTTPBody() Team team,
-    @HTTPHeader("x-required-header") String requiredHeader,
-    {@HTTPQuery("optional_timestamp") DateTime timestamp}) {
+    @Bind.path("id") int teamID,
+    @Bind.body() Team team,
+    @Bind.header("x-required-header") String requiredHeader,
+    {@Bind.query("optional_timestamp") DateTime timestamp}) {
   return new Response.ok(team);
 }</code></pre>
             </div>

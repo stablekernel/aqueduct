@@ -167,7 +167,8 @@ Future execute(String sql) async {
 From the perspective of an `HTTPController`, it doesn't care about the underlying connection. It invokes `execute`, and the connection object figures out if it needs to establish a connection first:
 
 ```dart
-@httpGet getThings() async {
+@Bind.get()
+Future<Response> getThings() async {
   // May or may not create a new connection, but will either return
   // some things or throw an error.
   var things = await connection.execute("select * from things");

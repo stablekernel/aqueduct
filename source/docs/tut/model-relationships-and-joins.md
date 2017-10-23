@@ -68,8 +68,8 @@ class _Answer {
 Now that we have defined this relationship, we can associate answers with questions and return them in our `/questions` endpoint. In `question_controller.dart`, let's update the queries to fetch the `Answer` for each `Question` and include it in the response JSON. First, for `getAllQuestions`, use `join()` to include the answers:
 
 ```dart
-@httpGet
-Future<Response> getAllQuestions({@HTTPQuery("contains") String containsSubstring: null}) async {
+@Bind.get()
+Future<Response> getAllQuestions({@Bind.query("contains") String containsSubstring: null}) async {
   var questionQuery = new Query<Question>()
     ..join(object: (question) => question.answer);
 
@@ -85,8 +85,8 @@ Future<Response> getAllQuestions({@HTTPQuery("contains") String containsSubstrin
 And same for `getQuestionAtIndex`:
 
 ```dart
-@httpGet
-Future<Response> getQuestionAtIndex(@HTTPPath("index") int index) async {
+@Bind.get()
+Future<Response> getQuestionAtIndex(@Bind.path("index") int index) async {
   var questionQuery = new Query<Question>()
     ..join(object: (question) => question.answer)
     ..where.index = whereEqualTo(index);

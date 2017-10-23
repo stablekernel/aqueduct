@@ -58,7 +58,7 @@ class QuestionController extends HTTPController {
     "What's the tallest mountain in the world?"
   ];
 
-  @httpGet
+  @Bind.get()
   Future<Response> getAllQuestions() async {
     return new Response.ok(questions);
   }
@@ -67,10 +67,7 @@ class QuestionController extends HTTPController {
 
 `HTTPController` - the superclass - is the most often used controller in Aqueduct because it has special behavior that *binds* requests to its methods.
 
-The method `getAllQuestions` - with its `@httpGet` metadata - is bound to HTTP `GET` requests. This method is invoked anytime a `QuestionController` receives a `GET` request. A method with this metadata must return a `Future<Response>` that fulfills the request. These methods are called *responder methods*.
-
-!!! tip ""
-    There are `httpPut`, `httpPost`, `httpDelete`, and `HTTPMethod()`, too. They all bind an HTTP method to a responder method.
+The method `getAllQuestions` - with its `@Bind.get()` metadata - is bound to HTTP `GET` requests. This method is invoked anytime a `QuestionController` receives a `GET` request. A method with this metadata must return a `Future<Response>` that fulfills the request. These methods are called *operation methods*.
 
 In this case, a `QuestionController` will return a 200 OK response with a JSON list of question strings for all `GET` requests. For a `QuestionController` to receive requests, we have to add a route to it. In `lib/quiz_sink.dart`, add this import to the top of the file:
 
@@ -148,7 +145,7 @@ In `quiz_sink.dart`, modify the code in the `QuizSink.setupRouter` by adding "/[
 
 The square brackets indicate that route segment is optional and the colon indicates that it is a variable named `index`. A variable will match whatever the segment is in the request path and store it so `QuestionController` can use it.
 
-With this optional variable, both `/questions` and `/questions/:index` will be received by `QuestionController`. We need to add a new responder method to `QuestionController` that gets called when a request for a specific question is made:
+With this optional variable, both `/questions` and `/questions/:index` will be received by `QuestionController`. We need to add a new operation method to `QuestionController` that gets called when a request for a specific question is made:
 
 ```dart
 class QuestionController extends HTTPController {
@@ -157,13 +154,13 @@ class QuestionController extends HTTPController {
     "What's the tallest mountain in the world?"
   ];
 
-  @httpGet
+  @Bind.get()
   Future<Response> getAllQuestions() async {
     return new Response.ok(questions);
   }
 
-  @httpGet
-  Future<Response> getQuestionAtIndex(@HTTPPath("index") int index) async {
+  @Bind.get()
+  Future<Response> getQuestionAtIndex(@Bind.path("index") int index) async {
     if (index < 0 || index >= questions.length) {
       return new Response.notFound();
     }
@@ -182,15 +179,15 @@ Then, enter `http://localhost:8081/questions/0` and you'll get the first questio
 !!! warning "Closing the Application"
     Once you're done running an application, stop it with `^C`. Otherwise, the next time you try and start an application, it will fail because your previous application is already listening for requests on the same port.
 
-When a request matches a route, the value for any path variables is stored in the `Request` object. In the case of `/questions/1`, the path variable `index` has a value of `1`; whereas `index` is null if the path is `/questions`. When the request makes it to the `QuestionController`, it will select which responder method to run based on the HTTP method and the value of any path variables.
+When a request matches a route, the value for any path variables is stored in the `Request` object. In the case of `/questions/1`, the path variable `index` has a value of `1`; whereas `index` is null if the path is `/questions`. When the request makes it to the `QuestionController`, it will select which operation method to run based on the HTTP method and the value of any path variables.
 
-The `@HTTPPath` metadata for the argument to `getQuestionAtIndex` is called a *path binding*. When a request for `GET /questions/1` is made, the path variable `index` will be non-null and `getQuestionAtIndex` will be invoked. The argument `index` will be equal to the path variable's value.
+The `@Bind.path` metadata for the argument to `getQuestionAtIndex` is called a *path binding*. When a request for `GET /questions/1` is made, the path variable `index` will be non-null and `getQuestionAtIndex` will be invoked. The argument `index` will be equal to the path variable's value.
 
 !!! tip ""
     The bound argument's name does not have to be the same as the path variable it is bound to.
 
 
-If the path variable `index` is null (i.e. `GET /questions`), `getAllQuestions` is invoked. A responder method is only selected if both its path and method bindings match the incoming request. If there is no responder method for a request, an appropriate error response is returned.
+If the path variable `index` is null (i.e. `GET /questions`), `getAllQuestions` is invoked. A operation method is only selected if both its path and method bindings match the incoming request. If there is no operation method for a request, an appropriate error response is returned.
 
 !!! tip ""
     This 'binding' behavior is specific to `HTTPController`. In addition to path variables, you can bind headers, query parameters and bodies. Check out [HTTPControllers](../http/http_controller.md) for more details.
