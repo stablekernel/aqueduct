@@ -123,7 +123,7 @@ abstract class HTTPController extends RequestController {
   void didDecodeRequestBody(HTTPRequestBody decodedObject) {}
 
   bool _requestContentTypeIsSupported(Request req) {
-    var incomingContentType = request.innerRequest.headers.contentType;
+    var incomingContentType = request.raw.headers.contentType;
     return acceptedContentTypes.firstWhere((ct) {
           return ct.primaryType == incomingContentType.primaryType &&
               ct.subType == incomingContentType.subType;

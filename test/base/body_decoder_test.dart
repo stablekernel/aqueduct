@@ -23,7 +23,7 @@ void main() {
     });
 
     tearDown(() async {
-      await request?.innerRequest?.response?.close();
+      await request?.raw?.response?.close();
       await server?.close(force: true);
     });
 
@@ -99,7 +99,7 @@ void main() {
       req.close().catchError((err) => null);
 
       request = new Request(await server.first);
-      expect(request.innerRequest.headers.contentType.charset, null);
+      expect(request.raw.headers.contentType.charset, null);
 
       var body = await request.body.decodedData;
       expect(body, [{"a": "val"}]);
@@ -155,7 +155,7 @@ void main() {
       var request = new Request(await server.first);
       var body = await request.body.decodedData;
 
-      expect(request.innerRequest.headers.contentType, isNull);
+      expect(request.raw.headers.contentType, isNull);
       expect(body, "foobar".codeUnits);
     });
 
@@ -224,7 +224,7 @@ void main() {
       req.close().catchError((err) => null);
 
       var request = new Request(await server.first);
-      expect(request.innerRequest.headers.contentType.charset, null);
+      expect(request.raw.headers.contentType.charset, null);
 
       var body = await request.body.decodedData;
       expect(body, [{"a": "val"}]);
@@ -238,7 +238,7 @@ void main() {
       req.close().catchError((err) => null);
 
       var request = new Request(await server.first);
-      expect(request.innerRequest.headers.contentType.charset, null);
+      expect(request.raw.headers.contentType.charset, null);
 
       // The test fails for a different reason in checked vs. unchecked mode.
       // Tests run in checked mode, but coverage runs in unchecked mode.

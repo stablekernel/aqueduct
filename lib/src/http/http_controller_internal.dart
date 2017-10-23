@@ -219,7 +219,7 @@ class HTTPControllerBinder {
   List<HTTPControllerParameterBinder> propertyBinders = [];
 
   HTTPControllerMethodBinder methodBinderForRequest(Request req) {
-    var key = HTTPControllerMethodBinder.generateKey(req.innerRequest.method, req.path.orderedVariableNames.length);
+    var key = HTTPControllerMethodBinder.generateKey(req.raw.method, req.path.orderedVariableNames.length);
 
     return methodBinders[key];
   }
@@ -300,7 +300,7 @@ class HTTPControllerParameterBinder {
 }
 
 bool requestHasFormData(Request request) {
-  var contentType = request.innerRequest.headers.contentType;
+  var contentType = request.raw.headers.contentType;
   if (contentType != null &&
       contentType.primaryType == "application" &&
       contentType.subType == "x-www-form-urlencoded") {
@@ -323,7 +323,7 @@ class HTTPMethod extends HTTPBinding {
 
   @override
   dynamic parse(ClassMirror intoType, Request request) {
-    return request.innerRequest.method.toLowerCase();
+    return request.raw.method.toLowerCase();
   }
 }
 
@@ -347,7 +347,7 @@ class HTTPHeader extends HTTPBinding {
 
   @override
   dynamic parse(ClassMirror intoType, Request request) {
-    var value = request.innerRequest.headers[externalName];
+    var value = request.raw.headers[externalName];
     return convertParameterListWithMirror(value, intoType);
   }
 }
@@ -360,7 +360,7 @@ class HTTPQuery extends HTTPBinding {
 
   @override
   dynamic parse(ClassMirror intoType, Request request) {
-    var queryParameters = request.innerRequest.uri.queryParametersAll;
+    var queryParameters = request.raw.uri.queryParametersAll;
     dynamic value = queryParameters[externalName];
     if (value == null) {
       if (requestHasFormData(request)) {

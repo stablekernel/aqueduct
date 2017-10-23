@@ -102,8 +102,8 @@ void main() {
       var set = false;
       root
         .listen((req) {
-          req.innerRequest.response.statusCode = 200;
-          req.innerRequest.response.close();
+          req.raw.response.statusCode = 200;
+          req.raw.response.close();
 
           return null;
         })
@@ -184,7 +184,7 @@ void main() {
 
     test("Request controller maps QueryExceptions appropriately", () async {
       var handler = (Request req) async {
-        var v = int.parse(req.innerRequest.uri.queryParameters["p"]);
+        var v = int.parse(req.raw.uri.queryParameters["p"]);
         switch (v) {
           case 0:
             throw new QueryException(QueryExceptionEvent.internalFailure);
@@ -387,7 +387,7 @@ class Always200Controller extends RequestController {
   }
   @override
   Future<RequestOrResponse> processRequest(Request req) async {
-    var q = req.innerRequest.uri.queryParameters["q"];
+    var q = req.raw.uri.queryParameters["q"];
     if (q == "http_response_exception") {
       throw new HTTPResponseException(400, "ok");
     } else if (q == "query_exception") {
@@ -415,7 +415,7 @@ class OutlierSink extends RequestSink {
   void setupRouter(Router r) {
     r.route("/detach").listen((Request req) async {
       if (count == 0) {
-        var socket = await req.innerRequest.response.detachSocket();
+        var socket = await req.raw.response.detachSocket();
         socket.destroy();
 
         req.toDebugString(
@@ -435,7 +435,7 @@ class OutlierSink extends RequestSink {
 
     r.route("/closed").listen((Request req) async {
       if (count == 0) {
-        req.innerRequest.response.statusCode = 200;
+        req.raw.response.statusCode = 200;
         await req.response.close();
       }
 
