@@ -240,7 +240,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
     return new Response.ok(objects);
   }
 
-  @Bind.put()
+  @Bind.get()
   Future<Response> getObjects(
       {@Bind.query("count") int count: 0,
       @Bind.query("offset") int offset: 0,
