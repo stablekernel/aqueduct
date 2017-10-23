@@ -52,17 +52,17 @@ class AuthCodeController extends HTTPController {
   /// Clients must include this query parameter and verify that any redirects from this
   /// server have the same value for 'state' as passed in. This value is usually a randomly generated
   /// session identifier.
-  @HTTPQuery("state")
+  @Bind.query("state")
   String state;
 
   /// The desired response type; must be 'code'.
-  @HTTPQuery("response_type")
+  @Bind.query("response_type")
   String responseType;
 
   /// The client ID of the authenticating client.
   ///
   /// This must be a valid client ID according to [authServer].
-  @HTTPQuery("client_id")
+  @Bind.query("client_id")
   String clientID;
 
   _RenderAuthorizationPageFunction _renderFunction;
@@ -77,9 +77,9 @@ class AuthCodeController extends HTTPController {
   ///
   /// The 'client_id' must be a registered, valid client of this server. The client must also provide
   /// a [state] to this request and verify that the redirect contains the same value in its query string.
-  @httpGet
+  @Bind.method("get")
   Future<Response> getAuthorizationPage(
-      {@HTTPQuery("scope") String scope}) async {
+      {@Bind.query("scope") String scope}) async {
     if (_renderFunction == null) {
       return new Response(405, {}, null);
     }
@@ -105,11 +105,11 @@ class AuthCodeController extends HTTPController {
   /// will contain an 'error' key instead of the authorization code.
   ///
   /// This method is typically invoked by the login form returned from the GET to this path.
-  @httpPost
+  @Bind.method("post")
   Future<Response> authorize(
-      {@HTTPQuery("username") String username,
-      @HTTPQuery("password") String password,
-      @HTTPQuery("scope") String scope}) async {
+      {@Bind.query("username") String username,
+      @Bind.query("password") String password,
+      @Bind.query("scope") String scope}) async {
     var client = await authServer.clientForID(clientID);
 
     if (state == null) {

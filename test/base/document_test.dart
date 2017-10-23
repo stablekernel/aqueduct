@@ -460,36 +460,36 @@ class TController extends HTTPController {
   /// ABCD
   /// EFGH
   /// IJKL
-  @httpGet
-  Future<Response> getAll({@HTTPQuery("param") String param}) async {
+  @Bind.get()
+  Future<Response> getAll({@Bind.query("param") String param}) async {
     return new Response.ok("");
   }
 
   /// ABCD
-  @httpPut
-  Future<Response> putOne(@HTTPPath("id") int id,
-      {@HTTPQuery("p1") int p1, @HTTPHeader("X-P2") int p2}) async {
+  @Bind.put()
+  Future<Response> putOne(@Bind.path("id") int id,
+      {@Bind.query("p1") int p1, @Bind.header("X-P2") int p2}) async {
     return new Response.ok("");
   }
 
-  @httpGet
-  Future<Response> getOne(@HTTPPath("id") int id) async {
+  @Bind.get()
+  Future<Response> getOne(@Bind.path("id") int id) async {
     return new Response.ok("");
   }
 
   /// MNOP
   /// QRST
 
-  @httpGet
-  Future<Response> getTwo(@HTTPPath("id") int id, @HTTPPath("notID") int notID) async {
+  @Bind.get()
+  Future<Response> getTwo(@Bind.path("id") int id, @Bind.path("notID") int notID) async {
     return new Response.ok("");
   }
 
   /// EFGH
   /// IJKL
-  @httpPost
+  @Bind.post()
   Future<Response> createOne(
-      @HTTPHeader("X-Date") DateTime date, @HTTPQuery("foo") String foo) async {
+      @Bind.header("X-Date") DateTime date, @Bind.query("foo") String foo) async {
     return new Response.ok("");
   }
 }

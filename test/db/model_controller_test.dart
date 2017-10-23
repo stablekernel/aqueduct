@@ -69,7 +69,7 @@ void main() {
 }
 
 class TestModelController extends QueryController<TestModel> {
-  @httpGet
+  @Bind.get()
   Future<Response> getAll() async {
     int statusCode = 200;
 
@@ -84,8 +84,8 @@ class TestModelController extends QueryController<TestModel> {
     return new Response(statusCode, {}, null);
   }
 
-  @httpGet
-  Future<Response> getOne(@HTTPPath("id") int id) async {
+  @Bind.get()
+  Future<Response> getOne(@Bind.path("id") int id) async {
     int statusCode = 200;
 
     if (query == null) {
@@ -105,8 +105,8 @@ class TestModelController extends QueryController<TestModel> {
     return new Response(statusCode, {}, null);
   }
 
-  @httpPut
-  Future<Response> putOne(@HTTPPath("id") int id) async {
+  @Bind.put()
+  Future<Response> putOne(@Bind.path("id") int id) async {
     int statusCode = 200;
 
     if (query.values == null) {
@@ -136,7 +136,7 @@ class TestModelController extends QueryController<TestModel> {
     return new Response(statusCode, {}, null);
   }
 
-  @httpPost
+  @Bind.post()
   Future<Response> create() async {
     int statusCode = 200;
     if (query.values == null) {
@@ -152,8 +152,8 @@ class TestModelController extends QueryController<TestModel> {
     return new Response(statusCode, {}, null);
   }
 
-  @httpPost
-  Future<Response> crash(@HTTPPath("id") int id) async {
+  @Bind.post()
+  Future<Response> crash(@Bind.path("id") int id) async {
     return new Response.ok("");
   }
 }
@@ -169,8 +169,8 @@ class _TestModel {
 }
 
 class StringController extends QueryController<StringModel> {
-  @httpGet
-  Future<Response> get(@HTTPPath("id") String id) async {
+  @Bind.get()
+  Future<Response> get(@Bind.path("id") String id) async {
     ComparisonMatcherExpression comparisonMatcher = query.where["foo"];
     return new Response.ok(comparisonMatcher.value);
   }

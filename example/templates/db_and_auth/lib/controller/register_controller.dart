@@ -6,7 +6,7 @@ class RegisterController extends QueryController<User> {
 
   AuthServer authServer;
 
-  @httpPost
+  @Bind.post()
   Future<Response> createUser() async {
     if (query.values.username == null || query.values.password == null) {
       return new Response.badRequest(

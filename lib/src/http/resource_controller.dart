@@ -90,8 +90,8 @@ class ManagedObjectController<InstanceType extends ManagedObject>
     return new Response.notFound();
   }
 
-  @httpGet
-  Future<Response> getObject(@HTTPPath("id") String id) async {
+  @Bind.get()
+  Future<Response> getObject(@Bind.path("id") String id) async {
     var primaryKey = _query.entity.primaryKey;
     _query.where[primaryKey] = whereEqualTo(
         _parseValueForProperty(id, _query.entity.properties[primaryKey]));
@@ -124,7 +124,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
     return new Response.ok(object);
   }
 
-  @httpPost
+  @Bind.post()
   Future<Response> createObject() async {
     InstanceType instance = _query.entity.instanceType
         .newInstance(new Symbol(""), []).reflectee as InstanceType;
@@ -161,8 +161,8 @@ class ManagedObjectController<InstanceType extends ManagedObject>
     return new Response.notFound();
   }
 
-  @httpDelete
-  Future<Response> deleteObject(@HTTPPath("id") String id) async {
+  @Bind.delete()
+  Future<Response> deleteObject(@Bind.path("id") String id) async {
     var primaryKey = _query.entity.primaryKey;
     _query.where[primaryKey] = whereEqualTo(
         _parseValueForProperty(id, _query.entity.properties[primaryKey]));
@@ -202,8 +202,8 @@ class ManagedObjectController<InstanceType extends ManagedObject>
     return new Response.notFound();
   }
 
-  @httpPut
-  Future<Response> updateObject(@HTTPPath("id") String id) async {
+  @Bind.put()
+  Future<Response> updateObject(@Bind.path("id") String id) async {
     var primaryKey = _query.entity.primaryKey;
     _query.where[primaryKey] = whereEqualTo(
         _parseValueForProperty(id, _query.entity.properties[primaryKey]));
@@ -240,14 +240,14 @@ class ManagedObjectController<InstanceType extends ManagedObject>
     return new Response.ok(objects);
   }
 
-  @httpGet
+  @Bind.get()
   Future<Response> getObjects(
-      {@HTTPQuery("count") int count: 0,
-      @HTTPQuery("offset") int offset: 0,
-      @HTTPQuery("pageBy") String pageBy,
-      @HTTPQuery("pageAfter") String pageAfter,
-      @HTTPQuery("pagePrior") String pagePrior,
-      @HTTPQuery("sortBy") List<String> sortBy}) async {
+      {@Bind.query("count") int count: 0,
+      @Bind.query("offset") int offset: 0,
+      @Bind.query("pageBy") String pageBy,
+      @Bind.query("pageAfter") String pageAfter,
+      @Bind.query("pagePrior") String pagePrior,
+      @Bind.query("sortBy") List<String> sortBy}) async {
     _query.fetchLimit = count;
     _query.offset = offset;
 

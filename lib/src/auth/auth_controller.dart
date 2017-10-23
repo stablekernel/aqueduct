@@ -43,7 +43,7 @@ class AuthController extends HTTPController {
   ///         Authorization: Basic base64("com.stablekernel.public:")
   ///
   /// Notice the trailing colon indicates that the client secret is the empty string.
-  @HTTPHeader(HttpHeaders.AUTHORIZATION)
+  @Bind.header(HttpHeaders.AUTHORIZATION)
   String authHeader;
 
   /// Creates or refreshes an authentication token.
@@ -54,14 +54,14 @@ class AuthController extends HTTPController {
   ///
   /// This endpoint requires client authentication. The Authorization header must
   /// include a valid Client ID and Secret in the Basic authorization scheme format.
-  @httpPost
+  @Bind.method("post")
   Future<Response> create(
-      {@HTTPQuery("username") String username,
-      @HTTPQuery("password") String password,
-      @HTTPQuery("refresh_token") String refreshToken,
-      @HTTPQuery("code") String authCode,
-      @HTTPQuery("grant_type") String grantType,
-      @HTTPQuery("scope") String scope}) async {
+      {@Bind.query("username") String username,
+      @Bind.query("password") String password,
+      @Bind.query("refresh_token") String refreshToken,
+      @Bind.query("code") String authCode,
+      @Bind.query("grant_type") String grantType,
+      @Bind.query("scope") String scope}) async {
     AuthBasicCredentials basicRecord;
     try {
       basicRecord = AuthorizationBasicParser.parse(authHeader);

@@ -635,24 +635,24 @@ class NoPolicyController extends HTTPController {
     policy = null;
   }
 
-  @httpGet
+  @Bind.get()
   Future<Response> getAll() async {
     return new Response.ok("getAll");
   }
 
-  @httpPost
+  @Bind.post()
   Future<Response> throwException() async {
     throw new HTTPResponseException(400, "Foobar");
   }
 }
 
 class DefaultPolicyController extends HTTPController {
-  @httpGet
+  @Bind.get()
   Future<Response> getAll() async {
     return new Response.ok("getAll");
   }
 
-  @httpPost
+  @Bind.post()
   Future<Response> throwException() async {
     throw new HTTPResponseException(400, "Foobar");
   }
@@ -665,12 +665,12 @@ class RestrictiveNoCredsOriginController extends HTTPController {
     policy.exposedResponseHeaders = ["foobar"];
   }
 
-  @httpGet
+  @Bind.get()
   Future<Response> getAll() async {
     return new Response.ok("getAll");
   }
 
-  @httpPost
+  @Bind.post()
   Future<Response> makeThing() async {
     return new Response.ok("makeThing");
   }
@@ -681,12 +681,12 @@ class RestrictiveOriginController extends HTTPController {
     policy.allowedOrigins = ["http://exclusive.com"];
     policy.exposedResponseHeaders = ["foobar", "x-foo"];
   }
-  @httpGet
+  @Bind.get()
   Future<Response> getAll() async {
     return new Response.ok("getAll");
   }
 
-  @httpPost
+  @Bind.post()
   Future<Response> makeThing() async {
     return new Response.ok("makeThing");
   }
@@ -697,7 +697,7 @@ class OptionsController extends HTTPController {
     policy = null;
   }
 
-  @HTTPMethod("options")
+  @Bind.method("options")
   Future<Response> getThing() async {
     return new Response.ok("getThing");
   }
@@ -714,7 +714,7 @@ class AdditiveController extends HTTPController {
     policy.exposedResponseHeaders.add("X-Header");
   }
 
-  @httpGet
+  @Bind.get()
   Future<Response> getThing() async {
     return new Response.ok(null);
   }

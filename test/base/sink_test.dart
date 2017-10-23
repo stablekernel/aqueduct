@@ -33,7 +33,7 @@ class TestSink extends RequestSink {
 }
 
 class FailingController extends HTTPController {
-  @httpGet
+  @Bind.get()
   Future<Response> get() async {
     return new Response.ok(null);
   }

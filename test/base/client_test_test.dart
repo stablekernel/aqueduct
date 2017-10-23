@@ -23,7 +23,7 @@ void main() {
 }
 
 class TestController extends HTTPController {
-  @httpGet
+  @Bind.get()
   Future<Response> get() async {
     return new Response.ok([
       {"id": 1},
