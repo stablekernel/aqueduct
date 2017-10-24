@@ -172,7 +172,7 @@ Future start() async {
   application.configuration.port = 0;
   application.configuration.configurationFilePath = "config.src.yaml";
 
-  await application.start(runOnMainIsolate: true);
+  await application.test();
 
   /* Add this line */
   await createDatabaseSchema(sink.context);
