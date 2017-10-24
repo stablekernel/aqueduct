@@ -16,7 +16,7 @@ void main() {
     List<TestModel> allObjects = [];
 
     setUpAll(() async {
-      await app.start(runOnMainIsolate: true);
+      await app.test();
 
       var now = new DateTime.now().toUtc();
       for (var i = 0; i < 5; i++) {
@@ -92,7 +92,7 @@ void main() {
     var client = new TestClient.onPort(8081);
 
     setUpAll(() async {
-      await app.start(runOnMainIsolate: true);
+      await app.test();
     });
 
     tearDownAll(() async {
@@ -125,7 +125,7 @@ void main() {
     var client = new TestClient.onPort(8081);
 
     setUpAll(() async {
-      await app.start(runOnMainIsolate: true);
+      await app.test();
     });
 
     tearDownAll(() async {
@@ -162,7 +162,7 @@ void main() {
     List<TestModel> allObjects = [];
 
     setUpAll(() async {
-      await app.start(runOnMainIsolate: true);
+      await app.test();
 
       var now = new DateTime.now().toUtc();
       for (var i = 0; i < 10; i++) {
@@ -360,7 +360,7 @@ void main() {
     List<TestModel> allObjects = [];
 
     setUpAll(() async {
-      await app.start(runOnMainIsolate: true);
+      await app.test();
 
       var now = new DateTime.now().toUtc();
       for (var i = 0; i < 10; i++) {
