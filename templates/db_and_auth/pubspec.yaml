@@ -11,3 +11,8 @@ dependencies:
 
 dev_dependencies:
   test: '>=0.12.0 <0.13.0'
+  aqueduct_test:
+    git:
+      url: https://github.com/stablekernel/aqueduct_test.git
+      ref: master
+

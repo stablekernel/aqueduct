@@ -1,8 +1,7 @@
 import 'dart:io';
 import 'dart:async';
 
-import 'package:aqueduct/test.dart';
-import 'package:test/test.dart';
+import 'package:aqueduct_test/aqueduct_test.dart';
 import 'package:aqueduct/aqueduct.dart';
 
 import '../helpers.dart';

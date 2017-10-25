@@ -33,4 +33,4 @@ matrix:
     - dart: dev
       env: STAGE=coverage COVERAGE_SLICE='command'
     - dart: dev
-      env: STAGE=coverage COVERAGE_SLICE='db managed_auth utilities testing'
+      env: STAGE=coverage COVERAGE_SLICE='db managed_auth utilities'

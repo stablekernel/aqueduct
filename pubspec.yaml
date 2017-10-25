@@ -20,12 +20,15 @@ dependencies:
   pub_semver: "^1.0.0"
   path: ^1.4.1
   password_hash: ^1.0.0
-  matcher: ">=0.12.0+2 <0.13.0"
   pub_cache: ^0.1.0
 
 dev_dependencies:
   test: any
   http: ">=0.11.3+7 <0.12.0"
+  aqueduct_test:
+    git:
+      url: https://github.com/stablekernel/aqueduct_test.git
+      ref: master
   coverage:
     git:
       url: https://github.com/joeconwaystk/coverage.git
