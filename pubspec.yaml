@@ -15,7 +15,7 @@ dependencies:
   logging: ">=0.11.3 <0.12.0"
   analyzer: ">=0.28.0 <1.0.0"
   postgres: ">=0.9.1 <1.0.0"
-  args: ">=0.13.5 <1.0.0"
+  args: ^1.0.0
   stack_trace: "^1.0.0"
   pub_semver: "^1.0.0"
   path: ^1.4.1
