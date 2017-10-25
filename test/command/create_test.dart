@@ -2,11 +2,11 @@ import 'dart:io';
 import 'dart:async';
 
 import 'package:test/test.dart';
+import 'package:yaml/yaml.dart';
 import 'cli_helpers.dart';
 import 'package:path/path.dart' as path_lib;
 
-Directory temporaryDirectory =
-    new Directory.fromUri(Directory.current.uri.resolve("test_project"));
+Directory temporaryDirectory = new Directory.fromUri(Directory.current.uri.resolve("test_project"));
 
 void main() {
   setUpAll(() {
@@ -24,8 +24,7 @@ void main() {
       var res = await runWith(["test_project"]);
       expect(res.exitCode, 0);
 
-      expect(new Directory(path_lib.join(temporaryDirectory.path)).existsSync(),
-          true);
+      expect(new Directory(path_lib.join(temporaryDirectory.path)).existsSync(), true);
     });
 
     test("Project name with bad characters fails immediately", () async {
@@ -84,32 +83,48 @@ void main() {
       }
     });
 
-    test("Template gets generated from local path, project points to it",
-        () async {
+    test("Template gets generated from local path, project points to it", () async {
       var res = await runWith(["test_project"]);
       expect(res.exitCode, 0);
 
-      var aqueductLocationString =
-          new File.fromUri(temporaryDirectory.uri.resolve(".packages"))
-              .readAsStringSync()
-              .split("\n")
-              .firstWhere((p) => p.startsWith("aqueduct:"))
-              .split("aqueduct:")
-              .last;
+      var aqueductLocationString = new File.fromUri(temporaryDirectory.uri.resolve(".packages"))
+          .readAsStringSync()
+          .split("\n")
+          .firstWhere((p) => p.startsWith("aqueduct:"))
+          .split("aqueduct:")
+          .last;
 
       var path = path_lib.normalize(path_lib.fromUri(aqueductLocationString));
       expect(path, path_lib.join(Directory.current.path, "lib"));
     });
 
-    test("Tests run on template generated from local path (with a little help)", () async {
-      expect((await runWith(["test_project", "-t", "db"])).exitCode, 0);
+    /* for every template */
+    final templates = new Directory("templates")
+        .listSync()
+        .where((fse) => fse is Directory)
+        .map((fse) => fse.uri.pathSegments[fse.uri.pathSegments.length - 2])
+        .toList();
+    final aqueductPubspec = loadYaml(new File("pubspec.yaml").readAsStringSync());
+    final aqueductVersionString = "^" + aqueductPubspec["version"];
 
-      var res = Process.runSync("pub", ["run", "test", "-j", "1"],
-          runInShell: true, workingDirectory: temporaryDirectory.path);
+    for (var template in templates) {
+      test("Templates contain most recent version of aqueduct by default", () {
+        var projectDir = new Directory("templates/$template/");
+        var pubspec = new File.fromUri(projectDir.uri.resolve("pubspec.yaml"));
+        var contents = loadYaml(pubspec.readAsStringSync());
+        expect(contents["dependencies"]["aqueduct"], aqueductVersionString);
+      });
 
-      expect(res.exitCode, 0);
-      expect(res.stdout, contains("All tests passed"));
-    });
+      test("Tests run on template generated from local path", () async {
+        expect((await runWith(["test_project", "-t", template])).exitCode, 0);
+
+        var res = Process.runSync("pub", ["run", "test", "-j", "1"],
+            runInShell: true, workingDirectory: temporaryDirectory.path);
+
+        expect(res.exitCode, 0);
+        expect(res.stdout, contains("All tests passed"));
+      });
+    }
   });
 }
 
@@ -120,11 +135,9 @@ Future<CLIResult> runWith(List<String> args) {
   return runAqueductProcess(allArgs, Directory.current);
 }
 
-void addLinesToFile(
-    File file, String afterFindingThisString, String insertThisString) {
+void addLinesToFile(File file, String afterFindingThisString, String insertThisString) {
   var contents = file.readAsStringSync();
-  var indexOf =
-      contents.indexOf(afterFindingThisString) + afterFindingThisString.length;
+  var indexOf = contents.indexOf(afterFindingThisString) + afterFindingThisString.length;
   var newContents = contents.replaceRange(indexOf, indexOf, insertThisString);
   file.writeAsStringSync(newContents);
 }
