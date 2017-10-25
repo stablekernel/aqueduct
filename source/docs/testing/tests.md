@@ -11,11 +11,10 @@ A project created with `aqueduct create` contains a test harness (in `test/harne
 
 ```dart
 import 'package:myapp/myapp.dart';
-import 'package:aqueduct/test.dart';
+import 'package:aqueduct_test/aqueduct_test.dart';
 
 export 'package:myapp/myapp.dart';
-export 'package:aqueduct/test.dart';
-export 'package:test/test.dart';
+export 'package:aqueduct_test/aqueduct_test.dart';
 export 'package:aqueduct/aqueduct.dart';
 
 class TestApplication {
@@ -39,6 +38,9 @@ class TestApplication {
   }  
 }
 ```
+
+!!! note "package:aqueduct_test"
+    The test utilities for Aqueduct are in a separate package, `package:aqueduct_test`, imported at the top of the harness file. When creating a project from a template, its `pubspec.yaml` file already includes `aqueduct_test` in `dev_dependencies`. If you aren't creating projects from a template, make sure to add this dependency.
 
 The type `AppSink` is replaced with your application's `RequestSink` subclass. A test file need only import this harness and start and stop the application in its `setUpAll` and `tearDownAll` callbacks:
 
@@ -216,7 +218,7 @@ test("Get 200 that at least have these keys", () async {
 
 This ensures that `key3` is not in the map. This is different than verifying `key3: null`, which would be true if `key3`'s value was actually the null value. See the API reference for more matchers.
 
-See the [API Reference](https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.test/aqueduct.test-library.html) for `aqueduct/test` for more behaviors.
+See the [API Reference](https://www.dartdocs.org/documentation/aqueduct_test/latest) for more behaviors.
 
 ### Verifying Other Data Not in the Response
 

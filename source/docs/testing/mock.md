@@ -2,7 +2,7 @@
 
 An Aqueduct application often communicates with another server. For example, an application might make requests to the GitHub API to collect analytics about a team's workflow. When running automated tests, consuming the actual GitHub API isn't feasible - because GitHub will probably rate limit you and because the data being returned is constantly changing.
 
-To solve this problem, you can create "mocks" of a service during testing. Aqueduct has two testing utilities for this purpose - `MockServer` and `MockHTTPServer` - in the `aqueduct/test` library.
+To solve this problem, you can create "mocks" of a service during testing. Aqueduct has two testing utilities for this purpose - `MockServer` and `MockHTTPServer` - in the `aqueduct_test/aqueduct_test` library.
 
 ## Using a MockHTTPServer
 
@@ -51,7 +51,7 @@ You may also subclass `MockHTTPServer` and override its `open` method to add log
 A `MockHTTPServer` is created when setting up tests. It must be closed when tearing down tests. If you use the same mock server to across all tests (e.g., open it in `setUpAll`), make sure to clear it after each test:
 
 ```dart
-import 'package:aqueduct/test.dart';
+import 'package:aqueduct_test/aqueduct_test.dart';
 
 void main() {
   var mockServer = new MockHTTPServer(4000);
