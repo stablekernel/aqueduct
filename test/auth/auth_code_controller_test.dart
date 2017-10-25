@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
-import 'package:aqueduct/test.dart';
+import 'package:aqueduct_test/aqueduct_test.dart';
 
 import '../helpers.dart';
 import 'dart:convert';
