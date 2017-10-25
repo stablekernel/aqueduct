@@ -1,5 +1,5 @@
 name: wildfire
-description: A web server application.
+description: An Aqueduct application with a database connection and data model.
 version: 0.0.1
 author: stable|kernel <jobs@stablekernel.com>
 

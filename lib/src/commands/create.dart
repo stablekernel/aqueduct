@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:path/path.dart' as path_lib;
 import 'package:pub_cache/pub_cache.dart';
+import 'package:yaml/yaml.dart';
 
 import 'base.dart';
 
@@ -10,17 +11,16 @@ import 'base.dart';
 class CLITemplateCreator extends CLICommand with CLIAqueductGlobal {
   CLITemplateCreator() {
     options
-      ..addOption("template",
-          abbr: "t", help: "Name of the template to use", defaultsTo: "default")
-      ..addFlag("offline",
-          negatable: false,
-          help: "Will fetch dependencies from a local cache if they exist.");
+      ..addOption("template", abbr: "t", help: "Name of the template to use", defaultsTo: "default")
+      ..addFlag("offline", negatable: false, help: "Will fetch dependencies from a local cache if they exist.");
 
     registerCommand(new CLITemplateList());
   }
 
   String get templateName => values["template"];
+
   String get projectName => values.rest.length > 0 ? values.rest.first : null;
+
   bool get offline => values["offline"];
 
   @override
@@ -43,12 +43,7 @@ class CLITemplateCreator extends CLICommand with CLIAqueductGlobal {
 
     destDirectory.createSync();
 
-    var aqueductDirectory = aqueductPackageRef.resolve().location;
-    displayProgress("Aqueduct directory is: ${aqueductDirectory.path}");
-    var templateURI = aqueductDirectory.uri
-        .resolve("example/").resolve("templates/").resolve(templateName + "/");
-    var templateSourceDirectory = new Directory.fromUri(templateURI);
-
+    final templateSourceDirectory = new Directory.fromUri(getTemplateLocation(templateName));
     if (!templateSourceDirectory.existsSync()) {
       displayError("No template at ${templateSourceDirectory.path}.");
       return 1;
@@ -59,11 +54,9 @@ class CLITemplateCreator extends CLICommand with CLIAqueductGlobal {
     copyProjectFiles(destDirectory, templateSourceDirectory, projectName);
 
     createProjectSpecificFiles(destDirectory.path);
-    replaceAqueductDependencyString(
-        destDirectory.path, getAqueductDependencyStringFromPackage(aqueductPackageRef));
+    replaceAqueductDependencyString(destDirectory.path, getAqueductDependencyStringFromPackage(aqueductPackageRef));
 
-    displayInfo(
-        "Fetching project dependencies (pub get --no-packages-dir ${offline ? "--offline" : ""})...");
+    displayInfo("Fetching project dependencies (pub get --no-packages-dir ${offline ? "--offline" : ""})...");
     try {
       await runPubGet(destDirectory, offline: offline);
     } on TimeoutException {
@@ -74,8 +67,7 @@ class CLITemplateCreator extends CLICommand with CLIAqueductGlobal {
     displayInfo("New project '$projectName' successfully created.");
     displayProgress("Project is located at ${destDirectory.path}");
     displayProgress("Open this directory in IntelliJ IDEA, Atom or VS Code.");
-    displayProgress(
-        "See ${destDirectory.path}${path_lib.separator}README.md for more information.");
+    displayProgress("See ${destDirectory.path}${path_lib.separator}README.md for more information.");
 
     return 0;
   }
@@ -94,12 +86,10 @@ class CLITemplateCreator extends CLICommand with CLIAqueductGlobal {
 
     var lastComponent = entity.uri.pathSegments.last;
     if (lastComponent.length == 0) {
-      lastComponent =
-          entity.uri.pathSegments[entity.uri.pathSegments.length - 2];
+      lastComponent = entity.uri.pathSegments[entity.uri.pathSegments.length - 2];
     }
 
-    if (lastComponent.startsWith(".") &&
-        !hiddenFilesToKeep.contains(lastComponent)) {
+    if (lastComponent.startsWith(".") && !hiddenFilesToKeep.contains(lastComponent)) {
       return false;
     }
 
@@ -110,8 +100,7 @@ class CLITemplateCreator extends CLICommand with CLIAqueductGlobal {
     return true;
   }
 
-  void interpretContentFile(String projectName, Directory destinationDirectory,
-      FileSystemEntity sourceFileEntity) {
+  void interpretContentFile(String projectName, Directory destinationDirectory, FileSystemEntity sourceFileEntity) {
     if (shouldIncludeItem(sourceFileEntity)) {
       if (sourceFileEntity is Directory) {
         copyDirectory(projectName, destinationDirectory, sourceFileEntity);
@@ -121,12 +110,9 @@ class CLITemplateCreator extends CLICommand with CLIAqueductGlobal {
     }
   }
 
-  void copyDirectory(String projectName, Directory destinationParentDirectory,
-      Directory sourceDirectory) {
-    var sourceDirectoryName = sourceDirectory
-        .uri.pathSegments[sourceDirectory.uri.pathSegments.length - 2];
-    var destDir = new Directory(
-        path_lib.join(destinationParentDirectory.path, sourceDirectoryName));
+  void copyDirectory(String projectName, Directory destinationParentDirectory, Directory sourceDirectory) {
+    var sourceDirectoryName = sourceDirectory.uri.pathSegments[sourceDirectory.uri.pathSegments.length - 2];
+    var destDir = new Directory(path_lib.join(destinationParentDirectory.path, sourceDirectoryName));
 
     destDir.createSync();
 
@@ -135,15 +121,12 @@ class CLITemplateCreator extends CLICommand with CLIAqueductGlobal {
     });
   }
 
-  void copyFile(
-      String projectName, Directory destinationDirectory, File sourceFile) {
-    var path = path_lib.join(
-        destinationDirectory.path, fileNameForFile(projectName, sourceFile));
+  void copyFile(String projectName, Directory destinationDirectory, File sourceFile) {
+    var path = path_lib.join(destinationDirectory.path, fileNameForFile(projectName, sourceFile));
     var contents = sourceFile.readAsStringSync();
 
     contents = contents.replaceAll("wildfire", projectName);
-    contents =
-        contents.replaceAll("Wildfire", camelCaseFromSnakeCase(projectName));
+    contents = contents.replaceAll("Wildfire", camelCaseFromSnakeCase(projectName));
 
     var outputFile = new File(path);
     outputFile.createSync();
@@ -173,16 +156,12 @@ class CLITemplateCreator extends CLICommand with CLIAqueductGlobal {
 
   void createProjectSpecificFiles(String directoryPath) {
     displayProgress("Generating config.yaml from config.src.yaml.");
-    var configSrcPath =
-        new File(path_lib.join(directoryPath, "config.src.yaml"));
-    configSrcPath
-        .copySync(new File(path_lib.join(directoryPath, "config.yaml")).path);
+    var configSrcPath = new File(path_lib.join(directoryPath, "config.src.yaml"));
+    configSrcPath.copySync(new File(path_lib.join(directoryPath, "config.yaml")).path);
   }
 
-  void replaceAqueductDependencyString(
-      String destDirectoryPath, String aqueductVersion) {
-    var pubspecFile =
-        new File(path_lib.join(destDirectoryPath, "pubspec.yaml"));
+  void replaceAqueductDependencyString(String destDirectoryPath, String aqueductVersion) {
+    var pubspecFile = new File(path_lib.join(destDirectoryPath, "pubspec.yaml"));
     var contents = pubspecFile.readAsStringSync();
 
     contents = contents.replaceFirst("aqueduct: ^3.0.0", aqueductVersion);
@@ -190,10 +169,8 @@ class CLITemplateCreator extends CLICommand with CLIAqueductGlobal {
     pubspecFile.writeAsStringSync(contents);
   }
 
-  void copyProjectFiles(Directory destinationDirectory,
-      Directory sourceDirectory, String projectName) {
-    displayInfo(
-        "Copying template files to new project directory (${destinationDirectory.path})...");
+  void copyProjectFiles(Directory destinationDirectory, Directory sourceDirectory, String projectName) {
+    displayInfo("Copying template files to new project directory (${destinationDirectory.path})...");
     try {
       destinationDirectory.createSync();
 
@@ -209,7 +186,10 @@ class CLITemplateCreator extends CLICommand with CLIAqueductGlobal {
 
   String getAqueductDependencyStringFromPackage(PackageRef package) {
     if (package.sourceType == "path") {
-      return "aqueduct:\n    path: ${package.resolve().location.path}";
+      return "aqueduct:\n    path: ${package
+          .resolve()
+          .location
+          .path}";
     }
 
     return "aqueduct: ^${package.version}";
@@ -228,8 +208,7 @@ class CLITemplateCreator extends CLICommand with CLIAqueductGlobal {
     }).join("");
   }
 
-  Future<ProcessResult> runPubGet(Directory workingDirectory,
-      {bool offline: false}) async {
+  Future<ProcessResult> runPubGet(Directory workingDirectory, {bool offline: false}) async {
     var args = ["get", "--no-packages-dir"];
     if (offline) {
       args.add("--offline");
@@ -237,20 +216,16 @@ class CLITemplateCreator extends CLICommand with CLIAqueductGlobal {
 
     try {
       var result = await Process
-          .run("pub", args,
-              workingDirectory: workingDirectory.absolute.path,
-              runInShell: true)
+          .run("pub", args, workingDirectory: workingDirectory.absolute.path, runInShell: true)
           .timeout(new Duration(seconds: 60));
 
       if (result.exitCode != 0) {
-        throw new CLIException(
-            "${result.stderr}\n\nIf you are offline, try using --offline.");
+        throw new CLIException("${result.stderr}\n\nIf you are offline, try using `pub get --offline`.");
       }
 
       return result;
     } on TimeoutException {
-      displayError(
-          "Timed out fetching dependencies. Reconnect to the internet or use --offline.");
+      displayError("Timed out fetching dependencies. Reconnect to the internet or use `pub get --offline`.");
       rethrow;
     }
   }
@@ -278,15 +253,20 @@ class CLITemplateCreator extends CLICommand with CLIAqueductGlobal {
   }
 }
 
-
 class CLITemplateList extends CLICommand with CLIAqueductGlobal {
   @override
   Future<int> handle() async {
+    final templateRootDirectory = new Directory.fromUri(templateDirectory);
+    final templateDirectories =
+        await templateRootDirectory.list().where((fse) => fse is Directory).map((fse) => fse as Directory).toList();
+    final templateDescriptions = await Future.wait(templateDirectories.map((dir) => _templateDescription(dir)));
     displayInfo("Available templates:");
     displayProgress("");
-    displayProgress("default - an empty Aqueduct application");
-    displayProgress("db - an Aqueduct application with a database connection and data model");
-    displayProgress("db_and_auth - an Aqueduct application with a database connection, data model and OAuth 2.0 endpoints");
+
+    for (final template in templateDescriptions) {
+      displayProgress(template);
+    }
+
     return 0;
   }
 
@@ -299,16 +279,28 @@ class CLITemplateList extends CLICommand with CLIAqueductGlobal {
   String get description {
     return "List Aqueduct application templates.";
   }
+
+  Future<String> _templateDescription(Directory templateDirectory) async {
+    var name = templateDirectory.uri.pathSegments[templateDirectory.uri.pathSegments.length - 2];
+    var pubspecContents = await (new File.fromUri(templateDirectory.uri.resolve("pubspec.yaml"))).readAsString();
+    var pubspecDefinition = loadYaml(pubspecContents);
+
+    return "$name | ${pubspecDefinition["description"]}";
+  }
 }
 
 class CLIAqueductGlobal {
   PubCache pub = new PubCache();
 
   PackageRef get aqueductPackageRef {
-    return pub
-        .getGlobalApplications()
-        .firstWhere((app) => app.name == "aqueduct")
-        .getDefiningPackageRef();
+    return pub.getGlobalApplications().firstWhere((app) => app.name == "aqueduct").getDefiningPackageRef();
   }
 
+  Uri get templateDirectory {
+    return aqueductPackageRef.resolve().location.uri.resolve("templates/");
+  }
+
+  Uri getTemplateLocation(String templateName) {
+    return templateDirectory.resolve(templateName + "/");
+  }
 }
