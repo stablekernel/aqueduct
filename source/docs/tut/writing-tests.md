@@ -14,11 +14,12 @@ void main() {
 }
 ```
 
-Tests are made possible by the `test` package which you'll need to claim as a dependency. Locate the file `quiz/pubspec.yaml` in your project. This file contains metadata about your application, including it's dependencies. At the bottom of this file, the following two lines specify that this project uses the `test` package as a development dependency:
+Tests are made possible by the packages `test` and `aqueduct_test`, which you'll need to claim as a dependency. Locate the file `quiz/pubspec.yaml` in your project. This file contains metadata about your application, including it's dependencies. At the bottom of this file, notice that these packages are already included as a development dependencies when the project was created:
 
 ```
 dev_dependencies:
-  test: any
+  test: '>=0.12.0 <0.13.0'
+  aqueduct_test: ^1.0.0
 ```
 
 In Dart, tests are stored in a top-level `test` directory that has already been created from the template. Add a new file to it named `test/question_controller_test.dart`. (Tests must end in `_test.dart` and live in the `test` directory.) In this file, import your application's test harness:
