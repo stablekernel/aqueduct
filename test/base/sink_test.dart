@@ -24,11 +24,11 @@ void main() {
 }
 
 class TestSink extends RequestSink {
-  TestSink(ApplicationConfiguration opts) : super(opts);
-
   @override
-  void setupRouter(Router router) {
+  RequestController get entry {
+    final router = new Router();
     router.route("/controller/[:id]").pipe(new FailingController());
+    return router;
   }
 }
 

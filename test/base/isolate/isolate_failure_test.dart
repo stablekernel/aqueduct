@@ -21,14 +21,6 @@ void main() {
           var crashingApp = new Application<CrashSink>();
 
           try {
-            crashingApp.configuration.options = {"crashIn": "constructor"};
-            await crashingApp.start(consoleLogging: true);
-            expect(true, false);
-          } on ApplicationStartupException catch (e) {
-            expect(e.toString(), contains("TestException: constructor"));
-          }
-
-          try {
             crashingApp.configuration.options = {"crashIn": "addRoutes"};
             await crashingApp.start(consoleLogging: true);
             expect(true, false);
@@ -111,9 +103,10 @@ void main() {
 class TimeoutSink extends RequestSink {
   Timer timer;
 
-  TimeoutSink(ApplicationConfiguration config) : super(config);
   @override
-  void setupRouter(Router router) {}
+  RequestController get entry {
+    return new Router();
+  }
 
   @override
   Future willOpen() async {
@@ -153,18 +146,14 @@ class TestException implements Exception {
 }
 
 class CrashSink extends RequestSink {
-  CrashSink(ApplicationConfiguration opts) : super(opts) {
-    if (opts.options["crashIn"] == "constructor") {
-      throw new TestException("constructor");
-    }
-  }
-
   @override
-  void setupRouter(Router router) {
+  RequestController get entry {
+    final router = new Router();
     if (configuration.options["crashIn"] == "addRoutes") {
       throw new TestException("addRoutes");
     }
     router.route("/t").listen((req) async => new Response.ok("t_ok"));
+    return router;
   }
 
   @override
@@ -176,8 +165,6 @@ class CrashSink extends RequestSink {
 }
 
 class TestSink extends RequestSink {
-  TestSink(ApplicationConfiguration opts) : super(opts);
-
   static Future initializeApplication(ApplicationConfiguration config) async {
     List<int> v = config.options["startup"] ?? [];
     v.add(1);
@@ -185,12 +172,14 @@ class TestSink extends RequestSink {
   }
 
   @override
-  void setupRouter(Router router) {
+  RequestController get entry {
+    final router = new Router();
     router.route("/t").listen((req) async => new Response.ok("t_ok"));
     router.route("/r").listen((req) async => new Response.ok("r_ok"));
     router.route("startup").listen((r) async {
       var total = configuration.options["startup"].fold(0, (a, b) => a + b);
       return new Response.ok("$total");
     });
+    return router;
   }
 }

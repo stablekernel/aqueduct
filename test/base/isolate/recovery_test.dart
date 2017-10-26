@@ -72,11 +72,11 @@ void main() {
 }
 
 class TestSink extends RequestSink {
-  TestSink(dynamic any) : super(null);
-
   @override
-  void setupRouter(Router router) {
+  RequestController get entry {
+    final router = new Router();
     router.route("/[:id]").generate(() => new UncaughtCrashController());
+    return router;
   }
 }
 

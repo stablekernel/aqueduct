@@ -408,11 +408,11 @@ class Always200Controller extends RequestController {
 }
 
 class OutlierSink extends RequestSink {
-  OutlierSink(ApplicationConfiguration config) : super(config);
   int count = 0;
 
   @override
-  void setupRouter(Router r) {
+  RequestController get entry {
+    final r = new Router();
     r.route("/detach").listen((Request req) async {
       if (count == 0) {
         var socket = await req.raw.response.detachSocket();
@@ -453,5 +453,6 @@ class OutlierSink extends RequestSink {
       }
       return new Response.ok(null);
     });
+    return r;
   }
 }

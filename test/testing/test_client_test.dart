@@ -309,10 +309,10 @@ void main() {
 }
 
 class SomeSink extends RequestSink {
-  SomeSink(ApplicationConfiguration config) : super (config);
-
   @override
-  void setupRouter(Router r) {
+  RequestController get entry {
+    final r = new Router();
     r.route("/").listen((r) async => new Response.ok(null));
+    return r;
   }
 }

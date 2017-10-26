@@ -419,14 +419,16 @@ void main() {
 }
 
 class TestSink extends RequestSink {
-  TestSink(ApplicationConfiguration opts) : super(opts) {
-    authServer = new AuthServer(new InMemoryAuthStorage());
-  }
-
   AuthServer authServer;
 
   @override
-  void setupRouter(Router router) {
+  Future willOpen() async {
+    authServer = new AuthServer(new InMemoryAuthStorage());
+  }
+
+  @override
+  RequestController get entry {
+    final router = new Router();
     router
         .route("/auth/code")
         .pipe(new Authorizer.basic(authServer))
@@ -442,6 +444,7 @@ class TestSink extends RequestSink {
     router.route("/h[/:var]").listen((Request req) async {
       return new Response.ok("");
     });
+    return router;
   }
 
   @override

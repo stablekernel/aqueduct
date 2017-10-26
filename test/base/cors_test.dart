@@ -576,9 +576,9 @@ void expectThatNoCORSProcessingOccurred(dynamic resp) {
 }
 
 class CORSSink extends RequestSink implements AuthValidator {
-  CORSSink(ApplicationConfiguration opts) : super(opts);
   @override
-  void setupRouter(Router router) {
+  RequestController get entry {
+    final router = new Router();
     router.route("/add").generate(() => new AdditiveController());
 
     router
@@ -608,6 +608,7 @@ class CORSSink extends RequestSink implements AuthValidator {
         .route("/defaultpolicyauth")
         .pipe(new Authorizer(this))
         .generate(() => new DefaultPolicyController());
+    return router;
   }
 
   @override
