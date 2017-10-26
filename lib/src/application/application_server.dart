@@ -4,36 +4,36 @@ import 'dart:mirrors';
 
 import 'package:logging/logging.dart';
 import '../http/request.dart';
-import '../http/request_sink.dart';
+import 'package:aqueduct/src/application/channel.dart';
 import '../http/request_controller.dart';
 import 'application.dart';
 import 'application_configuration.dart';
 import 'package:stack_trace/stack_trace.dart';
 
-/// Manages listening for HTTP requests and delivering them to [RequestSink] instances.
+/// Manages listening for HTTP requests and delivering them to [ApplicationChannel] instances.
 ///
 /// An Aqueduct application creates instances of this type to pair an HTTP server and an
-/// instance of an application-specific [RequestSink]. Instances are created by [Application]
+/// instance of an application-specific [ApplicationChannel]. Instances are created by [Application]
 /// and shouldn't be created otherwise.
 class ApplicationServer {
   /// Creates an instance of this type.
   ///
   /// You should not need to invoke this method directly.
-  ApplicationServer(ClassMirror requestSinkType, this.configuration, this.identifier, {this.captureStack: false}) {
-    sink = requestSinkType.newInstance(new Symbol(""), []).reflectee;
-    sink.server = this;
-    sink.configuration = configuration;
+  ApplicationServer(ClassMirror channelType, this.configuration, this.identifier, {this.captureStack: false}) {
+    channel = channelType.newInstance(new Symbol(""), []).reflectee;
+    channel.server = this;
+    channel.configuration = configuration;
   }
 
 
-  /// The configuration this instance used to start its [sink].
+  /// The configuration this instance used to start its [channel].
   ApplicationConfiguration configuration;
 
   /// The underlying [HttpServer].
   HttpServer server;
 
-  /// The instance of [RequestSink] serving requests.
-  RequestSink sink;
+  /// The instance of [ApplicationChannel] serving requests.
+  ApplicationChannel channel;
 
   RequestController entryPoint;
 
@@ -42,9 +42,9 @@ class ApplicationServer {
   /// Defaults to false.
   bool captureStack;
 
-  /// Target for sending messages to other [RequestSink] isolates.
+  /// Target for sending messages to other [ApplicationChannel] isolates.
   ///
-  /// Events are added to this sink by instances of [ApplicationMessageHub] and should not otherwise be used.
+  /// Events are added to this property by instances of [ApplicationMessageHub] and should not otherwise be used.
   EventSink<dynamic> hubSink;
 
   bool get requiresHTTPS => _requiresHTTPS;
@@ -66,13 +66,13 @@ class ApplicationServer {
   Future start({bool shareHttpServer: false}) async {
     logger.fine("ApplicationServer($identifier).start entry");
 
-    await sink.willOpen();
+    await channel.willOpen();
 
-    entryPoint = sink.entry;
+    entryPoint = channel.entryPoint;
     entryPoint.prepare();
 
     logger.fine("ApplicationServer($identifier).start binding HTTP");
-    var securityContext = sink.securityContext;
+    var securityContext = channel.securityContext;
     if (securityContext != null) {
       _requiresHTTPS = true;
 
@@ -96,17 +96,17 @@ class ApplicationServer {
   Future close() async {
     logger.fine("ApplicationServer($identifier).close Closing HTTP listener");
     await server?.close(force: true);
-    logger.fine("ApplicationServer($identifier).close Closing request sink");
-    await sink?.close();
+    logger.fine("ApplicationServer($identifier).close Closing channel");
+    await channel?.close();
 
-    // This is actually closed by sink.messageHub.close, but this shuts up the analyzer.
+    // This is actually closed by channel.messageHub.close, but this shuts up the analyzer.
     hubSink?.close();
     logger.fine("ApplicationServer($identifier).close Closing complete");
   }
 
   /// Invoked when this server becomes ready receive requests.
   ///
-  /// [RequestSink.didOpen] is invoked after this opening has completed.
+  /// [ApplicationChannel.didOpen] is invoked after this opening has completed.
   Future didOpen() async {
     server.serverHeader = "aqueduct/${this.identifier}";
 
@@ -121,7 +121,7 @@ class ApplicationServer {
       server.map((baseReq) => new Request(baseReq)).listen(entryPoint.receive);
     }
 
-    sink.didOpen();
+    channel.didOpen();
     logger.info("Server aqueduct/$identifier started.");
   }
 

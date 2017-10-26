@@ -8,7 +8,7 @@ import "package:test/test.dart";
 
 // These tests are based on the specification found at http://www.w3.org/TR/cors/.
 void main() {
-  var app = new Application<CORSSink>();
+  var app = new Application<CORSChannel>();
   app.configuration.port = 8000;
 
   setUpAll(() async {
@@ -575,9 +575,9 @@ void expectThatNoCORSProcessingOccurred(dynamic resp) {
   }
 }
 
-class CORSSink extends RequestSink implements AuthValidator {
+class CORSChannel extends ApplicationChannel implements AuthValidator {
   @override
-  RequestController get entry {
+  RequestController get entryPoint {
     final router = new Router();
     router.route("/add").generate(() => new AdditiveController());
 

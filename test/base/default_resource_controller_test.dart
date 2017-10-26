@@ -9,7 +9,7 @@ import '../helpers.dart';
 
 void main() {
   group("Standard operations", () {
-    var app = new Application<TestSink>();
+    var app = new Application<TestChannel>();
     RequestController.letUncaughtExceptionsEscape = true;
     app.configuration.port = 8081;
     var client = new TestClient.onPort(app.configuration.port);
@@ -30,7 +30,7 @@ void main() {
     });
 
     tearDownAll(() async {
-      await app.mainIsolateSink.context.persistentStore.close();
+      await app.channel.context.persistentStore.close();
       await app.stop();
     });
 
@@ -87,7 +87,7 @@ void main() {
   });
 
   group("Standard operation failure cases", () {
-    var app = new Application<TestSink>();
+    var app = new Application<TestChannel>();
     app.configuration.port = 8081;
     var client = new TestClient.onPort(8081);
 
@@ -96,7 +96,7 @@ void main() {
     });
 
     tearDownAll(() async {
-      await app.mainIsolateSink.context.persistentStore.close();
+      await app.channel.context.persistentStore.close();
       await app.stop();
     });
 
@@ -120,7 +120,7 @@ void main() {
   });
 
   group("Objects that don't exist", () {
-    var app = new Application<TestSink>();
+    var app = new Application<TestChannel>();
     app.configuration.port = 8081;
     var client = new TestClient.onPort(8081);
 
@@ -129,7 +129,7 @@ void main() {
     });
 
     tearDownAll(() async {
-      await app.mainIsolateSink.context.persistentStore.close();
+      await app.channel.context.persistentStore.close();
       await app.stop();
     });
 
@@ -156,7 +156,7 @@ void main() {
   });
 
   group("Extended GET requests", () {
-    var app = new Application<TestSink>();
+    var app = new Application<TestChannel>();
     app.configuration.port = 8081;
     var client = new TestClient.onPort(8081);
     List<TestModel> allObjects = [];
@@ -176,7 +176,7 @@ void main() {
     });
 
     tearDownAll(() async {
-      await app.mainIsolateSink.context.persistentStore.close();
+      await app.channel.context.persistentStore.close();
       await app.stop();
     });
 
@@ -355,7 +355,7 @@ void main() {
   });
 
   group("With dynamic entity", () {
-    var app = new Application<TestSink>();
+    var app = new Application<TestChannel>();
     app.configuration.port = 8081;
     var client = new TestClient.onPort(8081);
     List<TestModel> allObjects = [];
@@ -375,7 +375,7 @@ void main() {
     });
 
     tearDownAll(() async {
-      await app.mainIsolateSink.context.persistentStore.close();
+      await app.channel.context.persistentStore.close();
       await app.stop();
     });
 
@@ -393,7 +393,7 @@ void main() {
   });
 }
 
-class TestSink extends RequestSink {
+class TestChannel extends ApplicationChannel {
   ManagedContext context;
 
   @override
@@ -416,7 +416,7 @@ class TestSink extends RequestSink {
   }
 
   @override
-  RequestController get entry {
+  RequestController get entryPoint {
     final router = new Router();
     router
         .route("/controller/[:id]")

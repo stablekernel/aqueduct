@@ -3,14 +3,14 @@ import 'dart:async';
 import 'package:crypto/crypto.dart';
 
 import '../http/documentable.dart';
-import '../http/request_sink.dart';
+import 'package:aqueduct/src/application/channel.dart';
 import '../utilities/token_generator.dart';
 import 'auth.dart';
 
 /// A storage-agnostic OAuth 2.0 authorization 'server'.
 ///
 /// Instances of this type will carry out authentication and authorization tasks. They are created
-/// during a [RequestSink]'s initialization process and injected in [Authorizer]s, [AuthCodeController] and [AuthController] instances.
+/// during a [ApplicationChannel]'s initialization process and injected in [Authorizer]s, [AuthCodeController] and [AuthController] instances.
 ///
 /// An [AuthServer] requires [storage]. This is typically implemented by using `ManagedAuthStorage` from `package:aqueduct/managed_auth.dart`.
 ///
@@ -22,17 +22,19 @@ import 'auth.dart';
 ///         import 'package:aqueduct/aqueduct.dart';
 ///         import 'package:aqueduct/managed_auth.dart';
 ///
-///         class MyRequestSink extends RequestSink {
-///           MyRequestSink(ApplicationConfiguration config) : super (config) {
-///             context = createContext();
-///             authServer = new AuthServer(new ManagedAuthStorage<User>(context));
-///           }
-///
+///         class Channel extends ApplicationChannel {///
 ///           ManagedContext context;
 ///           AuthServer authServer;
 ///
 ///           @override
-///           void setupRouter(Router router) {
+///           Future willOpen() async {
+///             context = createContext();
+///             authServer = new AuthServer(new ManagedAuthStorage<User>(context));
+///           }
+///
+///           @override
+///           RequestController get entryPoint {
+///             final router = new Router();
 ///             router
 ///               .route("/protected")
 ///               .pipe(new Authorizer(authServer))
@@ -41,6 +43,8 @@ import 'auth.dart';
 ///             router
 ///               .route("/auth/token")
 ///               .generate(() => new AuthController(authServer));
+///
+///             return router;
 ///           }
 ///         }
 ///

@@ -1,7 +1,7 @@
 import 'package:wildfire/wildfire.dart';
 
 Future main() async {
-  var app = new Application<WildfireSink>()
+  var app = new Application<WildfireChannel>()
       ..configuration.configurationFilePath = "config.yaml"
       ..configuration.port = 8000;
 

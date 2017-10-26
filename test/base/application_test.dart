@@ -6,14 +6,14 @@ import 'dart:convert';
 
 void main() {
   group("App launch status", () {
-    Application<TestSink> app;
+    Application<TestChannel> app;
 
     tearDown(() async {
       await app?.stop();
     });
 
     test("didFinishLaunching is false before launch, true after, false after stop", () async {
-      app = new Application<TestSink>();
+      app = new Application<TestChannel>();
       expect(app.hasFinishedLaunching, false);
 
       await app.test();
@@ -25,10 +25,10 @@ void main() {
   });
 
   group("Application lifecycle", () {
-    Application<TestSink> app;
+    Application<TestChannel> app;
 
     setUp(() async {
-      app = new Application<TestSink>();
+      app = new Application<TestChannel>();
       await app.test();
     });
 
@@ -37,7 +37,7 @@ void main() {
     });
 
     test("Application starts", () async {
-      expect(app.mainIsolateSink, isNotNull);
+      expect(app.channel, isNotNull);
       expect(app.supervisors.length, 0);
     });
 
@@ -93,7 +93,7 @@ void main() {
     test(
         "Application (on main thread) start fails and logs appropriate message if request stream doesn't open",
         () async {
-      var crashingApp = new Application<CrashingTestSink>();
+      var crashingApp = new Application<CrashingTestChannel>();
 
       try {
         crashingApp.configuration.options = {"crashIn": "addRoutes"};
@@ -128,9 +128,9 @@ class TestException implements Exception {
   String toString() => message;
 }
 
-class CrashingTestSink extends RequestSink {
+class CrashingTestChannel extends ApplicationChannel {
   @override
-  RequestController get entry {
+  RequestController get entryPoint {
     final router = new Router();
     if (configuration.options["crashIn"] == "addRoutes") {
       throw new TestException("addRoutes");
@@ -147,7 +147,7 @@ class CrashingTestSink extends RequestSink {
   }
 }
 
-class TestSink extends RequestSink {
+class TestChannel extends ApplicationChannel {
   static Future initializeApplication(ApplicationConfiguration config) async {
     List<int> v = config.options["startup"] ?? [];
     v.add(1);
@@ -155,7 +155,7 @@ class TestSink extends RequestSink {
   }
 
   @override
-  RequestController get entry {
+  RequestController get entryPoint {
     final router = new Router();
     router.route("/t").generate(() => new TController());
     router.route("/r").generate(() => new RController());

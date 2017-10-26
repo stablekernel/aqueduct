@@ -19,7 +19,7 @@ void main() {
     });
 
     test("Create from app, explicit port", () async {
-      app = new Application<SomeSink>()
+      app = new Application<SomeChannel>()
           ..configuration.port = 4111;
       await app.test();
       var client = new TestClient(app);
@@ -27,7 +27,7 @@ void main() {
     });
 
     test("Create from app, assigned port", () async {
-      app = new Application<SomeSink>()
+      app = new Application<SomeChannel>()
         ..configuration.port = 0;
       await app.test();
 
@@ -37,7 +37,7 @@ void main() {
     });
 
     test("Create from unstarted app throws useful exception", () async {
-      app = new Application<SomeSink>();
+      app = new Application<SomeChannel>();
       var tc = new TestClient(app);
       try {
         await tc.request("/").get();
@@ -48,7 +48,7 @@ void main() {
     });
 
     test("Create from unstarted app, start app, works OK", () async {
-      app = new Application<SomeSink>()
+      app = new Application<SomeChannel>()
         ..configuration.port = 0;
       var tc = new TestClient(app);
       await app.test();
@@ -308,9 +308,9 @@ void main() {
   });
 }
 
-class SomeSink extends RequestSink {
+class SomeChannel extends ApplicationChannel {
   @override
-  RequestController get entry {
+  RequestController get entryPoint {
     final r = new Router();
     r.route("/").listen((r) async => new Response.ok(null));
     return r;

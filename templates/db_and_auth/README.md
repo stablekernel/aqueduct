@@ -49,7 +49,7 @@ For more information, see [Getting Started](https://aqueduct.io/docs/) and [Test
 
 The data model of this application is defined by all declared subclasses of `ManagedObject`. Each of these subclasses is defined in a file in the `lib/model` directory.
 
-Routes and other initialization are configured in `lib/wildfire_sink.dart`. Endpoint controllers file are in `lib/controller/`.
+Routes and other initialization are configured in `lib/channel.dart`. Endpoint controllers file are in `lib/controller/`.
 
 ## Authentication/Authorization
 

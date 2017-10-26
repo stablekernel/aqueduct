@@ -14,9 +14,9 @@ class ApplicationIsolateServer extends ApplicationServer {
   ReceivePort supervisingReceivePort;
   bool logToConsole;
 
-  ApplicationIsolateServer(ClassMirror requestSinkType, ApplicationConfiguration configuration, int identifier,
+  ApplicationIsolateServer(ClassMirror channelType, ApplicationConfiguration configuration, int identifier,
       this.supervisingApplicationPort, this.logToConsole)
-      : super(requestSinkType, configuration, identifier) {
+      : super(channelType, configuration, identifier) {
     if (logToConsole) {
       hierarchicalLoggingEnabled = true;
       logger.level = Level.ALL;
@@ -69,10 +69,10 @@ class ApplicationIsolateServer extends ApplicationServer {
 
 /// This method is used internally.
 void isolateServerEntryPoint(ApplicationInitialServerMessage params) {
-  var sinkSourceLibraryMirror = currentMirrorSystem().libraries[params.streamLibraryURI];
-  var sinkTypeMirror = sinkSourceLibraryMirror.declarations[new Symbol(params.streamTypeName)] as ClassMirror;
+  var channelSourceLibrary = currentMirrorSystem().libraries[params.streamLibraryURI];
+  var channelType = channelSourceLibrary.declarations[new Symbol(params.streamTypeName)] as ClassMirror;
 
-  var server = new ApplicationIsolateServer(sinkTypeMirror,
+  var server = new ApplicationIsolateServer(channelType,
       params.configuration, params.identifier, params.parentMessagePort, params.logToConsole);
 
   server.start(shareHttpServer: true);

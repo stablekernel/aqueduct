@@ -25,9 +25,9 @@ Map<String, dynamic> _stripNullAndEmpty(Map<String, dynamic> m) {
 ///
 /// Classes that wish to participate in the documentation process should extend or mixin this class.
 ///
-/// Documentation behavior starts at the root of an application (its [RequestSink]) by invoking [documentAPI].
-/// The [RequestSink] will invoke methods from this interface on its [RequestSink.entry]. These methods
-/// travel down the object graph formed by a [RequestSink], its [Router], [RequestController]s, [AuthServer] and [ManagedObject]s.
+/// Documentation behavior starts at the root of an application (its [ApplicationChannel]) by invoking [documentAPI].
+/// The [ApplicationChannel] will invoke methods from this interface on its [ApplicationChannel.entryPoint]. These methods
+/// travel down the object graph formed by a [ApplicationChannel], its [Router], [RequestController]s, [AuthServer] and [ManagedObject]s.
 ///
 /// Classes that extend this class will override methods such as [documentPaths] and [documentOperations] if they have the information
 /// available to complete those requests. Any method from this interface that a subclasses does not override will automatically
@@ -42,7 +42,7 @@ class APIDocumentable {
 
   /// Returns an entire [APIDocument] describing an OpenAPI specification.
   ///
-  /// This method is typically invoked on a [RequestSink]. This method is invoked on root of documentable chain, [RequestSink].
+  /// This method is typically invoked on a [ApplicationChannel]. This method is invoked on root of documentable chain, [ApplicationChannel].
   APIDocument documentAPI(PackagePathResolver resolver) =>
       documentableChild?.documentAPI(resolver);
 

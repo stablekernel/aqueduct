@@ -12,10 +12,10 @@ void main() {
   });
 
   group("Lifecycle", () {
-    Application<TestSink> app;
+    Application<TestChannel> app;
 
     setUp(() async {
-      app = new Application<TestSink>();
+      app = new Application<TestChannel>();
       await app.start(numberOfInstances: 2, consoleLogging: true);
       print("started");
     });
@@ -87,14 +87,14 @@ void main() {
   });
 
   group("App launch status", () {
-    Application<TestSink> app;
+    Application<TestChannel> app;
 
     tearDown(() async {
       await app?.stop();
     });
 
     test("didFinishLaunching is false before launch, true after, false after stop", () async {
-      app = new Application<TestSink>();
+      app = new Application<TestChannel>();
       expect(app.hasFinishedLaunching, false);
 
       var future = app.start(numberOfInstances: 2, consoleLogging: true);
@@ -108,7 +108,7 @@ void main() {
   });
 }
 
-class TestSink extends RequestSink {
+class TestChannel extends ApplicationChannel {
   static Future initializeApplication(ApplicationConfiguration config) async {
     List<int> v = config.options["startup"] ?? [];
     v.add(1);
@@ -116,7 +116,7 @@ class TestSink extends RequestSink {
   }
 
   @override
-  RequestController get entry {
+  RequestController get entryPoint {
     final router = new Router();
     router.route("/t").listen((req) async => new Response.ok("t_ok"));
     router.route("/r").listen((req) async => new Response.ok("r_ok"));

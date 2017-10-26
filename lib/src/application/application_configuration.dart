@@ -1,23 +1,23 @@
 import 'dart:io';
 import 'application.dart';
-import '../http/request_sink.dart';
+import 'package:aqueduct/src/application/channel.dart';
 
 /// A set of values to configure an instance of [Application].
 ///
-/// Instances of this type are configured by the command-line arguments for `aqueduct serve` and passed to [RequestSink] instances in their constructor.
-/// Instances of this type are also passed to to a [RequestSink] subclass's `initializeApplication` method before it is instantiated. This allows
-/// values to be modified prior to starting the server. See [RequestSink] for example usage.
+/// Instances of this type are configured by the command-line arguments for `aqueduct serve` and passed to [ApplicationChannel] instances in their constructor.
+/// Instances of this type are also passed to to a [ApplicationChannel] subclass's `initializeApplication` method before it is instantiated. This allows
+/// values to be modified prior to starting the server. See [ApplicationChannel] for example usage.
 class ApplicationConfiguration {
   /// Whether or not this application is being used to document an API.
   ///
   /// Defaults to false. If the application is being instantiated for the purpose of documenting the API,
-  /// this flag will be true. This allows [RequestSink] subclasses to take a different initialization path
+  /// this flag will be true. This allows [ApplicationChannel] subclasses to take a different initialization path
   /// when documenting vs. running the application.
   bool isDocumenting = false;
 
   /// The absolute path of the configuration file for this application.
   ///
-  /// This value is used by [RequestSink] subclasses to read a configuration file. A [RequestSink] can choose
+  /// This value is used by [ApplicationChannel] subclasses to read a configuration file. A [ApplicationChannel] can choose
   /// to read values from this file at different initialization points. This value is set automatically
   /// when using `aqueduct serve`.
   String configurationFilePath;
@@ -49,19 +49,19 @@ class ApplicationConfiguration {
   ///
   /// If specified - along with [privateKeyFilePath] - an [Application] will only allow secure connections over HTTPS.
   /// This value is often set through the `--ssl-certificate-path` command line option of `aqueduct serve`. For finer control
-  /// over how HTTPS is configured for an application, see [RequestSink.securityContext].
+  /// over how HTTPS is configured for an application, see [ApplicationChannel.securityContext].
   String certificateFilePath;
 
   /// The path to a private key.
   ///
   /// If specified - along with [certificateFilePath] - an [Application] will only allow secure connections over HTTPS.
   /// This value is often set through the `--ssl-key-path` command line option of `aqueduct serve`. For finer control
-  /// over how HTTPS is configured for an application, see [RequestSink.securityContext].
+  /// over how HTTPS is configured for an application, see [ApplicationChannel.securityContext].
   String privateKeyFilePath;
 
-  /// Options for each [RequestSink] to use when in this application.
+  /// Options for each [ApplicationChannel] to use when in this application.
   ///
-  /// This is a user-specific set of configuration options. These values are typically set in [RequestSink]'s `initializeApplication`
-  /// method so that each individual instance of [RequestSink] has actionable configuration options to use during their initialization.
+  /// This is a user-specific set of configuration options. These values are typically set in [ApplicationChannel]'s `initializeApplication`
+  /// method so that each individual instance of [ApplicationChannel] has actionable configuration options to use during their initialization.
   Map<String, dynamic> options = {};
 }

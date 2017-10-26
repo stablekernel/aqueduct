@@ -6,7 +6,7 @@ import 'package:aqueduct/aqueduct.dart';
 
 void main() {
   group("Standard operations", () {
-    var app = new Application<TestSink>();
+    var app = new Application<TestChannel>();
     RequestController.letUncaughtExceptionsEscape = true;
     app.configuration.port = 8081;
     var client = new TestClient.onPort(app.configuration.port);
@@ -27,7 +27,7 @@ void main() {
     });
 
     tearDownAll(() async {
-      await app.mainIsolateSink.context.persistentStore.close();
+      await app.channel.context.persistentStore.close();
       await app.stop();
     });
 
@@ -100,7 +100,7 @@ void main() {
   });
 }
 
-class TestSink extends RequestSink {
+class TestChannel extends ApplicationChannel {
   ManagedContext context;
 
   @override
@@ -123,7 +123,7 @@ class TestSink extends RequestSink {
   }
 
   @override
-  RequestController get entry {
+  RequestController get entryPoint {
     final router = new Router();
     router
         .route("/controller/[:id]")

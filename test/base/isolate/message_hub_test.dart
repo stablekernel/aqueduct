@@ -16,8 +16,8 @@ void main() {
       await app?.stop();
     });
 
-    test("A message sent to the hub is received by other request sinks, but not by sender", () async {
-      app = new Application<HubSink>()..configuration.port = 8000;
+    test("A message sent to the hub is received by other channels, but not by sender", () async {
+      app = new Application<HubChannel>()..configuration.port = 8000;
       await app.start(numberOfInstances: numberOfIsolates);
 
       var resp = await postMessage("msg1");
@@ -36,8 +36,8 @@ void main() {
       expect(messages[id2], [{"isolateID": receivingID, "message": "msg1"}]);
     });
 
-    test("A message sent in willOpen is received by all sinks eventually", () async {
-      app = new Application<HubSink>()
+    test("A message sent in willOpen is received by all channels eventually", () async {
+      app = new Application<HubChannel>()
         ..configuration.port = 8000
         ..configuration.options = {"sendIn": "willOpen"};
       await app.start(numberOfInstances: numberOfIsolates);
@@ -66,7 +66,7 @@ void main() {
     });
 
     test("Message hub stream can have multiple listeners", () async {
-      app = new Application<HubSink>()
+      app = new Application<HubChannel>()
         ..configuration.port = 8000
         ..configuration.options = {"multipleListeners": true};
       await app.start(numberOfInstances: numberOfIsolates);
@@ -97,7 +97,7 @@ void main() {
     });
 
     test("Send invalid x-isolate data returns error in error stream", () async {
-      app = new Application<HubSink>()
+      app = new Application<HubChannel>()
         ..configuration.port = 8000;
       await app.start(numberOfInstances: numberOfIsolates);
 
@@ -165,7 +165,7 @@ int isolateIdentifierFromResponse(http.Response response) {
   return int.parse(response.headers["server"].split("/").last);
 }
 
-class HubSink extends RequestSink {
+class HubChannel extends ApplicationChannel {
   List<Map<String, dynamic>> messages = [];
   List<String> errors = [];
 
@@ -191,7 +191,7 @@ class HubSink extends RequestSink {
   }
 
   @override
-  RequestController get entry {
+  RequestController get entryPoint {
     final router = new Router();
     router.route("/messages").listen((req) async {
       var msgs = new List.from(messages);

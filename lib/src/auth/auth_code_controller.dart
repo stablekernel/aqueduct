@@ -32,7 +32,7 @@ class AuthCodeController extends HTTPController {
   /// In order to display a login page, [renderAuthorizationPageHTML] must be provided. This method must return a full HTML
   /// document that will POST to this same endpoint when a 'Login' button is pressed. This method must provide
   /// the username and password the user enters, as well as the queryParameters as part of the form data to this endpoint's POST.
-  /// The requestURI of this method is the full request URI of this endpoint. See the [RequestSink] subclass in example/templates/default
+  /// The requestURI of this method is the full request URI of this endpoint. See the [ApplicationChannel] subclass in example/templates/default
   /// or in a project generated with `aqueduct create` for an example.
   AuthCodeController(this.authServer,
       {Future<String> renderAuthorizationPageHTML(AuthCodeController controller,

@@ -24,7 +24,7 @@ void main() {
 
     setUp(() async {
       apiDocs = (await Application.document(
-              TestSink, new ApplicationConfiguration(), resolver))
+              TestChannel, new ApplicationConfiguration(), resolver))
           .asMap();
     });
 
@@ -418,7 +418,7 @@ void main() {
   });
 }
 
-class TestSink extends RequestSink {
+class TestChannel extends ApplicationChannel {
   AuthServer authServer;
 
   @override
@@ -427,7 +427,7 @@ class TestSink extends RequestSink {
   }
 
   @override
-  RequestController get entry {
+  RequestController get entryPoint {
     final router = new Router();
     router
         .route("/auth/code")
