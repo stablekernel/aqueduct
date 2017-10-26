@@ -4,7 +4,6 @@ import 'dart:mirrors';
 
 import 'package:logging/logging.dart';
 
-import '../http/request_sink.dart';
 import '../utilities/resource_registry.dart';
 import 'application.dart';
 import 'application_configuration.dart';
@@ -31,8 +30,8 @@ class ApplicationIsolateServer extends ApplicationServer {
   }
 
   @override
-  Future start(RequestSink sink, {bool shareHttpServer: false}) async {
-    var result = await super.start(sink, shareHttpServer: shareHttpServer);
+  Future start({bool shareHttpServer: false}) async {
+    var result = await super.start(shareHttpServer: shareHttpServer);
     logger.fine("ApplicationIsolateServer($identifier) started, sending listen message");
     supervisingApplicationPort.send(ApplicationIsolateSupervisor.MessageListening);
 
@@ -76,7 +75,7 @@ void isolateServerEntryPoint(ApplicationInitialServerMessage params) {
   var server = new ApplicationIsolateServer(sinkTypeMirror,
       params.configuration, params.identifier, params.parentMessagePort, params.logToConsole);
 
-  server.start(server.sink, shareHttpServer: true);
+  server.start(shareHttpServer: true);
 }
 
 class ApplicationInitialServerMessage {
