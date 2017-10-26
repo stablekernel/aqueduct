@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:mirrors';
 
 import 'package:logging/logging.dart';
 import '../http/request.dart';
 import '../http/request_sink.dart';
+import '../http/request_controller.dart';
 import 'application.dart';
 import 'application_configuration.dart';
 import 'package:stack_trace/stack_trace.dart';
@@ -17,7 +19,11 @@ class ApplicationServer {
   /// Creates an instance of this type.
   ///
   /// You should not need to invoke this method directly.
-  ApplicationServer(this.configuration, this.identifier, {this.captureStack: false});
+  ApplicationServer(ClassMirror requestSinkType, this.configuration, this.identifier, {this.captureStack: false}) {
+    sink = requestSinkType.newInstance(new Symbol(""), []).reflectee;
+    sink.configuration = configuration;
+  }
+
 
   /// The configuration this instance used to start its [sink].
   ApplicationConfiguration configuration;
@@ -27,6 +33,8 @@ class ApplicationServer {
 
   /// The instance of [RequestSink] serving requests.
   RequestSink sink;
+
+  RequestController entryPoint;
 
   /// Used during debugging to capture the stacktrace better for asynchronous calls.
   ///
@@ -59,9 +67,10 @@ class ApplicationServer {
     this.sink = sink;
     sink.server = this;
 
-    sink.setupRouter(sink.router);
-    sink.router?.prepare();
-    sink.pipe(sink.initialController);
+    await sink.willOpen();
+
+    entryPoint = sink.entry;
+    entryPoint.prepare();
 
     logger.fine("ApplicationServer($identifier).start binding HTTP");
     var securityContext = sink.securityContext;
@@ -98,25 +107,19 @@ class ApplicationServer {
 
   /// Invoked when this server becomes ready receive requests.
   ///
-  /// This method will invoke [RequestSink.willOpen] and await for it to finish.
-  /// Once [RequestSink.willOpen] completes, the underlying [server]'s HTTP requests
-  /// will be sent to this instance's [sink].
-  ///
   /// [RequestSink.didOpen] is invoked after this opening has completed.
   Future didOpen() async {
     server.serverHeader = "aqueduct/${this.identifier}";
-
-    await sink.willOpen();
 
     logger.fine("ApplicationServer($identifier).didOpen start listening");
     if (captureStack) {
       server.map((baseReq) => new Request(baseReq)).listen((req) {
         Chain.capture(() {
-          sink.receive(req);
+          entryPoint.receive(req);
         });
       });
     } else {
-      server.map((baseReq) => new Request(baseReq)).listen(sink.receive);
+      server.map((baseReq) => new Request(baseReq)).listen(entryPoint.receive);
     }
 
     sink.didOpen();

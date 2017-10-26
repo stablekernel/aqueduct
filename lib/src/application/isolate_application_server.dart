@@ -15,11 +15,9 @@ class ApplicationIsolateServer extends ApplicationServer {
   ReceivePort supervisingReceivePort;
   bool logToConsole;
 
-  ApplicationIsolateServer(
-      ApplicationConfiguration configuration,
-      int identifier,
+  ApplicationIsolateServer(ClassMirror requestSinkType, ApplicationConfiguration configuration, int identifier,
       this.supervisingApplicationPort, this.logToConsole)
-      : super(configuration, identifier) {
+      : super(requestSinkType, configuration, identifier) {
     if (logToConsole) {
       hierarchicalLoggingEnabled = true;
       logger.level = Level.ALL;
@@ -66,25 +64,19 @@ class ApplicationIsolateServer extends ApplicationServer {
     await ServiceRegistry.defaultInstance.close();
     logger.clearListeners();
     logger.fine("ApplicationIsolateServer($identifier) sending stop acknowledgement");
-    supervisingApplicationPort
-        .send(ApplicationIsolateSupervisor.MessageStop);
+    supervisingApplicationPort.send(ApplicationIsolateSupervisor.MessageStop);
   }
 }
 
 /// This method is used internally.
 void isolateServerEntryPoint(ApplicationInitialServerMessage params) {
-  var server = new ApplicationIsolateServer(
+  var sinkSourceLibraryMirror = currentMirrorSystem().libraries[params.streamLibraryURI];
+  var sinkTypeMirror = sinkSourceLibraryMirror.declarations[new Symbol(params.streamTypeName)] as ClassMirror;
+
+  var server = new ApplicationIsolateServer(sinkTypeMirror,
       params.configuration, params.identifier, params.parentMessagePort, params.logToConsole);
 
-  var sinkSourceLibraryMirror =
-  currentMirrorSystem().libraries[params.streamLibraryURI];
-  var sinkTypeMirror = sinkSourceLibraryMirror
-      .declarations[new Symbol(params.streamTypeName)] as ClassMirror;
-
-  RequestSink sink = sinkTypeMirror
-      .newInstance(new Symbol(""), [params.configuration]).reflectee;
-
-  server.start(sink, shareHttpServer: true);
+  server.start(server.sink, shareHttpServer: true);
 }
 
 class ApplicationInitialServerMessage {
@@ -95,8 +87,9 @@ class ApplicationInitialServerMessage {
   int identifier;
   bool logToConsole = false;
 
-  ApplicationInitialServerMessage(this.streamTypeName, this.streamLibraryURI,
-      this.configuration, this.identifier, this.parentMessagePort, {this.logToConsole: false});
+  ApplicationInitialServerMessage(
+      this.streamTypeName, this.streamLibraryURI, this.configuration, this.identifier, this.parentMessagePort,
+      {this.logToConsole: false});
 }
 
 class MessageHubMessage {

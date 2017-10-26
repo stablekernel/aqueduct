@@ -89,11 +89,11 @@ class Application<RequestSinkType extends RequestSink> {
     }
 
     var requestSinkType = reflectClass(RequestSinkType);
-    await _globalStart(requestSinkType, configuration);
-
     try {
+      await _globalStart(requestSinkType, configuration);
+
       for (int i = 0; i < numberOfInstances; i++) {
-        var supervisor = await _spawn(configuration, i + 1, logToConsole: consoleLogging);
+        var supervisor = await _spawn(requestSinkType, configuration, i + 1, logToConsole: consoleLogging);
         supervisors.add(supervisor);
         await supervisor.resume();
       }
@@ -122,13 +122,12 @@ class Application<RequestSinkType extends RequestSink> {
     configuration.address = InternetAddress.LOOPBACK_IP_V4;
 
     var requestSinkType = reflectClass(RequestSinkType);
-    await _globalStart(requestSinkType, configuration);
-
     try {
-      var sink = requestSinkType.newInstance(new Symbol(""), [configuration]).reflectee;
-      server = new ApplicationServer(configuration, 1, captureStack: true);
+      await _globalStart(requestSinkType, configuration);
 
-      await server.start(sink);
+      server = new ApplicationServer(requestSinkType, configuration, 1, captureStack: true);
+
+      await server.start(server.sink);
     } catch (e, st) {
       logger.severe("$e", this, st);
       await stop().timeout(new Duration(seconds: 5));
@@ -165,11 +164,10 @@ class Application<RequestSinkType extends RequestSink> {
     config.isDocumenting = true;
     await _globalStart(sinkMirror, config);
 
-    RequestSink sink = sinkMirror.newInstance(new Symbol(""), [config]).reflectee;
-    sink.setupRouter(sink.router);
-    sink.router.prepare();
+    final server = new ApplicationServer(sinkMirror, config, 1, captureStack: true);
+    await server.sink.willOpen();
 
-    return sink.documentAPI(resolver);
+    return server.sink.documentAPI(resolver);
   }
 
   static Future _globalStart(ClassMirror sinkType, ApplicationConfiguration config) {
@@ -181,13 +179,12 @@ class Application<RequestSinkType extends RequestSink> {
     return null;
   }
 
-  Future<ApplicationIsolateSupervisor> _spawn(ApplicationConfiguration config, int identifier,
+  Future<ApplicationIsolateSupervisor> _spawn(ClassMirror sinkTypeMirror, ApplicationConfiguration config, int identifier,
       {bool logToConsole: false}) async {
     var receivePort = new ReceivePort();
 
-    var streamTypeMirror = reflectType(RequestSinkType);
-    var streamLibraryURI = (streamTypeMirror.owner as LibraryMirror).uri;
-    var streamTypeName = MirrorSystem.getName(streamTypeMirror.simpleName);
+    var streamLibraryURI = (sinkTypeMirror.owner as LibraryMirror).uri;
+    var streamTypeName = MirrorSystem.getName(sinkTypeMirror.simpleName);
 
     var initialMessage = new ApplicationInitialServerMessage(
         streamTypeName, streamLibraryURI, config, identifier, receivePort.sendPort,

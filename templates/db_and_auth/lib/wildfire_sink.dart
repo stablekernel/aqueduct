@@ -18,16 +18,20 @@ import 'utility/html_template.dart';
 /// See http://aqueduct.io/docs/http/request_sink
 /// for more details.
 class WildfireSink extends RequestSink {
-  /// Constructor called for each isolate run by an [Application].
+  HTMLRenderer htmlRenderer = new HTMLRenderer();
+  AuthServer authServer;
+
+
+  /// Final initialization method for this instance.
   ///
-  /// This constructor is called for each isolate an [Application] creates to serve requests.
-  /// The [appConfig] is made up of command line arguments from `aqueduct serve`.
-  ///
-  /// Configuration of database connections, [HTTPCodecRepository] and other per-isolate resources should be done in this constructor.
-  WildfireSink(ApplicationConfiguration appConfig) : super(appConfig) {
+  /// This method allows any resources that require asynchronous initialization to complete their
+  /// initialization process. This method is invoked after [setupRouter] and prior to this
+  /// instance receiving any requests.
+  @override
+  Future willOpen() async {
     logger.onRecord.listen((rec) => print("$rec ${rec.error ?? ""} ${rec.stackTrace ?? ""}"));
 
-    var options = new WildfireConfiguration(appConfig.configurationFilePath);
+    var options = new WildfireConfiguration(configuration.configurationFilePath);
 
     ManagedContext.defaultContext = contextWithConnectionInfo(options.database);
 
@@ -35,15 +39,14 @@ class WildfireSink extends RequestSink {
     authServer = new AuthServer(authStorage);
   }
 
-  HTMLRenderer htmlRenderer = new HTMLRenderer();
-  AuthServer authServer;
-
   /// All routes must be configured in this method.
   ///
   /// This method is invoked after the constructor and before [willOpen] Routes must be set up in this method, as
   /// the router gets 'compiled' after this method completes and routes cannot be added later.
   @override
-  void setupRouter(Router router) {
+  RequestController get entry {
+    final router = new Router();
+
     /* OAuth 2.0 Endpoints */
     router.route("/auth/token").generate(() => new AuthController(authServer));
 
@@ -68,16 +71,8 @@ class WildfireSink extends RequestSink {
         .pipe(new Authorizer.bearer(authServer))
         .generate(() => new UserController(authServer));
 
-
+    return router;
   }
-
-  /// Final initialization method for this instance.
-  ///
-  /// This method allows any resources that require asynchronous initialization to complete their
-  /// initialization process. This method is invoked after [setupRouter] and prior to this
-  /// instance receiving any requests.
-  @override
-  Future willOpen() async {}
 
   /*
    * Helper methods

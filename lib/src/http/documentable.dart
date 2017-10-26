@@ -26,7 +26,7 @@ Map<String, dynamic> _stripNullAndEmpty(Map<String, dynamic> m) {
 /// Classes that wish to participate in the documentation process should extend or mixin this class.
 ///
 /// Documentation behavior starts at the root of an application (its [RequestSink]) by invoking [documentAPI].
-/// The [RequestSink] will invoke methods from this interface on its [RequestSink.initialController]. These methods
+/// The [RequestSink] will invoke methods from this interface on its [RequestSink.entry]. These methods
 /// travel down the object graph formed by a [RequestSink], its [Router], [RequestController]s, [AuthServer] and [ManagedObject]s.
 ///
 /// Classes that extend this class will override methods such as [documentPaths] and [documentOperations] if they have the information

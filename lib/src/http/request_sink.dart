@@ -4,10 +4,8 @@ import 'dart:mirrors';
 
 import 'package:logging/logging.dart';
 
-import 'request.dart';
 import 'request_controller.dart';
 import 'documentable.dart';
-import 'router.dart';
 import '../application/application.dart';
 import '../utilities/resource_registry.dart';
 import 'http_codec_repository.dart';
@@ -45,18 +43,7 @@ import 'http_codec_repository.dart';
 ///           ...
 ///         }
 ///
-abstract class RequestSink extends RequestController
-    implements APIDocumentable {
-  /// Default constructor.
-  ///
-  /// The default constructor takes a [Map] of configuration [configuration]. This [Map] is the same [Map] in [ApplicationConfiguration.options].
-  ///
-  /// For any code that requires async initialization, use [willOpen]. However, it is important to note that any properties that are used during initialization callbacks (like [setupRouter]) should be
-  /// initialized in this constructor and not during [willOpen]. If properties that are needed during initialization callbacks
-  /// must be initialized asynchronously, those properties should implement their own deferred initialization mechanism
-  /// that can be triggered in [willOpen], but still must be initialized in this constructor.
-  RequestSink(this.configuration);
-
+abstract class RequestSink extends Object with APIDocumentable {
   /// One-time setup method for an application.
   ///
   /// This method is invoked as the first step during application startup. It is only invoked once per application, whereas other initialization
@@ -79,15 +66,20 @@ abstract class RequestSink extends RequestController
   /// Documentation info for this instance.
   APIInfo apiInfo = new APIInfo();
 
+  /// The logger of this instance
+  Logger get logger => new Logger("aqueduct");
+
   /// This instance's owning server.
   ///
   /// Reference back to the owning server that adds requests into this sink.
   ApplicationServer get server => _server;
+
   set server(ApplicationServer server) {
     _server = server;
     messageHub._outboundController.stream.listen(server.sendApplicationEvent);
     server.hubSink = messageHub._inboundController.sink;
   }
+
   ApplicationServer _server;
 
   /// Sends and receives messages to other isolates running a [RequestSink].
@@ -95,12 +87,6 @@ abstract class RequestSink extends RequestController
   /// Messages may be sent to other instances of this type via [ApplicationMessageHub.add]. An instance of this type
   /// may listen for those messages via [ApplicationMessageHub.listen]. See [ApplicationMessageHub] for more details.
   final ApplicationMessageHub messageHub = new ApplicationMessageHub();
-
-  /// This instance's router.
-  ///
-  /// The default router for this instance. Configure [router] by adding routes to it in [setupRouter].
-  /// Using a router other than this router will impede the sink's ability to generate documentation.
-  Router router = new Router();
 
   /// The context used for setting up HTTPS in an application.
   ///
@@ -112,8 +98,7 @@ abstract class RequestSink extends RequestController
   ///
   /// You may override this getter to provide a customized [SecurityContext].
   SecurityContext get securityContext {
-    if (configuration?.certificateFilePath == null
-    || configuration?.privateKeyFilePath == null) {
+    if (configuration?.certificateFilePath == null || configuration?.privateKeyFilePath == null) {
       return null;
     }
 
@@ -128,18 +113,7 @@ abstract class RequestSink extends RequestController
   /// from configuration data. This property is set in the constructor.
   ApplicationConfiguration configuration;
 
-  /// Returns the first [RequestController] to handle HTTP requests added to this sink.
-  ///
-  /// When a [Request] is delivered to this instance, this
-  /// controller will be the first to act on it.  By default, this is [router].
-  RequestController get initialController => router;
-
-  /// Callback for implementing this instances's routing table.
-  ///
-  /// Routes should only be added to [router] in this method. This method will execute prior to [willOpen] being called,
-  /// so any properties this instance needs to handle route setup must be set in this instance's constructor. The argument
-  /// to this method is the same instance as the property [RequestSink.router].
-  void setupRouter(Router router);
+  RequestController get entry;
 
   /// Callback executed prior to this instance receiving requests.
   ///
@@ -150,9 +124,7 @@ abstract class RequestSink extends RequestController
   /// Executed after the instance is is open to handle HTTP requests.
   ///
   /// This method is executed after the [HttpServer] is started and
-  /// the [initialController] has been set to start receiving requests.
-  /// Because requests could potentially be queued prior to this instance
-  /// being opened, a request could be received prior to this method being executed.
+  /// the [entry] has been set to start receiving requests.
   void didOpen() {}
 
   /// Closes this instance.
@@ -172,9 +144,11 @@ abstract class RequestSink extends RequestController
   @override
   APIDocument documentAPI(PackagePathResolver resolver) {
     var doc = new APIDocument()..info = apiInfo;
+    final root = entry;
+    root.prepare();
 
-    doc.paths = initialController.documentPaths(resolver);
-    doc.securitySchemes = this.documentSecuritySchemes(resolver);
+    doc.paths = root.documentPaths(resolver);
+    doc.securitySchemes = documentSecuritySchemes(resolver);
 
     var host = new Uri(scheme: "http", host: "localhost");
     if (doc.hosts.length > 0) {
@@ -210,10 +184,8 @@ abstract class RequestSink extends RequestController
         return false;
       }).toList();
     };
-    doc.consumes = distinct(
-        doc.paths.expand((p) => p.operations.expand((op) => op.consumes)));
-    doc.produces = distinct(
-        doc.paths.expand((p) => p.operations.expand((op) => op.produces)));
+    doc.consumes = distinct(doc.paths.expand((p) => p.operations.expand((op) => op.consumes)));
+    doc.produces = distinct(doc.paths.expand((p) => p.operations.expand((op) => op.produces)));
 
     return doc;
   }
@@ -225,10 +197,7 @@ abstract class RequestSink extends RequestController
         .values
         .where((lib) => lib.uri.scheme == "package" || lib.uri.scheme == "file")
         .expand((lib) => lib.declarations.values)
-        .where((decl) =>
-            decl is ClassMirror &&
-            decl.isSubclassOf(sinkType) &&
-            decl.reflectedType != RequestSink)
+        .where((decl) => decl is ClassMirror && decl.isSubclassOf(sinkType) && decl.reflectedType != RequestSink)
         .map((decl) => decl as ClassMirror)
         .toList();
 
@@ -245,9 +214,7 @@ abstract class RequestSink extends RequestController
           op.responses.any((resp) {
             return resp.statusCode == HttpStatus.MOVED_TEMPORARILY &&
                 ["client_id", "username", "password", "state"].every((qp) {
-                  return op.parameters
-                      .map((apiParam) => apiParam.name)
-                      .contains(qp);
+                  return op.parameters.map((apiParam) => apiParam.name).contains(qp);
                 });
           });
     }, orElse: () => null);
@@ -265,8 +232,7 @@ abstract class RequestSink extends RequestController
       return op.method.toLowerCase() == "post" &&
           op.responses.any((resp) {
             return ["access_token", "token_type", "expires_in", "refresh_token"]
-                .every((property) =>
-                    resp.schema?.properties?.containsKey(property) ?? false);
+                .every((property) => resp.schema?.properties?.containsKey(property) ?? false);
           });
     }, orElse: () => null);
 
@@ -317,12 +283,11 @@ class ApplicationMessageHub extends Stream<dynamic> implements Sink<dynamic> {
   /// that failed to send the data will receive [onError] events.
   @override
   StreamSubscription<dynamic> listen(void onData(dynamic event),
-      {Function onError, void onDone(), bool cancelOnError: false}) =>
-    _inboundController.stream.listen(
-        onData,
-        onError: onError ?? (err, st) => _logger.severe("ApplicationMessageHub error", err, st),
-        onDone: onDone,
-        cancelOnError: cancelOnError);
+          {Function onError, void onDone(), bool cancelOnError: false}) =>
+      _inboundController.stream.listen(onData,
+          onError: onError ?? (err, st) => _logger.severe("ApplicationMessageHub error", err, st),
+          onDone: onDone,
+          cancelOnError: cancelOnError);
 
   /// Sends a message to all other isolates.
   ///

@@ -7,18 +7,16 @@ import 'model/model.dart';
 /// Override methods in this class to set up routes and initialize resources like
 /// database connections. See http://aqueduct.io/docs/http/request_sink.
 class WildfireSink extends RequestSink {
-  /// Resource initialization code goes here.
+  /// Final initialization method for this instance.
   ///
-  /// Resources like [AuthServer] and [PostgreSQLPersistentStore] should be instantiated
-  /// in this constructor. Configuration behavior - like [HTTPCodecRepository.add] - should be
-  /// configured in this constructor.
-  ///
-  /// The [appConfig] contains configuration data from `aqueduct serve`, e.g.
-  /// the port the application is running on and the path to a configuration file.
-  WildfireSink(ApplicationConfiguration appConfig) : super(appConfig) {
+  /// This method allows any resources that require asynchronous initialization to complete their
+  /// initialization process. This method is invoked after [setupRouter] and prior to this
+  /// instance receiving any requests.
+  @override
+  Future willOpen() async {
     logger.onRecord.listen((rec) => print("$rec ${rec.error ?? ""} ${rec.stackTrace ?? ""}"));
 
-    var options = new WildfireConfiguration(appConfig.configurationFilePath);
+    var options = new WildfireConfiguration(configuration.configurationFilePath);
     ManagedContext.defaultContext = contextWithConnectionInfo(options.database);
   }
 
@@ -27,19 +25,15 @@ class WildfireSink extends RequestSink {
   /// This method is invoked after the constructor and before [willOpen].
   /// All routes must be set up in this method and cannot be added after this method completes.
   @override
-  void setupRouter(Router router) {
+  RequestController get entry {
+    final router = new Router();
+
     router
         .route("/model/[:id]")
         .generate(() => new ManagedObjectController<Model>());
-  }
 
-  /// Final initialization method for this instance.
-  ///
-  /// This method allows any resources that require asynchronous initialization to complete their
-  /// initialization process. This method is invoked after [setupRouter] and prior to this
-  /// instance receiving any requests.
-  @override
-  Future willOpen() async {}
+    return router;
+  }
 
   /*
    * Helper methods

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:async';
 
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
@@ -530,16 +531,18 @@ void main() {
 }
 
 class TestSink extends RequestSink {
-  TestSink(ApplicationConfiguration opts) : super(opts) {
+  AuthServer authServer;
+
+  @override
+  Future willOpen() async {
     var storage = new InMemoryAuthStorage();
     storage.createUsers(2);
     authServer = new AuthServer(storage);
   }
 
-  AuthServer authServer;
-
   @override
-  void setupRouter(Router router) {
+  RequestController get entry {
+    final router = new Router();
     router.route("/auth/code").generate(() => new AuthCodeController(authServer,
             renderAuthorizationPageHTML: (AuthCodeController c, Uri uri,
                 Map<String, String> queryParams) async {
@@ -548,6 +551,7 @@ class TestSink extends RequestSink {
         }));
 
     router.route("/nopage").generate(() => new AuthCodeController(authServer));
+    return router;
   }
 }
 

@@ -394,18 +394,16 @@ void main() {
 }
 
 class TestSink extends RequestSink {
-  TestSink(ApplicationConfiguration opts) : super(opts) {
+  ManagedContext context;
+
+  @override
+  Future willOpen() async {
     var dataModel = new ManagedDataModel([TestModel]);
     var persistentStore = new PostgreSQLPersistentStore.fromConnectionInfo(
         "dart", "dart", "localhost", 5432, "dart_test");
     context = new ManagedContext(dataModel, persistentStore);
     ManagedContext.defaultContext = context;
-  }
 
-  ManagedContext context;
-
-  @override
-  Future willOpen() async {
     var targetSchema = new Schema.fromDataModel(context.dataModel);
     var schemaBuilder = new SchemaBuilder.toSchema(
         context.persistentStore, targetSchema,
@@ -418,7 +416,8 @@ class TestSink extends RequestSink {
   }
 
   @override
-  void setupRouter(Router router) {
+  RequestController get entry {
+    final router = new Router();
     router
         .route("/controller/[:id]")
         .generate(() => new ManagedObjectController<TestModel>());
@@ -426,6 +425,7 @@ class TestSink extends RequestSink {
     router
       .route("/dynamic/[:id]")
       .generate(() => new ManagedObjectController.forEntity(context.dataModel.entityForType(TestModel)));
+    return router;
   }
 }
 
