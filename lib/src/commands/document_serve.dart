@@ -60,7 +60,7 @@ class CLIDocumentServe extends CLICommand with CLIProject, CLIDocumentOptions {
       });
 
     _router.route("/*").pipe(fileController);
-    _router.finalize();
+    _router.prepare();
 
     server.map((req) => new Request(req)).listen((req) {
       _router.receive(req);

@@ -79,13 +79,14 @@ class Router extends RequestController {
     return routeController;
   }
 
-  /// Invoke on this router once all routes are added.
-  ///
-  /// If you are using the default router from [RequestSink], this method is called for you. Otherwise,
-  /// you must call this method after all routes have been added to build a tree of routes for optimized route finding.
-  void finalize() {
+  @override
+  void prepare() {
     _rootRouteNode =
         new RouteNode(_routeControllers.expand((rh) => rh.patterns).toList());
+
+    for (var c in _routeControllers) {
+      c.prepare();
+    }
   }
 
   /// Routers override this method to throw an exception. Use [route] instead.

@@ -5,7 +5,7 @@ import 'dart:mirrors';
 import 'package:analyzer/analyzer.dart';
 
 import 'http.dart';
-import 'http_controller_internal.dart';
+import 'http_controller_internal/internal.dart';
 
 /// Base class for implementing REST endpoints.
 ///
@@ -90,10 +90,7 @@ abstract class HTTPController extends RequestController {
   /// If a request is sent to an instance of [HTTPController] and has an HTTP request body,
   /// but the Content-Type of the request isn't within this list, the [HTTPController]
   /// will automatically respond with an Unsupported Media Type response.
-  List<ContentType> acceptedContentTypes = [
-    ContentType.JSON,
-    new ContentType("application", "x-www-form-urlencoded")
-  ];
+  List<ContentType> acceptedContentTypes = [ContentType.JSON, new ContentType("application", "x-www-form-urlencoded")];
 
   /// The default content type of responses from this [HTTPController].
   ///
@@ -122,11 +119,17 @@ abstract class HTTPController extends RequestController {
   /// this method is not called.
   void didDecodeRequestBody(HTTPRequestBody decodedObject) {}
 
+  @override
+  void prepare() {
+    var type = reflect(this).type.reflectedType;
+    HTTPControllerBinder.addBinder(new HTTPControllerBinder(type));
+    super.prepare();
+  }
+
   bool _requestContentTypeIsSupported(Request req) {
     var incomingContentType = request.raw.headers.contentType;
     return acceptedContentTypes.firstWhere((ct) {
-          return ct.primaryType == incomingContentType.primaryType &&
-              ct.subType == incomingContentType.subType;
+          return ct.primaryType == incomingContentType.primaryType && ct.subType == incomingContentType.subType;
         }, orElse: () => null) !=
         null;
   }
@@ -139,17 +142,7 @@ abstract class HTTPController extends RequestController {
     }
 
     var binding = await HTTPControllerBinder.bindRequest(this, request);
-    binding.properties
-        .forEach((sym, value) => reflect(this).setField(sym, value));
-
-    var eventualResponse = reflect(this)
-        .invoke(
-            binding.methodSymbol,
-            binding.positionalMethodArguments,
-            binding.optionalMethodArguments)
-        .reflectee as Future<Response>;
-
-    var response = await eventualResponse;
+    var response = await binding.invoke(reflect(this));
     if (!response.hasExplicitlySetContentType) {
       response.contentType = responseContentType;
     }
@@ -169,8 +162,7 @@ abstract class HTTPController extends RequestController {
       } else if (preprocessedResult is Response) {
         response = preprocessedResult;
       } else {
-        response = new Response.serverError(
-            body: {"error": "Preprocessing request did not yield result"});
+        response = new Response.serverError(body: {"error": "Preprocessing request did not yield result"});
       }
 
       return response;
@@ -190,8 +182,7 @@ abstract class HTTPController extends RequestController {
         .where((u) => u is ClassDeclaration)
         .map((cu) => cu as ClassDeclaration)
         .firstWhere((ClassDeclaration classDecl) {
-      return classDecl.name.token.lexeme ==
-          MirrorSystem.getName(reflectedType.simpleName);
+      return classDecl.name.token.lexeme == MirrorSystem.getName(reflectedType.simpleName);
     });
 
     Map<Symbol, MethodDeclaration> methodMap = {};
@@ -201,7 +192,7 @@ abstract class HTTPController extends RequestController {
       }
     });
 
-    return controllerCache.methodBinders.values.map((cachedMethod) {
+    return controllerCache.methodBinders.contents.values.expand((methods) => methods.values).map((cachedMethod) {
       var op = new APIOperation();
       op.id = APIOperation.idForMethod(this, cachedMethod.methodSymbol);
       op.method = cachedMethod.httpMethod.externalName;
@@ -215,8 +206,7 @@ abstract class HTTPController extends RequestController {
       if (methodDeclaration != null) {
         var comment = methodDeclaration.documentationComment;
         var tokens = comment?.tokens ?? [];
-        var lines =
-            tokens.map((t) => t.lexeme.trimLeft().substring(3).trim()).toList();
+        var lines = tokens.map((t) => t.lexeme.trimLeft().substring(3).trim()).toList();
         if (lines.length > 0) {
           op.summary = lines.first;
         }
@@ -227,19 +217,15 @@ abstract class HTTPController extends RequestController {
       }
 
       bool usesFormEncodedData = op.method.toLowerCase() == "post" &&
-          acceptedContentTypes.any((ct) =>
-              ct.primaryType == "application" &&
-              ct.subType == "x-www-form-urlencoded");
+          acceptedContentTypes.any((ct) => ct.primaryType == "application" && ct.subType == "x-www-form-urlencoded");
 
       op.parameters = [
         cachedMethod.positionalParameters,
         cachedMethod.optionalParameters,
         controllerCache.propertyBinders
       ].expand((i) => i.toList()).map((param) {
-        var paramLocation =
-            _parameterLocationFromHTTPParameter(param.binding);
-        if (usesFormEncodedData &&
-            paramLocation == APIParameterLocation.query) {
+        var paramLocation = _parameterLocationFromHTTPParameter(param.binding);
+        if (usesFormEncodedData && paramLocation == APIParameterLocation.query) {
           paramLocation = APIParameterLocation.formData;
         }
 
@@ -247,8 +233,7 @@ abstract class HTTPController extends RequestController {
           ..name = param.name
           ..required = param.isRequired
           ..parameterLocation = paramLocation
-          ..schemaObject =
-              (new APISchemaObject.fromTypeMirror(param.boundValueType));
+          ..schemaObject = (new APISchemaObject.fromTypeMirror(param.boundValueType));
       }).toList();
 
       return op;
@@ -261,8 +246,7 @@ abstract class HTTPController extends RequestController {
       new APIResponse()
         ..statusCode = 500
         ..description = "Something went wrong"
-        ..schema = new APISchemaObject(
-            properties: {"error": new APISchemaObject.string()})
+        ..schema = new APISchemaObject(properties: {"error": new APISchemaObject.string()})
     ];
 
     var symbol = APIOperation.symbolForID(operation.id, this);
@@ -274,8 +258,7 @@ abstract class HTTPController extends RequestController {
         responses.add(new APIResponse()
           ..statusCode = HttpStatus.BAD_REQUEST
           ..description = "Missing required query and/or header parameter(s)."
-          ..schema = new APISchemaObject(
-              properties: {"error": new APISchemaObject.string()}));
+          ..schema = new APISchemaObject(properties: {"error": new APISchemaObject.string()}));
       }
     }
 

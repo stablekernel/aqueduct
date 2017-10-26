@@ -59,7 +59,7 @@ void main() {
       ..route("/silly/*").pipe(
           new HTTPFileController("temp_files")
             ..setContentTypeForExtension("silly", new ContentType("text", "html", charset: "utf-8")));
-    router.finalize();
+    router.prepare();
 
     server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8081);
     server.map((r) => new Request(r)).listen((req) {

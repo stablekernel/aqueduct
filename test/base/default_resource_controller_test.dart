@@ -272,6 +272,7 @@ void main() {
     ManagedContext.defaultContext =
         new ManagedContext(dataModel, new DefaultPersistentStore());
     ManagedObjectController c = new ManagedObjectController<TestModel>();
+    c.prepare();
     var resolver = new PackagePathResolver(new File(".packages").path);
     var operations = c.documentOperations(resolver);
 

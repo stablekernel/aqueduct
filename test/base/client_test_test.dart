@@ -12,7 +12,7 @@ void main() {
         await HttpServer.bind("localhost", 8081, v6Only: false, shared: false);
     var router = new Router();
     router.route("/na").generate(() => new TestController());
-    router.finalize();
+    router.prepare();
     server.map((req) => new Request(req)).listen(router.receive);
 
     var resp = await client.request("/na").get();
