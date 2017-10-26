@@ -63,9 +63,6 @@ abstract class RequestSink extends Object with APIDocumentable {
   /// is for documentation purposes.
   static Future initializeApplication(ApplicationConfiguration config) async {}
 
-  /// Documentation info for this instance.
-  APIInfo apiInfo = new APIInfo();
-
   /// The logger of this instance
   Logger get logger => new Logger("aqueduct");
 
@@ -143,7 +140,7 @@ abstract class RequestSink extends Object with APIDocumentable {
 
   @override
   APIDocument documentAPI(PackagePathResolver resolver) {
-    var doc = new APIDocument()..info = apiInfo;
+    var doc = new APIDocument();
     final root = entry;
     root.prepare();
 
