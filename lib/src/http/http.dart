@@ -12,7 +12,7 @@ export 'query_controller.dart';
 export 'request.dart';
 export 'request_controller.dart';
 export 'request_path.dart';
-export 'request_sink.dart';
+export 'package:aqueduct/src/application/channel.dart';
 export 'resource_controller.dart';
 export 'response.dart';
 export 'router.dart';

@@ -4,14 +4,15 @@ import 'model/model.dart';
 
 /// This type initializes an application.
 ///
-/// Override methods in this class to set up routes and initialize resources like
-/// database connections. See http://aqueduct.io/docs/http/request_sink.
-class WildfireSink extends RequestSink {
-  /// Final initialization method for this instance.
+/// Override methods in this class to set up routes and initialize services like
+/// database connections. See http://aqueduct.io/docs/http/channel/.
+class WildfireChannel extends ApplicationChannel {
+  /// Initialize services in this method.
   ///
-  /// This method allows any resources that require asynchronous initialization to complete their
-  /// initialization process. This method is invoked after [setupRouter] and prior to this
-  /// instance receiving any requests.
+  /// Implement this method to initialize services, read values from [configuration]
+  /// and any other initialization required before constructing [entryPoint].
+  ///
+  /// This method is invoked prior to [entryPoint] being accessed.
   @override
   Future willOpen() async {
     logger.onRecord.listen((rec) => print("$rec ${rec.error ?? ""} ${rec.stackTrace ?? ""}"));
@@ -20,12 +21,14 @@ class WildfireSink extends RequestSink {
     ManagedContext.defaultContext = contextWithConnectionInfo(options.database);
   }
 
-  /// All routes must be configured in this method.
+  /// Construct the request channel.
   ///
-  /// This method is invoked after the constructor and before [willOpen].
-  /// All routes must be set up in this method and cannot be added after this method completes.
+  /// Return an instance of some [RequestController] that will be the initial receiver
+  /// of all [Request]s.
+  ///
+  /// This method is invoked after [willOpen].
   @override
-  RequestController get entry {
+  RequestController get entryPoint {
     final router = new Router();
 
     router

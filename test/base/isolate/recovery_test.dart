@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 
 void main() {
   group("Recovers", () {
-    var app = new Application<TestSink>();
+    var app = new Application<TestChannel>();
 
     tearDown(() async {
       print("stopping");
@@ -71,9 +71,9 @@ void main() {
   });
 }
 
-class TestSink extends RequestSink {
+class TestChannel extends ApplicationChannel {
   @override
-  RequestController get entry {
+  RequestController get entryPoint {
     final router = new Router();
     router.route("/[:id]").generate(() => new UncaughtCrashController());
     return router;

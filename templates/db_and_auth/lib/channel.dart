@@ -6,27 +6,21 @@ import 'controller/user_controller.dart';
 import 'model/user.dart';
 import 'utility/html_template.dart';
 
-/// This class handles setting up this application.
+
+/// This type initializes an application.
 ///
-/// Override methods from [RequestSink] to set up the resources your
-/// application uses and the routes it exposes.
-///
-/// See the documentation in this file for the constructor, [setupRouter] and [willOpen]
-/// for the purpose and order of the initialization methods.
-///
-/// Instances of this class are the type argument to [Application].
-/// See http://aqueduct.io/docs/http/request_sink
-/// for more details.
-class WildfireSink extends RequestSink {
+/// Override methods in this class to set up routes and initialize services like
+/// database connections. See http://aqueduct.io/docs/http/channel/.
+class WildfireChannel extends ApplicationChannel {
   HTMLRenderer htmlRenderer = new HTMLRenderer();
   AuthServer authServer;
 
-
-  /// Final initialization method for this instance.
+  /// Initialize services in this method.
   ///
-  /// This method allows any resources that require asynchronous initialization to complete their
-  /// initialization process. This method is invoked after [setupRouter] and prior to this
-  /// instance receiving any requests.
+  /// Implement this method to initialize services, read values from [configuration]
+  /// and any other initialization required before constructing [entryPoint].
+  ///
+  /// This method is invoked prior to [entryPoint] being accessed.
   @override
   Future willOpen() async {
     logger.onRecord.listen((rec) => print("$rec ${rec.error ?? ""} ${rec.stackTrace ?? ""}"));
@@ -39,12 +33,14 @@ class WildfireSink extends RequestSink {
     authServer = new AuthServer(authStorage);
   }
 
-  /// All routes must be configured in this method.
+  /// Construct the request channel.
   ///
-  /// This method is invoked after the constructor and before [willOpen] Routes must be set up in this method, as
-  /// the router gets 'compiled' after this method completes and routes cannot be added later.
+  /// Return an instance of some [RequestController] that will be the initial receiver
+  /// of all [Request]s.
+  ///
+  /// This method is invoked after [willOpen].
   @override
-  RequestController get entry {
+  RequestController get entryPoint {
     final router = new Router();
 
     /* OAuth 2.0 Endpoints */

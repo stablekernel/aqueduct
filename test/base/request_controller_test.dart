@@ -121,7 +121,7 @@ void main() {
     Application app;
 
     setUp(() async {
-      app = new Application<OutlierSink>()
+      app = new Application<OutlierChannel>()
         ..configuration.port = 8000;
       await app.start(numberOfInstances: 1);
     });
@@ -407,11 +407,11 @@ class Always200Controller extends RequestController {
   }
 }
 
-class OutlierSink extends RequestSink {
+class OutlierChannel extends ApplicationChannel {
   int count = 0;
 
   @override
-  RequestController get entry {
+  RequestController get entryPoint {
     final r = new Router();
     r.route("/detach").listen((Request req) async {
       if (count == 0) {

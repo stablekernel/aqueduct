@@ -4,37 +4,37 @@ import 'dart:mirrors';
 
 import 'package:logging/logging.dart';
 
-import 'request_controller.dart';
-import 'documentable.dart';
-import '../application/application.dart';
+import '../http/request_controller.dart';
+import '../http/documentable.dart';
+import 'application.dart';
 import '../utilities/resource_registry.dart';
-import 'http_codec_repository.dart';
+import '../http/http_codec_repository.dart';
 
 /// Instances of this type are the root of an Aqueduct application.
 ///
 /// [Application]s set up HTTP(S) listeners, but do not do anything with them. The behavior of how an application
-/// responds to requests is defined by its [RequestSink]. Must be subclassed. This class must be visible
+/// responds to requests is defined by its [ApplicationChannel]. Must be subclassed. This class must be visible
 /// to the application library file for tools like `aqueduct serve` to run Aqueduct applications.
 ///
-/// A [RequestSink] must implement its constructor and [setupRouter]. HTTP requests to the [Application] are added to a [RequestSink]
-/// for processing. The path the HTTP request takes is determined by the [RequestController] chains in [setupRouter]. A [RequestSink]
+/// A [ApplicationChannel] must implement its constructor and [setupRouter]. HTTP requests to the [Application] are added to a [ApplicationChannel]
+/// for processing. The path the HTTP request takes is determined by the [RequestController] chains in [setupRouter]. A [ApplicationChannel]
 /// is also a [RequestController], but will always forward HTTP requests on to its [initialController].
 ///
 /// Multiple instances of this type will be created for an [Application], each processing requests independently. Initialization code for
-/// a [RequestSink] instance happens in the constructor, [setupRouter] and [willOpen] - in that order. The constructor instantiates resources,
+/// a [ApplicationChannel] instance happens in the constructor, [setupRouter] and [willOpen] - in that order. The constructor instantiates resources,
 /// [setupRouter] sets up routing and [willOpen] performs any tasks that occur asynchronously, like opening database connections. These initialization
-/// steps occur for every instance of [RequestSink] in an application.
+/// steps occur for every instance of [ApplicationChannel] in an application.
 ///
 /// Any initialization that occurs once per application cannot
 /// be performed in one of above methods. Instead, one-time initialization must be performed by implementing a static method in the
-/// [RequestSink] subclass named `initializeApplication`. This method gets executed once when an application starts, prior to instances of [RequestSink]
+/// [ApplicationChannel] subclass named `initializeApplication`. This method gets executed once when an application starts, prior to instances of [ApplicationChannel]
 /// being created. This method takes an [ApplicationConfiguration],
-/// and may attach values to its [ApplicationConfiguration.options] for use by the [RequestSink] instances. This method is often used to
+/// and may attach values to its [ApplicationConfiguration.options] for use by the [ApplicationChannel] instances. This method is often used to
 /// read configuration values from a file.
 ///
 /// The signature of this method is ([ApplicationConfiguration]) -> [Future], for example:
 ///
-///         class MyRequestSink extends RequestSink {
+///         class Channel extends ApplicationChannel {
 ///           static Future initializeApplication(ApplicationConfiguration config) async {
 ///             // Do one-time setup here, e.g read configuration values from a file
 ///             var configurationValuesFromFile = ...;
@@ -43,11 +43,11 @@ import 'http_codec_repository.dart';
 ///           ...
 ///         }
 ///
-abstract class RequestSink extends Object with APIDocumentable {
+abstract class ApplicationChannel extends Object with APIDocumentable {
   /// One-time setup method for an application.
   ///
   /// This method is invoked as the first step during application startup. It is only invoked once per application, whereas other initialization
-  /// methods are invoked once per isolate. Implement this method in an application's [RequestSink] subclass. If you are sharing some resource
+  /// methods are invoked once per isolate. Implement this method in an application's [ApplicationChannel] subclass. If you are sharing some resource
   /// across isolates, it must be instantiated in this method.
   ///
   ///         class MyRequestSink extends RequestSink {
@@ -55,11 +55,11 @@ abstract class RequestSink extends Object with APIDocumentable {
   ///
   ///           }
   ///
-  /// Any modifications to [config] are available in each [RequestSink] and therefore must be isolate-safe data. Do not configure
+  /// Any modifications to [config] are available in each [ApplicationChannel] and therefore must be isolate-safe data. Do not configure
   /// types like [HTTPCodecRepository] or any other types that are referenced by your code. If it can't be safely passed in [ApplicationConfiguration],
   /// it shouldn't be modified.
   ///
-  /// * Note that static methods are not inherited in Dart and therefore you are not overriding this method. The declaration of this method in the base [RequestSink] class
+  /// * Note that static methods are not inherited in Dart and therefore you are not overriding this method. The declaration of this method in the base [ApplicationChannel] class
   /// is for documentation purposes.
   static Future initializeApplication(ApplicationConfiguration config) async {}
 
@@ -79,7 +79,7 @@ abstract class RequestSink extends Object with APIDocumentable {
 
   ApplicationServer _server;
 
-  /// Sends and receives messages to other isolates running a [RequestSink].
+  /// Sends and receives messages to other isolates running a [ApplicationChannel].
   ///
   /// Messages may be sent to other instances of this type via [ApplicationMessageHub.add]. An instance of this type
   /// may listen for those messages via [ApplicationMessageHub.listen]. See [ApplicationMessageHub] for more details.
@@ -90,7 +90,7 @@ abstract class RequestSink extends Object with APIDocumentable {
   /// By default, this value is null. When null, an [Application] using this instance will listen over HTTP, and not HTTPS.
   /// If this instance [configuration] has non-null values for both [ApplicationConfiguration.certificateFilePath] and [ApplicationConfiguration.privateKeyFilePath],
   /// this value is a valid [SecurityContext] configured to use the certificate chain and private key as indicated by the configuration. The listening server
-  /// will allow connections over HTTPS only. This getter is only invoked once per instance, after [initializeApplication] and [RequestSink]'s constructor have been
+  /// will allow connections over HTTPS only. This getter is only invoked once per instance, after [initializeApplication] and [ApplicationChannel]'s constructor have been
   /// called, but before any other initialization occurs.
   ///
   /// You may override this getter to provide a customized [SecurityContext].
@@ -110,7 +110,7 @@ abstract class RequestSink extends Object with APIDocumentable {
   /// from configuration data. This property is set in the constructor.
   ApplicationConfiguration configuration;
 
-  RequestController get entry;
+  RequestController get entryPoint;
 
   /// Callback executed prior to this instance receiving requests.
   ///
@@ -121,7 +121,7 @@ abstract class RequestSink extends Object with APIDocumentable {
   /// Executed after the instance is is open to handle HTTP requests.
   ///
   /// This method is executed after the [HttpServer] is started and
-  /// the [entry] has been set to start receiving requests.
+  /// the [entryPoint] has been set to start receiving requests.
   void didOpen() {}
 
   /// Closes this instance.
@@ -132,16 +132,16 @@ abstract class RequestSink extends Object with APIDocumentable {
   /// If you do override this method, you must call the super implementation. The default behavior of this method removes
   /// any listeners from [logger], so it is advantageous to invoke the super implementation at the end of the override.
   Future close() async {
-    logger.fine("RequestSink(${server.identifier}).close: closing messageHub");
+    logger.fine("ApplicationChannel(${server.identifier}).close: closing messageHub");
     await messageHub.close();
-    logger.fine("RequestSink(${server.identifier}).close: clear logger listeners");
+    logger.fine("ApplicationChannel(${server.identifier}).close: clear logger listeners");
     logger?.clearListeners();
   }
 
   @override
   APIDocument documentAPI(PackagePathResolver resolver) {
     var doc = new APIDocument();
-    final root = entry;
+    final root = entryPoint;
     root.prepare();
 
     doc.paths = root.documentPaths(resolver);
@@ -187,14 +187,14 @@ abstract class RequestSink extends Object with APIDocumentable {
     return doc;
   }
 
-  static Type get defaultSinkType {
-    var sinkType = reflectClass(RequestSink);
+  static Type get defaultType {
+    var channelType = reflectClass(ApplicationChannel);
     var classes = currentMirrorSystem()
         .libraries
         .values
         .where((lib) => lib.uri.scheme == "package" || lib.uri.scheme == "file")
         .expand((lib) => lib.declarations.values)
-        .where((decl) => decl is ClassMirror && decl.isSubclassOf(sinkType) && decl.reflectedType != RequestSink)
+        .where((decl) => decl is ClassMirror && decl.isSubclassOf(channelType) && decl.reflectedType != ApplicationChannel)
         .map((decl) => decl as ClassMirror)
         .toList();
 
@@ -244,7 +244,7 @@ abstract class RequestSink extends Object with APIDocumentable {
 
 /// Sends and receives messages from other isolates started by an [Application].
 ///
-/// Messages added to an instance of this type - through [add] - are broadcast to every isolate running a [RequestSink].
+/// Messages added to an instance of this type - through [add] - are broadcast to every isolate running a [ApplicationChannel].
 /// These messages are be received by [listen]ing to an instance of this type. A hub only receives messages from other isolates - it will not
 /// receive messages that it sent.
 ///

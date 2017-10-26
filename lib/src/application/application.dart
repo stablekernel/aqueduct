@@ -19,10 +19,10 @@ export 'application_server.dart';
 ///
 /// Applications are responsible for managing starting and stopping of HTTP server instances across multiple isolates.
 /// Behavior specific to an application is implemented by setting the [Application]'s [configuration] and providing
-/// a [RequestSinkType].
+/// a [T].
 ///
 /// Instances of this class are created by the command like `aqueduct serve` tool and rarely used by an Aqueduct developer directly.
-class Application<RequestSinkType extends RequestSink> {
+class Application<T extends ApplicationChannel> {
   Application();
 
   /// Used internally.
@@ -31,19 +31,19 @@ class Application<RequestSinkType extends RequestSink> {
   /// The [ApplicationServer] managing delivering HTTP requests into this application.
   ///
   /// This property is only valid if this application is started with runOnMainIsolate set to true in [start].
-  /// Tests may access this property to examine or directly use resources of a [RequestSink].
+  /// Tests may access this property to examine or directly use resources of a [ApplicationChannel].
   ApplicationServer server;
 
-  /// The [RequestSink] receiving requests on the main isolate.
+  /// The [ApplicationChannel] when running via [test].
   ///
   /// Applications run during testing are run on the main isolate. When running in this way,
-  /// an application will only have one [RequestSinkType] receiving HTTP requests. This property is that instance.
+  /// an application will only have one [T] receiving HTTP requests. This property is that instance.
   /// If an application is running across multiple isolates, this property is null. See [start] for more details.
-  RequestSinkType get mainIsolateSink => server?.sink as RequestSinkType;
+  T get channel => server?.channel as T;
 
   /// A reference to a logger.
   ///
-  /// This [Logger] will be named the same as the loggers used on each request sink.
+  /// This [Logger] will be named the same as the loggers used on each channel.
   Logger logger = new Logger("aqueduct");
 
   /// The configuration for the HTTP server this application is running.
@@ -69,10 +69,10 @@ class Application<RequestSinkType extends RequestSink> {
   ///
   /// Returns a [Future] that completes when all [Isolate]s have started listening for requests.
   /// The [numberOfInstances] defines how many [Isolate]s are spawned running this application's [configuration]
-  /// and [RequestSinkType].
+  /// and [T].
   ///
-  /// If this instances [RequestSinkType] implements `initializeApplication` (see [RequestSink] for more details),
-  /// that one-time initialization method will be executed prior to the spawning of isolates and instantiations of [RequestSink].
+  /// If this instances [T] implements `initializeApplication` (see [ApplicationChannel] for more details),
+  /// that one-time initialization method will be executed prior to the spawning of isolates and instantiations of [ApplicationChannel].
   ///
   /// See also [test] for starting an application when running automated tests
   Future start({int numberOfInstances: 1, bool consoleLogging: false}) async {
@@ -88,12 +88,12 @@ class Application<RequestSinkType extends RequestSink> {
       }
     }
 
-    var requestSinkType = reflectClass(RequestSinkType);
+    var channelType = reflectClass(T);
     try {
-      await _globalStart(requestSinkType, configuration);
+      await _globalStart(channelType, configuration);
 
       for (int i = 0; i < numberOfInstances; i++) {
-        var supervisor = await _spawn(requestSinkType, configuration, i + 1, logToConsole: consoleLogging);
+        var supervisor = await _spawn(channelType, configuration, i + 1, logToConsole: consoleLogging);
         supervisors.add(supervisor);
         await supervisor.resume();
       }
@@ -121,11 +121,11 @@ class Application<RequestSinkType extends RequestSink> {
 
     configuration.address = InternetAddress.LOOPBACK_IP_V4;
 
-    var requestSinkType = reflectClass(RequestSinkType);
+    var channelType = reflectClass(T);
     try {
-      await _globalStart(requestSinkType, configuration);
+      await _globalStart(channelType, configuration);
 
-      server = new ApplicationServer(requestSinkType, configuration, 1, captureStack: true);
+      server = new ApplicationServer(channelType, configuration, 1, captureStack: true);
 
       await server.start();
     } catch (e, st) {
@@ -142,7 +142,7 @@ class Application<RequestSinkType extends RequestSink> {
 
   /// Stops the application from running.
   ///
-  /// Closes down every [RequestSinkType] and stops listening for HTTP requests.
+  /// Closes down every [T] and stops listening for HTTP requests.
   Future stop() async {
     await Future.wait(supervisors.map((s) => s.stop()));
     await server?.server?.close(force: true);
@@ -158,33 +158,33 @@ class Application<RequestSinkType extends RequestSink> {
   }
 
   static Future<APIDocument> document(
-      Type sinkType, ApplicationConfiguration config, PackagePathResolver resolver) async {
-    var sinkMirror = reflectClass(sinkType);
+      Type channelType, ApplicationConfiguration config, PackagePathResolver resolver) async {
+    var channelMirror = reflectClass(channelType);
 
     config.isDocumenting = true;
-    await _globalStart(sinkMirror, config);
+    await _globalStart(channelMirror, config);
 
-    final server = new ApplicationServer(sinkMirror, config, 1, captureStack: true);
-    await server.sink.willOpen();
+    final server = new ApplicationServer(channelMirror, config, 1, captureStack: true);
+    await server.channel.willOpen();
 
-    return server.sink.documentAPI(resolver);
+    return server.channel.documentAPI(resolver);
   }
 
-  static Future _globalStart(ClassMirror sinkType, ApplicationConfiguration config) {
+  static Future _globalStart(ClassMirror channelType, ApplicationConfiguration config) {
     var globalStartSymbol = #initializeApplication;
-    if (sinkType.staticMembers[globalStartSymbol] != null) {
-      return sinkType.invoke(globalStartSymbol, [config]).reflectee;
+    if (channelType.staticMembers[globalStartSymbol] != null) {
+      return channelType.invoke(globalStartSymbol, [config]).reflectee;
     }
 
     return null;
   }
 
-  Future<ApplicationIsolateSupervisor> _spawn(ClassMirror sinkTypeMirror, ApplicationConfiguration config, int identifier,
+  Future<ApplicationIsolateSupervisor> _spawn(ClassMirror channelTypeMirror, ApplicationConfiguration config, int identifier,
       {bool logToConsole: false}) async {
     var receivePort = new ReceivePort();
 
-    var streamLibraryURI = (sinkTypeMirror.owner as LibraryMirror).uri;
-    var streamTypeName = MirrorSystem.getName(sinkTypeMirror.simpleName);
+    var streamLibraryURI = (channelTypeMirror.owner as LibraryMirror).uri;
+    var streamTypeName = MirrorSystem.getName(channelTypeMirror.simpleName);
 
     var initialMessage = new ApplicationInitialServerMessage(
         streamTypeName, streamLibraryURI, config, identifier, receivePort.sendPort,

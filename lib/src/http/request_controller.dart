@@ -17,9 +17,9 @@ typedef FutureOr<RequestOrResponse> _RequestControllerListener(Request request);
 /// Base type that processes [Request]s.
 ///
 /// Instances of this type process requests by creating a [Response] or passing the [Request] to [nextController]. The [nextController]
-/// is set at startup in [RequestSink.entry] via [pipe], [generate], or [listen].
+/// is set at startup in [ApplicationChannel.entryPoint] via [pipe], [generate], or [listen].
 ///
-/// This class is intended to be subclassed. [RequestSink], [Router], [HTTPController] are all examples of this type.
+/// This class is intended to be subclassed. [ApplicationChannel], [Router], [HTTPController] are all examples of this type.
 /// Subclasses should implement [processRequest] to respond to, modify or forward requests.
 class RequestController extends Object with APIDocumentable {
   /// Default constructor.
@@ -113,8 +113,8 @@ class RequestController extends Object with APIDocumentable {
   /// but before any requests are served. This is useful for performing any caching or optimizations for this instance.
   /// For example, [Router] overrides this method to optimize its list of routes into a more efficient data structure.
   ///
-  /// This method is invoked immediately after [RequestSink.entry] is completes, for each
-  /// instance in the channel created by [RequestSink.entry]. This method will only be called once per instance.
+  /// This method is invoked immediately after [ApplicationChannel.entryPoint] is completes, for each
+  /// instance in the channel created by [ApplicationChannel.entryPoint]. This method will only be called once per instance.
   ///
   /// Controllers added to the channel via [generate] may use this method, but any values this method stores
   /// must be stored in a static structure, not the instance itself, since that instance will only be used to handle one request
@@ -344,7 +344,7 @@ class RequestControllerException implements Exception {
 /// that [RequestController] is reused for another request, some of that state may carry over. Therefore,
 /// it is a better solution to instantiate the [RequestController] for each incoming request. Marking
 /// a [RequestController] subclass with this flag will ensure that an exception is thrown if an instance
-/// of [RequestController] is chained in a [RequestSink]. These instances must be generated with a closure:
+/// of [RequestController] is chained in a [ApplicationChannel]. These instances must be generated with a closure:
 ///
 ///       router.route("/path").generate(() => new RequestControllerSubclass());
 const _RequiresInstantiation cannotBeReused = const _RequiresInstantiation();

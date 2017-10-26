@@ -18,7 +18,7 @@ void main() {
     test(
         "Application start fails and logs appropriate message if request stream doesn't open",
             () async {
-          var crashingApp = new Application<CrashSink>();
+          var crashingApp = new Application<CrashChannel>();
 
           try {
             crashingApp.configuration.options = {"crashIn": "addRoutes"};
@@ -49,7 +49,7 @@ void main() {
           var server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 8081);
           server.listen((req) {});
 
-          var conflictingApp = new Application<TestSink>();
+          var conflictingApp = new Application<TestChannel>();
           conflictingApp.configuration.port = 8081;
 
           try {
@@ -63,7 +63,7 @@ void main() {
         });
 
     test("Isolate timeout kills application when first isolate fails", () async {
-      var timeoutApp = new Application<TimeoutSink>()
+      var timeoutApp = new Application<TimeoutChannel>()
         ..isolateStartupTimeout = new Duration(seconds: 4)
         ..configuration.options = {
           "timeout1" : 10
@@ -81,7 +81,7 @@ void main() {
     });
 
     test("Isolate timeout kills application when first isolate succeeds, but next fails", () async {
-      var timeoutApp = new Application<TimeoutSink>()
+      var timeoutApp = new Application<TimeoutChannel>()
         ..isolateStartupTimeout = new Duration(seconds: 4)
         ..configuration.options = {
           "timeout2" : 10
@@ -100,11 +100,11 @@ void main() {
   });
 }
 
-class TimeoutSink extends RequestSink {
+class TimeoutChannel extends ApplicationChannel {
   Timer timer;
 
   @override
-  RequestController get entry {
+  RequestController get entryPoint {
     return new Router();
   }
 
@@ -145,9 +145,9 @@ class TestException implements Exception {
   }
 }
 
-class CrashSink extends RequestSink {
+class CrashChannel extends ApplicationChannel {
   @override
-  RequestController get entry {
+  RequestController get entryPoint {
     final router = new Router();
     if (configuration.options["crashIn"] == "addRoutes") {
       throw new TestException("addRoutes");
@@ -164,7 +164,7 @@ class CrashSink extends RequestSink {
   }
 }
 
-class TestSink extends RequestSink {
+class TestChannel extends ApplicationChannel {
   static Future initializeApplication(ApplicationConfiguration config) async {
     List<int> v = config.options["startup"] ?? [];
     v.add(1);
@@ -172,7 +172,7 @@ class TestSink extends RequestSink {
   }
 
   @override
-  RequestController get entry {
+  RequestController get entryPoint {
     final router = new Router();
     router.route("/t").listen((req) async => new Response.ok("t_ok"));
     router.route("/r").listen((req) async => new Response.ok("r_ok"));
