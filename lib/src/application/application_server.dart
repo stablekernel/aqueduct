@@ -21,6 +21,7 @@ class ApplicationServer {
   /// You should not need to invoke this method directly.
   ApplicationServer(ClassMirror requestSinkType, this.configuration, this.identifier, {this.captureStack: false}) {
     sink = requestSinkType.newInstance(new Symbol(""), []).reflectee;
+    sink.server = this;
     sink.configuration = configuration;
   }
 
@@ -62,10 +63,8 @@ class ApplicationServer {
   ///
   /// Do not invoke this method directly, [Application] instances are responsible
   /// for calling this method.
-  Future start(RequestSink sink, {bool shareHttpServer: false}) async {
+  Future start({bool shareHttpServer: false}) async {
     logger.fine("ApplicationServer($identifier).start entry");
-    this.sink = sink;
-    sink.server = this;
 
     await sink.willOpen();
 

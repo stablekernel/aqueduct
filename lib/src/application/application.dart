@@ -127,7 +127,7 @@ class Application<RequestSinkType extends RequestSink> {
 
       server = new ApplicationServer(requestSinkType, configuration, 1, captureStack: true);
 
-      await server.start(server.sink);
+      await server.start();
     } catch (e, st) {
       logger.severe("$e", this, st);
       await stop().timeout(new Duration(seconds: 5));
