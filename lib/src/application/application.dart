@@ -104,7 +104,6 @@ class Application<RequestSinkType extends RequestSink> {
     }
     supervisors.forEach((sup) => sup.sendPendingMessages());
 
-
     _interruptSubscription = ProcessSignal.SIGINT.watch().listen((evt) {
       logger.info("Shutting down due to interrupt signal.");
       stop();
