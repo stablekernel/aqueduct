@@ -21,7 +21,7 @@ void main() {
     var router = new Router();
     router.route("/users/[:id]").generate(() => new TestModelController());
     router.route("/string/:id").generate(() => new StringController());
-    router.finalize();
+    router.prepare();
 
     server.listen((req) async {
       router.receive(new Request(req));

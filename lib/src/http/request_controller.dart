@@ -73,8 +73,9 @@ class RequestController extends Object with APIDocumentable {
   RequestController pipe(RequestController next) {
     var typeMirror = reflect(next).type;
     if (_requestControllerTypeRequiresInstantion(typeMirror)) {
-      throw new RequestControllerException(
-          "'${typeMirror.reflectedType}' instances cannot be reused between requests. Rewrite as .generate(() => new ${typeMirror.reflectedType}())");
+      throw new RequestControllerException("'${typeMirror
+              .reflectedType}' instances cannot be reused between requests. Rewrite as .generate(() => new ${typeMirror
+              .reflectedType}())");
     }
     _nextController = next;
 
@@ -106,10 +107,26 @@ class RequestController extends Object with APIDocumentable {
     return _nextController;
   }
 
+  /// Lifecycle callback, invoked after added to channel, but before any requests are served.
+  ///
+  /// Subclasses override this method to provide final initialization after it has been added to a channel,
+  /// but before any requests are served. This is useful for performing any caching or optimizations for this instance.
+  /// For example, [Router] overrides this method to optimize its list of routes into a more efficient data structure..
+  ///
+  /// This method is invoked immediately after [RequestSink.setupRouter] is called for each controller in the channel.
+  ///
+  /// If a controller is added to the channel through [generate], an instance of the generated controller is created,
+  /// its [prepare] method invoked, and then it is discarded. Therefore,
+  ///
+  ///
+  /// If you override this method, you should call the superclass' implementation. The default implementation currently
+  /// does nothing, but may in the future.
+  void prepare() {
+    _nextController?.prepare();
+  }
+
   bool _requestControllerTypeRequiresInstantion(ClassMirror mirror) {
-    if (mirror.metadata.firstWhere((im) => im.reflectee is _RequiresInstantion,
-            orElse: () => null) !=
-        null) {
+    if (mirror.metadata.firstWhere((im) => im.reflectee is _RequiresInstantiation, orElse: () => null) != null) {
       return true;
     }
     if (mirror.isSubtypeOf(reflectType(RequestController))) {
@@ -211,9 +228,7 @@ class RequestController extends Object with APIDocumentable {
   Future<bool> handleError(Request request, dynamic caughtValue, StackTrace trace) async {
     if (caughtValue is HTTPStreamingException) {
       logger.severe(
-          "${request.toDebugString(includeHeaders: true)}",
-          caughtValue.underlyingException,
-          caughtValue.trace);
+          "${request.toDebugString(includeHeaders: true)}", caughtValue.underlyingException, caughtValue.trace);
 
       await request.response.close();
 
@@ -224,8 +239,7 @@ class RequestController extends Object with APIDocumentable {
     if (caughtValue is HTTPResponseException) {
       response = caughtValue.response;
 
-      logger.info(
-          "${request.toDebugString(includeHeaders: true)}");
+      logger.info("${request.toDebugString(includeHeaders: true)}");
 
       if (caughtValue.isControlFlowException) {
         await _sendResponse(request, response, includeCORSHeaders: true);
@@ -235,23 +249,28 @@ class RequestController extends Object with APIDocumentable {
 
     var body;
     if (includeErrorDetailsInServerErrorResponses) {
-      body = {
-        "error": "${this.runtimeType}: $caughtValue.",
-        "stacktrace": trace.toString()
-      };
+      body = {"error": "${this.runtimeType}: $caughtValue.", "stacktrace": trace.toString()};
     }
 
-    response ??= new Response.serverError(body: body)
-      ..contentType = ContentType.JSON;
+    response ??= new Response.serverError(body: body)..contentType = ContentType.JSON;
 
     await _sendResponse(request, response, includeCORSHeaders: true);
 
-    logger.severe(
-        "${request.toDebugString(includeHeaders: true)}",
-        caughtValue,
-        trace);
+    logger.severe("${request.toDebugString(includeHeaders: true)}", caughtValue, trace);
 
     return true;
+  }
+
+  void applyCORSHeadersIfNecessary(Request req, Response resp) {
+    if (req.isCORSRequest && !req.isPreflightRequest) {
+      var lastPolicyController = _lastRequestController();
+      var p = lastPolicyController.policy;
+      if (p != null) {
+        if (p.isRequestOriginAllowed(req.raw)) {
+          resp.headers.addAll(p.headersForRequest(req));
+        }
+      }
+    }
   }
 
   Future _handlePreflightRequest(Request req) async {
@@ -285,8 +304,7 @@ class RequestController extends Object with APIDocumentable {
     return controllerToDictatePolicy?.receive(req);
   }
 
-  Future _sendResponse(Request request, Response response,
-      {bool includeCORSHeaders: false}) {
+  Future _sendResponse(Request request, Response response, {bool includeCORSHeaders: false}) {
     if (includeCORSHeaders) {
       applyCORSHeadersIfNecessary(request, response);
     }
@@ -302,19 +320,21 @@ class RequestController extends Object with APIDocumentable {
     }
     return controller;
   }
-
-  void applyCORSHeadersIfNecessary(Request req, Response resp) {
-    if (req.isCORSRequest && !req.isPreflightRequest) {
-      var lastPolicyController = _lastRequestController();
-      var p = lastPolicyController.policy;
-      if (p != null) {
-        if (p.isRequestOriginAllowed(req.raw)) {
-          resp.headers.addAll(p.headersForRequest(req));
-        }
-      }
-    }
-  }
 }
+
+
+/// Thrown when [RequestController] throws an exception.
+///
+///
+class RequestControllerException implements Exception {
+  RequestControllerException(this.message);
+
+  String message;
+
+  @override
+  String toString() => "RequestControllerException: $message";
+}
+
 
 /// Metadata for a [RequestController] subclass that requires it must be instantiated for each request.
 ///
@@ -327,70 +347,67 @@ class RequestController extends Object with APIDocumentable {
 /// of [RequestController] is chained in a [RequestSink]. These instances must be generated with a closure:
 ///
 ///       router.route("/path").generate(() => new RequestControllerSubclass());
-const _RequiresInstantion cannotBeReused = const _RequiresInstantion();
+const _RequiresInstantiation cannotBeReused = const _RequiresInstantiation();
 
-class _RequiresInstantion {
-  const _RequiresInstantion();
+class _RequiresInstantiation {
+  const _RequiresInstantiation();
 }
 
+typedef RequestController RequestControllerGeneratorClosure();
+
 class _RequestControllerGenerator extends RequestController {
-  _RequestControllerGenerator(RequestController generator()) {
-    this.generator = generator;
+  _RequestControllerGenerator(this.generator) {
+    nextInstanceToReceive = instantiate();
   }
 
-  Function generator;
-  CORSPolicy _policyOverride;
+  RequestControllerGeneratorClosure generator;
+  CORSPolicy policyOverride;
+  RequestController nextInstanceToReceive;
 
   RequestController instantiate() {
     RequestController instance = generator();
     instance._nextController = this.nextController;
-    if (_policyOverride != null) {
-      instance.policy = _policyOverride;
+    if (policyOverride != null) {
+      instance.policy = policyOverride;
     }
     return instance;
   }
 
   @override
   CORSPolicy get policy {
-    return instantiate().policy;
+    return nextInstanceToReceive.policy;
   }
 
   @override
   set policy(CORSPolicy p) {
-    _policyOverride = p;
+    policyOverride = p;
   }
 
   @override
   Future receive(Request req) {
-    return instantiate().receive(req);
+    var next = nextInstanceToReceive;
+    nextInstanceToReceive = instantiate();
+    return next.receive(req);
   }
 
   @override
-  APIDocument documentAPI(PackagePathResolver resolver) =>
-      instantiate().documentAPI(resolver);
+  void prepare() {
+    // don't call super, since nextInstanceToReceive's nextController is set to the same instance,
+    // and it must call nextController.prepare
+    nextInstanceToReceive.prepare();
+  }
 
   @override
-  List<APIPath> documentPaths(PackagePathResolver resolver) =>
-      instantiate().documentPaths(resolver);
+  APIDocument documentAPI(PackagePathResolver resolver) => nextInstanceToReceive.documentAPI(resolver);
+
+  @override
+  List<APIPath> documentPaths(PackagePathResolver resolver) => nextInstanceToReceive.documentPaths(resolver);
 
   @override
   List<APIOperation> documentOperations(PackagePathResolver resolver) =>
-      instantiate().documentOperations(resolver);
+      nextInstanceToReceive.documentOperations(resolver);
 
   @override
-  Map<String, APISecurityScheme> documentSecuritySchemes(
-          PackagePathResolver resolver) =>
-      instantiate().documentSecuritySchemes(resolver);
-}
-
-/// Thrown when [RequestController] throws an exception.
-///
-///
-class RequestControllerException implements Exception {
-  RequestControllerException(this.message);
-
-  String message;
-
-  @override
-  String toString() => "RequestControllerException: $message";
+  Map<String, APISecurityScheme> documentSecuritySchemes(PackagePathResolver resolver) =>
+      nextInstanceToReceive.documentSecuritySchemes(resolver);
 }

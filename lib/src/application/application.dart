@@ -104,7 +104,6 @@ class Application<RequestSinkType extends RequestSink> {
     }
     supervisors.forEach((sup) => sup.sendPendingMessages());
 
-
     _interruptSubscription = ProcessSignal.SIGINT.watch().listen((evt) {
       logger.info("Shutting down due to interrupt signal.");
       stop();
@@ -168,7 +167,7 @@ class Application<RequestSinkType extends RequestSink> {
 
     RequestSink sink = sinkMirror.newInstance(new Symbol(""), [config]).reflectee;
     sink.setupRouter(sink.router);
-    sink.router.finalize();
+    sink.router.prepare();
 
     return sink.documentAPI(resolver);
   }

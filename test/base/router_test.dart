@@ -260,7 +260,7 @@ void main() {
 }
 
 Future<HttpServer> enableRouter(Router router) async {
-  router.finalize();
+  router.prepare();
   var server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 4040);
   server.map((httpReq) => new Request(httpReq)).listen(router.receive);
   return server;

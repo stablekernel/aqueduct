@@ -1,4 +1,4 @@
-import 'http_controller_internal.dart';
+import 'http_controller_internal/internal.dart';
 import 'http_controller.dart';
 import 'request_path.dart';
 import 'serializable.dart';

@@ -60,7 +60,7 @@ void main() {
     router
         .route("/auth/token")
         .generate(() => new AuthController(authenticationServer));
-    router.finalize();
+    router.prepare();
 
     server =
         await HttpServer.bind("localhost", 8081, v6Only: false, shared: false);

@@ -60,7 +60,7 @@ class ApplicationServer {
     sink.server = this;
 
     sink.setupRouter(sink.router);
-    sink.router?.finalize();
+    sink.router?.prepare();
     sink.pipe(sink.initialController);
 
     logger.fine("ApplicationServer($identifier).start binding HTTP");
