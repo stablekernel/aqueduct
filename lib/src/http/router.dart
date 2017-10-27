@@ -115,32 +115,27 @@ class Router extends RequestController {
     RequestController next;
     try {
       var requestURISegmentIterator = req.raw.uri.pathSegments.iterator;
-      if (_basePathSegments.length > 0) {
-        for (var i = 0; i < _basePathSegments.length; i++) {
-          requestURISegmentIterator.moveNext();
-          if (_basePathSegments[i] != requestURISegmentIterator.current) {
-            await _unhandledRequestController(req);
-            return null;
-          }
+      if (req.raw.uri.pathSegments.isEmpty) {
+        requestURISegmentIterator = [""].iterator;
+      }
+
+      for (var i = 0; i < _basePathSegments.length; i++) {
+        requestURISegmentIterator.moveNext();
+        if (_basePathSegments[i] != requestURISegmentIterator.current) {
+          await _unhandledRequestController(req);
+          return null;
         }
       }
 
-      var remainingSegments = <String>[];
-      while (requestURISegmentIterator.moveNext()) {
-        remainingSegments.add(requestURISegmentIterator.current);
-      }
-      if (remainingSegments.isEmpty) {
-        remainingSegments = [""];
-      }
+      req.path = new HTTPRequestPath(req.raw.uri.pathSegments);
 
-      var node = _rootRouteNode.nodeForPathSegments(remainingSegments);
+      var node = _rootRouteNode.nodeForPathSegments(requestURISegmentIterator, req.path);
       if (node?.specification == null) {
         await _unhandledRequestController(req);
         return null;
       }
+      req.path.specification = node.specification;
 
-      var requestPath = new HTTPRequestPath(node.specification, remainingSegments);
-      req.path = requestPath;
       next = node.controller;
     } catch (any, stack) {
       return handleError(req, any, stack);
@@ -156,6 +151,11 @@ class Router extends RequestController {
         .map((RouteSpecification routeSpec) =>
             routeSpec.documentPaths(resolver).first)
         .toList();
+  }
+
+  @override
+  String toString() {
+    return _rootRouteNode.toString();
   }
 
   Future _handleUnhandledRequest(Request req) async {

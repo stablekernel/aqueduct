@@ -11,13 +11,11 @@ class HTTPRequestPath {
   /// Default constructor for [HTTPRequestPath].
   ///
   /// There is no need to invoke this constructor manually.
-  HTTPRequestPath(
-      RouteSpecification specification, List<String> requestSegments) {
-    segments = requestSegments;
-    orderedVariableNames = [];
+  HTTPRequestPath(this.segments);
 
-    var requestIterator = requestSegments.iterator;
-    for (var segment in specification.segments) {
+  set specification(RouteSpecification spec) {
+    var requestIterator = segments.iterator;
+    for (var segment in spec.segments) {
       requestIterator.moveNext();
       var requestSegment = requestIterator.current;
 
@@ -26,7 +24,7 @@ class HTTPRequestPath {
         orderedVariableNames.add(segment.variableName);
       } else if (segment.isRemainingMatcher) {
         var remaining = [];
-        remaining.add(requestIterator.current);
+        remaining.add(requestIterator.current ?? "");
         while (requestIterator.moveNext()) {
           remaining.add(requestIterator.current);
         }
@@ -55,7 +53,7 @@ class HTTPRequestPath {
   /// This property will contain every segment of the matched path, including
   /// constant segments. It will not contain any part of the path caught by
   /// the asterisk 'match all' token (*), however. Those are in [remainingPath].
-  List<String> segments = [];
+  List<String> segments = new List<String>();
 
   /// If a match specification uses the 'match all' token (*),
   /// the part of the path matched by that token will be stored in this property.
