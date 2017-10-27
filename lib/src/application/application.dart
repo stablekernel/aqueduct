@@ -18,13 +18,11 @@ export 'application_server.dart';
 /// A container for web server applications.
 ///
 /// Applications are responsible for managing starting and stopping of HTTP server instances across multiple isolates.
-/// Behavior specific to an application is implemented by setting the [Application]'s [configuration] and providing
-/// a [T].
+/// An application implements does not implement any request handling logic. Instead, it instantiates instances of [T]
+/// that have a [ApplicationChannel.entryPoint] that HTTP requests are sent to to be handled.
 ///
 /// Instances of this class are created by the command like `aqueduct serve` tool and rarely used by an Aqueduct developer directly.
 class Application<T extends ApplicationChannel> {
-  Application();
-
   /// Used internally.
   List<ApplicationIsolateSupervisor> supervisors = [];
 

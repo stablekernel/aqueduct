@@ -50,12 +50,7 @@ abstract class HTTPBinding {
       var parseDecl = typeMirror.declarations[#parse];
       if (parseDecl != null) {
         try {
-<<<<<<< HEAD
           return typeMirror.invoke(parseDecl.simpleName, [parameterValue]).reflectee;
-=======
-          var reflValue = typeMirror.invoke(parseDecl.simpleName, [parameterValue]);
-          return reflValue.reflectee;
->>>>>>> Add RequestController.prepare
         } catch (e) {
           throw new InternalControllerException("Invalid value for parameter type", HttpStatus.BAD_REQUEST,
               errorMessage: "URI parameter is wrong type");
@@ -70,10 +65,6 @@ abstract class HTTPBinding {
   }
 }
 
-<<<<<<< HEAD
-=======
-
->>>>>>> Add RequestController.prepare
 class HTTPValueBinding {
   HTTPValueBinding(this.value, {this.symbol});
 
