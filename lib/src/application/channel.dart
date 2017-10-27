@@ -8,7 +8,7 @@ import '../http/http.dart';
 import 'application.dart';
 import '../utilities/resource_registry.dart';
 
-/// Instances of this type initialize an application's routes and services.
+/// Subclasses of this type initialize an application's routes and services.
 ///
 /// The behavior of an Aqueduct application is defined by subclassing this type and overriding its lifecycle callback methods. An
 /// Aqueduct application may have exactly one subclass of this type declared in its `lib/` directory.
@@ -27,7 +27,7 @@ import '../utilities/resource_registry.dart';
 /// [entryPoint] is the root of the application channel. It receives an HTTP request that flows through the channel until it is responded to.
 ///
 /// Other forms of initialization, e.g. creating a service that interact with a database, should be initialized in [willOpen]. This method is invoked
-/// prior to [entryPoint] so that any services can be injected into the [RequestController]s rooted at [entryPoint].
+/// prior to [entryPoint] so that any services it creates can be injected into the [RequestController]s in the channel.
 ///
 /// An instance of this type is created for each isolate the running application spawns. The number of isolates spawned is determined by an argument to [Application.start]
 /// (which often comes from the command-line tool `aqueduct serve`). Any initialization that occurs in subclasses of this type will be called for each instance.
@@ -37,9 +37,7 @@ import '../utilities/resource_registry.dart';
 ///
 ///         class Channel extends ApplicationChannel {
 ///           static Future initializeApplication(ApplicationConfiguration config) async {
-///             // Do one-time setup here, e.g read configuration values from a file
-///             var configurationValuesFromFile = ...;
-///             config.options = configurationValuesFromFile;
+///             // Do one-time setup here
 ///           }
 ///           ...
 ///         }
@@ -61,9 +59,8 @@ abstract class ApplicationChannel extends Object with APIDocumentable {
   ///
   ///           }
   ///
-  /// Any modifications to [config] are available in each [ApplicationChannel] and therefore must be isolate-safe data. Do not configure
-  /// types like [HTTPCodecRepository] or any other data that isn't explicitly passed through [config]. If it can't be safely passed in [ApplicationConfiguration],
-  /// it shouldn't be modified.
+  /// Any modifications to [config] will be available in each [ApplicationChannel] and therefore must be isolate-safe data. Do not configure
+  /// types like [HTTPCodecRepository], [CORSPolicy.defaultPolicy] or any other value that isn't explicitly passed through [config].
   ///
   /// * Note that static methods are not inherited in Dart and therefore you are not overriding this method. The declaration of this method in the base [ApplicationChannel] class
   /// is for documentation purposes.
@@ -262,8 +259,7 @@ abstract class ApplicationChannel extends Object with APIDocumentable {
 /// These messages are be received by [listen]ing to an instance of this type. A hub only receives messages from other isolates - it will not
 /// receive messages that it sent.
 ///
-/// This type implements both [Stream] (for receiving events from other isolates) and [Sink] (for sending events to other isolates). Avoid
-/// [Stream] methods such as [Stream.first], which will stop the hub from listening to future events.
+/// This type implements both [Stream] (for receiving events from other isolates) and [Sink] (for sending events to other isolates).
 ///
 /// For example, an application may want to send data to every connected websocket. A reference to each websocket
 /// is only known to the isolate it established a connection on. This data must be sent to each isolate so that each websocket

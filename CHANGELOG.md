@@ -6,6 +6,7 @@
 - Deprecates `@httpGet` and similar constants for `Bind.get()` and similar constructors.
 - Renames `Request.innerRequest` to `Request.raw`.
 - Removes `runOnMainIsolate` from `Application.start()` and introduces `Application.test()` as replacement.
+- Renames `RequestSink` to `ApplicationChannel` and improves its structure.
 
 ## 2.5.0
 

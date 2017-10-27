@@ -12,10 +12,9 @@ import 'isolate_supervisor.dart';
 class ApplicationIsolateServer extends ApplicationServer {
   SendPort supervisingApplicationPort;
   ReceivePort supervisingReceivePort;
-  bool logToConsole;
 
   ApplicationIsolateServer(ClassMirror channelType, ApplicationConfiguration configuration, int identifier,
-      this.supervisingApplicationPort, this.logToConsole)
+      this.supervisingApplicationPort, {bool logToConsole: false})
       : super(channelType, configuration, identifier) {
     if (logToConsole) {
       hierarchicalLoggingEnabled = true;
@@ -67,13 +66,13 @@ class ApplicationIsolateServer extends ApplicationServer {
   }
 }
 
-/// This method is used internally.
+
 void isolateServerEntryPoint(ApplicationInitialServerMessage params) {
   var channelSourceLibrary = currentMirrorSystem().libraries[params.streamLibraryURI];
   var channelType = channelSourceLibrary.declarations[new Symbol(params.streamTypeName)] as ClassMirror;
 
   var server = new ApplicationIsolateServer(channelType,
-      params.configuration, params.identifier, params.parentMessagePort, params.logToConsole);
+      params.configuration, params.identifier, params.parentMessagePort, logToConsole: params.logToConsole);
 
   server.start(shareHttpServer: true);
 }

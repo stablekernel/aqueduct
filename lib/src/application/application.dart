@@ -23,7 +23,9 @@ export 'application_server.dart';
 ///
 /// Instances of this class are created by the command like `aqueduct serve` tool and rarely used by an Aqueduct developer directly.
 class Application<T extends ApplicationChannel> {
-  /// Used internally.
+  /// Isolate supervisors for application started with [start].
+  ///
+  /// Each spawned isolated is managed by the instances in this property.
   List<ApplicationIsolateSupervisor> supervisors = [];
 
   /// The [ApplicationServer] managing delivering HTTP requests into this application.
@@ -66,13 +68,14 @@ class Application<T extends ApplicationChannel> {
   /// Starts the application by spawning Isolates that listen for HTTP requests.
   ///
   /// Returns a [Future] that completes when all [Isolate]s have started listening for requests.
-  /// The [numberOfInstances] defines how many [Isolate]s are spawned running this application's [configuration]
-  /// and [T].
+  /// The [numberOfInstances] defines how many [Isolate]s are spawned.
   ///
-  /// If this instances [T] implements `initializeApplication` (see [ApplicationChannel] for more details),
+  /// Each isolate creates a channel defined by [T]'s [ApplicationChannel.entryPoint] that requests are sent to.
+  ///
+  /// If [T] implements `initializeApplication` (see [ApplicationChannel] for more details),
   /// that one-time initialization method will be executed prior to the spawning of isolates and instantiations of [ApplicationChannel].
   ///
-  /// See also [test] for starting an application when running automated tests
+  /// See also [test] for starting an application when running automated tests.
   Future start({int numberOfInstances: 1, bool consoleLogging: false}) async {
     if (server != null || supervisors.length > 0) {
       throw new ApplicationStartupException("Application already started.");
@@ -111,7 +114,7 @@ class Application<T extends ApplicationChannel> {
   /// Starts the application for the purpose of running automated tests.
   ///
   /// An application started in this way will run on the same isolate this method is invoked on. Use this method
-  /// to start the application when running tests with the `test` package.
+  /// to start the application when running tests with the `aqueduct/aqueduct_test` library.
   Future test() async {
     if (server != null || supervisors.length > 0) {
       throw new ApplicationStartupException("Application already started.");
@@ -140,7 +143,7 @@ class Application<T extends ApplicationChannel> {
 
   /// Stops the application from running.
   ///
-  /// Closes down every [T] and stops listening for HTTP requests.
+  /// Closes down every channel and stops listening for HTTP requests.
   Future stop() async {
     await Future.wait(supervisors.map((s) => s.stop()));
     await server?.server?.close(force: true);
@@ -155,6 +158,7 @@ class Application<T extends ApplicationChannel> {
     logger.clearListeners();
   }
 
+  /// Creates an [APIDocument] for this application.
   static Future<APIDocument> document(
       Type channelType, ApplicationConfiguration config, PackagePathResolver resolver) async {
     var channelMirror = reflectClass(channelType);

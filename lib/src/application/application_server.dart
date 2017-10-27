@@ -10,13 +10,13 @@ import 'application.dart';
 import 'application_configuration.dart';
 import 'package:stack_trace/stack_trace.dart';
 
-/// Manages listening for HTTP requests and delivering them to [ApplicationChannel] instances.
+/// Listens for HTTP requests and delivers them to its [ApplicationChannel] instance.
 ///
 /// An Aqueduct application creates instances of this type to pair an HTTP server and an
-/// instance of an application-specific [ApplicationChannel]. Instances are created by [Application]
+/// instance of an [ApplicationChannel] subclass. Instances are created by [Application]
 /// and shouldn't be created otherwise.
 class ApplicationServer {
-  /// Creates an instance of this type.
+  /// Creates a new server that sending requests to [channelType].
   ///
   /// You should not need to invoke this method directly.
   ApplicationServer(ClassMirror channelType, this.configuration, this.identifier, {this.captureStack: false}) {
@@ -24,7 +24,6 @@ class ApplicationServer {
     channel.server = this;
     channel.configuration = configuration;
   }
-
 
   /// The configuration this instance used to start its [channel].
   ApplicationConfiguration configuration;
@@ -35,6 +34,7 @@ class ApplicationServer {
   /// The instance of [ApplicationChannel] serving requests.
   ApplicationChannel channel;
 
+  /// The cached entrypoint of [channel].
   RequestController entryPoint;
 
   /// Used during debugging to capture the stacktrace better for asynchronous calls.
@@ -42,11 +42,12 @@ class ApplicationServer {
   /// Defaults to false.
   bool captureStack;
 
-  /// Target for sending messages to other [ApplicationChannel] isolates.
+  /// Target for sending messages to other [ApplicationChannel.messageHub]s.
   ///
   /// Events are added to this property by instances of [ApplicationMessageHub] and should not otherwise be used.
   EventSink<dynamic> hubSink;
 
+  /// Whether or not this server requires an HTTPS listener.
   bool get requiresHTTPS => _requiresHTTPS;
   bool _requiresHTTPS = false;
 
@@ -61,8 +62,7 @@ class ApplicationServer {
 
   /// Starts this instance, allowing it to receive HTTP requests.
   ///
-  /// Do not invoke this method directly, [Application] instances are responsible
-  /// for calling this method.
+  /// Do not invoke this method directly.
   Future start({bool shareHttpServer: false}) async {
     logger.fine("ApplicationServer($identifier).start entry");
 
@@ -93,6 +93,7 @@ class ApplicationServer {
     return didOpen();
   }
 
+  /// Closes this HTTP server and channel.
   Future close() async {
     logger.fine("ApplicationServer($identifier).close Closing HTTP listener");
     await server?.close(force: true);
