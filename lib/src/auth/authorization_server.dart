@@ -27,7 +27,7 @@ import 'auth.dart';
 ///           AuthServer authServer;
 ///
 ///           @override
-///           Future willOpen() async {
+///           Future prepare() async {
 ///             context = createContext();
 ///             authServer = new AuthServer(new ManagedAuthStorage<User>(context));
 ///           }

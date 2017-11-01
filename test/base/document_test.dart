@@ -422,7 +422,7 @@ class TestChannel extends ApplicationChannel {
   AuthServer authServer;
 
   @override
-  Future willOpen() async {
+  Future prepare() async {
     authServer = new AuthServer(new InMemoryAuthStorage());
   }
 

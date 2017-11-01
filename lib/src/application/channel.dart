@@ -26,7 +26,7 @@ import '../utilities/resource_registry.dart';
 ///
 /// [entryPoint] is the root of the application channel. It receives an HTTP request that flows through the channel until it is responded to.
 ///
-/// Other forms of initialization, e.g. creating a service that interact with a database, should be initialized in [willOpen]. This method is invoked
+/// Other forms of initialization, e.g. creating a service that interact with a database, should be initialized in [prepare]. This method is invoked
 /// prior to [entryPoint] so that any services it creates can be injected into the [RequestController]s in the channel.
 ///
 /// An instance of this type is created for each isolate the running application spawns. The number of isolates spawned is determined by an argument to [Application.start]
@@ -116,9 +116,9 @@ abstract class ApplicationChannel extends Object with APIDocumentable {
   /// This property is most often a configured [Router], but could be any type of [RequestController].
   ///
   /// This method is invoked exactly once for each instance, and the result is stored throughout the remainder of the application's lifetime.
-  /// This method must fully configure the entire application channel, as no controllers may be added to the channel after it completes.
+  /// This method must fully configure the entire application channel; no controllers may be added to the channel after this method completes.
   ///
-  /// This method is always invoked after [willOpen].
+  /// This method is always invoked after [prepare].
   RequestController get entryPoint;
 
   /// Initialization callback.
@@ -126,13 +126,12 @@ abstract class ApplicationChannel extends Object with APIDocumentable {
   /// This method allows this instance to perform any initialization (other than setting up the [entryPoint]). This method
   /// is often used to set up services that [RequestController]s use to fulfill their duties. This method is invoked
   /// prior to [entryPoint], so that the services it creates can be injected into [RequestController]s.
-  Future willOpen() async {}
+  Future prepare() async {}
 
-  /// Executed after the instance is is open to handle HTTP requests.
+  /// Executed after the instance has been initialized, but right before it will start receiving requests.
   ///
-  /// This method is executed after the [HttpServer] is started and
-  /// the [entryPoint] has been set to start receiving requests.
-  void didOpen() {}
+  /// Override this method to take action just before [entryPoint] starts receiving requests. By default, does nothing.
+  void willStartReceivingRequests() {}
 
   /// Closes this instance.
   ///

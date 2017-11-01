@@ -104,11 +104,11 @@ void main() {
       }
 
       try {
-        crashingApp.configuration.options = {"crashIn": "willOpen"};
+        crashingApp.configuration.options = {"crashIn": "prepare"};
         await crashingApp.test();
         expect(true, false);
       } on ApplicationStartupException catch (e) {
-        expect(e.originalException.toString(), contains("willOpen"));
+        expect(e.originalException.toString(), contains("prepare"));
       }
 
       crashingApp.configuration.options = {"crashIn": "dontCrash"};
@@ -140,9 +140,9 @@ class CrashingTestChannel extends ApplicationChannel {
   }
 
   @override
-  Future willOpen() async {
-    if (configuration.options["crashIn"] == "willOpen") {
-      throw new TestException("willOpen");
+  Future prepare() async {
+    if (configuration.options["crashIn"] == "prepare") {
+      throw new TestException("prepare");
     }
   }
 }

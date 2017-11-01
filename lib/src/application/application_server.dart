@@ -66,7 +66,7 @@ class ApplicationServer {
   Future start({bool shareHttpServer: false}) async {
     logger.fine("ApplicationServer($identifier).start entry");
 
-    await channel.willOpen();
+    await channel.prepare();
 
     entryPoint = channel.entryPoint;
     entryPoint.prepare();
@@ -107,7 +107,7 @@ class ApplicationServer {
 
   /// Invoked when this server becomes ready receive requests.
   ///
-  /// [ApplicationChannel.didOpen] is invoked after this opening has completed.
+  /// [ApplicationChannel.willStartReceivingRequests] is invoked after this opening has completed.
   Future didOpen() async {
     server.serverHeader = "aqueduct/${this.identifier}";
 
@@ -122,7 +122,7 @@ class ApplicationServer {
       server.map((baseReq) => new Request(baseReq)).listen(entryPoint.receive);
     }
 
-    channel.didOpen();
+    channel.willStartReceivingRequests();
     logger.info("Server aqueduct/$identifier started.");
   }
 

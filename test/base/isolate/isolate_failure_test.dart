@@ -29,11 +29,11 @@ void main() {
           }
 
           try {
-            crashingApp.configuration.options = {"crashIn": "willOpen"};
+            crashingApp.configuration.options = {"crashIn": "prepare"};
             await crashingApp.start(consoleLogging: true);
             expect(true, false);
           } on ApplicationStartupException catch (e) {
-            expect(e.toString(), contains("TestException: willOpen"));
+            expect(e.toString(), contains("TestException: prepare"));
           }
 
           crashingApp.configuration.options = {"crashIn": "dontCrash"};
@@ -109,7 +109,7 @@ class TimeoutChannel extends ApplicationChannel {
   }
 
   @override
-  Future willOpen() async {
+  Future prepare() async {
     int timeoutLength = configuration.options["timeout${server.identifier}"];
     if (timeoutLength == null) {
       return;
@@ -157,9 +157,9 @@ class CrashChannel extends ApplicationChannel {
   }
 
   @override
-  Future willOpen() async {
-    if (configuration.options["crashIn"] == "willOpen") {
-      throw new TestException("willOpen");
+  Future prepare() async {
+    if (configuration.options["crashIn"] == "prepare") {
+      throw new TestException("prepare");
     }
   }
 }

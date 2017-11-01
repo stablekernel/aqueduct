@@ -12,7 +12,7 @@ import 'package:aqueduct/src/application/channel.dart';
 ///            ManagedContext context;
 ///
 ///            @override
-///            Future willOpen () async {
+///            Future prepare() async {
 ///               var store = new PostgreSQLPersistentStore(...);
 ///               var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
 ///               context = new ManagedContext(dataModel, store);
