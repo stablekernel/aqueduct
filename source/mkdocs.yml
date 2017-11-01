@@ -16,9 +16,9 @@ pages:
 - IntelliJ IDEA Templates: 'intellij.md'
 - Tutorial:
   - '1. Getting Started': 'tut/getting-started.md'
-  - '2. Writing Tests': 'tut/writing-tests.md'
-  - '3. Executing Database Queries': 'tut/executing-queries.md'
-  - '4. Advanced Database Queries': 'tut/model-relationships-and-joins.md'
+  - '2. Executing Database Queries': 'tut/executing-queries.md'
+  - '3. Advanced Database Queries': 'tut/model-relationships-and-joins.md'
+  - '4. Writing Tests': 'tut/writing-tests.md'
   - '5. Deploying': 'tut/deploying-and-other-fun-things.md'
 - Serving HTTP Requests:
   - 'Overview': 'http/overview.md'
@@ -26,7 +26,7 @@ pages:
   - 'Request and Response Objects': 'http/request_and_response.md'
   - 'Handling Requests: Fundamentals': 'http/request_controller.md'
   - 'Routing': 'http/routing.md'
-  - 'Initialization and the RequestSink': 'http/request_sink.md'
+  - 'Initialization and the ApplicationChannel': 'http/channel.md'
   - 'Handling Requests: HTTPController': 'http/http_controller.md'
   - 'Configuration': 'http/configure.md'
   - 'Serving Files and Caching': 'http/serving_files.md'

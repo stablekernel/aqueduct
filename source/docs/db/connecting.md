@@ -5,11 +5,12 @@ The interface to a database from Aqueduct is an instance of `ManagedContext`, wh
 - a `ManagedDataModel` that describes your application's data model
 - a `PersistentStore` that creates database connections and transmits data across that connection.
 
-A `ManagedContext` uses these two objects to coordinate moving data to and from your application and a database when executing `Query<T>`s. A `ManagedContext` - and its store and data model - are created in a `RequestSink` constructor.
+A `ManagedContext` uses these two objects to coordinate moving data to and from your application and a database when executing `Query<T>`s. A `ManagedContext` - and its store and data model - are created in a `ApplicationChannel` constructor.
 
 ```dart
-class MyRequestSink extends RequestSink {
-  MyRequestSink(ApplicationConfiguration config) : super(config) {
+class MyApplicationChannel extends ApplicationChannel {
+  @override
+  Future prepare() async {
     var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
     var psc = new PostgreSQLPersistentStore.fromConnectionInfo(
         "username", "password", "host", 5432, "databaseName");
@@ -36,8 +37,9 @@ class MyConfigurationItem extends ConfigurationItem {
   DatabaseConnectionConfiguration database;
 }
 
-class MyRequestSink extends RequestSink {
-  MyRequestSink(ApplicationConfiguration config) : super(config) {
+class MyApplicationChannel extends ApplicationChannel {
+  @override
+  Future prepare() async {
     var appConfig = new MyConfigurationItem(config.configurationFilePath);
 
     var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();

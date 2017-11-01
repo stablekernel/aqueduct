@@ -117,15 +117,16 @@ void onChatMessage(String message) {
     socket.add(message);
   });
 
-  requestSink.messageHub.add({"event": "websocket_broadcast", "message": message});
+  ApplicationChannel.messageHub.add({"event": "websocket_broadcast", "message": message});
 }
 ```
 
 Anything added to the `messageHub` will be delivered to the listener for every other message hub - i.e., every other isolate will receive this data. The other isolates then send the message to each of their connected websockets:
 
 ```dart
-class ChatSink extends RequestSink {
-  ChatSink(ApplicationConfiguration config) : super(config) {
+class ChatChannel extends ApplicationChannel {
+  @override
+  Future prepare() async {
     messageHub.listen((event) {
       if (event is Map && event["event"] == "websocket_broadcast") {
         connectedSockets.forEach((socket) {

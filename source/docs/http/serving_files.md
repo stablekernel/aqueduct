@@ -9,8 +9,12 @@ Instances of `HTTPFileController` serve a directory from the filesystem through 
 
 ```dart
 @override
-void setupRouter(Router router) {
+RequestController get entryPoint {
+  final router = new Router();
+
   router.route("/files/*").pipe(new HTTPFileController("public/"));
+
+  return router;
 }
 ```
 
@@ -22,7 +26,7 @@ Note that `public/` does not have a leading slash - therefore, the directory `pu
 project/
   pubspec.yaml  
   lib/
-    project_sink.dart
+    channel.dart
     ...
   test/
     ...

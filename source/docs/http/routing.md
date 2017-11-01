@@ -10,21 +10,23 @@ More generally, the "About" page URL has the three required components of a URL:
 
 An Aqueduct application receives requests when the scheme is `http` (or `https`) and the host refers to a machine where the application is running. Therefore, once the application gets the request, it only cares about the remaining component: the path.
 
-In Aqueduct, a `Router` routes `Request`s to a `RequestController` based on the request path. This process is known as *routing*. When an application starts up, routes are registered in a subclass of `RequestSink`. Each registered route creates a new [channel](structure.md) of `RequestController`s that the request will be passed through.
+In Aqueduct, a `Router` routes `Request`s to a `RequestController` based on the request path. This process is known as *routing*. When an application starts up, routes are registered in a subclass of `ApplicationChannel`. Each registered route creates a new [channel](structure.md) of `RequestController`s that the request will be passed through.
 
 ## Route Specifications Match HTTP Request Paths
 
-A route is registered by invoking `Router.route`. This method takes a *route specification* - a `String` with some syntax rules that will match the path of a request. This registration occurs when an application first starts by overriding `RequestSink.setupRouter`. For example:
+A route is registered by invoking `Router.route`. This method takes a *route specification* - a `String` with some syntax rules that will match the path of a request. This registration occurs when an application first starts by overriding `ApplicationChannel.entryPoint`. For example:
 
 ```dart
-class MyRequestSink extends RequestSink {
-  MyRequestSink(ApplicationConfiguration config): super(config);
-
+class MyApplicationChannel extends ApplicationChannel {
   @override
-  void setupRouter(Router router) {
+  RequestController get entryPoint {
+    final router = new Router();
+
     router
       .route("/users")
       .listen((req) async => new Response.ok(await getAllUsers());
+
+    return router;
   }
 }
 ```

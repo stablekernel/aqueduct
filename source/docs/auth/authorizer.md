@@ -4,7 +4,9 @@ Instances of `Authorizer` are added to a request controller channel to verify HT
 
 ```dart
 @override
-void setupRouter(Router router) {
+RequestController get entryPoint {
+  final router = new Router();
+
   router
     .route("/protected")
     .pipe(new Authorizer.bearer(authServer))
@@ -14,6 +16,8 @@ void setupRouter(Router router) {
     .route("/other")
     .pipe(new Authorizer.basic(authServer))
     .generate(() => new OtherProtectedController());
+
+  return router;
 }
 ```
 

@@ -4,11 +4,12 @@ Running an Aqueduct server locally while developing client applications is an im
 
 ## Enable Logging and Return Server Errors
 
-Ensure that logging is on while developing client applications by registering a listener on `RequestSink.logger`.
+Ensure that logging is on while developing client applications by registering a listener on `ApplicationChannel.logger`.
 
 ```dart
-class MyRequestSink extends RequestSink {
-  MyRequestSink(ApplicationConfiguration config) : super(config) {
+class MyApplicationChannel extends ApplicationChannel {
+  @override
+  Future prepare() async {
     logger.onRecord.listen((record) {
       print("$record ${record.error ?? ""} ${record.stackTrace ?? ""}");
     });
@@ -17,11 +18,12 @@ class MyRequestSink extends RequestSink {
 }
 ```
 
-A useful feature to turn on during debugging is sending stack traces for 500 Server Error responses. Turn this flag on in a `RequestSink` while debugging:
+A useful feature to turn on during debugging is sending stack traces for 500 Server Error responses. Turn this flag on in a `ApplicationChannel` while debugging:
 
 ```dart
-class MyRequestSink extends RequestSink {
-  MyRequestSink(ApplicationConfiguration config) : super(config) {
+class MyApplicationChannel extends ApplicationChannel {
+  @override
+  Future prepare() async {
     RequestController.includeErrorDetailsInServerErrorResponses = true;
   }
   ...

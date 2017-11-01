@@ -6,8 +6,11 @@
 import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/managed_auth.dart';
 
-class AppSink extends RequestSink {
-  AppSink(ApplicationConfiguration appConfig) : super(appConfig) {
+class AppChannel extends ApplicationChannel {
+  AuthServer authServer;
+
+  @override
+  Future prepare() async {
     var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
     var psc = new PostgreSQLPersistentStore.fromConnectionInfo(
         "username",
@@ -22,11 +25,11 @@ class AppSink extends RequestSink {
     authServer = new AuthServer(authStorage);
   }
 
-  AuthServer authServer;
-
   @override
-  void setupRouter(Router router) {
+  RequestController get entryPoint {
+    final router = new Router();
     router.route("/auth/token").generate(() => new AuthController(authServer));  
+    return router;
   }
 }
 ```
@@ -47,8 +50,11 @@ aqueduct auth add-client \
 import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/managed_auth.dart';
 
-class AppSink extends RequestSink {
-  AppSink(ApplicationConfiguration appConfig) : super(appConfig) {
+class AppChannel extends ApplicationChannel {
+  AuthServer authServer;
+
+  @override
+  Future prepare() async {
     var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
     var psc = new PostgreSQLPersistentStore.fromConnectionInfo(
         "username",
@@ -63,10 +69,8 @@ class AppSink extends RequestSink {
     authServer = new AuthServer(authStorage);
   }
 
-  AuthServer authServer;
-
   @override
-  void setupRouter(Router router) {
+  RequestController get entryPoint {
     router.route("/auth/token").generate(() => new AuthController(authServer));
 
     router
@@ -90,19 +94,23 @@ class ProfileController extends HTTPController {
 ```dart
 import 'package:aqueduct/aqueduct.dart';
 
-class AppSink extends RequestSink {
-  AppSink(ApplicationConfiguration appConfig) : super(appConfig) {
+class AppChannel extends ApplicationChannel {
+  @override
+  Future prepare() async {
     passwordVerifier = new PasswordVerifier();
   }
 
   PasswordVerified passwordVerifier;
 
   @override
-  void setupRouter(Router router) {
+  RequestController get entryPoint {
+    final router = new Router();
     router
       .route("/profile")
       .pipe(new Authorizer.basic(passwordVerifier))
       .listen((req) async => new Response.ok(null));
+
+    return router;
   }
 }
 
@@ -129,8 +137,11 @@ class PasswordVerifier extends AuthValidator {
 import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/managed_auth.dart';
 
-class AppSink extends RequestSink {
-  AppSink(ApplicationConfiguration appConfig) : super(appConfig) {
+class AppChannel extends ApplicationChannel {
+  AuthServer authServer;
+
+  @override
+  Future prepare() async {
     var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
     var psc = new PostgreSQLPersistentStore.fromConnectionInfo(
         "username",
@@ -143,16 +154,16 @@ class AppSink extends RequestSink {
 
     var authStorage = new ManagedAuthStorage<User>(ManagedContext.defaultContext);
     authServer = new AuthServer(authStorage);
-  }
-
-  AuthServer authServer;
+  }  
 
   @override
-  void setupRouter(Router router) {
+  RequestController get entryPoint {
+    final router = new Router();
     router.route("/auth/token").generate(() => new AuthController(authServer));  
 
     router.route("/auth/code").generate(() => new AuthCodeController(authServer,
         renderAuthorizationPageHTML: renderLoginPage));
+    return router;
   }
 
   Future<String> renderLoginPage(

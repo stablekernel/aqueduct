@@ -67,8 +67,9 @@ GRANT ALL ON DATABASE my_database_name TO dart_app;
 An application must create a `ManagedContext` that connects to this database:
 
 ```dart
-class MyProjectSink extends RequestSink {
-  MyProjectSink(ApplicationConfiguration config) : super(config) {
+class MyChannel extends ApplicationChannel {
+  @override
+  Future prepare() async {
     var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
     var store = new PostgreSQLPersistentStore.fromConnectionInfo(
       "dart_app", "dart", "localhost", 5432, "my_database_name");
