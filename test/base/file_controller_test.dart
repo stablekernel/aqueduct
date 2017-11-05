@@ -172,6 +172,11 @@ void main() {
     expect(response.body, htmlContents);
   });
 
+  test("Attempt to reference file as directory yields 404", () async {
+    var response = await getFile("/index.html/");
+    expect(response.statusCode, 404);
+  });
+
   test("Subdir without trailing/ serves index.html", () async {
     var response = await getFile("/subdir");
     expect(response.statusCode, 200);
