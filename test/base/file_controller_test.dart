@@ -22,7 +22,7 @@ void main() {
   var noFileExtension = new File.fromUri(fileDirectory.uri.resolve("file"));
   var sillyFileExtension = new File.fromUri(fileDirectory.uri.resolve("file.silly"));
   var subdir = new Directory.fromUri(fileDirectory.uri.resolve("subdir/"));
-  var subdirFile = new File.fromUri(subdir.uri.resolve("a.html"));
+  var subdirFile = new File.fromUri(subdir.uri.resolve("index.html"));
 
   HttpServer server;
 
@@ -74,7 +74,7 @@ void main() {
   });
 
   test("Can serve json file",  () async {
-    var response = await getFile("file.json");
+    var response = await getFile("/file.json");
     expect(response.statusCode, 200);
     expect(response.headers["content-type"], "application/json; charset=utf-8");
     expect(response.headers["content-encoding"], "gzip");
@@ -85,7 +85,7 @@ void main() {
   });
 
   test("Can serve html file",  () async {
-    var response = await getFile("file.html");
+    var response = await getFile("/file.html");
     expect(response.statusCode, 200);
     expect(response.headers["content-type"], "text/html; charset=utf-8");
     expect(response.headers["content-encoding"], "gzip");
@@ -96,7 +96,7 @@ void main() {
   });
 
   test("Missing files returns 404", () async {
-    var response = await getFile("file.foobar");
+    var response = await getFile("/file.foobar");
     expect(response.headers["last-modified"], isNull);
     expect(response.headers["cache-control"], isNull);
     expect(response.headers["content-type"], "text/html; charset=utf-8");
@@ -106,7 +106,7 @@ void main() {
   });
 
   test("If 404 response to request without Accept: text/html, do not include HTML body", () async {
-    var response = await getFile("file.foobar", headers: {HttpHeaders.ACCEPT: "text/plain"});
+    var response = await getFile("/file.foobar", headers: {HttpHeaders.ACCEPT: "text/plain"});
     expect(response.headers["last-modified"], isNull);
     expect(response.headers["cache-control"], isNull);
     expect(response.headers["content-type"], isNull);
@@ -116,7 +116,7 @@ void main() {
   });
 
   test("Unknown extension-content type is application/octet-stream", () async {
-    var response = await getFile("file.unk");
+    var response = await getFile("/file.unk");
     expect(response.statusCode, 200);
     expect(response.headers["content-type"], "application/octet-stream");
     expect(response.headers["content-encoding"], isNull);
@@ -127,7 +127,7 @@ void main() {
   });
 
   test("No file extension is application/octet-stream", () async {
-    var response = await getFile("file");
+    var response = await getFile("/file");
     expect(response.statusCode, 200);
     expect(response.headers["content-type"], "application/octet-stream");
     expect(response.headers["content-encoding"], isNull);
@@ -139,7 +139,7 @@ void main() {
   });
 
   test("If no file specified, serve index.html", () async {
-    var response = await getFile("");
+    var response = await getFile("/");
     expect(response.statusCode, 200);
     expect(response.headers["content-type"], "text/html; charset=utf-8");
     expect(response.headers["content-encoding"], "gzip");
@@ -151,7 +151,7 @@ void main() {
   });
 
   test("Serve out of subdir", () async {
-    var response = await getFile("subdir/a.html");
+    var response = await getFile("/subdir/index.html");
     expect(response.statusCode, 200);
     expect(response.headers["content-type"], "text/html; charset=utf-8");
     expect(response.headers["content-encoding"], "gzip");
@@ -159,9 +159,28 @@ void main() {
     expect(response.headers["cache-control"], isNull);
     expect(HttpDate.parse(response.headers["last-modified"]), isNotNull);
     expect(response.body, htmlContents);
+  });
 
-    response = await getFile("subdir/");
-    expect(response.statusCode, 404);
+  test("Subdir with trailing/ serves index.html", () async {
+    var response = await getFile("/subdir/");
+    expect(response.statusCode, 200);
+    expect(response.headers["content-type"], "text/html; charset=utf-8");
+    expect(response.headers["content-encoding"], "gzip");
+    expect(response.headers["transfer-encoding"], "chunked");
+    expect(response.headers["cache-control"], isNull);
+    expect(HttpDate.parse(response.headers["last-modified"]), isNotNull);
+    expect(response.body, htmlContents);
+  });
+
+  test("Subdir without trailing/ serves index.html", () async {
+    var response = await getFile("/subdir");
+    expect(response.statusCode, 200);
+    expect(response.headers["content-type"], "text/html; charset=utf-8");
+    expect(response.headers["content-encoding"], "gzip");
+    expect(response.headers["transfer-encoding"], "chunked");
+    expect(response.headers["cache-control"], isNull);
+    expect(HttpDate.parse(response.headers["last-modified"]), isNotNull);
+    expect(response.body, htmlContents);
   });
 
   test("Can add extension", () async {
@@ -182,7 +201,7 @@ void main() {
     await socket.flush();
     socket.destroy();
 
-    var response = await getFile("file.html");
+    var response = await getFile("/file.html");
     expect(response.statusCode, 200);
     expect(response.body, htmlContents);
 
@@ -195,10 +214,9 @@ void main() {
     expect(JSON.decode(response.body), {"k":"v"});
   });
 
-
   group("Default caching", () {
     test("Uncached file has no cache-control", () async {
-      var response = await getCacheableFile("file.json");
+      var response = await getCacheableFile("/file.json");
       expect(response.statusCode, 200);
       expect(response.headers["content-type"], "application/json; charset=utf-8");
       expect(response.headers["content-encoding"], "gzip");
@@ -209,7 +227,7 @@ void main() {
     });
 
     test("HTML file has no-cache", () async {
-      var response = await getCacheableFile("file.html");
+      var response = await getCacheableFile("/file.html");
       expect(response.statusCode, 200);
       expect(response.headers["content-type"], "text/html; charset=utf-8");
       expect(response.headers["content-encoding"], "gzip");
@@ -220,7 +238,7 @@ void main() {
     });
 
     test("Fetch file with If-Modified-Since before last modified date, returns file", () async {
-      var response = await getCacheableFile("file.html", ifModifiedSince: new DateTime(2000));
+      var response = await getCacheableFile("/file.html", ifModifiedSince: new DateTime(2000));
       expect(response.statusCode, 200);
       expect(response.headers["content-type"], "text/html; charset=utf-8");
       expect(response.headers["content-encoding"], "gzip");
@@ -231,7 +249,7 @@ void main() {
     });
 
     test("Fetch file with If-Modified-Since after last modified date, returns 304 with no body", () async {
-      var response = await getCacheableFile("file.html", ifModifiedSince: new DateTime.now().add(new Duration(hours: 1)));
+      var response = await getCacheableFile("/file.html", ifModifiedSince: new DateTime.now().add(new Duration(hours: 1)));
       expect(response.statusCode, 304);
       expect(response.headers["content-type"], isNull);
       expect(response.headers["content-encoding"], isNull);
@@ -242,7 +260,7 @@ void main() {
     });
 
     test("JS file has large max-age", () async {
-      var response = await getCacheableFile("file.js");
+      var response = await getCacheableFile("/file.js");
       expect(response.statusCode, 200);
       expect(response.headers["content-type"], "application/javascript; charset=utf-8");
       expect(response.headers["content-encoding"], "gzip");
@@ -253,7 +271,7 @@ void main() {
     });
 
     test("CSS file has large max-age", () async {
-      var response = await getCacheableFile("file.css");
+      var response = await getCacheableFile("/file.css");
       expect(response.statusCode, 200);
       expect(response.headers["content-type"], "text/css; charset=utf-8");
       expect(response.headers["content-encoding"], "gzip");
@@ -266,15 +284,15 @@ void main() {
 }
 
 Future<http.Response> getFile(String path, {Map<String, String> headers}) async {
-  return http.get("http://localhost:8081/files/$path", headers: headers);
+  return http.get("http://localhost:8081/files$path", headers: headers);
 }
 
 Future<http.Response> getCacheableFile(String path, {DateTime ifModifiedSince}) async {
   if (ifModifiedSince == null) {
-    return http.get("http://localhost:8081/cache/$path");
+    return http.get("http://localhost:8081/cache$path");
   }
 
-  return http.get("http://localhost:8081/cache/$path", headers: {
+  return http.get("http://localhost:8081/cache$path", headers: {
     HttpHeaders.IF_MODIFIED_SINCE: HttpDate.format(ifModifiedSince)
   });
 }
